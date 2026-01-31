@@ -98,12 +98,6 @@ object DaemonRpc {
     )(serverMessageHandler)
   }
 
-  private def outputToStream(dest: OutputStream): os.ProcessOutput =
-    os.ProcessOutput.ReadBytes { (arr, n) =>
-      dest.write(arr, 0, n)
-      dest.flush()
-    }
-
   def defaultRunSubprocessWithStreams(
       stdout: OutputStream,
       stderr: OutputStream
@@ -113,8 +107,8 @@ object DaemonRpc {
         cwd = os.Path(req.config.cwd),
         env = req.config.env,
         stdin = os.Inherit,
-        stdout = outputToStream(stdout),
-        stderr = outputToStream(stderr),
+        stdout = os.ProcessOutput.ReadBytes(stdout.write(_, 0, _)),
+        stderr = os.ProcessOutput.ReadBytes(stderr.write(_, 0, _)),
         mergeErrIntoOut = req.config.mergeErrIntoOut,
         timeout = req.config.timeoutMillis,
         propagateEnv = req.config.propagateEnv,

@@ -26,40 +26,17 @@ object SonatypeHelpers {
       pgpWorker: PgpWorkerApi,
       artifacts: Seq[(Map[os.SubPath, os.Path], Artifact)]
   ): Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])] = {
-    val signingConfig =
-      if (isSigned) Some(PublishModule.resolveSigningConfig(env, gpgArgs)) else None
-    for ((fileMapping0, artifact) <- artifacts) yield {
-      val publishPath =
-        os.SubPath(artifact.group.replace(".", "/")) / artifact.id / artifact.version
-      val fileMapping = fileMapping0.map { case (name, contents) => publishPath / name -> contents }
-
-      val signedArtifacts =
-        signingConfig match {
-          case Some(config) =>
-            fileMapping.map { case (name, file) =>
-              val signatureFile = pgpWorker.signDetached(
-                file = file,
-                secretKeyBase64 = config.secretKeyBase64,
-                keyIdHint = config.keyIdHint,
-                passphrase = config.passphrase
-              )
-              os.SubPath(s"$name.asc") -> signatureFile
-            }
-          case None => Map.empty
-        }
-
-      val allFiles = (fileMapping ++ signedArtifacts).flatMap { case (name, file) =>
-        val content = os.read.bytes(file)
-
-        Map(
-          name -> content,
-          os.SubPath(s"$name.md5") -> md5hex(content),
-          os.SubPath(s"$name.sha1") -> sha1hex(content)
+    val signer = Option.when(isSigned) {
+      val config = PublishModule.resolveSigningConfig(env, gpgArgs)
+      (file: os.Path) =>
+        pgpWorker.signDetached(
+          file = file,
+          secretKeyBase64 = config.secretKeyBase64,
+          keyIdHint = config.keyIdHint,
+          passphrase = config.passphrase
         )
-      }
-
-      artifact -> allFiles
     }
+    buildArtifactMappings(artifacts, signer)
   }
 
   private[mill] def toSubPathMap(fileMapping: Seq[(os.Path, String)]): Map[os.SubPath, os.Path] =
@@ -72,16 +49,13 @@ object SonatypeHelpers {
       toSubPathMap(fileMapping) -> artifact
     }.toArray
 
-  private[mill] final case class PreparedArtifacts(
-      mappings: Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])],
-      deployments: Vector[(zipFile: java.io.File, deploymentName: DeploymentName)]
-  ) {
-    def mappingsString: String = s"mappings ${pprint(
-        mappings.map { case (a, fileSetContents) =>
-          (a, fileSetContents.keys.toVector.sorted.map(_.toString))
-        }
-      )}"
-  }
+  private def mappingsString(
+      mappings: Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])]
+  ): String = s"mappings ${pprint(
+      mappings.map { case (a, fileSetContents) =>
+        (a, fileSetContents.keys.toVector.sorted.map(_.toString))
+      }
+    )}"
 
   private[mill] def prepareToPublishAll(
       singleBundleName: Option[String],
@@ -91,7 +65,8 @@ object SonatypeHelpers {
           Artifact
       )] => Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])],
       log: Logger
-  ): PreparedArtifacts = {
+  ): (Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])],
+      Vector[(zipFile: java.io.File, deploymentName: DeploymentName)]) = {
     val releases = mapArtifacts(artifacts)
 
     val releaseGroups = releases.groupBy(_.artifact.group)
@@ -119,7 +94,7 @@ object SonatypeHelpers {
           }
         }.toVector
 
-        PreparedArtifacts(releases, deployments)
+        (releases, deployments)
 
       case Some(singleBundleName) =>
         val zipFile = streamToFile(singleBundleName, wd) { outputStream =>
@@ -131,7 +106,7 @@ object SonatypeHelpers {
         }
 
         val deploymentName = DeploymentName(singleBundleName)
-        PreparedArtifacts(releases, Vector((zipFile, deploymentName)))
+        (releases, Vector((zipFile, deploymentName)))
     }
   }
 
@@ -144,9 +119,9 @@ object SonatypeHelpers {
       )] => Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])],
       log: Logger
   )(publishFile: (java.io.File, DeploymentName) => Unit): Unit = {
-    val prepared = prepareToPublishAll(singleBundleName, artifacts, mapArtifacts, log)
-    log.info(prepared.mappingsString)
-    prepared.deployments.foreach { case (zipFile, deploymentName) =>
+    val (mappings, deployments) = prepareToPublishAll(singleBundleName, artifacts, mapArtifacts, log)
+    log.info(mappingsString(mappings))
+    deployments.foreach { case (zipFile, deploymentName) =>
       publishFile(zipFile, deploymentName)
     }
   }
@@ -161,17 +136,9 @@ object SonatypeHelpers {
       publishTo: os.Path,
       log: Logger
   ): Unit = {
-    val prepared = prepareToPublishAll(singleBundleName, artifacts, mapArtifacts, log)
-    log.info(prepared.mappingsString)
-    publishAllToLocal(prepared, publishTo, log)
-  }
-
-  private[mill] def publishAllToLocal(
-      prepared: PreparedArtifacts,
-      publishTo: os.Path,
-      log: Logger
-  ): Unit = {
-    prepared.deployments.foreach { case (zipFile, deploymentName) =>
+    val (mappings, deployments) = prepareToPublishAll(singleBundleName, artifacts, mapArtifacts, log)
+    log.info(mappingsString(mappings))
+    deployments.foreach { case (zipFile, deploymentName) =>
       val target = publishTo / deploymentName.unapply
       log.info(s"Unzipping $zipFile to $target")
       os.makeDir.all(target)
@@ -223,18 +190,37 @@ object SonatypeHelpers {
       artifacts: Seq[(Map[os.SubPath, os.Path], Artifact)]
   ): Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])] = {
     val gpgArgs0 = gpgArgs.asCommandArgs
+    val signer = Option.when(isSigned) { (file: os.Path) =>
+      signWithGpg(file, gpgArgs0, env)
+    }
+    buildArtifactMappings(artifacts, signer)
+  }
+
+  // signing is delegated to the PGP worker or legacy gpg CLI
+
+  private def md5hex(bytes: Array[Byte]): Array[Byte] =
+    hexArray(md5.digest(bytes)).getBytes
+
+  private def sha1hex(bytes: Array[Byte]): Array[Byte] =
+    hexArray(sha1.digest(bytes)).getBytes
+
+  private def buildArtifactMappings(
+      artifacts: Seq[(Map[os.SubPath, os.Path], Artifact)],
+      signer: Option[os.Path => os.Path]
+  ): Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])] = {
     for ((fileMapping0, artifact) <- artifacts) yield {
       val publishPath =
         os.SubPath(artifact.group.replace(".", "/")) / artifact.id / artifact.version
       val fileMapping = fileMapping0.map { case (name, contents) => publishPath / name -> contents }
 
-      val signedArtifacts =
-        if (isSigned) {
+      val signedArtifacts = signer match {
+        case Some(sign) =>
           fileMapping.map { case (name, file) =>
-            val signatureFile = signWithGpg(file, gpgArgs0, env)
+            val signatureFile = sign(file)
             os.SubPath(s"$name.asc") -> signatureFile
           }
-        } else Map.empty
+        case None => Map.empty
+      }
 
       val allFiles = (fileMapping ++ signedArtifacts).flatMap { case (name, file) =>
         val content = os.read.bytes(file)
@@ -249,14 +235,6 @@ object SonatypeHelpers {
       artifact -> allFiles
     }
   }
-
-  // signing is delegated to the PGP worker or legacy gpg CLI
-
-  private def md5hex(bytes: Array[Byte]): Array[Byte] =
-    hexArray(md5.digest(bytes)).getBytes
-
-  private def sha1hex(bytes: Array[Byte]): Array[Byte] =
-    hexArray(sha1.digest(bytes)).getBytes
 
   private def md5 = MessageDigest.getInstance("md5")
 

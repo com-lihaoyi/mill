@@ -1,6 +1,7 @@
 import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
-import mill.testkit.UtestIntegrationTestSuite
+import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
 import utest.*
+import PublishSonatypeCentralTestUtils.*
 
 object PublishSonatypeCentralTests extends UtestIntegrationTestSuite {
   private val ENV_VAR_DRY_RUN = "MILL_TESTS_PUBLISH_DRY_RUN"
@@ -14,11 +15,12 @@ object PublishSonatypeCentralTests extends UtestIntegrationTestSuite {
     "LS0tLS1CRUdJTiBQR1AgUFJJVkFURSBLRVkgQkxPQ0stLS0tLQoKeFZnRWFHekhpeFlKS3dZQkJBSGFSdzhCQVFkQWxQamhsaGo5MUtZUnhDQXFtaUZNMjR1UEVDL0kxemR0CnlWS2dRR1lENHZZQUFQOW9jK0ZFQzQ2dkt6b0tNWVE3M1Jvemh4UDE3WWhUZnZwRFBwYk1CZHNZQ2c2RQp6VEpwYnk1bmFYUm9kV0l1WVhKMGRYSmhlaTUwWlhOMFVISnZhbVZqZENCaWIzUWdQR0Z6UUdGeWRIVnkKWVhvdWJtVjBQc0tNQkJBV0NnQWRCUUpvYk1lTEJBc0pCd2dERlFnS0JCWUFBZ0VDR1FFQ0d3TUNIZ0VBCklRa1FBMkRDK3lxemF1RVdJUVRnUmJWQ05LcVpxRTFkdDB3RFlNTDdLck5xNFR1L0FQNHRDYzZpYWNUdQpZVEJBa2Q3UDZOM1E1VTZjbGdnSElVQ2lRL3lIbmFvVHZ3RUExbU92M2MydEVORGtrdnF5Ujl2YVhWNHEKZlBEckNDRmRTUTR0anpMY3hnVEhYUVJvYk1lTEVnb3JCZ0VFQVpkVkFRVUJBUWRBUHpzMjV5RERLSC80Cm1KNmtMU1dLSExITXJEWUZMWGVHOTNWRTluSVY0Q0FEQVFnSEFBRC9aQ1hVMDhqMkZTU2VYQWdZaFZzNwp2akVDQjQweTA2TjdaM0pqaitCSko3Z08xc0o0QkJnV0NBQUpCUUpvYk1lTEFoc01BQ0VKRUFOZ3d2c3EKczJyaEZpRUU0RVcxUWpTcW1haE5YYmRNQTJEQyt5cXphdUgrY2dEL1QxRUVkVDl1WnR6L255bGk1OHR0CjYxaWNLcndyU3kzSTBBRDNYWWErcm40QS9qWEZlZXNsNVBZZWtpU0ZzNVZGNUczRVNpWmY0amJxZXlOWQpLd09ENVIwSwo9WDhSdQotLS0tLUVORCBQR1AgUFJJVkFURSBLRVkgQkxPQ0stLS0tLQo="
 
   private def dryRunWithKey(
+      tester: IntegrationTester,
       taskName: String,
       dirName: os.SubPath,
       secretBase64: String,
       passphrase: Option[String]
-  ): Unit = integrationTest { tester =>
+  ): Unit = {
     import tester.*
 
     val env = Map(
@@ -83,7 +85,9 @@ object PublishSonatypeCentralTests extends UtestIntegrationTestSuite {
   }
 
   private def dryRun(taskName: String, dirName: os.SubPath): Unit =
-    dryRunWithKey(taskName, dirName, TestPgpSecretBase64, None)
+    integrationTest { tester =>
+      dryRunWithKey(tester, taskName, dirName, TestPgpSecretBase64, None)
+    }
 
   private def withGpgHome[T](secretKeyBase64: String)(f: Map[String, String] => T): T = {
     val gpgHome = os.temp.dir(prefix = "mill-gpg")
@@ -97,41 +101,6 @@ object PublishSonatypeCentralTests extends UtestIntegrationTestSuite {
     val signature = os.Path(file.toString + ".asc")
     os.proc("gpg", "--batch", "--verify", signature.toString, file.toString)
       .call(env = gpgEnv)
-  }
-
-  private def assertChecksumMatches(
-      file: os.Path,
-      checksumFile: os.Path,
-      algorithm: String,
-      gpgEnv: Map[String, String]
-  ): Unit = {
-    val expected = os.read(checksumFile).trim.split("\\s+").headOption.getOrElse("")
-    val actual = gpgDigest(file, algorithm, gpgEnv)
-    assert(expected.nonEmpty && expected.equalsIgnoreCase(actual))
-  }
-
-  private def gpgDigest(file: os.Path, algorithm: String, gpgEnv: Map[String, String]): String = {
-    val res = os.proc("gpg", "--print-md", algorithm, file.toString)
-      .call(env = gpgEnv, stderr = os.Pipe)
-    val out = res.out.text() + res.err.text()
-    val expectedLen = algorithm.toUpperCase match {
-      case "MD5" => 32
-      case "SHA1" => 40
-      case _ => 0
-    }
-    extractHexDigest(out, expectedLen)
-  }
-
-  private def extractHexDigest(output: String, expectedLen: Int): String = {
-    if (expectedLen <= 0) return ""
-    val exact = s"(?i)([0-9a-f]{$expectedLen})".r
-    exact.findFirstMatchIn(output).map(_.group(1)).getOrElse {
-      val loose = "(?i)([0-9a-f][0-9a-f ]{15,})".r
-      loose.findFirstMatchIn(output).flatMap { m =>
-        val cleaned = m.group(1).replace(" ", "")
-        if (cleaned.length >= expectedLen) Some(cleaned.take(expectedLen)) else None
-      }.getOrElse("")
-    }
   }
 
   private def extractExportValue(output: String, name: String): String =
@@ -162,12 +131,7 @@ object PublishSonatypeCentralTests extends UtestIntegrationTestSuite {
     assert(secretBase64.nonEmpty)
     assert(passphrase == "mill-test-passphrase")
 
-    dryRunWithKey(
-      PublishTaskName,
-      PublishDirName,
-      secretBase64,
-      Some(passphrase)
-    )
+    dryRunWithKey(tester, PublishTaskName, PublishDirName, secretBase64, Some(passphrase))
   }
 
   val tests: Tests = Tests {

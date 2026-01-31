@@ -11,10 +11,7 @@ trait PgpWorkerApi {
 
   def extractSigningKeyId(secretKeyBase64: String): String
 
-  def generateKeyPair(
-      userId: String,
-      passphrase: Option[String]
-  ): PgpKeyMaterial
+  def generateKeyPair(userId: String, passphrase: Option[String]): PgpKeyMaterial
 }
 
 final case class PgpKeyMaterial(

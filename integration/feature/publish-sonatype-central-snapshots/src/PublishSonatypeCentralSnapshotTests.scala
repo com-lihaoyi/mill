@@ -1,5 +1,6 @@
 import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
 import mill.testkit.UtestIntegrationTestSuite
+import PublishSonatypeCentralTestUtils.*
 import utest.*
 
 object PublishSonatypeCentralSnapshotTests extends UtestIntegrationTestSuite {
@@ -135,39 +136,6 @@ object PublishSonatypeCentralSnapshotTests extends UtestIntegrationTestSuite {
     checksumTargets.foreach { file =>
       assertChecksumMatches(file, os.Path(file.toString + ".md5"), "MD5")
       assertChecksumMatches(file, os.Path(file.toString + ".sha1"), "SHA1")
-    }
-  }
-
-  private def assertChecksumMatches(
-      file: os.Path,
-      checksumFile: os.Path,
-      algorithm: String
-  ): Unit = {
-    val expected = os.read(checksumFile).trim.split("\\s+").headOption.getOrElse("")
-    val actual = gpgDigest(file, algorithm)
-    assert(expected.nonEmpty && expected.equalsIgnoreCase(actual))
-  }
-
-  private def gpgDigest(file: os.Path, algorithm: String): String = {
-    val res = os.proc("gpg", "--print-md", algorithm, file.toString).call(stderr = os.Pipe)
-    val out = res.out.text() + res.err.text()
-    val expectedLen = algorithm.toUpperCase match {
-      case "MD5" => 32
-      case "SHA1" => 40
-      case _ => 0
-    }
-    extractHexDigest(out, expectedLen)
-  }
-
-  private def extractHexDigest(output: String, expectedLen: Int): String = {
-    if (expectedLen <= 0) return ""
-    val exact = s"(?i)([0-9a-f]{$expectedLen})".r
-    exact.findFirstMatchIn(output).map(_.group(1)).getOrElse {
-      val loose = "(?i)([0-9a-f][0-9a-f ]{15,})".r
-      loose.findFirstMatchIn(output).flatMap { m =>
-        val cleaned = m.group(1).replace(" ", "")
-        if (cleaned.length >= expectedLen) Some(cleaned.take(expectedLen)) else None
-      }.getOrElse("")
     }
   }
 
