@@ -9,6 +9,7 @@ object PublishSonatypeCentralTests extends UtestIntegrationTestSuite {
   private val PublishAllTaskName = "mill.javalib.SonatypeCentralPublishModule/publishAll"
   private val PublishAllDirName =
     os.SubPath("mill.javalib.SonatypeCentralPublishModule/publishAll.dest")
+  private val InitGpgKeysTaskName = "mill.javalib.SonatypeCentralPublishModule/initGpgKeys"
   private val TestPgpSecretBase64 =
     "LS0tLS1CRUdJTiBQR1AgUFJJVkFURSBLRVkgQkxPQ0stLS0tLQoKeFZnRWFHekhpeFlKS3dZQkJBSGFSdzhCQVFkQWxQamhsaGo5MUtZUnhDQXFtaUZNMjR1UEVDL0kxemR0CnlWS2dRR1lENHZZQUFQOW9jK0ZFQzQ2dkt6b0tNWVE3M1Jvemh4UDE3WWhUZnZwRFBwYk1CZHNZQ2c2RQp6VEpwYnk1bmFYUm9kV0l1WVhKMGRYSmhlaTUwWlhOMFVISnZhbVZqZENCaWIzUWdQR0Z6UUdGeWRIVnkKWVhvdWJtVjBQc0tNQkJBV0NnQWRCUUpvYk1lTEJBc0pCd2dERlFnS0JCWUFBZ0VDR1FFQ0d3TUNIZ0VBCklRa1FBMkRDK3lxemF1RVdJUVRnUmJWQ05LcVpxRTFkdDB3RFlNTDdLck5xNFR1L0FQNHRDYzZpYWNUdQpZVEJBa2Q3UDZOM1E1VTZjbGdnSElVQ2lRL3lIbmFvVHZ3RUExbU92M2MydEVORGtrdnF5Ujl2YVhWNHEKZlBEckNDRmRTUTR0anpMY3hnVEhYUVJvYk1lTEVnb3JCZ0VFQVpkVkFRVUJBUWRBUHpzMjV5RERLSC80Cm1KNmtMU1dLSExITXJEWUZMWGVHOTNWRTluSVY0Q0FEQVFnSEFBRC9aQ1hVMDhqMkZTU2VYQWdZaFZzNwp2akVDQjQweTA2TjdaM0pqaitCSko3Z08xc0o0QkJnV0NBQUpCUUpvYk1lTEFoc01BQ0VKRUFOZ3d2c3EKczJyaEZpRUU0RVcxUWpTcW1haE5YYmRNQTJEQyt5cXphdUgrY2dEL1QxRUVkVDl1WnR6L255bGk1OHR0CjYxaWNLcndyU3kzSTBBRDNYWWErcm40QS9qWEZlZXNsNVBZZWtpU0ZzNVZGNUczRVNpWmY0amJxZXlOWQpLd09ENVIwSwo9WDhSdQotLS0tLUVORCBQR1AgUFJJVkFURSBLRVkgQkxPQ0stLS0tLQo="
 
@@ -127,10 +128,32 @@ object PublishSonatypeCentralTests extends UtestIntegrationTestSuite {
     }
   }
 
+  private def initGpgKeysSmokeTest(): Unit = integrationTest { tester =>
+    import tester.*
+
+    val stdin =
+      Seq("Mill Test User", "mill-test-user@example.com", "mill-test-passphrase").mkString("\n") +
+        "\n"
+    val res = eval(
+      InitGpgKeysTaskName,
+      stdin = stdin,
+      mergeErrIntoOut = true
+    )
+    println(res.debugString)
+    assert(res.isSuccess)
+
+    val out = res.out
+    assert(out.contains("PGP Key Setup for Sonatype Central Publishing"))
+    assert(out.contains("PGP key generated successfully"))
+    assert(out.contains("MILL_PGP_SECRET_BASE64"))
+    assert(out.contains("MILL_PGP_PASSPHRASE"))
+  }
+
   val tests: Tests = Tests {
     test("dryRun") {
       test("module") - dryRun(PublishTaskName, PublishDirName)
       test("externalModule") - dryRun(PublishAllTaskName, PublishAllDirName)
     }
+    test("initGpgKeys") - initGpgKeysSmokeTest()
   }
 }

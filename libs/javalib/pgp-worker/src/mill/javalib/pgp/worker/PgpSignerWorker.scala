@@ -1,4 +1,4 @@
-package mill.javalib.worker
+package mill.javalib.pgp.worker
 
 import mill.javalib.api.{PgpKeyMaterial, PgpWorkerApi}
 import org.bouncycastle.bcpg.ArmoredOutputStream
@@ -88,6 +88,10 @@ final class PgpSignerWorker extends PgpWorkerApi {
       pgpKeyPair.getPublicKey.getAlgorithm,
       HashAlgorithmTags.SHA256
     )
+    val encryptor = passphrase.filter(_.nonEmpty).map { value =>
+      new BcPBESecretKeyEncryptorBuilder(SymmetricKeyAlgorithmTags.AES_256, digestCalc)
+        .build(value.toCharArray)
+    }.orNull
     val secretKey = new org.bouncycastle.openpgp.PGPSecretKey(
       PGPSignature.DEFAULT_CERTIFICATION,
       pgpKeyPair,
@@ -96,8 +100,7 @@ final class PgpSignerWorker extends PgpWorkerApi {
       keyFlags.generate(),
       null,
       contentSignerBuilder,
-      new BcPBESecretKeyEncryptorBuilder(SymmetricKeyAlgorithmTags.AES_256, digestCalc)
-        .build(passphrase.map(_.toCharArray).orNull)
+      encryptor
     )
 
     val publicKeyRing = new PGPPublicKeyRing(Collections.singletonList(secretKey.getPublicKey))

@@ -37,6 +37,7 @@ object `package` extends MillStableScalaModule {
   def localTestExtraModules =
     super.localTestExtraModules ++ Seq(
       worker,
+      `pgp-worker`,
       `classgraph-worker`,
       `jarjarabrams-worker`,
       `spotless-worker`,
@@ -134,14 +135,21 @@ object `package` extends MillStableScalaModule {
       Deps.zinc,
       Deps.log4j2Core,
       Deps.javaparser,
-      Deps.fansi,
-      Deps.bouncyCastleProv,
-      Deps.bouncyCastlePgp
+      Deps.fansi
     )
     def buildInfoPackageName = "mill.javalib.worker"
     def buildInfoObjectName = "Versions"
     def buildInfoMembers = Seq(
       BuildInfo.Value("zinc", Deps.zinc.version, "Version of Zinc.")
+    )
+  }
+
+  object `pgp-worker` extends MillPublishScalaModule with MillJava11ScalaModule {
+    def moduleDeps = Seq(api)
+    def mvnDeps = Seq(
+      Deps.bouncyCastleProv,
+      Deps.bouncyCastlePgp,
+      Deps.requests
     )
   }
 

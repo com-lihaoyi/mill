@@ -8,7 +8,7 @@ import scala.annotation.nowarn
 private[mill] trait PgpWorkerSupport extends CoursierModule with OfflineSupportModule {
   protected def pgpWorkerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
-      Dep.millProjectModule("mill-libs-javalib-worker")
+      Dep.millProjectModule("mill-libs-javalib-pgp-worker")
     ))
   }
 
@@ -20,7 +20,7 @@ private[mill] trait PgpWorkerSupport extends CoursierModule with OfflineSupportM
   @nowarn("msg=.*Workers should implement AutoCloseable.*")
   private[mill] def pgpWorker: Task.Worker[mill.javalib.api.PgpWorkerApi] =
     Task.Worker {
-      pgpWorkerClassloader().loadClass("mill.javalib.worker.PgpSignerWorker")
+      pgpWorkerClassloader().loadClass("mill.javalib.pgp.worker.PgpSignerWorker")
         .getConstructor().newInstance().asInstanceOf[mill.javalib.api.PgpWorkerApi]
     }
 }
