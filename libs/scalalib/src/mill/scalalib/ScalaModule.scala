@@ -459,8 +459,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       // Workaround for https://github.com/scala/scala3/issues/20421
       // Remove module-info.class from classpath entries to fix REPL autocomplete
       val classPath = (runClasspath() ++ scalaConsoleClasspath()).map { pathRef =>
-//        ScalaModule.stripModuleInfo(Task.dest, pathRef.path)
-        pathRef.path
+        ScalaModule.stripModuleInfo(Task.dest, pathRef.path)
       }
 
       try {
