@@ -4,7 +4,7 @@ import mill.api.daemon.{LauncherSubprocess, Logger}
 import mill.rpc.*
 import upickle.ReadWriter
 
-import java.io.{BufferedReader, PrintStream}
+import java.io.{BufferedReader, OutputStream, PrintStream}
 
 /**
  * RPC message types for launcher-daemon communication.
@@ -97,14 +97,42 @@ object DaemonRpc {
     )(serverMessageHandler)
   }
 
+  private def outputToStream(dest: OutputStream): os.ProcessOutput =
+    os.ProcessOutput.ReadBytes { (arr, n) =>
+      dest.write(arr, 0, n)
+      dest.flush()
+    }
+
+  def defaultRunSubprocessWithStreams(
+      stdout: OutputStream,
+      stderr: OutputStream
+  ): ServerToClient.RunSubprocess => SubprocessResult = { req =>
+    try {
+      val result = os.proc(req.config.cmd).call(
+        cwd = os.Path(req.config.cwd),
+        env = req.config.env,
+        stdin = os.Inherit,
+        stdout = outputToStream(stdout),
+        stderr = outputToStream(stderr),
+        mergeErrIntoOut = req.config.mergeErrIntoOut,
+        timeout = req.config.timeoutMillis,
+        propagateEnv = req.config.propagateEnv,
+        check = false
+      )
+      SubprocessResult(result.exitCode)
+    } catch {
+      case _: Exception => SubprocessResult(1)
+    }
+  }
+
   def defaultRunSubprocess(req: ServerToClient.RunSubprocess): SubprocessResult = {
     try {
       val result = os.proc(req.config.cmd).call(
         cwd = os.Path(req.config.cwd),
         env = req.config.env,
-        stdin = os.InheritRaw,
-        stdout = os.InheritRaw,
-        stderr = os.InheritRaw,
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        stderr = os.Inherit,
         mergeErrIntoOut = req.config.mergeErrIntoOut,
         timeout = req.config.timeoutMillis,
         propagateEnv = req.config.propagateEnv,

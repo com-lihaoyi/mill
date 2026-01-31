@@ -190,7 +190,7 @@ object IntegrationTester {
       val callEnv = millTestSuiteEnv ++ env
 
       def run() = {
-        if (useInMemory) {
+        if (useInMemory && stdin == os.Pipe && stdout == os.Pipe && stderr == os.Pipe) {
           val argsSeq = shellable.value.toSeq.map(_.toString)
           val millArgs = argsSeq.drop(1).filter(_.nonEmpty)
           IntegrationTester.evalInMemory(millArgs, cwd, callEnv, mergeErrIntoOut)

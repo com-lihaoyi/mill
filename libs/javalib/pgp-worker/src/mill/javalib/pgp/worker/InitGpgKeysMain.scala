@@ -30,7 +30,8 @@ object InitGpgKeysMain {
       val console = System.console()
       if (console != null) {
         val fromConsole = console.readPassword()
-        if (fromConsole == null) scala.io.StdIn.readLine() else new String(fromConsole)
+        val fromConsoleValue = if (fromConsole == null) "" else new String(fromConsole)
+        if (fromConsoleValue.isEmpty) scala.io.StdIn.readLine() else fromConsoleValue
       } else {
         scala.io.StdIn.readLine()
       }
@@ -54,37 +55,51 @@ object InitGpgKeysMain {
 
     // Step 2: Upload public key to keyserver
     println("Step 2: Uploading public key to keyserver.ubuntu.com...")
-    val uploadResult = requests.post(
-      url = "https://keyserver.ubuntu.com/pks/add",
-      data = Map("keytext" -> generated.publicKeyArmored)
-    )
-    if (!uploadResult.is2xx) {
-      System.err.println(
-        s"Warning: Failed to upload key to keyserver (status ${uploadResult.statusCode})."
+    try {
+      val uploadResult = requests.post(
+        url = "https://keyserver.ubuntu.com/pks/add",
+        data = Map("keytext" -> generated.publicKeyArmored)
       )
-      System.err.println(
-        "You may need to upload manually via https://keyserver.ubuntu.com/pks/add"
-      )
-    } else {
-      println("Public key uploaded successfully!")
+      if (!uploadResult.is2xx) {
+        System.err.println(
+          s"Warning: Failed to upload key to keyserver (status ${uploadResult.statusCode})."
+        )
+        System.err.println(
+          "You may need to upload manually via https://keyserver.ubuntu.com/pks/add"
+        )
+      } else {
+        println("Public key uploaded successfully!")
+      }
+    } catch {
+      case e: Exception =>
+        System.err.println(s"Warning: Failed to upload key to keyserver: ${e.getMessage}")
     }
     println("")
 
     // Step 3: Verify key was uploaded
     println("Step 3: Verifying key upload...")
     Thread.sleep(2000)
-    val verifyResult = requests.get(
-      url = "https://keyserver.ubuntu.com/pks/lookup",
-      params = Map("op" -> "get", "search" -> s"0x$keyId")
-    )
-    if (!verifyResult.is2xx || !verifyResult.text().contains("BEGIN PGP PUBLIC KEY BLOCK")) {
-      System.err.println("Warning: Could not verify key on keyserver.")
-      System.err.println("This may be due to keyserver propagation delay. Try again later with:")
-      System.err.println(
-        s"  https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x$keyId"
+    try {
+      val verifyResult = requests.get(
+        url = "https://keyserver.ubuntu.com/pks/lookup",
+        params = Map("op" -> "get", "search" -> s"0x$keyId")
       )
-    } else {
-      println("Key verified on keyserver!")
+      if (!verifyResult.is2xx || !verifyResult.text().contains("BEGIN PGP PUBLIC KEY BLOCK")) {
+        System.err.println("Warning: Could not verify key on keyserver.")
+        System.err.println(
+          "This may be due to keyserver propagation delay. Try again later with:"
+        )
+        System.err.println(
+          s"  https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x$keyId"
+        )
+      } else {
+        println("Key verified on keyserver!")
+      }
+    } catch {
+      case e: Exception =>
+        System.err.println(
+          s"Warning: Could not verify key on keyserver: ${e.getMessage}"
+        )
     }
     println("")
 

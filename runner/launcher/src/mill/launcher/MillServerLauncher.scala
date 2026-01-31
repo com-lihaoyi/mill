@@ -98,7 +98,8 @@ class MillServerLauncher(
         serverToClient = socketIn,
         clientToServer = socketOut,
         stdout = stdoutHandler,
-        stderr = stderrHandler
+        stderr = stderrHandler,
+        runSubprocess = DaemonRpc.defaultRunSubprocessWithStreams(stdout, stderr)
       )
 
       // For testing: run command in background while main thread throws after delay
