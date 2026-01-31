@@ -37,6 +37,7 @@ object `package` extends MillStableScalaModule {
   def localTestExtraModules =
     super.localTestExtraModules ++ Seq(
       worker,
+      `maven-worker`,
       `pgp-worker`,
       `classgraph-worker`,
       `jarjarabrams-worker`,

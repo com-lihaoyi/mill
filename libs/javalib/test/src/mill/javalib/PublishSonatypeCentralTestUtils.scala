@@ -30,13 +30,20 @@ object PublishSonatypeCentralTestUtils {
 
   def extractHexDigest(output: String, expectedLen: Int): String = {
     if (expectedLen <= 0) return ""
-    val exact = s"(?i)([0-9a-f]{$expectedLen})".r
-    exact.findFirstMatchIn(output).map(_.group(1)).getOrElse {
-      val loose = "(?i)([0-9a-f][0-9a-f ]{15,})".r
-      loose.findFirstMatchIn(output).flatMap { m =>
-        val cleaned = m.group(1).replace(" ", "")
-        if (cleaned.length >= expectedLen) Some(cleaned.take(expectedLen)) else None
-      }.getOrElse("")
+    val hexLine = "(?m)^([0-9a-fA-F]{2,4}(?:\\s+[0-9a-fA-F]{2,4})+)$".r
+    val fromLine = hexLine.findFirstMatchIn(output).flatMap { m =>
+      val cleaned = m.group(1).replaceAll("\\s+", "")
+      if (cleaned.length >= expectedLen) Some(cleaned.take(expectedLen)) else None
+    }
+    fromLine.getOrElse {
+      val exact = s"(?i)([0-9a-f]{$expectedLen})".r
+      exact.findFirstMatchIn(output).map(_.group(1)).getOrElse {
+        val loose = "(?i)([0-9a-f][0-9a-f ]{15,})".r
+        loose.findFirstMatchIn(output).flatMap { m =>
+          val cleaned = m.group(1).replace(" ", "")
+          if (cleaned.length >= expectedLen) Some(cleaned.take(expectedLen)) else None
+        }.getOrElse("")
+      }
     }
   }
 }
