@@ -65,11 +65,8 @@ private[mill] trait MavenPublish {
       }
     val artifacts = pomPath match {
       case Some(path) =>
-        MavenWorkerSupport.RemoteM2Publisher.asM2Artifacts(
-          pom = path,
-          artifact = publishData.meta,
-          publishInfos = publishInfos
-        )
+        MavenWorkerSupport.RemoteM2Publisher.asM2Artifacts(path, publishData.meta, publishInfos)
+      
       case None =>
         MavenWorkerSupport.RemoteM2Publisher.asM2ArtifactsFromPublishDatas(
           publishData.meta,
