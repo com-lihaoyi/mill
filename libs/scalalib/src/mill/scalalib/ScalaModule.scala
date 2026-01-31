@@ -459,7 +459,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       // Workaround for https://github.com/scala/scala3/issues/20421
       // Remove module-info.class from classpath entries to fix REPL autocomplete
       val classPath = (runClasspath() ++ scalaConsoleClasspath()).map { pathRef =>
-        ScalaModule.stripModuleInfo(Task.dest, pathRef.path)
+//        ScalaModule.stripModuleInfo(Task.dest, pathRef.path)
+        pathRef.path
       }
 
       try {
@@ -746,7 +747,7 @@ object ScalaModule {
     // Use path hash to avoid collisions when multiple entries have the same filename
     val uniqueDestPath = {
       val hash = path.toString.hashCode.toHexString
-      dest / s"${path.baseName}-$hash-module-info-stripped-${path.ext}"
+      dest / s"${path.baseName}-$hash-module-info-stripped.${path.ext}"
     }
 
     val moduleInfoClass = os.sub / "module-info.class"
