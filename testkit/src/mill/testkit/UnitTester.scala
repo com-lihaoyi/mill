@@ -233,7 +233,11 @@ class UnitTester(
     try {
       BuildCtx.workspaceRoot0.withValue(module.moduleDir) {
         mill.api.daemon.LauncherSubprocess.withValue(config =>
-          DaemonRpc.defaultRunSubprocess(DaemonRpc.ServerToClient.RunSubprocess(config)).exitCode
+          DaemonRpc
+            .defaultRunSubprocessWithStreams(System.out, System.err)(
+              DaemonRpc.ServerToClient.RunSubprocess(config)
+            )
+            .exitCode
         ) {
           tester(this)
         }

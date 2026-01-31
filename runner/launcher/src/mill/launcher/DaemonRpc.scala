@@ -64,7 +64,8 @@ object DaemonRpc {
       clientToServer: PrintStream,
       stdout: RpcConsole.Message => Unit = RpcConsole.stdoutHandler,
       stderr: RpcConsole.Message => Unit = RpcConsole.stderrHandler,
-      runSubprocess: ServerToClient.RunSubprocess => SubprocessResult = defaultRunSubprocess,
+      runSubprocess: ServerToClient.RunSubprocess => SubprocessResult =
+        defaultRunSubprocessWithStreams(System.out, System.err),
       pollStdin: ServerToClient.PollStdin => StdinResult = defaultPollStdin,
       getTerminalDims: ServerToClient.GetTerminalDims => TerminalDimsResult = defaultGetTerminalDims
   ): MillRpcClient[ClientToServer, ServerToClient] = {
@@ -114,25 +115,6 @@ object DaemonRpc {
         stdin = os.Inherit,
         stdout = outputToStream(stdout),
         stderr = outputToStream(stderr),
-        mergeErrIntoOut = req.config.mergeErrIntoOut,
-        timeout = req.config.timeoutMillis,
-        propagateEnv = req.config.propagateEnv,
-        check = false
-      )
-      SubprocessResult(result.exitCode)
-    } catch {
-      case _: Exception => SubprocessResult(1)
-    }
-  }
-
-  def defaultRunSubprocess(req: ServerToClient.RunSubprocess): SubprocessResult = {
-    try {
-      val result = os.proc(req.config.cmd).call(
-        cwd = os.Path(req.config.cwd),
-        env = req.config.env,
-        stdin = os.Inherit,
-        stdout = os.Inherit,
-        stderr = os.Inherit,
         mergeErrIntoOut = req.config.mergeErrIntoOut,
         timeout = req.config.timeoutMillis,
         propagateEnv = req.config.propagateEnv,
