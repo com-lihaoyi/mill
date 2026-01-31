@@ -504,12 +504,11 @@ trait PublishModule extends JavaModule { outer =>
       sources: Boolean,
       docs: Boolean
   ): Task[PublishModule.PublishData] = Task.Anon {
-    val payloadSeq = PublishModule.PublishData.mapToSeq(
-      publishArtifactsPayload(sources = sources, docs = docs)()
-    )
     PublishModule.PublishData(
       meta = artifactMetadata(),
-      payload = payloadSeq,
+      payload = PublishModule.PublishData.mapToSeq(
+        publishArtifactsPayload(sources = sources, docs = docs)()
+      ),
       pom = pom(),
       publishInfos = allPublishInfos(sources = sources, docs = docs)()
     )
