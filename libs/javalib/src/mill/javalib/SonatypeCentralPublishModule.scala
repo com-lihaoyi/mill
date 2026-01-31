@@ -52,15 +52,7 @@ trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport,
       @unroll sources: Boolean = true,
       @unroll docs: Boolean = true
   ): Task.Command[Unit] = Task.Command {
-    val payloadSeq = PublishModule.payloadMapToSeq(
-      publishArtifactsPayload(sources = sources, docs = docs)()
-    )
-    val publishData = PublishModule.PublishData(
-      meta = artifactMetadata(),
-      payload = payloadSeq,
-      pom = pom(),
-      publishInfos = allPublishInfos(sources = sources, docs = docs)()
-    )
+    val publishData = publishArtifactsData(sources = sources, docs = docs)()
     val credentials = getPublishCredentials(CREDENTIALS_ENV_VARIABLE_PREFIX, username, password)()
     val publishingType = getPublishingTypeFromReleaseFlag(sonatypeCentralShouldRelease())
 

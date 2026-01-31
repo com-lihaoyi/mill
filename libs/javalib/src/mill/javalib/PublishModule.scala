@@ -497,12 +497,21 @@ trait PublishModule extends JavaModule { outer =>
     "Mill 1.0.1"
   )
   def publishArtifacts: T[PublishModule.PublishData] = Task {
-    val payloadSeq = PublishModule.payloadMapToSeq(publishArtifactsPayload()())
+    publishArtifactsData(sources = true, docs = true)()
+  }
+
+  private[mill] final def publishArtifactsData(
+      sources: Boolean,
+      docs: Boolean
+  ): Task[PublishModule.PublishData] = Task.Anon {
+    val payloadSeq = PublishModule.payloadMapToSeq(
+      publishArtifactsPayload(sources = sources, docs = docs)()
+    )
     PublishModule.PublishData(
       meta = artifactMetadata(),
       payload = payloadSeq,
       pom = pom(),
-      publishInfos = allPublishInfos(sources = true, docs = true)()
+      publishInfos = allPublishInfos(sources = sources, docs = docs)()
     )
   }
 
