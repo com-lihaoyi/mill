@@ -24,7 +24,6 @@ class SonatypeCentralPublisher2(
     readTimeout: Int,
     connectTimeout: Int,
     log: Logger,
-    workspace: os.Path,
     env: Map[String, String],
     awaitTimeout: Int
 ) {

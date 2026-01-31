@@ -184,7 +184,6 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
         connectTimeout = connectTimeout,
         readTimeout = readTimeout,
         log = log,
-        workspace = BuildCtx.workspaceRoot,
         env = env,
         awaitTimeout = awaitTimeout
       )

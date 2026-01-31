@@ -73,7 +73,6 @@ object SonatypeHelpers {
       env: Map[String, String],
       artifacts: Seq[(Map[os.SubPath, os.Path], Artifact)]
   ): Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])] = {
-    val _ = env
     val gpgArgs0 = gpgArgs.asCommandArgs
     for ((fileMapping0, artifact) <- artifacts) yield {
       val publishPath =
@@ -83,7 +82,7 @@ object SonatypeHelpers {
       val signedArtifacts =
         if (isSigned) {
           fileMapping.map { case (name, file) =>
-            val signatureFile = signWithGpg(file, gpgArgs0)
+            val signatureFile = signWithGpg(file, gpgArgs0, env)
             os.SubPath(s"$name.asc") -> signatureFile
           }
         } else Map.empty
@@ -117,10 +116,10 @@ object SonatypeHelpers {
   private def hexArray(arr: Array[Byte]) =
     String.format("%0" + (arr.length << 1) + "x", new BigInteger(1, arr))
 
-  private def signWithGpg(file: os.Path, gpgArgs: Seq[String]): os.Path = {
+  private def signWithGpg(file: os.Path, gpgArgs: Seq[String], env: Map[String, String]): os.Path = {
     val signatureFile = os.temp(dir = file / os.up, prefix = file.last + "-", suffix = ".asc")
     val cmd = Seq("gpg") ++ gpgArgs ++ Seq("--output", signatureFile.toString, file.toString)
-    os.proc(cmd).call(stdout = os.Pipe, stderr = os.Pipe)
+    os.proc(cmd).call(stdout = os.Pipe, stderr = os.Pipe, env = env)
     signatureFile
   }
 }

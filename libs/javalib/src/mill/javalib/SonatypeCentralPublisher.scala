@@ -48,46 +48,6 @@ class SonatypeCentralPublisher(
     awaitTimeout = awaitTimeout
   )
 
-  def this(
-      credentials: STCreds,
-      gpgArgs: GpgArgs,
-      readTimeout: Int,
-      connectTimeout: Int,
-      log: Logger,
-      workspace: os.Path,
-      env: Map[String, String],
-      awaitTimeout: Int
-  ) = this(
-    credentials = SonatypeCredentials(credentials.username, credentials.password),
-    gpgArgs = gpgArgs,
-    readTimeout = readTimeout,
-    connectTimeout = connectTimeout,
-    log = log,
-    workspace = workspace,
-    env = env,
-    awaitTimeout = awaitTimeout
-  )
-
-  def this(
-      credentials: STCreds,
-      gpgArgs: Seq[String],
-      readTimeout: Int,
-      connectTimeout: Int,
-      log: Logger,
-      workspace: os.Path,
-      env: Map[String, String],
-      awaitTimeout: Int
-  ) = this(
-    credentials = SonatypeCredentials(credentials.username, credentials.password),
-    gpgArgs = UserProvided(gpgArgs),
-    readTimeout = readTimeout,
-    connectTimeout = connectTimeout,
-    log = log,
-    workspace = workspace,
-    env = env,
-    awaitTimeout = awaitTimeout
-  )
-
   private val sonatypeCentralClient =
     new SyncSonatypeClient(
       credentials = STCreds(credentials.username, credentials.password),
