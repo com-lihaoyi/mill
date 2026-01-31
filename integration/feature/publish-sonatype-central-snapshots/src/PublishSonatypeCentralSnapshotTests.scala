@@ -123,6 +123,52 @@ object PublishSonatypeCentralSnapshotTests extends UtestIntegrationTestSuite {
     val actualFiles = os.walk(publishedDir).toVector
     val missingFiles = expectedFiles.filterNot(actualFiles.contains)
     assert(missingFiles.isEmpty)
+
+    val checksumTargets = Vector(
+      publishedDir / "maven-metadata.xml",
+      publishedVersionDir / "maven-metadata.xml",
+      publishedVersionDir / s"testProject_3-0.0.1-$timestamp-1.jar",
+      publishedVersionDir / s"testProject_3-0.0.1-$timestamp-1-sources.jar",
+      publishedVersionDir / s"testProject_3-0.0.1-$timestamp-1-javadoc.jar",
+      publishedVersionDir / s"testProject_3-0.0.1-$timestamp-1.pom"
+    )
+    checksumTargets.foreach { file =>
+      assertChecksumMatches(file, os.Path(file.toString + ".md5"), "MD5")
+      assertChecksumMatches(file, os.Path(file.toString + ".sha1"), "SHA1")
+    }
+  }
+
+  private def assertChecksumMatches(
+      file: os.Path,
+      checksumFile: os.Path,
+      algorithm: String
+  ): Unit = {
+    val expected = os.read(checksumFile).trim.split("\\s+").headOption.getOrElse("")
+    val actual = gpgDigest(file, algorithm)
+    assert(expected.nonEmpty && expected.equalsIgnoreCase(actual))
+  }
+
+  private def gpgDigest(file: os.Path, algorithm: String): String = {
+    val res = os.proc("gpg", "--print-md", algorithm, file.toString).call(stderr = os.Pipe)
+    val out = res.out.text() + res.err.text()
+    val expectedLen = algorithm.toUpperCase match {
+      case "MD5" => 32
+      case "SHA1" => 40
+      case _ => 0
+    }
+    extractHexDigest(out, expectedLen)
+  }
+
+  private def extractHexDigest(output: String, expectedLen: Int): String = {
+    if (expectedLen <= 0) return ""
+    val exact = s"(?i)([0-9a-f]{$expectedLen})".r
+    exact.findFirstMatchIn(output).map(_.group(1)).getOrElse {
+      val loose = "(?i)([0-9a-f][0-9a-f ]{15,})".r
+      loose.findFirstMatchIn(output).flatMap { m =>
+        val cleaned = m.group(1).replace(" ", "")
+        if (cleaned.length >= expectedLen) Some(cleaned.take(expectedLen)) else None
+      }.getOrElse("")
+    }
   }
 
   val tests: Tests = Tests {
