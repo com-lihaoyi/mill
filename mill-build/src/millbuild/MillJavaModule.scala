@@ -89,12 +89,10 @@ trait MillJavaModule extends JavaModule {
     Deps.jna
   )
 
-  def isCI: T[Boolean] = Task.Input {
-    Task.env.get("CI").contains("1")
-  }
+  def isFatalWarnings: T[Boolean] = Task.Input { Task.env.contains("FATAL_WARNINGS") }
 
   def ciJavacOptions: Task[Seq[String]] = Task {
-    if (isCI()) Seq(
+    if (isFatalWarnings()) Seq(
       // When in CI make the warnings fatal
       "-Werror"
     )
@@ -105,7 +103,8 @@ trait MillJavaModule extends JavaModule {
     super.javacOptions() ++ ciJavacOptions() ++ Seq(
       "-Xlint",
       "-Xlint:-serial", // we don't care about java serialization
-      "-Xlint:-try" // TODO: a bunch of code needs reviewing with this lint)
+      "-Xlint:-try", // TODO: a bunch of code needs reviewing with this lint)
+      "-Xlint:-processing" // avoid "no processor claimed" warnings for marker annotations
     )
   }
 

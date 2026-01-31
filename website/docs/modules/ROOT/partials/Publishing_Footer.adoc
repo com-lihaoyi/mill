@@ -3,6 +3,18 @@
 Once you've mixed in `PublishModule`, apart from publishing locally, you can also publish
 your project's modules to maven central
 
+=== Verifying your Maven Central Namespace
+
+Everyone who publishes to Maven Central needs to register their organization's namespace
+(e.g. `com.lihaoyi`) and verify that they own it as a security measure. To do so, please
+create an account at:
+
+- https://central.sonatype.com/
+
+And register and verify your namespace by following the instructions at:
+
+- https://central.sonatype.org/register/namespace/
+
 === GPG
 
 If you've never created a keypair before that can be used to sign your artifacts

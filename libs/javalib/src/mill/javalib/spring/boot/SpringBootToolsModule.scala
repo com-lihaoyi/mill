@@ -32,7 +32,7 @@ trait SpringBootToolsModule extends CoursierModule, OfflineSupportModule {
     defaultResolver().classpath(fullWorkerDeps())
   }
 
-  def springBootToolsClassLoader: Worker[ClassLoader] = Task.Worker {
+  def springBootToolsClassLoader: Worker[ClassLoader & AutoCloseable] = Task.Worker {
     mill.util.Jvm.createClassLoader(
       springBootToolsClasspath().map(_.path),
       getClass().getClassLoader()

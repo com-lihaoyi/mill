@@ -59,7 +59,7 @@ class MillRpcWireTransport(
   }
 
   /** Helper that writes a message to the wire, logging along the way. */
-  def writeSerialized[A: Writer](message: A, log: String => Unit): Unit = {
+  def writeSerialized[A: Writer](message: A): Unit = {
     write(upickle.write(message))
   }
 }

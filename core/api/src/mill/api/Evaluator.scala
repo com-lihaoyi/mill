@@ -10,6 +10,7 @@ import upickle.core.BufferedValue
 import scala.util.DynamicVariable
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
+import scala.annotation.unused
 
 /**
  * An API that allows you to resolve, plan, and execute Mill tasks.
@@ -49,10 +50,10 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   ): mill.api.Result[List[Segments]]
 
   private[mill] def resolveRaw(
-      scriptArgs: Seq[String],
-      selectMode: SelectMode,
-      allowPositionalCommandArgs: Boolean = false,
-      resolveToModuleTasks: Boolean = false
+      @unused scriptArgs: Seq[String],
+      @unused selectMode: SelectMode,
+      @unused allowPositionalCommandArgs: Boolean = false,
+      @unused resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[Resolved]] = {
     mill.api.Result.Success(Nil)
   }

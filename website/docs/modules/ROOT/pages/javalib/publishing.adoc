@@ -17,6 +17,8 @@ include::partial$example/javalib/publishing/2-vcs-version.adoc[]
 
 include::partial$example/javalib/publishing/3-publishing.adoc[]
 
+include::partial$Publishing_Footer.adoc[]
+
 == Checking API compatibility
 
 Mill provides the ability to check API changes with the https://revapi.org/revapi-site/main/index.html[Revapi] analysis and change tracking tool.
@@ -41,6 +43,3 @@ The `revapi` task returns the path to a directory that can be used to resolve th
 ]
 ----
 ====
-
-include::partial$Publishing_Footer.adoc[]
-

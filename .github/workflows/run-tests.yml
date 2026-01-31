@@ -245,7 +245,7 @@ jobs:
       java-version: '17'
       buildcmd: |
         set -eux
-        ./mill mill.scalalib.scalafmt.ScalafmtModule/scalafmt --check + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll
+        FATAL_WARNINGS=1 ./mill mill.scalalib.scalafmt.ScalafmtModule/scalafmt --check + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll
   mima:
     needs: build-linux
     uses: ./.github/workflows/post-build-raw.yml

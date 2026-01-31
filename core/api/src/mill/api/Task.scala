@@ -344,7 +344,7 @@ object Task {
       extends Task.Simple[T] {
 
     override def evaluate0: (Seq[Any], TaskCtx) => Result[T] =
-      (_, ctx) => {
+      (_, _) => {
         val relPath = os.Path(ctx0.fileName).relativeTo(mill.api.BuildCtx.workspaceRoot)
         Result.Failure(s"configuration missing in $relPath")
       }

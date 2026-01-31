@@ -65,7 +65,7 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
     )
   }
 
-  def androidDataBindingWorkerClassloader: Worker[ClassLoader] = Task.Worker {
+  def androidDataBindingWorkerClassloader: Worker[ClassLoader & AutoCloseable] = Task.Worker {
     Jvm.createClassLoader(
       classPath = androidDataBindingCompilerClasspath().map(_.path),
       parent = getClass.getClassLoader
