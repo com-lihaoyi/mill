@@ -9,11 +9,8 @@ import com.lumidion.sonatype.central.client.requests.SyncSonatypeClient
 import mill.api.Logger
 import mill.javalib.api.PgpWorkerApi
 import mill.javalib.internal.PublishModule.GpgArgs
-import mill.javalib.internal.PublishModule.GpgArgs.UserProvided
 import mill.javalib.publish.SonatypeHelpers
 import mill.javalib.publish.{Artifact, PublishingType, SonatypeCredentials}
-
-import scala.annotation.targetName
 
 /**
  * Publishing logic for the standard Sonatype Central repository `central.sonatype.org`.
@@ -31,47 +28,11 @@ class SonatypeCentralPublisher2(
     env: Map[String, String],
     awaitTimeout: Int
 ) {
-  // bincompat forwarder
-  def this(
-      credentials: SonatypeCredentials,
-      gpgArgs: Seq[String],
-      pgpWorker: PgpWorkerApi,
-      readTimeout: Int,
-      connectTimeout: Int,
-      log: Logger,
-      workspace: os.Path,
-      env: Map[String, String],
-      awaitTimeout: Int
-  ) = this(
-    credentials = credentials,
-    gpgArgs = UserProvided(gpgArgs),
-    pgpWorker = pgpWorker,
-    readTimeout = readTimeout,
-    connectTimeout = connectTimeout,
-    log = log,
-    workspace = workspace,
-    env = env,
-    awaitTimeout = awaitTimeout
-  )
-
   private val sonatypeCentralClient =
     new SyncSonatypeClient(
       credentials = STCreds(credentials.username, credentials.password),
       readTimeout = readTimeout,
       connectTimeout = connectTimeout
-    )
-
-  // binary compatibility forwarder
-  @deprecated("Use `publish` where `fileMapping: Map[os.SubPath, os.Path]` instead.", "Mill 1.0.1")
-  def publish(
-      fileMapping: Seq[(os.Path, String)],
-      artifact: Artifact,
-      publishingType: PublishingType
-  ): Unit =
-    publish(
-      SonatypeHelpers.toSubPathMap(fileMapping),
-      artifact,
-      publishingType
     )
 
   def publish(
@@ -81,16 +42,6 @@ class SonatypeCentralPublisher2(
   ): Unit =
     publishAll(publishingType, singleBundleName = None, fileMapping -> artifact)
 
-  def publishAll(
-      publishingType: PublishingType,
-      singleBundleName: Option[String],
-      artifacts: (Seq[(os.Path, String)], Artifact)*
-  ): Unit = {
-    val mappedArtifacts = SonatypeHelpers.mapArtifacts(artifacts*)
-    publishAll(publishingType, singleBundleName, mappedArtifacts*)
-  }
-
-  @targetName("publishAllByMap")
   def publishAll(
       publishingType: PublishingType,
       singleBundleName: Option[String],

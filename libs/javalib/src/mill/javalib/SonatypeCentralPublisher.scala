@@ -158,6 +158,18 @@ class SonatypeCentralPublisher(
     SonatypeCentralPublisherSupport.publishAllToLocal(prepared, publishTo, log)
   }
 
+  // Kept for binary compatibility with prior releases.
+  private case class PreparedArtifacts(
+      mappings: Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])],
+      deployments: Vector[(zipFile: java.io.File, deploymentName: DeploymentName)]
+  ) {
+    def mappingsString: String = s"mappings ${pprint(
+        mappings.map { case (a, fileSetContents) =>
+          (a, fileSetContents.keys.toVector.sorted.map(_.toString))
+        }
+      )}"
+  }
+
   /** Publishes a zip file to Sonatype Central. */
   private def publishFile(
       zipFile: java.io.File,
