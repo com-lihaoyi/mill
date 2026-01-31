@@ -4,7 +4,7 @@ import com.lihaoyi.unroll
 import mill.T
 import mill.given
 import mill.api.daemon.Logger
-import mill.api.{BuildCtx, DefaultTaskModule, ExternalModule, Result, Task}
+import mill.api.{DefaultTaskModule, ExternalModule, Result, Task}
 import mill.javalib.PublishModule.PublishData
 import mill.javalib.internal.PublishModule.GpgArgs
 import mill.javalib.api.PgpKeyMaterial
@@ -12,7 +12,8 @@ import mill.javalib.publish.SonatypeHelpers.CREDENTIALS_ENV_VARIABLE_PREFIX
 import mill.javalib.publish.{Artifact, PublishingType, SonatypeCredentials}
 import mill.util.Tasks
 
-trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport, PublishCredentialsModule {
+trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport,
+      PublishCredentialsModule {
   import SonatypeCentralPublishModule.*
 
   @deprecated("Use `sonatypeCentralGpgArgsForKey` instead.", "Mill 1.0.1")

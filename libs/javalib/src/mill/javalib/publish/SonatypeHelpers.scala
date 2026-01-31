@@ -1,11 +1,16 @@
 package mill.javalib.publish
 
+import com.lumidion.sonatype.central.client.core.{DeploymentName, PublishingType as STPubType}
+import com.lumidion.sonatype.central.client.requests.SyncSonatypeClient
+import mill.api.Logger
 import mill.javalib.api.PgpWorkerApi
 import mill.javalib.internal.PublishModule.GpgArgs
 import mill.javalib.internal.PublishModule
 
 import java.math.BigInteger
 import java.security.MessageDigest
+import java.util.jar.JarOutputStream
+import java.util.zip.ZipEntry
 
 object SonatypeHelpers {
   // http://central.sonatype.org/pages/working-with-pgp-signatures.html#signing-a-file
@@ -67,6 +72,150 @@ object SonatypeHelpers {
       toSubPathMap(fileMapping) -> artifact
     }.toArray
 
+  private[mill] final case class PreparedArtifacts(
+      mappings: Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])],
+      deployments: Vector[(zipFile: java.io.File, deploymentName: DeploymentName)]
+  ) {
+    def mappingsString: String = s"mappings ${pprint(
+        mappings.map { case (a, fileSetContents) =>
+          (a, fileSetContents.keys.toVector.sorted.map(_.toString))
+        }
+      )}"
+  }
+
+  private[mill] def prepareToPublishAll(
+      singleBundleName: Option[String],
+      artifacts: Seq[(Map[os.SubPath, os.Path], Artifact)],
+      mapArtifacts: Seq[(
+          Map[os.SubPath, os.Path],
+          Artifact
+      )] => Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])],
+      log: Logger
+  ): PreparedArtifacts = {
+    val releases = mapArtifacts(artifacts)
+
+    val releaseGroups = releases.groupBy(_.artifact.group)
+    val wd = os.pwd / "out/publish-central"
+    os.makeDir.all(wd)
+
+    singleBundleName match {
+      case None =>
+        val deployments = releaseGroups.valuesIterator.flatMap { groupReleases =>
+          groupReleases.map { case (artifact, data) =>
+            val fileNameWithoutExtension = s"${artifact.group}-${artifact.id}-${artifact.version}"
+            val zipFile = streamToFile(fileNameWithoutExtension, wd) { outputStream =>
+              log.info(
+                s"bundle $fileNameWithoutExtension with ${pprint.apply(data.keys.toVector.sorted.map(_.toString))}"
+              )
+              zipFilesToJar(data, outputStream)
+            }
+
+            val deploymentName = DeploymentName.fromArtifact(
+              artifact.group,
+              artifact.id,
+              artifact.version
+            )
+            (zipFile, deploymentName)
+          }
+        }.toVector
+
+        PreparedArtifacts(releases, deployments)
+
+      case Some(singleBundleName) =>
+        val zipFile = streamToFile(singleBundleName, wd) { outputStream =>
+          for ((_, groupReleases) <- releaseGroups) {
+            groupReleases.foreach { case (_, data) =>
+              zipFilesToJar(data, outputStream)
+            }
+          }
+        }
+
+        val deploymentName = DeploymentName(singleBundleName)
+        PreparedArtifacts(releases, Vector((zipFile, deploymentName)))
+    }
+  }
+
+  private[mill] def publishAll(
+      singleBundleName: Option[String],
+      artifacts: Seq[(Map[os.SubPath, os.Path], Artifact)],
+      mapArtifacts: Seq[(
+          Map[os.SubPath, os.Path],
+          Artifact
+      )] => Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])],
+      log: Logger
+  )(publishFile: (java.io.File, DeploymentName) => Unit): Unit = {
+    val prepared = prepareToPublishAll(singleBundleName, artifacts, mapArtifacts, log)
+    log.info(prepared.mappingsString)
+    prepared.deployments.foreach { case (zipFile, deploymentName) =>
+      publishFile(zipFile, deploymentName)
+    }
+  }
+
+  private[mill] def publishAllToLocal(
+      singleBundleName: Option[String],
+      artifacts: Seq[(Map[os.SubPath, os.Path], Artifact)],
+      mapArtifacts: Seq[(
+          Map[os.SubPath, os.Path],
+          Artifact
+      )] => Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])],
+      publishTo: os.Path,
+      log: Logger
+  ): Unit = {
+    val prepared = prepareToPublishAll(singleBundleName, artifacts, mapArtifacts, log)
+    log.info(prepared.mappingsString)
+    publishAllToLocal(prepared, publishTo, log)
+  }
+
+  private[mill] def publishAllToLocal(
+      prepared: PreparedArtifacts,
+      publishTo: os.Path,
+      log: Logger
+  ): Unit = {
+    prepared.deployments.foreach { case (zipFile, deploymentName) =>
+      val target = publishTo / deploymentName.unapply
+      log.info(s"Unzipping $zipFile to $target")
+      os.makeDir.all(target)
+      os.unzip(os.Path(zipFile.toPath), target)
+    }
+  }
+
+  private[mill] def publishBundle(
+      sonatypeCentralClient: SyncSonatypeClient,
+      zipFile: java.io.File,
+      deploymentName: DeploymentName,
+      publishingType: PublishingType,
+      awaitTimeout: Int,
+      log: Logger
+  ): Unit = {
+    try {
+      mill.util.Retry(
+        count = 5,
+        backoffMillis = 1000,
+        filter = (_, ex) => ex.getMessage.contains("Read end dead")
+      ) {
+        val stPubType = publishingType match {
+          case PublishingType.AUTOMATIC => STPubType.AUTOMATIC
+          case PublishingType.USER_MANAGED => STPubType.USER_MANAGED
+        }
+
+        sonatypeCentralClient.uploadBundleFromFile(
+          localBundlePath = zipFile,
+          deploymentName = deploymentName,
+          publishingType = Some(stPubType),
+          timeout = awaitTimeout
+        )
+      }
+    } catch {
+      case ex: Throwable =>
+        throw new RuntimeException(
+          s"Failed to publish ${deploymentName.unapply} to Sonatype Central",
+          ex
+        )
+    }
+
+    log.info(s"Successfully published ${deploymentName.unapply} to Sonatype Central")
+  }
+
   private[mill] def getArtifactMappings(
       isSigned: Boolean,
       gpgArgs: GpgArgs,
@@ -116,10 +265,42 @@ object SonatypeHelpers {
   private def hexArray(arr: Array[Byte]) =
     String.format("%0" + (arr.length << 1) + "x", new BigInteger(1, arr))
 
-  private def signWithGpg(file: os.Path, gpgArgs: Seq[String], env: Map[String, String]): os.Path = {
+  private def signWithGpg(
+      file: os.Path,
+      gpgArgs: Seq[String],
+      env: Map[String, String]
+  ): os.Path = {
     val signatureFile = os.temp(dir = file / os.up, prefix = file.last + "-", suffix = ".asc")
     val cmd = Seq("gpg") ++ gpgArgs ++ Seq("--output", signatureFile.toString, file.toString)
     os.proc(cmd).call(stdout = os.Pipe, stderr = os.Pipe, env = env)
     signatureFile
+  }
+
+  private def streamToFile(
+      fileNameWithoutExtension: String,
+      wd: os.Path
+  )(func: JarOutputStream => Unit): java.io.File = {
+    val zipFile =
+      (wd / s"$fileNameWithoutExtension.zip")
+    val fileOutputStream = java.nio.file.Files.newOutputStream(zipFile.toNIO)
+    val jarOutputStream = new JarOutputStream(fileOutputStream)
+    try {
+      func(jarOutputStream)
+    } finally {
+      jarOutputStream.close()
+    }
+    zipFile.toIO
+  }
+
+  private def zipFilesToJar(
+      files: Map[os.SubPath, Array[Byte]],
+      jarOutputStream: JarOutputStream
+  ): Unit = {
+    files.foreach { case (filename, fileAsBytes) =>
+      val zipEntry = new ZipEntry(filename.toString)
+      jarOutputStream.putNextEntry(zipEntry)
+      jarOutputStream.write(fileAsBytes)
+      jarOutputStream.closeEntry()
+    }
   }
 }

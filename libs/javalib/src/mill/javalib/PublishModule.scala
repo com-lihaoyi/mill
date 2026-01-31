@@ -653,7 +653,10 @@ object PublishModule extends ExternalModule with DefaultTaskModule with PgpWorke
       val secretBytes = java.util.Base64.getDecoder.decode(secret)
       val tmpKey = os.temp(suffix = ".asc")
       os.write.over(tmpKey, secretBytes)
-      os.proc("gpg", "--batch", "--import", tmpKey.toString).call(stdout = os.Pipe, stderr = os.Pipe)
+      os.proc("gpg", "--batch", "--import", tmpKey.toString).call(
+        stdout = os.Pipe,
+        stderr = os.Pipe
+      )
     }
 
   @deprecated("This API should have been internal and is not guaranteed to stay.", "Mill 1.0.1")

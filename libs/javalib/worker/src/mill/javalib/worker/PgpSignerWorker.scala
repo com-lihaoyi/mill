@@ -119,7 +119,8 @@ final class PgpSignerWorker extends PgpWorkerApi {
   ): org.bouncycastle.openpgp.PGPSecretKey = {
     val decoded = Base64.getDecoder.decode(secretKeyBase64)
     val in = PGPUtil.getDecoderStream(new ByteArrayInputStream(decoded))
-    val secretKeyRingCollection = new PGPSecretKeyRingCollection(in, new BcKeyFingerprintCalculator())
+    val secretKeyRingCollection =
+      new PGPSecretKeyRingCollection(in, new BcKeyFingerprintCalculator())
     val keys = secretKeyRingCollection.getKeyRings
     while (keys.hasNext) {
       val ring = keys.next().asInstanceOf[PGPSecretKeyRing]
