@@ -11,6 +11,7 @@ import java.net.Socket
 import java.util.concurrent.atomic.AtomicInteger
 
 class MillServerLauncher(
+    stdin: java.io.InputStream,
     stdout: java.io.OutputStream,
     stderr: java.io.OutputStream,
     env: Map[String, String],
@@ -99,7 +100,7 @@ class MillServerLauncher(
         clientToServer = socketOut,
         stdout = stdoutHandler,
         stderr = stderrHandler,
-        runSubprocess = DaemonRpc.defaultRunSubprocessWithStreams(stdout, stderr)
+        runSubprocess = DaemonRpc.defaultRunSubprocessWithStreams(stdin, stdout, stderr)
       )
 
       // For testing: run command in background while main thread throws after delay

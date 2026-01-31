@@ -126,6 +126,7 @@ object PublishSonatypeCentralTests extends UtestIntegrationTestSuite {
     val output = res.out
     assert(output.contains("PGP Key Setup for Sonatype Central Publishing"))
     assert(output.contains("PGP key generated successfully"))
+    assert(output.contains("Key verified on keyserver!"))
     val secretBase64 = extractExportValue(output, "MILL_PGP_SECRET_BASE64")
     val passphrase = extractExportValue(output, "MILL_PGP_PASSPHRASE")
     assert(secretBase64.nonEmpty)

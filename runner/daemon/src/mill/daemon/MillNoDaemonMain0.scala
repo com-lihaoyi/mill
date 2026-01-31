@@ -47,7 +47,7 @@ object MillNoDaemonMain0 {
     val launcherRunner: mill.api.daemon.LauncherSubprocess.Runner =
       config =>
         DaemonRpc
-          .defaultRunSubprocessWithStreams(System.out, System.err)(
+          .defaultRunSubprocessWithStreams(System.in, System.out, System.err)(
             DaemonRpc.ServerToClient.RunSubprocess(config)
           )
           .exitCode

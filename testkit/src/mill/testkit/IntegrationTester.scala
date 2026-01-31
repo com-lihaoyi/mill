@@ -404,6 +404,7 @@ object IntegrationTester {
 
     val exitCode = MillLauncherMain.main0(
       args = args.toArray,
+      stdin = System.in,
       stdout = stdoutPs,
       stderr = stderrPs,
       env = sys.env ++ env,

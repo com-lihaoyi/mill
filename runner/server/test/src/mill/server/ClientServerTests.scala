@@ -127,6 +127,7 @@ trait ClientServerTestsBase extends TestSuite {
         LaunchedServer.NewThread(t, () => { /* do nothing */ })
       }
       val result = new MillServerLauncher(
+        stdin = System.in,
         stdout = out,
         stderr = err,
         env = env,

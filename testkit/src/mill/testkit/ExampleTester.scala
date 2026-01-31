@@ -210,6 +210,7 @@ ${expectedSnippets.mkString("\n")}
 
     val exitCode = MillLauncherMain.main0(
       args = millArgs.toArray,
+      stdin = System.in, 
       stdout = makeChunkingStream(System.out),
       stderr = makeChunkingStream(System.err),
       env = sys.env ++ millTestSuiteEnv,

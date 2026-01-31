@@ -2,8 +2,12 @@ package mill.javalib.pgp.worker
 
 import mill.javalib.api.PgpKeyMaterial
 
+import java.nio.charset.StandardCharsets
+import java.nio.file.{Files, Path, Paths, StandardOpenOption}
+
 object InitGpgKeysMain {
   def main(args: Array[String]): Unit = {
+    val outputSecretPath = extractArg(args, "--output-secret")
     println("=== PGP Key Setup for Sonatype Central Publishing ===")
     println("")
     println("This will create a new PGP key pair for signing your artifacts.")
@@ -78,34 +82,55 @@ object InitGpgKeysMain {
 
     // Step 3: Verify key was uploaded
     println("Step 3: Verifying key upload...")
-    Thread.sleep(2000)
-    try {
-      val verifyResult = requests.get(
-        url = "https://keyserver.ubuntu.com/pks/lookup",
-        params = Map("op" -> "get", "search" -> s"0x$keyId")
-      )
-      if (!verifyResult.is2xx || !verifyResult.text().contains("BEGIN PGP PUBLIC KEY BLOCK")) {
-        System.err.println("Warning: Could not verify key on keyserver.")
-        System.err.println(
-          "This may be due to keyserver propagation delay. Try again later with:"
+    val deadline = System.currentTimeMillis() + 30000
+    var verified = false
+    var lastError: Option[String] = None
+    while (!verified && System.currentTimeMillis() < deadline) {
+      try {
+        val verifyResult = requests.get(
+          url = "https://keyserver.ubuntu.com/pks/lookup",
+          params = Map("op" -> "get", "search" -> s"0x$keyId")
         )
-        System.err.println(
-          s"  https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x$keyId"
-        )
-      } else {
-        println("Key verified on keyserver!")
+        if (verifyResult.is2xx && verifyResult.text().contains("BEGIN PGP PUBLIC KEY BLOCK")) {
+          verified = true
+        } else {
+          lastError = Some(
+            s"Request to https://keyserver.ubuntu.com/pks/lookup failed with status code ${verifyResult.statusCode}"
+          )
+        }
+      } catch {
+        case e: Exception =>
+          lastError = Some(e.getMessage)
       }
-    } catch {
-      case e: Exception =>
-        System.err.println(
-          s"Warning: Could not verify key on keyserver: ${e.getMessage}"
-        )
+      if (!verified) Thread.sleep(2000)
+    }
+    if (verified) {
+      println("Key verified on keyserver!")
+    } else {
+      System.err.println("Warning: Could not verify key on keyserver.")
+      lastError.foreach(err => System.err.println(s"Warning: $err"))
+      System.err.println(
+        "This may be due to keyserver propagation delay. Try again later with:"
+      )
+      System.err.println(
+        s"  https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x$keyId"
+      )
     }
     println("")
 
     // Base64 encode the key (without newlines for environment variable)
     val secretKeyBase64 =
       java.util.Base64.getEncoder.encodeToString(generated.secretKeyArmored.getBytes("UTF-8"))
+
+    outputSecretPath.foreach { pathString =>
+      val secretPath = Paths.get(pathString)
+      writeString(secretPath, generated.secretKeyArmored)
+      println("")
+      println(s"Saved secret key to: ${secretPath.toAbsolutePath}")
+      println("To store it in your home directory for manual use, you can run:")
+      println(s"  cp ${secretPath.toAbsolutePath} ~/.mill/pgp-private-key.asc")
+      println("")
+    }
 
     println("")
     println("=== Setup Complete! ===")
@@ -118,11 +143,29 @@ object InitGpgKeysMain {
     println("-" * 72)
     println("")
     println("For GitHub Actions, add these as repository secrets:")
-    println("  - MILL_PGP_SECRET_BASE64")
-    println("  - MILL_PGP_PASSPHRASE")
+    println(s"  - MILL_PGP_SECRET_BASE64=$secretKeyBase64")
+    println(s"  - MILL_PGP_PASSPHRASE=$passphrase")
     println("")
     println(s"Your key ID is: $keyId")
     println("")
     println("See https://central.sonatype.org/publish/requirements/gpg/ for more details.")
+  }
+
+  private def extractArg(args: Array[String], flag: String): Option[String] = {
+    val flagPrefix = s"$flag="
+    args.zipWithIndex.collectFirst {
+      case (arg, _) if arg.startsWith(flagPrefix) => arg.drop(flagPrefix.length)
+      case (arg, idx) if arg == flag && idx + 1 < args.length => args(idx + 1)
+    }.filter(_.nonEmpty)
+  }
+
+  private def writeString(path: Path, contents: String): Unit = {
+    Option(path.getParent).foreach(parent => Files.createDirectories(parent))
+    Files.write(
+      path,
+      contents.getBytes(StandardCharsets.UTF_8),
+      StandardOpenOption.CREATE,
+      StandardOpenOption.TRUNCATE_EXISTING
+    )
   }
 }

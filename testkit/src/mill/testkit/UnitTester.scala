@@ -234,7 +234,7 @@ class UnitTester(
       BuildCtx.workspaceRoot0.withValue(module.moduleDir) {
         mill.api.daemon.LauncherSubprocess.withValue(config =>
           DaemonRpc
-            .defaultRunSubprocessWithStreams(System.out, System.err)(
+            .defaultRunSubprocessWithStreams(System.in, System.out, System.err)(
               DaemonRpc.ServerToClient.RunSubprocess(config)
             )
             .exitCode

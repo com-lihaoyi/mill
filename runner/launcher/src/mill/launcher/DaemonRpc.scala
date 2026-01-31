@@ -4,7 +4,7 @@ import mill.api.daemon.{LauncherSubprocess, Logger}
 import mill.rpc.*
 import upickle.ReadWriter
 
-import java.io.{BufferedReader, OutputStream, PrintStream}
+import java.io.{BufferedReader, InputStream, OutputStream, PrintStream}
 
 /**
  * RPC message types for launcher-daemon communication.
@@ -62,10 +62,9 @@ object DaemonRpc {
       initialize: Initialize,
       serverToClient: BufferedReader,
       clientToServer: PrintStream,
-      stdout: RpcConsole.Message => Unit = RpcConsole.stdoutHandler,
-      stderr: RpcConsole.Message => Unit = RpcConsole.stderrHandler,
-      runSubprocess: ServerToClient.RunSubprocess => SubprocessResult =
-        defaultRunSubprocessWithStreams(System.out, System.err),
+      stdout: RpcConsole.Message => Unit,
+      stderr: RpcConsole.Message => Unit,
+      runSubprocess: ServerToClient.RunSubprocess => SubprocessResult, 
       pollStdin: ServerToClient.PollStdin => StdinResult = defaultPollStdin,
       getTerminalDims: ServerToClient.GetTerminalDims => TerminalDimsResult = defaultGetTerminalDims
   ): MillRpcClient[ClientToServer, ServerToClient] = {
@@ -99,6 +98,7 @@ object DaemonRpc {
   }
 
   def defaultRunSubprocessWithStreams(
+                                     stdin: InputStream,
       stdout: OutputStream,
       stderr: OutputStream
   ): ServerToClient.RunSubprocess => SubprocessResult = { req =>
@@ -106,7 +106,7 @@ object DaemonRpc {
       val result = os.proc(req.config.cmd).call(
         cwd = os.Path(req.config.cwd),
         env = req.config.env,
-        stdin = os.Inherit,
+        stdin = stdin,
         stdout = os.ProcessOutput.ReadBytes(stdout.write(_, 0, _)),
         stderr = os.ProcessOutput.ReadBytes(stderr.write(_, 0, _)),
         mergeErrIntoOut = req.config.mergeErrIntoOut,
