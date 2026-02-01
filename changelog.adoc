@@ -14,14 +14,7 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
-[#1-1-1]
-=== 1.1.1
-:version: 1.1.1
-:milestone-name: 1.1.1
-:milestone: 140
-:prev-version: 1.1.0
-
-_2026-02-23_
+=== main branch
 
 * Allow manual re-configuration of selective testing graph via
   `Task(selectiveInputs = ...) {link-pr}/6732[#6732]
