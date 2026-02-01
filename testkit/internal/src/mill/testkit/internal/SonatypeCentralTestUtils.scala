@@ -226,13 +226,13 @@ private[mill] object SonatypeCentralTestUtils {
     os.SubPath(group.split('.').toIndexedSeq)
 
   private val snapshotArtifactSuffixes =
-    Vector("jar", "sources.jar", "javadoc.jar", "pom")
+    Vector(".jar", "-sources.jar", "-javadoc.jar", ".pom")
 
   private def releaseArtifactBaseFiles(
       dir: os.Path,
       baseName: String
   ): Vector[os.Path] =
-    snapshotArtifactSuffixes.map(suffix => dir / s"$baseName.$suffix")
+    snapshotArtifactSuffixes.map(suffix => dir / s"$baseName$suffix")
 
   private def releaseExpectedFiles(
       dir: os.Path,
@@ -258,7 +258,7 @@ private[mill] object SonatypeCentralTestUtils {
     s"$artifactId-${version.stripSuffix("-SNAPSHOT")}-$timestamp-$buildNumber"
 
   private def snapshotArtifactBaseFiles(dir: os.Path, baseName: String): Vector[os.Path] =
-    snapshotArtifactSuffixes.map(suffix => dir / s"$baseName.$suffix")
+    snapshotArtifactSuffixes.map(suffix => dir / s"$baseName$suffix")
 
   private def withChecksumFiles(files: Vector[os.Path]): Vector[os.Path] =
     files.flatMap(file =>

@@ -1,8 +1,9 @@
 package build
 
-import mill._, javalib._, publish.*
+import mill._, scalalib._, javalib._
+import mill.javalib.publish.*
 
-object example  extends ScalaModule with PublishModule {
+object testProject extends ScalaModule with PublishModule {
   def publishVersion = "0.0.1"
   def scalaVersion = "3.8.1"
   def pomSettings = Task {
