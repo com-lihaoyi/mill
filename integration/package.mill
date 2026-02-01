@@ -104,6 +104,7 @@ object `package` extends mill.Module {
     def forkArgs: T[Seq[String]]
     def testExclusive = false
     def testClasspath: T[Seq[PathRef]]
+    def selectiveInputs: Seq[Task[?]] = Nil
 
     trait ModeModule extends MillBaseTestsModule {
       override def testClasspath: T[Seq[PathRef]] = IntegrationTestModule.this.testClasspath()
@@ -177,7 +178,7 @@ object `package` extends mill.Module {
     // Set `fast.daemon` as the default way to run integration and example tests
     override def defaultTask(): String = "testForked"
     def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
-      Task.Command {
+      Task.Command(selectiveInputs = selectiveInputs) {
         fast.daemon.testForked0(args*)()
       }
 
@@ -247,6 +248,8 @@ object `package` extends mill.Module {
     def forkEnv = super.forkEnv() ++ initRepos.all().map { case (name, path) =>
       s"MILL_INIT_REPO_$name" -> path
     }
+    override def selectiveInputs: Seq[Task[?]] =
+      Seq(build.libs.init.compile)
   }
   trait IntegrationCrossModule extends MillScalaModule with IntegrationTestModule {
     override def testClasspath = Seq(compile().classes)

@@ -270,7 +270,7 @@ object Task {
       @unused t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       exclusive: Boolean = false,
       persistent: Boolean = false,
-      selectiveInputs: Seq[Task[?]] = Nil
+      @com.lihaoyi.unroll selectiveInputs: Seq[Task[?]] = Nil
   ): CommandFactory =
     new CommandFactory(
       exclusive = exclusive,
@@ -353,7 +353,7 @@ object Task {
   def apply(
       @unused t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       persistent: Boolean = false,
-      selectiveInputs: Seq[Task[?]] = Nil
+      @com.lihaoyi.unroll selectiveInputs: Seq[Task[?]] = Nil
   ): ApplyFactory = new ApplyFactory(persistent, selectiveInputs)
 
   class ApplyFactory private[mill] (
@@ -458,7 +458,7 @@ object Task {
       val readWriter: ReadWriter[?],
       val isPrivate: Option[Boolean],
       override val persistent: Boolean,
-      override val selectiveInputs0: Seq[Task[?]]
+      @com.lihaoyi.unroll override val selectiveInputs0: Seq[Task[?]] = Nil
   ) extends Simple[T] {
     override def asSimple: Option[Simple[T]] = Some(this)
 
@@ -529,9 +529,8 @@ object Task {
       val isPrivate: Option[Boolean],
       val exclusive: Boolean,
       override val persistent: Boolean,
-      override val selectiveInputs0: Seq[Task[?]]
+      @com.lihaoyi.unroll override val selectiveInputs0: Seq[Task[?]] = Nil
   ) extends Task.Named[T] {
-
     override def asCommand: Some[Command[T]] = Some(this)
     // FIXME: deprecated return type: Change to Option
     override def writerOpt: Some[Writer[?]] = Some(writer)
@@ -568,7 +567,7 @@ object Task {
       val writer: upickle.Writer[?],
       val isPrivate: Option[Boolean],
       override val persistent: Boolean,
-      override val selectiveInputs0: Seq[Task[?]]
+      @com.lihaoyi.unroll override val selectiveInputs0: Seq[Task[?]] = Nil
   ) extends Simple[T] {
     override def writerOpt: Option[Writer[?]] = Some(writer)
   }
