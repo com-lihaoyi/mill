@@ -73,9 +73,7 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
       "mill.api.daemon.MillException"
     ),
     // private macro helpers, not part of public API
-    ProblemFilter.exclude[DirectMissingMethodProblem]("mill.api.Task#Macros.taskResultImpl"),
-    ProblemFilter.exclude[DirectMissingMethodProblem]("mill.api.Task#Macros.uncachedImpl"),
-    ProblemFilter.exclude[DirectMissingMethodProblem]("mill.api.Task#Macros.commandImpl")
+    ProblemFilter.exclude[DirectMissingMethodProblem]("mill.api.Task#Macros*")
   )
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
