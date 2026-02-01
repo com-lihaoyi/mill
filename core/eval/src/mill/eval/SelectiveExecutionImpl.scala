@@ -12,12 +12,6 @@ import mill.internal.SpanningForest.breadthFirst
 class SelectiveExecutionImpl(evaluator: Evaluator)
     extends mill.api.SelectiveExecution {
 
-  private def debugLog(message: String): Unit = {
-    if (sys.env.contains("MILL_SELECTIVE_DEBUG")) {
-      mill.constants.DebugLog.println(message)
-    }
-  }
-
   def computeHashCodeSignatures(
       transitiveNamed: Seq[Task.Named[?]],
       codeSignatures: Map[String, Int]
@@ -68,7 +62,6 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
     val allTasks = transitiveNamed.map(t => t: Task[?])
     def globalInvalidate(name: String, key: SelectiveExecution.Metadata => Any) = {
       Option.when(key(oldHashes) != key(newHashes)) {
-        debugLog(s"selective: global-invalidate $name ${key(oldHashes)} -> ${key(newHashes)}")
         DownstreamResult(
           allTasks.toSet,
           allTasks,
@@ -101,36 +94,9 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
           newHashes.buildOverrideSignatures
         )
 
-        debugLog(
-          s"selective: changed-inputs=${changedInputNames.size} " +
-            s"changed-code=${changedCodeNames.size} " +
-            s"changed-build-overrides=${changedBuildOverrides.size}"
-        )
-        if (changedInputNames.nonEmpty) {
-          debugLog(s"selective: changed-inputs=${changedInputNames.toSeq.sorted.mkString(",")}")
-        }
-        if (changedCodeNames.nonEmpty) {
-          debugLog(s"selective: changed-code=${changedCodeNames.toSeq.sorted.mkString(",")}")
-        }
-        if (changedBuildOverrides.nonEmpty) {
-          debugLog(
-            s"selective: changed-build-overrides=${changedBuildOverrides.toSeq.sorted.mkString(",")}"
-          )
-        }
-
         val changedRootTasks =
           (changedInputNames ++ changedCodeNames ++ changedBuildOverrides ++ oldHashes.forceRunTasks)
             .flatMap(namesToTasks.get(_): Option[Task[?]])
-
-        if (changedRootTasks.nonEmpty) {
-          debugLog(
-            s"selective: changed-root-tasks=" +
-              changedRootTasks.collect { case n: Task.Named[_] => n.ctx.segments.render }
-                .toSeq
-                .sorted
-                .mkString(",")
-          )
-        }
 
         val allNodes = breadthFirst(transitiveNamed.map(t => t: Task[?]))(_.selectiveInputs)
         val downstreamEdgeMap =

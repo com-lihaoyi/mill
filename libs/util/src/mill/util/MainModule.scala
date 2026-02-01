@@ -159,33 +159,13 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
       for {
         srcTasks <- evaluator.resolveTasks(List(src), SelectMode.Multi)
         destTasks <- evaluator.resolveTasks(List(dest), SelectMode.Multi)
-        result <- {
-          val destSet: Set[Task[?]] = destTasks.toSet
-          val queue = collection.mutable.Queue[List[Task[?]]](srcTasks.map(List(_))*)
-          var found = Option.empty[List[Task[?]]]
-          val seen = collection.mutable.Set.empty[Task[?]]
-          seen ++= srcTasks
-          while (queue.nonEmpty && found.isEmpty) {
-            val current = queue.dequeue()
-            if (destSet.contains(current.head)) found = Some(current)
-            else {
-              for {
-                next <- current.head.inputs
-                if !seen.contains(next)
-              } {
-                seen.add(next)
-                queue.enqueue(next :: current)
-              }
-            }
-          }
-          found match {
-            case None => Task.fail(s"No path found between $src and $dest")
-            case Some(list) =>
-              val labels = list.collect { case n: Task.Named[_] => n.ctx.segments.render }.reverse
-              labels.foreach(println)
-              Result.Success(labels)
-          }
-        }
+        result <- MainModule.pathBetween(
+          src,
+          dest,
+          srcTasks,
+          destTasks,
+          _.inputs
+        )
       } yield result
     }
 
@@ -457,6 +437,41 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
 }
 
 object MainModule {
+  private[mill] def pathBetween(
+      srcLabel: String,
+      destLabel: String,
+      srcTasks: Seq[Task[?]],
+      destTasks: Seq[Task[?]],
+      edges: Task[?] => IterableOnce[Task[?]]
+  ): Result[List[String]] = {
+    val destSet: Set[Task[?]] = destTasks.toSet
+    val srcSet = srcTasks.toSet
+    val order = mill.internal.SpanningForest.breadthFirst(srcTasks)(edges)
+    val parents = collection.mutable.Map.empty[Task[?], Task[?]]
+
+    order.foreach { current =>
+      edges(current).iterator.foreach { next =>
+        if (!parents.contains(next) && !srcSet.contains(next)) {
+          parents.update(next, current)
+        }
+      }
+    }
+
+    order.find(destSet.contains) match {
+      case None => Task.fail(s"No path found between $srcLabel and $destLabel")
+      case Some(found) =>
+        val path = collection.mutable.ListBuffer.empty[Task[?]]
+        var current = found
+        path.prepend(current)
+        while (parents.contains(current)) {
+          current = parents(current)
+          path.prepend(current)
+        }
+        val labels = path.collect { case n: Task.Named[_] => n.ctx.segments.render }.toList
+        labels.foreach(println)
+        Result.Success(labels)
+    }
+  }
 
   private def show0(
       evaluator: Evaluator,
