@@ -56,32 +56,7 @@ private[mill] object SonatypeCentralTestUtils {
     ) { repoDir =>
       val dir = releaseRepoDir(repoDir, group, artifactId, version)
       val baseDir = dir / releaseGroupPath(group) / artifactId / version
-      val expectedFiles = Vector(
-        baseDir / s"$artifactId-$version-javadoc.jar",
-        baseDir / s"$artifactId-$version-javadoc.jar.asc",
-        baseDir / s"$artifactId-$version-javadoc.jar.asc.md5",
-        baseDir / s"$artifactId-$version-javadoc.jar.asc.sha1",
-        baseDir / s"$artifactId-$version-javadoc.jar.md5",
-        baseDir / s"$artifactId-$version-javadoc.jar.sha1",
-        baseDir / s"$artifactId-$version-sources.jar",
-        baseDir / s"$artifactId-$version-sources.jar.asc",
-        baseDir / s"$artifactId-$version-sources.jar.asc.md5",
-        baseDir / s"$artifactId-$version-sources.jar.asc.sha1",
-        baseDir / s"$artifactId-$version-sources.jar.md5",
-        baseDir / s"$artifactId-$version-sources.jar.sha1",
-        baseDir / s"$artifactId-$version.jar",
-        baseDir / s"$artifactId-$version.jar.asc",
-        baseDir / s"$artifactId-$version.jar.asc.md5",
-        baseDir / s"$artifactId-$version.jar.asc.sha1",
-        baseDir / s"$artifactId-$version.jar.md5",
-        baseDir / s"$artifactId-$version.jar.sha1",
-        baseDir / s"$artifactId-$version.pom",
-        baseDir / s"$artifactId-$version.pom.asc",
-        baseDir / s"$artifactId-$version.pom.asc.md5",
-        baseDir / s"$artifactId-$version.pom.asc.sha1",
-        baseDir / s"$artifactId-$version.pom.md5",
-        baseDir / s"$artifactId-$version.pom.sha1"
-      )
+      val expectedFiles = releaseExpectedFiles(baseDir, s"$artifactId-$version")
       val actualFiles = os.walk(dir).toVector
       val missingFiles = expectedFiles.filterNot(actualFiles.contains)
       assert(missingFiles.isEmpty)
@@ -114,6 +89,54 @@ private[mill] object SonatypeCentralTestUtils {
       val workspacePath = module.moduleDir
       val repoDir = workspacePath / "out" / dirName / "repository"
       validateRepo(repoDir)
+    }
+  }
+
+  def assertSnapshotRepository(
+      repoDir: os.Path,
+      group: String,
+      artifactId: String,
+      version: String
+  ): Unit = {
+    val publishedDir = repoDir / releaseGroupPath(group) / artifactId
+    val rootMetadataFile = publishedDir / "maven-metadata.xml"
+    assert(os.exists(rootMetadataFile))
+
+    val rootMetadataContents = os.read(rootMetadataFile)
+    assert(rootMetadataContents.contains(s"<version>$version</version>"))
+
+    val publishedVersionDir = publishedDir / version
+    val metadataFile = publishedVersionDir / "maven-metadata.xml"
+    assert(os.exists(metadataFile))
+
+    val metadataContents: String = os.read(metadataFile)
+    assert(metadataContents.contains(s"<version>$version</version>"))
+
+    val timestamp = extractSnapshotMetadataValue(
+      metadataContents,
+      """<timestamp>(\d{8}\.\d{6})</timestamp>""".r,
+      "timestamp",
+      metadataFile
+    )
+    val buildNumber = extractSnapshotMetadataValue(
+      metadataContents,
+      """<buildNumber>(\d+)</buildNumber>""".r,
+      "buildNumber",
+      metadataFile
+    )
+
+    val baseName = snapshotBaseName(artifactId, version, timestamp, buildNumber)
+    val artifactFiles = snapshotArtifactBaseFiles(publishedVersionDir, baseName)
+    val expectedFiles =
+      withChecksumFiles(Vector(rootMetadataFile, metadataFile)) ++ withChecksumFiles(artifactFiles)
+    val actualFiles = os.walk(publishedDir).toVector
+    val missingFiles = expectedFiles.filterNot(actualFiles.contains)
+    assert(missingFiles.isEmpty)
+
+    val checksumTargets = Vector(rootMetadataFile, metadataFile) ++ artifactFiles
+    checksumTargets.foreach { file =>
+      assertChecksumMatches(file, os.Path(file.toString + ".md5"), "MD5")
+      assertChecksumMatches(file, os.Path(file.toString + ".sha1"), "SHA1")
     }
   }
 
@@ -189,12 +212,7 @@ private[mill] object SonatypeCentralTestUtils {
       passphrase.map(EnvVars.MILL_PGP_PASSPHRASE -> _)
 
   private def signedArtifacts(dir: os.Path, artifactId: String, version: String): Vector[os.Path] =
-    Vector(
-      dir / s"$artifactId-$version-javadoc.jar",
-      dir / s"$artifactId-$version-sources.jar",
-      dir / s"$artifactId-$version.jar",
-      dir / s"$artifactId-$version.pom"
-    )
+    releaseArtifactBaseFiles(dir, s"$artifactId-$version")
 
   private def releaseRepoDir(
       repoDir: os.Path,
@@ -206,4 +224,56 @@ private[mill] object SonatypeCentralTestUtils {
 
   private def releaseGroupPath(group: String): os.SubPath =
     os.SubPath(group.split('.').toIndexedSeq)
+
+  private val snapshotArtifactSuffixes =
+    Vector("jar", "sources.jar", "javadoc.jar", "pom")
+
+  private def releaseArtifactBaseFiles(
+      dir: os.Path,
+      baseName: String
+  ): Vector[os.Path] =
+    snapshotArtifactSuffixes.map(suffix => dir / s"$baseName.$suffix")
+
+  private def releaseExpectedFiles(
+      dir: os.Path,
+      baseName: String
+  ): Vector[os.Path] =
+    releaseArtifactBaseFiles(dir, baseName).flatMap { file =>
+      Vector(
+        file,
+        os.Path(file.toString + ".asc"),
+        os.Path(file.toString + ".asc.md5"),
+        os.Path(file.toString + ".asc.sha1"),
+        os.Path(file.toString + ".md5"),
+        os.Path(file.toString + ".sha1")
+      )
+    }
+
+  private def snapshotBaseName(
+      artifactId: String,
+      version: String,
+      timestamp: String,
+      buildNumber: String
+  ): String =
+    s"$artifactId-${version.stripSuffix("-SNAPSHOT")}-$timestamp-$buildNumber"
+
+  private def snapshotArtifactBaseFiles(dir: os.Path, baseName: String): Vector[os.Path] =
+    snapshotArtifactSuffixes.map(suffix => dir / s"$baseName.$suffix")
+
+  private def withChecksumFiles(files: Vector[os.Path]): Vector[os.Path] =
+    files.flatMap(file =>
+      Vector(file, os.Path(file.toString + ".md5"), os.Path(file.toString + ".sha1"))
+    )
+
+  private def extractSnapshotMetadataValue(
+      metadataContents: String,
+      regex: scala.util.matching.Regex,
+      label: String,
+      metadataFile: os.Path
+  ): String =
+    regex.findFirstMatchIn(metadataContents).map(_.group(1)).getOrElse {
+      throw new Exception(
+        s"No $label found via $regex in $metadataFile:\n$metadataContents"
+      )
+    }
 }

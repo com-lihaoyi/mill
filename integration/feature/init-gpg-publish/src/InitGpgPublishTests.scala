@@ -5,10 +5,6 @@ import mill.testkit.internal.SonatypeCentralTestUtils
 import utest.*
 
 object InitGpgPublishTests extends UtestIntegrationTestSuite {
-  private val PublishTaskName = "testProject.publishSonatypeCentral"
-  private val PublishDirName = os.SubPath("testProject/publishSonatypeCentral.dest")
-  private val InitGpgKeysTaskName = "mill.javalib.SonatypeCentralPublishModule/initGpgKeys"
-
   private def extractExportValue(output: String, name: String): String =
     (s"(?m)^export ${java.util.regex.Pattern.quote(name)}=(.*)$$").r
       .findFirstMatchIn(output)
@@ -17,13 +13,14 @@ object InitGpgPublishTests extends UtestIntegrationTestSuite {
 
   private def initGpgKeysSmokeTest(): Unit = integrationTest { tester =>
     import tester.*
-
-    val stdin =
-      Seq("Mill Test User", "mill-test-user@example.com", "mill-test-passphrase").mkString("\n") +
-        "\n"
+    
     val res = eval(
-      Seq("--no-daemon", InitGpgKeysTaskName),
-      stdin = stdin,
+      "mill.javalib.SonatypeCentralPublishModule/initGpgKeys"
+      stdin = Seq(
+        "Mill Test User\n",
+        "mill-test-user@example.com\n",
+        "mill-test-passphrase\n"
+      ).mkString,
       mergeErrIntoOut = true
     )
     println(res.debugString)
@@ -40,8 +37,8 @@ object InitGpgPublishTests extends UtestIntegrationTestSuite {
 
     SonatypeCentralTestUtils.dryRunWithKey(
       tester,
-      PublishTaskName,
-      PublishDirName,
+      "testProject.publishSonatypeCentral",
+      "testProject/publishSonatypeCentral.dest",
       secretBase64,
       Some(passphrase)
     )
