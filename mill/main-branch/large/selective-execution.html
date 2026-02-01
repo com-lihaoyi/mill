@@ -761,7 +761,7 @@ request branch, you can do that as follows:</p>
 where <code>bar</code> depends on <code>foo</code> but <code>qux</code> is standalone:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-30-735683/mill-dist-1.1.0-example-large-selective-9-selective-execution.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/large/selective/9-selective-execution">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-31-e03997/mill-dist-1.1.0-example-large-selective-9-selective-execution.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/large/selective/9-selective-execution">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -1187,6 +1187,95 @@ when you run <code>foo.compile</code> on the changed sources, the compilation ou
 so <code>.testCached</code> can be skipped. This is inherent in the nature of selective execution, which
 does its analysis without evaluation-time information and thus will always be more conservative
 than the task skipping and cache-reuse that is done during evaluation.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_selectiveinputs"><a class="anchor" href="#_selectiveinputs"></a><code>selectiveInputs</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Selective execution can be customized per task by passing <code>selectiveInputs</code>
+to override the default task graph that selective execution relies on.
+This replaces makes the configured task or command only get selected if
+the explicitly listed <code>selectiveInputs</code> change, ignoring whether or not
+the task&#8217;s <em>actual</em> inputs were changed or not.</p>
+</div>
+<div class="paragraph">
+<p>This example shows a command <code>qux</code> that depends on two sources <code>foo</code> and <code>bar</code>,
+but only one of them <code>foo</code> is used to decide whether the task should be re-run
+during selective execution.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-31-e03997/mill-dist-1.1.0-example-large-selective-10-selective-inputs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/large/selective/10-selective-inputs">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*
+
+def foo = Task.Source("foo.txt")
+def bar = Task.Source("bar.txt")
+
+def qux() = Task.Command(selectiveInputs = Seq(foo)) {
+  println("Running qux")
+  os.read(foo().path) + os.read(bar().path)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, even though <code>qux</code> depends on both <code>foo</code> and <code>bar</code>,
+<code>selective.run</code> only runs <code>qux</code> when <code>foo</code> changes, and not when <code>bar</code> changes.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill selective.prepare qux
+
+&gt; echo "!" &gt;&gt; bar.txt
+
+&gt; ./mill selective.resolveTree qux
+{}
+
+&gt; ./mill selective.run qux # does not run qux
+
+&gt; echo "!" &gt;&gt; foo.txt
+
+&gt; ./mill selective.resolveTree qux
+{
+  "foo": {
+    "qux": {}
+  }
+}
+
+&gt; ./mill selective.run qux
+Running qux</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>selectiveInputs</code> is useful to get more control over when a task or command
+gets selected. e.g. A test suite may depend on both a downstream module and
+some upstream utilities, but you may want to only run the tests if the downstream
+module changes, and not when the upstream utilities change, on the assumption that
+the upstream utilities' own test suite is likely to catch any issues in changes
+to them and running the downstream module is redundant.</p>
+</div>
+<div class="paragraph">
+<p>Hypothetically, if <code>bar</code> has its own test suite, we may decide that running <code>qux</code> every
+time <code>bar</code> changes is unnecessary, and so we can use <code>selectiveInputs</code> to make <code>qux</code>
+only get selectively run when <code>foo</code> changes and not <code>bar</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_further_reading"><a class="anchor" href="#_further_reading"></a>Further Reading</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>See the following blog post for a broader discussion on the idea of selective test
+execution, beyond the Mill build tool:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="../../../blog/3-selective-testing.html" class="xref page">Faster CI with Selective Testing</a></p>
 </li>
 </ul>
 </div>

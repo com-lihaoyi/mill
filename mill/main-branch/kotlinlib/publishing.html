@@ -728,7 +728,7 @@ do so, your module must extend <code>mill.scalalib.PublishModule</code>, and con
 publishing metadata shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-30-735683/mill-dist-1.1.0-example-kotlinlib-publishing-1-publishing-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/publishing/1-publishing-yaml/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-31-e03997/mill-dist-1.1.0-example-kotlinlib-publishing-1-publishing-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/publishing/1-publishing-yaml/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [KotlinModule, PublishModule]
 kotlinVersion: 2.0.20
@@ -782,7 +782,7 @@ can be resolved from the local repository, with no missing dependencies.</p>
 <h2 id="_versioning_based_on_git_tags"><a class="anchor" href="#_versioning_based_on_git_tags"></a>Versioning Based on Git Tags</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-30-735683/mill-dist-1.1.0-example-kotlinlib-publishing-2-vcs-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/publishing/2-vcs-version/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-31-e03997/mill-dist-1.1.0-example-kotlinlib-publishing-2-vcs-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/publishing/2-vcs-version/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [KotlinModule, PublishModule, mill.util.VcsVersionModule]
 kotlinVersion: 2.0.20
@@ -823,7 +823,7 @@ Publishing Artifact(com.lihaoyi,example...,0.1.0...) to ivy repo...</code></pre>
 <h2 id="_programmable_publishing_configuration"><a class="anchor" href="#_programmable_publishing_configuration"></a>Programmable Publishing Configuration</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-30-735683/mill-dist-1.1.0-example-kotlinlib-publishing-3-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/publishing/3-publishing">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-31-e03997/mill-dist-1.1.0-example-kotlinlib-publishing-3-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/publishing/3-publishing">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -892,60 +892,39 @@ create an account at:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_gpg"><a class="anchor" href="#_gpg"></a>GPG</h3>
+<h3 id="_setting_up_gpg"><a class="anchor" href="#_setting_up_gpg"></a>Setting up GPG</h3>
 <div class="paragraph">
 <p>If you&#8217;ve never created a keypair before that can be used to sign your artifacts
-you&#8217;ll need to do this. <a href="https://central.sonatype.org/publish/requirements/gpg/">Sonatype&#8217;s GPG Documentation</a>
-has the instructions on how to do this</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_secrets"><a class="anchor" href="#_secrets"></a>Secrets</h3>
-<div class="paragraph">
-<p>Mill uses the following environment variables as a way to pass the necessary secrets
-for publishing to Maven Central:</p>
+you&#8217;ll need to do this. Mill can do this for you via</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh"># Sonatype Central Portal needs your public key to be uploaded so it can use for verification of artifacts from their end.
-#
-# Send your public key to ubuntu server so Sonatype Maven Central can use for verification of the artifacts
-gpg --keyserver  keyserver.ubuntu.com --send-keys $LONG_ID
-#
-# Check the server for information about the public key. information will be displayed if found
-gpg --keyserver  keyserver.ubuntu.com --recv-keys $LONG_ID
-#
-# The LHS and RHS of the User Token, accessible through the sonatype
-# website `Profile` / `User Token` / `Access User Token`
-export MILL_SONATYPE_USERNAME=...
-export MILL_SONATYPE_PASSWORD=...
-
-# The base-64 encoded PGP key, which can be encoded in the following way
-# for each OS:
-#
-# MacOS or FreeBSD
-# gpg --export-secret-key -a $LONG_ID | base64
-#
-# Ubuntu (assuming GNU base64)
-# gpg --export-secret-key -a $LONG_ID | base64 -w0
-#
-# Arch
-# gpg --export-secret-key -a $LONG_ID | base64 | sed -z 's;\n;;g'
-#
-# Windows
-# gpg --export-secret-key -a %LONG_ID% | openssl base64
-export MILL_PGP_SECRET_BASE64=...
-
-# The passphrase associated with your PGP key
-export MILL_PGP_PASSPHRASE=...</code></pre>
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">$ ./mill mill.javalib.SonatypeCentralPublishModule/initGpgKeys</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>This command requests some basic metadata necessary for generating the GPG keys,
+generates a key-pair, registers it, and prints out instructions on how to use
+it from the terminal or in CI.</p>
+</div>
+<div class="paragraph">
+<p>For most users who have never touched GPG before, using <code>initGpgKeys</code> is the easiest
+way to get started. But if for some reason <code>initGpgKeys</code> doesn&#8217;t work, or you want to
+fiddle under the hood, you can also set up your GPG keys manually:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#_manual_gpg_setup">Manual GPG Setup</a></p>
+</li>
+</ul>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_publishing"><a class="anchor" href="#_publishing"></a>Publishing</h3>
 <div class="paragraph">
-<p>Once you have the various secrets <code>export`ed as above, you can publish all
-eligible modules in your Mill project using `mill.javalib.SonatypeCentralPublishModule/</code>:</p>
+<p>Once you have the various secrets <code>export</code>ed as above, you can publish all
+eligible modules in your Mill project using <code>mill.javalib.SonatypeCentralPublishModule/</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1100,6 +1079,54 @@ mill.javalib.SonatypeCentralPublishModule/publishAll \
 <h4 id="_publishsonatypecentral"><a class="anchor" href="#_publishsonatypecentral"></a>publishSonatypeCentral</h4>
 <div class="paragraph">
 <p>The <code>__.publishSonatypeCentral</code> command takes the <code>username</code> and <code>password</code> arguments, documented above.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_manual_gpg_setup"><a class="anchor" href="#_manual_gpg_setup"></a>Manual GPG Setup</h3>
+<div class="paragraph">
+<p>If you have never used GPG before, <a href="#_setting_up_gpg">initGpgKeys</a> is probably the easiest way to
+get started, but you can also follow
+<a href="https://central.sonatype.org/publish/requirements/gpg/">Sonatype&#8217;s GPG Documentation</a>
+which has manual instructions on how to do this.</p>
+</div>
+<div class="paragraph">
+<p>Mill uses the following environment variables as a way to pass the necessary secrets
+for publishing to Maven Central:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh"># Sonatype Central Portal needs your public key to be uploaded so it can use for verification of artifacts from their end.
+#
+# Send your public key to ubuntu server so Sonatype Maven Central can use for verification of the artifacts
+gpg --keyserver  keyserver.ubuntu.com --send-keys $LONG_ID
+#
+# Check the server for information about the public key. information will be displayed if found
+gpg --keyserver  keyserver.ubuntu.com --recv-keys $LONG_ID
+#
+# The LHS and RHS of the User Token, accessible through the sonatype
+# website `Profile` / `User Token` / `Access User Token`
+export MILL_SONATYPE_USERNAME=...
+export MILL_SONATYPE_PASSWORD=...
+
+# The base-64 encoded PGP key, which can be encoded in the following way
+# for each OS:
+#
+# MacOS or FreeBSD
+# gpg --export-secret-key -a $LONG_ID | base64
+#
+# Ubuntu (assuming GNU base64)
+# gpg --export-secret-key -a $LONG_ID | base64 -w0
+#
+# Arch
+# gpg --export-secret-key -a $LONG_ID | base64 | sed -z 's;\n;;g'
+#
+# Windows
+# gpg --export-secret-key -a %LONG_ID% | openssl base64
+export MILL_PGP_SECRET_BASE64=...
+
+# The passphrase associated with your PGP key
+export MILL_PGP_PASSPHRASE=...</code></pre>
 </div>
 </div>
 </div>
