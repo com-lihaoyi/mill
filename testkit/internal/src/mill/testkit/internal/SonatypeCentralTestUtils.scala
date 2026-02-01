@@ -52,7 +52,9 @@ private[mill] object SonatypeCentralTestUtils {
 
   def withGpgHome[T](secretKeyBase64: String)(f: Map[String, String] => T): T = {
     val gpgHome = os.temp.dir(prefix = "mill-gpg")
-    val gpgEnv = Map("GNUPGHOME" -> gpgHome.toString)
+    val gpgHomeString =
+      if (scala.util.Properties.isWin) gpgHome.toString.replace('\\', '/') else gpgHome.toString
+    val gpgEnv = Map("GNUPGHOME" -> gpgHomeString)
     val secretBytes = java.util.Base64.getDecoder.decode(secretKeyBase64)
     os.proc("gpg", "--batch", "--yes", "--import").call(stdin = secretBytes, env = gpgEnv)
     f(gpgEnv)
