@@ -77,3 +77,10 @@ and can give you a chance to eyeball if the list of tasks to run makes sense or 
 == `selectiveInputs`
 
 include::partial$example/large/selective/10-selective-inputs.adoc[]
+
+== Further Reading
+
+See the following blog post for a broader discussion on the idea of selective test
+execution, beyond the Mill build tool:
+
+- xref:blog::3-selective-testing.adoc[Faster CI with Selective Testing]
