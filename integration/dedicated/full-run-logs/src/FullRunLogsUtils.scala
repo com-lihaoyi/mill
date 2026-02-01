@@ -15,7 +15,10 @@ object FullRunLogsUtils {
     .replace(fansi.Color.Magenta.escape, "(M)")
     .replace(fansi.Color.Yellow.escape, "(Y)")
     .replace('\\', '/')
-    .replaceAll("\\(([a-zA-Z.]+):\\d+\\)", "($1:<digits>)")
+    .replaceAll(
+      "\\((\\([A-Z]\\))?([a-zA-Z0-9.$_]+\\.(?:scala|java))(\\([A-Z]\\))?:(\\([A-Z]\\))?\\d+(\\([A-Z]\\))?\\)",
+      "($1$2$3:$4<digits>$5)"
+    )
     .replaceAll("\\d+]", "<digits>]")
     .replaceAll("\\d+]", "<digits>]")
     .replaceAll("\\d+/\\d+", ".../...")

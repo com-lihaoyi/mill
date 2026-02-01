@@ -1,11 +1,10 @@
 package build
 
-import mill._, scalalib._, publish.*
+import mill._, javalib._
+import mill.javalib.publish.*
 
-object testProject extends ScalaModule with SonatypeCentralPublishModule {
-  def scalaVersion = "3.3.6"
+object testProject extends JavaModule with PublishModule {
   def publishVersion = "0.0.1"
-
   def pomSettings = Task {
     PomSettings(
       description = "Hello",

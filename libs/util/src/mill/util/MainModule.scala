@@ -463,7 +463,11 @@ object MainModule {
       }
     }
     found match {
-      case None => Task.fail(s"No path found between $srcLabel and $destLabel")
+      case None =>
+        throw new mill.api.daemon.Result.Exception(
+          s"No path found between $srcLabel and $destLabel"
+        )
+
       case Some(list) =>
         val labels = list.collect { case n: Task.Named[_] => n.ctx.segments.render }.reverse
         labels.foreach(println)
