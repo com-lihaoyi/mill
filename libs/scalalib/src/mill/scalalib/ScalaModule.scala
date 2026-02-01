@@ -453,33 +453,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
 
   /** Use `repl` instead */
   def console(@com.lihaoyi.unroll args: mill.api.Args = mill.api.Args()): Command[Unit] =
-    Task.Command(exclusive = true) {
-      val useJavaCp = "-usejavacp"
-
-      // Workaround for https://github.com/scala/scala3/issues/20421
-      // Remove module-info.class from classpath entries to fix REPL autocomplete
-      val classPath = (runClasspath() ++ scalaConsoleClasspath()).map { pathRef =>
-        ScalaModule.stripModuleInfo(Task.dest, pathRef.path)
-      }
-
-      try {
-        Jvm.callInteractiveProcess(
-          mainClass =
-            if (JvmWorkerUtil.isDottyOrScala3(scalaVersion())) "dotty.tools.repl.Main"
-            else "scala.tools.nsc.MainGenericRunner",
-          classPath = classPath,
-          jvmArgs = forkArgs() ++ Jvm.getJvmSuppressionArgs(javaHome().map(_.path)),
-          env = allForkEnv(),
-          mainArgs =
-            Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)) ++ args.value,
-          cwd = forkWorkingDir()
-        )
-      } catch {
-        // Workaround for Scala 3.8.1 which doesn't trap Ctrl-C properly, which is fixed in
-        // https://github.com/scala/scala3/pull/24842 which should land in Scala 3.8.2
-        case _: java.io.IOError => // ignore
-      }
-    }
+    repl(args.value*)
 
   /**
    * The classpath used to run the Scala console with [[console]].
@@ -558,7 +532,35 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         )
         ()
       }
-    } else console(mill.api.Args(replOptions))
+    } else {
+      Task.Command(exclusive = true) {
+        val useJavaCp = "-usejavacp"
+
+        // Workaround for https://github.com/scala/scala3/issues/20421
+        // Remove module-info.class from classpath entries to fix REPL autocomplete
+        val classPath = (runClasspath() ++ scalaConsoleClasspath()).map { pathRef =>
+          ScalaModule.stripModuleInfo(Task.dest, pathRef.path)
+        }
+
+        try {
+          Jvm.callInteractiveProcess(
+            mainClass =
+              if (JvmWorkerUtil.isDottyOrScala3(scalaVersion())) "dotty.tools.repl.Main"
+              else "scala.tools.nsc.MainGenericRunner",
+            classPath = classPath,
+            jvmArgs = forkArgs() ++ Jvm.getJvmSuppressionArgs(javaHome().map(_.path)),
+            env = allForkEnv(),
+            mainArgs =
+              Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)) ++ replOptions,
+            cwd = forkWorkingDir()
+          )
+        } catch {
+          // Workaround for Scala 3.8.1 which doesn't trap Ctrl-C properly, which is fixed in
+          // https://github.com/scala/scala3/pull/24842 which should land in Scala 3.8.2
+          case _: java.io.IOError => // ignore
+        }
+      }
+    }
   }
 
   /**
@@ -746,7 +748,7 @@ object ScalaModule {
     // Use path hash to avoid collisions when multiple entries have the same filename
     val uniqueDestPath = {
       val hash = path.toString.hashCode.toHexString
-      dest / s"${path.baseName}-$hash-module-info-stripped-${path.ext}"
+      dest / s"${path.baseName}-$hash-module-info-stripped.${path.ext}"
     }
 
     val moduleInfoClass = os.sub / "module-info.class"
