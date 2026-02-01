@@ -2,13 +2,11 @@ package mill.javalib
 
 import mill.api.{Evaluator, Task}
 import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
-import mill.testkit.UnitTester
+import mill.testkit.internal.SonatypeCentralTestUtils
 import mill.util.Tasks
 import utest.*
 
 object PublishSonatypeCentralTests extends TestSuite {
-  import PublishSonatypeCentralTestUtils.*
-
   private val ENV_VAR_DRY_RUN = "MILL_TESTS_PUBLISH_DRY_RUN"
   private val PublishTask = PublishSonatypeCentralTestModule.testProject.publishSonatypeCentral()
   private val PublishDirName = os.SubPath("testProject/publishSonatypeCentral.dest")
@@ -28,85 +26,18 @@ object PublishSonatypeCentralTests extends TestSuite {
       secretBase64: String,
       passphrase: Option[String]
   ): Unit = {
-    val env = Map(
-      USERNAME_ENV_VARIABLE_NAME -> "mill-tests-username",
-      PASSWORD_ENV_VARIABLE_NAME -> "mill-tests-password",
-      ENV_VAR_DRY_RUN -> "1",
-      "MILL_PGP_SECRET_BASE64" -> secretBase64
-    ) ++ passphrase.map("MILL_PGP_PASSPHRASE" -> _)
-    UnitTester(
+    SonatypeCentralTestUtils.dryRunWithKey(
+      task,
+      dirName,
+      secretBase64,
+      passphrase,
       PublishSonatypeCentralTestModule,
-      ResourcePath,
-      env = Evaluator.defaultEnv ++ env
-    ).scoped { eval =>
-      val Right(_) = eval.apply(task).runtimeChecked
-      val workspacePath = PublishSonatypeCentralTestModule.moduleDir
-
-      val dir =
-        workspacePath / "out" / dirName / "repository" / "io.github.lihaoyi.testProject-0.0.1"
-
-      val expectedFiles = Vector(
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-javadoc.jar",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-javadoc.jar.asc",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-javadoc.jar.asc.md5",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-javadoc.jar.asc.sha1",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-javadoc.jar.md5",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-javadoc.jar.sha1",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-sources.jar",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-sources.jar.asc",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-sources.jar.asc.md5",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-sources.jar.asc.sha1",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-sources.jar.md5",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-sources.jar.sha1",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.jar",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.jar.asc",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.jar.asc.md5",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.jar.asc.sha1",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.jar.md5",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.jar.sha1",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.pom",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.pom.asc",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.pom.asc.md5",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.pom.asc.sha1",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.pom.md5",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.pom.sha1"
-      )
-      val actualFiles = os.walk(dir).toVector
-      val missingFiles = expectedFiles.filterNot(actualFiles.contains)
-      assert(missingFiles.isEmpty)
-
-      val signTargets = Vector(
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-javadoc.jar",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-sources.jar",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.jar",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.pom"
-      )
-      withGpgHome(secretBase64) { gpgEnv =>
-        signTargets.foreach { file =>
-          assertSignatureValid(file, gpgEnv)
-          assertChecksumMatches(file, os.Path(file.toString + ".md5"), "MD5", gpgEnv)
-          assertChecksumMatches(file, os.Path(file.toString + ".sha1"), "SHA1", gpgEnv)
-        }
-      }
-    }
+      ResourcePath
+    )
   }
 
   private def dryRun(task: Task[Unit], dirName: os.SubPath): Unit = {
     dryRunWithKey(task, dirName, TestPgpSecretBase64, None)
-  }
-
-  private def withGpgHome[T](secretKeyBase64: String)(f: Map[String, String] => T): T = {
-    val gpgHome = os.temp.dir(prefix = "mill-gpg")
-    val gpgEnv = Map("GNUPGHOME" -> gpgHome.toString)
-    val secretBytes = java.util.Base64.getDecoder.decode(secretKeyBase64)
-    os.proc("gpg", "--batch", "--yes", "--import").call(stdin = secretBytes, env = gpgEnv)
-    f(gpgEnv)
-  }
-
-  private def assertSignatureValid(file: os.Path, gpgEnv: Map[String, String]): Unit = {
-    val signature = os.Path(file.toString + ".asc")
-    os.proc("gpg", "--batch", "--verify", signature.toString, file.toString)
-      .call(env = gpgEnv)
   }
 
   val tests: Tests = Tests {
