@@ -51,7 +51,7 @@ object Resolve {
     override def deduplicate(items: List[Resolved]): List[Resolved] = items.distinct
   }
 
-  object Inspect extends Resolve[Either[Module, Task.Named[Any]]] {
+  object Inspect extends Resolve[Either[Module, Task.Named[?]]] {
     def handleResolved(
         rootModule: RootModule0,
         rootModulePrefix: String,
@@ -193,7 +193,7 @@ object Resolve {
       val sequenced = Result.sequence(taskList).map(_.flatten)
 
       sequenced.flatMap(flattened =>
-        if (flattened.nonEmpty) Result.Success(flattened)
+        if (flattened.nonEmpty) Result.Success(flattened.asInstanceOf[Seq[Task.Named[Any]]])
         else Result.Failure(s"Cannot find default task to evaluate for module ${selector.render}")
       )
     }

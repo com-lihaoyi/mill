@@ -85,7 +85,7 @@ jobs:
       - uses: actions/checkout@v5
         with: { fetch-depth: 1 }
 
-      - run: ./mill -i website.fastPages + website.checkBrokenLinks
+      - run: ./mill website.fastPages + website.checkBrokenLinks
 
   cross-plat:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
@@ -96,15 +96,15 @@ jobs:
           # Run these with Mill native launcher as a smoketest
         include:
           - os: ubuntu-24.04-arm
-            millargs: "'example.thirdparty[{mockito,netty,arrow}].native.daemon'"
+            millargs: "'example.thirdparty.{mockito,netty,arrow}.native.daemon'"
             java-version: 17
 
           - os: macos-latest
-            millargs: "'example.thirdparty[{acyclic,fansi,gatling}].native.daemon'"
+            millargs: "'example.thirdparty.{acyclic,fansi,gatling}.native.daemon'"
             java-version: 19
 
           - os: macos-15-intel
-            millargs: "'example.thirdparty[{jimfs,commons-io}].native.daemon'"
+            millargs: "'example.thirdparty.{jimfs,commons-io}.native.daemon'"
             java-version: 23
     steps:
       - uses: actions/checkout@v5
@@ -122,7 +122,7 @@ jobs:
           os: ${{ matrix.os }}
 
 
-      - run: ./mill -i -k selective.resolveTree ${{ matrix.millargs }}
+      - run: ./mill -k selective.resolveTree ${{ matrix.millargs }}
         shell: bash
 
       - uses: ./.github/actions/post-build-selective
@@ -148,28 +148,28 @@ jobs:
           - millargs: "'libs.{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib,init,tabcomplete}.__.test'"
             install-sbt: true
 
-          - millargs: "example.kotlinlib.__.shared.daemon"
+          - millargs: "example.kotlinlib._._"
 
-          - millargs: "example.scalalib.__.shared.daemon"
+          - millargs: "example.scalalib._._"
 
-          - millargs: "example.javalib.__.shared.daemon"
+          - millargs: "example.javalib._._"
 
-          - millargs: "example.androidlib.__.shared.daemon"
+          - millargs: "example.androidlib._._"
             setup-android: true
 
           - millargs: "example.thirdparty.android-compose-samples.packaged.daemon"
             setup-android: true
 
-          - millargs: "example.migrating.scalalib.__.shared.daemon"
+          - millargs: "example.migrating.scalalib._"
             install-sbt: true
 
-          - millargs: "'example.{groovylib,pythonlib,javascriptlib}.__.shared.daemon'"
+          - millargs: "'example.{groovylib,pythonlib,javascriptlib}._._'"
 
-          - millargs: "'example.{cli,fundamentals,depth,extending,large}.__.shared.daemon'"
+          - millargs: "'example.{cli,fundamentals,depth,extending,large}._._'"
 
-          - millargs: "'integration.feature.__.shared.daemon'"
+          - millargs: "'integration.feature._'"
 
-          - millargs: "'integration.dedicated.__.proguard.daemon'"
+          - millargs: "'integration.dedicated._'"
 
             # run this specifically in `native` mode to make sure our non-JVM native image
             # launcher is able to bootstrap everything necessary without a JVM installed
@@ -177,12 +177,12 @@ jobs:
 
             # tests that need to be exercised in both execution modes to make
             # sure they work with and without -i/--no-server being passed
-          - millargs: "integration.multimode.__.packaged.nodaemon"
+          - millargs: "integration.multimode._.packaged.nodaemon"
 
-          - millargs: "integration.migrating.__.packaged.daemon"
+          - millargs: "integration.migrating._"
             install-sbt: true
 
-          - millargs: "'integration.failure.__.shared.daemon'"
+          - millargs: "integration.failure._"
 
     uses: ./.github/workflows/post-build-selective.yml
     with:
@@ -199,10 +199,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - millargs: "integration.multimode.__.packaged.daemon"
+          - millargs: "integration.multimode._.packaged.daemon"
 
           - # turn of parallelism since it sometimes causes issues with concurrent migrations
-            millargs: "example.migrating.javalib.__.packaged.daemon"
+            millargs: "example.migrating.javalib._.packaged.daemon"
             extra: "--jobs=1"
 
           - millargs: '"libs.{util,javalib,androidlib,graphviz}.__.test"'
@@ -245,7 +245,7 @@ jobs:
       java-version: '17'
       buildcmd: |
         set -eux
-        ./mill -i mill.scalalib.scalafmt.ScalafmtModule/scalafmt --check + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll
+        FATAL_WARNINGS=1 ./mill mill.scalalib.scalafmt.ScalafmtModule/scalafmt --check + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll
   mima:
     needs: build-linux
     uses: ./.github/workflows/post-build-raw.yml
@@ -253,4 +253,4 @@ jobs:
       java-version: '17'
       buildcmd: |
         set -eux
-        ./mill -i __.mimaReportBinaryIssues
+        ./mill __.mimaReportBinaryIssues

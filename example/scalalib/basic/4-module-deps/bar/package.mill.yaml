@@ -1,4 +1,0 @@
-extends: ScalaModule
-scalaVersion: 3.8.0
-mvnDeps:
-- com.lihaoyi::scalatags:0.13.1

@@ -5,21 +5,156 @@ https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.sh
 https://github.com/com-lihaoyi/mill[image:https://img.shields.io/github/stars/com-lihaoyi/mill[GitHub Repo stars]]
 
 
-Mill is a build tool that tries to improve upon the tools traditionally used
+Mill is a build tool that improves upon the tools traditionally used
 in the JVM ecosystem:
 
 * **xref:comparisons/maven.adoc[Simpler than Maven]**, with declarative `build.mill.yaml` files
 often 1/10th the lines of a `pom.xml`
 
-* **xref:comparisons/gradle.adoc[Easier than Gradle]**, with
-object-oriented programmable builds Java developers can intuitively understand
+* **xref:comparisons/gradle.adoc[Easier than Gradle]** or SBT, with
+object-oriented builds any developer can intuitively understand
 
-* **xref:comparisons/performance.adoc[Fastest builds on the JVM]**, 3-6x
+* **xref:comparisons/performance.adoc[Fastest builds on the JVM]**, 3-7x
 faster than Maven or Gradle due to aggressive caching & parallelism
 
-Although the Java compiler is very fast and the Java language is easy to learn,
-JVM build tools have a reputation for being sluggish, complicated, and confusing. Mill tries to
-offer a better alternative that gives the Java platform the developer experience it deserves.
+Although the Java compiler is very fast and the Java language is easy to learn, JVM build
+tools have a reputation for being sluggish, complicated, and confusing. Mill tries to offer
+a better alternative that gives the Java platform the developer experience it deserves.
+
+For detailed comparisons with other build tools, check out these pages:
+
+[cols="1a,1a"]
+|===
+| xref:comparisons/maven.adoc[image:index/maven.png[maven,24] Mill vs Maven]
+| xref:comparisons/gradle.adoc[image:index/gradle.svg[gradle,32] Mill vs Gradle]
+|===
+
+
+=== Performance
+
+Mill automatically xref:depth/caching.adoc[caches]
+and xref:depth/parallelism.adoc[parallelizes build tasks] and https://mill-build.org/blog/11-jvm-test-parallelism.html[tests]
+to keep local development fast, uses a xref:depth/process-architecture.adoc[long-lived daemon] to keep the JVM warm,
+and shortens CI times with xref:large/selective-execution.adoc[selective test execution]. Play the
+video below to compare compiling the same 500,000 line Netty codebase with Mill (~11s) vs Maven (~60s)
+
+:cast-file: _images/basic/MillMavenComparison.cast
+include::partial$Asciinema_Comparison.adoc[]
+
+=== Simplicity
+
+Mill's xref:javalib/intro.adoc#_declarative_configuration[declarative
+build.mill.yaml files] contain only the essence of what you want to configure in
+your build, stripping away the endless complexity in traditional JVM build tools to
+make your project configuration easy to write, easy to read, and easy to understand
+
+[cols="3a,5a"]
+|===
+| Mill `build.mill.yaml`
+```yaml
+extends: JavaModule
+mvnDeps:
+- org.jsoup:jsoup:1.7.2
+- org.slf4j:slf4j-nop:2.0.7
+```
+| Maven `pom.xml`
+```xml
+<project xmlns="..." xmlns:xsi="...">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>example</groupId>
+  <artifactId>html-scraper</artifactId>
+  <version>1.0</version>
+  <dependencies>
+    <dependency>
+      <groupId>org.jsoup</groupId>
+      <artifactId>jsoup</artifactId>
+      <version>1.17.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-nop</artifactId>
+      <version>2.0.7</version>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.2.0</version>
+        <configuration>
+          <mainClass>HtmlScraper</mainClass>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
+```
+|===
+
+=== Builtins
+
+Mill supports most JVM development workflows built in. This removes the need to
+fiddle with plugins or install separate tools such as https://sdkman.io/[SdkMan]
+or https://www.jenv.be/[Jenv] just to get your project up and running. The example build file
+below shows how Mill handles many of the common settings that often need to be configured in
+a build tool:
+
+```yaml
+extends: [JavaModule, PublishModule]
+
+mvnDeps:
+- org.thymeleaf:thymeleaf:3.1.1.RELEASE
+- org.slf4j:slf4j-nop:2.0.7
+
+repositories: [https://oss.sonatype.org/content/repositories/releases]
+
+mainClass: foo.Foo2
+
+jvmVersion: 11 # Pin a specific JVM version, downloaded and cached automatically
+
+# Add additional source and resource folders
+sources: !append [custom-src/]
+resources: !append [custom-resources/]
+
+# Configure java compiler and runtime options and env vars
+javacOptions: [-deprecation]
+forkArgs: [-Dmy.custom.property=my-prop-value]
+forkEnv: { MY_CUSTOM_ENV: my-env-value }
+
+# Settings to publish to Maven Central
+publishVersion: 0.0.1
+artifactName: example
+pomSettings:
+  description: Example
+  organization: com.lihaoyi
+  url: https://github.com/com.lihaoyi/example
+  licenses: [MIT]
+  versionControl: https://github.com/com.lihaoyi/example
+  developers: [{name: Li Haoyi, email: example@example.com}]
+```
+
+Beyond this example, the table below links to the relevant part of the
+documentation and examples for each feature or tool that Mill supports:
+
+include::partial$Feature_Support.adoc[]
+
+
+Mill can be used for applications built on top of common JVM frameworks like
+Spring Boot (both xref:javalib/spring-boot.adoc[in Java]
+and xref:kotlinlib/web-examples.adoc#_spring_boot_todomvc_app[in Kotlin]),
+xref:javalib/web-examples.adoc#_micronaut_todomvc_app[Micronaut],
+xref:kotlinlib/web-examples.adoc#_ktor_todomvc_app[Ktor], or
+xref:scalalib/web-examples.adoc#_todomvc_http4s_web_app[Http4s].
+It is used in the wild to build many real-world projects, such as:
+
+* https://github.com/swaldman/c3p0/blob/0.11.x/build.mill[C3P0 JDBC Connection Pool]
+* https://github.com/coursier/coursier/blob/main/build.mill[Coursier dependency resolver]
+* https://github.com/com-lihaoyi/Ammonite[Ammonite REPL]
+* https://github.com/SpinalHDL/SpinalHDL[SpinalHDL] and https://github.com/chipsalliance/chisel/blob/main/build.mill[Chisel] chip design frameworks
+* Projects at https://youtu.be/FckU1aHNh8U?t=2451[Netflix],
+https://github.com/disneystreaming/smithy-translate/blob/main/build.sc[Disney-Streaming],
+and other organizations
 
 === Getting Started
 
@@ -39,84 +174,6 @@ Or see the language-specific introductory documentation linked below:
 | xref:scalalib/intro.adoc[image:index/iconscout-scala.svg[scala,20] Scala with Mill]
 | xref:kotlinlib/intro.adoc[image:index/iconscout-kotlin.svg[kotlin,28] Kotlin with Mill]
 |===
-
-=== Mill Features
-
-* *Performance*: Mill automatically xref:depth/caching.adoc[caches]
-and xref:depth/parallelism.adoc[parallelizes build tasks] and https://mill-build.org/blog/11-jvm-test-parallelism.html[tests]
-to keep local development fast, https://mill-build.org/blog/9-mill-faster-assembly-jars.html[incrementally builds assembly jars]
-to speed up manual testing workflows, and shortens CI times with xref:large/selective-execution.adoc[selective test execution]
-to only run the subset of tests necessary to validate a code change. Play the video below to compare
-compiling the same Netty codebase with Mill (~7s) vs Maven (~54s)
-+
-:cast-file: _images/basic/MillMavenComparison.cast
-include::partial$Asciinema_Comparison.adoc[]
-
-* *Ergonomics*: Mill's xref:javalib/intro.adoc#_declarative_configuration[declarative config files]
-are concise and easy to read, its xref:javalib/intro.adoc#_programmable_configuration[programmable config files]
-have xref:cli/installation-ide.adoc#_ide_support[full IDE support in IntelliJ and VSCode], and its
-xref:cli/installation-ide.adoc#_bashzsh_tab_completion[terminal tab-completion]
-and syntax highlighted command-line output and error messages mean developers can easily
-navigate their builds and resolve issues.
-
-image::basic/ErrorHighlighting.png[]
-
-* *Scalability* Mill scales well from xref:javalib/intro.adoc#_single_file_scripts[single-file programs]
-to xref:large/large.adoc[large monorepos] with hundreds of modules and
-xref:large/multi-language-builds.adoc[multiple languages]. Mill makes building small programs
-convenient and large projects performant, so you never need to change toolchains as your project grows.
-
-* *Builtins*: Mill has builtin support for most common workflows: not just compile/run/test, but also
-xref:fundamentals/configuring-jvm-versions.adoc[managing JVM versions], xref:javalib/linting.adoc[linting],
-xref:javalib/publishing.adoc#_publishing_to_sonatype_maven_central[publishing],
-building xref:javalib/packaging.adoc#_building_executable_assemblies[executable assemblies],
-xref:javalib/packaging.adoc#_building_native_image_binaries_with_graal_vm[native binaries]
-or xref:javalib/packaging.adoc#_java_installers_using_jpackage[installers],
-etc. This lets you focus on your actual project and spend less time
-fiddling with tooling and plugins.
-
-Mill can be used for applications built on top of common JVM frameworks like
-Spring Boot (both xref:javalib/spring-boot.adoc[in Java]
-and xref:kotlinlib/web-examples.adoc#_spring_boot_todomvc_app[in Kotlin]),
-xref:javalib/web-examples.adoc#_micronaut_todomvc_app[Micronaut],
-xref:kotlinlib/web-examples.adoc#_ktor_todomvc_app[Ktor], or
-xref:scalalib/web-examples.adoc#_todomvc_http4s_web_app[Http4S].
-It is used in the wild to build many real-world projects, such as:
-
-* https://github.com/swaldman/c3p0/blob/0.11.x/build.mill[C3P0 JDBC Connection Pool]
-* https://github.com/coursier/coursier/blob/main/build.mill[Coursier dependency resolver]
-* https://github.com/com-lihaoyi/Ammonite[Ammonite REPL]
-* https://github.com/SpinalHDL/SpinalHDL[SpinalHDL] and https://github.com/chipsalliance/chisel/blob/main/build.mill[Chisel] chip design frameworks
-* Projects at https://youtu.be/FckU1aHNh8U?t=2451[Netflix],
-https://github.com/disneystreaming/smithy-translate/blob/main/build.sc[Disney-Streaming],
-and other organizations
-
-Mill borrows ideas from other tools like https://maven.apache.org/[Maven],
-https://gradle.org/[Gradle], https://bazel.build/[Bazel], and
-https://www.scala-sbt.org/[sbt], but tries to learn from the
-strengths of each tool and improve on their weaknesses. For comparisons with existing
-build tools, check out these pages:
-
-
-[cols="1a,1a"]
-|===
-| xref:comparisons/maven.adoc[image:index/maven.png[maven,24] Mill vs Maven]
-| xref:comparisons/gradle.adoc[image:index/gradle.svg[gradle,32] Mill vs Gradle]
-|===
-
-=== Tool & Framework Support
-
-Mill supports most common JVM development workflows and tools built in, so you can
-get very far before you need to reach for third-party plugins or write custom code
-to extend your build pipelines. The table
-below links to the relevant part of the documentation and examples for each tool:
-
-include::partial$Feature_Support.adoc[]
-
-When the time comes that you do need something not in its builtin feature set, Mill
-also has a rich ecosystem of third party plugins for less common use cases:
-
-- xref::extending/thirdparty-plugins.adoc[]
 
 === Commercial Support
 

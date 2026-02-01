@@ -89,7 +89,7 @@ This is useful for analysis of why the test passed or failed.
 
 [source,console]
 ----
-> ./mill -i dist.run example/javalib/basic/3-simple -i foo.run --text hello
+> ./mill dist.run example/javalib/basic/3-simple -i foo.run --text hello
 ----
 
 **Manual Test using Launcher Script**
@@ -122,12 +122,35 @@ infrastructure, but with differences:
 
 ==== Different Flavors or Sub-Process Tests
 
-`example.\\__.daemon`, `integration.__.daemon`, `example.\\__.nodaemon` and
-`integration.__.nodaemon` cover the same test cases as the `.local.daemon` tests described above, but
-they perform packaging of the Mill core modules into an assembly jar, and publish the
-remaining modules to `~/.ivy2/local`.
-This results in a more realistic test environment, but at the cost of taking tens-of-seconds
-more to run a test after making a code change.
+
+There are eight variants of these tests, `.{packaged,fast,native}.{daemon,nodaemon}`.
+When you run e.g. `./mill integration.feature.full-run-logs`, it picks the default configuration
+for the test that is exercised in Mill's CI pipeline, but you can run the other variants manually
+e.g. `./mill integration.feature.full-run-logs.proguard.nodaemon` which can be useful for manual
+testing.
+
+The first label specifies how the Mill code is packaged before testing
+
+1. `.packaged` runs using the compiled Mill code either packaged into an assembly or into jars.
+
+2. `.proguard` is similar to `.packaged`, but uses a proguard-optimized assembly jar. This is
+typically not used manually since it adds ~15s overhead optimizing the jar, but some CI jobs
+use this to make sure the proguarded launcher assemblies work since that's what we publish
+
+3. `.native` runs using the compiled Mill code packaged into an assembly with a Graal native binary launcher.
+This is the slowest mode is only really necessary for debugging Mill's Graal native binary configuration.
+
+4. `fast` runs without packaging code into jars and re-uses the `out/` folder the Mill daemon between runs.
+This isn't intended for manual usage, but is used in CI to speed up running large numbers of tests
+
+The second label specifies how the Mill process is managed during the test:
+
+
+1. `.daemon` test run the test cases with the default configuration, so consecutive commands
+run in the same long-lived background daemon process
+
+2. `.nodaemon` test run the test cases with `--no-daemon`, meaning each command runs in a newly
+spawned Mill process
 
 You can reproduce these tests manually using `dist.raw.installLocal`:
 
@@ -141,37 +164,6 @@ You can also use `dist.native.installLocal` for a Graal Native Image executable
 or `dist.installLocal` which is the proguarded launcher assembly we publish (which
 is also slower to create and faster to start than the raw jar).
 
-There are six of these tests, `.{packaged,shared,native}.{daemon,nodaemon}`.
-
-The first label specifies how the Mill code is packaged before testing
-
-
-
-1. `.packaged` runs using the compiled Mill code either packaged into an assembly or into jars.
-This is the default for commands like `example.basic.3-simple`
-
-2. `.proguard` is similar to `.packaged`, but uses a proguard-optimized assembly jar. This is
-typically not used manually since it adds ~15s overhead optimizing the jar, but some CI jobs
-use this to make sure the proguarded launcher assemblies work since that's what we publish
-
-3. `.native` runs using the compiled Mill code packaged into an assembly with a Graal native binary launcher.
-This is the slowest mode is only really necessary for debugging Mill's Graal native binary configuration.
-
-4. `.shared` runs without packaging code into jars and re-uses the `out/` folder the Mill daemon between runs.
-This isn't intended for manual usage, but is used in CI to speed up running large numbers of tests
-
-The second label specifies how the Mill process is managed during the test:
-
-
-1. `.daemon` test run the test cases with the default configuration, so consecutive commands
-run in the same long-lived background daemon process
-
-2. `.nodaemon` test run the test cases with `--no-daemon`, meaning each command runs in a newly
-spawned Mill process
-
-In general you should spend most of your time working with the `.local.daemon` version of the
-`example` and `integration` tests to save time, and only run the others if you have a specific
-thing you want to test that needs those code paths to run.
 
 === Bootstrapping: Building Mill with your current checkout of Mill
 
@@ -249,7 +241,21 @@ to continue developing after your PR has been autofixed for you.
 * Mill's pull-request validation runs with
 https://mill-build.org/mill/large/selective-execution.html[Selective Test Execution]
 enabled; this automatically selects the tests to run based on the code or build configuration
-that changed in that PR. To disable this, you can label your PR with `run-all-tests`, which
+that changed in that PR.
+
+* CI uses `selectiveInputs` to customize the selective testing behavior for the following test jobs,
+to only run them if the corresponding `libs/` module has changed, ignoring changes in the core Mill
+codebase. This is a heuristic optimization that assumes that bugs in the core Mill code paths will
+get caught in one of the other jobs.
+
+** `example.kotlinlib` only runs if `libs/kotlinlib/` changes
+** `example.javascriptlib` only runs if `libs/javascriptlib/` changes
+** `example.pythonlib` only runs if `libs/pythonlib/` changes
+** `example.groovylib` only runs if `libs/groovylib/` changes
+** `example.androidlib` only runs if `libs/androidlib/` changes
+** `example.migrating` only runs if `libs/init/` changes
+
+* To disable selective test execution on a PR, you can label it with `run-all-tests`, which
 will run all tests on a PR regardless of what code was changed
 
 * Mill tests draft PRs _on contributor forks_ of the repository, so please make sure Github

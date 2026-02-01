@@ -1,5 +1,0 @@
-extends: ScalaModule
-moduleDeps: [bar]
-scalaVersion: 3.8.0
-mvnDeps:
-- com.lihaoyi::mainargs:0.7.8

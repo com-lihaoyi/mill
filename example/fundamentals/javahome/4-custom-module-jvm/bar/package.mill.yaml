@@ -1,0 +1,4 @@
+extends: ScalaModule
+scalaVersion: 2.13.16
+jvmVersion: temurin:23.0.1
+jvmIndexVersion: latest.release

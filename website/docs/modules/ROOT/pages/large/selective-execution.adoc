@@ -72,3 +72,15 @@ and can give you a chance to eyeball if the list of tasks to run makes sense or 
   so `.testCached` can be skipped. This is inherent in the nature of selective execution, which
   does its analysis without evaluation-time information and thus will always be more conservative
   than the task skipping and cache-reuse that is done during evaluation.
+
+
+== `selectiveInputs`
+
+include::partial$example/large/selective/10-selective-inputs.adoc[]
+
+== Further Reading
+
+See the following blog post for a broader discussion on the idea of selective test
+execution, beyond the Mill build tool:
+
+- xref:blog::3-selective-testing.adoc[Faster CI with Selective Testing]

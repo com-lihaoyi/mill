@@ -7,7 +7,6 @@ import mill.constants.*
 
 import java.io.File
 import java.util.UUID
-import java.util.concurrent.atomic.AtomicReference
 import scala.jdk.CollectionConverters._
 
 object MillProcessLauncher {
@@ -19,7 +18,8 @@ object MillProcessLauncher {
       mainClass: String,
       useFileLocks: Boolean,
       workDir: os.Path,
-      env: Map[String, String]
+      env: Map[String, String],
+      millRepositories: Seq[String]
   ): Int = {
     val sig = f"${UUID.randomUUID().hashCode}%08x"
     val processDir =
@@ -29,7 +29,7 @@ object MillProcessLauncher {
 
     val userPropsSeq = ClientUtil.getUserSetProperties().map { case (k, v) => s"-D$k=$v" }.toSeq
 
-    val cmd = millLaunchJvmCommand(runnerClasspath, outMode, workDir) ++
+    val cmd = millLaunchJvmCommand(runnerClasspath, outMode, workDir, millRepositories) ++
       userPropsSeq ++
       Seq(mainClass, processDir.toString, outMode.asString, useFileLocks.toString) ++
       loadMillConfig(ConfigConstants.millOpts, workDir) ++
@@ -55,9 +55,10 @@ object MillProcessLauncher {
       runnerClasspath: Seq[os.Path],
       useFileLocks: Boolean,
       workDir: os.Path,
-      env: Map[String, String]
+      env: Map[String, String],
+      millRepositories: Seq[String]
   ): os.SubProcess = {
-    val cmd = millLaunchJvmCommand(runnerClasspath, outMode, workDir) ++
+    val cmd = millLaunchJvmCommand(runnerClasspath, outMode, workDir, millRepositories) ++
       Seq("mill.daemon.MillDaemonMain", daemonDir.toString, outMode.asString, useFileLocks.toString)
 
     configureRunMillProcess(
@@ -107,20 +108,9 @@ object MillProcessLauncher {
     )
   }
 
-  def loadMillConfig(key: String, workDir: os.Path = os.pwd): Seq[String] = {
+  def loadMillConfig(key: String, workDir: os.Path): Seq[String] = {
     val configFile = workDir / s".$key"
-    val workspaceDir = workDir.toString
-
-    // Build environment map for variable interpolation
-    val env = sys.env ++ Map(
-      // Hardcode support for PWD because the graal native launcher has it set to the
-      // working dir of the enclosing process, when we want it to be set to the working
-      // dir of the current process
-      "PWD" -> workspaceDir,
-      "WORKSPACE" -> workspaceDir,
-      "MILL_VERSION" -> BuildInfo.millVersion,
-      "MILL_BIN_PLATFORM" -> BuildInfo.millBinPlatform
-    )
+    val env = mill.internal.Util.envForInterpolation(workDir)
 
     if (os.exists(configFile)) {
       ClientUtil.readOptsFileLines(configFile, env)
@@ -166,7 +156,11 @@ object MillProcessLauncher {
 
   def isWin: Boolean = System.getProperty("os.name", "").startsWith("Windows")
 
-  def javaHome(outMode: OutFolderMode, workDir: os.Path = os.pwd): Option[os.Path] = {
+  def javaHome(
+      outMode: OutFolderMode,
+      workDir: os.Path,
+      millRepositories: Seq[String]
+  ): Option[os.Path] = {
     val jvmVersion = loadMillConfig(ConfigConstants.millJvmVersion, workDir)
       .headOption
       .getOrElse(BuildInfo.defaultJvmVersion)
@@ -176,13 +170,17 @@ object MillProcessLauncher {
     // Handle "system" specially - return None to use PATH-based Java lookup
     // (javaExe returns "java" when javaHome is None, using PATH lookup)
     if (jvmVersion == "system") None
-    else if (jvmVersion != null)
-      Some(CoursierClient.resolveJavaHome(jvmVersion, jvmIndexVersion, outMode))
-    else None
+    else Option.when(jvmVersion != null) {
+      CoursierClient.resolveJavaHome(jvmVersion, jvmIndexVersion, outMode, millRepositories)
+    }
   }
 
-  def javaExe(outMode: OutFolderMode, workDir: os.Path = os.pwd): String = {
-    javaHome(outMode, workDir) match {
+  def javaExe(
+      outMode: OutFolderMode,
+      workDir: os.Path,
+      millRepositories: Seq[String]
+  ): String = {
+    javaHome(outMode, workDir, millRepositories) match {
       case None => "java"
       case Some(home) =>
         val exeName = if (isWin) "java.exe" else "java"
@@ -193,7 +191,8 @@ object MillProcessLauncher {
   def millLaunchJvmCommand(
       runnerClasspath: Seq[os.Path],
       outMode: OutFolderMode,
-      workDir: os.Path = os.pwd
+      workDir: os.Path,
+      millRepositories: Seq[String]
   ): Seq[String] = {
     val millProps = sys.props.toSeq
       .filter(_._1.startsWith("MILL_"))
@@ -208,7 +207,7 @@ object MillProcessLauncher {
       "-Dsun.stderr.encoding=UTF-8"
     )
 
-    Seq(javaExe(outMode, workDir)) ++
+    Seq(javaExe(outMode, workDir, millRepositories)) ++
       millProps ++
       serverTimeoutOpt ++
       encodingOpts ++
@@ -227,8 +226,6 @@ object MillProcessLauncher {
     result.out.trim().toInt
   }
 
-  private val memoizedTerminalDims = new AtomicReference[String]()
-
   // Returns native terminal size if available, avoiding calling getSize twice
   private def getNativeTerminalSize(): Option[(Int, Int)] = {
     JLineNativeLoader.initJLineNative()
@@ -242,28 +239,24 @@ object MillProcessLauncher {
     } else None
   }
 
-  private def writeTerminalDims(daemonDir: os.Path): Unit = {
-    val str =
-      try {
-        if (!Util.hasConsole()) "0 0"
-        else getNativeTerminalSize() match {
-          case Some((width, height)) => s"$width $height"
-          case None if !tputExists =>
-            // Hardcoded size of a quarter screen terminal on 13" windows laptop
-            "78 24"
-          case None =>
-            s"${getTerminalDim("cols", inheritError = true)} ${getTerminalDim("lines", inheritError = true)}"
-        }
-      } catch {
-        case _: Exception => "0 0"
+  /** Get current terminal dimensions. Returns TerminalDimsResult with width/height. */
+  def getTerminalDims(): DaemonRpc.TerminalDimsResult = {
+    try {
+      if (!Util.hasConsole()) DaemonRpc.TerminalDimsResult(None, None)
+      else getNativeTerminalSize() match {
+        case Some((width, height)) => DaemonRpc.TerminalDimsResult(Some(width), Some(height))
+        case None if !tputExists => DaemonRpc.TerminalDimsResult(Some(78), Some(24))
+        case None =>
+          val width =
+            try Some(getTerminalDim("cols", inheritError = true))
+            catch { case _: Exception => None }
+          val height =
+            try Some(getTerminalDim("lines", inheritError = true))
+            catch { case _: Exception => None }
+          DaemonRpc.TerminalDimsResult(width, height)
       }
-
-    // We memoize previously seen values to avoid causing lots
-    // of upstream work if the value hasn't actually changed.
-    // See https://github.com/com-lihaoyi/mill/discussions/4092
-    val oldValue = memoizedTerminalDims.getAndSet(str)
-    if (oldValue == null || oldValue != str) {
-      os.write.over(daemonDir / DaemonFiles.terminfo, str)
+    } catch {
+      case _: Exception => DaemonRpc.TerminalDimsResult(None, None)
     }
   }
 
@@ -279,29 +272,7 @@ object MillProcessLauncher {
   }
 
   def prepareMillRunFolder(daemonDir: os.Path): Unit = {
-    // Clear out run-related files from the server folder to make sure we
-    // never hit issues where we are reading the files from a previous run
-    os.remove(daemonDir / DaemonFiles.terminfo, checkExists = false)
-
     os.makeDir.all(daemonDir / DaemonFiles.sandbox)
-
-    writeTerminalDims(daemonDir)
-
-    val termInfoPropagatorThread = new Thread(
-      () => {
-        try {
-          while (true) {
-            writeTerminalDims(daemonDir)
-            Thread.sleep(100)
-          }
-        } catch {
-          case _: Exception =>
-        }
-      },
-      "TermInfoPropagatorThread"
-    )
-    termInfoPropagatorThread.setDaemon(true)
-    termInfoPropagatorThread.start()
   }
 
   def getExecutablePath: String = {

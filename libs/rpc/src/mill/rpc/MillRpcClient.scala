@@ -85,14 +85,14 @@ object MillRpcClient {
     def handleServerMessage(msg: ServerToClient): Unit = {
       val response =
         Try(currentServerMessageHandler(msg)).toEither.left.map(RpcThrowable.apply)
-      wireTransport.writeSerialized(MillRpcClientToServer.Response(response), logDebug)
+      wireTransport.writeSerialized(MillRpcClientToServer.Response(response))
     }
 
-    wireTransport.writeSerialized(initialize, logDebug)
+    wireTransport.writeSerialized(initialize)
 
     new MillRpcClient[ClientToServer, ServerToClient] {
       override def apply(msg: ClientToServer): msg.Response = {
-        wireTransport.writeSerialized(MillRpcClientToServer.Ask(msg), logDebug)
+        wireTransport.writeSerialized(MillRpcClientToServer.Ask(msg))
         awaitForResponse[msg.Response](using msg.responseRw)
       }
 

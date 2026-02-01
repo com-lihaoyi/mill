@@ -43,7 +43,7 @@ object Deps {
   }
 
   object Scalanative_0_5 {
-    val scalanativeVersion = "0.5.9"
+    val scalanativeVersion = "0.5.10"
     val scalanativeTools = mvn"org.scala-native::tools:${scalanativeVersion}"
     val scalanativeUtil = mvn"org.scala-native::util:${scalanativeVersion}"
     val scalanativeNir = mvn"org.scala-native::nir:${scalanativeVersion}"
@@ -137,7 +137,7 @@ object Deps {
   val junitInterface = mvn"com.github.sbt:junit-interface:0.13.3"
   val commonsIo = mvn"commons-io:commons-io:2.21.0"
   val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.25.1"
-  val osLibVersion = "0.11.6"
+  val osLibVersion = "0.11.8"
   val osLib = mvn"com.lihaoyi::os-lib:$osLibVersion"
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:$osLibVersion"
   val pprint = mvn"com.lihaoyi::pprint:0.9.6"
@@ -200,7 +200,7 @@ object Deps {
   val fansi = mvn"com.lihaoyi::fansi:0.5.1"
   val javaparser = mvn"com.github.javaparser:javaparser-core:3.27.1"
   val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.16.0"
-  val requests = mvn"com.lihaoyi::requests:0.9.2"
+  val requests = mvn"com.lihaoyi::requests:0.9.3"
   val logback = mvn"ch.qos.logback:logback-classic:1.5.24"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
   val kotlinVersion = "2.1.20"
@@ -357,5 +357,7 @@ object Deps {
     mvn"org.bouncycastle:bcprov-jdk18on:1.83",
     mvn"org.bouncycastle:bcutil-jdk18on:1.83"
   )
+  val bouncyCastleProv = mvn"org.bouncycastle:bcprov-jdk18on:1.83"
+  val bouncyCastlePgp = mvn"org.bouncycastle:bcpg-jdk18on:1.83"
 
 }

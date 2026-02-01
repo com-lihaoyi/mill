@@ -39,7 +39,7 @@ Task cheat sheet:
   mill foo.bar.compile           # compile the module `foo.bar`
 
   mill foo.run --arg 1           # run the main method of the module `foo` and pass in `--arg 1`
-  mill -i foo.repl               # run the Scala repl for the module `foo` (if it is a ScalaModule)
+  mill foo.repl               # run the Scala repl for the module `foo` (if it is a ScalaModule)
 
   mill foo.__.test               # run tests in modules nested within `foo` (recursively)
   mill foo.test arg1 arg2        # run tests in the `foo` module passing in test arguments `arg1 arg2`

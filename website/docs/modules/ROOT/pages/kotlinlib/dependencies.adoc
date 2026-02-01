@@ -13,6 +13,10 @@ Many of the APIs covered here are listed in the API documentation:
 
 include::partial$example/kotlinlib/dependencies/1-dependencies.adoc[]
 
+=== Repository Configuration
+
+include::partial$example/kotlinlib/dependencies/5-repository-config.adoc[]
+
 === Unmanaged Jars
 
 include::partial$example/kotlinlib/dependencies/3-unmanaged-jars.adoc[]
@@ -22,12 +26,6 @@ include::partial$example/kotlinlib/dependencies/3-unmanaged-jars.adoc[]
 === Downloading Unmanaged Jars
 
 include::partial$example/kotlinlib/dependencies/4-downloading-unmanaged-jars.adoc[]
-
-
-
-=== Repository Configuration
-
-include::partial$example/kotlinlib/dependencies/5-repository-config.adoc[]
 
 == Dependency Management
 

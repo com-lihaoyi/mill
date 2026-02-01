@@ -641,11 +641,14 @@ object MillBuildBootstrap {
   // negative (1-based): -1 means bootstrap build, -2 means one level above, ...
   def computeRequestedDepth(requestedMetaLevel: Option[Int], depth: Int, framesSize: Int): Int =
     requestedMetaLevel match {
-      case Some(l) if l >= 0 => l
-      case Some(l) if l < 0 =>
-        val totalMetaLevels = depth + framesSize
-        totalMetaLevels + 1 + l
-      case None => 0
+      case Some(l) =>
+        if (l >= 0) l
+        else {
+          val totalMetaLevels = depth + framesSize
+          totalMetaLevels + 1 + l
+        }
+      case None =>
+        0
     }
 
 }

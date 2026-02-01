@@ -5,7 +5,7 @@ import mill.api.{ExecResult, Result, Val}
 import mill.constants.OutFiles.OutFiles
 import mill.api.SelectiveExecution.ChangedTasks
 import mill.api.*
-import mill.exec.{Execution, PlanImpl}
+import mill.exec.PlanImpl
 import mill.internal.{CodeSigUtils, InvalidationForest, SpanningForest}
 import mill.internal.SpanningForest.breadthFirst
 
@@ -40,7 +40,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
 
   case class DownstreamResult(
       changedRootTasks: Set[Task[?]],
-      downstreamTasks: Seq[Task[Any]],
+      downstreamTasks: Seq[Task[?]],
       // Global invalidation reason for selective execution (e.g., "mill-version-changed:OLD->NEW")
       globalInvalidationReason: Option[String] = None
   )
@@ -49,7 +49,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       transitiveNamed: Seq[Task.Named[?]],
       oldHashes: SelectiveExecution.Metadata,
       newHashes: SelectiveExecution.Metadata
-  ): (Set[Task[?]], Seq[Task[Any]]) = {
+  ): (Set[Task[?]], Seq[Task[?]]) = {
     val result = computeDownstreamDetailed(transitiveNamed, oldHashes, newHashes)
     (result.changedRootTasks, result.downstreamTasks)
   }
@@ -98,8 +98,9 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
           (changedInputNames ++ changedCodeNames ++ changedBuildOverrides ++ oldHashes.forceRunTasks)
             .flatMap(namesToTasks.get(_): Option[Task[?]])
 
-        val allNodes = breadthFirst(transitiveNamed.map(t => t: Task[?]))(_.inputs)
-        val downstreamEdgeMap = SpanningForest.reverseEdges(allNodes.map(t => (t, t.inputs)))
+        val allNodes = breadthFirst(transitiveNamed.map(t => t: Task[?]))(_.selectiveInputs)
+        val downstreamEdgeMap =
+          SpanningForest.reverseEdges(allNodes.map(t => (t, t.selectiveInputs)))
 
         DownstreamResult(
           changedRootTasks,
@@ -147,7 +148,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
     // this was intentional and you did not simply forgot to run `selective.prepare` beforehand.
     if (oldMetadataTxt == "") None
     else Some {
-      val transitiveNamed = PlanImpl.transitiveNamed(tasks)
+      val transitiveNamed = SelectiveExecutionImpl.transitiveNamedSelective(tasks)
       val oldMetadata = upickle.read[SelectiveExecution.Metadata](oldMetadataTxt)
       computeDownstreamDetailed(transitiveNamed, oldMetadata, computedMetadata.metadata)
     }
@@ -197,9 +198,10 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       computeDownstreamResult0(resolved, computeMetadata(resolved)) match {
         case None => ujson.Obj()
         case Some(result) =>
-          val plan =
-            PlanImpl.plan(Seq.from(result.downstreamTasks.collect { case n: Task.Named[_] => n }))
-          val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
+          val downstreamNamed = result.downstreamTasks.collect { case n: Task.Named[_] => n }
+          val transitiveTasks = SelectiveExecutionImpl.transitiveTasksSelective(downstreamNamed)
+          val upstreamTaskEdges0 =
+            transitiveTasks.map(t => (t, t.selectiveInputs)).toMap
 
           // For selective execution, use global invalidation reason for all root tasks
           val taskInvalidationReasons = result.globalInvalidationReason match {
@@ -211,7 +213,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
           }
 
           InvalidationForest.buildInvalidationTree(
-            upstreamTaskEdges0 = interGroupDeps,
+            upstreamTaskEdges0 = upstreamTaskEdges0,
             rootInvalidatedTasks = result.changedRootTasks.collect { case n: Task.Named[_] =>
               n: Task[?]
             },
@@ -225,10 +227,19 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
   def computeMetadata(
       tasks: Seq[Task.Named[?]]
   ): SelectiveExecution.Metadata.Computed =
-    SelectiveExecutionImpl.Metadata.compute0(evaluator, PlanImpl.transitiveNamed(tasks))
+    SelectiveExecutionImpl.Metadata.compute0(
+      evaluator,
+      SelectiveExecutionImpl.transitiveNamedSelective(tasks)
+    )
 }
 
 object SelectiveExecutionImpl {
+  def transitiveTasksSelective(tasks: Seq[Task[?]]): IndexedSeq[Task[?]] =
+    PlanImpl.transitiveNodes(tasks)(_.selectiveInputs)
+
+  def transitiveNamedSelective(tasks: Seq[Task[?]]): Seq[Task.Named[?]] =
+    transitiveTasksSelective(tasks).collect { case t: Task.Named[?] => t }
+
   object Metadata {
     def compute0(
         evaluator: Evaluator,

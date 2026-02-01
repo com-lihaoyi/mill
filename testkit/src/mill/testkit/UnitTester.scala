@@ -70,7 +70,9 @@ class UnitTester(
   val outPath: os.Path = module.moduleDir / "out"
 
   if (resetSourcePath) {
-    os.remove.all(module.moduleDir)
+    mill.util.Retry() { // Retry because this is flaky on windows due to file locking
+      os.remove.all(module.moduleDir)
+    }
     os.makeDir.all(module.moduleDir)
 
     for (sourceFileRoot <- sourceRoot) {
@@ -97,7 +99,7 @@ class UnitTester(
         systemStreams0 = new SystemStreams(out = outStream, err = errStream, in = inStream),
         debugEnabled = debugEnabled,
         titleText = "",
-        terminfoPath = os.temp(),
+        terminalDimsCallback = () => None,
         currentTimeMillis = () => System.currentTimeMillis(),
         chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile)
       ) {
@@ -175,7 +177,7 @@ class UnitTester(
       tasks: Seq[Task[?]]
   ): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
 
-    val evaluated = evaluator.execute(tasks).executionResults
+    val evaluated = evaluator.execute(tasks.asInstanceOf[Seq[Task[Any]]]).executionResults
 
     if (evaluated.transitiveFailing.nonEmpty) Left(evaluated.transitiveFailing.values.head)
     else {
@@ -215,7 +217,7 @@ class UnitTester(
 
   def check(tasks: Seq[Task[?]], expected: Seq[Task[?]]): Unit = {
 
-    val evaluated = evaluator.execute(tasks).executionResults
+    val evaluated = evaluator.execute(tasks.asInstanceOf[Seq[Task[Any]]]).executionResults
       .uncached
       .flatMap(_.asSimple)
       .filter(module.moduleInternal.simpleTasks.contains)
@@ -231,7 +233,9 @@ class UnitTester(
     try {
       BuildCtx.workspaceRoot0.withValue(module.moduleDir) {
         mill.api.daemon.LauncherSubprocess.withValue(config =>
-          DaemonRpc.defaultRunSubprocess(DaemonRpc.ServerToClient.RunSubprocess(config)).exitCode
+          DaemonRpc
+            .defaultRunSubprocessWithStreams(None)(DaemonRpc.ServerToClient.RunSubprocess(config))
+            .exitCode
         ) {
           tester(this)
         }

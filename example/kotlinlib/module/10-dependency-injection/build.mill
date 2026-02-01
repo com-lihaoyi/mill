@@ -1,41 +1,5 @@
-//// SNIPPET:BUILD
-
-package build
-import mill.*, kotlinlib.*
-import kotlinlib.ksp.KspModule
-
-object dagger extends KspModule {
-
-  def kotlinVersion = "2.2.0"
-  def kspVersion = "2.0.2"
-  def kspJvmTarget = "17"
-
-  def mainClass = Some("com.example.dagger.MainKt")
-
-  def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
-
-  def mvnDeps = Seq(
-    mvn"com.google.dagger:dagger:2.57"
-  )
-
-  def kotlinSymbolProcessors = Seq(
-    mvn"com.google.dagger:dagger-compiler:2.57"
-  )
-
-  object test extends KspTests, TestModule.Junit5 {
-
-    def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
-
-    def mvnDeps = Seq(
-      mvn"com.google.dagger:dagger-compiler:2.57",
-      mvn"io.kotest:kotest-runner-junit5:5.9.1"
-    )
-
-    def kotlinSymbolProcessors = Seq(
-      mvn"com.google.dagger:dagger-compiler:2.57"
-    )
-  }
-}
+/** See Also: build.mill.yaml */
+/** See Also: test/package.mill.yaml */
 
 // This is a basic Mill build for a single `KotlinModule`, with
 // the purpose to demonstrate the Kotlin Symbol Processing API
@@ -43,25 +7,25 @@ object dagger extends KspModule {
 
 /** Usage
 
-> ./mill show dagger.generatedSources
+> ./mill show generatedSources
 [
-  "ref:v0:.../out/dagger/generatedSourcesWithKsp2.dest/generated/java",
-  "ref:v0:.../out/dagger/generatedSourcesWithKsp2.dest/generated/kotlin"
+  "ref:v0:.../out/generatedSourcesWithKsp2.dest/generated/java",
+  "ref:v0:.../out/generatedSourcesWithKsp2.dest/generated/kotlin"
 ]
 
-> ls out/dagger/generatedSourcesWithKsp2.dest/generated/java/com/example/dagger/
+> ls out/generatedSourcesWithKsp2.dest/generated/java/com/example/dagger/
 DaggerNumberApp.java
 NumberService_Factory.java
 RandomNumberGenerator_Factory.java
 
-> ./mill dagger.compile
-Compiling 6 Kotlin sources and reading 3 Java sources to out/dagger/compile.dest/classes ...
-compiling 3 Java sources to out/dagger/compile.dest/classes ...
+> ./mill compile
+Compiling 6 Kotlin sources and reading 3 Java sources to out/compile.dest/classes ...
+compiling 3 Java sources to out/compile.dest/classes ...
 
-> ./mill dagger.run
+> ./mill run
 Random number: ...
 
-> ./mill show dagger.test
+> ./mill show test
 ...
 {
   "msg": "",
@@ -82,7 +46,7 @@ Random number: ...
 }
 ...
 
-> ls out/dagger/test/generatedSourcesWithKsp2.dest/generated/java/com/example/dagger/
+> ls out/test/generatedSourcesWithKsp2.dest/generated/java/com/example/dagger/
 ConstantNumberGenerator_Factory.java
 DaggerDemoComponent.java
 DaggerTestApp.java

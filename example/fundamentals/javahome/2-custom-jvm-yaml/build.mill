@@ -1,0 +1,25 @@
+// Mill's JVM can be configured via the
+// xref:cli/build-header.adoc#_mill_jvm_version[mill-jvm-version] key in your
+// declarative `build.mill.yaml` file:
+
+/** See Also: build.mill.yaml */
+
+/** Usage
+
+> ./mill java -version
+openjdk version "19..." ...
+
+*/
+
+//
+// The `mill-jvm-version` string has the form:
+//
+// ----
+// "{version}"
+// "{name}:{version}"
+// ----
+//
+// To see what Jvms are available for download look at the index for your os
+// and architecture {link-jvm-indices}[here].
+//
+// For programmable builds, you can se the JVM version via the `//| mill-jvm-version` build header:

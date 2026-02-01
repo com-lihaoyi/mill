@@ -4,5 +4,6 @@ mvnDeps:
 - com.github.sbt.junit:jupiter-interface:0.11.4
 - io.kotest:kotest-runner-junit5:5.9.1
 - org.mockito.kotlin:mockito-kotlin:5.4.0
+
 kotlincOptions: ["-jvm-target", "11"]
 

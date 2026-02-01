@@ -46,7 +46,9 @@ object MillNoDaemonMain0 {
     // Create runner that executes subprocesses locally with inherited I/O
     val launcherRunner: mill.api.daemon.LauncherSubprocess.Runner =
       config =>
-        DaemonRpc.defaultRunSubprocess(DaemonRpc.ServerToClient.RunSubprocess(config)).exitCode
+        DaemonRpc
+          .defaultRunSubprocessWithStreams(None)(DaemonRpc.ServerToClient.RunSubprocess(config))
+          .exitCode
 
     // Track worker caches so we can close them before exiting
     val workerCaches = new java.util.concurrent.ConcurrentLinkedQueue[MillDaemonMain0.WorkerCache]()
@@ -70,7 +72,9 @@ object MillNoDaemonMain0 {
           systemExit = ( /*reason*/ _, code) => closeWorkersAndExit(code),
           daemonDir = args.daemonDir,
           outLock = outLock,
-          launcherSubprocessRunner = launcherRunner
+          launcherSubprocessRunner = launcherRunner,
+          serverToClientOpt = None,
+          millRepositories = Seq.empty
         )
         if (res) 0 else 1
       } catch {

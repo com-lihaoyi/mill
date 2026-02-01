@@ -1,0 +1,16 @@
+extends: KotlinModule
+kotlinVersion: 1.9.24
+mainClass: com.example.TodoMVCApplicationKt
+mvnDeps:
+- io.ktor:ktor-server-core:2.3.12
+- io.ktor:ktor-server-netty:2.3.12
+- org.jetbrains.exposed:exposed-core:0.53.0
+- org.jetbrains.exposed:exposed-jdbc:0.53.0
+- com.h2database:h2:2.2.224
+- io.ktor:ktor-server-webjars:2.3.12
+- org.webjars:jquery:3.2.1
+- io.ktor:ktor-server-thymeleaf:2.3.12
+- org.webjars:webjars-locator:0.41
+- org.webjars.npm:todomvc-common:1.0.5
+- org.webjars.npm:todomvc-app-css:2.4.1
+- ch.qos.logback:logback-classic:1.4.14

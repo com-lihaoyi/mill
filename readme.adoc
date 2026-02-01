@@ -1,5 +1,5 @@
 = image:website/docs/logo.svg[title=Mill Logo] Mill: A Better Build Tool for Java, Scala, & Kotlin
-:mill-stable-version: 1.0.6
+:mill-stable-version: 1.1.0
 :link-github: https://github.com/com-lihaoyi/mill
 :link-current-doc-site: https://mill-build.org
 :link-mill-moduledefs: https://github.com/com-lihaoyi/mill-moduledefs
@@ -22,25 +22,21 @@ endif::[]
 link:changelog.adoc[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=stable-version&versionSuffix={mill-stable-version}[d]]
 https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=unstable-dev-version[Maven Central Version]]
 
-Mill is a build tool that tries to improve upon the tools traditionally used
+Mill is a build tool that improves upon the tools traditionally used
 in the JVM ecosystem:
 
-* Mill builds the same Java project https://mill-build.org/mill/comparisons/why-mill.html#_performance[3-6x
- faster than Maven or Gradle] due to aggressive caching & parallelism
+* **https://mill-build.org/mill/comparisons/maven.html[xref:comparisons/maven.adoc][Simpler than Maven]**,
+with declarative `build.mill.yaml` files often 1/10th the lines of a `pom.xml`
 
-* Mill's rich feature set means
-https://mill-build.org/mill/comparisons/why-mill.html#_rich_builtins[less fiddling with plugins],
-since everything needed for development is built in
+* **https://mill-build.org/mill/comparisons/gradle.html[xref:comparisons/gradle.adoc][Easier than Gradle]**,
+with object-oriented programmable builds Java developers can intuitively understand
 
-* Mill builds are https://mill-build.org/mill/comparisons/why-mill.html#_gradle_ide_support[easily explorable in your IDE],
-letting you work on them without constantly googling for help
+* **https://mill-build.org/mill/comparisons/performance.html[xref:comparisons/performance.adoc][Fastest builds on the JVM]**,
+3-7x faster than Maven or Gradle due to aggressive caching & parallelism
 
 Although the Java compiler is very fast and the Java language is easy to learn,
-JVM build tools have a reputation for being sluggish and confusing. Mill tries to
-offer a better alternative, its https://mill-build.org/mill/comparisons/why-mill.html#_object_oriented_builds[object-oriented builds]
-reducing the learning curve and letting your build system take
-full advantage of the Java platform's performance, usability, and IDE support.
-
+JVM build tools have a reputation for being sluggish, complicated, and confusing. Mill tries to
+offer a better alternative that gives the Java platform the developer experience it deserves.
 
 If you want to use Mill in your own projects, check out our documentation:
 
@@ -48,36 +44,25 @@ If you want to use Mill in your own projects, check out our documentation:
 
 Here is some quick example, so that you can imagine how it looks:
 
-[source,scala,subs="verbatim,attributes"]
+[source,yaml,subs="verbatim,attributes"]
 ----
-package build
-import mill._, javalib.*
-
-object foo extends JavaModule {
-  def mvnDeps = Seq(
-    mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
-    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
-  )
-
-  object test extends JavaTests, TestModule.Junit4 {
-    def mvnDeps = Seq(
-      mvn"com.google.guava:guava:33.3.0-jre"
-    )
-  }
-}
+extends: JavaModule
+mvnDeps:
+- org.thymeleaf:thymeleaf:3.1.1.RELEASE
+- org.slf4j:slf4j-nop:2.0.7
 ----
 
 [source,console]
 ----
 
-> ./mill foo.compile # compile sources into classfiles
+> ./mill compile # compile sources into classfiles
 ...
 compiling 1 Java source to...
 
-> ./mill foo.run --text hello
+> ./mill run --text hello
 <h1>hello</h1>
 
-> ./mill foo.test
+> ./mill test
 ...
 Test foo.FooTest.testEscaping finished, ...
 Test foo.FooTest.testSimple finished, ...

@@ -68,11 +68,18 @@ trait GroupExecution {
       labelled: Task.Named[_]
   ): Either[upickle.core.TraceVisitor.TraceException, Any] = {
     try {
+      val reader = labelled.readWriterOpt.getOrElse {
+        throw new IllegalStateException(
+          s"No ReadWriter registered for task '${labelled.ctx.segments.render}' " +
+            s"in module '${labelled.ctx.enclosingModule.getClass.getName}'. " +
+            s"This task cannot be overridden from YAML configuration."
+        )
+      }
       Right(PathRef.currentOverrideModulePath.withValue(
         labelled.ctx.enclosingModule.moduleCtx.millSourcePath
       ) {
         upickle.read[Any](interpolateEnvVarsInJson(located.value.value))(
-          using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
+          using reader.asInstanceOf[upickle.Reader[Any]]
         )
       })
     } catch {
@@ -109,13 +116,17 @@ trait GroupExecution {
             segments: Seq[String],
             bufValue: upickle.core.BufferedValue
         ): Seq[(String, Located[Appendable[BufferedValue]])] = {
-          val upickle.core.BufferedValue.Obj(kvs, _, _) = bufValue
+          val upickle.core.BufferedValue.Obj(kvs, _, _) = bufValue.runtimeChecked
           val (rawKvs, nested) = kvs.partitionMap {
             case (upickle.core.BufferedValue.Str(k, i), v) =>
               k.toString.split(" +") match {
                 case Array(k) => Left((k, i, v))
                 case Array("object", k) => Right(rec(segments ++ Seq(k), v))
               }
+            case (key, _) =>
+              throw new IllegalArgumentException(
+                s"Expected string key in static build overrides, got ${key.getClass.getSimpleName}"
+              )
           }
 
           val currentResults: Seq[(String, Located[Appendable[BufferedValue]])] =
@@ -182,17 +193,10 @@ trait GroupExecution {
   val effectiveThreadCount: Int =
     ec.map(_.getMaximumPoolSize).getOrElse(1)
 
-  private val envVarsForInterpolation = Seq(
-    "PWD" -> workspace.toString,
-    "PWD_URI" -> workspace.toURI.toString,
-    "MILL_VERSION" -> mill.constants.BuildInfo.millVersion,
-    "MILL_BIN_PLATFORM" -> mill.constants.BuildInfo.millBinPlatform
-  )
-
   /** Recursively examine all `ujson.Str` values and replace '${VAR}' patterns. */
   private def interpolateEnvVarsInJson(json: upickle.core.BufferedValue): ujson.Value = {
     import scala.jdk.CollectionConverters.*
-    val envWithPwd = (env ++ envVarsForInterpolation).asJava
+    val envWithPwd = (env ++ mill.internal.Util.envForInterpolation(workspace)).asJava
 
     // recursively convert java data structure to ujson.Value
     def rec(json: ujson.Value): ujson.Value = json match {
@@ -278,7 +282,7 @@ trait GroupExecution {
           val cached = loadCachedJson(logger, inputsHash, labelled, paths)
 
           // `cached.isEmpty` means worker metadata file removed by user so recompute the worker
-          val (multiLogger, fileLoggerOpt) = resolveLogger(Some(paths).map(_.log), logger)
+          val (multiLogger, _) = resolveLogger(Some(paths).map(_.log), logger)
           val upToDateWorker = loadUpToDateWorker(
             logger = logger,
             inputsHash = inputsHash,

@@ -1,8 +1,9 @@
 package mill.script
 import mill.*
-import mill.api.{Discover, ExternalModule, PathRef, ScriptModule}
+import mill.api.{Discover, ExternalModule, PathRef, Result, ScriptModule}
 import mill.javalib.{TestModule, DepSyntax, Dep}
 import mill.javalib.api.CompilationResult
+import mill.javalib.api.JvmWorkerUtil
 import mill.util.Jvm
 
 class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scriptConfig) {
@@ -18,27 +19,35 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
 
   override def allSourceFiles = Task {
     val original = scriptSource().path
-    val modified = Task.dest / original.last
-    val sanitizedName = original.last.map(c => if (Character.isJavaIdentifierPart(c)) c else '_')
-    val selfReference = s"${sanitizedName}_millScriptMainSelf"
-    os.write(
-      modified,
-      s"//SOURCECODE_ORIGINAL_FILE_PATH=$original\n" +
-        "//SOURCECODE_ORIGINAL_CODE_START_MARKER\n" +
-        os.read(original) +
-        System.lineSeparator +
-        // Squeeze this onto one line so as not to affect line counts too much
-        s"type main = mainargs.main; private def $selfReference = this; object MillScriptMain_${sanitizedName} { def main(args: Array[String]): Unit = this.getClass.getMethods.find(m => m.getName == \"main\" && m.getParameters.map(_.getType) == Seq(classOf[Array[String]]) && m.getReturnType == classOf[Unit]) match{ case Some(m) => m.invoke($selfReference, args); case None => mainargs.Parser($selfReference).runOrExit(args) }}"
-    )
+    val scalaVer = scalaVersion()
+    if (!JvmWorkerUtil.isDottyOrScala3(scalaVer)) {
+      Result.Failure(
+        s"Scala scripts require Scala 3+. Detected scalaVersion=$scalaVer.",
+        original.toNIO
+      )
+    } else {
+      val modified = Task.dest / original.last
+      val sanitizedName = original.last.map(c => if (Character.isJavaIdentifierPart(c)) c else '_')
+      val selfReference = s"${sanitizedName}_millScriptMainSelf"
+      os.write(
+        modified,
+        s"//SOURCECODE_ORIGINAL_FILE_PATH=$original\n" +
+          "//SOURCECODE_ORIGINAL_CODE_START_MARKER\n" +
+          os.read(original) +
+          System.lineSeparator +
+          // Squeeze this onto one line so as not to affect line counts too much
+          s"type main = mainargs.main; private def $selfReference = this; object MillScriptMain_${sanitizedName} { def main(args: Array[String]): Unit = this.getClass.getMethods.find(m => m.getName == \"main\" && m.getParameters.map(_.getType) == Seq(classOf[Array[String]]) && m.getReturnType == classOf[Unit]) match{ case Some(m) => m.invoke($selfReference, args); case None => mainargs.Parser($selfReference).runOrExit(args) }}"
+      )
 
-    Seq(PathRef(modified))
+      Result.Success(Seq(PathRef(modified)))
+    }
   }
 
   private def asmWorkerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(Dep.millProjectModule("mill-libs-script-asm-worker")))
   }
 
-  private def asmWorkerClassloader: Task.Worker[ClassLoader] = Task.Worker {
+  private def asmWorkerClassloader: Task.Worker[ClassLoader & AutoCloseable] = Task.Worker {
     Jvm.createClassLoader(classPath = asmWorkerClasspath().map(_.path), parent = null)
   }
 

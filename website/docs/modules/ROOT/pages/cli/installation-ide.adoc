@@ -74,9 +74,10 @@ pick one most similar to what you are doing so you can hit the ground running.
 
 You can also install the Mill bootstrap script globally on Mac and Linux via:
 
-```console
+[source,console,subs="verbatim,attributes"]
+----
 > sudo sh -c '(curl -L {mill-download-url}/mill-dist-{mill-version}-mill.sh -o mill) > /usr/local/bin/mill && chmod +x /usr/local/bin/mill'
-```
+----
 
 This can be useful when using Mill to run script files (written in xref:javalib/script.adoc[Java],
 xref:scalalib/script.adoc[Scala], or xref:kotlinlib/script.adoc[Kotlin]) which may not belong
@@ -128,11 +129,11 @@ by adding a a `-jvm` suffix on the Mill version:
 
 [source,subs="verbatim,attributes"]
 ----
-{version}-jvm
+{mill-version}-jvm
 ----
 
 Mill's JVM launcher imposes some Java startup overhead (~100ms) over the native launcher
-when running Mill from the command line, and requires a JVM installed globally (version 11 or above)
+when running Mill from the command line, and requires a JVM installed globally (version 17 or above)
 in order to run.
 
 == Bash/Zsh Tab Completion
@@ -144,9 +145,9 @@ You can set up Bash and Zsh tab completions by subsequently running the command:
 > ./mill mill.tabcomplete/install
 ----
 
-This unpacks the completion script in `~/.cache/mill` and registers it in your `~/.bash_profile` and `~/.zshrc`.
-After that, doing `./mill <TAB>` should begin showing possible modules and tasks for you
-to select at the command line:
+This unpacks the completion script in `~/.local/share/mill/completion/mill-completion.sh`
+and registers it in your `~/.bash_profile` and `~/.zshrc`. After that, doing `./mill <TAB>`
+should begin showing possible modules and tasks for you to select at the command line:
 
 image::basic/TabCompleteCommand.png[]
 
@@ -459,6 +460,28 @@ codebase. This allows you to limit the tests that run on your codebase to those 
 downstream of the code you changed, allowing you to save time and resources by not wastefully
 running tests that could not possibly be affected by your code change.
 
+=== Uploading Chrome Profiles
+
+For investigating performance issues in CI, you may find it useful to upload the
+xref:fundamentals/out-dir.adoc#_mill_chrome_profile_json[out/mill-chrome-profile.json] file
+at the end of every run. This gives you insight into how long each task took, what tasks
+were running sequentially or in paralle, and overall system CPU utilization during the run.
+
+For example, the Github Actions steps to upload the `out/mill-chrome-profile.json` file as
+an artifact looks something like this, placed after your `./mill` commands:
+
+```yaml
+  - name: Upload Chrome Profile
+    uses: actions/upload-artifact@v4
+    if: always()
+    with:
+      name: mill-chrome-profile
+      path: out/mill-chrome-profile.json
+      if-no-files-found: ignore
+```
+
+You can then download the `mill-chrome-profile.zip` from the Github Actions Web UI, unzip
+it, then load it into `chrome://tracing` to visualize the time spent during that CI run.
 
 == Using Mill without access to Maven Central
 

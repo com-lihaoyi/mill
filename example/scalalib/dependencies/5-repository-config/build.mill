@@ -5,10 +5,9 @@
 //// SNIPPET:BUILD1
 package build
 import mill.*, scalalib.*
-import mill.api.ModuleRef
 
 object foo extends ScalaModule {
-  def scalaVersion = "3.8.0"
+  def scalaVersion = "3.8.1"
 
   def mvnDeps = Seq(
     mvn"com.lihaoyi::scalatags:0.13.1",
@@ -46,35 +45,13 @@ object foo extends ScalaModule {
 // * Windows: `C:\Users\<user_name>\AppData\Roaming\Coursier\config\mirror.properties`
 //
 // You can also set the environment variable `COURSIER_MIRRORS` or the jvm property `coursier.mirrors` to specify config file location.
-
-// To add custom resolvers to the initial bootstrap of the build, you can create a
-// custom `JvmWorkerModule` (named after the https://github.com/sbt/zinc[Zinc Incremental compiler]
-// used to compile the `build.mill` files) and override the `jvmWorker` method in your
-// `Module` by pointing it to that custom object:
-
-//// SNIPPET:BUILD2
-
-object CustomJvmWorkerModule extends JvmWorkerModule, CoursierModule {
-  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
-}
-
-object bar extends ScalaModule {
-  def scalaVersion = "3.8.0"
-  def jvmWorker = ModuleRef(CustomJvmWorkerModule)
-  // ... rest of your build definitions
-
-  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
-}
-
-//// SNIPPET:END
+//
+// To configure repositories for the entire build, e.g. to make all artifact downloads
+// go through a mirror rather than the public Maven Central, use
+// xref:cli/build-header.adoc#_mill_repositories[mill-repositories] in the build header instead.
 
 /** Usage
 
 > ./mill foo.run --text hello
 
-> ./mill bar.compile
-
 */
-
-// See xref:extending/import-mvn-plugins.adoc[] for customizing repositories used to resolve
-// `//| mvnDeps` used in your `build.mill` file
