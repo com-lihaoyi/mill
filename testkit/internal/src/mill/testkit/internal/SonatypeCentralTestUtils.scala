@@ -1,11 +1,10 @@
 package mill.testkit.internal
 
 import mill.api.{Evaluator, Task}
-import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
+import mill.constants.EnvVars
 import mill.testkit.{IntegrationTester, TestRootModule, UnitTester}
 
 private[mill] object SonatypeCentralTestUtils {
-  val DryRunEnvVar = "MILL_TESTS_PUBLISH_DRY_RUN"
 
   def dryRunWithKey(
       tester: IntegrationTester,
@@ -16,15 +15,19 @@ private[mill] object SonatypeCentralTestUtils {
   ): Unit = {
     import tester.*
 
-    val env = baseDryRunEnv(secretBase64, passphrase)
+    val env = baseDryRunEnv(Some(secretBase64), passphrase)
     val res = eval(taskName, env = env)
     println(res.debugString)
     assert(res.isSuccess)
 
-    val dir =
-      workspacePath / "out" / dirName / "repository" / "io.github.lihaoyi.testProject-0.0.1"
+    val dir = releaseRepoDir(
+      workspacePath / "out" / dirName / "repository",
+      group = "io.github.lihaoyi",
+      artifactId = "testProject",
+      version = "0.0.1"
+    )
     withGpgHome(secretBase64) { gpgEnv =>
-      signedArtifacts(dir).foreach { file =>
+      signedArtifacts(dir, artifactId = "testProject", version = "0.0.1").foreach { file =>
         assertSignatureValid(file, gpgEnv)
         assertChecksumMatches(file, os.Path(file.toString + ".md5"), "MD5", gpgEnv)
         assertChecksumMatches(file, os.Path(file.toString + ".sha1"), "SHA1", gpgEnv)
@@ -38,8 +41,69 @@ private[mill] object SonatypeCentralTestUtils {
       secretBase64: String,
       passphrase: Option[String],
       module: TestRootModule,
-      resourcePath: os.Path
+      resourcePath: os.Path,
+      group: String,
+      artifactId: String,
+      version: String
   ): Unit = {
+    dryRunWithKey(
+      task,
+      dirName,
+      Some(secretBase64),
+      passphrase,
+      module,
+      resourcePath
+    ) { repoDir =>
+      val dir = releaseRepoDir(repoDir, group, artifactId, version)
+      val baseDir = dir / releaseGroupPath(group) / artifactId / version
+      val expectedFiles = Vector(
+        baseDir / s"$artifactId-$version-javadoc.jar",
+        baseDir / s"$artifactId-$version-javadoc.jar.asc",
+        baseDir / s"$artifactId-$version-javadoc.jar.asc.md5",
+        baseDir / s"$artifactId-$version-javadoc.jar.asc.sha1",
+        baseDir / s"$artifactId-$version-javadoc.jar.md5",
+        baseDir / s"$artifactId-$version-javadoc.jar.sha1",
+        baseDir / s"$artifactId-$version-sources.jar",
+        baseDir / s"$artifactId-$version-sources.jar.asc",
+        baseDir / s"$artifactId-$version-sources.jar.asc.md5",
+        baseDir / s"$artifactId-$version-sources.jar.asc.sha1",
+        baseDir / s"$artifactId-$version-sources.jar.md5",
+        baseDir / s"$artifactId-$version-sources.jar.sha1",
+        baseDir / s"$artifactId-$version.jar",
+        baseDir / s"$artifactId-$version.jar.asc",
+        baseDir / s"$artifactId-$version.jar.asc.md5",
+        baseDir / s"$artifactId-$version.jar.asc.sha1",
+        baseDir / s"$artifactId-$version.jar.md5",
+        baseDir / s"$artifactId-$version.jar.sha1",
+        baseDir / s"$artifactId-$version.pom",
+        baseDir / s"$artifactId-$version.pom.asc",
+        baseDir / s"$artifactId-$version.pom.asc.md5",
+        baseDir / s"$artifactId-$version.pom.asc.sha1",
+        baseDir / s"$artifactId-$version.pom.md5",
+        baseDir / s"$artifactId-$version.pom.sha1"
+      )
+      val actualFiles = os.walk(dir).toVector
+      val missingFiles = expectedFiles.filterNot(actualFiles.contains)
+      assert(missingFiles.isEmpty)
+
+      withGpgHome(secretBase64) { gpgEnv =>
+        signedArtifacts(baseDir, artifactId, version).foreach { file =>
+          assertSignatureValid(file, gpgEnv)
+          assertChecksumMatches(file, os.Path(file.toString + ".md5"), "MD5", gpgEnv)
+          assertChecksumMatches(file, os.Path(file.toString + ".sha1"), "SHA1", gpgEnv)
+        }
+      }
+    }
+  }
+
+  def dryRunWithKey(
+      task: Task[Unit],
+      dirName: os.SubPath,
+      secretBase64: Option[String],
+      passphrase: Option[String],
+      module: TestRootModule,
+      resourcePath: os.Path
+  )(validateRepo: os.Path => Unit): Unit = {
     val env = baseDryRunEnv(secretBase64, passphrase)
     UnitTester(
       module,
@@ -48,47 +112,8 @@ private[mill] object SonatypeCentralTestUtils {
     ).scoped { eval =>
       val Right(_) = eval.apply(task).runtimeChecked
       val workspacePath = module.moduleDir
-
-      val dir =
-        workspacePath / "out" / dirName / "repository" / "io.github.lihaoyi.testProject-0.0.1"
-
-      val expectedFiles = Vector(
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-javadoc.jar",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-javadoc.jar.asc",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-javadoc.jar.asc.md5",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-javadoc.jar.asc.sha1",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-javadoc.jar.md5",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-javadoc.jar.sha1",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-sources.jar",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-sources.jar.asc",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-sources.jar.asc.md5",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-sources.jar.asc.sha1",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-sources.jar.md5",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-sources.jar.sha1",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.jar",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.jar.asc",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.jar.asc.md5",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.jar.asc.sha1",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.jar.md5",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.jar.sha1",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.pom",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.pom.asc",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.pom.asc.md5",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.pom.asc.sha1",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.pom.md5",
-        dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.pom.sha1"
-      )
-      val actualFiles = os.walk(dir).toVector
-      val missingFiles = expectedFiles.filterNot(actualFiles.contains)
-      assert(missingFiles.isEmpty)
-
-      withGpgHome(secretBase64) { gpgEnv =>
-        signedArtifacts(dir).foreach { file =>
-          assertSignatureValid(file, gpgEnv)
-          assertChecksumMatches(file, os.Path(file.toString + ".md5"), "MD5", gpgEnv)
-          assertChecksumMatches(file, os.Path(file.toString + ".sha1"), "SHA1", gpgEnv)
-        }
-      }
+      val repoDir = workspacePath / "out" / dirName / "repository"
+      validateRepo(repoDir)
     }
   }
 
@@ -153,21 +178,32 @@ private[mill] object SonatypeCentralTestUtils {
   }
 
   private def baseDryRunEnv(
-      secretBase64: String,
+      secretBase64: Option[String],
       passphrase: Option[String]
   ): Map[String, String] =
     Map(
-      USERNAME_ENV_VARIABLE_NAME -> "mill-tests-username",
-      PASSWORD_ENV_VARIABLE_NAME -> "mill-tests-password",
-      DryRunEnvVar -> "1",
-      "MILL_PGP_SECRET_BASE64" -> secretBase64
-    ) ++ passphrase.map("MILL_PGP_PASSPHRASE" -> _)
+      EnvVars.MILL_SONATYPE_USERNAME -> "mill-tests-username",
+      EnvVars.MILL_SONATYPE_PASSWORD -> "mill-tests-password",
+      "MILL_TESTS_PUBLISH_DRY_RUN" -> "1"
+    ) ++ secretBase64.map(EnvVars.MILL_PGP_SECRET_BASE64 -> _) ++
+      passphrase.map(EnvVars.MILL_PGP_PASSPHRASE -> _)
 
-  private def signedArtifacts(dir: os.Path): Vector[os.Path] =
+  private def signedArtifacts(dir: os.Path, artifactId: String, version: String): Vector[os.Path] =
     Vector(
-      dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-javadoc.jar",
-      dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1-sources.jar",
-      dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.jar",
-      dir / "io/github/lihaoyi/testProject/0.0.1/testProject-0.0.1.pom"
+      dir / s"$artifactId-$version-javadoc.jar",
+      dir / s"$artifactId-$version-sources.jar",
+      dir / s"$artifactId-$version.jar",
+      dir / s"$artifactId-$version.pom"
     )
+
+  private def releaseRepoDir(
+      repoDir: os.Path,
+      group: String,
+      artifactId: String,
+      version: String
+  ): os.Path =
+    repoDir / s"$group.$artifactId-$version"
+
+  private def releaseGroupPath(group: String): os.SubPath =
+    os.SubPath(group.split('.').toIndexedSeq)
 }

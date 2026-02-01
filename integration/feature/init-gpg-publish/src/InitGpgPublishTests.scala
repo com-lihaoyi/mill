@@ -1,5 +1,6 @@
-import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
-import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
+package mill.integration
+
+import mill.testkit.UtestIntegrationTestSuite
 import mill.testkit.internal.SonatypeCentralTestUtils
 import utest.*
 
