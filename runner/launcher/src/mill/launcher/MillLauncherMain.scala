@@ -14,6 +14,7 @@ import java.time.{Instant, ZoneId}
  * Mill launcher main entry point.
  */
 object MillLauncherMain {
+
   def main(args: Array[String]): Unit = {
     System.exit(main0(args, None, sys.env, os.pwd))
   }
