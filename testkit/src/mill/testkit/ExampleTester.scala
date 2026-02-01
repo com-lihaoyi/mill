@@ -5,7 +5,7 @@ import mill.launcher.MillLauncherMain
 import mill.testkit.Chunk
 import utest.*
 
-import java.io.{ByteArrayOutputStream, PrintStream}
+import java.io.PrintStream
 import scala.util.control.NonFatal
 
 /**
@@ -199,20 +199,25 @@ ${expectedSnippets.mkString("\n")}
     // All output goes to Left (stdout) to match bash's mergeErrIntoOut = true behavior.
     val chunks = collection.mutable.ArrayBuffer.empty[Either[geny.Bytes, geny.Bytes]]
 
-    def makeChunkingStream(dest: java.io.PrintStream): PrintStream =
-      new PrintStream(new ByteArrayOutputStream()) {
-        override def write(b: Array[Byte], off: Int, len: Int): Unit = {
-          val bytes = java.util.Arrays.copyOfRange(b, off, off + len)
-          chunks.synchronized { chunks += Left(new geny.Bytes(bytes)) }
-          dest.write(b, off, len)
-        }
-      }
-
     val exitCode = MillLauncherMain.main0(
       args = millArgs.toArray,
-      stdin = System.in,
-      stdout = makeChunkingStream(System.out),
-      stderr = makeChunkingStream(System.err),
+      streamsOpt = Some(
+        SystemStreams(
+          ChunkingStreams.makeChunkingStream(
+            chunks,
+            isStdout = true,
+            mergeErrIntoOut = true,
+            dest = Some(System.out)
+          ),
+          ChunkingStreams.makeChunkingStream(
+            chunks,
+            isStdout = false,
+            mergeErrIntoOut = true,
+            dest = Some(System.err)
+          ),
+          System.in
+        )
+      ),
       env = sys.env ++ millTestSuiteEnv,
       workDir = workspacePath
     )

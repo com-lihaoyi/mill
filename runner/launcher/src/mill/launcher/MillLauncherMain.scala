@@ -14,7 +14,7 @@ import java.time.{Instant, ZoneId}
  */
 object MillLauncherMain {
   def main(args: Array[String]): Unit = {
-    System.exit(main0(args, System.in, System.out, System.err, sys.env, os.pwd))
+    System.exit(main0(args, None, sys.env, os.pwd))
   }
 
   /**
@@ -22,9 +22,7 @@ object MillLauncherMain {
    */
   def main0(
       args: Array[String],
-      stdin: java.io.InputStream,
-      stdout: java.io.PrintStream,
-      stderr: java.io.PrintStream,
+      streamsOpt: Option[SystemStreams],
       env: Map[String, String],
       workDir: os.Path
   ): Int = {
@@ -76,9 +74,7 @@ object MillLauncherMain {
       } else { // start in client-server mode
         val jvmOpts = MillProcessLauncher.computeJvmOpts(workDir, env)
         val launcher = new MillServerLauncher(
-          stdin = stdin,
-          stdout = stdout,
-          stderr = stderr,
+          streamsOpt = streamsOpt,
           env = env,
           args = optsArgs,
           forceFailureForTestingMillisDelay = -1,

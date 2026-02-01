@@ -1,5 +1,6 @@
 package mill.launcher
 
+import mill.api.daemon.SystemStreams
 import mill.client.{ClientUtil, LaunchedServer, ServerLauncher}
 import mill.constants.BuildInfo
 import mill.client.lock.Locks
@@ -11,9 +12,7 @@ import java.net.Socket
 import java.util.concurrent.atomic.AtomicInteger
 
 class MillServerLauncher(
-    stdin: java.io.InputStream,
-    stdout: java.io.OutputStream,
-    stderr: java.io.OutputStream,
+    streamsOpt: Option[SystemStreams],
     env: Map[String, String],
     args: Seq[String],
     forceFailureForTestingMillisDelay: Int,
@@ -100,7 +99,7 @@ class MillServerLauncher(
         clientToServer = socketOut,
         stdout = stdoutHandler,
         stderr = stderrHandler,
-        runSubprocess = DaemonRpc.defaultRunSubprocessWithStreams(stdin, stdout, stderr)
+        runSubprocess = DaemonRpc.defaultRunSubprocessWithStreams(streamsOpt)
       )
 
       // For testing: run command in background while main thread throws after delay
