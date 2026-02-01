@@ -33,6 +33,16 @@ object bar extends mill.api.DefaultTaskModule {
   def defaultTask(): String = "barCommand"
 }
 
+object baz extends Module {
+  def bazInput = Task.Source("baz.txt")
+  def bazOther = Task.Source("baz-other.txt")
+
+  def bazCommand() = Task.Command(selectiveInputs = Seq(bazInput)) {
+    System.out.println("Computing bazCommand")
+    os.read(bazInput().path) + os.read(bazOther().path)
+  }
+}
+
 trait QuxModule extends Module {
   def quxCommand() = Task.Command {
     println("Computing quxCommand")
