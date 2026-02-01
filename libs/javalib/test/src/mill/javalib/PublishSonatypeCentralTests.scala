@@ -51,7 +51,7 @@ object PublishSonatypeCentralTests extends TestSuite {
   val ResourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "publish-sonatype-central"
 
   val tests: Tests = Tests {
-    test("normal"){
+    test("normal") {
       def dryRun(task: Task[Unit], dirName: os.SubPath): Unit = {
         dryRunWithKey(
           task,
@@ -92,7 +92,7 @@ object PublishSonatypeCentralTests extends TestSuite {
         "mill.javalib.SonatypeCentralPublishModule/publishAll.dest"
       )
     }
-    test("snapshot"){
+    test("snapshot") {
       def dryRun(task: Task[Unit], dirName: os.SubPath): Unit =
         dryRunWithKey(
           task,

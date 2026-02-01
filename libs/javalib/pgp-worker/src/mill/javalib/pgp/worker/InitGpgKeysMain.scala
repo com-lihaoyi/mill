@@ -30,7 +30,7 @@ object InitGpgKeysMain {
     println("Step 1: Generating PGP key pair...")
     print("Enter passphrase (leave empty for no passphrase): ")
     System.out.flush()
-    val passphrase = System.console() match{
+    val passphrase = System.console() match {
       case null => scala.io.StdIn.readLine()
       case console => console.readPassword()
     }
@@ -86,7 +86,8 @@ object InitGpgKeysMain {
           params = Map("op" -> "get", "search" -> s"0x$keyId")
         )
 
-        if (verifyResult.is2xx && verifyResult.text().contains("BEGIN PGP PUBLIC KEY BLOCK")) verified = true
+        if (verifyResult.is2xx && verifyResult.text().contains("BEGIN PGP PUBLIC KEY BLOCK"))
+          verified = true
         else {
           lastError = Some(
             s"Request to https://keyserver.ubuntu.com/pks/lookup failed with status code ${verifyResult.statusCode}"
