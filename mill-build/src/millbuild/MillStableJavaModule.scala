@@ -72,6 +72,10 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ProblemFilter.exclude[MissingClassProblem](
       "mill.api.daemon.MillException"
     ),
+    // Private class
+    ProblemFilter.exclude[MissingClassProblem](
+      "mill.javalib.SonatypeCentralPublisher$PreparedArtifacts*"
+    ),
     // private macro helpers, not part of public API
     ProblemFilter.exclude[DirectMissingMethodProblem]("mill.api.Task#Macros*")
   )

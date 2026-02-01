@@ -1,6 +1,7 @@
 package mill.launcher
 
 import mill.api.daemon.MillException
+import mill.api.SystemStreams
 import mill.client.*
 import mill.constants.{ConfigConstants, EnvVars, OutFiles, OutFolderMode}
 import mill.internal.MillCliConfig
@@ -14,7 +15,7 @@ import java.time.{Instant, ZoneId}
  */
 object MillLauncherMain {
   def main(args: Array[String]): Unit = {
-    System.exit(main0(args, System.out, System.err, sys.env, os.pwd))
+    System.exit(main0(args, None, sys.env, os.pwd))
   }
 
   /**
@@ -22,11 +23,12 @@ object MillLauncherMain {
    */
   def main0(
       args: Array[String],
-      stdout: java.io.PrintStream,
-      stderr: java.io.PrintStream,
+      streamsOpt: Option[SystemStreams],
       env: Map[String, String],
       workDir: os.Path
   ): Int = {
+    val stderr = streamsOpt.map(_.err).getOrElse(System.err)
+
     val parsedConfig = MillCliConfig.parse(args).toOption
 
     val bspMode = parsedConfig.exists(c => c.bsp.value || c.bspInstall.value)
@@ -75,8 +77,7 @@ object MillLauncherMain {
       } else { // start in client-server mode
         val jvmOpts = MillProcessLauncher.computeJvmOpts(workDir, env)
         val launcher = new MillServerLauncher(
-          stdout = stdout,
-          stderr = stderr,
+          streamsOpt = streamsOpt,
           env = env,
           args = optsArgs,
           forceFailureForTestingMillisDelay = -1,

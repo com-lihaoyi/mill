@@ -8,7 +8,9 @@ writable_roots = [
     "/Users/lihaoyi/Github/mill",
     "/Users/lihaoyi/.cache",
     "/Users/lihaoyi/Library/Caches/Coursier/",
-    "/Users/lihaoyi/.ivy2/local"
+    "/Users/lihaoyi/.ivy2/local",
+    "/Users/lihaoyi/.sbt",
+    "/Users/lihaoyi/mill-debug-log.txt",
 ]
 
 

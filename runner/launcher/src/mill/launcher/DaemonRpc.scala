@@ -1,6 +1,6 @@
 package mill.launcher
 
-import mill.api.daemon.{LauncherSubprocess, Logger}
+import mill.api.daemon.{LauncherSubprocess, Logger, SystemStreams}
 import mill.rpc.*
 import upickle.ReadWriter
 
@@ -62,11 +62,9 @@ object DaemonRpc {
       initialize: Initialize,
       serverToClient: BufferedReader,
       clientToServer: PrintStream,
-      stdout: RpcConsole.Message => Unit = RpcConsole.stdoutHandler,
-      stderr: RpcConsole.Message => Unit = RpcConsole.stderrHandler,
-      runSubprocess: ServerToClient.RunSubprocess => SubprocessResult = defaultRunSubprocess,
-      pollStdin: ServerToClient.PollStdin => StdinResult = defaultPollStdin,
-      getTerminalDims: ServerToClient.GetTerminalDims => TerminalDimsResult = defaultGetTerminalDims
+      stdout: RpcConsole.Message => Unit,
+      stderr: RpcConsole.Message => Unit,
+      runSubprocess: ServerToClient.RunSubprocess => SubprocessResult
   ): MillRpcClient[ClientToServer, ServerToClient] = {
     val transport = MillRpcWireTransport(
       name = "DaemonRpcClient",
@@ -82,9 +80,9 @@ object DaemonRpc {
         case req: ServerToClient.RunSubprocess =>
           runSubprocess(req).asInstanceOf[input.Response]
         case req: ServerToClient.PollStdin =>
-          pollStdin(req).asInstanceOf[input.Response]
+          defaultPollStdin(req).asInstanceOf[input.Response]
         case req: ServerToClient.GetTerminalDims =>
-          getTerminalDims(req).asInstanceOf[input.Response]
+          defaultGetTerminalDims(req).asInstanceOf[input.Response]
       }
     }
 
@@ -97,14 +95,20 @@ object DaemonRpc {
     )(serverMessageHandler)
   }
 
-  def defaultRunSubprocess(req: ServerToClient.RunSubprocess): SubprocessResult = {
+  def defaultRunSubprocessWithStreams(
+      streamsOpt: Option[SystemStreams]
+  ): ServerToClient.RunSubprocess => SubprocessResult = { req =>
     try {
       val result = os.proc(req.config.cmd).call(
         cwd = os.Path(req.config.cwd),
         env = req.config.env,
-        stdin = os.InheritRaw,
-        stdout = os.InheritRaw,
-        stderr = os.InheritRaw,
+        stdin = streamsOpt.fold(os.InheritRaw)(_.in),
+        stdout = streamsOpt.fold(os.InheritRaw)(s =>
+          os.ProcessOutput.ReadBytes(s.out.write(_, 0, _))
+        ),
+        stderr = streamsOpt.fold(os.InheritRaw)(s =>
+          os.ProcessOutput.ReadBytes(s.err.write(_, 0, _))
+        ),
         mergeErrIntoOut = req.config.mergeErrIntoOut,
         timeout = req.config.timeoutMillis,
         propagateEnv = req.config.propagateEnv,

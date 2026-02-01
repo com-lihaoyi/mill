@@ -9,6 +9,7 @@ import mill.javalib.PublishModule.PublishData
 import mill.javalib.internal.PublishModule.GpgArgs
 import mill.javalib.publish.SonatypeHelpers.CREDENTIALS_ENV_VARIABLE_PREFIX
 import mill.javalib.publish.{Artifact, PublishingType, SonatypeCredentials}
+import mill.util.Jvm
 import mill.util.Tasks
 
 trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport,
@@ -50,14 +51,15 @@ trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport,
       username: String = defaultCredentials,
       password: String = defaultCredentials,
       @unroll sources: Boolean = true,
-      @unroll docs: Boolean = true
+      @unroll docs: Boolean = true,
+      @unroll useGpgCli: Boolean = false
   ): Task.Command[Unit] = Task.Command {
     val artifact = artifactMetadata()
     val credentials = getPublishCredentials(CREDENTIALS_ENV_VARIABLE_PREFIX, username, password)()
     val publishData = publishArtifactsPayload(sources = sources, docs = docs)()
     val publishingType = getPublishingTypeFromReleaseFlag(sonatypeCentralShouldRelease())
 
-    val maybeKeyId = internal.PublishModule.pgpImportSecretIfProvidedOrThrow(Task.env)
+    val maybeKeyId = internal.PublishModule.pgpImportSecretIfProvidedOrThrow(Task.env, pgpWorker())
 
     def makeGpgArgs() =
       sonatypeCentralGpgArgsForKey()(maybeKeyId.getOrElse(throw new IllegalArgumentException(
@@ -79,7 +81,9 @@ trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport,
       taskDest = Task.dest,
       log = Task.log,
       env = Task.env,
-      worker = mavenWorker()
+      worker = mavenWorker(),
+      pgpWorker = pgpWorker(),
+      useGpgCli = useGpgCli
     )
   }
 }
@@ -88,7 +92,7 @@ trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport,
  * External module to publish artifacts to `central.sonatype.org`
  */
 object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, MavenWorkerSupport,
-      PublishCredentialsModule, MavenPublish {
+      PgpWorkerSupport, PublishCredentialsModule, MavenPublish {
   private final val sonatypeCentralGpgArgsSentinelValue = "<user did not override this method>"
 
   def self = this
@@ -112,7 +116,8 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
       connectTimeout: Int = defaultConnectTimeout,
       awaitTimeout: Int = defaultAwaitTimeout,
       bundleName: String = "",
-      @unroll snapshotUri: String = PublishModule.sonatypeCentralSnapshotUri
+      @unroll snapshotUri: String = PublishModule.sonatypeCentralSnapshotUri,
+      @unroll useGpgCli: Boolean = false
   ): Task.Command[Unit] = Task.Command {
     val artifacts = Task.sequence(publishArtifacts.value)()
 
@@ -120,7 +125,8 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
     val credentials = getPublishCredentials(CREDENTIALS_ENV_VARIABLE_PREFIX, username, password)()
     def makeGpgArgs() = internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
       Task.env,
-      GpgArgs.fromUserProvided(gpgArgs)
+      GpgArgs.fromUserProvided(gpgArgs),
+      pgpWorker()
     )
     val publishingType = getPublishingTypeFromReleaseFlag(shouldRelease)
 
@@ -137,7 +143,9 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
       taskDest = Task.dest,
       log = Task.log,
       env = Task.env,
-      worker = mavenWorker()
+      worker = mavenWorker(),
+      pgpWorker = pgpWorker(),
+      useGpgCli = useGpgCli
     )
   }
 
@@ -154,7 +162,9 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
       taskDest: os.Path,
       log: Logger,
       env: Map[String, String],
-      worker: internal.MavenWorkerSupport.Api
+      worker: internal.MavenWorkerSupport.Api,
+      pgpWorker: mill.javalib.api.PgpWorkerApi,
+      useGpgCli: Boolean
   ): Unit = {
     val dryRun = env.get("MILL_TESTS_PUBLISH_DRY_RUN").contains("1")
 
@@ -173,16 +183,29 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
     }
 
     def publishReleases(artifacts: Seq[PublishData], gpgArgs: GpgArgs): Unit = {
-      val publisher = new SonatypeCentralPublisher(
-        credentials = SonatypeCredentials(credentials.username, credentials.password),
-        gpgArgs = gpgArgs,
-        connectTimeout = connectTimeout,
-        readTimeout = readTimeout,
-        log = log,
-        workspace = BuildCtx.workspaceRoot,
-        env = env,
-        awaitTimeout = awaitTimeout
-      )
+      val publisher = if (useGpgCli) {
+        new SonatypeCentralPublisher(
+          credentials = SonatypeCredentials(credentials.username, credentials.password),
+          gpgArgs = gpgArgs,
+          connectTimeout = connectTimeout,
+          readTimeout = readTimeout,
+          log = log,
+          workspace = BuildCtx.workspaceRoot,
+          env = env,
+          awaitTimeout = awaitTimeout
+        )
+      } else {
+        new SonatypeCentralPublisher2(
+          credentials = SonatypeCredentials(credentials.username, credentials.password),
+          gpgArgs = gpgArgs,
+          pgpWorker = pgpWorker,
+          connectTimeout = connectTimeout,
+          readTimeout = readTimeout,
+          log = log,
+          env = env,
+          awaitTimeout = awaitTimeout
+        )
+      }
 
       val artifactDatas = artifacts.map(_.withConcretePath)
       if (dryRun) {
@@ -222,6 +245,35 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
 
   private def getPublishingTypeFromReleaseFlag(shouldRelease: Boolean): PublishingType = {
     if (shouldRelease) PublishingType.AUTOMATIC else PublishingType.USER_MANAGED
+  }
+
+  /**
+   * Interactive task to create PGP keys for publishing to Sonatype Central.
+   *
+   * This task will:
+   * 1. Generate a new PGP key pair (interactively prompting for name, email, and passphrase)
+   * 2. Upload the public key to keyserver.ubuntu.com
+   * 3. Verify the key was uploaded successfully
+   * 4. Print the environment variables needed for publishing
+   *
+   * After running this task, copy the printed environment variables to your CI secrets
+   * or shell configuration.
+   *
+   * See https://central.sonatype.org/publish/requirements/gpg/ for more details.
+   */
+  def initGpgKeys(): Task.Command[Unit] = Task.Command {
+    val secretPath = Task.dest / "pgp-private-key.asc"
+    val exitCode = Jvm.callInteractiveProcess(
+      mainClass = "mill.javalib.pgp.worker.MillInitGpgKeysMain",
+      classPath = pgpWorkerClasspath().map(_.path),
+      mainArgs = Seq("--output-secret", secretPath.toString),
+      env = Task.env,
+      cwd = BuildCtx.workspaceRoot
+    )
+
+    if (exitCode != 0) {
+      throw new RuntimeException(s"initGpgKeys failed with exit code $exitCode.")
+    }
   }
 
   // TODO: make protected
