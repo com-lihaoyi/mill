@@ -264,7 +264,7 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
   def initGpgKeys(): Task.Command[Unit] = Task.Command {
     val secretPath = Task.dest / "pgp-private-key.asc"
     val exitCode = Jvm.callInteractiveProcess(
-      mainClass = "mill.javalib.pgp.worker.InitGpgKeysMain",
+      mainClass = "mill.javalib.pgp.worker.MillInitGpgKeysMain",
       classPath = pgpWorkerClasspath().map(_.path),
       mainArgs = Seq("--output-secret", secretPath.toString),
       env = Task.env,

@@ -5,7 +5,7 @@ import mill.javalib.api.PgpKeyMaterial
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path, Paths, StandardOpenOption}
 
-object InitGpgKeysMain {
+object MillInitGpgKeysMain {
   def main(args: Array[String]): Unit = {
     val outputSecretPath = extractArg(args, "--output-secret")
     println("=== PGP Key Setup for Sonatype Central Publishing ===")
