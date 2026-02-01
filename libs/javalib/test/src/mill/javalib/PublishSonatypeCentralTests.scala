@@ -47,71 +47,64 @@ object PublishSonatypeCentralTestModule extends TestRootModule {
 }
 
 object PublishSonatypeCentralTests extends TestSuite {
-  private val PublishTask = PublishSonatypeCentralTestModule.normal.publishSonatypeCentral()
-  private val PublishDirName = os.SubPath("normal/publishSonatypeCentral.dest")
-  private val PublishAllTask = SonatypeCentralPublishModule.publishAll(
-    publishArtifacts = Tasks(Seq(PublishSonatypeCentralTestModule.normal.publishArtifacts))
-  )
-  private val PublishAllDirName =
-    os.SubPath("mill.javalib.SonatypeCentralPublishModule/publishAll.dest")
-  private val ResourcePath =
-    os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "publish-sonatype-central"
-
-
-  private def dryRun(task: Task[Unit], dirName: os.SubPath): Unit = {
-    SonatypeCentralTestUtils.dryRunWithKey(
-      task,
-      dirName,
-      PublishSonatypeCentralTestModule.TestPgpSecretBase64,
-      None,
-      PublishSonatypeCentralTestModule,
-      ResourcePath,
-      group = "io.github.lihaoyi",
-      artifactId = "normal",
-      version = "0.0.1"
-    )
-  }
+  val ResourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "publish-sonatype-central"
 
   val tests: Tests = Tests {
-    test("module") - dryRun(PublishTask, PublishDirName)
-    test("externalModule") - dryRun(PublishAllTask, PublishAllDirName)
-  }
-}
-
-
-object PublishSonatypeCentralSnapshotTests extends TestSuite {
-  import SonatypeCentralTestUtils.*
-
-  private val PublishTask = PublishSonatypeCentralTestModule.snapshot.publishSonatypeCentral()
-  private val PublishDirName = os.SubPath("snapshot/publishSonatypeCentral.dest")
-  private val PublishAllTask = SonatypeCentralPublishModule.publishAll(
-    publishArtifacts = Tasks(Seq(PublishSonatypeCentralTestModule.snapshot.publishArtifacts))
-  )
-  private val PublishAllDirName =
-    os.SubPath("mill.javalib.SonatypeCentralPublishModule/publishAll.dest")
-  private val ResourcePath =
-    os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "publish-sonatype-central"
-
-  def dryRun(task: Task[Unit], dirName: os.SubPath): Unit =
-    dryRunWithKey(
-      task,
-      dirName,
-      Some(PublishSonatypeCentralTestModule.TestPgpSecretBase64),
-      None,
-      PublishSonatypeCentralTestModule,
-      ResourcePath
-    ) { repoDir =>
-      assertSnapshotRepository(
-        repoDir,
-        group = "io.github.lihaoyi",
-        artifactId = "snapshot",
-        version = "0.0.1-SNAPSHOT"
+    test("normal"){
+      def dryRun(task: Task[Unit], dirName: os.SubPath): Unit = {
+        SonatypeCentralTestUtils.dryRunWithKey(
+          task,
+          dirName,
+          PublishSonatypeCentralTestModule.TestPgpSecretBase64,
+          None,
+          PublishSonatypeCentralTestModule,
+          ResourcePath,
+          group = "io.github.lihaoyi",
+          artifactId = "normal",
+          version = "0.0.1"
+        )
+      }
+      test("module") - dryRun(
+        PublishSonatypeCentralTestModule.normal.publishSonatypeCentral(),
+        "normal/publishSonatypeCentral.dest"
+      )
+      test("externalModule") - dryRun(
+        SonatypeCentralPublishModule.publishAll(
+          publishArtifacts = Tasks(Seq(PublishSonatypeCentralTestModule.snapshot.publishArtifacts))
+        ),
+        "mill.javalib.SonatypeCentralPublishModule/publishAll.dest"
       )
     }
+    test("snapshot"){
+      def dryRun(task: Task[Unit], dirName: os.SubPath): Unit =
+        SonatypeCentralTestUtils.dryRunWithKey(
+          task,
+          dirName,
+          Some(PublishSonatypeCentralTestModule.TestPgpSecretBase64),
+          None,
+          PublishSonatypeCentralTestModule,
+          ResourcePath
+        ) { repoDir =>
+          SonatypeCentralTestUtils.assertSnapshotRepository(
+            repoDir,
+            group = "io.github.lihaoyi",
+            artifactId = "snapshot",
+            version = "0.0.1-SNAPSHOT"
+          )
+        }
 
-  val tests: Tests = Tests {
-
-    test("module") - dryRun(PublishTask, PublishDirName)
-    test("externalModule") - dryRun(PublishAllTask, PublishAllDirName)
+      test("module") - dryRun(
+        PublishSonatypeCentralTestModule.snapshot.publishSonatypeCentral(),
+        "snapshot/publishSonatypeCentral.dest"
+      )
+      test("externalModule") - dryRun(
+        SonatypeCentralPublishModule.publishAll(
+          publishArtifacts = Tasks(Seq(PublishSonatypeCentralTestModule.snapshot.publishArtifacts))
+        ),
+        "mill.javalib.SonatypeCentralPublishModule/publishAll.dest"
+      )
+    }
   }
 }
+
+
