@@ -20,11 +20,18 @@ def qux() = Task.Command(selectiveInputs = Seq(foo)) {
 }
 
 // In this example, even though `qux` depends on both `foo` and `bar`,
-// `selective.run` only runs `qux` when `foo` changes, and not when `bar` changes:
+// `selective.run` only runs `qux` when `foo` changes, and not when `bar` changes.
 
 /** Usage
 
 > ./mill selective.prepare qux
+
+> echo "!" >> bar.txt
+
+> ./mill selective.resolveTree qux
+{}
+
+> ./mill selective.run qux # does not run qux
 
 > echo "!" >> foo.txt
 
@@ -38,15 +45,7 @@ def qux() = Task.Command(selectiveInputs = Seq(foo)) {
 > ./mill selective.run qux
 Running qux
 
-> echo "!" >> bar.txt
-
-> ./mill selective.resolveTree qux
-{}
-
-> ./mill selective.run qux # does not run qux
-
 */
-
 
 // `selectiveInputs` is useful to get more control over when a task or command
 // gets selected. e.g. A test suite may depend on both a downstream module and
