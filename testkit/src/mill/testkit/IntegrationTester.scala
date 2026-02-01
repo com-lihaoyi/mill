@@ -4,6 +4,7 @@ import mill.api.SelectMode
 import mill.api.internal.Cached
 import mill.constants.OutFiles.OutFiles
 import mill.launcher.MillLauncherMain
+import mill.api.SystemStreams
 import ujson.Value
 
 import scala.concurrent.duration.*

@@ -3,6 +3,7 @@ package mill.testkit
 import mill.constants.Util.isWindows
 import mill.launcher.MillLauncherMain
 import mill.testkit.Chunk
+import mill.api.SystemStreams
 import utest.*
 
 import scala.util.control.NonFatal
