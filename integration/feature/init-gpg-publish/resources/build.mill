@@ -1,11 +1,10 @@
 package build
 
-import mill._, scalalib._, javalib._
+import mill._, javalib._
 import mill.javalib.publish.*
 
-object testProject extends ScalaModule with PublishModule {
+object testProject extends JavaModule with PublishModule {
   def publishVersion = "0.0.1"
-  def scalaVersion = "3.8.1"
   def pomSettings = Task {
     PomSettings(
       description = "Hello",

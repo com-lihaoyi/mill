@@ -28,21 +28,17 @@ object InitGpgKeysMain {
 
     println("")
     println("Step 1: Generating PGP key pair...")
-    val passphrase = {
-      print("Enter passphrase (leave empty for no passphrase): ")
-      System.out.flush()
-      val console = System.console()
-      if (console != null) {
-        val fromConsole = console.readPassword()
-        val fromConsoleValue = if (fromConsole == null) "" else new String(fromConsole)
-        if (fromConsoleValue.isEmpty) scala.io.StdIn.readLine() else fromConsoleValue
-      } else {
-        scala.io.StdIn.readLine()
-      }
+    print("Enter passphrase (leave empty for no passphrase): ")
+    System.out.flush()
+    val passphrase = System.console() match{
+      case null => scala.io.StdIn.readLine()
+      case console => console.readPassword()
     }
+
     if (passphrase == null || passphrase.isEmpty) {
       System.err.println("Warning: Empty passphrase provided")
     }
+
     val userId = s"$name <$email>"
     val generated: PgpKeyMaterial = new PgpSignerWorker().generateKeyPair(
       userId = userId,
@@ -64,15 +60,13 @@ object InitGpgKeysMain {
         url = "https://keyserver.ubuntu.com/pks/add",
         data = Map("keytext" -> generated.publicKeyArmored)
       )
-      if (!uploadResult.is2xx) {
+
+      if (uploadResult.is2xx) println("Public key uploaded successfully!")
+      else {
         System.err.println(
-          s"Warning: Failed to upload key to keyserver (status ${uploadResult.statusCode})."
+          s"Warning: Failed to upload key to keyserver (status ${uploadResult.statusCode}).\n" +
+            "You may need to upload manually via https://keyserver.ubuntu.com/pks/add"
         )
-        System.err.println(
-          "You may need to upload manually via https://keyserver.ubuntu.com/pks/add"
-        )
-      } else {
-        println("Public key uploaded successfully!")
       }
     } catch {
       case e: Exception =>
@@ -82,7 +76,7 @@ object InitGpgKeysMain {
 
     // Step 3: Verify key was uploaded
     println("Step 3: Verifying key upload...")
-    val deadline = System.currentTimeMillis() + 30000
+    val deadline = System.currentTimeMillis() + 60000
     var verified = false
     var lastError: Option[String] = None
     while (!verified && System.currentTimeMillis() < deadline) {
@@ -91,22 +85,22 @@ object InitGpgKeysMain {
           url = "https://keyserver.ubuntu.com/pks/lookup",
           params = Map("op" -> "get", "search" -> s"0x$keyId")
         )
-        if (verifyResult.is2xx && verifyResult.text().contains("BEGIN PGP PUBLIC KEY BLOCK")) {
-          verified = true
-        } else {
+
+        if (verifyResult.is2xx && verifyResult.text().contains("BEGIN PGP PUBLIC KEY BLOCK")) verified = true
+        else {
           lastError = Some(
             s"Request to https://keyserver.ubuntu.com/pks/lookup failed with status code ${verifyResult.statusCode}"
           )
         }
       } catch {
-        case e: Exception =>
-          lastError = Some(e.getMessage)
+        case e: Exception => lastError = Some(e.getMessage)
       }
+
       if (!verified) Thread.sleep(2000)
     }
-    if (verified) {
-      println("Key verified on keyserver!")
-    } else {
+
+    if (verified) println("Key verified on keyserver!")
+    else {
       System.err.println("Warning: Could not verify key on keyserver.")
       lastError.foreach(err => System.err.println(s"Warning: $err"))
       System.err.println(
@@ -127,8 +121,8 @@ object InitGpgKeysMain {
       writeString(secretPath, generated.secretKeyArmored)
       println("")
       println(s"Saved secret key to: ${secretPath.toAbsolutePath}")
-      println("To store it in your home directory for manual use, you can run:")
-      println(s"  cp ${secretPath.toAbsolutePath} ~/.mill/pgp-private-key.asc")
+      println("To store it in your home directory for manual use, you can import it into GnuPG:")
+      println(s"  gpg --import ${secretPath.toAbsolutePath}")
       println("")
     }
 
@@ -142,10 +136,17 @@ object InitGpgKeysMain {
     println(s"export MILL_PGP_PASSPHRASE=$passphrase")
     println("-" * 72)
     println("")
-    println("For GitHub Actions, add these as repository secrets:")
+    println("For GitHub Actions, add these as repository secrets at ")
+    println("")
+    println("- https://github.com/<org>/<repo>/settings/secrets/actions/new")
+    println("")
+    println("and then include them in your .github/workflows/publish-artifacts.yml as:")
+    println("")
+    println("-" * 72)
     println("env:")
-    println(s"  MILL_PGP_SECRET_BASE64: $secretKeyBase64")
-    println(s"  MILL_PGP_PASSPHRASE: $passphrase")
+    println("  MILL_PGP_SECRET_BASE64: ${{ secrets.MILL_PGP_SECRET_BASE64 }}")
+    println("  MILL_PGP_PASSPHRASE: ${{ secrets.MILL_PGP_PASSPHRASE }}")
+    println("-" * 72)
     println("")
     println(s"Your key ID is: $keyId")
     println("")
@@ -154,10 +155,12 @@ object InitGpgKeysMain {
 
   private def extractArg(args: Array[String], flag: String): Option[String] = {
     val flagPrefix = s"$flag="
-    args.zipWithIndex.collectFirst {
-      case (arg, _) if arg.startsWith(flagPrefix) => arg.drop(flagPrefix.length)
-      case (arg, idx) if arg == flag && idx + 1 < args.length => args(idx + 1)
-    }.filter(_.nonEmpty)
+    args.zipWithIndex
+      .collectFirst {
+        case (arg, _) if arg.startsWith(flagPrefix) => arg.drop(flagPrefix.length)
+        case (arg, idx) if arg == flag && idx + 1 < args.length => args(idx + 1)
+      }
+      .filter(_.nonEmpty)
   }
 
   private def writeString(path: Path, contents: String): Unit = {
