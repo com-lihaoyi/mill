@@ -5,7 +5,7 @@ import mill.api.{ExecResult, Result, Val}
 import mill.constants.OutFiles.OutFiles
 import mill.api.SelectiveExecution.ChangedTasks
 import mill.api.*
-import mill.exec.{Execution, PlanImpl}
+import mill.exec.PlanImpl
 import mill.internal.{CodeSigUtils, InvalidationForest, SpanningForest}
 import mill.internal.SpanningForest.breadthFirst
 

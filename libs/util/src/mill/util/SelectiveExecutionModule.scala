@@ -70,6 +70,49 @@ trait SelectiveExecutionModule extends mill.api.Module {
     }
 
   /**
+   * Prints out some dependency path from the `src` task to the `dest` task,
+   * following selective execution dependencies (i.e. using `selectiveInputs`).
+   */
+  def path(
+      evaluator: Evaluator,
+      @mainargs.arg(positional = true) src: String,
+      @mainargs.arg(positional = true) dest: String
+  ): Command[List[String]] =
+    Task.Command(exclusive = true) {
+      for {
+        srcTasks <- evaluator.resolveTasks(List(src), SelectMode.Multi)
+        destTasks <- evaluator.resolveTasks(List(dest), SelectMode.Multi)
+        result <- {
+          val destSet: Set[Task[?]] = destTasks.toSet
+          val queue = collection.mutable.Queue[List[Task[?]]](srcTasks.map(List(_))*)
+          var found = Option.empty[List[Task[?]]]
+          val seen = collection.mutable.Set.empty[Task[?]]
+          seen ++= srcTasks
+          while (queue.nonEmpty && found.isEmpty) {
+            val current = queue.dequeue()
+            if (destSet.contains(current.head)) found = Some(current)
+            else {
+              for {
+                next <- current.head.selectiveInputs
+                if !seen.contains(next)
+              } {
+                seen.add(next)
+                queue.enqueue(next :: current)
+              }
+            }
+          }
+          found match {
+            case None => Task.fail(s"No path found between $src and $dest")
+            case Some(list) =>
+              val labels = list.collect { case n: Task.Named[_] => n.ctx.segments.render }.reverse
+              labels.foreach(println)
+              Result.Success(labels)
+          }
+        }
+      } yield result
+    }
+
+  /**
    * Run after [[prepare]], selectively executes the tasks in [[tasks]] that are
    * affected by any changes to the task inputs or task implementations since [[prepare]]
    * was run

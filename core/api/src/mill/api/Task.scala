@@ -38,9 +38,9 @@ sealed abstract class Task[T] extends Task.Ops[T] with Applyable[Task, T] with T
    * Inputs used for selective execution dependency tracking.
    * Defaults to the normal task inputs when no override is provided.
    */
-  private[mill] def selectiveInputs0: Seq[Task[?]] = Nil
+  private[mill] def selectiveInputs0: Seq[Task[?]] = null
   private[mill] final def selectiveInputs: Seq[Task[?]] =
-    if (selectiveInputs0.isEmpty) inputs else selectiveInputs0
+    if (selectiveInputs0 == null) inputs else selectiveInputs0
 
   /**
    * Evaluate this task
@@ -221,7 +221,7 @@ object Task {
     ${
       Macros.uncachedImpl[T](
         't
-      )('w, 'ctx, persistent = '{ false }, selectiveInputs = '{ Seq.empty[Task[?]] })
+      )('w, 'ctx, persistent = '{ false }, selectiveInputs = '{ null })
     }
 
   def Uncached(
@@ -236,7 +236,7 @@ object Task {
         inline w: Writer[T],
         inline ctx: ModuleCtx
     ): Simple[T] =
-      ${ Macros.uncachedImpl[T]('t)('w, 'ctx, '{ persistent }, '{ Seq.empty[Task[?]] }) }
+      ${ Macros.uncachedImpl[T]('t)('w, 'ctx, '{ persistent }, '{ null }) }
   }
 
   /**
@@ -253,7 +253,7 @@ object Task {
     ${
       Macros.commandImpl[T](
         't
-      )('w, 'ctx, exclusive = '{ false }, persistent = '{ false }, '{ Seq.empty[Task[?]] })
+      )('w, 'ctx, exclusive = '{ false }, persistent = '{ false }, '{ null })
     }
 
   /**
@@ -270,7 +270,7 @@ object Task {
       @unused t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       exclusive: Boolean = false,
       persistent: Boolean = false,
-      @com.lihaoyi.unroll selectiveInputs: Seq[Task[?]] = Nil
+      @com.lihaoyi.unroll selectiveInputs: Seq[Task[?]] = null
   ): CommandFactory =
     new CommandFactory(
       exclusive = exclusive,
@@ -326,7 +326,7 @@ object Task {
       inline rw: ReadWriter[T],
       inline ctx: mill.api.ModuleCtx
   ): Simple[T] =
-    ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ false }, '{ Seq.empty[Task[?]] }) }
+    ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ false }, '{ null }) }
 
   // Overload of [[apply]] to improve type inference for `Task{ Nil }` and `Task { Seq() }`
   @targetName("applySeq")
@@ -334,7 +334,7 @@ object Task {
       inline rw: ReadWriter[Seq[T]],
       inline ctx: mill.api.ModuleCtx
   ): Simple[Seq[T]] = ${
-    Macros.taskResultImpl[Seq[T]]('t)('rw, 'ctx, '{ false }, '{ Seq.empty[Task[?]] })
+    Macros.taskResultImpl[Seq[T]]('t)('rw, 'ctx, '{ false }, '{ null })
   }
 
   /**
@@ -353,7 +353,7 @@ object Task {
   def apply(
       @unused t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       persistent: Boolean = false,
-      @com.lihaoyi.unroll selectiveInputs: Seq[Task[?]] = Nil
+      @com.lihaoyi.unroll selectiveInputs: Seq[Task[?]] = null
   ): ApplyFactory = new ApplyFactory(persistent, selectiveInputs)
 
   class ApplyFactory private[mill] (
@@ -458,7 +458,8 @@ object Task {
       val readWriter: ReadWriter[?],
       val isPrivate: Option[Boolean],
       override val persistent: Boolean,
-      @com.lihaoyi.unroll override val selectiveInputs0: Seq[Task[?]] = Nil
+      @com.lihaoyi.unroll override val selectiveInputs0: Seq[Task[?]] =
+        null
   ) extends Simple[T] {
     override def asSimple: Option[Simple[T]] = Some(this)
 
@@ -487,7 +488,7 @@ object Task {
       ${
         Macros.taskResultImpl[T](
           '{ Result.Success(t) }
-        )('rw, 'ctx, '{ false }, '{ Seq.empty[Task[?]] })
+        )('rw, 'ctx, '{ false }, '{ null })
       }
 
     // Overload of [[create]] specialized to working on `Seq`s, to improve the type
@@ -499,14 +500,14 @@ object Task {
       ${
         Macros.taskResultImpl[Seq[T]](
           '{ Result.Success(t) }
-        )('rw, 'ctx, '{ false }, '{ Seq.empty[Task[?]] })
+        )('rw, 'ctx, '{ false }, '{ null })
       }
 
     implicit inline def create[T](inline t: Result[T])(using
         inline rw: ReadWriter[T],
         inline ctx: ModuleCtx
     ): Simple[T] =
-      ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ false }, '{ Seq.empty[Task[?]] }) }
+      ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ false }, '{ null }) }
 
   }
 
@@ -529,7 +530,8 @@ object Task {
       val isPrivate: Option[Boolean],
       val exclusive: Boolean,
       override val persistent: Boolean,
-      @com.lihaoyi.unroll override val selectiveInputs0: Seq[Task[?]] = Nil
+      @com.lihaoyi.unroll override val selectiveInputs0: Seq[Task[?]] =
+        null
   ) extends Task.Named[T] {
     override def asCommand: Some[Command[T]] = Some(this)
     // FIXME: deprecated return type: Change to Option
@@ -567,7 +569,8 @@ object Task {
       val writer: upickle.Writer[?],
       val isPrivate: Option[Boolean],
       override val persistent: Boolean,
-      @com.lihaoyi.unroll override val selectiveInputs0: Seq[Task[?]] = Nil
+      @com.lihaoyi.unroll override val selectiveInputs0: Seq[Task[?]] =
+        null
   ) extends Simple[T] {
     override def writerOpt: Option[Writer[?]] = Some(writer)
   }
