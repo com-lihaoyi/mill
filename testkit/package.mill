@@ -23,3 +23,7 @@ object `package` extends MillPublishScalaModule {
       Map("MILL_EXECUTABLE_PATH" -> build.dist.raw.launcher().path.toString()) ++
       build.dist.raw.testForkEnv()
 }
+
+object internal extends MillScalaModule {
+  def moduleDeps = Seq(build.testkit)
+}

@@ -95,7 +95,8 @@ object `package` extends mill.Module {
   trait IntegrationTestModule extends Cross.Module[String] with DefaultTaskModule {
     def moduleDir = super.moduleDir / crossValue
 
-    def moduleDeps = Seq(build.libs.util.test, build.testkit, build.runner.daemon)
+    def moduleDeps =
+      Seq(build.libs.util.test, build.testkit, build.testkit.internal, build.runner.daemon)
 
     def resources: T[Seq[PathRef]]
     def runClasspath: T[Seq[PathRef]]
