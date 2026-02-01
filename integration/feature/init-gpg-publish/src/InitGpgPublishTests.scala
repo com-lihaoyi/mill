@@ -13,9 +13,9 @@ object InitGpgPublishTests extends UtestIntegrationTestSuite {
 
   private def initGpgKeysSmokeTest(): Unit = integrationTest { tester =>
     import tester.*
-    
+
     val res = eval(
-      "mill.javalib.SonatypeCentralPublishModule/initGpgKeys"
+      "mill.javalib.SonatypeCentralPublishModule/initGpgKeys",
       stdin = Seq(
         "Mill Test User\n",
         "mill-test-user@example.com\n",
