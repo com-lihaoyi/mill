@@ -66,19 +66,14 @@ class SonatypePublisher(
 
   // binary compatibility forwarder
   def publish(fileMapping: Seq[(os.Path, String)], artifact: Artifact, release: Boolean): Unit =
-    publishAll(
-      release,
-      SonatypeHelpers.toSubPathMap(fileMapping) -> artifact
-    )
+    publishAll(release, SonatypeHelpers.toSubPathMap(fileMapping) -> artifact)
 
   def publish(fileMapping: Map[os.SubPath, os.Path], artifact: Artifact, release: Boolean): Unit =
     publishAll(release, fileMapping -> artifact)
 
   // binary compatibility forwarder
-  def publishAll(release: Boolean, artifacts: (Seq[(os.Path, String)], Artifact)*): Unit = {
-    val mappedArtifacts = SonatypeHelpers.mapArtifacts(artifacts*)
-    publishAll(release, mappedArtifacts*)
-  }
+  def publishAll(release: Boolean, artifacts: (Seq[(os.Path, String)], Artifact)*): Unit =
+    publishAll(release, SonatypeHelpers.mapArtifacts(artifacts*)*)
 
   @targetName("publishAllByMap")
   def publishAll(release: Boolean, artifacts: (Map[os.SubPath, os.Path], Artifact)*): Unit = {
@@ -104,20 +99,21 @@ class SonatypePublisher(
   private def publishSnapshot(
       payloads: Map[os.SubPath, Array[Byte]],
       artifacts: Seq[Artifact]
-  ): Unit = {
-    publishToUri(payloads, artifacts, snapshotUri)
-  }
+  ): Unit = publishToUri(payloads, artifacts, snapshotUri)
 
   private def publishToUri(
       payloads: Map[os.SubPath, Array[Byte]],
       artifacts: Seq[Artifact],
       uri: String
   ): Unit = {
-    val publishResults = payloads.iterator.map {
-      case (fileName, data) =>
-        log.info(s"Uploading $fileName")
-        api.upload(s"$uri/$fileName", data)
-    }.toVector
+    val publishResults = payloads.iterator
+      .map {
+        case (fileName, data) =>
+          log.info(s"Uploading $fileName")
+          api.upload(s"$uri/$fileName", data)
+      }
+      .toVector
+
     reportPublishResults(publishResults, artifacts)
   }
 
