@@ -1,7 +1,6 @@
 package mill.javalib.publish
 
 import com.lumidion.sonatype.central.client.core.{DeploymentName, PublishingType as STPubType}
-import mill.constants.EnvVars
 import com.lumidion.sonatype.central.client.requests.SyncSonatypeClient
 import mill.api.Logger
 import mill.javalib.api.PgpWorkerApi

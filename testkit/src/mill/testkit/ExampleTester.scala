@@ -1,7 +1,6 @@
 package mill.testkit
 
 import mill.constants.Util.isWindows
-import mill.api.SystemStreams
 import mill.launcher.MillLauncherMain
 import mill.testkit.Chunk
 import utest.*

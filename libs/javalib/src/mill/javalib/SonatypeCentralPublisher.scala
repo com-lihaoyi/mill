@@ -1,13 +1,12 @@
 package mill.javalib
 
-import com.lumidion.sonatype.central.client.core.{DeploymentName, SonatypeCredentials as STCreds}
 import mill.api.Logger
 import mill.javalib.internal.PublishModule.GpgArgs
 import mill.javalib.internal.PublishModule.GpgArgs.UserProvided
 import mill.javalib.publish.SonatypeHelpers
 import mill.javalib.publish.{Artifact, PublishingType, SonatypeCredentials}
 
-import scala.annotation.{unused, targetName}
+import scala.annotation.unused
 
 /**
  * Publishing logic for the standard Sonatype Central repository `central.sonatype.org`

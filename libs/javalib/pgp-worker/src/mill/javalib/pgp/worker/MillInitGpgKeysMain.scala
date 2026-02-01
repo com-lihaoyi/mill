@@ -130,11 +130,16 @@ object MillInitGpgKeysMain {
     println("")
     println("=== Setup Complete! ===")
     println("")
-    println("To publish to Maven Central from your shell, export the following credentials")
+    println("To publish to Maven Central from your shell, export the following credentials.")
+    println(
+      "MILL_SONATYPE_PASSWORD and MILL_SONATYPE_USERNAME can be generated at https://central.sonatype.com/usertoken"
+    )
     println("")
     println("-" * 72)
     println(s"export MILL_PGP_SECRET_BASE64=$secretKeyBase64")
     println(s"export MILL_PGP_PASSPHRASE=$passphrase")
+    println(s"export MILL_SONATYPE_PASSWORD=...")
+    println(s"export MILL_SONATYPE_USERNAME=...")
     println("-" * 72)
     println("")
     println("To publish from GitHub Actions, add the credentials above as repository secrets at")

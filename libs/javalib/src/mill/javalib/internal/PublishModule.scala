@@ -198,7 +198,7 @@ private[mill] object PublishModule {
 
   private def extractArgValue(args: Seq[String], flags: Set[String]): Option[String] = {
     args.zipWithIndex.iterator.collectFirst {
-      case (arg, idx) if flags.exists(flag => arg.startsWith(flag + "=")) =>
+      case (arg, _) if flags.exists(flag => arg.startsWith(flag + "=")) =>
         arg.split("=", 2).lastOption.getOrElse("")
       case (arg, idx) if flags.contains(arg) =>
         args.lift(idx + 1).getOrElse("")
