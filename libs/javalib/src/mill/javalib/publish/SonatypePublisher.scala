@@ -132,8 +132,7 @@ class SonatypePublisher(
       awaitTimeout: Int
   ): Unit = {
     val profileUri = api.getStagingProfileUri(stagingProfile)
-    val stagingRepoId =
-      api.createStagingRepo(profileUri, stagingProfile)
+    val stagingRepoId = api.createStagingRepo(profileUri, stagingProfile)
     val baseUri = s"$uri/staging/deployByRepositoryId/$stagingRepoId"
 
     publishToUri(payloads, artifacts, baseUri)
