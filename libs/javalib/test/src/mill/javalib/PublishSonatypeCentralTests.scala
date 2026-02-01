@@ -77,7 +77,7 @@ object PublishSonatypeCentralTests extends TestSuite {
       )
       test("externalModule") - dryRun(
         SonatypeCentralPublishModule.publishAll(
-          publishArtifacts = Tasks(Seq(PublishSonatypeCentralTestModule.snapshot.publishArtifacts))
+          publishArtifacts = Tasks(Seq(PublishSonatypeCentralTestModule.normal.publishArtifacts))
         ),
         "mill.javalib.SonatypeCentralPublishModule/publishAll.dest"
       )

@@ -32,7 +32,7 @@ object InitGpgKeysMain {
     System.out.flush()
     val passphrase = System.console() match {
       case null => scala.io.StdIn.readLine()
-      case console => console.readPassword()
+      case console => new String(console.readPassword())
     }
 
     if (passphrase == null || passphrase.isEmpty) {
