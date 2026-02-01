@@ -64,30 +64,30 @@ object `package` extends Module {
   }
 
   object migrating extends Module {
-    object javalib extends Cross[ExampleCrossModuleMigrating](build.listCross)
-    object scalalib extends Cross[ExampleCrossModuleMigrating](build.listCross)
+    object javalib extends Cross[ExampleCrossModule](build.listCross)
+    object scalalib extends Cross[ExampleCrossModule](build.listCross)
   }
   object javascriptlib extends Module {
-    object basic extends Cross[ExampleCrossModuleJavascript](build.listCross)
-    object testing extends Cross[ExampleCrossModuleJavascript](build.listCross)
-    object module extends Cross[ExampleCrossModuleJavascript](build.listCross)
-    object dependencies extends Cross[ExampleCrossModuleJavascript](build.listCross)
-    object publishing extends Cross[ExampleCrossModuleJavascript](build.listCross)
-    object linting extends Cross[ExampleCrossModuleJavascript](build.listCross)
+    object basic extends Cross[ExampleCrossModule](build.listCross)
+    object testing extends Cross[ExampleCrossModule](build.listCross)
+    object module extends Cross[ExampleCrossModule](build.listCross)
+    object dependencies extends Cross[ExampleCrossModule](build.listCross)
+    object publishing extends Cross[ExampleCrossModule](build.listCross)
+    object linting extends Cross[ExampleCrossModule](build.listCross)
   }
   object pythonlib extends Module {
-    object basic extends Cross[ExampleCrossModulePython](build.listCross)
-    object dependencies extends Cross[ExampleCrossModulePython](build.listCross)
-    object linting extends Cross[ExampleCrossModulePython](build.listCross)
-    object publishing extends Cross[ExampleCrossModulePython](build.listCross)
-    object module extends Cross[ExampleCrossModulePython](build.listCross)
-    object web extends Cross[ExampleCrossModulePython](build.listCross)
-    object testing extends Cross[ExampleCrossModulePython](build.listCross)
+    object basic extends Cross[ExampleCrossModule](build.listCross)
+    object dependencies extends Cross[ExampleCrossModule](build.listCross)
+    object linting extends Cross[ExampleCrossModule](build.listCross)
+    object publishing extends Cross[ExampleCrossModule](build.listCross)
+    object module extends Cross[ExampleCrossModule](build.listCross)
+    object web extends Cross[ExampleCrossModule](build.listCross)
+    object testing extends Cross[ExampleCrossModule](build.listCross)
   }
 
   object groovylib extends Module {
-    object basic extends Cross[ExampleCrossModuleGroovy](build.listCross)
-    object testing extends Cross[ExampleCrossModuleGroovy](build.listCross)
+    object basic extends Cross[ExampleCrossModule](build.listCross)
+    object testing extends Cross[ExampleCrossModule](build.listCross)
   }
 
   object cli extends Module {
@@ -127,8 +127,6 @@ object `package` extends Module {
   }
 
   trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {
-    override def selectiveInputs: Seq[Task[?]] =
-      Seq(build.libs.kotlinlib.compile)
 
     override def lineTransform(line: String) = this.moduleSegments.parts.last match {
       case "2-test-suite" => line
@@ -143,8 +141,6 @@ object `package` extends Module {
   }
 
   trait ExampleCrossModuleAndroid extends ExampleCrossModule {
-    override def selectiveInputs: Seq[Task[?]] =
-      Seq(build.libs.androidlib.compile)
     def testExclusive = true
 
     /**
@@ -370,26 +366,6 @@ $frontMatter
       os.write(Task.dest / "example.adoc", finalContent)
       PathRef(Task.dest / "example.adoc")
     }
-  }
-
-  trait ExampleCrossModuleJavascript extends ExampleCrossModule {
-    override def selectiveInputs: Seq[Task[?]] =
-      Seq(build.libs.javascriptlib.compile)
-  }
-
-  trait ExampleCrossModulePython extends ExampleCrossModule {
-    override def selectiveInputs: Seq[Task[?]] =
-      Seq(build.libs.pythonlib.compile)
-  }
-
-  trait ExampleCrossModuleGroovy extends ExampleCrossModule {
-    override def selectiveInputs: Seq[Task[?]] =
-      Seq(build.libs.groovylib.compile)
-  }
-
-  trait ExampleCrossModuleMigrating extends ExampleCrossModule {
-    override def selectiveInputs: Seq[Task[?]] =
-      Seq(build.libs.init.compile)
   }
 
   def repoInfo = Map(
