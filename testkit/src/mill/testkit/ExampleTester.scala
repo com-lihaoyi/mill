@@ -1,11 +1,11 @@
 package mill.testkit
 
 import mill.constants.Util.isWindows
+import mill.api.SystemStreams
 import mill.launcher.MillLauncherMain
 import mill.testkit.Chunk
 import utest.*
 
-import java.io.PrintStream
 import scala.util.control.NonFatal
 
 /**

@@ -1,6 +1,7 @@
 package mill.launcher
 
 import mill.api.daemon.MillException
+import mill.api.SystemStreams
 import mill.client.*
 import mill.constants.{ConfigConstants, EnvVars, OutFiles, OutFolderMode}
 import mill.internal.MillCliConfig
@@ -26,6 +27,8 @@ object MillLauncherMain {
       env: Map[String, String],
       workDir: os.Path
   ): Int = {
+    val stderr = streamsOpt.map(_.err).getOrElse(System.err)
+
     val parsedConfig = MillCliConfig.parse(args).toOption
 
     val bspMode = parsedConfig.exists(c => c.bsp.value || c.bspInstall.value)

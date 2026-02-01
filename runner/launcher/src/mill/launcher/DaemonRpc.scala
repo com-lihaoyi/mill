@@ -4,7 +4,7 @@ import mill.api.daemon.{LauncherSubprocess, Logger, SystemStreams}
 import mill.rpc.*
 import upickle.ReadWriter
 
-import java.io.{BufferedReader, InputStream, OutputStream, PrintStream}
+import java.io.{BufferedReader, PrintStream}
 
 /**
  * RPC message types for launcher-daemon communication.
@@ -98,15 +98,19 @@ object DaemonRpc {
   }
 
   def defaultRunSubprocessWithStreams(
-                                       streamsOpt: Option[SystemStreams],
+      streamsOpt: Option[SystemStreams]
   ): ServerToClient.RunSubprocess => SubprocessResult = { req =>
     try {
       val result = os.proc(req.config.cmd).call(
         cwd = os.Path(req.config.cwd),
         env = req.config.env,
         stdin = streamsOpt.fold(os.InheritRaw)(_.in),
-        stdout = streamsOpt.fold(os.InheritRaw)(s => os.ProcessOutput.ReadBytes(s.out.write(_, 0, _))),
-        stderr = streamsOpt.fold(os.InheritRaw)(s => os.ProcessOutput.ReadBytes(s.err.write(_, 0, _))),
+        stdout = streamsOpt.fold(os.InheritRaw)(s =>
+          os.ProcessOutput.ReadBytes(s.out.write(_, 0, _))
+        ),
+        stderr = streamsOpt.fold(os.InheritRaw)(s =>
+          os.ProcessOutput.ReadBytes(s.err.write(_, 0, _))
+        ),
         mergeErrIntoOut = req.config.mergeErrIntoOut,
         timeout = req.config.timeoutMillis,
         propagateEnv = req.config.propagateEnv,

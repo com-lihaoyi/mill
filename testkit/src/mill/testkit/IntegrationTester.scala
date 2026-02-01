@@ -1,12 +1,12 @@
 package mill.testkit
 
 import mill.api.SelectMode
+import mill.api.SystemStreams
 import mill.api.internal.Cached
 import mill.constants.OutFiles.OutFiles
 import mill.launcher.MillLauncherMain
 import ujson.Value
 
-import java.io.PrintStream
 import scala.concurrent.duration.*
 
 /**

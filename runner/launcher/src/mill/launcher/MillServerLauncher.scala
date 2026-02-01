@@ -64,6 +64,8 @@ class MillServerLauncher(
       daemonDir: os.Path,
       log: String => Unit
   ): Int = {
+    val stdout = streamsOpt.map(_.out).getOrElse(System.out)
+    val stderr = streamsOpt.map(_.err).getOrElse(System.err)
     val exitCode = new AtomicInteger(-1)
     try {
       val socketIn = new BufferedReader(new InputStreamReader(socket.getInputStream))

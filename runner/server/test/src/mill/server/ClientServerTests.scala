@@ -127,9 +127,13 @@ trait ClientServerTestsBase extends TestSuite {
         LaunchedServer.NewThread(t, () => { /* do nothing */ })
       }
       val result = new MillServerLauncher(
-        stdin = System.in,
-        stdout = out,
-        stderr = err,
+        streamsOpt = Some(
+          SystemStreams(
+            new PrintStream(out, true),
+            new PrintStream(err, true),
+            System.in
+          )
+        ),
         env = env,
         args = args.toSeq,
         forceFailureForTestingMillisDelay = forceFailureForTestingMillisDelay,
