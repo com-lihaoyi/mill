@@ -51,7 +51,8 @@ trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport,
       username: String = defaultCredentials,
       password: String = defaultCredentials,
       @unroll sources: Boolean = true,
-      @unroll docs: Boolean = true
+      @unroll docs: Boolean = true,
+      @unroll useGpgCli: Boolean = false
   ): Task.Command[Unit] = Task.Command {
     val artifact = artifactMetadata()
     val credentials = getPublishCredentials(CREDENTIALS_ENV_VARIABLE_PREFIX, username, password)()
@@ -81,7 +82,8 @@ trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport,
       log = Task.log,
       env = Task.env,
       worker = mavenWorker(),
-      pgpWorker = pgpWorker()
+      pgpWorker = pgpWorker(),
+      useGpgCli = useGpgCli
     )
   }
 }
@@ -114,7 +116,8 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
       connectTimeout: Int = defaultConnectTimeout,
       awaitTimeout: Int = defaultAwaitTimeout,
       bundleName: String = "",
-      @unroll snapshotUri: String = PublishModule.sonatypeCentralSnapshotUri
+      @unroll snapshotUri: String = PublishModule.sonatypeCentralSnapshotUri,
+      @unroll useGpgCli: Boolean = false
   ): Task.Command[Unit] = Task.Command {
     val artifacts = Task.sequence(publishArtifacts.value)()
 
@@ -141,7 +144,8 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
       log = Task.log,
       env = Task.env,
       worker = mavenWorker(),
-      pgpWorker = pgpWorker()
+      pgpWorker = pgpWorker(),
+      useGpgCli = useGpgCli
     )
   }
 
@@ -159,7 +163,8 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
       log: Logger,
       env: Map[String, String],
       worker: internal.MavenWorkerSupport.Api,
-      pgpWorker: mill.javalib.api.PgpWorkerApi
+      pgpWorker: mill.javalib.api.PgpWorkerApi,
+      useGpgCli: Boolean
   ): Unit = {
     val dryRun = env.get("MILL_TESTS_PUBLISH_DRY_RUN").contains("1")
 
@@ -178,16 +183,29 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
     }
 
     def publishReleases(artifacts: Seq[PublishData], gpgArgs: GpgArgs): Unit = {
-      val publisher = new SonatypeCentralPublisher2(
-        credentials = SonatypeCredentials(credentials.username, credentials.password),
-        gpgArgs = gpgArgs,
-        pgpWorker = pgpWorker,
-        connectTimeout = connectTimeout,
-        readTimeout = readTimeout,
-        log = log,
-        env = env,
-        awaitTimeout = awaitTimeout
-      )
+      val publisher = if (useGpgCli) {
+        new SonatypeCentralPublisher(
+          credentials = SonatypeCredentials(credentials.username, credentials.password),
+          gpgArgs = gpgArgs,
+          connectTimeout = connectTimeout,
+          readTimeout = readTimeout,
+          log = log,
+          workspace = BuildCtx.workspaceRoot,
+          env = env,
+          awaitTimeout = awaitTimeout
+        )
+      } else {
+        new SonatypeCentralPublisher2(
+          credentials = SonatypeCredentials(credentials.username, credentials.password),
+          gpgArgs = gpgArgs,
+          pgpWorker = pgpWorker,
+          connectTimeout = connectTimeout,
+          readTimeout = readTimeout,
+          log = log,
+          env = env,
+          awaitTimeout = awaitTimeout
+        )
+      }
 
       val artifactDatas = artifacts.map(_.withConcretePath)
       if (dryRun) {

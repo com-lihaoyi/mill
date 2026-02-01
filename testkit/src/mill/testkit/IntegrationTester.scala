@@ -388,7 +388,6 @@ object IntegrationTester {
     // Collect chunks in order with synchronization to preserve ordering across streams
     val chunks = collection.mutable.ArrayBuffer.empty[Either[geny.Bytes, geny.Bytes]]
 
-
     val exitCode = MillLauncherMain.main0(
       args = args.toArray,
       streamsOpt = Some(

@@ -7,7 +7,7 @@ import mill.javalib.publish.{Artifact, PublishingType, SonatypeCredentials}
 import mill.javalib.internal.PublishModule.GpgArgs
 import mill.javalib.publish.SonatypeHelpers
 
-import scala.annotation.unused
+import scala.annotation.{targetName, unused}
 
 private[mill] abstract class SonatypeCentralPublisherBase private[mill] (
     credentials: SonatypeCredentials,
@@ -25,21 +25,18 @@ private[mill] abstract class SonatypeCentralPublisherBase private[mill] (
       connectTimeout = connectTimeout
     )
 
-  protected def mapArtifacts(
-      artifacts: Seq[(Map[os.SubPath, os.Path], Artifact)]
-  ): Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])]
-
-  private[mill] final def publishInternal(
+  def publish(
       fileMapping: Map[os.SubPath, os.Path],
       artifact: Artifact,
       publishingType: PublishingType
   ): Unit =
-    publishAllInternal(publishingType, singleBundleName = None, Seq(fileMapping -> artifact))
+    publishAll(publishingType, singleBundleName = None, fileMapping -> artifact)
 
-  private[mill] final def publishAllInternal(
+  @targetName("publishAllByMap")
+  def publishAll(
       publishingType: PublishingType,
       singleBundleName: Option[String],
-      artifacts: Seq[(Map[os.SubPath, os.Path], Artifact)]
+      artifacts: (Map[os.SubPath, os.Path], Artifact)*
   ): Unit = {
     SonatypeHelpers.publishAll(
       singleBundleName,
@@ -58,11 +55,11 @@ private[mill] abstract class SonatypeCentralPublisherBase private[mill] (
     }
   }
 
-  private[mill] final def publishAllToLocalInternal(
+  private[mill] def publishAllToLocal(
       publishTo: os.Path,
       singleBundleName: Option[String],
-      artifacts: Seq[(Map[os.SubPath, os.Path], Artifact)]
-  ): Unit =
+      artifacts: (Map[os.SubPath, os.Path], Artifact)*
+  ): Unit = {
     SonatypeHelpers.publishAllToLocal(
       singleBundleName,
       artifacts,
@@ -70,4 +67,10 @@ private[mill] abstract class SonatypeCentralPublisherBase private[mill] (
       publishTo = publishTo,
       log = log
     )
+  }
+
+  protected def mapArtifacts(
+      artifacts: Seq[(Map[os.SubPath, os.Path], Artifact)]
+  ): Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])]
+
 }

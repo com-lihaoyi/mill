@@ -69,13 +69,6 @@ class SonatypeCentralPublisher(
       publishingType
     )
 
-  def publish(
-      fileMapping: Map[os.SubPath, os.Path],
-      artifact: Artifact,
-      publishingType: PublishingType
-  ): Unit =
-    publishInternal(fileMapping, artifact, publishingType)
-
   def publishAll(
       publishingType: PublishingType,
       singleBundleName: Option[String],
@@ -83,22 +76,4 @@ class SonatypeCentralPublisher(
   ): Unit = {
     publishAll(publishingType, singleBundleName, SonatypeHelpers.mapArtifacts(artifacts*)*)
   }
-
-  @targetName("publishAllByMap")
-  def publishAll(
-      publishingType: PublishingType,
-      singleBundleName: Option[String],
-      artifacts: (Map[os.SubPath, os.Path], Artifact)*
-  ): Unit = {
-    publishAllInternal(publishingType, singleBundleName, artifacts.toSeq)
-  }
-
-  private[mill] def publishAllToLocal(
-      publishTo: os.Path,
-      singleBundleName: Option[String],
-      artifacts: (Map[os.SubPath, os.Path], Artifact)*
-  ): Unit = {
-    publishAllToLocalInternal(publishTo, singleBundleName, artifacts.toSeq)
-  }
-
 }

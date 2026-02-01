@@ -64,7 +64,7 @@ object DaemonRpc {
       clientToServer: PrintStream,
       stdout: RpcConsole.Message => Unit,
       stderr: RpcConsole.Message => Unit,
-      runSubprocess: ServerToClient.RunSubprocess => SubprocessResult,
+      runSubprocess: ServerToClient.RunSubprocess => SubprocessResult
   ): MillRpcClient[ClientToServer, ServerToClient] = {
     val transport = MillRpcWireTransport(
       name = "DaemonRpcClient",
