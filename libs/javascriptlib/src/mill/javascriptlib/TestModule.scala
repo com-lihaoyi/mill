@@ -4,7 +4,7 @@ import mill.*
 import mill.api.BuildCtx
 
 trait TestModule extends DefaultTaskModule {
-
+  val y = 123
   import TestModule.TestResult
 
   def testForked(args: String*): Command[TestResult] =
