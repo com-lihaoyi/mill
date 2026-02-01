@@ -14,6 +14,30 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
+=== main branch
+
+* Allow manual re-configuration of selective testing graph via
+  `Task(selectiveInputs = ...) {link-pr}/6732[#6732]
+
+* Fix import of module-info-stripped jars in the Scala REPL {link-pr}/6731[#6731]
+
+* Streamline GPG key setup and use BouncyCastle Java library instead of
+  gpg cli, and add `mill.javalib.SonatypeCentralPublishModule/initGpgKeys` command
+  {link-pr}/6727[#6727]
+
+* Support named tuples as `Cross[T]` values {link-pr}/6724[#6724]
+
+* Add mill-repositories header to customize repository config globally,
+  allow scala nightlies via repositories {link-pr}/6713[#6713]
+
+* Fix `./mill init` download URLs {link-pr}/6712[#6712]
+
+* Improvements to `mill-chrome-profile.json` {link-pr}/6705[#6705]
+
+* Make `Task[V]` invariant to improve type inference {link-pr}/6700[#6700]
+
+
+
 [#1-1-0]
 === 1.1.0
 :version: 1.1.0

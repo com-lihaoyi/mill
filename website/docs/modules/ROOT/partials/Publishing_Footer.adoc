@@ -15,56 +15,29 @@ And register and verify your namespace by following the instructions at:
 
 - https://central.sonatype.org/register/namespace/
 
-=== GPG
+=== Setting up GPG
 
 If you've never created a keypair before that can be used to sign your artifacts
-you'll need to do this. https://central.sonatype.org/publish/requirements/gpg/[Sonatype's GPG Documentation]
-has the instructions on how to do this
-
-=== Secrets
-
-Mill uses the following environment variables as a way to pass the necessary secrets
-for publishing to Maven Central:
-
+you'll need to do this. Mill can do this for you via
 
 [,sh]
 ----
-# Sonatype Central Portal needs your public key to be uploaded so it can use for verification of artifacts from their end.
-#
-# Send your public key to ubuntu server so Sonatype Maven Central can use for verification of the artifacts
-gpg --keyserver  keyserver.ubuntu.com --send-keys $LONG_ID
-#
-# Check the server for information about the public key. information will be displayed if found
-gpg --keyserver  keyserver.ubuntu.com --recv-keys $LONG_ID
-#
-# The LHS and RHS of the User Token, accessible through the sonatype
-# website `Profile` / `User Token` / `Access User Token`
-export MILL_SONATYPE_USERNAME=...
-export MILL_SONATYPE_PASSWORD=...
-
-# The base-64 encoded PGP key, which can be encoded in the following way
-# for each OS:
-#
-# MacOS or FreeBSD
-# gpg --export-secret-key -a $LONG_ID | base64
-#
-# Ubuntu (assuming GNU base64)
-# gpg --export-secret-key -a $LONG_ID | base64 -w0
-#
-# Arch
-# gpg --export-secret-key -a $LONG_ID | base64 | sed -z 's;\n;;g'
-#
-# Windows
-# gpg --export-secret-key -a %LONG_ID% | openssl base64
-export MILL_PGP_SECRET_BASE64=...
-
-# The passphrase associated with your PGP key
-export MILL_PGP_PASSPHRASE=...
+$ ./mill mill.javalib.SonatypeCentralPublishModule/initGpgKeys
 ----
+
+This command requests some basic metadata necessary for generating the GPG keys,
+generates a key-pair, registers it, and prints out instructions on how to use
+it from the terminal or in CI.
+
+For most users who have never touched GPG before, using `initGpgKeys` is the easiest
+way to get started. But if for some reason `initGpgKeys` doesn't work, or you want to
+fiddle under the hood, you can also set up your GPG keys manually:
+
+* xref:#_manual_gpg_setup[Manual GPG Setup]
 
 === Publishing
 
-Once you have the various secrets `export`ed as above, you can publish all
+Once you have the various secrets ``export``ed as above, you can publish all
 eligible modules in your Mill project using `mill.javalib.SonatypeCentralPublishModule/`:
 
 [,console]
@@ -193,6 +166,51 @@ mill.javalib.SonatypeCentralPublishModule/publishAll \
 
 The `__.publishSonatypeCentral` command takes the `username` and `password` arguments, documented above.
 
+=== Manual GPG Setup
+
+If you have never used GPG before, xref:#_setting_up_gpg[initGpgKeys] is probably the easiest way to
+get started, but you can also follow
+https://central.sonatype.org/publish/requirements/gpg/[Sonatype's GPG Documentation]
+which has manual instructions on how to do this.
+
+Mill uses the following environment variables as a way to pass the necessary secrets
+for publishing to Maven Central:
+
+
+[,sh]
+----
+# Sonatype Central Portal needs your public key to be uploaded so it can use for verification of artifacts from their end.
+#
+# Send your public key to ubuntu server so Sonatype Maven Central can use for verification of the artifacts
+gpg --keyserver  keyserver.ubuntu.com --send-keys $LONG_ID
+#
+# Check the server for information about the public key. information will be displayed if found
+gpg --keyserver  keyserver.ubuntu.com --recv-keys $LONG_ID
+#
+# The LHS and RHS of the User Token, accessible through the sonatype
+# website `Profile` / `User Token` / `Access User Token`
+export MILL_SONATYPE_USERNAME=...
+export MILL_SONATYPE_PASSWORD=...
+
+# The base-64 encoded PGP key, which can be encoded in the following way
+# for each OS:
+#
+# MacOS or FreeBSD
+# gpg --export-secret-key -a $LONG_ID | base64
+#
+# Ubuntu (assuming GNU base64)
+# gpg --export-secret-key -a $LONG_ID | base64 -w0
+#
+# Arch
+# gpg --export-secret-key -a $LONG_ID | base64 | sed -z 's;\n;;g'
+#
+# Windows
+# gpg --export-secret-key -a %LONG_ID% | openssl base64
+export MILL_PGP_SECRET_BASE64=...
+
+# The passphrase associated with your PGP key
+export MILL_PGP_PASSPHRASE=...
+----
 
 == Publishing to Generic Maven Repositories
 
@@ -254,3 +272,5 @@ there are also others that you can use. Mill supports these largely through cont
 
 * xref:contrib/codeartifact.adoc[]
 * xref:contrib/artifactory.adoc[]
+
+

@@ -241,7 +241,21 @@ to continue developing after your PR has been autofixed for you.
 * Mill's pull-request validation runs with
 https://mill-build.org/mill/large/selective-execution.html[Selective Test Execution]
 enabled; this automatically selects the tests to run based on the code or build configuration
-that changed in that PR. To disable this, you can label your PR with `run-all-tests`, which
+that changed in that PR.
+
+* CI uses `selectiveInputs` to customize the selective testing behavior for the following test jobs,
+to only run them if the corresponding `libs/` module has changed, ignoring changes in the core Mill
+codebase. This is a heuristic optimization that assumes that bugs in the core Mill code paths will
+get caught in one of the other jobs.
+
+** `example.kotlinlib` only runs if `libs/kotlinlib/` changes
+** `example.javascriptlib` only runs if `libs/javascriptlib/` changes
+** `example.pythonlib` only runs if `libs/pythonlib/` changes
+** `example.groovylib` only runs if `libs/groovylib/` changes
+** `example.androidlib` only runs if `libs/androidlib/` changes
+** `example.migrating` only runs if `libs/init/` changes
+
+* To disable selective test execution on a PR, you can label it with `run-all-tests`, which
 will run all tests on a PR regardless of what code was changed
 
 * Mill tests draft PRs _on contributor forks_ of the repository, so please make sure Github
