@@ -730,7 +730,7 @@ config and building it across a variety of source folders.</p>
 <p>Mill handles cross-building of all sorts via the <code>Cross[T]</code> module.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-27-fd960c/mill-dist-1.1.0-example-fundamentals-cross-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/cross/1-simple">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-28-6e5003/mill-dist-1.1.0-example-fundamentals-cross-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/cross/1-simple">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
@@ -921,7 +921,7 @@ for your own user-defined types that you wish to use in a Cross module</p>
 <div class="sect2">
 <h3 id="_cross_modules_defaults"><a class="anchor" href="#_cross_modules_defaults"></a>Cross Modules Defaults</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-27-fd960c/mill-dist-1.1.0-example-fundamentals-cross-11-default-cross-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/cross/11-default-cross-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-28-6e5003/mill-dist-1.1.0-example-fundamentals-cross-11-default-cross-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/cross/11-default-cross-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -963,7 +963,7 @@ it by specifying <code>def defaultCrossSegments</code></p>
 parameters to it as follows:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-27-fd960c/mill-dist-1.1.0-example-fundamentals-cross-2-cross-source-path.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/cross/2-cross-source-path">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-28-6e5003/mill-dist-1.1.0-example-fundamentals-cross-2-cross-source-path.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/cross/2-cross-source-path">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
@@ -1027,7 +1027,7 @@ can do so by overriding <code>moduleDir</code> as shown above.</p>
 as given below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-27-fd960c/mill-dist-1.1.0-example-fundamentals-cross-3-outside-dependency.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/cross/3-outside-dependency">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-28-6e5003/mill-dist-1.1.0-example-fundamentals-cross-3-outside-dependency.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/cross/3-outside-dependency">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
@@ -1049,20 +1049,20 @@ def qux = Task { s"hello ${foo("2.10").suffix()} world ${foo("2.12").suffix()}" 
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-231 195.32,-231 195.32,4 -4,4"/>
-<g id="clust2" class="cluster">
-<title>cluster_1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-81 8,-146 126.32,-146 126.32,-81 8,-81"/>
-<text text-anchor="middle" x="67.16" y="-129.4" font-family="Times,serif" font-size="14.00">foo.2_11</text>
+<g id="clust3" class="cluster">
+<title>cluster_0</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 126.32,-73 126.32,-8 8,-8"/>
+<text text-anchor="middle" x="67.16" y="-56.4" font-family="Times,serif" font-size="14.00">foo.2_10</text>
 </g>
 <g id="clust1" class="cluster">
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 126.32,-219 126.32,-154 8,-154"/>
 <text text-anchor="middle" x="67.16" y="-202.4" font-family="Times,serif" font-size="14.00">foo.2_12</text>
 </g>
-<g id="clust3" class="cluster">
-<title>cluster_0</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 126.32,-73 126.32,-8 8,-8"/>
-<text text-anchor="middle" x="67.16" y="-56.4" font-family="Times,serif" font-size="14.00">foo.2_10</text>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-81 8,-146 126.32,-146 126.32,-81 8,-81"/>
+<text text-anchor="middle" x="67.16" y="-129.4" font-family="Times,serif" font-size="14.00">foo.2_11</text>
 </g>
 <!-- foo.2_12.suffix -->
 <g id="node1" class="node">
@@ -1144,7 +1144,7 @@ in <code>def qux</code>.</p>
 external tasks:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-27-fd960c/mill-dist-1.1.0-example-fundamentals-cross-4-cross-dependencies.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/cross/4-cross-dependencies">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-28-6e5003/mill-dist-1.1.0-example-fundamentals-cross-4-cross-dependencies.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/cross/4-cross-dependencies">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
@@ -1167,20 +1167,10 @@ trait BarModule extends Cross.Module[String] {
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-231 296.08,-231 296.08,4 -4,4"/>
-<g id="clust1" class="cluster">
-<title>cluster_2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 126.32,-73 126.32,-8 8,-8"/>
-<text text-anchor="middle" x="67.16" y="-56.4" font-family="Times,serif" font-size="14.00">foo.2_12</text>
-</g>
-<g id="clust4" class="cluster">
-<title>cluster_4</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="146.32,-81 146.32,-146 284.08,-146 284.08,-81 146.32,-81"/>
-<text text-anchor="middle" x="215.2" y="-129.4" font-family="Times,serif" font-size="14.00">bar.2_11</text>
-</g>
-<g id="clust5" class="cluster">
-<title>cluster_5</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="146.32,-8 146.32,-73 284.08,-73 284.08,-8 146.32,-8"/>
-<text text-anchor="middle" x="215.2" y="-56.4" font-family="Times,serif" font-size="14.00">bar.2_12</text>
+<g id="clust6" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="146.32,-154 146.32,-219 284.08,-219 284.08,-154 146.32,-154"/>
+<text text-anchor="middle" x="215.2" y="-202.4" font-family="Times,serif" font-size="14.00">bar.2_10</text>
 </g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
@@ -1192,10 +1182,20 @@ trait BarModule extends Cross.Module[String] {
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 126.32,-219 126.32,-154 8,-154"/>
 <text text-anchor="middle" x="67.16" y="-202.4" font-family="Times,serif" font-size="14.00">foo.2_10</text>
 </g>
-<g id="clust6" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="146.32,-154 146.32,-219 284.08,-219 284.08,-154 146.32,-154"/>
-<text text-anchor="middle" x="215.2" y="-202.4" font-family="Times,serif" font-size="14.00">bar.2_10</text>
+<g id="clust4" class="cluster">
+<title>cluster_4</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="146.32,-81 146.32,-146 284.08,-146 284.08,-81 146.32,-81"/>
+<text text-anchor="middle" x="215.2" y="-129.4" font-family="Times,serif" font-size="14.00">bar.2_11</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 126.32,-73 126.32,-8 8,-8"/>
+<text text-anchor="middle" x="67.16" y="-56.4" font-family="Times,serif" font-size="14.00">foo.2_12</text>
+</g>
+<g id="clust5" class="cluster">
+<title>cluster_5</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="146.32,-8 146.32,-73 284.08,-73 284.08,-8 146.32,-8"/>
+<text text-anchor="middle" x="215.2" y="-56.4" font-family="Times,serif" font-size="14.00">bar.2_12</text>
 </g>
 <!-- foo.2_12.suffix -->
 <g id="node1" class="node">
@@ -1291,7 +1291,7 @@ of <code>foo</code>: <code>bar("2.10")</code> depends on <code>foo("2.10")</code
 trait:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-27-fd960c/mill-dist-1.1.0-example-fundamentals-cross-5-multiple-cross-axes.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/cross/5-multiple-cross-axes">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-28-6e5003/mill-dist-1.1.0-example-fundamentals-cross-5-multiple-cross-axes.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/cross/5-multiple-cross-axes">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
@@ -1451,7 +1451,7 @@ above.</p>
 axes as shown:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-27-fd960c/mill-dist-1.1.0-example-fundamentals-cross-6-axes-extension.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/cross/6-axes-extension">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-28-6e5003/mill-dist-1.1.0-example-fundamentals-cross-6-axes-extension.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/cross/6-axes-extension">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
@@ -1520,7 +1520,7 @@ error: ...expected at least 3 elements, got 2...</code></pre>
 <h2 id="_inner_cross_modules"><a class="anchor" href="#_inner_cross_modules"></a>Inner Cross Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-27-fd960c/mill-dist-1.1.0-example-fundamentals-cross-7-inner-cross-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/cross/7-inner-cross-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-28-6e5003/mill-dist-1.1.0-example-fundamentals-cross-7-inner-cross-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/cross/7-inner-cross-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1717,7 +1717,7 @@ get automatically duplicated once for each <code>crossValue = "a"</code> and <co
 <h2 id="_cross_resolvers"><a class="anchor" href="#_cross_resolvers"></a>Cross Resolvers</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-27-fd960c/mill-dist-1.1.0-example-fundamentals-cross-8-resolvers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/cross/8-resolvers">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-28-6e5003/mill-dist-1.1.0-example-fundamentals-cross-8-resolvers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/cross/8-resolvers">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1785,7 +1785,7 @@ metadata and files:</p>
 <h2 id="_dynamic_cross_modules"><a class="anchor" href="#_dynamic_cross_modules"></a>Dynamic Cross Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-27-fd960c/mill-dist-1.1.0-example-fundamentals-cross-9-dynamic-cross-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/cross/9-dynamic-cross-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-28-6e5003/mill-dist-1.1.0-example-fundamentals-cross-9-dynamic-cross-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/cross/9-dynamic-cross-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1858,7 +1858,7 @@ two third-party libraries - Commonmark and Scalatags - to deal with Markdown par
 HTML generation respectively:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-27-fd960c/mill-dist-1.1.0-example-fundamentals-cross-10-static-blog.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/cross/10-static-blog">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-28-6e5003/mill-dist-1.1.0-example-fundamentals-cross-10-static-blog.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/cross/10-static-blog">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps:
 //| - com.lihaoyi::scalatags:0.13.1

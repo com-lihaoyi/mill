@@ -734,7 +734,7 @@ they have a JVM installed on the machine they wish to run them on.</p>
 <p>You can also customize the assembly jar as shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-27-fd960c/mill-dist-1.1.0-example-javalib-packaging-3-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/packaging/3-assembly-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-28-6e5003/mill-dist-1.1.0-example-javalib-packaging-3-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/packaging/3-assembly-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -805,13 +805,13 @@ We recommend you <a href="../fundamentals/configuring-jvm-versions.html" class="
 via a custom <code>JvmWorkerModule</code> overriding <code>def jvmVersion</code> (shown above), as not every JVM can build Graal native images.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-27-fd960c/mill-dist-1.1.0-example-javalib-packaging-1-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/packaging/1-native-image/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-28-6e5003/mill-dist-1.1.0-example-javalib-packaging-1-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/packaging/1-native-image/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-27-fd960c/mill-dist-1.1.0-example-javalib-packaging-1-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/packaging/1-native-image/foo/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-28-6e5003/mill-dist-1.1.0-example-javalib-packaging-1-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/packaging/1-native-image/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [JavaModule, NativeImageModule]
 jvmVersion: graalvm-community:17.0.7
@@ -839,13 +839,13 @@ using <code>-Os</code> to optimize for the smallest binary size
 which is available in the <code>graalvm-community:23</code> JDK selected above</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-27-fd960c/mill-dist-1.1.0-example-javalib-packaging-2-native-image-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/packaging/2-native-image-libs/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-28-6e5003/mill-dist-1.1.0-example-javalib-packaging-2-native-image-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/packaging/2-native-image-libs/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-27-fd960c/mill-dist-1.1.0-example-javalib-packaging-2-native-image-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/packaging/2-native-image-libs/foo/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-28-6e5003/mill-dist-1.1.0-example-javalib-packaging-2-native-image-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/packaging/2-native-image-libs/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [JavaModule, NativeImageModule]
 mvnDeps:
@@ -914,7 +914,7 @@ Instead of copying and merging dependencies classes and resources into a flat ja
 One of the pros of this approach is, that all dependency archives are kept unextracted, which makes later introspection for checksums, authorship and copyright questions easier.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-27-fd960c/mill-dist-1.1.0-example-javalib-packaging-4-repackage-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/packaging/4-repackage-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-28-6e5003/mill-dist-1.1.0-example-javalib-packaging-4-repackage-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/packaging/4-repackage-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1020,7 +1020,7 @@ due to some JVM limitations in ZIP file handling of large files.</p>
 Starting with JDK 9, <code>jlink</code> bundles Java app code with a stripped-down version of the JVM.</p>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-27-fd960c/mill-dist-1.1.0-example-javalib-packaging-5-jlink.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/packaging/5-jlink/foo/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-28-6e5003/mill-dist-1.1.0-example-javalib-packaging-5-jlink.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/packaging/5-jlink/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [JavaModule, JlinkModule]
 jlinkModuleName: foo
@@ -1104,7 +1104,7 @@ INFO: Hello World!</code></pre>
 using the <code>jpackage</code> tool.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-27-fd960c/mill-dist-1.1.0-example-javalib-packaging-6-jpackage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/packaging/6-jpackage">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-28-6e5003/mill-dist-1.1.0-example-javalib-packaging-6-jpackage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/packaging/6-jpackage">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
