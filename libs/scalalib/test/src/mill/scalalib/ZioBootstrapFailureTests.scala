@@ -9,7 +9,7 @@ import utest.*
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 
-// Make sure uncaught exceptions in test discovery, which takes place within a classloader 
+// Make sure uncaught exceptions in test discovery, which takes place within a classloader
 // or in a subprocess JvmWorker,
 object ZioBootstrapFailureTests extends TestSuite {
 
@@ -41,9 +41,10 @@ object ZioBootstrapFailureTests extends TestSuite {
   override def tests: Tests = Tests {
     test("classloader") {
       UnitTester(ZioBootstrapModule, sourceRoot = resourcePath).scoped { eval =>
-        val Left(ExecResult.Exception(throwable, _)) = eval.apply(ZioBootstrapModule.app.test.testForked()).runtimeChecked
+        val Left(ExecResult.Exception(throwable, _)) =
+          eval.apply(ZioBootstrapModule.app.test.testForked()).runtimeChecked
         assert(
-          throwable.toString == 
+          throwable.toString ==
             "mill.api.daemon.Result$SerializedException: Layer initialization failed"
         )
       }
@@ -51,7 +52,8 @@ object ZioBootstrapFailureTests extends TestSuite {
 
     test("subprocess") {
       UnitTester(ZioBootstrapModule2, sourceRoot = resourcePath).scoped { eval =>
-        val Left(ExecResult.Exception(throwable, _)) = eval.apply(ZioBootstrapModule2.app.test.testForked()).runtimeChecked
+        val Left(ExecResult.Exception(throwable, _)) =
+          eval.apply(ZioBootstrapModule2.app.test.testForked()).runtimeChecked
         assert(throwable.toString.contains("Layer initialization failed"))
       }
     }

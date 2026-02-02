@@ -2,6 +2,7 @@ package mill.api.daemon
 
 import scala.collection.Factory
 import com.lihaoyi.unroll
+
 /**
  * Represents a computation that either succeeds with a value [[T]] or
  * fails. Basically equivalent to `Either[String, T]`, with converters
@@ -138,10 +139,10 @@ object Result {
   }
 
   final class Exception(val error: String, @unroll val failure: Option[Failure] = None)
-    extends java.lang.Exception(error)
+      extends java.lang.Exception(error)
 
-  final class SerializedException(val info: Result.Failure.ExceptionInfo,
-                                  cause: Throwable) extends Throwable(info.msg, cause) {
+  final class SerializedException(val info: Result.Failure.ExceptionInfo, cause: Throwable)
+      extends Throwable(info.msg, cause) {
     setStackTrace(info.stack.toArray)
   }
 
@@ -154,9 +155,9 @@ object Result {
     }
 
     private[mill] def partialFrom(
-                                                  throwable: Throwable,
-                                                  classLoader: ClassLoader
-                                                ): Throwable = {
+        throwable: Throwable,
+        classLoader: ClassLoader
+    ): Throwable = {
       val seen = new java.util.IdentityHashMap[Throwable, Throwable]()
 
       def transform(current: Throwable): Throwable = {
@@ -182,7 +183,6 @@ object Result {
         seen.put(current, result)
         result
       }
-
 
       transform(throwable)
     }
