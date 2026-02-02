@@ -76,7 +76,8 @@ You can also install the Mill bootstrap script globally on Mac and Linux via:
 
 [source,console,subs="verbatim,attributes"]
 ----
-> sudo sh -c '(curl -L {mill-download-url}/mill-dist-{mill-version}-mill.sh -o mill) > /usr/local/bin/mill && chmod +x /usr/local/bin/mill'
+> sudo curl -L {mill-download-url}/mill-dist-{mill-version}-mill.sh -o /usr/local/bin/mill
+> sudo chmod +x /usr/local/bin/mill
 ----
 
 This can be useful when using Mill to run script files (written in xref:javalib/script.adoc[Java],
