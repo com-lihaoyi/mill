@@ -56,17 +56,6 @@ class JvmWorkerRpcServer(
     new MillRpcChannel[JvmWorkerRpcServer.Request] {
       override def apply(input: JvmWorkerRpcServer.Request): input.Response = {
         setIdle.doWork {
-          val compilerBridgeProvider = ZincCompilerBridgeProvider(
-            workspace = initialize.compilerBridgeWorkspace,
-            logInfo = log.info,
-            acquire = (scalaVersion, scalaOrganization) =>
-              input.compilerBridge.getOrElse {
-                throw new IllegalStateException(
-                  s"Missing compiler bridge for $scalaOrganization:$scalaVersion."
-                )
-              }
-          )
-
           worker.apply(
             op = input.op,
             reporter = reporterAsOption(input.reporterMode),
@@ -75,7 +64,16 @@ class JvmWorkerRpcServer(
             ZincWorker.ProcessConfig(
               log,
               consoleOut,
-              compilerBridgeProvider
+              ZincCompilerBridgeProvider(
+                workspace = initialize.compilerBridgeWorkspace,
+                logInfo = log.info,
+                acquire = (scalaVersion, scalaOrganization) =>
+                  input.compilerBridge.getOrElse {
+                    throw new IllegalStateException(
+                      s"Missing compiler bridge for $scalaOrganization:$scalaVersion."
+                    )
+                  }
+              )
             )
           ).asInstanceOf[input.Response]
         }
