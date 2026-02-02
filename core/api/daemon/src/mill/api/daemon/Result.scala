@@ -149,9 +149,7 @@ object Result {
     private[mill] def from(causeChain: Seq[Failure.ExceptionInfo]): SerializedException = {
       if (causeChain.isEmpty) sys.error("causeChain must be non-empty")
       var current: SerializedException = null
-      for (info <- causeChain.reverseIterator) {
-        current = new SerializedException(info, current)
-      }
+      for (info <- causeChain.reverseIterator) current = new SerializedException(info, current)
       current
     }
 
