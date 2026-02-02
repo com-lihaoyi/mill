@@ -2,6 +2,7 @@ package mill.scalalib
 
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.api.Discover
+import mill.api.daemon.ExecResult
 import mill.util.TokenReaders.*
 import mill.{T, Task}
 import utest.*
@@ -12,7 +13,8 @@ object ZioBootstrapFailureTests extends TestSuite {
 
   private val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "ziobootstrap"
 
-  object ZioBootstrapModule extends TestRootModule {
+  trait ZioBootstrapModuleBase extends TestRootModule {
+    def customJvmVersion: String
     object app extends SbtModule {
       override def scalaVersion = "2.13.18"
       override def mvnDeps = Seq(
@@ -22,27 +24,32 @@ object ZioBootstrapFailureTests extends TestSuite {
       object test extends SbtTests with TestModule.ZioTest {
         override def zioTestVersion: T[String] = Task { "2.1.16" }
       }
+      def jvmVersion = customJvmVersion
     }
 
     lazy val millDiscover = Discover[this.type]
   }
+  object ZioBootstrapModule extends ZioBootstrapModuleBase {
+    def customJvmVersion = ""
+  }
+  object ZioBootstrapModule2 extends ZioBootstrapModuleBase {
+    def customJvmVersion = "19"
+  }
 
   override def tests: Tests = Tests {
-    test("bootstrapFailureDoesNotLeakClassloader") {
+    test("classloader") {
+      UnitTester(ZioBootstrapModule, sourceRoot = resourcePath).scoped { eval =>
+        val Left(ExecResult.Exception(throwable, _)) = eval.apply(ZioBootstrapModule.app.test.testForked()).runtimeChecked
+        assert(throwable.toString.contains("Layer initialization failed"))
+      }
+    }
+
+    test("subprocess") {
       val outStream = new ByteArrayOutputStream()
       val errStream = new ByteArrayOutputStream()
-      UnitTester(
-        ZioBootstrapModule,
-        sourceRoot = resourcePath,
-        outStream = new PrintStream(outStream, true),
-        errStream = new PrintStream(errStream, true)
-      ).scoped { eval =>
-        val checked = eval.apply(ZioBootstrapModule.app.test.testForked()).runtimeChecked
-        val rendered = checked.toString +
-          outStream.toString("UTF-8") +
-          errStream.toString("UTF-8")
-        pprint.log(rendered)
-        assert(!rendered.contains("NoClassDefFoundError"))
+      UnitTester(ZioBootstrapModule2, sourceRoot = resourcePath).scoped { eval =>
+        val Left(ExecResult.Exception(throwable, _)) = eval.apply(ZioBootstrapModule2.app.test.testForked()).runtimeChecked
+        assert(throwable.toString.contains("Layer initialization failed"))
       }
     }
   }
