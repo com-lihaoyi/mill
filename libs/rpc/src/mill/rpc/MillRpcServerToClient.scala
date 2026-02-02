@@ -1,14 +1,12 @@
 package mill.rpc
 
-import mill.api.JsonFormatters.Default.given
-import mill.api.daemon.Result
 import upickle.{Reader, Writer}
 
 /** Protocol messages that are sent from server to the client. */
 enum MillRpcServerToClient[+Data] derives Reader, Writer {
 
   /** Response to a [[MillRpcClientToServer.Ask]] which either succeeded or failed. */
-  case Response(data: Either[Result.SerializedException, Data])
+  case Response(data: Either[RpcThrowable, Data])
 
   /**
    * Server is asking the client to do something. Client should respond with [[MillRpcClientToServer.Response]].
