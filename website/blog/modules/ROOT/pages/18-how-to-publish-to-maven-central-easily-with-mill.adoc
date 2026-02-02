@@ -9,9 +9,9 @@ Traditionally setting up a Java, Scala, or Kotlin project to be published to htt
 - the de-facto standard JVM package repository - has always been a bit involved. You need to
 install https://www.gnupg.org/[GPG] (or https://en.wikipedia.org/wiki/Pretty_Good_Privacy[PGP]???),
 create your keys (don't forget to upload them via https://www.gnupg.org/gph/en/manual/x457.html[send-key]!),
-set up multiple build tool plugins, and so on. This article explores the JVM build tool greatly
-simplifies the process of publishing to Maven Central, so that anyone can easily package and upload
-their code to Maven Central to share it with the rest of the JVM community.
+set up multiple build tool plugins, and so on. This article explores how the Mill build tool makes
+it easy to publish to Maven Central, so that anyone can easily package and upload
+their code to share it with the rest of the JVM community.
 
 // end::header[]
 
@@ -27,12 +27,12 @@ And register and verify your namespace by following the instructions at:
 
 - https://central.sonatype.org/register/namespace/
 
-The workflow for this section is the same for Mill as it is for any other build too, as
+The workflow for this section is the same for Mill as it is for any other JVM build tool, as
 fundamentally you need to prove to Sonatype (who runs the repository) that you own the
 domain name or other namespace, to prevent others from potentially impersonating you. You
-need to do this once for every organization/domain you own, e.g. verifying I own the domain
-`lihaoyi.com` so I can publish under the organization `com.lihaoyi`, but this typically only
-needs to be done once.
+need to do this for every organization/domain you own, e.g. verifying I own the domain
+`lihaoyi.com` so I can publish under the organization `com.lihaoyi`, but for most people
+who publish libraries this typically only needs to be done once.
 
 == Installing Mill
 
@@ -47,14 +47,16 @@ which can be downloaded as follows:
 ```
 
 This script is committed to your codebase, so anyone who checks out the code will have the
-`./mill` script available and ready to use.
+`./mill` script available and ready to use. Notably, you don't need to `brew`/`apt`/`winget`/etc.
+install Mill, nor do you need to `brew`/`apt`/`winget` install Java or https://sdkman.io/[SdkMan],
+as the `./mill` script (`mill.bat` on windows) automatically downloads and caches them as necessary.
 
 == Configuring your Build File
 
 The next step is to configure your `build.mill.yaml` file with the
-xref:mill::javalib/publishing.adoc#_basic_publishing_configuration[necessary Java project metadata]
-that Maven Central expects: the `publishVersion`, `artifactName`, and some other miscellaneous
-settings that need to be included in the published `pom.xml` file:
+necessary Java project metadata that Maven Central expects: the `publishVersion`,
+`artifactName`, and some other miscellaneous settings that need to be included in the
+published `pom.xml` file:
 
 .build.mill.yaml
 ```yaml
@@ -83,11 +85,12 @@ public class Bar {
 }
 ```
 
-Mill automatically generates the necessary `pom.xml` for you when publishing, so you
+Mill automatically generates the necessary `pom.xml` for you when publishing, along
+with all the other necessary files: docjars, sourcejars, `.asc` signatures, and so on. You
 just need to provide the key-value pairs above and the tool will take care of the rest.
 
-Mill supports all 3 major JVM languages, so if you want to xref:mill::scalalib/publishing.adoc#_basic_publishing_configuration[publish Scala code], you can use
-`ScalaModule` rather than `JavaModule`:
+Mill supports all 3 major JVM languages, so if you want to publish Scala code, you can use
+`ScalaModule` and specify a `scalaVersion`:
 
 .build.mill.yaml
 ```yaml
@@ -104,7 +107,7 @@ pomSettings:
   developers: [{name: Li Haoyi, email: example@example.com}]
 ```
 
-Or if you want to xref:mill::kotlinlib/publishing.adoc#_basic_publishing_configuration[publish Kotlin code], `KotlinModule`:
+Or if you want to publish Kotlin code, use `KotlinModule` and specify a `kotlinVersion`:
 
 .build.mill.yaml
 ```yaml
@@ -121,16 +124,24 @@ pomSettings:
   developers: [{name: Li Haoyi, email: example@example.com}]
 ```
 
+These example projects are all available to download at the linked documentation
+pages below, so feel free to download the `.zip` file for the language you want
+to follow along with the rest of the article:
+
+- xref:mill::javalib/publishing.adoc#_basic_publishing_configuration[Basic Java Publishing Configuration]
+- xref:mill::scalalib/publishing.adoc#_basic_publishing_configuration[Basic Scala Publishing Configuration]
+- xref:mill::kotlinlib/publishing.adoc#_basic_publishing_configuration[Basic Kotlin Publishing Configuration]
+
 == Setting up GPG keys
 
 Next, we need to set up GPG key signing: Maven Central
 https://central.sonatype.org/publish/requirements/#sign-files-with-gpgpgp[requires
 all uploaded artifacts to be signed with GPG keys]. If you don't have GPG keys already
-set up, Mill's `mill.javalib.SonatypeCentralPublishModule/initGpgKeys`
+set up, the Mill command `mill.javalib.SonatypeCentralPublishModule/initGpgKeys`
 walks you through the process to generate a set of keys you can use:
 
 ```console
-$ ./mill mill.javalib.SonatypeCentralPublishModule/initGpgKeys
+> ./mill mill.javalib.SonatypeCentralPublishModule/initGpgKeys
 === PGP Key Setup for Sonatype Central Publishing ===
 
 Step 1: Generating PGP key pair...
@@ -180,7 +191,9 @@ env:
 ------------------------------------------------------------------------
 ```
 
-This provides the generated PGP secret for you as BASE64 formatted strings
+`initGpgKeys` takes the necessary inputs (name, email, passphrase) at the command line,
+publishes the PGP key to `keyserver.ubuntu.com`,  and verifies that the key is ready to use.
+Finally it prints the generated PGP secret for you as BASE64 formatted strings
 that are easy to include as environment variables or Github Actions secrets.
 
 Maven Central requires that all artifacts be signed by some GPG key, but it isn't strict
@@ -202,8 +215,6 @@ use the `mill.javalib.SonatypeCentralPublishModule/` command:
 > ./mill mill.javalib.SonatypeCentralPublishModule/
 Successfully published com.lihaoyi.example-0.0.1 to Sonatype Central
 ```
-
-And we're done!
 
 == Using Your Published Library
 
@@ -299,11 +310,17 @@ Things to note:
   script handles that automatically on your behalf, and you can
   xref:mill::fundamentals/configuring-jvm-versions.adoc[configure it] if necessary
 
-=== Automatic Tag Versioning
+* This job will trigger on any tag push, but can also be triggered manually via the
+  `Run Workflow` button in the Github Actions UI. For now, it still is hardcoded to
+  `publishVersion: 0.0.1`, so you'll need to bump the `build.mill.yaml` file every
+  release
 
-Lastly, it is common to want to automatically assign the publish version based on the most recent
-git tag applied to the repository. To this, we can replace the hardcoded `publishVersion` above
-with the mixin `mill.util.VcsVersionModule` below, which wires up `publishVersion` to infer the
+Bumping the `build.mill.yaml` isn't a lot of work, but it is another manual step that
+is tedious to keep doing. Mill has the ability to  automatically assign the publish version based
+on the most recent git tag applied to the repository, to save you that trouble.
+
+To this, we can remove the hardcoded `publishVersion` above by extending the class
+`mill.util.VcsVersionModule` below, which wires up `publishVersion` to infer the
 version from the latest tag in the commit history:
 
 ```yaml
