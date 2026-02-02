@@ -149,6 +149,7 @@ jobs:
             install-sbt: true
 
           - millargs: "example.kotlinlib._._"
+            extra: "--jobs=1" # Kotlinlib tests seem flaky otherwise
 
           - millargs: "example.scalalib._._"
 
@@ -191,6 +192,7 @@ jobs:
       install-xvfb: ${{ matrix.install-xvfb || false }}
       java-version: 21
       millargs: ${{ matrix.millargs }}
+      extra: ${{ matrix.extra || '' }}
       shell: bash
 
   windows:
