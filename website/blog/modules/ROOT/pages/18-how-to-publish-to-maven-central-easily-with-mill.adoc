@@ -1,4 +1,4 @@
-= How To Easily Publish to Maven Central with Mill
+= How To Publish to Maven Central Easily with Mill
 // tag::header[]
 :author: Li Haoyi
 :revdate: 3 Feb 2026
