@@ -100,8 +100,7 @@ object JvmWorkerRpcServer {
       reporterMode: ReporterMode,
       ctx: ZincWorker.LocalConfig,
       compilerBridge: Option[ZincCompilerBridgeProvider.AcquireResult[os.Path]]
-  )
-      extends MillRpcChannel.Message derives upickle.ReadWriter {
+  ) extends MillRpcChannel.Message derives upickle.ReadWriter {
     type Response = op.Response
   }
 
