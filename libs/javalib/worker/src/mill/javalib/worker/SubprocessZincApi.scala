@@ -48,9 +48,6 @@ class SubprocessZincApi(
   ): MillRpcChannel[JvmWorkerRpcServer.ServerToClient] = {
     input =>
       input match {
-        case msg: JvmWorkerRpcServer.ServerToClient.AcquireZincCompilerBridge =>
-          compilerBridge.acquire(msg.scalaVersion, msg.scalaOrganization)
-            .asInstanceOf[input.Response]
         case msg: JvmWorkerRpcServer.ServerToClient.ReportProblem =>
           val res =
             reporter match {
@@ -78,6 +75,14 @@ class SubprocessZincApi(
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
   ): op.Response = {
+    val compilerBridgeAcquire = op match {
+      case msg: ZincOp.CompileMixed if msg.compilerBridgeOpt.isEmpty =>
+        Some(compilerBridge.acquire(msg.scalaVersion, msg.scalaOrganization))
+      case msg: ZincOp.ScaladocJar if msg.compilerBridgeOpt.isEmpty =>
+        Some(compilerBridge.acquire(msg.scalaVersion, msg.scalaOrganization))
+      case _ => None
+    }
+
     subprocessCache.withValue(
       cacheKey,
       SubprocessZincApi.Initialize(compilerBridge.workspace, log)
@@ -118,7 +123,8 @@ class SubprocessZincApi(
                   case None => ReporterMode.NoReporter
                   case Some(r) => ReporterMode.Reporter(reportCachedProblems, r.maxErrors)
                 },
-                ctx
+                ctx,
+                compilerBridgeAcquire
               )).asInstanceOf[op.Response]
             }
           )
