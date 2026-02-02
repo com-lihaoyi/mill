@@ -1,0 +1,348 @@
+= Easier Publishing to Maven Central with Mill 1.1.1
+// tag::header[]
+:author: Li Haoyi
+:revdate: 3 Feb 2026
+
+_{author}, {revdate}_
+
+Publishing Java, Scala, and Kotlin projects to Maven Central has traditionally been somewhat
+tedious to set up compared to other package managers like NPM or PyPI. Some of this tediousness
+is justified from a security standpoint, but most of it is just due to the complexity of the
+build tooling. This blog post explores how the latest version of the Mill JVM build tool greatly
+simplifies the process of publishing to Maven Central, so that anyone who has Java, Scala, or Kotlin
+code they want to share can easily upload their compiled jar files for the rest of the world to use.
+
+// end::header[]
+
+== Challenges of Publishing with Maven
+
+=== Create Sonatype Central Account and Namespace
+
+=== Configuring your Build File
+
+[cols="1a,2a"]
+|===
+|
+*Mill build.mill.yaml*
+```yaml
+extends: [JavaModule, PublishModule]
+publishVersion: 0.0.1
+artifactName: example
+pomSettings:
+  description: Example
+  organization: com.lihaoyi
+  url: https://github.com/com.lihaoyi/example
+  licenses: [MIT]
+  versionControl: https://github.com/com.lihaoyi/example
+  developers: [{name: Li Haoyi, email: example@example.com}]
+```
+|
+*Maven pom.xml*
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.lihaoyi</groupId>
+  <artifactId>example</artifactId>
+  <version>0.0.1</version>
+  <name>example</name>
+  <description>Example</description>
+  <url>https://github.com/com.lihaoyi/example</url>
+  <packaging>jar</packaging>
+
+  <licenses>
+    <license>
+      <name>MIT</name>
+      <url>https://opensource.org/licenses/MIT</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <scm>
+    <url>https://github.com/com.lihaoyi/example</url>
+    <connection>scm:git:https://github.com/com.lihaoyi/example.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/com.lihaoyi/example.git</developerConnection>
+  </scm>
+
+  <developers>
+    <developer>
+      <name>Li Haoyi</name>
+      <email>example@example.com</email>
+    </developer>
+  </developers>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>3.3.1</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.11.2</version>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <failOnError>false</failOnError>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>3.2.7</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>1.6.13</version>
+            <extensions>true</extensions>
+            <configuration>
+              <serverId>ossrh</serverId>
+              <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+              <autoReleaseAfterClose>true</autoReleaseAfterClose>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>ossrh</id>
+      <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
+</project>
+```
+|===
+
+=== Setting up GPG keys
+
+[cols="1a,2a"]
+|===
+|
+*Mill initGpgKeys*
+```console
+$ ./mill mill.javalib.SonatypeCentralPublishModule/initGpgKeys
+=== PGP Key Setup for Sonatype Central Publishing ===
+
+This will create a new PGP key pair for signing your artifacts.
+You will be prompted to enter:
+  - Your real name
+  - Your email address
+  - A passphrase to protect your key
+
+Step 1: Generating PGP key pair...
+
+Enter your name: Li Haoyi
+Enter your email: user@host.com
+Enter passphrase (leave empty for no passphrase):
+
+PGP key generated successfully!
+
+Generated key ID: FF314A017B55A282
+
+Step 2: Uploading public key to keyserver.ubuntu.com...
+Public key uploaded successfully!
+
+Step 3: Verifying key upload...
+Key verified on keyserver!
+
+Saved secret key to: .../initGpgKeys.dest/pgp-private-key.asc
+To store it in your home directory for manual use, you can import it into GnuPG:
+  gpg --import ...
+
+=== Setup Complete! ===
+
+To publish to Maven Central from your shell, export the following credentials.
+MILL_SONATYPE_PASSWORD and MILL_SONATYPE_USERNAME can be generated at https://central.sonatype.com/usertoken
+
+------------------------------------------------------------------------
+export MILL_PGP_SECRET_BASE64=...
+export MILL_PGP_PASSPHRASE=password
+export MILL_SONATYPE_PASSWORD=...
+export MILL_SONATYPE_USERNAME=...
+------------------------------------------------------------------------
+
+To publish from GitHub Actions, add the credentials above as repository secrets at
+
+- https://github.com/<org>/<repo>/settings/secrets/actions/new
+
+and then include them in your .github/workflows/publish-artifacts.yml as:
+
+------------------------------------------------------------------------
+env:
+  MILL_PGP_SECRET_BASE64: ${{ secrets.MILL_PGP_SECRET_BASE64 }}
+  MILL_PGP_PASSPHRASE: ${{ secrets.MILL_PGP_PASSPHRASE }}
+  MILL_SONATYPE_USERNAME: ${{ secrets.MILL_SONATYPE_USERNAME }}
+  MILL_SONATYPE_PASSWORD: ${{ secrets.MILL_SONATYPE_PASSWORD }}
+------------------------------------------------------------------------
+```
+|
+
+*Maven GPG setup*
+
+==== Installing GPG
+
+- macOS (Homebrew): `brew install gnupg`
+- Ubuntu/Debian: `sudo apt-get install gnupg`
+- Fedora: `sudo dnf install gnupg2`
+- etc.
+
+==== Creating your Keys
+
+```console
+> gpg --full-generate-key
+> gpg --list-keys --keyid-format LONG
+> gpg --keyserver hkps://keys.openpgp.org --send-keys YOUR_KEY_ID
+```
+|===
+
+=== Setting up GPG `~/.m2/settings.xml`
+
+```xml
+<settings>
+  <servers>
+    <server>
+      <id>ossrh</id>
+      <username>SONATYPE_USERNAME</username>
+      <password>SONATYPE_PASSWORD</password>
+    </server>
+  </servers>
+  <profiles>
+    <profile>
+      <id>gpg</id>
+      <properties>
+        <gpg.passphrase>YOUR_GPG_PASSPHRASE</gpg.passphrase>
+      </properties>
+    </profile>
+  </profiles>
+  <activeProfiles>
+    <activeProfile>gpg</activeProfile>
+  </activeProfiles>
+</settings>
+```
+
+=== Publishing
+
+[cols="1a,1a"]
+|===
+|
+*Mill*
+```console
+> ./mill mill.javalib.SonatypeCentralPublishModule/
+```
+|
+*Maven*
+```console
+> mvn -Prelease clean deploy
+```
+|===
+
+
+=== Github Actions
+[cols="1a,2a"]
+|===
+|
+*Mill Github Actions Setup*
+```yaml
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - '**'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Publish to Maven Central
+      run: ./mill mill.javalib.SonatypeCentralPublishModule/
+      env:
+        MILL_PGP_SECRET_BASE64: ${{ secrets.MILL_PGP_SECRET_BASE64 }}
+        MILL_PGP_PASSPHRASE: ${{ secrets.MILL_PGP_PASSPHRASE }}
+        MILL_SONATYPE_USERNAME: ${{ secrets.MILL_SONATYPE_USERNAME }}
+        MILL_SONATYPE_PASSWORD: ${{ secrets.MILL_SONATYPE_PASSWORD }}
+```
+|
+*Maven Github Actions Setup*
+```yaml
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "**"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-java@v4
+      with:
+        distribution: "temurin"
+        java-version: "21"
+        server-id: "ossrh"
+        server-username: OSSRH_USERNAME
+        server-password: OSSRH_PASSWORD
+        gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+        gpg-passphrase: GPG_PASSPHRASE
+
+    - name: Publish to Maven Central
+      run: mvn -Prelease -Dgpg.passphrase=${GPG_PASSPHRASE} clean deploy
+      env:
+        OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+        OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+        GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+```
+|===
+
+
