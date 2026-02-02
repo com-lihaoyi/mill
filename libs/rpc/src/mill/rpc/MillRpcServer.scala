@@ -1,11 +1,8 @@
 package mill.rpc
 
-import mill.api.daemon.Logger
-import mill.api.daemon.StopWithResponse
+import mill.api.daemon.{Logger, Result, StopWithResponse}
 import pprint.TPrint
 import upickle.{Reader, Writer}
-
-import scala.util.control.NonFatal
 
 /** Default implementation for the [[MillRpcServer]]. */
 trait MillRpcServer[
@@ -77,7 +74,7 @@ trait MillRpcServer[
           sendToClient(MillRpcServerToClient.Response(Right(e.response)))
           return false
         case _: InterruptedException => return false
-        case NonFatal(e) => Left(RpcThrowable(e))
+        case e => Left(RpcThrowable.fromThrowable(e))
       }
 
     sendToClient(MillRpcServerToClient.Response(result))
@@ -101,7 +98,7 @@ trait MillRpcServer[
 
         case MillRpcClientToServer.Response(data) =>
           data match {
-            case Left(err) => throw err
+            case Left(err) => throw Result.SerializedException.from(err.exceptions)
             case Right(response) => responseReceived = Some(response)
           }
       }

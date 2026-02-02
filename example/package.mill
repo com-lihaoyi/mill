@@ -13,7 +13,9 @@ import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.api.Cross
 import mill.api.BuildCtx
+import mill.javalib.testrunner.TestResult
 import mill.testkit.Chunk
+
 import java.util.concurrent.atomic.AtomicInteger
 
 object `package` extends Module {
@@ -127,8 +129,7 @@ object `package` extends Module {
   }
 
   trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {
-    override def selectiveInputs: Seq[Task[?]] =
-      Seq(build.libs.kotlinlib.compile)
+    override def selectiveInputs = Seq(build.libs.kotlinlib.sources)
 
     override def lineTransform(line: String) = this.moduleSegments.parts.last match {
       case "2-test-suite" => line
@@ -142,9 +143,14 @@ object `package` extends Module {
     }
   }
 
+  val androidSelectiveInputs = Seq(
+    build.libs.androidlib.sources,
+    build.libs.javalib.sources,
+    build.libs.kotlinlib.sources
+  )
+
   trait ExampleCrossModuleAndroid extends ExampleCrossModule {
-    override def selectiveInputs: Seq[Task[?]] =
-      Seq(build.libs.androidlib.compile)
+    override def selectiveInputs = Seq(sources) ++ androidSelectiveInputs
     def testExclusive = true
 
     /**
@@ -373,23 +379,19 @@ $frontMatter
   }
 
   trait ExampleCrossModuleJavascript extends ExampleCrossModule {
-    override def selectiveInputs: Seq[Task[?]] =
-      Seq(build.libs.javascriptlib.compile)
+    override def selectiveInputs = Seq(sources, build.libs.javascriptlib.sources)
   }
 
   trait ExampleCrossModulePython extends ExampleCrossModule {
-    override def selectiveInputs: Seq[Task[?]] =
-      Seq(build.libs.pythonlib.compile)
+    override def selectiveInputs = Seq(sources, build.libs.pythonlib.sources)
   }
 
   trait ExampleCrossModuleGroovy extends ExampleCrossModule {
-    override def selectiveInputs: Seq[Task[?]] =
-      Seq(build.libs.groovylib.compile)
+    override def selectiveInputs = Seq(sources, build.libs.groovylib.sources)
   }
 
   trait ExampleCrossModuleMigrating extends ExampleCrossModule {
-    override def selectiveInputs: Seq[Task[?]] =
-      Seq(build.libs.init.compile)
+    override def selectiveInputs = Seq(sources, build.libs.init.sources)
   }
 
   def repoInfo = Map(
@@ -439,5 +441,9 @@ $frontMatter
 
       PathRef(Task.dest)
     }
+
+    override def selectiveInputs =
+      if (crossValue == "android-compose-samples") Seq(sources) ++ androidSelectiveInputs
+      else null
   }
 }

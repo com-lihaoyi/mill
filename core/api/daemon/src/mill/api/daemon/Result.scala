@@ -1,6 +1,7 @@
 package mill.api.daemon
 
 import scala.collection.Factory
+import com.lihaoyi.unroll
 
 /**
  * Represents a computation that either succeeds with a value [[T]] or
@@ -137,8 +138,60 @@ object Result {
     sequence[B, Seq](collection.iterator.map(_.flatMap(f)).toSeq).map(factory.fromSpecific)
   }
 
-  final class Exception(
-      val error: String,
-      @com.lihaoyi.unroll val failure: Option[Failure] = None
-  ) extends java.lang.Exception(error)
+  /**
+   * Exception used to short circuit a task evaluation with a pretty error string
+   * or a [[Failure]] object containing metadata for pretty error reporting
+   */
+  final class Exception(val error: String, @unroll val failure: Option[Failure] = None)
+      extends java.lang.Exception(error)
+
+  /**
+   * An exception that has its original class and metadata replaced by a [[Failure.ExceptionInfo]]
+   * data structure. Used to sanitize exceptions when propagating them across classloader
+   * boundaries, since some of the exceptions in a cause-chain may be instances of no-longer-valid
+   * classes after a classloader is closed
+   */
+  final class SerializedException(val info: Result.Failure.ExceptionInfo, cause: Throwable)
+      extends Throwable(info.msg, cause) {
+    setStackTrace(info.stack.toArray)
+  }
+
+  object SerializedException {
+    private[mill] def from(causeChain: Seq[Failure.ExceptionInfo]): SerializedException = {
+      if (causeChain.isEmpty) sys.error("causeChain must be non-empty")
+      var current: SerializedException = null
+      for (info <- causeChain.reverseIterator) current = new SerializedException(info, current)
+      current
+    }
+
+    private[mill] def partialFrom(throwable: Throwable, classLoader: ClassLoader): Throwable = {
+      val seen = new java.util.IdentityHashMap[Throwable, Throwable]()
+
+      def transform(current: Throwable): Throwable = {
+        val existing = seen.get(current)
+        if (existing != null) return existing
+
+        val cause0 = current.getCause
+        val transformedCause = if (cause0 == null) null else transform(cause0)
+
+        val result =
+          if (current.getClass.getClassLoader ne classLoader) current
+          else {
+            new SerializedException(
+              Result.Failure.ExceptionInfo(
+                current.getClass.getName,
+                current.getMessage,
+                current.getStackTrace.toSeq
+              ),
+              transformedCause
+            )
+          }
+
+        seen.put(current, result)
+        result
+      }
+
+      transform(throwable)
+    }
+  }
 }
