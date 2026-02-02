@@ -312,7 +312,7 @@ object Deps {
   /** Used in tests. */
   object TestDeps {
     // tests framework (test)
-    val scalaCheck = mvn"org.scalacheck::scalacheck:1.18.1"
+    val scalaCheck = mvn"org.scalacheck::scalacheck:1.19.0"
     val scalaTest = mvn"org.scalatest::scalatest:3.2.19"
     val utest = mvn"com.lihaoyi::utest:0.10.0-RC1"
     val zioTest = mvn"dev.zio::zio-test:2.1.14"
