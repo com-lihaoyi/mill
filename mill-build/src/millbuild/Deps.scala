@@ -147,8 +147,8 @@ object Deps {
   val millModuledefs = mvn"${millModuledefsString}"
   val millModuledefsPlugin =
     mvn"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
-  val unrollAnnotation = mvn"com.lihaoyi::unroll-annotation:0.2.0"
-  val unrollPlugin = mvn"com.lihaoyi::unroll-plugin:0.2.0"
+  val unrollAnnotation = mvn"com.lihaoyi::unroll-annotation:0.3.0"
+  val unrollPlugin = mvn"com.lihaoyi:::unroll-plugin:0.3.0"
 
   val graalVmReachabilityMetadataVersion = "0.3.32"
   val graalVMReachabilityMetadataBuildTool =
