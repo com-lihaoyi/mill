@@ -1,5 +1,5 @@
 public class Bar {
   public static void main(String[] args) {
-    System.out.println("Hello Graal Native: " + System.getProperty("java.version"));
+    System.out.println("Hello Published: " + System.getProperty("java.version"));
   }
 }

@@ -16,7 +16,7 @@ object MillInitGpgKeysMain {
     println("  - Your email address")
     println("  - A passphrase to protect your key")
     println("")
-
+    println("Step 1: Generating PGP key pair...")
     def prompt(label: String): String = {
       print(label)
       System.out.flush()
@@ -26,8 +26,6 @@ object MillInitGpgKeysMain {
     val name = prompt("Enter your name: ")
     val email = prompt("Enter your email: ")
 
-    println("")
-    println("Step 1: Generating PGP key pair...")
     print("Enter passphrase (leave empty for no passphrase): ")
     System.out.flush()
     val passphrase = System.console() match {
@@ -152,11 +150,9 @@ object MillInitGpgKeysMain {
     println("env:")
     println("  MILL_PGP_SECRET_BASE64: ${{ secrets.MILL_PGP_SECRET_BASE64 }}")
     println("  MILL_PGP_PASSPHRASE: ${{ secrets.MILL_PGP_PASSPHRASE }}")
+    println("  MILL_SONATYPE_USERNAME: ${{ secrets.MILL_SONATYPE_USERNAME }}")
+    println("  MILL_SONATYPE_PASSWORD: ${{ secrets.MILL_SONATYPE_PASSWORD }}")
     println("-" * 72)
-    println("")
-    println(s"Your key ID is: $keyId")
-    println("")
-    println("See https://central.sonatype.org/publish/requirements/gpg/ for more details.")
   }
 
   private def extractArg(args: Array[String], flag: String): Option[String] = {
