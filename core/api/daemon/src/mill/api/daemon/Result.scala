@@ -138,6 +138,10 @@ object Result {
     sequence[B, Seq](collection.iterator.map(_.flatMap(f)).toSeq).map(factory.fromSpecific)
   }
 
+  /**
+   * Exception used to short circuit a task evaluation with a pretty error string
+   * or a [[Failure]] object containing metadata for pretty error reporting
+   */
   final class Exception(val error: String, @unroll val failure: Option[Failure] = None)
       extends java.lang.Exception(error)
 
