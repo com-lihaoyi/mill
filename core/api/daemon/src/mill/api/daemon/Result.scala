@@ -141,6 +141,12 @@ object Result {
   final class Exception(val error: String, @unroll val failure: Option[Failure] = None)
       extends java.lang.Exception(error)
 
+  /**
+   * An exception that has its original class and metadata replaced by a [[Failure.ExceptionInfo]]
+   * data structure. Used to sanitize exceptions when propagating them across classloader
+   * boundaries, since some of the exceptions in a cause-chain may be instances of no-longer-valid
+   * classes after a classloader is closed
+   */
   final class SerializedException(val info: Result.Failure.ExceptionInfo, cause: Throwable)
       extends Throwable(info.msg, cause) {
     setStackTrace(info.stack.toArray)
@@ -154,10 +160,7 @@ object Result {
       current
     }
 
-    private[mill] def partialFrom(
-        throwable: Throwable,
-        classLoader: ClassLoader
-    ): Throwable = {
+    private[mill] def partialFrom(throwable: Throwable, classLoader: ClassLoader): Throwable = {
       val seen = new java.util.IdentityHashMap[Throwable, Throwable]()
 
       def transform(current: Throwable): Throwable = {

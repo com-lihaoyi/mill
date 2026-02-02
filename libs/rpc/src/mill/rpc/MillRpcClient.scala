@@ -1,6 +1,6 @@
 package mill.rpc
 
-import mill.api.daemon.Logger
+import mill.api.daemon.{Logger, Result}
 import mill.constants.EnvVars
 import pprint.TPrint
 import upickle.{Reader, Writer}
@@ -67,7 +67,7 @@ object MillRpcClient {
             handleServerMessage(data)
           case Some(MillRpcServerToClient.Response(either)) =>
             either match {
-              case Left(err) => throw err
+              case Left(err) => throw Result.SerializedException.from(err.exceptions)
               case Right(responseJson) => responseReceived = Some(upickle.read[A](responseJson))
             }
           case Some(MillRpcServerToClient.Log(msg)) => handleServerLog(msg)

@@ -1,6 +1,6 @@
 package mill.rpc
 
-import mill.api.daemon.{Logger, StopWithResponse}
+import mill.api.daemon.{Logger, Result, StopWithResponse}
 import pprint.TPrint
 import upickle.{Reader, Writer}
 
@@ -99,7 +99,7 @@ trait MillRpcServer[
 
         case MillRpcClientToServer.Response(data) =>
           data match {
-            case Left(err) => throw err
+            case Left(err) => throw Result.SerializedException.from(err.exceptions)
             case Right(response) => responseReceived = Some(response)
           }
       }
