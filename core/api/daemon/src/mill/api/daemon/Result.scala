@@ -175,8 +175,9 @@ object Result {
         val transformedCause = if (cause0 == null) null else transform(cause0)
 
         val result =
-          if (current.getClass.getClassLoader ne classLoader) current
-          else {
+          if ((current.getClass.getClassLoader ne classLoader) && (transformedCause eq cause0)) {
+            current
+          } else {
             new SerializedException(
               Result.Failure.ExceptionInfo(
                 current.getClass.getName,
