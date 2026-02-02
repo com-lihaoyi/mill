@@ -4,7 +4,6 @@ import mill.api.daemon.{Logger, Result, StopWithResponse}
 import pprint.TPrint
 import upickle.{Reader, Writer}
 
-
 /** Default implementation for the [[MillRpcServer]]. */
 trait MillRpcServer[
     Initialize: Reader,
