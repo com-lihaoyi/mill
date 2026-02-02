@@ -113,6 +113,30 @@ object JsonFormatters extends JsonFormatters {
     )
 
     given resultFailureExceptionInfoRw: RW[Result.Failure.ExceptionInfo] = RW.derived
+    given resultSerializedExceptionRw: RW[Result.SerializedException] = {
+      upickle.readwriter[Seq[Result.Failure.ExceptionInfo]].bimap(
+        ex => {
+          val seen = new java.util.IdentityHashMap[Throwable, java.lang.Boolean]()
+          val infos = Vector.newBuilder[Result.Failure.ExceptionInfo]
+          var current: Throwable = ex
+          while ((current != null) && (seen.put(current, java.lang.Boolean.TRUE) == null)) {
+            val info = current match {
+              case serialized: Result.SerializedException => serialized.info
+              case other =>
+                Result.Failure.ExceptionInfo(
+                  other.getClass.getName,
+                  other.getMessage,
+                  other.getStackTrace.toSeq
+                )
+            }
+            infos += info
+            current = current.getCause
+          }
+          infos.result()
+        },
+        Result.SerializedException.from
+      )
+    }
     given resultRW[A: { Reader, Writer }]: RW[Result[A]] = RW.derived
   }
 }

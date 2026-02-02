@@ -1,6 +1,6 @@
 package mill.rpc
 
-import mill.api.daemon.Logger
+import mill.api.daemon.{Logger, Result}
 import mill.constants.EnvVars
 import pprint.TPrint
 import upickle.{Reader, Writer}
@@ -84,7 +84,18 @@ object MillRpcClient {
 
     def handleServerMessage(msg: ServerToClient): Unit = {
       val response =
-        Try(currentServerMessageHandler(msg)).toEither.left.map(RpcThrowable.apply)
+        Try(currentServerMessageHandler(msg)).toEither.left.map { e =>
+          val failure = Result.Failure.fromException(e)
+          val chain =
+            if (failure.exception.nonEmpty) failure.exception
+            else
+              Seq(Result.Failure.ExceptionInfo(
+                e.getClass.getName,
+                e.getMessage,
+                e.getStackTrace.toSeq
+              ))
+          Result.SerializedException.from(chain)
+        }
       wireTransport.writeSerialized(MillRpcClientToServer.Response(response))
     }
 

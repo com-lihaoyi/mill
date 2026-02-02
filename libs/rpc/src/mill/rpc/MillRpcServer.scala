@@ -1,7 +1,6 @@
 package mill.rpc
 
-import mill.api.daemon.Logger
-import mill.api.daemon.StopWithResponse
+import mill.api.daemon.{Logger, Result, StopWithResponse}
 import pprint.TPrint
 import upickle.{Reader, Writer}
 
@@ -77,7 +76,17 @@ trait MillRpcServer[
           sendToClient(MillRpcServerToClient.Response(Right(e.response)))
           return false
         case _: InterruptedException => return false
-        case NonFatal(e) => Left(RpcThrowable(e))
+        case e =>
+          val failure = Result.Failure.fromException(e)
+          val chain =
+            if (failure.exception.nonEmpty) failure.exception
+            else
+              Seq(Result.Failure.ExceptionInfo(
+                e.getClass.getName,
+                e.getMessage,
+                e.getStackTrace.toSeq
+              ))
+          Left(Result.SerializedException.from(chain))
       }
 
     sendToClient(MillRpcServerToClient.Response(result))
