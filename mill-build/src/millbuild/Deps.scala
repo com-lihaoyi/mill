@@ -111,7 +111,7 @@ object Deps {
   val graphvizJava = Seq(
     mvn"guru.nidi:graphviz-java-min-deps:0.18.1",
     mvn"org.webjars.npm:viz.js-graphviz-java:2.1.3",
-    mvn"org.apache.xmlgraphics:batik-rasterizer:1.18"
+    mvn"org.apache.xmlgraphics:batik-rasterizer:1.19"
   )
   val graphvizWithExcludes = mvn"guru.nidi:graphviz-java-min-deps:0.18.1"
     // We only need the in-memory library for some stuff, and don't
