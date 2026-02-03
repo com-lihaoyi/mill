@@ -97,7 +97,7 @@ out/foo/compile.dest
 // == Other files in the `out/` directory
 //
 // Apart from the build task-related files in the out folder, Mill itself places a variety
-// of files in the outfolder under the `out/mill-*` prefix:
+// of files in the out folder under the `out/mill-*` prefix:
 
 /** Usage
 
@@ -105,9 +105,14 @@ out/foo/compile.dest
 out/mill-chrome-profile.json
 out/mill-dependency-tree.json
 out/mill-invalidation-tree.json
+out/mill-java-home
+out/mill-no-daemon
+out/mill-out-lock
 out/mill-profile.json
 out/mill-build
 out/mill-daemon
+out/mill-runner-state.json
+out/mill-selective-execution.json
 
 */
 
@@ -162,6 +167,24 @@ out/mill-daemon
 // is most useful to get a high-level overview of the runtime performance characteristics of
 // the tasks that were
 //
+// === `mill-runner-state.json`
+// Long-lived metadata about the Mill bootstrap process that persists between runs:
+// workers, watched files, classpaths, and related data.
+//
+// === `mill-active.json`
+// A JSON file containing info about the active Mill process (command and process directory),
+// used for debugging. It is present while a command is running and removed afterward.
+//
+// === `mill-selective-execution.json`
+// Metadata related to selective execution (input hashes and method signatures) used to decide
+// what tasks need to run after code or input changes.
+//
+// === `mill-no-daemon`
+// A subfolder used to contain the Mill subprocess when run in `--no-daemon` mode.
+//
+// === `mill-java-home`
+// Debugging file used to record the Java home of the running Mill command.
+//
 // === `mill-dependency-tree.json`
 // A JSON file where the root keys are the tasks directly specified by the last
 // `./mill <selector>` command, and the tree structure shows the _upstream_ tasks and how
@@ -169,7 +192,7 @@ out/mill-daemon
 // `<selector>` is causing a particular upstream task to be selected.
 //
 // For example, when running `foo.compile` above, we get a tree structure (simplified below)
-// that hsows how `foo.compile` depends on `foo.allSourceFiles`/`foo.allSources`/`foo.sources`
+// that shows how `foo.compile` depends on `foo.allSourceFiles`/`foo.allSources`/`foo.sources`
 // (the files in the `src/` folder), `foo.compileClasspath`/`localCompileClasspath`/`compileResources`
 // (i.e. the files in the `compile-resources/` folder:
 
