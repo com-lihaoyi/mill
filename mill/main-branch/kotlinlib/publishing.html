@@ -441,7 +441,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -728,7 +728,7 @@ do so, your module must extend <code>mill.scalalib.PublishModule</code>, and con
 publishing metadata shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-37-854b05/mill-dist-1.1.0-example-kotlinlib-publishing-1-publishing-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/publishing/1-publishing-yaml/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-38-859ae1/mill-dist-1.1.0-example-kotlinlib-publishing-1-publishing-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/publishing/1-publishing-yaml/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [KotlinModule, PublishModule]
 kotlinVersion: 2.0.20
@@ -782,7 +782,7 @@ can be resolved from the local repository, with no missing dependencies.</p>
 <h2 id="_versioning_based_on_git_tags"><a class="anchor" href="#_versioning_based_on_git_tags"></a>Versioning Based on Git Tags</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-37-854b05/mill-dist-1.1.0-example-kotlinlib-publishing-2-vcs-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/publishing/2-vcs-version/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-38-859ae1/mill-dist-1.1.0-example-kotlinlib-publishing-2-vcs-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/publishing/2-vcs-version/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [KotlinModule, PublishModule, mill.util.VcsVersionModule]
 kotlinVersion: 2.0.20
@@ -823,7 +823,7 @@ Publishing Artifact(com.lihaoyi,example...,0.1.0...) to ivy repo...</code></pre>
 <h2 id="_programmable_publishing_configuration"><a class="anchor" href="#_programmable_publishing_configuration"></a>Programmable Publishing Configuration</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-37-854b05/mill-dist-1.1.0-example-kotlinlib-publishing-3-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/publishing/3-publishing">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-38-859ae1/mill-dist-1.1.0-example-kotlinlib-publishing-3-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/publishing/3-publishing">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1029,10 +1029,10 @@ it will fall back to an environment variable (if available) or raise an error if
 <div class="ulist">
 <ul>
 <li>
-<p><code>username</code>: The username for calling the Sonatype Central publishing api. Defaults to the <code>SONATYPE_USERNAME</code> environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown.<br></p>
+<p><code>username</code>: The username for calling the Sonatype Central publishing api. Defaults to the <code>MILL_SONATYPE_USERNAME</code> environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown.<br></p>
 </li>
 <li>
-<p><code>password</code>: The password for calling the Sonatype Central publishing api. Defaults to the <code>SONATYPE_PASSWORD</code> environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown.<br></p>
+<p><code>password</code>: The password for calling the Sonatype Central publishing api. Defaults to the <code>MILL_SONATYPE_PASSWORD</code> environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown.<br></p>
 </li>
 <li>
 <p><code>gpgArgs</code>: Arguments to pass to the gpg package for signing artifacts. Uses the <code>MILL_PGP_PASSPHRASE</code> environment variable if set. <em>Default: <code>[--passphrase=$MILL_PGP_PASSPHRASE], --no-tty, --pinentry-mode, loopback, --batch, --yes, --armor, --detach-sign</code>.</em><br></p>

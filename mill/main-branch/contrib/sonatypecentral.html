@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Sonatype Central (Plugin Moved to Scalalib) :: The Mill Build Tool</title>
+    <title>Sonatype Central :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/contrib/sonatypecentral.html">
     <link rel="prev" href="sbom.html">
     <link rel="next" href="testng.html">
@@ -441,7 +441,7 @@
   </li>
 
   <li class="nav-item is-current-page is-active" data-depth="3">
-    <a class="nav-link" href="sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+    <a class="nav-link" href="sonatypecentral.html">Sonatype Central</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -711,122 +711,16 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Sonatype Central (Plugin Moved to Scalalib)</h1>
-<div id="preamble">
-<div class="sectionbody">
+<h1 class="page">Sonatype Central</h1>
 <div class="paragraph">
-<p>This plugin allows users to publish open-source packages to Maven Central via the Sonatype Central portal.</p>
+<p>This documentation has moved. See the Sonatype Central section in the main publishing docs:</p>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_quickstart"><a class="anchor" href="#_quickstart"></a>Quickstart</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Add the following to your <code>build.mill</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["com.lihaoyi::mill-contrib-sonatypecentral:$MILL_VERSION"]
-package build
-
-import mill.contrib.sonatypecentral.SonatypeCentralPublishModule
-
-object mymodule extends SonatypeCentralPublishModule {
-  ...
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Then run the following to publish the individual module:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>$ mill mymodule.publishSonatypeCentral</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>To publish several modules at once, run the following, with arguments adjusted for your use case:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>$ mill mill.contrib.sonatypecentral/publishAll \
---username myusername \
---password mypassword \
---gpgArgs --passphrase=$MILL_PGP_PASSPHRASE,--no-tty,--pinentry-mode,loopback,--batch,--yes,--armor,--detach-sign \
---publishArtifacts __.publishArtifacts \
---readTimeout  36000 \
---awaitTimeout 36000 \
---connectTimeout 36000 \
---shouldRelease false \
---bundleName com.lihaoyi-requests:1.0.0</pre>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_module_settings"><a class="anchor" href="#_module_settings"></a>Module Settings</h3>
-<div class="paragraph">
-<p>Below are the default publishing settings on the module level, which can be explicitly configured by users like so:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object mymodule extends SonatypeCentralPublishModule {
-  override def sonatypeCentralGpgArgs: T[String] = "--batch, --yes, -a, -b"
-
-  override def sonatypeCentralConnectTimeout: T[Int] = 5000
-
-  override def sonatypeCentralReadTimeout: T[Int] = 60000
-
-  override def sonatypeCentralAwaitTimeout: T[Int] = 120 * 1000
-
-  override def sonatypeCentralShouldRelease: T[Boolean] = true
-  ...
-}</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_argument_reference"><a class="anchor" href="#_argument_reference"></a>Argument Reference</h3>
-<div class="sect3">
-<h4 id="_publishall"><a class="anchor" href="#_publishall"></a>publishAll</h4>
-<div class="paragraph">
-<p>The <code>mill.contrib.sonatypecentral/publishAll</code> method takes the following arguments:</p>
-</div>
-<div class="paragraph">
-<p><code>username</code>: The username for calling the Sonatype Central publishing api. Defaults to the <code>SONATYPE_USERNAME</code> environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown.<br></p>
-</div>
-<div class="paragraph">
-<p><code>password</code>: The password for calling the Sonatype Central publishing api. Defaults to the <code>SONATYPE_PASSWORD</code> environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown.<br></p>
-</div>
-<div class="paragraph">
-<p><code>gpgArgs</code>: Arguments to pass to the gpg package for signing artifacts. Uses the <code>MILL_PGP_PASSPHRASE</code> environment variable if set. <em>Default: <code>[--passphrase=$MILL_PGP_PASSPHRASE], --no-tty, --pinentry-mode, loopback, --batch, --yes, --armor, --detach-sign</code>.</em><br></p>
-</div>
-<div class="paragraph">
-<p><code>publishArtifacts</code>: The command for generating all publishable artifacts (ex. <code>__.publishArtifacts</code>). Required.<br></p>
-</div>
-<div class="paragraph">
-<p><code>readTimeout</code>:  The timeout for receiving a response from Sonatype Central after the initial connection has occurred. <em>Default: 60000.</em><br></p>
-</div>
-<div class="paragraph">
-<p><code>awaitTimeout</code>: The overall timeout for all retries (including exponential backoff) of the bundle upload. <em>Default: 120 * 1000.</em><br></p>
-</div>
-<div class="paragraph">
-<p><code>connectTimeout</code>: The timeout for the initial connection to Sonatype Central if there is no response. <em>Default: 5000.</em><br></p>
-</div>
-<div class="paragraph">
-<p><code>shouldRelease</code>: Whether the bundle should be automatically released when uploaded to Sonatype Central. If <code>false</code>, the bundle will still be uploaded, but users will need to manually log in to Sonatype Central and publish the bundle from the portal. <em>Default: true</em><br></p>
-</div>
-<div class="paragraph">
-<p><code>bundleName</code>: If set, all packages will be uploaded in a single bundle with the given name. If unset, packages will be uploaded separately. Recommended bundle name syntax: groupName-artifactId-versionNumber. As an example, if publishing the <code>com.lihaoyi</code> <code>requests</code> package, without the bundle name, four different bundles will be uploaded, one for each scala version supported. With a bundle name of <code>com.lihaoyi-requests-&lt;new_version&gt;</code>, a single bundle will be uploaded that contains all packages across scala versions. It is recommended to set the bundle name, so that packages can be verified and deployed together. <em>Default: No bundle name is set and packages will be uploaded separately</em></p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_publishsonatypecentral"><a class="anchor" href="#_publishsonatypecentral"></a>publishSonatypeCentral</h4>
-<div class="paragraph">
-<p>The <code>__.publishSonatypeCentral</code> command takes the <code>username</code> and <code>password</code> arguments, documented above.</p>
-</div>
-</div>
-</div>
-</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="../javalib/publishing.html#_sonatypecentralpublishmodule_argument_reference" class="xref page">Publishing to Sonatype Central</a></p>
+</li>
+</ul>
 </div>
 <nav class="pagination">
   <span class="prev"><a href="sbom.html">Software Bill of Materials (SBOM)</a></span>

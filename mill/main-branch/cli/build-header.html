@@ -441,7 +441,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -768,8 +768,7 @@ package build
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><a href="installation-ide.html" class="xref page">mill-version</a>: if provided, this must be unquoted in
-the first line of the build header, and specifies the version of Mill used in this
+<p><a href="installation-ide.html" class="xref page">mill-version</a>: specifies the version of Mill used in this
 project. If not provided, Mill will launch using the version of your <code>./mill</code> or
 <code>./mill.bat</code> bootstrap script.</p>
 </li>
@@ -820,8 +819,7 @@ can be done by adding your build header:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>The file name <code>.mill-opts</code> can be overridden via the <code>MILL_OPTS_PATH</code> environment variable.
-You can also pass in flags like <code>--jobs=10</code> explicitly to override the value passed in
+<p>You can also pass in flags like <code>--jobs=10</code> explicitly to override the value passed in
 <code>.mill-opts</code>. See <a href="flags.html" class="xref page">Mill Command-Line Flags</a> for documentation on what
 flags the Mill executable can take.</p>
 </div>
@@ -863,7 +861,7 @@ version used for any JVMs spawned by Mill to <code>run</code> or <code>test</cod
 YAML key:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-37-854b05/mill-dist-1.1.0-example-cli-header-3-jvm-version-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/cli/header/3-jvm-version-yaml/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-38-859ae1/mill-dist-1.1.0-example-cli-header-3-jvm-version-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/cli/header/3-jvm-version-yaml/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-jvm-version: temurin:17.0.6
 
@@ -926,7 +924,7 @@ in Mill&#8217;s jvm index version) or an older JVM index.</p>
 </ul>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-37-854b05/mill-dist-1.1.0-example-cli-header-4-jvm-index-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/cli/header/4-jvm-index-version">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-38-859ae1/mill-dist-1.1.0-example-cli-header-4-jvm-index-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/cli/header/4-jvm-index-version">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-index-version: 0.0.4-88-f9ba3d
 //| mill-jvm-version: temurin:17
@@ -1052,7 +1050,7 @@ you can also override other tasks such as <code>scalacOptions</code> which in th
 is used to turn on fatal warnings for unused private methods:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-37-854b05/mill-dist-1.1.0-example-cli-header-1-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/cli/header/1-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-38-859ae1/mill-dist-1.1.0-example-cli-header-1-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/cli/header/1-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| scalacOptions: ["-Wunused:privates", "-Xfatal-warnings"]
 
@@ -1076,7 +1074,7 @@ For simple projects defined with a <code>build.mill.yaml</code> file, meta-build
 is put in the <code>mill-build:</code> key of the <code>build.mill.yaml</code> file:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-37-854b05/mill-dist-1.1.0-example-cli-header-2-tasks-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/cli/header/2-tasks-yaml/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-38-859ae1/mill-dist-1.1.0-example-cli-header-2-tasks-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/cli/header/2-tasks-yaml/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-build:
   scalacOptions: ["-verbose"]</code></pre>
