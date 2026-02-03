@@ -272,7 +272,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
             val taskInvalidationReasons = result.globalInvalidationReason match {
               case Some(reason) =>
                 rootInvalidatedTasks
-                  .collect { case n: Task.Named[_] => n.ctx.segments.render -> reason}
+                  .collect { case n: Task.Named[_] => n.ctx.segments.render -> reason }
                   .toMap
 
               case None => Map.empty[String, String]
