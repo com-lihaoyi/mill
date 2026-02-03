@@ -7,7 +7,7 @@ import mill.api.daemon.internal.bsp.ScalaBuildTarget
 import mill.api.Result
 import mill.api.CrossVersion
 import mill.scalalib.{Dep, DepSyntax, Lib, TestModule}
-import mill.javalib.api.JvmWorkerUtil
+import mill.javalib.api.*
 import mill.scalajslib.api.*
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 import mill.*
@@ -30,21 +30,21 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
     override def scalaJSOptimizer: T[Boolean] = outer.scalaJSOptimizer()
   }
 
-  def scalaJSBinaryVersion = Task { JvmWorkerUtil.scalaJSBinaryVersion(scalaJSVersion()) }
+  def scalaJSBinaryVersion = Task { scalaJSBinaryVersion(scalaJSVersion()) }
 
-  def scalaJSWorkerVersion = Task { JvmWorkerUtil.scalaJSWorkerVersion(scalaJSVersion()) }
+  def scalaJSWorkerVersion = Task { scalaJSWorkerVersion(scalaJSVersion()) }
 
   override def scalaLibraryMvnDeps: T[Seq[Dep]] = Task {
     val sv = scalaVersion()
     val baseDeps =
-      if (JvmWorkerUtil.isScala3(sv) && !JvmWorkerUtil.enforceScala213Library(sv)) {
+      if (isScala3(sv) && !enforceScala213Library(sv)) {
         // For Scala 3.8+ on Scala.js, we still need scala3-library_sjs1_3
         // (JVM uses scala-library, but Scala.js artifacts are published as scala3-library)
         Seq(mvn"${scalaOrganization()}::scala3-library:$sv")
       } else {
         super.scalaLibraryMvnDeps()
       }
-    if (JvmWorkerUtil.isScala3(sv)) {
+    if (isScala3(sv)) {
       // Since Dotty/Scala3, Scala.JS is published with a platform suffix
       baseDeps.map(dep =>
         dep.copy(cross = dep.cross match {
@@ -224,7 +224,7 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
     // ScalaJSModule as well as from the enclosing non-test ScalaJSModule
     val scalajsFlag =
       if (
-        JvmWorkerUtil.isScala3(scalaVersion()) &&
+        isScala3(scalaVersion()) &&
         !super.mandatoryScalacOptions().contains("-scalajs")
       ) Seq("-scalajs")
       else Seq.empty
@@ -234,7 +234,7 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
 
   override def scalacPluginMvnDeps = Task {
     super.scalacPluginMvnDeps() ++ {
-      if (JvmWorkerUtil.isScala3(scalaVersion())) {
+      if (isScala3(scalaVersion())) {
         Seq.empty
       } else {
         Seq(mvn"org.scala-js:::scalajs-compiler:${scalaJSVersion()}")
@@ -348,7 +348,7 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
       ScalaBuildTarget(
         scalaOrganization = scalaOrganization(),
         scalaVersion = scalaVersion(),
-        scalaBinaryVersion = JvmWorkerUtil.scalaBinaryVersion(scalaVersion()),
+        scalaBinaryVersion = scalaBinaryVersion(scalaVersion()),
         platform = ScalaPlatform.JS,
         jars = scalaCompilerClasspath().iterator.map(_.path.toURI.toString).toSeq,
         jvmBuildTarget = None

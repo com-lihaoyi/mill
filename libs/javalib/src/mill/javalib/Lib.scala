@@ -8,7 +8,7 @@ import coursier.util.Task
 import coursier.{Dependency, Repository, Resolution, Type}
 import mill.api.{TaskCtx, PathRef}
 import mill.api.Result
-import mill.javalib.api.JvmWorkerUtil
+import mill.javalib.api.*
 
 /**
  * Utilities around managing JVM dependencies
@@ -21,7 +21,7 @@ object Lib {
 
   def depToDependency(dep: Dep, scalaVersion: String, platformSuffix: String = ""): Dependency =
     dep.toDependency(
-      binaryVersion = JvmWorkerUtil.scalaBinaryVersion(scalaVersion),
+      binaryVersion = scalaBinaryVersion(scalaVersion),
       fullVersion = scalaVersion,
       platformSuffix = platformSuffix
     )
@@ -103,9 +103,9 @@ object Lib {
   }
 
   def scalaCompilerMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
-    if (JvmWorkerUtil.isDotty(scalaVersion))
+    if (isDotty(scalaVersion))
       Seq(mvn"$scalaOrganization::dotty-compiler:$scalaVersion")
-    else if (JvmWorkerUtil.isScala3(scalaVersion))
+    else if (isScala3(scalaVersion))
       Seq(mvn"$scalaOrganization::scala3-compiler:$scalaVersion")
     else
       Seq(
@@ -126,12 +126,12 @@ object Lib {
   }
 
   def scalaDocMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
-    if (JvmWorkerUtil.isDotty(scalaVersion))
+    if (isDotty(scalaVersion))
       Seq(mvn"$scalaOrganization::dotty-doc:$scalaVersion")
-    else if (JvmWorkerUtil.isScala3Milestone(scalaVersion))
+    else if (isScala3Milestone(scalaVersion))
       // 3.0.0-RC1 > scalaVersion >= 3.0.0-M1 still uses dotty-doc, but under a different artifact name
       Seq(mvn"$scalaOrganization::scala3-doc:$scalaVersion")
-    else if (JvmWorkerUtil.isScala3(scalaVersion))
+    else if (isScala3(scalaVersion))
       // scalaVersion >= 3.0.0-RC1 uses scaladoc
       Seq(mvn"$scalaOrganization::scaladoc:$scalaVersion")
     else
@@ -139,9 +139,9 @@ object Lib {
       scalaCompilerMvnDeps(scalaOrganization, scalaVersion)
 
   def scalaRuntimeMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
-    if (JvmWorkerUtil.isDotty(scalaVersion)) {
+    if (isDotty(scalaVersion)) {
       Seq(mvn"$scalaOrganization::dotty-library:$scalaVersion")
-    } else if (JvmWorkerUtil.isScala3(scalaVersion) && JvmWorkerUtil.enforceScala213Library(scalaVersion)) {
+    } else if (isScala3(scalaVersion) && enforceScala213Library(scalaVersion)) {
       Seq(mvn"$scalaOrganization::scala3-library:$scalaVersion")
     } else {
       Seq(mvn"$scalaOrganization:scala-library:$scalaVersion")
