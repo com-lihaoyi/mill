@@ -139,7 +139,6 @@ object SpanningForest {
     val flatEdges = edges.iterator.flatMap { case (k, vs) => vs.map(_ -> k) }.toVector
     flatEdges
       .groupMap(_._1)(_._2)
-      .map { case (k, v) => (k, v.toVector.sortBy(_.toString)) }
-      .toMap
+      .map { case (k, v) => (k, v.sortBy(_.toString)) }
   }
 }
