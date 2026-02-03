@@ -30,9 +30,9 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
     override def scalaJSOptimizer: T[Boolean] = outer.scalaJSOptimizer()
   }
 
-  def scalaJSBinaryVersion = Task { scalaJSBinaryVersion(scalaJSVersion()) }
+  def scalaJSBinaryVersion = Task { JvmWorkerUtil.scalaJSBinaryVersion(scalaJSVersion()) }
 
-  def scalaJSWorkerVersion = Task { scalaJSWorkerVersion(scalaJSVersion()) }
+  def scalaJSWorkerVersion = Task { JvmWorkerUtil.scalaJSWorkerVersion(scalaJSVersion()) }
 
   override def scalaLibraryMvnDeps: T[Seq[Dep]] = Task {
     val sv = scalaVersion()
