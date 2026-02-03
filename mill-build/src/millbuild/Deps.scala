@@ -201,7 +201,7 @@ object Deps {
   val javaparser = mvn"com.github.javaparser:javaparser-core:3.28.0"
   val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.16.0"
   val requests = mvn"com.lihaoyi::requests:0.9.3"
-  val logback = mvn"ch.qos.logback:logback-classic:1.5.24"
+  val logback = mvn"ch.qos.logback:logback-classic:1.5.27"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
   val kotlinVersion = "2.1.20"
   val kspVersion = "2.0.1"
