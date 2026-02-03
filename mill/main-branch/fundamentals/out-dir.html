@@ -727,7 +727,7 @@ project&#8217;s module structure.</p>
 <p>For the purposes of this page, we will be using the following minimal Mill build</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-48-283be6/mill-dist-1.1.0-example-fundamentals-out-dir-1-out-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/out-dir/1-out-files">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-49-178463/mill-dist-1.1.0-example-fundamentals-out-dir-1-out-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/out-dir/1-out-files">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -852,14 +852,11 @@ of files in the out folder under the <code>out/mill-*</code> prefix:</p>
 out/mill-chrome-profile.json
 out/mill-dependency-tree.json
 out/mill-invalidation-tree.json
-out/mill-java-home
-out/mill-no-daemon
 out/mill-out-lock
 out/mill-profile.json
 out/mill-build
 out/mill-daemon
-out/mill-runner-state.json
-out/mill-selective-execution.json</code></pre>
+out/mill-runner-state.json</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -947,12 +944,6 @@ what tasks need to run after code or input changes.</p>
 <h3 id="_mill_no_daemon"><a class="anchor" href="#_mill_no_daemon"></a><code>mill-no-daemon</code></h3>
 <div class="paragraph">
 <p>A subfolder used to contain the Mill subprocess when run in <code>--no-daemon</code> mode.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_mill_java_home"><a class="anchor" href="#_mill_java_home"></a><code>mill-java-home</code></h3>
-<div class="paragraph">
-<p>Debugging file used to record the Java home of the running Mill command.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1105,7 +1096,7 @@ in a faster or a writable filesystem for example, you can change the output dire
 via the <code>MILL_OUTPUT_DIR</code> environment variable.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-48-283be6/mill-dist-1.1.0-example-fundamentals-out-dir-2-custom-out.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/out-dir/2-custom-out">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-49-178463/mill-dist-1.1.0-example-fundamentals-out-dir-2-custom-out.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/out-dir/2-custom-out">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
