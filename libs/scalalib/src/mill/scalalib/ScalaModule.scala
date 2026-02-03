@@ -72,9 +72,12 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       val artifacts =
         if (JvmWorkerUtil.isDotty(scalaVersion()))
           Set("dotty-library", "dotty-compiler")
-        else if (JvmWorkerUtil.isScala3(scalaVersion()))
-          Set("scala3-library", "scala3-compiler")
-        else
+        else if (JvmWorkerUtil.isScala3(scalaVersion())) {
+          val runtime =
+            if (JvmWorkerUtil.enforceScala213Library(scalaVersion())) "scala3-library"
+            else "scala-library"
+          Set("scala3-library", "scala3-compiler", runtime)
+        } else
           Set("scala-library", "scala-compiler", "scala-reflect")
       if (!artifacts(d.module.name.value)) d
       else

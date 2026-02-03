@@ -71,6 +71,13 @@ object CrossVersionTests extends TestSuite {
       override def mvnDeps = Seq(mvn"com.lihaoyi::sourcecode:0.2.7")
     }
 
+    object StandaloneScala38 extends ScalaModule {
+      val tree =
+        """└─ org.scala-lang:scala-library:3.8.1
+          |""".stripMargin
+      override def scalaVersion = "3.8.1"
+    }
+
     object JavaDependsOnScala3 extends JavaModule {
       val tree =
         """├─ Scala3DependsOnScala213
@@ -211,6 +218,16 @@ object CrossVersionTests extends TestSuite {
           "upickle_2.13-1.4.0.jar"
         ),
         expectedMvnDepsTree = Some(Scala3DependsOnScala213.tree)
+      )
+    }
+
+    test("StandaloneScala38") {
+      check(
+        mod = StandaloneScala38,
+        expectedLibs = Seq(
+          "scala-library-3.8.1.jar"
+        ),
+        expectedMvnDepsTree = Some(StandaloneScala38.tree)
       )
     }
 
