@@ -141,13 +141,11 @@ object Lib {
   def scalaRuntimeMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
     if (JvmWorkerUtil.isDotty(scalaVersion)) {
       Seq(mvn"$scalaOrganization::dotty-library:$scalaVersion")
-    } else if (JvmWorkerUtil.isScala3(scalaVersion)) {
-      if (JvmWorkerUtil.enforceScala213Library(scalaVersion))
-        Seq(mvn"$scalaOrganization::scala3-library:$scalaVersion")
-      else
-        Seq(mvn"$scalaOrganization:scala-library:$scalaVersion")
-    } else
+    } else if (JvmWorkerUtil.isScala3(scalaVersion) && JvmWorkerUtil.enforceScala213Library(scalaVersion)) {
+      Seq(mvn"$scalaOrganization::scala3-library:$scalaVersion")
+    } else {
       Seq(mvn"$scalaOrganization:scala-library:$scalaVersion")
+    }
 
   def findSourceFiles(sources: Seq[PathRef], extensions: Seq[String]): Seq[os.Path] = {
     def isHiddenFile(path: os.Path) = path.last.startsWith(".")
