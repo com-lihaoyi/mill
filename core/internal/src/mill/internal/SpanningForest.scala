@@ -46,13 +46,12 @@ object SpanningForest {
   }
 
   def spanningTreeToJsonTree(node: SpanningForest.Node, stringify: Int => String): ujson.Obj = {
-    val entries = node.values.toSeq.sortBy(_._1).map { case (k, v) =>
-      stringify(k) -> spanningTreeToJsonTree(v, stringify)
-    }
-    ujson.Obj.from(entries)
+    ujson.Obj.from(
+      node.values.map { case (k, v) => stringify(k) -> spanningTreeToJsonTree(v, stringify) }
+    )
   }
 
-  case class Node(values: mutable.Map[Int, Node] = mutable.LinkedHashMap())
+  case class Node(values: mutable.LinkedHashMap[Int, Node] = mutable.LinkedHashMap())
 
   /**
    * Build spanning forest with explicitly provided roots.
@@ -72,7 +71,7 @@ object SpanningForest {
     // Do a breadth first search from the root nodes across the graph edges
     // to build up the spanning forest
     breadthFirst(rootNodeIndices) { index =>
-      val nextIndices = indexGraphEdges(index).filter(importantVertices).sorted
+      val nextIndices = indexGraphEdges(index).filter(importantVertices)
 
       // We build up the spanningForest during a normal breadth first search,
       // using the `nodeMapping` to quickly find a vertice's tree node so we

@@ -96,7 +96,7 @@ object InvalidationForest {
       downstreamTaskEdges0: Map[Task[?], Vector[Task[?]]]
   ) = {
     val downstreamTaskEdges: Map[String, Seq[String]] = downstreamTaskEdges0
-      .map { case (k, vs) => k.toString -> vs.map(_.toString).sorted }
+      .map { case (k, vs) => k.toString -> vs.map(_.toString) }
 
     val allTaskNodes = SpanningForest
       .breadthFirst(rootInvalidatedTaskStrings)(downstreamTaskEdges.getOrElse(_, Nil))
