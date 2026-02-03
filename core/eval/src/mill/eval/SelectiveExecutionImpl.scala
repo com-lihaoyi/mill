@@ -195,9 +195,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
     breadthFirst(t.selectiveInputs) {
       case _: Task.Named[_] => Nil
       case t => t.selectiveInputs
-    }.collect { case n: Task.Named[_] => n }
-      .distinct
-      .sortBy(_.ctx.segments.render)
+    }.collect { case n: Task.Named[_] => n }.distinct
 
   def resolveTree(tasks: Seq[String]): Result[ujson.Value] = {
     evaluator.resolveTasks(
