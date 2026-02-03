@@ -215,18 +215,17 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
   }
 
   def namedUpstreamEdges(tasks: Seq[Task[?]]): Map[Task.Named[?], Seq[Task.Named[?]]] = {
-    val namedTasks = tasks.collect { case n: Task.Named[_] => n }
-
-    def collectNamedInputs(start: Seq[Task[?]]): Seq[Task.Named[?]] = {
-      breadthFirst(start) {
-        case _: Task.Named[_] => Nil
-        case t => t.selectiveInputs
-      }.collect { case n: Task.Named[_] => n }
-        .distinct
-        .sortBy(_.ctx.segments.render)
-    }
-
-    namedTasks.map(t => t -> collectNamedInputs(t.selectiveInputs)).toMap
+    tasks
+      .collect { case n: Task.Named[_] =>
+        n ->
+          breadthFirst(n.selectiveInputs) {
+            case _: Task.Named[_] => Nil
+            case t => t.selectiveInputs
+          }.collect { case n: Task.Named[_] => n }
+            .distinct
+            .sortBy(_.ctx.segments.render)
+      }
+      .toMap
   }
 
   def resolveTree(tasks: Seq[String]): Result[ujson.Value] = {
