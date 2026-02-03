@@ -238,7 +238,6 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
         case None => ujson.Obj()
         case Some(result) =>
           val downstreamNamed = result.downstreamTasks.collect { case n: Task.Named[_] => n }
-          val selectedTaskNames = downstreamNamed.map(_.ctx.segments.render).toSet
 
           if (downstreamNamed.isEmpty) ujson.Obj()
           else {
@@ -280,7 +279,10 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
               taskInvalidationReasons = taskInvalidationReasons
             )
 
-            pruneInvalidationTreeToSelected(tree, selectedTaskNames)
+            pruneInvalidationTreeToSelected(
+              tree,
+              downstreamNamed.map(_.ctx.segments.render).toSet
+            )
           }
       }
     }
