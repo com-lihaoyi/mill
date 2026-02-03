@@ -2,6 +2,7 @@ package mill
 package scalajslib
 
 import mainargs.{Flag, arg}
+import coursier.ModuleName
 import mill.api.daemon.internal.{ScalaJSModuleApi, ScalaPlatform, internal}
 import mill.api.daemon.internal.bsp.ScalaBuildTarget
 import mill.api.Result
@@ -35,7 +36,25 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
   def scalaJSWorkerVersion = Task { JvmWorkerUtil.scalaJSWorkerVersion(scalaJSVersion()) }
 
   override def scalaLibraryMvnDeps: T[Seq[Dep]] = Task {
-    val deps = super.scalaLibraryMvnDeps()
+    val deps0 = super.scalaLibraryMvnDeps()
+    val deps =
+      if (JvmWorkerUtil.isScala3(scalaVersion()) &&
+        !JvmWorkerUtil.enforceScala213Library(scalaVersion()))
+        deps0.map { dep =>
+          if (dep.name == "scala-library") {
+            val cross = dep.cross match {
+              case c: CrossVersion.Constant if c.value.isEmpty => CrossVersion.Binary(c.platformed)
+              case c => c
+            }
+            dep.copy(
+              dep = dep.dep.withModule(
+                dep.dep.module.withName(ModuleName("scala3-library"))
+              ),
+              cross = cross
+            )
+          } else dep
+        }
+      else deps0
     if (JvmWorkerUtil.isScala3(scalaVersion())) {
       // Since Dotty/Scala3, Scala.JS is published with a platform suffix
       deps.map(dep =>
