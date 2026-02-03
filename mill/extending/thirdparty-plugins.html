@@ -441,7 +441,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -661,7 +661,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.0</span>
+    <span class="version">1.1.1</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -671,10 +671,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.0</a>
-        </li>
-        <li class="version">
-          <a href="../dev-1.1.0-10-fec938/index.html">dev-1.1.0-10-fec938</a>
+          <a href="../index.html">1.1.1</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -866,48 +863,6 @@ bundling it. Currently Webpack and Rollup are implemented but it&#8217;s easy to
 </div>
 <div class="paragraph">
 <p>Project home: <a href="https://github.com/nafg/mill-bundler" class="bare">https://github.com/nafg/mill-bundler</a></p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_ci_release"><a class="anchor" href="#_ci_release"></a>CI Release</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p><code>mill-ci-release</code> is a wrapper around the existing publish functionality of
-Mill with the aim to making releasing your project in GitHub Actions to Maven
-easier by automating common setup such as setting up gpg in CI, setting up
-versioning, and ensuring merges to into your main branch get published as a
-SNAPSHOT. If you&#8217;re coming from <code>sbt</code>, then you&#8217;re likely familiar with
-<a href="https://github.com/sbt/sbt-ci-release"><code>sbt-ci-release</code></a> which this plugin
-imitates.</p>
-</div>
-<div class="paragraph">
-<p>Project home: <a href="https://github.com/ckipp01/mill-ci-release" class="bare">https://github.com/ckipp01/mill-ci-release</a></p>
-</div>
-<div class="paragraph">
-<p>To get started, you&#8217;ll want to use <code>CiReleaseModule</code> as a drop in replacement
-where you&#8217;d normally use the Mill <code>PublishModule</code> and then ensure you implement
-everything that <code>PublishModule</code> requires.</p>
-</div>
-<div class="paragraph">
-<p>Secondly, you&#8217;ll need to ensure you have a few environment variables correctly
-set in your GitHub repo. You can see detailed instructions on which are
-necessary <a href="https://github.com/ckipp01/mill-ci-release#secrets">here</a>.</p>
-</div>
-<div class="paragraph">
-<p>Then in CI to publish you&#8217;ll simply issue a single command:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- run: mill -i io.kipp.mill.ci.release.ReleaseModule/publishAll</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This will automatically grab all the artifacts that you&#8217;ve defined to publish
-in your build and publish them. Your version will automatically be managed by
-<a href="https://github.com/lefou/mill-vcs-version"><code>mill-vcs-version</code></a> and if your
-version ends in <code>-SNAPSHOT</code> you&#8217;re project will be published to Sonatype
-Snapshots or to the normal releases if it&#8217;s a new tag.</p>
 </div>
 </div>
 </div>
@@ -2125,34 +2080,6 @@ object example extends JavaAppPackagingModule {
 <div class="title">Package as zip archive with Bash start script</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill example.universalPackage</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_vcs_version"><a class="anchor" href="#_vcs_version"></a>VCS Version</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Mill plugin to derive a version from (last) git tag and edit state. It may support other VCS as well.</p>
-</div>
-<div class="paragraph">
-<p>Project home: <a href="https://github.com/lefou/mill-vcs-version" class="bare">https://github.com/lefou/mill-vcs-version</a></p>
-</div>
-<div class="paragraph">
-<p>Lots of formatting options are provided.
-When used with its defaults, the outcome is identical to the version scheme that Mill itself uses.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["de.tototec::de.tobiasroeser.mill.vcs.version::0.1.2"]
-
-import mill.*
-import mill.scalalib.*
-import de.tobiasroeser.mill.vcs.version.VcsVersion
-
-object main extends JavaModule, PublishModule {
-  override def publishVersion: T[String] = VcsVersion.vcsState().format()
-}</code></pre>
 </div>
 </div>
 </div>

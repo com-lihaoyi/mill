@@ -441,7 +441,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -661,7 +661,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.0</span>
+    <span class="version">1.1.1</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -671,10 +671,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.0</a>
-        </li>
-        <li class="version">
-          <a href="../dev-1.1.0-10-fec938/index.html">dev-1.1.0-10-fec938</a>
+          <a href="../index.html">1.1.1</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -728,7 +725,7 @@ do so, your module must extend <code>mill.scalalib.PublishModule</code>, and con
 publishing metadata shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-javalib-publishing-1-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/publishing/1-publishing/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1/mill-dist-1.1.1-example-javalib-publishing-1-publishing-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/javalib/publishing/1-publishing-yaml/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [JavaModule, PublishModule]
 publishVersion: 0.0.1
@@ -764,13 +761,64 @@ Sonatype Maven Central via:</p>
 <p>For more details on packaging and publishing in Mill, see
 <a href="#">Java Packaging &amp; Publishing</a></p>
 </div>
+<div class="paragraph">
+<p><code>publishLocal</code> also accepts options like <code>--doc=false</code> and <code>--sources=false</code>,
+to disable publishing javadoc JARs and source JARs, which are generated and
+published by default. This can be helpful if you&#8217;re not interested in javadoc JARs,
+as compiling these docjars can slow down the local publishing workflow</p>
+</div>
+<div class="paragraph">
+<p><code>publishLocal</code> also accepts <code>--transitive=true</code>, to also publish locally the
+transitive dependencies of the module being published. This ensures the module
+can be resolved from the local repository, with no missing dependencies.</p>
+</div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_programmatic_publishing_configuration"><a class="anchor" href="#_programmatic_publishing_configuration"></a>Programmatic Publishing Configuration</h2>
+<h2 id="_versioning_based_on_git_tags"><a class="anchor" href="#_versioning_based_on_git_tags"></a>Versioning Based on Git Tags</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-javalib-publishing-2-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/publishing/2-publish-module">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1/mill-dist-1.1.1-example-javalib-publishing-2-vcs-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/javalib/publishing/2-vcs-version/build.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [JavaModule, PublishModule, mill.util.VcsVersionModule]
+artifactName: example
+pomSettings:
+  description: Example
+  organization: com.lihaoyi
+  url: https://github.com/com.lihaoyi/example
+  licenses: [MIT]
+  versionControl: https://github.com/com.lihaoyi/example
+  developers: [{name: Li Haoyi, email: example@example.com}]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example demonstrates how to automatically set your <code>publishVersion</code> based on the
+latest <code>git tag</code>. This is useful for workflows such as automatic publishing tags on push,
+such as that discussed in <a href="#_publishing_using_github_actions">Publishing using Github Actions</a></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; git init .
+Initialized empty Git repository in...
+
+&gt; git add -A
+
+&gt; git commit -m "initial commit"
+...
+
+&gt; git tag v0.1.0
+
+&gt; ./mill publishLocal
+Publishing Artifact(com.lihaoyi,example...,0.1.0...) to ivy repo...</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_programmable_publishing_configuration"><a class="anchor" href="#_programmable_publishing_configuration"></a>Programmable Publishing Configuration</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1/mill-dist-1.1.1-example-javalib-publishing-3-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/javalib/publishing/3-publishing">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -790,13 +838,6 @@ object foo extends JavaModule, PublishModule {
 }</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>This is an example <code>JavaModule</code> with added publishing capabilities via
-<code>PublishModule</code>. This requires that you define an additional
-<code>publishVersion</code> and <code>pomSettings</code> with the relevant metadata, and provides
-the <code>.publishLocal</code> and <code>publishSigned</code> tasks for publishing locally to the
-machine or to the central maven repository</p>
-</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.publishLocal
@@ -804,74 +845,365 @@ Publishing Artifact(com.lihaoyi,foo,0.0.1) to ivy repo...</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p><code>publishLocal</code> publishes the artifacts to the <code>~/.ivy2/local</code> folder on your
-machine, allowing them to be resolved by other projects and build tools. This
-is useful as a lightweight way of testing out the published artifacts, without
-the setup overhead and long latencies of publishing artifacts globally accessible
-to anyone in the world.</p>
-</div>
-<div class="paragraph">
-<p><code>publishLocal</code> accepts options like <code>--doc=false</code> and <code>--sources=false</code>,
-to disable publishing javadoc JARs and source JARs, which are generated and
-published by default. This can be helpful if you&#8217;re not interested in javadoc JARs,
-and javadoc generation fails or takes too much time. When using Scala 2, disabling
-javadoc generation can bring large speedups, given it entails compiling your code
-a second time.</p>
-</div>
-<div class="paragraph">
-<p><code>publishLocal</code> also accepts <code>--transitive=true</code>, to also publish locally the
-transitive dependencies of the module being published. This ensures the module
-can be resolved from the local repository, with no missing dependencies.</p>
+<p>This is an example <code>JavaModule</code> with added publishing capabilities via
+<code>PublishModule</code> using Mill&#8217;s
+<a href="intro.html#_programmable_configuration" class="xref page">programmable build.mill</a> syntax.
+It provides <code>publishLocal</code> for local publishing and <code>publishSonatypeCentral</code>
+(or <code>mill.javalib.SonatypeCentralPublishModule/</code>) for publishing to Maven Central.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_publishing_to_sonatype_maven_central"><a class="anchor" href="#_publishing_to_sonatype_maven_central"></a>Publishing to Sonatype Maven Central</h2>
+<h2 id="_publishing_to_maven_central"><a class="anchor" href="#_publishing_to_maven_central"></a>Publishing to Maven Central</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This example is configured for publishing to Sonatype Maven Central via
-Central Portal. We extend <code>SonatypeCentralPublishModule</code> which provides
-simplified publishing tasks without requiring Nexus repository manager.</p>
+<p>Once you&#8217;ve mixed in <code>PublishModule</code>, apart from publishing locally, you can also publish
+your project&#8217;s modules to maven central</p>
+</div>
+<div class="sect2">
+<h3 id="_verifying_your_maven_central_namespace"><a class="anchor" href="#_verifying_your_maven_central_namespace"></a>Verifying your Maven Central Namespace</h3>
+<div class="paragraph">
+<p>Everyone who publishes to Maven Central needs to register their organization&#8217;s namespace
+(e.g. <code>com.lihaoyi</code>) and verify that they own it as a security measure. To do so, please
+create an account at:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://central.sonatype.com/" class="bare">https://central.sonatype.com/</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>And register and verify your namespace by following the instructions at:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://central.sonatype.org/register/namespace/" class="bare">https://central.sonatype.org/register/namespace/</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_setting_up_gpg"><a class="anchor" href="#_setting_up_gpg"></a>Setting up GPG</h3>
+<div class="paragraph">
+<p>If you&#8217;ve never created a keypair before that can be used to sign your artifacts
+you&#8217;ll need to do this. Mill can do this for you via</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-javalib-publishing-3-publish-module-sonatype.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/publishing/3-publish-module-sonatype/build.mill.yaml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-jvm-version: 17</code></pre>
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">$ ./mill mill.javalib.SonatypeCentralPublishModule/initGpgKeys</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This command requests some basic metadata necessary for generating the GPG keys,
+generates a key-pair, registers it, and prints out instructions on how to use
+it from the terminal or in CI.</p>
+</div>
+<div class="paragraph">
+<p>For most users who have never touched GPG before, using <code>initGpgKeys</code> is the easiest
+way to get started. But if for some reason <code>initGpgKeys</code> doesn&#8217;t work, or you want to
+fiddle under the hood, you can also set up your GPG keys manually:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#_manual_gpg_setup">Manual GPG Setup</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_publishing"><a class="anchor" href="#_publishing"></a>Publishing</h3>
+<div class="paragraph">
+<p>Once you have the various secrets <code>export</code>ed as above, you can publish all
+eligible modules in your Mill project using <code>mill.javalib.SonatypeCentralPublishModule/</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill mill.javalib.SonatypeCentralPublishModule/</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-javalib-publishing-3-publish-module-sonatype.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/publishing/3-publish-module-sonatype/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [JavaModule, SonatypeCentralPublishModule]
-publishVersion: 0.0.1
-pomSettings:
-  description: Hello
-  organization: com.lihaoyi
-  url: https://github.com/lihaoyi/example
-  licenses: [MIT]
-  versionControl: github:lihaoyi/example
-  developers:
-  - id: lihaoyi
-    name: Li Haoyi
-    url: https://github.com/lihaoyi</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill mill.javalib.SonatypeCentralPublishModule/ --publishArtifacts foo.publishArtifacts</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_publishing_using_github_actions"><a class="anchor" href="#_publishing_using_github_actions"></a>Publishing Using Github Actions</h3>
+<div class="paragraph">
+<p>To publish on Github Actions, you can use something like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml"># .github/workflows/publish-artifacts.yml
+name: Publish Artifacts
+on:
+  push:
+    tags:
+      - '**'
+  workflow_dispatch:
+jobs:
+  publish-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: ./mill mill.javalib.SonatypeCentralPublishModule/
+        env:
+          MILL_PGP_PASSPHRASE: ${{ secrets.MILL_PGP_PASSPHRASE }}
+          MILL_PGP_SECRET_BASE64: ${{ secrets.MILL_PGP_SECRET_BASE64 }}
+          MILL_SONATYPE_PASSWORD: ${{ secrets.MILL_SONATYPE_PASSWORD }}
+          MILL_SONATYPE_USERNAME: ${{ secrets.MILL_SONATYPE_USERNAME }}</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Note that when publishing artifacts to Maven repositories, the JVM version used to build the
-artifacts will be the minimum version that downstream projects will need to use in order to
-use your artifacts. Thus it is best to set your <code>mill-jvm-version</code> to the lowest version
-possible, e.g. <code>mill-jvm-version: 17</code> in this example which is the lowest version supported
-by Mill.</p>
+<p>Where <code>MILL_PGP_PASSPHRASE</code>, <code>MILL_PGP_SECRET_BASE64</code>, <code>MILL_SONATYPE_PASSWORD</code>, and
+<code>MILL_SONATYPE_USERNAME</code> configured for the repository&#8217;s or organization&#8217;s Github Actions
+workflows. See
+<a href="https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions">Using Secrets in Github Actions</a>
+for more details.</p>
 </div>
 <div class="paragraph">
-<p>If the <code>publishVersion</code> ends with <code>SNAPSHOT</code>, then the artifacts will NOT be signed and will be
-published as a snapshot, which allows overwriting it at a later date. Mill takes care of timestamping
-the snapshots and updating the appropriate <code>maven-metadata.xml</code> file to point to the latest snapshot version.</p>
+<p>This will set up a Github Actions workflow that will be run automatically when any tag is pushed,
+and can also be run manually. If you set up <a href="#_versioning_based_on_git_tags">Versioning Based
+on Git Tags</a>, then the <code>publishVersion</code> will be configured to the git tag version.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_snapshot_versions"><a class="anchor" href="#_snapshot_versions"></a>SNAPSHOT versions</h3>
+<div class="paragraph">
+<p>To publish SNAPSHOT versions (that is any version that ends with <code>-SNAPSHOT</code>), you need to enable support for them in
+your Sonatype Central namespace. To do that, go to the
+<a href="https://central.sonatype.com/publishing/namespaces">Sonatype Central portal</a>, click on the "three dots" next to the
+namespace name, and click on "Enable SNAPSHOTs".</p>
 </div>
 <div class="paragraph">
-<p><strong>Note that for this to work you MUST
-<a href="https://central.sonatype.org/publish/publish-portal-snapshots/#enabling-snapshot-releases-for-your-namespace">
-enable SNAPSHOTs for your namespace in Sonatype Central</a>.</strong></p>
+<p>SNAPSHOT versions do not have same semantics as regular versions: they are not signed and are not kept forever in the
+repository.</p>
+</div>
+<div class="paragraph">
+<p>See <a href="https://central.sonatype.org/publish/publish-portal-snapshots/">Sonatype Central documentation</a> for more information.</p>
+</div>
+<div class="paragraph">
+<p>Your build file should look like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
+publishVersion: 0.0.1-SNAPSHOT</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Running any of the publishing tasks will now publish SNAPSHOT versions. When running them you should see a note from
+Mill that it has detected a SNAPSHOT version.</p>
+</div>
+<div class="paragraph">
+<p>To consume SNAPSHOT versions in your project, make sure to add the snapshot repository to your build file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
+repositories: ["https://central.sonatype.com/repository/maven-snapshots"]
+mvnDeps:
+- com.example:mymodule:1.0.0-SNAPSHOT</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_sonatypecentralpublishmodule_argument_reference"><a class="anchor" href="#_sonatypecentralpublishmodule_argument_reference"></a><code>SonatypeCentralPublishModule</code> Argument Reference</h3>
+<div class="paragraph">
+<p>The <code>publishAll</code> task can be called from the CLI. If a required value is not provided via the CLI option,
+it will fall back to an environment variable (if available) or raise an error if missing.</p>
+</div>
+<div class="paragraph">
+<p>The <code>./mill mill.javalib.SonatypeCentralPublishModule/publishAll</code> takes the following options:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>username</code>: The username for calling the Sonatype Central publishing api. Defaults to the <code>MILL_SONATYPE_USERNAME</code> environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown.<br></p>
+</li>
+<li>
+<p><code>password</code>: The password for calling the Sonatype Central publishing api. Defaults to the <code>MILL_SONATYPE_PASSWORD</code> environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown.<br></p>
+</li>
+<li>
+<p><code>gpgArgs</code>: Arguments to pass to the gpg package for signing artifacts. Uses the <code>MILL_PGP_PASSPHRASE</code> environment variable if set. <em>Default: <code>[--passphrase=$MILL_PGP_PASSPHRASE], --no-tty, --pinentry-mode, loopback, --batch, --yes, --armor, --detach-sign</code>.</em><br></p>
+</li>
+<li>
+<p><code>publishArtifacts</code>: The command for generating all publishable artifacts (ex. <code>__.publishArtifacts</code>). Required.<br></p>
+</li>
+<li>
+<p><code>readTimeout</code>:  The timeout for receiving a response from Sonatype Central after the initial connection has occurred. <em>Default: 60000.</em><br></p>
+</li>
+<li>
+<p><code>awaitTimeout</code>: The overall timeout for all retries (including exponential backoff) of the bundle upload. <em>Default: 120 * 1000.</em><br></p>
+</li>
+<li>
+<p><code>connectTimeout</code>: The timeout for the initial connection to Sonatype Central if there is no response. <em>Default: 5000.</em><br></p>
+</li>
+<li>
+<p><code>shouldRelease</code>: Whether the bundle should be automatically released when uploaded to Sonatype Central. If <code>false</code>, the bundle will still be uploaded, but users will need to manually log in to Sonatype Central and publish the bundle from the portal. <em>Default: true</em><br></p>
+</li>
+<li>
+<p><code>bundleName</code>: If set, all packages will be uploaded in a single bundle with the given name. If unset, packages will be uploaded separately. Recommended bundle name syntax: groupName-artifactId-versionNumber. As an example, if publishing the <code>com.lihaoyi</code> <code>requests</code> package, without the bundle name, four different bundles will be uploaded, one for each scala version supported. With a bundle name of <code>com.lihaoyi-requests-&lt;new_version&gt;</code>, a single bundle will be uploaded that contains all packages across scala versions. It is recommended to set the bundle name, so that packages can be verified and deployed together. <em>Default: No bundle name is set and packages will be uploaded separately</em></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For example, you may call <code>mill.javalib.SonatypeCentralPublishModule/</code> via:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ mill \
+mill.javalib.SonatypeCentralPublishModule/publishAll \
+--username myusername \
+--password mypassword \
+--gpgArgs --passphrase=$MILL_PGP_PASSPHRASE,--no-tty,--pinentry-mode,loopback,--batch,--yes,--armor,--detach-sign \
+--publishArtifacts __.publishArtifacts \
+--readTimeout  36000 \
+--awaitTimeout 36000 \
+--connectTimeout 36000 \
+--shouldRelease false \
+--bundleName com.lihaoyi-requests:1.0.0</code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_publishsonatypecentral"><a class="anchor" href="#_publishsonatypecentral"></a>publishSonatypeCentral</h4>
+<div class="paragraph">
+<p>The <code>__.publishSonatypeCentral</code> command takes the <code>username</code> and <code>password</code> arguments, documented above.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_manual_gpg_setup"><a class="anchor" href="#_manual_gpg_setup"></a>Manual GPG Setup</h3>
+<div class="paragraph">
+<p>If you have never used GPG before, <a href="#_setting_up_gpg">initGpgKeys</a> is probably the easiest way to
+get started, but you can also follow
+<a href="https://central.sonatype.org/publish/requirements/gpg/">Sonatype&#8217;s GPG Documentation</a>
+which has manual instructions on how to do this.</p>
+</div>
+<div class="paragraph">
+<p>Mill uses the following environment variables as a way to pass the necessary secrets
+for publishing to Maven Central:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh"># Sonatype Central Portal needs your public key to be uploaded so it can use for verification of artifacts from their end.
+#
+# Send your public key to ubuntu server so Sonatype Maven Central can use for verification of the artifacts
+gpg --keyserver  keyserver.ubuntu.com --send-keys $LONG_ID
+#
+# Check the server for information about the public key. information will be displayed if found
+gpg --keyserver  keyserver.ubuntu.com --recv-keys $LONG_ID
+#
+# The LHS and RHS of the User Token, accessible through the sonatype
+# website `Profile` / `User Token` / `Access User Token`
+export MILL_SONATYPE_USERNAME=...
+export MILL_SONATYPE_PASSWORD=...
+
+# The base-64 encoded PGP key, which can be encoded in the following way
+# for each OS:
+#
+# MacOS or FreeBSD
+# gpg --export-secret-key -a $LONG_ID | base64
+#
+# Ubuntu (assuming GNU base64)
+# gpg --export-secret-key -a $LONG_ID | base64 -w0
+#
+# Arch
+# gpg --export-secret-key -a $LONG_ID | base64 | sed -z 's;\n;;g'
+#
+# Windows
+# gpg --export-secret-key -a %LONG_ID% | openssl base64
+export MILL_PGP_SECRET_BASE64=...
+
+# The passphrase associated with your PGP key
+export MILL_PGP_PASSPHRASE=...</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_publishing_to_generic_maven_repositories"><a class="anchor" href="#_publishing_to_generic_maven_repositories"></a>Publishing to Generic Maven Repositories</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Apart from publishing your project&#8217;s modules to Maven Central, you may also want to publish them to a generic
+Maven repository (such as a privately hosted one).</p>
+</div>
+<div class="paragraph">
+<p><strong>Publishing Secrets</strong></p>
+</div>
+<div class="paragraph">
+<p>Mill uses the following environment variables as a way to pass the necessary secrets for publishing:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh"># Credentials for publishing to the repository
+export MILL_MAVEN_USERNAME=...
+export MILL_MAVEN_PASSWORD=...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Publishing</strong></p>
+</div>
+<div class="paragraph">
+<p>You can publish all eligible modules in your Mill project using the
+<a href="../fundamentals/modules.html#_default_tasks" class="xref page">Default Task</a> of the
+<a href="../fundamentals/modules.html#_external_modules" class="xref page">External Module</a> <code>mill.javalib.MavenPublishModule</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill mill.javalib.MavenPublishModule/ \
+        --username myusername \
+        --password mypassword \
+        --releaseUri https://example.company.com/release \
+        --snapshotUri https://example.company.com/snapshot</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When you do not provide the username and password parameters, Mill will instead look for the <code>MILL_MAVEN_USERNAME</code> and
+<code>MILL_MAVEN_PASSWORD</code> environment variables. Providing the credentials via environment variables is the recommended
+approach due to security considerations.</p>
+</div>
+<div class="paragraph">
+<p><strong>Non-Staging Releases (classic Maven uploads)</strong></p>
+</div>
+<div class="paragraph">
+<p>If the site does not support staging releases as <code>oss.sonatype.org</code> and <code>s01.oss.sonatype.org</code> do (for
+example, a self-hosted OSS nexus site), you can pass in the
+<code>--stagingRelease false</code> option to simply upload release artifacts to corresponding
+maven path under <code>sonatypeUri</code> instead of staging path.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill mill.scalalib.PublishModule/ \
+        --publishArtifacts foo.publishArtifacts \
+        --sonatypeCreds lihaoyi:$SONATYPE_PASSWORD \
+        --sonatypeUri http://example.company.com/release \
+        --stagingRelease false</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_publishing_to_other_repositories"><a class="anchor" href="#_publishing_to_other_repositories"></a>Publishing to other repositories</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>While Sonatype Maven Central is the default publish repository for JVM ecosystem projects,
+there are also others that you can use. Mill supports these largely through contrib plugins:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="../contrib/codeartifact.html" class="xref page">Codeartifact</a></p>
+</li>
+<li>
+<p><a href="../contrib/artifactory.html" class="xref page">Artifactory</a></p>
+</li>
+</ul>
 </div>
 </div>
 </div>
@@ -882,7 +1214,7 @@ enable SNAPSHOTs for your namespace in Sonatype Central</a>.</strong></p>
 <p>Mill provides the ability to check API changes with the <a href="https://revapi.org/revapi-site/main/index.html">Revapi</a> analysis and change tracking tool.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-javalib-publishing-4-revapi.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/publishing/4-revapi">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1/mill-dist-1.1.1-example-javalib-publishing-4-revapi.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/javalib/publishing/4-revapi">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*, publish.*, revapi.*
@@ -985,495 +1317,6 @@ The <code>revapi</code> task does not fail if incompatibilities are reported. Yo
 </td>
 </tr>
 </table>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_instructions_for_publishing_to_maven_central_via_central_portal"><a class="anchor" href="#_instructions_for_publishing_to_maven_central_via_central_portal"></a>Instructions for Publishing to Maven Central via Central Portal</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Once you&#8217;ve mixed in <code>PublishModule</code>, apart from publishing locally, you can also publish
-your project&#8217;s modules to maven central</p>
-</div>
-<div class="sect2">
-<h3 id="_gpg"><a class="anchor" href="#_gpg"></a>GPG</h3>
-<div class="paragraph">
-<p>If you&#8217;ve never created a keypair before that can be used to sign your artifacts
-you&#8217;ll need to do this. <a href="https://central.sonatype.org/publish/requirements/gpg/">Sonatype&#8217;s GPG Documentation</a>
-has the instructions on how to do this</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_publishing_secrets"><a class="anchor" href="#_publishing_secrets"></a>Publishing Secrets</h3>
-<div class="paragraph">
-<p>Mill uses the following environment variables as a way to pass the necessary secrets
-for publishing to Maven Central:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh"># Sonatype Central Portal needs your public key to be uploaded so it can use for verification of artifacts from their end.
-#
-# Send your public key to ubuntu server so Sonatype Maven Central can use for verification of the artifacts
-gpg --keyserver  keyserver.ubuntu.com --send-keys $LONG_ID
-#
-# Check the server for information about the public key. information will be displayed if found
-gpg --keyserver  keyserver.ubuntu.com --recv-keys $LONG_ID
-#
-# The LHS and RHS of the User Token, accessible through the sonatype
-# website `Profile` / `User Token` / `Access User Token`
-export MILL_SONATYPE_USERNAME=...
-export MILL_SONATYPE_PASSWORD=...
-
-# The base-64 encoded PGP key, which can be encoded in the following way
-# for each OS:
-#
-# MacOS or FreeBSD
-# gpg --export-secret-key -a $LONG_ID | base64
-#
-# Ubuntu (assuming GNU base64)
-# gpg --export-secret-key -a $LONG_ID | base64 -w0
-#
-# Arch
-# gpg --export-secret-key -a $LONG_ID | base64 | sed -z 's;\n;;g'
-#
-# Windows
-# gpg --export-secret-key -a %LONG_ID% | openssl base64
-export MILL_PGP_SECRET_BASE64=...
-
-# The passphrase associated with your PGP key
-export MILL_PGP_PASSPHRASE=...</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_publishing"><a class="anchor" href="#_publishing"></a>Publishing</h3>
-<div class="paragraph">
-<p>You can publish all eligible modules in your Mill project using
-<code>mill.javalib.SonatypeCentralPublishModule/</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill mill.javalib.SonatypeCentralPublishModule/</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You can also specify individual modules you want to publish in two ways:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.publishSonatypeCentral</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill mill.javalib.SonatypeCentralPublishModule/ --publishArtifacts foo.publishArtifacts</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_snapshot_versions"><a class="anchor" href="#_snapshot_versions"></a>SNAPSHOT versions</h3>
-<div class="paragraph">
-<p>To publish SNAPSHOT versions (that is any version that ends with <code>-SNAPSHOT</code>), you need to enable support for them in
-your Sonatype Central namespace. To do that, go to the
-<a href="https://central.sonatype.com/publishing/namespaces">Sonatype Central portal</a>, click on the "three dots" next to the
-namespace name, and click on "Enable SNAPSHOTs".</p>
-</div>
-<div class="paragraph">
-<p>SNAPSHOT versions do not have same semantics as regular versions: they are not signed and are not kept forever in the
-repository.</p>
-</div>
-<div class="paragraph">
-<p>See <a href="https://central.sonatype.org/publish/publish-portal-snapshots/">Sonatype Central documentation</a> for more information.</p>
-</div>
-<div class="paragraph">
-<p>Your build file should look like:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object mymodule extends JavaModule {
-  def publishVersion = "0.0.1-SNAPSHOT"
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Running any of the publishing tasks will now publish SNAPSHOT versions. When running them you should see a note from
-Mill that it has detected a SNAPSHOT version.</p>
-</div>
-<div class="paragraph">
-<p>To consume SNAPSHOT versions in your project, make sure to add the snapshot repository to your build file:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object myModule extends JavaModule {
-  def repositories = Seq("https://central.sonatype.com/repository/maven-snapshots")
-
-  def mvnDeps = Seq(mvn"com.example:mymodule:1.0.0-SNAPSHOT")
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Note that if you have downstream modules that depend on this module, they will need to add the snapshot repository
-to their definition as well, at least until <a href="https://github.com/com-lihaoyi/mill/issues/5573">this issue</a> is fixed.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object myDownstreamModule extends JavaModule {
-  def moduleDeps = Seq(myModule)
-
-  // This is also needed.
-  def repositories = Seq("https://central.sonatype.com/repository/maven-snapshots")
-}</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_publishing_using_github_actions"><a class="anchor" href="#_publishing_using_github_actions"></a>Publishing Using Github Actions</h3>
-<div class="paragraph">
-<p>To publish on Github Actions, you can use something like this:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml"># .github/workflows/publish-artifacts.yml
-name: Publish Artifacts
-on:
-  push:
-    tags:
-      - '**'
-  workflow_dispatch:
-jobs:
-  publish-artifacts:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-      - run: ./mill mill.javalib.SonatypeCentralPublishModule/
-        env:
-          MILL_PGP_PASSPHRASE: ${{ secrets.MILL_PGP_PASSPHRASE }}
-          MILL_PGP_SECRET_BASE64: ${{ secrets.MILL_PGP_SECRET_BASE64 }}
-          MILL_SONATYPE_PASSWORD: ${{ secrets.MILL_SONATYPE_PASSWORD }}
-          MILL_SONATYPE_USERNAME: ${{ secrets.MILL_SONATYPE_USERNAME }}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Where <code>MILL_PGP_PASSPHRASE</code>, <code>MILL_PGP_SECRET_BASE64</code>, <code>MILL_SONATYPE_PASSWORD</code>, and
-<code>MILL_SONATYPE_USERNAME</code> configured for the repository&#8217;s or organization&#8217;s Github Actions
-workflows. See
-<a href="https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions">Using Secrets in Github Actions</a>
-for more details.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_instructions_for_publishing_to_generic_maven_repositories"><a class="anchor" href="#_instructions_for_publishing_to_generic_maven_repositories"></a>Instructions for Publishing to Generic Maven Repositories</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Apart from publishing your project&#8217;s modules to Maven Central, you may also want to publish them to a generic
-Maven repository (such as a privately hosted one).</p>
-</div>
-<div class="sect2">
-<h3 id="_publishing_secrets_2"><a class="anchor" href="#_publishing_secrets_2"></a>Publishing Secrets</h3>
-<div class="paragraph">
-<p>Mill uses the following environment variables as a way to pass the necessary secrets for publishing:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh"># Credentials for publishing to the repository
-export MILL_MAVEN_USERNAME=...
-export MILL_MAVEN_PASSWORD=...</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_publishing_2"><a class="anchor" href="#_publishing_2"></a>Publishing</h3>
-<div class="paragraph">
-<p>You can publish all eligible modules in your Mill project using the
-<a href="../fundamentals/modules.html#_default_tasks" class="xref page">Default Task</a> of the
-<a href="../fundamentals/modules.html#_external_modules" class="xref page">External Module</a> <code>mill.javalib.MavenPublishModule</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill mill.javalib.MavenPublishModule/ \
-        --username myusername \
-        --password mypassword \
-        --releaseUri https://example.company.com/release \
-        --snapshotUri https://example.company.com/snapshot</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>When you do not provide the username and password parameters, Mill will instead look for the <code>MILL_MAVEN_USERNAME</code> and
-<code>MILL_MAVEN_PASSWORD</code> environment variables. Providing the credentials via environment variables is the recommended
-approach due to security considerations.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_instructions_for_publishing_to_maven_central_via_legacy_ossrh_deprecated"><a class="anchor" href="#_instructions_for_publishing_to_maven_central_via_legacy_ossrh_deprecated"></a>Instructions for Publishing to Maven Central via Legacy OSSRH (Deprecated)</h2>
-<div class="sectionbody">
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>Publishing via the legacy OSSRH (OSS Repository Hosting) is deprecated and will reach end-of-life on June 30, 2025,
-due to the retirement of <a href="https://help.sonatype.com/en/sonatype-nexus-repository-2-sunsetting-information.html">Sonatype’s Nexus Repository Manager v2</a>. Sonatype now recommends using the <a href="https://central.sonatype.org/publish/publish-portal-guide/">Central Portal</a> for all new publishing.
-Migration is strongly encouraged to avoid disruptions. For full details, see the <a href="https://central.sonatype.org/news/20250326_ossrh_sunset/">OSSRH Sunset Announcement</a>.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>Just like publishing via the Central Portal requires a GPG key and publish secrets,
-publishing via the legacy OSSRH (OSS Repository Hosting) also requires them.</p>
-</div>
-<div class="sect2">
-<h3 id="_publishing_3"><a class="anchor" href="#_publishing_3"></a>Publishing</h3>
-<div class="paragraph">
-<p>You can publish all eligible modules in your Mill project using
-the <a href="../fundamentals/modules.html#_default_tasks" class="xref page">Default Task</a> of the
-<a href="../fundamentals/modules.html#_external_modules" class="xref page">External Module</a> <code>mill.scalalib.PublishModule</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill mill.scalalib.PublishModule/</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You can also specify individual modules you want to publish via a selector:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill mill.scalalib.PublishModule/ --publishArtifacts foo.publishArtifacts</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The default URL for publishing to sonatype&#8217;s Maven Central is <code>oss.sonatype.org</code>.
-Newer projects registered on sonatype may need to publish using <code>s01.oss.sonatype.org</code>.
-In that case, you can pass in a <code>--sonatypeUri</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill mill.scalalib.PublishModule/ \
-        --sonatypeUri https://s01.oss.sonatype.org/service/local</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This also allows you to publish to your own internal corporate sonatype deployment,
-by passing in <code>--sonatypeUri example.company.com</code> instead.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>Since Feb. 2021 any new Sonatype accounts have been created on
-<code>s01.oss.sonatype.org</code>, so you&#8217;ll want to ensure you set the relevant URIs to match.</p>
-</div>
-<div class="paragraph">
-<p>The symptom of using the "wrong" URL for publishing is typically a 403 error code, in response to the publish request.</p>
-</div>
-<div class="paragraph">
-<p>See <a href="https://central.sonatype.org/publish/publish-guide/#releasing-to-central" class="bare">https://central.sonatype.org/publish/publish-guide/#releasing-to-central</a></p>
-</div>
-<div class="paragraph">
-<p>Typically</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code><a href="https://s01.oss.sonatype.org/service/local" class="bare">https://s01.oss.sonatype.org/service/local</a></code> - for the <code>--sonatypeUri</code></p>
-</li>
-<li>
-<p><code><a href="https://s01.oss.sonatype.org/content/repositories/snapshots" class="bare">https://s01.oss.sonatype.org/content/repositories/snapshots</a></code> - for <code>sonatypeSnapshotUri</code></p>
-</li>
-</ul>
-</div>
-</td>
-</tr>
-</table>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_publishing_using_github_actions_2"><a class="anchor" href="#_publishing_using_github_actions_2"></a>Publishing Using Github Actions</h3>
-<div class="paragraph">
-<p>To publish on Github Actions, you can use something like this:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml"># .github/workflows/publish-artifacts.yml
-name: Publish Artifacts
-on:
-  push:
-    tags:
-      - '**'
-  workflow_dispatch:
-jobs:
-  publish-artifacts:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-      - run: ./mill mill.scalalib.PublishModule/
-        env:
-          MILL_PGP_PASSPHRASE: ${{ secrets.MILL_PGP_PASSPHRASE }}
-          MILL_PGP_SECRET_BASE64: ${{ secrets.MILL_PGP_SECRET_BASE64 }}
-          MILL_SONATYPE_PASSWORD: ${{ secrets.MILL_SONATYPE_PASSWORD }}
-          MILL_SONATYPE_USERNAME: ${{ secrets.MILL_SONATYPE_USERNAME }}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Where <code>MILL_PGP_PASSPHRASE</code>, <code>MILL_PGP_SECRET_BASE64</code>, <code>MILL_SONATYPE_PASSWORD</code>, and
-<code>MILL_SONATYPE_USERNAME</code> configured for the repository&#8217;s or organization&#8217;s Github Actions
-workflows. See
-<a href="https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions">Using Secrets in Github Actions</a>
-for more details.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_non_staging_releases_classic_maven_uploads"><a class="anchor" href="#_non_staging_releases_classic_maven_uploads"></a>Non-Staging Releases (classic Maven uploads)</h3>
-<div class="paragraph">
-<p>If the site does not support staging releases as <code>oss.sonatype.org</code> and <code>s01.oss.sonatype.org</code> do (for
-example, a self-hosted OSS nexus site), you can pass in the
-<code>--stagingRelease false</code> option to simply upload release artifacts to corresponding
-maven path under <code>sonatypeUri</code> instead of staging path.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill mill.scalalib.PublishModule/ \
-        --publishArtifacts foo.publishArtifacts \
-        --sonatypeCreds lihaoyi:$SONATYPE_PASSWORD \
-        --sonatypeUri http://example.company.com/release \
-        --stagingRelease false</code></pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_sonatypecentralpublishmodule_configurations"><a class="anchor" href="#_sonatypecentralpublishmodule_configurations"></a><code>SonatypeCentralPublishModule</code> Configurations</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>This module provides settings and a CLI interface for publishing artifacts to Sonatype Maven Central.
-You can configure it through your <code>build.mill</code> file or by passing command-line options to it.</p>
-</div>
-<div class="sect2">
-<h3 id="_module_level_settings"><a class="anchor" href="#_module_level_settings"></a>Module-Level Settings</h3>
-<div class="paragraph">
-<p>You can override default publishing settings in your build.mill like this:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object mymodule extends SonatypeCentralPublishModule {
-  override def sonatypeCentralGpgArgs: T[String] = "--batch, --yes, -a, -b"
-
-  override def sonatypeCentralConnectTimeout: T[Int] = 5000
-
-  override def sonatypeCentralReadTimeout: T[Int] = 60000
-
-  override def sonatypeCentralAwaitTimeout: T[Int] = 120 * 1000
-
-  override def sonatypeCentralShouldRelease: T[Boolean] = true
-  ...
-}</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_argument_reference"><a class="anchor" href="#_argument_reference"></a>Argument Reference</h3>
-<div class="sect3">
-<h4 id="_publishall"><a class="anchor" href="#_publishall"></a>publishAll</h4>
-<div class="paragraph">
-<p>The <code>publishAll</code> task can be called from the CLI. If a required value is not provided via the CLI option,
-it will fall back to an environment variable (if available) or raise an error if missing.</p>
-</div>
-<div class="paragraph">
-<p>The <code>./mill mill.javalib.SonatypeCentralPublishModule/publishAll</code> takes the following options:</p>
-</div>
-<div class="paragraph">
-<p><code>username</code>: The username for calling the Sonatype Central publishing api. Defaults to the <code>SONATYPE_USERNAME</code> environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown.<br></p>
-</div>
-<div class="paragraph">
-<p><code>password</code>: The password for calling the Sonatype Central publishing api. Defaults to the <code>SONATYPE_PASSWORD</code> environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown.<br></p>
-</div>
-<div class="paragraph">
-<p><code>gpgArgs</code>: Arguments to pass to the gpg package for signing artifacts. Uses the <code>MILL_PGP_PASSPHRASE</code> environment variable if set. <em>Default: <code>[--passphrase=$MILL_PGP_PASSPHRASE], --no-tty, --pinentry-mode, loopback, --batch, --yes, --armor, --detach-sign</code>.</em><br></p>
-</div>
-<div class="paragraph">
-<p><code>publishArtifacts</code>: The command for generating all publishable artifacts (ex. <code>__.publishArtifacts</code>). Required.<br></p>
-</div>
-<div class="paragraph">
-<p><code>readTimeout</code>:  The timeout for receiving a response from Sonatype Central after the initial connection has occurred. <em>Default: 60000.</em><br></p>
-</div>
-<div class="paragraph">
-<p><code>awaitTimeout</code>: The overall timeout for all retries (including exponential backoff) of the bundle upload. <em>Default: 120 * 1000.</em><br></p>
-</div>
-<div class="paragraph">
-<p><code>connectTimeout</code>: The timeout for the initial connection to Sonatype Central if there is no response. <em>Default: 5000.</em><br></p>
-</div>
-<div class="paragraph">
-<p><code>shouldRelease</code>: Whether the bundle should be automatically released when uploaded to Sonatype Central. If <code>false</code>, the bundle will still be uploaded, but users will need to manually log in to Sonatype Central and publish the bundle from the portal. <em>Default: true</em><br></p>
-</div>
-<div class="paragraph">
-<p><code>bundleName</code>: If set, all packages will be uploaded in a single bundle with the given name. If unset, packages will be uploaded separately. Recommended bundle name syntax: groupName-artifactId-versionNumber. As an example, if publishing the <code>com.lihaoyi</code> <code>requests</code> package, without the bundle name, four different bundles will be uploaded, one for each scala version supported. With a bundle name of <code>com.lihaoyi-requests-&lt;new_version&gt;</code>, a single bundle will be uploaded that contains all packages across scala versions. It is recommended to set the bundle name, so that packages can be verified and deployed together. <em>Default: No bundle name is set and packages will be uploaded separately</em></p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_example_command"><a class="anchor" href="#_example_command"></a>Example command</h4>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ mill -i \
-mill.javalib.SonatypeCentralPublishModule/publishAll \
---username myusername \
---password mypassword \
---gpgArgs --passphrase=$MILL_PGP_PASSPHRASE,--no-tty,--pinentry-mode,loopback,--batch,--yes,--armor,--detach-sign \
---publishArtifacts __.publishArtifacts \
---readTimeout  36000 \
---awaitTimeout 36000 \
---connectTimeout 36000 \
---shouldRelease false \
---bundleName com.lihaoyi-requests:1.0.0</code></pre>
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_publishsonatypecentral"><a class="anchor" href="#_publishsonatypecentral"></a>publishSonatypeCentral</h4>
-<div class="paragraph">
-<p>The <code>__.publishSonatypeCentral</code> command takes the <code>username</code> and <code>password</code> arguments, documented above.</p>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_publishing_to_other_repositories"><a class="anchor" href="#_publishing_to_other_repositories"></a>Publishing to other repositories</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>While Sonatype Maven Central is the default publish repository for JVM ecosystem projects,
-there are also others that you can use. Mill supports these largely through contrib plugins:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><a href="../contrib/codeartifact.html" class="xref page">Codeartifact</a></p>
-</li>
-<li>
-<p><a href="../contrib/artifactory.html" class="xref page">Artifactory</a></p>
-</li>
-</ul>
 </div>
 </div>
 </div>

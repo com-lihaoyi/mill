@@ -441,7 +441,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -661,7 +661,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.0</span>
+    <span class="version">1.1.1</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -671,10 +671,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.0</a>
-        </li>
-        <li class="version">
-          <a href="../dev-1.1.0-10-fec938/index.html">dev-1.1.0-10-fec938</a>
+          <a href="../index.html">1.1.1</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -739,18 +736,18 @@ bootstrap script, included. You can also download the bootstrap script manually:
 <div class="listingblock">
 <div class="title">Mac/Linux</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-mill.sh -o mill
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1/mill-dist-1.1.1-mill.sh -o mill
 &gt; chmod +x mill
 &gt; ./mill version
-1.1.0</code></pre>
+1.1.1</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Windows</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-mill.bat -o mill.bat
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1/mill-dist-1.1.1-mill.bat -o mill.bat
 &gt; ./mill version
-1.1.0</code></pre>
+1.1.1</code></pre>
 </div>
 </div>
 <div class="admonitionblock caution">
@@ -812,7 +809,8 @@ pick one most similar to what you are doing so you can hit the ground running.</
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sudo sh -c '(curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-mill.sh -o mill) &gt; /usr/local/bin/mill &amp;&amp; chmod +x /usr/local/bin/mill'</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sudo curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1/mill-dist-1.1.1-mill.sh -o /usr/local/bin/mill
+&gt; sudo chmod +x /usr/local/bin/mill</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -893,7 +891,7 @@ by adding a a <code>-jvm</code> suffix on the Mill version:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">1.1.0-jvm</code></pre>
+<pre class="highlightjs highlight"><code class="language-none hljs">1.1.1-jvm</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1363,6 +1361,34 @@ use <a href="../large/selective-execution.html" class="xref page">Selective Test
 codebase. This allows you to limit the tests that run on your codebase to those in modules
 downstream of the code you changed, allowing you to save time and resources by not wastefully
 running tests that could not possibly be affected by your code change.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_uploading_chrome_profiles"><a class="anchor" href="#_uploading_chrome_profiles"></a>Uploading Chrome Profiles</h3>
+<div class="paragraph">
+<p>For investigating performance issues in CI, you may find it useful to upload the
+<a href="../fundamentals/out-dir.html#_mill_chrome_profile_json" class="xref page">out/mill-chrome-profile.json</a> file
+at the end of every run. This gives you insight into how long each task took, what tasks
+were running sequentially or in paralle, and overall system CPU utilization during the run.</p>
+</div>
+<div class="paragraph">
+<p>For example, the Github Actions steps to upload the <code>out/mill-chrome-profile.json</code> file as
+an artifact looks something like this, placed after your <code>./mill</code> commands:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">  - name: Upload Chrome Profile
+    uses: actions/upload-artifact@v4
+    if: always()
+    with:
+      name: mill-chrome-profile
+      path: out/mill-chrome-profile.json
+      if-no-files-found: ignore</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can then download the <code>mill-chrome-profile.zip</code> from the Github Actions Web UI, unzip
+it, then load it into <code>chrome://tracing</code> to visualize the time spent during that CI run.</p>
 </div>
 </div>
 </div>

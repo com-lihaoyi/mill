@@ -671,10 +671,7 @@
           <a href="../index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">1.1.0</a>
-        </li>
-        <li class="version">
-          <a href="../../dev-1.1.0-10-fec938/index.html">dev-1.1.0-10-fec938</a>
+          <a href="../../index.html">1.1.1</a>
         </li>
         <li class="version">
           <a href="../../1.0.x/index.html">1.0.6</a>
@@ -734,7 +731,7 @@ they have a JVM installed on the machine they wish to run them on.</p>
 <p>You can also customize the assembly jar as shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1/mill-dist-1.1.1-example-scalalib-packaging-3-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/scalalib/packaging/3-assembly-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-1-9c39a7/mill-dist-1.1.1-example-scalalib-packaging-3-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/scalalib/packaging/3-assembly-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -812,14 +809,14 @@ We recommend you <a href="../fundamentals/configuring-jvm-versions.html" class="
 via a custom <code>JvmWorkerModule</code> overriding <code>def jvmVersion</code> (shown above), as not every JVM can build Graal native images.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1/mill-dist-1.1.1-example-scalalib-packaging-1-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/scalalib/packaging/1-native-image/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-1-9c39a7/mill-dist-1.1.1-example-scalalib-packaging-1-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/scalalib/packaging/1-native-image/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: ScalaModule
 scalaVersion: 3.8.1</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1/mill-dist-1.1.1-example-scalalib-packaging-1-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/scalalib/packaging/1-native-image/foo/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-1-9c39a7/mill-dist-1.1.1-example-scalalib-packaging-1-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/scalalib/packaging/1-native-image/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [ScalaModule, NativeImageModule]
 scalaVersion: 3.8.1
@@ -848,14 +845,14 @@ using <code>-Os</code> to optimize for the smallest binary size
 which is available in the <code>graalvm-community:23</code> JDK selected above</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1/mill-dist-1.1.1-example-scalalib-packaging-2-native-image-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/scalalib/packaging/2-native-image-libs/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-1-9c39a7/mill-dist-1.1.1-example-scalalib-packaging-2-native-image-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/scalalib/packaging/2-native-image-libs/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: ScalaModule
 scalaVersion: 3.8.1</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1/mill-dist-1.1.1-example-scalalib-packaging-2-native-image-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/scalalib/packaging/2-native-image-libs/foo/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-1-9c39a7/mill-dist-1.1.1-example-scalalib-packaging-2-native-image-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/scalalib/packaging/2-native-image-libs/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [ScalaModule, NativeImageModule]
 scalaVersion: 3.8.1
@@ -920,7 +917,7 @@ Instead of copying and merging dependencies classes and resources into a flat ja
 One of the pros of this approach is, that all dependency archives are kept unextracted, which makes later introspection for checksums, authorship and copyright questions easier.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1/mill-dist-1.1.1-example-scalalib-packaging-4-repackage-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/scalalib/packaging/4-repackage-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-1-9c39a7/mill-dist-1.1.1-example-scalalib-packaging-4-repackage-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/scalalib/packaging/4-repackage-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
