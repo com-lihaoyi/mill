@@ -48,8 +48,7 @@ package build
 
 Mill's build headers can contain the following keys:
 
-1. xref:cli/installation-ide.adoc[mill-version]: if provided, this must be unquoted in
-   the first line of the build header, and specifies the version of Mill used in this
+1. xref:cli/installation-ide.adoc[mill-version]: specifies the version of Mill used in this
    project. If not provided, Mill will launch using the version of your `./mill` or
    `./mill.bat` bootstrap script.
 
@@ -62,7 +61,7 @@ Mill's build headers can contain the following keys:
 4. xref:_mill_jvm_opts[]: flags to pass to Mill's background daemon JVM process,
    e.g. to configure how much memory to give it
 
-4. `mvnDeps` and `repositories`: these allow you to define dependencies for usage
+5. `mvnDeps` and `repositories`: these allow you to define dependencies for usage
    in your `build.mill`, and are described in more detail in the
    xref:extending/import-mvn-plugins.adoc[Import Libraries and Plugins] page.
    Other keys are allowed as well, and these are uniformly treated as overrides for
@@ -87,7 +86,6 @@ _build.mill_
 //| mill-opts: ["--jobs=0.5C"]
 ----
 
-The file name `.mill-opts` can be overridden via the `MILL_OPTS_PATH` environment variable.
 You can also pass in flags like `--jobs=10` explicitly to override the value passed in
 `.mill-opts`. See xref:cli/flags.adoc[Mill Command-Line Flags] for documentation on what
 flags the Mill executable can take.
