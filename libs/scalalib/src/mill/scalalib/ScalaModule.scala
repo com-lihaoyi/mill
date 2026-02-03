@@ -306,7 +306,11 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   override def resolvedMvnDeps: T[Seq[PathRef]] = Task {
     val deps = super.resolvedMvnDeps()
-    if (JvmWorkerUtil.isScala3(scalaVersion()) && !JvmWorkerUtil.enforceScala213Library(scalaVersion())) {
+    if (
+      JvmWorkerUtil.isScala3(scalaVersion()) && !JvmWorkerUtil.enforceScala213Library(
+        scalaVersion()
+      )
+    ) {
       deps.filterNot(_.path.last.startsWith("scala3-library_3-"))
     } else {
       deps
