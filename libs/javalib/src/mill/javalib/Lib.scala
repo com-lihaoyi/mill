@@ -102,50 +102,31 @@ object Lib {
     res.map(_.map(_.withRevalidateOnce))
   }
 
-  def scalaCompilerMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
-    if (isDotty(scalaVersion))
-      Seq(mvn"$scalaOrganization::dotty-compiler:$scalaVersion")
-    else if (isScala3(scalaVersion))
-      Seq(mvn"$scalaOrganization::scala3-compiler:$scalaVersion")
+  def scalaCompilerMvnDeps(scalaOrg: String, scalaVersion: String): Seq[Dep] =
+    if (isDotty(scalaVersion)) Seq(mvn"$scalaOrg::dotty-compiler:$scalaVersion")
+    else if (isScala3(scalaVersion)) Seq(mvn"$scalaOrg::scala3-compiler:$scalaVersion")
     else
-      Seq(
-        mvn"$scalaOrganization:scala-compiler:$scalaVersion",
-        mvn"$scalaOrganization:scala-reflect:$scalaVersion"
-      )
+      Seq(mvn"$scalaOrg:scala-compiler:$scalaVersion", mvn"$scalaOrg:scala-reflect:$scalaVersion")
 
-  def scalaConsoleMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] = {
-    if (
-      scalaVersion.startsWith("3.8.") ||
-      mill.util.Version.isAtLeast(scalaVersion, "3.8")(using mill.util.Version.MavenOrdering)
-    ) {
+  def scalaConsoleMvnDeps(scalaOrg: String, scalaVersion: String): Seq[Dep] =
+    if (usesScalaLibraryOnly(scalaVersion)) {
       // Since Scala 3.8, the repl is no longer part of the compiler jar
-      Seq(mvn"$scalaOrganization::scala3-repl:$scalaVersion")
-    } else {
-      scalaCompilerMvnDeps(scalaOrganization, scalaVersion)
-    }
-  }
+      Seq(mvn"$scalaOrg::scala3-repl:$scalaVersion")
+    } else scalaCompilerMvnDeps(scalaOrg, scalaVersion)
 
-  def scalaDocMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
-    if (isDotty(scalaVersion))
-      Seq(mvn"$scalaOrganization::dotty-doc:$scalaVersion")
-    else if (isScala3Milestone(scalaVersion))
-      // 3.0.0-RC1 > scalaVersion >= 3.0.0-M1 still uses dotty-doc, but under a different artifact name
-      Seq(mvn"$scalaOrganization::scala3-doc:$scalaVersion")
-    else if (isScala3(scalaVersion))
-      // scalaVersion >= 3.0.0-RC1 uses scaladoc
-      Seq(mvn"$scalaOrganization::scaladoc:$scalaVersion")
-    else
-      // in Scala <= 2.13, the scaladoc tool is included in the compiler
-      scalaCompilerMvnDeps(scalaOrganization, scalaVersion)
+  def scalaDocMvnDeps(scalaOrg: String, scalaVersion: String): Seq[Dep] =
+    if (isDotty(scalaVersion)) Seq(mvn"$scalaOrg::dotty-doc:$scalaVersion")
+    // 3.0.0-RC1 > scalaVersion >= 3.0.0-M1 still uses dotty-doc, but under a different artifact name
+    else if (isScala3Milestone(scalaVersion)) Seq(mvn"$scalaOrg::scala3-doc:$scalaVersion")
+    // scalaVersion >= 3.0.0-RC1 uses scaladoc
+    else if (isScala3(scalaVersion)) Seq(mvn"$scalaOrg::scaladoc:$scalaVersion")
+    // in Scala <= 2.13, the scaladoc tool is included in the compiler
+    else scalaCompilerMvnDeps(scalaOrg, scalaVersion)
 
-  def scalaRuntimeMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
-    if (isDotty(scalaVersion)) {
-      Seq(mvn"$scalaOrganization::dotty-library:$scalaVersion")
-    } else if (usesScala3Library(scalaVersion)) {
-      Seq(mvn"$scalaOrganization::scala3-library:$scalaVersion")
-    } else {
-      Seq(mvn"$scalaOrganization:scala-library:$scalaVersion")
-    }
+  def scalaRuntimeMvnDeps(scalaOrg: String, scalaVersion: String): Seq[Dep] =
+    if (isDotty(scalaVersion)) Seq(mvn"$scalaOrg::dotty-library:$scalaVersion")
+    else if (usesScala3Library(scalaVersion)) Seq(mvn"$scalaOrg::scala3-library:$scalaVersion")
+    else Seq(mvn"$scalaOrg:scala-library:$scalaVersion")
 
   def findSourceFiles(sources: Seq[PathRef], extensions: Seq[String]): Seq[os.Path] = {
     def isHiddenFile(path: os.Path) = path.last.startsWith(".")
@@ -153,9 +134,9 @@ object Lib {
       root <- sources
       if os.exists(root.path)
       path <- (if (os.isDir(root.path)) os.walk(root.path) else Seq(root.path))
-      if os.isFile(path) && (extensions.exists(ex => path.last.endsWith(s".$ex")) && !isHiddenFile(
-        path
-      ))
+      if os.isFile(path) &&
+        extensions.exists(ex => path.last.endsWith(s".$ex")) &&
+        !isHiddenFile(path)
     } yield path
   }
 
