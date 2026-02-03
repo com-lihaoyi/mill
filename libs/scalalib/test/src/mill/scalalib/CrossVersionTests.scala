@@ -78,6 +78,11 @@ object CrossVersionTests extends TestSuite {
       override def scalaVersion = "3.8.1"
     }
 
+    object Scala213DependsOnScala38 extends ScalaModule {
+      override def scalaVersion = "2.13.18"
+      override def moduleDeps = Seq(StandaloneScala38)
+    }
+
     object JavaDependsOnScala3 extends JavaModule {
       val tree =
         """├─ Scala3DependsOnScala213
@@ -228,6 +233,15 @@ object CrossVersionTests extends TestSuite {
           "scala-library-3.8.1.jar"
         ),
         expectedMvnDepsTree = Some(StandaloneScala38.tree)
+      )
+    }
+
+    test("Scala213DependsOnScala38") {
+      check(
+        mod = Scala213DependsOnScala38,
+        expectedLibs = Seq(
+          "scala-library-3.8.1.jar"
+        )
       )
     }
 

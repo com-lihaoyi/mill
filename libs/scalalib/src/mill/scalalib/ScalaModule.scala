@@ -80,13 +80,19 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         } else
           Set("scala-library", "scala-compiler", "scala-reflect")
       if (!artifacts(d.module.name.value)) d
-      else
-        d.withModule(
-          d.module.withOrganization(
-            coursier.Organization(scalaOrganization())
+      else {
+        val name = d.module.name.value
+        val skipVersionOverride =
+          name == "scala-library" && JvmWorkerUtil.isScala3(d.version)
+        if (skipVersionOverride) d
+        else
+          d.withModule(
+            d.module.withOrganization(
+              coursier.Organization(scalaOrganization())
+            )
           )
-        )
-          .withVersion(scalaVersion())
+            .withVersion(scalaVersion())
+      }
     }
   }
 
