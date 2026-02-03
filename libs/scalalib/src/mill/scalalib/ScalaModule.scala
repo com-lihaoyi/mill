@@ -69,14 +69,18 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
 
   override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = Task.Anon {
     super.mapDependencies().andThen { (d: coursier.Dependency) =>
+      // Note: Maven artifact names for Scala 3 include the `_3` suffix,
+      // e.g. `scala3-library_3`, `scala3-compiler_3`
       val artifacts =
         if (JvmWorkerUtil.isDotty(scalaVersion()))
           Set("dotty-library", "dotty-compiler")
         else if (JvmWorkerUtil.isScala3(scalaVersion())) {
-          val runtime =
-            if (JvmWorkerUtil.enforceScala213Library(scalaVersion())) "scala3-library"
-            else "scala-library"
-          Set("scala3-library", "scala3-compiler", runtime)
+          if (JvmWorkerUtil.enforceScala213Library(scalaVersion()))
+            // Scala 3.0-3.7: uses scala3-library_3
+            Set("scala3-library_3", "scala3-compiler_3")
+          else
+            // Scala 3.8+: uses scala-library (no suffix)
+            Set("scala3-compiler_3", "scala-library")
         } else
           Set("scala-library", "scala-compiler", "scala-reflect")
       if (!artifacts(d.module.name.value)) d
@@ -306,6 +310,20 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   /** Adds the Scala Library is a mandatory dependency. */
   override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
     super.mandatoryMvnDeps() ++ scalaLibraryMvnDeps()
+  }
+
+  /**
+   * For Scala 3.8+, filter out scala3-library_3 from resolved dependencies.
+   * Scala 3.8+ uses scala-library instead, and having both on the classpath
+   * causes conflicts (both define scala.caps package).
+   */
+  override def resolvedMvnDeps: T[Seq[PathRef]] = Task {
+    val deps = super.resolvedMvnDeps()
+    if (JvmWorkerUtil.isScala3(scalaVersion()) && !JvmWorkerUtil.enforceScala213Library(scalaVersion())) {
+      deps.filterNot(_.path.last.startsWith("scala3-library_3-"))
+    } else {
+      deps
+    }
   }
 
   /**
