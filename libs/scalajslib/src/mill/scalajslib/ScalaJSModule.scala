@@ -232,7 +232,7 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
 
   override def scalacPluginMvnDeps = Task {
     super.scalacPluginMvnDeps() ++
-      Option.when(!isScala3(scalaVersion())){
+      Option.when(!isScala3(scalaVersion())) {
         mvn"org.scala-js:::scalajs-compiler:${scalaJSVersion()}"
       }
   }
