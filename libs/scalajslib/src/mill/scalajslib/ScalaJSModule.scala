@@ -7,7 +7,8 @@ import mill.api.daemon.internal.bsp.ScalaBuildTarget
 import mill.api.Result
 import mill.api.CrossVersion
 import mill.scalalib.{Dep, DepSyntax, Lib, TestModule}
-import mill.javalib.api.*
+import mill.javalib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil.*
 import mill.scalajslib.api.*
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 import mill.*
@@ -37,13 +38,11 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
   override def scalaLibraryMvnDeps: T[Seq[Dep]] = Task {
     val sv = scalaVersion()
     val baseDeps =
-      if (isScala3(sv) && !enforceScala213Library(sv)) {
-        // For Scala 3.8+ on Scala.js, we still need scala3-library_sjs1_3
-        // (JVM uses scala-library, but Scala.js artifacts are published as scala3-library)
-        Seq(mvn"${scalaOrganization()}::scala3-library:$sv")
-      } else {
-        super.scalaLibraryMvnDeps()
-      }
+      // For Scala 3.8+ on Scala.js, we still need scala3-library_sjs1_3
+      // (JVM uses scala-library, but Scala.js artifacts are published as scala3-library)
+      if (usesScalaLibraryOnly(sv)) Seq(mvn"${scalaOrganization()}::scala3-library:$sv")
+      else super.scalaLibraryMvnDeps()
+
     if (isScala3(sv)) {
       // Since Dotty/Scala3, Scala.JS is published with a platform suffix
       baseDeps.map(dep =>

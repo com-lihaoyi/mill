@@ -198,4 +198,17 @@ object JvmWorkerUtil {
     // Some Dotty versions and all Scala 3 versions before 3.8
     sv.major == 0 || (sv.major == 3 && sv.minor < 8)
   }
+
+  /**
+   * Returns true for Scala 3 versions that use scala3-library (pre-3.8).
+   */
+  def usesScala3Library(scalaVersion: String): Boolean =
+    isScala3(scalaVersion) && enforceScala213Library(scalaVersion)
+
+  /**
+   * Returns true for Scala 3.8+ which uses scala-library directly
+   * instead of scala3-library.
+   */
+  def usesScalaLibraryOnly(scalaVersion: String): Boolean =
+    isScala3(scalaVersion) && !enforceScala213Library(scalaVersion)
 }

@@ -8,7 +8,7 @@ import coursier.util.Task
 import coursier.{Dependency, Repository, Resolution, Type}
 import mill.api.{TaskCtx, PathRef}
 import mill.api.Result
-import mill.javalib.api.*
+import mill.javalib.api.JvmWorkerUtil.*
 
 /**
  * Utilities around managing JVM dependencies
@@ -141,7 +141,7 @@ object Lib {
   def scalaRuntimeMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
     if (isDotty(scalaVersion)) {
       Seq(mvn"$scalaOrganization::dotty-library:$scalaVersion")
-    } else if (isScala3(scalaVersion) && enforceScala213Library(scalaVersion)) {
+    } else if (usesScala3Library(scalaVersion)) {
       Seq(mvn"$scalaOrganization::scala3-library:$scalaVersion")
     } else {
       Seq(mvn"$scalaOrganization:scala-library:$scalaVersion")

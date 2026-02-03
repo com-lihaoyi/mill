@@ -6,7 +6,7 @@ import mill.api.{BuildCtx, ModuleRef, PathRef, Result, Task}
 import mill.util.BuildInfo
 import mill.util.Jvm
 import mill.javalib.api.{CompilationResult, Versions}
-import mill.javalib.api.*
+import mill.javalib.api.JvmWorkerUtil.*
 import mainargs.Flag
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi, ScalaBuildTarget}
 import mill.api.daemon.internal.{ScalaModuleApi, ScalaPlatform, internal}
@@ -306,9 +306,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    * causes conflicts (both define scala.caps package).
    */
   override def resolvedMvnDeps: T[Seq[PathRef]] = Task {
-    val filterScala3Library =
-      isScala3(scalaVersion()) &&
-        !enforceScala213Library(scalaVersion())
+    val filterScala3Library = usesScalaLibraryOnly(scalaVersion())
 
     val deps = super.resolvedMvnDeps()
 
