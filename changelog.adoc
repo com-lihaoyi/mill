@@ -16,6 +16,23 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 === main branch
 
+[#1-1-1]
+=== 1.1.1
+:version: 1.1.1
+:milestone-name: 1.1.1
+:milestone: 140
+:prev-version: 1.1.0
+_2026-02-03_
+
+_Changes since {prev-version}:_
+
+* Improvements to `selective.resolveTree` debugging output {link-pr}/6761[#6761]
+
+* Tighten up exception handling around classloader and subprocess worker boundaries {link-pr}/6740[#6740]
+
+* Add `mill.javalib.SonatypeCentralPublishModule/initGpgKeys` and remove
+  dependency on global `gpg` installation {link-pr}/6727[#6727]
+
 * Allow manual re-configuration of selective testing graph via
   `Task(selectiveInputs = ...) {link-pr}/6732[#6732]
 
