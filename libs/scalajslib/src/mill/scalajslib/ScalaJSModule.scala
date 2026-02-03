@@ -38,8 +38,10 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
   override def scalaLibraryMvnDeps: T[Seq[Dep]] = Task {
     val deps0 = super.scalaLibraryMvnDeps()
     val deps =
-      if (JvmWorkerUtil.isScala3(scalaVersion()) &&
-        !JvmWorkerUtil.enforceScala213Library(scalaVersion()))
+      if (
+        JvmWorkerUtil.isScala3(scalaVersion()) &&
+        !JvmWorkerUtil.enforceScala213Library(scalaVersion())
+      )
         deps0.map { dep =>
           if (dep.name == "scala-library") {
             val cross = dep.cross match {
