@@ -5,7 +5,8 @@ import mill.util.JarManifest
 import mill.api.{BuildCtx, ModuleRef, PathRef, Result, Task}
 import mill.util.BuildInfo
 import mill.util.Jvm
-import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
+import mill.javalib.api.{CompilationResult, Versions}
+import mill.javalib.api.JvmWorkerUtil.*
 import mainargs.Flag
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi, ScalaBuildTarget}
 import mill.api.daemon.internal.{ScalaModuleApi, ScalaPlatform, internal}
@@ -49,10 +50,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    * @return
    */
   def scalaOrganization: T[String] = Task {
-    if (JvmWorkerUtil.isDotty(scalaVersion()))
-      "ch.epfl.lamp"
-    else
-      "org.scala-lang"
+    if (isDotty(scalaVersion())) "ch.epfl.lamp"
+    else "org.scala-lang"
   }
 
   /**
@@ -69,20 +68,11 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
 
   override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = Task.Anon {
     super.mapDependencies().andThen { (d: coursier.Dependency) =>
-      val artifacts =
-        if (JvmWorkerUtil.isDotty(scalaVersion()))
-          Set("dotty-library", "dotty-compiler")
-        else if (JvmWorkerUtil.isScala3(scalaVersion()))
-          Set("scala3-library", "scala3-compiler")
-        else
-          Set("scala-library", "scala-compiler", "scala-reflect")
-      if (!artifacts(d.module.name.value)) d
+      // Force Scala library/compiler dependencies to use this module's configured
+      // scalaOrganization and scalaVersion, overriding any transitive versions
+      if (!Lib.scalaArtifacts(scalaVersion()).contains(d.module.name.value)) d
       else
-        d.withModule(
-          d.module.withOrganization(
-            coursier.Organization(scalaOrganization())
-          )
-        )
+        d.withModule(d.module.withOrganization(coursier.Organization(scalaOrganization())))
           .withVersion(scalaVersion())
     }
   }
@@ -96,7 +86,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       publish.Artifact.fromDep(
         _: Dep,
         scalaVersion(),
-        JvmWorkerUtil.scalaBinaryVersion(scalaVersion()),
+        scalaBinaryVersion(scalaVersion()),
         platformSuffix()
       )
     }
@@ -215,7 +205,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   def scalaDocOptions: T[Seq[String]] = Task {
     val defaults =
-      if (JvmWorkerUtil.isDottyOrScala3(scalaVersion()))
+      if (isDottyOrScala3(scalaVersion()))
         Seq(
           "-project",
           artifactName()
@@ -249,8 +239,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     // For Scala versions where a binary bridge is available (Scala 3, some Scala 2.x),
     // resolve the bridge using this module's resolver so that custom repositories
     // (e.g., for nightly builds) are respected.
-    if (JvmWorkerUtil.isBinaryBridgeAvailable(sv)) {
-      val (bridgeDep0, bridgeName, bridgeVersion) = JvmWorkerUtil.scalaCompilerBridgeDep(sv, so)
+    if (isBinaryBridgeAvailable(sv)) {
+      val (bridgeDep0, bridgeName, bridgeVersion) = scalaCompilerBridgeDep(sv, so)
       val bridgeDep = Dep.parse(bridgeDep0)
 
       val deps = defaultResolver().classpath(
@@ -264,7 +254,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         }
       )
 
-      Some(JvmWorkerUtil.grepJar(deps, bridgeName, bridgeVersion, sources = false))
+      Some(grepJar(deps, bridgeName, bridgeVersion, sources = false))
     } else {
       // For older Scala versions that require compiling the bridge from sources,
       // let the JvmWorkerModule handle it
@@ -297,6 +287,17 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   /** Adds the Scala Library is a mandatory dependency. */
   override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
     super.mandatoryMvnDeps() ++ scalaLibraryMvnDeps()
+  }
+
+  /**
+   * For Scala 3.8+, filter out scala3-library_3 from resolved dependencies.
+   * Scala 3.8+ uses scala-library instead, and having both on the classpath
+   * causes conflicts (both define scala.caps package).
+   */
+  override def resolvedMvnDeps: T[Seq[PathRef]] = Task {
+    val deps = super[JavaModule].resolvedMvnDeps()
+    if (!usesScalaLibraryOnly(scalaVersion())) deps
+    else deps.filterNot(_.path.last.startsWith("scala3-library_3-"))
   }
 
   /**
@@ -350,7 +351,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   }
 
   override def docSources: T[Seq[PathRef]] = Task {
-    if (JvmWorkerUtil.isScala3(scalaVersion()) && !JvmWorkerUtil.isScala3Milestone(scalaVersion()))
+    if (isScala3(scalaVersion()) && !isScala3Milestone(scalaVersion()))
       Seq(compile().classes)
     else allSources()
   }
@@ -392,7 +393,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       }
     }
 
-    if (JvmWorkerUtil.isScala3(scalaVersion())) { // scaladoc 3
+    if (isScala3(scalaVersion())) { // scaladoc 3
       val javadocDir = Task.dest / "javadoc"
       os.makeDir.all(javadocDir)
 
@@ -545,7 +546,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         try {
           Jvm.callInteractiveProcess(
             mainClass =
-              if (JvmWorkerUtil.isDottyOrScala3(scalaVersion())) "dotty.tools.repl.Main"
+              if (isDottyOrScala3(scalaVersion())) "dotty.tools.repl.Main"
               else "scala.tools.nsc.MainGenericRunner",
             classPath = classPath,
             jvmArgs = forkArgs() ++ Jvm.getJvmSuppressionArgs(javaHome().map(_.path)),
@@ -573,12 +574,12 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   def artifactScalaVersion: T[String] = Task {
     if (crossFullScalaVersion()) scalaVersion()
-    else JvmWorkerUtil.scalaBinaryVersion(scalaVersion())
+    else scalaBinaryVersion(scalaVersion())
   }
 
   override def zincAuxiliaryClassFileExtensions: T[Seq[String]] = Task {
     super.zincAuxiliaryClassFileExtensions() ++ (
-      if (JvmWorkerUtil.isScala3(scalaVersion())) Seq("tasty")
+      if (isScala3(scalaVersion())) Seq("tasty")
       else Seq.empty[String]
     )
   }
@@ -639,7 +640,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       ScalaBuildTarget(
         scalaOrganization = scalaOrganization(),
         scalaVersion = scalaVersion(),
-        scalaBinaryVersion = JvmWorkerUtil.scalaBinaryVersion(scalaVersion()),
+        scalaBinaryVersion = scalaBinaryVersion(scalaVersion()),
         platform = ScalaPlatform.JVM,
         jars = scalaCompilerClasspath().map(_.path.toURI.toString).iterator.toSeq,
         jvmBuildTarget = Some(bspJvmBuildTargetTask())
@@ -659,7 +660,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     Task(persistent = true) {
       val sv = scalaVersion()
 
-      val additionalScalacOptions = if (JvmWorkerUtil.isScala3(sv)) {
+      val additionalScalacOptions = if (isScala3(sv)) {
         Seq("-Xsemanticdb", s"-sourceroot:${BuildCtx.workspaceRoot}")
       } else {
         Seq("-Yrangepos", s"-P:semanticdb:sourceroot:${BuildCtx.workspaceRoot}")
