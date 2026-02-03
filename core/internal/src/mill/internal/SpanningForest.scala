@@ -20,7 +20,7 @@ object SpanningForest {
   ): (Map[T, Int], Array[Array[Int]]) = {
     val vertexToIndex = vertices.zipWithIndex.toMap
     val edgeIndices = vertices
-      .map(t => edges.getOrElse(t, Nil).flatMap(vertexToIndex.get(_)).toArray)
+      .map(t => edges.getOrElse(t, Nil).flatMap(vertexToIndex.get(_)).toArray.sorted)
       .toArray
 
     (vertexToIndex, edgeIndices)
@@ -46,9 +46,10 @@ object SpanningForest {
   }
 
   def spanningTreeToJsonTree(node: SpanningForest.Node, stringify: Int => String): ujson.Obj = {
-    ujson.Obj.from(
-      node.values.map { case (k, v) => stringify(k) -> spanningTreeToJsonTree(v, stringify) }
-    )
+    val entries = node.values.toSeq.sortBy(_._1).map { case (k, v) =>
+      stringify(k) -> spanningTreeToJsonTree(v, stringify)
+    }
+    ujson.Obj.from(entries)
   }
 
   case class Node(values: mutable.LinkedHashMap[Int, Node] = mutable.LinkedHashMap())
@@ -71,7 +72,7 @@ object SpanningForest {
     // Do a breadth first search from the root nodes across the graph edges
     // to build up the spanning forest
     breadthFirst(rootNodeIndices) { index =>
-      val nextIndices = indexGraphEdges(index).filter(importantVertices)
+      val nextIndices = indexGraphEdges(index).filter(importantVertices).sorted
 
       // We build up the spanningForest during a normal breadth first search,
       // using the `nodeMapping` to quickly find a vertice's tree node so we
@@ -116,6 +117,9 @@ object SpanningForest {
 
   def reverseEdges[T, V](edges: Iterable[(T, Iterable[V])]): Map[V, Vector[T]] = {
     val flatEdges = edges.iterator.flatMap { case (k, vs) => vs.map(_ -> k) }.toVector
-    flatEdges.groupMap(_._1)(_._2).map { case (k, v) => (k, v.toSeq) }.toMap
+    flatEdges
+      .groupMap(_._1)(_._2)
+      .map { case (k, v) => (k, v.toVector.sortBy(_.toString)) }
+      .toMap
   }
 }
