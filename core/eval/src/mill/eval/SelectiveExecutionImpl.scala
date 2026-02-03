@@ -241,22 +241,18 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
 
           if (downstreamNamed.isEmpty) ujson.Obj()
           else {
-            val transitiveTasks = SelectiveExecutionImpl.transitiveTasksSelective(downstreamNamed)
-
-            val upstreamTaskEdges0 = namedUpstreamEdges(transitiveTasks)
+            val upstreamTaskEdges0 =
+              namedUpstreamEdges(SelectiveExecutionImpl.transitiveTasksSelective(downstreamNamed))
 
             // Prune to only branches that lead to a selected task.
             val keepTasks = breadthFirst(downstreamNamed.map(t => t: Task[?])) { t =>
               upstreamTaskEdges0.getOrElse(t.asInstanceOf[Task.Named[_]], Nil)
             }.toSet
 
-            val upstreamTaskEdgesNamed = upstreamTaskEdges0.collect {
-              case (task, inputs) if keepTasks.contains(task) =>
-                task -> inputs.filter(keepTasks.contains)
-            }
-
-            val upstreamTaskEdges: Map[Task[?], Seq[Task[?]]] =
-              upstreamTaskEdgesNamed.view.map { case (k, v) => (k: Task[?]) -> v }.toMap
+            val upstreamTaskEdges = upstreamTaskEdges0
+              .collect { case (task, inputs) if keepTasks.contains(task) =>
+                (task: Task[?]) -> inputs.filter(keepTasks.contains)
+              }
 
             val rootInvalidatedTasks = result.changedRootTasks.collect {
               case n: Task.Named[_] if keepTasks.contains(n) => n: Task[?]
@@ -265,9 +261,9 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
             // For selective execution, use global invalidation reason for all root tasks
             val taskInvalidationReasons = result.globalInvalidationReason match {
               case Some(reason) =>
-                rootInvalidatedTasks
-                  .collect { case n: Task.Named[_] => n.ctx.segments.render -> reason }
-                  .toMap
+                rootInvalidatedTasks.collect { case n: Task.Named[_] =>
+                  n.ctx.segments.render -> reason
+                }.toMap
 
               case None => Map.empty[String, String]
             }
@@ -279,10 +275,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
               taskInvalidationReasons = taskInvalidationReasons
             )
 
-            pruneInvalidationTreeToSelected(
-              tree,
-              downstreamNamed.map(_.ctx.segments.render).toSet
-            )
+            pruneInvalidationTreeToSelected(tree, downstreamNamed.map(_.ctx.segments.render).toSet)
           }
       }
     }
