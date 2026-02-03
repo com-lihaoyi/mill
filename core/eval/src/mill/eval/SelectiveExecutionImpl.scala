@@ -221,7 +221,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
 
             val paths = SpanningForest.breadthFirstWithPaths(
               result.changedRootTasks
-            ){
+            ) {
               case t: Task.Named[?] => downstreamTaskEdges.getOrElse(t, Nil)
               case _ => Nil
             }
@@ -236,13 +236,13 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
             val taskInvalidationReasons = result.globalInvalidationReason match {
               case Some(reason) =>
                 pathTasks
-                  .collect { case n: Task.Named[_] => n.ctx.segments.render -> reason}
+                  .collect { case n: Task.Named[_] => n.ctx.segments.render -> reason }
                   .toMap
               case None => Map.empty[String, String]
             }
 
             val tree = InvalidationForest.buildInvalidationTree(
-              upstreamTaskEdges0 = upstreamTaskEdges.collect{
+              upstreamTaskEdges0 = upstreamTaskEdges.collect {
                 case (k, vs) if pathTasks.contains(k) => (k, vs.filter(pathTasks.contains(_)))
               },
               rootInvalidatedTasks = pathTasks,
