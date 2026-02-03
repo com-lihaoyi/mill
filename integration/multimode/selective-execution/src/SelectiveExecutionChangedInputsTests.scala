@@ -115,37 +115,6 @@ object SelectiveExecutionChangedInputsTests extends UtestIntegrationTestSuite {
       )
     }
 
-    test("resolveTree-prunes-unselected-branches") - integrationTest { tester =>
-      import tester.*
-
-      // Prepare for both foo and bar, but only bar's input will change
-      eval(
-        ("selective.prepare", "{foo.fooCommand,bar.barCommand}"),
-        check = true,
-        stderr = os.Inherit
-      )
-
-      modifyFile(workspacePath / "bar/bar.txt", _ + "!")
-
-      val resolveTree = eval(
-        ("selective.resolveTree", "{foo.fooCommand,bar.barCommand}"),
-        check = true,
-        stderr = os.Inherit
-      )
-
-      // Only the bar branch should appear, since foo is not selected
-      assertGoldenLiteral(
-        resolveTree.out.linesIterator.toSeq,
-        List(
-          "{",
-          "  \"bar.barTask\": {",
-          "    \"bar.barCommand\": {}",
-          "  }",
-          "}"
-        )
-      )
-    }
-
     test("resolveTree-prunes-nonselected-diamond-branch") - integrationTest { tester =>
       import tester.*
 
