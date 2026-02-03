@@ -208,10 +208,11 @@ out/mill-selective-execution.json
       }
     },
     "foo.compileClasspath": {
-      "foo.localCompileClasspath": {
-        "foo.unmanagedClasspath": {},
-        "foo.compileResources": {}
-      }
+      "foo.resolvedMvnDeps": {
+        "foo.mvnDeps": {},
+        ...
+      },
+      ...
     },
     ...
   }
@@ -240,7 +241,8 @@ out/mill-selective-execution.json
   "foo.sources": {
     "foo.allSources": {
       "foo.allSourceFiles": {
-        "foo.compile": {}
+        "foo.compile": {},
+        "foo.zincIncrementalCompilation": {}
       }
     }
   }

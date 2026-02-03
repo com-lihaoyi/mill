@@ -189,6 +189,13 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
     }
   }
 
+  // Only keep named tasks in the graph to avoid anonymous tasks showing up in the tree.
+  def upstreamNamedTasks(t: Task[?]) =
+    breadthFirst(t.selectiveInputs) {
+      case _: Task.Named[_] => Nil
+      case t => t.selectiveInputs
+    }.collect { case n: Task.Named[_] => n }.distinct
+
   def resolveTree(tasks: Seq[String]): Result[ujson.Value] = {
     evaluator.resolveTasks(
       tasks,
@@ -199,27 +206,45 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
         case None => ujson.Obj()
         case Some(result) =>
           val downstreamNamed = result.downstreamTasks.collect { case n: Task.Named[_] => n }
-          val transitiveTasks = SelectiveExecutionImpl.transitiveTasksSelective(downstreamNamed)
-          val upstreamTaskEdges0 =
-            transitiveTasks.map(t => (t, t.selectiveInputs)).toMap
 
-          // For selective execution, use global invalidation reason for all root tasks
+          val upstreamTaskEdges = downstreamNamed
+            .map(t => (t: Task[?], upstreamNamedTasks(t)))
+            .toMap
+
+          val downstreamTaskEdges = SpanningForest.reverseEdges(upstreamTaskEdges)
+
+          val paths = SpanningForest.breadthFirstWithPaths(
+            result.changedRootTasks
+          ) {
+            case t: Task.Named[?] => downstreamTaskEdges.getOrElse(t, Nil)
+            case _ => Nil
+          }
+
+          val pathTasks = paths
+            .distinctBy(_.head)
+            .filter(p => result.downstreamTasks.contains(p.head) && resolved.contains(p.head))
+            .flatten
+            .map(t => t: Task[?])
+            .toSet
+
           val taskInvalidationReasons = result.globalInvalidationReason match {
             case Some(reason) =>
-              result.changedRootTasks.collect { case n: Task.Named[_] =>
-                n.ctx.segments.render -> reason
-              }.toMap
+              pathTasks
+                .collect { case n: Task.Named[_] => n.ctx.segments.render -> reason }
+                .toMap
             case None => Map.empty[String, String]
           }
 
-          InvalidationForest.buildInvalidationTree(
-            upstreamTaskEdges0 = upstreamTaskEdges0,
-            rootInvalidatedTasks = result.changedRootTasks.collect { case n: Task.Named[_] =>
-              n: Task[?]
+          val tree = InvalidationForest.buildInvalidationTree(
+            upstreamTaskEdges0 = upstreamTaskEdges.collect {
+              case (k, vs) if pathTasks.contains(k) => (k, vs.filter(pathTasks.contains(_)))
             },
+            rootInvalidatedTasks = pathTasks,
             codeSignatureTree = evaluator.spanningInvalidationTree,
             taskInvalidationReasons = taskInvalidationReasons
           )
+
+          tree
       }
     }
   }

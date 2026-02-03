@@ -444,7 +444,8 @@ object Execution {
           .flatMap(
             _.inputs.collect { case f if !groupSet.contains(f) => sortedGroups.lookupValue(f) }
           )
-          .toArray
+          .toVector
+          .sortBy(_.toString)
       )
     }
     out.result()

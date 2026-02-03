@@ -114,5 +114,32 @@ object SelectiveExecutionChangedInputsTests extends UtestIntegrationTestSuite {
         )
       )
     }
+
+    test("resolveTree-prunes-nonselected-diamond-branch") - integrationTest { tester =>
+      import tester.*
+
+      eval(
+        ("selective.prepare", "diamond.top"),
+        check = true,
+        stderr = os.Inherit
+      )
+
+      modifyFile(workspacePath / "diamond/diamond.txt", _ + "!")
+
+      val resolveTree = eval(
+        ("selective.resolveTree", "diamond.top"),
+        check = true,
+        stderr = os.Inherit
+      )
+
+      val output = resolveTree.out
+      assert(output.contains("diamond.top"))
+
+      val hasLeft = output.contains("diamond.left")
+      val hasRight = output.contains("diamond.right")
+
+      // The tree is a spanning forest: only the branch containing the selected task should remain.
+      assert(hasLeft ^ hasRight)
+    }
   }
 }
