@@ -5,7 +5,7 @@
 
 // To use this plugin in a Java/Scala module,
 //
-// 1. Extend `mill.contrib.checkstyle.CheckstyleModule`.
+// 1. Extend `mill.javalib.checkstyle.CheckstyleModule`.
 // 2. Define a https://checkstyle.org/config.html[configuration] file `checkstyle-config.xml`.
 // 3. Run the `checkstyle` command.
 
@@ -77,7 +77,7 @@ Audit done.
 // [source,scala]
 // ----
 // import mill.*
-// import mill.contrib.checkstyle.CheckstyleModule
+// import mill.javalib.checkstyle.CheckstyleModule
 // import mill.scalalib.*
 //
 // object foo extends Module {
@@ -105,7 +105,7 @@ Audit done.
 //
 // === CheckstyleXsltModule
 //
-// This plugin extends the `mill.contrib.checkstyle.CheckstyleModule` with the ability to generate reports by applying https://www.w3.org/TR/xslt/[XSL Transformations] on a Checkstyle output report.
+// This plugin extends the `mill.javalib.checkstyle.CheckstyleModule` with the ability to generate reports by applying https://www.w3.org/TR/xslt/[XSL Transformations] on a Checkstyle output report.
 //
 // ==== Auto detect XSL Transformations
 //
@@ -135,8 +135,8 @@ Audit done.
 // ----
 // import mill.*
 // import mill.api.PathRef
-// import mill.contrib.checkstyle.CheckstyleXsltModule
-// import mill.contrib.checkstyle.CheckstyleXsltReport
+// import mill.javalib.checkstyle.CheckstyleXsltModule
+// import mill.javalib.checkstyle.CheckstyleXsltReport
 // import mill.scalalib.*
 //
 // object foo extends JavaModule, CheckstyleXsltModule {

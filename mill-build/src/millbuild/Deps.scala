@@ -172,7 +172,7 @@ object Deps {
     if (JvmWorkerUtil.isScala3(scalaVersion))
       mvn"org.scala-lang:scala-reflect:${Deps.scala2Version}"
     else mvn"org.scala-lang:scala-reflect:${scalaVersion}"
-  val scoverage2Version = "2.5.0"
+  val scoverage2Version = "2.5.2"
   val scalacScoverage2Plugin = mvn"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
   val scalacScoverage2Reporter = mvn"org.scoverage::scalac-scoverage-reporter:${scoverage2Version}"
   val scalacScoverage2Domain = mvn"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
@@ -198,7 +198,7 @@ object Deps {
   // https://github.com/google/gson/releases/tag/gson-parent-2.13.2
   val gson = mvn"com.google.code.gson:gson:2.13.2"
   val fansi = mvn"com.lihaoyi::fansi:0.5.1"
-  val javaparser = mvn"com.github.javaparser:javaparser-core:3.27.1"
+  val javaparser = mvn"com.github.javaparser:javaparser-core:3.28.0"
   val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.16.0"
   val requests = mvn"com.lihaoyi::requests:0.9.3"
   val logback = mvn"ch.qos.logback:logback-classic:1.5.24"
@@ -306,13 +306,13 @@ object Deps {
     mvn"com.google.protobuf:protobuf-java:4.29.5",
     mvn"com.google.guava:guava:33.4.0-jre",
     mvn"org.yaml:snakeyaml:2.5",
-    mvn"org.apache.commons:commons-compress:1.27.1"
+    mvn"org.apache.commons:commons-compress:1.28.0"
   )
 
   /** Used in tests. */
   object TestDeps {
     // tests framework (test)
-    val scalaCheck = mvn"org.scalacheck::scalacheck:1.18.1"
+    val scalaCheck = mvn"org.scalacheck::scalacheck:1.19.0"
     val scalaTest = mvn"org.scalatest::scalatest:3.2.19"
     val utest = mvn"com.lihaoyi::utest:0.10.0-RC1"
     val zioTest = mvn"dev.zio::zio-test:2.1.14"

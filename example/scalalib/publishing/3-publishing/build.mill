@@ -29,4 +29,6 @@ Publishing Artifact(com.lihaoyi,foo_3,0.0.1) to ivy repo...
 
 // This is an example `{language}Module` with added publishing capabilities via
 // `PublishModule` using Mill's
-// xref:{language-small}lib/intro.adoc#_programmable_configuration[programmable build.mill] syntax
+// xref:{language-small}lib/intro.adoc#_programmable_configuration[programmable build.mill] syntax.
+// It provides `publishLocal` for local publishing and `publishSonatypeCentral`
+// (or `mill.javalib.SonatypeCentralPublishModule/`) for publishing to Maven Central.
