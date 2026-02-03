@@ -211,10 +211,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       }
     }
 
-    tree match {
-      case obj: ujson.Obj => pruneObj(obj).getOrElse(ujson.Obj())
-      case _ => ujson.Obj()
-    }
+    pruneObj(tree.obj).getOrElse(ujson.Obj())
   }
 
   def namedUpstreamEdges(tasks: Seq[Task[?]]): Map[Task.Named[?], Seq[Task.Named[?]]] = {
