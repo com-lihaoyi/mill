@@ -78,14 +78,15 @@ jobs:
       os: windows-latest
       shell: powershell
 
-  test-docs:
+  test-dist:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-        with: { fetch-depth: 1 }
+        with:
+          fetch-depth: 0
 
-      - run: ./mill website.fastPages + website.checkBrokenLinks
+      - run: ./mill website.fastPages + website.checkBrokenLinks + dist.test
 
   cross-plat:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
@@ -141,7 +142,7 @@ jobs:
           # on the opposite version on Windows below, so we get decent coverage of
           # each test on each Java version and each operating system
           # We also try to group tests together to manually balance out the runtimes of each jobs
-          - millargs: "'{contrib,core,testkit,runner,dist}.__.test'"
+          - millargs: "'{contrib,core,testkit,runner,dist.scripts}.__.test'"
 
           - millargs: "'libs.scalalib.__.test'"
 
