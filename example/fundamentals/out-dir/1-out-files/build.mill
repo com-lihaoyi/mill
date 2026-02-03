@@ -105,14 +105,11 @@ out/foo/compile.dest
 out/mill-chrome-profile.json
 out/mill-dependency-tree.json
 out/mill-invalidation-tree.json
-out/mill-java-home
-out/mill-no-daemon
 out/mill-out-lock
 out/mill-profile.json
 out/mill-build
 out/mill-daemon
 out/mill-runner-state.json
-out/mill-selective-execution.json
 
 */
 
@@ -181,9 +178,6 @@ out/mill-selective-execution.json
 //
 // === `mill-no-daemon`
 // A subfolder used to contain the Mill subprocess when run in `--no-daemon` mode.
-//
-// === `mill-java-home`
-// Debugging file used to record the Java home of the running Mill command.
 //
 // === `mill-dependency-tree.json`
 // A JSON file where the root keys are the tasks directly specified by the last
