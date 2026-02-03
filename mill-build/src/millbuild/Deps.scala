@@ -306,7 +306,7 @@ object Deps {
     mvn"com.google.protobuf:protobuf-java:4.29.5",
     mvn"com.google.guava:guava:33.4.0-jre",
     mvn"org.yaml:snakeyaml:2.5",
-    mvn"org.apache.commons:commons-compress:1.27.1"
+    mvn"org.apache.commons:commons-compress:1.28.0"
   )
 
   /** Used in tests. */
