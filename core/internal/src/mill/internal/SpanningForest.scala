@@ -46,10 +46,9 @@ object SpanningForest {
   }
 
   def spanningTreeToJsonTree(node: SpanningForest.Node, stringify: Int => String): ujson.Obj = {
-    val entries = node.values.toSeq.sortBy(_._1).map { case (k, v) =>
-      stringify(k) -> spanningTreeToJsonTree(v, stringify)
-    }
-    ujson.Obj.from(entries)
+    ujson.Obj.from(
+      node.values.map { case (k, v) => stringify(k) -> spanningTreeToJsonTree(v, stringify) }
+    )
   }
 
   case class Node(values: mutable.LinkedHashMap[Int, Node] = mutable.LinkedHashMap())
