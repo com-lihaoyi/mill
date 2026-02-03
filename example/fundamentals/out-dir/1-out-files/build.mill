@@ -185,10 +185,11 @@ out/mill-daemon
       }
     },
     "foo.compileClasspath": {
-      "foo.localCompileClasspath": {
-        "foo.unmanagedClasspath": {},
-        "foo.compileResources": {}
-      }
+      "foo.resolvedMvnDeps": {
+        "foo.mvnDeps": {},
+        ...
+      },
+      ...
     },
     ...
   }
@@ -217,7 +218,8 @@ out/mill-daemon
   "foo.sources": {
     "foo.allSources": {
       "foo.allSourceFiles": {
-        "foo.compile": {}
+        "foo.compile": {},
+        "foo.zincIncrementalCompilation": {}
       }
     }
   }
