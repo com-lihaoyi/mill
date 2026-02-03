@@ -14,7 +14,7 @@ flags or options:
    xref:cli/build-header.adoc#_mill_opts[Repo-Level Mill Options]
 
 4. The JVM running the Mill build tool process, which may take flags. e.g.
-   `java -Xss10m -Xmx10G`. These are passed via `JAVA_OPTs`, your  xref:cli/build-header.adoc[]
+   `java -Xss10m -Xmx10G`. These are passed via `JAVA_OPTS`, your  xref:cli/build-header.adoc[]
    or via a `.mill-jvm-opts` file
    as shown in xref:cli/build-header.adoc#_mill_jvm_opts[Mill with custom JVM options]
 
@@ -79,13 +79,13 @@ Options:
   -k --keep-going     Continue build, even after build failures.
   --meta-level <int>  Select a meta-level to run the given tasks. Level 0 is the main project in
                       `build.mill`, level 1 the first meta-build in `mill-build/build.mill`, etc. If
-                      negative, -1 means the deepest meta-build (boostrap build), -2 the second
+                      negative, -1 means the deepest meta-build (bootstrap build), -2 the second
                       deepest meta-build, etc.
   --no-daemon         Run without a long-lived background daemon.
   --ticker <bool>     Enable or disable the ticker log, which provides information on running tasks
                       and where each log line came from
   -v --version        Show mill version information and exit.
-  -w --watch          Watch and re-run the given tasks when when their inputs change.
+  -w --watch          Watch and re-run the given tasks when their inputs change.
   task <str>...       The name or a query of the tasks(s) you want to build.
 
 See documentation at https://mill-build.org for more details

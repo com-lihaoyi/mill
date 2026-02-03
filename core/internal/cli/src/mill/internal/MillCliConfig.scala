@@ -62,7 +62,7 @@ case class MillCliConfig(
     help: Flag,
     @arg(doc = "Print a internal or advanced command flags not intended for common usage")
     helpAdvanced: Flag,
-    @arg(short = 'w', doc = "Watch and re-run the given tasks when when their inputs change.")
+    @arg(short = 'w', doc = "Watch and re-run the given tasks when their inputs change.")
     watch: Flag = Flag(),
     @arg(
       hidden = true,
@@ -81,7 +81,7 @@ case class MillCliConfig(
       doc =
         """Select a meta-level to run the given tasks. Level 0 is the main project in `build.mill`,
            level 1 the first meta-build in `mill-build/build.mill`, etc.
-           If negative, -1 means the deepest meta-build (boostrap build), -2 the second deepest meta-build, etc."""
+           If negative, -1 means the deepest meta-build (bootstrap build), -2 the second deepest meta-build, etc."""
     )
     metaLevel: Option[Int] = None,
 
