@@ -50,10 +50,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    * @return
    */
   def scalaOrganization: T[String] = Task {
-    if (isDotty(scalaVersion()))
-      "ch.epfl.lamp"
-    else
-      "org.scala-lang"
+    if (isDotty(scalaVersion())) "ch.epfl.lamp"
+    else "org.scala-lang"
   }
 
   /**
@@ -70,20 +68,11 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
 
   override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = Task.Anon {
     super.mapDependencies().andThen { (d: coursier.Dependency) =>
-      val artifacts =
-        if (isDotty(scalaVersion()))
-          Set("dotty-library", "dotty-compiler")
-        else if (isScala3(scalaVersion()))
-          Set("scala3-library", "scala3-compiler")
-        else
-          Set("scala-library", "scala-compiler", "scala-reflect")
-      if (!artifacts(d.module.name.value)) d
+      // Force Scala library/compiler dependencies to use this module's configured
+      // scalaOrganization and scalaVersion, overriding any transitive versions
+      if (!Lib.scalaArtifacts(scalaVersion()).contains(d.module.name.value)) d
       else
-        d.withModule(
-          d.module.withOrganization(
-            coursier.Organization(scalaOrganization())
-          )
-        )
+        d.withModule(d.module.withOrganization(coursier.Organization(scalaOrganization())))
           .withVersion(scalaVersion())
     }
   }
@@ -306,11 +295,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    * causes conflicts (both define scala.caps package).
    */
   override def resolvedMvnDeps: T[Seq[PathRef]] = Task {
-    val filterScala3Library = usesScalaLibraryOnly(scalaVersion())
-
     val deps = super.resolvedMvnDeps()
-
-    if (filterScala3Library) deps.filterNot(_.path.last.startsWith("scala3-library_3-"))
+    if (usesScalaLibraryOnly(scalaVersion())) deps.filterNot(_.path.last.startsWith("scala3-library_3-"))
     else deps
   }
 
