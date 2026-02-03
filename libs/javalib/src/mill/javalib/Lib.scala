@@ -142,9 +142,10 @@ object Lib {
 
   def scalaRuntimeMvnDeps(scalaOrg: String, scalaVersion: String): Seq[Dep] = {
     val artifact = scalaLibraryArtifact(scalaVersion)
-    // Dotty/Scala 3 libraries use :: (cross-version with _3 suffix),
-    // Scala 2 uses : (no suffix, published as plain scala-library)
-    if (isDottyOrScala3(scalaVersion)) Seq(Dep.parse(s"$scalaOrg::$artifact:$scalaVersion"))
+    // Dotty/Scala 3 pre-3.8 use :: (cross-version with _3 suffix),
+    // Scala 2 and Scala 3.8+ use : (no suffix, published as plain scala-library)
+    if (usesScala3Library(scalaVersion) || isDotty(scalaVersion))
+      Seq(Dep.parse(s"$scalaOrg::$artifact:$scalaVersion"))
     else Seq(Dep.parse(s"$scalaOrg:$artifact:$scalaVersion"))
   }
 
