@@ -210,7 +210,11 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
 
           if (downstreamNamed.isEmpty) ujson.Obj()
           else {
-            val upstreamTaskEdges = result.downstreamTasks.map(t => (t, upstreamNamedTasks(t))).toMap
+            // Only keep named tasks in the graph to avoid anonymous tasks showing up in the tree.
+            // We still connect named tasks via upstreamNamedTasks, which skips unnamed intermediates.
+            val upstreamTaskEdges = downstreamNamed
+              .map(t => (t: Task[?], upstreamNamedTasks(t)))
+              .toMap
 
             val paths = SpanningForest.breadthFirstWithPaths(resolved)(upstreamTaskEdges.getOrElse(_, Nil))
 
