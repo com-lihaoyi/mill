@@ -127,9 +127,9 @@ it will fall back to an environment variable (if available) or raise an error if
 
 The `./mill mill.javalib.SonatypeCentralPublishModule/publishAll` takes the following options:
 
-- `username`: The username for calling the Sonatype Central publishing api. Defaults to the `SONATYPE_USERNAME` environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown. +
+- `username`: The username for calling the Sonatype Central publishing api. Defaults to the `MILL_SONATYPE_USERNAME` environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown. +
 
-- `password`: The password for calling the Sonatype Central publishing api. Defaults to the `SONATYPE_PASSWORD` environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown. +
+- `password`: The password for calling the Sonatype Central publishing api. Defaults to the `MILL_SONATYPE_PASSWORD` environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown. +
 
 - `gpgArgs`: Arguments to pass to the gpg package for signing artifacts. Uses the `MILL_PGP_PASSPHRASE` environment variable if set. _Default: `[--passphrase=$MILL_PGP_PASSPHRASE], --no-tty, --pinentry-mode, loopback, --batch, --yes, --armor, --detach-sign`._ +
 
@@ -272,5 +272,4 @@ there are also others that you can use. Mill supports these largely through cont
 
 * xref:contrib/codeartifact.adoc[]
 * xref:contrib/artifactory.adoc[]
-
 
