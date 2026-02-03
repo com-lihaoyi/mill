@@ -54,3 +54,23 @@ object qux extends QuxModule {
     super.quxCommand()()
   }
 }
+
+object diamond extends Module {
+  def diamondInput = Task.Source("diamond.txt")
+
+  def left = Task.Command(selectiveInputs = Seq(diamondInput)) {
+    System.out.println("Computing diamond left")
+    os.read(diamondInput().path)
+  }
+
+  def right = Task.Command(selectiveInputs = Seq(diamondInput)) {
+    System.out.println("Computing diamond right")
+    os.read(diamondInput().path)
+  }
+
+  def top = Task.Command(selectiveInputs = Seq(left, right)) {
+    System.out.println("Computing diamond top")
+    left()
+    right()
+  }
+}

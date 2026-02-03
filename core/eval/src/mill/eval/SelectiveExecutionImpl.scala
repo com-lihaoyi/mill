@@ -189,6 +189,33 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
     }
   }
 
+  private def pruneInvalidationTreeToSelected(
+      tree: ujson.Value,
+      selectedTaskNames: Set[String]
+  ): ujson.Value = {
+    def pruneObj(obj: ujson.Obj): Option[ujson.Obj] = {
+      val kept = ujson.Obj()
+      obj.value.foreach { case (key, value) =>
+        value match {
+          case childObj: ujson.Obj =>
+            val prunedChild = pruneObj(childObj)
+            if (selectedTaskNames.contains(key))
+              kept(key) = prunedChild.getOrElse(ujson.Obj())
+            else
+              prunedChild.foreach(kept(key) = _)
+          case _ =>
+            if (selectedTaskNames.contains(key)) kept(key) = ujson.Obj()
+        }
+      }
+      if (kept.value.isEmpty) None else Some(kept)
+    }
+
+    tree match {
+      case obj: ujson.Obj => pruneObj(obj).getOrElse(ujson.Obj())
+      case _ => ujson.Obj()
+    }
+  }
+
   def resolveTree(tasks: Seq[String]): Result[ujson.Value] = {
     evaluator.resolveTasks(
       tasks,
@@ -231,13 +258,18 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
               case None => Map.empty[String, String]
             }
 
-            InvalidationForest.buildInvalidationTree(
+            val tree = InvalidationForest.buildInvalidationTree(
               upstreamTaskEdges0 = upstreamTaskEdges,
               rootInvalidatedTasks = rootInvalidatedTasks.collect { case n: Task.Named[_] =>
                 n: Task[?]
               },
               codeSignatureTree = evaluator.spanningInvalidationTree,
               taskInvalidationReasons = taskInvalidationReasons
+            )
+
+            pruneInvalidationTreeToSelected(
+              tree,
+              selectedNamed.map(_.ctx.segments.render).toSet
             )
           }
       }
