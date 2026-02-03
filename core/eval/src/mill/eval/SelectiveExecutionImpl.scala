@@ -190,7 +190,6 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
   }
 
   // Only keep named tasks in the graph to avoid anonymous tasks showing up in the tree.
-  // We still connect named tasks via upstreamNamedTasks, which skips unnamed intermediates.
   def upstreamNamedTasks(t: Task[?]) =
     breadthFirst(t.selectiveInputs) {
       case _: Task.Named[_] => Nil
