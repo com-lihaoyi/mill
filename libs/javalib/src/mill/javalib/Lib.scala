@@ -109,10 +109,9 @@ object Lib {
       Seq(mvn"$scalaOrg:scala-compiler:$scalaVersion", mvn"$scalaOrg:scala-reflect:$scalaVersion")
 
   def scalaConsoleMvnDeps(scalaOrg: String, scalaVersion: String): Seq[Dep] =
-    if (usesScalaLibraryOnly(scalaVersion)) {
-      // Since Scala 3.8, the repl is no longer part of the compiler jar
-      Seq(mvn"$scalaOrg::scala3-repl:$scalaVersion")
-    } else scalaCompilerMvnDeps(scalaOrg, scalaVersion)
+    // Since Scala 3.8, the repl is no longer part of the compiler jar
+    if (usesScalaLibraryOnly(scalaVersion)) Seq(mvn"$scalaOrg::scala3-repl:$scalaVersion")
+    else scalaCompilerMvnDeps(scalaOrg, scalaVersion)
 
   def scalaDocMvnDeps(scalaOrg: String, scalaVersion: String): Seq[Dep] =
     if (isDotty(scalaVersion)) Seq(mvn"$scalaOrg::dotty-doc:$scalaVersion")
