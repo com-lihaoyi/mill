@@ -115,6 +115,26 @@ object SpanningForest {
     seenList.toSeq
   }
 
+  def breadthFirstWithPaths[T](
+      start: IterableOnce[T]
+  )(edges: T => IterableOnce[T]): Seq[List[T]] = {
+    val seen = collection.mutable.Set.empty[T]
+    val seenList = collection.mutable.Buffer.empty[List[T]]
+    val queued = collection.mutable.Queue.empty[(T, List[T])]
+
+    for (s <- start.iterator if seen.add(s)) queued.enqueue((s, List(s)))
+
+    while (queued.nonEmpty) {
+      val (current, path) = queued.dequeue()
+      seenList.append(path)
+
+      for (next <- edges(current).iterator if seen.add(next)) {
+        queued.enqueue((next, next :: path))
+      }
+    }
+    seenList.toSeq
+  }
+
   def reverseEdges[T, V](edges: Iterable[(T, Iterable[V])]): Map[V, Vector[T]] = {
     val flatEdges = edges.iterator.flatMap { case (k, vs) => vs.map(_ -> k) }.toVector
     flatEdges

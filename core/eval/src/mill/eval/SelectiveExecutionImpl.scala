@@ -189,44 +189,13 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
     }
   }
 
-  private def pruneInvalidationTreeToSelected(
-      tree: ujson.Value,
-      selectedTaskNames: Set[String]
-  ): ujson.Value = {
-    def pruneObj(obj: ujson.Obj): Option[ujson.Obj] = {
-      val kept = ujson.Obj()
-      obj.value.foreach { case (key, value) =>
-        value match {
-          case childObj: ujson.Obj =>
-            val prunedChild = pruneObj(childObj)
-            if (selectedTaskNames.contains(key)) kept(key) = prunedChild.getOrElse(ujson.Obj())
-            else prunedChild.foreach(kept(key) = _)
-          case _ =>
-            if (selectedTaskNames.contains(key)) kept(key) = ujson.Obj()
-        }
-      }
-
-      Option.when(kept.value.nonEmpty) {
-        ujson.Obj.from(kept.value.toArray.sortBy(_._1))
-      }
-    }
-
-    pruneObj(tree.obj).getOrElse(ujson.Obj())
-  }
-
-  def namedUpstreamEdges(tasks: Seq[Task[?]]): Map[Task.Named[?], Seq[Task.Named[?]]] = {
-    tasks
-      .collect { case n: Task.Named[_] =>
-        n ->
-          breadthFirst(n.selectiveInputs) {
-            case _: Task.Named[_] => Nil
-            case t => t.selectiveInputs
-          }.collect { case n: Task.Named[_] => n }
-            .distinct
-            .sortBy(_.ctx.segments.render)
-      }
-      .toMap
-  }
+  def upstreamNamedTasks(t: Task[?]) =
+    breadthFirst(t.selectiveInputs) {
+      case _: Task.Named[_] => Nil
+      case t => t.selectiveInputs
+    }.collect { case n: Task.Named[_] => n }
+      .distinct
+      .sortBy(_.ctx.segments.render)
 
   def resolveTree(tasks: Seq[String]): Result[ujson.Value] = {
     evaluator.resolveTasks(
@@ -241,41 +210,29 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
 
           if (downstreamNamed.isEmpty) ujson.Obj()
           else {
-            val upstreamTaskEdges0 =
-              namedUpstreamEdges(SelectiveExecutionImpl.transitiveTasksSelective(downstreamNamed))
+            val upstreamTaskEdges = result.downstreamTasks.map(t => (t, upstreamNamedTasks(t))).toMap
 
-            // Prune to only branches that lead to a selected task.
-            val keepTasks = breadthFirst(downstreamNamed.map(t => t: Task[?])) { t =>
-              upstreamTaskEdges0.getOrElse(t.asInstanceOf[Task.Named[_]], Nil)
-            }.toSet
+            val paths = SpanningForest.breadthFirstWithPaths(resolved)(upstreamTaskEdges.getOrElse(_, Nil))
 
-            val upstreamTaskEdges = upstreamTaskEdges0
-              .collect { case (task, inputs) if keepTasks.contains(task) =>
-                (task: Task[?]) -> inputs.filter(keepTasks.contains)
-              }
+            val rootInvalidatedTasks =
+              paths.filter(p => result.changedRootTasks.contains(p.head)).flatten
 
-            val rootInvalidatedTasks = result.changedRootTasks.collect {
-              case n: Task.Named[_] if keepTasks.contains(n) => n: Task[?]
-            }
-
-            // For selective execution, use global invalidation reason for all root tasks
             val taskInvalidationReasons = result.globalInvalidationReason match {
               case Some(reason) =>
-                rootInvalidatedTasks.collect { case n: Task.Named[_] =>
+                rootInvalidatedTasks.iterator.collect { case n: Task.Named[_] =>
                   n.ctx.segments.render -> reason
                 }.toMap
-
               case None => Map.empty[String, String]
             }
 
             val tree = InvalidationForest.buildInvalidationTree(
               upstreamTaskEdges0 = upstreamTaskEdges,
-              rootInvalidatedTasks = rootInvalidatedTasks,
+              rootInvalidatedTasks = rootInvalidatedTasks.map(t => t: Task[?]).toSet,
               codeSignatureTree = evaluator.spanningInvalidationTree,
               taskInvalidationReasons = taskInvalidationReasons
             )
 
-            pruneInvalidationTreeToSelected(tree, downstreamNamed.map(_.ctx.segments.render).toSet)
+            tree
           }
       }
     }
