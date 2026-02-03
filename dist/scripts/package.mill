@@ -7,7 +7,6 @@ import mill.*
 import mill.scalalib.*
 import mill.api.Result
 import millbuild.*
-import scala.util.Using
 
 object `package` extends mill.Module { scripts =>
 
@@ -94,35 +93,12 @@ object `package` extends mill.Module { scripts =>
 
   object test extends ScalaModule with TestModule.Utest {
     def scalaVersion = millbuild.Deps.scalaVersion
-    def mvnDeps = Seq(millbuild.Deps.osLib, millbuild.Deps.pprint, millbuild.Deps.upickle)
+    def mvnDeps = Seq(millbuild.Deps.osLib, millbuild.Deps.pprint)
     def utestVersion = millbuild.Deps.TestDeps.utest.version
-    def exampleList = Task {
-      val dest = Task.dest / "exampleList.txt"
-      val jar = build.libs.init.jar().path
-      Using.resource(os.zip.open(jar)) { zipRoot =>
-        val matches = os.walk(zipRoot).filter(_.last == "exampleList.txt").toVector
-        matches match {
-          case Seq(path) => os.copy(path, dest, replaceExisting = true)
-          case Seq() => sys.error(s"exampleList.txt missing in ${jar}")
-          case _ => sys.error(s"Multiple exampleList.txt entries found in ${jar}")
-        }
-      }
-      PathRef(dest)
-    }
-    def exampleZipsManifest = Task {
-      val dest = Task.dest / "exampleZips.json"
-      val entries = build.dist.exampleZips().map(_.path.toString)
-      os.write(dest, upickle.default.write(entries))
-      PathRef(dest)
-    }
     def forkEnv = Map(
       "MILL_TEST_SH_SCRIPT" -> millSh.compile0().path.toString,
       "MILL_TEST_BAT_SCRIPT" -> millBat.compile0().path.toString,
-      "MILL_NATIVE_SUFFIX" -> build.dist.native.nativeSuffix(),
-      "MILL_EXAMPLE_LIST_PATH" -> exampleList().path.toString,
-      "MILL_EXAMPLE_ZIPS_MANIFEST" -> exampleZipsManifest().path.toString,
-      "MILL_EXPECTED_VERSION" -> build.millVersion(),
-      "MILL_EXPECTED_DEFAULT_VERSION" -> build.millVersion()
+      "MILL_NATIVE_SUFFIX" -> build.dist.native.nativeSuffix()
     )
   }
   def scriptsModules: Seq[BootstrapScriptModule] = Seq(millSh, millBat)
