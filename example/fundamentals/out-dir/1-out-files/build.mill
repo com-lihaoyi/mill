@@ -102,7 +102,6 @@ out/foo/compile.dest
 /** Usage
 
 > find out/mill-* -maxdepth 0
-out/mill-active.json
 out/mill-chrome-profile.json
 out/mill-dependency-tree.json
 out/mill-invalidation-tree.json
