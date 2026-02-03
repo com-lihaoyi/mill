@@ -50,7 +50,7 @@ object InvalidationForest {
       // Code edges: method->method and method->task from code signature tree
       val (methodForest, downstreamMethodEdges) = extractMethodEdges(
         codeSignatureTree,
-        upstreamTaskEdges0.keys.collect { case t: Task.Named[?] => t }.toSeq,
+        upstreamTaskEdges0.keys.collect { case t: Task.Named[?] => t }.toSeq.sortBy(_.ctx.segments),
         rootInvalidatedTasks.filter {
           case t: Task.Named[?] => tasksWithoutReasons.contains(t.ctx.segments.render)
           case _ => false
@@ -96,7 +96,7 @@ object InvalidationForest {
       downstreamTaskEdges0: Map[Task[?], Vector[Task[?]]]
   ) = {
     val downstreamTaskEdges: Map[String, Seq[String]] = downstreamTaskEdges0
-      .map { case (k, vs) => k.toString -> vs.map(_.toString) }
+      .map { case (k, vs) => k.toString -> vs.map(_.toString).sorted }
 
     val allTaskNodes = SpanningForest
       .breadthFirst(rootInvalidatedTaskStrings)(downstreamTaskEdges.getOrElse(_, Nil))

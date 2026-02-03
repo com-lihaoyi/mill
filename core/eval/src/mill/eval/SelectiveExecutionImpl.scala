@@ -199,15 +199,16 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
         value match {
           case childObj: ujson.Obj =>
             val prunedChild = pruneObj(childObj)
-            if (selectedTaskNames.contains(key))
-              kept(key) = prunedChild.getOrElse(ujson.Obj())
-            else
-              prunedChild.foreach(kept(key) = _)
+            if (selectedTaskNames.contains(key)) kept(key) = prunedChild.getOrElse(ujson.Obj())
+            else prunedChild.foreach(kept(key) = _)
           case _ =>
             if (selectedTaskNames.contains(key)) kept(key) = ujson.Obj()
         }
       }
-      if (kept.value.isEmpty) None else Some(kept)
+
+      Option.when(kept.value.nonEmpty) {
+        ujson.Obj.from(kept.value.toArray.sortBy(_._1))
+      }
     }
 
     tree match {

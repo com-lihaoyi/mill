@@ -175,7 +175,7 @@ object CallGraphAnalysis {
     SpanningForest.spanningTreeToJsonTree(
       SpanningForest.applyWithRoots(
         reverseGraphEdges,
-        roots = nodesWithChangedCode,
+        rootsOrdered = nodesWithChangedCode.toSeq.sorted,
         importantVertices = nodesWithChangedTransitiveHashes
       ),
       k => indexToNodes(k).toString
