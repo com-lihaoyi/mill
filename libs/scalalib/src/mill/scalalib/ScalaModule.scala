@@ -69,34 +69,21 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
 
   override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = Task.Anon {
     super.mapDependencies().andThen { (d: coursier.Dependency) =>
-      // Note: Maven artifact names for Scala 3 include the `_3` suffix,
-      // e.g. `scala3-library_3`, `scala3-compiler_3`
       val artifacts =
         if (JvmWorkerUtil.isDotty(scalaVersion()))
           Set("dotty-library", "dotty-compiler")
-        else if (JvmWorkerUtil.isScala3(scalaVersion())) {
-          if (JvmWorkerUtil.enforceScala213Library(scalaVersion()))
-            // Scala 3.0-3.7: uses scala3-library_3
-            Set("scala3-library_3", "scala3-compiler_3")
-          else
-            // Scala 3.8+: uses scala-library (no suffix)
-            Set("scala3-compiler_3", "scala-library")
-        } else
+        else if (JvmWorkerUtil.isScala3(scalaVersion()))
+          Set("scala3-library", "scala3-compiler")
+        else
           Set("scala-library", "scala-compiler", "scala-reflect")
       if (!artifacts(d.module.name.value)) d
-      else {
-        val name = d.module.name.value
-        val skipVersionOverride =
-          name == "scala-library" && JvmWorkerUtil.isScala3(d.version)
-        if (skipVersionOverride) d
-        else
-          d.withModule(
-            d.module.withOrganization(
-              coursier.Organization(scalaOrganization())
-            )
+      else
+        d.withModule(
+          d.module.withOrganization(
+            coursier.Organization(scalaOrganization())
           )
-            .withVersion(scalaVersion())
-      }
+        )
+          .withVersion(scalaVersion())
     }
   }
 
