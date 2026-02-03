@@ -20,7 +20,7 @@ object SpanningForest {
   ): (Map[T, Int], Array[Array[Int]]) = {
     val vertexToIndex = vertices.zipWithIndex.toMap
     val edgeIndices = vertices
-      .map(t => edges.getOrElse(t, Nil).flatMap(vertexToIndex.get(_)).toArray.sorted)
+      .map(t => edges.getOrElse(t, Nil).flatMap(vertexToIndex.get(_)).toArray)
       .toArray
 
     (vertexToIndex, edgeIndices)
