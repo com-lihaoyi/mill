@@ -238,17 +238,16 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
         case None => ujson.Obj()
         case Some(result) =>
           val downstreamNamed = result.downstreamTasks.collect { case n: Task.Named[_] => n }
-          val selectedNamed = resolved.filter(downstreamNamed.toSet.contains)
-          val selectedTaskNames = selectedNamed.map(_.ctx.segments.render).toSet
+          val selectedTaskNames = downstreamNamed.map(_.ctx.segments.render).toSet
 
-          if (selectedNamed.isEmpty) ujson.Obj()
+          if (downstreamNamed.isEmpty) ujson.Obj()
           else {
             val transitiveTasks = SelectiveExecutionImpl.transitiveTasksSelective(downstreamNamed)
 
             val upstreamTaskEdges0 = namedUpstreamEdges(transitiveTasks)
 
             // Prune to only branches that lead to a selected task.
-            val keepTasks = breadthFirst(selectedNamed.map(t => t: Task[?])) { t =>
+            val keepTasks = breadthFirst(downstreamNamed.map(t => t: Task[?])) { t =>
               upstreamTaskEdges0.getOrElse(t.asInstanceOf[Task.Named[_]], Nil)
             }.toSet
 
