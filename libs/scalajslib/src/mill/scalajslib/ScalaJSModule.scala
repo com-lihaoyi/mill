@@ -2,7 +2,6 @@ package mill
 package scalajslib
 
 import mainargs.{Flag, arg}
-import coursier.ModuleName
 import mill.api.daemon.internal.{ScalaJSModuleApi, ScalaPlatform, internal}
 import mill.api.daemon.internal.bsp.ScalaBuildTarget
 import mill.api.Result
@@ -36,37 +35,25 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
   def scalaJSWorkerVersion = Task { JvmWorkerUtil.scalaJSWorkerVersion(scalaJSVersion()) }
 
   override def scalaLibraryMvnDeps: T[Seq[Dep]] = Task {
-    val deps0 = super.scalaLibraryMvnDeps()
-    val deps =
-      if (
-        JvmWorkerUtil.isScala3(scalaVersion()) &&
-        !JvmWorkerUtil.enforceScala213Library(scalaVersion())
-      )
-        deps0.map { dep =>
-          if (dep.name == "scala-library") {
-            val cross = dep.cross match {
-              case c: CrossVersion.Constant if c.value.isEmpty => CrossVersion.Binary(c.platformed)
-              case c => c
-            }
-            dep.copy(
-              dep = dep.dep.withModule(
-                dep.dep.module.withName(ModuleName("scala3-library"))
-              ),
-              cross = cross
-            )
-          } else dep
-        }
-      else deps0
-    if (JvmWorkerUtil.isScala3(scalaVersion())) {
+    val sv = scalaVersion()
+    val baseDeps =
+      if (JvmWorkerUtil.isScala3(sv) && !JvmWorkerUtil.enforceScala213Library(sv)) {
+        // For Scala 3.8+ on Scala.js, we still need scala3-library_sjs1_3
+        // (JVM uses scala-library, but Scala.js artifacts are published as scala3-library)
+        Seq(mvn"${scalaOrganization()}::scala3-library:$sv")
+      } else {
+        super.scalaLibraryMvnDeps()
+      }
+    if (JvmWorkerUtil.isScala3(sv)) {
       // Since Dotty/Scala3, Scala.JS is published with a platform suffix
-      deps.map(dep =>
+      baseDeps.map(dep =>
         dep.copy(cross = dep.cross match {
           case c: CrossVersion.Constant => c.copy(platformed = true)
           case c: CrossVersion.Binary => c.copy(platformed = true)
           case c: CrossVersion.Full => c.copy(platformed = true)
         })
       )
-    } else deps
+    } else baseDeps
   }
 
   def scalaJSWorkerClasspath = Task {
