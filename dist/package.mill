@@ -516,7 +516,10 @@ object `package` extends MillJavaModule with Proguard with DistModule {
       // Set UTF-8 encoding to fix Unicode character display issues on Windows
       "-Dfile.encoding=UTF-8",
       "-Dsun.stdout.encoding=UTF-8",
-      "-Dsun.stderr.encoding=UTF-8"
+      "-Dsun.stderr.encoding=UTF-8",
+      // Prevent Native Image runtime from consuming runtime options like -D<key>=<value>
+      // https://github.com/com-lihaoyi/mill/issues/6770
+      "-H:-ParseRuntimeOptions"
       // Enable JVisualVM support
       // https://www.graalvm.org/latest/tools/visualvm/#using-visualvm-with-graalvm-native-executables
       // "--enable-monitoring=jvmstat,heapdump"
