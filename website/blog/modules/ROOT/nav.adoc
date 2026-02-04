@@ -1,4 +1,5 @@
 * xref:blog::index.adoc[_The Mill Build Engineering Blog_]
+* xref:18-how-to-publish-to-maven-central-easily-with-mill.adoc[]
 * xref:17-simpler-jvm-mill-110.adoc[]
 * xref:16-zero-setup.adoc[]
 * xref:15-android-build-flow.adoc[]

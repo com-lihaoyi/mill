@@ -6,6 +6,9 @@ technical topics related to JVM platform tooling and language-agnostic build too
 some specific to the Mill build tool but mostly applicable to anyone working on
 build tooling for large codebases in JVM and non-JVM languages.
 
+:blog-post: 18-how-to-publish-to-maven-central-easily-with-mill.adoc
+include::partial$blog-post-header-section.adoc[]
+
 :blog-post: 17-simpler-jvm-mill-110.adoc
 include::partial$blog-post-header-section.adoc[]
 
