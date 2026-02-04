@@ -56,13 +56,16 @@ object `package` extends QuarkusModule, MavenModule, PublishModule { outer =>
       val jar = outer.assembly().path
       os.makeDir.all(dest / "quarkus-app" / "app")
 
-      os.copy(jar, dest / "quarkus-app" / "app" / s"${outer.artifactName()}-${outer.publishVersion()}.jar")
+      os.copy(
+        jar,
+        dest / "quarkus-app" / "app" / s"${outer.artifactName()}-${outer.publishVersion()}.jar"
+      )
 
       val quarkusArtifactProperties =
         s"""
-          |path=quarkus-app/quarkus-run.jar
-          |type=jar
-          |""".stripMargin
+           |path=quarkus-app/quarkus-run.jar
+           |type=jar
+           |""".stripMargin
 
       os.write(dest / "quarkus-artifact.properties", quarkusArtifactProperties)
 

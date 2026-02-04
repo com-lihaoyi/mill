@@ -74,6 +74,7 @@ trait QuarkusModule extends JavaModule {
             m.resources().head.path,
             m.compile().classes.path,
             m.compileResources().head.path, // TODO this is wrong, adjust later,
+            bomMvnDeps().map(_.formatted),
             quarkusDependencies()
           ),
           Task.dest
@@ -91,6 +92,7 @@ trait QuarkusModule extends JavaModule {
             resources().head.path,
             compile().classes.path,
             compileResources().head.path, // TODO this is wrong, adjust later,
+            bomMvnDeps().map(_.formatted),
             quarkusDependencies()
           ),
           Task.dest
