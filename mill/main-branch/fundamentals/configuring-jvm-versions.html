@@ -762,7 +762,7 @@ or <code>./mill jstack</code> on a stuck process, and so Mill exposes them for y
 declarative <code>build.mill.yaml</code> file:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-6-480a23/mill-dist-1.1.1-example-fundamentals-javahome-2-custom-jvm-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/fundamentals/javahome/2-custom-jvm-yaml/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-7-5fddd6/mill-dist-1.1.1-example-fundamentals-javahome-2-custom-jvm-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/fundamentals/javahome/2-custom-jvm-yaml/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-jvm-version: 19</code></pre>
 </div>
@@ -790,7 +790,7 @@ and architecture {link-jvm-indices}[here].</p>
 <p>For programmable builds, you can se the JVM version via the <code>//| mill-jvm-version</code> build header:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-6-480a23/mill-dist-1.1.1-example-fundamentals-javahome-3-custom-jvm.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/fundamentals/javahome/3-custom-jvm">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-7-5fddd6/mill-dist-1.1.1-example-fundamentals-javahome-3-custom-jvm.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/fundamentals/javahome/3-custom-jvm">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: 19</code></pre>
 </div>
@@ -833,14 +833,14 @@ of any <code>JavaModule</code>, <code>ScalaModule</code>, or <code>KotlinModule<
 declaratively via <code>package.mill.yaml</code> files:</p>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-6-480a23/mill-dist-1.1.1-example-fundamentals-javahome-4-custom-module-jvm.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/fundamentals/javahome/4-custom-module-jvm/foo/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-7-5fddd6/mill-dist-1.1.1-example-fundamentals-javahome-4-custom-module-jvm.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/fundamentals/javahome/4-custom-module-jvm/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
 jvmVersion: temurin:11.0.21</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-6-480a23/mill-dist-1.1.1-example-fundamentals-javahome-4-custom-module-jvm.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/fundamentals/javahome/4-custom-module-jvm/foo/test/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-7-5fddd6/mill-dist-1.1.1-example-fundamentals-javahome-4-custom-module-jvm.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/fundamentals/javahome/4-custom-module-jvm/foo/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.foo.JavaTests, TestModule.Junit4]</code></pre>
 </div>
@@ -900,7 +900,7 @@ although that might mean the JVM version is no longer stable and might change ov
 time as new releases are published:</p>
 </div>
 <div class="listingblock">
-<div class="title">bar/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-6-480a23/mill-dist-1.1.1-example-fundamentals-javahome-4-custom-module-jvm.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/fundamentals/javahome/4-custom-module-jvm/bar/package.mill.yaml">browse</a>)</div>
+<div class="title">bar/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-7-5fddd6/mill-dist-1.1.1-example-fundamentals-javahome-4-custom-module-jvm.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/fundamentals/javahome/4-custom-module-jvm/bar/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: ScalaModule
 scalaVersion: 2.13.16
@@ -925,7 +925,7 @@ but you may have additional cases if you need to support Mac, Windows or other
 OS/CPU combinations</p>
 </div>
 <div class="listingblock">
-<div class="title">qux/package.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-6-480a23/mill-dist-1.1.1-example-fundamentals-javahome-4-custom-module-jvm.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/fundamentals/javahome/4-custom-module-jvm/qux/package.mill">browse</a>)</div>
+<div class="title">qux/package.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-7-5fddd6/mill-dist-1.1.1-example-fundamentals-javahome-4-custom-module-jvm.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/fundamentals/javahome/4-custom-module-jvm/qux/package.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.qux
 import mill._, javalib._
@@ -957,7 +957,7 @@ Qux running on Java 22.0.2</code></pre>
 <p>Lastly, you can point Mill at any JVM distribution installed locally on disk via:</p>
 </div>
 <div class="listingblock">
-<div class="title">baz/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-6-480a23/mill-dist-1.1.1-example-fundamentals-javahome-4-custom-module-jvm.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/fundamentals/javahome/4-custom-module-jvm/baz/package.mill.yaml">browse</a>)</div>
+<div class="title">baz/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-7-5fddd6/mill-dist-1.1.1-example-fundamentals-javahome-4-custom-module-jvm.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/fundamentals/javahome/4-custom-module-jvm/baz/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
 javaHome: /my/java/home</code></pre>
