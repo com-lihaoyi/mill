@@ -207,6 +207,10 @@ publishes the PGP key to `keyserver.ubuntu.com`,  and verifies that the key is r
 Finally it prints the generated PGP secret for you as BASE64 formatted strings
 that are easy to include as environment variables or Github Actions secrets.
 
+Notably, Mill does not require the `gpg` command-line tool to be installed to work, as
+it uses the https://www.bouncycastle.org/[BouncyCastle] Java Library which provides
+the same functionality.
+
 Maven Central requires that all artifacts be signed by some GPG key, but it isn't strict
 about _which_ GPG key is used. So if you lose a key for whatever reason (expired, on an old
 laptop that got discarded, accidentally ``rm -rf``ed your home folder...) feel free to
