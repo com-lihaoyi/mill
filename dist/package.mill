@@ -517,6 +517,12 @@ object `package` extends MillJavaModule with Proguard with DistModule {
       "-Dfile.encoding=UTF-8",
       "-Dsun.stdout.encoding=UTF-8",
       "-Dsun.stderr.encoding=UTF-8",
+      // Include logback version properties files (added in logback 1.5.26, see https://logback.qos.ch/news.html)
+      // to avoid NPE in VersionUtil.checkForVersionEquality during logback initialization in native image
+      // https://www.graalvm.org/latest/reference-manual/native-image/guides/include-resources/
+      // https://github.com/com-lihaoyi/mill/issues/6777
+      """-H:IncludeResources=ch/qos/logback/.*/logback-.*-version\.properties""",
+      """-H:-ReduceImplicitExceptionStackTraceInformation""",
       // Prevent Native Image runtime from consuming runtime options like -D<key>=<value>
       // https://github.com/com-lihaoyi/mill/issues/6770
       "-H:-ParseRuntimeOptions"
