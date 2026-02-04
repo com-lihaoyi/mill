@@ -1,7 +1,7 @@
 = How To Publish to Maven Central Easily with Mill
 // tag::header[]
 :author: Li Haoyi
-:revdate: 3 Feb 2026
+:revdate: 4 Feb 2026
 
 _{author}, {revdate}_
 
