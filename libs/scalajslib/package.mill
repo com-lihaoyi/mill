@@ -65,4 +65,14 @@ object `package` extends MillStableScalaModule with BuildInfo {
       Deps.Scalajs_1.scalajsImportMap
     )
   }
+
+  override object test extends MillScalaTests {
+    override def selectiveInputs = Seq(
+      sources,
+      resources,
+      build.libs.scalajslib.sources,
+      build.libs.scalajslib.api.sources,
+      build.libs.scalajslib.worker("1").sources
+    )
+  }
 }

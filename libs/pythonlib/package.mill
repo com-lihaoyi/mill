@@ -15,4 +15,12 @@ object `package` extends MillPublishScalaModule {
     )
 
   def testModuleDeps = super.testModuleDeps
+
+  override object test extends MillScalaTests {
+    override def selectiveInputs = Seq(
+      sources,
+      resources,
+      build.libs.pythonlib.sources
+    )
+  }
 }

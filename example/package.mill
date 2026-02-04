@@ -15,6 +15,7 @@ import mill.api.Cross
 import mill.api.BuildCtx
 import mill.javalib.testrunner.TestResult
 import mill.testkit.Chunk
+import millbuild.Deps
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -129,7 +130,7 @@ object `package` extends Module {
   }
 
   trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {
-    override def selectiveInputs = Seq(build.libs.kotlinlib.sources)
+    override def selectiveInputs = Seq(sources) ++ build.libs.kotlinlib.kotlinSelectiveInputs
 
     override def lineTransform(line: String) = this.moduleSegments.parts.last match {
       case "2-test-suite" => line
@@ -146,8 +147,8 @@ object `package` extends Module {
   val androidSelectiveInputs = Seq(
     build.libs.androidlib.sources,
     build.libs.javalib.sources,
-    build.libs.kotlinlib.sources
-  )
+    build.libs.javalib.worker.sources
+  ) ++ build.libs.kotlinlib.kotlinSelectiveInputs
 
   trait ExampleCrossModuleAndroid extends ExampleCrossModule {
     override def selectiveInputs = Seq(sources) ++ androidSelectiveInputs
@@ -391,7 +392,19 @@ $frontMatter
   }
 
   trait ExampleCrossModuleMigrating extends ExampleCrossModule {
-    override def selectiveInputs = Seq(sources, build.libs.init.sources)
+    override def selectiveInputs = Seq(
+      sources,
+      build.libs.init.sources,
+      build.libs.init.maven.sources,
+      build.libs.init.gradle.sources,
+      build.libs.init.gradle.api.sources,
+      build.libs.init.gradle.exportplugin.sources,
+      build.libs.init.sbt.sources,
+      build.libs.init.sbt.api(Deps.scalaVersion).sources,
+      build.libs.init.sbt.exportplugin.sources,
+      build.libs.init.buildgen.sources,
+      build.libs.init.buildgen.api(Deps.scalaVersion).sources
+    )
   }
 
   def repoInfo = Map(
