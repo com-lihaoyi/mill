@@ -241,7 +241,7 @@ Resolution failed for 1 modules:
   com.lihaoyi:example:0.0.1
 	Not an internal Mill module: com.lihaoyi:example:0.0.1
 	not found: /Users/lihaoyi/.ivy2/local/com.lihaoyi/example/0.0.1/ivys/ivy.xml
-	not found: https://repo1.maven.org/maven2/com/lihaoyi/example/0.0.1/example-0.0.4.pom
+	not found: https://repo1.maven.org/maven2/com/lihaoyi/example/0.0.1/example-0.0.1.pom
 --------------------------------------------
 ```
 
@@ -348,7 +348,7 @@ just by pushing a tag:
 
 ```console
 > git tag 0.0.2
-> git push origin head --tags
+> git push origin HEAD --tags
 ```
 
 And it'll kick off the workflow to publish version `0.0.2` to Maven Central without needing
