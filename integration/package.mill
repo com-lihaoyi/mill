@@ -258,7 +258,20 @@ object `package` extends mill.Module {
     def forkEnv = super.forkEnv() ++ initRepos.all().map { case (name, path) =>
       s"MILL_INIT_REPO_$name" -> path
     }
-    override def selectiveInputs = Seq(build.libs.init.sources)
+    override def selectiveInputs = Seq(
+      sources,
+      resources,
+      build.libs.init.sources,
+      build.libs.init.maven.sources,
+      build.libs.init.gradle.sources,
+      build.libs.init.gradle.api.sources,
+      build.libs.init.gradle.exportplugin.sources,
+      build.libs.init.sbt.sources,
+      build.libs.init.sbt.api(Deps.scalaVersion).sources,
+      build.libs.init.sbt.exportplugin.sources,
+      build.libs.init.buildgen.sources,
+      build.libs.init.buildgen.api(Deps.scalaVersion).sources
+    )
   }
   trait IntegrationCrossModule extends MillScalaModule with IntegrationTestModule {
     override def testClasspath = Seq(compile().classes)

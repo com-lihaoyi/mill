@@ -5,6 +5,8 @@ import mill.scalalib.*
 import mill.javalib.api.JvmWorkerUtil
 import mill.api.BuildCtx
 import com.goyeau.mill.scalafix.ScalafixModule
+import mill.javalib.testrunner.TestResult
+import upickle.implicits.namedTuples.default.given
 
 /**
  * Some custom scala settings and test convenience
@@ -98,6 +100,12 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
     def forkEnv = super.forkEnv() ++ outer.testForkEnv()
     override def repositoriesTask = super[MillJavaModule].repositoriesTask
     override def mapDependencies = super[MillJavaModule].mapDependencies
+
+    def selectiveInputs: Seq[Task[?]] = null
+    override def testForked(args: String*) = Task.Command(selectiveInputs = selectiveInputs) {
+      super.testForked(args*)()
+    }
+
     override def scalacOptions = Task {
       val base = super.scalacOptions().filterNot(_ == "-Wunused:all")
       val sv = outer.scalaVersion()
