@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>How To Publish to Maven Central Easily with Mill :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/blog/18-how-to-publish-to-maven-central-easily-with-mill.html">
+    <link rel="prev" href="index.html">
+    <link rel="next" href="17-simpler-jvm-mill-110.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
+  <style>
+  /* auto-hyphenation is super ugly */
+  *{
+    hyphens: manual !important;
+  }
+
+  /* Reduce font size from 17px to something reasonable */
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
+  }
+  </style>
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs">
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="blog" data-version="">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="index.html"><em>The Mill Build Engineering Blog</em></a>
+  </li>
+
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="18-how-to-publish-to-maven-central-easily-with-mill.html">How To Publish to Maven Central Easily with Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="17-simpler-jvm-mill-110.html">Simpler JVM Project Setup with Mill 1.1.0</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="16-zero-setup.html">Zero-Setup Java Build Tooling via Mill Bootstrap Scripts</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="15-android-build-flow.html">Mill as an Alternative Android Build Tool</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="14-bash-zsh-completion.html">Writing Your Own Simple Tab-Completions for Bash and Zsh</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="13-mill-build-tool-v1-0-0.html">Mill Build Tool v1.0.0 Release Highlights</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="12-direct-style-build-tool.html">Mill as a Direct Style Build Tool</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="11-jvm-test-parallelism.html">Strategies for Efficiently Parallelizing JVM Test Suites</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="10-bytecode-callgraph-analysis.html">Invalidating build caches using JVM bytecode callgraph analysis</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="9-mill-faster-assembly-jars.html">Fast Incremental JVM Assembly Jar Creation with Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="8-what-is-a-build-tool.html">What does a Build Tool do?</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="7-graal-native-executables.html">How to Compile Java into Native Binaries with Mill and Graal</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="6-garbage-collector-perf.html">Understanding JVM Garbage Collector Performance</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="5-executable-jars.html">How JVM Executable Assembly Jars Work</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="4-flaky-tests.html">How To Manage Flaky Tests in your CI Workflows</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="3-selective-testing.html">Faster CI with Selective Testing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="2-monorepo-build-tool.html">Why Use a Monorepo Build Tool?</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="1-java-compile.html">How Fast Does Java Compile?</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">The Mill Build Engineering Blog</span>
+    <span class="version"></span>
+  </div>
+  <ul class="components">
+    <li class="component">
+      <div class="title"><a href="../mill/index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mill/main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../mill/index.html">1.1.1</a>
+        </li>
+        <li class="version">
+          <a href="../mill/1.0.x/index.html">1.0.6</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.12.x/index.html">0.12.17</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.11.x/index.html">0.11.13</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component is-current">
+      <div class="title"><a href="index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
+<button class="nav-toggle"></button>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">How To Publish to Maven Central Easily with Mill</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p><em>Li Haoyi, 4 Feb 2026</em></p>
+</div>
+<div class="paragraph">
+<p>Traditionally setting up a Java, Scala, or Kotlin project to be published to <a href="https://central.sonatype.com/">Maven Central</a>
+- the de-facto standard JVM package repository - has always been a bit involved. You need to
+install <a href="https://www.gnupg.org/">GPG</a> (or <a href="https://en.wikipedia.org/wiki/Pretty_Good_Privacy">PGP</a>???),
+create your keys (don&#8217;t forget to upload them via <a href="https://www.gnupg.org/gph/en/manual/x457.html">send-key</a>!),
+set up multiple build tool plugins, figure out how to set up secrets to publish from your CI pipeline,
+and so on. This article explores how the Mill build tool makes it easy to publish to Maven Central,
+so that anyone can easily package and upload their code to share it with the rest of the JVM community.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_create_sonatype_central_account_and_namespace"><a class="anchor" href="#_create_sonatype_central_account_and_namespace"></a>Create Sonatype Central Account and Namespace</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Everyone who publishes to Maven Central needs to register their organization’s namespace
+and verify that they own it as a security measure. Typically, this means you need to prove
+you own one of:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A domain name, e.g. the owner of <code>lihaoyi.com</code> can publish to the namespace <code>com.lihaoyi</code></p>
+</li>
+<li>
+<p>A subdomain, e.g. the owner of <code>lihaoyi.github.io</code> can publish to the namespace <code>io.github.lihaoyi</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To do so, please create an account at:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://central.sonatype.com/" class="bare">https://central.sonatype.com/</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>And register and verify your namespace by following the instructions at:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://central.sonatype.org/register/namespace/" class="bare">https://central.sonatype.org/register/namespace/</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The workflow for this section is the same for Mill as it is for any other JVM build tool, as
+fundamentally you need to prove to Sonatype (who runs the repository) that you own the
+domain name to prevent others from potentially impersonating you. This
+needs to be done for every organization/domain registered, but for most people
+who publish libraries this typically only needs to be done once.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_installing_mill"><a class="anchor" href="#_installing_mill"></a>Installing Mill</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill is typically installed via a <code>./mill</code> <a href="../mill/cli/installation-ide.html#_bootstrap_scripts" class="xref page">bootstrap script</a>,
+which can be downloaded as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1/mill-dist-1.1.1-mill.sh -o mill
+&gt; chmod +x mill
+&gt; ./mill version
+1.1.1</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This script is committed to your codebase, similar to <code>./mvnw</code> or <code>./gradlew</code>, so anyone who
+checks out the code will have the <code>./mill</code> script available and ready to use. Notably, you don&#8217;t
+need to install Mill with  <code>brew</code>/<code>apt</code>/<code>winget</code>, nor do you need to install Java or
+<a href="https://sdkman.io/">SdkMan</a>, as the <code>./mill</code> script (<code>mill.bat</code> on windows) automatically
+downloads and caches them as necessary.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configuring_your_build_file"><a class="anchor" href="#_configuring_your_build_file"></a>Configuring your Build File</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The next step is to configure your <code>build.mill.yaml</code> file with the
+necessary Java project metadata that Maven Central expects: the <code>publishVersion</code>,
+<code>artifactName</code>, and some other miscellaneous settings that need to be included in the
+published <code>pom.xml</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill.yaml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [JavaModule, PublishModule]
+publishVersion: 0.0.1
+artifactName: example
+pomSettings:
+  description: Example
+  organization: com.lihaoyi
+  url: https://github.com/com.lihaoyi/example
+  licenses: [MIT]
+  versionControl: https://github.com/com.lihaoyi/example
+  developers: [{name: Li Haoyi, email: example@example.com}]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And place the Java code you want to publish in <code>src/</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">src/Bar.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package bar;
+public class Bar {
+  public static void main(String[] args) {
+    System.out.println("Hello Published: " + System.getProperty("java.version"));
+  }
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Mill defaults to a lightweight <code>src/</code> and <code>resources/</code> folders, rather than the Maven
+convention of <code>src/main/java/</code> and <code>src/main/resources/</code>. You can extend
+<a href="../mill/javalib/intro.html#_maven_compatible_modules" class="xref page">MavenModule</a> instead of <code>JavaModule</code>
+if you wish to instead use the more verbose Maven source layout.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Mill automatically generates the necessary <code>pom.xml</code> for you when publishing, along
+with all the other necessary files: docjars, sourcejars, <code>.asc</code> signatures, and so on. You
+just need to provide the minimal metadata and Mill&#8217;s <code>PublishModule</code> class that we inherit
+above will take care of the rest.</p>
+</div>
+<div class="paragraph">
+<p>Mill supports all 3 major JVM languages, so if you want to publish Scala code, you can use
+<code>ScalaModule</code> and specify a <code>scalaVersion</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill.yaml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [ScalaModule, PublishModule]
+scalaVersion: 3.8.1
+publishVersion: 0.0.1
+artifactName: example
+pomSettings:
+  description: Example
+  organization: com.lihaoyi
+  url: https://github.com/com.lihaoyi/example
+  licenses: [MIT]
+  versionControl: https://github.com/com.lihaoyi/example
+  developers: [{name: Li Haoyi, email: example@example.com}]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or if you want to publish Kotlin code, use <code>KotlinModule</code> and specify a <code>kotlinVersion</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill.yaml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [KotlinModule, PublishModule]
+kotlinVersion: 2.0.20
+publishVersion: 0.0.1
+artifactName: example
+pomSettings:
+  description: Example
+  organization: com.lihaoyi
+  url: https://github.com/com.lihaoyi/example
+  licenses: [MIT]
+  versionControl: https://github.com/com.lihaoyi/example
+  developers: [{name: Li Haoyi, email: example@example.com}]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>These example projects are all available to download at the linked documentation
+pages below, so feel free to download the <code>.zip</code> file for the language you want
+to follow along with the rest of the article:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="../mill/javalib/publishing.html#_basic_publishing_configuration" class="xref page">Basic Java Publishing Configuration</a></p>
+</li>
+<li>
+<p><a href="../mill/scalalib/publishing.html#_basic_publishing_configuration" class="xref page">Basic Scala Publishing Configuration</a></p>
+</li>
+<li>
+<p><a href="../mill/kotlinlib/publishing.html#_basic_publishing_configuration" class="xref page">Basic Kotlin Publishing Configuration</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_setting_up_gpg_keys"><a class="anchor" href="#_setting_up_gpg_keys"></a>Setting up GPG keys</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Next, we need to set up GPG key signing: Maven Central
+<a href="https://central.sonatype.org/publish/requirements/#sign-files-with-gpgpgp">requires
+all uploaded artifacts to be signed with GPG keys</a>. If you don&#8217;t have GPG keys already
+set up, the Mill command <code>mill.javalib.SonatypeCentralPublishModule/initGpgKeys</code>
+walks you through the process to generate a set of keys you can use:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill mill.javalib.SonatypeCentralPublishModule/initGpgKeys
+=== PGP Key Setup for Sonatype Central Publishing ===
+
+Step 1: Generating PGP key pair...
+
+Enter your name: Li Haoyi
+Enter your email: user@host.com
+Enter passphrase (leave empty for no passphrase):
+
+PGP key generated successfully!
+
+Generated key ID: FF314A017B55A282
+
+Step 2: Uploading public key to keyserver.ubuntu.com...
+Public key uploaded successfully!
+
+Step 3: Verifying key upload...
+Key verified on keyserver!
+
+Saved secret key to: .../initGpgKeys.dest/pgp-private-key.asc
+To store it in your home directory for manual use, you can import it into GnuPG:
+  gpg --import ...
+
+=== Setup Complete! ===
+
+To publish to Maven Central from your shell, export the following credentials.
+MILL_SONATYPE_PASSWORD and MILL_SONATYPE_USERNAME can be generated at https://central.sonatype.com/usertoken
+
+------------------------------------------------------------------------
+export MILL_PGP_SECRET_BASE64=...
+export MILL_PGP_PASSPHRASE=...
+export MILL_SONATYPE_PASSWORD=...
+export MILL_SONATYPE_USERNAME=...
+------------------------------------------------------------------------
+
+To publish from GitHub Actions, add the credentials above as repository secrets at
+
+- https://github.com/&lt;org&gt;/&lt;repo&gt;/settings/secrets/actions/new
+
+and then include them in your .github/workflows/publish-artifacts.yml as:
+
+------------------------------------------------------------------------
+env:
+  MILL_PGP_SECRET_BASE64: ${{ secrets.MILL_PGP_SECRET_BASE64 }}
+  MILL_PGP_PASSPHRASE: ${{ secrets.MILL_PGP_PASSPHRASE }}
+  MILL_SONATYPE_USERNAME: ${{ secrets.MILL_SONATYPE_USERNAME }}
+  MILL_SONATYPE_PASSWORD: ${{ secrets.MILL_SONATYPE_PASSWORD }}
+------------------------------------------------------------------------</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>initGpgKeys</code> takes the necessary inputs (name, email, passphrase) at the command line,
+publishes the PGP key to <code>keyserver.ubuntu.com</code>,  and verifies that the key is ready to use.
+Finally it prints the generated PGP secret for you as BASE64 formatted strings
+that are easy to include as environment variables or Github Actions secrets.</p>
+</div>
+<div class="paragraph">
+<p>Maven Central requires that all artifacts be signed by some GPG key, but it isn&#8217;t strict
+about <em>which</em> GPG key is used. So if you lose a key for whatever reason (expired, on an old
+laptop that got discarded, accidentally <code>rm -rf</code>ed your home folder&#8230;&#8203;) feel free to
+just generate a new one.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_publishing"><a class="anchor" href="#_publishing"></a>Publishing</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To publish your library locally, you can <code>export</code> the secrets printed above and
+use the <code>mill.javalib.SonatypeCentralPublishModule/</code> command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; export MILL_PGP_SECRET_BASE64=...
+&gt; export MILL_PGP_PASSPHRASE=...
+&gt; export MILL_SONATYPE_PASSWORD=...
+&gt; export MILL_SONATYPE_USERNAME=...
+
+&gt; ./mill mill.javalib.SonatypeCentralPublishModule/
+Successfully published com.lihaoyi.example-0.0.1 to Sonatype Central</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_your_published_library"><a class="anchor" href="#_using_your_published_library"></a>Using Your Published Library</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can verify that your library is available online by running <code>./mill</code> the bootstrap script
+in an empty folder and opening a
+<a href="https://docs.oracle.com/en/java/javase/25/jshell/introduction-jshell.html">JShell</a> with that
+library imported. Initially, this should fail with</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">&gt; ./mill --import com.lihaoyi:example:0.0.1 jshell
+Resolution failed for 1 modules:
+--------------------------------------------
+  com.lihaoyi:example:0.0.1
+	Not an internal Mill module: com.lihaoyi:example:0.0.1
+	not found: /Users/lihaoyi/.ivy2/local/com.lihaoyi/example/0.0.1/ivys/ivy.xml
+	not found: https://repo1.maven.org/maven2/com/lihaoyi/example/0.0.1/example-0.0.1.pom
+--------------------------------------------</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>But after the background publishing process has completed on the Sonatype Central servers,
+it should succeed and let you use your published library outside of the project it was originally
+written in:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">&gt; ./mill --import com.lihaoyi:example:0.0.1 jshell
+jshell&gt; bar.Bar.main(null)
+Hello Published: 21.0.9</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Your library is now available to anyone who wants to use them from any build tool:</p>
+</div>
+<div class="listingblock">
+<div class="title">Maven</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
+  &lt;groupId&gt;com.lihaoyi&lt;/groupId&gt;
+  &lt;artifactId&gt;example&lt;/artifactId&gt;
+  &lt;version&gt;0.0.1&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Gradle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">"com.lihaoyi:example:0.0.1"</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">SBT</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">"com.lihaoyi" % "example" % "0.0.1"</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Mill</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">mvn"com.lihaoyi:example:0.0.1"</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_github_actions"><a class="anchor" href="#_github_actions"></a>Github Actions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>It is common to want to publish your artifacts from a CI pipeline,
+such as Github Actions, rather than from your local laptop. Mill makes this
+very easy with a workflow such as the one below:</p>
+</div>
+<div class="listingblock">
+<div class="title">.github/workflows/publish-artifacts.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - '**'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - run: ./mill mill.javalib.SonatypeCentralPublishModule/
+      env:
+        MILL_PGP_SECRET_BASE64: ${{ secrets.MILL_PGP_SECRET_BASE64 }}
+        MILL_PGP_PASSPHRASE: ${{ secrets.MILL_PGP_PASSPHRASE }}
+        MILL_SONATYPE_USERNAME: ${{ secrets.MILL_SONATYPE_USERNAME }}
+        MILL_SONATYPE_PASSWORD: ${{ secrets.MILL_SONATYPE_PASSWORD }}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Things to note:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>You will first need to add the various secrets as repository or organization
+secrets, via <code><a href="https://github.com/&lt;org&gt;/&lt;repo&gt;/settings/secrets/actions/new" class="bare">https://github.com/&lt;org&gt;/&lt;repo&gt;/settings/secrets/actions/new</a></code></p>
+</li>
+<li>
+<p>You do not need <code>setup-java</code> or any other action to install Java; the <code>./mill</code> bootstrap
+script handles that automatically on your behalf, and you can
+<a href="../mill/fundamentals/configuring-jvm-versions.html" class="xref page">configure it</a> if necessary</p>
+</li>
+<li>
+<p>This job will trigger on any tag push, but can also be triggered manually via the
+<code>Run Workflow</code> button in the Github Actions UI. For now, it still is hardcoded to
+<code>publishVersion: 0.0.1</code>, so you&#8217;ll need to bump the <code>build.mill.yaml</code> file every
+release</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Bumping the <code>build.mill.yaml</code> isn&#8217;t a lot of work, but it is another manual step that
+is tedious to keep doing. We can remove the hardcoded <code>publishVersion</code> above by extending
+the class <code>mill.util.VcsVersionModule</code> below, which wires up <code>publishVersion</code> to infer the
+version from the latest tag in the commit history:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [JavaModule, PublishModule, mill.util.VcsVersionModule]
+artifactName: example
+pomSettings:
+  description: Example
+  organization: com.lihaoyi
+  url: https://github.com/com.lihaoyi/example
+  licenses: [MIT]
+  versionControl: https://github.com/com.lihaoyi/example
+  developers: [{name: Li Haoyi, email: example@example.com}]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Together with the Github Actions configuration above, this means you can publish a new version
+just by pushing a tag:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; git tag 0.0.2
+&gt; git push origin HEAD --tags</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And it&#8217;ll kick off the workflow to publish version <code>0.0.2</code> to Maven Central without needing
+to tediously change the <code>publishVersion</code> config every time you want to publish a new version</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_conclusion"><a class="anchor" href="#_conclusion"></a>Conclusion</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this short article we have walked through how to publish a small snippet of
+Java, Scala, or Kotlin code to Maven Central. Setting up your Sonatype Central account,
+registering a namespace, generating your GPG keys, and publishing from your local command
+line and from Github Actions. Hopefully you&#8217;ve found the process relatively easy to follow,
+and can use it to publish your own Java, Scala, or Kotlin libraries to Maven Central in future!</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="index.html"><em>The Mill Build Engineering Blog</em></a></span>
+  <span class="next"><a href="17-simpler-jvm-mill-110.html">Simpler JVM Project Setup with Mill 1.1.0</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
+<script async src="../_/js/vendor/highlight.js"></script>
+<script src="../_/js/vendor/lunr.js"></script>
+<script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
+<script async src="../search-index.js"></script>
+  </body>
+</html>

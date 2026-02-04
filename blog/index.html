@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>The Mill Build Engineering Blog :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/blog/index.html">
-    <link rel="next" href="17-simpler-jvm-mill-110.html">
+    <link rel="next" href="18-how-to-publish-to-maven-central-easily-with-mill.html">
     <meta name="generator" content="Antora 3.1.12">
     <link rel="stylesheet" href="../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -134,10 +134,14 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="17-simpler-jvm-mill-110.html">Simpler JVM Project Setup with Mill 1.1.0</a>
+    <a class="nav-link" href="18-how-to-publish-to-maven-central-easily-with-mill.html">How To Publish to Maven Central Easily with Mill</a>
   </li>
 
   <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="17-simpler-jvm-mill-110.html">Simpler JVM Project Setup with Mill 1.1.0</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="16-zero-setup.html">Zero-Setup Java Build Tooling via Mill Bootstrap Scripts</a>
   </li>
 
@@ -263,6 +267,26 @@
 technical topics related to JVM platform tooling and language-agnostic build tooling,
 some specific to the Mill build tool but mostly applicable to anyone working on
 build tooling for large codebases in JVM and non-JVM languages.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_how_to_publish_to_maven_central_easily_with_mill"><a class="anchor" href="#_how_to_publish_to_maven_central_easily_with_mill"></a><a href="18-how-to-publish-to-maven-central-easily-with-mill.html" class="xref page">How To Publish to Maven Central Easily with Mill</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><em>Li Haoyi, 4 Feb 2026</em></p>
+</div>
+<div class="paragraph">
+<p>Traditionally setting up a Java, Scala, or Kotlin project to be published to <a href="https://central.sonatype.com/">Maven Central</a>
+- the de-facto standard JVM package repository - has always been a bit involved. You need to
+install <a href="https://www.gnupg.org/">GPG</a> (or <a href="https://en.wikipedia.org/wiki/Pretty_Good_Privacy">PGP</a>???),
+create your keys (don&#8217;t forget to upload them via <a href="https://www.gnupg.org/gph/en/manual/x457.html">send-key</a>!),
+set up multiple build tool plugins, figure out how to set up secrets to publish from your CI pipeline,
+and so on. This article explores how the Mill build tool makes it easy to publish to Maven Central,
+so that anyone can easily package and upload their code to share it with the rest of the JVM community.</p>
+</div>
+<div class="paragraph">
+<p><a href="18-how-to-publish-to-maven-central-easily-with-mill.html" class="xref page">Read More&#8230;&#8203;</a></p>
 </div>
 </div>
 </div>
@@ -747,7 +771,7 @@ faster in the presence of parallelism</p>
 </div>
 </div>
 <nav class="pagination">
-  <span class="next"><a href="17-simpler-jvm-mill-110.html">Simpler JVM Project Setup with Mill 1.1.0</a></span>
+  <span class="next"><a href="18-how-to-publish-to-maven-central-easily-with-mill.html">How To Publish to Maven Central Easily with Mill</a></span>
 </nav>
 </article>
   </div>
