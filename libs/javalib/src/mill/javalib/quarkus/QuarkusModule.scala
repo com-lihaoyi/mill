@@ -1,5 +1,6 @@
 package mill.javalib.quarkus
 
+import coursier.core.VariantSelector.ConfigurationBased
 import mill.api.PathRef
 import mill.{T, Task}
 import mill.javalib.{Dep, DepSyntax, JavaModule, PublishModule}
@@ -43,25 +44,55 @@ trait QuarkusModule extends JavaModule {
       .asInstanceOf[ApplicationModelWorker]
   }
 
+  def quarkusDependencies: Task[Seq[ApplicationModelWorker.Dependency]] = Task.Anon {
+    val dep = coursierDependencyTask().withVariantSelector(
+      ConfigurationBased(coursier.core.Configuration.runtime)
+    )
+
+    val resolution = millResolver().artifacts(Seq(mill.javalib.BoundDep(dep, force = false)))
+
+    resolution.detailedArtifacts0.map {
+      case (dependency, _, _, file) =>
+        ApplicationModelWorker.Dependency(
+          dependency.module.organization.value,
+          dependency.module.name.value,
+          dependency.versionConstraint.asString,
+          os.Path(file)
+        )
+    }
+  }
+
   def quarkusSerializedAppModel: T[PathRef] = this match {
     case m: PublishModule => Task {
         quarkusApplicationModelWorker().bootstrapQuarkus(
-          moduleDir,
-          m.pomSettings().organization,
-          m.artifactName(),
-          m.publishVersion(),
-          m.jar().path,
+          ApplicationModelWorker.AppModel(
+            moduleDir,
+            m.pomSettings().organization,
+            m.artifactId(),
+            m.publishVersion(),
+            m.sources().head.path, // TODO support multiple
+            m.resources().head.path,
+            m.compile().classes.path,
+            m.compileResources().head.path, // TODO this is wrong, adjust later,
+            quarkusDependencies()
+          ),
           Task.dest
         )
         PathRef(Task.dest)
       }
     case _ => Task {
         quarkusApplicationModelWorker().bootstrapQuarkus(
-          moduleDir,
-          "unspecified",
-          artifactName(),
-          "unspecified",
-          jar().path,
+          ApplicationModelWorker.AppModel(
+            moduleDir,
+            "unspecified", // todo add organisation in quarkus module
+            artifactId(),
+            "unspecified",
+            sources().head.path, // TODO support multiple
+            resources().head.path,
+            compile().classes.path,
+            compileResources().head.path, // TODO this is wrong, adjust later,
+            quarkusDependencies()
+          ),
           Task.dest
         )
         PathRef(Task.dest)

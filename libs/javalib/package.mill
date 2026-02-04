@@ -181,7 +181,8 @@ object `package` extends MillStableScalaModule {
 
     def compileMvnDeps = Seq(
       Deps.quarkusAppModel,
-      Deps.quarkusBootstrapCore
+      Deps.quarkusBootstrapCore,
+      Deps.quarkusBootstrapMavenResolver
     )
   }
 

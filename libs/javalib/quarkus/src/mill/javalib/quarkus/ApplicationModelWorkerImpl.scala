@@ -3,36 +3,55 @@ package mill.javalib.quarkus
 import io.quarkus.bootstrap.BootstrapAppModelFactory
 import io.quarkus.bootstrap.app.ApplicationModelSerializer
 import io.quarkus.bootstrap.util.BootstrapUtils
-import io.quarkus.maven.dependency.{ArtifactCoords, ResolvedArtifactDependency}
+import io.quarkus.bootstrap.workspace.{ArtifactSources, DefaultWorkspaceModule, SourceDir, WorkspaceModule, WorkspaceModuleId}
+import io.quarkus.maven.dependency.{ArtifactCoords, ResolvedArtifactDependency, ResolvedDependencyBuilder}
 import io.quarkus.paths.PathList
+
+import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters
 
 class ApplicationModelWorkerImpl extends ApplicationModelWorker {
 
   override def bootstrapQuarkus(
-      projectRoot: os.Path,
-      organization: String,
-      artifactName: String,
-      artifactVersion: String,
-      jar: os.Path,
+      appModel: ApplicationModelWorker.AppModel,
       destination: os.Path
   ): Unit = {
     val factory = BootstrapAppModelFactory.newInstance()
-    factory.setProjectRoot(projectRoot.toNIO)
-    val appArtifact = ResolvedArtifactDependency(
-      ArtifactCoords.jar(
-        organization,
-        artifactName,
-        artifactVersion
-      ),
-      PathList.of(jar.toNIO)
-    )
+    factory.setProjectRoot(appModel.projectRoot.toNIO)
 
-    factory.setAppArtifact(appArtifact)
+    def toResolvedDependencyBuilder(dep: ApplicationModelWorker.Dependency): ResolvedDependencyBuilder = {
+      ResolvedDependencyBuilder.newInstance()
+        .setResolvedPath(dep.resolvedPath.toNIO)
+        .setGroupId(dep.groupId)
+        .setArtifactId(dep.artifactId)
+        .setVersion(dep.version)
+    }
 
-    val appModel = factory.resolveAppModel().getApplicationModel
+    val resolvedDependencyBuilder = ResolvedDependencyBuilder.newInstance().setWorkspaceModule(
+      WorkspaceModule.builder()
+        .setModuleDir(appModel.projectRoot.toNIO)
+        .setModuleId(
+          WorkspaceModuleId.of(appModel.groupId, appModel.artifactId, appModel.version)
+        ).addArtifactSources(
+          ArtifactSources.main(
+            //TODO generated sources?
+            SourceDir.of(appModel.sourcesDir.toNIO, appModel.compiledPath.toNIO),
+            SourceDir.of(appModel.resourcesDir.toNIO, appModel.compiledResources.toNIO),
+          )
+        ).setDependencies(
+          appModel.dependencies.map(toResolvedDependencyBuilder).asJava
+        ).build()
+    ).setResolvedPaths(PathList.of(appModel.compiledPath.toNIO, appModel.compiledResources.toNIO))
+      .setGroupId(appModel.groupId)
+      .setArtifactId(appModel.artifactId)
+      .setVersion(appModel.version)
+
+    factory.setAppArtifact(resolvedDependencyBuilder)
+
+    val applicationModel = factory.resolveAppModel().getApplicationModel
 
     ApplicationModelSerializer.serialize(
-      appModel,
+      applicationModel,
       BootstrapUtils.resolveSerializedAppModelPath(destination.toNIO)
     )
 
