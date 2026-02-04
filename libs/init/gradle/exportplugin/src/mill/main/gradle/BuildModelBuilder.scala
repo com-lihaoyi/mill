@@ -11,7 +11,7 @@ import org.gradle.api.attributes.Category
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPluginExtension
-import org.gradle.api.plugins.quality.CheckstyleExtension
+import org.gradle.api.plugins.quality.{CheckstyleExtension, PmdExtension}
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.*
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPom
@@ -86,6 +86,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         runMvnDeps = mvnDeps("runtimeOnly"),
         bomMvnDeps = mainBomDeps.collect(toMvnDep),
         depManagement = mainConstraints.collect(toMvnDep),
+        annotationProcessorsMvnDeps = mvnDeps("annotationProcessor"),
         javacOptions = task[JavaCompile]("compileJava").fold(Nil)(javacOptions),
         moduleDeps = moduleDeps("implementation", "api"),
         compileModuleDeps = moduleDeps("compileOnly", "compileOnlyApi"),
@@ -101,6 +102,21 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
           checkstyleConfig = configFile.relativeTo(moduleDir),
           checkstyleVersion = ext.getToolVersion
         )
+      }
+      for (ext <- Option(getExtensions.findByType(classOf[PmdExtension]))) {
+        mainModule = mainModule.withPmdModule(
+          pmdRulesets = ext.getRuleSetFiles.asScala.toSeq.map(os.Path(_).relativeTo(moduleDir)),
+          pmdVersion = ext.getToolVersion
+        )
+      }
+      if (getPluginManager.hasPlugin("com.palantir.java-format")) {
+        mainModule = mainModule.withPalantirFormatModule
+      }
+      if (getPluginManager.hasPlugin("com.diffplug.spotless")) {
+        mainModule = mainModule.withSpotlessModule
+      }
+      if (getPluginManager.hasPlugin("org.revapi.revapi-gradle-plugin")) {
+        mainModule = mainModule.withRevapiModule
       }
 
       if (os.exists(moduleDir / "src/test")) {
@@ -135,6 +151,9 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
           testSandboxWorkingDir = Some(false),
           testFramework = Option.when(testMixin.isEmpty)("")
         ).withErrorProneModule(mainModule.errorProneDeps.base)
+        if (getPluginManager.hasPlugin("jacoco")) {
+          testModule = testModule.withJacocoTestModule
+        }
         if (testMixin.contains("TestModule.Junit5")) {
           testModule.mvnDeps.base.collectFirst {
             case dep if dep.organization == "org.junit.jupiter" && dep.version.nonEmpty =>
@@ -240,7 +259,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       Option(task.getTargetCompatibility).map(Opt("-target", _))
     ).flatten)(n => Seq(Opt("--release", n.toString))) ++
       Option(task.getOptions.getEncoding).map(Opt("-encoding", _)) ++
-      Opt.groups(task.getOptions.getAllCompilerArgs.asScala.toSeq)
+      Opt.groups(task.getOptions.getAllCompilerArgs.asScala.toSeq.flatMap(_.split("\\s+")))
   }
 
   private def toPomPackagingType(pom: MavenPom): Option[String] =

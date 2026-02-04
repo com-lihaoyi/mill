@@ -84,6 +84,10 @@ object BuildGenYaml {
     renderYamlMvnDepsList("runMvnDeps", runMvnDeps).foreach(lines += _)
     renderYamlMvnDepsList("bomMvnDeps", bomMvnDeps).foreach(lines += _)
     renderYamlMvnDepsList("depManagement", depManagement).foreach(lines += _)
+    renderYamlMvnDepsList(
+      "annotationProcessorsMvnDeps",
+      annotationProcessorsMvnDeps
+    ).foreach(lines += _)
 
     // Scala config
     renderYamlStringValue("scalaVersion", scalaVersion).foreach(lines += _)
@@ -111,17 +115,17 @@ object BuildGenYaml {
 
     // Error prone
     renderYamlMvnDepsList("errorProneDeps", errorProneDeps).foreach(lines += _)
-    renderYamlStringListValuesPlain("errorProneOptions", errorProneOptions).foreach(lines += _)
-    renderYamlStringListValues(
-      "errorProneJavacEnableOptions",
-      errorProneJavacEnableOptions
-    ).foreach(lines += _)
+    renderYamlStringListValues("errorProneOptions", errorProneOptions).foreach(lines += _)
 
     // Checkstyle
     renderYamlStringMapValues("checkstyleProperties", checkstyleProperties).foreach(lines += _)
     renderYamlMvnDepsList("checkstyleMvnDeps", checkstyleMvnDeps).foreach(lines += _)
     renderYamlRelPathValue("checkstyleConfig", checkstyleConfig).foreach(lines += _)
     renderYamlStringValue("checkstyleVersion", checkstyleVersion).foreach(lines += _)
+
+    // PMD
+    renderYamlSourcesList("pmdRulesets", pmdRulesets).foreach(lines += _)
+    renderYamlStringValue("pmdVersion", pmdVersion).foreach(lines += _)
 
     // Publishing
     renderYamlStringValue("artifactName", artifactName).foreach(lines += _)
@@ -162,6 +166,11 @@ object BuildGenYaml {
     "ScalaNativeModule" -> "mill.scalanativelib.ScalaNativeModule",
     "ErrorProneModule" -> "mill.javalib.errorprone.ErrorProneModule",
     "CheckstyleModule" -> "mill.javalib.checkstyle.CheckstyleModule",
+    "PmdModule" -> "mill.javalib.pmd.PmdModule",
+    "PalantirFormatModule" -> "mill.javalib.palantirformat.PalantirFormatModule",
+    "SpotlessModule" -> "mill.javalib.spotless.SpotlessModule",
+    "RevapiModule" -> "mill.javalib.revapi.RevapiModule",
+    "JacocoTestModule" -> "de.tobiasroeser.mill.jacoco.JacocoTestModule",
     "ProjectBaseModule" -> "millbuild.ProjectBaseModule"
   )
 
@@ -271,28 +280,53 @@ object BuildGenYaml {
       if (pom.organization.nonEmpty) content += s"  organization: ${pom.organization}"
       if (pom.url.nonEmpty && !containsPlaceholder(pom.url)) content += s"  url: ${pom.url}"
       if (pom.licenses.nonEmpty) {
-        val licenseIds = pom.licenses.flatMap { l =>
-          if (l.id.nonEmpty) Some(l.id)
-          else if (l.name.nonEmpty) Some(l.name)
-          else None
-        }.map(yamlEscapeStringInList)
-        if (licenseIds.nonEmpty) {
-          content += s"  licenses: ${licenseIds.mkString("[", ", ", "]")}"
+        content += "  licenses:"
+        for (l <- pom.licenses) {
+          import l.*
+          val parts = Seq(
+            Option.when(id.nonEmpty)(s"id: ${yamlEscapeString(id)}"),
+            Option.when(name.nonEmpty)(s"name: ${yamlEscapeString(name)}"),
+            Option.when(url.nonEmpty && !containsPlaceholder(url))(s"url: $url"),
+            Option.when(isOsiApproved)("isOsiApproved: true"),
+            Option.when(isFsfLibre)("isFsfLibre: true"),
+            Option.when(distribution.nonEmpty)(s"distribution: ${yamlEscapeString(distribution)}")
+          ).flatten
+          content += s"  - {${parts.mkString(", ")}}"
         }
       }
       val vc = pom.versionControl
       // Filter out URLs that contain unresolved placeholders like ${scm.url}
-      val vcUrl = vc.browsableRepository.orElse(vc.connection).filterNot(containsPlaceholder)
-      vcUrl.foreach { url =>
-        content += s"  versionControl: $url"
+      val vcParts = Seq(
+        vc.browsableRepository.collect {
+          case url if url.nonEmpty && !containsPlaceholder(url) => s"browsableRepository: $url"
+        },
+        vc.connection.collect {
+          case url if url.nonEmpty && !containsPlaceholder(url) => s"connection: $url"
+        },
+        vc.developerConnection.collect {
+          case url if url.nonEmpty && !containsPlaceholder(url) => s"developerConnection: $url"
+        },
+        vc.tag.collect {
+          case tag if tag.nonEmpty => s"tag: ${yamlEscapeString(tag)}"
+        }
+      ).flatten
+      if (vcParts.nonEmpty) {
+        content += s"  versionControl: {${vcParts.mkString(", ")}}"
       }
       if (pom.developers.nonEmpty) {
         content += "  developers:"
         for (dev <- pom.developers) {
           val parts = Seq.newBuilder[String]
+          if (dev.id.nonEmpty) parts += s"id: ${yamlEscapeString(dev.id)}"
           if (dev.name.nonEmpty) parts += s"name: ${yamlEscapeString(dev.name)}"
           if (dev.url.nonEmpty && !containsPlaceholder(dev.url)) parts += s"url: ${dev.url}"
-          dev.organization.foreach(o => parts += s"organization: ${yamlEscapeString(o)}")
+          dev.organization.foreach { o =>
+            if (o.nonEmpty) parts += s"organization: ${yamlEscapeString(o)}"
+          }
+          dev.organizationUrl.foreach(url =>
+            if (url.nonEmpty && !containsPlaceholder(url))
+              parts += s"organizationUrl: ${yamlEscapeString(url)}"
+          )
           content += s"  - {${parts.result().mkString(", ")}}"
         }
       }

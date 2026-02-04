@@ -19,8 +19,10 @@ object BuildGenYamlTests extends TestSuite {
       )
 
       BuildGenYaml.writeBuildFiles(
-        baseDir = workspace,
-        packages = Seq(PackageSpec(os.sub, rootModule))
+        workspace = workspace,
+        packages = Seq(PackageSpec(os.sub, rootModule)),
+        millVersion = "SNAPSHOT",
+        millJvmVersion = "system"
       )
 
       val generated = os.read(workspace / "build.mill.yaml")

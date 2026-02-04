@@ -4,10 +4,11 @@ package build
 
 import mill.*
 import mill.javalib.*
+import millbuild.*
 
 object `package` extends MavenModule {
 
-  def mvnDeps = Seq(mvn"com.google.guava:guava:28.0-jre")
+  def mvnDeps = Seq(Deps.guava)
 
   def javacOptions = Seq("-source", "11", "-target", "11")
 
@@ -15,7 +16,7 @@ object `package` extends MavenModule {
 
   object test extends MavenTests, TestModule.TestNg {
 
-    def mvnDeps = Seq(mvn"org.testng:testng:6.14.3")
+    def mvnDeps = Seq(Deps.testng)
 
     def javacOptions = Seq("-source", "11", "-target", "11")
 

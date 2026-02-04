@@ -1,6 +1,7 @@
 package mill.main.maven
 
 import mill.main.buildgen.*
+import mill.main.buildgen.BuildInfo.millJacocoDep
 import mill.main.buildgen.ModuleSpec.*
 import mill.main.maven.MavenUtil.*
 import org.apache.maven.model.{Developer as _, License as _, *}
@@ -47,6 +48,7 @@ object MillMavenBuildGenMain {
 
     var packages = modelBuildingResults.map { result =>
       val model = result.getEffectiveModel
+      val rawModel = result.getRawModel
       val moduleDir = os.Path(model.getProjectDirectory)
       val plugins = Plugins(model, mvnWorkspace)
       var mainModule = ModuleSpec(
@@ -106,6 +108,9 @@ object MillMavenBuildGenMain {
             artifactName = Option(model.getArtifactId)
           ).withErrorProneModule(plugins.errorProneMvnDeps)
           plugins.withCheckstyleModule(mainModule).foreach(mainModule = _)
+          plugins.withPmdModule(mainModule).foreach(mainModule = _)
+          plugins.withSpotlessModule(mainModule).foreach(mainModule = _)
+          plugins.withRevapiModule(mainModule).foreach(mainModule = _)
 
           if (os.exists(moduleDir / "src/test")) {
             val testMvnDeps = mvnDeps("test")
@@ -130,6 +135,7 @@ object MillMavenBuildGenMain {
               testSandboxWorkingDir = Some(false),
               testFramework = Option.when(testMixin.isEmpty)("")
             )
+            plugins.withJacocoTestModule(testModule).foreach(testModule = _)
             if (testMixin.contains("TestModule.Junit5")) {
               testModule.mvnDeps.base.collectFirst {
                 case dep if dep.organization == "org.junit.jupiter" && dep.version.nonEmpty =>
@@ -167,14 +173,11 @@ object MillMavenBuildGenMain {
             Artifact(getGroupId, getArtifactId, getVersion)
           },
           pomSettings = {
-            // Use raw model since the effective one returns derived values for URL fields.
-            val model = result.getRawModel
-            import model.*
             Some(PomSettings(
-              description = Option(getDescription).getOrElse(""),
-              organization = Option(getGroupId).getOrElse(""),
-              url = Option(getUrl).getOrElse(""),
-              licenses = getLicenses.asScala.map { license =>
+              description = Option(rawModel.getDescription).getOrElse(""),
+              organization = Option(model.getGroupId).getOrElse(""),
+              url = Option(rawModel.getUrl).getOrElse(""),
+              licenses = rawModel.getLicenses.asScala.map { license =>
                 import license.*
                 License(
                   name = Option(getName).getOrElse(""),
@@ -182,7 +185,7 @@ object MillMavenBuildGenMain {
                   distribution = Option(getDistribution).getOrElse("")
                 )
               }.toSeq,
-              versionControl = Option(getScm).fold(VersionControl()) { scm =>
+              versionControl = Option(rawModel.getScm).fold(VersionControl()) { scm =>
                 import scm.*
                 VersionControl(
                   browsableRepository = Option(getUrl),
@@ -191,7 +194,7 @@ object MillMavenBuildGenMain {
                   tag = Option(getTag)
                 )
               },
-              developers = getDevelopers.asScala.map { developer =>
+              developers = rawModel.getDevelopers.asScala.map { developer =>
                 import developer.*
                 Developer(
                   id = Option(getId).getOrElse(""),
@@ -205,12 +208,15 @@ object MillMavenBuildGenMain {
           },
           publishVersion = Option(model.getVersion),
           publishProperties =
-            if (publishProperties.value) model.getProperties.asScala.toSeq else Nil
+            if (publishProperties.value) rawModel.getProperties.asScala.toSeq else Nil
         )
       }
       PackageSpec(moduleDir.subRelativeTo(mvnWorkspace), mainModule)
     }
     packages = normalizePackages(packages)
+    val metaMvnDeps = packages.flatMap(_.module.tree).flatMap(_.supertypes).distinct.collect {
+      case "JacocoTestModule" => millJacocoDep
+    }
 
     val build = BuildSpec(packages)
     if (!noMeta.value) {
@@ -223,7 +229,8 @@ object MillMavenBuildGenMain {
       declarative = declarative,
       merge = merge.value,
       workspace = millWorkspace,
-      millJvmVersion = millJvmId
+      millJvmVersion = millJvmId,
+      metaMvnDeps = metaMvnDeps
     )
   }
 

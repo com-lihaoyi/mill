@@ -21,6 +21,7 @@ case class ModuleSpec(
     runMvnDeps: Values[MvnDep] = Values(),
     bomMvnDeps: Values[MvnDep] = Values(),
     depManagement: Values[MvnDep] = Values(),
+    annotationProcessorsMvnDeps: Values[MvnDep] = Values(),
     javacOptions: Values[Opt] = Values(),
     moduleDeps: Values[ModuleDep] = Values(),
     compileModuleDeps: Values[ModuleDep] = Values(),
@@ -37,13 +38,14 @@ case class ModuleSpec(
     versionScheme: Value[String] = Value(),
     publishProperties: Values[(String, String)] = Values(),
     errorProneDeps: Values[MvnDep] = Values(),
-    errorProneOptions: Values[String] = Values(),
-    errorProneJavacEnableOptions: Values[Opt] = Values(),
+    errorProneOptions: Values[Opt] = Values(),
     jmhCoreVersion: Value[String] = Value(),
     checkstyleProperties: Values[(String, String)] = Values(),
     checkstyleMvnDeps: Values[MvnDep] = Values(),
     checkstyleConfig: Value[os.RelPath] = Value(),
     checkstyleVersion: Value[String] = Value(),
+    pmdRulesets: Values[os.RelPath] = Values(),
+    pmdVersion: Value[String] = Value(),
     scalaVersion: Value[String] = Value(),
     scalacOptions: Values[Opt] = Values(),
     scalacPluginMvnDeps: Values[MvnDep] = Values(),
@@ -80,20 +82,19 @@ case class ModuleSpec(
   def tree: Seq[ModuleSpec] = this +: children.flatMap(_.tree)
 
   def withErrorProneModule(errorProneMvnDeps: Seq[MvnDep]): ModuleSpec = {
-    javacOptions.base.find(_.group.head.startsWith("-Xplugin:ErrorProne")).fold(this) { epOption =>
-      val epOptions = epOption.group.head.split("\\s").toSeq.tail
-      val (epJavacOptions, javacOptions0) = javacOptions.base
-        .diff(Seq(epOption, Opt("-XDcompilePolicy=simple")))
-        .partition(_.group.head.startsWith("-XD"))
+    val epOpt = Opt("-Xplugin:ErrorProne")
+    if (javacOptions.base.contains(epOpt)) {
+      val (epOptions, javacOptions0) = javacOptions.base
+        .diff(Seq(epOpt, Opt("-XDcompilePolicy=simple")))
+        .partition(_.group.head.startsWith("-Xep"))
       this.copy(
         imports = "mill.javalib.errorprone.ErrorProneModule" +: imports,
         supertypes = supertypes :+ "ErrorProneModule",
+        javacOptions = javacOptions0,
         errorProneDeps = errorProneMvnDeps,
-        errorProneOptions = epOptions,
-        errorProneJavacEnableOptions = epJavacOptions,
-        javacOptions = javacOptions0
+        errorProneOptions = epOptions
       )
-    }
+    } else this
   }
 
   def withJmhModule(jmhCoreVersion: Value[String]): ModuleSpec = copy(
@@ -114,6 +115,36 @@ case class ModuleSpec(
     checkstyleMvnDeps = checkstyleMvnDeps,
     checkstyleConfig = checkstyleConfig,
     checkstyleVersion = checkstyleVersion
+  )
+
+  def withPmdModule(
+      pmdRulesets: Values[os.RelPath] = Values(),
+      pmdVersion: Value[String] = Value()
+  ): ModuleSpec = copy(
+    imports = "mill.javalib.pmd.PmdModule" +: imports,
+    supertypes = supertypes :+ "PmdModule",
+    pmdRulesets = pmdRulesets,
+    pmdVersion = pmdVersion
+  )
+
+  def withPalantirFormatModule: ModuleSpec = copy(
+    imports = "mill.javalib.palantirformat.PalantirFormatModule" +: imports,
+    supertypes = supertypes :+ "PalantirFormatModule"
+  )
+
+  def withSpotlessModule: ModuleSpec = copy(
+    imports = "mill.javalib.spotless.SpotlessModule" +: imports,
+    supertypes = supertypes :+ "SpotlessModule"
+  )
+
+  def withRevapiModule: ModuleSpec = copy(
+    imports = "mill.javalib.revapi.RevapiModule" +: imports,
+    supertypes = supertypes :+ "RevapiModule"
+  )
+
+  def withJacocoTestModule: ModuleSpec = copy(
+    imports = "de.tobiasroeser.mill.jacoco.JacocoTestModule" +: imports,
+    supertypes = supertypes :+ "JacocoTestModule"
   )
 
   def withJupiterInterface(junitVersion: String): ModuleSpec = {

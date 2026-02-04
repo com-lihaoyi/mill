@@ -3,7 +3,7 @@ import utest.*
 object InitSbtGatlingTests extends InitTestSuite(
       "https://github.com/gatling/gatling",
       "v3.14.9",
-      Seq("--mill-jvm-id", "17")
+      Seq("--mill-jvm-id", "25")
     ) {
   def tests = Tests {
     test("compile") - assert(

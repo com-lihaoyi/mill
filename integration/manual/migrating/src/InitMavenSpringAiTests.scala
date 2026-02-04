@@ -13,11 +13,14 @@ object InitMavenSpringAiTests extends InitTestSuite(
       eval("spring-ai-commons.test").isSuccess
     )
     test("checkstyle") - assert(
-      eval(("resolve", "spring-ai-commons.checkstyleMvnDeps")).isSuccess
+      eval(("resolve", "spring-ai-commons.checkstyle")).isSuccess
     )
     test("issues") {
       test("missing generated sources") - assert(
         !eval("models.spring-ai-huggingface.compile").isSuccess
+      )
+      test("javadoc errors") - assert(
+        !eval("spring-ai-commons.javadocGenerated").isSuccess
       )
       test("unable to resolve embedded checkstyle configuration files") - assert(
         !eval("spring-ai-commons.checkstyle").isSuccess

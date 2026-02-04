@@ -110,7 +110,7 @@ object MillSbtBuildGenMain {
       if (os.isFile(file)) os.read.lines(file)
         .map(_.trim)
         .filter(s => s.nonEmpty && !s.startsWith("#"))
-        .flatMap(_.split("\\s"))
+        .flatMap(_.split("\\s+"))
       else Nil
     }
     val metaMvnDeps =
@@ -297,27 +297,29 @@ object MillSbtBuildGenMain {
 
     packages.map(pkg =>
       pkg.copy(module = pkg.module.recMap { module =>
-        import module.*
+        var module0 = module
         // Remove references to any non-existent modules
-        var module0 = module.copy(
-          moduleDeps = filterModuleDeps(moduleDeps),
-          compileModuleDeps = filterModuleDeps(compileModuleDeps),
-          runModuleDeps = filterModuleDeps(runModuleDeps)
+        module0 = module0.copy(
+          moduleDeps = filterModuleDeps(module0.moduleDeps),
+          compileModuleDeps = filterModuleDeps(module0.compileModuleDeps),
+          runModuleDeps = filterModuleDeps(module0.runModuleDeps)
         )
         if (platformedMvnDeps.nonEmpty) {
           // For cross-platform modules, convert mvnDeps to platformed to avoid dep name-clash
-          module0 = module.copy(
-            mvnDeps = toPlatformedMvnDeps(mvnDeps),
-            compileMvnDeps = toPlatformedMvnDeps(compileMvnDeps),
-            runMvnDeps = toPlatformedMvnDeps(runMvnDeps),
-            scalacPluginMvnDeps = toPlatformedMvnDeps(scalacPluginMvnDeps)
+          module0 = module0.copy(
+            mvnDeps = toPlatformedMvnDeps(module0.mvnDeps),
+            compileMvnDeps = toPlatformedMvnDeps(module0.compileMvnDeps),
+            runMvnDeps = toPlatformedMvnDeps(module0.runMvnDeps),
+            scalacPluginMvnDeps = toPlatformedMvnDeps(module0.scalacPluginMvnDeps)
           )
         }
         if (module0.testFramework.base.contains("")) {
           // Search recursive mvnDeps for supported test module
           for (testMixin <- ModuleSpec.testModuleMixin(recMvnDeps(module0))) {
-            module0 =
-              module0.copy(supertypes = module0.supertypes :+ testMixin, testFramework = None)
+            module0 = module0.copy(
+              supertypes = module0.supertypes :+ testMixin,
+              testFramework = None
+            )
           }
         }
         module0

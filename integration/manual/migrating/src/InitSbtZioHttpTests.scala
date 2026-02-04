@@ -7,7 +7,7 @@ object InitSbtZioHttpTests extends InitTestSuite(
     ) {
   def tests = Tests {
     test("compile") - assert(
-      eval("(__:PublishModule).__.compile").isSuccess
+      eval("zio-http.__.compile").isSuccess
     )
     // Commented because the tasks hang after completion
 //    test("test") - assert(
@@ -28,10 +28,10 @@ object InitSbtZioHttpTests extends InitTestSuite(
       eval("zio-http.jvm._.scoverage.consoleReport").isSuccess
     )
     test("scalafix") - assert(
-      eval(("zio-http.__.fix", "--rules", "NoAutoTupling")).isSuccess
+      eval(("resolve", "zio-http.__.fix")).isSuccess
     )
     test("scalafmt") - assert(
-      eval("zio-http.__.reformat").isSuccess
+      eval(("resolve", "zio-http.__.reformat")).isSuccess
     )
     test("issues") {
       test("fastLinkJSTest linking errors") - assert(

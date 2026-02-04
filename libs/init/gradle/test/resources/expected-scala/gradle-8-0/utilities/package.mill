@@ -9,9 +9,9 @@ object `package` extends ProjectBaseModule, ErrorProneModule {
 
   def moduleDeps = Seq(build.list)
 
-  def errorProneDeps = Seq(mvn"com.google.errorprone:error_prone_core:2.28.0")
-
-  def errorProneJavacEnableOptions =
+  def javacOptions = super.javacOptions() ++
     Seq("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
+
+  def errorProneDeps = Seq(Deps.error_prone_core)
 
 }

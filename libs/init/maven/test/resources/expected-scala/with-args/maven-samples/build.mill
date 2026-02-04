@@ -82,7 +82,7 @@ object `package` extends PublishModule {
 
       def pomSettings = PomSettings(
         "Logic.",
-        "",
+        "com.example.maven-samples",
         "",
         Seq(),
         VersionControl(None, None, None, None),
@@ -90,11 +90,6 @@ object `package` extends PublishModule {
       )
 
       def publishVersion = "1.0-SNAPSHOT"
-
-      def publishProperties = Map(
-        ("project.build.sourceEncoding", "utf-8"),
-        ("project.reporting.outputEncoding", "utf-8")
-      )
 
       object test extends MavenTests, TestModule.Junit4 {
 
@@ -147,7 +142,7 @@ object `package` extends PublishModule {
 
       def pomSettings = PomSettings(
         "Webapp.",
-        "",
+        "com.example.maven-samples",
         "",
         Seq(),
         VersionControl(None, None, None, None),
@@ -155,11 +150,6 @@ object `package` extends PublishModule {
       )
 
       def publishVersion = "1.0-SNAPSHOT"
-
-      def publishProperties = Map(
-        ("project.build.sourceEncoding", "utf-8"),
-        ("project.reporting.outputEncoding", "utf-8")
-      )
 
     }
 

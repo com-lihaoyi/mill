@@ -7,20 +7,23 @@ object InitSbtAirstreamTests extends InitTestSuite(
     ) {
   def tests = Tests {
     test("compile") - assert(
-      eval("__.compile").isSuccess
+      eval("2_13_16.compile").isSuccess
     )
     test("publishLocal") - assert(
-      eval(("_.publishLocal", "--local-ivy-repo", ".ivy2local")).isSuccess
+      eval(("2_13_16.publishLocal", "--local-ivy-repo", ".ivy2local")).isSuccess
     )
     test("mima") - assert(
-      eval("_.mimaReportBinaryIssues").isSuccess
+      eval("2_13_16.mimaReportBinaryIssues").isSuccess
     )
     test("issues") {
+      test("recursion limit reached on Scala 3") - assert(
+        !eval("3_3_3.test.compile").isSuccess
+      )
       test("requires support for jsEnv") - assert(
-        !eval(("_.test.testOnly", "com.raquo.airstream.web.WebStorageVarSpec")).isSuccess
+        !eval(("2_13_16.test.testOnly", "com.raquo.airstream.web.WebStorageVarSpec")).isSuccess
       )
       test("scalafmtConfig file does not specify the scalafmt version to use") - assert(
-        !eval("_.checkFormat").isSuccess
+        !eval("2_13_16.checkFormat").isSuccess
       )
     }
   }

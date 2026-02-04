@@ -58,9 +58,9 @@ object BuildGenScala {
       mvnDeps: Seq[String] = Nil
   ): Unit = {
     if (mvnDeps.nonEmpty) {
-      val file = os.sub / "build.mill"
+      val file = os.sub / millBuild / "build.mill"
       println(s"writing $file")
-      os.write(workspace / file, renderMetaBuildRoot(mvnDeps))
+      os.write(workspace / file, renderMetaBuildRoot(mvnDeps), createFolders = true)
     }
     if (depNames.nonEmpty) {
       val file = os.sub / millBuild / "src/Deps.scala"
@@ -83,13 +83,16 @@ object BuildGenScala {
   }
 
   private def renderMetaBuildRoot(mvnDeps: Seq[String]) = {
-    val mvnDeps0 = mvnDeps.map(_.replace("$MILL_VERSION", "${millVersion()}"))
-    s"""package millbuild
+    val mvnDepsDef = mvnDeps.map { s =>
+      val s0 = s.replace("$MILL_VERSION", "${millVersion()}")
+      s"""mvn"$s0""""
+    }.mkString("def mvnDeps = Seq(", ", ", ")")
+    s"""package build
        |import mill.*
        |import mill.meta.MillBuildRootModule
        |import mill.scalalib.*
        |object `package` extends MillBuildRootModule {
-       |  def mvnDeps = Seq(${mvnDeps0.mkString(", ")})
+       |  $mvnDepsDef
        |}""".stripMargin
   }
 
@@ -145,6 +148,11 @@ object BuildGenScala {
     lines += renderDefValues("runMvnDeps", runMvnDeps, encodeMvnDep)
     lines += renderDefValues("bomMvnDeps", bomMvnDeps, encodeMvnDep)
     lines += renderDefValues("depManagement", depManagement, encodeMvnDep)
+    lines += renderDefValues(
+      "annotationProcessorsMvnDeps",
+      annotationProcessorsMvnDeps,
+      encodeMvnDep
+    )
     lines += renderDefValue("scalaJSVersion", scalaJSVersion, encodeString)
     lines += renderDefValue("moduleKind", moduleKind, identity[String])
     lines += renderDefValue("scalaNativeVersion", scalaNativeVersion, encodeString)
@@ -169,12 +177,7 @@ object BuildGenScala {
     lines += renderDefValues("forkArgs", forkArgs, encodeOpt)
     lines += renderDefValue("forkWorkingDir", forkWorkingDir, identity[String])
     lines += renderDefValues("errorProneDeps", errorProneDeps, encodeMvnDep)
-    lines += renderDefValues("errorProneOptions", errorProneOptions, encodeString)
-    lines += renderDefValues(
-      "errorProneJavacEnableOptions",
-      errorProneJavacEnableOptions,
-      encodeOpt
-    )
+    lines += renderDefValues("errorProneOptions", errorProneOptions, encodeOpt)
     lines += renderDefValue("jmhCoreVersion", jmhCoreVersion, encodeString)
     lines += renderDefValues(
       "checkstyleProperties",
@@ -185,6 +188,8 @@ object BuildGenScala {
     lines += renderDefValues("checkstyleMvnDeps", checkstyleMvnDeps, encodeMvnDep)
     lines += renderDefValue("checkstyleConfig", checkstyleConfig, encodeSource)
     lines += renderDefValue("checkstyleVersion", checkstyleVersion, encodeString)
+    lines += renderDefSources("pmdRulesets", pmdRulesets)
+    lines += renderDefValue("pmdVersion", pmdVersion, encodeString)
     lines += renderDefValue("scalafixConfig", scalafixConfig, encodeSome)
     lines += renderDefValues("scalafixIvyDeps", scalafixIvyDeps, encodeMvnDep)
     lines += renderDefValue("scoverageVersion", scoverageVersion, encodeString)

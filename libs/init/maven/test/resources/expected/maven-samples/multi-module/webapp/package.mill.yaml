@@ -13,3 +13,4 @@ depManagement:
 artifactName: webapp
 pomSettings:
   description: Webapp.
+  organization: com.example.maven-samples

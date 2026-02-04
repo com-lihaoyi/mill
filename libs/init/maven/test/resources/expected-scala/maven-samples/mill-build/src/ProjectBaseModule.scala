@@ -13,10 +13,10 @@ trait ProjectBaseModule extends MavenModule, PublishModule {
   trait ProjectBaseTests extends MavenTests, TestModule.Junit4 {
 
     def mvnDeps = Seq(
-      mvn"junit:junit-dep:4.10",
-      mvn"org.hamcrest:hamcrest-core:1.2.1",
-      mvn"org.hamcrest:hamcrest-library:1.2.1",
-      mvn"org.mockito:mockito-core:1.8.5"
+      Deps.junitDep,
+      Deps.hamcrestCore,
+      Deps.hamcrestLibrary,
+      Deps.mockitoCore
     )
 
     def forkWorkingDir = moduleDir

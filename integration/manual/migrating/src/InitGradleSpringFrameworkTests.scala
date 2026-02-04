@@ -6,8 +6,11 @@ object InitGradleSpringFrameworkTests extends InitTestSuite(
       Seq("--gradle-jvm-id", "25", "--mill-jvm-id", "25")
     ) {
   def tests = Tests {
+    test("errorprone") - assert(
+      eval(("show", "spring-core.errorProneOptions")).isSuccess
+    )
     test("checkstyle") - assert(
-      eval(("resolve", "spring-core.checkstyleMvnDeps")).isSuccess
+      eval(("resolve", "spring-core.checkstyle")).isSuccess
     )
     test("issues") {
       test("missing deps from custom configuration") - assert(
