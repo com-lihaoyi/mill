@@ -517,6 +517,9 @@ object `package` extends MillJavaModule with Proguard with DistModule {
       "-Dfile.encoding=UTF-8",
       "-Dsun.stdout.encoding=UTF-8",
       "-Dsun.stderr.encoding=UTF-8",
+      // Skip logback version check to avoid NPE in native image during manifest reading
+      // https://github.com/com-lihaoyi/mill/issues/6777
+      "-Dlogback.skipVersionCheck=true",
       // Prevent Native Image runtime from consuming runtime options like -D<key>=<value>
       // https://github.com/com-lihaoyi/mill/issues/6770
       "-H:-ParseRuntimeOptions"
