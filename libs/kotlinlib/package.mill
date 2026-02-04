@@ -12,7 +12,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
     api.sources,
     ksp2.sources,
     `ksp2-api`.sources,
-    worker.sources,
+    worker.sources
   )
   override object test extends MillScalaTests {
     override def selectiveInputs = Seq(sources, resources) ++ kotlinSelectiveInputs

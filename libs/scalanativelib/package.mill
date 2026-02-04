@@ -39,7 +39,7 @@ object `package` extends MillStableScalaModule {
       resources,
       build.libs.scalanativelib.sources,
       build.libs.scalanativelib.api.sources,
-      build.libs.scalanativelib.worker("0.5").sources,
+      build.libs.scalanativelib.worker("0.5").sources
     )
   }
 }

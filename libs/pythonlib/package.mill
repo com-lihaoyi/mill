@@ -20,7 +20,7 @@ object `package` extends MillPublishScalaModule {
     override def selectiveInputs = Seq(
       sources,
       resources,
-      build.libs.pythonlib.sources,
+      build.libs.pythonlib.sources
     )
   }
 }

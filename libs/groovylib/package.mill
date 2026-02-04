@@ -45,7 +45,7 @@ object `package` extends MillPublishScalaModule with BuildInfo {
     override def selectiveInputs = Seq(
       sources,
       resources,
-      build.libs.groovylib.sources,
+      build.libs.groovylib.sources
     )
   }
 }
