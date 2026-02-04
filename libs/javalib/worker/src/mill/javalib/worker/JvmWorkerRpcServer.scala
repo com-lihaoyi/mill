@@ -68,9 +68,11 @@ class JvmWorkerRpcServer(
                 workspace = initialize.compilerBridgeWorkspace,
                 logInfo = log.info,
                 acquire = (scalaVersion, scalaOrganization) =>
-                  serverToClient(
-                    ServerToClient.AcquireZincCompilerBridge(scalaVersion, scalaOrganization)
-                  )
+                  input.compilerBridge.getOrElse {
+                    throw new IllegalStateException(
+                      s"Missing compiler bridge for $scalaOrganization:$scalaVersion."
+                    )
+                  }
               )
             )
           ).asInstanceOf[input.Response]
@@ -93,18 +95,17 @@ object JvmWorkerRpcServer {
         extends ReporterMode(reportCachedProblems0)
   }
 
-  case class Request(op: ZincOp, reporterMode: ReporterMode, ctx: ZincWorker.LocalConfig)
-      extends MillRpcChannel.Message derives upickle.ReadWriter {
+  case class Request(
+      op: ZincOp,
+      reporterMode: ReporterMode,
+      ctx: ZincWorker.LocalConfig,
+      compilerBridge: Option[ZincCompilerBridgeProvider.AcquireResult[os.Path]]
+  ) extends MillRpcChannel.Message derives upickle.ReadWriter {
     type Response = op.Response
   }
 
   sealed trait ServerToClient extends MillRpcChannel.Message derives ReadWriter
   object ServerToClient {
-    case class AcquireZincCompilerBridge(scalaVersion: String, scalaOrganization: String)
-        extends ServerToClient {
-      override type Response = ZincCompilerBridgeProvider.AcquireResult[os.Path]
-    }
-
     case class ReportProblem(problem: RpcProblemMessage)
         extends ServerToClient, MillRpcChannel.Message {
       type Response = Unit

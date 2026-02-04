@@ -21,14 +21,14 @@ object SpanningForestTests extends TestSuite {
       )
 
       val expected = Node(
-        mutable.Map(
+        mutable.LinkedHashMap(
           0 -> Node(
-            mutable.Map(
+            mutable.LinkedHashMap(
               1 -> Node(
-                mutable.Map(
+                mutable.LinkedHashMap(
                   2 -> Node(
-                    mutable.Map(
-                      3 -> Node(mutable.Map())
+                    mutable.LinkedHashMap(
+                      3 -> Node(mutable.LinkedHashMap())
                     )
                   )
                 )

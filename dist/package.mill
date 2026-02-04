@@ -355,7 +355,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
     val system = if (scala.util.Properties.isLinux) {
       "linux"
     } else if (scala.util.Properties.isMac) {
-      "macos"
+      "darwin"
     } else if (scala.util.Properties.isWin) {
       "windows"
     } else {
@@ -426,12 +426,17 @@ object `package` extends MillJavaModule with Proguard with DistModule {
         // as the doc-site content and isn't used in the build. So we don't need to include it
         // and cna instead just render the readme.adoc file for people to read
         if (!parsed.exists(c => c.isInstanceOf[Chunk.Scala] || c.isInstanceOf[Chunk.Yaml])) {
-          os.remove.all(Task.dest / exampleStr / "build.mill")
           os.copy(rendered.path, Task.dest / exampleStr / "readme.adoc")
         }
         val ignoreErrorsOnCI = Task.dest / exampleStr / "ignoreErrorsOnCI"
         if (os.exists(ignoreErrorsOnCI)) os.remove(ignoreErrorsOnCI)
         val buildMill = Task.dest / exampleStr / "build.mill"
+        val buildYaml = Task.dest / exampleStr / "build.mill.yaml"
+        if (os.exists(buildYaml)) {
+          if (os.exists(buildMill)) os.remove(buildMill)
+          val readme = Task.dest / exampleStr / "readme.adoc"
+          if (!os.exists(readme)) os.copy(rendered.path, readme)
+        }
         os.copy.over(bootstrapLauncher().path, Task.dest / exampleStr / "mill")
         os.copy.over(bootstrapLauncherBat().path, Task.dest / exampleStr / "mill.bat")
         val zip = Task.dest / s"$exampleStr.zip"

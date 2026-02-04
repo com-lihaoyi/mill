@@ -51,27 +51,27 @@ object SpanningForest {
     )
   }
 
-  case class Node(values: mutable.Map[Int, Node] = mutable.Map())
+  case class Node(values: mutable.LinkedHashMap[Int, Node] = mutable.LinkedHashMap())
 
   /**
    * Build spanning forest with explicitly provided roots.
    */
   def applyWithRoots(
       indexGraphEdges: Array[Array[Int]],
-      roots: Set[Int],
+      rootsOrdered: Seq[Int],
       importantVertices: Set[Int]
   ): Node = {
     // Prepare a mutable tree structure, pre-populated with the root nodes,
     // as well as a `nodeMapping` to let us easily take any node index and
     // directly look up the node in the tree
-    val rootNodeIndices = roots.intersect(importantVertices)
+    val rootNodeIndices = rootsOrdered.filter(importantVertices.contains)
     val nodeMapping = rootNodeIndices.map((_, Node())).to(mutable.Map)
-    val spanningForest = Node(nodeMapping.clone())
+    val spanningForest = Node(mutable.LinkedHashMap.from(nodeMapping))
 
     // Do a breadth first search from the root nodes across the graph edges
     // to build up the spanning forest
     breadthFirst(rootNodeIndices) { index =>
-      val nextIndices = indexGraphEdges(index).filter(importantVertices)
+      val nextIndices = indexGraphEdges(index).filter(importantVertices).sorted
 
       // We build up the spanningForest during a normal breadth first search,
       // using the `nodeMapping` to quickly find a vertice's tree node so we
@@ -93,7 +93,7 @@ object SpanningForest {
    */
   def applyInferRoots(indexGraphEdges: Array[Array[Int]], importantVertices: Set[Int]): Node = {
     val destinations = importantVertices.flatMap(indexGraphEdges(_))
-    val roots = importantVertices.filter(!destinations.contains(_))
+    val roots = importantVertices.filter(!destinations.contains(_)).toSeq.sorted
     applyWithRoots(indexGraphEdges, roots, importantVertices)
   }
 
@@ -114,8 +114,30 @@ object SpanningForest {
     seenList.toSeq
   }
 
+  def breadthFirstWithPaths[T](
+      start: IterableOnce[T]
+  )(edges: T => IterableOnce[T]): Seq[List[T]] = {
+    val seen = collection.mutable.Set.empty[T]
+    val seenList = collection.mutable.Buffer.empty[List[T]]
+    val queued = collection.mutable.Queue.empty[(T, List[T])]
+
+    for (s <- start.iterator if seen.add(s)) queued.enqueue((s, List(s)))
+
+    while (queued.nonEmpty) {
+      val (current, path) = queued.dequeue()
+      seenList.append(path)
+
+      for (next <- edges(current).iterator if seen.add(next)) {
+        queued.enqueue((next, next :: path))
+      }
+    }
+    seenList.toSeq
+  }
+
   def reverseEdges[T, V](edges: Iterable[(T, Iterable[V])]): Map[V, Vector[T]] = {
     val flatEdges = edges.iterator.flatMap { case (k, vs) => vs.map(_ -> k) }.toVector
-    flatEdges.groupMap(_._1)(_._2).map { case (k, v) => (k, v.toSeq) }.toMap
+    flatEdges
+      .groupMap(_._1)(_._2)
+      .map { case (k, v) => (k, v.sortBy(_.toString)) }
   }
 }

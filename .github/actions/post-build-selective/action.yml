@@ -74,3 +74,11 @@ runs:
         name: mill-chrome-profile-${{ runner.os }}-${{ steps.sanitize.outputs.millargs }}
         path: out/mill-chrome-profile.json
         if-no-files-found: ignore
+
+    - name: Upload Launcher Log
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: mill-launcher-log-${{ runner.os }}-${{ steps.sanitize.outputs.millargs }}
+        path: out/mill-launcher/log
+        if-no-files-found: ignore

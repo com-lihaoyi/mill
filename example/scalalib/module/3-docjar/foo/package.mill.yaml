@@ -1,5 +1,5 @@
 extends: ScalaModule
 scalaVersion: 3.3.6
 
-# Configure scaladoc options
+# Configure ScalaDoc options
 scalaDocOptions: [-siteroot, mydocs, -no-link-warnings]

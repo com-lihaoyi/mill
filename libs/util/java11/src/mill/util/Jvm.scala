@@ -368,6 +368,9 @@ object Jvm {
     Thread.currentThread().setContextClassLoader(newClassloader)
     try {
       f(newClassloader)
+    } catch {
+      case t: Throwable =>
+        throw Result.SerializedException.partialFrom(t, newClassloader)
     } finally {
       Thread.currentThread().setContextClassLoader(oldClassloader)
       newClassloader.close()

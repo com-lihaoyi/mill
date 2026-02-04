@@ -14,7 +14,7 @@ flags or options:
    xref:cli/build-header.adoc#_mill_opts[Repo-Level Mill Options]
 
 4. The JVM running the Mill build tool process, which may take flags. e.g.
-   `java -Xss10m -Xmx10G`. These are passed via `JAVA_OPTs`, your  xref:cli/build-header.adoc[]
+   `java -Xss10m -Xmx10G`. These are passed via `JAVA_OPTS`, your  xref:cli/build-header.adoc[]
    or via a `.mill-jvm-opts` file
    as shown in xref:cli/build-header.adoc#_mill_jvm_opts[Mill with custom JVM options]
 
@@ -26,102 +26,108 @@ to the right place.
 
 To see a cheat sheet of all the command line flags that Mill supports, you can use `./mill --help`:
 
+// NOTE: This output is version-specific; update it when the CLI changes.
 .Output of `mill --help`
 [,console]
 ----
-Mill Build Tool, version 1.1.0-RC3-163-c8ae7c
+Mill Build Tool, version 1.1.0-28-6e5003
 Usage: mill [options] task [task-options] [+ task ...]
 
 Task cheat sheet:
-  mill resolve _                 # see all top-level tasks and modules
-  mill resolve __.compile        # see all `compile` tasks in any module (recursively)
+  ./mill repl                      # open up a Scala REPL with Mill
+  ./mill jshell                    # open up a JShell Java Console with Mill
 
-  mill foo.bar.compile           # compile the module `foo.bar`
+  ./mill Foo.java                  # run a Java single-file script
+  ./mill Foo.scala:compile         # run the `compile` task on a Scala single-file script
 
-  mill foo.run --arg 1           # run the main method of the module `foo` and pass in `--arg 1`
-  mill foo.repl               # run the Scala repl for the module `foo` (if it is a ScalaModule)
+  ./mill resolve _                 # see all top-level tasks and modules
+  ./mill resolve __.compile        # see all `compile` tasks in any module (recursively)
 
-  mill foo.__.test               # run tests in modules nested within `foo` (recursively)
-  mill foo.test arg1 arg2        # run tests in the `foo` module passing in test arguments `arg1 arg2`
-  mill foo.test + bar.test       # run tests in the `foo` module and `bar` module
-  mill '{foo,bar,qux}.test'      # run tests in the `foo` module, `bar` module, and `qux` module
+  ./mill foo.bar.compile           # compile the module `foo.bar`
 
-  mill foo.assembly              # generate an executable assembly of the module `foo`
-  mill show foo.assembly         # print the output path of the assembly of module `foo`
-  mill inspect foo.assembly      # show docs and metadata for the `assembly` task on module `foo`
+  ./mill foo.run --arg 1           # run the main method of the module `foo` and pass in `--arg 1`
+  ./mill foo.repl               # run the Scala repl for the module `foo` (if it is a ScalaModule)
 
-  mill clean foo.assembly        # delete the output of `foo.assembly` to force re-evaluation
-  mill clean                     # delete the output of the entire build to force re-evaluation
+  ./mill foo.__.test               # run tests in modules nested within `foo` (recursively)
+  ./mill foo.test arg1 arg2        # run tests in the `foo` module passing in test arguments `arg1 arg2`
+  ./mill foo.test + bar.test       # run tests in the `foo` module and `bar` module
+  ./mill '{foo,bar,qux}.test'      # run tests in the `foo` module, `bar` module, and `qux` module
 
-  mill path foo.run foo.sources  # print the task chain showing how `foo.run` depends on `foo.sources`
-  mill visualize __.compile      # show how the `compile` tasks in each module depend on one another
+  ./mill foo.resolvedMvnSources    # resolve `foo`'s third-party dependencies' source code for browsing
+
+  ./mill foo.assembly              # generate an executable assembly of the module `foo`
+  ./mill show foo.assembly         # print the output path of the assembly of module `foo`
+  ./mill inspect foo.assembly      # show docs and metadata for the `assembly` task on module `foo`
+
+  ./mill clean foo.assembly        # delete the output of `foo.assembly` to force re-evaluation
+  ./mill clean                     # delete the output of the entire build to force re-evaluation
+
+  ./mill path foo.run foo.sources  # print the task chain showing how `foo.run` depends on `foo.sources`
+  ./mill visualize __.compile      # show how the `compile` tasks in each module depend on one another
 
 Options:
-  -D --define <k=v>        Define (or overwrite) a system property.
-  --allow-positional       Allows command args to be passed positionally without `--arg` by default
-  -b --bell                Ring the bell once if the run completes successfully, twice if it fails.
-  --color <bool>           Toggle colored output; by default enabled only if the console is
-                           interactive or FORCE_COLOR environment variable is set, and NO_COLOR
-                           environment variable is not set
-  -d --debug               Show debug output on STDOUT
-  --help                   Print this help message and exit.
-  --help-advanced          Print a internal or advanced command flags not intended for common usage
-  -i --interactive         Run Mill in interactive mode, suitable for opening REPLs and taking user
-                           input. Identical to --no-daemon. Must be the first argument.
-  --import <str>           Additional ivy dependencies to load into mill, e.g. plugins.
-  -j --jobs <str>          The number of parallel threads. It can be an integer e.g. `5` meaning 5
-                           threads, an expression e.g. `0.5C` meaning half as many threads as
-                           available cores, or `C-2` meaning 2 threads less than the number of
-                           cores. `1` disables parallelism and `0` (the default) uses 1 thread per
-                           core.
-  -k --keep-going          Continue build, even after build failures.
-  --meta-level <int>       Select a meta-level to run the given tasks. Level 0 is the main project
-                           in `build.mill`, level 1 the first meta-build in `mill-build/build.mill`,
-                           etc. If negative, -1 means the deepest meta-build (boostrap build), -2
-                           the second deepest meta-build, etc.
-  --no-daemon              Run without a long-lived background daemon. Must be the first argument.
-  --no-filesystem-checker  Globally disables the checks that prevent you from reading and writing to
-                           disallowed files or folders during evaluation. Useful as an escape hatch
-                           in case you desperately need to do something unusual and you are willing
-                           to take the risk
-  --notify-watch <bool>    Use filesystem based file watching instead of polling based one (defaults
-                           to true).
-  --offline                Try to work offline. This tells modules that support it to work offline
-                           and avoid any access to the internet. This is on a best effort basis.
-                           There are currently no guarantees that modules don't attempt to fetch
-                           remote sources.
-  --tab-complete           Runs Mill in tab-completion mode
-  --ticker <bool>          Enable or disable the ticker log, which provides information on running
-                           tasks and where each log line came from
-  -v --version             Show mill version information and exit.
-  -w --watch               Watch and re-run the given tasks when when their inputs change.
-  task <str>...            The name or a query of the tasks(s) you want to build.
+  -D --define <k=v>   Define (or overwrite) a system property.
+  --color <bool>      Toggle colored output; by default enabled only if the console is interactive
+                      or FORCE_COLOR environment variable is set, and NO_COLOR is not set
+  --help              Print this help message and exit.
+  --help-advanced     Print a internal or advanced command flags not intended for common usage
+  --import <str>      Additional ivy dependencies to load into mill, e.g. plugins.
+  -j --jobs <str>     The number of parallel threads. It can be an integer e.g. `5` meaning 5
+                      threads, an expression e.g. `0.5C` meaning half as many threads as available
+                      cores, or `C-2` meaning 2 threads less than the number of cores. `1` disables
+                      parallelism and `0` (the default) uses 1 thread per core.
+  -k --keep-going     Continue build, even after build failures.
+  --meta-level <int>  Select a meta-level to run the given tasks. Level 0 is the main project in
+                      `build.mill`, level 1 the first meta-build in `mill-build/build.mill`, etc. If
+                      negative, -1 means the deepest meta-build (bootstrap build), -2 the second
+                      deepest meta-build, etc.
+  --no-daemon         Run without a long-lived background daemon.
+  --ticker <bool>     Enable or disable the ticker log, which provides information on running tasks
+                      and where each log line came from
+  -v --version        Show mill version information and exit.
+  -w --watch          Watch and re-run the given tasks when their inputs change.
+  task <str>...       The name or a query of the tasks(s) you want to build.
 
-Please see the documentation at https://mill-build.org for more details,
-or `./mill --help-advanced` for a list of advanced flags
+See documentation at https://mill-build.org for more details
 ----
 
 .Output of `mill --help-advanced`
 [,console]
 ----
 > mill --help-advanced
-Mill Build Tool, version 1.1.0-RC3-142-7dca5f
+Mill Build Tool, version 1.1.0-28-6e5003
 Usage: mill [options] task [task-options] [+ task ...]
 
 Advanced and internal command-line flags not intended for common usage. Use at your own risk!
 
 Advanced Options:
+  <bool>                    Use filesystem based file watching instead of polling based one
+                            (defaults to true).
+  --allow-positional        Allows command args to be passed positionally without `--arg` by default
+  -b                        Ring the bell once if the run completes successfully, twice if it fails.
   --bsp                     Enable BSP server mode. Typically used by a BSP client when starting the
                             Mill BSP server.
   --bsp-install             Create mill-bsp.json with Mill details under .bsp/
   --bsp-watch <bool>        Automatically reload the build when its sources change when running the
                             BSP server (defaults to true).
+  -d                        Show debug output on STDOUT
   --disable-ticker          Deprecated, use `--ticker false` instead
+  -i --interactive          Alias for now `--no-daemon`. No longer needed for interactive commands
+                            since Mill 1.1.0
   --no-build-lock           Evaluate tasks / commands without acquiring an exclusive lock on the
                             Mill output directory
-  --no-server               Deprecated, use `--no-deamon` instead
+  --no-filesystem-checker   Globally disables the checks that prevent you from reading and writing
+                            to disallowed files or folders during evaluation. Useful as an escape
+                            hatch in case you desperately need to do something unusual and you are
+                            willing to take the risk
+  --no-server               Deprecated, use `--no-daemon` instead
   --no-wait-for-build-lock  Do not wait for an exclusive lock on the Mill output directory to
                             evaluate tasks / commands.
+  --offline                 Try to work offline. This tells modules that support it to work offline
+                            and avoid any access to the internet. This is on a best effort basis.
+                            There are currently no guarantees that modules don't attempt to fetch
+                            remote sources.
+  --tab-complete            Runs Mill in tab-completion mode
   --use-file-locks          Use traditional file-based locking instead of PID-based locking for the
                             Mill daemon. This removes the chance of race conditions when claiming
                             the lock after a crash, but may have issues on some filesystems that do
@@ -135,15 +141,10 @@ This section covers some of the flags that are worth discussing in more detail
 
 === `--interactive`/`-i`/`--no-server`
 
-This flag is necessary to run any interactive terminal programs using Mill: things like
-`ScalaModule#console`, `ScalaModule#repl`, and so on.
-
-By default, Mill runs tasks in a long-lived background daemon. While this is good for
-performance (as it avoids paying the server startup time each command), it is incompatible
-with tasks like `.repl` which require a direct `stdin`/`stdout` forwarding connection to
-the user's terminal. `--interactive`/`-i` instead runs tasks in a short-lived background
-server with proper port pipe forwarding configured, which enables tasks like `.repl` to run
-while paying what higher startup overhead.
+`--interactive`/`-i` is now just an alias for `--no-daemon` (kept for compatibility).
+Since Mill 1.1.0, interactive tasks such as `ScalaModule#console` or `ScalaModule#repl`
+no longer require a special flag; `--no-daemon` is sufficient when you need a direct
+`stdin`/`stdout` connection.
 
 
 
