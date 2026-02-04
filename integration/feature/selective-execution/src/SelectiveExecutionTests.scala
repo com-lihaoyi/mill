@@ -31,6 +31,7 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       test("missing-prepare") - integrationTest { tester =>
         import tester.*
 
+        os.remove.all(workspacePath)
         val cached = eval(
           ("selective.run", "{foo.fooCommand,bar.barCommand}"),
           check = false,
