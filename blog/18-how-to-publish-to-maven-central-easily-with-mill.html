@@ -535,6 +535,11 @@ Finally it prints the generated PGP secret for you as BASE64 formatted strings
 that are easy to include as environment variables or Github Actions secrets.</p>
 </div>
 <div class="paragraph">
+<p>Notably, Mill does not require the <code>gpg</code> command-line tool to be installed to work, as
+it uses the <a href="https://www.bouncycastle.org/">BouncyCastle</a> Java Library which provides
+the same functionality.</p>
+</div>
+<div class="paragraph">
 <p>Maven Central requires that all artifacts be signed by some GPG key, but it isn&#8217;t strict
 about <em>which</em> GPG key is used. So if you lose a key for whatever reason (expired, on an old
 laptop that got discarded, accidentally <code>rm -rf</code>ed your home folder&#8230;&#8203;) feel free to
