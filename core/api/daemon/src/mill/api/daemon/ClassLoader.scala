@@ -5,7 +5,7 @@ package mill.api.daemon
  * isolated classpaths.
  */
 object ClassLoader {
-
+  val abc = "xyz"
   def withContextClassLoader[T](cl: java.lang.ClassLoader)(t: => T): T = {
     val thread = Thread.currentThread()
     val oldCl = thread.getContextClassLoader()

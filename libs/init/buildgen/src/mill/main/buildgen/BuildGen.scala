@@ -8,7 +8,7 @@ import scala.collection.mutable
  * Shared interface to generate Mill project files.
  */
 trait BuildGen {
-
+  val xyz = 123
   def writeBuildFiles(
       baseDir: os.Path,
       packages: Seq[PackageSpec],
