@@ -17,6 +17,7 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
       def compileMvnDeps = Seq(mvn"com.lihaoyi::geny:0.4.2")
       def runMvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.5")
       def unmanagedClasspath = Task { Seq(PathRef(moduleDir / "unmanaged")) }
+      def unmanagedClasspathExistenceCheck = false
     }
     trait BarModule extends ScalaModule {
       def scalaVersion = "2.13.18"
@@ -25,6 +26,7 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
       def compileMvnDeps = Seq(mvn"com.lihaoyi::geny:0.4.1")
       def runMvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.5")
       def unmanagedClasspath = Task { Seq(PathRef(moduleDir / "unmanaged")) }
+      def unmanagedClasspathExistenceCheck = false
     }
     trait QuxModule extends ScalaModule {
       def scalaVersion = "2.13.18"
@@ -33,6 +35,7 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
       def compileMvnDeps = Seq(mvn"com.lihaoyi::geny:0.4.0")
       def runMvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.5")
       def unmanagedClasspath = Task { Seq(PathRef(moduleDir / "unmanaged")) }
+      def unmanagedClasspathExistenceCheck = false
     }
     object ModMod extends Module {
       object foo extends FooModule
