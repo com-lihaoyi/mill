@@ -885,57 +885,6 @@ trait JavaModule
   }
 
   /**
-   * The module-info.java file if present in sources
-   */
-  def moduleInfoFile: T[Option[PathRef]] = Task {
-    allSourceFiles().find(_.path.last == "module-info.java")
-  }
-
-  /**
-   * Whether this module has a module-info.java file
-   */
-  def hasModuleInfo: T[Boolean] = Task {
-    moduleInfoFile().isDefined
-  }
-
-  /**
-   * The Automatic-Module-Name for this module, used in the JAR manifest.
-   * When defined, this is added to the manifest as "Automatic-Module-Name".
-   * Override this to specify the module name for automatic modules.
-   */
-  def automaticModuleName: T[String] = Task { "" }
-
-  /**
-   * The module name for this module.
-   * If a module-info.java is present, extracts the name from it.
-   * Otherwise, uses automaticModuleName if defined.
-   */
-  def moduleName: T[Option[String]] = Task {
-    moduleInfoFile() match {
-      case Some(pathRef) =>
-        // Parse module-info.java to extract module name
-        val content = os.read(pathRef.path)
-        val modulePattern = """module\s+(\S+)\s*\{""".r
-        modulePattern.findFirstMatchIn(content).map(_.group(1))
-      case None =>
-        val autoName = automaticModuleName()
-        if (autoName.isEmpty) None else Some(autoName)
-    }
-  }
-
-  /**
-   * Creates a manifest representation which can be modified or replaced.
-   * Adds Automatic-Module-Name if automaticModuleName is defined.
-   */
-  override def manifest: T[JarManifest] = Task {
-    val baseManifest = manifest0()
-    moduleName() match {
-      case Some(name) => baseManifest.add("Automatic-Module-Name" -> name)
-      case None => baseManifest
-    }
-  }
-
-  /**
    * If `true`, we always show problems (errors, warnings, infos) found in all source files, even when they have not changed since the previous incremental compilation.
    * When `false`, we report only problems for files which we re-compiled.
    */
