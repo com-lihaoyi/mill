@@ -6,23 +6,24 @@ import utest.*
 // Repro for https://github.com/com-lihaoyi/mill/issues/6790
 object YamlExtendsInvalidation extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
-    test("rootExtendsChange") - integrationTest { tester =>
+    test("nestedExtendsChange") - integrationTest { tester =>
       import tester.*
 
-      val firstCompile = eval(("compile"))
+      val firstCompile = eval(("__.compile"))
       assert(firstCompile.isSuccess)
 
       modifyFile(
-        workspacePath / "build.mill.yaml",
+        workspacePath / "foo/bar/package.mill.yaml",
         _ =>
-          """extends:
-            |- ScalaModule
-            |- SbtModule
+          """extends: ScalaModule
             |scalaVersion: 3.3.3
             |""".stripMargin
       )
 
-      val showScalaVersion = eval(("show", "scalaVersion"))
+      val secondCompile = eval(("__.compile"))
+      assert(secondCompile.isSuccess)
+
+      val showScalaVersion = eval(("show", "foo.bar.scalaVersion"))
       assert(showScalaVersion.isSuccess)
       assert(showScalaVersion.out.contains("3.3.3"))
     }
