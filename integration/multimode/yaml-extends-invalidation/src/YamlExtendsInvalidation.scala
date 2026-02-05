@@ -28,4 +28,3 @@ object YamlExtendsInvalidation extends UtestIntegrationTestSuite {
     }
   }
 }
-

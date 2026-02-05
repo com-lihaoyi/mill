@@ -564,7 +564,7 @@ object CodeGen {
       // this macro expansion to become stale. Embedding all YAML `extends` clauses in
       // the root build file forces it to recompile whenever those `extends` clauses change.
       s"private val __millYamlExtendsSignature = _root_.scala.Array($yamlExtendsSignatureEntriesSnippet)\n" +
-      s"  override lazy val millDiscover: _root_.mill.api.Discover = $rhs"
+        s"  override lazy val millDiscover: _root_.mill.api.Discover = $rhs"
     }
   }
 
