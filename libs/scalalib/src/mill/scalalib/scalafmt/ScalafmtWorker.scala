@@ -31,6 +31,10 @@ private[scalafmt] class ScalafmtWorker(cl: ClassLoader) extends AutoCloseable {
   private val reformatted: mutable.Map[os.Path, Int] = mutable.Map.empty
   private var configSig: Int = 0
 
+  val scalafmt = cl.loadClass("org.scalafmt.interfaces.Scalafmt")
+    .getMethod("create", classOf[java.lang.ClassLoader])
+    .invoke(null, cl)
+
   def reformat(input: Seq[PathRef], scalafmtConfig: PathRef)(using ctx: TaskCtx): Unit = {
     reformatAction(input, scalafmtConfig, dryRun = false)
   }
@@ -60,9 +64,10 @@ private[scalafmt] class ScalafmtWorker(cl: ClassLoader) extends AutoCloseable {
   )(using ctx: TaskCtx): Seq[PathRef] = {
 
     // only consider files that have changed since last reformat
-    val toConsider =
+    val toConsider = reformatted.synchronized {
       if (scalafmtConfig.sig != configSig) input
       else input.filterNot(ref => reformatted.get(ref.path).contains(ref.sig))
+    }
 
     if (toConsider.nonEmpty) {
 
@@ -72,10 +77,6 @@ private[scalafmt] class ScalafmtWorker(cl: ClassLoader) extends AutoCloseable {
         ctx.log.info(s"Formatting ${toConsider.size} Scala sources")
       }
 
-      val scalafmt = cl.loadClass("org.scalafmt.interfaces.Scalafmt")
-        .getMethod("create", classOf[java.lang.ClassLoader])
-        .invoke(null, cl)
-
       val configPath = scalafmtConfig.path.toNIO
 
       // keeps track of files that are misformatted
@@ -83,7 +84,9 @@ private[scalafmt] class ScalafmtWorker(cl: ClassLoader) extends AutoCloseable {
 
       def markFormatted(path: PathRef) = {
         val updRef = PathRef(path.path)
-        reformatted += updRef.path -> updRef.sig
+        reformatted.synchronized {
+          reformatted += updRef.path -> updRef.sig
+        }
       }
 
       toConsider.foreach { pathToFormat =>
@@ -117,7 +120,14 @@ private[scalafmt] class ScalafmtWorker(cl: ClassLoader) extends AutoCloseable {
   }
 
   override def close(): Unit = {
-    reformatted.clear()
+    scalafmt
+      .getClass
+      .getMethods
+      .filter(_.getName == "clear")
+      .head
+      .invoke(scalafmt)
+
+    reformatted.synchronized { reformatted.clear() }
     configSig = 0
   }
 }
