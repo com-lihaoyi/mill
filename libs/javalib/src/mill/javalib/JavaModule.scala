@@ -1063,12 +1063,12 @@ trait JavaModule
    * All classfiles and resources from upstream modules and dependencies
    * necessary to compile this module.
    */
-  private lazy val compileClasspathTaskRegular: Task[Seq[PathRef]] = Task.Anon {
+  private def compileClasspathTaskRegular: T[Seq[PathRef]] = Task {
     resolvedMvnDeps() ++
       transitiveCompileClasspathTask(CompileFor.Regular)() ++
       localCompileClasspath()
   }
-  private lazy val compileClasspathTaskSemanticDb: Task[Seq[PathRef]] = Task.Anon {
+  private def compileClasspathTaskSemanticDb: T[Seq[PathRef]] = Task {
     resolvedMvnDeps() ++
       transitiveCompileClasspathTask(CompileFor.SemanticDb)() ++
       localCompileClasspath()
