@@ -49,29 +49,6 @@ object CodeGen {
       }
   }
 
-  private def yamlExtendsSignatureEntries(
-      scriptPath: os.Path,
-      scriptPathForSignature: String,
-      headerData: HeaderData,
-      segments: Seq[String]
-  ): Seq[String] = {
-    def rec(data: HeaderData, path: Seq[String]): Seq[String] = {
-      val extendsValues = data.`extends`.value.value.map(_.value)
-      val self = s"${path.mkString(".")}=${extendsValues.mkString(",")}"
-
-      val nested = processDataRest(scriptPath, data, sortKeys = true)(
-        onProperty = (_, _) => Nil,
-        onNestedObject = (k, nestedData) => rec(nestedData, path :+ k)
-      ).flatten
-
-      self +: nested
-    }
-
-    rec(headerData, segments).map { e =>
-      s"$scriptPathForSignature:$e"
-    }
-  }
-
   def generateWrappedAndSupportSources(
       projectRoot: os.Path,
       allScriptCode: Map[os.Path, String],
@@ -87,23 +64,6 @@ object CodeGen {
       .filter(_.last.endsWith(".yaml"))
       .map(p => p -> mill.internal.Util.parseHeaderData(p).get)
       .toMap
-
-    val allYamlExtendsSignatureEntries = scriptSources
-      .filter(_.last.endsWith(".yaml"))
-      .flatMap { scriptPath =>
-        val segments = calcSegments(scriptPath / os.up, projectRoot)
-        val scriptPathForSignature =
-          try scriptPath.relativeTo(millTopLevelProjectRoot).toString
-          catch {
-            case _: IllegalArgumentException => scriptPath.toString
-          }
-        yamlExtendsSignatureEntries(
-          scriptPath,
-          scriptPathForSignature,
-          parsedYamlHeaderData(scriptPath),
-          segments
-        )
-      }
 
     val allowNestedBuildMillFiles = mill.internal.Util.readBooleanFromBuildHeader(
       projectRoot,
@@ -125,6 +85,19 @@ object CodeGen {
     // All build file names (including package.mill) for child module detection
     val allBuildFileNames =
       (CGConst.nestedBuildFileNames.asScala ++ CGConst.rootBuildFileNames.asScala).toSet
+
+    val allPackageObjectRefs = scriptSources
+      .filter(p => CGConst.nestedBuildFileNames.contains(p.last))
+      .map(p => calcSegments(p / os.up, projectRoot))
+      .distinct
+      .filter(_.nonEmpty)
+      .sortBy(_.mkString("."))
+      .map { segments =>
+        val dotted =
+          (Seq(CGConst.globalPackagePrefix) ++ segments.map(backtickWrap) :+
+            CGConst.wrapperObjectName).mkString(".")
+        s"_root_.$dotted"
+      }
 
     for (scriptPath <- scriptSources) {
       val scriptFolderPath = scriptPath / os.up
@@ -296,11 +269,7 @@ object CodeGen {
              |$prelude
              |//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
              |object package_ extends $newParent, package_ {
-             |  ${
-              if (segments.isEmpty)
-                millDiscover(segments.nonEmpty, allYamlExtendsSignatureEntries)
-              else ""
-            }
+             |  ${if (segments.isEmpty) millDiscover(segments.nonEmpty, allPackageObjectRefs) else ""}
              |  $childAliases
              |}
              |${renderTemplate("trait package_", parsedHeaderData, segments)}
@@ -369,7 +338,7 @@ object CodeGen {
                 millTopLevelProjectRoot = millTopLevelProjectRoot,
                 scriptPath = scriptPath,
                 scriptFolderPath = scriptFolderPath,
-                yamlExtendsSignatureEntries = allYamlExtendsSignatureEntries,
+                packageObjectRefs = allPackageObjectRefs,
                 childAliases = childAliases,
                 pkg = pkg,
                 aliasImports = aliasImports,
@@ -433,7 +402,7 @@ object CodeGen {
       millTopLevelProjectRoot: os.Path,
       scriptPath: os.Path,
       scriptFolderPath: os.Path,
-      yamlExtendsSignatureEntries: Seq[String],
+      packageObjectRefs: Seq[String],
       childAliases: String,
       pkg: String,
       aliasImports: String,
@@ -470,7 +439,7 @@ object CodeGen {
           |object ${CGConst.wrapperObjectName} extends ${CGConst.wrapperObjectName} {
           |  ${childAliases.linesWithSeparators.mkString("  ")}
           |  ${exportSiblingScripts.linesWithSeparators.mkString("  ")}
-          |  ${millDiscover(segments.nonEmpty, yamlExtendsSignatureEntries)}
+          |  ${millDiscover(segments.nonEmpty, packageObjectRefs)}
           |}
           |""".stripMargin
 
@@ -553,17 +522,22 @@ object CodeGen {
         |""".stripMargin
   }
 
-  def millDiscover(segmentsNonEmpty: Boolean, yamlExtendsSignatureEntries: Seq[String]): String = {
+  def millDiscover(segmentsNonEmpty: Boolean, packageObjectRefs: Seq[String]): String = {
     if (segmentsNonEmpty) ""
     else {
       val rhs = "_root_.mill.api.Discover[this.type]"
-      val yamlExtendsSignatureEntriesSnippet =
-        yamlExtendsSignatureEntries.map(s => literalize(s)).mkString(", ")
+      val packageObjectRefsSnippet = packageObjectRefs
+        .map(r => s"$r.asInstanceOf[_root_.mill.api.Module]")
+        .mkString(", ")
+      val packageObjectRefsValue =
+        if (packageObjectRefsSnippet.isEmpty) "_root_.scala.Array.empty[_root_.mill.api.Module]"
+        else s"_root_.scala.Array[_root_.mill.api.Module]($packageObjectRefsSnippet)"
       // `Discover[this.type]` recursively walks the module tree. Zinc does not reliably
       // recompile the root build file when a nested build file changes, which causes
-      // this macro expansion to become stale. Embedding all YAML `extends` clauses in
-      // the root build file forces it to recompile whenever those `extends` clauses change.
-      s"private val __millYamlExtendsSignature = _root_.scala.Array($yamlExtendsSignatureEntriesSnippet)\n" +
+      // this macro expansion to become stale. Referencing all nested `package_` objects
+      // from the root build file forces it to be recompiled whenever those subfolder build
+      // files change (even if the change is only visible to this macro expansion).
+      s"private lazy val __millPackageObjectRefs: _root_.scala.Array[_root_.mill.api.Module] = $packageObjectRefsValue\n" +
         s"  override lazy val millDiscover: _root_.mill.api.Discover = $rhs"
     }
   }
