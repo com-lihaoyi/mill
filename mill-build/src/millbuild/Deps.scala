@@ -44,10 +44,12 @@ object Deps {
 
   object Scalanative_0_5 {
     val scalanativeVersion = "0.5.10"
-    val scalanativeTools = mvn"org.scala-native::tools:${scalanativeVersion}"
-    val scalanativeUtil = mvn"org.scala-native::util:${scalanativeVersion}"
-    val scalanativeNir = mvn"org.scala-native::nir:${scalanativeVersion}"
-    val scalanativeTestRunner = mvn"org.scala-native::test-runner:${scalanativeVersion}"
+    // Workaround for https://github.com/com-lihaoyi/mill/issues/6780:
+    // prefer Scala 2.13 published toolchain artifacts.
+    val scalanativeTools = mvn"org.scala-native:tools_2.13:${scalanativeVersion}"
+    val scalanativeUtil = mvn"org.scala-native:util_2.13:${scalanativeVersion}"
+    val scalanativeNir = mvn"org.scala-native:nir_2.13:${scalanativeVersion}"
+    val scalanativeTestRunner = mvn"org.scala-native:test-runner_2.13:${scalanativeVersion}"
   }
 
   trait Play {
