@@ -323,7 +323,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         |For details, see: https://github.com/sbt/zinc/issues/1010""".stripMargin
     )
 
-    val jOpts = JavaCompilerOptions.split(javacOptions() ++ jpmsJavacOptions() ++ mandatoryJavacOptions())
+    val jOpts =
+      JavaCompilerOptions.split(javacOptions() ++ jpmsJavacOptions() ++ mandatoryJavacOptions())
 
     val worker = jvmWorker().internalWorker()
 
