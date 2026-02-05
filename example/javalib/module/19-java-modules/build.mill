@@ -1,0 +1,54 @@
+//// SNIPPET:EXPLANATION
+//
+// This example demonstrates Java Platform Module System (JPMS) support in Mill:
+//
+// * Main module with module-info.java for proper encapsulation
+// * Automatic-Module-Name manifest attribute for library consumption
+// * Whitebox tests running on classpath without module-info.java
+//
+// JPMS (Java Platform Module System) was introduced in Java 9 to provide better
+// encapsulation and dependency management. Key concepts:
+//
+// * module-info.java - declares module name, exports, and dependencies
+// * Automatic-Module-Name - JAR manifest attribute for automatic modules
+// * Module Path - where the JVM looks for modules (vs classpath)
+// * Whitebox Testing - tests internal implementation (uses classpath)
+//
+// Mill automatically:
+// * Detects module-info.java files in sources
+// * Compiles them as part of the normal compilation
+// * Adds Automatic-Module-Name to JAR manifest when automaticModuleName is defined
+//
+//// SNIPPET:END
+
+//// SNIPPET:BUILD
+package build
+import mill.*, javalib.*
+
+object `package` extends JavaModule {
+  // Define Automatic-Module-Name for the JAR manifest
+  // This is used when the module is consumed as an automatic module
+  // The manifest will include "Automatic-Module-Name: com.example.foo"
+  def automaticModuleName = "com.example.foo"
+
+  object test extends JavaTests with TestModule.Junit4 {
+    def junit4Version = "4.13.2"
+  }
+}
+//// SNIPPET:END
+
+/** Usage
+
+> ./mill compile
+compiling 2 Java sources to out/compile.dest/classes ...
+done compiling
+
+> ./mill jar
+
+> ./mill test
+Test com.example.foo.FooWhiteboxTest.testGreet finished...
+
+> ./mill show jar
+".../out/jar.dest/out.jar"
+
+*/
