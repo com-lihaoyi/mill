@@ -506,6 +506,15 @@ trait JavaModule
   def unmanagedClasspath: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
   /**
+   * Whether to check that entries in [[unmanagedClasspath]] exist on disk.
+   * When enabled (the default), a build error is raised if any entry does
+   * not exist, providing a clear error message instead of a confusing
+   * "package does not exist" compilation error. Set to `false` to disable
+   * this check if you have classpath entries that may not exist.
+   */
+  def unmanagedClasspathExistenceCheck: T[Boolean] = Task { true }
+
+  /**
    * The `coursier.Dependency` to use to refer to this module
    */
   @deprecated("Use coursierDependencyTask instead", "Mill 1.1.0")
@@ -1064,7 +1073,17 @@ trait JavaModule
    * excluding upstream modules and third-party dependencies
    */
   def localCompileClasspath: T[Seq[PathRef]] = Task {
-    compileResources() ++ unmanagedClasspath()
+    val unmanaged = unmanagedClasspath()
+    if (unmanagedClasspathExistenceCheck()) {
+      val missing = unmanaged.filter(p => !os.exists(p.path))
+      if (missing.nonEmpty) {
+        val missingList = missing.map(_.path).mkString("\n  ")
+        throw new MillException(
+          s"unmanagedClasspath entries do not exist:\n  $missingList"
+        )
+      }
+    }
+    compileResources() ++ unmanaged
   }
 
   private def resolvedMvnDeps0(sources: Boolean) = Task.Anon {
