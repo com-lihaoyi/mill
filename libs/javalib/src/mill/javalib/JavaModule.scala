@@ -61,6 +61,24 @@ trait JavaModule
 
   override def jdkCommandsJavaHome: Task[Option[PathRef]] = Task.Anon { javaHome() }
 
+  /**
+   * If this module contains a `module-info.java`, Mill will infer a `--module-path` for `javac`
+   * based on this module's compile classpath, similar to Gradle's `inferModulePath` support.
+   *
+   * This is necessary for compiling Java Platform Module System (JPMS) modules which declare
+   * `requires ...` dependencies, as those are resolved from the module-path rather than the
+   * classpath.
+   */
+  def jpmsModuleInfo: T[Option[PathRef]] = Task {
+    allSourceFiles().find(_.path.last == "module-info.java")
+  }
+
+  def jpmsModuleName: T[Option[String]] = Task {
+    jpmsModuleInfo().flatMap { p =>
+      JavaModule.parseModuleName(p.path)
+    }
+  }
+
   private[mill] lazy val bspExt: ModuleRef[mill.javalib.bsp.BspJavaModule] = {
     ModuleRef(new BspJavaModule.Wrap(this) {}.internalBspJavaModule)
   }
@@ -922,7 +940,7 @@ trait JavaModule
     val jOpts = JavaCompilerOptions.split(Seq(
       "-s",
       compileGenSources.toString
-    ) ++ javacOptions() ++ mandatoryJavacOptions() ++ annotationProcessorsJavacOptions())
+    ) ++ javacOptions() ++ jpmsJavacOptions() ++ mandatoryJavacOptions() ++ annotationProcessorsJavacOptions())
 
     val worker = jvmWorker().internalWorker()
 
@@ -1045,9 +1063,21 @@ trait JavaModule
    * All classfiles and resources from upstream modules and dependencies
    * necessary to compile this module.
    */
+  private lazy val compileClasspathTaskRegular: Task[Seq[PathRef]] = Task.Anon {
+    resolvedMvnDeps() ++
+      transitiveCompileClasspathTask(CompileFor.Regular)() ++
+      localCompileClasspath()
+  }
+  private lazy val compileClasspathTaskSemanticDb: Task[Seq[PathRef]] = Task.Anon {
+    resolvedMvnDeps() ++
+      transitiveCompileClasspathTask(CompileFor.SemanticDb)() ++
+      localCompileClasspath()
+  }
+
   override private[mill] def compileClasspathTask(compileFor: CompileFor): Task[Seq[PathRef]] =
-    Task.Anon {
-      resolvedMvnDeps() ++ transitiveCompileClasspathTask(compileFor)() ++ localCompileClasspath()
+    compileFor match {
+      case CompileFor.Regular => compileClasspathTaskRegular
+      case CompileFor.SemanticDb => compileClasspathTaskSemanticDb
     }
 
   /**
@@ -1647,6 +1677,23 @@ trait JavaModule
 }
 
 object JavaModule {
+  private val ModuleDeclRegex =
+    raw"(?m)^\s*(?:open\s+)?module\s+([A-Za-z0-9_.]+)\s*\{".r
+
+  private[mill] def parseModuleName(moduleInfo: os.Path): Option[String] = {
+    val content = os.read(moduleInfo)
+    ModuleDeclRegex.findFirstMatchIn(content).map(_.group(1))
+  }
+
+  private[mill] def hasExplicitModulePath(javacOptions: Seq[String]): Boolean = {
+    javacOptions.exists { opt =>
+      opt == "--module-path" ||
+      opt == "-p" ||
+      opt.startsWith("--module-path=") ||
+      opt.startsWith("-p=")
+    }
+  }
+
   // Keep in sync with JavaModule#JavaTests, duplicated due to binary compatibility concerns
   trait JavaTests0 extends JavaModule with TestModule {
     private val outer: JavaModule = moduleDeps.head
