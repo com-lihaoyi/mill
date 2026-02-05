@@ -725,7 +725,7 @@ do so, your module must extend <code>mill.scalalib.PublishModule</code>, and con
 publishing metadata shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-12-4d185d/mill-dist-1.1.1-example-scalalib-publishing-1-publishing-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/scalalib/publishing/1-publishing-yaml/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-13-f4b613/mill-dist-1.1.1-example-scalalib-publishing-1-publishing-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/scalalib/publishing/1-publishing-yaml/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [ScalaModule, PublishModule]
 scalaVersion: 3.8.1
@@ -746,7 +746,7 @@ pomSettings:
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill publishLocal
-Publishing Artifact(com.lihaoyi,example...,0.0.1) to ivy repo ...</code></pre>
+Publishing com.lihaoyi:example...:0.0.1 to ivy repo ...</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -779,7 +779,7 @@ can be resolved from the local repository, with no missing dependencies.</p>
 <h2 id="_versioning_based_on_git_tags"><a class="anchor" href="#_versioning_based_on_git_tags"></a>Versioning Based on Git Tags</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-12-4d185d/mill-dist-1.1.1-example-scalalib-publishing-2-vcs-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/scalalib/publishing/2-vcs-version/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-13-f4b613/mill-dist-1.1.1-example-scalalib-publishing-2-vcs-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/scalalib/publishing/2-vcs-version/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [ScalaModule, PublishModule, mill.util.VcsVersionModule]
 scalaVersion: 3.8.1
@@ -811,7 +811,7 @@ Initialized empty Git repository in...
 &gt; git tag v0.1.0
 
 &gt; ./mill publishLocal
-Publishing Artifact(com.lihaoyi,example...,0.1.0...) to ivy repo...</code></pre>
+Publishing com.lihaoyi:example...:0.1.0... to ivy repo...</code></pre>
 </div>
 </div>
 </div>
@@ -820,7 +820,7 @@ Publishing Artifact(com.lihaoyi,example...,0.1.0...) to ivy repo...</code></pre>
 <h2 id="_programmable_publishing_configuration"><a class="anchor" href="#_programmable_publishing_configuration"></a>Programmable Publishing Configuration</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-12-4d185d/mill-dist-1.1.1-example-scalalib-publishing-3-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/scalalib/publishing/3-publishing">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-13-f4b613/mill-dist-1.1.1-example-scalalib-publishing-3-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.1/example/scalalib/publishing/3-publishing">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*, publish.*
@@ -845,7 +845,7 @@ object foo extends ScalaModule, PublishModule {
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.publishLocal # publish specific modules
 
 &gt; ./mill __.publishLocal # publish every eligible module
-Publishing Artifact(com.lihaoyi,foo_3,0.0.1) to ivy repo...</code></pre>
+Publishing com.lihaoyi:foo_3:0.0.1 to ivy repo...</code></pre>
 </div>
 </div>
 <div class="paragraph">
