@@ -3,7 +3,7 @@
 /** Usage
 
 > ./mill publishLocal
-Publishing Artifact(com.lihaoyi,example...,0.0.1) to ivy repo ...
+Publishing com.lihaoyi:example...:0.0.1 to ivy repo ...
 
 */
 
