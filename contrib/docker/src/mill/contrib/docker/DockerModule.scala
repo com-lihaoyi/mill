@@ -109,14 +109,14 @@ trait DockerModule { outer: JavaModule =>
     def executable: T[String] = "docker"
 
     /**
-     * Scripts to include in the resulting docker image. Sequence of (PathRef source, target path inside image).
+     * Files to include in the resulting docker image. Sequence of (PathRef source, target path inside image).
      * The target paths are used for the COPY instructions in the Dockerfile.
      *
      * Note: users should provide the sources via `Task.Source(...)` so Mill can track file inputs, e.g.
      * `def runApp = Task.Source { RelPath("../run-app.sh") }`
      * `def scripts = Task { Seq(runApp() -> "run-app.sh") }`.
      */
-    def scripts: T[Seq[(PathRef, String)]] = Seq.empty[(PathRef, String)]
+    def files: T[Seq[(PathRef, os.SubPath)]] = Seq.empty[(PathRef, os.SubPath)]
 
     /**
      * The entrypoint to use. If empty, the default generated entrypoint will be used.
@@ -150,8 +150,8 @@ trait DockerModule { outer: JavaModule =>
         else volumes().map(v => s"\"$v\"").mkString("VOLUME [", ", ", "]"),
         run().map(c => s"RUN $c").mkString("\n"),
         if (user().isEmpty) "" else s"USER ${user()}",
-        if (scripts().isEmpty) ""
-        else scripts().map((_, s) => s"COPY $s /$s").mkString("\n")
+        if (files().isEmpty) ""
+        else files().map((_, s) => s"COPY $s /$s").mkString("\n")
       ).filter(_.nonEmpty).mkString(sys.props.getOrElse("line.separator", "\n"))
 
       val quotedEntryPointArgs = (Seq("java") ++ jvmOptions() ++ Seq("-jar", s"/" + jarName))
@@ -188,7 +188,7 @@ trait DockerModule { outer: JavaModule =>
       os.copy(asmPath, dest / asmPath.last)
 
       // Copy scripts (source PathRef -> target). Only files are supported.
-      scripts().foreach { case (srcRef, targetStr) =>
+      files().foreach { case (srcRef, targetStr) =>
         val srcPath = srcRef.path
         val dstPath = dest / targetStr
 

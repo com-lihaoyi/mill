@@ -51,8 +51,8 @@ object DockerModuleTest extends TestSuite {
     object dockerEntryPoint extends DockerConfig {
       override def executable = testExecutable
       def customEntry: T[PathRef] = Task.Source("custom-entrypoint.sh")
-      override def scripts = Task {
-        Seq(customEntry() -> "custom-entrypoint.sh")
+      override def files = Task {
+        Seq(customEntry() -> os.SubPath("custom-entrypoint.sh"))
       }
       override def entrypoint = "/custom-entrypoint.sh"
     }
