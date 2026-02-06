@@ -124,7 +124,10 @@ object CodeGen {
         val newParent =
           if (segments.isEmpty) "_root_.mill.util.MainRootModule"
           else "_root_.mill.api.internal.SubfolderModule(_root_.build_.package_.millDiscover)"
-        val parsedHeaderData = mill.internal.Util.parseHeaderData(scriptPath).get
+        val parsedHeaderData = mill.internal.Util.parseHeaderData(scriptPath) match {
+          case Result.Success(v) => v
+          case f: Result.Failure => throw new Result.Exception(f.error, Some(f))
+        }
 
         val prelude =
           s"""|import MillMiscInfo.*
@@ -139,13 +142,13 @@ object CodeGen {
           for ((locatedKeyString, v) <- data.rest.toSeq)
             yield locatedKeyString.value.split(" +") match {
               case Array(k) => onProperty(k, v)
-              case Array("object", k) => onNestedObject(
-                  k,
-                  upickle.core.BufferedValue.transform(
-                    v,
-                    HeaderData.headerDataReader(scriptPath)
-                  )
-                )
+              case Array("object", k) =>
+                mill.internal.Util.catchUpickleAbort(scriptPath.toNIO) {
+                  upickle.core.BufferedValue.transform(v, HeaderData.headerDataReader(scriptPath))
+                } match {
+                  case Result.Success(nestedData) => onNestedObject(k, nestedData)
+                  case f: Result.Failure => throw new Result.Exception(f.error, Some(f))
+                }
               case _ => throw new Result.Exception(
                   "",
                   Some(Result.Failure(
