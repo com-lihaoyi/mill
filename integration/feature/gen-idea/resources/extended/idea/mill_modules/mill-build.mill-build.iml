@@ -16,6 +16,7 @@
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>
         <orderEntry type="library" name="scala-SDK-<version>" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="JavaEWAH-1.2.3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="aircompressor-0.27.jar" level="project"/>
         <orderEntry type="library" name="asm-<version>.jar" level="project"/>
         <orderEntry type="library" name="asm-tree-<version>.jar" level="project"/>
@@ -70,8 +71,10 @@
         <orderEntry type="library" name="mill-libs-androidlib_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-daemon-client_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-daemon-server_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="mill-libs-eclipse_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-groovylib-api_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-groovylib_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="mill-libs-idea_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-libs-init_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-javalib-api_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-javalib-testrunner-entrypoint-SNAPSHOT.jar" level="project"/>
@@ -96,8 +99,11 @@
         <orderEntry type="library" name="mill-moduledefs_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="mill-runner-autooverride-api_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-runner-codesig_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="mill-runner-eclipse_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="mill-runner-idea_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-runner-meta_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="native-terminal-no-ffm-0.0.9.1.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="org.eclipse.jgit-6.10.1.202505221210-r.jar" level="project"/>
         <orderEntry type="library" name="os-lib_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="os-zip-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="plexus-archiver-<version>.jar" level="project"/>

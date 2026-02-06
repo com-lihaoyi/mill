@@ -1,0 +1,13 @@
+package build.libs.eclipse
+
+import mill.*
+import millbuild.*
+
+/**
+ * Module for Eclipse project file generation.
+ * Contains the GenEclipse ExternalModule that loads the implementation reflectively.
+ */
+object `package` extends MillStableScalaModule {
+  def moduleDeps = Seq(build.core.api, build.libs.javalib)
+  def runModuleDeps = Seq(build.runner.eclipse)
+}
