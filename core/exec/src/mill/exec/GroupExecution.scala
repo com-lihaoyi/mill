@@ -230,7 +230,10 @@ trait GroupExecution {
       exclusive: Boolean,
       upstreamPathRefs: Seq[PathRef]
   ): GroupExecution.Results = {
-    val sideHashes = group.iterator.map(_.sideHash).sum
+    val (sideHashes, hasSideEffects) = group.iterator.foldLeft((0, false)) { case ((sum, has), t) =>
+      val sideHash = t.sideHash
+      (sum + sideHash, has || sideHash != 0)
+    }
 
     val inputsHash = {
       val externalInputsHash = MurmurHash3.orderedHash(
@@ -280,7 +283,7 @@ trait GroupExecution {
         // Helper to evaluate the task with full caching support
         def evaluateTaskWithCaching(): GroupExecution.Results = {
           val cached = Option
-            .when(sideHashes == 0) { loadCachedJson(logger, inputsHash, labelled, paths) }
+            .when(!hasSideEffects) { loadCachedJson(logger, inputsHash, labelled, paths) }
             .flatten
 
           // `cached.isEmpty` means worker metadata file removed by user so recompute the worker
@@ -714,7 +717,7 @@ trait GroupExecution {
   def getValueHash(v: Val, task: Task[?], inputsHash: Int): Int = {
     if (task.isInstanceOf[Task.Worker[?]]) inputsHash
     else {
-      task match {
+      val base = task match {
         case named: Task.Named[_] =>
           named.writerOpt match {
             case Some(writer) =>
@@ -725,6 +728,7 @@ trait GroupExecution {
           }
         case _ => v.##
       }
+      base + invalidateAllHashes
     }
   }
 

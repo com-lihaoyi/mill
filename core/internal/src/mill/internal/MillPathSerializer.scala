@@ -1,13 +1,27 @@
 package mill.internal
 
-import java.nio.file.Files
+import java.nio.file.{Files, LinkOption}
 
 object MillPathSerializer {
   def setupSymlinks(wd: os.Path, workspace: os.Path): Unit = {
     for ((base, link) <- defaultMapping(workspace)) {
-      os.makeDir.all(wd / link / "..")
-      os.remove(wd / link)
-      Files.createSymbolicLink((wd / link).toNIO, base.wrapped)
+      val target = wd / link
+      val targetNio = target.toNIO
+      os.makeDir.all(target / "..")
+
+      if (Files.isSymbolicLink(targetNio)) {
+        val currentTarget = Files.readSymbolicLink(targetNio)
+        if (currentTarget != base.wrapped) {
+          os.remove(target)
+          Files.createSymbolicLink(targetNio, base.wrapped)
+        }
+      } else if (Files.exists(targetNio, LinkOption.NOFOLLOW_LINKS)) {
+        throw new IllegalStateException(
+          s"Refusing to overwrite non-symlink path required for path serialization: $target"
+        )
+      } else {
+        Files.createSymbolicLink(targetNio, base.wrapped)
+      }
     }
   }
 

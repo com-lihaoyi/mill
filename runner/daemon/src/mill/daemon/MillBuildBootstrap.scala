@@ -209,6 +209,12 @@ class MillBuildBootstrap(
       // by codesig analysis, not by classLoaderSigHash.
       millClassloaderSigHash = nestedState.frames.headOption match {
         case Some(frame) =>
+          def stablePathId(path: os.Path): String = {
+            if (path.startsWith(currentRoot)) s"<workspace>/${path.subRelativeTo(currentRoot)}"
+            else if (path.startsWith(os.home)) s"<home>/${path.subRelativeTo(os.home)}"
+            else path.toString
+          }
+
           val compileDestPath = frame.compileOutput.map(p => os.Path(p.javaPath))
           frame.runClasspath
             .filter { p =>
@@ -216,11 +222,17 @@ class MillBuildBootstrap(
               !compileDestPath.contains(path) &&
               !path.toString.contains("generatedScriptSources.dest")
             }
-            .map(p => (os.Path(p.javaPath), p.sig))
+            .map(p => (stablePathId(os.Path(p.javaPath)), p.sig))
             .hashCode()
         case None =>
           millBootClasspathPathRefs
-            .map(p => (os.Path(p.javaPath), p.sig))
+            .map { p =>
+              val path = os.Path(p.javaPath)
+              val stable =
+                if (path.startsWith(os.home)) s"<home>/${path.subRelativeTo(os.home)}"
+                else path.toString
+              (stable, p.sig)
+            }
             .hashCode()
       },
       millClassloaderIdentityHash = nestedState
