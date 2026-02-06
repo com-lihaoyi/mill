@@ -80,13 +80,13 @@ object RunnerState {
           (k, Frame.WorkerInfo(System.identityHashCode(v), i))
         },
         evalWatched.collect { case Watchable.Path(p, _, _) =>
-          os.Path(p)
+          os.Path(p, os.pwd)
         },
         moduleWatched.collect { case Watchable.Path(p, _, _) =>
-          os.Path(p)
+          os.Path(p, os.pwd)
         },
         classLoaderOpt.map(_.identity),
-        runClasspath.map(p => os.Path(p.javaPath) -> p.sig),
+        runClasspath.map(p => os.Path(p.javaPath, os.pwd) -> p.sig),
         runClasspath.hashCode()
       )
     }

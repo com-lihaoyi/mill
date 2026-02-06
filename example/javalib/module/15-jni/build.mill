@@ -46,10 +46,10 @@ object `package` extends JavaModule {
     PathRef(Task.dest / output)
   }
 
-  def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
+  def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.wrapped.toString)
 
   object test extends JavaTests, TestModule.Junit4 {
-    def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
+    def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.wrapped.toString)
   }
 }
 

@@ -5,7 +5,7 @@ import mill.api.daemon.internal.{TestReporter, internal}
 @internal object MillTestRunnerMain0 {
   def main0(args: Array[String], classLoader: ClassLoader): Unit = {
     try {
-      val testArgs = upickle.read[TestArgs](os.read(os.Path(args(1))))
+      val testArgs = upickle.read[TestArgs](os.read(os.Path(args(1), os.pwd)))
       testArgs.sysProps.foreach { case (k, v) => System.setProperty(k, v) }
 
       val result = testArgs.globSelectors match {

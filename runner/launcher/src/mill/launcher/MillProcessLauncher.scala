@@ -83,7 +83,7 @@ object MillProcessLauncher {
     val sandbox = daemonDir / DaemonFiles.sandbox
     os.makeDir.all(sandbox)
 
-    val processEnv = Map(
+    val processEnv = env ++ Map(
       EnvVars.MILL_WORKSPACE_ROOT -> workDir.toString,
       EnvVars.MILL_ENABLE_STATIC_CHECKS -> "true"
     ) ++ (

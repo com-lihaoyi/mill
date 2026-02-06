@@ -383,7 +383,8 @@ object Task {
 
     override def evaluate0: (Seq[Any], TaskCtx) => Result[T] =
       (_, _) => {
-        val relPath = os.Path(ctx0.fileName).relativeTo(mill.api.BuildCtx.workspaceRoot)
+        val relPath = os.Path(ctx0.fileName, mill.api.BuildCtx.workspaceRoot)
+          .relativeTo(mill.api.BuildCtx.workspaceRoot)
         Result.Failure(s"configuration missing in $relPath")
       }
 
@@ -556,7 +557,7 @@ object Task {
       val isPrivate: Option[Boolean]
   ) extends Simple[T] {
     val inputs = Nil
-    override def sideHash: Int = util.Random.nextInt()
+    override def sideHash: Int = 31337
     // FIXME: deprecated return type: Change to Option
     override def writerOpt: Some[Writer[?]] = Some(writer)
     override private[mill] def isInputTask: Boolean = true
