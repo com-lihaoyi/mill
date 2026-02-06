@@ -416,6 +416,7 @@ $frontMatter
     "mockito" -> ("mockito/mockito", "97f3574cc07fdf36f1f76ba7332ac57675e140b1"),
     "gatling" -> ("gatling/gatling", "3870fda86e6bca005fbd53108c60a65db36279b6"),
     "arrow" -> ("arrow-kt/arrow", "bc9bf92cc98e01c21bdd2bf8640cf7db0f97204a"),
+    "jdata" -> ("asarkar/jdata", "89faaa7d433c37ad0271e801d66e177aac6605a4"),
     "ollama-js" -> ("ollama/ollama-js", "99293abe2c7c27ce7e76e8b4a98cae948f00058d"),
     "androidtodo" -> ("android/architecture-samples", "b3437ab428f6fd91804b28801650d590ff52971c"),
     "android-endless-tunnel" -> ("android/ndk-samples", "46ac919196faf1efcfe8018a0dcc79d4f8fbeca7"),

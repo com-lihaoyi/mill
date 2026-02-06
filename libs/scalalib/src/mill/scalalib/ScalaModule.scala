@@ -323,7 +323,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         |For details, see: https://github.com/sbt/zinc/issues/1010""".stripMargin
     )
 
-    val jOpts = JavaCompilerOptions.split(javacOptions() ++ mandatoryJavacOptions())
+    val jOpts =
+      JavaCompilerOptions.split(javacOptions() ++ jpmsJavacOptions() ++ mandatoryJavacOptions())
 
     val worker = jvmWorker().internalWorker()
 
@@ -673,7 +674,10 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       )
         .filterNot(_ == "-Xfatal-warnings")
 
-      val javacOpts = SemanticDbJavaModule.javacOptionsTask(javacOptions(), semanticDbJavaVersion())
+      val javacOpts = SemanticDbJavaModule.javacOptionsTask(
+        javacOptions() ++ jpmsJavacOptionsFor(CompileFor.SemanticDb)() ++ mandatoryJavacOptions(),
+        semanticDbJavaVersion()
+      )
 
       Task.log.debug(s"effective scalac options: ${scalacOptions}")
       Task.log.debug(s"effective javac options: ${javacOpts}")
