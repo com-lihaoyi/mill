@@ -41,7 +41,8 @@ final class EvaluatorImpl(
       new ScriptModuleInit()
     )
   override val staticBuildOverrides = execution.staticBuildOverrides
-  private val millPathSerializer = new MillPathSerializer(MillPathSerializer.defaultMapping(workspace))
+  private val millPathSerializer =
+    new MillPathSerializer(MillPathSerializer.defaultMapping(workspace))
 
   MillPathSerializer.setupSymlinks(os.pwd, workspace)
 

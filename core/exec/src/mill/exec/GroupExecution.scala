@@ -378,7 +378,10 @@ trait GroupExecution {
           val fileName = labelled.ctx.fileName
           val isBuildMill = fileName.replace('\\', '/').endsWith("/mill-build/build.mill")
           val displayPath =
-            scala.util.Try(os.Path(fileName, os.pwd).relativeTo(workspace).toString).getOrElse(fileName)
+            scala.util.Try(os.Path(
+              fileName,
+              os.pwd
+            ).relativeTo(workspace).toString).getOrElse(fileName)
           val (execRes, serializedPaths) =
             if (isBuildMill) {
               val msg =

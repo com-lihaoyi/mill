@@ -29,7 +29,8 @@ object ReproducibilityTests extends UtestIntegrationTestSuite {
     test("diff") - {
       def run() = integrationTest { tester =>
         val res = tester.eval(("show", "foo"))
-        val lastNonEmptyLine = res.out.linesIterator.filter(_.nonEmpty).toSeq.lastOption.getOrElse("")
+        val lastNonEmptyLine =
+          res.out.linesIterator.filter(_.nonEmpty).toSeq.lastOption.getOrElse("")
         assert(lastNonEmptyLine == "31337")
         tester.workspacePath
       }
