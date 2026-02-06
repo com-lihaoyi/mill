@@ -1,3 +1,0 @@
-extends: JavaModule
-#extends: ScalaModule
-#scalaVersion: 3.8.0
