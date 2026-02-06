@@ -55,7 +55,8 @@ object `package` extends MillStableScalaModule {
       // This was `private[mill]`, package private doesn't have the JVM bytecode equivalent, so mima can't check it.
       ProblemFilter.exclude[Problem]("mill.javalib.PublishModule.checkSonatypeCreds"),
       ProblemFilter.exclude[Problem]("mill.javalib.publish.SonatypeHelpers.getArtifactMappings"),
-      ProblemFilter.exclude[Problem]("mill.javalib.publish.PublishInfo.parseFromFile")
+      ProblemFilter.exclude[Problem]("mill.javalib.publish.PublishInfo.parseFromFile"),
+      ProblemFilter.exclude[Problem]("mill.javalib.SonatypeCentralPublishModule.initGpgKeys")
     )
 
   object backgroundwrapper extends MillPublishJavaModule with MillJavaModule {
@@ -145,7 +146,7 @@ object `package` extends MillStableScalaModule {
   }
 
   object `pgp-worker` extends MillPublishScalaModule with MillJava11ScalaModule {
-    def moduleDeps = Seq(api)
+    def moduleDeps = Seq(api, build.libs.util.java11)
     def mvnDeps = Seq(
       Deps.bouncyCastleProv,
       Deps.bouncyCastlePgp,

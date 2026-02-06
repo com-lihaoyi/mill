@@ -6,11 +6,6 @@ import mill.testkit.internal.SonatypeCentralTestUtils
 import utest.*
 
 object InitGpgPublishTests extends UtestIntegrationTestSuite {
-  private def extractExportValue(output: String, name: String): String =
-    (s"(?m)^export ${java.util.regex.Pattern.quote(name)}=(.*)$$").r
-      .findFirstMatchIn(output)
-      .map(_.group(1).trim)
-      .getOrElse("")
 
   private def initGpgKeysSmokeTest(): Unit = integrationTest { tester =>
     import tester.*
@@ -31,10 +26,20 @@ object InitGpgPublishTests extends UtestIntegrationTestSuite {
     assert(output.contains("PGP Key Setup for Sonatype Central Publishing"))
     assert(output.contains("PGP key generated successfully"))
     assert(output.contains("Key verified on keyserver!"))
-    val secretBase64 = extractExportValue(output, "MILL_PGP_SECRET_BASE64")
-    val passphrase = extractExportValue(output, "MILL_PGP_PASSPHRASE")
-    assert(secretBase64.nonEmpty)
-    assert(passphrase == "mill-test-passphrase")
+    assert(output.contains("Local Shell Configuration"))
+    assert(output.contains("GitHub Actions"))
+    assert(output.contains("MILL_PGP_SECRET_BASE64"))
+    assert(output.contains("MILL_SONATYPE_USERNAME"))
+
+    val armoredKey = os.read(
+      workspacePath / "out" / "mill.javalib.SonatypeCentralPublishModule" /
+        "initGpgKeys.dest" / "pgp-private-key.asc"
+    ).trim
+    assert(armoredKey.contains("BEGIN PGP PRIVATE KEY BLOCK"))
+
+    val secretBase64 =
+      java.util.Base64.getEncoder.encodeToString(armoredKey.getBytes("UTF-8"))
+    val passphrase = "mill-test-passphrase"
 
     dryRunWithKey(
       tester,
