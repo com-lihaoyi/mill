@@ -2,7 +2,8 @@ package mill.main.maven
 
 import mill.main.buildgen.*
 import mill.main.buildgen.ModuleSpec.*
-import org.apache.maven.model.{Developer as MvnDeveloper, License as MvnLicense, *}
+import mill.main.maven.MavenUtil.*
+import org.apache.maven.model.{Developer as _, License as _, *}
 
 import scala.jdk.CollectionConverters.*
 
@@ -29,7 +30,6 @@ object MillMavenBuildGenMain {
   ): Unit = {
     println("converting Maven build")
 
-    val buildGen = if (declarative) BuildGenYaml else BuildGenScala
     val mvnWorkspace = os.Path.expandUser(projectDir, os.pwd)
     val millWorkspace = os.pwd
 
@@ -48,7 +48,7 @@ object MillMavenBuildGenMain {
     var packages = modelBuildingResults.map { result =>
       val model = result.getEffectiveModel
       val moduleDir = os.Path(model.getProjectDirectory)
-      val plugins = Plugins(model)
+      val plugins = Plugins(model, mvnWorkspace)
       var mainModule = ModuleSpec(
         name = moduleDir.last,
         repositories = model.getRepositories.asScala.collect {
@@ -105,6 +105,8 @@ object MillMavenBuildGenMain {
             bomModuleDeps = bomModuleDeps,
             artifactName = Option(model.getArtifactId)
           ).withErrorProneModule(plugins.errorProneMvnDeps)
+          plugins.withCheckstyleModule(mainModule).foreach(mainModule = _)
+
           if (os.exists(moduleDir / "src/test")) {
             val testMvnDeps = mvnDeps("test")
             val testMixin = ModuleSpec.testModuleMixin(testMvnDeps)
@@ -160,9 +162,47 @@ object MillMavenBuildGenMain {
           imports = "mill.javalib.*" +: "mill.javalib.publish.*" +: mainModule.imports,
           supertypes = mainModule.supertypes :+ "PublishModule",
           pomPackagingType = Option(model.getPackaging).filter(_ != "jar"),
-          pomParentProject = toPomParentProject(model.getParent),
-          // Use raw model since the effective one returns derived values for URL fields.
-          pomSettings = Some(toPomSettings(result.getRawModel)),
+          pomParentProject = Option(model.getParent).map { parent =>
+            import parent.*
+            Artifact(getGroupId, getArtifactId, getVersion)
+          },
+          pomSettings = {
+            // Use raw model since the effective one returns derived values for URL fields.
+            val model = result.getRawModel
+            import model.*
+            Some(PomSettings(
+              description = Option(getDescription).getOrElse(""),
+              organization = Option(getGroupId).getOrElse(""),
+              url = Option(getUrl).getOrElse(""),
+              licenses = getLicenses.asScala.map { license =>
+                import license.*
+                License(
+                  name = Option(getName).getOrElse(""),
+                  url = Option(getUrl).getOrElse(""),
+                  distribution = Option(getDistribution).getOrElse("")
+                )
+              }.toSeq,
+              versionControl = Option(getScm).fold(VersionControl()) { scm =>
+                import scm.*
+                VersionControl(
+                  browsableRepository = Option(getUrl),
+                  connection = Option(getConnection),
+                  developerConnection = Option(getDeveloperConnection),
+                  tag = Option(getTag)
+                )
+              },
+              developers = getDevelopers.asScala.map { developer =>
+                import developer.*
+                Developer(
+                  id = Option(getId).getOrElse(""),
+                  name = Option(getName).getOrElse(""),
+                  url = Option(getUrl).getOrElse(""),
+                  organization = Option(getOrganization),
+                  organizationUrl = Option(getOrganizationUrl)
+                )
+              }.toSeq
+            ))
+          },
           publishVersion = Option(model.getVersion),
           publishProperties =
             if (publishProperties.value) model.getProperties.asScala.toSeq else Nil
@@ -170,92 +210,24 @@ object MillMavenBuildGenMain {
       }
       PackageSpec(moduleDir.subRelativeTo(mvnWorkspace), mainModule)
     }
-    packages = normalizeBuild(packages)
+    packages = normalizePackages(packages)
 
-    val (baseModule, packages0) =
-      if (noMeta.value) (None, packages)
-      else buildGen.withBaseModule(packages, "MavenModule" -> "MavenTests")
-        .fold((None, packages))((base, pkgs) => (Some(base), pkgs))
-    buildGen.writeBuildFiles(
-      baseDir = millWorkspace,
-      packages = packages0,
+    val build = BuildSpec(packages)
+    if (!noMeta.value) {
+      if (!declarative) {
+        build.deriveDepNames()
+      }
+      build.deriveBaseModule("MavenModule" -> "MavenTests")
+    }
+    build.writeFiles(
+      declarative = declarative,
       merge = merge.value,
-      baseModule = baseModule,
+      workspace = millWorkspace,
       millJvmVersion = millJvmId
     )
   }
 
-  private def isBom(dep: Dependency) = dep.getScope == "import" && dep.getType == "pom"
-
-  private def toMvnDep(dep: Dependency) = {
-    import dep.*
-    MvnDep(
-      organization = getGroupId,
-      name = getArtifactId,
-      version = Option(getVersion).getOrElse(""),
-      // Sanitize unresolved properties such as ${os.detected.name} to prevent interpolation.
-      classifier = Option(getClassifier).map(_.replaceAll("[$]", "")),
-      `type` = getType match {
-        case null | "jar" | "pom" => None
-        case tpe => Some(tpe)
-      },
-      excludes = getExclusions.asScala.map(x => (x.getGroupId, x.getArtifactId)).toSeq
-    )
-  }
-
-  private def toPomParentProject(parent: Parent) = {
-    if (parent == null) None
-    else {
-      import parent.*
-      Some(Artifact(getGroupId, getArtifactId, getVersion))
-    }
-  }
-
-  private def toPomSettings(model: Model) = {
-    import model.*
-    PomSettings(
-      description = Option(getDescription).getOrElse(""),
-      organization = Option(getGroupId).getOrElse(""),
-      url = Option(getUrl).getOrElse(""),
-      licenses = getLicenses.asScala.map(toLicense).toSeq,
-      versionControl = toVersionControl(getScm),
-      developers = getDevelopers.asScala.map(toDeveloper).toSeq
-    )
-  }
-
-  private def toLicense(license: MvnLicense) = {
-    import license.*
-    License(
-      name = Option(getName).getOrElse(""),
-      url = Option(getUrl).getOrElse(""),
-      distribution = Option(getDistribution).getOrElse("")
-    )
-  }
-
-  private def toVersionControl(scm: Scm) = {
-    if (scm == null) VersionControl()
-    else
-      import scm.*
-      VersionControl(
-        browsableRepository = Option(getUrl),
-        connection = Option(getConnection),
-        developerConnection = Option(getDeveloperConnection),
-        tag = Option(getTag)
-      )
-  }
-
-  private def toDeveloper(developer: MvnDeveloper) = {
-    import developer.*
-    Developer(
-      id = Option(getId).getOrElse(""),
-      name = Option(getName).getOrElse(""),
-      url = Option(getUrl).getOrElse(""),
-      organization = Option(getOrganization),
-      organizationUrl = Option(getOrganizationUrl)
-    )
-  }
-
-  private def normalizeBuild(packages: Seq[PackageSpec]) = {
+  private def normalizePackages(packages: Seq[PackageSpec]) = {
     val moduleLookup = packages.flatMap(_.modulesBySegments).toMap
       .compose[ModuleDep](dep => dep.segments ++ dep.childSegment)
 
@@ -271,6 +243,7 @@ object MillMavenBuildGenMain {
             Either.cond(bomModule.isBomModule && bomModule.isPublishModule, dep, bomModule)
           }
           if (managedBomModules.nonEmpty) {
+            // Replace references to managed BOM modules
             module0 = module0.copy(
               bomMvnDeps = module0.bomMvnDeps.copy(base =
                 module0.bomMvnDeps.base ++ managedBomModules.flatMap(_.bomMvnDeps.base)
@@ -283,10 +256,10 @@ object MillMavenBuildGenMain {
           }
         }
         if (module0.testFramework.base.contains("")) {
-          val testMixin = ModuleSpec.testModuleMixin(recMvnDeps(module0))
-          if (testMixin.nonEmpty) {
+          // Search recursive mvnDeps for supported test module
+          for (testMixin <- ModuleSpec.testModuleMixin(recMvnDeps(module0))) {
             module0 =
-              module0.copy(supertypes = module0.supertypes ++ testMixin, testFramework = None)
+              module0.copy(supertypes = module0.supertypes :+ testMixin, testFramework = None)
           }
         }
         module0
