@@ -2,4 +2,3 @@ package build.foo.bar
 import mill.*, javalib.*
 
 object `package` extends JavaModule
-

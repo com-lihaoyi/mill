@@ -269,7 +269,9 @@ object CodeGen {
              |$prelude
              |//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
              |object package_ extends $newParent, package_ {
-             |  ${if (segments.isEmpty) millDiscover(segments.nonEmpty, allPackageObjectRefs) else ""}
+             |  ${
+              if (segments.isEmpty) millDiscover(segments.nonEmpty, allPackageObjectRefs) else ""
+            }
              |  $childAliases
              |}
              |${renderTemplate("trait package_", parsedHeaderData, segments)}

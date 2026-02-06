@@ -55,7 +55,9 @@ object ExtendsInvalidation extends UtestIntegrationTestSuite {
 
       val missingCmd = eval(("foo.bar.hello"))
       assert(!missingCmd.isSuccess)
-      assert(missingCmd.err.contains("Cannot resolve") || missingCmd.err.contains("Unable to resolve"))
+      assert(
+        missingCmd.err.contains("Cannot resolve") || missingCmd.err.contains("Unable to resolve")
+      )
 
       modifyFile(
         workspacePath / "foo/bar/package.mill",
