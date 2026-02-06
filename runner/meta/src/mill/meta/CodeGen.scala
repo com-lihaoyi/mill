@@ -518,7 +518,7 @@ object CodeGen {
   ): String = {
     s"""|object MillMiscInfo
         |    extends mill.api.internal.SubfolderModule.Info(
-        |  millSourcePath0 = os.Path(${literalize(scriptFolderPath.toString)}),
+        |  millSourcePath0 = os.Path(${literalize(scriptFolderPath.wrapped.toString)}),
         |  segments = _root_.scala.Seq(${segments.map(literalize(_)).mkString(", ")})
         |)
         |""".stripMargin
@@ -549,13 +549,10 @@ object CodeGen {
       millTopLevelProjectRoot: os.Path,
       output: os.Path
   ): String = {
+    val _ = (scriptFolderPath, millTopLevelProjectRoot, output)
     s"""|@_root_.scala.annotation.nowarn
         |object MillMiscInfo
-        |    extends mill.api.internal.RootModule.Info(
-        |  projectRoot0 = ${literalize(scriptFolderPath.toString)},
-        |  output0 = ${literalize(output.toString)},
-        |  topLevelProjectRoot0 = ${literalize(millTopLevelProjectRoot.toString)}
-        |)
+        |    extends mill.api.internal.RootModule.Info.FromEnv
         |""".stripMargin
   }
 

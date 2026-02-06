@@ -230,13 +230,13 @@ trait GroupExecution {
       exclusive: Boolean,
       upstreamPathRefs: Seq[PathRef]
   ): GroupExecution.Results = {
+    val sideHashes = group.iterator.map(_.sideHash).sum
 
     val inputsHash = {
       val externalInputsHash = MurmurHash3.orderedHash(
         group.flatMap(_.inputs).filter(!group.contains(_))
           .flatMap(results(_).asSuccess.map(_.value._2))
       )
-      val sideHashes = MurmurHash3.orderedHash(group.iterator.map(_.sideHash))
       val scriptsHash = MurmurHash3.orderedHash(
         group
           .iterator
@@ -279,7 +279,9 @@ trait GroupExecution {
 
         // Helper to evaluate the task with full caching support
         def evaluateTaskWithCaching(): GroupExecution.Results = {
-          val cached = loadCachedJson(logger, inputsHash, labelled, paths)
+          val cached = Option
+            .when(sideHashes == 0) { loadCachedJson(logger, inputsHash, labelled, paths) }
+            .flatten
 
           // `cached.isEmpty` means worker metadata file removed by user so recompute the worker
           val (multiLogger, _) = resolveLogger(Some(paths).map(_.log), logger)
@@ -298,10 +300,10 @@ trait GroupExecution {
             terminal = terminal
           )
 
-          val cachedValueAndHash =
-            upToDateWorker.map(w => (w -> Nil, inputsHash))
+          val cachedValueAndHash: Option[((Val, Seq[PathRef]), Int)] =
+            upToDateWorker.map(w => ((w, Nil), inputsHash))
               .orElse(cached.flatMap { case (_, valOpt, valueHash) =>
-                valOpt.map((_, valueHash))
+                valOpt.map(v => (v, valueHash))
               })
 
           cachedValueAndHash match {
@@ -370,10 +372,14 @@ trait GroupExecution {
         def evaluateBuildOverrideOnly(located: Located[Appendable[BufferedValue]])
             : GroupExecution.Results = {
 
+          val fileName = labelled.ctx.fileName
+          val isBuildMill = fileName.replace('\\', '/').endsWith("/mill-build/build.mill")
+          val displayPath =
+            scala.util.Try(os.Path(fileName, os.pwd).relativeTo(workspace).toString).getOrElse(fileName)
           val (execRes, serializedPaths) =
-            if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {
+            if (isBuildMill) {
               val msg =
-                s"Build header config conflicts with task defined in ${os.Path(labelled.ctx.fileName).relativeTo(workspace)}:${labelled.ctx.lineNum}"
+                s"Build header config conflicts with task defined in ${displayPath}:${labelled.ctx.lineNum}"
               (
                 ExecResult.Failure(
                   msg,
@@ -706,7 +712,20 @@ trait GroupExecution {
   }
 
   def getValueHash(v: Val, task: Task[?], inputsHash: Int): Int = {
-    if (task.isInstanceOf[Task.Worker[?]]) inputsHash else v.## + invalidateAllHashes
+    if (task.isInstanceOf[Task.Worker[?]]) inputsHash
+    else {
+      task match {
+        case named: Task.Named[_] =>
+          named.writerOpt match {
+            case Some(writer) =>
+              upickle
+                .writeJs(v.value)(using writer.asInstanceOf[upickle.Writer[Any]])
+                .hashCode()
+            case None => v.##
+          }
+        case _ => v.##
+      }
+    }
   }
 
   private def loadUpToDateWorker(
