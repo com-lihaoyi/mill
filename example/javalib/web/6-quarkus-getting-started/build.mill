@@ -1,0 +1,104 @@
+package build
+
+import mill.*, javalib.*
+
+import publish.*
+import mill.javalib.quarkus.QuarkusModule
+
+object `package` extends QuarkusModule, MavenModule, PublishModule { outer =>
+  def mvnDeps = Seq(
+    mvn"io.quarkus:quarkus-arc",
+    mvn"io.quarkus:quarkus-rest"
+  )
+
+  def artifactName = "6-quarkus-getting-started"
+
+  def bomMvnDeps = Seq(
+    mvn"io.quarkus.platform:quarkus-bom:3.31.1"
+  )
+
+  def publishVersion = "0.0.1"
+
+  def annotationProcessors = Seq(
+    mvn"io.quarkus:quarkus-arc",
+    mvn"io.quarkus:quarkus-extension-processor"
+  )
+
+  def pomSettings = PomSettings(
+    description = "6-quarkus-getting-started",
+    organization = "org.acme",
+    url = "https://github.com/lihaoyi/example",
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("lihaoyi", "example"),
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
+  )
+
+  object test extends MavenTests, TestModule.Junit5 {
+    def bomMvnDeps = Seq(
+      mvn"io.quarkus.platform:quarkus-bom:3.31.1"
+    )
+
+    def moduleDeps = Seq.empty
+
+    def runClasspath = Task {
+      super.runClasspath() ++ Seq(outer.jar())
+    }
+
+    def mvnDeps = Seq(
+      mvn"io.quarkus:quarkus-junit",
+      mvn"io.rest-assured:rest-assured"
+    )
+
+    def quarkusOut = Task {
+      val dest = Task.dest / "quarkus-out"
+      os.makeDir.all(dest)
+
+      val jar = outer.assembly().path
+      os.makeDir.all(dest / "quarkus-app" / "app")
+
+      os.copy(
+        jar,
+        dest / "quarkus-app" / "app" / s"${outer.artifactName()}-${outer.publishVersion()}.jar"
+      )
+
+      val quarkusArtifactProperties =
+        s"""
+           |path=quarkus-app/quarkus-run.jar
+           |type=jar
+           |""".stripMargin
+
+      os.write(dest / "quarkus-artifact.properties", quarkusArtifactProperties)
+
+      PathRef(dest)
+    }
+
+    def forkArgs = Task {
+      Seq(
+        "-Djava.util.logging.manager=org.jboss.logmanager.LogManager",
+        s"-Dbuild.output.directory=${quarkusOut().path}"
+      )
+    }
+  }
+}
+
+//mill-version: 1.1.0-28-6e5003
+//mill-jvm-version: system
+//extends: [MavenModule, PublishModule]
+//mvnDeps:
+//- io.quarkus:quarkus-arc:3.31.1
+//- io.quarkus:quarkus-rest:3.31.1
+//bomMvnDeps:
+//- io.quarkus.platform:quarkus-bom:3.31.1
+//artifactName: 6-quarkus-getting-started
+//pomSettings:
+//  organization: org.acme
+//publishVersion: 1.0.0-SNAPSHOT
+//
+//object test:
+//  extends: MavenTests, TestModule.Junit5
+//  mvnDeps:
+//  - io.quarkus:quarkus-junit:3.31.1
+//  - io.rest-assured:rest-assured:5.5.6;exclude=javax.activation:activation;exclude=javax.activation:javax.activation-api;exclude=jakarta.activation:jakarta.activation-api;exclude=com.sun.xml.bind:jaxb-osgi;exclude=commons-logging:commons-logging
+//  forkArgs: [-Djava.util.logging.manager=org.jboss.logmanager.LogManager]
+//  testParallelism: false
+//  testSandboxWorkingDir: false
