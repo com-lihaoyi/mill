@@ -3,6 +3,7 @@ package mill.eval
 import mill.api.daemon.SelectMode
 import mill.api.internal.Located
 import mill.api.{Evaluator, ExternalModule, Result, ScriptModule}
+import scala.annotation.unused
 
 // Cache instantiated script modules on a per-evaluation basis. This allows us to ensure
 // we don't duplicate script modules when e.g. multiple downstream modules refer to the
@@ -96,7 +97,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
       scriptFile: os.Path,
       className: String,
       extendsIndex: Option[Int],
-      scriptText: String,
+      @unused scriptText: String,
       args: AnyRef*
   ): Result[ExternalModule] = {
     val clsOrErr =
@@ -157,9 +158,9 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
             moduleFor(
               scriptFile,
               parsedHeaderData.`extends`.value.value.headOption,
-              parsedHeaderData.moduleDeps.value,
-              parsedHeaderData.compileModuleDeps.value,
-              parsedHeaderData.runModuleDeps.value,
+              parsedHeaderData.moduleDeps.value.value,
+              parsedHeaderData.compileModuleDeps.value.value,
+              parsedHeaderData.runModuleDeps.value.value,
               eval,
               parsedHeaderData
             )

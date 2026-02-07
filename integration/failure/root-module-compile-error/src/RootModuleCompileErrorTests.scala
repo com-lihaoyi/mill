@@ -2,81 +2,73 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 
-import utest._
+import utest.*
 
 object RootModuleCompileErrorTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test - integrationTest { tester =>
-      import tester._
+      import tester.*
       val res = eval("foo.scalaVersion")
 
       assert(!res.isSuccess)
 
-      locally {
-        // For now these error messages still show generated/mangled code; not ideal, but it'll do
-        assert(res.err.contains("""build.mill:7:67"""))
-        assert(res.err.contains("""Not found: type UnknownRootModule"""))
-        assert(res.err.contains(
-          """abstract class package_  extends _root_.mill.util.MainRootModule, UnknownRootModule {"""
-        ))
-        assert(
-          res.err.contains("""                                                 ^^^^^^^^^^^^^^^^^""")
-        )
-      }
+      // For now these error messages still show generated/mangled code; not ideal, but it'll do
+      res.assertContainsLines(
+        "[error] build.mill:7:67",
+        "abstract class package_  extends _root_.mill.util.MainRootModule, UnknownRootModule {",
+        "                                                                  ^^^^^^^^^^^^^^^^^",
+        "Not found: type UnknownRootModule"
+      )
 
-      locally {
-        // For now these error messages still show generated/mangled code; not ideal, but it'll do
-        assert(res.err.replace('\\', '/').contains("""foo/package.mill:6:96"""))
-        assert(res.err.contains("""Not found: type UnknownFooModule"""))
-        assert(res.err.contains(
-          """abstract class package_  extends _root_.mill.api.internal.SubfolderModule(build.millDiscover), UnknownFooModule {"""
-        ))
-        assert(res.err.contains(
-          """                                                                                           ^^^^^^^^^^^^^^^^"""
-        ))
-      }
+      // For now these error messages still show generated/mangled code; not ideal, but it'll do
+      res.assertContainsLines(
+        "[error] foo/package.mill:6:113",
+        "abstract class package_  extends _root_.mill.api.internal.SubfolderModule(_root_.build_.package_.millDiscover), UnknownFooModule {",
+        "                                                                                                                ^^^^^^^^^^^^^^^^",
+        "Not found: type UnknownFooModule"
+      )
 
-      locally {
-        assert(res.err.contains("""build.mill:8:22"""))
-        assert(res.err.contains("""Not found: unknownRootInternalDef"""))
-        assert(res.err.contains("""def scalaVersion = unknownRootInternalDef"""))
-        assert(res.err.contains("""                   ^^^^^^^^^^^^^^^^^^^^^^"""))
-      }
+      res.assertContainsLines(
+        "[error] build.mill:8:22",
+        "  def scalaVersion = unknownRootInternalDef",
+        "                     ^^^^^^^^^^^^^^^^^^^^^^",
+        "Not found: unknownRootInternalDef"
+      )
 
-      locally {
-        assert(res.err.contains("""build.mill:5:23"""))
-        assert(res.err.contains("""Not found: type UnknownBeforeModule"""))
-        assert(res.err.contains("""object before extends UnknownBeforeModule"""))
-        assert(res.err.contains("""                      ^^^^^^^^^^^^^^^^^^^"""))
-      }
+      res.assertContainsLines(
+        "[error] build.mill:5:23",
+        "object before extends UnknownBeforeModule",
+        "                      ^^^^^^^^^^^^^^^^^^^",
+        "Not found: type UnknownBeforeModule"
+      )
 
-      locally {
-        assert(res.err.contains("""build.mill:12:22"""))
-        assert(res.err.contains("""Not found: type UnknownAfterModule"""))
-        assert(res.err.contains("""object after extends UnknownAfterModule"""))
-        assert(res.err.contains("""                     ^^^^^^^^^^^^^^^^^^"""))
-      }
+      res.assertContainsLines(
+        "[error] build.mill:12:22",
+        "object after extends UnknownAfterModule",
+        "                     ^^^^^^^^^^^^^^^^^^",
+        "Not found: type UnknownAfterModule"
+      )
 
-      locally {
-        assert(res.err.replace('\\', '/').contains("""foo/package.mill:7:22"""))
-        assert(res.err.contains("""Not found: unknownFooInternalDef"""))
-        assert(res.err.contains("""def scalaVersion = unknownFooInternalDef"""))
-        assert(res.err.contains("""                   ^^^^^^^^^^^^^^^^^^^^^"""))
-      }
+      res.assertContainsLines(
+        "[error] foo/package.mill:7:22",
+        "  def scalaVersion = unknownFooInternalDef",
+        "                     ^^^^^^^^^^^^^^^^^^^^^",
+        "Not found: unknownFooInternalDef"
+      )
 
-      locally {
-        assert(res.err.replace('\\', '/').contains("""foo/package.mill:4:23"""))
-        assert(res.err.contains("""Not found: type UnknownBeforeFooModule"""))
-        assert(res.err.contains("""object before extends UnknownBeforeFooModule"""))
-        assert(res.err.contains("""                      ^^^^^^^^^^^^^^^^^^^^^^"""))
-      }
+      res.assertContainsLines(
+        "[error] foo/package.mill:4:23",
+        "object before extends UnknownBeforeFooModule",
+        "                      ^^^^^^^^^^^^^^^^^^^^^^",
+        "Not found: type UnknownBeforeFooModule"
+      )
 
-      locally {
-        assert(res.err.replace('\\', '/').contains("""foo/package.mill:11:22"""))
-        assert(res.err.contains("""Not found: type UnknownAfterFooModule"""))
-        assert(res.err.contains("""object after extends UnknownAfterFooModule"""))
-        assert(res.err.contains("""                     ^^^^^^^^^^^^^^^^^^^^^"""))
-      }
+      res.assertContainsLines(
+        "[error] foo/package.mill:11:22",
+        "object after extends UnknownAfterFooModule",
+        "                     ^^^^^^^^^^^^^^^^^^^^^",
+        "Not found: type UnknownAfterFooModule"
+      )
     }
   }
 }

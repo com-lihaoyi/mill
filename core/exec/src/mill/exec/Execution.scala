@@ -3,7 +3,7 @@ package mill.exec
 import mill.api.daemon.internal.*
 import mill.constants.OutFiles.OutFiles.millProfile
 import mill.api.*
-import mill.internal.{JsonArrayLogger, PrefixLogger}
+import mill.internal.{CodeSigUtils, JsonArrayLogger, PrefixLogger, SpanningForest}
 
 import java.util.concurrent.{ConcurrentHashMap, ThreadPoolExecutor}
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
@@ -22,7 +22,7 @@ case class Execution(
     rootModule: BaseModuleApi,
     classLoaderSigHash: Int,
     classLoaderIdentityHash: Int,
-    workerCache: mutable.Map[String, (Int, Val)],
+    workerCache: mutable.Map[String, (Int, Val, TaskApi[?])],
     env: Map[String, String],
     failFast: Boolean,
     ec: Option[ThreadPoolExecutor],
@@ -31,11 +31,31 @@ case class Execution(
     exclusiveSystemStreams: SystemStreams,
     getEvaluator: () => EvaluatorApi,
     offline: Boolean,
+    useFileLocks: Boolean,
     staticBuildOverrideFiles: Map[java.nio.file.Path, String],
-    enableTicker: Boolean
+    enableTicker: Boolean,
+    depth: Int,
+    isFinalDepth: Boolean,
+    // JSON string to avoid classloader issues when crossing classloader boundaries
+    spanningInvalidationTree: Option[String],
+    // Tracks tasks invalidated due to version/classloader mismatch
+    versionMismatchReasons: ConcurrentHashMap[Task[?], String] = new ConcurrentHashMap()
 ) extends GroupExecution with AutoCloseable {
 
-  // this (shorter) constructor is used from [[MillBuildBootstrap]] via reflection
+  // Track nesting depth of executeTasks calls to only show final status on outermost call
+  private val executionNestingDepth = new AtomicInteger(0)
+
+  // Lazily computed worker dependency graph, cached for the duration of the execution. It's
+  // ok to take a snapshot of the cache, since the workerCache entries we may want to remove
+  // must be from previous evaluation runs and wouldn't be added as part of this evaluation
+  lazy val (workerDeps, reverseDeps, workerTopoIndex) = {
+    val cacheSnapshot = workerCache.synchronized { workerCache.toMap }
+    val deps = GroupExecution.workerDependencies(cacheSnapshot)
+    val topoIndex = deps.iterator.map(_._1).zipWithIndex.toMap
+    (deps, SpanningForest.reverseEdges(deps), topoIndex)
+  }
+
+  // this (shorter) constructor is used from [[mill.daemon.MillBuildBootstrap]] via reflection
   def this(
       baseLogger: Logger,
       workspace: java.nio.file.Path,
@@ -44,7 +64,7 @@ case class Execution(
       rootModule: BaseModuleApi,
       classLoaderSigHash: Int,
       classLoaderIdentityHash: Int,
-      workerCache: mutable.Map[String, (Int, Val)],
+      workerCache: mutable.Map[String, (Int, Val, TaskApi[?])],
       env: Map[String, String],
       failFast: Boolean,
       ec: Option[ThreadPoolExecutor],
@@ -53,31 +73,42 @@ case class Execution(
       exclusiveSystemStreams: SystemStreams,
       getEvaluator: () => EvaluatorApi,
       offline: Boolean,
+      useFileLocks: Boolean,
       staticBuildOverrideFiles: Map[java.nio.file.Path, String],
-      enableTicker: Boolean
+      enableTicker: Boolean,
+      depth: Int,
+      isFinalDepth: Boolean,
+      // JSON string to avoid classloader issues when crossing classloader boundaries
+      spanningInvalidationTree: Option[String]
   ) = this(
-    baseLogger,
-    new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
-    os.Path(workspace),
-    os.Path(outPath),
-    os.Path(externalOutPath),
-    rootModule,
-    classLoaderSigHash,
-    classLoaderIdentityHash,
-    workerCache,
-    env,
-    failFast,
-    ec,
-    codeSignatures,
-    systemExit,
-    exclusiveSystemStreams,
-    getEvaluator,
-    offline,
-    staticBuildOverrideFiles,
-    enableTicker
+    baseLogger = baseLogger,
+    profileLogger = new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
+    workspace = os.Path(workspace),
+    outPath = os.Path(outPath),
+    externalOutPath = os.Path(externalOutPath),
+    rootModule = rootModule,
+    classLoaderSigHash = classLoaderSigHash,
+    classLoaderIdentityHash = classLoaderIdentityHash,
+    workerCache = workerCache,
+    env = env,
+    failFast = failFast,
+    ec = ec,
+    codeSignatures = codeSignatures,
+    systemExit = systemExit,
+    exclusiveSystemStreams = exclusiveSystemStreams,
+    getEvaluator = getEvaluator,
+    offline = offline,
+    useFileLocks = useFileLocks,
+    staticBuildOverrideFiles = staticBuildOverrideFiles,
+    enableTicker = enableTicker,
+    depth = depth,
+    isFinalDepth = isFinalDepth,
+    spanningInvalidationTree = spanningInvalidationTree
   )
 
   def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)
+
+  def withIsFinalDepth(newIsFinalDepth: Boolean) = this.copy(isFinalDepth = newIsFinalDepth)
 
   /**
    * @param goals The tasks that need to be evaluated
@@ -92,9 +123,13 @@ case class Execution(
       serialCommandExec: Boolean = false
   ): Execution.Results = logger.prompt.withPromptUnpaused {
     os.makeDir.all(outPath)
-
-    PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
-      execute0(goals, logger, reporter, testReporter, serialCommandExec)
+    executionNestingDepth.incrementAndGet()
+    try {
+      PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
+        execute0(goals, logger, reporter, testReporter, serialCommandExec)
+      }
+    } finally {
+      executionNestingDepth.decrementAndGet()
     }
   }
 
@@ -110,6 +145,7 @@ case class Execution(
     os.makeDir.all(outPath)
     val failed = new AtomicBoolean(false)
     val count = new AtomicInteger(1)
+    val completedCount = new AtomicInteger(0)
     val rootFailedCount = new AtomicInteger(0) // Track only root failures
     val planningLogger = new PrefixLogger(
       logger0 = baseLogger,
@@ -141,8 +177,16 @@ case class Execution(
 
       val futures = mutable.Map.empty[Task[?], Future[Option[GroupExecution.Results]]]
 
-      def formatHeaderPrefix(countMsg: String, keySuffix: String) =
-        s"$countMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get(), logger.prompt.errorColor)}"
+      val keySuffix = s"/${indexToTerminal.size}"
+
+      def formatHeaderPrefix(completed: Boolean = false) = {
+        val completedMsg = mill.api.internal.Util.leftPad(
+          completedCount.get().toString,
+          indexToTerminal.size.toString.length,
+          '0'
+        )
+        s"$completedMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get(), completed, logger.prompt.errorColor, logger.prompt.successColor)}"
+      }
 
       val tasksTransitive = PlanImpl.transitiveTasks(Seq.from(indexToTerminal)).toSet
       val downstreamEdges: Map[Task[?], Set[Task[?]]] =
@@ -202,8 +246,6 @@ case class Execution(
                   '0'
                 )
 
-                val keySuffix = s"/${indexToTerminal.size}"
-
                 val contextLogger = new PrefixLogger(
                   logger0 = logger,
                   key0 = Seq(countMsg),
@@ -214,7 +256,7 @@ case class Execution(
 
                 if (enableTicker) prefixes.put(terminal, contextLogger.logKey)
                 contextLogger.withPromptLine {
-                  logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
+                  logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix())
 
                   if (failed.get()) None
                   else {
@@ -250,9 +292,10 @@ case class Execution(
                     val newFailures = res.newResults.values.count(r => r.asFailing.isDefined)
 
                     rootFailedCount.addAndGet(newFailures)
+                    completedCount.incrementAndGet()
 
-                    // Always show failed count in header if there are failures
-                    logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
+                    // Always show completed count in header after task finishes
+                    logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix())
 
                     if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
                       failed.set(true)
@@ -277,6 +320,8 @@ case class Execution(
                   }
                 }
               } catch {
+                // Let StopWithResponse propagate - it's a controlled shutdown signal
+                case e: mill.api.daemon.StopWithResponse[?] => throw e
                 // Wrapping the fatal error in a non-fatal exception, so it would be caught by Scala's Future
                 // infrastructure, rather than silently terminating the future and leaving downstream Awaits hanging.
                 case e: Throwable if !scala.util.control.NonFatal(e) =>
@@ -306,16 +351,33 @@ case class Execution(
 
       val exclusiveResults = evaluateTerminals(leafExclusiveCommands, exclusive = true)
 
+      // Set final header showing SUCCESS/FAILED status:
+      // - FAILED: show for any outermost execution with failures (meta-build failures terminate bootstrapping)
+      // - SUCCESS: only show for the final requested depth (depth 0 normally, or --meta-level if specified)
+      val isOutermostExecution = executionNestingDepth.get() == 1
+      val hasFailures = rootFailedCount.get() > 0
+      val showFinalStatus = isOutermostExecution && (hasFailures || isFinalDepth)
+      logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(completed = showFinalStatus))
+
       logger.prompt.clearPromptStatuses()
 
       val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
 
+      // Convert versionMismatchReasons to Map[String, String] for InvalidationForest
+      val taskInvalidationReasons = {
+        import scala.jdk.CollectionConverters.ConcurrentMapHasAsScala
+        versionMismatchReasons.asScala.collect {
+          case (t: Task.Named[?], reason) => t.ctx.segments.render -> reason
+        }.toMap
+      }
+
       ExecutionLogs.logInvalidationTree(
         interGroupDeps = interGroupDeps,
-        indexToTerminal = indexToTerminal,
         outPath = outPath,
         uncached = uncached,
-        changedValueHash = changedValueHash
+        changedValueHash = changedValueHash,
+        spanningInvalidationTree = spanningInvalidationTree,
+        taskInvalidationReasons = taskInvalidationReasons
       )
 
       val results0: Array[(Task[?], ExecResult[(Val, Int)])] = indexToTerminal
@@ -336,7 +398,7 @@ case class Execution(
 
       val results: Map[Task[?], ExecResult[(Val, Int)]] = results0.toMap
 
-      import scala.collection.JavaConverters._
+      import scala.collection.JavaConverters.*
       Execution.Results(
         goals.toIndexedSeq.map(results(_).map(_._1)),
         finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated)).toSeq,
@@ -355,10 +417,21 @@ object Execution {
 
   /**
    * Format a failed count as a string to be used in status messages.
-   * Returns ", N failed" if count > 0, otherwise an empty string.
+   * When completed: returns ", N FAILED" if count > 0, otherwise ", SUCCESS"
+   * When in-progress: returns ", N failing" if count > 0, otherwise an empty string.
    */
-  def formatFailedCount(count: Int, color: String => String): String = {
-    if (count > 0) s", " + color(s"$count failed") else ""
+  def formatFailedCount(
+      failures: Int,
+      completed: Boolean,
+      errorColor: String => String,
+      successColor: String => String
+  ): fansi.Str = {
+    (completed, failures) match {
+      case (false, 0) => ""
+      case (false, _) => ", " + errorColor(s"$failures failing")
+      case (true, 0) => ", " + successColor("SUCCESS")
+      case (true, _) => ", " + errorColor(s"$failures FAILED")
+    }
   }
 
   def findInterGroupDeps(sortedGroups: MultiBiMap[Task[?], Task[?]])
@@ -371,7 +444,8 @@ object Execution {
           .flatMap(
             _.inputs.collect { case f if !groupSet.contains(f) => sortedGroups.lookupValue(f) }
           )
-          .toArray
+          .toVector
+          .sortBy(_.toString)
       )
     }
     out.result()

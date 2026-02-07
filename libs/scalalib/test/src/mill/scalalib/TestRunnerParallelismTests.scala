@@ -23,7 +23,7 @@ object TestRunnerParallelismTests extends TestSuite {
       utestSingleTest,
       os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "utestSingleTest"
     ).scoped { eval =>
-      val Right(result) = eval.apply(utestSingleTest.testForked()): @unchecked
+      val Right(result) = eval.apply(utestSingleTest.testForked()).runtimeChecked
       val ( /*doneMsg*/ _, results) = result.value
       // Only one test should have been run
       assert(results.size == 1)

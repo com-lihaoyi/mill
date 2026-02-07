@@ -10,19 +10,26 @@ import scala.concurrent.duration.*
 import scala.util.{Failure, Properties, Success, Try}
 
 object MillDaemonMain0 {
-  case class Args(daemonDir: os.Path, outMode: OutFolderMode, rest: Seq[String])
+  case class Args(
+      daemonDir: os.Path,
+      outMode: OutFolderMode,
+      useFileLocks: Boolean,
+      rest: Seq[String]
+  )
   object Args {
     def apply(appName: String, args: Array[String]): Either[String, Args] = {
       def usage(extra: String = "") =
-        s"usage: $appName <daemon-dir> <out-mode> <mill-args>$extra"
+        s"usage: $appName <daemon-dir> <out-mode> <use-file-locks> <mill-args>$extra"
 
       args match {
-        case Array(daemonDir, outModeStr, rest*) =>
+        case Array(daemonDir, outModeStr, useFileLocksStr, rest*) =>
           Try(OutFolderMode.fromString(outModeStr)) match {
             case Failure(_) =>
               val possibleValues = OutFolderMode.values.map(_.asString).mkString(", ")
               Left(usage(s"\n\n<out-mode> must be one of $possibleValues but was '$outModeStr'"))
-            case Success(outMode) => Right(apply(os.Path(daemonDir), outMode, rest))
+            case Success(outMode) =>
+              val useFileLocks = useFileLocksStr.toBoolean
+              Right(apply(os.Path(daemonDir), outMode, useFileLocks, rest))
           }
         case _ => Left(usage())
       }
@@ -53,7 +60,7 @@ object MillDaemonMain0 {
       val exitCode = new MillDaemonMain0(
         daemonDir = args.daemonDir,
         acceptTimeout = acceptTimeout,
-        Locks.files(args.daemonDir.toString),
+        Locks.forDirectory(args.daemonDir.toString, args.useFileLocks),
         outMode = args.outMode
       ).run().getOrElse(0)
 
@@ -88,8 +95,15 @@ class MillDaemonMain0(
       setIdle: Boolean => Unit,
       userSpecifiedProperties: Map[String, String],
       initialSystemProperties: Map[String, String],
-      systemExit: Server.StopServer
+      systemExit: Server.StopServer,
+      serverToClient: mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient],
+      millRepositories: Seq[String]
   ): (Boolean, RunnerState) = {
+    // Create runner that sends subprocess requests to the launcher via RPC
+    val launcherRunner: mill.api.daemon.LauncherSubprocess.Runner =
+      config =>
+        serverToClient(mill.launcher.DaemonRpc.ServerToClient.RunSubprocess(config)).exitCode
+
     try MillMain0.main0(
         args = args,
         stateCache = stateCache,
@@ -101,8 +115,16 @@ class MillDaemonMain0(
         initialSystemProperties = initialSystemProperties,
         systemExit = systemExit,
         daemonDir = daemonDir,
-        outLock = outLock
+        outLock = outLock,
+        launcherSubprocessRunner = launcherRunner,
+        serverToClientOpt = Some(serverToClient),
+        millRepositories = millRepositories
       )
-    catch MillMain0.handleMillException(streams.err, stateCache)
+    catch {
+      // Let InterruptedException propagate without printing (used by deferredStopServer for shutdown)
+      case e: InterruptedException => throw e
+      case e if MillMain0.handleMillException(streams.err, stateCache).isDefinedAt(e) =>
+        MillMain0.handleMillException(streams.err, stateCache)(e)
+    }
   }
 }

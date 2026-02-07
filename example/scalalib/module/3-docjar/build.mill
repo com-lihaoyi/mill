@@ -33,8 +33,8 @@
 */
 
 // When using Scala 3 you're also able to use Scaladoc to generate a full static
-// site next to your API documention. This can include general documenation for
-// your project and even a blog. While you can find the full documenation for this
+// site next to your API documentation. This can include general documentation for
+// your project and even a blog. While you can find the full documentation for this
 // in the https://docs.scala-lang.org/scala3/guides/scaladoc/index.html[Scala 3
 // docs], below you'll find some useful information to help you generate this with
 // Mill.

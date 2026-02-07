@@ -11,6 +11,7 @@ import millbuild.*
  * defining Tasks, Modules, helper code, and other related data structures.
  */
 object `package` extends MillStableScalaModule with BuildInfo {
+
   object java11 extends MillPublishScalaModule with MillJava11ScalaModule {
     def moduleDeps = Seq(build.core.api.daemon)
 
@@ -30,7 +31,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
     )
   }
 
-  def unmanagedClasspath = Seq(java11.compile().classes)
+  def localCompileClasspath = super.localCompileClasspath() ++ Seq(java11.compile().classes)
   def mvnDeps = java11.mvnDeps()
   def moduleDeps = Seq(build.core.api.daemon)
 
@@ -48,7 +49,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
   def buildInfoPackageName = "mill.api"
 
   def buildInfoMembers = Seq(
-    BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
+    BuildInfo.Value("millVersion", "SNAPSHOT", "Mill version."),
     BuildInfo.Value("millDocUrl", Settings.docUrl, "Mill documentation url."),
     BuildInfo.Value(
       "millReportNewIssueUrl",

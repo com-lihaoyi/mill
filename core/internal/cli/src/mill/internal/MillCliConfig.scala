@@ -5,11 +5,12 @@ import mill.api.JsonFormatters.*
 
 case class MillCliConfig(
     // ==================== NORMAL CLI FLAGS ====================
-    @arg(doc = "Run without a long-lived background daemon. Must be the first argument.")
+    @arg(doc = "Run without a long-lived background daemon.")
     noDaemon: Flag = Flag(),
     @arg(name = "version", short = 'v', doc = "Show mill version information and exit.")
     showVersion: Flag = Flag(),
     @arg(
+      hidden = true,
       name = "bell",
       short = 'b',
       doc = "Ring the bell once if the run completes successfully, twice if it fails."
@@ -21,7 +22,7 @@ case class MillCliConfig(
            tasks and where each log line came from"""
     )
     ticker: Option[Boolean] = None,
-    @arg(name = "debug", short = 'd', doc = "Show debug output on STDOUT")
+    @arg(hidden = true, name = "debug", short = 'd', doc = "Show debug output on STDOUT")
     debugLog: Flag = Flag(),
     @arg(
       short = 'k',
@@ -51,19 +52,20 @@ case class MillCliConfig(
     )
     imports: Seq[String] = Nil,
     @arg(
+      hidden = true,
       short = 'i',
       doc =
-        """Run Mill in interactive mode, suitable for opening REPLs and taking user input.
-          Identical to --no-daemon. Must be the first argument."""
+        """Alias for now `--no-daemon`. No longer needed for interactive commands since Mill 1.1.0"""
     )
     interactive: Flag = Flag(),
     @arg(doc = "Print this help message and exit.")
     help: Flag,
     @arg(doc = "Print a internal or advanced command flags not intended for common usage")
     helpAdvanced: Flag,
-    @arg(short = 'w', doc = "Watch and re-run the given tasks when when their inputs change.")
+    @arg(short = 'w', doc = "Watch and re-run the given tasks when their inputs change.")
     watch: Flag = Flag(),
     @arg(
+      hidden = true,
       name = "notify-watch",
       doc = "Use filesystem based file watching instead of polling based one (defaults to true)."
     )
@@ -72,18 +74,22 @@ case class MillCliConfig(
     leftoverArgs: Leftover[String] = Leftover(),
     @arg(doc =
       """Toggle colored output; by default enabled only if the console is interactive
-         or FORCE_COLOR environment variable is set, and NO_COLOR environment variable is not set"""
+         or FORCE_COLOR environment variable is set, and NO_COLOR is not set"""
     )
     color: Option[Boolean] = None,
     @arg(
       doc =
         """Select a meta-level to run the given tasks. Level 0 is the main project in `build.mill`,
-           level 1 the first meta-build in `mill-build/build.mill`, etc."""
+           level 1 the first meta-build in `mill-build/build.mill`, etc.
+           If negative, -1 means the deepest meta-build (bootstrap build), -2 the second deepest meta-build, etc."""
     )
     metaLevel: Option[Int] = None,
 
     // ==================== ADVANCED CLI FLAGS ====================
-    @arg(doc = "Allows command args to be passed positionally without `--arg` by default")
+    @arg(
+      hidden = true,
+      doc = "Allows command args to be passed positionally without `--arg` by default"
+    )
     allowPositional: Flag = Flag(),
     @arg(
       hidden = true,
@@ -112,6 +118,7 @@ case class MillCliConfig(
     )
     noWaitForBuildLock: Flag = Flag(),
     @arg(
+      hidden = true,
       doc = """
         Try to work offline.
         This tells modules that support it to work offline and avoid any access to the internet.
@@ -121,6 +128,7 @@ case class MillCliConfig(
     )
     offline: Flag = Flag(),
     @arg(
+      hidden = true,
       doc = """
         Globally disables the checks that prevent you from reading and writing to disallowed
         files or folders during evaluation. Useful as an escape hatch in case you desperately
@@ -129,17 +137,19 @@ case class MillCliConfig(
     )
     noFilesystemChecker: Flag = Flag(),
     @arg(
-      doc = """Runs Mill in tab-completion mode"""
+      hidden = true,
+      doc = """
+        Use traditional file-based locking instead of PID-based locking for the Mill daemon.
+        This removes the chance of race conditions when claiming the lock after a crash, but
+        may have issues on some filesystems that do not support lock (e.g. docker mounts on mac)
+      """
     )
+    useFileLocks: Flag = Flag(),
+    @arg(hidden = true, doc = """Runs Mill in tab-completion mode""")
     tabComplete: Flag = Flag(),
     @arg(hidden = true, short = 'h', doc = "Unsupported, but kept for compatibility")
     home: os.Path = os.home,
-    @arg(doc =
-      """Open a Scala REPL with the classpath of the meta-level 1 build module (mill-build/).
-        Implies options `--meta-level 1` and `--no-server`."""
-    )
-    repl: Flag = Flag(),
-    @arg(hidden = true, doc = "Deprecated, use `--no-deamon` instead")
+    @arg(hidden = true, doc = "Deprecated, use `--no-daemon` instead")
     noServer: Flag = Flag(),
     @arg(hidden = true, short = 's', doc = "Unsupported, but kept for compatibility")
     silent: Flag = Flag(),
@@ -150,19 +160,11 @@ case class MillCliConfig(
     @arg(hidden = true, doc = "Unsupported, but kept for compatibility")
     enableTicker: Option[Boolean] = None,
     @arg(hidden = true, doc = "Deprecated, use `--ticker false` instead")
-    disableTicker: Flag,
-    @arg(
-      doc = """Open a JShell REPL with the classpath of the meta-level 1 build module (mill-build/).
-               This is useful for interactively testing and debugging your build logic.
-               Implies options `--meta-level 1` and `--no-server`."""
-    )
-    jshell: Flag = Flag()
+    disableTicker: Flag
 ) {
   def noDaemonEnabled =
     Seq(
       interactive,
-      jshell,
-      repl,
       noDaemon,
       noServer,
       bsp
@@ -180,28 +182,36 @@ Usage: mill [options] task [task-options] [+ task ...]
   val cheatSheet =
     """
 Task cheat sheet:
-  mill resolve _                 # see all top-level tasks and modules
-  mill resolve __.compile        # see all `compile` tasks in any module (recursively)
+  ./mill repl                      # open up a Scala REPL with Mill
+  ./mill jshell                    # open up a JShell Java Console with Mill
 
-  mill foo.bar.compile           # compile the module `foo.bar`
+  ./mill Foo.java                  # run a Java single-file script
+  ./mill Foo.scala:compile         # run the `compile` task on a Scala single-file script
 
-  mill foo.run --arg 1           # run the main method of the module `foo` and pass in `--arg 1`
-  mill -i foo.repl               # run the Scala repl for the module `foo` (if it is a ScalaModule)
+  ./mill resolve _                 # see all top-level tasks and modules
+  ./mill resolve __.compile        # see all `compile` tasks in any module (recursively)
 
-  mill foo.__.test               # run tests in modules nested within `foo` (recursively)
-  mill foo.test arg1 arg2        # run tests in the `foo` module passing in test arguments `arg1 arg2`
-  mill foo.test + bar.test       # run tests in the `foo` module and `bar` module
-  mill '{foo,bar,qux}.test'      # run tests in the `foo` module, `bar` module, and `qux` module
+  ./mill foo.bar.compile           # compile the module `foo.bar`
 
-  mill foo.assembly              # generate an executable assembly of the module `foo`
-  mill show foo.assembly         # print the output path of the assembly of module `foo`
-  mill inspect foo.assembly      # show docs and metadata for the `assembly` task on module `foo`
+  ./mill foo.run --arg 1           # run the main method of the module `foo` and pass in `--arg 1`
+  ./mill foo.repl               # run the Scala repl for the module `foo` (if it is a ScalaModule)
 
-  mill clean foo.assembly        # delete the output of `foo.assembly` to force re-evaluation
-  mill clean                     # delete the output of the entire build to force re-evaluation
+  ./mill foo.__.test               # run tests in modules nested within `foo` (recursively)
+  ./mill foo.test arg1 arg2        # run tests in the `foo` module passing in test arguments `arg1 arg2`
+  ./mill foo.test + bar.test       # run tests in the `foo` module and `bar` module
+  ./mill '{foo,bar,qux}.test'      # run tests in the `foo` module, `bar` module, and `qux` module
 
-  mill path foo.run foo.sources  # print the task chain showing how `foo.run` depends on `foo.sources`
-  mill visualize __.compile      # show how the `compile` tasks in each module depend on one another
+  ./mill foo.resolvedMvnSources    # resolve `foo`'s third-party dependencies' source code for browsing
+
+  ./mill foo.assembly              # generate an executable assembly of the module `foo`
+  ./mill show foo.assembly         # print the output path of the assembly of module `foo`
+  ./mill inspect foo.assembly      # show docs and metadata for the `assembly` task on module `foo`
+
+  ./mill clean foo.assembly        # delete the output of `foo.assembly` to force re-evaluation
+  ./mill clean                     # delete the output of the entire build to force re-evaluation
+
+  ./mill path foo.run foo.sources  # print the task chain showing how `foo.run` depends on `foo.sources`
+  ./mill visualize __.compile      # show how the `compile` tasks in each module depend on one another
 
 Options:
 """
@@ -238,8 +248,7 @@ Advanced Options:
       usageDoc +
       cheatSheet +
       parser.helpText(customName = "", totalWidth = 100).stripPrefix("\n") +
-      "\nPlease see the documentation at https://mill-build.org for more details,\n" +
-      "or `./mill --help-advanced` for a list of advanced flags"
+      "\nSee documentation at https://mill-build.org for more details"
 
   lazy val helpAdvancedUsageText: String =
     customName +

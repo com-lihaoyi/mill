@@ -1,5 +1,7 @@
 //| mill-version: SNAPSHOT
 //| mill-jvm-version: system
 package build
+
 import mill.*
+
 object `package` extends Module {}

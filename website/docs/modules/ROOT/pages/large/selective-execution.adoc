@@ -47,14 +47,9 @@ def myProjectVersion: T[String] = Task.Input {
 
 == Debugging Selective Execution
 
-* Use `selective.resolve` before `selective.run`: this will print out what it was going to run,
-  and can give you a chance to eyeball if the list of tasks to run makes sense or not
-
-* Look at xref:fundamentals/out-dir.adoc#_mill_invalidation_tree_json[out/mill-invalidation-tree.json],
-  whether on disk locally or printing it out (e.g via `cat`) on your CI machines to diagnose issues
-  there. This would give you a richer view of what source tasks or inputs are the ones actually
-  triggered the invalidation, and what tasks were just invalidated due to being downstream of them.
-
+Use `selective.resolveTree` before `selective.run`: this will print out what it was going to run,
+why they are being run (e.g. due to an input task change, build code change, or Mill version change)
+and can give you a chance to eyeball if the list of tasks to run makes sense or not
 
 == Limitations
 
@@ -77,3 +72,15 @@ def myProjectVersion: T[String] = Task.Input {
   so `.testCached` can be skipped. This is inherent in the nature of selective execution, which
   does its analysis without evaluation-time information and thus will always be more conservative
   than the task skipping and cache-reuse that is done during evaluation.
+
+
+== `selectiveInputs`
+
+include::partial$example/large/selective/10-selective-inputs.adoc[]
+
+== Further Reading
+
+See the following blog post for a broader discussion on the idea of selective test
+execution, beyond the Mill build tool:
+
+- xref:blog::3-selective-testing.adoc[Faster CI with Selective Testing]

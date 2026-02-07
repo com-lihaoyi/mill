@@ -1,0 +1,9 @@
+package build
+import mill.*
+
+val valueFoo = 0
+val valueFooUsedInBar = 0
+lazy val lazyValue = 0
+lazy val lazyValue2 = 0
+def helperFoo = { println("running helperFoo"); 1 + valueFoo + lazyValue }
+def foo = Task { println("running foo"); helperFoo + lazyValue }

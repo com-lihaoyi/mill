@@ -6,6 +6,7 @@ import mill.javalib.*
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.{TestSuite, Tests, assert, *}
+import scala.annotation.nowarn
 
 object BuildTest extends TestSuite {
 
@@ -24,19 +25,20 @@ object BuildTest extends TestSuite {
     val millDiscover: Discover = Discover[this.type]
   }
 
+  @nowarn("msg=unused pattern variable")
   def tests = Tests {
     test("clean") - UnitTester(Build, null).scoped { eval =>
-      val Right(result) = eval(Build.build.flywayClean()): @unchecked
+      val Right(result) = eval(Build.build.flywayClean()).runtimeChecked
       assert(result.evalCount > 0)
     }
 
     test("migrate") - UnitTester(Build, null).scoped { eval =>
-      val Right(result) = eval(Build.build.flywayMigrate()): @unchecked
+      val Right(result) = eval(Build.build.flywayMigrate()).runtimeChecked
       assert(
         result.evalCount > 0,
         result.value.migrationsExecuted == 1
       )
-      val Right(resultAgain) = eval(Build.build.flywayMigrate()): @unchecked
+      val Right(resultAgain) = eval(Build.build.flywayMigrate()).runtimeChecked
       assert(
         resultAgain.evalCount > 0,
         resultAgain.value.migrationsExecuted == 0
@@ -44,7 +46,7 @@ object BuildTest extends TestSuite {
     }
 
     test("info") - UnitTester(Build, null).scoped { eval =>
-      val Right(result) = eval(Build.build.flywayInfo()): @unchecked
+      val Right(result) = eval(Build.build.flywayInfo()).runtimeChecked
       assert(result.evalCount > 0)
     }
   }

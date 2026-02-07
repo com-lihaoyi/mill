@@ -5,10 +5,11 @@ import mill.*
 import mill.api.{PathRef, Task, *}
 import mill.api.daemon.internal.{CompileProblemReporter, internal}
 import mill.javalib.CoursierModule.Resolver
-import mill.javalib.api.JvmWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
+import mill.javalib.api.JvmWorkerUtil.isBinaryBridgeAvailable
 import mill.javalib.api.internal.InternalJvmWorkerApi
 import mill.javalib.api.{CompilationResult, JvmWorkerApi, JvmWorkerArgs, JvmWorkerUtil, Versions}
 import mill.javalib.api.internal.ZincCompilerBridgeProvider
+import scala.annotation.nowarn
 
 /**
  * A default implementation of [[JvmWorkerModule]]
@@ -53,6 +54,10 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
   /** Whether Zinc debug logging is enabled. */
   def zincLogDebug: T[Boolean] = Task.Input(Task.ctx().log.debugEnabled)
 
+  /** Whether to use file-based locking instead of PID-based locking. */
+  def useFileLocks: T[Boolean] = Task.Input(Task.ctx().useFileLocks)
+
+  @nowarn("msg=.*Workers should implement AutoCloseable.*")
   def worker: Worker[JvmWorkerApi] = Task.Worker {
     // don't know why we have `worker` and `internalWorker`,
     // but we can't share the same instance, as we risk to run `close` on one,
@@ -149,11 +154,11 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
   }
 
   @internal def internalWorker: Worker[InternalJvmWorkerApi] = Task.Worker {
-    val jobs = Task.ctx().jobs
+    val ctx = Task.ctx()
+    val jobs = ctx.jobs
 
     val cl = internalWorkerClassLoader()
 
-    val ctx = Task.ctx()
     val zincCompilerBridge = ZincCompilerBridgeProvider(
       workspace = ctx.dest,
       logInfo = ctx.log.info,
@@ -166,6 +171,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       classPath = classpath().map(_.path),
       jobs = jobs,
       zincLogDebug = zincLogDebug(),
+      useFileLocks = useFileLocks(),
       close0 = () => ()
     )
 
@@ -180,34 +186,10 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       scalaOrganization: String,
       resolver: Resolver
   )(using ctx: TaskCtx): ZincCompilerBridgeProvider.AcquireResult[PathRef] = {
-    val (scalaVersion0, scalaBinaryVersion0) = scalaVersion match {
-      case _ => (scalaVersion, JvmWorkerUtil.scalaBinaryVersion(scalaVersion))
-    }
+    val (bridgeDepStr, bridgeName, bridgeVersion) =
+      JvmWorkerUtil.scalaCompilerBridgeDep(scalaVersion, scalaOrganization)
 
-    val (bridgeDep, bridgeName, bridgeVersion) =
-      if (isDottyOrScala3(scalaVersion0)) {
-        val org = scalaOrganization
-        val name =
-          if (isDotty(scalaVersion0)) "dotty-sbt-bridge"
-          else "scala3-sbt-bridge"
-        val version = scalaVersion
-        (mvn"$org:$name:$version", name, version)
-      } else if (JvmWorkerUtil.millCompilerBridgeScalaVersions.contains(scalaVersion0)) {
-        val org = "com.lihaoyi"
-        val name = s"mill-scala-compiler-bridge_$scalaVersion"
-        val version = Versions.millCompilerBridgeVersion
-        (mvn"$org:$name:$version", name, version)
-      } else {
-        val org = "org.scala-sbt"
-        val name = "compiler-bridge"
-        val version = Versions.zinc
-        (
-          mvn"$org:${name}_${scalaBinaryVersion0}:$version",
-          s"${name}_$scalaBinaryVersion0",
-          version
-        )
-      }
-
+    val bridgeDep = Dep.parse(bridgeDepStr)
     val useSources = !isBinaryBridgeAvailable(scalaVersion)
 
     val deps = resolver.classpath(

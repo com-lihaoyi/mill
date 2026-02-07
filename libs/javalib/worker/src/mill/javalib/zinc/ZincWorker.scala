@@ -27,8 +27,11 @@ import java.net.URLClassLoader
 import java.util.Optional
 import scala.collection.mutable
 
-/** @param jobs number of parallel jobs */
-class ZincWorker(jobs: Int) extends AutoCloseable { self =>
+/**
+ * @param jobs number of parallel jobs
+ * @param useFileLocks use file-based locking instead of PID-based locking
+ */
+class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable { self =>
   private val incrementalCompiler = new sbt.internal.inc.IncrementalCompilerImpl()
   private val compilerBridgeLocks: mutable.Map[String, MemoryLock] = mutable.Map.empty
 
@@ -519,8 +522,9 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
     // the compiler bridge inside a separate `ZincWorkerMain` subprocess
     val doubleLock = new DoubleLock(
       memoryLock,
-      new FileLock(
-        (compilerBridgeProvider.workspace / "compiler-bridge-locks" / scalaVersion).toString
+      Lock.forDirectory(
+        (compilerBridgeProvider.workspace / "compiler-bridge-locks" / scalaVersion).toString,
+        useFileLocks
       )
     )
     try {
@@ -582,13 +586,13 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
         scaladocJar(msg, processConfig).asInstanceOf[op.Response]
 
       case msg: ZincOp.DiscoverTests =>
-        mill.javalib.testrunner.DiscoverTestsMain(msg).asInstanceOf[op.Response]
+        mill.javalib.testrunner.DiscoverTests(msg).asInstanceOf[op.Response]
 
       case msg: ZincOp.GetTestTasks =>
-        mill.javalib.testrunner.GetTestTasksMain(msg).asInstanceOf[op.Response]
+        mill.javalib.testrunner.GetTestTasks(msg).asInstanceOf[op.Response]
 
       case msg: ZincOp.DiscoverJunit5Tests =>
-        mill.javalib.testrunner.DiscoverJunit5TestsMain(msg).asInstanceOf[op.Response]
+        mill.javalib.testrunner.DiscoverJunit5Tests(msg).asInstanceOf[op.Response]
     }
   }
 }

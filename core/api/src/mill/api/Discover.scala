@@ -17,9 +17,20 @@ import scala.collection.mutable
  */
 final class Discover(val classInfo: Map[Class[?], Discover.ClassInfo]) {
   private[mill] val allTaskNames = classInfo.values.flatMap(_.declaredTaskNameSet).toSet
+
+  /**
+   * Check if the given task name is marked as nonBootstrapped for the given class.
+   * Looks up the class hierarchy to find if any parent class has this task marked as nonBootstrapped.
+   */
+  private[mill] def isNonBootstrapped(cls: Class[?], name: String): Boolean = {
+    resolveClassInfos(cls).exists { case (_, info) =>
+      info.nonBootstrappedTaskNames.contains(name)
+    }
+  }
+
   private[mill] def resolveEntrypoint(cls: Class[?], name: String) = {
     val res = for {
-      (cls2, node) <- resolveClassInfos(cls)
+      (_, node) <- resolveClassInfos(cls)
       ep <- node.entryPoints
       if ep.mainName.getOrElse(ep.defaultName) == name
     } yield ep
@@ -44,8 +55,9 @@ object Discover {
       val declaredTasks: Seq[TaskInfo]
   ) {
     lazy val declaredTaskNameSet = declaredTasks.map(_.name).toSet
+    lazy val nonBootstrappedTaskNames = declaredTasks.filter(_.nonBootstrapped).map(_.name).toSet
   }
-  final class TaskInfo(val name: String)
+  final class TaskInfo(val name: String, @com.lihaoyi.unroll val nonBootstrapped: Boolean = false)
 
   inline def apply[T]: Discover = ${ Router.applyImpl[T] }
 
@@ -110,16 +122,24 @@ object Discover {
       // otherwise the compiler likes to give us stuff in random orders, which
       // causes the code to be generated in random order resulting in code hashes
       // changing unnecessarily
-      val mapping: Seq[(TypeRepr, (Seq[scala.quoted.Expr[mainargs.MainData[?, ?]]], Seq[String]))] =
+      val mapping: Seq[(
+          TypeRepr,
+          (Seq[scala.quoted.Expr[mainargs.MainData[?, ?]]], Seq[(String, Boolean)])
+      )] =
         for (curCls <- seen.toSeq.sortBy(_.typeSymbol.fullName)) yield {
           val declMethods = filterDefs(curCls.typeSymbol.declaredMethods)
 
-          val names =
-            sortedMethods(
-              curCls,
-              sub = TypeRepr.of[mill.api.Task.Named[?]],
-              declMethods
-            ).map(_.name)
+          val taskMethods = sortedMethods(
+            curCls,
+            sub = TypeRepr.of[mill.api.Task.Named[?]],
+            declMethods
+          )
+
+          val names = taskMethods.map { m =>
+            val hasNonBootstrapped =
+              m.annotations.exists(_.tpe =:= TypeRepr.of[mill.api.nonBootstrapped])
+            (m.name, hasNonBootstrapped)
+          }
           val entryPoints = for {
             m <- sortedMethods(curCls, sub = TypeRepr.of[Task.Command[?]], declMethods)
             if m.paramSymss.length == 1
@@ -156,7 +176,11 @@ object Discover {
           '{
             def func() = new ClassInfo(
               ${ Expr.ofList(entryPoints.toList) },
-              ${ Expr.ofList(names.map(s => '{ new TaskInfo(${ Expr(s) }) })) }
+              ${
+                Expr.ofList(names.map { case (name, nonBootstrapped) =>
+                  '{ new TaskInfo(${ Expr(name) }, ${ Expr(nonBootstrapped) }) }
+                })
+              }
             )
 
             (${ classOf(cls) }, func())

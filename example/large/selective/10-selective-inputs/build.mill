@@ -1,0 +1,60 @@
+// Selective execution can be customized per task by passing `selectiveInputs`
+// to override the default task graph that selective execution relies on.
+// This replaces makes the configured task or command only get selected if
+// the explicitly listed `selectiveInputs` change, ignoring whether or not
+// the task's _actual_ inputs were changed or not.
+//
+// This example shows a command `qux` that depends on two sources `foo` and `bar`,
+// but only one of them `foo` is used to decide whether the task should be re-run
+// during selective execution.
+
+package build
+import mill.*
+
+def foo = Task.Source("foo.txt")
+def bar = Task.Source("bar.txt")
+
+def qux() = Task.Command(selectiveInputs = Seq(foo)) {
+  println("Running qux")
+  os.read(foo().path) + os.read(bar().path)
+}
+
+// In this example, even though `qux` depends on both `foo` and `bar`,
+// `selective.run` only runs `qux` when `foo` changes, and not when `bar` changes.
+
+/** Usage
+
+> ./mill selective.prepare qux
+
+> echo "!" >> bar.txt
+
+> ./mill selective.resolveTree qux
+{}
+
+> ./mill selective.run qux # does not run qux
+
+> echo "!" >> foo.txt
+
+> ./mill selective.resolveTree qux
+{
+  "foo": {
+    "qux": {}
+  }
+}
+
+> ./mill selective.run qux
+Running qux
+
+*/
+
+// `selectiveInputs` is useful to get more control over when a task or command
+// gets selected. e.g. A test suite may depend on both a downstream module and
+// some upstream utilities, but you may want to only run the tests if the downstream
+// module changes, and not when the upstream utilities change, on the assumption that
+// the upstream utilities' own test suite is likely to catch any issues in changes
+// to them and running the downstream module is redundant.
+//
+// Hypothetically, if `bar` has its own test suite, we may decide that running `qux` every
+// time `bar` changes is unnecessary, and so we can use `selectiveInputs` to make `qux`
+// only get selectively run when `foo` changes and not `bar`.
+//

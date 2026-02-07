@@ -4,7 +4,7 @@ import mill.api.Result
 import mill.api.Discover
 import mill.api.TestGraphs.*
 import mill.testkit.TestRootModule
-import mill.{Module, Task}
+import mill.{Cross, Module, Task}
 import utest.*
 object ResolveTests extends TestSuite {
 
@@ -50,6 +50,81 @@ object ResolveTests extends TestSuite {
   }
   object multiLevelSuperTask extends TestRootModule with TraitB {
     override def multi = Task { super.multi() + 100 }
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  // Test module with @Task.rename annotation
+  object renameModule extends TestRootModule {
+    def normalTask = Task { "normal" }
+
+    // This task is named `renamedTaskImpl` in code but exposed as `renamedTask` on CLI
+    @Task.rename("renamedTask")
+    def renamedTaskImpl = Task { "renamed" }
+
+    object nested extends Module {
+      @Task.rename("shortName")
+      def veryLongTaskName = Task { "nested-renamed" }
+    }
+
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  // Test module for private task visibility
+  object privateMethodsModule extends TestRootModule {
+    def pub = Task { priv() }
+    private def priv = Task { "priv" }
+
+    object foo extends Module {
+      def bar = Task { baz() }
+    }
+    private def baz = Task { "bazOuter" }
+
+    object qux extends Module {
+      object foo extends Module {
+        def bar = Task { baz() }
+      }
+      private def baz = Task { "bazInner" }
+    }
+
+    object cls extends clsClass
+    class clsClass extends Module {
+      object foo extends Module {
+        def bar = Task { baz() }
+      }
+      private def baz = Task { "bazCls" }
+    }
+
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  // Test that modules named with Scala keywords work
+  object keywordModule extends TestRootModule {
+    object `for` extends Module {
+      def task = Task { "for" }
+    }
+    object `if` extends Module {
+      def task = Task { "if" }
+    }
+    object `import` extends Module {
+      def task = Task { "import" }
+    }
+    object `null` extends Module {
+      def task = Task { "null" }
+    }
+    object `this` extends Module {
+      def task = Task { "this" }
+    }
+
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  // Test cross modules
+  object crossModule extends TestRootModule {
+    object myCross extends Cross[MyCross]("a", "b")
+    trait MyCross extends Cross.Module[String] {
+      def myTask = Task { crossValue }
+    }
+
     lazy val millDiscover = Discover[this.type]
   }
 
@@ -376,6 +451,169 @@ object ResolveTests extends TestSuite {
           )
         )
       }
+    }
+
+    test("rename") {
+      val check = new Checker(renameModule)
+
+      test("normalTaskStillWorks") - check(
+        "normalTask",
+        Result.Success(Set(_.normalTask)),
+        Set("normalTask")
+      )
+
+      test("renamedTaskResolvesViaNewName") - check(
+        "renamedTask",
+        Result.Success(Set(_.renamedTaskImpl)),
+        Set("renamedTask")
+      )
+
+      test("originalNameNotResolvable") - check.checkSeq0(
+        Seq("renamedTaskImpl"),
+        result => result.isInstanceOf[Result.Failure]
+      )
+
+      test("nestedRenameWorks") - check(
+        "nested.shortName",
+        Result.Success(Set(_.nested.veryLongTaskName)),
+        Set("nested.shortName")
+      )
+
+      test("nestedOriginalNameNotResolvable") - check.checkSeq0(
+        Seq("nested.veryLongTaskName"),
+        result => result.isInstanceOf[Result.Failure]
+      )
+
+      test("wildcardIncludesRenamedTasks") - check.checkSeq0(
+        Seq("_"),
+        result => {
+          result.isInstanceOf[Result.Success[?]] &&
+          result.toOption.get.size == 2 // normalTask and renamedTaskImpl (renamed as renamedTask)
+        },
+        metadata => {
+          metadata.isInstanceOf[Result.Success[?]] &&
+          metadata.toOption.get.toSet.contains("renamedTask") &&
+          metadata.toOption.get.toSet.contains("normalTask")
+        }
+      )
+    }
+
+    test("privateMethods") {
+      val check = new Checker(privateMethodsModule)
+
+      // Simple public task depending on private task works
+      test("pubDependsOnPriv") - check(
+        "pub",
+        Result.Success(Set(_.pub)),
+        Set("pub")
+      )
+
+      // Calling private methods indirectly via public tasks works
+      test("fooBar") - check(
+        "foo.bar",
+        Result.Success(Set(_.foo.bar)),
+        Set("foo.bar")
+      )
+
+      test("quxFooBar") - check(
+        "qux.foo.bar",
+        Result.Success(Set(_.qux.foo.bar)),
+        Set("qux.foo.bar")
+      )
+
+      test("clsFooBar") - check(
+        "cls.foo.bar",
+        Result.Success(Set(_.cls.foo.bar)),
+        Set("cls.foo.bar")
+      )
+
+      // Calling private methods directly fails
+      test("privNotResolvable") - check.checkSeq0(
+        Seq("priv"),
+        result =>
+          result.isInstanceOf[Result.Failure] &&
+            result.errorOpt.exists(_.contains("Cannot resolve priv"))
+      )
+
+      test("bazNotResolvable") - check.checkSeq0(
+        Seq("baz"),
+        result =>
+          result.isInstanceOf[Result.Failure] &&
+            result.errorOpt.exists(_.contains("Cannot resolve baz"))
+      )
+
+      test("quxBazNotResolvable") - check.checkSeq0(
+        Seq("qux.baz"),
+        result =>
+          result.isInstanceOf[Result.Failure] &&
+            result.errorOpt.exists(_.contains("Cannot resolve qux.baz"))
+      )
+
+      test("clsBazNotResolvable") - check.checkSeq0(
+        Seq("cls.baz"),
+        result =>
+          result.isInstanceOf[Result.Failure] &&
+            result.errorOpt.exists(_.contains("Cannot resolve cls.baz"))
+      )
+    }
+
+    test("keywordModules") {
+      val check = new Checker(keywordModule)
+
+      // Test that modules named with Scala keywords can be resolved
+      test("for") - check(
+        "for.task",
+        Result.Success(Set(_.`for`.task)),
+        Set("for.task")
+      )
+
+      test("if") - check(
+        "if.task",
+        Result.Success(Set(_.`if`.task)),
+        Set("if.task")
+      )
+
+      test("import") - check(
+        "import.task",
+        Result.Success(Set(_.`import`.task)),
+        Set("import.task")
+      )
+
+      test("null") - check(
+        "null.task",
+        Result.Success(Set(_.`null`.task)),
+        Set("null.task")
+      )
+
+      test("this") - check(
+        "this.task",
+        Result.Success(Set(_.`this`.task)),
+        Set("this.task")
+      )
+    }
+
+    test("crossModules") {
+      val check = new Checker(crossModule)
+
+      // Test cross modules can be resolved
+      test("crossA") - check(
+        "myCross[a].myTask",
+        Result.Success(Set(_.myCross("a").myTask)),
+        Set("myCross.a.myTask")
+      )
+
+      test("crossB") - check(
+        "myCross[b].myTask",
+        Result.Success(Set(_.myCross("b").myTask)),
+        Set("myCross.b.myTask")
+      )
+
+      // Test wildcard across cross values
+      test("crossWildcard") - check(
+        "myCross._.myTask",
+        Result.Success(Set(_.myCross("a").myTask, _.myCross("b").myTask)),
+        Set("myCross.a.myTask", "myCross.b.myTask")
+      )
     }
 
   }

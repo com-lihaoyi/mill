@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import mill.api.daemon.MillException;
 
 public class Util {
 
@@ -125,7 +126,8 @@ public class Util {
       String errorFileName, int lineNumber, String line, String msg) {
     // lineNumber is 0-indexed, convert to 1-indexed for display
     // Column is 1 since the error applies to the start of the line
-    throw new RuntimeException(formatError(errorFileName, lineNumber + 1, 1, line, msg, s -> s));
+    // Use MillException to get nice error output without stack trace in launcher
+    throw new MillException(formatError(errorFileName, lineNumber + 1, 1, line, msg, s -> s));
   }
 
   public static String readBuildHeader(Path buildFile, String errorFileName) {

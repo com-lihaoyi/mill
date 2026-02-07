@@ -1,5 +1,5 @@
-extends: [ScalaModule]
-scalaVersion: 2.13.16
+extends: [mill.scalalib.ScalaModule] # fully-qualified class name
+scalaVersion: 3.7.4
 mvnDeps:
 - com.lihaoyi::scalatags:0.13.1
 - com.lihaoyi::os-lib:0.11.4
@@ -11,13 +11,14 @@ repositories: [https://oss.sonatype.org/content/repositories/releases]
 mainClass: foo.Foo2
 
 # Pin a specific JVM version, supports >=11
-jvmId: 11
+jvmVersion: 11
 # Optionally specify the distribution: temurin, zulu, corretto, graalvm-community, etc.
-# jvmId: temurin:11
+# jvmVersion: temurin:11
 
 # Add an additional source folder and resource folder, in addition to the default one
-sources: [src/, custom-src/]
-resources: [resources/, custom-resources/]
+# Note the !append tag to append to the existing value rather than over-writing it
+sources: !append [custom-src/]
+resources: !append [custom-resources/]
 
 # Configure compiler and runtime options and env vars
 scalacOptions: [-deprecation, -Xfatal-warnings]

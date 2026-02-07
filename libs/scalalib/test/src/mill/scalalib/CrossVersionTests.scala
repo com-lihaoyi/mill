@@ -71,6 +71,18 @@ object CrossVersionTests extends TestSuite {
       override def mvnDeps = Seq(mvn"com.lihaoyi::sourcecode:0.2.7")
     }
 
+    object StandaloneScala38 extends ScalaModule {
+      val tree =
+        """└─ org.scala-lang:scala-library:3.8.1
+          |""".stripMargin
+      override def scalaVersion = "3.8.1"
+    }
+
+    object Scala213DependsOnScala38 extends ScalaModule {
+      override def scalaVersion = "2.13.18"
+      override def moduleDeps = Seq(StandaloneScala38)
+    }
+
     object JavaDependsOnScala3 extends JavaModule {
       val tree =
         """├─ Scala3DependsOnScala213
@@ -127,7 +139,7 @@ object CrossVersionTests extends TestSuite {
 
   def init() = UnitTester(TestCases, null)
 
-  import TestCases._
+  import TestCases.*
 
   def check(
       mod: JavaModule,
@@ -135,7 +147,7 @@ object CrossVersionTests extends TestSuite {
       expectedMvnDepsTree: Option[String] = None
   ) = {
     init().scoped { eval =>
-      val Right(result) = eval.apply(mod.showMvnDepsTree(MvnDepsTreeArgs())): @unchecked
+      val Right(result) = eval.apply(mod.showMvnDepsTree(MvnDepsTreeArgs())).runtimeChecked
 
       expectedMvnDepsTree.foreach { tree =>
         if (scala.util.Properties.isWin) {
@@ -146,7 +158,7 @@ object CrossVersionTests extends TestSuite {
         }
       }
 
-      val Right(libs) = eval.apply(mod.compileClasspath): @unchecked
+      val Right(libs) = eval.apply(mod.compileClasspath).runtimeChecked
 
       val libNames = libs.value.map(l => l.path.last).filter(_.endsWith(".jar")).toSeq.sorted
       assert(libNames == expectedLibs.sorted)
@@ -211,6 +223,26 @@ object CrossVersionTests extends TestSuite {
           "upickle_2.13-1.4.0.jar"
         ),
         expectedMvnDepsTree = Some(Scala3DependsOnScala213.tree)
+      )
+    }
+
+    test("StandaloneScala38") {
+      check(
+        mod = StandaloneScala38,
+        expectedLibs = Seq(
+          "scala-library-3.8.1.jar"
+        ),
+        expectedMvnDepsTree = Some(StandaloneScala38.tree)
+      )
+    }
+
+    test("Scala213DependsOnScala38") {
+      // Scala 2.13 module remaps scala-library to its own version via mapDependencies
+      check(
+        mod = Scala213DependsOnScala38,
+        expectedLibs = Seq(
+          "scala-library-2.13.18.jar"
+        )
       )
     }
 

@@ -97,7 +97,7 @@ out/foo/compile.dest
 // == Other files in the `out/` directory
 //
 // Apart from the build task-related files in the out folder, Mill itself places a variety
-// of files in the outfolder under the `out/mill-*` prefix:
+// of files in the out folder under the `out/mill-*` prefix:
 
 /** Usage
 
@@ -105,9 +105,11 @@ out/foo/compile.dest
 out/mill-chrome-profile.json
 out/mill-dependency-tree.json
 out/mill-invalidation-tree.json
+out/mill-out-lock
 out/mill-profile.json
 out/mill-build
 out/mill-daemon
+out/mill-runner-state.json
 
 */
 
@@ -126,7 +128,7 @@ out/mill-daemon
 [
   {
     "label": "mill.javalib.JvmWorkerModule/internalWorker",
-    "millis": 0,
+    "millis": ...,
     "cached": true,
     "valueHashChanged": false,
     "dependencies": [
@@ -162,6 +164,21 @@ out/mill-daemon
 // is most useful to get a high-level overview of the runtime performance characteristics of
 // the tasks that were
 //
+// === `mill-runner-state.json`
+// Long-lived metadata about the Mill bootstrap process that persists between runs:
+// workers, watched files, classpaths, and related data.
+//
+// === `mill-active.json`
+// A JSON file containing info about the active Mill process (command and process directory),
+// used for debugging. It is present while a command is running and removed afterward.
+//
+// === `mill-selective-execution.json`
+// Metadata related to selective execution (input hashes and method signatures) used to decide
+// what tasks need to run after code or input changes.
+//
+// === `mill-no-daemon`
+// A subfolder used to contain the Mill subprocess when run in `--no-daemon` mode.
+//
 // === `mill-dependency-tree.json`
 // A JSON file where the root keys are the tasks directly specified by the last
 // `./mill <selector>` command, and the tree structure shows the _upstream_ tasks and how
@@ -169,7 +186,7 @@ out/mill-daemon
 // `<selector>` is causing a particular upstream task to be selected.
 //
 // For example, when running `foo.compile` above, we get a tree structure (simplified below)
-// that hsows how `foo.compile` depends on `foo.allSourceFiles`/`foo.allSources`/`foo.sources`
+// that shows how `foo.compile` depends on `foo.allSourceFiles`/`foo.allSources`/`foo.sources`
 // (the files in the `src/` folder), `foo.compileClasspath`/`localCompileClasspath`/`compileResources`
 // (i.e. the files in the `compile-resources/` folder:
 
@@ -185,10 +202,11 @@ out/mill-daemon
       }
     },
     "foo.compileClasspath": {
-      "foo.localCompileClasspath": {
-        "foo.unmanagedClasspath": {},
-        "foo.compileResources": {}
-      }
+      "foo.resolvedMvnDeps": {
+        "foo.mvnDeps": {},
+        ...
+      },
+      ...
     },
     ...
   }
@@ -217,7 +235,8 @@ out/mill-daemon
   "foo.sources": {
     "foo.allSources": {
       "foo.allSourceFiles": {
-        "foo.compile": {}
+        "foo.compile": {},
+        "foo.zincIncrementalCompilation": {}
       }
     }
   }
@@ -228,14 +247,13 @@ out/mill-daemon
 // Again, if there are multiple paths through which one task was invalidated by another,
 // one path is chosen arbitrarily to be shown in the spanning tree
 //
-// === `codeSignatures spanningInvalidationTree`
+// ==== Code Change Invalidation
 //
 // Sometimes invalidation can be caused by a code change in your `build.mill`/`package.mill`
 // files, rather than by a change in the project's source files or inputs. In such cases,
-// the root tasks in `mill-invalidation-tree.json` may not necessarily be inputs. In such
-// cases, you can look at `out/mill-build/codeSignatures.dest/current/spanningInvalidationTree.json`
-// to see an invalidation tree for how code changes in specfic methods propagate throughout
-// the `build.mill` codebase.
+// `mill-invalidation-tree.json` will show the method-level code changes that caused the
+// invalidation, with `def` and `call` nodes showing how the code change propagates through
+// the build definition to reach the invalidated tasks.
 
 /** Usage
 
@@ -243,27 +261,20 @@ out/mill-daemon
 
 > ./mill foo.compile # compile after changing build.mill
 
-> cat out/mill-build/codeSignatures.dest/current/spanningInvalidationTree.json
+> cat out/mill-invalidation-tree.json
 {
+  "def build_.package_$foo$#<init>(build_.package_)void": {
+    "foo.compileGeneratedSources": {
+      "foo.compile": {}
 ...
-    "def build_.package_$foo$#<init>(build_.package_)void": {
-      "call build_.package_$foo$!<init>(build_.package_)void": {
-        "def build_.package_#foo$lzyINIT1()java.lang.Object": {
-          "call build_.package_!foo$lzyINIT1()java.lang.Object": {
-            "def build_.package_#foo()build_.package_$foo$": {}
-          }
-        }
-      }
-    }
-...
-}
 
 */
 
-// In the `spanningInvalidationTree.json` above, we can see how to addition of the call
+// In the `mill-invalidation-tree.json` above, we can see how the addition of the call
 // to `scala.Predef.println` caused the `<init>` constructor method of `build_.package_.foo`
-// to invalidation, and ends up invalidating `def build_.package_#foo()` which is the method
-// representing the `build.foo` task that will thus need to be re-evaluated.
+// to be invalidated, and ends up invalidating `def build_.package_#foo()` which is the method
+// representing the `build.foo` module. All tasks defined in that module (including `foo.compile`)
+// are shown as invalidated underneath.
 //
 // Mill's code-change invalidation analysis is _approximate_ and _conservative_. That means
 // that it invalidates each task when any method it calls (transitively) is changed. This may
@@ -271,6 +282,13 @@ out/mill-daemon
 // except in code using Java Reflection or similar techniques which the code-change analysis
 // does not understand.
 //
+// === `mill-console-tail`
+//
+// `out/mill-console-tail` is a rotating log file that you can `tail -F` to see the streaming
+// logs of the currently running Mill process, including the prompt that displays the currently
+// running tasks. This is useful if Mill is being run by some external script or workflow which
+// otherwise would not be streaming the status and logs to your terminal, so you can figure out
+// what the Mill process is doing and whether it is stuck or making progress.
 //
 // === `mill-build/`
 //

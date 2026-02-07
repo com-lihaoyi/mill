@@ -50,9 +50,9 @@ object ScalaCompilerBridgeTests extends TestSuite {
       Hello,
       sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "compiler-bridge"
     ).scoped { eval =>
-      val Right(defaultRes) = eval(Hello.default.compile): @unchecked
-      val Left(wrongRes0: ExecResult.Exception) = eval(Hello.wrong.compile): @unchecked
-      val Right(okRes) = eval(Hello.ok.compile): @unchecked
+      val Right(defaultRes) = eval(Hello.default.compile).runtimeChecked
+      val Left(wrongRes0: ExecResult.Exception) = eval(Hello.wrong.compile).runtimeChecked
+      val Right(okRes) = eval(Hello.ok.compile).runtimeChecked
 
       wrongRes0.throwable match {
         case _: ClassNotFoundException =>

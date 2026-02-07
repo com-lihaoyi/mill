@@ -31,23 +31,12 @@ runs:
     - run: cat .mill-jvm-version
       shell: ${{ inputs.shell }}
 
-    - run: ./mill -i -k selective.resolve ${{ inputs.millargs }}
-      shell: ${{ inputs.shell }}
-
-    # This generates a lot of logs and slows down the github actions UI like crazy, 
-    # so only uncomment it when really necessary
-    #- run: cat out/mill-build/codeSignatures.dest/current/spanningInvalidationTree.json
-    #  shell: bash
-
-    - run: ./mill -i -k selective.resolveTree ${{ inputs.millargs }}
-      shell: ${{ inputs.shell }}
-
     # Comment this out because it can be very verbose when broad codesig
     # invalidation results in all tasks being counted as changed inputs
-    #- run: ./mill -i -k selective.resolveChanged ${{ inputs.millargs }}
+    #- run: ./mill -k selective.resolveChanged ${{ inputs.millargs }}
     #  shell: ${{ inputs.shell }}
 
-    - run: ./mill -i -k ${{ inputs.extra }} selective.run ${{ inputs.millargs }}
+    - run: ./mill -k ${{ inputs.extra }} selective.run ${{ inputs.millargs }}
       shell: ${{ inputs.shell }}
 
     - name: Clean-up Test Reports
@@ -68,3 +57,28 @@ runs:
         annotate_only: true
         require_tests: false
         report_paths: 'out/**/test-report.xml'
+
+    - name: Sanitize artifact name
+      id: sanitize
+      if: always()
+      shell: bash
+      run: |
+        # Replace invalid artifact name characters with underscores
+        SANITIZED=$(echo "${{ inputs.millargs }}" | tr "'\"\\/:<>|*?{}[]" "_" | cut -c1-100)
+        echo "millargs=$SANITIZED" >> $GITHUB_OUTPUT
+
+    - name: Upload Chrome Profile
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: mill-chrome-profile-${{ runner.os }}-${{ steps.sanitize.outputs.millargs }}
+        path: out/mill-chrome-profile.json
+        if-no-files-found: ignore
+
+    - name: Upload Launcher Log
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: mill-launcher-log-${{ runner.os }}-${{ steps.sanitize.outputs.millargs }}
+        path: out/mill-launcher/log
+        if-no-files-found: ignore

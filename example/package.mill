@@ -13,7 +13,10 @@ import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.api.Cross
 import mill.api.BuildCtx
+import mill.javalib.testrunner.TestResult
 import mill.testkit.Chunk
+import millbuild.Deps
+
 import java.util.concurrent.atomic.AtomicInteger
 
 object `package` extends Module {
@@ -64,31 +67,30 @@ object `package` extends Module {
   }
 
   object migrating extends Module {
-    object javalib extends Cross[ExampleCrossModule](build.listCross)
-    object scalalib extends Cross[ExampleCrossModule](build.listCross)
+    object javalib extends Cross[ExampleCrossModuleMigrating](build.listCross)
+    object scalalib extends Cross[ExampleCrossModuleMigrating](build.listCross)
   }
   object javascriptlib extends Module {
-    object basic extends Cross[ExampleCrossModule](build.listCross)
-    object testing extends Cross[ExampleCrossModule](build.listCross)
-    object module extends Cross[ExampleCrossModule](build.listCross)
-    object dependencies
-        extends Cross[ExampleCrossModule](build.listCross)
-    object publishing extends Cross[ExampleCrossModule](build.listCross)
-    object linting extends Cross[ExampleCrossModule](build.listCross)
+    object basic extends Cross[ExampleCrossModuleJavascript](build.listCross)
+    object testing extends Cross[ExampleCrossModuleJavascript](build.listCross)
+    object module extends Cross[ExampleCrossModuleJavascript](build.listCross)
+    object dependencies extends Cross[ExampleCrossModuleJavascript](build.listCross)
+    object publishing extends Cross[ExampleCrossModuleJavascript](build.listCross)
+    object linting extends Cross[ExampleCrossModuleJavascript](build.listCross)
   }
   object pythonlib extends Module {
-    object basic extends Cross[ExampleCrossModule](build.listCross)
-    object dependencies extends Cross[ExampleCrossModule](build.listCross)
-    object linting extends Cross[ExampleCrossModule](build.listCross)
-    object publishing extends Cross[ExampleCrossModule](build.listCross)
-    object module extends Cross[ExampleCrossModule](build.listCross)
-    object web extends Cross[ExampleCrossModule](build.listCross)
-    object testing extends Cross[ExampleCrossModule](build.listCross)
+    object basic extends Cross[ExampleCrossModulePython](build.listCross)
+    object dependencies extends Cross[ExampleCrossModulePython](build.listCross)
+    object linting extends Cross[ExampleCrossModulePython](build.listCross)
+    object publishing extends Cross[ExampleCrossModulePython](build.listCross)
+    object module extends Cross[ExampleCrossModulePython](build.listCross)
+    object web extends Cross[ExampleCrossModulePython](build.listCross)
+    object testing extends Cross[ExampleCrossModulePython](build.listCross)
   }
 
   object groovylib extends Module {
-    object basic extends Cross[ExampleCrossModule](build.listCross)
-    object testing extends Cross[ExampleCrossModule](build.listCross)
+    object basic extends Cross[ExampleCrossModuleGroovy](build.listCross)
+    object testing extends Cross[ExampleCrossModuleGroovy](build.listCross)
   }
 
   object cli extends Module {
@@ -104,13 +106,13 @@ object `package` extends Module {
     object cross extends Cross[ExampleCrossModule](build.listCross)
     object `out-dir` extends Cross[ExampleCrossModule](build.listCross)
     object libraries extends Cross[ExampleCrossModule](build.listCross)
+    object javahome extends Cross[ExampleCrossModule](build.listCross)
   }
 
   object depth extends Module {
-
     object sandbox extends Cross[ExampleCrossModule](build.listCross)
-    object javahome extends Cross[ExampleCrossModule](build.listCross)
   }
+
   object large extends Module {
 
     object selective extends Cross[ExampleCrossModule](build.listCross)
@@ -128,6 +130,7 @@ object `package` extends Module {
   }
 
   trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {
+    override def selectiveInputs = Seq(sources) ++ build.libs.kotlinlib.kotlinSelectiveInputs
 
     override def lineTransform(line: String) = this.moduleSegments.parts.last match {
       case "2-test-suite" => line
@@ -141,8 +144,27 @@ object `package` extends Module {
     }
   }
 
+  val androidSelectiveInputs = Seq(
+    build.libs.androidlib.sources,
+    build.libs.javalib.sources,
+    build.libs.javalib.worker.sources
+  ) ++ build.libs.kotlinlib.kotlinSelectiveInputs
+
   trait ExampleCrossModuleAndroid extends ExampleCrossModule {
+    override def selectiveInputs = Seq(sources) ++ androidSelectiveInputs
     def testExclusive = true
+
+    /**
+     * Unique and even Android emulator port for this example test module.
+     * Each module claims the port by incrementing the shared counter by two,
+     * reserving one port for the console and one for adb.
+     */
+    val emulatorPort: Int = androidPortCounter.getAndAdd(2)
+
+    override def forkEnv = super.forkEnv() ++ Map(
+      "EMULATOR_PORT" -> emulatorPort.toString
+    )
+
   }
 
   trait ExampleCrossModuleJava extends ExampleCrossModule {
@@ -229,6 +251,13 @@ object `package` extends Module {
    */
   private val portCounter = new AtomicInteger(10000)
 
+  /**
+   * Counter for assigning unique Android emulator ports to example test modules.
+   * Each module claims a port by incrementing this counter by two (for console and adb).
+   * Ports start at 5554 which is the default starting port for Android emulators.
+   */
+  private val androidPortCounter = new AtomicInteger(5554)
+
   trait ExampleCrossModule extends build.integration.IntegrationTestModule {
 
     // disable scalafix because these example modules don't have sources causing it to misbehave
@@ -274,67 +303,108 @@ object `package` extends Module {
       var seenCode = false
       var seenFrontMatter = false
       val examplePath = moduleDir.subRelativeTo(BuildCtx.workspaceRoot)
-      val frontMatter = parsed().takeWhile(_.isInstanceOf[Chunk.Yaml]).map {
+      val frontMatter = parsed().takeWhile(_.isInstanceOf[Chunk.Yaml]).collect {
         case Chunk.Yaml(lines) => lines.mkString("\n")
       }.mkString("\n")
       val withoutFrontMatter = parsed().dropWhile(_.isInstanceOf[Chunk.Yaml])
+      val hasScalaChunks = withoutFrontMatter.exists(_.isInstanceOf[Chunk.Scala])
       val exampleDashed = examplePath.segments.mkString("-")
       val download =
-        s"{mill-download-url}/mill-dist-${build.millVersion()}-$exampleDashed.zip[download]"
-      os.write(
-        Task.dest / "example.adoc",
-        withoutFrontMatter
-          .map {
-            case Chunk.See(path, lines) =>
-              // avoid .stripMargin, as the embedded content may contain the margin symbol
-              val lang = os.FilePath(path).ext match {
-                case "mill" => "scala"
-                case s => s
-              }
-              s"""
+        s"{mill-download-url}/mill-dist-{mill-version}-$exampleDashed.zip[download]"
+      val renderedChunks = withoutFrontMatter
+        .map {
+          case Chunk.See(path, lines) =>
+            // avoid .stripMargin, as the embedded content may contain the margin symbol
+            val lang = os.FilePath(path).ext match {
+              case "mill" => "scala"
+              case s => s
+            }
+            s"""
 .$path ($download, {mill-example-url}/$examplePath/$path[browse])
 [source,$lang,subs="attributes,verbatim"]
 ----
 ${lines.mkString("\n")}
 ----"""
-            case Chunk.Scala(lines) =>
-              val title =
-                if (seenCode) ""
-                else {
-                  s".build.mill ($download, {mill-example-url}/$examplePath[browse])"
-                }
-              seenCode = true
-              // avoid .stripMargin, as the embedded content may contain the margin symbol
-              s"""
+          case Chunk.Scala(lines) =>
+            val title =
+              if (seenCode) ""
+              else {
+                s".build.mill ($download, {mill-example-url}/$examplePath[browse])"
+              }
+            seenCode = true
+            // avoid .stripMargin, as the embedded content may contain the margin symbol
+            s"""
 $title
 [source,scala,subs="attributes,verbatim"]
 ----
 
 ${
-                  if (seenFrontMatter) ""
-                  else {
-                    seenFrontMatter = true
-                    frontMatter
-                  }
+                if (seenFrontMatter) ""
+                else {
+                  seenFrontMatter = true
+                  frontMatter
                 }
+              }
 
 ${lines.mkString("\n")}
 ----
 """
-            case Chunk.Comment(lines) => lines.mkString("\n") + "\n"
-            case Chunk.Usage(lines) =>
-              // avoid .stripMargin, as the embedded content may contain the margin symbol
-              s"""
+          case Chunk.Comment(lines) => lines.mkString("\n") + "\n"
+          case Chunk.Usage(lines) =>
+            // avoid .stripMargin, as the embedded content may contain the margin symbol
+            s"""
 [source,console,subs="attributes,verbatim"]
 ----
 ${lines.mkString("\n")}
 ----"""
-            case Chunk.Yaml(_) => ""
-          }
-          .mkString("\n")
-      )
+          case Chunk.Yaml(_) => ""
+        }
+        .mkString("\n")
+
+      // If no Scala chunks exist but we have front matter, include it at the top
+      val finalContent = if (!hasScalaChunks && frontMatter.nonEmpty) {
+        s"""
+.build.mill ($download, {mill-example-url}/$examplePath[browse])
+[source,scala,subs="attributes,verbatim"]
+----
+$frontMatter
+----
+""" + renderedChunks
+      } else {
+        renderedChunks
+      }
+
+      os.write(Task.dest / "example.adoc", finalContent)
       PathRef(Task.dest / "example.adoc")
     }
+  }
+
+  trait ExampleCrossModuleJavascript extends ExampleCrossModule {
+    override def selectiveInputs = Seq(sources, build.libs.javascriptlib.sources)
+  }
+
+  trait ExampleCrossModulePython extends ExampleCrossModule {
+    override def selectiveInputs = Seq(sources, build.libs.pythonlib.sources)
+  }
+
+  trait ExampleCrossModuleGroovy extends ExampleCrossModule {
+    override def selectiveInputs = Seq(sources, build.libs.groovylib.sources)
+  }
+
+  trait ExampleCrossModuleMigrating extends ExampleCrossModule {
+    override def selectiveInputs = Seq(
+      sources,
+      build.libs.init.sources,
+      build.libs.init.maven.sources,
+      build.libs.init.gradle.sources,
+      build.libs.init.gradle.api.sources,
+      build.libs.init.gradle.exportplugin.sources,
+      build.libs.init.sbt.sources,
+      build.libs.init.sbt.api(Deps.scalaVersion).sources,
+      build.libs.init.sbt.exportplugin.sources,
+      build.libs.init.buildgen.sources,
+      build.libs.init.buildgen.api(Deps.scalaVersion).sources
+    )
   }
 
   def repoInfo = Map(
@@ -384,5 +454,9 @@ ${lines.mkString("\n")}
 
       PathRef(Task.dest)
     }
+
+    override def selectiveInputs =
+      if (crossValue == "android-compose-samples") Seq(sources) ++ androidSelectiveInputs
+      else null
   }
 }

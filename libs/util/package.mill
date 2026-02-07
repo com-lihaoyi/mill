@@ -1,8 +1,8 @@
 package build.libs.util
 
 // imports
-import mill._
-import mill.scalalib._
+import mill.*
+import mill.scalalib.*
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.api.Cross
@@ -22,7 +22,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
     def moduleDeps = Seq(build.core.api.java11)
   }
 
-  def unmanagedClasspath = Seq(java11.compile().classes)
+  def localCompileClasspath = super.localCompileClasspath() ++ Seq(java11.compile().classes)
 
   def compileMvnDeps = Seq(
     Deps.nativeTerminal,
@@ -73,7 +73,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
       Deps.scala2Version,
       "Scala 2.13 version used by some workers."
     ),
-    BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
+    BuildInfo.Value("millVersion", "SNAPSHOT", "Mill version."),
     BuildInfo.Value(
       "scalaVersion",
       Deps.scalaVersion,

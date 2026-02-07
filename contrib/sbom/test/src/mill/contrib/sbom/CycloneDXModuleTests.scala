@@ -44,14 +44,14 @@ object CycloneDXModuleTests extends TestSuite {
       TestModule,
       null
     ).scoped { eval =>
-      val Right(result) = eval.apply(TestModule.noDeps.sbom)
+      val Right(result) = eval.apply(TestModule.noDeps.sbom).runtimeChecked
       val components = result.value.components
       assert(components.size == 0)
     }
     test("Report dependencies of a single module") - UnitTester(TestModule, null).scoped { eval =>
       val toTest = TestModule.withDeps
-      val Right(result) = eval.apply(toTest.sbom)
-      val Right(file) = eval.apply(toTest.sbomJsonFile)
+      val Right(result) = eval.apply(toTest.sbom).runtimeChecked
+      val Right(file) = eval.apply(toTest.sbomJsonFile).runtimeChecked
       val components = result.value.components
       assert(components.size == 3)
       assert(components.exists(_.name == "logback-classic"))
@@ -62,8 +62,8 @@ object CycloneDXModuleTests extends TestSuite {
     }
     test("Report transitive module dependencies") - UnitTester(TestModule, null).scoped { eval =>
       val toTest = TestModule.withModuleDeps
-      val Right(result) = eval.apply(toTest.sbom)
-      val Right(file) = eval.apply(toTest.sbomJsonFile)
+      val Right(result) = eval.apply(toTest.sbom).runtimeChecked
+      val Right(file) = eval.apply(toTest.sbomJsonFile).runtimeChecked
       val components = result.value.components
       assert(components.size == 4)
       assert(components.exists(_.name == "commons-io"))
@@ -75,8 +75,8 @@ object CycloneDXModuleTests extends TestSuite {
     }
     test("avoid null in license.url") - UnitTester(TestModule, null).scoped { eval =>
       val toTest = TestModule.noLicenseUrl
-      val Right(result) = eval.apply(toTest.sbom)
-      val Right(file) = eval.apply(toTest.sbomJsonFile)
+      val Right(result) = eval.apply(toTest.sbom).runtimeChecked
+      val Right(file) = eval.apply(toTest.sbomJsonFile).runtimeChecked
       val components = result.value.components
       assert(components.size == 1)
       val component = components.head

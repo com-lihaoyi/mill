@@ -6,7 +6,7 @@ import mill.javalib.JavaModule
 import mill.testkit.{TestRootModule, UnitTester}
 import os.Path
 import utest.*
-import mill.util.TokenReaders._
+import mill.util.TokenReaders.*
 object ErrorProneTests extends TestSuite {
 
   object noErrorProne extends TestRootModule with JavaModule {
@@ -16,6 +16,14 @@ object ErrorProneTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
   object errorProneCustom extends TestRootModule with JavaModule with ErrorProneModule {
+    override def errorProneOptions: T[Seq[String]] = Task {
+      Seq("-XepAllErrorsAsWarnings")
+    }
+    lazy val millDiscover = Discover[this.type]
+  }
+  // Test module with ErrorProne 2.36.0+ which requires --should-stop=ifError=FLOW
+  object errorProne236 extends TestRootModule with JavaModule with ErrorProneModule {
+    override def errorProneVersion: T[String] = Task { "2.36.0" }
     override def errorProneOptions: T[Seq[String]] = Task {
       Seq("-XepAllErrorsAsWarnings")
     }
@@ -43,9 +51,19 @@ object ErrorProneTests extends TestSuite {
       }
       test("compileWarn") {
         UnitTester(errorProneCustom, testModuleSourcesPath).scoped { eval =>
-          val Right(opts) = eval(errorProneCustom.mandatoryJavacOptions): @unchecked
+          val Right(opts) = eval(errorProneCustom.mandatoryJavacOptions).runtimeChecked
           assert(opts.value.exists(_.contains("-XepAllErrorsAsWarnings")))
           val res = eval(errorProneCustom.compile)
+          assert(res.isRight)
+        }
+      }
+      test("shouldStopOption236") {
+        // ErrorProne 2.36.0+ requires --should-stop=ifError=FLOW
+        // See https://github.com/com-lihaoyi/mill/issues/4926
+        UnitTester(errorProne236, testModuleSourcesPath).scoped { eval =>
+          val Right(opts) = eval(errorProne236.mandatoryJavacOptions).runtimeChecked
+          assert(opts.value.contains("--should-stop=ifError=FLOW"))
+          val res = eval(errorProne236.compile)
           assert(res.isRight)
         }
       }

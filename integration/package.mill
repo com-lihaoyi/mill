@@ -1,12 +1,12 @@
 package build.integration
 // imports
-import scala.util.chaining._
+import scala.util.chaining.*
 import coursier.maven.MavenRepository
-import mill._
+import mill.*
 import mill.util.Tasks
-import mill.scalalib._
+import mill.scalalib.*
 import mill.javalib.api.JvmWorkerUtil
-import mill.scalalib.publish._
+import mill.scalalib.publish.*
 import mill.util.Jvm
 import mill.api.SelectMode
 import mill.contrib.buildinfo.BuildInfo
@@ -22,14 +22,67 @@ object `package` extends mill.Module {
   // test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
   // and pass `lib`'s compile output back to `test`.
 
+  // Pre-clone git repos for init tests at build time (parallelizable)
+  // rather than during test execution
+  object initRepos extends Module {
+    case class RepoInfo(name: String, url: String, branch: String)
+
+    val repos = Seq(
+      // Maven tests
+      RepoInfo("jansi", "https://github.com/fusesource/jansi.git", "jansi-2.4.2"),
+      RepoInfo("netty", "https://github.com/netty/netty.git", "netty-4.2.6.Final"),
+      // Gradle tests
+      RepoInfo("FastCSV", "https://github.com/osiegmar/FastCSV.git", "v4.1.0"),
+      RepoInfo("ehcache3", "https://github.com/ehcache/ehcache3.git", "v3.10.8"),
+      // Sbt tests
+      RepoInfo("Airstream", "https://github.com/raquo/Airstream.git", "v17.2.1"),
+      RepoInfo("fs2", "https://github.com/typelevel/fs2.git", "v3.12.0")
+    )
+
+    val reposMap = repos.map(v => v.name -> v).toMap
+
+    private def cloneRepoImpl(repo: RepoInfo, destDir: os.Path): PathRef = {
+      val repoDir = destDir / repo.name
+      os.proc("git", "clone", repo.url, "--depth", "1", "--branch", repo.branch, repo.name)
+        .call(cwd = destDir)
+      PathRef(repoDir)
+    }
+
+    def jansi = Task { cloneRepoImpl(reposMap("jansi"), Task.dest) }
+    def netty = Task { cloneRepoImpl(reposMap("netty"), Task.dest) }
+    def FastCSV = Task { cloneRepoImpl(reposMap("FastCSV"), Task.dest) }
+    def ehcache3 = Task { cloneRepoImpl(reposMap("ehcache3"), Task.dest) }
+    def Airstream = Task { cloneRepoImpl(reposMap("Airstream"), Task.dest) }
+    def fs2 = Task { cloneRepoImpl(reposMap("fs2"), Task.dest) }
+
+    def all = Task {
+      Map(
+        "jansi" -> jansi().path.toString,
+        "netty" -> netty().path.toString,
+        "FastCSV" -> FastCSV().path.toString,
+        "ehcache3" -> ehcache3().path.toString,
+        "Airstream" -> Airstream().path.toString,
+        "fs2" -> fs2().path.toString
+      )
+    }
+  }
+
   case class SharedWorkerInfo(outPath: os.Path, port: Int)
 
+  def millVersionNoSelective = Task(selectiveInputs = Nil) {
+    build.millVersion()
+  }
+
   def sharedOutFolder = Task.Worker {
+
+    // Include millVersion in the worker path to invalidate when Mill version changes
+    os.list(Task.dest).foreach(os.remove.all(_))
+    val versionDir = Task.dest / millVersionNoSelective()
     val counter = new java.util.concurrent.atomic.AtomicInteger(0)
     new mill.util.CachedFactory[Unit, SharedWorkerInfo] {
       def setup(key: Unit): SharedWorkerInfo = {
         val index = counter.getAndIncrement()
-        val res = Task.dest / s"shared-$index" / "out"
+        val res = versionDir / s"shared-$index" / "out"
         os.remove.all(res)
         os.makeDir.all(res)
         SharedWorkerInfo(res, 10000 + index)
@@ -46,7 +99,8 @@ object `package` extends mill.Module {
   trait IntegrationTestModule extends Cross.Module[String] with DefaultTaskModule {
     def moduleDir = super.moduleDir / crossValue
 
-    def moduleDeps = Seq(build.libs.util.test, build.testkit, build.runner.daemon)
+    def moduleDeps =
+      Seq(build.libs.util.test, build.testkit, build.testkit.internal, build.runner.daemon)
 
     def resources: T[Seq[PathRef]]
     def runClasspath: T[Seq[PathRef]]
@@ -55,6 +109,10 @@ object `package` extends mill.Module {
     def forkArgs: T[Seq[String]]
     def testExclusive = false
     def testClasspath: T[Seq[PathRef]]
+
+    // No selective execution inputs overrides by default, but individual submodules can
+    // override this to specify explicit selective execution inputs to use
+    def selectiveInputs: Seq[Task[?]] = null
 
     trait ModeModule extends MillBaseTestsModule {
       override def testClasspath: T[Seq[PathRef]] = IntegrationTestModule.this.testClasspath()
@@ -91,7 +149,9 @@ object `package` extends mill.Module {
         }
       }
 
-      override def testForked(args: String*) = Task.Command {
+      override def testForked(args: String*) = Task.Command(
+        selectiveInputs = IntegrationTestModule.this.selectiveInputs
+      ) {
         testForked0(args*)()
       }
 
@@ -104,11 +164,10 @@ object `package` extends mill.Module {
           Map(
             "MILL_INTEGRATION_DAEMON_MODE" -> (mode == "daemon").toString,
             "MILL_INTEGRATION_IS_PACKAGED_LAUNCHER" -> millIntegrationIsPackagedLauncher().toString,
-            "MILL_LAUNCHER" -> build.dist.bootstrapLauncher().path.toString,
-            "MILL_LAUNCHER_BAT" -> build.dist.bootstrapLauncherBat().path.toString,
             "MILL_INTEGRATION_LAUNCHER" -> millIntegrationLauncher().path.toString
           ) ++
-          (if (millIntegrationIsPackagedLauncher()) Map() else build.dist.localTestOverridesEnv())
+          (if (millIntegrationIsPackagedLauncher()) Map()
+           else build.dist.raw.localTestOverridesEnv())
       }
 
       def millIntegrationLauncher: T[PathRef]
@@ -117,7 +176,7 @@ object `package` extends mill.Module {
       def millIntegrationIsPackagedLauncher: Task[Boolean]
 
       def forkArgs = Task {
-        super.forkArgs() ++ IntegrationTestModule.this.forkArgs() ++ build.dist.forkArgs()
+        super.forkArgs() ++ IntegrationTestModule.this.forkArgs() ++ build.dist.raw.forkArgs()
       }
 
       def resources = IntegrationTestModule.this.resources()
@@ -126,24 +185,28 @@ object `package` extends mill.Module {
 
     }
 
-    // Set `packaged.daemon` as the default way to run integration and example tests
+    // Set `fast.daemon` as the default way to run integration and example tests
     override def defaultTask(): String = "testForked"
     def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
-      Task.Command {
-        packaged.daemon.testForked0(args*)()
+      Task.Command(selectiveInputs = selectiveInputs) {
+        fast.daemon.testForked0(args*)()
       }
 
-    object shared extends IntegrationLauncherModule {
+    object fast extends IntegrationLauncherModule {
       override def useSharedOut = true
-      def millIntegrationLauncher = build.dist.launcher()
+      def millIntegrationLauncher = build.dist.raw.launcher()
       def millIntegrationIsPackagedLauncher = Task(false)
     }
     object packaged extends IntegrationLauncherModule {
-      def millIntegrationLauncher = build.dist.executable()
+      def millIntegrationLauncher = build.dist.raw.executable()
       def millIntegrationIsPackagedLauncher = Task(true)
     }
     object native extends IntegrationLauncherModule {
       def millIntegrationLauncher = build.dist.native.executable()
+      def millIntegrationIsPackagedLauncher = Task(true)
+    }
+    object proguard extends IntegrationLauncherModule {
+      def millIntegrationLauncher = build.dist.executable()
       def millIntegrationIsPackagedLauncher = Task(true)
     }
     trait IntegrationLauncherModule extends Module {
@@ -151,12 +214,16 @@ object `package` extends mill.Module {
       def millIntegrationLauncher: T[PathRef]
       def millIntegrationIsPackagedLauncher: Task[Boolean]
       object nodaemon extends ModeModule {
+        // Test parallelism doesn't work when sharing the out folder
+        // since the parallel test executions will collide over files
+        override def testParallelism = !useSharedOut
         override def useSharedOut = IntegrationLauncherModule.this.useSharedOut
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
         def millIntegrationIsPackagedLauncher =
           IntegrationLauncherModule.this.millIntegrationIsPackagedLauncher
       }
       object daemon extends ModeModule {
+        override def testParallelism = !useSharedOut
         override def useSharedOut = IntegrationLauncherModule.this.useSharedOut
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
         def millIntegrationIsPackagedLauncher =
@@ -167,10 +234,45 @@ object `package` extends mill.Module {
 
   object failure extends Cross[IntegrationCrossModule](build.listCross)
   object feature extends Cross[IntegrationCrossModule](build.listCross)
-  object invalidation extends Cross[IntegrationCrossModule](build.listCross)
-  object ide extends Cross[IdeIntegrationCrossModule](build.listCross)
-  object bootstrap extends Cross[IdeIntegrationCrossModule](build.listCross)
-  object migrating extends Cross[IntegrationCrossModule](build.listCross)
+  object dedicated extends Cross[DedicatedIntegrationCrossModule](build.listCross)
+  object multimode extends Cross[MultimodeIntegrationCrossModule](build.listCross)
+  object bootstrap extends Cross[BootstrapIntegrationCrossModule](build.listCross)
+  object migrating extends Cross[MigrationIntegrationCrossModule](build.listCross)
+  object manual extends Cross[IntegrationCrossModule](build.listCross)
+
+  trait DedicatedIntegrationCrossModule extends IntegrationCrossModule {
+    override def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
+      Task.Command(selectiveInputs = selectiveInputs) { proguard.daemon.testForked0(args*)() }
+  }
+  trait MultimodeIntegrationCrossModule extends IntegrationCrossModule {
+    override def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
+      Task.Command(selectiveInputs = selectiveInputs) { packaged.daemon.testForked0(args*)() }
+  }
+  trait BootstrapIntegrationCrossModule extends IntegrationCrossModule {
+    override def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
+      Task.Command(selectiveInputs = selectiveInputs) { native.daemon.testForked0(args*)() }
+  }
+  trait MigrationIntegrationCrossModule extends IntegrationCrossModule {
+    override def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
+      Task.Command(selectiveInputs = selectiveInputs) { packaged.daemon.testForked0(args*)() }
+    def forkEnv = super.forkEnv() ++ initRepos.all().map { case (name, path) =>
+      s"MILL_INIT_REPO_$name" -> path
+    }
+    override def selectiveInputs = Seq(
+      sources,
+      resources,
+      build.libs.init.sources,
+      build.libs.init.maven.sources,
+      build.libs.init.gradle.sources,
+      build.libs.init.gradle.api.sources,
+      build.libs.init.gradle.exportplugin.sources,
+      build.libs.init.sbt.sources,
+      build.libs.init.sbt.api(Deps.scalaVersion).sources,
+      build.libs.init.sbt.exportplugin.sources,
+      build.libs.init.buildgen.sources,
+      build.libs.init.buildgen.api(Deps.scalaVersion).sources
+    )
+  }
   trait IntegrationCrossModule extends MillScalaModule with IntegrationTestModule {
     override def testClasspath = Seq(compile().classes)
     override lazy val test: MillScalaTests = new MillScalaTests {
@@ -178,30 +280,29 @@ object `package` extends mill.Module {
       // compile and the `ModeModule`s contain the entrypoints to run that code
       def enableBsp = false
     }
-    override def moduleDeps = super[IntegrationTestModule].moduleDeps
-    def forkArgs: T[Seq[String]] = Task(List.empty[String])
-    def forkEnv = super.forkEnv() ++ Seq(
-      // "UTEST_UPDATE_GOLDEN_TESTS" -> "1",
-      "MILL_PROJECT_ROOT" -> BuildCtx.workspaceRoot.toString,
-      "TEST_SCALA_2_13_VERSION" -> Deps.testScala213Version,
-      "TEST_KOTLIN_VERSION" -> Deps.kotlinCompiler.version
-    )
-  }
-  trait IdeIntegrationCrossModule extends IntegrationCrossModule {
-    def moduleDeps = super.moduleDeps ++ Seq(`bsp-util`)
+    override def moduleDeps = super[IntegrationTestModule].moduleDeps ++ Seq(`bsp-util`)
     def mvnDeps = super.mvnDeps() ++ Seq(
       Deps.bsp4j
     )
-    def forkArgs = super.forkArgs() ++ Seq(
+
+    def forkArgs: T[Seq[String]] = Seq(
       s"-Dmill.integration.coursier-version=${Deps.coursier.dep.versionConstraint.asString}"
     )
+    def forkEnv = Task {
+      super.forkEnv() ++ Seq(
+        // "UTEST_UPDATE_GOLDEN_TESTS" -> "1",
+        "MILL_PROJECT_ROOT" -> BuildCtx.workspaceRoot.toString,
+        "TEST_SCALA_2_13_VERSION" -> Deps.testScala213Version,
+        "TEST_KOTLIN_VERSION" -> Deps.kotlinCompiler.version
+      )
+    }
   }
 
   /** Deploy freshly build mill for use in tests */
   def testMill: T[PathRef] = {
     val name = if (scala.util.Properties.isWin) "mill.bat" else "mill"
     Task {
-      val executable = build.dist.executable().path
+      val executable = build.dist.raw.executable().path
       val dest = Task.dest / name
       os.copy.over(executable, dest)
       PathRef(dest)

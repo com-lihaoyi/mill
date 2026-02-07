@@ -1,7 +1,9 @@
 package mill.testkit
 
 import mill.constants.Util.isWindows
+import mill.launcher.MillLauncherMain
 import mill.testkit.Chunk
+import mill.api.daemon.SystemStreams
 import utest.*
 
 import scala.util.control.NonFatal
@@ -61,14 +63,16 @@ object ExampleTester {
       workspaceSourcePath: os.Path,
       millExecutable: os.Path,
       bashExecutable: String = defaultBashExecutable(),
-      workspacePath: os.Path = os.pwd
+      workspacePath: os.Path = os.pwd,
+      useInMemory: Boolean = false
   ): os.Path = {
     val tester = new ExampleTester(
       daemonMode,
       workspaceSourcePath,
       millExecutable,
       bashExecutable,
-      workspacePath
+      workspacePath,
+      useInMemory = useInMemory
     )
     tester.run()
     tester.workspacePath
@@ -78,6 +82,7 @@ object ExampleTester {
     if (!mill.constants.Util.isWindows) "bash"
     else "C:\\Program Files\\Git\\usr\\bin\\bash.exe"
   }
+
 }
 
 class ExampleTester(
@@ -87,7 +92,8 @@ class ExampleTester(
     bashExecutable: String = ExampleTester.defaultBashExecutable(),
     val baseWorkspacePath: os.Path,
     val propagateJavaHome: Boolean = true,
-    val cleanupProcessIdFile: Boolean = true
+    val cleanupProcessIdFile: Boolean = true,
+    val useInMemory: Boolean = false
 ) extends IntegrationTesterBase {
 
   def commandFilter(commandComment: String): Boolean = commandComment match {
@@ -116,21 +122,57 @@ class ExampleTester(
   private val millExt = if (isWindows) ".bat" else ""
   private val daemonFlag = if (daemonMode) "" else "--no-daemon"
 
+  private def extractMillArgs(commandStr0: String): Option[Seq[String]] = {
+    commandStr0 match {
+      case s"mill $rest" => Some(parseMillArgs(rest))
+      case s"./mill $rest" => Some(parseMillArgs(rest))
+      case _ => None
+    }
+  }
+
+  private def parseMillArgs(rest: String): Seq[String] = {
+    // Add daemon flag and ticker flag, then parse the rest with shell-style quoting
+    val baseArgs = Seq(daemonFlag, "--ticker", "false").filter(_.nonEmpty)
+    baseArgs ++ mill.api.internal.ParseArgs.parseShellArgs(rest)
+  }
+
   def processCommand(
       expectedSnippets: Vector[String],
       commandStr0: String,
       check: Boolean = true
   ): Unit = {
-    val commandStr = commandStr0 match {
-      case s"mill $rest" => s"./mill$millExt $daemonFlag --ticker false $rest"
-      case s"./mill $rest" => s"./mill$millExt $daemonFlag --ticker false $rest"
-      case s"curl $rest" => s"curl --retry 7 --retry-all-errors $rest"
-      case s => s
-    }
+    // Check if we can use in-memory execution for Mill commands
+    val millArgsOpt = if (useInMemory) extractMillArgs(commandStr0) else None
 
-    /** The command we're about to execute */
-    val debugCommandStr = s"$workspacePath> $commandStr"
-    Console.err.println("\nRunning:")
+    millArgsOpt match {
+      case Some(millArgs) =>
+        // Use in-memory execution for Mill commands
+        val debugCommandStr = s"$workspacePath> mill ${millArgs.mkString(" ")} (in-memory)"
+        runAndValidate(expectedSnippets, debugCommandStr, check, inMemory = true) {
+          runMillInMemory(millArgs)
+        }
+      case None =>
+        // Fall back to subprocess execution via bash
+        val commandStr = commandStr0 match {
+          case s"mill $rest" => s"./mill$millExt $daemonFlag --ticker false $rest"
+          case s"./mill $rest" => s"./mill$millExt $daemonFlag --ticker false $rest"
+          case s"curl $rest" => s"curl --retry 7 --retry-all-errors $rest"
+          case s => s
+        }
+        val debugCommandStr = s"$workspacePath> $commandStr"
+        runAndValidate(expectedSnippets, debugCommandStr, check, inMemory = false) {
+          runViaBash(commandStr)
+        }
+    }
+  }
+
+  private def runAndValidate(
+      expectedSnippets: Vector[String],
+      debugCommandStr: String,
+      check: Boolean,
+      inMemory: Boolean
+  )(execute: => IntegrationTester.EvalResult): Unit = {
+    Console.err.println(if (inMemory) "\nRunning (in-memory):" else "\nRunning:")
     Console.err.println(debugCommandStr)
     Console.err.println(
       s"""--- Expected output ----------
@@ -138,30 +180,9 @@ ${expectedSnippets.mkString("\n")}
 ------------------------------"""
     )
 
-    val windowsPathEnv =
-      if (!isWindows) Map()
-      else Map(
-        "BASH_ENV" -> os.temp("export PATH=\"/c/Program Files/Git/usr/bin:$PATH\"").toString()
-      )
-
     try {
-      val res = os.call(
-        (bashExecutable, "-c", commandStr),
-        stdout = os.Pipe,
-        stderr = os.Inherit,
-        cwd = workspacePath,
-        mergeErrIntoOut = true,
-        env = millTestSuiteEnv ++ windowsPathEnv,
-        check = false
-      )
-
-      validateEval(
-        expectedSnippets,
-        IntegrationTester.EvalResult(res),
-        check,
-        debugCommandStr
-      )
-
+      val result = execute
+      validateEval(expectedSnippets, result, check, debugCommandStr)
     } catch {
       case NonFatal(e) =>
         Console.err.println("Failure:")
@@ -171,6 +192,63 @@ ${expectedSnippets.mkString("\n")}
 
     Console.err.println("Success:")
     Console.err.println(debugCommandStr + "\n")
+  }
+
+  private def runMillInMemory(millArgs: Seq[String]): IntegrationTester.EvalResult = {
+    // Collect chunks in order, similar to how OS-Lib does it.
+    // All output goes to Left (stdout) to match bash's mergeErrIntoOut = true behavior.
+    val chunks = collection.mutable.ArrayBuffer.empty[Either[geny.Bytes, geny.Bytes]]
+
+    val exitCode = MillLauncherMain.main0(
+      args = millArgs.toArray,
+      streamsOpt = Some(
+        SystemStreams(
+          ChunkingStreams.makeChunkingStream(
+            chunks,
+            isStdout = true,
+            mergeErrIntoOut = true,
+            dest = Some(System.out)
+          ),
+          ChunkingStreams.makeChunkingStream(
+            chunks,
+            isStdout = false,
+            mergeErrIntoOut = true,
+            dest = Some(System.err)
+          ),
+          System.in
+        )
+      ),
+      env = sys.env ++ millTestSuiteEnv,
+      workDir = workspacePath
+    )
+
+    val result = new os.CommandResult(
+      command = Seq("mill") ++ millArgs,
+      exitCode = exitCode,
+      chunks = chunks.toSeq
+    )
+
+    IntegrationTester.EvalResult(result)
+  }
+
+  private def runViaBash(commandStr: String): IntegrationTester.EvalResult = {
+    val windowsPathEnv =
+      if (!isWindows) Map()
+      else Map(
+        "BASH_ENV" -> os.temp("export PATH=\"/c/Program Files/Git/usr/bin:$PATH\"").toString()
+      )
+
+    val res = os.call(
+      (bashExecutable, "-c", commandStr),
+      stdout = os.Pipe,
+      stderr = os.Inherit,
+      cwd = workspacePath,
+      mergeErrIntoOut = true,
+      env = millTestSuiteEnv ++ windowsPathEnv,
+      check = false
+    )
+
+    IntegrationTester.EvalResult(res)
   }
 
   def validateEval(

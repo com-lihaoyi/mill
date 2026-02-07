@@ -44,7 +44,7 @@ object TestNGTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("demo") - UnitTester(demo, resourcePath).scoped { eval =>
-      val Right(result) = eval.apply(demo.test.testFramework): @unchecked
+      val Right(result) = eval.apply(demo.test.testFramework).runtimeChecked
       assert(
         result.value == "mill.testng.TestNGFramework",
         result.evalCount > 0
@@ -52,19 +52,19 @@ object TestNGTests extends TestSuite {
     }
     test("Test case lookup from inherited annotations") - UnitTester(demo, resourcePath).scoped {
       eval =>
-        val Right(result) = eval.apply(demo.test.testForked()): @unchecked
+        val Right(result) = eval.apply(demo.test.testForked()).runtimeChecked
         val tres = result.value
         assert(tres.results.size == 8)
     }
     test("noGrouping") - UnitTester(demo, resourcePath).scoped {
       eval =>
-        val Right(result) = eval.apply(demo.testng.testForked()): @unchecked
+        val Right(result) = eval.apply(demo.testng.testForked()).runtimeChecked
         val tres = result.value.results
         assert(tres.map(_.fullyQualifiedName).toSet == Set("foo.HelloTests", "foo.WorldTests"))
     }
     test("testForkGrouping") - UnitTester(demo, resourcePath).scoped {
       eval =>
-        val Right(result) = eval.apply(demo.testngGrouping.testForked()): @unchecked
+        val Right(result) = eval.apply(demo.testngGrouping.testForked()).runtimeChecked
         val tres = result.value.results
         assert(tres.map(_.fullyQualifiedName).toSet == Set("foo.HelloTests", "foo.WorldTests"))
     }

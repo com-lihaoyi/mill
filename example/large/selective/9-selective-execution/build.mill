@@ -177,7 +177,6 @@ bar.sources
   }
 }
 
-
 */
 
 // Similarly, if we make a change `qux/`, using selective execution will only run tests

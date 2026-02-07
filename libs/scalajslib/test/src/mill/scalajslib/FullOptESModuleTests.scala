@@ -1,18 +1,18 @@
 package mill.scalajslib
 
 import mill.api.Discover
-import mill.scalajslib.api._
+import mill.scalajslib.api.*
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
-import utest._
+import utest.*
 
 object FullOptESModuleTests extends TestSuite {
 
   object FullOptESModuleModule extends TestRootModule {
 
     object fullOptESModuleModule extends ScalaJSModule {
-      override def scalaVersion = "2.13.4"
-      override def scalaJSVersion = "1.7.0"
+      override def scalaVersion = "2.13.16"
+      override def scalaJSVersion = "1.20.2"
       override def moduleKind = ModuleKind.ESModule
     }
 

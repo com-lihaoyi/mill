@@ -7,7 +7,7 @@ import utest.*
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
 object PromptLoggerTests extends TestSuite {
 
-  def setup(now: () => Long, terminfoPath: os.Path) = {
+  def setup(now: () => Long, terminalDimsCallback: () => Option[(Option[Int], Option[Int])]) = {
     val baos = new ByteArrayOutputStream()
     val baosOut = new PrintStream(new ProxyStream.Output(baos, ProxyStream.OUT))
     val baosErr = new PrintStream(new ProxyStream.Output(baos, ProxyStream.ERR))
@@ -17,10 +17,12 @@ object PromptLoggerTests extends TestSuite {
       infoColor = fansi.Attrs.Empty,
       warnColor = fansi.Attrs.Empty,
       errorColor = fansi.Attrs.Empty,
+      successColor = fansi.Attrs.Empty,
+      highlightColor = fansi.Attrs.Empty,
       systemStreams0 = new SystemStreams(baosOut, baosErr, System.in),
       debugEnabled = false,
       titleText = "TITLE",
-      terminfoPath = terminfoPath,
+      terminalDimsCallback = terminalDimsCallback,
       currentTimeMillis = now,
       autoUpdate = false,
       chromeProfileLogger = new JsonArrayLogger.ChromeProfile(os.temp())
@@ -57,7 +59,7 @@ object PromptLoggerTests extends TestSuite {
     test("nonInteractive") - retry(3) {
       var now = 0L
 
-      val (baos, promptLogger, prefixLogger) = setup(() => now, os.temp())
+      val (baos, promptLogger, prefixLogger) = setup(() => now, () => None)
 
       promptLogger.prompt.setPromptHeaderPrefix("123/456")
       promptLogger.prompt.setPromptLine(Seq("1"), "/456", "my-task")
@@ -78,7 +80,7 @@ object PromptLoggerTests extends TestSuite {
       promptLogger.close()
 
       check(promptLogger, baos, width = 999 /*log file has no line wrapping*/ )(
-        "============================== TITLE ==============================",
+        "TITLE",
         // Make sure that the first time a task prints a log line,
         // we print the task name along with the log line
         "1] my-task HELLO",
@@ -86,14 +88,14 @@ object PromptLoggerTests extends TestSuite {
         // the double space prefix (since it's non-interactive and we don't need space for a cursor),
         // the time elapsed, the reported title and ticker, the list of active tickers, followed by the
         // footer
-        "123/456] ============================== TITLE ============================== 10s",
+        "123/456] TITLE 10s",
         "1] my-task 10s",
         "1] WORLD",
         // Calling `refreshPrompt()` after closing the ticker shows the prompt without
         // the ticker in the list, with an updated time elapsed
-        "123/456] ============================== TITLE ============================== 20s",
+        "123/456] TITLE 20s",
         // Closing the prompt prints the prompt one last time with an updated time elapsed
-        "123/456] ============================== TITLE ============================== 30s",
+        "123/456] TITLE 30s",
         ""
       )
 
@@ -102,12 +104,12 @@ object PromptLoggerTests extends TestSuite {
     test("interactive") - retry(3) {
 
       var now = 0L
-      val (baos, promptLogger, prefixLogger) = setup(() => now, os.temp("80 40"))
+      val (baos, promptLogger, prefixLogger) = setup(() => now, () => Some((Some(80), Some(40))))
 
       promptLogger.prompt.setPromptHeaderPrefix("123/456")
       promptLogger.refreshPrompt()
       check(promptLogger, baos)(
-        "123/456] ============================== TITLE ==============================",
+        "123/456] TITLE",
         ""
       )
       promptLogger.prompt.setPromptLine(Seq("1"), "/456", "my-task")
@@ -121,7 +123,7 @@ object PromptLoggerTests extends TestSuite {
       // `[1/456] my-task` so the viewer knows what `[1]` refers to
       check(promptLogger, baos)(
         "1] my-task HELLO",
-        "123/456] ============================== TITLE ============================= 10s",
+        "123/456] TITLE 10s",
         "1] my-task 10s",
         ""
       )
@@ -133,7 +135,7 @@ object PromptLoggerTests extends TestSuite {
       check(promptLogger, baos)(
         "1] my-task HELLO",
         "1] WORLD",
-        "123/456] ============================== TITLE ============================= 10s",
+        "123/456] TITLE 10s",
         "1] my-task 10s",
         ""
       )
@@ -162,7 +164,7 @@ object PromptLoggerTests extends TestSuite {
         "2] HEAR ME MOO",
         "3] my-task-short-lived hello short lived",
         "3] goodbye short lived",
-        "123/456] ============================== TITLE ============================= 10s",
+        "123/456] TITLE 10s",
         "1] my-task 10s",
         ""
       )
@@ -180,7 +182,7 @@ object PromptLoggerTests extends TestSuite {
         "2] HEAR ME MOO",
         "3] my-task-short-lived hello short lived",
         "3] goodbye short lived",
-        "123/456] ============================== TITLE ============================= 11s",
+        "123/456] TITLE 11s",
         "1] my-task 11s",
         "2] my-task-new 1s",
         ""
@@ -199,7 +201,7 @@ object PromptLoggerTests extends TestSuite {
         "2] HEAR ME MOO",
         "3] my-task-short-lived hello short lived",
         "3] goodbye short lived",
-        "123/456] ============================== TITLE ============================= 11s",
+        "123/456] TITLE 11s",
         "1] my-task 11s",
         "2] my-task-new 1s",
         ""
@@ -217,7 +219,7 @@ object PromptLoggerTests extends TestSuite {
         "2] HEAR ME MOO",
         "3] my-task-short-lived hello short lived",
         "3] goodbye short lived",
-        "123/456] ============================== TITLE ============================= 12s",
+        "123/456] TITLE 12s",
         "2] my-task-new 2s",
         "",
         ""
@@ -234,7 +236,7 @@ object PromptLoggerTests extends TestSuite {
         "2] HEAR ME MOO",
         "3] my-task-short-lived hello short lived",
         "3] goodbye short lived",
-        "123/456] ============================== TITLE ============================= 22s",
+        "123/456] TITLE 22s",
         "2] my-task-new 12s",
         ""
       )
@@ -247,7 +249,7 @@ object PromptLoggerTests extends TestSuite {
         "2] HEAR ME MOO",
         "3] my-task-short-lived hello short lived",
         "3] goodbye short lived",
-        "123/456] ============================== TITLE ============================= 32s",
+        "123/456] TITLE 32s",
         ""
       )
     }
@@ -258,7 +260,7 @@ object PromptLoggerTests extends TestSuite {
       // tasks on each thread are short-lived enough they would not normally get shown if run
       // alone.
       @volatile var now = 0L
-      val (baos, promptLogger, prefixLogger) = setup(() => now, os.temp("80 40"))
+      val (baos, promptLogger, prefixLogger) = setup(() => now, () => Some((Some(80), Some(40))))
 
       promptLogger.prompt.setPromptHeaderPrefix("123/456")
       promptLogger.refreshPrompt()
@@ -268,14 +270,14 @@ object PromptLoggerTests extends TestSuite {
       now += 1000
       promptLogger.refreshPrompt()
       check(promptLogger, baos)(
-        "123/456] ============================== TITLE ============================== 1s",
+        "123/456] TITLE 1s",
         "1] my-task 1s detail",
         ""
       )
       prefixLogger.ticker("detail-too-long-gets-truncated-abcdefghijklmnopqrstuvwxyz1234567890")
       promptLogger.refreshPrompt()
       check(promptLogger, baos)(
-        "123/456] ============================== TITLE ============================== 1s",
+        "123/456] TITLE 1s",
         "1] my-task 1s detail-too-long-gets-truncated-...fghijklmnopqrstuvwxyz1234567890",
         ""
       )
@@ -283,7 +285,7 @@ object PromptLoggerTests extends TestSuite {
       now += 10000
       promptLogger.refreshPrompt()
       check(promptLogger, baos)(
-        "123/456] ============================== TITLE ============================= 11s",
+        "123/456] TITLE 11s",
         ""
       )
     }

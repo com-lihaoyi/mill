@@ -1,10 +1,10 @@
 package mill.javalib
 
 import mill.javalib.testrunner.TestResult
-import utest._
+import utest.*
 
 import java.time.Instant
-import scala.xml._
+import scala.xml.*
 
 object TestModuleUtilTests extends TestSuite {
 

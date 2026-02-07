@@ -1,4 +1,4 @@
-extends: [KotlinModule]
+extends: [mill.kotlinlib.KotlinModule] # fully-qualified class name
 kotlinVersion: 1.9.24
 mvnDeps:
 - org.jetbrains.kotlinx:kotlinx-html:0.11.0
@@ -10,13 +10,14 @@ repositories: [https://oss.sonatype.org/content/repositories/releases]
 mainClass: foo.Foo2Kt
 
 # Pin a specific JVM version, supports >=11
-jvmId: 11
+jvmVersion: 11
 # Optionally specify the distribution: temurin, zulu, corretto, graalvm-community, etc.
-# jvmId: temurin:11
+# jvmVersion: temurin:11
 
 # Add an additional source folder and resource folder, in addition to the default one.
-sources: [src/, custom-src/]
-resources: [resources/, custom-resources/]
+# Note the !append tag to append to the existing value rather than over-writing it
+sources: !append [custom-src/]
+resources: !append [custom-resources/]
 
 # Configure JVM runtime options and env vars
 forkArgs: [-Dmy.custom.property=my-prop-value]

@@ -5,7 +5,7 @@ import mill.api.{Discover, ModuleRef}
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 
-// TODO: Once Scala 3.8.0 is out, we can change this test to use 3.8.0 and remove the extra repo
+// TODO: Once Scala 3.8.1 is out, we can change this test to use 3.8.1 and remove the extra repo
 object Scala38NightlyTests extends TestSuite {
 
   object Scala38Nightly extends TestRootModule {
@@ -32,7 +32,7 @@ object Scala38NightlyTests extends TestSuite {
       Scala38Nightly,
       sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "dotty213"
     ).scoped { eval =>
-      val Right(result) = eval.apply(Scala38Nightly.foo.run()): @unchecked
+      val Right(result) = eval.apply(Scala38Nightly.foo.run()).runtimeChecked
       assert(result.evalCount > 0)
     }
 

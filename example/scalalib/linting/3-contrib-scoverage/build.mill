@@ -1,27 +1,8 @@
 //| mvnDeps:
 //| - com.lihaoyi::mill-contrib-scoverage:$MILL_VERSION
-package build
 
-import mill.*, scalalib.*
-
-import mill.contrib.scoverage.*
-
-object `package` extends ScoverageModule {
-  def scoverageVersion = "2.1.0"
-  def scalaVersion = "3.7.1"
-  def mvnDeps = Seq(
-    mvn"com.lihaoyi::scalatags:0.13.1",
-    mvn"com.lihaoyi::mainargs:0.7.8"
-  )
-
-  def statementCoverageMin = Some(10.00)
-  def branchCoverageMin = Some(90.00)
-
-  object test extends ScoverageTests /*with TestModule.Utest */ {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
-    def testFramework = "utest.runner.Framework"
-  }
-}
+/** See Also: build.mill.yaml */
+/** See Also: test/package.mill.yaml */
 
 // This is a basic Mill build for a single `ScalaModule`, enhanced with
 // Scoverage plugin. The root module extends the `ScoverageModule` and
@@ -58,18 +39,18 @@ scoverage.validateCoverageMinimums
 > ./mill scoverage.validateCoverageMinimums
 ...
 Coverage Minimums Met. Minimums set: {Statements: 10.00% Branches: 90.00%}
-Statement coverage.: 10.53%
+Statement coverage.: 19.05%
 Branch coverage....: 100.00%
 
 > ./mill scoverage.consoleReport
 ...
-Statement coverage.: 10.53%
+Statement coverage.: 19.05%
 Branch coverage....: 100.00%
 
-> sed -i.bak 's/10.00/15.00/' build.mill
+> sed -i.bak 's/10.00/20.00/' build.mill.yaml
 
 > ./mill scoverage.validateCoverageMinimums
 error: Exception while validating coverage minimums. Coverage minimums violated:
-error: This project's statement coverage (10.53) did not meet the minimum desired by the project. (15.0)
+error: This project's statement coverage (19.05) did not meet the minimum desired by the project. (20.0)
 
 */

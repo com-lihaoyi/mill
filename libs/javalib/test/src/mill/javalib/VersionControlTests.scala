@@ -2,12 +2,12 @@ package mill.javalib
 
 import mill.javalib.publish.{VersionControl, VersionControlConnection}
 
-import utest._
+import utest.*
 
 object VersionControlTests extends TestSuite {
 
-  import VersionControl._
-  import VersionControlConnection._
+  import VersionControl.*
+  import VersionControlConnection.*
 
   val tests = Tests {
     test("github") {

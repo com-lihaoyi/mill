@@ -70,6 +70,29 @@ trait SelectiveExecutionModule extends mill.api.Module {
     }
 
   /**
+   * Prints out some dependency path from the `src` task to the `dest` task,
+   * following selective execution dependencies (i.e. using `selectiveInputs`).
+   */
+  def path(
+      evaluator: Evaluator,
+      @mainargs.arg(positional = true) src: String,
+      @mainargs.arg(positional = true) dest: String
+  ): Command[List[String]] =
+    Task.Command(exclusive = true) {
+      for {
+        srcTasks <- evaluator.resolveTasks(List(src), SelectMode.Multi)
+        destTasks <- evaluator.resolveTasks(List(dest), SelectMode.Multi)
+        result <- MainModule.pathBetween(
+          src,
+          dest,
+          srcTasks,
+          destTasks,
+          _.selectiveInputs
+        )
+      } yield result
+    }
+
+  /**
    * Run after [[prepare]], selectively executes the tasks in [[tasks]] that are
    * affected by any changes to the task inputs or task implementations since [[prepare]]
    * was run
@@ -81,9 +104,9 @@ trait SelectiveExecutionModule extends mill.api.Module {
       } else {
         evaluator.selective.resolveTasks0(tasks).flatMap { resolvedTasks =>
           if (resolvedTasks.isEmpty) Result.Success(())
-          else evaluator.execute(resolvedTasks) match {
+          else evaluator.execute(resolvedTasks.toSeq.asInstanceOf[Seq[Task[Any]]]) match {
             case Evaluator.Result(_, f: Result.Failure, _, _) => f
-            case Evaluator.Result(_, Result.Success(_), _, _) =>
+            case Evaluator.Result(_, Result.Success(_), _, _) => Result.Success(())
           }
         }
       }

@@ -1,5 +1,5 @@
 package millbuild
-import mill._, scalalib._
+import mill._, scalalib.*
 
 /**
  * Publishable module which contains strictly handled API.

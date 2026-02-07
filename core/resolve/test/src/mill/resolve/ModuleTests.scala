@@ -688,14 +688,14 @@ object ModuleTests extends TestSuite {
         val check = new Checker(versionedCross)
         // foo.bar.qux_baz resolves to foo.bar[qux.baz]
         test("pos1") - check(
-          "cross.2_12_20.suffix",
-          Result.Success(Set(_.cross("2.12.20").suffix)),
-          Set("cross.2_12_20.suffix")
+          "cross.2_12_21.suffix",
+          Result.Success(Set(_.cross("2.12.21").suffix)),
+          Set("cross.2_12_21.suffix")
         )
         test("pos2") - check(
-          "cross.2_13_15.suffix",
-          Result.Success(Set(_.cross("2.13.15").suffix)),
-          Set("cross.2_13_15.suffix")
+          "cross.2_13_18.suffix",
+          Result.Success(Set(_.cross("2.13.18").suffix)),
+          Set("cross.2_13_18.suffix")
         )
         test("pos3") - check(
           "cross.3_5_0.suffix",
@@ -707,14 +707,14 @@ object ModuleTests extends TestSuite {
         val check = new Checker(versionedDoubleCross)
         // foo.bar.qux_baz.platform resolves to foo.bar[qux.baz,platform]
         test("pos1") - check(
-          "cross.2_12_20.jvm.suffix",
-          Result.Success(Set(_.cross("2.12.20", "jvm").suffix)),
-          Set("cross.2_12_20.jvm.suffix")
+          "cross.2_12_21.jvm.suffix",
+          Result.Success(Set(_.cross("2.12.21", "jvm").suffix)),
+          Set("cross.2_12_21.jvm.suffix")
         )
         test("pos2") - check(
-          "cross.2_13_15.js.suffix",
-          Result.Success(Set(_.cross("2.13.15", "js").suffix)),
-          Set("cross.2_13_15.js.suffix")
+          "cross.2_13_18.js.suffix",
+          Result.Success(Set(_.cross("2.13.18", "js").suffix)),
+          Set("cross.2_13_18.js.suffix")
         )
       }
     }

@@ -2,7 +2,7 @@ package mill.javalib.testrunner
 
 import mill.api.daemon.internal.{TestReporter, internal}
 
-@internal object TestRunnerMain0 {
+@internal object MillTestRunnerMain0 {
   def main0(args: Array[String], classLoader: ClassLoader): Unit = {
     try {
       val testArgs = upickle.read[TestArgs](os.read(os.Path(args(1))))

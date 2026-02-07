@@ -1,7 +1,7 @@
 package hellotest
 
-import hello._
-import utest._
+import hello.*
+import utest.*
 
 object ArgsParserTests extends TestSuite {
 

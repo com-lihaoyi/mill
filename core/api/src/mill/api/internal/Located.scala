@@ -1,10 +1,56 @@
 package mill.api.internal
 
+/** Tracks the source location (file path and character index) of a parsed value */
 case class Located[T](path: os.Path, index: Int, value: T)
 
+/** Wraps a value with append semantics (whether to replace or append to existing value) */
+case class Appendable[T](value: T, append: Boolean = false)
+
+object Appendable {
+  import upickle.core.BufferedValue
+
+  /** Marker key for append mode: `{$millAppend: <actual-value>}` */
+  val AppendMarkerKey = "$millAppend"
+
+  /**
+   * Extract append flag and actual value from a BufferedValue that may contain
+   * the marker object `{$millAppend: <value>}` (produced by YAML `!append` tag parsing).
+   * Returns (actualValue, appendFlag).
+   */
+  def unwrapAppendMarker(v: BufferedValue): (BufferedValue, Boolean) = {
+    v match {
+      case obj: BufferedValue.Obj if obj.value0.size == 1 =>
+        obj.value0.head match {
+          case (BufferedValue.Str(k, _), value) if k.toString == AppendMarkerKey =>
+            (value, true)
+          case _ => (v, false)
+        }
+      case _ => (v, false)
+    }
+  }
+
+  /**
+   * Upickle reader for Appendable[T] that buffers the value, checks for the
+   * `!append` marker object, and deserializes accordingly.
+   */
+  class UpickleReader[T](implicit r: upickle.Reader[T])
+      extends upickle.Reader.MapReader[BufferedValue, BufferedValue, Appendable[T]](
+        BufferedValue.Builder
+      ) {
+    def mapNonNullsFunction(buffered: BufferedValue): Appendable[T] = {
+      val (actualValue, append) = unwrapAppendMarker(buffered)
+      val deserialized = BufferedValue.transform(actualValue, r)
+      Appendable(deserialized, append)
+    }
+  }
+}
+
 object Located {
+
+  /** Upickle reader for Located[T] that wraps values with their source location */
   class UpickleReader[T](path: os.Path)(implicit r: upickle.Reader[T])
       extends upickle.Reader[Located[T]] {
+
     private def wrap(index: Int, v: T): Located[T] = Located(path, index, v)
 
     def visitArray(length: Int, index: Int): upickle.core.ArrVisitor[Any, Located[T]] = {
@@ -16,8 +62,11 @@ object Located {
       }
     }
 
-    def visitObject(length: Int, jsonableKeys: Boolean, index: Int)
-        : upickle.core.ObjVisitor[Any, Located[T]] = {
+    def visitObject(
+        length: Int,
+        jsonableKeys: Boolean,
+        index: Int
+    ): upickle.core.ObjVisitor[Any, Located[T]] = {
       val delegate = r.visitObject(length, jsonableKeys, index)
       new upickle.core.ObjVisitor[Any, Located[T]] {
         def subVisitor = delegate.subVisitor

@@ -1,11 +1,11 @@
 package mill.javalib.checkstyle
 
-import mill._
+import mill.*
 import mainargs.Leftover
 import mill.api.Discover
 import mill.javalib.JavaModule
 import mill.testkit.{TestRootModule, UnitTester}
-import utest._
+import utest.*
 
 object CheckstyleModuleTest extends TestSuite {
 
@@ -161,7 +161,7 @@ object CheckstyleModuleTest extends TestSuite {
 
           numViolations.value == violations.length && {
 
-            val Right(report) = eval(module.checkstyleOutput): @unchecked
+            val Right(report) = eval(module.checkstyleOutput).runtimeChecked
 
             if (os.exists(report.value.path)) {
               violations.isEmpty || {

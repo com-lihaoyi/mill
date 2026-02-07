@@ -7,7 +7,8 @@ import mill.api.internal.{ResolveChecker, Resolved, RootModule0}
 import mill.api.daemon.Watchable
 import mill.exec.{Execution, PlanImpl}
 import mill.internal.PrefixLogger
-import mill.resolve.{ParseArgs, Resolve}
+import mill.resolve.Resolve
+import mill.api.internal.ParseArgs
 
 /**
  * [[EvaluatorImpl]] is the primary API through which a user interacts with the Mill
@@ -30,6 +31,7 @@ final class EvaluatorImpl(
     ) => Seq[Result[ExternalModule]]
 ) extends Evaluator {
 
+  // this (shorter) constructor is used from [[mill.daemon.MillBuildBootstrap]] via reflection
   def this(allowPositionalCommandArgs: Boolean, selectiveExecution: Boolean, execution: Execution) =
     this(
       allowPositionalCommandArgs,
@@ -48,11 +50,21 @@ final class EvaluatorImpl(
   def env = execution.env
   def effectiveThreadCount = execution.effectiveThreadCount
   override def offline: Boolean = execution.offline
+  override def useFileLocks: Boolean = execution.useFileLocks
+  override def spanningInvalidationTree: Option[String] = execution.spanningInvalidationTree
+  override def classLoaderSigHash: Int = execution.classLoaderSigHash
 
   def withBaseLogger(newBaseLogger: Logger): Evaluator = new EvaluatorImpl(
     allowPositionalCommandArgs,
     selectiveExecution,
     execution.withBaseLogger(newBaseLogger),
+    scriptModuleInit
+  )
+
+  override def withIsFinalDepth(isFinalDepth: Boolean): EvaluatorImpl = new EvaluatorImpl(
+    allowPositionalCommandArgs,
+    selectiveExecution,
+    execution.withIsFinalDepth(isFinalDepth),
     scriptModuleInit
   )
 
@@ -121,6 +133,49 @@ final class EvaluatorImpl(
     }
   }
 
+  /**
+   * Resolves tasks using resolveRaw and checks if all of them are marked with @nonBootstrapped annotation.
+   * Used by MillBuildBootstrap to determine if we can short-circuit the bootstrap process.
+   * Uses resolveRaw instead of resolveTasks to avoid instantiating the tasks.
+   *
+   * Returns false if any selector contains wildcards (`_` or `__`) since wildcards
+   * could resolve to many tasks and we shouldn't short-circuit for those.
+   */
+  override def areAllNonBootstrapped(
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      allowPositionalCommandArgs: Boolean
+  ): mill.api.Result[Boolean] = {
+    // First, parse the selectors to check for wildcards
+    val parsedResults = ParseArgs(scriptArgs, selectMode)
+    val hasWildcards = parsedResults.exists {
+      case Result.Success((selectors, _)) =>
+        selectors.exists { case (_, segments) =>
+          segments.value.exists {
+            case Segment.Label(v) =>
+              v == "_" || v == "__" || v.startsWith("_:") || v.startsWith("__:")
+            case _ => false
+          }
+        }
+      case _ => false
+    }
+
+    if (hasWildcards) Result.Success(false)
+    else resolveRaw(scriptArgs, selectMode, allowPositionalCommandArgs) match {
+      case Result.Success(Nil) => Result.Success(false) // No tasks resolved
+      case Result.Success(resolved) =>
+        Result.Success(
+          resolved.forall { r =>
+            r.taskSegments.parts.lastOption.exists { taskName =>
+              r.rootModule.millDiscover.isNonBootstrapped(r.cls, taskName)
+            }
+          }
+        )
+
+      case f: Result.Failure => f // Pass through failure
+    }
+  }
+
   def validateModuleOverrides(allModules: Seq[ModuleCtx.Wrapper]): Seq[Result.Failure] = {
     val scriptBuildOverrides = allModules.flatMap(_.moduleDynamicBuildOverrides)
     val allBuildOverrides = staticBuildOverrides ++ scriptBuildOverrides
@@ -142,7 +197,7 @@ final class EvaluatorImpl(
           case _ => (Nil, k)
         }
 
-        val ("", rest) = ParseArgs.extractSegments(taskSel).get
+        val ("", rest) = ParseArgs.extractSegments(taskSel).get.runtimeChecked
 
         Option.when(module.moduleSegments == Segments(prefix ++ rest.value.dropRight(1))) {
           rest.last.value -> v
@@ -166,7 +221,14 @@ final class EvaluatorImpl(
 
       invalidBuildOverrides.map { case (k, v) =>
         java.nio.file.Files.readString(v.path.toNIO)
-        val doesNotOverridePrefix = s"key ${literalize(k)} does not override any task"
+        val extendsInfo = mill.internal.Util.parseHeaderData(v.path) match {
+          case mill.api.Result.Success(headerData) =>
+            val extendsValues = headerData.`extends`.value.value.map(_.value)
+            if (extendsValues.nonEmpty) s" on ${extendsValues.mkString(", ")}"
+            else ""
+          case _ => ""
+        }
+        val doesNotOverridePrefix = s"key ${literalize(k)} does not override any task$extendsInfo"
         val message = mill.resolve.ResolveNotFoundHandler.findMostSimilar(k, validKeys) match {
           case None =>
             if (millKeys.contains(k))
@@ -275,9 +337,9 @@ final class EvaluatorImpl(
     @scala.annotation.nowarn("msg=cannot be checked at runtime")
     val watched = allResults.collect {
       case (_: Task.Sources, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
-        ps.map(r => Watchable.Path(r.path.toNIO, r.quick, r.sig))
+        ps.map(r => Watchable.Path.from(r))
       case (_: Task.Source, ExecResult.Success(Val(p: PathRef))) =>
-        Seq(Watchable.Path(p.path.toNIO, p.quick, p.sig))
+        Seq(Watchable.Path.from(p))
       case (t: Task.Input[_], result) =>
 
         val ctx = new mill.api.TaskCtx.Impl(
@@ -292,7 +354,8 @@ final class EvaluatorImpl(
             throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
           fork = null,
           jobs = execution.effectiveThreadCount,
-          offline = offline
+          offline = offline,
+          useFileLocks = useFileLocks
         )
         val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
         Seq(Watchable.Value(
@@ -350,7 +413,11 @@ final class EvaluatorImpl(
       resolveTasks(scriptArgs, selectMode, allowPositionalCommandArgs)
     }
     for (tasks <- resolved)
-      yield execute(Seq.from(tasks), reporter = reporter, selectiveExecution = selectiveExecution)
+      yield execute(
+        tasks.asInstanceOf[Seq[Task[Any]]],
+        reporter = reporter,
+        selectiveExecution = selectiveExecution
+      )
   }
 
   def close(): Unit = execution.close()

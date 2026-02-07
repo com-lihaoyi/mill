@@ -13,7 +13,8 @@ class CallGraphAnalysis(
     externalSummary: ExternalSummary,
     ignoreCall: (Option[MethodDef], MethodSig) => Boolean,
     logger: Logger,
-    prevTransitiveCallGraphHashesOpt: () => Option[Map[String, Int]]
+    prevTransitiveCallGraphHashesOpt: () => Option[Map[String, Int]],
+    prevMethodCodeHashesOpt: () => Option[Map[String, Int]]
 )(using st: SymbolTable) {
 
   val methods: Map[MethodDef, LocalSummary.MethodInfo] = for {
@@ -85,6 +86,8 @@ class CallGraphAnalysis(
     case Some(prevTransitiveCallGraphHashes) =>
       CallGraphAnalysis.spanningInvalidationTree(
         prevTransitiveCallGraphHashes,
+        prevMethodCodeHashesOpt(),
+        methodCodeHashes,
         transitiveCallGraphHashes0,
         indexToNodes,
         indexGraphEdges
@@ -110,15 +113,29 @@ object CallGraphAnalysis {
    * typically are investigating why there's a path to a node at all where none
    * should exist, rather than trying to fully analyse all possible paths
    */
+  /**
+   * Computes the spanning invalidation tree showing which code changes caused
+   * which transitive hash changes.
+   *
+   * @param prevTransitiveCallGraphHashes Previous transitive hashes (to detect what changed)
+   * @param prevMethodCodeHashesOpt Previous method code hashes (to find actual code changes)
+   * @param methodCodeHashes Current method code hashes
+   * @param transitiveCallGraphHashes0 Current transitive hashes
+   * @param indexToNodes Node index to node mapping
+   * @param indexGraphEdges Call graph edges (caller -> callees)
+   */
   def spanningInvalidationTree(
       prevTransitiveCallGraphHashes: Map[String, Int],
+      prevMethodCodeHashesOpt: Option[Map[String, Int]],
+      methodCodeHashes: collection.immutable.SortedMap[String, Int],
       transitiveCallGraphHashes0: Array[(CallGraphAnalysis.Node, Int)],
       indexToNodes: Array[Node],
       indexGraphEdges: Array[Array[Int]]
   ): ujson.Obj = {
     val transitiveCallGraphHashes0Map = transitiveCallGraphHashes0.toMap
 
-    val nodesWithChangedHashes = indexGraphEdges
+    // Nodes with changed transitive hashes (these need to be included in the tree)
+    val nodesWithChangedTransitiveHashes = indexGraphEdges
       .indices
       .filter { nodeIndex =>
         val currentValue = transitiveCallGraphHashes0Map(indexToNodes(nodeIndex))
@@ -126,6 +143,25 @@ object CallGraphAnalysis {
         !prevValue.contains(currentValue)
       }
       .toSet
+
+    // Find nodes whose actual code changed (these are the true root causes)
+    // Only LocalDef nodes have code hashes
+    val nodesWithChangedCode: Set[Int] = prevMethodCodeHashesOpt match {
+      case Some(prevMethodCodeHashes) =>
+        indexGraphEdges.indices.filter { nodeIndex =>
+          indexToNodes(nodeIndex) match {
+            case LocalDef(m) =>
+              val key = m.toString
+              val currHash = methodCodeHashes.get(key)
+              val prevHash = prevMethodCodeHashes.get(key)
+              currHash != prevHash
+            case _ => false
+          }
+        }.toSet
+      case None =>
+        // If no previous hashes, fall back to using transitive hash changes
+        nodesWithChangedTransitiveHashes
+    }
 
     val reverseGraphMap = indexGraphEdges
       .zipWithIndex
@@ -135,8 +171,13 @@ object CallGraphAnalysis {
     val reverseGraphEdges =
       indexGraphEdges.indices.map(reverseGraphMap.getOrElse(_, Array[Int]())).toArray
 
+    // Use actual code changes as roots, but include all transitively affected nodes
     SpanningForest.spanningTreeToJsonTree(
-      SpanningForest.apply(reverseGraphEdges, nodesWithChangedHashes, false),
+      SpanningForest.applyWithRoots(
+        reverseGraphEdges,
+        rootsOrdered = nodesWithChangedCode.toSeq.sorted,
+        importantVertices = nodesWithChangedTransitiveHashes
+      ),
       k => indexToNodes(k).toString
     )
   }

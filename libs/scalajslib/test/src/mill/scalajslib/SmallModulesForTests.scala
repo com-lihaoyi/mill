@@ -1,10 +1,10 @@
 package mill.scalajslib
 
 import mill.api.Discover
-import mill.scalajslib.api._
+import mill.scalajslib.api.*
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
-import utest._
+import utest.*
 
 object SmallModulesForTests extends TestSuite {
   object SmallModulesForModule extends TestRootModule with ScalaJSModule {
@@ -28,7 +28,7 @@ object SmallModulesForTests extends TestSuite {
       UnitTester(SmallModulesForModule, millSourcePath).scoped { evaluator =>
         println(evaluator(SmallModulesForModule.sources))
 
-        val Right(result) = evaluator(SmallModulesForModule.fastLinkJS): @unchecked
+        val Right(result) = evaluator(SmallModulesForModule.fastLinkJS).runtimeChecked
         val publicModules = result.value.publicModules
 
         println(os.list(result.value.dest.path))

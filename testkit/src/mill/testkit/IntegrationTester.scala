@@ -3,6 +3,8 @@ package mill.testkit
 import mill.api.SelectMode
 import mill.api.internal.Cached
 import mill.constants.OutFiles.OutFiles
+import mill.launcher.MillLauncherMain
+import mill.api.daemon.SystemStreams
 import ujson.Value
 
 import scala.concurrent.duration.*
@@ -20,6 +22,8 @@ import scala.concurrent.duration.*
  *                            tested comes from. These are copied into a temporary folder
  *                            and are not modified during tests
  * @param millExecutable What Mill executable to use.
+ * @param useInMemory If true, run Mill commands in-memory using MillLauncherMain.main0
+ *                    instead of spawning a subprocess. Used in `.shared` test mode.
  */
 class IntegrationTester(
     val daemonMode: Boolean,
@@ -28,7 +32,8 @@ class IntegrationTester(
     override val debugLog: Boolean = false,
     val baseWorkspacePath: os.Path = os.pwd,
     val propagateJavaHome: Boolean = true,
-    val cleanupProcessIdFile: Boolean = true
+    val cleanupProcessIdFile: Boolean = true,
+    override val useInMemory: Boolean = false
 ) extends IntegrationTester.Impl {
   initWorkspace()
 }
@@ -73,6 +78,27 @@ object IntegrationTester {
          |stderr:
          |$err
          |""".stripMargin
+    }
+
+    /**
+     * Asserts that the given lines appear as exact consecutive lines in the combined
+     * stdout/stderr output. Normalizes backslashes to forward slashes for cross-platform compatibility.
+     */
+    def assertContainsLines(expectedLines: String*): Unit = {
+      val combined = geny.ByteData.Chunks(result.chunks.map {
+        case Left(b) => b
+        case Right(b) => b
+      }).text()
+      val combinedNormalized = fansi.Str(combined, errorMode = fansi.ErrorMode.Strip)
+        .plainText
+        .replace('\\', '/')
+      val actualLines = combinedNormalized.linesIterator.toVector
+
+      val found = actualLines.sliding(expectedLines.size).exists(_ == expectedLines)
+      assert(
+        found,
+        s"Expected consecutive lines not found:\n${expectedLines.mkString("\n")}\n\nActual output:\n${actualLines.mkString("\n")}"
+      )
     }
   }
 
@@ -132,6 +158,7 @@ object IntegrationTester {
     def workspaceSourcePath: os.Path
 
     val daemonMode: Boolean
+    def useInMemory: Boolean = false
 
     def debugLog = false
 
@@ -163,21 +190,27 @@ object IntegrationTester {
       val callEnv = millTestSuiteEnv ++ env
 
       def run() = {
-        val res0 = os.call(
-          cmd = shellable,
-          env = callEnv,
-          cwd = cwd,
-          stdin = stdin,
-          stdout = stdout,
-          stderr = stderr,
-          mergeErrIntoOut = mergeErrIntoOut,
-          timeout = timeout,
-          check = check,
-          propagateEnv = propagateEnv,
-          shutdownGracePeriod = timeoutGracePeriod
-        )
+        if (useInMemory && stdin == os.Pipe && stdout == os.Pipe && stderr == os.Pipe) {
+          val argsSeq = shellable.value.toSeq.map(_.toString)
+          val millArgs = argsSeq.drop(1).filter(_.nonEmpty)
+          IntegrationTester.evalInMemory(millArgs, cwd, callEnv, mergeErrIntoOut)
+        } else {
+          val res0 = os.call(
+            cmd = shellable,
+            env = callEnv,
+            cwd = cwd,
+            stdin = stdin,
+            stdout = stdout,
+            stderr = stderr,
+            mergeErrIntoOut = mergeErrIntoOut,
+            timeout = timeout,
+            check = check,
+            propagateEnv = propagateEnv,
+            shutdownGracePeriod = timeoutGracePeriod
+          )
 
-        IntegrationTester.EvalResult(res0)
+          IntegrationTester.EvalResult(res0)
+        }
       }
       def spawn() = os.spawn(
         cmd = shellable,
@@ -301,7 +334,7 @@ object IntegrationTester {
        * Returns the raw text of the `.json` metadata file
        */
       def text: String = {
-        val Seq(res) = mill.resolve.ParseArgs.apply(Seq(selector0), SelectMode.Separated)
+        val Seq(res) = mill.api.internal.ParseArgs.apply(Seq(selector0), SelectMode.Separated)
 
         val (Seq((rootModulePrefix, taskSegments)), _) = res.get
 
@@ -340,6 +373,50 @@ object IntegrationTester {
      * in-process Mill background servers
      */
     override def close(): Unit = removeProcessIdFile()
+  }
+
+  /**
+   * Runs Mill in-memory using MillLauncherMain.main0 instead of spawning a subprocess.
+   * This is used in the `.shared` integration test flavor for faster execution.
+   */
+  def evalInMemory(
+      args: Seq[String],
+      workDir: os.Path,
+      env: Map[String, String] = Map.empty,
+      mergeErrIntoOut: Boolean = false
+  ): EvalResult = {
+    // Collect chunks in order with synchronization to preserve ordering across streams
+    val chunks = collection.mutable.ArrayBuffer.empty[Either[geny.Bytes, geny.Bytes]]
+
+    val exitCode = MillLauncherMain.main0(
+      args = args.toArray,
+      streamsOpt = Some(
+        SystemStreams(
+          ChunkingStreams.makeChunkingStream(
+            chunks,
+            isStdout = true,
+            mergeErrIntoOut = mergeErrIntoOut
+          ),
+          ChunkingStreams.makeChunkingStream(
+            chunks,
+            isStdout = false,
+            mergeErrIntoOut = mergeErrIntoOut
+          ),
+          System.in
+        )
+      ),
+      env = sys.env ++ env,
+      workDir = workDir
+    )
+
+    // Create a mock os.CommandResult to wrap in EvalResult
+    val result = new os.CommandResult(
+      command = args,
+      exitCode = exitCode,
+      chunks = chunks.toSeq
+    )
+
+    EvalResult(result)
   }
 
 }

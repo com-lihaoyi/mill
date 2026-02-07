@@ -1,8 +1,8 @@
 package build.core.constants
 
-import mill._
+import mill.*
 import mill.contrib.buildinfo.BuildInfo
-import mill.scalalib._
+import mill.scalalib.*
 import millbuild.*
 
 /**
@@ -12,10 +12,11 @@ import millbuild.*
 object `package` extends MillStableJavaModule with BuildInfo {
   def buildInfoPackageName = "mill.constants"
   def buildInfoMembers = Seq(
-    BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
+    BuildInfo.Value("millVersion", "SNAPSHOT", "Mill version."),
     BuildInfo.Value("millBinPlatform", build.millBinPlatform(), "Mill binary platform version."),
     BuildInfo.Value("millDocUrl", Settings.docUrl),
-    BuildInfo.Value("coursierJvmIndexVersion", Deps.coursierJvmIndexVersion)
+    BuildInfo.Value("coursierJvmIndexVersion", Deps.coursierJvmIndexVersion),
+    BuildInfo.Value("defaultJvmVersion", build.defaultMillJvmVersion())
   )
 
   def jvmId = "11"

@@ -7,7 +7,7 @@ import mill.javalib.TestModule
 import mill.javalib.DepSyntax
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
-import mill.util.TokenReaders._
+import mill.util.TokenReaders.*
 
 object JUnit5Tests extends TestSuite {
 
@@ -57,7 +57,7 @@ object JUnit5Tests extends TestSuite {
 
       test("jupiter added when version is set") {
         testEval().scoped { eval =>
-          val Right(resultDeps) = eval.apply(module.deps.junitBom.mandatoryMvnDeps): @unchecked
+          val Right(resultDeps) = eval.apply(module.deps.junitBom.mandatoryMvnDeps).runtimeChecked
           assert(
             resultDeps.value.contains(jupiter)
           )
@@ -66,12 +66,12 @@ object JUnit5Tests extends TestSuite {
 
       test("junit bom & platform are added when version is at least 5.12.0") {
         testEval().scoped { eval =>
-          val Right(resultBom) = eval.apply(module.deps.junitBom.bomMvnDeps): @unchecked
+          val Right(resultBom) = eval.apply(module.deps.junitBom.bomMvnDeps).runtimeChecked
           assert(
             resultBom.value.contains(junitBom)
           )
 
-          val Right(resultDeps) = eval.apply(module.deps.junitBom.mandatoryMvnDeps): @unchecked
+          val Right(resultDeps) = eval.apply(module.deps.junitBom.mandatoryMvnDeps).runtimeChecked
           assert(
             resultDeps.value.contains(junitPlatformLauncher)
           )
@@ -80,12 +80,12 @@ object JUnit5Tests extends TestSuite {
 
       test("junit bom & platform are NOT added when version is below 5.11.0") {
         testEval().scoped { eval =>
-          val Right(resultBom) = eval.apply(module.deps.junitNoBom.bomMvnDeps): @unchecked
+          val Right(resultBom) = eval.apply(module.deps.junitNoBom.bomMvnDeps).runtimeChecked
           assert(
             !resultBom.value.contains(junitBom)
           )
 
-          val Right(resultDeps) = eval.apply(module.deps.junitNoBom.mandatoryMvnDeps): @unchecked
+          val Right(resultDeps) = eval.apply(module.deps.junitNoBom.mandatoryMvnDeps).runtimeChecked
           assert(
             !resultDeps.value.contains(junitPlatformLauncher)
           )

@@ -1,16 +1,30 @@
 package build.libs.init
 
-import mill._
-import mill.api.{BuildCtx, Cross, TaskCtx}
+import mill.*
+import mill.api.{BuildCtx, Cross}
 import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib.Assembly.Rule
 import mill.scalalib.ScalaModule
-import mill.scalalib.scalafmt.ScalafmtModule
-import mill.util.Jvm
 import millbuild.*
 
 object `package` extends MillPublishScalaModule {
 
+  def initSelectiveInputs = Seq(
+    build.libs.init.sources,
+    build.libs.init.maven.sources,
+    build.libs.init.gradle.sources,
+    build.libs.init.gradle.api.sources,
+    build.libs.init.gradle.exportplugin.sources,
+    build.libs.init.sbt.sources,
+    build.libs.init.sbt.api(Deps.scalaVersion).sources,
+    build.libs.init.sbt.exportplugin.sources,
+    build.libs.init.buildgen.sources,
+    build.libs.init.buildgen.api(Deps.scalaVersion).sources
+  )
+
+  override object test extends MillScalaTests {
+    override def selectiveInputs = Seq(sources, this.resources) ++ initSelectiveInputs
+  }
   def moduleDeps = Seq(build.libs.scalalib)
 
   override def resources = Task {
@@ -18,10 +32,14 @@ object `package` extends MillPublishScalaModule {
   }
 
   def exampleList: T[PathRef] = Task {
+    // Use SNAPSHOT placeholder in URLs - will be replaced with actual version during jar processing
+    val snapshotUrlPrefix = s"${build.millDownloadPrefix()}/SNAPSHOT"
+    val snapshotArtifactPrefix = s"${build.dist.artifactName()}-SNAPSHOT"
     val data: Seq[(os.SubPath, String)] =
-      build.dist.examplePaths().zip(build.dist.exampleArtifactNames()).map { case (path, str) =>
-        val downloadUrl =
-          s"${build.millDownloadUrlCurrent()}/$str.zip"
+      build.dist.examplePaths().map { path =>
+        val example = path.subRelativeTo(BuildCtx.workspaceRoot)
+        val artifactName = s"$snapshotArtifactPrefix-${example.segments.mkString("-")}"
+        val downloadUrl = s"$snapshotUrlPrefix/$artifactName.zip"
         val subPath = path.subRelativeTo(BuildCtx.workspaceRoot / "example")
         (subPath, downloadUrl)
       }
@@ -74,7 +92,7 @@ object `package` extends MillPublishScalaModule {
     def mvnDeps = Seq(Deps.pprint)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
     def buildInfoPackageName = "mill.main.buildgen"
-    def buildInfoMembers = Seq(BuildInfo.Value("millVersion", build.millVersion()))
+    def buildInfoMembers = Seq(BuildInfo.Value("millVersion", "SNAPSHOT"))
 
     object api extends Cross[ApiModule](
           Deps.sbtScalaVersion212,
@@ -86,69 +104,24 @@ object `package` extends MillPublishScalaModule {
       def jvmId = if (crossScalaVersion == Deps.scalaVersion) "" else "11"
       def crossFullScalaVersion = true
     }
+  }
 
-    trait MainModule extends MillPublishScalaModule {
-      def moduleDeps = Seq(buildgen)
-      def mvnDeps = Seq(Deps.mainargs)
-      def testModuleDeps = super.testModuleDeps ++ Seq(buildgen.test)
-      def prependShellScript = ""
-      def testForkEnv = super.testForkEnv() ++ Map("TEST_MAIN_ASSEMBLY" -> assembly().path.toString)
-      def scalafmtConfigFile = Task {
-        val file = Task.dest / ".scalafmt.conf"
-        os.write(
-          file,
-          """version = "3.8.5"
-            |runner.dialect = scala3
-            |newlines.source=fold
-            |project.includePaths = [
-            |  "glob:**/build.mill"
-            |  "glob:**/package.mill"
-            |  "glob:**/mill-build/**.scala"
-            |]
-            |""".stripMargin
-        )
-        PathRef(file)
-      }
-      def millExecutable: T[PathRef] = build.dist.executableRaw()
-      def mocks: Map[String, Mock]
-      def runMock(mock: Mock) = Task.Command(persistent = true) {
-        import mock.*
-        val cacheDir = Task.dest
-        val repoName = gitUrl.split("/").last.stripSuffix(".git")
-        val repoDir = cacheDir / repoName
-        if (os.exists(repoDir)) {
-          os.proc("git", "clean", "-fdx").call(repoDir)
-        } else {
-          os.proc("git", "clone", gitUrl, repoDir).call(cacheDir)
-        }
-        os.proc("git", "checkout", gitRev).call(repoDir, stdout = os.Inherit)
-        Jvm.callProcess(
-          mainClass = finalMainClass(),
-          mainArgs = initArgs,
-          classPath = runClasspath().map(_.path),
-          cwd = repoDir,
-          stdout = os.Inherit
-        )
-        Jvm.callProcess(
-          mainClass = "org.scalafmt.cli.Cli",
-          mainArgs = Seq("-c", scalafmtConfigFile().path.toString, repoDir.toString),
-          classPath = ScalafmtModule.scalafmtClasspath().map(_.path),
-          cwd = repoDir,
-          stdout = os.Inherit
-        )
-        val millExe = millExecutable().path
-        for (task <- checkTasks) do
-          os.proc(millExe, "--no-daemon", task).call(repoDir, stdout = os.Inherit, check = false)
-      }
-      def runMocks(ids: String*) = {
-        val task = Task.traverse(if (ids.isEmpty) mocks.values.toSeq else ids.map(mocks))(runMock)
-        Task.Command { task() }
-      }
-      def defaultTask() = "runMocks"
+  trait MainModule extends MillPublishScalaModule {
+    def moduleDeps = Seq(buildgen)
+    def mvnDeps = Seq(Deps.mainargs)
+    def testModuleDeps = super.testModuleDeps ++ Seq(buildgen.test)
+    def prependShellScript = ""
+    def testForkEnv = super.testForkEnv() ++ Map(
+      "MILL_UNSTABLE_VERSION" -> "1",
+      "TEST_MAIN_ASSEMBLY" -> assembly().path.toString
+    )
+
+    override object test extends MillScalaTests {
+      override def selectiveInputs = Seq(sources, this.resources) ++ initSelectiveInputs
     }
   }
 
-  object gradle extends buildgen.MainModule with BuildInfo {
+  object gradle extends MainModule with BuildInfo {
     def moduleDeps = super.moduleDeps ++ Seq(api)
     def mvnDeps = super.mvnDeps() ++ Seq(Deps.gradleApi)
     def testModuleDeps = super.testModuleDeps ++ Seq(buildgen.test)
@@ -160,48 +133,9 @@ object `package` extends MillPublishScalaModule {
       os.copy(exportplugin.assembly().path, Task.dest / "exportplugin-assembly.jar")
       PathRef(Task.dest)
     }
-    def resources = Task { super.resources() ++ Seq(exportpluginAssemblyResource()) }
-    def mocks = Map(
-      "ehcache3" -> Mock(
-        "https://github.com/ehcache/ehcache3.git",
-        "v3.10.8",
-        Seq("--gradle-jvm-id", "11", "--mill-jvm-id", "17"),
-        "__.compile"
-      ),
-      "fastcsv" -> Mock(
-        "https://github.com/osiegmar/FastCSV.git",
-        "v4.1.0",
-        Seq("--gradle-jvm-id", "25", "--mill-jvm-id", "25")
-      ),
-      "jcommander" -> Mock(
-        "https://github.com/cbeust/jcommander.git",
-        "3.0",
-        Seq("--gradle-jvm-id", "21", "--mill-jvm-id", "21"),
-        "__.compile"
-      ),
-      "microconfig" -> Mock(
-        "https://github.com/microconfig/microconfig.git",
-        "v4.9.5",
-        Seq("--gradle-jvm-id", "17", "--mill-jvm-id", "17"),
-        "__.test"
-      ),
-      "mockito" -> Mock(
-        "https://github.com/mockito/mockito.git",
-        "v5.20.0",
-        Seq("--gradle-jvm-id", "17", "--mill-jvm-id", "21")
-      ),
-      "spotbugs" -> Mock(
-        "https://github.com/spotbugs/spotbugs.git",
-        "4.9.8",
-        Seq("--gradle-jvm-id", "17", "--mill-jvm-id", "25"),
-        "__.compile"
-      ),
-      "spring-framework" -> Mock(
-        "https://github.com/spring-projects/spring-framework.git",
-        "v6.2.12",
-        Seq("--gradle-jvm-id", "24", "--mill-jvm-id", "24")
-      )
-    )
+    def resources = Task {
+      super.resources() ++ Seq(exportpluginAssemblyResource())
+    }
 
     object api extends MillPublishJavaModule {
       def jvmId = "11"
@@ -215,7 +149,7 @@ object `package` extends MillPublishScalaModule {
     }
   }
 
-  object maven extends buildgen.MainModule {
+  object maven extends MainModule {
     override def mvnDeps = super.mvnDeps() ++ Seq(
       Deps.MavenInit.mavenEmbedder,
       Deps.MavenInit.mavenResolverConnectorBasic,
@@ -225,180 +159,37 @@ object `package` extends MillPublishScalaModule {
       Deps.MavenInit.mavenResolverTransportWagon
     )
     def testModuleDeps = super.testModuleDeps ++ Seq(buildgen.test)
-    def mocks = Map(
-      "aws-sdk-java-v2" -> Mock(
-        "https://github.com/aws/aws-sdk-java-v2.git",
-        "2.40.4",
-        Seq("--mill-jvm-id", "21")
-      ),
-      "byte-buddy" -> Mock(
-        "https://github.com/raphw/byte-buddy.git",
-        "byte-buddy-1.17.8",
-        Seq("--mill-jvm-id", "25"),
-        "__.compile"
-      ),
-      "checkstyle" -> Mock(
-        "https://github.com/checkstyle/checkstyle.git",
-        "checkstyle-12.1.1",
-        Seq("--mill-jvm-id", "21"),
-        "__.compile"
-      ),
-      "error-prone" -> Mock(
-        "https://github.com/google/error-prone.git",
-        "v2.43.0",
-        Seq("--mill-jvm-id", "21"),
-        "__.compile"
-      ),
-      "fastjson2" -> Mock(
-        "https://github.com/alibaba/fastjson2.git",
-        "2.0.60",
-        Seq("--mill-jvm-id", "21"),
-        "__.compile"
-      ),
-      "hikaricp" -> Mock(
-        "https://github.com/brettwooldridge/HikariCP.git",
-        "HikariCP-7.0.2",
-        Seq("--mill-jvm-id", "17"),
-        "__.compile"
-      ),
-      "jansi" -> Mock(
-        "https://github.com/fusesource/jansi.git",
-        "jansi-2.4.2",
-        Seq("--mill-jvm-id", "17"),
-        "__.test"
-      ),
-      "java-design-patterns" -> Mock(
-        "https://github.com/iluwatar/java-design-patterns",
-        "ede37bd05568b1b8b814d8e9a1d2bbd71d9d615d",
-        Seq("--mill-jvm-id", "21"),
-        "__.compile"
-      ),
-      "netty" -> Mock(
-        "https://github.com/netty/netty.git",
-        "netty-4.2.7.Final",
-        Seq("--mill-jvm-id", "17"),
-        "__.compile"
-      ),
-      "spring-ai" -> Mock(
-        "https://github.com/spring-projects/spring-ai.git",
-        "v1.0.3",
-        Seq("--mill-jvm-id", "17"),
-        "__.compile"
-      ),
-      "thealgorithms" -> Mock(
-        "https://github.com/TheAlgorithms/Java.git",
-        "2707da25e35f6973ceacdf4aa7dde9ecf7d4d34c",
-        Seq("--mill-jvm-id", "21"),
-        "__.test"
-      )
-    )
   }
 
-  object sbt extends buildgen.MainModule with BuildInfo {
+  object sbt extends MainModule with BuildInfo {
     def moduleDeps = super.moduleDeps ++ Seq(api(Deps.scalaVersion))
     def sbtPluginJarResource = Task {
       os.copy(exportplugin.assembly().path, Task.dest / "exportplugin-assembly.jar")
       PathRef(Task.dest)
     }
-    def resources = Task { super.resources() ++ Seq(sbtPluginJarResource()) }
+    def resources = Task {
+      super.resources() ++ Seq(sbtPluginJarResource())
+    }
     def testModuleDeps = super.testModuleDeps ++ Seq(buildgen.test)
     def buildInfoPackageName = "mill.main.sbt"
     def buildInfoMembers = Seq(
       BuildInfo.Value("exportpluginAssemblyResource", "/exportplugin-assembly.jar"),
-      BuildInfo.Value("sbtVersion", Deps.sbt.version)
-    )
-    def mocks = Map(
-      "airstream" -> Mock(
-        "https://github.com/raquo/Airstream.git",
-        "v17.2.1",
-        Seq("--mill-jvm-id", "17"),
-        "__.test"
-      ),
-      "cats" -> Mock(
-        "https://github.com/typelevel/cats.git",
-        "v2.13.0",
-        Seq("--mill-jvm-id", "17")
-      ),
-      "enumeratum" -> Mock(
-        "https://github.com/lloydmeta/enumeratum.git",
-        "enumeratum-1.9.0",
-        Seq("--mill-jvm-id", "17", "-Denumeratum.useLocalVersion=true"),
-        "__[3.3.5].compile"
-      ),
-      "fs2" -> Mock(
-        "https://github.com/typelevel/fs2.git",
-        "v3.12.2",
-        Seq("--mill-jvm-id", "17"),
-        "__.compile"
-      ),
-      "gatling" -> Mock(
-        "https://github.com/gatling/gatling.git",
-        "v3.14.7",
-        Seq("--mill-jvm-id", "24"),
-        "__.test"
-      ),
-      "lila" -> Mock(
-        "https://github.com/lichess-org/lila.git",
-        "master",
-        Seq("--mill-jvm-id", "21")
-      ),
-      "nscala-time" -> Mock(
-        "https://github.com/nscala-time/nscala-time.git",
-        "releases/3.0.0",
-        Seq("--mill-jvm-id", "21"),
-        "__.test"
-      ),
-      "refined" -> Mock(
-        "https://github.com/fthomas/refined.git",
-        "v0.11.3",
-        Seq("--mill-jvm-id", "17")
-      ),
-      "scala3" -> Mock(
-        "https://github.com/scala/scala3.git",
-        "3.7.3",
-        Seq("--mill-jvm-id", "17")
-      ),
-      "scala-logging" -> Mock(
-        "https://github.com/lightbend-labs/scala-logging.git",
-        "v3.9.6",
-        Seq("--mill-jvm-id", "17"),
-        "__.test"
-      ),
-      "scopt" -> Mock(
-        "https://github.com/scopt/scopt.git",
-        "v4.1.0",
-        Seq("--mill-jvm-id", "17"),
-        "__.test"
-      ),
-      "scrypto" -> Mock(
-        "https://github.com/input-output-hk/scrypto.git",
-        "v3.1.0",
-        Seq("--mill-jvm-id", "17"),
-        "__.test"
-      )
+      BuildInfo.Value("sbtVersion", Deps.sbt.version),
+      BuildInfo.Value("millScalafixDep", "com.goyeau::mill-scalafix_mill1:0.6.0"),
+      BuildInfo.Value("millMimaDep", "com.github.lolgab::mill-mima_mill1:0.2.0")
     )
 
     object api extends Cross[ApiModule](Deps.sbtScalaVersion212, Deps.scalaVersion)
     trait ApiModule extends MillPublishCrossScalaModule {
       def moduleDeps = Seq(buildgen.api())
     }
+
     object exportplugin extends ScalaModule {
       def jvmId = "11"
       def scalaVersion = Deps.sbtScalaVersion212
       def moduleDeps = Seq(api(Deps.sbtScalaVersion212))
-      def compileMvnDeps = Seq(Deps.sbt)
+      def compileMvnDeps = Seq(Deps.sbt, Deps.mimaCore)
       def assemblyRules = Seq(Rule.ExcludePattern("scala\\.*"))
     }
   }
-}
-
-@mainargs.main
-private case class Mock(
-    @mainargs.arg(positional = true) gitUrl: String,
-    @mainargs.arg(positional = true) gitRev: String,
-    @mainargs.arg(short = 'i') initArgs: Seq[String],
-    checkTasks: String*
-) derives upickle.default.ReadWriter
-private object Mock {
-  given mainargs.TokensReader[Mock] = mainargs.Parser[Mock]
 }

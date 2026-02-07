@@ -1,0 +1,18 @@
+# Example codex/config.toml. Doesn't work in repo, you need to copy it to
+# ~/codex/config.toml for it to take effect
+sandbox_mode = "workspace-write"
+
+[sandbox_workspace_write]
+network_access = true
+writable_roots = [
+    "/Users/lihaoyi/Github/mill",
+    "/Users/lihaoyi/.cache",
+    "/Users/lihaoyi/Library/Caches/Coursier/",
+    "/Users/lihaoyi/.ivy2/local",
+    "/Users/lihaoyi/.sbt",
+    "/Users/lihaoyi/mill-debug-log.txt",
+]
+
+
+[projects."/Users/lihaoyi/Github/mill"]
+trust_level = "trusted"

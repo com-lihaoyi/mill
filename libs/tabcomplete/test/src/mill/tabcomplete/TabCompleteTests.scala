@@ -30,7 +30,7 @@ object TabCompleteTests extends TestSuite {
     trait QuxModule extends Cross.Module[Int] {
       def task3 = Task { 789 }
     }
-    object versioned extends Cross[VersionedModule]("2.12.20", "2.13.15", "3.5.0")
+    object versioned extends Cross[VersionedModule]("2.12.21", "2.13.18", "3.5.0")
     trait VersionedModule extends Cross.Module[String] {
       def compile = Task { crossValue }
     }
@@ -286,14 +286,14 @@ object TabCompleteTests extends TestSuite {
         // Version numbers with dots are converted to underscores in dot syntax
         assertGoldenLiteral(
           evalComplete("1", "./mill", "versioned"),
-          Set("versioned", "versioned.2_12_20", "versioned.2_13_15", "versioned.3_5_0")
+          Set("versioned", "versioned.2_12_21", "versioned.2_13_18", "versioned.3_5_0")
         )
       }
 
       test("crossVersionedNested") {
         assertGoldenLiteral(
-          evalComplete("1", "./mill", "versioned.2_12_20"),
-          Set("versioned.2_12_20", "versioned.2_12_20.compile")
+          evalComplete("1", "./mill", "versioned.2_12_21"),
+          Set("versioned.2_12_21", "versioned.2_12_21.compile")
         )
       }
 
@@ -301,7 +301,7 @@ object TabCompleteTests extends TestSuite {
         // With bracket, keep original syntax with dots
         assertGoldenLiteral(
           evalComplete("1", "./mill", "versioned[2"),
-          Set("versioned[2.12.20]", "versioned[2.13.15]")
+          Set("versioned[2.12.21]", "versioned[2.13.18]")
         )
       }
     }
@@ -310,12 +310,12 @@ object TabCompleteTests extends TestSuite {
         assertGoldenLiteral(
           evalComplete("1", "./mill", "-"),
           Set(
+            "-i  Alias for now `--no-daemon`. No longer needed for interactive commands since Mill 1.1.0",
             "-b  Ring the bell once if the run completes successfully, twice if it fails.",
-            "-w  Watch and re-run the given tasks when when their inputs change.",
             "-k  Continue build, even after build failures.",
+            "-w  Watch and re-run the given tasks when their inputs change.",
             "-D  <k=v> Define (or overwrite) a system property.",
             "-d  Show debug output on STDOUT",
-            "-i  Run Mill in interactive mode, suitable for opening REPLs and taking user input. Identical to --no-daemon. Must be the first argument.",
             "-v  Show mill version information and exit.",
             "-j  <str> The number of parallel threads. It can be an integer e.g. `5` meaning 5 threads, an expression e.g. `0.5C` meaning half as many threads as available cores, or `C-2` meaning 2 threads less than the number of cores. `1` disables parallelism and `0` (the default) uses 1 thread per core."
           )
@@ -354,35 +354,34 @@ object TabCompleteTests extends TestSuite {
       test("long") {
         assertGoldenLiteral(
           evalComplete("1", "./mill", "--"),
-          HashSet(
+          Set(
+            "--use-file-locks          Use traditional file-based locking instead of PID-based locking for the Mill daemon. This removes the chance of race conditions when claiming the lock after a crash, but may have issues on some filesystems that do not support lock (e.g. docker mounts on mac)",
             "--debug                   Show debug output on STDOUT",
             "--bell                    Ring the bell once if the run completes successfully, twice if it fails.",
-            "--interactive             Run Mill in interactive mode, suitable for opening REPLs and taking user input. Identical to --no-daemon. Must be the first argument.",
             "--no-build-lock           Evaluate tasks / commands without acquiring an exclusive lock on the Mill output directory",
-            "--tab-complete            Runs Mill in tab-completion mode",
             "--import                  <str> Additional ivy dependencies to load into mill, e.g. plugins.",
-            "--no-daemon               Run without a long-lived background daemon. Must be the first argument.",
+            "--bsp-install             Create mill-bsp.json with Mill details under .bsp/",
             "--allow-positional        Allows command args to be passed positionally without `--arg` by default",
-            "--watch                   Watch and re-run the given tasks when when their inputs change.",
-            "--no-wait-for-build-lock  Do not wait for an exclusive lock on the Mill output directory to evaluate tasks / commands.",
+            "--meta-level              <int> Select a meta-level to run the given tasks. Level 0 is the main project in `build.mill`, level 1 the first meta-build in `mill-build/build.mill`, etc. If negative, -1 means the deepest meta-build (bootstrap build), -2 the second deepest meta-build, etc.",
             "--bsp                     Enable BSP server mode. Typically used by a BSP client when starting the Mill BSP server.",
+            "--help-advanced           Print a internal or advanced command flags not intended for common usage",
+            "--watch                   Watch and re-run the given tasks when their inputs change.",
+            "--tab-complete            Runs Mill in tab-completion mode",
+            "--interactive             Alias for now `--no-daemon`. No longer needed for interactive commands since Mill 1.1.0",
             "--offline                 Try to work offline. This tells modules that support it to work offline and avoid any access to the internet. This is on a best effort basis. There are currently no guarantees that modules don't attempt to fetch remote sources.",
             "--keep-going              Continue build, even after build failures.",
             "--define                  <k=v> Define (or overwrite) a system property.",
             "--no-filesystem-checker   Globally disables the checks that prevent you from reading and writing to disallowed files or folders during evaluation. Useful as an escape hatch in case you desperately need to do something unusual and you are willing to take the risk",
             "--notify-watch            <bool> Use filesystem based file watching instead of polling based one (defaults to true).",
             "--bsp-watch               <bool> Automatically reload the build when its sources change when running the BSP server (defaults to true).",
-            "--repl                    Open a Scala REPL with the classpath of the meta-level 1 build module (mill-build/). Implies options `--meta-level 1` and `--no-server`.",
-            "--bsp-install             Create mill-bsp.json with Mill details under .bsp/",
-            "--meta-level              <int> Select a meta-level to run the given tasks. Level 0 is the main project in `build.mill`, level 1 the first meta-build in `mill-build/build.mill`, etc.",
             "--help                    Print this help message and exit.",
             "--jobs                    <str> The number of parallel threads. It can be an integer e.g. `5` meaning 5 threads, an expression e.g. `0.5C` meaning half as many threads as available cores, or `C-2` meaning 2 threads less than the number of cores. `1` disables parallelism and `0` (the default) uses 1 thread per core.",
             "--ticker                  <bool> Enable or disable the ticker log, which provides information on running tasks and where each log line came from",
-            "--color                   <bool> Toggle colored output; by default enabled only if the console is interactive or FORCE_COLOR environment variable is set, and NO_COLOR environment variable is not set",
+            "--color                   <bool> Toggle colored output; by default enabled only if the console is interactive or FORCE_COLOR environment variable is set, and NO_COLOR is not set",
+            "--no-daemon               Run without a long-lived background daemon.",
+            "--no-wait-for-build-lock  Do not wait for an exclusive lock on the Mill output directory to evaluate tasks / commands.",
             "--version                 Show mill version information and exit.",
-            "--task                    <str> The name or a query of the tasks(s) you want to build.",
-            "--help-advanced           Print a internal or advanced command flags not intended for common usage",
-            "--jshell                  Open a JShell REPL with the classpath of the meta-level 1 build module (mill-build/). This is useful for interactively testing and debugging your build logic. Implies options `--meta-level 1` and `--no-server`."
+            "--task                    <str> The name or a query of the tasks(s) you want to build."
           )
         )
       }

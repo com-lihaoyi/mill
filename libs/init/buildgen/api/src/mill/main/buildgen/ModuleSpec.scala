@@ -9,12 +9,12 @@ case class ModuleSpec(
     name: String,
     imports: Seq[String] = Nil,
     supertypes: Seq[String] = Nil,
-    mixins: Seq[String] = Nil,
     crossKeys: Seq[String] = Nil,
-    useOuterModuleDir: Boolean = false,
+    alias: Option[String] = None,
+    moduleDir: Value[String] = Value(),
     repositories: Values[String] = Nil,
     forkArgs: Values[Opt] = Values(),
-    forkWorkingDir: Value[os.RelPath] = Value(),
+    forkWorkingDir: Value[String] = Value(),
     mandatoryMvnDeps: Values[MvnDep] = Values(),
     mvnDeps: Values[MvnDep] = Values(),
     compileMvnDeps: Values[MvnDep] = Values(),
@@ -39,6 +39,7 @@ case class ModuleSpec(
     errorProneDeps: Values[MvnDep] = Values(),
     errorProneOptions: Values[String] = Values(),
     errorProneJavacEnableOptions: Values[Opt] = Values(),
+    jmhCoreVersion: Value[String] = Value(),
     scalaVersion: Value[String] = Value(),
     scalacOptions: Values[Opt] = Values(),
     scalacPluginMvnDeps: Values[MvnDep] = Values(),
@@ -49,8 +50,25 @@ case class ModuleSpec(
     testParallelism: Value[Boolean] = Value(),
     testSandboxWorkingDir: Value[Boolean] = Value(),
     testFramework: Value[String] = Value(),
+    scalafixConfig: Value[String] = Value(),
+    scalafixIvyDeps: Values[MvnDep] = Values(),
+    scoverageVersion: Value[String] = Value(),
+    branchCoverageMin: Value[Double] = Value(),
+    statementCoverageMin: Value[Double] = Value(),
+    mimaPreviousVersions: Values[String] = Values(),
+    mimaPreviousArtifacts: Values[MvnDep] = Values(),
+    mimaCheckDirection: Value[String] = Value(),
+    mimaBinaryIssueFilters: Values[String] = Values(),
+    mimaBackwardIssueFilters: Values[(String, Seq[String])] = Values(),
+    mimaForwardIssueFilters: Values[(String, Seq[String])] = Values(),
+    mimaExcludeAnnotations: Values[String] = Values(),
+    mimaReportSignatureProblems: Value[Boolean] = Value(),
     children: Seq[ModuleSpec] = Nil
 ) {
+
+  def isBomModule: Boolean = supertypes.contains("BomModule")
+
+  def isPublishModule: Boolean = supertypes.contains("PublishModule")
 
   def recMap(f: ModuleSpec => ModuleSpec): ModuleSpec =
     f(copy(children = children.map(_.recMap(f))))
@@ -64,7 +82,7 @@ case class ModuleSpec(
         .diff(Seq(epOption, Opt("-XDcompilePolicy=simple")))
         .partition(_.group.head.startsWith("-XD"))
       this.copy(
-        imports = "import mill.javalib.errorprone.ErrorProneModule" +: imports,
+        imports = "mill.javalib.errorprone.ErrorProneModule" +: imports,
         supertypes = supertypes :+ "ErrorProneModule",
         errorProneDeps = errorProneMvnDeps,
         errorProneOptions = epOptions,
@@ -73,6 +91,12 @@ case class ModuleSpec(
       )
     }
   }
+
+  def withJmhModule(jmhCoreVersion: Value[String]): ModuleSpec = copy(
+    imports = "mill.contrib.jmh.JmhModule" +: imports,
+    supertypes = supertypes :+ "JmhModule",
+    jmhCoreVersion = jmhCoreVersion
+  )
 
   def withJupiterInterface(junitVersion: String): ModuleSpec = {
     val Version = "(\\d+)\\.(\\d+).*".r
@@ -223,9 +247,7 @@ object ModuleSpec {
   case class Values[+A](
       base: Seq[A] = Nil,
       cross: Seq[(String, Seq[A])] = Nil,
-      appendSuper: Boolean = false,
-      appendRefs: Seq[ModuleDep] = Nil,
-      empty: Boolean = false
+      appendSuper: Boolean = false
   )
   object Values {
     implicit def rw[A: ReadWriter]: ReadWriter[Values[A]] = macroRW

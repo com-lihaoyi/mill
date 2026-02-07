@@ -21,6 +21,18 @@ class MillRpcWireTransport(
     }
   }
 
+  /**
+   * Writes an empty line as a heartbeat and returns whether the write succeeded.
+   * Unlike `write("")`, this checks for errors since `PrintStream` swallows exceptions internally.
+   */
+  def writeHeartbeat(): Boolean = {
+    writeSynchronizer.synchronized {
+      clientToServer.println("")
+      clientToServer.flush()
+      !clientToServer.checkError()
+    }
+  }
+
   def close(): Unit = {
     serverToClient.close()
     clientToServer.close()
@@ -32,31 +44,22 @@ class MillRpcWireTransport(
   /** Helper that reads a message from the wire and tries to parse it, logging along the way. */
   @tailrec final def readAndTryToParse[A: Reader](
       typeName: String,
-      log: String => Unit,
-      firstInvocation: Boolean = true
+      log: String => Unit
   ): Option[A] = {
     // Only log on the first invocation, not when we get a heartbeat
-    if (firstInvocation) log(s"Trying to read $typeName")
-
     read() match {
       case None =>
         log("Transport wire broken.")
         None
 
       // Empty line means a heartbeat message
-      case Some("") =>
-        readAndTryToParse[A](typeName, log, firstInvocation = false)
-
-      case Some(line) =>
-        log(s"Received, will try to parse as $typeName: $line")
-        val parsed = upickle.read(line)
-        log(s"Parsed: ${pprint.apply(parsed)}")
-        Some(parsed)
+      case Some("") => readAndTryToParse[A](typeName, log)
+      case Some(line) => Some(upickle.read(line))
     }
   }
 
   /** Helper that writes a message to the wire, logging along the way. */
-  def writeSerialized[A: Writer](message: A, log: String => Unit): Unit = {
+  def writeSerialized[A: Writer](message: A): Unit = {
     write(upickle.write(message))
   }
 }

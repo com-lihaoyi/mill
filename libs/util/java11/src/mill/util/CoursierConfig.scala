@@ -22,12 +22,13 @@ final case class CoursierConfig(
 object CoursierConfig {
   // as much as possible, prefer using CoursierConfigModule.coursierConfig(),
   // that reads up-to-date values from the environment and from Java properties
-  private[mill] def default(): CoursierConfig =
+  private[mill] def default(): CoursierConfig = {
+    val envRepos = CoursierEnv.defaultRepositories(
+      CoursierEnv.repositories.read(),
+      CoursierEnv.scalaCliConfig.read()
+    )
     CoursierConfig(
-      CoursierEnv.defaultRepositories(
-        CoursierEnv.repositories.read(),
-        CoursierEnv.scalaCliConfig.read()
-      ),
+      Jvm.reposFromStrings(mill.api.BuildCtx.millRepositories).get ++ envRepos,
       CacheEnv.defaultConfFiles(CacheEnv.scalaCliConfig.read())
         .map(os.Path(_)),
       CoursierEnv.defaultMirrors(
@@ -50,4 +51,5 @@ object CoursierConfig {
         CacheEnv.cachePolicy.read()
       )
     )
+  }
 }

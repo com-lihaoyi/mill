@@ -1,0 +1,20 @@
+<module type="JAVA_MODULE" version="4">
+    <component name="NewModuleRootManager">
+        <output-test url="file://$MODULE_DIR$/../../out/HelloIdea/scala3/test/internalGenIdea/ideaCompileOutput.dest/classes"/>
+        <exclude-output/>
+        <content url="file://$MODULE_DIR$/../../HelloIdea/scala3/test">
+            <sourceFolder url="file://$MODULE_DIR$/../../HelloIdea/scala3/test/src" isTestSource="true"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../HelloIdea/scala3/test/resources" type="java-test-resource"/>
+        </content>
+        <orderEntry type="inheritedJdk"/>
+        <orderEntry type="sourceFolder" forTests="false"/>
+        <orderEntry type="library" name="scala-SDK-<version>" level="project"/>
+        <orderEntry type="library" scope="PROVIDED" name="jcl-over-slf4j-<version>.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="logback-classic-<version>.jar" level="project"/>
+        <orderEntry type="library" name="logback-core-<version>.jar" level="project"/>
+        <orderEntry type="library" name="scala-library-<version>.jar" level="project"/>
+        <orderEntry type="library" name="scala3-library_3-<version>.jar" level="project"/>
+        <orderEntry type="library" name="slf4j-api-<version>.jar" level="project"/>
+        <orderEntry type="module" module-name="helloidea.scala3" exported=""/>
+    </component>
+</module>

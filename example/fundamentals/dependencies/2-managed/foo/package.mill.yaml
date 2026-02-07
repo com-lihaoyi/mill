@@ -1,0 +1,7 @@
+extends: JavaModule
+depManagement:
+- com.google.protobuf:protobuf-java:4.28.3
+- io.grpc:grpc-protobuf:1.67.1
+
+mvnDeps:
+- io.grpc:grpc-protobuf

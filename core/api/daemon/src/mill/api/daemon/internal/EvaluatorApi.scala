@@ -2,6 +2,7 @@ package mill.api.daemon.internal
 
 import mill.api.daemon.*
 import scala.collection.mutable
+import scala.annotation.unused
 
 trait EvaluatorApi extends AutoCloseable {
   private[mill] def scriptModuleInit: Any = null
@@ -21,12 +22,30 @@ trait EvaluatorApi extends AutoCloseable {
       selectiveExecution: Boolean = false
   ): EvaluatorApi.Result[T]
 
-  private[mill] def workerCache: mutable.Map[String, (Int, Val)]
+  private[mill] def workerCache: mutable.Map[String, (Int, Val, TaskApi[?])]
 
   private[mill] def executeApi[T](tasks: Seq[TaskApi[T]]): EvaluatorApi.Result[T]
   private[mill] def baseLogger: Logger
   private[mill] def rootModule: BaseModuleApi
   private[mill] def outPathJava: java.nio.file.Path
+
+  /**
+   * Resolves tasks from script arguments and checks if all resolved tasks are marked
+   * with @nonBootstrapped annotation. Returns Success(true) if all tasks are nonBootstrapped,
+   * Success(false) if any task is not nonBootstrapped, or Failure if task resolution fails.
+   */
+  private[mill] def areAllNonBootstrapped(
+      @unused scriptArgs: Seq[String],
+      @unused selectMode: SelectMode,
+      @unused allowPositionalCommandArgs: Boolean = false
+  ): Result[Boolean] = Result.Success(false)
+
+  /**
+   * Returns a copy of this evaluator with the isFinalDepth flag set to the given value.
+   * Used to defer the decision of whether this is the final depth until after
+   * determining if we should short-circuit for @nonBootstrapped tasks.
+   */
+  private[mill] def withIsFinalDepth(isFinalDepth: Boolean): EvaluatorApi = this
 }
 object EvaluatorApi {
   trait Result[T] {

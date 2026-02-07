@@ -116,6 +116,36 @@ object JvmWorkerUtil {
     }
 
   /**
+   * Returns the Scala compiler bridge dependency information for a given Scala version.
+   *
+   * @param scalaVersion The Scala version
+   * @param scalaOrganization The Scala organization (typically "org.scala-lang")
+   * @return A tuple of (dependency string in "org:name:version" format, artifact name, version)
+   */
+  def scalaCompilerBridgeDep(
+      scalaVersion: String,
+      scalaOrganization: String
+  ): (String, String, String) = {
+    if (isDottyOrScala3(scalaVersion)) {
+      val name =
+        if (isDotty(scalaVersion)) "dotty-sbt-bridge"
+        else "scala3-sbt-bridge"
+      (s"$scalaOrganization:$name:$scalaVersion", name, scalaVersion)
+    } else if (millCompilerBridgeScalaVersions.contains(scalaVersion)) {
+      val name = s"mill-scala-compiler-bridge_$scalaVersion"
+      (
+        s"com.lihaoyi:$name:${Versions.millCompilerBridgeVersion}",
+        name,
+        Versions.millCompilerBridgeVersion
+      )
+    } else {
+      val scalaBinVersion = scalaBinaryVersion(scalaVersion)
+      val name = s"compiler-bridge_$scalaBinVersion"
+      (s"org.scala-sbt:$name:${Versions.zinc}", name, Versions.zinc)
+    }
+  }
+
+  /**
    * Given a version string using a semantic versioning scheme (like x.y.z) it
    * returns all the sub-versions in it (major, minor, patch, etc.).
    * For example, matchingVersions("2.0.0") returns "2.0.0", "2.0" and "2"
@@ -134,7 +164,7 @@ object JvmWorkerUtil {
    * like `"1+"`, `"3-"`, `"3.0-"`, `"2+"`, `"2-"` and so on.
    */
   def versionRanges(version: String, allVersions: Seq[String]): Seq[String] = {
-    import scala.math.Ordering.Implicits._
+    import scala.math.Ordering.Implicits.*
     val versionParts = version.split('.').map(_.toIntOption).takeWhile(_.isDefined).map(_.get).toSeq
     val all = allVersions.flatMap(
       _.split('.').inits
@@ -168,4 +198,17 @@ object JvmWorkerUtil {
     // Some Dotty versions and all Scala 3 versions before 3.8
     sv.major == 0 || (sv.major == 3 && sv.minor < 8)
   }
+
+  /**
+   * Returns true for Scala 3 versions that use scala3-library (pre-3.8).
+   */
+  def usesScala3Library(scalaVersion: String): Boolean =
+    isScala3(scalaVersion) && enforceScala213Library(scalaVersion)
+
+  /**
+   * Returns true for Scala 3.8+ which uses scala-library directly
+   * instead of scala3-library.
+   */
+  def usesScalaLibraryOnly(scalaVersion: String): Boolean =
+    isScala3(scalaVersion) && !enforceScala213Library(scalaVersion)
 }

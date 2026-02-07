@@ -11,7 +11,6 @@ on:
         default: 'dist.executable + core.api.test.compile + testkit.compile'
         type: string
       java-version:
-        default: '17'
         type: string
       os:
         type: string
@@ -38,7 +37,7 @@ jobs:
           java-version: ${{ inputs.java-version }}
           shell: ${{ inputs.shell }}
 
-      - run: ./mill -i -k ${{ inputs.compileargs }}
+      - run: ./mill -k ${{ inputs.compileargs }}
 
       - uses: actions/upload-artifact@v6.0.0
         with:

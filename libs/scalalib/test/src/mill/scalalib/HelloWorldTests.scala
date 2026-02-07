@@ -41,6 +41,7 @@ object HelloWorldTests extends TestSuite {
   }
   object HelloWorldNonPrecompiledBridge extends TestRootModule {
     object core extends HelloWorldModule {
+      def jvmVersion = "17"
       override def scalaVersion = "2.12.1"
     }
     lazy val millDiscover = Discover[this.type]
@@ -52,7 +53,9 @@ object HelloWorldTests extends TestSuite {
           scala212Version,
           scala213Version
         )
-    trait HelloWorldCross extends CrossScalaModule
+    trait HelloWorldCross extends CrossScalaModule {
+      def jvmVersion = "17"
+    }
     lazy val millDiscover = Discover[this.type]
   }
 
@@ -90,7 +93,7 @@ object HelloWorldTests extends TestSuite {
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world"
 
   def jarMainClass(jar: JarFile): Option[String] = {
-    import java.util.jar.Attributes._
+    import java.util.jar.Attributes.*
     val attrs = jar.getManifest.getMainAttributes.asScala
     attrs.get(Name.MAIN_CLASS).map(_.asInstanceOf[String])
   }
@@ -121,7 +124,7 @@ object HelloWorldTests extends TestSuite {
     test("scalaVersion") {
 
       test("fromBuild") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorld.core.scalaVersion): @unchecked
+        val Right(result) = eval.apply(HelloWorld.core.scalaVersion).runtimeChecked
 
         assert(
           result.value == scala212Version,
@@ -129,7 +132,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
       test("override") - UnitTester(HelloWorldScalaOverride, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldScalaOverride.core.scalaVersion): @unchecked
+        val Right(result) = eval.apply(HelloWorldScalaOverride.core.scalaVersion).runtimeChecked
 
         assert(
           result.value == scala213Version,
@@ -140,7 +143,7 @@ object HelloWorldTests extends TestSuite {
 
     test("scalacOptions") {
       test("emptyByDefault") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorld.core.scalacOptions): @unchecked
+        val Right(result) = eval.apply(HelloWorld.core.scalacOptions).runtimeChecked
 
         assert(
           result.value.isEmpty,
@@ -148,7 +151,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
       test("override") - UnitTester(HelloWorldFatalWarnings, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldFatalWarnings.core.scalacOptions): @unchecked
+        val Right(result) = eval.apply(HelloWorldFatalWarnings.core.scalacOptions).runtimeChecked
 
         assert(
           result.value == Seq("-Ywarn-unused", "-Xfatal-warnings"),
@@ -159,7 +162,7 @@ object HelloWorldTests extends TestSuite {
 
     test("compile") {
       test("fromScratch") - UnitTester(HelloWorld, sourceRoot = resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorld.core.compile): @unchecked
+        val Right(result) = eval.apply(HelloWorld.core.compile).runtimeChecked
 
         val classesPath = eval.outPath / "core/compile.dest/classes"
         val analysisFile = result.value.analysisFile
@@ -174,7 +177,7 @@ object HelloWorldTests extends TestSuite {
         )
 
         // don't recompile if nothing changed
-        val Right(result2) = eval.apply(HelloWorld.core.compile): @unchecked
+        val Right(result2) = eval.apply(HelloWorld.core.compile).runtimeChecked
 
         assert(result2.evalCount == 0)
 
@@ -189,7 +192,7 @@ object HelloWorldTests extends TestSuite {
         HelloWorldNonPrecompiledBridge,
         sourceRoot = resourcePath
       ).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldNonPrecompiledBridge.core.compile): @unchecked
+        val Right(result) = eval.apply(HelloWorldNonPrecompiledBridge.core.compile).runtimeChecked
 
         val classesPath = eval.outPath / "core/compile.dest/classes"
 
@@ -205,7 +208,7 @@ object HelloWorldTests extends TestSuite {
         )
 
         // don't recompile if nothing changed
-        val Right(result2) = eval.apply(HelloWorldNonPrecompiledBridge.core.compile): @unchecked
+        val Right(result2) = eval.apply(HelloWorldNonPrecompiledBridge.core.compile).runtimeChecked
 
         assert(result2.evalCount == 0)
 
@@ -217,19 +220,19 @@ object HelloWorldTests extends TestSuite {
       }
 
       test("recompileOnChange") - UnitTester(HelloWorld, sourceRoot = resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorld.core.compile): @unchecked
+        val Right(result) = eval.apply(HelloWorld.core.compile).runtimeChecked
         assert(result.evalCount > 0)
 
         os.write.append(HelloWorld.moduleDir / "core/src/Main.scala", "\n")
 
-        val Right(result2) = eval.apply(HelloWorld.core.compile): @unchecked
+        val Right(result2) = eval.apply(HelloWorld.core.compile).runtimeChecked
         assert(result2.evalCount > 0, result2.evalCount < result.evalCount)
       }
       test("failOnError") - UnitTester(HelloWorld, sourceRoot = resourcePath).scoped { eval =>
         os.write.append(HelloWorld.moduleDir / "core/src/Main.scala", "val x: ")
 
         val Left(ExecResult.Failure(msg = "Compilation failed")) =
-          eval.apply(HelloWorld.core.compile): @unchecked
+          eval.apply(HelloWorld.core.compile).runtimeChecked
 
         val paths = ExecutionPaths.resolve(eval.outPath, HelloWorld.core.compile)
 
@@ -245,7 +248,7 @@ object HelloWorldTests extends TestSuite {
           )
         )
 
-        val Right(_) = eval.apply(HelloWorld.core.compile): @unchecked
+        val Right(_) = eval.apply(HelloWorld.core.compile).runtimeChecked
       }
       test("passScalacOptions") - UnitTester(
         HelloWorldFatalWarnings,
@@ -253,20 +256,20 @@ object HelloWorldTests extends TestSuite {
       ).scoped { eval =>
         // compilation fails because of "-Xfatal-warnings" flag
         val Left(ExecResult.Failure(msg = "Compilation failed")) =
-          eval.apply(HelloWorldFatalWarnings.core.compile): @unchecked
+          eval.apply(HelloWorldFatalWarnings.core.compile).runtimeChecked
       }
     }
 
     test("artifactNameCross") - UnitTester(CrossHelloWorld, sourceRoot = resourcePath).scoped {
       eval =>
         val Right(result) =
-          eval.apply(CrossHelloWorld.core(scala213Version).artifactName): @unchecked
+          eval.apply(CrossHelloWorld.core(scala213Version).artifactName).runtimeChecked
         assert(result.value == "core")
     }
 
     test("jar") {
       test("nonEmpty") - UnitTester(HelloWorldWithMain, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldWithMain.core.jar): @unchecked
+        val Right(result) = eval.apply(HelloWorldWithMain.core.jar).runtimeChecked
 
         assert(
           os.exists(result.value.path),

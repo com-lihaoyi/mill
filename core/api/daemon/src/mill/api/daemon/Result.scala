@@ -1,6 +1,7 @@
 package mill.api.daemon
 
 import scala.collection.Factory
+import com.lihaoyi.unroll
 
 /**
  * Represents a computation that either succeeds with a value [[T]] or
@@ -65,6 +66,31 @@ object Result {
 
   object Failure {
     case class ExceptionInfo(clsName: String, msg: String, stack: Seq[StackTraceElement])
+
+    /**
+     * Creates a Failure from an exception, handling cause chains properly.
+     * If the exception is a Result.Exception with an existing failure, that failure is preserved.
+     *
+     * @param ex the exception to convert
+     * @param outerStackLength optional length of outer stack frames to drop from stack traces
+     */
+    def fromException(ex: Throwable, outerStackLength: Int = 0): Failure = {
+      // If this is a Result.Exception with an existing failure, preserve it
+      ex match {
+        case re: Result.Exception if re.failure.isDefined => return re.failure.get
+        case _ =>
+      }
+
+      var current = List(ex)
+      while (current.head.getCause != null) current = current.head.getCause :: current
+
+      val exceptionInfos = current.reverse.map { e =>
+        val elements = e.getStackTrace.dropRight(outerStackLength)
+        ExceptionInfo(e.getClass.getName, e.getMessage, elements.toSeq)
+      }
+      Failure("", exception = exceptionInfos)
+    }
+
     def split(f: Failure) = Iterator
       .unfold(Option(f))(_.map(t => t.copy(next = None) -> t.next))
       // Sometimes multiple code paths result in exactly the same failure,
@@ -112,8 +138,61 @@ object Result {
     sequence[B, Seq](collection.iterator.map(_.flatMap(f)).toSeq).map(factory.fromSpecific)
   }
 
-  final class Exception(
-      val error: String,
-      @com.lihaoyi.unroll val failure: Option[Failure] = None
-  ) extends java.lang.Exception(error)
+  /**
+   * Exception used to short circuit a task evaluation with a pretty error string
+   * or a [[Failure]] object containing metadata for pretty error reporting
+   */
+  final class Exception(val error: String, @unroll val failure: Option[Failure] = None)
+      extends java.lang.Exception(error)
+
+  /**
+   * An exception that has its original class and metadata replaced by a [[Failure.ExceptionInfo]]
+   * data structure. Used to sanitize exceptions when propagating them across classloader
+   * boundaries, since some of the exceptions in a cause-chain may be instances of no-longer-valid
+   * classes after a classloader is closed
+   */
+  final class SerializedException(val info: Result.Failure.ExceptionInfo, cause: Throwable)
+      extends Throwable(info.msg, cause) {
+    setStackTrace(info.stack.toArray)
+  }
+
+  object SerializedException {
+    private[mill] def from(causeChain: Seq[Failure.ExceptionInfo]): SerializedException = {
+      if (causeChain.isEmpty) sys.error("causeChain must be non-empty")
+      var current: SerializedException = null
+      for (info <- causeChain.reverseIterator) current = new SerializedException(info, current)
+      current
+    }
+
+    private[mill] def partialFrom(throwable: Throwable, classLoader: ClassLoader): Throwable = {
+      val seen = new java.util.IdentityHashMap[Throwable, Throwable]()
+
+      def transform(current: Throwable): Throwable = {
+        val existing = seen.get(current)
+        if (existing != null) return existing
+
+        val cause0 = current.getCause
+        val transformedCause = if (cause0 == null) null else transform(cause0)
+
+        val result =
+          if ((current.getClass.getClassLoader ne classLoader) && (transformedCause eq cause0)) {
+            current
+          } else {
+            new SerializedException(
+              Result.Failure.ExceptionInfo(
+                current.getClass.getName,
+                current.getMessage,
+                current.getStackTrace.toSeq
+              ),
+              transformedCause
+            )
+          }
+
+        seen.put(current, result)
+        result
+      }
+
+      transform(throwable)
+    }
+  }
 }

@@ -1,5 +1,6 @@
 package mill.bsp.worker
 
+import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.{
   BuildClient,
   BuildTarget,
@@ -11,11 +12,20 @@ import ch.epfl.scala.bsp4j.{
   TaskId
 }
 import mill.api.ExecResult.{Skipped, Success}
-import mill.api.daemon.internal.{ExecutionResultsApi, TaskApi}
+import mill.api.daemon.internal.{
+  ExecutionResultsApi,
+  EvaluatorApi,
+  JavaModuleApi,
+  ModuleApi,
+  PathRefApi,
+  TaskApi
+}
+import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi, JvmBuildTarget}
+import mill.internal.SpanningForest
 
+import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 import scala.util.chaining.scalaUtilChainingOps
-import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
 
 object Utils {
 
@@ -118,6 +128,118 @@ object Utils {
       case Skipped => StatusCode.CANCELLED
       case _ => StatusCode.ERROR
     }
+  }
+
+  /**
+   * Same as Iterable.groupMap, but returns a sequence instead of a map, and preserves
+   * the order of appearance of the keys from the input sequence
+   */
+  def groupList[A, K, B](seq: collection.Seq[A])(key: A => K)(f: A => B): Seq[(K, Seq[B])] = {
+    val map = new mutable.HashMap[K, mutable.ListBuffer[B]]
+    val list = new mutable.ListBuffer[(K, mutable.ListBuffer[B])]
+    for (a <- seq) {
+      val k = key(a)
+      val b = f(a)
+      val l = map.getOrElseUpdate(
+        k, {
+          val buf = mutable.ListBuffer[B]()
+          list.append((k, buf))
+          buf
+        }
+      )
+      l.append(b)
+    }
+    list
+      .iterator
+      .map { case (k, l) => (k, l.result()) }
+      .toList
+  }
+
+  def jvmBuildTarget(d: JvmBuildTarget): bsp4j.JvmBuildTarget =
+    new bsp4j.JvmBuildTarget().tap { it =>
+      d.javaHome.foreach(jh => it.setJavaHome(jh.uri))
+      d.javaVersion.foreach(jv => it.setJavaVersion(jv))
+    }
+
+  /**
+   * Combines two status codes, returning the most severe.
+   * ERROR > CANCELLED > OK
+   */
+  def combineStatusCodes(a: StatusCode, b: StatusCode): StatusCode = (a, b) match {
+    case (StatusCode.ERROR, _) | (_, StatusCode.ERROR) => StatusCode.ERROR
+    case (StatusCode.CANCELLED, _) | (_, StatusCode.CANCELLED) => StatusCode.CANCELLED
+    case _ => StatusCode.OK
+  }
+
+  // ===========================================================================
+  // Task Graph Utilities
+  // ===========================================================================
+
+  /**
+   * Find all input tasks (Task.Input, Task.Source, Task.Sources) at the roots of the task graph
+   * by traversing upstream from the given tasks.
+   */
+  def findInputTasks(tasks: Seq[TaskApi[?]]): Seq[TaskApi[?]] = {
+    SpanningForest
+      .breadthFirst(tasks)(t => if (t.isInputTask) Nil else t.inputsApi)
+      .filter(_.isInputTask)
+  }
+
+  /**
+   * Extract os.Path values from input task results. Input tasks like Task.Sources return
+   * PathRef or Seq[PathRef] values.
+   */
+  def extractPathsFromResults(results: Seq[Any]): Seq[os.Path] = {
+    results.flatMap {
+      case pathRef: PathRefApi => Seq(os.Path(pathRef.javaPath))
+      case pathRefs: Seq[?] => pathRefs.collect { case pr: PathRefApi => os.Path(pr.javaPath) }
+      case _ => Seq.empty
+    }
+  }
+
+  // ===========================================================================
+  // Module Graph Utilities
+  // ===========================================================================
+
+  /**
+   * Compute all transitive modules from module children via moduleDirectChildren
+   */
+  def transitiveModules(module: ModuleApi): Seq[ModuleApi] = {
+    Seq(module) ++ module.moduleDirectChildren.flatMap(transitiveModules)
+  }
+
+  /**
+   * Compute modules with BSP transitively disabled using single-pass topological traversal.
+   * A module is disabled if it has enableBsp=false OR any of its direct deps is disabled.
+   */
+  def computeDisabledBspModules(evaluators: Seq[EvaluatorApi]): Set[ModuleApi] = {
+    import mill.api.daemon.internal.bsp.BspModuleApi
+
+    val allModules = evaluators.flatMap(ev => transitiveModules(ev.rootModule))
+    val moduleToIndex = allModules.zipWithIndex.toMap
+    val indexToModule = allModules.toIndexedSeq
+
+    val graph: IndexedSeq[Array[Int]] = indexToModule.map { m =>
+      val deps = m match {
+        case jm: JavaModuleApi => jm.moduleDepsChecked ++ jm.compileModuleDepsChecked
+        case _ => Nil
+      }
+      deps.flatMap(moduleToIndex.get).toArray
+    }
+
+    val disabled = collection.mutable.Set.empty[Int]
+
+    // Module graph cannot have cycles so each SCC must be of size 1
+    for (Array(idx) <- mill.internal.Tarjans(graph).reverse) {
+      val module = indexToModule(idx)
+      val isDirect = module match {
+        case bsp: BspModuleApi => !bsp.enableBsp
+        case _ => false
+      }
+      if (isDirect || graph(idx).exists(disabled.contains)) disabled.add(idx)
+    }
+
+    disabled.iterator.map(indexToModule).toSet
   }
 
 }

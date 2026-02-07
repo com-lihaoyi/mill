@@ -132,7 +132,7 @@ object foo extends JavaModule with NativeImageModule {
     mvn"org.slf4j:slf4j-nop:2.0.7"
   )
 
-  def jvmId = "graalvm-community:23.0.1"
+  def jvmVersion = "graalvm-community:23.0.1"
 
   def nativeImageOptions = Seq(
     "--no-fallback",
@@ -557,7 +557,6 @@ jobs:
         # No windows-arm support becaues Graal native image doesn't support it
         # https://github.com/oracle/graal/issues/9215
     env:
-      MILL_STABLE_VERSION: 1
       MILL_SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
       MILL_SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
       MILL_PGP_SECRET_BASE64: ${{ secrets.SONATYPE_PGP_PRIVATE_KEY }}
@@ -576,7 +575,7 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
 
-      - run: ./mill -i mill.scalalib.PublishModule/ --publishArtifacts ${{ matrix.publishartifacts }}
+      - run: ./mill mill.scalalib.PublishModule/ --publishArtifacts ${{ matrix.publishartifacts }}
 ----
 
 Note that the default `ubuntu-latest` job publishes `__.publishArtifacts` (all artifacts),

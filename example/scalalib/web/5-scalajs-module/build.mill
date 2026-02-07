@@ -1,14 +1,5 @@
-package build
-import mill.*, scalalib.*, scalajslib.*
-
-object foo extends ScalaJSModule {
-  def scalaVersion = "3.7.1"
-  def scalaJSVersion = "1.19.0"
-  def mvnDeps = Seq(mvn"com.lihaoyi::scalatags::0.13.1")
-  object test extends ScalaJSTests, TestModule.Utest {
-    def utestVersion = "0.8.9"
-  }
-}
+/** See Also: foo/package.mill.yaml */
+/** See Also: foo/test/package.mill.yaml */
 
 // This build defines a single `ScalaJSModule` with a test suite.
 // `ScalaJSModule` is similar to `ScalaModule`, except it requires a

@@ -1,0 +1,402 @@
+{
+  "items": [
+    {
+      "target": {
+        "uri": "file:///workspace/app"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/app/src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/.bsp/out/app/compileGeneratedSources.dest",
+          "kind": 2,
+          "generated": true
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/app/test"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/app/test/src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/.bsp/out/app/test/compileGeneratedSources.dest",
+          "kind": 2,
+          "generated": true
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/delayed"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/delayed/src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/.bsp/out/delayed/compileGeneratedSources.dest",
+          "kind": 2,
+          "generated": true
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/diag"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/diag/src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/.bsp/out/diag/compileGeneratedSources.dest",
+          "kind": 2,
+          "generated": true
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/diag/many"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/diag/many/src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/.bsp/out/diag/many/compileGeneratedSources.dest",
+          "kind": 2,
+          "generated": true
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/errored/compilation-error"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/errored/compilation-error/src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/.bsp/out/errored/compilation-error/compileGeneratedSources.dest",
+          "kind": 2,
+          "generated": true
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/errored/exception"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/errored/exception/src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/.bsp/out/errored/exception/compileGeneratedSources.dest",
+          "kind": 2,
+          "generated": true
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-java"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/hello-java/src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/.bsp/out/hello-java/compileGeneratedSources.dest",
+          "kind": 2,
+          "generated": true
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-java/test"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/hello-java/test/src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/.bsp/out/hello-java/test/compileGeneratedSources.dest",
+          "kind": 2,
+          "generated": true
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-kotlin"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/hello-kotlin/src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/.bsp/out/hello-kotlin/compileGeneratedSources.dest",
+          "kind": 2,
+          "generated": true
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-scala"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/hello-scala/src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/.bsp/out/hello-scala/compileGeneratedSources.dest",
+          "kind": 2,
+          "generated": true
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-scala/test"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/hello-scala/test/src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/.bsp/out/hello-scala/test/compileGeneratedSources.dest",
+          "kind": 2,
+          "generated": true
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/lib"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/lib/src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/.bsp/out/lib/compileGeneratedSources.dest",
+          "kind": 2,
+          "generated": true
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/mill-build"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/build.mill",
+          "kind": 1,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/mill-build/src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/.bsp/out/mill-build/generatedScriptSources.dest/support",
+          "kind": 2,
+          "generated": true
+        },
+        {
+          "uri": "file:///workspace/.bsp/out/mill-build/compileGeneratedSources.dest",
+          "kind": 2,
+          "generated": true
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/mill-build/mill-build"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/mill-build/build.mill",
+          "kind": 1,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/mill-build/mill-build/src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/.bsp/out/mill-build/mill-build/generatedScriptSources.dest/support",
+          "kind": 2,
+          "generated": true
+        },
+        {
+          "uri": "file:///workspace/.bsp/out/mill-build/mill-build/compileGeneratedSources.dest",
+          "kind": 2,
+          "generated": true
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/mill-synthetic-root-target"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/src",
+          "kind": 2,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/scripts/src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/scripts/custom-src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/.bsp/out/scripts/compileGeneratedSources.dest",
+          "kind": 2,
+          "generated": true
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/folder1/script.scala"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/scripts/folder1/script.scala",
+          "kind": 1,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/folder2/Foo.java"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/scripts/folder2/Foo.java",
+          "kind": 1,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/folder2/FooTest.java"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/scripts/folder2/FooTest.java",
+          "kind": 1,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/foldershared/Foo.java"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/scripts/foldershared/Foo.java",
+          "kind": 1,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/foldershared/script.scala"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/scripts/foldershared/script.scala",
+          "kind": 1,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/ignored-folder-2/negated-not-ignored.java"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/scripts/ignored-folder-2/negated-not-ignored.java",
+          "kind": 1,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/sourcesNeedCompile"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/sourcesNeedCompile/src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/.bsp/out/sourcesNeedCompile/compileGeneratedSources.dest",
+          "kind": 2,
+          "generated": true
+        }
+      ]
+    }
+  ]
+}

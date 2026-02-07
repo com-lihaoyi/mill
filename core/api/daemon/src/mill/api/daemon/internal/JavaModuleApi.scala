@@ -7,6 +7,8 @@ import mill.api.daemon.internal.{EvaluatorApi, ModuleApi, TaskApi, UnresolvedPat
 
 trait JavaModuleApi extends ModuleApi with GenIdeaModuleApi {
 
+  def moduleDepsChecked: Seq[JavaModuleApi] = Nil
+
   def recursiveModuleDeps: Seq[JavaModuleApi]
 
   def compileModuleDepsChecked: Seq[JavaModuleApi]

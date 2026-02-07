@@ -4,16 +4,16 @@ import mill.api.ExecResult
 import mill.api.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
-import utest._
+import utest.*
 import mill.api.Task.Simple
 import mill.T
-import mill.scalajslib.api._
+import mill.scalajslib.api.*
 
 object EsModuleRemapTests extends TestSuite {
   val remapTo = "https://cdn.jsdelivr.net/gh/stdlib-js/array-base-linspace@esm/index.mjs"
 
   object EsModuleRemap extends TestRootModule with ScalaJSModule {
-    override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+    override def scalaVersion = "2.13.16"
 
     override def scalaJSVersion = "1.16.0"
 
@@ -32,7 +32,7 @@ object EsModuleRemapTests extends TestSuite {
   }
 
   object OldJsModule extends TestRootModule with ScalaJSModule {
-    override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+    override def scalaVersion = "2.13.16"
     override def scalaJSVersion = "1.15.0"
     override def scalaJSSourceMap = false
     override def moduleKind = ModuleKind.ESModule
@@ -53,7 +53,7 @@ object EsModuleRemapTests extends TestSuite {
     test("should remap the esmodule") {
       UnitTester(EsModuleRemap, millSourcePath).scoped { evaluator =>
         val Right(result) =
-          evaluator(EsModuleRemap.fastLinkJS): @unchecked
+          evaluator(EsModuleRemap.fastLinkJS).runtimeChecked
         val publicModules = result.value.publicModules.toSeq
         assert(publicModules.length == 1)
         val main = publicModules.head
@@ -67,7 +67,7 @@ object EsModuleRemapTests extends TestSuite {
 
     test("should throw for older scalaJS versions") {
       UnitTester(EsModuleRemap, millSourcePath).scoped { evaluator =>
-        val Left(ExecResult.Exception(ex, _)) = evaluator(OldJsModule.fastLinkJS): @unchecked
+        val Left(ExecResult.Exception(ex, _)) = evaluator(OldJsModule.fastLinkJS).runtimeChecked
         val error = ex.getMessage
         assert(error == "scalaJSImportMap is not supported with Scala.js < 1.16.")
       }

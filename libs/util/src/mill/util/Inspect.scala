@@ -98,14 +98,14 @@ private[mill] object Inspect {
       .orElse(task.ctx.enclosingModule.moduleDynamicBuildOverrides.get(task.ctx.segments.render))
 
     def overrideFileName(task: Task.Named[?]): Option[String] = {
-      buildOverrideFor(task).flatMap { located =>
+      buildOverrideFor(task).flatMap { appendLocated =>
         val lineNum = Try {
-          val rawText = os.read(located.path).replace("\r", "").replace("\n//|", "\n")
-          IndexedParserInput(rawText).prettyIndex(located.index).takeWhile(_ != ':')
+          val rawText = os.read(appendLocated.path).replace("\r", "").replace("\n//|", "\n")
+          IndexedParserInput(rawText).prettyIndex(appendLocated.index).takeWhile(_ != ':')
         }
           .toOption
 
-        lineNum.map(renderPath(located.path.toString, _))
+        lineNum.map(renderPath(appendLocated.path.toString, _))
       }
     }
 

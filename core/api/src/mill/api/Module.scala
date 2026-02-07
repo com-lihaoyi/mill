@@ -45,7 +45,8 @@ trait Module extends Module.BaseClass with ModuleCtx.Wrapper with ModuleApi {
   private[mill] val moduleLinearized: Seq[Class[?]] =
     OverrideMapping.computeLinearization(this.getClass)
 
-  private[mill] def moduleDynamicBuildOverrides: Map[String, internal.Located[BufferedValue]] =
+  private[mill] def moduleDynamicBuildOverrides
+      : Map[String, internal.Located[internal.Appendable[BufferedValue]]] =
     Map()
 }
 
@@ -85,7 +86,7 @@ object Module {
         (cls, noParams, inner) =>
           Reflect.getMethods(cls, noParams, inner, scala.reflect.NameTransformer.decode)
       )
-        .map(_.invoke(outer).asInstanceOf[T])
+        .map { case (m, _) => m.invoke(outer).asInstanceOf[T] }
         .toSeq
     }
 

@@ -2,7 +2,7 @@ package mill.javalib.classgraph.impl
 
 import java.io.File
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Using
 
 import io.github.classgraph.ClassGraph

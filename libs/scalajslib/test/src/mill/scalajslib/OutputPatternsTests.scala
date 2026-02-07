@@ -1,10 +1,10 @@
 package mill.scalajslib
 
 import mill.api.Discover
-import mill.scalajslib.api._
+import mill.scalajslib.api.*
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
-import utest._
+import utest.*
 
 object OutputPatternsTests extends TestSuite {
 
@@ -30,7 +30,7 @@ object OutputPatternsTests extends TestSuite {
     test("output patterns") {
       UnitTester(OutputPatternsModule, millSourcePath).scoped { evaluator =>
         val Right(result) =
-          evaluator(OutputPatternsModule.build.fastLinkJS): @unchecked
+          evaluator(OutputPatternsModule.build.fastLinkJS).runtimeChecked
         val publicModules = result.value.publicModules.toSeq
         assert(publicModules.length == 1)
         val main = publicModules(0)

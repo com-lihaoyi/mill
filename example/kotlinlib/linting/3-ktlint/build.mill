@@ -1,23 +1,9 @@
-package build
-
-import mill.*
-import mill.util.Jvm
-
-import kotlinlib.KotlinModule
-import kotlinlib.ktlint.KtlintModule
-import mill.api.BuildCtx
-
-object `package` extends KotlinModule, KtlintModule {
-  def kotlinVersion = "1.9.24"
-
-  def ktlintConfig0 = Task.Source(BuildCtx.workspaceRoot / ".editorconfig")
-  def ktlintConfig = Some(ktlintConfig0())
-}
-
 // This example shows how to use the https://github.com/pinterest/ktlint[KtLint]
 // linter on a `KotlinModule`, by mixing in the trait `KtlintModule` and calling the
 // `ktlint` task. `ktlint` also supports autoformatting to automatically resolve
 // code formatting violations, via the `--format` flag shown below:
+
+/** See Also: build.mill.yaml */
 
 /** Usage
 

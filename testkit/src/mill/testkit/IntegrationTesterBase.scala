@@ -13,11 +13,13 @@ trait IntegrationTesterBase {
 
   def millTestSuiteEnv: Map[String, String] = {
     val javaHomeBin = sys.props("java.home") + "/bin"
+    val newPath = sys.env.find(_._1.equalsIgnoreCase("PATH")).map(_._2) match {
+      case None => javaHomeBin
+      case Some(p) => s"$javaHomeBin${System.getProperty("path.separator")}${p}"
+    }
+
     if (!propagateJavaHome) Map.empty
-    else Map(
-      "JAVA_HOME" -> sys.props("java.home"),
-      "PATH" -> s"$javaHomeBin${System.getProperty("path.separator")}${sys.env("PATH")}"
-    )
+    else Map("JAVA_HOME" -> sys.props("java.home"), "PATH" -> newPath)
   }
 
   /**
@@ -75,6 +77,22 @@ trait IntegrationTesterBase {
         }
       )
       .foreach(os.copy.into(_, workspacePath))
+
+    // When build.mill.yaml exists and build.mill contains no Scala/Yaml chunks
+    // (i.e., it's purely documentation), convert build.mill to readme.adoc
+    // This mirrors what happens when example zips are created for distribution
+    val buildMillYaml = workspacePath / "build.mill.yaml"
+    val buildMill = workspacePath / "build.mill"
+    if (os.exists(buildMillYaml) && os.exists(buildMill)) {
+      val parsed = ExampleParser(workspacePath)
+      val hasCodeChunks =
+        parsed.exists(c => c.isInstanceOf[Chunk.Scala] || c.isInstanceOf[Chunk.Yaml])
+      if (!hasCodeChunks) {
+        val rendered = ExampleRenderer.render(parsed)
+        os.write(workspacePath / "readme.adoc", rendered)
+        os.remove(buildMill)
+      }
+    }
 
     // In case someone manually ran stuff in the integration test workspace earlier,
     // remove any leftover `out/` folder so it does not interfere with the test

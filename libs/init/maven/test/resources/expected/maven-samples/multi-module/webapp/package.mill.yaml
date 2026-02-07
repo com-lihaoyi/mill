@@ -1,0 +1,15 @@
+extends: millbuild.ProjectBaseModule
+moduleDeps: [multi-module.server]
+compileMvnDeps:
+- javax.servlet:servlet-api:2.5
+- javax.servlet.jsp:jsp-api:2.2
+depManagement:
+- javax.servlet:servlet-api:2.5
+- javax.servlet.jsp:jsp-api:2.2
+- junit:junit-dep:4.10
+- org.hamcrest:hamcrest-core:1.2.1
+- org.hamcrest:hamcrest-library:1.2.1
+- org.mockito:mockito-core:1.8.5
+artifactName: webapp
+pomSettings:
+  description: Webapp.

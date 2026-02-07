@@ -75,43 +75,33 @@ object Jvm {
       destroyOnExit: Boolean = true,
       check: Boolean = true
   )(using ctx: TaskCtx): os.CommandResult = {
-    val cp = cpPassingJarPath match {
-      case Some(passingJarPath) if classPath.nonEmpty =>
-        createClasspathPassingJar(passingJarPath, classPath.toSeq)
-        Seq(passingJarPath)
-      case _ => classPath
-    }
-
-    val commandArgs = Vector(javaExe(javaHome)) ++
-      jvmArgs.value ++
-      Option.when(cp.nonEmpty)(Vector(
-        "-cp",
-        cp.mkString(java.io.File.pathSeparator)
-      )).getOrElse(Vector.empty) ++
-      Vector(mainClass) ++
-      mainArgs.value
-
-    if (cwd != null) os.makeDir.all(cwd)
+    val commandArgs = buildJvmCommand(
+      mainClass,
+      mainArgs,
+      javaHome,
+      jvmArgs,
+      classPath,
+      cpPassingJarPath,
+      cwd
+    )
 
     ctx.log.debug(
       s"Running ${commandArgs.map(arg => "'" + arg.replace("'", "'\"'\"'") + "'").mkString(" ")}"
     )
 
-    val processResult = os.proc(commandArgs)
-      .call(
-        cwd = cwd,
-        env = env,
-        propagateEnv = propagateEnv,
-        stdin = stdin,
-        stdout = stdout,
-        stderr = stderr,
-        mergeErrIntoOut = mergeErrIntoOut,
-        timeout = timeout,
-        shutdownGracePeriod = shutdownGracePeriod,
-        destroyOnExit = destroyOnExit,
-        check = check
-      )
-    processResult
+    os.proc(commandArgs).call(
+      cwd = cwd,
+      env = env,
+      propagateEnv = propagateEnv,
+      stdin = stdin,
+      stdout = stdout,
+      stderr = stderr,
+      mergeErrIntoOut = mergeErrIntoOut,
+      timeout = timeout,
+      shutdownGracePeriod = shutdownGracePeriod,
+      destroyOnExit = destroyOnExit,
+      check = check
+    )
   }
 
   /**
@@ -158,24 +148,17 @@ object Jvm {
       shutdownGracePeriod: Long = 100,
       destroyOnExit: Boolean = true
   ): os.SubProcess = {
-    val cp = cpPassingJarPath match {
-      case Some(passingJarPath) if classPath.nonEmpty =>
-        createClasspathPassingJar(passingJarPath, classPath.toSeq)
-        Seq(passingJarPath)
-      case _ => classPath
-    }
+    val commandArgs = buildJvmCommand(
+      mainClass,
+      mainArgs,
+      javaHome,
+      jvmArgs,
+      classPath,
+      cpPassingJarPath,
+      cwd
+    )
 
-    val commandArgs = Vector(javaExe(javaHome)) ++
-      jvmArgs.value ++
-      Option.when(cp.nonEmpty)(
-        Vector("-cp", cp.mkString(java.io.File.pathSeparator))
-      ).getOrElse(Vector.empty) ++
-      Vector(mainClass) ++
-      mainArgs.value
-
-    if (cwd != null) os.makeDir.all(cwd)
-
-    val process = os.proc(commandArgs).spawn(
+    os.proc(commandArgs).spawn(
       cwd = cwd,
       env = env,
       stdin = stdin,
@@ -186,7 +169,6 @@ object Jvm {
       shutdownGracePeriod = shutdownGracePeriod,
       destroyOnExit = destroyOnExit
     )
-    process
   }
 
   /**
@@ -202,14 +184,103 @@ object Jvm {
       )
       .filter(f => f.exists())
       .fold(toolName)(_.getAbsolutePath())
-
   }
 
   def jdkTool(toolName: String): String = jdkTool(toolName, None)
 
+  /**
+   * Calls a JDK tool with the given arguments, inheriting stdin/stdout.
+   */
+  def callJdkTool(toolName: String, args: Seq[String], javaHome: Option[os.Path]): Unit = {
+    val cmd = Seq(jdkTool(toolName, javaHome)) ++ args
+    os.call(cmd = cmd, stdin = os.Inherit, stdout = os.Inherit)
+  }
+
   def javaExe(javaHome: Option[os.Path]): String = jdkTool("java", javaHome)
 
   def javaExe: String = javaExe(None)
+
+  /**
+   * Builds JVM command arguments with classpath handling.
+   */
+  private def buildJvmCommand(
+      mainClass: String,
+      mainArgs: os.Shellable,
+      javaHome: Option[os.Path],
+      jvmArgs: os.Shellable,
+      classPath: Iterable[os.Path],
+      cpPassingJarPath: Option[os.Path],
+      cwd: os.Path
+  ): Vector[String] = {
+    val cp = cpPassingJarPath match {
+      case Some(passingJarPath) if classPath.nonEmpty =>
+        createClasspathPassingJar(passingJarPath, classPath.toSeq)
+        Seq(passingJarPath)
+      case _ => classPath
+    }
+
+    if (cwd != null) os.makeDir.all(cwd)
+
+    Vector(javaExe(javaHome)) ++
+      jvmArgs.value ++
+      Option.when(cp.nonEmpty)(Vector("-cp", cp.mkString(java.io.File.pathSeparator)))
+        .getOrElse(Vector.empty) ++
+      Vector(mainClass) ++
+      mainArgs.value
+  }
+
+  /**
+   * Runs a JVM subprocess interactively, delegating to the launcher in daemon mode.
+   */
+  def callInteractiveProcess(
+      mainClass: String,
+      mainArgs: os.Shellable = Seq.empty,
+      javaHome: Option[os.Path] = None,
+      jvmArgs: os.Shellable = Seq.empty,
+      classPath: Iterable[os.Path],
+      cpPassingJarPath: Option[os.Path] = None,
+      env: Map[String, String] = Map.empty,
+      cwd: os.Path = null,
+      propagateEnv: Boolean = true
+  )(using ctx: TaskCtx): Int = {
+    val commandArgs = buildJvmCommand(
+      mainClass,
+      mainArgs,
+      javaHome,
+      jvmArgs,
+      classPath,
+      cpPassingJarPath,
+      cwd
+    )
+
+    ctx.log.debug(
+      s"Running interactive: ${commandArgs.map(arg => "'" + arg.replace("'", "'\"'\"'") + "'").mkString(" ")}"
+    )
+
+    runInteractiveCommand(
+      cmd = commandArgs,
+      env = env,
+      cwd = Option(cwd).getOrElse(os.pwd),
+      propagateEnv = propagateEnv
+    )
+  }
+
+  /**
+   * Runs a command interactively via the launcher subprocess runner.
+   */
+  def runInteractiveCommand(
+      cmd: Seq[String],
+      env: Map[String, String] = Map.empty,
+      cwd: os.Path = os.pwd,
+      propagateEnv: Boolean = true
+  ): Int = {
+    LauncherSubprocess.value(LauncherSubprocess.Config(
+      cmd = cmd,
+      env = env,
+      cwd = cwd.toString,
+      propagateEnv = propagateEnv
+    ))
+  }
 
   /**
    * Detects the major version of a JVM by running `java -version`.
@@ -230,6 +301,25 @@ object Jvm {
     } catch {
       case _: Exception => 0
     }
+  }
+
+  /**
+   * Returns JVM arguments needed to suppress spurious deprecation warnings on newer JDK versions.
+   *
+   * - JDK 23+: `--sun-misc-unsafe-memory-access=allow` to suppress Unsafe warnings from Scala
+   * - JDK 16+: `--enable-native-access=ALL-UNNAMED` to suppress native access warnings from JLine
+   *
+   * @param javaHome Optional Java home to check the version of
+   * @return Sequence of JVM arguments to suppress warnings
+   */
+  def getJvmSuppressionArgs(javaHome: Option[os.Path]): Seq[String] = {
+    val javaMajorVersion = getJavaMajorVersion(javaHome)
+    // Suppress Unsafe warnings on Java >=23, since we use Scala modules built in Scala-3.7 for
+    // compatibility with Java >=11, and Scala-3.7 generates such warnings spuriously
+    Option.when(javaMajorVersion >= 23)("--sun-misc-unsafe-memory-access=allow").toSeq ++
+      // Silence another benign warning, this one raised by JLine and `com.swoval:file-tree-views`
+      // which is transitively used by Zinc for faster filesystem operations
+      Option.when(javaMajorVersion >= 16)("--enable-native-access=ALL-UNNAMED").toSeq
   }
 
   /**
@@ -278,6 +368,9 @@ object Jvm {
     Thread.currentThread().setContextClassLoader(newClassloader)
     try {
       f(newClassloader)
+    } catch {
+      case t: Throwable =>
+        throw Result.SerializedException.partialFrom(t, newClassloader)
     } finally {
       Thread.currentThread().setContextClassLoader(oldClassloader)
       newClassloader.close()
@@ -771,7 +864,8 @@ object Jvm {
     val resolve = Resolve()
       .withCache(coursierCache0)
       .withDependencies(rootDeps)
-      .withRepositories(testOverridesRepos ++ repositories0)
+      // repositories0 (which includes mill-repositories) comes first so user config takes precedence
+      .withRepositories(repositories0 ++ testOverridesRepos)
       .withResolutionParams(resolutionParams0)
       .withMapDependenciesOpt(mapDependencies)
       .withBoms(boms.iterator.toSeq)
