@@ -81,8 +81,10 @@ object Opt {
           val elems = arr.value.map {
             case ujson.Str(opt) => opt
             case ujson.Obj(map) => upickle.read[os.Path](map("path"))
+            case _ => throw RuntimeException("Unsupported JSON data")
           }
           Opt(elems.toSeq*)
+        case _ => throw RuntimeException("Unsupported JSON data")
       }
     )
 
