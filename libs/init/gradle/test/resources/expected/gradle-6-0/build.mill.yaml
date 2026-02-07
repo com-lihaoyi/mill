@@ -4,7 +4,7 @@ extends: MavenModule
 mvnDeps:
 - com.google.guava:guava:28.0-jre
 javacOptions: [-source, 11, -target, 11]
-repositories: [https://jcenter.bintray.com/]
+repositories: ["https://jcenter.bintray.com/"]
 
 object test:
   extends: [MavenTests, TestModule.TestNg]
