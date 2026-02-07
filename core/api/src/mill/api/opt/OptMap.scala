@@ -1,13 +1,16 @@
 package mill.api.opt
 
+import mill.api.daemon.experimental
 import mill.api.daemon.internal.OptApi
 
+@experimental
 type OptMap = Map[String, Opt]
 
 extension (map: Map[String, OptApi]) {
   def toStringMap: Map[String, String] = map.view.mapValues(_.toString()).toMap
 }
 
+@experimental
 object OptMap {
 
   def apply(elems: (String, String | os.Path | Opt)*): OptMap = Map.from(
@@ -22,8 +25,5 @@ object OptMap {
         )
       }
   )
-
-//  given jsonReadWriter: upickle.ReadWriter[OptMap] =
-//    upickle.readwriter[Map[String, Opt]].bimap(_.map, OptMap(_))
 
 }

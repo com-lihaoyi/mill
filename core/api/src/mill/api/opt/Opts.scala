@@ -1,10 +1,12 @@
 package mill.api.opt
 
+import mill.api.daemon.experimental
 import mill.api.daemon.internal.OptsApi
 
 import scala.annotation.targetName
 import scala.language.implicitConversions
 
+@experimental
 case class Opts private (override val value: Seq[OptGroup]) extends OptsApi {
   require(value.forall(!_.isEmpty))
 
@@ -22,14 +24,9 @@ case class Opts private (override val value: Seq[OptGroup]) extends OptsApi {
   def flatMap(f: OptGroup => Seq[OptGroup]): Opts = Opts.apply(value.flatMap(f)*)
 }
 
+@experimental
 object Opts {
   @targetName("applyVarArgUnion")
-//  def apply(value: OptGroup*): Opts = new Opts(value.filter(!_.isEmpty))
-//  def apply(value: (String | os.Path | Opt | OptGroup | Seq[Opt])*): Opts = Opts(value.flatMap {
-//    case a: Opt => Seq(OptGroup(a))
-//    case a: OptGroup => Seq(a)
-//    case s: Iterable[Opt] => s.map(OptGroup(_))
-//  })
 
   def apply(
       opts: (String | os.Path | Opt | IterableOnce[(String | os.Path | Opt)] | OptGroup | Opts)*
@@ -46,12 +43,6 @@ object Opts {
     new Opts(groups.filter(!_.isEmpty))
   }
 
-//  given jsonReadWriter: upickle.ReadWriter[Opts] =
-//    upickle.readwriter[Seq[OptGroup]].bimap(
-//      _.value,
-//      Opts(_*)
-//    )
-
   given jsonReadWriter: upickle.ReadWriter[Opts] =
     upickle.readwriter[ujson.Arr].bimap(
       { opts =>
@@ -62,7 +53,6 @@ object Opts {
           } else
             upickle.transform(group).to[ujson.Value]
         }
-//        upickle.transform(opts.value).to[ujson.Value]
       },
       {
         case arr: ujson.Arr =>

@@ -2,10 +2,12 @@ package mill.api.opt
 
 import mill.api.daemon.internal.OptApi
 import mill.api.JsonFormatters.given
+import mill.api.daemon.experimental
 
 import scala.annotation.targetName
 import scala.language.implicitConversions
 
+@experimental
 case class Opt private (value: Seq[Opt.OptTypes]) extends OptApi {
   override def toString(): String = value.mkString("")
 
@@ -27,6 +29,7 @@ case class Opt private (value: Seq[Opt.OptTypes]) extends OptApi {
   }
 }
 
+@experimental
 object Opt {
 
   type OptTypes = (String | os.Path)
@@ -64,19 +67,6 @@ object Opt {
 
   def mkPlatformPath(paths: Seq[os.Path]): Opt = mkPath(paths, sep = java.io.File.pathSeparator)
 
-//  given jsonReadWriter: upickle.ReadWriter[Opt] =
-//    upickle.readwriter[Seq[(Option[String], Option[os.Path])]].bimap(
-//      _.value.map {
-//        case path: os.Path => (None, Some(path))
-//        case str: String => (Some(str), None)
-//      },
-//      seq =>
-//        Opt(seq.map {
-//          case (Some(str), _) => str
-//          case (_, Some(path)) => path
-//        }*)
-//    )
-
   given jsonReadWriter: upickle.ReadWriter[Opt] =
     upickle.readwriter[ujson.Value].bimap(
       opt =>
@@ -96,22 +86,10 @@ object Opt {
       }
     )
 
-  //  given stringToOpt: Conversion[String, Opt] = (value: String) => Opt(value)
-//  given osPathToOpt: Conversion[os.Path, Opt] = (value: os.Path) => Opt(value)
-
-//  implicit def IterableToOpt[T](s: Iterable[T])(using f: T => Opt): Opt =
-//    Opt(s.toSeq.flatMap(f(_).value))
-
   implicit def AllToOpt(o: String | os.Path | Opt): Opt = o match {
     case s: String => Opt(s)
     case p: os.Path => Opt(p)
     case o: Opt => o
   }
-
-//  implicit def StringToOpt(s: String): Opt = Opt(s)
-//
-//  implicit def OsPathToOpt(p: os.Path): Opt = Opt(p)
-//
-//  implicit def OptToOpt(o: Opt): Opt = o
 
 }
