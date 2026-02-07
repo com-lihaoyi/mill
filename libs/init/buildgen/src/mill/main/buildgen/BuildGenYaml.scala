@@ -379,7 +379,7 @@ object BuildGenYaml extends BuildGen {
     if (flatOpts.isEmpty) Nil
     else {
       val appendTag = if (values.appendSuper) "!append " else ""
-      Seq(s"$name: $appendTag${renderYamlStringList(flatOpts)}")
+      Seq(s"$name: $appendTag${renderYamlStringList(flatOpts.map(yamlEscapeStringInList))}")
     }
   }
 
@@ -387,7 +387,7 @@ object BuildGenYaml extends BuildGen {
     if (values.base.isEmpty) Nil
     else {
       val appendTag = if (values.appendSuper) "!append " else ""
-      Seq(s"$name: $appendTag${renderYamlStringList(values.base)}")
+      Seq(s"$name: $appendTag${renderYamlStringList(values.base.map(yamlEscapeStringInList))}")
     }
   }
 
