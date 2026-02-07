@@ -1,0 +1,1723 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Mill Build Performance :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/comparisons/performance.html">
+    <link rel="prev" href="gradle.html">
+    <link rel="next" href="../cli/installation-ide.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
+  <style>
+  /* auto-hyphenation is super ugly */
+  *{
+    hyphens: manual !important;
+  }
+
+  /* Reduce font size from 17px to something reasonable */
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
+  }
+  </style>
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs">
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="dev-1.1.1-16-8f959f">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javalib/intro.html">Building Java with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/packaging.html">Packaging Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/publishing.html">Publishing Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/spring-boot.html">Spring Boot Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/script.html">Java Single-File Scripts</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../scalalib/intro.html">Building Scala with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/packaging.html">Packaging Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/publishing.html">Publishing Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/web-examples.html">Scala Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/script.html">Scala Single-File Scripts</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../kotlinlib/intro.html">Building Kotlin with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/packaging.html">Packaging Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/script.html">Kotlin Single-File Scripts</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Why Mill?</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="maven.html">Comparing Mill vs Maven: Declarative Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="gradle.html">Comparing Mill vs Gradle: Programmable Builds</a>
+  </li>
+
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="performance.html">Mill Build Performance</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Fundamentals</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Managing JVM Versions</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sbom.html">Software Bill of Materials (SBOM)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Experimental Platform Support</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-initial-setup.html">Android Initial Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-release.html">Android Release Guide</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/compose-samples.html">Android Jetpack Compose</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/hilt-sample.html">Android Hilt Sample</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-native-example.html">Android Native Example</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../groovylib/intro.html">Building Groovy with Mill</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/caching.html">Caching in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/parallelism.html">Parallelism in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">dev-1.1.1-16-8f959f</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="../../index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../../main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../../index.html">1.1.1</a>
+        </li>
+        <li class="version is-current">
+          <a href="../index.html">dev-1.1.1-16-8f959f</a>
+        </li>
+        <li class="version">
+          <a href="../../1.0.x/index.html">1.0.6</a>
+        </li>
+        <li class="version">
+          <a href="../../0.12.x/index.html">0.12.17</a>
+        </li>
+        <li class="version">
+          <a href="../../0.11.x/index.html">0.11.13</a>
+        </li>
+        <li class="version">
+          <a href="../../0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../../0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <div class="title"><a href="../../../blog/index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
+<button class="nav-toggle"></button>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Mill Build Performance</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Build tool performance has been a big focus in developing Mill: Java build tools have
+a reputation for being sluggish, even though the JVM has outstanding performance second
+only to languages like C/C++/Rust, and <a href="../../../blog/1-java-compile.html" class="xref page">the Java compiler is extremely fast</a>.
+Mill is able to trim a lot of the overhead that other build tools like Maven or Gradle
+impose, resulting in edit-compile-test workflows that are 3-7x faster than those of other
+Java build tools.</p>
+</div>
+<div class="paragraph">
+<p>To get a feel for this difference, play recording below to see Mill
+(Left) and Maven (Right) running side by side compiling the Netty codebase.</p>
+</div>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/asciinema-player@3.10.0/dist/bundle/asciinema-player.css" />
+<script src="https://cdn.jsdelivr.net/npm/asciinema-player@3.10.0/dist/bundle/asciinema-player.min.js"></script>
+<style>
+/* hack to make the stuff fit within the text body */
+.ap-terminal {
+  transform: scale(0.65);
+  transform-origin: top left;
+}
+</style>
+<div id="mill-maven-comparison"></div>
+<script>
+var player = AsciinemaPlayer.create(
+    '../_images/basic/MillMavenComparison.cast',
+    document.getElementById('mill-maven-comparison'),
+    {startAt: 18, markers: [18, 80], pauseOnMarkers: true, poster: "npt:00:18"}
+);
+</script>
+<div class="paragraph">
+<p>Apart from the raw performance, Mill also has a lot of useful
+performance-related features that you can use to help speed up your local development
+and CI workflows to keep your development efforts productive. This article contains
+a discussion of these performance differences, how the benchmarks were run, and
+how you can try them out yourselves.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mill_vs_maven"><a class="anchor" href="#_mill_vs_maven"></a>Mill vs Maven</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To compare Mill vs Maven, we took the <a href="https://github.com/netty/netty">Netty</a> project
+and ported its Maven build to Mill as a proof of concept, complete enough that we
+could get all tests passing on a M1 Macbook Pro. Netty is not a small project:
+~500,000 lines of code, ~50 submodules, and build customizations such
+as compiling C code, running Groovy code generators, and other things. After porting
+all of that from Maven to Mill, we then ran the same common workflows on both
+equivalent builds to compare the performance: compiling everything, compiling a single module, etc.</p>
+</div>
+<div class="paragraph">
+<p>Overall across our benchmarks, Mill is 4-7x faster than Maven for clean compiles,
+both parallel and sequential, and for many modules or for a single module:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 40%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Benchmark</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Maven</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mill</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Speedup</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sequential Clean Compile All</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">98.78s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">24.43s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.0x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Parallel Clean Compile All</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">50.67s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">10.35s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.9x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Clean Compile Single Module</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6.33s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.90s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">7.0x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Incremental Compile Single Module</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6.76s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.22s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">30.7x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No-Op Compile Single Module</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.28s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.12s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">44.0x</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>First, let&#8217;s look at <strong>Parallel Clean Compile All</strong>.
+This benchmark involves running <code>clean</code> to delete all generated files and re-compiling
+everything in parallel. Mill sees a significant ~5x speedup over Maven for this benchmark.
+The same number of Java files are compiled, with the same classpath, in the same module
+layout, with the same Java compiler: the only difference is the reduction in build tool
+overhead giving the 5x speedup.</p>
+</div>
+<div class="paragraph">
+<p>The second benchmark worth noting is <strong>Incremental Compile Single Module</strong>.
+This benchmark involves adding a single newline to the end of a single already-compiled file in <code>common</code>,
+and re-compiling <code>common</code> and <code>common.test</code>.
+Mill sees a huge speedup for this benchmark, because Mill&#8217;s incremental compiler
+(<a href="https://github.com/sbt/zinc">Zinc</a>) is able to detect that only one file in one module
+has changed, and that the change is small enough
+to not require other files to re-compile. In contrast, Maven re-compiles all files in both
+modules, even though only one file was touched and the change was trivial.</p>
+</div>
+<div class="paragraph">
+<p>Looking at these numbers, it is not surprising that the Java platform has a reputation for
+being slow and clunky. Even in the <em>No-Op Compile Single Module</em> case, it takes ~5 seconds
+for Maven to realize there&#8217;s nothing to do!</p>
+</div>
+<div class="paragraph">
+<p>However, with Mill it looks very different:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Even compiling the entire 500,000 line codebase takes only ~10 seconds</p>
+</li>
+<li>
+<p>Compiling a single module like <code>netty-common</code> takes about 1 second</p>
+</li>
+<li>
+<p>Incremental compiles after adding a <code>println</code> take a fraction of a second.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If Java developers had this kind of fast turnaround working on their code, no doubt Java
+would have a very different reputation than it has today.</p>
+</div>
+<div class="paragraph">
+<p>For more details on these benchmarks, including steps to reproduce them,
+see <a href="#_mill_vs_maven_in_depth">Mill vs Maven In Depth</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mill_vs_gradle"><a class="anchor" href="#_mill_vs_gradle"></a>Mill vs Gradle</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>We used the <a href="https://github.com/mockito/mockito">Mockito</a> codebase as the case study of Mill vs Gradle.
+Again, we ported it from Gradle to Mill and got all code compiling and all tests passing. Then we
+ran benchmarks of common workflows comparing the time taken for both Mill and Gradle to do the
+same work.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 40%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Benchmark</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gradle</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mill</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Speedup</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sequential Clean Compile All</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">18.3s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.0s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.7x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Parallel Clean Compile All</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">14.8s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.87s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.6x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Clean Compile Single Module</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.65s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.89s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.2x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Incremental Compile Single Module</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.61s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.28s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.9x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No-Op Compile Single Module</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.02s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.10s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">10.2x</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Mill&#8217;s various "clean compile" workflows 3-5x faster than Gradle&#8217;s, while it&#8217;s incremental
+and no-op compile workflows are 7-9x faster. Both Gradle and Mill appear to do a good job
+limiting the compilation to only the changed file, but Mill has less fixed overhead than
+Gradle does, finishing in about ~0.2s rather than ~1.5 seconds.</p>
+</div>
+<div class="paragraph">
+<p>In general, these benchmarks don&#8217;t show Mill doing anything that Maven or Gradle do not:
+these are equivalent builds for the same projects (<a href="https://github.com/netty/netty">Netty</a> and
+<a href="https://github.com/mockito/mockito">Mockito</a> respectively), compiling the same number of files
+using the same Java compiler, in the same module structure and passing the same suite of tests.
+Rather, what we are seeing is Mill simply having less build-tool overhead than Maven or Gradle,
+so the performance of the underlying JVM and Java compiler (which is actually pretty fast!) can
+really shine through.</p>
+</div>
+<div class="paragraph">
+<p>For more details on these Gradle benchmarks, with steps to reproduce them,
+see <a href="#_mill_vs_gradle_in_depth">Mill vs Gradle In Depth</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_not_just_compile_times"><a class="anchor" href="#_not_just_compile_times"></a>Not Just Compile Times</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Compilation times are only one part of the time taken during development. Mill
+also provides features that help speed up other parts of your development cycle:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a href="../large/selective-execution.html" class="xref page">Selective Test Execution</a> allows you to skip unrelated tests when
+validating pull requests, speeding up PR validation considerably</p>
+</li>
+<li>
+<p><a href="../javalib/testing.html#_test_parallelism" class="xref page">Test Parallelism</a> automatically distributes tests
+across multiple threads, utilizing all available cores while maintaining long-lived
+JVM processes to maximize performance</p>
+</li>
+<li>
+<p><a href="../../../blog/9-mill-faster-assembly-jars.html" class="xref page">Incremental Assembly Jar Creation</a> speeds
+up creation of assembly jars, greatly speeding up workflows that use them
+(e.g. Spark Submit)</p>
+</li>
+<li>
+<p><a href="../depth/parallelism.html#_mill_chrome_profiles" class="xref page">Build Performance Profiles</a> are
+automatically generated for every command, giving visibility
+into where the build tool is spending time so you can understand and optimize it.</p>
+</li>
+</ol>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/NettyCompileProfile.png" alt="NettyCompileProfile">
+</div>
+</div>
+<div class="paragraph">
+<p>None of these features are rocket science, and they are all things that you can
+in theory set up with other build tools. However, Mill provides these features
+built-in without needing to first hunt down plugins or third-party integrations,
+and makes all of them easy to set up and use.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_benchmarks_in_depth"><a class="anchor" href="#_benchmarks_in_depth"></a>Benchmarks in Depth</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following sections will go deeper into the benchmarks, exploring the root cause of the
+performance differences and what commands were used for each benchmark.</p>
+</div>
+<div class="paragraph">
+<p>The benchmarks on these page were run on with Mill 1.1.0 on a 10CPU/32GB 2021 M1 Macbook Pro,
+with whatever version of Maven or Gradle each respective project defaults to. Each command
+was run manually 5 times to allow warmup then the last 3 times recorded. The Netty
+and Mockito codebases used in the benchmark are available for download below, along with
+their example Mill configuration, so you can try running the benchmark commands yourself.</p>
+</div>
+<div class="paragraph">
+<p>Note that as Mill runs a JVM background daemon, it may require a few runs for the JVM to warm
+up to peak performance, and do be aware that benchmarked performance is expected to differ
+on different operating systems and hardware.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mill_vs_maven_in_depth"><a class="anchor" href="#_mill_vs_maven_in_depth"></a>Mill vs Maven In Depth</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section goes into the weeds comparing the Mill and Maven build tool performance.
+To do this, we have written a Mill <code>build.mill</code> file for the Netty project. This can be used
+with Mill to build and test the various submodules of the Netty project without needing to
+change any other files in the repository:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/com-lihaoyi/mill/blob/main/example/thirdparty/netty/build.mill">Netty build.mill file</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To reproduce these benchmarks locally, you can download and unzip</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-16-8f959f/mill-dist-1.1.1-16-8f959f-example-thirdparty-netty.zip" class="bare">https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-16-8f959f/mill-dist-1.1.1-16-8f959f-example-thirdparty-netty.zip</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The Mill build for Netty is not 100% complete, but it covers most of the major parts of Netty:
+compiling Java, compiling and linking C code via JNI, custom codegen using Groovy scripts,
+running JUnit tests and some integration tests using H2Spec. All 47 Maven subprojects are
+modelled using Mill, with the entire Netty codebase being approximately 500,000 lines of code.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ git ls-files | grep \\.java | xargs wc -l
+...
+513805 total</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The goal of this exercise is not to be 100% feature complete enough to replace the Maven build
+today. It is instead meant to provide a realistic comparison of how using Mill in a large,
+complex project compares to using Maven.</p>
+</div>
+<div class="paragraph">
+<p>Both Mill and Maven builds end up compiling the same set of files, although the number being
+reported by the command line is slightly higher for Mill (2915 files) than Maven (2822) due
+to minor differences in the reporting (e.g. Maven does not report <code>package-info.java</code> files
+as part of the compiled file count).</p>
+</div>
+<div class="paragraph">
+<p>The Mill build for Netty is much more performant than the default Maven build. This applies to
+most workflows.</p>
+</div>
+<div class="paragraph">
+<p>For the benchmarks below, each provided number is the wall time of three consecutive runs
+on my M1 Macbook Pro using Java 17 and Mill <code>0.12.9-native</code>. While ad-hoc, these benchmarks
+are enough to give you a flavor of how Mill&#8217;s performance compares to Maven:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Benchmark</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Maven</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mill</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Speedup</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sequential Clean Compile All</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">98.78s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">24.43s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.0x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Parallel Clean Compile All</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">50.67s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">10.35s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.9x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Clean Compile Single Module</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6.33s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.90s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">7.0x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Incremental Compile Single Module</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6.76s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.22s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">30.7x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No-Op Compile Single Module</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.28s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.12s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">44.0x</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The column on the right shows the speedups of how much faster Mill is compared to the
+equivalent Maven workflow. In most cases,  Mill is 4-7x faster than Maven. Below, we
+will go into more detail of each benchmark: how they were run, what they mean, and how
+we can explain the difference in performing the same task with the two different build tools.</p>
+</div>
+<div class="sect2">
+<h3 id="_sequential_clean_compile_all"><a class="anchor" href="#_sequential_clean_compile_all"></a>Sequential Clean Compile All</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mvnw clean; time ./mvnw -Pfast -Denforcer.skip=true install
+97.20s
+98.35s
+100.8s
+
+$ ./mill clean _; time ./mill -j1 __.compile
+25.65s
+23.63s
+24.02s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This benchmark exercises the simple "build everything from scratch" workflow, with all remote
+artifacts already in the local cache. The actual files being compiled are the same in either.
+I have explicitly disabled the various linters and tests for the Maven build, to just focus
+on the compilation of Java source code making it an apples-to-apples comparison. As Mill
+runs tasks in parallel by default, I have disabled parallelism explicitly via <code>-j1</code></p>
+</div>
+<div class="paragraph">
+<p>As a point of reference, Java typically compiles at 10,000-50,000 lines per second on a
+single thread, and the Netty codebase is ~500,000 lines of code, so we would expect compile
+to take 10-50 seconds without parallelism.
+The 20-30s taken by Mill seems about what you would expect for a codebase of this size,
+and the ~100s taken by Maven is far beyond what you would expect from simple Java compilation.</p>
+</div>
+<div class="paragraph">
+<p>From this benchmark, we can see that although both Mill and Maven are doing the same work,
+Mill takes about as long as it <em>should</em> for this task of compiling 500,000 lines of Java source
+code, while Maven takes considerably longer. This difference is purely build tool overhead
+in Maven - in the <code>install</code> workflow, in the JVM process warmup, etc. - that Mill manages
+to avoid.</p>
+</div>
+<div class="sect3">
+<h4 id="_mill_clean"><a class="anchor" href="#_mill_clean"></a>./mill clean _</h4>
+<div class="paragraph">
+<p>The first thing to take note is that we use <code>./mill clean <em></code> with an underscore <code></em></code>
+rather than <code>./mill clean</code> for this benchmark. The difference is that <code>./mill clean _</code>
+cleans the output of all user-defined modules or tasks, while <code>./mill clean</code> also
+wipes out Mill&#8217;s internal workers and machinery.</p>
+</div>
+<div class="paragraph">
+<p>From a user perspective, <code>./mill clean _</code> more accurately reflects what you are likely to
+see when working with your project, e.g. after performing a large refactor or git branch update
+that forces everything to re-compile, so that is what we use in this benchmark</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_maven_compile_vs_install"><a class="anchor" href="#_maven_compile_vs_install"></a>Maven Compile vs Install</h4>
+<div class="paragraph">
+<p>The second thing you may notice is the use of <code>./mvnw install</code> rather than <code>./mvnw compile</code>.
+The reason for this is that Maven&#8217;s main mechanism for managing inter-module dependencies
+is via the local artifact cache at <code>~/.m2/repository</code>. Although many workflows work with
+<code>compile</code>, some don&#8217;t. In particular, <code>./mvnw clean compile</code> on the Netty codebase fails with:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>[ERROR] Failed to execute goal org.apache.maven.plugins:maven-dependency-plugin:2.10:unpack-dependencies
+(unpack) on project netty-resolver-dns-native-macos: Artifact has not been packaged yet.
+When used on reactor artifact, unpack should be executed after packaging: see MDEP-98. -&gt; [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException
+[ERROR]
+[ERROR] After correcting the problems, you can resume the build with the command
+[ERROR]   mvn &lt;args&gt; -rf :netty-resolver-dns-native-macos</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In contrast, Mill builds do not rely on the local artifact cache, even though Mill is able
+to publish to it. That means Mill builds are able to work directly with classfiles on disk,
+simply referencing them and using them as-is without spending time packing and unpacking them
+into <code>.jar</code> files. But even if we <em>did</em> want Mill to generate the <code>.jar</code>s, the
+overhead of doing so is just a few seconds, far less than the minutes that
+Maven&#8217;s overhead adds to the clean build:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill clean _; time ./mill -j1 __.jar
+27.92s
+27.85s
+29.01s</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_parallel_clean_compile_all"><a class="anchor" href="#_parallel_clean_compile_all"></a>Parallel Clean Compile All</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mvnw clean; time ./mvnw -T 10 -Pfast -Denforcer.skip=true install
+51.48s
+49.17s
+51.36s
+
+$ ./mill clean _; time ./mill __.compile
+10.73s
+10.05s
+10.27s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example compares Maven v.s. Mill, when performing the clean build on 10 threads.
+Both build tools support parallelism (<code>-T 10</code> in Maven, by default in Mill), and both
+tools see a similar ~2x speedup for building the Netty project using 4 threads.Again,
+this tests a clean build using <code>./mvnw clean</code> or <code>./mill clean</code>.</p>
+</div>
+<div class="paragraph">
+<p>This comparison shows that much of Mill&#8217;s speedup over Maven is unrelated to parallelism.
+Whether sequential or parallel, Mill has approximately the same 4-5x speedup over Maven
+when performing a clean build of the Netty repository.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_clean_compile_single_module"><a class="anchor" href="#_clean_compile_single_module"></a>Clean Compile Single-Module</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mvnw clean; time ./mvnw -pl common -Pfast -Denforcer.skip=true -Dmaven.test.skip=true install
+6.38s
+6.46s
+6.17s
+
+$ ./mill clean common; time ./mill common.compile
+0.89s
+0.91s
+0.90s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This exercise limits the comparison to compiling a single module, in this case <code>common/</code>,
+ignoring test sources.</p>
+</div>
+<div class="paragraph">
+<p>Again, we can see a significant speedup of Mill v.s. Maven remains even when compiling a
+single module: a clean compile of <code>common/</code> is about 6x faster with Mill than with Maven!
+Again, <code>common/</code> is about 30,000 lines of Java source code, so at 10,000-50,000 lines per
+second we would expect it to compile in about 1-4s. That puts Mill&#8217;s compile times right
+at what you would expect, whereas Maven&#8217;s has a significant overhead.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_incremental_compile_single_module"><a class="anchor" href="#_incremental_compile_single_module"></a>Incremental Compile Single-Module</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ echo "" &gt;&gt; common/src/main/java/io/netty/util/AbstractConstant.java
+$ time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
+Compiling 174 source files to /Users/lihaoyi/Github/netty/common/target/classes
+Compiling 60 source files to /Users/lihaoyi/Github/netty/common/target/test-classes
+
+7.75s
+6.33s
+6.22s
+
+
+$ echo "" &gt;&gt; common/src/main/java/io/netty/util/AbstractConstant.java
+$ time ./mill common.test.compile
+compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
+
+0.22s
+0.23s
+0.21s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This benchmark explores editing a single file and re-compiling <code>common/</code>.</p>
+</div>
+<div class="paragraph">
+<p>Maven by default takes about as long to re-compile <code>common/</code>s <code>main/</code> and <code>test/</code> sources
+after a single-line edit as it does from scratch, about 20 seconds. However, Mill
+takes just about 0.5s to compile and be done! Looking at the logs, we can see it is
+because Mill only compiles the single file we changed, and not the others.</p>
+</div>
+<div class="paragraph">
+<p>For this incremental compilation, Mill uses the
+<a href="https://github.com/sbt/zinc">Zinc Incremental Compiler</a>. Zinc is able to analyze the dependencies
+between files to figure out what needs to re-compile: for an internal change that doesn&#8217;t
+affect downstream compilation (e.g. changing a string literal) Zinc only needs to compile
+the file that changed, taking barely half a second:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-diff hljs" data-lang="diff">$ git diff
+diff --git a/common/src/main/java/io/netty/util/AbstractConstant.java b/common/src/main/java/io/netty/util/AbstractConstant.java
+@@ -83,7 +83,7 @@ public abstract class AbstractConstant&lt;T extends AbstractConstant&lt;T&gt;&gt; implements
+             return 1;
+         }
+
+-        throw new Error("failed to compare two different constants");
++        throw new Error("failed to compare two different CONSTANTS!!");
+     }
+
+ }</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ time ./mill common.test.compile
+[info] compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
+0m 00.55s6</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In contrast, a change to a class or function public signature (e.g. adding a method) may
+require downstream code to re-compile, and we can see that below:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-diff hljs" data-lang="diff">$ git diff
+diff --git a/common/src/main/java/io/netty/util/AbstractConstant.java b/common/src/main/java/io/netty/util/AbstractConstant.java
+@@ -41,6 +41,10 @@ public abstract class AbstractConstant&lt;T extends AbstractConstant&lt;T&gt;&gt; implements
+         return name;
+     }
+
++    public final String name2() {
++        return name;
++    }
++
+     @Override
+     public final int id() {
+         return id;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ time ./mill common.test.compile
+[25/48] common.compile
+[info] compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
+[info] compiling 2 Java sources to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
+[info] compiling 4 Java sources to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
+[info] compiling 3 Java sources to /Users/lihaoyi/Github/netty/out/common/test/compile.super/mill/scalalib/JavaModule/compile.dest/classes ...
+[info] compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/test/compile.super/mill/scalalib/JavaModule/compile.dest/classes ...
+0m 00.81s2</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here, we can see that Zinc ended up re-compiling 7 files in <code>common/src/main/</code> and 3 files
+in <code>common/src/test/</code> as a result of adding a method to <code>AbstractConstant.java</code>.</p>
+</div>
+<div class="paragraph">
+<p>In general, Zinc is conservative, and does not always end up selecting the minimal set of
+files that need re-compiling: e.g. in the above example, the new method <code>name2</code> does not
+interfere with any existing method, and the ~9 downstream files did not actually need to
+be re-compiled! However, even conservatively re-compiling 9 files is much faster than
+Maven blindly re-compiling all 234 files, and as a result the iteration loop of
+editing-compiling-testing your Java projects in Mill can be much faster than doing
+the same thing in Maven</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_no_op_compile_single_module"><a class="anchor" href="#_no_op_compile_single_module"></a>No-Op Compile Single-Module</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ time ./mvnw -pl common -Pfast -Denforcer.skip=true install
+6.31s
+4.76s
+4.77s
+
+$ time ./mill common.test.compile
+0.12s
+0.11s
+0.12s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This last benchmark explores the boundaries of Maven and Mill: what happens if
+we ask to compile a single module <em>that has already been compiled</em>? In this case,
+there is literally <em>nothing to do</em>. For Maven, "doing nothing" takes ~17 seconds,
+whereas for Mill we can see it complete and return in less than 0.5 seconds</p>
+</div>
+<div class="paragraph">
+<p>Grepping the logs, we can confirm that both build tools skip re-compilation of the
+<code>common/</code> source code. In Maven, skipping compilation only saves us ~2 seconds,
+bringing down the 19s we saw in <a href="#_clean_compile_single_module">Clean Compile Single-Module</a> to 17s here. This
+matches what we expect about Java compilation speed, with the 2s savings on
+40,000 lines of code telling us Java compiles at ~20,000 lines per second. However,
+we still see Maven taking <strong>17 entire seconds</strong> before it can decide to do nothing!</p>
+</div>
+<div class="paragraph">
+<p>In contrast, doing the same no-op compile using Mill, we see the timing from 2.2s
+in <a href="#_clean_compile_single_module">Clean Compile Single-Module</a> to 0.5 seconds here. This is the same ~2s reduction
+we saw with Maven, but due to Mill&#8217;s minimal overhead, in the end the command
+finishes in less than half a second.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mill_vs_gradle_in_depth"><a class="anchor" href="#_mill_vs_gradle_in_depth"></a>Mill vs Gradle In Depth</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section compares using Mill to Gradle using the <a href="https://github.com/mockito/mockito">Mockito Testing Library</a>
+codebase as the example. Mockito is a medium sized codebase, 100,000 lines of Java split over 22
+subprojects. By porting it to Mill, this case study should give you
+an idea of how Mill compares to Gradle in more realistic, real-world projects.</p>
+</div>
+<div class="paragraph">
+<p>To do this, we have written a Mill <code>build.mill</code> file for the Mockito project. This can be used
+with Mill to build and test the various submodules of the Mockito project without needing to
+change any other files in the repository:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/com-lihaoyi/mill/blob/main/example/thirdparty/mockito/build.mill">Mockito build.mill file</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To reproduce these benchmarks locally, you can download and unzip</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-16-8f959f/mill-dist-1.1.1-16-8f959f-example-thirdparty-mockito.zip" class="bare">https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.1-16-8f959f/mill-dist-1.1.1-16-8f959f-example-thirdparty-mockito.zip</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>And run the commands listed in the below sections yourself. Note that as Mill runs a JVM
+background daemon, it may require a few runs for the JVM to warm up to peak performance,
+and do be aware that benchmarked performance is expected to differ on different operating
+systems and hardware</p>
+</div>
+<div class="paragraph">
+<p>The Mill build for Mockito is not 100% complete, but it covers most of the major parts of Mockito:
+compiling Java, running JUnit tests. For now, the Android, Kotlin, and OSGI tests are skipped,
+as support for <a href="../android/java.html" class="xref page">Building Android apps in Mill</a>
+and <a href="../kotlinlib/intro.html" class="xref page">Kotlin with Mill</a> is still experimental.</p>
+</div>
+<div class="paragraph">
+<p>The goal of this exercise is not to be 100% feature complete enough to replace the Gradle build
+today. It is instead meant to provide a realistic comparison of how using Mill in a realistic,
+real-world project compares to using Gradle.</p>
+</div>
+<div class="paragraph">
+<p>The Mill build for Mockito is generally snappier than the Gradle build. This applies to
+most workflows, but the difference matters most for workflows which are short-lived,
+where the difference in the fixed overhead of the build tool is most noticeable.</p>
+</div>
+<div class="paragraph">
+<p>For comparison purposes, I disabled the Gradle subprojects that we did not fully implement in Mill
+(<code>groovyTest</code>, <code>groovyInlineTest</code>, <code>kotlinTest</code>, <code>kotlinReleaseCoroutinesTest</code>, <code>android</code>,
+<code>osgi-test</code>, <code>java21-test</code>), and added the necessary flags to ensure caching/parallelism/etc. is
+configured similarly for both tools. This ensures the comparison is fair with both builds compiling the
+same code and running the same tests in the same way.</p>
+</div>
+<div class="paragraph">
+<p>For the benchmarks below, each provided number is the median wall time of three consecutive runs
+on my M1 Macbook Pro with Java 17 and Mill <code>0.12.9-native</code>. While ad-hoc, these benchmarks are
+enough to give you a flavor of how Mill&#8217;s performance compares to Gradle:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Benchmark</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gradle</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mill</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Speedup</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sequential Clean Compile All</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">18.3s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.0s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.7x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Parallel Clean Compile All</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">14.8s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.87s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.6x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Clean Compile Single Module</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.65s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.89s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.2x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Incremental Compile Single Module</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.61s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.28s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.9x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No-Op Compile Single Module</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.02s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.10s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">10.2x</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The column on the right shows the speedups of how much faster Mill is compared to the
+equivalent Gradle workflow. In most cases,  Mill is 2-4x faster than Gradle. Below, we
+will go into more detail of each benchmark: how they were run, what they mean, and how
+we can explain the difference in performing the same task with the two different build tools.</p>
+</div>
+<div class="sect2">
+<h3 id="_sequential_clean_compile_all_2"><a class="anchor" href="#_sequential_clean_compile_all_2"></a>Sequential Clean Compile All</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ # edit gradle.properties to set org.gradle.parallel=false
+$ ./gradlew clean; time ./gradlew classes testClasses --no-build-cache
+18.28s
+18.26s
+18.28s
+
+$ ./mill clean _; time ./mill -j1 __.compile
+4.98s
+4.96s
+5.06s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This benchmark measures the time taken to sequentially compiled all the Java code in
+the Mockito code base. The goal of this benchmark is to try and measure the "clean compile
+everything" step, without the effects of parallelism that can be nondeterministic and vary
+wildly from machine to machine depending on the number of cores available.</p>
+</div>
+<div class="paragraph">
+<p>To limit our comparison to compiling Java code only, we avoid
+using <code>build</code> in favor of <code>classes</code> and <code>testClasses</code>: this skips running tests,
+lint, jar/docjar generation, and other steps that <code>build</code> performs to make it an apples-to-apples
+comparison. Furthermore, Gradle parallelizes the build by default and caches things globally
+under <code>~/.gradle/caches</code>, while Mill parallelizes by default but does not cache things globally.
+Again to make it a fair comparison, we use <code>--no-build-cache</code> in Gradle and set
+<code>org.gradle.parallel=false</code> in <code>gradle.properties</code>, and pass <code>-j1</code> to limit Mill to a
+single thread.</p>
+</div>
+<div class="paragraph">
+<p>Here we see Mill being about ~3.3x faster than Gradle, to do the equivalent amount of work.
+As a point of reference, Java typically compiles at 10,000-50,000 lines per second on a
+single thread, and the Mockito codebase is ~100,000 lines of code, so we would expect compile
+to take 2-10 seconds without parallelism.
+The 5-6s taken by Mill seems about what you would expect for a codebase of this size,
+and the ~17s taken by Gradle is much more than what you would expect from simple Java compilation.</p>
+</div>
+<div class="paragraph">
+<p>It&#8217;s actually not clear to me where the difference in execution time is coming from. Unlike
+the <a href="maven.html" class="xref page">Mill v.s. Maven comparison</a>, Gradle&#8217;s command line output
+doesn&#8217;t show any obvious network requests or jar packing/unpacking/comparing going on. But
+Gradle&#8217;s CLI output is also much less verbose than Maven&#8217;s, so it&#8217;s possible things are going
+on under the hood that I&#8217;m not aware of.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_parallel_clean_compile_all_2"><a class="anchor" href="#_parallel_clean_compile_all_2"></a>Parallel Clean Compile All</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ # edit gradle.properties to set org.gradle.parallel=true
+$ ./gradlew clean; time ./gradlew classes testClasses --no-build-cache
+14.1s
+15.6s
+14.8s
+
+$ ./mill clean _; time ./mill __.compile
+3.74s
+4.16s
+3.73s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This benchmark is identical to the <a href="#_sequential_clean_compile_all">Sequential Clean Compile All</a> benchmark above, but enables
+parallelism: Gradle by default, Mill without <code>-j1</code> to run on 10 cores (the number on my Macbook Pro).</p>
+</div>
+<div class="paragraph">
+<p>Neither Gradle nor Mill benefit hugely from parallelism: both show a moderate ~50% speedup,
+despite receiving 900% more CPUs. This likely indicates that the module dependency graph
+of the Mockito codebase is laid out in a way that does not allow huge amounts of compile-time
+parallelism.</p>
+</div>
+<div class="paragraph">
+<p>Again, we see Mill being about ~3.4x faster than Gradle, to do the equivalent amount of work.
+This indicates the speedup Mill provides over Gradle is unrelated to the parallelism of
+each tool.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_clean_compile_single_module_2"><a class="anchor" href="#_clean_compile_single_module_2"></a>Clean Compile Single-Module</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./gradlew clean; time ./gradlew :classes --no-build-cache
+4.55s
+4.82s
+4.60s
+
+$ ./mill clean _; time ./mill compile
+0.84s
+0.81s
+1.03s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This benchmark indicates the use case of clean-compiling a single module. In this case,
+the root module in <code>src/main/java/</code> containing the bulk of the Mockito library code,
+<em>excluding</em> the test code in <code>src/test/java/</code> and all the downstream subprojects in
+<code>subprojects/</code>.</p>
+</div>
+<div class="paragraph">
+<p>This benchmark gives us Mill being about ~3.7x faster than Gradle. This is in line with
+the results above.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_incremental_compile_single_module_2"><a class="anchor" href="#_incremental_compile_single_module_2"></a>Incremental Compile Single-Module</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ echo "" &gt;&gt; src/main/java/org/mockito/BDDMockito.java; time ./gradlew :classes
+1.67s
+1.64s
+1.52s
+
+$ echo "" &gt;&gt; src/main/java/org/mockito/BDDMockito.java; time ./mill compile
+compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
+0.27s
+0.26s
+0.33s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This benchmark measures the common case of making a tiny change to a single file and
+re-compiling just that module. This is the common workflow that most software developers
+do over and over day-in and day-out. We simulate this by appending a new line to the
+file <code>src/main/java/org/mockito/BDDMockito.java</code>.</p>
+</div>
+<div class="paragraph">
+<p>Both Mill and Gradle are able to take advantage of the small code change and re-compile
+only the single files needing re-compilation, demonstrating substantial speedups over
+the <a href="#_clean_compile_single_module">Clean Compile Single-Module</a> benchmark above. Mill remains faster than Gradle,
+showing a ~2.7x speedup for this task</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_no_op_compile_single_module_2"><a class="anchor" href="#_no_op_compile_single_module_2"></a>No-Op Compile Single-Module</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ time ./gradlew :classes
+1.01s
+1.05s
+1.00s
+
+$ time ./mill compile
+0.11s
+0.09s
+0.10s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This benchmark is meant to measure the pure overhead of running the build tool: given a single
+module that did <em>not</em> change, the build tool should need to do <em>nothing</em> in response, and so
+any time taken is pure overhead.</p>
+</div>
+<div class="paragraph">
+<p>For both Mill and Gradle, we see small speedups relative to the <a href="#_incremental_compile_single_module">Incremental Compile Single-Module</a>
+benchmark above, which likely comes from not having to compile any Java source files at all. Mill
+remains faster than Gradle by about 2.0x.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_conclusion"><a class="anchor" href="#_conclusion"></a>Conclusion</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Mill, Gradle, and Maven builds we discussed in this case study do the same thing: they
+compile Java code and run tests. Sometimes they perform additional configuration, tweaking
+JVM arguments or doing ad-hoc classpath mangling. While the Mill builds are not 100% feature
+complete - e.g. the Mill build for Netty doesn&#8217;t support building on a half-dozen different
+operating systems like the Maven build does - they are complete enough to pass all tests and
+be a realistic comparison.</p>
+</div>
+<div class="paragraph">
+<p>But the bottom line is that, building projects with Mill is significantly faster than
+Maven or Gradle. Things like 3-6x faster compiles, selective test execution, incremental
+assembly jars, automatic build profiling all add up to make Mill a substantially snappier
+build tool than what you might be used to. If you&#8217;ve ever been frustrated by slowness in your
+JVM development process, you should try Mill to see if it can give you a very different experience!</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="gradle.html">Comparing Mill vs Gradle: Programmable Builds</a></span>
+  <span class="next"><a href="../cli/installation-ide.html">Installation &amp; IDE Setup</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+<script src="../../../_/js/vendor/lunr.js"></script>
+<script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>
