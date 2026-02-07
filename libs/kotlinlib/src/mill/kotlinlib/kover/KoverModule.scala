@@ -5,15 +5,18 @@
 package mill.kotlinlib.kover
 
 import mill.*
-import mill.api.{BuildCtx, Discover, Evaluator, ExternalModule, PathRef, Result, SelectMode}
-import mill.api.opt.*
+import mill.api.{PathRef}
+import mill.api.{Result}
+import mill.api.{Discover, Evaluator, ExternalModule}
 import ReportType.{Html, Xml}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, TestModule, Versions}
+import mill.api.SelectMode
 import mill.javalib.api.CompilationResult
 import mill.util.Jvm
 import os.Path
 
 import java.util.Locale
+import mill.api.BuildCtx
 
 /**
  * Adds targets to a [[mill.kotlinlib.KotlinModule]] to create test coverage reports.
@@ -98,15 +101,15 @@ trait KoverModule extends KotlinModule { outer =>
     /**
      * Add Kover specific javaagent options.
      */
-    override def forkArgs: T[Opts] = Task {
+    override def forkArgs: T[Seq[String]] = Task {
       val argsFile = koverDataDir().path / "kover-agent.args"
       val content = s"report.file=${koverBinaryReport().path}"
       BuildCtx.withFilesystemCheckerDisabled {
         os.write.over(argsFile, content)
       }
       super.forkArgs() ++
-        Opts(
-          opt"-javaagent:${koverAgentJar().path}=file:$argsFile"
+        Seq(
+          s"-javaagent:${koverAgentJar().path}=file:$argsFile"
         )
     }
   }

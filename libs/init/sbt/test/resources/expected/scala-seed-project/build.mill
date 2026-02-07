@@ -2,7 +2,6 @@
 //| mill-jvm-version: system
 package build
 import mill.*
-import mill.api.opt.*
 import mill.javalib.PublishModule
 import mill.javalib.publish.*
 import mill.scalalib.*

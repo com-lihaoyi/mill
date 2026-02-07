@@ -2,7 +2,6 @@ package mill.javalib
 
 import mill.api.{BuildCtx, Discover, ExternalModule, ModuleRef, PathRef, Result, experimental}
 import mill.api.daemon.internal.SemanticDbJavaModuleApi
-import mill.api.opt.*
 import mill.constants.CodeGenConstants
 import mill.util.BuildInfo
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil}
@@ -35,8 +34,8 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     }
 
   private[mill] def bspBuildTarget: BspBuildTarget
-  def javacOptions: T[Opts]
-  def mandatoryJavacOptions: T[Opts]
+  def javacOptions: T[Seq[String]]
+  def mandatoryJavacOptions: T[Seq[String]]
   private[mill] def compileClasspathTask(compileFor: CompileFor): Task[Seq[PathRef]]
   def moduleDeps: Seq[JavaModule]
 
@@ -100,11 +99,11 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
   /**
    * Scalac options to activate the compiler plugins.
    */
-  protected def semanticDbEnablePluginScalacOptions: T[Opts] = Task {
+  protected def semanticDbEnablePluginScalacOptions: T[Seq[String]] = Task {
     val resolvedJars = defaultResolver().classpath(
       semanticDbPluginMvnDeps().map(_.exclude("*" -> "*"))
     )
-    Opts(resolvedJars.map(jar => opt"-Xplugin:${jar.path}"))
+    resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
 
   protected def semanticDbPluginClasspath: T[Seq[PathRef]] = Task {
@@ -119,7 +118,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     val javacOpts = SemanticDbJavaModule.javacOptionsTask(
       javacOptions() ++ mandatoryJavacOptions(),
       semanticDbJavaVersion()
-    ).toStringSeq
+    )
 
     Task.log.debug(s"effective javac options: ${javacOpts}")
 
@@ -227,15 +226,15 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
     ))
   }
 
-  def javacOptionsTask(javacOptions: Opts, semanticDbJavaVersion: String)(using
+  def javacOptionsTask(javacOptions: Seq[String], semanticDbJavaVersion: String)(using
       ctx: mill.api.TaskCtx
-  ): Opts = {
+  ): Seq[String] = {
     val isNewEnough =
       Version.isAtLeast(semanticDbJavaVersion, "0.8.10")(using Version.IgnoreQualifierOrdering)
     val buildTool = s" -build-tool:${if (isNewEnough) "mill" else "sbt"}"
     val verbose = if (ctx.log.debugEnabled) " -verbose" else ""
-    javacOptions ++ Opts(
-      opt"-Xplugin:semanticdb -sourceroot:${BuildCtx.workspaceRoot} -targetroot:${ctx.dest / "classes"}${buildTool}${verbose}"
+    javacOptions ++ Seq(
+      s"-Xplugin:semanticdb -sourceroot:${ctx.workspace} -targetroot:${ctx.dest / "classes"}${buildTool}${verbose}"
     )
   }
 

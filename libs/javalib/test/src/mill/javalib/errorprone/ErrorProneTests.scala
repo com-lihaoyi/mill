@@ -6,8 +6,7 @@ import mill.javalib.JavaModule
 import mill.testkit.{TestRootModule, UnitTester}
 import os.Path
 import utest.*
-import mill.util.TokenReaders.*
-
+import mill.util.TokenReaders._
 object ErrorProneTests extends TestSuite {
 
   object noErrorProne extends TestRootModule with JavaModule {
@@ -45,7 +44,7 @@ object ErrorProneTests extends TestSuite {
       test("compileWarn") {
         UnitTester(errorProneCustom, testModuleSourcesPath).scoped { eval =>
           val Right(opts) = eval(errorProneCustom.mandatoryJavacOptions): @unchecked
-          assert(opts.value.toStringSeq.exists(_.contains("-XepAllErrorsAsWarnings")))
+          assert(opts.value.exists(_.contains("-XepAllErrorsAsWarnings")))
           val res = eval(errorProneCustom.compile)
           assert(res.isRight)
         }

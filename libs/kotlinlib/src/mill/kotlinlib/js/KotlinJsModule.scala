@@ -3,9 +3,10 @@ package mill.kotlinlib.js
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import mainargs.arg
-import mill.api.{PathRef, Result, Task}
-import mill.api.opt.*
+import mill.api.PathRef
+import mill.api.Result
 import mill.api.Task.Command
+import mill.api.Task
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager}
 import mill.javalib.Lib
@@ -70,7 +71,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     Seq(mvn"org.jetbrains.kotlin:kotlin-stdlib-js:${kotlinVersion()}")
 
   // Kotlin/JS doesn't support -module-name (uses -Xir-module-name instead, set in compile task)
-  override protected def kotlinModuleNameOption: T[Opts] = Task { Opts() }
+  override protected def kotlinModuleNameOption: T[Seq[String]] = Task { Seq.empty }
 
   override def transitiveCompileClasspath: T[Seq[PathRef]] = Task {
     Task.traverse(transitiveModuleCompileModuleDeps) {
@@ -178,7 +179,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
    * The actual Kotlin compile task (used by [[compile]] and [[kotlincHelp]]).
    */
   protected override def kotlinCompileTask(
-      extraKotlinArgs: Opts = Opts()
+      extraKotlinArgs: Seq[String] = Seq.empty[String]
   ): Task[CompilationResult] = Task.Anon {
     KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
       kotlinWorker =>
@@ -198,7 +199,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
           destinationRoot = Task.dest,
           artifactId = artifactId(),
           explicitApi = kotlinExplicitApi(),
-          extraKotlinArgs = (allKotlincOptions() ++ extraKotlinArgs).toStringSeq,
+          extraKotlinArgs = allKotlincOptions() ++ extraKotlinArgs,
           worker = kotlinWorker,
           useBtApi = kotlincUseBtApi()
         )
@@ -229,7 +230,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
           destinationRoot = Task.dest,
           artifactId = artifactId(),
           explicitApi = kotlinExplicitApi(),
-          extraKotlinArgs = allKotlincOptions().toStringSeq,
+          extraKotlinArgs = allKotlincOptions(),
           worker = kotlinWorker,
           useBtApi = kotlincUseBtApi()
         )
@@ -514,12 +515,14 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     // endregion
 
-    override def kotlincOptions: T[Opts] = Task {
-      super.kotlincOptions().mapGroup { optGroup =>
-        // JVM -> JS option name
-        val head = optGroup.head.mapStartString(_.replace("-Xfriend-paths=", "-Xfriend-modules="))
-        val tail = optGroup.value.tail
-        OptGroup((head +: tail)*)
+    override def kotlincOptions: T[Seq[String]] = Task {
+      super.kotlincOptions().map { item =>
+        if (item.startsWith("-Xfriend-paths=")) {
+          // JVM -> JS option name
+          item.replace("-Xfriend-paths=", "-Xfriend-modules=")
+        } else {
+          item
+        }
       }
     }
 

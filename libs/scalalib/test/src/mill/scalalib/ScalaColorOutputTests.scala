@@ -1,6 +1,5 @@
 package mill.scalalib
 
-import mill.api.opt.Opts
 import mill.api.{Discover, ExecResult}
 import mill.scalalib.HelloWorldTests.*
 import mill.testkit.{TestRootModule, UnitTester}
@@ -15,7 +14,7 @@ object ScalaColorOutputTests extends TestSuite {
     object core extends ScalaModule {
       def scalaVersion = scala213Version
 
-      override def scalacOptions = super.scalacOptions() ++ Opts(
+      override def scalacOptions = super.scalacOptions() ++ Seq(
         "-Vimplicits"
       )
     }

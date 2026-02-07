@@ -1,7 +1,5 @@
 package build
-
 import mill.*, kotlinlib.*, util.Jvm
-import mill.api.opt.*
 
 object `package` extends KotlinModule {
 
@@ -34,13 +32,13 @@ object `package` extends KotlinModule {
     PathRef(Task.dest / output)
   }
 
-  def forkEnv = Map("HELLO_WORLD_BINARY" -> Opt(nativeCompiled().path))
+  def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
 
   object test extends KotlinTests, TestModule.Junit5 {
     def mvnDeps = Seq(
       mvn"io.kotest:kotest-runner-junit5:5.9.1"
     )
-    def forkEnv = Map("HELLO_WORLD_BINARY" -> Opt(nativeCompiled().path))
+    def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
   }
 }
 

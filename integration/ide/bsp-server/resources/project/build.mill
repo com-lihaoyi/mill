@@ -5,8 +5,7 @@
 //| - "!scripts/ignored-folder-2/negated-not-ignored.java"
 package build
 
-import mill.*
-import mill.api.opt.*
+import mill._
 
 // testing a simple Java module
 object `hello-java` extends scalalib.JavaModule {
@@ -64,7 +63,7 @@ object app extends scalalib.JavaModule {
     mvn"com.mysql:mysql-connector-j:9.1.0"
   )
 
-  def forkEnv = Map("MY_ENV_VAR" -> opt"my-value")
+  def forkEnv = Map("MY_ENV_VAR" -> "my-value")
 
   object test extends JavaTests {
     def testFramework = "com.novocode.junit.JUnitFramework"
@@ -100,7 +99,7 @@ object delayed extends scalalib.ScalaModule {
 
 object diag extends scalalib.ScalaModule {
   def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
-  def scalacOptions = Opts("-deprecation")
+  def scalacOptions = Seq("-deprecation")
 
   @deprecated("deprecated", "0.0.1")
   def thing = 2
@@ -109,7 +108,7 @@ object diag extends scalalib.ScalaModule {
 
   object many extends scalalib.ScalaModule {
     def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
-    def scalacOptions = Opts("-deprecation")
+    def scalacOptions = Seq("-deprecation")
   }
 }
 

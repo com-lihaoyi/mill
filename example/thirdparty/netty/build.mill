@@ -6,7 +6,6 @@ package build
 
 import mill.*, javalib.*
 import mill.api.BuildCtx
-import mill.api.opt.*
 
 // TODO:
 //   testsuite-shading
@@ -16,7 +15,7 @@ import mill.api.opt.*
 def isOSX = System.getProperty("os.name").toLowerCase.contains("mac")
 
 trait NettyBaseModule extends MavenModule {
-  def javacOptions = Opts("-source", "1.8", "-target", "1.8")
+  def javacOptions = Seq("-source", "1.8", "-target", "1.8")
 }
 trait NettyBaseTestSuiteModule extends NettyBaseModule, TestModule.Junit5 {
   def testSandboxWorkingDir = false
@@ -54,7 +53,7 @@ trait NettyBaseTestSuiteModule extends NettyBaseModule, TestModule.Junit5 {
     mvn"org.bouncycastle:bctls-jdk15on:1.69"
   )
 
-  def forkArgs = Opts(
+  def forkArgs = Seq(
     "-DnativeImage.handlerMetadataGroupId=io.netty",
     "-Dio.netty.bootstrap.extensions=serviceload",
     "-XX:+AllowRedefinitionToAddDeleteMethods",
@@ -82,7 +81,7 @@ trait NettyModule extends NettyBaseModule {
     def moduleDeps = super.moduleDeps ++ testModuleDeps
     def mvnDeps = super.mvnDeps() ++ testMvnDeps()
     def forkWorkingDir = NettyModule.this.moduleDir
-    def forkArgs = super.forkArgs() ++ Opts(
+    def forkArgs = super.forkArgs() ++ Seq(
       "-Dnativeimage.handlerMetadataArtifactId=netty-" + NettyModule.this.moduleSegments.last.value
     )
 

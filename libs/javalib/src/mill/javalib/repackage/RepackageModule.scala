@@ -52,9 +52,9 @@ trait RepackageModule extends mill.api.Module {
             shellClassPath = Seq("$0"),
             cmdClassPath = Seq("%~dpnx0"),
             shebang = false,
-            jvmArgs = m.forkArgs().toStringSeq,
-            shellJvmArgs = m.forkShellArgs().toStringSeq,
-            cmdJvmArgs = m.forkCmdArgs().toStringSeq
+            jvmArgs = m.forkArgs(),
+            shellJvmArgs = m.forkShellArgs(),
+            cmdJvmArgs = m.forkCmdArgs()
           )
         ).filter(_.nonEmpty)
       }

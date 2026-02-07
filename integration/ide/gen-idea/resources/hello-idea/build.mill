@@ -1,9 +1,8 @@
 package build
 
-import mill.*
+import mill._
 import mill.scalajslib.ScalaJSModule
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule, TestModule}
-import mill.api.opt.*
 
 trait HelloIdeaModule extends scalalib.ScalaModule {
   def scalaVersion = "2.12.5"
@@ -64,5 +63,5 @@ object moduleF extends JavaModule {
 object moduleG extends Cross[ModuleG]("2.12.5", "2.13.6")
 trait ModuleG extends ScalaModule with Cross.Module[String] {
   def scalaVersion = crossValue
-  def scalacOptions = Opts("-Xsource:3")
+  def scalacOptions = Seq("-Xsource:3")
 }

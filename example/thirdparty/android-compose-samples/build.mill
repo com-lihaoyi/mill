@@ -1,5 +1,4 @@
 import mill.*, androidlib.*, kotlinlib.*
-import mill.api.opt.*
 
 object Versions {
   val kotlinVersion = "2.1.20"
@@ -36,7 +35,7 @@ object JetLagged extends mill.api.Module {
 
     override def androidApplicationId = "com.example.jetlagged"
 
-    override def kotlincOptions = super.kotlincOptions() ++ Opts(
+    override def kotlincOptions = super.kotlincOptions() ++ Seq(
       "-jvm-target",
       "17"
     )
@@ -143,7 +142,7 @@ object JetNews extends mill.api.Module {
 
     override def androidApplicationId = "com.example.jetnews"
 
-    override def kotlincOptions = super.kotlincOptions() ++ Opts(
+    override def kotlincOptions = super.kotlincOptions() ++ Seq(
       "-jvm-target",
       "17"
     )

@@ -28,16 +28,14 @@ object UtestExampleTestSuite extends TestSuite {
           )
         }
 
-      val ignoreFile = workspaceSourcePath / "ignoreErrorsOnCI"
       val ignoreErrors = System.getenv("CI") != null &&
-        os.exists(ignoreFile)
+        os.exists(workspaceSourcePath / "ignoreErrorsOnCI")
       if (ignoreErrors)
         try run()
         catch {
           case _: TimeoutException =>
             System.err.println(
-              s"Found ignoreErrorsOnCI under $workspaceSourcePath, ignoring timeout exception" +
-                Option(os.read(ignoreFile)).filter(_.isBlank).mkString("Reason: ", "", "")
+              s"Found ignoreErrorsOnCI under $workspaceSourcePath, ignoring timeout exception"
             )
         }
       else

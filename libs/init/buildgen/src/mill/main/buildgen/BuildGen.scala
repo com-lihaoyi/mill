@@ -300,12 +300,8 @@ object BuildGen {
   }
 
   private def renderImports(module: ModuleSpec) = {
-    val defaults = Seq(
-      "import mill.*",
-      "import mill.api.opt.*"
-    )
     val imports = module.tree.flatMap(_.imports)
-    (defaults ++ imports).distinct.sorted.mkString(lineSeparator)
+    ("import mill.*" +: imports).distinct.sorted.mkString(lineSeparator)
   }
 
   private def renderExtendsClause(supertypes: Seq[String]) = {
@@ -316,7 +312,6 @@ object BuildGen {
   private def renderModuleBody(module: ModuleSpec) = {
     import module.*
     val renderModuleDir = if (useOuterModuleDir) "def moduleDir = outer.moduleDir" else ""
-    // FIXME: stripMargin can strip rendered source code meant to stay, use a Seq.mkString instead
     s"""$renderModuleDir
        |
        |${render("moduleDeps", moduleDeps, encodeModuleDep, isTask = false)}
@@ -347,11 +342,11 @@ object BuildGen {
        |
        |${render("scalaVersion", scalaVersion, encodeString)}
        |
-       |${render("scalacOptions", scalacOptions, encodeLiteralOpt, collection = "Opts")}
+       |${render("scalacOptions", scalacOptions, encodeLiteralOpt)}
        |
        |${render("scalacPluginMvnDeps", scalacPluginMvnDeps, encodeMvnDep)}
        |
-       |${render("javacOptions", javacOptions, encodeOpt, collection = "Opts")}
+       |${render("javacOptions", javacOptions, encodeOpt)}
        |
        |${render("sourcesRootFolders", sourcesRootFolders, encodeString, isTask = false)}
        |
@@ -361,7 +356,7 @@ object BuildGen {
        |
        |${renderSources("resources", resources)}
        |
-       |${render("forkArgs", forkArgs, encodeOpt, collection = "Opts")}
+       |${render("forkArgs", forkArgs, encodeOpt)}
        |
        |${render("forkWorkingDir", forkWorkingDir, encodeRelPath("moduleDir", _))}
        |
@@ -369,12 +364,7 @@ object BuildGen {
        |
        |${render("errorProneOptions", errorProneOptions, encodeString)}
        |
-       |${render(
-        "errorProneJavacEnableOptions",
-        errorProneJavacEnableOptions,
-        encodeOpt,
-        collection = "Opts"
-      )}
+       |${render("errorProneJavacEnableOptions", errorProneJavacEnableOptions, encodeOpt)}
        |
        |${render("artifactName", artifactName, encodeString)}
        |

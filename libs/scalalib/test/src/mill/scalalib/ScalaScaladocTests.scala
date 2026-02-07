@@ -6,15 +6,13 @@ import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import HelloWorldTests.*
 import mill.api.Discover
-import mill.api.opt.*
 
 object ScalaScaladocTests extends TestSuite {
 
   object HelloWorldWithDocVersion extends TestRootModule {
     object core extends HelloWorldModule {
-      override def scalacOptions =
-        Task { Opts(ScalacOptions.`-Ywarn-unused`, ScalacOptions.`-Xfatal-warnings`) }
-      override def scalaDocOptions = super.scalaDocOptions() ++ Opts("-doc-version", "1.2.3")
+      override def scalacOptions = Task { Seq("-Ywarn-unused", "-Xfatal-warnings") }
+      override def scalaDocOptions = super.scalaDocOptions() ++ Seq("-doc-version", "1.2.3")
     }
 
     lazy val millDiscover = Discover[this.type]
@@ -22,9 +20,8 @@ object ScalaScaladocTests extends TestSuite {
 
   object HelloWorldOnlyDocVersion extends TestRootModule {
     object core extends HelloWorldModule {
-      override def scalacOptions =
-        Task { Opts(ScalacOptions.`-Ywarn-unused`, ScalacOptions.`-Xfatal-warnings`) }
-      override def scalaDocOptions = Task { Opts("-doc-version", "1.2.3") }
+      override def scalacOptions = Task { Seq("-Ywarn-unused", "-Xfatal-warnings") }
+      override def scalaDocOptions = Task { Seq("-doc-version", "1.2.3") }
     }
 
     lazy val millDiscover = Discover[this.type]
@@ -33,7 +30,7 @@ object ScalaScaladocTests extends TestSuite {
 
   object HelloWorldDocTitle extends TestRootModule {
     object core extends HelloWorldModule {
-      override def scalaDocOptions = Task { Opts("-doc-title", "Hello World") }
+      override def scalaDocOptions = Task { Seq("-doc-title", "Hello World") }
     }
 
     lazy val millDiscover = Discover[this.type]
@@ -52,14 +49,14 @@ object ScalaScaladocTests extends TestSuite {
       test("override") - UnitTester(HelloWorldDocTitle, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(HelloWorldDocTitle.core.scalaDocOptions): @unchecked
         assert(
-          result.value == Opts("-doc-title", "Hello World"),
+          result.value == Seq("-doc-title", "Hello World"),
           result.evalCount > 0
         )
       }
       test("extend") - UnitTester(HelloWorldWithDocVersion, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(HelloWorldWithDocVersion.core.scalaDocOptions): @unchecked
         assert(
-          result.value == Opts("-Ywarn-unused", "-Xfatal-warnings", "-doc-version", "1.2.3"),
+          result.value == Seq("-Ywarn-unused", "-Xfatal-warnings", "-doc-version", "1.2.3"),
           result.evalCount > 0
         )
       }

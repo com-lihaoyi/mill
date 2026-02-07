@@ -7,17 +7,7 @@ import coursier.params.ResolutionParams
 import coursier.parse.{JavaOrScalaModule, ModuleParser}
 import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
-import mill.api.{
-  DefaultTaskModule,
-  MillException,
-  ModuleRef,
-  PathRef,
-  Result,
-  Segment,
-  Task,
-  TaskCtx
-}
-import mill.api.opt.*
+import mill.api.{MillException, Result}
 import mill.api.daemon.internal.{EvaluatorApi, JavaModuleApi, internal}
 import mill.api.daemon.internal.bsp.{
   BspBuildTarget,
@@ -29,6 +19,7 @@ import mill.api.daemon.internal.bsp.{
 import mill.api.daemon.internal.eclipse.GenEclipseInternalApi
 import mill.javalib.*
 import mill.api.daemon.internal.idea.GenIdeaInternalApi
+import mill.api.{DefaultTaskModule, ModuleRef, PathRef, Segment, Task, TaskCtx}
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
 import mill.javalib.bsp.{BspJavaModule, BspModule}
@@ -95,7 +86,7 @@ trait JavaModule
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
       outer.resolutionCustomizer
 
-    override def annotationProcessorsJavacOptions: T[Opts] =
+    override def annotationProcessorsJavacOptions: T[Seq[String]] =
       outer.annotationProcessorsJavacOptions()
     override def javacOptions = outer.javacOptions()
     override def jvmWorker = outer.jvmWorker
@@ -294,26 +285,27 @@ trait JavaModule
   /**
    * Constructs the -processorpath compiler flag using [[annotationProcessorsResolvedMvnDeps]]
    */
-  def annotationProcessorsJavacOptions: T[Opts] = Task {
+  def annotationProcessorsJavacOptions: T[Seq[String]] = Task {
     if (annotationProcessorsMvnDeps().nonEmpty)
-      Opts(
+      Seq(
         "-processorpath",
-        Opt.mkPath(annotationProcessorsResolvedMvnDeps().map(_.path), sep = File.pathSeparator)
+        annotationProcessorsResolvedMvnDeps()
+          .map(_.path).mkString(File.pathSeparator)
       )
     else
-      Opts()
+      Seq.empty
 
   }
 
   /**
    * Options to pass to the java compiler
    */
-  override def javacOptions: T[Opts] = Task { Opts() }
+  override def javacOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
   /**
    * Additional options for the java compiler derived from other module settings.
    */
-  override def mandatoryJavacOptions: T[Opts] = Task { Opts() }
+  override def mandatoryJavacOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
   /**
    *  The direct dependencies of this module.
@@ -905,14 +897,11 @@ trait JavaModule
       os.makeDir.all(compileGenSources)
     }
 
-    val jOpts = JavaCompilerOptions.split(
-      Opts(
-        OptGroup("-s", compileGenSources.toString),
-        javacOptions(),
-        mandatoryJavacOptions(),
-        annotationProcessorsJavacOptions()
-      ).toStringSeq
-    )
+    val jOpts = JavaCompilerOptions.split(Seq(
+      "-s",
+      compileGenSources.toString
+    ) ++ javacOptions() ++ mandatoryJavacOptions() ++ annotationProcessorsJavacOptions())
+
     val worker = jvmWorker().internalWorker()
 
     worker.apply(
@@ -1172,7 +1161,7 @@ trait JavaModule
    * You should not set the `-d` setting for specifying the target directory,
    * as that is done in the [[docJar]] task.
    */
-  def javadocOptions: T[Opts] = Task { Opts() }
+  def javadocOptions: T[Seq[String]] = Task { Seq[String]() }
 
   /**
    * Directories to be processed by the API documentation tool.
@@ -1217,7 +1206,7 @@ trait JavaModule
           classPath.mkString(java.io.File.pathSeparator)
         )
 
-      val options = javadocOptions().toStringSeq ++
+      val options = javadocOptions() ++
         Seq("-d", javadocDir.toString) ++
         cpOptions ++
         files.map(_.toString)
@@ -1295,7 +1284,7 @@ trait JavaModule
       val cmd = Seq(Jvm.jdkTool("jshell", javaHome().map(_.path))) ++ jshellArgs
       os.call(
         cmd = cmd,
-        env = allForkEnv().toStringMap,
+        env = allForkEnv(),
         cwd = forkWorkingDir(),
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -1625,7 +1614,7 @@ object JavaModule {
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
       outer.resolutionCustomizer
 
-    override def annotationProcessorsJavacOptions: T[Opts] =
+    override def annotationProcessorsJavacOptions: T[Seq[String]] =
       outer.annotationProcessorsJavacOptions()
     override def javacOptions = outer.javacOptions()
     override def jvmWorker = outer.jvmWorker

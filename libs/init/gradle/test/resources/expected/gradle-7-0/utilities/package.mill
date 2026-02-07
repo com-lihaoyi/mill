@@ -1,6 +1,5 @@
 package build.utilities
 import mill.*
-import mill.api.opt.*
 import mill.javalib.*
 import millbuild.*
 object `package` extends ProjectBaseModule {

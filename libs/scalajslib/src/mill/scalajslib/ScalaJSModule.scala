@@ -9,7 +9,6 @@ import mill.api.CrossVersion
 import mill.scalalib.{Dep, DepSyntax, Lib, TestModule}
 import mill.javalib.api.JvmWorkerUtil
 import mill.scalajslib.api.*
-import mill.api.opt.*
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 import mill.*
 import mill.javalib.testrunner.{TestResult, TestRunner, TestRunnerUtils}
@@ -212,15 +211,15 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
     )
   }
 
-  override def mandatoryScalacOptions: T[Opts] = Task {
+  override def mandatoryScalacOptions: T[Seq[String]] = Task {
     // Don't add flag twice, e.g. if a test suite inherits it both directly
     // ScalaJSModule as well as from the enclosing non-test ScalaJSModule
     val scalajsFlag =
       if (
         JvmWorkerUtil.isScala3(scalaVersion()) &&
-        !super.mandatoryScalacOptions().toStringSeq.contains("-scalajs")
-      ) Opts("-scalajs")
-      else Opts()
+        !super.mandatoryScalacOptions().contains("-scalajs")
+      ) Seq("-scalajs")
+      else Seq.empty
 
     super.mandatoryScalacOptions() ++ scalajsFlag
   }

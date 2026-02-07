@@ -4,7 +4,6 @@ import mill.api.PathRef
 import mill.api.Result
 import mill.util.JarManifest
 import mill.api.*
-import mill.api.opt.*
 import mill.api.Task.Simple as T
 import mill.javalib.Assembly.UnopenedInputStream
 import mill.util.Jvm
@@ -19,17 +18,17 @@ trait AssemblyModule extends OfflineSupportModule {
 
   def finalMainClassOpt: T[Either[String, String]]
 
-  def forkArgs: T[Opts]
+  def forkArgs: T[Seq[String]]
 
   /**
    * Similar to `forkArgs` but only applies to the `sh` launcher script
    */
-  def forkShellArgs: T[Opts] = Task { Opts() }
+  def forkShellArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
   /**
    * Similar to `forkArgs` but only applies to the `bat` launcher script
    */
-  def forkCmdArgs: T[Opts] = Task { Opts() }
+  def forkCmdArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
   /**
    * Creates a manifest representation which can be modified or replaced
@@ -57,10 +56,10 @@ trait AssemblyModule extends OfflineSupportModule {
           mainClass = cls,
           shellClassPath = Seq("$0"),
           cmdClassPath = Seq("%~dpnx0"),
-          jvmArgs = forkArgs().toStringSeq,
+          jvmArgs = forkArgs(),
           shebang = false,
-          shellJvmArgs = forkShellArgs().toStringSeq,
-          cmdJvmArgs = forkCmdArgs().toStringSeq
+          shellJvmArgs = forkShellArgs(),
+          cmdJvmArgs = forkCmdArgs()
         )
     }
   }

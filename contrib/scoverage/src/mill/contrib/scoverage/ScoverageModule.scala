@@ -3,7 +3,6 @@ package mill.contrib.scoverage
 import coursier.Repository
 import mill.*
 import mill.api.{BuildCtx, PathRef, Result}
-import mill.api.opt.*
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.ReportType
 import mill.javalib.api.JvmWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
@@ -187,18 +186,18 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       Task { outer.scalacPluginMvnDeps() ++ outer.scoveragePluginDeps() }
 
     /** Add the scoverage specific plugin settings (`dataDir`). */
-    override def scalacOptions: T[Opts] =
+    override def scalacOptions: T[Seq[String]] =
       Task {
         val extras =
           if (isScala3()) {
-            Opts(
-              opt"-coverage-out:${data().path}",
-              opt"-sourceroot:${BuildCtx.workspaceRoot}"
+            Seq(
+              s"-coverage-out:${data().path.toIO.getPath()}",
+              s"-sourceroot:${BuildCtx.workspaceRoot}"
             )
           } else {
-            Opts(
-              opt"-P:scoverage:dataDir:${data().path}",
-              opt"-P:scoverage:sourceRoot:${BuildCtx.workspaceRoot}"
+            Seq(
+              s"-P:scoverage:dataDir:${data().path.toIO.getPath()}",
+              s"-P:scoverage:sourceRoot:${BuildCtx.workspaceRoot}"
             )
           }
 

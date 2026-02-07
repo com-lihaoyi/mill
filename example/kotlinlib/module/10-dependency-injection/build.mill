@@ -1,9 +1,8 @@
 //// SNIPPET:BUILD
-package build
 
+package build
 import mill.*, kotlinlib.*
 import kotlinlib.ksp.KspModule
-import mill.api.opt.*
 
 object dagger extends KspModule {
 
@@ -13,7 +12,7 @@ object dagger extends KspModule {
 
   def mainClass = Some("com.example.dagger.MainKt")
 
-  def kotlincOptions = super.kotlincOptions() ++ Opts("-no-reflect", "-verbose")
+  def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
 
   def mvnDeps = Seq(
     mvn"com.google.dagger:dagger:2.57"
@@ -25,7 +24,7 @@ object dagger extends KspModule {
 
   object test extends KspTests, TestModule.Junit5 {
 
-    def kotlincOptions = super.kotlincOptions() ++ Opts("-no-reflect", "-verbose")
+    def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
 
     def mvnDeps = Seq(
       mvn"com.google.dagger:dagger-compiler:2.57",

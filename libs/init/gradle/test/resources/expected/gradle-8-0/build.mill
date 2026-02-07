@@ -2,6 +2,5 @@
 //| mill-jvm-version: system
 package build
 import mill.*
-import mill.api.opt.*
 import millbuild.*
 object `package` extends Module {}

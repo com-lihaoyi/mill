@@ -4,7 +4,6 @@ import mill.scalalib.ScalaModule
 import mill.Task
 import mill.api.daemon.internal.internal
 import mill.api.ModuleCtx
-
 trait GenIdeaModule extends mill.javalib.idea.GenIdeaModule {
   def javaModuleRef: mill.api.ModuleRef[ScalaModule]
   override def scalaCompilerClasspath = Task.Anon(javaModuleRef().scalaCompilerClasspath())

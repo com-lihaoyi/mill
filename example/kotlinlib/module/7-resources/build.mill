@@ -1,8 +1,6 @@
 //// SNIPPET:BUILD
 package build
-
 import mill.*, kotlinlib.*
-import mill.api.opt.*
 
 object foo extends KotlinModule {
 
@@ -12,7 +10,7 @@ object foo extends KotlinModule {
     def otherFiles = Task.Source("other-files")
 
     def forkEnv = super.forkEnv() ++ Map(
-      "OTHER_FILES_DIR" -> Opt(otherFiles().path)
+      "OTHER_FILES_DIR" -> otherFiles().path.toString
     )
 
     def mvnDeps = Seq(

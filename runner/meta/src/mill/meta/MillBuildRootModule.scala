@@ -1,9 +1,9 @@
 package mill.meta
 
 import java.nio.file.Path
-import mill.api.{BuildCtx, Result}
+import mill.api.BuildCtx
 import mill.*
-import mill.api.opt.*
+import mill.api.Result
 import mill.api.daemon.internal.internal
 import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.constants.OutFiles.OutFiles.*
@@ -296,11 +296,11 @@ trait MillBuildRootModule()(using
       .exclude("com.lihaoyi" -> "sourcecode_3")
   )
 
-  override def scalacOptions: T[Opts] = Task {
+  override def scalacOptions: T[Seq[String]] = Task {
     super.scalacOptions() ++
       // This warning comes up for package names with dashes in them like "package build.`foo-bar`",
       // but Mill generally handles these fine, so no need to warn the user
-      Opts("-deprecation", "-Wconf:msg=will be encoded on the classpath:silent")
+      Seq("-deprecation", "-Wconf:msg=will be encoded on the classpath:silent")
   }
 
   /** Used in BSP IntelliJ, which can only work with directories */
@@ -329,8 +329,7 @@ trait MillBuildRootModule()(using
     }
 
     // copied from `ScalaModule`
-    val jOpts =
-      JavaCompilerOptions.split(javacOptions().toStringSeq ++ mandatoryJavacOptions().toStringSeq)
+    val jOpts = JavaCompilerOptions.split(javacOptions() ++ mandatoryJavacOptions())
     val worker = jvmWorker().internalWorker()
     worker.apply(
       ZincOp.CompileMixed(
@@ -340,7 +339,7 @@ trait MillBuildRootModule()(using
         javacOptions = jOpts.compiler,
         scalaVersion = scalaVersion(),
         scalaOrganization = scalaOrganization(),
-        scalacOptions = allScalacOptions().toStringSeq,
+        scalacOptions = allScalacOptions(),
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = scalacPluginClasspath(),
         compilerBridgeOpt = scalaCompilerBridge(),

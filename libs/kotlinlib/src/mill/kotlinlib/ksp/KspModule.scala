@@ -5,7 +5,6 @@ import coursier.params.ResolutionParams
 import mill.*
 import mill.api.daemon.MillURLClassLoader
 import mill.api.{ModuleRef, PathRef, Task}
-import mill.api.opt.*
 import mill.kotlinlib.ksp2.{KspWorker, KspWorkerArgs}
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager}
@@ -105,8 +104,8 @@ trait KspModule extends KotlinModule { outer =>
   /**
    * Processor options to be passed to KSP.
    */
-  def kspProcessorOptions: T[OptMap] = Task {
-    OptMap()
+  def kspProcessorOptions: T[Map[String, String]] = Task {
+    Map.empty[String, String]
   }
 
   /**
@@ -152,15 +151,16 @@ trait KspModule extends KotlinModule { outer =>
    *
    * @return
    */
-  def ksp1KotlincOptions: T[Opts] = Task {
+  def ksp1KotlincOptions: T[Seq[String]] = Task {
     if (!kspLanguageVersion().startsWith("1.")) {
       throw new RuntimeException("KSP needs a compatible language version <= 1.9 to be set!")
     }
-    kotlincOptions() ++ Opts(
+    kotlincOptions() ++ Seq(
       "-Xallow-unstable-dependencies",
       "-no-reflect",
       "-no-stdlib",
-      OptGroup("-language-version", kspLanguageVersion())
+      "-language-version",
+      kspLanguageVersion()
     )
   }
 
@@ -237,7 +237,7 @@ trait KspModule extends KotlinModule { outer =>
     ) ++ kspPluginParameters.map(p => s"$pluginOpt:$p")
 
     val kspCompilerArgs =
-      ksp1KotlincOptions().toStringSeq ++ Seq(xPluginArg) ++ Seq("-P", pluginConfigs.mkString(","))
+      ksp1KotlincOptions() ++ Seq(xPluginArg) ++ Seq("-P", pluginConfigs.mkString(","))
 
     Task.log.info(
       s"Running Kotlin Symbol Processing for ${sourceFiles.size} Kotlin sources to ${kspOutputDir} ..."
@@ -280,8 +280,8 @@ trait KspModule extends KotlinModule { outer =>
    *
    * For more info go to [[https://github.com/google/ksp/blob/main/docs/ksp2cmdline.md]]
    */
-  def ksp2Args: T[Opts] = Task {
-    Opts()
+  def ksp2Args: T[Seq[String]] = Task {
+    Seq.empty[String]
   }
 
   /**
@@ -349,9 +349,7 @@ trait KspModule extends KotlinModule { outer =>
     val kspCachesDir = Task.dest / "caches"
 
     val processorOptionsValue =
-      kspProcessorOptions().map((key, value) => s"$key=${value.toString}").toSeq.mkString(
-        File.pathSeparator
-      )
+      kspProcessorOptions().map((key, value) => s"$key=$value").toSeq.mkString(File.pathSeparator)
 
     val processorOptions = if (processorOptionsValue.isEmpty)
       ""
@@ -377,7 +375,7 @@ trait KspModule extends KotlinModule { outer =>
       s"-api-version=${kspApiVersion()}",
       processorOptions,
       s"-map-annotation-arguments-in-java=false"
-    ) ++ ksp2Args().toStringSeq :+ processorClasspath
+    ) ++ ksp2Args() :+ processorClasspath
 
     val kspJvmMainClasspath = ksp2ToolsDepsClasspath().map(_.path)
     val mainClass = "com.google.devtools.ksp.cmdline.KSPJvmMain"
@@ -458,9 +456,7 @@ trait KspModule extends KotlinModule { outer =>
     val kspCachesDir = Task.dest / "caches"
 
     val processorOptionsValue =
-      kspProcessorOptions().map((key, value) => s"$key=${value.toString()}").toSeq.mkString(
-        File.pathSeparator
-      )
+      kspProcessorOptions().map((key, value) => s"$key=$value").toSeq.mkString(File.pathSeparator)
 
     val processorOptions = if (processorOptionsValue.isEmpty)
       ""
@@ -486,7 +482,7 @@ trait KspModule extends KotlinModule { outer =>
       s"-api-version=${kspApiVersion()}",
       processorOptions,
       s"-map-annotation-arguments-in-java=false"
-    ) ++ ksp2Args().toStringSeq
+    ) ++ ksp2Args()
 
     val kspLogLevel = if (Task.log.debugEnabled)
       mill.kotlinlib.ksp2.LogLevel.Debug

@@ -17,10 +17,7 @@ class BuildGenChecker(mainAssembly: os.Path, sourceRoot: os.Path, scalafmtConfig
       sourceRel: os.SubPath,
       expectedRel: os.SubPath,
       initArgs: Seq[String] = Nil,
-      // pass true to update test data on disk
-      updateSnapshots: Boolean = sys.env
-        .getOrElse("UTEST_UPDATE_GOLDEN_TESTS", "0")
-        .equals("1")
+      updateSnapshots: Boolean = false // pass true to update test data on disk
   )(using tp: TestPath): Boolean = {
     val testRoot = os.pwd / tp.value
     os.copy.over(sourceRoot / sourceRel, testRoot, createFolders = true, replaceExisting = true)

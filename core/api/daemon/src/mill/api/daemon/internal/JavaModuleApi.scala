@@ -13,8 +13,8 @@ trait JavaModuleApi extends ModuleApi with GenIdeaModuleApi {
 
   def transitiveModuleCompileModuleDeps: Seq[JavaModuleApi]
 
-  def javacOptions: TaskApi[OptsApi]
-  def mandatoryJavacOptions: TaskApi[OptsApi]
+  def javacOptions: TaskApi[Seq[String]]
+  def mandatoryJavacOptions: TaskApi[Seq[String]]
 
   // BSP Tasks that sometimes need to be customized
 

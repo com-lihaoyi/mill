@@ -1,6 +1,5 @@
 package millbuild
 import mill.*
-import mill.api.opt.*
 import mill.javalib.PublishModule
 import mill.javalib.publish.*
 import mill.scalajslib.ScalaJSModule
@@ -12,16 +11,16 @@ trait ProjectBaseModule extends PublishModule, CrossSbtPlatformModule {
 
   def mvnDeps = Seq(Deps.upickle)
 
-  def scalacOptions = Opts("-deprecation") ++
+  def scalacOptions = Seq("-deprecation") ++
     (crossScalaVersion match {
-      case "2.12.20" => Opts(
+      case "2.12.20" => Seq(
           "-Xlint:_,-unused",
           "-Ywarn-numeric-widen",
           "-Ywarn-unused:_,-nowarn,-privates"
         )
-      case "2.13.14" => Opts("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
-      case "3.7.1"   => Opts("-Wunused")
-      case _         => Opts()
+      case "2.13.14" => Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
+      case "3.7.1"   => Seq("-Wunused")
+      case _         => Seq()
     })
 
   def publishVersion = "0.1.0-SNAPSHOT"
