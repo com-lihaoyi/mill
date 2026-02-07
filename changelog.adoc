@@ -16,6 +16,30 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 === main branch
 
+[#1-1-2]
+=== 1.1.2
+:version: 1.1.2
+:milestone-name: 1.1.2
+:milestone: 141
+:prev-version: 1.1.1
+_2026-02-07_
+
+_Changes since {prev-version}:_
+
+* Fix escaping of strings in yaml lists in `./mill init`{link-pr}/6798[#6798]
+
+* Fix incremental compilation problems with `package.mill.yaml` files {link-pr}/6792[#6792]
+
+* Fix leakage of `org.scalafmt.interfaces.Scalafmt` internal classloaders {link-pr}/6785[#6785]
+
+* Report an error when `unmanagedClasspath` entries are not found on disk {link-pr}/6781[#6781]
+
+* Silence noisy logback/coursier error {link-pr}/6778[#6778]
+
+* Add `-H:-ParseRuntimeOptions` to native image options to fix issue propagating `-D<key>=<foo>`
+  arguments{link-pr}/6774[#6774]
+
+
 [#1-1-1]
 === 1.1.1
 :version: 1.1.1
