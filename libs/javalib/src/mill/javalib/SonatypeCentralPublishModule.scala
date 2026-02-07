@@ -261,12 +261,26 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
    *
    * See https://central.sonatype.org/publish/requirements/gpg/ for more details.
    */
-  def initGpgKeys(): Task.Command[Unit] = Task.Command {
+  def initGpgKeys(
+      pomSettings: mill.util.Tasks[publish.PomSettings] =
+        Tasks.resolveMainDefault("__:PublishModule.pomSettings")
+  ): Task.Command[Unit] = Task.Command {
     val secretPath = Task.dest / "pgp-private-key.asc"
+
+    val pomArgs = Task.sequence(pomSettings.value)().headOption match {
+      case Some(pom) =>
+        val devArgs = pom.developers.headOption.toSeq.flatMap { dev =>
+          Seq("--name", dev.name) ++ (if (dev.email.nonEmpty) Seq("--email", dev.email) else Nil)
+        }
+        val urlArgs = if (pom.url.nonEmpty) Seq("--url", pom.url) else Nil
+        devArgs ++ urlArgs
+      case None => Nil
+    }
+
     val exitCode = Jvm.callInteractiveProcess(
       mainClass = "mill.javalib.pgp.worker.MillInitGpgKeysMain",
       classPath = pgpWorkerClasspath().map(_.path),
-      mainArgs = Seq("--output-secret", secretPath.toString),
+      mainArgs = Seq("--output-secret", secretPath.toString) ++ pomArgs,
       env = Task.env,
       cwd = BuildCtx.workspaceRoot
     )
