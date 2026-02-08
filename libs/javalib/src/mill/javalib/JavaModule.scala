@@ -314,7 +314,7 @@ trait JavaModule
    * Options to pass to the java compiler.
    *
    * When a custom `jvmVersion` is set, this can also be used to pass runtime flags
-   * to the JVM daemon running the compiler, e.g. `-J-Xss1G` to set its stack size
+   * to the JVM daemon running the compiler, e.g. `-J-Xss8m` to set its stack size
    */
   override def javacOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
