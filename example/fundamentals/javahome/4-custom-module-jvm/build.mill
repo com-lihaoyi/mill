@@ -52,8 +52,8 @@ Foo running on Java 11.0.21
 
 > ./mill jvmopts.compile
 
-> find out/mill.javalib.JvmWorkerModule/internalWorker.dest -name java-runtime-options -exec grep -H "Xss8m" {} \;
-...java-runtime-options:-Xss8m
+> find out/mill.javalib.JvmWorkerModule/internalWorker.dest -name java-runtime-options -exec cat {} \;
+-Xss8m
 
 */
 
