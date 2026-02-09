@@ -3,6 +3,7 @@ package mill.javalib
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import mill.api.Discover
+import mill.*
 import mill.testkit.TestRootModule
 import mill.testkit.UnitTester
 import mill.util.TokenReaders.*
@@ -12,6 +13,12 @@ object JavaCompileErrorFormattingTests extends TestSuite {
 
   object JavaCompileErrorFormatting extends TestRootModule {
     object core extends JavaModule
+    lazy val millDiscover = Discover[this.type]
+  }
+  object JavaCompileErrorFormattingUnchecked extends TestRootModule {
+    object core extends JavaModule {
+      def javacOptions = Seq("-Xlint:unchecked", "-Werror")
+    }
     lazy val millDiscover = Discover[this.type]
   }
 
@@ -34,11 +41,16 @@ object JavaCompileErrorFormattingTests extends TestSuite {
     }
   }
 
-  private def check(
-      caseName: String,
-      expected: Seq[String],
-      requireFailure: Boolean = true
-  ): Unit = {
+  private def assertContainsAll(err: String, expected: Seq[String]): Unit = {
+    val missing = expected.filterNot(err.contains)
+    if (missing.nonEmpty) {
+      sys.error(
+        s"Expected lines not found:\n${missing.mkString("\n")}\n\nIn output:\n$err"
+      )
+    }
+  }
+
+  private def check(caseName: String, expected: Seq[String], requireFailure: Boolean = true): Unit = {
     val errBuffer = new ByteArrayOutputStream()
     UnitTester(
       JavaCompileErrorFormatting,
@@ -55,16 +67,33 @@ object JavaCompileErrorFormattingTests extends TestSuite {
 
   val tests: Tests = Tests {
     test("javaTypeUnchecked") {
-      check(
-        "java-type-unchecked",
-        Seq(
-          "[warn] core/src/Foo.java:6:22",
-          "        return (T[]) obj;",
-          "                     ^^^",
-          "unchecked cast"
-        ),
-        requireFailure = false
-      )
+      val errBuffer = new ByteArrayOutputStream()
+      UnitTester(
+        JavaCompileErrorFormattingUnchecked,
+        sourceRoot = resourcePath / "java-type-unchecked",
+        outStream = new PrintStream(new ByteArrayOutputStream()),
+        errStream = new PrintStream(errBuffer, true)
+      ).scoped { eval =>
+        val res = eval.apply(JavaCompileErrorFormattingUnchecked.core.compile).runtimeChecked
+        assert(res.isLeft)
+        val err = fansi.Str(errBuffer.toString).plainText
+        assertConsecutiveLines(
+          err,
+          Seq(
+            "[warn] core/src/Foo.java:6:22",
+            "        return (T[]) obj;",
+            "                     ^^^",
+            "unchecked cast"
+          )
+        )
+        assertContainsAll(
+          err,
+          Seq(
+            "warnings found and -Werror specified",
+            "[error] core.compile task failed"
+          )
+        )
+      }
     }
 
     test("javaTypeMismatch") {
