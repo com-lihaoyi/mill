@@ -90,10 +90,12 @@ private object TransformingReporter {
 
         val line = intValue(pos.line(), -1)
         val pointer0 = intValue(pos.pointer(), -1)
-        val colNum = pointer0 + 1
 
         val space = pos.pointerSpace().orElse("")
-        val endCol = intValue(pos.endColumn(), pointer0 + 1)
+        val startCol0 = intValue(pos.startColumn(), -1)
+        val endCol0 = intValue(pos.endColumn(), pointer0 + 1)
+        val startOffset0 = intValue(pos.startOffset(), -1)
+        val endOffset0 = intValue(pos.endOffset(), -1)
 
         // Dotty only renders the colored code snippet as part of `.rendered`, but it's mixed
         // in with the rest of the UI we don't really want. So we need to scrape it out ourselves
@@ -134,17 +136,39 @@ private object TransformingReporter {
             ).render
           } else lineContent0
 
+        val plainLineLength = fansi.Str(lineContent).length
+
+        val colNum =
+          if (isJavaFile && startCol0 >= 0) startCol0 + 1
+          else if (isJavaFile && pointer0 >= 0 && lineContent0.nonEmpty)
+            visualToCodeColumn(lineContent0, pointer0 + 1)
+          else pointer0 + 1
+
+        val endCol =
+          if (isJavaFile && endCol0 >= 0 && lineContent0.nonEmpty)
+            visualToCodeColumn(lineContent0, endCol0)
+          else endCol0
+
+        val displayPointer0 = colNum - 1
         val pointerLength =
-          if (space.nonEmpty && pointer0 >= 0 && endCol >= 0)
+          if (isJavaFile && startOffset0 >= 0 && endOffset0 >= startOffset0)
             math.max(
               1,
               math.min(
-                endCol - pointer0,
-                // Make sure to use the plaintext length of lineContent,
-                // since it may have color codes
-                fansi.Str(lineContent).length - space.length
+                endOffset0 - startOffset0,
+                plainLineLength - math.max(0, displayPointer0)
               )
             )
+          else if (displayPointer0 >= 0 && endCol >= 0)
+            math.max(
+              1,
+              math.min(
+                endCol - displayPointer0,
+                plainLineLength - math.max(0, displayPointer0)
+              )
+            )
+          else if (space.nonEmpty)
+            math.max(1, plainLineLength - space.length)
           else 1
 
         mill.constants.Util.formatError(
@@ -156,6 +180,26 @@ private object TransformingReporter {
           pointerLength,
           shade
         )
+    }
+  }
+
+  /**
+   * Java diagnostics report columns with tabs expanded to 8 spaces, but our source lines keep tabs as one char.
+   * Convert from visual columns to source-code columns so pointer location and width match the rendered line.
+   */
+  private def visualToCodeColumn(line: String, visualCol: Int): Int = {
+    if (visualCol <= 1) 1
+    else {
+      var visual = 1
+      var code = 1
+      val iter = line.iterator
+      while (iter.hasNext && visual < visualCol) {
+        val char = iter.next()
+        if (char == '\t') visual += 8 - ((visual - 1) % 8)
+        else visual += 1
+        code += 1
+      }
+      code
     }
   }
 

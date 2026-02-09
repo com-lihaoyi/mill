@@ -6,6 +6,8 @@ import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.*
 import mill.api.Discover
+import java.io.ByteArrayOutputStream
+import java.io.PrintStream
 
 object HelloJavaTests extends TestSuite {
 
@@ -234,6 +236,50 @@ object HelloJavaTests extends TestSuite {
 
         val Right(_) = eval.apply(HelloJava.core.compile).runtimeChecked
         val Right(_) = eval.apply(HelloJava.app.compile).runtimeChecked
+      }
+    }
+    test("javaTabsErrorRange") {
+      val errBuffer = new ByteArrayOutputStream()
+      val unitTester = UnitTester(
+        HelloJava,
+        resourcePath,
+        outStream = new PrintStream(new ByteArrayOutputStream()),
+        errStream = new PrintStream(errBuffer)
+      )
+      unitTester.scoped { eval =>
+        val coreJava = HelloJava.moduleDir / "core/src/Core.java"
+        os.write.over(
+          coreJava,
+          os.read(coreJava).replace(
+            "        return \"Hello World\";",
+            "\t\tint i = 12345.6;\n    int j = 12345.6;\n        return \"Hello World\";"
+          )
+        )
+
+        val Left(_) = eval.apply(HelloJava.core.compile).runtimeChecked
+        val plainErr = fansi.Str(errBuffer.toString()).plainText
+        val normalizedErrLines = plainErr
+          .linesIterator
+          .toSeq
+          .map(_.replaceAll(raw"core/src/Core\.java:\d+:", "core/src/Core.java:<line>:"))
+
+        assertGoldenLiteral(
+          normalizedErrLines,
+          List(
+            "compiling 1 Java source to out/core/compile.dest/classes ...",
+            "[error] core/src/Core.java:<line>:11",
+            "\t\tint i = 12345.6;",
+            "          ^^^^^^^",
+            "incompatible types: possible lossy conversion from double to int",
+            "",
+            "[error] core/src/Core.java:<line>:13",
+            "    int j = 12345.6;",
+            "            ^^^^^^^",
+            "incompatible types: possible lossy conversion from double to int",
+            "",
+            "[error] core.compile task failed"
+          )
+        )
       }
     }
   }
