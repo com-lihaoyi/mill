@@ -17,21 +17,24 @@ object JavaCompileErrorFormattingTests extends TestSuite {
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "compile-error-formatting-java"
 
-  private def assertConsecutiveLines(err: String, expected: Seq[String]): Unit = {
+  private def containsConsecutiveLines(err: String, expected: Seq[String]): Boolean = {
     val lines = err.linesIterator.toVector
-    val found = lines.indices.exists { start =>
+    lines.indices.exists { start =>
       expected.indices.forall { i =>
         start + i < lines.length && lines(start + i).contains(expected(i))
       }
     }
-    if (!found) {
+  }
+
+  private def assertConsecutiveLines(err: String, expected: Seq[String]): Unit = {
+    if (!containsConsecutiveLines(err, expected)) {
       sys.error(
         s"Expected consecutive lines not found:\n${expected.mkString("\n")}\n\nIn output:\n$err"
       )
     }
   }
 
-  private def check(caseName: String, expected: Seq[String]): Unit = {
+  private def check(caseName: String, expected: Seq[String], requireFailure: Boolean = true): Unit = {
     val errBuffer = new ByteArrayOutputStream()
     UnitTester(
       JavaCompileErrorFormatting,
@@ -39,7 +42,8 @@ object JavaCompileErrorFormattingTests extends TestSuite {
       outStream = new PrintStream(new ByteArrayOutputStream()),
       errStream = new PrintStream(errBuffer, true)
     ).scoped { eval =>
-      val Left(_) = eval.apply(JavaCompileErrorFormatting.core.compile).runtimeChecked
+      val res = eval.apply(JavaCompileErrorFormatting.core.compile).runtimeChecked
+      if (requireFailure) assert(res.isLeft)
       val err = fansi.Str(errBuffer.toString).plainText
       assertConsecutiveLines(err, expected)
     }
@@ -54,7 +58,8 @@ object JavaCompileErrorFormattingTests extends TestSuite {
           "        return (T[]) obj;",
           "                     ^^^",
           "unchecked cast"
-        )
+        ),
+        requireFailure = false
       )
     }
 
