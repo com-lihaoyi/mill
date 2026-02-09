@@ -29,11 +29,14 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
   )(using ctx: InternalJvmWorkerApi.Ctx): op.Response = {
     val log = ctx.log
     val workspaceRoot =
-      SerializedPathNormalizer.fromPotentiallyRelativeSerializedPath(mill.api.BuildCtx.workspaceRoot)
+      SerializedPathNormalizer.fromPotentiallyRelativeSerializedPath(
+        mill.api.BuildCtx.workspaceRoot
+      )
     log.info(s"DEBUG jvmWorker ctx.dest=${ctx.dest.wrapped}")
     log.info(s"DEBUG jvmWorker buildCtxWorkspaceRoot=${mill.api.BuildCtx.workspaceRoot.wrapped}")
     log.info(s"DEBUG jvmWorker normalizedWorkspaceRoot=${workspaceRoot.wrapped}")
-    val taskDest = SerializedPathNormalizer.fromPotentiallyRelativeSerializedPath(ctx.dest, workspaceRoot)
+    val taskDest =
+      SerializedPathNormalizer.fromPotentiallyRelativeSerializedPath(ctx.dest, workspaceRoot)
     val zincCtx = ZincWorker.LocalConfig(
       dest = taskDest,
       logDebugEnabled = log.debugEnabled,

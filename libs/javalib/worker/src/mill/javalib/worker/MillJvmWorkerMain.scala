@@ -20,7 +20,8 @@ object MillJvmWorkerMain {
       sys.env.getOrElse(EnvVars.MILL_WORKSPACE_ROOT, os.pwd.toString),
       os.pwd
     )
-    val pathSerializer = new WorkerPathSerializer(WorkerPathSerializer.defaultMapping(workspaceRoot))
+    val pathSerializer =
+      new WorkerPathSerializer(WorkerPathSerializer.defaultMapping(workspaceRoot))
     WorkerPathSerializer.setupSymlinks(os.pwd, workspaceRoot)
     args match {
       case Array(daemonDir, jobsStr, useFileLocksStr) =>

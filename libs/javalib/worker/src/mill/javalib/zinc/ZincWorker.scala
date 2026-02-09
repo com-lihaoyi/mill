@@ -699,7 +699,8 @@ object ZincWorker {
         override def mapScalacOption(scalacOption: String): String = denormalizeString(scalacOption)
         override def mapBinaryStamp(file: VirtualFileRef, binaryStamp: Stamp): Stamp = binaryStamp
         override def mapSourceStamp(file: VirtualFileRef, sourceStamp: Stamp): Stamp = sourceStamp
-        override def mapProductStamp(file: VirtualFileRef, productStamp: Stamp): Stamp = productStamp
+        override def mapProductStamp(file: VirtualFileRef, productStamp: Stamp): Stamp =
+          productStamp
         override def mapMiniSetup(miniSetup: MiniSetup): MiniSetup = miniSetup
       },
       new WriteMapper {
@@ -717,7 +718,8 @@ object ZincWorker {
         override def mapScalacOption(scalacOption: String): String = normalizeString(scalacOption)
         override def mapBinaryStamp(file: VirtualFileRef, binaryStamp: Stamp): Stamp = binaryStamp
         override def mapSourceStamp(file: VirtualFileRef, sourceStamp: Stamp): Stamp = sourceStamp
-        override def mapProductStamp(file: VirtualFileRef, productStamp: Stamp): Stamp = productStamp
+        override def mapProductStamp(file: VirtualFileRef, productStamp: Stamp): Stamp =
+          productStamp
         override def mapMiniSetup(miniSetup: MiniSetup): MiniSetup = miniSetup
       }
     )

@@ -111,7 +111,9 @@ object CoursierClient {
         }
       }
 
-      artifactsResultOrError.artifacts.iterator.map(_._2).map(fromPotentiallyRelativeSerializedPath).toSeq
+      artifactsResultOrError.artifacts.iterator.map(
+        _._2
+      ).map(fromPotentiallyRelativeSerializedPath).toSeq
     }
   }
 

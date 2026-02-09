@@ -50,7 +50,9 @@ class JvmWorkerRpcServer(
     log.info(
       s"DEBUG rpc.init initialize.compilerBridgeWorkspace=${initialize.compilerBridgeWorkspace.wrapped}"
     )
-    log.info(s"DEBUG rpc.init normalized.compilerBridgeWorkspace=${compilerBridgeWorkspace.wrapped}")
+    log.info(
+      s"DEBUG rpc.init normalized.compilerBridgeWorkspace=${compilerBridgeWorkspace.wrapped}"
+    )
 
     // This is an ugly hack. `ConsoleOut` is sealed, but we need to provide a way to send these logs to the Mill server
     // over RPC, so we hijack `PrintStream` by overriding the methods that `ConsoleOut` uses.

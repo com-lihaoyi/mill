@@ -9,10 +9,12 @@ object MillPathSerializer {
       val targetNio = target.toNIO
       val parent = target / ".."
       val parentNio = parent.toNIO
-      if (Files.exists(parentNio, LinkOption.NOFOLLOW_LINKS) && !Files.isDirectory(
-            parentNio,
-            LinkOption.NOFOLLOW_LINKS
-          )) {
+      if (
+        Files.exists(parentNio, LinkOption.NOFOLLOW_LINKS) && !Files.isDirectory(
+          parentNio,
+          LinkOption.NOFOLLOW_LINKS
+        )
+      ) {
         // Some tasks (e.g. Scala Native) intentionally materialize an executable at `Task.dest / "out"`.
         // In that case we cannot create `out/mill-*` aliases under this working directory.
       } else {

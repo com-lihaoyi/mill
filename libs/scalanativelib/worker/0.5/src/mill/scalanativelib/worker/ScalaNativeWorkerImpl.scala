@@ -51,7 +51,8 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
     else if (raw == "out/mill-workspace") workspaceRootFrom(baseDir)
     else if (raw.startsWith("out/mill-workspace/"))
       workspaceRootFrom(baseDir).resolve(raw.stripPrefix("out/mill-workspace/")).normalize()
-    else if (raw == "out/mill-home") Paths.get(System.getProperty("user.home")).toAbsolutePath.normalize()
+    else if (raw == "out/mill-home")
+      Paths.get(System.getProperty("user.home")).toAbsolutePath.normalize()
     else if (raw.startsWith("out/mill-home/"))
       Paths.get(System.getProperty("user.home"))
         .resolve(raw.stripPrefix("out/mill-home/"))
@@ -172,8 +173,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
         if (result.toAbsolutePath.normalize() == target.toAbsolutePath.normalize()) result
         else if (Files.exists(result) && Files.exists(target) && Files.isSameFile(result, target)) {
           target
-        }
-        else if (!Files.exists(result) && Files.exists(target)) target
+        } else if (!Files.exists(result) && Files.exists(target)) target
         else {
           Files.move(
             result,

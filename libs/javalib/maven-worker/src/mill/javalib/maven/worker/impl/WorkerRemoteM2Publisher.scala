@@ -26,7 +26,6 @@ object WorkerRemoteM2Publisher {
     }
   }
 
-
   /**
    * Publishes artifacts to a Maven API compatible repositories.
    *
@@ -42,13 +41,13 @@ object WorkerRemoteM2Publisher {
   ): DeployResult = {
     setupPublishAndRun(fromPotentiallyRelativeSerializedPath(workspace), artifacts) {
       (system, session, deployRequest) =>
-      val authentication =
-        AuthenticationBuilder().addUsername(username).addPassword(password).build()
-      val remoteRepository = RemoteRepository.Builder("central-snapshots", "default", uri)
-        .setAuthentication(authentication).build()
-      deployRequest.setRepository(remoteRepository)
+        val authentication =
+          AuthenticationBuilder().addUsername(username).addPassword(password).build()
+        val remoteRepository = RemoteRepository.Builder("central-snapshots", "default", uri)
+          .setAuthentication(authentication).build()
+        deployRequest.setRepository(remoteRepository)
 
-      system.deploy(session, deployRequest)
+        system.deploy(session, deployRequest)
     }
   }
 
@@ -63,12 +62,12 @@ object WorkerRemoteM2Publisher {
     val publishToAbs = fromPotentiallyRelativeSerializedPath(publishTo)
     setupPublishAndRun(fromPotentiallyRelativeSerializedPath(workspace), artifacts) {
       (system, session, deployRequest) =>
-      val publishToUri = publishToAbs.toNIO.toUri.toString
-      val remoteRepository =
-        RemoteRepository.Builder("local", "default", publishToUri).build()
-      deployRequest.setRepository(remoteRepository)
+        val publishToUri = publishToAbs.toNIO.toUri.toString
+        val remoteRepository =
+          RemoteRepository.Builder("local", "default", publishToUri).build()
+        deployRequest.setRepository(remoteRepository)
 
-      system.deploy(session, deployRequest)
+        system.deploy(session, deployRequest)
     }
   }
 
