@@ -92,7 +92,7 @@ private object TransformingReporter {
         val pointer0 = intValue(pos.pointer(), -1)
 
         val space = pos.pointerSpace().orElse("")
-        val endCol0 = intValue(pos.endColumn(), pointer0 + 1)
+        val endCol = intValue(pos.endColumn(), pointer0 + 1)
 
         // Dotty only renders the colored code snippet as part of `.rendered`, but it's mixed
         // in with the rest of the UI we don't really want. So we need to scrape it out ourselves
@@ -137,12 +137,8 @@ private object TransformingReporter {
         val plainLineLength = fansi.Str(lineContent).length
 
         val colNum =
-          if (isJavaFile && pointer0 >= 0 && plainLineContent0.nonEmpty)
-            visualToCodeColumn(plainLineContent0, pointer0 + 1)
-          else pointer0 + 1
-
-        val endCol =
-          endCol0
+          if (!isJavaFile || pointer0 < 0 || plainLineContent0.isEmpty) pointer0 + 1
+          else visualToCodeColumn(plainLineContent0, pointer0 + 1)
 
         val displayPointer0 = colNum - 1
         val pointerPrefix =
@@ -156,15 +152,8 @@ private object TransformingReporter {
           else ""
         val pointerLength =
           if (space.nonEmpty && displayPointer0 >= 0 && endCol >= 0)
-            math.max(
-              1,
-              math.min(
-                endCol - displayPointer0,
-                plainLineLength - space.length
-              )
-            )
-          else if (space.nonEmpty)
-            math.max(1, plainLineLength - space.length)
+            math.max(1, math.min(endCol - displayPointer0, plainLineLength - space.length))
+          else if (space.nonEmpty) math.max(1, plainLineLength - space.length)
           else 1
 
         mill.constants.Util.formatError(
