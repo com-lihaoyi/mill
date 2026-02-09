@@ -32,10 +32,10 @@ object ScalaTabsErrorFormattingTests extends TestSuite {
         val Left(ExecResult.Failure(msg = "Compilation failed")) =
           eval.apply(TabsScala.core.compile).runtimeChecked
 
-        val normalizedErrLines = fansi.Str(errBuffer.toString).plainText.linesIterator.toSeq
+        val errLines = fansi.Str(errBuffer.toString).plainText.linesIterator.toSeq
 
         assertGoldenLiteral(
-          normalizedErrLines,
+          errLines,
           List(
             "compiling 1 Scala source to out/core/compile.dest/classes ...",
             "[error] core/src/Main.scala:4:18",

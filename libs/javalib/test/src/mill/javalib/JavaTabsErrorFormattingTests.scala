@@ -27,12 +27,12 @@ object JavaTabsErrorFormattingTests extends TestSuite {
         errStream = new PrintStream(errBuffer, true)
       ).scoped { eval =>
         val Left(_) = eval.apply(TabsJava.core.compile).runtimeChecked
-        val normalizedErrLines = fansi.Str(errBuffer.toString()).plainText
+        val errLines = fansi.Str(errBuffer.toString()).plainText
           .linesIterator
           .toSeq
 
         assertGoldenLiteral(
-          normalizedErrLines,
+          errLines,
           List(
             "compiling 1 Java source to out/core/compile.dest/classes ...",
             "[error] core/src/Core.java:5:11",
