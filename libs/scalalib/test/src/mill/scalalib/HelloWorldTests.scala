@@ -258,6 +258,7 @@ object HelloWorldTests extends TestSuite {
         val Left(ExecResult.Failure(msg = "Compilation failed")) =
           eval.apply(HelloWorldFatalWarnings.core.compile).runtimeChecked
       }
+
     }
 
     test("artifactNameCross") - UnitTester(CrossHelloWorld, sourceRoot = resourcePath).scoped {
