@@ -92,7 +92,6 @@ private object TransformingReporter {
         val pointer0 = intValue(pos.pointer(), -1)
 
         val space = pos.pointerSpace().orElse("")
-        val startCol0 = intValue(pos.startColumn(), -1)
         val endCol0 = intValue(pos.endColumn(), pointer0 + 1)
 
         // Dotty only renders the colored code snippet as part of `.rendered`, but it's mixed
@@ -142,14 +141,7 @@ private object TransformingReporter {
           else pointer0 + 1
 
         val endCol =
-          if (isJavaFile && endCol0 > 0 && lineContent0.nonEmpty)
-            visualToCodeColumn(lineContent0, endCol0)
-          else endCol0
-
-        val startCol =
-          if (isJavaFile && startCol0 >= 0 && lineContent0.nonEmpty)
-            visualToCodeColumn(lineContent0, startCol0 + 1)
-          else startCol0 + 1
+          endCol0
 
         val displayPointer0 = colNum - 1
         val pointerPrefix =
@@ -163,28 +155,13 @@ private object TransformingReporter {
           else ""
         val pointerLength =
           if (space.nonEmpty && displayPointer0 >= 0 && endCol >= 0)
-            val defaultPointerLength = math.max(
+            math.max(
               1,
               math.min(
                 endCol - displayPointer0,
                 plainLineLength - space.length
               )
             )
-            if (
-              isJavaFile &&
-              defaultPointerLength == 1 &&
-              startCol > 0 &&
-              endCol > 0 &&
-              startCol - 1 == displayPointer0
-            ) {
-              math.max(
-                1,
-                math.min(
-                  endCol - (startCol - 1),
-                  plainLineLength - math.max(0, displayPointer0)
-                )
-              )
-            } else defaultPointerLength
           else if (space.nonEmpty)
             math.max(1, plainLineLength - space.length)
           else 1
