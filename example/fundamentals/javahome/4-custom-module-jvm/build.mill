@@ -40,6 +40,23 @@ Foo running on Java 11.0.21
 
 */
 
+// You can also pass JVM-level options to the worker subprocess spawned for modules
+// with a custom `jvmVersion`, by prefixing `javacOptions` entries with `-J`.
+// These options are applied to the `MillJvmWorkerMain` process that runs compilation.
+
+/** See Also: jvmopts/package.mill.yaml */
+
+/** Usage
+
+> ./mill clean
+
+> ./mill jvmopts.compile
+
+> find out/mill.javalib.JvmWorkerModule/internalWorker.dest -name java-runtime-options -exec cat {} \;
+-Xss8m
+
+*/
+
 //
 // === Selecting JVM Index Versions
 //

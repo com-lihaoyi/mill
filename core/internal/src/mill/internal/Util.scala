@@ -11,6 +11,21 @@ import scala.collection.mutable
 
 object Util {
 
+  private[mill] def catchUpickleAbort[T](
+      path: java.nio.file.Path,
+      prefix: String = ""
+  )(t: => T): Result[T] = {
+    try Result.Success(t)
+    catch {
+      case abort: upickle.core.AbortException =>
+        Result.Failure(
+          prefix + Option(abort.getMessage).getOrElse("YAML type mismatch"),
+          path,
+          abort.index
+        )
+    }
+  }
+
   val alphaKeywords: Set[String] = Set(
     "abstract",
     "case",
@@ -187,7 +202,8 @@ object Util {
       visitor0: upickle.core.Visitor[_, T]
   ): Result[T] = {
 
-    try Result.Success {
+    val filePath = os.Path(fileName, mill.api.BuildCtx.workspaceRoot).toNIO
+    try catchUpickleAbort(filePath) {
         upickle.core.TraceVisitor.withTrace(true, visitor0) { visitor =>
           import org.snakeyaml.engine.v2.api.LoadSettings
           import org.snakeyaml.engine.v2.composer.Composer
@@ -312,7 +328,7 @@ object Util {
           case abort: upickle.core.AbortException =>
             Result.Failure(
               s"Failed de-serializing config key ${e.jsonPath}: ${e.getCause.getCause.getMessage}",
-              os.Path(fileName, mill.api.BuildCtx.workspaceRoot).toNIO,
+              filePath,
               abort.index
             )
 

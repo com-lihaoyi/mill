@@ -31,13 +31,17 @@ object CodeGen {
     for ((locatedKeyString, v) <- entries)
       yield locatedKeyString.value.split(" +") match {
         case Array(k) => onProperty(k, v)
-        case Array("object", k) => onNestedObject(
-            k,
-            upickle.core.BufferedValue.transform(
-              v,
-              HeaderData.headerDataReader(scriptPath)
-            )
-          )
+        case Array("object", k) =>
+          mill.internal.Util
+            .catchUpickleAbort(
+              scriptPath.toNIO,
+              prefix = s"In object ${literalize(k)}: "
+            ) {
+              upickle.core.BufferedValue.transform(v, HeaderData.headerDataReader(scriptPath))
+            } match {
+            case Result.Success(nestedData) => onNestedObject(k, nestedData)
+            case f: Result.Failure => throw new Result.Exception(f.error, Some(f))
+          }
         case _ => throw new Result.Exception(
             "",
             Some(Result.Failure(
@@ -62,7 +66,12 @@ object CodeGen {
     val scriptSources = allScriptCode.keys.toSeq.sorted
     val parsedYamlHeaderData = scriptSources
       .filter(_.last.endsWith(".yaml"))
-      .map(p => p -> mill.internal.Util.parseHeaderData(p).get)
+      .map { p =>
+        mill.internal.Util.parseHeaderData(p) match {
+          case Result.Success(v) => p -> v
+          case f: Result.Failure => throw new Result.Exception(f.error, Some(f))
+        }
+      }
       .toMap
 
     val allowNestedBuildMillFiles = mill.internal.Util.readBooleanFromBuildHeader(
