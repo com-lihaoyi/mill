@@ -30,18 +30,17 @@ object JavaTabsErrorFormattingTests extends TestSuite {
         val normalizedErrLines = fansi.Str(errBuffer.toString()).plainText
           .linesIterator
           .toSeq
-          .map(_.replaceAll(raw"core/src/Core\.java:\d+:", "core/src/Core.java:<line>:"))
 
         assertGoldenLiteral(
           normalizedErrLines,
           List(
             "compiling 1 Java source to out/core/compile.dest/classes ...",
-            "[error] core/src/Core.java:<line>:11",
+            "[error] core/src/Core.java:5:11",
             "\t\tint i = 12345.6;",
             "\t\t        ^^^^^^^",
             "incompatible types: possible lossy conversion from double to int",
             "",
-            "[error] core/src/Core.java:<line>:13",
+            "[error] core/src/Core.java:6:13",
             "    int j = 12345.6;",
             "            ^^^^^^^",
             "incompatible types: possible lossy conversion from double to int",

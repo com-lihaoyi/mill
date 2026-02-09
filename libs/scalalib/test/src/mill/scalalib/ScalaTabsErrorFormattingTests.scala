@@ -33,14 +33,13 @@ object ScalaTabsErrorFormattingTests extends TestSuite {
           eval.apply(TabsScala.core.compile).runtimeChecked
 
         val normalizedErrLines = fansi.Str(errBuffer.toString).plainText.linesIterator.toSeq
-          .map(_.replaceAll(raw"core/src/Main\.scala:\d+:", "core/src/Main.scala:<line>:"))
           .filterNot(_ == "Compiling compiler interface...")
 
         assertGoldenLiteral(
           normalizedErrLines,
           List(
             "compiling 1 Scala source to out/core/compile.dest/classes ...",
-            "[error] core/src/Main.scala:<line>:18",
+            "[error] core/src/Main.scala:4:18",
             "\t\tval bad: Int = \"hello\"",
             "\t\t               ^",
             "type mismatch;",
