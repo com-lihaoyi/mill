@@ -109,11 +109,10 @@ public class Util {
       String pointerPrefix,
       Function<String, String> highlight) {
 
-    String pointer =
-        colNum > 0
-            ? (pointerPrefix != null ? pointerPrefix : " ".repeat(colNum - 1))
-                + highlight.apply("^".repeat(pointerLength))
-            : "";
+    String pointer = colNum > 0
+        ? (pointerPrefix != null ? pointerPrefix : " ".repeat(colNum - 1))
+            + highlight.apply("^".repeat(pointerLength))
+        : "";
 
     String header = (lineNum >= 0 && colNum >= 0)
         ? highlight.apply(fileName) + ":" + highlight.apply("" + lineNum) + ":"
