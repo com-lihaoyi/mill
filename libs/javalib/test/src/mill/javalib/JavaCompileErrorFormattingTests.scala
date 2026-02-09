@@ -34,7 +34,11 @@ object JavaCompileErrorFormattingTests extends TestSuite {
     }
   }
 
-  private def check(caseName: String, expected: Seq[String], requireFailure: Boolean = true): Unit = {
+  private def check(
+      caseName: String,
+      expected: Seq[String],
+      requireFailure: Boolean = true
+  ): Unit = {
     val errBuffer = new ByteArrayOutputStream()
     UnitTester(
       JavaCompileErrorFormatting,
