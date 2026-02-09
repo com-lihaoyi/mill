@@ -138,7 +138,7 @@ private object TransformingReporter {
 
         val colNum =
           if (!isJavaFile || pointer0 < 0 || plainLineContent0.isEmpty) pointer0 + 1
-          else visualToCodeColumn(plainLineContent0, pointer0 + 1)
+          else visualToSourceColumn(plainLineContent0, pointer0 + 1)
 
         val displayPointer0 = colNum - 1
         val pointerPrefix =
@@ -170,10 +170,11 @@ private object TransformingReporter {
   }
 
   /**
-   * Java diagnostics report columns with tabs expanded to 8 spaces, but our source lines keep tabs as one char.
-   * Convert from visual columns to source-code columns so pointer location and width match the rendered line.
+   * Java diagnostics report columns with tabs expanded to 8 spaces, but our source
+   * lines keep tabs as one char. Convert from visual columns to source-code columns
+   * so pointer location and width match the rendered line.
    */
-  private def visualToCodeColumn(line: String, visualCol: Int): Int = {
+  private def visualToSourceColumn(line: String, visualCol: Int): Int = {
     if (visualCol <= 1) 1
     else {
       var visual = 1
