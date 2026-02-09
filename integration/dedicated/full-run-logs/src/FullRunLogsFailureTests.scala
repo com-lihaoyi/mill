@@ -219,14 +219,14 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "build.mill-<digits>] done compiling",
           "<digits>] brokenN.compile compiling 1 Java source to out/brokenN/compile.dest/classes ...",
           "<digits>] brokenN.compile compiling 1 Java source to out/brokenN/compile.dest/classes ...",
-          "<digits>] [error] broken/src/Foo.java:1:0",
+          "<digits>] [error] broken/src/Foo.java:1:1",
           "<digits>] ?",
-          "<digits>] ",
+          "<digits>] ^",
           "<digits>] class, interface, enum, or record expected",
           "<digits>] ",
-          "<digits>] [error] broken/src/Foo.java:1:0",
+          "<digits>] [error] broken/src/Foo.java:1:1",
           "<digits>] ?",
-          "<digits>] ",
+          "<digits>] ^",
           "<digits>] class, interface, enum, or record expected",
           "<digits>] ",
           ".../..., 2 FAILED] mill {brokenN,brokenN}.compile",
@@ -239,9 +239,9 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         normalize(os.read(workspacePath / "out/broken1/compile.log")),
         List(
           "compiling 1 Java source to out/broken1/compile.dest/classes ...",
-          "[error] broken/src/Foo.java:1:0",
+          "[error] broken/src/Foo.java:1:1",
           "?",
-          "",
+          "^",
           "class, interface, enum, or record expected",
           ""
         )
@@ -250,9 +250,9 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         normalize(os.read(workspacePath / "out/broken2/compile.log")),
         List(
           "compiling 1 Java source to out/broken2/compile.dest/classes ...",
-          "[error] broken/src/Foo.java:1:0",
+          "[error] broken/src/Foo.java:1:1",
           "?",
-          "",
+          "^",
           "class, interface, enum, or record expected",
           ""
         )
