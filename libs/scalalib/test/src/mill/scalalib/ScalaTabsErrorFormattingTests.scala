@@ -41,7 +41,7 @@ object ScalaTabsErrorFormattingTests extends TestSuite {
           List(
             "compiling 1 Scala source to out/core/compile.dest/classes ...",
             "[error] core/src/Main.scala:<line>:18",
-            """		val bad: Int = "hello"""",
+            "\t\tval bad: Int = \"hello\"",
             "\t\t               ^",
             "type mismatch;",
             """ found   : String("hello")""",
