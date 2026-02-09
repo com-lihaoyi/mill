@@ -20,105 +20,114 @@ object ScalaCompileErrorFormattingTests extends TestSuite {
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "compile-error-formatting-scala"
 
-  private def assertConsecutiveLines(err: String, expected: Seq[String]): Unit = {
-    val lines = err.linesIterator.toVector
-    val found = lines.indices.exists { start =>
-      expected.indices.forall { i =>
-        start + i < lines.length && lines(start + i).contains(expected(i))
-      }
-    }
-    if (!found) {
-      sys.error(
-        s"Expected consecutive lines not found:\n${expected.mkString("\n")}\n\nIn output:\n$err"
-      )
-    }
-  }
-
-  private def check(caseName: String, expected: Seq[String]): Unit = {
+  private def checkLines(caseName: String): Seq[String] = {
     val errBuffer = new ByteArrayOutputStream()
     UnitTester(
       ScalaCompileErrorFormatting,
       sourceRoot = resourcePath / caseName,
-      outStream = new PrintStream(new ByteArrayOutputStream()),
+      outStream = new PrintStream(errBuffer, true),
       errStream = new PrintStream(errBuffer, true)
     ).scoped { eval =>
       val Left(ExecResult.Failure(msg = "Compilation failed")) =
         eval.apply(ScalaCompileErrorFormatting.core.compile).runtimeChecked
-      val err = fansi.Str(errBuffer.toString).plainText
-      assertConsecutiveLines(err, expected)
+      fansi.Str(errBuffer.toString).plainText.linesIterator.toSeq
     }
   }
 
   val tests: Tests = Tests {
     test("scalaTypeMismatch") {
-      check(
-        "scala-type-mismatch",
-        Seq(
+      assertGoldenLiteral(
+        checkLines("scala-type-mismatch"),
+        List(
+          "compiling 1 Scala source to out/core/compile.dest/classes ...",
           "[error] core/src/Foo.scala:5:18",
           "    val x: Int = \"hello\"",
           "                 ^^^^^^^",
           "Found:    (\"hello\" : String)",
-          "Required: Int"
+          "Required: Int",
+          "",
+          "[error] one error found",
+          "[error] core.compile task failed"
         )
       )
     }
 
     test("scalaTypeMethod") {
-      check(
-        "scala-type-method",
-        Seq(
+      assertGoldenLiteral(
+        checkLines("scala-type-method"),
+        List(
+          "compiling 1 Scala source to out/core/compile.dest/classes ...",
           "[error] core/src/Foo.scala:6:7",
           "    s.nonExistentMethod()",
           "      ^^^^^^^^^^^^^^^^^",
-          "value nonExistentMethod is not a member of String"
+          "value nonExistentMethod is not a member of String",
+          "",
+          "[error] one error found",
+          "[error] core.compile task failed"
         )
       )
     }
 
     test("scalaTypeVariable") {
-      check(
-        "scala-type-variable",
-        Seq(
+      assertGoldenLiteral(
+        checkLines("scala-type-variable"),
+        List(
+          "compiling 1 Scala source to out/core/compile.dest/classes ...",
           "[error] core/src/Foo.scala:5:13",
           "    val x = undefinedVariable + 1",
           "            ^^^^^^^^^^^^^^^^^",
-          "Not found: undefinedVariable"
+          "Not found: undefinedVariable",
+          "",
+          "[error] one error found",
+          "[error] core.compile task failed"
         )
       )
     }
 
     test("scalaParseSemicolon") {
-      check(
-        "scala-parse-semicolon",
-        Seq(
+      assertGoldenLiteral(
+        checkLines("scala-parse-semicolon"),
+        List(
+          "compiling 1 Scala source to out/core/compile.dest/classes ...",
           "[error] core/src/Foo.scala:6:15",
           "    val y = x +",
           "              ^",
-          "end of statement expected but identifier found"
+          "end of statement expected but identifier found",
+          "",
+          "[error] one error found",
+          "[error] core.compile task failed"
         )
       )
     }
 
     test("scalaParseString") {
-      check(
-        "scala-parse-string",
-        Seq(
+      assertGoldenLiteral(
+        checkLines("scala-parse-string"),
+        List(
+          "compiling 1 Scala source to out/core/compile.dest/classes ...",
           "[error] core/src/Foo.scala:5:13",
           "    val s = \"hello world",
           "            ^",
-          "unclosed string literal"
+          "unclosed string literal",
+          "",
+          "[error] one error found",
+          "[error] core.compile task failed"
         )
       )
     }
 
     test("scalaParseToplevel") {
-      check(
-        "scala-parse-toplevel",
-        Seq(
+      assertGoldenLiteral(
+        checkLines("scala-parse-toplevel"),
+        List(
+          "compiling 1 Scala source to out/core/compile.dest/classes ...",
           "[error] core/src/Foo.scala:6:7",
           "class class Foo {",
           "      ^^^^^",
-          "an identifier expected, but 'class' found"
+          "an identifier expected, but 'class' found",
+          "",
+          "[error] one error found",
+          "[error] core.compile task failed"
         )
       )
     }
