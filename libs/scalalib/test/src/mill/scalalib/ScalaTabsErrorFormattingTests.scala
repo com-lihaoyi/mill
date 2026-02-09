@@ -13,7 +13,7 @@ object ScalaTabsErrorFormattingTests extends TestSuite {
 
   object TabsScala extends TestRootModule {
     object core extends ScalaModule {
-      def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
+      def scalaVersion = sys.props.getOrElse("TEST_SCALA_3_3_VERSION", ???)
     }
     lazy val millDiscover = Discover[this.type]
   }
@@ -33,7 +33,6 @@ object ScalaTabsErrorFormattingTests extends TestSuite {
           eval.apply(TabsScala.core.compile).runtimeChecked
 
         val normalizedErrLines = fansi.Str(errBuffer.toString).plainText.linesIterator.toSeq
-          .filterNot(_ == "Compiling compiler interface...")
 
         assertGoldenLiteral(
           normalizedErrLines,
@@ -41,10 +40,9 @@ object ScalaTabsErrorFormattingTests extends TestSuite {
             "compiling 1 Scala source to out/core/compile.dest/classes ...",
             "[error] core/src/Main.scala:4:18",
             "\t\tval bad: Int = \"hello\"",
-            "\t\t               ^",
-            "type mismatch;",
-            " found   : String(\"hello\")",
-            " required: Int",
+            "    \t\t           ^^^^^^^",
+            "Found:    (\"hello\" : String)",
+            "Required: Int",
             "",
             "[error] one error found",
             "[error] core.compile task failed"
