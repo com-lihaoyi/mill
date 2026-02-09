@@ -25,7 +25,9 @@ object JavaCompileErrorFormattingTests extends TestSuite {
       }
     }
     if (!found) {
-      sys.error(s"Expected consecutive lines not found:\n${expected.mkString("\n")}\n\nIn output:\n$err")
+      sys.error(
+        s"Expected consecutive lines not found:\n${expected.mkString("\n")}\n\nIn output:\n$err"
+      )
     }
   }
 
