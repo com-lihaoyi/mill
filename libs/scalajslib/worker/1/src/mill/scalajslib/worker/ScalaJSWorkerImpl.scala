@@ -7,160 +7,43 @@ import scala.concurrent.duration.Duration
 
 import com.armanbilge.sjsimportmap.ImportMappedIRFile
 import mill.constants.InputPumper
-import mill.scalajslib.worker.api.*
+import mill.scalajslib.config.ScalaJSConfigWorkerApi
+import mill.scalajslib.worker.{api => workerApi}
 import mill.scalajslib.worker.jsenv.*
 import mill.util.CachedFactory
 import org.scalajs.ir.ScalaJSVersions
 import org.scalajs.linker.{PathIRContainer, PathOutputDirectory, PathOutputFile, StandardImpl}
-import org.scalajs.linker.interface.{
-  ESFeatures as ScalaJSESFeatures,
-  ESVersion as ScalaJSESVersion,
-  ModuleKind as ScalaJSModuleKind,
-  OutputPatterns as ScalaJSOutputPatterns,
-  ModuleSplitStyle as _,
-  Report as _,
-  *
-}
+import org.scalajs.linker.{interface => sjs}
 import org.scalajs.logging.{Level, Logger}
 import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
 import org.scalajs.testing.adapter.TestAdapter
 import org.scalajs.testing.adapter.TestAdapterInitializer as TAI
+import mill.scalajslib.config.ScalaJSConfigModule
+import mill.scalajslib.worker.api.ScalaJSWorkerApi
+import mill.scalajslib.{api => api0}
+import mill.api.PathRef
+import mill.scalajslib.config.ScalaJSConfig
 
-class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
+class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWorkerApi {
   private case class LinkerInput(
       isFullLinkJS: Boolean,
-      optimizer: Boolean,
-      sourceMap: Boolean,
-      moduleKind: ModuleKind,
-      esFeatures: ESFeatures,
-      moduleSplitStyle: ModuleSplitStyle,
-      outputPatterns: OutputPatterns,
-      minify: Boolean,
       dest: File,
-      experimentalUseWebAssembly: Boolean
+      config: sjs.StandardConfig
   )
   private def minorIsGreaterThanOrEqual(number: Int) = ScalaJSVersions.current match {
     case s"1.$n.$_" if n.toIntOption.exists(_ < number) => false
     case _ => true
   }
-  private object ScalaJSLinker extends CachedFactory[LinkerInput, (Linker, IRFileCache.Cache)] {
+  private object ScalaJSLinker
+      extends CachedFactory[LinkerInput, (sjs.Linker, sjs.IRFileCache.Cache)] {
     private val irFileCache = StandardImpl.irFileCache()
     override def maxCacheSize: Int = jobs
-    override def setup(key: LinkerInput): (Linker, IRFileCache.Cache) = createLinker(key)
-    override def teardown(key: LinkerInput, value: (Linker, IRFileCache.Cache)): Unit = {
+    override def setup(key: LinkerInput): (sjs.Linker, sjs.IRFileCache.Cache) = createLinker(key)
+    override def teardown(key: LinkerInput, value: (sjs.Linker, sjs.IRFileCache.Cache)): Unit = {
       value._2.free()
     }
-    private def createLinker(input: LinkerInput): (Linker, IRFileCache.Cache) = {
-      val semantics = input.isFullLinkJS match {
-        case true => Semantics.Defaults.optimized
-        case false => Semantics.Defaults
-      }
-      val scalaJSModuleKind = input.moduleKind match {
-        case ModuleKind.NoModule => ScalaJSModuleKind.NoModule
-        case ModuleKind.CommonJSModule => ScalaJSModuleKind.CommonJSModule
-        case ModuleKind.ESModule => ScalaJSModuleKind.ESModule
-      }
-      @scala.annotation.nowarn("cat=deprecation")
-      def withESVersion_1_5_minus(esFeatures: ScalaJSESFeatures): ScalaJSESFeatures = {
-        val useECMAScript2015: Boolean = input.esFeatures.esVersion match {
-          case ESVersion.ES5_1 => false
-          case ESVersion.ES2015 => true
-          case v => throw new Exception(
-              s"ESVersion $v is not supported with Scala.js < 1.6. Either update Scala.js or use one of ESVersion.ES5_1 or ESVersion.ES2015"
-            )
-        }
-        esFeatures.withUseECMAScript2015(useECMAScript2015)
-      }
-      def withESVersion_1_6_plus(esFeatures: ScalaJSESFeatures): ScalaJSESFeatures = {
-        val scalaJSESVersion: ScalaJSESVersion = input.esFeatures.esVersion match {
-          case ESVersion.ES5_1 => ScalaJSESVersion.ES5_1
-          case ESVersion.ES2015 => ScalaJSESVersion.ES2015
-          case ESVersion.ES2016 => ScalaJSESVersion.ES2016
-          case ESVersion.ES2017 => ScalaJSESVersion.ES2017
-          case ESVersion.ES2018 => ScalaJSESVersion.ES2018
-          case ESVersion.ES2019 => ScalaJSESVersion.ES2019
-          case ESVersion.ES2020 => ScalaJSESVersion.ES2020
-          case ESVersion.ES2021 => ScalaJSESVersion.ES2021
-        }
-        esFeatures.withESVersion(scalaJSESVersion)
-      }
-      var scalaJSESFeatures: ScalaJSESFeatures = ScalaJSESFeatures.Defaults
-        .withAllowBigIntsForLongs(input.esFeatures.allowBigIntsForLongs)
-
-      if (minorIsGreaterThanOrEqual(4)) {
-        scalaJSESFeatures = scalaJSESFeatures
-          .withAvoidClasses(input.esFeatures.avoidClasses)
-          .withAvoidLetsAndConsts(input.esFeatures.avoidLetsAndConsts)
-      }
-      scalaJSESFeatures =
-        if (minorIsGreaterThanOrEqual(6)) withESVersion_1_6_plus(scalaJSESFeatures)
-        else withESVersion_1_5_minus(scalaJSESFeatures)
-
-      val useClosure = input.isFullLinkJS && input.moduleKind != ModuleKind.ESModule
-      val partialConfig = StandardConfig()
-        .withOptimizer(input.optimizer)
-        .withClosureCompilerIfAvailable(useClosure)
-        .withSemantics(semantics)
-        .withModuleKind(scalaJSModuleKind)
-        .withESFeatures(scalaJSESFeatures)
-        .withSourceMap(input.sourceMap)
-
-      def withModuleSplitStyle_1_3_plus(config: StandardConfig): StandardConfig = {
-        config.withModuleSplitStyle(
-          input.moduleSplitStyle match {
-            case ModuleSplitStyle.FewestModules => ScalaJSModuleSplitStyle.FewestModules()
-            case ModuleSplitStyle.SmallestModules => ScalaJSModuleSplitStyle.SmallestModules()
-            case v @ ModuleSplitStyle.SmallModulesFor(packages*) =>
-              if (minorIsGreaterThanOrEqual(10))
-                ScalaJSModuleSplitStyle.SmallModulesFor(packages.toList)
-              else throw new Exception(
-                s"ModuleSplitStyle $v is not supported with Scala.js < 1.10. Either update Scala.js or use one of ModuleSplitStyle.SmallestModules or ModuleSplitStyle.FewestModules"
-              )
-          }
-        )
-      }
-
-      def withModuleSplitStyle_1_2_minus(config: StandardConfig): StandardConfig = {
-        input.moduleSplitStyle match {
-          case ModuleSplitStyle.FewestModules =>
-          case v => throw new Exception(
-              s"ModuleSplitStyle $v is not supported with Scala.js < 1.2. Either update Scala.js or use ModuleSplitStyle.FewestModules"
-            )
-        }
-        config
-      }
-
-      val withModuleSplitStyle =
-        if (minorIsGreaterThanOrEqual(3)) withModuleSplitStyle_1_3_plus(partialConfig)
-        else withModuleSplitStyle_1_2_minus(partialConfig)
-
-      val withOutputPatterns =
-        if (minorIsGreaterThanOrEqual(3))
-          withModuleSplitStyle
-            .withOutputPatterns(
-              ScalaJSOutputPatterns.Defaults
-                .withJSFile(input.outputPatterns.jsFile)
-                .withJSFileURI(input.outputPatterns.jsFileURI)
-                .withModuleName(input.outputPatterns.moduleName)
-                .withSourceMapFile(input.outputPatterns.sourceMapFile)
-                .withSourceMapURI(input.outputPatterns.sourceMapURI)
-            )
-        else withModuleSplitStyle
-
-      val withMinify =
-        if (minorIsGreaterThanOrEqual(16))
-          withOutputPatterns.withMinify(input.minify && input.isFullLinkJS)
-        else withOutputPatterns
-
-      val withWasm =
-        (minorIsGreaterThanOrEqual(17), input.experimentalUseWebAssembly) match {
-          case (_, false) => withMinify
-          case (true, true) => withMinify.withExperimentalUseWebAssembly(true)
-          case (false, true) =>
-            throw new Exception("Emitting wasm is not supported with Scala.js < 1.17")
-        }
-
-      val linker = StandardImpl.clearableLinker(withWasm)
+    private def createLinker(input: LinkerInput): (sjs.Linker, sjs.IRFileCache.Cache) = {
+      val linker = StandardImpl.clearableLinker(input.config)
       val irFileCacheCache = irFileCache.newCache
       (linker, irFileCacheCache)
     }
@@ -177,33 +60,19 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
       t.printStackTrace(err)
     }
   }
-  def link(
+  override def rawLink(
       runClasspath: Seq[Path],
       dest: File,
-      main: Either[String, String],
+      moduleInitializers: Seq[sjs.ModuleInitializer],
       forceOutJs: Boolean,
       testBridgeInit: Boolean,
       isFullLinkJS: Boolean,
-      optimizer: Boolean,
-      sourceMap: Boolean,
-      moduleKind: ModuleKind,
-      esFeatures: ESFeatures,
-      moduleSplitStyle: ModuleSplitStyle,
-      outputPatterns: OutputPatterns,
-      minify: Boolean,
-      importMap: Seq[ESModuleImportMapping],
-      experimentalUseWebAssembly: Boolean
-  ): Either[String, Report] = ScalaJSLinker.withValue(LinkerInput(
+      importMap: Seq[workerApi.ESModuleImportMapping],
+      config: sjs.StandardConfig
+  ): Either[String, sjs.Report] = ScalaJSLinker.withValue(LinkerInput(
     isFullLinkJS = isFullLinkJS,
-    optimizer = optimizer,
-    sourceMap = sourceMap,
-    moduleKind = moduleKind,
-    esFeatures = esFeatures,
-    moduleSplitStyle = moduleSplitStyle,
-    outputPatterns = outputPatterns,
-    minify = minify,
     dest = dest,
-    experimentalUseWebAssembly = experimentalUseWebAssembly
+    config = config
   )) { (linker, irFileCacheCache) =>
     // On Scala.js 1.2- we want to use the legacy mode either way since
     // the new mode is not supported and in tests we always use legacy = false
@@ -212,15 +81,9 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
     val irContainersAndPathsFuture = PathIRContainer.fromClasspath(runClasspath)
     val testInitializer =
       if (testBridgeInit)
-        ModuleInitializer.mainMethod(TAI.ModuleClassName, TAI.MainMethodName) :: Nil
+        Seq(sjs.ModuleInitializer.mainMethod(TAI.ModuleClassName, TAI.MainMethodName))
       else Nil
-    val moduleInitializers = main match {
-      case Right(main) =>
-        ModuleInitializer.mainMethodWithArgs(main, "main") ::
-          testInitializer
-      case _ =>
-        testInitializer
-    }
+    val moduleInitializers0 = moduleInitializers ++ testInitializer
     val logger = createLogger()
 
     val resultFuture = (for {
@@ -235,7 +98,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
         val remapFunction = (rawImport: String) => {
           importMap
             .collectFirst {
-              case ESModuleImportMapping.Prefix(prefix, replacement)
+              case workerApi.ESModuleImportMapping.Prefix(prefix, replacement)
                   if rawImport.startsWith(prefix) =>
                 s"$replacement${rawImport.stripPrefix(prefix)}"
             }
@@ -247,48 +110,34 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
         if (useLegacy) {
           val jsFileName = "out.js"
           val jsFile = new File(dest, jsFileName).toPath()
-          var linkerOutput = LinkerOutput(PathOutputFile(jsFile))
+          var linkerOutput = sjs.LinkerOutput(PathOutputFile(jsFile))
             .withJSFileURI(java.net.URI.create(jsFile.getFileName.toString))
-          val sourceMapNameOpt = Option.when(sourceMap)(s"${jsFile.getFileName}.map")
+          val sourceMapNameOpt = Option.when(config.sourceMap)(s"${jsFile.getFileName}.map")
           sourceMapNameOpt.foreach { sourceMapName =>
             val sourceMapFile = jsFile.resolveSibling(sourceMapName)
             linkerOutput = linkerOutput
               .withSourceMap(PathOutputFile(sourceMapFile))
               .withSourceMapURI(java.net.URI.create(sourceMapFile.getFileName.toString))
           }
-          linker.link(irFiles, moduleInitializers, linkerOutput, logger).map { _ =>
-            Report(
-              publicModules = Seq(Report.Module(
+          linker.link(irFiles, moduleInitializers0, linkerOutput, logger).map { _ =>
+            new org.scalajs.linker.interface.unstable.ReportImpl(
+              publicModules = Seq(new org.scalajs.linker.interface.unstable.ReportImpl.ModuleImpl(
                 moduleID = "main",
                 jsFileName = jsFileName,
                 sourceMapName = sourceMapNameOpt,
-                moduleKind = moduleKind
-              )),
-              dest = dest
+                moduleKind = config.moduleKind
+              ))
+              // dest = dest
             )
           }
         } else {
           val linkerOutput = PathOutputDirectory(dest.toPath())
           linker.link(
             irFiles,
-            moduleInitializers,
+            moduleInitializers0,
             linkerOutput,
             logger
-          ).map { report =>
-            Report(
-              publicModules =
-                report.publicModules.map(module =>
-                  Report.Module(
-                    moduleID = module.moduleID,
-                    jsFileName = module.jsFileName,
-                    sourceMapName = module.sourceMapName,
-                    // currently moduleKind is always the input moduleKind
-                    moduleKind = moduleKind
-                  )
-                ),
-              dest = dest
-            )
-          }
+          )
         }
     } yield {
       Right(report)
@@ -300,9 +149,8 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
     Await.result(resultFuture, Duration.Inf)
   }
 
-  def run(config: JsEnvConfig, report: Report): Unit = {
+  override def run0(config: workerApi.JsEnvConfig, inputs: Seq[Input]): Unit = {
     val env = jsEnv(config)
-    val input = jsEnvInput(report)
     val logger = createLogger()
     val runConfig0 = RunConfig().withLogger(logger)
     val runConfig =
@@ -327,20 +175,19 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
             }
           case _ => ???
         }
-    Run.runInterruptible(env, input, runConfig)
+    Run.runInterruptible(env, inputs, runConfig)
   }
 
-  def getFramework(
-      config: JsEnvConfig,
+  override def rawGetFramework(
+      config: workerApi.JsEnvConfig,
       frameworkName: String,
-      report: Report
+      inputs: Seq[Input]
   ): (() => Unit, sbt.testing.Framework) = {
     val env = jsEnv(config)
-    val input = jsEnvInput(report)
     val logger = createLogger()
     val tconfig = TestAdapter.Config().withLogger(logger)
 
-    val adapter = new TestAdapter(env, input, tconfig)
+    val adapter = new TestAdapter(env, inputs, tconfig)
 
     (
       () => adapter.close(),
@@ -358,35 +205,112 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
     )
   }
 
-  def jsEnv(config: JsEnvConfig): JSEnv = config match {
-    case config: JsEnvConfig.NodeJs =>
+  def jsEnv(config: workerApi.JsEnvConfig): JSEnv = config match {
+    case config: workerApi.JsEnvConfig.NodeJs =>
       NodeJs(config)
-    case config: JsEnvConfig.JsDom =>
+    case config: workerApi.JsEnvConfig.JsDom =>
       JsDom(config)
-    case config: JsEnvConfig.ExoegoJsDomNodeJs =>
+    case config: workerApi.JsEnvConfig.ExoegoJsDomNodeJs =>
       ExoegoJsDomNodeJs(config)
-    case config: JsEnvConfig.Phantom =>
+    case config: workerApi.JsEnvConfig.Phantom =>
       Phantom(config)
-    case config: JsEnvConfig.Selenium =>
+    case config: workerApi.JsEnvConfig.Selenium =>
       Selenium(config)
-    case config: JsEnvConfig.Playwright =>
+    case config: workerApi.JsEnvConfig.Playwright =>
       Playwright(config)
   }
 
-  def jsEnvInput(report: Report): Seq[Input] = {
-    val mainModule = report.publicModules.find(_.moduleID == "main").getOrElse(throw new Exception(
-      "Cannot determine `jsEnvInput`: Linking result does not have a " +
-        "module named `main`.\n" +
-        s"Full report:\n$report"
-    ))
-    val path = new File(report.dest, mainModule.jsFileName).toPath
-    val input = mainModule.moduleKind match {
-      case ModuleKind.NoModule => Input.Script(path)
-      case ModuleKind.ESModule => Input.ESModule(path)
-      case ModuleKind.CommonJSModule => Input.CommonJSModule(path)
-    }
-    Seq(input)
+  override def close(): Unit = ScalaJSLinker.close()
+
+  private def fromSjs(moduleKind: sjs.ModuleKind): workerApi.ModuleKind = moduleKind match {
+    case sjs.ModuleKind.NoModule => workerApi.ModuleKind.NoModule
+    case sjs.ModuleKind.ESModule => workerApi.ModuleKind.ESModule
+    case sjs.ModuleKind.CommonJSModule => workerApi.ModuleKind.CommonJSModule
   }
 
-  override def close(): Unit = ScalaJSLinker.close()
+  private def fromSjs(report: sjs.Report, dest: os.Path): workerApi.Report = {
+    workerApi.Report(
+      publicModules =
+        report.publicModules.map(module =>
+          workerApi.Report.Module(
+            moduleID = module.moduleID,
+            jsFileName = module.jsFileName,
+            sourceMapName = module.sourceMapName,
+            moduleKind = fromSjs(module.moduleKind)
+          )
+        ),
+      dest = dest.toIO
+    )
+  }
+
+  def link(
+      runClasspath: Seq[Path],
+      dest: File,
+      main: Either[String, String],
+      forceOutJs: Boolean,
+      testBridgeInit: Boolean,
+      isFullLinkJS: Boolean,
+      optimizer: Boolean,
+      sourceMap: Boolean,
+      moduleKind: workerApi.ModuleKind,
+      esFeatures: workerApi.ESFeatures,
+      moduleSplitStyle: workerApi.ModuleSplitStyle,
+      outputPatterns: workerApi.OutputPatterns,
+      minify: Boolean,
+      importMap: Seq[workerApi.ESModuleImportMapping],
+      experimentalUseWebAssembly: Boolean
+  ): Either[String, workerApi.Report] = {
+    rawLink(
+      runClasspath = runClasspath,
+      dest = dest,
+      moduleInitializers = ScalaJSConfigModule.moduleInitializers(main.toOption, true),
+      forceOutJs = forceOutJs,
+      testBridgeInit = testBridgeInit,
+      isFullLinkJS = isFullLinkJS,
+      importMap = importMap,
+      config = ScalaJSConfig.config(
+        sjsVersion = ScalaJSVersions.current,
+        moduleSplitStyle = moduleSplitStyle,
+        esFeatures = esFeatures,
+        moduleKind = moduleKind,
+        scalaJSOptimizer = optimizer,
+        scalaJSSourceMap = sourceMap,
+        patterns = outputPatterns,
+        useWebAssembly = experimentalUseWebAssembly
+      )
+    ).map { sjsReport =>
+      fromSjs(sjsReport, os.Path(dest))
+    }
+  }
+
+  private def fromWorkerApi(moduleKind: workerApi.ModuleKind): api0.ModuleKind = moduleKind match {
+    case workerApi.ModuleKind.NoModule => api0.ModuleKind.NoModule
+    case workerApi.ModuleKind.ESModule => api0.ModuleKind.ESModule
+    case workerApi.ModuleKind.CommonJSModule => api0.ModuleKind.CommonJSModule
+  }
+
+  private def fromWorkerApi(report: workerApi.Report): api0.Report = {
+    api0.Report(
+      publicModules =
+        report.publicModules.map(module =>
+          api0.Report.Module(
+            moduleID = module.moduleID,
+            jsFileName = module.jsFileName,
+            sourceMapName = module.sourceMapName,
+            moduleKind = fromWorkerApi(module.moduleKind)
+          )
+        ),
+      dest = PathRef(os.Path(report.dest))
+    )
+  }
+
+  def run(config: workerApi.JsEnvConfig, report: workerApi.Report): Unit =
+    run0(config, ScalaJSConfigModule.jsEnvInputs(fromWorkerApi(report)))
+
+  def getFramework(
+      config: workerApi.JsEnvConfig,
+      frameworkName: String,
+      report: workerApi.Report
+  ): (() => Unit, sbt.testing.Framework) =
+    rawGetFramework(config, frameworkName, ScalaJSConfigModule.jsEnvInputs(fromWorkerApi(report)))
 }
