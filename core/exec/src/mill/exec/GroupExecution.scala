@@ -109,8 +109,11 @@ trait GroupExecution {
   val staticBuildOverrides: Map[String, Located[Appendable[BufferedValue]]] = {
     staticBuildOverrideFiles
       .flatMap { case (path0, rawText) =>
-        val path = os.Path(path0)
-        val headerDataReader = mill.api.internal.HeaderData.headerDataReader(path)
+        val path = os.Path(path0, os.pwd)
+        val resolvedPath =
+          if (os.exists(path)) os.Path(path.toNIO.toRealPath())
+          else path
+        val headerDataReader = mill.api.internal.HeaderData.headerDataReader(resolvedPath)
 
         def rec(
             segments: Seq[String],
@@ -144,7 +147,7 @@ trait GroupExecution {
               .map { case (k, v) =>
                 val (actualValue, append) = Appendable.unwrapAppendMarker(v)
                 (segments ++ Seq(k.value)).mkString(".") -> Located(
-                  path,
+                  resolvedPath,
                   k.index,
                   Appendable(actualValue, append)
                 )
@@ -169,10 +172,10 @@ trait GroupExecution {
           true,
           -1
         )
-        if ((path / "..").startsWith(workspace)) {
+        if ((resolvedPath / "..").startsWith(workspace)) {
           rec(
-            (path / "..").subRelativeTo(workspace).segments,
-            if (path == os.Path(rootModule.moduleDirJava) / "../build.mill.yaml") {
+            (resolvedPath / "..").subRelativeTo(workspace).segments,
+            if (resolvedPath == os.Path(rootModule.moduleDirJava) / "../build.mill.yaml") {
               parsed0
                 .value0
                 .collectFirst { case (BufferedValue.Str("mill-build", _), v) => v }

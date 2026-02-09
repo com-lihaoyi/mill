@@ -26,6 +26,23 @@ import scala.util.chaining.scalaUtilChainingOps
  * launcher scripts, etc.
  */
 object Jvm {
+  private def fromPotentiallyRelativeSerializedPath(path: os.Path | java.io.File): os.Path = {
+    val file = path match {
+      case p: os.Path => p.toIO
+      case f: java.io.File => f
+    }
+    if (file.isAbsolute) os.Path(file)
+    else {
+      val raw = file.toString
+      if (raw == "out/mill-workspace") BuildCtx.workspaceRoot
+      else if (raw.startsWith("out/mill-workspace/"))
+        BuildCtx.workspaceRoot / os.RelPath(raw.stripPrefix("out/mill-workspace/"))
+      else if (raw == "out/mill-home") os.home
+      else if (raw.startsWith("out/mill-home/"))
+        os.home / os.RelPath(raw.stripPrefix("out/mill-home/"))
+      else os.Path(file, os.pwd)
+    }
+  }
 
   /**
    * Runs a JVM subprocess with the given configuration and returns a
@@ -212,16 +229,21 @@ object Jvm {
       cpPassingJarPath: Option[os.Path],
       cwd: os.Path
   ): Vector[String] = {
-    val cp = cpPassingJarPath match {
+    val normalizedJavaHome = javaHome.map(fromPotentiallyRelativeSerializedPath)
+    val normalizedClassPath = classPath.iterator.map(fromPotentiallyRelativeSerializedPath).toSeq
+    val normalizedPassingJarPath = cpPassingJarPath.map(fromPotentiallyRelativeSerializedPath)
+    val normalizedCwd = Option(cwd).map(fromPotentiallyRelativeSerializedPath).orNull
+
+    val cp = normalizedPassingJarPath match {
       case Some(passingJarPath) if classPath.nonEmpty =>
-        createClasspathPassingJar(passingJarPath, classPath.toSeq)
+        createClasspathPassingJar(passingJarPath, normalizedClassPath)
         Seq(passingJarPath)
-      case _ => classPath
+      case _ => normalizedClassPath
     }
 
-    if (cwd != null) os.makeDir.all(cwd)
+    if (normalizedCwd != null) os.makeDir.all(normalizedCwd)
 
-    Vector(javaExe(javaHome)) ++
+    Vector(javaExe(normalizedJavaHome)) ++
       jvmArgs.value ++
       Option.when(cp.nonEmpty)(Vector("-cp", cp.mkString(java.io.File.pathSeparator)))
         .getOrElse(Vector.empty) ++
@@ -724,7 +746,7 @@ object Jvm {
     ).map { artifacts =>
       BuildCtx.withFilesystemCheckerDisabled {
         artifacts.files
-          .map(os.Path(_))
+          .map(fromPotentiallyRelativeSerializedPath)
           .map(PathRef(_, quick = true))
       }
     }

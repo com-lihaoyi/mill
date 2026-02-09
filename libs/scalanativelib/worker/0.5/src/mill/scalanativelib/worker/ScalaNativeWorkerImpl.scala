@@ -21,9 +21,44 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
 import java.nio.file.Files
+import java.nio.file.FileAlreadyExistsException
+import java.nio.file.Path
+import java.nio.file.Paths
 
 class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWorkerApi {
   implicit val scope: Scope = Scope.forever
+
+  private def workspaceRootFrom(baseDir: Path): Path = {
+    val abs = baseDir.toAbsolutePath.normalize()
+    val idx = (0 until (abs.getNameCount - 1)).find { i =>
+      abs.getName(i).toString == "out" && abs.getName(i + 1).toString == "build"
+    }
+    idx match {
+      case Some(i) =>
+        val root = Option(abs.getRoot).getOrElse(Paths.get(""))
+        (0 until i).foldLeft(root) { (acc, j) =>
+          if (acc.toString.isEmpty) abs.getName(j)
+          else acc.resolve(abs.getName(j))
+        }
+      case None =>
+        Paths.get(System.getProperty("user.dir")).toAbsolutePath.normalize()
+    }
+  }
+
+  private def resolvePathLike(path: Path, baseDir: Path): Path = {
+    val raw = path.toString
+    if (path.isAbsolute) path.toAbsolutePath.normalize()
+    else if (raw == "out/mill-workspace") workspaceRootFrom(baseDir)
+    else if (raw.startsWith("out/mill-workspace/"))
+      workspaceRootFrom(baseDir).resolve(raw.stripPrefix("out/mill-workspace/")).normalize()
+    else if (raw == "out/mill-home") Paths.get(System.getProperty("user.home")).toAbsolutePath.normalize()
+    else if (raw.startsWith("out/mill-home/"))
+      Paths.get(System.getProperty("user.home"))
+        .resolve(raw.stripPrefix("out/mill-home/"))
+        .toAbsolutePath
+        .normalize()
+    else baseDir.resolve(path).normalize()
+  }
 
   def logger(level: NativeLogLevel): Logger = {
     // Console.err needs to be stored at instantiation time so it saves the right threadlocal
@@ -123,13 +158,34 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
 
   def nativeLink(nativeConfig: Object, outDirectory: File): File = {
     val config = nativeConfig.asInstanceOf[Config]
+    val baseDir = config.baseDir
+    val outputDir = resolvePathLike(outDirectory.toPath(), baseDir)
+    val fallbackTarget = outputDir.resolve("out")
 
-    val result = Await.result(Build.buildCached(config), Duration.Inf)
+    try {
+      val resultRaw = Await.result(Build.buildCached(config), Duration.Inf)
+      val result = resolvePathLike(resultRaw, baseDir)
+      Files.createDirectories(outputDir)
+      val target = outputDir.resolve(result.getFileName())
 
-    val resultInOutDirectory =
-      Files.move(result, outDirectory.toPath().resolve(result.getFileName()))
+      val resultInOutDirectory =
+        if (result.toAbsolutePath.normalize() == target.toAbsolutePath.normalize()) result
+        else if (Files.exists(result) && Files.exists(target) && Files.isSameFile(result, target)) {
+          target
+        }
+        else if (!Files.exists(result) && Files.exists(target)) target
+        else {
+          Files.move(
+            result,
+            target,
+            java.nio.file.StandardCopyOption.REPLACE_EXISTING
+          )
+        }
 
-    resultInOutDirectory.toFile()
+      resultInOutDirectory.toFile()
+    } catch {
+      case _: FileAlreadyExistsException if Files.exists(fallbackTarget) => fallbackTarget.toFile
+    }
   }
 
   def getFramework(

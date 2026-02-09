@@ -14,10 +14,58 @@ import java.util.UUID
 import scala.util.chaining.scalaUtilChainingOps
 
 class JvmCompileBtApiImpl() extends Compiler {
+  private def absString(p: os.Path): String = p.toIO.getAbsolutePath
+
+  private def absolutizePathLike(path: String, workspaceRoot: os.Path): String = {
+    if (path.isEmpty) path
+    else if (path == "out/mill-workspace") absString(workspaceRoot)
+    else if (path.startsWith("out/mill-workspace/"))
+      absString(workspaceRoot / os.RelPath(path.stripPrefix("out/mill-workspace/")))
+    else if (path == "out/mill-home") absString(os.home)
+    else if (path.startsWith("out/mill-home/"))
+      absString(os.home / os.RelPath(path.stripPrefix("out/mill-home/")))
+    else {
+      val nio = java.nio.file.Path.of(path)
+      if (nio.isAbsolute) path
+      else workspaceRoot.toIO.toPath.resolve(nio).normalize().toAbsolutePath.toString
+    }
+  }
+
+  private def absolutizeArgs(args: Seq[String], workspaceRoot: os.Path): Seq[String] = {
+    val pathFlags = Set("-d", "-classpath", "-cp")
+    val b = Seq.newBuilder[String]
+    var i = 0
+    while (i < args.length) {
+      val arg = args(i)
+      b += arg
+      if (pathFlags(arg) && i + 1 < args.length) {
+        val next = args(i + 1)
+        val normalized =
+          if (arg == "-classpath" || arg == "-cp") {
+            next
+              .split(java.io.File.pathSeparator, -1)
+              .map(p => if (p.nonEmpty) absolutizePathLike(p, workspaceRoot) else p)
+              .mkString(java.io.File.pathSeparator)
+          } else absolutizePathLike(next, workspaceRoot)
+        b += normalized
+        i += 2
+      } else i += 1
+    }
+    b.result()
+  }
 
   def compile(args: Seq[String], sources: Seq[os.Path])(using ctx: TaskCtx): (Int, String) = {
 
-    val incrementalCachePath = ctx.dest / "inc-state"
+    val workspaceAlias = os.pwd / os.sub / "out/mill-workspace"
+    val effectiveWorkspace =
+      if (os.exists(workspaceAlias)) workspaceAlias
+      else ctx.workspace
+    val effectiveDest =
+      if (os.exists(workspaceAlias) && ctx.dest.startsWith(ctx.workspace))
+        workspaceAlias / ctx.dest.subRelativeTo(ctx.workspace)
+      else ctx.dest
+
+    val incrementalCachePath = effectiveDest / "inc-state"
     os.makeDir.all(incrementalCachePath)
 
     val service = CompilationService.loadImplementation(getClass().getClassLoader())
@@ -27,20 +75,20 @@ class JvmCompileBtApiImpl() extends Compiler {
     val compilationConfig = service.makeJvmCompilationConfiguration().tap { conf =>
       val incrementalConfig =
         conf.makeClasspathSnapshotBasedIncrementalCompilationConfiguration()
-      incrementalConfig.setRootProjectDir(ctx.workspace.toIO)
+      incrementalConfig.setRootProjectDir(effectiveWorkspace.toIO.getAbsoluteFile)
       incrementalConfig.usePreciseJavaTracking(true)
-      incrementalConfig.setBuildDir(incrementalCachePath.toIO)
+      incrementalConfig.setBuildDir(incrementalCachePath.toIO.getAbsoluteFile)
 
       // Create approach parameters for classpath snapshot-based incremental compilation.
       // Pass empty list for newClasspathSnapshotFiles to let the API compute snapshots from classpath JARs.
       // See: https://github.com/JetBrains/kotlin/blob/v2.1.20/libraries/tools/kotlin-maven-plugin/src/main/java/org/jetbrains/kotlin/maven/K2JVMCompileMojo.java#L356
       val approachParams = new ClasspathSnapshotBasedIncrementalCompilationApproachParameters(
         java.util.Collections.emptyList(),
-        (incrementalCachePath / "shrunk-classpath-snapshot.bin").toIO
+        (incrementalCachePath / "shrunk-classpath-snapshot.bin").toIO.getAbsoluteFile
       )
 
       conf.useIncrementalCompilation(
-        incrementalCachePath.toIO,
+        incrementalCachePath.toIO.getAbsoluteFile,
         SourcesChanges.ToBeCalculated.INSTANCE,
         approachParams,
         incrementalConfig
@@ -50,19 +98,20 @@ class JvmCompileBtApiImpl() extends Compiler {
     // Use a deterministic project ID based on the task destination path
     // This ensures the Build Tools API can track incremental state across compilations
     val projectId = new ProjectId.ProjectUUID(
-      UUID.nameUUIDFromBytes(ctx.dest.toString.getBytes)
+      UUID.nameUUIDFromBytes(effectiveDest.toString.getBytes)
     )
 
     // Pass sources to the Build Tools API for proper incremental compilation tracking
     // The API uses this list to detect changes between compilations
-    val sourceFiles = sources.map(_.toIO).toArray
+    val sourceFiles = sources.map(_.toIO.getAbsoluteFile).toArray
+    val normalizedArgs = absolutizeArgs(args, effectiveWorkspace)
 
     val compilationResult = service.compileJvm(
       projectId,
       strategyConfig,
       compilationConfig,
       KotlinInterop.toKotlinList(sourceFiles),
-      KotlinInterop.toKotlinList(sourceFiles.map(_.toString) ++ args.toArray)
+      KotlinInterop.toKotlinList(sourceFiles.map(_.getPath) ++ normalizedArgs.toArray)
     )
 
     val exitCode = compilationResult match {

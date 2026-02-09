@@ -7,20 +7,30 @@ object MillPathSerializer {
     for ((base, link) <- defaultMapping(workspace)) {
       val target = wd / link
       val targetNio = target.toNIO
-      os.makeDir.all(target / "..")
+      val parent = target / ".."
+      val parentNio = parent.toNIO
+      if (Files.exists(parentNio, LinkOption.NOFOLLOW_LINKS) && !Files.isDirectory(
+            parentNio,
+            LinkOption.NOFOLLOW_LINKS
+          )) {
+        // Some tasks (e.g. Scala Native) intentionally materialize an executable at `Task.dest / "out"`.
+        // In that case we cannot create `out/mill-*` aliases under this working directory.
+      } else {
+        os.makeDir.all(parent)
 
-      if (Files.isSymbolicLink(targetNio)) {
-        val currentTarget = Files.readSymbolicLink(targetNio)
-        if (currentTarget != base.wrapped) {
-          os.remove(target)
+        if (Files.isSymbolicLink(targetNio)) {
+          val currentTarget = Files.readSymbolicLink(targetNio)
+          if (currentTarget != base.wrapped) {
+            os.remove(target)
+            Files.createSymbolicLink(targetNio, base.wrapped)
+          }
+        } else if (Files.exists(targetNio, LinkOption.NOFOLLOW_LINKS)) {
+          throw new IllegalStateException(
+            s"Refusing to overwrite non-symlink path required for path serialization: $target"
+          )
+        } else {
           Files.createSymbolicLink(targetNio, base.wrapped)
         }
-      } else if (Files.exists(targetNio, LinkOption.NOFOLLOW_LINKS)) {
-        throw new IllegalStateException(
-          s"Refusing to overwrite non-symlink path required for path serialization: $target"
-        )
-      } else {
-        Files.createSymbolicLink(targetNio, base.wrapped)
       }
     }
   }

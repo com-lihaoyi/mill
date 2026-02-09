@@ -3,6 +3,7 @@ package mill.javalib.worker
 import mill.api.SystemStreamsUtils
 import mill.api.daemon.{DummyInputStream, SystemStreams}
 import mill.client.lock.Locks
+import mill.constants.EnvVars
 import mill.javalib.zinc.ZincWorker
 import mill.javalib.worker.JvmWorkerRpcServer
 import mill.rpc.MillRpcWireTransport
@@ -15,14 +16,22 @@ import java.io.{BufferedReader, InputStreamReader, PrintStream}
 /** Entry point for the Zinc worker subprocess. */
 object MillJvmWorkerMain {
   def main(args: Array[String]): Unit = SystemStreamsUtils.withTopLevelSystemStreamProxy {
+    val workspaceRoot = os.Path(
+      sys.env.getOrElse(EnvVars.MILL_WORKSPACE_ROOT, os.pwd.toString),
+      os.pwd
+    )
+    val pathSerializer = new WorkerPathSerializer(WorkerPathSerializer.defaultMapping(workspaceRoot))
+    WorkerPathSerializer.setupSymlinks(os.pwd, workspaceRoot)
     args match {
       case Array(daemonDir, jobsStr, useFileLocksStr) =>
-        val useFileLocks = useFileLocksStr == "true"
-        val server = JvmWorkerTcpServer(os.Path(daemonDir), jobsStr.toInt, useFileLocks)
-        server.run()
-        // Make sure we explicitly exit, so that even if there are some leaked threads
-        // hanging around the process properly terminates rather than hanging
-        sys.exit(0)
+        os.Path.pathSerializer.withValue(pathSerializer) {
+          val useFileLocks = useFileLocksStr == "true"
+          val server = JvmWorkerTcpServer(os.Path(daemonDir), jobsStr.toInt, useFileLocks)
+          server.run()
+          // Make sure we explicitly exit, so that even if there are some leaked threads
+          // hanging around the process properly terminates rather than hanging
+          sys.exit(0)
+        }
 
       case other =>
         Console.err.println(

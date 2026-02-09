@@ -3,6 +3,8 @@ package mill.javalib.worker
 import mill.api.JsonFormatters.*
 import mill.api.daemon.Logger
 import mill.api.daemon.internal.CompileProblemReporter
+import mill.api.PathRef
+import mill.javalib.api.CompilationResult
 import mill.javalib.api.internal.*
 import mill.javalib.worker.JvmWorkerRpcServer.ReporterMode
 import mill.javalib.zinc.ZincWorker
@@ -35,6 +37,21 @@ class JvmWorkerRpcServer(
       clientStderr: RpcConsole,
       serverToClient: MillRpcChannel[ServerToClient]
   ): MillRpcChannel[JvmWorkerRpcServer.Request] = setIdle.doWork {
+    val workspaceRoot =
+      SerializedPathNormalizer.fromPotentiallyRelativeSerializedPath(initialize.workspaceRoot)
+    log.info(s"DEBUG rpc.init initialize.workspaceRoot=${initialize.workspaceRoot.wrapped}")
+    log.info(s"DEBUG rpc.init buildCtx.workspaceRoot=${mill.api.BuildCtx.workspaceRoot.wrapped}")
+    log.info(s"DEBUG rpc.init normalized.workspaceRoot=${workspaceRoot.wrapped}")
+    val compilerBridgeWorkspace =
+      SerializedPathNormalizer.fromPotentiallyRelativeSerializedPath(
+        initialize.compilerBridgeWorkspace,
+        workspaceRoot
+      )
+    log.info(
+      s"DEBUG rpc.init initialize.compilerBridgeWorkspace=${initialize.compilerBridgeWorkspace.wrapped}"
+    )
+    log.info(s"DEBUG rpc.init normalized.compilerBridgeWorkspace=${compilerBridgeWorkspace.wrapped}")
+
     // This is an ugly hack. `ConsoleOut` is sealed, but we need to provide a way to send these logs to the Mill server
     // over RPC, so we hijack `PrintStream` by overriding the methods that `ConsoleOut` uses.
     //
@@ -54,21 +71,76 @@ class JvmWorkerRpcServer(
     }
 
     new MillRpcChannel[JvmWorkerRpcServer.Request] {
+      def normalizePath(path: os.Path): os.Path =
+        SerializedPathNormalizer.fromPotentiallyRelativeSerializedPath(path, workspaceRoot)
+
+      def normalizeCompilationResult(
+          result: CompilationResult
+      ): CompilationResult = {
+        val classes = result.classes
+        result.copy(
+          analysisFile = normalizePath(result.analysisFile),
+          classes = PathRef(normalizePath(classes.path), quick = classes.quick)
+        )
+      }
+
+      def normalizeOp(op: ZincOp): ZincOp = op match {
+        case msg: ZincOp.CompileJava =>
+          msg.copy(
+            upstreamCompileOutput = msg.upstreamCompileOutput.map(normalizeCompilationResult),
+            sources = msg.sources.map(normalizePath),
+            compileClasspath = msg.compileClasspath.map(normalizePath),
+            workDir = normalizePath(msg.workDir)
+          )
+        case msg: ZincOp.CompileMixed =>
+          msg.copy(
+            upstreamCompileOutput = msg.upstreamCompileOutput.map(normalizeCompilationResult),
+            sources = msg.sources.map(normalizePath),
+            compileClasspath = msg.compileClasspath.map(normalizePath),
+            workDir = normalizePath(msg.workDir)
+          )
+        case msg: ZincOp.ScaladocJar =>
+          msg.copy(workDir = normalizePath(msg.workDir))
+        case msg: ZincOp.DiscoverTests =>
+          msg.copy(
+            runCp = msg.runCp.map(normalizePath),
+            testCp = msg.testCp.map(normalizePath)
+          )
+        case msg: ZincOp.GetTestTasks =>
+          msg.copy(
+            runCp = msg.runCp.map(normalizePath),
+            testCp = msg.testCp.map(normalizePath)
+          )
+        case msg: ZincOp.DiscoverJunit5Tests =>
+          msg.copy(
+            runCp = msg.runCp.map(normalizePath),
+            testCp = msg.testCp.map(normalizePath),
+            classesDir = msg.classesDir.map(normalizePath)
+          )
+      }
+
       override def apply(input: JvmWorkerRpcServer.Request): input.Response = {
         setIdle.doWork {
+          val normalizedCtx = input.ctx.copy(
+            dest = normalizePath(input.ctx.dest),
+            workspaceRoot = normalizePath(input.ctx.workspaceRoot)
+          )
+          val normalizedOp = normalizeOp(input.op)
           worker.apply(
-            op = input.op,
+            op = normalizedOp.asInstanceOf[input.op.type],
             reporter = reporterAsOption(input.reporterMode),
             reportCachedProblems = input.reporterMode.reportCachedProblems,
-            input.ctx,
+            normalizedCtx,
             ZincWorker.ProcessConfig(
               log,
               consoleOut,
               ZincCompilerBridgeProvider(
-                workspace = initialize.compilerBridgeWorkspace,
+                workspace = compilerBridgeWorkspace,
                 logInfo = log.info,
                 acquire = (scalaVersion, scalaOrganization) =>
-                  input.compilerBridge.getOrElse {
+                  input.compilerBridge.map(
+                    _.map(SerializedPathNormalizer.fromPotentiallyRelativeSerializedPath)
+                  ).getOrElse {
                     throw new IllegalStateException(
                       s"Missing compiler bridge for $scalaOrganization:$scalaVersion."
                     )
@@ -87,7 +159,8 @@ object JvmWorkerRpcServer {
   /**
    * @param compilerBridgeWorkspace The workspace to use for the compiler bridge.
    */
-  case class Initialize(compilerBridgeWorkspace: os.Path) derives ReadWriter
+  case class Initialize(compilerBridgeWorkspace: os.Path, workspaceRoot: os.Path)
+      derives ReadWriter
 
   enum ReporterMode(val reportCachedProblems: Boolean) derives ReadWriter {
     case NoReporter extends ReporterMode(false)

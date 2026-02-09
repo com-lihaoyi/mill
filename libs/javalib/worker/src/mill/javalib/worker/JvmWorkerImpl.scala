@@ -4,7 +4,7 @@ import mill.api.daemon.*
 import mill.api.daemon.internal.{CompileProblemReporter, internal}
 import mill.client.{LaunchedServer, ServerLauncher}
 import mill.client.lock.{DoubleLock, Locks, MemoryLock}
-import mill.constants.DaemonFiles
+import mill.constants.{DaemonFiles, EnvVars}
 import mill.javalib.api.internal.*
 import mill.javalib.api.JvmWorkerArgs
 import mill.javalib.zinc.{ZincApi, ZincWorker}
@@ -28,11 +28,17 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
       reportCachedProblems: Boolean
   )(using ctx: InternalJvmWorkerApi.Ctx): op.Response = {
     val log = ctx.log
+    val workspaceRoot =
+      SerializedPathNormalizer.fromPotentiallyRelativeSerializedPath(mill.api.BuildCtx.workspaceRoot)
+    log.info(s"DEBUG jvmWorker ctx.dest=${ctx.dest.wrapped}")
+    log.info(s"DEBUG jvmWorker buildCtxWorkspaceRoot=${mill.api.BuildCtx.workspaceRoot.wrapped}")
+    log.info(s"DEBUG jvmWorker normalizedWorkspaceRoot=${workspaceRoot.wrapped}")
+    val taskDest = SerializedPathNormalizer.fromPotentiallyRelativeSerializedPath(ctx.dest, workspaceRoot)
     val zincCtx = ZincWorker.LocalConfig(
-      dest = ctx.dest,
+      dest = taskDest,
       logDebugEnabled = log.debugEnabled,
       logPromptColored = log.prompt.colored,
-      workspaceRoot = mill.api.BuildCtx.workspaceRoot
+      workspaceRoot = workspaceRoot
     )
 
     val zincApi =
@@ -89,15 +95,21 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
           internalKey: SubprocessZincApi.Key,
           init: SubprocessZincApi.Initialize
       ): SubprocessZincApi.Value = {
-        val workerDir = init.taskDest / "zinc-worker" / key.hashCode.toString
+        val taskDest =
+          SerializedPathNormalizer.fromPotentiallyRelativeSerializedPath(
+            init.taskDest,
+            init.workspaceRoot
+          )
+        val workerDir = taskDest / "zinc-worker" / key.hashCode.toString
         val daemonDir = workerDir / "daemon"
+        val daemonDirAbs = daemonDir.toIO.getAbsolutePath
 
         os.makeDir.all(daemonDir)
         os.write.over(workerDir / "java-home", key.javaHome.map(_.toString).getOrElse("<default>"))
         os.write.over(workerDir / "java-runtime-options", key.runtimeOptions.mkString("\n"))
 
         val mainClass = "mill.javalib.worker.MillJvmWorkerMain"
-        val baseLocks = Locks.forDirectory(daemonDir.toString, useFileLocks)
+        val baseLocks = Locks.forDirectory(daemonDirAbs, useFileLocks)
         val locks = {
           Locks(
             // File locks are non-reentrant, so we need to lock on the memory lock first.
@@ -118,10 +130,11 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
           () => {
             val process = Jvm.spawnProcess(
               mainClass = mainClass,
-              mainArgs = Seq(daemonDir.toString, jobs.toString, useFileLocks.toString),
+              mainArgs = Seq(daemonDirAbs, jobs.toString, useFileLocks.toString),
               javaHome = key.javaHome,
               jvmArgs = key.runtimeOptions ++ suppressArgs,
-              classPath = classPath
+              classPath = classPath,
+              env = Map(EnvVars.MILL_WORKSPACE_ROOT -> init.workspaceRoot.wrapped.toString)
             )
             LaunchedServer.OsProcess(process.wrapped.toHandle)
           },

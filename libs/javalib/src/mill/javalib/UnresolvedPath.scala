@@ -1,7 +1,7 @@
 package mill.javalib
 
 import mill.api.daemon.internal.UnresolvedPathApi
-import mill.api.{ExecutionPaths, Segment, Segments}
+import mill.api.{BuildCtx, ExecutionPaths, Segment, Segments}
 import upickle.{ReadWriter, macroRW}
 
 /**
@@ -15,7 +15,15 @@ sealed trait UnresolvedPath extends UnresolvedPathApi[os.Path] {
 }
 object UnresolvedPath {
   case class ResolvedPath private (path: String) extends UnresolvedPath {
-    override def resolve(outPath: os.Path): os.Path = os.Path(path)
+    override def resolve(outPath: os.Path): os.Path = {
+      if (path == "out/mill-workspace") BuildCtx.workspaceRoot
+      else if (path.startsWith("out/mill-workspace/"))
+        BuildCtx.workspaceRoot / os.RelPath(path.stripPrefix("out/mill-workspace/"))
+      else if (path == "out/mill-home") os.home
+      else if (path.startsWith("out/mill-home/"))
+        os.home / os.RelPath(path.stripPrefix("out/mill-home/"))
+      else os.Path(path, os.pwd)
+    }
   }
   object ResolvedPath {
     def apply(path: os.Path): ResolvedPath = ResolvedPath(path.toString)

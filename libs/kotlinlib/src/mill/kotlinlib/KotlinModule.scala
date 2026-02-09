@@ -341,14 +341,14 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
 
         val compilerArgs: Seq[String] = Seq(
           // destdir
-          Seq("-d", classes.toString()),
+          Seq("-d", classes.toIO.getAbsolutePath),
           // apply multi-platform support (expect/actual)
           // TODO if there is penalty for activating it in the compiler, put it behind configuration flag
           Seq("-Xmulti-platform"),
           // classpath
           when(compileCp.iterator.nonEmpty)(
             "-classpath",
-            compileCp.iterator.mkString(File.pathSeparator)
+            compileCp.iterator.map(_.toIO.getAbsolutePath).mkString(File.pathSeparator)
           ),
           when(kotlinExplicitApi())(
             "-Xexplicit-api=strict"
@@ -420,7 +420,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
   protected def mandatoryKotlincOptions: T[Seq[String]] = Task {
     val languageVersion = kotlinLanguageVersion()
     val kotlinkotlinApiVersion = kotlinApiVersion()
-    val plugins = kotlincPluginJars().map(_.path)
+    val plugins = kotlincPluginJars().map(_.path.toIO.getAbsolutePath)
 
     Seq("-no-stdlib") ++
       kotlinModuleNameOption() ++

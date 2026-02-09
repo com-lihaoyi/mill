@@ -492,9 +492,10 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // TODO may be optimized if there is a single folder for all modules
     // but may be problematic if modules use different NPM packages versions
     private def nodeModulesDir = Task(persistent = true) {
+      val localNpmCache = Task.dest / "npm-cache"
       os.call(
         cmd = Seq("npm", "install", "mocha@10.2.0", "source-map-support@0.5.21"),
-        env = Task.env,
+        env = Task.env ++ Map("npm_config_cache" -> localNpmCache.toString),
         cwd = Task.dest,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -557,8 +558,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
           // TODO this is valid only for the NodeJS target. Once browser support is
           //  added, need to have different argument handling
           "--require",
-          sourceMapSupportModule().path.toString(),
-          mochaModule().path.toString(),
+          sourceMapSupportModule().path.toIO.getAbsolutePath,
+          mochaModule().path.toIO.getAbsolutePath,
           "--timeout",
           testTimeout().toString,
           "--reporter",

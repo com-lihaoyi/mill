@@ -173,7 +173,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     val resolvedJars = defaultResolver().classpath(
       scalacPluginMvnDeps().map(_.exclude("*" -> "*"))
     )
-    resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
+    resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path.toIO.getAbsolutePath}").toSeq
   }
 
   /**
@@ -183,7 +183,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     val resolvedJars = defaultResolver().classpath(
       scalaDocPluginMvnDeps().map(_.exclude("*" -> "*"))
     )
-    resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
+    resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path.toIO.getAbsolutePath}").toSeq
   }
 
   /**

@@ -198,7 +198,14 @@ object PathRef {
     {
       case s"$prefix:$valid0:$hex:$pathString" if prefix == "ref" || prefix == "qref" =>
 
-        val path = os.Path(pathString)
+        val path =
+          if (pathString == "out/mill-workspace") BuildCtx.workspaceRoot
+          else if (pathString.startsWith("out/mill-workspace/"))
+            BuildCtx.workspaceRoot / os.RelPath(pathString.stripPrefix("out/mill-workspace/"))
+          else if (pathString == "out/mill-home") os.home
+          else if (pathString.startsWith("out/mill-home/"))
+            os.home / os.RelPath(pathString.stripPrefix("out/mill-home/"))
+          else os.Path(pathString, os.pwd)
         val quick = prefix match {
           case "qref" => true
           case "ref" => false
