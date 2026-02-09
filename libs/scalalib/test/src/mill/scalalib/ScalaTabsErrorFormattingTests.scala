@@ -44,7 +44,7 @@ object ScalaTabsErrorFormattingTests extends TestSuite {
             "\t\tval bad: Int = \"hello\"",
             "\t\t               ^",
             "type mismatch;",
-            """ found   : String("hello")""",
+            " found   : String(\"hello\")",
             " required: Int",
             "",
             "[error] one error found",
