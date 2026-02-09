@@ -1,2 +1,0 @@
-extends: JavaModule
-javacOptions: ["-Xlint:unchecked", "-Werror"]
