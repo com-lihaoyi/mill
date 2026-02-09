@@ -85,6 +85,7 @@ object MillProcessLauncher {
 
     val processEnv = env ++ Map(
       EnvVars.MILL_WORKSPACE_ROOT -> workDir.toString,
+      EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> workDir.toString,
       EnvVars.MILL_ENABLE_STATIC_CHECKS -> "true"
     ) ++ (
       if (env.contains(EnvVars.MILL_EXECUTABLE_PATH)) Map.empty

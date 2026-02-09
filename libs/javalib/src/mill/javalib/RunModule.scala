@@ -47,7 +47,8 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
    */
   def allForkEnv: T[Map[String, String]] = Task {
     javaHomePathForkEnv() ++ forkEnv() ++ Map(
-      EnvVars.MILL_WORKSPACE_ROOT -> BuildCtx.workspaceRoot.toString
+      EnvVars.MILL_WORKSPACE_ROOT -> BuildCtx.workspaceRoot.toString,
+      EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> BuildCtx.workspaceRoot.toString
     )
   }
 

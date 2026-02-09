@@ -28,15 +28,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
       reportCachedProblems: Boolean
   )(using ctx: InternalJvmWorkerApi.Ctx): op.Response = {
     val log = ctx.log
-    val workspaceRoot =
-      SerializedPathNormalizer.fromPotentiallyRelativeSerializedPath(
-        mill.api.BuildCtx.workspaceRoot
-      )
-    log.info(s"DEBUG jvmWorker ctx.dest=${ctx.dest.wrapped}")
-    log.info(s"DEBUG jvmWorker buildCtxWorkspaceRoot=${mill.api.BuildCtx.workspaceRoot.wrapped}")
-    log.info(s"DEBUG jvmWorker normalizedWorkspaceRoot=${workspaceRoot.wrapped}")
-    val taskDest =
-      SerializedPathNormalizer.fromPotentiallyRelativeSerializedPath(ctx.dest, workspaceRoot)
+    val workspaceRoot = mill.api.BuildCtx.workspaceRoot
+    val taskDest = ctx.dest
     val zincCtx = ZincWorker.LocalConfig(
       dest = taskDest,
       logDebugEnabled = log.debugEnabled,
@@ -98,11 +91,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
           internalKey: SubprocessZincApi.Key,
           init: SubprocessZincApi.Initialize
       ): SubprocessZincApi.Value = {
-        val taskDest =
-          SerializedPathNormalizer.fromPotentiallyRelativeSerializedPath(
-            init.taskDest,
-            init.workspaceRoot
-          )
+        val taskDest = init.taskDest
         val workerDir = taskDest / "zinc-worker" / key.hashCode.toString
         val daemonDir = workerDir / "daemon"
         val daemonDirAbs = daemonDir.toIO.getAbsolutePath
@@ -137,7 +126,10 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
               javaHome = key.javaHome,
               jvmArgs = key.runtimeOptions ++ suppressArgs,
               classPath = classPath,
-              env = Map(EnvVars.MILL_WORKSPACE_ROOT -> init.workspaceRoot.wrapped.toString)
+              env = Map(
+                EnvVars.MILL_WORKSPACE_ROOT -> init.workspaceRoot.wrapped.toString,
+                EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> init.workspaceRoot.wrapped.toString
+              )
             )
             LaunchedServer.OsProcess(process.wrapped.toHandle)
           },

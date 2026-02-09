@@ -23,42 +23,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import java.nio.file.Files
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.Path
-import java.nio.file.Paths
 
 class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWorkerApi {
   implicit val scope: Scope = Scope.forever
 
-  private def workspaceRootFrom(baseDir: Path): Path = {
-    val abs = baseDir.toAbsolutePath.normalize()
-    val idx = (0 until (abs.getNameCount - 1)).find { i =>
-      abs.getName(i).toString == "out" && abs.getName(i + 1).toString == "build"
-    }
-    idx match {
-      case Some(i) =>
-        val root = Option(abs.getRoot).getOrElse(Paths.get(""))
-        (0 until i).foldLeft(root) { (acc, j) =>
-          if (acc.toString.isEmpty) abs.getName(j)
-          else acc.resolve(abs.getName(j))
-        }
-      case None =>
-        Paths.get(System.getProperty("user.dir")).toAbsolutePath.normalize()
-    }
-  }
-
   private def resolvePathLike(path: Path, baseDir: Path): Path = {
-    val raw = path.toString
-    if (path.isAbsolute) path.toAbsolutePath.normalize()
-    else if (raw == "out/mill-workspace") workspaceRootFrom(baseDir)
-    else if (raw.startsWith("out/mill-workspace/"))
-      workspaceRootFrom(baseDir).resolve(raw.stripPrefix("out/mill-workspace/")).normalize()
-    else if (raw == "out/mill-home")
-      Paths.get(System.getProperty("user.home")).toAbsolutePath.normalize()
-    else if (raw.startsWith("out/mill-home/"))
-      Paths.get(System.getProperty("user.home"))
-        .resolve(raw.stripPrefix("out/mill-home/"))
-        .toAbsolutePath
-        .normalize()
-    else baseDir.resolve(path).normalize()
+    val deserialized = os.Path.pathSerializer.value.deserialize(path)
+    if (deserialized.isAbsolute) deserialized.toAbsolutePath.normalize()
+    else baseDir.resolve(deserialized).normalize()
   }
 
   def logger(level: NativeLogLevel): Logger = {

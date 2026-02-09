@@ -18,16 +18,11 @@ class JvmCompileBtApiImpl() extends Compiler {
 
   private def absolutizePathLike(path: String, workspaceRoot: os.Path): String = {
     if (path.isEmpty) path
-    else if (path == "out/mill-workspace") absString(workspaceRoot)
-    else if (path.startsWith("out/mill-workspace/"))
-      absString(workspaceRoot / os.RelPath(path.stripPrefix("out/mill-workspace/")))
-    else if (path == "out/mill-home") absString(os.home)
-    else if (path.startsWith("out/mill-home/"))
-      absString(os.home / os.RelPath(path.stripPrefix("out/mill-home/")))
     else {
       val nio = java.nio.file.Path.of(path)
-      if (nio.isAbsolute) path
-      else workspaceRoot.toIO.toPath.resolve(nio).normalize().toAbsolutePath.toString
+      val deserialized = os.Path.pathSerializer.value.deserialize(nio)
+      if (deserialized.isAbsolute) deserialized.toString
+      else workspaceRoot.toIO.toPath.resolve(deserialized).normalize().toAbsolutePath.toString
     }
   }
 

@@ -20,17 +20,9 @@ object CoursierClient {
     os.Path(OutFiles.OutFiles.outFor(outMode), os.pwd) / "mill-daemon" / "cache"
 
   private def fromPotentiallyRelativeSerializedPath(file: File): os.Path = {
-    if (file.isAbsolute) os.Path(file)
-    else {
-      val raw = file.getPath.replace('\\', '/')
-      if (raw == "out/mill-workspace") mill.api.BuildCtx.workspaceRoot
-      else if (raw.startsWith("out/mill-workspace/"))
-        mill.api.BuildCtx.workspaceRoot / os.RelPath(raw.stripPrefix("out/mill-workspace/"))
-      else if (raw == "out/mill-home") os.home
-      else if (raw.startsWith("out/mill-home/"))
-        os.home / os.RelPath(raw.stripPrefix("out/mill-home/"))
-      else os.Path(file, os.pwd)
-    }
+    val deserialized = os.Path.pathSerializer.value.deserialize(file.toPath)
+    if (deserialized.isAbsolute) os.Path(deserialized)
+    else os.Path(deserialized.toString, os.pwd)
   }
 
   /**

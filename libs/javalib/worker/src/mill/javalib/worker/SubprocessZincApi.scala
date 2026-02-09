@@ -33,18 +33,7 @@ class SubprocessZincApi(
     compilerBridge: ZincCompilerBridgeProvider
 ) extends ZincApi {
   val cacheKey = SubprocessZincApi.Key(javaHome, runtimeOptions)
-  private val compilerBridgeWorkspace =
-    SerializedPathNormalizer.fromPotentiallyRelativeSerializedPath(
-      compilerBridge.workspace,
-      ctx.workspaceRoot
-    )
-  log.info(s"DEBUG subprocessZinc ctx.workspaceRoot=${ctx.workspaceRoot.wrapped}")
-  log.info(
-    s"DEBUG subprocessZinc compilerBridge.workspace(raw)=${compilerBridge.workspace.wrapped}"
-  )
-  log.info(
-    s"DEBUG subprocessZinc compilerBridgeWorkspace(normalized)=${compilerBridgeWorkspace.wrapped}"
-  )
+  private val compilerBridgeWorkspace = compilerBridge.workspace
 
   def makeClientLogger() = new Logger.Actions {
     override def info(s: String): Unit = log.info(s)

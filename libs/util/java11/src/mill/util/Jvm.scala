@@ -27,21 +27,13 @@ import scala.util.chaining.scalaUtilChainingOps
  */
 object Jvm {
   private def fromPotentiallyRelativeSerializedPath(path: os.Path | java.io.File): os.Path = {
-    val file = path match {
-      case p: os.Path => p.toIO
-      case f: java.io.File => f
+    val nio = path match {
+      case p: os.Path => p.wrapped
+      case f: java.io.File => f.toPath
     }
-    if (file.isAbsolute) os.Path(file)
-    else {
-      val raw = file.toString
-      if (raw == "out/mill-workspace") BuildCtx.workspaceRoot
-      else if (raw.startsWith("out/mill-workspace/"))
-        BuildCtx.workspaceRoot / os.RelPath(raw.stripPrefix("out/mill-workspace/"))
-      else if (raw == "out/mill-home") os.home
-      else if (raw.startsWith("out/mill-home/"))
-        os.home / os.RelPath(raw.stripPrefix("out/mill-home/"))
-      else os.Path(file, os.pwd)
-    }
+    val deserialized = os.Path.pathSerializer.value.deserialize(nio)
+    if (deserialized.isAbsolute) os.Path(deserialized)
+    else os.Path(deserialized.toString, os.pwd)
   }
 
   /**
@@ -241,7 +233,7 @@ object Jvm {
       case _ => normalizedClassPath
     }
 
-    if (normalizedCwd != null) os.makeDir.all(normalizedCwd)
+    if (normalizedCwd != null && !os.exists(normalizedCwd)) os.makeDir.all(normalizedCwd)
 
     Vector(javaExe(normalizedJavaHome)) ++
       jvmArgs.value ++
