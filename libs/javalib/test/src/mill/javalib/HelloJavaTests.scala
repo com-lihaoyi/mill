@@ -269,7 +269,7 @@ object HelloJavaTests extends TestSuite {
             "compiling 1 Java source to out/core/compile.dest/classes ...",
             "[error] core/src/Core.java:<line>:11",
             "\t\tint i = 12345.6;",
-            "          ^^^^^^^",
+            "\t\t        ^^^^^^^",
             "incompatible types: possible lossy conversion from double to int",
             "",
             "[error] core/src/Core.java:<line>:13",

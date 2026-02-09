@@ -150,6 +150,15 @@ private object TransformingReporter {
           else endCol0
 
         val displayPointer0 = colNum - 1
+        val pointerPrefix =
+          if (displayPointer0 > 0 && lineContent0.nonEmpty)
+            lineContent0
+              .take(math.min(displayPointer0, lineContent0.length))
+              .map {
+                case '\t' => '\t'
+                case _ => ' '
+              }
+          else ""
         val pointerLength =
           if (isJavaFile && startOffset0 >= 0 && endOffset0 >= startOffset0)
             math.max(
@@ -178,6 +187,7 @@ private object TransformingReporter {
           lineContent,
           message,
           pointerLength,
+          pointerPrefix,
           shade
         )
     }
