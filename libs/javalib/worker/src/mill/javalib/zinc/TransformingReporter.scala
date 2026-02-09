@@ -133,11 +133,12 @@ private object TransformingReporter {
             ).render
           } else lineContent0
 
+        val plainLineContent0 = fansi.Str(lineContent0).plainText
         val plainLineLength = fansi.Str(lineContent).length
 
         val colNum =
-          if (isJavaFile && pointer0 >= 0 && lineContent0.nonEmpty)
-            visualToCodeColumn(lineContent0, pointer0 + 1)
+          if (isJavaFile && pointer0 >= 0 && plainLineContent0.nonEmpty)
+            visualToCodeColumn(plainLineContent0, pointer0 + 1)
           else pointer0 + 1
 
         val endCol =
@@ -145,9 +146,9 @@ private object TransformingReporter {
 
         val displayPointer0 = colNum - 1
         val pointerPrefix =
-          if (displayPointer0 > 0 && lineContent0.nonEmpty)
-            lineContent0
-              .take(math.min(displayPointer0, lineContent0.length))
+          if (displayPointer0 > 0 && plainLineContent0.nonEmpty)
+            plainLineContent0
+              .take(math.min(displayPointer0, plainLineContent0.length))
               .map {
                 case '\t' => '\t'
                 case _ => ' '

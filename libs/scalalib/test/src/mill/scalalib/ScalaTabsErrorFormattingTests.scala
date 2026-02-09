@@ -40,7 +40,7 @@ object ScalaTabsErrorFormattingTests extends TestSuite {
             "compiling 1 Scala source to out/core/compile.dest/classes ...",
             "[error] core/src/Main.scala:4:18",
             "\t\tval bad: Int = \"hello\"",
-            "    \t\t           ^^^^^^^",
+            "\t\t               ^^^^^^^",
             "Found:    (\"hello\" : String)",
             "Required: Int",
             "",
