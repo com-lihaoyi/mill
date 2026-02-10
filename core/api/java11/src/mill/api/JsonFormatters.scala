@@ -30,13 +30,29 @@ trait JsonFormatters {
         if (deserialized.isAbsolute) os.Path(deserialized)
         else {
           val raw = deserialized.toString.replace('\\', '/')
-          if (raw == "out/mill-workspace") BuildCtx.workspaceRoot
-          else if (raw.startsWith("out/mill-workspace/"))
-            BuildCtx.workspaceRoot / os.RelPath(raw.stripPrefix("out/mill-workspace/"))
-          else if (raw == "out/mill-home") os.home
-          else if (raw.startsWith("out/mill-home/"))
-            os.home / os.RelPath(raw.stripPrefix("out/mill-home/"))
-          else os.Path(deserialized, BuildCtx.workspaceRoot)
+          val workspaceAlias = "out/mill-workspace"
+          val homeAlias = "out/mill-home"
+
+          def resolveFromAlias(base: os.Path, aliasIdx: Int, alias: String): os.Path = {
+            val suffix = raw.substring(aliasIdx + alias.length).stripPrefix("/")
+            if (suffix.isEmpty) base else base / os.RelPath(suffix)
+          }
+
+          if (raw == workspaceAlias) BuildCtx.workspaceRoot
+          else if (raw.startsWith(workspaceAlias + "/"))
+            BuildCtx.workspaceRoot / os.RelPath(raw.stripPrefix(workspaceAlias + "/"))
+          else if (raw == homeAlias) os.home
+          else if (raw.startsWith(homeAlias + "/"))
+            os.home / os.RelPath(raw.stripPrefix(homeAlias + "/"))
+          else {
+            val workspaceIdx = raw.indexOf(workspaceAlias)
+            if (workspaceIdx >= 0) resolveFromAlias(BuildCtx.workspaceRoot, workspaceIdx, workspaceAlias)
+            else {
+              val homeIdx = raw.indexOf(homeAlias)
+              if (homeIdx >= 0) resolveFromAlias(os.home, homeIdx, homeAlias)
+              else os.Path(deserialized, BuildCtx.workspaceRoot)
+            }
+          }
         }
       }
     )

@@ -3,9 +3,41 @@ package mill.internal
 import java.nio.file.{Files, LinkOption}
 
 object MillPathSerializer {
+  private def resolveAliasedPath(path: os.Path, workspace: os.Path): os.Path = {
+    val nio = path.wrapped
+    if (nio.isAbsolute) path
+    else {
+      val raw = nio.toString.replace('\\', '/')
+      val workspaceAlias = "out/mill-workspace"
+      val homeAlias = "out/mill-home"
+
+      def resolveFromAlias(base: os.Path, aliasIdx: Int, alias: String): os.Path = {
+        val suffix = raw.substring(aliasIdx + alias.length).stripPrefix("/")
+        if (suffix.isEmpty) base else base / os.RelPath(suffix)
+      }
+
+      if (raw == workspaceAlias) workspace
+      else if (raw.startsWith(workspaceAlias + "/"))
+        workspace / os.RelPath(raw.stripPrefix(workspaceAlias + "/"))
+      else if (raw == homeAlias) os.home
+      else if (raw.startsWith(homeAlias + "/"))
+        os.home / os.RelPath(raw.stripPrefix(homeAlias + "/"))
+      else {
+        val workspaceIdx = raw.indexOf(workspaceAlias)
+        if (workspaceIdx >= 0) resolveFromAlias(workspace, workspaceIdx, workspaceAlias)
+        else {
+          val homeIdx = raw.indexOf(homeAlias)
+          if (homeIdx >= 0) resolveFromAlias(os.home, homeIdx, homeAlias)
+          else path
+        }
+      }
+    }
+  }
+
   def setupSymlinks(wd: os.Path, workspace: os.Path): Unit = {
+    val wd0 = resolveAliasedPath(wd, workspace)
     for ((base, link) <- defaultMapping(workspace)) {
-      val target = wd / link
+      val target = wd0 / link
       val targetNio = target.toNIO
       val parent = target / ".."
       val parentNio = parent.toNIO
@@ -20,18 +52,21 @@ object MillPathSerializer {
       } else {
         os.makeDir.all(parent)
 
-        if (Files.isSymbolicLink(targetNio)) {
-          val currentTarget = Files.readSymbolicLink(targetNio)
-          if (currentTarget != base.wrapped) {
-            os.remove(target)
+        try {
+          if (Files.isSymbolicLink(targetNio)) {
+            val currentTarget = Files.readSymbolicLink(targetNio)
+            if (currentTarget != base.wrapped) {
+              os.remove(target)
+              Files.createSymbolicLink(targetNio, base.wrapped)
+            }
+          } else if (!Files.exists(targetNio, LinkOption.NOFOLLOW_LINKS)) {
             Files.createSymbolicLink(targetNio, base.wrapped)
           }
-        } else if (Files.exists(targetNio, LinkOption.NOFOLLOW_LINKS)) {
-          throw new IllegalStateException(
-            s"Refusing to overwrite non-symlink path required for path serialization: $target"
-          )
-        } else {
-          Files.createSymbolicLink(targetNio, base.wrapped)
+          // If `target` already exists as a non-symlink, we cannot install the alias there.
+          // This alias setup is best-effort and must not fail task execution.
+        } catch {
+          case _: java.nio.file.FileSystemException =>
+          // Alias setup is best-effort; skip locations that cannot host symlinks.
         }
       }
     }

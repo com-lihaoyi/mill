@@ -199,13 +199,30 @@ object PathRef {
       case s"$prefix:$valid0:$hex:$pathString" if prefix == "ref" || prefix == "qref" =>
 
         val path =
-          if (pathString == "out/mill-workspace") BuildCtx.workspaceRoot
-          else if (pathString.startsWith("out/mill-workspace/"))
-            BuildCtx.workspaceRoot / os.RelPath(pathString.stripPrefix("out/mill-workspace/"))
-          else if (pathString == "out/mill-home") os.home
-          else if (pathString.startsWith("out/mill-home/"))
-            os.home / os.RelPath(pathString.stripPrefix("out/mill-home/"))
-          else os.Path(pathString, os.pwd)
+          {
+            val workspaceAlias = "out/mill-workspace"
+            val homeAlias = "out/mill-home"
+            def resolveFromAlias(base: os.Path, aliasIdx: Int, alias: String): os.Path = {
+              val suffix = pathString.substring(aliasIdx + alias.length).stripPrefix("/")
+              if (suffix.isEmpty) base else base / os.RelPath(suffix)
+            }
+
+            if (pathString == workspaceAlias) BuildCtx.workspaceRoot
+            else if (pathString.startsWith(workspaceAlias + "/"))
+              BuildCtx.workspaceRoot / os.RelPath(pathString.stripPrefix(workspaceAlias + "/"))
+            else if (pathString == homeAlias) os.home
+            else if (pathString.startsWith(homeAlias + "/"))
+              os.home / os.RelPath(pathString.stripPrefix(homeAlias + "/"))
+            else {
+              val workspaceIdx = pathString.indexOf(workspaceAlias)
+              if (workspaceIdx >= 0) resolveFromAlias(BuildCtx.workspaceRoot, workspaceIdx, workspaceAlias)
+              else {
+                val homeIdx = pathString.indexOf(homeAlias)
+                if (homeIdx >= 0) resolveFromAlias(os.home, homeIdx, homeAlias)
+                else os.Path(pathString, os.pwd)
+              }
+            }
+          }
         val quick = prefix match {
           case "qref" => true
           case "ref" => false

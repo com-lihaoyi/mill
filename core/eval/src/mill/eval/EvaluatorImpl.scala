@@ -46,11 +46,6 @@ final class EvaluatorImpl(
 
   MillPathSerializer.setupSymlinks(os.pwd, workspace)
 
-  private object SetupSymlinkSpawnHook extends (os.Path => Unit) {
-    def apply(p: os.Path): Unit = MillPathSerializer.setupSymlinks(p, workspace)
-    override def toString(): String = "SetupSymlinkSpawnHook"
-  }
-
   private def withPathSerialization[T](t: => T): T =
     os.Path.pathSerializer.withValue(millPathSerializer)(t)
 
@@ -219,7 +214,9 @@ final class EvaluatorImpl(
 
       val normalizedFileName = module.moduleCtx.fileName.replace('\\', '/')
       val isRootBuildFile =
-        normalizedFileName.endsWith("/mill-build/build.mill") ||
+        normalizedFileName == "mill-build/build.mill" ||
+          normalizedFileName.endsWith("/mill-build/build.mill") ||
+          normalizedFileName == "build.mill.yaml" ||
           normalizedFileName.endsWith("/build.mill.yaml")
 
       val millKeys = mill.constants.ConfigConstants.all()
@@ -304,8 +301,7 @@ final class EvaluatorImpl(
       logger: Logger = baseLogger,
       serialCommandExec: Boolean = false,
       selectiveExecution: Boolean = false
-  ): Evaluator.Result[T] = os.ProcessOps.spawnHook.withValue(SetupSymlinkSpawnHook) {
-    withPathSerialization {
+  ): Evaluator.Result[T] = withPathSerialization {
       val selectiveExecutionEnabled = selectiveExecution && !tasks.exists(_.isExclusiveCommand)
 
       val (selectedTasks, selectiveResults, maybeNewMetadata) =
@@ -405,7 +401,6 @@ final class EvaluatorImpl(
             evaluated
           )
       }
-    }
   }
 
   /**

@@ -14,8 +14,9 @@ object MillProcessLauncher {
     java.nio.file.Files.exists(link.toNIO, java.nio.file.LinkOption.NOFOLLOW_LINKS)
 
   private def ensureSymlink(link: os.Path, dest: os.Path): Unit = {
+    val destAbs = dest.wrapped.toAbsolutePath.normalize()
     if (!linkExists(link)) {
-      try os.symlink(link, dest)
+      try java.nio.file.Files.createSymbolicLink(link.toNIO, destAbs)
       catch {
         case _: java.nio.file.FileAlreadyExistsException =>
           // Another concurrent task/process may have created it between exists-check and symlink.

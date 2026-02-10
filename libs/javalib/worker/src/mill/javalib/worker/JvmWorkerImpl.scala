@@ -104,8 +104,9 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         def linkExists(link: os.Path): Boolean =
           java.nio.file.Files.exists(link.toNIO, java.nio.file.LinkOption.NOFOLLOW_LINKS)
         def ensureSymlink(link: os.Path, dest: os.Path): Unit = {
+          val destAbs = dest.wrapped.toAbsolutePath.normalize()
           if (!linkExists(link)) {
-            try os.symlink(link, dest)
+            try java.nio.file.Files.createSymbolicLink(link.toNIO, destAbs)
             catch {
               case _: java.nio.file.FileAlreadyExistsException =>
                 if (!linkExists(link)) throw new java.nio.file.FileAlreadyExistsException(link.toString)

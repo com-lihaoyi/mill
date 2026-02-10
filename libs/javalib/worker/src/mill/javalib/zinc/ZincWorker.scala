@@ -332,10 +332,12 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       processConfig: ZincWorker.ProcessConfig,
       workDir: os.Path
   ): Result[CompilationResult] = {
+    val effectiveWorkDir = resolvePossiblyAliasedPath(workDir, localConfig.workspaceRoot)
 
-    os.makeDir.all(workDir)
+    ensureRelativizerAliases(effectiveWorkDir, localConfig.workspaceRoot)
+    os.makeDir.all(effectiveWorkDir)
 
-    val classesDir = workDir / "classes"
+    val classesDir = effectiveWorkDir / "classes"
 
     if (localConfig.logDebugEnabled) {
       processConfig.log.debug(
@@ -383,7 +385,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
 
     val lookup = MockedLookup(analysisMap)
 
-    val store = fileAnalysisStore(workDir / zincCache)
+    val store = fileAnalysisStore(effectiveWorkDir / zincCache)
 
     // Fix jdk classes marked as binary dependencies, see https://github.com/com-lihaoyi/mill/pull/1904
     val converter = MappedFileConverter.empty
@@ -490,7 +492,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
 
       store.set(AnalysisContents.create(newResult.analysis(), newResult.setup()))
 
-      Result.Success(CompilationResult(workDir / zincCache, PathRef(classesDir)))
+      Result.Success(CompilationResult(effectiveWorkDir / zincCache, PathRef(classesDir)))
     } catch {
       case e: CompileFailed =>
         Result.Failure(e.toString)
@@ -520,9 +522,12 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       compilerClasspath: Seq[os.Path],
       compilerBridgeProvider: ZincCompilerBridgeProvider
   ): os.Path = {
-    val workingDir = compilerBridgeProvider.workspace / s"zinc-${Versions.zinc}" / scalaVersion
+    val compilerBridgeWorkspace =
+      resolvePossiblyAliasedPath(compilerBridgeProvider.workspace, BuildCtx.workspaceRoot)
+    ensureRelativizerAliases(os.pwd, compilerBridgeWorkspace)
+    val workingDir = compilerBridgeWorkspace / s"zinc-${Versions.zinc}" / scalaVersion
 
-    os.makeDir.all(compilerBridgeProvider.workspace / "compiler-bridge-locks")
+    os.makeDir.all(compilerBridgeWorkspace / "compiler-bridge-locks")
     val memoryLock = synchronized(
       compilerBridgeLocks.getOrElseUpdate(scalaVersion, new MemoryLock)
     )
@@ -534,7 +539,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
     val doubleLock = new DoubleLock(
       memoryLock,
       Lock.forDirectory(
-        (compilerBridgeProvider.workspace / "compiler-bridge-locks" / scalaVersion).toString,
+        (compilerBridgeWorkspace / "compiler-bridge-locks" / scalaVersion).toString,
         useFileLocks
       )
     )
@@ -546,7 +551,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
           compilerBridgeProvider.acquire(
             scalaVersion = scalaVersion,
             scalaOrganization = scalaOrganization
-          )
+          ).map(resolvePossiblyAliasedPath(_, BuildCtx.workspaceRoot))
 
         acquired match {
           case AcquireResult.Compiled(bridgeJar) => bridgeJar
@@ -695,23 +700,10 @@ object ZincWorker {
       case f => f
     }
 
-    def normalizeVirtualFile(file: VirtualFileRef): VirtualFileRef = file match {
-      case mapped: MappedVirtualFile =>
-        MappedVirtualFile(
-          os.Path.pathSerializer.value.serializeString(os.Path(mapped.toPath(), os.pwd)),
-          Map()
-        )
-      case pathBased: PathBasedFile =>
-        MappedVirtualFile(
-          os.Path.pathSerializer.value.serializeString(os.Path(pathBased.toPath, os.pwd)),
-          Map()
-        )
-      case f => f
-    }
+    def normalizeVirtualFile(file: VirtualFileRef): VirtualFileRef = file
 
     def denormalizeNioPath(p: java.nio.file.Path): java.nio.file.Path = denormalizePath(p)
-    def normalizeNioPath(p: java.nio.file.Path): java.nio.file.Path =
-      os.Path.pathSerializer.value.serializePath(os.Path(p, os.pwd))
+    def normalizeNioPath(p: java.nio.file.Path): java.nio.file.Path = p
     def normalizeString(s: String): String = s
     def denormalizeString(s: String): String = s
 
@@ -763,5 +755,65 @@ object ZincWorker {
       // No need to utilize more than 8 cores to serialize a small file
       parallelism = math.min(Runtime.getRuntime.availableProcessors(), 8)
     )
+  }
+
+  private def resolvePossiblyAliasedPath(path: os.Path, workspaceRoot: os.Path): os.Path = {
+    val workspaceFromEnv = sys.env.get("MILL_WORKSPACE_ROOT")
+      .map(p => os.Path(p, os.pwd))
+      .getOrElse(workspaceRoot)
+    val workspaceAbs = os.Path(workspaceFromEnv.wrapped.toAbsolutePath.normalize())
+    val homeAbs = os.Path(os.home.wrapped.toAbsolutePath.normalize())
+    val nio = path.wrapped
+    if (nio.isAbsolute) path
+    else {
+      val raw = nio.toString.replace('\\', '/')
+      val workspaceAlias = "out/mill-workspace"
+      val homeAlias = "out/mill-home"
+
+      def resolveFromAlias(base: os.Path, aliasIdx: Int, alias: String): os.Path = {
+        val suffix = raw.substring(aliasIdx + alias.length).stripPrefix("/")
+        if (suffix.isEmpty) base else base / os.RelPath(suffix)
+      }
+
+      if (raw == workspaceAlias) workspaceAbs
+      else if (raw.startsWith(workspaceAlias + "/"))
+        workspaceAbs / os.RelPath(raw.stripPrefix(workspaceAlias + "/"))
+      else if (raw == homeAlias) homeAbs
+      else if (raw.startsWith(homeAlias + "/"))
+        homeAbs / os.RelPath(raw.stripPrefix(homeAlias + "/"))
+      else {
+        val workspaceIdx = raw.indexOf(workspaceAlias)
+        if (workspaceIdx >= 0) resolveFromAlias(workspaceAbs, workspaceIdx, workspaceAlias)
+        else {
+          val homeIdx = raw.indexOf(homeAlias)
+          if (homeIdx >= 0) resolveFromAlias(homeAbs, homeIdx, homeAlias)
+          else os.Path(raw, os.pwd)
+        }
+      }
+    }
+  }
+
+  private def ensureRelativizerAliases(base: os.Path, workspaceRoot: os.Path): Unit = {
+    val base0 = resolvePossiblyAliasedPath(base, workspaceRoot)
+    val out = base0 / "out"
+    os.makeDir.all(out)
+
+    def ensureSymlink(link: os.Path, dest: os.Path): Unit = {
+      val nio = link.toNIO
+      if (!java.nio.file.Files.exists(nio, java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
+        try {
+          java.nio.file.Files.createSymbolicLink(
+            nio,
+            dest.wrapped.toAbsolutePath.normalize()
+          )
+        } catch {
+          case _: java.nio.file.FileAlreadyExistsException => ()
+          case _: java.nio.file.FileSystemException => ()
+        }
+      }
+    }
+
+    ensureSymlink(out / "mill-workspace", workspaceRoot)
+    ensureSymlink(out / "mill-home", os.home)
   }
 }

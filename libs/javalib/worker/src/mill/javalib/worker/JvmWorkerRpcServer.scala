@@ -35,7 +35,38 @@ class JvmWorkerRpcServer(
       clientStderr: RpcConsole,
       serverToClient: MillRpcChannel[ServerToClient]
   ): MillRpcChannel[JvmWorkerRpcServer.Request] = setIdle.doWork {
-    val compilerBridgeWorkspace = initialize.compilerBridgeWorkspace
+    val workspaceRoot = os.Path(initialize.workspaceRoot.wrapped.toAbsolutePath.normalize())
+    def normalizePath(path: os.Path): os.Path = {
+      val nio = path.wrapped
+      if (nio.isAbsolute) os.Path(nio.toAbsolutePath.normalize())
+      else {
+        val raw = nio.toString.replace('\\', '/')
+        val workspaceAlias = "out/mill-workspace"
+        val homeAlias = "out/mill-home"
+
+        def resolveFromAlias(base: os.Path, aliasIdx: Int, alias: String): os.Path = {
+          val suffix = raw.substring(aliasIdx + alias.length).stripPrefix("/")
+          if (suffix.isEmpty) base else base / os.RelPath(suffix)
+        }
+
+        if (raw == workspaceAlias) workspaceRoot
+        else if (raw.startsWith(workspaceAlias + "/"))
+          workspaceRoot / os.RelPath(raw.stripPrefix(workspaceAlias + "/"))
+        else if (raw == homeAlias) os.home
+        else if (raw.startsWith(homeAlias + "/"))
+          os.home / os.RelPath(raw.stripPrefix(homeAlias + "/"))
+        else {
+          val workspaceIdx = raw.indexOf(workspaceAlias)
+          if (workspaceIdx >= 0) resolveFromAlias(workspaceRoot, workspaceIdx, workspaceAlias)
+          else {
+            val homeIdx = raw.indexOf(homeAlias)
+            if (homeIdx >= 0) resolveFromAlias(os.home, homeIdx, homeAlias)
+            else os.Path(raw, os.pwd)
+          }
+        }
+      }
+    }
+    val compilerBridgeWorkspace = normalizePath(initialize.compilerBridgeWorkspace)
 
     // This is an ugly hack. `ConsoleOut` is sealed, but we need to provide a way to send these logs to the Mill server
     // over RPC, so we hijack `PrintStream` by overriding the methods that `ConsoleOut` uses.
@@ -58,11 +89,16 @@ class JvmWorkerRpcServer(
     new MillRpcChannel[JvmWorkerRpcServer.Request] {
       override def apply(input: JvmWorkerRpcServer.Request): input.Response = {
         setIdle.doWork {
+          val normalizedCtx = input.ctx.copy(
+            dest = normalizePath(input.ctx.dest),
+            workspaceRoot = normalizePath(input.ctx.workspaceRoot)
+          )
+          val normalizedBridge = input.compilerBridge.map(_.map(normalizePath))
           worker.apply(
             op = input.op,
             reporter = reporterAsOption(input.reporterMode),
             reportCachedProblems = input.reporterMode.reportCachedProblems,
-            input.ctx,
+            normalizedCtx,
             ZincWorker.ProcessConfig(
               log,
               consoleOut,
@@ -70,7 +106,7 @@ class JvmWorkerRpcServer(
                 workspace = compilerBridgeWorkspace,
                 logInfo = log.info,
                 acquire = (scalaVersion, scalaOrganization) =>
-                  input.compilerBridge.getOrElse {
+                  normalizedBridge.getOrElse {
                     throw new IllegalStateException(
                       s"Missing compiler bridge for $scalaOrganization:$scalaVersion."
                     )

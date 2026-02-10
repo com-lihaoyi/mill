@@ -7,6 +7,7 @@ import mill.util.Jvm
 import mill.api.internal.Util
 import mill.Task
 import sbt.testing.Status
+import mill.constants.EnvVars
 
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -154,11 +155,17 @@ final class TestModuleUtil(
     ensureRelativizerAliases(sandbox)
 
     val proc = BuildCtx.withFilesystemCheckerDisabled {
+      val workspaceAbs = BuildCtx.workspaceRoot.wrapped.toAbsolutePath.normalize().toString
+      val homeAbs = os.home.wrapped.toAbsolutePath.normalize().toString
+      val millForkEnv = Map(
+        EnvVars.MILL_WORKSPACE_ROOT -> workspaceAbs,
+        EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> s"$workspaceAbs,out/mill-workspace;$homeAbs,out/mill-home"
+      )
       Jvm.spawnProcess(
         mainClass = "mill.javalib.testrunner.entrypoint.MillTestRunnerMain",
         classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
-        env = (if (propagateEnv) Task.env else Map()) ++ forkEnv,
+        env = (if (propagateEnv) Task.env else Map()) ++ forkEnv ++ millForkEnv,
         mainArgs = Seq(testRunnerClasspathArg, argsFile.wrapped.toString),
         cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
         cpPassingJarPath = Option.when(useArgsFile)(
@@ -197,8 +204,9 @@ final class TestModuleUtil(
       java.nio.file.Files.exists(link.toNIO, java.nio.file.LinkOption.NOFOLLOW_LINKS)
 
     def ensureSymlink(link: os.Path, dest: os.Path): Unit = {
+      val destAbs = dest.wrapped.toAbsolutePath.normalize()
       if (!linkExists(link)) {
-        try os.symlink(link, dest)
+        try java.nio.file.Files.createSymbolicLink(link.toNIO, destAbs)
         catch {
           case _: java.nio.file.FileAlreadyExistsException =>
             if (!linkExists(link)) throw new java.nio.file.FileAlreadyExistsException(link.toString)

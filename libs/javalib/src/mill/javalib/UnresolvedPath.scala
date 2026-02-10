@@ -16,13 +16,28 @@ sealed trait UnresolvedPath extends UnresolvedPathApi[os.Path] {
 object UnresolvedPath {
   case class ResolvedPath private (path: String) extends UnresolvedPath {
     override def resolve(outPath: os.Path): os.Path = {
-      if (path == "out/mill-workspace") BuildCtx.workspaceRoot
-      else if (path.startsWith("out/mill-workspace/"))
-        BuildCtx.workspaceRoot / os.RelPath(path.stripPrefix("out/mill-workspace/"))
-      else if (path == "out/mill-home") os.home
-      else if (path.startsWith("out/mill-home/"))
-        os.home / os.RelPath(path.stripPrefix("out/mill-home/"))
-      else os.Path(path, os.pwd)
+      val workspaceAlias = "out/mill-workspace"
+      val homeAlias = "out/mill-home"
+      def resolveFromAlias(base: os.Path, aliasIdx: Int, alias: String): os.Path = {
+        val suffix = path.substring(aliasIdx + alias.length).stripPrefix("/")
+        if (suffix.isEmpty) base else base / os.RelPath(suffix)
+      }
+
+      if (path == workspaceAlias) BuildCtx.workspaceRoot
+      else if (path.startsWith(workspaceAlias + "/"))
+        BuildCtx.workspaceRoot / os.RelPath(path.stripPrefix(workspaceAlias + "/"))
+      else if (path == homeAlias) os.home
+      else if (path.startsWith(homeAlias + "/"))
+        os.home / os.RelPath(path.stripPrefix(homeAlias + "/"))
+      else {
+        val workspaceIdx = path.indexOf(workspaceAlias)
+        if (workspaceIdx >= 0) resolveFromAlias(BuildCtx.workspaceRoot, workspaceIdx, workspaceAlias)
+        else {
+          val homeIdx = path.indexOf(homeAlias)
+          if (homeIdx >= 0) resolveFromAlias(os.home, homeIdx, homeAlias)
+          else os.Path(path, os.pwd)
+        }
+      }
     }
   }
   object ResolvedPath {
