@@ -10,14 +10,16 @@ object `package` extends JavaModule {
 
   // Auto-generate JNI `.h` files from Java classes using Javac
   def nativeHeaders = Task {
+    val sources = allSourceFiles().map(_.path.wrapped.toAbsolutePath.normalize().toString)
+    val destAbs = Task.dest.wrapped.toAbsolutePath.normalize().toString
     os.call(
       cmd = (
         Jvm.jdkTool("javac"),
         "-h",
-        Task.dest,
+        destAbs,
         "-d",
-        Task.dest.toString,
-        allSourceFiles().map(_.path)
+        destAbs,
+        sources
       )
     )
     PathRef(Task.dest)

@@ -10,6 +10,7 @@ import mill.util.Jvm
  * The official `jlink` docs: https://docs.oracle.com/en/java/javase/23/docs/specs/man/jlink.html
  */
 trait JlinkModule extends JavaModule {
+  private def abs(path: os.Path): String = path.wrapped.toAbsolutePath.normalize().toString
 
   /** The base name for the runtime image */
   def jlinkImageName: T[String] = Task { "jlink" }
@@ -51,7 +52,7 @@ trait JlinkModule extends JavaModule {
       dest
     }
 
-    val classPath = jars.map(_.toString).mkString(sys.props("path.separator"))
+    val classPath = jars.map(abs).mkString(sys.props("path.separator"))
     val args = {
       val baseArgs = Seq(
         Jvm.jdkTool("jmod", javaHome().map(_.path)),
@@ -62,7 +63,7 @@ trait JlinkModule extends JavaModule {
         mainClass,
         "--module-path",
         classPath.toString,
-        outputPath.toString
+        abs(outputPath)
       )
 
       val versionArgs = jlinkModuleVersion().toSeq.flatMap { version =>
@@ -78,7 +79,7 @@ trait JlinkModule extends JavaModule {
 
   /** Builds a custom runtime image using jlink */
   def jlinkAppImage: T[PathRef] = Task {
-    val modulePath = jmodPackage().path.toString
+    val modulePath = abs(jmodPackage().path)
     val outputPath = Task.dest / "jlink-runtime"
 
     val args = Seq(
@@ -90,7 +91,7 @@ trait JlinkModule extends JavaModule {
       "--add-modules",
       jlinkModuleName(),
       "--output",
-      outputPath.toString,
+      abs(outputPath),
       "--compress",
       jlinkCompressLevel().toString,
       "--no-header-files",

@@ -41,13 +41,9 @@ final class EvaluatorImpl(
       new ScriptModuleInit()
     )
   override val staticBuildOverrides = execution.staticBuildOverrides
-  private val millPathSerializer =
-    new MillPathSerializer(MillPathSerializer.defaultMapping(workspace))
-
   MillPathSerializer.setupSymlinks(os.pwd, workspace)
 
-  private def withPathSerialization[T](t: => T): T =
-    os.Path.pathSerializer.withValue(millPathSerializer)(t)
+  private def withPathSerialization[T](t: => T): T = t
 
   def workspace = execution.workspace
   def baseLogger = execution.baseLogger

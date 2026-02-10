@@ -6,15 +6,18 @@ import mill.api.daemon.internal.internal
 
   def apply(args0: mill.javalib.api.internal.ZincOp.DiscoverJunit5Tests): Seq[String] = {
     import args0.*
+    val normalizedRunCp = runCp.map(PathNormalization.normalizePath)
+    val normalizedTestCp = testCp.map(PathNormalization.normalizePath)
+    val normalizedClassesDir = classesDir.map(PathNormalization.normalizePath)
     mill.util.Jvm.withClassLoader(
-      classPath = runCp,
+      classPath = normalizedRunCp,
       sharedPrefixes = Seq("sbt.testing.")
     ) { classLoader =>
       val builderClass: Class[?] =
         classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Builder")
       val builder = builderClass.getConstructor().newInstance()
 
-      classesDir.foreach { path =>
+      normalizedClassesDir.foreach { path =>
         builderClass.getMethod("withClassDirectory", classOf[java.io.File]).invoke(
           builder,
           path.wrapped.toFile
@@ -23,7 +26,7 @@ import mill.api.daemon.internal.internal
 
       builderClass.getMethod("withRuntimeClassPath", classOf[Array[java.net.URL]]).invoke(
         builder,
-        testCp.map(_.toURL).toArray
+        normalizedTestCp.map(_.toURL).toArray
       )
       builderClass.getMethod("withClassLoader", classOf[ClassLoader]).invoke(builder, classLoader)
 

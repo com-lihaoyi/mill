@@ -33,7 +33,7 @@ trait IntegrationTesterBase {
    * non-deterministic interference and flakiness
    */
   val workspacePath: os.Path = {
-    if (sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")) baseWorkspacePath
+    if (useSharedOutputDir) baseWorkspacePath
     else Iterator
       .iterate(1)(_ + 1)
       .map(i => baseWorkspacePath / s"run-$i")
@@ -49,7 +49,7 @@ trait IntegrationTesterBase {
   def initWorkspace(): Unit = {
     println(s"Preparing integration test in $workspacePath")
     os.makeDir.all(workspacePath)
-    if (!sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")) {
+    if (!useSharedOutputDir) {
       Retry(logger = Retry.printStreamLogger(System.err)) {
         val tmp = os.temp.dir()
         val outDir = os.Path(out, workspacePath)
@@ -64,18 +64,8 @@ trait IntegrationTesterBase {
       for (p <- os.list(workspacePath) if p.last != "out") os.remove.all(p)
     }
 
-    val outRelPathOpt = os.FilePath(out) match {
-      case relPath: os.RelPath if relPath.ups == 0 => Some(relPath)
-      case _ => None
-    }
-
     os.list(workspaceSourcePath)
-      .filter(
-        outRelPathOpt match {
-          case None => _ => true
-          case Some(outRelPath) => !_.endsWith(outRelPath)
-        }
-      )
+      .filterNot(_.last == out)
       .foreach(os.copy.into(_, workspacePath))
 
     // When build.mill.yaml exists and build.mill contains no Scala/Yaml chunks
@@ -96,14 +86,14 @@ trait IntegrationTesterBase {
 
     // In case someone manually ran stuff in the integration test workspace earlier,
     // remove any leftover `out/` folder so it does not interfere with the test
-    if (!sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")) os.remove.all(workspacePath / "out")
+    if (!useSharedOutputDir) os.remove.all(workspacePath / "out")
   }
 
   /**
    * Remove any ID files to try and force them to exit
    */
   def removeProcessIdFile(): Unit = {
-    if (!sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")) {
+    if (!useSharedOutputDir) {
       val outDir = os.Path(out, workspacePath)
       if (os.exists(outDir) && cleanupProcessIdFile) {
         if (daemonMode) {
@@ -120,3 +110,6 @@ trait IntegrationTesterBase {
     }
   }
 }
+  private def useSharedOutputDir: Boolean =
+    sys.env.get("MILL_TEST_USE_IN_MEMORY").contains("1") &&
+      sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")

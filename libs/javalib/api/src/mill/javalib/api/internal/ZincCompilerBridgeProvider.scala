@@ -22,10 +22,7 @@ case class ZincCompilerBridgeProvider(
 @internal
 object ZincCompilerBridgeProvider {
   private def resolvePossiblyAliasedPath(path: os.Path): os.Path = {
-    val workspaceRoot = sys.env.get("MILL_WORKSPACE_ROOT")
-      .map(p => os.Path(p, os.pwd))
-      .getOrElse(mill.api.BuildCtx.workspaceRoot)
-    val workspaceAbs = os.Path(workspaceRoot.wrapped.toAbsolutePath.normalize())
+    val workspaceAbs = os.Path(mill.api.BuildCtx.workspaceRoot.wrapped.toAbsolutePath.normalize())
     val homeAbs = os.Path(os.home.wrapped.toAbsolutePath.normalize())
     val nio = path.wrapped
     if (nio.isAbsolute) path

@@ -149,7 +149,7 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
       }
 
       // https://github.com/palantir/palantir-java-format/blob/dae9be4b84e2bd4d7ea346c6374fda47eee7118f/palantir-java-format/src/main/java/com/palantir/javaformat/java/CommandLineOptionsParser.java#L49
-      args ++= sourceFiles.map(_.toString)
+      args ++= sourceFiles.map(_.wrapped.toAbsolutePath.normalize().toString)
 
       args.result()
     }

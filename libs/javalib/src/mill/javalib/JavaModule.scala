@@ -928,7 +928,6 @@ trait JavaModule
     ) ++ javacOptions() ++ mandatoryJavacOptions() ++ annotationProcessorsJavacOptions())
 
     val worker = jvmWorker().internalWorker()
-
     worker.apply(
       ZincOp.CompileJava(
         upstreamCompileOutput = upstreamCompileOutput(),

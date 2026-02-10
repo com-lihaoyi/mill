@@ -44,11 +44,22 @@ object Jvm {
       case p: os.Path => p.wrapped
       case f: java.io.File => f.toPath
     }
-    val deserialized = os.Path.pathSerializer.value.deserialize(nio)
-    if (deserialized.isAbsolute) os.Path(deserialized)
+    if (nio.isAbsolute) {
+      withUnmangledPathSerialization {
+        os.Path(nio.toAbsolutePath.normalize())
+      }
+    }
     else {
-      val absPwd = os.Path(os.pwd.wrapped.toAbsolutePath.normalize())
-      os.Path(deserialized.toString, absPwd)
+      val deserialized = os.Path.pathSerializer.value.deserialize(nio)
+      if (deserialized.isAbsolute) {
+        withUnmangledPathSerialization {
+          os.Path(deserialized.toAbsolutePath.normalize())
+        }
+      }
+      else {
+        val absPwd = os.Path(os.pwd.wrapped.toAbsolutePath.normalize())
+        os.Path(deserialized.toString, absPwd)
+      }
     }
   }
 
@@ -379,13 +390,25 @@ object Jvm {
       sharedLoader: ClassLoader = getClass.getClassLoader,
       sharedPrefixes: Iterable[String] = Seq(),
       label: String = null
-  )(using e: sourcecode.Enclosing): MillURLClassLoader = MillURLClassLoader(
-    classPath.map(_.toNIO),
-    parent,
-    sharedLoader,
-    sharedPrefixes,
-    Option(label).getOrElse(e.value)
-  )
+  )(using e: sourcecode.Enclosing): MillURLClassLoader = {
+    val absPwd = os.pwd.wrapped.toAbsolutePath.normalize()
+    val normalizedClassPath = classPath.iterator.map { p =>
+      val nio = p.wrapped
+      if (nio.isAbsolute) nio.toAbsolutePath.normalize()
+      else {
+        val deserialized = os.Path.pathSerializer.value.deserialize(nio)
+        if (deserialized.isAbsolute) deserialized.toAbsolutePath.normalize()
+        else absPwd.resolve(deserialized).normalize()
+      }
+    }.toSeq
+    MillURLClassLoader(
+      normalizedClassPath,
+      parent,
+      sharedLoader,
+      sharedPrefixes,
+      Option(label).getOrElse(e.value)
+    )
+  }
 
   /**
    * @param classPath URLs from which to load classes and resources

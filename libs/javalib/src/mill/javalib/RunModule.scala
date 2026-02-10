@@ -97,7 +97,8 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
       case Some(m) => Right(m)
       case None =>
         allLocalMainClasses() match {
-          case Seq() => Left("No main class specified or found")
+          case Seq() =>
+            Left("No main class specified or found")
           case Seq(main) => Right(main)
           case mains =>
             Left(
