@@ -14,7 +14,6 @@ import java.util.UUID
 import scala.util.chaining.scalaUtilChainingOps
 
 class JvmCompileBtApiImpl() extends Compiler {
-  private def absString(p: os.Path): String = p.toIO.getAbsolutePath
 
   private def absolutizePathLike(path: String, workspaceRoot: os.Path): String = {
     if (path.isEmpty) path

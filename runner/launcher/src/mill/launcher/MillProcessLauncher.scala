@@ -128,7 +128,10 @@ object MillProcessLauncher {
     ensureAliases(workDir, workDir)
 
     val workspaceRootEnv =
-      env.getOrElse(EnvVars.MILL_WORKSPACE_ROOT, workDir.wrapped.toAbsolutePath.normalize().toString)
+      env.getOrElse(
+        EnvVars.MILL_WORKSPACE_ROOT,
+        workDir.wrapped.toAbsolutePath.normalize().toString
+      )
     val relativizerBaseEnv =
       env.getOrElse(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE, relativizerEnv(workDir))
     val processEnv = env ++ Map(
