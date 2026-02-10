@@ -190,7 +190,8 @@ val dummyDeps: Seq[Dep] = Seq(
   Deps.TestDeps.scalaTest,
   Deps.TestDeps.zioTest,
   Deps.acyclic,
-  mvn"io.get-coursier.jvm.indices:index-darwin-arm64:${Deps.coursierJvmIndexVersion}"
+  mvn"io.get-coursier.jvm.indices:index-darwin-arm64:${Deps.coursierJvmIndexVersion}",
+  mvn"io.get-coursier.jvm.indices:index-linux-amd64:${Deps.coursierJvmIndexVersion}"
 ) ++ Deps.transitiveDeps ++ Deps.RuntimeDeps.updateable
 
 implicit object DepSegment extends Cross.ToSegments[Dep]({ dep =>
