@@ -110,6 +110,7 @@ object Deps {
   val castor = mvn"com.lihaoyi::castor:0.3.0"
   val fastparse = mvn"com.lihaoyi::fastparse:3.1.1"
   val flywayCore = mvn"org.flywaydb:flyway-core:11.8.2"
+  val jibCore = mvn"com.google.cloud.tools:jib-core:0.27.2"
   val graphvizJava = Seq(
     mvn"guru.nidi:graphviz-java-min-deps:0.18.1",
     mvn"org.webjars.npm:viz.js-graphviz-java:2.1.3",

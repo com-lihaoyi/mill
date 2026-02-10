@@ -190,6 +190,7 @@ object `package` extends mill.Module {
 
   object docker extends ContribModule {
     def compileModuleDeps = Seq(build.libs.javalib)
+    def mvnDeps = Seq(Deps.jibCore)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.javalib)
   }
 

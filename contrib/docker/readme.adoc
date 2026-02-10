@@ -3,7 +3,9 @@
 
 Automatically build docker images from your mill project.
 
-Requires the docker CLI to be installed.
+By default, images are built using https://github.com/GoogleContainerTools/jib[Jib],
+which does not require a Docker daemon or CLI. To use the classic Dockerfile-based
+approach, extend `ClassicDockerConfig` instead of `DockerConfig`.
 
 In the simplest configuration just extend `DockerModule` and declare a `DockerConfig` object.
 
@@ -32,7 +34,9 @@ $ docker run foo
 
 == Configuration
 
-Configure the image by overriding tasks in the `DockerConfig` object
+Configure the image by overriding tasks in the `DockerConfig` object.
+
+=== Shared options (both Jib and Dockerfile modes)
 
 [source,scala]
 ----
@@ -42,33 +46,68 @@ object docker extends DockerConfig {
 
   def baseImage = "openjdk:11"
 
-  // Configure whether the docker build should check the remote registry for a new version of the base image before building.
-  // By default this is true if the base image is using a latest tag
-  def pullBaseImage = true
-  // Add container metadata via the LABEL instruction
+  // Add container metadata via labels
   def labels = Map("version" -> "1.0")
   // TCP ports the container will listen to
   def exposedPorts = Seq(8080, 443)
   // UDP ports the container will listen to
   def exposedUdpPorts = Seq(80)
-  // The names of mount points, these will be translated to VOLUME instructions
-  def volumes = Seq("/v1", "/v2")
-  // Environment variables to be set in the container (ENV instructions)
+  // Environment variables to be set in the container
   def envVars = Map("foo" -> "bar", "foobar" -> "barfoo")
   // JVM runtime options such as heap size settings
   def jvmOptions = Seq("-Xmx1024M", "-XX:+HeapDumpOnOutOfMemoryError")
-  // Add RUN instructions
+  // User to use when running the image
+  def user = "new-user"
+  // Target platform (e.g. "linux/amd64"); used by both Jib and buildx
+  def platform = "linux/arm64"
+}
+----
+
+=== Jib-specific options
+
+Jib is the default backend (`DockerConfig`). It builds images without requiring a Docker daemon.
+
+[source,scala]
+----
+object docker extends DockerConfig {
+  // Source image (defaults to RegistryImage from baseImage)
+  def jibSourceImage = JibImage.RegistryImage("openjdk:17")
+  // Target image (defaults to DockerDaemonImage from first tag)
+  def jibTargetImage = JibImage.RegistryImage("myregistry.com/myapp")
+  // Image format: JibImageFormat.Docker (default) or JibImageFormat.OCI
+  def jibImageFormat = JibImageFormat.OCI
+  // Custom entrypoint (overrides Jib's default Java entrypoint)
+  def entrypoint = Seq("/bin/sh", "-c", "java -jar /app.jar")
+  // Program arguments passed to the main class
+  def jibProgramArgs = Seq("--server.port=8080")
+  // Allow insecure registries
+  def allowInsecureRegistries = true
+}
+----
+
+The `getJavaBuilder` and `getJibBuilder` tasks can be overridden for advanced
+customization of the Jib container builder.
+
+=== Dockerfile-based builds (ClassicDockerConfig)
+
+Extend `ClassicDockerConfig` instead of `DockerConfig` to use the classic
+Dockerfile-based approach. This requires a Docker CLI to be installed.
+
+[source,scala]
+----
+object docker extends ClassicDockerConfig {
+  // Configure whether the docker build should check the remote registry for a new version
+  // of the base image before building. By default true if the base image uses a latest tag.
+  def pullBaseImage = true
+  // The names of mount points (not supported by Jib)
+  def volumes = Seq("/v1", "/v2")
+  // Add RUN instructions (not supported by Jib)
   def run = Seq(
     "/bin/bash -c 'echo Hello World!'",
     "useradd -ms /bin/bash new-user"
   )
-  // User to use when running the image
-  def user = "new-user"
-  // Optionally override the docker executable to use something else
+  // Optionally override the docker executable
   def executable = "podman"
-  // If the executable is docker (which is also the default), you can optionally also pass a platform parameter
-  // docker buildx is then used to build multi-platform images
-  def platform = "linux/arm64"
 }
 ----
 
