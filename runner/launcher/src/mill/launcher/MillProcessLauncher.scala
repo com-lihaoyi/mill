@@ -10,6 +10,20 @@ import java.util.UUID
 import scala.jdk.CollectionConverters._
 
 object MillProcessLauncher {
+  private def linkExists(link: os.Path): Boolean =
+    java.nio.file.Files.exists(link.toNIO, java.nio.file.LinkOption.NOFOLLOW_LINKS)
+
+  private def ensureSymlink(link: os.Path, dest: os.Path): Unit = {
+    if (!linkExists(link)) {
+      try os.symlink(link, dest)
+      catch {
+        case _: java.nio.file.FileAlreadyExistsException =>
+          // Another concurrent task/process may have created it between exists-check and symlink.
+          if (!linkExists(link)) throw new java.nio.file.FileAlreadyExistsException(link.toString)
+      }
+    }
+  }
+
   private def relativizerEnv(workDir: os.Path): String = {
     val workspaceAbs = workDir.wrapped.toAbsolutePath.normalize().toString
     val homeAbs = os.home.wrapped.toAbsolutePath.normalize().toString
@@ -17,12 +31,15 @@ object MillProcessLauncher {
   }
 
   private def ensureAliases(baseDir: os.Path, workspaceRoot: os.Path): Unit = {
+    val baseSuffix = baseDir.segments.toVector.takeRight(2)
+    if (baseSuffix == Seq("out", "mill-workspace") || baseSuffix == Seq("out", "mill-home")) return
+
     val out = baseDir / "out"
     val workspaceAlias = out / "mill-workspace"
     val homeAlias = out / "mill-home"
     os.makeDir.all(out)
-    if (!os.exists(workspaceAlias)) os.symlink(workspaceAlias, workspaceRoot)
-    if (!os.exists(homeAlias)) os.symlink(homeAlias, os.home)
+    ensureSymlink(workspaceAlias, workspaceRoot)
+    ensureSymlink(homeAlias, os.home)
   }
 
   def launchMillNoDaemon(

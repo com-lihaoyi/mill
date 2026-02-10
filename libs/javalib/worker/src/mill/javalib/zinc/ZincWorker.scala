@@ -1,6 +1,7 @@
 package mill.javalib.zinc
 
 import mill.api.JsonFormatters.*
+import mill.api.BuildCtx
 import mill.api.PathRef
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.api.daemon.{Logger, Result}
@@ -386,11 +387,14 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
 
     // Fix jdk classes marked as binary dependencies, see https://github.com/com-lihaoyi/mill/pull/1904
     val converter = MappedFileConverter.empty
+    // Live compile inputs must use concrete absolute filesystem paths.
+    // Serializer aliases like "out/mill-workspace/..." are intentionally for persisted metadata;
+    // feeding them to Zinc/javac here makes them relative to `workDir`.
     val classpath = (compileClasspath.iterator ++ Some(classesDir))
-      .map(path => converter.toVirtualFile(os.Path.pathSerializer.value.serializePath(path)))
+      .map(path => converter.toVirtualFile(path.wrapped))
       .toArray
     val virtualSources = sources.iterator
-      .map(path => converter.toVirtualFile(os.Path.pathSerializer.value.serializePath(path)))
+      .map(path => converter.toVirtualFile(path.wrapped))
       .toArray
 
     val incOptions = IncOptions.of().withAuxiliaryClassFiles(
@@ -651,12 +655,41 @@ object ZincWorker {
     JvmWorkerUtil.grepJar(compilerClasspath, "scala-library", scalaVersion, sources = false)
 
   private def fileAnalysisStore(path: os.Path): AnalysisStore = {
+    def resolveAliasPath(raw: String): java.nio.file.Path = {
+      val workspaceAlias = "out/mill-workspace"
+      val homeAlias = "out/mill-home"
+      def resolveFromAlias(base: os.Path, aliasIdx: Int, alias: String): java.nio.file.Path = {
+        val suffix = raw.substring(aliasIdx + alias.length).stripPrefix("/")
+        if (suffix.isEmpty) base.wrapped
+        else base.wrapped.resolve(suffix)
+      }
+      if (raw == workspaceAlias) BuildCtx.workspaceRoot.wrapped
+      else if (raw.startsWith(workspaceAlias + "/"))
+        BuildCtx.workspaceRoot.wrapped.resolve(raw.stripPrefix(workspaceAlias + "/"))
+      else if (raw == homeAlias) os.home.wrapped
+      else if (raw.startsWith(homeAlias + "/"))
+        os.home.wrapped.resolve(raw.stripPrefix(homeAlias + "/"))
+      else {
+        val workspaceIdx = raw.indexOf(workspaceAlias)
+        if (workspaceIdx >= 0) resolveFromAlias(BuildCtx.workspaceRoot, workspaceIdx, workspaceAlias)
+        else {
+          val homeIdx = raw.indexOf(homeAlias)
+          if (homeIdx >= 0) resolveFromAlias(os.home, homeIdx, homeAlias)
+          else os.Path.pathSerializer.value.deserialize(java.nio.file.Paths.get(raw))
+        }
+      }
+    }
+
+    def denormalizePath(p: java.nio.file.Path): java.nio.file.Path = {
+      resolveAliasPath(p.toString)
+    }
+
     def denormalizeVirtualFile(file: VirtualFileRef): VirtualFileRef = file match {
       case mapped: MappedVirtualFile =>
-        MappedVirtualFile(os.Path.pathSerializer.value.deserialize(mapped.toPath).toString, Map())
+        MappedVirtualFile(denormalizePath(mapped.toPath).toString, Map())
       case pathBased: PathBasedFile =>
         MappedVirtualFile(
-          os.Path.pathSerializer.value.deserialize(pathBased.toPath).toString,
+          denormalizePath(pathBased.toPath).toString,
           Map()
         )
       case f => f
@@ -676,8 +709,7 @@ object ZincWorker {
       case f => f
     }
 
-    def denormalizeNioPath(p: java.nio.file.Path): java.nio.file.Path =
-      os.Path.pathSerializer.value.deserialize(p)
+    def denormalizeNioPath(p: java.nio.file.Path): java.nio.file.Path = denormalizePath(p)
     def normalizeNioPath(p: java.nio.file.Path): java.nio.file.Path =
       os.Path.pathSerializer.value.serializePath(os.Path(p, os.pwd))
     def normalizeString(s: String): String = s

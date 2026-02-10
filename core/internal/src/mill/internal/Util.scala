@@ -130,8 +130,13 @@ object Util {
         // Offset column by 4 if line starts with "//| " to account for stripped YAML prefix (including space)
         val colNum = if (lineContent.startsWith("//| ")) colNum0 + 4 else colNum0
 
+        val workspaceRootNio = mill.api.BuildCtx.workspaceRoot.wrapped.toAbsolutePath.normalize()
+        val pathNio = path.toAbsolutePath.normalize()
+        val displayPath = try workspaceRootNio.relativize(pathNio).toString
+        catch { case _: IllegalArgumentException => pathNio.toString }
+
         mill.constants.Util.formatError(
-          mill.api.BuildCtx.workspaceRoot.toNIO.relativize(path).toString,
+          displayPath,
           lineNum,
           colNum,
           lineContent,

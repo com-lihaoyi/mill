@@ -7,6 +7,7 @@ import mill.constants.OutFiles.OutFiles.millChromeProfile
 import mill.constants.OutFiles.OutFiles.millProfile
 import mill.api.Evaluator
 import mill.api.SelectMode
+import mill.constants.EnvVars
 import mill.internal.JsonArrayLogger
 import mill.launcher.DaemonRpc
 
@@ -121,6 +122,14 @@ class UnitTester(
     if (effectiveThreadCount == 1) None
     else Some(mill.exec.ExecutionContexts.createExecutor(effectiveThreadCount))
 
+  private val workspaceAbs = module.moduleDir.wrapped.toAbsolutePath.normalize().toString
+  private val homeAbs = os.home.wrapped.toAbsolutePath.normalize().toString
+  private val relativizerBase = s"$workspaceAbs,out/mill-workspace;$homeAbs,out/mill-home"
+  private val effectiveEnv = env ++ Map(
+    EnvVars.MILL_WORKSPACE_ROOT -> workspaceAbs,
+    EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> relativizerBase
+  )
+
   val execution = new mill.exec.Execution(
     baseLogger = new mill.internal.PrefixLogger(logger, Nil),
     profileLogger = new mill.internal.JsonArrayLogger.Profile(outPath / millProfile),
@@ -131,7 +140,7 @@ class UnitTester(
     classLoaderSigHash = 0,
     classLoaderIdentityHash = 0,
     workerCache = collection.mutable.Map.empty,
-    env = env,
+    env = effectiveEnv,
     failFast = failFast,
     ec = ec,
     codeSignatures = Map(),

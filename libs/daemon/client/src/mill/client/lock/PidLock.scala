@@ -9,7 +9,8 @@ package mill.client.lock
  * PIDs are reused after a process dies.
  */
 class PidLock(path: String) extends Lock {
-  private val lockPath: os.Path = os.Path(path)
+  private val lockPathNio: java.nio.file.Path = java.nio.file.Paths.get(path).toAbsolutePath.normalize()
+  private val lockPath: os.Path = os.Path(lockPathNio)
   private val pid: Long = ProcessHandle.current().pid()
 
   private def createLockContent(): String = s"$pid:${PidLock.PROCESS_START_TIME}"
@@ -32,8 +33,10 @@ class PidLock(path: String) extends Lock {
       try {
         // Use Java NIO with CREATE_NEW for atomic file creation
         // This fails atomically if the file already exists
+        val parent = lockPathNio.getParent
+        if (parent != null) java.nio.file.Files.createDirectories(parent)
         java.nio.file.Files.write(
-          lockPath.toNIO,
+          lockPathNio,
           createLockContent().getBytes(java.nio.charset.StandardCharsets.UTF_8),
           java.nio.file.StandardOpenOption.CREATE_NEW,
           java.nio.file.StandardOpenOption.WRITE

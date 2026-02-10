@@ -81,18 +81,19 @@ trait MicronautAotModule extends JavaModule {
    */
   def micronautProcessAOT: T[PathRef] = Task {
     val dest = Task.dest
+    def abs(p: os.Path): String = p.wrapped.toAbsolutePath.normalize().toString
 
     val args = Seq(
       "--classpath",
-      (runClasspath() ++ resolvedMicronautAotCli()).map(_.path).mkString(":"),
+      (runClasspath() ++ resolvedMicronautAotCli()).map(pr => abs(pr.path)).mkString(":"),
       "--package",
       micronautPackage(),
       "--runtime",
       aotRuntime(),
       "--config",
-      micronautAotConfigFile().path.toString,
+      abs(micronautAotConfigFile().path),
       "--output",
-      dest.toString
+      abs(dest)
     )
 
     Jvm.callProcess(

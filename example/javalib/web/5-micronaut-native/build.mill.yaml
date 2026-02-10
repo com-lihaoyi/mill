@@ -7,7 +7,7 @@ mvnDeps:
 - io.micronaut:micronaut-http-client
 - io.micronaut.serde:micronaut-serde-jackson
 
-jvmVersion: graalvm-community:21.0.2
+jvmVersion: graalvm-community:23.0.1
 finalMainClass: hello.world.Application
 annotationProcessorsMvnDeps:
 - io.micronaut:micronaut-http-validation
@@ -26,3 +26,6 @@ compileMvnDeps:
 runMvnDeps:
 - io.micronaut:micronaut-http-server-netty
 - ch.qos.logback:logback-classic
+
+nativeImageOptions: !append
+- --initialize-at-run-time=io.netty,ch.qos.logback,java.net.Inet4Address,java.net.Inet6Address

@@ -98,13 +98,32 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         val workspaceAbs = init.workspaceRoot.wrapped.toAbsolutePath.normalize().toString
         val homeAbs = os.home.wrapped.toAbsolutePath.normalize().toString
         val aliasOut = daemonDir / "out"
+        val aliasOutSuffix = aliasOut.segments.toVector.takeRight(2)
         val workspaceAlias = aliasOut / "mill-workspace"
         val homeAlias = aliasOut / "mill-home"
+        def linkExists(link: os.Path): Boolean =
+          java.nio.file.Files.exists(link.toNIO, java.nio.file.LinkOption.NOFOLLOW_LINKS)
+        def ensureSymlink(link: os.Path, dest: os.Path): Unit = {
+          if (!linkExists(link)) {
+            try os.symlink(link, dest)
+            catch {
+              case _: java.nio.file.FileAlreadyExistsException =>
+                if (!linkExists(link)) throw new java.nio.file.FileAlreadyExistsException(link.toString)
+            }
+          }
+        }
 
-        os.makeDir.all(daemonDir)
-        os.makeDir.all(aliasOut)
-        if (!os.exists(workspaceAlias)) os.symlink(workspaceAlias, init.workspaceRoot)
-        if (!os.exists(homeAlias)) os.symlink(homeAlias, os.home)
+        mill.api.BuildCtx.withFilesystemCheckerDisabled {
+          os.makeDir.all(daemonDir)
+          if (aliasOutSuffix != Seq("out", "mill-workspace") && aliasOutSuffix != Seq(
+                "out",
+                "mill-home"
+              )) {
+            os.makeDir.all(aliasOut)
+            ensureSymlink(workspaceAlias, init.workspaceRoot)
+            ensureSymlink(homeAlias, os.home)
+          }
+        }
         os.write.over(workerDir / "java-home", key.javaHome.map(_.toString).getOrElse("<default>"))
         os.write.over(workerDir / "java-runtime-options", key.runtimeOptions.mkString("\n"))
 

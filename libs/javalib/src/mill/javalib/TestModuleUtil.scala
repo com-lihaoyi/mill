@@ -142,7 +142,7 @@ final class TestModuleUtil(
 
     val argsFile = absPath(baseFolder / "testargs")
     val sandbox = baseFolder / "sandbox"
-    os.write(
+    os.write.over(
       argsFile,
       os.Path.pathSerializer.withValue(TestModuleUtil.unmangledPathSerializer)(upickle.write(testArgs)),
       createFolders = true
@@ -190,12 +190,28 @@ final class TestModuleUtil(
   }
 
   private def ensureRelativizerAliases(base: os.Path): Unit = {
+    val baseSuffix = base.segments.toVector.takeRight(2)
+    if (baseSuffix == Seq("out", "mill-workspace") || baseSuffix == Seq("out", "mill-home")) return
+
+    def linkExists(link: os.Path): Boolean =
+      java.nio.file.Files.exists(link.toNIO, java.nio.file.LinkOption.NOFOLLOW_LINKS)
+
+    def ensureSymlink(link: os.Path, dest: os.Path): Unit = {
+      if (!linkExists(link)) {
+        try os.symlink(link, dest)
+        catch {
+          case _: java.nio.file.FileAlreadyExistsException =>
+            if (!linkExists(link)) throw new java.nio.file.FileAlreadyExistsException(link.toString)
+        }
+      }
+    }
+
     val out = base / "out"
     val workspaceAlias = out / "mill-workspace"
     val homeAlias = out / "mill-home"
     os.makeDir.all(out)
-    if (!os.exists(workspaceAlias)) os.symlink(workspaceAlias, BuildCtx.workspaceRoot)
-    if (!os.exists(homeAlias)) os.symlink(homeAlias, os.home)
+    ensureSymlink(workspaceAlias, BuildCtx.workspaceRoot)
+    ensureSymlink(homeAlias, os.home)
   }
 
   def prepareTestClassesFolder(selectors2: Seq[String], base: os.Path): os.Path = {

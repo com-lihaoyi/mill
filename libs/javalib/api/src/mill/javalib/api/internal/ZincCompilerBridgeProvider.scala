@@ -21,6 +21,32 @@ case class ZincCompilerBridgeProvider(
 )
 @internal
 object ZincCompilerBridgeProvider {
+  private def unzipWithJdk(zip: os.Path, dest: os.Path): os.Path = {
+    os.makeDir.all(dest)
+    val zis = new java.util.zip.ZipInputStream(new java.io.BufferedInputStream(os.read.inputStream(zip)))
+    val buffer = new Array[Byte](8192)
+    try {
+      Iterator
+        .continually(zis.getNextEntry)
+        .takeWhile(_ != null)
+        .foreach { entry =>
+          val out = dest / os.RelPath(entry.getName)
+          if (entry.isDirectory) os.makeDir.all(out)
+          else {
+            os.makeDir.all(out / os.up)
+            val osOut = os.write.outputStream(out)
+            try {
+              Iterator
+                .continually(zis.read(buffer))
+                .takeWhile(_ != -1)
+                .foreach(read => osOut.write(buffer, 0, read))
+            } finally osOut.close()
+          }
+          zis.closeEntry()
+        }
+    } finally zis.close()
+    dest
+  }
 
   /** Provides the compiler bridge. */
   trait Acquire {
@@ -80,7 +106,14 @@ object ZincCompilerBridgeProvider {
     os.makeDir.all(workingDir)
     os.makeDir.all(compileDest)
 
-    val sourceFolder = os.unzip(compilerBridgeSourcesJar, workingDir / "unpacked")
+    val sourceFolder =
+      try os.unzip(compilerBridgeSourcesJar, workingDir / "unpacked")
+      catch {
+        case _: UnsupportedClassVersionError =>
+          unzipWithJdk(compilerBridgeSourcesJar, workingDir / "unpacked")
+        case _: NoClassDefFoundError =>
+          unzipWithJdk(compilerBridgeSourcesJar, workingDir / "unpacked")
+      }
     val classloader = mill.util.Jvm.createClassLoader(compilerClasspath, parent = null)
 
     try {

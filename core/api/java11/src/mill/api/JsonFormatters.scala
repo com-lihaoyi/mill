@@ -25,7 +25,20 @@ trait JsonFormatters {
   implicit val pathReadWrite: RW[os.Path] = upickle.readwriter[String]
     .bimap[os.Path](
       _.toString,
-      os.Path(_, os.pwd)
+      s => {
+        val deserialized = os.Path.pathSerializer.value.deserialize(s)
+        if (deserialized.isAbsolute) os.Path(deserialized)
+        else {
+          val raw = deserialized.toString.replace('\\', '/')
+          if (raw == "out/mill-workspace") BuildCtx.workspaceRoot
+          else if (raw.startsWith("out/mill-workspace/"))
+            BuildCtx.workspaceRoot / os.RelPath(raw.stripPrefix("out/mill-workspace/"))
+          else if (raw == "out/mill-home") os.home
+          else if (raw.startsWith("out/mill-home/"))
+            os.home / os.RelPath(raw.stripPrefix("out/mill-home/"))
+          else os.Path(deserialized, BuildCtx.workspaceRoot)
+        }
+      }
     )
 
   implicit val relPathRW: RW[os.RelPath] = upickle.readwriter[String]

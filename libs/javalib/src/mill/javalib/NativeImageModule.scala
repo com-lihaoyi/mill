@@ -28,6 +28,13 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
   def runClasspath: T[Seq[PathRef]]
 
   def finalMainClass: T[String]
+  private def abs(path: os.Path): String = {
+    val deserialized = os.Path.pathSerializer.value.deserialize(path.wrapped)
+    val absolute =
+      if (deserialized.isAbsolute) deserialized.toAbsolutePath.normalize()
+      else BuildCtx.workspaceRoot.wrapped.resolve(deserialized).toAbsolutePath.normalize()
+    absolute.toString
+  }
 
   /**
    * [[https://www.graalvm.org/latest/reference-manual/native-image/#from-a-class Builds a native executable]] for this
@@ -38,12 +45,12 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
 
     val executeableName = "native-executable"
     val command = Seq.newBuilder[String]
-      .+=(nativeImageTool().path.toString)
+      .+=(abs(nativeImageTool().path))
       .++=(nativeImageOptions())
       .+=("-cp")
-      .+=(nativeImageClasspath().iterator.map(_.path).mkString(java.io.File.pathSeparator))
+      .+=(nativeImageClasspath().iterator.map(pr => abs(pr.path)).mkString(java.io.File.pathSeparator))
       .+=(finalMainClass())
-      .+=((dest / executeableName).toString())
+      .+=(abs(dest / executeableName))
       .result()
 
     os.proc(command).call(cwd = dest, stdout = os.Inherit)
@@ -61,7 +68,7 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
    */
   def nativeRun(args: Task[Args] = Task.Anon(Args())): Task.Command[Unit] = Task.Command {
     val runScript = nativeImage().path
-    os.call(Seq(runScript.toString) ++ args().value, stdout = os.Inherit)
+    os.call(Seq(abs(runScript)) ++ args().value, stdout = os.Inherit)
   }
 
   /**
@@ -80,7 +87,7 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
         jvmArgs = Nil,
         mainArgs = backgroundPaths.toArgs ++ Seq(
           "<subprocess>",
-          nativeImage().path.toString
+          abs(nativeImage().path)
         ) ++ args.value,
         cwd = BuildCtx.workspaceRoot,
         stdin = "",
@@ -112,7 +119,7 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
       Seq.empty[String]
     } else {
       val configurationFileDirectoriesValue =
-        configurations.map(_.metadataLocation.toString).mkString(",")
+        configurations.map(m => abs(m.metadataLocation)).mkString(",")
       Seq(s"-H:ConfigurationFileDirectories=$configurationFileDirectoriesValue")
     }
     nativeExcludedConfig() ++ configurationDirectoriesArg ++ nativeIncludedResourcesImageOptions()

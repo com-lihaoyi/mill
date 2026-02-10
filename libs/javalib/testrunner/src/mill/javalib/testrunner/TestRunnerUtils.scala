@@ -332,7 +332,13 @@ import scala.math.Ordering.Implicits.*
       logClaim(testClass) { runClaimedTestClass(testClass) }
     }
 
-    for (file <- os.list(testClassQueueFolder)) {
+    val queueFiles =
+      try os.list(testClassQueueFolder)
+      catch {
+        case _: java.nio.file.NoSuchFileException => Seq.empty
+      }
+
+    for (file <- queueFiles) {
       for (claimedTestClass <- claimFile(file, claimFolder)) {
         logClaim(claimedTestClass) { runClaimedTestClass(claimedTestClass) }
       }
