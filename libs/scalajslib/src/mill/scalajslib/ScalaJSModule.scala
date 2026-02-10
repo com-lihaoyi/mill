@@ -41,7 +41,8 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
     val baseDeps =
       // For Scala 3.8+ on Scala.js, we still need scala3-library_sjs1_3
       // (JVM uses scala-library, but Scala.js artifacts are published as scala3-library)
-      if (usesScalaLibraryOnly(sv)) Seq(mvn"${scalaOrganization()}::scala3-library:$sv")
+      if (usesScalaLibraryOnly(sv))
+        Seq(mvn"${JvmWorkerUtil.scalaOrganization(sv)}::scala3-library:$sv")
       else super.scalaLibraryMvnDeps()
 
     if (isScala3(sv)) {
@@ -339,7 +340,7 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
     Some((
       ScalaBuildTarget.dataKind,
       ScalaBuildTarget(
-        scalaOrganization = scalaOrganization(),
+        scalaOrganization = JvmWorkerUtil.scalaOrganization(scalaVersion()),
         scalaVersion = scalaVersion(),
         scalaBinaryVersion = scalaBinaryVersion(scalaVersion()),
         platform = ScalaPlatform.JS,
