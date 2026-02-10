@@ -132,8 +132,9 @@ object Util {
 
         val workspaceRootNio = mill.api.BuildCtx.workspaceRoot.wrapped.toAbsolutePath.normalize()
         val pathNio = path.toAbsolutePath.normalize()
-        val displayPath = try workspaceRootNio.relativize(pathNio).toString
-        catch { case _: IllegalArgumentException => pathNio.toString }
+        val displayPath =
+          try workspaceRootNio.relativize(pathNio).toString
+          catch { case _: IllegalArgumentException => pathNio.toString }
 
         mill.constants.Util.formatError(
           displayPath,

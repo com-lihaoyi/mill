@@ -145,7 +145,9 @@ final class TestModuleUtil(
     val sandbox = baseFolder / "sandbox"
     os.write.over(
       argsFile,
-      os.Path.pathSerializer.withValue(TestModuleUtil.unmangledPathSerializer)(upickle.write(testArgs)),
+      os.Path.pathSerializer.withValue(
+        TestModuleUtil.unmangledPathSerializer
+      )(upickle.write(testArgs)),
       createFolders = true
     )
 

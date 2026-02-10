@@ -46,7 +46,8 @@ trait JsonFormatters {
             os.home / os.RelPath(raw.stripPrefix(homeAlias + "/"))
           else {
             val workspaceIdx = raw.indexOf(workspaceAlias)
-            if (workspaceIdx >= 0) resolveFromAlias(BuildCtx.workspaceRoot, workspaceIdx, workspaceAlias)
+            if (workspaceIdx >= 0)
+              resolveFromAlias(BuildCtx.workspaceRoot, workspaceIdx, workspaceAlias)
             else {
               val homeIdx = raw.indexOf(homeAlias)
               if (homeIdx >= 0) resolveFromAlias(os.home, homeIdx, homeAlias)

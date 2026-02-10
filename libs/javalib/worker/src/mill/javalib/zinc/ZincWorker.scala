@@ -646,7 +646,6 @@ object ZincWorker {
       }
   }
 
-
   /**
    * Dependencies of the invocation.
    *

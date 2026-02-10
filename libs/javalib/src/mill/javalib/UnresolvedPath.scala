@@ -31,7 +31,8 @@ object UnresolvedPath {
         os.home / os.RelPath(path.stripPrefix(homeAlias + "/"))
       else {
         val workspaceIdx = path.indexOf(workspaceAlias)
-        if (workspaceIdx >= 0) resolveFromAlias(BuildCtx.workspaceRoot, workspaceIdx, workspaceAlias)
+        if (workspaceIdx >= 0)
+          resolveFromAlias(BuildCtx.workspaceRoot, workspaceIdx, workspaceAlias)
         else {
           val homeIdx = path.indexOf(homeAlias)
           if (homeIdx >= 0) resolveFromAlias(os.home, homeIdx, homeAlias)

@@ -124,7 +124,10 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         val workspaceRoot = sys.env
           .get(EnvVars.MILL_WORKSPACE_ROOT)
           .map(p => os.Path(p, os.pwd))
-          .getOrElse(resolvePossiblyAliasedPath(init.workspaceRoot, mill.api.BuildCtx.workspaceRoot))
+          .getOrElse(resolvePossiblyAliasedPath(
+            init.workspaceRoot,
+            mill.api.BuildCtx.workspaceRoot
+          ))
         val taskDest = resolvePossiblyAliasedPath(init.taskDest, workspaceRoot)
         val workerDir = taskDest / "zinc-worker" / key.hashCode.toString
         val daemonDir = workerDir / "daemon"
@@ -143,17 +146,20 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
             try java.nio.file.Files.createSymbolicLink(link.toNIO, destAbs)
             catch {
               case _: java.nio.file.FileAlreadyExistsException =>
-                if (!linkExists(link)) throw new java.nio.file.FileAlreadyExistsException(link.toString)
+                if (!linkExists(link))
+                  throw new java.nio.file.FileAlreadyExistsException(link.toString)
             }
           }
         }
 
         mill.api.BuildCtx.withFilesystemCheckerDisabled {
           os.makeDir.all(daemonDir)
-          if (aliasOutSuffix != Seq("out", "mill-workspace") && aliasOutSuffix != Seq(
-                "out",
-                "mill-home"
-              )) {
+          if (
+            aliasOutSuffix != Seq("out", "mill-workspace") && aliasOutSuffix != Seq(
+              "out",
+              "mill-home"
+            )
+          ) {
             os.makeDir.all(aliasOut)
             ensureSymlink(workspaceAlias, workspaceRoot)
             ensureSymlink(homeAlias, os.home)

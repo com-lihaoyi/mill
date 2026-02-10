@@ -57,7 +57,8 @@ object ZincCompilerBridgeProvider {
 
   private def unzipWithJdk(zip: os.Path, dest: os.Path): os.Path = {
     os.makeDir.all(dest)
-    val zis = new java.util.zip.ZipInputStream(new java.io.BufferedInputStream(os.read.inputStream(zip)))
+    val zis =
+      new java.util.zip.ZipInputStream(new java.io.BufferedInputStream(os.read.inputStream(zip)))
     val buffer = new Array[Byte](8192)
     try {
       Iterator

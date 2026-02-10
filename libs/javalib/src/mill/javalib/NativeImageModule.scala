@@ -48,7 +48,9 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
       .+=(abs(nativeImageTool().path))
       .++=(nativeImageOptions())
       .+=("-cp")
-      .+=(nativeImageClasspath().iterator.map(pr => abs(pr.path)).mkString(java.io.File.pathSeparator))
+      .+=(nativeImageClasspath().iterator.map(pr => abs(pr.path)).mkString(
+        java.io.File.pathSeparator
+      ))
       .+=(finalMainClass())
       .+=(abs(dest / executeableName))
       .result()

@@ -9,7 +9,8 @@ package mill.client.lock
  * PIDs are reused after a process dies.
  */
 class PidLock(path: String) extends Lock {
-  private val lockPathNio: java.nio.file.Path = java.nio.file.Paths.get(path).toAbsolutePath.normalize()
+  private val lockPathNio: java.nio.file.Path =
+    java.nio.file.Paths.get(path).toAbsolutePath.normalize()
   private val lockPath: os.Path = os.Path(lockPathNio)
   private val pid: Long = ProcessHandle.current().pid()
 

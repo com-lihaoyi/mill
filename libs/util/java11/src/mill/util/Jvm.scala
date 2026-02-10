@@ -48,15 +48,13 @@ object Jvm {
       withUnmangledPathSerialization {
         os.Path(nio.toAbsolutePath.normalize())
       }
-    }
-    else {
+    } else {
       val deserialized = os.Path.pathSerializer.value.deserialize(nio)
       if (deserialized.isAbsolute) {
         withUnmangledPathSerialization {
           os.Path(deserialized.toAbsolutePath.normalize())
         }
-      }
-      else {
+      } else {
         val absPwd = os.Path(os.pwd.wrapped.toAbsolutePath.normalize())
         os.Path(deserialized.toString, absPwd)
       }
