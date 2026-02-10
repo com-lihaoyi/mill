@@ -10,6 +10,20 @@ import java.util.UUID
 import scala.jdk.CollectionConverters._
 
 object MillProcessLauncher {
+  private def relativizerEnv(workDir: os.Path): String = {
+    val workspaceAbs = workDir.wrapped.toAbsolutePath.normalize().toString
+    val homeAbs = os.home.wrapped.toAbsolutePath.normalize().toString
+    s"$workspaceAbs,out/mill-workspace;$homeAbs,out/mill-home"
+  }
+
+  private def ensureAliases(baseDir: os.Path, workspaceRoot: os.Path): Unit = {
+    val out = baseDir / "out"
+    val workspaceAlias = out / "mill-workspace"
+    val homeAlias = out / "mill-home"
+    os.makeDir.all(out)
+    if (!os.exists(workspaceAlias)) os.symlink(workspaceAlias, workspaceRoot)
+    if (!os.exists(homeAlias)) os.symlink(homeAlias, os.home)
+  }
 
   def launchMillNoDaemon(
       args: Seq[String],
@@ -31,7 +45,12 @@ object MillProcessLauncher {
 
     val cmd = millLaunchJvmCommand(runnerClasspath, outMode, workDir, millRepositories) ++
       userPropsSeq ++
-      Seq(mainClass, processDir.toString, outMode.asString, useFileLocks.toString) ++
+      Seq(
+        mainClass,
+        processDir.wrapped.toAbsolutePath.normalize().toString,
+        outMode.asString,
+        useFileLocks.toString
+      ) ++
       loadMillConfig(ConfigConstants.millOpts, workDir) ++
       args
 
@@ -59,7 +78,12 @@ object MillProcessLauncher {
       millRepositories: Seq[String]
   ): os.SubProcess = {
     val cmd = millLaunchJvmCommand(runnerClasspath, outMode, workDir, millRepositories) ++
-      Seq("mill.daemon.MillDaemonMain", daemonDir.toString, outMode.asString, useFileLocks.toString)
+      Seq(
+        "mill.daemon.MillDaemonMain",
+        daemonDir.wrapped.toAbsolutePath.normalize().toString,
+        outMode.asString,
+        useFileLocks.toString
+      )
 
     configureRunMillProcess(
       cmd,
@@ -82,10 +106,12 @@ object MillProcessLauncher {
   ): os.SubProcess = {
     val sandbox = daemonDir / DaemonFiles.sandbox
     os.makeDir.all(sandbox)
+    ensureAliases(sandbox, workDir)
+    ensureAliases(workDir, workDir)
 
     val processEnv = env ++ Map(
-      EnvVars.MILL_WORKSPACE_ROOT -> workDir.toString,
-      EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> workDir.toString,
+      EnvVars.MILL_WORKSPACE_ROOT -> workDir.wrapped.toAbsolutePath.normalize().toString,
+      EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> relativizerEnv(workDir),
       EnvVars.MILL_ENABLE_STATIC_CHECKS -> "true"
     ) ++ (
       if (env.contains(EnvVars.MILL_EXECUTABLE_PATH)) Map.empty

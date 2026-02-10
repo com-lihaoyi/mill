@@ -94,9 +94,17 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         val taskDest = init.taskDest
         val workerDir = taskDest / "zinc-worker" / key.hashCode.toString
         val daemonDir = workerDir / "daemon"
-        val daemonDirAbs = daemonDir.toIO.getAbsolutePath
+        val daemonDirAbs = daemonDir.wrapped.toAbsolutePath.normalize().toString
+        val workspaceAbs = init.workspaceRoot.wrapped.toAbsolutePath.normalize().toString
+        val homeAbs = os.home.wrapped.toAbsolutePath.normalize().toString
+        val aliasOut = daemonDir / "out"
+        val workspaceAlias = aliasOut / "mill-workspace"
+        val homeAlias = aliasOut / "mill-home"
 
         os.makeDir.all(daemonDir)
+        os.makeDir.all(aliasOut)
+        if (!os.exists(workspaceAlias)) os.symlink(workspaceAlias, init.workspaceRoot)
+        if (!os.exists(homeAlias)) os.symlink(homeAlias, os.home)
         os.write.over(workerDir / "java-home", key.javaHome.map(_.toString).getOrElse("<default>"))
         os.write.over(workerDir / "java-runtime-options", key.runtimeOptions.mkString("\n"))
 
@@ -127,8 +135,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
               jvmArgs = key.runtimeOptions ++ suppressArgs,
               classPath = classPath,
               env = Map(
-                EnvVars.MILL_WORKSPACE_ROOT -> init.workspaceRoot.wrapped.toString,
-                EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> init.workspaceRoot.wrapped.toString
+                EnvVars.MILL_WORKSPACE_ROOT -> workspaceAbs,
+                EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> s"$workspaceAbs,out/mill-workspace;$homeAbs,out/mill-home"
               )
             )
             LaunchedServer.OsProcess(process.wrapped.toHandle)

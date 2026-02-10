@@ -26,6 +26,19 @@ import scala.util.chaining.scalaUtilChainingOps
  * launcher scripts, etc.
  */
 object Jvm {
+  private val unmangledPathSerializer: os.Path.Serializer = new os.Path.Serializer {
+    def serializeString(p: os.Path): String = p.wrapped.toString
+    def serializeFile(p: os.Path): java.io.File = p.wrapped.toFile
+    def serializePath(p: os.Path): java.nio.file.Path = p.wrapped
+    def deserialize(s: String): java.nio.file.Path = java.nio.file.Paths.get(s)
+    def deserialize(s: java.io.File): java.nio.file.Path = java.nio.file.Paths.get(s.getPath)
+    def deserialize(s: java.nio.file.Path): java.nio.file.Path = s
+    def deserialize(s: java.net.URI): java.nio.file.Path = java.nio.file.Paths.get(s)
+  }
+
+  private inline def withUnmangledPathSerialization[T](inline thunk: => T): T =
+    os.Path.pathSerializer.withValue(unmangledPathSerializer)(thunk)
+
   private def fromPotentiallyRelativeSerializedPath(path: os.Path | java.io.File): os.Path = {
     val nio = path match {
       case p: os.Path => p.wrapped
@@ -33,7 +46,10 @@ object Jvm {
     }
     val deserialized = os.Path.pathSerializer.value.deserialize(nio)
     if (deserialized.isAbsolute) os.Path(deserialized)
-    else os.Path(deserialized.toString, os.pwd)
+    else {
+      val absPwd = os.Path(os.pwd.wrapped.toAbsolutePath.normalize())
+      os.Path(deserialized.toString, absPwd)
+    }
   }
 
   /**
@@ -84,33 +100,38 @@ object Jvm {
       destroyOnExit: Boolean = true,
       check: Boolean = true
   )(using ctx: TaskCtx): os.CommandResult = {
-    val commandArgs = buildJvmCommand(
-      mainClass,
-      mainArgs,
-      javaHome,
-      jvmArgs,
-      classPath,
-      cpPassingJarPath,
-      cwd
-    )
+    val normalizedCwd = Option(cwd).map(fromPotentiallyRelativeSerializedPath).orNull
+    val commandArgs = withUnmangledPathSerialization {
+      buildJvmCommand(
+        mainClass,
+        mainArgs,
+        javaHome,
+        jvmArgs,
+        classPath,
+        cpPassingJarPath,
+        normalizedCwd
+      )
+    }
 
     ctx.log.debug(
       s"Running ${commandArgs.map(arg => "'" + arg.replace("'", "'\"'\"'") + "'").mkString(" ")}"
     )
 
-    os.proc(commandArgs).call(
-      cwd = cwd,
-      env = env,
-      propagateEnv = propagateEnv,
-      stdin = stdin,
-      stdout = stdout,
-      stderr = stderr,
-      mergeErrIntoOut = mergeErrIntoOut,
-      timeout = timeout,
-      shutdownGracePeriod = shutdownGracePeriod,
-      destroyOnExit = destroyOnExit,
-      check = check
-    )
+    withUnmangledPathSerialization {
+      os.proc(commandArgs).call(
+        cwd = normalizedCwd,
+        env = env,
+        propagateEnv = propagateEnv,
+        stdin = stdin,
+        stdout = stdout,
+        stderr = stderr,
+        mergeErrIntoOut = mergeErrIntoOut,
+        timeout = timeout,
+        shutdownGracePeriod = shutdownGracePeriod,
+        destroyOnExit = destroyOnExit,
+        check = check
+      )
+    }
   }
 
   /**
@@ -157,27 +178,32 @@ object Jvm {
       shutdownGracePeriod: Long = 100,
       destroyOnExit: Boolean = true
   ): os.SubProcess = {
-    val commandArgs = buildJvmCommand(
-      mainClass,
-      mainArgs,
-      javaHome,
-      jvmArgs,
-      classPath,
-      cpPassingJarPath,
-      cwd
-    )
+    val normalizedCwd = Option(cwd).map(fromPotentiallyRelativeSerializedPath).orNull
+    val commandArgs = withUnmangledPathSerialization {
+      buildJvmCommand(
+        mainClass,
+        mainArgs,
+        javaHome,
+        jvmArgs,
+        classPath,
+        cpPassingJarPath,
+        normalizedCwd
+      )
+    }
 
-    os.proc(commandArgs).spawn(
-      cwd = cwd,
-      env = env,
-      stdin = stdin,
-      stdout = stdout,
-      stderr = stderr,
-      mergeErrIntoOut = mergeErrIntoOut,
-      propagateEnv = propagateEnv,
-      shutdownGracePeriod = shutdownGracePeriod,
-      destroyOnExit = destroyOnExit
-    )
+    withUnmangledPathSerialization {
+      os.proc(commandArgs).spawn(
+        cwd = normalizedCwd,
+        env = env,
+        stdin = stdin,
+        stdout = stdout,
+        stderr = stderr,
+        mergeErrIntoOut = mergeErrIntoOut,
+        propagateEnv = propagateEnv,
+        shutdownGracePeriod = shutdownGracePeriod,
+        destroyOnExit = destroyOnExit
+      )
+    }
   }
 
   /**
@@ -257,15 +283,18 @@ object Jvm {
       cwd: os.Path = null,
       propagateEnv: Boolean = true
   )(using ctx: TaskCtx): Int = {
-    val commandArgs = buildJvmCommand(
-      mainClass,
-      mainArgs,
-      javaHome,
-      jvmArgs,
-      classPath,
-      cpPassingJarPath,
-      cwd
-    )
+    val normalizedCwd = Option(cwd).map(fromPotentiallyRelativeSerializedPath).orNull
+    val commandArgs = withUnmangledPathSerialization {
+      buildJvmCommand(
+        mainClass,
+        mainArgs,
+        javaHome,
+        jvmArgs,
+        classPath,
+        cpPassingJarPath,
+        normalizedCwd
+      )
+    }
 
     ctx.log.debug(
       s"Running interactive: ${commandArgs.map(arg => "'" + arg.replace("'", "'\"'\"'") + "'").mkString(" ")}"
@@ -274,7 +303,7 @@ object Jvm {
     runInteractiveCommand(
       cmd = commandArgs,
       env = env,
-      cwd = Option(cwd).getOrElse(os.pwd),
+      cwd = Option(normalizedCwd).getOrElse(os.pwd),
       propagateEnv = propagateEnv
     )
   }

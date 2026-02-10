@@ -52,6 +52,7 @@ final class TestModuleUtil(
 )(using ctx: mill.api.TaskCtx) {
 
   private val (jvmArgs, props) = TestModuleUtil.loadArgsAndProps(useArgsFile, forkArgs)
+  private def absPath(p: os.Path): os.Path = os.Path(p.wrapped.toAbsolutePath.normalize())
 
   private val testRunnerClasspathArg = scalalibClasspath
     .map(_.path.toURL)
@@ -121,24 +122,36 @@ final class TestModuleUtil(
 
     val outputPath = baseFolder / "out.json"
 
+    val selectorAbs = selector match {
+      case Left(globs) => Left(globs)
+      case Right((starting, testClassQueueFolder, claimFolder)) =>
+        Right((starting, absPath(testClassQueueFolder), absPath(claimFolder)))
+    }
     val testArgs = TestArgs(
       framework = testFramework,
-      classpath = runClasspath.map(_.path),
+      classpath = runClasspath.map(pr => absPath(pr.path)),
       arguments = args,
       sysProps = props,
-      outputPath = outputPath,
-      resultPath = resultPath,
+      outputPath = absPath(outputPath),
+      resultPath = absPath(resultPath),
       colored = Task.log.prompt.colored,
-      testCp = testClasspath.map(_.path),
-      globSelectors = selector,
+      testCp = testClasspath.map(pr => absPath(pr.path)),
+      globSelectors = selectorAbs,
       logLevel = testLogLevel
     )
 
-    val argsFile = baseFolder / "testargs"
+    val argsFile = absPath(baseFolder / "testargs")
     val sandbox = baseFolder / "sandbox"
-    os.write(argsFile, upickle.write(testArgs), createFolders = true)
+    os.write(
+      argsFile,
+      os.Path.pathSerializer.withValue(TestModuleUtil.unmangledPathSerializer)(upickle.write(testArgs)),
+      createFolders = true
+    )
 
     os.makeDir.all(sandbox)
+    ensureRelativizerAliases(forkWorkingDir)
+    ensureRelativizerAliases(baseFolder)
+    ensureRelativizerAliases(sandbox)
 
     val proc = BuildCtx.withFilesystemCheckerDisabled {
       Jvm.spawnProcess(
@@ -146,7 +159,7 @@ final class TestModuleUtil(
         classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
         env = (if (propagateEnv) Task.env else Map()) ++ forkEnv,
-        mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
+        mainArgs = Seq(testRunnerClasspathArg, argsFile.wrapped.toString),
         cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
         cpPassingJarPath = Option.when(useArgsFile)(
           os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
@@ -174,6 +187,15 @@ final class TestModuleUtil(
       Result.Failure(s"Test reporting Failed: ${outputPath} does not exist")
     else
       Result.Success(upickle.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
+  }
+
+  private def ensureRelativizerAliases(base: os.Path): Unit = {
+    val out = base / "out"
+    val workspaceAlias = out / "mill-workspace"
+    val homeAlias = out / "mill-home"
+    os.makeDir.all(out)
+    if (!os.exists(workspaceAlias)) os.symlink(workspaceAlias, BuildCtx.workspaceRoot)
+    if (!os.exists(homeAlias)) os.symlink(homeAlias, os.home)
   }
 
   def prepareTestClassesFolder(selectors2: Seq[String], base: os.Path): os.Path = {
@@ -366,6 +388,15 @@ final class TestModuleUtil(
 }
 
 private[mill] object TestModuleUtil {
+  val unmangledPathSerializer: os.Path.Serializer = new os.Path.Serializer {
+    def serializeString(p: os.Path): String = p.wrapped.toString
+    def serializeFile(p: os.Path): java.io.File = p.wrapped.toFile
+    def serializePath(p: os.Path): java.nio.file.Path = p.wrapped
+    def deserialize(s: String): java.nio.file.Path = java.nio.file.Paths.get(s)
+    def deserialize(s: java.io.File): java.nio.file.Path = java.nio.file.Paths.get(s.getPath)
+    def deserialize(s: java.nio.file.Path): java.nio.file.Path = s
+    def deserialize(s: java.net.URI): java.nio.file.Path = java.nio.file.Paths.get(s)
+  }
 
   def loadArgsAndProps(
       useArgsFile: Boolean,
