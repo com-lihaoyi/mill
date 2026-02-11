@@ -98,6 +98,9 @@ trait JavaModule
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
       outer.resolutionCustomizer
 
+    override def resolutionParams: Task[ResolutionParams] =
+      outer.resolutionParams
+
     override def annotationProcessorsJavacOptions: T[Seq[String]] =
       outer.annotationProcessorsJavacOptions()
     override def javacOptions = outer.javacOptions()
