@@ -1,7 +1,8 @@
 package mill.javalib
 
 import mill.api.daemon.internal.UnresolvedPathApi
-import mill.api.{BuildCtx, ExecutionPaths, Segment, Segments}
+import mill.api.{ExecutionPaths, Segment, Segments}
+import mill.api.internal.PathAliasing
 import upickle.{ReadWriter, macroRW}
 
 /**
@@ -15,31 +16,7 @@ sealed trait UnresolvedPath extends UnresolvedPathApi[os.Path] {
 }
 object UnresolvedPath {
   case class ResolvedPath private (path: String) extends UnresolvedPath {
-    override def resolve(outPath: os.Path): os.Path = {
-      val workspaceAlias = "out/mill-workspace"
-      val homeAlias = "out/mill-home"
-      def resolveFromAlias(base: os.Path, aliasIdx: Int, alias: String): os.Path = {
-        val suffix = path.substring(aliasIdx + alias.length).stripPrefix("/")
-        if (suffix.isEmpty) base else base / os.RelPath(suffix)
-      }
-
-      if (path == workspaceAlias) BuildCtx.workspaceRoot
-      else if (path.startsWith(workspaceAlias + "/"))
-        BuildCtx.workspaceRoot / os.RelPath(path.stripPrefix(workspaceAlias + "/"))
-      else if (path == homeAlias) os.home
-      else if (path.startsWith(homeAlias + "/"))
-        os.home / os.RelPath(path.stripPrefix(homeAlias + "/"))
-      else {
-        val workspaceIdx = path.indexOf(workspaceAlias)
-        if (workspaceIdx >= 0)
-          resolveFromAlias(BuildCtx.workspaceRoot, workspaceIdx, workspaceAlias)
-        else {
-          val homeIdx = path.indexOf(homeAlias)
-          if (homeIdx >= 0) resolveFromAlias(os.home, homeIdx, homeAlias)
-          else os.Path(path, os.pwd)
-        }
-      }
-    }
+    override def resolve(outPath: os.Path): os.Path = PathAliasing.resolveAliasedString(path)
   }
   object ResolvedPath {
     def apply(path: os.Path): ResolvedPath = ResolvedPath(path.toString)

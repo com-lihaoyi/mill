@@ -260,11 +260,19 @@ object `package` extends Module {
 
   trait ExampleCrossModule extends build.integration.IntegrationTestModule {
 
-    // disable scalafix because these example modules don't have sources causing it to misbehave
-    def testRepoSourceRoot: T[PathRef] = Task.Source(moduleDir)
+    // Copy to a clean task-local repo root so source hashing does not include runtime `out/` artifacts.
+    def testRepoSourceRoot = Task.Input {
+      mill.api.BuildCtx.withFilesystemCheckerDisabled {
+        os.copy.over(moduleDir, Task.dest)
+        if (os.exists(Task.dest / "out")) os.remove.all(Task.dest / "out")
+      }
+      PathRef(Task.dest)
+    }
     def testRepoRoot: T[PathRef] = Task { testRepoSourceRoot() }
     def testClasspath: T[Seq[PathRef]] = localRunClasspath()
-    def sources0 = Task.Sources(moduleDir)
+    def sources0 = Task {
+      Seq(testRepoSourceRoot())
+    }
     def sources = Task {
       sources0()
         .flatMap(pathRef => os.walk(pathRef.path))

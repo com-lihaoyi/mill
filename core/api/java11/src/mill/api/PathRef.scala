@@ -1,6 +1,7 @@
 package mill.api
 
 import mill.api.daemon.DummyOutputStream
+import mill.api.internal.PathAliasing
 import mill.api.daemon.internal.PathRefApi
 import upickle.ReadWriter as RW
 
@@ -197,32 +198,7 @@ object PathRef {
     },
     {
       case s"$prefix:$valid0:$hex:$pathString" if prefix == "ref" || prefix == "qref" =>
-
-        val path = {
-          val workspaceAlias = "out/mill-workspace"
-          val homeAlias = "out/mill-home"
-          def resolveFromAlias(base: os.Path, aliasIdx: Int, alias: String): os.Path = {
-            val suffix = pathString.substring(aliasIdx + alias.length).stripPrefix("/")
-            if (suffix.isEmpty) base else base / os.RelPath(suffix)
-          }
-
-          if (pathString == workspaceAlias) BuildCtx.workspaceRoot
-          else if (pathString.startsWith(workspaceAlias + "/"))
-            BuildCtx.workspaceRoot / os.RelPath(pathString.stripPrefix(workspaceAlias + "/"))
-          else if (pathString == homeAlias) os.home
-          else if (pathString.startsWith(homeAlias + "/"))
-            os.home / os.RelPath(pathString.stripPrefix(homeAlias + "/"))
-          else {
-            val workspaceIdx = pathString.indexOf(workspaceAlias)
-            if (workspaceIdx >= 0)
-              resolveFromAlias(BuildCtx.workspaceRoot, workspaceIdx, workspaceAlias)
-            else {
-              val homeIdx = pathString.indexOf(homeAlias)
-              if (homeIdx >= 0) resolveFromAlias(os.home, homeIdx, homeAlias)
-              else os.Path(pathString, os.pwd)
-            }
-          }
-        }
+        val path = PathAliasing.resolveAliasedString(pathString)
         val quick = prefix match {
           case "qref" => true
           case "ref" => false

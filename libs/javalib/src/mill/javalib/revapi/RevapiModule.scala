@@ -12,6 +12,7 @@ import mill.util.Jvm
  */
 @mill.api.experimental // until Revapi has a stable release
 trait RevapiModule extends PublishModule {
+
   /**
    * Runs [[revapiCliVersion Revapi CLI]] on this module's archives.
    *

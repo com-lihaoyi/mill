@@ -10,6 +10,7 @@ import mill.util.Jvm
  * The official `jlink` docs: https://docs.oracle.com/en/java/javase/23/docs/specs/man/jlink.html
  */
 trait JlinkModule extends JavaModule {
+
   /** The base name for the runtime image */
   def jlinkImageName: T[String] = Task { "jlink" }
 

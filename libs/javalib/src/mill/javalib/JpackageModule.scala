@@ -10,6 +10,7 @@ import mill.util.Jvm
  * The official `jpackage` docs: https://docs.oracle.com/en/java/javase/23/docs/specs/man/jpackage.html
  */
 trait JpackageModule extends JavaModule {
+
   /** The application name */
   def jpackageName: T[String] = Task { artifactName() }
 

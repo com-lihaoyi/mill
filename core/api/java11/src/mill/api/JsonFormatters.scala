@@ -1,6 +1,7 @@
 package mill.api
 
 import mill.api.daemon.internal.Severity
+import mill.api.internal.PathAliasing
 import os.Path
 import upickle.{ReadWriter as RW, Reader, Writer}
 
@@ -25,37 +26,7 @@ trait JsonFormatters {
   implicit val pathReadWrite: RW[os.Path] = upickle.readwriter[String]
     .bimap[os.Path](
       _.toString,
-      s => {
-        val deserialized = os.Path.pathSerializer.value.deserialize(s)
-        if (deserialized.isAbsolute) os.Path(deserialized)
-        else {
-          val raw = deserialized.toString.replace('\\', '/')
-          val workspaceAlias = "out/mill-workspace"
-          val homeAlias = "out/mill-home"
-
-          def resolveFromAlias(base: os.Path, aliasIdx: Int, alias: String): os.Path = {
-            val suffix = raw.substring(aliasIdx + alias.length).stripPrefix("/")
-            if (suffix.isEmpty) base else base / os.RelPath(suffix)
-          }
-
-          if (raw == workspaceAlias) BuildCtx.workspaceRoot
-          else if (raw.startsWith(workspaceAlias + "/"))
-            BuildCtx.workspaceRoot / os.RelPath(raw.stripPrefix(workspaceAlias + "/"))
-          else if (raw == homeAlias) os.home
-          else if (raw.startsWith(homeAlias + "/"))
-            os.home / os.RelPath(raw.stripPrefix(homeAlias + "/"))
-          else {
-            val workspaceIdx = raw.indexOf(workspaceAlias)
-            if (workspaceIdx >= 0)
-              resolveFromAlias(BuildCtx.workspaceRoot, workspaceIdx, workspaceAlias)
-            else {
-              val homeIdx = raw.indexOf(homeAlias)
-              if (homeIdx >= 0) resolveFromAlias(os.home, homeIdx, homeAlias)
-              else os.Path(deserialized, BuildCtx.workspaceRoot)
-            }
-          }
-        }
-      }
+      s => PathAliasing.resolveAliasedString(os.Path.pathSerializer.value.deserialize(s).toString)
     )
 
   implicit val relPathRW: RW[os.RelPath] = upickle.readwriter[String]

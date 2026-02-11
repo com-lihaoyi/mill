@@ -170,7 +170,7 @@ object DiscoveredBuildFiles {
       val daemonSandboxWorkspace = output / "mill-daemon" / "sandbox" / "out" / "mill-workspace"
       def isNoDaemonSandboxWorkspace(path: os.Path): Boolean = {
         path.startsWith(output / "mill-no-daemon") &&
-        path.toString.contains("/sandbox/out/mill-workspace")
+        path.toString.replace('\\', '/').contains("/sandbox/out/mill-workspace")
       }
       def isAliasWorkspaceTree(path: os.Path): Boolean = {
         val normalized = path.toString.replace('\\', '/')
@@ -181,7 +181,10 @@ object DiscoveredBuildFiles {
         .filterNot(p =>
           p.startsWith(daemonSandboxWorkspace) || isNoDaemonSandboxWorkspace(
             p
-          ) || isAliasWorkspaceTree(p)
+          ) || (
+            (p.startsWith(output / "mill-daemon") || p.startsWith(output / "mill-no-daemon")) &&
+              isAliasWorkspaceTree(p)
+          )
         )
         .distinct
     }

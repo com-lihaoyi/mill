@@ -10,6 +10,7 @@ import pprint.Util.literalize
 import mill.api.daemon.internal.MillScalaParser
 import mill.api.internal.HeaderData
 
+import scala.annotation.unused
 import scala.util.control.Breaks.*
 
 object CodeGen {
@@ -554,11 +555,10 @@ object CodeGen {
   }
 
   def rootMiscInfo(
-      scriptFolderPath: os.Path,
-      millTopLevelProjectRoot: os.Path,
-      output: os.Path
+      @unused scriptFolderPath: os.Path,
+      @unused millTopLevelProjectRoot: os.Path,
+      @unused output: os.Path
   ): String = {
-    val _ = (scriptFolderPath, millTopLevelProjectRoot, output)
     s"""|@_root_.scala.annotation.nowarn
         |object MillMiscInfo
         |    extends mill.api.internal.RootModule.Info.FromEnv

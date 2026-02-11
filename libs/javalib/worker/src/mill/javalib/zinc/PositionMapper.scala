@@ -1,6 +1,7 @@
 package mill.javalib.zinc
 
 import mill.api.BuildCtx
+import mill.api.internal.PathAliasing
 import xsbti.VirtualFile
 
 import java.nio.charset.StandardCharsets
@@ -26,35 +27,11 @@ object PositionMapper {
     }
   }
 
-  private def resolveAliasedPath(raw: String): os.Path = {
-    val workspaceAlias = "out/mill-workspace"
-    val homeAlias = "out/mill-home"
-    def fromAlias(base: os.Path, idx: Int, alias: String): os.Path = {
-      val suffix = raw.substring(idx + alias.length).stripPrefix("/")
-      if (suffix.isEmpty) base else base / os.RelPath(suffix)
-    }
-    if (raw == workspaceAlias) BuildCtx.workspaceRoot
-    else if (raw.startsWith(workspaceAlias + "/"))
-      BuildCtx.workspaceRoot / os.RelPath(raw.stripPrefix(workspaceAlias + "/"))
-    else if (raw == homeAlias) os.home
-    else if (raw.startsWith(homeAlias + "/"))
-      os.home / os.RelPath(raw.stripPrefix(homeAlias + "/"))
-    else {
-      val workspaceIdx = raw.indexOf(workspaceAlias)
-      if (workspaceIdx >= 0) fromAlias(BuildCtx.workspaceRoot, workspaceIdx, workspaceAlias)
-      else {
-        val homeIdx = raw.indexOf(homeAlias)
-        if (homeIdx >= 0) fromAlias(os.home, homeIdx, homeAlias)
-        else os.Path(raw, os.pwd)
-      }
-    }
-  }
-
   private def readVirtualFile(vf: VirtualFile): Array[Byte] = {
     try vf.input().readAllBytes()
     catch {
       case _: java.io.IOException =>
-        os.read.bytes(resolveAliasedPath(vf.id()))
+        os.read.bytes(PathAliasing.resolveAliasedString(vf.id(), workspace = BuildCtx.workspaceRoot))
     }
   }
 

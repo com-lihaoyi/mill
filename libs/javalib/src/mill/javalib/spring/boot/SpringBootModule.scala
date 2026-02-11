@@ -179,6 +179,7 @@ trait SpringBootModule extends JavaModule {
    * parent module as a native GraalVM application, provided the [[outer.springBootProcessAOT]] works.
    */
   trait NativeSpringBootBuildModule extends SpringBootOptimisedBuildModule, NativeImageModule {
+
     /**
      * Uses the configuration path from both [[outer.springBootProcessAOT]] and
      * [[nativeMvnDepsMetadata]]

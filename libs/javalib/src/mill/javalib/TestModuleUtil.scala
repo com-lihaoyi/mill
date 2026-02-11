@@ -122,11 +122,6 @@ final class TestModuleUtil(
 
     val outputPath = baseFolder / "out.json"
 
-    val selectorAbs = selector match {
-      case Left(globs) => Left(globs)
-      case Right((starting, testClassQueueFolder, claimFolder)) =>
-        Right((starting, testClassQueueFolder, claimFolder))
-    }
     val testArgs = TestArgs(
       framework = testFramework,
       classpath = runClasspath.map(_.path),
@@ -136,7 +131,7 @@ final class TestModuleUtil(
       resultPath = resultPath,
       colored = Task.log.prompt.colored,
       testCp = testClasspath.map(_.path),
-      globSelectors = selectorAbs,
+      globSelectors = selector,
       logLevel = testLogLevel
     )
 
