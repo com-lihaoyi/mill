@@ -34,7 +34,9 @@ class TodomvcIntegrationTests {
                 withPassword("test")
                 start()
             }
-        } else null
+        } else {
+            null
+        }
 
         @JvmStatic
         @DynamicPropertySource
