@@ -8,7 +8,12 @@ object PathAliasing {
 
   private def normalize(raw: String): String = raw.replace('\\', '/')
 
-  private def resolveFromAlias(base: os.Path, raw: String, aliasIdx: Int, alias: String): os.Path = {
+  private def resolveFromAlias(
+      base: os.Path,
+      raw: String,
+      aliasIdx: Int,
+      alias: String
+  ): os.Path = {
     val suffix = raw.substring(aliasIdx + alias.length).stripPrefix("/")
     if (suffix.isEmpty) base else base / os.RelPath(suffix)
   }

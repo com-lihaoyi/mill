@@ -73,7 +73,8 @@ object MillLauncherMain {
             MillProcessLauncher.loadMillConfig(ConfigConstants.millRepositories, workDir)
 
           val runnerClasspath = CoursierClient.resolveMillDaemon(outMode, millRepositories)
-          val optsArgs = MillProcessLauncher.loadMillConfig(ConfigConstants.millOpts, workDir) ++ args
+          val optsArgs =
+            MillProcessLauncher.loadMillConfig(ConfigConstants.millOpts, workDir) ++ args
           if (runNoDaemon) {
             val mainClass =
               if (bspMode) "mill.daemon.MillBspMain" else "mill.daemon.MillNoDaemonMain"

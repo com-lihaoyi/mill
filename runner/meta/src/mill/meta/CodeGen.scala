@@ -10,7 +10,6 @@ import pprint.Util.literalize
 import mill.api.daemon.internal.MillScalaParser
 import mill.api.internal.HeaderData
 
-import scala.annotation.unused
 import scala.util.control.Breaks.*
 
 object CodeGen {

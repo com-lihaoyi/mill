@@ -353,7 +353,11 @@ import scala.math.Ordering.Implicits.*
     Option.when(
       os.exists(file) &&
         scala.util.Try {
-          Files.move(file.wrapped, (claimFolder / file.last).wrapped, StandardCopyOption.ATOMIC_MOVE)
+          Files.move(
+            file.wrapped,
+            (claimFolder / file.last).wrapped,
+            StandardCopyOption.ATOMIC_MOVE
+          )
         }.isSuccess
     ) {
 

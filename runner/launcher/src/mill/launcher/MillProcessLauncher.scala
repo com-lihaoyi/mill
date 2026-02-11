@@ -149,14 +149,14 @@ object MillProcessLauncher {
       (if (env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).contains("")) Map.empty
        else Map(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> relativizerBaseEnv)) ++
       Map(EnvVars.MILL_ENABLE_STATIC_CHECKS -> "true") ++ (
-      if (env.contains(EnvVars.MILL_EXECUTABLE_PATH)) Map.empty
-      else Map(EnvVars.MILL_EXECUTABLE_PATH -> getExecutablePath)
-    ) ++ {
-      val jdkJavaOptions = env.getOrElse("JDK_JAVA_OPTIONS", "")
-      val javaOpts = env.getOrElse("JAVA_OPTS", "")
-      val opts = s"$jdkJavaOptions $javaOpts".trim
-      if (opts.nonEmpty) Map("JDK_JAVA_OPTIONS" -> opts) else Map.empty
-    }
+        if (env.contains(EnvVars.MILL_EXECUTABLE_PATH)) Map.empty
+        else Map(EnvVars.MILL_EXECUTABLE_PATH -> getExecutablePath)
+      ) ++ {
+        val jdkJavaOptions = env.getOrElse("JDK_JAVA_OPTIONS", "")
+        val javaOpts = env.getOrElse("JAVA_OPTS", "")
+        val opts = s"$jdkJavaOptions $javaOpts".trim
+        if (opts.nonEmpty) Map("JDK_JAVA_OPTIONS" -> opts) else Map.empty
+      }
 
     // destroyOnExit = false to prevent the daemon from being killed when the Mill client exits.
     // The daemon is a long-lived background process that should survive client disconnections.

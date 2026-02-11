@@ -831,7 +831,10 @@ object GroupExecution {
 
     private def normalizeForCheck(path: os.Path): os.Path = {
       @tailrec
-      def firstExistingPrefix(current: os.Path, suffix: List[String]): Option[(os.Path, List[String])] =
+      def firstExistingPrefix(
+          current: os.Path,
+          suffix: List[String]
+      ): Option[(os.Path, List[String])] =
         if (os.exists(current)) Some((current, suffix))
         else {
           val parent = current / os.up
@@ -852,7 +855,8 @@ object GroupExecution {
 
     private def relativeForError(original: os.Path, normalized: os.Path): String = {
       if (original.startsWith(workspace)) original.relativeTo(workspace).toString
-      else if (normalized.startsWith(normalizedWorkspace)) normalized.relativeTo(normalizedWorkspace).toString
+      else if (normalized.startsWith(normalizedWorkspace))
+        normalized.relativeTo(normalizedWorkspace).toString
       else original.toString
     }
 
@@ -863,7 +867,10 @@ object GroupExecution {
           val inWorkspace =
             path.startsWith(workspace) || normalizedPath.startsWith(normalizedWorkspace)
           val allowed =
-            startsWithAny(path, validReadDests) || startsWithAny(normalizedPath, normalizedReadDests)
+            startsWithAny(
+              path,
+              validReadDests
+            ) || startsWithAny(normalizedPath, normalizedReadDests)
           if (inWorkspace && !allowed) {
             sys.error(
               s"Reading from ${relativeForError(path, normalizedPath)} not allowed during execution of `$terminal`.\n" +
@@ -880,7 +887,10 @@ object GroupExecution {
         val inWorkspace =
           path.startsWith(workspace) || normalizedPath.startsWith(normalizedWorkspace)
         val allowed =
-          startsWithAny(path, validWriteDests) || startsWithAny(normalizedPath, normalizedWriteDests)
+          startsWithAny(path, validWriteDests) || startsWithAny(
+            normalizedPath,
+            normalizedWriteDests
+          )
         if (inWorkspace && !allowed) {
           sys.error(
             s"Writing to ${relativeForError(path, normalizedPath)} not allowed during execution of `$terminal`.\n" +

@@ -31,7 +31,10 @@ object PositionMapper {
     try vf.input().readAllBytes()
     catch {
       case _: java.io.IOException =>
-        os.read.bytes(PathAliasing.resolveAliasedString(vf.id(), workspace = BuildCtx.workspaceRoot))
+        os.read.bytes(PathAliasing.resolveAliasedString(
+          vf.id(),
+          workspace = BuildCtx.workspaceRoot
+        ))
     }
   }
 
