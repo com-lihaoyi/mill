@@ -195,7 +195,7 @@ object CodeGen {
         val miscInfoWithResource = {
           val header = if (pkg.isBlank()) "" else s"package $pkg"
           val miscInfoBody = if (segments.isEmpty) {
-            rootMiscInfo(scriptFolderPath, millTopLevelProjectRoot, output)
+            rootMiscInfo()
           } else {
             subfolderMiscInfo(scriptFolderPath, segments)
           }
