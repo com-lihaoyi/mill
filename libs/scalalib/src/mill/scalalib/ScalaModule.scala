@@ -1,6 +1,8 @@
 package mill
 package scalalib
 
+import coursier.params.ResolutionParams
+import coursier.version.VersionConstraint
 import mill.util.JarManifest
 import mill.api.{BuildCtx, ModuleRef, PathRef, Result, Task}
 import mill.util.BuildInfo
@@ -66,13 +68,23 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   def scalaVersion: T[String]
 
+  // override kept for binary compatibility
   override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = Task.Anon {
-    super.mapDependencies().andThen { (d: coursier.Dependency) =>
-      // Force Scala library/compiler dependencies to use this module's configured
-      // scalaOrganization and scalaVersion, overriding any transitive versions
-      if (!Lib.scalaArtifacts(scalaVersion()).contains(d.module.name.value)) d
-      else d.withVersion(scalaVersion())
-    }
+    super.mapDependencies()
+  }
+  protected[mill] override def actualResolutionParamsOverride(baseParams: ResolutionParams)
+      : Task[ResolutionParams] = Task.Anon {
+    def moduleFor(name: String) =
+      coursier.Module(
+        coursier.Organization(scalaOrganization0(scalaVersion())),
+        coursier.ModuleName(name),
+        Map.empty
+      )
+    val sv0 = VersionConstraint(scalaVersion())
+    baseParams.addForceVersion0(
+      Lib.scalaArtifacts(scalaVersion()).toVector.sorted
+        .map(name => moduleFor(name) -> sv0)*
+    )
   }
 
   def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>
@@ -244,11 +256,9 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       val deps = defaultResolver().classpath(
         Seq(bridgeDep),
         sources = false,
-        mapDependencies = Some { (dep: coursier.Dependency) =>
-          if (dep.module.name.value == "scala-library") {
-            dep.withModule(dep.module.withOrganization(coursier.Organization(so)))
-              .withVersion(sv)
-          } else dep
+        resolutionParamsMapOpt = Some { params =>
+          // FIXME Force scalaOrganization too
+          params.withScalaVersion(sv)
         }
       )
 

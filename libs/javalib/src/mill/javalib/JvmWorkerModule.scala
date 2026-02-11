@@ -195,7 +195,10 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
     val deps = resolver.classpath(
       Seq(bridgeDep.bindDep("", "", "")),
       sources = useSources,
-      mapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
+      resolutionParamsMapOpt = Some { params =>
+        // FIXME Force scalaOrganization too
+        params.withScalaVersion(scalaVersion)
+      }
     )
 
     val bridgeJar = JvmWorkerUtil.grepJar(deps, bridgeName, bridgeVersion, useSources)
@@ -224,6 +227,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
 
   def compilerInterfaceClasspath(
       scalaVersion: String,
+      @nowarn("msg=unused explicit parameter")
       scalaOrganization: String,
       resolver: Resolver
   )(using ctx: TaskCtx): Seq[PathRef] = {
@@ -231,7 +235,10 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       deps = Seq(mvn"org.scala-sbt:compiler-interface:${Versions.zinc}".bindDep("", "", "")),
       // Since Zinc 1.4.0, the compiler-interface depends on the Scala library
       // We need to override it with the scalaVersion and scalaOrganization of the module
-      mapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
+      resolutionParamsMapOpt = Some { params =>
+        // FIXME Force scalaOrganization too
+        params.withScalaVersion(scalaVersion)
+      }
     )
   }
 
