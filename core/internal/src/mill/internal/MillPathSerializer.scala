@@ -1,8 +1,18 @@
 package mill.internal
 
+import mill.constants.EnvVars
+
 import java.nio.file.{Files, LinkOption}
 
 object MillPathSerializer {
+  private def workspaceFromEnvOr(defaultWorkspace: os.Path): os.Path = {
+    sys.env.get(EnvVars.MILL_WORKSPACE_ROOT) match {
+      case Some(raw) if raw.nonEmpty =>
+        scala.util.Try(os.Path(raw, os.pwd)).getOrElse(defaultWorkspace)
+      case _ => defaultWorkspace
+    }
+  }
+
   private def resolveAliasedPath(path: os.Path, workspace: os.Path): os.Path = {
     val nio = path.wrapped
     if (nio.isAbsolute) path
@@ -35,8 +45,9 @@ object MillPathSerializer {
   }
 
   def setupSymlinks(wd: os.Path, workspace: os.Path): Unit = {
-    val wd0 = resolveAliasedPath(wd, workspace)
-    for ((base, link) <- defaultMapping(workspace)) {
+    val effectiveWorkspace = workspaceFromEnvOr(workspace)
+    val wd0 = resolveAliasedPath(wd, effectiveWorkspace)
+    for ((base, link) <- defaultMapping(effectiveWorkspace)) {
       val target = wd0 / link
       val targetNio = target.toNIO
       val parent = target / ".."
