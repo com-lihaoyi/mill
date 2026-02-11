@@ -12,19 +12,6 @@ import scala.annotation.nowarn
 import scala.util.Using
 
 object WorkerRemoteM2Publisher {
-  private def fromPotentiallyRelativeSerializedPath(path: os.Path): os.Path = {
-    val raw = path.toString
-    if (raw == "out/mill-workspace") mill.api.BuildCtx.workspaceRoot
-    else if (raw.startsWith("out/mill-workspace/"))
-      mill.api.BuildCtx.workspaceRoot / os.RelPath(raw.stripPrefix("out/mill-workspace/"))
-    else if (raw == "out/mill-home") os.home
-    else if (raw.startsWith("out/mill-home/"))
-      os.home / os.RelPath(raw.stripPrefix("out/mill-home/"))
-    else {
-      val file = path.toIO
-      if (file.isAbsolute) path else os.Path(file, os.pwd)
-    }
-  }
 
   /**
    * Publishes artifacts to a Maven API compatible repositories.
@@ -39,15 +26,14 @@ object WorkerRemoteM2Publisher {
       password: String,
       artifacts: IterableOnce[M2Artifact]
   ): DeployResult = {
-    setupPublishAndRun(fromPotentiallyRelativeSerializedPath(workspace), artifacts) {
-      (system, session, deployRequest) =>
-        val authentication =
-          AuthenticationBuilder().addUsername(username).addPassword(password).build()
-        val remoteRepository = RemoteRepository.Builder("central-snapshots", "default", uri)
-          .setAuthentication(authentication).build()
-        deployRequest.setRepository(remoteRepository)
+    setupPublishAndRun(workspace, artifacts) { (system, session, deployRequest) =>
+      val authentication =
+        AuthenticationBuilder().addUsername(username).addPassword(password).build()
+      val remoteRepository = RemoteRepository.Builder("central-snapshots", "default", uri)
+        .setAuthentication(authentication).build()
+      deployRequest.setRepository(remoteRepository)
 
-        system.deploy(session, deployRequest)
+      system.deploy(session, deployRequest)
     }
   }
 
@@ -59,15 +45,12 @@ object WorkerRemoteM2Publisher {
       workspace: os.Path,
       artifacts: IterableOnce[M2Artifact]
   ): DeployResult = {
-    val publishToAbs = fromPotentiallyRelativeSerializedPath(publishTo)
-    setupPublishAndRun(fromPotentiallyRelativeSerializedPath(workspace), artifacts) {
-      (system, session, deployRequest) =>
-        val publishToUri = publishToAbs.toNIO.toUri.toString
-        val remoteRepository =
-          RemoteRepository.Builder("local", "default", publishToUri).build()
-        deployRequest.setRepository(remoteRepository)
+    setupPublishAndRun(workspace, artifacts) { (system, session, deployRequest) =>
+      val remoteRepository =
+        RemoteRepository.Builder("local", "default", s"file://$publishTo").build()
+      deployRequest.setRepository(remoteRepository)
 
-        system.deploy(session, deployRequest)
+      system.deploy(session, deployRequest)
     }
   }
 

@@ -127,13 +127,10 @@ object MillProcessLauncher {
     ensureAliases(sandbox, workDir)
     ensureAliases(workDir, workDir)
 
-    val workspaceRootEnv =
-      env.getOrElse(
-        EnvVars.MILL_WORKSPACE_ROOT,
-        workDir.wrapped.toAbsolutePath.normalize().toString
-      )
-    val relativizerBaseEnv =
-      env.getOrElse(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE, relativizerEnv(workDir))
+    // Always scope workspace/relativizer to this launched process workDir.
+    // Inheriting parent values causes nested Mill runs to lock/use the parent's out folder.
+    val workspaceRootEnv = workDir.wrapped.toAbsolutePath.normalize().toString
+    val relativizerBaseEnv = relativizerEnv(workDir)
     val processEnv = env ++ Map(
       EnvVars.MILL_WORKSPACE_ROOT -> workspaceRootEnv,
       EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> relativizerBaseEnv,

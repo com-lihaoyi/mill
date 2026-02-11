@@ -12,8 +12,6 @@ import mill.util.Jvm
  */
 @mill.api.experimental // until Revapi has a stable release
 trait RevapiModule extends PublishModule {
-  private def abs(path: os.Path): String = path.wrapped.toAbsolutePath.normalize().toString
-
   /**
    * Runs [[revapiCliVersion Revapi CLI]] on this module's archives.
    *
@@ -35,15 +33,15 @@ trait RevapiModule extends PublishModule {
     val mainArgs =
       Seq.newBuilder[String]
         // https://github.com/revapi/revapi/blob/69445626881347fbf7811a4a78ff230fe152a2dc/revapi-standalone/src/main/java/org/revapi/standalone/Main.java#L149
-        .++=(Seq(mainClass, abs(workingDir)))
+        .++=(Seq(mainClass, workingDir.toString()))
         // https://github.com/revapi/revapi/blob/69445626881347fbf7811a4a78ff230fe152a2dc/revapi-standalone/src/main/java/org/revapi/standalone/Main.java#L97
         .++=(Seq("-e", revapiExtensions().mkString(",")))
-        .++=(Seq("-o", abs(oldFile.path)))
-        .++=(optional("-s", oldSupFiles.iterator.map(_.path).map(abs)))
-        .++=(Seq("-n", abs(newFile.path)))
-        .++=(optional("-t", newSupFiles.iterator.map(_.path).map(abs)))
-        .++=(optional("-c", revapiConfigFiles().iterator.map(_.path).map(abs)))
-        .++=(Seq("-d", abs(revapiCacheDir().path)))
+        .++=(Seq("-o", oldFile.path.toString()))
+        .++=(optional("-s", oldSupFiles.iterator.map(_.path)))
+        .++=(Seq("-n", newFile.path.toString()))
+        .++=(optional("-t", newSupFiles.iterator.map(_.path)))
+        .++=(optional("-c", revapiConfigFiles().iterator.map(_.path)))
+        .++=(Seq("-d", revapiCacheDir().path.toString()))
         .++=(optional("-r", revapiRemoteRepositories()))
         .++=(args)
         .result()

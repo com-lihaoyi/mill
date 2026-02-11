@@ -1,8 +1,6 @@
 package mill.testkit
 
 import mill.constants.Util.isWindows
-import mill.constants.EnvVars
-import mill.internal.MillPathSerializer
 import mill.launcher.MillLauncherMain
 import mill.testkit.Chunk
 import mill.api.daemon.SystemStreams
@@ -60,16 +58,6 @@ import scala.util.control.NonFatal
  * - 'not --no-daemon'  - Only run in daemon test mode
  */
 object ExampleTester {
-  private val unmangledPathSerializer: os.Path.Serializer = new os.Path.Serializer {
-    def serializeString(p: os.Path): String = p.wrapped.toString
-    def serializeFile(p: os.Path): java.io.File = p.wrapped.toFile
-    def serializePath(p: os.Path): java.nio.file.Path = p.wrapped
-    def deserialize(s: String): java.nio.file.Path = java.nio.file.Paths.get(s)
-    def deserialize(s: java.io.File): java.nio.file.Path = java.nio.file.Paths.get(s.getPath)
-    def deserialize(s: java.nio.file.Path): java.nio.file.Path = s
-    def deserialize(s: java.net.URI): java.nio.file.Path = java.nio.file.Paths.get(s)
-  }
-
   def run(
       daemonMode: Boolean,
       workspaceSourcePath: os.Path,
@@ -207,44 +195,32 @@ ${expectedSnippets.mkString("\n")}
   }
 
   private def runMillInMemory(millArgs: Seq[String]): IntegrationTester.EvalResult = {
-    val workspaceAbs = workspacePath.wrapped.toAbsolutePath.normalize().toString
-    val homeAbs = os.home.wrapped.toAbsolutePath.normalize().toString
-    val relativizerBase = s"$workspaceAbs,out/mill-workspace;$homeAbs,out/mill-home"
-    MillPathSerializer.setupSymlinks(workspacePath, workspacePath)
-    MillPathSerializer.setupSymlinks(os.pwd, workspacePath)
-    val inMemoryEnv = sys.env ++ millTestSuiteEnv ++ Map(
-      EnvVars.MILL_WORKSPACE_ROOT -> workspaceAbs,
-      EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> relativizerBase
-    )
-
     // Collect chunks in order, similar to how OS-Lib does it.
     // All output goes to Left (stdout) to match bash's mergeErrIntoOut = true behavior.
     val chunks = collection.mutable.ArrayBuffer.empty[Either[geny.Bytes, geny.Bytes]]
 
-    val exitCode = os.Path.pathSerializer.withValue(ExampleTester.unmangledPathSerializer) {
-      MillLauncherMain.main0(
-        args = millArgs.toArray,
-        streamsOpt = Some(
-          SystemStreams(
-            ChunkingStreams.makeChunkingStream(
-              chunks,
-              isStdout = true,
-              mergeErrIntoOut = true,
-              dest = Some(System.out)
-            ),
-            ChunkingStreams.makeChunkingStream(
-              chunks,
-              isStdout = false,
-              mergeErrIntoOut = true,
-              dest = Some(System.err)
-            ),
-            System.in
-          )
-        ),
-        env = inMemoryEnv,
-        workDir = workspacePath
-      )
-    }
+    val exitCode = MillLauncherMain.main0(
+      args = millArgs.toArray,
+      streamsOpt = Some(
+        SystemStreams(
+          ChunkingStreams.makeChunkingStream(
+            chunks,
+            isStdout = true,
+            mergeErrIntoOut = true,
+            dest = Some(System.out)
+          ),
+          ChunkingStreams.makeChunkingStream(
+            chunks,
+            isStdout = false,
+            mergeErrIntoOut = true,
+            dest = Some(System.err)
+          ),
+          System.in
+        )
+      ),
+      env = sys.env ++ millTestSuiteEnv,
+      workDir = workspacePath
+    )
 
     val result = new os.CommandResult(
       command = Seq("mill") ++ millArgs,
@@ -256,16 +232,6 @@ ${expectedSnippets.mkString("\n")}
   }
 
   private def runViaBash(commandStr: String): IntegrationTester.EvalResult = {
-    val workspaceAbs = workspacePath.wrapped.toAbsolutePath.normalize().toString
-    val homeAbs = os.home.wrapped.toAbsolutePath.normalize().toString
-    val relativizerBase = s"$workspaceAbs,out/mill-workspace;$homeAbs,out/mill-home"
-    val testEnv = millTestSuiteEnv ++ Map(
-      EnvVars.MILL_WORKSPACE_ROOT -> workspaceAbs,
-      EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> relativizerBase
-    )
-    MillPathSerializer.setupSymlinks(workspacePath, workspacePath)
-    MillPathSerializer.setupSymlinks(os.pwd, workspacePath)
-
     val windowsPathEnv =
       if (!isWindows) Map()
       else Map(
@@ -278,7 +244,7 @@ ${expectedSnippets.mkString("\n")}
       stderr = os.Inherit,
       cwd = workspacePath,
       mergeErrIntoOut = true,
-      env = testEnv ++ windowsPathEnv,
+      env = millTestSuiteEnv ++ windowsPathEnv,
       check = false
     )
 

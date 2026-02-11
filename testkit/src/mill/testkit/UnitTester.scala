@@ -7,7 +7,6 @@ import mill.constants.OutFiles.OutFiles.millChromeProfile
 import mill.constants.OutFiles.OutFiles.millProfile
 import mill.api.Evaluator
 import mill.api.SelectMode
-import mill.constants.EnvVars
 import mill.internal.JsonArrayLogger
 import mill.launcher.DaemonRpc
 
@@ -68,16 +67,16 @@ class UnitTester(
     mill.api.MillURLClassLoader.openClassloaders.isEmpty,
     s"Unit tester detected leaked classloaders on initialization: \n${mill.api.MillURLClassLoader.openClassloaders.mkString("\n")}"
   )
-  val outPath: os.Path = resolveAliasedPath(module.moduleDir) / "out"
+  val outPath: os.Path = module.moduleDir / "out"
 
   if (resetSourcePath) {
     mill.util.Retry() { // Retry because this is flaky on windows due to file locking
-      os.remove.all(resolveAliasedPath(module.moduleDir))
+      os.remove.all(module.moduleDir)
     }
-    os.makeDir.all(resolveAliasedPath(module.moduleDir))
+    os.makeDir.all(module.moduleDir)
 
     for (sourceFileRoot <- sourceRoot) {
-      os.copy.over(sourceFileRoot, resolveAliasedPath(module.moduleDir), createFolders = true)
+      os.copy.over(sourceFileRoot, module.moduleDir, createFolders = true)
     }
   } else {
     sourceRoot match {
@@ -122,86 +121,17 @@ class UnitTester(
     if (effectiveThreadCount == 1) None
     else Some(mill.exec.ExecutionContexts.createExecutor(effectiveThreadCount))
 
-  private def resolveAliasedPath(path: os.Path): os.Path = {
-    val nio = path.wrapped
-    if (nio.isAbsolute) os.Path(nio.toAbsolutePath.normalize())
-    else {
-      val raw = nio.toString.replace('\\', '/')
-      val workspaceAlias = "out/mill-workspace"
-      val homeAlias = "out/mill-home"
-      val workspaceRoot = BuildCtx.workspaceRoot
-
-      def resolveFromAlias(base: os.Path, aliasIdx: Int, alias: String): os.Path = {
-        val suffix = raw.substring(aliasIdx + alias.length).stripPrefix("/")
-        if (suffix.isEmpty) base else base / os.RelPath(suffix)
-      }
-
-      if (raw == workspaceAlias) workspaceRoot
-      else if (raw.startsWith(workspaceAlias + "/"))
-        workspaceRoot / os.RelPath(raw.stripPrefix(workspaceAlias + "/"))
-      else if (raw == homeAlias) os.home
-      else if (raw.startsWith(homeAlias + "/"))
-        os.home / os.RelPath(raw.stripPrefix(homeAlias + "/"))
-      else {
-        val workspaceIdx = raw.indexOf(workspaceAlias)
-        if (workspaceIdx >= 0) resolveFromAlias(workspaceRoot, workspaceIdx, workspaceAlias)
-        else {
-          val homeIdx = raw.indexOf(homeAlias)
-          if (homeIdx >= 0) resolveFromAlias(os.home, homeIdx, homeAlias)
-          else os.Path(raw, os.pwd)
-        }
-      }
-    }
-  }
-
-  private val normalizedModuleDir = resolveAliasedPath(module.moduleDir)
-  private val workspaceAbs = normalizedModuleDir.wrapped.toAbsolutePath.normalize().toString
-  private val homeAbs = os.home.wrapped.toAbsolutePath.normalize().toString
-  private val relativizerBase = s"$workspaceAbs,out/mill-workspace;$homeAbs,out/mill-home"
-  private def ensureRelativizerAliases(base: os.Path, workspaceRoot: os.Path): Unit = {
-    def linkExists(link: os.Path): Boolean =
-      java.nio.file.Files.exists(link.toNIO, java.nio.file.LinkOption.NOFOLLOW_LINKS)
-    def ensureSymlink(link: os.Path, dest: os.Path): Unit = {
-      val destAbs = dest.wrapped.toAbsolutePath.normalize()
-      if (!linkExists(link)) {
-        try java.nio.file.Files.createSymbolicLink(link.toNIO, destAbs)
-        catch {
-          case e: java.nio.file.NoSuchFileException =>
-            throw new IllegalStateException(
-              s"UnitTester.ensureSymlink failed for link=$link base=$base moduleDir=${module.moduleDir} normalizedModuleDir=$normalizedModuleDir pwd=${os.pwd}",
-              e
-            )
-          case _: java.nio.file.FileAlreadyExistsException =>
-            if (!linkExists(link)) throw new java.nio.file.FileAlreadyExistsException(link.toString)
-        }
-      }
-    }
-
-    val out = base / "out"
-    val workspaceAlias = out / "mill-workspace"
-    val homeAlias = out / "mill-home"
-    os.makeDir.all(out)
-    ensureSymlink(workspaceAlias, workspaceRoot)
-    ensureSymlink(homeAlias, os.home)
-  }
-  ensureRelativizerAliases(normalizedModuleDir, normalizedModuleDir)
-  ensureRelativizerAliases(os.pwd, normalizedModuleDir)
-  private val effectiveEnv = env ++ Map(
-    EnvVars.MILL_WORKSPACE_ROOT -> workspaceAbs,
-    EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> relativizerBase
-  )
-
   val execution = new mill.exec.Execution(
     baseLogger = new mill.internal.PrefixLogger(logger, Nil),
     profileLogger = new mill.internal.JsonArrayLogger.Profile(outPath / millProfile),
-    workspace = normalizedModuleDir,
+    workspace = module.moduleDir,
     outPath = outPath,
     externalOutPath = outPath,
     rootModule = module,
     classLoaderSigHash = 0,
     classLoaderIdentityHash = 0,
     workerCache = collection.mutable.Map.empty,
-    env = effectiveEnv,
+    env = env,
     failFast = failFast,
     ec = ec,
     codeSignatures = Map(),

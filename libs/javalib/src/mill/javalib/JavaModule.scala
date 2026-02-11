@@ -1244,7 +1244,6 @@ trait JavaModule
 
   def javadocGenerated: T[PathRef] = Task[PathRef] {
     val outDir = Task.dest
-    def absString(p: os.Path): String = p.wrapped.toAbsolutePath.normalize().toString
 
     val javadocDir = outDir / "javadoc"
     os.makeDir.all(javadocDir)
@@ -1259,13 +1258,13 @@ trait JavaModule
         if (classPath.isEmpty) Seq()
         else Seq(
           "-classpath",
-          classPath.iterator.map(absString).mkString(java.io.File.pathSeparator)
+          classPath.mkString(java.io.File.pathSeparator)
         )
 
       val options = javadocOptions() ++
-        Seq("-d", absString(javadocDir)) ++
+        Seq("-d", javadocDir.toString) ++
         cpOptions ++
-        files.iterator.map(absString)
+        files.map(_.toString)
 
       val cmdArgs =
         if (docJarUseArgsFile()) {

@@ -4,7 +4,7 @@ import mill.api.daemon.*
 import mill.api.daemon.internal.{CompileProblemReporter, internal}
 import mill.client.{LaunchedServer, ServerLauncher}
 import mill.client.lock.{DoubleLock, Locks, MemoryLock}
-import mill.constants.{DaemonFiles, EnvVars}
+import mill.constants.DaemonFiles
 import mill.javalib.api.internal.*
 import mill.javalib.api.JvmWorkerArgs
 import mill.javalib.zinc.{ZincApi, ZincWorker}
@@ -16,33 +16,6 @@ import java.nio.file.FileSystemException
 @internal
 class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoCloseable {
   import args.*
-  private def resolvePossiblyAliasedPath(path: os.Path, workspaceRoot: os.Path): os.Path = {
-    val raw = path.wrapped.toString.replace('\\', '/')
-    val workspaceAlias = "out/mill-workspace"
-    val homeAlias = "out/mill-home"
-
-    def resolveFromAlias(base: os.Path, aliasIdx: Int, alias: String): os.Path = {
-      val suffix = raw.substring(aliasIdx + alias.length).stripPrefix("/")
-      if (suffix.isEmpty) base else base / os.RelPath(suffix)
-    }
-
-    if (raw == workspaceAlias) workspaceRoot
-    else if (raw.startsWith(workspaceAlias + "/"))
-      workspaceRoot / os.RelPath(raw.stripPrefix(workspaceAlias + "/"))
-    else if (raw == homeAlias) os.home
-    else if (raw.startsWith(homeAlias + "/"))
-      os.home / os.RelPath(raw.stripPrefix(homeAlias + "/"))
-    else {
-      val workspaceIdx = raw.indexOf(workspaceAlias)
-      if (workspaceIdx >= 0) resolveFromAlias(workspaceRoot, workspaceIdx, workspaceAlias)
-      else {
-        val homeIdx = raw.indexOf(homeAlias)
-        if (homeIdx >= 0) resolveFromAlias(os.home, homeIdx, homeAlias)
-        else if (path.wrapped.isAbsolute) os.Path(path.wrapped.toAbsolutePath.normalize())
-        else os.Path(raw, os.pwd)
-      }
-    }
-  }
 
   /** The local Zinc instance which is used when we do not want to override Java home or runtime options. */
   private val zincLocalWorker = ZincWorker(jobs = jobs, useFileLocks = useFileLocks)
@@ -55,16 +28,11 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
       reportCachedProblems: Boolean
   )(using ctx: InternalJvmWorkerApi.Ctx): op.Response = {
     val log = ctx.log
-    val workspaceRoot = sys.env
-      .get(EnvVars.MILL_WORKSPACE_ROOT)
-      .map(p => os.Path(p, os.pwd))
-      .getOrElse(resolvePossiblyAliasedPath(mill.api.BuildCtx.workspaceRoot, os.pwd))
-    val taskDest = resolvePossiblyAliasedPath(ctx.dest, workspaceRoot)
     val zincCtx = ZincWorker.LocalConfig(
-      dest = taskDest,
+      dest = ctx.dest,
       logDebugEnabled = log.debugEnabled,
       logPromptColored = log.prompt.colored,
-      workspaceRoot = workspaceRoot
+      workspaceRoot = mill.api.BuildCtx.workspaceRoot
     )
 
     val zincApi =
@@ -121,55 +89,15 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
           internalKey: SubprocessZincApi.Key,
           init: SubprocessZincApi.Initialize
       ): SubprocessZincApi.Value = {
-        val workspaceRoot = sys.env
-          .get(EnvVars.MILL_WORKSPACE_ROOT)
-          .map(p => os.Path(p, os.pwd))
-          .getOrElse(resolvePossiblyAliasedPath(
-            init.workspaceRoot,
-            mill.api.BuildCtx.workspaceRoot
-          ))
-        val taskDest = resolvePossiblyAliasedPath(init.taskDest, workspaceRoot)
-        val workerDir = taskDest / "zinc-worker" / key.hashCode.toString
+        val workerDir = init.taskDest / "zinc-worker" / key.hashCode.toString
         val daemonDir = workerDir / "daemon"
-        val daemonDirAbs = daemonDir.wrapped.toAbsolutePath.normalize().toString
-        val workspaceAbs = workspaceRoot.wrapped.toAbsolutePath.normalize().toString
-        val homeAbs = os.home.wrapped.toAbsolutePath.normalize().toString
-        val aliasOut = daemonDir / "out"
-        val aliasOutSuffix = aliasOut.segments.toVector.takeRight(2)
-        val workspaceAlias = aliasOut / "mill-workspace"
-        val homeAlias = aliasOut / "mill-home"
-        def linkExists(link: os.Path): Boolean =
-          java.nio.file.Files.exists(link.toNIO, java.nio.file.LinkOption.NOFOLLOW_LINKS)
-        def ensureSymlink(link: os.Path, dest: os.Path): Unit = {
-          val destAbs = dest.wrapped.toAbsolutePath.normalize()
-          if (!linkExists(link)) {
-            try java.nio.file.Files.createSymbolicLink(link.toNIO, destAbs)
-            catch {
-              case _: java.nio.file.FileAlreadyExistsException =>
-                if (!linkExists(link))
-                  throw new java.nio.file.FileAlreadyExistsException(link.toString)
-            }
-          }
-        }
 
-        mill.api.BuildCtx.withFilesystemCheckerDisabled {
-          os.makeDir.all(daemonDir)
-          if (
-            aliasOutSuffix != Seq("out", "mill-workspace") && aliasOutSuffix != Seq(
-              "out",
-              "mill-home"
-            )
-          ) {
-            os.makeDir.all(aliasOut)
-            ensureSymlink(workspaceAlias, workspaceRoot)
-            ensureSymlink(homeAlias, os.home)
-          }
-        }
+        os.makeDir.all(daemonDir)
         os.write.over(workerDir / "java-home", key.javaHome.map(_.toString).getOrElse("<default>"))
         os.write.over(workerDir / "java-runtime-options", key.runtimeOptions.mkString("\n"))
 
         val mainClass = "mill.javalib.worker.MillJvmWorkerMain"
-        val baseLocks = Locks.forDirectory(daemonDirAbs, useFileLocks)
+        val baseLocks = Locks.forDirectory(daemonDir.toString, useFileLocks)
         val locks = {
           Locks(
             // File locks are non-reentrant, so we need to lock on the memory lock first.
@@ -190,15 +118,10 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
           () => {
             val process = Jvm.spawnProcess(
               mainClass = mainClass,
-              mainArgs = Seq(daemonDirAbs, jobs.toString, useFileLocks.toString),
+              mainArgs = Seq(daemonDir.toString, jobs.toString, useFileLocks.toString),
               javaHome = key.javaHome,
               jvmArgs = key.runtimeOptions ++ suppressArgs,
-              classPath = classPath,
-              cwd = daemonDir,
-              env = Map(
-                EnvVars.MILL_WORKSPACE_ROOT -> workspaceAbs,
-                EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> s"$workspaceAbs,out/mill-workspace;$homeAbs,out/mill-home"
-              )
+              classPath = classPath
             )
             LaunchedServer.OsProcess(process.wrapped.toHandle)
           },

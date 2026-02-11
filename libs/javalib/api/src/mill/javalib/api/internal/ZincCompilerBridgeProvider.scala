@@ -21,67 +21,6 @@ case class ZincCompilerBridgeProvider(
 )
 @internal
 object ZincCompilerBridgeProvider {
-  private def resolvePossiblyAliasedPath(path: os.Path): os.Path = {
-    val workspaceAbs = os.Path(mill.api.BuildCtx.workspaceRoot.wrapped.toAbsolutePath.normalize())
-    val homeAbs = os.Path(os.home.wrapped.toAbsolutePath.normalize())
-    val nio = path.wrapped
-    if (nio.isAbsolute) path
-    else {
-      val raw = nio.toString.replace('\\', '/')
-      val workspaceAlias = "out/mill-workspace"
-      val homeAlias = "out/mill-home"
-
-      def resolveFromAlias(base: os.Path, aliasIdx: Int, alias: String): os.Path = {
-        val suffix = raw.substring(aliasIdx + alias.length).stripPrefix("/")
-        if (suffix.isEmpty) base else base / os.RelPath(suffix)
-      }
-
-      if (raw == workspaceAlias) workspaceAbs
-      else if (raw.startsWith(workspaceAlias + "/"))
-        workspaceAbs / os.RelPath(raw.stripPrefix(workspaceAlias + "/"))
-      else if (raw == homeAlias) homeAbs
-      else if (raw.startsWith(homeAlias + "/"))
-        homeAbs / os.RelPath(raw.stripPrefix(homeAlias + "/"))
-      else {
-        val workspaceIdx = raw.indexOf(workspaceAlias)
-        if (workspaceIdx >= 0)
-          resolveFromAlias(workspaceAbs, workspaceIdx, workspaceAlias)
-        else {
-          val homeIdx = raw.indexOf(homeAlias)
-          if (homeIdx >= 0) resolveFromAlias(homeAbs, homeIdx, homeAlias)
-          else os.Path(raw, os.pwd)
-        }
-      }
-    }
-  }
-
-  private def unzipWithJdk(zip: os.Path, dest: os.Path): os.Path = {
-    os.makeDir.all(dest)
-    val zis =
-      new java.util.zip.ZipInputStream(new java.io.BufferedInputStream(os.read.inputStream(zip)))
-    val buffer = new Array[Byte](8192)
-    try {
-      Iterator
-        .continually(zis.getNextEntry)
-        .takeWhile(_ != null)
-        .foreach { entry =>
-          val out = dest / os.RelPath(entry.getName)
-          if (entry.isDirectory) os.makeDir.all(out)
-          else {
-            os.makeDir.all(out / os.up)
-            val osOut = os.write.outputStream(out)
-            try {
-              Iterator
-                .continually(zis.read(buffer))
-                .takeWhile(_ != -1)
-                .foreach(read => osOut.write(buffer, 0, read))
-            } finally osOut.close()
-          }
-          zis.closeEntry()
-        }
-    } finally zis.close()
-    dest
-  }
 
   /** Provides the compiler bridge. */
   trait Acquire {
@@ -138,24 +77,11 @@ object ZincCompilerBridgeProvider {
 
     logInfo("Compiling compiler interface...")
 
-    val workingDir0 = resolvePossiblyAliasedPath(workingDir)
-    val compileDest0 = resolvePossiblyAliasedPath(compileDest)
-    val compilerClasspath0 = compilerClasspath.map(resolvePossiblyAliasedPath)
-    val compilerBridgeClasspath0 = compilerBridgeClasspath.map(resolvePossiblyAliasedPath)
-    val compilerBridgeSourcesJar0 = resolvePossiblyAliasedPath(compilerBridgeSourcesJar)
+    os.makeDir.all(workingDir)
+    os.makeDir.all(compileDest)
 
-    os.makeDir.all(workingDir0)
-    os.makeDir.all(compileDest0)
-
-    val sourceFolder =
-      try os.unzip(compilerBridgeSourcesJar0, workingDir0 / "unpacked")
-      catch {
-        case _: UnsupportedClassVersionError =>
-          unzipWithJdk(compilerBridgeSourcesJar0, workingDir0 / "unpacked")
-        case _: NoClassDefFoundError =>
-          unzipWithJdk(compilerBridgeSourcesJar0, workingDir0 / "unpacked")
-      }
-    val classloader = mill.util.Jvm.createClassLoader(compilerClasspath0, parent = null)
+    val sourceFolder = os.unzip(compilerBridgeSourcesJar, workingDir / "unpacked")
+    val classloader = mill.util.Jvm.createClassLoader(compilerClasspath, parent = null)
 
     try {
       val (sources, resources) =
@@ -163,17 +89,16 @@ object ZincCompilerBridgeProvider {
           .partition(a => a.ext == "scala" || a.ext == "java")
 
       resources.foreach { res =>
-        val dest = compileDest0 / res.relativeTo(sourceFolder)
+        val dest = compileDest / res.relativeTo(sourceFolder)
         os.move(res, dest, replaceExisting = true, createFolders = true)
       }
 
       val argsArray = Array[String](
         "-d",
-        compileDest0.wrapped.toString,
+        compileDest.toString,
         "-classpath",
-        (compilerClasspath0.iterator ++ compilerBridgeClasspath0).map(_.wrapped.toString)
-          .mkString(File.pathSeparator)
-      ) ++ sources.map(_.wrapped.toString)
+        (compilerClasspath.iterator ++ compilerBridgeClasspath).mkString(File.pathSeparator)
+      ) ++ sources.map(_.toString)
 
       val allScala = sources.forall(_.ext == "scala")
       val allJava = sources.forall(_.ext == "java")

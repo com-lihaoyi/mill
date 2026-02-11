@@ -21,17 +21,9 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
 import java.nio.file.Files
-import java.nio.file.FileAlreadyExistsException
-import java.nio.file.Path
 
 class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWorkerApi {
   implicit val scope: Scope = Scope.forever
-
-  private def resolvePathLike(path: Path, baseDir: Path): Path = {
-    val deserialized = os.Path.pathSerializer.value.deserialize(path)
-    if (deserialized.isAbsolute) deserialized.toAbsolutePath.normalize()
-    else baseDir.resolve(deserialized).normalize()
-  }
 
   def logger(level: NativeLogLevel): Logger = {
     // Console.err needs to be stored at instantiation time so it saves the right threadlocal
@@ -131,33 +123,13 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
 
   def nativeLink(nativeConfig: Object, outDirectory: File): File = {
     val config = nativeConfig.asInstanceOf[Config]
-    val baseDir = config.baseDir
-    val outputDir = resolvePathLike(outDirectory.toPath(), baseDir)
-    val fallbackTarget = outputDir.resolve("out")
 
-    try {
-      val resultRaw = Await.result(Build.buildCached(config), Duration.Inf)
-      val result = resolvePathLike(resultRaw, baseDir)
-      Files.createDirectories(outputDir)
-      val target = outputDir.resolve(result.getFileName())
+    val result = Await.result(Build.buildCached(config), Duration.Inf)
 
-      val resultInOutDirectory =
-        if (result.toAbsolutePath.normalize() == target.toAbsolutePath.normalize()) result
-        else if (Files.exists(result) && Files.exists(target) && Files.isSameFile(result, target)) {
-          target
-        } else if (!Files.exists(result) && Files.exists(target)) target
-        else {
-          Files.move(
-            result,
-            target,
-            java.nio.file.StandardCopyOption.REPLACE_EXISTING
-          )
-        }
+    val resultInOutDirectory =
+      Files.move(result, outDirectory.toPath().resolve(result.getFileName()))
 
-      resultInOutDirectory.toFile()
-    } catch {
-      case _: FileAlreadyExistsException if Files.exists(fallbackTarget) => fallbackTarget.toFile
-    }
+    resultInOutDirectory.toFile()
   }
 
   def getFramework(

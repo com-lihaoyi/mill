@@ -53,7 +53,6 @@ final class TestModuleUtil(
 )(using ctx: mill.api.TaskCtx) {
 
   private val (jvmArgs, props) = TestModuleUtil.loadArgsAndProps(useArgsFile, forkArgs)
-  private def absPath(p: os.Path): os.Path = os.Path(p.wrapped.toAbsolutePath.normalize())
 
   private val testRunnerClasspathArg = scalalibClasspath
     .map(_.path.toURL)
@@ -126,22 +125,22 @@ final class TestModuleUtil(
     val selectorAbs = selector match {
       case Left(globs) => Left(globs)
       case Right((starting, testClassQueueFolder, claimFolder)) =>
-        Right((starting, absPath(testClassQueueFolder), absPath(claimFolder)))
+        Right((starting, testClassQueueFolder, claimFolder))
     }
     val testArgs = TestArgs(
       framework = testFramework,
-      classpath = runClasspath.map(pr => absPath(pr.path)),
+      classpath = runClasspath.map(_.path),
       arguments = args,
       sysProps = props,
-      outputPath = absPath(outputPath),
-      resultPath = absPath(resultPath),
+      outputPath = outputPath,
+      resultPath = resultPath,
       colored = Task.log.prompt.colored,
-      testCp = testClasspath.map(pr => absPath(pr.path)),
+      testCp = testClasspath.map(_.path),
       globSelectors = selectorAbs,
       logLevel = testLogLevel
     )
 
-    val argsFile = absPath(baseFolder / "testargs")
+    val argsFile = baseFolder / "testargs"
     val sandbox = baseFolder / "sandbox"
     os.write.over(
       argsFile,
@@ -152,9 +151,6 @@ final class TestModuleUtil(
     )
 
     os.makeDir.all(sandbox)
-    ensureRelativizerAliases(forkWorkingDir)
-    ensureRelativizerAliases(baseFolder)
-    ensureRelativizerAliases(sandbox)
 
     val proc = BuildCtx.withFilesystemCheckerDisabled {
       val workspaceAbs = BuildCtx.workspaceRoot.wrapped.toAbsolutePath.normalize().toString
@@ -196,32 +192,6 @@ final class TestModuleUtil(
       Result.Failure(s"Test reporting Failed: ${outputPath} does not exist")
     else
       Result.Success(upickle.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
-  }
-
-  private def ensureRelativizerAliases(base: os.Path): Unit = {
-    val baseSuffix = base.segments.toVector.takeRight(2)
-    if (baseSuffix == Seq("out", "mill-workspace") || baseSuffix == Seq("out", "mill-home")) return
-
-    def linkExists(link: os.Path): Boolean =
-      java.nio.file.Files.exists(link.toNIO, java.nio.file.LinkOption.NOFOLLOW_LINKS)
-
-    def ensureSymlink(link: os.Path, dest: os.Path): Unit = {
-      val destAbs = dest.wrapped.toAbsolutePath.normalize()
-      if (!linkExists(link)) {
-        try java.nio.file.Files.createSymbolicLink(link.toNIO, destAbs)
-        catch {
-          case _: java.nio.file.FileAlreadyExistsException =>
-            if (!linkExists(link)) throw new java.nio.file.FileAlreadyExistsException(link.toString)
-        }
-      }
-    }
-
-    val out = base / "out"
-    val workspaceAlias = out / "mill-workspace"
-    val homeAlias = out / "mill-home"
-    os.makeDir.all(out)
-    ensureSymlink(workspaceAlias, BuildCtx.workspaceRoot)
-    ensureSymlink(homeAlias, os.home)
   }
 
   def prepareTestClassesFolder(selectors2: Seq[String], base: os.Path): os.Path = {

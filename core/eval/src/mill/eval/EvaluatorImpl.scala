@@ -43,7 +43,15 @@ final class EvaluatorImpl(
   override val staticBuildOverrides = execution.staticBuildOverrides
   MillPathSerializer.setupSymlinks(os.pwd, workspace)
 
-  private def withPathSerialization[T](t: => T): T = t
+  private def withPathSerialization[T](t: => T): T = {
+    val prevSpawnHook = os.ProcessOps.spawnHook.value
+    os.ProcessOps.spawnHook.withValue { cwd =>
+      prevSpawnHook(cwd)
+      MillPathSerializer.setupSymlinks(cwd, workspace)
+    } {
+      t
+    }
+  }
 
   def workspace = execution.workspace
   def baseLogger = execution.baseLogger

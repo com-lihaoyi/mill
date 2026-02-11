@@ -7,17 +7,14 @@ import mill.api.daemon.internal.internal
   def apply(args0: mill.javalib.api.internal.ZincOp.GetTestTasks): Seq[String] = {
     import args0.*
     val globFilter = TestRunnerUtils.globFilter(selectors)
-    val normalizedRunCp = runCp.map(PathNormalization.normalizePath)
-    val normalizedTestCp = testCp.map(PathNormalization.normalizePath)
-    val discoveryCp = (normalizedRunCp ++ normalizedTestCp).distinct
     mill.util.Jvm.withClassLoader(
-      classPath = discoveryCp,
+      classPath = runCp,
       sharedPrefixes = Seq("sbt.testing.")
     ) { classLoader =>
       TestRunnerUtils
         .getTestTasks0(
           Framework.framework(framework),
-          Seq.from(normalizedTestCp),
+          Seq.from(testCp),
           args,
           cls => globFilter(cls.getName),
           classLoader

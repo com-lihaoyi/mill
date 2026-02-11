@@ -3,21 +3,9 @@ package mill.javalib.testrunner
 import mill.api.daemon.internal.{TestReporter, internal}
 
 @internal object MillTestRunnerMain0 {
-  private val unmangledPathSerializer: os.Path.Serializer = new os.Path.Serializer {
-    def serializeString(p: os.Path): String = p.wrapped.toString
-    def serializeFile(p: os.Path): java.io.File = p.wrapped.toFile
-    def serializePath(p: os.Path): java.nio.file.Path = p.wrapped
-    def deserialize(s: String): java.nio.file.Path = java.nio.file.Paths.get(s)
-    def deserialize(s: java.io.File): java.nio.file.Path = java.nio.file.Paths.get(s.getPath)
-    def deserialize(s: java.nio.file.Path): java.nio.file.Path = s
-    def deserialize(s: java.net.URI): java.nio.file.Path = java.nio.file.Paths.get(s)
-  }
-
   def main0(args: Array[String], classLoader: ClassLoader): Unit = {
     try {
-      val testArgs = os.Path.pathSerializer.withValue(unmangledPathSerializer) {
-        upickle.read[TestArgs](os.read(os.Path(args(1), os.pwd)))
-      }
+      val testArgs = upickle.read[TestArgs](os.read(os.Path(args(1))))
       testArgs.sysProps.foreach { case (k, v) => System.setProperty(k, v) }
 
       val result = testArgs.globSelectors match {
@@ -50,7 +38,7 @@ import mill.api.daemon.internal.{TestReporter, internal}
       // dirtied the thread-interrupted flag and forgot to clean up. Otherwise,
       // that flag causes writing the results to disk to fail
       Thread.interrupted()
-      os.write.over(testArgs.outputPath, upickle.stream(result))
+      os.write(testArgs.outputPath, upickle.stream(result))
     } catch {
       case e: Throwable =>
         println(e)

@@ -158,15 +158,12 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
     val jobs = ctx.jobs
 
     val cl = internalWorkerClassLoader()
-    def absolutePath(path: os.Path): os.Path =
-      os.Path(path.wrapped.toAbsolutePath.normalize())
 
     val zincCompilerBridge = ZincCompilerBridgeProvider(
-      workspace = absolutePath(ctx.dest),
+      workspace = ctx.dest,
       logInfo = ctx.log.info,
       acquire = (scalaVersion, scalaOrganization) =>
-        scalaCompilerBridgeJarV2(scalaVersion, scalaOrganization, defaultResolver())
-          .map(pr => absolutePath(pr.path))
+        scalaCompilerBridgeJarV2(scalaVersion, scalaOrganization, defaultResolver()).map(_.path)
     )
 
     val args = JvmWorkerArgs(

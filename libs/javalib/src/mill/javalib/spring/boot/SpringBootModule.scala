@@ -2,7 +2,7 @@ package mill.javalib.spring.boot
 
 import mainargs.Flag
 import mill.{T, Task}
-import mill.api.{BuildCtx, ModuleRef, PathRef}
+import mill.api.{ModuleRef, PathRef}
 import mill.javalib.{Dep, DepSyntax, JavaModule, NativeImageModule}
 
 /**
@@ -15,13 +15,6 @@ import mill.javalib.{Dep, DepSyntax, JavaModule, NativeImageModule}
 @mill.api.experimental
 trait SpringBootModule extends JavaModule {
   outer =>
-  private def abs(path: os.Path): String = {
-    val deserialized = os.Path.pathSerializer.value.deserialize(path.wrapped)
-    val absolute =
-      if (deserialized.isAbsolute) deserialized.toAbsolutePath.normalize()
-      else BuildCtx.workspaceRoot.wrapped.resolve(deserialized).toAbsolutePath.normalize()
-    absolute.toString
-  }
 
   /** Spring boot version as can be found in [[https://start.spring.io/]] */
   def springBootPlatformVersion: T[String]
@@ -98,9 +91,9 @@ trait SpringBootModule extends JavaModule {
 
     val args: Array[String] = Array(
       applicationMainClass,
-      abs(sourceOut),
-      abs(resourceOut),
-      abs(classOut),
+      sourceOut.toString,
+      resourceOut.toString,
+      classOut.toString,
       groupId,
       artifactId
     ) ++ springBootProcessAOTExtraApplicationArgs()
@@ -186,19 +179,15 @@ trait SpringBootModule extends JavaModule {
    * parent module as a native GraalVM application, provided the [[outer.springBootProcessAOT]] works.
    */
   trait NativeSpringBootBuildModule extends SpringBootOptimisedBuildModule, NativeImageModule {
-    override def mainClass: T[Option[String]] = Task {
-      Some(outer.springBootMainClass())
-    }
-
     /**
      * Uses the configuration path from both [[outer.springBootProcessAOT]] and
      * [[nativeMvnDepsMetadata]]
      */
     override def nativeImageOptions: Task.Simple[Seq[String]] = Task {
-      val configurationsPath = outer.springBootProcessAOT().path / "resources"
+      val configurationsPath = outer.springBootProcessAOT().path / "resources/META-INF"
       super.nativeImageOptions() ++ Seq(
         "--configurations-path",
-        abs(configurationsPath)
+        configurationsPath.toString
       )
     }
   }

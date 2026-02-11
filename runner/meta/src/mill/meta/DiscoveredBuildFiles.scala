@@ -22,15 +22,6 @@ case class DiscoveredBuildFiles(seenScripts: Map[os.Path, String])
  */
 @internal
 object DiscoveredBuildFiles {
-  private val unmangledPathSerializer: os.Path.Serializer = new os.Path.Serializer {
-    def serializeString(p: os.Path): String = p.wrapped.toString
-    def serializeFile(p: os.Path): java.io.File = p.wrapped.toFile
-    def serializePath(p: os.Path): java.nio.file.Path = p.wrapped
-    def deserialize(s: String): java.nio.file.Path = java.nio.file.Paths.get(s)
-    def deserialize(s: java.io.File): java.nio.file.Path = java.nio.file.Paths.get(s.getPath)
-    def deserialize(s: java.nio.file.Path): java.nio.file.Path = s
-    def deserialize(s: java.net.URI): java.nio.file.Path = java.nio.file.Paths.get(s)
-  }
 
   import mill.api.JsonFormatters.pathReadWrite
   implicit val readWriter: upickle.ReadWriter[DiscoveredBuildFiles] = upickle.macroRW
@@ -46,7 +37,7 @@ object DiscoveredBuildFiles {
       parser: MillScalaParser,
       walked: Seq[os.Path],
       colored: Boolean
-  ): DiscoveredBuildFiles = os.Path.pathSerializer.withValue(unmangledPathSerializer) {
+  ): DiscoveredBuildFiles = {
     val seenScripts = mutable.Map.empty[os.Path, String]
     val errors = mutable.Buffer.empty[Result.Failure]
     val allowNestedBuildMillFiles = mill.internal.Util.readBooleanFromBuildHeader(

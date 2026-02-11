@@ -39,22 +39,16 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
     Task.Anon {
       val output = Task.dest / s"pmd-output.$format"
       os.makeDir.all(output / os.up)
-      val sourcesArg =
-        if (leftover.value.nonEmpty) leftover.value.mkString(",")
-        else {
-          val defaultSrc = moduleDir / "src"
-          if (os.exists(defaultSrc)) defaultSrc.wrapped.toAbsolutePath.normalize().toString
-          else moduleDir.wrapped.toAbsolutePath.normalize().toString
-        }
       val baseArgs = Seq(
         "-d",
-        sourcesArg,
+        if (leftover.value.nonEmpty) leftover.value.mkString(",")
+        else "",
         "-R",
-        pmdRulesets().map(_.path.wrapped.toAbsolutePath.normalize().toString).mkString(","),
+        pmdRulesets().map(_.path.toString).mkString(","),
         "-f",
         format,
         "-r",
-        output.wrapped.toAbsolutePath.normalize().toString
+        output.toString
       )
 
       val args =
