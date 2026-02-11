@@ -21,8 +21,10 @@ trait DetektModule extends KotlinModule {
   }
 
   private def detekt0() = Task.Anon {
-
-    val args = detektOptions() ++ Seq("-i", BuildCtx.workspaceRoot.toString()) ++
+    val inputRoots = sources().iterator.map(_.path).filter(os.exists).toSeq
+    val inputs = if (inputRoots.nonEmpty) inputRoots.map(_.toString()).mkString(",")
+    else BuildCtx.workspaceRoot.toString()
+    val args = detektOptions() ++ Seq("-i", inputs) ++
       Seq("-c", detektConfig().path.toString())
 
     Task.log.info("running detekt ...")
