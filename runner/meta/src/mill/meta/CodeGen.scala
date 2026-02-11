@@ -388,11 +388,7 @@ object CodeGen {
     val header = if (pkg.isBlank()) "" else s"package $pkg"
     val body =
       if (segments.nonEmpty) subfolderMiscInfo(scriptFolderPath, segments)
-      else rootMiscInfo(
-        scriptFolderPath,
-        millTopLevelProjectRoot,
-        output
-      )
+      else rootMiscInfo()
 
     s"""|$generatedFileHeader
         |$header
@@ -554,11 +550,7 @@ object CodeGen {
     }
   }
 
-  def rootMiscInfo(
-      @unused scriptFolderPath: os.Path,
-      @unused millTopLevelProjectRoot: os.Path,
-      @unused output: os.Path
-  ): String = {
+  def rootMiscInfo(): String = {
     s"""|@_root_.scala.annotation.nowarn
         |object MillMiscInfo
         |    extends mill.api.internal.RootModule.Info.FromEnv
