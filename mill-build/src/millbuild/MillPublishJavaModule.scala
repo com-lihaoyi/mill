@@ -134,6 +134,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
         override def log: mill.api.daemon.Logger = mill.api.Logger.DummyLogger
       }
     )
+    os.remove(pomPath)
     PathRef(Task.dest)
   }
 }
