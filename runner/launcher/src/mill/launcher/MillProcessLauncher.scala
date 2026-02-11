@@ -15,13 +15,26 @@ object MillProcessLauncher {
 
   private def ensureSymlink(link: os.Path, dest: os.Path): Unit = {
     val destAbs = dest.wrapped.toAbsolutePath.normalize()
-    if (!linkExists(link)) {
-      try java.nio.file.Files.createSymbolicLink(link.toNIO, destAbs)
+    val linkNio = link.toNIO
+    val linkOpts = java.nio.file.LinkOption.NOFOLLOW_LINKS
+
+    if (java.nio.file.Files.isSymbolicLink(linkNio)) {
+      val current = java.nio.file.Files.readSymbolicLink(linkNio)
+      if (current != destAbs) {
+        os.remove(link)
+        java.nio.file.Files.createSymbolicLink(linkNio, destAbs)
+      }
+    } else if (!java.nio.file.Files.exists(linkNio, linkOpts)) {
+      try java.nio.file.Files.createSymbolicLink(linkNio, destAbs)
       catch {
         case _: java.nio.file.FileAlreadyExistsException =>
           // Another concurrent task/process may have created it between exists-check and symlink.
           if (!linkExists(link)) throw new java.nio.file.FileAlreadyExistsException(link.toString)
       }
+    } else {
+      // The alias path exists but is not a symlink; replace it so relative paths resolve correctly.
+      os.remove.all(link)
+      java.nio.file.Files.createSymbolicLink(linkNio, destAbs)
     }
   }
 
