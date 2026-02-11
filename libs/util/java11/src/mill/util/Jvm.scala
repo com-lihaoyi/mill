@@ -13,6 +13,7 @@ import coursier.util.Task
 import coursier.{Artifacts, Classifier, Dependency, Fetch, Repository, Resolution, Resolve, Type}
 import mill.api.*
 import mill.api.daemon.*
+import mill.constants.EnvVars
 import java.io.{BufferedOutputStream, File}
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission
@@ -26,6 +27,47 @@ import scala.util.chaining.scalaUtilChainingOps
  * launcher scripts, etc.
  */
 object Jvm {
+  private def ensureSymlink(link: os.Path, dest: os.Path): Unit = {
+    val targetNio = link.toNIO
+    val destNio = dest.wrapped.toAbsolutePath.normalize()
+    try {
+      if (Files.isSymbolicLink(targetNio)) {
+        val current = Files.readSymbolicLink(targetNio)
+        if (current != destNio) {
+          os.remove(link)
+          Files.createSymbolicLink(targetNio, destNio)
+        }
+      } else if (!Files.exists(targetNio, java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
+        Files.createSymbolicLink(targetNio, destNio)
+      }
+    } catch {
+      case _: java.nio.file.FileSystemException =>
+      // best-effort alias setup
+    }
+  }
+
+  def ensureProcessCwdAliases(cwd: os.Path): Unit = {
+    if (cwd != null) {
+      val workspace = sys.env
+        .get(EnvVars.MILL_WORKSPACE_ROOT)
+        .map(p => os.Path(p, os.pwd))
+        .getOrElse(BuildCtx.workspaceRoot)
+      val out = cwd / "out"
+      val outNio = out.toNIO
+      if (
+        Files.exists(outNio, java.nio.file.LinkOption.NOFOLLOW_LINKS) && !Files.isDirectory(
+          outNio,
+          java.nio.file.LinkOption.NOFOLLOW_LINKS
+        )
+      ) {
+        // Some tasks intentionally place a file named `out` in cwd.
+      } else {
+        os.makeDir.all(out)
+        ensureSymlink(out / "mill-workspace", workspace)
+        ensureSymlink(out / "mill-home", os.home)
+      }
+    }
+  }
 
   /**
    * Runs a JVM subprocess with the given configuration and returns a
@@ -75,6 +117,8 @@ object Jvm {
       destroyOnExit: Boolean = true,
       check: Boolean = true
   )(using ctx: TaskCtx): os.CommandResult = {
+    val effectiveCwd = Option(cwd).getOrElse(os.pwd)
+    ensureProcessCwdAliases(effectiveCwd)
     val commandArgs = buildJvmCommand(
       mainClass,
       mainArgs,
@@ -82,7 +126,7 @@ object Jvm {
       jvmArgs,
       classPath,
       cpPassingJarPath,
-      cwd
+      effectiveCwd
     )
 
     ctx.log.debug(
@@ -90,7 +134,7 @@ object Jvm {
     )
 
     os.proc(commandArgs).call(
-      cwd = cwd,
+      cwd = effectiveCwd,
       env = env,
       propagateEnv = propagateEnv,
       stdin = stdin,
@@ -148,6 +192,9 @@ object Jvm {
       shutdownGracePeriod: Long = 100,
       destroyOnExit: Boolean = true
   ): os.SubProcess = {
+    val effectiveCwd = Option(cwd).getOrElse(os.pwd)
+    ensureProcessCwdAliases(effectiveCwd)
+
     val commandArgs = buildJvmCommand(
       mainClass,
       mainArgs,
@@ -155,11 +202,11 @@ object Jvm {
       jvmArgs,
       classPath,
       cpPassingJarPath,
-      cwd
+      effectiveCwd
     )
 
     os.proc(commandArgs).spawn(
-      cwd = cwd,
+      cwd = effectiveCwd,
       env = env,
       stdin = stdin,
       stdout = stdout,
@@ -457,13 +504,14 @@ object Jvm {
   }
 
   def createClasspathPassingJar(jar: os.Path, classpath: Seq[os.Path]): Unit = {
+    val classPathManifestValue = classpath.iterator
+      .map(_.wrapped.toAbsolutePath.normalize().toUri.toURL.toExternalForm)
+      .mkString(" ")
     createJar(
       jar = jar,
       inputPaths = Seq(),
       manifest = JarManifest.MillDefault.add(
-        "Class-Path" -> classpath.iterator.map(_.toURL.toExternalForm()).mkString(
-          " "
-        )
+        "Class-Path" -> classPathManifestValue
       ),
       fileFilter = (_, _) => true
     )

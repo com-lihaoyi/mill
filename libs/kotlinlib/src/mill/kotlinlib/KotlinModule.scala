@@ -316,8 +316,9 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       val updateCompileOutput = upstreamCompileOutput()
 
       def compileJava: Result[CompilationResult] = {
+        val classesDisplay = classes.relativeTo(BuildCtx.workspaceRoot)
         ctx.log.info(
-          s"Compiling ${javaSourceFiles.size} Java sources to ${classes} ..."
+          s"Compiling ${javaSourceFiles.size} Java sources to ${classesDisplay} ..."
         )
         // The compile step is lazy, but its dependencies are not!
         internalCompileJavaFiles(

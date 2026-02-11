@@ -3,10 +3,11 @@ package mill.exec
 import mill.api.ExecResult.{OuterStack, Success}
 import mill.api.*
 import mill.api.internal.{Appendable, Cached, Located}
-import mill.internal.{CodeSigUtils, FileLogger, MultiLogger}
+import mill.internal.{CodeSigUtils, FileLogger, MillPathSerializer, MultiLogger}
 
 import java.lang.reflect.Method
 import java.util.concurrent.ThreadPoolExecutor
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
@@ -824,12 +825,48 @@ object GroupExecution {
       validReadDests: Seq[os.Path],
       validWriteDests: Seq[os.Path]
   ) extends os.Checker {
+    private val normalizedWorkspace = normalizeForCheck(workspace)
+    private val normalizedReadDests = validReadDests.map(normalizeForCheck)
+    private val normalizedWriteDests = validWriteDests.map(normalizeForCheck)
+
+    private def normalizeForCheck(path: os.Path): os.Path = {
+      @tailrec
+      def firstExistingPrefix(current: os.Path, suffix: List[String]): Option[(os.Path, List[String])] =
+        if (os.exists(current)) Some((current, suffix))
+        else {
+          val parent = current / os.up
+          if (parent == current) None
+          else firstExistingPrefix(parent, current.last :: suffix)
+        }
+
+      firstExistingPrefix(path, Nil) match {
+        case Some((existingPrefix, suffix)) =>
+          val resolvedPrefix = os.Path(existingPrefix.toNIO.toRealPath())
+          suffix.foldLeft(resolvedPrefix) { case (acc, segment) => acc / segment }
+        case None => path
+      }
+    }
+
+    private def startsWithAny(path: os.Path, prefixes: Seq[os.Path]): Boolean =
+      prefixes.exists(path.startsWith)
+
+    private def relativeForError(original: os.Path, normalized: os.Path): String = {
+      if (original.startsWith(workspace)) original.relativeTo(workspace).toString
+      else if (normalized.startsWith(normalizedWorkspace)) normalized.relativeTo(normalizedWorkspace).toString
+      else original.toString
+    }
+
     def onRead(path: os.ReadablePath): Unit = path match {
       case path: os.Path =>
         if (!isCommand && !isInput && mill.api.FilesystemCheckerEnabled.value) {
-          if (path.startsWith(workspace) && !validReadDests.exists(path.startsWith)) {
+          val normalizedPath = normalizeForCheck(path)
+          val inWorkspace =
+            path.startsWith(workspace) || normalizedPath.startsWith(normalizedWorkspace)
+          val allowed =
+            startsWithAny(path, validReadDests) || startsWithAny(normalizedPath, normalizedReadDests)
+          if (inWorkspace && !allowed) {
             sys.error(
-              s"Reading from ${path.relativeTo(workspace)} not allowed during execution of `$terminal`.\n" +
+              s"Reading from ${relativeForError(path, normalizedPath)} not allowed during execution of `$terminal`.\n" +
                 "You can only read files referenced by `Task.Source` or `Task.Sources`, or within a `Task.Input"
             )
           }
@@ -839,9 +876,14 @@ object GroupExecution {
 
     def onWrite(path: os.Path): Unit = {
       if (!isCommand && mill.api.FilesystemCheckerEnabled.value) {
-        if (path.startsWith(workspace) && !validWriteDests.exists(path.startsWith)) {
+        val normalizedPath = normalizeForCheck(path)
+        val inWorkspace =
+          path.startsWith(workspace) || normalizedPath.startsWith(normalizedWorkspace)
+        val allowed =
+          startsWithAny(path, validWriteDests) || startsWithAny(normalizedPath, normalizedWriteDests)
+        if (inWorkspace && !allowed) {
           sys.error(
-            s"Writing to ${path.relativeTo(workspace)} not allowed during execution of `$terminal`.\n" +
+            s"Writing to ${relativeForError(path, normalizedPath)} not allowed during execution of `$terminal`.\n" +
               "Normal `Task`s can only write to files within their `Task.dest` folder, only `Task.Command`s can write to other arbitrary files."
           )
         }
@@ -884,32 +926,40 @@ object GroupExecution {
       if (exclusive) (exclusiveSystemStreams, () => workspace)
       else (multiLogger.streams, () => destCreator.makeDest())
 
-    os.dynamicPwdFunction.withValue(destFunc) {
-      os.checker.withValue(executionChecker) {
-        mill.api.SystemStreamsUtils.withStreams(streams) {
-          val exposedEvaluator =
-            if (exclusive) evaluator.asInstanceOf[Evaluator]
-            else new EvaluatorProxy(() =>
-              sys.error(
-                "No evaluator available here; Evaluator is only available in exclusive commands"
+    val prevSpawnHook = os.ProcessOps.spawnHook.value
+    os.ProcessOps.spawnHook.withValue { cwd =>
+      prevSpawnHook(cwd)
+      mill.api.BuildCtx.withFilesystemCheckerDisabled {
+        MillPathSerializer.setupSymlinks(cwd, workspace)
+      }
+    } {
+      os.dynamicPwdFunction.withValue(destFunc) {
+        os.checker.withValue(executionChecker) {
+          mill.api.SystemStreamsUtils.withStreams(streams) {
+            val exposedEvaluator =
+              if (exclusive) evaluator.asInstanceOf[Evaluator]
+              else new EvaluatorProxy(() =>
+                sys.error(
+                  "No evaluator available here; Evaluator is only available in exclusive commands"
+                )
               )
-            )
 
-          Evaluator.withCurrentEvaluator(exposedEvaluator) {
-            // Ensure the class loader used to load user code
-            // is set as context class loader when running user code.
-            // This is useful if users rely on libraries that look
-            // for resources added by other libraries, by using
-            // using java.util.ServiceLoader for example.
-            mill.api.ClassLoader.withContextClassLoader(classLoader) {
-              if (!exclusive) t
-              else {
-                // For exclusive tasks, we print the task name once and then we disable the
-                // prompt/ticker so the output of the exclusive task can "clean" while still
-                // being identifiable
-                logger.prompt.logPrefixedLine(Seq(counterMsg), new ByteArrayOutputStream(), false)
-                logger.prompt.withPromptPaused {
-                  t
+            Evaluator.withCurrentEvaluator(exposedEvaluator) {
+              // Ensure the class loader used to load user code
+              // is set as context class loader when running user code.
+              // This is useful if users rely on libraries that look
+              // for resources added by other libraries, by using
+              // using java.util.ServiceLoader for example.
+              mill.api.ClassLoader.withContextClassLoader(classLoader) {
+                if (!exclusive) t
+                else {
+                  // For exclusive tasks, we print the task name once and then we disable the
+                  // prompt/ticker so the output of the exclusive task can "clean" while still
+                  // being identifiable
+                  logger.prompt.logPrefixedLine(Seq(counterMsg), new ByteArrayOutputStream(), false)
+                  logger.prompt.withPromptPaused {
+                    t
+                  }
                 }
               }
             }

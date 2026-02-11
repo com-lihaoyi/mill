@@ -3,6 +3,7 @@ package mill.launcher
 import mill.api.daemon.SystemStreams
 import mill.client.{ClientUtil, LaunchedServer, ServerLauncher}
 import mill.constants.BuildInfo
+import mill.constants.EnvVars
 import mill.client.lock.Locks
 import mill.constants.Util
 import mill.rpc.RpcConsole
@@ -34,7 +35,8 @@ class MillServerLauncher(
       millVersion = millVersion,
       javaVersion = javaHome.map(_.toString).getOrElse(""),
       jvmOpts = jvmOpts,
-      millRepositories = millRepositories
+      millRepositories = millRepositories,
+      pathRelativizerBase = env.getOrElse(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE, "")
     )
 
     val launched = ServerLauncher.launchOrConnectToServer(

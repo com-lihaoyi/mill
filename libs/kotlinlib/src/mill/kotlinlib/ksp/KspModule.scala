@@ -461,20 +461,22 @@ trait KspModule extends KotlinModule { outer =>
       ""
     else
       s"-processor-options=${processorOptionsValue}"
+    def absPath(path: os.Path): String = path.wrapped.toAbsolutePath.normalize.toString
+
     val args = Seq(
       s"-module-name=${kspModuleName}",
       "-jvm-target",
       kspJvmTarget(),
       s"-jdk-home=${System.getProperty("java.home")}",
-      s"-source-roots=${kspSources().map(_.path).mkString(File.pathSeparator)}",
-      s"-project-base-dir=${moduleDir.toString}",
-      s"-output-base-dir=${kspOutputDir}",
-      s"-caches-dir=${kspCachesDir}",
-      s"-libraries=${kspClasspath().map(_.path).mkString(File.pathSeparator)}",
-      s"-class-output-dir=${classes}",
-      s"-kotlin-output-dir=${kotlin}",
-      s"-java-output-dir=${java}",
-      s"-resource-output-dir=${resources}",
+      s"-source-roots=${kspSources().map(x => absPath(x.path)).mkString(File.pathSeparator)}",
+      s"-project-base-dir=${absPath(moduleDir)}",
+      s"-output-base-dir=${absPath(kspOutputDir)}",
+      s"-caches-dir=${absPath(kspCachesDir)}",
+      s"-libraries=${kspClasspath().map(x => absPath(x.path)).mkString(File.pathSeparator)}",
+      s"-class-output-dir=${absPath(classes)}",
+      s"-kotlin-output-dir=${absPath(kotlin)}",
+      s"-java-output-dir=${absPath(java)}",
+      s"-resource-output-dir=${absPath(resources)}",
       s"-language-version=${kspLanguageVersion()}",
       s"-incremental=true",
       s"-incremental-log=true",

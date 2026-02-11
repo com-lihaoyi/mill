@@ -131,11 +131,11 @@ object MillProcessLauncher {
     // Inheriting parent values causes nested Mill runs to lock/use the parent's out folder.
     val workspaceRootEnv = workDir.wrapped.toAbsolutePath.normalize().toString
     val relativizerBaseEnv = relativizerEnv(workDir)
-    val processEnv = env ++ Map(
-      EnvVars.MILL_WORKSPACE_ROOT -> workspaceRootEnv,
-      EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> relativizerBaseEnv,
-      EnvVars.MILL_ENABLE_STATIC_CHECKS -> "true"
-    ) ++ (
+    val processEnv = env ++
+      Map(EnvVars.MILL_WORKSPACE_ROOT -> workspaceRootEnv) ++
+      (if (env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).contains("")) Map.empty
+       else Map(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> relativizerBaseEnv)) ++
+      Map(EnvVars.MILL_ENABLE_STATIC_CHECKS -> "true") ++ (
       if (env.contains(EnvVars.MILL_EXECUTABLE_PATH)) Map.empty
       else Map(EnvVars.MILL_EXECUTABLE_PATH -> getExecutablePath)
     ) ++ {

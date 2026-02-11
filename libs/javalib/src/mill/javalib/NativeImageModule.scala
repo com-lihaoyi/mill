@@ -37,8 +37,9 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
     val dest = Task.dest
 
     val executeableName = "native-executable"
+    val toolPath = nativeImageTool().path
     val command = Seq.newBuilder[String]
-      .+=(nativeImageTool().path.toString)
+      .+=(toolPath.toString)
       .++=(nativeImageOptions())
       .+=("-cp")
       .+=(nativeImageClasspath().iterator.map(_.path).mkString(java.io.File.pathSeparator))
