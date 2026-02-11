@@ -308,7 +308,9 @@ object `package` extends MillJavaModule with Proguard with DistModule {
 
     // Use the unified localRepo instead of individual publishLocalTestRepo paths
     override def localTestOverridesEnv = Task {
-      Seq("MILL_LOCAL_TEST_REPO" -> localRepo().path.toString)
+      val repos = Seq(localRepo().path.toNIO.toUri.toASCIIString) ++
+        Seq(Task.env.getOrElse("COURSIER_REPOSITORIES", "ivy2Local|central"))
+      Seq("COURSIER_REPOSITORIES" -> repos.mkString("|"))
     }
 
     def localBinName = "mill-assembly.jar"

@@ -6,7 +6,7 @@ import coursier.core.{BomDependency, VariantSelector}
 import coursier.error.FetchError.DownloadingArtifacts
 import coursier.error.ResolutionError.CantDownloadModule
 import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
-import coursier.maven.{MavenRepository, MavenRepositoryLike}
+import coursier.maven.MavenRepositoryLike
 import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
 import coursier.util.Task
@@ -847,25 +847,10 @@ object Jvm {
       else
         repositories
 
-    def testOverridesReposFor(envVar: String) =
-      Option(System.getenv(envVar))
-        .toSeq
-        .flatMap(_.split(File.pathSeparator).toSeq)
-        .filter(_.nonEmpty)
-        .map { path =>
-          MavenRepository(os.Path(path).toURI.toASCIIString)
-            .withCheckModule(checkGradleModules)
-        }
-
-    val testOverridesRepos =
-      testOverridesReposFor("MILL_LOCAL_TEST_REPO") ++
-        testOverridesReposFor("MILL_USER_TEST_REPO")
-
     val resolve = Resolve()
       .withCache(coursierCache0)
       .withDependencies(rootDeps)
-      // repositories0 (which includes mill-repositories) comes first so user config takes precedence
-      .withRepositories(repositories0 ++ testOverridesRepos)
+      .withRepositories(repositories0)
       .withResolutionParams(resolutionParams0)
       .withMapDependenciesOpt(mapDependencies)
       .withBoms(boms.iterator.toSeq)

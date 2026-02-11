@@ -24,9 +24,11 @@ object myplugin extends ScalaModule, PublishModule {
   object integration extends ScalaTests, TestModule.Utest {
     def mvnDeps = Seq(mvn"com.lihaoyi::mill-testkit:$millVersion")
     def forkEnv = Task {
+      val repos = Seq(publishLocalTestRepo().path.toNIO.toUri.toASCIIString) ++
+        Seq(Task.env.getOrElse("COURSIER_REPOSITORIES", "ivy2Local|central"))
       Map(
         "MILL_EXECUTABLE_PATH" -> millExecutable.assembly().path.toString,
-        "MILL_USER_TEST_REPO" -> publishLocalTestRepo().path.toString
+        "COURSIER_REPOSITORIES" -> repos.mkString("|")
       )
     }
 
