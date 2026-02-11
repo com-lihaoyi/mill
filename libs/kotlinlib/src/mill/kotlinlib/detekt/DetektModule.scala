@@ -28,15 +28,17 @@ trait DetektModule extends KotlinModule {
     Task.log.info("running detekt ...")
     Task.log.debug(s"with $args")
 
-    Jvm.callProcess(
-      mainClass = "io.gitlab.arturbosch.detekt.cli.Main",
-      classPath = detektClasspath().map(_.path).toVector,
-      mainArgs = args,
-      cwd = moduleDir, // allow passing relative paths for sources like src/a/b
-      stdin = os.Inherit,
-      stdout = os.Inherit,
-      check = false
-    ).exitCode
+    os.ProcessOps.spawnHook.withValue(_ => ()) {
+      Jvm.callProcess(
+        mainClass = "io.gitlab.arturbosch.detekt.cli.Main",
+        classPath = detektClasspath().map(_.path).toVector,
+        mainArgs = args,
+        cwd = moduleDir, // allow passing relative paths for sources like src/a/b
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        check = false
+      ).exitCode
+    }
   }
 
   private def detektHandleErrors(check: Boolean, exitCode: Int)(using
