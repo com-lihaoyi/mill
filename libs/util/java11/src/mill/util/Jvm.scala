@@ -368,6 +368,9 @@ object Jvm {
     Thread.currentThread().setContextClassLoader(newClassloader)
     try {
       f(newClassloader)
+    } catch {
+      case t: Throwable =>
+        throw Result.SerializedException.partialFrom(t, newClassloader)
     } finally {
       Thread.currentThread().setContextClassLoader(oldClassloader)
       newClassloader.close()
@@ -861,7 +864,8 @@ object Jvm {
     val resolve = Resolve()
       .withCache(coursierCache0)
       .withDependencies(rootDeps)
-      .withRepositories(testOverridesRepos ++ repositories0)
+      // repositories0 (which includes mill-repositories) comes first so user config takes precedence
+      .withRepositories(repositories0 ++ testOverridesRepos)
       .withResolutionParams(resolutionParams0)
       .withMapDependenciesOpt(mapDependencies)
       .withBoms(boms.iterator.toSeq)

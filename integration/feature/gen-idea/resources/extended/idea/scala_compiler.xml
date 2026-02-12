@@ -13,12 +13,12 @@
                 <plugin path=".../org/scala-lang/scala3-compiler_3/<version>/scala3-compiler_3-<version>.jar"/>
                 <plugin path=".../org/scala-lang/scala3-library_3/<version>/scala3-library_3-<version>.jar"/>
                 <plugin path=".../com/lihaoyi/mill-moduledefs_3/<version>/mill-moduledefs_3-<version>.jar"/>
+                <plugin path=".../org/scala-lang/scala-library/<version>/scala-library-<version>.jar"/>
                 <plugin path=".../com/lihaoyi/unroll-annotation_3/<version>/unroll-annotation_3-<version>.jar"/>
                 <plugin path=".../org/scala-lang/scala3-interfaces/<version>/scala3-interfaces-<version>.jar"/>
                 <plugin path=".../org/scala-lang/tasty-core_3/<version>/tasty-core_3-<version>.jar"/>
                 <plugin path=".../org/scala-lang/modules/scala-asm/<version>/scala-asm-<version>.jar"/>
                 <plugin path=".../org/scala-sbt/compiler-interface/<version>/compiler-interface-<version>.jar"/>
-                <plugin path=".../org/scala-lang/scala-library/<version>/scala-library-<version>.jar"/>
                 <plugin path=".../org/scala-sbt/util-interface/<version>/util-interface-<version>.jar"/>
             </plugins>
         </profile>

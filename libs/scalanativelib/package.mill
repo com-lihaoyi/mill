@@ -32,4 +32,14 @@ object `package` extends MillStableScalaModule {
     }
     def mandatoryMvnDeps = Seq.empty[mill.scalalib.Dep]
   }
+
+  override object test extends MillScalaTests {
+    override def selectiveInputs = Seq(
+      sources,
+      resources,
+      build.libs.scalanativelib.sources,
+      build.libs.scalanativelib.api.sources,
+      build.libs.scalanativelib.worker("0.5").sources
+    )
+  }
 }

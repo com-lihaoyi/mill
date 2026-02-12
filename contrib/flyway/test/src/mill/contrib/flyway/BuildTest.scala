@@ -6,6 +6,7 @@ import mill.javalib.*
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.{TestSuite, Tests, assert, *}
+import scala.annotation.nowarn
 
 object BuildTest extends TestSuite {
 
@@ -24,6 +25,7 @@ object BuildTest extends TestSuite {
     val millDiscover: Discover = Discover[this.type]
   }
 
+  @nowarn("msg=unused pattern variable")
   def tests = Tests {
     test("clean") - UnitTester(Build, null).scoped { eval =>
       val Right(result) = eval(Build.build.flywayClean()).runtimeChecked

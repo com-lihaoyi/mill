@@ -12,6 +12,8 @@ case class Artifact(group: String, id: String, version: String) derives RW {
   )
 
   def isSnapshot: Boolean = version.endsWith("-SNAPSHOT")
+
+  override def toString(): String = s"$group:$id:$version"
 }
 
 object Artifact {

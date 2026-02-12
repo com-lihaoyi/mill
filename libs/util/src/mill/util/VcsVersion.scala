@@ -90,6 +90,17 @@ object VcsVersion extends ExternalModule with VcsVersion {
   lazy val millDiscover = Discover[this.type]
 }
 
+/**
+ * A module trait that provides a `publishVersion` based on the git version.
+ */
+trait VcsVersionModule extends Module {
+  private def publishVersion0: T[String] = Task.Input {
+    VcsVersion.calcVcsState(Task.log).format()
+  }
+
+  def publishVersion: T[String] = Task { publishVersion0() }
+}
+
 trait VcsVersion extends Module {
 
   def vcsBasePath: os.Path = moduleDir

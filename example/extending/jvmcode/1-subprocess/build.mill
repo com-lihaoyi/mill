@@ -12,7 +12,7 @@
 //
 // While xref:fundamentals/bundled-libraries.adoc#_os_lib[OS-Lib]'s `os.call` and `os.spawn` APIs
 // can be used to create any processes, JVM subprocesses are common enough have enough
-// idiosyncracies (e.g. classpaths) that Mill provides helper methods specifically for them.
+// idiosyncrasies (e.g. classpaths) that Mill provides helper methods specifically for them.
 
 package build
 import mill.*, javalib.*

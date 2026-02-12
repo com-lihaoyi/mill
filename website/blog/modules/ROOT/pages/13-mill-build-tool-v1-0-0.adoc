@@ -14,7 +14,7 @@ xref:mill::comparisons/gradle.adoc#_extending_mill[extensibility],
 and xref:mill::comparisons/gradle.adoc#_gradle_ide_support[IDE support].
 The new release of Mill 1.0.0 is a major breaking version of the Mill project focused on setting
 a solid technical foundation that can provide stability for the coming years of development. While the
-https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#100[Changelog] contains a thorough
+{mill-github-url}/blob/main/changelog.adoc#1-0-0[Changelog] contains a thorough
 listing of the various changes, as well as detailed migration instructions, this article
 instead spends more time discussing some of the highlights of the Mill 1.0.0 release.
 
@@ -363,7 +363,7 @@ This blog post covers just the highlights of the new Mill 1.0.0 release; the ful
 changelog goes into a lot more breadth and depth about the changes, and what migration
 steps are necessary for upgrading from earlier versions of Mill:
 
-- https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#100[Mill 1.0.0 Changelog]
+- {mill-github-url}/blob/main/changelog.adoc#1-0-0[Mill 1.0.0 Changelog]
 
 If you would like to try Mill 1.0.0 for the first time, check out the links below:
 

@@ -7,15 +7,17 @@ This page will discuss common topics around publishing your Java projects for ot
 
 == Basic Publishing Configuration
 
-include::partial$example/javalib/publishing/1-publishing.adoc[]
+include::partial$example/javalib/publishing/1-publishing-yaml.adoc[]
 
-== Programmatic Publishing Configuration
+== Versioning Based on Git Tags
 
-include::partial$example/javalib/publishing/2-publish-module.adoc[]
+include::partial$example/javalib/publishing/2-vcs-version.adoc[]
 
-== Publishing to Sonatype Maven Central
+== Programmable Publishing Configuration
 
-include::partial$example/javalib/publishing/3-publish-module-sonatype.adoc[]
+include::partial$example/javalib/publishing/3-publishing.adoc[]
+
+include::partial$Publishing_Footer.adoc[]
 
 == Checking API compatibility
 
@@ -41,6 +43,3 @@ The `revapi` task returns the path to a directory that can be used to resolve th
 ]
 ----
 ====
-
-include::partial$Publishing_Footer.adoc[]
-

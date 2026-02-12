@@ -89,7 +89,7 @@ object AsmWorkerImpl {
   ): Unit = {
     val templateClassName = if (multiMain) "TemplateMultiMainClass" else "TemplateSingleMainClass"
     val templateBytes = os.read.bytes(
-      os.resource(getClass().getClassLoader()) / os.SubPath(
+      os.resource(using getClass().getClassLoader()) / os.SubPath(
         s"mill/script/asm/$templateClassName.class"
       )
     )

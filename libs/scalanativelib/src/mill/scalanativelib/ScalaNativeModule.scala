@@ -53,10 +53,16 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
       case v @ ("0.4.0" | "0.4.1") =>
         Result.Failure(s"Scala Native $v is not supported. Please update to 0.4.2+")
       case version =>
+        // Workaround for https://github.com/com-lihaoyi/mill/issues/6780:
+        // Scala Native `tools_3` 0.5.10 can crash during linking when
+        // `SourceLevelDebuggingConfig` is enabled.
+        //
+        // Using the Scala 2.13 published toolchain artifacts avoids the issue and is
+        // compatible with Mill's Scala 3 runtime (Scala 3 uses the 2.13 standard library).
         Result.Success(
           Seq(
-            mvn"org.scala-native::tools:$version",
-            mvn"org.scala-native::test-runner:$version"
+            mvn"org.scala-native:tools_2.13:$version",
+            mvn"org.scala-native:test-runner_2.13:$version"
           )
         )
 
@@ -174,7 +180,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
     nativeGCInput().getOrElse(withScalaNativeBridge.apply().apply(_.defaultGarbageCollector()))
   }
 
-  def nativeTarget: T[Option[String]] = Task { Option.empty[String] }
+  def nativeTarget: T[Option[String]] = Task { None }
 
   // Options that are passed to clang during compilation
   def nativeCompileOptions = Task {
@@ -225,7 +231,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
    *  toolchain would detect if program uses system threads - when not thrads
    *  are not used, the program would be linked without multihreading support.
    */
-  def nativeMultithreading: T[Option[Boolean]] = Task { Option.empty[Boolean] }
+  def nativeMultithreading: T[Option[Boolean]] = Task { None }
 
   /**
    * List of service providers which shall be allowed in the final binary.

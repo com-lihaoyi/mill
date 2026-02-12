@@ -1,5 +1,5 @@
 package qux
-import utest.*
+import utest._
 object QuxTests extends TestSuite {
   def tests = Tests {
     test("parseJsonGetKeys") {

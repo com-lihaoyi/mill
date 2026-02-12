@@ -53,13 +53,13 @@ object CoursierClient {
     }
   }
 
-  def resolveMillDaemon(outMode: OutFolderMode): Seq[os.Path] = {
+  def resolveMillDaemon(outMode: OutFolderMode, millRepositories: Seq[String]): Seq[os.Path] = {
     val testOverridesRepos = Option(System.getenv("MILL_LOCAL_TEST_REPO"))
       .toSeq
       .flatMap(_.split(File.pathSeparator).toSeq)
 
-    // Cache key includes mill version and any test override repos
-    val cacheKey = s"${BuildInfo.millVersion}:${testOverridesRepos.sorted.mkString(":")}"
+    val cacheKey =
+      s"${BuildInfo.millVersion}:${testOverridesRepos.sorted.mkString(":")}:${millRepositories.sorted.mkString(":")}"
 
     cached[Seq[os.Path]](
       cacheFile = cacheDir(outMode) / "mill-daemon-classpath",
@@ -73,14 +73,18 @@ object CoursierClient {
         MavenRepository(os.Path(path).toURI.toASCIIString)
       }
 
+      val configuredRepos = mill.util.Jvm.reposFromStrings(millRepositories).get
+
       val artifactsResultOrError = {
+        // configuredRepos (from mill-repositories) comes first so user config takes precedence
+        val allRepos = configuredRepos ++ testOverridesMavenRepos ++ Resolve.defaultRepositories
         val resolve = Resolve()
           .withCache(coursierCache0)
           .withDependencies(Seq(Dependency(
             Module(Organization("com.lihaoyi"), ModuleName("mill-runner-daemon_3"), Map()),
             VersionConstraint(BuildInfo.millVersion)
           )))
-          .withRepositories(testOverridesMavenRepos ++ Resolve.defaultRepositories)
+          .withRepositories(allRepos)
 
         val result = resolve.either().flatMap { v =>
           Artifacts(coursierCache0)
@@ -100,11 +104,11 @@ object CoursierClient {
   def resolveJavaHome(
       id: String,
       jvmIndexVersionOpt: Option[String],
-      outMode: OutFolderMode
+      outMode: OutFolderMode,
+      millRepositories: Seq[String]
   ): os.Path = {
     val indexVersion = jvmIndexVersionOpt.getOrElse(mill.client.Versions.coursierJvmIndexVersion)
-
-    val cacheKey = s"$id:$indexVersion" // Cache key includes jvm id and index version
+    val cacheKey = s"$id:$indexVersion:${millRepositories.sorted.mkString(":")}"
 
     cached[os.Path](
       cacheFile = cacheDir(outMode) / "java-home",
@@ -114,12 +118,13 @@ object CoursierClient {
       val coursierCache0 = FileCache[Task]()
         .withLogger(coursier.cache.loggers.RefreshLogger.create())
 
+      val configuredRepos = mill.util.Jvm.reposFromStrings(millRepositories).get
       val jvmCache = JvmCache()
         .withArchiveCache(ArchiveCache().withCache(coursierCache0))
         .withIndex(
           JvmIndex.load(
             cache = coursierCache0,
-            repositories = Resolve.defaultRepositories,
+            repositories = configuredRepos ++ Resolve.defaultRepositories,
             indexChannel = JvmChannel.module(JvmChannel.centralModule(), version = indexVersion)
           )
         )

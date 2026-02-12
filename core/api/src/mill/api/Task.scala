@@ -25,7 +25,7 @@ import scala.quoted.*
  * Generally not instantiated manually, but instead constructed via the
  * [[Task.apply]] & similar macros.
  */
-sealed abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with TaskApi[T] {
+sealed abstract class Task[T] extends Task.Ops[T] with Applyable[Task, T] with TaskApi[T] {
 
   /**
    * What other tasks does this task depend on?
@@ -33,6 +33,14 @@ sealed abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with 
   val inputs: Seq[Task[?]]
 
   override private[mill] def inputsApi: Seq[TaskApi[?]] = inputs
+
+  /**
+   * Inputs used for selective execution dependency tracking.
+   * Defaults to the normal task inputs when no override is provided.
+   */
+  private[mill] def selectiveInputs0: Seq[Task[?]] = null
+  private[mill] final def selectiveInputs: Seq[Task[?]] =
+    if (selectiveInputs0 == null) inputs else selectiveInputs0
 
   /**
    * Evaluate this task
@@ -210,7 +218,11 @@ object Task {
       inline w: Writer[T],
       inline ctx: ModuleCtx
   ): Simple[T] =
-    ${ Macros.uncachedImpl[T]('t)('w, 'ctx, persistent = '{ false }) }
+    ${
+      Macros.uncachedImpl[T](
+        't
+      )('w, 'ctx, persistent = '{ false }, selectiveInputs = '{ null })
+    }
 
   def Uncached(
       @unused t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
@@ -223,7 +235,8 @@ object Task {
     inline def apply[T](inline t: Result[T])(using
         inline w: Writer[T],
         inline ctx: ModuleCtx
-    ): Simple[T] = ${ Macros.uncachedImpl[T]('t)('w, 'ctx, '{ persistent }) }
+    ): Simple[T] =
+      ${ Macros.uncachedImpl[T]('t)('w, 'ctx, '{ persistent }, '{ null }) }
   }
 
   /**
@@ -237,7 +250,11 @@ object Task {
       inline w: Writer[T],
       inline ctx: ModuleCtx
   ): Command[T] =
-    ${ Macros.commandImpl[T]('t)('w, 'ctx, exclusive = '{ false }, persistent = '{ false }) }
+    ${
+      Macros.commandImpl[T](
+        't
+      )('w, 'ctx, exclusive = '{ false }, persistent = '{ false }, '{ null })
+    }
 
   /**
    * @param exclusive Exclusive commands run serially at the end of an evaluation,
@@ -252,14 +269,29 @@ object Task {
   def Command(
       @unused t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       exclusive: Boolean = false,
-      persistent: Boolean = false
-  ): CommandFactory = new CommandFactory(exclusive = exclusive, persistent = persistent)
-  class CommandFactory private[mill] (val exclusive: Boolean, val persistent: Boolean) {
+      persistent: Boolean = false,
+      @com.lihaoyi.unroll selectiveInputs: Seq[Task[?]] = null
+  ): CommandFactory =
+    new CommandFactory(
+      exclusive = exclusive,
+      persistent = persistent,
+      selectiveInputs = selectiveInputs
+    )
+
+  class CommandFactory private[mill] (
+      val exclusive: Boolean,
+      val persistent: Boolean,
+      val selectiveInputs: Seq[Task[?]]
+  ) {
     inline def apply[T](inline t: Result[T])(using
         inline w: Writer[T],
         inline ctx: ModuleCtx
     ): Command[T] =
-      ${ Macros.commandImpl[T]('t)('w, 'ctx, '{ this.exclusive }, '{ this.persistent }) }
+      ${
+        Macros.commandImpl[T](
+          't
+        )('w, 'ctx, '{ this.exclusive }, '{ this.persistent }, '{ this.selectiveInputs })
+      }
   }
 
   /**
@@ -294,7 +326,7 @@ object Task {
       inline rw: ReadWriter[T],
       inline ctx: mill.api.ModuleCtx
   ): Simple[T] =
-    ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ false }) }
+    ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ false }, '{ null }) }
 
   // Overload of [[apply]] to improve type inference for `Task{ Nil }` and `Task { Seq() }`
   @targetName("applySeq")
@@ -302,7 +334,7 @@ object Task {
       inline rw: ReadWriter[Seq[T]],
       inline ctx: mill.api.ModuleCtx
   ): Simple[Seq[T]] = ${
-    Macros.taskResultImpl[Seq[T]]('t)('rw, 'ctx, '{ false })
+    Macros.taskResultImpl[Seq[T]]('t)('rw, 'ctx, '{ false }, '{ null })
   }
 
   /**
@@ -320,13 +352,19 @@ object Task {
    */
   def apply(
       @unused t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
-      persistent: Boolean = false
-  ): ApplyFactory = new ApplyFactory(persistent)
-  class ApplyFactory private[mill] (val persistent: Boolean) {
+      persistent: Boolean = false,
+      @com.lihaoyi.unroll selectiveInputs: Seq[Task[?]] = null
+  ): ApplyFactory = new ApplyFactory(persistent, selectiveInputs)
+
+  class ApplyFactory private[mill] (
+      val persistent: Boolean,
+      val selectiveInputs: Seq[Task[?]]
+  ) {
     inline def apply[T](inline t: Result[T])(using
         inline rw: ReadWriter[T],
         inline ctx: ModuleCtx
-    ): Simple[T] = ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
+    ): Simple[T] =
+      ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ persistent }, '{ selectiveInputs }) }
   }
 
   @internal def notImplementedImpl[TaskT: Type](using quotes: Quotes): Expr[TaskT] = {
@@ -344,7 +382,7 @@ object Task {
       extends Task.Simple[T] {
 
     override def evaluate0: (Seq[Any], TaskCtx) => Result[T] =
-      (_, ctx) => {
+      (_, _) => {
         val relPath = os.Path(ctx0.fileName).relativeTo(mill.api.BuildCtx.workspaceRoot)
         Result.Failure(s"configuration missing in $relPath")
       }
@@ -356,7 +394,7 @@ object Task {
     override def readWriterOpt = Some(rw)
   }
 
-  abstract class Ops[+T] { this: Task[T] =>
+  abstract class Ops[T] { this: Task[T] =>
     def map[V](f: T => V): Task[V] = new Task.Mapped(this, f)
     def filter(f: T => Boolean): Task[T] = this
     def withFilter(f: T => Boolean): Task[T] = this
@@ -364,7 +402,7 @@ object Task {
 
   }
 
-  private[api] class Sequence[+T](inputs0: Seq[Task[T]]) extends Task[Seq[T]] {
+  private[api] class Sequence[T](inputs0: Seq[Task[T]]) extends Task[Seq[T]] {
     val inputs: Seq[Task[?]] = inputs0
     def evaluate(ctx: mill.api.TaskCtx): Result[Seq[T]] = {
       for (i <- 0 until ctx.args.length)
@@ -372,12 +410,12 @@ object Task {
     }
   }
 
-  private[api] class Mapped[+T, +V](source: Task[T], f: T => V) extends Task[V] {
+  private[api] class Mapped[T, V](source: Task[T], f: T => V) extends Task[V] {
     def evaluate(ctx: mill.api.TaskCtx): Result[V] = f(ctx.arg(0))
     val inputs: Seq[Task[?]] = List(source)
   }
 
-  private[api] class Zipped[+T, +V](source1: Task[T], source2: Task[V]) extends Task[(T, V)] {
+  private[api] class Zipped[T, V](source1: Task[T], source2: Task[V]) extends Task[(T, V)] {
     def evaluate(ctx: mill.api.TaskCtx): Result[(T, V)] = (ctx.arg(0), ctx.arg(1))
     val inputs: Seq[Task[?]] = List(source1, source2)
   }
@@ -387,7 +425,7 @@ object Task {
    * tasks, `Task.Input`, `Task.Worker`, etc. but not including anonymous
    * `Task.Anon` or `Task.traverse` etc. instances
    */
-  trait Named[+T] extends Task[T] with NamedTaskApi[T] {
+  trait Named[T] extends Task[T] with NamedTaskApi[T] {
 
     def ctx0: mill.api.ModuleCtx
 
@@ -413,13 +451,15 @@ object Task {
     def writerOpt: Option[upickle.Writer[?]] = readWriterOpt.orElse(None)
   }
 
-  class Computed[+T](
+  class Computed[T](
       val inputs: Seq[Task[Any]],
       val evaluate0: (Seq[Any], mill.api.TaskCtx) => Result[T],
       val ctx0: mill.api.ModuleCtx,
       val readWriter: ReadWriter[?],
       val isPrivate: Option[Boolean],
-      override val persistent: Boolean
+      override val persistent: Boolean,
+      @com.lihaoyi.unroll override val selectiveInputs0: Seq[Task[?]] =
+        null
   ) extends Simple[T] {
     override def asSimple: Option[Simple[T]] = Some(this)
 
@@ -431,7 +471,7 @@ object Task {
    * A Simple Task is a [[Task.Named]] that is cached on disk; either a
    * [[Task.Computed]] or an [[Input]]
    */
-  trait Simple[+T] extends Task.Named[T]
+  trait Simple[T] extends Task.Named[T]
 
   object Simple {
 
@@ -445,7 +485,11 @@ object Task {
         inline rw: ReadWriter[T],
         inline ctx: ModuleCtx
     ): Simple[T] =
-      ${ Macros.taskResultImpl[T]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
+      ${
+        Macros.taskResultImpl[T](
+          '{ Result.Success(t) }
+        )('rw, 'ctx, '{ false }, '{ null })
+      }
 
     // Overload of [[create]] specialized to working on `Seq`s, to improve the type
     // inference for `Task{ Nil }` or `Task{ Seq() }`
@@ -453,13 +497,17 @@ object Task {
         inline rw: ReadWriter[Seq[T]],
         inline ctx: ModuleCtx
     ): Simple[Seq[T]] =
-      ${ Macros.taskResultImpl[Seq[T]]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
+      ${
+        Macros.taskResultImpl[Seq[T]](
+          '{ Result.Success(t) }
+        )('rw, 'ctx, '{ false }, '{ null })
+      }
 
     implicit inline def create[T](inline t: Result[T])(using
         inline rw: ReadWriter[T],
         inline ctx: ModuleCtx
     ): Simple[T] =
-      ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ false }) }
+      ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ false }, '{ null }) }
 
   }
 
@@ -474,22 +522,22 @@ object Task {
       s"Task.Anon@${System.identityHashCode(this).toHexString}(${enclosing.value})"
   }
 
-  class Command[+T](
+  class Command[T](
       val inputs: Seq[Task[Any]],
       val evaluate0: (Seq[Any], mill.api.TaskCtx) => Result[T],
       val ctx0: mill.api.ModuleCtx,
       val writer: Writer[?],
       val isPrivate: Option[Boolean],
       val exclusive: Boolean,
-      override val persistent: Boolean
+      override val persistent: Boolean,
+      @com.lihaoyi.unroll override val selectiveInputs0: Seq[Task[?]] =
+        null
   ) extends Task.Named[T] {
-
     override def asCommand: Some[Command[T]] = Some(this)
     // FIXME: deprecated return type: Change to Option
     override def writerOpt: Some[Writer[?]] = Some(writer)
   }
-
-  class Worker[+T](
+  class Worker[T](
       val inputs: Seq[Task[Any]],
       val evaluate0: (Seq[Any], mill.api.TaskCtx) => Result[T],
       val ctx0: mill.api.ModuleCtx,
@@ -520,7 +568,9 @@ object Task {
       val ctx0: mill.api.ModuleCtx,
       val writer: upickle.Writer[?],
       val isPrivate: Option[Boolean],
-      override val persistent: Boolean
+      override val persistent: Boolean,
+      @com.lihaoyi.unroll override val selectiveInputs0: Seq[Task[?]] =
+        null
   ) extends Simple[T] {
     override def writerOpt: Option[Writer[?]] = Some(writer)
   }
@@ -583,12 +633,23 @@ object Task {
     )(t: Expr[Result[T]])(
         rw: Expr[ReadWriter[T]],
         ctx: Expr[mill.api.ModuleCtx],
-        persistent: Expr[Boolean]
+        persistent: Expr[Boolean],
+        selectiveInputs: Expr[Seq[Task[?]]]
     ): Expr[Simple[T]] = {
       assertTaskShapeOwner("Task", 0)
       val expr = appImpl[Simple, T](
         (in, ev) =>
-          '{ new Task.Computed[T]($in, $ev, $ctx, $rw, ${ taskIsPrivate() }, $persistent) },
+          '{
+            new Task.Computed[T](
+              $in,
+              $ev,
+              $ctx,
+              $rw,
+              ${ taskIsPrivate() },
+              $persistent,
+              $selectiveInputs
+            )
+          },
         t
       )
 
@@ -689,7 +750,8 @@ object Task {
     )(t: Expr[Result[T]])(
         w: Expr[upickle.Writer[T]],
         ctx: Expr[mill.api.ModuleCtx],
-        persistent: Expr[Boolean]
+        persistent: Expr[Boolean],
+        selectiveInputs: Expr[Seq[Task[?]]]
     ): Expr[Simple[T]] = {
       assertTaskShapeOwner("Task.Uncached", 0)
       val expr = appImpl[Simple, T](
@@ -701,7 +763,8 @@ object Task {
               $ctx,
               $w,
               ${ taskIsPrivate() },
-              $persistent
+              $persistent,
+              $selectiveInputs
             )
           },
         t
@@ -715,7 +778,8 @@ object Task {
         w: Expr[Writer[T]],
         ctx: Expr[mill.api.ModuleCtx],
         exclusive: Expr[Boolean],
-        persistent: Expr[Boolean]
+        persistent: Expr[Boolean],
+        selectiveInputs: Expr[Seq[Task[?]]]
     ): Expr[Command[T]] = {
       assertTaskShapeOwner("Task.Command", 1)
       appImpl[Command, T](
@@ -728,7 +792,8 @@ object Task {
               $w,
               ${ taskIsPrivate() },
               exclusive = $exclusive,
-              persistent = $persistent
+              persistent = $persistent,
+              selectiveInputs0 = $selectiveInputs
             )
           },
         t

@@ -5,6 +5,7 @@ import mill.api.{Cross, Discover}
 import mill.scalalib.ScalaModule
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.{TestSuite, Tests, assert, *}
+import scala.annotation.nowarn
 import mill.util.TokenReaders.*
 object RouterModuleTests extends TestSuite with PlayTestSuite {
 
@@ -28,6 +29,7 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
   val invalidResourcePath: os.Path = resourceFolder / "invalid"
   val invalidSubResourcePath: os.Path = resourceFolder / "invalidsub"
 
+  @nowarn("msg=unused pattern variable")
   def tests: Tests = Tests {
     test("compileRouter") {
       matrix.foreach { case (scalaVersion, playVersion) =>

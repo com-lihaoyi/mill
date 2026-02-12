@@ -42,7 +42,7 @@ object `package` extends KotlinModule {
   def forkArgs: T[Seq[String]] = Seq("-Dmy.custom.property=my-prop-value")
 
   // Pass additional environmental variables when `.run` is called. Note that
-  // this does not apply to running externally via `.assembly
+  // this does not apply to running externally via `.assembly`
   def forkEnv: T[Map[String, String]] = Map("MY_CUSTOM_ENV" -> "my-env-value")
 }
 // If you want to better understand how the various upstream tasks feed into

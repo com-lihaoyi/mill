@@ -4,9 +4,9 @@ import mill.api.SelectMode
 import mill.api.internal.Cached
 import mill.constants.OutFiles.OutFiles
 import mill.launcher.MillLauncherMain
+import mill.api.daemon.SystemStreams
 import ujson.Value
 
-import java.io.{ByteArrayOutputStream, PrintStream}
 import scala.concurrent.duration.*
 
 /**
@@ -190,7 +190,7 @@ object IntegrationTester {
       val callEnv = millTestSuiteEnv ++ env
 
       def run() = {
-        if (useInMemory) {
+        if (useInMemory && stdin == os.Pipe && stdout == os.Pipe && stderr == os.Pipe) {
           val argsSeq = shellable.value.toSeq.map(_.toString)
           val millArgs = argsSeq.drop(1).filter(_.nonEmpty)
           IntegrationTester.evalInMemory(millArgs, cwd, callEnv, mergeErrIntoOut)
@@ -388,24 +388,23 @@ object IntegrationTester {
     // Collect chunks in order with synchronization to preserve ordering across streams
     val chunks = collection.mutable.ArrayBuffer.empty[Either[geny.Bytes, geny.Bytes]]
 
-    def makeChunkingStream(isStdout: Boolean): PrintStream =
-      new PrintStream(new ByteArrayOutputStream()) {
-        override def write(b: Array[Byte], off: Int, len: Int): Unit = {
-          val bytes = java.util.Arrays.copyOfRange(b, off, off + len)
-          val chunk = new geny.Bytes(bytes)
-          // When mergeErrIntoOut, all output goes to Left (stdout)
-          val wrapped = if (isStdout || mergeErrIntoOut) Left(chunk) else Right(chunk)
-          chunks.synchronized { chunks += wrapped }
-        }
-      }
-
-    val stdoutPs = makeChunkingStream(isStdout = true)
-    val stderrPs = makeChunkingStream(isStdout = false)
-
     val exitCode = MillLauncherMain.main0(
       args = args.toArray,
-      stdout = stdoutPs,
-      stderr = stderrPs,
+      streamsOpt = Some(
+        SystemStreams(
+          ChunkingStreams.makeChunkingStream(
+            chunks,
+            isStdout = true,
+            mergeErrIntoOut = mergeErrIntoOut
+          ),
+          ChunkingStreams.makeChunkingStream(
+            chunks,
+            isStdout = false,
+            mergeErrIntoOut = mergeErrIntoOut
+          ),
+          System.in
+        )
+      ),
       env = sys.env ++ env,
       workDir = workDir
     )

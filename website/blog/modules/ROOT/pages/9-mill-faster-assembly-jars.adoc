@@ -546,7 +546,7 @@ typically small so such an update/rewrite doesn't materially slow things down.
 
 NOTE: Earlier versions of Mill used a two-stage assembly where `upstream_thirdparty_assembly`
 and `upstream_assembly` were combined, but the latest
-https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#0128---2025-02-16[0.12.8 release]
+{mill-github-url}/blob/main/changelog.adoc#0-12-8[0.12.8 release]
 moves to the three-stage assembly described here for better performance when iterating
 and generating assemblies from multi-module projects.
 

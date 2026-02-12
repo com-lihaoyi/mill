@@ -5,6 +5,8 @@ import mill.scalalib.*
 import mill.javalib.api.JvmWorkerUtil
 import mill.api.BuildCtx
 import com.goyeau.mill.scalafix.ScalafixModule
+import mill.javalib.testrunner.TestResult
+import upickle.implicits.namedTuples.default.given
 
 /**
  * Some custom scala settings and test convenience
@@ -24,8 +26,10 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
 
   def isScala3: T[Boolean] = Task { JvmWorkerUtil.isScala3(scalaVersion()) }
 
+  override def mapDependencies = super[MillJavaModule].mapDependencies
+
   def ciScalacOptions: T[Seq[String]] = Task {
-    if (isCI()) {
+    if (isFatalWarnings()) {
       // Turn warnings into errors on CI
       if (isScala3()) Seq("-Werror") else Seq("-Xfatal-warnings")
     } else Nil
@@ -94,5 +98,24 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
     def moduleDeps = outer.testModuleDeps
     def mvnDeps = super.mvnDeps() ++ outer.testMvnDeps()
     def forkEnv = super.forkEnv() ++ outer.testForkEnv()
+    override def repositoriesTask = super[MillJavaModule].repositoriesTask
+    override def mapDependencies = super[MillJavaModule].mapDependencies
+
+    def selectiveInputs: Seq[Task[?]] = null
+    override def testForked(args: String*) = Task.Command(selectiveInputs = selectiveInputs) {
+      super.testForked(args*)()
+    }
+
+    override def scalacOptions = Task {
+      val base = super.scalacOptions().filterNot(_ == "-Wunused:all")
+      val sv = outer.scalaVersion()
+      val (unusedFlag, unusedWconf) =
+        if (JvmWorkerUtil.isScala3(sv)) (Seq("-Wunused:all"), Seq("-Wconf:msg=unused:silent"))
+        else if (sv.startsWith("2.13")) (Seq("-Wunused"), Seq("-Wconf:cat=unused:silent"))
+        else if (sv.startsWith("2.12")) (Seq("-Ywarn-unused"), Seq("-Wconf:cat=unused:silent"))
+        else (Nil, Nil)
+      // Tests frequently use unused-pattern bindings for assertions; keep those warnings off.
+      base ++ unusedFlag ++ unusedWconf
+    }
   }
 }

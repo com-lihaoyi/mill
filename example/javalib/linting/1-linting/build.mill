@@ -57,5 +57,5 @@ public class Foo {
 // details on how ErrorProne can be configured. Apart from ErrorProne, Mill also comes with
 // support for other linters via:
 //
-// - xref:javalib/linting.adoc#_linting_with_checkstyle[mill.contrib.checkstyle.CheckstyleModule]
+// - xref:javalib/linting.adoc#_linting_with_checkstyle[mill.javalib.checkstyle.CheckstyleModule]
 // - xref:javalib/linting.adoc#_static_analysis_with_pmd[mill.javalib.pmd.PmdModule]

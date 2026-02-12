@@ -40,9 +40,14 @@ trait InitModule extends Module {
               msg + "\n\n" + exampleIds.mkString("\n") + "\n\n" + msg
             if (showAll.value) (exampleIds, fullMessage(exampleIds))
             else {
-              val toShow = List("basic", "builds", "web")
+              val categoriesToShow = List("basic", "builds", "web")
+              val libsToHide = List("groovylib", "javascriptlib", "pythonlib")
               val filteredIds = exampleIds
-                .filter(_.split('/').lift.apply(1).exists(toShow.contains))
+                .filter { id =>
+                  val segments = id.split('/').lift
+                  segments(1).exists(categoriesToShow.contains) &&
+                  !segments(0).exists(libsToHide.contains)
+                }
 
               (filteredIds, fullMessage(filteredIds))
             }

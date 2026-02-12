@@ -150,7 +150,7 @@ object ExecutionContexts {
     new ThreadPoolExecutor(
       threadCount,
       threadCount,
-      0,
+      60 * 1000,
       TimeUnit.SECONDS,
       // Use a `Deque` rather than a normal `Queue`, with the various `poll`/`take`
       // operations reversed, providing elements in a LIFO order. This ensures that

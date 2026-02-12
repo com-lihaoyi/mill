@@ -8,10 +8,12 @@ import mill.api.Result
 import mill.api.CrossVersion
 import mill.scalalib.{Dep, DepSyntax, Lib, TestModule}
 import mill.javalib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil.*
 import mill.scalajslib.api.*
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 import mill.*
 import mill.javalib.testrunner.{TestResult, TestRunner, TestRunnerUtils}
+import mill.util.Version
 import upickle.implicits.namedTuples.default.given
 
 /**
@@ -35,17 +37,23 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
   def scalaJSWorkerVersion = Task { JvmWorkerUtil.scalaJSWorkerVersion(scalaJSVersion()) }
 
   override def scalaLibraryMvnDeps: T[Seq[Dep]] = Task {
-    val deps = super.scalaLibraryMvnDeps()
-    if (JvmWorkerUtil.isScala3(scalaVersion())) {
+    val sv = scalaVersion()
+    val baseDeps =
+      // For Scala 3.8+ on Scala.js, we still need scala3-library_sjs1_3
+      // (JVM uses scala-library, but Scala.js artifacts are published as scala3-library)
+      if (usesScalaLibraryOnly(sv)) Seq(mvn"${scalaOrganization()}::scala3-library:$sv")
+      else super.scalaLibraryMvnDeps()
+
+    if (isScala3(sv)) {
       // Since Dotty/Scala3, Scala.JS is published with a platform suffix
-      deps.map(dep =>
+      baseDeps.map(dep =>
         dep.copy(cross = dep.cross match {
           case c: CrossVersion.Constant => c.copy(platformed = true)
           case c: CrossVersion.Binary => c.copy(platformed = true)
           case c: CrossVersion.Full => c.copy(platformed = true)
         })
       )
-    } else deps
+    } else baseDeps
   }
 
   def scalaJSWorkerClasspath = Task {
@@ -212,26 +220,21 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
   }
 
   override def mandatoryScalacOptions: T[Seq[String]] = Task {
+    // Scala 3 requires -scalajs flag to emit Scala.js IR (.sjsir files).
+    // Scala 2 uses a compiler plugin instead (see scalacPluginMvnDeps).
     // Don't add flag twice, e.g. if a test suite inherits it both directly
-    // ScalaJSModule as well as from the enclosing non-test ScalaJSModule
-    val scalajsFlag =
-      if (
-        JvmWorkerUtil.isScala3(scalaVersion()) &&
-        !super.mandatoryScalacOptions().contains("-scalajs")
-      ) Seq("-scalajs")
-      else Seq.empty
+    // from ScalaJSModule as well as from the enclosing non-test ScalaJSModule
+    val useScalaJsFlag =
+      isScala3(scalaVersion()) && !super.mandatoryScalacOptions().contains("-scalajs")
 
-    super.mandatoryScalacOptions() ++ scalajsFlag
+    super.mandatoryScalacOptions() ++ Option.when(useScalaJsFlag)("-scalajs")
   }
 
   override def scalacPluginMvnDeps = Task {
-    super.scalacPluginMvnDeps() ++ {
-      if (JvmWorkerUtil.isScala3(scalaVersion())) {
-        Seq.empty
-      } else {
-        Seq(mvn"org.scala-js:::scalajs-compiler:${scalaJSVersion()}")
+    super.scalacPluginMvnDeps() ++
+      Option.when(!isScala3(scalaVersion())) {
+        mvn"org.scala-js:::scalajs-compiler:${scalaJSVersion()}"
       }
-    }
   }
 
   /** Adds the Scala.js Library as mandatory dependency. */
@@ -247,8 +250,8 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
      * in order to support forward binary incompatible changes in the standard library.
      */
     if (
-      scalaVer.startsWith("2.") && scalaJSVer.startsWith("1.")
-      && scalaJSVer.drop(2).takeWhile(_.isDigit).toInt >= 15
+      scalaVer.startsWith("2.") &&
+      Version.isAtLeast(scalaJSVer, "1.15")(using Version.IgnoreQualifierOrdering)
     ) {
       val scalaJSScalalib = mvn"org.scala-js::scalajs-scalalib:$scalaVer+$scalaJSVer"
       prev ++ Seq(scalaJSLibrary, scalaJSScalalib)
@@ -271,10 +274,8 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
   def moduleKind: T[ModuleKind] = Task { ModuleKind.NoModule }
 
   def esFeatures: T[ESFeatures] = Task {
-    if (scalaJSVersion().startsWith("0."))
-      ESFeatures.Defaults.withESVersion(ESVersion.ES5_1)
-    else
-      ESFeatures.Defaults
+    if (scalaJSVersion().startsWith("0.")) ESFeatures.Defaults.withESVersion(ESVersion.ES5_1)
+    else ESFeatures.Defaults
   }
 
   def moduleSplitStyle: T[ModuleSplitStyle] = Task { ModuleSplitStyle.FewestModules }
@@ -340,7 +341,7 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
       ScalaBuildTarget(
         scalaOrganization = scalaOrganization(),
         scalaVersion = scalaVersion(),
-        scalaBinaryVersion = JvmWorkerUtil.scalaBinaryVersion(scalaVersion()),
+        scalaBinaryVersion = scalaBinaryVersion(scalaVersion()),
         platform = ScalaPlatform.JS,
         jars = scalaCompilerClasspath().iterator.map(_.path.toURI.toString).toSeq,
         jvmBuildTarget = None
@@ -360,8 +361,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       Seq(
         mvn"org.scala-js::scalajs-library:${scalaJSVersion()}",
         mvn"org.scala-js::scalajs-test-bridge:${scalaJSVersion()}"
-      )
-        .map(_.withDottyCompat(scalaVersion()))
+      ).map(_.withDottyCompat(scalaVersion()))
     )
   }
 

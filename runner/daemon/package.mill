@@ -35,9 +35,15 @@ object `package` extends MillPublishScalaModule {
     build.core.eval,
     build.runner.server,
     build.runner.launcher,
-    build.runner.meta,
-    build.libs.script,
-    build.libs.init
+    build.runner.meta
+  )
+
+  def runModuleDeps = Seq(
+    // We don't use these, but they need to be on the classpath so we can access their classes
+    // and external modules at runtime even in the absence of a build.mill file or meta-build
+    build.libs.init,
+    build.libs.tabcomplete,
+    build.libs.script
   )
 
 }

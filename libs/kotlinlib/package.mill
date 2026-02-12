@@ -7,6 +7,16 @@ import mill.scalalib.*
 import millbuild.*
 
 object `package` extends MillStableScalaModule with BuildInfo {
+  def kotlinSelectiveInputs = Seq(
+    sources,
+    api.sources,
+    ksp2.sources,
+    `ksp2-api`.sources,
+    worker.sources
+  )
+  override object test extends MillScalaTests {
+    override def selectiveInputs = Seq(sources, resources) ++ kotlinSelectiveInputs
+  }
 
   def moduleDeps = Seq(build.libs.javalib, build.libs.javalib.testrunner, api, `ksp2-api`)
   def localTestExtraModules =

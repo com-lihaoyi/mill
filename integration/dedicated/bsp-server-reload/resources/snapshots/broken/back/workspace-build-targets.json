@@ -113,12 +113,12 @@
         "platform": 1,
         "jars": [
           "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/<scala3-version>/scala3-compiler_3-<scala3-version>.jar",
-          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/<scala3-version>/scala3-library_3-<scala3-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala3-version>/scala-library-<scala3-version>.jar",
           "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/<scala3-version>/scala3-interfaces-<scala3-version>.jar",
           "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/<scala3-version>/tasty-core_3-<scala3-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/<scala3-version>/scala3-library_3-<scala3-version>.jar",
           "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/<scala-asm-version>/scala-asm-<scala-asm-version>.jar",
           "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/<compiler-interface-version>/compiler-interface-<compiler-interface-version>.jar",
-          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala3-version>/scala-library-<scala3-version>.jar",
           "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/<util-interface-version>/util-interface-<util-interface-version>.jar"
         ],
         "jvmBuildTarget": {

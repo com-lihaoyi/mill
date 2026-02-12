@@ -24,6 +24,13 @@ object BuildCtx {
     DynamicVariable(sys.env.get(EnvVars.MILL_WORKSPACE_ROOT).fold(os.pwd)(os.Path(_, os.pwd)))
 
   /**
+   * Global repositories configured via `mill-repositories` in the build file header or
+   * `.mill-repositories` config file. These are used for resolving Mill's own dependencies
+   * (daemon jars, JVM index) and as default repositories for `CoursierModule`.
+   */
+  def millRepositories: Seq[String] = mill.api.daemon.MillRepositories.get
+
+  /**
    * Disable Mill's filesystem read/write checker, which normally enforces best practices
    * about what code or tasks are able to read and write to what locations on disk.
    */

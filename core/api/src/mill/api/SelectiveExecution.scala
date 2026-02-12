@@ -12,7 +12,7 @@ private[mill] trait SelectiveExecution {
       transitiveNamed: Seq[Task.Named[?]],
       oldHashes: Metadata,
       newHashes: Metadata
-  ): (Set[Task[?]], Seq[Task[Any]])
+  ): (Set[Task[?]], Seq[Task[?]])
 
   def saveMetadata(metadata: SelectiveExecution.Metadata): Unit
 

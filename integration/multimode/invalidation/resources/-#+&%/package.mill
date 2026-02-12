@@ -1,6 +1,0 @@
-package build.`-#+&%`
-import mill.*
-
-object `package` extends mill.Module {
-  def input = Task {}
-}

@@ -1,5 +1,5 @@
 = image:website/docs/logo.svg[title=Mill Logo] Mill: A Better Build Tool for Java, Scala, & Kotlin
-:mill-stable-version: 1.0.6
+:mill-stable-version: 1.1.0
 :link-github: https://github.com/com-lihaoyi/mill
 :link-current-doc-site: https://mill-build.org
 :link-mill-moduledefs: https://github.com/com-lihaoyi/mill-moduledefs

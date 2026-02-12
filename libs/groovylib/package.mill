@@ -41,4 +41,11 @@ object `package` extends MillPublishScalaModule with BuildInfo {
       )
   }
 
+  override object test extends MillScalaTests {
+    override def selectiveInputs = Seq(
+      sources,
+      resources,
+      build.libs.groovylib.sources
+    )
+  }
 }

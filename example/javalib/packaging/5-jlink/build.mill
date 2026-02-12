@@ -14,7 +14,7 @@
 //
 // [source,scala]
 // ----
-// def mainClass: T[Option[String]] = { Some("com.foo.app.Main") }
+// mainClass: com.foo.app.Main
 // ----
 
 // * It then uses the `jlink` tool, to link the previously created `jlink.jmod` with a runtime image.

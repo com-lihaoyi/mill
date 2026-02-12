@@ -2,6 +2,7 @@ package mill.api.daemon.internal
 
 import mill.api.daemon.*
 import scala.collection.mutable
+import scala.annotation.unused
 
 trait EvaluatorApi extends AutoCloseable {
   private[mill] def scriptModuleInit: Any = null
@@ -34,9 +35,9 @@ trait EvaluatorApi extends AutoCloseable {
    * Success(false) if any task is not nonBootstrapped, or Failure if task resolution fails.
    */
   private[mill] def areAllNonBootstrapped(
-      scriptArgs: Seq[String],
-      selectMode: SelectMode,
-      allowPositionalCommandArgs: Boolean = false
+      @unused scriptArgs: Seq[String],
+      @unused selectMode: SelectMode,
+      @unused allowPositionalCommandArgs: Boolean = false
   ): Result[Boolean] = Result.Success(false)
 
   /**

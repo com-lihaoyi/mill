@@ -32,8 +32,10 @@ private class CoursierTickerResolutionLogger(ctx: TaskCtx.Log) extends CacheLogg
       }
     sums.current += finishedState.current
     sums.total += finishedState.total
+
+    import coursier.cache.loggers.SingleLineRefreshDisplay.byteCount
     ctx.log.ticker(
-      s"Downloading [${downloads.size + finishedCount}/$totalDownloadCount] artifacts (~${sums.current}/${sums.total} bytes)"
+      s"Downloading [${downloads.size + finishedCount}/$totalDownloadCount] artifacts (${byteCount(sums.current)} / ${byteCount(sums.total)})"
     )
   }
 

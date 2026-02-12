@@ -9,6 +9,9 @@ for `JavaModule`.
 
 include::partial$example/javalib/dependencies/1-dependencies.adoc[]
 
+=== Repository Configuration
+
+include::partial$example/javalib/dependencies/5-repository-config.adoc[]
 
 === Unmanaged Jars
 
@@ -20,10 +23,6 @@ include::partial$example/javalib/dependencies/3-unmanaged-jars.adoc[]
 === Downloading Unmanaged Jars
 
 include::partial$example/javalib/dependencies/4-downloading-unmanaged-jars.adoc[]
-
-=== Repository Configuration
-
-include::partial$example/javalib/dependencies/5-repository-config.adoc[]
 
 == Dependency Management
 

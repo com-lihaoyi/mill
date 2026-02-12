@@ -991,7 +991,7 @@ analysis can likely be further optimized in future if necessary.
 == Conclusion
 
 Mill's callgraph bytecode analysis landed in https://github.com/com-lihaoyi/mill/pull/2417[#2417]
-in Mill https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#0112---2023-08-28[0.11.2].
+in Mill {mill-github-url}/blob/main/changelog.adoc#0-11-2[0.11.2].
 The implementation is surprisingly small: ~1k lines of code for the main implementation using
 the https://asm.ow2.io/[OW2 ASM library] for bytecode parsing, and ~6k lines
 of test cases. That small amount of code took several months to research and write and debug,

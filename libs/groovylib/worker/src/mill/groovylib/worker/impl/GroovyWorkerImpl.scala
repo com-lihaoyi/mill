@@ -48,7 +48,7 @@ class GroovyWorkerImpl extends GroovyWorker {
       stubUnit.compile(Phases.CONVERSION)
     }.fold(
       exception => Result.Failure(s"Groovy stub generation failed: ${exception.getMessage}"),
-      result => Result.Success(())
+      _ => Result.Success(())
     )
 
   }

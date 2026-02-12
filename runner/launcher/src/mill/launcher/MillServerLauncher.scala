@@ -1,5 +1,6 @@
 package mill.launcher
 
+import mill.api.daemon.SystemStreams
 import mill.client.{ClientUtil, LaunchedServer, ServerLauncher}
 import mill.constants.BuildInfo
 import mill.client.lock.Locks
@@ -11,15 +12,15 @@ import java.net.Socket
 import java.util.concurrent.atomic.AtomicInteger
 
 class MillServerLauncher(
-    stdout: java.io.OutputStream,
-    stderr: java.io.OutputStream,
+    streamsOpt: Option[SystemStreams],
     env: Map[String, String],
     args: Seq[String],
     forceFailureForTestingMillisDelay: Int,
     useFileLocks: Boolean,
     initServerFactory: (os.Path, Locks) => LaunchedServer,
     millVersion: String = BuildInfo.millVersion,
-    jvmOpts: Seq[String] = Seq.empty
+    jvmOpts: Seq[String],
+    millRepositories: Seq[String]
 ) {
   private val serverInitWaitMillis = 10000
 
@@ -31,7 +32,8 @@ class MillServerLauncher(
     val config = ServerLauncher.DaemonConfig(
       millVersion = millVersion,
       javaVersion = javaHome.map(_.toString).getOrElse(""),
-      jvmOpts = jvmOpts
+      jvmOpts = jvmOpts,
+      millRepositories = millRepositories
     )
 
     val launched = ServerLauncher.launchOrConnectToServer(
@@ -62,6 +64,8 @@ class MillServerLauncher(
       daemonDir: os.Path,
       log: String => Unit
   ): Int = {
+    val stdout = streamsOpt.map(_.out).getOrElse(System.out)
+    val stderr = streamsOpt.map(_.err).getOrElse(System.err)
     val exitCode = new AtomicInteger(-1)
     try {
       val socketIn = new BufferedReader(new InputStreamReader(socket.getInputStream))
@@ -74,7 +78,8 @@ class MillServerLauncher(
         clientJvmOpts = jvmOpts,
         args = args,
         env = env,
-        userSpecifiedProperties = ClientUtil.getUserSetProperties()
+        userSpecifiedProperties = ClientUtil.getUserSetProperties(),
+        millRepositories = millRepositories
       )
 
       val stdoutPs = new PrintStream(stdout, true)
@@ -95,7 +100,8 @@ class MillServerLauncher(
         serverToClient = socketIn,
         clientToServer = socketOut,
         stdout = stdoutHandler,
-        stderr = stderrHandler
+        stderr = stderrHandler,
+        runSubprocess = DaemonRpc.defaultRunSubprocessWithStreams(streamsOpt)
       )
 
       // For testing: run command in background while main thread throws after delay

@@ -1,6 +1,0 @@
-package build.b
-import mill.*
-
-def method() = {
-  println("d")
-}

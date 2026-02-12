@@ -13,7 +13,10 @@ import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.api.Cross
 import mill.api.BuildCtx
+import mill.javalib.testrunner.TestResult
 import mill.testkit.Chunk
+import millbuild.Deps
+
 import java.util.concurrent.atomic.AtomicInteger
 
 object `package` extends Module {
@@ -64,30 +67,30 @@ object `package` extends Module {
   }
 
   object migrating extends Module {
-    object javalib extends Cross[ExampleCrossModule](build.listCross)
-    object scalalib extends Cross[ExampleCrossModule](build.listCross)
+    object javalib extends Cross[ExampleCrossModuleMigrating](build.listCross)
+    object scalalib extends Cross[ExampleCrossModuleMigrating](build.listCross)
   }
   object javascriptlib extends Module {
-    object basic extends Cross[ExampleCrossModule](build.listCross)
-    object testing extends Cross[ExampleCrossModule](build.listCross)
-    object module extends Cross[ExampleCrossModule](build.listCross)
-    object dependencies extends Cross[ExampleCrossModule](build.listCross)
-    object publishing extends Cross[ExampleCrossModule](build.listCross)
-    object linting extends Cross[ExampleCrossModule](build.listCross)
+    object basic extends Cross[ExampleCrossModuleJavascript](build.listCross)
+    object testing extends Cross[ExampleCrossModuleJavascript](build.listCross)
+    object module extends Cross[ExampleCrossModuleJavascript](build.listCross)
+    object dependencies extends Cross[ExampleCrossModuleJavascript](build.listCross)
+    object publishing extends Cross[ExampleCrossModuleJavascript](build.listCross)
+    object linting extends Cross[ExampleCrossModuleJavascript](build.listCross)
   }
   object pythonlib extends Module {
-    object basic extends Cross[ExampleCrossModule](build.listCross)
-    object dependencies extends Cross[ExampleCrossModule](build.listCross)
-    object linting extends Cross[ExampleCrossModule](build.listCross)
-    object publishing extends Cross[ExampleCrossModule](build.listCross)
-    object module extends Cross[ExampleCrossModule](build.listCross)
-    object web extends Cross[ExampleCrossModule](build.listCross)
-    object testing extends Cross[ExampleCrossModule](build.listCross)
+    object basic extends Cross[ExampleCrossModulePython](build.listCross)
+    object dependencies extends Cross[ExampleCrossModulePython](build.listCross)
+    object linting extends Cross[ExampleCrossModulePython](build.listCross)
+    object publishing extends Cross[ExampleCrossModulePython](build.listCross)
+    object module extends Cross[ExampleCrossModulePython](build.listCross)
+    object web extends Cross[ExampleCrossModulePython](build.listCross)
+    object testing extends Cross[ExampleCrossModulePython](build.listCross)
   }
 
   object groovylib extends Module {
-    object basic extends Cross[ExampleCrossModule](build.listCross)
-    object testing extends Cross[ExampleCrossModule](build.listCross)
+    object basic extends Cross[ExampleCrossModuleGroovy](build.listCross)
+    object testing extends Cross[ExampleCrossModuleGroovy](build.listCross)
   }
 
   object cli extends Module {
@@ -127,6 +130,7 @@ object `package` extends Module {
   }
 
   trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {
+    override def selectiveInputs = Seq(sources) ++ build.libs.kotlinlib.kotlinSelectiveInputs
 
     override def lineTransform(line: String) = this.moduleSegments.parts.last match {
       case "2-test-suite" => line
@@ -140,7 +144,14 @@ object `package` extends Module {
     }
   }
 
+  val androidSelectiveInputs = Seq(
+    build.libs.androidlib.sources,
+    build.libs.javalib.sources,
+    build.libs.javalib.worker.sources
+  ) ++ build.libs.kotlinlib.kotlinSelectiveInputs
+
   trait ExampleCrossModuleAndroid extends ExampleCrossModule {
+    override def selectiveInputs = Seq(sources) ++ androidSelectiveInputs
     def testExclusive = true
 
     /**
@@ -292,7 +303,7 @@ object `package` extends Module {
       var seenCode = false
       var seenFrontMatter = false
       val examplePath = moduleDir.subRelativeTo(BuildCtx.workspaceRoot)
-      val frontMatter = parsed().takeWhile(_.isInstanceOf[Chunk.Yaml]).map {
+      val frontMatter = parsed().takeWhile(_.isInstanceOf[Chunk.Yaml]).collect {
         case Chunk.Yaml(lines) => lines.mkString("\n")
       }.mkString("\n")
       val withoutFrontMatter = parsed().dropWhile(_.isInstanceOf[Chunk.Yaml])
@@ -368,6 +379,34 @@ $frontMatter
     }
   }
 
+  trait ExampleCrossModuleJavascript extends ExampleCrossModule {
+    override def selectiveInputs = Seq(sources, build.libs.javascriptlib.sources)
+  }
+
+  trait ExampleCrossModulePython extends ExampleCrossModule {
+    override def selectiveInputs = Seq(sources, build.libs.pythonlib.sources)
+  }
+
+  trait ExampleCrossModuleGroovy extends ExampleCrossModule {
+    override def selectiveInputs = Seq(sources, build.libs.groovylib.sources)
+  }
+
+  trait ExampleCrossModuleMigrating extends ExampleCrossModule {
+    override def selectiveInputs = Seq(
+      sources,
+      build.libs.init.sources,
+      build.libs.init.maven.sources,
+      build.libs.init.gradle.sources,
+      build.libs.init.gradle.api.sources,
+      build.libs.init.gradle.exportplugin.sources,
+      build.libs.init.sbt.sources,
+      build.libs.init.sbt.api(Deps.scalaVersion).sources,
+      build.libs.init.sbt.exportplugin.sources,
+      build.libs.init.buildgen.sources,
+      build.libs.init.buildgen.api(Deps.scalaVersion).sources
+    )
+  }
+
   def repoInfo = Map(
     "acyclic" -> ("com-lihaoyi/acyclic", "4af02113286fcb3362f08e87ffbd14399e71c3b3"),
     "fansi" -> ("com-lihaoyi/fansi", "387754bc1fc0be0ac787b195490275012d80c683"),
@@ -415,5 +454,9 @@ $frontMatter
 
       PathRef(Task.dest)
     }
+
+    override def selectiveInputs =
+      if (crossValue == "android-compose-samples") Seq(sources) ++ androidSelectiveInputs
+      else null
   }
 }

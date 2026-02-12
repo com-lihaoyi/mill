@@ -30,7 +30,7 @@ final class Discover(val classInfo: Map[Class[?], Discover.ClassInfo]) {
 
   private[mill] def resolveEntrypoint(cls: Class[?], name: String) = {
     val res = for {
-      (cls2, node) <- resolveClassInfos(cls)
+      (_, node) <- resolveClassInfos(cls)
       ep <- node.entryPoints
       if ep.mainName.getOrElse(ep.defaultName) == name
     } yield ep

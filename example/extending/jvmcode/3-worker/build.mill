@@ -1,6 +1,6 @@
 //| mill-jvm-version: 17
 
-// Althought running JVM bytecode via a one-off isolated classloader has less overhead
+// Although running JVM bytecode via a one-off isolated classloader has less overhead
 // than running it in a subprocess, the fact that the classloader needs to be created
 // each time adds overhead: newly-created classloaders contain code that is not yet
 // optimized by the JVM. When performance matters, you can put the classloader in a
@@ -74,11 +74,11 @@ Contents of groovy-generated.html is <html><body><h1>Hello!</h1><p>Bar Groovy!</
 // classloader can be optimized by the JVM runtime, and would have less overhead than if
 // run in short-lived classloaders via `Jvm.withClassLoader`. And because `URLClassLoader`
 // already extends `AutoCloseable`, `groovyWorker` gets treated as an
-// xref:fundamentals/tasks.adoc#_autoclosable_workers[Autocloseable Worker] automatically.
+// xref:fundamentals/tasks.adoc#_autoclosable_workers[AutoCloseable Worker] automatically.
 
 // NOTE: As mentioned in documentation for xref:fundamentals/tasks.adoc#_workers[Worker Tasks],
 // the classloader contained within `groovyWorker` above is *initialized* in a single-thread,
 // but it may be *used* concurrently in a multi-threaded environment. Practically, that means
 // that the classes and methods you are invoking within the classloader do not make use of
-// un-synchronized global mutable variables. If the JVM logic within the classloader does
+// unsynchronized global mutable variables. If the JVM logic within the classloader does
 // rely on mutable state, see <<Caching and Re-using JVM subprocesses and classloaders>> below

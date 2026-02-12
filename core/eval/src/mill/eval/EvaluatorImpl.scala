@@ -197,7 +197,7 @@ final class EvaluatorImpl(
           case _ => (Nil, k)
         }
 
-        val ("", rest) = ParseArgs.extractSegments(taskSel).get
+        val ("", rest) = ParseArgs.extractSegments(taskSel).get.runtimeChecked
 
         Option.when(module.moduleSegments == Segments(prefix ++ rest.value.dropRight(1))) {
           rest.last.value -> v
@@ -413,7 +413,11 @@ final class EvaluatorImpl(
       resolveTasks(scriptArgs, selectMode, allowPositionalCommandArgs)
     }
     for (tasks <- resolved)
-      yield execute(Seq.from(tasks), reporter = reporter, selectiveExecution = selectiveExecution)
+      yield execute(
+        tasks.asInstanceOf[Seq[Task[Any]]],
+        reporter = reporter,
+        selectiveExecution = selectiveExecution
+      )
   }
 
   def close(): Unit = execution.close()

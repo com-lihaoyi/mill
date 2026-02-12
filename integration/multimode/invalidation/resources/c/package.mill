@@ -1,6 +1,0 @@
-package build.c
-import mill.*
-
-def input = Task {
-  println("c")
-}

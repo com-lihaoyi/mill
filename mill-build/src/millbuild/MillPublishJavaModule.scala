@@ -161,7 +161,12 @@ object MillPublishJavaModule {
             os.read(path).replace("millVersion=SNAPSHOT", s"millVersion=$millVersion")
           )
         } else if (path.last == "exampleList.txt") {
-          os.write.over(path, os.read(path).replace("/SNAPSHOT/", s"/$millVersion/"))
+          os.write.over(
+            path,
+            os.read(path)
+              .replace("/SNAPSHOT/", s"/$millVersion/")
+              .replace("-SNAPSHOT-", s"-$millVersion-")
+          )
         }
       }
     }

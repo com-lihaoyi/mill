@@ -11,6 +11,49 @@ object YamlConfigChange extends UtestIntegrationTestSuite {
   implicit val retryMax: RetryMax = RetryMax(120.seconds)
   implicit val retryInterval: RetryInterval = RetryInterval(1.seconds)
   val tests: Tests = Tests {
+    test("extendsChange") - integrationTest { tester =>
+      import tester.*
+
+      val firstCompile = eval(("compile"))
+      assert(firstCompile.isSuccess)
+
+      modifyFile(
+        workspacePath / "build.mill.yaml",
+        _ =>
+          """extends:
+            |- ScalaModule
+            |- SbtModule
+            |scalaVersion: 3.3.3
+            |""".stripMargin
+      )
+
+      val showScalaVersion = eval(("show", "scalaVersion"))
+      assert(showScalaVersion.isSuccess)
+      assert(showScalaVersion.out.contains("3.3.3"))
+    }
+
+    test("nestedExtendsChange") - integrationTest { tester =>
+      import tester.*
+
+      val firstCompile = eval(("__.compile"))
+      assert(firstCompile.isSuccess)
+
+      modifyFile(
+        workspacePath / "foo/bar/package.mill.yaml",
+        _ =>
+          """extends: ScalaModule
+            |scalaVersion: 3.3.3
+            |""".stripMargin
+      )
+
+      val secondCompile = eval(("__.compile"))
+      assert(secondCompile.isSuccess)
+
+      val showScalaVersion = eval(("show", "foo.bar.scalaVersion"))
+      assert(showScalaVersion.isSuccess)
+      assert(showScalaVersion.out.contains("3.3.3"))
+    }
+
     test("sources") - integrationTest { tester =>
       val spawned = tester.spawn(("--watch", "run"))
 

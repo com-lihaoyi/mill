@@ -8,7 +8,7 @@ object `package` extends MillPublishScalaModule with BuildInfo {
 
   def buildInfoPackageName = "mill.client"
 
-  def moduleDeps = Seq(build.core.internal, build.libs.rpc, build.core.api)
+  def moduleDeps = Seq(build.core.internal, build.libs.rpc, build.core.api, build.libs.util)
 
   def mvnDeps = Seq(
     Deps.nativeTerminal,

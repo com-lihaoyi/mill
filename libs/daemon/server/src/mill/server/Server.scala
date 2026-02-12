@@ -90,7 +90,7 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
           serverLog("releasing daemonLock")
         },
         afterClose = () => serverLog("daemonLock released")
-      ) { locked =>
+      ) { _ =>
         runLocked(initialSystemProperties, socketPortFile)
       }
     } catch {
@@ -495,7 +495,7 @@ object Server {
           val (command, _) = readActiveInfo()
           throw new Exception(s"${activeTaskPrefix(command)} failing")
         } else {
-          val (command, runningProcessDir) = readActiveInfo()
+          val (command, _) = readActiveInfo()
           val consoleLogPath = out / DaemonFiles.millConsoleTail
           streams.err.println(
             s"${activeTaskPrefix(command)} waiting for it to be done... " +

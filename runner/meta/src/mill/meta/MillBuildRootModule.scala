@@ -53,7 +53,6 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
       DiscoveredBuildFiles.parseBuildFiles(
         rootModuleInfo.topLevelProjectRoot,
         rootModuleInfo.projectRoot / os.up,
-        rootModuleInfo.output,
         MillScalaParser.current.value,
         scriptSources().map(_.path),
         Task.log.prompt.colored
