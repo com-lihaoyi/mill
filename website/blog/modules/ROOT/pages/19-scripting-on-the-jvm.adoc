@@ -1,7 +1,7 @@
 = Scripting on the JVM with Java, Scala, and Kotlin
 // tag::header[]
 :author: Li Haoyi
-:revdate: 3 February 2025
+:revdate: 12 February 2025
 
 _{author}, {revdate}_
 
@@ -11,10 +11,11 @@ for small-scale scripting instead, as an alternative to Python, Javascript, or B
 
 - How the performance and compile-time safety of the JVM are advantages over scripting languages
 
-- How verbosity, build tool overhead, and lack of script-focused libraries causes issues
+- How verbosity, build tool overhead, and lack of script-focused libraries cause issues
 
-Lastly we will discuss how lightweight languages, tooling, and script-focused libraries
-is able to smooth over some of those issues, making the JVM truly a world-class scripting
+- How lightweight languages, tooling, and libraries are able to smooth over some of those issues
+
+By the end of this article, you will see how the JVM can be truly a world-class scripting
 environment as robust and convenient as any scripting language out there.
 
 // end::header[]
@@ -122,7 +123,7 @@ are many benefits from writing and running your scripts on the JVM:
 === Library Ecosystem
 
 Java libraries are mostly hosted on https://central.sonatype.com/[Sonatype Central], which is
-one of the largest and most comprehensive set of third-party libraries of any programming language.
+one of the largest and most comprehensive sets of third-party libraries of any programming language.
 This includes high-quality well-maintained libraries such as Jackson, Unirest, and PicoCLI that
 we used above. Other JVM languages like Kotlin or Scala host their libraries on the same platform,
 which allows them to interoperate and use each other's libraries.
@@ -294,8 +295,10 @@ annoying to run the `JsonApiClient.java` file we have already written.
 None of these issues with Maven or Java are fatal. We've all been writing and running
 Java programs for decades by now, in my case since Java 4 in 2004. But the sum-total
 of all these papercuts is that it's not pleasant to write small programs in Java.
-Even modern AI assistants have limited context windows and benefit from having short,
-concise code to work with, and don't benefit from digging through verbose boilerplate.
+Even modern AI assistants have limited context windows and benefit from having
+concise code to work with, and don't benefit from digging through verbose boilerplate,
+fiddling with installation problems, or deal with and awkward tooling that fills up
+their context windows.
 
 And so small programs and scripts end up being written in Python or Bash or Javascript.
 Even though in theory Java or Scala or Kotlin could work, in practice nobody uses them
@@ -329,7 +332,7 @@ import picocli.CommandLine;
 ```
 
 ```console
-> jbang JsonApiClient.java -s Functional_programming -d 2
+> jbang JsonApiClient.java --start Functional_programming --depth 2
 ```
 
 The Mill build tool uses a similar
@@ -377,8 +380,8 @@ Such lightweight build tools make it much easier to run our small Java program:
   xref:#_configuring_maven_is_tedious[Configuring Maven is Tedious] and xref:#_running_maven_is_tedious[Running Maven is Tedious]
   problems above
 
-* Mill with it's `./mill` bootstrap script also solves
-  xref:#_tricky_to_install_java_and_maven_[Tricky to install Java and Maven] problem,
+* Mill with its `./mill` bootstrap script also solves
+  xref:#_tricky_installation[Tricky installation] problem,
   as `./mill` will automatically download & cache the JVM and build-tool installation and
   ensure you are using the correct, consistent version
 
@@ -398,7 +401,7 @@ than Java, which means much less code to write the same things overall. A versio
 https://ajalt.github.io/clikt/[Clikt] library rather than PicoCLI:
 
 .JsonApiClient.kt
-```scala
+```kotlin
 //| mvnDeps:
 //| - com.github.ajalt.clikt:clikt:5.0.3
 //| - com.konghq:unirest-java:3.14.5
@@ -517,7 +520,7 @@ def main(start: String, depth: Int) = {
   }
 
   pprint.log(seen)
-  os.write(os.pwd / "fetched.json", upickle.stream(seen, indent = 4))
+  os.write(os.pwd / "fetched.json", upickle.stream(seen, indent = 4), overwrite = true)
 }
 ```
 
@@ -565,7 +568,7 @@ image::ScriptIDESupportScala.png[ScriptIDESupportScala.png]
 
 Since our `JsonApiClient.scala` script is running on the JVM, we can take advantage
 of the JVM's support for threading to parallelize our web crawl. The example below
-does this using the `Future` API in the `scala.concurrent` package, that builds upon
+does this using the standard library `scala.concurrent.Future` API, that builds upon
 Java ``Thread``s to make each `fetchLinks` call run on a configurable thread pool:
 
 .JsonApiClient.scala
@@ -602,15 +605,15 @@ def main(start: String, depth: Int) = {
   }
 
   pprint.log(seen)
-  os.write(os.pwd / "fetched.json", upickle.stream(seen, indent = 4))
+  os.write(os.pwd / "fetched.json", upickle.stream(seen, indent = 4), overwrite = true)
 }
 ```
 
 This kind of ad-hoc parallelism is something that is very difficult or messy to achieve
 in traditional scripting languages like Python, Bash, or Javascript. But when scripting
-on the JVM, threads are just a fact of life, and there are many builtin and third-party
-libraries that make it super easy to parallelize any scripts that may be a bottleneck
-in your developer workflow.
+on the JVM, threads and threading-related libraries are very easy to use, which makes
+it super easy to speed up the large portion of slow scripts that turn out to be
+trivially parallelizable.
 
 == Conclusion
 
