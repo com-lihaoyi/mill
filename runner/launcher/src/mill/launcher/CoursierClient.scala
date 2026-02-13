@@ -58,8 +58,10 @@ object CoursierClient {
       .toSeq
       .flatMap(_.split('|').toSeq)
 
+    val millRepositories0 = millRepositories.sorted
+
     val cacheKey =
-      s"${BuildInfo.millVersion}:${overridesRepos.reverse.mkString(":")}:${millRepositories.sorted.mkString(":")}"
+      s"${BuildInfo.millVersion}:${overridesRepos.reverse.mkString(":")}:${millRepositories0.mkString("|")}"
 
     cached[Seq[os.Path]](
       cacheFile = cacheDir(outMode) / "mill-daemon-classpath",
@@ -69,7 +71,7 @@ object CoursierClient {
       val coursierCache0 = FileCache[Task]()
         .withLogger(coursier.cache.loggers.RefreshLogger.create())
 
-      val configuredRepos = mill.util.Jvm.reposFromStrings(millRepositories).get
+      val configuredRepos = mill.util.Jvm.reposFromStrings(millRepositories0).get
 
       val artifactsResultOrError = {
         // configuredRepos (from mill-repositories) comes first so user config takes precedence
