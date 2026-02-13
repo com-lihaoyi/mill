@@ -1,10 +1,6 @@
 package mill.javalib.quarkus
 
-import io.quarkus.bootstrap.app.{
-  ApplicationModelSerializer,
-  AugmentAction,
-  QuarkusBootstrap
-}
+import io.quarkus.bootstrap.app.{ApplicationModelSerializer, AugmentAction, QuarkusBootstrap}
 import io.quarkus.bootstrap.model.{
   ApplicationModelBuilder,
   CapabilityContract,
@@ -20,12 +16,9 @@ import io.quarkus.bootstrap.workspace.{
 }
 import io.quarkus.bootstrap.{BootstrapAppModelFactory, BootstrapConstants}
 import io.quarkus.fs.util.ZipUtils
-import io.quarkus.maven.dependency.{
-  ArtifactCoords,
-  DependencyFlags,
-  ResolvedDependencyBuilder
-}
+import io.quarkus.maven.dependency.{ArtifactCoords, DependencyFlags, ResolvedDependencyBuilder}
 import io.quarkus.paths.PathList
+import mill.javalib.quarkus.ApplicationModelWorker.AppMode.Test
 import mill.javalib.quarkus.ApplicationModelWorker.{AppMode, ModuleClassifier, ModuleData}
 
 import java.nio.file.Files
@@ -62,7 +55,7 @@ class ApplicationModelWorkerImpl extends ApplicationModelWorker {
       applicationModelFile: os.Path,
       destRunJar: os.Path,
       jar: os.Path,
-      isTest: Boolean
+      isTest: Boolean // todo remove
   ): os.Path = {
     val applicationModel = ApplicationModelSerializer
       .deserialize(applicationModelFile.toNIO)
@@ -110,14 +103,16 @@ class ApplicationModelWorkerImpl extends ApplicationModelWorker {
 
     def toResolvedDependencyBuilder(dep: ApplicationModelWorker.Dependency)
         : ResolvedDependencyBuilder = {
-      if (dep.artifactId.contains("quarkus-junit"))
-        println(s"Processing ${dep}")
       val builder = ResolvedDependencyBuilder.newInstance()
         .setResolvedPath(dep.resolvedPath.toNIO)
         .setGroupId(dep.groupId)
         .setArtifactId(dep.artifactId)
         .setVersion(dep.version)
 
+      if (appModel.appMode == Test) {
+        builder.setDeploymentCp()
+        builder.setRuntimeCp()
+      }
       if (dep.isRuntime) {
         builder.setRuntimeCp()
       }
@@ -135,7 +130,8 @@ class ApplicationModelWorkerImpl extends ApplicationModelWorker {
       builder
     }
 
-    val dependencies = appModel.dependencies.map(toResolvedDependencyBuilder)
+    // TODO distinct should not be needed, caller needs fixing
+    val dependencies = appModel.dependencies.distinct.map(toResolvedDependencyBuilder)
 
     val workspaceModuleBuilder = WorkspaceModule.builder()
       .setModuleDir(appModel.projectRoot.toNIO)

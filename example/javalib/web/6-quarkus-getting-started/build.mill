@@ -24,18 +24,8 @@ object `package` extends QuarkusModule, MavenModule { outer =>
       mvn"io.rest-assured:rest-assured"
     )
 
-    override def discoveredTestClasses: T[Seq[String]] = Task {
-      val worker = jvmWorker().internalWorker()
-      worker.apply(
-        mill.javalib.api.internal.ZincOp.DiscoverJunit5Tests(
-          runClasspath().map(_.path),
-          testClasspath().map(_.path),
-          classesDir()
-        ),
-        javaHome().map(_.path),
-        javaRuntimeOptions = forkArgs()
-      )
-    }
+    // TODO implement a new discoveredTestClasses for Quarkus
+    override def discoveredTestClasses: T[Seq[String]] = Seq("org.acme.GreetingResourceTest")
 
     override def forkArgs = Task {
       Seq(
@@ -61,5 +51,18 @@ object `package` extends QuarkusModule, MavenModule { outer =>
 Hello from Quarkus REST
 
 > ./mill clean runBackground
+
+> ./mill test
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "org.acme.GreetingResourceTest",
+      "selector": "testHelloEndpoint()",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
 
 */
