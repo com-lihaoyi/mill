@@ -14,7 +14,7 @@ import mill.constants.OutFiles.OutFiles.{millBuild, millRunnerState}
 import mill.internal.Util
 import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
-import mill.internal.PrefixLogger
+import mill.internal.{MillPathSerializer, PrefixLogger}
 import mill.meta.{BootstrapRootModule, MillBuildRootModule}
 import mill.api.daemon.internal.CliImports
 import mill.meta.DiscoveredBuildFiles.findRootBuildFiles
@@ -107,7 +107,7 @@ class MillBuildBootstrap(
     } else {
       val rootModuleRes = nestedFrames.headOption match {
         case None => Result.Success(BuildFileApi.Bootstrap(nestedState.bootstrapModuleOpt.get))
-        case Some(nestedFrame) => getRootModule(nestedFrame.classLoaderOpt.get)
+        case Some(nestedFrame) => getRootModule(nestedFrame.classLoaderOpt.get, currentRoot)
       }
 
       rootModuleRes match {
@@ -209,6 +209,12 @@ class MillBuildBootstrap(
       // by codesig analysis, not by classLoaderSigHash.
       millClassloaderSigHash = nestedState.frames.headOption match {
         case Some(frame) =>
+          def stablePathId(path: os.Path): String = {
+            if (path.startsWith(currentRoot)) s"<workspace>/${path.subRelativeTo(currentRoot)}"
+            else if (path.startsWith(os.home)) s"<home>/${path.subRelativeTo(os.home)}"
+            else path.toString
+          }
+
           val compileDestPath = frame.compileOutput.map(p => os.Path(p.javaPath))
           frame.runClasspath
             .filter { p =>
@@ -216,11 +222,17 @@ class MillBuildBootstrap(
               !compileDestPath.contains(path) &&
               !path.toString.contains("generatedScriptSources.dest")
             }
-            .map(p => (os.Path(p.javaPath), p.sig))
+            .map(p => (stablePathId(os.Path(p.javaPath)), p.sig))
             .hashCode()
         case None =>
           millBootClasspathPathRefs
-            .map(p => (os.Path(p.javaPath), p.sig))
+            .map { p =>
+              val path = os.Path(p.javaPath)
+              val stable =
+                if (path.startsWith(os.home)) s"<home>/${path.subRelativeTo(os.home)}"
+                else path.toString
+              (stable, p.sig)
+            }
             .hashCode()
       },
       millClassloaderIdentityHash = nestedState
@@ -593,7 +605,7 @@ object MillBuildBootstrap {
     }
   }
 
-  def getRootModule(runClassLoader: URLClassLoader)
+  def getRootModule(runClassLoader: URLClassLoader, workspace: os.Path)
       : Result[BuildFileApi] = {
     // Try loading the compiled BuildFileImpl first. If it doesn't exist (dummy build case
     // where there's no build.mill to compile), fall back to the pre-compiled DummyBuildFile.
@@ -605,6 +617,7 @@ object MillBuildBootstrap {
       }
 
     val valueMethod = buildClass.getMethod("value")
+    MillPathSerializer.setupSymlinks(os.pwd, workspace)
     mill.api.ExecResult.catchWrapException {
       valueMethod.invoke(null).asInstanceOf[BuildFileApi]
     }

@@ -12,8 +12,8 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
+import org.testcontainers.DockerClientFactory
 import org.testcontainers.containers.PostgreSQLContainer
-import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 
 @Testcontainers
@@ -21,19 +21,37 @@ import org.testcontainers.junit.jupiter.Testcontainers
 class TodomvcIntegrationTests {
 
     companion object {
-        @Container
-        val postgresContainer = PostgreSQLContainer<Nothing>("postgres:latest").apply {
-            withDatabaseName("test")
-            withUsername("test")
-            withPassword("test")
+        private val dockerAvailable: Boolean = try {
+            DockerClientFactory.instance().isDockerAvailable
+        } catch (_: Throwable) {
+            false
+        }
+
+        private val postgresContainer: PostgreSQLContainer<Nothing>? = if (dockerAvailable) {
+            PostgreSQLContainer<Nothing>("postgres:latest").apply {
+                withDatabaseName("test")
+                withUsername("test")
+                withPassword("test")
+                start()
+            }
+        } else {
+            null
         }
 
         @JvmStatic
         @DynamicPropertySource
         fun postgresProperties(registry: DynamicPropertyRegistry) {
-            registry.add("spring.datasource.url", postgresContainer::getJdbcUrl)
-            registry.add("spring.datasource.username", postgresContainer::getUsername)
-            registry.add("spring.datasource.password", postgresContainer::getPassword)
+            val container = postgresContainer
+            if (container != null) {
+                registry.add("spring.datasource.url", container::getJdbcUrl)
+                registry.add("spring.datasource.username", container::getUsername)
+                registry.add("spring.datasource.password", container::getPassword)
+            } else {
+                registry.add("spring.datasource.url") { "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1" }
+                registry.add("spring.datasource.driverClassName") { "org.h2.Driver" }
+                registry.add("spring.datasource.username") { "sa" }
+                registry.add("spring.datasource.password") { "" }
+            }
         }
     }
 

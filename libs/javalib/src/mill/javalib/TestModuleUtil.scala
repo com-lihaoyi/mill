@@ -7,6 +7,7 @@ import mill.util.Jvm
 import mill.api.internal.Util
 import mill.Task
 import sbt.testing.Status
+import mill.constants.EnvVars
 
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -136,17 +137,29 @@ final class TestModuleUtil(
 
     val argsFile = baseFolder / "testargs"
     val sandbox = baseFolder / "sandbox"
-    os.write(argsFile, upickle.write(testArgs), createFolders = true)
+    os.write.over(
+      argsFile,
+      os.Path.pathSerializer.withValue(
+        TestModuleUtil.unmangledPathSerializer
+      )(upickle.write(testArgs)),
+      createFolders = true
+    )
 
     os.makeDir.all(sandbox)
 
     val proc = BuildCtx.withFilesystemCheckerDisabled {
+      val workspaceAbs = BuildCtx.workspaceRoot.wrapped.toAbsolutePath.normalize().toString
+      val homeAbs = os.home.wrapped.toAbsolutePath.normalize().toString
+      val millForkEnv = Map(
+        EnvVars.MILL_WORKSPACE_ROOT -> workspaceAbs,
+        EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> s"$workspaceAbs,out/mill-workspace;$homeAbs,out/mill-home"
+      )
       Jvm.spawnProcess(
         mainClass = "mill.javalib.testrunner.entrypoint.MillTestRunnerMain",
         classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
-        env = (if (propagateEnv) Task.env else Map()) ++ forkEnv,
-        mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
+        env = (if (propagateEnv) Task.env else Map()) ++ forkEnv ++ millForkEnv,
+        mainArgs = Seq(testRunnerClasspathArg, argsFile.wrapped.toString),
         cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
         cpPassingJarPath = Option.when(useArgsFile)(
           os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
@@ -366,6 +379,15 @@ final class TestModuleUtil(
 }
 
 private[mill] object TestModuleUtil {
+  val unmangledPathSerializer: os.Path.Serializer = new os.Path.Serializer {
+    def serializeString(p: os.Path): String = p.wrapped.toString
+    def serializeFile(p: os.Path): java.io.File = p.wrapped.toFile
+    def serializePath(p: os.Path): java.nio.file.Path = p.wrapped
+    def deserialize(s: String): java.nio.file.Path = java.nio.file.Paths.get(s)
+    def deserialize(s: java.io.File): java.nio.file.Path = java.nio.file.Paths.get(s.getPath)
+    def deserialize(s: java.nio.file.Path): java.nio.file.Path = s
+    def deserialize(s: java.net.URI): java.nio.file.Path = java.nio.file.Paths.get(s)
+  }
 
   def loadArgsAndProps(
       useArgsFile: Boolean,

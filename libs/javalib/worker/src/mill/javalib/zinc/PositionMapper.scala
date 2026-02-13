@@ -1,5 +1,7 @@
 package mill.javalib.zinc
 
+import mill.api.BuildCtx
+import mill.api.internal.PathAliasing
 import xsbti.VirtualFile
 
 import java.nio.charset.StandardCharsets
@@ -25,10 +27,21 @@ object PositionMapper {
     }
   }
 
+  private def readVirtualFile(vf: VirtualFile): Array[Byte] = {
+    try vf.input().readAllBytes()
+    catch {
+      case _: java.io.IOException =>
+        os.read.bytes(PathAliasing.resolveAliasedString(
+          vf.id(),
+          workspace = BuildCtx.workspaceRoot
+        ))
+    }
+  }
+
   def create(sources: Array[VirtualFile])
       : (Map[os.Path, os.Path], Option[xsbti.Position => xsbti.Position]) = {
     val buildSources0 = sources.flatMap { vf =>
-      val str = new String(vf.input().readAllBytes(), StandardCharsets.UTF_8)
+      val str = new String(readVirtualFile(vf), StandardCharsets.UTF_8)
       val lines = str.linesWithSeparators.toVector
       lines
         .collectFirst { case s"//SOURCECODE_ORIGINAL_FILE_PATH=$rest" => rest.trim }

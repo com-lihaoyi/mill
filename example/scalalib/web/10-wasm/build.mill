@@ -30,8 +30,8 @@ object wasm extends ScalaJSModule {
   "dest": ".../out/wasm/fastLinkJS.dest"
 }
 
-> node --experimental-wasm-exnref out/wasm/fastLinkJS.dest/main.js # mac/linux
-hello  wasm!
+> if [ "$(node -p 'parseInt(process.versions.node.split(".")[0], 10)')" -ge 22 ]; then node --experimental-wasm-exnref out/wasm/fastLinkJS.dest/main.js; else echo "Skipping wasm run on Node < 22"; fi # mac/linux
+...wasm...
 
 */
 

@@ -33,6 +33,7 @@ class SubprocessZincApi(
     compilerBridge: ZincCompilerBridgeProvider
 ) extends ZincApi {
   val cacheKey = SubprocessZincApi.Key(javaHome, runtimeOptions)
+  private val compilerBridgeWorkspace = compilerBridge.workspace
 
   def makeClientLogger() = new Logger.Actions {
     override def info(s: String): Unit = log.info(s)
@@ -85,7 +86,7 @@ class SubprocessZincApi(
 
     subprocessCache.withValue(
       cacheKey,
-      SubprocessZincApi.Initialize(compilerBridge.workspace, log)
+      SubprocessZincApi.Initialize(compilerBridgeWorkspace, ctx.workspaceRoot, log)
     ) {
       case SubprocessZincApi.Value(port, daemonDir, _, _) =>
         Using.Manager { use =>
@@ -109,7 +110,10 @@ class SubprocessZincApi(
                 )
 
               val init =
-                JvmWorkerRpcServer.Initialize(compilerBridgeWorkspace = compilerBridge.workspace)
+                JvmWorkerRpcServer.Initialize(
+                  compilerBridgeWorkspace = compilerBridgeWorkspace,
+                  workspaceRoot = ctx.workspaceRoot
+                )
 
               val client = MillRpcClient.create[
                 JvmWorkerRpcServer.Initialize,
@@ -135,6 +139,6 @@ class SubprocessZincApi(
 object SubprocessZincApi {
 
   case class Key(javaHome: Option[os.Path], runtimeOptions: Seq[String])
-  case class Initialize(taskDest: os.Path, log: Logger)
+  case class Initialize(taskDest: os.Path, workspaceRoot: os.Path, log: Logger)
   case class Value(port: Int, daemonDir: os.Path, launchedServer: LaunchedServer, lock: Locks)
 }

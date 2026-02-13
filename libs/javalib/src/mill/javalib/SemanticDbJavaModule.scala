@@ -103,7 +103,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     val resolvedJars = defaultResolver().classpath(
       semanticDbPluginMvnDeps().map(_.exclude("*" -> "*"))
     )
-    resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
+    resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path.toIO.getAbsolutePath}").toSeq
   }
 
   protected def semanticDbPluginClasspath: T[Seq[PathRef]] = Task {

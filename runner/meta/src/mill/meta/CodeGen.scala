@@ -194,7 +194,7 @@ object CodeGen {
         val miscInfoWithResource = {
           val header = if (pkg.isBlank()) "" else s"package $pkg"
           val miscInfoBody = if (segments.isEmpty) {
-            rootMiscInfo(scriptFolderPath, millTopLevelProjectRoot, output)
+            rootMiscInfo()
           } else {
             subfolderMiscInfo(scriptFolderPath, segments)
           }
@@ -387,11 +387,7 @@ object CodeGen {
     val header = if (pkg.isBlank()) "" else s"package $pkg"
     val body =
       if (segments.nonEmpty) subfolderMiscInfo(scriptFolderPath, segments)
-      else rootMiscInfo(
-        scriptFolderPath,
-        millTopLevelProjectRoot,
-        output
-      )
+      else rootMiscInfo()
 
     s"""|$generatedFileHeader
         |$header
@@ -527,7 +523,7 @@ object CodeGen {
   ): String = {
     s"""|object MillMiscInfo
         |    extends mill.api.internal.SubfolderModule.Info(
-        |  millSourcePath0 = os.Path(${literalize(scriptFolderPath.toString)}),
+        |  millSourcePath0 = os.Path(${literalize(scriptFolderPath.wrapped.toString)}),
         |  segments = _root_.scala.Seq(${segments.map(literalize(_)).mkString(", ")})
         |)
         |""".stripMargin
@@ -553,18 +549,10 @@ object CodeGen {
     }
   }
 
-  def rootMiscInfo(
-      scriptFolderPath: os.Path,
-      millTopLevelProjectRoot: os.Path,
-      output: os.Path
-  ): String = {
+  def rootMiscInfo(): String = {
     s"""|@_root_.scala.annotation.nowarn
         |object MillMiscInfo
-        |    extends mill.api.internal.RootModule.Info(
-        |  projectRoot0 = ${literalize(scriptFolderPath.toString)},
-        |  output0 = ${literalize(output.toString)},
-        |  topLevelProjectRoot0 = ${literalize(millTopLevelProjectRoot.toString)}
-        |)
+        |    extends mill.api.internal.RootModule.Info.FromEnv
         |""".stripMargin
   }
 

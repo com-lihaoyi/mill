@@ -10,6 +10,51 @@ import java.util.UUID
 import scala.jdk.CollectionConverters._
 
 object MillProcessLauncher {
+  private def linkExists(link: os.Path): Boolean =
+    java.nio.file.Files.exists(link.toNIO, java.nio.file.LinkOption.NOFOLLOW_LINKS)
+
+  private def ensureSymlink(link: os.Path, dest: os.Path): Unit = {
+    val destAbs = dest.wrapped.toAbsolutePath.normalize()
+    val linkNio = link.toNIO
+    val linkOpts = java.nio.file.LinkOption.NOFOLLOW_LINKS
+
+    if (java.nio.file.Files.isSymbolicLink(linkNio)) {
+      val current = java.nio.file.Files.readSymbolicLink(linkNio)
+      if (current != destAbs) {
+        os.remove(link)
+        java.nio.file.Files.createSymbolicLink(linkNio, destAbs)
+      }
+    } else if (!java.nio.file.Files.exists(linkNio, linkOpts)) {
+      try java.nio.file.Files.createSymbolicLink(linkNio, destAbs)
+      catch {
+        case _: java.nio.file.FileAlreadyExistsException =>
+          // Another concurrent task/process may have created it between exists-check and symlink.
+          if (!linkExists(link)) throw new java.nio.file.FileAlreadyExistsException(link.toString)
+      }
+    } else {
+      // The alias path exists but is not a symlink; replace it so relative paths resolve correctly.
+      os.remove.all(link)
+      java.nio.file.Files.createSymbolicLink(linkNio, destAbs)
+    }
+  }
+
+  private def relativizerEnv(workDir: os.Path): String = {
+    val workspaceAbs = workDir.wrapped.toAbsolutePath.normalize().toString
+    val homeAbs = os.home.wrapped.toAbsolutePath.normalize().toString
+    s"$workspaceAbs,out/mill-workspace;$homeAbs,out/mill-home"
+  }
+
+  private def ensureAliases(baseDir: os.Path, workspaceRoot: os.Path): Unit = {
+    val baseSuffix = baseDir.segments.toVector.takeRight(2)
+    if (baseSuffix == Seq("out", "mill-workspace") || baseSuffix == Seq("out", "mill-home")) return
+
+    val out = baseDir / "out"
+    val workspaceAlias = out / "mill-workspace"
+    val homeAlias = out / "mill-home"
+    os.makeDir.all(out)
+    ensureSymlink(workspaceAlias, workspaceRoot)
+    ensureSymlink(homeAlias, os.home)
+  }
 
   def launchMillNoDaemon(
       args: Seq[String],
@@ -31,7 +76,12 @@ object MillProcessLauncher {
 
     val cmd = millLaunchJvmCommand(runnerClasspath, outMode, workDir, millRepositories) ++
       userPropsSeq ++
-      Seq(mainClass, processDir.toString, outMode.asString, useFileLocks.toString) ++
+      Seq(
+        mainClass,
+        processDir.wrapped.toAbsolutePath.normalize().toString,
+        outMode.asString,
+        useFileLocks.toString
+      ) ++
       loadMillConfig(ConfigConstants.millOpts, workDir) ++
       args
 
@@ -59,7 +109,12 @@ object MillProcessLauncher {
       millRepositories: Seq[String]
   ): os.SubProcess = {
     val cmd = millLaunchJvmCommand(runnerClasspath, outMode, workDir, millRepositories) ++
-      Seq("mill.daemon.MillDaemonMain", daemonDir.toString, outMode.asString, useFileLocks.toString)
+      Seq(
+        "mill.daemon.MillDaemonMain",
+        daemonDir.wrapped.toAbsolutePath.normalize().toString,
+        outMode.asString,
+        useFileLocks.toString
+      )
 
     configureRunMillProcess(
       cmd,
@@ -82,19 +137,26 @@ object MillProcessLauncher {
   ): os.SubProcess = {
     val sandbox = daemonDir / DaemonFiles.sandbox
     os.makeDir.all(sandbox)
+    ensureAliases(sandbox, workDir)
+    ensureAliases(workDir, workDir)
 
-    val processEnv = Map(
-      EnvVars.MILL_WORKSPACE_ROOT -> workDir.toString,
-      EnvVars.MILL_ENABLE_STATIC_CHECKS -> "true"
-    ) ++ (
-      if (env.contains(EnvVars.MILL_EXECUTABLE_PATH)) Map.empty
-      else Map(EnvVars.MILL_EXECUTABLE_PATH -> getExecutablePath)
-    ) ++ {
-      val jdkJavaOptions = env.getOrElse("JDK_JAVA_OPTIONS", "")
-      val javaOpts = env.getOrElse("JAVA_OPTS", "")
-      val opts = s"$jdkJavaOptions $javaOpts".trim
-      if (opts.nonEmpty) Map("JDK_JAVA_OPTIONS" -> opts) else Map.empty
-    }
+    // Always scope workspace/relativizer to this launched process workDir.
+    // Inheriting parent values causes nested Mill runs to lock/use the parent's out folder.
+    val workspaceRootEnv = workDir.wrapped.toAbsolutePath.normalize().toString
+    val relativizerBaseEnv = relativizerEnv(workDir)
+    val processEnv = env ++
+      Map(EnvVars.MILL_WORKSPACE_ROOT -> workspaceRootEnv) ++
+      (if (env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).contains("")) Map.empty
+       else Map(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> relativizerBaseEnv)) ++
+      Map(EnvVars.MILL_ENABLE_STATIC_CHECKS -> "true") ++ (
+        if (env.contains(EnvVars.MILL_EXECUTABLE_PATH)) Map.empty
+        else Map(EnvVars.MILL_EXECUTABLE_PATH -> getExecutablePath)
+      ) ++ {
+        val jdkJavaOptions = env.getOrElse("JDK_JAVA_OPTIONS", "")
+        val javaOpts = env.getOrElse("JAVA_OPTS", "")
+        val opts = s"$jdkJavaOptions $javaOpts".trim
+        if (opts.nonEmpty) Map("JDK_JAVA_OPTIONS" -> opts) else Map.empty
+      }
 
     // destroyOnExit = false to prevent the daemon from being killed when the Mill client exits.
     // The daemon is a long-lived background process that should survive client disconnections.

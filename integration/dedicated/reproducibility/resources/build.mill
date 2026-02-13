@@ -1,0 +1,4 @@
+package build
+import mill.*
+
+def foo = Task { 31337 }

@@ -10,6 +10,19 @@ import mill.api.TaskCtx
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 
 class KotlinWorkerImpl extends KotlinWorker {
+  private object RawPathSerializer extends os.Path.Serializer {
+    def serializeString(p: os.Path): String = p.wrapped.toString
+    def serializeFile(p: os.Path): java.io.File = p.wrapped.toFile
+    def serializePath(p: os.Path): java.nio.file.Path = p.wrapped
+
+    def deserialize(s: String): java.nio.file.Path = os.Path.defaultPathSerializer.deserialize(s)
+    def deserialize(s: java.io.File): java.nio.file.Path =
+      os.Path.defaultPathSerializer.deserialize(s)
+    def deserialize(s: java.nio.file.Path): java.nio.file.Path =
+      os.Path.defaultPathSerializer.deserialize(s)
+    def deserialize(s: java.net.URI): java.nio.file.Path =
+      os.Path.defaultPathSerializer.deserialize(s)
+  }
 
   def compile(
       target: KotlinWorkerTarget,
@@ -33,7 +46,12 @@ class KotlinWorkerImpl extends KotlinWorker {
 
     ctx.log.debug(s"Using compiler backend: ${compiler.getClass().getSimpleName()}")
 
-    val (exitCode, exitCodeName) = compiler.compile(args, sources)
+    val (exitCode, exitCodeName) =
+      // Kotlin compiler internals and incremental caches require absolute paths.
+      // Temporarily disable path relativization for this in-process compiler call.
+      os.Path.pathSerializer.withValue(RawPathSerializer) {
+        compiler.compile(args, sources)
+      }
 
     if (exitCode != 0) {
       sys.error(s"Kotlin compiler failed with exit code ${exitCode} ($exitCodeName)")

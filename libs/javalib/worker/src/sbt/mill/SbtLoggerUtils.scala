@@ -33,8 +33,28 @@ object SbtLoggerUtils {
         else {
           // Hackily scrape the `compiling` messages logged by SBT to rewrite them in a
           // less verbose format by converting absolute paths to relative to workspaceRoot
+          def normalizeAliasedOutPath(path0: String): String = {
+            val path = path0.replace('\\', '/')
+            val aliasPrefixes = Seq(
+              "out/mill-daemon/sandbox/out/mill-workspace/",
+              "out/mill-workspace/"
+            )
+
+            aliasPrefixes
+              .iterator
+              .map(path.indexOf)
+              .find(_ >= 0)
+              .map { idx =>
+                // Keep the canonical `out/...` suffix, drop alias prefixes.
+                val outIdx = path.indexOf("/out/", idx)
+                if (outIdx >= 0) path.substring(outIdx + 1) else path
+              }
+              .getOrElse(path)
+          }
+
           def maybeTruncate(path0: String): String = {
-            val path = os.Path(path0, workspaceRoot)
+            val normalized = normalizeAliasedOutPath(path0)
+            val path = os.Path(normalized, workspaceRoot)
 
             if (!path.startsWith(workspaceRoot)) path.toString
             else path.subRelativeTo(workspaceRoot).toString

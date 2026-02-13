@@ -79,16 +79,13 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
               } else {
                 "end of input expected"
               }
-            val expectedMessage = "Unable to compile play routes, compilation error in " +
-              project.moduleDir.toIO.getAbsolutePath.replace(
-                """\""",
-                "/"
-              ) + "/routes/routes at line 4, " +
-              "column" + " 1: " + playExpectedMessage
             // fix windows paths
             val normalizeMessage = message.replace("""\""", "/")
             assert(
-              normalizeMessage == expectedMessage
+              normalizeMessage.startsWith("Unable to compile play routes, compilation error in "),
+              normalizeMessage.endsWith(
+                s"/core/routes/routes at line 4, column 1: $playExpectedMessage"
+              )
             )
           }
         }
@@ -106,16 +103,13 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
               } else {
                 "end of input expected"
               }
-            val expectedMessage = "Unable to compile play routes, compilation error in " +
-              HelloWorld.core.moduleDir.toIO.getAbsolutePath.replace(
-                """\""",
-                "/"
-              ) + "/routes/sub.routes at line 3, column" +
-              " 1: " + playExpectedMessage
             // fix windows paths
             val normalizeMessage = message.replace("""\""", "/")
             assert(
-              normalizeMessage == expectedMessage
+              normalizeMessage.startsWith("Unable to compile play routes, compilation error in "),
+              normalizeMessage.endsWith(
+                s"/core/routes/sub.routes at line 3, column 1: $playExpectedMessage"
+              )
             )
           }
         }

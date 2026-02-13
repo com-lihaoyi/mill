@@ -18,7 +18,8 @@ object MillJvmWorkerMain {
     args match {
       case Array(daemonDir, jobsStr, useFileLocksStr) =>
         val useFileLocks = useFileLocksStr == "true"
-        val server = JvmWorkerTcpServer(os.Path(daemonDir), jobsStr.toInt, useFileLocks)
+        val resolvedDaemonDir = os.Path(daemonDir)
+        val server = JvmWorkerTcpServer(resolvedDaemonDir, jobsStr.toInt, useFileLocks)
         server.run()
         // Make sure we explicitly exit, so that even if there are some leaked threads
         // hanging around the process properly terminates rather than hanging
@@ -41,7 +42,7 @@ object MillJvmWorkerMain {
       extends Server[JvmWorkerServerData, Unit](Server.Args(
         daemonDir,
         acceptTimeout = None, // The worker kills the process when it needs to.
-        Locks.forDirectory(daemonDir.toString, useFileLocks),
+        Locks.forDirectory(daemonDir.wrapped.toAbsolutePath.normalize().toString, useFileLocks),
         bufferSize = 4 * 1024
       )) {
     private val className = summon[TPrint[JvmWorkerTcpServer]].render(using TPrintColors.Colors)

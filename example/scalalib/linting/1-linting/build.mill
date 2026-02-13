@@ -47,7 +47,7 @@ object Foo {
 /** See Also: .scalafix.conf */
 /** Usage
 
-> ./mill __.fix
+> OS_LIB_PATH_RELATIVIZER_BASE= ./mill __.fix
 
 > cat src/Foo.scala
 package foo

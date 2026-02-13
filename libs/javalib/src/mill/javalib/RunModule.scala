@@ -46,8 +46,11 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
    * Includes [[forkEnv]] and the variables defined by Mill itself.
    */
   def allForkEnv: T[Map[String, String]] = Task {
+    val workspaceAbs = BuildCtx.workspaceRoot.wrapped.toAbsolutePath.normalize().toString
+    val homeAbs = os.home.wrapped.toAbsolutePath.normalize().toString
     javaHomePathForkEnv() ++ forkEnv() ++ Map(
-      EnvVars.MILL_WORKSPACE_ROOT -> BuildCtx.workspaceRoot.toString
+      EnvVars.MILL_WORKSPACE_ROOT -> workspaceAbs,
+      EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> s"$workspaceAbs,out/mill-workspace;$homeAbs,out/mill-home"
     )
   }
 
@@ -94,7 +97,8 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
       case Some(m) => Right(m)
       case None =>
         allLocalMainClasses() match {
-          case Seq() => Left("No main class specified or found")
+          case Seq() =>
+            Left("No main class specified or found")
           case Seq(main) => Right(main)
           case mains =>
             Left(

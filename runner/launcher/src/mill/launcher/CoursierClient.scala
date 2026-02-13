@@ -16,6 +16,12 @@ object CoursierClient {
   private def cacheDir(outMode: OutFolderMode): os.Path =
     os.Path(OutFiles.OutFiles.outFor(outMode), os.pwd) / "mill-daemon" / "cache"
 
+  private def fromPotentiallyRelativeSerializedPath(file: File): os.Path = {
+    val deserialized = os.Path.pathSerializer.value.deserialize(file.toPath)
+    if (deserialized.isAbsolute) os.Path(deserialized)
+    else os.Path(deserialized.toString, os.pwd)
+  }
+
   /**
    * Single-entry disk cache for expensive Coursier resolutions, as even when everything
    * is already downloaded Coursier's cache checking can take >100ms
@@ -95,7 +101,9 @@ object CoursierClient {
         }
       }
 
-      artifactsResultOrError.artifacts.map(_._2.toString).toSeq.map(os.Path(_))
+      artifactsResultOrError.artifacts.iterator.map(
+        _._2
+      ).map(fromPotentiallyRelativeSerializedPath).toSeq
     }
   }
 

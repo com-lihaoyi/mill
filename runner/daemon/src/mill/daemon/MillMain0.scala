@@ -60,7 +60,7 @@ object MillMain0 {
    */
   def doubleLock(out: os.Path): DoubleLock = DoubleLock(
     outMemoryLock,
-    Lock.file((out / OutFiles.millOutLock).toString)
+    Lock.file((out / OutFiles.millOutLock).wrapped.toAbsolutePath.normalize().toString)
   )
 
   private def withStreams[T](

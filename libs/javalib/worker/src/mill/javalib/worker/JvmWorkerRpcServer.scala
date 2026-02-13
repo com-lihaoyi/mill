@@ -3,6 +3,8 @@ package mill.javalib.worker
 import mill.api.JsonFormatters.*
 import mill.api.daemon.Logger
 import mill.api.daemon.internal.CompileProblemReporter
+import mill.api.internal.PathAliasing
+import mill.constants.EnvVars
 import mill.javalib.api.internal.*
 import mill.javalib.worker.JvmWorkerRpcServer.ReporterMode
 import mill.javalib.zinc.ZincWorker
@@ -35,6 +37,14 @@ class JvmWorkerRpcServer(
       clientStderr: RpcConsole,
       serverToClient: MillRpcChannel[ServerToClient]
   ): MillRpcChannel[JvmWorkerRpcServer.Request] = setIdle.doWork {
+    val workspaceRoot = sys.env
+      .get(EnvVars.MILL_WORKSPACE_ROOT)
+      .map(p => os.Path(p, os.pwd))
+      .getOrElse(PathAliasing.resolveAliasedPath(initialize.workspaceRoot))
+    def normalizePath(path: os.Path): os.Path =
+      PathAliasing.resolveAliasedPath(path, workspace = workspaceRoot)
+    val compilerBridgeWorkspace = normalizePath(initialize.compilerBridgeWorkspace)
+
     // This is an ugly hack. `ConsoleOut` is sealed, but we need to provide a way to send these logs to the Mill server
     // over RPC, so we hijack `PrintStream` by overriding the methods that `ConsoleOut` uses.
     //
@@ -56,19 +66,24 @@ class JvmWorkerRpcServer(
     new MillRpcChannel[JvmWorkerRpcServer.Request] {
       override def apply(input: JvmWorkerRpcServer.Request): input.Response = {
         setIdle.doWork {
+          val normalizedCtx = input.ctx.copy(
+            dest = normalizePath(input.ctx.dest),
+            workspaceRoot = normalizePath(input.ctx.workspaceRoot)
+          )
+          val normalizedBridge = input.compilerBridge.map(_.map(normalizePath))
           worker.apply(
             op = input.op,
             reporter = reporterAsOption(input.reporterMode),
             reportCachedProblems = input.reporterMode.reportCachedProblems,
-            input.ctx,
+            normalizedCtx,
             ZincWorker.ProcessConfig(
               log,
               consoleOut,
               ZincCompilerBridgeProvider(
-                workspace = initialize.compilerBridgeWorkspace,
+                workspace = compilerBridgeWorkspace,
                 logInfo = log.info,
                 acquire = (scalaVersion, scalaOrganization) =>
-                  input.compilerBridge.getOrElse {
+                  normalizedBridge.getOrElse {
                     throw new IllegalStateException(
                       s"Missing compiler bridge for $scalaOrganization:$scalaVersion."
                     )
@@ -87,7 +102,8 @@ object JvmWorkerRpcServer {
   /**
    * @param compilerBridgeWorkspace The workspace to use for the compiler bridge.
    */
-  case class Initialize(compilerBridgeWorkspace: os.Path) derives ReadWriter
+  case class Initialize(compilerBridgeWorkspace: os.Path, workspaceRoot: os.Path)
+      derives ReadWriter
 
   enum ReporterMode(val reportCachedProblems: Boolean) derives ReadWriter {
     case NoReporter extends ReporterMode(false)

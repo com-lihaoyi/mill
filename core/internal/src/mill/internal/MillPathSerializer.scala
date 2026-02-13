@@ -1,0 +1,149 @@
+package mill.internal
+
+import mill.constants.EnvVars
+
+import java.nio.file.{Files, LinkOption}
+
+object MillPathSerializer {
+  private def workspaceFromEnvOr(defaultWorkspace: os.Path): os.Path = {
+    sys.env.get(EnvVars.MILL_WORKSPACE_ROOT) match {
+      case Some(raw) if raw.nonEmpty =>
+        scala.util.Try(os.Path(raw, os.pwd)).getOrElse(defaultWorkspace)
+      case _ => defaultWorkspace
+    }
+  }
+
+  private def resolveAliasedPath(path: os.Path, workspace: os.Path): os.Path = {
+    val nio = path.wrapped
+    if (nio.isAbsolute) path
+    else {
+      val raw = nio.toString.replace('\\', '/')
+      val workspaceAlias = "out/mill-workspace"
+      val homeAlias = "out/mill-home"
+
+      def resolveFromAlias(base: os.Path, aliasIdx: Int, alias: String): os.Path = {
+        val suffix = raw.substring(aliasIdx + alias.length).stripPrefix("/")
+        if (suffix.isEmpty) base else base / os.RelPath(suffix)
+      }
+
+      if (raw == workspaceAlias) workspace
+      else if (raw.startsWith(workspaceAlias + "/"))
+        workspace / os.RelPath(raw.stripPrefix(workspaceAlias + "/"))
+      else if (raw == homeAlias) os.home
+      else if (raw.startsWith(homeAlias + "/"))
+        os.home / os.RelPath(raw.stripPrefix(homeAlias + "/"))
+      else {
+        val workspaceIdx = raw.indexOf(workspaceAlias)
+        if (workspaceIdx >= 0) resolveFromAlias(workspace, workspaceIdx, workspaceAlias)
+        else {
+          val homeIdx = raw.indexOf(homeAlias)
+          if (homeIdx >= 0) resolveFromAlias(os.home, homeIdx, homeAlias)
+          else path
+        }
+      }
+    }
+  }
+
+  def setupSymlinks(wd: os.Path, workspace: os.Path): Unit = {
+    val effectiveWorkspace = workspaceFromEnvOr(workspace)
+    val wd0 = resolveAliasedPath(wd, effectiveWorkspace)
+    for ((base, link) <- defaultMapping(effectiveWorkspace)) {
+      val target = wd0 / link
+      val targetNio = target.toNIO
+      val parent = target / ".."
+      val parentNio = parent.toNIO
+      if (
+        Files.exists(parentNio, LinkOption.NOFOLLOW_LINKS) && !Files.isDirectory(
+          parentNio,
+          LinkOption.NOFOLLOW_LINKS
+        )
+      ) {
+        // Some tasks (e.g. Scala Native) intentionally materialize an executable at `Task.dest / "out"`.
+        // In that case we cannot create `out/mill-*` aliases under this working directory.
+      } else {
+        os.makeDir.all(parent)
+
+        try {
+          if (Files.isSymbolicLink(targetNio)) {
+            val currentTarget = Files.readSymbolicLink(targetNio)
+            if (currentTarget != base.wrapped) {
+              os.remove(target)
+              Files.createSymbolicLink(targetNio, base.wrapped)
+            }
+          } else if (!Files.exists(targetNio, LinkOption.NOFOLLOW_LINKS)) {
+            Files.createSymbolicLink(targetNio, base.wrapped)
+          }
+          // If `target` already exists as a non-symlink, we cannot install the alias there.
+          // This alias setup is best-effort and must not fail task execution.
+        } catch {
+          case _: java.nio.file.FileSystemException =>
+          // Alias setup is best-effort; skip locations that cannot host symlinks.
+        }
+      }
+    }
+  }
+
+  def defaultMapping(workspace: os.Path): Seq[(os.Path, os.SubPath)] = Seq(
+    workspace -> os.sub / "out/mill-workspace",
+    os.home -> os.sub / "out/mill-home"
+  )
+}
+
+class MillPathSerializer(mapping: Seq[(os.Path, os.SubPath)]) extends os.Path.Serializer {
+
+  private def mapPathPrefixes(path: os.Path, mapping: Seq[(os.Path, os.SubPath)]): os.FilePath = {
+    mapping
+      .collectFirst { case (from, to) if path.startsWith(from) => to / path.subRelativeTo(from) }
+      .getOrElse(path)
+  }
+
+  private def mapPathPrefixes(
+      path: java.nio.file.Path,
+      mapping: Seq[(os.SubPath, os.Path)]
+  ): java.nio.file.Path = {
+    mapping
+      .collectFirst {
+        case (from, to) if path.startsWith(from.toNIO) || from.segments.isEmpty =>
+          to.wrapped.resolve(
+            // java.nio.Path#relativize misbehaves on empty paths
+            if (from.segments.isEmpty) path else from.toNIO.relativize(path)
+          )
+      }
+      .getOrElse(path)
+  }
+
+  def normalizePath(path: os.Path): os.FilePath = mapPathPrefixes(path, mapping)
+
+  def denormalizePath(path: java.nio.file.Path): java.nio.file.Path =
+    mapPathPrefixes(path, mapping.map(_.swap))
+
+  override def serializeString(p: os.Path): String = normalizePath(p) match {
+    case p: os.SubPath => p.toNIO.toString
+    case p: os.Path => p.wrapped.toString
+    case p: os.RelPath => p.toNIO.toString
+  }
+
+  override def serializeFile(p: os.Path): java.io.File = normalizePath(p) match {
+    case p: os.SubPath => p.toNIO.toFile
+    case p: os.Path => p.wrapped.toFile
+    case p: os.RelPath => p.toNIO.toFile
+  }
+
+  override def serializePath(p: os.Path): java.nio.file.Path = normalizePath(p) match {
+    case p: os.SubPath => p.toNIO
+    case p: os.Path => p.wrapped
+    case p: os.RelPath => p.toNIO
+  }
+
+  override def deserialize(s: String): java.nio.file.Path =
+    denormalizePath(os.Path.defaultPathSerializer.deserialize(s))
+
+  override def deserialize(s: java.io.File): java.nio.file.Path =
+    denormalizePath(os.Path.defaultPathSerializer.deserialize(s))
+
+  override def deserialize(s: java.nio.file.Path): java.nio.file.Path =
+    denormalizePath(os.Path.defaultPathSerializer.deserialize(s))
+
+  override def deserialize(s: java.net.URI): java.nio.file.Path =
+    denormalizePath(os.Path.defaultPathSerializer.deserialize(s))
+}

@@ -7,6 +7,7 @@ import mill.api.internal.{ResolveChecker, Resolved, RootModule0}
 import mill.api.daemon.Watchable
 import mill.exec.{Execution, PlanImpl}
 import mill.internal.PrefixLogger
+import mill.internal.MillPathSerializer
 import mill.resolve.Resolve
 import mill.api.internal.ParseArgs
 
@@ -40,6 +41,17 @@ final class EvaluatorImpl(
       new ScriptModuleInit()
     )
   override val staticBuildOverrides = execution.staticBuildOverrides
+  MillPathSerializer.setupSymlinks(os.pwd, workspace)
+
+  private def withPathSerialization[T](t: => T): T = {
+    val prevSpawnHook = os.ProcessOps.spawnHook.value
+    os.ProcessOps.spawnHook.withValue { cwd =>
+      prevSpawnHook(cwd)
+      MillPathSerializer.setupSymlinks(cwd, workspace)
+    } {
+      t
+    }
+  }
 
   def workspace = execution.workspace
   def baseLogger = execution.baseLogger
@@ -204,10 +216,12 @@ final class EvaluatorImpl(
         }
       }
 
-      val filePath = os.Path(module.moduleCtx.fileName).relativeTo(workspace)
-
+      val normalizedFileName = module.moduleCtx.fileName.replace('\\', '/')
       val isRootBuildFile =
-        filePath == os.sub / "mill-build/build.mill" || filePath == os.sub / "build.mill.yaml"
+        normalizedFileName == "mill-build/build.mill" ||
+          normalizedFileName.endsWith("/mill-build/build.mill") ||
+          normalizedFileName == "build.mill.yaml" ||
+          normalizedFileName.endsWith("/build.mill.yaml")
 
       val millKeys = mill.constants.ConfigConstants.all()
       val validKeys =
@@ -291,7 +305,7 @@ final class EvaluatorImpl(
       logger: Logger = baseLogger,
       serialCommandExec: Boolean = false,
       selectiveExecution: Boolean = false
-  ): Evaluator.Result[T] = {
+  ): Evaluator.Result[T] = withPathSerialization {
     val selectiveExecutionEnabled = selectiveExecution && !tasks.exists(_.isExclusiveCommand)
 
     val (selectedTasks, selectiveResults, maybeNewMetadata) =

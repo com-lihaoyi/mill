@@ -21,22 +21,26 @@ trait DetektModule extends KotlinModule {
   }
 
   private def detekt0() = Task.Anon {
-
-    val args = detektOptions() ++ Seq("-i", BuildCtx.workspaceRoot.toString()) ++
+    val inputRoots = sources().iterator.map(_.path).filter(os.exists).toSeq
+    val inputs = if (inputRoots.nonEmpty) inputRoots.map(_.toString()).mkString(",")
+    else BuildCtx.workspaceRoot.toString()
+    val args = detektOptions() ++ Seq("-i", inputs) ++
       Seq("-c", detektConfig().path.toString())
 
     Task.log.info("running detekt ...")
     Task.log.debug(s"with $args")
 
-    Jvm.callProcess(
-      mainClass = "io.gitlab.arturbosch.detekt.cli.Main",
-      classPath = detektClasspath().map(_.path).toVector,
-      mainArgs = args,
-      cwd = moduleDir, // allow passing relative paths for sources like src/a/b
-      stdin = os.Inherit,
-      stdout = os.Inherit,
-      check = false
-    ).exitCode
+    os.ProcessOps.spawnHook.withValue(_ => ()) {
+      Jvm.callProcess(
+        mainClass = "io.gitlab.arturbosch.detekt.cli.Main",
+        classPath = detektClasspath().map(_.path).toVector,
+        mainArgs = args,
+        cwd = moduleDir, // allow passing relative paths for sources like src/a/b
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        check = false
+      ).exitCode
+    }
   }
 
   private def detektHandleErrors(check: Boolean, exitCode: Int)(using

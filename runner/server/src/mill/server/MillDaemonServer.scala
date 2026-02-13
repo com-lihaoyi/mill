@@ -3,6 +3,7 @@ package mill.server
 import mill.api.daemon.SystemStreams
 import mill.client.*
 import mill.client.lock.Locks
+import mill.constants.EnvVars
 import mill.launcher.DaemonRpc
 import mill.api.daemon.StopWithResponse
 import mill.client.ServerLauncher.DaemonConfig
@@ -104,7 +105,8 @@ abstract class MillDaemonServer[State](
           millVersion = init.clientMillVersion,
           javaVersion = init.clientJavaVersion,
           jvmOpts = init.clientJvmOpts,
-          millRepositories = init.millRepositories
+          millRepositories = init.millRepositories,
+          pathRelativizerBase = init.env.getOrElse(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE, "")
         )
 
         lastConfig.foreach { stored =>

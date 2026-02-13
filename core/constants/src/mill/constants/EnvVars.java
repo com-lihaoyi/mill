@@ -50,6 +50,12 @@ public class EnvVars {
   public static final String MILL_WORKSPACE_ROOT = "MILL_WORKSPACE_ROOT";
 
   /**
+   * Used by OS-Lib to relativize and de-relativize path serialization across
+   * process / classloader boundaries.
+   */
+  public static final String OS_LIB_PATH_RELATIVIZER_BASE = "OS_LIB_PATH_RELATIVIZER_BASE";
+
+  /**
    * Used to indicate to Mill that it is running as part of the Mill test suite,
    * e.g. to turn on additional testing/debug/log-related code
    */

@@ -9,6 +9,7 @@ import java.io.PrintStream
 import java.lang.annotation.Annotation
 import java.lang.reflect.Modifier
 import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.regex.Pattern
@@ -332,7 +333,14 @@ import scala.math.Ordering.Implicits.*
       logClaim(testClass) { runClaimedTestClass(testClass) }
     }
 
-    for (file <- os.list(testClassQueueFolder)) {
+    val queueFiles =
+      if (Files.isDirectory(testClassQueueFolder.wrapped)) {
+        val stream = Files.list(testClassQueueFolder.wrapped)
+        try stream.toArray
+        finally stream.close()
+      } else Array.empty[java.lang.Object]
+    for (fileNio <- queueFiles.iterator.map(_.asInstanceOf[java.nio.file.Path])) {
+      val file = os.Path(fileNio.toAbsolutePath.normalize())
       for (claimedTestClass <- claimFile(file, claimFolder)) {
         logClaim(claimedTestClass) { runClaimedTestClass(claimedTestClass) }
       }
@@ -344,7 +352,13 @@ import scala.math.Ordering.Implicits.*
   def claimFile(file: os.Path, claimFolder: os.Path): Option[String] = {
     Option.when(
       os.exists(file) &&
-        scala.util.Try(os.move(file, claimFolder / file.last, atomicMove = true)).isSuccess
+        scala.util.Try {
+          Files.move(
+            file.wrapped,
+            (claimFolder / file.last).wrapped,
+            StandardCopyOption.ATOMIC_MOVE
+          )
+        }.isSuccess
     ) {
 
       file.last
