@@ -21,8 +21,6 @@ import scala.collection.immutable.Seq as ArraySeq
 object BspServerTests extends UtestIntegrationTestSuite {
   protected def snapshotsPath: os.Path =
     super.workspaceSourcePath / "snapshots"
-  def logsPath: os.Path =
-    super.workspaceSourcePath / "logs"
   override protected def workspaceSourcePath: os.Path =
     super.workspaceSourcePath / "project"
 

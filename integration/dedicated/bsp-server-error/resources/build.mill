@@ -1,0 +1,19 @@
+package build
+
+import mill.*
+import mill.scalalib.*
+
+object `bad-dep` extends JavaModule {
+  def mvnDeps = Seq(
+    mvn"junit:junit:14.0"
+  )
+}
+
+object `hello-scala` extends ScalaModule {
+  def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+  def sources = Task {
+    // should fail because of the wrong dependency
+    `bad-dep`.compile()
+    super.sources()
+  }
+}
