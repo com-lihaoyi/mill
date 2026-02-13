@@ -61,7 +61,7 @@ object CoursierClient {
     val millRepositories0 = millRepositories.sorted
 
     val cacheKey =
-      s"${BuildInfo.millVersion}:${overridesRepos.reverse.mkString(":")}:${millRepositories0.mkString("|")}"
+      s"${BuildInfo.millVersion} ${overridesRepos.reverse.mkString("|")}|${millRepositories0.mkString("|")}"
 
     cached[Seq[os.Path]](
       cacheFile = cacheDir(outMode) / "mill-daemon-classpath",
