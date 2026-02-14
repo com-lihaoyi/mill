@@ -17,21 +17,16 @@ object `package` extends QuarkusModule, MavenModule { outer =>
     mvn"io.quarkus:quarkus-rest"
   )
 
-  object test extends QuarkusTestModule, MavenTests, TestModule.Junit5 {
+  object test extends QuarkusTests, MavenTests {
+
+    // TODO create a quarkus only Junit module
+    override def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
 
     def mvnDeps = Seq(
+      mvn"com.github.sbt.junit:jupiter-interface:0.17.0",
       mvn"io.quarkus:quarkus-junit",
       mvn"io.rest-assured:rest-assured"
     )
-
-    // TODO implement a new discoveredTestClasses for Quarkus
-    override def discoveredTestClasses: T[Seq[String]] = Seq("org.acme.GreetingResourceTest")
-
-    override def forkArgs = Task {
-      Seq(
-        s"-Dquarkus-internal-test.serialized-app-model.path=${quarkusSerializedAppModel().path}"
-      )
-    }
 
   }
 
@@ -52,7 +47,7 @@ Hello from Quarkus REST
 
 > ./mill clean runBackground
 
-> ./mill test
+> ./mill show test
 {
   "msg": "",
   "results": [

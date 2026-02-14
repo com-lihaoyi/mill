@@ -343,7 +343,7 @@ trait QuarkusModule extends JavaModule { outer =>
       dest / "quarkus-run.jar", // TODO use quarkus utility function
       jar().path,
       isTest = this match {
-        case _: QuarkusTestModule => true
+        case _: QuarkusTests => true
         case _ => false
       }
     )
@@ -351,7 +351,7 @@ trait QuarkusModule extends JavaModule { outer =>
     PathRef(jarPath)
   }
 
-  trait QuarkusTestModule extends QuarkusModule {
+  trait QuarkusTests extends QuarkusModule, JavaTests {
 
     override def quarkusPlatformVersion: T[String] = outer.quarkusPlatformVersion()
     override def artifactId: T[String] = outer.artifactId()
@@ -361,7 +361,7 @@ trait QuarkusModule extends JavaModule { outer =>
     override def quarkusModuleData: T[Seq[ApplicationModelWorker.ModuleData]] =
       outer.quarkusModuleData() ++ super.quarkusModuleData()
 
-    override def runClasspath = super.quarkusUnprocessedRunClasspath()
+    override def runClasspath: T[Seq[PathRef]] = super.quarkusUnprocessedRunClasspath()
 
     override def quarkusModuleClassifier: T[ApplicationModelWorker.ModuleClassifier] =
       ApplicationModelWorker.ModuleClassifier.Tests
@@ -370,5 +370,23 @@ trait QuarkusModule extends JavaModule { outer =>
       ApplicationModelWorker.AppMode.Test
     }
 
+    def quarkusSerializedAppModelJavaOpts: T[Seq[String]] = Task {
+      Seq(
+        s"-Dquarkus-internal-test.serialized-app-model.path=${quarkusSerializedAppModel().path}"
+      )
+    }
+
+    override def testDiscoverRuntimeOptions: T[Seq[String]] = Task {
+      quarkusSerializedAppModelJavaOpts() ++ Seq(
+        "-cp",
+        runClasspath().map(_.path.toString).mkString(":")
+      )
+    }
+
+    override def forkArgs: T[Seq[String]] = Task {
+      Seq(
+        s"-Dquarkus-internal-test.serialized-app-model.path=${quarkusSerializedAppModel().path}"
+      )
+    }
   }
 }

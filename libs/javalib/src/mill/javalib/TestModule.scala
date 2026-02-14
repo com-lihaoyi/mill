@@ -60,6 +60,15 @@ trait TestModule
   def testFramework: T[String]
 
   /**
+   * By adding java options the discoveredTestClasses happens in an independent
+   * jvm process. Override this method to gain full control on the classpath of the
+   * test class discovery. Useful when the classloader approach does not work.
+   */
+  def testDiscoverRuntimeOptions: T[Seq[String]] = Task {
+    Seq.empty[String]
+  }
+
+  /**
    * Test classes (often called test suites) discovered by the configured [[testFramework]].
    */
   def discoveredTestClasses: T[Seq[String]] = Task {
@@ -70,7 +79,8 @@ trait TestModule
         testClasspath().map(_.path),
         testFramework()
       ),
-      javaHome().map(_.path)
+      javaHome().map(_.path),
+      javaRuntimeOptions = testDiscoverRuntimeOptions()
     )
 
     discoveredTests.sorted
