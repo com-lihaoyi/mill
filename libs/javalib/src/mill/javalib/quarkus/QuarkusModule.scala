@@ -69,9 +69,12 @@ trait QuarkusModule extends JavaModule { outer =>
       ))
   }
 
-  override def bomMvnDeps: Task.Simple[Seq[Dep]] = super.bomMvnDeps() ++ Seq(
-    mvn"io.quarkus.platform:quarkus-bom:${quarkusPlatformVersion()}"
-  )
+  override def bomMvnDeps: T[Seq[Dep]] = Task {
+    val boms = super.bomMvnDeps() ++ Seq(
+      mvn"io.quarkus.platform:quarkus-bom:${quarkusPlatformVersion()}"
+    )
+    boms.distinct
+  }
 
   /**
    * Dependencies for the Quarkus Bootstrap process
@@ -162,15 +165,13 @@ trait QuarkusModule extends JavaModule { outer =>
    * This mechanism is not fully implemneted yet, and only works for a single module.
    */
   def quarkusDependencies: T[Seq[ApplicationModelWorker.Dependency]] = Task {
+    val runtimeConfig = coursier.core.Configuration.runtime
+
     val depRuntime = coursierDependencyTask().withVariantSelector(
-      ConfigurationBased(coursier.core.Configuration.runtime)
+      ConfigurationBased(runtimeConfig)
     )
 
-    val depCompile = coursierDependencyTask().withVariantSelector(
-      ConfigurationBased(coursier.core.Configuration.compile)
-    )
-
-    val runtimeDeps =
+    val resolvedDepArtifacts =
       millResolver().artifacts(Seq(mill.javalib.BoundDep(depRuntime, force = false)))
 
     def qualifier(d: coursier.core.Dependency) =
@@ -182,21 +183,26 @@ trait QuarkusModule extends JavaModule { outer =>
     def isDirectDep(d: coursier.core.Module): Boolean =
       mvnDeps().exists(dep => dep.dep.module == d)
 
-    val runtimeDepSet = runtimeDeps.detailedArtifacts0.map(da => qualifier(da._1)).toSet
+    val runtimeDeps = resolvedDepArtifacts.detailedArtifacts0
+      .filter(_._1.variantSelector.asConfiguration.contains(runtimeConfig))
 
-    val quarkusPrecomputedRuntimeDeps = runtimeDeps.detailedArtifacts0.map {
-      case (dependency, _, _, file) =>
-        ApplicationModelWorker.Dependency(
-          groupId = dependency.module.organization.value,
-          artifactId = dependency.module.name.value,
-          version = dependency.versionConstraint.asString,
-          resolvedPath = os.Path(file),
-          isRuntime = true,
-          isDeployment = false,
-          isTopLevelArtifact = isDirectDep(dependency.module),
-          hasExtension = false
-        )
-    }
+    val runtimeDepSet = runtimeDeps
+      .map(da => qualifier(da._1)).toSet
+
+    val quarkusPrecomputedRuntimeDeps = runtimeDeps
+      .map {
+        case (dependency, _, _, file) =>
+          ApplicationModelWorker.Dependency(
+            groupId = dependency.module.organization.value,
+            artifactId = dependency.module.name.value,
+            version = dependency.versionConstraint.asString,
+            resolvedPath = os.Path(file),
+            isRuntime = true,
+            isDeployment = false,
+            isTopLevelArtifact = isDirectDep(dependency.module),
+            hasExtension = false
+          )
+      }
 
     val depsWithExtensions = quarkusApplicationModelWorker().quarkusDeploymentDependencies(
       quarkusPrecomputedRuntimeDeps
@@ -233,15 +239,16 @@ trait QuarkusModule extends JavaModule { outer =>
       deploymentDepsSet.contains(wQualifier(d))
     )
 
-    val compileDeps =
-      millResolver().artifacts(Seq(mill.javalib.BoundDep(depCompile, force = false)))
-
-    val quarkusCompileDeps =
-      compileDeps.detailedArtifacts0.filterNot {
+    val compileDeps = resolvedDepArtifacts.detailedArtifacts0
+      .filterNot(_._1.variantSelector.asConfiguration.contains(runtimeConfig))
+      .filterNot {
         da =>
           val q = qualifier(da._1)
           runtimeDepSet.contains(q) || deploymentDepsSet.contains(q) || extensionDepsSet.contains(q)
-      }.map {
+      }
+
+    val quarkusCompileDeps =
+      compileDeps.map {
         case (dependency, _, _, file) =>
           ApplicationModelWorker.Dependency(
             groupId = dependency.module.organization.value,
@@ -306,15 +313,15 @@ trait QuarkusModule extends JavaModule { outer =>
 
   def quarkusAppModel: T[ApplicationModelWorker.AppModel] = Task {
     ApplicationModelWorker.AppModel(
-      projectRoot = outer.moduleDir,
-      buildDir = outer.compile().classes.path,
+      projectRoot = moduleDir,
+      buildDir = compile().classes.path,
       buildFile = quarkusMillBuildFile().path,
       quarkusVersion = quarkusPlatformVersion(),
       groupId = artifactGroupId(),
       artifactId = artifactId(),
       version = artifactVersion(),
       moduleData = quarkusModuleData(),
-      boms = bomMvnDeps().map(_.formatted),
+      boms = bomMvnDeps().distinct.map(_.formatted),
       dependencies = quarkusDependencies(),
       nativeImage = quarkusNativeImage(),
       appMode = quarkusAppMode()

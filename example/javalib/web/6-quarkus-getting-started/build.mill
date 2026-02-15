@@ -7,7 +7,7 @@ import mill.*, javalib.*
 
 import mill.javalib.quarkus.QuarkusModule
 
-object `package` extends QuarkusModule, MavenModule { outer =>
+object `package` extends QuarkusModule, MavenModule {
 
   def quarkusPlatformVersion = "3.31.3"
 

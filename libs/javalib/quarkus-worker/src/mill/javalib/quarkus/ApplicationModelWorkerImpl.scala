@@ -129,8 +129,7 @@ class ApplicationModelWorkerImpl extends ApplicationModelWorker {
       builder
     }
 
-    // TODO distinct should not be needed, caller needs fixing
-    val dependencies = appModel.dependencies.distinct.map(toResolvedDependencyBuilder)
+    val dependencies = appModel.dependencies.map(toResolvedDependencyBuilder)
 
     val workspaceModuleBuilder = WorkspaceModule.builder()
       .setModuleDir(appModel.projectRoot.toNIO)
