@@ -1,3 +1,6 @@
+// This example demonstrates how to setup a simple Quarkus application.
+// Quarkus support is an ongoing effort. Native tests are not supported yet.
+
 package build
 
 import mill.*, javalib.*
@@ -25,8 +28,7 @@ object `package` extends QuarkusModule, MavenModule { outer =>
 
 }
 
-// This example demonstrates how to setup a simple Quarkus application.
-// Quarkus support is an ongoing effort. Native tests are not supported yet.
+// You can run and test the app as follows:
 
 /** Usage
 
