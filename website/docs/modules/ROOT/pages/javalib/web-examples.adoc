@@ -34,4 +34,4 @@ include::partial$example/javalib/web/5-micronaut-native.adoc[]
 
 == Quarkus Example
 
-include::partial$example/javalib/web/6-quarkus-getting-started[]
+include::partial$example/javalib/web/6-quarkus-getting-started.adoc[]
