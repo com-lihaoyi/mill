@@ -21,8 +21,7 @@ object integration:
   extends: [JavaTests, TestModule.Junit5]
   mainClass: com.example.TodomvcApplication
   mvnDeps:
-  - org.testcontainers:testcontainers:1.18.0
-  - org.testcontainers:junit-jupiter:1.18.0
-  - org.testcontainers:postgresql:1.18.0
-  - org.postgresql:postgresql:42.6.0
+  - org.testcontainers:junit-jupiter:1.21.4
+  - org.testcontainers:postgresql:1.19.8
+  - org.postgresql:postgresql:42.7.3
   - org.springframework.boot:spring-boot-starter-test:2.5.6
