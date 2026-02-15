@@ -6,7 +6,7 @@ import mill.javalib.quarkus.QuarkusModule
 
 object `package` extends QuarkusModule, MavenModule { outer =>
 
-  def quarkusPlatformVersion = "3.31.2"
+  def quarkusPlatformVersion = "3.31.3"
 
   def artifactGroupId = "com.lihaoyi.example"
   def artifactId = "6-quarkus-getting-started"
@@ -26,7 +26,7 @@ object `package` extends QuarkusModule, MavenModule { outer =>
 }
 
 // This example demonstrates how to setup a simple Quarkus application.
-// Quarkus support is an ongoing effort. Tests are not supported yet.
+// Quarkus support is an ongoing effort. Native tests are not supported yet.
 
 /** Usage
 

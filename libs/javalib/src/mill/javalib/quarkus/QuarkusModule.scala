@@ -367,6 +367,10 @@ trait QuarkusModule extends JavaModule { outer =>
       ApplicationModelWorker.AppMode.Test
     }
 
+    /**
+     * The test model build by [[quarkusSerializedAppModel]] needs to be passed
+     * in both the test discovery and running the tests themselves
+     */
     def quarkusSerializedAppModelJavaOpts: T[Seq[String]] = Task {
       Seq(
         s"-Dquarkus-internal-test.serialized-app-model.path=${quarkusSerializedAppModel().path}"
@@ -381,15 +385,12 @@ trait QuarkusModule extends JavaModule { outer =>
     }
 
     override def forkArgs: T[Seq[String]] = Task {
-      Seq(
-        s"-Dquarkus-internal-test.serialized-app-model.path=${quarkusSerializedAppModel().path}"
-      )
+      quarkusSerializedAppModelJavaOpts()
     }
   }
 
   trait QuarkusJunit extends QuarkusTests {
 
-    // TODO create a quarkus only Junit module
     override def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
 
     override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
