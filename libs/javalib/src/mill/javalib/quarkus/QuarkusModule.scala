@@ -7,6 +7,7 @@ import mill.javalib.{Dep, DepSyntax, JavaModule, PublishModule}
 import mill.util.Jvm
 import upickle.default.ReadWriter.join
 
+import java.io.File
 import java.net.URLClassLoader
 
 @mill.api.experimental
@@ -341,11 +342,7 @@ trait QuarkusModule extends JavaModule { outer =>
     val jarPath = quarkusApplicationModelWorker().quarkusBootstrapApplication(
       quarkusSerializedAppModel().path,
       dest / "quarkus-run.jar", // TODO use quarkus utility function
-      jar().path,
-      isTest = this match {
-        case _: QuarkusTests => true
-        case _ => false
-      }
+      jar().path
     )
 
     PathRef(jarPath)
@@ -379,7 +376,7 @@ trait QuarkusModule extends JavaModule { outer =>
     override def testDiscoverRuntimeOptions: T[Seq[String]] = Task {
       quarkusSerializedAppModelJavaOpts() ++ Seq(
         "-cp",
-        runClasspath().map(_.path.toString).mkString(":")
+        runClasspath().map(_.path.toString).mkString(File.pathSeparator)
       )
     }
 
@@ -388,5 +385,19 @@ trait QuarkusModule extends JavaModule { outer =>
         s"-Dquarkus-internal-test.serialized-app-model.path=${quarkusSerializedAppModel().path}"
       )
     }
+  }
+
+  trait QuarkusJunit extends QuarkusTests {
+
+    // TODO create a quarkus only Junit module
+    override def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
+
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      Seq(
+        mvn"${mill.javalib.api.Versions.jupiterInterface}",
+        mvn"io.quarkus:quarkus-junit"
+      )
+    }
+
   }
 }

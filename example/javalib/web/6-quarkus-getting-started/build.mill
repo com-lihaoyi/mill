@@ -17,17 +17,10 @@ object `package` extends QuarkusModule, MavenModule { outer =>
     mvn"io.quarkus:quarkus-rest"
   )
 
-  object test extends QuarkusTests, MavenTests {
-
-    // TODO create a quarkus only Junit module
-    override def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
-
+  object test extends MavenTests, QuarkusJunit {
     def mvnDeps = Seq(
-      mvn"com.github.sbt.junit:jupiter-interface:0.17.0",
-      mvn"io.quarkus:quarkus-junit",
       mvn"io.rest-assured:rest-assured"
     )
-
   }
 
 }

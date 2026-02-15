@@ -54,8 +54,7 @@ class ApplicationModelWorkerImpl extends ApplicationModelWorker {
   def quarkusBootstrapApplication(
       applicationModelFile: os.Path,
       destRunJar: os.Path,
-      jar: os.Path,
-      isTest: Boolean // todo remove
+      jar: os.Path
   ): os.Path = {
     val applicationModel = ApplicationModelSerializer
       .deserialize(applicationModelFile.toNIO)
