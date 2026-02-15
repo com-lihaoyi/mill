@@ -32,10 +32,9 @@ object `package` extends KotlinModule {
 
   object integration extends HelloTests {
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"org.testcontainers:testcontainers:1.18.0",
-      mvn"org.testcontainers:junit-jupiter:1.18.0",
-      mvn"org.testcontainers:postgresql:1.18.0",
-      mvn"org.postgresql:postgresql:42.6.0"
+      mvn"org.testcontainers:junit-jupiter:1.21.4",
+      mvn"org.testcontainers:postgresql:1.19.8",
+      mvn"org.postgresql:postgresql:42.7.3"
     )
   }
 }
