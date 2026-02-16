@@ -770,7 +770,7 @@ Project home: https://github.com/OpenAPITools/openapi-generator/
 
 import mill.*
 
-import org.openapitools.generator.mill.OpenApiModule // 2.
+import org.openapitools.generator.mill.OpenApiModule // <2>
 
 object `package` extends JavaModule with MavenModule with OpenApiModule { // 3.
 
