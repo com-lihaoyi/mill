@@ -772,7 +772,7 @@ import mill.*
 
 import org.openapitools.generator.mill.OpenApiModule // <2>
 
-object `package` extends JavaModule with MavenModule with OpenApiModule { // 3.
+object `package` extends JavaModule with MavenModule with OpenApiModule { // <3>
 
   override def mvnDeps = Seq(
     mvn"jakarta.platform:jakarta.jakartaee-api:11.0.0",
