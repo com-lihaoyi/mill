@@ -800,12 +800,12 @@ object `package` extends JavaModule with MavenModule with OpenApiModule { // <3>
     openapi.generate())
 }
 ----
-1. load dependency to build-script
-2. import namespace
-3. mark your module as `OpenApiModule`
-4. configure a submodule where the generated artifacts will be produced
-5. define the source-root folder. This is needed because different generators use different defaults, and otherwise we cannot create the correct folder for `generatedSources`.
-6. attach the previously defined object to the compile phase by overwriting `generatedSources`
+<1> load dependency to build-script
+<2> import namespace
+<3> mark your module as `OpenApiModule`
+<4> configure a submodule where the generated artifacts will be produced
+<5> define the source-root folder. This is needed because different generators use different defaults, and otherwise we cannot create the correct folder for `generatedSources`.
+<6> attach the previously defined object to the compile phase by overwriting `generatedSources`
 
 .Generate source files
 [,console]
