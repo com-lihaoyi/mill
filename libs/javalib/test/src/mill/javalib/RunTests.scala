@@ -2,6 +2,7 @@ package mill.javalib
 
 import mill.*
 import mill.api.ExecResult
+import mill.api.daemon.LauncherSubprocess
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import mill.api.Discover
@@ -80,6 +81,19 @@ object RunTests extends TestSuite {
         ).runtimeChecked
 
         assert(result.evalCount > 0)
+      }
+
+      test("runUsesInteractiveSubprocess") - UnitTester(HelloJavaWithMain, resourcePath).scoped {
+        eval =>
+          var seen: Option[LauncherSubprocess.Config] = None
+
+          LauncherSubprocess.withValue(config => { seen = Some(config); 0 }) {
+            val Right(result) =
+              eval.apply(HelloJavaWithMain.app.run(Task.Anon(Args("testArg")))).runtimeChecked
+            assert(result.evalCount > 0)
+          }
+
+          assert(seen.nonEmpty)
       }
       test("notRunWithoutMainClass") - UnitTester(
         HelloJavaWithoutMain,
