@@ -194,7 +194,8 @@ object Deps {
   // keep in sync with doc/antora/antory.yml
   val semanticDBscala_runtime = mvn"org.scalameta:::semanticdb-scalac:4.14.7"
   val semanticDbJava_runtime = mvn"com.sourcegraph:semanticdb-java:0.11.1"
-  val semanticDbShared = mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala_runtime.version}"
+  val semanticDbShared =
+    mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala_runtime.version}"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.4"
   val springBootTools_api = mvn"org.springframework.boot:spring-boot-loader-tools:3.3.0"
   val springBootTools_runtime = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.5"
