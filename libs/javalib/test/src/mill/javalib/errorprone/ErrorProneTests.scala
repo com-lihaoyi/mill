@@ -5,6 +5,7 @@ import mill.api.Discover
 import mill.javalib.JavaModule
 import mill.testkit.{TestRootModule, UnitTester}
 import os.Path
+import mill.javalib.DepSyntax
 import utest.*
 import mill.util.TokenReaders.*
 object ErrorProneTests extends TestSuite {
@@ -26,6 +27,13 @@ object ErrorProneTests extends TestSuite {
     override def errorProneVersion: T[String] = Task { "2.36.0" }
     override def errorProneOptions: T[Seq[String]] = Task {
       Seq("-XepAllErrorsAsWarnings")
+    }
+    lazy val millDiscover = Discover[this.type]
+  }
+  object errorProneAnnotationProcessorApi extends TestRootModule with JavaModule
+      with ErrorProneModule {
+    override def annotationProcessorsMvnDeps: T[Seq[mill.javalib.Dep]] = Task {
+      Seq(mvn"com.google.auto.value:auto-value:1.11.0")
     }
     lazy val millDiscover = Discover[this.type]
   }
@@ -66,6 +74,16 @@ object ErrorProneTests extends TestSuite {
           val res = eval(errorProne236.compile)
           assert(res.isRight)
         }
+      }
+    }
+    test("annotationProcessorApi") {
+      UnitTester(errorProneAnnotationProcessorApi, testModuleSourcesPath).scoped { eval =>
+        val Right(opts) =
+          eval(errorProneAnnotationProcessorApi.annotationProcessorsJavacOptions).runtimeChecked
+        assert(opts.value.isEmpty)
+        val Right(classpath) =
+          eval(errorProneAnnotationProcessorApi.errorProneClasspath).runtimeChecked
+        assert(classpath.value.exists(_.path.toString.contains("auto-value-1.11.0")))
       }
     }
   }

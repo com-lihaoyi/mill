@@ -32,7 +32,15 @@ trait ErrorProneModule extends JavaModule {
    * The classpath of the `error-prone` compiler plugin.
    */
   def errorProneClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(errorProneDeps())
+    defaultResolver().classpath(
+      errorProneDeps() ++ annotationProcessorsMvnDeps(),
+      boms = allBomDeps()
+    )
+  }
+
+  // Avoid duplicate -processorpath
+  override def annotationProcessorsJavacOptions: T[Seq[String]] = Task {
+    Seq.empty
   }
 
   /**
