@@ -764,7 +764,6 @@ Project home: https://github.com/OpenAPITools/openapi-generator/
 .`build.mill`
 [,scala]
 ----
-//| mill-version: 1.1.2
 //| mvnDeps:
 //|   - org.openapitools:openapi-generator-mill-plugin:7.20.0 # <1>
 
