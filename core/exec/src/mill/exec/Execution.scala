@@ -178,6 +178,8 @@ case class Execution(
       val futures = mutable.Map.empty[Task[?], Future[Option[GroupExecution.Results]]]
 
       val keySuffix = s"/${indexToTerminal.size}"
+      // Add a extra marker if we're on a deeper level, https://github.com/com-lihaoyi/mill/issues/6817
+      val extraKeySuffix = if (isFinalDepth) "" else "+"
 
       def formatHeaderPrefix(completed: Boolean = false) = {
         val completedMsg = mill.api.internal.Util.leftPad(
@@ -185,7 +187,7 @@ case class Execution(
           indexToTerminal.size.toString.length,
           '0'
         )
-        s"$completedMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get(), completed, logger.prompt.errorColor, logger.prompt.successColor)}"
+        s"$completedMsg$keySuffix$extraKeySuffix${Execution.formatFailedCount(rootFailedCount.get(), completed, logger.prompt.errorColor, logger.prompt.successColor)}"
       }
 
       val tasksTransitive = PlanImpl.transitiveTasks(Seq.from(indexToTerminal)).toSet
