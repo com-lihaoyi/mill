@@ -762,11 +762,11 @@ Official Openapitools Mill plugin for generating source files from an OpenApi sp
 Project home: https://github.com/OpenAPITools/openapi-generator/
 
 .`build.mill`
-[source,scala]
+[,scala]
 ----
 //| mill-version: 1.1.2
 //| mvnDeps:
-//|   - org.openapitools:openapi-generator-mill-plugin:7.20.0 # 1.
+//|   - org.openapitools:openapi-generator-mill-plugin:7.20.0 # <1>
 
 import mill.*
 
@@ -779,12 +779,12 @@ object `package` extends JavaModule with MavenModule with OpenApiModule { // <3>
     mvn"com.fasterxml.jackson.core:jackson-databind:2.20.0",
   )
 
-  object openapi extends OpenApiConfig { // 4.
+  object openapi extends OpenApiConfig { // <4>
     def inputSpec: T[PathRef] = Task.Source(BuildCtx.workspaceRoot / "api" / "petstore.yaml")
     def apiPackage: T[String] = "com.acme.foo.boundary.web.api"
     def modelPackage: T[String] = "com.acme.foo.boundary.web.model"
     def generatorName: T[String] = "jaxrs-spec"
-    def sourceFolder: T[String] = "src/main/java" // 5.
+    def sourceFolder: T[String] = "src/main/java" // <5>
 
     def additionalProperties: T[Map[String, String]] = Map(
       "dateLibrary" -> "java8",
@@ -795,7 +795,7 @@ object `package` extends JavaModule with MavenModule with OpenApiModule { // <3>
     )
   }
 
-  override def generatedSources: T[Seq[PathRef]] = Seq( // 6.
+  override def generatedSources: T[Seq[PathRef]] = Seq( // <6>
     PathRef(Task.dest),
     openapi.generate())
 }
@@ -814,8 +814,8 @@ $ ./mill openapi.generate
 ----
 Here, `openapi` refers to the object defined previously.
 
-For all defined options and tasks, please see the official
-https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-mill-plugin[documentation].
+For all defined options and tasks, please see the
+https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-mill-plugin[official documentation].
 
 
 == OpenApi4s
