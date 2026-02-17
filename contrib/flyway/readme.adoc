@@ -23,6 +23,11 @@ object foo extends ScalaModule with FlywayModule {
   def flywayUrl = "jdbc:postgresql:myDb" // required
   def flywayDriverDeps = Seq(mvn"org.postgresql:postgresql:42.2.5") // required
   def flywayUser = "postgres" // optional
+  def flywayPlaceholders = Task {
+    Map(
+      "org" -> "mill"
+    )
+  } // optional
   // def flywayPassword = "" // optional
   //endregion
 }

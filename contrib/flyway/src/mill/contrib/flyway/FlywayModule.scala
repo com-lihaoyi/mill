@@ -25,6 +25,9 @@ trait FlywayModule extends JavaModule {
   def flywayFileLocations: T[Seq[PathRef]] = Task {
     resources().map(pr => PathRef(pr.path / "db/migration", pr.quick))
   }
+  def flywayPlaceholders: T[Map[String, String]] = Task {
+    Map.empty[String, String]
+  }
 
   def flywayDriverDeps: T[Seq[Dep]]
 
@@ -54,6 +57,7 @@ trait FlywayModule extends JavaModule {
     Flyway
       .configure(jdbcClassloader)
       .locations(flywayFileLocations().map("filesystem:" + _.path)*)
+      .placeholders(flywayPlaceholders().asJava)
       .configuration(configProps.asJava)
       .cleanDisabled(false)
       .load
