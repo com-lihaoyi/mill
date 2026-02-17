@@ -41,7 +41,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
   }
 
   object api extends MillStableScalaModule {
-    def mvnDeps = Seq(Deps.sbtTestInterface)
+    def mvnDeps = Seq(Deps.sbtTestInterface_api)
   }
 
   object worker extends Cross[WorkerModule]("1")
