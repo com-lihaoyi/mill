@@ -34,8 +34,6 @@
         <orderEntry type="library" name="fansi_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="fastparse_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="geny_3-<version>.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="graphviz-java-<version>.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="graphviz-java-min-deps-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="is-terminal-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jansi.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="javax.inject-1.jar" level="project"/>
