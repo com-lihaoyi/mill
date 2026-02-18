@@ -1570,6 +1570,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/contrib/flyway/FlywayModule.html#flywayInstance-0","e":false,"i":"","n":"flywayInstance","t":"flywayInstance: Worker[Flyway]","d":"mill.contrib.flyway.FlywayModule","k":"def","x":""},
 {"l":"mill/contrib/flyway/FlywayModule.html#flywayMigrate-936","e":false,"i":"","n":"flywayMigrate","t":"flywayMigrate(): Command[MigrateResult]","d":"mill.contrib.flyway.FlywayModule","k":"def","x":""},
 {"l":"mill/contrib/flyway/FlywayModule.html#flywayPassword-0","e":false,"i":"","n":"flywayPassword","t":"flywayPassword: Simple[String]","d":"mill.contrib.flyway.FlywayModule","k":"def","x":""},
+{"l":"mill/contrib/flyway/FlywayModule.html#flywayPlaceholders-0","e":false,"i":"","n":"flywayPlaceholders","t":"flywayPlaceholders: Simple[Map[String, String]]","d":"mill.contrib.flyway.FlywayModule","k":"def","x":""},
 {"l":"mill/contrib/flyway/FlywayModule.html#flywayUrl-0","e":false,"i":"","n":"flywayUrl","t":"flywayUrl: Simple[String]","d":"mill.contrib.flyway.FlywayModule","k":"def","x":""},
 {"l":"mill/contrib/flyway/FlywayModule.html#flywayUser-0","e":false,"i":"","n":"flywayUser","t":"flywayUser: Simple[String]","d":"mill.contrib.flyway.FlywayModule","k":"def","x":""},
 {"l":"mill/contrib/flyway/FlywayModule.html#jdbcClasspath-0","e":false,"i":"","n":"jdbcClasspath","t":"jdbcClasspath: Simple[Seq[PathRef]]","d":"mill.contrib.flyway.FlywayModule","k":"def","x":""},
