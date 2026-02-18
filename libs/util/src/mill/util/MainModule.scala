@@ -269,7 +269,7 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
         evaluator,
         tasks,
         Task.ctx(),
-        util.VisualizeModule.worker()
+        util.VisualizeModule.toolsClasspath()
       )
     }
 
@@ -284,7 +284,7 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
             evaluator,
             tasks,
             Task.ctx(),
-            util.VisualizeModule.worker(),
+            util.VisualizeModule.toolsClasspath(),
             Some(planResults.toList)
           )
       }

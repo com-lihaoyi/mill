@@ -1,16 +1,11 @@
 package mill.util
 
-import java.util.concurrent.LinkedBlockingQueue
 import coursier.core.Repository
-import mill.api.{Discover, Evaluator, ExternalModule, MultiBiMap, PathRef, SelectMode}
-import mill.*
+import mill.api.{BuildCtx, Discover, Evaluator, ExternalModule, MultiBiMap, PathRef, SelectMode}
 import mill.api.Result
-import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
-import guru.nidi.graphviz.attribute.Rank.RankDir
-import guru.nidi.graphviz.attribute.{Rank, Shape, Style}
-import mill.api.BuildCtx
+import mill.*
 
-import scala.annotation.nowarn
+import scala.collection.mutable
 
 object VisualizeModule extends ExternalModule {
   def repositories: Seq[Repository] =
@@ -18,49 +13,90 @@ object VisualizeModule extends ExternalModule {
 
   lazy val millDiscover = Discover[this.type]
 
-  private type VizWorker = (
-      LinkedBlockingQueue[(
-          scala.Seq[Task.Named[?]],
-          scala.Seq[Task.Named[?]],
-          MultiBiMap[Task.Named[?], Task[?]],
-          mill.api.Plan,
-          os.Path
-      )],
-      LinkedBlockingQueue[Result[scala.Seq[PathRef]]]
-  )
+  private def writePayload(
+      tasks: List[Task.Named[?]],
+      transitiveTasks: List[Task.Named[?]],
+      sortedGroups: MultiBiMap[Task.Named[?], Task[?]],
+      plan: mill.api.Plan
+  ): os.Path = {
+    val goalSet = transitiveTasks.toSet
+    val labels = mutable.HashMap.empty[Task.Named[?], String]
+
+    def labelOf(task: Task.Named[?]): String =
+      labels.getOrElseUpdate(
+        task,
+        plan.sortedGroups.lookupValueOpt(task).map(_.toString).getOrElse(task.toString)
+      )
+
+    val edgesJson = ujson.Arr.from(
+      sortedGroups.items().iterator.map { case (src, vs) =>
+        val dests = mutable.LinkedHashSet.empty[String]
+        vs.iterator.foreach { v =>
+          v.inputs.iterator.collect { case v: mill.api.Task.Named[?] => v }.foreach { dest =>
+            if (goalSet.contains(dest)) dests += labelOf(dest)
+          }
+        }
+        ujson.Obj(
+          "src" -> labelOf(src),
+          "dests" -> ujson.Arr.from(dests.iterator.map(ujson.Str(_)))
+        )
+      }
+    )
+
+    val payload = ujson.Obj(
+      "tasks" -> ujson.Arr.from(tasks.iterator.map(t => ujson.Str(labelOf(t)))),
+      "edges" -> edgesJson
+    )
+
+    val payloadPath = os.temp(prefix = "mill-visualize-", suffix = ".json")
+    os.write.over(payloadPath, payload.render())
+    payloadPath
+  }
 
   private[mill] def visualize0(
       evaluator: Evaluator,
       tasks: Seq[String],
       ctx: mill.api.TaskCtx,
-      vizWorker: VizWorker,
+      toolsClasspath: Seq[PathRef],
       planTasks: Option[List[Task.Named[?]]] = None
   ): Result[Seq[PathRef]] = {
     def callVisualizeModule(
         tasks: List[Task.Named[?]],
         transitiveTasks: List[Task.Named[?]]
     ): Result[Seq[PathRef]] = {
-      val (in, out) = vizWorker
       val transitive = evaluator.transitiveTasks(tasks)
       val topoSorted = evaluator.topoSorted(transitive)
       val sortedGroups = evaluator.groupAroundImportantTasks(topoSorted) {
         case x: Task.Named[?] if transitiveTasks.contains(x) => x
       }
       val plan = evaluator.plan(transitiveTasks)
-      in.put((tasks, transitiveTasks, sortedGroups, plan, ctx.dest))
-      val res = out.take()
-      res.map { v =>
-        println(upickle.write(v.map(_.path.toString()), indent = 2))
-        v
+      val payloadPath = writePayload(tasks, transitiveTasks, sortedGroups, plan)
+      try {
+        mill.util.Jvm.callProcess(
+          mainClass = "mill.graphviz.VisualizeWorkerMain",
+          classPath = toolsClasspath.map(_.path).toVector,
+          mainArgs = Seq(payloadPath.toString, ctx.dest.toString),
+          stdin = os.Inherit,
+          stdout = os.Inherit
+        )(using ctx)
+
+        BuildCtx.withFilesystemCheckerDisabled {
+          os.list(ctx.dest).sorted.map(PathRef(_))
+        }
+      } finally {
+        os.remove(payloadPath, checkExists = false)
       }
     }
 
-    evaluator.resolveTasks(tasks, SelectMode.Multi).flatMap {
-      rs =>
-        planTasks match {
-          case Some(allRs) => callVisualizeModule(rs, allRs)
-          case None => callVisualizeModule(rs, rs)
-        }
+    evaluator.resolveTasks(tasks, SelectMode.Multi).flatMap { rs =>
+      val rendered = planTasks match {
+        case Some(allRs) => callVisualizeModule(rs, allRs)
+        case None => callVisualizeModule(rs, rs)
+      }
+      rendered.map { v =>
+        println(upickle.write(v.map(_.path.toString()), indent = 2))
+        v
+      }
     }
   }
 
@@ -84,103 +120,4 @@ object VisualizeModule extends ExternalModule {
     ).map(_.map(_.withRevalidateOnce))
   }
 
-  /**
-   * The J2V8-based Graphviz library has a limitation that it can only ever
-   * be called from a single thread. Since Mill forks off a new thread every
-   * time you execute something, we need to keep around a worker thread that
-   * everyone can use to call into Graphviz, which the Mill execution threads
-   * can communicate via in/out queues.
-   */
-  @nowarn("msg=.*Workers should implement AutoCloseable.*")
-  private[mill] def worker: Worker[(
-      LinkedBlockingQueue[(
-          scala.Seq[Task.Named[?]],
-          scala.Seq[Task.Named[?]],
-          MultiBiMap[Task.Named[?], Task[?]],
-          mill.api.Plan,
-          os.Path
-      )],
-      LinkedBlockingQueue[Result[Seq[PathRef]]]
-  )] = mill.api.Task.Worker {
-    val in =
-      new LinkedBlockingQueue[(
-          scala.Seq[Task.Named[?]],
-          scala.Seq[Task.Named[?]],
-          MultiBiMap[Task.Named[?], Task[?]],
-          mill.api.Plan,
-          os.Path
-      )]()
-    val out = new LinkedBlockingQueue[Result[Seq[PathRef]]]()
-    val visualizeThread = new java.lang.Thread(() =>
-      while (true) {
-        val res = Result.Success {
-          val (tasks, transitiveTasks, sortedGroups, plan, dest) = in.take()
-
-          val goalSet = transitiveTasks.toSet
-          import guru.nidi.graphviz.model.Factory.*
-          val edgesIterator =
-            for ((k, vs) <- sortedGroups.items())
-              yield (
-                k,
-                for {
-                  v <- vs
-                  dest <- v.inputs.collect { case v: mill.api.Task.Named[Any] => v }
-                  if goalSet.contains(dest)
-                } yield dest
-              )
-
-          val edges = edgesIterator.map { case (k, v) => (k, v.toArray.distinct) }.toArray
-
-          val indexToTask = edges.flatMap { case (k, vs) => Iterator(k) ++ vs }.distinct
-          val taskToIndex = indexToTask.zipWithIndex.toMap
-
-          val jgraph = new SimpleDirectedGraph[Int, DefaultEdge](classOf[DefaultEdge])
-
-          for (i <- indexToTask.indices) jgraph.addVertex(i)
-          for ((src, dests) <- edges; dest <- dests) {
-            jgraph.addEdge(taskToIndex(src), taskToIndex(dest))
-          }
-
-          org.jgrapht.alg.TransitiveReduction.INSTANCE.reduce(jgraph)
-          val nodes = indexToTask.map(t =>
-            node(plan.sortedGroups.lookupValue(t).toString)
-              .`with` {
-                if (tasks.contains(t)) Style.SOLID
-                else Style.DASHED
-              }
-              .`with`(Shape.BOX)
-          )
-
-          var g = graph("example1").directed
-          for (i <- indexToTask.indices) {
-            for {
-              e <- edges(i)._2
-              j = taskToIndex(e)
-              if jgraph.containsEdge(i, j)
-            } {
-              g = g.`with`(nodes(j).link(nodes(i)))
-            }
-          }
-
-          g = g.graphAttr().`with`(Rank.dir(RankDir.LEFT_TO_RIGHT))
-
-          mill.util.Jvm.callProcess(
-            mainClass = "mill.graphviz.GraphvizTools",
-            classPath = toolsClasspath().map(_.path).toVector,
-            mainArgs = Seq(s"${os.temp(g.toString)};$dest;txt,dot,json,png,svg"),
-            stdin = os.Inherit,
-            stdout = os.Inherit
-          )
-
-          BuildCtx.withFilesystemCheckerDisabled {
-            os.list(dest).sorted.map(PathRef(_))
-          }
-        }
-        out.put(res)
-      }
-    )
-    visualizeThread.setDaemon(true)
-    visualizeThread.start()
-    (in, out)
-  }
 }
