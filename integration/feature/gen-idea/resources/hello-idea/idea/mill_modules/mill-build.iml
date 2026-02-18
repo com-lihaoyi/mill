@@ -38,8 +38,6 @@
         <orderEntry type="library" scope="RUNTIME" name="jansi.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="javax.inject-1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jcl-over-slf4j-<version>.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="jgrapht-core-<version>.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="jheaps-0.11.jar" level="project"/>
         <orderEntry type="library" name="jline-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jline-native-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jna-<version>.jar" level="project"/>
