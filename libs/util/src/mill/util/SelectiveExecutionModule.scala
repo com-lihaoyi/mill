@@ -22,7 +22,11 @@ trait SelectiveExecutionModule extends mill.api.Module {
    * If `empty` is true, then an empty snapshot will be saved to explicitly tell
    * `selective.run`` to run all given tasks non-selectively.
    */
-  def prepare(evaluator: Evaluator, empty: Boolean = false, tasks: mainargs.Leftover[String]): Command[Unit] =
+  def prepare(
+      evaluator: Evaluator,
+      empty: Boolean = false,
+      tasks: mainargs.Leftover[String]
+  ): Command[Unit] =
     Task.Command(exclusive = true) {
       if empty
       then evaluator.selective.saveMetadata(Metadata(Map.empty, Map.empty))
