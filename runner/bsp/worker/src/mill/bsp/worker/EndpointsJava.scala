@@ -29,7 +29,7 @@ private trait EndpointsJava extends JavaBuildServer with EndpointsApi {
       },
       requestDescription = "Getting javac options of {}",
       originId = ""
-    ) { ctx =>
+    ) { (ctx, _) =>
       val res = ctx.value(ctx.evaluator)
       new JavacOptionsItem(
         ctx.id,
@@ -38,7 +38,7 @@ private trait EndpointsJava extends JavaBuildServer with EndpointsApi {
         sanitizeUri(res.classesPath)
       )
 
-    } { (values, _) =>
+    } { (values, _, _) =>
       new JavacOptionsResult(values)
     }
 }

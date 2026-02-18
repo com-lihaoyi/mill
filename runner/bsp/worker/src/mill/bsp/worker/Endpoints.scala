@@ -136,7 +136,7 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
       tasks = { case m: BspModuleApi => m.bspBuildTargetData },
       requestDescription = "Listing build targets",
       originId = ""
-    ) { ctx =>
+    ) { (ctx, _) =>
       val depsIds = ctx.module match {
         case jm: JavaModuleApi =>
           (jm.recursiveModuleDeps ++ jm.compileModuleDepsChecked)
@@ -169,7 +169,7 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
       val bt = ctx.module.bspBuildTarget
       makeBuildTarget(ctx.id, depsIds, bt, data)
 
-    } { (targets, state) =>
+    } { (targets, state, _) =>
       new WorkspaceBuildTargetsResult(
         (targets.asScala ++ state.syntheticRootBspBuildTarget.map(_.target))
           .sortBy(_.getId.getUri)
@@ -200,7 +200,7 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
       requestDescription =
         s"Getting sources of ${sourcesParams.getTargets.asScala.map(_.getUri).mkString(", ")}",
       originId = ""
-    ) { ctx =>
+    ) { (ctx, _) =>
       new SourcesItem(
         ctx.id,
         (
@@ -208,7 +208,7 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
             ctx.value.generatedSources.map(p => sourceItem(os.Path(p), true))
         ).asJava
       )
-    } { (sourceItems, state) =>
+    } { (sourceItems, state, _) =>
       new SourcesResult(
         (sourceItems.asScala ++ state.syntheticRootBspBuildTarget.map(_.synthSources))
           .sortBy(_.getTarget.getUri)
@@ -254,11 +254,11 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
       requestDescription =
         s"Getting dependency sources of ${p.getTargets.asScala.map(_.getUri).mkString(", ")}",
       originId = ""
-    ) { ctx =>
+    ) { (ctx, _) =>
       val cp = (ctx.value.resolvedDepsSources ++ ctx.value.unmanagedClasspath).map(sanitizeUri)
       new DependencySourcesItem(ctx.id, cp.asJava)
 
-    } { (values, _) =>
+    } { (values, _, _) =>
       new DependencySourcesResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
     }
 
@@ -269,7 +269,7 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
       tasks = { case m: JavaModuleApi => m.bspJavaModule().bspBuildTargetDependencyModules },
       requestDescription = "Getting external dependencies of {}",
       originId = ""
-    ) { ctx =>
+    ) { (ctx, _) =>
       val deps = ctx.value.mvnDeps.collect {
         case (org, repr, version) if org != "mill-internal" =>
           new DependencyModule(repr, version)
@@ -280,7 +280,7 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
       }
       new DependencyModulesItem(ctx.id, (deps ++ unmanaged).asJava)
 
-    } { (values, _) =>
+    } { (values, _, _) =>
       new DependencyModulesResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
     }
 
@@ -290,12 +290,12 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
       tasks = { case m: JavaModuleApi => m.bspJavaModule().bspBuildTargetResources },
       requestDescription = "Getting resources of {}",
       originId = ""
-    ) { ctx =>
+    ) { (ctx, _) =>
       val resourcesUrls =
         ctx.value.map(os.Path(_)).filter(os.exists).map(p => sanitizeUri(p.toNIO))
       new ResourcesItem(ctx.id, resourcesUrls.asJava)
 
-    } { (values, _) =>
+    } { (values, _, _) =>
       new ResourcesResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
     }
 

@@ -139,8 +139,8 @@ private abstract class MillBuildServer(
       tasks: PartialFunction[BspModuleApi, TaskApi[W]],
       requestDescription: String,
       originId: String
-  )(block: TaskContext[W] => T)(
-      agg: (java.util.List[T], BspEvaluators) => V
+  )(block: (TaskContext[W], Logger) => T)(
+      agg: (java.util.List[T], BspEvaluators, Logger) => V
   )(using name: sourcecode.Name, enclosing: sourcecode.Enclosing): CompletableFuture[V] = {
     val prefix = name.value
     handlerEvaluators() { (state, logger) =>
@@ -181,7 +181,7 @@ private abstract class MillBuildServer(
         }
 
         resultsById.flatMap { case (id, m, values) =>
-          try Seq(block(new TaskContext(id, m, values, ev, state)))
+          try Seq(block(new TaskContext(id, m, values, ev, state), logger))
           catch {
             case NonFatal(e) =>
               logError(id, e.toString)
@@ -190,7 +190,7 @@ private abstract class MillBuildServer(
         }
       }
 
-      agg(evaluated.asJava, state)
+      agg(evaluated.asJava, state, logger)
     }
   }
 

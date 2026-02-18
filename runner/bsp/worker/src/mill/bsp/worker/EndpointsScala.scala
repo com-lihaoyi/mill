@@ -35,7 +35,7 @@ private trait EndpointsScala extends ScalaBuildServer with EndpointsApi {
       },
       requestDescription = "Getting scalac options of {}",
       originId = ""
-    ) { ctx =>
+    ) { (ctx, _) =>
       val (allScalacOptions, compileClasspath, classesPathTask) = ctx.value
       new ScalacOptionsItem(
         ctx.id,
@@ -44,7 +44,7 @@ private trait EndpointsScala extends ScalaBuildServer with EndpointsApi {
         sanitizeUri(classesPathTask(ctx.evaluator))
       )
 
-    } { (values, _) =>
+    } { (values, _, _) =>
       new ScalacOptionsResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
     }
 
@@ -55,7 +55,7 @@ private trait EndpointsScala extends ScalaBuildServer with EndpointsApi {
       tasks = { case m: ScalaModuleApi => m.bspJavaModule().bspBuildTargetScalaMainClasses },
       requestDescription = "Getting main classes of {}",
       originId = p.getOriginId
-    ) { ctx =>
+    ) { (ctx, _) =>
       // We find all main classes, although we could also find only the configured one
       val mainClasses = ctx.value.classes
       // val mainMain = m.mainClass().orElse(if(mainClasses.size == 1) mainClasses.headOption else None)
@@ -66,7 +66,7 @@ private trait EndpointsScala extends ScalaBuildServer with EndpointsApi {
       }
       new ScalaMainClassesItem(ctx.id, items.asJava)
 
-    } { (values, _) =>
+    } { (values, _, _) =>
       new ScalaMainClassesResult(values)
     }
 
@@ -79,12 +79,12 @@ private trait EndpointsScala extends ScalaBuildServer with EndpointsApi {
       },
       requestDescription = "Getting test classes of {}",
       originId = p.getOriginId
-    ) { ctx =>
+    ) { (ctx, _) =>
       val (frameworkName, classes) = ctx.value
       val item = new ScalaTestClassesItem(ctx.id, classes.asJava)
       item.setFramework(frameworkName)
       item
-    } { (values, _) =>
+    } { (values, _, _) =>
       new ScalaTestClassesResult(values)
     }
 
