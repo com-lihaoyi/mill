@@ -30,7 +30,11 @@ trait KaptModule extends KotlinModule { outer =>
    * KAPT compiler plugin dependency.
    */
   def kaptPluginMvnDeps: T[Seq[Dep]] = Task {
-    Seq(mvn"org.jetbrains.kotlin:kotlin-annotation-processing-embeddable:${kaptVersion()}")
+    if (kotlinUseEmbeddableCompiler()) {
+      Seq(mvn"org.jetbrains.kotlin:kotlin-annotation-processing-embeddable:${kaptVersion()}")
+    } else {
+      Seq(mvn"org.jetbrains.kotlin:kotlin-annotation-processing:${kaptVersion()}")
+    }
   }
 
   /**
@@ -98,9 +102,18 @@ trait KaptModule extends KotlinModule { outer =>
         )
       }
 
-      val apClasspathOpts = kaptProcessorClasspath()
-        .map(_.path.toString)
-        .flatMap(path => Seq("-P", s"plugin:org.jetbrains.kotlin.kapt3:apclasspath=$path"))
+      val apClasspathOpts = Seq(
+        s"plugin:org.jetbrains.kotlin.kapt3:aptMode=$aptMode",
+        s"plugin:org.jetbrains.kotlin.kapt3:sources=${javaOutput}",
+        s"plugin:org.jetbrains.kotlin.kapt3:classes=${classesOutput}",
+        s"plugin:org.jetbrains.kotlin.kapt3:stubs=${stubsOutput}",
+        s"plugin:org.jetbrains.kotlin.kapt3:incrementalData=${incrementalDataOutput}",
+        s"plugin:org.jetbrains.kotlin.kapt3:correctErrorTypes=${kaptCorrectErrorTypes()}",
+        s"plugin:org.jetbrains.kotlin.kapt3:mapDiagnosticLocations=${kaptMapDiagnosticLocations()}"
+      ) ++
+        kaptProcessorClasspath()
+          .map(_.path.toString)
+          .map(path => s"plugin:org.jetbrains.kotlin.kapt3:apclasspath=$path")
 
       val compilerArgs = Seq(
         Seq("-d", phaseClassesOutput.toString()),
@@ -113,23 +126,7 @@ trait KaptModule extends KotlinModule { outer =>
           "-Xexplicit-api=strict"
         ),
         allKotlincOptions(),
-        Seq(
-          "-P",
-          s"plugin:org.jetbrains.kotlin.kapt3:aptMode=$aptMode",
-          "-P",
-          s"plugin:org.jetbrains.kotlin.kapt3:sources=${javaOutput}",
-          "-P",
-          s"plugin:org.jetbrains.kotlin.kapt3:classes=${classesOutput}",
-          "-P",
-          s"plugin:org.jetbrains.kotlin.kapt3:stubs=${stubsOutput}",
-          "-P",
-          s"plugin:org.jetbrains.kotlin.kapt3:incrementalData=${incrementalDataOutput}",
-          "-P",
-          s"plugin:org.jetbrains.kotlin.kapt3:correctErrorTypes=${kaptCorrectErrorTypes()}",
-          "-P",
-          s"plugin:org.jetbrains.kotlin.kapt3:mapDiagnosticLocations=${kaptMapDiagnosticLocations()}"
-        ),
-        apClasspathOpts
+        apClasspathOpts.flatMap(opt => Seq("-P", opt))
       ).flatten
 
       Task.log.info(
