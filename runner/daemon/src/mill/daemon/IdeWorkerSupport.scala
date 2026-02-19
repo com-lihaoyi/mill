@@ -9,7 +9,9 @@ import mill.javalib.api.JvmWorkerUtil
 import mill.client.lock.Lock
 import mill.util.{BuildInfo, Jvm}
 
-private object BspIdeaWorkerSupport {
+private object IdeWorkerSupport {
+  final case class BspBuildClient private[daemon] (private[daemon] val value: AnyRef)
+
   private val organization = Organization("com.lihaoyi")
 
   private val scalaBinaryVersion = JvmWorkerUtil.scalaBinaryVersion(BuildInfo.scalaVersion)
@@ -133,7 +135,7 @@ private object BspIdeaWorkerSupport {
       baseLogger: Logger,
       out: os.Path,
       daemonDir: os.Path
-  ): (BspServerHandle, AnyRef) = {
+  ): (BspServerHandle, BspBuildClient) = {
     val handles = bspHandles
     val result = mill.api.daemon.ClassLoader.withContextClassLoader(handles.classLoader) {
       unwrapInvocation(handles.startBspServer.invoke(
@@ -151,7 +153,7 @@ private object BspIdeaWorkerSupport {
 
     result match {
       case Result.Success((handle: BspServerHandle, buildClient: AnyRef)) =>
-        (handle, buildClient)
+        (handle, BspBuildClient(buildClient))
       case Result.Success(_) =>
         throw new MillException("BSP worker returned an unexpected payload")
       case failure: Result.Failure =>
@@ -162,7 +164,7 @@ private object BspIdeaWorkerSupport {
   def bspReporterPool(
       workspaceDir: os.Path,
       evaluators: Seq[EvaluatorApi],
-      buildClient: AnyRef
+      buildClient: BspBuildClient
   ): Int => Option[CompileProblemReporter] = {
     val handles = bspHandles
     val debug: (() => String) => Unit = _ => ()
@@ -179,7 +181,7 @@ private object BspIdeaWorkerSupport {
     val rawPool = mill.api.daemon.ClassLoader.withContextClassLoader(handles.classLoader) {
       unwrapInvocation(
         handles.reporterPoolFactory
-          .invoke(handles.utilsModule, "", bspIdByModule, buildClient)
+          .invoke(handles.utilsModule, "", bspIdByModule, buildClient.value)
           .asInstanceOf[Int => Option[?]]
       )
     }

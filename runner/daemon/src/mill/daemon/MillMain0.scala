@@ -353,7 +353,7 @@ object MillMain0 {
                             millActiveCommandMessage = "BSP:initialize",
                             loggerOpt = Some(initCommandLogger),
                             reporter = ev => {
-                              BspIdeaWorkerSupport.bspReporterPool(
+                              IdeWorkerSupport.bspReporterPool(
                                 workspaceDir = BuildCtx.workspaceRoot,
                                 evaluators = Seq(ev),
                                 buildClient = buildClient
@@ -449,7 +449,7 @@ object MillMain0 {
                             streams,
                             "BSP:initialize"
                           )
-                        BspIdeaWorkerSupport.runIdeaGeneration(
+                        IdeWorkerSupport.runIdeaGeneration(
                           runnerState.frames.flatMap(_.evaluator)
                         )
                         (true, RunnerState(None, Nil, None))
@@ -522,7 +522,7 @@ object MillMain0 {
       outLock: Lock,
       bspLogger: Logger,
       daemonDir: os.Path
-  ): (BspServerHandle, AnyRef) = {
+  ): (BspServerHandle, IdeWorkerSupport.BspBuildClient) = {
     bspLogger.info("Trying to load BSP server...")
 
     val wsRoot = BuildCtx.workspaceRoot
@@ -531,7 +531,7 @@ object MillMain0 {
     os.makeDir.all(logDir)
 
     val bspServerHandleRes =
-      BspIdeaWorkerSupport.startBspServer(
+      IdeWorkerSupport.startBspServer(
         topLevelBuildRoot = api.BuildCtx.workspaceRoot,
         streams = bspStreams,
         logDir = logDir,
