@@ -1,6 +1,5 @@
 package mill.daemon
 
-import ch.epfl.scala.bsp4j.BuildClient
 import mill.api.daemon.internal.bsp.BspServerHandle
 import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
 import mill.api.{Logger, MillException, Result, SystemStreams}
@@ -354,16 +353,10 @@ object MillMain0 {
                             millActiveCommandMessage = "BSP:initialize",
                             loggerOpt = Some(initCommandLogger),
                             reporter = ev => {
-                              val bspIdByModule = mill.bsp.worker.BspEvaluators(
-                                BuildCtx.workspaceRoot,
-                                Seq(ev),
-                                _ => (),
-                                Nil
-                              ).bspIdByModule
-                              mill.bsp.worker.Utils.getBspLoggedReporterPool(
-                                "",
-                                bspIdByModule,
-                                buildClient
+                              BspIdeaWorkerSupport.bspReporterPool(
+                                workspaceDir = BuildCtx.workspaceRoot,
+                                evaluators = Seq(ev),
+                                buildClient = buildClient
                               )
                             }
                           )
@@ -456,8 +449,9 @@ object MillMain0 {
                             streams,
                             "BSP:initialize"
                           )
-                        new mill.idea.GenIdeaImpl(runnerState.frames.flatMap(_.evaluator))
-                          .run()
+                        BspIdeaWorkerSupport.runIdeaGeneration(
+                          runnerState.frames.flatMap(_.evaluator)
+                        )
                         (true, RunnerState(None, Nil, None))
                       } else if (
                         config.leftoverArgs.value == Seq("mill.eclipse.GenEclipse/eclipse") ||
@@ -528,7 +522,7 @@ object MillMain0 {
       outLock: Lock,
       bspLogger: Logger,
       daemonDir: os.Path
-  ): (BspServerHandle, BuildClient) = {
+  ): (BspServerHandle, AnyRef) = {
     bspLogger.info("Trying to load BSP server...")
 
     val wsRoot = BuildCtx.workspaceRoot
@@ -537,16 +531,16 @@ object MillMain0 {
     os.makeDir.all(logDir)
 
     val bspServerHandleRes =
-      mill.bsp.worker.BspWorkerImpl.startBspServer(
-        api.BuildCtx.workspaceRoot,
-        bspStreams,
-        logDir,
-        true,
-        outLock,
-        bspLogger,
-        outFolder,
-        daemonDir
-      ).get
+      BspIdeaWorkerSupport.startBspServer(
+        topLevelBuildRoot = api.BuildCtx.workspaceRoot,
+        streams = bspStreams,
+        logDir = logDir,
+        canReload = true,
+        outLock = outLock,
+        baseLogger = bspLogger,
+        out = outFolder,
+        daemonDir = daemonDir
+      )
 
     bspLogger.info("BSP server started")
 
