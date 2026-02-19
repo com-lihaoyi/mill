@@ -47,7 +47,7 @@ object `package` extends MillPublishScalaModule with BuildInfo {
       // Adding it as a dependency here in order to depend on a constant version rather than an interval
       // If needed, that version can be bumped in the future to accomodate any conflict that might arise
       Deps.gson,
-      Deps.sbtTestInterface,
+      Deps.sbtTestInterface_api,
       Deps.osLib,
       Deps.jgit
     )
