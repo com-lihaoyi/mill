@@ -28,6 +28,16 @@ final class Discover(val classInfo: Map[Class[?], Discover.ClassInfo]) {
     }
   }
 
+  /**
+   * Check if the given task name is marked as allEvaluatorsCommand for the given class.
+   * Looks up the class hierarchy to find if any parent class has this task marked as allEvaluatorsCommand.
+   */
+  private[mill] def isAllEvaluatorsCommand(cls: Class[?], name: String): Boolean = {
+    resolveClassInfos(cls).exists { case (_, info) =>
+      info.allEvaluatorsCommandTaskNames.contains(name)
+    }
+  }
+
   private[mill] def resolveEntrypoint(cls: Class[?], name: String) = {
     val res = for {
       (_, node) <- resolveClassInfos(cls)
@@ -56,8 +66,14 @@ object Discover {
   ) {
     lazy val declaredTaskNameSet = declaredTasks.map(_.name).toSet
     lazy val nonBootstrappedTaskNames = declaredTasks.filter(_.nonBootstrapped).map(_.name).toSet
+    lazy val allEvaluatorsCommandTaskNames =
+      declaredTasks.filter(_.allEvaluatorsCommand).map(_.name).toSet
   }
-  final class TaskInfo(val name: String, @com.lihaoyi.unroll val nonBootstrapped: Boolean = false)
+  final class TaskInfo(
+      val name: String,
+      @com.lihaoyi.unroll val nonBootstrapped: Boolean = false,
+      @com.lihaoyi.unroll val allEvaluatorsCommand: Boolean = false
+  )
 
   inline def apply[T]: Discover = ${ Router.applyImpl[T] }
 
@@ -124,7 +140,7 @@ object Discover {
       // changing unnecessarily
       val mapping: Seq[(
           TypeRepr,
-          (Seq[scala.quoted.Expr[mainargs.MainData[?, ?]]], Seq[(String, Boolean)])
+          (Seq[scala.quoted.Expr[mainargs.MainData[?, ?]]], Seq[(String, Boolean, Boolean)])
       )] =
         for (curCls <- seen.toSeq.sortBy(_.typeSymbol.fullName)) yield {
           val declMethods = filterDefs(curCls.typeSymbol.declaredMethods)
@@ -138,7 +154,9 @@ object Discover {
           val names = taskMethods.map { m =>
             val hasNonBootstrapped =
               m.annotations.exists(_.tpe =:= TypeRepr.of[mill.api.nonBootstrapped])
-            (m.name, hasNonBootstrapped)
+            val hasAllEvaluatorsCommand =
+              m.annotations.exists(_.tpe =:= TypeRepr.of[mill.api.allEvaluatorsCommand])
+            (m.name, hasNonBootstrapped, hasAllEvaluatorsCommand)
           }
           val entryPoints = for {
             m <- sortedMethods(curCls, sub = TypeRepr.of[Task.Command[?]], declMethods)
@@ -177,8 +195,14 @@ object Discover {
             def func() = new ClassInfo(
               ${ Expr.ofList(entryPoints.toList) },
               ${
-                Expr.ofList(names.map { case (name, nonBootstrapped) =>
-                  '{ new TaskInfo(${ Expr(name) }, ${ Expr(nonBootstrapped) }) }
+                Expr.ofList(names.map { case (name, nonBootstrapped, allEvaluatorsCommand) =>
+                  '{
+                    new TaskInfo(
+                      ${ Expr(name) },
+                      ${ Expr(nonBootstrapped) },
+                      ${ Expr(allEvaluatorsCommand) }
+                    )
+                  }
                 })
               }
             )
