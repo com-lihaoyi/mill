@@ -18,13 +18,13 @@ trait MillBaseTestsModule extends TestModule {
       s"-DTEST_SCALANATIVE_0_5_VERSION=${Deps.Scalanative_0_5.scalanativeVersion}",
       s"-DTEST_UTEST_VERSION=${Deps.TestDeps.utest.version}",
       s"-DTEST_SCALATEST_VERSION=${Deps.TestDeps.scalaTest.version}",
-      s"-DTEST_TEST_INTERFACE_VERSION=${Deps.sbtTestInterface.version}",
+      s"-DTEST_TEST_INTERFACE_VERSION=${Deps.sbtTestInterface_api.version}",
       s"-DTEST_ZIOTEST_VERSION=${Deps.TestDeps.zioTest.version}",
       s"-DTEST_ZINC_VERSION=${Deps.zinc.version}",
       s"-DTEST_KOTLIN_VERSION=${Deps.kotlinCompiler.version}",
-      s"-DTEST_SBT_VERSION=${Deps.sbt.version}",
-      s"-DTEST_PROGUARD_VERSION=${Deps.RuntimeDeps.proguard.version}",
-      s"-DTEST_KOTEST_VERSION=${Deps.RuntimeDeps.kotestJvm.version}"
+      s"-DTEST_SBT_VERSION=${Deps.sbt_api.version}",
+      s"-DTEST_PROGUARD_VERSION=${Deps.RuntimeDeps.proguard_runtime.version}",
+      s"-DTEST_KOTEST_VERSION=${Deps.RuntimeDeps.kotestJvm_runtime.version}"
     )
   }
 

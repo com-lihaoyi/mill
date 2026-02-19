@@ -3,6 +3,15 @@ package millbuild
 import mill.scalalib.*
 import mill.javalib.api.*
 
+/**
+ * Shared dependencies used in the project.
+ *
+ * Dependencies that are used by modules and have configurable versions, are typically managed here
+ * to make maintenance easier. Names ending with `_api` are typically used to compile the worker modules,
+ * to make sure we don't use too new API. Those deps are typically not bumped to the latest version.
+ * Names ending with `_runtime` can often be bumped to their latest version and are used as defaults for
+ * various `toolVersion` tasks.
+ */
 object Deps {
 
   // The Scala version to use
@@ -140,9 +149,8 @@ object Deps {
   val junitInterface = mvn"com.github.sbt:junit-interface:0.13.3"
   val commonsIo = mvn"commons-io:commons-io:2.21.0"
   val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.25.1"
-  val osLibVersion = "0.11.8"
-  val osLib = mvn"com.lihaoyi::os-lib:$osLibVersion"
-  val osLibWatch = mvn"com.lihaoyi::os-lib-watch:$osLibVersion"
+  val osLib = mvn"com.lihaoyi::os-lib:0.11.8"
+  val osLibWatch = mvn"com.lihaoyi::os-lib-watch:${osLib.version}"
   val pprint = mvn"com.lihaoyi::pprint:0.9.6"
   val mainargs = mvn"com.lihaoyi::mainargs:0.7.8"
   val millModuledefsVersion = "0.13.1"
@@ -158,10 +166,9 @@ object Deps {
     mvn"org.graalvm.buildtools:graalvm-reachability-metadata:0.11.3"
   val openJson = mvn"com.github.openjson:openjson:1.0.13"
 
-  // can't use newer versions, as these need higher Java versions
-  val testng_lowerBound = mvn"org.testng:testng:7.5.1"
-  val testng = mvn"org.testng:testng:7.11.0"
-  val sbtTestInterface = mvn"org.scala-sbt:test-interface:1.0"
+  val testng_api = mvn"org.testng:testng:7.5.1"
+  val testng_runtime = mvn"org.testng:testng:7.12.0"
+  val sbtTestInterface_api = mvn"org.scala-sbt:test-interface:1.0"
   def scalaCompiler(scalaVersion: String) = {
     if (JvmWorkerUtil.isScala3(scalaVersion)) mvn"org.scala-lang:scala3-compiler_3:${scalaVersion}"
     else mvn"org.scala-lang:scala-compiler:${scalaVersion}"
@@ -185,14 +192,16 @@ object Deps {
   val scalatags = mvn"com.lihaoyi::scalatags:0.13.1".withDottyCompat(scalaVersion)
   val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.4.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.14.7"
-  val semanticDbJava = mvn"com.sourcegraph:semanticdb-java:0.11.1"
-  val semanticDbShared = mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala.version}"
+  val semanticDBscala_runtime = mvn"org.scalameta:::semanticdb-scalac:4.14.7"
+  val semanticDbJava_runtime = mvn"com.sourcegraph:semanticdb-java:0.11.1"
+  val semanticDbShared =
+    mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala_runtime.version}"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.4"
-  val springBootTools = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.5"
-  val quarkusAppModel = mvn"io.quarkus:quarkus-bootstrap-app-model:3.31.1"
-  val quarkusBootstrapCore = mvn"io.quarkus:quarkus-bootstrap-core:3.31.1"
-  val quarkusCoreDeployment = mvn"io.quarkus:quarkus-core-deployment:3.31.1"
+  val springBootTools_api = mvn"org.springframework.boot:spring-boot-loader-tools:3.3.0"
+  val springBootTools_runtime = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.5"
+  val quarkusAppModel_api = mvn"io.quarkus:quarkus-bootstrap-app-model:3.31.1"
+  val quarkusBootstrapCore_api = mvn"io.quarkus:quarkus-bootstrap-core:3.31.1"
+  val quarkusCoreDeployment_api = mvn"io.quarkus:quarkus-core-deployment:3.31.1"
   val upickle = mvn"com.lihaoyi::upickle:4.4.2"
   val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:${upickle.version}"
   // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
@@ -218,7 +227,7 @@ object Deps {
   val groovyVersion_lowerBound = "4.0.28"
   val groovyCompiler_lowerBound = mvn"org.apache.groovy:groovy:$groovyVersion_lowerBound"
   val groovyVersion = "5.0.3"
-  val groovyCompiler = mvn"org.apache.groovy:groovy:$groovyVersion"
+  val groovyCompiler_runtime = mvn"org.apache.groovy:groovy:$groovyVersion"
 
   /** Used for the `mill init` from a Maven project. */
   object MavenInit {
@@ -238,7 +247,7 @@ object Deps {
   }
 
   val coursierJvmIndexVersion = "0.0.4-131-fababa"
-  val gradleApi = mvn"dev.gradleplugins:gradle-api:8.11.1"
+  val gradleApi_api = mvn"dev.gradleplugins:gradle-api:8.11.1"
 
   val androidTools = mvn"com.android.tools.build:gradle:8.9.1"
   val androidDataBindingCompiler = mvn"androidx.databinding:databinding-compiler:8.13.0"
@@ -246,8 +255,8 @@ object Deps {
     mvn"androidx.databinding:databinding-compiler-common:8.13.0"
   val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.56"
 
-  val sbt = mvn"org.scala-sbt:sbt:1.10.10"
-  val mimaCore = mvn"com.typesafe::mima-core:1.1.4"
+  val sbt_api = mvn"org.scala-sbt:sbt:1.10.10"
+  val mimaCore_api = mvn"com.typesafe::mima-core:1.1.4"
   val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:3.0.1"
   val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.2.0"
   // JGit 6.x series, used by spotlessLibExtra, works on Java 11
@@ -255,52 +264,52 @@ object Deps {
   val jgit = mvn"org.eclipse.jgit:org.eclipse.jgit:6.10.1.202505221210-r"
 
   object RuntimeDeps {
-    val dokkaVersion = "2.0.0"
-    val koverVersion = "0.8.3"
+    val dokkaVersion_runtime = "2.0.0"
+    val koverVersion_runtime = "0.8.3"
 
-    val detektCli = mvn"io.gitlab.arturbosch.detekt:detekt-cli:1.23.7"
-    val dokkaAnalysisDescriptors =
-      mvn"org.jetbrains.dokka:analysis-kotlin-descriptors:$dokkaVersion"
-    val dokkaBase = mvn"org.jetbrains.dokka:dokka-base:$dokkaVersion"
-    val dokkaCli = mvn"org.jetbrains.dokka:dokka-cli:$dokkaVersion"
-    val errorProneCore = mvn"com.google.errorprone:error_prone_core:2.31.0"
-    val freemarker = mvn"org.freemarker:freemarker:2.3.34"
-    val jupiterInterface = mvn"com.github.sbt.junit:jupiter-interface:0.13.3"
-    val jupiterInterface6 = mvn"com.github.sbt.junit:jupiter-interface:0.17.0"
-    val kotestJvm =
+    val detektCli_runtime = mvn"io.gitlab.arturbosch.detekt:detekt-cli:1.23.7"
+    val dokkaAnalysisDescriptors_runtime =
+      mvn"org.jetbrains.dokka:analysis-kotlin-descriptors:$dokkaVersion_runtime"
+    val dokkaBase_runtime = mvn"org.jetbrains.dokka:dokka-base:$dokkaVersion_runtime"
+    val dokkaCli_runtime = mvn"org.jetbrains.dokka:dokka-cli:$dokkaVersion_runtime"
+    val errorProneCore_runtime = mvn"com.google.errorprone:error_prone_core:2.31.0"
+    val freemarker_runtime = mvn"org.freemarker:freemarker:2.3.34"
+    val jupiterInterface_runtime = mvn"com.github.sbt.junit:jupiter-interface:0.13.3"
+    val jupiterInterface6_runtime = mvn"com.github.sbt.junit:jupiter-interface:0.17.0"
+    val kotestJvm_runtime =
       mvn"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler:5.9.1"
-    val kotlinxHtmlJvm = mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
-    val koverCli = mvn"org.jetbrains.kotlinx:kover-cli:$koverVersion"
-    val koverJvmAgent = mvn"org.jetbrains.kotlinx:kover-jvm-agent:$koverVersion"
-    val ktfmt = mvn"com.facebook:ktfmt:0.58"
-    val ktlint = mvn"com.pinterest.ktlint:ktlint-core:0.49.1"
-    val palantirFormat = mvn"com.palantir.javaformat:palantir-java-format:2.74.0"
-    val proguard = mvn"com.guardsquare:proguard-base:7.7.0"
-    val revApi = mvn"org.revapi:revapi-standalone:0.12.0"
+    val kotlinxHtmlJvm_runtime = mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
+    val koverCli_runtime = mvn"org.jetbrains.kotlinx:kover-cli:$koverVersion_runtime"
+    val koverJvmAgent_runtime = mvn"org.jetbrains.kotlinx:kover-jvm-agent:$koverVersion_runtime"
+    val ktfmt_runtime = mvn"com.facebook:ktfmt:0.58"
+    val ktlint_runtime = mvn"com.pinterest.ktlint:ktlint-core:0.49.1"
+    val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.74.0"
+    val proguard_runtime = mvn"com.guardsquare:proguard-base:7.7.0"
+    val revApi_runtime = mvn"org.revapi:revapi-standalone:0.12.0"
     val sbtTestInterface = mvn"com.github.sbt:junit-interface:0.13.2"
-    val pmdDist = mvn"net.sourceforge.pmd:pmd-dist:7.15.0"
+    val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.15.0"
 
     def updateable = Seq(
-      detektCli,
-      dokkaAnalysisDescriptors,
-      dokkaBase,
-      dokkaCli,
-      errorProneCore,
-      freemarker,
-      jupiterInterface,
-      jupiterInterface6,
-      groovyCompiler,
-      kotestJvm,
-      kotlinxHtmlJvm,
-      koverCli,
-      koverJvmAgent,
-      ktfmt,
-      ktlint,
-      palantirFormat,
-      proguard,
-      revApi,
+      detektCli_runtime,
+      dokkaAnalysisDescriptors_runtime,
+      dokkaBase_runtime,
+      dokkaCli_runtime,
+      errorProneCore_runtime,
+      freemarker_runtime,
+      jupiterInterface_runtime,
+      jupiterInterface6_runtime,
+      groovyCompiler_runtime,
+      kotestJvm_runtime,
+      kotlinxHtmlJvm_runtime,
+      koverCli_runtime,
+      koverJvmAgent_runtime,
+      ktfmt_runtime,
+      ktlint_runtime,
+      palantirFormat_runtime,
+      proguard_runtime,
+      revApi_runtime,
       sbtTestInterface,
-      pmdDist
+      pmdDist_runtime
     )
   }
 

@@ -185,8 +185,8 @@ def listCross(using ctx: mill.api.ModuleCtx) = BuildCtx.watchValue {
 
 val dummyDeps: Seq[Dep] = Seq(
   Deps.DocDeps.millScip,
-  Deps.semanticDbJava,
-  Deps.semanticDBscala,
+  Deps.semanticDbJava_runtime,
+  Deps.semanticDBscala_runtime,
   Deps.TestDeps.scalaTest,
   Deps.TestDeps.zioTest,
   Deps.acyclic,

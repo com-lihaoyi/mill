@@ -123,7 +123,7 @@ object `package` extends MillPublishScalaModule {
 
   object gradle extends MainModule with BuildInfo {
     def moduleDeps = super.moduleDeps ++ Seq(api)
-    def mvnDeps = super.mvnDeps() ++ Seq(Deps.gradleApi)
+    def mvnDeps = super.mvnDeps() ++ Seq(Deps.gradleApi_api)
     def testModuleDeps = super.testModuleDeps ++ Seq(buildgen.test)
     def buildInfoPackageName = "mill.main.gradle"
     def buildInfoMembers = Seq(
@@ -145,7 +145,7 @@ object `package` extends MillPublishScalaModule {
       def jvmId = "11"
       def scalaVersion = Deps.scalaVersionJava11
       def moduleDeps = Seq(api, buildgen.api(Deps.scalaVersionJava11))
-      def compileMvnDeps = Seq(Deps.gradleApi)
+      def compileMvnDeps = Seq(Deps.gradleApi_api)
     }
   }
 
@@ -174,7 +174,7 @@ object `package` extends MillPublishScalaModule {
     def buildInfoPackageName = "mill.main.sbt"
     def buildInfoMembers = Seq(
       BuildInfo.Value("exportpluginAssemblyResource", "/exportplugin-assembly.jar"),
-      BuildInfo.Value("sbtVersion", Deps.sbt.version),
+      BuildInfo.Value("sbtVersion", Deps.sbt_api.version),
       BuildInfo.Value("millScalafixDep", "com.goyeau::mill-scalafix_mill1:0.6.0"),
       BuildInfo.Value("millMimaDep", "com.github.lolgab::mill-mima_mill1:0.2.0")
     )
@@ -188,7 +188,7 @@ object `package` extends MillPublishScalaModule {
       def jvmId = "11"
       def scalaVersion = Deps.sbtScalaVersion212
       def moduleDeps = Seq(api(Deps.sbtScalaVersion212))
-      def compileMvnDeps = Seq(Deps.sbt, Deps.mimaCore)
+      def compileMvnDeps = Seq(Deps.sbt_api, Deps.mimaCore_api)
       def assemblyRules = Seq(Rule.ExcludePattern("scala\\.*"))
     }
   }

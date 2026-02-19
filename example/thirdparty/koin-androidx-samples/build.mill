@@ -1,0 +1,95 @@
+import mill.*, androidlib.*, kotlinlib.*
+
+// Create and configure an Android SDK module to manage Android SDK paths and tools.
+object androidSdkModule0 extends AndroidSdkModule {
+  def buildToolsVersion = "35.0.0"
+}
+
+object examples extends mill.api.Module {
+  object `androidx-samples` extends AndroidAppKotlinModule, AndroidR8AppModule {
+
+    def kotlinVersion = "2.0.20"
+
+    def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+
+    def androidCompileSdk = 35
+
+    def androidMinSdk = 26
+
+    def androidIsDebug = true
+
+    override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
+      AndroidBuildTypeSettings(
+        isMinifyEnabled = false
+      )
+    }
+
+    def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
+      Seq("proguard-android-optimize.txt")
+    }
+
+    def androidApplicationId = "org.koin.sample.sandbox"
+
+    def androidApplicationNamespace = "org.koin.sample.sandbox"
+
+    def bomMvnDeps = Seq(
+      mvn"io.insert-koin:koin-bom:4.1.1"
+    )
+
+    def mvnDeps: T[Seq[Dep]] = Seq(
+      mvn"androidx.collection:collection-ktx:1.4.2".forceVersion(),
+      mvn"androidx.savedstate:savedstate-ktx:1.3.1".forceVersion(),
+      mvn"androidx.lifecycle:lifecycle-livedata-core-ktx:2.9.2".forceVersion(),
+      mvn"androidx.arch.core:core-common:2.2.0".forceVersion(),
+      mvn"androidx.constraintlayout:constraintlayout:2.2.1",
+      mvn"androidx.work:work-runtime-ktx:2.10.1",
+      mvn"io.insert-koin:koin-android",
+      mvn"io.insert-koin:koin-core-coroutines",
+      mvn"io.insert-koin:koin-androidx-workmanager",
+      mvn"io.insert-koin:koin-androidx-navigation"
+    )
+
+    object test extends AndroidAppKotlinTests, TestModule.Junit4 {
+
+      def androidIncludeAndroidResources = true
+
+      def mvnDeps: T[Seq[Dep]] = Seq(
+        mvn"androidx.arch.core:core-testing:2.2.0",
+        mvn"junit:junit:4.13.2",
+        mvn"io.insert-koin:koin-test-junit4",
+        mvn"io.insert-koin:koin-android-test",
+        mvn"io.insert-koin:koin-test-coroutines",
+        mvn"androidx.test.ext:junit:1.2.1",
+        mvn"androidx.test:runner:1.6.2",
+        mvn"androidx.test.espresso:espresso-core:3.6.1",
+        mvn"io.insert-koin:koin-test-junit4:1.4.1",
+        mvn"org.robolectric:robolectric:4.14.1",
+        mvn"androidx.test:core:1.6.1"
+      )
+    }
+  }
+}
+
+/** Usage
+
+> ./mill examples.androidx-samples.androidApk
+
+> ./mill show examples.androidx-samples.createAndroidVirtualDevice
+...DeviceId: medium_phone...
+
+> ./mill show examples.androidx-samples.startAndroidEmulator
+
+> ./mill show examples.androidx-samples.androidInstall
+...All files should be loaded. Notifying the device...
+
+> ./mill show examples.androidx-samples.androidRun --activity org.koin.sample.sandbox.main.MainActivity
+[
+  "Starting: Intent { cmp=org.koin.sample.sandbox/.main.MainActivity }",
+  "Status: ok",
+  "LaunchState: COLD",
+  "Activity: org.koin.sample.sandbox/.main.MainActivity",
+  "TotalTime: ...",
+  "WaitTime: ...",
+  "Complete"
+]
+*/

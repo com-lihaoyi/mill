@@ -22,7 +22,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
 
   def scalafixConfig = Task { Some(BuildCtx.workspaceRoot / ".scalafix.conf") }
 
-  def semanticDbVersion = Deps.semanticDBscala.version
+  def semanticDbVersion = Deps.semanticDBscala_runtime.version
 
   def isScala3: T[Boolean] = Task { JvmWorkerUtil.isScala3(scalaVersion()) }
 
