@@ -206,6 +206,7 @@ object VisualizeModule extends ExternalModule {
     (in, out)
   }
 
+  // TODO: Remove bin-compat shim in Mill 2.x
   // binary compatibility forwarder
   @deprecated("Use toolsClasspath instead", "0.13.0-M1")
   def classpath = toolsClasspath
