@@ -47,6 +47,10 @@ include::partial$example/kotlinlib/module/7-resources.adoc[]
 
 include::partial$example/kotlinlib/module/10-dependency-injection.adoc[]
 
+=== Annotation Processing with Kapt
+
+include::partial$example/kotlinlib/module/11-annotation-processing-kapt.adoc[]
+
 
 === Native C Code with JNI
 
