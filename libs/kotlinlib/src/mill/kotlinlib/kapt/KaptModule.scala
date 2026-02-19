@@ -80,7 +80,8 @@ trait KaptModule extends KotlinModule { outer =>
     Seq(javaOutput, classesOutput, stubsOutput, incrementalDataOutput, phaseClassesOutput)
       .foreach(os.makeDir.all)
 
-    val sourceFiles = mill.javalib.Lib.findSourceFiles(sources(), Seq("kt", "kts")).filter(os.exists)
+    val sourceFiles =
+      mill.javalib.Lib.findSourceFiles(sources(), Seq("kt", "kts")).filter(os.exists)
     if (sourceFiles.isEmpty || kaptProcessorClasspath().isEmpty) {
       GeneratedKaptSources(
         java = PathRef(javaOutput),
@@ -180,8 +181,7 @@ trait KaptModule extends KotlinModule { outer =>
   override def prepareOffline(all: Flag): Command[Seq[PathRef]] = Task.Command {
     (super.prepareOffline(all)() ++
       kotlincPluginJars() ++
-      kaptProcessorClasspath()
-    ).distinct
+      kaptProcessorClasspath()).distinct
   }
 
   /**
