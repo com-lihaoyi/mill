@@ -39,7 +39,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
     sharedLoader = getClass.getClassLoader,
     sharedPrefixes = Seq("xsbti")
   ) {
-    override def extraRelease(cl: ClassLoader): Unit = {
+    override def extraRelease(cl: ClassLoader): Unit = try {
       for {
         cls <- {
           try Some(cl.loadClass("scala.tools.nsc.classpath.FileBasedCache$"))
@@ -68,6 +68,10 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       } {
         timer.cancel()
       }
+    } catch {
+      // Some JDK/classloader combinations can throw linkage errors while reflecting
+      // over the Scala compiler internals. Timer cleanup is best-effort.
+      case _: LinkageError => ()
     }
   }
 
