@@ -436,14 +436,29 @@ class GenIdeaImpl(
       os.sub / s"${name.replaceAll("""[-.:]""", "_")}.${ext}"
     }
 
+    def shouldFallbackSourcesToClasses(path: os.Path): Boolean = {
+      val jarName = path.last
+      jarName.startsWith("scala-library-") ||
+      jarName.startsWith("scala3-library_3-") ||
+      jarName.startsWith("scala3-library_sjs1_3-") ||
+      jarName.startsWith("scala-reflect-") ||
+      jarName.startsWith("scala-xml_") ||
+      jarName.startsWith("scala-collection-compat_")
+    }
+
     val libraries: Seq[(os.SubPath, Elem)] =
       resolvedLibraries(allResolved).flatMap { resolved =>
         val names = libraryNames(resolved)
-        val sources = resolved match {
+        val resolvedSources = resolved match {
           case CoursierResolved(sources = s) => s
           case WithSourcesResolved(sources = s) => s
           case OtherResolved(_) => None
         }
+        // Source jars for Scala standard libraries may be absent in clean caches.
+        // Fallback to class jars for deterministic IDEA XML.
+        val sources = resolvedSources.orElse(
+          Option.when(shouldFallbackSourcesToClasses(resolved.path))(resolved.path)
+        )
         for (name <- names)
           yield {
             Tuple2(
