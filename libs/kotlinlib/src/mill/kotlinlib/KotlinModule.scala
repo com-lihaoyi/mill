@@ -165,9 +165,8 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
    */
   def kotlinBuildToolsApiVersion: T[String] = Task {
     val kv = kotlinVersion()
-    if (
-      Version.parse(kv).isAtLeast(Version.parse("2.3.0"))(using Version.IgnoreQualifierOrdering)
-    ) kv
+    if (Version.parse(kv).isAtLeast(Version.parse("2.3.0"))(using Version.IgnoreQualifierOrdering))
+      kv
     else "2.3.0"
   }
 

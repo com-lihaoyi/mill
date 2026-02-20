@@ -68,8 +68,14 @@ class JvmCompileBtApiImpl() extends Compiler {
     compilationOperation.getCompilerArguments().applyArgumentStrings(args.asJava)
 
     val snapshotIcOptions = compilationOperation.createSnapshotBasedIcOptions().tap { options =>
-      options.set(JvmSnapshotBasedIncrementalCompilationOptions.ROOT_PROJECT_DIR, ctx.workspace.toNIO)
-      options.set(JvmSnapshotBasedIncrementalCompilationOptions.MODULE_BUILD_DIR, incrementalCachePath.toNIO)
+      options.set(
+        JvmSnapshotBasedIncrementalCompilationOptions.ROOT_PROJECT_DIR,
+        ctx.workspace.toNIO
+      )
+      options.set(
+        JvmSnapshotBasedIncrementalCompilationOptions.MODULE_BUILD_DIR,
+        incrementalCachePath.toNIO
+      )
       options.set(
         JvmSnapshotBasedIncrementalCompilationOptions.PRECISE_JAVA_TRACKING,
         java.lang.Boolean.TRUE
