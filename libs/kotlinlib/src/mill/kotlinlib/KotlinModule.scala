@@ -130,6 +130,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
   def kotlinCompilerMvnDeps: T[Seq[Dep]] = Task {
     val useEmbeddable = kotlinUseEmbeddableCompiler()
     val kv = kotlinVersion()
+    val btApiVersion = kotlinBuildToolsApiVersion()
     val isOldKotlin = Seq("1.0.", "1.1.", "1.2.0", "1.2.1", "1.2.2", "1.2.3", "1.2.4")
       .exists(prefix => kv.startsWith(prefix))
 
@@ -137,8 +138,9 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       if (useEmbeddable) mvn"org.jetbrains.kotlin:kotlin-compiler-embeddable:${kv}"
       else mvn"org.jetbrains.kotlin:kotlin-compiler:${kv}"
 
-    val btApiDeps = when(kotlincUseBtApi())(
-      mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kv",
+    val btApiDeps = when(kotlincUseBtApi() && useEmbeddable)(
+      mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$btApiVersion",
+      mvn"org.jetbrains.kotlin:kotlin-build-tools-compat:$btApiVersion",
       mvn"org.jetbrains.kotlin:kotlin-build-tools-impl:$kv"
     )
 
@@ -154,6 +156,19 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     )
 
     Seq(compilerDep) ++ btApiDeps ++ scriptCompilerDeps
+  }
+
+  /**
+   * Version of the Kotlin Build Tools API implementation classes used by Mill.
+   * KotlinToolchains is available starting at 2.3.0; for older compiler versions
+   * we keep using a 2.3.x API together with kotlin-build-tools-compat.
+   */
+  def kotlinBuildToolsApiVersion: T[String] = Task {
+    val kv = kotlinVersion()
+    if (
+      Version.parse(kv).isAtLeast(Version.parse("2.3.0"))(using Version.IgnoreQualifierOrdering)
+    ) kv
+    else "2.3.0"
   }
 
   /**
@@ -357,11 +372,21 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
           extraKotlinArgs
         ).flatten
 
+        val useBtApi =
+          kotlincUseBtApi() && kotlinUseEmbeddableCompiler()
+
+        if (kotlincUseBtApi() && !kotlinUseEmbeddableCompiler()) {
+          ctx.log.warn(
+            "Kotlin Build Tools API requires kotlinUseEmbeddableCompiler=true; " +
+              "falling back to CLI compiler backend."
+          )
+        }
+
         val workerResult =
           KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
             _.compile(
               target = KotlinWorkerTarget.Jvm,
-              useBtApi = kotlincUseBtApi(),
+              useBtApi = useBtApi,
               args = compilerArgs,
               sources = kotlinSourceFiles ++ javaSourceFiles
             )
@@ -395,11 +420,12 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
 
   /**
    * Enable use of new Kotlin Build API (Beta).
-   * Enabled by default for Kotlin 2.1+ for JVM.
+   * Enabled by default for Kotlin 2.3+ when using the embeddable compiler.
    */
   def kotlincUseBtApi: T[Boolean] = Task {
+    kotlinUseEmbeddableCompiler() &&
     Version.parse(kotlinVersion())
-      .isNewerThan(Version.parse("2.1.0"))(using Version.IgnoreQualifierOrdering)
+      .isAtLeast(Version.parse("2.3.0"))(using Version.IgnoreQualifierOrdering)
   }
 
   /**

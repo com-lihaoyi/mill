@@ -133,10 +133,18 @@ trait KaptModule extends KotlinModule { outer =>
         s"Running KAPT for ${sourceFiles.size} Kotlin sources to ${javaOutput.relativeTo(moduleDir)} ..."
       )
 
+      val useBtApi = kotlincUseBtApi() && kotlinUseEmbeddableCompiler()
+      if (kotlincUseBtApi() && !kotlinUseEmbeddableCompiler()) {
+        Task.log.warn(
+          "Kotlin Build Tools API requires kotlinUseEmbeddableCompiler=true; " +
+            "falling back to CLI compiler backend for KAPT generation."
+        )
+      }
+
       KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
         _.compile(
           target = KotlinWorkerTarget.Jvm,
-          useBtApi = kotlincUseBtApi(),
+          useBtApi = useBtApi,
           args = compilerArgs,
           sources = sourceFiles
         )
