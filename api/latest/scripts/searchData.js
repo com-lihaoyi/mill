@@ -2078,6 +2078,8 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/graphviz/V8JavascriptEngine$ResultHandlerInterceptor.html#error-571","e":false,"i":"","n":"error","t":"error(s: String): Unit","d":"mill.graphviz.V8JavascriptEngine.ResultHandlerInterceptor","k":"def","x":""},
 {"l":"mill/graphviz/V8JavascriptEngine$ResultHandlerInterceptor.html#log-571","e":false,"i":"","n":"log","t":"log(s: String): Unit","d":"mill.graphviz.V8JavascriptEngine.ResultHandlerInterceptor","k":"def","x":""},
 {"l":"mill/graphviz/V8JavascriptEngine$ResultHandlerInterceptor.html#result-571","e":false,"i":"","n":"result","t":"result(s: String): Unit","d":"mill.graphviz.V8JavascriptEngine.ResultHandlerInterceptor","k":"def","x":""},
+{"l":"mill/graphviz/VisualizeWorkerMain$.html#","e":false,"i":"","n":"VisualizeWorkerMain","t":"VisualizeWorkerMain","d":"mill.graphviz","k":"object","x":""},
+{"l":"mill/graphviz/VisualizeWorkerMain$.html#main-913","e":false,"i":"","n":"main","t":"main(args: Array[String]): Unit","d":"mill.graphviz.VisualizeWorkerMain","k":"def","x":""},
 {"l":"mill/groovylib.html#","e":false,"i":"","n":"mill.groovylib","t":"mill.groovylib","d":"","k":"package","x":""},
 {"l":"mill/groovylib/publish.html#","e":false,"i":"","n":"mill.groovylib.publish","t":"mill.groovylib.publish","d":"","k":"package","x":""},
 {"l":"mill/groovylib/worker.html#","e":false,"i":"","n":"mill.groovylib.worker","t":"mill.groovylib.worker","d":"","k":"package","x":""},
