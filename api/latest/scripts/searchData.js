@@ -1863,7 +1863,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/daemon/MillMain0$.html#readBestMillVersion-9cc","e":false,"i":"","n":"readBestMillVersion","t":"readBestMillVersion(projectDir: Path): Option[(Path, String)]","d":"mill.daemon.MillMain0","k":"def","x":""},
 {"l":"mill/daemon/MillMain0$.html#readUsingMillVersionFile-9cc","e":false,"i":"","n":"readUsingMillVersionFile","t":"readUsingMillVersionFile(file: Path): Option[String]","d":"mill.daemon.MillMain0","k":"def","x":""},
 {"l":"mill/daemon/MillMain0$.html#readVersionFile-9cc","e":false,"i":"","n":"readVersionFile","t":"readVersionFile(file: Path): Option[String]","d":"mill.daemon.MillMain0","k":"def","x":""},
-{"l":"mill/daemon/MillMain0$.html#startBspServer-fffff5f0","e":false,"i":"","n":"startBspServer","t":"startBspServer(bspStreams: SystemStreams, outLock: Lock, bspLogger: Logger, daemonDir: Path): (BspServerHandle, BuildClient)","d":"mill.daemon.MillMain0","k":"def","x":""},
+{"l":"mill/daemon/MillMain0$.html#startBspServer-fffff5f0","e":false,"i":"","n":"startBspServer","t":"startBspServer(bspStreams: SystemStreams, outLock: Lock, bspLogger: Logger, daemonDir: Path): (BspServerHandle, BspBuildClient)","d":"mill.daemon.MillMain0","k":"def","x":""},
 {"l":"mill/daemon/MillNoDaemonMain0$.html#","e":false,"i":"","n":"MillNoDaemonMain0","t":"MillNoDaemonMain0","d":"mill.daemon","k":"object","x":""},
 {"l":"mill/daemon/MillNoDaemonMain0$.html#main-913","e":false,"i":"","n":"main","t":"main(args0: Array[String]): Unit","d":"mill.daemon.MillNoDaemonMain0","k":"def","x":""},
 {"l":"mill/daemon/MillScalaParserImpl$.html#","e":false,"i":"","n":"MillScalaParserImpl","t":"MillScalaParserImpl extends MillScalaParser","d":"mill.daemon","k":"object","x":""},
