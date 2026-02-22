@@ -8,8 +8,6 @@ import mill.api.daemon.Result
 import mill.api.daemon.Logger
 import mill.api.daemon.experimental
 
-import scala.collection.immutable.SortedMap
-
 /**
  * Represents the data and utilities that are contextually available inside the
  * implementation of a `Task`.
