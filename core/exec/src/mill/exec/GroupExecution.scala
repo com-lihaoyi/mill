@@ -510,7 +510,7 @@ trait GroupExecution {
             args = taskInputValues.map(_.value).toIndexedSeq,
             dest0 = () => destCreator.makeDest(),
             log = multiLogger,
-            env = env,
+            _env = env,
             reporter = reporter,
             testReporter = testReporter,
             workspace = workspace,
