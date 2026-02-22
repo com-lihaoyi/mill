@@ -90,7 +90,7 @@ case class Execution(
     classLoaderSigHash = classLoaderSigHash,
     classLoaderIdentityHash = classLoaderIdentityHash,
     workerCache = workerCache,
-    env = env,
+    env = EnvMap.asEnvMap(env),
     failFast = failFast,
     ec = ec,
     codeSignatures = codeSignatures,

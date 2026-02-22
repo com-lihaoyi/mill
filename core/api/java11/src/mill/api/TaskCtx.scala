@@ -8,6 +8,8 @@ import mill.api.daemon.Result
 import mill.api.daemon.Logger
 import mill.api.daemon.experimental
 
+import scala.collection.immutable.SortedMap
+
 /**
  * Represents the data and utilities that are contextually available inside the
  * implementation of a `Task`.
@@ -39,11 +41,12 @@ trait TaskCtx extends TaskCtx.Dest
  */
 object TaskCtx {
 
+
   private[mill] class Impl(
       val args: IndexedSeq[?],
       dest0: () => os.Path,
       val log: Logger,
-      val env: Map[String, String],
+      private val _env: Map[String, String],
       val reporter: Int => Option[CompileProblemReporter],
       val testReporter: TestReporter,
       val workspace: os.Path,
@@ -53,6 +56,9 @@ object TaskCtx {
       val offline: Boolean,
       override val useFileLocks: Boolean
   ) extends TaskCtx {
+
+    override val env: Map[String, String] = EnvMap.asEnvMap(_env)
+
     override def systemExitWithReason(reason: String, exitCode: Int): Nothing =
       _systemExitWithReason(reason, exitCode)
 
