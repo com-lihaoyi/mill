@@ -33,7 +33,8 @@ class IntegrationTester(
     val baseWorkspacePath: os.Path = os.pwd,
     val propagateJavaHome: Boolean = true,
     val cleanupProcessIdFile: Boolean = true,
-    override val useInMemory: Boolean = false
+    override val useInMemory: Boolean = false,
+    override val allowSharedOutputDir: Boolean = true
 ) extends IntegrationTester.Impl {
   initWorkspace()
 }
