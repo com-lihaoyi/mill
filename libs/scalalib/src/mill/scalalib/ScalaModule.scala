@@ -54,11 +54,19 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     else "org.scala-lang"
   }
 
+  override protected def sourceFileExtensions: Seq[String] = Seq("scala", "java")
+
   /**
    * All individual source files fed into the Zinc compiler.
    */
   override def allSourceFiles: T[Seq[PathRef]] = Task {
-    Lib.findSourceFiles(allSources(), Seq("scala", "java")).map(PathRef(_))
+    // Exact same implementation as JavaModule#allSourceFiles, which is super.allSourceFiles
+    // This can be removed once we can break bin compat
+    val allSources0 = allSources() ++ wrappedSources().map(_.generated)
+    val toExclude = wrappedSources().map(_.original.path)
+    Lib.findSourceFiles(allSources0, sourceFileExtensions)
+      .filterNot(toExclude.contains)
+      .map(PathRef(_))
   }
 
   /**
