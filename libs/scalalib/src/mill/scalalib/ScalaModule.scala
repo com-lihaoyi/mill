@@ -257,7 +257,6 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         Seq(bridgeDep),
         sources = false,
         resolutionParamsMapOpt = Some { params =>
-          // FIXME Force scalaOrganization too
           params.withScalaVersion(sv)
         }
       )

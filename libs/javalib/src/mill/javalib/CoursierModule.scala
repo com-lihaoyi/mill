@@ -85,7 +85,7 @@ trait CoursierModule extends mill.api.Module {
    * Override this to customize the set of dependencies.
    *
    * Using this makes it harder to make sense of dependency resolutions and to reproduce those
-   * resolutions via the coursier command-line.
+   * resolutions via the coursier command-line or from other build tools.
    */
   def mapDependencies: Task[Dependency => Dependency] = Task.Anon { (d: Dependency) => d }
 

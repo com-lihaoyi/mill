@@ -196,7 +196,6 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       Seq(bridgeDep.bindDep("", "", "")),
       sources = useSources,
       resolutionParamsMapOpt = Some { params =>
-        // FIXME Force scalaOrganization too
         params.withScalaVersion(scalaVersion)
       }
     )
@@ -236,7 +235,6 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       // Since Zinc 1.4.0, the compiler-interface depends on the Scala library
       // We need to override it with the scalaVersion and scalaOrganization of the module
       resolutionParamsMapOpt = Some { params =>
-        // FIXME Force scalaOrganization too
         params.withScalaVersion(scalaVersion)
       }
     )
