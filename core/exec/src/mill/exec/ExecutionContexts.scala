@@ -8,7 +8,7 @@ import scala.concurrent.duration.Duration
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{PriorityBlockingQueue, ThreadFactory, ThreadPoolExecutor, TimeUnit}
 import mill.api.Logger
-import mill.api.daemon.internal.NonFatal.millNonFatal
+import mill.api.daemon.internal.NonFatal
 
 object ExecutionContexts {
 
@@ -128,7 +128,7 @@ object ExecutionContexts {
       val runnable = new PriorityRunnable(
         priority = priority,
         run0 = () => {
-          val result = scala.util.Try.millNonFatal(logger.withPromptLine {
+          val result = NonFatal.attempt(logger.withPromptLine {
             os.dynamicPwdFunction.withValue(() => makeDest()) {
               mill.api.SystemStreamsUtils.withStreams(logger.streams) {
                 t(logger)

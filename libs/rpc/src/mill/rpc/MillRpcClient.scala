@@ -1,12 +1,10 @@
 package mill.rpc
 
 import mill.api.daemon.{Logger, Result}
-import mill.api.daemon.internal.NonFatal.millNonFatal
+import mill.api.daemon.internal.NonFatal
 import mill.constants.EnvVars
 import pprint.TPrint
 import upickle.{Reader, Writer}
-
-import scala.util.Try
 
 /** Connects and communicates with [[MillRpcServer]]. */
 trait MillRpcClient[
@@ -84,7 +82,7 @@ object MillRpcClient {
     }
 
     def handleServerMessage(msg: ServerToClient): Unit = {
-      val response = Try.millNonFatal(currentServerMessageHandler(msg))
+      val response = NonFatal.attempt(currentServerMessageHandler(msg))
         .toEither.left.map(RpcThrowable.fromThrowable)
       wireTransport.writeSerialized(MillRpcClientToServer.Response(response))
     }

@@ -14,14 +14,12 @@ import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.{Await, Promise}
 import scala.concurrent.duration.Duration
 import scala.jdk.CollectionConverters.*
-import mill.api.daemon.internal.NonFatal
 import scala.util.{Failure, Success}
-import mill.api.daemon.internal.NonFatal.millNonFatal
+import mill.api.daemon.internal.NonFatal
 import mill.api.daemon.internal.bsp.{BspModuleApi, BspServerResult}
 import mill.api.daemon.internal.*
 
 import scala.annotation.unused
-import scala.util.Try
 
 /**
  * Mill's BSP server implementation.
@@ -280,7 +278,7 @@ private abstract class MillBuildServer(
     baseLogger.prompt.beginChromeProfileEntry(prefix)
     logger.info(s"Entered $prefix")
 
-    val result = Try.millNonFatal(block)
+    val result = NonFatal.attempt(block)
 
     baseLogger.prompt.endChromeProfileEntry()
     logger.info(s"$prefix took ${System.currentTimeMillis() - start} msec")

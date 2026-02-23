@@ -8,13 +8,12 @@ import scala.util.{Failure, Success, Try}
  */
 object NonFatal {
 
-  extension (t: Try.type)
-    def millNonFatal[T](f: => T): Try[T] =
-      try Success(f)
-      catch {
-        case NonFatal(ex) =>
-          Failure(ex)
-      }
+  def attempt[T](f: => T): Try[T] =
+    try Success(f)
+    catch {
+      case NonFatal(ex) =>
+        Failure(ex)
+    }
 
   def apply(t: Throwable): Boolean =
     StdNonFatal(t) || {

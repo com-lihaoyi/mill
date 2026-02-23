@@ -1,7 +1,7 @@
 package mill.util
 
 import mill.api.TaskCtx
-import mill.api.daemon.internal.NonFatal.millNonFatal
+import mill.api.daemon.internal.NonFatal
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.charset.StandardCharsets
@@ -48,7 +48,7 @@ case class Retry(
         else {
           val result = Promise[T]
           mill.api.daemon.StartThread("RetryThread") {
-            result.complete(scala.util.Try.millNonFatal(t(retryCount)))
+            result.complete(NonFatal.attempt(t(retryCount)))
           }
 
           Await.result(result.future, Duration.apply(timeoutMillis, TimeUnit.MILLISECONDS))
