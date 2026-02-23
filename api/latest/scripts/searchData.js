@@ -820,6 +820,8 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/api/EnclosingClass$.html#apply-fffff7f2","e":false,"i":"","n":"apply","t":"apply()(using c: EnclosingClass): Class[_]","d":"mill.api.EnclosingClass","k":"def","x":""},
 {"l":"mill/api/EnclosingClass$.html#generate-0","e":false,"i":"","n":"generate","t":"generate: EnclosingClass","d":"mill.api.EnclosingClass","k":"given","x":""},
 {"l":"mill/api/EnclosingClass$.html#impl-9e","e":false,"i":"","n":"impl","t":"impl(using quotes: Quotes): Expr[EnclosingClass]","d":"mill.api.EnclosingClass","k":"def","x":""},
+{"l":"mill/api/EnvMap$.html#","e":false,"i":"","n":"EnvMap","t":"EnvMap","d":"mill.api","k":"object","x":""},
+{"l":"mill/api/EnvMap$.html#asEnvMap-50","e":false,"i":"","n":"asEnvMap","t":"asEnvMap(env: Map[String, String]): Map[String, String]","d":"mill.api.EnvMap","k":"def","x":""},
 {"l":"mill/api/Evaluator.html#","e":false,"i":"","n":"Evaluator","t":"Evaluator extends AutoCloseable, EvaluatorApi","d":"mill.api","k":"trait","x":""},
 {"l":"mill/api/Evaluator.html#evaluate-fffff83e","e":false,"i":"","n":"evaluate","t":"evaluate(scriptArgs: Seq[String], selectMode: SelectMode = ..., reporter: Int => Option[CompileProblemReporter] = ..., selectiveExecution: Boolean = ...): Result[Result[Any]]","d":"mill.api.Evaluator","k":"def","x":""},
 {"l":"mill/api/Evaluator.html#execute-fffff68f","e":false,"i":"","n":"execute","t":"execute[T](tasks: Seq[Task[T]], reporter: Int => Option[CompileProblemReporter] = ..., testReporter: TestReporter = ..., logger: Logger = ..., serialCommandExec: Boolean = ..., selectiveExecution: Boolean = ...): Result[T]","d":"mill.api.Evaluator","k":"def","x":""},
