@@ -2047,7 +2047,7 @@ node36 -> node35;
               </dt>
               <dd class="body-medium">
                <div>
-                <a href="../kotlinlib/KotlinModule.html">KotlinModule</a> -&gt; <a href="AndroidAppModule$AndroidAppInstrumentedTests.html">AndroidAppInstrumentedTests</a> -&gt; <a href="AndroidModule.html">AndroidModule</a> -&gt; <a href="../javalib/CoursierModule.html">CoursierModule</a>
+                <a href="../kotlinlib/KotlinModule.html">KotlinModule</a> -&gt; <a href="AndroidAppModule$AndroidAppInstrumentedTests.html">AndroidAppInstrumentedTests</a> -&gt; <a href="AndroidModule.html">AndroidModule</a> -&gt; <a href="../javalib/JavaModule$JavaTests.html">JavaTests</a> -&gt; <a href="../javalib/CoursierModule.html">CoursierModule</a>
                </div>
               </dd>
               <dt class="body-small">
@@ -11343,11 +11343,12 @@ node36 -> node35;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Map dependencies before resolving them. Override this to customize the set of dependencies.</p>
+             <p>Map dependencies before resolving them - use only if you know what you are doing. Override this to customize the set of dependencies.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Map dependencies before resolving them. Override this to customize the set of dependencies.</p>
+              <p>Map dependencies before resolving them - use only if you know what you are doing. Override this to customize the set of dependencies.</p>
+              <p>Using this makes it harder to make sense of dependency resolutions and to reproduce those resolutions via the coursier command-line or from other build tools.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">

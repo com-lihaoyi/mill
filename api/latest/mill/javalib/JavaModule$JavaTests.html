@@ -1309,6 +1309,59 @@ node61 -> node0;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="resolutionParams-0" data-f-keywords="override">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="JavaModule$JavaTests.html#resolutionParams-0" t="n" class="documentableName ">resolutionParams</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">ResolutionParams</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Resolution parameters, allowing to customize resolution internals</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Resolution parameters, allowing to customize resolution internals</p>
+              <p>This rarely needs to be changed. This allows to disable the new way coursier handles BOMs since coursier 2.1.17 (used in Mill since 0.12.3) for example, with:</p>
+              <div class="snippet mono-small-block">
+               <pre><code class="language-"><span line-number="1" class=""><span class="tooltip-container"></span><span class="hideable"> </span>def resolutionParams = super.resolutionParams()
+</span><span line-number="2" class=""><span class="tooltip-container"></span><span class="hideable"> </span>  .withEnableDependencyOverrides(Some(false))
+</span></code></pre>
+               <div class="buttons"></div>
+              </div>
+              <p>Note that versions forced with <code>Dep#forceVersion()</code> take over forced versions manually set in <code>resolutionParams</code>. The former should be favored to force versions in dependency resolution.</p>
+              <p>The Scala version set via <code>ScalaModule#scalaVersion</code> also takes over any Scala version provided via <code>ResolutionParams#scalaVersionOpt</code>.</p>
+              <p>The default configuration set in <code>ResolutionParams#defaultConfiguration</code> is ignored when Mill fetches dependencies to be passed to the compiler (equivalent to Maven "compile scope"). In that case, it forces the default configuration to be "compile". On the other hand, when fetching dependencies for runtime (equivalent to Maven "runtime scope"), the value in <code>ResolutionParams#defaultConfiguration</code> is used.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="CoursierModule.html">CoursierModule</a>
+               </div>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/JavaModule.scala" target="_blank">JavaModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="resources-0" data-f-keywords="override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -4615,11 +4668,12 @@ node61 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Map dependencies before resolving them. Override this to customize the set of dependencies.</p>
+             <p>Map dependencies before resolving them - use only if you know what you are doing. Override this to customize the set of dependencies.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Map dependencies before resolving them. Override this to customize the set of dependencies.</p>
+              <p>Map dependencies before resolving them - use only if you know what you are doing. Override this to customize the set of dependencies.</p>
+              <p>Using this makes it harder to make sense of dependency resolutions and to reproduce those resolutions via the coursier command-line or from other build tools.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -5217,57 +5271,6 @@ node61 -> node0;
               </dt>
               <dd class="body-medium">
                <a href="CoursierModule.html#repositories-0">CoursierModule</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/CoursierModule.scala" target="_blank">CoursierModule.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="resolutionParams-0" data-f-inherited="CoursierModule">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="JavaModule$JavaTests.html#resolutionParams-0" t="n" class="documentableName ">resolutionParams</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">ResolutionParams</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Resolution parameters, allowing to customize resolution internals</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Resolution parameters, allowing to customize resolution internals</p>
-              <p>This rarely needs to be changed. This allows to disable the new way coursier handles BOMs since coursier 2.1.17 (used in Mill since 0.12.3) for example, with:</p>
-              <div class="snippet mono-small-block">
-               <pre><code class="language-"><span line-number="1" class=""><span class="tooltip-container"></span><span class="hideable"> </span>def resolutionParams = super.resolutionParams()
-</span><span line-number="2" class=""><span class="tooltip-container"></span><span class="hideable"> </span>  .withEnableDependencyOverrides(Some(false))
-</span></code></pre>
-               <div class="buttons"></div>
-              </div>
-              <p>Note that versions forced with <code>Dep#forceVersion()</code> take over forced versions manually set in <code>resolutionParams</code>. The former should be favored to force versions in dependency resolution.</p>
-              <p>The Scala version set via <code>ScalaModule#scalaVersion</code> also takes over any Scala version provided via <code>ResolutionParams#scalaVersionOpt</code>.</p>
-              <p>The default configuration set in <code>ResolutionParams#defaultConfiguration</code> is ignored when Mill fetches dependencies to be passed to the compiler (equivalent to Maven "compile scope"). In that case, it forces the default configuration to be "compile". On the other hand, when fetching dependencies for runtime (equivalent to Maven "runtime scope"), the value in <code>ResolutionParams#defaultConfiguration</code> is used.</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="CoursierModule.html#resolutionParams-0">CoursierModule</a>
               </dd>
               <dt class="body-small">
                Source
