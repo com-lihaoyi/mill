@@ -30,6 +30,11 @@ object ErrorProneTests extends TestSuite {
     }
     lazy val millDiscover = Discover[this.type]
   }
+  object errorProneOptionalPlugins extends TestRootModule with JavaModule with ErrorProneModule {
+    override def errorProneUseNullAway: T[Boolean] = Task { true }
+    override def errorProneUsePicnic: T[Boolean] = Task { true }
+    lazy val millDiscover = Discover[this.type]
+  }
   object errorProneAnnotationProcessorApi extends TestRootModule with JavaModule
       with ErrorProneModule {
     override def annotationProcessorsMvnDeps: T[Seq[mill.javalib.Dep]] = Task {
@@ -57,6 +62,14 @@ object ErrorProneTests extends TestSuite {
           assert(res.isLeft)
         }
       }
+      test("depsByDefault") {
+        UnitTester(errorProne, testModuleSourcesPath).scoped { eval =>
+          val Right(depsResult) = eval(errorProne.errorProneDeps).runtimeChecked
+          val deps = depsResult.value
+          assert(deps.length == 1)
+          assert(deps.head.formatted.contains("com.google.errorprone:error_prone_core:"))
+        }
+      }
       test("compileWarn") {
         UnitTester(errorProneCustom, testModuleSourcesPath).scoped { eval =>
           val Right(opts) = eval(errorProneCustom.mandatoryJavacOptions).runtimeChecked
@@ -73,6 +86,24 @@ object ErrorProneTests extends TestSuite {
           assert(opts.value.contains("--should-stop=ifError=FLOW"))
           val res = eval(errorProne236.compile)
           assert(res.isRight)
+        }
+      }
+      test("optionalPlugins") {
+        UnitTester(errorProneOptionalPlugins, testModuleSourcesPath).scoped { eval =>
+          val Right(depsResult) = eval(errorProneOptionalPlugins.errorProneDeps).runtimeChecked
+          val formatted = depsResult.value.map(_.formatted)
+          assert(
+            formatted.exists(_.startsWith("com.uber.nullaway:nullaway:"))
+          )
+          val picnicContrib = formatted.exists(
+            _.startsWith("tech.picnic.error-prone-support:error-prone-contrib:")
+          )
+          val picnicRefaster = formatted.exists(
+            _.startsWith("tech.picnic.error-prone-support:refaster-runner:")
+          )
+          assert(
+            picnicContrib && picnicRefaster
+          )
         }
       }
     }

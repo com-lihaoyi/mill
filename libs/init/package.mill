@@ -176,7 +176,7 @@ object `package` extends MillPublishScalaModule {
       BuildInfo.Value("exportpluginAssemblyResource", "/exportplugin-assembly.jar"),
       BuildInfo.Value("sbtVersion", Deps.sbt_api.version),
       BuildInfo.Value("millScalafixDep", "com.goyeau::mill-scalafix_mill1:0.6.0"),
-      BuildInfo.Value("millMimaDep", "com.github.lolgab::mill-mima_mill1:0.2.0")
+      BuildInfo.Value("millMimaDep", "com.github.lolgab::mill-mima_mill1:0.2.1")
     )
 
     object api extends Cross[ApiModule](Deps.sbtScalaVersion212, Deps.scalaVersion)

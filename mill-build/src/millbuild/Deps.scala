@@ -43,10 +43,13 @@ object Deps {
       mvn"org.scala-js::scalajs-env-selenium:1.1.1".withDottyCompat(scalaVersion)
     val scalajsEnvPlaywright =
       mvn"io.github.thijsbroersen::scala-js-env-playwright:0.2.3"
+    val scalajsJsEnvs = mvn"org.scala-js::scalajs-js-envs:1.4.0".withDottyCompat(scalaVersion)
     val scalajsSbtTestAdapter =
       mvn"org.scala-js::scalajs-sbt-test-adapter:${scalaJsVersion}".withDottyCompat(scalaVersion)
     val scalajsLinker =
       mvn"org.scala-js::scalajs-linker:${scalaJsVersion}".withDottyCompat(scalaVersion)
+    val scalajsLinkerInterface =
+      mvn"org.scala-js::scalajs-linker-interface:$scalaJsVersion".withDottyCompat(scalaVersion)
     val scalajsImportMap =
       mvn"com.armanbilge::scalajs-importmap:0.1.1".withDottyCompat(scalaVersion)
   }

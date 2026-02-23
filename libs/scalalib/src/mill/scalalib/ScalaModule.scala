@@ -1,12 +1,14 @@
 package mill
 package scalalib
 
+import coursier.params.ResolutionParams
+import coursier.version.VersionConstraint
 import mill.util.JarManifest
 import mill.api.{BuildCtx, ModuleRef, PathRef, Result, Task}
 import mill.util.BuildInfo
 import mill.util.Jvm
 import mill.javalib.api.{CompilationResult, Versions}
-import mill.javalib.api.JvmWorkerUtil.*
+import mill.javalib.api.JvmWorkerUtil.{scalaOrganization => scalaOrganization0, *}
 import mainargs.Flag
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi, ScalaBuildTarget}
 import mill.api.daemon.internal.{ScalaModuleApi, ScalaPlatform, internal}
@@ -27,6 +29,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     with ScalaModuleApi { outer =>
   // Keep in sync with ScalaModule.ScalaTests0, duplicated due to binary compatibility concerns
   trait ScalaTests extends JavaTests with ScalaModule {
+    @deprecated("This is now ignored", "Mill after 1.1.2")
     override def scalaOrganization: T[String] = outer.scalaOrganization()
     override def scalaVersion: T[String] = outer.scalaVersion()
     override def scalacPluginMvnDeps: T[Seq[Dep]] = outer.scalacPluginMvnDeps()
@@ -45,10 +48,9 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   }
 
   /**
-   * What Scala organization to use
-   *
-   * @return
+   * Ignored
    */
+  @deprecated("This is now ignored", "Mill after 1.1.2")
   def scalaOrganization: T[String] = Task {
     if (isDotty(scalaVersion())) "ch.epfl.lamp"
     else "org.scala-lang"
@@ -66,15 +68,23 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   def scalaVersion: T[String]
 
+  // override kept for binary compatibility
   override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = Task.Anon {
-    super.mapDependencies().andThen { (d: coursier.Dependency) =>
-      // Force Scala library/compiler dependencies to use this module's configured
-      // scalaOrganization and scalaVersion, overriding any transitive versions
-      if (!Lib.scalaArtifacts(scalaVersion()).contains(d.module.name.value)) d
-      else
-        d.withModule(d.module.withOrganization(coursier.Organization(scalaOrganization())))
-          .withVersion(scalaVersion())
-    }
+    super.mapDependencies()
+  }
+  protected[mill] override def actualResolutionParamsOverride(baseParams: ResolutionParams)
+      : Task[ResolutionParams] = Task.Anon {
+    def moduleFor(name: String) =
+      coursier.Module(
+        coursier.Organization(scalaOrganization0(scalaVersion())),
+        coursier.ModuleName(name),
+        Map.empty
+      )
+    val sv0 = VersionConstraint(scalaVersion())
+    baseParams.addForceVersion0(
+      Lib.scalaArtifacts(scalaVersion()).toVector.sorted
+        .map(name => moduleFor(name) -> sv0)*
+    )
   }
 
   def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>
@@ -234,7 +244,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   def scalaCompilerBridge: T[Option[PathRef]] = Task {
     val sv = scalaVersion()
-    val so = scalaOrganization()
+    val so = scalaOrganization0(sv)
 
     // For Scala versions where a binary bridge is available (Scala 3, some Scala 2.x),
     // resolve the bridge using this module's resolver so that custom repositories
@@ -246,11 +256,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       val deps = defaultResolver().classpath(
         Seq(bridgeDep),
         sources = false,
-        mapDependencies = Some { (dep: coursier.Dependency) =>
-          if (dep.module.name.value == "scala-library") {
-            dep.withModule(dep.module.withOrganization(coursier.Organization(so)))
-              .withVersion(sv)
-          } else dep
+        resolutionParamsMapOpt = Some { params =>
+          params.withScalaVersion(sv)
         }
       )
 
@@ -267,7 +274,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   def scalaDocClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      Lib.scalaDocMvnDeps(scalaOrganization(), scalaVersion())
+      Lib.scalaDocMvnDeps(scalaOrganization0(scalaVersion()), scalaVersion())
     )
   }
 
@@ -281,7 +288,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   }
 
   def scalaLibraryMvnDeps: T[Seq[Dep]] = Task {
-    Lib.scalaRuntimeMvnDeps(scalaOrganization(), scalaVersion())
+    Lib.scalaRuntimeMvnDeps(scalaOrganization0(scalaVersion()), scalaVersion())
   }
 
   /** Adds the Scala Library is a mandatory dependency. */
@@ -305,7 +312,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   def scalaCompilerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      Lib.scalaCompilerMvnDeps(scalaOrganization(), scalaVersion()) ++
+      Lib.scalaCompilerMvnDeps(scalaOrganization0(scalaVersion()), scalaVersion()) ++
         scalaLibraryMvnDeps()
     )
   }
@@ -334,7 +341,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         compileClasspath = compileClasspath().map(_.path),
         javacOptions = jOpts.compiler,
         scalaVersion = sv,
-        scalaOrganization = scalaOrganization(),
+        scalaOrganization = scalaOrganization0(sv),
         scalacOptions = allScalacOptions(),
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = scalacPluginClasspath(),
@@ -378,7 +385,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         worker.apply(
           ZincOp.ScaladocJar(
             scalaVersion(),
-            scalaOrganization(),
+            scalaOrganization0(scalaVersion()),
             scalaDocClasspath(),
             scalacPluginClasspath(),
             scalaCompilerBridge(),
@@ -461,7 +468,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   def scalaConsoleClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      Lib.scalaConsoleMvnDeps(scalaOrganization(), scalaVersion())
+      Lib.scalaConsoleMvnDeps(scalaOrganization0(scalaVersion()), scalaVersion())
     )
   }
 
@@ -610,7 +617,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
           (
             jvmWorker().scalaCompilerBridgeJarV2(
               scalaVersion(),
-              scalaOrganization(),
+              scalaOrganization0(scalaVersion()),
               defaultResolver()
             ).fullClasspath
           ) ++
@@ -638,7 +645,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     Some((
       "scala",
       ScalaBuildTarget(
-        scalaOrganization = scalaOrganization(),
+        scalaOrganization = scalaOrganization0(scalaVersion()),
         scalaVersion = scalaVersion(),
         scalaBinaryVersion = scalaBinaryVersion(scalaVersion()),
         platform = ScalaPlatform.JVM,
@@ -691,7 +698,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
             )() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(_.path),
           javacOptions = jOpts.compiler,
           scalaVersion = sv,
-          scalaOrganization = scalaOrganization(),
+          scalaOrganization = scalaOrganization0(sv),
           scalacOptions = scalacOptions,
           compilerClasspath = scalaCompilerClasspath(),
           scalacPluginClasspath = semanticDbPluginClasspath(),
@@ -731,6 +738,7 @@ object ScalaModule {
   // Keep in sync with ScalaModule#ScalaTests, duplicated due to binary compatibility concerns
   trait ScalaTests0 extends JavaModule.JavaTests0 with ScalaModule {
     private val outer = moduleDeps.head.asInstanceOf[ScalaModule]
+    @deprecated("This is now ignored", "Mill after 1.1.2")
     override def scalaOrganization: T[String] = outer.scalaOrganization()
     override def scalaVersion: T[String] = outer.scalaVersion()
     override def scalacPluginMvnDeps: T[Seq[Dep]] = outer.scalacPluginMvnDeps()

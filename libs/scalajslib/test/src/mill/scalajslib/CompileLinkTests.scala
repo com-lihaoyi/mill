@@ -53,7 +53,6 @@ object CompileLinkTests extends TestSuite {
     object inherited extends ScalaJSModule {
       val (scala, scalaJS) = matrix.head
       def scalacOptions = Seq("-deprecation")
-      def scalaOrganization = "org.example"
       def scalaVersion = scala
       def scalaJSVersion = scalaJS
       object test extends ScalaJSTests with TestModule.Utest
