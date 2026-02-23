@@ -877,6 +877,10 @@ trait JavaModule
    *
    * Original sources shouldn't be passed to the compiler, while generated ones are.
    *
+   * These sources are passed to BSP clients via the buildTarget/wrappedSources request,
+   * originally implemented in Scala CLI, and having an lsp4j-compatible implementation
+   * in org.virtuslab.scala-cli:scala-cli-bsp:*scala-cli-version*
+   *
    * Generated sources are assumed to consist in a header, followed by the content
    * of the original source, and lastly a footer. The header and the content of the
    * original source must be separated by
@@ -884,6 +888,12 @@ trait JavaModule
    *     //SOURCECODE_ORIGINAL_CODE_START_MARKER
    *
    * on a single line.
+   *
+   * Without this separator, these sources are not passed to BSP clients.
+   *
+   * As of writing this, further changes in the original sources prior to adding them
+   * in the generated ones (like removing package directives, which Mill does to its build
+   * files) are not reported to BSP clients, and must be handled by them in an ad hoc fashion.
    */
   @internal
   private[mill] def wrappedSources: T[Seq[(original: PathRef, generated: PathRef)]] = Task(Nil)

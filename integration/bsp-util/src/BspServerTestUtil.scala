@@ -11,6 +11,7 @@ import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{CompletableFuture, ExecutorService, Executors, ThreadFactory}
+import scala.build.bsp.ScalaScriptBuildServer
 import scala.jdk.CollectionConverters.*
 import scala.reflect.ClassTag
 
@@ -134,7 +135,7 @@ object BspServerTestUtil {
   )
 
   trait MillBuildServer extends b.BuildServer with b.JvmBuildServer
-      with b.JavaBuildServer with b.ScalaBuildServer {
+      with b.JavaBuildServer with b.ScalaBuildServer with ScalaScriptBuildServer {
     @JsonRequest("millTest/loggingTest")
     def loggingTest(): CompletableFuture[Object]
   }

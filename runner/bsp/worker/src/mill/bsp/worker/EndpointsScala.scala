@@ -13,13 +13,21 @@ import ch.epfl.scala.bsp4j.{
   ScalacOptionsParams,
   ScalacOptionsResult
 }
-import mill.api.daemon.internal.{ScalaModuleApi, TestModuleApi}
+import mill.api.daemon.internal.{JavaModuleApi, ScalaModuleApi, TestModuleApi}
 import mill.bsp.worker.Utils.sanitizeUri
 
 import java.util.concurrent.CompletableFuture
+import scala.build.bsp.{
+  ScalaScriptBuildServer,
+  WrappedSourceItem,
+  WrappedSourcesItem,
+  WrappedSourcesParams,
+  WrappedSourcesResult
+}
 import scala.jdk.CollectionConverters.*
 
-private trait EndpointsScala extends ScalaBuildServer with EndpointsApi {
+private trait EndpointsScala extends ScalaBuildServer with ScalaScriptBuildServer
+    with EndpointsApi {
 
   override def buildTargetScalacOptions(p: ScalacOptionsParams)
       : CompletableFuture[ScalacOptionsResult] =
@@ -86,6 +94,39 @@ private trait EndpointsScala extends ScalaBuildServer with EndpointsApi {
       item
     } { (values, _, _) =>
       new ScalaTestClassesResult(values)
+    }
+
+  private val userCodeStartMarker = "//SOURCECODE_ORIGINAL_CODE_START_MARKER\n"
+
+  override def buildTargetWrappedSources(params: WrappedSourcesParams)
+      : CompletableFuture[WrappedSourcesResult] =
+    handlerTasks(
+      targetIds = _ => params.getTargets.asScala,
+      tasks = { case module: JavaModuleApi => module.bspJavaModule().bspBuildTargetWrappedSources },
+      requestDescription =
+        s"Getting wrapped sources of ${params.getTargets.asScala.map(_.getUri).mkString(", ")}",
+      originId = ""
+    ) { (ctx, logger) =>
+      val items = ctx.value.flatMap {
+        case (original, generated) =>
+          val generatedContent = os.read(os.Path(generated))
+          val idx = generatedContent.indexOf(userCodeStartMarker)
+          if (idx >= 0) {
+            val item = new WrappedSourceItem(
+              original.toUri.toASCIIString,
+              generated.toUri.toASCIIString
+            )
+            item.setTopWrapper(generatedContent.take(idx + userCodeStartMarker.length))
+            item.setBottomWrapper("\n}")
+            Seq(item)
+          } else {
+            logger.warn(s"User code start marker not found in $generated")
+            Nil
+          }
+      }
+      new WrappedSourcesItem(ctx.id, items.asJava)
+    } { (items, _, _) =>
+      new WrappedSourcesResult(items)
     }
 
 }
