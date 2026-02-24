@@ -170,7 +170,9 @@ object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
       )
 
       val lines = resolveTree.out.linesIterator.toSeq
-      assert(lines.exists(_.contains("\"def build_.package_$bar$#resolvePublishDependency()mill.api.Task\"")))
+      assert(lines.exists(
+        _.contains("\"def build_.package_$bar$#resolvePublishDependency()mill.api.Task\"")
+      ))
       assert(lines.exists(_.contains("\"foo.compile\": {}")))
       assert(!lines.exists(_.contains("<clinit>")))
     }

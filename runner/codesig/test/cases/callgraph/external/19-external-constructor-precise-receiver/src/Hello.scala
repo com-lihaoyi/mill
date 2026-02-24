@@ -40,7 +40,7 @@ object Hello {
         "hello.Hello$#main()void"
     ]
 }
-*/
+ */
 
 /* expected-transitive-call-graph
 {
@@ -72,4 +72,4 @@ object Hello {
         "hello.Hello$#main()void"
     ]
 }
-*/
+ */
