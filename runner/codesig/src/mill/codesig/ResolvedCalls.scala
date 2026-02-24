@@ -172,6 +172,11 @@ object ResolvedCalls {
                     !localSummary.contains(call.cls))
                 )
                   Set.empty[JCls]
+                else if (
+                  call.invokeType == InvokeType.Virtual &&
+                  !localSummary.contains(call.cls)
+                )
+                  Set(call.cls)
                 else externalReceivers
 
               (argTypes ++ thisTypes).toSet
