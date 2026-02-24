@@ -131,5 +131,49 @@ object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
       )
     }
 
+    test("resolveTree-adding-scalamodule-does-not-show-clinit") - integrationTest { tester =>
+      import tester.*
+
+      os.write.over(
+        workspacePath / "build.mill",
+        """package build
+          |
+          |import mill.*
+          |import mill.scalalib.*
+          |
+          |object `package` extends Module:
+          |
+          |  object foo extends ScalaModule:
+          |    override def scalaVersion = "3.8.1"
+          |""".stripMargin
+      )
+
+      eval(
+        ("selective.prepare"),
+        check = true,
+        stderr = os.Inherit
+      )
+
+      os.write.append(
+        workspacePath / "build.mill",
+        """
+          |
+          |  object bar extends ScalaModule:
+          |    override def scalaVersion = "3.8.1"
+          |""".stripMargin
+      )
+
+      val resolveTree = eval(
+        ("selective.resolveTree", "__.compile"),
+        check = true,
+        stderr = os.Inherit
+      )
+
+      val lines = resolveTree.out.linesIterator.toSeq
+      assert(lines.exists(_.contains("\"def build_.package_$bar$#resolvePublishDependency()mill.api.Task\"")))
+      assert(lines.exists(_.contains("\"foo.compile\": {}")))
+      assert(!lines.exists(_.contains("<clinit>")))
+    }
+
   }
 }

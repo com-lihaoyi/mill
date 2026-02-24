@@ -131,6 +131,9 @@ object LocalSummary {
       descriptor: String,
       access: Int
   )(using st: SymbolTable) extends MethodVisitor(Opcodes.ASM9) {
+    private val LazyHandleSuffix = "\\$lzy\\d+\\$lzyHandle$".r
+    private val LazyNameSuffix = "\\$lzy\\d+$".r
+
     val outboundCalls: mutable.Set[MethodCall] = collection.mutable.Set.empty[MethodCall]
     val labelIndices: mutable.Map[Label, Int] = collection.mutable.Map.empty[Label, Int]
     val jumpList: mutable.Buffer[Label] = collection.mutable.Buffer.empty[Label]
@@ -149,6 +152,7 @@ object LocalSummary {
     // their contents seems very unstable and prone to causing spurious invalidations
     var isScala3LazyInit = name.contains("$lzyINIT")
     var endScala3LazyInit = false
+    var lazyNameSeenInClinit = false
     def hash(x: Int): Unit = {
       if (!isScala3LazyInit && !endScala3LazyInit) {
         insnHash = scala.util.hashing.MurmurHash3.mix(insnHash, x)
@@ -173,6 +177,10 @@ object LocalSummary {
     def hashlabel(x: Label): Unit = jumpList.append(x)
 
     def discardPreviousInsn(): Unit = insnSigs(insnSigs.size - 1) = 0
+    def dropPreviousInsn(): Unit = if (insnSigs.nonEmpty) insnSigs.remove(insnSigs.size - 1)
+
+    def isLazyHandleField(name: String): Boolean = LazyHandleSuffix.findFirstIn(name).nonEmpty
+    def isLazyName(name: String): Boolean = LazyNameSuffix.findFirstIn(name).nonEmpty
 
     override def visitFieldInsn(
         opcode: Int,
@@ -201,8 +209,9 @@ object LocalSummary {
         if (!endScala3LazyInit) isScala3LazyInit = false
       } else if (lazyValBodyEnd && opcode == Opcodes.GETSTATIC) {
         endScala3LazyInit = true
-      } else if (name.endsWith("$lzy1$lzyHandle")) {
-        // skip
+      } else if (isLazyHandleField(name)) {
+        // Ignore Scala lazy handle setup in `<clinit>`, which is unstable and benign.
+        lazyNameSeenInClinit = false
       } else {
         hash(opcode)
         hash(owner.hashCode)
@@ -286,19 +295,33 @@ object LocalSummary {
     }
 
     override def visitLdcInsn(value: Any): Unit = {
-      if (!value.toString.endsWith("$lzy1")) hash(
-        value match {
-          case v: java.lang.String => v.hashCode()
-          case v: java.lang.Integer => v.hashCode()
-          case v: java.lang.Float => v.hashCode()
-          case v: java.lang.Long => v.hashCode()
-          case v: java.lang.Double => v.hashCode()
-          case v: org.objectweb.asm.Type => v.hashCode()
-          case v: org.objectweb.asm.Handle => v.hashCode()
-          case v: org.objectweb.asm.ConstantDynamic => v.hashCode()
-        }
-      )
-      completeHash()
+      value match {
+        case v: java.lang.String if isLazyName(v) =>
+          // In `<clinit>`, this string is paired with surrounding MethodHandles/Type
+          // bytecode for lazy-handle setup, which is not semantically relevant.
+          if (methodSig.name == "<clinit>") {
+            lazyNameSeenInClinit = true
+            dropPreviousInsn() // drop preceding owner class LDC
+          } else {
+            completeHash()
+          }
+        case _: org.objectweb.asm.Type if methodSig.name == "<clinit>" && lazyNameSeenInClinit =>
+          ()
+        case _ =>
+          if (!isLazyName(value.toString)) hash(
+            value match {
+              case v: java.lang.String => v.hashCode()
+              case v: java.lang.Integer => v.hashCode()
+              case v: java.lang.Float => v.hashCode()
+              case v: java.lang.Long => v.hashCode()
+              case v: java.lang.Double => v.hashCode()
+              case v: org.objectweb.asm.Type => v.hashCode()
+              case v: org.objectweb.asm.Handle => v.hashCode()
+              case v: org.objectweb.asm.ConstantDynamic => v.hashCode()
+            }
+          )
+          completeHash()
+      }
     }
 
     override def visitLookupSwitchInsn(
@@ -319,6 +342,20 @@ object LocalSummary {
         descriptor: String,
         isInterface: Boolean
     ): Unit = {
+      val isMethodHandlesLookupInClinit =
+        methodSig.name == "<clinit>" &&
+          ((owner == "java/lang/invoke/MethodHandles" &&
+            name == "lookup" &&
+            descriptor == "()Ljava/lang/invoke/MethodHandles$Lookup;") ||
+            (owner == "java/lang/invoke/MethodHandles$Lookup" &&
+              name == "findVarHandle" &&
+              descriptor ==
+              "(Ljava/lang/Class;Ljava/lang/String;Ljava/lang/Class;)Ljava/lang/invoke/VarHandle;"))
+
+      if (isMethodHandlesLookupInClinit) {
+        return
+      }
+
       // Skip analyzing array methods like `.clone()` or `.hashCode()`, since they always
       // provided by the standard library and do not contribute to the program's call graph
       if (owner(0) != '[') {
