@@ -40,9 +40,9 @@ public class Hello {
 
 // In this case, `bar` calls `doGrandThingConcrete` which is defined externally
 // on `Grandparent`, and so it only has a possibility of calling `doGrandThing`
-// on `Foo`. `qux` on the other hand calls `doParentThingConcrete` which is
-// defined externally on `Parent` which inherits from `Grandparent`, meaning
-// that it could call either of `doGrandThing` or `doParentThing`
+// on `Foo`. `qux` on the other hand calls `doParentThingConcrete` with static
+// receiver type `Parent`, so it should only include methods reachable from
+// that bytecode receiver type.
 
 /* expected-direct-call-graph
 {
@@ -56,7 +56,6 @@ public class Hello {
         "hello.Hello.qux(hello.Foo)void"
     ],
     "hello.Hello.qux(hello.Foo)void": [
-        "hello.Foo#doGrandThing()void",
         "hello.Foo#doParentThing()void",
         "hello.Foo#otherNonSamMethod()void"
     ]
@@ -78,7 +77,6 @@ public class Hello {
         "hello.Hello.qux(hello.Foo)void"
     ],
     "hello.Hello.qux(hello.Foo)void": [
-        "hello.Foo#doGrandThing()void",
         "hello.Foo#doParentThing()void",
         "hello.Foo#otherNonSamMethod()void"
     ]

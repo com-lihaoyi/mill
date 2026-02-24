@@ -268,11 +268,9 @@ object CallGraphAnalysis {
             }
             .toArray
 
-          val parent = externalSummary
-            .directAncestors(externalCls)
-            .map(c => nodeToIndex(CallGraphAnalysis.ExternalClsCall(c)))
-
-          local ++ parent
+          // Preserve bytecode receiver type precision: do not widen this external
+          // class node to ancestor external class nodes.
+          local
       }
       .map(_.sorted)
       .toArray
