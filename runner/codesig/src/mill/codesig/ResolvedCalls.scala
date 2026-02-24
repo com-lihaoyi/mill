@@ -70,22 +70,6 @@ object ResolvedCalls {
       .flatMap(_.calls)
       .toSet
 
-    val ctorCallersByCall: Map[MethodCall, Set[(JCls, MethodSig)]] =
-      localSummary.items
-        .iterator
-        .flatMap { case (callerCls, clsInfo) =>
-          clsInfo.methods.iterator.flatMap { case (callerSig, methodInfo) =>
-            Option.when(callerSig.name == "<init>") {
-              methodInfo.calls.iterator.map(_ -> (callerCls, callerSig))
-            }.iterator.flatten
-          }
-        }
-        .toSeq
-        .groupMap(_._1)(_._2)
-        .view
-        .mapValues(_.toSet)
-        .toMap
-
     val staticCallSupers = allCalls
       .collect {
         case call: MethodCall if call.invokeType == InvokeType.Static =>
@@ -148,12 +132,6 @@ object ResolvedCalls {
       allCalls
         .iterator
         .map { call =>
-          def externalOverridableMethods(externalCls: JCls): Set[MethodSig] =
-            breadthFirst(Seq(externalCls))(externalSummary.directAncestors.getOrElse(_, Nil))
-              .flatMap(externalSummary.directMethods.getOrElse(_, Map()).keysIterator)
-              .filter(m => !m.static && m.name != "<init>")
-              .toSet
-
           def methodExists(cls: JCls, call: MethodCall): Boolean = {
             localSummary.items.get(cls).exists(_.methods.contains(call.toMethodSig)) ||
             externalSummary.directMethods.get(cls).exists(_.contains(call.toMethodSig))
@@ -177,34 +155,7 @@ object ResolvedCalls {
 
           val (localReceivers, externalReceivers) = allReceivers.partition(localSummary.contains)
 
-          val ctorConcreteReceiverClasses =
-            if (call.invokeType == InvokeType.Special &&
-                call.toMethodSig.name == "<init>" &&
-                !localSummary.contains(call.cls))
-              ctorCallersByCall
-                .getOrElse(call, Set.empty)
-                .collect {
-                  case (callerCls, _)
-                      if breadthFirst(Seq(callerCls))(allDirectAncestors.getOrElse(_, Nil))
-                        .contains(call.cls) =>
-                    callerCls
-                }
-            else Set.empty[JCls]
-
-          val ctorConcreteReceiverMethods = {
-            val methods =
-              if (ctorConcreteReceiverClasses.isEmpty) Set.empty[MethodSig]
-              else externalOverridableMethods(call.cls)
-
-            for {
-              cls <- ctorConcreteReceiverClasses
-              m <- methods
-              if localSummary.get(cls, m).nonEmpty
-            } yield st.MethodDef(cls, m)
-          }
-
-          val localMethodDefs =
-            localReceivers.map(st.MethodDef(_, call.toMethodSig)) ++ ctorConcreteReceiverMethods
+          val localMethodDefs = localReceivers.map(st.MethodDef(_, call.toMethodSig))
 
           // When a call to an external method call is made, we don't know what the
           // implementation will do. We thus have to conservatively assume it can call
@@ -215,7 +166,12 @@ object ResolvedCalls {
             else {
               val argTypes = call.desc.args.collect { case c: JCls => c }
               val thisTypes =
-                if (call.invokeType == InvokeType.Static || ctorConcreteReceiverClasses.nonEmpty)
+                if (
+                  call.invokeType == InvokeType.Static ||
+                  (call.invokeType == InvokeType.Special &&
+                    call.toMethodSig.name == "<init>" &&
+                    !localSummary.contains(call.cls))
+                )
                   Set.empty[JCls]
                 else externalReceivers
 

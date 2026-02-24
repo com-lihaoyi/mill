@@ -214,11 +214,35 @@ object CallGraphAnalysis {
           local ++ external
 
         case CallGraphAnalysis.LocalDef(methodDef) =>
-          val normalCalls = methods(methodDef)
+          def isExternalCtorCall(call: MethodCall): Boolean =
+            call.invokeType == InvokeType.Special &&
+            call.toMethodSig.name == "<init>" &&
+            resolved.externalClassLocalDests.get(call.cls).exists(_._1.contains(methodDef.cls))
+
+          val (externalCtorCalls, otherCalls) = methods(methodDef)
             .calls
             .toArray
             .filter(c => !ignoreCall(Some(methodDef), c.toMethodSig))
-            .map(c => nodeToIndex(CallGraphAnalysis.Call(c)))
+            .partition(isExternalCtorCall)
+
+          val normalCalls = otherCalls.map(c => nodeToIndex(CallGraphAnalysis.Call(c)))
+
+          val externalCtorCallbackCalls = externalCtorCalls.flatMap { call =>
+            val localMethodsOnConcreteReceiver =
+              mill.internal.SpanningForest
+                .breadthFirst(Seq(call.cls))(externalSummary.directAncestors.getOrElse(_, Nil))
+                .flatMap(externalSummary.directMethods.getOrElse(_, Map()).keysIterator)
+                .filter(m => !m.static && m.name != "<init>")
+                .filter(m => !singleAbstractMethods(methodDef.cls).contains(m))
+                .filter(m => !ignoreCall(Some(methodDef), m))
+                .flatMap { m =>
+                  nodeToIndex.get(CallGraphAnalysis.LocalDef(st.MethodDef(methodDef.cls, m)))
+                }
+                .toArray
+
+            val callNode = nodeToIndex(CallGraphAnalysis.Call(call))
+            localMethodsOnConcreteReceiver :+ callNode
+          }
 
           val singleAbstractMethodInitEdge =
             if (methodDef.sig.name != "<init>") None
@@ -227,7 +251,7 @@ object CallGraphAnalysis {
                 .flatMap(samSig => nodeToIndex.get(LocalDef(st.MethodDef(methodDef.cls, samSig))))
             }
 
-          normalCalls ++ singleAbstractMethodInitEdge
+          normalCalls ++ externalCtorCallbackCalls ++ singleAbstractMethodInitEdge
 
         case CallGraphAnalysis.ExternalClsCall(externalCls) =>
           val local = resolved
