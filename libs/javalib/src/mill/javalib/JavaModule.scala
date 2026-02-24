@@ -899,7 +899,7 @@ trait JavaModule
    * files) are not reported to BSP clients, and must be handled by them in an ad hoc fashion.
    */
   @internal
-  private[mill] def wrappedSources: T[Seq[(original: PathRef, generated: PathRef)]] = Task(Nil)
+  private[mill] def wrappedSources: T[Seq[(original: PathRef, generated: PathRef)]] = Task(Seq())
 
   /**
    * Path to sources generated as part of the `compile` step, eg.  by Java annotation
