@@ -10,7 +10,7 @@ import mill.{T, Task}
 
 import scala.jdk.CollectionConverters.*
 import mill.api.daemon.internal.bsp.BspBuildTarget
-import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
+import mill.javalib.api.internal.ZincOp
 
 @experimental
 trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
@@ -27,7 +27,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
   def allSourceFiles: T[Seq[PathRef]]
   def compile: T[mill.javalib.api.CompilationResult]
   def jvmOptions: T[Seq[String]]
-  private[mill] def javaCompilerRuntimeOptions: T[Seq[String]] = Task { jvmOptions() }
+  private[mill] def javaCompilerRuntimeOptions: T[Seq[String]]
   def javacOptions: T[Seq[String]]
   def mandatoryJavacOptions: T[Seq[String]]
 
@@ -116,13 +116,6 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     defaultResolver().classpath(semanticDbJavaPluginMvnDeps())
   }
 
-  protected[javalib] def splitJavacAndRuntimeOptions(
-      options: Seq[String]
-  ): (Seq[String], Seq[String]) = {
-    val jOpts = JavaCompilerOptions.split(options)
-    (jOpts.compiler, jOpts.runtime)
-  }
-
   def semanticDbDataDetailed: T[SemanticDbJavaModule.SemanticDbData] = Task(persistent = true) {
     val javacOpts = SemanticDbJavaModule.javacOptionsTask(
       javacOptions() ++ mandatoryJavacOptions(),
@@ -131,7 +124,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
 
     Task.log.debug(s"effective javac options: ${javacOpts}")
 
-    val (javacCompilerOptions, legacyRuntimeOptions) = splitJavacAndRuntimeOptions(javacOpts)
+    val (javacCompilerOptions, legacyRuntimeOptions) = JavaModule.splitJavacAndRuntimeOptions(javacOpts)
     if (legacyRuntimeOptions.nonEmpty) {
       Task.log.warn(
         "`-J` options in `javacOptions` are deprecated; use `jvmOptions` instead" +

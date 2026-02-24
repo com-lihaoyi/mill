@@ -331,13 +331,6 @@ trait JavaModule
 
   private[mill] def javaCompilerRuntimeOptions: T[Seq[String]] = Task { jvmOptions() }
 
-  protected[javalib] def splitJavacAndRuntimeOptions(
-      options: Seq[String]
-  ): (Seq[String], Seq[String]) = {
-    val jOpts = JavaCompilerOptions.split(options)
-    (jOpts.compiler, jOpts.runtime)
-  }
-
   /**
    * Additional options for the java compiler derived from other module settings.
    */
@@ -942,7 +935,7 @@ trait JavaModule
       os.makeDir.all(compileGenSources)
     }
 
-    val (javacCompilerOptions, legacyRuntimeOptions) = splitJavacAndRuntimeOptions(Seq(
+    val (javacCompilerOptions, legacyRuntimeOptions) = JavaModule.splitJavacAndRuntimeOptions(Seq(
       "-s",
       compileGenSources.toString
     ) ++ javacOptions() ++ mandatoryJavacOptions() ++ annotationProcessorsJavacOptions())
@@ -1676,6 +1669,17 @@ trait JavaModule
 }
 
 object JavaModule {
+  private[javalib] type SplitJavacAndRuntimeOptions = (
+      compiler: Seq[String],
+      runtime: Seq[String]
+  )
+
+  private[javalib] def splitJavacAndRuntimeOptions(options: Seq[String])
+      : SplitJavacAndRuntimeOptions = {
+    val jOpts = JavaCompilerOptions.split(options)
+    (compiler = jOpts.compiler, runtime = jOpts.runtime)
+  }
+
   // Keep in sync with JavaModule#JavaTests, duplicated due to binary compatibility concerns
   trait JavaTests0 extends JavaModule with TestModule {
     private val outer: JavaModule = moduleDeps.head
