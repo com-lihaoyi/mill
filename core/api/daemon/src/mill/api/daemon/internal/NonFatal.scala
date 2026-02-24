@@ -8,7 +8,7 @@ import scala.util.{Failure, Success, Try}
  */
 object NonFatal {
 
-  def attempt[T](f: => T): Try[T] =
+  def Try[T](f: => T): Try[T] =
     try Success(f)
     catch {
       case NonFatal(ex) =>

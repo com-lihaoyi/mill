@@ -128,7 +128,7 @@ object ExecutionContexts {
       val runnable = new PriorityRunnable(
         priority = priority,
         run0 = () => {
-          val result = NonFatal.attempt(logger.withPromptLine {
+          val result = NonFatal.Try(logger.withPromptLine {
             os.dynamicPwdFunction.withValue(() => makeDest()) {
               mill.api.SystemStreamsUtils.withStreams(logger.streams) {
                 t(logger)

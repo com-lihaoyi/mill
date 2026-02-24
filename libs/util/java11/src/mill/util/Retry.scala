@@ -48,7 +48,7 @@ case class Retry(
         else {
           val result = Promise[T]
           mill.api.daemon.StartThread("RetryThread") {
-            result.complete(NonFatal.attempt(t(retryCount)))
+            result.complete(NonFatal.Try(t(retryCount)))
           }
 
           Await.result(result.future, Duration.apply(timeoutMillis, TimeUnit.MILLISECONDS))

@@ -82,7 +82,7 @@ object MillRpcClient {
     }
 
     def handleServerMessage(msg: ServerToClient): Unit = {
-      val response = NonFatal.attempt(currentServerMessageHandler(msg))
+      val response = NonFatal.Try(currentServerMessageHandler(msg))
         .toEither.left.map(RpcThrowable.fromThrowable)
       wireTransport.writeSerialized(MillRpcClientToServer.Response(response))
     }

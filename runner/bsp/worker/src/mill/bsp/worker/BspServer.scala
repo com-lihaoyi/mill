@@ -278,7 +278,7 @@ private abstract class MillBuildServer(
     baseLogger.prompt.beginChromeProfileEntry(prefix)
     logger.info(s"Entered $prefix")
 
-    val result = NonFatal.attempt(block)
+    val result = NonFatal.Try(block)
 
     baseLogger.prompt.endChromeProfileEntry()
     logger.info(s"$prefix took ${System.currentTimeMillis() - start} msec")
