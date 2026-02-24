@@ -203,6 +203,9 @@ object CallGraphAnalysis {
       SpanningForest.reverseEdges(localAncestors)
     }
 
+    val localDirectAncestors: Map[JType.Cls, Set[JType.Cls]] =
+      localSummary.mapValues(_.directAncestors.filter(localSummary.contains)).toMap
+
     indexToNodes
       .iterator
       .map {
@@ -239,7 +242,7 @@ object CallGraphAnalysis {
             }.toArray
 
           def isExternalKnownArgCall(call: MethodCall): Boolean =
-            call.invokeType == InvokeType.Static &&
+            (call.invokeType == InvokeType.Static || call.invokeType == InvokeType.Special) &&
               resolved.localCalls(call).localDests.isEmpty &&
               resolved.localCalls(call).externalDests.nonEmpty &&
               externalSelfArgClasses(call).nonEmpty
@@ -298,10 +301,19 @@ object CallGraphAnalysis {
 
           val externalKnownArgCallbackCalls = externalKnownArgCalls.flatMap { call =>
             externalSelfArgClasses(call).flatMap { argType =>
-              resolved.externalClassLocalDests
-                .get(argType)
-                .iterator
-                .flatMap(_._1)
+              val localReceiverClasses =
+                if (
+                  call.invokeType == InvokeType.Special &&
+                  resolved.externalClassLocalDests.get(argType).exists(_._1.contains(methodDef.cls))
+                ) Iterator.single(methodDef.cls)
+                else {
+                  resolved.externalClassLocalDests
+                    .get(argType)
+                    .iterator
+                    .flatMap(_._1)
+                }
+
+              localReceiverClasses
                 .flatMap(localReceiverCls => concreteReceiverLocalMethodIndices(argType, localReceiverCls))
             }
           }
@@ -312,8 +324,16 @@ object CallGraphAnalysis {
 
           val localNoArgVirtualExternalReceiverCallbackCalls =
             localNoArgVirtualExternalReceiverCalls.flatMap { call =>
+              val methodDefAncestors =
+                SpanningForest.breadthFirst(Seq(methodDef.cls))(
+                  localDirectAncestors.getOrElse(_, Set.empty)
+                ).toSet
+              val receiverHierarchyRoot =
+                if (methodDefAncestors.contains(call.cls)) methodDef.cls
+                else call.cls
+
               val localReceiverHierarchy =
-                SpanningForest.breadthFirst(Seq(call.cls))(
+                SpanningForest.breadthFirst(Seq(receiverHierarchyRoot))(
                   localDirectDescendents.getOrElse(_, Seq.empty)
                 )
 

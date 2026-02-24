@@ -171,8 +171,13 @@ object ResolvedCalls {
                   !localSummary.contains(call.cls) &&
                   allArgTypes.headOption.contains(call.cls)
               val argTypes =
-                if (isExternalStaticReceiverCall) allArgTypes.drop(1)
-                else allArgTypes
+                call.invokeType match {
+                  case InvokeType.Static =>
+                    if (isExternalStaticReceiverCall) allArgTypes.drop(1)
+                    else allArgTypes
+                  case InvokeType.Special => allArgTypes
+                  case InvokeType.Virtual => allArgTypes
+                }
               val thisTypes =
                 if (
                   call.invokeType == InvokeType.Static ||
