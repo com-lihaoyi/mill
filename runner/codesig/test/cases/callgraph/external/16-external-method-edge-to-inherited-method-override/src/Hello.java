@@ -56,6 +56,7 @@ public class Hello {
         "hello.Hello.qux(hello.Foo)void"
     ],
     "hello.Hello.qux(hello.Foo)void": [
+        "hello.Foo#doGrandThing()void",
         "hello.Foo#doParentThing()void",
         "hello.Foo#otherNonSamMethod()void"
     ]
@@ -77,6 +78,7 @@ public class Hello {
         "hello.Hello.qux(hello.Foo)void"
     ],
     "hello.Hello.qux(hello.Foo)void": [
+        "hello.Foo#doGrandThing()void",
         "hello.Foo#doParentThing()void",
         "hello.Foo#otherNonSamMethod()void"
     ]

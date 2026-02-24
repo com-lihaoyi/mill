@@ -31,6 +31,7 @@ class CallGraphAnalysis(
 
   val indexGraphEdges: Array[Array[Int]] = CallGraphAnalysis.indexGraphEdges(
     indexToNodes,
+    localSummary,
     methods,
     resolved,
     externalSummary,
@@ -184,6 +185,7 @@ object CallGraphAnalysis {
 
   def indexGraphEdges(
       indexToNodes: Array[Node],
+      localSummary: LocalSummary,
       methods: Map[MethodDef, LocalSummary.MethodInfo],
       resolved: ResolvedCalls,
       externalSummary: ExternalSummary,
@@ -193,6 +195,11 @@ object CallGraphAnalysis {
 
     def singleAbstractMethods(methodDefCls: JType.Cls) = {
       resolved.classSingleAbstractMethods.getOrElse(methodDefCls, Set.empty)
+    }
+
+    val localDirectDescendents: Map[JType.Cls, Seq[JType.Cls]] = {
+      val localAncestors = localSummary.mapValues(_.directAncestors.filter(localSummary.contains)).toMap
+      SpanningForest.reverseEdges(localAncestors)
     }
 
     indexToNodes
@@ -218,30 +225,99 @@ object CallGraphAnalysis {
             call.invokeType == InvokeType.Special &&
             resolved.externalClassLocalDests.get(call.cls).exists(_._1.contains(methodDef.cls))
 
-          val (externalPreciseThisCalls, otherCalls) = methods(methodDef)
+          def isExternalStaticReceiverCall(call: MethodCall): Boolean =
+            call.invokeType == InvokeType.Static &&
+            call.desc.args.headOption.contains(call.cls) &&
+            resolved.externalClassLocalDests.get(call.cls).exists(_._1.contains(methodDef.cls))
+
+          def externalSelfArgClasses(call: MethodCall): Array[JType.Cls] =
+            call.desc.args.collect {
+              case c: JType.Cls
+                  if resolved.externalClassLocalDests.get(c).exists(_._1.contains(methodDef.cls)) =>
+                c
+            }.toArray
+
+          def isExternalKnownArgCall(call: MethodCall): Boolean =
+            externalSelfArgClasses(call).nonEmpty
+
+          def isExternalVirtualSelfCall(call: MethodCall): Boolean =
+            call.invokeType == InvokeType.Virtual &&
+            resolved.externalClassLocalDests.get(call.cls).exists(_._1.contains(methodDef.cls))
+
+          def isLocalNoArgVirtualExternalReceiverCall(call: MethodCall): Boolean =
+            call.invokeType == InvokeType.Virtual &&
+            localSummary.contains(call.cls) &&
+            call.desc.args.isEmpty &&
+            resolved.localCalls(call).localDests.isEmpty &&
+            resolved.localCalls(call).externalDests.nonEmpty
+
+          val calls = methods(methodDef)
             .calls
             .toArray
             .filter(c => !ignoreCall(Some(methodDef), c.toMethodSig))
-            .partition(isExternalPreciseThisCall)
+
+          val (externalPreciseThisCalls, remainingCalls) = calls.partition(isExternalPreciseThisCall)
+          val (externalStaticReceiverCalls, remainingCalls2) =
+            remainingCalls.partition(isExternalStaticReceiverCall)
+          val (externalKnownArgCalls, remainingCalls3) =
+            remainingCalls2.partition(isExternalKnownArgCall)
+          val (externalVirtualSelfCalls, remainingCalls4) =
+            remainingCalls3.partition(isExternalVirtualSelfCall)
+          val (localNoArgVirtualExternalReceiverCalls, otherCalls) =
+            remainingCalls4.partition(isLocalNoArgVirtualExternalReceiverCall)
 
           val normalCalls = otherCalls.map(c => nodeToIndex(CallGraphAnalysis.Call(c)))
 
-          val externalPreciseThisCallbackCalls = externalPreciseThisCalls.flatMap { call =>
-            val localMethodsOnConcreteReceiver =
-              mill.internal.SpanningForest
-                .breadthFirst(Seq(call.cls))(externalSummary.directAncestors.getOrElse(_, Nil))
-                .flatMap(externalSummary.directMethods.getOrElse(_, Map()).keysIterator)
-                .filter(m => !m.static && m.name != "<init>")
-                .filter(m => !singleAbstractMethods(methodDef.cls).contains(m))
-                .filter(m => !ignoreCall(Some(methodDef), m))
-                .flatMap { m =>
-                  nodeToIndex.get(CallGraphAnalysis.LocalDef(st.MethodDef(methodDef.cls, m)))
-                }
-                .toArray
+          def concreteReceiverLocalMethodIndices(externalCls: JType.Cls): Array[Int] =
+            mill.internal.SpanningForest
+              .breadthFirst(Seq(externalCls))(externalSummary.directAncestors.getOrElse(_, Nil))
+              .flatMap(externalSummary.directMethods.getOrElse(_, Map()).keysIterator)
+              .filter(m => !m.static && m.name != "<init>")
+              .filter(m => !singleAbstractMethods(methodDef.cls).contains(m))
+              .filter(m => !ignoreCall(Some(methodDef), m))
+              .flatMap { m =>
+                nodeToIndex.get(CallGraphAnalysis.LocalDef(st.MethodDef(methodDef.cls, m)))
+              }
+              .toArray
 
-            val callNode = nodeToIndex(CallGraphAnalysis.Call(call))
-            localMethodsOnConcreteReceiver :+ callNode
+          val externalPreciseThisCallbackCalls = externalPreciseThisCalls.flatMap { call =>
+            concreteReceiverLocalMethodIndices(call.cls)
           }
+
+          val externalStaticReceiverCallbackCalls = externalStaticReceiverCalls.flatMap { call =>
+            concreteReceiverLocalMethodIndices(call.cls)
+          }
+
+          val externalKnownArgCallbackCalls = externalKnownArgCalls.flatMap { call =>
+            externalSelfArgClasses(call).flatMap(concreteReceiverLocalMethodIndices)
+          }
+
+          val externalVirtualSelfCallbackCalls = externalVirtualSelfCalls.flatMap { call =>
+            concreteReceiverLocalMethodIndices(call.cls)
+          }
+
+          val localNoArgVirtualExternalReceiverCallbackCalls =
+            localNoArgVirtualExternalReceiverCalls.flatMap { call =>
+              val localReceiverHierarchy =
+                SpanningForest.breadthFirst(Seq(call.cls))(
+                  localDirectDescendents.getOrElse(_, Seq.empty)
+                )
+
+              val externalReceiverClasses = resolved.localCalls(call).externalDests
+                .filter(externalSummary.directMethods.contains)
+
+              for {
+                externalCls <- externalReceiverClasses
+                receiverCls <- localReceiverHierarchy
+                m <- SpanningForest
+                  .breadthFirst(Seq(externalCls))(externalSummary.directAncestors.getOrElse(_, Nil))
+                  .flatMap(externalSummary.directMethods.getOrElse(_, Map()).keysIterator)
+                if !m.static && m.name != "<init>"
+                if !singleAbstractMethods(receiverCls).contains(m)
+                if !ignoreCall(Some(methodDef), m)
+                dest <- nodeToIndex.get(CallGraphAnalysis.LocalDef(st.MethodDef(receiverCls, m)))
+              } yield dest
+            }
 
           val singleAbstractMethodInitEdge =
             if (methodDef.sig.name != "<init>") None
@@ -250,7 +326,13 @@ object CallGraphAnalysis {
                 .flatMap(samSig => nodeToIndex.get(LocalDef(st.MethodDef(methodDef.cls, samSig))))
             }
 
-          normalCalls ++ externalPreciseThisCallbackCalls ++ singleAbstractMethodInitEdge
+          normalCalls ++
+            externalPreciseThisCallbackCalls ++
+            externalStaticReceiverCallbackCalls ++
+            externalKnownArgCallbackCalls ++
+            externalVirtualSelfCallbackCalls ++
+            localNoArgVirtualExternalReceiverCallbackCalls ++
+            singleAbstractMethodInitEdge
 
         case CallGraphAnalysis.ExternalClsCall(externalCls) =>
           val local = resolved
@@ -268,8 +350,6 @@ object CallGraphAnalysis {
             }
             .toArray
 
-          // Preserve bytecode receiver type precision: do not widen this external
-          // class node to ancestor external class nodes.
           local
       }
       .map(_.sorted)

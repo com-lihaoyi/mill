@@ -50,14 +50,10 @@ object Parser {
         "hello.Word#<init>(java.lang.String)void"
     ],
     "hello.Parser$#rec$1(fastparse.ParsingRun,int,fastparse.Implicits$Repeater,java.lang.Object,fastparse.ParsingRun,int,int,boolean,boolean,fastparse.internal.Msgs,fastparse.internal.Msgs)fastparse.ParsingRun": [
-        "hello.Parser$#end$1(int,fastparse.ParsingRun,fastparse.Implicits$Repeater,java.lang.Object,int,int,int,boolean)fastparse.ParsingRun",
         "hello.Parser$#parse0$1$1(fastparse.ParsingRun)fastparse.ParsingRun"
     ],
     "hello.Parser$#suffix(fastparse.ParsingRun)fastparse.ParsingRun": [
         "hello.Word#<init>(java.lang.String)void"
-    ],
-    "hello.Parser$#ws(fastparse.ParsingRun)fastparse.ParsingRun": [
-        "hello.Parser$#rec$1(fastparse.ParsingRun,int,fastparse.Implicits$Repeater,java.lang.Object,fastparse.ParsingRun,int,int,boolean,boolean,fastparse.internal.Msgs,fastparse.internal.Msgs)fastparse.ParsingRun"
     ],
     "hello.Parser.parened(fastparse.ParsingRun)fastparse.ParsingRun": [
         "hello.Parser$#<init>()void",
