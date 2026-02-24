@@ -209,10 +209,11 @@ object LocalSummary {
         if (!endScala3LazyInit) isScala3LazyInit = false
       } else if (lazyValBodyEnd && opcode == Opcodes.GETSTATIC) {
         endScala3LazyInit = true
-      } else if (isLazyHandleField(name)) {
-        // Ignore Scala lazy handle setup in `<clinit>`, which is unstable and benign.
+      } else if (methodSig.name == "<clinit>" && lazyNameSeenInClinit && isLazyHandleField(name)) {
+        // Ignore Scala lazy-handle storage in `<clinit>`, which is unstable and benign.
         lazyNameSeenInClinit = false
       } else {
+        if (methodSig.name == "<clinit>" && lazyNameSeenInClinit) lazyNameSeenInClinit = false
         hash(opcode)
         hash(owner.hashCode)
         hash(name.hashCode)
@@ -308,6 +309,7 @@ object LocalSummary {
         case _: org.objectweb.asm.Type if methodSig.name == "<clinit>" && lazyNameSeenInClinit =>
           ()
         case _ =>
+          if (methodSig.name == "<clinit>" && lazyNameSeenInClinit) lazyNameSeenInClinit = false
           if (!isLazyName(value.toString)) hash(
             value match {
               case v: java.lang.String => v.hashCode()
@@ -344,6 +346,7 @@ object LocalSummary {
     ): Unit = {
       val isMethodHandlesLookupInClinit =
         methodSig.name == "<clinit>" &&
+          lazyNameSeenInClinit &&
           ((owner == "java/lang/invoke/MethodHandles" &&
             name == "lookup" &&
             descriptor == "()Ljava/lang/invoke/MethodHandles$Lookup;") ||
@@ -355,6 +358,8 @@ object LocalSummary {
       if (isMethodHandlesLookupInClinit) {
         return
       }
+
+      if (methodSig.name == "<clinit>" && lazyNameSeenInClinit) lazyNameSeenInClinit = false
 
       // Skip analyzing array methods like `.clone()` or `.hashCode()`, since they always
       // provided by the standard library and do not contribute to the program's call graph
