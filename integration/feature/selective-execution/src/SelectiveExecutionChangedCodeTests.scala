@@ -169,13 +169,37 @@ object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
         stderr = os.Inherit
       )
 
-      val lines = resolveTree.out.linesIterator.toSeq
-      assert(lines.exists(
-        _.contains("\"def build_.package_$bar$#resolvePublishDependency()mill.api.Task\"")
-      ))
-      assert(lines.exists(_.contains("\"foo.compile\": {}")))
-      assert(!lines.exists(_.contains("<clinit>")))
-      assert(!lines.exists(_.contains("jdkCommandsJavaHome")))
+      assertGoldenLiteral(
+        resolveTree.out.linesIterator.toSeq,
+        List(
+          "{",
+          "  \"def build_.package_$bar$#resolvePublishDependency()mill.api.Task\": {",
+          "    \"external mill.scalalib.ScalaModule\": {",
+          "      \"call mill.scalalib.ScalaModule.compile$(mill.scalalib.ScalaModule)mill.api.Task$Simple\": {",
+          "        \"def build_.package_$foo$#compile()mill.api.Task$Simple\": {",
+          "          \"foo.compile\": {}",
+          "        }",
+          "      }",
+          "    }",
+          "  },",
+          "  \"def build_.package_$bar$#toString()java.lang.String\": {",
+          "    \"external java.lang.Object\": {",
+          "      \"external mill.api.internal.RootModule$Info\": {",
+          "        \"call build_.MillMiscInfo$#millMiscInfo()mill.api.internal.RootModule$Info\": {",
+          "          \"def build_.package_#<init>()void\": {",
+          "            \"call build_.package_!<init>()void\": {",
+          "              \"def build_.package_$#<init>()void\": {",
+          "                \"bar.compile\": {}",
+          "              }",
+          "            }",
+          "          }",
+          "        }",
+          "      }",
+          "    }",
+          "  }",
+          "}"
+        )
+      )
     }
 
   }
