@@ -76,12 +76,16 @@ object ErrorProneTests extends TestSuite {
           val Right(opts) = eval(errorProneCustom.mandatoryJavacOptions).runtimeChecked
           assert(opts.value.exists(_.contains("-XepAllErrorsAsWarnings")))
           if (Properties.isJavaAtLeast(16)) {
-            assert(!opts.value.exists(opt => opt.startsWith("--add-exports") || opt.startsWith("--add-opens")))
+            assert(!opts.value.exists(opt =>
+              opt.startsWith("--add-exports") || opt.startsWith("--add-opens")
+            ))
           }
-          val Right(jvmOptions) = eval(errorProneCustom.jvmOptions).runtimeChecked
+          val Right(jvmOptions) = eval(errorProneCustom.javaCompilerRuntimeOptions).runtimeChecked
           if (Properties.isJavaAtLeast(16)) {
             assert(
-              jvmOptions.value.exists(opt => opt.startsWith("--add-exports") || opt.startsWith("--add-opens"))
+              jvmOptions.value.exists(opt =>
+                opt.startsWith("--add-exports") || opt.startsWith("--add-opens")
+              )
             )
           }
           val res = eval(errorProneCustom.compile)

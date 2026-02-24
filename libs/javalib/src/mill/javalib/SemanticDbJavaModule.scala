@@ -27,6 +27,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
   def allSourceFiles: T[Seq[PathRef]]
   def compile: T[mill.javalib.api.CompilationResult]
   def jvmOptions: T[Seq[String]]
+  private[mill] def javaCompilerRuntimeOptions: T[Seq[String]] = Task { jvmOptions() }
   def javacOptions: T[Seq[String]]
   def mandatoryJavacOptions: T[Seq[String]]
 
@@ -155,7 +156,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
         workDir = Task.dest
       ),
       javaHome = javaHome().map(_.path),
-      javaRuntimeOptions = jvmOptions() ++ legacyRuntimeOptions,
+      javaRuntimeOptions = javaCompilerRuntimeOptions() ++ legacyRuntimeOptions,
       reporter = Task.reporter.apply(hashCode),
       reportCachedProblems = zincReportCachedProblems()
     )

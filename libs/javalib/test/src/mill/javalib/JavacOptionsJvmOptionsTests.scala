@@ -44,8 +44,12 @@ object JavacOptionsJvmOptionsTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("warnDeprecatedJavacRuntimeOptions") {
-      val output = Str(runTaskWithOutput(JavacOptionsWithDeprecatedRuntimeOptions.core.compile, JavacOptionsWithDeprecatedRuntimeOptions))
-        .plainText
+      val output = Str(
+        runTaskWithOutput(
+          JavacOptionsWithDeprecatedRuntimeOptions.core.compile,
+          JavacOptionsWithDeprecatedRuntimeOptions
+        )
+      ).plainText
       assert(
         output.contains("`-J` options in `javacOptions` are deprecated; use `jvmOptions` instead"),
         output.contains("-J-Dlegacy.runtime.option=true")

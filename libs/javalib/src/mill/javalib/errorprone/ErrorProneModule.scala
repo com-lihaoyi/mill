@@ -120,8 +120,8 @@ trait ErrorProneModule extends JavaModule {
   /**
    * JVM options used by the Java compiler worker when running ErrorProne.
    */
-  override def jvmOptions: T[Seq[String]] = Task {
-    super.jvmOptions() ++ errorProneJvmOptions()
+  private[mill] override def javaCompilerRuntimeOptions: T[Seq[String]] = Task {
+    jvmOptions() ++ errorProneJvmOptions()
   }
 
   /**

@@ -329,6 +329,8 @@ trait JavaModule
    */
   def jvmOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
+  private[mill] def javaCompilerRuntimeOptions: T[Seq[String]] = Task { jvmOptions() }
+
   protected[javalib] def splitJavacAndRuntimeOptions(
       options: Seq[String]
   ): (Seq[String], Seq[String]) = {
@@ -963,7 +965,7 @@ trait JavaModule
         workDir = Task.dest
       ),
       javaHome = javaHome().map(_.path),
-      javaRuntimeOptions = jvmOptions() ++ legacyRuntimeOptions,
+      javaRuntimeOptions = javaCompilerRuntimeOptions() ++ legacyRuntimeOptions,
       reporter = Task.reporter.apply(hashCode),
       reportCachedProblems = zincReportCachedProblems()
     )
