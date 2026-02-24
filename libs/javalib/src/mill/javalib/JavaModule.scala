@@ -322,6 +322,21 @@ trait JavaModule
   override def javacOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
   /**
+   * JVM options passed to the Java compiler worker process.
+   *
+   * Prefer this over `javacOptions` for JVM flags such as `-D`, `--add-opens`, and
+   * `-X` options.
+   */
+  def jvmOptions: T[Seq[String]] = Task { Seq.empty[String] }
+
+  protected[javalib] def splitJavacAndRuntimeOptions(
+      options: Seq[String]
+  ): (Seq[String], Seq[String]) = {
+    val jOpts = JavaCompilerOptions.split(options)
+    (jOpts.compiler, jOpts.runtime)
+  }
+
+  /**
    * Additional options for the java compiler derived from other module settings.
    */
   override def mandatoryJavacOptions: T[Seq[String]] = Task { Seq.empty[String] }
@@ -925,10 +940,16 @@ trait JavaModule
       os.makeDir.all(compileGenSources)
     }
 
-    val jOpts = JavaCompilerOptions.split(Seq(
+    val (javacCompilerOptions, legacyRuntimeOptions) = splitJavacAndRuntimeOptions(Seq(
       "-s",
       compileGenSources.toString
     ) ++ javacOptions() ++ mandatoryJavacOptions() ++ annotationProcessorsJavacOptions())
+    if (legacyRuntimeOptions.nonEmpty) {
+      Task.log.warn(
+        "`-J` options in `javacOptions` are deprecated; use `jvmOptions` instead" +
+          s"\n  - Deprecated options: ${legacyRuntimeOptions.map("-J" + _).mkString(" ")}"
+      )
+    }
 
     val worker = jvmWorker().internalWorker()
 
@@ -937,12 +958,12 @@ trait JavaModule
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
         compileClasspath = compileClasspath().map(_.path),
-        javacOptions = jOpts.compiler,
+        javacOptions = javacCompilerOptions,
         incrementalCompilation = zincIncrementalCompilation(),
         workDir = Task.dest
       ),
       javaHome = javaHome().map(_.path),
-      javaRuntimeOptions = jOpts.runtime,
+      javaRuntimeOptions = jvmOptions() ++ legacyRuntimeOptions,
       reporter = Task.reporter.apply(hashCode),
       reportCachedProblems = zincReportCachedProblems()
     )

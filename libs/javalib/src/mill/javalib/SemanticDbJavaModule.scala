@@ -26,6 +26,9 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
   def zincIncrementalCompilation: T[Boolean]
   def allSourceFiles: T[Seq[PathRef]]
   def compile: T[mill.javalib.api.CompilationResult]
+  def jvmOptions: T[Seq[String]]
+  def javacOptions: T[Seq[String]]
+  def mandatoryJavacOptions: T[Seq[String]]
 
   private[mill] def compileFor(compileFor: CompileFor): Task[mill.javalib.api.CompilationResult] =
     compileFor match {
@@ -34,8 +37,6 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     }
 
   private[mill] def bspBuildTarget: BspBuildTarget
-  def javacOptions: T[Seq[String]]
-  def mandatoryJavacOptions: T[Seq[String]]
   private[mill] def compileClasspathTask(compileFor: CompileFor): Task[Seq[PathRef]]
   def moduleDeps: Seq[JavaModule]
 
@@ -114,6 +115,13 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     defaultResolver().classpath(semanticDbJavaPluginMvnDeps())
   }
 
+  protected[javalib] def splitJavacAndRuntimeOptions(
+      options: Seq[String]
+  ): (Seq[String], Seq[String]) = {
+    val jOpts = JavaCompilerOptions.split(options)
+    (jOpts.compiler, jOpts.runtime)
+  }
+
   def semanticDbDataDetailed: T[SemanticDbJavaModule.SemanticDbData] = Task(persistent = true) {
     val javacOpts = SemanticDbJavaModule.javacOptionsTask(
       javacOptions() ++ mandatoryJavacOptions(),
@@ -122,7 +130,13 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
 
     Task.log.debug(s"effective javac options: ${javacOpts}")
 
-    val jOpts = JavaCompilerOptions.split(javacOpts)
+    val (javacCompilerOptions, legacyRuntimeOptions) = splitJavacAndRuntimeOptions(javacOpts)
+    if (legacyRuntimeOptions.nonEmpty) {
+      Task.log.warn(
+        "`-J` options in `javacOptions` are deprecated; use `jvmOptions` instead" +
+          s"\n  - Deprecated options: ${legacyRuntimeOptions.map("-J" + _).mkString(" ")}"
+      )
+    }
 
     val worker = jvmWorker().internalWorker()
 
@@ -136,12 +150,12 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
           )() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(
             _.path
           ),
-        javacOptions = jOpts.compiler,
+        javacOptions = javacCompilerOptions,
         incrementalCompilation = zincIncrementalCompilation(),
         workDir = Task.dest
       ),
       javaHome = javaHome().map(_.path),
-      javaRuntimeOptions = jOpts.runtime,
+      javaRuntimeOptions = jvmOptions() ++ legacyRuntimeOptions,
       reporter = Task.reporter.apply(hashCode),
       reportCachedProblems = zincReportCachedProblems()
     )
