@@ -175,6 +175,7 @@ object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
       ))
       assert(lines.exists(_.contains("\"foo.compile\": {}")))
       assert(!lines.exists(_.contains("<clinit>")))
+      assert(!lines.exists(_.contains("jdkCommandsJavaHome")))
     }
 
   }
