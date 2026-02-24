@@ -28,6 +28,9 @@ public class Hello {
     "hello.Foo#<init>()void": [
         "hello.Foo#toString()java.lang.String"
     ],
+    "hello.Hello.bar(hello.Foo)void": [
+        "hello.Foo#toString()java.lang.String"
+    ],
     "hello.Hello.main()void": [
         "hello.Foo#<init>()void",
         "hello.Hello.bar(hello.Foo)void"
@@ -38,6 +41,9 @@ public class Hello {
 /* expected-transitive-call-graph
 {
     "hello.Foo#<init>()void": [
+        "hello.Foo#toString()java.lang.String"
+    ],
+    "hello.Hello.bar(hello.Foo)void": [
         "hello.Foo#toString()java.lang.String"
     ],
     "hello.Hello.main()void": [

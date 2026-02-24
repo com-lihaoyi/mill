@@ -53,6 +53,7 @@ object Hello {
         "hello.Hello$BigTestIterator#next()java.lang.Object",
         "hello.Hello$FilterBigTestIterator#hasNext()boolean",
         "hello.Hello$FilterBigTestIterator#next()java.lang.Object",
+        "hello.Hello$SingletonBigTestIterator#<init>(java.lang.Object)void",
         "hello.Hello$SingletonBigTestIterator#filter(scala.Function1)hello.Hello$BigTestIterator",
         "hello.Hello$SingletonBigTestIterator#hasNext()boolean",
         "hello.Hello$SingletonBigTestIterator#next()java.lang.Object"

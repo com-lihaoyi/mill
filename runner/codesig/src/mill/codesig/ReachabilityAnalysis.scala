@@ -234,12 +234,15 @@ object CallGraphAnalysis {
           def externalSelfArgClasses(call: MethodCall): Array[JType.Cls] =
             call.desc.args.collect {
               case c: JType.Cls
-                  if resolved.externalClassLocalDests.get(c).exists(_._1.contains(methodDef.cls)) =>
+                  if resolved.externalClassLocalDests.get(c).exists(_._1.nonEmpty) =>
                 c
             }.toArray
 
           def isExternalKnownArgCall(call: MethodCall): Boolean =
-            externalSelfArgClasses(call).nonEmpty
+            call.invokeType == InvokeType.Static &&
+              resolved.localCalls(call).localDests.isEmpty &&
+              resolved.localCalls(call).externalDests.nonEmpty &&
+              externalSelfArgClasses(call).nonEmpty
 
           def isExternalVirtualSelfCall(call: MethodCall): Boolean =
             call.invokeType == InvokeType.Virtual &&
@@ -270,32 +273,41 @@ object CallGraphAnalysis {
 
           val normalCalls = otherCalls.map(c => nodeToIndex(CallGraphAnalysis.Call(c)))
 
-          def concreteReceiverLocalMethodIndices(externalCls: JType.Cls): Array[Int] =
+          def concreteReceiverLocalMethodIndices(
+              externalCls: JType.Cls,
+              localReceiverCls: JType.Cls
+          ): Array[Int] =
             mill.internal.SpanningForest
               .breadthFirst(Seq(externalCls))(externalSummary.directAncestors.getOrElse(_, Nil))
               .flatMap(externalSummary.directMethods.getOrElse(_, Map()).keysIterator)
               .filter(m => !m.static && m.name != "<init>")
-              .filter(m => !singleAbstractMethods(methodDef.cls).contains(m))
+              .filter(m => !singleAbstractMethods(localReceiverCls).contains(m))
               .filter(m => !ignoreCall(Some(methodDef), m))
               .flatMap { m =>
-                nodeToIndex.get(CallGraphAnalysis.LocalDef(st.MethodDef(methodDef.cls, m)))
+                nodeToIndex.get(CallGraphAnalysis.LocalDef(st.MethodDef(localReceiverCls, m)))
               }
               .toArray
 
           val externalPreciseThisCallbackCalls = externalPreciseThisCalls.flatMap { call =>
-            concreteReceiverLocalMethodIndices(call.cls)
+            concreteReceiverLocalMethodIndices(call.cls, methodDef.cls)
           }
 
           val externalStaticReceiverCallbackCalls = externalStaticReceiverCalls.flatMap { call =>
-            concreteReceiverLocalMethodIndices(call.cls)
+            concreteReceiverLocalMethodIndices(call.cls, methodDef.cls)
           }
 
           val externalKnownArgCallbackCalls = externalKnownArgCalls.flatMap { call =>
-            externalSelfArgClasses(call).flatMap(concreteReceiverLocalMethodIndices)
+            externalSelfArgClasses(call).flatMap { argType =>
+              resolved.externalClassLocalDests
+                .get(argType)
+                .iterator
+                .flatMap(_._1)
+                .flatMap(localReceiverCls => concreteReceiverLocalMethodIndices(argType, localReceiverCls))
+            }
           }
 
           val externalVirtualSelfCallbackCalls = externalVirtualSelfCalls.flatMap { call =>
-            concreteReceiverLocalMethodIndices(call.cls)
+            concreteReceiverLocalMethodIndices(call.cls, methodDef.cls)
           }
 
           val localNoArgVirtualExternalReceiverCallbackCalls =

@@ -25,6 +25,7 @@ object Hello {
 /* expected-direct-call-graph
 {
     "hello.Hello$#simpleArraySeqForeach()int[]": [
+        "hello.Hello$TestArraySeq#<init>(java.lang.Object)void",
         "hello.Hello$TestArraySeq#foreach(scala.Function1)void"
     ],
     "hello.Hello.simpleArraySeqForeach()int[]": [

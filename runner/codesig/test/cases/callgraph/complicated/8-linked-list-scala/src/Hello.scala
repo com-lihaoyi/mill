@@ -41,6 +41,7 @@ object Hello {
 /* expected-direct-call-graph
 {
     "hello.Hello$#simpleLinkedListForeach()int[]": [
+        "hello.Hello$TestCons#<init>(java.lang.Object,hello.Hello$TestList)void",
         "hello.Hello$TestList#foreach(scala.Function1)void",
         "hello.Hello$TestNil$#<init>()void"
     ],
