@@ -177,7 +177,14 @@ object LocalSummary {
     def hashlabel(x: Label): Unit = jumpList.append(x)
 
     def discardPreviousInsn(): Unit = insnSigs(insnSigs.size - 1) = 0
-    def dropPreviousInsn(): Unit = if (insnSigs.nonEmpty) insnSigs.remove(insnSigs.size - 1)
+    def dropPreviousInsn(count: Int): Unit = {
+      val n = math.min(count, insnSigs.size)
+      var i = 0
+      while (i < n) {
+        insnSigs.remove(insnSigs.size - 1)
+        i += 1
+      }
+    }
 
     def isLazyHandleField(name: String): Boolean = LazyHandleSuffix.findFirstIn(name).nonEmpty
     def isLazyName(name: String): Boolean = LazyNameSuffix.findFirstIn(name).nonEmpty
@@ -297,20 +304,16 @@ object LocalSummary {
 
     override def visitLdcInsn(value: Any): Unit = {
       value match {
-        case v: java.lang.String if isLazyName(v) =>
-          // In `<clinit>`, this string is paired with surrounding MethodHandles/Type
-          // bytecode for lazy-handle setup, which is not semantically relevant.
-          if (methodSig.name == "<clinit>") {
-            lazyNameSeenInClinit = true
-            dropPreviousInsn() // drop preceding owner class LDC
-          } else {
-            completeHash()
-          }
+        case v: java.lang.String if methodSig.name == "<clinit>" && isLazyName(v) =>
+          // Drop the preceding `lookup()` and owner-class LDC, then skip the rest of
+          // this lazy-handle setup sequence (`Type` LDC, `findVarHandle`, `PUTSTATIC`).
+          lazyNameSeenInClinit = true
+          dropPreviousInsn(2)
         case _: org.objectweb.asm.Type if methodSig.name == "<clinit>" && lazyNameSeenInClinit =>
           ()
         case _ =>
           if (methodSig.name == "<clinit>" && lazyNameSeenInClinit) lazyNameSeenInClinit = false
-          if (!isLazyName(value.toString)) hash(
+          hash(
             value match {
               case v: java.lang.String => v.hashCode()
               case v: java.lang.Integer => v.hashCode()
