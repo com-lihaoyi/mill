@@ -232,7 +232,7 @@ object CallGraphAnalysis {
           def isExternalStaticReceiverCall(call: MethodCall): Boolean =
             call.invokeType == InvokeType.Static &&
               call.desc.args.headOption.contains(call.cls) &&
-              resolved.externalClassLocalDests.get(call.cls).exists(_._1.contains(methodDef.cls))
+              resolved.externalClassLocalDests.get(call.cls).exists(_._1.nonEmpty)
 
           def externalSelfArgClasses(call: MethodCall): Array[JType.Cls] =
             call.desc.args.collect {
@@ -296,7 +296,11 @@ object CallGraphAnalysis {
           }
 
           val externalStaticReceiverCallbackCalls = externalStaticReceiverCalls.flatMap { call =>
-            concreteReceiverLocalMethodIndices(call.cls, methodDef.cls)
+            resolved.externalClassLocalDests
+              .get(call.cls)
+              .iterator
+              .flatMap(_._1)
+              .flatMap(localReceiverCls => concreteReceiverLocalMethodIndices(call.cls, localReceiverCls))
           }
 
           val externalKnownArgCallbackCalls = externalKnownArgCalls.flatMap { call =>
