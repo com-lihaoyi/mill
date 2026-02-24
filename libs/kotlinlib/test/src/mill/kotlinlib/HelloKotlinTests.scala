@@ -98,14 +98,11 @@ object HelloKotlinTests extends TestSuite {
             "org.jetbrains.kotlin" -> "kotlin-build-tools-api",
             "org.jetbrains.kotlin" -> "kotlin-build-tools-impl"
           )
-          val compatModule = "org.jetbrains.kotlin" -> "kotlin-build-tools-compat"
 
           if (expectedBtApi) {
             assert(btApiModules.subsetOf(modules))
-            assert(modules.contains(compatModule))
           } else {
             assert(btApiModules.intersect(modules).isEmpty)
-            assert(!modules.contains(compatModule))
           }
         })
       }

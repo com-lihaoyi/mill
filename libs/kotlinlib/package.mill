@@ -65,7 +65,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
       super.mandatoryMvnDeps() ++ Seq(
         Deps.osLib,
         Deps.kotlinCompiler,
-        Deps.kotlinBuildToolsApi
+        Deps.kotlinBuildToolsApi_api
       )
   }
 
