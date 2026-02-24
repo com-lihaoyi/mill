@@ -198,7 +198,8 @@ object CallGraphAnalysis {
     }
 
     val localDirectDescendents: Map[JType.Cls, Seq[JType.Cls]] = {
-      val localAncestors = localSummary.mapValues(_.directAncestors.filter(localSummary.contains)).toMap
+      val localAncestors =
+        localSummary.mapValues(_.directAncestors.filter(localSummary.contains)).toMap
       SpanningForest.reverseEdges(localAncestors)
     }
 
@@ -223,12 +224,12 @@ object CallGraphAnalysis {
         case CallGraphAnalysis.LocalDef(methodDef) =>
           def isExternalPreciseThisCall(call: MethodCall): Boolean =
             call.invokeType == InvokeType.Special &&
-            resolved.externalClassLocalDests.get(call.cls).exists(_._1.contains(methodDef.cls))
+              resolved.externalClassLocalDests.get(call.cls).exists(_._1.contains(methodDef.cls))
 
           def isExternalStaticReceiverCall(call: MethodCall): Boolean =
             call.invokeType == InvokeType.Static &&
-            call.desc.args.headOption.contains(call.cls) &&
-            resolved.externalClassLocalDests.get(call.cls).exists(_._1.contains(methodDef.cls))
+              call.desc.args.headOption.contains(call.cls) &&
+              resolved.externalClassLocalDests.get(call.cls).exists(_._1.contains(methodDef.cls))
 
           def externalSelfArgClasses(call: MethodCall): Array[JType.Cls] =
             call.desc.args.collect {
@@ -242,21 +243,22 @@ object CallGraphAnalysis {
 
           def isExternalVirtualSelfCall(call: MethodCall): Boolean =
             call.invokeType == InvokeType.Virtual &&
-            resolved.externalClassLocalDests.get(call.cls).exists(_._1.contains(methodDef.cls))
+              resolved.externalClassLocalDests.get(call.cls).exists(_._1.contains(methodDef.cls))
 
           def isLocalNoArgVirtualExternalReceiverCall(call: MethodCall): Boolean =
             call.invokeType == InvokeType.Virtual &&
-            localSummary.contains(call.cls) &&
-            call.desc.args.isEmpty &&
-            resolved.localCalls(call).localDests.isEmpty &&
-            resolved.localCalls(call).externalDests.nonEmpty
+              localSummary.contains(call.cls) &&
+              call.desc.args.isEmpty &&
+              resolved.localCalls(call).localDests.isEmpty &&
+              resolved.localCalls(call).externalDests.nonEmpty
 
           val calls = methods(methodDef)
             .calls
             .toArray
             .filter(c => !ignoreCall(Some(methodDef), c.toMethodSig))
 
-          val (externalPreciseThisCalls, remainingCalls) = calls.partition(isExternalPreciseThisCall)
+          val (externalPreciseThisCalls, remainingCalls) =
+            calls.partition(isExternalPreciseThisCall)
           val (externalStaticReceiverCalls, remainingCalls2) =
             remainingCalls.partition(isExternalStaticReceiverCall)
           val (externalKnownArgCalls, remainingCalls3) =

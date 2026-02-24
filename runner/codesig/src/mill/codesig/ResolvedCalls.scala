@@ -169,8 +169,8 @@ object ResolvedCalls {
                 .filterNot(_.pretty == "java.lang.Object")
               val isExternalStaticReceiverCall =
                 call.invokeType == InvokeType.Static &&
-                !localSummary.contains(call.cls) &&
-                allArgTypes.headOption.contains(call.cls)
+                  !localSummary.contains(call.cls) &&
+                  allArgTypes.headOption.contains(call.cls)
               val argTypes =
                 if (isExternalStaticReceiverCall) allArgTypes.drop(1)
                 else allArgTypes
