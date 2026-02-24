@@ -415,7 +415,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
     Some((
       ScalaBuildTarget.dataKind,
       ScalaBuildTarget(
-        scalaOrganization = scalaOrganization(),
+        scalaOrganization = JvmWorkerUtil.scalaOrganization(scalaVersion()),
         scalaVersion = scalaVersion(),
         scalaBinaryVersion = JvmWorkerUtil.scalaBinaryVersion(scalaVersion()),
         ScalaPlatform.Native,

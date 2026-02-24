@@ -20,12 +20,52 @@ trait ErrorProneModule extends JavaModule {
   }
 
   /**
+   * Whether to include the `NullAway` compiler plugin dependencies.
+   */
+  def errorProneUseNullAway: T[Boolean] = Task { false }
+
+  /**
+   * The `NullAway` version to use.
+   */
+  def errorProneNullAwayVersion: T[String] = Task { "0.13.1" }
+
+  /**
+   * Optional `NullAway` plugin dependency.
+   */
+  def errorProneNullAwayMvnDeps: T[Seq[Dep]] = Task {
+    if (errorProneUseNullAway()) Seq(mvn"com.uber.nullaway:nullaway:${errorProneNullAwayVersion()}")
+    else Seq()
+  }
+
+  /**
+   * Whether to include the Picnic Error Prone Support compiler plugin dependencies.
+   */
+  def errorProneUsePicnic: T[Boolean] = Task { false }
+
+  /**
+   * The Picnic Error Prone Support version to use.
+   */
+  def errorPronePicnicVersion: T[String] = Task { "0.25.0" }
+
+  /**
+   * Optional Picnic plugin dependencies.
+   */
+  def errorPronePicnicMvnDeps: T[Seq[Dep]] = Task {
+    if (errorProneUsePicnic()) {
+      Seq(
+        mvn"tech.picnic.error-prone-support:error-prone-contrib:${errorPronePicnicVersion()}",
+        mvn"tech.picnic.error-prone-support:refaster-runner:${errorPronePicnicVersion()}"
+      )
+    } else Seq()
+  }
+
+  /**
    * The dependencies of the `error-prone` compiler plugin.
    */
   def errorProneDeps: T[Seq[Dep]] = Task {
     Seq(
       mvn"com.google.errorprone:error_prone_core:${errorProneVersion()}"
-    )
+    ) ++ errorProneNullAwayMvnDeps() ++ errorPronePicnicMvnDeps()
   }
 
   /**

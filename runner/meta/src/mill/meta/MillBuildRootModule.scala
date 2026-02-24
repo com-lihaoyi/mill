@@ -9,7 +9,7 @@ import mill.constants.OutFiles.OutFiles.*
 import mill.api.{Discover, PathRef, Task}
 import mill.api.internal.RootModule
 import mill.scalalib.{Dep, DepSyntax, ScalaModule}
-import mill.javalib.api.{CompilationResult, Versions}
+import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mill.util.{BuildInfo, MainRootModule}
 import mill.api.daemon.internal.MillScalaParser
 import mill.api.JsonFormatters.given
@@ -302,7 +302,7 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
           compileClasspath = compileClasspath().map(_.path),
           javacOptions = jOpts.compiler,
           scalaVersion = scalaVersion(),
-          scalaOrganization = scalaOrganization(),
+          scalaOrganization = JvmWorkerUtil.scalaOrganization(scalaVersion()),
           scalacOptions = allScalacOptions(),
           compilerClasspath = scalaCompilerClasspath(),
           scalacPluginClasspath = scalacPluginClasspath(),

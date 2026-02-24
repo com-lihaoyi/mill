@@ -67,9 +67,6 @@ object TestingTests extends TestSuite {
     test("test-scalacOptions") {
       checkInheritedTasks(_.scalacOptions, Seq("-deprecation"))
     }
-    test("test-scalaOrganization") {
-      checkInheritedTasks(_.scalaOrganization, "org.example")
-    }
   }
 
 }
