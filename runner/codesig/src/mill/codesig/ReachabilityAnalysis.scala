@@ -214,20 +214,19 @@ object CallGraphAnalysis {
           local ++ external
 
         case CallGraphAnalysis.LocalDef(methodDef) =>
-          def isExternalCtorCall(call: MethodCall): Boolean =
+          def isExternalPreciseThisCall(call: MethodCall): Boolean =
             call.invokeType == InvokeType.Special &&
-            call.toMethodSig.name == "<init>" &&
             resolved.externalClassLocalDests.get(call.cls).exists(_._1.contains(methodDef.cls))
 
-          val (externalCtorCalls, otherCalls) = methods(methodDef)
+          val (externalPreciseThisCalls, otherCalls) = methods(methodDef)
             .calls
             .toArray
             .filter(c => !ignoreCall(Some(methodDef), c.toMethodSig))
-            .partition(isExternalCtorCall)
+            .partition(isExternalPreciseThisCall)
 
           val normalCalls = otherCalls.map(c => nodeToIndex(CallGraphAnalysis.Call(c)))
 
-          val externalCtorCallbackCalls = externalCtorCalls.flatMap { call =>
+          val externalPreciseThisCallbackCalls = externalPreciseThisCalls.flatMap { call =>
             val localMethodsOnConcreteReceiver =
               mill.internal.SpanningForest
                 .breadthFirst(Seq(call.cls))(externalSummary.directAncestors.getOrElse(_, Nil))
@@ -251,7 +250,7 @@ object CallGraphAnalysis {
                 .flatMap(samSig => nodeToIndex.get(LocalDef(st.MethodDef(methodDef.cls, samSig))))
             }
 
-          normalCalls ++ externalCtorCallbackCalls ++ singleAbstractMethodInitEdge
+          normalCalls ++ externalPreciseThisCallbackCalls ++ singleAbstractMethodInitEdge
 
         case CallGraphAnalysis.ExternalClsCall(externalCls) =>
           val local = resolved

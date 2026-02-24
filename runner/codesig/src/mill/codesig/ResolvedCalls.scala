@@ -169,7 +169,6 @@ object ResolvedCalls {
                 if (
                   call.invokeType == InvokeType.Static ||
                   (call.invokeType == InvokeType.Special &&
-                    call.toMethodSig.name == "<init>" &&
                     !localSummary.contains(call.cls))
                 )
                   Set.empty[JCls]
