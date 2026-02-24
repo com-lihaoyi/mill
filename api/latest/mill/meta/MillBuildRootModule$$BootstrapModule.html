@@ -1096,7 +1096,7 @@ node41 -> node18;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="allSourceFiles-0" data-f-keywords="override" data-f-inherited="MillBuildRootModule">
+        <div class="documentableElement" id="allSourceFiles-0" data-f-keywords="override" data-f-inherited="ScalaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
@@ -1124,20 +1124,20 @@ node41 -> node18;
               </dt>
               <dd class="body-medium">
                <div>
-                <a href="MillBuildRootModule.html#allSourceFiles-0">MillBuildRootModule</a> -&gt; <a href="../scalalib/ScalaModule.html">ScalaModule</a> -&gt; <a href="../javalib/JavaModule.html">JavaModule</a> -&gt; <a href="../javalib/SemanticDbJavaModule.html">SemanticDbJavaModule</a>
+                <a href="../scalalib/ScalaModule.html#allSourceFiles-0">ScalaModule</a> -&gt; <a href="../javalib/JavaModule.html">JavaModule</a> -&gt; <a href="../javalib/SemanticDbJavaModule.html">SemanticDbJavaModule</a>
                </div>
               </dd>
               <dt class="body-small">
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="MillBuildRootModule.html#allSourceFiles-0">MillBuildRootModule</a>
+               <a href="../scalalib/ScalaModule.html#allSourceFiles-0">ScalaModule</a>
               </dd>
               <dt class="body-small">
                Source
               </dt>
               <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/runner/meta/src/mill/meta/MillBuildRootModule.scala" target="_blank">MillBuildRootModule.scala</a>
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/scalalib/src/mill/scalalib/ScalaModule.scala" target="_blank">ScalaModule.scala</a>
               </dd>
              </dl>
             </div>
@@ -3773,7 +3773,7 @@ node41 -> node18;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MillBuildRootModule$$BootstrapModule.html#generatedScriptSources-0" t="n" class="documentableName ">generatedScriptSources</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[(wrapped: <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>], support: <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>], resources: <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>])]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MillBuildRootModule$$BootstrapModule.html#generatedScriptSources-0" t="n" class="documentableName ">generatedScriptSources</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[(wrapped: <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>], support: <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>], resources: <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>], mappings: <span data-unresolved-link="" t="t">Seq</span>[(original: <a href="../api/PathRef.html" t="t">PathRef</a>, generated: <a href="../api/PathRef.html" t="t">PathRef</a>)])]
            </div>
           </div>
          </div>
@@ -9524,6 +9524,63 @@ node41 -> node18;
               </dt>
               <dd class="body-medium">
                <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/util/src/mill/util/MainModule.scala" target="_blank">MainModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="wrappedSources-0" data-f-keywords="override" data-f-inherited="MillBuildRootModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="MillBuildRootModule$$BootstrapModule.html#wrappedSources-0" t="n" class="documentableName ">wrappedSources</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[(original: <a href="../api/PathRef.html" t="t">PathRef</a>, generated: <a href="../api/PathRef.html" t="t">PathRef</a>)]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Pairs of original sources and their generated counterparts</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Pairs of original sources and their generated counterparts</p>
+              <p>Original sources are user-facing sources, like <code>build.mill</code> or <code>package.mill</code> files in Mill builds. Generated ones are the final sources passed to the Scala compiler, like the Scala sources generated by Mill out of <code>build.mill</code> or <code>package.mill</code> files.</p>
+              <p>Original sources shouldn't be passed to the compiler, while generated ones are.</p>
+              <p>These sources are passed to BSP clients via the buildTarget/wrappedSources request, originally implemented in Scala CLI, and having an lsp4j-compatible implementation in org.virtuslab.scala-cli:scala-cli-bsp:<em>scala-cli-version</em></p>
+              <p>Generated sources are assumed to consist in a header, followed by the content of the original source, and lastly a footer. The header and the content of the original source must be separated by</p>
+              <p>//SOURCECODE_ORIGINAL_CODE_START_MARKER</p>
+              <p>on a single line.</p>
+              <p>Without this separator, these sources are not passed to BSP clients.</p>
+              <p>As of writing this, further changes in the original sources prior to adding them in the generated ones (like removing package directives, which Mill does to its build files) are not reported to BSP clients, and must be handled by them in an ad hoc fashion.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="MillBuildRootModule.html#wrappedSources-0">MillBuildRootModule</a> -&gt; <a href="../javalib/JavaModule.html">JavaModule</a>
+               </div>
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="MillBuildRootModule.html#wrappedSources-0">MillBuildRootModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/runner/meta/src/mill/meta/MillBuildRootModule.scala" target="_blank">MillBuildRootModule.scala</a>
               </dd>
              </dl>
             </div>
