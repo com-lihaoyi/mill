@@ -124,7 +124,8 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
 
     Task.log.debug(s"effective javac options: ${javacOpts}")
 
-    val (javacCompilerOptions, legacyRuntimeOptions) = JavaModule.splitJavacAndRuntimeOptions(javacOpts)
+    val (javacCompilerOptions, legacyRuntimeOptions) =
+      JavaModule.splitJavacAndRuntimeOptions(javacOpts)
     if (legacyRuntimeOptions.nonEmpty) {
       Task.log.warn(
         "`-J` options in `javacOptions` are deprecated; use `jvmOptions` instead" +
