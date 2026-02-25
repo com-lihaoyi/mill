@@ -36,12 +36,14 @@ object LocalSummary {
   }
   case class MethodInfo(
       calls: Set[MethodCall],
+      callArg0SlotTypes: Map[MethodCall, Set[JCls]],
+      callRefArgSlotTypes: Map[MethodCall, Set[JCls]],
       isPrivate: Boolean,
       codeHash: Int,
       isAbstract: Boolean
   )
   object MethodInfo {
-    given rw: ReadWriter[MethodInfo] = macroRW
+    implicit def rw(using st: SymbolTable): ReadWriter[MethodInfo] = macroRW
   }
 
   implicit def rw(using st: SymbolTable): ReadWriter[LocalSummary] = macroRW
@@ -60,6 +62,8 @@ object LocalSummary {
         .map { v =>
           val cls = v.clsType
           val methodCallGraphs = v.classCallGraph.result()
+          val methodCallArg0SlotTypes = v.classMethodCallArg0SlotTypes.result()
+          val methodCallRefArgSlotTypes = v.classMethodCallRefArgSlotTypes.result()
           val methodHashes = v.classMethodHashes.result()
           val methodPrivate = v.classMethodPrivate.result()
           val methodAbstract = v.classMethodAbstract.result()
@@ -71,6 +75,8 @@ object LocalSummary {
               .map { m =>
                 m -> MethodInfo(
                   methodCallGraphs(m),
+                  methodCallArg0SlotTypes(m),
+                  methodCallRefArgSlotTypes(m),
                   methodPrivate(m),
                   methodHashes(m),
                   methodAbstract(m)
@@ -93,6 +99,12 @@ object LocalSummary {
       Map.newBuilder[MethodSig, Boolean]
     val classMethodAbstract: mutable.Builder[(MethodSig, Boolean), Map[MethodSig, Boolean]] =
       Map.newBuilder[MethodSig, Boolean]
+    val classMethodCallArg0SlotTypes
+        : mutable.Builder[(MethodSig, Map[MethodCall, Set[JCls]]), Map[MethodSig, Map[MethodCall, Set[JCls]]]] =
+      Map.newBuilder[MethodSig, Map[MethodCall, Set[JCls]]]
+    val classMethodCallRefArgSlotTypes
+        : mutable.Builder[(MethodSig, Map[MethodCall, Set[JCls]]), Map[MethodSig, Map[MethodCall, Set[JCls]]]] =
+      Map.newBuilder[MethodSig, Map[MethodCall, Set[JCls]]]
     var clsType: JCls = null
     var directSuperClass: Option[JCls] = None
     var directAncestors: Set[JCls] = Set()
@@ -135,6 +147,10 @@ object LocalSummary {
     private val LazyNameSuffix = "\\$lzy\\d+$".r
 
     val outboundCalls: mutable.Set[MethodCall] = collection.mutable.Set.empty[MethodCall]
+    val outboundCallArg0SlotTypes: mutable.Map[MethodCall, mutable.Set[JCls]] =
+      collection.mutable.Map.empty[MethodCall, mutable.Set[JCls]]
+    val outboundCallRefArgSlotTypes: mutable.Map[MethodCall, mutable.Set[JCls]] =
+      collection.mutable.Map.empty[MethodCall, mutable.Set[JCls]]
     val labelIndices: mutable.Map[Label, Int] = collection.mutable.Map.empty[Label, Int]
     val jumpList: mutable.Buffer[Label] = collection.mutable.Buffer.empty[Label]
 
@@ -153,6 +169,34 @@ object LocalSummary {
     var isScala3LazyInit = name.contains("$lzyINIT")
     var endScala3LazyInit = false
     var lazyNameSeenInClinit = false
+    var lastALoadSlot: Option[Int] = None
+    val recentALoadSlots: mutable.ArrayBuffer[Int] = mutable.ArrayBuffer.empty[Int]
+
+    val paramSlotTypes: Map[Int, JCls] = {
+      val b = Map.newBuilder[Int, JCls]
+      var slot = if ((access & Opcodes.ACC_STATIC) != 0) 0 else 1
+      if ((access & Opcodes.ACC_STATIC) == 0) b += 0 -> currentCls
+      for (arg <- methodSig.desc.args) {
+        arg match {
+          case c: JCls => b += slot -> c
+          case _ =>
+        }
+        slot = slot + (arg match {
+          case JType.Prim.J | JType.Prim.D => 2
+          case _ => 1
+        })
+      }
+      b.result()
+    }
+    val localSlotTypes: mutable.Map[Int, JCls] = mutable.Map.from(paramSlotTypes)
+    var lastPushedRefType: Option[JCls] = None
+
+    def setLastPushedRefTypeFromDesc(desc: Desc): Unit = {
+      lastPushedRefType = desc.ret match {
+        case c: JCls => Some(c)
+        case _ => None
+      }
+    }
     def hash(x: Int): Unit = {
       if (!isScala3LazyInit && !endScala3LazyInit) {
         insnHash = scala.util.hashing.MurmurHash3.mix(insnHash, x)
@@ -173,6 +217,19 @@ object LocalSummary {
     }
 
     def storeCallEdge(x: MethodCall): Unit = outboundCalls.add(x)
+    def storeCallArg0SlotType(call: MethodCall, arg0Type: JCls): Unit = {
+      val s = outboundCallArg0SlotTypes.getOrElseUpdate(call, collection.mutable.Set.empty[JCls])
+      s += arg0Type
+    }
+    def storeCallRefArgSlotType(call: MethodCall, argType: JCls): Unit = {
+      val s = outboundCallRefArgSlotTypes.getOrElseUpdate(call, collection.mutable.Set.empty[JCls])
+      s += argType
+    }
+
+    def clearLastALoadSlot(): Unit = {
+      lastALoadSlot = None
+      recentALoadSlots.clear()
+    }
 
     def hashlabel(x: Label): Unit = jumpList.append(x)
 
@@ -195,6 +252,7 @@ object LocalSummary {
         name: String,
         descriptor: String
     ): Unit = {
+      clearLastALoadSlot()
       val lazyValBodyStart = (owner, name, descriptor) match {
         case (
               "scala/runtime/LazyVals$Evaluating$",
@@ -228,20 +286,30 @@ object LocalSummary {
         completeHash()
         clinitCall(owner)
       }
+      lastPushedRefType =
+        if (opcode == Opcodes.GETFIELD || opcode == Opcodes.GETSTATIC) JType.read(descriptor) match {
+          case c: JCls => Some(c)
+          case _ => None
+        }
+        else None
     }
 
     override def visitIincInsn(varIndex: Int, increment: Int): Unit = {
+      clearLastALoadSlot()
       hash(varIndex)
       hash(increment)
       completeHash()
     }
 
     override def visitInsn(opcode: Int): Unit = {
+      clearLastALoadSlot()
       hash(opcode)
       completeHash()
+      lastPushedRefType = None
     }
 
     override def visitIntInsn(opcode: Int, operand: Int): Unit = {
+      clearLastALoadSlot()
       hash(opcode)
       hash(operand)
       completeHash()
@@ -253,6 +321,7 @@ object LocalSummary {
         bootstrapMethodHandle: Handle,
         bootstrapMethodArguments: Object*
     ): Unit = {
+      clearLastALoadSlot()
       // Hash the invokedynamic name and descriptor to detect changes in the
       // dynamic call site (e.g. makeConcatWithConstants for string concatenation)
       hash(name.hashCode)
@@ -293,6 +362,7 @@ object LocalSummary {
     }
 
     override def visitJumpInsn(opcode: Int, label: Label): Unit = {
+      clearLastALoadSlot()
       hashlabel(label)
       hash(opcode)
       completeHash()
@@ -303,6 +373,7 @@ object LocalSummary {
     }
 
     override def visitLdcInsn(value: Any): Unit = {
+      clearLastALoadSlot()
       value match {
         case v: java.lang.String if methodSig.name == "<clinit>" && isLazyName(v) =>
           // Drop the preceding `lookup()` and owner-class LDC, then skip the rest of
@@ -327,6 +398,11 @@ object LocalSummary {
           )
           completeHash()
       }
+      lastPushedRefType = value match {
+        case _: java.lang.String => Some(JCls.fromSlashed("java/lang/String"))
+        case _: org.objectweb.asm.Type => Some(JCls.fromSlashed("java/lang/Class"))
+        case _ => None
+      }
     }
 
     override def visitLookupSwitchInsn(
@@ -334,6 +410,7 @@ object LocalSummary {
         keys: Array[Int],
         labels: Array[Label]
     ): Unit = {
+      clearLastALoadSlot()
       keys.foreach(hash)
       labels.foreach(hashlabel)
       Option(dflt).foreach(hashlabel)
@@ -347,6 +424,20 @@ object LocalSummary {
         descriptor: String,
         isInterface: Boolean
     ): Unit = {
+      val desc = st.Desc.read(descriptor)
+      val arg0RefTypeOpt =
+        if (
+          opcode == Opcodes.INVOKESTATIC &&
+          desc.args.headOption.exists(_.isInstanceOf[JCls])
+        ) lastALoadSlot.flatMap(paramSlotTypes.get)
+        else None
+      val refArgSlotTypes: Set[JCls] = {
+        val refArgCount = desc.args.count(_.isInstanceOf[JCls])
+        if (refArgCount > 0 && recentALoadSlots.size >= refArgCount) {
+          recentALoadSlots.takeRight(refArgCount).flatMap(localSlotTypes.get).toSet
+        } else Set.empty
+      }
+
       val isMethodHandlesLookupInClinit =
         methodSig.name == "<clinit>" &&
           lazyNameSeenInClinit &&
@@ -376,7 +467,7 @@ object LocalSummary {
             case Opcodes.INVOKEINTERFACE => InvokeType.Virtual
           },
           name,
-          st.Desc.read(descriptor)
+          desc
         )
 
         // HACK: we skip any constants that get passed to `sourcecode.Line()`,
@@ -397,18 +488,24 @@ object LocalSummary {
         hash(isInterface.hashCode)
 
         storeCallEdge(call)
+        arg0RefTypeOpt.foreach(storeCallArg0SlotType(call, _))
+        refArgSlotTypes.foreach(storeCallRefArgSlotType(call, _))
         clinitCall(owner)
         completeHash()
       }
+      setLastPushedRefTypeFromDesc(desc)
+      clearLastALoadSlot()
     }
 
     override def visitMultiANewArrayInsn(descriptor: String, numDimensions: Int): Unit = {
+      clearLastALoadSlot()
       hash(descriptor.hashCode)
       hash(numDimensions)
       completeHash()
     }
 
     override def visitTableSwitchInsn(min: Int, max: Int, dflt: Label, labels: Label*): Unit = {
+      clearLastALoadSlot()
       hash(min)
       hash(max)
       labels.foreach(hashlabel)
@@ -417,13 +514,30 @@ object LocalSummary {
     }
 
     override def visitTypeInsn(opcode: Int, `type`: String): Unit = {
+      clearLastALoadSlot()
       clinitCall(`type`)
       hash(`type`.hashCode)
       hash(opcode)
       completeHash()
+      lastPushedRefType =
+        if (opcode == Opcodes.NEW) Some(JCls.fromSlashed(`type`))
+        else None
     }
 
     override def visitVarInsn(opcode: Int, varIndex: Int): Unit = {
+      opcode match {
+        case Opcodes.ALOAD =>
+          lastALoadSlot = Some(varIndex)
+          recentALoadSlots.append(varIndex)
+          lastPushedRefType = localSlotTypes.get(varIndex)
+        case Opcodes.ASTORE =>
+          clearLastALoadSlot()
+          lastPushedRefType.foreach(localSlotTypes(varIndex) = _)
+          lastPushedRefType = None
+        case _ =>
+          clearLastALoadSlot()
+          lastPushedRefType = None
+      }
       hash(varIndex)
       hash(opcode)
       completeHash()
@@ -437,6 +551,12 @@ object LocalSummary {
       ))
       clsVisitor.classMethodPrivate.addOne((methodSig, (access & Opcodes.ACC_PRIVATE) != 0))
       clsVisitor.classMethodAbstract.addOne((methodSig, (access & Opcodes.ACC_ABSTRACT) != 0))
+      clsVisitor.classMethodCallArg0SlotTypes.addOne(
+        methodSig -> outboundCallArg0SlotTypes.view.mapValues(_.toSet).toMap
+      )
+      clsVisitor.classMethodCallRefArgSlotTypes.addOne(
+        methodSig -> outboundCallRefArgSlotTypes.view.mapValues(_.toSet).toMap
+      )
 
     }
   }

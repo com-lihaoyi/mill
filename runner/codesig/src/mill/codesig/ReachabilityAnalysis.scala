@@ -234,12 +234,22 @@ object CallGraphAnalysis {
               call.desc.args.headOption.contains(call.cls) &&
               resolved.externalClassLocalDests.get(call.cls).exists(_._1.nonEmpty)
 
-          def externalSelfArgClasses(call: MethodCall): Array[JType.Cls] =
+          def descriptorExternalSelfArgClasses(call: MethodCall): Array[JType.Cls] =
             call.desc.args.collect {
               case c: JType.Cls
                   if resolved.externalClassLocalDests.get(c).exists(_._1.nonEmpty) =>
                 c
             }.toArray
+
+          def externalSelfArgClasses(call: MethodCall): Array[JType.Cls] = {
+            val slotTypedClasses = methods(methodDef)
+              .callRefArgSlotTypes
+              .getOrElse(call, Set.empty)
+              .filter(c => resolved.externalClassLocalDests.get(c).exists(_._1.nonEmpty))
+              .toArray
+            if (slotTypedClasses.nonEmpty) slotTypedClasses
+            else descriptorExternalSelfArgClasses(call)
+          }
 
           def isExternalKnownArgCall(call: MethodCall): Boolean =
             (call.invokeType == InvokeType.Static || call.invokeType == InvokeType.Special) &&
@@ -296,11 +306,21 @@ object CallGraphAnalysis {
           }
 
           val externalStaticReceiverCallbackCalls = externalStaticReceiverCalls.flatMap { call =>
-            resolved.externalClassLocalDests
-              .get(call.cls)
-              .iterator
-              .flatMap(_._1)
-              .flatMap(localReceiverCls => concreteReceiverLocalMethodIndices(call.cls, localReceiverCls))
+            val arg0Types =
+              methods(methodDef).callArg0SlotTypes.getOrElse(call, Set.empty) match {
+                case s if s.nonEmpty => s
+                case _ => Set(call.cls)
+              }
+
+            arg0Types.iterator.flatMap { arg0Type =>
+              resolved.externalClassLocalDests
+                .get(arg0Type)
+                .iterator
+                .flatMap(_._1)
+                .flatMap(localReceiverCls =>
+                  concreteReceiverLocalMethodIndices(call.cls, localReceiverCls)
+                )
+            }
           }
 
           val externalKnownArgCallbackCalls = externalKnownArgCalls.flatMap { call =>
