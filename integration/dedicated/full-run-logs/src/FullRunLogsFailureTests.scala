@@ -135,7 +135,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "build.mill-<digits>] ",
           "build.mill-<digits>] [error] one error found",
           "build.mill-<digits>] [error] compile task failed",
-          ".../..., 1 FAILED] mill jar",
+          ".../...+, 1 FAILED] mill jar",
           "build.mill-<digits>] [error] compile Compilation failed"
         )
       )

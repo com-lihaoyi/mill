@@ -90,7 +90,7 @@ case class Execution(
     classLoaderSigHash = classLoaderSigHash,
     classLoaderIdentityHash = classLoaderIdentityHash,
     workerCache = workerCache,
-    env = env,
+    env = EnvMap.asEnvMap(env),
     failFast = failFast,
     ec = ec,
     codeSignatures = codeSignatures,
@@ -178,6 +178,8 @@ case class Execution(
       val futures = mutable.Map.empty[Task[?], Future[Option[GroupExecution.Results]]]
 
       val keySuffix = s"/${indexToTerminal.size}"
+      // Add a extra marker if we're on a deeper level, https://github.com/com-lihaoyi/mill/issues/6817
+      val extraKeySuffix = if (isFinalDepth) "" else "+"
 
       def formatHeaderPrefix(completed: Boolean = false) = {
         val completedMsg = mill.api.internal.Util.leftPad(
@@ -185,7 +187,7 @@ case class Execution(
           indexToTerminal.size.toString.length,
           '0'
         )
-        s"$completedMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get(), completed, logger.prompt.errorColor, logger.prompt.successColor)}"
+        s"$completedMsg$keySuffix$extraKeySuffix${Execution.formatFailedCount(rootFailedCount.get(), completed, logger.prompt.errorColor, logger.prompt.successColor)}"
       }
 
       val tasksTransitive = PlanImpl.transitiveTasks(Seq.from(indexToTerminal)).toSet
@@ -324,7 +326,7 @@ case class Execution(
                 case e: mill.api.daemon.StopWithResponse[?] => throw e
                 // Wrapping the fatal error in a non-fatal exception, so it would be caught by Scala's Future
                 // infrastructure, rather than silently terminating the future and leaving downstream Awaits hanging.
-                case e: Throwable if !scala.util.control.NonFatal(e) =>
+                case e: Throwable if !mill.api.daemon.internal.NonFatal(e) =>
                   val nonFatal = new Exception(s"fatal exception occurred: $e", e)
                   // Set the stack trace of the non-fatal exception to the original exception's stack trace
                   // as it actually indicates the location of the error.

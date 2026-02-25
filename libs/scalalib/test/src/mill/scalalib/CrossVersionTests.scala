@@ -237,7 +237,7 @@ object CrossVersionTests extends TestSuite {
     }
 
     test("Scala213DependsOnScala38") {
-      // Scala 2.13 module remaps scala-library to its own version via mapDependencies
+      // Scala 2.13 module remaps scala-library to its own version via resolutionParams
       check(
         mod = Scala213DependsOnScala38,
         expectedLibs = Seq(

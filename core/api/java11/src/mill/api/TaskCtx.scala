@@ -43,7 +43,7 @@ object TaskCtx {
       val args: IndexedSeq[?],
       dest0: () => os.Path,
       val log: Logger,
-      val env: Map[String, String],
+      private val _env: Map[String, String],
       val reporter: Int => Option[CompileProblemReporter],
       val testReporter: TestReporter,
       val workspace: os.Path,
@@ -53,6 +53,9 @@ object TaskCtx {
       val offline: Boolean,
       override val useFileLocks: Boolean
   ) extends TaskCtx {
+
+    override val env: Map[String, String] = EnvMap.asEnvMap(_env)
+
     override def systemExitWithReason(reason: String, exitCode: Int): Nothing =
       _systemExitWithReason(reason, exitCode)
 

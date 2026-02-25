@@ -346,7 +346,7 @@ final class EvaluatorImpl(
           args = Vector(),
           dest0 = () => null,
           log = logger,
-          env = this.execution.env,
+          _env = this.execution.env,
           reporter = reporter,
           testReporter = testReporter,
           workspace = workspace,

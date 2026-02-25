@@ -1,4 +1,4 @@
-//| mill-version: 1.1.2
+//| mill-version: 1.1.2-28-0db1ac
 //| mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
 //| mill-opts: ["--jobs=0.5C", "-DMILL_ENABLE_STATIC_CHECKS=true"]
 
@@ -185,8 +185,8 @@ def listCross(using ctx: mill.api.ModuleCtx) = BuildCtx.watchValue {
 
 val dummyDeps: Seq[Dep] = Seq(
   Deps.DocDeps.millScip,
-  Deps.semanticDbJava,
-  Deps.semanticDBscala,
+  Deps.semanticDbJava_runtime,
+  Deps.semanticDBscala_runtime,
   Deps.TestDeps.scalaTest,
   Deps.TestDeps.zioTest,
   Deps.acyclic,

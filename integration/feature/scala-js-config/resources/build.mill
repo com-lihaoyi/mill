@@ -1,0 +1,24 @@
+package build
+import mill.*
+import mill.scalajslib.*
+import mill.scalajslib.config.*
+import mill.scalalib.*
+
+object `package` extends ScalaJSConfigModule {
+  // using old versions of stuff to be able to check that
+  // old Scala.js versions are fine
+  def scalaVersion = "3.3.1"
+  def mvnDeps = Seq(
+    mvn"com.lihaoyi::upickle::4.4.1"
+  )
+  // scalaJSConfig should take over, and source map should be there
+  override def scalaJSSourceMap = false
+  def scalaJSConfig = Task.Anon {
+    super.scalaJSConfig()
+      .withCheckIR(true)
+      .withSourceMap(true)
+  }
+  object test extends ScalaJSConfigTests with TestModule.Utest {
+    def utestVersion = "0.8.3"
+  }
+}

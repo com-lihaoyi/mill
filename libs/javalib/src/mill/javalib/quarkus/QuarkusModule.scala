@@ -9,6 +9,8 @@ import upickle.default.ReadWriter.join
 
 import java.io.File
 import java.net.URLClassLoader
+import java.util.Properties
+import scala.util.Using
 
 @mill.api.experimental
 trait QuarkusModule extends JavaModule { outer =>
@@ -70,10 +72,9 @@ trait QuarkusModule extends JavaModule { outer =>
   }
 
   override def bomMvnDeps: T[Seq[Dep]] = Task {
-    val boms = super.bomMvnDeps() ++ Seq(
+    super.bomMvnDeps() ++ Seq(
       mvn"io.quarkus.platform:quarkus-bom:${quarkusPlatformVersion()}"
     )
-    boms.distinct
   }
 
   /**
@@ -165,13 +166,15 @@ trait QuarkusModule extends JavaModule { outer =>
    * This mechanism is not fully implemneted yet, and only works for a single module.
    */
   def quarkusDependencies: T[Seq[ApplicationModelWorker.Dependency]] = Task {
-    val runtimeConfig = coursier.core.Configuration.runtime
-
     val depRuntime = coursierDependencyTask().withVariantSelector(
-      ConfigurationBased(runtimeConfig)
+      ConfigurationBased(coursier.core.Configuration.runtime)
     )
 
-    val resolvedDepArtifacts =
+    val depCompile = coursierDependencyTask().withVariantSelector(
+      ConfigurationBased(coursier.core.Configuration.compile)
+    )
+
+    val runtimeDeps =
       millResolver().artifacts(Seq(mill.javalib.BoundDep(depRuntime, force = false)))
 
     def qualifier(d: coursier.core.Dependency) =
@@ -183,26 +186,21 @@ trait QuarkusModule extends JavaModule { outer =>
     def isDirectDep(d: coursier.core.Module): Boolean =
       mvnDeps().exists(dep => dep.dep.module == d)
 
-    val runtimeDeps = resolvedDepArtifacts.detailedArtifacts0
-      .filter(_._1.variantSelector.asConfiguration.contains(runtimeConfig))
+    val runtimeDepSet = runtimeDeps.detailedArtifacts0.map(da => qualifier(da._1)).toSet
 
-    val runtimeDepSet = runtimeDeps
-      .map(da => qualifier(da._1)).toSet
-
-    val quarkusPrecomputedRuntimeDeps = runtimeDeps
-      .map {
-        case (dependency, _, _, file) =>
-          ApplicationModelWorker.Dependency(
-            groupId = dependency.module.organization.value,
-            artifactId = dependency.module.name.value,
-            version = dependency.versionConstraint.asString,
-            resolvedPath = os.Path(file),
-            isRuntime = true,
-            isDeployment = false,
-            isTopLevelArtifact = isDirectDep(dependency.module),
-            hasExtension = false
-          )
-      }
+    val quarkusPrecomputedRuntimeDeps = runtimeDeps.detailedArtifacts0.map {
+      case (dependency, _, _, file) =>
+        ApplicationModelWorker.Dependency(
+          groupId = dependency.module.organization.value,
+          artifactId = dependency.module.name.value,
+          version = dependency.versionConstraint.asString,
+          resolvedPath = os.Path(file),
+          isRuntime = true,
+          isDeployment = false,
+          isTopLevelArtifact = isDirectDep(dependency.module),
+          hasExtension = false
+        )
+    }
 
     val depsWithExtensions = quarkusApplicationModelWorker().quarkusDeploymentDependencies(
       quarkusPrecomputedRuntimeDeps
@@ -239,16 +237,15 @@ trait QuarkusModule extends JavaModule { outer =>
       deploymentDepsSet.contains(wQualifier(d))
     )
 
-    val compileDeps = resolvedDepArtifacts.detailedArtifacts0
-      .filterNot(_._1.variantSelector.asConfiguration.contains(runtimeConfig))
-      .filterNot {
+    val compileDeps =
+      millResolver().artifacts(Seq(mill.javalib.BoundDep(depCompile, force = false)))
+
+    val quarkusCompileDeps =
+      compileDeps.detailedArtifacts0.filterNot {
         da =>
           val q = qualifier(da._1)
           runtimeDepSet.contains(q) || deploymentDepsSet.contains(q) || extensionDepsSet.contains(q)
-      }
-
-    val quarkusCompileDeps =
-      compileDeps.map {
+      }.map {
         case (dependency, _, _, file) =>
           ApplicationModelWorker.Dependency(
             groupId = dependency.module.organization.value,
@@ -299,29 +296,60 @@ trait QuarkusModule extends JavaModule { outer =>
   }
 
   /**
+   * Quarkus scans certain directory structures (e.g. for
+   * integration tests) so we place the compiled classes as expected in a
+   * fresh directory
+   */
+  def quarkusBuildDirectory: T[PathRef] = Task {
+    val compilePath = compile().classes.path
+    val targetDir = quarkusAppMode() match {
+      case ApplicationModelWorker.AppMode.App =>
+        "main"
+      case ApplicationModelWorker.AppMode.Test =>
+        "test"
+    }
+    val buildDir = Task.dest / "classes/java" / targetDir
+    os.makeDir.all(buildDir)
+    os.list(compilePath).foreach(p => os.copy.into(p, buildDir))
+    PathRef(buildDir)
+  }
+
+  override def localRunClasspath: T[Seq[PathRef]] = Task {
+    resources() ++ Seq(quarkusBuildDirectory())
+  }
+
+  /**
    * The module data to pass to the quarkus ApplicationModel
    */
   def quarkusModuleData: T[Seq[ApplicationModelWorker.ModuleData]] = Task {
     Seq(
       ApplicationModelWorker.ModuleData(
         quarkusModuleClassifier(),
-        ApplicationModelWorker.Source(sources().head.path, compile().classes.path),
+        ApplicationModelWorker.Source(sources().head.path, quarkusBuildDirectory().path),
         ApplicationModelWorker.Source(resources().head.path, quarkusBuildResources().path)
       )
     )
   }
 
+  def transitiveQuarkusModuleData: T[Seq[ApplicationModelWorker.ModuleData]] = Task {
+    val t = Task.sequence(moduleDepsChecked.collect {
+      case module: QuarkusModule => module.quarkusModuleData
+    })()
+
+    quarkusModuleData() ++ t.flatten
+  }
+
   def quarkusAppModel: T[ApplicationModelWorker.AppModel] = Task {
     ApplicationModelWorker.AppModel(
-      projectRoot = moduleDir,
-      buildDir = compile().classes.path,
+      projectRoot = outer.moduleDir,
+      buildDir = outer.compile().classes.path,
       buildFile = quarkusMillBuildFile().path,
       quarkusVersion = quarkusPlatformVersion(),
       groupId = artifactGroupId(),
       artifactId = artifactId(),
       version = artifactVersion(),
-      moduleData = quarkusModuleData(),
-      boms = bomMvnDeps().distinct.map(_.formatted),
+      moduleData = transitiveQuarkusModuleData(),
+      boms = bomMvnDeps().map(_.formatted),
       dependencies = quarkusDependencies(),
       nativeImage = quarkusNativeImage(),
       appMode = quarkusAppMode()
@@ -334,7 +362,104 @@ trait QuarkusModule extends JavaModule { outer =>
       Task.dest
     )
     PathRef(modelPath)
+  }
 
+  /**
+   * The properties for building a jar-based Quarkus App.
+   */
+  def quarkusJarBuildProperties: T[Map[String, String]] = Task {
+    Map(
+      "quarkus.native.enabled" -> "false"
+    )
+  }
+
+  /**
+   * Java home is required for native builds as we need to point to a GraalVM distribution.
+   * This task will fail if javaHome is not configured.
+   */
+  private def nativeJavaHome: T[PathRef] = Task {
+    javaHome() match {
+      case Some(p) => p
+      case None =>
+        Task.fail(
+          "javaHome is not configured but required for native builds.\n" +
+            "Set `jvmVersion` (or override `javaHome`) to point to a GraalVM distribution."
+        )
+    }
+  }
+
+  /**
+   * The properties for building a native Quarkus App.
+   * For more options see [[https://quarkus.io/guides/building-native-image#configuration-reference]]
+   */
+  def quarkusNativeBuildProperties: T[Map[String, String]] = Task {
+    val home = nativeJavaHome().path.toString
+    Map(
+      "quarkus.package.jar.enabled" -> "false",
+      "quarkus.native.enabled" -> "true",
+      "quarkus.native.graalvm-home" -> home,
+      "quarkus.native.java-home" -> home
+    )
+  }
+
+  private def writeBuildPropertiesFile(destDir: os.Path, props: Map[String, String]): PathRef = {
+    val file = destDir / "quarkus-build.properties"
+    val properties = new Properties()
+    props.foreach { case (key, value) => properties.put(key, value) }
+    Using(os.write.outputStream(file))(out =>
+      properties.store(out, "Generated build properties by Mill")
+    )
+    PathRef(file)
+  }
+
+  def quarkusJarBuildPropertiesFile: T[PathRef] = Task {
+    writeBuildPropertiesFile(Task.dest, quarkusJarBuildProperties())
+  }
+
+  def quarkusNativeBuildPropertiesFile: T[PathRef] = Task {
+    writeBuildPropertiesFile(Task.dest, quarkusNativeBuildProperties())
+  }
+
+  /**
+   * A quarkus app built only with the jar packaging
+   */
+  def quarkusApp: T[ApplicationModelWorker.QuarkusApp] = Task {
+    val dest = Task.dest / "quarkus"
+    os.makeDir.all(dest)
+    quarkusApplicationModelWorker().quarkusBootstrapApplication(
+      quarkusSerializedAppModel().path,
+      dest,
+      jar().path,
+      quarkusJarBuildPropertiesFile().path
+    )
+  }
+
+  /**
+   * A native quarkus app built with the native image packaging
+   */
+  def quarkusNativeApp: T[ApplicationModelWorker.QuarkusApp] = Task {
+    val dest = Task.dest / "quarkus-native"
+    os.makeDir.all(dest)
+    quarkusApplicationModelWorker().quarkusBootstrapApplication(
+      quarkusSerializedAppModel().path,
+      dest,
+      jar().path,
+      quarkusNativeBuildPropertiesFile().path
+    )
+  }
+
+  def quarkusNativePathOpt: T[Option[PathRef]] = Task {
+    quarkusNativeApp().nativePath
+  }
+
+  def quarkusNativePath: T[PathRef] = Task {
+    quarkusNativePathOpt().getOrElse(
+      Task.fail("No native image output was produced")
+    )
+  }
+
+  def quarkusRunJarOpt: T[Option[PathRef]] = Task {
+    quarkusApp().runJar
   }
 
   /**
@@ -344,15 +469,9 @@ trait QuarkusModule extends JavaModule { outer =>
    * @return the path of the quarkus-run.jar
    */
   def quarkusRunJar: T[PathRef] = Task {
-    val dest = Task.dest / "quarkus"
-    os.makeDir.all(dest)
-    val jarPath = quarkusApplicationModelWorker().quarkusBootstrapApplication(
-      quarkusSerializedAppModel().path,
-      dest / "quarkus-run.jar", // TODO use quarkus utility function
-      jar().path
+    quarkusRunJarOpt().getOrElse(
+      Task.fail("No quarkus-run.jar was produced")
     )
-
-    PathRef(jarPath)
   }
 
   trait QuarkusTests extends QuarkusModule, JavaTests {
@@ -361,9 +480,6 @@ trait QuarkusModule extends JavaModule { outer =>
     override def artifactId: T[String] = outer.artifactId()
     override def artifactGroupId: T[String] = outer.artifactGroupId()
     override def artifactVersion: T[String] = outer.artifactVersion()
-
-    override def quarkusModuleData: T[Seq[ApplicationModelWorker.ModuleData]] =
-      outer.quarkusModuleData() ++ super.quarkusModuleData()
 
     override def runClasspath: T[Seq[PathRef]] = super.quarkusUnprocessedRunClasspath()
 
@@ -374,10 +490,6 @@ trait QuarkusModule extends JavaModule { outer =>
       ApplicationModelWorker.AppMode.Test
     }
 
-    /**
-     * The test model build by [[quarkusSerializedAppModel]] needs to be passed
-     * in both the test discovery and running the tests themselves
-     */
     def quarkusSerializedAppModelJavaOpts: T[Seq[String]] = Task {
       Seq(
         s"-Dquarkus-internal-test.serialized-app-model.path=${quarkusSerializedAppModel().path}"
@@ -392,13 +504,31 @@ trait QuarkusModule extends JavaModule { outer =>
     }
 
     override def forkArgs: T[Seq[String]] = Task {
-      quarkusSerializedAppModelJavaOpts()
+      Seq(
+        s"-Dquarkus-internal-test.serialized-app-model.path=${quarkusSerializedAppModel().path}"
+      )
+    }
+
+  }
+
+  trait QuarkusNativeTest extends QuarkusTests {
+
+    override def quarkusModuleClassifier: T[ApplicationModelWorker.ModuleClassifier] =
+      ApplicationModelWorker.ModuleClassifier.NativeTests
+
+    override def forkArgs: T[Seq[String]] = Task {
+      Seq(
+        s"-Dbuild.output.directory=${outer.quarkusNativeApp().buildOutput.path}",
+        s"-Dnative.image.path=${outer.quarkusNativePath().path}"
+      ) ++ super.forkArgs()
     }
   }
 
   trait QuarkusJunit extends QuarkusTests {
 
-    override def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
+    override def testFramework: T[String] = Task {
+      "com.github.sbt.junit.jupiter.api.JupiterFramework"
+    }
 
     override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
       Seq(

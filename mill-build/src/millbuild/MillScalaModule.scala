@@ -22,11 +22,11 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
 
   def scalafixConfig = Task { Some(BuildCtx.workspaceRoot / ".scalafix.conf") }
 
-  def semanticDbVersion = Deps.semanticDBscala.version
+  def semanticDbVersion = Deps.semanticDBscala_runtime.version
 
   def isScala3: T[Boolean] = Task { JvmWorkerUtil.isScala3(scalaVersion()) }
 
-  override def mapDependencies = super[MillJavaModule].mapDependencies
+  override def resolutionParams = super[MillJavaModule].resolutionParams
 
   def ciScalacOptions: T[Seq[String]] = Task {
     if (isFatalWarnings()) {
@@ -99,7 +99,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
     def mvnDeps = super.mvnDeps() ++ outer.testMvnDeps()
     def forkEnv = super.forkEnv() ++ outer.testForkEnv()
     override def repositoriesTask = super[MillJavaModule].repositoriesTask
-    override def mapDependencies = super[MillJavaModule].mapDependencies
+    override def resolutionParams = super[MillJavaModule].resolutionParams
 
     def selectiveInputs: Seq[Task[?]] = null
     override def testForked(args: String*) = Task.Command(selectiveInputs = selectiveInputs) {

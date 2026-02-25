@@ -59,7 +59,7 @@ object `package` extends MillStableScalaModule {
     )
 
   object backgroundwrapper extends MillPublishJavaModule with MillJavaModule {
-    def mvnDeps = Seq(Deps.sbtTestInterface)
+    def mvnDeps = Seq(Deps.sbtTestInterface_api)
     def jvmId = "11"
   }
 
@@ -79,12 +79,12 @@ object `package` extends MillStableScalaModule {
       ),
       BuildInfo.Value(
         "semanticDBVersion",
-        Deps.semanticDBscala.version,
+        Deps.semanticDBscala_runtime.version,
         "SemanticDB version."
       ),
       BuildInfo.Value(
         "semanticDbJavaVersion",
-        Deps.semanticDbJava.version,
+        Deps.semanticDbJava_runtime.version,
         "Java SemanticDB plugin version."
       ),
       BuildInfo.Value(
@@ -102,23 +102,23 @@ object `package` extends MillStableScalaModule {
       ),
       BuildInfo.Value(
         "jupiterInterface",
-        Dep.unparse(Deps.RuntimeDeps.jupiterInterface).get,
+        Dep.unparse(Deps.RuntimeDeps.jupiterInterface_runtime).get,
         "Dependency to jupiter-interface"
       ),
       BuildInfo.Value(
         "jupiterInterface6",
-        Dep.unparse(Deps.RuntimeDeps.jupiterInterface6).get,
+        Dep.unparse(Deps.RuntimeDeps.jupiterInterface6_runtime).get,
         "Dependency to jupiter-interface for JUnit 6 (requires Java 17+)"
       ),
-      BuildInfo.Value("errorProneVersion", Deps.RuntimeDeps.errorProneCore.version),
+      BuildInfo.Value("errorProneVersion", Deps.RuntimeDeps.errorProneCore_runtime.version),
       BuildInfo.Value("coursierJvmIndexVersion", Deps.coursierJvmIndexVersion),
-      BuildInfo.Value("palantirFormatVersion", Deps.RuntimeDeps.palantirFormat.version),
+      BuildInfo.Value("palantirFormatVersion", Deps.RuntimeDeps.palantirFormat_runtime.version),
       BuildInfo.Value(
         "revApiVersion",
-        Deps.RuntimeDeps.revApi.version,
+        Deps.RuntimeDeps.revApi_runtime.version,
         "Version of revApi"
       ),
-      BuildInfo.Value("springBuildToolsVersion", Deps.springBootTools.version),
+      BuildInfo.Value("springBuildToolsVersion", Deps.springBootTools_runtime.version),
       BuildInfo.Value(
         "millSpringBootWorkerDep",
         s"${`spring-boot-worker`.pomSettings().organization}:${`spring-boot-worker`.artifactId()}",
@@ -129,7 +129,7 @@ object `package` extends MillStableScalaModule {
         s"${`quarkus-worker`.pomSettings().organization}:${`quarkus-worker`.artifactId()}",
         "The dependency prefix (group:id) for the worker implementation to be loaded at runtime."
       ),
-      BuildInfo.Value("pmdVersion", Deps.RuntimeDeps.pmdDist.version),
+      BuildInfo.Value("pmdVersion", Deps.RuntimeDeps.pmdDist_runtime.version),
       BuildInfo.Value("comLihaoyiSourcecodeVersion", Deps.sourcecode.version)
     )
   }
@@ -172,7 +172,7 @@ object `package` extends MillStableScalaModule {
     def moduleDeps = Seq(api)
     def compileMvnDeps = Seq(
       // we just bind against the API, will be loaded at Mill runtime by the module
-      Deps.springBootTools
+      Deps.springBootTools_api
     )
   }
 
@@ -180,9 +180,9 @@ object `package` extends MillStableScalaModule {
     def moduleDeps = Seq(api)
 
     def compileMvnDeps = Seq(
-      Deps.quarkusAppModel,
-      Deps.quarkusBootstrapCore,
-      Deps.quarkusCoreDeployment
+      Deps.quarkusAppModel_api,
+      Deps.quarkusBootstrapCore_api,
+      Deps.quarkusCoreDeployment_api
     )
   }
 

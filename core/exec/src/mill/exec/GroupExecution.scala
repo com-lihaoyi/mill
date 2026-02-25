@@ -2,13 +2,13 @@ package mill.exec
 
 import mill.api.ExecResult.{OuterStack, Success}
 import mill.api.*
+import mill.api.daemon.internal.NonFatal
 import mill.api.internal.{Appendable, Cached, Located}
 import mill.internal.{CodeSigUtils, FileLogger, MultiLogger}
 
 import java.lang.reflect.Method
 import java.util.concurrent.ThreadPoolExecutor
 import scala.collection.mutable
-import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
 import mill.api.daemon.internal.{
   BaseModuleApi,
@@ -510,7 +510,7 @@ trait GroupExecution {
             args = taskInputValues.map(_.value).toIndexedSeq,
             dest0 = () => destCreator.makeDest(),
             log = multiLogger,
-            env = env,
+            _env = env,
             reporter = reporter,
             testReporter = testReporter,
             workspace = workspace,

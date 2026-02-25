@@ -422,7 +422,8 @@ $frontMatter
     "android-compose-samples" -> (
       "android/compose-samples",
       "e4e6f0f96618f1ba04aa88d64ca19a166a662424"
-    )
+    ),
+    "koin-androidx-samples" -> ("InsertKoinIO/koin", "461b5684684bb1b17411f27c35a955cdc90f299b")
   )
   object thirdparty extends Cross[ThirdPartyModule](build.listCross)
   trait ThirdPartyModule extends ExampleCrossModule {

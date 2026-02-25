@@ -199,7 +199,8 @@ out/mill-runner-state.json
       "foo.allSources": {
         "foo.sources": {},
         "foo.generatedSources": {}
-      }
+      },
+      "foo.wrappedSources": {}
     },
     "foo.compileClasspath": {
       "foo.resolvedMvnDeps": {

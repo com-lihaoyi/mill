@@ -10,6 +10,7 @@ import io.quarkus.bootstrap.model.{
 import io.quarkus.bootstrap.util.BootstrapUtils
 import io.quarkus.bootstrap.workspace.{
   ArtifactSources,
+  DefaultArtifactSources,
   SourceDir,
   WorkspaceModule,
   WorkspaceModuleId
@@ -54,10 +55,14 @@ class ApplicationModelWorkerImpl extends ApplicationModelWorker {
   def quarkusBootstrapApplication(
       applicationModelFile: os.Path,
       destRunJar: os.Path,
-      jar: os.Path
-  ): os.Path = {
+      jar: os.Path,
+      buildProperties: os.Path
+  ): ApplicationModelWorker.QuarkusApp = {
     val applicationModel = ApplicationModelSerializer
       .deserialize(applicationModelFile.toNIO)
+
+    val properties = new Properties()
+    Using(os.read.inputStream(buildProperties))(properties.load)
 
     val quarkusBootstrap = QuarkusBootstrap.builder()
       .setExistingModel(applicationModel)
@@ -65,6 +70,7 @@ class ApplicationModelWorkerImpl extends ApplicationModelWorker {
         ResolvedDependencyBuilder.newInstance()
           .setResolvedPath(jar.toNIO)
       )
+      .setBuildSystemProperties(properties)
       .setTargetDirectory(destRunJar.toNIO)
       .setLocalProjectDiscovery(false)
       .setBaseClassLoader(getClass.getClassLoader)
@@ -72,7 +78,14 @@ class ApplicationModelWorkerImpl extends ApplicationModelWorker {
 
     val augmentAction: AugmentAction = quarkusBootstrap.bootstrap().createAugmentor()
 
-    os.Path(augmentAction.createProductionApplication().getJar.getPath)
+    val app = augmentAction.createProductionApplication()
+
+    val quarkusApp = ApplicationModelWorker.QuarkusApp(
+      destRunJar,
+      Option(app.getJar).map(j => os.Path(j.getPath)),
+      Option(app.getNativeResult).map(os.Path(_))
+    )
+    quarkusApp
   }
 
   /**
@@ -219,6 +232,12 @@ class ApplicationModelWorkerImpl extends ApplicationModelWorker {
         ArtifactSources.main(sources, resources)
       case ModuleClassifier.Tests =>
         ArtifactSources.test(sources, resources)
+      case ModuleClassifier.NativeTests =>
+        new DefaultArtifactSources(
+          "native-tests",
+          java.util.List.of(sources),
+          java.util.List.of(resources)
+        );
     }
   }
 

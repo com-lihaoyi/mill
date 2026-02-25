@@ -1,7 +1,7 @@
 package mill.testkit
 
 import mill.Task
-import mill.api.{BuildCtx, DummyInputStream, ExecResult, Result, SystemStreams, Val}
+import mill.api.{BuildCtx, DummyInputStream, EnvMap, ExecResult, Result, SystemStreams, Val}
 import mill.api.ExecResult.OuterStack
 import mill.constants.OutFiles.OutFiles.millChromeProfile
 import mill.constants.OutFiles.OutFiles.millProfile
@@ -131,7 +131,7 @@ class UnitTester(
     classLoaderSigHash = 0,
     classLoaderIdentityHash = 0,
     workerCache = collection.mutable.Map.empty,
-    env = env,
+    env = EnvMap.asEnvMap(env),
     failFast = failFast,
     ec = ec,
     codeSignatures = Map(),

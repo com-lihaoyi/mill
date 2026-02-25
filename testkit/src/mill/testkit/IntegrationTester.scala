@@ -33,7 +33,8 @@ class IntegrationTester(
     val baseWorkspacePath: os.Path = os.pwd,
     val propagateJavaHome: Boolean = true,
     val cleanupProcessIdFile: Boolean = true,
-    override val useInMemory: Boolean = false
+    override val useInMemory: Boolean = false,
+    override val allowSharedOutputDir: Boolean = true
 ) extends IntegrationTester.Impl {
   initWorkspace()
 }
@@ -193,7 +194,7 @@ object IntegrationTester {
         if (useInMemory && stdin == os.Pipe && stdout == os.Pipe && stderr == os.Pipe) {
           val argsSeq = shellable.value.toSeq.map(_.toString)
           val millArgs = argsSeq.drop(1).filter(_.nonEmpty)
-          IntegrationTester.evalInMemory(millArgs, cwd, callEnv, mergeErrIntoOut)
+          IntegrationTester.evalInMemory(millArgs, cwd, callEnv, mergeErrIntoOut, check = check)
         } else {
           val res0 = os.call(
             cmd = shellable,
@@ -383,7 +384,8 @@ object IntegrationTester {
       args: Seq[String],
       workDir: os.Path,
       env: Map[String, String] = Map.empty,
-      mergeErrIntoOut: Boolean = false
+      mergeErrIntoOut: Boolean = false,
+      check: Boolean = false
   ): EvalResult = {
     // Collect chunks in order with synchronization to preserve ordering across streams
     val chunks = collection.mutable.ArrayBuffer.empty[Either[geny.Bytes, geny.Bytes]]
@@ -416,7 +418,10 @@ object IntegrationTester {
       chunks = chunks.toSeq
     )
 
-    EvalResult(result)
+    if (check && exitCode != 0)
+      throw new os.SubprocessException(result)
+    else
+      EvalResult(result)
   }
 
 }

@@ -1,7 +1,7 @@
 package mill.javalib
 
 import java.lang.reflect.Modifier
-import scala.util.control.NonFatal
+import mill.api.daemon.internal.NonFatal
 import mill.api.BuildCtx
 import mainargs.arg
 import mill.api.Result

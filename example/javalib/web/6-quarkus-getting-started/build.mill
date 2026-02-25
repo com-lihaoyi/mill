@@ -1,6 +1,3 @@
-// This example demonstrates how to setup a simple Quarkus application.
-// Quarkus support is an ongoing effort. Native tests are not supported yet.
-
 package build
 
 import mill.*, javalib.*
@@ -8,6 +5,8 @@ import mill.*, javalib.*
 import mill.javalib.quarkus.QuarkusModule
 
 object `package` extends QuarkusModule, MavenModule {
+
+  def jvmVersion = "graalvm-community:23.0.1"
 
   def quarkusPlatformVersion = "3.31.3"
 
@@ -20,10 +19,15 @@ object `package` extends QuarkusModule, MavenModule {
     mvn"io.quarkus:quarkus-rest"
   )
 
-  object test extends MavenTests, QuarkusJunit {
+  trait QuarkusTestBase extends MavenTests, QuarkusJunit {
     def mvnDeps = Seq(
       mvn"io.rest-assured:rest-assured"
     )
+  }
+  object test extends QuarkusTestBase
+
+  object `native-test` extends QuarkusTestBase, QuarkusNativeTest {
+    def moduleDeps = super.moduleDeps ++ Seq(test)
   }
 
 }
@@ -33,7 +37,7 @@ object `package` extends QuarkusModule, MavenModule {
 /** Usage
 
 > ./mill show quarkusRunJar
-...out/quarkusRunJar.dest/quarkus/quarkus-run.jar/quarkus-app/quarkus-run.jar...
+...out/quarkusApp.dest/quarkus/quarkus-app/quarkus-run.jar...
 
 > ./mill show runBackground
 
@@ -48,6 +52,19 @@ Hello from Quarkus REST
   "results": [
     {
       "fullyQualifiedName": "org.acme.GreetingResourceTest",
+      "selector": "testHelloEndpoint()",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
+
+> ./mill show native-test
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "org.acme.GreetingResourceIT",
       "selector": "testHelloEndpoint()",
       "duration": ...,
       "status": "Success"

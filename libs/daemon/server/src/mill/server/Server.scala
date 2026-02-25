@@ -1,6 +1,7 @@
 package mill.server
 
 import mill.api.daemon.{StartThread, SystemStreams}
+import mill.api.daemon.internal.NonFatal
 import mill.client.lock.{Lock, Locks}
 import mill.constants.{DaemonFiles, SocketUtil}
 import mill.constants.OutFiles.OutFiles
@@ -15,7 +16,6 @@ import java.time.format.DateTimeFormatter
 import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.duration.FiniteDuration
 import scala.util.{Try, Using}
-import scala.util.control.NonFatal
 
 /**
  * Implementation of a server that binds to a random port, informs a client of the port,

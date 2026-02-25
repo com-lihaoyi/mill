@@ -56,9 +56,11 @@ trait RouterModule extends ScalaModule with Version {
         case _ =>
           Seq(mvn"org.playframework:play-routes-compiler_3:${playVersion()}")
       },
-      // required for now, so that the default mapDependencies doesn't override the
+      // required for now, so that the default resolutionParams don't override the
       // Scala version
-      mapDependencies = None
+      resolutionParamsMapOpt = Some { params =>
+        params.withForceVersion0(Map.empty)
+      }
     )
   }
 
@@ -90,9 +92,11 @@ trait RouterModule extends ScalaModule with Version {
     )
     defaultResolver().classpath(
       Seq(dep),
-      // required for now, so that the default mapDependencies doesn't override the
+      // required for now, so that the default resolutionParams don't override the
       // Scala version
-      mapDependencies = None
+      resolutionParamsMapOpt = Some { params =>
+        params.withForceVersion0(Map.empty)
+      }
     )
   }
 

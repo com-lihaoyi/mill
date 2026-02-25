@@ -58,8 +58,8 @@ trait EndpointsApi {
       tasks: PartialFunction[BspModuleApi, TaskApi[W]],
       requestDescription: String,
       originId: String
-  )(block: TaskContext[W] => T)(
-      agg: (java.util.List[T], BspEvaluators) => V
+  )(block: (TaskContext[W], Logger) => T)(
+      agg: (java.util.List[T], BspEvaluators, Logger) => V
   )(using name: sourcecode.Name, enclosing: sourcecode.Enclosing): CompletableFuture[V]
 
   protected def createLogger()(using enclosing: sourcecode.Enclosing): Logger

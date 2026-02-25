@@ -105,6 +105,7 @@
 *** xref:android/compose-samples.adoc[]
 *** xref:android/hilt-sample.adoc[]
 *** xref:android/android-native-example.adoc[]
+*** xref:android/koin_androidx_examples.adoc[]
 ** xref:pythonlib/intro.adoc[]
 *** xref:pythonlib/module-config.adoc[]
 *** xref:pythonlib/dependencies.adoc[]

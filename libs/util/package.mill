@@ -25,16 +25,12 @@ object `package` extends MillStableScalaModule with BuildInfo {
   def localCompileClasspath = super.localCompileClasspath() ++ Seq(java11.compile().classes)
 
   def compileMvnDeps = Seq(
-    Deps.nativeTerminal,
-    Deps.jgraphtCore,
-    Deps.graphvizWithExcludes
+    Deps.nativeTerminal
   )
 
   def runMvnDeps = Seq(
     Deps.logback,
     Deps.nativeTerminal,
-    Deps.jgraphtCore,
-    Deps.graphvizWithExcludes,
     Deps.coursierJvm
   )
 

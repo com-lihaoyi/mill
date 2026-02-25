@@ -66,7 +66,6 @@ object CompileRunTests extends TestSuite {
     object inherited extends ScalaNativeModule {
       val (scala, scalaNative, _) = matrix.head
       def scalacOptions = Seq("-deprecation")
-      def scalaOrganization = "org.example"
       def scalaVersion = scala
       def scalaNativeVersion = scalaNative
       object test extends ScalaNativeTests with TestModule.Utest

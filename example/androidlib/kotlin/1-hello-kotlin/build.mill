@@ -178,28 +178,81 @@ object app extends AndroidAppKotlinModule {
 */
 
 // The instrumented tests command accepts additional parameters to filter tests using `adb` `-e` options.
-// (https://developer.android.com/studio/test/command-line#am-instrument-options[Documentation found here])
+//
+// Basic documentation can be found https://developer.android.com/studio/test/command-line#am-instrument-options[here] while more JUnitRunner flags can be found https://developer.android.com/reference/androidx/test/runner/AndroidJUnitRunner#typical-usage[here].
 //
 // For example, to run a specific package:
 /** Usage
 
 > ./mill show app.it -e package com.helloworld.logictest
-..."status": "Success"...
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "com.helloworld.logictest.SampleLogicInKotlinDirInstrumentedTest.kotlin_dir_text_size_is_correct",
+      "selector": "com.helloworld.logictest.SampleLogicInKotlinDirInstrumentedTest.kotlin_dir_text_size_is_correct",
+      "duration": 0,
+      "status": "Success"
+    },
+    {
+      "fullyQualifiedName": "com.helloworld.logictest.SampleLogicInstrumentedTest.text_size_is_correct",
+      "selector": "com.helloworld.logictest.SampleLogicInstrumentedTest.text_size_is_correct",
+      "duration": 0,
+      "status": "Success"
+    }
+  ]
+}
 */
 
 // To run a specific class:
 /** Usage
 > ./mill show app.it -e class com.helloworld.logictest.SampleLogicInstrumentedTest
-..."status": "Success"...
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "com.helloworld.logictest.SampleLogicInstrumentedTest.text_size_is_correct",
+      "selector": "com.helloworld.logictest.SampleLogicInstrumentedTest.text_size_is_correct",
+      "duration": 0,
+      "status": "Success"
+    }
+  ]
+}
 */
 
-// You can combine multiple `-e` options as needed.
+// To run a specific method: (Notice the use of single quotes to avoid shell interpretation of the `#` character)
 /** Usage
 
-> ./mill show app.it -e class com.helloworld.logictest.SampleLogicInstrumentedTest,com.helloworld.logictest.SampleLogicInKotlinDirInstrumentedTest -e package com.helloworld.app
-..."status": "Success"...
-..."status": "Success"...
-..."status": "Success"...
+> ./mill show app.it -e class 'com.helloworld.app.ExampleInstrumentedTest#useAppContext'
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "selector": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "duration": 0,
+      "status": "Success"
+    }
+  ]
+}
+
+*/
+
+// You can also exlude spefic tests and combine multiple `-e` options as needed. For example, to exclude a specific package and class:
+/** Usage
+
+> ./mill show app.it -e notPackage com.helloworld.app -e notClass com.helloworld.logictest.SampleLogicInKotlinDirInstrumentedTest
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "com.helloworld.logictest.SampleLogicInstrumentedTest.text_size_is_correct",
+      "selector": "com.helloworld.logictest.SampleLogicInstrumentedTest.text_size_is_correct",
+      "duration": 0,
+      "status": "Success"
+    }
+  ]
+}
 
 */
 

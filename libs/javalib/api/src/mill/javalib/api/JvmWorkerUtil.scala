@@ -11,6 +11,10 @@ object JvmWorkerUtil {
   def isDottyOrScala3(scalaVersion: String): Boolean =
     isDotty(scalaVersion) || isScala3(scalaVersion)
 
+  def scalaOrganization(scalaVersion: String): String =
+    if (isDotty(scalaVersion)) "ch.epfl.lamp"
+    else "org.scala-lang"
+
   // eg, grepJar(classPath, name = "scala-library", versionPrefix = "2.13.")
   // return first path in `classPath` that match:
   // **/scala-library-2.13.*.jar or

@@ -10,6 +10,7 @@ import pprint.Util.literalize
 import mill.api.daemon.internal.MillScalaParser
 import mill.api.internal.HeaderData
 
+import scala.collection.mutable.ListBuffer
 import scala.util.control.Breaks.*
 
 object CodeGen {
@@ -62,7 +63,7 @@ object CodeGen {
       millTopLevelProjectRoot: os.Path,
       output: os.Path,
       parser: MillScalaParser
-  ): Unit = {
+  ): Seq[(original: os.Path, generated: os.Path)] = {
     val scriptSources = allScriptCode.keys.toSeq.sorted
     val parsedYamlHeaderData = scriptSources
       .filter(_.last.endsWith(".yaml"))
@@ -108,10 +109,19 @@ object CodeGen {
         s"_root_.$dotted"
       }
 
-    for (scriptPath <- scriptSources) {
+    val mappings = new ListBuffer[(original: os.Path, generated: os.Path)]
+
+    // If the build contains both a *.mill.yaml and a *.mill file (same path but for one that has .yaml too),
+    // we ignore the *.mill one. Maybe we could warn users about that?
+    val ignoreSources = scriptSources
+      .filter(_.last.endsWith(".mill.yaml"))
+      .map { millYamlSource =>
+        millYamlSource / os.up / millYamlSource.last.stripSuffix(".yaml")
+      }
+      .toSet
+    for (scriptPath <- scriptSources if !ignoreSources(scriptPath)) {
       val scriptFolderPath = scriptPath / os.up
       val packageSegments = DiscoveredBuildFiles.fileImportToSegments(projectRoot, scriptPath)
-      val wrappedDestFile = wrappedDest / packageSegments
       val pkgSegments = packageSegments.drop(1).dropRight(1)
       def pkgSelector0(pre: Option[String], s: Option[String]) =
         (pre ++ pkgSegments ++ s).map(backtickWrap).mkString(".")
@@ -269,8 +279,11 @@ object CodeGen {
              |""".stripMargin
         }
 
+        // Write in support dir, given this is all generated, and not just
+        // wrapping original sources
+        val supportDestFile = supportDest / packageSegments
         os.write.over(
-          (wrappedDestFile / os.up) / wrappedDestFile.baseName,
+          (supportDestFile / os.up) / supportDestFile.baseName,
           s"""package $pkg
              |import mill.*, scalalib.*, javalib.*, kotlinlib.*
              |$aliasImports
@@ -361,7 +374,9 @@ object CodeGen {
               )
             }
 
+          val wrappedDestFile = wrappedDest / packageSegments
           os.write(wrappedDestFile, parts, createFolders = true)
+          mappings += scriptPath -> wrappedDestFile
         }
       }
     }
@@ -372,6 +387,8 @@ object CodeGen {
       upickle.default.write(moduleDepsConfig.toMap, indent = 2),
       createFolders = true
     )
+
+    mappings.toList
   }
 
   private def calcSegments(scriptFolderPath: os.Path, projectRoot: os.Path) =

@@ -757,44 +757,64 @@ and more, check the project readme.
 
 == OpenApi
 
-Mill plugin for generating source files from an OpenApi spec.
+Official Openapitools Mill plugin for generating source files from an OpenApi spec.
 
-Project home: https://github.com/mikybars/openapi-generator-mill-plugin
+Project home: https://github.com/OpenAPITools/openapi-generator/
 
 .`build.mill`
 [,scala]
 ----
-//| mvnDeps: ["io.github.mikybars::openapi-generator-mill-plugin::0.1.0"]
-package build
+//| mvnDeps:
+//|   - org.openapitools:openapi-generator-mill-plugin:7.20.0 # <1>
 
-import mill.*, scalalib.*
-import mill.api.BuildCtx
+import mill.*
 
-import io.github.mikybars.mill.openapi.OpenApiModule
+import org.openapitools.generator.mill.OpenApiModule // <2>
 
-object foo extends JavaModule, OpenApiModule {
+object `package` extends JavaModule with MavenModule with OpenApiModule { // <3>
 
-  object openapi extends OpenApiConfig {
-     def inputSpec = Task.Source(BuildCtx.workspaceRoot / "api/rest/v1/openapi.yml")
-    def apiPackage: T[String] = "com.example.foo.rest.api"
-    def modelPackage: T[String] = "com.example.foo.rest.model"
-    def generatorName: T[String] = "spring"
-    def modelNameSuffix: T[String] = "Dto"
+  override def mvnDeps = Seq(
+    mvn"jakarta.platform:jakarta.jakartaee-api:11.0.0",
+    mvn"com.fasterxml.jackson.core:jackson-databind:2.20.0",
+  )
+
+  object openapi extends OpenApiConfig { // <4>
+    def inputSpec: T[PathRef] = Task.Source(BuildCtx.workspaceRoot / "api" / "petstore.yaml")
+    def apiPackage: T[String] = "com.acme.foo.boundary.web.api"
+    def modelPackage: T[String] = "com.acme.foo.boundary.web.model"
+    def generatorName: T[String] = "jaxrs-spec"
+    def sourceFolder: T[String] = "src/main/java" // <5>
+
     def additionalProperties: T[Map[String, String]] = Map(
-      // ...
-      "useSpringBoot3" -> "true",
-      // ...
+      "dateLibrary" -> "java8",
+      "useJakartaEe" -> "true",
+      "useSwaggerAnnotations" -> "false",
+      "interfaceOnly" -> "true",
+      "useTags" -> "true",
     )
   }
 
+  override def generatedSources: T[Seq[PathRef]] = Seq( // <6>
+    PathRef(Task.dest),
+    openapi.generate())
 }
 ----
+<1> load dependency to build-script
+<2> import namespace
+<3> mark your module as `OpenApiModule`
+<4> configure a submodule where the generated artifacts will be produced
+<5> define the source-root folder. This is needed because different generators use different defaults, and otherwise we cannot create the correct folder for `generatedSources`.
+<6> attach the previously defined object to the compile phase by overwriting `generatedSources`
 
 .Generate source files
 [,console]
 ----
-$ ./mill foo.openapi.generate
+$ ./mill openapi.generate
 ----
+Here, `openapi` refers to the object defined previously.
+
+For all defined options and tasks, please see the
+https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-mill-plugin[official documentation].
 
 
 == OpenApi4s

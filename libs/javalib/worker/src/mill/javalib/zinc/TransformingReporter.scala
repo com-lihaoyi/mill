@@ -82,7 +82,8 @@ private object TransformingReporter {
     InterfaceUtil.jo2o(pos.sourcePath()) match {
       case None => message
       case Some(path) =>
-        val absPath = os.Path(path)
+        // Assume relative paths are relative to the current workspaceRoot
+        val absPath = os.Path(path, workspaceRoot)
         // Render paths within the current workspaceRoot as relative paths to cut down on verbosity
         val displayPath =
           if absPath.startsWith(workspaceRoot) then absPath.subRelativeTo(workspaceRoot).toString

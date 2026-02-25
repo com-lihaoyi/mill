@@ -34,21 +34,14 @@
         <orderEntry type="library" name="fansi_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="fastparse_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="geny_3-<version>.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="graphviz-java-<version>.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="graphviz-java-min-deps-<version>.jar" level="project"/>
         <orderEntry type="library" name="hamcrest-core-1.3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="is-terminal-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jansi.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="javax.inject-1.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="jcl-over-slf4j-<version>.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="jgrapht-core-<version>.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="jheaps-0.11.jar" level="project"/>
         <orderEntry type="library" name="jline-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jline-native-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jna-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jsoniter-scala-core_2.13-2.13.5.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="jsr305-<version>.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="jul-to-slf4j-<version>.jar" level="project"/>
         <orderEntry type="library" name="junit-<version>.jar" level="project"/>
         <orderEntry type="library" name="junit-interface-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="logback-classic-<version>.jar" level="project"/>

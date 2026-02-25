@@ -5,18 +5,15 @@ import mill.api.BuildCtx
 import mill.*
 import mill.api.Result
 import mill.api.daemon.internal.internal
-import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.constants.OutFiles.OutFiles.*
 import mill.api.{Discover, PathRef, Task}
 import mill.api.internal.RootModule
-import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
-import mill.javalib.api.{CompilationResult, Versions}
+import mill.scalalib.{Dep, DepSyntax, ScalaModule}
+import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mill.util.{BuildInfo, MainRootModule}
 import mill.api.daemon.internal.MillScalaParser
 import mill.api.JsonFormatters.given
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
-
-import scala.jdk.CollectionConverters.ListHasAsScala
 
 /**
  * Mill module for pre-processing a Mill `build.mill` and related files and then
@@ -72,6 +69,10 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
     generatedScriptSources().support
   }
 
+  override def wrappedSources: T[Seq[(original: PathRef, generated: PathRef)]] = {
+    generatedScriptSources().mappings
+  }
+
   override def resources: T[Seq[PathRef]] = Task {
     super.resources() ++ generatedScriptSources().resources
   }
@@ -84,13 +85,18 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
    * since they are derived from [[sources]] and would confuse any further tooling like IDEs.
    */
   def generatedScriptSources
-      : T[(wrapped: Seq[PathRef], support: Seq[PathRef], resources: Seq[PathRef])] = Task {
+      : T[(
+          wrapped: Seq[PathRef],
+          support: Seq[PathRef],
+          resources: Seq[PathRef],
+          mappings: Seq[(original: PathRef, generated: PathRef)]
+      )] = Task {
     val wrapped = Task.dest / "wrapped"
     val support = Task.dest / "support"
     val resources = Task.dest / "resources"
 
     val parsed = parseBuildFiles()
-    CodeGen.generateWrappedAndSupportSources(
+    val mappings = CodeGen.generateWrappedAndSupportSources(
       rootModuleInfo.projectRoot / os.up,
       parsed.seenScripts,
       wrapped,
@@ -103,7 +109,13 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
     (
       wrapped = Seq(PathRef(wrapped)),
       support = Seq(PathRef(support)),
-      resources = Seq(PathRef(resources))
+      resources = Seq(PathRef(resources)),
+      mappings = BuildCtx.withFilesystemCheckerDisabled {
+        mappings.map {
+          case (original, generated) =>
+            (PathRef(original), PathRef(generated))
+        }
+      }
     )
   }
 
@@ -223,21 +235,8 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
     scriptSources() ++ super.sources()
   }
 
-  override def allSourceFiles: T[Seq[PathRef]] = Task {
-    val allMillSources =
-      // the real input-sources
-      allSources() ++
-        // also sources, but derived from `scriptSources`
-        generatedScriptSources().wrapped
-
-    val candidates =
-      Lib.findSourceFiles(allMillSources, Seq("scala", "java") ++ buildFileExtensions.asScala.toSeq)
-
-    // We need to unlist those files, which we replaced by generating wrapper scripts
-    val filesToExclude = Lib.findSourceFiles(scriptSources(), buildFileExtensions.asScala.toSeq)
-
-    candidates.filterNot(filesToExclude.contains).map(PathRef(_))
-  }
+  override protected def sourceFileExtensions: Seq[String] =
+    super.sourceFileExtensions ++ Seq("mill")
 
   def compileMvnDeps = Seq(
     mvn"com.lihaoyi::sourcecode:${Versions.comLihaoyiSourcecodeVersion}"
@@ -303,7 +302,7 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
           compileClasspath = compileClasspath().map(_.path),
           javacOptions = jOpts.compiler,
           scalaVersion = scalaVersion(),
-          scalaOrganization = scalaOrganization(),
+          scalaOrganization = JvmWorkerUtil.scalaOrganization(scalaVersion()),
           scalacOptions = allScalacOptions(),
           compilerClasspath = scalaCompilerClasspath(),
           scalacPluginClasspath = scalacPluginClasspath(),

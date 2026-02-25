@@ -1,12 +1,11 @@
 package mill.testkit
 
+import mill.api.daemon.internal.NonFatal
 import mill.constants.Util.isWindows
 import mill.launcher.MillLauncherMain
 import mill.testkit.Chunk
 import mill.api.daemon.SystemStreams
 import utest.*
-
-import scala.util.control.NonFatal
 
 /**
  * A variant of [[IntegrationTester]], [[ExampleTester]] works the same way
@@ -109,7 +108,7 @@ class ExampleTester(
 
     val expectedSnippets = commandBlockLines.tail
     val (commandHead, comment) = commandBlockLines.head match {
-      case s"$before#$after" => (before.trim, Some(after.trim))
+      case s"$before #$after" => (before.trim, Some(after.trim))
       case string => (string, None)
     }
 

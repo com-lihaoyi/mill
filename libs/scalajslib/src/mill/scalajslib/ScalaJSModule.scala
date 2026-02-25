@@ -15,6 +15,7 @@ import mill.*
 import mill.javalib.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.util.Version
 import upickle.implicits.namedTuples.default.given
+import sbt.testing.Framework
 
 /**
  * Core configuration required to compile a single Scala.js module
@@ -41,7 +42,8 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
     val baseDeps =
       // For Scala 3.8+ on Scala.js, we still need scala3-library_sjs1_3
       // (JVM uses scala-library, but Scala.js artifacts are published as scala3-library)
-      if (usesScalaLibraryOnly(sv)) Seq(mvn"${scalaOrganization()}::scala3-library:$sv")
+      if (usesScalaLibraryOnly(sv))
+        Seq(mvn"${JvmWorkerUtil.scalaOrganization(sv)}::scala3-library:$sv")
       else super.scalaLibraryMvnDeps()
 
     if (isScala3(sv)) {
@@ -124,7 +126,7 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
     linkTask(isFullLinkJS = true, forceOutJs = false)()
   }
 
-  private def linkTask(isFullLinkJS: Boolean, forceOutJs: Boolean): Task[Report] = Task.Anon {
+  protected def linkTask(isFullLinkJS: Boolean, forceOutJs: Boolean): Task[Report] = Task.Anon {
     linkJs(
       worker = ScalaJSWorkerExternalModule.scalaJSWorker(),
       toolsClasspath = scalaJSToolsClasspath(),
@@ -339,7 +341,7 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
     Some((
       ScalaBuildTarget.dataKind,
       ScalaBuildTarget(
-        scalaOrganization = scalaOrganization(),
+        scalaOrganization = JvmWorkerUtil.scalaOrganization(scalaVersion()),
         scalaVersion = scalaVersion(),
         scalaBinaryVersion = scalaBinaryVersion(scalaVersion()),
         platform = ScalaPlatform.JS,
@@ -365,7 +367,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
     )
   }
 
-  def fastLinkJSTest: T[Report] = Task(persistent = true) {
+  protected def testLinkTask: Task[Report] = Task.Anon {
     linkJs(
       worker = ScalaJSWorkerExternalModule.scalaJSWorker(),
       toolsClasspath = scalaJSToolsClasspath(),
@@ -386,20 +388,29 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
     )
   }
 
+  def fastLinkJSTest: T[Report] = Task(persistent = true) {
+    testLinkTask()
+  }
+
   override def testLocal(args: String*): Command[(msg: String, results: Seq[TestResult])] =
     Task.Command { testForked(args*)() }
+
+  /** Test framework instance and clean-up method to run Scala.js tests */
+  protected def testFrameworkInstance: Task[(close: () => Unit, framework: Framework)] = Task.Anon {
+    ScalaJSWorkerExternalModule.scalaJSWorker().getFramework(
+      scalaJSToolsClasspath(),
+      jsEnvConfig(),
+      testFramework(),
+      fastLinkJSTest()
+    )
+  }
 
   override protected def testTask(
       args: Task[Seq[String]],
       globSelectors: Task[Seq[String]]
   ): Task[(msg: String, results: Seq[TestResult])] = Task.Anon {
 
-    val (close, framework) = ScalaJSWorkerExternalModule.scalaJSWorker().getFramework(
-      scalaJSToolsClasspath(),
-      jsEnvConfig(),
-      testFramework(),
-      fastLinkJSTest()
-    )
+    val (close, framework) = testFrameworkInstance()
 
     val (doneMsg, results) = TestRunner.runTestFramework(
       _ => framework,

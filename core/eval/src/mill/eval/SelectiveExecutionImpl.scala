@@ -280,7 +280,7 @@ object SelectiveExecutionImpl {
             args = Vector(),
             dest0 = () => null,
             log = evaluator.baseLogger,
-            env = evaluator.env,
+            _env = evaluator.env,
             reporter = _ => None,
             testReporter = TestReporter.DummyTestReporter,
             workspace = evaluator.workspace,

@@ -3,14 +3,16 @@ package mill.javalib.quarkus
 import mill.api.daemon.experimental
 import upickle.ReadWriter
 import mill.api.JsonFormatters.pathReadWrite
+import mill.api.PathRef
 
 @experimental
 trait ApplicationModelWorker extends AutoCloseable {
   def quarkusBootstrapApplication(
       applicationModelFile: os.Path,
       destRunJar: os.Path,
-      jar: os.Path
-  ): os.Path
+      jar: os.Path,
+      buildProperties: os.Path
+  ): ApplicationModelWorker.QuarkusApp
 
   def quarkusGenerateApplicationModel(
       appModel: ApplicationModelWorker.AppModel,
@@ -73,5 +75,20 @@ object ApplicationModelWorker {
   enum ModuleClassifier derives ReadWriter {
     case Main
     case Tests
+    case NativeTests
+  }
+
+  case class QuarkusApp(buildOutput: PathRef, runJar: Option[PathRef], nativePath: Option[PathRef])
+      derives ReadWriter
+
+  object QuarkusApp {
+
+    def apply(
+        buildOutput: os.Path,
+        runJar: Option[os.Path],
+        nativePath: Option[os.Path]
+    ): QuarkusApp =
+      new QuarkusApp(PathRef(buildOutput), runJar.map(PathRef(_)), nativePath.map(PathRef(_)))
+
   }
 }

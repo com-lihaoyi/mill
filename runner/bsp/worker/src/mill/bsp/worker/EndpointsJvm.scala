@@ -51,7 +51,7 @@ private trait EndpointsJvm extends JvmBuildServer with EndpointsApi {
       },
       requestDescription = "Getting JVM test environment of {}",
       originId = originId
-    ) { ctx =>
+    ) { (ctx, _) =>
       val (classpath, forkArgs, forkWorkingDir, forkEnv, _, testEnvVarsOpt) = ctx.value
       testEnvVarsOpt match {
         case Some(testEnvVars) =>
@@ -79,7 +79,7 @@ private trait EndpointsJvm extends JvmBuildServer with EndpointsApi {
             forkEnv.asJava
           )
       }
-    } { (values, _) =>
+    } { (values, _, _) =>
       agg(values)
     }
   }
@@ -94,7 +94,7 @@ private trait EndpointsJvm extends JvmBuildServer with EndpointsApi {
       tasks = { case m: RunModuleApi => m.bspRunModule().bspJvmRunEnvironment },
       requestDescription = "Getting JVM run environment of {}",
       originId = originId
-    ) { ctx =>
+    ) { (ctx, _) =>
       val classpath = ctx.value.runClasspath.map(sanitizeUri)
       val item = new JvmEnvironmentItem(
         ctx.id,
@@ -107,7 +107,7 @@ private trait EndpointsJvm extends JvmBuildServer with EndpointsApi {
       val classes = ctx.value.mainClass.toList ++ ctx.value.localMainClasses
       item.setMainClasses(classes.map(new JvmMainClass(_, Nil.asJava)).asJava)
       item
-    } { (values, _) =>
+    } { (values, _, _) =>
       agg(values)
     }
   }
@@ -122,9 +122,9 @@ private trait EndpointsJvm extends JvmBuildServer with EndpointsApi {
       },
       requestDescription = "Getting JVM compile class path of {}",
       originId = ""
-    ) { ctx =>
+    ) { (ctx, _) =>
       new JvmCompileClasspathItem(ctx.id, ctx.value(ctx.evaluator).asJava)
-    } { (values, _) =>
+    } { (values, _, _) =>
       new JvmCompileClasspathResult(values)
     }
 }

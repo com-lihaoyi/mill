@@ -3,6 +3,7 @@ package mill.integration
 import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.nio.file.Paths
+import scala.build.bsp.WrappedSourcesParams
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 import scala.util.chaining.given
@@ -82,6 +83,14 @@ object BspServerTests extends UtestIntegrationTestSuite {
           .filter(_ != metaBuildTargetId)
           .filter(_ != metaBuildBuildTargetId)
           .asJava
+
+        compareWithGsonSnapshot(
+          buildServer
+            .buildTargetWrappedSources(new WrappedSourcesParams(targetIds))
+            .get(),
+          snapshotsPath / "build-targets-wrapped-sources.json",
+          normalizedLocalValues = normalizedLocalValues
+        )
 
         val appTargetId = new b.BuildTargetIdentifier(
           (workspacePath / "app").toURI.toASCIIString.stripSuffix("/")
