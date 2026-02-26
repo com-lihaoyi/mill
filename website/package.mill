@@ -262,6 +262,7 @@ object `package` extends mill.Module {
        |  start_page: mill::index.adoc
        |  keys:
        |    google_analytics: 'G-1C582ZJR85'
+       |    latest_stable_mill_version: '${Settings.docTags.last}'
        |
        |content:
        |  sources:
