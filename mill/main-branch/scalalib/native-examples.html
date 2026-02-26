@@ -45,6 +45,20 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
+  .version-warning-banner {
+    background: #fff3cd;
+    border-bottom: 1px solid #f5c06a;
+    color: #6d3f00;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    padding: 0.6rem 1rem;
+    text-align: center;
+  }
+  .version-warning-banner a {
+    color: #6d3f00;
+    font-weight: 600;
+    text-decoration: underline;
+  }
   </style>
   <script>
   gtag('config', 'AW-16649289906');
@@ -59,6 +73,12 @@
         });
       }
     });
+
+    const warningTemplate = document.getElementById('version-warning-banner-template');
+    const articleDoc = document.querySelector('article.doc');
+    if (warningTemplate && articleDoc && warningTemplate.content.firstElementChild) {
+      articleDoc.prepend(warningTemplate.content.firstElementChild.cloneNode(true));
+    }
   });
   </script>
   <nav class="navbar">
@@ -118,6 +138,16 @@
       </div>
     </div>
   </nav>
+  <template id="version-warning-banner-template">
+    <div class="version-warning-banner">
+      <strong>
+        WARNING: this page contains documentation for an old/unstable version of Mill
+        (main-branch). The latest stable Mill version is
+        1.1.2 and its documentation can be found at
+        <a href="https://mill-build.org">https://mill-build.org</a>
+      </strong>
+    </div>
+  </template>
 </header>
 <div class="body">
 <div class="nav-container" data-component="mill" data-version="main-branch">
@@ -732,7 +762,7 @@ as well as an example of two modules with a Scala Native application.</p>
 <h2 id="_simple"><a class="anchor" href="#_simple"></a>Simple</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-42-a47e77/mill-dist-1.1.2-example-scalalib-native-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/scalalib/native/1-simple">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-43-485274/mill-dist-1.1.2-example-scalalib-native-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/scalalib/native/1-simple">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -777,7 +807,7 @@ Native for native integration and <code>mainargs</code> for command-line argumen
 <h2 id="_interop"><a class="anchor" href="#_interop"></a>Interop</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-42-a47e77/mill-dist-1.1.2-example-scalalib-native-2-interop.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/scalalib/native/2-interop">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-43-485274/mill-dist-1.1.2-example-scalalib-native-2-interop.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/scalalib/native/2-interop">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -846,7 +876,7 @@ Tests: 1, Passed: 1, Failed: 0</code></pre>
 <h2 id="_multi_module"><a class="anchor" href="#_multi_module"></a>Multi-Module</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-42-a47e77/mill-dist-1.1.2-example-scalalib-native-3-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/scalalib/native/3-multi-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-43-485274/mill-dist-1.1.2-example-scalalib-native-3-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/scalalib/native/3-multi-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -936,7 +966,7 @@ Bar.value: The string length of 'hello' is 5</code></pre>
 <h2 id="_common_config"><a class="anchor" href="#_common_config"></a>Common Config</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-42-a47e77/mill-dist-1.1.2-example-scalalib-native-4-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/scalalib/native/4-common-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-43-485274/mill-dist-1.1.2-example-scalalib-native-4-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/scalalib/native/4-common-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 

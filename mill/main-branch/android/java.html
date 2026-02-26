@@ -45,6 +45,20 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
+  .version-warning-banner {
+    background: #fff3cd;
+    border-bottom: 1px solid #f5c06a;
+    color: #6d3f00;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    padding: 0.6rem 1rem;
+    text-align: center;
+  }
+  .version-warning-banner a {
+    color: #6d3f00;
+    font-weight: 600;
+    text-decoration: underline;
+  }
   </style>
   <script>
   gtag('config', 'AW-16649289906');
@@ -59,6 +73,12 @@
         });
       }
     });
+
+    const warningTemplate = document.getElementById('version-warning-banner-template');
+    const articleDoc = document.querySelector('article.doc');
+    if (warningTemplate && articleDoc && warningTemplate.content.firstElementChild) {
+      articleDoc.prepend(warningTemplate.content.firstElementChild.cloneNode(true));
+    }
   });
   </script>
   <nav class="navbar">
@@ -118,6 +138,16 @@
       </div>
     </div>
   </nav>
+  <template id="version-warning-banner-template">
+    <div class="version-warning-banner">
+      <strong>
+        WARNING: this page contains documentation for an old/unstable version of Mill
+        (main-branch). The latest stable Mill version is
+        1.1.2 and its documentation can be found at
+        <a href="https://mill-build.org">https://mill-build.org</a>
+      </strong>
+    </div>
+  </template>
 </header>
 <div class="body">
 <div class="nav-container" data-component="mill" data-version="main-branch">
@@ -758,7 +788,7 @@ resource generation, APK building, DEX conversion, and APK signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-42-a47e77/mill-dist-1.1.2-example-androidlib-java-1-hello-world.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/androidlib/java/1-hello-world">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-43-485274/mill-dist-1.1.2-example-androidlib-java-1-hello-world.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/androidlib/java/1-hello-world">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1113,7 +1143,7 @@ Android Bundle zip generation, Bundle Creation and Bundle signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-42-a47e77/mill-dist-1.1.2-example-androidlib-java-2-app-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/androidlib/java/2-app-bundle">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-43-485274/mill-dist-1.1.2-example-androidlib-java-2-app-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/androidlib/java/2-app-bundle">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1248,7 +1278,7 @@ More informations about the R8 in general and about the Proguard rules files can
 <p><a href="https://www.guardsquare.com/manual/configuration/usage" class="bare">https://www.guardsquare.com/manual/configuration/usage</a></p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-42-a47e77/mill-dist-1.1.2-example-androidlib-java-5-R8.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/androidlib/java/5-R8">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-43-485274/mill-dist-1.1.2-example-androidlib-java-5-R8.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/androidlib/java/5-R8">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1387,7 +1417,7 @@ There is a list of the core C/C++ libraries that can be used in the android here
 <a href="https://developer.android.com/ndk/reference" class="bare">https://developer.android.com/ndk/reference</a></p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-42-a47e77/mill-dist-1.1.2-example-androidlib-java-6-native-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/androidlib/java/6-native-libs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-43-485274/mill-dist-1.1.2-example-androidlib-java-6-native-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/androidlib/java/6-native-libs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 

@@ -45,6 +45,20 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
+  .version-warning-banner {
+    background: #fff3cd;
+    border-bottom: 1px solid #f5c06a;
+    color: #6d3f00;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    padding: 0.6rem 1rem;
+    text-align: center;
+  }
+  .version-warning-banner a {
+    color: #6d3f00;
+    font-weight: 600;
+    text-decoration: underline;
+  }
   </style>
   <script>
   gtag('config', 'AW-16649289906');
@@ -59,6 +73,12 @@
         });
       }
     });
+
+    const warningTemplate = document.getElementById('version-warning-banner-template');
+    const articleDoc = document.querySelector('article.doc');
+    if (warningTemplate && articleDoc && warningTemplate.content.firstElementChild) {
+      articleDoc.prepend(warningTemplate.content.firstElementChild.cloneNode(true));
+    }
   });
   </script>
   <nav class="navbar">
@@ -118,6 +138,16 @@
       </div>
     </div>
   </nav>
+  <template id="version-warning-banner-template">
+    <div class="version-warning-banner">
+      <strong>
+        WARNING: this page contains documentation for an old/unstable version of Mill
+        (0.12.17). The latest stable Mill version is
+        1.1.2 and its documentation can be found at
+        <a href="https://mill-build.org">https://mill-build.org</a>
+      </strong>
+    </div>
+  </template>
 </header>
 <div class="body">
 <div class="nav-container" data-component="mill" data-version="0.12.x">
@@ -683,15 +713,15 @@ a running Mill process is shown below:</p>
 <polygon fill="transparent" stroke="black" points="245.88,-8 245.88,-402 372.81,-402 372.81,-8 245.88,-8"/>
 <text text-anchor="middle" x="309.34" y="-385.4" font-family="Times,serif" font-size="14.00">out/</text>
 </g>
-<g id="clust3" class="cluster">
-<title>cluster_mill_server_folder</title>
-<polygon fill="transparent" stroke="black" points="263.79,-218 263.79,-369 354.89,-369 354.89,-218 263.79,-218"/>
-<text text-anchor="middle" x="309.34" y="-352.4" font-family="Times,serif" font-size="14.00">mill&#45;server/</text>
-</g>
 <g id="clust4" class="cluster">
 <title>cluster_out_foo_folder</title>
 <polygon fill="transparent" stroke="black" points="253.88,-16 253.88,-210 364.81,-210 364.81,-16 253.88,-16"/>
 <text text-anchor="middle" x="309.34" y="-193.4" font-family="Times,serif" font-size="14.00">foo/</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_mill_server_folder</title>
+<polygon fill="transparent" stroke="black" points="263.79,-218 263.79,-369 354.89,-369 354.89,-218 263.79,-218"/>
+<text text-anchor="middle" x="309.34" y="-352.4" font-family="Times,serif" font-size="14.00">mill&#45;server/</text>
 </g>
 <g id="clust5" class="cluster">
 <title>cluster_server</title>

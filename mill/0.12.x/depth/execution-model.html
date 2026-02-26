@@ -45,6 +45,20 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
+  .version-warning-banner {
+    background: #fff3cd;
+    border-bottom: 1px solid #f5c06a;
+    color: #6d3f00;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    padding: 0.6rem 1rem;
+    text-align: center;
+  }
+  .version-warning-banner a {
+    color: #6d3f00;
+    font-weight: 600;
+    text-decoration: underline;
+  }
   </style>
   <script>
   gtag('config', 'AW-16649289906');
@@ -59,6 +73,12 @@
         });
       }
     });
+
+    const warningTemplate = document.getElementById('version-warning-banner-template');
+    const articleDoc = document.querySelector('article.doc');
+    if (warningTemplate && articleDoc && warningTemplate.content.firstElementChild) {
+      articleDoc.prepend(warningTemplate.content.firstElementChild.cloneNode(true));
+    }
   });
   </script>
   <nav class="navbar">
@@ -118,6 +138,16 @@
       </div>
     </div>
   </nav>
+  <template id="version-warning-banner-template">
+    <div class="version-warning-banner">
+      <strong>
+        WARNING: this page contains documentation for an old/unstable version of Mill
+        (0.12.17). The latest stable Mill version is
+        1.1.2 and its documentation can be found at
+        <a href="https://mill-build.org">https://mill-build.org</a>
+      </strong>
+    </div>
+  </template>
 </header>
 <div class="body">
 <div class="nav-container" data-component="mill" data-version="0.12.x">
@@ -887,15 +917,15 @@ as shown below:</p>
  viewBox="0.00 0.00 619.73 248.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 244.0)">
 <title>G</title>
-<g id="clust1" class="cluster">
-<title>cluster_0</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 478.26,-232 478.26,-124 8,-124"/>
-<text text-anchor="middle" x="243.13" y="-215.4" font-family="Times,serif" font-size="14.00">foo</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-8 126.09,-116 603.73,-116 603.73,-8 126.09,-8"/>
 <text text-anchor="middle" x="364.91" y="-99.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_0</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 478.26,-232 478.26,-124 8,-124"/>
+<text text-anchor="middle" x="243.13" y="-215.4" font-family="Times,serif" font-size="14.00">foo</text>
 </g>
 <!-- foo.sources -->
 <g id="node1" class="node">
@@ -1065,15 +1095,15 @@ would invalidate and cause evaluation of the tasks highlighted in red below:</p>
  viewBox="0.00 0.00 619.73 248.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 244.0)">
 <title>G</title>
-<g id="clust2" class="cluster">
-<title>cluster_1</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-8 126.09,-116 603.73,-116 603.73,-8 126.09,-8"/>
-<text text-anchor="middle" x="364.91" y="-99.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
 <g id="clust1" class="cluster">
 <title>cluster_0</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 478.26,-232 478.26,-124 8,-124"/>
 <text text-anchor="middle" x="243.13" y="-215.4" font-family="Times,serif" font-size="14.00">foo</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-8 126.09,-116 603.73,-116 603.73,-8 126.09,-8"/>
+<text text-anchor="middle" x="364.91" y="-99.4" font-family="Times,serif" font-size="14.00">bar</text>
 </g>
 <!-- foo.sources -->
 <g id="node1" class="node">
@@ -1228,15 +1258,15 @@ would invalidate and cause evaluation of the tasks highlighted in red below:</p>
  viewBox="0.00 0.00 619.73 248.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 244.0)">
 <title>G</title>
-<g id="clust1" class="cluster">
-<title>cluster_0</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 478.26,-232 478.26,-124 8,-124"/>
-<text text-anchor="middle" x="243.13" y="-215.4" font-family="Times,serif" font-size="14.00">foo</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-8 126.09,-116 603.73,-116 603.73,-8 126.09,-8"/>
 <text text-anchor="middle" x="364.91" y="-99.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_0</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 478.26,-232 478.26,-124 8,-124"/>
+<text text-anchor="middle" x="243.13" y="-215.4" font-family="Times,serif" font-size="14.00">foo</text>
 </g>
 <!-- foo.sources -->
 <g id="node1" class="node">

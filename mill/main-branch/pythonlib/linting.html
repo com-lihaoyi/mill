@@ -45,6 +45,20 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
+  .version-warning-banner {
+    background: #fff3cd;
+    border-bottom: 1px solid #f5c06a;
+    color: #6d3f00;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    padding: 0.6rem 1rem;
+    text-align: center;
+  }
+  .version-warning-banner a {
+    color: #6d3f00;
+    font-weight: 600;
+    text-decoration: underline;
+  }
   </style>
   <script>
   gtag('config', 'AW-16649289906');
@@ -59,6 +73,12 @@
         });
       }
     });
+
+    const warningTemplate = document.getElementById('version-warning-banner-template');
+    const articleDoc = document.querySelector('article.doc');
+    if (warningTemplate && articleDoc && warningTemplate.content.firstElementChild) {
+      articleDoc.prepend(warningTemplate.content.firstElementChild.cloneNode(true));
+    }
   });
   </script>
   <nav class="navbar">
@@ -118,6 +138,16 @@
       </div>
     </div>
   </nav>
+  <template id="version-warning-banner-template">
+    <div class="version-warning-banner">
+      <strong>
+        WARNING: this page contains documentation for an old/unstable version of Mill
+        (main-branch). The latest stable Mill version is
+        1.1.2 and its documentation can be found at
+        <a href="https://mill-build.org">https://mill-build.org</a>
+      </strong>
+    </div>
+  </template>
 </header>
 <div class="body">
 <div class="nav-container" data-component="mill" data-version="main-branch">
@@ -738,7 +768,7 @@ code nice and tidy.</p>
 <p>First, make your module extend <code>pythonlib.RuffModule</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-42-a47e77/mill-dist-1.1.2-example-pythonlib-linting-1-ruff-format.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/pythonlib/linting/1-ruff-format">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-43-485274/mill-dist-1.1.2-example-pythonlib-linting-1-ruff-format.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/pythonlib/linting/1-ruff-format">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, pythonlib.*
@@ -855,7 +885,7 @@ shorter name that&#8217;s easier to type.</p>
 <div class="sect2">
 <h3 id="_linting"><a class="anchor" href="#_linting"></a>Linting</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-42-a47e77/mill-dist-1.1.2-example-pythonlib-linting-2-ruff-check.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/pythonlib/linting/2-ruff-check">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-43-485274/mill-dist-1.1.2-example-pythonlib-linting-2-ruff-check.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/pythonlib/linting/2-ruff-check">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -865,7 +895,7 @@ object `package` extends PythonModule, RuffModule {}</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/main.py (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-42-a47e77/mill-dist-1.1.2-example-pythonlib-linting-2-ruff-check.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/pythonlib/linting/2-ruff-check/src/main.py">browse</a>)</div>
+<div class="title">src/main.py (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-43-485274/mill-dist-1.1.2-example-pythonlib-linting-2-ruff-check.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/pythonlib/linting/2-ruff-check/src/main.py">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-py hljs" data-lang="py">import os
 
@@ -929,7 +959,7 @@ def doit(x: int):
 <p>You can use it by extending <code>CoverageTests</code> in your test module.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-42-a47e77/mill-dist-1.1.2-example-pythonlib-linting-3-coverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/pythonlib/linting/3-coverage">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-43-485274/mill-dist-1.1.2-example-pythonlib-linting-3-coverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/pythonlib/linting/3-coverage">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*, pythonlib.*
 
@@ -941,7 +971,7 @@ object `package` extends PythonModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/main.py (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-42-a47e77/mill-dist-1.1.2-example-pythonlib-linting-3-coverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/pythonlib/linting/3-coverage/src/main.py">browse</a>)</div>
+<div class="title">src/main.py (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-43-485274/mill-dist-1.1.2-example-pythonlib-linting-3-coverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/pythonlib/linting/3-coverage/src/main.py">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-py hljs" data-lang="py">def f1():
     pass
@@ -951,7 +981,7 @@ def f2():
 </div>
 </div>
 <div class="listingblock">
-<div class="title">test/src/test_main.py (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-42-a47e77/mill-dist-1.1.2-example-pythonlib-linting-3-coverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/pythonlib/linting/3-coverage/test/src/test_main.py">browse</a>)</div>
+<div class="title">test/src/test_main.py (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-43-485274/mill-dist-1.1.2-example-pythonlib-linting-3-coverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/pythonlib/linting/3-coverage/test/src/test_main.py">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-py hljs" data-lang="py">import main
 

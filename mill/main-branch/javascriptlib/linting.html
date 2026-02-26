@@ -45,6 +45,20 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
+  .version-warning-banner {
+    background: #fff3cd;
+    border-bottom: 1px solid #f5c06a;
+    color: #6d3f00;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    padding: 0.6rem 1rem;
+    text-align: center;
+  }
+  .version-warning-banner a {
+    color: #6d3f00;
+    font-weight: 600;
+    text-decoration: underline;
+  }
   </style>
   <script>
   gtag('config', 'AW-16649289906');
@@ -59,6 +73,12 @@
         });
       }
     });
+
+    const warningTemplate = document.getElementById('version-warning-banner-template');
+    const articleDoc = document.querySelector('article.doc');
+    if (warningTemplate && articleDoc && warningTemplate.content.firstElementChild) {
+      articleDoc.prepend(warningTemplate.content.firstElementChild.cloneNode(true));
+    }
   });
   </script>
   <nav class="navbar">
@@ -118,6 +138,16 @@
       </div>
     </div>
   </nav>
+  <template id="version-warning-banner-template">
+    <div class="version-warning-banner">
+      <strong>
+        WARNING: this page contains documentation for an old/unstable version of Mill
+        (main-branch). The latest stable Mill version is
+        1.1.2 and its documentation can be found at
+        <a href="https://mill-build.org">https://mill-build.org</a>
+      </strong>
+    </div>
+  </template>
 </header>
 <div class="body">
 <div class="nav-container" data-component="mill" data-version="main-branch">
@@ -731,7 +761,7 @@ codebases using the Mill build tool</p>
 <p>Eslint and Prettier are tools that analyzes your Typescript source code, performing intelligent analyses and code quality checks, and is often able to automatically fix the issues that it discovers. It can also perform automated refactoring.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-42-a47e77/mill-dist-1.1.2-example-javascriptlib-linting-1-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/javascriptlib/linting/1-linting">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-43-485274/mill-dist-1.1.2-example-javascriptlib-linting-1-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/javascriptlib/linting/1-linting">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -782,7 +812,7 @@ All matched files use Eslint code style!</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-42-a47e77/mill-dist-1.1.2-example-javascriptlib-linting-2-autoformatting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/javascriptlib/linting/2-autoformatting">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-43-485274/mill-dist-1.1.2-example-javascriptlib-linting-2-autoformatting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/javascriptlib/linting/2-autoformatting">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -880,7 +910,7 @@ export class Foo {
 <p>Mill supports code coverage analysis with multiple Typescript testing frameworks.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-42-a47e77/mill-dist-1.1.2-example-javascriptlib-linting-3-code-coverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/javascriptlib/linting/3-code-coverage">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-43-485274/mill-dist-1.1.2-example-javascriptlib-linting-3-code-coverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/javascriptlib/linting/3-code-coverage">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 

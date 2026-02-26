@@ -43,6 +43,20 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
+  .version-warning-banner {
+    background: #fff3cd;
+    border-bottom: 1px solid #f5c06a;
+    color: #6d3f00;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    padding: 0.6rem 1rem;
+    text-align: center;
+  }
+  .version-warning-banner a {
+    color: #6d3f00;
+    font-weight: 600;
+    text-decoration: underline;
+  }
   </style>
   <script>
   gtag('config', 'AW-16649289906');
@@ -57,6 +71,12 @@
         });
       }
     });
+
+    const warningTemplate = document.getElementById('version-warning-banner-template');
+    const articleDoc = document.querySelector('article.doc');
+    if (warningTemplate && articleDoc && warningTemplate.content.firstElementChild) {
+      articleDoc.prepend(warningTemplate.content.firstElementChild.cloneNode(true));
+    }
   });
   </script>
   <nav class="navbar">
@@ -116,6 +136,16 @@
       </div>
     </div>
   </nav>
+  <template id="version-warning-banner-template">
+    <div class="version-warning-banner">
+      <strong>
+        WARNING: this page contains documentation for an old/unstable version of Mill
+        (0.11.13). The latest stable Mill version is
+        1.1.2 and its documentation can be found at
+        <a href="https://mill-build.org">https://mill-build.org</a>
+      </strong>
+    </div>
+  </template>
 </header>
 <div class="body">
 <div class="nav-container" data-component="mill" data-version="0.11.x">
@@ -421,15 +451,15 @@ trait FooModule extends Cross.Module[String] {
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 360.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-360 310.83,-360 310.83,4 -4,4"/>
-<g id="clust3" class="cluster">
-<title>cluster_0</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 298.83,-348 298.83,-240 8,-240"/>
-<text text-anchor="middle" x="153.41" y="-331.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
-</g>
 <g id="clust1" class="cluster">
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-116 298.83,-116 298.83,-8 8,-8"/>
 <text text-anchor="middle" x="153.41" y="-99.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_0</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 298.83,-348 298.83,-240 8,-240"/>
+<text text-anchor="middle" x="153.41" y="-331.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
 </g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>

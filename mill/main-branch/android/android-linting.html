@@ -45,6 +45,20 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
+  .version-warning-banner {
+    background: #fff3cd;
+    border-bottom: 1px solid #f5c06a;
+    color: #6d3f00;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    padding: 0.6rem 1rem;
+    text-align: center;
+  }
+  .version-warning-banner a {
+    color: #6d3f00;
+    font-weight: 600;
+    text-decoration: underline;
+  }
   </style>
   <script>
   gtag('config', 'AW-16649289906');
@@ -59,6 +73,12 @@
         });
       }
     });
+
+    const warningTemplate = document.getElementById('version-warning-banner-template');
+    const articleDoc = document.querySelector('article.doc');
+    if (warningTemplate && articleDoc && warningTemplate.content.firstElementChild) {
+      articleDoc.prepend(warningTemplate.content.firstElementChild.cloneNode(true));
+    }
   });
   </script>
   <nav class="navbar">
@@ -118,6 +138,16 @@
       </div>
     </div>
   </nav>
+  <template id="version-warning-banner-template">
+    <div class="version-warning-banner">
+      <strong>
+        WARNING: this page contains documentation for an old/unstable version of Mill
+        (main-branch). The latest stable Mill version is
+        1.1.2 and its documentation can be found at
+        <a href="https://mill-build.org">https://mill-build.org</a>
+      </strong>
+    </div>
+  </template>
 </header>
 <div class="body">
 <div class="nav-container" data-component="mill" data-version="main-branch">
@@ -739,7 +769,7 @@ security, and usability warnings. This helps maintain the health and quality of 
 <p>In this example, we set a custom config to generate the report in both txt and HTML formats.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-42-a47e77/mill-dist-1.1.2-example-androidlib-java-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/androidlib/java/3-linting">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-43-485274/mill-dist-1.1.2-example-androidlib-java-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/androidlib/java/3-linting">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -786,7 +816,7 @@ import mill.*, androidlib.*</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">app/src/main/AndroidManifest.xml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-42-a47e77/mill-dist-1.1.2-example-androidlib-java-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/androidlib/java/3-linting/app/src/main/AndroidManifest.xml">browse</a>)</div>
+<div class="title">app/src/main/AndroidManifest.xml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-43-485274/mill-dist-1.1.2-example-androidlib-java-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/androidlib/java/3-linting/app/src/main/AndroidManifest.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="1" android:versionName="1.0"&gt;
     &lt;application android:label="@string/app_name" android:theme="@android:style/Theme.Light.NoTitleBar" android:debuggable="true"&gt;
@@ -805,7 +835,7 @@ import mill.*, androidlib.*</code></pre>
 <p>The <code>AndroidManifest.xml</code> file shown above is flawed with hardcoded string linting problem so it can be spotted by running the <code>androidLintRun</code> task.</p>
 </div>
 <div class="listingblock">
-<div class="title">app/src/main/res/values/colors.xml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-42-a47e77/mill-dist-1.1.2-example-androidlib-java-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/androidlib/java/3-linting/app/src/main/res/values/colors.xml">browse</a>)</div>
+<div class="title">app/src/main/res/values/colors.xml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-43-485274/mill-dist-1.1.2-example-androidlib-java-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/androidlib/java/3-linting/app/src/main/res/values/colors.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;resources&gt;
     &lt;color name="white"&gt;#FFFFFF&lt;/color&gt;
@@ -814,7 +844,7 @@ import mill.*, androidlib.*</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">app/src/main/res/values/strings.xml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-42-a47e77/mill-dist-1.1.2-example-androidlib-java-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/androidlib/java/3-linting/app/src/main/res/values/strings.xml">browse</a>)</div>
+<div class="title">app/src/main/res/values/strings.xml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-43-485274/mill-dist-1.1.2-example-androidlib-java-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/androidlib/java/3-linting/app/src/main/res/values/strings.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;resources&gt;
     &lt;string name="app_name"&gt;HelloWorldApp&lt;/string&gt;
@@ -823,7 +853,7 @@ import mill.*, androidlib.*</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">app/src/main/java/com/helloworld/app/MainActivity.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-42-a47e77/mill-dist-1.1.2-example-androidlib-java-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/androidlib/java/3-linting/app/src/main/java/com/helloworld/app/MainActivity.java">browse</a>)</div>
+<div class="title">app/src/main/java/com/helloworld/app/MainActivity.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-43-485274/mill-dist-1.1.2-example-androidlib-java-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/androidlib/java/3-linting/app/src/main/java/com/helloworld/app/MainActivity.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.helloworld.app;
 
@@ -867,7 +897,7 @@ public class MainActivity extends Activity {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">app/lint.xml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-42-a47e77/mill-dist-1.1.2-example-androidlib-java-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/androidlib/java/3-linting/app/lint.xml">browse</a>)</div>
+<div class="title">app/lint.xml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2-43-485274/mill-dist-1.1.2-example-androidlib-java-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/androidlib/java/3-linting/app/lint.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;?xml version="1.0" encoding="utf-8"?&gt;
 &lt;lint&gt;
