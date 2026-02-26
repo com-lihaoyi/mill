@@ -291,7 +291,7 @@ by ``_``s. The old syntax continues to be supported for backwards compatibility 
 
 ==== Other Changes
 
-* Updated `build.mill` files to use to Scala 3.8.1 final {link-pr}/6654[#6654]
+* Updated `build.mill` files to use to Scala 3.8.2 final {link-pr}/6654[#6654]
 
 * Improvements to selective test execution and cache invalidation {link-pr}/6650[#6650],
 and `selective.resolveTree`/`mill-invalidation-tree.json` reporting {link-pr}/6616[#6616]

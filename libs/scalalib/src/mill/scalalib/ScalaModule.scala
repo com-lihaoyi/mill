@@ -563,7 +563,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
             cwd = forkWorkingDir()
           )
         } catch {
-          // Workaround for Scala 3.8.1 which doesn't trap Ctrl-C properly, which is fixed in
+          // Workaround for Scala 3.8.2 which doesn't trap Ctrl-C properly, which is fixed in
           // https://github.com/scala/scala3/pull/24842 which should land in Scala 3.8.2
           case _: java.io.IOError => // ignore
         }
