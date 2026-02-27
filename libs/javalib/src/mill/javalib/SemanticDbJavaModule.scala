@@ -36,6 +36,26 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
   private[mill] def bspBuildTarget: BspBuildTarget
   def javacOptions: T[Seq[String]]
   def mandatoryJavacOptions: T[Seq[String]]
+  def jpmsJavacOptions: T[Seq[String]] = Task {
+    jpmsJavacOptionsFor(CompileFor.Regular)()
+  }
+  private[mill] def jpmsJavacOptionsFor(compileFor: CompileFor): Task[Seq[String]] = Task.Anon {
+    val hasModuleInfo = allSourceFiles().exists(_.path.last == "module-info.java")
+    if (!hasModuleInfo) Nil
+    else if (JavaModule.hasExplicitModulePath(javacOptions() ++ mandatoryJavacOptions())) Nil
+    else {
+      val modulePath = compileClasspathTask(compileFor)()
+        .iterator
+        .map(_.path)
+        .filter(os.exists)
+        .filter(_.ext != "pom")
+        .toVector
+        .distinct
+
+      if (modulePath.isEmpty) Nil
+      else Seq("--module-path", modulePath.mkString(java.io.File.pathSeparator))
+    }
+  }
   private[mill] def compileClasspathTask(compileFor: CompileFor): Task[Seq[PathRef]]
   def moduleDeps: Seq[JavaModule]
 
@@ -116,7 +136,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
 
   def semanticDbDataDetailed: T[SemanticDbJavaModule.SemanticDbData] = Task(persistent = true) {
     val javacOpts = SemanticDbJavaModule.javacOptionsTask(
-      javacOptions() ++ mandatoryJavacOptions(),
+      javacOptions() ++ jpmsJavacOptionsFor(CompileFor.SemanticDb)() ++ mandatoryJavacOptions(),
       semanticDbJavaVersion()
     )
 
