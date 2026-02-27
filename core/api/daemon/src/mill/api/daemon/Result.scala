@@ -95,9 +95,12 @@ object Result {
       var current = List(ex)
       while (current.head.getCause != null) current = current.head.getCause :: current
 
-      val exceptionInfos = current.reverse.map { e =>
-        val elements = e.getStackTrace.dropRight(outerStackLength)
-        ExceptionInfo(e.getClass.getName, e.getMessage, elements.toSeq)
+      val exceptionInfos = current.reverse.map {
+        case r: Result.SerializedException =>
+          r.info
+        case e =>
+          val elements = e.getStackTrace.dropRight(outerStackLength)
+          ExceptionInfo(e.getClass.getName, e.getMessage, elements.toSeq)
       }
       Failure("", exception = exceptionInfos)
     }
