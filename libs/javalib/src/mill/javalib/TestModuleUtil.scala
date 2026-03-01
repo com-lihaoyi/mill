@@ -48,7 +48,9 @@ final class TestModuleUtil(
     testParallelism: Boolean,
     testLogLevel: TestReporter.LogLevel,
     propagateEnv: Boolean = true,
-    jvmWorker: mill.javalib.api.internal.InternalJvmWorkerApi
+    jvmWorker: mill.javalib.api.internal.InternalJvmWorkerApi,
+    @com.lihaoyi.unroll
+    discoveredClassesOpt: Option[Seq[(String, Int)]] = None
 )(using ctx: mill.api.TaskCtx) {
 
   private val (jvmArgs, props) = TestModuleUtil.loadArgsAndProps(useArgsFile, forkArgs)
@@ -83,7 +85,8 @@ final class TestModuleUtil(
           testClasspath.map(_.path),
           testFramework,
           selectors,
-          args
+          args,
+          discoveredClassesOpt
         ),
         javaHome = javaHome
       ).toSet
@@ -131,7 +134,8 @@ final class TestModuleUtil(
       colored = Task.log.prompt.colored,
       testCp = testClasspath.map(_.path),
       globSelectors = selector,
-      logLevel = testLogLevel
+      logLevel = testLogLevel,
+      discoveredTestClasses = discoveredClassesOpt
     )
 
     val argsFile = baseFolder / "testargs"

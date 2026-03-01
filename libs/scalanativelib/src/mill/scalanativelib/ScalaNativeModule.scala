@@ -507,6 +507,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
       Seq(compile().classes.path),
       args(),
       Task.testReporter,
+      aheadOfTimeDiscoveredTestClassesIfNeeded(),
       cls => TestRunnerUtils.globFilter(globSelectors())(cls.getName)
     )
     val res = TestModule.handleResults(doneMsg, results, Task.ctx(), testReportXml())

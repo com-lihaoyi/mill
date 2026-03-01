@@ -18,7 +18,8 @@ import mill.api.daemon.internal.{TestReporter, internal}
     // - Right((selectorFolder: os.Path, baseFolder: os.Path)): - a pair of paths, testrunner will try to claim test glob from selectorFolder
     // and move it actomatically in to baseFolder and run it from there.
     globSelectors: Either[Seq[String], (Option[String], os.Path, os.Path)],
-    logLevel: TestReporter.LogLevel
+    logLevel: TestReporter.LogLevel,
+    discoveredTestClasses: Option[Seq[(String, Int)]]
 )
 
 @internal object TestArgs {

@@ -418,6 +418,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       Seq(compile().classes.path),
       args(),
       Task.testReporter,
+      aheadOfTimeDiscoveredTestClassesIfNeeded(),
       cls => TestRunnerUtils.globFilter(globSelectors())(cls.getName)
     )
     val res = TestModule.handleResults(doneMsg, results, Task.ctx(), testReportXml())
@@ -427,6 +428,38 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
     Thread.sleep(100)
     close()
     res
+  }
+
+}
+
+object TestScalaJSModule {
+
+  /**
+   * TestModule that uses Scala.js' JUnit 4 compatibility library to run tests
+   */
+  trait Junit4ScalaJs extends TestScalaJSModule {
+
+    // Seems to be mandatory - the junit4 @Test annotations are no where to be found
+    // in test class files
+    override protected def discoverTestsWithZinc = true
+
+    override def testFramework: T[String] = "com.novocode.junit.JUnitFramework"
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++
+        Seq(
+          mvn"org.scala-js::scalajs-junit-test-runtime:${scalaJSVersion()}"
+            .withDottyCompat(scalaVersion())
+        )
+    }
+
+    override def scalacPluginMvnDeps: T[Seq[Dep]] = Task {
+      val extra =
+        if (scalaVersion().startsWith("2."))
+          Seq(mvn"org.scala-js:::scalajs-junit-test-plugin:${scalaJSVersion()}")
+        else
+          Nil
+      super.scalacPluginMvnDeps() ++ extra
+    }
   }
 
 }

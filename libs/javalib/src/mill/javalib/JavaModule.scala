@@ -135,6 +135,8 @@ trait JavaModule
      * @throws MillException
      */
     protected def hierarchyChecks(): Unit = JavaModule.hierarchyChecks(outer, this)
+
+    protected def zincAnalysisFile = Task.Anon(Some(compile().analysisFile))
   }
 
   def defaultTask(): String = "run"
