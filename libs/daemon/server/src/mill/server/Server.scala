@@ -471,34 +471,37 @@ object Server {
   )(t: => T): T = {
     if (noBuildLock) t
     else {
-      def readActiveInfo(): (String, Option[os.Path]) = {
+      def readActiveInfo(): (command: String, processDir: Option[os.Path], pid: Option[Long]) = {
         try {
           val json = os.read(out / OutFiles.millActive)
           // Simple JSON parsing for {"command":"...","processDir":"..."}
           val commandPattern = """"command"\s*:\s*"([^"]*)"""".r
           val processDirPattern = """"processDir"\s*:\s*"([^"]*)"""".r
+          val pidPattern = """"pid"\s*:\s*([0-9]+)""".r
           val command = commandPattern.findFirstMatchIn(json).map(_.group(1)).getOrElse("<unknown>")
           val processDir = processDirPattern.findFirstMatchIn(json).map(m => os.Path(m.group(1)))
-          (command, processDir)
+          val pid = pidPattern.findFirstMatchIn(json).flatMap(m => m.group(1).toLongOption)
+          (command, processDir, pid)
         } catch {
-          case NonFatal(_) => ("<unknown>", None)
+          case NonFatal(_) => ("<unknown>", None, None)
         }
       }
 
-      def activeTaskPrefix(command: String) = s"Another Mill process is running '$command',"
+      def activeTaskPrefix(command: String, pidOpt: Option[Long]) =
+        s"Another Mill process with PID ${pidOpt.fold("<unknown>")(_.toString)} is running '$command',"
 
       setIdle(true)
       Using.resource {
         val tryLocked = outLock.tryLock()
         if (tryLocked.isLocked) tryLocked
         else if (noWaitForBuildLock) {
-          val (command, _) = readActiveInfo()
-          throw new Exception(s"${activeTaskPrefix(command)} failing")
+          val (command, _, pidOpt) = readActiveInfo()
+          throw new Exception(s"${activeTaskPrefix(command, pidOpt)} failing")
         } else {
-          val (command, _) = readActiveInfo()
+          val (command, _, pidOpt) = readActiveInfo()
           val consoleLogPath = out / DaemonFiles.millConsoleTail
           streams.err.println(
-            s"${activeTaskPrefix(command)} waiting for it to be done... " +
+            s"${activeTaskPrefix(command, pidOpt)} waiting for it to be done... " +
               s"(tail -F ${consoleLogPath.relativeTo(mill.api.BuildCtx.workspaceRoot)} to see its progress)"
           )
           outLock.lock()
@@ -506,7 +509,9 @@ object Server {
       } { _ =>
         setIdle(false)
         if (Thread.interrupted()) throw new InterruptedException()
-        val json = s"""{"command":"$millActiveCommandMessage","processDir":"$daemonDir"}"""
+        val pid = ProcessHandle.current().pid()
+        val json =
+          s"""{"command":"$millActiveCommandMessage","processDir":"$daemonDir","pid":$pid}"""
         os.write.over(out / OutFiles.millActive, json)
         try t
         finally os.remove.all(out / OutFiles.millActive)
