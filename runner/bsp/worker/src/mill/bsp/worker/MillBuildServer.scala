@@ -18,6 +18,7 @@ import scala.util.{Failure, Success}
 import mill.api.daemon.internal.NonFatal
 import mill.api.daemon.internal.bsp.{BspModuleApi, BspServerResult}
 import mill.api.daemon.internal.*
+import mill.constants.OutFiles.OutFiles
 
 import scala.annotation.unused
 
@@ -37,7 +38,9 @@ private abstract class MillBuildServer(
     outLock: Lock,
     protected val baseLogger: Logger,
     out: os.Path,
-    daemonDir: os.Path
+    daemonDir: os.Path,
+    noWaitForBspLock: Boolean,
+    killOther: Boolean
 ) extends EndpointsApi with AutoCloseable {
 
   import MillBuildServer.*
@@ -58,6 +61,83 @@ private abstract class MillBuildServer(
   private val requestCount = new AtomicInteger
 
   def initialized = sessionInfo != null
+
+  private var bspLock: Lock = scala.compiletime.uninitialized
+
+  private def initLock(bspLockId: String): Unit = {
+    assert(bspLock == null)
+    bspLock = Lock.file((out / OutFiles.millBspLock(bspLockId)).toString)
+    val activeBspFile = out / OutFiles.millActiveBsp(bspLockId)
+    def readActiveInfo(): (Option[os.Path], Option[Long]) =
+      try {
+        val json = os.read(activeBspFile)
+        // Simple JSON parsing for {"processDir":"...","pid":...}
+        val processDirPattern = """"processDir"\s*:\s*"([^"]*)"""".r
+        val pidPattern = """"pid"\s*:\s*([0-9]+)""".r
+        val processDir = processDirPattern.findFirstMatchIn(json).map(m => os.Path(m.group(1)))
+        val pid = pidPattern.findFirstMatchIn(json).flatMap(m => m.group(1).toLongOption)
+        (processDir, pid)
+      } catch {
+        case NonFatal(_) => (None, None)
+      }
+
+    val tryLocked = bspLock.tryLock()
+    if (tryLocked.isLocked)
+      tryLocked
+    else if (noWaitForBspLock)
+      throw new Exception("Another Mill BSP process is running, failing")
+    else {
+      val (_, pidOpt) = readActiveInfo()
+      if (killOther)
+        pidOpt match {
+          case Some(pid) =>
+            val handle = ProcessHandle.of(pid).orElseThrow()
+            if (handle.isAlive()) {
+              if (handle.destroy())
+                baseLogger.info(s"Sent SIGTERM to process $pid")
+              else
+                baseLogger.warn(s"Could not send SIGTERM to process $pid")
+              var i = 200
+              while (i > 0 && handle.isAlive()) {
+                Thread.sleep(10L)
+                i -= 1
+              }
+              if (handle.isAlive())
+                if (handle.destroyForcibly())
+                  baseLogger.info(s"Sent SIGKILL to process $pid")
+                else
+                  baseLogger.warn(s"Could not send SIGKILL to process $pid")
+            } else
+              baseLogger.info(s"Other Mill process with PID $pid exited")
+          case None =>
+            baseLogger.warn(
+              s"PID of other Mill process not found in $activeBspFile, could not terminate it"
+            )
+        }
+      else
+        baseLogger.info(
+          s"Another Mill BSP server is running with PID ${pidOpt.fold("<unknown>")(_.toString)} waiting for it to be done..."
+        )
+      bspLock.lock()
+    }
+
+    val pid = ProcessHandle.current().pid()
+    val json = s"""{"processDir":"$daemonDir","pid":$pid}"""
+    os.write.over(activeBspFile, json)
+  }
+
+  protected def doneInitializingBuild(): Unit = {
+    assert(initialized, "Expected Mill BSP server to be initialized")
+    if (bspLock == null) {
+      val bspLockId = sessionInfo.clientDisplayName
+        // just in case
+        .replace(" ", "_")
+        .replace("/", "_")
+        .replace("\\", "_")
+      initLock(bspLockId)
+    } else
+      baseLogger.warn("Mill BSP server initialized more than once")
+  }
 
   // ==========================================================================
   // Lifecycle Management

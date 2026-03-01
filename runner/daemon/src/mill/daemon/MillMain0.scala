@@ -26,6 +26,7 @@ import mill.api.daemon.internal.NonFatal
 import java.io.{InputStream, PrintStream, PrintWriter, StringWriter}
 import java.lang.reflect.InvocationTargetException
 import java.util.concurrent.{ThreadPoolExecutor, TimeUnit}
+import sun.misc.Signal
 import scala.jdk.CollectionConverters.*
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -336,10 +337,24 @@ object MillMain0 {
 
                         (true, bootstrapped)
                       } else if (bspMode) {
+                        // Can happen if a concurrent BSP server starts and shuts us down.
+                        // We log in the console what happened just in case, so that users know why we exit.
+                        // This is also used in the tests.
+                        Signal.handle(
+                          new Signal("TERM"),
+                          _ => SystemStreams.originalErr.println("Received SIGTERM, exiting")
+                        )
+
                         val bspLogger = getBspLogger(streams, config)
                         var prevRunnerStateOpt = Option.empty[RunnerState]
-                        val (bspServerHandle, buildClient) =
-                          startBspServer(streams0, outLock, bspLogger, daemonDir)
+                        val (bspServerHandle, buildClient) = startBspServer(
+                          streams0,
+                          outLock,
+                          bspLogger,
+                          daemonDir,
+                          noWaitForBspLock = config.noWaitForBspLock.value,
+                          killOther = !config.bspNoKillOther.value
+                        )
                         var keepGoing = true
                         var errored = false
                         val initCommandLogger = new PrefixLogger(bspLogger, Seq("init"))
@@ -521,7 +536,9 @@ object MillMain0 {
       bspStreams: SystemStreams,
       outLock: Lock,
       bspLogger: Logger,
-      daemonDir: os.Path
+      daemonDir: os.Path,
+      noWaitForBspLock: Boolean,
+      killOther: Boolean
   ): (BspServerHandle, IdeWorkerSupport.BspBuildClient) = {
     bspLogger.info("Trying to load BSP server...")
 
@@ -539,7 +556,9 @@ object MillMain0 {
         outLock = outLock,
         baseLogger = bspLogger,
         out = outFolder,
-        daemonDir = daemonDir
+        daemonDir = daemonDir,
+        noWaitForBspLock = noWaitForBspLock,
+        killOther = killOther
       )
 
     bspLogger.info("BSP server started")

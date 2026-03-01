@@ -108,6 +108,18 @@ case class MillCliConfig(
     @arg(
       hidden = true,
       doc =
+        """Do not wait for an exclusive BSP server lock to run BSP server, just exit with an error if the BSP server lock is hold by another process"""
+    )
+    noWaitForBspLock: Flag = Flag(),
+    @arg(
+      hidden = true,
+      doc =
+        """If the BSP lock is hold by another process, wait for it to release the lock"""
+    )
+    bspNoKillOther: Flag = Flag(),
+    @arg(
+      hidden = true,
+      doc =
         """Evaluate tasks / commands without acquiring an exclusive lock on the Mill output directory"""
     )
     noBuildLock: Flag = Flag(),

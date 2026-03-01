@@ -100,10 +100,13 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
 
       sessionInfo = new MillBspEndpoints.SessionInfo(
         clientType,
+        request.getDisplayName,
         clientWantsSemanticDb = clientWantsSemanticDb,
         enableJvmCompileClasspathProvider = enableJvmCompileClasspathProvider
       )
-      new InitializeBuildResult(serverName, serverVersion, bspVersion, capabilities)
+      val res = new InitializeBuildResult(serverName, serverVersion, bspVersion, capabilities)
+      doneInitializingBuild()
+      res
     }
 
   override def onBuildInitialized(): Unit = {
@@ -571,6 +574,7 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
 object MillBspEndpoints {
   class SessionInfo(
       val clientType: ClientType,
+      val clientDisplayName: String,
       val clientWantsSemanticDb: Boolean,
       /** `true` when client and server support the `JvmCompileClasspathProvider` request. */
       val enableJvmCompileClasspathProvider: Boolean

@@ -128,9 +128,23 @@ public class OutFiles {
     public final String millOutLock = "mill-out-lock";
 
     /**
+     * Lock file used for exclusively running the Mill BSP server for that lock id
+     */
+    public final String millBspLock(String lockId) {
+      return "mill-bsp-" + lockId + "-lock";
+    }
+
+    /**
      * JSON file containing info about the active Mill process (command and process directory)
      */
     public final String millActive = "mill-active.json";
+
+    /**
+     * JSON file containing info about the active Mill BSP process for that lock id (process directory and PID)
+     */
+    public final String millActiveBsp(String lockId) {
+      return "mill-active-bsp-" + lockId + ".json";
+    }
 
     /**
      * File used to store metadata related to selective execution, mostly
