@@ -162,15 +162,20 @@ object CodeGen {
       def pkgSelector2(s: Option[String]) =
         s"_root_.${pkgSelector0(Some(CGConst.globalPackagePrefix), s)}"
 
-      val childAliases = childNames
-        .map { c =>
-          // Dummy references to sub-modules. Just used as metadata for the discover and
-          // resolve logic to traverse, cannot actually be evaluated and used
-          val lhs = backtickWrap(c)
-          val rhs = s"${pkgSelector2(Some(c))}.package_"
-          s"final lazy val $lhs: $rhs.type = $rhs // subfolder module reference"
-        }
-        .mkString("\n  ")
+      val (childAliases, childAliasesDefs) = {
+        val (aliasesDefs, aliases) = childNames
+          .map { c =>
+            // Dummy references to sub-modules. Just used as metadata for the discover and
+            // resolve logic to traverse, cannot actually be evaluated and used
+            val lhs = backtickWrap(c)
+            val rhs = s"${pkgSelector2(Some(c))}.package_"
+            val abstractDef = s"def $lhs: $rhs.type // subfolder module reference"
+            val valDef = s"final lazy val $lhs: $rhs.type = $rhs // subfolder module reference"
+            (abstractDef, valDef)
+          }
+          .unzip
+        (aliases.mkString("\n  "), aliasesDefs.mkString("\n  "))
+      }
 
       if (scriptFolderPath == projectRoot) {
         val buildFileImplCode = generateBuildFileImpl(pkg)
@@ -364,6 +369,7 @@ object CodeGen {
                 scriptFolderPath = scriptFolderPath,
                 packageObjectRefs = allPackageObjectRefs,
                 childAliases = childAliases,
+                childAliasesDefs = childAliasesDefs,
                 pkg = pkg,
                 aliasImports = aliasImports,
                 scriptCode = scriptCode,
@@ -432,6 +438,7 @@ object CodeGen {
       scriptFolderPath: os.Path,
       packageObjectRefs: Seq[String],
       childAliases: String,
+      childAliasesDefs: String,
       pkg: String,
       aliasImports: String,
       scriptCode: String,
@@ -531,6 +538,7 @@ object CodeGen {
         s"""$headerCode
            |abstract class ${CGConst.wrapperObjectName}
            |    extends $newParent { this: ${CGConst.wrapperObjectName}.type =>
+           |$childAliasesDefs
            |$markerComment
            |$scriptCode
            |}""".stripMargin
