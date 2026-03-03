@@ -333,6 +333,8 @@ object myproject extends ScalaModule, ExplicitDependencies {
 
 A plugin that checks that `mvnDeps` and `mvnCompileDeps` accurately reflect the direct dependencies of your source code.
 
+It supports Mill versions 0.9.X and 0.10.X.
+
 Project home: https://github.com/kierendavies/mill-explicit-deps
 
 
