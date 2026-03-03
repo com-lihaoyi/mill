@@ -323,15 +323,10 @@ object myproject extends ScalaModule, ExplicitDependencies {
 
 [source,console]
 ----
-# find all undeclared dependencies
-> mill __.undeclaredCompileDependencies
-# fail if there are undeclared dependencies
-> mill __.undeclaredCompileDependenciesTest
-
-# find all unused dependencies
-> mill __.unusedCompileDependencies
-# fail if there are unused dependencies
-> mill __.unusedCompileDependenciesTest
+> mill __.undeclaredCompileDependencies       # find all undeclared dependencies
+> mill __.undeclaredCompileDependenciesTest   # fail if there are undeclared dependencies
+> mill __.unusedCompileDependencies           # find all unused dependencies
+> mill __.unusedCompileDependenciesTest       # fail if there are unused dependencies
 ----
 
 == Explicit Deps
