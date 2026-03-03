@@ -4829,6 +4829,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/rpc/RpcConsole$$Message$$Print.html#","e":false,"i":"","n":"Print","t":"Print(s: String)","d":"mill.rpc.RpcConsole.Message","k":"class","x":""},
 {"l":"mill/rpc/RpcConsole$$Message.html#Flush-0","e":false,"i":"","n":"Flush","t":"Flush extends Message","d":"mill.rpc.RpcConsole.Message","k":"val","x":""},
 {"l":"mill/rpc/RpcConsole$$Message$$Print.html#","e":false,"i":"","n":"Print","t":"Print(s: String)","d":"mill.rpc.RpcConsole.Message","k":"class","x":""},
+{"l":"mill/rpc/RpcConsole$$Utf8OutputStream.html#","e":false,"i":"","n":"Utf8OutputStream","t":"Utf8OutputStream(console: RpcConsole) extends OutputStream","d":"mill.rpc.RpcConsole","k":"class","x":""},
 {"l":"mill/rpc/RpcLogger$.html#","e":false,"i":"","n":"RpcLogger","t":"RpcLogger","d":"mill.rpc","k":"object","x":""},
 {"l":"mill/rpc/RpcLogger$.html#create-fffff6ae","e":false,"i":"","n":"create","t":"create(send: Message => Unit): Actions","d":"mill.rpc.RpcLogger","k":"def","x":""},
 {"l":"mill/rpc/RpcLogger$$Message.html#","e":false,"i":"","n":"Message","t":"Message","d":"mill.rpc.RpcLogger","k":"enum","x":""},
