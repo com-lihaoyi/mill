@@ -135,7 +135,11 @@ object Result {
         case r: Result.SerializedException =>
           r.info
         case e =>
-          ExceptionInfo(e.getClass.getName, e.getMessage, cutOuterStack(e.getStackTrace))
+          val (clsName, msg) = e.toString.split(": ", 2) match {
+            case Array(clsName, msg) => (clsName, msg)
+            case _ => (e.getClass.getName, e.getMessage)
+          }
+          ExceptionInfo(clsName, msg, cutOuterStack(e.getStackTrace))
       }
       Failure("", exception = exceptionInfos)
     }
