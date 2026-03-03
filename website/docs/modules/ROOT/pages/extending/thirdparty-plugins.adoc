@@ -292,9 +292,48 @@ Optionally, you can specify the ensime server version using the –server flag l
 > mill fun.valycorp.mill.GenEnsime/ensimeConfig --server "3.0.0-SNAPSHOT"
 ----
 
+== Explicit Dependencies
+
+A plugin that helps to manage dependency hell by avoiding unused declared
+dependencies and used undeclared transitive dependencies. It is a 
+reimplementation of https://github.com/cb372/sbt-explicit-dependencies[sbt-explicit-dependencies]
+and supports both external and module dependencies.
+
+It supports any Mill version starting from 1.0.5 and includes CI-friendly tasks.
+
+Project home: https://github.com/MarmaladeSky/mill-explicit-dependencies
+
+.`build.mill`
+[source,scala]
+----
+//| mvnDeps:
+//|   - digital.junkie::mill-explicit-dependencies:$MILL_VERSION
+
+import digital.junkie.milledependencies.ExplicitDependencies
+
+object myproject extends ScalaModule, ExplicitDependencies {
+
+  // [optional] filter out unwanted results
+  override def undeclaredCompileDependenciesFilter: Seq[Dep] = Seq.empty
+  override def unusedCompileDependenciesFilter: Seq[Dep] = Seq.empty
+  override def undeclaredCompileModulesFilter: Seq[Module] = Seq.empty
+  override def unusedCompileModulesFilter: Seq[Module] = Seq.empty
+}
+----
+
+[source,console]
+----
+> mill __.undeclaredCompileDependencies       # find all undeclared dependencies
+> mill __.undeclaredCompileDependenciesTest   # fail if there are undeclared dependencies
+> mill __.unusedCompileDependencies           # find all unused dependencies
+> mill __.unusedCompileDependenciesTest       # fail if there are unused dependencies
+----
+
 == Explicit Deps
 
 A plugin that checks that `mvnDeps` and `mvnCompileDeps` accurately reflect the direct dependencies of your source code.
+
+It supports Mill versions 0.9.X and 0.10.X.
 
 Project home: https://github.com/kierendavies/mill-explicit-deps
 
