@@ -125,7 +125,6 @@ private[scalajslib] class ScalaJSConfigWorker(jobs: Int)
       moduleInitializers: Seq[sjs.ModuleInitializer],
       forceOutJs: Boolean,
       testBridgeInit: Boolean,
-      isFullLinkJS: Boolean,
       importMap: Seq[api.ESModuleImportMapping],
       config: sjs.StandardConfig
   ): Result[sjs.Report] = {
@@ -136,7 +135,6 @@ private[scalajslib] class ScalaJSConfigWorker(jobs: Int)
         moduleInitializers = moduleInitializers,
         forceOutJs = forceOutJs,
         testBridgeInit = testBridgeInit,
-        isFullLinkJS = isFullLinkJS,
         importMap = importMap.map(toWorkerApi),
         config = config
       ) match {

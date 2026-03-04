@@ -26,7 +26,6 @@ import mill.scalajslib.config.ScalaJSConfig
 
 class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWorkerApi {
   private case class LinkerInput(
-      isFullLinkJS: Boolean,
       dest: File,
       config: sjs.StandardConfig
   )
@@ -66,11 +65,9 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
       moduleInitializers: Seq[sjs.ModuleInitializer],
       forceOutJs: Boolean,
       testBridgeInit: Boolean,
-      isFullLinkJS: Boolean,
       importMap: Seq[workerApi.ESModuleImportMapping],
       config: sjs.StandardConfig
   ): Either[String, sjs.Report] = ScalaJSLinker.withValue(LinkerInput(
-    isFullLinkJS = isFullLinkJS,
     dest = dest,
     config = config
   )) { (linker, irFileCacheCache) =>
@@ -260,24 +257,25 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
       importMap: Seq[workerApi.ESModuleImportMapping],
       experimentalUseWebAssembly: Boolean
   ): Either[String, workerApi.Report] = {
+    val config = ScalaJSConfig.config(
+      sjsVersion = ScalaJSVersions.current,
+      moduleSplitStyle = moduleSplitStyle,
+      esFeatures = esFeatures,
+      moduleKind = moduleKind,
+      scalaJSOptimizer = optimizer,
+      scalaJSSourceMap = sourceMap,
+      patterns = outputPatterns,
+      useWebAssembly = experimentalUseWebAssembly
+    )
+
     rawLink(
       runClasspath = runClasspath,
       dest = dest,
       moduleInitializers = ScalaJSConfigModule.moduleInitializers(main.toOption, true),
       forceOutJs = forceOutJs,
       testBridgeInit = testBridgeInit,
-      isFullLinkJS = isFullLinkJS,
       importMap = importMap,
-      config = ScalaJSConfig.config(
-        sjsVersion = ScalaJSVersions.current,
-        moduleSplitStyle = moduleSplitStyle,
-        esFeatures = esFeatures,
-        moduleKind = moduleKind,
-        scalaJSOptimizer = optimizer,
-        scalaJSSourceMap = sourceMap,
-        patterns = outputPatterns,
-        useWebAssembly = experimentalUseWebAssembly
-      )
+      config = if (isFullLinkJS) ScalaJSConfigModule.fullOptConfig(config) else config
     ).map { sjsReport =>
       fromSjs(sjsReport, os.Path(dest))
     }
