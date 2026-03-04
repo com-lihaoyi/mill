@@ -1171,6 +1171,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
  * Descriptor of unpacked `.aar` dependency structure.
  * @param name dependency name
  * @param classesJar path to the classes.jar
+ * @param sourcesJar path to the sources.jar
  * @param proguardRules path to the proguard rules
  * @param androidResources path to the res folder
  * @param manifest path to the AndroidManifest.xml
@@ -1184,6 +1185,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 case class UnpackedDep(
     name: String,
     classesJar: Option[PathRef],
+    sourcesJar: Option[PathRef],
     repackagedJars: Seq[PathRef],
     proguardRules: Option[PathRef],
     androidResources: Option[PathRef],

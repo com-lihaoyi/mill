@@ -5,6 +5,7 @@ import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import mill.T
 import mill.androidlib.manifestmerger.AndroidManifestMerger
+import mill.androidlib.bsp.BspAndroidModule
 import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.api.{ModuleRef, PathRef, Task}
 import mill.javalib.*
@@ -15,6 +16,10 @@ import scala.collection.immutable
 import scala.xml.*
 
 trait AndroidModule extends JavaModule { outer =>
+
+  override private[mill] lazy val bspExt = {
+    ModuleRef(new BspAndroidModule.Wrap(this) {}.internalBspJavaModule)
+  }
 
   // https://cs.android.com/android-studio/platform/tools/base/+/mirror-goog-studio-main:build-system/gradle-core/src/main/java/com/android/build/gradle/internal/tasks/D8BundleMainDexListTask.kt;l=210-223;drc=66ab6bccb85ce3ed7b371535929a69f494d807f0
   val mainDexPlatformRules = Seq(
@@ -389,7 +394,25 @@ trait AndroidModule extends JavaModule { outer =>
    * @return
    */
   def androidResolvedMvnDeps: T[Seq[PathRef]] = Task {
-    transformedAndroidDeps(Task.Anon(resolvedMvnDeps()))()
+    val transformedAars = androidUnpackedAarMvnDeps().flatMap(_.classesJar)
+    androidJarMvnDeps() ++ transformedAars
+  }
+
+  def androidAarMvnDeps: T[Seq[PathRef]] = Task {
+    resolvedMvnDeps().filter(_.path.ext == "aar")
+  }
+
+  def androidJarMvnDeps: T[Seq[PathRef]] = Task {
+    resolvedMvnDeps().filter(_.path.ext == "jar")
+  }
+
+  def androidUnpackedAarMvnDeps: T[Seq[UnpackedDep]] = Task {
+    val transformDest = Task.dest / "transform"
+    extractAarFiles(
+      androidAarMvnDeps().map(_.path),
+      transformDest,
+      resolvedMvnDeps0(sources = true)().map(_.path)
+    )
   }
 
   def androidResolvedCompileMvnDeps: T[Seq[PathRef]] = Task {
@@ -460,7 +483,11 @@ trait AndroidModule extends JavaModule { outer =>
     extractAarFiles(aarFiles, Task.dest)
   }
 
-  final def extractAarFiles(aarFiles: Seq[os.Path], taskDest: os.Path): Seq[UnpackedDep] = {
+  final def extractAarFiles(
+      aarFiles: Seq[os.Path],
+      taskDest: os.Path,
+      sources: Seq[os.Path] = Seq.empty
+  ): Seq[UnpackedDep] = {
     aarFiles.map(aarFile => {
       val extractDir = taskDest / aarFile.baseName
       os.unzip(aarFile, extractDir)
@@ -480,6 +507,14 @@ trait AndroidModule extends JavaModule { outer =>
         os.move(pr.path, targetClassesJar)
         PathRef(targetClassesJar)
       })
+      // Bring the source files to the same location as classes.jar,
+      // so that IDEs can pick them up as sources for the library.
+      val targetSourcesJar = s"${name}-sources.jar"
+      val sourcesJar = sources.find(s => s.last == targetSourcesJar).map(srcJar => {
+        val dest = extractDir / targetSourcesJar
+        os.copy(srcJar, dest)
+        PathRef(dest)
+      })
       val proguardRules = pathOption(extractDir / "proguard.txt")
       val androidResources = pathOption(extractDir / "res")
       val assets = pathOption(extractDir / "assets")
@@ -495,6 +530,7 @@ trait AndroidModule extends JavaModule { outer =>
       UnpackedDep(
         name,
         targetClassesJarPathRef,
+        sourcesJar,
         repackaged,
         proguardRules,
         androidResources,

@@ -1146,7 +1146,7 @@ trait JavaModule
     compileResources() ++ unmanaged
   }
 
-  private def resolvedMvnDeps0(sources: Boolean) = Task.Anon {
+  private[mill] def resolvedMvnDeps0(sources: Boolean) = Task.Anon {
     millResolver().classpath(
       Seq(
         BoundDep(
