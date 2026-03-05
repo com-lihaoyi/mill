@@ -197,6 +197,12 @@ object CallGraphAnalysis {
       resolved.classSingleAbstractMethods.getOrElse(methodDefCls, Set.empty)
     }
 
+    val localDirectAncestors: Map[JType.Cls, Set[JType.Cls]] =
+      localSummary.mapValues(_.directAncestors.filter(localSummary.contains)).toMap
+
+    val localDirectDescendents: Map[JType.Cls, Seq[JType.Cls]] =
+      SpanningForest.reverseEdges(localDirectAncestors)
+
     indexToNodes
       .iterator
       .map {
@@ -301,6 +307,10 @@ object CallGraphAnalysis {
               resolved.localCalls(call).localDests.isEmpty &&
               resolved.localCalls(call).externalDests.nonEmpty
 
+          // Partition outbound calls into categories where we can compute precise
+          // callback edges directly (bypassing the imprecise ExternalClsCall fan-out).
+          // Calls we can't handle precisely fall through to `normalCalls` which use
+          // the original Call → ExternalClsCall → LocalDef path.
           val calls = methods(methodDef)
             .calls
             .toArray
@@ -391,16 +401,7 @@ object CallGraphAnalysis {
             concreteReceiverLocalMethodIndices(call.cls, methodDef.cls)
           }
 
-          val localNoArgVirtualExternalReceiverCallbackCalls = {
-            val localDirectAncestors: Map[JType.Cls, Set[JType.Cls]] =
-              localSummary.mapValues(_.directAncestors.filter(localSummary.contains)).toMap
-
-            val localDirectDescendents: Map[JType.Cls, Seq[JType.Cls]] = {
-              val localAncestors =
-                localSummary.mapValues(_.directAncestors.filter(localSummary.contains)).toMap
-              SpanningForest.reverseEdges(localAncestors)
-            }
-
+          val localNoArgVirtualExternalReceiverCallbackCalls =
             localNoArgVirtualExternalReceiverCalls.flatMap { call =>
               val methodDefAncestors =
                 SpanningForest.breadthFirst(Seq(methodDef.cls))(
@@ -430,7 +431,6 @@ object CallGraphAnalysis {
                 dest <- nodeToIndex.get(CallGraphAnalysis.LocalDef(st.MethodDef(receiverCls, m)))
               } yield dest
             }
-          }
 
           val singleAbstractMethodInitEdge =
             if (methodDef.sig.name != "<init>") None

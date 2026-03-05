@@ -111,48 +111,39 @@ object LocalSummary {
       allRefArgTypes: Map[MethodCall, Set[JCls]]
   )
 
-  /** Extract the precise internal name from a BasicValue, if it represents a known object type. */
-  private def preciseInternalName(v: org.objectweb.asm.tree.analysis.BasicValue): Option[String] = {
-    if (v == null || v.getType == null) None
-    else {
-      val t = v.getType
-      if (t.getSort == org.objectweb.asm.Type.OBJECT && t.getInternalName != "null")
-        Some(t.getInternalName)
-      else None
-    }
-  }
-
-  /**
-   * Custom interpreter that preserves precise object types, unlike the default
-   * BasicInterpreter which collapses all reference types to a single REFERENCE_VALUE.
-   */
-  private val preciseTypeInterpreter = new org.objectweb.asm.tree.analysis.BasicInterpreter(Opcodes.ASM9) {
-    override def newValue(tp: org.objectweb.asm.Type): org.objectweb.asm.tree.analysis.BasicValue = {
-      if (tp == null) return org.objectweb.asm.tree.analysis.BasicValue.UNINITIALIZED_VALUE
-      if (tp.getSort == org.objectweb.asm.Type.ARRAY || tp.getSort == org.objectweb.asm.Type.OBJECT)
-        new org.objectweb.asm.tree.analysis.BasicValue(tp)
-      else super.newValue(tp)
-    }
-    override def merge(
-        a: org.objectweb.asm.tree.analysis.BasicValue,
-        b: org.objectweb.asm.tree.analysis.BasicValue
-    ): org.objectweb.asm.tree.analysis.BasicValue = {
-      if (a == b) a
-      else if (
-        a == org.objectweb.asm.tree.analysis.BasicValue.UNINITIALIZED_VALUE ||
-        b == org.objectweb.asm.tree.analysis.BasicValue.UNINITIALIZED_VALUE
-      )
-        org.objectweb.asm.tree.analysis.BasicValue.UNINITIALIZED_VALUE
-      else org.objectweb.asm.tree.analysis.BasicValue.REFERENCE_VALUE
-    }
-  }
-
   private def analyzeMethodArgTypes(
       classBytes: Array[Byte]
   )(using st: SymbolTable): Map[MethodSig, AnalyzedArgTypes] = {
     import org.objectweb.asm.tree.*
     import org.objectweb.asm.tree.analysis.*
     import scala.jdk.CollectionConverters.*
+
+    def preciseInternalName(v: BasicValue): Option[String] = {
+      if (v == null || v.getType == null) None
+      else {
+        val t = v.getType
+        if (t.getSort == org.objectweb.asm.Type.OBJECT && t.getInternalName != "null")
+          Some(t.getInternalName)
+        else None
+      }
+    }
+
+    // Custom interpreter that preserves precise object types, unlike the default
+    // BasicInterpreter which collapses all reference types to a single REFERENCE_VALUE.
+    val interpreter = new BasicInterpreter(Opcodes.ASM9) {
+      override def newValue(tp: org.objectweb.asm.Type): BasicValue = {
+        if (tp == null) return BasicValue.UNINITIALIZED_VALUE
+        if (tp.getSort == org.objectweb.asm.Type.ARRAY || tp.getSort == org.objectweb.asm.Type.OBJECT)
+          new BasicValue(tp)
+        else super.newValue(tp)
+      }
+      override def merge(a: BasicValue, b: BasicValue): BasicValue = {
+        if (a == b) a
+        else if (a == BasicValue.UNINITIALIZED_VALUE || b == BasicValue.UNINITIALIZED_VALUE)
+          BasicValue.UNINITIALIZED_VALUE
+        else BasicValue.REFERENCE_VALUE
+      }
+    }
 
     val classNode = new ClassNode()
     new ClassReader(classBytes).accept(classNode, 0)
@@ -167,7 +158,7 @@ object LocalSummary {
       )
 
       val frames: Array[Frame[BasicValue]] =
-        try new Analyzer[BasicValue](preciseTypeInterpreter).analyze(classNode.name, method)
+        try new Analyzer[BasicValue](interpreter).analyze(classNode.name, method)
         catch { case _: AnalyzerException => null }
 
       if (frames != null) {
