@@ -197,15 +197,6 @@ object CallGraphAnalysis {
       resolved.classSingleAbstractMethods.getOrElse(methodDefCls, Set.empty)
     }
 
-    val localDirectDescendents: Map[JType.Cls, Seq[JType.Cls]] = {
-      val localAncestors =
-        localSummary.mapValues(_.directAncestors.filter(localSummary.contains)).toMap
-      SpanningForest.reverseEdges(localAncestors)
-    }
-
-    val localDirectAncestors: Map[JType.Cls, Set[JType.Cls]] =
-      localSummary.mapValues(_.directAncestors.filter(localSummary.contains)).toMap
-
     indexToNodes
       .iterator
       .map {
@@ -321,6 +312,7 @@ object CallGraphAnalysis {
             remainingCalls.partition(isExternalStaticReceiverCall)
           val (externalKnownArgCalls, remainingCalls3) =
             remainingCalls2.partition(isExternalKnownArgCall)
+          // Safe-arg calls are discarded: we have precise arg types proving no callbacks
           val (_, remainingCalls3b) =
             remainingCalls3.partition(isExternalSafeArgCall)
           val (externalVirtualSelfCalls, remainingCalls4) =
@@ -350,16 +342,12 @@ object CallGraphAnalysis {
           }
 
           val externalStaticReceiverCallbackCalls = externalStaticReceiverCalls.flatMap { call =>
-            // Use visitor-based arg0 types, then Analyzer-based ref arg types as fallback,
-            // then fall back to the descriptor class
+            // Use Analyzer-based arg0 types for precise receiver identification,
+            // falling back to the descriptor class when the Analyzer didn't produce types
             val arg0Types =
               methods(methodDef).callArg0SlotTypes.getOrElse(call, Set.empty) match {
                 case s if s.nonEmpty => s
-                case _ =>
-                  methods(methodDef).callRefArgSlotTypes.getOrElse(call, Set.empty) match {
-                    case s if s.nonEmpty => s
-                    case _ => Set(call.cls)
-                  }
+                case _ => Set(call.cls)
               }
 
             arg0Types.iterator.flatMap { arg0Type =>
@@ -403,7 +391,16 @@ object CallGraphAnalysis {
             concreteReceiverLocalMethodIndices(call.cls, methodDef.cls)
           }
 
-          val localNoArgVirtualExternalReceiverCallbackCalls =
+          val localNoArgVirtualExternalReceiverCallbackCalls = {
+            val localDirectAncestors: Map[JType.Cls, Set[JType.Cls]] =
+              localSummary.mapValues(_.directAncestors.filter(localSummary.contains)).toMap
+
+            val localDirectDescendents: Map[JType.Cls, Seq[JType.Cls]] = {
+              val localAncestors =
+                localSummary.mapValues(_.directAncestors.filter(localSummary.contains)).toMap
+              SpanningForest.reverseEdges(localAncestors)
+            }
+
             localNoArgVirtualExternalReceiverCalls.flatMap { call =>
               val methodDefAncestors =
                 SpanningForest.breadthFirst(Seq(methodDef.cls))(
@@ -433,6 +430,7 @@ object CallGraphAnalysis {
                 dest <- nodeToIndex.get(CallGraphAnalysis.LocalDef(st.MethodDef(receiverCls, m)))
               } yield dest
             }
+          }
 
           val singleAbstractMethodInitEdge =
             if (methodDef.sig.name != "<init>") None
@@ -465,7 +463,11 @@ object CallGraphAnalysis {
             }
             .toArray
 
-          local
+          val parent = externalSummary
+            .directAncestors(externalCls)
+            .map(c => nodeToIndex(CallGraphAnalysis.ExternalClsCall(c)))
+
+          local ++ parent
       }
       .map(_.sorted)
       .toArray

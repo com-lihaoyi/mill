@@ -66,8 +66,6 @@ object LocalSummary {
         .map { case (classBytes, v) =>
           val cls = v.clsType
           val methodCallGraphs = v.classCallGraph.result()
-          val methodCallArg0SlotTypes = v.classMethodCallArg0SlotTypes.result()
-          val methodCallRefArgSlotTypes = v.classMethodCallRefArgSlotTypes.result()
           val methodHashes = v.classMethodHashes.result()
           val methodPrivate = v.classMethodPrivate.result()
           val methodAbstract = v.classMethodAbstract.result()
@@ -75,8 +73,7 @@ object LocalSummary {
           // Use ASM Analyzer to compute precise operand stack types at invoke
           // instructions. This gives us the actual types of method arguments
           // (e.g. Boolean instead of Object) regardless of how they were produced
-          // (method return, field load, etc.), unlike the manual ALOAD-based tracking
-          // which only works when args come from local variables.
+          // (method return, field load, etc.).
           val analyzerArgTypes = analyzeMethodArgTypes(classBytes)
 
           cls -> ClassInfo(
@@ -85,22 +82,11 @@ object LocalSummary {
             methods = methodCallGraphs
               .keys
               .map { m =>
-                val visitorRefArgTypes = methodCallRefArgSlotTypes(m)
-                val frameRefArgTypes = analyzerArgTypes.getOrElse(m, Map.empty)
-                // Merge: prefer frame-based types (more precise), fall back to visitor
-                val mergedRefArgTypes = (visitorRefArgTypes.keySet ++ frameRefArgTypes.keySet)
-                  .iterator
-                  .map { call =>
-                    val frameTypes = frameRefArgTypes.getOrElse(call, Set.empty)
-                    val visitorTypes = visitorRefArgTypes.getOrElse(call, Set.empty)
-                    call -> (if (frameTypes.nonEmpty) frameTypes else visitorTypes)
-                  }
-                  .filter(_._2.nonEmpty)
-                  .toMap
+                val analyzed = analyzerArgTypes.getOrElse(m, AnalyzedArgTypes(Map.empty, Map.empty))
                 m -> MethodInfo(
                   methodCallGraphs(m),
-                  methodCallArg0SlotTypes(m),
-                  mergedRefArgTypes,
+                  analyzed.arg0Types,
+                  analyzed.allRefArgTypes,
                   methodPrivate(m),
                   methodHashes(m),
                   methodAbstract(m)
@@ -114,13 +100,20 @@ object LocalSummary {
   }
 
   /**
-   * Use ASM's Analyzer with BasicInterpreter to compute precise operand stack
-   * types at every method invoke instruction. Returns a map from MethodSig to
-   * (MethodCall -> Set[JCls]) representing the actual reference arg types.
+   * Use ASM's Analyzer with a custom BasicInterpreter to compute precise operand
+   * stack types at every method invoke instruction. Returns per-method maps of:
+   *   - arg0 types: the precise type of the first declared argument for static calls
+   *     (used to identify mixin forwarder receiver types)
+   *   - all ref arg types: precise types of all reference-typed arguments
    */
+  case class AnalyzedArgTypes(
+      arg0Types: Map[MethodCall, Set[JCls]],
+      allRefArgTypes: Map[MethodCall, Set[JCls]]
+  )
+
   private def analyzeMethodArgTypes(
       classBytes: Array[Byte]
-  )(using st: SymbolTable): Map[MethodSig, Map[MethodCall, Set[JCls]]] = {
+  )(using st: SymbolTable): Map[MethodSig, AnalyzedArgTypes] = {
     import org.objectweb.asm.tree.*
     import org.objectweb.asm.tree.analysis.*
     import scala.jdk.CollectionConverters.*
@@ -128,7 +121,34 @@ object LocalSummary {
     val classNode = new ClassNode()
     new ClassReader(classBytes).accept(classNode, 0)
 
-    val result = Map.newBuilder[MethodSig, Map[MethodCall, Set[JCls]]]
+    val result = Map.newBuilder[MethodSig, AnalyzedArgTypes]
+
+    // Custom interpreter that preserves precise object types,
+    // unlike BasicInterpreter which collapses all references to Object.
+    val interpreter = new BasicInterpreter(Opcodes.ASM9) {
+      override def newValue(tp: org.objectweb.asm.Type): BasicValue = {
+        if (tp == null) return BasicValue.UNINITIALIZED_VALUE
+        tp.getSort match {
+          case org.objectweb.asm.Type.VOID => null
+          case org.objectweb.asm.Type.BOOLEAN | org.objectweb.asm.Type.CHAR |
+              org.objectweb.asm.Type.BYTE | org.objectweb.asm.Type.SHORT |
+              org.objectweb.asm.Type.INT =>
+            BasicValue.INT_VALUE
+          case org.objectweb.asm.Type.FLOAT => BasicValue.FLOAT_VALUE
+          case org.objectweb.asm.Type.LONG => BasicValue.LONG_VALUE
+          case org.objectweb.asm.Type.DOUBLE => BasicValue.DOUBLE_VALUE
+          case org.objectweb.asm.Type.ARRAY | org.objectweb.asm.Type.OBJECT =>
+            new BasicValue(tp)
+          case _ => BasicValue.REFERENCE_VALUE
+        }
+      }
+      override def merge(a: BasicValue, b: BasicValue): BasicValue = {
+        if (a == b) a
+        else if (a == BasicValue.UNINITIALIZED_VALUE || b == BasicValue.UNINITIALIZED_VALUE)
+          BasicValue.UNINITIALIZED_VALUE
+        else BasicValue.REFERENCE_VALUE
+      }
+    }
 
     for (method <- classNode.methods.asScala) {
       val methodSig = st.MethodSig(
@@ -137,39 +157,14 @@ object LocalSummary {
         st.Desc.read(method.desc)
       )
 
-      // Use a custom interpreter that preserves precise object types,
-      // unlike BasicInterpreter which collapses all references to Object.
-      val interpreter = new BasicInterpreter(Opcodes.ASM9) {
-        override def newValue(tp: org.objectweb.asm.Type): BasicValue = {
-          if (tp == null) return BasicValue.UNINITIALIZED_VALUE
-          tp.getSort match {
-            case org.objectweb.asm.Type.VOID => null
-            case org.objectweb.asm.Type.BOOLEAN | org.objectweb.asm.Type.CHAR |
-                org.objectweb.asm.Type.BYTE | org.objectweb.asm.Type.SHORT |
-                org.objectweb.asm.Type.INT =>
-              BasicValue.INT_VALUE
-            case org.objectweb.asm.Type.FLOAT => BasicValue.FLOAT_VALUE
-            case org.objectweb.asm.Type.LONG => BasicValue.LONG_VALUE
-            case org.objectweb.asm.Type.DOUBLE => BasicValue.DOUBLE_VALUE
-            case org.objectweb.asm.Type.ARRAY | org.objectweb.asm.Type.OBJECT =>
-              new BasicValue(tp)
-            case _ => BasicValue.REFERENCE_VALUE
-          }
-        }
-        override def merge(a: BasicValue, b: BasicValue): BasicValue = {
-          if (a == b) a
-          else if (a == BasicValue.UNINITIALIZED_VALUE || b == BasicValue.UNINITIALIZED_VALUE)
-            BasicValue.UNINITIALIZED_VALUE
-          else BasicValue.REFERENCE_VALUE
-        }
-      }
       val analyzer = new Analyzer[BasicValue](interpreter)
       val frames: Array[Frame[BasicValue]] =
         try analyzer.analyze(classNode.name, method)
         catch { case _: AnalyzerException => null }
 
       if (frames != null) {
-        val callArgTypes = Map.newBuilder[MethodCall, Set[JCls]]
+        val callArg0Types = Map.newBuilder[MethodCall, Set[JCls]]
+        val callAllRefArgTypes = Map.newBuilder[MethodCall, Set[JCls]]
         val insns = method.instructions
         for (i <- 0 until insns.size()) {
           insns.get(i) match {
@@ -193,9 +188,6 @@ object LocalSummary {
                     desc
                   )
 
-                  // Extract ref arg types from the operand stack.
-                  // Stack layout before invoke: [..., [objectref,] arg1, arg2, ...]
-                  // Total consumed = argCount + (1 if non-static for receiver)
                   val argTypes = desc.args
                   val totalConsumed =
                     argTypes.size + (if (invoke.getOpcode == Opcodes.INVOKESTATIC) 0 else 1)
@@ -216,20 +208,40 @@ object LocalSummary {
                               refArgTypes += JCls.fromSlashed(t.getInternalName)
                             }
                           }
-                        case _ => // primitive arg, skip
+                        case _ =>
                       }
                     }
                     if (refArgTypes.nonEmpty) {
-                      callArgTypes += (call -> refArgTypes.toSet)
+                      callAllRefArgTypes += (call -> refArgTypes.toSet)
+                    }
+                    // Extract arg0 type specifically for static calls
+                    if (invoke.getOpcode == Opcodes.INVOKESTATIC && argTypes.nonEmpty) {
+                      argTypes.head match {
+                        case _: JCls =>
+                          val stackVal = frame.getStack(argStartIdx)
+                          if (stackVal != null && stackVal.getType != null) {
+                            val t = stackVal.getType
+                            if (
+                              t.getSort == org.objectweb.asm.Type.OBJECT &&
+                              t.getInternalName != "null"
+                            ) {
+                              callArg0Types += (call -> Set(JCls.fromSlashed(t.getInternalName)))
+                            }
+                          }
+                        case _ =>
+                      }
                     }
                   }
                 }
               }
-            case _ => // not a method invoke instruction
+            case _ =>
           }
         }
-        val types = callArgTypes.result()
-        if (types.nonEmpty) result += (methodSig -> types)
+        val arg0 = callArg0Types.result()
+        val allRef = callAllRefArgTypes.result()
+        if (arg0.nonEmpty || allRef.nonEmpty) {
+          result += (methodSig -> AnalyzedArgTypes(arg0, allRef))
+        }
       }
     }
     result.result()
@@ -245,18 +257,6 @@ object LocalSummary {
       Map.newBuilder[MethodSig, Boolean]
     val classMethodAbstract: mutable.Builder[(MethodSig, Boolean), Map[MethodSig, Boolean]] =
       Map.newBuilder[MethodSig, Boolean]
-    val classMethodCallArg0SlotTypes
-        : mutable.Builder[
-          (MethodSig, Map[MethodCall, Set[JCls]]),
-          Map[MethodSig, Map[MethodCall, Set[JCls]]]
-        ] =
-      Map.newBuilder[MethodSig, Map[MethodCall, Set[JCls]]]
-    val classMethodCallRefArgSlotTypes
-        : mutable.Builder[
-          (MethodSig, Map[MethodCall, Set[JCls]]),
-          Map[MethodSig, Map[MethodCall, Set[JCls]]]
-        ] =
-      Map.newBuilder[MethodSig, Map[MethodCall, Set[JCls]]]
     var clsType: JCls = null
     var directSuperClass: Option[JCls] = None
     var directAncestors: Set[JCls] = Set()
@@ -299,10 +299,6 @@ object LocalSummary {
     private val LazyNameSuffix = "\\$lzy\\d+$".r
 
     val outboundCalls: mutable.Set[MethodCall] = collection.mutable.Set.empty[MethodCall]
-    val outboundCallArg0SlotTypes: mutable.Map[MethodCall, mutable.Set[JCls]] =
-      collection.mutable.Map.empty[MethodCall, mutable.Set[JCls]]
-    val outboundCallRefArgSlotTypes: mutable.Map[MethodCall, mutable.Set[JCls]] =
-      collection.mutable.Map.empty[MethodCall, mutable.Set[JCls]]
     val labelIndices: mutable.Map[Label, Int] = collection.mutable.Map.empty[Label, Int]
     val jumpList: mutable.Buffer[Label] = collection.mutable.Buffer.empty[Label]
 
@@ -321,34 +317,6 @@ object LocalSummary {
     var isScala3LazyInit = name.contains("$lzyINIT")
     var endScala3LazyInit = false
     var lazyNameSeenInClinit = false
-    var lastALoadSlot: Option[Int] = None
-    val recentALoadSlots: mutable.ArrayBuffer[Int] = mutable.ArrayBuffer.empty[Int]
-
-    val paramSlotTypes: Map[Int, JCls] = {
-      val b = Map.newBuilder[Int, JCls]
-      var slot = if ((access & Opcodes.ACC_STATIC) != 0) 0 else 1
-      if ((access & Opcodes.ACC_STATIC) == 0) b += 0 -> currentCls
-      for (arg <- methodSig.desc.args) {
-        arg match {
-          case c: JCls => b += slot -> c
-          case _ =>
-        }
-        slot = slot + (arg match {
-          case JType.Prim.J | JType.Prim.D => 2
-          case _ => 1
-        })
-      }
-      b.result()
-    }
-    val localSlotTypes: mutable.Map[Int, JCls] = mutable.Map.from(paramSlotTypes)
-    var lastPushedRefType: Option[JCls] = None
-
-    def setLastPushedRefTypeFromDesc(desc: Desc): Unit = {
-      lastPushedRefType = desc.ret match {
-        case c: JCls => Some(c)
-        case _ => None
-      }
-    }
     def hash(x: Int): Unit = {
       if (!isScala3LazyInit && !endScala3LazyInit) {
         insnHash = scala.util.hashing.MurmurHash3.mix(insnHash, x)
@@ -369,19 +337,6 @@ object LocalSummary {
     }
 
     def storeCallEdge(x: MethodCall): Unit = outboundCalls.add(x)
-    def storeCallArg0SlotType(call: MethodCall, arg0Type: JCls): Unit = {
-      val s = outboundCallArg0SlotTypes.getOrElseUpdate(call, collection.mutable.Set.empty[JCls])
-      s += arg0Type
-    }
-    def storeCallRefArgSlotType(call: MethodCall, argType: JCls): Unit = {
-      val s = outboundCallRefArgSlotTypes.getOrElseUpdate(call, collection.mutable.Set.empty[JCls])
-      s += argType
-    }
-
-    def clearLastALoadSlot(): Unit = {
-      lastALoadSlot = None
-      recentALoadSlots.clear()
-    }
 
     def hashlabel(x: Label): Unit = jumpList.append(x)
 
@@ -404,7 +359,6 @@ object LocalSummary {
         name: String,
         descriptor: String
     ): Unit = {
-      clearLastALoadSlot()
       val lazyValBodyStart = (owner, name, descriptor) match {
         case (
               "scala/runtime/LazyVals$Evaluating$",
@@ -438,31 +392,20 @@ object LocalSummary {
         completeHash()
         clinitCall(owner)
       }
-      lastPushedRefType =
-        if (opcode == Opcodes.GETFIELD || opcode == Opcodes.GETSTATIC)
-          JType.read(descriptor) match {
-            case c: JCls => Some(c)
-            case _ => None
-          }
-        else None
     }
 
     override def visitIincInsn(varIndex: Int, increment: Int): Unit = {
-      clearLastALoadSlot()
       hash(varIndex)
       hash(increment)
       completeHash()
     }
 
     override def visitInsn(opcode: Int): Unit = {
-      clearLastALoadSlot()
       hash(opcode)
       completeHash()
-      lastPushedRefType = None
     }
 
     override def visitIntInsn(opcode: Int, operand: Int): Unit = {
-      clearLastALoadSlot()
       hash(opcode)
       hash(operand)
       completeHash()
@@ -474,7 +417,6 @@ object LocalSummary {
         bootstrapMethodHandle: Handle,
         bootstrapMethodArguments: Object*
     ): Unit = {
-      clearLastALoadSlot()
       // Hash the invokedynamic name and descriptor to detect changes in the
       // dynamic call site (e.g. makeConcatWithConstants for string concatenation)
       hash(name.hashCode)
@@ -515,7 +457,6 @@ object LocalSummary {
     }
 
     override def visitJumpInsn(opcode: Int, label: Label): Unit = {
-      clearLastALoadSlot()
       hashlabel(label)
       hash(opcode)
       completeHash()
@@ -526,7 +467,6 @@ object LocalSummary {
     }
 
     override def visitLdcInsn(value: Any): Unit = {
-      clearLastALoadSlot()
       value match {
         case v: java.lang.String if methodSig.name == "<clinit>" && isLazyName(v) =>
           // Drop the preceding `lookup()` and owner-class LDC, then skip the rest of
@@ -551,11 +491,6 @@ object LocalSummary {
           )
           completeHash()
       }
-      lastPushedRefType = value match {
-        case _: java.lang.String => Some(JCls.fromSlashed("java/lang/String"))
-        case _: org.objectweb.asm.Type => Some(JCls.fromSlashed("java/lang/Class"))
-        case _ => None
-      }
     }
 
     override def visitLookupSwitchInsn(
@@ -563,7 +498,6 @@ object LocalSummary {
         keys: Array[Int],
         labels: Array[Label]
     ): Unit = {
-      clearLastALoadSlot()
       keys.foreach(hash)
       labels.foreach(hashlabel)
       Option(dflt).foreach(hashlabel)
@@ -578,18 +512,6 @@ object LocalSummary {
         isInterface: Boolean
     ): Unit = {
       val desc = st.Desc.read(descriptor)
-      val arg0RefTypeOpt =
-        if (
-          opcode == Opcodes.INVOKESTATIC &&
-          desc.args.headOption.exists(_.isInstanceOf[JCls])
-        ) lastALoadSlot.flatMap(paramSlotTypes.get)
-        else None
-      val refArgSlotTypes: Set[JCls] = {
-        val refArgCount = desc.args.count(_.isInstanceOf[JCls])
-        if (refArgCount > 0 && recentALoadSlots.size >= refArgCount) {
-          recentALoadSlots.takeRight(refArgCount).flatMap(localSlotTypes.get).toSet
-        } else Set.empty
-      }
 
       val isMethodHandlesLookupInClinit =
         methodSig.name == "<clinit>" &&
@@ -641,24 +563,18 @@ object LocalSummary {
         hash(isInterface.hashCode)
 
         storeCallEdge(call)
-        arg0RefTypeOpt.foreach(storeCallArg0SlotType(call, _))
-        refArgSlotTypes.foreach(storeCallRefArgSlotType(call, _))
         clinitCall(owner)
         completeHash()
       }
-      setLastPushedRefTypeFromDesc(desc)
-      clearLastALoadSlot()
     }
 
     override def visitMultiANewArrayInsn(descriptor: String, numDimensions: Int): Unit = {
-      clearLastALoadSlot()
       hash(descriptor.hashCode)
       hash(numDimensions)
       completeHash()
     }
 
     override def visitTableSwitchInsn(min: Int, max: Int, dflt: Label, labels: Label*): Unit = {
-      clearLastALoadSlot()
       hash(min)
       hash(max)
       labels.foreach(hashlabel)
@@ -667,30 +583,13 @@ object LocalSummary {
     }
 
     override def visitTypeInsn(opcode: Int, `type`: String): Unit = {
-      clearLastALoadSlot()
       clinitCall(`type`)
       hash(`type`.hashCode)
       hash(opcode)
       completeHash()
-      lastPushedRefType =
-        if (opcode == Opcodes.NEW) Some(JCls.fromSlashed(`type`))
-        else None
     }
 
     override def visitVarInsn(opcode: Int, varIndex: Int): Unit = {
-      opcode match {
-        case Opcodes.ALOAD =>
-          lastALoadSlot = Some(varIndex)
-          recentALoadSlots.append(varIndex)
-          lastPushedRefType = localSlotTypes.get(varIndex)
-        case Opcodes.ASTORE =>
-          clearLastALoadSlot()
-          lastPushedRefType.foreach(localSlotTypes(varIndex) = _)
-          lastPushedRefType = None
-        case _ =>
-          clearLastALoadSlot()
-          lastPushedRefType = None
-      }
       hash(varIndex)
       hash(opcode)
       completeHash()
@@ -704,13 +603,6 @@ object LocalSummary {
       ))
       clsVisitor.classMethodPrivate.addOne((methodSig, (access & Opcodes.ACC_PRIVATE) != 0))
       clsVisitor.classMethodAbstract.addOne((methodSig, (access & Opcodes.ACC_ABSTRACT) != 0))
-      clsVisitor.classMethodCallArg0SlotTypes.addOne(
-        methodSig -> outboundCallArg0SlotTypes.view.mapValues(_.toSet).toMap
-      )
-      clsVisitor.classMethodCallRefArgSlotTypes.addOne(
-        methodSig -> outboundCallRefArgSlotTypes.view.mapValues(_.toSet).toMap
-      )
-
     }
   }
 }
