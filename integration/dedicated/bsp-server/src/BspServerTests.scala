@@ -455,7 +455,8 @@ object BspServerTests extends UtestIntegrationTestSuite {
           // ignore watcher logs
           val watchGlob = TestRunnerUtils.matchesGlob("bsp-watch] *")
           // ignoring compilation warnings that might go away in the future
-          val waitingGlob = TestRunnerUtils.matchesGlob("*] Another Mill process is running *")
+          val waitingGlob =
+            TestRunnerUtils.matchesGlob("*] Another Mill process with PID * is running *")
           s =>
             watchGlob(s) || waitingGlob(s) ||
               // These can happen in different orders due to filesystem ordering, not stable to

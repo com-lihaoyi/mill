@@ -35,7 +35,14 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
         noWaitRes
           .err
           .contains(
-            s"Another Mill process is running 'show blockWhileExists --path $signalFile', failing"
+            s"Another Mill process with PID "
+          )
+      )
+      assert(
+        noWaitRes
+          .err
+          .contains(
+            s" is running 'show blockWhileExists --path $signalFile', failing"
           )
       )
 
@@ -49,7 +56,10 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
       assertEventually {
         val stderrText = spawnedWaitingRes.err.text()
         stderrText.contains(
-          s"Another Mill process is running 'show blockWhileExists --path $signalFile', waiting for it to be done..."
+          s"Another Mill process with PID "
+        ) &&
+        stderrText.contains(
+          s" is running 'show blockWhileExists --path $signalFile', waiting for it to be done..."
         ) &&
         stderrText.contains("tail -F out/mill-console-tail to see its progress")
       }
