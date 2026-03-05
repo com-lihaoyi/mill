@@ -179,30 +179,6 @@ object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
         stderr = os.Inherit
       )
 
-      val sharedOutMode = sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")
-      if (sharedOutMode) {
-        List(
-          "{",
-          "  \"def build_.package_$bar$#transitiveCompileClasspathTask(mill.javalib.CompileFor)mill.api.Task\": {",
-          "    \"def build_.package_$foo$#compile()mill.api.Task$Simple\": {",
-          "      \"foo.compile\": {}",
-          "    }",
-          "  },",
-          "  \"def build_.package_$bar$#<init>(build_.package_)void\": {",
-          "    \"bar.compile\": {}",
-          "  }",
-          "}"
-        )
-      } else {
-        List(
-          "{",
-          "  \"def build_.package_$bar$#<init>(build_.package_)void\": {",
-          "    \"bar.compile\": {}",
-          "  }",
-          "}"
-        )
-      }
-
       assertGoldenLiteral(
         resolveTree.out.linesIterator.toSeq,
         List(
