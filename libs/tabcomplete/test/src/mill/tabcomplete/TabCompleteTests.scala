@@ -362,6 +362,7 @@ object TabCompleteTests extends TestSuite {
             "--import                  <str> Additional ivy dependencies to load into mill, e.g. plugins.",
             "--bsp-install             Create mill-bsp.json with Mill details under .bsp/",
             "--allow-positional        Allows command args to be passed positionally without `--arg` by default",
+            "--bsp-no-kill-other       If the BSP lock is hold by another process, wait for it to release the lock",
             "--meta-level              <int> Select a meta-level to run the given tasks. Level 0 is the main project in `build.mill`, level 1 the first meta-build in `mill-build/build.mill`, etc. If negative, -1 means the deepest meta-build (bootstrap build), -2 the second deepest meta-build, etc.",
             "--bsp                     Enable BSP server mode. Typically used by a BSP client when starting the Mill BSP server.",
             "--help-advanced           Print a internal or advanced command flags not intended for common usage",
@@ -380,6 +381,7 @@ object TabCompleteTests extends TestSuite {
             "--color                   <bool> Toggle colored output; by default enabled only if the console is interactive or FORCE_COLOR environment variable is set, and NO_COLOR is not set",
             "--no-daemon               Run without a long-lived background daemon.",
             "--no-wait-for-build-lock  Do not wait for an exclusive lock on the Mill output directory to evaluate tasks / commands.",
+            "--no-wait-for-bsp-lock    Do not wait for an exclusive BSP server lock to run BSP server, just exit with an error if the BSP server lock is hold by another process",
             "--version                 Show mill version information and exit.",
             "--task                    <str> The name or a query of the tasks(s) you want to build."
           )

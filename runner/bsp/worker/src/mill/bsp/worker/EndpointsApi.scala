@@ -41,6 +41,8 @@ trait EndpointsApi {
   protected[worker] def sessionResult: scala.concurrent.Promise[BspServerResult]
   protected[worker] def sessionResult_=(p: scala.concurrent.Promise[BspServerResult]): Unit
 
+  protected def doneInitializingBuild(): Unit
+
   protected def handlerRaw[V](block: Logger => V)(using
       name: sourcecode.Name,
       enclosing: sourcecode.Enclosing
