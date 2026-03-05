@@ -1,5 +1,6 @@
 package build.core.api.daemon
 
+import com.github.lolgab.mill.mima.{Problem, ProblemFilter}
 import mill.contrib.buildinfo.BuildInfo
 import mill.*
 import millbuild.*
@@ -31,4 +32,12 @@ object `package` extends MillStableScalaModule with BuildInfo with MillJava11Sca
   def mvnDeps = Seq(
     Deps.sbtTestInterface_api
   )
+
+  def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] =
+    super.mimaBinaryIssueFilters() ++ Seq(
+      // internal APIs
+      ProblemFilter.exclude[Problem](
+        "mill.api.daemon.internal.bsp.BspJavaModuleApi.*"
+      )
+    )
 }

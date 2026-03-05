@@ -2,10 +2,10 @@ package build
 import mill.*
 
 def fatalException(msg: String) = {
-  // Needs to be a fatal error according to scala.util.control.NonFatal,
+  // Needs to be a fatal error according to mill.api.daemon.internal.NonFatal,
   // not just any error!
-  val ex = new java.lang.LinkageError(msg)
-  assert(!scala.util.control.NonFatal.apply(ex))
+  val ex = new java.lang.InterruptedException(msg)
+  assert(!mill.api.daemon.internal.NonFatal.apply(ex))
   ex
 }
 def fatalTask = Task {

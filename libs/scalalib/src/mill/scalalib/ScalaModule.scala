@@ -56,11 +56,19 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     else "org.scala-lang"
   }
 
+  override protected def sourceFileExtensions: Seq[String] = Seq("scala", "java")
+
   /**
    * All individual source files fed into the Zinc compiler.
    */
   override def allSourceFiles: T[Seq[PathRef]] = Task {
-    Lib.findSourceFiles(allSources(), Seq("scala", "java")).map(PathRef(_))
+    // Exact same implementation as JavaModule#allSourceFiles, which is super.allSourceFiles
+    // This can be removed once we can break bin compat
+    val allSources0 = allSources() ++ wrappedSources().map(_.generated)
+    val toExclude = wrappedSources().map(_.original.path)
+    Lib.findSourceFiles(allSources0, sourceFileExtensions)
+      .filterNot(toExclude.contains)
+      .map(PathRef(_))
   }
 
   /**
@@ -563,7 +571,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
             cwd = forkWorkingDir()
           )
         } catch {
-          // Workaround for Scala 3.8.1 which doesn't trap Ctrl-C properly, which is fixed in
+          // Workaround for Scala 3.8.2 which doesn't trap Ctrl-C properly, which is fixed in
           // https://github.com/scala/scala3/pull/24842 which should land in Scala 3.8.2
           case _: java.io.IOError => // ignore
         }

@@ -2,10 +2,10 @@ package mill.util
 
 import mill.api.Task.Simple as T
 import mill.api.{Discover, ExternalModule, Logger, Module, Task}
+import mill.api.daemon.internal.NonFatal
 import os.SubprocessException
 
 import scala.util.Try
-import scala.util.control.NonFatal
 
 /**
  * Utilities to derive a useful version string from the Git commit history,

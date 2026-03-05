@@ -21,6 +21,7 @@ import mill.server.Server
 import mill.util.BuildInfo
 import mill.api
 import mill.api.daemon.internal.bsp.BspServerResult
+import mill.api.daemon.internal.NonFatal
 
 import java.io.{InputStream, PrintStream, PrintWriter, StringWriter}
 import java.lang.reflect.InvocationTargetException
@@ -28,7 +29,6 @@ import java.util.concurrent.{ThreadPoolExecutor, TimeUnit}
 import scala.jdk.CollectionConverters.*
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Using}
 
 object MillMain0 {

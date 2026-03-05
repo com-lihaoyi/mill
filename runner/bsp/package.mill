@@ -49,7 +49,8 @@ object `package` extends MillPublishScalaModule with BuildInfo {
       Deps.gson,
       Deps.sbtTestInterface_api,
       Deps.osLib,
-      Deps.jgit
+      Deps.jgit,
+      Deps.scalaCliBsp.exclude((Deps.bsp4j.organization, Deps.bsp4j.name))
     )
   }
 }

@@ -73,9 +73,9 @@ object CrossVersionTests extends TestSuite {
 
     object StandaloneScala38 extends ScalaModule {
       val tree =
-        """└─ org.scala-lang:scala-library:3.8.1
+        """└─ org.scala-lang:scala-library:3.8.2
           |""".stripMargin
-      override def scalaVersion = "3.8.1"
+      override def scalaVersion = "3.8.2"
     }
 
     object Scala213DependsOnScala38 extends ScalaModule {
@@ -230,7 +230,7 @@ object CrossVersionTests extends TestSuite {
       check(
         mod = StandaloneScala38,
         expectedLibs = Seq(
-          "scala-library-3.8.1.jar"
+          "scala-library-3.8.2.jar"
         ),
         expectedMvnDepsTree = Some(StandaloneScala38.tree)
       )

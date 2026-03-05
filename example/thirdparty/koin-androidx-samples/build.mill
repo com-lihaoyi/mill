@@ -70,26 +70,34 @@ object examples extends mill.api.Module {
   }
 }
 
+// Run the Robolectric tests on the JVM
 /** Usage
 
 > ./mill examples.androidx-samples.androidApk
 
-> ./mill show examples.androidx-samples.createAndroidVirtualDevice
-...DeviceId: medium_phone...
-
-> ./mill show examples.androidx-samples.startAndroidEmulator
-
-> ./mill show examples.androidx-samples.androidInstall
-...All files should be loaded. Notifying the device...
-
-> ./mill show examples.androidx-samples.androidRun --activity org.koin.sample.sandbox.main.MainActivity
-[
-  "Starting: Intent { cmp=org.koin.sample.sandbox/.main.MainActivity }",
-  "Status: ok",
-  "LaunchState: COLD",
-  "Activity: org.koin.sample.sandbox/.main.MainActivity",
-  "TotalTime: ...",
-  "WaitTime: ...",
-  "Complete"
-]
+> ./mill show examples.androidx-samples.test
+...
+{
+  "msg": " ",
+  "results": [
+    {
+      "fullyQualifiedName": "MainActivityTest.launch_view_2",
+      "selector": "MainActivityTest.launch_view_2",
+      "duration": ...,
+      "status": "Success"
+    },
+    {
+      "fullyQualifiedName": "MainActivityTest.launch_view",
+      "selector": "MainActivityTest.launch_view",
+      "duration": ...,
+      "status": "Success"
+    },
+    {
+      "fullyQualifiedName": "CheckModulesTest.Verify Module Configuration",
+      "selector": "CheckModulesTest.Verify Module Configuration",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
 */

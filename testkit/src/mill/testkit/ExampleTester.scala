@@ -1,12 +1,11 @@
 package mill.testkit
 
+import mill.api.daemon.internal.NonFatal
 import mill.constants.Util.isWindows
 import mill.launcher.MillLauncherMain
 import mill.testkit.Chunk
 import mill.api.daemon.SystemStreams
 import utest.*
-
-import scala.util.control.NonFatal
 
 /**
  * A variant of [[IntegrationTester]], [[ExampleTester]] works the same way

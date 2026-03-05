@@ -424,7 +424,7 @@ mvnDeps:
 [,yaml]
 ----
 extends: ScalaModule
-scalaVersion: 3.8.1
+scalaVersion: 3.8.2
 mvnDeps:
 - org.jsoup:jsoup:1.7.2
 ----

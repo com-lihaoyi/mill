@@ -162,6 +162,9 @@ jobs:
           - millargs: "example.thirdparty.android-compose-samples.packaged.daemon"
             setup-android: true
 
+          - millargs: "example.thirdparty.koin-androidx-samples.packaged.daemon"
+            setup-android: true
+
           - millargs: "example.migrating.scalalib._"
             install-sbt: true
 

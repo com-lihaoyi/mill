@@ -106,7 +106,7 @@ Mill supports all 3 major JVM languages, so if you want to publish Scala code, y
 .build.mill.yaml
 ```yaml
 extends: [ScalaModule, PublishModule]
-scalaVersion: 3.8.1
+scalaVersion: 3.8.2
 publishVersion: 0.0.1
 artifactName: example
 pomSettings:
