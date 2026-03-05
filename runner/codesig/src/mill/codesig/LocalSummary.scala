@@ -36,7 +36,6 @@ object LocalSummary {
   }
   case class MethodInfo(
       calls: Set[MethodCall],
-      callArg0SlotTypes: Map[MethodCall, Set[JCls]],
       callRefArgSlotTypes: Map[MethodCall, Set[JCls]],
       isPrivate: Boolean,
       codeHash: Int,
@@ -82,11 +81,9 @@ object LocalSummary {
             methods = methodCallGraphs
               .keys
               .map { m =>
-                val analyzed = analyzerArgTypes.getOrElse(m, AnalyzedArgTypes(Map.empty, Map.empty))
                 m -> MethodInfo(
                   methodCallGraphs(m),
-                  analyzed.arg0Types,
-                  analyzed.allRefArgTypes,
+                  analyzerArgTypes.getOrElse(m, Map.empty),
                   methodPrivate(m),
                   methodHashes(m),
                   methodAbstract(m)
@@ -101,19 +98,12 @@ object LocalSummary {
 
   /**
    * Use ASM's Analyzer with a custom BasicInterpreter to compute precise operand
-   * stack types at every method invoke instruction. Returns per-method maps of:
-   *   - arg0 types: the precise type of the first declared argument for static calls
-   *     (used to identify mixin forwarder receiver types)
-   *   - all ref arg types: precise types of all reference-typed arguments
+   * stack types at every method invoke instruction. Returns per-method maps of
+   * call → precise types of all reference-typed arguments.
    */
-  case class AnalyzedArgTypes(
-      arg0Types: Map[MethodCall, Set[JCls]],
-      allRefArgTypes: Map[MethodCall, Set[JCls]]
-  )
-
   private def analyzeMethodArgTypes(
       classBytes: Array[Byte]
-  )(using st: SymbolTable): Map[MethodSig, AnalyzedArgTypes] = {
+  )(using st: SymbolTable): Map[MethodSig, Map[MethodCall, Set[JCls]]] = {
     import org.objectweb.asm.tree.*
     import org.objectweb.asm.tree.analysis.*
     import scala.jdk.CollectionConverters.*
@@ -148,7 +138,7 @@ object LocalSummary {
     val classNode = new ClassNode()
     new ClassReader(classBytes).accept(classNode, 0)
 
-    val result = Map.newBuilder[MethodSig, AnalyzedArgTypes]
+    val result = Map.newBuilder[MethodSig, Map[MethodCall, Set[JCls]]]
 
     for (method <- classNode.methods.asScala) {
       val methodSig = st.MethodSig(
@@ -162,8 +152,7 @@ object LocalSummary {
         catch { case _: AnalyzerException => null }
 
       if (frames != null) {
-        val callArg0Types = Map.newBuilder[MethodCall, Set[JCls]]
-        val callAllRefArgTypes = Map.newBuilder[MethodCall, Set[JCls]]
+        val callRefArgTypes = Map.newBuilder[MethodCall, Set[JCls]]
         val insns = method.instructions
         for (i <- 0 until insns.size()) {
           insns.get(i) match {
@@ -182,35 +171,23 @@ object LocalSummary {
                   val call = st.MethodCall(
                     JCls.fromSlashed(invoke.owner), invokeType, invoke.name, desc
                   )
-
                   val argTypes = desc.args
                   val argStartIdx = frame.getStackSize - argTypes.size
-                  val refArgTypes = mutable.Set.empty[JCls]
+                  val refTypes = mutable.Set.empty[JCls]
                   for (j <- argTypes.indices) {
                     if (argTypes(j).isInstanceOf[JCls]) {
                       preciseInternalName(frame.getStack(argStartIdx + j))
-                        .foreach(n => refArgTypes += JCls.fromSlashed(n))
+                        .foreach(n => refTypes += JCls.fromSlashed(n))
                     }
                   }
-                  if (refArgTypes.nonEmpty) {
-                    callAllRefArgTypes += (call -> refArgTypes.toSet)
-                  }
-                  // For static calls, also record arg0 separately for mixin forwarder detection
-                  if (invoke.getOpcode == Opcodes.INVOKESTATIC && argTypes.headOption.exists(_.isInstanceOf[JCls])) {
-                    preciseInternalName(frame.getStack(argStartIdx)).foreach { n =>
-                      callArg0Types += (call -> Set(JCls.fromSlashed(n)))
-                    }
-                  }
+                  if (refTypes.nonEmpty) callRefArgTypes += (call -> refTypes.toSet)
                 }
               }
             case _ =>
           }
         }
-        val arg0 = callArg0Types.result()
-        val allRef = callAllRefArgTypes.result()
-        if (arg0.nonEmpty || allRef.nonEmpty) {
-          result += (methodSig -> AnalyzedArgTypes(arg0, allRef))
-        }
+        val refArgs = callRefArgTypes.result()
+        if (refArgs.nonEmpty) result += (methodSig -> refArgs)
       }
     }
     result.result()

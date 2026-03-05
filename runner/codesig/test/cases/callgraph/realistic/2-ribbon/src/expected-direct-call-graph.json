@@ -20,6 +20,7 @@
   ],
   "RibbonGame#<init>()void": [
     "JCanvas#<init>()void",
+    "JCanvas#paintComponent(java.awt.Graphics)void",
     "RibbonGame#actionPerformed(java.awt.event.ActionEvent)void",
     "RibbonGame#init()void",
     "RibbonGame#keyPressed(java.awt.event.KeyEvent)void",

@@ -164,33 +164,9 @@ object ResolvedCalls {
           val methodParamClasses =
             if (externalReceivers.isEmpty) Set.empty[JCls]
             else {
-              val allArgTypes = call.desc.args
-                .collect { case c: JCls => c }
-              val isExternalStaticReceiverCall =
-                call.invokeType == InvokeType.Static &&
-                  !localSummary.contains(call.cls) &&
-                  allArgTypes.headOption.contains(call.cls)
-              val argTypes =
-                call.invokeType match {
-                  case InvokeType.Static =>
-                    if (isExternalStaticReceiverCall) allArgTypes.drop(1)
-                    else allArgTypes
-                  case InvokeType.Special => allArgTypes
-                  case InvokeType.Virtual => allArgTypes
-                }
+              val argTypes = call.desc.args.collect { case c: JCls => c }
               val thisTypes =
-                if (
-                  call.invokeType == InvokeType.Static ||
-                  (call.invokeType == InvokeType.Special &&
-                    !localSummary.contains(call.cls))
-                )
-                  Set.empty[JCls]
-                else if (
-                  call.invokeType == InvokeType.Virtual &&
-                  !localSummary.contains(call.cls)
-                )
-                  Set(call.cls)
-                else externalReceivers
+                if (call.invokeType == InvokeType.Static) Set.empty[JCls] else externalReceivers
 
               (argTypes ++ thisTypes).toSet
             }
