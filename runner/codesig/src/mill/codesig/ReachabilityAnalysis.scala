@@ -229,23 +229,22 @@ object CallGraphAnalysis {
           // we create direct LocalDef→LocalDef edges. Otherwise we fall through to the
           // normal Call → ExternalClsCall → LocalDef path.
 
-          def concreteReceiverLocalMethodIndices(
+          // Given an external class and a local class, yields node indices for
+          // all methods on the external class that the local class could override.
+          // Uses the pre-filtered method sets from externalClassLocalDests.
+          def addMethodEdges(
               externalCls: JType.Cls,
-              localReceiverCls: JType.Cls
-          ): Array[Int] =
-            mill.internal.SpanningForest
-              .breadthFirst(Seq(externalCls))(externalSummary.directAncestors.getOrElse(_, Nil))
-              .flatMap(externalSummary.directMethods.getOrElse(_, Map()).keysIterator)
-              .filter(m => !m.static && m.name != "<init>")
-              .filter(m => !singleAbstractMethods(localReceiverCls).contains(m))
-              .filter(m => !ignoreCall(None, m))
-              .flatMap { m =>
-                nodeToIndex.get(CallGraphAnalysis.LocalDef(st.MethodDef(localReceiverCls, m)))
-              }
-              .toArray
-
-          def localDestsForExternalCls(cls: JType.Cls): Iterator[JType.Cls] =
-            resolved.externalClassLocalDests.get(cls).iterator.flatMap(_._1)
+              localCls: JType.Cls,
+              indices: scala.collection.mutable.Builder[Int, Array[Int]]
+          ): Unit =
+            resolved.externalClassLocalDests.get(externalCls).foreach { case (_, extMethods) =>
+              for {
+                m <- extMethods
+                if !singleAbstractMethods(localCls).contains(m)
+                if !ignoreCall(None, m)
+                idx <- nodeToIndex.get(CallGraphAnalysis.LocalDef(st.MethodDef(localCls, m)))
+              } indices += idx
+            }
 
           // For each call, returns either precise callback edges (Some) or None
           // to indicate the call should go through the normal Call node path.
@@ -253,45 +252,50 @@ object CallGraphAnalysis {
             val callInfo = resolved.localCalls(call)
             if (callInfo.localDests.nonEmpty || callInfo.externalDests.isEmpty) return None
 
-            // Collect (externalCls, localReceiverCls) pairs: local classes that
-            // external code could call back into via receiver or arguments
-            val accessPairs = scala.collection.mutable.ArrayBuffer.empty[(JType.Cls, JType.Cls)]
+            val indices = Array.newBuilder[Int]
+            var foundCallbackTarget = false
 
-            // Receiver: for non-static calls where `this` is a known local subclass
+            // Receiver: for non-static calls where `this` is a known local subclass,
+            // walk up the external ancestor chain and add edges for each ancestor's
+            // methods that methodDef.cls could override.
             if (call.invokeType != InvokeType.Static) {
-              if (resolved.externalClassLocalDests.get(call.cls).exists(_._1.contains(methodDef.cls)))
-                accessPairs += ((call.cls, methodDef.cls))
+              SpanningForest
+                .breadthFirst(Seq(call.cls))(
+                  externalSummary.directAncestors.getOrElse(_, Nil)
+                )
+                .foreach { extCls =>
+                  if (resolved.externalClassLocalDests.get(extCls).exists(_._1.contains(methodDef.cls))) {
+                    foundCallbackTarget = true
+                    addMethodEdges(extCls, methodDef.cls, indices)
+                  }
+                }
             }
 
-            // Arguments: use Analyzer types when available, descriptor types as fallback
+            // Arguments: use Analyzer types when available, descriptor types as fallback.
+            // Walk up from each arg type to find external classes with local subclasses.
             val analyzerArgTypes = methods(methodDef).callRefArgSlotTypes.getOrElse(call, Set.empty)
             val argTypes: Iterable[JType.Cls] =
               if (analyzerArgTypes.nonEmpty) analyzerArgTypes
               else call.desc.args.collect { case c: JType.Cls => c }
 
             for (argType <- argTypes) {
-              // Walk up from argType through all ancestors to find external
-              // classes with local subclasses — works uniformly whether argType
-              // is local or external
-              val ancestors = SpanningForest.breadthFirst(Seq(argType)) { cls =>
+              SpanningForest.breadthFirst(Seq(argType)) { cls =>
                 if (localSummary.contains(cls)) localSummary.items(cls).directAncestors
                 else externalSummary.directAncestors.getOrElse(cls, Nil)
+              }.foreach { extCls =>
+                resolved.externalClassLocalDests.get(extCls).foreach { case (localClasses, _) =>
+                  foundCallbackTarget = true
+                  for (localCls <- localClasses)
+                    addMethodEdges(extCls, localCls, indices)
+                }
               }
-              for {
-                extCls <- ancestors
-                localCls <- localDestsForExternalCls(extCls)
-              } accessPairs += ((extCls, localCls))
             }
 
-            if (accessPairs.nonEmpty) {
-              return Some(accessPairs.flatMap { case (extCls, localCls) =>
-                concreteReceiverLocalMethodIndices(extCls, localCls)
-              }.toArray)
-            }
+            if (foundCallbackTarget) return Some(indices.result())
 
-            // If we had Analyzer types and found no access pairs, it's safe to skip.
-            // For virtual calls, also require that the receiver class has no local
-            // subclasses (since removing from normalCalls drops receiver-side edges).
+            // If we had Analyzer types and found no callback targets, it's safe to
+            // skip the imprecise ExternalClsCall path — unless this is a virtual call
+            // where the receiver class has other local subclasses we didn't check.
             if (analyzerArgTypes.nonEmpty &&
               (call.invokeType != InvokeType.Virtual ||
                 !resolved.externalClassLocalDests.get(call.cls).exists(_._1.nonEmpty)))
