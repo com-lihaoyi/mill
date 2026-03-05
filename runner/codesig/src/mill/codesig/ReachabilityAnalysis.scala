@@ -217,10 +217,15 @@ object CallGraphAnalysis {
             .filter(methodDef => !singleAbstractMethods(methodDef.cls).contains(methodDef.sig))
             .map(d => nodeToIndex(CallGraphAnalysis.LocalDef(d)))
 
-          val external = callInfo
-            .externalDests
-            .toArray
-            .map(c => nodeToIndex(CallGraphAnalysis.ExternalClsCall(c)))
+          // <clinit> calls model static initialization and should not produce
+          // ExternalClsCall fan-out edges, since static initializers do not
+          // call back into local subclass methods via virtual dispatch
+          val external =
+            if (methodCall.name == "<clinit>") Array.empty[Int]
+            else callInfo
+              .externalDests
+              .toArray
+              .map(c => nodeToIndex(CallGraphAnalysis.ExternalClsCall(c)))
 
           local ++ external
 
@@ -242,13 +247,29 @@ object CallGraphAnalysis {
             }.toArray
 
           def externalSelfArgClasses(call: MethodCall): Array[JType.Cls] = {
-            val slotTypedClasses = methods(methodDef)
+            val rawSlotTypes = methods(methodDef)
               .callRefArgSlotTypes
               .getOrElse(call, Set.empty)
-              .filter(c => resolved.externalClassLocalDests.get(c).exists(_._1.nonEmpty))
-              .toArray
-            if (slotTypedClasses.nonEmpty) slotTypedClasses
-            else descriptorExternalSelfArgClasses(call)
+            if (rawSlotTypes.nonEmpty) {
+              val slotTypedClasses = rawSlotTypes.flatMap { c =>
+                if (resolved.externalClassLocalDests.get(c).exists(_._1.nonEmpty)) {
+                  // External class with local subclasses - use directly
+                  Iterator.single(c)
+                } else if (localSummary.contains(c)) {
+                  // Local class - find its external ancestors that have local dests
+                  localSummary.items(c).directAncestors.iterator
+                    .flatMap(anc =>
+                      SpanningForest
+                        .breadthFirst(Seq(anc))(
+                          externalSummary.directAncestors.getOrElse(_, Nil)
+                        )
+                    )
+                    .filter(anc => resolved.externalClassLocalDests.get(anc).exists(_._1.nonEmpty))
+                } else Iterator.empty
+              }.toArray
+              if (slotTypedClasses.nonEmpty) slotTypedClasses
+              else descriptorExternalSelfArgClasses(call)
+            } else descriptorExternalSelfArgClasses(call)
           }
 
           def isExternalKnownArgCall(call: MethodCall): Boolean =
@@ -256,6 +277,27 @@ object CallGraphAnalysis {
               resolved.localCalls(call).localDests.isEmpty &&
               resolved.localCalls(call).externalDests.nonEmpty &&
               externalSelfArgClasses(call).nonEmpty
+
+          // Calls to external methods where we have precise arg type info showing
+          // that no argument is a local class or has local subclasses. External
+          // code cannot call back to any local method through these args, so the
+          // imprecise ExternalClsCall fan-out is unnecessary.
+          def isExternalSafeArgCall(call: MethodCall): Boolean = {
+            val rawSlotTypes = methods(methodDef)
+              .callRefArgSlotTypes
+              .getOrElse(call, Set.empty)
+            rawSlotTypes.nonEmpty &&
+            resolved.localCalls(call).localDests.isEmpty &&
+            resolved.localCalls(call).externalDests.nonEmpty &&
+            rawSlotTypes.forall(c =>
+              !localSummary.contains(c) &&
+                !resolved.externalClassLocalDests.get(c).exists(_._1.nonEmpty)
+            ) &&
+            // For virtual calls, the receiver must also have no local subclasses,
+            // since removing from normalCalls also drops receiver-side edges
+            (call.invokeType != InvokeType.Virtual ||
+              !resolved.externalClassLocalDests.get(call.cls).exists(_._1.nonEmpty))
+          }
 
           def isExternalVirtualSelfCall(call: MethodCall): Boolean =
             call.invokeType == InvokeType.Virtual &&
@@ -279,8 +321,10 @@ object CallGraphAnalysis {
             remainingCalls.partition(isExternalStaticReceiverCall)
           val (externalKnownArgCalls, remainingCalls3) =
             remainingCalls2.partition(isExternalKnownArgCall)
+          val (externalSafeArgCalls, remainingCalls3b) =
+            remainingCalls3.partition(isExternalSafeArgCall)
           val (externalVirtualSelfCalls, remainingCalls4) =
-            remainingCalls3.partition(isExternalVirtualSelfCall)
+            remainingCalls3b.partition(isExternalVirtualSelfCall)
           val (localNoArgVirtualExternalReceiverCalls, otherCalls) =
             remainingCalls4.partition(isLocalNoArgVirtualExternalReceiverCall)
 
@@ -306,20 +350,31 @@ object CallGraphAnalysis {
           }
 
           val externalStaticReceiverCallbackCalls = externalStaticReceiverCalls.flatMap { call =>
+            // Use visitor-based arg0 types, then Analyzer-based ref arg types as fallback,
+            // then fall back to the descriptor class
             val arg0Types =
               methods(methodDef).callArg0SlotTypes.getOrElse(call, Set.empty) match {
                 case s if s.nonEmpty => s
-                case _ => Set(call.cls)
+                case _ =>
+                  methods(methodDef).callRefArgSlotTypes.getOrElse(call, Set.empty) match {
+                    case s if s.nonEmpty => s
+                    case _ => Set(call.cls)
+                  }
               }
 
             arg0Types.iterator.flatMap { arg0Type =>
-              resolved.externalClassLocalDests
-                .get(arg0Type)
-                .iterator
-                .flatMap(_._1)
-                .flatMap(localReceiverCls =>
-                  concreteReceiverLocalMethodIndices(call.cls, localReceiverCls)
-                )
+              // If arg0 is a local class, resolve callbacks only for that class
+              if (localSummary.contains(arg0Type)) {
+                concreteReceiverLocalMethodIndices(call.cls, arg0Type).iterator
+              } else {
+                resolved.externalClassLocalDests
+                  .get(arg0Type)
+                  .iterator
+                  .flatMap(_._1)
+                  .flatMap(localReceiverCls =>
+                    concreteReceiverLocalMethodIndices(call.cls, localReceiverCls)
+                  )
+              }
             }
           }
 

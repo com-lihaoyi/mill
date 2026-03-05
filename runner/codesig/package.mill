@@ -14,7 +14,7 @@ import mill.api.BuildCtx
  * - https://github.com/com-lihaoyi/mill/pull/2417
  */
 object `package` extends MillPublishScalaModule {
-  override def mvnDeps = Seq(Deps.asmTree, Deps.osLib, Deps.pprint)
+  override def mvnDeps = Seq(Deps.asmTree, Deps.asmAnalysis, Deps.osLib, Deps.pprint)
   def moduleDeps = Seq(build.core.internal)
 
   override lazy val test: CodeSigTests = new CodeSigTests {}

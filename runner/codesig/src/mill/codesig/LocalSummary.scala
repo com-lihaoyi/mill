@@ -49,17 +49,18 @@ object LocalSummary {
   implicit def rw(using st: SymbolTable): ReadWriter[LocalSummary] = macroRW
 
   def apply(classStreams: Iterator[java.io.InputStream])(using st: SymbolTable): LocalSummary = {
-    val visitors = classStreams
+    val classDataAndVisitors = classStreams
       .map { cs =>
+        val classBytes = cs.readAllBytes()
         val visitor = new MyClassVisitor()
-        new ClassReader(cs).accept(visitor, ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG)
-        visitor
+        new ClassReader(classBytes).accept(visitor, ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG)
+        (classBytes, visitor)
       }
       .toVector
 
     LocalSummary(
-      visitors
-        .map { v =>
+      classDataAndVisitors
+        .map { case (classBytes, v) =>
           val cls = v.clsType
           val methodCallGraphs = v.classCallGraph.result()
           val methodCallArg0SlotTypes = v.classMethodCallArg0SlotTypes.result()
@@ -67,16 +68,36 @@ object LocalSummary {
           val methodHashes = v.classMethodHashes.result()
           val methodPrivate = v.classMethodPrivate.result()
           val methodAbstract = v.classMethodAbstract.result()
+
+          // Use ASM Analyzer to compute precise operand stack types at invoke
+          // instructions. This gives us the actual types of method arguments
+          // (e.g. Boolean instead of Object) regardless of how they were produced
+          // (method return, field load, etc.), unlike the manual ALOAD-based tracking
+          // which only works when args come from local variables.
+          val analyzerArgTypes = analyzeMethodArgTypes(classBytes)
+
           cls -> ClassInfo(
             superClass = v.directSuperClass.get,
             directAncestors = v.directAncestors,
             methods = methodCallGraphs
               .keys
               .map { m =>
+                val visitorRefArgTypes = methodCallRefArgSlotTypes(m)
+                val frameRefArgTypes = analyzerArgTypes.getOrElse(m, Map.empty)
+                // Merge: prefer frame-based types (more precise), fall back to visitor
+                val mergedRefArgTypes = (visitorRefArgTypes.keySet ++ frameRefArgTypes.keySet)
+                  .iterator
+                  .map { call =>
+                    val frameTypes = frameRefArgTypes.getOrElse(call, Set.empty)
+                    val visitorTypes = visitorRefArgTypes.getOrElse(call, Set.empty)
+                    call -> (if (frameTypes.nonEmpty) frameTypes else visitorTypes)
+                  }
+                  .filter(_._2.nonEmpty)
+                  .toMap
                 m -> MethodInfo(
                   methodCallGraphs(m),
                   methodCallArg0SlotTypes(m),
-                  methodCallRefArgSlotTypes(m),
+                  mergedRefArgTypes,
                   methodPrivate(m),
                   methodHashes(m),
                   methodAbstract(m)
@@ -87,6 +108,128 @@ object LocalSummary {
         }
         .toMap
     )
+  }
+
+  /**
+   * Use ASM's Analyzer with BasicInterpreter to compute precise operand stack
+   * types at every method invoke instruction. Returns a map from MethodSig to
+   * (MethodCall -> Set[JCls]) representing the actual reference arg types.
+   */
+  private def analyzeMethodArgTypes(
+      classBytes: Array[Byte]
+  )(using st: SymbolTable): Map[MethodSig, Map[MethodCall, Set[JCls]]] = {
+    import org.objectweb.asm.tree.*
+    import org.objectweb.asm.tree.analysis.*
+    import scala.jdk.CollectionConverters.*
+
+    val classNode = new ClassNode()
+    new ClassReader(classBytes).accept(classNode, 0)
+
+    val result = Map.newBuilder[MethodSig, Map[MethodCall, Set[JCls]]]
+
+    for (method <- classNode.methods.asScala) {
+      val methodSig = st.MethodSig(
+        (method.access & Opcodes.ACC_STATIC) != 0,
+        method.name,
+        st.Desc.read(method.desc)
+      )
+
+      // Use a custom interpreter that preserves precise object types,
+      // unlike BasicInterpreter which collapses all references to Object.
+      val interpreter = new BasicInterpreter(Opcodes.ASM9) {
+        override def newValue(tp: org.objectweb.asm.Type): BasicValue = {
+          if (tp == null) return BasicValue.UNINITIALIZED_VALUE
+          tp.getSort match {
+            case org.objectweb.asm.Type.VOID => null
+            case org.objectweb.asm.Type.BOOLEAN | org.objectweb.asm.Type.CHAR |
+                org.objectweb.asm.Type.BYTE | org.objectweb.asm.Type.SHORT |
+                org.objectweb.asm.Type.INT =>
+              BasicValue.INT_VALUE
+            case org.objectweb.asm.Type.FLOAT => BasicValue.FLOAT_VALUE
+            case org.objectweb.asm.Type.LONG => BasicValue.LONG_VALUE
+            case org.objectweb.asm.Type.DOUBLE => BasicValue.DOUBLE_VALUE
+            case org.objectweb.asm.Type.ARRAY | org.objectweb.asm.Type.OBJECT =>
+              new BasicValue(tp)
+            case _ => BasicValue.REFERENCE_VALUE
+          }
+        }
+        override def merge(a: BasicValue, b: BasicValue): BasicValue = {
+          if (a == b) a
+          else if (a == BasicValue.UNINITIALIZED_VALUE || b == BasicValue.UNINITIALIZED_VALUE)
+            BasicValue.UNINITIALIZED_VALUE
+          else BasicValue.REFERENCE_VALUE
+        }
+      }
+      val analyzer = new Analyzer[BasicValue](interpreter)
+      val frames: Array[Frame[BasicValue]] =
+        try analyzer.analyze(classNode.name, method)
+        catch { case _: AnalyzerException => null }
+
+      if (frames != null) {
+        val callArgTypes = Map.newBuilder[MethodCall, Set[JCls]]
+        val insns = method.instructions
+        for (i <- 0 until insns.size()) {
+          insns.get(i) match {
+            case invoke: MethodInsnNode
+                if invoke.owner != null && invoke.owner.nonEmpty && invoke.owner(0) != '[' =>
+              val frame = frames(i)
+              if (frame != null) {
+                val invokeType = invoke.getOpcode match {
+                  case Opcodes.INVOKESTATIC => InvokeType.Static
+                  case Opcodes.INVOKESPECIAL => InvokeType.Special
+                  case Opcodes.INVOKEVIRTUAL => InvokeType.Virtual
+                  case Opcodes.INVOKEINTERFACE => InvokeType.Virtual
+                  case _ => null
+                }
+                if (invokeType != null) {
+                  val desc = st.Desc.read(invoke.desc)
+                  val call = st.MethodCall(
+                    JCls.fromSlashed(invoke.owner),
+                    invokeType,
+                    invoke.name,
+                    desc
+                  )
+
+                  // Extract ref arg types from the operand stack.
+                  // Stack layout before invoke: [..., [objectref,] arg1, arg2, ...]
+                  // Total consumed = argCount + (1 if non-static for receiver)
+                  val argTypes = desc.args
+                  val totalConsumed =
+                    argTypes.size + (if (invoke.getOpcode == Opcodes.INVOKESTATIC) 0 else 1)
+                  val stackSize = frame.getStackSize
+                  if (stackSize >= totalConsumed) {
+                    val argStartIdx = stackSize - argTypes.size
+                    val refArgTypes = mutable.Set.empty[JCls]
+                    for (j <- argTypes.indices) {
+                      argTypes(j) match {
+                        case _: JCls =>
+                          val stackVal = frame.getStack(argStartIdx + j)
+                          if (stackVal != null && stackVal.getType != null) {
+                            val t = stackVal.getType
+                            if (
+                              t.getSort == org.objectweb.asm.Type.OBJECT &&
+                              t.getInternalName != "null"
+                            ) {
+                              refArgTypes += JCls.fromSlashed(t.getInternalName)
+                            }
+                          }
+                        case _ => // primitive arg, skip
+                      }
+                    }
+                    if (refArgTypes.nonEmpty) {
+                      callArgTypes += (call -> refArgTypes.toSet)
+                    }
+                  }
+                }
+              }
+            case _ => // not a method invoke instruction
+          }
+        }
+        val types = callArgTypes.result()
+        if (types.nonEmpty) result += (methodSig -> types)
+      }
+    }
+    result.result()
   }
 
   class MyClassVisitor()(using st: SymbolTable) extends ClassVisitor(Opcodes.ASM9) {
