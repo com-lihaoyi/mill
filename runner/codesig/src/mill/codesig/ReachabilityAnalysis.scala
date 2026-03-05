@@ -229,23 +229,6 @@ object CallGraphAnalysis {
           // we create direct LocalDef→LocalDef edges. Otherwise we fall through to the
           // normal Call → ExternalClsCall → LocalDef path.
 
-          // Given an external class and a local class, yields node indices for
-          // all methods on the external class that the local class could override.
-          // Uses the pre-filtered method sets from externalClassLocalDests.
-          def addMethodEdges(
-              externalCls: JType.Cls,
-              localCls: JType.Cls,
-              indices: scala.collection.mutable.Builder[Int, Array[Int]]
-          ): Unit =
-            resolved.externalClassLocalDests.get(externalCls).foreach { case (_, extMethods) =>
-              for {
-                m <- extMethods
-                if !singleAbstractMethods(localCls).contains(m)
-                if !ignoreCall(None, m)
-                idx <- nodeToIndex.get(CallGraphAnalysis.LocalDef(st.MethodDef(localCls, m)))
-              } indices += idx
-            }
-
           // For each call, returns either precise callback edges (Some) or None
           // to indicate the call should go through the normal Call node path.
           def resolveCallbackEdges(call: MethodCall): Option[Array[Int]] = {
@@ -255,40 +238,49 @@ object CallGraphAnalysis {
             val indices = Array.newBuilder[Int]
             var foundCallbackTarget = false
 
-            // Receiver: for non-static calls where `this` is a known local subclass,
-            // walk up the external ancestor chain and add edges for each ancestor's
-            // methods that methodDef.cls could override.
-            if (call.invokeType != InvokeType.Static) {
-              SpanningForest
-                .breadthFirst(Seq(call.cls))(
-                  externalSummary.directAncestors.getOrElse(_, Nil)
-                )
-                .foreach { extCls =>
-                  if (resolved.externalClassLocalDests.get(extCls).exists(_._1.contains(methodDef.cls))) {
-                    foundCallbackTarget = true
-                    addMethodEdges(extCls, methodDef.cls, indices)
-                  }
+            // For a given type, find all method signatures by walking superclasses,
+            // then add edges for each (method, localSubclass) pair. The localSubclasses
+            // are found by walking subclasses (via externalClassLocalDests lookup).
+            def addCallbackEdges(cls: JType.Cls, localSubclasses: Iterable[JType.Cls]): Unit = {
+              foundCallbackTarget = true
+              SpanningForest.breadthFirst(Seq(cls)) { c =>
+                if (localSummary.contains(c)) localSummary.items(c).directAncestors
+                else externalSummary.directAncestors.getOrElse(c, Nil)
+              }.foreach { extCls =>
+                resolved.externalClassLocalDests.get(extCls).foreach { case (_, extMethods) =>
+                  for {
+                    m <- extMethods
+                    localCls <- localSubclasses
+                    if !singleAbstractMethods(localCls).contains(m)
+                    if !ignoreCall(None, m)
+                    idx <- nodeToIndex.get(CallGraphAnalysis.LocalDef(st.MethodDef(localCls, m)))
+                  } indices += idx
                 }
+              }
             }
 
-            // Arguments: use Analyzer types when available, descriptor types as fallback.
-            // Walk up from each arg type to find external classes with local subclasses.
+            // Receiver: for non-static calls where `this` is a known local subclass
+            if (call.invokeType != InvokeType.Static) {
+              if (resolved.externalClassLocalDests.get(call.cls).exists(_._1.contains(methodDef.cls)))
+                addCallbackEdges(call.cls, Seq(methodDef.cls))
+            }
+
+            // Arguments: use Analyzer types when available, descriptor types as fallback
             val analyzerArgTypes = methods(methodDef).callRefArgSlotTypes.getOrElse(call, Set.empty)
             val argTypes: Iterable[JType.Cls] =
               if (analyzerArgTypes.nonEmpty) analyzerArgTypes
               else call.desc.args.collect { case c: JType.Cls => c }
 
             for (argType <- argTypes) {
-              SpanningForest.breadthFirst(Seq(argType)) { cls =>
-                if (localSummary.contains(cls)) localSummary.items(cls).directAncestors
-                else externalSummary.directAncestors.getOrElse(cls, Nil)
-              }.foreach { extCls =>
-                resolved.externalClassLocalDests.get(extCls).foreach { case (localClasses, _) =>
-                  foundCallbackTarget = true
-                  for (localCls <- localClasses)
-                    addMethodEdges(extCls, localCls, indices)
-                }
-              }
+              // Find local subclasses via direct lookup (no walking):
+              // external type → lookup in externalClassLocalDests
+              // local type → the type itself
+              val localSubclasses: Iterable[JType.Cls] =
+                resolved.externalClassLocalDests.get(argType).map(_._1).getOrElse(
+                  if (localSummary.contains(argType)) Seq(argType) else Nil
+                )
+              if (localSubclasses.nonEmpty)
+                addCallbackEdges(argType, localSubclasses)
             }
 
             if (foundCallbackTarget) return Some(indices.result())
