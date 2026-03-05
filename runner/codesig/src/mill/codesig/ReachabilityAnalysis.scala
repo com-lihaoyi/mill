@@ -24,8 +24,7 @@ class CallGraphAnalysis(
 
   val indexToNodes: Array[CallGraphAnalysis.Node] =
     methods.keys.toArray.map[CallGraphAnalysis.Node](CallGraphAnalysis.LocalDef(_)) ++
-      resolved.localCalls.keys.map(CallGraphAnalysis.Call(_)) ++
-      externalSummary.directMethods.keys.map(CallGraphAnalysis.ExternalClsCall(_))
+      resolved.localCalls.keys.map(CallGraphAnalysis.Call(_))
 
   val nodeToIndex = indexToNodes.zipWithIndex.toMap
 
@@ -202,47 +201,37 @@ object CallGraphAnalysis {
       .map {
         case CallGraphAnalysis.Call(methodCall) =>
           val callInfo = resolved.localCalls(methodCall)
-          val local = callInfo
+          callInfo
             .localDests
             .toArray
             .filter(methodDef => !singleAbstractMethods(methodDef.cls).contains(methodDef.sig))
             .map(d => nodeToIndex(CallGraphAnalysis.LocalDef(d)))
 
-          // <clinit> calls model static initialization and should not produce
-          // ExternalClsCall fan-out edges, since static initializers do not
-          // call back into local subclass methods via virtual dispatch
-          val external =
-            if (methodCall.name == "<clinit>") Array.empty[Int]
-            else callInfo
-              .externalDests
-              .toArray
-              .map(c => nodeToIndex(CallGraphAnalysis.ExternalClsCall(c)))
-
-          local ++ external
-
         case CallGraphAnalysis.LocalDef(methodDef) =>
-          // For calls to external methods, we try to compute precise callback edges
-          // directly (bypassing the imprecise ExternalClsCall fan-out). For each call,
-          // we determine which local classes external code could call back into by
-          // examining the receiver (for non-static calls) and arguments (using Analyzer
-          // types with descriptor fallback). If we can identify specific local classes,
-          // we create direct LocalDef→LocalDef edges. Otherwise we fall through to the
-          // normal Call → ExternalClsCall → LocalDef path.
+          // For calls to external methods, compute precise callback edges by
+          // walking superclasses for method signatures and subclasses for local
+          // classes, then adding direct LocalDef→LocalDef edges for each
+          // (method, localSubclass) pair.
 
-          // For each call, returns either precise callback edges (Some) or None
-          // to indicate the call should go through the normal Call node path.
+          // For a call with external dests, computes precise callback edges
+          // and includes local dests directly, bypassing the Call node entirely.
+          // For calls without external dests, returns None to use the Call node.
           def resolveCallbackEdges(call: MethodCall): Option[Array[Int]] = {
             val callInfo = resolved.localCalls(call)
-            if (callInfo.localDests.nonEmpty || callInfo.externalDests.isEmpty) return None
+            if (callInfo.externalDests.isEmpty) return None
 
             val indices = Array.newBuilder[Int]
-            var foundCallbackTarget = false
+
+            // Include local dests directly (same filtering as the Call node case)
+            for {
+              dest <- callInfo.localDests
+              if !singleAbstractMethods(dest.cls).contains(dest.sig)
+            } indices += nodeToIndex(CallGraphAnalysis.LocalDef(dest))
 
             // For a given type, find all method signatures by walking superclasses,
             // then add edges for each (method, localSubclass) pair. The localSubclasses
             // are found by walking subclasses (via externalClassLocalDests lookup).
             def addCallbackEdges(cls: JType.Cls, localSubclasses: Iterable[JType.Cls]): Unit = {
-              foundCallbackTarget = true
               SpanningForest.breadthFirst(Seq(cls)) { c =>
                 if (localSummary.contains(c)) localSummary.items(c).directAncestors
                 else externalSummary.directAncestors.getOrElse(c, Nil)
@@ -259,41 +248,30 @@ object CallGraphAnalysis {
               }
             }
 
-            // Receiver: for non-static calls where `this` is a known local subclass
-            if (call.invokeType != InvokeType.Static) {
-              if (resolved.externalClassLocalDests.get(call.cls).exists(_._1.contains(methodDef.cls)))
-                addCallbackEdges(call.cls, Seq(methodDef.cls))
-            }
-
-            // Arguments: use Analyzer types when available, descriptor types as fallback
+            // callInfo.externalDests contains all types the external code
+            // receives (receiver + args from descriptor). Analyzer types refine
+            // arg types when available. For each type, find local subclasses and
+            // add callback edges. If methodDef.cls is among the local subclasses,
+            // we know precisely that it's the one being passed (e.g. `this`).
             val analyzerArgTypes = methods(methodDef).callRefArgSlotTypes.getOrElse(call, Set.empty)
-            val argTypes: Iterable[JType.Cls] =
-              if (analyzerArgTypes.nonEmpty) analyzerArgTypes
-              else call.desc.args.collect { case c: JType.Cls => c }
+            val allExtTypes =
+              if (analyzerArgTypes.nonEmpty) callInfo.externalDests ++ analyzerArgTypes
+              else callInfo.externalDests
 
-            for (argType <- argTypes) {
-              // Find local subclasses via direct lookup (no walking):
-              // external type → lookup in externalClassLocalDests
-              // local type → the type itself
-              val localSubclasses: Iterable[JType.Cls] =
-                resolved.externalClassLocalDests.get(argType).map(_._1).getOrElse(
-                  if (localSummary.contains(argType)) Seq(argType) else Nil
+            for (extType <- allExtTypes) {
+              val localSubs: Iterable[JType.Cls] =
+                resolved.externalClassLocalDests.get(extType).map(_._1).getOrElse(
+                  if (localSummary.contains(extType)) Seq(extType) else Nil
                 )
-              if (localSubclasses.nonEmpty)
-                addCallbackEdges(argType, localSubclasses)
+              if (localSubs.nonEmpty) {
+                if (localSubs.exists(_ == methodDef.cls))
+                  addCallbackEdges(extType, Seq(methodDef.cls))
+                else
+                  addCallbackEdges(extType, localSubs)
+              }
             }
 
-            if (foundCallbackTarget) return Some(indices.result())
-
-            // If we had Analyzer types and found no callback targets, it's safe to
-            // skip the imprecise ExternalClsCall path — unless this is a virtual call
-            // where the receiver class has other local subclasses we didn't check.
-            if (analyzerArgTypes.nonEmpty &&
-              (call.invokeType != InvokeType.Virtual ||
-                !resolved.externalClassLocalDests.get(call.cls).exists(_._1.nonEmpty)))
-              return Some(Array.empty)
-
-            None
+            Some(indices.result())
           }
 
           val calls = methods(methodDef)
@@ -318,28 +296,6 @@ object CallGraphAnalysis {
             }
 
           normalEdges.result() ++ callbackEdges.result() ++ singleAbstractMethodInitEdge
-
-        case CallGraphAnalysis.ExternalClsCall(externalCls) =>
-          val local = resolved
-            .externalClassLocalDests
-            .get(externalCls)
-            .iterator
-            .flatMap { case (localClasses: Set[JType.Cls], localMethods: Set[MethodSig]) =>
-              for {
-                cls <- localClasses
-                m <- localMethods
-                if methods.contains(st.MethodDef(cls, m))
-                if !singleAbstractMethods(cls).contains(m)
-                if !ignoreCall(None, m)
-              } yield nodeToIndex(CallGraphAnalysis.LocalDef(st.MethodDef(cls, m)))
-            }
-            .toArray
-
-          val parent = externalSummary
-            .directAncestors(externalCls)
-            .map(c => nodeToIndex(CallGraphAnalysis.ExternalClsCall(c)))
-
-          local ++ parent
       }
       .map(_.sorted)
       .toArray
@@ -395,10 +351,14 @@ object CallGraphAnalysis {
   }
 
   /**
-   * Represents the three types of nodes in our call graph. These are kept heterogeneous
-   * because flattening them out into a homogenous graph of MethodDef -> MethodDef edges
-   * results in a lot of duplication that bloats the size of the graph non-linearly with
-   * the size of the program
+   * Represents the two types of nodes in our call graph:
+   * - LocalDef: a method definition in local code, with a code hash
+   * - Call: a method call site, connecting to its resolved destinations
+   *
+   * External callback edges (from external code back into local code) are
+   * computed precisely per-call-site by walking superclasses for method
+   * signatures and subclasses for local classes, producing direct
+   * LocalDef→LocalDef edges rather than going through shared proxy nodes.
    */
   sealed trait Node
 
@@ -411,8 +371,5 @@ object CallGraphAnalysis {
   }
   case class Call(call: MethodCall) extends Node {
     override def toString: String = "call " + call.toString
-  }
-  case class ExternalClsCall(call: JType.Cls) extends Node {
-    override def toString: String = "external " + call.toString
   }
 }
