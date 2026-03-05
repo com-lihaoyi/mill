@@ -111,6 +111,42 @@ object LocalSummary {
       allRefArgTypes: Map[MethodCall, Set[JCls]]
   )
 
+  /** Extract the precise internal name from a BasicValue, if it represents a known object type. */
+  private def preciseInternalName(v: org.objectweb.asm.tree.analysis.BasicValue): Option[String] = {
+    if (v == null || v.getType == null) None
+    else {
+      val t = v.getType
+      if (t.getSort == org.objectweb.asm.Type.OBJECT && t.getInternalName != "null")
+        Some(t.getInternalName)
+      else None
+    }
+  }
+
+  /**
+   * Custom interpreter that preserves precise object types, unlike the default
+   * BasicInterpreter which collapses all reference types to a single REFERENCE_VALUE.
+   */
+  private val preciseTypeInterpreter = new org.objectweb.asm.tree.analysis.BasicInterpreter(Opcodes.ASM9) {
+    override def newValue(tp: org.objectweb.asm.Type): org.objectweb.asm.tree.analysis.BasicValue = {
+      if (tp == null) return org.objectweb.asm.tree.analysis.BasicValue.UNINITIALIZED_VALUE
+      if (tp.getSort == org.objectweb.asm.Type.ARRAY || tp.getSort == org.objectweb.asm.Type.OBJECT)
+        new org.objectweb.asm.tree.analysis.BasicValue(tp)
+      else super.newValue(tp)
+    }
+    override def merge(
+        a: org.objectweb.asm.tree.analysis.BasicValue,
+        b: org.objectweb.asm.tree.analysis.BasicValue
+    ): org.objectweb.asm.tree.analysis.BasicValue = {
+      if (a == b) a
+      else if (
+        a == org.objectweb.asm.tree.analysis.BasicValue.UNINITIALIZED_VALUE ||
+        b == org.objectweb.asm.tree.analysis.BasicValue.UNINITIALIZED_VALUE
+      )
+        org.objectweb.asm.tree.analysis.BasicValue.UNINITIALIZED_VALUE
+      else org.objectweb.asm.tree.analysis.BasicValue.REFERENCE_VALUE
+    }
+  }
+
   private def analyzeMethodArgTypes(
       classBytes: Array[Byte]
   )(using st: SymbolTable): Map[MethodSig, AnalyzedArgTypes] = {
@@ -123,33 +159,6 @@ object LocalSummary {
 
     val result = Map.newBuilder[MethodSig, AnalyzedArgTypes]
 
-    // Custom interpreter that preserves precise object types,
-    // unlike BasicInterpreter which collapses all references to Object.
-    val interpreter = new BasicInterpreter(Opcodes.ASM9) {
-      override def newValue(tp: org.objectweb.asm.Type): BasicValue = {
-        if (tp == null) return BasicValue.UNINITIALIZED_VALUE
-        tp.getSort match {
-          case org.objectweb.asm.Type.VOID => null
-          case org.objectweb.asm.Type.BOOLEAN | org.objectweb.asm.Type.CHAR |
-              org.objectweb.asm.Type.BYTE | org.objectweb.asm.Type.SHORT |
-              org.objectweb.asm.Type.INT =>
-            BasicValue.INT_VALUE
-          case org.objectweb.asm.Type.FLOAT => BasicValue.FLOAT_VALUE
-          case org.objectweb.asm.Type.LONG => BasicValue.LONG_VALUE
-          case org.objectweb.asm.Type.DOUBLE => BasicValue.DOUBLE_VALUE
-          case org.objectweb.asm.Type.ARRAY | org.objectweb.asm.Type.OBJECT =>
-            new BasicValue(tp)
-          case _ => BasicValue.REFERENCE_VALUE
-        }
-      }
-      override def merge(a: BasicValue, b: BasicValue): BasicValue = {
-        if (a == b) a
-        else if (a == BasicValue.UNINITIALIZED_VALUE || b == BasicValue.UNINITIALIZED_VALUE)
-          BasicValue.UNINITIALIZED_VALUE
-        else BasicValue.REFERENCE_VALUE
-      }
-    }
-
     for (method <- classNode.methods.asScala) {
       val methodSig = st.MethodSig(
         (method.access & Opcodes.ACC_STATIC) != 0,
@@ -157,9 +166,8 @@ object LocalSummary {
         st.Desc.read(method.desc)
       )
 
-      val analyzer = new Analyzer[BasicValue](interpreter)
       val frames: Array[Frame[BasicValue]] =
-        try analyzer.analyze(classNode.name, method)
+        try new Analyzer[BasicValue](preciseTypeInterpreter).analyze(classNode.name, method)
         catch { case _: AnalyzerException => null }
 
       if (frames != null) {
@@ -175,61 +183,31 @@ object LocalSummary {
                 val invokeType = invoke.getOpcode match {
                   case Opcodes.INVOKESTATIC => InvokeType.Static
                   case Opcodes.INVOKESPECIAL => InvokeType.Special
-                  case Opcodes.INVOKEVIRTUAL => InvokeType.Virtual
-                  case Opcodes.INVOKEINTERFACE => InvokeType.Virtual
+                  case Opcodes.INVOKEVIRTUAL | Opcodes.INVOKEINTERFACE => InvokeType.Virtual
                   case _ => null
                 }
                 if (invokeType != null) {
                   val desc = st.Desc.read(invoke.desc)
                   val call = st.MethodCall(
-                    JCls.fromSlashed(invoke.owner),
-                    invokeType,
-                    invoke.name,
-                    desc
+                    JCls.fromSlashed(invoke.owner), invokeType, invoke.name, desc
                   )
 
                   val argTypes = desc.args
-                  val totalConsumed =
-                    argTypes.size + (if (invoke.getOpcode == Opcodes.INVOKESTATIC) 0 else 1)
-                  val stackSize = frame.getStackSize
-                  if (stackSize >= totalConsumed) {
-                    val argStartIdx = stackSize - argTypes.size
-                    val refArgTypes = mutable.Set.empty[JCls]
-                    for (j <- argTypes.indices) {
-                      argTypes(j) match {
-                        case _: JCls =>
-                          val stackVal = frame.getStack(argStartIdx + j)
-                          if (stackVal != null && stackVal.getType != null) {
-                            val t = stackVal.getType
-                            if (
-                              t.getSort == org.objectweb.asm.Type.OBJECT &&
-                              t.getInternalName != "null"
-                            ) {
-                              refArgTypes += JCls.fromSlashed(t.getInternalName)
-                            }
-                          }
-                        case _ =>
-                      }
+                  val argStartIdx = frame.getStackSize - argTypes.size
+                  val refArgTypes = mutable.Set.empty[JCls]
+                  for (j <- argTypes.indices) {
+                    if (argTypes(j).isInstanceOf[JCls]) {
+                      preciseInternalName(frame.getStack(argStartIdx + j))
+                        .foreach(n => refArgTypes += JCls.fromSlashed(n))
                     }
-                    if (refArgTypes.nonEmpty) {
-                      callAllRefArgTypes += (call -> refArgTypes.toSet)
-                    }
-                    // Extract arg0 type specifically for static calls
-                    if (invoke.getOpcode == Opcodes.INVOKESTATIC && argTypes.nonEmpty) {
-                      argTypes.head match {
-                        case _: JCls =>
-                          val stackVal = frame.getStack(argStartIdx)
-                          if (stackVal != null && stackVal.getType != null) {
-                            val t = stackVal.getType
-                            if (
-                              t.getSort == org.objectweb.asm.Type.OBJECT &&
-                              t.getInternalName != "null"
-                            ) {
-                              callArg0Types += (call -> Set(JCls.fromSlashed(t.getInternalName)))
-                            }
-                          }
-                        case _ =>
-                      }
+                  }
+                  if (refArgTypes.nonEmpty) {
+                    callAllRefArgTypes += (call -> refArgTypes.toSet)
+                  }
+                  // For static calls, also record arg0 separately for mixin forwarder detection
+                  if (invoke.getOpcode == Opcodes.INVOKESTATIC && argTypes.headOption.exists(_.isInstanceOf[JCls])) {
+                    preciseInternalName(frame.getStack(argStartIdx)).foreach { n =>
+                      callArg0Types += (call -> Set(JCls.fromSlashed(n)))
                     }
                   }
                 }
