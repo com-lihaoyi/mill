@@ -206,7 +206,13 @@ object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
 
       assertGoldenLiteral(
         resolveTree.out.linesIterator.toSeq,
-        expectedTree
+        List(
+          "{",
+          "  \"def build_.package_$bar$#<init>(build_.package_)void\": {",
+          "    \"bar.compile\": {}",
+          "  }",
+          "}"
+        )
       )
     }
 

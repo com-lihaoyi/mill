@@ -321,7 +321,7 @@ object CallGraphAnalysis {
             remainingCalls.partition(isExternalStaticReceiverCall)
           val (externalKnownArgCalls, remainingCalls3) =
             remainingCalls2.partition(isExternalKnownArgCall)
-          val (externalSafeArgCalls, remainingCalls3b) =
+          val (_, remainingCalls3b) =
             remainingCalls3.partition(isExternalSafeArgCall)
           val (externalVirtualSelfCalls, remainingCalls4) =
             remainingCalls3b.partition(isExternalVirtualSelfCall)
@@ -339,7 +339,7 @@ object CallGraphAnalysis {
               .flatMap(externalSummary.directMethods.getOrElse(_, Map()).keysIterator)
               .filter(m => !m.static && m.name != "<init>")
               .filter(m => !singleAbstractMethods(localReceiverCls).contains(m))
-              .filter(m => !ignoreCall(Some(methodDef), m))
+              .filter(m => !ignoreCall(None, m))
               .flatMap { m =>
                 nodeToIndex.get(CallGraphAnalysis.LocalDef(st.MethodDef(localReceiverCls, m)))
               }
@@ -427,7 +427,7 @@ object CallGraphAnalysis {
                   .flatMap(externalSummary.directMethods.getOrElse(_, Map()).keysIterator)
                 if !m.static && m.name != "<init>"
                 if !singleAbstractMethods(receiverCls).contains(m)
-                if !ignoreCall(Some(methodDef), m)
+                if !ignoreCall(None, m)
                 dest <- nodeToIndex.get(CallGraphAnalysis.LocalDef(st.MethodDef(receiverCls, m)))
               } yield dest
             }
