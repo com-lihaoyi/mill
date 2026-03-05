@@ -51,18 +51,16 @@ object LocalSummary {
     val classDataAndVisitors = classStreams
       .map { cs =>
         val classBytes = cs.readAllBytes()
+        val reader = new ClassReader(classBytes)
         val visitor = new MyClassVisitor()
-        new ClassReader(classBytes).accept(
-          visitor,
-          ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG
-        )
-        (classBytes, visitor)
+        reader.accept(visitor, ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG)
+        (reader, visitor)
       }
       .toVector
 
     LocalSummary(
       classDataAndVisitors
-        .map { case (classBytes, v) =>
+        .map { case (reader, v) =>
           val cls = v.clsType
           val methodCallGraphs = v.classCallGraph.result()
           val methodHashes = v.classMethodHashes.result()
@@ -73,7 +71,7 @@ object LocalSummary {
           // instructions. This gives us the actual types of method arguments
           // (e.g. Boolean instead of Object) regardless of how they were produced
           // (method return, field load, etc.).
-          val analyzerArgTypes = analyzeMethodArgTypes(classBytes)
+          val analyzerArgTypes = analyzeMethodArgTypes(reader)
 
           cls -> ClassInfo(
             superClass = v.directSuperClass.get,
@@ -102,7 +100,7 @@ object LocalSummary {
    * call → precise types of all reference-typed arguments.
    */
   private def analyzeMethodArgTypes(
-      classBytes: Array[Byte]
+      reader: ClassReader
   )(using st: SymbolTable): Map[MethodSig, Map[MethodCall, Set[JCls]]] = {
     import org.objectweb.asm.tree.*
     import org.objectweb.asm.tree.analysis.*
@@ -138,7 +136,7 @@ object LocalSummary {
     }
 
     val classNode = new ClassNode()
-    new ClassReader(classBytes).accept(classNode, 0)
+    reader.accept(classNode, 0)
 
     val result = Map.newBuilder[MethodSig, Map[MethodCall, Set[JCls]]]
 
@@ -292,14 +290,10 @@ object LocalSummary {
     def hashlabel(x: Label): Unit = jumpList.append(x)
 
     def discardPreviousInsn(): Unit = insnSigs(insnSigs.size - 1) = 0
-    def dropPreviousInsn(count: Int): Unit = {
-      val n = math.min(count, insnSigs.size)
-      var i = 0
-      while (i < n) {
-        insnSigs.remove(insnSigs.size - 1)
-        i += 1
-      }
-    }
+
+    def inLazyHandleSequence: Boolean = methodSig.name == "<clinit>" && lazyNameSeenInClinit
+    def resetLazySequence(): Unit =
+      if (methodSig.name == "<clinit>" && lazyNameSeenInClinit) lazyNameSeenInClinit = false
 
     def isLazyHandleField(name: String): Boolean = LazyHandleSuffix.findFirstIn(name).nonEmpty
     def isLazyName(name: String): Boolean = LazyNameSuffix.findFirstIn(name).nonEmpty
@@ -331,11 +325,10 @@ object LocalSummary {
         if (!endScala3LazyInit) isScala3LazyInit = false
       } else if (lazyValBodyEnd && opcode == Opcodes.GETSTATIC) {
         endScala3LazyInit = true
-      } else if (methodSig.name == "<clinit>" && lazyNameSeenInClinit && isLazyHandleField(name)) {
-        // Ignore Scala lazy-handle storage in `<clinit>`, which is unstable and benign.
+      } else if (inLazyHandleSequence && isLazyHandleField(name)) {
         lazyNameSeenInClinit = false
       } else {
-        if (methodSig.name == "<clinit>" && lazyNameSeenInClinit) lazyNameSeenInClinit = false
+        resetLazySequence()
         hash(opcode)
         hash(owner.hashCode)
         hash(name.hashCode)
@@ -423,11 +416,13 @@ object LocalSummary {
           // Drop the preceding `lookup()` and owner-class LDC, then skip the rest of
           // this lazy-handle setup sequence (`Type` LDC, `findVarHandle`, `PUTSTATIC`).
           lazyNameSeenInClinit = true
-          dropPreviousInsn(2)
-        case _: org.objectweb.asm.Type if methodSig.name == "<clinit>" && lazyNameSeenInClinit =>
+          if (insnSigs.size >= 2) {
+            insnSigs.remove(insnSigs.size - 1); insnSigs.remove(insnSigs.size - 1)
+          }
+        case _: org.objectweb.asm.Type if inLazyHandleSequence =>
           ()
         case _ =>
-          if (methodSig.name == "<clinit>" && lazyNameSeenInClinit) lazyNameSeenInClinit = false
+          resetLazySequence()
           hash(
             value match {
               case v: java.lang.String => v.hashCode()
@@ -464,22 +459,20 @@ object LocalSummary {
     ): Unit = {
       val desc = st.Desc.read(descriptor)
 
-      val isMethodHandlesLookupInClinit =
-        methodSig.name == "<clinit>" &&
-          lazyNameSeenInClinit &&
-          ((owner == "java/lang/invoke/MethodHandles" &&
-            name == "lookup" &&
-            descriptor == "()Ljava/lang/invoke/MethodHandles$Lookup;") ||
-            (owner == "java/lang/invoke/MethodHandles$Lookup" &&
-              name == "findVarHandle" &&
-              descriptor ==
-              "(Ljava/lang/Class;Ljava/lang/String;Ljava/lang/Class;)Ljava/lang/invoke/VarHandle;"))
-
-      if (isMethodHandlesLookupInClinit) {
+      if (
+        inLazyHandleSequence &&
+        ((owner == "java/lang/invoke/MethodHandles" &&
+          name == "lookup" &&
+          descriptor == "()Ljava/lang/invoke/MethodHandles$Lookup;") ||
+          (owner == "java/lang/invoke/MethodHandles$Lookup" &&
+            name == "findVarHandle" &&
+            descriptor ==
+            "(Ljava/lang/Class;Ljava/lang/String;Ljava/lang/Class;)Ljava/lang/invoke/VarHandle;"))
+      ) {
         return
       }
 
-      if (methodSig.name == "<clinit>" && lazyNameSeenInClinit) lazyNameSeenInClinit = false
+      resetLazySequence()
 
       // Skip analyzing array methods like `.clone()` or `.hashCode()`, since they always
       // provided by the standard library and do not contribute to the program's call graph

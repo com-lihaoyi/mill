@@ -228,32 +228,8 @@ object CallGraphAnalysis {
               if !singleAbstractMethods(dest.cls).contains(dest.sig)
             } indices += nodeToIndex(CallGraphAnalysis.LocalDef(dest))
 
-            // For a given type, find all method signatures by walking superclasses,
-            // then add edges for each (method, localSubclass) pair. The localSubclasses
-            // are found by walking subclasses (via externalClassLocalDests lookup).
-            def addCallbackEdges(cls: JType.Cls, localSubclasses: Iterable[JType.Cls]): Unit = {
-              SpanningForest.breadthFirst(Seq(cls)) { c =>
-                if (localSummary.contains(c)) localSummary.items(c).directAncestors
-                else externalSummary.directAncestors.getOrElse(c, Nil)
-              }.foreach { extCls =>
-                resolved.externalClassLocalDests.get(extCls).foreach { case (_, extMethods) =>
-                  for {
-                    m <- extMethods
-                    localCls <- localSubclasses
-                    if !singleAbstractMethods(localCls).contains(m)
-                    if !ignoreCall(None, m)
-                    idx <- nodeToIndex.get(CallGraphAnalysis.LocalDef(st.MethodDef(localCls, m)))
-                  } indices += idx
-                }
-              }
-            }
-
-            // callInfo.externalDests contains all types the external code
-            // receives (receiver + args from descriptor). Analyzer types refine
-            // arg types when available. For each type, find local subclasses and
-            // add callback edges. If methodDef.cls is among the local subclasses,
-            // we know precisely that it's the one being passed (e.g. `this`).
-            val analyzerArgTypes = methods(methodDef).callRefArgSlotTypes.getOrElse(call, Set.empty)
+            val analyzerArgTypes =
+              methods(methodDef).callRefArgSlotTypes.getOrElse(call, Set.empty)
             val allExtTypes =
               if (analyzerArgTypes.nonEmpty) callInfo.externalDests ++ analyzerArgTypes
               else callInfo.externalDests
@@ -264,10 +240,29 @@ object CallGraphAnalysis {
                   if (localSummary.contains(extType)) Seq(extType) else Nil
                 )
               if (localSubs.nonEmpty) {
-                if (localSubs.exists(_ == methodDef.cls))
-                  addCallbackEdges(extType, Seq(methodDef.cls))
-                else
-                  addCallbackEdges(extType, localSubs)
+                // Narrow local subclasses using known precise types: the caller's own
+                // class (for this-receiver calls) and analyzer-determined argument types.
+                val narrowed =
+                  localSubs.filter(s => s == methodDef.cls || analyzerArgTypes.contains(s))
+                val effectiveSubs = if (narrowed.nonEmpty) narrowed else localSubs
+
+                SpanningForest.breadthFirst(Seq(extType)) { c =>
+                  if (localSummary.contains(c)) localSummary.items(c).directAncestors
+                  else externalSummary.directAncestors.getOrElse(c, Nil)
+                }.foreach { ancestorCls =>
+                  resolved.externalClassLocalDests.get(ancestorCls).foreach {
+                    case (_, extMethods) =>
+                      for {
+                        m <- extMethods
+                        localCls <- effectiveSubs
+                        if !singleAbstractMethods(localCls).contains(m)
+                        if !ignoreCall(None, m)
+                        idx <- nodeToIndex.get(
+                          CallGraphAnalysis.LocalDef(st.MethodDef(localCls, m))
+                        )
+                      } indices += idx
+                  }
+                }
               }
             }
 
