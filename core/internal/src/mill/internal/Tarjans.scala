@@ -62,7 +62,7 @@ object Tarjans {
             callStack.removeLast()
             // Propagate lowlink to parent
             if (callStack.nonEmpty) {
-              val (parentNode, parentIdx, parentIsRoot) = callStack.last
+              val (parentNode, parentIdx, _) = callStack.last
               if (lowlink(parentNode) > lowlink(node)) {
                 lowlink(parentNode) = lowlink(node)
                 callStack(callStack.length - 1) = (parentNode, parentIdx, false)
