@@ -51,6 +51,23 @@ object `package` extends MillStableScalaModule with BuildInfo {
       Deps.Scalajs_1.scalajsJsEnvs,
       Deps.Scalajs_1.scalajsLinkerInterface
     )
+
+    override object test extends MillScalaTests {
+      def moduleDeps = super.moduleDeps ++ Seq(
+        build.libs.scalajslib.test
+      )
+      def mvnDeps = super.mvnDeps() ++ Seq(
+        Deps.Scalajs_1.scalajsLinker,
+        Deps.Scalajs_1.scalajsJsEnvs
+      )
+      override def selectiveInputs = Seq(
+        sources,
+        resources,
+        build.libs.scalajslib.sources,
+        build.libs.scalajslib.api.sources,
+        build.libs.scalajslib.worker("1").sources
+      )
+    }
   }
 
   object worker extends Cross[WorkerModule]("1")

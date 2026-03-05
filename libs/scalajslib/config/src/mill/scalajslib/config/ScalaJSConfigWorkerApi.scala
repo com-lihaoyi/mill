@@ -14,7 +14,6 @@ private[scalajslib] trait ScalaJSConfigWorkerApi extends AutoCloseable {
       moduleInitializers: Seq[sjs.ModuleInitializer],
       forceOutJs: Boolean,
       testBridgeInit: Boolean,
-      isFullLinkJS: Boolean,
       importMap: Seq[ESModuleImportMapping],
       config: sjs.StandardConfig
   ): Either[String, sjs.Report]
