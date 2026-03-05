@@ -30,6 +30,11 @@ object FatalErrorTests extends UtestIntegrationTestSuite {
       // check that the first and last stack trace lines are in the output
       assert(res1.err.contains("Foo.thing(Foos.scala:45)"))
       assert(res1.err.contains("Foo$.thing$$anon$486(Foos.scala:63)"))
+
+      val res2 = tester.eval("fatalTaskNoSharedStackTrace")
+      // check that the first and last stack trace lines are in the output
+      assert(res2.err.contains("Foo.thing(Foos.scala:45)"))
+      assert(res2.err.contains("Foo$.thing$$anon$486(Foos.scala:63)"))
     }
   }
 }

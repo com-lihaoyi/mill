@@ -206,7 +206,8 @@ class UnitTester(
     val res = evaluator.execute(Seq(task)).executionResults
 
     val cleaned = res.results.map {
-      case ExecResult.Exception(ex, _) => ExecResult.Exception(ex, new OuterStack(Nil))
+      case ExecResult.Exception(ex, _) =>
+        ExecResult.Exception(ex, new OuterStack(Nil))
       case x => x.map(_.value)
     }
 
