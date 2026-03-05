@@ -123,7 +123,9 @@ object LocalSummary {
     val interpreter = new BasicInterpreter(Opcodes.ASM9) {
       override def newValue(tp: org.objectweb.asm.Type): BasicValue = {
         if (tp == null) return BasicValue.UNINITIALIZED_VALUE
-        if (tp.getSort == org.objectweb.asm.Type.ARRAY || tp.getSort == org.objectweb.asm.Type.OBJECT)
+        if (
+          tp.getSort == org.objectweb.asm.Type.ARRAY || tp.getSort == org.objectweb.asm.Type.OBJECT
+        )
           new BasicValue(tp)
         else super.newValue(tp)
       }
@@ -169,7 +171,10 @@ object LocalSummary {
                 if (invokeType != null) {
                   val desc = st.Desc.read(invoke.desc)
                   val call = st.MethodCall(
-                    JCls.fromSlashed(invoke.owner), invokeType, invoke.name, desc
+                    JCls.fromSlashed(invoke.owner),
+                    invokeType,
+                    invoke.name,
+                    desc
                   )
                   val argTypes = desc.args
                   val argStartIdx = frame.getStackSize - argTypes.size
