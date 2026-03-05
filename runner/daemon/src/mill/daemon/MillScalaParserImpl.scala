@@ -389,10 +389,12 @@ object MillScalaParserImpl extends MillScalaParser {
 
     def compilationUnit(from: Int, trees: List[untpd.Tree]): Unit = {
       trees match {
-        case untpd.PackageDef(pid, stats) :: Nil if validSpan(pid.sourcePos) =>
+        case (t @ untpd.PackageDef(pid, stats)) :: Nil if validSpan(pid.sourcePos) =>
+          val start0 = t.srcPos.startPos.start
           val end0 = pid.sourcePos.end
           if MillParsers.nextTokenIsntBlock(end0) then {
             topLevelPkgs += literalPackageId(pid, Nil)
+            topLevelStats += "// " + slice(start0, end0)
             compilationUnit(end0, stats)
           } else {
             report.error(syntaxError(s"Mill forbids packages to introduce a block."), pid.sourcePos)

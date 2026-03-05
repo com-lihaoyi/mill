@@ -87,6 +87,11 @@ trait ErrorProneModule extends JavaModule {
    * Options used to enable and configure the `error-prone` plugin in the Java compiler.
    */
   def errorProneJavacEnableOptions: T[Seq[String]] = Task {
+    // ErrorProne 2.36.0+ requires explicit --should-stop policy
+    // See https://github.com/com-lihaoyi/mill/issues/4926
+    val errorProne236Options = Option.when(
+      Version.isAtLeast(errorProneVersion(), "2.36.0")(using Version.IgnoreQualifierOrdering)
+    )(Seq("--should-stop=ifError=FLOW")).toSeq.flatten
     val processorPath = errorProneClasspath().map(_.path).mkString(File.pathSeparator)
     val enableOpts = Seq(
       "-XDcompilePolicy=simple",
@@ -94,7 +99,11 @@ trait ErrorProneModule extends JavaModule {
       processorPath,
       (Seq("-Xplugin:ErrorProne") ++ errorProneOptions()).mkString(" ")
     )
-    val java17Options = Option.when(scala.util.Properties.isJavaAtLeast(16))(Seq(
+    errorProne236Options ++ enableOpts
+  }
+
+  private def errorProneJvmOptions: T[Seq[String]] = Task {
+    Option.when(scala.util.Properties.isJavaAtLeast(16))(Seq(
       "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
       "--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
       "--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED",
@@ -105,13 +114,14 @@ trait ErrorProneModule extends JavaModule {
       "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
       "--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
       "--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED"
-    ).map(o => s"-J${o}")).toSeq.flatten
-    // ErrorProne 2.36.0+ requires explicit --should-stop policy
-    // See https://github.com/com-lihaoyi/mill/issues/4926
-    val errorProne236Options = Option.when(
-      Version.isAtLeast(errorProneVersion(), "2.36.0")(using Version.IgnoreQualifierOrdering)
-    )(Seq("--should-stop=ifError=FLOW")).toSeq.flatten
-    java17Options ++ errorProne236Options ++ enableOpts
+    )).toSeq.flatten
+  }
+
+  /**
+   * JVM options used by the Java compiler worker when running ErrorProne.
+   */
+  private[mill] override def javaCompilerRuntimeOptions: T[Seq[String]] = Task {
+    jvmOptions() ++ errorProneJvmOptions()
   }
 
   /**

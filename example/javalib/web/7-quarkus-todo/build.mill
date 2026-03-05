@@ -1,0 +1,81 @@
+// This example demonstrates how to configure mill for a simple todo-mvc application using Quarkus.
+// It uses H2 for the database, Hibernate ORM with Panache for the data access layer,
+// and Qute for HTML templating.
+package build
+
+import mill.*, javalib.*
+
+import mill.javalib.quarkus.QuarkusModule
+
+object `package` extends QuarkusModule, MavenModule {
+
+  def jvmVersion = "graalvm-community:23.0.1"
+  def quarkusPlatformVersion = "3.31.3"
+
+  def artifactGroupId = "com.lihaoyi.example"
+  def artifactId = "7-quarkus-todo"
+  def artifactVersion = "0.0.1-SNAPSHOT"
+
+  def mvnDeps = Seq(
+    mvn"io.quarkus:quarkus-arc",
+    mvn"io.quarkus:quarkus-rest",
+    mvn"io.quarkus:quarkus-qute",
+    mvn"io.quarkus:quarkus-rest-qute",
+    mvn"io.quarkus:quarkus-jdbc-h2",
+    mvn"io.quarkus:quarkus-hibernate-orm-panache"
+  )
+
+  trait QuarkusTestBase extends MavenTests, QuarkusJunit {
+    def mvnDeps = Seq(
+      mvn"io.rest-assured:rest-assured"
+    )
+  }
+
+  object test extends QuarkusTestBase
+
+  object `native-test` extends QuarkusTestBase, QuarkusNativeTest {
+    def moduleDeps = super.moduleDeps ++ Seq(test)
+  }
+}
+
+// You can run and test the app as follows:
+
+/** Usage
+
+> ./mill show quarkusRunJar
+...out/quarkusApp.dest/quarkus/quarkus-app/quarkus-run.jar...
+
+> ./mill show runBackground
+
+> curl http://localhost:${PORT:-8080}/todos
+...Mill Todo MVC...
+
+> ./mill clean runBackground
+
+> ./mill show test
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "rest.TodosTest",
+      "selector": "testTodoPage()",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
+
+> ./mill show native-test
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "rest.TodosIT",
+      "selector": "testTodoPage()",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
+
+*/

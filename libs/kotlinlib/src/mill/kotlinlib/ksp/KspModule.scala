@@ -258,10 +258,18 @@ trait KspModule extends KotlinModule { outer =>
 
     Task.log.info(s"KSP arguments: ${compilerArgs.mkString(" ")}")
 
+    val useBtApi = kotlincUseBtApi() && kotlinUseEmbeddableCompiler()
+    if (kotlincUseBtApi() && !kotlinUseEmbeddableCompiler()) {
+      Task.log.warn(
+        "Kotlin Build Tools API requires kotlinUseEmbeddableCompiler=true; " +
+          "falling back to CLI compiler backend for KSP generation."
+      )
+    }
+
     KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
       _.compile(
         target = KotlinWorkerTarget.Jvm,
-        useBtApi = kotlincUseBtApi(),
+        useBtApi = useBtApi,
         args = compilerArgs,
         sources = sourceFiles
       )

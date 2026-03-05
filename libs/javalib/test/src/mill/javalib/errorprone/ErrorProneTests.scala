@@ -8,6 +8,7 @@ import os.Path
 import mill.javalib.DepSyntax
 import utest.*
 import mill.util.TokenReaders.*
+import scala.util.Properties
 object ErrorProneTests extends TestSuite {
 
   object noErrorProne extends TestRootModule with JavaModule {
@@ -74,6 +75,19 @@ object ErrorProneTests extends TestSuite {
         UnitTester(errorProneCustom, testModuleSourcesPath).scoped { eval =>
           val Right(opts) = eval(errorProneCustom.mandatoryJavacOptions).runtimeChecked
           assert(opts.value.exists(_.contains("-XepAllErrorsAsWarnings")))
+          if (Properties.isJavaAtLeast(16)) {
+            assert(!opts.value.exists(opt =>
+              opt.startsWith("--add-exports") || opt.startsWith("--add-opens")
+            ))
+          }
+          val Right(jvmOptions) = eval(errorProneCustom.javaCompilerRuntimeOptions).runtimeChecked
+          if (Properties.isJavaAtLeast(16)) {
+            assert(
+              jvmOptions.value.exists(opt =>
+                opt.startsWith("--add-exports") || opt.startsWith("--add-opens")
+              )
+            )
+          }
           val res = eval(errorProneCustom.compile)
           assert(res.isRight)
         }

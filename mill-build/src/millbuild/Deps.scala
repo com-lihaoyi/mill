@@ -202,12 +202,13 @@ object Deps {
   val semanticDbShared =
     mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala_runtime.version}"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.4"
+
   val springBootTools_api = mvn"org.springframework.boot:spring-boot-loader-tools:3.3.0"
   val springBootTools_runtime = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.5"
   val quarkusAppModel_api = mvn"io.quarkus:quarkus-bootstrap-app-model:3.31.1"
   val quarkusBootstrapCore_api = mvn"io.quarkus:quarkus-bootstrap-core:3.31.1"
   val quarkusCoreDeployment_api = mvn"io.quarkus:quarkus-core-deployment:3.31.1"
-  val upickle = mvn"com.lihaoyi::upickle:4.4.2"
+  val upickle = mvn"com.lihaoyi::upickle:4.4.3"
   val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:${upickle.version}"
   // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
   // lacks support for FFM on Mac ARM. That should be fixed soon, see oracle/graal#8113.
@@ -225,8 +226,10 @@ object Deps {
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
   val kotlinVersion = "2.1.20"
   val kspVersion = "2.0.1"
+  val kotlinBuildToolsApiVersion_api = "2.3.0"
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
-  val kotlinBuildToolsApi = mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kotlinVersion"
+  val kotlinBuildToolsApi_api =
+    mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kotlinBuildToolsApiVersion_api"
   val kotlinBuildToolsImpl = mvn"org.jetbrains.kotlin:kotlin-build-tools-impl:$kotlinVersion"
   val kotlinStdlib = mvn"org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
   val groovyVersion_lowerBound = "4.0.28"

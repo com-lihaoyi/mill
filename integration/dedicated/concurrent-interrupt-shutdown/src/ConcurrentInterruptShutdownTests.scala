@@ -20,7 +20,12 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
 
       assertEventually(
         launcher2.err.text().contains(
-          "Another Mill process is running 'waitForExists --fileName file1.txt', waiting for it to be done..."
+          "Another Mill process with PID "
+        )
+      )
+      assertEventually(
+        launcher2.err.text().contains(
+          " is running 'waitForExists --fileName file1.txt', waiting for it to be done..."
         )
       )
       launcher2.process.destroy(recursive = false)
@@ -40,7 +45,12 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
 
       assertEventually(
         launcher2.err.text().contains(
-          "Another Mill process is running 'waitForExists --fileName file1.txt', waiting for it to be done..."
+          "Another Mill process with PID "
+        )
+      )
+      assertEventually(
+        launcher2.err.text().contains(
+          " is running 'waitForExists --fileName file1.txt', waiting for it to be done..."
         )
       )
       launcher1.process.destroy(recursive = false)

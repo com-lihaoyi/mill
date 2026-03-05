@@ -322,6 +322,16 @@ trait JavaModule
   override def javacOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
   /**
+   * JVM options passed to the Java compiler worker process.
+   *
+   * Prefer this over `javacOptions` for JVM flags such as `-D`, `--add-opens`, and
+   * `-X` options.
+   */
+  def jvmOptions: T[Seq[String]] = Task { Seq.empty[String] }
+
+  private[mill] def javaCompilerRuntimeOptions: T[Seq[String]] = Task { jvmOptions() }
+
+  /**
    * Additional options for the java compiler derived from other module settings.
    */
   override def mandatoryJavacOptions: T[Seq[String]] = Task { Seq.empty[String] }
@@ -963,10 +973,16 @@ trait JavaModule
       os.makeDir.all(compileGenSources)
     }
 
-    val jOpts = JavaCompilerOptions.split(Seq(
+    val (javacCompilerOptions, legacyRuntimeOptions) = JavaModule.splitJavacAndRuntimeOptions(Seq(
       "-s",
       compileGenSources.toString
     ) ++ javacOptions() ++ mandatoryJavacOptions() ++ annotationProcessorsJavacOptions())
+    if (legacyRuntimeOptions.nonEmpty) {
+      Task.log.warn(
+        "`-J` options in `javacOptions` are deprecated; use `jvmOptions` instead" +
+          s"\n  - Deprecated options: ${legacyRuntimeOptions.map("-J" + _).mkString(" ")}"
+      )
+    }
 
     val worker = jvmWorker().internalWorker()
 
@@ -975,12 +991,12 @@ trait JavaModule
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
         compileClasspath = compileClasspath().map(_.path),
-        javacOptions = jOpts.compiler,
+        javacOptions = javacCompilerOptions,
         incrementalCompilation = zincIncrementalCompilation(),
         workDir = Task.dest
       ),
       javaHome = javaHome().map(_.path),
-      javaRuntimeOptions = jOpts.runtime,
+      javaRuntimeOptions = javaCompilerRuntimeOptions() ++ legacyRuntimeOptions,
       reporter = Task.reporter.apply(hashCode),
       reportCachedProblems = zincReportCachedProblems()
     )
@@ -1130,7 +1146,7 @@ trait JavaModule
     compileResources() ++ unmanaged
   }
 
-  private def resolvedMvnDeps0(sources: Boolean) = Task.Anon {
+  private[mill] def resolvedMvnDeps0(sources: Boolean) = Task.Anon {
     millResolver().classpath(
       Seq(
         BoundDep(
@@ -1691,6 +1707,17 @@ trait JavaModule
 }
 
 object JavaModule {
+  private[javalib] type SplitJavacAndRuntimeOptions = (
+      compiler: Seq[String],
+      runtime: Seq[String]
+  )
+
+  private[javalib] def splitJavacAndRuntimeOptions(options: Seq[String])
+      : SplitJavacAndRuntimeOptions = {
+    val jOpts = JavaCompilerOptions.split(options)
+    (compiler = jOpts.compiler, runtime = jOpts.runtime)
+  }
+
   // Keep in sync with JavaModule#JavaTests, duplicated due to binary compatibility concerns
   trait JavaTests0 extends JavaModule with TestModule {
     private val outer: JavaModule = moduleDeps.head

@@ -75,7 +75,7 @@ trait ScalaJSConfigModule extends ScalaJSModule { outer =>
 
   override protected def linkTask(isFullLinkJS: Boolean, forceOutJs: Boolean): Task[api.Report] = {
     val configTask =
-      if (isFullLinkJS) fullScalaJSConfig else fastScalaJSConfig
+      if (isFullLinkJS) Task.Anon(scalaJSConfig().fullOptimized) else scalaJSConfig
     Task.Anon {
       linkJs(
         worker = ScalaJSConfigWorkerExternalModule.scalaJSWorker(),
@@ -84,7 +84,6 @@ trait ScalaJSConfigModule extends ScalaJSModule { outer =>
         moduleInitializers = moduleInitializers(),
         forceOutJs = forceOutJs,
         testBridgeInit = false,
-        isFullLinkJS = isFullLinkJS,
         importMap = scalaJSImportMap(),
         config = configTask()
       )
@@ -131,6 +130,13 @@ trait ScalaJSConfigModule extends ScalaJSModule { outer =>
     )
   }
 
+  extension (config: sjs.StandardConfig) {
+
+    /** Enables fully optimized Scala.js linking */
+    def fullOptimized: sjs.StandardConfig =
+      ScalaJSConfigModule.fullOptConfig(config)
+  }
+
   /**
    * Scala.js linker configuration
    */
@@ -152,31 +158,6 @@ trait ScalaJSConfigModule extends ScalaJSModule { outer =>
     )
   }
 
-  /**
-   * Scala.js linker configuration for fast linking
-   */
-  def fastScalaJSConfig: Task[sjs.StandardConfig] =
-    scalaJSConfig
-
-  /**
-   * Scala.js linker configuration for full (optimized) linking
-   */
-  def fullScalaJSConfig: Task[sjs.StandardConfig] = Task.Anon {
-
-    val sjsVersion = scalaJSVersion()
-
-    var config = scalaJSConfig()
-
-    config = config
-      .withSemantics(sjs.Semantics.Defaults.optimized)
-      .withClosureCompilerIfAvailable(config.moduleKind != sjs.ModuleKind.ESModule)
-
-    if (ScalaJSConfig.minorIsGreaterThanOrEqual(sjsVersion, 16))
-      config = config.withMinify(scalaJSMinify())
-
-    config
-  }
-
   private[scalajslib] def linkJs(
       worker: ScalaJSConfigWorker,
       toolsClasspath: Seq[PathRef],
@@ -184,7 +165,6 @@ trait ScalaJSConfigModule extends ScalaJSModule { outer =>
       moduleInitializers: Seq[sjs.ModuleInitializer],
       forceOutJs: Boolean,
       testBridgeInit: Boolean,
-      isFullLinkJS: Boolean,
       importMap: Seq[api.ESModuleImportMapping],
       config: sjs.StandardConfig
   )(using ctx: mill.api.TaskCtx): Result[api.Report] = {
@@ -199,7 +179,6 @@ trait ScalaJSConfigModule extends ScalaJSModule { outer =>
       moduleInitializers = moduleInitializers,
       forceOutJs = forceOutJs,
       testBridgeInit = testBridgeInit,
-      isFullLinkJS = isFullLinkJS,
       importMap = importMap,
       config = config
     ).map { sjsReport =>
@@ -281,6 +260,18 @@ private[mill] object ScalaJSConfigModule {
       case _ =>
         Nil
     }
+
+  private[mill] def fullOptConfig(config: sjs.StandardConfig): sjs.StandardConfig = {
+
+    var config0 = config
+      .withSemantics(sjs.Semantics.Defaults.optimized)
+      .withClosureCompilerIfAvailable(config.moduleKind != sjs.ModuleKind.ESModule)
+
+    if (ScalaJSConfig.minorIsGreaterThanOrEqual(ScalaJSVersions.current, 16))
+      config0 = config0.withMinify(true)
+
+    config0
+  }
 }
 
 trait TestScalaJSConfigModule extends TestScalaJSModule with ScalaJSConfigModule {
@@ -293,9 +284,8 @@ trait TestScalaJSConfigModule extends TestScalaJSModule with ScalaJSConfigModule
       moduleInitializers = testModuleInitializers(),
       forceOutJs = false,
       testBridgeInit = true,
-      isFullLinkJS = false,
       importMap = scalaJSImportMap(),
-      config = fastScalaJSConfig()
+      config = scalaJSConfig()
     )
   }
 

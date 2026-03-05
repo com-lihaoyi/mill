@@ -288,10 +288,16 @@ trait QuarkusModule extends JavaModule { outer =>
   }
 
   /**
-   * Dummy placeholder for Quarkus application model resources
+   * The resources to include in the Quarkus Application Model
    */
   def quarkusBuildResources: T[PathRef] = Task {
     val dir = Task.dest
+
+    resources().foreach { res =>
+      if (os.exists(res.path)) {
+        os.list(res.path).foreach(p => os.copy.into(p, dir))
+      }
+    }
     PathRef(dir)
   }
 
@@ -362,6 +368,15 @@ trait QuarkusModule extends JavaModule { outer =>
       Task.dest
     )
     PathRef(modelPath)
+  }
+
+  /**
+   * Make -parameters always present.
+   * This is required for Quarkus Qute Checked Templates and
+   * improved Reflection-based dependency injection.
+   */
+  override def mandatoryJavacOptions: T[Seq[String]] = Task {
+    super.mandatoryJavacOptions() ++ Seq("-parameters")
   }
 
   /**
@@ -505,7 +520,13 @@ trait QuarkusModule extends JavaModule { outer =>
 
     override def forkArgs: T[Seq[String]] = Task {
       Seq(
-        s"-Dquarkus-internal-test.serialized-app-model.path=${quarkusSerializedAppModel().path}"
+        s"-Dquarkus-internal-test.serialized-app-model.path=${quarkusSerializedAppModel().path}",
+        // Configure Log Manager and add the required opens/exports
+        // See https://github.com/quarkusio/quarkus/blob/main/devtools/gradle/gradle-application-plugin/src/test/java/io/quarkus/gradle/tasks/JvmArgsConfigTest.java
+        "-Djava.util.logging.manager=org.jboss.logmanager.LogManager",
+        "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+        "--add-opens=java.base/java.lang=ALL-UNNAMED",
+        "--add-exports=java.base/jdk.internal.module=ALL-UNNAMED"
       )
     }
 

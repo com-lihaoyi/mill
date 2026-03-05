@@ -180,7 +180,7 @@ private class BspCompileProblemReporter(
       it.setEventTime(System.currentTimeMillis())
       it.setData(new CompileTask(targetId))
       it.setDataKind(TaskStartDataKind.COMPILE_TASK)
-      it.setMessage(s"Compiling target ${targetDisplayName}")
+      it.setMessage(s"Compiling ${targetDisplayName}")
     }
     client.onBuildTaskStart(taskStartParams)
   }
@@ -190,7 +190,7 @@ private class BspCompileProblemReporter(
       it.setEventTime(System.currentTimeMillis())
       it.setData(new CompileTask(targetId))
       it.setDataKind("compile-progress")
-      it.setMessage(s"Compiling target ${targetDisplayName} (${progress * 100 / total}%)")
+      it.setMessage(s"Compiling ${targetDisplayName} (${progress * 100 / total}%)")
       // Not a percentage, but the # of units done,
       // see https://github.com/build-server-protocol/build-server-protocol/blob/bc6835d240b0810bcebe1738e7b71caa49b24f29/spec/src/main/resources/META-INF/smithy/bsp/bsp.smithy#L1150
       it.setProgress(progress)

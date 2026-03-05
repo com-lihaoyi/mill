@@ -35,6 +35,13 @@ object `package` extends SpringBootModule, KotlinModule { outer =>
     override def kotlinVersion = outer.kotlinVersion()
     override def kotlincOptions = super.kotlincOptions() ++ outer.kotlincOptions()
     def jvmVersion = "graalvm-community:25.0.1"
+
+    // Suppress warning about -H:IncludeResources
+    override def nativeImageOptions = Task {
+      Seq(
+        "-H:+UnlockExperimentalVMOptions"
+      ) ++ super.nativeImageOptions()
+    }
   }
 
   object test extends SpringBootTestsModule, KotlinTests, TestModule.Junit5 {
