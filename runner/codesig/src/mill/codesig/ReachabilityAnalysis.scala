@@ -393,7 +393,9 @@ object CallGraphAnalysis {
                 }
 
               localReceiverClasses
-                .flatMap(localReceiverCls => concreteReceiverLocalMethodIndices(argType, localReceiverCls))
+                .flatMap(localReceiverCls =>
+                  concreteReceiverLocalMethodIndices(argType, localReceiverCls)
+                )
             }
           }
 

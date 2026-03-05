@@ -53,7 +53,10 @@ object LocalSummary {
       .map { cs =>
         val classBytes = cs.readAllBytes()
         val visitor = new MyClassVisitor()
-        new ClassReader(classBytes).accept(visitor, ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG)
+        new ClassReader(classBytes).accept(
+          visitor,
+          ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG
+        )
         (classBytes, visitor)
       }
       .toVector
@@ -243,10 +246,16 @@ object LocalSummary {
     val classMethodAbstract: mutable.Builder[(MethodSig, Boolean), Map[MethodSig, Boolean]] =
       Map.newBuilder[MethodSig, Boolean]
     val classMethodCallArg0SlotTypes
-        : mutable.Builder[(MethodSig, Map[MethodCall, Set[JCls]]), Map[MethodSig, Map[MethodCall, Set[JCls]]]] =
+        : mutable.Builder[
+          (MethodSig, Map[MethodCall, Set[JCls]]),
+          Map[MethodSig, Map[MethodCall, Set[JCls]]]
+        ] =
       Map.newBuilder[MethodSig, Map[MethodCall, Set[JCls]]]
     val classMethodCallRefArgSlotTypes
-        : mutable.Builder[(MethodSig, Map[MethodCall, Set[JCls]]), Map[MethodSig, Map[MethodCall, Set[JCls]]]] =
+        : mutable.Builder[
+          (MethodSig, Map[MethodCall, Set[JCls]]),
+          Map[MethodSig, Map[MethodCall, Set[JCls]]]
+        ] =
       Map.newBuilder[MethodSig, Map[MethodCall, Set[JCls]]]
     var clsType: JCls = null
     var directSuperClass: Option[JCls] = None
@@ -430,10 +439,11 @@ object LocalSummary {
         clinitCall(owner)
       }
       lastPushedRefType =
-        if (opcode == Opcodes.GETFIELD || opcode == Opcodes.GETSTATIC) JType.read(descriptor) match {
-          case c: JCls => Some(c)
-          case _ => None
-        }
+        if (opcode == Opcodes.GETFIELD || opcode == Opcodes.GETSTATIC)
+          JType.read(descriptor) match {
+            case c: JCls => Some(c)
+            case _ => None
+          }
         else None
     }
 
