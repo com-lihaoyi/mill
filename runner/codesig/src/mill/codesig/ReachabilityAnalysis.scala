@@ -50,7 +50,7 @@ class CallGraphAnalysis(
       .to(SortedMap)
   }
 
-  logger.mandatoryLog(prettyCallGraph)
+  logger.log(prettyCallGraph)
 
   def transitiveCallGraphValues[V: scala.reflect.ClassTag](
       nodeValues: Array[V],
@@ -79,7 +79,7 @@ class CallGraphAnalysis(
     .collect { case (CallGraphAnalysis.LocalDef(d), v) => (d.toString, v) }
     .to(SortedMap)
 
-  logger.mandatoryLog(transitiveCallGraphHashes0)
+  logger.log(transitiveCallGraphHashes0)
   logger.log(transitiveCallGraphHashes)
 
   lazy val spanningInvalidationTree: Obj = prevTransitiveCallGraphHashesOpt() match {
