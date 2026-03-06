@@ -69,22 +69,79 @@ trait TestModule
   }
 
   /**
+   * Enables test class discovery using Zinc analysis file
+   *
+   * Set this to true to have Mill find test classes reading the Zinc analysis file
+   * rather than by reading class files. This is required when using junit4 from Scala.js
+   * tests, by using Scala.js junit compatibility library, for example.
+   */
+  protected def discoverTestsWithZinc: Boolean = false
+
+  /**
+   * Path to the Zinc analysis file
+   *
+   * Only used when `discoverTestsWithZinc` is true. See `discoverTestsWithZinc` for more details.
+   */
+  protected def zincAnalysisFile: Task[Option[os.Path]] = Task.Anon(None)
+
+  /**
    * Test classes (often called test suites) discovered by the configured [[testFramework]].
    */
-  def discoveredTestClasses: T[Seq[String]] = Task {
-    val worker = jvmWorker().internalWorker()
-    val discoveredTests = worker.apply(
-      ZincOp.DiscoverTests(
-        runClasspath().map(_.path),
-        testClasspath().map(_.path),
-        testFramework()
-      ),
-      javaHome().map(_.path),
-      javaRuntimeOptions = testDiscoverRuntimeOptions()
-    )
+  def discoveredTestClasses: T[Seq[String]] =
+    if (discoverTestsWithZinc)
+      Task {
+        zincAnalysisFileDiscoveredTestClasses().map(_._1)
+      }
+    else
+      Task {
+        val worker = jvmWorker().internalWorker()
+        val discoveredTests = worker.apply(
+          ZincOp.DiscoverTests(
+            runClasspath().map(_.path),
+            testClasspath().map(_.path),
+            testFramework()
+          ),
+          javaHome().map(_.path),
+          javaRuntimeOptions = testDiscoverRuntimeOptions()
+        )
 
-    discoveredTests.sorted
-  }
+        discoveredTests.sorted
+      }
+
+  /**
+   * Test classes discovered by reading the Zinc analysis file
+   */
+  protected def zincAnalysisFileDiscoveredTestClasses: T[Seq[(String, Int)]] =
+    Task {
+      val worker = jvmWorker().internalWorker()
+      worker.apply(
+        ZincOp.DiscoverTestsZinc(
+          runClasspath().map(_.path),
+          zincAnalysisFile().getOrElse {
+            Task.fail(
+              "No zinc analysis file available. discoverTestsWithZinc can only be set to true on JavaTests and its sub-classes."
+            )
+          },
+          testFramework()
+        ),
+        javaHome().map(_.path),
+        javaRuntimeOptions = testDiscoverRuntimeOptions()
+      )
+    }
+
+  /**
+   * When running tests, do not let the Mill test runner re-discover test classes, but use those instead
+   *
+   * For now, this is only used when test class discovery using the Zinc analysis file is enabled,
+   * see `discoverTestsWithZinc`.
+   */
+  protected def aheadOfTimeDiscoveredTestClassesIfNeeded: Task[Option[Seq[(String, Int)]]] =
+    if (discoverTestsWithZinc)
+      Task.Anon {
+        Some(zincAnalysisFileDiscoveredTestClasses())
+      }
+    else
+      Task.Anon(None)
 
   /**
    * Default arguments to be passed to `testForked`, `testOnly`, and `testCached`
@@ -217,7 +274,8 @@ trait TestModule
         colored = Task.log.prompt.colored,
         testCp = testClasspath().map(_.path),
         globSelectors = Left(selectors),
-        logLevel = testLogLevel()
+        logLevel = testLogLevel(),
+        discoveredTestClasses = aheadOfTimeDiscoveredTestClassesIfNeeded()
       )
 
       val argsFile = Task.dest / "testargs"
@@ -276,7 +334,8 @@ trait TestModule
         testParallelism(),
         testLogLevel(),
         propagateEnv(),
-        jvmWorker().internalWorker()
+        jvmWorker().internalWorker(),
+        discoveredClassesOpt = aheadOfTimeDiscoveredTestClassesIfNeeded()
       )
       testModuleUtil.runTests()
     }
@@ -292,7 +351,8 @@ trait TestModule
         runClasspath().map(_.path),
         Seq.from(testClasspath().map(_.path)),
         args,
-        Task.testReporter
+        Task.testReporter,
+        discoveredTestClasses = aheadOfTimeDiscoveredTestClassesIfNeeded()
       )
       TestModule.handleResults(doneMsg, results, Task.ctx(), testReportXml())
     }
@@ -316,7 +376,7 @@ trait TestModule
       ) { classLoader =>
         val framework = Framework.framework(testFramework())(classLoader)
         framework.name() -> TestRunnerUtils
-          .discoverTests(classLoader, framework, testClasspath().map(_.path))
+          .discoverTests(classLoader, framework, testClasspath().map(_.path), None)
       }
     val classes = classFingerprint.map(classF => classF._1.getName.stripSuffix("$"))
     (frameworkName = frameworkName, classes = classes)

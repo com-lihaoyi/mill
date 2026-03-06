@@ -58,6 +58,13 @@ object UtestTests extends TestSuite {
 //      argParserSpec("parse should two").status == "Failure"
 //    )
   }
+
+  def checkJunit4(scalaVersion: String, scalaJSVersion: String, cached: Boolean) = {
+    runTests(
+      if (!cached) HelloJSWorld.build(scalaVersion, scalaJSVersion).`test-junit4`.testForked()
+      else HelloJSWorld.build(scalaVersion, scalaJSVersion).`test-junit4`.testCached
+    )
+  }
   def tests: Tests = Tests {
 
     test("utest") {

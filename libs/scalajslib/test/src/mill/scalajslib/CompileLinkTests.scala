@@ -49,6 +49,10 @@ object CompileLinkTests extends TestSuite {
         )
       }
 
+      object `test-junit4` extends ScalaJSTests with TestScalaJSModule.Junit4ScalaJs {
+        override def sources = Task.Sources("src/junit4")
+      }
+
     }
     object inherited extends ScalaJSModule {
       val (scala, scalaJS) = matrix.head
