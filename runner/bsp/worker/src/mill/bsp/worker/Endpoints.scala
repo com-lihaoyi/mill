@@ -212,8 +212,11 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
         ).asJava
       )
     } { (sourceItems, state, _) =>
+      val fromSyntheticRootTarget = state.syntheticRootBspBuildTarget
+        .filter(data => sourcesParams.getTargets.asScala.contains(data.id))
+        .map(_.synthSources)
       new SourcesResult(
-        (sourceItems.asScala ++ state.syntheticRootBspBuildTarget.map(_.synthSources))
+        (sourceItems.asScala ++ fromSyntheticRootTarget)
           .sortBy(_.getTarget.getUri)
           .asJava
       )

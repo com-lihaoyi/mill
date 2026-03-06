@@ -70,7 +70,20 @@ object BspServerTests extends UtestIntegrationTestSuite {
           normalizedLocalValues = normalizedLocalValues
         )
 
-        val targetIds = buildTargets.getTargets.asScala.map(_.getId).asJava
+        val targetIds = buildTargets.getTargets.asScala
+          .map(_.getId)
+          .asJava
+        // Making some queries without the synthetic root module,
+        // to ensure that its results are not mistakenly added in
+        // the responses when they're not requested
+        val targetIdsWithoutSyntheticRoot = buildTargets.getTargets.asScala
+          .filter(_.getDisplayName != "mill-synthetic-root")
+          .map(_.getId)
+          .asJava
+        val syntheticRootOnlyTargetIds = buildTargets.getTargets.asScala
+          .filter(_.getDisplayName == "mill-synthetic-root")
+          .map(_.getId)
+          .asJava
         val metaBuildTargetId = new b.BuildTargetIdentifier(
           (workspacePath / "mill-build").toURI.toASCIIString.stripSuffix("/")
         )
@@ -119,9 +132,17 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         compareWithGsonSnapshot(
           buildServer
-            .buildTargetSources(new b.SourcesParams(targetIds))
+            .buildTargetSources(new b.SourcesParams(targetIdsWithoutSyntheticRoot))
             .get(),
           snapshotsPath / "build-targets-sources.json",
+          normalizedLocalValues = normalizedLocalValues
+        )
+
+        compareWithGsonSnapshot(
+          buildServer
+            .buildTargetSources(new b.SourcesParams(syntheticRootOnlyTargetIds))
+            .get(),
+          snapshotsPath / "build-targets-sources-synthetic-root.json",
           normalizedLocalValues = normalizedLocalValues
         )
 
@@ -175,9 +196,17 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         compareWithGsonSnapshot(
           buildServer
-            .buildTargetOutputPaths(new b.OutputPathsParams(targetIds))
+            .buildTargetOutputPaths(new b.OutputPathsParams(targetIdsWithoutSyntheticRoot))
             .get(),
           snapshotsPath / "build-targets-output-paths.json",
+          normalizedLocalValues = normalizedLocalValues
+        )
+
+        compareWithGsonSnapshot(
+          buildServer
+            .buildTargetOutputPaths(new b.OutputPathsParams(syntheticRootOnlyTargetIds))
+            .get(),
+          snapshotsPath / "build-targets-output-paths-synthetic-root.json",
           normalizedLocalValues = normalizedLocalValues
         )
 
