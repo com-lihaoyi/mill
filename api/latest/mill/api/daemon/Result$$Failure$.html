@@ -213,7 +213,7 @@ node5 -> node1;
                Source
               </dt>
               <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/out/mill-no-daemon/ed3505b2/sandbox/library/src/scala/deriving/Mirror.scala" target="_blank">Mirror.scala</a>
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/out/mill-no-daemon/79303112/sandbox/library/src/scala/deriving/Mirror.scala" target="_blank">Mirror.scala</a>
               </dd>
              </dl>
             </div>
@@ -254,7 +254,7 @@ node5 -> node1;
                Source
               </dt>
               <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/out/mill-no-daemon/ed3505b2/sandbox/library/src/scala/deriving/Mirror.scala" target="_blank">Mirror.scala</a>
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/out/mill-no-daemon/79303112/sandbox/library/src/scala/deriving/Mirror.scala" target="_blank">Mirror.scala</a>
               </dd>
              </dl>
             </div>
@@ -277,12 +277,12 @@ node5 -> node1;
          <button class="icon-button show-content expand"></button>
          <h4 class="groupHeader h200">Concrete methods</h4>
         </div>
-        <div class="documentableElement" id="fromException-464">
+        <div class="documentableElement" id="fromException-879">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Result$$Failure$.html#fromException-464" t="n" class="documentableName ">fromException</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">ex</span>: <span data-unresolved-link="" t="t">Throwable</span>, <span t="k"></span><span data-unresolved-link="" t="n">outerStackLength</span>: <span data-unresolved-link="" t="t">Int</span> = ...): <a href="Result$$Failure.html" t="t">Failure</a>
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Result$$Failure$.html#fromException-879" t="n" class="documentableName ">fromException</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">ex</span>: <span data-unresolved-link="" t="t">Throwable</span>, <span t="k"></span><span data-unresolved-link="" t="n">outerStack</span>: <span data-unresolved-link="" t="t">Array</span>[<span data-unresolved-link="" t="t">StackTraceElement</span>], <span t="k"></span><span data-unresolved-link="" t="n">cutExtra</span>: <span data-unresolved-link="" t="t">Int</span>): <a href="Result$$Failure.html" t="t">Failure</a>
            </div>
           </div>
          </div>
@@ -307,10 +307,54 @@ node5 -> node1;
                <p>the exception to convert</p>
               </dd>
               <dt class="body-small">
-               outerStackLength
+               outerStack
               </dt>
               <dd class="body-medium">
-               <p>optional length of outer stack frames to drop from stack traces</p>
+               <p>optional outer stack frames to drop from stack traces</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/core/api/daemon/src/mill/api/daemon/Result.scala" target="_blank">Result.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="fromException-fffff213">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Result$$Failure$.html#fromException-fffff213" t="n" class="documentableName ">fromException</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">ex</span>: <span data-unresolved-link="" t="t">Throwable</span>): <a href="Result$$Failure.html" t="t">Failure</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Creates a Failure from an exception, handling cause chains properly. If the exception is a Result.Exception with an existing failure, that failure is preserved.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Creates a Failure from an exception, handling cause chains properly. If the exception is a Result.Exception with an existing failure, that failure is preserved.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               ex
+              </dt>
+              <dd class="body-medium">
+               <p>the exception to convert</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -389,9 +433,53 @@ node5 -> node1;
         </div>
        </div>
       </section>
+      <section id="Deprecated-methods">
+       <div class="documentableList expand">
+        <div class="documentableList-expander">
+         <button class="icon-button show-content expand"></button>
+         <h4 class="groupHeader h200">Deprecated methods</h4>
+        </div>
+        <div class="documentableElement" id="fromException-464">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Result$$Failure$.html#fromException-464" t="n" class="documentableName deprecated">fromException</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">ex</span>: <span data-unresolved-link="" t="t">Throwable</span>, <span t="k"></span><span data-unresolved-link="" t="n">outerStackLength</span>: <span data-unresolved-link="" t="t">Int</span> = ...): <a href="Result$$Failure.html" t="t">Failure</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Deprecated
+              </dt>
+              <dd class="body-medium">
+               <code>[Since version Mill after 1.1.2] </code>Use the override accepting the outer stack as a Throwable
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/core/api/daemon/src/mill/api/daemon/Result.scala" target="_blank">Result.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </section>
      </div>
     </section>
    </div>
   </div>
  </div>
-</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Attributes</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Type-members">Type members</a><ul><li><a href="#Classlikes">Classlikes</a></li><li><a href="#Inherited-and-Abstract-types">Inherited and Abstract types</a></li></ul></li><li><a href="#Value-members">Value members</a><ul><li><a href="#Concrete-methods">Concrete methods</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
+</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Attributes</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Type-members">Type members</a><ul><li><a href="#Classlikes">Classlikes</a></li><li><a href="#Inherited-and-Abstract-types">Inherited and Abstract types</a></li></ul></li><li><a href="#Value-members">Value members</a><ul><li><a href="#Concrete-methods">Concrete methods</a></li><li><a href="#Deprecated-methods">Deprecated methods</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
