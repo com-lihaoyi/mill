@@ -547,7 +547,7 @@ trait GroupExecution {
               case NonFatal(e) =>
                 ExecResult.Exception(
                   e,
-                  new OuterStack(new Exception().getStackTrace.toIndexedSeq)
+                  new OuterStack(new Exception().getStackTrace.toIndexedSeq.drop(1), cutExtra = 1)
                 )
               case e: Throwable => throw e
             }

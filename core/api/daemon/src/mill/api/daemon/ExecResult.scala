@@ -26,7 +26,10 @@ object ExecResult {
     try Success(t)
     catch {
       case e: Throwable =>
-        Exception(e, new OuterStack(new java.lang.Exception().getStackTrace.toIndexedSeq))
+        Exception(
+          e,
+          new OuterStack(new java.lang.Exception().getStackTrace.toIndexedSeq.drop(1), cutExtra = 1)
+        )
     }
   }
 
@@ -99,13 +102,19 @@ object ExecResult {
     def flatMap[V](f: Nothing => ExecResult[V]): Exception = this
   }
 
-  final class OuterStack(val value: Seq[StackTraceElement]) {
-    def this(value: Array[StackTraceElement]) = this(value.toIndexedSeq)
+  final class OuterStack(
+      val value: Seq[StackTraceElement],
+      val cutExtra: Int
+  ) {
+    def this(value: Array[StackTraceElement], cutExtra: Int) = this(value.toIndexedSeq, cutExtra)
 
-    override def hashCode(): Int = value.hashCode()
+    def this(value: Seq[StackTraceElement]) = this(value, 0)
+    def this(value: Array[StackTraceElement]) = this(value.toIndexedSeq, 0)
+
+    override def hashCode(): Int = (value, cutExtra).hashCode()
 
     override def equals(obj: scala.Any): Boolean = obj match {
-      case o: OuterStack => value.equals(o.value)
+      case o: OuterStack => value.equals(o.value) && cutExtra == o.cutExtra
       case _ => false
     }
   }

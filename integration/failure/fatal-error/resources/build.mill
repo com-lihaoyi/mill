@@ -21,3 +21,40 @@ def fatalCloseWorker = Task.Worker {
       throw fatalException("CUSTOM FATAL ERROR ON CLOSE")
   }
 }
+
+def fatalTaskSerializedEx = Task[String] {
+  import mill.api.daemon.Result
+  throw new Result.SerializedException(
+    Result.Failure.ExceptionInfo(
+      "foo.ThingException",
+      "This is a thing exception",
+      Seq(
+        new StackTraceElement("Foo", "thing", "Foos.scala", 45),
+        new StackTraceElement("Foo$", "thing$$anon$491", "Foos.scala", 48),
+        new StackTraceElement("Foo$", "thing$$anon$490", "Foos.scala", 51),
+        new StackTraceElement("Foo$", "thing$$anon$489", "Foos.scala", 54),
+        new StackTraceElement("Foo$", "thing$$anon$488", "Foos.scala", 57),
+        new StackTraceElement("Foo$", "thing$$anon$487", "Foos.scala", 60),
+        new StackTraceElement("Foo$", "thing$$anon$486", "Foos.scala", 63)
+      )
+    ),
+    null
+  )
+}
+
+def fatalTaskNoSharedStackTrace = Task[String] {
+  // similar to https://github.com/scala-js/scala-js/blob/1cb4eec698fb2de71d981e658c034ee2cdca04fb/test-common/src/main/scala/org/scalajs/testing/common/Serializer.scala#L203-L207
+  throw new Throwable("foo.ThingException") {
+    override def toString: String =
+      "foo.ThingException: This is a thing exception"
+    setStackTrace(Array(
+      new StackTraceElement("Foo", "thing", "Foos.scala", 45),
+      new StackTraceElement("Foo$", "thing$$anon$491", "Foos.scala", 48),
+      new StackTraceElement("Foo$", "thing$$anon$490", "Foos.scala", 51),
+      new StackTraceElement("Foo$", "thing$$anon$489", "Foos.scala", 54),
+      new StackTraceElement("Foo$", "thing$$anon$488", "Foos.scala", 57),
+      new StackTraceElement("Foo$", "thing$$anon$487", "Foos.scala", 60),
+      new StackTraceElement("Foo$", "thing$$anon$486", "Foos.scala", 63)
+    ))
+  }
+}

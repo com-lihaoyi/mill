@@ -436,7 +436,11 @@ object Util {
           fs match {
             case f: ExecResult.Failure[_] => convertFailure(f)
             case ex: ExecResult.Exception =>
-              Result.Failure.fromException(ex.throwable, ex.outerStack.value.length).copy(
+              Result.Failure.fromException(
+                ex.throwable,
+                ex.outerStack.value.toArray,
+                ex.outerStack.cutExtra
+              ).copy(
                 error = key.toString,
                 tickerPrefix = keyPrefix
               )

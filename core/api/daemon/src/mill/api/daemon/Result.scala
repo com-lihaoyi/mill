@@ -78,13 +78,73 @@ object Result {
   object Failure {
     case class ExceptionInfo(clsName: String, msg: String, stack: Seq[StackTraceElement])
 
+    // We have 2 fromException overrides (+ the deprecated one) not to remove the default value
+    // of the deprecated one, which would break bin compat. Once the deprecated override can be
+    // removed, the two here can be merged with a default value for the outerStack argument.
+
     /**
      * Creates a Failure from an exception, handling cause chains properly.
      * If the exception is a Result.Exception with an existing failure, that failure is preserved.
      *
      * @param ex the exception to convert
-     * @param outerStackLength optional length of outer stack frames to drop from stack traces
+     * @param outerStack optional outer stack frames to drop from stack traces
      */
+    def fromException(
+        ex: Throwable,
+        outerStack: Array[StackTraceElement],
+        cutExtra: Int
+    ): Failure =
+      fromException0(ex, outerStack, cutExtra)
+
+    /**
+     * Creates a Failure from an exception, handling cause chains properly.
+     * If the exception is a Result.Exception with an existing failure, that failure is preserved.
+     *
+     * @param ex the exception to convert
+     */
+    def fromException(
+        ex: Throwable
+    ): Failure =
+      fromException0(ex, Array.empty, cutExtra = 0)
+
+    private def fromException0(
+        ex: Throwable,
+        outerStack: Array[StackTraceElement],
+        cutExtra: Int
+    ): Failure = {
+      // If this is a Result.Exception with an existing failure, preserve it
+      ex match {
+        case re: Result.Exception if re.failure.isDefined => return re.failure.get
+        case _ =>
+      }
+
+      def cutOuterStack(stack: Array[StackTraceElement]): Seq[StackTraceElement] = {
+        val sharedLength = stack.reverseIterator.zip(outerStack.reverseIterator)
+          .takeWhile((a, b) => a == b)
+          .length
+        val toCut =
+          if (sharedLength == outerStack.length) sharedLength + cutExtra
+          else sharedLength
+        stack.dropRight(toCut).toSeq
+      }
+
+      var current = List(ex)
+      while (current.head.getCause != null) current = current.head.getCause :: current
+
+      val exceptionInfos = current.reverse.map {
+        case r: Result.SerializedException =>
+          r.info
+        case e =>
+          val (clsName, msg) = e.toString.split(": ", 2) match {
+            case Array(clsName, msg) => (clsName, msg)
+            case _ => (e.getClass.getName, e.getMessage)
+          }
+          ExceptionInfo(clsName, msg, cutOuterStack(e.getStackTrace))
+      }
+      Failure("", exception = exceptionInfos)
+    }
+
+    @deprecated("Use the override accepting the outer stack as a Throwable", "Mill after 1.1.2")
     def fromException(ex: Throwable, outerStackLength: Int = 0): Failure = {
       // If this is a Result.Exception with an existing failure, preserve it
       ex match {

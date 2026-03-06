@@ -22,6 +22,22 @@ object FatalErrorTests extends UtestIntegrationTestSuite {
         val res3 = tester.eval("fatalCloseWorker")
         assert(res3.err.contains("""java.lang.InterruptedException: CUSTOM FATAL ERROR"""))
       }
+
+      val res1 = tester.eval("fatalTaskSerializedEx")
+      // no SerializedException in stack trace, only its nested serialized one
+      assert(!res1.err.contains("Result$SerializedException"))
+      assert(res1.err.contains("foo.ThingException: This is a thing exception"))
+      // check that the first and last stack trace lines are in the output
+      assert(res1.err.contains("Foo.thing(Foos.scala:45)"))
+      assert(res1.err.contains("Foo$.thing$$anon$486(Foos.scala:63)"))
+
+      val res2 = tester.eval("fatalTaskNoSharedStackTrace")
+      // no anonymous class made-up name
+      assert(!res2.err.contains("build_.package_"))
+      assert(res2.err.contains("foo.ThingException: This is a thing exception"))
+      // check that the first and last stack trace lines are in the output
+      assert(res2.err.contains("Foo.thing(Foos.scala:45)"))
+      assert(res2.err.contains("Foo$.thing$$anon$486(Foos.scala:63)"))
     }
   }
 }
