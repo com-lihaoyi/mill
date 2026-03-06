@@ -269,15 +269,11 @@ object CallGraphAnalysis {
                 // Narrow local subclasses using analyzer-determined precise types
                 // (receiver type for virtual calls, argument types for static calls).
                 // A local sub qualifies if it IS or EXTENDS any precise type (subtype check).
-                // Only narrow when we have precise type info; otherwise keep all subs.
-                val narrowed =
-                  if (allPreciseTypes.nonEmpty) localSubs.filter { s =>
-                    allPreciseTypes.exists(pt =>
-                      pt == s || getTransitiveAncestors(s).contains(pt)
-                    )
-                  }
-                  else Iterable.empty
-                val effectiveSubs = if (narrowed.nonEmpty) narrowed else localSubs
+                val effectiveSubs = localSubs.filter { s =>
+                  allPreciseTypes.exists(pt =>
+                    pt == s || getTransitiveAncestors(s).contains(pt)
+                  )
+                }
 
                 getTransitiveAncestors(extType).foreach { ancestorCls =>
                   resolved.externalClassLocalDests.get(ancestorCls).foreach {
