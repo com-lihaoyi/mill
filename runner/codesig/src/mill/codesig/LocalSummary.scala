@@ -109,7 +109,9 @@ object LocalSummary {
    */
   private def analyzeMethodArgTypes(
       classNode: ClassNode
-  )(using st: SymbolTable): (
+  )(using
+      st: SymbolTable
+  ): (
       Map[MethodSig, Map[MethodCall, Set[JCls]]],
       Map[MethodSig, Map[MethodCall, JCls]]
   ) = {

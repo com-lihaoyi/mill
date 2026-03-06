@@ -253,8 +253,12 @@ object CallGraphAnalysis {
               if (argTypes.nonEmpty) callInfo.externalDests ++ argTypes
               else callInfo.externalDests
 
-            // All precise types (receiver + args) used for narrowing local subclasses
-            val allPreciseTypes: Set[JType.Cls] = argTypes ++ receiverType
+            // All precise types (receiver + args + caller class) for narrowing local
+            // subclasses. The caller's class is included because methods typically
+            // interact with their own class through `this`, even when the analyzer
+            // can't determine the precise type (e.g. lambdas capturing `this` as a
+            // generic Module reference due to field type erasure).
+            val allPreciseTypes: Set[JType.Cls] = argTypes ++ receiverType + methodDef.cls
 
             for (extType <- allExtTypes) {
               val localSubs: Iterable[JType.Cls] =
