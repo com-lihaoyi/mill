@@ -79,7 +79,7 @@ class CallGraphAnalysis(
     .collect { case (CallGraphAnalysis.LocalDef(d), v) => (d.toString, v) }
     .to(SortedMap)
 
-  logger.log(transitiveCallGraphHashes0)
+  logger.mandatoryLog(transitiveCallGraphHashes0)
   logger.log(transitiveCallGraphHashes)
 
   lazy val spanningInvalidationTree: Obj = prevTransitiveCallGraphHashesOpt() match {
