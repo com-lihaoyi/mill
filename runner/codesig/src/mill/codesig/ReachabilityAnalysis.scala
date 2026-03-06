@@ -144,6 +144,8 @@ object CallGraphAnalysis {
       }
       .toSet
 
+    if (nodesWithChangedTransitiveHashes.isEmpty) return ujson.Obj()
+
     // Find nodes whose actual code changed (these are the true root causes)
     // Only LocalDef nodes have code hashes
     val nodesWithChangedCode: Set[Int] = prevMethodCodeHashesOpt match {
@@ -163,13 +165,24 @@ object CallGraphAnalysis {
         nodesWithChangedTransitiveHashes
     }
 
-    val reverseGraphMap = indexGraphEdges
-      .zipWithIndex
-      .flatMap { case (vs, k) => vs.map((_, k)) }
-      .groupMap(_._1)(_._2)
+    // Build reverse graph using two-pass approach to avoid allocating millions of tuples
+    val inDegree = new Array[Int](indexGraphEdges.length)
+    for (vs <- indexGraphEdges; v <- vs) inDegree(v) += 1
 
-    val reverseGraphEdges =
-      indexGraphEdges.indices.map(reverseGraphMap.getOrElse(_, Array[Int]())).toArray
+    val reverseGraphEdges = inDegree.map(new Array[Int](_))
+    val fillIndex = new Array[Int](indexGraphEdges.length)
+    var srcIdx = 0
+    while (srcIdx < indexGraphEdges.length) {
+      val dests = indexGraphEdges(srcIdx)
+      var j = 0
+      while (j < dests.length) {
+        val dest = dests(j)
+        reverseGraphEdges(dest)(fillIndex(dest)) = srcIdx
+        fillIndex(dest) += 1
+        j += 1
+      }
+      srcIdx += 1
+    }
 
     // Use actual code changes as roots, but include all transitively affected nodes
     SpanningForest.spanningTreeToJsonTree(
@@ -196,54 +209,78 @@ object CallGraphAnalysis {
       resolved.classSingleAbstractMethods.getOrElse(methodDefCls, Set.empty)
     }
 
-    // Cache ancestor BFS results (as Sets for O(1) contains checks)
-    val ancestorCache = collection.mutable.Map.empty[JType.Cls, Set[JType.Cls]]
-    def getTransitiveAncestors(extType: JType.Cls): Set[JType.Cls] = {
-      ancestorCache.getOrElseUpdate(
-        extType,
-        SpanningForest.breadthFirst(Seq(extType)) { c =>
+    // Cache ancestor BFS results using java.util.HashMap for faster lookups
+    val ancestorCache = new java.util.HashMap[JType.Cls, Set[JType.Cls]]()
+    def getTransitiveAncestors(cls: JType.Cls): Set[JType.Cls] = {
+      var result = ancestorCache.get(cls)
+      if (result == null) {
+        result = SpanningForest.breadthFirst(Seq(cls)) { c =>
           if (localSummary.contains(c)) localSummary.items(c).directAncestors
           else externalSummary.directAncestors.getOrElse(c, Nil)
         }.toSet
-      )
+        ancestorCache.put(cls, result)
+      }
+      result
     }
 
-    // Precompute callback indices per (extType, localSub) pair. For a given
-    // extType, walks its ancestors to collect callback method signatures, then
-    // for each localSub resolves the valid node indices (filtering SAM/ignoreCall).
-    // This is independent of the call site, so computed once and reused.
+    // Precompute reverse ancestor index: for each type t, which local classes
+    // are subtypes of t? This allows O(1) lookup instead of iterating all
+    // localSubs and checking ancestors for each.
+    val typeToLocalSubtypes = {
+      val allLocalClasses = collection.mutable.Set.empty[JType.Cls]
+      for ((_, (subs, _)) <- resolved.externalClassLocalDests) allLocalClasses ++= subs
+      for (cls <- localSummary.items.keys) allLocalClasses += cls
+
+      val result = new java.util.HashMap[JType.Cls, collection.mutable.Set[JType.Cls]]()
+      for (localCls <- allLocalClasses) {
+        for (ancestor <- getTransitiveAncestors(localCls)) {
+          var subs = result.get(ancestor)
+          if (subs == null) { subs = collection.mutable.Set.empty; result.put(ancestor, subs) }
+          subs += localCls
+        }
+      }
+      result
+    }
+
+    // Precompute callback indices per extType. For a given extType, walks its
+    // ancestors to collect callback method signatures, then for each localSub
+    // resolves the valid node indices (filtering SAM/ignoreCall).
     val callbackIndicesCache =
-      collection.mutable.Map.empty[JType.Cls, (Iterable[JType.Cls], Map[JType.Cls, Array[Int]])]
+      new java.util.HashMap[JType.Cls, (Iterable[JType.Cls], Map[JType.Cls, Array[Int]])]()
+    val emptyCallbackInfo: (Iterable[JType.Cls], Map[JType.Cls, Array[Int]]) = (Nil, Map.empty)
     def getCallbackInfo(
         extType: JType.Cls
     ): (Iterable[JType.Cls], Map[JType.Cls, Array[Int]]) = {
-      callbackIndicesCache.getOrElseUpdate(
-        extType, {
-          val localSubs: Iterable[JType.Cls] =
-            resolved.externalClassLocalDests.get(extType).map(_._1).getOrElse(
-              if (localSummary.contains(extType)) Seq(extType) else Nil
-            )
-          if (localSubs.isEmpty) (localSubs, Map.empty)
-          else {
-            // Collect all callback method signatures by walking ancestors
-            val allMethods = getTransitiveAncestors(extType).flatMap { ancestorCls =>
-              resolved.externalClassLocalDests.get(ancestorCls).map(_._2).getOrElse(Set.empty)
-            }.filter(m => !ignoreCall(None, m))
+      var result = callbackIndicesCache.get(extType)
+      if (result == null) {
+        val localSubs: Iterable[JType.Cls] =
+          resolved.externalClassLocalDests.get(extType).map(_._1).getOrElse(
+            if (localSummary.contains(extType)) Seq(extType) else Nil
+          )
+        if (localSubs.isEmpty) {
+          result = emptyCallbackInfo
+        } else {
+          val allMethods = getTransitiveAncestors(extType).flatMap { ancestorCls =>
+            resolved.externalClassLocalDests.get(ancestorCls).map(_._2).getOrElse(Set.empty)
+          }.filter(m => !ignoreCall(None, m))
 
-            val subToIndices = localSubs.iterator.map { localCls =>
-              val sam = singleAbstractMethods(localCls)
-              val indices = allMethods.flatMap { m =>
-                if (sam.contains(m)) None
-                else nodeToIndex.get(CallGraphAnalysis.LocalDef(st.MethodDef(localCls, m)))
-              }.toArray
-              localCls -> indices
-            }.toMap
+          val subToIndices = localSubs.iterator.map { localCls =>
+            val sam = singleAbstractMethods(localCls)
+            val indices = allMethods.flatMap { m =>
+              if (sam.contains(m)) None
+              else nodeToIndex.get(CallGraphAnalysis.LocalDef(st.MethodDef(localCls, m)))
+            }.toArray
+            localCls -> indices
+          }.toMap
 
-            (localSubs, subToIndices)
-          }
+          result = (localSubs, subToIndices)
         }
-      )
+        callbackIndicesCache.put(extType, result)
+      }
+      result
     }
+
+    val emptyIntArray = Array.empty[Int]
 
     indexToNodes
       .iterator
@@ -257,59 +294,6 @@ object CallGraphAnalysis {
             .map(d => nodeToIndex(CallGraphAnalysis.LocalDef(d)))
 
         case CallGraphAnalysis.LocalDef(methodDef) =>
-          // For calls to external methods, compute precise callback edges by
-          // walking superclasses for method signatures and subclasses for local
-          // classes, then adding direct LocalDef→LocalDef edges for each
-          // (method, localSubclass) pair.
-
-          // For a call with external dests, computes precise callback edges
-          // and includes local dests directly, bypassing the Call node entirely.
-          // For calls without external dests, returns None to use the Call node.
-          def resolveCallbackEdges(call: MethodCall): Option[Set[Int]] = {
-            val callInfo = resolved.localCalls(call)
-            if (callInfo.externalDests.isEmpty) return None
-
-            val indices = collection.mutable.Set.empty[Int]
-
-            // Include local dests directly (same filtering as the Call node case)
-            for {
-              dest <- callInfo.localDests
-              if !singleAbstractMethods(dest.cls).contains(dest.sig)
-            } indices += nodeToIndex(CallGraphAnalysis.LocalDef(dest))
-
-            val methodInfo = methods(methodDef)
-            val argTypes =
-              methodInfo.callSiteArgTypes.getOrElse(call, Set.empty)
-            val receiverType: Option[JType.Cls] =
-              methodInfo.callSiteReceiverType.get(call)
-
-            // Arg types expand the set of external types to search (the external
-            // method could call back on args). Receiver type is only for narrowing.
-            val allExtTypes =
-              if (argTypes.nonEmpty) callInfo.externalDests ++ argTypes
-              else callInfo.externalDests
-
-            // All precise types (receiver + args + caller class) for narrowing local
-            // subclasses. The caller's class is included because methods typically
-            // interact with their own class through `this`, even when the analyzer
-            // can't determine the precise type (e.g. lambdas capturing `this` as a
-            // generic Module reference due to field type erasure).
-            val allPreciseTypes: Set[JType.Cls] = argTypes ++ receiverType + methodDef.cls
-
-            for (extType <- allExtTypes) {
-              val (localSubs, subToIndices) = getCallbackInfo(extType)
-              for {
-                s <- localSubs
-                if allPreciseTypes.exists(pt =>
-                  pt == s || getTransitiveAncestors(s).contains(pt)
-                )
-                idx <- subToIndices.getOrElse(s, Array.empty[Int])
-              } indices += idx
-            }
-
-            Some(indices.toSet)
-          }
-
           val calls = methods(methodDef)
             .calls
             .toArray
@@ -317,10 +301,57 @@ object CallGraphAnalysis {
 
           val normalEdges = Array.newBuilder[Int]
           val callbackEdges = collection.mutable.Set.empty[Int]
+          val methodInfo = methods(methodDef)
+
+          // Precompute local subtypes of the caller's class (shared across all calls)
+          val callerClassSubs = typeToLocalSubtypes.get(methodDef.cls)
+
           for (call <- calls) {
-            resolveCallbackEdges(call) match {
-              case Some(edges) => callbackEdges ++= edges
-              case None => normalEdges += nodeToIndex(CallGraphAnalysis.Call(call))
+            val callInfo = resolved.localCalls(call)
+            if (callInfo.externalDests.isEmpty) {
+              normalEdges += nodeToIndex(CallGraphAnalysis.Call(call))
+            } else {
+              // Include local dests directly (same filtering as the Call node case)
+              for {
+                dest <- callInfo.localDests
+                if !singleAbstractMethods(dest.cls).contains(dest.sig)
+              } callbackEdges += nodeToIndex(CallGraphAnalysis.LocalDef(dest))
+
+              val argTypes = methodInfo.callSiteArgTypes.getOrElse(call, Set.empty)
+              val receiverType = methodInfo.callSiteReceiverType.get(call)
+
+              val allExtTypes =
+                if (argTypes.nonEmpty) callInfo.externalDests ++ argTypes
+                else callInfo.externalDests
+
+              // Build matching local subs from precise types using reverse index.
+              // Optimize common case: no args/receiver → use caller class subs directly
+              val matchingLocalSubs: collection.Set[JType.Cls] =
+                if (argTypes.isEmpty && receiverType.isEmpty) {
+                  if (callerClassSubs != null) callerClassSubs
+                  else collection.Set.empty
+                } else {
+                  val s = collection.mutable.Set.empty[JType.Cls]
+                  if (callerClassSubs != null) s ++= callerClassSubs
+                  for (rt <- receiverType) {
+                    val subs = typeToLocalSubtypes.get(rt)
+                    if (subs != null) s ++= subs
+                  }
+                  for (at <- argTypes) {
+                    val subs = typeToLocalSubtypes.get(at)
+                    if (subs != null) s ++= subs
+                  }
+                  s
+                }
+
+              for (extType <- allExtTypes) {
+                val (localSubs, subToIndices) = getCallbackInfo(extType)
+                for {
+                  s <- localSubs
+                  if matchingLocalSubs.contains(s)
+                  idx <- subToIndices.getOrElse(s, emptyIntArray)
+                } callbackEdges += idx
+              }
             }
           }
 
@@ -356,11 +387,11 @@ object CallGraphAnalysis {
   ): Array[(Node, V)] = {
     val topoSortedMethodGroups = Tarjans.apply(indexGraphEdges)
 
-    val nodeGroups = topoSortedMethodGroups
-      .iterator
-      .zipWithIndex
-      .flatMap { case (group, groupIndex) => group.map((_, groupIndex)) }
-      .toMap
+    // Use array for O(1) group lookups instead of HashMap
+    val nodeGroupsArray = new Array[Int](indexToNodes.length)
+    for (groupIndex <- topoSortedMethodGroups.indices)
+      for (node <- topoSortedMethodGroups(groupIndex))
+        nodeGroupsArray(node) = groupIndex
 
     val seenGroupValues = new Array[V](topoSortedMethodGroups.length)
     for (groupIndex <- topoSortedMethodGroups.indices) {
@@ -368,7 +399,7 @@ object CallGraphAnalysis {
       for (node <- topoSortedMethodGroups(groupIndex)) {
         value = reduce(value, nodeValues(node))
         for (upstreamNode <- indexGraphEdges(node)) {
-          val upstreamGroup = nodeGroups(upstreamNode)
+          val upstreamGroup = nodeGroupsArray(upstreamNode)
           if (upstreamGroup != groupIndex) {
             value = reduce(value, seenGroupValues(upstreamGroup))
           }
