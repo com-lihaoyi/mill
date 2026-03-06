@@ -196,15 +196,51 @@ object CallGraphAnalysis {
       resolved.classSingleAbstractMethods.getOrElse(methodDefCls, Set.empty)
     }
 
-    // Cache ancestor BFS results to avoid recomputing the same hierarchy walk
-    // for each call site that references the same external type.
-    val ancestorCache = collection.mutable.Map.empty[JType.Cls, Seq[JType.Cls]]
-    def getTransitiveAncestors(extType: JType.Cls): Seq[JType.Cls] = {
+    // Cache ancestor BFS results (as Sets for O(1) contains checks)
+    val ancestorCache = collection.mutable.Map.empty[JType.Cls, Set[JType.Cls]]
+    def getTransitiveAncestors(extType: JType.Cls): Set[JType.Cls] = {
       ancestorCache.getOrElseUpdate(
         extType,
         SpanningForest.breadthFirst(Seq(extType)) { c =>
           if (localSummary.contains(c)) localSummary.items(c).directAncestors
           else externalSummary.directAncestors.getOrElse(c, Nil)
+        }.toSet
+      )
+    }
+
+    // Precompute callback indices per (extType, localSub) pair. For a given
+    // extType, walks its ancestors to collect callback method signatures, then
+    // for each localSub resolves the valid node indices (filtering SAM/ignoreCall).
+    // This is independent of the call site, so computed once and reused.
+    val callbackIndicesCache =
+      collection.mutable.Map.empty[JType.Cls, (Iterable[JType.Cls], Map[JType.Cls, Array[Int]])]
+    def getCallbackInfo(
+        extType: JType.Cls
+    ): (Iterable[JType.Cls], Map[JType.Cls, Array[Int]]) = {
+      callbackIndicesCache.getOrElseUpdate(
+        extType, {
+          val localSubs: Iterable[JType.Cls] =
+            resolved.externalClassLocalDests.get(extType).map(_._1).getOrElse(
+              if (localSummary.contains(extType)) Seq(extType) else Nil
+            )
+          if (localSubs.isEmpty) (localSubs, Map.empty)
+          else {
+            // Collect all callback method signatures by walking ancestors
+            val allMethods = getTransitiveAncestors(extType).flatMap { ancestorCls =>
+              resolved.externalClassLocalDests.get(ancestorCls).map(_._2).getOrElse(Set.empty)
+            }.filter(m => !ignoreCall(None, m))
+
+            val subToIndices = localSubs.iterator.map { localCls =>
+              val sam = singleAbstractMethods(localCls)
+              val indices = allMethods.flatMap { m =>
+                if (sam.contains(m)) None
+                else nodeToIndex.get(CallGraphAnalysis.LocalDef(st.MethodDef(localCls, m)))
+              }.toArray
+              localCls -> indices
+            }.toMap
+
+            (localSubs, subToIndices)
+          }
         }
       )
     }
@@ -261,35 +297,14 @@ object CallGraphAnalysis {
             val allPreciseTypes: Set[JType.Cls] = argTypes ++ receiverType + methodDef.cls
 
             for (extType <- allExtTypes) {
-              val localSubs: Iterable[JType.Cls] =
-                resolved.externalClassLocalDests.get(extType).map(_._1).getOrElse(
-                  if (localSummary.contains(extType)) Seq(extType) else Nil
+              val (localSubs, subToIndices) = getCallbackInfo(extType)
+              for {
+                s <- localSubs
+                if allPreciseTypes.exists(pt =>
+                  pt == s || getTransitiveAncestors(s).contains(pt)
                 )
-              if (localSubs.nonEmpty) {
-                // Narrow local subclasses using analyzer-determined precise types
-                // (receiver type for virtual calls, argument types for static calls).
-                // A local sub qualifies if it IS or EXTENDS any precise type (subtype check).
-                val effectiveSubs = localSubs.filter { s =>
-                  allPreciseTypes.exists(pt =>
-                    pt == s || getTransitiveAncestors(s).contains(pt)
-                  )
-                }
-
-                getTransitiveAncestors(extType).foreach { ancestorCls =>
-                  resolved.externalClassLocalDests.get(ancestorCls).foreach {
-                    case (_, extMethods) =>
-                      for {
-                        m <- extMethods
-                        localCls <- effectiveSubs
-                        if !singleAbstractMethods(localCls).contains(m)
-                        if !ignoreCall(None, m)
-                        idx <- nodeToIndex.get(
-                          CallGraphAnalysis.LocalDef(st.MethodDef(localCls, m))
-                        )
-                      } indices += idx
-                  }
-                }
-              }
+                idx <- subToIndices.getOrElse(s, Array.empty[Int])
+              } indices += idx
             }
 
             Some(indices.toSet)
