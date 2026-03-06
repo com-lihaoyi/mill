@@ -155,19 +155,32 @@ object LocalSummary {
     val allReceiverTypes = Map.newBuilder[MethodSig, Map[MethodCall, JCls]]
 
     for (method <- classNode.methods.asScala) {
-      val methodSig = st.MethodSig(
-        (method.access & Opcodes.ACC_STATIC) != 0,
-        method.name,
-        st.Desc.read(method.desc)
-      )
+      // Skip the expensive Analyzer for methods without any method invocations
+      val insns = method.instructions
+      var hasInvoke = false
+      var i = 0
+      while (i < insns.size() && !hasInvoke) {
+        insns.get(i) match {
+          case _: MethodInsnNode => hasInvoke = true
+          case _ =>
+        }
+        i += 1
+      }
+      if (!hasInvoke) () // skip — no invocations to analyze
+      else {
+        val methodSig = st.MethodSig(
+          (method.access & Opcodes.ACC_STATIC) != 0,
+          method.name,
+          st.Desc.read(method.desc)
+        )
 
-      // AnalyzerException can occur on valid bytecode with unusual patterns
-      // (e.g. subroutines, dead code). Fall back to no precise types for this method.
-      val frames =
-        try new Analyzer[BasicValue](interpreter).analyze(classNode.name, method)
-        catch { case _: AnalyzerException => null }
+        // AnalyzerException can occur on valid bytecode with unusual patterns
+        // (e.g. subroutines, dead code). Fall back to no precise types for this method.
+        val frames =
+          try new Analyzer[BasicValue](interpreter).analyze(classNode.name, method)
+          catch { case _: AnalyzerException => null }
 
-      if (frames != null) {
+        if (frames != null) {
         val callArgTypes = Map.newBuilder[MethodCall, Set[JCls]]
         val callReceiverTypes = Map.newBuilder[MethodCall, JCls]
         val insns = method.instructions
@@ -203,6 +216,7 @@ object LocalSummary {
         val recMap = callReceiverTypes.result()
         if (argMap.nonEmpty) allArgTypes += methodSig -> argMap
         if (recMap.nonEmpty) allReceiverTypes += methodSig -> recMap
+      }
       }
     }
     (allArgTypes.result(), allReceiverTypes.result())

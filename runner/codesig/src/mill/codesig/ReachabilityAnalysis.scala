@@ -95,7 +95,7 @@ class CallGraphAnalysis(
     case None => ujson.Obj()
   }
 
-  logger.mandatoryLog(spanningInvalidationTree)
+  logger.mandatoryLog(spanningInvalidationTree, indent = 2)
 }
 
 object CallGraphAnalysis {
@@ -245,12 +245,14 @@ object CallGraphAnalysis {
     // Precompute callback indices per extType. For a given extType, walks its
     // ancestors to collect callback method signatures, then for each localSub
     // resolves the valid node indices (filtering SAM/ignoreCall).
+    // Returns (localSubsSet, subToIndices) where localSubsSet is a Set for O(1) contains.
     val callbackIndicesCache =
-      new java.util.HashMap[JType.Cls, (Iterable[JType.Cls], Map[JType.Cls, Array[Int]])]()
-    val emptyCallbackInfo: (Iterable[JType.Cls], Map[JType.Cls, Array[Int]]) = (Nil, Map.empty)
+      new java.util.HashMap[JType.Cls, (Set[JType.Cls], Map[JType.Cls, Array[Int]])]()
+    val emptyCallbackInfo: (Set[JType.Cls], Map[JType.Cls, Array[Int]]) =
+      (Set.empty, Map.empty)
     def getCallbackInfo(
         extType: JType.Cls
-    ): (Iterable[JType.Cls], Map[JType.Cls, Array[Int]]) = {
+    ): (Set[JType.Cls], Map[JType.Cls, Array[Int]]) = {
       var result = callbackIndicesCache.get(extType)
       if (result == null) {
         val localSubs: Iterable[JType.Cls] =
@@ -273,7 +275,7 @@ object CallGraphAnalysis {
             localCls -> indices
           }.toMap
 
-          result = (localSubs, subToIndices)
+          result = (localSubs.toSet, subToIndices)
         }
         callbackIndicesCache.put(extType, result)
       }
@@ -300,7 +302,7 @@ object CallGraphAnalysis {
             .filter(c => !ignoreCall(Some(methodDef), c.toMethodSig))
 
           val normalEdges = Array.newBuilder[Int]
-          val callbackEdges = collection.mutable.Set.empty[Int]
+          val callbackEdges = new java.util.BitSet(indexToNodes.length)
           val methodInfo = methods(methodDef)
 
           // Precompute local subtypes of the caller's class (shared across all calls)
@@ -315,7 +317,7 @@ object CallGraphAnalysis {
               for {
                 dest <- callInfo.localDests
                 if !singleAbstractMethods(dest.cls).contains(dest.sig)
-              } callbackEdges += nodeToIndex(CallGraphAnalysis.LocalDef(dest))
+              } callbackEdges.set(nodeToIndex(CallGraphAnalysis.LocalDef(dest)))
 
               val argTypes = methodInfo.callSiteArgTypes.getOrElse(call, Set.empty)
               val receiverType = methodInfo.callSiteReceiverType.get(call)
@@ -345,12 +347,18 @@ object CallGraphAnalysis {
                 }
 
               for (extType <- allExtTypes) {
-                val (localSubs, subToIndices) = getCallbackInfo(extType)
-                for {
-                  s <- localSubs
-                  if matchingLocalSubs.contains(s)
-                  idx <- subToIndices.getOrElse(s, emptyIntArray)
-                } callbackEdges += idx
+                val (localSubsSet, subToIndices) = getCallbackInfo(extType)
+                // Iterate from the smaller side to minimize lookups
+                val (iterSet, checkSet) =
+                  if (matchingLocalSubs.size <= localSubsSet.size)
+                    (matchingLocalSubs, localSubsSet)
+                  else (localSubsSet, matchingLocalSubs)
+                for (s <- iterSet) {
+                  if (checkSet.contains(s)) {
+                    for (idx <- subToIndices.getOrElse(s, emptyIntArray))
+                      callbackEdges.set(idx)
+                  }
+                }
               }
             }
           }
@@ -362,7 +370,27 @@ object CallGraphAnalysis {
                 .flatMap(samSig => nodeToIndex.get(LocalDef(st.MethodDef(methodDef.cls, samSig))))
             }
 
-          normalEdges.result() ++ callbackEdges ++ singleAbstractMethodInitEdge
+          // Efficiently assemble result: normal edges + callback BitSet + SAM edges
+          val ne = normalEdges.result()
+          val ceCard = callbackEdges.cardinality()
+          val samEdges = singleAbstractMethodInitEdge match {
+            case s: Set[_] => s.asInstanceOf[Set[Int]]
+            case other => other.toSet
+          }
+          val result = new Array[Int](ne.length + ceCard + samEdges.size)
+          System.arraycopy(ne, 0, result, 0, ne.length)
+          var pos = ne.length
+          var bit = callbackEdges.nextSetBit(0)
+          while (bit >= 0) {
+            result(pos) = bit
+            pos += 1
+            bit = callbackEdges.nextSetBit(bit + 1)
+          }
+          for (s <- samEdges) {
+            result(pos) = s
+            pos += 1
+          }
+          result
       }
       .map(_.sorted)
       .toArray
