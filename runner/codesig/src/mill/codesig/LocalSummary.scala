@@ -4,6 +4,7 @@ import mill.codesig.JvmModel.*
 import mill.codesig.JvmModel.JType.Cls as JCls
 import mill.codesig.LocalSummary.ClassInfo
 import org.objectweb.asm.*
+import org.objectweb.asm.tree.ClassNode
 import upickle.{ReadWriter, macroRW}
 
 import scala.collection.mutable
@@ -25,6 +26,8 @@ case class LocalSummary(items: Map[JCls, ClassInfo]) {
  * computation.
  */
 object LocalSummary {
+  private val LazyHandleSuffix = "\\$lzy\\d+\\$lzyHandle$".r
+  private val LazyNameSuffix = "\\$lzy\\d+$".r
 
   case class ClassInfo(
       superClass: JCls,
@@ -36,7 +39,8 @@ object LocalSummary {
   }
   case class MethodInfo(
       calls: Set[MethodCall],
-      callRefArgSlotTypes: Map[MethodCall, Set[JCls]],
+      callSiteArgTypes: Map[MethodCall, Set[JCls]],
+      callSiteReceiverType: Map[MethodCall, JCls],
       isPrivate: Boolean,
       codeHash: Int,
       isAbstract: Boolean
@@ -50,17 +54,19 @@ object LocalSummary {
   def apply(classStreams: Iterator[java.io.InputStream])(using st: SymbolTable): LocalSummary = {
     val classDataAndVisitors = classStreams
       .map { cs =>
-        val classBytes = cs.readAllBytes()
-        val reader = new ClassReader(classBytes)
+        // Parse into ClassNode once; replay into MyClassVisitor for call graph
+        // extraction, and reuse the same ClassNode for the Analyzer pass.
+        val classNode = new ClassNode()
+        new ClassReader(cs).accept(classNode, 0)
         val visitor = new MyClassVisitor()
-        reader.accept(visitor, ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG)
-        (reader, visitor)
+        classNode.accept(visitor)
+        (classNode, visitor)
       }
       .toVector
 
     LocalSummary(
       classDataAndVisitors
-        .map { case (reader, v) =>
+        .map { case (classNode, v) =>
           val cls = v.clsType
           val methodCallGraphs = v.classCallGraph.result()
           val methodHashes = v.classMethodHashes.result()
@@ -68,10 +74,10 @@ object LocalSummary {
           val methodAbstract = v.classMethodAbstract.result()
 
           // Use ASM Analyzer to compute precise operand stack types at invoke
-          // instructions. This gives us the actual types of method arguments
-          // (e.g. Boolean instead of Object) regardless of how they were produced
-          // (method return, field load, etc.).
-          val analyzerArgTypes = analyzeMethodArgTypes(reader)
+          // instructions, including receiver types for virtual calls. This gives
+          // us the actual types (e.g. Foo instead of Object) regardless of how
+          // they were produced (method return, field load, etc.).
+          val (argTypes, receiverTypes) = analyzeMethodArgTypes(classNode)
 
           cls -> ClassInfo(
             superClass = v.directSuperClass.get,
@@ -81,7 +87,8 @@ object LocalSummary {
               .map { m =>
                 m -> MethodInfo(
                   methodCallGraphs(m),
-                  analyzerArgTypes.getOrElse(m, Map.empty),
+                  argTypes.getOrElse(m, Map.empty),
+                  receiverTypes.getOrElse(m, Map.empty),
                   methodPrivate(m),
                   methodHashes(m),
                   methodAbstract(m)
@@ -96,12 +103,16 @@ object LocalSummary {
 
   /**
    * Use ASM's Analyzer with a custom BasicInterpreter to compute precise operand
-   * stack types at every method invoke instruction. Returns per-method maps of
-   * call → precise types of all reference-typed arguments.
+   * stack types at every method invoke instruction. Returns two per-method maps:
+   *   1. call → precise types of reference-typed arguments (for expanding external type search)
+   *   2. call → precise receiver type (for narrowing virtual dispatch targets)
    */
   private def analyzeMethodArgTypes(
-      reader: ClassReader
-  )(using st: SymbolTable): Map[MethodSig, Map[MethodCall, Set[JCls]]] = {
+      classNode: ClassNode
+  )(using st: SymbolTable): (
+      Map[MethodSig, Map[MethodCall, Set[JCls]]],
+      Map[MethodSig, Map[MethodCall, JCls]]
+  ) = {
     import org.objectweb.asm.tree.*
     import org.objectweb.asm.tree.analysis.*
     import scala.jdk.CollectionConverters.*
@@ -135,10 +146,8 @@ object LocalSummary {
       }
     }
 
-    val classNode = new ClassNode()
-    reader.accept(classNode, 0)
-
-    val result = Map.newBuilder[MethodSig, Map[MethodCall, Set[JCls]]]
+    val argTypesResult = Map.newBuilder[MethodSig, Map[MethodCall, Set[JCls]]]
+    val receiverTypesResult = Map.newBuilder[MethodSig, Map[MethodCall, JCls]]
 
     for (method <- classNode.methods.asScala) {
       val methodSig = st.MethodSig(
@@ -149,10 +158,15 @@ object LocalSummary {
 
       val frames: Array[Frame[BasicValue]] =
         try new Analyzer[BasicValue](interpreter).analyze(classNode.name, method)
-        catch { case _: AnalyzerException => null }
+        catch {
+          // AnalyzerException can occur on valid bytecode with unusual patterns
+          // (e.g. subroutines, dead code). Fall back to no precise types for this method.
+          case _: AnalyzerException => null
+        }
 
       if (frames != null) {
-        val callRefArgTypes = Map.newBuilder[MethodCall, Set[JCls]]
+        val callArgTypes = Map.newBuilder[MethodCall, Set[JCls]]
+        val callReceiverTypes = Map.newBuilder[MethodCall, JCls]
         val insns = method.instructions
         for (i <- 0 until insns.size()) {
           insns.get(i) match {
@@ -176,24 +190,34 @@ object LocalSummary {
                   )
                   val argTypes = desc.args
                   val argStartIdx = frame.getStackSize - argTypes.size
-                  val refTypes = mutable.Set.empty[JCls]
+
+                  // For non-static calls, capture the receiver's precise type.
+                  // This is the most important signal for narrowing virtual dispatch.
+                  if (invokeType != InvokeType.Static && argStartIdx > 0) {
+                    preciseInternalName(frame.getStack(argStartIdx - 1))
+                      .foreach(n => callReceiverTypes += (call -> JCls.fromSlashed(n)))
+                  }
+
+                  val refArgTypes = mutable.Set.empty[JCls]
                   for (j <- argTypes.indices) {
                     if (argTypes(j).isInstanceOf[JCls]) {
                       preciseInternalName(frame.getStack(argStartIdx + j))
-                        .foreach(n => refTypes += JCls.fromSlashed(n))
+                        .foreach(n => refArgTypes += JCls.fromSlashed(n))
                     }
                   }
-                  if (refTypes.nonEmpty) callRefArgTypes += (call -> refTypes.toSet)
+                  if (refArgTypes.nonEmpty) callArgTypes += (call -> refArgTypes.toSet)
                 }
               }
             case _ =>
           }
         }
-        val refArgs = callRefArgTypes.result()
-        if (refArgs.nonEmpty) result += (methodSig -> refArgs)
+        val argTypesMap = callArgTypes.result()
+        val receiverTypesMap = callReceiverTypes.result()
+        if (argTypesMap.nonEmpty) argTypesResult += (methodSig -> argTypesMap)
+        if (receiverTypesMap.nonEmpty) receiverTypesResult += (methodSig -> receiverTypesMap)
       }
     }
-    result.result()
+    (argTypesResult.result(), receiverTypesResult.result())
   }
 
   class MyClassVisitor()(using st: SymbolTable) extends ClassVisitor(Opcodes.ASM9) {
@@ -244,9 +268,6 @@ object LocalSummary {
       descriptor: String,
       access: Int
   )(using st: SymbolTable) extends MethodVisitor(Opcodes.ASM9) {
-    private val LazyHandleSuffix = "\\$lzy\\d+\\$lzyHandle$".r
-    private val LazyNameSuffix = "\\$lzy\\d+$".r
-
     val outboundCalls: mutable.Set[MethodCall] = collection.mutable.Set.empty[MethodCall]
     val labelIndices: mutable.Map[Label, Int] = collection.mutable.Map.empty[Label, Int]
     val jumpList: mutable.Buffer[Label] = collection.mutable.Buffer.empty[Label]
