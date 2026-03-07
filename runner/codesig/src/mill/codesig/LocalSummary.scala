@@ -52,31 +52,30 @@ object LocalSummary {
   implicit def rw(using st: SymbolTable): ReadWriter[LocalSummary] = macroRW
 
   def apply(classStreams: Iterator[java.io.InputStream])(using st: SymbolTable): LocalSummary = {
-    val classDataAndVisitors = classStreams
-      .map { cs =>
-        // Parse into ClassNode once; replay into MyClassVisitor for call graph
-        // extraction, and reuse the same ClassNode for the Analyzer pass.
-        val classNode = new ClassNode()
-        new ClassReader(cs).accept(classNode, 0)
-        val visitor = new MyClassVisitor()
-        classNode.accept(visitor)
-        (classNode, visitor)
-      }
-      .toVector
+    // Read all class bytes into memory first (sequential I/O), then process in parallel
+    val classBytes = classStreams.map { cs =>
+      try cs.readAllBytes() finally cs.close()
+    }.toVector
 
+    import scala.jdk.CollectionConverters.*
     LocalSummary(
-      classDataAndVisitors
-        .map { case (classNode, v) =>
+      classBytes
+        .asJava
+        .parallelStream()
+        .map[(JCls, ClassInfo)] { bytes =>
+          // Parse into ClassNode; replay into MyClassVisitor for call graph
+          // extraction, and reuse the same ClassNode for the Analyzer pass.
+          val classNode = new ClassNode()
+          new ClassReader(bytes).accept(classNode, 0)
+          val v = new MyClassVisitor()
+          classNode.accept(v)
+
           val cls = v.clsType
           val methodCallGraphs = v.classCallGraph.result()
           val methodHashes = v.classMethodHashes.result()
           val methodPrivate = v.classMethodPrivate.result()
           val methodAbstract = v.classMethodAbstract.result()
 
-          // Use ASM Analyzer to compute precise operand stack types at invoke
-          // instructions, including receiver types for virtual calls. This gives
-          // us the actual types (e.g. Foo instead of Object) regardless of how
-          // they were produced (method return, field load, etc.).
           val (argTypes, receiverTypes) = analyzeMethodArgTypes(classNode)
 
           cls -> ClassInfo(
@@ -97,6 +96,8 @@ object LocalSummary {
               .toMap
           )
         }
+        .collect(java.util.stream.Collectors.toList[(JCls, ClassInfo)])
+        .asScala
         .toMap
     )
   }

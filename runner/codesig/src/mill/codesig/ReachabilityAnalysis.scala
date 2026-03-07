@@ -284,6 +284,9 @@ object CallGraphAnalysis {
 
     val emptyIntArray = Array.empty[Int]
 
+    // Reuse a single BitSet across all nodes to avoid ~60K allocations of ~9KB each
+    val callbackEdges = new java.util.BitSet(indexToNodes.length)
+
     indexToNodes
       .iterator
       .map {
@@ -302,7 +305,7 @@ object CallGraphAnalysis {
             .filter(c => !ignoreCall(Some(methodDef), c.toMethodSig))
 
           val normalEdges = Array.newBuilder[Int]
-          val callbackEdges = new java.util.BitSet(indexToNodes.length)
+          callbackEdges.clear()
           val methodInfo = methods(methodDef)
 
           // Precompute local subtypes of the caller's class (shared across all calls)
