@@ -54,7 +54,8 @@ object LocalSummary {
   def apply(classStreams: Iterator[java.io.InputStream])(using st: SymbolTable): LocalSummary = {
     // Read all class bytes into memory first (sequential I/O), then process in parallel
     val classBytes = classStreams.map { cs =>
-      try cs.readAllBytes() finally cs.close()
+      try cs.readAllBytes()
+      finally cs.close()
     }.toVector
 
     import scala.jdk.CollectionConverters.*
@@ -113,20 +114,21 @@ object LocalSummary {
   // Custom interpreter that preserves precise object types, unlike the default
   // BasicInterpreter which collapses all reference types to a single REFERENCE_VALUE.
   // Shared across all classes since it is stateless.
-  private val sharedInterpreter = new org.objectweb.asm.tree.analysis.BasicInterpreter(Opcodes.ASM9) {
-    override def newValue(tp: org.objectweb.asm.Type): BasicValue =
-      if (tp == null) BasicValue.UNINITIALIZED_VALUE
-      else if (
-        tp.getSort == org.objectweb.asm.Type.ARRAY || tp.getSort == org.objectweb.asm.Type.OBJECT
-      ) new BasicValue(tp)
-      else super.newValue(tp)
+  private val sharedInterpreter =
+    new org.objectweb.asm.tree.analysis.BasicInterpreter(Opcodes.ASM9) {
+      override def newValue(tp: org.objectweb.asm.Type): BasicValue =
+        if (tp == null) BasicValue.UNINITIALIZED_VALUE
+        else if (
+          tp.getSort == org.objectweb.asm.Type.ARRAY || tp.getSort == org.objectweb.asm.Type.OBJECT
+        ) new BasicValue(tp)
+        else super.newValue(tp)
 
-    override def merge(a: BasicValue, b: BasicValue): BasicValue =
-      if (a == b) a
-      else if (a == BasicValue.UNINITIALIZED_VALUE || b == BasicValue.UNINITIALIZED_VALUE)
-        BasicValue.UNINITIALIZED_VALUE
-      else BasicValue.REFERENCE_VALUE
-  }
+      override def merge(a: BasicValue, b: BasicValue): BasicValue =
+        if (a == b) a
+        else if (a == BasicValue.UNINITIALIZED_VALUE || b == BasicValue.UNINITIALIZED_VALUE)
+          BasicValue.UNINITIALIZED_VALUE
+        else BasicValue.REFERENCE_VALUE
+    }
 
   private def preciseType(v: BasicValue)(using st: SymbolTable): Option[JCls] =
     for {
@@ -185,42 +187,42 @@ object LocalSummary {
           catch { case _: AnalyzerException => null }
 
         if (frames != null) {
-        val callArgTypes = Map.newBuilder[MethodCall, Set[JCls]]
-        val callReceiverTypes = Map.newBuilder[MethodCall, JCls]
-        val insns = method.instructions
+          val callArgTypes = Map.newBuilder[MethodCall, Set[JCls]]
+          val callReceiverTypes = Map.newBuilder[MethodCall, JCls]
+          val insns = method.instructions
 
-        for (i <- 0 until insns.size()) insns.get(i) match {
-          case invoke: MethodInsnNode
-              if invoke.owner != null && invoke.owner.nonEmpty && invoke.owner(0) != '[' =>
-            for {
-              frame <- Option(frames(i))
-              invokeType <- toInvokeType(invoke.getOpcode)
-            } {
-              val desc = st.Desc.read(invoke.desc)
-              val call =
-                st.MethodCall(JCls.fromSlashed(invoke.owner), invokeType, invoke.name, desc)
-              val argStartIdx = frame.getStackSize - desc.args.size
+          for (i <- 0 until insns.size()) insns.get(i) match {
+            case invoke: MethodInsnNode
+                if invoke.owner != null && invoke.owner.nonEmpty && invoke.owner(0) != '[' =>
+              for {
+                frame <- Option(frames(i))
+                invokeType <- toInvokeType(invoke.getOpcode)
+              } {
+                val desc = st.Desc.read(invoke.desc)
+                val call =
+                  st.MethodCall(JCls.fromSlashed(invoke.owner), invokeType, invoke.name, desc)
+                val argStartIdx = frame.getStackSize - desc.args.size
 
-              // For non-static calls, capture the receiver's precise type.
-              // This is the most important signal for narrowing virtual dispatch.
-              if (invokeType != InvokeType.Static && argStartIdx > 0)
-                preciseType(frame.getStack(argStartIdx - 1))
-                  .foreach(callReceiverTypes += call -> _)
+                // For non-static calls, capture the receiver's precise type.
+                // This is the most important signal for narrowing virtual dispatch.
+                if (invokeType != InvokeType.Static && argStartIdx > 0)
+                  preciseType(frame.getStack(argStartIdx - 1))
+                    .foreach(callReceiverTypes += call -> _)
 
-              val refArgs = desc.args.indices.collect {
-                case j if desc.args(j).isInstanceOf[JCls] =>
-                  preciseType(frame.getStack(argStartIdx + j))
-              }.flatten.toSet
-              if (refArgs.nonEmpty) callArgTypes += call -> refArgs
-            }
-          case _ =>
+                val refArgs = desc.args.indices.collect {
+                  case j if desc.args(j).isInstanceOf[JCls] =>
+                    preciseType(frame.getStack(argStartIdx + j))
+                }.flatten.toSet
+                if (refArgs.nonEmpty) callArgTypes += call -> refArgs
+              }
+            case _ =>
+          }
+
+          val argMap = callArgTypes.result()
+          val recMap = callReceiverTypes.result()
+          if (argMap.nonEmpty) allArgTypes += methodSig -> argMap
+          if (recMap.nonEmpty) allReceiverTypes += methodSig -> recMap
         }
-
-        val argMap = callArgTypes.result()
-        val recMap = callReceiverTypes.result()
-        if (argMap.nonEmpty) allArgTypes += methodSig -> argMap
-        if (recMap.nonEmpty) allReceiverTypes += methodSig -> recMap
-      }
       }
     }
     (allArgTypes.result(), allReceiverTypes.result())

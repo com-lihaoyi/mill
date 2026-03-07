@@ -5,7 +5,6 @@ import upickle.{ReadWriter, readwriter, stringKeyRW}
 import scala.annotation.switch
 import scala.collection.immutable.ArraySeq
 
-
 // This file contains typed data structures representing the types and values
 // found in the JVM bytecode: various kinds of types, method signatures, method
 // calls, etc. These are generally parsed from stringly-typed fields given to
