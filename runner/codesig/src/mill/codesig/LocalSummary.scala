@@ -107,6 +107,41 @@ object LocalSummary {
    *   1. call → precise types of reference-typed arguments (for expanding external type search)
    *   2. call → precise receiver type (for narrowing virtual dispatch targets)
    */
+  import org.objectweb.asm.tree.analysis.BasicValue
+
+  // Custom interpreter that preserves precise object types, unlike the default
+  // BasicInterpreter which collapses all reference types to a single REFERENCE_VALUE.
+  // Shared across all classes since it is stateless.
+  private val sharedInterpreter = new org.objectweb.asm.tree.analysis.BasicInterpreter(Opcodes.ASM9) {
+    override def newValue(tp: org.objectweb.asm.Type): BasicValue =
+      if (tp == null) BasicValue.UNINITIALIZED_VALUE
+      else if (
+        tp.getSort == org.objectweb.asm.Type.ARRAY || tp.getSort == org.objectweb.asm.Type.OBJECT
+      ) new BasicValue(tp)
+      else super.newValue(tp)
+
+    override def merge(a: BasicValue, b: BasicValue): BasicValue =
+      if (a == b) a
+      else if (a == BasicValue.UNINITIALIZED_VALUE || b == BasicValue.UNINITIALIZED_VALUE)
+        BasicValue.UNINITIALIZED_VALUE
+      else BasicValue.REFERENCE_VALUE
+  }
+
+  private def preciseType(v: BasicValue)(using st: SymbolTable): Option[JCls] =
+    for {
+      bv <- Option(v)
+      t <- Option(bv.getType)
+      if t.getSort == org.objectweb.asm.Type.OBJECT
+      if t.getInternalName != "null"
+    } yield JCls.fromSlashed(t.getInternalName)
+
+  private def toInvokeType(opcode: Int): Option[InvokeType] = opcode match {
+    case Opcodes.INVOKESTATIC => Some(InvokeType.Static)
+    case Opcodes.INVOKESPECIAL => Some(InvokeType.Special)
+    case Opcodes.INVOKEVIRTUAL | Opcodes.INVOKEINTERFACE => Some(InvokeType.Virtual)
+    case _ => None
+  }
+
   private def analyzeMethodArgTypes(
       classNode: ClassNode
   )(using
@@ -118,38 +153,6 @@ object LocalSummary {
     import org.objectweb.asm.tree.*
     import org.objectweb.asm.tree.analysis.*
     import scala.jdk.CollectionConverters.*
-
-    def preciseType(v: BasicValue): Option[JCls] =
-      for {
-        bv <- Option(v)
-        t <- Option(bv.getType)
-        if t.getSort == org.objectweb.asm.Type.OBJECT
-        if t.getInternalName != "null"
-      } yield JCls.fromSlashed(t.getInternalName)
-
-    def toInvokeType(opcode: Int): Option[InvokeType] = opcode match {
-      case Opcodes.INVOKESTATIC => Some(InvokeType.Static)
-      case Opcodes.INVOKESPECIAL => Some(InvokeType.Special)
-      case Opcodes.INVOKEVIRTUAL | Opcodes.INVOKEINTERFACE => Some(InvokeType.Virtual)
-      case _ => None
-    }
-
-    // Custom interpreter that preserves precise object types, unlike the default
-    // BasicInterpreter which collapses all reference types to a single REFERENCE_VALUE.
-    val interpreter = new BasicInterpreter(Opcodes.ASM9) {
-      override def newValue(tp: org.objectweb.asm.Type): BasicValue =
-        if (tp == null) BasicValue.UNINITIALIZED_VALUE
-        else if (
-          tp.getSort == org.objectweb.asm.Type.ARRAY || tp.getSort == org.objectweb.asm.Type.OBJECT
-        ) new BasicValue(tp)
-        else super.newValue(tp)
-
-      override def merge(a: BasicValue, b: BasicValue): BasicValue =
-        if (a == b) a
-        else if (a == BasicValue.UNINITIALIZED_VALUE || b == BasicValue.UNINITIALIZED_VALUE)
-          BasicValue.UNINITIALIZED_VALUE
-        else BasicValue.REFERENCE_VALUE
-    }
 
     val allArgTypes = Map.newBuilder[MethodSig, Map[MethodCall, Set[JCls]]]
     val allReceiverTypes = Map.newBuilder[MethodSig, Map[MethodCall, JCls]]
@@ -177,7 +180,7 @@ object LocalSummary {
         // AnalyzerException can occur on valid bytecode with unusual patterns
         // (e.g. subroutines, dead code). Fall back to no precise types for this method.
         val frames =
-          try new Analyzer[BasicValue](interpreter).analyze(classNode.name, method)
+          try new Analyzer[BasicValue](sharedInterpreter).analyze(classNode.name, method)
           catch { case _: AnalyzerException => null }
 
         if (frames != null) {

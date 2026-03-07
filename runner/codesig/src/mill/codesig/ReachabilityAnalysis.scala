@@ -38,7 +38,7 @@ class CallGraphAnalysis(
     ignoreCall
   )
 
-  lazy val methodCodeHashes: SortedMap[String, Int] =
+  val methodCodeHashes: SortedMap[String, Int] =
     methods.map { case (k, vs) => (k.toString, vs.codeHash) }.to(SortedMap)
 
   logger.mandatoryLog(methodCodeHashes)
@@ -422,13 +422,16 @@ object CallGraphAnalysis {
         nodeGroupsArray(node) = groupIndex
 
     val seenGroupValues = new Array[V](topoSortedMethodGroups.length)
+    val seenUpstreamGroups = new java.util.BitSet(topoSortedMethodGroups.length)
     for (groupIndex <- topoSortedMethodGroups.indices) {
+      seenUpstreamGroups.clear()
       var value: V = zero
       for (node <- topoSortedMethodGroups(groupIndex)) {
         value = reduce(value, nodeValues(node))
         for (upstreamNode <- indexGraphEdges(node)) {
           val upstreamGroup = nodeGroupsArray(upstreamNode)
-          if (upstreamGroup != groupIndex) {
+          if (upstreamGroup != groupIndex && !seenUpstreamGroups.get(upstreamGroup)) {
+            seenUpstreamGroups.set(upstreamGroup)
             value = reduce(value, seenGroupValues(upstreamGroup))
           }
         }
