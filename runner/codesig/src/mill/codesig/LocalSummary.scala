@@ -219,16 +219,22 @@ object LocalSummary {
 
                 // For non-static calls, capture the receiver's precise type.
                 // This is the most important signal for narrowing virtual dispatch.
-                if (invokeType != InvokeType.Static && argStartIdx > 0)
+                if (invokeType != InvokeType.Static && argStartIdx > 0) {
                   preciseType(frame.getStack(argStartIdx - 1))
                     .foreach(callReceiverTypes += call -> _)
+                }
 
-                val refArgs = desc.args.indices.collect {
-                  case j if desc.args(j).isInstanceOf[JCls] =>
-                    preciseType(frame.getStack(argStartIdx + j))
-                }.flatten.toSet
+                val refArgs = desc.args.indices
+                  .collect {
+                    case j if desc.args(j).isInstanceOf[JCls] =>
+                      preciseType(frame.getStack(argStartIdx + j))
+                  }
+                  .flatten
+                  .toSet
+
                 if (refArgs.nonEmpty) callArgTypes += call -> refArgs
               }
+
             case _ =>
           }
 
