@@ -366,21 +366,18 @@ object CallGraphAnalysis {
             }
           }
 
-          val singleAbstractMethodInitEdge =
-            if (methodDef.sig.name != "<init>") None
-            else {
-              singleAbstractMethods(methodDef.cls)
-                .flatMap(samSig => nodeToIndex.get(LocalDef(st.MethodDef(methodDef.cls, samSig))))
-            }
+          // SAM init edges: when <init> is called, the SAM method is "live"
+          if (methodDef.sig.name == "<init>") {
+            for {
+              samSig <- singleAbstractMethods(methodDef.cls)
+              idx <- nodeToIndex.get(LocalDef(st.MethodDef(methodDef.cls, samSig)))
+            } callbackEdges.set(idx)
+          }
 
-          // Efficiently assemble result: normal edges + callback BitSet + SAM edges
+          // Assemble result: normal edges + callback/SAM BitSet
           val ne = normalEdges.result()
           val ceCard = callbackEdges.cardinality()
-          val samEdges = singleAbstractMethodInitEdge match {
-            case s: Set[_] => s.asInstanceOf[Set[Int]]
-            case other => other.toSet
-          }
-          val result = new Array[Int](ne.length + ceCard + samEdges.size)
+          val result = new Array[Int](ne.length + ceCard)
           System.arraycopy(ne, 0, result, 0, ne.length)
           var pos = ne.length
           var bit = callbackEdges.nextSetBit(0)
@@ -388,10 +385,6 @@ object CallGraphAnalysis {
             result(pos) = bit
             pos += 1
             bit = callbackEdges.nextSetBit(bit + 1)
-          }
-          for (s <- samEdges) {
-            result(pos) = s
-            pos += 1
           }
           result
       }

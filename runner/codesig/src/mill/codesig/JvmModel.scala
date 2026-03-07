@@ -23,11 +23,7 @@ object JvmModel {
     abstract class Table[K, V] {
       def create: K => V
       val lookup = new java.util.concurrent.ConcurrentHashMap[K, V]()
-      def get(k: K): V = {
-        val existing = lookup.get(k)
-        if (existing != null) existing
-        else lookup.computeIfAbsent(k, k => create(k))
-      }
+      def get(k: K): V = lookup.computeIfAbsent(k, k => create(k))
     }
 
     object MethodDef extends Table[(JType.Cls, MethodSig), MethodDef] {

@@ -16,25 +16,12 @@ object Tarjans {
     val sccStack = new Array[Int](n)
     var sccSize = 0
 
-    // DFS call stack using 3 parallel flat arrays instead of ArrayDeque[(Int, Int, Boolean)]
-    var stackCapacity = math.min(n, 1024)
-    var stackNode = new Array[Int](stackCapacity)
-    var stackChildIdx = new Array[Int](stackCapacity)
-    var stackIsRoot = new Array[Boolean](stackCapacity)
+    // DFS call stack using 3 parallel flat arrays instead of tuples.
+    // Max depth is n (each node pushed at most once).
+    val stackNode = new Array[Int](n)
+    val stackChildIdx = new Array[Int](n)
+    val stackIsRoot = new Array[Boolean](n)
     var stackSize = 0
-
-    def pushFrame(node: Int, childIdx: Int, isRoot: Boolean): Unit = {
-      if (stackSize == stackCapacity) {
-        stackCapacity *= 2
-        stackNode = java.util.Arrays.copyOf(stackNode, stackCapacity)
-        stackChildIdx = java.util.Arrays.copyOf(stackChildIdx, stackCapacity)
-        stackIsRoot = java.util.Arrays.copyOf(stackIsRoot, stackCapacity)
-      }
-      stackNode(stackSize) = node
-      stackChildIdx(stackSize) = childIdx
-      stackIsRoot(stackSize) = isRoot
-      stackSize += 1
-    }
 
     for (u <- 0 until n) {
       if (!visited(u)) {
@@ -43,7 +30,10 @@ object Tarjans {
         visited(u) = true
         sccStack(sccSize) = u
         sccSize += 1
-        pushFrame(u, 0, true)
+        stackNode(0) = u
+        stackChildIdx(0) = 0
+        stackIsRoot(0) = true
+        stackSize = 1
 
         while (stackSize > 0) {
           val top = stackSize - 1
@@ -60,7 +50,10 @@ object Tarjans {
               visited(v) = true
               sccStack(sccSize) = v
               sccSize += 1
-              pushFrame(v, 0, true)
+              stackNode(stackSize) = v
+              stackChildIdx(stackSize) = 0
+              stackIsRoot(stackSize) = true
+              stackSize += 1
             } else {
               if (lowlink(node) > lowlink(v)) {
                 lowlink(node) = lowlink(v)
@@ -69,8 +62,7 @@ object Tarjans {
             }
           } else {
             // Done with all children of this node
-            val isRoot = stackIsRoot(top)
-            if (isRoot) {
+            if (stackIsRoot(top)) {
               val component = Array.newBuilder[Int]
               var done = false
               while (!done) {
@@ -86,9 +78,8 @@ object Tarjans {
             // Propagate lowlink to parent
             if (stackSize > 0) {
               val parentTop = stackSize - 1
-              val parentNode = stackNode(parentTop)
-              if (lowlink(parentNode) > lowlink(node)) {
-                lowlink(parentNode) = lowlink(node)
+              if (lowlink(stackNode(parentTop)) > lowlink(node)) {
+                lowlink(stackNode(parentTop)) = lowlink(node)
                 stackIsRoot(parentTop) = false
               }
             }

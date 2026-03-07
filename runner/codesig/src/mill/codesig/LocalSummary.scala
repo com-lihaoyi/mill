@@ -51,56 +51,71 @@ object LocalSummary {
 
   implicit def rw(using st: SymbolTable): ReadWriter[LocalSummary] = macroRW
 
-  def apply(classStreams: Iterator[java.io.InputStream])(using st: SymbolTable): LocalSummary = {
+  def apply(
+      classStreams: Iterator[java.io.InputStream],
+      ctx: Option[mill.api.TaskCtx] = None
+  )(using st: SymbolTable): LocalSummary = {
     // Read all class bytes into memory first (sequential I/O), then process in parallel
     val classBytes = classStreams.map { cs =>
       try cs.readAllBytes()
       finally cs.close()
     }.toVector
 
-    import scala.jdk.CollectionConverters.*
-    LocalSummary(
-      classBytes
-        .asJava
-        .parallelStream()
-        .map[(JCls, ClassInfo)] { bytes =>
-          // Parse into ClassNode; replay into MyClassVisitor for call graph
-          // extraction, and reuse the same ClassNode for the Analyzer pass.
-          val classNode = new ClassNode()
-          new ClassReader(bytes).accept(classNode, 0)
-          val v = new MyClassVisitor()
-          classNode.accept(v)
+    def processOneClass(bytes: Array[Byte]): (JCls, ClassInfo) = {
+      // Parse into ClassNode; replay into MyClassVisitor for call graph
+      // extraction, and reuse the same ClassNode for the Analyzer pass.
+      val classNode = new ClassNode()
+      new ClassReader(bytes).accept(classNode, 0)
+      val v = new MyClassVisitor()
+      classNode.accept(v)
 
-          val cls = v.clsType
-          val methodCallGraphs = v.classCallGraph.result()
-          val methodHashes = v.classMethodHashes.result()
-          val methodPrivate = v.classMethodPrivate.result()
-          val methodAbstract = v.classMethodAbstract.result()
+      val cls = v.clsType
+      val methodCallGraphs = v.classCallGraph.result()
+      val methodHashes = v.classMethodHashes.result()
+      val methodPrivate = v.classMethodPrivate.result()
+      val methodAbstract = v.classMethodAbstract.result()
 
-          val (argTypes, receiverTypes) = analyzeMethodArgTypes(classNode)
+      val (argTypes, receiverTypes) = analyzeMethodArgTypes(classNode)
 
-          cls -> ClassInfo(
-            superClass = v.directSuperClass.get,
-            directAncestors = v.directAncestors,
-            methods = methodCallGraphs
-              .keys
-              .map { m =>
-                m -> MethodInfo(
-                  methodCallGraphs(m),
-                  argTypes.getOrElse(m, Map.empty),
-                  receiverTypes.getOrElse(m, Map.empty),
-                  methodPrivate(m),
-                  methodHashes(m),
-                  methodAbstract(m)
-                )
-              }
-              .toMap
-          )
-        }
-        .collect(java.util.stream.Collectors.toList[(JCls, ClassInfo)])
-        .asScala
-        .toMap
-    )
+      cls -> ClassInfo(
+        superClass = v.directSuperClass.get,
+        directAncestors = v.directAncestors,
+        methods = methodCallGraphs
+          .keys
+          .map { m =>
+            m -> MethodInfo(
+              methodCallGraphs(m),
+              argTypes.getOrElse(m, Map.empty),
+              receiverTypes.getOrElse(m, Map.empty),
+              methodPrivate(m),
+              methodHashes(m),
+              methodAbstract(m)
+            )
+          }
+          .toMap
+      )
+    }
+
+    val results: Seq[(JCls, ClassInfo)] = ctx match {
+      case Some(c) =>
+        given mill.api.TaskCtx = c
+        val fork = c.fork
+        val numBatches = c.jobs
+        val batchSize = math.max(1, (classBytes.size + numBatches - 1) / numBatches)
+        val batches = classBytes.grouped(batchSize).zipWithIndex.toSeq
+        fork.awaitAll(batches.map { case (batch, i) =>
+          fork.async(
+            c.dest / "parallel" / s"$i",
+            s"${i + 1}",
+            s"Analyzing classes (batch ${i + 1}/${batches.size})"
+          ) { _ => batch.map(processOneClass) }
+        }).flatten
+
+      case None =>
+        classBytes.map(processOneClass)
+    }
+
+    LocalSummary(results.toMap)
   }
 
   /**
@@ -189,7 +204,6 @@ object LocalSummary {
         if (frames != null) {
           val callArgTypes = Map.newBuilder[MethodCall, Set[JCls]]
           val callReceiverTypes = Map.newBuilder[MethodCall, JCls]
-          val insns = method.instructions
 
           for (i <- 0 until insns.size()) insns.get(i) match {
             case invoke: MethodInsnNode
@@ -486,8 +500,6 @@ object LocalSummary {
         descriptor: String,
         isInterface: Boolean
     ): Unit = {
-      val desc = st.Desc.read(descriptor)
-
       if (
         inLazyHandleSequence &&
         ((owner == "java/lang/invoke/MethodHandles" &&
@@ -506,6 +518,7 @@ object LocalSummary {
       // Skip analyzing array methods like `.clone()` or `.hashCode()`, since they always
       // provided by the standard library and do not contribute to the program's call graph
       if (owner(0) != '[') {
+        val desc = st.Desc.read(descriptor)
         val call = st.MethodCall(
           JCls.fromSlashed(owner),
           opcode match {

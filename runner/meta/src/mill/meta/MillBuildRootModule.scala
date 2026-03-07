@@ -146,6 +146,7 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
       .compute(
         classFiles = os.walk(compile().classes.path).filter(_.ext == "class"),
         upstreamClasspath = compileClasspath().toSeq.map(_.path),
+        ctx = Some(Task.ctx()),
         ignoreCall = { (callSiteOpt, calledSig) =>
           // We can ignore all calls to methods that look like tasks when traversing
           // the call graph. We can do this because we assume `def` tasks are pure,
