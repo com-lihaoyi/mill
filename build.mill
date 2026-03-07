@@ -228,3 +228,4 @@ def visualizeMillModules(evaluator: Evaluator): Command[Unit] = Task.Command(exc
   evaluator.evaluate(Seq("visualize") ++ modulePaths, SelectMode.Separated)
   ()
 }
+

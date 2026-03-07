@@ -392,7 +392,6 @@ object CallGraphAnalysis {
           }
           result
       }
-      .map(_.sorted)
       .toArray
   }
 
