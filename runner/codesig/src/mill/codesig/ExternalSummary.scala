@@ -46,6 +46,16 @@ object ExternalSummary {
         .flatMap(call => Seq(call.cls) ++ call.desc.args)
         .collect { case c: JType.Cls => c }
 
+      // Also load precise types from ASM stack analysis (receiver/arg types at
+      // call sites), so ExternalClsCall nodes can resolve their class hierarchy
+      val asmPreciseTypes = localSummary
+        .mapValuesOnly(_.methods.values)
+        .flatten
+        .flatMap(m =>
+          m.callSiteArgTypes.values.flatMap(identity) ++
+            m.callSiteReceiverType.values
+        )
+
       def load(cls: JCls): Unit = methodsPerCls.getOrElse(cls, load0(cls))
 
       def load0(cls: JCls): Unit = {
@@ -64,7 +74,7 @@ object ExternalSummary {
         ancestorsPerCls(cls).foreach(load)
       }
 
-      (allDirectAncestors ++ allMethodCallParamClasses)
+      (allDirectAncestors ++ allMethodCallParamClasses ++ asmPreciseTypes)
         .filter(!localSummary.contains(_))
         .toSet
         .foreach(load)

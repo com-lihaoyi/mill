@@ -8,8 +8,7 @@
     "Tetris#keyReleased(java.awt.event.KeyEvent)void",
     "Tetris#keyTyped(java.awt.event.KeyEvent)void",
     "Tetris$1#<init>(Tetris)void",
-    "Tetris$Background#<init>(Tetris)void",
-    "Tetris$Background#paintComponent(java.awt.Graphics)void"
+    "Tetris$Background#<init>(Tetris)void"
   ],
   "Tetris#actionPerformed(java.awt.event.ActionEvent)void": [
     "GUI.randomInt(int,int)int",

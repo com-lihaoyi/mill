@@ -22,9 +22,59 @@ class CallGraphAnalysis(
     (sig, m) <- v.methods
   } yield (st.MethodDef(k, sig), m)
 
+  // Cache ancestor BFS results at class level so it can be used for both
+  // ExternalClsCall pair computation and indexGraphEdges resolution.
+  private val ancestorCache = new java.util.HashMap[JType.Cls, Set[JType.Cls]]()
+  private def getTransitiveAncestors(cls: JType.Cls): Set[JType.Cls] = {
+    var result = ancestorCache.get(cls)
+    if (result == null) {
+      result = SpanningForest.breadthFirst(Seq(cls)) { c =>
+        if (localSummary.contains(c)) localSummary.items(c).directAncestors
+        else externalSummary.directAncestors.getOrElse(c, Nil)
+      }.toSet
+      ancestorCache.put(cls, result)
+    }
+    result
+  }
+
+  // For each externalDest, find any precise type (receiver or arg) that is a subtype.
+  // Returns the narrowing type for that dest, or the dest itself if no precise subtype.
+  private def narrowForDest(
+      dest: JType.Cls,
+      preciseTypes: Iterable[JType.Cls]
+  ): Iterable[JType.Cls] = {
+    val subtypes = preciseTypes.filter(pt => getTransitiveAncestors(pt).contains(dest))
+    if (subtypes.nonEmpty) subtypes else Iterable(dest)
+  }
+
+  // Collect all (externalDest, narrowType) pairs needed as ExternalClsCall proxy nodes.
+  // externalDest determines which callback methods are collected (from its ancestors),
+  // narrowType determines which local subtypes are included in the fan-out.
+  // For each externalDest, we find precise types (from both receiver and arg positions)
+  // that are subtypes of that dest, and use them as narrowing. This is uniform across
+  // receiver and arg positions — both narrow the same way based on their bytecode type.
+  val externalClsCallPairs: Set[(JType.Cls, JType.Cls)] = {
+    val pairs = collection.mutable.Set.empty[(JType.Cls, JType.Cls)]
+    for ((_, methodInfo) <- methods) {
+      for (call <- methodInfo.calls) {
+        val callInfo = resolved.localCalls(call)
+        if (callInfo.externalDests.nonEmpty) {
+          val preciseTypes =
+            methodInfo.callSiteReceiverType.get(call).toSeq ++
+              methodInfo.callSiteArgTypes.getOrElse(call, Set.empty)
+          for (dest <- callInfo.externalDests)
+            for (narrow <- narrowForDest(dest, preciseTypes))
+              pairs += ((dest, narrow))
+        }
+      }
+    }
+    pairs.toSet
+  }
+
   val indexToNodes: Array[CallGraphAnalysis.Node] =
     methods.keys.toArray.map[CallGraphAnalysis.Node](CallGraphAnalysis.LocalDef(_)) ++
-      resolved.localCalls.keys.map(CallGraphAnalysis.Call(_))
+      resolved.localCalls.keys.map(CallGraphAnalysis.Call(_)) ++
+      externalClsCallPairs.map(CallGraphAnalysis.ExternalClsCall(_, _))
 
   val nodeToIndex = indexToNodes.zipWithIndex.toMap
 
@@ -33,9 +83,10 @@ class CallGraphAnalysis(
     localSummary,
     methods,
     resolved,
-    externalSummary,
     nodeToIndex,
-    ignoreCall
+    ignoreCall,
+    getTransitiveAncestors,
+    narrowForDest
   )
 
   val methodCodeHashes: SortedMap[String, Int] =
@@ -200,27 +251,14 @@ object CallGraphAnalysis {
       localSummary: LocalSummary,
       methods: Map[MethodDef, LocalSummary.MethodInfo],
       resolved: ResolvedCalls,
-      externalSummary: ExternalSummary,
       nodeToIndex: Map[CallGraphAnalysis.Node, Int],
-      ignoreCall: (Option[MethodDef], MethodSig) => Boolean
+      ignoreCall: (Option[MethodDef], MethodSig) => Boolean,
+      getTransitiveAncestors: JType.Cls => Set[JType.Cls],
+      narrowForDest: (JType.Cls, Iterable[JType.Cls]) => Iterable[JType.Cls]
   )(using st: SymbolTable): Array[Array[Int]] = {
 
     def singleAbstractMethods(methodDefCls: JType.Cls) = {
       resolved.classSingleAbstractMethods.getOrElse(methodDefCls, Set.empty)
-    }
-
-    // Cache ancestor BFS results using java.util.HashMap for faster lookups
-    val ancestorCache = new java.util.HashMap[JType.Cls, Set[JType.Cls]]()
-    def getTransitiveAncestors(cls: JType.Cls): Set[JType.Cls] = {
-      var result = ancestorCache.get(cls)
-      if (result == null) {
-        result = SpanningForest.breadthFirst(Seq(cls)) { c =>
-          if (localSummary.contains(c)) localSummary.items(c).directAncestors
-          else externalSummary.directAncestors.getOrElse(c, Nil)
-        }.toSet
-        ancestorCache.put(cls, result)
-      }
-      result
     }
 
     // Precompute reverse ancestor index: for each type t, which local classes
@@ -242,55 +280,12 @@ object CallGraphAnalysis {
       result
     }
 
-    // Precompute callback indices per extType. For a given extType, walks its
-    // ancestors to collect callback method signatures, then for each localSub
-    // resolves the valid node indices (filtering SAM/ignoreCall).
-    // Returns (localSubsSet, subToIndices) where localSubsSet is a Set for O(1) contains.
-    val callbackIndicesCache =
-      new java.util.HashMap[JType.Cls, (Set[JType.Cls], Map[JType.Cls, Array[Int]])]()
-    val emptyCallbackInfo: (Set[JType.Cls], Map[JType.Cls, Array[Int]]) =
-      (Set.empty, Map.empty)
-    def getCallbackInfo(
-        extType: JType.Cls
-    ): (Set[JType.Cls], Map[JType.Cls, Array[Int]]) = {
-      var result = callbackIndicesCache.get(extType)
-      if (result == null) {
-        val localSubs: Iterable[JType.Cls] =
-          resolved.externalClassLocalDests.get(extType).map(_._1).getOrElse(
-            if (localSummary.contains(extType)) Seq(extType) else Nil
-          )
-        if (localSubs.isEmpty) {
-          result = emptyCallbackInfo
-        } else {
-          val allMethods = getTransitiveAncestors(extType).flatMap { ancestorCls =>
-            resolved.externalClassLocalDests.get(ancestorCls).map(_._2).getOrElse(Set.empty)
-          }.filter(m => !ignoreCall(None, m))
-
-          val subToIndices = localSubs.iterator.map { localCls =>
-            val sam = singleAbstractMethods(localCls)
-            val indices = allMethods.flatMap { m =>
-              if (sam.contains(m)) None
-              else nodeToIndex.get(CallGraphAnalysis.LocalDef(st.MethodDef(localCls, m)))
-            }.toArray
-            localCls -> indices
-          }.toMap
-
-          result = (localSubs.toSet, subToIndices)
-        }
-        callbackIndicesCache.put(extType, result)
-      }
-      result
-    }
-
-    val emptyIntArray = Array.empty[Int]
-
-    // Reuse a single BitSet across all nodes to avoid ~60K allocations of ~9KB each
-    val callbackEdges = new java.util.BitSet(indexToNodes.length)
-
     indexToNodes
       .iterator
       .map {
         case CallGraphAnalysis.Call(methodCall) =>
+          // Call nodes resolve to local dests only; external callback edges
+          // are handled by ExternalClsCall proxy nodes connected from LocalDef
           val callInfo = resolved.localCalls(methodCall)
           callInfo
             .localDests
@@ -299,70 +294,26 @@ object CallGraphAnalysis {
             .map(d => nodeToIndex(CallGraphAnalysis.LocalDef(d)))
 
         case CallGraphAnalysis.LocalDef(methodDef) =>
-          val calls = methods(methodDef)
-            .calls
-            .toArray
+          val methodInfo = methods(methodDef)
+          val calls = methodInfo.calls.toArray
             .filter(c => !ignoreCall(Some(methodDef), c.toMethodSig))
 
-          val normalEdges = Array.newBuilder[Int]
-          callbackEdges.clear()
-          val methodInfo = methods(methodDef)
-
-          // Precompute local subtypes of the caller's class (shared across all calls)
-          val callerClassSubs = typeToLocalSubtypes.get(methodDef.cls)
+          val edges = Array.newBuilder[Int]
 
           for (call <- calls) {
+            // Always add the Call edge for local dispatch
+            edges += nodeToIndex(CallGraphAnalysis.Call(call))
+
+            // For calls with external dests, add ExternalClsCall edges using
+            // precise per-call-site types from ASM analysis
             val callInfo = resolved.localCalls(call)
-            if (callInfo.externalDests.isEmpty) {
-              normalEdges += nodeToIndex(CallGraphAnalysis.Call(call))
-            } else {
-              // Include local dests directly (same filtering as the Call node case)
-              for {
-                dest <- callInfo.localDests
-                if !singleAbstractMethods(dest.cls).contains(dest.sig)
-              } callbackEdges.set(nodeToIndex(CallGraphAnalysis.LocalDef(dest)))
-
-              val argTypes = methodInfo.callSiteArgTypes.getOrElse(call, Set.empty)
-              val receiverType = methodInfo.callSiteReceiverType.get(call)
-
-              val allExtTypes =
-                if (argTypes.nonEmpty) callInfo.externalDests ++ argTypes
-                else callInfo.externalDests
-
-              // Build matching local subs from precise types using reverse index.
-              // Optimize common case: no args/receiver → use caller class subs directly
-              val matchingLocalSubs: collection.Set[JType.Cls] =
-                if (argTypes.isEmpty && receiverType.isEmpty) {
-                  if (callerClassSubs != null) callerClassSubs
-                  else collection.Set.empty
-                } else {
-                  val s = collection.mutable.Set.empty[JType.Cls]
-                  if (callerClassSubs != null) s ++= callerClassSubs
-                  for (rt <- receiverType) {
-                    val subs = typeToLocalSubtypes.get(rt)
-                    if (subs != null) s ++= subs
-                  }
-                  for (at <- argTypes) {
-                    val subs = typeToLocalSubtypes.get(at)
-                    if (subs != null) s ++= subs
-                  }
-                  s
-                }
-
-              for (extType <- allExtTypes) {
-                val (localSubsSet, subToIndices) = getCallbackInfo(extType)
-                // Iterate from the smaller side to minimize lookups
-                val (iterSet, checkSet) =
-                  if (matchingLocalSubs.size <= localSubsSet.size)
-                    (matchingLocalSubs, localSubsSet)
-                  else (localSubsSet, matchingLocalSubs)
-                for (s <- iterSet) {
-                  if (checkSet.contains(s)) {
-                    for (idx <- subToIndices.getOrElse(s, emptyIntArray))
-                      callbackEdges.set(idx)
-                  }
-                }
-              }
+            if (callInfo.externalDests.nonEmpty) {
+              val preciseTypes =
+                methodInfo.callSiteReceiverType.get(call).toSeq ++
+                  methodInfo.callSiteArgTypes.getOrElse(call, Set.empty)
+              for (dest <- callInfo.externalDests)
+                for (narrow <- narrowForDest(dest, preciseTypes))
+                  nodeToIndex.get(ExternalClsCall(dest, narrow)).foreach(edges += _)
             }
           }
 
@@ -371,22 +322,30 @@ object CallGraphAnalysis {
             for {
               samSig <- singleAbstractMethods(methodDef.cls)
               idx <- nodeToIndex.get(LocalDef(st.MethodDef(methodDef.cls, samSig)))
-            } callbackEdges.set(idx)
+            } edges += idx
           }
 
-          // Assemble result: normal edges + callback/SAM BitSet
-          val ne = normalEdges.result()
-          val ceCard = callbackEdges.cardinality()
-          val result = new Array[Int](ne.length + ceCard)
-          System.arraycopy(ne, 0, result, 0, ne.length)
-          var pos = ne.length
-          var bit = callbackEdges.nextSetBit(0)
-          while (bit >= 0) {
-            result(pos) = bit
-            pos += 1
-            bit = callbackEdges.nextSetBit(bit + 1)
-          }
-          result
+          edges.result()
+
+        case CallGraphAnalysis.ExternalClsCall(dest, narrow) =>
+          // Resolve callback edges using compound key:
+          // - dest: walk ancestors of dest to collect callback method signatures
+          // - narrow: find local subtypes of narrow to determine dispatch targets
+          val destAncestors = getTransitiveAncestors(dest)
+          val callbackMethods = destAncestors.flatMap { ancestorCls =>
+            resolved.externalClassLocalDests.get(ancestorCls).map(_._2).getOrElse(Set.empty)
+          }.filter(m => !ignoreCall(None, m))
+
+          val localSubs =
+            Option(typeToLocalSubtypes.get(narrow)).getOrElse(collection.mutable.Set.empty)
+
+          (for {
+            localCls <- localSubs
+            sam = singleAbstractMethods(localCls)
+            m <- callbackMethods
+            if !sam.contains(m)
+            idx <- nodeToIndex.get(LocalDef(st.MethodDef(localCls, m)))
+          } yield idx).toArray
       }
       .toArray
   }
@@ -444,14 +403,15 @@ object CallGraphAnalysis {
   }
 
   /**
-   * Represents the two types of nodes in our call graph:
+   * Represents the three types of nodes in our call graph:
    * - LocalDef: a method definition in local code, with a code hash
-   * - Call: a method call site, connecting to its resolved destinations
-   *
-   * External callback edges (from external code back into local code) are
-   * computed precisely per-call-site by walking superclasses for method
-   * signatures and subclasses for local classes, producing direct
-   * LocalDef→LocalDef edges rather than going through shared proxy nodes.
+   * - Call: a method call site, connecting to its resolved local destinations
+   * - ExternalClsCall(dest, narrow): a shared proxy node for external callback
+   *   edges. `dest` determines which callback methods are possible (by walking
+   *   dest's ancestors in externalClassLocalDests). `narrow` determines which
+   *   local subtypes receive those callbacks (subtypes of narrow). When a
+   *   precise bytecode type (receiver or arg) is a subtype of dest, it serves
+   *   as narrow for more precise fan-out; otherwise dest == narrow (no narrowing).
    */
   sealed trait Node
 
@@ -464,5 +424,10 @@ object CallGraphAnalysis {
   }
   case class Call(call: MethodCall) extends Node {
     override def toString: String = "call " + call.toString
+  }
+  case class ExternalClsCall(dest: JType.Cls, narrow: JType.Cls) extends Node {
+    override def toString: String =
+      if (dest == narrow) "external " + dest.toString
+      else s"external ${dest.toString} narrowed ${narrow.toString}"
   }
 }

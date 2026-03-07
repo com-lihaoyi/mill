@@ -21,7 +21,10 @@ public class Hello {
 
 // In this case, `bar` calling `System.identityHashCode(Object)` should be
 // treated as calling all methods of `Object` on all sub-classes of `Object`,
-// which includes `Foo#toString`.
+// which includes `Foo#toString`. `Foo#<init>` also reaches `Foo#toString`
+// via `Object#<init>` narrowed to Foo. `Hello#<init>` does NOT reach
+// `Foo#toString` because its `Object#<init>` call is narrowed to Hello,
+// and Hello doesn't override toString.
 
 /* expected-direct-call-graph
 {
@@ -48,8 +51,8 @@ public class Hello {
     ],
     "hello.Hello.main()void": [
         "hello.Foo#<init>()void",
-        "hello.Foo#toString()java.lang.String",
-        "hello.Hello.bar(hello.Foo)void"
+        "hello.Hello.bar(hello.Foo)void",
+        "hello.Foo#toString()java.lang.String"
     ]
 }
 */
