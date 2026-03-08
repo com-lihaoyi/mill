@@ -549,6 +549,10 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../android/android-native-example.html">Android Native Example</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/koin_androidx_examples.html">Koin Androidx Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -681,7 +685,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.2</span>
+    <span class="version">1.1.3</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -691,10 +695,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.2</a>
-        </li>
-        <li class="version">
-          <a href="../dev-1.1.2-60-984677/index.html">dev-1.1.2-60-984677</a>
+          <a href="../index.html">1.1.3</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -738,7 +739,9 @@
 <p>Automatically build docker images from your mill project.</p>
 </div>
 <div class="paragraph">
-<p>Requires the docker CLI to be installed.</p>
+<p>By default, images are built using <a href="https://github.com/GoogleContainerTools/jib">Jib</a>,
+which does not require a Docker daemon or CLI. To use the classic Dockerfile-based
+approach, extend <code>ClassicDockerConfig</code> instead of <code>DockerConfig</code>.</p>
 </div>
 <div class="paragraph">
 <p>In the simplest configuration just extend <code>DockerModule</code> and declare a <code>DockerConfig</code> object.</p>
@@ -773,8 +776,10 @@ $ docker run foo</code></pre>
 <h2 id="_configuration"><a class="anchor" href="#_configuration"></a>Configuration</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Configure the image by overriding tasks in the <code>DockerConfig</code> object</p>
+<p>Configure the image by overriding tasks in the <code>DockerConfig</code> object.</p>
 </div>
+<div class="sect2">
+<h3 id="_shared_options_both_jib_and_dockerfile_modes"><a class="anchor" href="#_shared_options_both_jib_and_dockerfile_modes"></a>Shared options (both Jib and Dockerfile modes)</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object docker extends DockerConfig {
@@ -783,38 +788,79 @@ $ docker run foo</code></pre>
 
   def baseImage = "openjdk:11"
 
-  // Configure whether the docker build should check the remote registry for a new version of the base image before building.
-  // By default this is true if the base image is using a latest tag
-  def pullBaseImage = true
-  // Add container metadata via the LABEL instruction
+  // Add container metadata via labels
   def labels = Map("version" -&gt; "1.0")
   // TCP ports the container will listen to
   def exposedPorts = Seq(8080, 443)
   // UDP ports the container will listen to
   def exposedUdpPorts = Seq(80)
-  // The names of mount points, these will be translated to VOLUME instructions
-  def volumes = Seq("/v1", "/v2")
-  // Environment variables to be set in the container (ENV instructions)
+  // Environment variables to be set in the container
   def envVars = Map("foo" -&gt; "bar", "foobar" -&gt; "barfoo")
   // JVM runtime options such as heap size settings
   def jvmOptions = Seq("-Xmx1024M", "-XX:+HeapDumpOnOutOfMemoryError")
-  // Add RUN instructions
+  // User to use when running the image
+  def user = "new-user"
+  // Target platform (e.g. "linux/amd64"); used by both Jib and buildx
+  def platform = "linux/arm64"
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_jib_specific_options"><a class="anchor" href="#_jib_specific_options"></a>Jib-specific options</h3>
+<div class="paragraph">
+<p>Jib is the default backend (<code>DockerConfig</code>). It builds images without requiring a Docker daemon.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object docker extends DockerConfig {
+  // Source image (defaults to RegistryImage from baseImage)
+  def jibSourceImage = JibImage.RegistryImage("openjdk:17")
+  // Target image (defaults to DockerDaemonImage from first tag)
+  def jibTargetImage = JibImage.RegistryImage("myregistry.com/myapp")
+  // Image format: JibImageFormat.Docker (default) or JibImageFormat.OCI
+  def jibImageFormat = JibImageFormat.OCI
+  // Custom entrypoint (overrides Jib's default Java entrypoint)
+  def entrypoint = Seq("/bin/sh", "-c", "java -jar /app.jar")
+  // Program arguments passed to the main class
+  def jibProgramArgs = Seq("--server.port=8080")
+  // Allow insecure registries
+  def allowInsecureRegistries = true
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>getJavaBuilder</code> and <code>getJibBuilder</code> tasks can be overridden for advanced
+customization of the Jib container builder.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_dockerfile_based_builds_classicdockerconfig"><a class="anchor" href="#_dockerfile_based_builds_classicdockerconfig"></a>Dockerfile-based builds (ClassicDockerConfig)</h3>
+<div class="paragraph">
+<p>Extend <code>ClassicDockerConfig</code> instead of <code>DockerConfig</code> to use the classic
+Dockerfile-based approach. This requires a Docker CLI to be installed.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object docker extends ClassicDockerConfig {
+  // Configure whether the docker build should check the remote registry for a new version
+  // of the base image before building. By default true if the base image uses a latest tag.
+  def pullBaseImage = true
+  // The names of mount points (not supported by Jib)
+  def volumes = Seq("/v1", "/v2")
+  // Add RUN instructions (not supported by Jib)
   def run = Seq(
     "/bin/bash -c 'echo Hello World!'",
     "useradd -ms /bin/bash new-user"
   )
-  // User to use when running the image
-  def user = "new-user"
-  // Optionally override the docker executable to use something else
+  // Optionally override the docker executable
   def executable = "podman"
-  // If the executable is docker (which is also the default), you can optionally also pass a platform parameter
-  // docker buildx is then used to build multi-platform images
-  def platform = "linux/arm64"
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Run mill in interactive mode to see the docker client output, like <code>mill -i foo.docker.build</code>.</p>
+</div>
 </div>
 </div>
 </div>

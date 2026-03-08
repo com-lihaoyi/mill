@@ -549,6 +549,10 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../android/android-native-example.html">Android Native Example</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/koin_androidx_examples.html">Koin Androidx Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -681,7 +685,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.2</span>
+    <span class="version">1.1.3</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -691,10 +695,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.2</a>
-        </li>
-        <li class="version">
-          <a href="../dev-1.1.2-60-984677/index.html">dev-1.1.2-60-984677</a>
+          <a href="../index.html">1.1.3</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -1109,10 +1110,56 @@ and also check the provided example code.</p>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_explicit_dependencies"><a class="anchor" href="#_explicit_dependencies"></a>Explicit Dependencies</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A plugin that helps to manage dependency hell by avoiding unused declared
+dependencies and used undeclared transitive dependencies. It is a
+reimplementation of <a href="https://github.com/cb372/sbt-explicit-dependencies">sbt-explicit-dependencies</a>
+and supports both external and module dependencies.</p>
+</div>
+<div class="paragraph">
+<p>It supports any Mill version starting from 1.0.5 and includes CI-friendly tasks.</p>
+</div>
+<div class="paragraph">
+<p>Project home: <a href="https://github.com/MarmaladeSky/mill-explicit-dependencies" class="bare">https://github.com/MarmaladeSky/mill-explicit-dependencies</a></p>
+</div>
+<div class="listingblock">
+<div class="title"><code>build.mill</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps:
+//|   - digital.junkie::mill-explicit-dependencies:$MILL_VERSION
+
+import digital.junkie.milledependencies.ExplicitDependencies
+
+object myproject extends ScalaModule, ExplicitDependencies {
+
+  // [optional] filter out unwanted results
+  override def undeclaredCompileDependenciesFilter: Seq[Dep] = Seq.empty
+  override def unusedCompileDependenciesFilter: Seq[Dep] = Seq.empty
+  override def undeclaredCompileModulesFilter: Seq[Module] = Seq.empty
+  override def unusedCompileModulesFilter: Seq[Module] = Seq.empty
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill __.undeclaredCompileDependencies       # find all undeclared dependencies
+&gt; mill __.undeclaredCompileDependenciesTest   # fail if there are undeclared dependencies
+&gt; mill __.unusedCompileDependencies           # find all unused dependencies
+&gt; mill __.unusedCompileDependenciesTest       # fail if there are unused dependencies</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_explicit_deps"><a class="anchor" href="#_explicit_deps"></a>Explicit Deps</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>A plugin that checks that <code>mvnDeps</code> and <code>mvnCompileDeps</code> accurately reflect the direct dependencies of your source code.</p>
+</div>
+<div class="paragraph">
+<p>It supports Mill versions 0.9.X and 0.10.X.</p>
 </div>
 <div class="paragraph">
 <p>Project home: <a href="https://github.com/kierendavies/mill-explicit-deps" class="bare">https://github.com/kierendavies/mill-explicit-deps</a></p>
@@ -1686,45 +1733,90 @@ and more, check the project readme.</p>
 <h2 id="_openapi"><a class="anchor" href="#_openapi"></a>OpenApi</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill plugin for generating source files from an OpenApi spec.</p>
+<p>Official Openapitools Mill plugin for generating source files from an OpenApi spec.</p>
 </div>
 <div class="paragraph">
-<p>Project home: <a href="https://github.com/mikybars/openapi-generator-mill-plugin" class="bare">https://github.com/mikybars/openapi-generator-mill-plugin</a></p>
+<p>Project home: <a href="https://github.com/OpenAPITools/openapi-generator/" class="bare">https://github.com/OpenAPITools/openapi-generator/</a></p>
 </div>
 <div class="listingblock">
 <div class="title"><code>build.mill</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["io.github.mikybars::openapi-generator-mill-plugin::0.1.0"]
-package build
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps:
+//|   - org.openapitools:openapi-generator-mill-plugin:7.20.0 <i class="conum" data-value="1"></i><b>(1)</b>
 
-import mill.*, scalalib.*
-import mill.api.BuildCtx
+import mill.*
 
-import io.github.mikybars.mill.openapi.OpenApiModule
+import org.openapitools.generator.mill.OpenApiModule <i class="conum" data-value="2"></i><b>(2)</b>
 
-object foo extends JavaModule, OpenApiModule {
+object `package` extends JavaModule with MavenModule with OpenApiModule { <i class="conum" data-value="3"></i><b>(3)</b>
 
-  object openapi extends OpenApiConfig {
-     def inputSpec = Task.Source(BuildCtx.workspaceRoot / "api/rest/v1/openapi.yml")
-    def apiPackage: T[String] = "com.example.foo.rest.api"
-    def modelPackage: T[String] = "com.example.foo.rest.model"
-    def generatorName: T[String] = "spring"
-    def modelNameSuffix: T[String] = "Dto"
+  override def mvnDeps = Seq(
+    mvn"jakarta.platform:jakarta.jakartaee-api:11.0.0",
+    mvn"com.fasterxml.jackson.core:jackson-databind:2.20.0",
+  )
+
+  object openapi extends OpenApiConfig { <i class="conum" data-value="4"></i><b>(4)</b>
+    def inputSpec: T[PathRef] = Task.Source(BuildCtx.workspaceRoot / "api" / "petstore.yaml")
+    def apiPackage: T[String] = "com.acme.foo.boundary.web.api"
+    def modelPackage: T[String] = "com.acme.foo.boundary.web.model"
+    def generatorName: T[String] = "jaxrs-spec"
+    def sourceFolder: T[String] = "src/main/java" <i class="conum" data-value="5"></i><b>(5)</b>
+
     def additionalProperties: T[Map[String, String]] = Map(
-      // ...
-      "useSpringBoot3" -&gt; "true",
-      // ...
+      "dateLibrary" -&gt; "java8",
+      "useJakartaEe" -&gt; "true",
+      "useSwaggerAnnotations" -&gt; "false",
+      "interfaceOnly" -&gt; "true",
+      "useTags" -&gt; "true",
     )
   }
 
+  override def generatedSources: T[Seq[PathRef]] = Seq( <i class="conum" data-value="6"></i><b>(6)</b>
+    PathRef(Task.dest),
+    openapi.generate())
 }</code></pre>
 </div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>load dependency to build-script</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>import namespace</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>mark your module as <code>OpenApiModule</code></td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>configure a submodule where the generated artifacts will be produced</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>define the source-root folder. This is needed because different generators use different defaults, and otherwise we cannot create the correct folder for <code>generatedSources</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>attach the previously defined object to the compile phase by overwriting <code>generatedSources</code></td>
+</tr>
+</table>
 </div>
 <div class="listingblock">
 <div class="title">Generate source files</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill foo.openapi.generate</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill openapi.generate</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Here, <code>openapi</code> refers to the object defined previously.</p>
+</div>
+<div class="paragraph">
+<p>For all defined options and tasks, please see the
+<a href="https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-mill-plugin">official documentation</a>.</p>
 </div>
 </div>
 </div>

@@ -549,6 +549,10 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="android-native-example.html">Android Native Example</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="koin_androidx_examples.html">Koin Androidx Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -681,7 +685,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.2</span>
+    <span class="version">1.1.3</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -691,10 +695,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.2</a>
-        </li>
-        <li class="version">
-          <a href="../dev-1.1.2-60-984677/index.html">dev-1.1.2-60-984677</a>
+          <a href="../index.html">1.1.3</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -774,7 +775,7 @@ resource generation, APK building, DEX conversion, and APK signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2/mill-dist-1.1.2-example-androidlib-kotlin-1-hello-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/androidlib/kotlin/1-hello-kotlin">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-androidlib-kotlin-1-hello-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/androidlib/kotlin/1-hello-kotlin">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -960,8 +961,10 @@ The <code>it</code> task runs the android tests on the emulator created and star
 </div>
 </div>
 <div class="paragraph">
-<p>The instrumented tests command accepts additional parameters to filter tests using <code>adb</code> <code>-e</code> options.
-(<a href="https://developer.android.com/studio/test/command-line#am-instrument-options">Documentation found here</a>)</p>
+<p>The instrumented tests command accepts additional parameters to filter tests using <code>adb</code> <code>-e</code> options.</p>
+</div>
+<div class="paragraph">
+<p>Basic documentation can be found <a href="https://developer.android.com/studio/test/command-line#am-instrument-options">here</a> while more JUnitRunner flags can be found <a href="https://developer.android.com/reference/androidx/test/runner/AndroidJUnitRunner#typical-usage">here</a>.</p>
 </div>
 <div class="paragraph">
 <p>For example, to run a specific package:</p>
@@ -969,7 +972,23 @@ The <code>it</code> task runs the android tests on the emulator created and star
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.it -e package com.helloworld.logictest
-..."status": "Success"...</code></pre>
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "com.helloworld.logictest.SampleLogicInKotlinDirInstrumentedTest.kotlin_dir_text_size_is_correct",
+      "selector": "com.helloworld.logictest.SampleLogicInKotlinDirInstrumentedTest.kotlin_dir_text_size_is_correct",
+      "duration": 0,
+      "status": "Success"
+    },
+    {
+      "fullyQualifiedName": "com.helloworld.logictest.SampleLogicInstrumentedTest.text_size_is_correct",
+      "selector": "com.helloworld.logictest.SampleLogicInstrumentedTest.text_size_is_correct",
+      "duration": 0,
+      "status": "Success"
+    }
+  ]
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -978,18 +997,55 @@ The <code>it</code> task runs the android tests on the emulator created and star
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.it -e class com.helloworld.logictest.SampleLogicInstrumentedTest
-..."status": "Success"...</code></pre>
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "com.helloworld.logictest.SampleLogicInstrumentedTest.text_size_is_correct",
+      "selector": "com.helloworld.logictest.SampleLogicInstrumentedTest.text_size_is_correct",
+      "duration": 0,
+      "status": "Success"
+    }
+  ]
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can combine multiple <code>-e</code> options as needed.</p>
+<p>To run a specific method: (Notice the use of single quotes to avoid shell interpretation of the <code>#</code> character)</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.it -e class com.helloworld.logictest.SampleLogicInstrumentedTest,com.helloworld.logictest.SampleLogicInKotlinDirInstrumentedTest -e package com.helloworld.app
-..."status": "Success"...
-..."status": "Success"...
-..."status": "Success"...</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.it -e class 'com.helloworld.app.ExampleInstrumentedTest#useAppContext'
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "selector": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "duration": 0,
+      "status": "Success"
+    }
+  ]
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also exlude spefic tests and combine multiple <code>-e</code> options as needed. For example, to exclude a specific package and class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.it -e notPackage com.helloworld.app -e notClass com.helloworld.logictest.SampleLogicInKotlinDirInstrumentedTest
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "com.helloworld.logictest.SampleLogicInstrumentedTest.text_size_is_correct",
+      "selector": "com.helloworld.logictest.SampleLogicInstrumentedTest.text_size_is_correct",
+      "duration": 0,
+      "status": "Success"
+    }
+  ]
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">

@@ -549,6 +549,10 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../android/android-native-example.html">Android Native Example</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/koin_androidx_examples.html">Koin Androidx Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -681,7 +685,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.2</span>
+    <span class="version">1.1.3</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -691,10 +695,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.2</a>
-        </li>
-        <li class="version">
-          <a href="../dev-1.1.2-60-984677/index.html">dev-1.1.2-60-984677</a>
+          <a href="../index.html">1.1.3</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -778,7 +779,7 @@ in a single large <code>build.mill</code> that may grow to thousands of lines lo
 <div class="sect2">
 <h3 id="_example_project"><a class="anchor" href="#_example_project"></a>Example Project</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2/mill-dist-1.1.2-example-large-multifile-10-multi-file-builds.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/large/multifile/10-multi-file-builds">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-large-multifile-10-multi-file-builds.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/large/multifile/10-multi-file-builds">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -790,7 +791,7 @@ trait MyModule extends ScalaModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2/mill-dist-1.1.2-example-large-multifile-10-multi-file-builds.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/large/multifile/10-multi-file-builds/foo/package.mill">browse</a>)</div>
+<div class="title">foo/package.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-large-multifile-10-multi-file-builds.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/large/multifile/10-multi-file-builds/foo/package.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.foo
 import mill.*, scalalib.*
@@ -802,13 +803,13 @@ object `package` extends build.MyModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">bar/package.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2/mill-dist-1.1.2-example-large-multifile-10-multi-file-builds.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/large/multifile/10-multi-file-builds/bar/package.mill">browse</a>)</div>
+<div class="title">bar/package.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-large-multifile-10-multi-file-builds.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/large/multifile/10-multi-file-builds/bar/package.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.bar</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">bar/qux/package.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2/mill-dist-1.1.2-example-large-multifile-10-multi-file-builds.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/large/multifile/10-multi-file-builds/bar/qux/package.mill">browse</a>)</div>
+<div class="title">bar/qux/package.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-large-multifile-10-multi-file-builds.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/large/multifile/10-multi-file-builds/bar/qux/package.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.bar.qux
 import mill.*, scalalib.*
@@ -868,7 +869,7 @@ also allows you to have helper code in any <code>*.mill</code> file in the same 
 as your <code>build.mill</code> or a <code>package.mill</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2/mill-dist-1.1.2-example-large-multifile-11-helper-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/large/multifile/11-helper-files">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-large-multifile-11-helper-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/large/multifile/11-helper-files">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -882,7 +883,7 @@ object `package` extends MyModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">util.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2/mill-dist-1.1.2-example-large-multifile-11-helper-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/large/multifile/11-helper-files/util.mill">browse</a>)</div>
+<div class="title">util.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-large-multifile-11-helper-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/large/multifile/11-helper-files/util.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -895,7 +896,7 @@ trait MyModule extends ScalaModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2/mill-dist-1.1.2-example-large-multifile-11-helper-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/large/multifile/11-helper-files/foo/package.mill">browse</a>)</div>
+<div class="title">foo/package.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-large-multifile-11-helper-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/large/multifile/11-helper-files/foo/package.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.foo
 import mill.*, scalalib.*
@@ -908,7 +909,7 @@ object `package` extends build.MyModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/versions.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2/mill-dist-1.1.2-example-large-multifile-11-helper-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/large/multifile/11-helper-files/foo/versions.mill">browse</a>)</div>
+<div class="title">foo/versions.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-large-multifile-11-helper-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/large/multifile/11-helper-files/foo/versions.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.foo
 
@@ -990,7 +991,7 @@ and we can reference it from the root build using the hierarchical path
 configuration via imports like <code>build.deps.foo.myScalaVersion</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2/mill-dist-1.1.2-example-large-multifile-12-import-subdir.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/large/multifile/12-import-subdir">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-large-multifile-12-import-subdir.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/large/multifile/12-import-subdir">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-allow-nested-build-mill: true
 
@@ -1003,14 +1004,14 @@ trait BarModule extends build.deps.foo.FooModule</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">deps/package.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2/mill-dist-1.1.2-example-large-multifile-12-import-subdir.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/large/multifile/12-import-subdir/deps/package.mill">browse</a>)</div>
+<div class="title">deps/package.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-large-multifile-12-import-subdir.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/large/multifile/12-import-subdir/deps/package.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// deps/package.mill
 package build.deps</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">deps/foo/build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2/mill-dist-1.1.2-example-large-multifile-12-import-subdir.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/large/multifile/12-import-subdir/deps/foo/build.mill">browse</a>)</div>
+<div class="title">deps/foo/build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-large-multifile-12-import-subdir.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/large/multifile/12-import-subdir/deps/foo/build.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// deps/foo/build.mill
 // This nested build.mill file uses `package build` instead of the
@@ -1023,7 +1024,7 @@ object `package` extends FooModule</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">deps/foo/module.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2/mill-dist-1.1.2-example-large-multifile-12-import-subdir.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/large/multifile/12-import-subdir/deps/foo/module.mill">browse</a>)</div>
+<div class="title">deps/foo/module.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-large-multifile-12-import-subdir.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/large/multifile/12-import-subdir/deps/foo/module.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// deps/foo/module.mill
 // This helper file demonstrates importing definitions from sibling helper files
@@ -1040,7 +1041,7 @@ trait FooModule extends ScalaModule { // trait definition in Helper Files
 </div>
 </div>
 <div class="listingblock">
-<div class="title">deps/foo/versions.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2/mill-dist-1.1.2-example-large-multifile-12-import-subdir.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/large/multifile/12-import-subdir/deps/foo/versions.mill">browse</a>)</div>
+<div class="title">deps/foo/versions.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-large-multifile-12-import-subdir.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/large/multifile/12-import-subdir/deps/foo/versions.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// deps/foo/versions.mill
 package build

@@ -549,6 +549,10 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../android/android-native-example.html">Android Native Example</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/koin_androidx_examples.html">Koin Androidx Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -681,7 +685,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.2</span>
+    <span class="version">1.1.3</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -691,10 +695,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.2</a>
-        </li>
-        <li class="version">
-          <a href="../dev-1.1.2-60-984677/index.html">dev-1.1.2-60-984677</a>
+          <a href="../index.html">1.1.3</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -754,8 +755,14 @@ object foo extends ScalaModule with FlywayModule {
 
   //region flyway
   def flywayUrl = "jdbc:postgresql:myDb" // required
-  def flywayDriverDeps = Seq(mvn"org.postgresql:postgresql:42.2.5") // required
+  def flywayDriverDeps = Seq(mvn"org.postgresql:postgresql:42.2.5") // JDBC driver
+  def flywayPluginDeps = Seq(mvn"org.flywaydb:flyway-database-postgresql:&lt;flyway-core-version&gt;") // required for PostgreSQL
   def flywayUser = "postgres" // optional
+  def flywayPlaceholders = Task {
+    Map(
+      "org" -&gt; "mill"
+    )
+  } // optional
   // def flywayPassword = "" // optional
   //endregion
 }</code></pre>
@@ -775,17 +782,25 @@ This should work regardless of if you are using a mill or sbt project layout.</p
 &gt; mill foo.flywayMigrate</code></pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>if you want to use this plugin with mysql database, make sure to add `org.flywaydb:flyway-mysql:11.20.1` extra dependency in the build file header</pre>
+<div class="paragraph">
+<p>Set <code>flywayDriverDeps</code> to your JDBC driver dependency.
+If your database requires an external Flyway plugin (for example PostgreSQL or MySQL in Flyway 11+),
+set <code>flywayPluginDeps</code> to the matching Flyway database plugin dependency.
+Use the same version as the bundled <code>flyway-core</code> dependency.</p>
 </div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>CAUTION: You should never hard-code credentials or check them into a version control system.
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+You should never hard-code credentials or check them into a version control system.
 You should write some code to populate the settings for flyway instead.
-For example `def flywayPassword = Task.Input(Task.ctx.env("FLYWAY_PASSWORD"))`</pre>
-</div>
+For example <code>def flywayPassword = Task.Input(Task.ctx.env("FLYWAY_PASSWORD"))</code>
+</td>
+</tr>
+</table>
 </div>
 <nav class="pagination">
   <span class="prev"><a href="docker.html">Docker</a></span>

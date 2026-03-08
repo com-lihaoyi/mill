@@ -549,6 +549,10 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../android/android-native-example.html">Android Native Example</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/koin_androidx_examples.html">Koin Androidx Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -681,7 +685,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.2</span>
+    <span class="version">1.1.3</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -691,10 +695,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.2</a>
-        </li>
-        <li class="version">
-          <a href="../dev-1.1.2-60-984677/index.html">dev-1.1.2-60-984677</a>
+          <a href="../index.html">1.1.3</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -747,7 +748,7 @@ It covers setting up a basic backend server with a variety of server frameworks<
 <p>This example shows off running a simple webserver in a module configured via <code>build.mill.yaml</code></p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2/mill-dist-1.1.2-example-javalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/javalib/web/1-web-example/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-javalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/javalib/web/1-web-example/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
 mvnDeps: [org.springframework.boot:spring-boot-starter-web:3.2.0]</code></pre>
@@ -758,7 +759,7 @@ mvnDeps: [org.springframework.boot:spring-boot-starter-web:3.2.0]</code></pre>
 to run the web server</p>
 </div>
 <div class="listingblock">
-<div class="title">src/WebServer.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2/mill-dist-1.1.2-example-javalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/javalib/web/1-web-example/src/WebServer.java">browse</a>)</div>
+<div class="title">src/WebServer.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-javalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/javalib/web/1-web-example/src/WebServer.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
 
@@ -799,7 +800,7 @@ configured by <code>test/package.mill.yaml</code>. This test suite spins up the 
 makes a single HTTP request against and checks it behaves as expected.</p>
 </div>
 <div class="listingblock">
-<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2/mill-dist-1.1.2-example-javalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/javalib/web/1-web-example/test/package.mill.yaml">browse</a>)</div>
+<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-javalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/javalib/web/1-web-example/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.JavaTests, TestModule.Junit5]
 mvnDeps:
@@ -829,7 +830,7 @@ Test example.WebServerTests#testReverseString() finished...</code></pre>
 <h2 id="_jetty_hello_world_app"><a class="anchor" href="#_jetty_hello_world_app"></a>Jetty Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2/mill-dist-1.1.2-example-javalib-web-2-hello-jetty.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/javalib/web/2-hello-jetty/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-javalib-web-2-hello-jetty.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/javalib/web/2-hello-jetty/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
 mvnDeps:
@@ -863,7 +864,7 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 <h2 id="_micronaut_hello_world_app"><a class="anchor" href="#_micronaut_hello_world_app"></a>Micronaut Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2/mill-dist-1.1.2-example-javalib-web-3-hello-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/javalib/web/3-hello-micronaut">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-javalib-web-3-hello-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/javalib/web/3-hello-micronaut">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -959,7 +960,7 @@ extended with more features as necessary.</p>
 <h2 id="_micronaut_todomvc_app"><a class="anchor" href="#_micronaut_todomvc_app"></a>Micronaut TodoMvc App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2/mill-dist-1.1.2-example-javalib-web-4-todo-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/javalib/web/4-todo-micronaut/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-javalib-web-4-todo-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/javalib/web/4-todo-micronaut/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: MavenModule
 bomMvnDeps:
@@ -999,7 +1000,7 @@ mvnDeps:
 </div>
 </div>
 <div class="listingblock">
-<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2/mill-dist-1.1.2-example-javalib-web-4-todo-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/javalib/web/4-todo-micronaut/test/package.mill.yaml">browse</a>)</div>
+<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-javalib-web-4-todo-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/javalib/web/4-todo-micronaut/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [MavenTests, TestModule.Junit5]
 bomMvnDeps:
@@ -1073,7 +1074,7 @@ and can be extended to cover additional functionality in future</p>
 It uses Micronaut AOT to optimize the application for the native image generation.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.2/mill-dist-1.1.2-example-javalib-web-5-micronaut-native.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.2/example/javalib/web/5-micronaut-native/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-javalib-web-5-micronaut-native.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/javalib/web/5-micronaut-native/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [MavenModule, mill.javalib.micronaut.MicronautNativeAotModule]
 micronautPackage: hello.world
@@ -1116,6 +1117,184 @@ runMvnDeps:
 {"_links":{"self":[{"href":"/","templated":false}]},"_embedded":{"errors":[{"message":"Page Not Found"}]},"message":"Not Found"}
 
 &gt; ./mill clean nativeRunBackground</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_quarkus_example"><a class="anchor" href="#_quarkus_example"></a>Quarkus Example</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-javalib-web-6-quarkus-getting-started.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/javalib/web/6-quarkus-getting-started">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.*, javalib.*
+
+import mill.javalib.quarkus.QuarkusModule
+
+object `package` extends QuarkusModule, MavenModule {
+
+  def jvmVersion = "graalvm-community:23.0.1"
+
+  def quarkusPlatformVersion = "3.31.3"
+
+  def artifactGroupId = "com.lihaoyi.example"
+  def artifactId = "6-quarkus-getting-started"
+  def artifactVersion = "0.0.1-SNAPSHOT"
+
+  def mvnDeps = Seq(
+    mvn"io.quarkus:quarkus-arc",
+    mvn"io.quarkus:quarkus-rest"
+  )
+
+  trait QuarkusTestBase extends MavenTests, QuarkusJunit {
+    def mvnDeps = Seq(
+      mvn"io.rest-assured:rest-assured"
+    )
+  }
+  object test extends QuarkusTestBase
+
+  object `native-test` extends QuarkusTestBase, QuarkusNativeTest {
+    def moduleDeps = super.moduleDeps ++ Seq(test)
+  }
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can run and test the app as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show quarkusRunJar
+...out/quarkusApp.dest/quarkus/quarkus-app/quarkus-run.jar...
+
+&gt; ./mill show runBackground
+
+&gt; curl http://localhost:${PORT:-8080}/hello
+Hello from Quarkus REST
+
+&gt; ./mill clean runBackground
+
+&gt; ./mill show test
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "org.acme.GreetingResourceTest",
+      "selector": "testHelloEndpoint()",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
+
+&gt; ./mill show native-test
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "org.acme.GreetingResourceIT",
+      "selector": "testHelloEndpoint()",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_quarkus_todomvc_example"><a class="anchor" href="#_quarkus_todomvc_example"></a>Quarkus TodoMVC Example</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This example demonstrates how to configure mill for a simple todo-mvc application using Quarkus.
+It uses H2 for the database, Hibernate ORM with Panache for the data access layer,
+and Qute for HTML templating.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-javalib-web-7-quarkus-todo.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/javalib/web/7-quarkus-todo">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.*, javalib.*
+
+import mill.javalib.quarkus.QuarkusModule
+
+object `package` extends QuarkusModule, MavenModule {
+
+  def jvmVersion = "graalvm-community:23.0.1"
+  def quarkusPlatformVersion = "3.31.3"
+
+  def artifactGroupId = "com.lihaoyi.example"
+  def artifactId = "7-quarkus-todo"
+  def artifactVersion = "0.0.1-SNAPSHOT"
+
+  def mvnDeps = Seq(
+    mvn"io.quarkus:quarkus-arc",
+    mvn"io.quarkus:quarkus-rest",
+    mvn"io.quarkus:quarkus-qute",
+    mvn"io.quarkus:quarkus-rest-qute",
+    mvn"io.quarkus:quarkus-jdbc-h2",
+    mvn"io.quarkus:quarkus-hibernate-orm-panache"
+  )
+
+  trait QuarkusTestBase extends MavenTests, QuarkusJunit {
+    def mvnDeps = Seq(
+      mvn"io.rest-assured:rest-assured"
+    )
+  }
+
+  object test extends QuarkusTestBase
+
+  object `native-test` extends QuarkusTestBase, QuarkusNativeTest {
+    def moduleDeps = super.moduleDeps ++ Seq(test)
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can run and test the app as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show quarkusRunJar
+...out/quarkusApp.dest/quarkus/quarkus-app/quarkus-run.jar...
+
+&gt; ./mill show runBackground
+
+&gt; curl http://localhost:${PORT:-8080}/todos
+...Mill Todo MVC...
+
+&gt; ./mill clean runBackground
+
+&gt; ./mill show test
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "rest.TodosTest",
+      "selector": "testTodoPage()",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
+
+&gt; ./mill show native-test
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "rest.TodosIT",
+      "selector": "testTodoPage()",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}</code></pre>
 </div>
 </div>
 </div>
