@@ -277,8 +277,7 @@ class GenIdeaImpl(
       } else if (os.exists(path / os.up / s"${baseName}-sources.jar")) {
         val sources = Some(path / os.up / s"${baseName}-sources.jar")
         Some(WithSourcesResolved(path, sources))
-      }
-      else {
+      } else {
         Some(OtherResolved(path))
       }
     }
