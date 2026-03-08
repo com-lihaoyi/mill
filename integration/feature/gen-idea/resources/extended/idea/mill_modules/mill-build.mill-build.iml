@@ -18,6 +18,7 @@
         <orderEntry type="library" name="scala-SDK-<version>" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="aircompressor-0.27.jar" level="project"/>
         <orderEntry type="library" name="asm-<version>.jar" level="project"/>
+        <orderEntry type="library" name="asm-analysis-<version>.jar" level="project"/>
         <orderEntry type="library" name="asm-tree-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="cache-util-COURSIER_VERSION.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="commons-codec-<version>.jar" level="project"/>

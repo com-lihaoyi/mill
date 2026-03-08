@@ -22,35 +22,174 @@ class CallGraphAnalysis(
     (sig, m) <- v.methods
   } yield (st.MethodDef(k, sig), m)
 
+  // Cache ancestor BFS results at class level so it can be used for both
+  // ExternalClsCall pair computation and indexGraphEdges resolution.
+  val ancestorCache = new java.util.HashMap[JType.Cls, Set[JType.Cls]]()
+  def getTransitiveAncestors(cls: JType.Cls): Set[JType.Cls] = {
+    var result = ancestorCache.get(cls)
+    if (result == null) {
+      result = SpanningForest.breadthFirst(Seq(cls)) { c =>
+        if (localSummary.contains(c)) localSummary.items(c).directAncestors
+        else externalSummary.directAncestors.getOrElse(c, Nil)
+      }.toSet
+      ancestorCache.put(cls, result)
+    }
+    result
+  }
+
+  // For each externalDest, find any precise type (receiver or arg) that is a subtype.
+  // Returns the narrowing type for that dest, or the dest itself if no precise subtype.
+  def narrowForDest(dest: JType.Cls, preciseTypes: Iterable[JType.Cls]): Iterable[JType.Cls] = {
+    val subtypes = preciseTypes.filter(pt => getTransitiveAncestors(pt).contains(dest))
+    if (subtypes.nonEmpty) subtypes else Iterable(dest)
+  }
+
+  // Collect all (dest, narrow) pairs needed as ExternalClsCall proxy nodes, then
+  // transitively expand to include (ancestor, narrow) pairs so that each node can
+  // chain to its parent. This avoids duplicating callback method edges: each node
+  // only handles methods declared at its own level, reaching ancestor methods
+  // transitively through ExternalClsCall → ExternalClsCall parent edges.
+  val externalClsCallPairs: Set[(JType.Cls, JType.Cls)] = {
+    val pairs = collection.mutable.Set.empty[(JType.Cls, JType.Cls)]
+    for ((_, methodInfo) <- methods) {
+      for (call <- methodInfo.calls) {
+        val callInfo = resolved.localCalls(call)
+        if (callInfo.externalDests.nonEmpty) {
+          val preciseTypes =
+            methodInfo.callSiteReceiverType.get(call).toSeq ++
+              methodInfo.callSiteArgTypes.getOrElse(call, Set.empty)
+          for (dest <- callInfo.externalDests) {
+            for (narrow <- narrowForDest(dest, preciseTypes)) pairs += ((dest, narrow))
+          }
+        }
+      }
+    }
+    // Expand: for each (dest, narrow), add (ancestor, narrow) for all ancestors of dest
+    // so that parent chain nodes exist in the graph
+    val expanded = collection.mutable.Set.empty[(JType.Cls, JType.Cls)]
+    for ((dest, narrow) <- pairs) {
+      for (ancestor <- getTransitiveAncestors(dest)) {
+        if (externalSummary.directAncestors.contains(ancestor)) {
+          expanded += ((ancestor, narrow))
+        }
+      }
+    }
+    expanded.toSet
+  }
+
   val indexToNodes: Array[CallGraphAnalysis.Node] =
     methods.keys.toArray.map[CallGraphAnalysis.Node](CallGraphAnalysis.LocalDef(_)) ++
       resolved.localCalls.keys.map(CallGraphAnalysis.Call(_)) ++
-      externalSummary.directMethods.keys.map(CallGraphAnalysis.ExternalClsCall(_))
+      externalClsCallPairs.map(CallGraphAnalysis.ExternalClsCall(_, _))
 
   val nodeToIndex = indexToNodes.zipWithIndex.toMap
 
-  val indexGraphEdges: Array[Array[Int]] = CallGraphAnalysis.indexGraphEdges(
-    indexToNodes,
-    methods,
-    resolved,
-    externalSummary,
-    nodeToIndex,
-    ignoreCall
-  )
+  def singleAbstractMethods(methodDefCls: JType.Cls) = {
+    resolved.classSingleAbstractMethods.getOrElse(methodDefCls, Set.empty)
+  }
 
-  lazy val methodCodeHashes: SortedMap[String, Int] =
+  // Precompute reverse ancestor index: for each type t, which local classes
+  // are subtypes of t? This allows O(1) lookup instead of iterating all
+  // localSubs and checking ancestors for each.
+  val typeToLocalSubtypes = {
+    val result = new java.util.HashMap[JType.Cls, collection.mutable.Set[JType.Cls]]()
+    for (localCls <- localSummary.items.keys) {
+      for (ancestor <- getTransitiveAncestors(localCls)) {
+        var subs = result.get(ancestor)
+        if (subs == null) { subs = collection.mutable.Set.empty; result.put(ancestor, subs) }
+        subs += localCls
+      }
+    }
+    result
+  }
+
+  val indexGraphEdges: Array[Array[Int]] = indexToNodes
+    .iterator
+    .map {
+      case CallGraphAnalysis.Call(methodCall) =>
+        // Call nodes resolve to local dests only; external callback edges
+        // are handled by ExternalClsCall proxy nodes connected from LocalDef
+        resolved.localCalls(methodCall)
+          .localDests
+          .toArray
+          .filter(methodDef => !singleAbstractMethods(methodDef.cls).contains(methodDef.sig))
+          .map(d => nodeToIndex(CallGraphAnalysis.LocalDef(d)))
+
+      case CallGraphAnalysis.LocalDef(methodDef) =>
+        val methodInfo = methods(methodDef)
+        val calls = methodInfo.calls.toArray
+          .filter(c => !ignoreCall(Some(methodDef), c.toMethodSig))
+
+        val edges = Array.newBuilder[Int]
+
+        for (call <- calls) {
+          // Always add the Call edge for local dispatch
+          edges += nodeToIndex(CallGraphAnalysis.Call(call))
+
+          // For calls with external dests, add ExternalClsCall edges using
+          // precise per-call-site types from ASM analysis
+          val callInfo = resolved.localCalls(call)
+          if (callInfo.externalDests.nonEmpty) {
+            val preciseTypes =
+              methodInfo.callSiteReceiverType.get(call).toSeq ++
+                methodInfo.callSiteArgTypes.getOrElse(call, Set.empty)
+            for (dest <- callInfo.externalDests)
+              for (narrow <- narrowForDest(dest, preciseTypes))
+                nodeToIndex.get(CallGraphAnalysis.ExternalClsCall(dest, narrow)).foreach(edges += _)
+          }
+        }
+
+        // SAM init edges: when <init> is called, the SAM method is "live"
+        if (methodDef.sig.name == "<init>") {
+          for {
+            samSig <- singleAbstractMethods(methodDef.cls)
+            idx <- nodeToIndex.get(CallGraphAnalysis.LocalDef(st.MethodDef(methodDef.cls, samSig)))
+          } edges += idx
+        }
+
+        edges.result()
+
+      case CallGraphAnalysis.ExternalClsCall(dest, narrow) =>
+        // Each node handles only methods declared at this level of the hierarchy.
+        // Ancestor methods are reached via parent chain edges to ExternalClsCall(parent, narrow).
+        val localMethods = resolved.externalClassLocalDests
+          .get(dest).map(_._2).getOrElse(Set.empty)
+          .filter(m => !ignoreCall(None, m))
+        val localSubs =
+          Option(typeToLocalSubtypes.get(narrow)).getOrElse(collection.mutable.Set.empty)
+
+        val edges = Array.newBuilder[Int]
+        for (localCls <- localSubs) {
+          val sam = singleAbstractMethods(localCls)
+          for (m <- localMethods) {
+            if (!sam.contains(m)) {
+              for (idx <- nodeToIndex.get(CallGraphAnalysis.LocalDef(st.MethodDef(localCls, m))))
+                edges += idx
+            }
+          }
+        }
+        // Parent chain edges to reach ancestor methods
+        for (parent <- externalSummary.directAncestors.getOrElse(dest, Set.empty)) {
+          for (idx <- nodeToIndex.get(CallGraphAnalysis.ExternalClsCall(parent, narrow)))
+            edges += idx
+        }
+        edges.result()
+    }
+    .toArray
+
+  val methodCodeHashes: SortedMap[String, Int] =
     methods.map { case (k, vs) => (k.toString, vs.codeHash) }.to(SortedMap)
 
   logger.mandatoryLog(methodCodeHashes)
 
   lazy val prettyCallGraph: SortedMap[String, Array[CallGraphAnalysis.Node]] = {
-    indexGraphEdges.zip(indexToNodes).map { case (vs, k) =>
-      (k.toString, vs.map(indexToNodes))
-    }
+    indexGraphEdges
+      .zip(indexToNodes)
+      .map { case (vs, k) => (k.toString, vs.map(indexToNodes)) }
       .to(SortedMap)
   }
 
-  logger.mandatoryLog(prettyCallGraph)
+  logger.log(prettyCallGraph)
 
   def transitiveCallGraphValues[V: scala.reflect.ClassTag](
       nodeValues: Array[V],
@@ -95,7 +234,7 @@ class CallGraphAnalysis(
     case None => ujson.Obj()
   }
 
-  logger.mandatoryLog(spanningInvalidationTree)
+  logger.mandatoryLog(spanningInvalidationTree, indent = 2)
 }
 
 object CallGraphAnalysis {
@@ -144,6 +283,8 @@ object CallGraphAnalysis {
       }
       .toSet
 
+    if (nodesWithChangedTransitiveHashes.isEmpty) return ujson.Obj()
+
     // Find nodes whose actual code changed (these are the true root causes)
     // Only LocalDef nodes have code hashes
     val nodesWithChangedCode: Set[Int] = prevMethodCodeHashesOpt match {
@@ -163,13 +304,24 @@ object CallGraphAnalysis {
         nodesWithChangedTransitiveHashes
     }
 
-    val reverseGraphMap = indexGraphEdges
-      .zipWithIndex
-      .flatMap { case (vs, k) => vs.map((_, k)) }
-      .groupMap(_._1)(_._2)
+    // Build reverse graph using two-pass approach to avoid allocating millions of tuples
+    val inDegree = new Array[Int](indexGraphEdges.length)
+    for (vs <- indexGraphEdges; v <- vs) inDegree(v) += 1
 
-    val reverseGraphEdges =
-      indexGraphEdges.indices.map(reverseGraphMap.getOrElse(_, Array[Int]())).toArray
+    val reverseGraphEdges = inDegree.map(new Array[Int](_))
+    val fillIndex = new Array[Int](indexGraphEdges.length)
+    var srcIdx = 0
+    while (srcIdx < indexGraphEdges.length) {
+      val dests = indexGraphEdges(srcIdx)
+      var j = 0
+      while (j < dests.length) {
+        val dest = dests(j)
+        reverseGraphEdges(dest)(fillIndex(dest)) = srcIdx
+        fillIndex(dest) += 1
+        j += 1
+      }
+      srcIdx += 1
+    }
 
     // Use actual code changes as roots, but include all transitively affected nodes
     SpanningForest.spanningTreeToJsonTree(
@@ -180,79 +332,6 @@ object CallGraphAnalysis {
       ),
       k => indexToNodes(k).toString
     )
-  }
-
-  def indexGraphEdges(
-      indexToNodes: Array[Node],
-      methods: Map[MethodDef, LocalSummary.MethodInfo],
-      resolved: ResolvedCalls,
-      externalSummary: ExternalSummary,
-      nodeToIndex: Map[CallGraphAnalysis.Node, Int],
-      ignoreCall: (Option[MethodDef], MethodSig) => Boolean
-  )(using st: SymbolTable): Array[Array[Int]] = {
-
-    def singleAbstractMethods(methodDefCls: JType.Cls) = {
-      resolved.classSingleAbstractMethods.getOrElse(methodDefCls, Set.empty)
-    }
-
-    indexToNodes
-      .iterator
-      .map {
-        case CallGraphAnalysis.Call(methodCall) =>
-          val callInfo = resolved.localCalls(methodCall)
-          val local = callInfo
-            .localDests
-            .toArray
-            .filter(methodDef => !singleAbstractMethods(methodDef.cls).contains(methodDef.sig))
-            .map(d => nodeToIndex(CallGraphAnalysis.LocalDef(d)))
-
-          val external = callInfo
-            .externalDests
-            .toArray
-            .map(c => nodeToIndex(CallGraphAnalysis.ExternalClsCall(c)))
-
-          local ++ external
-
-        case CallGraphAnalysis.LocalDef(methodDef) =>
-          val normalCalls = methods(methodDef)
-            .calls
-            .toArray
-            .filter(c => !ignoreCall(Some(methodDef), c.toMethodSig))
-            .map(c => nodeToIndex(CallGraphAnalysis.Call(c)))
-
-          val singleAbstractMethodInitEdge =
-            if (methodDef.sig.name != "<init>") None
-            else {
-              singleAbstractMethods(methodDef.cls)
-                .flatMap(samSig => nodeToIndex.get(LocalDef(st.MethodDef(methodDef.cls, samSig))))
-            }
-
-          normalCalls ++ singleAbstractMethodInitEdge
-
-        case CallGraphAnalysis.ExternalClsCall(externalCls) =>
-          val local = resolved
-            .externalClassLocalDests
-            .get(externalCls)
-            .iterator
-            .flatMap { case (localClasses: Set[JType.Cls], localMethods: Set[MethodSig]) =>
-              for {
-                cls <- localClasses
-                m <- localMethods
-                if methods.contains(st.MethodDef(cls, m))
-                if !singleAbstractMethods(cls).contains(m)
-                if !ignoreCall(None, m)
-              } yield nodeToIndex(CallGraphAnalysis.LocalDef(st.MethodDef(cls, m)))
-            }
-            .toArray
-
-          val parent = externalSummary
-            .directAncestors(externalCls)
-            .map(c => nodeToIndex(CallGraphAnalysis.ExternalClsCall(c)))
-
-          local ++ parent
-      }
-      .map(_.sorted)
-      .toArray
   }
 
   /**
@@ -274,20 +353,23 @@ object CallGraphAnalysis {
   ): Array[(Node, V)] = {
     val topoSortedMethodGroups = Tarjans.apply(indexGraphEdges)
 
-    val nodeGroups = topoSortedMethodGroups
-      .iterator
-      .zipWithIndex
-      .flatMap { case (group, groupIndex) => group.map((_, groupIndex)) }
-      .toMap
+    // Use array for O(1) group lookups instead of HashMap
+    val nodeGroupsArray = new Array[Int](indexToNodes.length)
+    for (groupIndex <- topoSortedMethodGroups.indices)
+      for (node <- topoSortedMethodGroups(groupIndex))
+        nodeGroupsArray(node) = groupIndex
 
     val seenGroupValues = new Array[V](topoSortedMethodGroups.length)
+    val seenUpstreamGroups = new java.util.BitSet(topoSortedMethodGroups.length)
     for (groupIndex <- topoSortedMethodGroups.indices) {
+      seenUpstreamGroups.clear()
       var value: V = zero
       for (node <- topoSortedMethodGroups(groupIndex)) {
         value = reduce(value, nodeValues(node))
         for (upstreamNode <- indexGraphEdges(node)) {
-          val upstreamGroup = nodeGroups(upstreamNode)
-          if (upstreamGroup != groupIndex) {
+          val upstreamGroup = nodeGroupsArray(upstreamNode)
+          if (upstreamGroup != groupIndex && !seenUpstreamGroups.get(upstreamGroup)) {
+            seenUpstreamGroups.set(upstreamGroup)
             value = reduce(value, seenGroupValues(upstreamGroup))
           }
         }
@@ -305,10 +387,15 @@ object CallGraphAnalysis {
   }
 
   /**
-   * Represents the three types of nodes in our call graph. These are kept heterogeneous
-   * because flattening them out into a homogenous graph of MethodDef -> MethodDef edges
-   * results in a lot of duplication that bloats the size of the graph non-linearly with
-   * the size of the program
+   * Represents the three types of nodes in our call graph:
+   * - LocalDef: a method definition in local code, with a code hash
+   * - Call: a method call site, connecting to its resolved local destinations
+   * - ExternalClsCall(dest, narrow): a shared proxy node for external callback
+   *   edges. `dest` determines which callback methods are possible (by walking
+   *   dest's ancestors in externalClassLocalDests). `narrow` determines which
+   *   local subtypes receive those callbacks (subtypes of narrow). When a
+   *   precise bytecode type (receiver or arg) is a subtype of dest, it serves
+   *   as narrow for more precise fan-out; otherwise dest == narrow (no narrowing).
    */
   sealed trait Node
 
@@ -322,7 +409,9 @@ object CallGraphAnalysis {
   case class Call(call: MethodCall) extends Node {
     override def toString: String = "call " + call.toString
   }
-  case class ExternalClsCall(call: JType.Cls) extends Node {
-    override def toString: String = "external " + call.toString
+  case class ExternalClsCall(dest: JType.Cls, narrow: JType.Cls) extends Node {
+    override def toString: String =
+      if (dest == narrow) "external " + dest.toString
+      else s"external ${dest.toString} narrowed ${narrow.toString}"
   }
 }

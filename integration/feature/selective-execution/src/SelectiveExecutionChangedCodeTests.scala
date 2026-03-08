@@ -131,5 +131,65 @@ object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
       )
     }
 
+    test("resolveTree-adding-scalamodule-does-not-show-clinit") - integrationTest { tester =>
+      import tester.*
+
+      if (tester.daemonMode) {
+        eval("shutdown", check = true, stderr = os.Inherit)
+      }
+
+      os.write.over(
+        workspacePath / "build.mill",
+        """package build
+          |
+          |import mill.*
+          |import mill.scalalib.*
+          |
+          |object `package` extends Module:
+          |
+          |  object foo extends ScalaModule:
+          |    override def scalaVersion = "3.8.1"
+          |""".stripMargin
+      )
+
+      eval(
+        ("clean"),
+        check = true,
+        stderr = os.Inherit
+      )
+
+      eval(
+        ("selective.prepare"),
+        check = true,
+        stderr = os.Inherit
+      )
+
+      os.write.append(
+        workspacePath / "build.mill",
+        """
+          |
+          |  object bar extends ScalaModule:
+          |    override def scalaVersion = "3.8.1"
+          |""".stripMargin
+      )
+
+      val resolveTree = eval(
+        ("selective.resolveTree", "__.compile"),
+        check = true,
+        stderr = os.Inherit
+      )
+
+      assertGoldenLiteral(
+        resolveTree.out.linesIterator.toSeq,
+        List(
+          "{",
+          "  \"def build_.package_$bar$#<init>(build_.package_)void\": {",
+          "    \"bar.compile\": {}",
+          "  }",
+          "}"
+        )
+      )
+    }
+
   }
 }
