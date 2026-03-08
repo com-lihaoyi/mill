@@ -16,6 +16,29 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 === main branch
 
+[#1-1-3]
+=== 1.1.3
+:version: 1.1.3
+:milestone-name: 1.1.3
+:milestone: 142
+:prev-version: 1.1.2
+_2026-03-08_
+
+_Changes since {prev-version}:_
+
+* Print launcher errors rather than hiding them in the logs {link-pr}/6914[#6914]
+* Improve precision of codesig callgraph analysis {link-pr}/6880[#6880]
+* Allow users to discover tests classes via zinc {link-pr}/6901[#6901]
+* Properly propagate incomplete UTF-8 bytes separately to avoid corruption
+  during string construction {link-pr}/6895[#6895]
+* Switch Kotlin BT API JVM compile path to KotlinToolchains. {link-pr}/6857[#6857]
+* Bump Scala to 3.8.2 {link-pr}/6885[#6885]
+* Support case-insensitive behavior for `TaskCtx.env` under Windows {link-pr}/6867[#6867]
+* Fix slowness in `showMvnDepsTree` {link-pr}/6863[#6863]
+* Make `run` interactive by default {link-pr}/6832[#6832]
+* Document `-J` prefix in `javacOptions` to customize JVM daemon runtime flags {link-pr}/6803[#6803]
+
+
 [#1-1-2]
 === 1.1.2
 :version: 1.1.2
@@ -26,7 +49,7 @@ _2026-02-07_
 
 _Changes since {prev-version}:_
 
-* Fix escaping of strings in yaml lists in `./mill init`{link-pr}/6798[#6798]
+* Fix escaping of strings in yaml lists in `./mill init` {link-pr}/6798[#6798]
 
 * Fix incremental compilation problems with `package.mill.yaml` files {link-pr}/6792[#6792]
 
