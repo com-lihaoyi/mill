@@ -129,6 +129,7 @@ object MillLauncherMain {
 
         log(sw.toString)
 
+        stderr.println(sw.toString)
         stderr.println(s"Mill launcher failed. See ${logFile.relativeTo(workDir)} for details.")
         1
     }
