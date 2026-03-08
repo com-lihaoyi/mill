@@ -12,7 +12,12 @@
 </div>
 <div class="cover">
  <div class="doc">
-  <p>Represents the three types of nodes in our call graph. These are kept heterogeneous because flattening them out into a homogenous graph of MethodDef -&gt; MethodDef edges results in a lot of duplication that bloats the size of the graph non-linearly with the size of the program</p>
+  <p>Represents the three types of nodes in our call graph:</p>
+  <ul>
+   <li>LocalDef: a method definition in local code, with a code hash</li>
+   <li>Call: a method call site, connecting to its resolved local destinations</li>
+   <li>ExternalClsCall(dest, narrow): a shared proxy node for external callback edges. <code>dest</code> determines which callback methods are possible (by walking dest's ancestors in externalClassLocalDests). <code>narrow</code> determines which local subtypes receive those callbacks (subtypes of narrow). When a precise bytecode type (receiver or arg) is a subtype of dest, it serves as narrow for more precise fan-out; otherwise dest == narrow (no narrowing).</li>
+  </ul>
  </div>
  <section id="attributes">
   <h2 class="h500">Attributes</h2>

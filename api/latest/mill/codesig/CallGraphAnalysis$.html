@@ -168,7 +168,7 @@ node3 -> node2;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="CallGraphAnalysis$$ExternalClsCall.html" t="n" class="documentableName ">ExternalClsCall</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">call</span>: <a href="JvmModel$$JType$$Cls.html" t="t">Cls</a>)<span t="k"> extends </span><a href="CallGraphAnalysis$$Node.html" t="t">Node</a></span><span class="signature-long"></span>
+            <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="CallGraphAnalysis$$ExternalClsCall.html" t="n" class="documentableName ">ExternalClsCall</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">dest</span>: <a href="JvmModel$$JType$$Cls.html" t="t">Cls</a>, <span t="k"></span><span data-unresolved-link="" t="n">narrow</span>: <a href="JvmModel$$JType$$Cls.html" t="t">Cls</a>)<span t="k"> extends </span><a href="CallGraphAnalysis$$Node.html" t="t">Node</a></span><span class="signature-long"></span>
            </div>
           </div>
          </div>
@@ -300,11 +300,16 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Represents the three types of nodes in our call graph. These are kept heterogeneous because flattening them out into a homogenous graph of MethodDef -&gt; MethodDef edges results in a lot of duplication that bloats the size of the graph non-linearly with the size of the program</p>
+             <p>Represents the three types of nodes in our call graph:</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Represents the three types of nodes in our call graph. These are kept heterogeneous because flattening them out into a homogenous graph of MethodDef -&gt; MethodDef edges results in a lot of duplication that bloats the size of the graph non-linearly with the size of the program</p>
+              <p>Represents the three types of nodes in our call graph:</p>
+              <ul>
+               <li>LocalDef: a method definition in local code, with a code hash</li>
+               <li>Call: a method call site, connecting to its resolved local destinations</li>
+               <li>ExternalClsCall(dest, narrow): a shared proxy node for external callback edges. <code>dest</code> determines which callback methods are possible (by walking dest's ancestors in externalClassLocalDests). <code>narrow</code> determines which local subtypes receive those callbacks (subtypes of narrow). When a precise bytecode type (receiver or arg) is a subtype of dest, it serves as narrow for more precise fan-out; otherwise dest == narrow (no narrowing).</li>
+              </ul>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -366,36 +371,6 @@ node3 -> node2;
         <div class="documentableList-expander">
          <button class="icon-button show-content expand"></button>
          <h4 class="groupHeader h200">Concrete methods</h4>
-        </div>
-        <div class="documentableElement" id="indexGraphEdges-fffffe3f">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="CallGraphAnalysis$.html#indexGraphEdges-fffffe3f" t="n" class="documentableName ">indexGraphEdges</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">indexToNodes</span>: <span data-unresolved-link="" t="t">Array</span>[<a href="CallGraphAnalysis$$Node.html" t="t">Node</a>], <span t="k"></span><span data-unresolved-link="" t="n">methods</span>: <span data-unresolved-link="" t="t">Map</span>[<a href="JvmModel$$MethodDef.html" t="t">MethodDef</a>, <a href="LocalSummary$$MethodInfo.html" t="t">MethodInfo</a>], <span t="k"></span><span data-unresolved-link="" t="n">resolved</span>: <a href="ResolvedCalls.html" t="t">ResolvedCalls</a>, <span t="k"></span><span data-unresolved-link="" t="n">externalSummary</span>: <a href="ExternalSummary.html" t="t">ExternalSummary</a>, <span t="k"></span><span data-unresolved-link="" t="n">nodeToIndex</span>: <span data-unresolved-link="" t="t">Map</span>[<a href="CallGraphAnalysis$$Node.html" t="t">Node</a>, <span data-unresolved-link="" t="t">Int</span>], <span t="k"></span><span data-unresolved-link="" t="n">ignoreCall</span>: (<span data-unresolved-link="" t="t">Option</span>[<a href="JvmModel$$MethodDef.html" t="t">MethodDef</a>], <a href="JvmModel$$MethodSig.html" t="t">MethodSig</a>) <span t="k">=&gt;</span> <span data-unresolved-link="" t="t">Boolean</span>)(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">st</span>: <a href="JvmModel$$SymbolTable.html" t="t">SymbolTable</a>): <span data-unresolved-link="" t="t">Array</span>[<span data-unresolved-link="" t="t">Array</span>[<span data-unresolved-link="" t="t">Int</span>]]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/runner/codesig/src/mill/codesig/ReachabilityAnalysis.scala" target="_blank">ReachabilityAnalysis.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
         </div>
         <div class="documentableElement" id="spanningInvalidationTree-fffffadd">
          <div class="documentableElement-expander">
