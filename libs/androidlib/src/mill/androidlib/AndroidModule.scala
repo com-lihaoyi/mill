@@ -398,6 +398,8 @@ trait AndroidModule extends JavaModule { outer =>
     androidJarMvnDeps() ++ transformedAars
   }
 
+  override private[mill] def alternativeResolvedMvnDeps = androidResolvedMvnDeps()
+
   def androidAarMvnDeps: T[Seq[PathRef]] = Task {
     resolvedMvnDeps().filter(_.path.ext == "aar")
   }

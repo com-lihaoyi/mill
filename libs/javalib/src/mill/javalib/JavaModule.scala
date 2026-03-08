@@ -1185,6 +1185,10 @@ trait JavaModule
     }
     resolvedMvnDeps0(sources = false)()
   }
+  
+  private[mill] def alternativeResolvedMvnDeps: T[Seq[PathRef]] = Task {
+    Seq.empty[PathRef]
+  }
 
   /**
    * Resolved dependency sources, unpacked into a single directory. Useful to quickly
