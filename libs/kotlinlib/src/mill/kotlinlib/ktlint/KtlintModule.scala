@@ -103,7 +103,7 @@ object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskMod
       config: Option[PathRef],
       options: Seq[String],
       classPath: Seq[PathRef]
-  )(using ctx: mill.api.TaskCtx): Unit = {
+  )(using ctx: mill.api.TaskCtx): Seq[os.Path] = {
     val sourceFiles = Lib.findSourceFiles(pathsToFormat, Seq("kt", "kts"))
       // skip formatting single-file projects since Palantir Format messes up the header block
       .filter(!os.read(_).startsWith("//|"))
@@ -115,7 +115,7 @@ object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskMod
         // which is probably ok for a freshly set up project
         // we just return, since ktlint defaults to format the current working dir
         ctx.log.info(s"No kotlin sources found.")
-        return
+        return Seq()
       }
     }
 
@@ -157,5 +157,7 @@ object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskMod
         ctx.log.error(s"Ktlint exited abnormally with exit code = $exitCode")
       }
     }
+
+    sourceFiles
   }
 }
