@@ -2,9 +2,9 @@ package mill.kotlinlib.ktlint
 
 import mainargs.arg
 import mill.*
-import mill.api.{PathRef}
+import mill.api.PathRef
 import mill.api.{Discover, ExternalModule}
-import mill.javalib.JavaModule
+import mill.javalib.{JavaModule, Lib}
 import mill.kotlinlib.{DepSyntax, KotlinModule}
 import mill.util.Tasks
 import mill.util.Jvm
@@ -99,15 +99,30 @@ object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskMod
 
   private def ktlintAction(
       ktlintArgs: KtlintArgs,
-      filesToFormat: Seq[PathRef],
+      pathsToFormat: Seq[PathRef],
       config: Option[PathRef],
       options: Seq[String],
       classPath: Seq[PathRef]
   )(using ctx: mill.api.TaskCtx): Unit = {
+    val sourceFiles = Lib.findSourceFiles(pathsToFormat, Seq("kt", "kts"))
+      // skip formatting single-file projects since Palantir Format messes up the header block
+      .filter(!os.read(_).startsWith("//|"))
+    if (sourceFiles.isEmpty) {
+      // no files found
+      if (pathsToFormat.isEmpty) Task.fail("No paths selected.")
+      else {
+        // The sources simple didn't contain any formattable source file,
+        // which is probably ok for a freshly set up project
+        // we just return, since ktlint defaults to format the current working dir
+        ctx.log.info(s"No kotlin sources found.")
+        return
+      }
+    }
+
     if (ktlintArgs.check) {
-      ctx.log.info("checking format in kotlin sources ...")
+      ctx.log.info(s"Checking format in ${sourceFiles.size} kotlin sources ...")
     } else {
-      ctx.log.info("formatting kotlin sources ...")
+      ctx.log.info(s"Formatting ${sourceFiles.size} kotlin sources ...")
     }
 
     val configArgument = config match {
@@ -120,11 +135,7 @@ object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskMod
     args ++= options
     args ++= configArgument
     args ++= formatArgument
-    args ++= filesToFormat.map(_.path)
-      // skip formatting single-file projects since Palantir Format messes up the header block
-      .filter(f => os.exists(f) && (f.ext == "kt" || f.ext == "kts"))
-      .filter(!os.read(_).startsWith("//|"))
-      .map(_.toString())
+    args ++= sourceFiles.map(_.toString())
 
     val exitCode = BuildCtx.withFilesystemCheckerDisabled {
       Jvm.callProcess(
@@ -141,9 +152,9 @@ object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskMod
     if (exitCode == 0) {} // do nothing
     else {
       if (ktlintArgs.check) {
-        throw new RuntimeException(s"ktlint exited abnormally with exit code = $exitCode")
+        throw new RuntimeException(s"Ktlint exited abnormally with exit code = $exitCode")
       } else {
-        ctx.log.error(s"ktlint exited abnormally with exit code = $exitCode")
+        ctx.log.error(s"Ktlint exited abnormally with exit code = $exitCode")
       }
     }
   }
