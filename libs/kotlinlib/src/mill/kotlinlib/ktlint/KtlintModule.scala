@@ -106,14 +106,14 @@ object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskMod
   )(using ctx: mill.api.TaskCtx): Seq[os.Path] = {
     val sourceFiles = Lib.findSourceFiles(pathsToFormat, Seq("kt", "kts"))
       // skip formatting single-file projects since Palantir Format messes up the header block
-      .filter(!os.read(_).startsWith("//|"))
+      .filterNot(p => p.ext == "kt" && os.read(p).startsWith("//|"))
     if (sourceFiles.isEmpty) {
       // no files found
       if (pathsToFormat.isEmpty) Task.fail("No paths selected.")
       else {
-        // The sources simple didn't contain any formattable source file,
-        // which is probably ok for a freshly set up project
-        // we just return, since ktlint defaults to format the current working dir
+        // Nothing to do here, which is ok for a freshly set up project.
+        // Please note that ktlint tends to default to format the current working
+        // dir when no source paths are given, which is not what we want.
         ctx.log.info(s"No kotlin sources found.")
         return Seq()
       }
