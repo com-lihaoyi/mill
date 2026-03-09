@@ -21,6 +21,7 @@ import mill.*
 import java.io.File
 import mainargs.Flag
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
+import mill.api.daemon.internal.idea.{JavaFacet, Element}
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
 
 /**
@@ -496,6 +497,72 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
         dokkaCliClasspath() ++
         dokkaPluginsClasspath()
     ).distinct
+  }
+
+  override def ideaJavaModuleFacets(ideaConfigVersion: Int): Task[Seq[JavaFacet]] = Task.Anon {
+    val facets = ideaConfigVersion match {
+      case 4 => {
+        Seq(
+          JavaFacet(
+            "kotlin-language",
+            "Kotlin",
+            Element(
+              "configuration",
+              attributes = Map(
+                "version" -> "5"
+              ),
+              childs = Seq(
+                Element(
+                  "compilerSettings",
+                  childs = Seq(
+                    Element(
+                      "option",
+                      attributes = Map(
+                        "name" -> "additionalArguments",
+                        "value" -> allKotlincOptions().mkString(" ")
+                      )
+                    )
+                  )
+                ),
+                Element(
+                  "compilerArguments",
+                  childs = Seq(
+                    Element(
+                      "stringArguments",
+                      childs = Seq(
+                        Element(
+                          "stringArg",
+                          attributes = Map(
+                            "name" -> "jvmTarget",
+                            "arg" -> jvmVersion()
+                          )
+                        ),
+                        Element(
+                          "stringArg",
+                          attributes = Map(
+                            "name" -> "apiVersion",
+                            "arg" -> kotlinApiVersion()
+                          )
+                        ),
+                        Element(
+                          "stringArg",
+                          attributes = Map(
+                            "name" -> "languageVersion",
+                            "arg" -> kotlinLanguageVersion()
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      }
+      case _ => Seq.empty
+    }
+    super.ideaJavaModuleFacets(ideaConfigVersion)() ++ facets
   }
 
   /**
