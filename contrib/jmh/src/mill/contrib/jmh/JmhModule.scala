@@ -37,7 +37,7 @@ trait JmhModule extends JavaModule {
   def mvnDeps = super.mvnDeps() ++ Seq(mvn"org.openjdk.jmh:jmh-core:${jmhCoreVersion()}")
 
   def runJmh(args: String*) =
-    Task.Command {
+    Task.Command(exclusive = true) {
       val (_, resources) = generateBenchmarkSources()
       Jvm.callProcess(
         mainClass = "org.openjdk.jmh.Main",
