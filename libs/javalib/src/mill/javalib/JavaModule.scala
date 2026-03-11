@@ -1187,18 +1187,6 @@ trait JavaModule
   }
 
   /**
-   * This method can be used by downstream JavaModule subsclasses to pass
-   * non jar dependencies. The use case for this can be for example,
-   * an AAR (Android) that the AndroidModule is transforming into classes.jar
-   * and sources.jar . Callers of this method can get these jars from this method
-   * as [[resolvedMvnDeps]] will contain AARs which may not be compatible with an
-   * IDE integration (such as the [[GenIdeaModule]]
-   */
-  private[mill] def alternativeResolvedMvnDeps: T[Seq[PathRef]] = Task {
-    Seq.empty[PathRef]
-  }
-
-  /**
    * Resolved dependency sources, unpacked into a single directory. Useful to quickly
    * look up the sources of the dependencies on your classpath so you can find the
    * exact source code you are compiling and running against.

@@ -30,7 +30,7 @@ trait GenIdeaModule extends mill.api.Module with GenIdeaInternalApi {
   }
 
   private[mill] def extDependencies = Task {
-    javaModule.resolvedMvnDeps() ++ javaModule.alternativeResolvedMvnDeps() ++
+    javaModule.resolvedMvnDeps() ++
       Task.traverse(javaModule.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
   }
 

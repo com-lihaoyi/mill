@@ -21,6 +21,10 @@ trait AndroidModule extends JavaModule { outer =>
     ModuleRef(new BspAndroidModule.Wrap(this) {}.internalBspJavaModule)
   }
 
+  private[mill] override lazy val genIdeaInternalExt = {
+    ModuleRef(new mill.androidlib.idea.GenIdeaModule.Wrap(this) {}.internalGenIdea)
+  }
+
   // https://cs.android.com/android-studio/platform/tools/base/+/mirror-goog-studio-main:build-system/gradle-core/src/main/java/com/android/build/gradle/internal/tasks/D8BundleMainDexListTask.kt;l=210-223;drc=66ab6bccb85ce3ed7b371535929a69f494d807f0
   val mainDexPlatformRules = Seq(
     "-keep public class * extends android.app.Instrumentation {\n" +
@@ -396,11 +400,6 @@ trait AndroidModule extends JavaModule { outer =>
   def androidResolvedMvnDeps: T[Seq[PathRef]] = Task {
     val transformedAars = androidUnpackedAarMvnDeps().flatMap(_.classesJar)
     androidJarMvnDeps() ++ transformedAars
-  }
-
-  override private[mill] def alternativeResolvedMvnDeps = Task {
-    val aarDeps = androidUnpackedAarMvnDeps()
-    aarDeps.flatMap(_.classesJar)
   }
 
   def androidAarMvnDeps: T[Seq[PathRef]] = Task {
