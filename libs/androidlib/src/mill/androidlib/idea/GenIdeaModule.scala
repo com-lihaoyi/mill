@@ -9,7 +9,8 @@ import mill.api.{ModuleCtx, Task}
 trait GenIdeaModule extends mill.javalib.idea.GenIdeaModule {
 
   override private[mill] def extDependencies = Task {
-    super.extDependencies() ++ javaModuleRef().androidUnpackedAarMvnDeps().flatMap(_.classesJar)
+    super.extDependencies().filter(_.path.ext != "aar")
+      ++ javaModuleRef().androidUnpackedAarMvnDeps().flatMap(_.classesJar)
   }
 
   def javaModuleRef: mill.api.ModuleRef[AndroidModule]
