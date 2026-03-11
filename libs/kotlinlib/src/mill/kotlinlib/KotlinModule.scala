@@ -500,6 +500,15 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
   }
 
   override def ideaJavaModuleFacets(ideaConfigVersion: Int): Task[Seq[JavaFacet]] = Task.Anon {
+    def stringArgElement(name: String, arg: String): Element =
+      Element(
+        "stringArg",
+        attributes = Map(
+          "name" -> name,
+          "arg" -> arg
+        )
+      )
+
     val facets = ideaConfigVersion match {
       case 4 => {
         Seq(
@@ -529,29 +538,13 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
                   childs = Seq(
                     Element(
                       "stringArguments",
-                      childs = Seq(
-                        Element(
-                          "stringArg",
-                          attributes = Map(
-                            "name" -> "jvmTarget",
-                            "arg" -> jvmVersion()
+                      childs =
+                          Seq(
+                            stringArgElement("apiVersion", kotlinApiVersion()),
+                            stringArgElement("languageVersion", kotlinLanguageVersion())
+                          ) ++ when(jvmVersion().nonEmpty)(
+                            stringArgElement("jvmTarget", jvmVersion())
                           )
-                        ),
-                        Element(
-                          "stringArg",
-                          attributes = Map(
-                            "name" -> "apiVersion",
-                            "arg" -> kotlinApiVersion()
-                          )
-                        ),
-                        Element(
-                          "stringArg",
-                          attributes = Map(
-                            "name" -> "languageVersion",
-                            "arg" -> kotlinLanguageVersion()
-                          )
-                        )
-                      )
                     )
                   )
                 )
