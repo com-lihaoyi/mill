@@ -82,6 +82,8 @@ object ExecutionTests extends TestSuite {
       "cleanClientDownstream done"
     }
 
+    def nonExclusiveCommand() = Task.Command() { "nonExclusive done" }
+
     lazy val millDiscover = Discover[this.type]
   }
 
@@ -634,6 +636,43 @@ object ExecutionTests extends TestSuite {
           assert(result.isRight)
           val Right(UnitTester.Result(value, _)) = result.runtimeChecked
           assert(value == "cleanClientDownstream done")
+        }
+      }
+    }
+
+    test("makeExclusive") {
+      test("nonExclusiveBecomesExclusive") {
+        // makeExclusive on a non-exclusive command returns a new Command with exclusive = true
+        val cmd = exclusiveCommands.nonExclusiveCommand()
+        assert(!cmd.exclusive)
+        val exclusive = cmd.makeExclusive
+        assert(exclusive.exclusive)
+      }
+
+      test("alreadyExclusiveReturnsSelf") {
+        // makeExclusive on an already-exclusive command returns the same instance
+        val cmd = exclusiveCommands.cleanClientRight()
+        assert(cmd.exclusive)
+        assert(cmd.makeExclusive eq cmd)
+      }
+
+      test("makeExclusivePreservesProperties") {
+        // makeExclusive preserves inputs, isPrivate, persistent, and selectiveInputs0
+        val cmd = exclusiveCommands.nonExclusiveCommand()
+        val exclusive = cmd.makeExclusive
+        assert(exclusive.inputs == cmd.inputs)
+        assert(exclusive.isPrivate == cmd.isPrivate)
+        assert(exclusive.persistent == cmd.persistent)
+        assert(exclusive.selectiveInputs0 == cmd.selectiveInputs0)
+      }
+
+      test("makeExclusiveCommandWorks") {
+        // A command turned exclusive via makeExclusive executes successfully
+        UnitTester(exclusiveCommands, null).scoped { tester =>
+          val result = tester.apply(exclusiveCommands.nonExclusiveCommand().makeExclusive)
+          assert(result.isRight)
+          val Right(UnitTester.Result(value, _)) = result.runtimeChecked
+          assert(value == "nonExclusive done")
         }
       }
     }
