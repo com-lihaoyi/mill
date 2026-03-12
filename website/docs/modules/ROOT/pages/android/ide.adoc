@@ -2,7 +2,50 @@
 :page-aliases: android_ide.adoc
 
 This page outlines the current IDE support for Android projects built with Mill.
-Mill integrates with IntelliJ IDEA and Android Studio through the BSP (Build Server Protocol) plugin.
+Mill integrates with IntelliJ IDEA and Android Studio by either:
+
+- using the BSP (Build Server Protocol) plugin
+- generating the necessary project (`idea/`) files for direct import.
+
+Both options work, but they have different trade-offs depending on which IDE features you rely on.
+
+== Importing with BSP
+
+BSP import is the recommended default for most projects:
+
+- fast to set up
+- keeps the IDE model close to Mill's build definition
+- works well for basic Java/Kotlin editing, navigation, and static import features.
+
+[NOTE]
+====
+Some advanced Android/Kotlin IDE features are not always fully supported via BSP.
+In particular, if you rely on Jetpack Compose IDE highlighting/support,
+switch to the generated IntelliJ project files import described below.
+====
+
+To use BSP, import the project in IntelliJ IDEA / Android Studio via BSP
+
+image::android/ImportBSP.png[Importing via BSP]
+If you do not see the option to import via BSP, ensure you have the Build Server Protocol plugin installed and that you have run `mill --bsp-install` in your project directory.
+
+== Generating IntelliJ IDEA project files
+
+If you want Jetpack Compose support or prefer to work with generated project files, you can generate IntelliJ project files and import those directly.
+
+To generate and import IntelliJ project files:
+
+- Do not yet import the project into the IDE.
+- Delete `.bsp` and `.idea` directories if they exist.
+- Run `mill mill.idea.GenIdea/` to generate the IntelliJ project files.
+- Open the project in IntelliJ (File -> Open) and select the project directory.
+
+== Jetpack Compose IDE Support
+
+Jetpack Compose IDE support is currently experimental and only available when using the generated IntelliJ project files import method. To enable Jetpack Compose IDE support:
+
+- Have the Kotlin plugin installed in your IDE.
+- Mix the `KotlinIdeaModule` trait into your `AndroidKotlinModule` definitions in `build.mill`, so the appropriate Facets and configurations are generated for your Kotlin sources.
 
 == Static Import Features and `R` Class Support
 
@@ -14,23 +57,16 @@ image::android/RClassSupport.png[R Class Support]
 [NOTE]
 ====
 To ensure correct resolution of generated paths and resources, you must run a compilation from the command line after making changes to resource files or `build.mill` definitions.
-This ensures the BSP server updates the IDE with the latest sources and class files.
+This ensures the IDE is updated with the latest sources and class files.
 ====
 
 == File Type Associations and Project Layout
 
-The IDE properly recognizes file types and project layout when imported through BSP.
-
-image::android/ImportBSP.png[Importing via BSP]
+The IDE properly recognizes file types and project layout when imported through the above methods:
 
 - Source files, resource folders, and generated outputs are color-coded as expected.
 - Test directories are identified and appear in green.
 - Output folders (e.g., `out/`) and build targets appear in orange, indicating generated content.
-
-[NOTE]
-====
-Ensure `mill --bsp-install` has been run before importing the project via BSP.
-====
 
 == Logcat Integration
 
@@ -42,5 +78,5 @@ image::android/Logcat.png[Logcat Integration]
 If IDE features seem incomplete or broken:
 
 - Run `mill __.compile` to regenerate class files and trigger updates.
-- Resync the BSP project in your IDE.
+- If you imported through BSP, resync the BSP project in your IDE.
 - Delete the `out` directory in case of persistent issues, then recompile the project.
