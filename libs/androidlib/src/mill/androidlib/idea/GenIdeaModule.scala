@@ -3,17 +3,25 @@ package mill.androidlib.idea
 import mill.androidlib.AndroidModule
 import mill.api.daemon.experimental
 import mill.api.daemon.internal.internal
-import mill.api.{ModuleCtx, Task}
+import mill.api.{ModuleCtx, Task, PathRef}
 
 @experimental
 trait GenIdeaModule extends mill.javalib.idea.GenIdeaModule {
+
+  def javaModuleRef: mill.api.ModuleRef[AndroidModule]
 
   override private[mill] def extDependencies = Task {
     super.extDependencies().filter(_.path.ext != "aar")
       ++ javaModuleRef().androidUnpackedAarMvnDeps().flatMap(_.classesJar)
   }
 
-  def javaModuleRef: mill.api.ModuleRef[AndroidModule]
+  override private[mill] def moduleGeneratedSources = Task {
+    val superSources = super.moduleGeneratedSources()
+    val rSourcesDirs =
+      Seq(javaModuleRef().androidLinkedResources().path / "generatedSources").map(PathRef(_))
+
+    superSources ++ rSourcesDirs
+  }
 
 }
 
