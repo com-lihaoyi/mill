@@ -218,7 +218,10 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       }
     }
 
-    override def skipIdea = true
+    // Disable this module in BSP clients by default
+    override def enableBsp: Boolean = false
+    // Skip this module in IntelliJ IDEA by default
+    override def skipIdea: Boolean = true
   }
 
   trait ScoverageTests extends ScalaTests {

@@ -277,18 +277,6 @@
     },
     {
       "target": {
-        "uri": "file:///workspace/mill-synthetic-root-target"
-      },
-      "sources": [
-        {
-          "uri": "file:///workspace/src",
-          "kind": 2,
-          "generated": false
-        }
-      ]
-    },
-    {
-      "target": {
         "uri": "file:///workspace/scripts"
       },
       "sources": [
