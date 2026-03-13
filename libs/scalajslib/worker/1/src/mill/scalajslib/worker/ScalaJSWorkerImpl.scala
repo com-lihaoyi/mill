@@ -68,35 +68,33 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
       testBridgeInit: Boolean,
       importMap: Seq[workerApi.ESModuleImportMapping],
       config: sjs.StandardConfig
-		): Either[String, sjs.Report] = rawLink(
-      runClasspath = runClasspath,
-      dest = Left[File, OutputDirectory](dest),
-      moduleInitializers = moduleInitializers,
-      forceOutJs = forceOutJs,
-      testBridgeInit = testBridgeInit,
-      importMap = importMap,
-      config = config
-    )
+  ): Either[String, sjs.Report] = rawLink(
+    runClasspath = runClasspath,
+    dest = Left[File, OutputDirectory](dest),
+    moduleInitializers = moduleInitializers,
+    forceOutJs = forceOutJs,
+    testBridgeInit = testBridgeInit,
+    importMap = importMap,
+    config = config
+  )
 
   override def rawLink(
-				runClasspath: Seq[Path],
-				dest: OutputDirectory,
-				moduleInitializers: Seq[sjs.ModuleInitializer],
-				forceOutJs: Boolean,
-				testBridgeInit: Boolean,
-				importMap: Seq[workerApi.ESModuleImportMapping],
-				config: sjs.StandardConfig
-		): Either[String, sjs.Report] = rawLink(
-      runClasspath = runClasspath,
-      dest = Right[File, OutputDirectory](dest),
-      moduleInitializers = moduleInitializers,
-      forceOutJs = forceOutJs,
-      testBridgeInit = testBridgeInit,
-      importMap = importMap,
-      config = config
-    )
-
-
+      runClasspath: Seq[Path],
+      dest: OutputDirectory,
+      moduleInitializers: Seq[sjs.ModuleInitializer],
+      forceOutJs: Boolean,
+      testBridgeInit: Boolean,
+      importMap: Seq[workerApi.ESModuleImportMapping],
+      config: sjs.StandardConfig
+  ): Either[String, sjs.Report] = rawLink(
+    runClasspath = runClasspath,
+    dest = Right[File, OutputDirectory](dest),
+    moduleInitializers = moduleInitializers,
+    forceOutJs = forceOutJs,
+    testBridgeInit = testBridgeInit,
+    importMap = importMap,
+    config = config
+  )
 
   def rawLink(
       runClasspath: Seq[Path],
@@ -172,9 +170,9 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
           }
         } else {
           val linkerOutput: OutputDirectory = dest match {
-              case Left(file) => PathOutputDirectory(file.toPath())
-              case Right(folder) => folder
-            }
+            case Left(file) => PathOutputDirectory(file.toPath())
+            case Right(folder) => folder
+          }
           linker.link(
             irFiles,
             moduleInitializers0,
