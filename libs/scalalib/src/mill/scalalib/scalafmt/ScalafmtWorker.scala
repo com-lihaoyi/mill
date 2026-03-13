@@ -10,7 +10,7 @@ import mill.api.Result
 object ScalafmtWorkerModule extends ExternalModule with JavaModule {
 
   /**
-   * Classpath for running Palantir Java Format.
+   * Classpath for running Scalafmt
    */
   def scalafmtClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
