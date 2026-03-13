@@ -22,7 +22,8 @@ object androidSdkModule0 extends AndroidSdkModule {
 object app
     extends AndroidAppKotlinModule,
       AndroidR8AppModule,
-      AndroidHiltSupport {
+      AndroidHiltSupport,
+      KotlinIdeaModule {
 
   def kotlinVersion = Versions.kotlinVersion
   def kspVersion = Versions.kspVersion
@@ -106,7 +107,8 @@ object app
     mvn"com.google.dagger:hilt-android-compiler:2.56"
   )
 
-  object test extends KspTests, AndroidAppKotlinTests, AndroidHiltSupport, TestModule.Junit4 {
+  object test extends KspTests, AndroidAppKotlinTests, AndroidHiltSupport, TestModule.Junit4,
+        KotlinIdeaModule {
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
 
@@ -146,7 +148,8 @@ object app
   object androidTest
       extends AndroidAppKotlinInstrumentedTests,
         AndroidR8InstrumentedTestsModule,
-        AndroidHiltSupport {
+        AndroidHiltSupport,
+        KotlinIdeaModule {
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
     def kspJvmTarget = "17"
@@ -209,7 +212,7 @@ object app
 
 }
 
-object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport {
+object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport, KotlinIdeaModule {
 
   def moduleDeps = Seq(app)
 

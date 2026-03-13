@@ -62,6 +62,10 @@ trait GenIdeaModule extends mill.api.Module with GenIdeaInternalApi {
       extRunMvnDeps().collect(jarCollector).map(p => (p, Some("RUNTIME")))
   }
 
+  private[mill] def moduleGeneratedSources = Task {
+    javaModule.generatedSources()
+  }
+
   private[mill] override def genIdeaResolvedModule(
       ideaConfigVersion: Int,
       segments: Segments
@@ -81,7 +85,7 @@ trait GenIdeaModule extends mill.api.Module with GenIdeaInternalApi {
     val resolvedCompilerOutput = ideaCompileOutput().path.toNIO
     val resolvedScalaVersion = scalaVersion()
     val resources = javaModule.resources().map(_.path.toNIO)
-    val generatedSources = javaModule.generatedSources().map(_.path.toNIO)
+    val generatedSources = moduleGeneratedSources().map(_.path.toNIO)
     val allSources = javaModule.allSources().map(_.path.toNIO)
 
     ResolvedModule(
