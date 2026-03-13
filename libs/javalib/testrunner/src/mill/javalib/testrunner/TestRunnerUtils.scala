@@ -63,7 +63,9 @@ import scala.math.Ordering.Implicits.*
                 // sbt-jupiter-interface ignores fingerprinting since JUnit5 has its own resolving mechanism
                 Some((cls, fingerprints.head))
               } else if (
-                Modifier.isAbstract(cls.getModifiers) || cls.isInterface || publicConstructorCount > 1
+                Modifier.isAbstract(
+                  cls.getModifiers
+                ) || cls.isInterface || publicConstructorCount > 1
               ) {
                 None
               } else {
