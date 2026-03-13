@@ -15,6 +15,10 @@ trait GenIdeaModule extends mill.javalib.idea.GenIdeaModule {
       ++ javaModuleRef().androidUnpackedAarMvnDeps().flatMap(_.classesJar)
   }
 
+  /**
+   * Generated R.java sources are not passed to [[AndroidModule.generatedSources]],
+   * but they should still be passed down to the IDE for correct source navigation.
+   */
   override private[mill] def moduleGeneratedSources = Task {
     val superSources = super.moduleGeneratedSources()
     val rSourcesDirs =
