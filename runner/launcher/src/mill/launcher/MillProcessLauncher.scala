@@ -29,7 +29,13 @@ object MillProcessLauncher {
 
     val userPropsSeq = ClientUtil.getUserSetProperties().map { case (k, v) => s"-D$k=$v" }.toSeq
 
-    val cmd = millLaunchJvmCommand(runnerClasspath, outMode, workDir, millRepositories) ++
+    val cmd = millLaunchJvmCommand(
+      runnerClasspath,
+      outMode,
+      workDir,
+      millRepositories,
+      extraJvmOpts = Seq("-XX:TieredStopAtLevel=1")
+    ) ++
       userPropsSeq ++
       Seq(mainClass, processDir.toString, outMode.asString, useFileLocks.toString) ++
       loadMillConfig(ConfigConstants.millOpts, workDir) ++
@@ -192,7 +198,8 @@ object MillProcessLauncher {
       runnerClasspath: Seq[os.Path],
       outMode: OutFolderMode,
       workDir: os.Path,
-      millRepositories: Seq[String]
+      millRepositories: Seq[String],
+      extraJvmOpts: Seq[String] = Seq.empty
   ): Seq[String] = {
     val millProps = sys.props.toSeq
       .filter(_._1.startsWith("MILL_"))
@@ -211,6 +218,7 @@ object MillProcessLauncher {
       millProps ++
       serverTimeoutOpt ++
       encodingOpts ++
+      extraJvmOpts ++
       loadMillConfig(ConfigConstants.millJvmOpts, workDir) ++
       Seq("-cp", runnerClasspath.mkString(File.pathSeparator))
   }
