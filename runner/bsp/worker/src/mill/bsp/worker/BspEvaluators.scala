@@ -27,8 +27,13 @@ class BspEvaluators(
   private lazy val disabledBspModules: Set[ModuleApi] =
     Utils.computeDisabledBspModules(evaluators)
 
+  // Strip trailing `/` and `:` from segment parts, since external modules and script
+  // modules use those suffixes which are invalid os.Path characters
+  // https://github.com/com-lihaoyi/mill/issues/6925
   private def moduleUri(rootModule: ModuleApi, module: ModuleApi) = Utils.sanitizeUri(
-    (os.Path(rootModule.moduleDirJava) / module.moduleSegments.parts).toNIO
+    (os.Path(rootModule.moduleDirJava) / module.moduleSegments.parts.map(
+      _.stripSuffix("/").stripSuffix(":")
+    )).toNIO
   )
 
   lazy val bspModulesIdList0: Seq[(BuildTargetIdentifier, (BspModuleApi, EvaluatorApi))] =
