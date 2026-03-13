@@ -37,8 +37,10 @@ To generate and import IntelliJ project files:
 
 - Do not yet import the project into the IDE.
 - Delete `.bsp` and `.idea` directories if they exist.
-- Run `mill mill.idea.GenIdea/` to generate the IntelliJ project files.
+- Run `mill mill.idea/` to generate the IntelliJ project files.
 - Open the project in IntelliJ (File -> Open) and select the project directory.
+
+As mentioned in the xref:cli/installation-ide.adoc#_intellij_idea_xml_support[IDE setup page], if you make any changes to your `build.mill` definitions, you must regenerate the IntelliJ project files by running `mill mill.idea/` again.
 
 == Jetpack Compose IDE Support
 
@@ -79,4 +81,5 @@ If IDE features seem incomplete or broken:
 
 - Run `mill __.compile` to regenerate class files and trigger updates.
 - If you imported through BSP, resync the BSP project in your IDE.
+- If using IntelliJ project files but the project structure still seems broken, close the IDE and try repeating the instruction steps <<_generating_intellij_idea_project_files, above>> to regenerate the project files and re-import.
 - Delete the `out` directory in case of persistent issues, then recompile the project.
