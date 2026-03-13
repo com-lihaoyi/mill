@@ -40,6 +40,10 @@ case class ModuleSpec(
     errorProneOptions: Values[String] = Values(),
     errorProneJavacEnableOptions: Values[Opt] = Values(),
     jmhCoreVersion: Value[String] = Value(),
+    checkstyleProperties: Values[(String, String)] = Values(),
+    checkstyleMvnDeps: Values[MvnDep] = Values(),
+    checkstyleConfig: Value[os.RelPath] = Value(),
+    checkstyleVersion: Value[String] = Value(),
     scalaVersion: Value[String] = Value(),
     scalacOptions: Values[Opt] = Values(),
     scalacPluginMvnDeps: Values[MvnDep] = Values(),
@@ -96,6 +100,20 @@ case class ModuleSpec(
     imports = "mill.contrib.jmh.JmhModule" +: imports,
     supertypes = supertypes :+ "JmhModule",
     jmhCoreVersion = jmhCoreVersion
+  )
+
+  def withCheckstyleModule(
+      checkstyleProperties: Values[(String, String)] = Values(),
+      checkstyleMvnDeps: Values[MvnDep] = Values(),
+      checkstyleConfig: Value[os.RelPath] = Value(),
+      checkstyleVersion: Value[String] = Value()
+  ): ModuleSpec = copy(
+    imports = "mill.javalib.checkstyle.CheckstyleModule" +: imports,
+    supertypes = supertypes :+ "CheckstyleModule",
+    checkstyleProperties = checkstyleProperties,
+    checkstyleMvnDeps = checkstyleMvnDeps,
+    checkstyleConfig = checkstyleConfig,
+    checkstyleVersion = checkstyleVersion
   )
 
   def withJupiterInterface(junitVersion: String): ModuleSpec = {
@@ -242,7 +260,8 @@ object ModuleSpec {
   case class Value[+A](base: Option[A] = None, cross: Seq[(String, A)] = Nil)
   object Value {
     implicit def rw[A: ReadWriter]: ReadWriter[Value[A]] = macroRW
-    implicit def from[A](base: Option[A]): Value[A] = apply(base = base)
+    implicit def from[A](base: A): Value[A] = apply(base = Option(base))
+    implicit def fromOption[A](base: Option[A]): Value[A] = apply(base = base)
   }
   case class Values[+A](
       base: Seq[A] = Nil,
@@ -251,7 +270,7 @@ object ModuleSpec {
   )
   object Values {
     implicit def rw[A: ReadWriter]: ReadWriter[Values[A]] = macroRW
-    implicit def from[A](base: Seq[A]): Values[A] = apply(base = base)
+    implicit def fromSeq[A](base: Seq[A]): Values[A] = apply(base = base)
   }
   implicit val rw: ReadWriter[ModuleSpec] = macroRW
 
@@ -276,7 +295,8 @@ object ModuleSpec {
       mvnDeps.iterator.map(dep => dep.organization -> dep.name).collectFirst {
         case ("org.testng", _) => "TestModule.TestNg"
         case ("junit", _) => "TestModule.Junit4"
-        case ("org.junit.jupiter", _) => "TestModule.Junit5"
+        case ("org.junit.jupiter", _) |
+            ("org.springframework.boot", "spring-boot-starter-test") => "TestModule.Junit5"
         case ("com.lihaoyi", "utest") => "TestModule.Utest"
         case ("com.disneystreaming", "weaver-scalacheck") => "TestModule.Weaver"
         case ("dev.zio", "zio-test" | "zio-test-sbt") => "TestModule.ZioTest"

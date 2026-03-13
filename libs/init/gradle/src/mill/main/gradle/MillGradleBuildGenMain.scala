@@ -35,7 +35,6 @@ object MillGradleBuildGenMain {
   ): Unit = {
     println("converting Gradle build")
 
-    val buildGen = if (declarative) BuildGenYaml else BuildGenScala
     val gradleWorkspace = os.Path.expandUser(projectDir, os.pwd)
     val millWorkspace = os.pwd
 
@@ -70,12 +69,8 @@ object MillGradleBuildGenMain {
             upickle.default.read[Seq[PackageSpec]](model.asJson)
         }
       finally gradleConnector.disconnect()
-    packages = normalizeBuild(packages)
+    packages = normalizePackages(packages)
 
-    val (baseModule, packages0) =
-      if (noMeta.value) (None, packages)
-      else buildGen.withBaseModule(packages, "MavenModule" -> "MavenTests")
-        .fold((None, packages))((base, pkgs) => (Some(base), pkgs))
     val millJvmOpts = {
       val properties = new Properties()
       val file = gradleWorkspace / "gradle/wrapper/gradle-wrapper.properties"
@@ -83,17 +78,24 @@ object MillGradleBuildGenMain {
       val prop = properties.getProperty("org.gradle.jvmargs")
       if (prop == null) Nil else prop.trim.split("\\s").toSeq
     }
-    buildGen.writeBuildFiles(
-      baseDir = millWorkspace,
-      packages = packages0,
+
+    val build = BuildSpec(packages)
+    if (!noMeta.value) {
+      if (!declarative) {
+        build.deriveDepNames()
+      }
+      build.deriveBaseModule("MavenModule" -> "MavenTests")
+    }
+    build.writeFiles(
+      declarative = declarative,
       merge = merge.value,
-      baseModule = baseModule,
+      workspace = millWorkspace,
       millJvmVersion = millJvmId,
       millJvmOpts = millJvmOpts
     )
   }
 
-  private def normalizeBuild(packages: Seq[PackageSpec]) = {
+  private def normalizePackages(packages: Seq[PackageSpec]) = {
     val moduleLookup = packages.flatMap(_.modulesBySegments).toMap
       .compose[ModuleDep](dep => dep.segments ++ dep.childSegment)
     packages.map(pkg =>
@@ -105,6 +107,7 @@ object MillGradleBuildGenMain {
             Either.cond(bomModule.isPublishModule, dep, bomModule)
           }
           if (managedBomModules.nonEmpty) {
+            // Replace references to managed BOM modules
             module0 = module0.copy(
               bomMvnDeps = module0.bomMvnDeps.copy(base =
                 module0.bomMvnDeps.base ++ managedBomModules.flatMap(_.bomMvnDeps.base)

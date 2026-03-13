@@ -2,7 +2,7 @@ package mill.javalib.checkstyle
 
 import mill.*
 import mill.api.{PathRef}
-import mill.javalib.{DepSyntax, JavaModule}
+import mill.javalib.{Dep, DepSyntax, JavaModule}
 import mill.util.Jvm
 import mill.api.BuildCtx
 
@@ -32,9 +32,6 @@ trait CheckstyleModule extends JavaModule {
       Seq("-f", checkstyleFormat()) ++
       (if (stdout) Seq.empty else Seq("-o", output.toString())) ++
       (if (leftover.value.nonEmpty) leftover.value else sources().map(_.path.toString()))
-    val jvmArgs = checkstyleLanguage()
-      .map(lang => s"-Duser.language=$lang")
-      .toSeq
 
     Task.log.info("running checkstyle ...")
     Task.log.debug(s"with $args")
@@ -47,7 +44,7 @@ trait CheckstyleModule extends JavaModule {
       stdin = os.Inherit,
       stdout = os.Inherit,
       check = false,
-      jvmArgs = jvmArgs
+      jvmArgs = checkstyleJvmArgs()
     ).exitCode
 
     (output, exitCode)
@@ -80,13 +77,23 @@ trait CheckstyleModule extends JavaModule {
     exitCode
   }
 
+  def checkstyleProperties: T[Map[String, String]] = Task {
+    Map.from(checkstyleLanguage().map("user.language" -> _))
+  }
+
+  def checkstyleJvmArgs: T[Seq[String]] = Task {
+    checkstyleProperties().toSeq.map((k, v) => s"-D$k=$v")
+  }
+
+  def checkstyleMvnDeps: T[Seq[Dep]] = Task {
+    Seq(mvn"com.puppycrawl.tools:checkstyle:${checkstyleVersion()}")
+  }
+
   /**
    * Classpath for running Checkstyle.
    */
   def checkstyleClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(
-      Seq(mvn"com.puppycrawl.tools:checkstyle:${checkstyleVersion()}")
-    )
+    defaultResolver().classpath(checkstyleMvnDeps())
   }
 
   /**
