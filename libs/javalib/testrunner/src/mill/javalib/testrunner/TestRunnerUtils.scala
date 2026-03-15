@@ -77,10 +77,14 @@ import scala.math.Ordering.Implicits.*
               }
             } catch {
               // Scala 3 inline methods can generate synthetic type references in method
-              // signatures that don't have corresponding class files (e.g. package namespace
-              // types). When the JVM reflects on such classes via getDeclaredMethods/getMethods,
-              // it throws NoClassDefFoundError. Skip these classes during test discovery.
-              case _: NoClassDefFoundError | _: LinkageError => None
+              // signatures that don't have corresponding class files. When the JVM tries
+              // to reflect on these methods, it throws NoClassDefFoundError. We gracefully
+              // skip these classes as they are not valid test classes.
+              case e: (NoClassDefFoundError | LinkageError) =>
+                System.err.println(
+                  s"Skipping class during test discovery: ${path.stripSuffix(".class").replace('/', '.')} (${e.getClass.getSimpleName}: ${e.getMessage})"
+                )
+                None
             }
           }
             .toSeq
@@ -131,9 +135,13 @@ import scala.math.Ordering.Implicits.*
 
       }.map { f => (cls, f) }
     } catch {
-      // Scala 3 inline methods can reference synthetic types (e.g. package namespace classes)
-      // that don't exist as class files. JVM reflection on such methods throws NoClassDefFoundError.
-      case _: NoClassDefFoundError | _: LinkageError => None
+      // Reflection operations like getDeclaredMethods/getMethods can fail when classes
+      // reference synthetic types (e.g. from Scala 3 inline methods) that lack class files.
+      case e: (NoClassDefFoundError | LinkageError) =>
+        System.err.println(
+          s"Skipping class during fingerprint matching: ${cls.getName} (${e.getClass.getSimpleName}: ${e.getMessage})"
+        )
+        None
     }
   }
 
