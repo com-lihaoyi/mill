@@ -6,7 +6,8 @@ import utest.*
 object TestRunnerUtilsTests extends TestSuite {
 
   class BrokenReflectionClassLoader(parent: ClassLoader) extends ClassLoader(parent) {
-    private val syntheticTypes = Set("non.existent.SyntheticType", "non.existent.SyntheticAnnotation")
+    private val syntheticTypes =
+      Set("non.existent.SyntheticType", "non.existent.SyntheticAnnotation")
 
     override def loadClass(name: String): Class[?] = {
       if (syntheticTypes.contains(name)) {
