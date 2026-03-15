@@ -1,4 +1,4 @@
-= Code of Conduct
+# Code of Conduct
 
 Welcome to the friendly and welcoming community of Mill. Users and Developers.
 This community rocks! We never felt the need to interfere or block somebody.
