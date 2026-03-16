@@ -14,7 +14,6 @@ import org.scalajs.linker.{interface => sjs}
 
 import java.io.File
 import java.net.URLClassLoader
-import mill.constants.ProxyStream.Output
 import sjs.OutputDirectory
 
 @internal
