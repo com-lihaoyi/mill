@@ -1,27 +1,28 @@
 mill-jvm-version: 17
-extends: JavaModule
+extends: spring.boot.SpringBootModule
+springBootPlatformVersion: 3.2.5
 mvnDeps:
-- org.springframework.boot:spring-boot-starter-data-jpa:2.5.4
-- org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4
-- org.springframework.boot:spring-boot-starter-validation:2.5.4
-- org.springframework.boot:spring-boot-starter-web:2.5.4
-- javax.xml.bind:jaxb-api:2.3.1
-- org.webjars:webjars-locator:0.41
-- org.webjars.npm:todomvc-common:1.0.5
-- org.webjars.npm:todomvc-app-css:2.4.1
+  - org.springframework.boot:spring-boot-starter-data-jpa
+  - org.springframework.boot:spring-boot-starter-thymeleaf
+  - org.springframework.boot:spring-boot-starter-validation
+  - org.springframework.boot:spring-boot-starter-web
+  - jakarta.xml.bind:jakarta.xml.bind-api:4.0.0
+  - org.webjars:webjars-locator:0.41
+  - org.webjars.npm:todomvc-common:1.0.5
+  - org.webjars.npm:todomvc-app-css:2.4.1
 
 object test:
-  extends: [JavaTests, TestModule.Junit5]
+  extends: [SpringBootTestsModule, TestModule.Junit5]
   mainClass: com.example.TodomvcApplication
   mvnDeps:
-  - com.h2database:h2:2.3.230
-  - org.springframework.boot:spring-boot-starter-test:2.5.6
+    - com.h2database:h2:2.3.230
+    - org.springframework.boot:spring-boot-starter-test
 
 object integration:
-  extends: [JavaTests, TestModule.Junit5]
+  extends: [SpringBootTestsModule, TestModule.Junit5]
   mainClass: com.example.TodomvcApplication
   mvnDeps:
-  - org.testcontainers:junit-jupiter:1.21.4
-  - org.testcontainers:postgresql:1.19.8
-  - org.postgresql:postgresql:42.7.3
-  - org.springframework.boot:spring-boot-starter-test:2.5.6
+    - org.testcontainers:junit-jupiter:1.21.4
+    - org.testcontainers:postgresql:1.19.8
+    - org.postgresql:postgresql:42.7.3
+    - org.springframework.boot:spring-boot-starter-test
