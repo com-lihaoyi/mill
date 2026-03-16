@@ -23,11 +23,10 @@ import mill.scalajslib.worker.api.ScalaJSWorkerApi
 import mill.scalajslib.{api => api0}
 import mill.api.PathRef
 import mill.scalajslib.config.ScalaJSConfig
-import sjs.OutputDirectory
 
 class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWorkerApi {
   private case class LinkerInput(
-      dest: Either[File, OutputDirectory],
+      dest: Either[File, sjs.OutputDirectory],
       config: sjs.StandardConfig
   )
   private def minorIsGreaterThanOrEqual(number: Int) = ScalaJSVersions.current match {

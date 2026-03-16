@@ -160,6 +160,10 @@ trait ScalaJSConfigModule extends ScalaJSModule { outer =>
     )
   }
 
+  /**
+   * Here you may provide your own (custom) implementation of the linkers `org.scalajs.linker.interface.OutputDirectory`.
+   * When "None", mill will use `Task.dest` folder, which is the obvious outcome.
+   */
   def outputDir: Option[OutputDirectory] = None
 
   private[scalajslib] def linkJs(
