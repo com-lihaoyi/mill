@@ -19,3 +19,17 @@ object `package` extends SpringBootModule {
     def mvnDeps = Seq(mvn"org.springframework.boot:spring-boot-starter-test")
   }
 }
+
+/** Usage
+
+> ./mill test
+...Test com.example.ConfigProcessorTest#shouldReturnMessageFromConfig() finished...
+
+> ./mill runBackground
+
+> curl http://localhost:${PORT:-8080}
+...Hello from Configuration Properties!...
+
+> ./mill clean runBackground
+
+*/
