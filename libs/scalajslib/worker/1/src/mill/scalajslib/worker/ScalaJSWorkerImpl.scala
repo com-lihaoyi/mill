@@ -69,7 +69,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
       config: sjs.StandardConfig
   ): Either[String, sjs.Report] = rawLink(
     runClasspath = runClasspath,
-    dest = Left[File, OutputDirectory](dest),
+    dest = Left[File, sjs.OutputDirectory](dest),
     moduleInitializers = moduleInitializers,
     forceOutJs = forceOutJs,
     testBridgeInit = testBridgeInit,
@@ -79,7 +79,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
 
   override def rawLink(
       runClasspath: Seq[Path],
-      dest: OutputDirectory,
+      dest: sjs.OutputDirectory,
       moduleInitializers: Seq[sjs.ModuleInitializer],
       forceOutJs: Boolean,
       testBridgeInit: Boolean,
@@ -87,7 +87,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
       config: sjs.StandardConfig
   ): Either[String, sjs.Report] = rawLink(
     runClasspath = runClasspath,
-    dest = Right[File, OutputDirectory](dest),
+    dest = Right[File, sjs.OutputDirectory](dest),
     moduleInitializers = moduleInitializers,
     forceOutJs = forceOutJs,
     testBridgeInit = testBridgeInit,
@@ -97,7 +97,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
 
   def rawLink(
       runClasspath: Seq[Path],
-      dest: Either[File, OutputDirectory],
+      dest: Either[File, sjs.OutputDirectory],
       moduleInitializers: Seq[sjs.ModuleInitializer],
       forceOutJs: Boolean,
       testBridgeInit: Boolean,
@@ -168,7 +168,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
             )
           }
         } else {
-          val linkerOutput: OutputDirectory = dest match {
+          val linkerOutput: sjs.OutputDirectory = dest match {
             case Left(file) => PathOutputDirectory(file.toPath())
             case Right(folder) => folder
           }

@@ -161,9 +161,9 @@ trait ScalaJSConfigModule extends ScalaJSModule { outer =>
 
   /**
    * Here you may provide your own (custom) implementation of the linkers `org.scalajs.linker.interface.OutputDirectory`.
-   * When "None", mill will use `Task.dest` folder, which is the obvious outcome.
+   * When "None", mill will construct one in the `Task.dest` - this is the obvious outcome and canonical default.
    */
-  def outputDir: Option[OutputDirectory] = None
+  def customLinkerOutputDir: Option[OutputDirectory] = None
 
   private[scalajslib] def linkJs(
       worker: ScalaJSConfigWorker,
@@ -179,7 +179,7 @@ trait ScalaJSConfigModule extends ScalaJSModule { outer =>
 
     os.makeDir.all(ctx.dest)
 
-    outputDir match
+    customLinkerOutputDir match
       case Some(outputDir) =>
         worker.rawLink(
           toolsClasspath = toolsClasspath,
