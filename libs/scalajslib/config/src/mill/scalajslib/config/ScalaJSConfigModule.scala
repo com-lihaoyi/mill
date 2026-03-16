@@ -10,7 +10,6 @@ import org.scalajs.ir.ScalaJSVersions
 import org.scalajs.jsenv.Input
 import org.scalajs.linker.{interface => sjs}
 import sbt.testing.Framework
-import mill.constants.ProxyStream.Output
 import sjs.OutputDirectory
 
 /**
