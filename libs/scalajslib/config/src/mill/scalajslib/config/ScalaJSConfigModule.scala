@@ -10,6 +10,8 @@ import org.scalajs.ir.ScalaJSVersions
 import org.scalajs.jsenv.Input
 import org.scalajs.linker.{interface => sjs}
 import sbt.testing.Framework
+import mill.constants.ProxyStream.Output
+import sjs.OutputDirectory
 
 /**
  * Allows to compile Scala.js code with advanced configuration options
@@ -158,6 +160,8 @@ trait ScalaJSConfigModule extends ScalaJSModule { outer =>
     )
   }
 
+  def outputDir: Option[OutputDirectory] = None
+
   private[scalajslib] def linkJs(
       worker: ScalaJSConfigWorker,
       toolsClasspath: Seq[PathRef],
@@ -172,18 +176,33 @@ trait ScalaJSConfigModule extends ScalaJSModule { outer =>
 
     os.makeDir.all(ctx.dest)
 
-    worker.rawLink(
-      toolsClasspath = toolsClasspath,
-      runClasspath = runClasspath,
-      dest = outputPath.toIO,
-      moduleInitializers = moduleInitializers,
-      forceOutJs = forceOutJs,
-      testBridgeInit = testBridgeInit,
-      importMap = importMap,
-      config = config
-    ).map { sjsReport =>
-      fromSjs(sjsReport, outputPath)
-    }
+    outputDir match
+      case Some(outputDir) =>
+        worker.rawLink(
+          toolsClasspath = toolsClasspath,
+          runClasspath = runClasspath,
+          dest = outputDir,
+          moduleInitializers = moduleInitializers,
+          forceOutJs = forceOutJs,
+          testBridgeInit = testBridgeInit,
+          importMap = importMap,
+          config = config
+        ).map { sjsReport =>
+          fromSjs(sjsReport, outputPath)
+        }
+      case None =>
+        worker.rawLink(
+          toolsClasspath = toolsClasspath,
+          runClasspath = runClasspath,
+          dest = outputPath.toIO,
+          moduleInitializers = moduleInitializers,
+          forceOutJs = forceOutJs,
+          testBridgeInit = testBridgeInit,
+          importMap = importMap,
+          config = config
+        ).map { sjsReport =>
+          fromSjs(sjsReport, outputPath)
+        }
   }
 
   private def fromSjs(moduleKind: sjs.ModuleKind): api.ModuleKind = moduleKind match {
