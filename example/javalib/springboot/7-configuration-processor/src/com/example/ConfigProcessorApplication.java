@@ -11,18 +11,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ConfigProcessorApplication {
 
-    private final MyProperties properties;
+  private final MyProperties properties;
 
-    public ConfigProcessorApplication(MyProperties properties) {
-        this.properties = properties;
-    }
+  public ConfigProcessorApplication(MyProperties properties) {
+    this.properties = properties;
+  }
 
-    public static void main(String[] args) {
-        SpringApplication.run(ConfigProcessorApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(ConfigProcessorApplication.class, args);
+  }
 
-    @GetMapping("/")
-    public String getMessage() {
-        return "Config message: " + properties.getMessage();
-    }
+  @GetMapping("/")
+  public String getMessage() {
+    return "Config message: " + properties.getMessage();
+  }
 }
