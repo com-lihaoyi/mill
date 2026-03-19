@@ -6,7 +6,7 @@ import mill.testkit.{TestRootModule, UnitTester}
 import mill.util.TokenReaders.*
 import utest.*
 
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicBoolean
 
 object CoursierParametersTests extends TestSuite {
 
@@ -32,8 +32,8 @@ object CoursierParametersTests extends TestSuite {
   }
 
   // Shared counters for the custom logger test, reset before each run
-  val customLoggerInitCount = new AtomicInteger(0)
-  val customLoggerStopCount = new AtomicInteger(0)
+  val customLoggerInitCalled = new AtomicBoolean
+  val customLoggerStopCalled = new AtomicBoolean
 
   object CustomLoggerTest extends TestRootModule {
     object core extends JavaModule {
@@ -43,9 +43,9 @@ object CoursierParametersTests extends TestSuite {
           cache.withLogger(
             new CacheLogger {
               override def init(sizeHint: Option[Int]): Unit =
-                customLoggerInitCount.incrementAndGet()
+                customLoggerInitCalled.set(true)
               override def stop(): Unit =
-                customLoggerStopCount.incrementAndGet()
+                customLoggerStopCalled.set(true)
             }
           )
         }
@@ -72,12 +72,12 @@ object CoursierParametersTests extends TestSuite {
     }
 
     test("coursierCacheCustomizerLoggerCalled") {
-      customLoggerInitCount.set(0)
-      customLoggerStopCount.set(0)
+      customLoggerInitCalled.set(false)
+      customLoggerStopCalled.set(false)
       UnitTester(CustomLoggerTest, null).scoped { eval =>
         val Right(_) = eval.apply(CustomLoggerTest.core.compileClasspath).runtimeChecked
-        assert(customLoggerInitCount.get() > 0)
-        assert(customLoggerStopCount.get() > 0)
+        assert(customLoggerInitCalled.get())
+        assert(customLoggerStopCalled.get())
       }
     }
   }
