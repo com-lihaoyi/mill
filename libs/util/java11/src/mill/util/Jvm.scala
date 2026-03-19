@@ -566,11 +566,13 @@ object Jvm {
       .withCredentials(config.credentials)
       .withTtl(config.ttl)
       .withCachePolicies(config.cachePolicies)
-      .pipe { cache =>
-        coursierCacheCustomizer.fold(cache)(c => c.apply(cache))
-      }
+      // Apply Mill's default logger first, then the user customizer, so that
+      // overrides in coursierCacheCustomizer (e.g. a custom logger) take precedence.
       .pipe { cache =>
         ctx.fold(cache)(c => cache.withLogger(new CoursierTickerResolutionLogger(c)))
+      }
+      .pipe { cache =>
+        coursierCacheCustomizer.fold(cache)(c => c.apply(cache))
       }
       .pipe { cache =>
         if (ctx.fold(false)(_.offline)) cache.withCachePolicies(Seq(CachePolicy.LocalOnly))
