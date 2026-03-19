@@ -37,17 +37,19 @@ object CoursierParametersTests extends TestSuite {
 
   object CustomLoggerTest extends TestRootModule {
     object core extends JavaModule {
-      def mvnDeps = Task { Seq(mvn"com.google.guava:guava:33.0.0-jre") }
-      override def coursierCacheCustomizer
-          : Task[Option[FileCache[coursier.util.Task] => FileCache[coursier.util.Task]]] =
+      def mvnDeps = Seq(mvn"com.google.guava:guava:33.0.0-jre")
+      def coursierCacheCustomizer =
         Task.Anon {
-          Some((fc: FileCache[coursier.util.Task]) =>
-            fc.withLogger(new CacheLogger {
-              override def init(sizeHint: Option[Int]): Unit =
-                customLoggerInitCount.incrementAndGet()
-              override def stop(): Unit = customLoggerStopCount.incrementAndGet()
-            })
-          )
+          Some { (cache: FileCache[coursier.util.Task]) =>
+            cache.withLogger(
+              new CacheLogger {
+                override def init(sizeHint: Option[Int]): Unit =
+                  customLoggerInitCount.incrementAndGet()
+                override def stop(): Unit =
+                  customLoggerStopCount.incrementAndGet()
+              }
+            )
+          }
         }
     }
     lazy val millDiscover = Discover[this.type]
