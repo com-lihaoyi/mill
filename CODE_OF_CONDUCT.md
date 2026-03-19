@@ -3,4 +3,4 @@
 Welcome to the friendly and welcoming community of Mill. Users and Developers.
 This community rocks! We never felt the need to interfere or block somebody.
 Yet for those who feel more safe and comfortable with explicitly written down guidelines,
-**Mill follows the https://scala-lang.org/conduct/[Scala Code of Conduct].**
+**Mill follows the [Scala Code of Conduct](https://scala-lang.org/conduct/)**.
