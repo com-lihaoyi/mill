@@ -59,41 +59,6 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
       t.printStackTrace(err)
     }
   }
-  override def rawLink(
-      runClasspath: Seq[Path],
-      dest: File,
-      moduleInitializers: Seq[sjs.ModuleInitializer],
-      forceOutJs: Boolean,
-      testBridgeInit: Boolean,
-      importMap: Seq[workerApi.ESModuleImportMapping],
-      config: sjs.StandardConfig
-  ): Either[String, sjs.Report] = rawLink(
-    runClasspath = runClasspath,
-    dest = Left[File, sjs.OutputDirectory](dest),
-    moduleInitializers = moduleInitializers,
-    forceOutJs = forceOutJs,
-    testBridgeInit = testBridgeInit,
-    importMap = importMap,
-    config = config
-  )
-
-  override def rawLink(
-      runClasspath: Seq[Path],
-      dest: sjs.OutputDirectory,
-      moduleInitializers: Seq[sjs.ModuleInitializer],
-      forceOutJs: Boolean,
-      testBridgeInit: Boolean,
-      importMap: Seq[workerApi.ESModuleImportMapping],
-      config: sjs.StandardConfig
-  ): Either[String, sjs.Report] = rawLink(
-    runClasspath = runClasspath,
-    dest = Right[File, sjs.OutputDirectory](dest),
-    moduleInitializers = moduleInitializers,
-    forceOutJs = forceOutJs,
-    testBridgeInit = testBridgeInit,
-    importMap = importMap,
-    config = config
-  )
 
   def rawLink(
       runClasspath: Seq[Path],
@@ -313,7 +278,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
 
     rawLink(
       runClasspath = runClasspath,
-      dest = dest,
+      dest = Left(dest),
       moduleInitializers = ScalaJSConfigModule.moduleInitializers(main.toOption, true),
       forceOutJs = forceOutJs,
       testBridgeInit = testBridgeInit,

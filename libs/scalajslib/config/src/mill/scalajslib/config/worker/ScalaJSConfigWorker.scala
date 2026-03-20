@@ -14,7 +14,6 @@ import org.scalajs.linker.{interface => sjs}
 
 import java.io.File
 import java.net.URLClassLoader
-import sjs.OutputDirectory
 
 @internal
 private[scalajslib] class ScalaJSConfigWorker(jobs: Int)
@@ -122,33 +121,7 @@ private[scalajslib] class ScalaJSConfigWorker(jobs: Int)
   def rawLink(
       toolsClasspath: Seq[mill.PathRef],
       runClasspath: Seq[mill.PathRef],
-      dest: File,
-      moduleInitializers: Seq[sjs.ModuleInitializer],
-      forceOutJs: Boolean,
-      testBridgeInit: Boolean,
-      importMap: Seq[api.ESModuleImportMapping],
-      config: sjs.StandardConfig
-  ): Result[sjs.Report] = {
-    withValue(toolsClasspath) { case (_, bridge) =>
-      bridge.rawLink(
-        runClasspath = runClasspath.iterator.map(_.path.toNIO).toSeq,
-        dest = dest,
-        moduleInitializers = moduleInitializers,
-        forceOutJs = forceOutJs,
-        testBridgeInit = testBridgeInit,
-        importMap = importMap.map(toWorkerApi),
-        config = config
-      ) match {
-        case Right(report) => Result.Success(report)
-        case Left(message) => Result.Failure(message)
-      }
-    }
-  }
-
-  def rawLink(
-      toolsClasspath: Seq[mill.PathRef],
-      runClasspath: Seq[mill.PathRef],
-      dest: OutputDirectory,
+      dest: Either[File, sjs.OutputDirectory],
       moduleInitializers: Seq[sjs.ModuleInitializer],
       forceOutJs: Boolean,
       testBridgeInit: Boolean,

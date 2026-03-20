@@ -10,7 +10,6 @@ import org.scalajs.ir.ScalaJSVersions
 import org.scalajs.jsenv.Input
 import org.scalajs.linker.{interface => sjs}
 import sbt.testing.Framework
-import sjs.OutputDirectory
 
 /**
  * Allows to compile Scala.js code with advanced configuration options
@@ -163,7 +162,7 @@ trait ScalaJSConfigModule extends ScalaJSModule { outer =>
    * Here you may provide your own (custom) implementation of the linkers `org.scalajs.linker.interface.OutputDirectory`.
    * When "None", mill will construct one in the `Task.dest` - this is the obvious outcome and canonical default.
    */
-  def customLinkerOutputDir: Option[OutputDirectory] = None
+  def customLinkerOutputDir: Option[sjs.OutputDirectory] = None
 
   private[scalajslib] def linkJs(
       worker: ScalaJSConfigWorker,
@@ -179,33 +178,18 @@ trait ScalaJSConfigModule extends ScalaJSModule { outer =>
 
     os.makeDir.all(ctx.dest)
 
-    customLinkerOutputDir match
-      case Some(outputDir) =>
-        worker.rawLink(
-          toolsClasspath = toolsClasspath,
-          runClasspath = runClasspath,
-          dest = outputDir,
-          moduleInitializers = moduleInitializers,
-          forceOutJs = forceOutJs,
-          testBridgeInit = testBridgeInit,
-          importMap = importMap,
-          config = config
-        ).map { sjsReport =>
-          fromSjs(sjsReport, outputPath)
-        }
-      case None =>
-        worker.rawLink(
-          toolsClasspath = toolsClasspath,
-          runClasspath = runClasspath,
-          dest = outputPath.toIO,
-          moduleInitializers = moduleInitializers,
-          forceOutJs = forceOutJs,
-          testBridgeInit = testBridgeInit,
-          importMap = importMap,
-          config = config
-        ).map { sjsReport =>
-          fromSjs(sjsReport, outputPath)
-        }
+    worker.rawLink(
+      toolsClasspath = toolsClasspath,
+      runClasspath = runClasspath,
+      dest = customLinkerOutputDir.toRight(outputPath.toIO),
+      moduleInitializers = moduleInitializers,
+      forceOutJs = forceOutJs,
+      testBridgeInit = testBridgeInit,
+      importMap = importMap,
+      config = config
+    ).map { sjsReport =>
+      fromSjs(sjsReport, outputPath)
+    }
   }
 
   private def fromSjs(moduleKind: sjs.ModuleKind): api.ModuleKind = moduleKind match {
