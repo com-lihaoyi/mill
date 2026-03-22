@@ -426,7 +426,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
 
   /**
    * Mandatory command-line options to pass to the Kotlin compiler
-   * that shouldn't be removed by overriding `scalacOptions`
+   * that shouldn't be removed by overriding [[kotlincOptions]].
    */
   protected def mandatoryKotlincOptions: T[Seq[String]] = Task {
     val languageVersion = kotlinLanguageVersion()
@@ -442,7 +442,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
 
   /**
    * Aggregation of all the options passed to the Kotlin compiler.
-   * In most cases, instead of overriding this Target you want to override `kotlincOptions` instead.
+   * In most cases, instead of overriding this Target you want to override [[kotlincOptions]] instead.
    */
   def allKotlincOptions: T[Seq[String]] = Task {
     mandatoryKotlincOptions() ++ kotlincOptions()
