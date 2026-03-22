@@ -26,7 +26,7 @@ import mill.scalajslib.config.ScalaJSConfig
 
 class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWorkerApi {
   private case class LinkerInput(
-      dest: File,
+      dest: Either[File, sjs.OutputDirectory],
       config: sjs.StandardConfig
   )
   private def minorIsGreaterThanOrEqual(number: Int) = ScalaJSVersions.current match {
@@ -59,9 +59,10 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
       t.printStackTrace(err)
     }
   }
-  override def rawLink(
+
+  def rawLink(
       runClasspath: Seq[Path],
-      dest: File,
+      dest: Either[File, sjs.OutputDirectory],
       moduleInitializers: Seq[sjs.ModuleInitializer],
       forceOutJs: Boolean,
       testBridgeInit: Boolean,
@@ -106,7 +107,11 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
       report <-
         if (useLegacy) {
           val jsFileName = "out.js"
-          val jsFile = new File(dest, jsFileName).toPath()
+          val mustBeFolder = dest match {
+            case Left(folder) => folder
+            case Right(_) => throw new Exception("dest must be a Folder when forceOutJs is true")
+          }
+          val jsFile = new File(mustBeFolder, jsFileName).toPath()
           var linkerOutput = sjs.LinkerOutput(PathOutputFile(jsFile))
             .withJSFileURI(java.net.URI.create(jsFile.getFileName.toString))
           val sourceMapNameOpt = Option.when(config.sourceMap)(s"${jsFile.getFileName}.map")
@@ -128,7 +133,10 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
             )
           }
         } else {
-          val linkerOutput = PathOutputDirectory(dest.toPath())
+          val linkerOutput: sjs.OutputDirectory = dest match {
+            case Left(file) => PathOutputDirectory(file.toPath())
+            case Right(folder) => folder
+          }
           linker.link(
             irFiles,
             moduleInitializers0,
@@ -270,7 +278,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
 
     rawLink(
       runClasspath = runClasspath,
-      dest = dest,
+      dest = Left(dest),
       moduleInitializers = ScalaJSConfigModule.moduleInitializers(main.toOption, true),
       forceOutJs = forceOutJs,
       testBridgeInit = testBridgeInit,

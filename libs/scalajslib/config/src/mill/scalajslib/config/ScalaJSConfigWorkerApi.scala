@@ -10,7 +10,7 @@ import org.scalajs.jsenv.Input
 private[scalajslib] trait ScalaJSConfigWorkerApi extends AutoCloseable {
   def rawLink(
       runClasspath: Seq[Path],
-      dest: File,
+      dest: Either[File, sjs.OutputDirectory],
       moduleInitializers: Seq[sjs.ModuleInitializer],
       forceOutJs: Boolean,
       testBridgeInit: Boolean,

@@ -121,7 +121,7 @@ private[scalajslib] class ScalaJSConfigWorker(jobs: Int)
   def rawLink(
       toolsClasspath: Seq[mill.PathRef],
       runClasspath: Seq[mill.PathRef],
-      dest: File,
+      dest: Either[File, sjs.OutputDirectory],
       moduleInitializers: Seq[sjs.ModuleInitializer],
       forceOutJs: Boolean,
       testBridgeInit: Boolean,
