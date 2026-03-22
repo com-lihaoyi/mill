@@ -759,7 +759,7 @@ that utilizes Hilt for dependency injection, based on the official
 <h2 id="_android_mill_setup_for_building_the_todo_app"><a class="anchor" href="#_android_mill_setup_for_building_the_todo_app"></a>Android Mill Setup for building the TODO App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3-11-2d5fa9/mill-dist-1.1.3-example-thirdparty-androidtodo.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/thirdparty/androidtodo">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3-13-a7e3e1/mill-dist-1.1.3-example-thirdparty-androidtodo.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/thirdparty/androidtodo">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -795,7 +795,8 @@ object Versions {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object app
     extends AndroidAppKotlinModule,
       AndroidR8AppModule,
-      AndroidHiltSupport {
+      AndroidHiltSupport,
+      KotlinIdeaModule {
 
   def kotlinVersion = Versions.kotlinVersion
   def kspVersion = Versions.kspVersion
@@ -879,7 +880,8 @@ object Versions {
     mvn"com.google.dagger:hilt-android-compiler:2.56"
   )
 
-  object test extends KspTests, AndroidAppKotlinTests, AndroidHiltSupport, TestModule.Junit4 {
+  object test extends KspTests, AndroidAppKotlinTests, AndroidHiltSupport, TestModule.Junit4,
+        KotlinIdeaModule {
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
 
@@ -919,7 +921,8 @@ object Versions {
   object androidTest
       extends AndroidAppKotlinInstrumentedTests,
         AndroidR8InstrumentedTestsModule,
-        AndroidHiltSupport {
+        AndroidHiltSupport,
+        KotlinIdeaModule {
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
     def kspJvmTarget = "17"
@@ -982,7 +985,7 @@ object Versions {
 
 }
 
-object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport {
+object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport, KotlinIdeaModule {
 
   def moduleDeps = Seq(app)
 

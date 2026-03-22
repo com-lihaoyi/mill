@@ -771,7 +771,7 @@ official <a href="https://github.com/android/compose-samples">compose samples</a
 <h2 id="_android_mill_setup_for_building_jetlagged_and_jetnews"><a class="anchor" href="#_android_mill_setup_for_building_jetlagged_and_jetnews"></a>Android Mill Setup for building JetLagged and JetNews</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3-11-2d5fa9/mill-dist-1.1.3-example-thirdparty-android-compose-samples.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/thirdparty/android-compose-samples">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3-13-a7e3e1/mill-dist-1.1.3-example-thirdparty-android-compose-samples.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/thirdparty/android-compose-samples">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*, androidlib.*, kotlinlib.*
 
@@ -793,7 +793,7 @@ object Versions {
 }
 
 object JetLagged extends mill.api.Module {
-  object app extends AndroidAppKotlinModule, AndroidR8AppModule {
+  object app extends AndroidAppKotlinModule, AndroidR8AppModule, KotlinIdeaModule {
     def kotlinVersion = Versions.kotlinVersion
 
     def androidIsDebug = true
@@ -901,7 +901,7 @@ object JetLagged extends mill.api.Module {
 }
 
 object JetNews extends mill.api.Module {
-  object app extends AndroidAppKotlinModule, AndroidR8AppModule {
+  object app extends AndroidAppKotlinModule, AndroidR8AppModule, KotlinIdeaModule {
     def kotlinVersion = Versions.kotlinVersion
 
     def androidIsDebug = true
@@ -981,7 +981,8 @@ object JetNews extends mill.api.Module {
 
     def androidMinSdk = Versions.androidMinSdk
 
-    object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule {
+    object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule,
+          KotlinIdeaModule {
 
       def bomMvnDeps = Seq(
         mvn"androidx.compose:compose-bom:2025.05.00"
@@ -1012,7 +1013,7 @@ object JetNews extends mill.api.Module {
 
 object Jetchat extends mill.api.Module {
 
-  object app extends AndroidAppKotlinModule, AndroidR8AppModule {
+  object app extends AndroidAppKotlinModule, AndroidR8AppModule, KotlinIdeaModule {
 
     def kotlinVersion = Versions.kotlinVersion
 
@@ -1076,7 +1077,8 @@ object Jetchat extends mill.api.Module {
 
     def androidMinSdk = Versions.androidMinSdk
 
-    object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule {
+    object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule,
+          KotlinIdeaModule {
       override def bomMvnDeps = Seq(
         mvn"androidx.compose:compose-bom:2025.08.00"
       )
