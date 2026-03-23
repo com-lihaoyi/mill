@@ -685,7 +685,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.3</span>
+    <span class="version">1.1.4</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -695,10 +695,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.3</a>
-        </li>
-        <li class="version">
-          <a href="../dev-1.1.3-8-524103/index.html">dev-1.1.3-8-524103</a>
+          <a href="../index.html">1.1.4</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -751,7 +748,7 @@ It covers setting up a basic backend server with a variety of server frameworks<
 <p>This example shows off running a simple webserver in a module configured via <code>build.mill.yaml</code></p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-javalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/javalib/web/1-web-example/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.4/mill-dist-1.1.4-example-javalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.4/example/javalib/web/1-web-example/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
 mvnDeps: [org.springframework.boot:spring-boot-starter-web:3.2.0]</code></pre>
@@ -762,7 +759,7 @@ mvnDeps: [org.springframework.boot:spring-boot-starter-web:3.2.0]</code></pre>
 to run the web server</p>
 </div>
 <div class="listingblock">
-<div class="title">src/WebServer.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-javalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/javalib/web/1-web-example/src/WebServer.java">browse</a>)</div>
+<div class="title">src/WebServer.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.4/mill-dist-1.1.4-example-javalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.4/example/javalib/web/1-web-example/src/WebServer.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
 
@@ -803,7 +800,7 @@ configured by <code>test/package.mill.yaml</code>. This test suite spins up the 
 makes a single HTTP request against and checks it behaves as expected.</p>
 </div>
 <div class="listingblock">
-<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-javalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/javalib/web/1-web-example/test/package.mill.yaml">browse</a>)</div>
+<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.4/mill-dist-1.1.4-example-javalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.4/example/javalib/web/1-web-example/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.JavaTests, TestModule.Junit5]
 mvnDeps:
@@ -833,7 +830,7 @@ Test example.WebServerTests#testReverseString() finished...</code></pre>
 <h2 id="_jetty_hello_world_app"><a class="anchor" href="#_jetty_hello_world_app"></a>Jetty Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-javalib-web-2-hello-jetty.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/javalib/web/2-hello-jetty/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.4/mill-dist-1.1.4-example-javalib-web-2-hello-jetty.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.4/example/javalib/web/2-hello-jetty/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
 mvnDeps:
@@ -867,7 +864,7 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 <h2 id="_micronaut_hello_world_app"><a class="anchor" href="#_micronaut_hello_world_app"></a>Micronaut Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-javalib-web-3-hello-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/javalib/web/3-hello-micronaut">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.4/mill-dist-1.1.4-example-javalib-web-3-hello-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.4/example/javalib/web/3-hello-micronaut">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -963,7 +960,7 @@ extended with more features as necessary.</p>
 <h2 id="_micronaut_todomvc_app"><a class="anchor" href="#_micronaut_todomvc_app"></a>Micronaut TodoMvc App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-javalib-web-4-todo-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/javalib/web/4-todo-micronaut/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.4/mill-dist-1.1.4-example-javalib-web-4-todo-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.4/example/javalib/web/4-todo-micronaut/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: MavenModule
 bomMvnDeps:
@@ -1003,7 +1000,7 @@ mvnDeps:
 </div>
 </div>
 <div class="listingblock">
-<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-javalib-web-4-todo-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/javalib/web/4-todo-micronaut/test/package.mill.yaml">browse</a>)</div>
+<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.4/mill-dist-1.1.4-example-javalib-web-4-todo-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.4/example/javalib/web/4-todo-micronaut/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [MavenTests, TestModule.Junit5]
 bomMvnDeps:
@@ -1077,7 +1074,7 @@ and can be extended to cover additional functionality in future</p>
 It uses Micronaut AOT to optimize the application for the native image generation.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-javalib-web-5-micronaut-native.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/javalib/web/5-micronaut-native/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.4/mill-dist-1.1.4-example-javalib-web-5-micronaut-native.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.4/example/javalib/web/5-micronaut-native/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [MavenModule, mill.javalib.micronaut.MicronautNativeAotModule]
 micronautPackage: hello.world
@@ -1128,7 +1125,7 @@ runMvnDeps:
 <h2 id="_quarkus_example"><a class="anchor" href="#_quarkus_example"></a>Quarkus Example</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-javalib-web-6-quarkus-getting-started.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/javalib/web/6-quarkus-getting-started">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.4/mill-dist-1.1.4-example-javalib-web-6-quarkus-getting-started.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.4/example/javalib/web/6-quarkus-getting-started">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1218,7 +1215,7 @@ It uses H2 for the database, Hibernate ORM with Panache for the data access laye
 and Qute for HTML templating.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.3/mill-dist-1.1.3-example-javalib-web-7-quarkus-todo.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.3/example/javalib/web/7-quarkus-todo">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.4/mill-dist-1.1.4-example-javalib-web-7-quarkus-todo.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.4/example/javalib/web/7-quarkus-todo">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 

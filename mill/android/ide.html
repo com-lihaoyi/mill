@@ -685,7 +685,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.3</span>
+    <span class="version">1.1.4</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -695,10 +695,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.3</a>
-        </li>
-        <li class="version">
-          <a href="../dev-1.1.3-8-524103/index.html">dev-1.1.3-8-524103</a>
+          <a href="../index.html">1.1.4</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -740,7 +737,116 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>This page outlines the current IDE support for Android projects built with Mill.
-Mill integrates with IntelliJ IDEA and Android Studio through the BSP (Build Server Protocol) plugin.</p>
+Mill integrates with IntelliJ IDEA and Android Studio by either:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>using the BSP (Build Server Protocol) plugin</p>
+</li>
+<li>
+<p>generating the necessary project (<code>idea/</code>) files for direct import.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Both options work, but they have different trade-offs depending on which IDE features you rely on.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_importing_with_bsp"><a class="anchor" href="#_importing_with_bsp"></a>Importing with BSP</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>BSP import is the recommended default for most projects:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>fast to set up</p>
+</li>
+<li>
+<p>keeps the IDE model close to Mill&#8217;s build definition</p>
+</li>
+<li>
+<p>works well for basic Java/Kotlin editing, navigation, and static import features.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Some advanced Android/Kotlin IDE features are not always fully supported via BSP.
+In particular, if you rely on Jetpack Compose IDE highlighting/support,
+switch to the generated IntelliJ project files import described below.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>To use BSP, import the project in IntelliJ IDEA / Android Studio via BSP</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/android/ImportBSP.png" alt="Importing via BSP">
+</div>
+</div>
+<div class="paragraph">
+<p>If you do not see the option to import via BSP, ensure you have the Build Server Protocol plugin installed and that you have run <code>mill --bsp-install</code> in your project directory.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_generating_intellij_idea_project_files"><a class="anchor" href="#_generating_intellij_idea_project_files"></a>Generating IntelliJ IDEA project files</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you want Jetpack Compose support or prefer to work with generated project files, you can generate IntelliJ project files and import those directly.</p>
+</div>
+<div class="paragraph">
+<p>To generate and import IntelliJ project files:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Do not yet import the project into the IDE.</p>
+</li>
+<li>
+<p>Delete <code>.bsp</code> and <code>.idea</code> directories if they exist.</p>
+</li>
+<li>
+<p>Run <code>mill mill.idea/</code> to generate the IntelliJ project files.</p>
+</li>
+<li>
+<p>Open the project in IntelliJ (File &#8594; Open) and select the project directory.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>As mentioned in the <a href="../cli/installation-ide.html#_intellij_idea_xml_support" class="xref page">IDE setup page</a>, if you make any changes to your <code>build.mill</code> definitions, you must regenerate the IntelliJ project files by running <code>mill mill.idea/</code> again.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_jetpack_compose_ide_support"><a class="anchor" href="#_jetpack_compose_ide_support"></a>Jetpack Compose IDE Support</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jetpack Compose IDE support is currently experimental and only available when using the generated IntelliJ project files import method. To enable Jetpack Compose IDE support:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Have the Kotlin plugin installed in your IDE.</p>
+</li>
+<li>
+<p>Mix the <code>KotlinIdeaModule</code> trait into your <code>AndroidKotlinModule</code> definitions in <code>build.mill</code>, so the appropriate Facets and configurations are generated for your Kotlin sources.</p>
+</li>
+</ul>
 </div>
 </div>
 </div>
@@ -765,7 +871,7 @@ This enables a smooth editing experience similar to standard Android development
 <td class="content">
 <div class="paragraph">
 <p>To ensure correct resolution of generated paths and resources, you must run a compilation from the command line after making changes to resource files or <code>build.mill</code> definitions.
-This ensures the BSP server updates the IDE with the latest sources and class files.</p>
+This ensures the IDE is updated with the latest sources and class files.</p>
 </div>
 </td>
 </tr>
@@ -777,12 +883,7 @@ This ensures the BSP server updates the IDE with the latest sources and class fi
 <h2 id="_file_type_associations_and_project_layout"><a class="anchor" href="#_file_type_associations_and_project_layout"></a>File Type Associations and Project Layout</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The IDE properly recognizes file types and project layout when imported through BSP.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="../_images/android/ImportBSP.png" alt="Importing via BSP">
-</div>
+<p>The IDE properly recognizes file types and project layout when imported through the above methods:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -796,20 +897,6 @@ This ensures the BSP server updates the IDE with the latest sources and class fi
 <p>Output folders (e.g., <code>out/</code>) and build targets appear in orange, indicating generated content.</p>
 </li>
 </ul>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>Ensure <code>mill --bsp-install</code> has been run before importing the project via BSP.</p>
-</div>
-</td>
-</tr>
-</table>
 </div>
 </div>
 </div>
@@ -838,7 +925,10 @@ This ensures the BSP server updates the IDE with the latest sources and class fi
 <p>Run <code>mill __.compile</code> to regenerate class files and trigger updates.</p>
 </li>
 <li>
-<p>Resync the BSP project in your IDE.</p>
+<p>If you imported through BSP, resync the BSP project in your IDE.</p>
+</li>
+<li>
+<p>If using IntelliJ project files but the project structure still seems broken, close the IDE and try repeating the instruction steps <a href="#_generating_intellij_idea_project_files">above</a> to regenerate the project files and re-import.</p>
 </li>
 <li>
 <p>Delete the <code>out</code> directory in case of persistent issues, then recompile the project.</p>
