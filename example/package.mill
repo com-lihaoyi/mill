@@ -431,7 +431,9 @@ $frontMatter
     def repoSlug = repoPath.split("/").last
 
     def downloadTestRepo(label: String, commit: String, dest: os.Path) = {
-      os.unzip.stream(requests.get.stream(s"https://github.com/$label/archive/$commit.zip"), dest)
+      mill.util.Retry() {
+        os.unzip.stream(requests.get.stream(s"https://github.com/$label/archive/$commit.zip"), dest)
+      }
       dest
     }
 
