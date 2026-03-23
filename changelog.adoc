@@ -16,6 +16,20 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 === main branch
 
+[#1-1-4]
+=== 1.1.4
+:version: 1.1.4
+:milestone-name: 1.1.4
+:milestone: 143
+:prev-version: 1.1.3
+_2026-03-23_
+
+_Changes since {prev-version}:_
+
+* Support for Java 26 {link-pr}/6951[#6951]
+* Fix KtLint scanning of source files {link-pr}/6917[#6917]
+
+
 [#1-1-3]
 === 1.1.3
 :version: 1.1.3
