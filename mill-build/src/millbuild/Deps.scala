@@ -254,7 +254,7 @@ object Deps {
       mvn"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
   }
 
-  val coursierJvmIndexVersion = "0.0.4-131-fababa"
+  val coursierJvmIndexVersion = "0.0.4-162-4be9be"
   val gradleApi_api = mvn"dev.gradleplugins:gradle-api:8.11.1"
 
   val androidTools = mvn"com.android.tools.build:gradle:8.9.1"

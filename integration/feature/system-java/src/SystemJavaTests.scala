@@ -9,7 +9,7 @@ object SystemJavaTests extends UtestIntegrationTestSuite {
 
     test("header") - integrationTest { tester =>
       val defaultVersion = tester.eval("printJavaVersion")
-      assert(defaultVersion.out.contains("21.0.9"))
+      assert(defaultVersion.out.contains("21.0.10"))
 
       val defaultHome = tester.eval("printJavaHome")
       tester.modifyFile(
