@@ -269,6 +269,7 @@ trait AndroidSdkManagerModule extends ExternalModule {
         "platform-tools", // adb
         s"build-tools;${buildToolsVersion()}",
         s"platforms;${platformsVersion()}",
+        s"sources;${platformsVersion()}", // sources for the platform (android.jar)
         "tools" // proguard
       )
 
@@ -277,7 +278,8 @@ trait AndroidSdkManagerModule extends ExternalModule {
       // sdkmanager executable and state of the installed package is a shared resource, which can be accessed
       // from the different Android SDK modules.
       val missingPackages = packages.filter(p => !isPackageInstalled(sdkPath(), p))
-      Task.log.info(s"Found ${missingPackages} missing packages...")
+      if (missingPackages.nonEmpty)
+        Task.log.info(s"Found ${missingPackages} missing packages...")
       val packagesWithoutLicense = missingPackages
         .map(p => (p, isLicenseAccepted(sdkPath(), remoteReposInfo().path, p)))
         .filter(!_._2)
@@ -305,6 +307,17 @@ trait AndroidSdkManagerModule extends ExternalModule {
       }
 
       val androidJar = toolPathRef(sdkPath() / "platforms" / platformsVersion() / "android.jar")
+
+      // If not done before, try to create a sources jar next to the android.jar,
+      // since current GenIdeaImpl searches for sources in the same directory as the classes jar.
+      val sourcesDir = sdkPath() / "sources" / platformsVersion()
+      val targetSourcesJar = sdkPath() / "platforms" / platformsVersion() / "android-sources.jar"
+      if (os.exists(sourcesDir) && !os.exists(targetSourcesJar))
+        os.zip(
+          targetSourcesJar,
+          Seq(sourcesDir)
+        )
+
       val libs = Seq(
         os.sub / "core-for-system-modules.jar",
         os.sub / "optional" / "org.apache.http.legacy.jar",
