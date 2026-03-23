@@ -337,22 +337,7 @@ class GenIdeaImpl(
       }
 
     // Get bspScriptIgnore rules (same as BSP integration)
-    val bspScriptIgnore: Seq[String] = {
-      if (evaluators.length > 1) {
-        // look for this in the first meta-build frame, which would be the meta-build configured
-        // by a `//|` build header in the main `build.mill` file in the project root folder
-        val ev = evaluators(1)
-        val bspScriptIgnoreTasks: Seq[TaskApi[Seq[String]]] =
-          Seq(ev.rootModule).collect { case m: MillBuildRootModuleApi => m.bspScriptIgnoreAll }
-
-        ev.executeApi(bspScriptIgnoreTasks)
-          .values
-          .get
-          .flatMap { case sources: Seq[String] => sources }
-      } else {
-        Seq.empty
-      }
-    }
+    val bspScriptIgnore: Seq[String] = MillBuildRootModuleApi.bspScriptIgnore(evaluators)
 
     // Create IgnoreNode from bspScriptIgnore patterns
     val ignoreRules = bspScriptIgnore

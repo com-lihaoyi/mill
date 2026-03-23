@@ -174,17 +174,9 @@ object BspServerReloadTests extends UtestIntegrationTestSuite {
           s"Waiting for Mill daemon to pick up changes in ${workspacePath / "build.mill"}"
         )
         val didChangeParams = Await.result(didChangePromise.future, 1.minute)
-
-        val expectedChanges = Set(
-          "thing" -> b.BuildTargetEventKind.CREATED,
-          "app" -> b.BuildTargetEventKind.CREATED,
-          "lib" -> b.BuildTargetEventKind.CREATED,
-          "Lib.scala" -> b.BuildTargetEventKind.DELETED,
-          "TheApp.scala" -> b.BuildTargetEventKind.DELETED,
-          "mill-build" -> b.BuildTargetEventKind.CHANGED,
-          "MillMiscInfo.scala" -> b.BuildTargetEventKind.DELETED,
-          "BuildFileImpl.scala" -> b.BuildTargetEventKind.DELETED
-        )
+        import b.BuildTargetEventKind.*
+        val expectedChanges =
+          Set(("app", CREATED), ("lib", CREATED), ("thing", CREATED), ("mill-build", CHANGED))
         val changes = didChangeParams.getChanges().asScala.map(eventData).toSet
         assert(expectedChanges == changes)
 

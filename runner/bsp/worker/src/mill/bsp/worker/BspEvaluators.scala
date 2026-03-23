@@ -23,7 +23,6 @@ class BspEvaluators(
     debug: (() => String) => Unit,
     val watched: Seq[Watchable]
 ) {
-
   private lazy val disabledBspModules: Set[ModuleApi] =
     Utils.computeDisabledBspModules(evaluators)
 
@@ -66,20 +65,7 @@ class BspEvaluators(
 
   val nonScriptSources = extractInputPaths(_.bspBuildTargetSources)
   val nonScriptResources = extractInputPaths(_.bspBuildTargetResources)
-  val bspScriptIgnore: Seq[String] = {
-    // look for this in the first meta-build frame, which would be the meta-build configured
-    // by a `//|` build header in the main `build.mill` file in the project root folder
-    evaluators.lift(1).toSeq.flatMap { ev =>
-      val bspScriptIgnore: Seq[TaskApi[Seq[String]]] =
-        Seq(ev.rootModule).collect { case m: MillBuildRootModuleApi => m.bspScriptIgnoreAll }
-
-      ev.executeApi(bspScriptIgnore)
-        .values
-        .get
-        .flatMap { (sources: Seq[String]) => sources }
-
-    }
-  }
+  val bspScriptIgnore: Seq[String] = MillBuildRootModuleApi.bspScriptIgnore(evaluators)
 
   lazy val bspModulesIdList: Seq[(BuildTargetIdentifier, (BspModuleApi, EvaluatorApi))] = {
     val scriptModules = evaluators.headOption
