@@ -296,7 +296,7 @@ final class EvaluatorImpl(
       selectiveExecution: Boolean = false
   ): Evaluator.Result[T] = {
     val selectiveExecutionEnabled = selectiveExecution && !tasks.exists(_.isExclusiveCommand)
-    withWorkspaceLocks(tasks, selectiveExecutionEnabled) {
+    withGlobalWorkspaceLocks(selectiveExecutionEnabled) {
       val (selectedTasks, selectiveResults, maybeNewMetadata) =
         if (!selectiveExecutionEnabled) (tasks, Map.empty, None)
         else {

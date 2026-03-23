@@ -15,6 +15,11 @@ object WorkspaceLocking {
   case class Resource(key: String, kind: LockKind)
 
   trait Lease extends AutoCloseable
+  trait ResourceLease extends Lease {
+    def resource: Resource
+    def kind: LockKind
+    def downgradeToRead(): ResourceLease
+  }
 
   trait Manager extends AutoCloseable {
     def runId: String
@@ -27,6 +32,7 @@ object WorkspaceLocking {
     /** Returns a per-run chrome profile path to avoid corruption under concurrent daemon runs. */
     def chromeProfilePath(default: os.Path): os.Path = default
 
+    def acquireLock(resource: Resource): ResourceLease
     def acquireLocks(resources: Seq[Resource]): Lease
     def withLocks[T](resources: Seq[Resource])(t: => T): T = {
       val lease = acquireLocks(resources)
@@ -46,6 +52,12 @@ object WorkspaceLocking {
     override def consoleTail: os.Path = os.pwd / "out" / "mill-console-tail"
     override def noBuildLock: Boolean = false
     override def noWaitForBuildLock: Boolean = false
+    override def acquireLock(resource0: Resource): ResourceLease = new ResourceLease {
+      override def resource: Resource = resource0
+      override def kind: LockKind = resource0.kind
+      override def downgradeToRead(): ResourceLease = this
+      override def close(): Unit = ()
+    }
     override def acquireLocks(resources: Seq[Resource]): Lease = () => ()
     override def close(): Unit = ()
   }
@@ -67,6 +79,7 @@ object WorkspaceLocking {
       runDir: os.Path,
       consoleTail: os.Path,
       activeFile: os.Path,
+      var published: Boolean = false,
       var profilePathOpt: Option[os.Path] = None,
       var chromeProfilePathOpt: Option[os.Path] = None
   )
@@ -146,7 +159,7 @@ object WorkspaceLocking {
   private def refreshWellKnownLinks(out: os.Path): Unit = activeRunsLock.synchronized {
     val latestRunOpt = activeRuns
       .get(out.toString)
-      .flatMap(_.lastOption.map(_._2))
+      .flatMap(_.valuesIterator.filter(_.published).toSeq.lastOption)
 
     updateSymlink(out / DaemonFiles.millConsoleTail, latestRunOpt.map(_.consoleTail))
     updateSymlink(out / OutFiles.millActive, latestRunOpt.map(_.activeFile))
@@ -182,9 +195,15 @@ object WorkspaceLocking {
       val runsForOut =
         activeRuns.getOrElseUpdate(out.toString, scala.collection.mutable.LinkedHashMap.empty)
       runsForOut.update(runId, activeRun)
-      refreshWellKnownLinks(out)
     }
     cleanupOldRunDirs(out)
+
+    private def publishRun(): Unit = activeRunsLock.synchronized {
+      if (!activeRun.published) {
+        activeRun.published = true
+        refreshWellKnownLinks(out)
+      }
+    }
 
     override def profilePath(default: os.Path): os.Path = {
       val path = runDir / default.last
@@ -215,17 +234,52 @@ object WorkspaceLocking {
       cleanupOldRunDirs(out)
     }
 
+    override def acquireLock(resource0: Resource): ResourceLease =
+      if (noBuildLock) new ResourceLease {
+        override def resource: Resource = resource0
+        override def kind: LockKind = resource0.kind
+        override def downgradeToRead(): ResourceLease = this
+        override def close(): Unit = ()
+      }
+      else {
+        acquire(resource0)
+        publishRun()
+        InProcessResourceLease(resource0)
+      }
+
     override def acquireLocks(resources: Seq[Resource]): Lease =
-      if (noBuildLock || resources.isEmpty) () => ()
+      if (noBuildLock || resources.isEmpty) {
+        publishRun()
+        () => ()
+      }
       else {
         val sorted = resources.distinct.sortBy(r => (r.key, r.kind.toString))
-        val acquired = scala.collection.mutable.Buffer.empty[Resource]
+        val acquired = scala.collection.mutable.Buffer.empty[ResourceLease]
         sorted.foreach { resource =>
-          acquire(resource)
-          acquired += resource
+          acquired += acquireLock(resource)
         }
-        () => acquired.reverseIterator.foreach(release)
+        () => acquired.reverseIterator.foreach(_.close())
       }
+
+    private case class InProcessResourceLease(
+        override val resource: Resource
+    ) extends ResourceLease {
+      private val closed = new java.util.concurrent.atomic.AtomicBoolean(false)
+      override def kind: LockKind = resource.kind
+
+      override def downgradeToRead(): ResourceLease =
+        if (kind == LockKind.Read || closed.get()) this
+        else {
+          val lock = rwLock(resource)
+          lock.readLock().lock()
+          lock.writeLock().unlock()
+          closed.set(true)
+          InProcessResourceLease(resource.copy(kind = LockKind.Read))
+        }
+
+      override def close(): Unit =
+        if (closed.compareAndSet(false, true)) release(resource)
+    }
 
     private def rwLock(resource: Resource): ReentrantReadWriteLock =
       lockTable.computeIfAbsent(resource.key, _ => new ReentrantReadWriteLock(true))

@@ -39,46 +39,18 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def useFileLocks: Boolean = false
   private[mill] def workspaceLockManager: WorkspaceLocking.Manager =
     WorkspaceLocking.NoopManager
-  private[mill] def workspaceLockResources(
-      tasks: Seq[Task[?]],
-      selectiveExecution: Boolean
-  ): Seq[WorkspaceLocking.Resource] = {
-    if (!isFinalDepth) Nil
-    else {
-      val seen = mutable.HashSet.empty[Task[?]]
-      val queue = mutable.ArrayDeque.from(tasks)
-      val resources = mutable.LinkedHashSet.empty[WorkspaceLocking.Resource]
-
-      while (queue.nonEmpty) {
-        val task = queue.removeHead()
-        if (seen.add(task)) {
-          task match {
-            case named: Task.Named[?] =>
-              resources += WorkspaceLocking.Resource(
-                s"task:${ExecutionPaths.resolve(outPath, named.ctx.segments).dest}",
-                WorkspaceLocking.LockKind.Write
-              )
-            case _ =>
-          }
-          queue.addAll(task.inputs)
-        }
-      }
-
-      if (selectiveExecution) {
-        resources += WorkspaceLocking.Resource(
-          s"global:${outPath / OutFiles.millSelectiveExecution}",
-          WorkspaceLocking.LockKind.Write
+  private[mill] def withGlobalWorkspaceLocks[T](selectiveExecution: Boolean)(t: => T): T = {
+    val resources =
+      if (isFinalDepth && selectiveExecution)
+        Seq(
+          WorkspaceLocking.Resource(
+            s"global:${outPath / OutFiles.millSelectiveExecution}",
+            WorkspaceLocking.LockKind.Write
+          )
         )
-      }
-
-      resources.toSeq.sortBy(_.key)
-    }
+      else Nil
+    workspaceLockManager.withLocks(resources)(t)
   }
-  private[mill] def withWorkspaceLocks[T](
-      tasks: Seq[Task[?]],
-      selectiveExecution: Boolean
-  )(t: => T): T =
-    workspaceLockManager.withLocks(workspaceLockResources(tasks, selectiveExecution))(t)
   private[mill] def staticBuildOverrides: Map[String, Located[internal.Appendable[BufferedValue]]] =
     Map()
   // JSON string to avoid classloader issues when crossing classloader boundaries

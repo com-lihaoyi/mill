@@ -46,6 +46,8 @@ case class Execution(
 
   // Track nesting depth of executeTasks calls to only show final status on outermost call
   private val executionNestingDepth = new AtomicInteger(0)
+  private val retainedTerminalReadLocks =
+    new java.util.concurrent.ConcurrentLinkedQueue[WorkspaceLocking.Lease]()
 
   // Lazily computed worker dependency graph, cached for the duration of the execution. It's
   // ok to take a snapshot of the cache, since the workerCache entries we may want to remove
@@ -116,6 +118,9 @@ case class Execution(
 
   def withIsFinalDepth(newIsFinalDepth: Boolean) = this.copy(isFinalDepth = newIsFinalDepth)
 
+  override def retainTerminalReadLock(lease: WorkspaceLocking.ResourceLease): Unit =
+    retainedTerminalReadLocks.add(lease)
+
   /**
    * @param goals The tasks that need to be evaluated
    * @param reporter A function that will accept a module id and provide a listener for build problems in that module
@@ -135,7 +140,12 @@ case class Execution(
         execute0(goals, logger, reporter, testReporter, serialCommandExec)
       }
     } finally {
-      executionNestingDepth.decrementAndGet()
+      if (executionNestingDepth.decrementAndGet() == 0) {
+        Iterator
+          .continually(retainedTerminalReadLocks.poll())
+          .takeWhile(_ != null)
+          .foreach(_.close())
+      }
     }
   }
 
