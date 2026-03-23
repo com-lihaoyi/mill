@@ -39,7 +39,7 @@ object Watching {
    * @param ringBell whether to emit bells
    * @param watch if [[None]] just runs once and returns
    */
-  def watchLoop[T <: Result](
+  def watchLoop[T <: Result & AutoCloseable](
       ringBell: Boolean,
       watch: Option[WatchArgs],
       streams: SystemStreams,
@@ -74,6 +74,7 @@ object Watching {
         // Exits when the thread gets interrupted.
         while (true) {
           val result = evaluate(skipSelectiveExecution, prevState)
+          prevState.foreach(_.close())
           prevState = Some(result)
           handleError(result.errorOpt)
 

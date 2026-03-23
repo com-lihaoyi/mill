@@ -103,6 +103,7 @@ object MillMain0 {
   def main0(
       args: Array[String],
       stateCache: RunnerState.ReusableSnapshot,
+      snapshotPublishedState: () => RunnerState.ReusableSnapshot,
       publishReusableState: (Int, Seq[RunnerState.Frame]) => Unit,
       mainInteractive: Boolean,
       streams0: SystemStreams,
@@ -295,7 +296,6 @@ object MillMain0 {
                                     ec = ec,
                                     tasksAndParams = tasksAndParams,
                                     prevCommandState = prevState.getOrElse(RunnerState.empty),
-                                    prevPublishedState = currentReusableState,
                                     logger = logger,
                                     requestedMetaLevel = config.metaLevel.orElse(metaLevelOverride),
                                     allowPositionalCommandArgs = config.allowPositional.value,
@@ -307,6 +307,7 @@ object MillMain0 {
                                     workspaceLockManager = manager,
                                     reporter = reporter,
                                     enableTicker = enableTicker,
+                                    snapshotPublishedState = snapshotPublishedState,
                                     publishReusableState = publishCurrentReusableState
                                   ).evaluate()
                                 }
@@ -372,6 +373,7 @@ object MillMain0 {
                           streams,
                           "tab-completion"
                         )
+                        bootstrapped.close()
 
                         (true, currentReusableState)
                       } else if (bspMode) {
@@ -416,6 +418,7 @@ object MillMain0 {
 
                           for (err <- watchRes.errorOpt) bspLogger.streams.err.println(err)
 
+                          prevRunnerStateOpt.foreach(_.close())
                           prevRunnerStateOpt = Some(watchRes)
 
                           val sessionResultFuture = bspServerHandle.startSession(
@@ -486,6 +489,7 @@ object MillMain0 {
                           }
                         }
 
+                        prevRunnerStateOpt.foreach(_.close())
                         streams.err.println("Exiting BSP runner loop")
 
                         (!errored, currentReusableState)
@@ -505,6 +509,7 @@ object MillMain0 {
                         IdeWorkerSupport.runIdeaGeneration(
                           runnerState.frames.flatMap(_.evaluator)
                         )
+                        runnerState.close()
                         (true, currentReusableState)
                       } else if (
                         config.leftoverArgs.value == Seq("mill.eclipse.GenEclipse/eclipse") ||
@@ -521,9 +526,10 @@ object MillMain0 {
                           )
                         new mill.eclipse.GenEclipseImpl(runnerState.frames.flatMap(_.evaluator))
                           .run()
+                        runnerState.close()
                         (true, currentReusableState)
                       } else {
-                        val (watchSuccess, _) = Watching.watchLoop(
+                        val (watchSuccess, watchState) = Watching.watchLoop(
                           ringBell = config.ringBell.value,
                           watch = Option.when(config.watch.value)(Watching.WatchArgs(
                             setIdle = setIdle,
@@ -544,6 +550,7 @@ object MillMain0 {
                               )
                             }
                         )
+                        watchState.close()
                         (watchSuccess, currentReusableState)
                       }
                     }
@@ -689,7 +696,9 @@ object MillMain0 {
       titleText = (cmdTitle +: config.leftoverArgs.value).mkString(" "),
       terminalDimsCallback = terminalDimsCallback,
       currentTimeMillis = () => System.currentTimeMillis(),
-      chromeProfileLogger = new JsonArrayLogger.ChromeProfile(out / OutFiles.millChromeProfile)
+      chromeProfileLogger = new JsonArrayLogger.ChromeProfile(
+        workspaceLockManager.chromeProfilePath(out / OutFiles.millChromeProfile)
+      )
     )
     new PrefixLogger(promptLogger, Nil) with AutoCloseable {
       override def close(): Unit = {

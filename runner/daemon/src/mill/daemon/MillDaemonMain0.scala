@@ -82,9 +82,6 @@ class MillDaemonMain0(
 
   def initialStateCache = RunnerState.ReusableSnapshot.empty
 
-  override protected def snapshotStateCache(): RunnerState.ReusableSnapshot =
-    super.snapshotStateCache()
-
   val outFolder: os.Path = os.Path(OutFiles.outFor(outMode), BuildCtx.workspaceRoot)
 
   val outLock = MillMain0.doubleLock(outFolder)
@@ -107,9 +104,11 @@ class MillDaemonMain0(
       config =>
         serverToClient(mill.launcher.DaemonRpc.ServerToClient.RunSubprocess(config)).exitCode
 
-    try MillMain0.main0(
+    try {
+      val (success, _) = MillMain0.main0(
         args = args,
         stateCache = stateCache,
+        snapshotPublishedState = () => snapshotStateCache(),
         publishReusableState = (depth, frames) =>
           publishStateCache(snapshotStateCache().updated(depth, frames)),
         mainInteractive = mainInteractive,
@@ -125,6 +124,8 @@ class MillDaemonMain0(
         serverToClientOpt = Some(serverToClient),
         millRepositories = millRepositories
       )
+      (success, snapshotStateCache())
+    }
     catch {
       // Let InterruptedException propagate without printing (used by deferredStopServer for shutdown)
       case e: InterruptedException => throw e

@@ -43,7 +43,8 @@ case class RunnerState(
     // if bootstrap instantiation fails, there are no `frames` to hold `evalWatches`, so we
     // need to track them separately
     bootstrapEvalWatched: Seq[Watchable] = Nil
-) extends Watching.Result {
+) extends Watching.Result
+    with AutoCloseable {
   def add(
       frame: RunnerState.Frame = RunnerState.Frame.empty,
       errorOpt: Option[String] = None
@@ -63,6 +64,10 @@ case class RunnerState(
   def closeTransientWorkers(): Unit = {
     frames.reverseIterator.foreach(_.closeTransientWorkers())
   }
+
+  override def close(): Unit = {
+    frames.reverseIterator.foreach(_.close())
+  }
 }
 
 object RunnerState {
@@ -74,6 +79,8 @@ object RunnerState {
     def frame(depth: Int): Option[Frame] = frames.lift(depth)
 
     def updated(depth: Int, updatedFrames: Seq[Frame]): ReusableSnapshot = {
+      // Pad so that `frames` has at least `depth` elements (indices 0..depth-1).
+      // `patch(depth, ...)` then replaces/appends from index `depth` onward.
       val paddedFrames =
         if (frames.size >= depth) frames
         else frames ++ Vector.fill(depth - frames.size)(Frame.empty)
@@ -102,13 +109,14 @@ object RunnerState {
       moduleWatched: Seq[Watchable],
       codeSignatures: Map[String, Int],
       classLoaderOpt: Option[MillURLClassLoader],
+      metaBuildReadLeaseOpt: Option[mill.api.daemon.WorkspaceLocking.Lease],
       runClasspath: Seq[PathRefApi],
       compileOutput: Option[PathRefApi],
       evaluator: Option[EvaluatorApi],
       buildOverrideFiles: Map[java.nio.file.Path, String],
       // JSON string to avoid classloader issues when crossing classloader boundaries
       spanningInvalidationTree: Option[String]
-  ) {
+  ) extends AutoCloseable {
 
     def loggedData: Frame.Logged = {
       Frame.Logged(
@@ -129,6 +137,7 @@ object RunnerState {
 
     def sanitizedForConcurrentReuse: Frame = copy(
       workerCache = Map.empty,
+      metaBuildReadLeaseOpt = None,
       evaluator = None
     )
 
@@ -139,6 +148,11 @@ object RunnerState {
           catch { case _: Throwable => }
         case _ =>
       }
+    }
+
+    override def close(): Unit = {
+      closeTransientWorkers()
+      metaBuildReadLeaseOpt.foreach(_.close())
     }
   }
 
@@ -163,7 +177,8 @@ object RunnerState {
     )
     implicit val loggedRw: ReadWriter[Logged] = macroRW
 
-    def empty: Frame = Frame(Map.empty, Nil, Nil, Map.empty, None, Nil, None, None, Map(), None)
+    def empty: Frame =
+      Frame(Map.empty, Nil, Nil, Map.empty, None, None, Nil, None, None, Map(), None)
   }
 
 }

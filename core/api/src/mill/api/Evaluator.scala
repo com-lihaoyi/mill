@@ -37,6 +37,15 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def useFileLocks: Boolean = false
   private[mill] def workspaceLockManager: WorkspaceLocking.Manager =
     WorkspaceLocking.NoopManager
+  private[mill] def withTaskLocks[T](tasks: Seq[Task.Named[?]])(t: => T): T =
+    workspaceLockManager.withLocks(
+      tasks.map { task =>
+        WorkspaceLocking.Resource(
+          s"task:${ExecutionPaths.resolve(outPath, task.ctx.segments).dest}",
+          WorkspaceLocking.LockKind.Write
+        )
+      }.distinct
+    )(t)
   private[mill] def staticBuildOverrides: Map[String, Located[internal.Appendable[BufferedValue]]] =
     Map()
   // JSON string to avoid classloader issues when crossing classloader boundaries

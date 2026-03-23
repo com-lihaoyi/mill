@@ -85,7 +85,9 @@ case class Execution(
       spanningInvalidationTree: Option[String]
   ) = this(
     baseLogger = baseLogger,
-    profileLogger = new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
+    profileLogger = new JsonArrayLogger.Profile(
+      workspaceLockManager.profilePath(os.Path(outPath) / millProfile)
+    ),
     workspace = os.Path(workspace),
     outPath = os.Path(outPath),
     externalOutPath = os.Path(externalOutPath),
