@@ -1,0 +1,30 @@
+package build
+
+import mill.*
+import mill.api.BuildCtx
+import mill.meta.MillBuildRootModule
+
+object `package` extends MillBuildRootModule {
+  def scalatagsVersion = "0.13.1"
+
+  def generatedSources = Task {
+    val workspace = BuildCtx.workspaceRoot
+    val waitFile = workspace / "meta-wait"
+    val enteredFile = Task.dest / "meta-entered"
+
+    if (os.exists(waitFile)) {
+      os.write.over(enteredFile, "")
+      while (os.exists(waitFile)) Thread.sleep(100L)
+    }
+
+    os.write(
+      Task.dest / "MetaConstant.scala",
+      s"""package constant
+         |object Constant{
+         |  def scalatagsVersion = "$scalatagsVersion"
+         |}
+         |""".stripMargin
+    )
+    super.generatedSources() ++ Seq(PathRef(Task.dest / "MetaConstant.scala"))
+  }
+}

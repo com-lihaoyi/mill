@@ -1,0 +1,16 @@
+package build
+
+import mill.*
+import constant.Constant
+
+object `package` extends mill.Module {
+  def fast = Task {
+    Constant.scalatagsVersion
+  }
+
+  def blockWhileExists(path: os.Path) = Task.Command[String] {
+    os.write(path, Array.emptyByteArray)
+    while (os.exists(path)) Thread.sleep(100L)
+    Constant.scalatagsVersion
+  }
+}
