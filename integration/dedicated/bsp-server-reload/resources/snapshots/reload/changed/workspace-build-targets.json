@@ -36,7 +36,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "21.0.9"
+          "javaVersion": "21.0.10"
         }
       }
     },
@@ -79,7 +79,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "21.0.9"
+          "javaVersion": "21.0.10"
         }
       }
     },
@@ -141,7 +141,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "21.0.9"
+          "javaVersion": "21.0.10"
         }
       }
     }
