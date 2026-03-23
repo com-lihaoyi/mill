@@ -509,16 +509,8 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
     test("bspScriptIgnoreDefault without meta-build") - integrationTest { tester =>
       import tester.*
+      os.remove.all(workspacePath / "build.mill")
       os.remove.all(workspacePath / "mill-build")
-      os.write.over(
-        workspacePath / "build.mill",
-        """package build
-          |
-          |import mill.*
-          |
-          |object app extends scalalib.JavaModule
-          |""".stripMargin
-      )
       os.write.over(
         workspacePath / "gatling/gatling-app/src/main/scala/io/gatling/app/Analytics.scala",
         """package io.gatling.app
@@ -546,7 +538,6 @@ object BspServerTests extends UtestIntegrationTestSuite {
           .map(_.getId.getUri)
           .toSet
 
-        assert(targetUris.contains((workspacePath / "app").toURI.toASCIIString.stripSuffix("/")))
         assert(targetUris.contains((workspacePath / "scripts/visible.scala").toURI.toASCIIString))
         assert(
           !targetUris.contains(
