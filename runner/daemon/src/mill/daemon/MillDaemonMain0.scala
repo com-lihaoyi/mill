@@ -134,8 +134,8 @@ class MillDaemonMain0(
     catch {
       // Let InterruptedException propagate without printing (used by deferredStopServer for shutdown)
       case e: InterruptedException => throw e
-      case e if MillMain0.handleMillException(streams.err, stateCache).isDefinedAt(e) =>
-        MillMain0.handleMillException(streams.err, stateCache)(e)
+      case e if MillMain0.handleMillException(streams.err, snapshotStateCache()).isDefinedAt(e) =>
+        MillMain0.handleMillException(streams.err, snapshotStateCache())(e)
     }
   }
 }

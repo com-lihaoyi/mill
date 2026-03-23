@@ -253,7 +253,15 @@ object WorkspaceLocking {
         () => ()
       }
       else {
-        val sorted = resources.distinct.sortBy(r => (r.key, r.kind.toString))
+        val distinct = resources.distinct
+        val duplicateKinds = distinct
+          .groupBy(_.key)
+          .collect { case (key, grouped) if grouped.map(_.kind).distinct.size > 1 => key }
+        require(
+          duplicateKinds.isEmpty,
+          s"Cannot acquire mixed read/write locks for the same resource in one batch: ${duplicateKinds.toSeq.sorted.mkString(", ")}"
+        )
+        val sorted = distinct.sortBy(r => (r.key, r.kind.toString))
         val acquired = scala.collection.mutable.Buffer.empty[ResourceLease]
         sorted.foreach { resource =>
           acquired += acquireLock(resource)
