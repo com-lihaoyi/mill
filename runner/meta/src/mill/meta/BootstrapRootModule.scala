@@ -26,14 +26,7 @@ trait BootstrapRootModule()(using
    * files that definitely aren't scripts, but for some reason aren't recognized as being in
    * a module's `def sources` task (e.g. maybe module import failed or something)
    */
-  def bspScriptIgnoreDefault: T[Seq[String]] = Seq(
-    "**/src/",
-    "**/src-*/",
-    "**/resources/",
-    "**/out/",
-    "**/.bsp/mill-bsp-out/",
-    "**/target/"
-  )
+  def bspScriptIgnoreDefault: T[Seq[String]] = MillBuildRootModuleApi.defaultBspScriptIgnore
 
   def bspScriptIgnore: T[Seq[String]] = Nil
 
@@ -86,7 +79,6 @@ trait BootstrapRootModule()(using
 }
 
 object BootstrapRootModule {
-
   /**
    * Lightweight bootstrap module for script-only projects (no build.mill).
    * Script modules are discovered and instantiated separately at runtime.
