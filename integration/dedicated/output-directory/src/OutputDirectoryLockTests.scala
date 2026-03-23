@@ -11,67 +11,62 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
   implicit val retryMax: RetryMax = RetryMax(60000.millis)
   implicit val retryInterval: RetryInterval = RetryInterval(50.millis)
   def tests: Tests = Tests {
-    test("basic") - integrationTest { tester =>
+    test("taskLocks") - integrationTest { tester =>
       import tester.*
-      val signalFile = workspacePath / "do-wait"
-      // Kick off blocking task in background
-      spawn(
-        ("show", "blockWhileExists", "--path", signalFile)
-      )
+      val signalFile1 = workspacePath / "do-wait-1"
+      val signalFile2 = workspacePath / "do-wait-2"
+      val blocker = spawn(("show", "blockWhileExists", "--path", signalFile1))
 
       // Wait for blocking task to write signal file, to indicate it has begun
-      assertEventually { os.exists(signalFile) }
+      assertEventually { os.exists(signalFile1) }
 
-      val testCommand: os.Shellable = ("show", "hello")
-      val testMessage = "Hello from hello task"
+      if (tester.daemonMode) {
+        // Different task should be able to run while the blocker holds its task lock
+        val helloRes = eval(("show", "hello"), check = true)
+        assert(helloRes.out.contains("Hello from hello task"))
 
-      // --no-build-lock allows commands to complete despite background blocker
-      val noLockRes = eval(("--no-build-lock", testCommand), check = true)
-      assert(noLockRes.out.contains(testMessage))
+        // Same task should fail immediately in no-wait mode
+        val noWaitRes = eval(
+          ("--no-wait-for-build-lock", "show", "blockWhileExists", "--path", signalFile2)
+        )
+        assert(
+          noWaitRes.err.contains("Another Mill command in the current daemon is using resource")
+        )
 
-      // --no-wait-for-build-lock causes commands fail due to background blocker
-      val noWaitRes = eval(("--no-wait-for-build-lock", testCommand))
-      assert(
-        noWaitRes
-          .err
-          .contains(
-            s"Another Mill process with PID "
+        // Same task should wait by default
+        val spawnedWaitingRes = spawn(("show", "blockWhileExists", "--path", signalFile2))
+
+        assertEventually {
+          spawnedWaitingRes.process.isAlive() && !os.exists(signalFile2)
+        }
+
+        // Terminate blocking task, make sure waiting task now completes
+        os.remove(signalFile1)
+        blocker.process.waitFor()
+        assertEventually { os.exists(signalFile2) }
+        os.remove(signalFile2)
+        spawnedWaitingRes.process.waitFor()
+        assert(!spawnedWaitingRes.process.isAlive())
+      } else {
+        // In no-daemon mode we keep the coarse global lock
+        val waitingCompleteFile = workspacePath / "waitingCompleteFile"
+        val spawnedWaitingRes = spawn(("show", "writeMarker", "--path", waitingCompleteFile))
+
+        assertEventually {
+          val stderrText = spawnedWaitingRes.err.text()
+          stderrText.contains("Another Mill process with PID ") &&
+          stderrText.contains(
+            s" is running 'show blockWhileExists --path $signalFile1', waiting for it to be done..."
           )
-      )
-      assert(
-        noWaitRes
-          .err
-          .contains(
-            s" is running 'show blockWhileExists --path $signalFile', failing"
-          )
-      )
+        }
 
-      // By default, we wait until the background blocking task completes
-      val waitingCompleteFile = workspacePath / "waitingCompleteFile"
-      val spawnedWaitingRes = spawn(
-        ("show", "writeMarker", "--path", waitingCompleteFile)
-      )
-
-      // Ensure we see the waiting message
-      assertEventually {
-        val stderrText = spawnedWaitingRes.err.text()
-        stderrText.contains(
-          s"Another Mill process with PID "
-        ) &&
-        stderrText.contains(
-          s" is running 'show blockWhileExists --path $signalFile', waiting for it to be done..."
-        ) &&
-        stderrText.contains("tail -F out/mill-console-tail to see its progress")
+        assert(spawnedWaitingRes.process.isAlive())
+        assert(!os.exists(waitingCompleteFile))
+        os.remove(signalFile1)
+        blocker.process.waitFor()
+        spawnedWaitingRes.process.waitFor()
+        assert(os.exists(waitingCompleteFile))
       }
-
-      // Even after task starts waiting on blocking task, it is not complete
-      assert(spawnedWaitingRes.process.isAlive())
-      assert(!os.exists(waitingCompleteFile))
-      // Terminate blocking task, make sure waiting task now completes
-      os.remove(signalFile)
-      spawnedWaitingRes.process.waitFor()
-      assert(os.exists(waitingCompleteFile))
-      assert(spawnedWaitingRes.out.trim() == "\"Write marker done\"")
     }
   }
 }

@@ -82,6 +82,15 @@ class MillDaemonMain0(
 
   def initialStateCache = RunnerState.empty
 
+  override protected def snapshotStateCache(): RunnerState =
+    super.snapshotStateCache()
+
+  override protected def publishStateCache(newState: RunnerState): Unit = {
+    val sanitized = newState.sanitizedForConcurrentReuse
+    super.publishStateCache(sanitized)
+    newState.closeTransientWorkers()
+  }
+
   val outFolder: os.Path = os.Path(OutFiles.outFor(outMode), BuildCtx.workspaceRoot)
 
   val outLock = MillMain0.doubleLock(outFolder)
@@ -107,6 +116,7 @@ class MillDaemonMain0(
     try MillMain0.main0(
         args = args,
         stateCache = stateCache,
+        publishStateCache = publishStateCache,
         mainInteractive = mainInteractive,
         streams0 = streams,
         env = env,

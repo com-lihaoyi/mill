@@ -53,6 +53,16 @@ case class RunnerState(
 
   def watched: Seq[Watchable] =
     frames.flatMap(f => f.evalWatched ++ f.moduleWatched ++ bootstrapEvalWatched)
+
+  def sanitizedForConcurrentReuse: RunnerState = copy(
+    bootstrapModuleOpt = None,
+    frames = frames.map(_.sanitizedForConcurrentReuse),
+    errorOpt = None
+  )
+
+  def closeTransientWorkers(): Unit = {
+    frames.reverseIterator.foreach(_.closeTransientWorkers())
+  }
 }
 
 object RunnerState {
@@ -89,6 +99,20 @@ object RunnerState {
         runClasspath.map(p => os.Path(p.javaPath) -> p.sig),
         runClasspath.hashCode()
       )
+    }
+
+    def sanitizedForConcurrentReuse: Frame = copy(
+      workerCache = Map.empty,
+      evaluator = None
+    )
+
+    def closeTransientWorkers(): Unit = {
+      workerCache.valuesIterator.foreach {
+        case (_, Val(closeable: AutoCloseable), _) =>
+          try closeable.close()
+          catch { case _: Throwable => }
+        case _ =>
+      }
     }
   }
 

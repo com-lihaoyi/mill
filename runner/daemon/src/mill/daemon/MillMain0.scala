@@ -3,6 +3,7 @@ package mill.daemon
 import mill.api.daemon.internal.bsp.BspServerHandle
 import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
 import mill.api.{Logger, MillException, Result, SystemStreams}
+import mill.api.daemon.WorkspaceLocking
 import mill.bsp.BSP
 import mill.client.lock.{DoubleLock, Lock}
 import mill.constants.{DaemonFiles, OutFolderMode}
@@ -33,6 +34,7 @@ import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Using}
 
 object MillMain0 {
+  val noopPublishRunnerState: RunnerState => Unit = _ => ()
 
   def handleMillException[T](
       err: PrintStream,
@@ -101,6 +103,7 @@ object MillMain0 {
   def main0(
       args: Array[String],
       stateCache: RunnerState,
+      publishStateCache: RunnerState => Unit,
       mainInteractive: Boolean,
       streams0: SystemStreams,
       env: Map[String, String],
@@ -256,71 +259,100 @@ object MillMain0 {
                             _ => _ => None,
                           extraEnv: Seq[(String, String)] = Nil,
                           metaLevelOverride: Option[Int] = None
-                      ): RunnerState = Server.withOutLock(
-                        noBuildLock = config.noBuildLock.value,
-                        noWaitForBuildLock = config.noWaitForBuildLock.value,
-                        out = out,
-                        daemonDir = daemonDir,
-                        millActiveCommandMessage = millActiveCommandMessage,
-                        streams = streams,
-                        outLock = outLock,
-                        setIdle = setIdle
-                      ) {
-                        def proceed(logger: Logger): RunnerState = {
-                          // Enter key pressed, removing mill-selective-execution.json to
-                          // ensure all tasks re-run even though no inputs may have changed
-                          //
-                          // Do this by removing the file rather than disabling selective execution,
-                          // because we still want to generate the selective execution metadata json
-                          // for subsequent runs that may use it
-                          if (skipSelectiveExecution)
-                            os.remove(out / OutFiles.millSelectiveExecution)
-                          mill.api.SystemStreamsUtils.withStreams(logger.streams) {
-                            mill.api.FilesystemCheckerEnabled.withValue(
-                              !config.noFilesystemChecker.value
-                            ) {
-                              tailManager.withOutErr(logger.streams.out, logger.streams.err) {
-                                new MillBuildBootstrap(
-                                  topLevelProjectRoot = BuildCtx.workspaceRoot,
-                                  output = out,
-                                  // In BSP server, we want to evaluate as many tasks as possible,
-                                  // in order to give as many results as available in BSP responses
-                                  keepGoing = bspMode || config.keepGoing.value,
-                                  imports = config.imports,
-                                  env = env ++ extraEnv,
-                                  ec = ec,
-                                  tasksAndParams = tasksAndParams,
-                                  prevRunnerState = prevState.getOrElse(stateCache),
-                                  logger = logger,
-                                  requestedMetaLevel = config.metaLevel.orElse(metaLevelOverride),
-                                  allowPositionalCommandArgs = config.allowPositional.value,
-                                  systemExit = systemExit,
-                                  streams0 = streams,
-                                  selectiveExecution = config.watch.value,
-                                  offline = config.offline.value,
-                                  useFileLocks = config.useFileLocks.value,
-                                  reporter = reporter,
-                                  enableTicker = enableTicker
-                                ).evaluate()
+                      ): RunnerState = {
+                        val publishRunnerState =
+                          if (serverToClientOpt.nonEmpty) publishStateCache
+                          else MillMain0.noopPublishRunnerState
+
+                        def runWithLogger(): RunnerState = {
+                          def proceed(logger: Logger): RunnerState = {
+                            // Enter key pressed, removing mill-selective-execution.json to
+                            // ensure all tasks re-run even though no inputs may have changed
+                            //
+                            // Do this by removing the file rather than disabling selective execution,
+                            // because we still want to generate the selective execution metadata json
+                            // for subsequent runs that may use it
+                            if (skipSelectiveExecution)
+                              os.remove(out / OutFiles.millSelectiveExecution)
+                            mill.api.SystemStreamsUtils.withStreams(logger.streams) {
+                              mill.api.FilesystemCheckerEnabled.withValue(
+                                !config.noFilesystemChecker.value
+                              ) {
+                                tailManager.withOutErr(logger.streams.out, logger.streams.err) {
+                                  new MillBuildBootstrap(
+                                    topLevelProjectRoot = BuildCtx.workspaceRoot,
+                                    output = out,
+                                    // In BSP server, we want to evaluate as many tasks as possible,
+                                    // in order to give as many results as available in BSP responses
+                                    keepGoing = bspMode || config.keepGoing.value,
+                                    imports = config.imports,
+                                    env = env ++ extraEnv,
+                                    ec = ec,
+                                    tasksAndParams = tasksAndParams,
+                                    prevRunnerState = prevState.getOrElse(stateCache),
+                                    logger = logger,
+                                    requestedMetaLevel = config.metaLevel.orElse(metaLevelOverride),
+                                    allowPositionalCommandArgs = config.allowPositional.value,
+                                    systemExit = systemExit,
+                                    streams0 = streams,
+                                    selectiveExecution = config.watch.value,
+                                    offline = config.offline.value,
+                                    useFileLocks = config.useFileLocks.value,
+                                    reporter = reporter,
+                                    enableTicker = enableTicker,
+                                    publishReusableState = publishRunnerState
+                                  ).evaluate()
+                                }
                               }
                             }
                           }
+
+                          loggerOpt match {
+                            case Some(logger) => proceed(logger)
+                            case None =>
+                              Using.resource(getLogger(
+                                streams = streams,
+                                config = config,
+                                enableTicker = enableTicker,
+                                colored = colored,
+                                colors = colors,
+                                out = out,
+                                serverToClientOpt = serverToClientOpt
+                              )) { logger =>
+                                proceed(logger)
+                              }
+                          }
                         }
 
-                        loggerOpt match {
-                          case Some(logger) => proceed(logger)
-                          case None =>
-                            Using.resource(getLogger(
-                              streams = streams,
-                              config = config,
-                              enableTicker = enableTicker,
-                              colored = colored,
-                              colors = colors,
+                        def runWithLockManager(manager: WorkspaceLocking.Manager): RunnerState =
+                          WorkspaceLocking.withManager(manager) {
+                            try {
+                              setIdle(false)
+                              runWithLogger()
+                            } finally manager.close()
+                          }
+
+                        if (serverToClientOpt.nonEmpty) {
+                          runWithLockManager(
+                            new WorkspaceLocking.InProcessManager(
                               out = out,
-                              serverToClientOpt = serverToClientOpt
-                            )) { logger =>
-                              proceed(logger)
-                            }
+                              noBuildLock = config.noBuildLock.value,
+                              noWaitForBuildLock = config.noWaitForBuildLock.value
+                            )
+                          )
+                        } else {
+                          Server.withOutLock(
+                            noBuildLock = config.noBuildLock.value,
+                            noWaitForBuildLock = config.noWaitForBuildLock.value,
+                            out = out,
+                            daemonDir = daemonDir,
+                            millActiveCommandMessage = millActiveCommandMessage,
+                            streams = streams,
+                            outLock = outLock,
+                            setIdle = setIdle
+                          ) {
+                            runWithLockManager(WorkspaceLocking.NoopManager)
+                          }
                         }
                       }
 
@@ -610,7 +642,11 @@ object MillMain0 {
       .getOrElse("mill")
 
     // Console log file for monitoring progress when another process is waiting
-    val consoleLogStream = new RotatingConsoleLogOutputStream(out / DaemonFiles.millConsoleTail)
+    val consoleLogPath = WorkspaceLocking.current.value match {
+      case WorkspaceLocking.NoopManager => out / DaemonFiles.millConsoleTail
+      case manager => manager.consoleTail
+    }
+    val consoleLogStream = new RotatingConsoleLogOutputStream(consoleLogPath)
 
     val teeStreams = new SystemStreams(
       new MultiStream(streams.out, consoleLogStream),

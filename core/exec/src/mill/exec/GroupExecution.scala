@@ -2,6 +2,7 @@ package mill.exec
 
 import mill.api.ExecResult.{OuterStack, Success}
 import mill.api.*
+import mill.api.daemon.WorkspaceLocking
 import mill.api.daemon.internal.NonFatal
 import mill.api.internal.{Appendable, Cached, Located}
 import mill.internal.{CodeSigUtils, FileLogger, MultiLogger}
@@ -404,44 +405,46 @@ trait GroupExecution {
         // 1. Build override only (!append): just evaluate YAML
         // 2. Both (append): evaluate task with caching, evaluate YAML, merge
         // 3. Task only (no override): evaluate task with caching
-        buildOverrideOpt match {
-          case Some(appendLocated) if appendLocated.value.append =>
-            val taskResults = evaluateTaskWithCaching()
+        WorkspaceLocking.withLocks(GroupExecution.lockResources(out, labelled)) {
+          buildOverrideOpt match {
+            case Some(appendLocated) if appendLocated.value.append =>
+              val taskResults = evaluateTaskWithCaching()
 
-            // Check if task evaluation failed - if so, propagate the failure
-            taskResults.newResults.get(labelled) match {
-              case Some(ExecResult.Success((v, _))) =>
-                val taskValue = v.value.asInstanceOf[Seq[Any]]
-                // Evaluate the YAML override and merge
-                evaluateBuildOverride(appendLocated, labelled) match {
-                  case Right(yamlValue) =>
-                    val (mergedData, serializedPaths) = PathRef.withSerializedPaths {
-                      (taskValue ++ yamlValue.asInstanceOf[Seq[Any]]).asInstanceOf[Any]
-                    }
-                    // Don't write merged result to paths.meta - that would overwrite the task
-                    // cache and cause the task to re-execute every time. The task cache stays
-                    // valid with inputsHash, and show uses the in-memory result from newResults.
-                    taskResults.copy(
-                      newResults =
-                        Map(labelled -> ExecResult.Success(Val(mergedData), mergedData.##)),
-                      serializedPaths = serializedPaths
-                    )
-                  case Left(e) =>
-                    val (failure, _) = buildOverrideDeserializationError(e, appendLocated)
-                    taskResults.copy(
-                      newResults = Map(labelled -> failure),
-                      serializedPaths = Nil
-                    )
-                }
-              // Task evaluation failed - propagate the failure
-              case _ => taskResults
-            }
+              // Check if task evaluation failed - if so, propagate the failure
+              taskResults.newResults.get(labelled) match {
+                case Some(ExecResult.Success((v, _))) =>
+                  val taskValue = v.value.asInstanceOf[Seq[Any]]
+                  // Evaluate the YAML override and merge
+                  evaluateBuildOverride(appendLocated, labelled) match {
+                    case Right(yamlValue) =>
+                      val (mergedData, serializedPaths) = PathRef.withSerializedPaths {
+                        (taskValue ++ yamlValue.asInstanceOf[Seq[Any]]).asInstanceOf[Any]
+                      }
+                      // Don't write merged result to paths.meta - that would overwrite the task
+                      // cache and cause the task to re-execute every time. The task cache stays
+                      // valid with inputsHash, and show uses the in-memory result from newResults.
+                      taskResults.copy(
+                        newResults =
+                          Map(labelled -> ExecResult.Success(Val(mergedData), mergedData.##)),
+                        serializedPaths = serializedPaths
+                      )
+                    case Left(e) =>
+                      val (failure, _) = buildOverrideDeserializationError(e, appendLocated)
+                      taskResults.copy(
+                        newResults = Map(labelled -> failure),
+                        serializedPaths = Nil
+                      )
+                  }
+                // Task evaluation failed - propagate the failure
+                case _ => taskResults
+              }
 
-          // Build override only (no append)
-          case Some(appendLocated) => evaluateBuildOverrideOnly(appendLocated)
+            // Build override only (no append)
+            case Some(appendLocated) => evaluateBuildOverrideOnly(appendLocated)
 
-          // Task only (no build override)
-          case None => evaluateTaskWithCaching()
+            // Task only (no build override)
+            case None => evaluateTaskWithCaching()
+          }
         }
       case _ =>
         val (newResults, newEvaluated) = executeGroup(
@@ -771,6 +774,18 @@ trait GroupExecution {
 }
 
 object GroupExecution {
+  def lockResources(
+      outPath: os.Path,
+      labelled: Task.Named[?]
+  ): Seq[WorkspaceLocking.Resource] = {
+    if (outPath.segments.contains("mill-build") || labelled.ctx.segments.render == "show") Nil
+    else {
+      val taskKey = s"task:${outPath}:${labelled.ctx.segments.render}"
+      Seq(taskKey).map { key =>
+        WorkspaceLocking.Resource(key, WorkspaceLocking.LockKind.Write)
+      }
+    }
+  }
 
   class DestCreator(paths: Option[ExecutionPaths]) {
     var usedDest = Option.empty[os.Path]

@@ -17,6 +17,7 @@ import mill.api.internal.RootModule
 import mill.internal.PrefixLogger
 import mill.meta.{BootstrapRootModule, MillBuildRootModule}
 import mill.api.daemon.internal.CliImports
+import mill.api.daemon.WorkspaceLocking
 import mill.meta.DiscoveredBuildFiles.findRootBuildFiles
 import mill.server.Server
 import mill.util.BuildInfo
@@ -62,7 +63,8 @@ class MillBuildBootstrap(
     offline: Boolean,
     useFileLocks: Boolean,
     reporter: EvaluatorApi => Int => Option[CompileProblemReporter],
-    enableTicker: Boolean
+    enableTicker: Boolean,
+    publishReusableState: RunnerState => Unit
 ) { outer =>
   import MillBuildBootstrap.*
 
@@ -110,38 +112,57 @@ class MillBuildBootstrap(
         case Some(nestedFrame) => getRootModule(nestedFrame.classLoaderOpt.get)
       }
 
-      rootModuleRes match {
-        case f: Result.Failure =>
-          nestedState.add(errorOpt = Some(Util.formatError(f, logger.prompt.errorColor)))
-
-        case Result.Success(buildFileApi) =>
-          Using.resource(makeEvaluator(nestedState, buildFileApi.rootModule, depth)) { evaluator =>
-            // Check if all requested tasks are @nonBootstrapped
-            val shouldShortCircuit =
-              // When there is an explicit `--meta-level`, use that and ignore any
-              // `@nonBootstrapped` annotations
-              if (requestedMetaLevel.nonEmpty) Result.Success(false)
-              else
-                evaluator.areAllNonBootstrapped(
-                  tasksAndParams,
-                  SelectMode.Separated,
-                  allowPositionalCommandArgs
-                )
-
-            shouldShortCircuit match {
-              case Result.Success(true) => processFinalTasks(nestedState, buildFileApi, evaluator)
-
-              // For both Success(false) and Failure, proceed with normal evaluation.
-              // If areAllNonBootstrapped failed (e.g., task doesn't exist), the actual
-              // evaluation will also fail, but moduleWatched will be properly captured.
-              case _ =>
-                if (depth > requestedDepth) {
-                  processRunClasspath(nestedState, buildFileApi, evaluator, depth)
-                } else if (depth == requestedDepth) {
-                  processFinalTasks(nestedState, buildFileApi, evaluator)
-                } else ??? // should be handled by outer conditional
+      val useNestedBuild =
+        Option.when(nestedFrames.headOption.exists(_.classLoaderOpt.isDefined))(depth + 1)
+      val run =
+        useNestedBuild match {
+          case Some(nestedDepth) => () => WorkspaceLocking.withMetaBuildRead(nestedDepth) {
+              evaluateResolvedRootModule(rootModuleRes, nestedState, depth, requestedDepth)
             }
-          }
+          case None => () =>
+              evaluateResolvedRootModule(rootModuleRes, nestedState, depth, requestedDepth)
+        }
+      run()
+    }
+  }
+
+  private def evaluateResolvedRootModule(
+      rootModuleRes: Result[BuildFileApi],
+      nestedState: RunnerState,
+      depth: Int,
+      requestedDepth: Int
+  ): RunnerState = {
+    rootModuleRes match {
+    case f: Result.Failure =>
+      nestedState.add(errorOpt = Some(Util.formatError(f, logger.prompt.errorColor)))
+
+    case Result.Success(buildFileApi) =>
+      Using.resource(makeEvaluator(nestedState, buildFileApi.rootModule, depth)) { evaluator =>
+        // Check if all requested tasks are @nonBootstrapped
+        val shouldShortCircuit =
+          // When there is an explicit `--meta-level`, use that and ignore any
+          // `@nonBootstrapped` annotations
+          if (requestedMetaLevel.nonEmpty) Result.Success(false)
+          else
+            evaluator.areAllNonBootstrapped(
+              tasksAndParams,
+              SelectMode.Separated,
+              allowPositionalCommandArgs
+            )
+
+        shouldShortCircuit match {
+          case Result.Success(true) => processFinalTasks(nestedState, buildFileApi, evaluator)
+
+          // For both Success(false) and Failure, proceed with normal evaluation.
+          // If areAllNonBootstrapped failed (e.g., task doesn't exist), the actual
+          // evaluation will also fail, but moduleWatched will be properly captured.
+          case _ =>
+            if (depth > requestedDepth) {
+              processRunClasspath(nestedState, buildFileApi, evaluator, depth)
+            } else if (depth == requestedDepth) {
+              processFinalTasks(nestedState, buildFileApi, evaluator)
+            } else ??? // should be handled by outer conditional
+        }
       }
     }
   }
@@ -320,39 +341,42 @@ class MillBuildBootstrap(
         val moduleWatchChanged = prevOuterFrameOpt
           .exists(_.moduleWatched.exists(w => !Watching.haveNotChanged(w)))
 
-        val classLoaderChanged = runClasspathChanged || moduleWatchChanged
+        val needsPublishedUpdate = runClasspathChanged || moduleWatchChanged
 
-        val classLoader = if (classLoaderChanged) {
-          // Make sure we close the old classloader every time we create a new
-          // one, to avoid memory leaks, as well as all the workers in each subsequent
-          // frame's `workerCache`s that may depend on classes loaded by that classloader.
-          // Workers are closed in reverse dependency order (downstream first, then upstream).
-          prevRunnerState.frames.lift(depth - 1).foreach { frame =>
-            val deps = mill.exec.GroupExecution.workerDependencies(frame.workerCache)
-            val topoIndex = deps.iterator.map(_._1).zipWithIndex.toMap
-            val allWorkers = frame.workerCache.values.map(_._3).toSet
-            val mutableCache = scala.collection.mutable.Map.from(frame.workerCache)
-            mill.exec.GroupExecution.closeWorkersInReverseTopologicalOrder(
-              allWorkers,
-              mutableCache,
-              topoIndex,
-              closeable =>
-                try closeable.close()
-                catch { case _: Throwable => }
-            )
+        def createClassLoader() = mill.util.Jvm.createClassLoader(
+          runClasspath.map(p => os.Path(p.javaPath)),
+          null,
+          sharedLoader = classOf[MillBuildBootstrap].getClassLoader,
+          sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.api.daemon", "sbt.testing.")
+        )
+
+        val classLoader =
+          if (needsPublishedUpdate) WorkspaceLocking.withMetaBuildWrite(depth) {
+            // Make sure we close the old classloader every time we create a new
+            // one, to avoid memory leaks, as well as all the workers in each subsequent
+            // frame's `workerCache`s that may depend on classes loaded by that classloader.
+            // Workers are closed in reverse dependency order (downstream first, then upstream).
+            prevRunnerState.frames.lift(depth - 1).foreach { frame =>
+              val deps = mill.exec.GroupExecution.workerDependencies(frame.workerCache)
+              val topoIndex = deps.iterator.map(_._1).zipWithIndex.toMap
+              val allWorkers = frame.workerCache.values.map(_._3).toSet
+              val mutableCache = scala.collection.mutable.Map.from(frame.workerCache)
+              mill.exec.GroupExecution.closeWorkersInReverseTopologicalOrder(
+                allWorkers,
+                mutableCache,
+                topoIndex,
+                closeable =>
+                  try closeable.close()
+                  catch { case _: Throwable => }
+              )
+            }
+
+            prevFrameOpt.foreach(_.classLoaderOpt.foreach(_.close()))
+            createClassLoader()
           }
-
-          prevFrameOpt.foreach(_.classLoaderOpt.foreach(_.close()))
-          val cl = mill.util.Jvm.createClassLoader(
-            runClasspath.map(p => os.Path(p.javaPath)),
-            null,
-            sharedLoader = classOf[MillBuildBootstrap].getClassLoader,
-            sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.api.daemon", "sbt.testing.")
-          )
-          cl
-        } else {
-          prevFrameOpt.get.classLoaderOpt.get
-        }
+          else {
+            prevFrameOpt.get.classLoaderOpt.get
+          }
 
         val evalState = RunnerState.Frame(
           workerCache = evaluator.workerCache.toMap,
@@ -364,11 +388,15 @@ class MillBuildBootstrap(
           compileOutput = Some(compileClasses),
           evaluator = Option(evaluator),
           buildOverrideFiles = buildOverrideFiles,
-          // Only pass the spanning tree when classloader changed (meta-build was recompiled)
-          spanningInvalidationTree = Option.when(classLoaderChanged)(spanningInvalidationTree)
+          // Only pass the spanning tree when the published meta-build state changed
+          spanningInvalidationTree = Option.when(needsPublishedUpdate)(spanningInvalidationTree)
         )
 
-        nestedState.add(frame = evalState)
+        val nextState = nestedState.add(frame = evalState)
+        val publishedState =
+          nextState.copy(frames = Seq.fill(depth)(RunnerState.Frame.empty) ++ nextState.frames)
+        publishReusableState(publishedState)
+        nextState
 
       case unknown => sys.error(unknown.toString())
     }

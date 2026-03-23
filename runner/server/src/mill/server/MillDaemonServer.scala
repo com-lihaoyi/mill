@@ -31,6 +31,12 @@ abstract class MillDaemonServer[State](
   def outFolder: os.Path
 
   private var stateCache: State = initialStateCache
+  private val stateLock = new Object
+
+  protected def snapshotStateCache(): State = stateLock.synchronized(stateCache)
+  protected def publishStateCache(newState: State): Unit = stateLock.synchronized {
+    stateCache = newState
+  }
 
   def initialStateCache: State
 
@@ -141,9 +147,10 @@ abstract class MillDaemonServer[State](
         val rpcStdin = new MillDaemonServer.RpcStdinInputStream(serverToClient)
 
         // Run the actual command
+        val currentStateCache = snapshotStateCache()
         val (result, newStateCache) = main0(
           args = init.args.toArray,
-          stateCache = stateCache,
+          stateCache = currentStateCache,
           mainInteractive = init.interactive,
           streams = new SystemStreams(stdout, stderr, rpcStdin),
           env = init.env,
@@ -155,7 +162,7 @@ abstract class MillDaemonServer[State](
           millRepositories = init.millRepositories
         )
 
-        stateCache = newStateCache
+        publishStateCache(newStateCache)
         commandExitCode = if (result) 0 else 1
         DaemonRpc.RunCommandResult(commandExitCode)
       }

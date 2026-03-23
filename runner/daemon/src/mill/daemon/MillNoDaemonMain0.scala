@@ -54,6 +54,7 @@ object MillNoDaemonMain0 {
       try MillMain0.main0(
           args = args.rest.toArray,
           stateCache = RunnerState.empty,
+          publishStateCache = MillMain0.noopPublishRunnerState,
           mainInteractive = mill.constants.Util.hasConsole(),
           streams0 = initialSystemStreams,
           env = System.getenv().asScala.toMap,
