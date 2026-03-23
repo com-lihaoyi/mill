@@ -23,14 +23,18 @@ object WorkspaceLocking {
 
   trait Manager extends AutoCloseable {
     def runId: String
-    def consoleTail: os.Path
+    // Use java.nio.file.Path (not os.Path) in the trait interface because this trait
+    // is loaded by the shared/app classloader (mill.api.daemon prefix), while callers
+    // like Execution may be loaded by a MillURLClassLoader. os.Path is NOT in the
+    // shared prefixes, so using it here would cause LinkageError.
+    def consoleTailJava: java.nio.file.Path
     def noBuildLock: Boolean
     def noWaitForBuildLock: Boolean
 
     /** Returns a per-run profile path to avoid corruption under concurrent daemon runs. */
-    def profilePath(default: os.Path): os.Path = default
+    def profilePathJava(default: java.nio.file.Path): java.nio.file.Path = default
     /** Returns a per-run chrome profile path to avoid corruption under concurrent daemon runs. */
-    def chromeProfilePath(default: os.Path): os.Path = default
+    def chromeProfilePathJava(default: java.nio.file.Path): java.nio.file.Path = default
 
     def acquireLock(resource: Resource): ResourceLease
     def acquireLocks(resources: Seq[Resource]): Lease
@@ -49,7 +53,8 @@ object WorkspaceLocking {
 
   object NoopManager extends Manager {
     override def runId: String = "noop"
-    override def consoleTail: os.Path = os.pwd / "out" / "mill-console-tail"
+    override def consoleTailJava: java.nio.file.Path =
+      java.nio.file.Path.of("out", "mill-console-tail")
     override def noBuildLock: Boolean = false
     override def noWaitForBuildLock: Boolean = false
     override def acquireLock(resource0: Resource): ResourceLease = new ResourceLease {
@@ -181,7 +186,8 @@ object WorkspaceLocking {
     private val runDir: os.Path = out / s"$runDirPrefix$runId"
     os.makeDir.all(runDir)
 
-    override val consoleTail: os.Path = runDir / "mill-console-tail"
+    val consoleTail: os.Path = runDir / "mill-console-tail"
+    override def consoleTailJava: java.nio.file.Path = consoleTail.toNIO
     private val activeFile: os.Path = runDir / OutFiles.millActive
 
     private val activeRun = ActiveRun(runId, runDir, consoleTail, activeFile)
@@ -205,22 +211,22 @@ object WorkspaceLocking {
       }
     }
 
-    override def profilePath(default: os.Path): os.Path = {
-      val path = runDir / default.last
+    override def profilePathJava(default: java.nio.file.Path): java.nio.file.Path = {
+      val path = runDir / os.Path(default).last
       activeRunsLock.synchronized {
         activeRun.profilePathOpt = Some(path)
         refreshWellKnownLinks(out)
       }
-      path
+      path.toNIO
     }
 
-    override def chromeProfilePath(default: os.Path): os.Path = {
-      val path = runDir / default.last
+    override def chromeProfilePathJava(default: java.nio.file.Path): java.nio.file.Path = {
+      val path = runDir / os.Path(default).last
       activeRunsLock.synchronized {
         activeRun.chromeProfilePathOpt = Some(path)
         refreshWellKnownLinks(out)
       }
-      path
+      path.toNIO
     }
 
     override def close(): Unit = {

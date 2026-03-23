@@ -668,7 +668,7 @@ object MillMain0 {
     // Console log file for monitoring progress when another process is waiting
     val consoleLogPath = workspaceLockManager match {
       case WorkspaceLocking.NoopManager => out / DaemonFiles.millConsoleTail
-      case manager => manager.consoleTail
+      case manager => os.Path(manager.consoleTailJava)
     }
     val consoleLogStream = new RotatingConsoleLogOutputStream(consoleLogPath)
 
@@ -706,7 +706,7 @@ object MillMain0 {
       terminalDimsCallback = terminalDimsCallback,
       currentTimeMillis = () => System.currentTimeMillis(),
       chromeProfileLogger = new JsonArrayLogger.ChromeProfile(
-        workspaceLockManager.chromeProfilePath(out / OutFiles.millChromeProfile)
+        os.Path(workspaceLockManager.chromeProfilePathJava((out / OutFiles.millChromeProfile).toNIO))
       )
     )
     new PrefixLogger(promptLogger, Nil) with AutoCloseable {

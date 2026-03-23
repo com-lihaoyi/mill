@@ -88,7 +88,7 @@ case class Execution(
   ) = this(
     baseLogger = baseLogger,
     profileLogger = new JsonArrayLogger.Profile(
-      workspaceLockManager.profilePath(os.Path(outPath) / millProfile)
+      os.Path(workspaceLockManager.profilePathJava((os.Path(outPath) / millProfile).toNIO))
     ),
     workspace = os.Path(workspace),
     outPath = os.Path(outPath),
