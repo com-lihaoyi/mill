@@ -51,6 +51,7 @@ final class EvaluatorImpl(
   def env = execution.env
   def effectiveThreadCount = execution.effectiveThreadCount
   override def offline: Boolean = execution.offline
+  override def isFinalDepth: Boolean = execution.isFinalDepth
   override def useFileLocks: Boolean = execution.useFileLocks
   override def workspaceLockManager: WorkspaceLocking.Manager = execution.workspaceLockManager
   override def spanningInvalidationTree: Option[String] = execution.spanningInvalidationTree
@@ -295,103 +296,104 @@ final class EvaluatorImpl(
       selectiveExecution: Boolean = false
   ): Evaluator.Result[T] = {
     val selectiveExecutionEnabled = selectiveExecution && !tasks.exists(_.isExclusiveCommand)
+    withWorkspaceLocks(tasks, selectiveExecutionEnabled) {
+      val (selectedTasks, selectiveResults, maybeNewMetadata) =
+        if (!selectiveExecutionEnabled) (tasks, Map.empty, None)
+        else {
+          val (named, unnamed) =
+            tasks.partitionMap { case n: Task.Named[?] => Left(n); case t => Right(t) }
+          val newComputedMetadata = this.selective.computeMetadata(named)
 
-    val (selectedTasks, selectiveResults, maybeNewMetadata) =
-      if (!selectiveExecutionEnabled) (tasks, Map.empty, None)
-      else {
-        val (named, unnamed) =
-          tasks.partitionMap { case n: Task.Named[?] => Left(n); case t => Right(t) }
-        val newComputedMetadata = this.selective.computeMetadata(named)
+          val selectiveExecutionStoredData = for {
+            _ <- Option.when(os.exists(outPath / OutFiles.millSelectiveExecution))(())
+            changedTasks <- this.selective.computeChangedTasks0(named, newComputedMetadata)
+          } yield changedTasks
 
-        val selectiveExecutionStoredData = for {
-          _ <- Option.when(os.exists(outPath / OutFiles.millSelectiveExecution))(())
-          changedTasks <- this.selective.computeChangedTasks0(named, newComputedMetadata)
-        } yield changedTasks
+          selectiveExecutionStoredData match {
+            case None =>
+              // Ran when previous selective execution metadata is not available, which happens the first time you run
+              // selective execution.
+              (tasks, Map.empty, Some(newComputedMetadata.metadata))
+            case Some(changedTasks) =>
+              val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
 
-        selectiveExecutionStoredData match {
-          case None =>
-            // Ran when previous selective execution metadata is not available, which happens the first time you run
-            // selective execution.
-            (tasks, Map.empty, Some(newComputedMetadata.metadata))
-          case Some(changedTasks) =>
-            val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
-
-            (
-              unnamed ++ named.filter(t =>
-                t.isExclusiveCommand || selectedSet(t.ctx.segments.render)
-              ),
-              newComputedMetadata.results,
-              Some(newComputedMetadata.metadata)
-            )
+              (
+                unnamed ++ named.filter(t =>
+                  t.isExclusiveCommand || selectedSet(t.ctx.segments.render)
+                ),
+                newComputedMetadata.results,
+                Some(newComputedMetadata.metadata)
+              )
+          }
         }
+
+      val evaluated: ExecutionResults = execution.executeTasks(
+        goals = selectedTasks,
+        reporter = reporter,
+        testReporter = testReporter,
+        logger = logger,
+        serialCommandExec = serialCommandExec
+      )
+
+      val allResults = evaluated.transitiveResults ++ selectiveResults
+
+      @scala.annotation.nowarn("msg=cannot be checked at runtime")
+      val watched = allResults.collect {
+        case (_: Task.Sources, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
+          ps.map(r => Watchable.Path.from(r))
+        case (_: Task.Source, ExecResult.Success(Val(p: PathRef))) =>
+          Seq(Watchable.Path.from(p))
+        case (t: Task.Input[_], result) =>
+
+          val ctx = new mill.api.TaskCtx.Impl(
+            args = Vector(),
+            dest0 = () => null,
+            log = logger,
+            _env = this.execution.env,
+            reporter = reporter,
+            testReporter = testReporter,
+            workspace = workspace,
+            _systemExitWithReason = (reason, exitCode) =>
+              throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
+            fork = null,
+            jobs = execution.effectiveThreadCount,
+            offline = offline,
+            useFileLocks = useFileLocks
+          )
+          val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
+          Seq(Watchable.Value(
+            () => t.evaluate(ctx).hashCode(),
+            result.map(_.value).hashCode(),
+            pretty
+          ))
+      }.flatten.toVector
+
+      for (newMetadata <- maybeNewMetadata) {
+        val failingTaskNames = allResults
+          .collect { case (t: Task.Named[_], r) if r.asSuccess.isEmpty => t.ctx.segments.render }
+          .toSet
+
+        // For tasks that were not successful, force them to re-run next time even
+        // if not changed so the user can see that there are still failures remaining
+        selective.saveMetadata(newMetadata.copy(forceRunTasks = failingTaskNames))
       }
 
-    val evaluated: ExecutionResults = execution.executeTasks(
-      goals = selectedTasks,
-      reporter = reporter,
-      testReporter = testReporter,
-      logger = logger,
-      serialCommandExec = serialCommandExec
-    )
-
-    val allResults = evaluated.transitiveResults ++ selectiveResults
-
-    @scala.annotation.nowarn("msg=cannot be checked at runtime")
-    val watched = allResults.collect {
-      case (_: Task.Sources, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
-        ps.map(r => Watchable.Path.from(r))
-      case (_: Task.Source, ExecResult.Success(Val(p: PathRef))) =>
-        Seq(Watchable.Path.from(p))
-      case (t: Task.Input[_], result) =>
-
-        val ctx = new mill.api.TaskCtx.Impl(
-          args = Vector(),
-          dest0 = () => null,
-          log = logger,
-          _env = this.execution.env,
-          reporter = reporter,
-          testReporter = testReporter,
-          workspace = workspace,
-          _systemExitWithReason = (reason, exitCode) =>
-            throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
-          fork = null,
-          jobs = execution.effectiveThreadCount,
-          offline = offline,
-          useFileLocks = useFileLocks
-        )
-        val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
-        Seq(Watchable.Value(
-          () => t.evaluate(ctx).hashCode(),
-          result.map(_.value).hashCode(),
-          pretty
-        ))
-    }.flatten.toVector
-
-    for (newMetadata <- maybeNewMetadata) {
-      val failingTaskNames = allResults
-        .collect { case (t: Task.Named[_], r) if r.asSuccess.isEmpty => t.ctx.segments.render }
-        .toSet
-
-      // For tasks that were not successful, force them to re-run next time even
-      // if not changed so the user can see that there are still failures remaining
-      selective.saveMetadata(newMetadata.copy(forceRunTasks = failingTaskNames))
-    }
-
-    evaluated.transitiveFailing.size match {
-      case 0 =>
-        Evaluator.Result(
-          watched,
-          mill.api.Result.Success(evaluated.values.map(_._1.asInstanceOf[T])),
-          selectedTasks,
-          evaluated
-        )
-      case _ =>
-        Evaluator.Result(
-          watched,
-          mill.internal.Util.formatFailing(evaluated),
-          selectedTasks,
-          evaluated
-        )
+      evaluated.transitiveFailing.size match {
+        case 0 =>
+          Evaluator.Result(
+            watched,
+            mill.api.Result.Success(evaluated.values.map(_._1.asInstanceOf[T])),
+            selectedTasks,
+            evaluated
+          )
+        case _ =>
+          Evaluator.Result(
+            watched,
+            mill.internal.Util.formatFailing(evaluated),
+            selectedTasks,
+            evaluated
+          )
+      }
     }
   }
 

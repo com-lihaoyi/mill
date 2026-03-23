@@ -2,7 +2,6 @@ package mill.exec
 
 import mill.api.ExecResult.{OuterStack, Success}
 import mill.api.*
-import mill.api.daemon.WorkspaceLocking
 import mill.api.daemon.internal.NonFatal
 import mill.api.internal.{Appendable, Cached, Located}
 import mill.internal.{CodeSigUtils, FileLogger, MultiLogger}
@@ -188,8 +187,6 @@ trait GroupExecution {
 
   def offline: Boolean
   def useFileLocks: Boolean
-  def workspaceLockManager: WorkspaceLocking.Manager
-
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
     CodeSigUtils.constructorHashSignatures(codeSignatures)
 
@@ -407,52 +404,44 @@ trait GroupExecution {
         // 1. Build override only (!append): just evaluate YAML
         // 2. Both (append): evaluate task with caching, evaluate YAML, merge
         // 3. Task only (no override): evaluate task with caching
-        workspaceLockManager.withLocks(
-          GroupExecution.lockResources(
-            out = out,
-            terminal = terminal,
-            isFinalDepth = isFinalDepth
-          )
-        ) {
-          buildOverrideOpt match {
-            case Some(appendLocated) if appendLocated.value.append =>
-              val taskResults = evaluateTaskWithCaching()
+        buildOverrideOpt match {
+          case Some(appendLocated) if appendLocated.value.append =>
+            val taskResults = evaluateTaskWithCaching()
 
-              // Check if task evaluation failed - if so, propagate the failure
-              taskResults.newResults.get(labelled) match {
-                case Some(ExecResult.Success((v, _))) =>
-                  val taskValue = v.value.asInstanceOf[Seq[Any]]
-                  // Evaluate the YAML override and merge
-                  evaluateBuildOverride(appendLocated, labelled) match {
-                    case Right(yamlValue) =>
-                      val (mergedData, serializedPaths) = PathRef.withSerializedPaths {
-                        (taskValue ++ yamlValue.asInstanceOf[Seq[Any]]).asInstanceOf[Any]
-                      }
-                      // Don't write merged result to paths.meta - that would overwrite the task
-                      // cache and cause the task to re-execute every time. The task cache stays
-                      // valid with inputsHash, and show uses the in-memory result from newResults.
-                      taskResults.copy(
-                        newResults =
-                          Map(labelled -> ExecResult.Success(Val(mergedData), mergedData.##)),
-                        serializedPaths = serializedPaths
-                      )
-                    case Left(e) =>
-                      val (failure, _) = buildOverrideDeserializationError(e, appendLocated)
-                      taskResults.copy(
-                        newResults = Map(labelled -> failure),
-                        serializedPaths = Nil
-                      )
-                  }
-                // Task evaluation failed - propagate the failure
-                case _ => taskResults
-              }
+            // Check if task evaluation failed - if so, propagate the failure
+            taskResults.newResults.get(labelled) match {
+              case Some(ExecResult.Success((v, _))) =>
+                val taskValue = v.value.asInstanceOf[Seq[Any]]
+                // Evaluate the YAML override and merge
+                evaluateBuildOverride(appendLocated, labelled) match {
+                  case Right(yamlValue) =>
+                    val (mergedData, serializedPaths) = PathRef.withSerializedPaths {
+                      (taskValue ++ yamlValue.asInstanceOf[Seq[Any]]).asInstanceOf[Any]
+                    }
+                    // Don't write merged result to paths.meta - that would overwrite the task
+                    // cache and cause the task to re-execute every time. The task cache stays
+                    // valid with inputsHash, and show uses the in-memory result from newResults.
+                    taskResults.copy(
+                      newResults =
+                        Map(labelled -> ExecResult.Success(Val(mergedData), mergedData.##)),
+                      serializedPaths = serializedPaths
+                    )
+                  case Left(e) =>
+                    val (failure, _) = buildOverrideDeserializationError(e, appendLocated)
+                    taskResults.copy(
+                      newResults = Map(labelled -> failure),
+                      serializedPaths = Nil
+                    )
+                }
+              // Task evaluation failed - propagate the failure
+              case _ => taskResults
+            }
 
-            // Build override only (no append)
-            case Some(appendLocated) => evaluateBuildOverrideOnly(appendLocated)
+          // Build override only (no append)
+          case Some(appendLocated) => evaluateBuildOverrideOnly(appendLocated)
 
-            // Task only (no build override)
-            case None => evaluateTaskWithCaching()
-          }
+          // Task only (no build override)
+          case None => evaluateTaskWithCaching()
         }
       case _ =>
         val (newResults, newEvaluated) = executeGroup(
@@ -782,38 +771,6 @@ trait GroupExecution {
 }
 
 object GroupExecution {
-  def lockResources(
-      out: os.Path,
-      terminal: Task[?],
-      isFinalDepth: Boolean
-  ): Seq[WorkspaceLocking.Resource] = {
-    if (!isFinalDepth) Nil
-    else {
-      lockTargets(terminal).collect {
-        case named: Task.Named[?] =>
-          val paths = ExecutionPaths.resolve(out, named.ctx.segments)
-          WorkspaceLocking.Resource(
-            s"task:${paths.dest}",
-            WorkspaceLocking.LockKind.Write
-          )
-      }.distinct.sortBy(_.key)
-    }
-  }
-
-  private def lockTargets(terminal: Task[?]): Seq[Task[?]] =
-    if (terminal.asCommand.nonEmpty) {
-      if (isDynamicWrapperCommand(terminal)) Nil
-      else if (terminal.inputs.nonEmpty) terminal.inputs
-      else Seq(terminal)
-    } else Seq(terminal)
-
-  private def isDynamicWrapperCommand(terminal: Task[?]): Boolean =
-    terminal match {
-      case named: Task.Named[?] =>
-        Set("show", "showNamed").contains(named.ctx.segments.render)
-      case _ => false
-    }
-
   class DestCreator(paths: Option[ExecutionPaths]) {
     var usedDest = Option.empty[os.Path]
 

@@ -9,7 +9,6 @@ import mill.api.SelectMode.Separated
 import mill.api.daemon.Watchable
 import mill.moduledefs.Scaladoc
 import mill.api.BuildCtx
-import mill.api.ExecutionPaths
 import mill.api.daemon.internal.bsp.BspMainModuleApi
 import scala.util.chaining.given
 
@@ -491,20 +490,12 @@ object MainModule {
       .withRedirectOutToErr()
       .asInstanceOf[Logger]
 
-    evaluator.resolveTasks(
-      tasks,
-      SelectMode.Separated,
-      allowPositionalCommandArgs = evaluator.allowPositionalCommandArgs
-    ).flatMap { resolvedTasks =>
-      evaluator.withTaskLocks(resolvedTasks) {
-        evaluator.withBaseLogger(redirectLogger)
-          .evaluate(
-            tasks,
-            Separated,
-            selectiveExecution = evaluator.selectiveExecution
-          )
-      }
-    }.flatMap {
+    evaluator.withBaseLogger(redirectLogger)
+      .evaluate(
+        tasks,
+        Separated,
+        selectiveExecution = evaluator.selectiveExecution
+      ).flatMap {
         case Evaluator.Result(watched, f: Result.Failure, _, _) =>
           watched.foreach(watch0)
           f

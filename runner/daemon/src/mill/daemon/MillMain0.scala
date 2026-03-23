@@ -349,6 +349,9 @@ object MillMain0 {
                           runWithLockManager(
                             new WorkspaceLocking.InProcessManager(
                               out = out,
+                              daemonDir = daemonDir,
+                              activeCommandMessage = millActiveCommandMessage,
+                              waitingErr = streams.err,
                               noBuildLock = config.noBuildLock.value,
                               noWaitForBuildLock = config.noWaitForBuildLock.value
                             )

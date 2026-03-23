@@ -7,6 +7,7 @@ import mill.api.daemon.WorkspaceLocking
 import mill.api.BuildCtx
 import mill.api.daemon.internal.{EvaluatorApi, TaskApi}
 import mill.api.internal.{Located, Resolved, RootModule0}
+import mill.constants.OutFiles
 import upickle.core.BufferedValue
 import scala.util.DynamicVariable
 import scala.collection.mutable
@@ -34,18 +35,50 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def env: Map[String, String]
   private[mill] def effectiveThreadCount: Int
   private[mill] def offline: Boolean
+  private[mill] def isFinalDepth: Boolean = true
   private[mill] def useFileLocks: Boolean = false
   private[mill] def workspaceLockManager: WorkspaceLocking.Manager =
     WorkspaceLocking.NoopManager
-  private[mill] def withTaskLocks[T](tasks: Seq[Task.Named[?]])(t: => T): T =
-    workspaceLockManager.withLocks(
-      tasks.map { task =>
-        WorkspaceLocking.Resource(
-          s"task:${ExecutionPaths.resolve(outPath, task.ctx.segments).dest}",
+  private[mill] def workspaceLockResources(
+      tasks: Seq[Task[?]],
+      selectiveExecution: Boolean
+  ): Seq[WorkspaceLocking.Resource] = {
+    if (!isFinalDepth) Nil
+    else {
+      val seen = mutable.HashSet.empty[Task[?]]
+      val queue = mutable.ArrayDeque.from(tasks)
+      val resources = mutable.LinkedHashSet.empty[WorkspaceLocking.Resource]
+
+      while (queue.nonEmpty) {
+        val task = queue.removeHead()
+        if (seen.add(task)) {
+          task match {
+            case named: Task.Named[?] =>
+              resources += WorkspaceLocking.Resource(
+                s"task:${ExecutionPaths.resolve(outPath, named.ctx.segments).dest}",
+                WorkspaceLocking.LockKind.Write
+              )
+            case _ =>
+          }
+          queue.addAll(task.inputs)
+        }
+      }
+
+      if (selectiveExecution) {
+        resources += WorkspaceLocking.Resource(
+          s"global:${outPath / OutFiles.millSelectiveExecution}",
           WorkspaceLocking.LockKind.Write
         )
-      }.distinct
-    )(t)
+      }
+
+      resources.toSeq.sortBy(_.key)
+    }
+  }
+  private[mill] def withWorkspaceLocks[T](
+      tasks: Seq[Task[?]],
+      selectiveExecution: Boolean
+  )(t: => T): T =
+    workspaceLockManager.withLocks(workspaceLockResources(tasks, selectiveExecution))(t)
   private[mill] def staticBuildOverrides: Map[String, Located[internal.Appendable[BufferedValue]]] =
     Map()
   // JSON string to avoid classloader issues when crossing classloader boundaries

@@ -1,5 +1,8 @@
 package mill.api.daemon
 
+import mill.constants.{DaemonFiles, OutFiles}
+
+import java.io.PrintStream
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -59,6 +62,19 @@ object WorkspaceLocking {
   /** Maximum number of per-run directories to retain for debugging. */
   private val maxRetainedRuns = 10
 
+  private case class ActiveRun(
+      runId: String,
+      runDir: os.Path,
+      consoleTail: os.Path,
+      activeFile: os.Path,
+      var profilePathOpt: Option[os.Path] = None,
+      var chromeProfilePathOpt: Option[os.Path] = None
+  )
+
+  private val activeRunsLock = new Object
+  private val activeRuns =
+    scala.collection.mutable.Map.empty[String, scala.collection.mutable.LinkedHashMap[String, ActiveRun]]
+
   /**
    * Clean up old per-run directories in `out`, keeping the most recent [[maxRetainedRuns]].
    * Directories are named `mill-run-{timestamp}-{counter}` and sort chronologically.
@@ -66,11 +82,20 @@ object WorkspaceLocking {
   private def cleanupOldRunDirs(out: os.Path): Unit = {
     try {
       if (!os.exists(out)) return
-      val runDirs = os.list(out)
-        .filter(p => os.isDir(p) && p.last.startsWith(runDirPrefix))
+      activeRunsLock.synchronized {
+        val activeRunDirs = activeRuns
+          .getOrElse(out.toString, scala.collection.mutable.LinkedHashMap.empty)
+          .valuesIterator
+          .map(_.runDir)
+          .toSet
 
-      if (runDirs.size > maxRetainedRuns) {
-        val toRemove = runDirs.sortBy(_.last).dropRight(maxRetainedRuns)
+        val runDirs = os.list(out)
+          .filter(p => os.isDir(p) && p.last.startsWith(runDirPrefix))
+          .sortBy(_.last)
+
+        val removable = runDirs.filterNot(activeRunDirs)
+        val toRemove =
+          removable.take(math.min(removable.size, math.max(0, runDirs.size - maxRetainedRuns)))
         toRemove.foreach { dir =>
           try os.remove.all(dir)
           catch { case _: Throwable => }
@@ -82,18 +107,58 @@ object WorkspaceLocking {
   }
 
   /** Atomically replace `link` with a relative symlink pointing to `target`. */
-  private def updateSymlink(link: os.Path, target: os.Path): Unit = {
+  private def updateSymlink(link: os.Path, targetOpt: Option[os.Path]): Unit = {
     try {
-      val rel = target.relativeTo(link / os.up)
-      os.remove(link)
-      os.symlink(link, rel)
+      try os.remove.all(link)
+      catch { case _: Throwable => }
+
+      targetOpt.foreach { target =>
+        val rel = target.relativeTo(link / os.up)
+        os.symlink(link, rel)
+      }
     } catch {
       case _: Throwable => // best-effort; non-critical for correctness
     }
   }
 
+  private def quoteJson(s: String): String =
+    "\"" + s.flatMap {
+      case '"' => "\\\""
+      case '\\' => "\\\\"
+      case '\b' => "\\b"
+      case '\f' => "\\f"
+      case '\n' => "\\n"
+      case '\r' => "\\r"
+      case '\t' => "\\t"
+      case c if c.isControl => f"\\u${c.toInt}%04x"
+      case c => c.toString
+    } + "\""
+
+  private def readActiveCommand(out: os.Path): Option[String] = {
+    try {
+      val json = os.read(out / OutFiles.millActive)
+      """"command"\s*:\s*"([^"]*)"""".r.findFirstMatchIn(json).map(_.group(1))
+    } catch {
+      case _: Throwable => None
+    }
+  }
+
+  private def refreshWellKnownLinks(out: os.Path): Unit = activeRunsLock.synchronized {
+    val latestRunOpt = activeRuns
+      .get(out.toString)
+      .flatMap(_.lastOption.map(_._2))
+
+    updateSymlink(out / DaemonFiles.millConsoleTail, latestRunOpt.map(_.consoleTail))
+    updateSymlink(out / OutFiles.millActive, latestRunOpt.map(_.activeFile))
+    updateSymlink(out / OutFiles.millProfile, latestRunOpt.flatMap(_.profilePathOpt))
+    updateSymlink(out / OutFiles.millChromeProfile, latestRunOpt.flatMap(_.chromeProfilePathOpt))
+  }
+
   final class InProcessManager(
       out: os.Path,
+      daemonDir: os.Path,
+      activeCommandMessage: String,
+      waitingErr: PrintStream,
       override val noBuildLock: Boolean,
       override val noWaitForBuildLock: Boolean
   ) extends Manager {
@@ -104,24 +169,51 @@ object WorkspaceLocking {
     os.makeDir.all(runDir)
 
     override val consoleTail: os.Path = runDir / "mill-console-tail"
+    private val activeFile: os.Path = runDir / OutFiles.millActive
 
-    // Clean up old run directories, then point well-known symlinks at this run
+    private val activeRun = ActiveRun(runId, runDir, consoleTail, activeFile)
+
+    os.write.over(
+      activeFile,
+      s"""{"command":${quoteJson(activeCommandMessage)},"processDir":${quoteJson(daemonDir.toString)},"pid":${ProcessHandle.current().pid()},"runId":${quoteJson(runId)}}"""
+    )
+
+    activeRunsLock.synchronized {
+      val runsForOut =
+        activeRuns.getOrElseUpdate(out.toString, scala.collection.mutable.LinkedHashMap.empty)
+      runsForOut.update(runId, activeRun)
+      refreshWellKnownLinks(out)
+    }
     cleanupOldRunDirs(out)
-    updateSymlink(out / "mill-console-tail", consoleTail)
 
     override def profilePath(default: os.Path): os.Path = {
       val path = runDir / default.last
-      updateSymlink(default, path)
+      activeRunsLock.synchronized {
+        activeRun.profilePathOpt = Some(path)
+        refreshWellKnownLinks(out)
+      }
       path
     }
 
     override def chromeProfilePath(default: os.Path): os.Path = {
       val path = runDir / default.last
-      updateSymlink(default, path)
+      activeRunsLock.synchronized {
+        activeRun.chromeProfilePathOpt = Some(path)
+        refreshWellKnownLinks(out)
+      }
       path
     }
 
-    override def close(): Unit = ()
+    override def close(): Unit = {
+      activeRunsLock.synchronized {
+        activeRuns.get(out.toString).foreach { runsForOut =>
+          runsForOut.remove(runId)
+          if (runsForOut.isEmpty) activeRuns.remove(out.toString)
+        }
+        refreshWellKnownLinks(out)
+      }
+      cleanupOldRunDirs(out)
+    }
 
     override def acquireLocks(resources: Seq[Resource]): Lease =
       if (noBuildLock || resources.isEmpty) () => ()
@@ -140,22 +232,36 @@ object WorkspaceLocking {
 
     private def acquire(resource: Resource): Unit = {
       val lock = rwLock(resource)
+      def waitMessage(action: String): Unit = {
+        val command = readActiveCommand(out).getOrElse(activeCommandMessage)
+        waitingErr.println(
+          s"Another Mill command in the current daemon is running '$command', $action " +
+            s"(tail -F out/${DaemonFiles.millConsoleTail} to see its progress)"
+        )
+      }
       val acquired = resource.kind match {
         case LockKind.Read =>
-          if (noWaitForBuildLock) lock.readLock().tryLock() else {
+          if (noWaitForBuildLock) lock.readLock().tryLock()
+          else if (lock.readLock().tryLock()) true
+          else {
+            waitMessage("waiting for it to be done...")
             lock.readLock().lock()
             true
           }
         case LockKind.Write =>
-          if (noWaitForBuildLock) lock.writeLock().tryLock() else {
+          if (noWaitForBuildLock) lock.writeLock().tryLock()
+          else if (lock.writeLock().tryLock()) true
+          else {
+            waitMessage("waiting for it to be done...")
             lock.writeLock().lock()
             true
           }
       }
 
       if (!acquired) {
+        val command = readActiveCommand(out).getOrElse(activeCommandMessage)
         throw new Exception(
-          s"Another Mill command in the current daemon is using resource '${resource.key}', failing"
+          s"Another Mill command in the current daemon is running '$command' and using resource '${resource.key}', failing"
         )
       }
     }

@@ -119,28 +119,14 @@ abstract class MillDaemonServer[State](
         lastConfig.foreach { stored =>
           val mismatchReasons = stored.checkMismatchAgainst(clientConfig)
           if (mismatchReasons.nonEmpty) {
-            Server.withOutLock(
-              noBuildLock = false,
-              noWaitForBuildLock = false,
-              out = outFolder,
-              daemonDir = daemonDir,
-              millActiveCommandMessage = "checking server configuration",
-              streams = new SystemStreams(
-                new PrintStream(mill.api.daemon.DummyOutputStream),
-                new PrintStream(mill.api.daemon.DummyOutputStream),
-                mill.api.daemon.DummyInputStream
-              ),
-              outLock = outLock,
-              setIdle = _ => ()
-            ) {
-              mismatchReasons.foreach(reason => stderr.println(s"$reason, re-starting server"))
+            mismatchReasons.foreach(reason => stderr.println(s"$reason, re-starting server"))
 
-              // This sends RPC response and throws InterruptedException to stop the RPC loop
-              deferredStopServer(
-                s"config mismatch: ${mismatchReasons.mkString(", ")}",
-                ClientUtil.ServerExitPleaseRetry
-              )
-            }
+            // The daemon already holds the out/ file lock for its lifetime, so trying to
+            // re-enter the legacy out lock here risks same-process file lock overlap.
+            deferredStopServer(
+              s"config mismatch: ${mismatchReasons.mkString(", ")}",
+              ClientUtil.ServerExitPleaseRetry
+            )
           }
         }
         lastConfig = Some(clientConfig)

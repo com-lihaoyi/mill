@@ -1,5 +1,6 @@
 package mill.integration
 
+import mill.constants.{DaemonFiles, OutFiles}
 import mill.testkit.UtestIntegrationTestSuite
 import utest.*
 import utest.asserts.{RetryInterval, RetryMax}
@@ -25,19 +26,42 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
         val helloRes = eval(("hello"), check = true)
         assert(helloRes.exitCode == 0)
 
+        val outPath = workspacePath / "out"
+        val consoleTail = outPath / DaemonFiles.millConsoleTail
+        val profile = outPath / OutFiles.millProfile
+        val chromeProfile = outPath / OutFiles.millChromeProfile
+        val active = outPath / OutFiles.millActive
+
+        assertEventually {
+          os.exists(consoleTail) &&
+          os.exists(profile) &&
+          os.exists(chromeProfile) &&
+          os.exists(active) &&
+          java.nio.file.Files.isSymbolicLink(consoleTail.toNIO) &&
+          java.nio.file.Files.isSymbolicLink(profile.toNIO) &&
+          java.nio.file.Files.isSymbolicLink(chromeProfile.toNIO) &&
+          java.nio.file.Files.isSymbolicLink(active.toNIO)
+        }
+        assert(os.read(active).contains("blockWhileExists"))
+
         // Same task should fail immediately in no-wait mode
         val noWaitRes = eval(
           ("--no-wait-for-build-lock", "blockWhileExists", "--path", signalFile2)
         )
         assert(
-          noWaitRes.err.contains("Another Mill command in the current daemon is using resource")
+          noWaitRes.err.contains("Another Mill command in the current daemon is running")
         )
 
         // Same task should wait by default
         val spawnedWaitingRes = spawn(("blockWhileExists", "--path", signalFile2))
 
         assertEventually {
-          spawnedWaitingRes.process.isAlive() && !os.exists(signalFile2)
+          val stderrText = spawnedWaitingRes.err.text()
+          spawnedWaitingRes.process.isAlive() &&
+          !os.exists(signalFile2) &&
+          stderrText.contains("Another Mill command in the current daemon is running") &&
+          stderrText.contains("waiting for it to be done") &&
+          stderrText.contains("tail -F out/mill-console-tail")
         }
 
         // Terminate blocking task, make sure waiting task now completes
