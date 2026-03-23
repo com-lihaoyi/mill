@@ -186,18 +186,18 @@ class MillBuildBootstrap(
       staticBuildOverrides0.toSeq ++
         nestedState.frames.headOption.fold(Map())(_.buildOverrideFiles)
 
-    val classloaderChanged =
-      prevCommandState.frames.lift(depth + 1).flatMap(_.classLoaderOpt) !=
-        nestedState.frames.headOption.flatMap(_.classLoaderOpt)
+    val millClassloaderIdentityHash0 = nestedState
+      .frames
+      .headOption
+      .flatMap(_.classLoaderOpt)
+      .map(_.hashCode())
+      .getOrElse(0)
 
-    val prevFrameOpt = prevCommandState.frames.lift(depth)
-
-    // If the classloader changed, it means the old classloader was closed
-    // and all workers were closed as well, so we return an empty workerCache
-    // for the next evaluation
+    // Use the process-level shared worker cache. Workers are thread-safe and
+    // can be shared across concurrent commands. SharedWorkerCache.forDepth
+    // handles classloader changes automatically (closes stale workers).
     val workerCache =
-      if (classloaderChanged) Map.empty
-      else prevFrameOpt.map(_.workerCache).getOrElse(Map.empty)
+      SharedWorkerCache.forDepth(depth, millClassloaderIdentityHash0)
 
     makeEvaluator0(
       projectRoot = topLevelProjectRoot,
@@ -237,12 +237,7 @@ class MillBuildBootstrap(
             .map(p => (os.Path(p.javaPath), p.sig))
             .hashCode()
       },
-      millClassloaderIdentityHash = nestedState
-        .frames
-        .headOption
-        .flatMap(_.classLoaderOpt)
-        .map(_.hashCode())
-        .getOrElse(0),
+      millClassloaderIdentityHash = millClassloaderIdentityHash0,
       depth = depth,
       actualBuildFileName = nestedState.buildFile,
       enableTicker = enableTicker,
@@ -400,25 +395,9 @@ class MillBuildBootstrap(
                 val readLease = workspaceLockManager.acquireMetaBuildRead(depth)
                 nextStateFor(latestFrameOpt.get.classLoaderOpt.get, Some(readLease))
               } else {
-                // Make sure we close the old classloader every time we create a new
-                // one, to avoid memory leaks, as well as all the workers in each subsequent
-                // frame's `workerCache`s that may depend on classes loaded by that classloader.
-                // Workers are closed in reverse dependency order (downstream first, then upstream).
-                prevCommandState.frames.lift(depth - 1).foreach { frame =>
-                  val deps = mill.exec.GroupExecution.workerDependencies(frame.workerCache)
-                  val topoIndex = deps.iterator.map(_._1).zipWithIndex.toMap
-                  val allWorkers = frame.workerCache.values.map(_._3).toSet
-                  val mutableCache = scala.collection.mutable.Map.from(frame.workerCache)
-                  mill.exec.GroupExecution.closeWorkersInReverseTopologicalOrder(
-                    allWorkers,
-                    mutableCache,
-                    topoIndex,
-                    closeable =>
-                      try closeable.close()
-                      catch { case _: Throwable => }
-                  )
-                }
-
+                // Close old classloaders to avoid memory leaks. Workers at this depth
+                // are handled by SharedWorkerCache.forDepth (called in makeEvaluator),
+                // which detects the classloader change and closes stale workers.
                 val previousClassLoaders =
                   Seq(
                     prevCommandState.frames.lift(depth).flatMap(_.classLoaderOpt),
@@ -513,7 +492,7 @@ object MillBuildBootstrap {
       offline: Boolean,
       useFileLocks: Boolean,
       workspaceLockManager: WorkspaceLocking.Manager,
-      workerCache: Map[String, (Int, Val, TaskApi[?])],
+      workerCache: collection.mutable.Map[String, (Int, Val, TaskApi[?])],
       codeSignatures: Map[String, Int],
       // JSON string to avoid classloader issues when crossing classloader boundaries
       spanningInvalidationTree: Option[String],
@@ -553,7 +532,7 @@ object MillBuildBootstrap {
           rootModule,
           millClassloaderSigHash,
           millClassloaderIdentityHash,
-          workerCache.to(collection.mutable.Map),
+          workerCache,
           env,
           !keepGoing,
           ec,

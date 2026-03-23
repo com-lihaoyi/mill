@@ -61,12 +61,11 @@ case class RunnerState(
     errorOpt = None
   )
 
-  def closeTransientWorkers(): Unit = {
-    frames.reverseIterator.foreach(_.closeTransientWorkers())
-  }
-
   override def close(): Unit = {
-    frames.reverseIterator.foreach(_.close())
+    // Only release locking leases. Workers live in the process-level
+    // SharedWorkerCache and must not be closed when a command finishes,
+    // since they may be shared with concurrent or subsequent commands.
+    frames.reverseIterator.foreach(_.releaseLocks())
   }
 }
 
@@ -141,18 +140,12 @@ object RunnerState {
       evaluator = None
     )
 
-    def closeTransientWorkers(): Unit = {
-      workerCache.valuesIterator.foreach {
-        case (_, Val(closeable: AutoCloseable), _) =>
-          try closeable.close()
-          catch { case _: Throwable => }
-        case _ =>
-      }
+    def releaseLocks(): Unit = {
+      metaBuildReadLeaseOpt.foreach(_.close())
     }
 
     override def close(): Unit = {
-      closeTransientWorkers()
-      metaBuildReadLeaseOpt.foreach(_.close())
+      releaseLocks()
     }
   }
 
