@@ -1,6 +1,7 @@
 package mill.exec
 
 import mill.api.daemon.internal.*
+import mill.api.daemon.WorkspaceLocking
 import mill.constants.OutFiles.OutFiles.millProfile
 import mill.api.*
 import mill.internal.{CodeSigUtils, JsonArrayLogger, PrefixLogger, SpanningForest}
@@ -32,6 +33,7 @@ case class Execution(
     getEvaluator: () => EvaluatorApi,
     offline: Boolean,
     useFileLocks: Boolean,
+    workspaceLockManager: WorkspaceLocking.Manager,
     staticBuildOverrideFiles: Map[java.nio.file.Path, String],
     enableTicker: Boolean,
     depth: Int,
@@ -74,6 +76,7 @@ case class Execution(
       getEvaluator: () => EvaluatorApi,
       offline: Boolean,
       useFileLocks: Boolean,
+      workspaceLockManager: WorkspaceLocking.Manager,
       staticBuildOverrideFiles: Map[java.nio.file.Path, String],
       enableTicker: Boolean,
       depth: Int,
@@ -99,6 +102,7 @@ case class Execution(
     getEvaluator = getEvaluator,
     offline = offline,
     useFileLocks = useFileLocks,
+    workspaceLockManager = workspaceLockManager,
     staticBuildOverrideFiles = staticBuildOverrideFiles,
     enableTicker = enableTicker,
     depth = depth,

@@ -37,10 +37,11 @@ import scala.collection.mutable.Buffer
  * `build.mill` file.
  *
  * When Mill is run in client-server mode, or with `--watch`, then data from
- * each evaluation is cached in-memory in [[prevRunnerState]].
+ * each evaluation is cached in-memory in [[prevCommandState]] and published
+ * reusable meta-build frames are shared in [[prevPublishedState]].
  *
  * When a subsequent evaluation happens, each level of [[evaluateRec]] uses
- * its corresponding frame from [[prevRunnerState]] to avoid work, re-using
+ * its corresponding frame from prior state to avoid work, re-using
  * classloaders or workers to avoid running expensive classloading or
  * re-evaluation. This should be transparent, improving performance without
  * affecting behavior.
@@ -53,7 +54,8 @@ class MillBuildBootstrap(
     env: Map[String, String],
     ec: Option[ThreadPoolExecutor],
     tasksAndParams: Seq[String],
-    prevRunnerState: RunnerState,
+    prevCommandState: RunnerState,
+    prevPublishedState: RunnerState.ReusableSnapshot,
     logger: Logger,
     requestedMetaLevel: Option[Int],
     allowPositionalCommandArgs: Boolean,
@@ -62,9 +64,10 @@ class MillBuildBootstrap(
     selectiveExecution: Boolean,
     offline: Boolean,
     useFileLocks: Boolean,
+    workspaceLockManager: WorkspaceLocking.Manager,
     reporter: EvaluatorApi => Int => Option[CompileProblemReporter],
     enableTicker: Boolean,
-    publishReusableState: RunnerState => Unit
+    publishReusableState: (Int, Seq[RunnerState.Frame]) => Unit
 ) { outer =>
   import MillBuildBootstrap.*
 
@@ -116,7 +119,7 @@ class MillBuildBootstrap(
         Option.when(nestedFrames.headOption.exists(_.classLoaderOpt.isDefined))(depth + 1)
       val run =
         useNestedBuild match {
-          case Some(nestedDepth) => () => WorkspaceLocking.withMetaBuildRead(nestedDepth) {
+          case Some(nestedDepth) => () => workspaceLockManager.withMetaBuildRead(nestedDepth) {
               evaluateResolvedRootModule(rootModuleRes, nestedState, depth, requestedDepth)
             }
           case None => () =>
@@ -195,10 +198,10 @@ class MillBuildBootstrap(
         nestedState.frames.headOption.fold(Map())(_.buildOverrideFiles)
 
     val classloaderChanged =
-      prevRunnerState.frames.lift(depth + 1).flatMap(_.classLoaderOpt) !=
+      prevCommandState.frames.lift(depth + 1).flatMap(_.classLoaderOpt) !=
         nestedState.frames.headOption.flatMap(_.classLoaderOpt)
 
-    val prevFrameOpt = prevRunnerState.frames.lift(depth)
+    val prevFrameOpt = prevCommandState.frames.lift(depth)
 
     // If the classloader changed, it means the old classloader was closed
     // and all workers were closed as well, so we return an empty workerCache
@@ -220,6 +223,7 @@ class MillBuildBootstrap(
       selectiveExecution = selectiveExecution,
       offline = offline,
       useFileLocks = useFileLocks,
+      workspaceLockManager = workspaceLockManager,
       workerCache = workerCache,
       codeSignatures = nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
       // Pass spanning tree from the frame - only populated when classloader changed
@@ -286,8 +290,10 @@ class MillBuildBootstrap(
       evaluator: EvaluatorApi,
       depth: Int
   ): RunnerState = {
-    val prevFrameOpt = prevRunnerState.frames.lift(depth)
-    val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
+    val prevPublishedFrameOpt =
+      prevPublishedState.frame(depth).orElse(prevCommandState.frames.lift(depth))
+    val prevPublishedOuterFrameOpt =
+      prevPublishedState.frame(depth - 1).orElse(prevCommandState.frames.lift(depth - 1))
 
     evaluateWithWatches(
       buildFileApi,
@@ -326,7 +332,7 @@ class MillBuildBootstrap(
             evalWatches,
             moduleWatches
           ) =>
-        val runClasspathChanged = !prevFrameOpt.exists(
+        val runClasspathChanged = !prevPublishedFrameOpt.exists(
           _.runClasspath.map(_.sig).sum == runClasspath.map(_.sig).sum
         )
 
@@ -338,7 +344,7 @@ class MillBuildBootstrap(
         // `moduleWatched` needs us to re-create the classloader, we have to
         // look at the `moduleWatched` of one frame up (`prevOuterFrameOpt`),
         // and not the `moduleWatched` from the current frame (`prevFrameOpt`)
-        val moduleWatchChanged = prevOuterFrameOpt
+        val moduleWatchChanged = prevPublishedOuterFrameOpt
           .exists(_.moduleWatched.exists(w => !Watching.haveNotChanged(w)))
 
         val needsPublishedUpdate = runClasspathChanged || moduleWatchChanged
@@ -350,53 +356,56 @@ class MillBuildBootstrap(
           sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.api.daemon", "sbt.testing.")
         )
 
-        val classLoader =
-          if (needsPublishedUpdate) WorkspaceLocking.withMetaBuildWrite(depth) {
-            // Make sure we close the old classloader every time we create a new
-            // one, to avoid memory leaks, as well as all the workers in each subsequent
-            // frame's `workerCache`s that may depend on classes loaded by that classloader.
-            // Workers are closed in reverse dependency order (downstream first, then upstream).
-            prevRunnerState.frames.lift(depth - 1).foreach { frame =>
-              val deps = mill.exec.GroupExecution.workerDependencies(frame.workerCache)
-              val topoIndex = deps.iterator.map(_._1).zipWithIndex.toMap
-              val allWorkers = frame.workerCache.values.map(_._3).toSet
-              val mutableCache = scala.collection.mutable.Map.from(frame.workerCache)
-              mill.exec.GroupExecution.closeWorkersInReverseTopologicalOrder(
-                allWorkers,
-                mutableCache,
-                topoIndex,
-                closeable =>
-                  try closeable.close()
-                  catch { case _: Throwable => }
-              )
-            }
+        def nextStateFor(classLoader: mill.api.MillURLClassLoader) = {
+          val evalState = RunnerState.Frame(
+            workerCache = evaluator.workerCache.toMap,
+            evalWatched = evalWatches,
+            moduleWatched = moduleWatches,
+            codeSignatures = codeSignatures,
+            classLoaderOpt = Some(classLoader),
+            runClasspath = runClasspath,
+            compileOutput = Some(compileClasses),
+            evaluator = Option(evaluator),
+            buildOverrideFiles = buildOverrideFiles,
+            // Only pass the spanning tree when the published meta-build state changed
+            spanningInvalidationTree = Option.when(needsPublishedUpdate)(spanningInvalidationTree)
+          )
+          nestedState.add(frame = evalState)
+        }
 
-            prevFrameOpt.foreach(_.classLoaderOpt.foreach(_.close()))
-            createClassLoader()
+        if (needsPublishedUpdate) workspaceLockManager.withMetaBuildWrite(depth) {
+          // Make sure we close the old classloader every time we create a new
+          // one, to avoid memory leaks, as well as all the workers in each subsequent
+          // frame's `workerCache`s that may depend on classes loaded by that classloader.
+          // Workers are closed in reverse dependency order (downstream first, then upstream).
+          prevCommandState.frames.lift(depth - 1).foreach { frame =>
+            val deps = mill.exec.GroupExecution.workerDependencies(frame.workerCache)
+            val topoIndex = deps.iterator.map(_._1).zipWithIndex.toMap
+            val allWorkers = frame.workerCache.values.map(_._3).toSet
+            val mutableCache = scala.collection.mutable.Map.from(frame.workerCache)
+            mill.exec.GroupExecution.closeWorkersInReverseTopologicalOrder(
+              allWorkers,
+              mutableCache,
+              topoIndex,
+              closeable =>
+                try closeable.close()
+                catch { case _: Throwable => }
+            )
           }
-          else {
-            prevFrameOpt.get.classLoaderOpt.get
-          }
 
-        val evalState = RunnerState.Frame(
-          workerCache = evaluator.workerCache.toMap,
-          evalWatched = evalWatches,
-          moduleWatched = moduleWatches,
-          codeSignatures = codeSignatures,
-          classLoaderOpt = Some(classLoader),
-          runClasspath = runClasspath,
-          compileOutput = Some(compileClasses),
-          evaluator = Option(evaluator),
-          buildOverrideFiles = buildOverrideFiles,
-          // Only pass the spanning tree when the published meta-build state changed
-          spanningInvalidationTree = Option.when(needsPublishedUpdate)(spanningInvalidationTree)
-        )
-
-        val nextState = nestedState.add(frame = evalState)
-        val publishedState =
-          nextState.copy(frames = Seq.fill(depth)(RunnerState.Frame.empty) ++ nextState.frames)
-        publishReusableState(publishedState)
-        nextState
+          val previousClassLoaders =
+            Seq(
+              prevCommandState.frames.lift(depth).flatMap(_.classLoaderOpt),
+              prevPublishedState.frame(depth).flatMap(_.classLoaderOpt)
+            ).flatten.distinct
+          previousClassLoaders.foreach(_.close())
+          val nextState = nextStateFor(createClassLoader())
+          publishReusableState(depth, nextState.frames)
+          nextState
+        }
+        else {
+          nextStateFor(prevPublishedFrameOpt.get.classLoaderOpt.get)
+        }
 
       case unknown => sys.error(unknown.toString())
     }
@@ -463,6 +472,7 @@ object MillBuildBootstrap {
       selectiveExecution: Boolean,
       offline: Boolean,
       useFileLocks: Boolean,
+      workspaceLockManager: WorkspaceLocking.Manager,
       workerCache: Map[String, (Int, Val, TaskApi[?])],
       codeSignatures: Map[String, Int],
       // JSON string to avoid classloader issues when crossing classloader boundaries
@@ -513,6 +523,7 @@ object MillBuildBootstrap {
           () => evaluator,
           offline,
           useFileLocks,
+          workspaceLockManager,
           staticBuildOverrideFiles,
           enableTicker,
           depth,

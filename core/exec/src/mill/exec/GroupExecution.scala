@@ -57,6 +57,7 @@ trait GroupExecution {
   def env: Map[String, String]
   def failFast: Boolean
   def ec: Option[ThreadPoolExecutor]
+  def isFinalDepth: Boolean
   def codeSignatures: Map[String, Int]
   def systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing
   def exclusiveSystemStreams: SystemStreams
@@ -187,6 +188,7 @@ trait GroupExecution {
 
   def offline: Boolean
   def useFileLocks: Boolean
+  def workspaceLockManager: WorkspaceLocking.Manager
 
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
     CodeSigUtils.constructorHashSignatures(codeSignatures)
@@ -405,7 +407,13 @@ trait GroupExecution {
         // 1. Build override only (!append): just evaluate YAML
         // 2. Both (append): evaluate task with caching, evaluate YAML, merge
         // 3. Task only (no override): evaluate task with caching
-        WorkspaceLocking.withLocks(GroupExecution.lockResources(out, labelled)) {
+        workspaceLockManager.withLocks(
+          GroupExecution.lockResources(
+            out = out,
+            terminal = terminal,
+            isFinalDepth = isFinalDepth
+          )
+        ) {
           buildOverrideOpt match {
             case Some(appendLocated) if appendLocated.value.append =>
               val taskResults = evaluateTaskWithCaching()
@@ -775,17 +783,36 @@ trait GroupExecution {
 
 object GroupExecution {
   def lockResources(
-      outPath: os.Path,
-      labelled: Task.Named[?]
+      out: os.Path,
+      terminal: Task[?],
+      isFinalDepth: Boolean
   ): Seq[WorkspaceLocking.Resource] = {
-    if (outPath.segments.contains("mill-build") || labelled.ctx.segments.render == "show") Nil
+    if (!isFinalDepth) Nil
     else {
-      val taskKey = s"task:${outPath}:${labelled.ctx.segments.render}"
-      Seq(taskKey).map { key =>
-        WorkspaceLocking.Resource(key, WorkspaceLocking.LockKind.Write)
-      }
+      lockTargets(terminal).collect {
+        case named: Task.Named[?] =>
+          val paths = ExecutionPaths.resolve(out, named.ctx.segments)
+          WorkspaceLocking.Resource(
+            s"task:${paths.dest}",
+            WorkspaceLocking.LockKind.Write
+          )
+      }.distinct.sortBy(_.key)
     }
   }
+
+  private def lockTargets(terminal: Task[?]): Seq[Task[?]] =
+    if (terminal.asCommand.nonEmpty) {
+      if (isDynamicWrapperCommand(terminal)) Nil
+      else if (terminal.inputs.nonEmpty) terminal.inputs
+      else Seq(terminal)
+    } else Seq(terminal)
+
+  private def isDynamicWrapperCommand(terminal: Task[?]): Boolean =
+    terminal match {
+      case named: Task.Named[?] =>
+        Set("show", "showNamed").contains(named.ctx.segments.render)
+      case _ => false
+    }
 
   class DestCreator(paths: Option[ExecutionPaths]) {
     var usedDest = Option.empty[os.Path]

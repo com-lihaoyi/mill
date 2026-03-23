@@ -208,7 +208,7 @@ object BspServerReloadTests extends UtestIntegrationTestSuite {
         )
         val changes0 = didChangeParams0.getChanges().asScala.map(eventData).toSet
         assert(expectedChanges0 == changes0)
-
+1
         val afterChangesBuildTargets0 = buildServer.workspaceBuildTargets().get()
         compareWithGsonSnapshot(
           afterChangesBuildTargets0,

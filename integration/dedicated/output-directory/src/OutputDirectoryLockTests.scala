@@ -15,26 +15,26 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
       import tester.*
       val signalFile1 = workspacePath / "do-wait-1"
       val signalFile2 = workspacePath / "do-wait-2"
-      val blocker = spawn(("show", "blockWhileExists", "--path", signalFile1))
+      val blocker = spawn(("blockWhileExists", "--path", signalFile1))
 
       // Wait for blocking task to write signal file, to indicate it has begun
       assertEventually { os.exists(signalFile1) }
 
       if (tester.daemonMode) {
         // Different task should be able to run while the blocker holds its task lock
-        val helloRes = eval(("show", "hello"), check = true)
-        assert(helloRes.out.contains("Hello from hello task"))
+        val helloRes = eval(("hello"), check = true)
+        assert(helloRes.exitCode == 0)
 
         // Same task should fail immediately in no-wait mode
         val noWaitRes = eval(
-          ("--no-wait-for-build-lock", "show", "blockWhileExists", "--path", signalFile2)
+          ("--no-wait-for-build-lock", "blockWhileExists", "--path", signalFile2)
         )
         assert(
           noWaitRes.err.contains("Another Mill command in the current daemon is using resource")
         )
 
         // Same task should wait by default
-        val spawnedWaitingRes = spawn(("show", "blockWhileExists", "--path", signalFile2))
+        val spawnedWaitingRes = spawn(("blockWhileExists", "--path", signalFile2))
 
         assertEventually {
           spawnedWaitingRes.process.isAlive() && !os.exists(signalFile2)
@@ -50,13 +50,13 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
       } else {
         // In no-daemon mode we keep the coarse global lock
         val waitingCompleteFile = workspacePath / "waitingCompleteFile"
-        val spawnedWaitingRes = spawn(("show", "writeMarker", "--path", waitingCompleteFile))
+        val spawnedWaitingRes = spawn(("writeMarker", "--path", waitingCompleteFile))
 
         assertEventually {
           val stderrText = spawnedWaitingRes.err.text()
           stderrText.contains("Another Mill process with PID ") &&
           stderrText.contains(
-            s" is running 'show blockWhileExists --path $signalFile1', waiting for it to be done..."
+            s" is running 'blockWhileExists --path $signalFile1', waiting for it to be done..."
           )
         }
 

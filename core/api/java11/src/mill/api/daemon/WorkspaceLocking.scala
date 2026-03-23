@@ -3,7 +3,6 @@ package mill.api.daemon
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import scala.util.DynamicVariable
 
 object WorkspaceLocking {
   enum LockKind {
@@ -35,20 +34,6 @@ object WorkspaceLocking {
 
   private val nextRunId = new AtomicLong(1L)
   private val lockTable = new ConcurrentHashMap[String, ReentrantReadWriteLock]()
-
-  val current = new DynamicVariable[Manager](NoopManager)
-
-  def withManager[T](manager: Manager)(t: => T): T =
-    current.withValue(manager)(t)
-
-  def withLocks[T](resources: Seq[Resource])(t: => T): T =
-    current.value.withLocks(resources)(t)
-
-  def withMetaBuildRead[T](depth: Int)(t: => T): T =
-    current.value.withMetaBuildRead(depth)(t)
-
-  def withMetaBuildWrite[T](depth: Int)(t: => T): T =
-    current.value.withMetaBuildWrite(depth)(t)
 
   final class InProcessManager(
       out: os.Path,

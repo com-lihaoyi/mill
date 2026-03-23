@@ -1,6 +1,7 @@
 package mill.eval
 
 import mill.api.daemon.internal.{CompileProblemReporter, TestReporter}
+import mill.api.daemon.WorkspaceLocking
 import mill.constants.OutFiles.OutFiles
 import mill.api.{PathRef, *}
 import mill.api.internal.{ResolveChecker, Resolved, RootModule0}
@@ -51,6 +52,7 @@ final class EvaluatorImpl(
   def effectiveThreadCount = execution.effectiveThreadCount
   override def offline: Boolean = execution.offline
   override def useFileLocks: Boolean = execution.useFileLocks
+  override def workspaceLockManager: WorkspaceLocking.Manager = execution.workspaceLockManager
   override def spanningInvalidationTree: Option[String] = execution.spanningInvalidationTree
   override def classLoaderSigHash: Int = execution.classLoaderSigHash
 

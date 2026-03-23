@@ -67,6 +67,32 @@ case class RunnerState(
 
 object RunnerState {
 
+  @internal
+  case class ReusableSnapshot(
+      frames: Vector[Frame]
+  ) {
+    def frame(depth: Int): Option[Frame] = frames.lift(depth)
+
+    def updated(depth: Int, updatedFrames: Seq[Frame]): ReusableSnapshot = {
+      val paddedFrames =
+        if (frames.size >= depth) frames
+        else frames ++ Vector.fill(depth - frames.size)(Frame.empty)
+
+      val nextFrames =
+        paddedFrames.patch(
+          depth,
+          updatedFrames.iterator.map(_.sanitizedForConcurrentReuse).toVector,
+          math.max(0, paddedFrames.size - depth)
+        )
+
+      copy(frames = nextFrames)
+    }
+  }
+
+  object ReusableSnapshot {
+    def empty: ReusableSnapshot = ReusableSnapshot(Vector.empty)
+  }
+
   def empty: RunnerState = RunnerState(None, Nil, None)
 
   @internal

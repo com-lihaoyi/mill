@@ -74,22 +74,16 @@ class MillDaemonMain0(
     acceptTimeout: FiniteDuration,
     locks: Locks,
     outMode: OutFolderMode
-) extends mill.server.MillDaemonServer[RunnerState](
+) extends mill.server.MillDaemonServer[RunnerState.ReusableSnapshot](
       daemonDir,
       acceptTimeout,
       locks
     ) {
 
-  def initialStateCache = RunnerState.empty
+  def initialStateCache = RunnerState.ReusableSnapshot.empty
 
-  override protected def snapshotStateCache(): RunnerState =
+  override protected def snapshotStateCache(): RunnerState.ReusableSnapshot =
     super.snapshotStateCache()
-
-  override protected def publishStateCache(newState: RunnerState): Unit = {
-    val sanitized = newState.sanitizedForConcurrentReuse
-    super.publishStateCache(sanitized)
-    newState.closeTransientWorkers()
-  }
 
   val outFolder: os.Path = os.Path(OutFiles.outFor(outMode), BuildCtx.workspaceRoot)
 
@@ -97,7 +91,7 @@ class MillDaemonMain0(
 
   def main0(
       args: Array[String],
-      stateCache: RunnerState,
+      stateCache: RunnerState.ReusableSnapshot,
       mainInteractive: Boolean,
       streams: SystemStreams,
       env: Map[String, String],
@@ -107,7 +101,7 @@ class MillDaemonMain0(
       systemExit: Server.StopServer,
       serverToClient: mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient],
       millRepositories: Seq[String]
-  ): (Boolean, RunnerState) = {
+  ): (Boolean, RunnerState.ReusableSnapshot) = {
     // Create runner that sends subprocess requests to the launcher via RPC
     val launcherRunner: mill.api.daemon.LauncherSubprocess.Runner =
       config =>
@@ -116,7 +110,8 @@ class MillDaemonMain0(
     try MillMain0.main0(
         args = args,
         stateCache = stateCache,
-        publishStateCache = publishStateCache,
+        publishReusableState = (depth, frames) =>
+          publishStateCache(snapshotStateCache().updated(depth, frames)),
         mainInteractive = mainInteractive,
         streams0 = streams,
         env = env,

@@ -34,7 +34,7 @@ import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Using}
 
 object MillMain0 {
-  val noopPublishRunnerState: RunnerState => Unit = _ => ()
+  val noopPublishReusableState: (Int, Seq[RunnerState.Frame]) => Unit = (_, _) => ()
 
   def handleMillException[T](
       err: PrintStream,
@@ -102,8 +102,8 @@ object MillMain0 {
 
   def main0(
       args: Array[String],
-      stateCache: RunnerState,
-      publishStateCache: RunnerState => Unit,
+      stateCache: RunnerState.ReusableSnapshot,
+      publishReusableState: (Int, Seq[RunnerState.Frame]) => Unit,
       mainInteractive: Boolean,
       streams0: SystemStreams,
       env: Map[String, String],
@@ -116,7 +116,9 @@ object MillMain0 {
       launcherSubprocessRunner: mill.api.daemon.LauncherSubprocess.Runner,
       serverToClientOpt: Option[mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient]],
       millRepositories: Seq[String]
-  ): (Boolean, RunnerState) = mill.api.daemon.MillRepositories.withValue(millRepositories) {
+  ): (Boolean, RunnerState.ReusableSnapshot) = mill.api.daemon.MillRepositories.withValue(
+    millRepositories
+  ) {
     mill.api.daemon.LauncherSubprocess.withValue(launcherSubprocessRunner) {
       mill.api.daemon.internal.MillScalaParser.current.withValue(MillScalaParserImpl) {
         os.SubProcess.env.withValue(env) {
@@ -133,15 +135,15 @@ object MillMain0 {
               // Cannot parse args
               case f: Result.Failure =>
                 streams.err.println(f.error)
-                (false, RunnerState.empty)
+                (false, RunnerState.ReusableSnapshot.empty)
 
               case Result.Success(config) if config.help.value =>
                 streams.out.println(MillCliConfig.longUsageText)
-                (true, RunnerState.empty)
+                (true, RunnerState.ReusableSnapshot.empty)
 
               case Result.Success(config) if config.helpAdvanced.value =>
                 streams.out.println(MillCliConfig.helpAdvancedUsageText)
-                (true, RunnerState.empty)
+                (true, RunnerState.ReusableSnapshot.empty)
 
               case Result.Success(config) if config.showVersion.value =>
                 val interestingProps = Seq(
@@ -159,15 +161,16 @@ object MillMain0 {
                     interestingProps.map(k => s"$k: ${System.getProperty(k, s"<unknown $k>")}")
                       .mkString("\n")
                 )
-                (true, RunnerState.empty)
+                (true, RunnerState.ReusableSnapshot.empty)
 
               case Result.Success(config) if config.noDaemonEnabled > 1 =>
                 streams.err.println(
                   "Only one of -i/--interactive, --no-daemon or --bsp may be given"
                 )
-                (false, RunnerState.empty)
+                (false, RunnerState.ReusableSnapshot.empty)
 
               case Result.Success(config) =>
+                var currentReusableState = stateCache
                 val noColorViaEnv = env.get("NO_COLOR").exists(_.nonEmpty)
                 val forceColorViaEnv = env.get("FORCE_COLOR").exists(_.nonEmpty)
                 val colored = config.color.getOrElse(
@@ -260,11 +263,13 @@ object MillMain0 {
                           extraEnv: Seq[(String, String)] = Nil,
                           metaLevelOverride: Option[Int] = None
                       ): RunnerState = {
-                        val publishRunnerState =
-                          if (serverToClientOpt.nonEmpty) publishStateCache
-                          else MillMain0.noopPublishRunnerState
+                        val publishCurrentReusableState =
+                          (depth: Int, frames: Seq[RunnerState.Frame]) => {
+                            currentReusableState = currentReusableState.updated(depth, frames)
+                            publishReusableState(depth, frames)
+                          }
 
-                        def runWithLogger(): RunnerState = {
+                        def runWithLogger(manager: WorkspaceLocking.Manager): RunnerState = {
                           def proceed(logger: Logger): RunnerState = {
                             // Enter key pressed, removing mill-selective-execution.json to
                             // ensure all tasks re-run even though no inputs may have changed
@@ -289,7 +294,8 @@ object MillMain0 {
                                     env = env ++ extraEnv,
                                     ec = ec,
                                     tasksAndParams = tasksAndParams,
-                                    prevRunnerState = prevState.getOrElse(stateCache),
+                                    prevCommandState = prevState.getOrElse(RunnerState.empty),
+                                    prevPublishedState = currentReusableState,
                                     logger = logger,
                                     requestedMetaLevel = config.metaLevel.orElse(metaLevelOverride),
                                     allowPositionalCommandArgs = config.allowPositional.value,
@@ -298,9 +304,10 @@ object MillMain0 {
                                     selectiveExecution = config.watch.value,
                                     offline = config.offline.value,
                                     useFileLocks = config.useFileLocks.value,
+                                    workspaceLockManager = manager,
                                     reporter = reporter,
                                     enableTicker = enableTicker,
-                                    publishReusableState = publishRunnerState
+                                    publishReusableState = publishCurrentReusableState
                                   ).evaluate()
                                 }
                               }
@@ -317,6 +324,7 @@ object MillMain0 {
                                 colored = colored,
                                 colors = colors,
                                 out = out,
+                                workspaceLockManager = manager,
                                 serverToClientOpt = serverToClientOpt
                               )) { logger =>
                                 proceed(logger)
@@ -325,12 +333,10 @@ object MillMain0 {
                         }
 
                         def runWithLockManager(manager: WorkspaceLocking.Manager): RunnerState =
-                          WorkspaceLocking.withManager(manager) {
-                            try {
-                              setIdle(false)
-                              runWithLogger()
-                            } finally manager.close()
-                          }
+                          try {
+                            setIdle(false)
+                            runWithLogger(manager)
+                          } finally manager.close()
 
                         if (serverToClientOpt.nonEmpty) {
                           runWithLockManager(
@@ -359,7 +365,7 @@ object MillMain0 {
                       if (config.tabComplete.value) {
                         val bootstrapped = runMillBootstrap(
                           skipSelectiveExecution = false,
-                          Some(stateCache),
+                          None,
                           Seq(
                             "mill.tabcomplete.TabCompleteModule/complete"
                           ) ++ config.leftoverArgs.value,
@@ -367,7 +373,7 @@ object MillMain0 {
                           "tab-completion"
                         )
 
-                        (true, bootstrapped)
+                        (true, currentReusableState)
                       } else if (bspMode) {
                         // Can happen if a concurrent BSP server starts and shuts us down.
                         // We log in the console what happened just in case, so that users know why we exit.
@@ -482,7 +488,7 @@ object MillMain0 {
 
                         streams.err.println("Exiting BSP runner loop")
 
-                        (!errored, RunnerState(None, Nil, None))
+                        (!errored, currentReusableState)
                       } else if (
                         config.leftoverArgs.value == Seq("mill.idea.GenIdea/idea") ||
                         config.leftoverArgs.value == Seq("mill.idea.GenIdea/") ||
@@ -499,7 +505,7 @@ object MillMain0 {
                         IdeWorkerSupport.runIdeaGeneration(
                           runnerState.frames.flatMap(_.evaluator)
                         )
-                        (true, RunnerState(None, Nil, None))
+                        (true, currentReusableState)
                       } else if (
                         config.leftoverArgs.value == Seq("mill.eclipse.GenEclipse/eclipse") ||
                         config.leftoverArgs.value == Seq("mill.eclipse.GenEclipse/") ||
@@ -515,9 +521,9 @@ object MillMain0 {
                           )
                         new mill.eclipse.GenEclipseImpl(runnerState.frames.flatMap(_.evaluator))
                           .run()
-                        (true, RunnerState(None, Nil, None))
+                        (true, currentReusableState)
                       } else {
-                        Watching.watchLoop(
+                        val (watchSuccess, _) = Watching.watchLoop(
                           ringBell = config.ringBell.value,
                           watch = Option.when(config.watch.value)(Watching.WatchArgs(
                             setIdle = setIdle,
@@ -538,6 +544,7 @@ object MillMain0 {
                               )
                             }
                         )
+                        (watchSuccess, currentReusableState)
                       }
                     }
                   }
@@ -626,6 +633,7 @@ object MillMain0 {
       colored: Boolean,
       colors: Colors,
       out: os.Path,
+      workspaceLockManager: WorkspaceLocking.Manager,
       serverToClientOpt: Option[mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient]]
   ): Logger & AutoCloseable = {
     val cmdTitle = sys.props.get("mill.main.cli")
@@ -642,7 +650,7 @@ object MillMain0 {
       .getOrElse("mill")
 
     // Console log file for monitoring progress when another process is waiting
-    val consoleLogPath = WorkspaceLocking.current.value match {
+    val consoleLogPath = workspaceLockManager match {
       case WorkspaceLocking.NoopManager => out / DaemonFiles.millConsoleTail
       case manager => manager.consoleTail
     }

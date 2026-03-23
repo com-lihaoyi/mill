@@ -3,6 +3,7 @@ package mill.api
 import mill.api.daemon.internal.{CompileProblemReporter, TestReporter}
 import mill.api.*
 import mill.api.daemon.Watchable
+import mill.api.daemon.WorkspaceLocking
 import mill.api.BuildCtx
 import mill.api.daemon.internal.{EvaluatorApi, TaskApi}
 import mill.api.internal.{Located, Resolved, RootModule0}
@@ -34,6 +35,8 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def effectiveThreadCount: Int
   private[mill] def offline: Boolean
   private[mill] def useFileLocks: Boolean = false
+  private[mill] def workspaceLockManager: WorkspaceLocking.Manager =
+    WorkspaceLocking.NoopManager
   private[mill] def staticBuildOverrides: Map[String, Located[internal.Appendable[BufferedValue]]] =
     Map()
   // JSON string to avoid classloader issues when crossing classloader boundaries

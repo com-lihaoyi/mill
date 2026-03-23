@@ -7,8 +7,10 @@ import mill.api.*
 import mill.api.internal.{RootModule, RootModule0}
 import mill.api.SelectMode.Separated
 import mill.api.daemon.Watchable
+import mill.api.daemon.WorkspaceLocking
 import mill.moduledefs.Scaladoc
 import mill.api.BuildCtx
+import mill.api.ExecutionPaths
 import mill.api.daemon.internal.bsp.BspMainModuleApi
 import scala.util.chaining.given
 
@@ -490,12 +492,27 @@ object MainModule {
       .withRedirectOutToErr()
       .asInstanceOf[Logger]
 
-    evaluator.withBaseLogger(redirectLogger)
-      .evaluate(
-        tasks,
-        Separated,
-        selectiveExecution = evaluator.selectiveExecution
-      ).flatMap {
+    evaluator.resolveTasks(
+      tasks,
+      SelectMode.Separated,
+      allowPositionalCommandArgs = evaluator.allowPositionalCommandArgs
+    ).flatMap { resolvedTasks =>
+      val lockResources = resolvedTasks.map { task =>
+        WorkspaceLocking.Resource(
+          s"task:${ExecutionPaths.resolve(evaluator.outPath, task.ctx.segments).dest}",
+          WorkspaceLocking.LockKind.Write
+        )
+      }.distinct
+
+      evaluator.workspaceLockManager.withLocks(lockResources) {
+        evaluator.withBaseLogger(redirectLogger)
+          .evaluate(
+            tasks,
+            Separated,
+            selectiveExecution = evaluator.selectiveExecution
+          )
+      }
+    }.flatMap {
         case Evaluator.Result(watched, f: Result.Failure, _, _) =>
           watched.foreach(watch0)
           f
