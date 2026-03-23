@@ -79,6 +79,7 @@ trait BootstrapRootModule()(using
 }
 
 object BootstrapRootModule {
+
   /**
    * Lightweight bootstrap module for script-only projects (no build.mill).
    * Script modules are discovered and instantiated separately at runtime.
