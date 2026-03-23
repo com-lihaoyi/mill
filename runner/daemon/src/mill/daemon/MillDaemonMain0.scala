@@ -84,7 +84,12 @@ class MillDaemonMain0(
 
   val outFolder: os.Path = os.Path(OutFiles.outFor(outMode), BuildCtx.workspaceRoot)
 
-  val outLock = MillMain0.doubleLock(outFolder)
+  val (outLock, outFileLock) = MillMain0.outLocks(outFolder)
+
+  // Hold the file-level lock on out/ for the daemon's lifetime.
+  // This excludes --no-daemon processes from the same workspace while still
+  // allowing intra-daemon concurrency (file locks are per-process in Java).
+  private val outFileLockLease = outFileLock.lock()
 
   def main0(
       args: Array[String],
@@ -110,7 +115,7 @@ class MillDaemonMain0(
         stateCache = stateCache,
         snapshotPublishedState = () => snapshotStateCache(),
         publishReusableState = (depth, frames) =>
-          publishStateCache(snapshotStateCache().updated(depth, frames)),
+          modifyStateCache(_.updated(depth, frames)),
         mainInteractive = mainInteractive,
         streams0 = streams,
         env = env,

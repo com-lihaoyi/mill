@@ -37,6 +37,9 @@ abstract class MillDaemonServer[State](
   protected def publishStateCache(newState: State): Unit = stateLock.synchronized {
     stateCache = newState
   }
+  protected def modifyStateCache(f: State => State): Unit = stateLock.synchronized {
+    stateCache = f(stateCache)
+  }
 
   def initialStateCache: State
 

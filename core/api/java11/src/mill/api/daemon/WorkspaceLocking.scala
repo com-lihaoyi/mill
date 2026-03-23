@@ -1,6 +1,7 @@
 package mill.api.daemon
 
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
 object WorkspaceLocking {
@@ -46,26 +47,32 @@ object WorkspaceLocking {
     override def close(): Unit = ()
   }
 
+  // Monotonic tiebreaker so that two InProcessManagers created in the same
+  // millisecond still get distinct runIds.
+  private val nextTiebreaker = new AtomicLong(0L)
+
   // Never evicted; bounded by the number of distinct lock keys (tasks + meta-build depths)
   private val lockTable = new ConcurrentHashMap[String, ReentrantReadWriteLock]()
 
-  /** Maximum number of per-run files to retain for debugging. */
-  private val maxRetainedPerRunFiles = 30
+  private val runDirPrefix = "mill-run-"
+
+  /** Maximum number of per-run directories to retain for debugging. */
+  private val maxRetainedRuns = 10
 
   /**
-   * Clean up old per-run files in `dir`, keeping the most recent [[maxRetainedPerRunFiles]]
-   * by name (which sorts chronologically since suffixes are millisecond timestamps).
+   * Clean up old per-run directories in `out`, keeping the most recent [[maxRetainedRuns]].
+   * Directories are named `mill-run-{timestamp}-{counter}` and sort chronologically.
    */
-  private def cleanupOldPerRunFiles(dir: os.Path): Unit = {
+  private def cleanupOldRunDirs(out: os.Path): Unit = {
     try {
-      if (!os.exists(dir)) return
-      // Match files with a millisecond-timestamp suffix (13+ digits)
-      val perRunFiles = os.list(dir).filter(_.last.matches(".*-\\d{13,}(\\.json)?"))
+      if (!os.exists(out)) return
+      val runDirs = os.list(out)
+        .filter(p => os.isDir(p) && p.last.startsWith(runDirPrefix))
 
-      if (perRunFiles.size > maxRetainedPerRunFiles) {
-        val toRemove = perRunFiles.sortBy(_.last).dropRight(maxRetainedPerRunFiles)
-        toRemove.foreach { file =>
-          try os.remove(file)
+      if (runDirs.size > maxRetainedRuns) {
+        val toRemove = runDirs.sortBy(_.last).dropRight(maxRetainedRuns)
+        toRemove.foreach { dir =>
+          try os.remove.all(dir)
           catch { case _: Throwable => }
         }
       }
@@ -74,24 +81,45 @@ object WorkspaceLocking {
     }
   }
 
+  /** Atomically replace `link` with a relative symlink pointing to `target`. */
+  private def updateSymlink(link: os.Path, target: os.Path): Unit = {
+    try {
+      val rel = target.relativeTo(link / os.up)
+      os.remove(link)
+      os.symlink(link, rel)
+    } catch {
+      case _: Throwable => // best-effort; non-critical for correctness
+    }
+  }
+
   final class InProcessManager(
       out: os.Path,
       override val noBuildLock: Boolean,
       override val noWaitForBuildLock: Boolean
   ) extends Manager {
-    override val runId: String = s"${System.currentTimeMillis()}"
-    override val consoleTail: os.Path = out / s"mill-console-tail-${runId}"
+    override val runId: String =
+      s"${System.currentTimeMillis()}-${nextTiebreaker.getAndIncrement()}"
 
-    // Clean up old per-run files on construction, keeping the most recent sets
-    cleanupOldPerRunFiles(out)
+    private val runDir: os.Path = out / s"$runDirPrefix$runId"
+    os.makeDir.all(runDir)
 
-    private def perRunPath(default: os.Path): os.Path = {
-      val name = default.last.stripSuffix(".json")
-      default / os.up / s"$name-$runId.json"
+    override val consoleTail: os.Path = runDir / "mill-console-tail"
+
+    // Clean up old run directories, then point well-known symlinks at this run
+    cleanupOldRunDirs(out)
+    updateSymlink(out / "mill-console-tail", consoleTail)
+
+    override def profilePath(default: os.Path): os.Path = {
+      val path = runDir / default.last
+      updateSymlink(default, path)
+      path
     }
 
-    override def profilePath(default: os.Path): os.Path = perRunPath(default)
-    override def chromeProfilePath(default: os.Path): os.Path = perRunPath(default)
+    override def chromeProfilePath(default: os.Path): os.Path = {
+      val path = runDir / default.last
+      updateSymlink(default, path)
+      path
+    }
 
     override def close(): Unit = ()
 

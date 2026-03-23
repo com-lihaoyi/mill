@@ -57,13 +57,19 @@ object MillMain0 {
   private val outMemoryLock = Lock.memory()
 
   /**
-   * We need a double lock because file system locks are not reentrant and blows up if you try to take them twice, while
-   * memory locks just block until the lock is available.
+   * Creates both a [[DoubleLock]] (for non-daemon command-level locking) and
+   * the underlying file lock (for cross-process daemon-lifetime exclusion).
+   *
+   * The DoubleLock combines an in-memory lock (for intra-process thread
+   * serialization) with the file lock (for cross-process exclusion). The
+   * daemon holds the file lock for its entire lifetime to exclude --no-daemon
+   * processes, while the DoubleLock is only used in non-daemon and
+   * config-mismatch code paths.
    */
-  def doubleLock(out: os.Path): DoubleLock = DoubleLock(
-    outMemoryLock,
-    Lock.file((out / OutFiles.millOutLock).toString)
-  )
+  def outLocks(out: os.Path): (DoubleLock, Lock) = {
+    val fileLock = Lock.file((out / OutFiles.millOutLock).toString)
+    (DoubleLock(outMemoryLock, fileLock), fileLock)
+  }
 
   private def withStreams[T](
       bspMode: Boolean,
