@@ -4,8 +4,8 @@ import mill.constants.{DaemonFiles, OutFiles}
 
 import java.io.PrintStream
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicLong
-import java.util.concurrent.locks.ReentrantReadWriteLock
 
 object WorkspaceLocking {
   enum LockKind {
@@ -45,6 +45,8 @@ object WorkspaceLocking {
     }
     def acquireMetaBuildRead(depth: Int): Lease =
       acquireLocks(Seq(Resource(s"meta-build:$depth", LockKind.Read)))
+    def acquireMetaBuildWrite(depth: Int): ResourceLease =
+      acquireLock(Resource(s"meta-build:$depth", LockKind.Write))
     def withMetaBuildRead[T](depth: Int)(t: => T): T =
       withLocks(Seq(Resource(s"meta-build:$depth", LockKind.Read)))(t)
     def withMetaBuildWrite[T](depth: Int)(t: => T): T =
@@ -71,8 +73,13 @@ object WorkspaceLocking {
   // millisecond still get distinct runIds.
   private val nextTiebreaker = new AtomicLong(0L)
 
+  // Semaphore-based read-write lock that is NOT thread-bound (unlike ReentrantReadWriteLock).
+  // This is critical because task read locks are acquired on thread-pool worker threads but
+  // released on the main thread when retainedTerminalReadLocks is drained.
+  // Read = acquire(1), Write = acquire(maxPermits). Fair ordering ensures no starvation.
+  private val maxPermits = 1_000_000
   // Never evicted; bounded by the number of distinct lock keys (tasks + meta-build depths)
-  private val lockTable = new ConcurrentHashMap[String, ReentrantReadWriteLock]()
+  private val lockTable = new ConcurrentHashMap[String, Semaphore]()
 
   private val runDirPrefix = "mill-run-"
 
@@ -284,9 +291,9 @@ object WorkspaceLocking {
       override def downgradeToRead(): ResourceLease =
         if (kind == LockKind.Read || closed.get()) this
         else {
-          val lock = rwLock(resource)
-          lock.readLock().lock()
-          lock.writeLock().unlock()
+          val sem = semaphore(resource)
+          // Downgrade: release write permits minus 1 (keeping 1 read permit)
+          sem.release(maxPermits - 1)
           closed.set(true)
           InProcessResourceLease(resource.copy(kind = LockKind.Read))
         }
@@ -295,11 +302,15 @@ object WorkspaceLocking {
         if (closed.compareAndSet(false, true)) release(resource)
     }
 
-    private def rwLock(resource: Resource): ReentrantReadWriteLock =
-      lockTable.computeIfAbsent(resource.key, _ => new ReentrantReadWriteLock(true))
+    private def semaphore(resource: Resource): Semaphore =
+      lockTable.computeIfAbsent(resource.key, _ => new Semaphore(maxPermits, true))
 
     private def acquire(resource: Resource): Unit = {
-      val lock = rwLock(resource)
+      val sem = semaphore(resource)
+      val permits = resource.kind match {
+        case LockKind.Read => 1
+        case LockKind.Write => maxPermits
+      }
       def waitMessage(action: String): Unit = {
         val command = readActiveCommand(out).getOrElse(activeCommandMessage)
         waitingErr.println(
@@ -307,24 +318,14 @@ object WorkspaceLocking {
             s"(tail -F out/${DaemonFiles.millConsoleTail} to see its progress)"
         )
       }
-      val acquired = resource.kind match {
-        case LockKind.Read =>
-          if (noWaitForBuildLock) lock.readLock().tryLock()
-          else if (lock.readLock().tryLock()) true
-          else {
-            waitMessage("waiting for it to be done...")
-            lock.readLock().lock()
-            true
-          }
-        case LockKind.Write =>
-          if (noWaitForBuildLock) lock.writeLock().tryLock()
-          else if (lock.writeLock().tryLock()) true
-          else {
-            waitMessage("waiting for it to be done...")
-            lock.writeLock().lock()
-            true
-          }
-      }
+      val acquired =
+        if (noWaitForBuildLock) sem.tryAcquire(permits)
+        else if (sem.tryAcquire(permits)) true
+        else {
+          waitMessage("waiting for it to be done...")
+          sem.acquire(permits)
+          true
+        }
 
       if (!acquired) {
         val command = readActiveCommand(out).getOrElse(activeCommandMessage)
@@ -335,10 +336,10 @@ object WorkspaceLocking {
     }
 
     private def release(resource: Resource): Unit = {
-      val lock = rwLock(resource)
+      val sem = semaphore(resource)
       resource.kind match {
-        case LockKind.Read => lock.readLock().unlock()
-        case LockKind.Write => lock.writeLock().unlock()
+        case LockKind.Read => sem.release(1)
+        case LockKind.Write => sem.release(maxPermits)
       }
     }
   }

@@ -387,12 +387,16 @@ class MillBuildBootstrap(
           } else {
             initialReadLease.close()
             initialReadLeaseClosed = true
-            workspaceLockManager.withMetaBuildWrite(depth) {
+            // Use explicit write lease so we can downgrade to read before returning.
+            // We cannot call acquireMetaBuildRead inside a write lock because the
+            // semaphore-based lock is not reentrant (unlike ReentrantReadWriteLock).
+            val writeLease = workspaceLockManager.acquireMetaBuildWrite(depth)
+            try {
               val (latestFrameOpt, latestOuterFrameOpt) = snapshotFrames()
               val needsUpdate = needsClassloaderRefresh(latestFrameOpt, latestOuterFrameOpt)
 
               if (!needsUpdate && latestFrameOpt.exists(_.classLoaderOpt.isDefined)) {
-                val readLease = workspaceLockManager.acquireMetaBuildRead(depth)
+                val readLease = writeLease.downgradeToRead()
                 nextStateFor(latestFrameOpt.get.classLoaderOpt.get, Some(readLease))
               } else {
                 // Close old classloaders to avoid memory leaks. Workers at this depth
@@ -406,7 +410,7 @@ class MillBuildBootstrap(
                 previousClassLoaders.foreach(_.close())
                 val nextState = nextStateFor(createClassLoader(), None)
                 publishReusableState(depth, nextState.frames)
-                val readLease = workspaceLockManager.acquireMetaBuildRead(depth)
+                val readLease = writeLease.downgradeToRead()
                 nextState.copy(
                   frames = nextState.frames.updated(
                     0,
@@ -414,6 +418,11 @@ class MillBuildBootstrap(
                   )
                 )
               }
+            } catch {
+              case e: Throwable =>
+                try writeLease.close()
+                catch { case _: Throwable => }
+                throw e
             }
           }
         } catch {
