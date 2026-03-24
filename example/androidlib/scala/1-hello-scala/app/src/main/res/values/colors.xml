@@ -1,4 +1,3 @@
 <resources>
-    <color name="white">#FFFFFF</color>
-    <color name="text_green">#34A853</color>
+    <color name="red_skia">#FFFF0000</color>
 </resources>

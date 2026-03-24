@@ -19,9 +19,16 @@ class ExampleInstrumentedTest {
   }
 
   @Test
-  def checkAppName(): Unit = {
+  def checkHelloString(): Unit = {
     val appContext = InstrumentationRegistry.getInstrumentation.getTargetContext
-    val appName = appContext.getString(R.string.app_name)
-    assertEquals("HelloWorldAppScala", appName)
+    val hello = appContext.getString(R.string.hello_scala)
+    assertEquals("Hello from Scala 3 on Android!", hello)
+  }
+
+  @Test
+  def checkSkiaSize(): Unit = {
+    val appContext = InstrumentationRegistry.getInstrumentation.getTargetContext
+    val size = appContext.getResources.getDimension(R.dimen.skia_size)
+    assertTrue(size > 0)
   }
 }

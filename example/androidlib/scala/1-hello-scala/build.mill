@@ -44,9 +44,9 @@ object app extends AndroidAppScalaModule {
 
   override def androidIsDebug: T[Boolean] = Task { false }
 
-//  object test extends AndroidAppScalaTests, TestModule.Junit4 {
-//    def junit4Version = "4.13.2"
-//  }
+  object test extends AndroidAppScalaTests, TestModule.Junit4 {
+    def junit4Version = "4.13.2"
+  }
 //
 //  object it extends AndroidAppScalaInstrumentedTests {
 //
