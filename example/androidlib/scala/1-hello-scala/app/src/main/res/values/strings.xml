@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">HelloWorldAppScala</string>
+    <string name="hello_world">Hello, World Scala!</string>
+    <string name="text_size">32</string>
+</resources>
