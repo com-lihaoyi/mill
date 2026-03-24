@@ -261,17 +261,19 @@ trait AndroidSdkManagerModule extends ExternalModule {
       buildToolsVersion: Task[String],
       platformsVersion: Task[String],
       remoteReposInfo: Task[PathRef],
-      autoAcceptLicenses: Task[Boolean]
+      autoAcceptLicenses: Task[Boolean],
+      installPlatformSources: Task[Boolean]
   ): Task[AndroidSdkComponents] = Task.Anon {
     androidSdkManagerWorker().processInFunnel { () =>
+
+      val installPlatformSources0 = installPlatformSources()
 
       val packages = Seq(
         "platform-tools", // adb
         s"build-tools;${buildToolsVersion()}",
         s"platforms;${platformsVersion()}",
-        s"sources;${platformsVersion()}", // sources for the platform (android.jar)
         "tools" // proguard
-      )
+      ) ++ Option.when(installPlatformSources0)(s"sources;${platformsVersion()}")
 
       val sdkManagerPath = cmdlineToolsComponents().sdkmanagerExe.path
 
@@ -308,15 +310,17 @@ trait AndroidSdkManagerModule extends ExternalModule {
 
       val androidJar = toolPathRef(sdkPath() / "platforms" / platformsVersion() / "android.jar")
 
-      // If not done before, try to create a sources jar next to the android.jar,
-      // since current GenIdeaImpl searches for sources in the same directory as the classes jar.
-      val sourcesDir = sdkPath() / "sources" / platformsVersion()
-      val targetSourcesJar = sdkPath() / "platforms" / platformsVersion() / "android-sources.jar"
-      if (os.exists(sourcesDir) && !os.exists(targetSourcesJar))
-        os.zip(
-          targetSourcesJar,
-          Seq(sourcesDir)
-        )
+      if (installPlatformSources0) {
+        // If not done before, try to create a sources jar next to the android.jar,
+        // since current GenIdeaImpl searches for sources in the same directory as the classes jar.
+        val sourcesDir = sdkPath() / "sources" / platformsVersion()
+        val targetSourcesJar = sdkPath() / "platforms" / platformsVersion() / "android-sources.jar"
+        if (os.exists(sourcesDir) && !os.exists(targetSourcesJar))
+          os.zip(
+            targetSourcesJar,
+            Seq(sourcesDir)
+          )
+      }
 
       val libs = Seq(
         os.sub / "core-for-system-modules.jar",
