@@ -1,0 +1,7 @@
+= Android Scala Projects
+:page-aliases: android_app_scala_examples.adoc
+
+
+== Simple Android Hello World Application
+
+include::partial$example/androidlib/scala/1-hello-scala.adoc[]

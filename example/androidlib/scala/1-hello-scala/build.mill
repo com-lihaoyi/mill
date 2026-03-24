@@ -1,3 +1,4 @@
+//// SNIPPET:BUILD
 package build
 
 import mill.*, androidlib.*, scalalib.*
@@ -57,3 +58,61 @@ object app extends AndroidAppScalaModule {
     )
   }
 }
+
+//// SNIPPET:END
+
+/** Usage
+
+> ./mill show app.androidApk
+".../out/app/androidApk.dest/app.apk"
+
+> ./mill show app.it.androidTestApk
+".../out/app/it/androidApk.dest/app.apk"
+
+> ./mill show app.test
+...
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "com.helloworld.ExampleUnitTest.testParseMessage",
+      "selector": "com.helloworld.ExampleUnitTest.testParseMessage",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
+...
+
+> ./mill show app.createAndroidVirtualDevice
+...Name: scala-test, DeviceId: medium_phone...
+
+> ./mill show app.startAndroidEmulator
+
+> ./mill show app.androidInstall
+...All files should be loaded. Notifying the device...
+
+> ./mill show app.it
+...
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "selector": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "duration": ...,
+      "status": "Success"
+    },
+    {
+      "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.testActivityContent",
+      "selector": "com.helloworld.app.ExampleInstrumentedTest.testActivityContent",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
+...
+
+> ./mill show app.deleteAndroidVirtualDevice
+
+*/
