@@ -6,7 +6,7 @@ import mill.api.daemon.internal.internal
 import mill.api.ModuleCtx
 
 @experimental
-trait GenIdeaAndroidScalaModule extends mill.androidlib.idea.GenIdeaModule,
+trait GenIdeaAndroidScalaModule extends mill.androidlib.idea.GenIdeaAndroidModule,
       mill.scalalib.idea.GenIdeaModule {
 
   def javaModuleRef: mill.api.ModuleRef[AndroidScalaModule]
