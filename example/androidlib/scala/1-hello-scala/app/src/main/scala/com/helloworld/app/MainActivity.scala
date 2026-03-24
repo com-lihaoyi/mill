@@ -9,7 +9,7 @@ case class Greeting(message: String, version: Int)
 
 object MainActivity {
   private val gson = new Gson()
-  
+
   def parseMessage(json: String): String = {
     val g = gson.fromJson(json, classOf[Greeting])
     g.message

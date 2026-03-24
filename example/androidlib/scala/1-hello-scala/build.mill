@@ -41,19 +41,19 @@ object app extends AndroidAppScalaModule {
     def junit4Version = "4.13.2"
   }
 
-//  object it extends AndroidAppScalaInstrumentedTests {
-//
-//    override def androidIsDebug: T[Boolean] = Task {
-//      false
-//    }
-//
-//    def mvnDeps = Seq(
-//      mvn"androidx.test.ext:junit:1.2.1",
-//      mvn"androidx.test:runner:1.6.2",
-//      mvn"androidx.test:rules:1.6.1",
-//      mvn"androidx.test:core:1.6.1",
-//      mvn"androidx.test.espresso:espresso-core:3.5.1",
-//      mvn"junit:junit:4.13.2"
-//    )
-//  }
+  object it extends AndroidAppScalaInstrumentedTests {
+
+    override def androidIsDebug: T[Boolean] = Task {
+      false
+    }
+
+    def mvnDeps = Seq(
+      mvn"androidx.test.ext:junit:1.2.1",
+      mvn"androidx.test:runner:1.6.2",
+      mvn"androidx.test:rules:1.6.1",
+      mvn"androidx.test:core:1.6.1",
+      mvn"androidx.test.espresso:espresso-core:3.5.1",
+      mvn"junit:junit:4.13.2"
+    )
+  }
 }
