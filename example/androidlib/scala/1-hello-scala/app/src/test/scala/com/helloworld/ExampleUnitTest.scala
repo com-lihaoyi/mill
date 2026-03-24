@@ -6,9 +6,9 @@ import org.junit.Test
 
 class ExampleUnitTest {
   @Test
-  def testCalculateRectArea(): Unit = {
-    // 80.0 * 80.0 = 6400.0
-    val area = MainActivity.calculateRectArea(80f, 80f)
-    assertEquals(6400f, area, 0.0f)
+  def testParseMessage(): Unit = {
+    val json = """{"message": "Test Message", "version": 1}"""
+    val message = MainActivity.parseMessage(json)
+    assertEquals("Test Message", message)
   }
 }

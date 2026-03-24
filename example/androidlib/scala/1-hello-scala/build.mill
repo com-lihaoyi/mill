@@ -2,7 +2,6 @@ package build
 
 import mill.*, androidlib.*, scalalib.*
 import mill.api.{ModuleRef, Task}
-import coursier.maven.MavenRepository
 
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {
@@ -14,19 +13,13 @@ object app extends AndroidAppScalaModule {
 
   def scalaVersion = "3.3.4"
   def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
-  def androidMinSdk = 24
-  def androidCompileSdk = 35
+  def androidMinSdk = 26
+  def androidCompileSdk = 34
   def androidApplicationId = "com.helloworld.app"
   def androidApplicationNamespace = "com.helloworld.app"
 
-  override def repositoriesTask = Task.Anon {
-    super.repositoriesTask() ++ Seq(
-      MavenRepository("https://redirector.kotlinlang.org/maven/compose-dev")
-    )
-  }
-
   override def mvnDeps = Seq(
-    mvn"org.jetbrains.skiko:skiko-android:0.9.42"
+    mvn"com.google.code.gson:gson:2.11.0"
   )
 
   /**
@@ -47,7 +40,7 @@ object app extends AndroidAppScalaModule {
   object test extends AndroidAppScalaTests, TestModule.Junit4 {
     def junit4Version = "4.13.2"
   }
-//
+
 //  object it extends AndroidAppScalaInstrumentedTests {
 //
 //    override def androidIsDebug: T[Boolean] = Task {
@@ -57,6 +50,8 @@ object app extends AndroidAppScalaModule {
 //    def mvnDeps = Seq(
 //      mvn"androidx.test.ext:junit:1.2.1",
 //      mvn"androidx.test:runner:1.6.2",
+//      mvn"androidx.test:rules:1.6.1",
+//      mvn"androidx.test:core:1.6.1",
 //      mvn"androidx.test.espresso:espresso-core:3.5.1",
 //      mvn"junit:junit:4.13.2"
 //    )

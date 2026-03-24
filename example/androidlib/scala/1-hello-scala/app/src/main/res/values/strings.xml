@@ -1,5 +1,4 @@
 <resources>
     <string name="app_name">HelloWorldAppScala</string>
-    <string name="hello_scala">Hello from Scala 3 on Android!</string>
-    <string name="skia_success">Skia drew a red rectangle successfully!</string>
+    <string name="json_greeting">{\"message\": \"Hello from Scala with Gson!\", \"version\": 3}</string>
 </resources>
