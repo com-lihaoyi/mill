@@ -265,18 +265,6 @@ Quarkus effectively owns the build, and Mill must adapt to it.
 |High
 |===
 
-== Lessons Learned
-
-Supporting these three frameworks in Mill highlights a few broader insights:
-
-- Not all frameworks are "just dependencies"
-- Quarkus especially requires deep integration into the build lifecycle
-- AOT changes the role of the build tool
-- Micronaut and Spring AOT shift work from runtime to build-time
-- Build reproducibility becomes critical
-- Especially when serializing models (Quarkus) or generating code (Micronaut/Spring)
-- The JVM ecosystem is moving toward build-time intelligence
-- Reflection-heavy runtime systems are gradually being replaced
 
 == Conclusion
 
