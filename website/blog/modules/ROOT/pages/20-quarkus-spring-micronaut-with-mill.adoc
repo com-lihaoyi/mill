@@ -106,7 +106,7 @@ perspective, it remains very similar to the SpringBoot setup, with the differenc
 - Compile-time dependency injection
 - External AOT CLI
 
-Mill integrates Micronaut through an AOT module.
+Mill integrates Micronaut optimisations through two AOT modules, one for JVM and one for native, `MicronautAotModule` and `MicronautNativeAotModule` respectively.
 
 === Native Image Integration
 
@@ -138,7 +138,41 @@ Quarkus is fundamentally different and thus, more complex to support.
 - Requires a full “application model”
 - Separates runtime and deployment dependencies
 
-Unlike Spring or Micronaut, Quarkus does not simply run your classpath—it rebuilds it.
+Unlike Spring or Micronaut, Quarkus does not simply run your classpath, it rebuilds it.
+
+Quarkus itself, has internal support for https://github.com/quarkusio/quarkus/tree/main/devtools/maven[Maven] and https://github.com/quarkusio/quarkus/tree/main/devtools/gradle[Gradle] . While these can be followed up to a degree, to get an idea how a build tool should integrate with Quarkus, the difference in approach was still going to be a stress test on Mill's design (though not as much as xref:blog::15-android-build-flow.adoc[Android]).
+
+The main challenge was to model the dependencies in the way Quarkus expects them in its application model. Each dependency could be a compile/runtime dependency or a deployment dependency.
+
+There are two niches with dependencies:
+First, deployment dependencies are not declared or resolved in the "traditional" way, but they are drop-in replacements for compile time or runtime declared dependencies. This seems to be Quarkus' way to curate dependencies for native builds, instead of relying on the (https://github.com/oracle/graalvm-reachability-metadata)[reachability metadata repo].
+Second, extension dependencies are derived from declared runtime dependencies, that contain a descriptor file inside the jar in META_INF directory. These are important to be resolved and flagged correctly.
+
+Since Mill uses its own coursier dependency resolution, all Mill logic for resolving dependencies, finding deployment dependencies and flagging extensions would build on top of the current, built-in coursier logic.
+
+A diagram that summarises these interactions is as follows:
+
+.Quarkus: Building the application model in Mill
+
+[graphviz]
+....
+digraph G {
+  rankdir=TB
+  node [shape=box width=0 height=0]
+
+  "Sources" -> "Application Model"
+  "Libraries" -> "Quarkus Dependencies"
+  "Quarkus Dependencies" -> "Compile Libs"
+  "Quarkus Dependencies" -> "Runtime Libs"
+  "Quarkus Dependencies" -> "Deployment Libs"
+  "Compile Libs" -> "App Model"
+  "Runtime Libs" -> "App Model"
+  "Deployment Libs" -> "App Model"
+  "App Model" -> "Quarkus Bootstrap"
+  "Quarkus Bootstrap" -> "Runnable Jar"
+  "Quarkus Bootstrap" -> "Native App"
+}
+....
 
 === The Application Model
 
