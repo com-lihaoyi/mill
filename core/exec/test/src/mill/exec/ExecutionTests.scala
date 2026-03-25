@@ -78,7 +78,7 @@ object ExecutionTests extends TestSuite {
     }
     // not actually used below, but we check that this compiles fine here
     def cleanClientRightMadeExclusive() =
-      cleanClientRight().withExclusive(true)
+      cleanClientRight().makeExclusive(true)
 
     def cleanClientDownstream() = Task.Command() {
       cleanClientRight()()
@@ -86,7 +86,7 @@ object ExecutionTests extends TestSuite {
     }
 
     def nonExclusiveCommand() = Task.Command() { "nonExclusive done" }
-    def nonExclusiveCommandMadeExclusive() = nonExclusiveCommand().withExclusive(true)
+    def nonExclusiveCommandMadeExclusive() = nonExclusiveCommand().makeExclusive(true)
 
     lazy val millDiscover = Discover[this.type]
   }
@@ -644,9 +644,9 @@ object ExecutionTests extends TestSuite {
       }
     }
 
-    test("withExclusive") {
+    test("makeExclusive") {
       test("nonExclusiveBecomesExclusive") {
-        // withExclusive on a non-exclusive command returns a new Command with exclusive = true
+        // makeExclusive on a non-exclusive command returns a new Command with exclusive = true
         val cmd = exclusiveCommands.nonExclusiveCommand()
         assert(!cmd.exclusive)
         val exclusive = exclusiveCommands.nonExclusiveCommandMadeExclusive()
@@ -654,15 +654,15 @@ object ExecutionTests extends TestSuite {
       }
 
       test("alreadyExclusiveReturnsSelf") {
-        // withExclusive(true) on an already-exclusive command returns the same instance
+        // makeExclusive(true) on an already-exclusive command returns the same instance
         val cmd = exclusiveCommands.cleanClientRight()
-        val cmd0 = cmd.withExclusive(true)(using null)
+        val cmd0 = cmd.makeExclusive(true)(using null)
         assert(cmd.exclusive)
         assert(cmd0 eq cmd)
       }
 
       test("makeExclusivePreservesProperties") {
-        // withExclusive(true) preserves inputs, isPrivate, persistent, and selectiveInputs0
+        // makeExclusive(true) preserves inputs, isPrivate, persistent, and selectiveInputs0
         val cmd = exclusiveCommands.nonExclusiveCommand()
         val exclusive = exclusiveCommands.nonExclusiveCommandMadeExclusive()
         assert(exclusive.inputs == cmd.inputs)
@@ -672,7 +672,7 @@ object ExecutionTests extends TestSuite {
       }
 
       test("makeExclusiveCommandWorks") {
-        // A command turned exclusive via withExclusive(true) executes successfully
+        // A command turned exclusive via makeExclusive(true) executes successfully
         UnitTester(exclusiveCommands, null).scoped { tester =>
           val result = tester.apply(exclusiveCommands.nonExclusiveCommandMadeExclusive())
           assert(result.isRight)

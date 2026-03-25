@@ -542,7 +542,7 @@ object Task {
      *
      * Changing it to true ensures this command doesn't run concurrently with other commands.
      */
-    def withExclusive(value: Boolean)(implicit ctx: ModuleCtx): Command[T] =
+    def makeExclusive(value: Boolean)(implicit ctx: ModuleCtx): Command[T] =
       if (exclusive == value) this
       else
         new Command[T](
