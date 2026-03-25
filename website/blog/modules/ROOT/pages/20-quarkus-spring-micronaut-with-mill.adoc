@@ -93,45 +93,20 @@ A Mill configuration example on how to setup a spring boot project with all thre
 - Treating AOT as an optional optimization
 - Managing generated sources across module boundaries
 
-Overall, Spring Boot fits well into Mill’s model because it doesn’t fundamentally change how dependencies or build flow work. The exception is giving the choice for AOT + native. For Mill, this use case relies heavily on the correct behaviour of the `NativeImageModule` , which along with the resolved dependencies, it also resolves in the relevant reachability metadata. Thus, the work to support SpringBoot also extended the support for Mill's `NativeImageModule`
+Overall, Spring Boot fits well into Mill’s model because it doesn’t fundamentally change how dependencies or build flow work. The exception is giving the choice for AOT + native.
 
 
 == Micronaut Support in Mill
 
-Micronaut shifts more responsibility to build-time.
+Micronaut shifts more responsibility to build-time. However, from a build tools
+perspective, it remains very similar to the SpringBoot setup, with the difference being only the AOT utility. Another difference (but more implementation detail), is that the SpringBoot classpath contains the AOT program and relies on the runtime classpath of the application while Micronaut's AOT utility is an external tool which needs to be resolved.
 
 === Key Observations
 
 - Compile-time dependency injection
 - External AOT CLI
-- Explicit configuration via properties
 
-Mill integrates Micronaut through an AOT module:
-
-[source,scala]
-----
-trait MicronautAotModule extends JavaModule
-----
-
-This module:
-
-- Resolves the Micronaut AOT CLI
-- Generates a configuration file
-- Invokes the CLI as a separate process
-
-[source,scala]
-----
-Jvm.callProcess(
-  mainClass = "io.micronaut.aot.cli.Main",
-)
-----
-
-The output is then fed back into the classpath:
-
-[source,scala]
-----
-def micronautAotClasspath: T[Seq[PathRef]]
-----
+Mill integrates Micronaut through an AOT module.
 
 === Native Image Integration
 
@@ -140,10 +115,7 @@ Micronaut extends naturally into native builds:
 - Adjusts AOT config for native runtime
 - Adds reachability metadata into GraalVM build inputs
 
-[source,scala]
-----
-"--configurations-path", configurationsPath.toString
-----
+Check out this xref:mill::javalib/web-examples.adoc#_micronaut_native_graalvm[native example] to get a feel on how things are connected.
 
 === Challenges
 
@@ -152,6 +124,8 @@ Micronaut extends naturally into native builds:
 - Managing generated outputs and classpaths
 
 Compared to Spring, Micronaut is much more build-driven, but still relatively modular in integration. Both rely on a utility program for AOT, whose output along with the reachability metadata are used for building the native image of the app.
+
+For Mill, this use case relies heavily on the correct behaviour of the `NativeImageModule` , which along with the resolved dependencies, it also resolves in the relevant reachability metadata. Thus, the work to support Micronaut Native also (https://github.com/com-lihaoyi/mill/pull/6547)[extended the support] for Mill's `NativeImageModule`
 
 
 == Quarkus Support in Mill
