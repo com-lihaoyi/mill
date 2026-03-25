@@ -1,4 +1,4 @@
-= Spring, Micronaut, and Quarkus with Mill
+= Spring, Micronaut and Quarkus with Mill
 // tag::header[]
 :author: Vasilis Nicolaou
 :revdate: March 2026
@@ -6,55 +6,76 @@
 
 _{author}, {revdate}_
 
-Modern Java development is increasingly shaped by frameworks that optimize for cloud-native workloads, fast startup, and developer productivity. https://spring.io/projects/spring-boot[Spring Boot], https://micronaut.io/[Micronaut,] and https://quarkus.io/[Quarkus]  represent three dominant approaches: from Spring's mature and expansive ecosystem, to Micronaut's and Quarkus' focus on performance and native images as a way of building microservices.
+Modern Java development is increasingly shaped by frameworks that optimize for cloud-native workloads, fast startup and developer productivity. https://spring.io/projects/spring-boot[Spring Boot], https://micronaut.io/[Micronaut] and https://quarkus.io/[Quarkus]  represent three dominant approaches: from Spring's mature and expansive ecosystem, to Micronaut's and Quarkus' focus on performance and native images as a way of building microservices.
 
 // end::header[]
 
-Spring Boot remains the https://www.geeksforgeeks.org/blogs/top-java-frameworks/[most popular choice] for enterprise Java due to its extensive tooling and integrations, while Micronaut and Quarkus push the ecosystem forward with innovations like build-time processing, low memory footprint, and fast startup times.
+Spring Boot remains the https://www.geeksforgeeks.org/blogs/top-java-frameworks/[most popular choice] for enterprise Java due to its extensive tooling and integrations, while Micronaut and Quarkus push the ecosystem forward with innovations like build-time processing, low memory footprint and fast startup times.
 
-In this post, we explore what to support these frameworks, from a build tool implementation standpoint, and more specifically, Mill's.
+In this post, we explore these frameworks, from a build tool implementation standpoint, and more specifically, Mill's.
 
 == Motivation
 
-Mill aims to be a simple, composable, and scalable build tool. Supporting modern Java frameworks is not just about adding dependencies. It requires understanding how each framework models:
+Mill aims to be a simple, composable and scalable build tool. Supporting modern Java frameworks is more than adding dependencies and constructing classpaths. It requires understanding how each framework models:
 
 - Dependency resolution
 - Build-time Vs runtime behavior
-- Code generation and Ahead Of Time (AOT) processing
+- Code generation (e.g. via annotation processors) and Ahead Of Time (AOT) processing
 - Native image integration
 
-Spring Boot, Micronaut, and Quarkus each take fundamentally different approaches in these areas, which makes them a great case study in build tool design. Supporting all three is a great test on the versatility of Mill's own design.
+Spring Boot, Micronaut and Quarkus each take fundamentally different approaches in these areas. Supporting all three is a great test on the versatility of Mill's own design.
 
 == High-Level Comparison
 
 |===
-|Framework | Philosophy | Build-Time Behavior | Native Support
+|Framework | Build-Time Behavior | Native Support
 
 |Spring Boot
-|Convention-over-configuration, ecosystem-first
 |Optional AOT
 |Supported via AOT + GraalVM
 
 |Micronaut
-|Compile-time DI, minimal runtime reflection
 |Optional AOT
 |Supported via AOT + GraalVM
 
 |Quarkus
-|Unified configuration, Native first
 |Build-time augmentation, built-in optimizations
 |Built-in bootstrapping
 |===
 
 == Spring Boot Support in Mill
 
-Spring Boot is the most "mainstream" of the three from a build tool perspective.
+Spring Boot is the most "mainstream" of the three from a build tool's perspective.
 
 === Key Observations
 
 - Uses BOM-based dependency management
 - AOT is optional and layered on top
 - Still largely runtime-driven (compared to Micronaut/Quarkus)
+- Building native binaries is a multi-stage process
+
+For instance, a spring boot app can be built, run and tested by constructing the classpaths
+from source code and dependencies. Then, a separate compilation process can take the resulting
+artifacts and process them to optimise the code (e.g. replace reflection calls with direct method calls). That optimised code, can then be taken to add another layer of compilation that results in a native binary.
+
+.Spring Boot: From runtime-based JVM App to native
+[graphviz]
+....
+digraph G {
+  rankdir=TB
+  node [shape=box width=0 height=0]
+
+  "Sources" -> "Compile"
+  "Libraries" -> "Compile"
+  "Compile" -> "JAR"
+  "Compile" -> "Run classpath"
+  "JAR" -> "AOT (SpringBootModule)"
+  "Run classpath" -> "AOT (SpringBootModule)"
+  "AOT (SpringBootModule)" -> "Optimised JAR"
+  "Optimised JAR" -> "GraalVM Native Build (NativeImageModule)"
+  "GraalVM Native Build (NativeImageModule)" -> "native binary"
+}
+....
 
 Mill integrates Spring Boot via a SpringBootModule, which:
 
@@ -62,20 +83,9 @@ Mill integrates Spring Boot via a SpringBootModule, which:
 - Locates the main application class dynamically
 - Runs Spring’s AOT processor as an external step
 
+The native built is configured via the `NativeImageModule` which takes care of things like reachability-metadata resolution based on the dependencies.
 
-[source,scala]
-----
-def springBootProcessAOT: T[PathRef]
-----
-This step generates:
-
-- Sources
-- Resources
-- Compiled classes
-
-Which are then wired back into the build graph.
-
-The interesting part is that Spring’s AOT is additive—you can opt into it via a submodule (SpringBootOptimisedBuildModule) rather than restructuring the entire build.
+A Mill configuration example on how to setup a spring boot project with all three (JVM, AOT and Native) can be found xref:mill::javalib/spring-boot.adoc#_spring_boot_with_aot_processing_and_native_image_support[here].
 
 
 === Challenges
@@ -83,7 +93,7 @@ The interesting part is that Spring’s AOT is additive—you can opt into it vi
 - Treating AOT as an optional optimization
 - Managing generated sources across module boundaries
 
-Overall, Spring Boot fits well into Mill’s model because it doesn’t fundamentally change how dependencies or execution work. The exception is giving the choice for AOT + native. For Mill, this use case relies heavily on the correct behaviour of the `NativeImageModule` , which along with the resolved dependencies, it also resolves in the relevant reachability metadata.
+Overall, Spring Boot fits well into Mill’s model because it doesn’t fundamentally change how dependencies or build flow work. The exception is giving the choice for AOT + native. For Mill, this use case relies heavily on the correct behaviour of the `NativeImageModule` , which along with the resolved dependencies, it also resolves in the relevant reachability metadata. Thus, the work to support SpringBoot also extended the support for Mill's `NativeImageModule`
 
 
 == Micronaut Support in Mill
@@ -268,7 +278,7 @@ Supporting these three frameworks in Mill highlights a few broader insights:
 
 == Conclusion
 
-Supporting Spring Boot, Micronaut, and Quarkus in Mill is less about adding features and more about adapting to three different philosophies of Java development.
+Supporting Spring Boot, Micronaut and Quarkus in Mill is less about adding features and more about adapting to three different philosophies of Java development.
 
 - Spring Boot fits naturally into Mill’s existing model
 - Micronaut extends it with structured AOT processing
