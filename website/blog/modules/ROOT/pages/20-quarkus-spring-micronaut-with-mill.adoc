@@ -234,6 +234,8 @@ This produces:
 
 Quarkus effectively owns the build, and Mill must adapt to it.
 
+Despite the complexity on Mill's side in supporting Quarkus, you can easily configure a Quarkus app with Mill as shown xref:mill::javalib/web-examples.adoc#_quarkus_example[here].
+
 == Key Differences from a Build Tool Perspective
 
 |===
