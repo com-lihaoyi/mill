@@ -139,7 +139,7 @@ class MultiLogger(
 
   override def keySuffix = logger1.keySuffix ++ logger2.keySuffix
 
-  override def redirectOutToErr: Boolean = logger1.redirectOutToErr || logger1.redirectOutToErr
+  override def redirectOutToErr: Boolean = logger1.redirectOutToErr || logger2.redirectOutToErr
   override def withRedirectOutToErr() = new MultiLogger(
     logger1.withRedirectOutToErr(),
     logger2.withRedirectOutToErr(),
