@@ -278,7 +278,7 @@ object ModuleSpec {
         case ("junit", _) => "TestModule.Junit4"
         case ("org.junit.jupiter", _) => "TestModule.Junit5"
         case ("com.lihaoyi", "utest") => "TestModule.Utest"
-        case ("org.typelevel", "weaver-test") => "TestModule.Weaver"
+        case ("org.typelevel", "weaver-cats") => "TestModule.Weaver"
         case ("dev.zio", "zio-test" | "zio-test-sbt") => "TestModule.ZioTest"
         case ("org.scalacheck", _) => "TestModule.ScalaCheck"
       }
