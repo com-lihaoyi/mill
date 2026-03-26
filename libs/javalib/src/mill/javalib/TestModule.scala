@@ -633,7 +633,7 @@ object TestModule {
   /**
    * TestModule that uses Weaver to run tests.
    * You can override the [[weaverVersion]] task or provide the Weaver-dependency yourself.
-   * https://github.com/typelevel/weaver-test
+   * https://github.com/typelevel/
    */
   trait Weaver extends TestModule {
 
@@ -644,7 +644,17 @@ object TestModule {
       super.mandatoryMvnDeps() ++
         Seq(weaverVersion())
           .filter(!_.isBlank())
-          .map(v => mvn"org.typelevel::weaver-test::${v.trim()}")
+          .map({ v => 
+            val trimmed = v.trim()
+            trimmed.split("\\.")
+              .toList
+              .take(2)
+              .flatMap(_.toIntOption) match
+                case 0::n::_ if (n <= 8) =>
+                  mvn"com.disneystreaming::weaver-scalacheck::$trimmed"
+                case _ =>
+                  mvn"org.typelevel::weaver-cats::$trimmed"
+          })
     }
   }
 
