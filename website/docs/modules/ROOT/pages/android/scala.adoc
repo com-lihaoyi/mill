@@ -5,7 +5,7 @@ Mill can build Android applications written in Scala.
 
 Currently, Scala code is compiled to JVM bytecode and packaged into an Android APK/AAB, running on the Android Runtime (ART) just like Java or Kotlin sources.
 
-Support for native-image-based Scala applications is still a work in progress. The JVM-based workflow, however, is fully functional and identical to the Java and Kotlin workflows. The main difference is that you use the `AndroidScalaModule` and `AndroidAppScalaModule` traits instead of the Java or Kotlin equivalents.
+Support for native-image-based Scala applications is still a work in progress. The JVM-based workflow is functional but still experimental, following the same structure as the Java and Kotlin workflows. The main difference is that you use the `AndroidScalaModule` and `AndroidAppScalaModule` traits instead of the Java or Kotlin equivalents.
 
 == Simple Android Hello World Application
 
