@@ -16,6 +16,22 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 === main branch
 
+[#1-1-5]
+=== 1.1.5
+:version: 1.1.5
+:milestone-name: 1.1.5
+:milestone: 144
+:prev-version: 1.1.4
+_2026-03-25_
+
+_Changes since {prev-version}:_
+
+* Fix `mill show resolve <task>` printing both plain text and JSON to stdout {link-pr}/6947[#6947]
+* Fix coursierCacheCustomizer being overridden by CoursierTickerResolutionLogger {link-pr}/6945[#6945]
+* Fix `bspScriptIgnore` handling in the absence of a root `build.mill`/`build.mill.yaml` file {link-pr}/6953[#6953]
+
+
+
 [#1-1-4]
 === 1.1.4
 :version: 1.1.4
