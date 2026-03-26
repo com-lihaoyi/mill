@@ -4,12 +4,10 @@ package build
 import mill.*, androidlib.*, scalalib.*
 import mill.api.{ModuleRef, Task}
 
-// Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = "35.0.0"
 }
 
-// Actual android application
 object app extends AndroidAppScalaModule {
 
   def scalaVersion = "3.3.4"
@@ -112,6 +110,8 @@ object app extends AndroidAppScalaModule {
   ]
 }
 ...
+
+> ./mill show app.stopAndroidEmulator
 
 > ./mill show app.deleteAndroidVirtualDevice
 
