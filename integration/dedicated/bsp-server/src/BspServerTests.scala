@@ -507,6 +507,48 @@ object BspServerTests extends UtestIntegrationTestSuite {
       assert(expectedMessages == messages0)
     }
 
+    test("bspScriptIgnoreDefault without meta-build") - integrationTest { tester =>
+      import tester.*
+      os.remove.all(workspacePath / "build.mill")
+      os.remove.all(workspacePath / "mill-build")
+      os.write.over(
+        workspacePath / "gatling/gatling-app/src/main/scala/io/gatling/app/Analytics.scala",
+        """package io.gatling.app
+          |
+          |object Analytics
+          |""".stripMargin,
+        createFolders = true
+      )
+      os.write.over(
+        workspacePath / "scripts/visible.scala",
+        """object visible
+          |""".stripMargin
+      )
+
+      eval(
+        ("--bsp-install", "--jobs", "1"),
+        stdout = os.Inherit,
+        stderr = os.Inherit,
+        check = true,
+        env = Map("MILL_EXECUTABLE_PATH" -> tester.millExecutable.toString)
+      )
+
+      withBspServer(workspacePath, millTestSuiteEnv) { (buildServer, _) =>
+        val targetUris = buildServer.workspaceBuildTargets().get().getTargets.asScala
+          .map(_.getId.getUri)
+          .toSet
+
+        assert(targetUris.contains((workspacePath / "scripts/visible.scala").toURI.toASCIIString))
+        assert(
+          !targetUris.contains(
+            (workspacePath / "gatling/gatling-app/src/main/scala/io/gatling/app/Analytics.scala")
+              .toURI
+              .toASCIIString
+          )
+        )
+      }
+    }
+
     test("diagnostics") - integrationTest { tester =>
       import tester.*
       eval(

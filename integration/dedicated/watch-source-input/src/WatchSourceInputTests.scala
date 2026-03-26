@@ -41,14 +41,38 @@ trait WatchTests extends UtestIntegrationTestSuite {
       expectedErr: Seq[String],
       expectedShows: Seq[String]
   ): Unit = {
-    val outLines = spawned.out.lines()
-    val errLines = spawned.err.lines()
+    // Poll until the expected output arrives or the timeout is reached.
+    // This is necessary because when using `show`, the return value is printed
+    // to stdout *after* the task body finishes (and after the completion marker
+    // is written), so there is a race between awaitCompletionMarker returning
+    // and the show output actually being buffered by the test process.
+    val deadline = System.currentTimeMillis() + maxDurationMillis
 
-    val (shows, out) =
-      if (show) outLines.partition(_.startsWith("\""))
-      else (Vector.empty[String], outLines)
+    def currentState() = {
+      val outLines = spawned.out.lines()
+      val errLines = spawned.err.lines()
+      val (shows, out) =
+        if (show) outLines.partition(_.startsWith("\""))
+        else (Vector.empty[String], outLines)
+      val err = errLines.filter(s => s.startsWith("Setting up ") || s.startsWith("Running "))
+      (shows, out, err)
+    }
 
-    val err = errLines.filter(s => s.startsWith("Setting up ") || s.startsWith("Running "))
+    def isDone(shows: Vector[String], out: Vector[String], err: Vector[String]): Boolean = {
+      val expectedShowsMapped = expectedShows.map('"' + _ + '"')
+      if (show)
+        shows == expectedShowsMapped && out == expectedOut && err == expectedErr
+      else
+        out == expectedOut ++ expectedErr
+    }
+
+    var state = currentState()
+    while (!isDone(state._1, state._2, state._3) && System.currentTimeMillis() < deadline) {
+      Thread.sleep(10)
+      state = currentState()
+    }
+
+    val (shows, out, err) = state
 
     if (show) {
       assert(out == expectedOut)
