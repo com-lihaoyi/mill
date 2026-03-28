@@ -1,0 +1,618 @@
+= Making Scala Scripting Actually Good with Mill
+// tag::header[]
+:author: Li Haoyi
+:revdate: 28 March 2026
+
+_{author}, {revdate}_
+
+Writing scripts in the Scala language has been possible for decades, but it has never been
+polished enough to actually use in practice: poor library support, IDE support,
+integration with larger projects, etc.. In this article we will walk through the 20-year
+history of Scala scripting, see how each attempt has improved various parts of the scripting
+experience, and shows how the Mill build tool's new script support finally resolves all the
+long-standing issues, making Scala scripts a viable way to write code as part of your larger
+codebase or monorepo.
+
+// end::header[]
+
+This is the companion blog post to the talk:
+
+- https://www.youtube.com/watch?v=KRhLfzRRXLA[Making Scala Scripting Actually Good with Mill, Scalar Warsaw on 27 March 2026]
+
+== Why JVM Scripting?
+
+Everyone needs small scripts at some point. Whether it's automating a deployment,
+parsing some log files, or gluing together a few APIs, scripts are a fact of life in
+software development. Traditionally this was done in Bash, Perl, Ruby, or Python. While
+scripting in those languages work, there are some long-standing weaknesses with these
+languages that can make writing and maintaining scripts a challenge, which scripts
+written in Scala can improve upon:
+
+* *Bash can be very fragile* to read and write. Even basic control flow like `if-else` and
+`for` loops is error-prone, and the lack of type checking means bugs only surface at runtime.
+
+* *Python can be very hard to deploy reliably*. If you hand a Python script to a room full
+of developers, there is almost no chance it will run on every laptop without something
+going wrong due to version mismatches or missing dependencies.
+
+* *Performance and parallelism can be a big deal for scripts*. Everyone has encountered scripts
+that are slow not because the problem is complex, but because the script is inefficient
+and there's no easy way to parallelize it. Scripts written in Scala get good multi-threading
+support by default
+
+* *Compiler-time checking is surprisingly important*. Small scripts are often the worst-tested
+parts of a codebase: no unit tests, no integration tests. Having the Scala compiler check that
+your method calls and parameter types line up gives you a safety net when making changes.
+
+* *The JVM library ecosystem is huge*. Maven Central has Java and Scala libraries for almost
+anything: parsing HTML, talking to databases, interacting with cloud services. You can find
+much more there than you can access from a typical Bash command.
+
+Given the list above, scripting in Scala sounds great: less fragile than Bash, more portable
+than Python, good performance and parallelism, compile-time checking to add a degree of safety,
+and a huge ecosystem of libraries to use. So why doesn't anyone actually do it?
+
+In the next sections, we'll walk through the many attempts to make JVM scripting work over
+the years, why they fell short, and why the latest attempt with Mill scripts finally gets
+it right.
+
+== Evaluating Scala Scripting
+
+To compare the various approaches to Scala scripting, we'll consider th following criteria. These
+are things that you may not notice on a slide or during an initial experiment, but turn out to be
+important for anyone writing and maintaining scripts to do real work
+
+1. **Third-party libraries**: can you easily pull in libraries from Maven Central? After all, this is one
+of the big advantages of being on the JVM, which has a massive ecosystem of open source libraries
+
+2. **Support for multiple files**: can a script depend on another script, or have test suites? While
+scripts often start as a single file, they inevitably grow shared utilities and test suites and other
+inter-script dependencies
+
+3. **Useful built-in utilities**: are common operations (file I/O, HTTP, JSON, argument parsing) easy
+without pulling in third-party dependencies? These are things you do day-in and day-out when writing
+scripts, so they should be as easy as possible.
+
+4. **Other build workflows**: can you compile ahead of time, build an assembly, inspect dependency trees?
+While initially you might just want a script to run, very often you end up wanting to lint them,
+package them, deploy them, etc.
+
+5. **IDE support**: do IntelliJ and VSCode provide navigation, autocomplete, and error highlighting?
+Scala and other JVM languages have great IDE support in IntelliJ and VSCode, so we would hope
+our Scala scripts would as well
+
+6. **Larger project integration**: can scripts use code from an existing project's modules? Scripts
+never live in a vacuum, and you always end up needing to use some helper logic, API client, etc.
+that is implemented as part of a larger microservice or monolith codebase.
+
+With these criteria in hand, let's look at the history.
+
+== java Foo.java
+
+Since JEP 330 (around Java 11), you can run a single Java file with the `java` command
+without first running `javac`. Consider this small Java program
+
+.Test.java
+```java
+import java.util.*;
+import java.util.stream.Collectors;
+
+public class Test {
+    public static void main(String[] args) {
+        Map<String, List<String>> graph = Map.of(
+            "Scala", List.of("JVM", "Functional_programming"),
+            "JVM", List.of("Bytecode", "Garbage_collection"),
+            "Functional_programming", List.of("Lambda_calculus"),
+            "Type_system", List.of("Lambda_calculus", "JVM")
+        );
+
+        String start = args[0];
+        int depth = Integer.parseInt(args[1]);
+
+        Set<String> seen = new HashSet<>();
+        Set<String> current = new HashSet<>();
+
+        seen.add(start);
+        current.add(start);
+
+        for (int i = 0; i < depth; i++) {
+            // Flatten graph.getOrDefault(x, empty)
+            Set<String> next = current.stream()
+                .flatMap(node ->
+                     graph.getOrDefault(node, List.of()).stream())
+                .filter(n -> !seen.contains(n))
+                .collect(Collectors.toSet());
+
+            seen.addAll(next);
+            current = next;
+        }
+
+        for (String s : seen) System.out.println(s);
+    }
+}
+```
+
+It can be run via:
+
+```console
+> java Test.java Scala 1
+Scala
+JVM
+Functional_programming
+```
+
+This is convenient for quick demos, but falls short in almost every way for real scripting:
+
+1. [.line-through]#**Third-party libraries**#: `java Test.java` doesn't let you use third-party libraries
+unless you manually download them and pass them via `-classpath`, which is tedious enough
+nobody actually does it
+
+2. [.line-through]#**Support for multiple files**#: `java Test.java` only supports a single dile
+
+3. [.line-through]#**Useful built-in utilities**#: `java Test.java` only includes the Java standard
+library, which misses a lot of important scripting features: argument parsing, JSON parsing, etc.
+
+4. [.line-through]#**Other build workflows**#: `java Test.java` only supports running (via `java`)
+and compiling (via `javac`), and nothing else
+
+5. **IDE support**: IDEs surprisingly work reasonably well with these single-file Java programs,
+since they only use the standard library there isn't much IDE integration to configure
+
+6. [.line-through]#**Larger project integration**#: `java Test.java` cannot make use of modules
+from a larger Maven/Gradle/SBT codebase, again unless you manually create the relevant jars
+and tediously pass them via `-classpath`
+
+While running `java Test.java` works as a teaching tool or quick demo, nobody uses this for
+real work.
+
+== 2006: scala Foo.scala
+
+The `scala` command originally gained the ability to run single-file Scala programs as scripts
+way back in 2006. This looks like the following:
+
+.Test.scala
+```scala
+val graph: Map[String, Seq[String]] = Map(
+  "Scala"      -> Seq("JVM", "Functional_programming"),
+  "JVM"        -> Seq("Bytecode", "Garbage_collection"),
+  "Functional_programming" -> Seq("Lambda_calculus"),
+  "Type_system" -> Seq("Lambda_calculus", "JVM"),
+)
+
+val Array(start, depth0) = args
+val depth = depth0.toInt
+
+var seen    = Set(start)
+var current = Set(start)
+
+for (_ <- 0 until depth) {
+  current = current.flatMap(graph.getOrElse(_, Nil)).filterNot(seen)
+  seen = seen ++ current
+}
+
+seen.foreach(println)
+```
+```console
+> scala Test.scala Scala 1
+Scala
+JVM
+Functional_programming
+```
+
+Scala syntax is more concise
+than Java, but everything else still doesn't work: no third-party libraries, no multi-file
+support, no built-in utilities, no assembly support. IDE support also doesn't work as
+well, since IntelliJ needs to be properly understand Scala projects, and these single-file
+Scala scripts provided no such integration
+
+1. [.line-through]#**Third-party libraries**#
+
+2. [.line-through]#**Support for multiple files**#
+
+3. [.line-through]#**Useful built-in utilities**#
+
+4. [.line-through]#**Other build workflows**#
+
+5. [.line-through]#**IDE support**#
+
+6. [.line-through]#**Larger project integration**#
+
+Again, although it worked for toy examples, the lack of support for these criteria means that
+nobody could actually use the old `scala` launcher for any real load-bearing scripts in
+real codebases or production environments.
+
+== 2010: sbt Foo.scala
+
+SBT added a https://www.scala-sbt.org/1.x/docs/Scripts.html[script runner] that let you
+write a shebang header pointing at `sbt`, specify a Scala version and library dependencies
+in a header comment, and run the script. For example:
+
+.HtmlScraper.scala
+```scala
+#!/usr/bin/env sbt -Dsbt.main.class=sbt.ScriptMain -error
+/***
+ThisBuild / scalaVersion := "2.13.12"
+libraryDependencies += "org.jsoup" % "jsoup" % "1.7.2"
+*/
+import org.jsoup._
+import scala.collection.JavaConverters._
+
+def fetchLinks(title: String): Seq[String] = {
+  Jsoup.connect(s"https://en.wikipedia.org/wiki/$title")
+    .header("User-Agent", "My Scraper")
+    .get().select("main p a").asScala.toSeq.map(_.attr("href"))
+    .collect { case s"/wiki/$rest" => rest }
+}
+```
+```console
+> ./HtmlScraper.scala Scala 1
+Scala
+JVM
+Functional_programming
+```
+
+This was a step forward: third-party libraries now work! But many other things still don't:
+no multi-file scripts, no useful built-ins, no assembly support, IDE support doesn't work
+for third-party libraries, and you can't integrate with a larger SBT project. It's also
+quite slow since SBT has to boot up to run even a simple script. A small improvement over
+the naive `scala` launcher, but still not really usable
+
+1. **Third-party libraries**
+
+2. [.line-through]#**Support for multiple files**#
+
+3. [.line-through]#**Useful built-in utilities**#
+
+4. [.line-through]#**Other build workflows**#
+
+5. [.line-through]#**IDE support**#
+
+6. [.line-through]#**Larger project integration**#
+
+
+== 2015: amm Foo.sc
+
+https://ammonite.io[Ammonite] explored Scala scripting more deeply: a REPL, scripts, and
+even an attempt at replacing Bash as a shell. Ammonite scripts had many advantages:
+
+.HtmlScraper.scala
+```scala
+import $ivy.`org.jsoup:jsoup:1.7.2`
+import org.jsoup._
+import scala.collection.JavaConverters._
+
+def fetchLinks(title: String): Seq[String] = {
+  Jsoup.connect(s"https://en.wikipedia.org/wiki/$title")
+    .header("User-Agent", "My Scraper")
+    .get().select("main p a").asScala.toSeq.map(_.attr("href"))
+    .collect { case s"/wiki/$rest" => rest }
+}
+
+@main
+def main(start: String, depth: Int) = {
+  var seen = Set(start)
+  var current = Set(start)
+  for (i <- Range(0, depth)) {
+    current = current.flatMap(fetchLinks(_)).filter(!seen.contains(_))
+    seen = seen ++ current
+  }
+  pprint.log(seen, height = Int.MaxValue)
+  os.write(os.pwd / "scraped.json", upickle.write(seen))
+}
+```
+
+Ammonite fixed many prior issues with Scala scripts, but there were some important
+areas that it was still unable to make much progress:
+
+1. **Third-party libraries**: `import $ivy` lets you pull in third-party libraries,
+such as `org.jsoup:jsoup:1.7.2` above.
+
+2. **Support for multiple files**: `import $file` for scripts to import other scripts
+
+3. **Useful built-in utilities**: bundled libraries like
+https://github.com/com-lihaoyi/mainargs[MainArgs],
+https://github.com/com-lihaoyi/os-lib[OS-Lib],
+https://github.com/com-lihaoyi/upickle[uPickle],
+and https://github.com/com-lihaoyi/requests-scala[Requests-Scala] are available by default.
+These handle many of the common things you need to do in scripts, letting you be productive
+immediately without needing to first hunt down the relevant third-party library to include.
+
+4. [.line-through]#**Other build workflows**#: Ammonite started as a REPL, so
+scripts were treated as a sequence of REPL commands executed one after another. This means
+compilation and execution are interleaved for every statement, which
+prevents things like performing a `compile` or `assembly` standalone. They can only be done
+as part of running the script
+
+5. [.line-through]#**IDE support**#: IDE support for Ammonite scripts never worked reliably.
+so although the scripts looked great on slides, they never felt great to read and write in an IDE.
+
+6. [.line-through]#**Larger project integration**#: Ammonite Scripts could never really integrate
+well with a larger Scala project, e.g. to make use of shared libraries or utilities in a larger
+SBT codebase.
+
+After years of trying, we concluded that many of these problems were simply
+https://github.com/com-lihaoyi/Ammonite/discussions/1372[unfixable given Ammonite's
+REPL-based architecture]. Luckily, around that time, Scala-CLI emerged.
+
+
+== 2021: scala-cli Foo.scala
+
+https://scala-cli.virtuslab.org/[Scala CLI] was a reimagining of the `scala` launcher command,
+supporting a script-running workflow that fixed many of Ammonite's problems:
+
+.HtmlScraper.scala
+```scala
+//> using jvm "17"
+//> using dep org.jsoup:jsoup:1.7.2
+
+import org.jsoup._
+import scala.collection.JavaConverters._
+
+def fetchLinks(title: String): Seq[String] = {
+  Jsoup.connect(s"https://en.wikipedia.org/wiki/$title")
+    .header("User-Agent", "My Scraper")
+    .get().select("main p a").asScala.toSeq.map(_.attr("href"))
+    .collect { case s"/wiki/$rest" => rest }
+}
+
+@main
+def main(start: String, depth: Int) = {
+  var seen = Set(start)
+  var current = Set(start)
+  for (i <- Range(0, depth)) {
+    current = current.flatMap(fetchLinks(_)).filter(!seen.contains(_))
+    seen = seen ++ current
+  }
+  seen.foreach(println)
+}
+```
+```console
+> scala-cli HtmlScraper.scala Singapore 1
+```
+
+
+
+Scala CLI was a definite improvement:
+
+1. **Third-party libraries**: Scala-CLI supports these via `//> using dep` directives
+
+2. **Support for multiple files**
+
+3. [.line-through]#**Useful built-in utilities**#: while some conveniences like the `@main`
+annotation are supported out of the box, others like the ability to easily read and write files,
+make HTTP requests, or process JSON data were not.
+
+4. **Other build workflows**: Scala-CLI supports things like `scala-cli --assembly HtmlScraper.scala`,
+build Graal native images, and other commands. While not quite as rich as a build tool like
+Mill or SBT, but much more than all prior attempts at Scala scripting
+
+5. [.line-through]#**IDE support**#: Scala-CLI only supports IDE integration for one script
+at a time. While this is still a huge improvement over the earlier attempts that never had
+good IDE integration at all, it still isn't ideal given any real-world codebase will inevitably
+have dozens or hundreds of scripts scattered throughout.
+
+6. [.line-through]#**Larger project integration**#: Scala-CLI doesn't really integrate
+well with SBT, e.g. you can't have a Scala-CLI script that depends on an SBT module
+
+Just as Ammonite scripts was a huge improvement over the raw `scala` or SBT scripts that
+came before, Scala-CLI was in turn a huge improvement over Ammonite scripts. In particular,
+the ability to support build workflows like `--assembly` was something that Ammonite could
+never support.
+
+However, there remain weaknesses around providing rich builtin utilities, IDE support, and
+larger project integration: these add friction to writing and maintaining Scala-CLI scripts,
+falling short of the seamless experience we would hope for when writing scripts in Scala.
+
+== 2025: ./mill Foo.scala
+
+In 2025, this brings us to Mill scripts, a new feature launched in Mill 1.1.0. To understand
+how we got here, it helps to understand another recent Mill addition: declarative builds.
+
+=== Programmable Builds to Declarative Builds to Scripts
+
+Mill has traditionally been configured using a Scala DSL:
+
+```scala
+// build.mill
+package build
+import mill._, scalalib._
+object `package` extends ScalaModule {
+  def scalaVersion = "3.7.2"
+  def mvnDeps = Seq(
+    mvn"org.jsoup:jsoup:1.7.2"
+  )
+}
+```
+
+But if you strip away the boilerplate, the actual information is just: extend `ScalaModule`,
+Scala version `3.7.2`, dependency `org.jsoup:jsoup:1.7.2`. That's it. Everything else is
+syntactic noise.
+
+```scala
+// build.mill
+
+
+                 extends ScalaModule
+      scalaVersion = "3.7.2"
+      mvnDeps =    (
+    mvn"org.jsoup:jsoup:1.7.2"
+  )
+```
+
+Mill 1.1.0 introduced xref:mill::scalalib/intro.adoc#_declarative_configuration[declarative builds],
+which takes the non-boilerplate metadata from the programmable `build.mill` file
+above, and puts them into a compact YAML file:
+
+```yaml
+# build.mill.yaml
+extends: ScalaModule
+scalaVersion: 3.7.2
+mvnDeps:
+- org.jsoup:jsoup:1.7.2
+```
+
+This YAML config does all the same things as the Scala code above: `./mill compile`,
+`./mill run`, `./mill assembly`, `./mill test` all work identically. The YAML is much more
+concise but less flexible, not allowing custom tasks with arbitrary code. For simple projects
+though, the YAML may be all you need.
+
+The insight behind Mill scripts is: if a declarative build is really small, why not put
+the build config directly in the source file? That's exactly what Mill scripts do. The same
+YAML configuration that would go in `build.mill.yaml` goes in a `//|` header comment
+of a `.scala` file:
+
+.HtmlScraper.scala
+```scala
+//| extends: ScalaModule
+//| scalaVersion: 3.7.2
+//| mvnDeps:
+//| - org.jsoup:jsoup:1.7.2
+...
+```
+
+We can leave out the `extends: ScalaModule` since we know a `.scala` file contains Scala code,
+and we can leave out `scalaVersion: 3.7.2` by providing a reasonable default (currently `3.8.2`).
+That brings us to our simple `HtmlScraper.scala` script looking as follows:
+
+.HtmlScraper.scala
+```scala
+//| mvnDeps: [org.jsoup:jsoup:1.7.2]
+import org.jsoup._
+import scala.collection.JavaConverters._
+
+def fetchLinks(title: String): Seq[String] = {
+  Jsoup.connect(s"https://en.wikipedia.org/wiki/$title")
+    .header("User-Agent", "My Scraper")
+    .get().select("main p a").asScala.toSeq.map(_.attr("href"))
+    .collect { case s"/wiki/$rest" => rest }
+}
+
+def main(start: String, depth: Int) = {
+  var seen = Set(start)
+  var current = Set(start)
+  for (i <- Range(0, depth)) {
+    current = current.flatMap(fetchLinks(_)).filter(!seen.contains(_))
+    seen = seen ++ current
+  }
+  pprint.log(seen, height = Int.MaxValue)
+  os.write(os.pwd / "scraped.json", upickle.write(seen))
+}
+```
+
+```console
+> ./mill HtmlScraper.scala --start Singapore --depth 1
+...
+"Hokkien",
+"Conscription_in_Singapore",
+"Malaysia_Agreement",
+...
+```
+
+=== What Makes Mill Scripts Different
+
+Mill scripts check every box on our evaluation criteria:
+
+1. **Third-party libraries**: Declare dependencies in the `//| mvnDeps` header and they're
+  available immediately, with full IDE support.
+
+2. **Multiple files**: Scripts can depend on other scripts via `moduleDeps` in the header.
+  One script can import functions from another, and test scripts can test library scripts:
++
+```scala
+//| extends: [mill.script.ScalaModule.Utest]
+//| moduleDeps: [HtmlScraper.scala]
+//| mvnDeps:
+//| - com.lihaoyi::utest:0.9.1
+import utest.*
+
+object TestHtmlScraper extends TestSuite {
+  val tests = Tests {
+    test("fetchLinks returns known Scala article links") {
+      val links = fetchLinks("Scala_(programming_language)")
+      assert(links.nonEmpty)
+      assert(links.contains("Martin_Odersky"))
+      assert(links.contains("Functional_programming"))
+    }
+  }
+}
+```
++
+```console
+> ./mill test HtmlScraper.scala
+```
+
+3. **Useful built-in utilities**: PPrint, OS-Lib, uPickle, and Requests-Scala are all
+  xref:mill::fundamentals/bundled-libraries.adoc[bundled by default]. No need to declare
+  dependencies for common operations like file I/O, JSON parsing, HTTP requests,
+  or pretty-printing.
+
+4. **Other build workflows**: Since Mill scripts are Mill modules, everything Mill supports
+  is available: `assembly`, `showMvnDepsTree`, `repl`, etc.:
++
+```console
+> ./mill show HtmlScraper.scala:assembly
+".../out/HtmlScraper.scala/assembly.dest/out.jar"
+
+> ./mill HtmlScraper.scala:showMvnDepsTree
+├─ org.jsoup:jsoup:1.7.2
+├─ org.scala-lang:scala3-library_3:3.7.3
+│  └─ org.scala-lang:scala-library:2.13.16
+
+> ./mill HtmlScraper.scala:repl
+Welcome to Scala 3.8.2 (21.0.10, Java OpenJDK 64-Bit Server VM).
+Type in expressions for evaluation. Or try :help.
+scala>
+```
+
+5. **IDE support**: Mill scripts are loaded as proper IntelliJ/VSCode modules via BSP.
+  You get full navigation, autocomplete, and error highlighting for both your code and
+  third-party libraries. This works because IntelliJ just treats scripts as Scala modules
+  containing a single file: IntelliJ doesn't need to know anything about Scala scripting,
+  it just understands the m out of the box
+
+6. **Larger project integration**: Scripts can depend on modules defined in the same Mill build:
++
+```scala
+//| moduleDeps: [bar]
+```
++
+The script is treated as a downstream module, so parallelism, scheduling, and all build
+workflows work correctly.
+
+=== Script Use Cases
+
+Mill scripts work for a wide variety of use cases:
+
+* xref:mill::scalalib/script.adoc#_html_web_scraper[**HTML web scrapers**]: using Jsoup to crawl and parse web pages
+* xref:mill::scalalib/script.adoc#_json_api_client[**JSON API clients**]: using the bundled Requests-Scala and uPickle libraries
+* xref:mill::scalalib/script.adoc#_web_server[**Web servers**]: small https://github.com/com-lihaoyi/cask[Cask] web servers you can run
+  in the background via `./mill WebServer.scala:runBackground`
+* xref:mill::scalalib/script.adoc#_static_site_generator[**Static site generators**]: using https://github.com/com-lihaoyi/scalatags[Scalatags]
+  and CommonMark to generate HTML from Markdown
+* xref:mill::scalalib/script.adoc#_database_queries[**Database scripting**]: using https://github.com/com-lihaoyi/scalasql[ScalaSql] to query
+  and manipulate databases
+
+Once you have the ability to easily write Scala scripts that use third-party and first-party
+libraries, a whole slew of use cases open up. It turns out there are tons of scenarios where
+a small bit of code that does something can be useful, and once you remove the overhead
+of "creating a module" it can be super convenient to just create a single-file Scala script
+to do what you need.
+
+== Conclusion
+
+Scala scripting has been "almost there" for 20 years. Each attempt improved on the last but
+always fell short in some important way. Mill scripts finally close the gap: third-party
+and local dependencies, IDE support, multi-file scripts, test suites, assemblies and
+other build workflows all work out of the box. At the same time, Mill's Scala scripts
+preserve the simplicity of a single-file script with a few lines of YAML header, making it
+super easy to write a piece of Scala code and run it in a way that can scale to real scenarios
+in real codebases.
+
+If you've ever thought about writing single-file Scala scripts to do things, or if
+you've done it in the past with some of the other tools mentioned above and found the
+experience lacking, please try Mill's Scala scripts a try! They have taken large steps
+in polishing off the rough edges that have always accompanied Scala scripting in the past,
+resulting in a polished experience that makes scripting in Scala quicker, easier, and
+more maintainable than it has ever been in the past.
+
+* xref:mill::scalalib/intro.adoc#_single_file_scripts[Scala Single-File Scripts]
