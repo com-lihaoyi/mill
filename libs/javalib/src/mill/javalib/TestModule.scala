@@ -633,7 +633,7 @@ object TestModule {
   /**
    * TestModule that uses Weaver to run tests.
    * You can override the [[weaverVersion]] task or provide the Weaver-dependency yourself.
-   * https://github.com/disneystreaming/weaver-test
+   * https://github.com/typelevel/weaver-test
    */
   trait Weaver extends TestModule {
 
@@ -644,7 +644,14 @@ object TestModule {
       super.mandatoryMvnDeps() ++
         Seq(weaverVersion())
           .filter(!_.isBlank())
-          .map(v => mvn"com.disneystreaming::weaver-scalacheck::${v.trim()}")
+          .map(_.trim())
+          .map { v =>
+            v.split('.').toSeq.take(2).flatMap(_.toIntOption) match
+              case Seq(0, n) if n <= 8 =>
+                mvn"com.disneystreaming::weaver-scalacheck::$v"
+              case _ =>
+                mvn"org.typelevel::weaver-cats::$v"
+          }
     }
   }
 
