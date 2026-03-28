@@ -10,7 +10,7 @@ import millbuild.*
 // TODO change MillPublishScalaModule to MillStableScalaModule after mill version when androidlib is stable and released.
 object `package` extends MillPublishScalaModule with BuildInfo {
 
-  def moduleDeps = Seq(build.libs.javalib, build.libs.kotlinlib, databinding)
+  def moduleDeps = Seq(build.libs.javalib, build.libs.kotlinlib, build.libs.scalalib, databinding)
 
   def localTestExtraModules = super.localTestExtraModules ++ Seq(build.libs.kotlinlib.worker)
 

@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">HelloWorldAppScala</string>
+    <string name="json_greeting">{\"message\": \"Hello from Scala with Gson!\", \"version\": 3}</string>
+</resources>
