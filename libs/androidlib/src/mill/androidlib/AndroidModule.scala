@@ -6,6 +6,7 @@ import coursier.params.ResolutionParams
 import mill.T
 import mill.androidlib.manifestmerger.AndroidManifestMerger
 import mill.androidlib.bsp.BspAndroidModule
+import mill.androidlib.idea.GenIdeaAndroidModule
 import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.api.{ModuleRef, PathRef, Task}
 import mill.javalib.*
@@ -22,7 +23,7 @@ trait AndroidModule extends JavaModule { outer =>
   }
 
   private[mill] override lazy val genIdeaInternalExt = {
-    ModuleRef(new mill.androidlib.idea.GenIdeaModule.Wrap(this) {}.internalGenIdea)
+    ModuleRef(new GenIdeaAndroidModule.Wrap(this) {}.internalGenIdea)
   }
 
   // https://cs.android.com/android-studio/platform/tools/base/+/mirror-goog-studio-main:build-system/gradle-core/src/main/java/com/android/build/gradle/internal/tasks/D8BundleMainDexListTask.kt;l=210-223;drc=66ab6bccb85ce3ed7b371535929a69f494d807f0

@@ -27,6 +27,7 @@ object `package` extends Module {
   object androidlib extends Module {
     object java extends Cross[ExampleCrossModuleAndroid](build.listCross)
     object kotlin extends Cross[ExampleCrossModuleAndroid](build.listCross)
+    object scala extends Cross[ExampleCrossModuleAndroid](build.listCross)
   }
   object javalib extends Module {
 

@@ -26,10 +26,6 @@ import mill.androidlib.Versions
 @mill.api.experimental
 trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { outer =>
 
-  private def kotlinSources = Task.Sources("src/main/kotlin")
-  override def sources: T[Seq[PathRef]] =
-    super[AndroidAppModule].sources() ++ kotlinSources()
-
   trait AndroidAppKotlinTests extends AndroidKotlinTestModule
 
   trait AndroidAppKotlinInstrumentedTests extends AndroidAppInstrumentedTests,
