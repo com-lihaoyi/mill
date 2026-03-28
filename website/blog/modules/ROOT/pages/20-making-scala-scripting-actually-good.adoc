@@ -62,7 +62,7 @@ To compare the various approaches to Scala scripting, we'll consider th followin
 are things that you may not notice on a slide or during an initial experiment, but turn out to be
 important for anyone writing and maintaining scripts to do real work
 
-1. **Third-party libraries**: can you easily pull in libraries from Maven Central? After all, this is one
+1. **Third-party library support**: can you easily pull in libraries from Maven Central? After all, this is one
 of the big advantages of being on the JVM, which has a massive ecosystem of open source libraries
 
 2. **Support for multiple files**: can a script depend on another script, or have test suites? While
@@ -143,22 +143,22 @@ Functional_programming
 
 This is convenient for quick demos, but falls short in almost every way for real scripting:
 
-1. [.line-through]#**Third-party libraries**#: `java Test.java` doesn't let you use third-party libraries
+* [ ] **Third-party library support**: `java Test.java` doesn't let you use third-party libraries
 unless you manually download them and pass them via `-classpath`, which is tedious enough
 nobody actually does it
 
-2. [.line-through]#**Support for multiple files**#: `java Test.java` only supports a single dile
+* [ ] **Support for multiple files**: `java Test.java` only supports a single dile
 
-3. [.line-through]#**Useful built-in utilities**#: `java Test.java` only includes the Java standard
+* [ ] **Useful built-in utilities**: `java Test.java` only includes the Java standard
 library, which misses a lot of important scripting features: argument parsing, JSON parsing, etc.
 
-4. [.line-through]#**Other build workflows**#: `java Test.java` only supports running (via `java`)
+* [ ] **Other build workflows**: `java Test.java` only supports running (via `java`)
 and compiling (via `javac`), and nothing else
 
-5. **IDE support**: IDEs surprisingly work reasonably well with these single-file Java programs,
+* [x] **IDE support**: IDEs surprisingly work reasonably well with these single-file Java programs,
 since they only use the standard library there isn't much IDE integration to configure
 
-6. [.line-through]#**Larger project integration**#: `java Test.java` cannot make use of modules
+* [ ] **Larger project integration**: `java Test.java` cannot make use of modules
 from a larger Maven/Gradle/SBT codebase, again unless you manually create the relevant jars
 and tediously pass them via `-classpath`
 
@@ -205,17 +205,12 @@ support, no built-in utilities, no assembly support. IDE support also doesn't wo
 well, since IntelliJ needs to be properly understand Scala projects, and these single-file
 Scala scripts provided no such integration
 
-1. [.line-through]#**Third-party libraries**#
-
-2. [.line-through]#**Support for multiple files**#
-
-3. [.line-through]#**Useful built-in utilities**#
-
-4. [.line-through]#**Other build workflows**#
-
-5. [.line-through]#**IDE support**#
-
-6. [.line-through]#**Larger project integration**#
+* [ ] **Third-party library support**
+* [ ] **Support for multiple files**
+* [ ] **Useful built-in utilities**
+* [ ] **Other build workflows**
+* [ ] **IDE support**
+* [ ] **Larger project integration**
 
 Again, although it worked for toy examples, the lack of support for these criteria means that
 nobody could actually use the old `scala` launcher for any real load-bearing scripts in
@@ -257,17 +252,12 @@ for third-party libraries, and you can't integrate with a larger SBT project. It
 quite slow since SBT has to boot up to run even a simple script. A small improvement over
 the naive `scala` launcher, but still not really usable
 
-1. **Third-party libraries**
-
-2. [.line-through]#**Support for multiple files**#
-
-3. [.line-through]#**Useful built-in utilities**#
-
-4. [.line-through]#**Other build workflows**#
-
-5. [.line-through]#**IDE support**#
-
-6. [.line-through]#**Larger project integration**#
+* [x] **Third-party library support**
+* [ ] **Support for multiple files**
+* [ ] **Useful built-in utilities**
+* [ ] **Other build workflows**
+* [ ] **IDE support**
+* [ ] **Larger project integration**
 
 
 == 2015: amm Foo.sc
@@ -304,12 +294,12 @@ def main(start: String, depth: Int) = {
 Ammonite fixed many prior issues with Scala scripts, but there were some important
 areas that it was still unable to make much progress:
 
-1. **Third-party libraries**: `import $ivy` lets you pull in third-party libraries,
+* [x] **Third-party library support**: `import $ivy` lets you pull in third-party libraries,
 such as `org.jsoup:jsoup:1.7.2` above.
 
-2. **Support for multiple files**: `import $file` for scripts to import other scripts
+* [x] **Support for multiple files**: `import $file` for scripts to import other scripts
 
-3. **Useful built-in utilities**: bundled libraries like
+* [x] **Useful built-in utilities**: bundled libraries like
 https://github.com/com-lihaoyi/mainargs[MainArgs],
 https://github.com/com-lihaoyi/os-lib[OS-Lib],
 https://github.com/com-lihaoyi/upickle[uPickle],
@@ -317,16 +307,16 @@ and https://github.com/com-lihaoyi/requests-scala[Requests-Scala] are available 
 These handle many of the common things you need to do in scripts, letting you be productive
 immediately without needing to first hunt down the relevant third-party library to include.
 
-4. [.line-through]#**Other build workflows**#: Ammonite started as a REPL, so
+* [ ] **Other build workflows**: Ammonite started as a REPL, so
 scripts were treated as a sequence of REPL commands executed one after another. This means
 compilation and execution are interleaved for every statement, which
 prevents things like performing a `compile` or `assembly` standalone. They can only be done
 as part of running the script
 
-5. [.line-through]#**IDE support**#: IDE support for Ammonite scripts never worked reliably.
+* [ ] **IDE support**: IDE support for Ammonite scripts never worked reliably.
 so although the scripts looked great on slides, they never felt great to read and write in an IDE.
 
-6. [.line-through]#**Larger project integration**#: Ammonite Scripts could never really integrate
+* [ ] **Larger project integration**: Ammonite Scripts could never really integrate
 well with a larger Scala project, e.g. to make use of shared libraries or utilities in a larger
 SBT codebase.
 
@@ -374,24 +364,24 @@ def main(start: String, depth: Int) = {
 
 Scala CLI was a definite improvement:
 
-1. **Third-party libraries**: Scala-CLI supports these via `//> using dep` directives
+* [x] **Third-party library support**: Scala-CLI supports these via `//> using dep` directives
 
-2. **Support for multiple files**
+* [x] **Support for multiple files**
 
-3. [.line-through]#**Useful built-in utilities**#: while some conveniences like the `@main`
+* [ ] **Useful built-in utilities**: while some conveniences like the `@main`
 annotation are supported out of the box, others like the ability to easily read and write files,
 make HTTP requests, or process JSON data were not.
 
-4. **Other build workflows**: Scala-CLI supports things like `scala-cli --assembly HtmlScraper.scala`,
+* [x] **Other build workflows**: Scala-CLI supports things like `scala-cli --assembly HtmlScraper.scala`,
 build Graal native images, and other commands. While not quite as rich as a build tool like
 Mill or SBT, but much more than all prior attempts at Scala scripting
 
-5. [.line-through]#**IDE support**#: Scala-CLI only supports IDE integration for one script
+* [ ] **IDE support**: Scala-CLI only supports IDE integration for one script
 at a time. While this is still a huge improvement over the earlier attempts that never had
 good IDE integration at all, it still isn't ideal given any real-world codebase will inevitably
 have dozens or hundreds of scripts scattered throughout.
 
-6. [.line-through]#**Larger project integration**#: Scala-CLI doesn't really integrate
+* [ ] **Larger project integration**: Scala-CLI doesn't really integrate
 well with SBT, e.g. you can't have a Scala-CLI script that depends on an SBT module
 
 Just as Ammonite scripts was a huge improvement over the raw `scala` or SBT scripts that
@@ -512,10 +502,10 @@ def main(start: String, depth: Int) = {
 
 Mill scripts check every box on our evaluation criteria:
 
-1. **Third-party libraries**: Declare dependencies in the `//| mvnDeps` header and they're
+* [x] **Third-party library support**: Declare dependencies in the `//| mvnDeps` header and they're
   available immediately, with full IDE support.
 
-2. **Multiple files**: Scripts can depend on other scripts via `moduleDeps` in the header.
+* [x] **Multiple files**: Scripts can depend on other scripts via `moduleDeps` in the header.
   One script can import functions from another, and test scripts can test library scripts:
 +
 ```scala
@@ -541,12 +531,12 @@ object TestHtmlScraper extends TestSuite {
 > ./mill test HtmlScraper.scala
 ```
 
-3. **Useful built-in utilities**: PPrint, OS-Lib, uPickle, and Requests-Scala are all
+* [x] **Useful built-in utilities**: PPrint, OS-Lib, uPickle, and Requests-Scala are all
   xref:mill::fundamentals/bundled-libraries.adoc[bundled by default]. No need to declare
   dependencies for common operations like file I/O, JSON parsing, HTTP requests,
   or pretty-printing.
 
-4. **Other build workflows**: Since Mill scripts are Mill modules, everything Mill supports
+* [x] **Other build workflows**: Since Mill scripts are Mill modules, everything Mill supports
   is available: `assembly`, `showMvnDepsTree`, `repl`, etc.:
 +
 ```console
@@ -564,13 +554,13 @@ Type in expressions for evaluation. Or try :help.
 scala>
 ```
 
-5. **IDE support**: Mill scripts are loaded as proper IntelliJ/VSCode modules via BSP.
+* [x] **IDE support**: Mill scripts are loaded as proper IntelliJ/VSCode modules via BSP.
   You get full navigation, autocomplete, and error highlighting for both your code and
   third-party libraries. This works because IntelliJ just treats scripts as Scala modules
   containing a single file: IntelliJ doesn't need to know anything about Scala scripting,
   it just understands the m out of the box
 
-6. **Larger project integration**: Scripts can depend on modules defined in the same Mill build:
+* [x] **Larger project integration**: Scripts can depend on modules defined in the same Mill build:
 +
 ```scala
 //| moduleDeps: [bar]
@@ -603,16 +593,18 @@ to do what you need.
 Scala scripting has been "almost there" for 20 years. Each attempt improved on the last but
 always fell short in some important way. Mill scripts finally close the gap: third-party
 and local dependencies, IDE support, multi-file scripts, test suites, assemblies and
-other build workflows all work out of the box. At the same time, Mill's Scala scripts
-preserve the simplicity of a single-file script with a few lines of YAML header, making it
-super easy to write a piece of Scala code and run it in a way that can scale to real scenarios
-in real codebases.
+other build workflows all work out of the box. These are areas where previous scripting
+approaches fell short, and Mill manages to make them work and work well:
+
+* [x] **Third-party library support**
+* [x] **Support for multiple files**
+* [x] **Useful built-in utilities**
+* [x] **Other build workflows**
+* [x] **IDE support**
+* [x] **Larger project integration**
 
 If you've ever thought about writing single-file Scala scripts to do things, or if
 you've done it in the past with some of the other tools mentioned above and found the
-experience lacking, please try Mill's Scala scripts a try! They have taken large steps
-in polishing off the rough edges that have always accompanied Scala scripting in the past,
-resulting in a polished experience that makes scripting in Scala quicker, easier, and
-more maintainable than it has ever been in the past.
+experience lacking, please try Mill's new Scala scripts a try!
 
 * xref:mill::scalalib/intro.adoc#_single_file_scripts[Scala Single-File Scripts]
