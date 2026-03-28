@@ -285,8 +285,13 @@ class PromptLogger(
         seenIdentifiers(key) = (keySuffix, message)
       }
 
-    override def withPromptPaused[T](t: => T): T =
+    override def withPromptPaused[T](t: => T): T = {
+      // Drain the pipe before pausing so any pending output (e.g. exclusive task
+      // header written via logPrefixedLine) reaches the terminal before the task
+      // starts writing directly to exclusiveSystemStreams (which bypasses the pipe).
+      streamManager.awaitPumperEmpty()
       runningState.withPromptPaused0(true, t)
+    }
 
     override def withPromptUnpaused[T](t: => T): T =
       runningState.withPromptPaused0(false, t)
