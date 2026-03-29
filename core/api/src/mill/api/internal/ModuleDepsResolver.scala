@@ -30,8 +30,11 @@ import scala.reflect.ClassTag
       bomModuleDeps: ModuleDepsEntry
   ) derives upickle.default.ReadWriter
 
-  private val configCache =
-    new java.util.concurrent.ConcurrentHashMap[ClassLoader, Map[String, ModuleDepsConfig]]()
+  private lazy val configFromClasspath: Map[String, ModuleDepsConfig] = {
+    val content =
+      os.read(os.resource(using getClass.getClassLoader) / "mill/module-deps-config.json")
+    upickle.default.read[Map[String, ModuleDepsConfig]](content)
+  }
 
   /**
    * Macro that returns super.methodName if the enclosing class has a parent with that method,
@@ -88,15 +91,6 @@ import scala.reflect.ClassTag
       fieldName: String,
       default: => Seq[T]
   )(implicit ct: ClassTag[T]): Seq[T] = {
-    val classLoader = rootModule.getClass.getClassLoader
-    val configFromClasspath = configCache.computeIfAbsent(
-      classLoader,
-      cl => {
-        val content = os.read(os.resource(using cl) / "mill/module-deps-config.json")
-        upickle.default.read[Map[String, ModuleDepsConfig]](content)
-      }
-    )
-
     val config = configFromClasspath(modulePath)
 
     val entry = fieldName match {
