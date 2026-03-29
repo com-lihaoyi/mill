@@ -9,22 +9,34 @@ Modern Java development is increasingly shaped by frameworks that optimize for c
 
 // end::header[]
 
-Spring Boot remains the https://www.geeksforgeeks.org/blogs/top-java-frameworks/[most popular choice] for enterprise Java due to its extensive tooling and integrations, while Micronaut and Quarkus push the ecosystem forward with innovations like build-time processing, low memory footprint and fast startup times.
+In this post, we explore how the Mill build tool supports these frameworks, providing a faster and smoother developer experience than
+traditional build tools like Maven and Gradle.
 
-In this post, we explore these frameworks from a build tool implementation standpoint, and more specifically, Mill's.
+== Why use Mill?
 
-== Motivation
+Mill offers xref:mill::index.adoc#_simplicity[simplicity] for both getting started and extending its capabilities, which means great user experience for
+starting of a project, fresh setup of an existing project and writing extensions.
 
-Mill aims to be a simple, composable and scalable build tool. Supporting modern Java frameworks is more than adding dependencies and constructing classpaths. It requires understanding how each framework models:
+The latter is also evident everytime we extend Mill for every framework, whether Android, Quarkus, Micronaut or Spring Boot.
+Extending Mill feels natural, with minimal to no weird workarounds in the code.
+
+Mill is also xref:mill::index.adoc#_performance[superior in performance] when measuring compile/build times.
+
+== Overview
+
+Supporting modern Java frameworks is more than adding dependencies and constructing classpaths. It requires understanding how each framework models:
 
 - Dependency resolution
 - Build-time vs runtime behavior
 - Code generation (e.g. via annotation processors) and Ahead Of Time (AOT) processing
 - Native image integration
 
-Spring Boot, Micronaut and Quarkus each take fundamentally different approaches in these areas. Supporting all three is therefore a good test of the versatility of Mill's own design.
+Spring Boot remains the https://www.geeksforgeeks.org/blogs/top-java-frameworks/[most popular choice] for enterprise Java due to its extensive tooling and integrations, while Micronaut and Quarkus push the ecosystem forward with innovations like build-time processing, low memory footprint and fast startup times.
 
-== High-Level Comparison
+Each framework takes different approaches in these areas which affect how build tools integrate with them.
+Supporting all three is therefore a good test of the versatility of Mill's own design.
+
+=== High-Level Comparison
 
 |===
 |Framework | Build-Time Behavior | Native Support
@@ -44,8 +56,45 @@ Spring Boot, Micronaut and Quarkus each take fundamentally different approaches 
 
 == Spring Boot Support in Mill
 
-Spring Boot is the most "mainstream" of the three from a build tool's perspective.
+Spring Boot is the most "mainstream" of the three from a build tool's perspective. Getting a Spring Boot application
+with AOT and native build targets is as simple as:
 
+[code,scala]
+----
+package build
+
+import mill.*
+import mill.javalib.*
+import mill.javalib.spring.boot.SpringBootModule
+
+object `package` extends SpringBootModule, MavenModule {
+
+  override def springBootPlatformVersion = "3.5.7"
+
+  override def artifactName: T[String] = "spring-boot-native-demo"
+
+  object prod extends SpringBootOptimisedBuildModule, MavenModule
+
+  object native extends MavenModule, NativeSpringBootBuildModule {
+    def jvmVersion = "graalvm-community:23.0.1"
+
+    // Suppress warning about -H:IncludeResources
+    override def nativeImageOptions = Task {
+      Seq(
+        "-H:+UnlockExperimentalVMOptions"
+      ) ++ super.nativeImageOptions()
+    }
+  }
+
+  def mvnDeps = Seq(mvn"org.springframework.boot:spring-boot-starter-web")
+
+  object test extends SpringBootTestsModule, MavenTests, TestModule.Junit5 {
+
+    def mvnDeps =
+      Seq(mvn"org.springframework.boot:spring-boot-starter-test")
+  }
+}
+----
 === Key Observations
 
 - Uses BOM-based dependency management
