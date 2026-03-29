@@ -30,6 +30,12 @@ import scala.reflect.ClassTag
       bomModuleDeps: ModuleDepsEntry
   ) derives upickle.default.ReadWriter
 
+  private lazy val configFromClasspath: Map[String, ModuleDepsConfig] = {
+    val content =
+      os.read(os.resource(using getClass.getClassLoader) / "mill/module-deps-config.json")
+    upickle.default.read[Map[String, ModuleDepsConfig]](content)
+  }
+
   /**
    * Macro that returns super.methodName if the enclosing class has a parent with that method,
    * otherwise returns Seq.empty. Used by generated code to avoid requiring override keyword.
@@ -85,10 +91,6 @@ import scala.reflect.ClassTag
       fieldName: String,
       default: => Seq[T]
   )(implicit ct: ClassTag[T]): Seq[T] = {
-    val classLoader = rootModule.getClass.getClassLoader
-    val content = os.read(os.resource(using classLoader) / "mill/module-deps-config.json")
-    val configFromClasspath = upickle.default.read[Map[String, ModuleDepsConfig]](content)
-
     val config = configFromClasspath(modulePath)
 
     val entry = fieldName match {
