@@ -124,14 +124,17 @@ object ExecutionContexts {
 
         dest
       }
+      val submitterChecker = os.checker.value
       val promise = concurrent.Promise[T]
       val runnable = new PriorityRunnable(
         priority = priority,
         run0 = () => {
           val result = NonFatal.Try(logger.withPromptLine {
-            os.dynamicPwdFunction.withValue(() => makeDest()) {
-              mill.api.SystemStreamsUtils.withStreams(logger.streams) {
-                t(logger)
+            os.checker.withValue(submitterChecker) {
+              os.dynamicPwdFunction.withValue(() => makeDest()) {
+                mill.api.SystemStreamsUtils.withStreams(logger.streams) {
+                  t(logger)
+                }
               }
             }
           })
