@@ -95,6 +95,9 @@ object `package` extends SpringBootModule, MavenModule {
   }
 }
 ----
+
+Mill also supports xref:mill::kotlinlib/web-examples.adoc#_spring_boot_aot[SpringBoot with Kotlin], including native as well.
+
 === Key Observations
 
 - Uses BOM-based dependency management
@@ -131,8 +134,6 @@ Mill integrates Spring Boot via a `SpringBootModule`, which:
 
 The native build is configured via the `NativeImageModule`, which takes care of things like reachability-metadata resolution based on the dependencies.
 
-A Mill configuration example on how to setup a Spring Boot project with all three (JVM, AOT and Native) can be found xref:mill::javalib/spring-boot.adoc#_spring_boot_with_aot_processing_and_native_image_support[here].
-
 === Challenges
 
 - Treating AOT as an optional optimization
@@ -142,9 +143,43 @@ Overall, Spring Boot fits well into Mill’s model because it doesn’t fundamen
 
 == Micronaut Support in Mill
 
-Micronaut shifts more responsibility to build-time. However, from a build tool perspective, it remains very similar to the Spring Boot setup, with the main difference being the AOT utility.
+Micronaut shifts more responsibility to build-time. A Micronaut Mill config can look like this:
 
-Another difference (more on the implementation side) is that Spring Boot’s classpath contains the AOT program and relies on the runtime classpath of the application, while Micronaut’s AOT utility is an external tool that needs to be resolved and invoked.
+[code,yaml]
+----
+extends: [MavenModule, mill.javalib.micronaut.MicronautNativeAotModule]
+micronautPackage: hello.world
+bomMvnDeps:
+- io.micronaut.platform:micronaut-platform:4.10.3
+
+mvnDeps:
+- io.micronaut:micronaut-http-client
+- io.micronaut.serde:micronaut-serde-jackson
+
+jvmVersion: graalvm-community:21.0.2
+finalMainClass: hello.world.Application
+annotationProcessorsMvnDeps:
+- io.micronaut:micronaut-http-validation
+- io.micronaut.serde:micronaut-serde-processor
+
+annotationProcessorsJavacOptions: !append
+- -Amicronaut.processing.incremental=true
+- -Amicronaut.processing.annotations=hello.world.*
+
+javacOptions: !append
+- -parameters
+
+compileMvnDeps:
+- io.micronaut:micronaut-http-client
+
+runMvnDeps:
+- io.micronaut:micronaut-http-server-netty
+- ch.qos.logback:logback-classic
+----
+
+Mill also supports xref:mill::kotlinlib/web-examples.adoc#_micronaut_app[Micronaut with Kotlin].
+
+Another difference (more on the implementation side) is that Spring Boot’s classpath contains the AOT program and relies on the runtime classpath of the application. On the other hand, Micronaut’s AOT utility is an external tool that needs to be resolved and invoked.
 
 === Key Observations
 
@@ -153,11 +188,34 @@ Another difference (more on the implementation side) is that Spring Boot’s cla
 
 Mill integrates Micronaut optimisations through two AOT modules, one for JVM and one for native: `MicronautAotModule` and `MicronautNativeAotModule`.
 
+From a build tool's perspective, it remains very similar to the Spring Boot setup, with the main difference being the AOT utility.
+
+.Micronaut:  Native
+[graphviz]
+....
+digraph MicronautNative {
+  rankdir=TB
+  node [shape=box width=0 height=0]
+
+  "Sources" -> "Compile"
+  "Libraries" -> "Compile"
+  "Compile" -> "JAR"
+  "Compile" -> "Run classpath"
+  "JAR" -> "AOT (MicronautNativeAotModule)"
+  "Run classpath" -> "AOT (MicronautNativeAotModule)"
+  "Micronaut AOT Config" -> "AOT (MicronautNativeAotModule)"
+  "AOT (MicronautNativeAotModule)" -> "Native Image Options"
+  "AOT (MicronautNativeAotModule)" -> "Optimised Classes"
+  "Native Image Options" -> "GraalVM Native Build(NativeImageModule)"
+  "Optimised Classes" -> "GraalVM Native Build(NativeImageModule)"
+  "GraalVM Native Build (NativeImageModule)" -> "native binary"
+}
+....
 === Native Image Integration
 
 Micronaut extends naturally into native builds:
 
-- Adjusts AOT config for native runtime
+- Adjusts https://micronaut-projects.github.io/micronaut-aot/latest/guide/configurationreference.html[AOT config] for native runtime
 - Adds reachability metadata into GraalVM build inputs
 
 Check out this xref:mill::javalib/web-examples.adoc#_micronaut_native_graalvm[native example] to get a feel for how things are connected.
@@ -175,6 +233,50 @@ For Mill, this use case relies heavily on the correct behaviour of the `NativeIm
 == Quarkus Support in Mill
 
 Quarkus is fundamentally different and, as a result, more complex to support.
+
+Despite the complexity on Mill's side in supporting Quarkus, you can easily configure a Quarkus app with Mill as shown below:
+
+[code, scala]
+----
+package build
+
+import mill.*, javalib.*
+
+import mill.javalib.quarkus.QuarkusModule
+
+object `package` extends QuarkusModule, MavenModule {
+
+  def jvmVersion = "graalvm-community:23.0.1"
+  def quarkusPlatformVersion = "3.31.3"
+
+  def artifactGroupId = "com.lihaoyi.example"
+  def artifactId = "7-quarkus-todo"
+  def artifactVersion = "0.0.1-SNAPSHOT"
+
+  def mvnDeps = Seq(
+    mvn"io.quarkus:quarkus-arc",
+    mvn"io.quarkus:quarkus-rest",
+    mvn"io.quarkus:quarkus-qute",
+    mvn"io.quarkus:quarkus-rest-qute",
+    mvn"io.quarkus:quarkus-jdbc-h2",
+    mvn"io.quarkus:quarkus-hibernate-orm-panache"
+  )
+
+  trait QuarkusTestBase extends MavenTests, QuarkusJunit {
+    def mvnDeps = Seq(
+      mvn"io.rest-assured:rest-assured"
+    )
+  }
+
+  object test extends QuarkusTestBase
+
+  object `native-test` extends QuarkusTestBase, QuarkusNativeTest {
+    def moduleDeps = super.moduleDeps ++ Seq(test)
+  }
+}
+----
+
+You can try more non-trivial examples xref:mill::javalib/web-examples.adoc#_quarkus_todomvc_example[here]
 
 === Key Observations
 
@@ -282,8 +384,6 @@ This produces:
 - Serializing/deserializing build state
 
 Quarkus effectively owns the build, and Mill must adapt to it.
-
-Despite the complexity on Mill's side in supporting Quarkus, you can easily configure a Quarkus app with Mill as shown xref:mill::javalib/web-examples.adoc#_quarkus_example[here].
 
 == Key Differences from a Build Tool Perspective
 
