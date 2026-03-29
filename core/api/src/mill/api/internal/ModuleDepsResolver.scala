@@ -91,13 +91,10 @@ import scala.reflect.ClassTag
       fieldName: String,
       default: => Seq[T]
   )(implicit ct: ClassTag[T]): Seq[T] = {
-<<<<<<< HEAD
-=======
     val classLoader = rootModule.getClass.getClassLoader
     val content = os.read(os.resource(using classLoader) / "mill/module-deps-config.json")
     val configFromClasspath = upickle.default.read[Map[String, ModuleDepsConfig]](content)
 
->>>>>>> parent of 3d40f7e87ad (.)
     val config = configFromClasspath(modulePath)
 
     val entry = fieldName match {
