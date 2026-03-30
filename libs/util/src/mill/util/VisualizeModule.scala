@@ -74,6 +74,11 @@ object VisualizeModule extends ExternalModule {
       toolsClasspath: Seq[PathRef],
       planTasks: Option[List[Task.Named[?]]]
   ): Result[Seq[PathRef]] = {
+    if (tasks.isEmpty)
+      return Result.Failure(
+        "visualize requires at least one task to visualize, e.g. `mill visualize __.compile`"
+      )
+
     def callVisualizeModule(
         tasks: List[Task.Named[?]],
         transitiveTasks: List[Task.Named[?]]
@@ -123,6 +128,11 @@ object VisualizeModule extends ExternalModule {
       vizWorker: VizWorker,
       planTasks: Option[List[Task.Named[?]]] = None
   ): Result[Seq[PathRef]] = {
+    if (tasks.isEmpty)
+      return Result.Failure(
+        "visualize requires at least one task to visualize, e.g. `mill visualize __.compile`"
+      )
+
     def callVisualizeModule(
         tasks: List[Task.Named[?]],
         transitiveTasks: List[Task.Named[?]]
