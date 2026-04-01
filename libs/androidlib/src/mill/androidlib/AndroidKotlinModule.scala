@@ -17,6 +17,11 @@ import mill.util.Jvm
 // https://kotlinlang.org/docs/compose-compiler-options.html possible options
 trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
 
+  private def kotlinSources = Task.Sources("src/main/kotlin")
+
+  override def sources: T[Seq[PathRef]] =
+    super[AndroidModule].sources() ++ kotlinSources()
+
   /**
    * Enable Jetpack Compose support in the module. Default is `false`.
    */

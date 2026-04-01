@@ -6,7 +6,7 @@ import mill.api.daemon.internal.internal
 import mill.api.{ModuleCtx, Task, PathRef}
 
 @experimental
-trait GenIdeaModule extends mill.javalib.idea.GenIdeaModule {
+trait GenIdeaAndroidModule extends mill.javalib.idea.GenIdeaModule {
 
   def javaModuleRef: mill.api.ModuleRef[AndroidModule]
 
@@ -30,12 +30,12 @@ trait GenIdeaModule extends mill.javalib.idea.GenIdeaModule {
 }
 
 @internal
-object GenIdeaModule {
+object GenIdeaAndroidModule {
   trait Wrap(javaModule0: AndroidModule) extends mill.api.Module {
     override def moduleCtx: ModuleCtx = javaModule0.moduleCtx
 
     @internal
-    object internalGenIdea extends GenIdeaModule {
+    object internalGenIdea extends GenIdeaAndroidModule {
       def javaModuleRef = mill.api.ModuleRef(javaModule0)
     }
   }
