@@ -206,8 +206,8 @@ digraph MicronautNative {
   "Micronaut AOT Config" -> "AOT (MicronautNativeAotModule)"
   "AOT (MicronautNativeAotModule)" -> "Native Image Options"
   "AOT (MicronautNativeAotModule)" -> "Optimised Classes"
-  "Native Image Options" -> "GraalVM Native Build(NativeImageModule)"
-  "Optimised Classes" -> "GraalVM Native Build(NativeImageModule)"
+  "Native Image Options" -> "GraalVM Native Build (NativeImageModule)"
+  "Optimised Classes" -> "GraalVM Native Build (NativeImageModule)"
   "GraalVM Native Build (NativeImageModule)" -> "native binary"
 }
 ....
