@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>The Mill Build Engineering Blog :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/blog/index.html">
-    <link rel="next" href="19-scripting-on-the-jvm.html">
+    <link rel="next" href="20-making-scala-scripting-actually-good.html">
     <meta name="generator" content="Antora 3.1.12">
     <link rel="stylesheet" href="../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -154,10 +154,14 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="19-scripting-on-the-jvm.html">Scripting on the JVM with Java, Scala, and Kotlin</a>
+    <a class="nav-link" href="20-making-scala-scripting-actually-good.html">Making Scala Scripting Actually Good with Mill</a>
   </li>
 
   <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="19-scripting-on-the-jvm.html">Scripting on the JVM with Java, Scala, and Kotlin</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="18-how-to-publish-to-maven-central-easily-with-mill.html">How To Publish to Maven Central Easily with Mill</a>
   </li>
 
@@ -291,6 +295,26 @@
 technical topics related to JVM platform tooling and language-agnostic build tooling,
 some specific to the Mill build tool but mostly applicable to anyone working on
 build tooling for large codebases in JVM and non-JVM languages.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_making_scala_scripting_actually_good_with_mill"><a class="anchor" href="#_making_scala_scripting_actually_good_with_mill"></a><a href="20-making-scala-scripting-actually-good.html" class="xref page">Making Scala Scripting Actually Good with Mill</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><em>Li Haoyi, 28 March 2026</em></p>
+</div>
+<div class="paragraph">
+<p>Writing scripts in the Scala language has been possible for decades, but it has never been
+polished enough to actually use in practice: poor library support, IDE support,
+integration with larger projects, etc.. In this article we will walk through the 20-year
+history of Scala scripting, see how each attempt has improved various parts of the scripting
+experience, and shows how the Mill build tool&#8217;s new script support finally resolves all the
+long-standing issues, making Scala scripts a viable way to write code as part of your larger
+codebase or monorepo.</p>
+</div>
+<div class="paragraph">
+<p><a href="20-making-scala-scripting-actually-good.html" class="xref page">Read More&#8230;&#8203;</a></p>
 </div>
 </div>
 </div>
@@ -828,7 +852,7 @@ faster in the presence of parallelism</p>
 </div>
 </div>
 <nav class="pagination">
-  <span class="next"><a href="19-scripting-on-the-jvm.html">Scripting on the JVM with Java, Scala, and Kotlin</a></span>
+  <span class="next"><a href="20-making-scala-scripting-actually-good.html">Making Scala Scripting Actually Good with Mill</a></span>
 </nav>
 </article>
   </div>

@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Making Scala Scripting Actually Good with Mill :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/blog/20-making-scala-scripting-actually-good.html">
+    <link rel="prev" href="index.html">
+    <link rel="next" href="19-scripting-on-the-jvm.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
+  <style>
+  /* auto-hyphenation is super ugly */
+  *{
+    hyphens: manual !important;
+  }
+
+  /* Reduce font size from 17px to something reasonable */
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
+  }
+  .version-warning-banner {
+    background: #fff3cd;
+    border-bottom: 1px solid #f5c06a;
+    color: #6d3f00;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    padding: 0.6rem 1rem;
+    text-align: center;
+  }
+  .version-warning-banner a {
+    color: #6d3f00;
+    font-weight: 600;
+    text-decoration: underline;
+  }
+  </style>
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+
+    const warningTemplate = document.getElementById('version-warning-banner-template');
+    const articleDoc = document.querySelector('article.doc');
+    if (warningTemplate && articleDoc && warningTemplate.content.firstElementChild) {
+      articleDoc.prepend(warningTemplate.content.firstElementChild.cloneNode(true));
+    }
+  });
+  </script>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs">
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="blog" data-version="">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="index.html"><em>The Mill Build Engineering Blog</em></a>
+  </li>
+
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="20-making-scala-scripting-actually-good.html">Making Scala Scripting Actually Good with Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="19-scripting-on-the-jvm.html">Scripting on the JVM with Java, Scala, and Kotlin</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="18-how-to-publish-to-maven-central-easily-with-mill.html">How To Publish to Maven Central Easily with Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="17-simpler-jvm-mill-110.html">Simpler JVM Project Setup with Mill 1.1.0</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="16-zero-setup.html">Zero-Setup Java Build Tooling via Mill Bootstrap Scripts</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="15-android-build-flow.html">Mill as an Alternative Android Build Tool</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="14-bash-zsh-completion.html">Writing Your Own Simple Tab-Completions for Bash and Zsh</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="13-mill-build-tool-v1-0-0.html">Mill Build Tool v1.0.0 Release Highlights</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="12-direct-style-build-tool.html">Mill as a Direct Style Build Tool</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="11-jvm-test-parallelism.html">Strategies for Efficiently Parallelizing JVM Test Suites</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="10-bytecode-callgraph-analysis.html">Invalidating build caches using JVM bytecode callgraph analysis</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="9-mill-faster-assembly-jars.html">Fast Incremental JVM Assembly Jar Creation with Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="8-what-is-a-build-tool.html">What does a Build Tool do?</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="7-graal-native-executables.html">How to Compile Java into Native Binaries with Mill and Graal</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="6-garbage-collector-perf.html">Understanding JVM Garbage Collector Performance</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="5-executable-jars.html">How JVM Executable Assembly Jars Work</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="4-flaky-tests.html">How To Manage Flaky Tests in your CI Workflows</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="3-selective-testing.html">Faster CI with Selective Testing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="2-monorepo-build-tool.html">Why Use a Monorepo Build Tool?</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="1-java-compile.html">How Fast Does Java Compile?</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">The Mill Build Engineering Blog</span>
+    <span class="version"></span>
+  </div>
+  <ul class="components">
+    <li class="component">
+      <div class="title"><a href="../mill/index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mill/main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../mill/index.html">1.1.5</a>
+        </li>
+        <li class="version">
+          <a href="../mill/1.0.x/index.html">1.0.6</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.12.x/index.html">0.12.17</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.11.x/index.html">0.11.13</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component is-current">
+      <div class="title"><a href="index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
+<button class="nav-toggle"></button>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Making Scala Scripting Actually Good with Mill</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p><em>Li Haoyi, 28 March 2026</em></p>
+</div>
+<div class="paragraph">
+<p>Writing scripts in the Scala language has been possible for decades, but it has never been
+polished enough to actually use in practice: poor library support, IDE support,
+integration with larger projects, etc.. In this article we will walk through the 20-year
+history of Scala scripting, see how each attempt has improved various parts of the scripting
+experience, and shows how the Mill build tool&#8217;s new script support finally resolves all the
+long-standing issues, making Scala scripts a viable way to write code as part of your larger
+codebase or monorepo.</p>
+</div>
+<div class="paragraph">
+<p>This is the companion blog post to the talk:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://www.youtube.com/watch?v=KRhLfzRRXLA">Making Scala Scripting Actually Good with Mill, Scalar Warsaw on 27 March 2026</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_why_jvm_scripting"><a class="anchor" href="#_why_jvm_scripting"></a>Why JVM Scripting?</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Everyone needs small scripts at some point. Whether it&#8217;s automating a deployment,
+parsing some log files, or gluing together a few APIs, scripts are a fact of life in
+software development. Traditionally this was done in Bash, Perl, Ruby, or Python. While
+scripting in those languages work, there are some long-standing weaknesses with these
+languages that can make writing and maintaining scripts a challenge, which scripts
+written in Scala can improve upon:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Bash can be very fragile</strong> to read and write. Even basic control flow like <code>if-else</code> and
+<code>for</code> loops is error-prone, and the lack of type checking means bugs only surface at runtime.</p>
+</li>
+<li>
+<p><strong>Python can be very hard to deploy reliably</strong>. If you hand a Python script to a room full
+of developers, there is almost no chance it will run on every laptop without something
+going wrong due to version mismatches or missing dependencies.</p>
+</li>
+<li>
+<p><strong>Performance and parallelism can be a big deal for scripts</strong>. Everyone has encountered scripts
+that are slow not because the problem is complex, but because the script is inefficient
+and there&#8217;s no easy way to parallelize it. Scripts written in Scala get good multi-threading
+support by default</p>
+</li>
+<li>
+<p><strong>Compiler-time checking is surprisingly important</strong>. Small scripts are often the worst-tested
+parts of a codebase: no unit tests, no integration tests. Having the Scala compiler check that
+your method calls and parameter types line up gives you a safety net when making changes.</p>
+</li>
+<li>
+<p><strong>The JVM library ecosystem is huge</strong>. Maven Central has Java and Scala libraries for almost
+anything: parsing HTML, talking to databases, interacting with cloud services. You can find
+much more there than you can access from a typical Bash command.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Given the list above, scripting in Scala sounds great: less fragile than Bash, more portable
+than Python, good performance and parallelism, compile-time checking to add a degree of safety,
+and a huge ecosystem of libraries to use. So why doesn&#8217;t anyone actually do it?</p>
+</div>
+<div class="paragraph">
+<p>In the next sections, we&#8217;ll walk through the many attempts to make JVM scripting work over
+the years, why they fell short, and why the latest attempt with Mill scripts finally gets
+it right.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_evaluating_scala_scripting"><a class="anchor" href="#_evaluating_scala_scripting"></a>Evaluating Scala Scripting</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To compare the various approaches to Scala scripting, we&#8217;ll consider th following criteria. These
+are things that you may not notice on a slide or during an initial experiment, but turn out to be
+important for anyone writing and maintaining scripts to do real work</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Third-party library support</strong>: can you easily pull in libraries from Maven Central? After all, this is one
+of the big advantages of being on the JVM, which has a massive ecosystem of open source libraries</p>
+</li>
+<li>
+<p><strong>Support for multiple files</strong>: can a script depend on another script, or have test suites? While
+scripts often start as a single file, they inevitably grow shared utilities and test suites and other
+inter-script dependencies</p>
+</li>
+<li>
+<p><strong>Useful built-in utilities</strong>: are common operations (file I/O, HTTP, JSON, argument parsing) easy
+without pulling in third-party dependencies? These are things you do day-in and day-out when writing
+scripts, so they should be as easy as possible.</p>
+</li>
+<li>
+<p><strong>Other build workflows</strong>: can you compile ahead of time, build an assembly, inspect dependency trees?
+While initially you might just want a script to run, very often you end up wanting to lint them,
+package them, deploy them, etc.</p>
+</li>
+<li>
+<p><strong>IDE support</strong>: do IntelliJ and VSCode provide navigation, autocomplete, and error highlighting?
+Scala and other JVM languages have great IDE support in IntelliJ and VSCode, so we would hope
+our Scala scripts would as well</p>
+</li>
+<li>
+<p><strong>Larger project integration</strong>: can scripts use code from an existing project&#8217;s modules? Scripts
+never live in a vacuum, and you always end up needing to use some helper logic, API client, etc.
+that is implemented as part of a larger microservice or monolith codebase.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>With these criteria in hand, let&#8217;s look at the history.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_java_foo_java"><a class="anchor" href="#_java_foo_java"></a>java Foo.java</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Since JEP 330 (around Java 11), you can run a single Java file with the <code>java</code> command
+without first running <code>javac</code>. Consider this small Java program</p>
+</div>
+<div class="listingblock">
+<div class="title">Test.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import java.util.*;
+import java.util.stream.Collectors;
+
+public class Test {
+    public static void main(String[] args) {
+        Map&lt;String, List&lt;String&gt;&gt; graph = Map.of(
+            "Scala", List.of("JVM", "Functional_programming"),
+            "JVM", List.of("Bytecode", "Garbage_collection"),
+            "Functional_programming", List.of("Lambda_calculus"),
+            "Type_system", List.of("Lambda_calculus", "JVM")
+        );
+
+        String start = args[0];
+        int depth = Integer.parseInt(args[1]);
+
+        Set&lt;String&gt; seen = new HashSet&lt;&gt;();
+        Set&lt;String&gt; current = new HashSet&lt;&gt;();
+
+        seen.add(start);
+        current.add(start);
+
+        for (int i = 0; i &lt; depth; i++) {
+            // Flatten graph.getOrDefault(x, empty)
+            Set&lt;String&gt; next = current.stream()
+                .flatMap(node -&gt;
+                     graph.getOrDefault(node, List.of()).stream())
+                .filter(n -&gt; !seen.contains(n))
+                .collect(Collectors.toSet());
+
+            seen.addAll(next);
+            current = next;
+        }
+
+        for (String s : seen) System.out.println(s);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It can be run via:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; java Test.java Scala 1
+Scala
+JVM
+Functional_programming</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is convenient for quick demos, but falls short in almost every way for real scripting:</p>
+</div>
+<div class="ulist checklist">
+<ul class="checklist">
+<li>
+<p><i class="fa fa-square-o"></i> <strong>Third-party library support</strong>: <code>java Test.java</code> doesn&#8217;t let you use third-party libraries
+unless you manually download them and pass them via <code>-classpath</code>, which is tedious enough
+nobody actually does it</p>
+</li>
+<li>
+<p><i class="fa fa-square-o"></i> <strong>Support for multiple files</strong>: <code>java Test.java</code> only supports a single dile</p>
+</li>
+<li>
+<p><i class="fa fa-square-o"></i> <strong>Useful built-in utilities</strong>: <code>java Test.java</code> only includes the Java standard
+library, which misses a lot of important scripting features: argument parsing, JSON parsing, etc.</p>
+</li>
+<li>
+<p><i class="fa fa-square-o"></i> <strong>Other build workflows</strong>: <code>java Test.java</code> only supports running (via <code>java</code>)
+and compiling (via <code>javac</code>), and nothing else</p>
+</li>
+<li>
+<p><i class="fa fa-check-square-o"></i> <strong>IDE support</strong>: IDEs surprisingly work reasonably well with these single-file Java programs,
+since they only use the standard library there isn&#8217;t much IDE integration to configure</p>
+</li>
+<li>
+<p><i class="fa fa-square-o"></i> <strong>Larger project integration</strong>: <code>java Test.java</code> cannot make use of modules
+from a larger Maven/Gradle/SBT codebase, again unless you manually create the relevant jars
+and tediously pass them via <code>-classpath</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>While running <code>java Test.java</code> works as a teaching tool or quick demo, nobody uses this for
+real work.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_2006_scala_foo_scala"><a class="anchor" href="#_2006_scala_foo_scala"></a>2006: scala Foo.scala</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>scala</code> command originally gained the ability to run single-file Scala programs as scripts
+way back in 2006. This looks like the following:</p>
+</div>
+<div class="listingblock">
+<div class="title">Test.scala</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val graph: Map[String, Seq[String]] = Map(
+  "Scala"      -&gt; Seq("JVM", "Functional_programming"),
+  "JVM"        -&gt; Seq("Bytecode", "Garbage_collection"),
+  "Functional_programming" -&gt; Seq("Lambda_calculus"),
+  "Type_system" -&gt; Seq("Lambda_calculus", "JVM"),
+)
+
+val Array(start, depth0) = args
+val depth = depth0.toInt
+
+var seen    = Set(start)
+var current = Set(start)
+
+for (_ &lt;- 0 until depth) {
+  current = current.flatMap(graph.getOrElse(_, Nil)).filterNot(seen)
+  seen = seen ++ current
+}
+
+seen.foreach(println)</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; scala Test.scala Scala 1
+Scala
+JVM
+Functional_programming</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Scala syntax is more concise
+than Java, but everything else still doesn&#8217;t work: no third-party libraries, no multi-file
+support, no built-in utilities, no assembly support. IDE support also doesn&#8217;t work as
+well, since IntelliJ needs to be properly understand Scala projects, and these single-file
+Scala scripts provided no such integration</p>
+</div>
+<div class="ulist checklist">
+<ul class="checklist">
+<li>
+<p><i class="fa fa-square-o"></i> <strong>Third-party library support</strong></p>
+</li>
+<li>
+<p><i class="fa fa-square-o"></i> <strong>Support for multiple files</strong></p>
+</li>
+<li>
+<p><i class="fa fa-square-o"></i> <strong>Useful built-in utilities</strong></p>
+</li>
+<li>
+<p><i class="fa fa-square-o"></i> <strong>Other build workflows</strong></p>
+</li>
+<li>
+<p><i class="fa fa-square-o"></i> <strong>IDE support</strong></p>
+</li>
+<li>
+<p><i class="fa fa-square-o"></i> <strong>Larger project integration</strong></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Again, although it worked for toy examples, the lack of support for these criteria means that
+nobody could actually use the old <code>scala</code> launcher for any real load-bearing scripts in
+real codebases or production environments.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_2010_sbt_foo_scala"><a class="anchor" href="#_2010_sbt_foo_scala"></a>2010: sbt Foo.scala</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>SBT added a <a href="https://www.scala-sbt.org/1.x/docs/Scripts.html">script runner</a> that let you
+write a shebang header pointing at <code>sbt</code>, specify a Scala version and library dependencies
+in a header comment, and run the script. For example:</p>
+</div>
+<div class="listingblock">
+<div class="title">HtmlScraper.scala</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">#!/usr/bin/env sbt -Dsbt.main.class=sbt.ScriptMain -error
+/***
+ThisBuild / scalaVersion := "2.13.12"
+libraryDependencies += "org.jsoup" % "jsoup" % "1.7.2"
+*/
+import org.jsoup._
+import scala.collection.JavaConverters._
+
+def fetchLinks(title: String): Seq[String] = {
+  Jsoup.connect(s"https://en.wikipedia.org/wiki/$title")
+    .header("User-Agent", "My Scraper")
+    .get().select("main p a").asScala.toSeq.map(_.attr("href"))
+    .collect { case s"/wiki/$rest" =&gt; rest }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./HtmlScraper.scala Scala 1
+Scala
+JVM
+Functional_programming</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This was a step forward: third-party libraries now work! But many other things still don&#8217;t:
+no multi-file scripts, no useful built-ins, no assembly support, IDE support doesn&#8217;t work
+for third-party libraries, and you can&#8217;t integrate with a larger SBT project. It&#8217;s also
+quite slow since SBT has to boot up to run even a simple script. A small improvement over
+the naive <code>scala</code> launcher, but still not really usable</p>
+</div>
+<div class="ulist checklist">
+<ul class="checklist">
+<li>
+<p><i class="fa fa-check-square-o"></i> <strong>Third-party library support</strong></p>
+</li>
+<li>
+<p><i class="fa fa-square-o"></i> <strong>Support for multiple files</strong></p>
+</li>
+<li>
+<p><i class="fa fa-square-o"></i> <strong>Useful built-in utilities</strong></p>
+</li>
+<li>
+<p><i class="fa fa-square-o"></i> <strong>Other build workflows</strong></p>
+</li>
+<li>
+<p><i class="fa fa-square-o"></i> <strong>IDE support</strong></p>
+</li>
+<li>
+<p><i class="fa fa-square-o"></i> <strong>Larger project integration</strong></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_2015_amm_foo_sc"><a class="anchor" href="#_2015_amm_foo_sc"></a>2015: amm Foo.sc</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="https://ammonite.io">Ammonite</a> explored Scala scripting more deeply: a REPL, scripts, and
+even an attempt at replacing Bash as a shell. Ammonite scripts had many advantages:</p>
+</div>
+<div class="listingblock">
+<div class="title">HtmlScraper.scala</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`org.jsoup:jsoup:1.7.2`
+import org.jsoup._
+import scala.collection.JavaConverters._
+
+def fetchLinks(title: String): Seq[String] = {
+  Jsoup.connect(s"https://en.wikipedia.org/wiki/$title")
+    .header("User-Agent", "My Scraper")
+    .get().select("main p a").asScala.toSeq.map(_.attr("href"))
+    .collect { case s"/wiki/$rest" =&gt; rest }
+}
+
+@main
+def main(start: String, depth: Int) = {
+  var seen = Set(start)
+  var current = Set(start)
+  for (i &lt;- Range(0, depth)) {
+    current = current.flatMap(fetchLinks(_)).filter(!seen.contains(_))
+    seen = seen ++ current
+  }
+  pprint.log(seen, height = Int.MaxValue)
+  os.write(os.pwd / "scraped.json", upickle.write(seen))
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Ammonite fixed many prior issues with Scala scripts, but there were some important
+areas that it was still unable to make much progress:</p>
+</div>
+<div class="ulist checklist">
+<ul class="checklist">
+<li>
+<p><i class="fa fa-check-square-o"></i> <strong>Third-party library support</strong>: <code>import $ivy</code> lets you pull in third-party libraries,
+such as <code>org.jsoup:jsoup:1.7.2</code> above.</p>
+</li>
+<li>
+<p><i class="fa fa-check-square-o"></i> <strong>Support for multiple files</strong>: <code>import $file</code> for scripts to import other scripts</p>
+</li>
+<li>
+<p><i class="fa fa-check-square-o"></i> <strong>Useful built-in utilities</strong>: bundled libraries like
+<a href="https://github.com/com-lihaoyi/mainargs">MainArgs</a>,
+<a href="https://github.com/com-lihaoyi/os-lib">OS-Lib</a>,
+<a href="https://github.com/com-lihaoyi/upickle">uPickle</a>,
+and <a href="https://github.com/com-lihaoyi/requests-scala">Requests-Scala</a> are available by default.
+These handle many of the common things you need to do in scripts, letting you be productive
+immediately without needing to first hunt down the relevant third-party library to include.</p>
+</li>
+<li>
+<p><i class="fa fa-square-o"></i> <strong>Other build workflows</strong>: Ammonite started as a REPL, so
+scripts were treated as a sequence of REPL commands executed one after another. This means
+compilation and execution are interleaved for every statement, which
+prevents things like performing a <code>compile</code> or <code>assembly</code> standalone. They can only be done
+as part of running the script</p>
+</li>
+<li>
+<p><i class="fa fa-square-o"></i> <strong>IDE support</strong>: IDE support for Ammonite scripts never worked reliably.
+so although the scripts looked great on slides, they never felt great to read and write in an IDE.</p>
+</li>
+<li>
+<p><i class="fa fa-square-o"></i> <strong>Larger project integration</strong>: Ammonite Scripts could never really integrate
+well with a larger Scala project, e.g. to make use of shared libraries or utilities in a larger
+SBT codebase.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>After years of trying, we concluded that many of these problems were simply
+<a href="https://github.com/com-lihaoyi/Ammonite/discussions/1372">unfixable given Ammonite&#8217;s
+REPL-based architecture</a>. Luckily, around that time, Scala-CLI emerged.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_2021_scala_cli_foo_scala"><a class="anchor" href="#_2021_scala_cli_foo_scala"></a>2021: scala-cli Foo.scala</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="https://scala-cli.virtuslab.org/">Scala CLI</a> was a reimagining of the <code>scala</code> launcher command,
+supporting a script-running workflow that fixed many of Ammonite&#8217;s problems:</p>
+</div>
+<div class="listingblock">
+<div class="title">HtmlScraper.scala</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//&gt; using jvm "17"
+//&gt; using dep org.jsoup:jsoup:1.7.2
+
+import org.jsoup._
+import scala.collection.JavaConverters._
+
+def fetchLinks(title: String): Seq[String] = {
+  Jsoup.connect(s"https://en.wikipedia.org/wiki/$title")
+    .header("User-Agent", "My Scraper")
+    .get().select("main p a").asScala.toSeq.map(_.attr("href"))
+    .collect { case s"/wiki/$rest" =&gt; rest }
+}
+
+@main
+def main(start: String, depth: Int) = {
+  var seen = Set(start)
+  var current = Set(start)
+  for (i &lt;- Range(0, depth)) {
+    current = current.flatMap(fetchLinks(_)).filter(!seen.contains(_))
+    seen = seen ++ current
+  }
+  seen.foreach(println)
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; scala-cli HtmlScraper.scala Singapore 1</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Scala CLI was a definite improvement:</p>
+</div>
+<div class="ulist checklist">
+<ul class="checklist">
+<li>
+<p><i class="fa fa-check-square-o"></i> <strong>Third-party library support</strong>: Scala-CLI supports these via <code>//&gt; using dep</code> directives</p>
+</li>
+<li>
+<p><i class="fa fa-check-square-o"></i> <strong>Support for multiple files</strong></p>
+</li>
+<li>
+<p><i class="fa fa-square-o"></i> <strong>Useful built-in utilities</strong>: while some conveniences like the <code>@main</code>
+annotation are supported out of the box, others like the ability to easily read and write files,
+make HTTP requests, or process JSON data were not.</p>
+</li>
+<li>
+<p><i class="fa fa-check-square-o"></i> <strong>Other build workflows</strong>: Scala-CLI supports things like <code>scala-cli --assembly HtmlScraper.scala</code>,
+build Graal native images, and other commands. While not quite as rich as a build tool like
+Mill or SBT, but much more than all prior attempts at Scala scripting</p>
+</li>
+<li>
+<p><i class="fa fa-square-o"></i> <strong>IDE support</strong>: Scala-CLI only supports IDE integration for one script
+at a time. While this is still a huge improvement over the earlier attempts that never had
+good IDE integration at all, it still isn&#8217;t ideal given any real-world codebase will inevitably
+have dozens or hundreds of scripts scattered throughout.</p>
+</li>
+<li>
+<p><i class="fa fa-square-o"></i> <strong>Larger project integration</strong>: Scala-CLI doesn&#8217;t really integrate
+well with SBT, e.g. you can&#8217;t have a Scala-CLI script that depends on an SBT module</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Just as Ammonite scripts was a huge improvement over the raw <code>scala</code> or SBT scripts that
+came before, Scala-CLI was in turn a huge improvement over Ammonite scripts. In particular,
+the ability to support build workflows like <code>--assembly</code> was something that Ammonite could
+never support.</p>
+</div>
+<div class="paragraph">
+<p>However, there remain weaknesses around providing rich builtin utilities, IDE support, and
+larger project integration: these add friction to writing and maintaining Scala-CLI scripts,
+falling short of the seamless experience we would hope for when writing scripts in Scala.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_2025_mill_foo_scala"><a class="anchor" href="#_2025_mill_foo_scala"></a>2025: ./mill Foo.scala</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In 2025, this brings us to Mill scripts, a new feature launched in Mill 1.1.0. To understand
+how we got here, it helps to understand another recent Mill addition: declarative builds.</p>
+</div>
+<div class="sect2">
+<h3 id="_programmable_builds_to_declarative_builds_to_scripts"><a class="anchor" href="#_programmable_builds_to_declarative_builds_to_scripts"></a>Programmable Builds to Declarative Builds to Scripts</h3>
+<div class="paragraph">
+<p>Mill has traditionally been configured using a Scala DSL:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// build.mill
+package build
+import mill._, scalalib._
+object `package` extends ScalaModule {
+  def scalaVersion = "3.7.2"
+  def mvnDeps = Seq(
+    mvn"org.jsoup:jsoup:1.7.2"
+  )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>But if you strip away the boilerplate, the actual information is just: extend <code>ScalaModule</code>,
+Scala version <code>3.7.2</code>, dependency <code>org.jsoup:jsoup:1.7.2</code>. That&#8217;s it. Everything else is
+syntactic noise.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// build.mill
+
+
+                 extends ScalaModule
+      scalaVersion = "3.7.2"
+      mvnDeps =    (
+    mvn"org.jsoup:jsoup:1.7.2"
+  )</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Mill 1.1.0 introduced <a href="../mill/scalalib/intro.html#_declarative_configuration" class="xref page">declarative builds</a>,
+which takes the non-boilerplate metadata from the programmable <code>build.mill</code> file
+above, and puts them into a compact YAML file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml"># build.mill.yaml
+extends: ScalaModule
+scalaVersion: 3.7.2
+mvnDeps:
+- org.jsoup:jsoup:1.7.2</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This YAML config does all the same things as the Scala code above: <code>./mill compile</code>,
+<code>./mill run</code>, <code>./mill assembly</code>, <code>./mill test</code> all work identically. The YAML is much more
+concise but less flexible, not allowing custom tasks with arbitrary code. For simple projects
+though, the YAML may be all you need.</p>
+</div>
+<div class="paragraph">
+<p>The insight behind Mill scripts is: if a declarative build is really small, why not put
+the build config directly in the source file? That&#8217;s exactly what Mill scripts do. The same
+YAML configuration that would go in <code>build.mill.yaml</code> goes in a <code>//|</code> header comment
+of a <code>.scala</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="title">HtmlScraper.scala</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| extends: ScalaModule
+//| scalaVersion: 3.7.2
+//| mvnDeps:
+//| - org.jsoup:jsoup:1.7.2
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We can leave out the <code>extends: ScalaModule</code> since we know a <code>.scala</code> file contains Scala code,
+and we can leave out <code>scalaVersion: 3.7.2</code> by providing a reasonable default (currently <code>3.8.2</code>).
+That brings us to our simple <code>HtmlScraper.scala</code> script looking as follows:</p>
+</div>
+<div class="listingblock">
+<div class="title">HtmlScraper.scala</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [org.jsoup:jsoup:1.7.2]
+import org.jsoup._
+import scala.collection.JavaConverters._
+
+def fetchLinks(title: String): Seq[String] = {
+  Jsoup.connect(s"https://en.wikipedia.org/wiki/$title")
+    .header("User-Agent", "My Scraper")
+    .get().select("main p a").asScala.toSeq.map(_.attr("href"))
+    .collect { case s"/wiki/$rest" =&gt; rest }
+}
+
+def main(start: String, depth: Int) = {
+  var seen = Set(start)
+  var current = Set(start)
+  for (i &lt;- Range(0, depth)) {
+    current = current.flatMap(fetchLinks(_)).filter(!seen.contains(_))
+    seen = seen ++ current
+  }
+  pprint.log(seen, height = Int.MaxValue)
+  os.write(os.pwd / "scraped.json", upickle.write(seen))
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill HtmlScraper.scala --start Singapore --depth 1
+...
+"Hokkien",
+"Conscription_in_Singapore",
+"Malaysia_Agreement",
+...</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_what_makes_mill_scripts_different"><a class="anchor" href="#_what_makes_mill_scripts_different"></a>What Makes Mill Scripts Different</h3>
+<div class="paragraph">
+<p>Mill scripts check every box on our evaluation criteria:</p>
+</div>
+<div class="ulist checklist">
+<ul class="checklist">
+<li>
+<p><i class="fa fa-check-square-o"></i> <strong>Third-party library support</strong>: Declare dependencies in the <code>//| mvnDeps</code> header and they&#8217;re
+available immediately, with full IDE support.</p>
+</li>
+<li>
+<p><i class="fa fa-check-square-o"></i> <strong>Multiple files</strong>: Scripts can depend on other scripts via <code>moduleDeps</code> in the header.
+One script can import functions from another, and test scripts can test library scripts:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| extends: [mill.script.ScalaModule.Utest]
+//| moduleDeps: [HtmlScraper.scala]
+//| mvnDeps:
+//| - com.lihaoyi::utest:0.9.1
+import utest.*
+
+object TestHtmlScraper extends TestSuite {
+  val tests = Tests {
+    test("fetchLinks returns known Scala article links") {
+      val links = fetchLinks("Scala_(programming_language)")
+      assert(links.nonEmpty)
+      assert(links.contains("Martin_Odersky"))
+      assert(links.contains("Functional_programming"))
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test HtmlScraper.scala</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><i class="fa fa-check-square-o"></i> <strong>Useful built-in utilities</strong>: PPrint, OS-Lib, uPickle, and Requests-Scala are all
+<a href="../mill/fundamentals/bundled-libraries.html" class="xref page">bundled by default</a>. No need to declare
+dependencies for common operations like file I/O, JSON parsing, HTTP requests,
+or pretty-printing.</p>
+</li>
+<li>
+<p><i class="fa fa-check-square-o"></i> <strong>Other build workflows</strong>: Since Mill scripts are Mill modules, everything Mill supports
+is available: <code>assembly</code>, <code>showMvnDepsTree</code>, <code>repl</code>, etc.:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show HtmlScraper.scala:assembly
+".../out/HtmlScraper.scala/assembly.dest/out.jar"
+
+&gt; ./mill HtmlScraper.scala:showMvnDepsTree
+├─ org.jsoup:jsoup:1.7.2
+├─ org.scala-lang:scala3-library_3:3.7.3
+│  └─ org.scala-lang:scala-library:2.13.16
+
+&gt; ./mill HtmlScraper.scala:repl
+Welcome to Scala 3.8.2 (21.0.10, Java OpenJDK 64-Bit Server VM).
+Type in expressions for evaluation. Or try :help.
+scala&gt;</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><i class="fa fa-check-square-o"></i> <strong>IDE support</strong>: Mill scripts are loaded as proper IntelliJ/VSCode modules via BSP.
+You get full navigation, autocomplete, and error highlighting for both your code and
+third-party libraries. This works because IntelliJ just treats scripts as Scala modules
+containing a single file: IntelliJ doesn&#8217;t need to know anything about Scala scripting,
+it just understands the m out of the box</p>
+</li>
+<li>
+<p><i class="fa fa-check-square-o"></i> <strong>Larger project integration</strong>: Scripts can depend on modules defined in the same Mill build:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| moduleDeps: [bar]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The script is treated as a downstream module, so parallelism, scheduling, and all build
+workflows work correctly.</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_script_use_cases"><a class="anchor" href="#_script_use_cases"></a>Script Use Cases</h3>
+<div class="paragraph">
+<p>Mill scripts work for a wide variety of use cases:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="../mill/scalalib/script.html#_html_web_scraper" class="xref page"><strong>HTML web scrapers</strong></a>: using Jsoup to crawl and parse web pages</p>
+</li>
+<li>
+<p><a href="../mill/scalalib/script.html#_json_api_client" class="xref page"><strong>JSON API clients</strong></a>: using the bundled Requests-Scala and uPickle libraries</p>
+</li>
+<li>
+<p><a href="../mill/scalalib/script.html#_web_server" class="xref page"><strong>Web servers</strong></a>: small <a href="https://github.com/com-lihaoyi/cask">Cask</a> web servers you can run
+in the background via <code>./mill WebServer.scala:runBackground</code></p>
+</li>
+<li>
+<p><a href="../mill/scalalib/script.html#_static_site_generator" class="xref page"><strong>Static site generators</strong></a>: using <a href="https://github.com/com-lihaoyi/scalatags">Scalatags</a>
+and CommonMark to generate HTML from Markdown</p>
+</li>
+<li>
+<p><a href="../mill/scalalib/script.html#_database_queries" class="xref page"><strong>Database scripting</strong></a>: using <a href="https://github.com/com-lihaoyi/scalasql">ScalaSql</a> to query
+and manipulate databases</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Once you have the ability to easily write Scala scripts that use third-party and first-party
+libraries, a whole slew of use cases open up. It turns out there are tons of scenarios where
+a small bit of code that does something can be useful, and once you remove the overhead
+of "creating a module" it can be super convenient to just create a single-file Scala script
+to do what you need.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_conclusion"><a class="anchor" href="#_conclusion"></a>Conclusion</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Scala scripting has been "almost there" for 20 years. Each attempt improved on the last but
+always fell short in some important way. Mill scripts finally close the gap: third-party
+and local dependencies, IDE support, multi-file scripts, test suites, assemblies and
+other build workflows all work out of the box. These are areas where previous scripting
+approaches fell short, and Mill manages to make them work and work well:</p>
+</div>
+<div class="ulist checklist">
+<ul class="checklist">
+<li>
+<p><i class="fa fa-check-square-o"></i> <strong>Third-party library support</strong></p>
+</li>
+<li>
+<p><i class="fa fa-check-square-o"></i> <strong>Support for multiple files</strong></p>
+</li>
+<li>
+<p><i class="fa fa-check-square-o"></i> <strong>Useful built-in utilities</strong></p>
+</li>
+<li>
+<p><i class="fa fa-check-square-o"></i> <strong>Other build workflows</strong></p>
+</li>
+<li>
+<p><i class="fa fa-check-square-o"></i> <strong>IDE support</strong></p>
+</li>
+<li>
+<p><i class="fa fa-check-square-o"></i> <strong>Larger project integration</strong></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If you&#8217;ve ever thought about writing single-file Scala scripts to do things, or if
+you&#8217;ve done it in the past with some of the other tools mentioned above and found the
+experience lacking, please try Mill&#8217;s new Scala scripts a try!</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="../mill/scalalib/intro.html#_single_file_scripts" class="xref page">Scala Single-File Scripts</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="index.html"><em>The Mill Build Engineering Blog</em></a></span>
+  <span class="next"><a href="19-scripting-on-the-jvm.html">Scripting on the JVM with Java, Scala, and Kotlin</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
+<script async src="../_/js/vendor/highlight.js"></script>
+<script src="../_/js/vendor/lunr.js"></script>
+<script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
+<script async src="../search-index.js"></script>
+  </body>
+</html>
