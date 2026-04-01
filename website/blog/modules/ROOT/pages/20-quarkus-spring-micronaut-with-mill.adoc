@@ -443,4 +443,4 @@ Supporting Spring Boot, Micronaut and Quarkus in Mill is less about adding featu
 - Micronaut extends it with structured AOT processing
 - Quarkus requires a deeper integration that reshapes how builds are understood
 
-Together, they illustrate the evolution of Java—from runtime-heavy frameworks to optimised and native systems. Build tools must continuously solve these challenges to keep up.
+Together, they illustrate the evolution of Java, from runtime/dynamic invocation/reflection-based frameworks to optimised and native systems. Build tools must continuously solve these challenges to keep up.
