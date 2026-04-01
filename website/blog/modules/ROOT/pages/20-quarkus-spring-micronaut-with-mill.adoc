@@ -17,7 +17,7 @@ traditional build tools like Maven and Gradle.
 Mill offers xref:mill::index.adoc#_simplicity[simplicity] for both getting started and extending its capabilities, which means great user experience for
 starting of a project, fresh setup of an existing project and writing extensions.
 
-The latter is also evident everytime we extend Mill for every framework, whether Android, Quarkus, Micronaut or Spring Boot.
+The latter is also clear everytime we extend Mill for every framework, whether Android, Quarkus, Micronaut or Spring Boot.
 Extending Mill feels natural, with minimal to no weird workarounds in the code.
 
 Mill is also xref:mill::index.adoc#_performance[superior in performance] when measuring compile/build times.
@@ -306,7 +306,7 @@ Unlike Spring or Micronaut, Quarkus does not simply run your classpath—it rebu
 
 Quarkus itself provides internal support for https://github.com/quarkusio/quarkus/tree/main/devtools/maven[Maven] and https://github.com/quarkusio/quarkus/tree/main/devtools/gradle[Gradle]. While these can be followed up to a degree to understand how a build tool should integrate with Quarkus, the difference in approach still acts as a stress test for Mill's design (though not as much as xref:blog::15-android-build-flow.adoc[Android]).
 
-The main challenge is modelling dependencies in the way Quarkus expects them in its application model. Each dependency can be a compile, runtime, or deployment dependency.
+The main challenge is modelling dependencies in the way Quarkus expects them in its application model. Each dependency can be a compile, runtime or deployment dependency.
 
 There are two important nuances with dependencies:
 
