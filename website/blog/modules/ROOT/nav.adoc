@@ -1,4 +1,5 @@
 * xref:blog::index.adoc[_The Mill Build Engineering Blog_]
+* xref:20-making-scala-scripting-actually-good.adoc[]
 * xref:19-scripting-on-the-jvm.adoc[]
 * xref:18-how-to-publish-to-maven-central-easily-with-mill.adoc[]
 * xref:17-simpler-jvm-mill-110.adoc[]
