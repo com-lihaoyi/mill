@@ -50,7 +50,7 @@ all the frameworks mentioned in this article.
 Then, we compare the compilation approach of the source code and dependencies. For example, Spring has traditionally relied on *Runtime* and reflection-based dependency injection mechanisms. However, it also provides
 a utility for optimising its post-compilation stage with what is called *Ahead Of Time (AOT)* compilation. This turns a lot of reflection-based dynamic invocations, into compile time. This mechanism also exists in Micronaut.
 
-Quarkus is different, and it has its own bootstrapping together. Thus, a build tool would need to delegate a lot of the build flow to Quarkus Bootstrap. In addition, it has its own dependency resolution, which is optimised for native images. While Micronaut and Spring rely on https://github.com/oracle/graalvm-reachability-metadata[reachability-metadata] for building native images with *GraalVM*, Quarkus has drop-in
+Quarkus is different, and it has its own bootstrapping together. Thus, a build tool would need to delegate a lot of the build flow to *Quarkus Bootstrap* with a series of *Augmentations* (in Quarkus Bootstrap terminology). In addition, it has its own dependency resolution, which is optimised for native images. While Micronaut and Spring rely on https://github.com/oracle/graalvm-reachability-metadata[reachability-metadata] for building native images with *GraalVM*, Quarkus has drop-in
 deployment dependencies ready to be used for native, by replacing certain runtime dependencies.
 
 
