@@ -328,6 +328,55 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
+   * Finds the main activity from the merged manifest
+   * @return The fully qualified name of the main activity, e.g. `com.package.name.ActivityName`
+   */
+  def androidMainActivity: T[String] = Task {
+    val androidNs = "http://schemas.android.com/apk/res/android"
+    val actionMain = "android.intent.action.MAIN"
+    val categoryLauncher = "android.intent.category.LAUNCHER"
+
+    def nodeNameOpt(node: Node): Option[String] = {
+      node.attribute(androidNs, "name").map(_.text)
+    }
+
+    /**
+     * Checks if the given activity node is launchable by looking for an intent filter that contains both
+     */
+    def isLaunchable(activity: Node): Boolean = {
+      val hasName = nodeNameOpt(activity).isDefined
+      val filters = activity \ "intent-filter"
+
+      hasName && filters.exists { filter =>
+        val hasMainAction = (filter \ "action").exists(nodeNameOpt(_).contains(actionMain))
+        val hasLauncherCategory =
+          (filter \ "category").exists(nodeNameOpt(_).contains(categoryLauncher))
+
+        hasMainAction && hasLauncherCategory
+      }
+    }
+
+    val root: Elem = XML.loadFile(androidMergedManifest().path.toString)
+
+    val activities = root \ "application" \ "activity"
+
+    activities.collectFirst {
+      case activity if isLaunchable(activity) =>
+        val rawName = nodeNameOpt(activity).get
+
+        val qualifiedName = {
+          if (rawName.startsWith(".")) s"$androidApplicationId$rawName"
+          else rawName
+        }
+
+        qualifiedName
+    } match {
+      case Some(activity) => activity
+      case None => Task.fail("No launchable main activity found in the manifest.")
+    }
+  }
+
+  /**
    * Optimizes the APK using the `zipalign` tool for better performance.
    *
    * For more details on the zipalign tool, refer to:
@@ -738,8 +787,14 @@ trait AndroidAppModule extends AndroidModule { outer =>
    * @param activity
    * @return
    */
-  def androidRun(activity: String): Command[Vector[String]] = Task.Command(exclusive = true) {
+  def androidRun(activity: String = ""): Command[Vector[String]] = Task.Command(exclusive = true) {
     val emulator = runningEmulator()
+
+    val activity0 =
+      if (activity.nonEmpty) activity
+      else androidMainActivity()
+
+    Task.log.info(s"Starting activity $activity0 on emulator $emulator")
 
     os.call(
       (
@@ -750,7 +805,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
         "am",
         "start",
         "-n",
-        s"${androidApplicationId}/${activity}",
+        s"${androidApplicationId}/${activity0}",
         "-W"
       )
     ).out.lines()
