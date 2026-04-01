@@ -5,7 +5,7 @@
 
 _{author}, {revdate}_
 
-Modern Java development is increasingly shaped by frameworks that optimize for cloud-native workloads, fast startup and developer productivity. https://spring.io/projects/spring-boot[Spring Boot], https://micronaut.io/[Micronaut] and https://quarkus.io/[Quarkus] represent three dominant approaches: from Spring's mature and expansive ecosystem, to Micronaut's and Quarkus' focus on performance and native images as a way of building microservices.
+Modern Java development is increasingly shaped by frameworks that optimise for cloud-native workloads, fast startup and developer productivity. https://spring.io/projects/spring-boot[Spring Boot], https://micronaut.io/[Micronaut] and https://quarkus.io/[Quarkus] represent three dominant approaches: from Spring's mature and expansive ecosystem, to Micronaut's and Quarkus' focus on performance and native images as a way of building microservices.
 
 // end::header[]
 
@@ -36,6 +36,24 @@ Spring Boot remains the https://www.geeksforgeeks.org/blogs/top-java-frameworks/
 Each framework takes different approaches in these areas which affect how build tools integrate with them.
 Supporting all three is therefore a good test of the versatility of Mill's own design.
 
+=== Technical details
+
+In this article, we compare the differences between the frameworks and what it means for Mill to support them, implementation wise. Mainly we'll talk about 4 categories.
+
+==== Dependency Management
+
+Most frameworks rely on curating versions of certain libraries by a Bill Of Materials (BOM). This is true for
+all the frameworks mentioned in this article.
+
+==== Build Philosophy
+
+Then, we compare the compilation approach of the source code and dependencies. For example, Spring has traditionally relied on *Runtime* and reflection-based dependency injection mechanisms. However, it also provides
+a utility for optimising its post-compilation stage with what is called *Ahead Of Time (AOT)* compilation. This turns a lot of reflection-based dynamic invocations, into compile time. This mechanism also exists in Micronaut.
+
+Quarkus is different, and it has its own bootstrapping together. Thus, a build tool would need to delegate a lot of the build flow to Quarkus Bootstrap. In addition, it has its own dependency resolution, which is optimised for native images. While Micronaut and Spring rely on https://github.com/oracle/graalvm-reachability-metadata[reachability-metadata] for building native images with *GraalVM*, Quarkus has drop-in
+deployment dependencies ready to be used for native, by replacing certain runtime dependencies.
+
+
 === High-Level Comparison
 
 |===
@@ -50,7 +68,7 @@ Supporting all three is therefore a good test of the versatility of Mill's own d
 |Supported via AOT + GraalVM
 
 |Quarkus
-|Build-time augmentation, built-in optimizations
+|Build-time augmentation, built-in optimisations
 |Built-in bootstrapping
 |===
 
@@ -136,7 +154,7 @@ The native build is configured via the `NativeImageModule`, which takes care of 
 
 === Challenges
 
-- Treating AOT as an optional optimization
+- Treating AOT as an optional optimisation
 - Managing generated sources across module boundaries
 
 Overall, Spring Boot fits well into Mill’s model because it doesn’t fundamentally change how dependencies or the build flow work. The main difference is giving the choice for AOT + native.
@@ -339,7 +357,7 @@ It is then serialized and passed into Quarkus bootstrap:
 
 [source,scala]
 ----
-ApplicationModelSerializer.serialize(...)
+ApplicationModelSerializer.serialize(/*...*/)
 ----
 
 === Dependency Classification
@@ -425,4 +443,4 @@ Supporting Spring Boot, Micronaut and Quarkus in Mill is less about adding featu
 - Micronaut extends it with structured AOT processing
 - Quarkus requires a deeper integration that reshapes how builds are understood
 
-Together, they illustrate the evolution of Java—from runtime-heavy frameworks to optimized and native systems. Build tools must continuously solve these challenges to keep up.
+Together, they illustrate the evolution of Java—from runtime-heavy frameworks to optimised and native systems. Build tools must continuously solve these challenges to keep up.
