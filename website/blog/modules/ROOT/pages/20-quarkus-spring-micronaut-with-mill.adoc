@@ -302,7 +302,7 @@ You can try more non-trivial examples xref:mill::javalib/web-examples.adoc#_quar
 - Requires a full "application model"
 - Separates runtime and deployment dependencies
 
-Unlike Spring or Micronaut, Quarkus does not simply run your classpath—it rebuilds it.
+Unlike Spring or Micronaut, Quarkus does not simply run your classpath; it rebuilds it with its own bootstrap process.
 
 Quarkus itself provides internal support for https://github.com/quarkusio/quarkus/tree/main/devtools/maven[Maven] and https://github.com/quarkusio/quarkus/tree/main/devtools/gradle[Gradle]. While these can be followed up to a degree to understand how a build tool should integrate with Quarkus, the difference in approach still acts as a stress test for Mill's design (though not as much as xref:blog::15-android-build-flow.adoc[Android]).
 
