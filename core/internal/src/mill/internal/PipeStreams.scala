@@ -147,7 +147,9 @@ class PipeStreams(val bufferSize: Int = 64 * 1024) { pipe =>
     }
 
     def awaitEmpty(): Unit = synchronized {
-      while (in >= 0) try wait(100) catch { case _: InterruptedException => () }
+      while (in >= 0)
+        try wait(100)
+        catch { case _: InterruptedException => () }
     }
 
     override def close(): Unit = {
