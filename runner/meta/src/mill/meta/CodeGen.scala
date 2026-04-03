@@ -340,10 +340,15 @@ object CodeGen {
 
           val scriptCode0 = allScriptCode(scriptPath)
           // Comment out the package statement by replacing the first 2 chars with "//"
-          // to preserve byte offsets for -Ymagic-offset-header position mapping
+          // to preserve byte offsets for -Ymagic-offset-header position mapping.
+          // Use indexOf rather than startsWith because the script code may have a
+          // YAML header prefix before the package statement.
           val scriptCode = allPackageStatements.get(scriptPath) match {
-            case Some(pkg) if pkg.length >= 2 && scriptCode0.startsWith(pkg) =>
-              "//" + scriptCode0.drop(2)
+            case Some(pkg) if pkg.length >= 2 =>
+              val idx = scriptCode0.indexOf(pkg)
+              if (idx >= 0)
+                scriptCode0.substring(0, idx) + "//" + scriptCode0.substring(idx + 2)
+              else scriptCode0
             case _ => scriptCode0
           }
 
