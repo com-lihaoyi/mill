@@ -195,8 +195,6 @@ object CodeGen {
         )
       } else ""
 
-      val miscInfoImport = s"import _root_.${CGConst.globalPackagePrefix}.MillMiscInfo.*"
-
       if (scriptPath.last.endsWith(".yaml")) {
         val newParent =
           if (segments.isEmpty) "_root_.mill.util.MainRootModule"
@@ -204,7 +202,7 @@ object CodeGen {
         val parsedHeaderData = parsedYamlHeaderData(scriptPath)
 
         val prelude =
-          s"""|$miscInfoImport
+          s"""|import _root_.${CGConst.globalPackagePrefix}.MillMiscInfo.*
               |import _root_.mill.util.TokenReaders.given
               |import _root_.mill.runner.autooverride.AutoOverride
               |""".stripMargin
@@ -448,12 +446,8 @@ object CodeGen {
     val exportSiblingScripts =
       siblingScripts.map(s => s"export $pkg.${backtickWrap(s)}.*").mkString("\n")
 
-    val miscInfoImport =
-      if (segments.isEmpty) "import MillMiscInfo.*"
-      else s"import _root_.${CGConst.globalPackagePrefix}.MillMiscInfo.*"
-
     val prelude =
-      s"""|$miscInfoImport
+      s"""|import _root_.${CGConst.globalPackagePrefix}.MillMiscInfo.*
           |import _root_.mill.util.TokenReaders.given
           |import _root_.mill.api.JsonFormatters.given
           |""".stripMargin
