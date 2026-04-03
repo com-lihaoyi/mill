@@ -4,7 +4,9 @@ import mill.*
 import mill.api.{Discover, Module, ModuleCtx, Segments}
 
 object SubfolderModule {
-  @deprecated("No longer needed; SubfolderModule derives info from RootModule.Info and package name")
+  @deprecated(
+    "No longer needed; SubfolderModule derives info from RootModule.Info and package name"
+  )
   class Info(val millSourcePath0: os.Path, val segments: Seq[String]) {
     implicit val subFolderInfo: Info = this
   }

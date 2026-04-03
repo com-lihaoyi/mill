@@ -195,9 +195,7 @@ object CodeGen {
         )
       } else ""
 
-      val miscInfoImport =
-        if (segments.isEmpty) "import MillMiscInfo.*"
-        else s"import _root_.${CGConst.globalPackagePrefix}.MillMiscInfo.*"
+      val miscInfoImport = s"import _root_.${CGConst.globalPackagePrefix}.MillMiscInfo.*"
 
       if (scriptPath.last.endsWith(".yaml")) {
         val newParent =

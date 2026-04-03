@@ -77,7 +77,9 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
       "mill.javalib.SonatypeCentralPublisher$PreparedArtifacts*"
     ),
     // private macro helpers, not part of public API
-    ProblemFilter.exclude[DirectMissingMethodProblem]("mill.api.Task#Macros*")
+    ProblemFilter.exclude[DirectMissingMethodProblem]("mill.api.Task#Macros*"),
+    // internal APIs, used in `.mill`/`.mill.yaml` generated code but not intended for plugins
+    ProblemFilter.exclude[Problem]("mill.api.internal.SubfolderModule*")
   )
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
