@@ -15,14 +15,14 @@ object RootModuleCompileErrorTests extends UtestIntegrationTestSuite {
       // Errors for the extends clause are remapped to lines beyond the original
       // file (the generated stub class), so line content is empty
       res.assertContainsLines(
-        "[error] build.mill:12:76",
+        "[error] build.mill:12:130",
         "",
         "^",
         "Not found: type UnknownRootModule"
       )
 
       res.assertContainsLines(
-        "[error] foo/package.mill:11:121",
+        "[error] foo/package.mill:11:175",
         "",
         "^",
         "Not found: type UnknownFooModule"

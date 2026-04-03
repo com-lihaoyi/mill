@@ -527,7 +527,13 @@ object CodeGen {
               .take(objectData.parent.text.length)
               .padTo(objectData.parent.text.length, ' ')
 
-            generatedStub = s"abstract class $stub extends $newParent$sep${objectData.parent.text}"
+            // The stub takes sourcecode.Line/File as using-parameters so that
+            // they are resolved at the `class package_ extends _MillRootM` site
+            // (which is in the -Ymagic-offset-header mapped region at the correct
+            // byte offset), rather than at the stub definition (which is after the
+            // user code and maps to a wrong position).
+            generatedStub =
+              s"abstract class $stub(using _root_.sourcecode.Line, _root_.sourcecode.File) extends $newParent$sep${objectData.parent.text}"
 
             stub
           }
