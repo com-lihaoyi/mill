@@ -178,22 +178,7 @@ object CodeGen {
         (aliases.mkString("\n  "), aliasesDefs.mkString("\n  "))
       }
 
-      val aliasImports = Seq(
-        // Provide `build` as an alias to the root `build_.package_`, since from the user's
-        // perspective it looks like they're writing things that live in `package build`,
-        // but at compile-time we rename things, we so provide an alias to preserve the fiction
-        "import build_.{package_ => build}"
-      ).mkString("\n")
-
-      val strippedPackageStatementComment = allPackageStatements.get(scriptPath) match {
-        // Add another comment after the marker comment to substitute any package statement
-        // that was stripped during codegen and ensure the offsets line up properly
-        case None => "\n"
-        case Some("package ") => "\n"
-        case Some(s) => "\n//" + s.drop(2)
-      }
-
-      val markerComment = s"///SOURCE_CODE_START:$scriptPath" + strippedPackageStatementComment
+      val markerComment = s"///SOURCE_CODE_START:$scriptPath\n"
 
       val siblingScripts = scriptSources
         .filter(_ != scriptPath)
@@ -353,7 +338,14 @@ object CodeGen {
             && !allowNestedBuildMillFiles
           ) break()
 
-          val scriptCode = allScriptCode(scriptPath)
+          val scriptCode0 = allScriptCode(scriptPath)
+          // Comment out the package statement by replacing the first 2 chars with "//"
+          // to preserve byte offsets for -Ymagic-offset-header position mapping
+          val scriptCode = allPackageStatements.get(scriptPath) match {
+            case Some(pkg) if pkg.length >= 2 && scriptCode0.startsWith(pkg) =>
+              "//" + scriptCode0.drop(2)
+            case _ => scriptCode0
+          }
 
           if (isBuildScript) {
             os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
