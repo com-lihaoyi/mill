@@ -190,6 +190,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
         reportCachedProblems = reportCachedProblems,
         incrementalCompilation = op.incrementalCompilation,
         auxiliaryClassFileExtensions = Seq.empty,
+        compileToJar = op.compileToJar,
         localConfig = localConfig,
         processConfig = processConfig,
         workDir = op.workDir
@@ -224,6 +225,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
         reportCachedProblems = reportCachedProblems,
         incrementalCompilation = op.incrementalCompilation,
         auxiliaryClassFileExtensions = op.auxiliaryClassFileExtensions,
+        compileToJar = op.compileToJar,
         localConfig = localConfig,
         processConfig = processConfig,
         workDir = op.workDir
@@ -329,6 +331,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String],
+      compileToJar: Boolean,
       zincCache: os.SubPath = os.sub / "zinc",
       localConfig: ZincWorker.LocalConfig,
       processConfig: ZincWorker.ProcessConfig,
@@ -337,7 +340,9 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
 
     os.makeDir.all(workDir)
 
-    val classesDir = workDir / "classes"
+    val classesDir =
+      if (compileToJar) workDir / "classes.jar"
+      else workDir / "classes"
 
     if (localConfig.logDebugEnabled) {
       processConfig.log.debug(

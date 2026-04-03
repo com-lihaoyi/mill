@@ -467,6 +467,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
         compileClasspath = compileCp,
         javacOptions = jOpts.compiler,
         incrementalCompilation = true,
+        compileToJar = false,
         workDir = workDir
       ),
       javaHome = javaHome,

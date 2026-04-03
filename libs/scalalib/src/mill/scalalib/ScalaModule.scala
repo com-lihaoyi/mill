@@ -356,6 +356,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         compilerBridgeOpt = scalaCompilerBridge(),
         incrementalCompilation = zincIncrementalCompilation(),
         auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions(),
+        compileToJar = compileToJar(),
         workDir = Task.dest
       ),
       javaHome = javaHome().map(_.path),
@@ -713,6 +714,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
           compilerBridgeOpt = scalaCompilerBridge(),
           incrementalCompilation = zincIncrementalCompilation(),
           auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions(),
+          compileToJar = false,
           workDir = Task.dest
         ),
         javaHome = javaHome().map(_.path),
