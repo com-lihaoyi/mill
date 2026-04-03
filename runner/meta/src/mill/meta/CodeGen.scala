@@ -186,13 +186,14 @@ object CodeGen {
         )
       }
 
-      val miscInfo = generateMillMiscInfo(
-        pkg = pkg,
-        scriptFolderPath = scriptFolderPath,
-        segments = segments,
-        millTopLevelProjectRoot = millTopLevelProjectRoot,
-        output = output
-      )
+      val miscInfo = if (segments.isEmpty) {
+        generateMillMiscInfo(
+          pkg = pkg,
+          scriptFolderPath = scriptFolderPath,
+          millTopLevelProjectRoot = millTopLevelProjectRoot,
+          output = output
+        )
+      } else ""
 
       if (scriptPath.last.endsWith(".yaml")) {
         val newParent =
@@ -201,29 +202,25 @@ object CodeGen {
         val parsedHeaderData = parsedYamlHeaderData(scriptPath)
 
         val prelude =
-          s"""|import MillMiscInfo.*
+          s"""|import _root_.${CGConst.globalPackagePrefix}.MillMiscInfo.*
               |import _root_.mill.util.TokenReaders.given
               |import _root_.mill.runner.autooverride.AutoOverride
               |""".stripMargin
 
-        val miscInfoWithResource = {
+        if (segments.isEmpty) {
           val header = if (pkg.isBlank()) "" else s"package $pkg"
-          val miscInfoBody = if (segments.isEmpty) {
-            rootMiscInfo(scriptFolderPath, millTopLevelProjectRoot, output)
-          } else {
-            subfolderMiscInfo(scriptFolderPath, segments)
-          }
-          s"""|$generatedFileHeader
-              |$header
-              |
-              |$miscInfoBody
-              |""".stripMargin
+          val miscInfoWithResource =
+            s"""|$generatedFileHeader
+                |$header
+                |
+                |${rootMiscInfo(scriptFolderPath, millTopLevelProjectRoot, output)}
+                |""".stripMargin
+          os.write.over(
+            supportDestDir / "MillMiscInfo.scala",
+            miscInfoWithResource,
+            createFolders = true
+          )
         }
-        os.write.over(
-          supportDestDir / "MillMiscInfo.scala",
-          miscInfoWithResource,
-          createFolders = true
-        )
 
         def renderTemplate(prefix: String, data: HeaderData, path: Seq[String]): String = {
           val extendsConfig = data.`extends`.value.value.map(_.value)
@@ -341,7 +338,7 @@ object CodeGen {
             .filter(s => s != "build_" && s != "package_")
             .map(s => s"import $pkg.${backtickWrap(s)}.*").mkString("\n")
 
-          if (isBuildScript) {
+          if (isBuildScript && miscInfo.nonEmpty) {
             os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
           }
 
@@ -403,18 +400,15 @@ object CodeGen {
   private def generateMillMiscInfo(
       pkg: String,
       scriptFolderPath: os.Path,
-      segments: Seq[String],
       millTopLevelProjectRoot: os.Path,
       output: os.Path
   ): String = {
     val header = if (pkg.isBlank()) "" else s"package $pkg"
-    val body =
-      if (segments.nonEmpty) subfolderMiscInfo(scriptFolderPath, segments)
-      else rootMiscInfo(
-        scriptFolderPath,
-        millTopLevelProjectRoot,
-        output
-      )
+    val body = rootMiscInfo(
+      scriptFolderPath,
+      millTopLevelProjectRoot,
+      output
+    )
 
     s"""|$generatedFileHeader
         |$header
@@ -453,7 +447,7 @@ object CodeGen {
       siblingScripts.map(s => s"export $pkg.${backtickWrap(s)}.*").mkString("\n")
 
     val prelude =
-      s"""|import MillMiscInfo.*
+      s"""|import _root_.${CGConst.globalPackagePrefix}.MillMiscInfo.*
           |import _root_.mill.util.TokenReaders.given
           |import _root_.mill.api.JsonFormatters.given
           |""".stripMargin
@@ -544,18 +538,6 @@ object CodeGen {
            |}""".stripMargin
 
     }
-  }
-
-  def subfolderMiscInfo(
-      scriptFolderPath: os.Path,
-      segments: Seq[String]
-  ): String = {
-    s"""|object MillMiscInfo
-        |    extends mill.api.internal.SubfolderModule.Info(
-        |  millSourcePath0 = os.Path(${literalize(scriptFolderPath.toString)}),
-        |  segments = _root_.scala.Seq(${segments.map(literalize(_)).mkString(", ")})
-        |)
-        |""".stripMargin
   }
 
   def millDiscover(segmentsNonEmpty: Boolean, packageObjectRefs: Seq[String]): String = {
