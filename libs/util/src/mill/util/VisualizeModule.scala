@@ -75,46 +75,47 @@ object VisualizeModule extends ExternalModule {
       planTasks: Option[List[Task.Named[?]]]
   ): Result[Seq[PathRef]] = {
     if (tasks.isEmpty)
-      return Result.Failure(
+      Result.Failure(
         "visualize requires at least one task to visualize, e.g. `mill visualize __.compile`"
       )
-
-    def callVisualizeModule(
-        tasks: List[Task.Named[?]],
-        transitiveTasks: List[Task.Named[?]]
-    ): Result[Seq[PathRef]] = {
-      val transitive = evaluator.transitiveTasks(tasks)
-      val topoSorted = evaluator.topoSorted(transitive)
-      val sortedGroups = evaluator.groupAroundImportantTasks(topoSorted) {
-        case x: Task.Named[?] if transitiveTasks.contains(x) => x
-      }
-      val plan = evaluator.plan(transitiveTasks)
-      val payloadPath = writePayload(tasks, transitiveTasks, sortedGroups, plan)
-      try {
-        mill.util.Jvm.callProcess(
-          mainClass = "mill.graphviz.VisualizeWorkerMain",
-          classPath = toolsClasspath.map(_.path).toVector,
-          mainArgs = Seq(payloadPath.toString, ctx.dest.toString),
-          stdin = os.Inherit,
-          stdout = os.Inherit
-        )(using ctx)
-
-        BuildCtx.withFilesystemCheckerDisabled {
-          os.list(ctx.dest).sorted.map(PathRef(_))
+    else {
+      def callVisualizeModule(
+          tasks: List[Task.Named[?]],
+          transitiveTasks: List[Task.Named[?]]
+      ): Result[Seq[PathRef]] = {
+        val transitive = evaluator.transitiveTasks(tasks)
+        val topoSorted = evaluator.topoSorted(transitive)
+        val sortedGroups = evaluator.groupAroundImportantTasks(topoSorted) {
+          case x: Task.Named[?] if transitiveTasks.contains(x) => x
         }
-      } finally {
-        os.remove(payloadPath, checkExists = false)
-      }
-    }
+        val plan = evaluator.plan(transitiveTasks)
+        val payloadPath = writePayload(tasks, transitiveTasks, sortedGroups, plan)
+        try {
+          mill.util.Jvm.callProcess(
+            mainClass = "mill.graphviz.VisualizeWorkerMain",
+            classPath = toolsClasspath.map(_.path).toVector,
+            mainArgs = Seq(payloadPath.toString, ctx.dest.toString),
+            stdin = os.Inherit,
+            stdout = os.Inherit
+          )(using ctx)
 
-    evaluator.resolveTasks(tasks, SelectMode.Multi).flatMap { rs =>
-      val rendered = planTasks match {
-        case Some(allRs) => callVisualizeModule(rs, allRs)
-        case None => callVisualizeModule(rs, rs)
+          BuildCtx.withFilesystemCheckerDisabled {
+            os.list(ctx.dest).sorted.map(PathRef(_))
+          }
+        } finally {
+          os.remove(payloadPath, checkExists = false)
+        }
       }
-      rendered.map { v =>
-        println(upickle.write(v.map(_.path.toString()), indent = 2))
-        v
+
+      evaluator.resolveTasks(tasks, SelectMode.Multi).flatMap { rs =>
+        val rendered = planTasks match {
+          case Some(allRs) => callVisualizeModule(rs, allRs)
+          case None => callVisualizeModule(rs, rs)
+        }
+        rendered.map { v =>
+          println(upickle.write(v.map(_.path.toString()), indent = 2))
+          v
+        }
       }
     }
   }
@@ -129,33 +130,34 @@ object VisualizeModule extends ExternalModule {
       planTasks: Option[List[Task.Named[?]]] = None
   ): Result[Seq[PathRef]] = {
     if (tasks.isEmpty)
-      return Result.Failure(
+      Result.Failure(
         "visualize requires at least one task to visualize, e.g. `mill visualize __.compile`"
       )
-
-    def callVisualizeModule(
-        tasks: List[Task.Named[?]],
-        transitiveTasks: List[Task.Named[?]]
-    ): Result[Seq[PathRef]] = {
-      val (in, out) = vizWorker
-      val transitive = evaluator.transitiveTasks(tasks)
-      val topoSorted = evaluator.topoSorted(transitive)
-      val sortedGroups = evaluator.groupAroundImportantTasks(topoSorted) {
-        case x: Task.Named[?] if transitiveTasks.contains(x) => x
+    else {
+      def callVisualizeModule(
+          tasks: List[Task.Named[?]],
+          transitiveTasks: List[Task.Named[?]]
+      ): Result[Seq[PathRef]] = {
+        val (in, out) = vizWorker
+        val transitive = evaluator.transitiveTasks(tasks)
+        val topoSorted = evaluator.topoSorted(transitive)
+        val sortedGroups = evaluator.groupAroundImportantTasks(topoSorted) {
+          case x: Task.Named[?] if transitiveTasks.contains(x) => x
+        }
+        val plan = evaluator.plan(transitiveTasks)
+        in.put((tasks, transitiveTasks, sortedGroups, plan, ctx.dest))
+        val res = out.take()
+        res.map { v =>
+          println(upickle.write(v.map(_.path.toString()), indent = 2))
+          v
+        }
       }
-      val plan = evaluator.plan(transitiveTasks)
-      in.put((tasks, transitiveTasks, sortedGroups, plan, ctx.dest))
-      val res = out.take()
-      res.map { v =>
-        println(upickle.write(v.map(_.path.toString()), indent = 2))
-        v
-      }
-    }
 
-    evaluator.resolveTasks(tasks, SelectMode.Multi).flatMap { rs =>
-      planTasks match {
-        case Some(allRs) => callVisualizeModule(rs, allRs)
-        case None => callVisualizeModule(rs, rs)
+      evaluator.resolveTasks(tasks, SelectMode.Multi).flatMap { rs =>
+        planTasks match {
+          case Some(allRs) => callVisualizeModule(rs, allRs)
+          case None => callVisualizeModule(rs, rs)
+        }
       }
     }
   }
