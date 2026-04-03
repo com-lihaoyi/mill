@@ -477,11 +477,13 @@ object TestModule {
 
     protected lazy val classesDir: Task[Option[os.Path]] = this match {
       case withCompileTask: JavaModule => Task.Anon {
-          Some(withCompileTask.compile().classes.path)
+          val p = withCompileTask.compile().classes.path
+          Option.when(os.isDir(p))(p)
         }
       case m => Task.Anon {
           m.testClasspath().map(_.path).find { path =>
-            os.exists(path) && os.walk.stream(path).exists(p => os.isFile(p) && p.ext == "class")
+            os.exists(path) && os.isDir(path) &&
+            os.walk.stream(path).exists(p => os.isFile(p) && p.ext == "class")
           }
         }
     }

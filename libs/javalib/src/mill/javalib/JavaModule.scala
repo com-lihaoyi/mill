@@ -1275,7 +1275,11 @@ trait JavaModule
    */
   def jar: T[PathRef] = Task {
     val jar = Task.dest / "out.jar"
-    Jvm.createJar(jar, localClasspath().map(_.path).filter(os.exists), manifest())
+    val classesPath = compile().classes.path
+    val base = if (os.isFile(classesPath) && classesPath.ext == "jar") Some(classesPath) else None
+    val inputs = localClasspath().map(_.path).filter(os.exists)
+    val filteredInputs = inputs.filter(!base.contains(_))
+    Jvm.createJar(jar, filteredInputs, manifest(), base = base)
     PathRef(jar)
   }
 

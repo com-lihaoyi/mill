@@ -9,6 +9,11 @@ import mill.api.Discover
 
 object HelloJavaTests extends TestSuite {
 
+  private def classesContain(classesPath: os.Path, fileName: String): Boolean = {
+    if (os.isDir(classesPath)) os.walk(classesPath).exists(_.last == fileName)
+    else os.proc("jar", "tf", classesPath).call().out.lines().exists(_.endsWith(fileName))
+  }
+
   object HelloJava extends TestRootModule {
     object core extends JavaModule {
       override def docJarUseArgsFile = false
@@ -43,10 +48,10 @@ object HelloJavaTests extends TestSuite {
           result2.evalCount == 0,
           result3.evalCount != 0,
           result3.evalCount != 0,
-          os.walk(result1.value.classes.path).exists(_.last == "Core.class"),
-          !os.walk(result1.value.classes.path).exists(_.last == "Main.class"),
-          os.walk(result3.value.classes.path).exists(_.last == "Main.class"),
-          !os.walk(result3.value.classes.path).exists(_.last == "Core.class")
+          classesContain(result1.value.classes.path, "Core.class"),
+          !classesContain(result1.value.classes.path, "Main.class"),
+          classesContain(result3.value.classes.path, "Main.class"),
+          !classesContain(result3.value.classes.path, "Core.class")
         )
       }
     }
