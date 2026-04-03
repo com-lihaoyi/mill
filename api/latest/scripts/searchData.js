@@ -2335,6 +2335,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/internal/MultiLogger.html#warn-571","e":false,"i":"","n":"warn","t":"warn(s: String): Unit","d":"mill.internal.MultiLogger","k":"def","x":""},
 {"l":"mill/internal/MultiStream.html#","e":false,"i":"","n":"MultiStream","t":"MultiStream(stream1: OutputStream, stream2: OutputStream) extends PrintStream","d":"mill.internal","k":"class","x":""},
 {"l":"mill/internal/PipeStreams.html#","e":false,"i":"","n":"PipeStreams","t":"PipeStreams(val bufferSize: Int = ...)","d":"mill.internal","k":"class","x":""},
+{"l":"mill/internal/PipeStreams.html#awaitInputEmpty-94c","e":false,"i":"","n":"awaitInputEmpty","t":"awaitInputEmpty(): Unit","d":"mill.internal.PipeStreams","k":"def","x":""},
 {"l":"mill/internal/PipeStreams.html#bufferSize-0","e":false,"i":"","n":"bufferSize","t":"bufferSize: Int","d":"mill.internal.PipeStreams","k":"val","x":""},
 {"l":"mill/internal/PipeStreams.html#input-0","e":false,"i":"","n":"input","t":"input: InputStream","d":"mill.internal.PipeStreams","k":"val","x":""},
 {"l":"mill/internal/PipeStreams.html#output-0","e":false,"i":"","n":"output","t":"output: OutputStream","d":"mill.internal.PipeStreams","k":"val","x":""},
