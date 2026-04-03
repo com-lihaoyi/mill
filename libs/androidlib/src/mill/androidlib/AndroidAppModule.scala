@@ -256,7 +256,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def androidUnsignedApk: T[PathRef] = Task {
     val unsignedApk = Task.dest / "app.unsigned.apk"
 
-    os.copy(androidLinkedResources().path / "apk/res.apk", unsignedApk)
+    os.copy(androidLinkedResources().apk.path, unsignedApk)
 
     val androidDexPath = androidDex().path
     os.zip(
@@ -888,9 +888,14 @@ trait AndroidAppModule extends AndroidModule { outer =>
     androidUnpackArchives()
       .flatMap(_.proguardRules)
       .map(p => os.read(p.path))
-      .appendedAll(mainDexPlatformRules)
-      .appended(os.read(androidLinkedResources().path / "proguard/main-dex-rules.pro"))
+      .appended(os.read(androidLinkedResources().proguardRulesFile.path))
       .mkString("\n")
+  }
+
+  def androidKnownProguardRulesFile: T[PathRef] = Task {
+    val filePath = Task.dest / "known_rules.pro"
+    os.write(filePath, androidKnownProguardRules())
+    PathRef(filePath)
   }
 
   /**
