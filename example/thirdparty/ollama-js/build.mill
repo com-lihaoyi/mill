@@ -1,11 +1,11 @@
-// `ollam-js` library provides the easiest way to integrate
+// `ollama-js` library provides the easiest way to integrate
 // your JavaScript project with Ollama.
 //
 // In this example we show how to integrate `ollama-js` with Mill,
 // showing off Mill's scalability with custom tasks and traits.
 //
 // Using custom tasks we build our library and then prepare the bundled code to be used
-// as an unmanaged dependcy (file-based package installation) for the mini example projects.
+// as an unmanaged dependency (file-based package installation) for the mini example projects.
 //
 // Project home: https://github.com/ollama/ollama-js
 //
@@ -99,7 +99,7 @@ trait OllamaModule extends TypeScriptModule {
 
     os.call("node_modules/.bin/unbuild")
 
-    // prepare bundled ouptut to be used as `unmanagedDeps` in examples section.
+    // prepare bundled output to be used as `unmanagedDeps` in examples section.
     os.makeDir.all(Task.dest / "ollama")
     os.copy(Task.dest / "package.json", Task.dest / "ollama" / "package.json")
     os.copy(Task.dest / "dist", Task.dest / "ollama" / "dist")
@@ -194,7 +194,7 @@ object `package` extends OllamaModule, TsLintModule {
 //
 // Ordinarily the compile stages `mill compile` would build our `declarations` and or `dist` files (depending on configurations),
 // but since we intend to use `unbuild` task to handle bundling we don't need this output
-// from running the `tsc` command. We can turn of its generation by settig the task `runTypeCheck` to false.
+// from running the `tsc` command. We can turn off its generation by setting the task `runTypeCheck` to false.
 //
 // **User Defined JSON:**
 //

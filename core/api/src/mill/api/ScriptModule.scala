@@ -24,9 +24,11 @@ trait ScriptModule extends ExternalModule {
     .headerData
     .rest
     .map { case (k, v) =>
+      val newKey = (moduleSegments ++ mill.api.Segment.Label(k.value)).render
+      val (actualValue, append) = internal.Appendable.unwrapAppendMarker(v)
       (
-        (moduleSegments ++ mill.api.Segment.Label(k)).render,
-        internal.Located(scriptConfig.scriptFile, v.index, v)
+        newKey,
+        internal.Located(scriptConfig.scriptFile, k.index, internal.Appendable(actualValue, append))
       )
     }
 }

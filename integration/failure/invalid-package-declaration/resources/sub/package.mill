@@ -1,2 +1,2 @@
-import mill._
+import mill.*
 object `package` extends Module

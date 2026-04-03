@@ -6,6 +6,7 @@ import mill.api.daemon.experimental
 import mill.javalib.api.Versions
 import mill.javalib.{CoursierModule, Dep, DepSyntax, OfflineSupportModule}
 import mill.util.{Jvm, Version}
+import upickle.implicits.namedTuples.default.given
 
 /**
  * Checks Java source files with PMD static code analyzer [[https://pmd.github.io/]].
@@ -28,7 +29,7 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
         res.outputPath,
         pmdArgs.format
       )
-      (res.exitCode, res.outputPath)
+      (exitCode = res.exitCode, outputPath = res.outputPath)
     }
 
   protected def pmd0(

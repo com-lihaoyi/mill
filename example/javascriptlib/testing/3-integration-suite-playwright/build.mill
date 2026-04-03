@@ -25,7 +25,7 @@ object server extends TypeScriptModule {
 
 // Documentation for mill.example.javascriptlib
 // In this example we demonstrate integration testing using playwright
-// `mill server.test` will start the service on the speicifed port, run tests with configurations defined in playwright.config.ts
+// `mill server.test` will start the service on the specified port, run tests with configurations defined in playwright.config.ts
 // and kill the service once completed
 
 /** Usage

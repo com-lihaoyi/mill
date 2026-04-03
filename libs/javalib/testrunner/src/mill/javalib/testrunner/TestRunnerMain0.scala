@@ -2,7 +2,7 @@ package mill.javalib.testrunner
 
 import mill.api.daemon.internal.{TestReporter, internal}
 
-@internal object TestRunnerMain0 {
+@internal object MillTestRunnerMain0 {
   def main0(args: Array[String], classLoader: ClassLoader): Unit = {
     try {
       val testArgs = upickle.read[TestArgs](os.read(os.Path(args(1))))
@@ -18,6 +18,7 @@ import mill.api.daemon.internal.{TestReporter, internal}
             classFilter = cls => filter(cls.getName),
             cl = classLoader,
             testReporter = TestReporter(testArgs.logLevel),
+            discoveredTestClasses = testArgs.discoveredTestClasses,
             resultPathOpt = Some(testArgs.resultPath)
           )
         case Right((startingTestClass, testClassQueueFolder, claimFolder)) =>
@@ -30,6 +31,7 @@ import mill.api.daemon.internal.{TestReporter, internal}
             claimFolder = claimFolder,
             cl = classLoader,
             testReporter = TestReporter(testArgs.logLevel),
+            discoveredTestClasses = testArgs.discoveredTestClasses,
             resultPath = testArgs.resultPath
           )
       }

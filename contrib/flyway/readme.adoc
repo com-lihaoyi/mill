@@ -12,7 +12,7 @@ Configure flyway by overriding settings in your module. For example
 //| mvnDeps: ["com.lihaoyi::mill-contrib-flyway:$MILL_VERSION"]
 package build
 
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 import contrib.flyway.FlywayModule
 
@@ -21,8 +21,14 @@ object foo extends ScalaModule with FlywayModule {
 
   //region flyway
   def flywayUrl = "jdbc:postgresql:myDb" // required
-  def flywayDriverDeps = Seq(mvn"org.postgresql:postgresql:42.2.5") // required
+  def flywayDriverDeps = Seq(mvn"org.postgresql:postgresql:42.2.5") // JDBC driver
+  def flywayPluginDeps = Seq(mvn"org.flywaydb:flyway-database-postgresql:<flyway-core-version>") // required for PostgreSQL
   def flywayUser = "postgres" // optional
+  def flywayPlaceholders = Task {
+    Map(
+      "org" -> "mill"
+    )
+  } // optional
   // def flywayPassword = "" // optional
   //endregion
 }
@@ -39,6 +45,10 @@ You can then run common flyway commands like
 > mill foo.flywayInfo
 > mill foo.flywayMigrate
 ----
+Set `flywayDriverDeps` to your JDBC driver dependency.
+If your database requires an external Flyway plugin (for example PostgreSQL or MySQL in Flyway 11+),
+set `flywayPluginDeps` to the matching Flyway database plugin dependency.
+Use the same version as the bundled `flyway-core` dependency.
 
 CAUTION: You should never hard-code credentials or check them into a version control system.
 You should write some code to populate the settings for flyway instead.

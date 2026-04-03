@@ -11,14 +11,21 @@ trait IntegrationTesterBase {
 
   def propagateJavaHome: Boolean
 
+  protected def allowSharedOutputDir: Boolean = true
+
   def millTestSuiteEnv: Map[String, String] = {
     val javaHomeBin = sys.props("java.home") + "/bin"
+    val newPath = sys.env.find(_._1.equalsIgnoreCase("PATH")).map(_._2) match {
+      case None => javaHomeBin
+      case Some(p) => s"$javaHomeBin${System.getProperty("path.separator")}${p}"
+    }
+
     if (!propagateJavaHome) Map.empty
-    else Map(
-      "JAVA_HOME" -> sys.props("java.home"),
-      "PATH" -> s"$javaHomeBin${System.getProperty("path.separator")}${sys.env("PATH")}"
-    )
+    else Map("JAVA_HOME" -> sys.props("java.home"), "PATH" -> newPath)
   }
+
+  private lazy val useSharedOutputDir: Boolean =
+    allowSharedOutputDir && sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")
 
   /**
    * The working directory of the integration test suite, which is the root of the
@@ -31,7 +38,7 @@ trait IntegrationTesterBase {
    * non-deterministic interference and flakiness
    */
   val workspacePath: os.Path = {
-    if (sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")) baseWorkspacePath
+    if (useSharedOutputDir) baseWorkspacePath
     else Iterator
       .iterate(1)(_ + 1)
       .map(i => baseWorkspacePath / s"run-$i")
@@ -47,8 +54,7 @@ trait IntegrationTesterBase {
   def initWorkspace(): Unit = {
     println(s"Preparing integration test in $workspacePath")
     os.makeDir.all(workspacePath)
-    if (!sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")) {
-      println("Clearing out folder")
+    if (!useSharedOutputDir) {
       Retry(logger = Retry.printStreamLogger(System.err)) {
         val tmp = os.temp.dir()
         val outDir = os.Path(out, workspacePath)
@@ -77,16 +83,32 @@ trait IntegrationTesterBase {
       )
       .foreach(os.copy.into(_, workspacePath))
 
+    // When build.mill.yaml exists and build.mill contains no Scala/Yaml chunks
+    // (i.e., it's purely documentation), convert build.mill to readme.adoc
+    // This mirrors what happens when example zips are created for distribution
+    val buildMillYaml = workspacePath / "build.mill.yaml"
+    val buildMill = workspacePath / "build.mill"
+    if (os.exists(buildMillYaml) && os.exists(buildMill)) {
+      val parsed = ExampleParser(workspacePath)
+      val hasCodeChunks =
+        parsed.exists(c => c.isInstanceOf[Chunk.Scala] || c.isInstanceOf[Chunk.Yaml])
+      if (!hasCodeChunks) {
+        val rendered = ExampleRenderer.render(parsed)
+        os.write(workspacePath / "readme.adoc", rendered)
+        os.remove(buildMill)
+      }
+    }
+
     // In case someone manually ran stuff in the integration test workspace earlier,
     // remove any leftover `out/` folder so it does not interfere with the test
-    if (!sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")) os.remove.all(workspacePath / "out")
+    if (!useSharedOutputDir) os.remove.all(workspacePath / "out")
   }
 
   /**
    * Remove any ID files to try and force them to exit
    */
   def removeProcessIdFile(): Unit = {
-    if (!sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")) {
+    if (!useSharedOutputDir) {
       val outDir = os.Path(out, workspacePath)
       if (os.exists(outDir) && cleanupProcessIdFile) {
         if (daemonMode) {

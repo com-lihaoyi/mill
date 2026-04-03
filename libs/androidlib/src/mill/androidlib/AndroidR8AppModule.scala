@@ -185,20 +185,37 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
     val minifyDir = androidR8Build(Task.Anon("--classfile"))()
     val cli = minifyDir.dexCliArgs
     os.call(cli)
+
+    // expecting a zip file here after case-insensitive
+    // fix in [[https://github.com/com-lihaoyi/mill/issues/6651]]
     val jarDest = Task.dest / s"${moduleSegments.render}.jar"
-    val zipFiles = os.walk(minifyDir.outPath.path).map(p =>
-      os.zip.ZipSource.fromPathTuple(p -> p.subRelativeTo(minifyDir.outPath.path))
-    )
-    os.zip.apply(jarDest, zipFiles)
+    os.copy(minifyDir.outPath.path, jarDest)
     PathRef(jarDest)
   }
 
   private def androidR8Build(buildType: Task[String])
       : Task[(outPath: PathRef, dexCliArgs: Seq[String], appCompiledFiles: Seq[PathRef])] =
     Task.Anon {
-      val destDir = Task.dest / "minify"
+
+      // because we create class files,
+      // we don't want them to be exploded in
+      // a minify directory to avoid collisions
+      // in case insensitive file systems.
+      // See [[https://github.com/com-lihaoyi/mill/issues/6651]]
+      // A minify directory with dex files is fine, as R8 outputs them
+      // with indexing (classes1.dex ... classesN.dex)
+
+      val (isDestDir, destinationName) = if (buildType() == "--classfile")
+        false -> "minify.zip"
+      else
+        true -> "minify"
+
+      val destDir = Task.dest / destinationName
+
+      if (isDestDir)
+        os.makeDir.all(destDir)
+
       val diagnosticsDir = Task.dest / "diagnostics"
-      os.makeDir.all(destDir)
       os.makeDir.all(diagnosticsDir)
 
       val outputPath = destDir

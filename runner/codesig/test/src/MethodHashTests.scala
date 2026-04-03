@@ -1,7 +1,7 @@
 package mill.codesig
 
-import JvmModel._
-import utest._
+import JvmModel.*
+import utest.*
 
 object MethodHashTests extends TestSuite {
   val tests = Tests {

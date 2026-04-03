@@ -55,5 +55,17 @@ object RootModule {
     // and not show errors in build.mill/package.mill even though they can't see the codegen
     @compileTimeOnly("RootModule can only be instantiated in a build.mill or package.mill file")
     implicit def dummyInfo: Info = sys.error("implicit RootModule.Info must be provided")
+
+    /**
+     * RootModule.Info that reads paths from environment variables. Used by the pre-compiled
+     * dummy build to allow paths to be injected at runtime rather than compile time.
+     */
+    class FromEnv extends Info(
+          sys.env.get(mill.constants.EnvVars.MILL_WORKSPACE_ROOT).fold(os.pwd)(os.Path(_)),
+          sys.env.get(mill.constants.EnvVars.MILL_OUTPUT_DIR).fold(
+            sys.env.get(mill.constants.EnvVars.MILL_WORKSPACE_ROOT).fold(os.pwd)(os.Path(_)) / "out"
+          )(os.Path(_)),
+          sys.env.get(mill.constants.EnvVars.MILL_WORKSPACE_ROOT).fold(os.pwd)(os.Path(_))
+        )
   }
 }

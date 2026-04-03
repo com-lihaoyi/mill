@@ -1,11 +1,14 @@
 = Linting Scala Projects
 :page-aliases: Linting_Scala_Projects.adoc
-
-
+:language: Scala
+:language-small: scala
 
 This page will discuss common topics around maintaining the code quality of Scala
 codebases using the Mill build tool
 
+== Basic Linting Configuration
+
+include::partial$example/scalalib/linting/1-linting.adoc[]
 
 == Linting and Autofixing with Scalafix
 
@@ -20,23 +23,23 @@ for more details:
 
 == Linting with Acyclic Files Enforcement
 
-include::partial$example/scalalib/linting/3-acyclic.adoc[]
+include::partial$example/scalalib/linting/4-acyclic.adoc[]
 
 == Autoformatting with ScalaFmt
 
-include::partial$example/scalalib/linting/1-scalafmt.adoc[]
+include::partial$example/scalalib/linting/2-scalafmt.adoc[]
 
 == Auto-formatting with Spotless
 
-include::partial$example/scalalib/linting/4-spotless.adoc[]
+include::partial$example/scalalib/linting/5-spotless.adoc[]
 
 === Ratchet
 
-include::partial$example/javalib/linting/5-spotless-ratchet.adoc[]
+include::partial$example/javalib/linting/6-spotless-ratchet.adoc[]
 
 == Code Coverage with Scoverage
 
-include::partial$example/scalalib/linting/2-contrib-scoverage.adoc[]
+include::partial$example/scalalib/linting/3-contrib-scoverage.adoc[]
 
 Mill supports Scala code coverage analysis via the Scoverage contrib plugin. See the
 contrib plugin documentation for more details:

@@ -1,7 +1,7 @@
 package mill.javalib
 
 import java.lang.reflect.Modifier
-import scala.util.control.NonFatal
+import mill.api.daemon.internal.NonFatal
 import mill.api.BuildCtx
 import mainargs.arg
 import mill.api.Result
@@ -46,9 +46,19 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
    * Includes [[forkEnv]] and the variables defined by Mill itself.
    */
   def allForkEnv: T[Map[String, String]] = Task {
-    forkEnv() ++ Map(
+    javaHomePathForkEnv() ++ forkEnv() ++ Map(
       EnvVars.MILL_WORKSPACE_ROOT -> BuildCtx.workspaceRoot.toString
     )
+  }
+
+  def javaHomePathForkEnv: T[Map[String, String]] = Task {
+    val javaHomeBin = (javaHome().fold(os.Path(sys.props("java.home")))(_.path) / "bin").toString
+    val newPath = Task.env.find(_._1.equalsIgnoreCase("PATH")).map(_._2) match {
+      case Some(p) => s"$javaHomeBin${java.io.File.pathSeparator}$p"
+      case None => javaHomeBin
+    }
+
+    Map("PATH" -> newPath)
   }
 
   def forkWorkingDir: T[os.Path] = Task { BuildCtx.workspaceRoot }
@@ -397,20 +407,21 @@ object RunModule {
             propagateEnv = false
           )
         } else {
-          Jvm.callProcess(
+          val exitCode = Jvm.callInteractiveProcess(
             mainClass = mainClass1,
             classPath = classPath,
             jvmArgs = jvmArgs,
             env = (if (propEnv) ctx.env else Map()) ++ env,
             mainArgs = mainArgs,
             cwd = cwd,
-            stdin = os.Inherit,
-            stdout = os.Inherit,
-            stderr = os.Inherit,
             cpPassingJarPath = cpPassingJarPath,
             javaHome = javaHome,
+            // We explicitly pass in the full env map above; don't double-propagate.
             propagateEnv = false
           )
+
+          // Keep legacy semantics: non-zero exit is treated as task failure.
+          if (exitCode != 0) throw new RuntimeException("Subprocess failed")
         }
       }
     }

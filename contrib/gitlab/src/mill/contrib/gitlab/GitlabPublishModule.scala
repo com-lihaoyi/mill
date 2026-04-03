@@ -1,10 +1,10 @@
 package mill.contrib.gitlab
 
-import mill._
+import mill.*
 import mill.api.Result.{Failure, Success}
 import mill.api.Result
 import mill.api.{ExternalModule, Task}
-import javalib._
+import javalib.*
 
 trait GitlabPublishModule extends PublishModule { outer =>
 

@@ -679,9 +679,9 @@ Mill and Gradle are shown below, along with the timings:
 
 [source,console]
 ----
-$ ./mill test + subprojects.android.test + subprojects.errorprone.test + subprojects.extTest.test + subprojects.inlineTest.test + subprojects.junit-jupiter.test + subprojects.junitJupiterExtensionTest.test + subprojects.junitJupiterInlineMockMakerExtensionTest.test + subprojects.junitJupiterParallelTest.test + subprojects.memory-test.test + subprojects.programmatic-test.test + subprojects.proxy.test + subprojects.subclass.test
+$ ./mill test + subprojects.android.test + subprojects.errorprone.test + subprojects.extTest.test + subprojects.inlineTest.test + subprojects.junit-jupiter.test + subprojects.junitJupiterExtensionTest.test + subprojects.junitJupiterInlineMockMakerExtensionTest.test + subprojects.junitJupiterParallelTest.test + subprojects.memory-test.test + subprojects.programmable-test.test + subprojects.proxy.test + subprojects.subclass.test
 
-$ ./gradlew cleanTest && ./gradlew :test android:test errorprone:test extTest:test inlineTest:test junit-jupiter:test junitJupiterExtensionTest:test junitJupiterInlineMockMakerExtensionTest:test junitJupiterParallelTest:test memory-test:test programmatic-test:test proxy:test subclass:test
+$ ./gradlew cleanTest && ./gradlew :test android:test errorprone:test extTest:test inlineTest:test junit-jupiter:test junitJupiterExtensionTest:test junitJupiterInlineMockMakerExtensionTest:test junitJupiterParallelTest:test memory-test:test programmable-test:test proxy:test subclass:test
 ----
 
 |===
@@ -710,8 +710,7 @@ strategy
 
 As a last comparison, we repeated these testing benchmarks on the
 https://github.com/gatling/gatling[Gatling] codebase. Gatling is a popular load testing
-tool written in Scala and built using SBT, and we have an example Mill build
-for it as a xref:mill:ROOT:comparisons/sbt.adoc[Case Study Comparison].
+tool written in Scala and built using SBT, and we have an example Mill build for it.
 We can run the tests for both Mill and SBT builds for Gatling using the following command,
 and repeating the benchmarks gives us the timings below:
 

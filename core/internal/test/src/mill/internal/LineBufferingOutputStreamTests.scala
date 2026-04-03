@@ -79,5 +79,53 @@ object LineBufferingOutputStreamTests extends TestSuite {
         }
       }
     }
+
+    test("carriageReturn") {
+      val baos = new ByteArrayOutputStream()
+      val lpos =
+        new LineBufferingOutputStream(s => { baos.write("PREFIX".getBytes()); s.writeTo(baos) })
+      for (b <- "hello\rworld\r".getBytes()) lpos.write(b)
+      lpos.close()
+      assert(baos.toString == "PREFIXhello\rPREFIXworld\r")
+    }
+
+    test("carriageReturnAllAtOnce") {
+      val baos = new ByteArrayOutputStream()
+      val lpos =
+        new LineBufferingOutputStream(s => { baos.write("PREFIX".getBytes()); s.writeTo(baos) })
+      val arr = "hello\rworld\r".getBytes()
+      lpos.write(arr)
+      lpos.close()
+      assert(baos.toString == "PREFIXhello\rPREFIXworld\r")
+    }
+
+    test("carriageReturnNewline") {
+      val baos = new ByteArrayOutputStream()
+      val lpos =
+        new LineBufferingOutputStream(s => { baos.write("PREFIX".getBytes()); s.writeTo(baos) })
+      for (b <- "hello\r\nworld\r\n".getBytes()) lpos.write(b)
+      lpos.close()
+      assert(baos.toString == "PREFIXhello\r\nPREFIXworld\r\n")
+    }
+
+    test("carriageReturnNewlineAllAtOnce") {
+      val baos = new ByteArrayOutputStream()
+      val lpos =
+        new LineBufferingOutputStream(s => { baos.write("PREFIX".getBytes()); s.writeTo(baos) })
+      val arr = "hello\r\nworld\r\n".getBytes()
+      lpos.write(arr)
+      lpos.close()
+      assert(baos.toString == "PREFIXhello\r\nPREFIXworld\r\n")
+    }
+
+    test("mixedLineEndings") {
+      val baos = new ByteArrayOutputStream()
+      val lpos =
+        new LineBufferingOutputStream(s => { baos.write("PREFIX".getBytes()); s.writeTo(baos) })
+      val arr = "hello\nworld\rI\r\nam\rcow\n".getBytes()
+      lpos.write(arr)
+      lpos.close()
+      assert(baos.toString == "PREFIXhello\nPREFIXworld\rPREFIXI\r\nPREFIXam\rPREFIXcow\n")
+    }
   }
 }

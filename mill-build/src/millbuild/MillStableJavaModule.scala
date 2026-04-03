@@ -16,6 +16,8 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ProblemFilter.exclude[MissingClassProblem]("mill.kotlinlib.ksp.GeneratedKSPSources$"),
     // private class
     ProblemFilter.exclude[Problem]("mill.api.internal.Resolved*"),
+    ProblemFilter.exclude[Problem]("mill.api.Cached*"),
+    ProblemFilter.exclude[Problem]("mill.api.SimpleTaskTokenReader*"),
     ProblemFilter.exclude[Problem]("mill.util.RequestId*"),
     ProblemFilter.exclude[Problem]("mill.util.Timed*"),
     ProblemFilter.exclude[Problem]("mill.javalib.bsp.BspRunModule*"),
@@ -23,6 +25,10 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ProblemFilter.exclude[Problem]("mill.javalib.api.internal.*"),
     ProblemFilter.exclude[Problem]("mill.javalib.internal.*"),
     ProblemFilter.exclude[Problem]("mill.api.daemon.internal.MillScalaParser.*"),
+    // experimental stuff
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.javalib.spring.boot.SpringBootToolsModule.*"
+    ),
     // Replaced static-forwarder (to the same method in companion objects) by non-static method
     // This is a real breakage, but probably one that won't hurt any Mill user
     ProblemFilter.exclude[StaticVirtualMemberProblem]("mill.javalib.AssemblyModule.prepareOffline"),
@@ -46,12 +52,35 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     // private method
     ProblemFilter.exclude[Problem](
       "mill.api.daemon.internal.ExecutionResultsApi.formatFailing"
-    )
+    ),
+    // Real breakage, but hopefully, it's not used by external plugins
+    // See https://github.com/com-lihaoyi/mill/pull/5747#issuecomment-3641324806 and following discussion
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.javalib.TestModule#Junit5.mill$javalib$TestModule$Junit5$$super$bomMvnDeps"
+    ),
+
+    // Seems like a false positive, since it will always get mixed into `RootModule0` which
+    // provides the implementations
+    ProblemFilter.exclude[InheritedNewAbstractMethodProblem]("mill.util.MainModule.moduleCtx"),
+    ProblemFilter.exclude[InheritedNewAbstractMethodProblem](
+      "mill.util.MainModule.moduleLinearized"
+    ),
+    ProblemFilter.exclude[InheritedNewAbstractMethodProblem](
+      "mill.util.MainModule.mill$api$Module$_setter_$moduleLinearized_="
+    ),
+    // Moved to the upstream mill-constants artifact, but should still be on classpath so it's OK
+    ProblemFilter.exclude[MissingClassProblem](
+      "mill.api.daemon.MillException"
+    ),
+    // Private class
+    ProblemFilter.exclude[MissingClassProblem](
+      "mill.javalib.SonatypeCentralPublisher$PreparedArtifacts*"
+    ),
+    // private macro helpers, not part of public API
+    ProblemFilter.exclude[DirectMissingMethodProblem]("mill.api.Task#Macros*")
   )
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 
-  def mimaExcludeAnnotations = Seq("mill.api.daemon.experimental")
-
-  override def mimaReportSignatureProblems = true
+  def mimaExcludeAnnotations = Seq("mill.api.daemon.experimental", "mill.api.experimental")
 }

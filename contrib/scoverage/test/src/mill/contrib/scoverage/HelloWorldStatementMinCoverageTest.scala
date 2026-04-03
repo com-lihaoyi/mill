@@ -45,7 +45,7 @@ trait HelloWorldStatementMinCoverageTest extends utest.TestSuite {
           resourcePath
         ).scoped { eval =>
           val Right(result) =
-            eval.apply(ValidCoverageCheck.core.scoverage.validateCoverageMinimums()): @unchecked
+            eval.apply(ValidCoverageCheck.core.scoverage.validateCoverageMinimums()).runtimeChecked
 
           // The task should pass since we've set the minimum coverage
           assert(result.evalCount > 0)

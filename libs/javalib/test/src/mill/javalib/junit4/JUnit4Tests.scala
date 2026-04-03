@@ -5,7 +5,7 @@ import mill.javalib.JavaModule
 import mill.javalib.TestModule
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
-import mill.util.TokenReaders._
+import mill.util.TokenReaders.*
 
 object JUnit4Tests extends TestSuite {
 

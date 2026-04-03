@@ -1,0 +1,58 @@
+//// SNIPPET:DEPENDENCIES
+//
+// This example project uses two third-party dependencies - groovy-cli-commons for CLI
+// argument parsing, and groovy-xml - uses them to wrap a
+// given input string in HTML templates with proper escaping.
+// The `test/` submodule contains its own `mvnDeps`
+// for dependencies that are only used in the test suite.
+//
+//// SNIPPET:TREE
+// ----
+// build.mill.yaml
+// src/
+//     foo/Foo.groovy
+// resources/
+//     ...
+// test/
+//     package.mill.yaml
+//     src/
+//         foo/FooTest.groovy
+// out/
+//     compile.json
+//     compile.dest/
+//     ...
+//     test/
+//         compile.json
+//         compile.dest/
+//         ...
+// ----
+//
+// NOTE: The default Mill source folder layout `src/` differs from that of Maven/Gradle's
+// `src/main/java/`.
+// If you wish to use the Maven source folder layout, e.g. for migrating
+// an existing codebase, you should use
+// xref:#_maven_compatible_modules[Maven-Compatible Modules]
+
+//// SNIPPET:USAGE
+/** Usage
+> ./mill inspect compile # Show documentation and inputs of a task
+compile(GroovyModule.scala:...)
+    Compiles the current module to generate compiled classfiles/bytecode.
+    ...
+Inputs:
+    upstreamCompileOutput
+    allSources
+    compileClasspath
+
+> ./mill compile # compile sources into classfiles
+...
+Compiling 1 Groovy sources to...
+
+> ./mill test
+Test foo.FooTest#generate html created properly() finished, ...
+Test foo.FooTest#generated html is properly escaped() finished, ...
+Test foo.FooTest finished, ...
+
+*/
+//// SNIPPET:END
+//// SNIPPET:REPL

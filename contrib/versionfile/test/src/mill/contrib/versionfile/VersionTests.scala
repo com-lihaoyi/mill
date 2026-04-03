@@ -75,7 +75,7 @@ object VersionTests extends TestSuite {
 
       test("bumping") {
 
-        import Bump._
+        import Bump.*
 
         test("patch snapshot") {
           val snapshot = Version.Snapshot(1, 2, 3)

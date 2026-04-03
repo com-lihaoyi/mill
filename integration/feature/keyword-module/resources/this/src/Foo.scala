@@ -1,3 +1,0 @@
-package `this`
-
-object foo

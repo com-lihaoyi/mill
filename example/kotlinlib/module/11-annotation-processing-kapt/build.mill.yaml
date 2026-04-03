@@ -1,0 +1,7 @@
+extends: kapt.KaptModule
+kotlinVersion: 2.2.0
+mainClass: com.example.kapt.MainKt
+mvnDeps:
+- org.mapstruct:mapstruct:1.6.3
+annotationProcessorsMvnDeps:
+- org.mapstruct:mapstruct-processor:1.6.3

@@ -3,46 +3,65 @@ package mill.main.maven
 import mill.main.buildgen.BuildGenChecker
 import utest.*
 
-object MavenBuildGenTests extends TestSuite {
+trait MavenBuildGenTests extends TestSuite {
+
+  def expectedDir: os.SubPath
+  def extraArgs: Seq[String] = Seq()
+
   def tests = Tests {
     val checker = BuildGenChecker()
     test("maven-samples") {
       assert(checker.check(
-        generate = MavenBuildGenMain.main(Array.empty),
         sourceRel = os.sub / "maven-samples",
-        expectedRel = os.sub / "expected/maven-samples"
+        expectedRel = os.sub / expectedDir / "maven-samples",
+        initArgs = Seq() ++ extraArgs
       ))
     }
     test("quickstart") {
       assert(checker.check(
-        generate = MavenBuildGenMain.main(Array.empty),
         sourceRel = os.sub / "quickstart",
-        expectedRel = os.sub / "expected/quickstart"
+        expectedRel = os.sub / expectedDir / "quickstart",
+        initArgs = Seq() ++ extraArgs
       ))
+
     }
     test("spring-start") {
       assert(checker.check(
-        generate = MavenBuildGenMain.main(Array.empty),
         sourceRel = os.sub / "spring-start",
-        expectedRel = os.sub / "expected/spring-start"
+        expectedRel = os.sub / expectedDir / "spring-start",
+        initArgs = Seq() ++ extraArgs
       ))
     }
     test("with-args") {
-      val args = Array("--merge", "--no-meta", "--publish-properties")
+      val args = Seq("--publish-properties", "--merge", "--no-meta")
       test("maven-samples") {
         assert(checker.check(
-          generate = MavenBuildGenMain.main(args),
           sourceRel = os.sub / "maven-samples",
-          expectedRel = os.sub / "expected/with-args/maven-samples"
+          expectedRel = os.sub / expectedDir / "with-args/maven-samples",
+          initArgs = args ++ extraArgs
         ))
       }
       test("quickstart") {
         assert(checker.check(
-          generate = MavenBuildGenMain.main(args),
           sourceRel = os.sub / "quickstart",
-          expectedRel = os.sub / "expected/with-args/quickstart"
+          expectedRel = os.sub / expectedDir / "with-args/quickstart",
+          initArgs = args ++ extraArgs
         ))
       }
     }
   }
+}
+
+object MavenBuildGenTests extends MavenBuildGenTests {
+  override def expectedDir: os.SubPath = "expected"
+}
+
+object MavenBuildGenYamlTests extends MavenBuildGenTests {
+  override def expectedDir: os.SubPath = "expected"
+  override def extraArgs = Seq("--declarative", "true")
+}
+
+object MavenBuildGenScalaTests extends MavenBuildGenTests {
+  override def expectedDir: os.SubPath = "expected-scala"
+  override def extraArgs = Seq("--declarative", "false")
 }

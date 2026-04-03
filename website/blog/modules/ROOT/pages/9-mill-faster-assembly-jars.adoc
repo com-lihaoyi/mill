@@ -47,8 +47,8 @@ self-contained assembly jar.
 ----
 package foo
 
-import org.apache.spark.sql._
-import org.apache.spark.sql.functions._
+import org.apache.spark.sql.*
+import org.apache.spark.sql.functions.*
 
 object Foo {
   case class Transaction(id: Int, category: String, amount: Double)
@@ -70,7 +70,7 @@ object Foo {
 
     val resourcePath: String = args(0)
 
-    import spark.implicits._
+    import spark.implicits.*
 
     val df = spark.read
       .option("header", "true")
@@ -104,7 +104,7 @@ for large assemblies like this one.
 [source,scala]
 ----
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 object `package` extends  SbtModule {
   def scalaVersion = "2.12.19"
@@ -258,7 +258,7 @@ that requires you enable `maven-compiler-plugin` and `maven-scala-plugin`:
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.8.2</version>
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
@@ -546,7 +546,7 @@ typically small so such an update/rewrite doesn't materially slow things down.
 
 NOTE: Earlier versions of Mill used a two-stage assembly where `upstream_thirdparty_assembly`
 and `upstream_assembly` were combined, but the latest
-https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#0128---2025-02-16[0.12.8 release]
+{mill-github-url}/blob/main/changelog.adoc#0-12-8[0.12.8 release]
 moves to the three-stage assembly described here for better performance when iterating
 and generating assemblies from multi-module projects.
 

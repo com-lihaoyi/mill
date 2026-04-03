@@ -5,19 +5,33 @@ import org.objectweb.asm
 object AsmWorkerImpl {
 
   def generateSyntheticClasses(classesDir: java.nio.file.Path, mainMethods: Array[String]): Unit = {
+    // Find the MillScriptMain_ class name to forward to
+    // Match on $.class but return without $ since static forwarders are in the non-$ class
+    val targetClassName = os.list(os.Path(classesDir))
+      .map(_.last)
+      .collectFirst { case s"MillScriptMain_${s}$$.class" => s"MillScriptMain_${s}" }
+      .getOrElse("MillScriptMain_")
+
     mainMethods.foreach { methodName =>
-      generateSyntheticMainClass(os.Path(classesDir), methodName, mainMethods.size > 1)
+      generateSyntheticMainClass(
+        os.Path(classesDir),
+        methodName,
+        mainMethods.size > 1,
+        targetClassName
+      )
     }
   }
 
   def findMainArgsMethods(classesDir: java.nio.file.Path): Array[String] = {
     val mainMethods = collection.mutable.ArrayBuffer[String]()
 
-    // Look for _MillScriptMain$ class which contains the mainargs.Parser code
-    val millScriptMainClass = os.Path(classesDir) / "_MillScriptMain$.class"
+    // Look for MillScriptMain_ classes which contain the mainargs.Parser code
+    // The class name is prefixed with the script name (e.g., MillScriptMain_Multi)
+    val millScriptMainClasses = os.list(os.Path(classesDir))
+      .filter(p => p.last.startsWith("MillScriptMain_") && p.last.endsWith("$.class"))
 
-    if (os.exists(millScriptMainClass)) {
-      val reader = new asm.ClassReader(os.read.bytes(millScriptMainClass))
+    for (classFile <- millScriptMainClasses) {
+      val reader = new asm.ClassReader(os.read.bytes(classFile))
 
       val visitor = new asm.ClassVisitor(asm.Opcodes.ASM9) {
         override def visitMethod(
@@ -70,11 +84,12 @@ object AsmWorkerImpl {
   def generateSyntheticMainClass(
       classesDir: os.Path,
       methodName: String,
-      multiMain: Boolean
+      multiMain: Boolean,
+      targetClassName: String
   ): Unit = {
     val templateClassName = if (multiMain) "TemplateMultiMainClass" else "TemplateSingleMainClass"
     val templateBytes = os.read.bytes(
-      os.resource(getClass().getClassLoader()) / os.SubPath(
+      os.resource(using getClass().getClassLoader()) / os.SubPath(
         s"mill/script/asm/$templateClassName.class"
       )
     )
@@ -116,9 +131,9 @@ object AsmWorkerImpl {
               descriptor: String,
               isInterface: Boolean
           ): Unit = {
-            // Replace TemplateMainClass.main call with _MillScriptMain$.main
+            // Replace TemplateMainClass.main call with the actual MillScriptMain_.main
             if (owner == s"mill/script/asm/$templateClassName" && name == "main") {
-              super.visitMethodInsn(opcode, "_MillScriptMain", name, descriptor, isInterface)
+              super.visitMethodInsn(opcode, targetClassName, name, descriptor, isInterface)
             } else {
               super.visitMethodInsn(opcode, owner, name, descriptor, isInterface)
             }

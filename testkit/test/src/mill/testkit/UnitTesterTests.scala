@@ -16,7 +16,7 @@ object UnitTesterTests extends TestSuite {
       }
 
       UnitTester(build, resourcePath).scoped { eval =>
-        val Right(result) = eval(build.testTask): @unchecked
+        val Right(result) = eval(build.testTask).runtimeChecked
         assert(result.value == "test")
       }
     }
@@ -30,7 +30,7 @@ object UnitTesterTests extends TestSuite {
       }
 
       UnitTester(build, resourcePath).scoped { eval =>
-        val Right(result) = eval(build.testTask): @unchecked
+        val Right(result) = eval(build.testTask).runtimeChecked
         assert(result.value == "HELLO WORLD SOURCE FILE")
       }
     }

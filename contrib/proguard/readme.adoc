@@ -22,7 +22,7 @@ Here is a simple example:
 //| mvnDeps: ["com.lihaoyi::mill-contrib-proguard:$MILL_VERSION"]
 package build
 
-import contrib.proguard._
+import contrib.proguard.*
 
 object foo extends ScalaModule with Proguard {
   def scalaVersion = "2.13.16"
@@ -45,7 +45,7 @@ object foo extends ScalaModule with Proguard {
   // customise to be as narrow/wide as your application requires
   override def additionalOptions = Seq (
     "-keep class myProject.main.myApp { *; }",
-    "-keep class Scala.Symbol { *; };
+    "-keep class Scala.Symbol { *; }"
   )
 }
 ----

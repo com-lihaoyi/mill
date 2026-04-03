@@ -12,7 +12,7 @@ object myplugin extends ScalaModule, PublishModule {
 
   def scalaVersion = "3.7.4"
 
-  def jvmId = "11"
+  def jvmVersion = "11"
 
   // Set the `platformSuffix` so the name indicates what Mill version it is compiled for
   def platformSuffix = s"_mill1"
@@ -24,9 +24,11 @@ object myplugin extends ScalaModule, PublishModule {
   object integration extends ScalaTests, TestModule.Utest {
     def mvnDeps = Seq(mvn"com.lihaoyi::mill-testkit:$millVersion")
     def forkEnv = Task {
+      val repos = Seq(publishLocalTestRepo().path.toNIO.toUri.toASCIIString) ++
+        Seq(Task.env.getOrElse("COURSIER_REPOSITORIES", "ivy2Local|central"))
       Map(
         "MILL_EXECUTABLE_PATH" -> millExecutable.assembly().path.toString,
-        "MILL_USER_TEST_REPO" -> publishLocalTestRepo().path.toString
+        "COURSIER_REPOSITORIES" -> repos.mkString("|")
       )
     }
 

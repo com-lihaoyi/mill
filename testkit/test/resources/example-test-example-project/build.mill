@@ -1,5 +1,5 @@
 package build
-import mill._
+import mill.*
 
 def testSource = Task.Source("source-file.txt")
 def testTask = Task { os.read(testSource().path).toUpperCase() }

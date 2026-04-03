@@ -1,7 +1,7 @@
 package foo
 
 import org.apache.spark.sql.{SparkSession, Dataset, DataFrame}
-import org.apache.spark.sql.functions._
+import org.apache.spark.sql.functions.*
 
 object Foo {
 
@@ -24,7 +24,7 @@ object Foo {
 
     val resourcePath: String = args(0)
 
-    import spark.implicits._
+    import spark.implicits.*
 
     val df = spark.read
       .option("header", "true")

@@ -37,7 +37,7 @@ object KotlinJsLinkTests extends TestSuite {
     test("link { per module }") {
       testEval().scoped { eval =>
 
-        val Right(result) = eval.apply(module.foo(true).linkBinary): @unchecked
+        val Right(result) = eval.apply(module.foo(true).linkBinary).runtimeChecked
 
         val binariesDir = result.value.classes.path
         assert(
@@ -54,7 +54,7 @@ object KotlinJsLinkTests extends TestSuite {
     test("link { fat }") {
       testEval().scoped { eval =>
 
-        val Right(result) = eval.apply(module.foo(false).linkBinary): @unchecked
+        val Right(result) = eval.apply(module.foo(false).linkBinary).runtimeChecked
 
         val binariesDir = result.value.classes.path
         assert(

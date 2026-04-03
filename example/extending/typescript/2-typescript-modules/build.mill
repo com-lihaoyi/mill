@@ -33,7 +33,7 @@ trait TypeScriptModule extends Module {
 }
 
 // We can then instantiate the module three times. Module can be adjacent or nested,
-// as shown belo:
+// as shown below:
 
 object foo extends TypeScriptModule {
   object bar extends TypeScriptModule

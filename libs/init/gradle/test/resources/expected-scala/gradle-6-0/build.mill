@@ -1,0 +1,30 @@
+//| mill-version: SNAPSHOT
+//| mill-jvm-version: system
+package build
+
+import mill.*
+import mill.javalib.*
+
+object `package` extends MavenModule {
+
+  def mvnDeps = Seq(mvn"com.google.guava:guava:28.0-jre")
+
+  def javacOptions = Seq("-source", "11", "-target", "11")
+
+  def repositories = Seq("https://jcenter.bintray.com/")
+
+  object test extends MavenTests, TestModule.TestNg {
+
+    def mvnDeps = Seq(mvn"org.testng:testng:6.14.3")
+
+    def javacOptions = Seq("-source", "11", "-target", "11")
+
+    def forkWorkingDir = moduleDir
+
+    def testParallelism = false
+
+    def testSandboxWorkingDir = false
+
+  }
+
+}

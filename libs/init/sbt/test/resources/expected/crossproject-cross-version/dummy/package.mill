@@ -1,43 +1,24 @@
 package build.dummy
 
 import mill.*
-import mill.javalib.*
+import mill.javalib.PublishModule
 import mill.javalib.publish.*
-import mill.scalajslib.*
+import mill.scalajslib.ScalaJSModule
 import mill.scalajslib.api.*
 import mill.scalalib.*
-import mill.scalanativelib.*
+import mill.scalanativelib.ScalaNativeModule
+import mill.scalanativelib.api.*
 import millbuild.*
 
 object `package` extends Module {
 
-  object js extends Cross[JsModule]("2.12.20", "2.13.14", "3.7.1")
+  object js extends Cross[JsModule]("2.12.21", "2.13.18", "3.7.1")
   trait JsModule
-      extends ScalaJSModule
-      with SbtPlatformModule
-      with CrossprojectCrossVersionBaseModule
-      with CrossSbtPlatformModule {
+      extends ProjectBaseModule, CrossSbtPlatformModule, ScalaJSModule {
 
     def scalaJSVersion = "1.16.0"
 
-    def artifactName = "dummy"
-
-    def pomSettings = PomSettings(
-      "dummy",
-      "dummy",
-      "",
-      Seq(),
-      VersionControl(None, None, None, None),
-      Seq()
-    )
-
-  }
-
-  object jvm extends Cross[JvmModule]("2.12.20", "2.13.14", "3.7.1")
-  trait JvmModule
-      extends SbtPlatformModule
-      with CrossprojectCrossVersionBaseModule
-      with CrossSbtPlatformModule {
+    def moduleKind = ModuleKind.NoModule
 
     def artifactName = "dummy"
 
@@ -52,14 +33,27 @@ object `package` extends Module {
 
   }
 
-  object native extends Cross[NativeModule]("2.12.20", "2.13.14", "3.7.1")
+  object jvm extends Cross[JvmModule]("2.12.21", "2.13.18", "3.7.1")
+  trait JvmModule extends ProjectBaseModule, CrossSbtPlatformModule {
+
+    def artifactName = "dummy"
+
+    def pomSettings = PomSettings(
+      "dummy",
+      "dummy",
+      "",
+      Seq(),
+      VersionControl(None, None, None, None),
+      Seq()
+    )
+
+  }
+
+  object native extends Cross[NativeModule]("2.12.21", "2.13.18", "3.7.1")
   trait NativeModule
-      extends ScalaNativeModule
-      with SbtPlatformModule
-      with CrossprojectCrossVersionBaseModule
-      with CrossSbtPlatformModule {
+      extends ProjectBaseModule, CrossSbtPlatformModule, ScalaNativeModule {
 
-    def scalaNativeVersion = "0.5.4"
+    def scalaNativeVersion = "0.5.7"
 
     def artifactName = "dummy"
 

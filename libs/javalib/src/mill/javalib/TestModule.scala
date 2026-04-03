@@ -14,6 +14,7 @@ import mill.api.JsonFormatters.given
 import mill.constants.EnvVars
 import mill.javalib.api.internal.ZincOp
 import mill.javalib.testrunner.{Framework, TestArgs, TestResult, TestRunner, TestRunnerUtils}
+import mill.util.Version
 
 import java.nio.file.Path
 
@@ -44,6 +45,7 @@ trait TestModule
    * For convenience, you can also mix-in one of these predefined traits:
    * - [[TestModule.Junit4]]
    * - [[TestModule.Junit5]]
+   * - [[TestModule.Junit6]]
    * - [[TestModule.Munit]]
    * - [[TestModule.ScalaTest]]
    * - [[TestModule.Specs2]]
@@ -51,27 +53,95 @@ trait TestModule
    * - [[TestModule.Utest]]
    * - [[TestModule.Weaver]]
    * - [[TestModule.ZioTest]]
+   * - [[TestModule.Spock]]
    *
    * Most of these provide additional `xxxVersion` tasks, to manage the test framework dependencies for you.
    */
   def testFramework: T[String]
 
   /**
+   * By adding java options the discoveredTestClasses happens in an independent
+   * jvm process. Override this method to gain full control on the classpath of the
+   * test class discovery. Useful when the classloader approach does not work.
+   */
+  def testDiscoverRuntimeOptions: T[Seq[String]] = Task {
+    Seq.empty[String]
+  }
+
+  /**
+   * Enables test class discovery using Zinc analysis file
+   *
+   * Set this to true to have Mill find test classes reading the Zinc analysis file
+   * rather than by reading class files. This is required when using junit4 from Scala.js
+   * tests, by using Scala.js junit compatibility library, for example.
+   */
+  protected def discoverTestsWithZinc: Boolean = false
+
+  /**
+   * Path to the Zinc analysis file
+   *
+   * Only used when `discoverTestsWithZinc` is true. See `discoverTestsWithZinc` for more details.
+   */
+  protected def zincAnalysisFile: Task[Option[os.Path]] = Task.Anon(None)
+
+  /**
    * Test classes (often called test suites) discovered by the configured [[testFramework]].
    */
-  def discoveredTestClasses: T[Seq[String]] = Task {
-    val worker = jvmWorker().internalWorker()
-    val discoveredTests = worker.apply(
-      ZincOp.DiscoverTests(
-        runClasspath().map(_.path),
-        testClasspath().map(_.path),
-        testFramework()
-      ),
-      javaHome().map(_.path)
-    )
+  def discoveredTestClasses: T[Seq[String]] =
+    if (discoverTestsWithZinc)
+      Task {
+        zincAnalysisFileDiscoveredTestClasses().map(_._1)
+      }
+    else
+      Task {
+        val worker = jvmWorker().internalWorker()
+        val discoveredTests = worker.apply(
+          ZincOp.DiscoverTests(
+            runClasspath().map(_.path),
+            testClasspath().map(_.path),
+            testFramework()
+          ),
+          javaHome().map(_.path),
+          javaRuntimeOptions = testDiscoverRuntimeOptions()
+        )
 
-    discoveredTests.sorted
-  }
+        discoveredTests.sorted
+      }
+
+  /**
+   * Test classes discovered by reading the Zinc analysis file
+   */
+  protected def zincAnalysisFileDiscoveredTestClasses: T[Seq[(String, Int)]] =
+    Task {
+      val worker = jvmWorker().internalWorker()
+      worker.apply(
+        ZincOp.DiscoverTestsZinc(
+          runClasspath().map(_.path),
+          zincAnalysisFile().getOrElse {
+            Task.fail(
+              "No zinc analysis file available. discoverTestsWithZinc can only be set to true on JavaTests and its sub-classes."
+            )
+          },
+          testFramework()
+        ),
+        javaHome().map(_.path),
+        javaRuntimeOptions = testDiscoverRuntimeOptions()
+      )
+    }
+
+  /**
+   * When running tests, do not let the Mill test runner re-discover test classes, but use those instead
+   *
+   * For now, this is only used when test class discovery using the Zinc analysis file is enabled,
+   * see `discoverTestsWithZinc`.
+   */
+  protected def aheadOfTimeDiscoveredTestClassesIfNeeded: Task[Option[Seq[(String, Int)]]] =
+    if (discoverTestsWithZinc)
+      Task.Anon {
+        Some(zincAnalysisFileDiscoveredTestClasses())
+      }
+    else
+      Task.Anon(None)
 
   /**
    * Default arguments to be passed to `testForked`, `testOnly`, and `testCached`
@@ -189,7 +259,7 @@ trait TestModule
           classpath: Seq[Path]
       )] =
     Task.Anon {
-      val mainClass = "mill.javalib.testrunner.entrypoint.TestRunnerMain"
+      val mainClass = "mill.javalib.testrunner.entrypoint.MillTestRunnerMain"
       val outputPath = Task.dest / "out.json"
       val resultPath = Task.dest / "results.log"
       val selectors = Seq.empty
@@ -204,7 +274,8 @@ trait TestModule
         colored = Task.log.prompt.colored,
         testCp = testClasspath().map(_.path),
         globSelectors = Left(selectors),
-        logLevel = testLogLevel()
+        logLevel = testLogLevel(),
+        discoveredTestClasses = aheadOfTimeDiscoveredTestClassesIfNeeded()
       )
 
       val argsFile = Task.dest / "testargs"
@@ -263,7 +334,8 @@ trait TestModule
         testParallelism(),
         testLogLevel(),
         propagateEnv(),
-        jvmWorker().internalWorker()
+        jvmWorker().internalWorker(),
+        discoveredClassesOpt = aheadOfTimeDiscoveredTestClassesIfNeeded()
       )
       testModuleUtil.runTests()
     }
@@ -279,7 +351,8 @@ trait TestModule
         runClasspath().map(_.path),
         Seq.from(testClasspath().map(_.path)),
         args,
-        Task.testReporter
+        Task.testReporter,
+        discoveredTestClasses = aheadOfTimeDiscoveredTestClassesIfNeeded()
       )
       TestModule.handleResults(doneMsg, results, Task.ctx(), testReportXml())
     }
@@ -303,7 +376,7 @@ trait TestModule
       ) { classLoader =>
         val framework = Framework.framework(testFramework())(classLoader)
         framework.name() -> TestRunnerUtils
-          .discoverTests(classLoader, framework, testClasspath().map(_.path))
+          .discoverTests(classLoader, framework, testClasspath().map(_.path), None)
       }
     val classes = classFingerprint.map(classF => classF._1.getName.stripSuffix("$"))
     (frameworkName = frameworkName, classes = classes)
@@ -356,30 +429,53 @@ object TestModule {
    * You can override the [[junitPlatformVersion]] and [[jupiterVersion]] task
    * or provide the JUnit 5-dependencies yourself.
    *
+   * In case the [[jupiterVersion]] is set (and it is > 5.12), it pulls in JUnit-BOM in [[bomMvnDeps]]. If this is
+   * true, then there is no need to specify the [[junitPlatformVersion]] anymore, because this is managed by the
+   * BOM.
+   *
    * See: https://junit.org/junit5/
    */
   trait Junit5 extends TestModule {
 
-    /** The JUnit 5 Platfrom version to use, or empty, if you want to provide the dependencies yourself. */
+    /** The JUnit 5 Platform version to use, or empty, if you want to provide the dependencies yourself. */
     def junitPlatformVersion: T[String] = Task { "" }
 
-    /** The JUnit Jupiter version to use, or empty, if you want to provide the dependencie yourself. */
+    /** The JUnit Jupiter version to use, or empty, if you want to provide the dependencies yourself. */
     def jupiterVersion: T[String] = Task { "" }
+
+    /** Whether to use the JUnit BOM for dependency management. Override in subclasses. */
+    protected def useBom: T[Boolean] = Task {
+      if (jupiterVersion().isBlank) false
+      else Version.isAtLeast(jupiterVersion(), "5.12.0")(using Version.IgnoreQualifierOrdering)
+    }
+
+    /** The jupiter interface artifact to use. Override in subclasses for different versions. */
+    protected def jupiterInterfaceArtifact: String = mill.javalib.api.Versions.jupiterInterface
 
     override def testFramework: T[String] = "com.github.sbt.junit.jupiter.api.JupiterFramework"
 
+    override def bomMvnDeps: T[Seq[Dep]] = Task {
+      super.bomMvnDeps() ++ {
+        Seq(jupiterVersion())
+          .filter(!_.isBlank() && useBom())
+          .map(v => mvn"org.junit:junit-bom:${v.trim()}")
+      }
+    }
+
     override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
       super.mandatoryMvnDeps() ++
-        Seq(mvn"${mill.javalib.api.Versions.jupiterInterface}") ++
-        Seq(junitPlatformVersion())
-          .filter(!_.isBlank())
-          .map(v => mvn"org.junit.platform:junit-platform-launcher:${v.trim()}") ++
+        Seq(mvn"${jupiterInterfaceArtifact}") ++
+        Seq(junitPlatformVersion()).flatMap(v => {
+          if (!v.isBlank) Some(mvn"org.junit.platform:junit-platform-launcher:${v.trim()}")
+          else if (useBom()) Some(mvn"org.junit.platform:junit-platform-launcher")
+          else None
+        }) ++
         Seq(jupiterVersion())
           .filter(!_.isBlank())
           .map(v => mvn"org.junit.jupiter:junit-jupiter-api:${v.trim()}")
     }
 
-    private lazy val classesDir: Task[Option[os.Path]] = this match {
+    protected lazy val classesDir: Task[Option[os.Path]] = this match {
       case withCompileTask: JavaModule => Task.Anon {
           Some(withCompileTask.compile().classes.path)
         }
@@ -414,6 +510,30 @@ object TestModule {
         javaHome().map(_.path)
       )
     }
+  }
+
+  /**
+   * TestModule that uses JUnit 6 Framework to run tests.
+   * You can override the [[jupiterVersion]] task or provide the JUnit 6-dependencies yourself.
+   *
+   * Note: JUnit 6 requires Java 17 or higher.
+   *
+   * JUnit 6 uses unified versioning where Platform, Jupiter, and Vintage all share
+   * the same version number (e.g., 6.0.2).
+   *
+   * See: https://junit.org/junit6/
+   */
+  trait Junit6 extends Junit5 {
+
+    /** The JUnit 6 version to use, or empty, if you want to provide the dependencies yourself. */
+    override def jupiterVersion: T[String] = Task { "" }
+
+    // JUnit 6 BOM is always available when version is provided (no minimum version requirement like JUnit 5)
+    override protected def useBom: T[Boolean] = Task { !jupiterVersion().isBlank }
+
+    // Use JUnit 6's jupiter-interface dependency
+    override protected def jupiterInterfaceArtifact: String =
+      mill.javalib.api.Versions.jupiterInterface6
   }
 
   /**
@@ -513,7 +633,7 @@ object TestModule {
   /**
    * TestModule that uses Weaver to run tests.
    * You can override the [[weaverVersion]] task or provide the Weaver-dependency yourself.
-   * https://github.com/disneystreaming/weaver-test
+   * https://github.com/typelevel/weaver-test
    */
   trait Weaver extends TestModule {
 
@@ -524,7 +644,14 @@ object TestModule {
       super.mandatoryMvnDeps() ++
         Seq(weaverVersion())
           .filter(!_.isBlank())
-          .map(v => mvn"com.disneystreaming::weaver-scalacheck::${v.trim()}")
+          .map(_.trim())
+          .map { v =>
+            v.split('.').toSeq.take(2).flatMap(_.toIntOption) match
+              case Seq(0, n) if n <= 8 =>
+                mvn"com.disneystreaming::weaver-scalacheck::$v"
+              case _ =>
+                mvn"org.typelevel::weaver-cats::$v"
+          }
     }
   }
 
@@ -567,6 +694,51 @@ object TestModule {
     }
   }
 
+  /**
+   * TestModule that uses Spock Test Framework to run tests.
+   * You can override the [[spockVersion]] task or provide the Spock dependency yourself.
+   *
+   * In case the version is set, it pulls in Spock-BOM in [[bomMvnDeps]] (only for 2.3 onwards)
+   * and Spock-Core in [[mvnDeps]]
+   */
+  trait Spock extends TestModule.Junit5 {
+
+    /** The Spock Test version to use, or the empty string, if you want to provide the Spock test dependency yourself. */
+    def spockVersion: T[String] = Task {
+      ""
+    }
+
+    private def isSpockBomAvailable: T[Boolean] = Task {
+      if (spockVersion().isBlank) {
+        false
+      } else {
+        Version.isAtLeast(spockVersion(), "2.3")(using Version.IgnoreQualifierOrdering)
+      }
+    }
+
+    override def bomMvnDeps: T[Seq[Dep]] = Task {
+      super.bomMvnDeps() ++
+        Seq(spockVersion())
+          .filter(!_.isBlank() && isSpockBomAvailable())
+          .flatMap(v =>
+            Seq(
+              mvn"org.spockframework:spock-bom:${v.trim()}"
+            )
+          )
+    }
+
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++
+        Seq(spockVersion())
+          .filter(!_.isBlank())
+          .flatMap(v =>
+            Seq(
+              mvn"org.spockframework:spock-core:${v.trim()}"
+            )
+          )
+    }
+  }
+
   def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
@@ -587,6 +759,7 @@ object TestModule {
     def mvnDeps: T[Seq[Dep]] = Seq()
     def mandatoryMvnDeps: T[Seq[Dep]] = Seq()
     def resources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
+    def bomMvnDeps: T[Seq[Dep]] = Seq()
   }
 
   trait ScalaModuleBase extends mill.Module {

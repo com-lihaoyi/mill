@@ -1,6 +1,6 @@
 package mill.javalib.checkstyle
 
-import mill._
+import mill.*
 import mill.api.{PathRef}
 import mill.javalib.{DepSyntax, JavaModule}
 import mill.util.Jvm

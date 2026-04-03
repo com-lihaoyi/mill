@@ -7,4 +7,12 @@ import millbuild.*
 //  because currently there is no previous artifact version
 object `package` extends MillPublishScalaModule {
   def moduleDeps = Seq(build.libs.javalib)
+
+  override object test extends MillScalaTests {
+    override def selectiveInputs = Seq(
+      sources,
+      resources,
+      build.libs.javascriptlib.sources
+    )
+  }
 }

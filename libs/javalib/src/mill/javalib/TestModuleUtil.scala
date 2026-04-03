@@ -48,7 +48,9 @@ final class TestModuleUtil(
     testParallelism: Boolean,
     testLogLevel: TestReporter.LogLevel,
     propagateEnv: Boolean = true,
-    jvmWorker: mill.javalib.api.internal.InternalJvmWorkerApi
+    jvmWorker: mill.javalib.api.internal.InternalJvmWorkerApi,
+    @com.lihaoyi.unroll
+    discoveredClassesOpt: Option[Seq[(String, Int)]] = None
 )(using ctx: mill.api.TaskCtx) {
 
   private val (jvmArgs, props) = TestModuleUtil.loadArgsAndProps(useArgsFile, forkArgs)
@@ -83,7 +85,8 @@ final class TestModuleUtil(
           testClasspath.map(_.path),
           testFramework,
           selectors,
-          args
+          args,
+          discoveredClassesOpt
         ),
         javaHome = javaHome
       ).toSet
@@ -131,7 +134,8 @@ final class TestModuleUtil(
       colored = Task.log.prompt.colored,
       testCp = testClasspath.map(_.path),
       globSelectors = selector,
-      logLevel = testLogLevel
+      logLevel = testLogLevel,
+      discoveredTestClasses = discoveredClassesOpt
     )
 
     val argsFile = baseFolder / "testargs"
@@ -142,7 +146,7 @@ final class TestModuleUtil(
 
     val proc = BuildCtx.withFilesystemCheckerDisabled {
       Jvm.spawnProcess(
-        mainClass = "mill.javalib.testrunner.entrypoint.TestRunnerMain",
+        mainClass = "mill.javalib.testrunner.entrypoint.MillTestRunnerMain",
         classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
         env = (if (propagateEnv) Task.env else Map()) ++ forkEnv,
@@ -322,7 +326,7 @@ final class TestModuleUtil(
         // force run when processIndex == 0 (first subprocess), even if there are no tests to run
         // to force the process to go through the test framework setup/teardown logic
         val result = Option.when(processIndex == 0 || startingTestClass.nonEmpty) {
-          startingTestClass.foreach(logger.ticker(_))
+          startingTestClass.foreach(s => logger.ticker(logger.prompt.highlightColor(s)))
           // queue.log file will be appended by the runner with the stolen test class's name
           // it can be used to check the order of test classes of the runner
           val claimLog = processFolder / "claim.log"
@@ -349,8 +353,9 @@ final class TestModuleUtil(
               seenLines = lines.length
               for ((currentTestClass, nanoTime) <- currentTestClassNanoTime) {
                 val now = System.nanoTime()
+
                 logger.ticker(
-                  s"$currentTestClass${Util.renderSecondsSuffix((now - nanoTime) / 1000000)}"
+                  s"${logger.prompt.highlightColor(currentTestClass)}${Util.renderSecondsSuffix((now - nanoTime) / 1000000)}"
                 )
               }
             }

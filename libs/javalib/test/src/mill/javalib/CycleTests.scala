@@ -1,0 +1,58 @@
+package mill.javalib
+
+import mill.api.Discover
+import mill.testkit.{TestRootModule, UnitTester}
+import mill.util.TokenReaders.*
+import utest.{TestSuite, Tests, assert, assertThrows, test}
+
+object CycleTests extends TestSuite {
+
+  object CycleBase extends TestRootModule {
+    // See issue: https://github.com/com-lihaoyi/mill/issues/2341
+    object a extends JavaModule {
+      override def moduleDeps = Seq(a)
+    }
+    object b extends JavaModule {
+      override def moduleDeps = Seq(c)
+      object c extends JavaModule {
+        override def moduleDeps = Seq(d)
+      }
+      object d extends JavaModule {
+        override def moduleDeps = Seq(b)
+      }
+    }
+    object e extends JavaModule {
+      override def moduleDeps = Seq(b)
+    }
+    object f extends JavaModule {
+      override def compileModuleDeps = Seq(f)
+    }
+
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  override def tests: Tests = Tests {
+    test("moduleDeps") {
+      test("self-reference") - UnitTester(CycleBase, null).scoped { eval =>
+        val ex = assertThrows[mill.api.MillException] {
+          eval.apply(CycleBase.a.compile)
+        }
+        assert(ex.getMessage.contains("a.moduleDeps: cycle detected: a -> a"))
+      }
+      test("cycle-in-deps") - UnitTester(CycleBase, null).scoped { eval =>
+        val ex = assertThrows[mill.api.MillException] {
+          eval.apply(CycleBase.e.compile)
+        }
+        assert(ex.getMessage.contains("e.moduleDeps: cycle detected: b -> b.c -> b.d -> b"))
+      }
+    }
+    test("compileModuleDeps") {
+      test("self-reference") - UnitTester(CycleBase, null).scoped { eval =>
+        val ex = assertThrows[mill.api.MillException] {
+          eval.apply(CycleBase.f.compile)
+        }
+        assert(ex.getMessage.contains("f.compileModuleDeps: cycle detected: f -> f"))
+      }
+    }
+  }
+}

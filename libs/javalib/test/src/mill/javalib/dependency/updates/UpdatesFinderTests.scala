@@ -29,7 +29,7 @@
 package mill.javalib.dependency.updates
 
 import mill.javalib.dependency.versions.{DependencyVersions, Version}
-import utest._
+import utest.*
 
 object UpdatesFinderTests extends TestSuite {
 

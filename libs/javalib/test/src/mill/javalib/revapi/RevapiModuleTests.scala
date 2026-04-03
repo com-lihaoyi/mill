@@ -7,7 +7,7 @@ import mill.javalib.publish.{PomSettings, VersionControl}
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.{T, Task}
 import utest.*
-import mill.util.TokenReaders._
+import mill.util.TokenReaders.*
 
 object RevapiModuleTests extends TestSuite {
 
@@ -86,7 +86,7 @@ object RevapiModuleTests extends TestSuite {
       eval(module1.publishLocal())
     }
     UnitTester(module2, root2).scoped { eval =>
-      val Right(dir) = eval(module2.revapi()): @unchecked
+      val Right(dir) = eval(module2.revapi()).runtimeChecked
       dir.value.path
     }
   }
@@ -123,7 +123,7 @@ object RevapiModuleTests extends TestSuite {
     }
 
     UnitTester(module, os.temp.dir()).scoped { eval =>
-      val Right(dir) = eval(module.revapi()): @unchecked
+      val Right(dir) = eval(module.revapi()).runtimeChecked
       dir.value.path
     }
   }

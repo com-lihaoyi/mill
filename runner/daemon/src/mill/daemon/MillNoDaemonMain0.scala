@@ -2,8 +2,9 @@ package mill.daemon
 
 import mill.constants.{DaemonFiles, Util}
 import mill.constants.OutFiles.OutFiles
-import mill.daemon.MillMain0.{handleMillException, main0}
+import mill.daemon.MillMain0.handleMillException
 import mill.api.BuildCtx
+import mill.launcher.DaemonRpc
 import mill.server.Server
 
 import scala.jdk.CollectionConverters.*
@@ -42,8 +43,15 @@ object MillNoDaemonMain0 {
 
     val outLock = MillMain0.doubleLock(out)
 
+    // Create runner that executes subprocesses locally with inherited I/O
+    val launcherRunner: mill.api.daemon.LauncherSubprocess.Runner =
+      config =>
+        DaemonRpc
+          .defaultRunSubprocessWithStreams(None)(DaemonRpc.ServerToClient.RunSubprocess(config))
+          .exitCode
+
     val (result, _) =
-      try main0(
+      try MillMain0.main0(
           args = args.rest.toArray,
           stateCache = RunnerState.empty,
           mainInteractive = mill.constants.Util.hasConsole(),
@@ -54,7 +62,10 @@ object MillNoDaemonMain0 {
           initialSystemProperties = sys.props.toMap,
           systemExit = ( /*reason*/ _, exitCode) => sys.exit(exitCode),
           daemonDir = args.daemonDir,
-          outLock = outLock
+          outLock = outLock,
+          launcherSubprocessRunner = launcherRunner,
+          serverToClientOpt = None,
+          millRepositories = Seq.empty
         )
       catch handleMillException(initialSystemStreams.err, ())
 

@@ -3,7 +3,7 @@
 
 package build
 
-import mill._
+import mill.*
 import com.grack.nanojson.JsonParser
 import com.grack.nanojson.JsonObject
 

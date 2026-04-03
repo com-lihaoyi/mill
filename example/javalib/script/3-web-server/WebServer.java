@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class WebServer {
   public static void main(String[] args) throws Exception {
+    System.setProperty("server.port", System.getenv().getOrDefault("PORT", "8080"));
     SpringApplication.run(WebServer.class, args);
     Thread.sleep(Integer.MAX_VALUE);
   }

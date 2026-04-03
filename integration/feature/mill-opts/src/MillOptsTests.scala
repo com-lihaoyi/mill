@@ -7,13 +7,13 @@ import utest.*
 object MillOptsTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     def runTests(tester: IntegrationTester) = {
-      import tester._
+      import tester.*
       val res = eval("checkJvmOpts")
       assert(res.isSuccess)
 
       // interpolatedEnvVars
       if (!Util.isWindows) { // PWD does not exist on windows
-        import tester._
+        import tester.*
         val res = eval(("show", "getEnvJvmOpts"))
         val out = res.out
         val expected = "\"value-with-" + tester.workspacePath + "\""

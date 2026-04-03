@@ -11,6 +11,21 @@ import scala.collection.mutable
 
 object Util {
 
+  private[mill] def catchUpickleAbort[T](
+      path: java.nio.file.Path,
+      prefix: String = ""
+  )(t: => T): Result[T] = {
+    try Result.Success(t)
+    catch {
+      case abort: upickle.core.AbortException =>
+        Result.Failure(
+          prefix + Option(abort.getMessage).getOrElse("YAML type mismatch"),
+          path,
+          abort.index
+        )
+    }
+  }
+
   val alphaKeywords: Set[String] = Set(
     "abstract",
     "case",
@@ -61,7 +76,8 @@ object Util {
 
   def backtickWrap(s: String): String = s match {
     case s"`$_`" => s
-    case _ => if (encode(s) == s && !alphaKeywords.contains(s)) s
+    case _ =>
+      if (encode(s) == s && !alphaKeywords.contains(s) && Character.isJavaIdentifierStart(s.head)) s
       else "`" + s + "`"
   }
 
@@ -186,14 +202,15 @@ object Util {
       visitor0: upickle.core.Visitor[_, T]
   ): Result[T] = {
 
-    try Result.Success {
+    val filePath = os.Path(fileName, mill.api.BuildCtx.workspaceRoot).toNIO
+    try catchUpickleAbort(filePath) {
         upickle.core.TraceVisitor.withTrace(true, visitor0) { visitor =>
           import org.snakeyaml.engine.v2.api.LoadSettings
           import org.snakeyaml.engine.v2.composer.Composer
           import org.snakeyaml.engine.v2.parser.ParserImpl
           import org.snakeyaml.engine.v2.scanner.StreamReader
-          import org.snakeyaml.engine.v2.nodes._
-          import scala.jdk.CollectionConverters._
+          import org.snakeyaml.engine.v2.nodes.*
+          import scala.jdk.CollectionConverters.*
 
           val settings = LoadSettings.builder().build()
           val reader = new StreamReader(settings, headerData)
@@ -207,18 +224,15 @@ object Util {
             try {
               node match {
                 case scalar: ScalarNode =>
-                  val value = scalar.getValue
-                  val tag = scalar.getTag.getValue
-                  tag match {
+                  // Parse all YAML scalars as strings. In general, the `upickle.Reader`s that
+                  // consume these events downstream all are able to handle strings elegantly,
+                  // and this avoids the loss of precision that may result if we try to emit
+                  // e.g. booleans using `visitTrue`/`visitFalse which would result in the
+                  // distinction between `true`/`True`/`TRUE` collapsing into just `true` even
+                  // if the final parse wants the actual string value.
+                  scalar.getTag.getValue match {
                     case "tag:yaml.org,2002:null" => v.visitNull(index)
-                    case "tag:yaml.org,2002:bool" =>
-                      if (value == "true") v.visitTrue(index)
-                      else v.visitFalse(index)
-                    case "tag:yaml.org,2002:int" =>
-                      v.visitFloat64StringParts(value, -1, -1, index)
-                    case "tag:yaml.org,2002:float" =>
-                      v.visitFloat64StringParts(value, -1, -1, index)
-                    case _ => v.visitString(value, index)
+                    case _ => v.visitString(scalar.getValue, index)
                   }
 
                 case mapping: MappingNode =>
@@ -244,16 +258,31 @@ object Util {
                   objVisitor.visitEnd(index)
 
                 case sequence: SequenceNode =>
-                  val arrVisitor = v.visitArray(sequence.getValue.size(), index)
-                    .asInstanceOf[upickle.core.ArrVisitor[Any, J]]
-                  for (item <- sequence.getValue.asScala) {
-                    val itemResult = rec(item, arrVisitor.subVisitor)
-                    arrVisitor.visitValue(
-                      itemResult,
-                      item.getStartMark.map(_.getIndex.intValue()).orElse(0)
-                    )
+                  def visitSequence[T](visitor: upickle.core.Visitor[?, T]): T = {
+                    val arrVisitor = visitor.visitArray(sequence.getValue.size(), index)
+                      .asInstanceOf[upickle.core.ArrVisitor[Any, T]]
+                    for (item <- sequence.getValue.asScala) {
+                      arrVisitor.visitValue(
+                        rec(item, arrVisitor.subVisitor),
+                        item.getStartMark.map(_.getIndex.intValue()).orElse(0)
+                      )
+                    }
+                    arrVisitor.visitEnd(index)
                   }
-                  arrVisitor.visitEnd(index)
+                  // Check for !append tag - if present, wrap in {$millAppend: <array>}
+                  if (sequence.getTag.getValue == "!append") {
+                    import mill.api.internal.Appendable.AppendMarkerKey
+                    val objVisitor = v.visitObject(1, jsonableKeys = true, index)
+                      .asInstanceOf[upickle.core.ObjVisitor[Any, J]]
+                    objVisitor.visitKeyValue(objVisitor.visitKey(index).visitString(
+                      AppendMarkerKey,
+                      index
+                    ))
+                    objVisitor.visitValue(visitSequence(objVisitor.subVisitor), index)
+                    objVisitor.visitEnd(index)
+                  } else {
+                    visitSequence(v)
+                  }
               }
             } catch {
               case e: upickle.core.Abort =>
@@ -299,7 +328,7 @@ object Util {
           case abort: upickle.core.AbortException =>
             Result.Failure(
               s"Failed de-serializing config key ${e.jsonPath}: ${e.getCause.getCause.getMessage}",
-              os.Path(fileName, mill.api.BuildCtx.workspaceRoot).toNIO,
+              filePath,
               abort.index
             )
 
@@ -309,6 +338,46 @@ object Util {
             )
         }
     }
+  }
+
+  /**
+   * Parses a config value from the YAML header data.
+   * Returns the parsed value or a default on missing key. Throws on parse failure.
+   */
+  def parseBuildHeaderValue[T: upickle.default.Reader](
+      headerData: String,
+      configKey: String,
+      default: T
+  ): T =
+    parseYaml0(
+      "build header",
+      headerData,
+      upickle.default.reader[Map[String, ujson.Value]]
+    ) match {
+      case Result.Success(conf) =>
+        conf.get(configKey) match {
+          case Some(value) => upickle.default.read[T](value)
+          case None => default
+        }
+      case f: Result.Failure =>
+        throw new mill.api.daemon.MillException(s"Failed parsing build header: ${f.error}")
+    }
+
+  /**
+   * Reads a boolean flag from the root build.mill YAML header.
+   */
+  def readBooleanFromBuildHeader(
+      projectRoot: os.Path,
+      configKey: String,
+      rootBuildFileNames: Seq[String]
+  ): Boolean = {
+    rootBuildFileNames
+      .map(name => projectRoot / name)
+      .find(os.exists)
+      .exists { buildFile =>
+        val headerData = mill.constants.Util.readBuildHeader(buildFile.toNIO, buildFile.last)
+        parseBuildHeaderValue[Boolean](headerData, configKey, default = false)
+      }
   }
 
   def splitPreserveEOL(bytes: Array[Byte]): Seq[Array[Byte]] = {
@@ -349,30 +418,49 @@ object Util {
             Logger.formatPrefix(evaluated.transitivePrefixesApi.getOrElse(key, Nil))
 
           def convertFailure(f: ExecResult.Failure[_]): Result.Failure = {
-            f.res match {
+            f.failure match {
               // If there is no associated `Result.Failure`,
               // synthesize one based on the `key` and the `f.msg`
-              case null => Result.Failure(error = s"$key ${f.msg}", tickerPrefix = keyPrefix)
-              case res =>
+              case None => Result.Failure(error = s"$key ${f.msg}", tickerPrefix = keyPrefix)
+              case Some(failure) =>
                 // If there is an associated `Result.Failure` with no prefix, set the prefix to the
                 // current `keyPrefix` and prefix `error` with `key`
-                if (res.tickerPrefix == "")
-                  res.copy(error = s"$key ${res.error}", tickerPrefix = keyPrefix)
+                if (failure.tickerPrefix == "")
+                  failure.copy(error = s"$key ${failure.error}", tickerPrefix = keyPrefix)
                 // If there is an associated `Result.Failure` with its own prefix, preserve it
                 // and chain together a new `Result.Failure` entry representing the current key
-                else Result.Failure(error = s"$key", tickerPrefix = keyPrefix, next = Some(res))
+                else Result.Failure(error = s"$key", tickerPrefix = keyPrefix, next = Some(failure))
             }
           }
 
           fs match {
             case f: ExecResult.Failure[_] => convertFailure(f)
             case ex: ExecResult.Exception =>
-              mill.api.daemon.ExecResult.exceptionToFailure(ex.throwable, ex.outerStack).copy(
+              Result.Failure.fromException(
+                ex.throwable,
+                ex.outerStack.value.toArray,
+                ex.outerStack.cutExtra
+              ).copy(
                 error = key.toString,
                 tickerPrefix = keyPrefix
               )
           }
         }
+    )
+  }
+
+  /**
+   * Creates a map of standard environment variables for interpolation in Mill config files.
+   * This includes PWD, PWD_URI, WORKSPACE, MILL_VERSION, and MILL_BIN_PLATFORM.
+   */
+  def envForInterpolation(workDir: os.Path): Map[String, String] = {
+    val workspaceDir = workDir.toString
+    sys.env ++ Map(
+      "PWD" -> workspaceDir,
+      "PWD_URI" -> workDir.toNIO.toUri.toString,
+      "WORKSPACE" -> workspaceDir,
+      "MILL_VERSION" -> mill.constants.BuildInfo.millVersion,
+      "MILL_BIN_PLATFORM" -> mill.constants.BuildInfo.millBinPlatform
     )
   }
 }

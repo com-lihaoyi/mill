@@ -44,6 +44,8 @@ object AndroidLintReportFormat extends Enumeration {
   // Define an implicit ReadWriter for the Format case class
   implicit val formatRW: ReadWriter[Format] = macroRW
 
+  implicit val valueRW: ReadWriter[Value] = formatRW.asInstanceOf[ReadWriter[Value]]
+
   // Optional: Add a method to retrieve all possible values
   val allFormats: List[Format] = List(Html, Xml, Txt, Sarif)
 }
@@ -233,6 +235,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
     }.map(nativeLibDir =>
       AndroidPackageableExtraFile(PathRef(nativeLibDir), "lib" / nativeLibDir.last)
     )
+  }
+
+  override def androidAaptNonFinalIds: T[Boolean] = Task {
+    false
   }
 
   /**
@@ -523,32 +529,46 @@ trait AndroidAppModule extends AndroidModule { outer =>
     PathRef(Task.dest)
   }
 
-  /** The name of the virtual device to be created by  [[createAndroidVirtualDevice]] */
-  def androidVirtualDeviceIdentifier: String = "test"
-
-  /** The device  id as listed from avdmanager list device. Default is medium_phone */
-  def androidDeviceId: String = "medium_phone"
-
   /**
-   * The target architecture of the virtual device to be created by  [[createAndroidVirtualDevice]]
-   *  For example, "x86_64" (default). For a list of system images and their architectures,
-   *  see the Android SDK Manager `sdkmanager --list`.
+   * Autodetects the architecture of the image for the [[androidVirtualDevice]]
+   *
+   * Available architectures are x86_64 and arm64-v8a
+   *
+   * For more information, see [[https://developer.android.com/studio/run/emulator-acceleration#vm-accel-dev-env-reqs]]
    */
-  def androidEmulatorArchitecture: String = "x86_64"
+  def androidVirtualDeviceArchitecture: T[String] = Task {
+    System.getProperty("os.arch") match {
+      case "aarch64" | "arm64" => "arm64-v8a"
+      case "x86_64" | "amd64" => "x86_64"
+      case other =>
+        Task.log.warn(s"Unknown host architecture '$other', defaulting to x86_64")
+        "x86_64"
+    }
+  }
 
   /**
-   * Installs the user specified system image for the emulator
+   * Specifies the default configuration for the Android Virtual Device (AVD).
+   */
+  def androidVirtualDevice: T[AndroidVirtualDevice] = Task {
+    AndroidVirtualDevice(
+      deviceId = "medium_phone",
+      apiVersion = androidSdkModule().platformsVersion(),
+      architecture = androidVirtualDeviceArchitecture(),
+      systemImageSource = "google_apis_playstore"
+    )
+  }
+
+  /**
+   * Installs the android system image specified in [[androidVirtualDevice]]
    * using sdkmanager . E.g. "system-images;android-35;google_apis_playstore;x86_64"
    */
-  def sdkInstallSystemImage(): Command[String] = Task.Command {
-    val image =
-      s"system-images;${androidSdkModule().platformsVersion()};google_apis_playstore;$androidEmulatorArchitecture"
-    Task.log.info(s"Downloading $image")
-    val installCall = os.call((
-      androidSdkModule().sdkManagerExe().path,
-      "--install",
-      image
-    ))
+  def sdkInstallSystemImage: T[String] = Task {
+    val installCall = androidSdkManagerModule().androidSdkManagerInstall(
+      Task.Anon(androidSdkModule().sdkManagerExe()),
+      Task.Anon(Seq(androidVirtualDevice().systemImage))
+    )()
+
+    val image = androidVirtualDevice().systemImage
 
     if (installCall.exitCode != 0) {
       Task.log.error(
@@ -560,26 +580,28 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
-   * Creates the android virtual device identified in virtualDeviceIdentifier
+   * Creates the android virtual device identified in [[androidVirtualDevice]]
    */
   def createAndroidVirtualDevice(): Command[String] = Task.Command(exclusive = true) {
+    val name = androidVirtualDevice().name
+    val deviceId = androidVirtualDevice().deviceId
     val command = os.call((
       androidSdkModule().avdmanagerExe().path,
       "create",
       "avd",
       "--name",
-      androidVirtualDeviceIdentifier,
+      name,
       "--package",
-      sdkInstallSystemImage()(),
+      sdkInstallSystemImage(),
       "--device",
-      androidDeviceId,
+      deviceId,
       "--force"
     ))
     if (command.exitCode != 0) {
       Task.log.error(s"Failed to create android virtual device: ${command.err.text()}")
       throw new Exception(s"Failed to create android virtual device: ${command.exitCode}")
     }
-    s"DeviceName: $androidVirtualDeviceIdentifier, DeviceId: $androidDeviceId"
+    s"DeviceName: $name, DeviceId: $deviceId"
   }
 
   /**
@@ -591,7 +613,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       "delete",
       "avd",
       "--name",
-      androidVirtualDeviceIdentifier
+      androidVirtualDevice().name
     ))
   }
 
@@ -626,7 +648,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       androidEmulatorPort,
       "-no-metrics",
       "-avd",
-      androidVirtualDeviceIdentifier
+      androidVirtualDevice().name
     )
 
     val command = Seq(
@@ -642,7 +664,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     val bootMessage: Option[String] = startEmuCmd.stdout.buffered.lines().filter(l => {
       Task.log.debug(l.trim())
-      l.contains("Boot completed in")
+      l.contains("Boot completed in") || l.contains("Successfully loaded snapshot")
     }).findFirst().toScala
 
     if (bootMessage.isEmpty) {
@@ -663,7 +685,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   /**
    * Stops the android emulator
    */
-  def stopAndroidEmulator: T[String] = Task {
+  def stopAndroidEmulator(): Command[String] = Task.Command {
     val emulator = runningEmulator()
     os.call(
       (androidSdkModule().adbExe().path, "-s", emulator, "emu", "kill")
@@ -671,11 +693,17 @@ trait AndroidAppModule extends AndroidModule { outer =>
     emulator
   }
 
-  /** The emulator port where adb connects to. Defaults to 5554 */
+  /**
+   * Port number for the android emulator console to listen on
+   * It is suggested to use even numbers between 5554 and 5584
+   *
+   * See more at `-port` on:
+   * [[https://developer.android.com/studio/run/emulator-commandline#common]]
+   */
   def androidEmulatorPort: String = "5554"
 
   /**
-   * Returns the emulator identifier for created from startAndroidEmulator
+   * Returns the emulator identifier for created from [[startAndroidEmulator]]
    * by iterating the adb device list
    */
   def runningEmulator: T[String] = Task {
@@ -683,7 +711,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
-   * Installs the app to the android device identified by this configuration in [[androidVirtualDeviceIdentifier]].
+   * Installs the app to the [[runningEmulator]]
    *
    * @return The name of the device the app was installed to
    */
@@ -737,15 +765,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
     Task.Sources(subPaths*)
   }
 
-  private def androidMillHomeDir: Task[PathRef] = Task.Anon {
-    val globalDebugFileLocation = os.home / ".mill-android"
-    if (!os.exists(globalDebugFileLocation))
-      os.makeDir(globalDebugFileLocation)
-    PathRef(globalDebugFileLocation)
-  }
-
   private def debugKeystoreFile: Task[PathRef] = Task.Anon {
-    PathRef(androidMillHomeDir().path / "mill-debug.jks")
+    PathRef(androidSdkModule().androidMillHomeDir().path / "mill-debug.jks")
   }
 
   private def keytoolModuleRef: ModuleRef[KeytoolModule] = ModuleRef(KeytoolModule)
@@ -757,7 +778,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
    */
   private def androidDebugKeystore: Task[PathRef] = Task.Anon {
     val debugKeystoreFilePath = debugKeystoreFile().path
-    os.makeDir.all(androidMillHomeDir().path)
+    os.makeDir.all(androidSdkModule().androidMillHomeDir().path)
     keytoolModuleRef().createKeystoreWithCertificate(
       Task.Anon(Seq(
         "--keystore",
@@ -1039,8 +1060,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       ) ++ androidMergeableManifests().flatMap(m => Seq("--libs", m.path.toString))
     }
 
-    override def androidVirtualDeviceIdentifier: String = outer.androidVirtualDeviceIdentifier
-    override def androidEmulatorArchitecture: String = outer.androidEmulatorArchitecture
+    override def androidVirtualDevice: T[AndroidVirtualDevice] = outer.androidVirtualDevice()
 
     /**
      * Re/Installs the app apk and then the test apk on the [[runningEmulator]]
@@ -1066,7 +1086,9 @@ trait AndroidAppModule extends AndroidModule { outer =>
     /**
      * Runs the tests on the [[runningEmulator]] with the [[androidTestApk]]
      * against the [[androidApk]]
-     * @param args
+     *
+     * @param args Additional adb shell am instrument arguments.
+     *             See [[https://developer.android.com/studio/test/command-line#am-instrument-options]]
      * @param globSelectors
      * @return
      */
@@ -1085,7 +1107,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
           "am",
           "instrument",
           "-w",
-          "-r",
+          "-r"
+        ) ++ args() ++ Seq(
           s"${androidApplicationId}/${testFramework()}"
         )
       ).spawn()
@@ -1148,6 +1171,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
  * Descriptor of unpacked `.aar` dependency structure.
  * @param name dependency name
  * @param classesJar path to the classes.jar
+ * @param sourcesJar path to the sources.jar
  * @param proguardRules path to the proguard rules
  * @param androidResources path to the res folder
  * @param manifest path to the AndroidManifest.xml
@@ -1161,9 +1185,11 @@ trait AndroidAppModule extends AndroidModule { outer =>
 case class UnpackedDep(
     name: String,
     classesJar: Option[PathRef],
+    sourcesJar: Option[PathRef],
     repackagedJars: Seq[PathRef],
     proguardRules: Option[PathRef],
     androidResources: Option[PathRef],
+    assets: Option[PathRef],
     manifest: Option[PathRef],
     lintJar: Option[PathRef],
     metaInf: Option[PathRef],

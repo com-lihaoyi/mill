@@ -42,7 +42,7 @@ trait CycloneDXJavaModule extends JavaModule with CycloneDXModule {
   private def resolvedRunMvnDepsDetails(): Task[Fetch.Result] = Task.Anon {
     millResolver().fetchArtifacts(Seq(
       BoundDep(
-        coursierDependency.withConfiguration(cs.Configuration.runtime),
+        coursierDependencyTask().withConfiguration(cs.Configuration.runtime),
         force = false
       )
     ))

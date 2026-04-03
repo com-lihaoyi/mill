@@ -3,7 +3,6 @@ package mill.kotlinlib.ksp
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import mill.*
-import mill.api.daemon.MillURLClassLoader
 import mill.api.{ModuleRef, PathRef, Task}
 import mill.kotlinlib.ksp2.{KspWorker, KspWorkerArgs}
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
@@ -84,7 +83,8 @@ trait KspModule extends KotlinModule { outer =>
    */
   def kotlinSymbolProcessorsResolved: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      kotlinSymbolProcessors()
+      kotlinSymbolProcessors(),
+      boms = allBomDeps()
     )
   }
 
@@ -258,10 +258,18 @@ trait KspModule extends KotlinModule { outer =>
 
     Task.log.info(s"KSP arguments: ${compilerArgs.mkString(" ")}")
 
+    val useBtApi = kotlincUseBtApi() && kotlinUseEmbeddableCompiler()
+    if (kotlincUseBtApi() && !kotlinUseEmbeddableCompiler()) {
+      Task.log.warn(
+        "Kotlin Build Tools API requires kotlinUseEmbeddableCompiler=true; " +
+          "falling back to CLI compiler backend for KSP generation."
+      )
+    }
+
     KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
       _.compile(
         target = KotlinWorkerTarget.Jvm,
-        useBtApi = kotlincUseBtApi(),
+        useBtApi = useBtApi,
         args = compilerArgs,
         sources = sourceFiles
       )
@@ -406,7 +414,7 @@ trait KspModule extends KotlinModule { outer =>
    * parent of [[kotlinSymbolProcessorClassloader]] as classes are shared between the [[ksp2ToolsDeps]]
    * and [[kotlinSymbolProcessors]] (symbol processors depend on the KSP API).
    */
-  def ksp2WorkerClassloader: Worker[ClassLoader] = Task.Worker {
+  def ksp2WorkerClassloader: Worker[ClassLoader & AutoCloseable] = Task.Worker {
     Jvm.createClassLoader(
       classPath = ksp2InProgramToolsClasspath().map(_.path),
       parent = getClass.getClassLoader
@@ -429,7 +437,7 @@ trait KspModule extends KotlinModule { outer =>
    *
    * For more info see reference implementation: [[https://github.com/google/ksp/blob/main/docs/ksp2entrypoints.md]]
    */
-  def kotlinSymbolProcessorClassloader: Worker[ClassLoader] = Task.Worker {
+  def kotlinSymbolProcessorClassloader: Worker[ClassLoader & AutoCloseable] = Task.Worker {
     Jvm.createClassLoader(
       kotlinSymbolProcessorsResolved().map(_.path),
       parent = ksp2WorkerClassloader()

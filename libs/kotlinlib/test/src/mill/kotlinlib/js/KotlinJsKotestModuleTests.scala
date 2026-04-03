@@ -43,7 +43,7 @@ object KotlinJsKotestModuleTests extends TestSuite {
 
         val command = module.foo.test.testForked()
         val Left(ExecResult.Failure(msg = failureMessage)) =
-          eval.apply(command): @unchecked
+          eval.apply(command).runtimeChecked
 
         val xmlReport =
           ExecutionPaths.resolve(eval.outPath, command).dest / "test-report.xml"

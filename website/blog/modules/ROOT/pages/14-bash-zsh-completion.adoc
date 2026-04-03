@@ -1,8 +1,6 @@
 = Writing Your Own Simple Tab-Completions for Bash and Zsh
-
-:link-github: https://github.com/com-lihaoyi/mill
+:link-github: {mill-github-url}
 :link-pr: {link-github}/pull
-
 // tag::header[]
 :author: Li Haoyi
 :revdate: 7 August 2025
@@ -20,7 +18,7 @@ normally only available on Zsh and not on Bash.
 But with some work, you can make your tab-completions work on both shells, including
 nice quality-of-life features like completion descriptions. This blog post will explore how it
 can be done, based on our recent experience implementing this in the {mill-doc-url}[Mill build tool]
-version https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#103[1.0.3],
+version {mill-github-url}/blob/main/changelog.adoc#1-0-3[1.0.3],
 providing the great tab-completion experience you see below in a way that works across
 both common shells. Hopefully based on this, you will know enough and have enough reference
 examples to set up Bash and Zsh completions for your own command-line tooling.

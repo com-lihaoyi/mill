@@ -5,7 +5,7 @@
 
 /** Usage
 
-> ./mill version
+> ./mill resolve _
 [typer...]
 [constructors...]
 [erasure...]

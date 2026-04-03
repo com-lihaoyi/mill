@@ -2,12 +2,12 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 
-import utest._
+import utest.*
 
 object SubprocessStdoutTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test - integrationTest { tester =>
-      import tester._
+      import tester.*
       val res1 = eval("inheritInterleaved", mergeErrIntoOut = true).out
       // Make sure that when a lot of printed/inherited stdout/stderr is printed
       // in quick succession, the output ordering is preserved, and it doesn't get

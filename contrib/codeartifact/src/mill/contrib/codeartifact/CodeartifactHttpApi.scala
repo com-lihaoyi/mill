@@ -1,6 +1,6 @@
 package mill.contrib.codeartifact
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import requests.Session
 
 class CodeartifactHttpApi(

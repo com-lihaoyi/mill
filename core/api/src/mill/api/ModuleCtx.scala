@@ -46,7 +46,8 @@ object ModuleCtx extends LowPriCtx {
     def moduleSegments: Segments = moduleCtx.segments
     def moduleCtx: ModuleCtx
     private[mill] def moduleLinearized: Seq[Class[?]]
-    private[mill] def moduleDynamicBuildOverrides: Map[String, internal.Located[BufferedValue]] =
+    private[mill] def moduleDynamicBuildOverrides
+        : Map[String, internal.Located[internal.Appendable[BufferedValue]]] =
       Map()
   }
 

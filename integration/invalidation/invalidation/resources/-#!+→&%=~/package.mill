@@ -1,5 +1,0 @@
-package build.`-#!+→&%=~`
-
-import mill._
-
-def input = Task {}

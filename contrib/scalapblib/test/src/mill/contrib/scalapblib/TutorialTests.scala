@@ -114,7 +114,7 @@ object TutorialTests extends TestSuite {
     UnitTester(module, resourcePath).scoped { eval =>
       if (Util.isWindows) "Skipped test on Windows"
       else {
-        val Right(result) = eval.apply(module.core.compileScalaPB): @unchecked
+        val Right(result) = eval.apply(module.core.compileScalaPB).runtimeChecked
 
         val outPath = protobufOutPath(eval)
         val outputFiles = os.walk(result.value.path).filter(os.isFile)
@@ -129,7 +129,7 @@ object TutorialTests extends TestSuite {
         )
 
         // don't recompile if nothing changed
-        val Right(result2) = eval.apply(module.core.compileScalaPB): @unchecked
+        val Right(result2) = eval.apply(module.core.compileScalaPB).runtimeChecked
         assert(result2.evalCount == 0)
       }
     }
@@ -139,7 +139,7 @@ object TutorialTests extends TestSuite {
     test("scalapbVersion") {
 
       test("fromBuild") - UnitTester(Tutorial, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(Tutorial.core.scalaPBVersion): @unchecked
+        val Right(result) = eval.apply(Tutorial.core.scalaPBVersion).runtimeChecked
 
         assert(
           result.value == testScalaPbVersion,
@@ -163,7 +163,7 @@ object TutorialTests extends TestSuite {
         if (Util.isWindows) "Skipped test on Windows"
         else {
           val Right(result) =
-            eval.apply(TutorialWithSpecificSources.core.compileScalaPB): @unchecked
+            eval.apply(TutorialWithSpecificSources.core.compileScalaPB).runtimeChecked
 
           val outPath = protobufOutPath(eval)
 
@@ -185,7 +185,7 @@ object TutorialTests extends TestSuite {
           )
 
           // don't recompile if nothing changed
-          val Right(result2) = eval.apply(Tutorial.core.compileScalaPB): @unchecked
+          val Right(result2) = eval.apply(Tutorial.core.compileScalaPB).runtimeChecked
 
           assert(result2.evalCount == 0)
         }

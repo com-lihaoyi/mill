@@ -1,0 +1,1 @@
+extends: [build.KaptTests, TestModule.Junit5]

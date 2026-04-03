@@ -81,15 +81,15 @@
 <path fill="none" stroke="black" d="M145.4,-390.4C175.6,-384.73 223.87,-375.86 265.75,-369 285.66,-365.74 306.82,-362.45 327.41,-359.35"/>
 <polygon fill="black" stroke="black" points="327.91,-362.81 337.28,-357.87 326.87,-355.89 327.91,-362.81"/>
 </g>
-<!-- subprojects.programmatic&#45;test.test.compile -->
+<!-- subprojects.programmable&#45;test.test.compile -->
 <g id="node22" class="node">
-<title>subprojects.programmatic&#45;test.test.compile</title>
+<title>subprojects.programmable&#45;test.test.compile</title>
 <polygon fill="none" stroke="black" points="575.75,-306 323.5,-306 323.5,-270 575.75,-270 575.75,-306"/>
-<text text-anchor="middle" x="449.62" y="-282.95" font-family="Times,serif" font-size="14.00">subprojects.programmatic&#45;test.test.compile</text>
+<text text-anchor="middle" x="449.62" y="-282.95" font-family="Times,serif" font-size="14.00">subprojects.programmable&#45;test.test.compile</text>
 </g>
-<!-- compile&#45;&gt;subprojects.programmatic&#45;test.test.compile -->
+<!-- compile&#45;&gt;subprojects.programmable&#45;test.test.compile -->
 <g id="edge3" class="edge">
-<title>compile&#45;&gt;subprojects.programmatic&#45;test.test.compile</title>
+<title>compile&#45;&gt;subprojects.programmable&#45;test.test.compile</title>
 <path fill="none" stroke="black" d="M145.41,-394.9C169.94,-392.68 204.73,-386.4 229.75,-369 253.43,-352.53 241.38,-330.44 265.75,-315 279.87,-306.05 295.82,-299.63 312.26,-295.07"/>
 <polygon fill="black" stroke="black" points="312.81,-298.54 321.66,-292.71 311.11,-291.76 312.81,-298.54"/>
 </g>
@@ -279,15 +279,15 @@
 <path fill="none" stroke="black" d="M214.81,-342C250.05,-342 290.16,-342 327.08,-342"/>
 <polygon fill="black" stroke="black" points="326.91,-345.5 336.91,-342 326.91,-338.5 326.91,-345.5"/>
 </g>
-<!-- subprojects.programmatic&#45;test.compile -->
+<!-- subprojects.programmable&#45;test.compile -->
 <g id="node21" class="node">
-<title>subprojects.programmatic&#45;test.compile</title>
+<title>subprojects.programmable&#45;test.compile</title>
 <polygon fill="none" stroke="black" points="229.75,-306 0,-306 0,-270 229.75,-270 229.75,-306"/>
-<text text-anchor="middle" x="114.88" y="-282.95" font-family="Times,serif" font-size="14.00">subprojects.programmatic&#45;test.compile</text>
+<text text-anchor="middle" x="114.88" y="-282.95" font-family="Times,serif" font-size="14.00">subprojects.programmable&#45;test.compile</text>
 </g>
-<!-- subprojects.programmatic&#45;test.compile&#45;&gt;subprojects.programmatic&#45;test.test.compile -->
+<!-- subprojects.programmable&#45;test.compile&#45;&gt;subprojects.programmable&#45;test.test.compile -->
 <g id="edge24" class="edge">
-<title>subprojects.programmatic&#45;test.compile&#45;&gt;subprojects.programmatic&#45;test.test.compile</title>
+<title>subprojects.programmable&#45;test.compile&#45;&gt;subprojects.programmable&#45;test.test.compile</title>
 <path fill="none" stroke="black" d="M229.92,-288C256.3,-288 284.62,-288 311.86,-288"/>
 <polygon fill="black" stroke="black" points="311.53,-291.5 321.53,-288 311.53,-284.5 311.53,-291.5"/>
 </g>

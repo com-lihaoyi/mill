@@ -18,7 +18,7 @@ object `package` extends MillPublishScalaModule with BuildInfo {
   def buildInfoMembers = Seq(
     BuildInfo.Value(
       "millRunnerMetaVersion",
-      this.publishVersion(),
+      "SNAPSHOT",
       s"Version of artifact ${artifactId()}"
     )
   )

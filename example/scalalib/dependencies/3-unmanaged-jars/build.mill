@@ -6,20 +6,7 @@
 // from somewhere and need to include it in your project, `unmanagedClasspath` is the
 // way to do it.
 
-//// SNIPPET:BUILD
-package build
-import mill.*, scalalib.*
-
-object `package` extends ScalaModule {
-  def scalaVersion = "3.7.1"
-  def lib = Task.Source("lib")
-  def unmanagedClasspath = Task {
-    if (!os.exists(lib().path)) Seq()
-    else Seq.from(os.list(lib().path).map(PathRef(_)))
-  }
-}
-
-//// SNIPPET:END
+/** See Also: build.mill.yaml */
 
 // You can override `unmanagedClasspath` to point it at any jars you place on the
 // filesystem, e.g. in the above snippet any jars that happen to live in the

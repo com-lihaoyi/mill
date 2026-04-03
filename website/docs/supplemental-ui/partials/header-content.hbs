@@ -29,6 +29,20 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
+  .version-warning-banner {
+    background: #fff3cd;
+    border-bottom: 1px solid #f5c06a;
+    color: #6d3f00;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    padding: 0.6rem 1rem;
+    text-align: center;
+  }
+  .version-warning-banner a {
+    color: #6d3f00;
+    font-weight: 600;
+    text-decoration: underline;
+  }
   </style>
   <script>
   gtag('config', 'AW-16649289906');
@@ -43,6 +57,12 @@
         });
       }
     });
+
+    const warningTemplate = document.getElementById('version-warning-banner-template');
+    const articleDoc = document.querySelector('article.doc');
+    if (warningTemplate && articleDoc && warningTemplate.content.firstElementChild) {
+      articleDoc.prepend(warningTemplate.content.firstElementChild.cloneNode(true));
+    }
   });
   </script>
   <nav class="navbar">
@@ -104,4 +124,20 @@
       </div>
     </div>
   </nav>
+  {{#if (eq page.component.name "mill")}}
+  {{#if page.componentVersion}}
+  {{#unless (eq page.componentVersion.version "master")}}
+  <template id="version-warning-banner-template">
+    <div class="version-warning-banner">
+      <strong>
+        WARNING: this page contains documentation for an old/unstable version of Mill
+        ({{page.componentVersion.displayVersion}}). The latest stable Mill version is
+        {{page.component.latest.displayVersion}} and its documentation can be found at
+        <a href="{{{or site.url (or siteRootUrl siteRootPath)}}}">{{{or site.url (or siteRootUrl siteRootPath)}}}</a>
+      </strong>
+    </div>
+  </template>
+  {{/unless}}
+  {{/if}}
+  {{/if}}
 </header>

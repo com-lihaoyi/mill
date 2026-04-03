@@ -1,0 +1,4 @@
+extends: JavaModule
+jvmVersion: temurin:11.0.21
+javacOptions:
+- "-J-Xss8m"

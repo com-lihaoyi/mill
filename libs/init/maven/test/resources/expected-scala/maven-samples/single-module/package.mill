@@ -1,0 +1,31 @@
+package build.`single-module`
+
+import mill.*
+import mill.javalib.*
+import mill.javalib.publish.*
+import millbuild.*
+
+object `package` extends ProjectBaseModule {
+
+  def mvnDeps =
+    Seq(mvn"javax.servlet:servlet-api:2.5", mvn"javax.servlet.jsp:jsp-api:2.2")
+
+  def artifactName = "single-module-project"
+
+  def pomSettings = PomSettings(
+    "Sample single module Maven project with a working, deployable site.",
+    "com.example.maven-samples",
+    "http://www.example.com",
+    Seq(),
+    VersionControl(
+      Some("http://github.com/gabrielf/maven-samples"),
+      Some("scm:git:git@github.com:gabrielf/maven-samples.git"),
+      Some("scm:git:git@github.com:gabrielf/maven-samples.git"),
+      Some("HEAD")
+    ),
+    Seq()
+  )
+
+  object test extends ProjectBaseTests {}
+
+}

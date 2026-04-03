@@ -41,8 +41,8 @@ Twirl versions. You also need to define your own test object which extends the p
 //| mvnDeps: ["com.lihaoyi::mill-contrib-playlib:$MILL_VERSION"]
 package build
 
-import mill._
-import mill.playlib._
+import mill.*
+import mill.playlib.*
 
 object core extends PlayModule {
     // config
@@ -118,8 +118,8 @@ The `PlayApiModule` trait behaves the same as the `PlayModule` trait but it won'
 //| mvnDeps: ["com.lihaoyi::mill-contrib-playlib:$MILL_VERSION"]
 package build
 
-import mill._
-import mill.playlib._
+import mill.*
+import mill.playlib.*
 
 object core extends PlayApiModule {
     // config
@@ -158,8 +158,8 @@ like in the following example build:
 //| mvnDeps: ["com.lihaoyi::mill-contrib-playlib:$MILL_VERSION"]
 package build
 
-import mill._
-import mill.playlib._
+import mill.*
+import mill.playlib.*
 
 object core extends PlayApiModule {
     // config
@@ -202,8 +202,8 @@ Looking back at the sample build definition in <<_using_playmodule>>:
 //| mvnDeps: ["com.lihaoyi::mill-contrib-playlib:$MILL_VERSION"]
 package build
 
-import mill._
-import mill.playlib._
+import mill.*
+import mill.playlib.*
 
 object core extends PlayModule {
     // config
@@ -245,8 +245,8 @@ by extending `RootModule` in your build:
 //| mvnDeps: ["com.lihaoyi::mill-contrib-playlib:$MILL_VERSION"]
 package build
 
-import mill._
-import mill.playlib._
+import mill.*
+import mill.playlib.*
 
 object build extends RootModule with PlayModule {
 	// config
@@ -291,8 +291,8 @@ define `playVersion` and `scalaVersion`.
 //| mvnDeps: ["com.lihaoyi::mill-contrib-playlib:$MILL_VERSION"]
 package build
 
-import mill._
-import mill.playlib._
+import mill.*
+import mill.playlib.*
 
 object app extends ScalaModule with RouterModule {
   def playVersion = Task { "2.8.20" }

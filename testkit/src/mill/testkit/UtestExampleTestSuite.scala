@@ -1,7 +1,7 @@
 package mill.testkit
 
 import mill.util.Retry
-import utest._
+import utest.*
 
 import java.util.concurrent.TimeoutException
 
@@ -24,7 +24,8 @@ object UtestExampleTestSuite extends TestSuite {
           ExampleTester.run(
             daemonMode,
             workspaceSourcePath,
-            millExecutable
+            millExecutable,
+            useInMemory = sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")
           )
         }
 

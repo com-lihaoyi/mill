@@ -17,7 +17,7 @@ object bar extends Cross[FooModule]("2.10", "2.11", "2.12") {
 
 /** Usage
 
-> ./mill show foo[2.10].suffix # explicit cross value given
+> ./mill show foo.2_10.suffix # explicit cross value given
 "_2.10"
 
 > ./mill show foo[].suffix # no cross value given, defaults to first cross value

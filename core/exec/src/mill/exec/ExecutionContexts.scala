@@ -8,6 +8,7 @@ import scala.concurrent.duration.Duration
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{PriorityBlockingQueue, ThreadFactory, ThreadPoolExecutor, TimeUnit}
 import mill.api.Logger
+import mill.api.daemon.internal.NonFatal
 
 object ExecutionContexts {
 
@@ -123,14 +124,17 @@ object ExecutionContexts {
 
         dest
       }
+      val submitterChecker = os.checker.value
       val promise = concurrent.Promise[T]
       val runnable = new PriorityRunnable(
         priority = priority,
         run0 = () => {
-          val result = scala.util.Try(logger.withPromptLine {
-            os.dynamicPwdFunction.withValue(() => makeDest()) {
-              mill.api.SystemStreamsUtils.withStreams(logger.streams) {
-                t(logger)
+          val result = NonFatal.Try(logger.withPromptLine {
+            os.checker.withValue(submitterChecker) {
+              os.dynamicPwdFunction.withValue(() => makeDest()) {
+                mill.api.SystemStreamsUtils.withStreams(logger.streams) {
+                  t(logger)
+                }
               }
             }
           })
@@ -150,7 +154,7 @@ object ExecutionContexts {
     new ThreadPoolExecutor(
       threadCount,
       threadCount,
-      0,
+      60 * 1000,
       TimeUnit.SECONDS,
       // Use a `Deque` rather than a normal `Queue`, with the various `poll`/`take`
       // operations reversed, providing elements in a LIFO order. This ensures that

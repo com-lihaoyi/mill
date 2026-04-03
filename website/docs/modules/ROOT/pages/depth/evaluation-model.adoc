@@ -116,7 +116,7 @@ a concrete Mill `RootModule` object, which is then used in the subsequent tasks 
 === Resolution
 
 Resolution converts the Mill xref:cli/query-syntax.adoc[task selector] ``_.assembly`` given from the command line
-into a list ofxref:fundamentals/tasks.adoc[Task] objects. This explores the `build` and `package`
+into a list of xref:fundamentals/tasks.adoc[Task] objects. This explores the `build` and `package`
 files generated in the <<Compilation>> step above, instantiates the xref:fundamentals/modules.adoc[Modules]
 and xref:fundamentals/tasks.adoc[Tasks] as necessary, and returns a list of the final tasks that
 were selected by selector:

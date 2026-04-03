@@ -20,10 +20,29 @@ object `package` extends mill.Module { scripts =>
       "mill-maven-url" -> Settings.mavenRepoUrl,
       "mill-download-cache-unix" -> "~/.cache/mill/download",
       "mill-download-cache-win" -> "%USERPROFILE%\\\\.mill\\\\download",
-      "template-file" -> templateFile().path.relativeTo(BuildCtx.workspaceRoot).toString
+      "template-file" -> templateFile().path.relativeTo(BuildCtx.workspaceRoot).toString,
+      "glibc-version" -> glibcVersion()
     )
     def substitutionMarkers: T[(String, String)] = ("{{{", "}}}")
     def inRepoDir: Task[os.SubPath] = Task.Anon { os.sub / finalName() }
+
+    /** Detect GLIBC version on Linux by parsing `ldd --version` output */
+    def glibcVersion: T[String] = Task {
+      // Fallback for non-Linux runners
+      val fallbackVersion = "2.34" // Ubuntu 24.04 glibc version
+      if (scala.util.Properties.isLinux) {
+        val result = os.proc("ldd", "--version").call(check = false)
+        val firstLine = result.out.lines().headOption.getOrElse("")
+        // Parse version from output like "ldd (GNU libc) 2.34"
+        val versionPattern = """(\d+\.\d+)$""".r
+        versionPattern.findFirstIn(firstLine).getOrElse(
+          throw RuntimeException(s"Unable to parse glibc version in '${firstLine}'")
+        )
+      } else {
+        // Default to 2.34 on non-Linux systems (macOS, etc.)
+        fallbackVersion
+      }
+    }
 
     /** Compiles the script from the [[templateFile]] and substitutes all [[substitutions]]. */
     def compile0: T[PathRef] = Task {

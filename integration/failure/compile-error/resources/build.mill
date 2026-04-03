@@ -2,8 +2,8 @@
 //| # offset in the presence of a yaml header
 //| mvnDeps: []
 package build
-import mill._
-import mill.scalalib._
+import mill.*
+import mill.scalalib.*
 object foo extends ScalaModule {
   def scalaVersion = myScalaVersion
 }

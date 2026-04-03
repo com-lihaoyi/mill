@@ -9,13 +9,11 @@ trait JsonFormatters {
     v => upickle.writeJs(v)(using upickle.macroRW[License]),
     {
       case ujson.Str(s) =>
-        License.knownMap.getOrElse(
-          s,
-          sys.error(
-            s"Unknown License: `$s`, needs to be one of " +
-              License.knownMap.keys.mkString(", ")
-          )
-        )
+        // Try to look up by SPDX ID first, then by name, then create from name as fallback
+        License.knownMap.get(s)
+          .orElse(License.knownMap.values.find(_.name == s))
+          .getOrElse(License(name = s, url = ""))
+
       case v => upickle.read(v)(using upickle.macroRW[License])
     }
   )

@@ -1,6 +1,0 @@
-extends: [build.KotlinTests, mill.javalib.TestModule.Junit5]
-mvnDeps:
-- io.ktor:ktor-client-core:2.3.7
-- io.ktor:ktor-client-cio:2.3.7
-- org.junit.jupiter:junit-jupiter-api:5.10.1
-- org.junit.jupiter:junit-jupiter-engine:5.10.1

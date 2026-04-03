@@ -38,6 +38,8 @@ trait IntegrationTestSuite {
   protected def cleanupProcessIdFile: Boolean = true
   def debugLog: Boolean = false
 
+  protected def allowSharedOutputDir: Boolean = true
+
   /**
    * Run an integration test by providing an [[IntegrationTester]] to the
    * given [[block]].
@@ -55,7 +57,9 @@ trait IntegrationTestSuite {
         debugLog,
         baseWorkspacePath = os.pwd,
         propagateJavaHome = propagateJavaHome,
-        cleanupProcessIdFile = cleanupProcessIdFile
+        cleanupProcessIdFile = cleanupProcessIdFile,
+        useInMemory = allowSharedOutputDir && sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR"),
+        allowSharedOutputDir = allowSharedOutputDir
       )
       try block(tester)
       finally tester.close()
