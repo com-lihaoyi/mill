@@ -261,23 +261,27 @@ trait AndroidSdkManagerModule extends ExternalModule {
       buildToolsVersion: Task[String],
       platformsVersion: Task[String],
       remoteReposInfo: Task[PathRef],
-      autoAcceptLicenses: Task[Boolean]
+      autoAcceptLicenses: Task[Boolean],
+      installPlatformSources: Task[Boolean]
   ): Task[AndroidSdkComponents] = Task.Anon {
     androidSdkManagerWorker().processInFunnel { () =>
+
+      val installPlatformSources0 = installPlatformSources()
 
       val packages = Seq(
         "platform-tools", // adb
         s"build-tools;${buildToolsVersion()}",
         s"platforms;${platformsVersion()}",
         "tools" // proguard
-      )
+      ) ++ Option.when(installPlatformSources0)(s"sources;${platformsVersion()}")
 
       val sdkManagerPath = cmdlineToolsComponents().sdkmanagerExe.path
 
       // sdkmanager executable and state of the installed package is a shared resource, which can be accessed
       // from the different Android SDK modules.
       val missingPackages = packages.filter(p => !isPackageInstalled(sdkPath(), p))
-      Task.log.info(s"Found ${missingPackages} missing packages...")
+      if (missingPackages.nonEmpty)
+        Task.log.info(s"Found ${missingPackages} missing packages...")
       val packagesWithoutLicense = missingPackages
         .map(p => (p, isLicenseAccepted(sdkPath(), remoteReposInfo().path, p)))
         .filter(!_._2)
@@ -305,6 +309,19 @@ trait AndroidSdkManagerModule extends ExternalModule {
       }
 
       val androidJar = toolPathRef(sdkPath() / "platforms" / platformsVersion() / "android.jar")
+
+      if (installPlatformSources0) {
+        // If not done before, try to create a sources jar next to the android.jar,
+        // since current GenIdeaImpl searches for sources in the same directory as the classes jar.
+        val sourcesDir = sdkPath() / "sources" / platformsVersion()
+        val targetSourcesJar = sdkPath() / "platforms" / platformsVersion() / "android-sources.jar"
+        if (os.exists(sourcesDir) && !os.exists(targetSourcesJar))
+          os.zip(
+            targetSourcesJar,
+            Seq(sourcesDir)
+          )
+      }
+
       val libs = Seq(
         os.sub / "core-for-system-modules.jar",
         os.sub / "optional" / "org.apache.http.legacy.jar",
