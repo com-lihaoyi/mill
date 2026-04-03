@@ -779,12 +779,21 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
-   * Run your application by providing the activity.
-   *
-   * E.g. `com.package.name.ActivityName`
+   * Installs the app to the [[runningEmulator]] and runs the main activity.
+   * @param args
+   * @return
+   */
+  override def run(args: Task[Args] = Task.Anon(Args())): Task.Command[Unit] =
+    Task.Command(exclusive = true) {
+      androidInstall()()
+      androidRun()()
+    }
+
+  /**
+   * Run the specified activity on the [[runningEmulator]]
    *
    * See also [[https://developer.android.com/tools/adb#am]] and [[https://developer.android.com/tools/adb#IntentSpec]]
-   * @param activity
+   * @param activity The fully qualified name of the activity to start. Defaults to the main activity detected from the manifest. E.g. `com.package.name.ActivityName`
    * @return
    */
   def androidRun(activity: String = ""): Command[Vector[String]] = Task.Command(exclusive = true) {
