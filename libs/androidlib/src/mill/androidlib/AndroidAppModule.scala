@@ -793,32 +793,32 @@ trait AndroidAppModule extends AndroidModule { outer =>
    * Run the specified activity on the [[runningEmulator]]
    *
    * See also [[https://developer.android.com/tools/adb#am]] and [[https://developer.android.com/tools/adb#IntentSpec]]
-   * @param activity The fully qualified name of the activity to start. Defaults to the main activity detected from the manifest. E.g. `com.package.name.ActivityName`
+   * @param activity The fully qualified name of the activity to start. E.g. `com.package.name.ActivityName`.
+   *                 If not provided, runs the main activity detected from the manifest.
    * @return
    */
-  def androidRun(activity: String = ""): Command[Vector[String]] = Task.Command(exclusive = true) {
-    val emulator = runningEmulator()
+  def androidRun(activity: Option[String] = None): Command[Vector[String]] =
+    Task.Command(exclusive = true) {
+      val emulator = runningEmulator()
 
-    val activity0 =
-      if (activity.nonEmpty) activity
-      else androidMainActivity()
+      val activity0 = activity.getOrElse(androidMainActivity())
 
-    Task.log.info(s"Starting activity $activity0 on emulator $emulator")
+      Task.log.info(s"Starting activity $activity0 on emulator $emulator")
 
-    os.call(
-      (
-        androidSdkModule().adbExe().path,
-        "-s",
-        emulator,
-        "shell",
-        "am",
-        "start",
-        "-n",
-        s"${androidApplicationId}/${activity0}",
-        "-W"
-      )
-    ).out.lines()
-  }
+      os.call(
+        (
+          androidSdkModule().adbExe().path,
+          "-s",
+          emulator,
+          "shell",
+          "am",
+          "start",
+          "-n",
+          s"${androidApplicationId}/${activity0}",
+          "-W"
+        )
+      ).out.lines()
+    }
 
   /**
    * Default os.Path to the keystore file, derived from `androidReleaseKeyName()`.
