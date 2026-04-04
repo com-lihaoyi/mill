@@ -14,7 +14,11 @@ import mill.internal.Util.backtickWrap
  * @param seenScripts Map of script paths to their processed content
  */
 @internal
-case class DiscoveredBuildFiles(seenScripts: Map[os.Path, String])
+case class DiscoveredBuildFiles(
+    seenScripts: Map[os.Path, String],
+    errors: Seq[String],
+    seenPkgStatements: Map[os.Path, String]
+)
 
 /**
  * Logic around traversing the `import $file` graph, extracting necessary info
@@ -39,6 +43,7 @@ object DiscoveredBuildFiles {
       colored: Boolean
   ): DiscoveredBuildFiles = {
     val seenScripts = mutable.Map.empty[os.Path, String]
+    val seenPkgStatements = mutable.Map.empty[os.Path, String]
     val errors = mutable.Buffer.empty[Result.Failure]
     val allowNestedBuildMillFiles = mill.internal.Util.readBooleanFromBuildHeader(
       projectRoot,
@@ -89,6 +94,7 @@ object DiscoveredBuildFiles {
               errors.append(Result.Failure(message, path = s.toNIO, index = index))
             }
             seenScripts(s) = prefix + stmts.mkString
+            seenPkgStatements(s) = "package " + importSegments
           case Left(error) =>
             seenScripts(s) = ""
             // Error is already formatted with position info from the parser
@@ -113,7 +119,7 @@ object DiscoveredBuildFiles {
       throw Result.Exception(joinedFailure.error, Some(joinedFailure))
     }
 
-    new DiscoveredBuildFiles(seenScripts.toMap)
+    new DiscoveredBuildFiles(seenScripts.toMap, errors.toSeq.map(_.error), seenPkgStatements.toMap)
   }
 
   def findRootBuildFiles(projectRoot: os.Path) = {

@@ -419,25 +419,15 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
 
     val finalScalacOptions = addColorNeverOption.toSeq ++ scalacOptions
 
-    val (originalSourcesMap, posMapperOpt) = PositionMapper.create(virtualSources)
-
     val newReporter = reporter match {
       case None =>
         new ManagedLoggedReporter(maxErrors, logger) with RecordingReporter
-          with TransformingReporter(
-            localConfig.logPromptColored,
-            posMapperOpt.orNull,
-            localConfig.workspaceRoot
-          ) {}
+          with TransformingReporter(localConfig.logPromptColored, localConfig.workspaceRoot) {}
       case Some(forwarder) =>
         new ManagedLoggedReporter(maxErrors, logger)
           with ForwardingReporter(forwarder)
           with RecordingReporter
-          with TransformingReporter(
-            localConfig.logPromptColored,
-            posMapperOpt.orNull,
-            localConfig.workspaceRoot
-          ) {}
+          with TransformingReporter(localConfig.logPromptColored, localConfig.workspaceRoot) {}
     }
 
     val inputs = incrementalCompiler.inputs(
@@ -490,10 +480,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
         Result.Failure(e.toString)
     } finally {
       for (rep <- reporter) {
-        for (f <- sources) {
-          rep.fileVisited(f.toNIO)
-          for (f0 <- originalSourcesMap.get(f)) rep.fileVisited(f0.toNIO)
-        }
+        for (f <- sources) rep.fileVisited(f.toNIO)
         rep.finish()
       }
       previousScalaColor match {

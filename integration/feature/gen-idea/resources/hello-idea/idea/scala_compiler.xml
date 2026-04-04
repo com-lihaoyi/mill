@@ -2,10 +2,11 @@
     <component name="ScalaCompilerConfiguration">
         <profile name="mill 1" modules="">
             <parameters>
-                <parameter value="-Xplugin:.../com/lihaoyi/scalac-mill-moduledefs-plugin_3.8.2/<version>/scalac-mill-moduledefs-plugin_3.8.2-<version>.jar"/>
-                <parameter value="-Xplugin:.../com/lihaoyi/mill-runner-autooverride-plugin_3.8.2/SNAPSHOT/mill-runner-autooverride-plugin_3.8.2-SNAPSHOT.jar"/>
                 <parameter value="-deprecation"/>
                 <parameter value="-Wconf:msg=will be encoded on the classpath:silent"/>
+                <parameter value="-Ymagic-offset-header:SOURCE_CODE_START"/>
+                <parameter value="-Xplugin:.../com/lihaoyi/scalac-mill-moduledefs-plugin_3.8.2/<version>/scalac-mill-moduledefs-plugin_3.8.2-<version>.jar"/>
+                <parameter value="-Xplugin:.../com/lihaoyi/mill-runner-autooverride-plugin_3.8.2/SNAPSHOT/mill-runner-autooverride-plugin_3.8.2-SNAPSHOT.jar"/>
             </parameters>
             <plugins>
                 <plugin path=".../com/lihaoyi/scalac-mill-moduledefs-plugin_3.8.2/<version>/scalac-mill-moduledefs-plugin_3.8.2-<version>.jar"/>
