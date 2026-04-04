@@ -177,14 +177,6 @@ object CodeGen {
         (aliases.mkString("\n  "), aliasesDefs.mkString("\n  "))
       }
 
-      val miscInfo = if (segments.isEmpty) {
-        generateMillMiscInfo(
-          pkg = pkg,
-          scriptFolderPath = scriptFolderPath,
-          millTopLevelProjectRoot = millTopLevelProjectRoot,
-          output = output
-        )
-      } else ""
 
       if (scriptPath.last.endsWith(".yaml")) {
         val newParent =
@@ -193,25 +185,9 @@ object CodeGen {
         val parsedHeaderData = parsedYamlHeaderData(scriptPath)
 
         val prelude =
-          s"""|import _root_.${CGConst.globalPackagePrefix}.MillMiscInfo.*
-              |import _root_.mill.util.TokenReaders.given
+          s"""|import _root_.mill.util.TokenReaders.given
               |import _root_.mill.runner.autooverride.AutoOverride
               |""".stripMargin
-
-        if (segments.isEmpty) {
-          val header = if (pkg.isBlank()) "" else s"package $pkg"
-          val miscInfoWithResource =
-            s"""|$generatedFileHeader
-                |$header
-                |
-                |${rootMiscInfo(scriptFolderPath, millTopLevelProjectRoot, output)}
-                |""".stripMargin
-          os.write.over(
-            supportDestDir / "MillMiscInfo.scala",
-            miscInfoWithResource,
-            createFolders = true
-          )
-        }
 
         def renderTemplate(prefix: String, data: HeaderData, path: Seq[String]): String = {
           val extendsConfig = data.`extends`.value.value.map(_.value)
@@ -329,10 +305,6 @@ object CodeGen {
             .filter(s => s != "build_" && s != "package_")
             .map(s => s"import $pkg.${backtickWrap(s)}.*").mkString("\n")
 
-          if (isBuildScript && miscInfo.nonEmpty) {
-            os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
-          }
-
           val parts =
             if (!isBuildScript) {
               val wrapperName = backtickWrap(scriptPath.last.split('.').head + "_")
@@ -388,26 +360,6 @@ object CodeGen {
   private def calcSegments(scriptFolderPath: os.Path, projectRoot: os.Path) =
     scriptFolderPath.relativeTo(projectRoot).segments
 
-  private def generateMillMiscInfo(
-      pkg: String,
-      scriptFolderPath: os.Path,
-      millTopLevelProjectRoot: os.Path,
-      output: os.Path
-  ): String = {
-    val header = if (pkg.isBlank()) "" else s"package $pkg"
-    val body = rootMiscInfo(
-      scriptFolderPath,
-      millTopLevelProjectRoot,
-      output
-    )
-
-    s"""|$generatedFileHeader
-        |$header
-        |
-        |$body
-        |""".stripMargin
-  }
-
   private def generateBuildScript(
       projectRoot: os.Path,
       millTopLevelProjectRoot: os.Path,
@@ -430,8 +382,7 @@ object CodeGen {
       siblingScripts.map(s => s"export $pkg.${backtickWrap(s)}.*").mkString("\n")
 
     val prelude =
-      s"""|import _root_.${CGConst.globalPackagePrefix}.MillMiscInfo.*
-          |import _root_.mill.util.TokenReaders.given
+      s"""|import _root_.mill.util.TokenReaders.given
           |import _root_.mill.api.JsonFormatters.given
           |""".stripMargin
 
@@ -541,21 +492,6 @@ object CodeGen {
       s"private lazy val __millPackageObjectRefs: _root_.scala.Array[_root_.mill.api.Module] = $packageObjectRefsValue\n" +
         s"  override lazy val millDiscover: _root_.mill.api.Discover = $rhs"
     }
-  }
-
-  def rootMiscInfo(
-      scriptFolderPath: os.Path,
-      millTopLevelProjectRoot: os.Path,
-      output: os.Path
-  ): String = {
-    s"""|@_root_.scala.annotation.nowarn
-        |object MillMiscInfo
-        |    extends mill.api.internal.RootModule.Info(
-        |  projectRoot0 = ${literalize(scriptFolderPath.toString)},
-        |  output0 = ${literalize(output.toString)},
-        |  topLevelProjectRoot0 = ${literalize(millTopLevelProjectRoot.toString)}
-        |)
-        |""".stripMargin
   }
 
 }

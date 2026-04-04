@@ -343,8 +343,21 @@ class MillBuildBootstrap(
           }
 
           prevFrameOpt.foreach(_.classLoaderOpt.foreach(_.close()))
+
+          // Write root module info as a classpath resource so BuildFileCls can
+          // read it from the classloader without needing mutable global state.
+          // This classloader will be used at depth-1 to load the root module.
+          val rootModuleInfoDir = recOut(output, depth) / "rootModuleInfo.dest"
+          os.write.over(
+            rootModuleInfoDir / "mill" / "rootModuleInfo.properties",
+            s"projectRoot=${recRoot(topLevelProjectRoot, depth - 1)}\n" +
+              s"output=${output}\n" +
+              s"topLevelProjectRoot=${topLevelProjectRoot}\n",
+            createFolders = true
+          )
+
           val cl = mill.util.Jvm.createClassLoader(
-            runClasspath.map(p => os.Path(p.javaPath)),
+            runClasspath.map(p => os.Path(p.javaPath)) :+ rootModuleInfoDir,
             null,
             sharedLoader = classOf[MillBuildBootstrap].getClassLoader,
             sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.api.daemon", "sbt.testing.")
@@ -598,6 +611,7 @@ object MillBuildBootstrap {
     // Instantiate BuildFileCls from the run classloader, passing the run classloader so it
     // can find the root module (package_) or fall back to DummyModule. This must be done via
     // the run classloader so that os.checker, BuildCtx, etc. are the run classloader versions.
+    // BuildFileCls reads project root info from a classpath resource (rootModuleInfo.properties).
     val buildFileCls = runClassLoader.loadClass("mill.api.internal.BuildFileCls")
     val constructor = buildFileCls.getConstructor(classOf[ClassLoader])
     mill.api.ExecResult.catchWrapException {
