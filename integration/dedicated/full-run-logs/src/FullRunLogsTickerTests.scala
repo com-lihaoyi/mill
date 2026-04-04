@@ -22,7 +22,7 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
       assertGoldenLiteral(
         normalized,
         List(
-          "compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
+          "compiling 1 Scala source to out/mill-build/compile.dest/classes ...",
           "done compiling",
           "compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
           "done compiling"
@@ -47,7 +47,7 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
         // Should have no colors because we called it programmatically
         List(
           "mill run --text hello",
-          "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
+          "build.mill-<digits>] compile compiling 1 Scala source to out/mill-build/compile.dest/classes ...",
           "build.mill-<digits>] done compiling",
           "<digits>] compile compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
           "<digits>] done compiling",
@@ -73,7 +73,7 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
         normalize(res.result.out.text()),
         List(
           "mill exclusives.printingC",
-          "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
+          "build.mill-<digits>] compile compiling 1 Scala source to out/mill-build/compile.dest/classes ...",
           "build.mill-<digits>] done compiling",
           "<digits>] exclusives.printingA",
           "Hello A",
@@ -104,7 +104,7 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
         normalize(res.result.out.text()),
         List(
           "(Y)mill logging(X)",
-          "(B)build.mill-<digits>] compile(X) compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
+          "(B)build.mill-<digits>] compile(X) compiling 1 Scala source to out/mill-build/compile.dest/classes ...",
           "(B)build.mill-<digits>](X) done compiling",
           "(B)<digits>] logging(X) MY PRINTLN",
           "(B)<digits>](X) MY INFO LOGS",
@@ -116,10 +116,7 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
       // Make sure the `.log` files on disk contain what we expect
       assertGoldenLiteral(
         normalize(os.read(workspacePath / "out/mill-build/compile.log")),
-        List(
-          "compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
-          "done compiling"
-        )
+        List("compiling 1 Scala source to out/mill-build/compile.dest/classes ...", "done compiling")
       )
       assertGoldenLiteral(
         normalize(os.read(workspacePath / "out/logging.log")),
