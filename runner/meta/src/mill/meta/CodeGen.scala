@@ -177,15 +177,6 @@ object CodeGen {
         (aliases.mkString("\n  "), aliasesDefs.mkString("\n  "))
       }
 
-      if (scriptFolderPath == projectRoot) {
-        val buildFileImplCode = generateBuildFileImpl(pkg)
-        os.write.over(
-          supportDestDir / "BuildFileImpl.scala",
-          buildFileImplCode,
-          createFolders = true
-        )
-      }
-
       val miscInfo = if (segments.isEmpty) {
         generateMillMiscInfo(
           pkg = pkg,
@@ -414,14 +405,6 @@ object CodeGen {
         |$header
         |
         |$body
-        |""".stripMargin
-  }
-
-  def generateBuildFileImpl(pkg: String) = {
-    s"""|$generatedFileHeader
-        |package $pkg
-        |
-        |object BuildFileImpl extends mill.api.internal.BuildFileCls(${CGConst.wrapperObjectName})
         |""".stripMargin
   }
 
