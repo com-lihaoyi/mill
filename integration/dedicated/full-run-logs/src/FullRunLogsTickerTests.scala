@@ -116,7 +116,10 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
       // Make sure the `.log` files on disk contain what we expect
       assertGoldenLiteral(
         normalize(os.read(workspacePath / "out/mill-build/compile.log")),
-        List("compiling 1 Scala source to out/mill-build/compile.dest/classes ...", "done compiling")
+        List(
+          "compiling 1 Scala source to out/mill-build/compile.dest/classes ...",
+          "done compiling"
+        )
       )
       assertGoldenLiteral(
         normalize(os.read(workspacePath / "out/logging.log")),
