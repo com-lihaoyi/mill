@@ -764,7 +764,7 @@ that utilizes Android Native, based on the official example of
 The original code is in <a href="https://github.com/android/ndk-samples/tree/main/endless-tunnel" class="bare">https://github.com/android/ndk-samples/tree/main/endless-tunnel</a></p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.5-11-37d849/mill-dist-1.1.5-example-thirdparty-android-endless-tunnel.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.5/example/thirdparty/android-endless-tunnel">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.5-12-35d18f/mill-dist-1.1.5-example-thirdparty-android-endless-tunnel.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.5/example/thirdparty/android-endless-tunnel">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -829,7 +829,7 @@ object `endless-tunnel` extends mill.api.Module {
 &gt; ./mill show endless-tunnel.app.androidInstall
 ...All files should be loaded. Notifying the device...
 
-&gt; ./mill show endless-tunnel.app.androidRun --activity android.app.NativeActivity
+&gt; ./mill show endless-tunnel.app.androidRun
 [
   "Starting: Intent { cmp=com.google.sample.tunnel/android.app.NativeActivity }",
   "Status: ok",

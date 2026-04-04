@@ -789,7 +789,7 @@ resource generation, APK building, DEX conversion, and APK signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.5-11-37d849/mill-dist-1.1.5-example-androidlib-kotlin-1-hello-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.5/example/androidlib/kotlin/1-hello-kotlin">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.5-12-35d18f/mill-dist-1.1.5-example-androidlib-kotlin-1-hello-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.5/example/androidlib/kotlin/1-hello-kotlin">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -927,10 +927,24 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 &gt; ./mill show app.startAndroidEmulator
 
 &gt; ./mill show app.adbDevices
-...emulator-...device...
-
-&gt; ./mill show app.androidInstall
+...emulator-...device...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To install the APK on the emulator:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.androidInstall
 ...All files should be loaded. Notifying the device...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also use the <code>run</code> command which combines the installation and launching of the app in one step. It will automatically trigger the <code>androidInstall</code> task and then launch the main activity of the app on the emulator.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.run</code></pre>
 </div>
 </div>
 <div class="paragraph">
