@@ -39,15 +39,14 @@ object RootModule {
     // is not in the shared prefixes), so this lazy val is effectively per-classloader.
     // The resource is written by MillBuildBootstrap before the classloader is created.
     private lazy val cached: Info = {
-      val stream = classOf[Info].getClassLoader.getResourceAsStream("mill/rootModuleInfo.properties")
+      val stream = classOf[Info].getClassLoader.getResourceAsStream("mill/rootModuleInfo.json")
       if (stream != null) {
-        val props = new java.util.Properties()
-        props.load(stream)
+        val json = ujson.read(stream)
         stream.close()
         new Info(
-          os.Path(props.getProperty("projectRoot")),
-          os.Path(props.getProperty("output")),
-          os.Path(props.getProperty("topLevelProjectRoot"))
+          os.Path(json("projectRoot").str),
+          os.Path(json("output").str),
+          os.Path(json("topLevelProjectRoot").str)
         )
       } else {
         // Dummy build fallback: read from environment variables

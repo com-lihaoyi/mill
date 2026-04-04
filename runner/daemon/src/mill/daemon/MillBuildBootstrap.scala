@@ -349,10 +349,12 @@ class MillBuildBootstrap(
           // This classloader will be used at depth-1 to load the root module.
           val rootModuleInfoDir = recOut(output, depth) / "rootModuleInfo.dest"
           os.write.over(
-            rootModuleInfoDir / "mill" / "rootModuleInfo.properties",
-            s"projectRoot=${recRoot(topLevelProjectRoot, depth - 1)}\n" +
-              s"output=${output}\n" +
-              s"topLevelProjectRoot=${topLevelProjectRoot}\n",
+            rootModuleInfoDir / "mill" / "rootModuleInfo.json",
+            ujson.Obj(
+              "projectRoot" -> recRoot(topLevelProjectRoot, depth - 1).toString,
+              "output" -> output.toString,
+              "topLevelProjectRoot" -> topLevelProjectRoot.toString
+            ).render(indent = 2),
             createFolders = true
           )
 
