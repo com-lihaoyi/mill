@@ -338,17 +338,17 @@ object BspServerTests extends UtestIntegrationTestSuite {
             semDbs.map { case (k, vs) => (k.toString, vs.map(_.toString)) },
             Map(
               "diag/many" -> List(),
-              "mill-build" -> Seq("build.mill.semanticdb"),
-              "hello-scala/test" -> Seq("hello-scala/test/src/HelloTest.scala.semanticdb"),
-              "scripts/folder1/script.scala" -> Seq(),
+              "mill-build" -> List(),
+              "hello-scala/test" -> ArraySeq("hello-scala/test/src/HelloTest.scala.semanticdb"),
+              "scripts/folder1/script.scala" -> ArraySeq(),
               "errored/exception" -> List(),
-              "hello-scala" -> Seq("hello-scala/src/Hello.scala.semanticdb"),
-              "diag" -> Seq("diag/src/DiagCheck.scala.semanticdb"),
+              "hello-scala" -> ArraySeq("hello-scala/src/Hello.scala.semanticdb"),
+              "diag" -> ArraySeq("diag/src/DiagCheck.scala.semanticdb"),
               "delayed" -> List(),
-              "mill-build/mill-build" -> Seq("mill-build/build.mill.semanticdb"),
+              "mill-build/mill-build" -> List(),
               "errored/compilation-error" -> List(),
-              "scripts/foldershared/script.scala" -> Seq(),
-              "sourcesNeedCompile" -> Seq()
+              "scripts/foldershared/script.scala" -> ArraySeq(),
+              "sourcesNeedCompile" -> ArraySeq()
             )
           )
         }
@@ -376,7 +376,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
             semDbs.map { case (k, vs) => (k.toString, vs.map(_.toString)) },
             Map(
               "scripts/folder2/FooTest.java" -> ArraySeq("scripts/folder2/FooTest.java.semanticdb"),
-              "mill-build" -> ArraySeq("build.mill.semanticdb"),
+              "mill-build" -> List(),
               "hello-kotlin" -> ArraySeq(),
               "hello-java" -> ArraySeq(),
               "hello-java/test" -> ArraySeq("hello-java/test/src/HelloJavaTest.java.semanticdb"),
@@ -392,14 +392,12 @@ object BspServerTests extends UtestIntegrationTestSuite {
               "diag" -> ArraySeq("diag/src/DiagCheck.scala.semanticdb"),
               "delayed" -> List(),
               "lib" -> ArraySeq(),
-              "scripts/foldershared/Foo.java" -> ArraySeq(
-                "scripts/foldershared/Foo.java.semanticdb"
-              ),
+              "scripts/foldershared/Foo.java" -> ArraySeq("scripts/foldershared/Foo.java.semanticdb"),
               "errored/compilation-error" -> List(),
               "scripts/foldershared/script.scala" -> ArraySeq(),
               "sourcesNeedCompile" -> ArraySeq(),
               "scripts" -> ArraySeq(),
-              "mill-build/mill-build" -> ArraySeq("mill-build/build.mill.semanticdb")
+              "mill-build/mill-build" -> List()
             )
           )
         }
