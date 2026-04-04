@@ -129,7 +129,6 @@ object CodeGen {
       val pkg = pkgSelector0(Some(CGConst.globalPackagePrefix), None)
 
       val segments = calcSegments(scriptFolderPath, projectRoot)
-      val supportDestDir = supportDest / packageSegments / os.up
 
       // Find the nearest enclosing build.mill file's segments by walking up from
       // the current script's folder until we find a directory containing a build.mill file.
