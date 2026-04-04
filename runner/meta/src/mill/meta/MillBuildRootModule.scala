@@ -103,7 +103,6 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
       support,
       resources,
       rootModuleInfo.topLevelProjectRoot,
-      rootModuleInfo.output,
       MillScalaParser.current.value
     )
     (

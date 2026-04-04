@@ -61,7 +61,6 @@ object CodeGen {
       supportDest: os.Path,
       resourceDest: os.Path,
       millTopLevelProjectRoot: os.Path,
-      output: os.Path,
       parser: MillScalaParser
   ): Seq[(original: os.Path, generated: os.Path)] = {
     val scriptSources = allScriptCode.keys.toSeq.sorted
