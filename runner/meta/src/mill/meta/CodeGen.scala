@@ -177,7 +177,6 @@ object CodeGen {
         (aliases.mkString("\n  "), aliasesDefs.mkString("\n  "))
       }
 
-
       if (scriptPath.last.endsWith(".yaml")) {
         val newParent =
           if (segments.isEmpty) "_root_.mill.util.MainRootModule"
