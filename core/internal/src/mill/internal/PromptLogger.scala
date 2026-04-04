@@ -173,8 +173,10 @@ class PromptLogger(
     ): Unit = {
       val logStream = if (logToOut) streams.out else streams.err
       if (enableTicker) {
+        // Split the log message into lines outside the synchronized block since
+        // splitPreserveEOL is a pure function with no shared-state dependencies
+        val lines0 = Util.splitPreserveEOL(logMsg.toByteArray)
         val (lines, seenBefore, res) = PromptLogger.this.synchronized {
-          val lines0 = Util.splitPreserveEOL(logMsg.toByteArray)
           val seenBefore = reportedIdentifiers(key)
           val res =
             if (reportedIdentifiers(key) && lines0.isEmpty) None
@@ -233,9 +235,15 @@ class PromptLogger(
             }
 
             // Strip non-color ansi codes so things like line clearing or cursor
-            // movement don't mess up Mill's log formatting in the terminal
-            def stripAnsi(s: Array[Byte]) =
-              fansi.Str(new String(s, "UTF-8"), fansi.ErrorMode.Strip).render.getBytes("UTF-8")
+            // movement don't mess up Mill's log formatting in the terminal.
+            // Fast path: skip the expensive fansi parse when no ESC byte is present.
+            def stripAnsi(s: Array[Byte]): Array[Byte] = {
+              val EscByte = 27.toByte
+              var i = 0
+              while (i < s.length && s(i) != EscByte) i += 1
+              if (i == s.length) s
+              else fansi.Str(new String(s, "UTF-8"), fansi.ErrorMode.Strip).render.getBytes("UTF-8")
+            }
 
             if (!seenBefore) {
               lines match {
@@ -263,8 +271,6 @@ class PromptLogger(
           }
         }
       } else logStream.synchronized { logMsg.writeTo(logStream) }
-
-      streamManager.awaitPumperEmpty()
     }
 
     override def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit =
@@ -279,8 +285,13 @@ class PromptLogger(
         seenIdentifiers(key) = (keySuffix, message)
       }
 
-    override def withPromptPaused[T](t: => T): T =
+    override def withPromptPaused[T](t: => T): T = {
+      // Drain the pipe before pausing so any pending output (e.g. exclusive task
+      // header written via logPrefixedLine) reaches the terminal before the task
+      // starts writing directly to exclusiveSystemStreams (which bypasses the pipe).
+      streamManager.awaitPumperEmpty()
       runningState.withPromptPaused0(true, t)
+    }
 
     override def withPromptUnpaused[T](t: => T): T =
       runningState.withPromptPaused0(false, t)
@@ -399,7 +410,7 @@ object PromptLogger {
       systemStreams0.in
     )
 
-    def awaitPumperEmpty(): Unit = { while (pipe.input.available() != 0) Thread.sleep(2) }
+    def awaitPumperEmpty(): Unit = pipe.awaitInputEmpty()
 
     @volatile var lastPromptHeight = 0
 
