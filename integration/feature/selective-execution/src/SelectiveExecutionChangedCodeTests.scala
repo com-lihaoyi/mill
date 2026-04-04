@@ -138,6 +138,8 @@ object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
         eval("shutdown", check = true, stderr = os.Inherit)
       }
 
+      os.remove.all(workspacePath / "out")
+
       os.write.over(
         workspacePath / "build.mill",
         """package build
