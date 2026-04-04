@@ -129,9 +129,19 @@ object app extends AndroidAppModule {
 > ./mill show app.adbDevices
 ...emulator-...device...
 
+*/
+
+// To install the APK on the emulator:
+/** Usage
+
 > ./mill show app.androidInstall
 ...All files should be loaded. Notifying the device...
 
+*/
+
+// You can also use the `run` command which combines the installation and launching of the app in one step. It will automatically trigger the `androidInstall` task and then launch the main activity of the app on the emulator.
+/** Usage
+> ./mill show app.run
 */
 
 // The android tests (existing typically in androidTest directory, aka instrumented tests)

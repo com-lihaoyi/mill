@@ -346,7 +346,7 @@ object Jetchat extends mill.api.Module {
 > ./mill show JetNews.app.androidInstall
 ...All files should be loaded. Notifying the device...
 
-> ./mill show JetNews.app.androidRun --activity com.example.jetnews.ui.MainActivity
+> ./mill show JetNews.app.androidRun
 [
   "Starting: Intent { cmp=com.example.jetnews/.ui.MainActivity }",
   "Status: ok",
