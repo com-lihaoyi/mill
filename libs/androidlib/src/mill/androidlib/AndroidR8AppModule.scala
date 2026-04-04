@@ -82,8 +82,11 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
    * Useful for dependencies that are provided in devices and compile only module deps
    * such as for avoiding to package main sources in the androidTest apk.
    */
-  def androidR8CompileOnlyClasspath: T[Seq[PathRef]] =
-    androidResolvedCompileMvnDeps() ++ androidTransitiveCompileOnlyClasspath() ++ androidTransitiveModuleRClasspath()
+  def androidR8CompileOnlyClasspath: T[Seq[PathRef]] = Task {
+    val cp =
+      androidResolvedCompileMvnDeps() ++ androidTransitiveCompileOnlyClasspath() ++ androidTransitiveModuleRClasspath()
+    cp.filter(_.path.ext == "jar")
+  }
 
   /**
    * Creates a file of [[androidR8CompileOnlyClasspath]] for CLI compatibility reasons (e.g. windows arg limit)
@@ -331,14 +334,14 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
 
       r8ArgsBuilder ++= pgArgs
 
-      val compileOnlyClasspath = androidR8CompileOnlyClasspath()
+      val compileOnlyClasspathFileOpt = androidR8CompileOnlyClasspathFile()
 
-      r8ArgsBuilder ++= compileOnlyClasspath.filter(_.path.ext == "jar").flatMap(compiledMvnDeps =>
-        Seq(
+      compileOnlyClasspathFileOpt.foreach { cpFile =>
+        r8ArgsBuilder ++= Seq(
           "--classpath",
-          compiledMvnDeps.path.toString
+          s"@${cpFile.path.toString}"
         )
-      )
+      }
 
       r8ArgsBuilder ++= androidR8Args()
 
