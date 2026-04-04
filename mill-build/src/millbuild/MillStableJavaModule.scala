@@ -81,7 +81,9 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     // internal APIs, used in `.mill`/`.mill.yaml` generated code but not intended for plugins
     ProblemFilter.exclude[Problem]("mill.api.internal.SubfolderModule*"),
     ProblemFilter.exclude[Problem]("mill.api.internal.BuildFileCls*"),
-    ProblemFilter.exclude[Problem]("mill.util.internal.DummyBuildFile*")
+    ProblemFilter.exclude[Problem]("mill.util.internal.DummyBuildFile*"),
+    ProblemFilter.exclude[Problem]("mill.util.internal.DummyMiscInfo*"),
+    ProblemFilter.exclude[Problem]("mill.api.internal.RootModule$Info*")
   )
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
