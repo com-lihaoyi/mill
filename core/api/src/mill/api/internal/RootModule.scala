@@ -32,7 +32,14 @@ object RootModule {
       val projectRoot: os.Path,
       val output: os.Path,
       val topLevelProjectRoot: os.Path
-  )
+  ) {
+    // bincompat stub
+    def this(projectRoot0: String, output0: String, topLevelProjectRoot0: String) =
+      this(os.Path(projectRoot0), os.Path(output0), os.Path(topLevelProjectRoot0))
+
+    // bincompat stub
+    def millMiscInfo: Info = this
+  }
 
   object Info {
     // Each run classloader has its own copy of this object (since mill.api.internal
@@ -59,5 +66,17 @@ object RootModule {
     }
 
     implicit def info: Info = cached
+
+    // bincompat stub
+    def dummyInfo: Info = info
+
+    // bincompat stub
+    class FromEnv extends Info(
+      sys.env.get(mill.constants.EnvVars.MILL_WORKSPACE_ROOT).fold(os.pwd)(os.Path(_)),
+      sys.env.get(mill.constants.EnvVars.MILL_OUTPUT_DIR).fold(
+        sys.env.get(mill.constants.EnvVars.MILL_WORKSPACE_ROOT).fold(os.pwd)(os.Path(_)) / "out"
+      )(os.Path(_)),
+      sys.env.get(mill.constants.EnvVars.MILL_WORKSPACE_ROOT).fold(os.pwd)(os.Path(_))
+    )
   }
 }
