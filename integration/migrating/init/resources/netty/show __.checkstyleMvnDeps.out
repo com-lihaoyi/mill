@@ -1,0 +1,297 @@
+{
+  "all.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "buffer.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "codec.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "codec-base.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "codec-classes-quic.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "codec-compression.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "codec-dns.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "codec-haproxy.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "codec-http.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "codec-http2.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "codec-http3.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "codec-marshalling.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "codec-memcache.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "codec-mqtt.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "codec-native-quic.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "codec-protobuf.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "codec-redis.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "codec-smtp.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "codec-socks.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "codec-stomp.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "codec-xml.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "common.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "dev-tools.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "example.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "handler.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "handler-proxy.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "handler-ssl-ocsp.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "jfr-stub.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "microbench.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "pkitesting.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "resolver.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "resolver-dns.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "resolver-dns-classes-macos.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "resolver-dns-native-macos.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "testsuite.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "testsuite-autobahn.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "testsuite-http2.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "testsuite-jpms.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "testsuite-karaf.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "testsuite-native.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "testsuite-native-image.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "testsuite-native-image-client.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "testsuite-native-image-client-runtime-init.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "testsuite-osgi.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "testsuite-shading.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "transport.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "transport-blockhound-tests.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "transport-classes-epoll.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "transport-classes-io_uring.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "transport-classes-kqueue.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "transport-native-epoll.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "transport-native-io_uring.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "transport-native-kqueue.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "transport-native-unix-common.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "transport-native-unix-common-tests.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "transport-rxtx.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "transport-sctp.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "transport-udt.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ],
+  "varhandle-stub.checkstyleMvnDeps": [
+    "com.puppycrawl.tools:checkstyle:8.29",
+    "io.netty:netty-build-common:31",
+    "io.spring.nohttp:nohttp-checkstyle:0.0.5.RELEASE"
+  ]
+}

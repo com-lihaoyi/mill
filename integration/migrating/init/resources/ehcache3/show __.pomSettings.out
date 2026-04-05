@@ -6,16 +6,20 @@
     "licenses": [
       {
         "name": "The Apache Software License, Version 2.0",
-        "url": ""
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
       }
     ],
     "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3"
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
     },
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
       }
     ]
   },
@@ -26,16 +30,20 @@
     "licenses": [
       {
         "name": "The Apache Software License, Version 2.0",
-        "url": ""
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
       }
     ],
     "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3"
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
     },
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
       }
     ]
   },
@@ -46,16 +54,20 @@
     "licenses": [
       {
         "name": "The Apache Software License, Version 2.0",
-        "url": ""
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
       }
     ],
     "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3"
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
     },
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
       }
     ]
   },
@@ -66,16 +78,20 @@
     "licenses": [
       {
         "name": "The Apache Software License, Version 2.0",
-        "url": ""
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
       }
     ],
     "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3"
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
     },
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
       }
     ]
   },
@@ -86,16 +102,20 @@
     "licenses": [
       {
         "name": "The Apache Software License, Version 2.0",
-        "url": ""
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
       }
     ],
     "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3"
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
     },
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
       }
     ]
   },
@@ -106,16 +126,20 @@
     "licenses": [
       {
         "name": "The Apache Software License, Version 2.0",
-        "url": ""
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
       }
     ],
     "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3"
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
     },
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
       }
     ]
   },
@@ -126,16 +150,20 @@
     "licenses": [
       {
         "name": "The Apache Software License, Version 2.0",
-        "url": ""
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
       }
     ],
     "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3"
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
     },
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
       }
     ]
   },
@@ -146,16 +174,20 @@
     "licenses": [
       {
         "name": "The Apache Software License, Version 2.0",
-        "url": ""
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
       }
     ],
     "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3"
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
     },
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
       }
     ]
   },
@@ -166,16 +198,20 @@
     "licenses": [
       {
         "name": "The Apache Software License, Version 2.0",
-        "url": ""
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
       }
     ],
     "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3"
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
     },
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
       }
     ]
   },
@@ -186,16 +222,20 @@
     "licenses": [
       {
         "name": "The Apache Software License, Version 2.0",
-        "url": ""
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
       }
     ],
     "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3"
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
     },
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
       }
     ]
   },
@@ -206,16 +246,20 @@
     "licenses": [
       {
         "name": "The Apache Software License, Version 2.0",
-        "url": ""
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
       }
     ],
     "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3"
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
     },
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
       }
     ]
   },
@@ -226,16 +270,20 @@
     "licenses": [
       {
         "name": "The Apache Software License, Version 2.0",
-        "url": ""
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
       }
     ],
     "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3"
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
     },
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
       }
     ]
   },
@@ -246,16 +294,20 @@
     "licenses": [
       {
         "name": "The Apache Software License, Version 2.0",
-        "url": ""
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
       }
     ],
     "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3"
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
     },
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
       }
     ]
   },
@@ -266,16 +318,20 @@
     "licenses": [
       {
         "name": "The Apache Software License, Version 2.0",
-        "url": ""
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
       }
     ],
     "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3"
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
     },
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
       }
     ]
   },
@@ -286,16 +342,20 @@
     "licenses": [
       {
         "name": "The Apache Software License, Version 2.0",
-        "url": ""
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
       }
     ],
     "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3"
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
     },
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
       }
     ]
   },
@@ -306,16 +366,20 @@
     "licenses": [
       {
         "name": "The Apache Software License, Version 2.0",
-        "url": ""
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
       }
     ],
     "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3"
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
     },
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
       }
     ]
   }

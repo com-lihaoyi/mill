@@ -7,7 +7,8 @@ object MillInitMavenTests extends MillInitImportTestSuite {
     test("jansi") - checkImport(
       repoName = "jansi",
       initArgs = Seq("--mill-jvm-id", "17"),
-      passingTasks = Seq("test")
+      passingTasks = Seq("test"),
+      failingTasks = Seq(Seq("spotless", "--check"))
     )
 
     test("netty") - checkImport(

@@ -9,13 +9,17 @@
     "--release",
     "17",
     "-Xlint:all",
-    "-Werror"
+    "-Werror",
+    "-XDshould-stop.ifError=FLOW",
+    "-XDshouldStopPolicyIfError=FLOW"
   ],
   "lib.test.javacOptions": [
     "-source",
     "25",
     "-target",
     "25",
-    "-parameters"
+    "-parameters",
+    "-XDshould-stop.ifError=FLOW",
+    "-XDshouldStopPolicyIfError=FLOW"
   ]
 }
