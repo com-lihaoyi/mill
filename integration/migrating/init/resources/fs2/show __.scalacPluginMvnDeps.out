@@ -1,0 +1,349 @@
+{
+  "benchmark.2_12_20.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "benchmark.2_13_16.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "benchmark.3_3_5.scalacPluginMvnDeps": [],
+  "core.js.2_12_20.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2"
+  ],
+  "core.js.2_12_20.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2",
+    "org.scala-js:::scalajs-compiler:1.18.2"
+  ],
+  "core.js.2_13_16.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2"
+  ],
+  "core.js.2_13_16.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2",
+    "org.scala-js:::scalajs-compiler:1.18.2"
+  ],
+  "core.js.3_3_5.scalacPluginMvnDeps": [],
+  "core.js.3_3_5.test.scalacPluginMvnDeps": [],
+  "core.jvm.2_12_20.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "core.jvm.2_12_20.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "core.jvm.2_13_16.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "core.jvm.2_13_16.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "core.jvm.3_3_5.scalacPluginMvnDeps": [],
+  "core.jvm.3_3_5.test.scalacPluginMvnDeps": [],
+  "core.native.2_12_20.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "core.native.2_12_20.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-native:::nscplugin:0.4.17",
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "core.native.2_13_16.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "core.native.2_13_16.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-native:::nscplugin:0.4.17",
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "core.native.3_3_5.scalacPluginMvnDeps": [
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "core.native.3_3_5.test.scalacPluginMvnDeps": [
+    "org.scala-native:::nscplugin:0.4.17",
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "integration.2_12_20.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "integration.2_12_20.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "integration.2_13_16.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "integration.2_13_16.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "integration.3_3_5.scalacPluginMvnDeps": [],
+  "integration.3_3_5.test.scalacPluginMvnDeps": [],
+  "io.js.2_12_20.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2"
+  ],
+  "io.js.2_12_20.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2",
+    "org.scala-js:::scalajs-compiler:1.18.2"
+  ],
+  "io.js.2_13_16.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2"
+  ],
+  "io.js.2_13_16.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2",
+    "org.scala-js:::scalajs-compiler:1.18.2"
+  ],
+  "io.js.3_3_5.scalacPluginMvnDeps": [],
+  "io.js.3_3_5.test.scalacPluginMvnDeps": [],
+  "io.jvm.2_12_20.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "io.jvm.2_12_20.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "io.jvm.2_13_16.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "io.jvm.2_13_16.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "io.jvm.3_3_5.scalacPluginMvnDeps": [],
+  "io.jvm.3_3_5.test.scalacPluginMvnDeps": [],
+  "io.native.2_12_20.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "io.native.2_12_20.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-native:::nscplugin:0.4.17",
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "io.native.2_13_16.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "io.native.2_13_16.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-native:::nscplugin:0.4.17",
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "io.native.3_3_5.scalacPluginMvnDeps": [
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "io.native.3_3_5.test.scalacPluginMvnDeps": [
+    "org.scala-native:::nscplugin:0.4.17",
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "mdoc.2_12_20.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "mdoc.2_13_16.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "mdoc.3_3_5.scalacPluginMvnDeps": [],
+  "protocols.js.2_12_20.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2"
+  ],
+  "protocols.js.2_12_20.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2",
+    "org.scala-js:::scalajs-compiler:1.18.2"
+  ],
+  "protocols.js.2_13_16.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2"
+  ],
+  "protocols.js.2_13_16.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2",
+    "org.scala-js:::scalajs-compiler:1.18.2"
+  ],
+  "protocols.js.3_3_5.scalacPluginMvnDeps": [],
+  "protocols.js.3_3_5.test.scalacPluginMvnDeps": [],
+  "protocols.jvm.2_12_20.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "protocols.jvm.2_12_20.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "protocols.jvm.2_13_16.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "protocols.jvm.2_13_16.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "protocols.jvm.3_3_5.scalacPluginMvnDeps": [],
+  "protocols.jvm.3_3_5.test.scalacPluginMvnDeps": [],
+  "protocols.native.2_12_20.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "protocols.native.2_12_20.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-native:::nscplugin:0.4.17",
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "protocols.native.2_13_16.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "protocols.native.2_13_16.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-native:::nscplugin:0.4.17",
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "protocols.native.3_3_5.scalacPluginMvnDeps": [
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "protocols.native.3_3_5.test.scalacPluginMvnDeps": [
+    "org.scala-native:::nscplugin:0.4.17",
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "reactive-streams.2_12_20.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "reactive-streams.2_12_20.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "reactive-streams.2_13_16.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "reactive-streams.2_13_16.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "reactive-streams.3_3_5.scalacPluginMvnDeps": [],
+  "reactive-streams.3_3_5.test.scalacPluginMvnDeps": [],
+  "scodec.js.2_12_20.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2"
+  ],
+  "scodec.js.2_12_20.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2",
+    "org.scala-js:::scalajs-compiler:1.18.2"
+  ],
+  "scodec.js.2_13_16.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2"
+  ],
+  "scodec.js.2_13_16.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2",
+    "org.scala-js:::scalajs-compiler:1.18.2"
+  ],
+  "scodec.js.3_3_5.scalacPluginMvnDeps": [],
+  "scodec.js.3_3_5.test.scalacPluginMvnDeps": [],
+  "scodec.jvm.2_12_20.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "scodec.jvm.2_12_20.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "scodec.jvm.2_13_16.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "scodec.jvm.2_13_16.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "scodec.jvm.3_3_5.scalacPluginMvnDeps": [],
+  "scodec.jvm.3_3_5.test.scalacPluginMvnDeps": [],
+  "scodec.native.2_12_20.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "scodec.native.2_12_20.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-native:::nscplugin:0.4.17",
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "scodec.native.2_13_16.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "scodec.native.2_13_16.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-native:::nscplugin:0.4.17",
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "scodec.native.3_3_5.scalacPluginMvnDeps": [
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "scodec.native.3_3_5.test.scalacPluginMvnDeps": [
+    "org.scala-native:::nscplugin:0.4.17",
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "unidocs.2_12_20.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "unidocs.2_13_16.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "unidocs.3_3_5.scalacPluginMvnDeps": []
+}

@@ -1,0 +1,10 @@
+{
+  "lib.errorProneDeps": [
+    "com.google.errorprone:error_prone_core:2.38.0",
+    "com.uber.nullaway:nullaway:0.12.7"
+  ],
+  "lib.test.errorProneDeps": [
+    "com.google.errorprone:error_prone_core:2.38.0",
+    "com.uber.nullaway:nullaway:0.12.7"
+  ]
+}

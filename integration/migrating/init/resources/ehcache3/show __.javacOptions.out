@@ -1,0 +1,434 @@
+{
+  "clustered.ehcache-client.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.ehcache-client.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.ehcache-clustered.javacOptions": [],
+  "clustered.ehcache-common.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.ehcache-common.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.ehcache-common-api.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.ehcache-common-api.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.integration-test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.integration-test.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.ops-tool.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.ops-tool.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.osgi-test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.osgi-test.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.server.ehcache-entity.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.server.ehcache-entity.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.server.ehcache-service.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.server.ehcache-service.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.server.ehcache-service-api.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.server.ehcache-service-api.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.test-utils.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "core-spi-test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "demos.00-NoCache.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "demos.01-CacheAside.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache.javacOptions": [],
+  "ehcache-107.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-107.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-api.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-api.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-core.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-core.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-impl.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-impl.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-management.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-management.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-transactions.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-transactions.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-xml.ehcache-xml-spi.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-xml.ehcache-xml-spi.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-xml.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-xml.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "integration-test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "integration-test.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "osgi-test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "osgi-test.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "spi-tester.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ]
+}

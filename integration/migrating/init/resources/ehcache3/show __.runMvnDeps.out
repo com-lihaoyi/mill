@@ -1,0 +1,97 @@
+{
+  "clustered.ehcache-client.runMvnDeps": [],
+  "clustered.ehcache-client.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "clustered.ehcache-clustered.runMvnDeps": [],
+  "clustered.ehcache-common.runMvnDeps": [],
+  "clustered.ehcache-common.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "clustered.ehcache-common-api.runMvnDeps": [],
+  "clustered.ehcache-common-api.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "clustered.integration-test.runMvnDeps": [],
+  "clustered.integration-test.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "clustered.ops-tool.runMvnDeps": [],
+  "clustered.ops-tool.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "clustered.osgi-test.runMvnDeps": [],
+  "clustered.osgi-test.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "clustered.server.ehcache-entity.runMvnDeps": [],
+  "clustered.server.ehcache-entity.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "clustered.server.ehcache-service.runMvnDeps": [],
+  "clustered.server.ehcache-service.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "clustered.server.ehcache-service-api.runMvnDeps": [],
+  "clustered.server.ehcache-service-api.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "clustered.test-utils.runMvnDeps": [],
+  "core-spi-test.runMvnDeps": [],
+  "demos.00-NoCache.runMvnDeps": [
+    "ch.qos.logback:logback-classic:1.2.11",
+    "com.h2database:h2:1.4.196"
+  ],
+  "demos.01-CacheAside.runMvnDeps": [
+    "ch.qos.logback:logback-classic:1.2.11",
+    "com.h2database:h2:1.4.196"
+  ],
+  "ehcache.runMvnDeps": [],
+  "ehcache-107.runMvnDeps": [],
+  "ehcache-107.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "ehcache-api.runMvnDeps": [],
+  "ehcache-api.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "ehcache-core.runMvnDeps": [],
+  "ehcache-core.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "ehcache-impl.runMvnDeps": [],
+  "ehcache-impl.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "ehcache-management.runMvnDeps": [],
+  "ehcache-management.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "ehcache-transactions.runMvnDeps": [],
+  "ehcache-transactions.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "ehcache-xml.ehcache-xml-spi.runMvnDeps": [],
+  "ehcache-xml.ehcache-xml-spi.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "ehcache-xml.runMvnDeps": [
+    "org.glassfish.jaxb:jaxb-runtime:[2.2,3)"
+  ],
+  "ehcache-xml.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "integration-test.runMvnDeps": [],
+  "integration-test.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "osgi-test.runMvnDeps": [
+    "org.ops4j.pax.exam:pax-exam-link-mvn:4.13.5;exclude=org.slf4j:slf4j-api",
+    "org.ops4j.pax.url:pax-url-wrap:2.6.11;exclude=org.slf4j:slf4j-api",
+    "org.ops4j.pax.exam:pax-exam-container-native:4.13.5;exclude=org.slf4j:slf4j-api"
+  ],
+  "osgi-test.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "spi-tester.runMvnDeps": []
+}

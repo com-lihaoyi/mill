@@ -1,0 +1,22 @@
+{
+  "2_13_16.scalacOptions": [
+    "-feature",
+    "-language:higherKinds",
+    "-language:implicitConversions"
+  ],
+  "2_13_16.test.scalacOptions": [
+    "-feature",
+    "-language:higherKinds",
+    "-language:implicitConversions"
+  ],
+  "3_3_3.scalacOptions": [
+    "-feature",
+    "-language:higherKinds",
+    "-language:implicitConversions"
+  ],
+  "3_3_3.test.scalacOptions": [
+    "-feature",
+    "-language:higherKinds",
+    "-language:implicitConversions"
+  ]
+}

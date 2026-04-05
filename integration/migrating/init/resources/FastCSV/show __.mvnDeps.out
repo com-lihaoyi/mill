@@ -1,0 +1,10 @@
+{
+  "example.mvnDeps": [
+    "ch.randelshofer:fastdoubleparser:2.0.1"
+  ],
+  "lib.mvnDeps": [],
+  "lib.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter:6.0.0",
+    "org.assertj:assertj-core:3.27.3"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "example.javacOptions": [
+    "-source",
+    "25",
+    "-target",
+    "25"
+  ],
+  "lib.javacOptions": [
+    "--release",
+    "17",
+    "-Xlint:all",
+    "-Werror"
+  ],
+  "lib.test.javacOptions": [
+    "-source",
+    "25",
+    "-target",
+    "25",
+    "-parameters"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "2_13_16.repositories": [
+    "https://oss.sonatype.org/content/repositories/public",
+    "https://s01.oss.sonatype.org/content/repositories/public"
+  ],
+  "2_13_16.test.repositories": [],
+  "3_3_3.repositories": [
+    "https://oss.sonatype.org/content/repositories/public",
+    "https://s01.oss.sonatype.org/content/repositories/public"
+  ],
+  "3_3_3.test.repositories": []
+}

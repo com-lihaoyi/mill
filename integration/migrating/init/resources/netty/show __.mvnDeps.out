@@ -1,0 +1,485 @@
+{
+  "all.mvnDeps": [],
+  "bom.mvnDeps": [],
+  "buffer.mvnDeps": [],
+  "buffer.test.mvnDeps": [
+    "org.mockito:mockito-core:3.6.28",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0",
+    "ch.qos.logback:logback-classic:1.3.14"
+  ],
+  "codec.mvnDeps": [
+    "com.google.protobuf:protobuf-java:3.25.5",
+    "com.google.protobuf.nano:protobuf-javanano:3.0.0-alpha-5",
+    "org.jboss.marshalling:jboss-marshalling:2.2.3.Final"
+  ],
+  "codec-base.mvnDeps": [],
+  "codec-base.test.mvnDeps": [
+    "org.mockito:mockito-core:3.6.28",
+    "org.apache.commons:commons-compress:1.26.0",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-classes-quic.mvnDeps": [],
+  "codec-compression.mvnDeps": [
+    "com.jcraft:jzlib:1.1.3",
+    "com.ning:compress-lzf:1.0.3",
+    "org.lz4:lz4-java:1.8.0",
+    "com.github.jponge:lzma-java:1.3",
+    "com.github.luben:zstd-jni:1.5.6-5",
+    "com.aayushatharva.brotli4j:brotli4j:1.16.0",
+    "com.aayushatharva.brotli4j:native-linux-x86_64:1.16.0",
+    "com.aayushatharva.brotli4j:native-linux-aarch64:1.16.0",
+    "com.aayushatharva.brotli4j:native-linux-riscv64:1.16.0",
+    "com.aayushatharva.brotli4j:native-osx-x86_64:1.16.0",
+    "com.aayushatharva.brotli4j:native-osx-aarch64:1.16.0",
+    "com.aayushatharva.brotli4j:native-windows-x86_64:1.16.0"
+  ],
+  "codec-compression.test.mvnDeps": [
+    "org.mockito:mockito-core:3.6.28",
+    "org.apache.commons:commons-compress:1.26.0",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-dns.mvnDeps": [],
+  "codec-dns.test.mvnDeps": [
+    "org.apache.directory.server:apacheds-protocol-dns:1.5.7",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-haproxy.mvnDeps": [],
+  "codec-haproxy.test.mvnDeps": [
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-http.mvnDeps": [
+    "com.jcraft:jzlib:1.1.3",
+    "com.aayushatharva.brotli4j:brotli4j:1.16.0",
+    "com.github.luben:zstd-jni:1.5.6-5"
+  ],
+  "codec-http.test.mvnDeps": [
+    "org.mockito:mockito-core:3.6.28",
+    "commons-io:commons-io:2.14.0",
+    "com.aayushatharva.brotli4j:native-linux-x86_64:1.16.0",
+    "com.aayushatharva.brotli4j:native-linux-aarch64:1.16.0",
+    "com.aayushatharva.brotli4j:native-linux-riscv64:1.16.0",
+    "com.aayushatharva.brotli4j:native-osx-x86_64:1.16.0",
+    "com.aayushatharva.brotli4j:native-osx-aarch64:1.16.0",
+    "com.aayushatharva.brotli4j:native-windows-x86_64:1.16.0",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-http2.mvnDeps": [
+    "com.jcraft:jzlib:1.1.3",
+    "com.aayushatharva.brotli4j:brotli4j:1.16.0",
+    "com.github.luben:zstd-jni:1.5.6-5"
+  ],
+  "codec-http2.test.mvnDeps": [
+    "org.mockito:mockito-core:3.6.28",
+    "org.bouncycastle:bcpkix-jdk18on:1.80",
+    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}",
+    "com.aayushatharva.brotli4j:native-linux-x86_64:1.16.0",
+    "com.aayushatharva.brotli4j:native-linux-aarch64:1.16.0",
+    "com.aayushatharva.brotli4j:native-linux-riscv64:1.16.0",
+    "com.aayushatharva.brotli4j:native-linux-armv7:1.16.0",
+    "com.aayushatharva.brotli4j:native-osx-x86_64:1.16.0",
+    "com.aayushatharva.brotli4j:native-osx-aarch64:1.16.0",
+    "com.aayushatharva.brotli4j:native-windows-x86_64:1.16.0",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-http3.mvnDeps": [],
+  "codec-http3.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.hamcrest:hamcrest-library:1.3",
+    "io.netty:netty-build-common:31",
+    "org.mockito:mockito-core:3.6.28",
+    "org.bouncycastle:bcpkix-jdk18on:1.80"
+  ],
+  "codec-marshalling.mvnDeps": [
+    "org.jboss.marshalling:jboss-marshalling:2.2.3.Final"
+  ],
+  "codec-marshalling.test.mvnDeps": [
+    "org.jboss.marshalling:jboss-marshalling-serial:2.2.3.Final",
+    "org.jboss.marshalling:jboss-marshalling-river:2.2.3.Final",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-memcache.mvnDeps": [],
+  "codec-memcache.test.mvnDeps": [
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-mqtt.mvnDeps": [],
+  "codec-mqtt.test.mvnDeps": [
+    "org.mockito:mockito-core:3.6.28",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-native-quic.mvnDeps": [
+    "io.netty:netty-jni-util:0.0.9.Final;classifier=sources"
+  ],
+  "codec-native-quic.test.mvnDeps": [
+    "org.bouncycastle:bcpkix-jdk18on:1.80",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0",
+    "ch.qos.logback:logback-classic:1.3.14"
+  ],
+  "codec-protobuf.mvnDeps": [
+    "com.google.protobuf:protobuf-java:3.25.5",
+    "com.google.protobuf.nano:protobuf-javanano:3.0.0-alpha-5"
+  ],
+  "codec-protobuf.test.mvnDeps": [
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-redis.mvnDeps": [],
+  "codec-redis.test.mvnDeps": [
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-smtp.mvnDeps": [],
+  "codec-smtp.test.mvnDeps": [
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-socks.mvnDeps": [],
+  "codec-socks.test.mvnDeps": [
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-stomp.mvnDeps": [],
+  "codec-stomp.test.mvnDeps": [
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-xml.mvnDeps": [
+    "com.fasterxml:aalto-xml:1.3.3"
+  ],
+  "codec-xml.test.mvnDeps": [
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "common.mvnDeps": [
+    "org.jctools:jctools-core:4.0.5",
+    "org.slf4j:slf4j-api:2.0.13",
+    "commons-logging:commons-logging:1.3.4",
+    "org.apache.logging.log4j:log4j-1.2-api:2.23.1;exclude=com.sun.jdmk:jmxtools;exclude=com.sun.jmx:jmxri;exclude=javax.jms:jms;exclude=javax.mail:mail",
+    "org.apache.logging.log4j:log4j-api:2.23.1",
+    "io.projectreactor.tools:blockhound:1.0.13.RELEASE"
+  ],
+  "common.test.mvnDeps": [
+    "org.apache.logging.log4j:log4j-core:2.23.1",
+    "org.mockito:mockito-core:3.6.28",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0",
+    "ch.qos.logback:logback-classic:1.3.14"
+  ],
+  "dev-tools.mvnDeps": [],
+  "example.mvnDeps": [
+    "com.google.protobuf:protobuf-java:3.25.5",
+    "org.conscrypt:conscrypt-openjdk-uber:2.5.2",
+    "org.bouncycastle:bcpkix-jdk18on:1.80",
+    "org.bouncycastle:bcprov-jdk18on:1.80",
+    "com.sun.activation:javax.activation:1.2.0"
+  ],
+  "handler.mvnDeps": [
+    "io.netty:netty-tcnative-classes:2.0.73.Final",
+    "org.bouncycastle:bcpkix-jdk18on:1.80",
+    "org.bouncycastle:bctls-jdk18on:1.80",
+    "org.conscrypt:conscrypt-openjdk-uber:2.5.2"
+  ],
+  "handler.test.mvnDeps": [
+    "org.mockito:mockito-core:3.6.28",
+    "software.amazon.cryptools:AmazonCorrettoCryptoProvider:2.4.1;classifier={os.detected.name}-{os.detected.arch}",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0",
+    "ch.qos.logback:logback-classic:1.3.14"
+  ],
+  "handler-proxy.mvnDeps": [],
+  "handler-proxy.test.mvnDeps": [
+    "org.mockito:mockito-core:3.6.28",
+    "org.bouncycastle:bcpkix-jdk18on:1.80",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "handler-ssl-ocsp.mvnDeps": [],
+  "handler-ssl-ocsp.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "jfr-stub.mvnDeps": [],
+  "microbench.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.openjdk.jmh:jmh-core:1.36",
+    "org.agrona:Agrona:0.5.1",
+    "org.jctools:jctools-core:4.0.5",
+    "org.jfree:jfreechart:1.5.6"
+  ],
+  "mvnDeps": [],
+  "pkitesting.mvnDeps": [
+    "org.bouncycastle:bcpkix-jdk18on:1.80",
+    "org.bouncycastle:bcprov-jdk18on:1.80"
+  ],
+  "pkitesting.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "resolver.mvnDeps": [],
+  "resolver.test.mvnDeps": [
+    "org.mockito:mockito-core:3.6.28",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "resolver-dns.mvnDeps": [],
+  "resolver-dns.test.mvnDeps": [
+    "org.apache.directory.server:apacheds-protocol-dns:1.5.7;exclude=commons-lang:commons-lang",
+    "commons-lang:commons-lang:2.6",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "resolver-dns-classes-macos.mvnDeps": [],
+  "resolver-dns-native-macos.mvnDeps": [],
+  "resolver-dns-native-macos.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "testsuite.mvnDeps": [
+    "org.tukaani:xz:1.5",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0",
+    "org.mockito:mockito-core:3.6.28",
+    "ch.qos.logback:logback-classic:1.3.14",
+    "org.bouncycastle:bcpkix-jdk18on:1.80"
+  ],
+  "testsuite-autobahn.mvnDeps": [],
+  "testsuite-http2.mvnDeps": [],
+  "testsuite-jpms.mvnDeps": [
+    "io.netty:netty-tcnative-classes:2.0.73.Final",
+    "io.netty:netty-tcnative-boringssl-static:2.0.73.Final;classifier={os.detected.name}-{os.detected.arch}",
+    "org.bouncycastle:bcpkix-jdk18on:1.80",
+    "org.bouncycastle:bcprov-jdk18on:1.80"
+  ],
+  "testsuite-jpms.test.mvnDeps": [
+    "com.google.protobuf:protobuf-java:3.25.5",
+    "com.google.protobuf.nano:protobuf-javanano:3.0.0-alpha-5",
+    "org.jboss.marshalling:jboss-marshalling:2.2.3.Final",
+    "org.jboss.marshalling:jboss-marshalling-serial:2.2.3.Final",
+    "org.apache.logging.log4j:log4j-api:2.23.1",
+    "org.apache.logging.log4j:log4j-core:2.23.1",
+    "com.github.luben:zstd-jni:1.5.6-5",
+    "com.aayushatharva.brotli4j:brotli4j:1.16.0",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "ch.qos.logback:logback-classic:1.3.14",
+    "commons-logging:commons-logging:1.3.5"
+  ],
+  "testsuite-karaf.mvnDeps": [
+    "org.apache.karaf.features:framework:4.4.8;type=kar"
+  ],
+  "testsuite-native.mvnDeps": [],
+  "testsuite-native.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1"
+  ],
+  "testsuite-native-image.mvnDeps": [],
+  "testsuite-native-image-client.mvnDeps": [],
+  "testsuite-native-image-client-runtime-init.mvnDeps": [],
+  "testsuite-osgi.mvnDeps": [
+    "org.apache.felix:org.apache.felix.configadmin:1.9.14"
+  ],
+  "testsuite-osgi.test.mvnDeps": [
+    "org.apache.felix:org.apache.felix.framework:6.0.2",
+    "org.ops4j.pax.exam:pax-exam-junit4:4.13.0",
+    "org.ops4j.pax.exam:pax-exam-container-native:4.13.0",
+    "org.ops4j.pax.exam:pax-exam-link-assembly:4.13.0"
+  ],
+  "testsuite-shading.mvnDeps": [
+    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}"
+  ],
+  "testsuite-shading.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1"
+  ],
+  "transport.mvnDeps": [],
+  "transport.test.mvnDeps": [
+    "org.mockito:mockito-core:3.6.28",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0",
+    "ch.qos.logback:logback-classic:1.3.14"
+  ],
+  "transport-blockhound-tests.mvnDeps": [
+    "org.bouncycastle:bcpkix-jdk18on:1.80"
+  ],
+  "transport-blockhound-tests.test.mvnDeps": [
+    "io.projectreactor.tools:blockhound:1.0.13.RELEASE",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "transport-classes-epoll.mvnDeps": [],
+  "transport-classes-io_uring.mvnDeps": [],
+  "transport-classes-kqueue.mvnDeps": [],
+  "transport-native-epoll.mvnDeps": [
+    "org.bouncycastle:bcpkix-jdk18on:1.80"
+  ],
+  "transport-native-epoll.test.mvnDeps": [
+    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}",
+    "io.github.artsok:rerunner-jupiter:2.1.6",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "transport-native-io_uring.mvnDeps": [],
+  "transport-native-io_uring.test.mvnDeps": [
+    "org.bouncycastle:bcpkix-jdk18on:1.80",
+    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "transport-native-kqueue.mvnDeps": [
+    "org.bouncycastle:bcpkix-jdk18on:1.80"
+  ],
+  "transport-native-kqueue.test.mvnDeps": [
+    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "transport-native-unix-common.mvnDeps": [
+    "io.netty:netty-jni-util:0.0.9.Final;classifier=sources"
+  ],
+  "transport-native-unix-common.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "transport-native-unix-common-tests.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1"
+  ],
+  "transport-rxtx.mvnDeps": [
+    "org.rxtx:rxtx:2.1.7"
+  ],
+  "transport-sctp.mvnDeps": [],
+  "transport-sctp.test.mvnDeps": [
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "transport-udt.mvnDeps": [
+    "com.barchart.udt:barchart-udt-bundle:2.3.0"
+  ],
+  "transport-udt.test.mvnDeps": [
+    "com.google.caliper:caliper:0.5-rc1",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "varhandle-stub.mvnDeps": []
+}

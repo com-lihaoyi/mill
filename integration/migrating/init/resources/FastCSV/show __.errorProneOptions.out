@@ -1,0 +1,10 @@
+{
+  "lib.errorProneOptions": [
+    "-Xep:NullAway:ERROR",
+    "-XepOpt:NullAway:AnnotatedPackages=de.siegmar.fastcsv"
+  ],
+  "lib.test.errorProneOptions": [
+    "-XepCompilingTestOnlyCode",
+    "-Xep:NullAway:OFF"
+  ]
+}

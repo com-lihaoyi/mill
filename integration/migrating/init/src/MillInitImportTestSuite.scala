@@ -1,11 +1,10 @@
 package mill.integration
 import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
-import utest.{assert, assertGoldenFile, assertGoldenLiteral}
+import utest.{assert, assertGoldenFile}
 trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
   def checkImport(
       repoName: String,
       initArgs: Seq[String] = Nil,
-      configsGoldenFile: os.SubPath = null,
       passingTasks: Seq[os.Shellable] = Nil,
       failingTasks: Seq[os.Shellable] = Nil
   ): Unit = {
@@ -31,75 +30,15 @@ trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
       val initRes = eval("init" +: initArgs)
       assert(initRes.isSuccess)
 
-      if (configsGoldenFile != null) {
-        // Tasks that may not exist on all modules (e.g., errorProneDeps only on ErrorProneModule)
-        // or may have incomplete configuration in YAML (e.g., pomSettings for child modules)
-        val expectedFailureTasks = Set(
-          "errorProneDeps",
-          "errorProneOptions",
-          "pomSettings",
-          "scalaVersion",
-          "scalacOptions",
-          "scalacPluginMvnDeps",
-          "scalaJSVersion",
-          "moduleKind",
-          "scalaNativeVersion"
-        )
-        val taskNames = Seq(
-          "repositories",
-          "mandatoryMvnDeps",
-          "mvnDeps",
-          "compileMvnDeps",
-          "runMvnDeps",
-          "bomMvnDeps",
-          "javacOptions",
-          "pomParentProject",
-          "pomSettings",
-          "publishVersion",
-          "versionScheme",
-          "publishProperties",
-          "errorProneDeps",
-          "errorProneOptions",
-          "scalaVersion",
-          "scalacOptions",
-          "scalacPluginMvnDeps",
-          "scalaJSVersion",
-          "moduleKind",
-          "scalaNativeVersion",
-          "testParallelism",
-          "testSandboxWorkingDir"
-        )
-        def evalTask(task: String): String = {
-          val result = eval(("show", s"__.$task"))
-          if (!result.isSuccess && !expectedFailureTasks.contains(task)) {
-            throw new Exception(s"Command failed: show __.$task\n${result.debugString}")
-          }
-          result.out
-        }
-        val showModuleDepsResult = eval("__.showModuleDeps")
-        if (!showModuleDepsResult.isSuccess) {
-          throw new Exception(
-            s"Command failed: __.showModuleDeps\n${showModuleDepsResult.debugString}"
-          )
-        }
-        val showModuleDepsOut = showModuleDepsResult.out
-        val actualConfigs = taskNames
-          .map(evalTask)
-          .mkString(
-            s"""$showModuleDepsOut
-               |""".stripMargin,
-            s"""
-               |""".stripMargin,
-            ""
-          )
-        val configsFile = resources / configsGoldenFile
-        assertGoldenFile(actualConfigs, configsFile.wrapped)
-      }
+      for {
+        taskExpectedOut <- os.list(resources / repoName)
+        task = taskExpectedOut.baseName.split(" ")
+        taskResult = eval(task)
+      } assertGoldenFile(taskResult.out, taskExpectedOut.toNIO)
 
-      val passingTasks0 = passingTasks.filter(eval(_).isSuccess)
-      assertGoldenLiteral(passingTasks0, passingTasks)
-      val failingTasks0 = failingTasks.filterNot(eval(_).isSuccess)
-      assertGoldenLiteral(failingTasks0, failingTasks)
+      for (task <- passingTasks) assert(eval(task).isSuccess)
+      for (task <- failingTasks) assert(!eval(task).isSuccess)
+
     } finally tester.close()
   }
 }
