@@ -10,7 +10,7 @@ package mill.androidlib
  */
 case class AndroidBuildTypeSettings(
     isMinifyEnabled: Boolean = false,
-    enableDesugaring: Boolean = true
+    enableDesugaring: Boolean = false
 )
 
 object AndroidBuildTypeSettings {

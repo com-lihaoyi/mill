@@ -143,6 +143,10 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
     Seq.empty[String]
   }
 
+  override def enableDesugaring: T[Boolean] = Task {
+    androidBuildSettings().enableDesugaring
+  }
+
   def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
     AndroidBuildTypeSettings()
   }
@@ -274,7 +278,7 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
         configOut.toString
       )
 
-      if (!androidBuildSettings().enableDesugaring) {
+      if (!enableDesugaring()) {
         r8ArgsBuilder += "--no-desugaring"
       }
 
