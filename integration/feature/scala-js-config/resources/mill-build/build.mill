@@ -1,0 +1,18 @@
+import mill._
+import mill.api.{BuildInfo, TaskCtx}
+import mill.meta.MillBuildRootModule
+import mill.scalalib._
+
+object `package` extends MillBuildRootModule {
+
+  def scalaJSVersion(implicit env: TaskCtx.Env) = Task.env.getOrElse(
+    "TEST_SCALA_JS_VERSION",
+    sys.error("TEST_SCALA_JS_VERSION not set")
+  )
+
+  override def mvnDeps = Seq(
+    mvn"com.lihaoyi::mill-libs-scalajslib-config-1:${BuildInfo.millVersion}",
+    mvn"org.scala-js:scalajs-linker_2.13:$scalaJSVersion",
+    mvn"org.scala-js:scalajs-js-envs_2.13:1.4.0"
+  )
+}

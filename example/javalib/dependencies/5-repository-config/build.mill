@@ -1,7 +1,6 @@
 //// SNIPPET:BUILD1
 package build
-import mill.*, javalib.*
-import mill.api.ModuleRef
+import mill._, javalib._
 
 object foo extends JavaModule {
 
@@ -14,15 +13,10 @@ object foo extends JavaModule {
   def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
 }
 
-//// SNIPPET:BUILD2
+//// SNIPPET:END
 
-object CustomJvmWorkerModule extends JvmWorkerModule, CoursierModule {
-  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
-}
+/** Usage
 
-object bar extends JavaModule {
-  def jvmWorker = ModuleRef(CustomJvmWorkerModule)
-  // ... rest of your build definitions
+> ./mill foo.run --text hello
 
-  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
-}
+*/

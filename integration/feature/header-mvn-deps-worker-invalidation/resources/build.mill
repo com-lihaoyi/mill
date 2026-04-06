@@ -10,8 +10,8 @@ package build
 // In this test case, `mill.playlib.RouteCompilerWorker` is the relevant worker
 // class, instantiated in `RouterModule.routeCompilerWorker`
 
-import mill._
-import mill.playlib._
+import mill.*
+import mill.playlib.*
 
 object app extends PlayApiModule {
   def scalaVersion = "2.13.10"

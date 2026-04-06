@@ -25,7 +25,7 @@ object foo extends PublishModule {
 // `main` file is by default the file defined in the `mainFileName` task, it can be modified if needed.
 
 // Use the `.npmrc` file to include authentication tokens for publishing to npm or
-// change the regsitry to publish to a private registry.
+// change the registry to publish to a private registry.
 
 // The package.json generated for this simple publish:
 

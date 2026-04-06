@@ -1,0 +1,3 @@
+extends: [build.JavaTests, TestModule.Junit6]
+moduleDeps: !append [test]
+jupiterVersion: "6.0.2"

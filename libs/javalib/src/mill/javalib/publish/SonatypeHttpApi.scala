@@ -3,7 +3,7 @@ package mill.javalib.publish
 import java.util.Base64
 
 import scala.annotation.tailrec
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 import mill.api.BuildInfo
 import requests.BaseSession

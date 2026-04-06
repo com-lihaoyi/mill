@@ -6,7 +6,7 @@ import mill.playlib.api.RouteCompilerType
 import mill.javalib.api.CompilationResult
 import mill.*
 
-private[playlib] class RouteCompilerWorker {
+private[playlib] class RouteCompilerWorker extends AutoCloseable {
 
   def compile(
       toolsClasspath: Seq[PathRef],
@@ -48,6 +48,10 @@ private[playlib] class RouteCompilerWorker {
         case err => Result.Failure(err)
       }
     }
+  }
 
+  override def close(): Unit = {
+    // no-op
+    // TODO: cache classloader to improve repetitive compilations
   }
 }

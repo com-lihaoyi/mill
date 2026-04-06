@@ -76,7 +76,7 @@ trait ScalafmtModule extends JavaModule {
 }
 
 object ScalafmtModule extends ExternalModule with ScalafmtModule with DefaultTaskModule {
-  override def defaultTask(): String = "reformatAll"
+  override def defaultTask(): String = "scalafmt"
 
   def reformatAll(@arg(positional = true) sources: Tasks[Seq[PathRef]] =
     Tasks.resolveMainDefault("__.sources")) =

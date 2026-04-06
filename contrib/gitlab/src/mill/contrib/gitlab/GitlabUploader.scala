@@ -1,6 +1,6 @@
 package mill.contrib.gitlab
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import requests.Session
 
 object GitlabUploader {

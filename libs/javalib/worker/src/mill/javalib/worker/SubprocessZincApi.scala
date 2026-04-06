@@ -2,13 +2,15 @@ package mill.javalib.worker
 import mill.api.*
 import mill.api.daemon.*
 import mill.api.daemon.internal.CompileProblemReporter
+import mill.client.lock.Locks
 import mill.client.{LaunchedServer, ServerLauncher}
 import mill.javalib.api.internal.*
 import mill.javalib.api.internal.{RpcProblemMessage, ZincCompilerBridgeProvider}
-import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
-import mill.javalib.zinc.{ZincApi, ZincWorker, ZincWorkerRpcServer}
+import mill.javalib.worker.JvmWorkerRpcServer.ReporterMode
+import mill.javalib.zinc.{ZincApi, ZincWorker}
+import mill.javalib.worker.JvmWorkerRpcServer
 import mill.rpc.{MillRpcChannel, MillRpcClient, MillRpcWireTransport}
-import mill.util.CachedFactoryWithInitData
+import mill.util.CachedFactoryBase
 
 import java.io.*
 import scala.util.Using
@@ -22,7 +24,8 @@ class SubprocessZincApi(
     runtimeOptions: Seq[String],
     ctx: ZincWorker.LocalConfig,
     log: Logger,
-    subprocessCache: CachedFactoryWithInitData[
+    subprocessCache: CachedFactoryBase[
+      SubprocessZincApi.Key,
       SubprocessZincApi.Key,
       SubprocessZincApi.Initialize,
       SubprocessZincApi.Value
@@ -42,25 +45,18 @@ class SubprocessZincApi(
   /** Handles messages sent from the Zinc RPC server. */
   private def serverRpcToClientHandler(
       reporter: Option[CompileProblemReporter]
-  ): MillRpcChannel[ZincWorkerRpcServer.ServerToClient] = {
+  ): MillRpcChannel[JvmWorkerRpcServer.ServerToClient] = {
     input =>
       input match {
-        case msg: ZincWorkerRpcServer.ServerToClient.AcquireZincCompilerBridge =>
-          compilerBridge.acquire(msg.scalaVersion, msg.scalaOrganization)
-            .asInstanceOf[input.Response]
-        case msg: ZincWorkerRpcServer.ServerToClient.ReportProblem =>
+        case msg: JvmWorkerRpcServer.ServerToClient.ReportProblem =>
           val res =
             reporter match {
               case Some(reporter) => msg.problem match {
                   case RpcProblemMessage.Start => reporter.start()
-                  case RpcProblemMessage.LogError(problem) =>
-                    reporter.logError(problem)
-                  case RpcProblemMessage.LogWarning(problem) =>
-                    reporter.logWarning(problem)
-                  case RpcProblemMessage.LogInfo(problem) =>
-                    reporter.logInfo(problem)
-                  case RpcProblemMessage.FileVisited(file) =>
-                    reporter.fileVisited(file.toNIO)
+                  case RpcProblemMessage.LogError(problem) => reporter.logError(problem)
+                  case RpcProblemMessage.LogWarning(problem) => reporter.logWarning(problem)
+                  case RpcProblemMessage.LogInfo(problem) => reporter.logInfo(problem)
+                  case RpcProblemMessage.FileVisited(file) => reporter.fileVisited(file.toNIO)
                   case RpcProblemMessage.PrintSummary => reporter.printSummary()
                   case RpcProblemMessage.Finish => reporter.finish()
                   case RpcProblemMessage.NotifyProgress(progress, total) =>
@@ -79,49 +75,60 @@ class SubprocessZincApi(
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
   ): op.Response = {
+    val compilerBridgeAcquire = op match {
+      case msg: ZincOp.CompileMixed if msg.compilerBridgeOpt.isEmpty =>
+        Some(compilerBridge.acquire(msg.scalaVersion, msg.scalaOrganization))
+      case msg: ZincOp.ScaladocJar if msg.compilerBridgeOpt.isEmpty =>
+        Some(compilerBridge.acquire(msg.scalaVersion, msg.scalaOrganization))
+      case _ => None
+    }
+
     subprocessCache.withValue(
       cacheKey,
       SubprocessZincApi.Initialize(compilerBridge.workspace, log)
-    ) { case SubprocessZincApi.Value(port, daemonDir, _) =>
-      Using.Manager { use =>
-        val socket = new java.net.Socket(java.net.InetAddress.getLoopbackAddress(), port)
-        val debugName =
-          s"ZincWorker,TCP ${socket.getRemoteSocketAddress} -> ${socket.getLocalSocketAddress}"
-        ServerLauncher.runWithConnection(
-          socket,
-          /* closeConnectionAfterCommand */ true,
-          /* sendInitData */ _ => {},
-          (in, out) => {
-            val serverToClient = use(BufferedReader(InputStreamReader(in)))
-            val clientToServer = use(PrintStream(out))
-            val wireTransport =
-              MillRpcWireTransport(
-                debugName,
-                serverToClient,
-                clientToServer,
-                writeSynchronizer = clientToServer
-              )
+    ) {
+      case SubprocessZincApi.Value(port, daemonDir, _, _) =>
+        Using.Manager { use =>
+          val socket = new java.net.Socket(java.net.InetAddress.getLoopbackAddress(), port)
+          val debugName =
+            s"ZincWorker,TCP ${socket.getRemoteSocketAddress} -> ${socket.getLocalSocketAddress}"
+          ServerLauncher.runWithConnection(
+            socket,
+            /* closeConnectionAfterCommand */ true,
+            /* sendInitData */ _ => {},
+            (in, out) => {
+              val serverToClient = use(BufferedReader(InputStreamReader(in)))
+              val clientToServer = use(PrintStream(out))
+              val wireTransport =
+                MillRpcWireTransport(
+                  debugName,
+                  serverToClient,
+                  clientToServer,
+                  writeSynchronizer = clientToServer,
+                  logDir = Some(daemonDir)
+                )
 
-            val init =
-              ZincWorkerRpcServer.Initialize(compilerBridgeWorkspace = compilerBridge.workspace)
+              val init =
+                JvmWorkerRpcServer.Initialize(compilerBridgeWorkspace = compilerBridge.workspace)
 
-            val client = MillRpcClient.create[
-              ZincWorkerRpcServer.Initialize,
-              ZincWorkerRpcServer.Request,
-              ZincWorkerRpcServer.ServerToClient
-            ](init, wireTransport, makeClientLogger())(serverRpcToClientHandler(reporter))
+              val client = MillRpcClient.create[
+                JvmWorkerRpcServer.Initialize,
+                JvmWorkerRpcServer.Request,
+                JvmWorkerRpcServer.ServerToClient
+              ](init, wireTransport, makeClientLogger())(serverRpcToClientHandler(reporter))
 
-            client.apply(ZincWorkerRpcServer.Request(
-              op,
-              reporter match {
-                case None => ReporterMode.NoReporter
-                case Some(r) => ReporterMode.Reporter(reportCachedProblems, r.maxErrors)
-              },
-              ctx
-            )).asInstanceOf[op.Response]
-          }
-        )
-      }.get
+              client.apply(JvmWorkerRpcServer.Request(
+                op,
+                reporter match {
+                  case None => ReporterMode.NoReporter
+                  case Some(r) => ReporterMode.Reporter(reportCachedProblems, r.maxErrors)
+                },
+                ctx,
+                compilerBridgeAcquire
+              )).asInstanceOf[op.Response]
+            }
+          )
+        }.get
     }
   }
 }
@@ -129,5 +136,5 @@ object SubprocessZincApi {
 
   case class Key(javaHome: Option[os.Path], runtimeOptions: Seq[String])
   case class Initialize(taskDest: os.Path, log: Logger)
-  case class Value(port: Int, daemonDir: os.Path, launchedServer: LaunchedServer)
+  case class Value(port: Int, daemonDir: os.Path, launchedServer: LaunchedServer, lock: Locks)
 }

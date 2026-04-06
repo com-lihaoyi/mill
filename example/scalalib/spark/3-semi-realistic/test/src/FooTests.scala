@@ -1,7 +1,7 @@
 package foo
 
 import org.apache.spark.sql.SparkSession
-import utest._
+import utest.*
 
 object FooTests extends TestSuite {
   val spark = SparkSession.builder()
@@ -9,7 +9,7 @@ object FooTests extends TestSuite {
     .master("local[*]")
     .getOrCreate()
 
-  import spark.implicits._
+  import spark.implicits.*
 
   def tests = Tests {
     test("computeSummary should compute correct summary statistics") {

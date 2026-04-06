@@ -204,13 +204,55 @@ object ErrorTests extends TestSuite {
 
       lazy val millDiscover = Discover[this.type]
     }
+
+    object CrossModuleUnderscoreDotConflict extends TestRootModule {
+      // This should raise an error because "foo_bar" and "foo.bar" would be
+      // ambiguous with underscore-to-dot conversion
+      object myCross extends Cross[MyCross]("foo_bar", "foo.bar")
+      trait MyCross extends Cross.Module[String] {
+        def task = Task { crossValue }
+      }
+
+      lazy val millDiscover = Discover[this.type]
+    }
+
+    object CrossModuleUnderscoreDotConflictDouble extends TestRootModule {
+      // This should raise an error for multi-dimensional cross modules too
+      val matrix = Seq(("2_12", "jvm"), ("2.12", "jvm"))
+      object myCross extends Cross[MyCross](matrix)
+      trait MyCross extends Cross.Module2[String, String] {
+        def task = Task { crossValue + "_" + crossValue2 }
+      }
+
+      lazy val millDiscover = Discover[this.type]
+    }
+
+    // Regress test for cross values that produce the same cross segments
+    // https://github.com/com-lihaoyi/mill/issues/XXX
+    object CrossModuleCollisions extends TestRootModule {
+      object foo extends Cross[Foo](
+            (Seq("a", "b"), Seq("c")),
+            (Seq("a"), Seq("b", "c"))
+          )
+      trait Foo extends Cross.Module2[Seq[String], Seq[String]]
+
+      lazy val millDiscover = Discover[this.type]
+    }
   }
 
-  def isShortError(x: Result[?], s: String) =
-    x.errorOpt.exists(_.contains(s)) &&
-      // Make sure the stack traces are truncated and short-ish, and do not
-      // contain the entire Mill internal call stack at point of failure
-      x.errorOpt.exists(_.linesIterator.size < 25)
+  def isShortError(x: Result[?], s: String) = {
+    x match {
+      case f: Result.Failure =>
+        val str = mill.internal.Util.formatError(f, s => s)
+
+        str.contains(s) &&
+        // Make sure the stack traces are truncated and short-ish, and do not
+        // contain the entire Mill internal call stack at point of failure
+        str.linesIterator.size < 40
+      case _ => false
+    }
+
+  }
 
   val tests = Tests {
     val errorGraphs = new ErrorGraphs()
@@ -332,7 +374,7 @@ object ErrorTests extends TestSuite {
           test - check.checkSeq(
             Seq("myCross[1].foo"),
             Result.Success(Set(_.myCross(1).foo)),
-            Set("myCross[1].foo")
+            Set("myCross.1.foo")
           )
           test - check.checkSeq0(
             Seq("myCross[3].foo"),
@@ -345,12 +387,12 @@ object ErrorTests extends TestSuite {
           // the sub-modules to resolve their paths
           test - check.checkSeq0(
             Seq("myCross._.foo"),
-            isShortError(_, "MyCross Boom"),
+            s => isShortError(s, "MyCross Boom 3") && isShortError(s, "MyCross Boom 4"),
             _ == Result.Success(List(
-              "myCross[1].foo",
-              "myCross[2].foo",
-              "myCross[3].foo",
-              "myCross[4].foo"
+              "myCross.1.foo",
+              "myCross.2.foo",
+              "myCross.3.foo",
+              "myCross.4.foo"
             ))
           )
           test - check.checkSeq0(
@@ -360,28 +402,28 @@ object ErrorTests extends TestSuite {
           )
           test - check.checkSeq0(
             Seq("__.foo"),
-            isShortError(_, "MyCross Boom"),
+            s => isShortError(s, "MyCross Boom 3") && isShortError(s, "MyCross Boom 4"),
             _ == Result.Success(List(
-              "myCross[1].foo",
-              "myCross[2].foo",
-              "myCross[3].foo",
-              "myCross[4].foo"
+              "myCross.1.foo",
+              "myCross.2.foo",
+              "myCross.3.foo",
+              "myCross.4.foo"
             ))
           )
           test - check.checkSeq0(
             Seq("__"),
-            isShortError(_, "MyCross Boom"),
+            s => isShortError(s, "MyCross Boom 3") && isShortError(s, "MyCross Boom 4"),
             _ == Result.Success(List(
               "",
               "myCross",
-              "myCross[1]",
-              "myCross[2]",
-              "myCross[3]",
-              "myCross[4]",
-              "myCross[1].foo",
-              "myCross[2].foo",
-              "myCross[3].foo",
-              "myCross[4].foo"
+              "myCross.1",
+              "myCross.2",
+              "myCross.3",
+              "myCross.4",
+              "myCross.1.foo",
+              "myCross.2.foo",
+              "myCross.3.foo",
+              "myCross.4.foo"
             ))
           )
         }
@@ -483,7 +525,7 @@ object ErrorTests extends TestSuite {
       val check = new Checker(CrossedCyclicModuleRefInitError)
       test - check.checkSeq0(
         Seq("__"),
-        isShortError(_, "Cyclic module reference detected at cross[210].c2[210].c1,")
+        isShortError(_, "Cyclic module reference detected at cross.210.c2.210.c1,")
       )
     }
     test("nonCyclicModules") {
@@ -509,6 +551,33 @@ object ErrorTests extends TestSuite {
       test - check(
         "__._",
         Result.Success(Set(_.foo))
+      )
+    }
+    test("crossModuleUnderscoreDotConflict") {
+      test("single") {
+        val check = new Checker(CrossModuleUnderscoreDotConflict)
+        test - check.checkSeq0(
+          Seq("myCross[foo_bar].task"),
+          isShortError(_, "would be ambiguous"),
+          isShortError(_, "would be ambiguous")
+        )
+      }
+      test("double") {
+        val check = new Checker(CrossModuleUnderscoreDotConflictDouble)
+        test - check.checkSeq0(
+          Seq("myCross[2_12,jvm].task"),
+          isShortError(_, "would be ambiguous"),
+          isShortError(_, "would be ambiguous")
+        )
+      }
+    }
+    test("crossModuleCollisions") {
+      val check = new Checker(CrossModuleCollisions)
+      // Cross values (Seq("a", "b"), Seq("c")) and (Seq("a"), Seq("b", "c"))
+      // produce the same cross segments [a,b,c], which is a collision
+      test - check.checkSeq0(
+        Seq("foo._"),
+        isShortError(_, "contains colliding cross values")
       )
     }
   }

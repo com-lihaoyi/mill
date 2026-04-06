@@ -1,0 +1,10 @@
+extends: [spring.boot.SpringBootModule, MavenModule]
+springBootPlatformVersion: 3.5.7
+
+mvnDeps:
+- org.springframework.boot:spring-boot-starter-web
+
+object test:
+  extends: [SpringBootTestsModule, MavenTests, TestModule.Junit5]
+  mvnDeps:
+  - org.springframework.boot:spring-boot-starter-test

@@ -33,4 +33,4 @@ and package your Scala code in a variety of different ways
 === Coursier
 
 https://github.com/coursier/coursier[Coursier] is a fast JVM dependency resolver,
-used in many build tools down resolve and download third party dependencies
+used in many build tools to resolve and download third party dependencies

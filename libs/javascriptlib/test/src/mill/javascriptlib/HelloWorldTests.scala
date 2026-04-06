@@ -32,7 +32,7 @@ object HelloWorldTests extends TestSuite {
       UnitTester(HelloWorldJavascript, resourcePath, outStream = new PrintStream(baos)).scoped {
         eval =>
 
-          val Right(_) = eval.apply(HelloWorldJavascript.qux.run(Args("James"))): @unchecked
+          val Right(_) = eval.apply(HelloWorldJavascript.qux.run(Args("James"))).runtimeChecked
 
           val baosToString = baos.toString()
           assert(baosToString == "Hello James Qux\n")

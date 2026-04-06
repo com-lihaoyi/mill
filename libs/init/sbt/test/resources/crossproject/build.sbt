@@ -1,5 +1,5 @@
 val crossSettings = Seq(
-  scalaVersion := "2.13.14",
+  scalaVersion := "2.13.18",
   libraryDependencies ++= Seq(
     "com.lihaoyi" %%% "upickle" % "4.3.0",
     "com.lihaoyi" %%% "utest" % "0.9.1" % Test

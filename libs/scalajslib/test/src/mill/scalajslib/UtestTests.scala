@@ -1,17 +1,17 @@
 package mill.scalajslib
 
-import mill._
+import mill.*
 import mill.api.ExecResult
 import mill.javalib.testrunner.TestResult
 import mill.testkit.UnitTester
-import utest._
+import utest.*
 
 object UtestTests extends TestSuite {
-  import CompileLinkTests._
+  import CompileLinkTests.*
   def runTests(testTask: api.Task.Named[(msg: String, results: Seq[TestResult])])
       : Unit =
     UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
-      val Left(ExecResult.Failure(_)) = eval(testTask): @unchecked
+      val Left(_: ExecResult.Failure[_]) = eval(testTask).runtimeChecked
 
 //      val (doneMsg, testResults) = res
 //      testResults
@@ -58,6 +58,13 @@ object UtestTests extends TestSuite {
 //      argParserSpec("parse should two").status == "Failure"
 //    )
   }
+
+  def checkJunit4(scalaVersion: String, scalaJSVersion: String, cached: Boolean) = {
+    runTests(
+      if (!cached) HelloJSWorld.build(scalaVersion, scalaJSVersion).`test-junit4`.testForked()
+      else HelloJSWorld.build(scalaVersion, scalaJSVersion).`test-junit4`.testCached
+    )
+  }
   def tests: Tests = Tests {
 
     test("utest") {
@@ -70,16 +77,13 @@ object UtestTests extends TestSuite {
 
     def checkInheritedTasks[A](task: ScalaJSModule => T[A], expected: A) =
       UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
-        val Right(mainResult) = eval(task(HelloJSWorld.inherited)): @unchecked
-        val Right(testResult) = eval(task(HelloJSWorld.inherited.test)): @unchecked
+        val Right(mainResult) = eval(task(HelloJSWorld.inherited)).runtimeChecked
+        val Right(testResult) = eval(task(HelloJSWorld.inherited.test)).runtimeChecked
         assert(mainResult.value == expected)
         assert(testResult.value == expected)
       }
     test("test-scalacOptions") {
       checkInheritedTasks(_.scalacOptions, Seq("-deprecation"))
-    }
-    test("test-scalaOrganization") {
-      checkInheritedTasks(_.scalaOrganization, "org.example")
     }
   }
 }

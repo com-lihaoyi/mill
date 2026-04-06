@@ -5,7 +5,7 @@ const Resources: string = (process.env.RESOURCESDEST || "@server/resources") + "
 const Client = require.resolve(`${Resources}/index.html`);
 
 const app: Express = express();
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 3000;
 const BuildPath = Client.replace(/index\.html$/, "");
 
 app.use(cors());

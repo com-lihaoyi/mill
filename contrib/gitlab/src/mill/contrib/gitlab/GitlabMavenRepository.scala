@@ -3,7 +3,7 @@ package mill.contrib.gitlab
 import coursier.core.Authentication
 import coursier.maven.MavenRepository
 import mill.api.Result
-import mill.api.Result.{Failure, Success}
+import mill.api.Result.Success
 import mill.api.Task
 import mill.api.BuildCtx
 
@@ -20,8 +20,8 @@ trait GitlabMavenRepository {
         .map(auth => MavenRepository(gitlabRepository.url(), Some(auth)))
 
     gitlabAuth match {
-      case Result.Failure(msg) =>
-        Task.fail(s"Token lookup for PACKAGE repository ($gitlabRepository) failed with $msg")
+      case f: Result.Failure =>
+        Task.fail(s"Token lookup for PACKAGE repository ($gitlabRepository) failed with ${f.error}")
       case Result.Success(value) => value
     }
   }

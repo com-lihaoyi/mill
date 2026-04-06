@@ -1,0 +1,25 @@
+// This example implementing the well known
+// https://todomvc.com/[TodoMVC] example app using Kotlin and Ktor.
+
+/** See Also: build.mill.yaml */
+/** See Also: test/package.mill.yaml */
+
+// Apart from running a webserver,  this example also demonstrates:
+
+// * Serving HTML templates using Thymeleaf
+// * Serving static Javascript and CSS using Webjars
+// * Querying a SQL database using Exposed
+// * Testing using a H2 in-memory database
+
+/** Usage
+
+> ./mill test
+
+> ./mill runBackground
+
+> curl http://localhost:${PORT:-8080}
+...<h1>todos</h1>...
+
+> ./mill clean runBackground
+
+*/

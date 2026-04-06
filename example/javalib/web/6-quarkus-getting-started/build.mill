@@ -1,0 +1,75 @@
+package build
+
+import mill.*, javalib.*
+
+import mill.javalib.quarkus.QuarkusModule
+
+object `package` extends QuarkusModule, MavenModule {
+
+  def jvmVersion = "graalvm-community:23.0.1"
+
+  def quarkusPlatformVersion = "3.31.3"
+
+  def artifactGroupId = "com.lihaoyi.example"
+  def artifactId = "6-quarkus-getting-started"
+  def artifactVersion = "0.0.1-SNAPSHOT"
+
+  def mvnDeps = Seq(
+    mvn"io.quarkus:quarkus-arc",
+    mvn"io.quarkus:quarkus-rest"
+  )
+
+  trait QuarkusTestBase extends MavenTests, QuarkusJunit {
+    def mvnDeps = Seq(
+      mvn"io.rest-assured:rest-assured"
+    )
+  }
+  object test extends QuarkusTestBase
+
+  object `native-test` extends QuarkusTestBase, QuarkusNativeTest {
+    def moduleDeps = super.moduleDeps ++ Seq(test)
+  }
+
+}
+
+// You can run and test the app as follows:
+
+/** Usage
+
+> ./mill show quarkusRunJar
+...out/quarkusApp.dest/quarkus/quarkus-app/quarkus-run.jar...
+
+> ./mill show runBackground
+
+> curl http://localhost:${PORT:-8080}/hello
+Hello from Quarkus REST
+
+> ./mill clean runBackground
+
+> ./mill show test
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "org.acme.GreetingResourceTest",
+      "selector": "testHelloEndpoint()",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
+
+> ./mill show native-test
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "org.acme.GreetingResourceIT",
+      "selector": "testHelloEndpoint()",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
+
+*/

@@ -1,7 +1,7 @@
 package build
-import mill._
+import mill.*
 import java.lang.management.ManagementFactory
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 def checkJvmOpts() = Task.Command {
   val prop = System.getProperty("property.properly.set.via.jvm.opts")

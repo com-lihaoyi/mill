@@ -1,7 +1,7 @@
 package mill.util
 
 import mill.api.Result
-import mill.constants.OutFiles
+import mill.constants.OutFiles.OutFiles
 import mill.*
 import mill.api.Evaluator
 import mill.api.SelectMode
@@ -70,6 +70,29 @@ trait SelectiveExecutionModule extends mill.api.Module {
     }
 
   /**
+   * Prints out some dependency path from the `src` task to the `dest` task,
+   * following selective execution dependencies (i.e. using `selectiveInputs`).
+   */
+  def path(
+      evaluator: Evaluator,
+      @mainargs.arg(positional = true) src: String,
+      @mainargs.arg(positional = true) dest: String
+  ): Command[List[String]] =
+    Task.Command(exclusive = true) {
+      for {
+        srcTasks <- evaluator.resolveTasks(List(src), SelectMode.Multi)
+        destTasks <- evaluator.resolveTasks(List(dest), SelectMode.Multi)
+        result <- MainModule.pathBetween(
+          src,
+          dest,
+          srcTasks,
+          destTasks,
+          _.selectiveInputs
+        )
+      } yield result
+    }
+
+  /**
    * Run after [[prepare]], selectively executes the tasks in [[tasks]] that are
    * affected by any changes to the task inputs or task implementations since [[prepare]]
    * was run
@@ -79,11 +102,11 @@ trait SelectiveExecutionModule extends mill.api.Module {
       if (!os.exists(evaluator.outPath / OutFiles.millSelectiveExecution)) {
         Result.Failure("`selective.run` can only be run after `selective.prepare`")
       } else {
-        evaluator.selective.resolve0(tasks).flatMap { resolved =>
-          if (resolved.isEmpty) Result.Success(())
-          else evaluator.evaluate(resolved.toSeq, SelectMode.Multi).flatMap {
-            case Evaluator.Result(_, Result.Failure(err), _, _) => Result.Failure(err)
-            case Evaluator.Result(_, Result.Success(_), _, _) =>
+        evaluator.selective.resolveTasks0(tasks).flatMap { resolvedTasks =>
+          if (resolvedTasks.isEmpty) Result.Success(())
+          else evaluator.execute(resolvedTasks.toSeq.asInstanceOf[Seq[Task[Any]]]) match {
+            case Evaluator.Result(_, f: Result.Failure, _, _) => f
+            case Evaluator.Result(_, Result.Success(_), _, _) => Result.Success(())
           }
         }
       }

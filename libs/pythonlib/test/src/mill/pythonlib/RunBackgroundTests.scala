@@ -22,7 +22,7 @@ object RunBackgroundTests extends TestSuite {
 
         val lockedFile = os.temp()
         val Right(_) =
-          eval.apply(HelloWorldPython.foo.runBackground(Args(lockedFile))): @unchecked
+          eval.apply(HelloWorldPython.foo.runBackground(Args(lockedFile))).runtimeChecked
         val maxSleep = 20000
         val now1 = System.currentTimeMillis()
         val lock = Lock.file(lockedFile.toString())

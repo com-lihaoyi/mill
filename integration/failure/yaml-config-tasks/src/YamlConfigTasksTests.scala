@@ -2,7 +2,7 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 
-import utest._
+import utest.*
 
 object YamlConfigTasksTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
@@ -11,12 +11,20 @@ object YamlConfigTasksTests extends UtestIntegrationTestSuite {
 
       assert(!res.isSuccess)
 
+      res.assertContainsLines(
+        "[error] build.mill.yaml:2:1",
+        "scalaVersionn: []",
+        "^"
+      )
       assert(res.err.contains(
-        "invalid build config in `build.mill.yaml`: key \"scalaVersionn\" does not override any task, did you mean \"scalaVersion\"?"
+        "key \"scalaVersionn\" does not override any task on ScalaModule, did you mean \"scalaVersion\"?"
       ))
-      assert(res.err.replace('\\', '/').contains(
-        "invalid build config in `test/package.mill.yaml`: key \"scalaVersionWrongInner\" does not override any task"
-      ))
+      res.assertContainsLines(
+        "[error] test/package.mill.yaml:2:1",
+        "scalaVersionWrongInner: []",
+        "^"
+      )
+      assert(res.err.contains("key \"scalaVersionWrongInner\" does not override any task"))
 
       tester.modifyFile(
         tester.workspacePath / "build.mill.yaml",
@@ -29,12 +37,19 @@ object YamlConfigTasksTests extends UtestIntegrationTestSuite {
 
       val res2 = tester.eval(("-k", "__.compile"))
 
-      assert(res2.err.contains(
-        "scalaVersion Failed de-serializing config override: expected string got sequence"
-      ))
-      assert(res2.err.contains(
-        "test.scalaVersion Failed de-serializing config override: expected string got sequence"
-      ))
+      res2.assertContainsLines(
+        "[error] build.mill.yaml:2:15",
+        "scalaVersion: []",
+        "              ^"
+      )
+      assert(
+        res2.err.contains("Failed de-serializing config override: expected string got sequence")
+      )
+      res2.assertContainsLines(
+        "[error] test/package.mill.yaml:2:15",
+        "scalaVersion: []",
+        "              ^"
+      )
 
       tester.modifyFile(
         tester.workspacePath / "build.mill.yaml",

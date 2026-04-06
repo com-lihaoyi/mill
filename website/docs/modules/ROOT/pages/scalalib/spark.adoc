@@ -2,7 +2,7 @@
 :page-aliases: Spark_Examples.adoc
 
 
-This page will discuss running spark in scala and python.
+This page will discuss running Spark in Scala and Python.
 
 == Hello Spark
 
@@ -12,6 +12,6 @@ include::partial$example/scalalib/spark/1-hello-spark.adoc[]
 
 include::partial$example/scalalib/spark/2-hello-pyspark.adoc[]
 
-== Semi realistic spark project with spark submit
+== Semi-Realistic Spark Project with Spark Submit
 
 include::partial$example/scalalib/spark/3-semi-realistic.adoc[]

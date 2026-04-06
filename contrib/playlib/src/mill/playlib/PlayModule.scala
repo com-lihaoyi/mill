@@ -2,7 +2,7 @@ package mill.playlib
 
 import mill.api.Task
 import mill.playlib.api.Versions
-import mill.scalalib._
+import mill.scalalib.*
 import mill.{Args, T}
 import mill.api.PathRef
 

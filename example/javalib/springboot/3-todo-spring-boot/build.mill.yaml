@@ -1,0 +1,29 @@
+mill-jvm-version: 17
+extends: spring.boot.SpringBootModule
+springBootPlatformVersion: 3.2.5
+mvnDeps:
+  - org.springframework.boot:spring-boot-starter-data-jpa
+  - org.springframework.boot:spring-boot-starter-thymeleaf
+  - org.springframework.boot:spring-boot-starter-validation
+  - org.springframework.boot:spring-boot-starter-web
+  - jakarta.xml.bind:jakarta.xml.bind-api:4.0.0
+  - org.webjars:webjars-locator:0.41
+  - org.webjars.npm:todomvc-common:1.0.5
+  - org.webjars.npm:todomvc-app-css:2.4.1
+
+object test:
+  extends: [SpringBootTestsModule, TestModule.Junit5]
+  mainClass: com.example.TodomvcApplication
+  mvnDeps:
+    - com.h2database:h2:2.3.230
+    - org.springframework.boot:spring-boot-starter-test
+
+object integration:
+  extends: [SpringBootTestsModule, TestModule.Junit5]
+  mainClass: com.example.TodomvcApplication
+  mvnDeps:
+    - org.testcontainers:testcontainers:2.0.3
+    - org.testcontainers:testcontainers-junit-jupiter:2.0.3
+    - org.testcontainers:testcontainers-postgresql:2.0.3
+    - org.postgresql:postgresql:42.7.3
+    - org.springframework.boot:spring-boot-starter-test

@@ -10,7 +10,7 @@ import mill.{T, Task}
 
 import scala.jdk.CollectionConverters.*
 import mill.api.daemon.internal.bsp.BspBuildTarget
-import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
+import mill.javalib.api.internal.ZincOp
 
 @experimental
 trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
@@ -26,6 +26,10 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
   def zincIncrementalCompilation: T[Boolean]
   def allSourceFiles: T[Seq[PathRef]]
   def compile: T[mill.javalib.api.CompilationResult]
+  def jvmOptions: T[Seq[String]]
+  private[mill] def javaCompilerRuntimeOptions: T[Seq[String]]
+  def javacOptions: T[Seq[String]]
+  def mandatoryJavacOptions: T[Seq[String]]
 
   private[mill] def compileFor(compileFor: CompileFor): Task[mill.javalib.api.CompilationResult] =
     compileFor match {
@@ -34,8 +38,6 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     }
 
   private[mill] def bspBuildTarget: BspBuildTarget
-  def javacOptions: T[Seq[String]]
-  def mandatoryJavacOptions: T[Seq[String]]
   private[mill] def compileClasspathTask(compileFor: CompileFor): Task[Seq[PathRef]]
   def moduleDeps: Seq[JavaModule]
 
@@ -122,7 +124,14 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
 
     Task.log.debug(s"effective javac options: ${javacOpts}")
 
-    val jOpts = JavaCompilerOptions.split(javacOpts)
+    val (javacCompilerOptions, legacyRuntimeOptions) =
+      JavaModule.splitJavacAndRuntimeOptions(javacOpts)
+    if (legacyRuntimeOptions.nonEmpty) {
+      Task.log.warn(
+        "`-J` options in `javacOptions` are deprecated; use `jvmOptions` instead" +
+          s"\n  - Deprecated options: ${legacyRuntimeOptions.map("-J" + _).mkString(" ")}"
+      )
+    }
 
     val worker = jvmWorker().internalWorker()
 
@@ -136,12 +145,12 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
           )() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(
             _.path
           ),
-        javacOptions = jOpts.compiler,
+        javacOptions = javacCompilerOptions,
         incrementalCompilation = zincIncrementalCompilation(),
         workDir = Task.dest
       ),
       javaHome = javaHome().map(_.path),
-      javaRuntimeOptions = jOpts.runtime,
+      javaRuntimeOptions = javaCompilerRuntimeOptions() ++ legacyRuntimeOptions,
       reporter = Task.reporter.apply(hashCode),
       reportCachedProblems = zincReportCachedProblems()
     )

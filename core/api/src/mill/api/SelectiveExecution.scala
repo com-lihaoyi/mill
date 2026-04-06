@@ -12,7 +12,7 @@ private[mill] trait SelectiveExecution {
       transitiveNamed: Seq[Task.Named[?]],
       oldHashes: Metadata,
       newHashes: Metadata
-  ): (Set[Task[?]], Seq[Task[Any]])
+  ): (Set[Task[?]], Seq[Task[?]])
 
   def saveMetadata(metadata: SelectiveExecution.Metadata): Unit
 
@@ -27,6 +27,8 @@ private[mill] trait SelectiveExecution {
 
   def resolve0(tasks: Seq[String]): Result[Array[String]]
 
+  def resolveTasks0(tasks: Seq[String]): Result[Array[Task.Named[?]]]
+
   def resolveChanged(tasks: Seq[String]): Result[Seq[String]]
 
   def resolveTree(tasks: Seq[String]): Result[ujson.Value]
@@ -40,8 +42,13 @@ object SelectiveExecution {
   case class Metadata(
       inputHashes: Map[String, Int],
       codeSignatures: Map[String, Int],
-      @com.lihaoyi.unroll buildOverrideSignatures: Map[String, Int] = Map()
-  )
+      @com.lihaoyi.unroll buildOverrideSignatures: Map[String, Int] = Map(),
+      @com.lihaoyi.unroll forceRunTasks: Set[String] = Set(),
+      @com.lihaoyi.unroll millVersion: String = "",
+      @com.lihaoyi.unroll millJvmVersion: String = "",
+      // Hash of the classloader (Mill jars + build dependencies), 0 means not tracked (old metadata)
+      @com.lihaoyi.unroll classLoaderSigHash: Int = 0
+  ) derives upickle.ReadWriter
   object Metadata {
     case class Computed(
         metadata: Metadata,
@@ -49,13 +56,12 @@ object SelectiveExecution {
     )
   }
 
-  implicit val rw: upickle.ReadWriter[Metadata] = upickle.macroRW
-
   case class ChangedTasks(
       resolved: Seq[Task.Named[?]],
       changedRootTasks: Set[Task.Named[?]],
       downstreamTasks: Seq[Task.Named[?]]
   )
+
   object ChangedTasks {
 
     /** Indicates that all of the passed in tasks were changed. */

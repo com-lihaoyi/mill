@@ -2,7 +2,7 @@ package mill.playlib
 
 import mill.{T, Task}
 import mill.api.Module
-import mill.scalalib._
+import mill.scalalib.*
 
 private[playlib] trait Version extends Module {
 

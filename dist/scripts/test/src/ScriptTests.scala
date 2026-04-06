@@ -1,6 +1,6 @@
 package mill.scripts
 
-import utest._
+import utest.*
 
 object ScriptTests extends TestSuite {
   def tests = Tests {

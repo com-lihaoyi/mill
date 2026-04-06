@@ -1,0 +1,22 @@
+/** See Also: build.mill.yaml */
+
+// This example demonstrates how to automatically set your `publishVersion` based on the
+// latest `git tag`. This is useful for workflows such as automatic publishing tags on push,
+// such as that discussed in xref:#_publishing_using_github_actions[Publishing using Github Actions]
+
+/** Usage
+
+> git init .
+Initialized empty Git repository in...
+
+> git add -A
+
+> git commit -m "initial commit"
+...
+
+> git tag v0.1.0
+
+> ./mill publishLocal
+Publishing com.lihaoyi:example...:0.1.0... to ivy repo...
+
+*/

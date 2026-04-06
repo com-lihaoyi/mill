@@ -8,6 +8,7 @@ import coursier.params.Mirror
 import coursier.util.{EnvEntry, EnvValues}
 import mill.api.*
 import mill.{T, Task}
+import upickle.implicits.namedTuples.default.given
 
 import scala.concurrent.duration.Duration
 
@@ -81,16 +82,17 @@ trait CoursierConfigModule extends Module {
     val env = Task.env.filterKeys(envVars).toMap
     val props =
       propNames.iterator.flatMap(name => sys.props.get(name).iterator.map(name -> _)).toMap
-    (env, props)
+    (env = env, props = props)
   }
 
   /** Default repositories for dependency resolution */
   def defaultRepositories: Task[Seq[Repository]] = Task.Anon {
     val (env, props) = coursierEnv()
-    CoursierEnv.defaultRepositories(
-      CoursierEnv.repositories.readFrom(env, props),
-      CoursierEnv.scalaCliConfig.readFrom(env, props)
-    )
+    mill.util.Jvm.reposFromStrings(mill.api.BuildCtx.millRepositories).get ++
+      CoursierEnv.defaultRepositories(
+        CoursierEnv.repositories.readFrom(env, props),
+        CoursierEnv.scalaCliConfig.readFrom(env, props)
+      )
   }
 
   /** Default JSON configuration files to be used by coursier */

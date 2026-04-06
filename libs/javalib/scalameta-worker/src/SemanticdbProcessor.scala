@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
 import scala.collection.mutable
-import scala.meta.internal.semanticdb._
+import scala.meta.internal.semanticdb.*
 
 object SemanticdbProcessor {
 

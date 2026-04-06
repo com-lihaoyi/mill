@@ -10,7 +10,7 @@ To use TestNG as test framework, you need to add it to the `TestModule.testFrame
 [source,scala]
 ----
 package build
-import mill.scalalib._
+import mill.scalalib.*
 
 object project extends ScalaModule {
   object test extends ScalaTests {
@@ -28,7 +28,7 @@ You can also use the more convenient `TestModule.TestNg` trait.
 [source,scala]
 ----
 package build
-import mill.scalalib._
+import mill.scalalib.*
 
 object project extends ScalaModule {
   object test extends ScalaTests with TestModule.TestNg

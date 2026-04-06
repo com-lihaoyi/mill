@@ -1,5 +1,5 @@
 package build
-import mill._
+import mill.*
 
 def testSource = Task.Source("source-file.txt")
 def testTask = Task { os.read(testSource().path).toUpperCase() }
@@ -7,7 +7,7 @@ def testTask = Task { os.read(testSource().path).toUpperCase() }
 /** Usage
 
 > ./mill testTask
-...compiling 3 Scala sources...
+...compiling 1 Scala source...
 
 > cat out/testTask.json
 ..."HELLO WORLD SOURCE FILE"...

@@ -7,7 +7,7 @@ import mill.javalib.publish.PomSettings
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.{TestSuite, Tests, assertMatch, test}
-import mill.util.TokenReaders._
+import mill.util.TokenReaders.*
 object GitlabModuleTests extends TestSuite {
 
   val emptyLookup = new GitlabTokenLookup {
@@ -48,7 +48,7 @@ object GitlabModuleTests extends TestSuite {
       val e = eval(GitlabModule.gitlabHeaders(Map.empty))
 
       assertMatch(e) {
-        case Left(Failure(s))
+        case Left(Failure(msg = s))
             if s.startsWith("Token lookup for PUBLISH repository") =>
       }
     }
@@ -58,7 +58,7 @@ object GitlabModuleTests extends TestSuite {
         val e = eval(GLMvnRepo.mavenRepository)
 
         assertMatch(e) {
-          case Left(Failure(s))
+          case Left(Failure(msg = s))
               if s.startsWith("Token lookup for PACKAGE repository") =>
         }
     }

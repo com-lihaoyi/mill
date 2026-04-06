@@ -3,7 +3,7 @@ package mill.contrib.versionfile
 import scala.util.matching.Regex
 sealed trait Version {
 
-  import Version._
+  import Version.*
 
   val major: Int
   val minor: Int
@@ -64,7 +64,7 @@ object Version {
   val ReleaseVersion: Regex = raw"""(\d+)\.(\d+)\.(\d+)""".r
   val MinorSnapshotVersion: Regex = raw"""(\d+)\.(\d+)\.(\d+)-SNAPSHOT""".r
 
-  import upickle._
+  import upickle.*
 
   implicit val readWriter: ReadWriter[Version] =
     readwriter[String].bimap(_.toString, Version.of)

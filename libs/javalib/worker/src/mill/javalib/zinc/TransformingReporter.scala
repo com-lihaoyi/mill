@@ -30,13 +30,14 @@ private object TransformingReporter {
       mapper: xsbti.Position => xsbti.Position,
       workspaceRoot: os.Path
   ): xsbti.Problem = {
-    val pos0 = problem0.position()
+    val unMappedPos = problem0.position()
     val related0 = problem0.diagnosticRelatedInformation()
     val actions0 = problem0.actions()
-    val pos = mapper(pos0)
+    val pos = mapper(unMappedPos)
     val related = transformRelateds(related0, mapper)
     val actions = transformActions(actions0, mapper)
-    val rendered = dottyStyleMessage(color, problem0, pos, workspaceRoot)
+    val rendered =
+      dottyStyleMessage(color, problem0, pos = pos, unMappedPos = unMappedPos, workspaceRoot)
     InterfaceUtil.problem(
       cat = problem0.category(),
       pos = pos,
@@ -61,87 +62,136 @@ private object TransformingReporter {
       color: Boolean,
       problem0: xsbti.Problem,
       pos: xsbti.Position,
+      unMappedPos: xsbti.Position,
       workspaceRoot: os.Path
   ): String = {
 
     val severity = problem0.severity()
 
-    def shade(msg: String) =
+    val shade: java.util.function.Function[String, String] =
       if color then
         severity match {
-          case xsbti.Severity.Error => Console.RED + msg + Console.RESET
-          case xsbti.Severity.Warn => Console.YELLOW + msg + Console.RESET
-          case xsbti.Severity.Info => Console.BLUE + msg + Console.RESET
+          case xsbti.Severity.Error => msg => Console.RED + msg + Console.RESET
+          case xsbti.Severity.Warn => msg => Console.YELLOW + msg + Console.RESET
+          case xsbti.Severity.Info => msg => Console.BLUE + msg + Console.RESET
         }
-      else msg
+      else msg => msg
 
-    val errorCodeString = {
-      // The error code provided by the Scala 3 compiler seems pretty useless in
-      // general: you can't grep for it, you can't google for it, and it tells you
-      // nothing useful. It's distracting from the actual message. So just leave it out
-      ""
-//      problem0.diagnosticCode()
-//        .filter(_.code() != "-1")
-//        .map { inner =>
-//          val prefix = "[" + shade(s"E${inner.code()}") + "] "
-//          inner.explanation().map(e => s"$prefix$e: ").orElse(prefix)
-//        }
-//        .orElse("")
+    val message = problem0.message()
 
-    }
+    InterfaceUtil.jo2o(pos.sourcePath()) match {
+      case None => message
+      case Some(path) =>
+        // Assume relative paths are relative to the current workspaceRoot
+        val absPath = os.Path(path, workspaceRoot)
+        // Render paths within the current workspaceRoot as relative paths to cut down on verbosity
+        val displayPath =
+          if absPath.startsWith(workspaceRoot) then absPath.subRelativeTo(workspaceRoot).toString
+          else path
 
-    val message = errorCodeString + problem0.message()
+        val line = intValue(pos.line(), -1)
+        val pointer0 = intValue(pos.pointer(), -1)
 
-    val positionString = InterfaceUtil.jo2o(pos.sourcePath()).map { path =>
-      val absPath = os.Path(path)
-      // Render paths within the current workspaceRoot as relative paths to cut down on verbosity
-      val displayPath =
-        if absPath.startsWith(workspaceRoot) then absPath.subRelativeTo(workspaceRoot)
-        else path
+        val space = pos.pointerSpace().orElse("")
+        val endCol = intValue(pos.endColumn(), pointer0 + 1)
 
-      val line0 = intValue(pos.line(), -1)
-      val pointer0 = intValue(pos.pointer(), -1)
-      val shadedPath = shade(displayPath.toString)
-
-      if line0 >= 0 && pointer0 >= 0 then
-        s"$shadedPath:${shade(line0.toString)}:${shade((pointer0 + 1).toString)}"
-      else shadedPath
-    }
-
-    val header = positionString
-      .map(path => s"$path\n")
-      .getOrElse("")
-
-    val space = pos.pointerSpace().orElse("")
-    val pointer = intValue(pos.pointer(), -99)
-    val endCol = intValue(pos.endColumn(), pointer + 1)
-    val codeSnippet =
-      if (space.nonEmpty && pointer >= 0 && endCol >= 0) {
         // Dotty only renders the colored code snippet as part of `.rendered`, but it's mixed
         // in with the rest of the UI we don't really want. So we need to scrape it out ourselves
         val renderedLines = InterfaceUtil.jo2o(problem0.rendered())
           .iterator
           .flatMap(_.linesIterator)
-          .toList
+          .toSeq
 
-        // Just grab the first line from the dotty error code snippet, because dotty defaults to
-        // rendering entire expressions which can be arbitrarily large and spammy in the terminal
-        val codeSnippet0 = renderedLines
-          .collectFirst {
-            case s"$pre |$rest" if pre.nonEmpty && fansi.Str(pre).plainText.forall(_.isDigit) =>
-              rest
-          }
-        val codeSnippet =
-          if (codeSnippet0.nonEmpty) codeSnippet0.mkString("\n")
-          else pos.lineContent() // fall back to plaintext line if no colored line found
+        // Scrape the relevant line from the dotty error code snippet, because dotty defaults to
+        // rendering entire expressions which can be arbitrarily large and spammy in the terminal.
+        val scraped = mill.api.internal.Util.scrapeColoredLineContent(
+          renderedLines,
+          // Use the unmapped line to scrape the corresponding line from the error message,
+          // since the raw compiler error would not have gone through line mapping
+          intValue(unMappedPos.line(), -1),
+          pos.lineContent()
+        )
 
-        val arrowCount = math.max(1, math.min(endCol - pointer, codeSnippet.length - space.length))
-        s"""$codeSnippet
-           |$space${shade("^" * arrowCount)}
-           |""".stripMargin
-      } else ""
+        // Some errors like Java `unclosed string literal` errors don't provide any
+        // message at all to `rendered` for us to scrape the line content, and others
+        // like `cannot find symbol` have incorrect line `.lineContent()`s, so for
+        // all Java errors just scrape the line from the filesystem
+        val isJavaFile = absPath.ext == "java"
+        val lineContent0 = if (scraped == "" || isJavaFile) {
+          try os.read.lines(absPath).apply(line - 1)
+          catch { case _: Exception => "" }
+        } else scraped
 
-    header + codeSnippet + message
+        // Apply syntax highlighting to Java source code lines
+        val lineContent =
+          if (color && isJavaFile && lineContent0.nonEmpty) {
+            HighlightJava.highlightJavaCode(
+              lineContent0,
+              literalColor = fansi.Color.Green,
+              keywordColor = fansi.Color.Yellow,
+              commentColor = fansi.Color.Blue,
+              definitionColor = fansi.Color.Cyan
+            ).render
+          } else lineContent0
+
+        val plainLineContent0 = fansi.Str(lineContent0).plainText
+        val plainLineLength = fansi.Str(lineContent).length
+
+        val rawColNum =
+          if (!isJavaFile || pointer0 < 0 || plainLineContent0.isEmpty) pointer0 + 1
+          else visualToSourceColumn(plainLineContent0, pointer0 + 1)
+        val colNum =
+          if (isJavaFile && rawColNum <= 0 && plainLineContent0.nonEmpty) 1
+          else rawColNum
+
+        val displayPointer0 = colNum - 1
+        val pointerPrefix =
+          if (displayPointer0 > 0 && plainLineContent0.nonEmpty)
+            plainLineContent0
+              .take(math.min(displayPointer0, plainLineContent0.length))
+              .map {
+                case '\t' => '\t'
+                case _ => ' '
+              }
+          else ""
+        val pointerLength =
+          if (space.nonEmpty && displayPointer0 >= 0 && endCol >= 0)
+            math.max(1, math.min(endCol - displayPointer0, plainLineLength - space.length))
+          else if (space.nonEmpty) math.max(1, plainLineLength - space.length)
+          else 1
+
+        mill.constants.Util.formatError(
+          displayPath,
+          line,
+          colNum,
+          lineContent,
+          message,
+          pointerLength,
+          pointerPrefix,
+          shade
+        )
+    }
+  }
+
+  /**
+   * Java diagnostics report columns with tabs expanded to 8 spaces, but our source
+   * lines keep tabs as one char. Convert from visual columns to source-code columns
+   * so pointer location and width match the rendered line.
+   */
+  private def visualToSourceColumn(line: String, visualCol: Int): Int = {
+    if (visualCol <= 1) 1
+    else {
+      var visual = 1
+      var code = 1
+      val iter = line.iterator
+      while (iter.hasNext && visual < visualCol) {
+        val char = iter.next()
+        if (char == '\t') visual += 8 - ((visual - 1) % 8)
+        else visual += 1
+        code += 1
+      }
+      code
+    }
   }
 
   /** Implements a transformation that returns the same list if the mapper has no effect */

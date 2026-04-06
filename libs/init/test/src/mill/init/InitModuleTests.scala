@@ -4,7 +4,7 @@ import mill.api.Val
 import mill.api.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
-import utest._
+import utest.*
 
 import java.io.{ByteArrayOutputStream, OutputStream, PrintStream}
 
@@ -32,7 +32,7 @@ object InitModuleTests extends TestSuite {
 
         assert(results.transitiveFailing.size == 0)
 
-        val mill.api.ExecResult.Success(Val(value)) = results.results.head: @unchecked
+        val mill.api.ExecResult.Success(Val(value)) = results.results.head.runtimeChecked
         val consoleShown = outStream.toString
 
         val examplesList: Seq[String] = value.asInstanceOf[Seq[String]]
@@ -90,12 +90,13 @@ object InitModuleTests extends TestSuite {
         errStream = new PrintStream(OutputStream.nullOutputStream(), true)
       ).scoped { evaluator =>
 
-        val results = evaluator.evaluator.execute(
-          Seq(initmodule.init(Some("scalalib/basic/3-simple")))
-        ).executionResults
+        val results = evaluator
+          .evaluator
+          .execute(Seq(initmodule.init(Some("scalalib/basic/1-simple"))))
+          .executionResults
 
         val expected =
-          "Downloading example from https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/SNAPSHOT/mill-dist-SNAPSHOT-example-scalalib-basic-3-simple.zip."
+          "Downloading example from https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/SNAPSHOT/mill-dist-SNAPSHOT-example-scalalib-basic-1-simple.zip."
 
         // Make sure the download URL logged to the terminal looks reasonable
         assert(outStream.toString().contains(expected))

@@ -1,22 +1,22 @@
 package mill.scalajslib
 
-import mill._
+import mill.*
 import mill.api.ExecutionPaths
 import mill.testkit.UnitTester
-import utest._
+import utest.*
 
 import java.util.jar.JarFile
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object JarPublishRunTests extends TestSuite {
-  import CompileLinkTests._
+  import CompileLinkTests.*
 
   def tests: Tests = Tests {
     test("jar") {
       test("containsSJSIRs") - UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
         val (scala, scalaJS) = HelloJSWorld.matrix.head
         val Right(result) =
-          eval(HelloJSWorld.build(scala, scalaJS).jar): @unchecked
+          eval(HelloJSWorld.build(scala, scalaJS).jar).runtimeChecked
         val jar = result.value.path
         val jarFile = new JarFile(jar.toIO)
         try {
@@ -31,13 +31,13 @@ object JarPublishRunTests extends TestSuite {
           val Right(result) = eval(HelloJSWorld.build(
             scalaVersion,
             scalaJSVersion
-          ).artifactMetadata): @unchecked
+          ).artifactMetadata).runtimeChecked
           assert(result.value.id == artifactId)
         }
       test("artifactId_10") {
         testArtifactId(
           HelloJSWorld.matrix.head._1,
-          "1.19.0",
+          "1.20.2",
           "hello-js-world_sjs1_2.13"
         )
       }
@@ -53,7 +53,7 @@ object JarPublishRunTests extends TestSuite {
       UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
         val task = HelloJSWorld.build(scalaVersion, scalaJSVersion).run()
 
-        val Right(result) = eval(task): @unchecked
+        val Right(result) = eval(task).runtimeChecked
 
         val paths = ExecutionPaths.resolve(eval.outPath, task)
         val log = os.read(paths.log)

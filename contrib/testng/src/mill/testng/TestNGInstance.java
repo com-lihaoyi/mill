@@ -64,6 +64,7 @@ class TestNGListener implements ITestListener {
 }
 
 public class TestNGInstance extends TestNG {
+  @SuppressWarnings("this-escape")
   public TestNGInstance(
       Logger[] loggers,
       ClassLoader testClassLoader,

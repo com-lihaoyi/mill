@@ -1,6 +1,6 @@
 package build.libs.scalanativelib
 // imports
-import mill._
+import mill.*
 import mill.T
 import mill.api.Cross
 import millbuild.*
@@ -11,7 +11,7 @@ object `package` extends MillStableScalaModule {
     super.localTestExtraModules ++ Seq(worker("0.5"))
 
   object api extends MillStableScalaModule {
-    def mvnDeps = Seq(Deps.sbtTestInterface)
+    def mvnDeps = Seq(Deps.sbtTestInterface_api)
   }
 
   object worker extends Cross[WorkerModule]("0.5")
@@ -31,5 +31,15 @@ object `package` extends MillStableScalaModule {
         )
     }
     def mandatoryMvnDeps = Seq.empty[mill.scalalib.Dep]
+  }
+
+  override object test extends MillScalaTests {
+    override def selectiveInputs = Seq(
+      sources,
+      resources,
+      build.libs.scalanativelib.sources,
+      build.libs.scalanativelib.api.sources,
+      build.libs.scalanativelib.worker("0.5").sources
+    )
   }
 }

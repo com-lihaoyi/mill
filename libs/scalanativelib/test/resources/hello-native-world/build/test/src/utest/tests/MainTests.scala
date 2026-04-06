@@ -1,8 +1,8 @@
 package hellotest
 
-import hello._
-import utest._
-import java.nio.file._
+import hello.*
+import utest.*
+import java.nio.file.*
 import java.util.stream.Collectors
 object MainTests extends TestSuite {
 

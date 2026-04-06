@@ -4,7 +4,7 @@ import mill.Task
 import mill.api.{Discover, ExternalModule}
 import mill.util.Jvm
 import mill.javalib.api.JvmWorkerUtil
-import mill.javalib._
+import mill.javalib.*
 import mill.util.BuildInfo
 import mill.api.BuildCtx
 
@@ -33,13 +33,11 @@ trait Giter8Module extends CoursierModule {
           throw e
       }
 
-    Jvm.callProcess(
+    Jvm.callInteractiveProcess(
       mainClass = "giter8.Giter8",
       classPath = giter8Dependencies.map(_.path).toVector,
       mainArgs = args,
-      cwd = BuildCtx.workspaceRoot,
-      stdin = os.Inherit,
-      stdout = os.Inherit
+      cwd = BuildCtx.workspaceRoot
     )
   }
 }

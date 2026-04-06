@@ -11,7 +11,7 @@ import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.{
 }
 import os.Path
 
-class ScoverageReportWorker {
+class ScoverageReportWorker extends AutoCloseable {
 
   def bridge(classpath: Seq[PathRef]): ScoverageReportWorkerApiBridge = {
     def ctx0(using ctx: TaskCtx): ApiCtx = {
@@ -74,6 +74,10 @@ class ScoverageReportWorker {
       ))
     }
   }
+
+  override def close(): Unit = {
+    // no-op
+  }
 }
 
 object ScoverageReportWorker extends ExternalModule {
@@ -101,5 +105,7 @@ object ScoverageReportWorker extends ExternalModule {
 
   def scoverageReportWorker: Task.Worker[ScoverageReportWorker] =
     Task.Worker { new ScoverageReportWorker() }
+
+  // TODO: make protected
   lazy val millDiscover = Discover[this.type]
 }

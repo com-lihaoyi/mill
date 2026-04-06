@@ -19,7 +19,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       REPO_DEPLOY_KEY: ${{ secrets.REPO_DEPLOY_KEY }}
-      MILL_STABLE_VERSION: 1
       # Disable scaladoc annotations when publishing the docsite since they clutter
       # up the generated scaladoc
       MILL_DISABLE_SCALADOC_ANNOTATION: 1
@@ -28,8 +27,6 @@ jobs:
       - uses: actions/checkout@v5
         with: {fetch-depth: 0}
 
-      - uses: coursier/cache-action@v7
-
-      - run: "echo temurin:11 > .mill-jvm-version"
+      - uses: coursier/cache-action@v8
 
       - run: ci/publish-docs.sh

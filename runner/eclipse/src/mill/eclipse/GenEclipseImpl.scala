@@ -4,7 +4,6 @@ import mill.api.daemon.internal.eclipse.ResolvedModule
 import mill.api.daemon.{Segment, Segments}
 import mill.api.daemon.internal.{
   EvaluatorApi,
-  ExecutionResultsApi,
   JavaModuleApi,
   KotlinModuleApi,
   ModuleApi,
@@ -34,7 +33,7 @@ import scala.collection.mutable
  *  the Mill Modules are aggregated as much as possible for generating Eclipse JDT Projects!
  */
 class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
-  import GenEclipseImpl._
+  import GenEclipseImpl.*
 
   /** Used to have distinct log messages for this generator */
   private def log(message: String): Unit = println(s"[Eclipse JDT Project generator] $message")
@@ -121,7 +120,7 @@ class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
       val resolvedModule = evaluator.executeApi(Seq(moduleTask)).executionResults match {
         case r if r.transitiveFailingApi.nonEmpty =>
           throw GenEclipseException(
-            s"Failure during resolving modules: ${ExecutionResultsApi.formatFailing(r)}"
+            s"Failure during resolving modules: ${mill.internal.Util.formatFailing(r)}"
           )
         case r => r.values.head.value.asInstanceOf[ResolvedModule]
       }
@@ -135,7 +134,7 @@ class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
         evaluator.executeApi(sourceSetModuleTasks.toSeq).executionResults match {
           case r if r.transitiveFailingApi.nonEmpty =>
             throw GenEclipseException(
-              s"Failure during resolving modules: ${ExecutionResultsApi.formatFailing(r)}"
+              s"Failure during resolving modules: ${mill.internal.Util.formatFailing(r)}"
             )
           case r => r.values.map(_.value).asInstanceOf[Seq[ResolvedModule]]
         }

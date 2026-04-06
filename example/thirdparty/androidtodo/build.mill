@@ -22,7 +22,8 @@ object androidSdkModule0 extends AndroidSdkModule {
 object app
     extends AndroidAppKotlinModule,
       AndroidR8AppModule,
-      AndroidHiltSupport {
+      AndroidHiltSupport,
+      KotlinIdeaModule {
 
   def kotlinVersion = Versions.kotlinVersion
   def kspVersion = Versions.kspVersion
@@ -106,9 +107,12 @@ object app
     mvn"com.google.dagger:hilt-android-compiler:2.56"
   )
 
-  object test extends KspTests, AndroidAppKotlinTests, AndroidHiltSupport, TestModule.Junit4 {
+  object test extends KspTests, AndroidAppKotlinTests, AndroidHiltSupport, TestModule.Junit4,
+        KotlinIdeaModule {
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
+
+    def androidIncludeAndroidResources = true
 
     def androidEnableCompose = true
 
@@ -144,7 +148,8 @@ object app
   object androidTest
       extends AndroidAppKotlinInstrumentedTests,
         AndroidR8InstrumentedTestsModule,
-        AndroidHiltSupport {
+        AndroidHiltSupport,
+        KotlinIdeaModule {
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
     def kspJvmTarget = "17"
@@ -207,7 +212,7 @@ object app
 
 }
 
-object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport {
+object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport, KotlinIdeaModule {
 
   def moduleDeps = Seq(app)
 
@@ -248,6 +253,8 @@ object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport {
 
 > ./mill app.androidApk
 
+> ./mill app.androidTest.androidTestApk
+
 > ./mill app.test
 
 > cat out/app/test/testForked.dest/test-report.xml
@@ -256,14 +263,14 @@ object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport {
 ...
 
 > ./mill show app.createAndroidVirtualDevice
-...Name: test, DeviceId: medium_phone...
+...DeviceId: medium_phone...
 
 > ./mill show app.startAndroidEmulator
 
 > ./mill show app.androidInstall
 ...All files should be loaded. Notifying the device...
 
-> ./mill show app.androidRun --activity com.example.android.architecture.blueprints.todoapp.TodoActivity
+> ./mill show app.androidRun
 [
   "Starting: Intent { cmp=com.example.android.architecture.blueprints.main/com.example.android.architecture.blueprints.todoapp.TodoActivity }",
   "Status: ok",

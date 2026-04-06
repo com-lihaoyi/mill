@@ -1,3 +1,0 @@
-package `if`
-
-object foo

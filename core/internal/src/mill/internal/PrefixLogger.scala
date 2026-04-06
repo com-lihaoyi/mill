@@ -19,7 +19,7 @@ import java.io.PrintStream
  * [$parentKeys-$key0] $message
  */
 case class PrefixLogger(
-    logger0: Logger,
+    logger0: Logger.Upstream,
     key0: Seq[String],
     override val keySuffix: String = "",
     override val message: String = "",
@@ -50,9 +50,9 @@ case class PrefixLogger(
     )
   }
   val streams = new SystemStreams(
-    out = prefixPrintStream(true && !redirectOutToErr),
+    out = prefixPrintStream(!redirectOutToErr),
     err = prefixPrintStream(false),
-    logger0.streams.in
+    logger0.unprefixedStreams.in
   )
 
   override val unprefixedStreams = new SystemStreams(
@@ -68,29 +68,34 @@ case class PrefixLogger(
     baos
   }
 
-  override def info(s: String): Unit = {
-    prompt.logPrefixedLine(logKey, baosFor(s), false && !redirectOutToErr)
+  override def info(s: String): Unit = prompt.logLock {
+    prompt.logPrefixedLine(logKey, baosFor(s), false)
   }
 
-  override def warn(s: String): Unit = {
-    prompt.logPrefixedLine(logKey, baosFor(s), false && !redirectOutToErr)
+  override def warn(s: String): Unit = prompt.logLock {
+    prompt.logPrefixedLine(
+      logKey,
+      baosFor("[" + prompt.warnColor("warn") + "] " + s),
+      false
+    )
   }
 
-  override def error(s: String): Unit = {
-    prompt.logPrefixedLine(logKey, baosFor(s), false && !redirectOutToErr)
+  override def error(s: String): Unit = prompt.logLock {
+    prompt.logPrefixedLine(
+      logKey,
+      baosFor("[" + prompt.errorColor("error") + "] " + s),
+      false
+    )
   }
 
   override def ticker(s: String): Unit = prompt.setPromptDetail(logKey, s)
 
   def prompt = logger0.prompt
 
-  override def debug(s: String): Unit = {
+  override def debug(s: String): Unit = prompt.logLock {
     if (debugEnabled) {
       if (prompt.debugEnabled) {
-        val baos = new java.io.ByteArrayOutputStream()
-        baos.write(s.getBytes)
-        baos.write('\n')
-        prompt.logPrefixedLine(logKey, baosFor(s), false && !redirectOutToErr)
+        prompt.logPrefixedLine(logKey, baosFor(s), false)
       }
     }
   }

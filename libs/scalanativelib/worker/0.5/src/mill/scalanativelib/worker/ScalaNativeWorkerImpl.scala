@@ -2,7 +2,7 @@ package mill.scalanativelib.worker
 
 import java.io.File
 
-import mill.scalanativelib.worker.api._
+import mill.scalanativelib.worker.api.*
 import scala.scalanative.util.Scope
 import scala.scalanative.build.{
   Build,
@@ -69,7 +69,9 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
       nativeMultithreading: Option[Boolean],
       nativeServiceProviders: Map[String, Seq[String]],
       logLevel: NativeLogLevel,
-      buildTarget: BuildTarget
+      buildTarget: BuildTarget,
+      sourceLevelDebuggingConfig: SourceLevelDebuggingConfig,
+      baseName: String
   ): Either[String, Config] = {
     val nativeConfig =
       ScalaNativeNativeConfig.empty
@@ -93,7 +95,15 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
         .withIncrementalCompilation(nativeIncrementalCompilation)
         .withMultithreading(nativeMultithreading)
         .withServiceProviders(nativeServiceProviders)
-        .withBaseName("out")
+        .withBaseName(baseName)
+        .withSourceLevelDebuggingConfig(
+          _.enabled(sourceLevelDebuggingConfig.enabled)
+            .generateFunctionSourcePositions(
+              sourceLevelDebuggingConfig.generateFunctionSourcePositions
+            )
+            .generateLocalVariables(sourceLevelDebuggingConfig.generateLocalVariables)
+            .withCustomSourceRoots(sourceLevelDebuggingConfig.customSourceRoots)
+        )
 
     val config = Config.empty
       .withClassPath(classpath.map(_.toPath))

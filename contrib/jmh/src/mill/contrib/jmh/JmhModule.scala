@@ -1,6 +1,6 @@
 package mill.contrib.jmh
 
-import mill._, javalib._
+import mill._, javalib.*
 import mill.util.Jvm
 
 /**
@@ -10,7 +10,7 @@ import mill.util.Jvm
  * {{{
  * //| mvnDeps: ["com.lihaoyi::mill-contrib-jmh:$MILL_VERSION"]
  *
- * import mill._, scalalib._
+ * import mill._, scalalib.*
  *
  * import contrib.jmh.JmhModule
  *
@@ -37,7 +37,7 @@ trait JmhModule extends JavaModule {
   def mvnDeps = super.mvnDeps() ++ Seq(mvn"org.openjdk.jmh:jmh-core:${jmhCoreVersion()}")
 
   def runJmh(args: String*) =
-    Task.Command {
+    Task.Command(exclusive = true) {
       val (_, resources) = generateBenchmarkSources()
       Jvm.callProcess(
         mainClass = "org.openjdk.jmh.Main",

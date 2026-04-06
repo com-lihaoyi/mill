@@ -1,8 +1,8 @@
 package build.libs.scalajslib
 
 // imports
-import mill._
-import mill.scalalib._
+import mill.*
+import mill.scalalib.*
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.api.Cross
@@ -41,12 +41,38 @@ object `package` extends MillStableScalaModule with BuildInfo {
   }
 
   object api extends MillStableScalaModule {
-    def mvnDeps = Seq(Deps.sbtTestInterface)
+    def mvnDeps = Seq(Deps.sbtTestInterface_api)
+  }
+
+  object config extends Cross[ConfigModule]("1")
+  trait ConfigModule extends MillPublishScalaModule with Cross.Module[String] {
+    def moduleDeps = Seq(build.libs.scalajslib)
+    def compileMvnDeps = Seq(
+      Deps.Scalajs_1.scalajsJsEnvs,
+      Deps.Scalajs_1.scalajsLinkerInterface
+    )
+
+    override object test extends MillScalaTests {
+      def moduleDeps = super.moduleDeps ++ Seq(
+        build.libs.scalajslib.test
+      )
+      def mvnDeps = super.mvnDeps() ++ Seq(
+        Deps.Scalajs_1.scalajsLinker,
+        Deps.Scalajs_1.scalajsJsEnvs
+      )
+      override def selectiveInputs = Seq(
+        sources,
+        resources,
+        build.libs.scalajslib.sources,
+        build.libs.scalajslib.api.sources,
+        build.libs.scalajslib.worker("1").sources
+      )
+    }
   }
 
   object worker extends Cross[WorkerModule]("1")
   trait WorkerModule extends MillPublishScalaModule with Cross.Module[String] {
-    def moduleDeps = Seq(build.core.api)
+    def moduleDeps = Seq(build.core.api, build.libs.scalajslib.config(crossValue))
     def scalajsWorkerVersion = crossValue
     def moduleDir: os.Path = super.moduleDir / scalajsWorkerVersion
     def compileModuleDeps =
@@ -55,6 +81,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
     def mvnDeps = Seq(Deps.scalafmtDynamic)
     def compileMvnDeps = super.mandatoryMvnDeps() ++ Seq(
       Deps.Scalajs_1.scalajsLinker,
+      Deps.Scalajs_1.scalajsLinkerInterface,
       Deps.Scalajs_1.scalajsSbtTestAdapter,
       Deps.Scalajs_1.scalajsEnvNodejs,
       Deps.Scalajs_1.scalajsEnvJsdomNodejs,
@@ -62,7 +89,18 @@ object `package` extends MillStableScalaModule with BuildInfo {
       Deps.Scalajs_1.scalajsEnvPhantomjs,
       Deps.Scalajs_1.scalajsEnvSelenium,
       Deps.Scalajs_1.scalajsEnvPlaywright,
-      Deps.Scalajs_1.scalajsImportMap
+      Deps.Scalajs_1.scalajsImportMap,
+      Deps.Scalajs_1.scalajsJsEnvs
+    )
+  }
+
+  override object test extends MillScalaTests {
+    override def selectiveInputs = Seq(
+      sources,
+      resources,
+      build.libs.scalajslib.sources,
+      build.libs.scalajslib.api.sources,
+      build.libs.scalajslib.worker("1").sources
     )
   }
 }

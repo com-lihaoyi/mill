@@ -5,11 +5,12 @@ import mill.api.*
 import mill.api.daemon.Watchable
 import mill.api.BuildCtx
 import mill.api.daemon.internal.{EvaluatorApi, TaskApi}
-import mill.api.internal.{Resolved, RootModule0}
-
+import mill.api.internal.{Located, Resolved, RootModule0}
+import upickle.core.BufferedValue
 import scala.util.DynamicVariable
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
+import scala.annotation.unused
 
 /**
  * An API that allows you to resolve, plan, and execute Mill tasks.
@@ -28,11 +29,17 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def outPathJava = outPath.toNIO
   private[mill] def codeSignatures: Map[String, Int]
   private[mill] def rootModule: RootModule0
-  private[mill] def workerCache: mutable.Map[String, (Int, Val)]
+  private[mill] def workerCache: mutable.Map[String, (Int, Val, TaskApi[?])]
   private[mill] def env: Map[String, String]
   private[mill] def effectiveThreadCount: Int
   private[mill] def offline: Boolean
-  private[mill] def staticBuildOverrides: Map[String, ujson.Value] = Map()
+  private[mill] def useFileLocks: Boolean = false
+  private[mill] def staticBuildOverrides: Map[String, Located[internal.Appendable[BufferedValue]]] =
+    Map()
+  // JSON string to avoid classloader issues when crossing classloader boundaries
+  private[mill] def spanningInvalidationTree: Option[String] = None
+  // Hash of the classloader signature (Mill jars + dependencies), used for selective execution
+  private[mill] def classLoaderSigHash: Int = 0
   def withBaseLogger(newBaseLogger: Logger): Evaluator
 
   def resolveSegments(
@@ -43,10 +50,10 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   ): mill.api.Result[List[Segments]]
 
   private[mill] def resolveRaw(
-      scriptArgs: Seq[String],
-      selectMode: SelectMode,
-      allowPositionalCommandArgs: Boolean = false,
-      resolveToModuleTasks: Boolean = false
+      @unused scriptArgs: Seq[String],
+      @unused selectMode: SelectMode,
+      @unused allowPositionalCommandArgs: Boolean = false,
+      @unused resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[Resolved]] = {
     mill.api.Result.Success(Nil)
   }

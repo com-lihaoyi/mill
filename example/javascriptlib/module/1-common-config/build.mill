@@ -35,7 +35,7 @@ object foo extends TypeScriptModule {
 
 // This example demonstrates usage of common configs
 
-// Note the use of `moduleDir`, `Task.dest`, and `PathRef` when preforming
+// Note the use of `moduleDir`, `Task.dest`, and `PathRef` when performing
 // various filesystem operations:
 //
 // 1. `moduleDir`: Base path of the module. For the root module, it's the repo root.

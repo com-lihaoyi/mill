@@ -1,0 +1,5 @@
+extends: [millbuild.ProjectBaseModule, mill.javalib.errorprone.ErrorProneModule]
+moduleDeps: [list]
+errorProneDeps:
+- com.google.errorprone:error_prone_core:2.28.0
+errorProneJavacEnableOptions: [-XDshould-stop.ifError=FLOW, -XDshouldStopPolicyIfError=FLOW]

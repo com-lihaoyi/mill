@@ -1,7 +1,7 @@
 package mill
 package javalib
 
-import mill._
+import mill.*
 import mill.util.Jvm
 
 /**

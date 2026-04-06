@@ -1,0 +1,2 @@
+extends: [JavaModule, errorprone.ErrorProneModule]
+errorProneOptions: ["-XepAllErrorsAsWarnings"]

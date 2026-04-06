@@ -10,7 +10,6 @@ import coursier.maven.Pom
 import mill.api.*
 import mill.api.daemon.internal.{
   EvaluatorApi,
-  ExecutionResultsApi,
   JavaModuleApi,
   MillBuildRootModuleApi,
   ModuleApi,
@@ -24,7 +23,7 @@ import mill.api.daemon.internal.idea.{Element, IdeaConfigFile, JavaFacet, Resolv
 import mill.util.BuildInfo
 import org.eclipse.jgit.ignore.{FastIgnoreRule, IgnoreNode}
 import os.SubPath
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 class GenIdeaImpl(
     private val evaluators: Seq[EvaluatorApi]
@@ -32,7 +31,7 @@ class GenIdeaImpl(
   def transitiveModules(module: ModuleApi): Seq[ModuleApi] = {
     Seq(module) ++ module.moduleDirectChildren.flatMap(transitiveModules)
   }
-  import GenIdeaImpl._
+  import GenIdeaImpl.*
 
   private val workDir: os.Path = os.Path(evaluators.head.rootModule.moduleDirJava)
   private val ideaDir: os.Path = workDir / ".idea"
@@ -170,7 +169,7 @@ class GenIdeaImpl(
         evaluator.executeApi(tasks).executionResults match {
           case r if r.transitiveFailingApi.nonEmpty =>
             throw GenIdeaException(
-              s"Failure during resolving modules: ${ExecutionResultsApi.formatFailing(r)}"
+              s"Failure during resolving modules: ${mill.internal.Util.formatFailing(r)}"
             )
           case r => r.values.map(_.value).asInstanceOf[Seq[ResolvedModule]]
         }
@@ -275,6 +274,9 @@ class GenIdeaImpl(
         val sources = Some(path / os.up / s"${baseName}-sources.jar")
           .filter(_.toIO.exists())
         Some(WithSourcesResolved(path, sources))
+      } else if (os.exists(path / os.up / s"${baseName}-sources.jar")) {
+        val sources = Some(path / os.up / s"${baseName}-sources.jar")
+        Some(WithSourcesResolved(path, sources))
       } else {
         Some(OtherResolved(path))
       }
@@ -335,22 +337,7 @@ class GenIdeaImpl(
       }
 
     // Get bspScriptIgnore rules (same as BSP integration)
-    val bspScriptIgnore: Seq[String] = {
-      if (evaluators.length > 1) {
-        // look for this in the first meta-build frame, which would be the meta-build configured
-        // by a `//|` build header in the main `build.mill` file in the project root folder
-        val ev = evaluators(1)
-        val bspScriptIgnoreTasks: Seq[TaskApi[Seq[String]]] =
-          Seq(ev.rootModule).collect { case m: MillBuildRootModuleApi => m.bspScriptIgnoreAll }
-
-        ev.executeApi(bspScriptIgnoreTasks)
-          .values
-          .get
-          .flatMap { case sources: Seq[String] => sources }
-      } else {
-        Seq.empty
-      }
-    }
+    val bspScriptIgnore: Seq[String] = MillBuildRootModuleApi.bspScriptIgnore(evaluators)
 
     // Create IgnoreNode from bspScriptIgnore patterns
     val ignoreRules = bspScriptIgnore
@@ -437,14 +424,29 @@ class GenIdeaImpl(
       os.sub / s"${name.replaceAll("""[-.:]""", "_")}.${ext}"
     }
 
+    def shouldFallbackSourcesToClasses(path: os.Path): Boolean = {
+      val jarName = path.last
+      jarName.startsWith("scala-library-") ||
+      jarName.startsWith("scala3-library_3-") ||
+      jarName.startsWith("scala3-library_sjs1_3-") ||
+      jarName.startsWith("scala-reflect-") ||
+      jarName.startsWith("scala-xml_") ||
+      jarName.startsWith("scala-collection-compat_")
+    }
+
     val libraries: Seq[(os.SubPath, Elem)] =
       resolvedLibraries(allResolved).flatMap { resolved =>
         val names = libraryNames(resolved)
-        val sources = resolved match {
+        val resolvedSources = resolved match {
           case CoursierResolved(sources = s) => s
           case WithSourcesResolved(sources = s) => s
           case OtherResolved(_) => None
         }
+        // Source jars for Scala standard libraries may be absent in clean caches.
+        // Fallback to class jars for deterministic IDEA XML.
+        val sources = resolvedSources.orElse(
+          Option.when(shouldFallbackSourcesToClasses(resolved.path))(resolved.path)
+        )
         for (name <- names)
           yield {
             Tuple2(
@@ -974,6 +976,6 @@ object GenIdeaImpl {
       }
   }
 
-  case class GenIdeaException(msg: String) extends RuntimeException
+  case class GenIdeaException(msg: String) extends RuntimeException(msg)
 
 }

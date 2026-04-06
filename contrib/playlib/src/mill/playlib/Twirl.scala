@@ -1,7 +1,7 @@
 package mill.playlib
 
 import mill.Task
-import mill.twirllib._
+import mill.twirllib.*
 
 trait Twirl extends TwirlModule with Layout {
 

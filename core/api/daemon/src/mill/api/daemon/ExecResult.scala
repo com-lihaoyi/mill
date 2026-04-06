@@ -26,7 +26,10 @@ object ExecResult {
     try Success(t)
     catch {
       case e: Throwable =>
-        Exception(e, new OuterStack(new java.lang.Exception().getStackTrace.toIndexedSeq))
+        Exception(
+          e,
+          new OuterStack(new java.lang.Exception().getStackTrace.toIndexedSeq.drop(1), cutExtra = 1)
+        )
     }
   }
 
@@ -68,7 +71,7 @@ object ExecResult {
 
     override def asFailing: Option[ExecResult.Failing[T]] = Some(this)
     def throwException: Nothing = this match {
-      case f: ExecResult.Failure[?] => throw new Result.Exception(f.msg)
+      case f: ExecResult.Failure[?] => throw new Result.Exception(f.msg, f.failure)
       case f: ExecResult.Exception => throw f.throwable
     }
   }
@@ -79,9 +82,12 @@ object ExecResult {
    * @param msg The error message.
    * @tparam T The result type of the computed task.
    */
-  final case class Failure[T](msg: String) extends Failing[T] {
-    def map[V](f: T => V): Failure[V] = ExecResult.Failure(msg)
-    def flatMap[V](f: T => ExecResult[V]): Failure[V] = { Failure(msg) }
+  final case class Failure[T](
+      msg: String,
+      @com.lihaoyi.unroll failure: Option[Result.Failure] = None
+  ) extends Failing[T] {
+    def map[V](f: T => V): Failure[V] = ExecResult.Failure(msg, failure)
+    def flatMap[V](f: T => ExecResult[V]): Failure[V] = Failure(msg, failure)
     override def toString: String = s"Failure($msg)"
   }
 
@@ -94,47 +100,37 @@ object ExecResult {
       extends java.lang.Exception(throwable) with Failing[Nothing] {
     def map[V](f: Nothing => V): Exception = this
     def flatMap[V](f: Nothing => ExecResult[V]): Exception = this
-
-    override def toString: String = {
-      var current = List(throwable)
-      while (current.head.getCause != null) {
-        current = current.head.getCause :: current
-      }
-      current.reverse
-        .flatMap { ex =>
-          val elements = ex.getStackTrace.dropRight(outerStack.value.length)
-          val formatted =
-            // for some reason .map without the explicit ArrayOps conversion doesn't work,
-            // and results in `ExecResult[String]` instead of `Array[String]`
-            new scala.collection.ArrayOps(elements).map("    " + _)
-          Seq(ex.toString) ++ formatted
-
-        }
-        .mkString("\n")
-    }
   }
 
-  final class OuterStack(val value: Seq[StackTraceElement]) {
-    def this(value: Array[StackTraceElement]) = this(value.toIndexedSeq)
+  final class OuterStack(
+      val value: Seq[StackTraceElement],
+      val cutExtra: Int
+  ) {
+    def this(value: Array[StackTraceElement], cutExtra: Int) = this(value.toIndexedSeq, cutExtra)
 
-    override def hashCode(): Int = value.hashCode()
+    def this(value: Seq[StackTraceElement]) = this(value, 0)
+    def this(value: Array[StackTraceElement]) = this(value.toIndexedSeq, 0)
+
+    override def hashCode(): Int = (value, cutExtra).hashCode()
 
     override def equals(obj: scala.Any): Boolean = obj match {
-      case o: OuterStack => value.equals(o.value)
+      case o: OuterStack => value.equals(o.value) && cutExtra == o.cutExtra
       case _ => false
     }
   }
 
   def catchWrapException[T](t: => T): Result[T] = {
+    val base = new java.lang.Exception()
     try Result.Success(t)
     catch {
       case e: InvocationTargetException =>
-        Result.Failure(makeResultException(e.getCause, new java.lang.Exception()).left.get)
+        Result.Failure.fromException(e.getCause, base.getStackTrace.length)
       case e: java.lang.Exception =>
-        Result.Failure(makeResultException(e, new java.lang.Exception()).left.get)
+        Result.Failure.fromException(e, base.getStackTrace.length)
     }
   }
 
+  @deprecated("use `exceptionToFailure` instead")
   def makeResultException(e: Throwable, base: java.lang.Exception): Left[String, Nothing] = {
     val outerStack = new ExecResult.OuterStack(base.getStackTrace)
     Left(ExecResult.Exception(e, outerStack).toString)

@@ -17,7 +17,7 @@ object `package` extends TypeScriptModule {
 // Mill will ordinarily use the name of the singleton object, as
 // the default value for the `moduleName` task.
 
-// For exmaple:
+// For example:
 
 // The `moduleName` for the singleton `bar` defined as
 // `object bar extends TypeScriptModule` would be `bar`,
@@ -30,14 +30,14 @@ object `package` extends TypeScriptModule {
 // as the modules `src/` path mapping and to define the default `mainFileName`, which is
 // the modules entry file.
 // The generated mapping for this example would be `"foo/*": [...]`. and its expected main file
-// woudld be `foo.ts` located in top-level `src/`
+// would be `foo.ts` located in top-level `src/`
 
 /** Usage
 > ./mill run James Bond prof
 Hello James Bond Professor
 
 > ./mill test
-PASS .../foo.test.ts
+...PASS .../foo.test.ts
 ...
 Test Suites:...1 passed, 1 total...
 Tests:...3 passed, 3 total...

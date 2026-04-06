@@ -1,0 +1,17 @@
+//// SNIPPET:BUILD1
+// This build defines a single module with a test suite, configured to use
+// "JUnit" + "Kotest" as the testing framework, along with Mockito.
+
+/** See Also: foo/package.mill.yaml */
+/** See Also: foo/test/package.mill.yaml */
+/** See Also: foo/src/foo/Foo.kt */
+/** See Also: foo/test/src/foo/FooTests.kt */
+
+// Test suites are themselves ``KotlinModule``s, nested within the enclosing module,
+//// SNIPPET:BUILD2
+
+/** See Also: bar/package.mill.yaml */
+/** See Also: bar/test/package.mill.yaml */
+
+//// SNIPPET:RUNSINGLE
+//// SNIPPET:END

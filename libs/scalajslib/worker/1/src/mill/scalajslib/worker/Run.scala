@@ -2,9 +2,9 @@ package mill
 package scalajslib
 package worker
 
-import org.scalajs.jsenv._
+import org.scalajs.jsenv.*
 
-import scala.concurrent._
+import scala.concurrent.*
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
 

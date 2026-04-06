@@ -1,6 +1,6 @@
 package mill.scalajslib.worker.jsenv
 
-import mill.scalajslib.worker.api._
+import mill.scalajslib.worker.api.*
 import org.scalajs.jsenv.nodejs.NodeJSEnv.SourceMap
 
 object NodeJs {

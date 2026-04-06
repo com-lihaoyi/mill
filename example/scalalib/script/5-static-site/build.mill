@@ -12,7 +12,7 @@
 /** See Also: StaticSite.scala */
 
 /** Usage
-> ./mill -i StaticSite.scala
+> ./mill StaticSite.scala
 
 > cat site-out/post/my-first-post.html
 <!DOCTYPE html><html><body><h1><a>Blog</a> / My First Post</h1><p>Sometimes you want numbered lists:</p>

@@ -1,37 +1,32 @@
 = Testing Kotlin Projects
 :page-aliases: Testing_Kotlin_Projects.adoc
-
-
+:language: Kotlin
+:language-small: kotlin
 
 This page will discuss common topics around working with test suites using the Mill build tool
 
-== Defining Unit Test Suites
+== Basic Testing Configuration
 
-include::partial$example/kotlinlib/testing/1-test-suite.adoc[]
+include::partial$example/kotlinlib/testing/1-testing.adoc[]
 
+=== Common Test Framework Support
 
-== Test Dependencies
+include::partial$example/kotlinlib/testing/2-test-suite.adoc[]
 
-include::partial$example/kotlinlib/testing/2-test-deps.adoc[]
+=== Test Dependencies
 
-== Defining Integration Test Suites
+include::partial$example/kotlinlib/testing/3-test-deps.adoc[]
 
-include::partial$example/kotlinlib/testing/3-integration-suite.adoc[]
+== Programmable Testing Configuration
 
-== Test Parallelism
+=== Test Parallelism
 
-include::partial$example/kotlinlib/testing/4-test-parallel.adoc[]
+include::partial$example/kotlinlib/testing/5-test-parallel.adoc[]
 
-== Test Grouping
+=== Test Grouping
 
-include::partial$example/kotlinlib/testing/5-test-grouping.adoc[]
+include::partial$example/kotlinlib/testing/6-test-grouping.adoc[]
 
-== Test Grouping & Test Parallelism together
+=== Test Grouping & Test Parallelism together
 
-include::partial$example/kotlinlib/testing/6-test-group-parallel.adoc[]
-
-== Github Actions Test Reports
-
-If you use Github Actions for CI, you can use https://github.com/mikepenz/action-junit-report in
-your pipeline to render the generated `test-report.xml` files nicely on Github. See
-https://github.com/com-lihaoyi/mill/pull/4218/files for an example integration
+include::partial$example/kotlinlib/testing/7-test-group-parallel.adoc[]

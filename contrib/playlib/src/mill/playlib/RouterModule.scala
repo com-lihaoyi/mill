@@ -2,8 +2,8 @@ package mill.playlib
 
 import mill.api.PathRef
 import mill.playlib.api.RouteCompilerType
-import mill.scalalib._
-import mill.javalib.api._
+import mill.scalalib.*
+import mill.javalib.api.*
 import mill.{T, Task}
 
 trait RouterModule extends ScalaModule with Version {
@@ -56,9 +56,11 @@ trait RouterModule extends ScalaModule with Version {
         case _ =>
           Seq(mvn"org.playframework:play-routes-compiler_3:${playVersion()}")
       },
-      // required for now, so that the default mapDependencies doesn't override the
+      // required for now, so that the default resolutionParams don't override the
       // Scala version
-      mapDependencies = None
+      resolutionParamsMapOpt = Some { params =>
+        params.withForceVersion0(Map.empty)
+      }
     )
   }
 
@@ -90,9 +92,11 @@ trait RouterModule extends ScalaModule with Version {
     )
     defaultResolver().classpath(
       Seq(dep),
-      // required for now, so that the default mapDependencies doesn't override the
+      // required for now, so that the default resolutionParams don't override the
       // Scala version
-      mapDependencies = None
+      resolutionParamsMapOpt = Some { params =>
+        params.withForceVersion0(Map.empty)
+      }
     )
   }
 

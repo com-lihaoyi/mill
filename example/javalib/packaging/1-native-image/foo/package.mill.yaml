@@ -1,0 +1,3 @@
+extends: [JavaModule, NativeImageModule]
+jvmVersion: graalvm-community:17.0.7
+nativeImageOptions: ["--no-fallback"]

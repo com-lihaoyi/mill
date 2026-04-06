@@ -1,0 +1,11 @@
+extends: ksp.KspModule
+kotlinVersion: 2.2.0
+kspVersion: 2.0.2
+kspJvmTarget: "17"
+mainClass: com.example.dagger.MainKt
+kotlincOptions: !append [-no-reflect, -verbose]
+mvnDeps:
+- com.google.dagger:dagger:2.57
+
+kotlinSymbolProcessors:
+- com.google.dagger:dagger-compiler:2.57

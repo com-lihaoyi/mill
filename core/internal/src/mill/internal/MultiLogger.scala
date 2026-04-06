@@ -41,6 +41,11 @@ class MultiLogger(
 
   def prompt: Logger.Prompt = new Logger.Prompt {
 
+    override def logLock[T](block: => T): T = logger1.prompt.logLock {
+      logger2.prompt.logLock {
+        block
+      }
+    }
     override def setPromptDetail(key: Seq[String], s: String): Unit = {
       logger1.prompt.setPromptDetail(key, s)
       logger2.prompt.setPromptDetail(key, s)
@@ -97,6 +102,10 @@ class MultiLogger(
       logger1.prompt.warnColor(logger2.prompt.warnColor(s))
     override def errorColor(s: String): String =
       logger1.prompt.errorColor(logger2.prompt.errorColor(s))
+    override def successColor(s: String): String =
+      logger1.prompt.successColor(logger2.prompt.successColor(s))
+    override def highlightColor(s: String): String =
+      logger1.prompt.highlightColor(logger2.prompt.highlightColor(s))
     override def colored: Boolean = logger1.prompt.colored || logger2.prompt.colored
 
     override def beginChromeProfileEntry(text: String): Unit = {
@@ -130,7 +139,7 @@ class MultiLogger(
 
   override def keySuffix = logger1.keySuffix ++ logger2.keySuffix
 
-  override def redirectOutToErr: Boolean = logger1.redirectOutToErr || logger1.redirectOutToErr
+  override def redirectOutToErr: Boolean = logger1.redirectOutToErr || logger2.redirectOutToErr
   override def withRedirectOutToErr() = new MultiLogger(
     logger1.withRedirectOutToErr(),
     logger2.withRedirectOutToErr(),

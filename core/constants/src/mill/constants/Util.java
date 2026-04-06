@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import mill.api.daemon.MillException;
 
 public class Util {
 
@@ -80,10 +81,72 @@ public class Util {
     return hasConsole0;
   }
 
+  /**
+   * Formats an error message in dotty style with file location, code snippet, and pointer.
+   */
+  public static String formatError(
+      String fileName,
+      int lineNum,
+      int colNum,
+      String lineContent,
+      String message,
+      Function<String, String> highlight) {
+    return "[" + highlight.apply("error") + "] "
+        + formatError(fileName, lineNum, colNum, lineContent, message, 1, highlight);
+  }
+
+  /**
+   * Formats an error message in dotty style with file location, code snippet, and pointer.
+   * Uses an explicit pointer prefix when provided, preserving tabs for visual alignment.
+   */
+  public static String formatError(
+      String fileName,
+      int lineNum,
+      int colNum,
+      String lineContent,
+      String message,
+      int pointerLength,
+      String pointerPrefix,
+      Function<String, String> highlight) {
+
+    String pointer = colNum > 0
+        ? (pointerPrefix != null ? pointerPrefix : " ".repeat(colNum - 1))
+            + highlight.apply("^".repeat(pointerLength))
+        : "";
+
+    String header = (lineNum >= 0 && colNum >= 0)
+        ? highlight.apply(fileName) + ":" + highlight.apply("" + lineNum) + ":"
+            + highlight.apply("" + colNum)
+        : highlight.apply(fileName);
+
+    // Add an extra trailing newline to visually separate this block from following logs
+    return header + "\n" + lineContent + "\n" + pointer + "\n" + message + "\n";
+  }
+
+  /**
+   * Formats an error message in dotty style with file location, code snippet, and pointer.
+   *
+   * @param pointerLength The number of ^ characters to show in the pointer
+   * @param highlight Function to apply highlighting/coloring to header and pointer
+   */
+  public static String formatError(
+      String fileName,
+      int lineNum,
+      int colNum,
+      String lineContent,
+      String message,
+      int pointerLength,
+      Function<String, String> highlight) {
+    return formatError(
+        fileName, lineNum, colNum, lineContent, message, pointerLength, null, highlight);
+  }
+
   private static String throwBuildHeaderError(
       String errorFileName, int lineNumber, String line, String msg) {
-    throw new RuntimeException("Invalid YAML header comment at " + errorFileName + ":" + lineNumber
-        + ": " + line + "\n" + msg);
+    // lineNumber is 0-indexed, convert to 1-indexed for display
+    // Column is 1 since the error applies to the start of the line
+    // Use MillException to get nice error output without stack trace in launcher
+    throw new MillException(formatError(errorFileName, lineNumber + 1, 1, line, msg, s -> s));
   }
 
   public static String readBuildHeader(Path buildFile, String errorFileName) {

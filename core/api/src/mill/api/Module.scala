@@ -3,7 +3,7 @@ package mill.api
 import mill.api.daemon.internal.{ModuleApi, internal}
 import mill.api.internal.{OverrideMapping, Reflect}
 import mill.api.Task.Simple
-
+import upickle.core.BufferedValue
 import scala.reflect.ClassTag
 
 /**
@@ -45,7 +45,9 @@ trait Module extends Module.BaseClass with ModuleCtx.Wrapper with ModuleApi {
   private[mill] val moduleLinearized: Seq[Class[?]] =
     OverrideMapping.computeLinearization(this.getClass)
 
-  private[mill] def moduleDynamicBuildOverrides: Map[String, ujson.Value] = Map()
+  private[mill] def moduleDynamicBuildOverrides
+      : Map[String, internal.Located[internal.Appendable[BufferedValue]]] =
+    Map()
 }
 
 object Module {
@@ -84,7 +86,7 @@ object Module {
         (cls, noParams, inner) =>
           Reflect.getMethods(cls, noParams, inner, scala.reflect.NameTransformer.decode)
       )
-        .map(_.invoke(outer).asInstanceOf[T])
+        .map { case (m, _) => m.invoke(outer).asInstanceOf[T] }
         .toSeq
     }
 

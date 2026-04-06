@@ -2,13 +2,13 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 
-import utest._
+import utest.*
 
 object HeaderMvnDepsWorkerInvalidation extends UtestIntegrationTestSuite {
 
   val tests: Tests = Tests {
     test - integrationTest { tester =>
-      import tester._
+      import tester.*
       assert(eval("app.compile").isSuccess)
       modifyFile(
         workspacePath / "build.mill",

@@ -5,6 +5,7 @@ import mill.api.daemon.internal.{EvaluatorApi, TaskApi, internal}
 import mill.api.{Discover, Evaluator, ExternalModule, ModuleCtx}
 import mill.util.MainModule
 import mill.Task
+import mill.nioPathRW
 
 @internal
 private[mill] object BspMainModule extends ExternalModule {
@@ -26,7 +27,7 @@ private[mill] object BspMainModule extends ExternalModule {
       private[mill] def bspClean(
           evaluator: EvaluatorApi,
           tasks: String*
-      ): TaskApi[Seq[java.nio.file.Path]] = Task.Anon {
+      ): TaskApi[Seq[java.nio.file.Path]] = Task.Command {
         mainModule.cleanTask(evaluator.asInstanceOf[Evaluator], tasks*)().map(_.path.toNIO)
       }
 

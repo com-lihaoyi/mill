@@ -5,7 +5,8 @@ import scala.util.DynamicVariable
 trait MillScalaParser {
   def splitScript(
       rawCode: String,
-      fileName: String
+      fileName: String,
+      colored: Boolean
   ): Either[String, (String, Seq[String], Seq[String])]
 
   /* not sure if this is the right way, in case needs change, or if we should accept some

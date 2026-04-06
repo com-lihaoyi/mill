@@ -4,7 +4,7 @@ import mill.{T, Task}
 import mill.api.{PathRef}
 import mill.constants.Util
 import mill.util.Jvm
-import mill.scalalib.{DepSyntax, ScalaModule}
+import mill.scalalib.{DepSyntax, JavaModule}
 import os.{Path, Shellable}
 
 /**
@@ -15,7 +15,7 @@ import os.{Path, Shellable}
  *
  * Sensible defaults are provided, so no members require overriding.
  */
-trait Proguard extends ScalaModule {
+trait Proguard extends JavaModule {
 
   /**
    * The version of proguard to download from Maven.

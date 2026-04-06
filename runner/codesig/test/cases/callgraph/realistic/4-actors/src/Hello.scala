@@ -1,6 +1,6 @@
 package hello
 // Taken from https://github.com/handsonscala/handsonscala/blob/ebc0367144513fc181281a024f8071a6153be424/examples/16.8%20-%20LoggingRearrangedPipeline2/LoggingPipeline.sc
-import scalatags.Text.all._
+import scalatags.Text.all.*
 import scala.concurrent._, duration.Duration.Inf
 class DiskActor(logPath: os.Path, rotateSize: Int = 50)(using cc: castor.Context)
     extends castor.SimpleActor[String] {

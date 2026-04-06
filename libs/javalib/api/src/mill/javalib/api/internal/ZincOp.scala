@@ -31,6 +31,7 @@ object ZincOp {
       scalacOptions: Seq[String],
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
+      compilerBridgeOpt: Option[PathRef],
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String],
       workDir: os.Path
@@ -44,6 +45,7 @@ object ZincOp {
       scalaOrganization: String,
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
+      compilerBridgeOpt: Option[PathRef],
       args: Seq[String],
       workDir: os.Path
   ) extends ZincOp {
@@ -59,9 +61,18 @@ object ZincOp {
       testCp: Seq[os.Path],
       framework: String,
       selectors: Seq[String],
-      args: Seq[String]
+      args: Seq[String],
+      discoveredClassesOpt: Option[Seq[(String, Int)]]
   ) extends ZincOp {
     type Response = Seq[String]
+  }
+
+  case class DiscoverTestsZinc(
+      runCp: Seq[os.Path],
+      analysisFile: os.Path,
+      framework: String
+  ) extends ZincOp {
+    type Response = Seq[(String, Int)]
   }
 
   case class DiscoverJunit5Tests(

@@ -18,7 +18,6 @@ jobs:
     concurrency: publish-sonatype-${{ github.sha }}
 
     env:
-      MILL_STABLE_VERSION: 1
       MILL_SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
       MILL_SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
       MILL_PGP_SECRET_BASE64: ${{ secrets.SONATYPE_PGP_PRIVATE_KEY }}
@@ -29,16 +28,9 @@ jobs:
       REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
       MILL_COMPILER_BRIDGE_VERSIONS: ${{ inputs.bridge_versions }}
     steps:
-      - uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '11'
-
       - uses: actions/checkout@v5
         with: { fetch-depth: 0 }
 
-      - run: "echo temurin:11 > .mill-jvm-version"
-
-      - run: ./mill -i mill.scalalib.PublishModule/ --publishArtifacts bridge.__.publishArtifacts
+      - run: ./mill mill.scalalib.PublishModule/ --publishArtifacts bridge.__.publishArtifacts
 
 

@@ -1,0 +1,14 @@
+//// SNIPPET:BUILD
+/** See Also: build.mill.yaml */
+
+/** Usage
+
+> ./mill show docJar
+
+> unzip -p out/docJar.dest/out.jar foo/Foo.html
+...
+...My Awesome Docs for class Foo...
+
+*/
+
+//// SNIPPET:SCALA3

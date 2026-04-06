@@ -1,9 +1,10 @@
 package mill.resolve
 
 import mill.api.Result
+import mill.api.internal.ParseArgs
 import mill.api.{Segment, Segments, SelectMode}
 import mill.api.Segment.{Cross, Label}
-import mill.resolve.ParseArgs.TaskSeparator
+import mill.api.internal.ParseArgs.TaskSeparator
 import utest.*
 
 object ParseArgsTests extends TestSuite {
@@ -96,7 +97,10 @@ object ParseArgsTests extends TestSuite {
           multiSelect: Boolean
       ) = {
         val Result.Success((selectors, args)) :: _ =
-          ParseArgs(input, if (multiSelect) SelectMode.Multi else SelectMode.Separated): @unchecked
+          ParseArgs(
+            input,
+            if (multiSelect) SelectMode.Multi else SelectMode.Separated
+          ).runtimeChecked
 
         assert(
           selectors.map { case (k, v) => (k, v.value) } == expectedSelectors,
@@ -222,9 +226,10 @@ object ParseArgsTests extends TestSuite {
           input: Seq[String],
           expectedSelectorArgPairs: Seq[(Seq[(String, Seq[Segment])], Seq[String])]
       ) = {
-        val actual = (ParseArgs(input, selectMode): @unchecked).map {
+        val actual = (ParseArgs(input, selectMode).runtimeChecked).map {
           case Result.Success((selectors, args)) =>
             (selectors.map { case (k, v) => (k, v.value) }, args)
+          case failure: Result.Failure => ???
         }
         assert(
           actual == expectedSelectorArgPairs

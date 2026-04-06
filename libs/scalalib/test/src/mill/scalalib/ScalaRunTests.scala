@@ -39,7 +39,7 @@ object ScalaRunTests extends TestSuite {
           eval.apply(HelloWorldTests.HelloWorld.core.runMain(
             "Main",
             runResult.toString
-          )): @unchecked
+          )).runtimeChecked
         assert(result.evalCount > 0)
 
         assert(
@@ -53,14 +53,14 @@ object ScalaRunTests extends TestSuite {
           val runResult = eval.outPath / "hello-mill"
 
           val Right(classes) =
-            eval.apply(HelloWorldTests.CrossHelloWorld.core(v).allLocalMainClasses): @unchecked
+            eval.apply(HelloWorldTests.CrossHelloWorld.core(v).allLocalMainClasses).runtimeChecked
           val found = classes.value
           val expected = Seq("Main", "Shim")
           assert(found == expected)
 
           val Right(result) = eval.apply(
             HelloWorldTests.CrossHelloWorld.core(v).runMain("Shim", runResult.toString)
-          ): @unchecked
+          ).runtimeChecked
 
           assert(result.evalCount > 0)
 
@@ -87,8 +87,8 @@ object ScalaRunTests extends TestSuite {
         HelloWorldTests.HelloWorld,
         resourcePath
       ).scoped { eval =>
-        val Left(ExecResult.Failure("Subprocess failed")) =
-          eval.apply(HelloWorldTests.HelloWorld.core.runMain("Invalid")): @unchecked
+        val Left(ExecResult.Failure(msg = "Subprocess failed")) =
+          eval.apply(HelloWorldTests.HelloWorld.core.runMain("Invalid")).runtimeChecked
       }
       test("notRunWhenCompileFailed") - UnitTester(
         HelloWorldTests.HelloWorld,
@@ -99,8 +99,8 @@ object ScalaRunTests extends TestSuite {
           "val x: "
         )
 
-        val Left(ExecResult.Failure("Compilation failed")) =
-          eval.apply(HelloWorldTests.HelloWorld.core.runMain("Main")): @unchecked
+        val Left(ExecResult.Failure(msg = "Compilation failed")) =
+          eval.apply(HelloWorldTests.HelloWorld.core.runMain("Main")).runtimeChecked
 
       }
     }
@@ -110,7 +110,7 @@ object ScalaRunTests extends TestSuite {
         val runResult = eval.outPath / "core/run.dest/hello-mill"
         val Right(result) = eval.apply(
           HelloWorldWithMain.core.run(Task.Anon(Args(runResult.toString)))
-        ): @unchecked
+        ).runtimeChecked
 
         assert(result.evalCount > 0)
 
@@ -123,13 +123,14 @@ object ScalaRunTests extends TestSuite {
         HelloWorldWithoutMain,
         sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-no-main"
       ).scoped { eval =>
-        val Left(ExecResult.Failure(_)) =
-          eval.apply(HelloWorldWithoutMain.core.run()): @unchecked
+        val Left(_: ExecResult.Failure[_]) =
+          eval.apply(HelloWorldWithoutMain.core.run()).runtimeChecked
       }
 
       test("allLocalMainClasses") - UnitTester(HelloWorldWithoutMain, resourcePath).scoped {
         eval =>
-          val Right(result) = eval.apply(HelloWorldWithoutMain.core.allLocalMainClasses): @unchecked
+          val Right(result) =
+            eval.apply(HelloWorldWithoutMain.core.allLocalMainClasses).runtimeChecked
 
           val found = result.value
           val expected = Seq("Main")
@@ -144,7 +145,7 @@ object ScalaRunTests extends TestSuite {
           val runResult = eval.outPath / "core/run.dest/hello-mill"
           val Right(result) = eval.apply(
             HelloWorldWithoutMain.core.run(Task.Anon(Args(runResult.toString)))
-          ): @unchecked
+          ).runtimeChecked
 
           assert(result.evalCount > 0)
 
@@ -160,7 +161,7 @@ object ScalaRunTests extends TestSuite {
         val runResult = eval.outPath / "core/run.dest/hello-mill"
         val Right(result) = eval.apply(
           HelloWorldWithMain.core.runLocal(Task.Anon(Args(runResult.toString)))
-        ): @unchecked
+        ).runtimeChecked
 
         assert(result.evalCount > 0)
 
@@ -173,7 +174,7 @@ object ScalaRunTests extends TestSuite {
         val runResult = eval.outPath / "core/run.dest/hello-mill"
         val Right(result) = eval.apply(
           HelloWorldDefaultMain.core.runLocal(Task.Anon(Args(runResult.toString)))
-        ): @unchecked
+        ).runtimeChecked
 
         assert(result.evalCount > 0)
 
@@ -186,8 +187,8 @@ object ScalaRunTests extends TestSuite {
         HelloWorldWithoutMain,
         sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-no-main"
       ).scoped { eval =>
-        val Left(ExecResult.Failure(_)) =
-          eval.apply(HelloWorldWithoutMain.core.runLocal()): @unchecked
+        val Left(_: ExecResult.Failure[_]) =
+          eval.apply(HelloWorldWithoutMain.core.runLocal()).runtimeChecked
       }
     }
   }

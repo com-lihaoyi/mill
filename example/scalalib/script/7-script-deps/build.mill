@@ -1,0 +1,10 @@
+// Single-file scripts can have `moduleDeps` on other scripts. This can be useful to re-use
+// your {language} logic between multiple scripts which share related functionality.
+
+//// SNIPPET:LAST
+/** See Also: Foo.scala */
+/** See Also: Bar.scala */
+/** Usage
+> ./mill Bar.scala
+1337
+*/

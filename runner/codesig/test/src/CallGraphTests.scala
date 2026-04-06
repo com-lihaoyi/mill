@@ -1,7 +1,7 @@
 package mill.codesig
 
 import os.Path
-import utest._
+import utest.*
 import upickle.{read, write}
 import scala.collection.immutable.{SortedMap, SortedSet}
 
@@ -70,6 +70,8 @@ object CallGraphTests extends TestSuite {
       test("16-external-method-edge-to-inherited-method-override") - testExpectedCallGraph()
       test("17-jcanvas") - testExpectedCallGraph()
       test("18-external-method-calls-parent-method") - testExpectedCallGraph()
+      test("19-external-constructor-precise-receiver") - testExpectedCallGraph()
+      test("20-static-object-arg-tostring") - testExpectedCallGraph()
     }
     test("realistic") {
       test("1-tetris") - testExpectedCallGraph()
@@ -202,7 +204,7 @@ object CallGraphTests extends TestSuite {
    * are small so it's probably fine.
    */
   def simplifyCallGraph(codeSig: CallGraphAnalysis, skipped: Seq[String]) = {
-    import codeSig._
+    import codeSig.*
 
     def simplifiedCallGraph0[T](transform: PartialFunction[CallGraphAnalysis.Node, T])
         : Map[T, Set[T]] = {

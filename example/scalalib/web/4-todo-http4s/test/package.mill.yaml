@@ -1,0 +1,5 @@
+extends: [build.ScalaTests, TestModule.Utest]
+mvnDeps:
+- com.lihaoyi::utest::0.8.9
+- org.typelevel::cats-effect-testing-utest::1.6.0
+- org.http4s::http4s-client::0.23.30
