@@ -5,54 +5,102 @@
 
 _{author}, {revdate}_
 
-Modern Java development is increasingly shaped by frameworks that optimise for cloud-native workloads, fast startup and developer productivity. https://spring.io/projects/spring-boot[Spring Boot], https://micronaut.io/[Micronaut] and https://quarkus.io/[Quarkus] represent three dominant approaches: from Spring's mature and expansive ecosystem, to Micronaut's and Quarkus' focus on performance and native images as a way of building microservices.
+Spring Boot, Micronaut and Quarkus each expect different things from a build tool. Spring Boot layers AOT and native support on top of a conventional JVM build, Micronaut adds an explicit AOT pipeline, and Quarkus takes over much more of packaging and dependency modelling. This post walks through those differences and shows how Mill supports each framework while keeping configuration approachable and builds fast.
 
 // end::header[]
 
-In this post, we explore how the Mill build tool supports these frameworks, providing a faster and smoother developer experience than
-traditional build tools like Maven and Gradle.
+== Why Mill?
 
-== Why use Mill?
+This section explains why Mill is a good fit for modern Java web frameworks: it keeps project configuration compact, it is easy to extend when a framework needs special handling, and it provides a fast local feedback loop.
 
-Mill offers xref:mill::index.adoc#_simplicity[simplicity] for both getting started and extending its capabilities, which means great user experience for
-starting of a project, fresh setup of an existing project and writing extensions.
+Mill's declarative YAML format keeps the common case short. For a small Spring Boot app, the Mill configuration is close to the intent of the project: declare the framework module, the platform version, the dependencies and the test module.
 
-The latter is also clear everytime we extend Mill for every framework, whether Android, Quarkus, Micronaut or Spring Boot.
-Extending Mill feels natural, with minimal to no weird workarounds in the code.
+.build.mill.yaml
+[source,yaml]
+----
+extends: [spring.boot.SpringBootModule, MavenModule]
+springBootPlatformVersion: 3.5.7
 
-Mill is also xref:mill::index.adoc#_performance[superior in performance] when measuring compile/build times.
+mvnDeps:
+- org.springframework.boot:spring-boot-starter-web
+
+object test:
+  extends: [SpringBootTestsModule, MavenTests, TestModule.Junit5]
+  mvnDeps:
+  - org.springframework.boot:spring-boot-starter-test
+----
+
+The equivalent Maven build for the same kind of project needs more structure up front: model metadata, a parent POM, properties, dependencies and the Spring Boot Maven plugin.
+
+.pom.xml
+[source,xml]
+----
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.5.7</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>com.example</groupId>
+  <artifactId>demo</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+
+  <properties>
+    <java.version>17</java.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+</project>
+----
+
+That contrast is the main appeal of Mill in this space: the build file stays close to the project structure, and the places where framework-specific logic appears are explicit rather than hidden in plugin conventions.
+
+Mill's documentation also describes `build.mill.yaml` files as often being around one tenth the size of a `pom.xml`, and that intuition matches the examples above. See xref:mill::index.adoc#_simplicity[simplicity] and xref:#build-performance[Build Performance] for the performance side of the story.
+
+== Build Performance
+
+This section explains the performance argument for Mill: even when framework support becomes more sophisticated, the day-to-day edit-build-test loop still benefits from Mill's daemon, caching and parallel execution.
+
+Mill's published performance numbers are based on the Netty codebase rather than a Spring Boot sample, but they show the underlying build-engine behaviour clearly. On those benchmarks, Mill is reported as 4.0x to 7.0x faster than Maven for clean compiles, 30.7x faster for an incremental single-module compile and 44.0x faster for a no-op single-module compile. The same mechanisms that produce those wins there are the ones that also help Spring Boot, Micronaut and Quarkus projects during local development: a warm daemon, aggressive caching and parallel task execution.
+
+For the detailed benchmark methodology and raw numbers, see xref:mill::comparisons/performance.adoc[Mill Build Performance].
 
 == Overview
 
-Supporting modern Java frameworks is more than adding dependencies and constructing classpaths. It requires understanding how each framework models:
+This section sets up the rest of the article. Supporting modern Java frameworks is more than adding dependencies and constructing classpaths. A polished developer experience depends on how the build tool handles four recurring concerns:
 
 - Dependency resolution
-- Build-time vs runtime behavior
-- Code generation (e.g. via annotation processors) and Ahead Of Time (AOT) processing
+- Build-time vs runtime behaviour
+- Code generation and Ahead Of Time (AOT) processing
 - Native image integration
 
-Spring Boot remains the https://www.geeksforgeeks.org/blogs/top-java-frameworks/[most popular choice] for enterprise Java due to its extensive tooling and integrations, while Micronaut and Quarkus push the ecosystem forward with innovations like build-time processing, low memory footprint and fast startup times.
-
-Each framework takes different approaches in these areas which affect how build tools integrate with them.
-Supporting all three is therefore a good test of the versatility of Mill's own design.
-
-=== Technical details
-
-In this article, we compare the differences between the frameworks and what it means for Mill to support them, implementation wise. Mainly we'll talk about 4 categories.
-
-==== Dependency Management
-
-Most frameworks rely on curating versions of certain libraries by a Bill Of Materials (BOM). This is true for
-all the frameworks mentioned in this article.
-
-==== Build Philosophy
-
-Then, we compare the compilation approach of the source code and dependencies. For example, Spring has traditionally relied on *Runtime* and reflection-based dependency injection mechanisms. However, it also provides
-a utility for optimising its post-compilation stage with what is called *Ahead Of Time (AOT)* compilation. This turns a lot of reflection-based dynamic invocations, into compile time. This mechanism also exists in Micronaut.
-
-Quarkus is different, and it has its own bootstrapping together. Thus, a build tool would need to delegate a lot of the build flow to *Quarkus Bootstrap* with a series of *Augmentations* (in Quarkus Bootstrap terminology). In addition, it has its own dependency resolution, which is optimised for native images. While Micronaut and Spring rely on https://github.com/oracle/graalvm-reachability-metadata[reachability-metadata] for building native images with *GraalVM*, Quarkus has drop-in
-deployment dependencies ready to be used for native, by replacing certain runtime dependencies.
-
+The rest of the article walks through those concerns framework by framework, showing what each framework expects and how Mill supports it.
 
 === High-Level Comparison
 
@@ -60,72 +108,65 @@ deployment dependencies ready to be used for native, by replacing certain runtim
 |Framework | Build-Time Behavior | Native Support
 
 |Spring Boot
-|Optional AOT
+|Optional AOT layered on top of a conventional JVM build
 |Supported via AOT + GraalVM
 
 |Micronaut
-|Optional AOT
+|Explicit AOT pipeline driven by an external tool
 |Supported via AOT + GraalVM
 
 |Quarkus
-|Build-time augmentation, built-in optimisations
-|Built-in bootstrapping
+|Build-time augmentation and framework-managed packaging
+|Built-in bootstrapping and native packaging flow
 |===
 
 == Spring Boot Support in Mill
 
-Spring Boot is the most "mainstream" of the three from a build tool's perspective. Getting a Spring Boot application
-with AOT and native build targets is as simple as:
+This section explains why Spring Boot is the most straightforward of the three frameworks to support in a build tool, and how Mill layers AOT and native support on top of a mostly conventional Java build.
 
-[code,scala]
+JetBrains' State of Java 2025 reports Spring at 65% usage among Java web frameworks, which is why Spring Boot support matters so much in practice: it is the most common entry point for Java teams building services and web applications today. https://lp.jetbrains.com/the-state-of-java-2025/
+
+A small Spring Boot application in Mill can be expressed declaratively in YAML:
+
+[source,yaml]
 ----
-package build
+extends: [spring.boot.SpringBootModule, MavenModule]
+springBootPlatformVersion: 3.5.7
+artifactName: spring-boot-native-demo
 
-import mill.*
-import mill.javalib.*
-import mill.javalib.spring.boot.SpringBootModule
+mvnDeps:
+- org.springframework.boot:spring-boot-starter-web
 
-object `package` extends SpringBootModule, MavenModule {
+object prod:
+  extends: [SpringBootOptimisedBuildModule, MavenModule]
 
-  override def springBootPlatformVersion = "3.5.7"
+object native:
+  extends: [MavenModule, NativeSpringBootBuildModule]
+  jvmVersion: graalvm-community:23.0.1
+  nativeImageOptions: !append
+  - -H:+UnlockExperimentalVMOptions
 
-  override def artifactName: T[String] = "spring-boot-native-demo"
-
-  object prod extends SpringBootOptimisedBuildModule, MavenModule
-
-  object native extends MavenModule, NativeSpringBootBuildModule {
-    def jvmVersion = "graalvm-community:23.0.1"
-
-    // Suppress warning about -H:IncludeResources
-    override def nativeImageOptions = Task {
-      Seq(
-        "-H:+UnlockExperimentalVMOptions"
-      ) ++ super.nativeImageOptions()
-    }
-  }
-
-  def mvnDeps = Seq(mvn"org.springframework.boot:spring-boot-starter-web")
-
-  object test extends SpringBootTestsModule, MavenTests, TestModule.Junit5 {
-
-    def mvnDeps =
-      Seq(mvn"org.springframework.boot:spring-boot-starter-test")
-  }
-}
+object test:
+  extends: [SpringBootTestsModule, MavenTests, TestModule.Junit5]
+  mvnDeps:
+  - org.springframework.boot:spring-boot-starter-test
 ----
 
-Mill also supports xref:mill::kotlinlib/web-examples.adoc#_spring_boot_aot[SpringBoot with Kotlin], including native as well.
+Mill also supports xref:mill::kotlinlib/web-examples.adoc#_spring_boot_aot[Spring Boot with Kotlin], including native builds.
 
 === Key Observations
 
-- Uses BOM-based dependency management
-- AOT is optional and layered on top
-- Still largely runtime-driven (compared to Micronaut/Quarkus)
-- Building native binaries is a multi-stage process
+- *BOM-based dependency management:* Spring Boot already organises most dependency versions behind its platform BOM, and Mill can inject that BOM directly via `SpringBootModule`. That keeps the user's configuration small while still matching the versions Spring expects.
 
-A Spring Boot app can be built, run and tested by constructing the classpaths from source code and dependencies. From there, a separate compilation process can take the resulting artifacts and optimise the code (e.g. replacing reflection calls with direct method calls). That optimised code can then go through another compilation stage that produces a native binary.
+- *Optional AOT:* Spring Boot's AOT support is an extra build stage rather than the centre of the build. Mill reflects that structure directly: a normal JVM build can stay normal, while an optimised build can opt into AOT through `SpringBootOptimisedBuildModule`.
 
-.Spring Boot: From runtime-based JVM App to native
+- *Still largely runtime-driven:* The application can still be built, run and tested from the usual classpaths. From a build-tool perspective, this is much closer to a conventional Java application than Quarkus is.
+
+- *Native builds are multi-stage:* Native output is not a single "compile to native" step. First, the application is compiled and packaged; then Spring's AOT processor generates sources, resources and classes; then the native-image step consumes those generated outputs.
+
+A Spring Boot app can therefore be built, run and tested by constructing the normal classpaths from source code and dependencies. From there, a separate AOT pass can process the resulting artefacts and replace a lot of reflective behaviour with generated code. That optimised output then feeds into the native-image build.
+
+.Spring Boot: From runtime-based JVM app to native
 [graphviz]
 ....
 digraph SpringBoot {
@@ -140,30 +181,29 @@ digraph SpringBoot {
   "Run classpath" -> "AOT (SpringBootModule)"
   "AOT (SpringBootModule)" -> "Optimised JAR"
   "Optimised JAR" -> "GraalVM Native Build (NativeImageModule)"
-  "GraalVM Native Build (NativeImageModule)" -> "native binary"
+  "GraalVM Native Build (NativeImageModule)" → "native binary"
 }
 ....
 
-Mill integrates Spring Boot via a `SpringBootModule`, which:
-
-- Injects the Spring BOM automatically
-- Locates the main application class dynamically
-- Runs Spring’s AOT processor as an external step
-
-The native build is configured via the `NativeImageModule`, which takes care of things like reachability-metadata resolution based on the dependencies.
+Mill integrates Spring Boot via `SpringBootModule`, which automatically adds the Spring Boot BOM, locates the application main class and invokes Spring's `SpringApplicationAotProcessor` as an external build step. The native side is handled by `NativeImageModule`, which contributes the GraalVM configuration path and the reachability metadata resolution needed for native builds.
 
 === Challenges
 
-- Treating AOT as an optional optimisation
-- Managing generated sources across module boundaries
+- *Treating AOT as optional rather than mandatory:* The build needs to support plain JVM usage without forcing every project through the optimised path.
 
-Overall, Spring Boot fits well into Mill’s model because it doesn’t fundamentally change how dependencies or the build flow work. The main difference is giving the choice for AOT + native.
+- *Managing generated sources cleanly:* AOT output needs to flow back into compilation, resources and native-image inputs without making the user manually wire directories together.
+
+- *Keeping the configuration approachable:* Spring Boot is popular partly because the happy path is easy. Mill support needs to preserve that property.
+
+Overall, Spring Boot fits naturally into Mill's model because it does not fundamentally change how dependencies or the main build flow work. The main extension point is giving users a clean path from ordinary JVM packaging to AOT and then to native image generation.
 
 == Micronaut Support in Mill
 
-Micronaut shifts more responsibility to build-time. A Micronaut Mill config can look like this:
+This section explains why Micronaut feels similar to Spring Boot from the outside but pushes more work into the build by making AOT processing a more explicit part of the toolchain.
 
-[code,yaml]
+A Micronaut native build in Mill can also be configured declaratively:
+
+[source,yaml]
 ----
 extends: [MavenModule, mill.javalib.micronaut.MicronautNativeAotModule]
 micronautPackage: hello.world
@@ -176,6 +216,7 @@ mvnDeps:
 
 jvmVersion: graalvm-community:21.0.2
 finalMainClass: hello.world.Application
+
 annotationProcessorsMvnDeps:
 - io.micronaut:micronaut-http-validation
 - io.micronaut.serde:micronaut-serde-processor
@@ -197,18 +238,21 @@ runMvnDeps:
 
 Mill also supports xref:mill::kotlinlib/web-examples.adoc#_micronaut_app[Micronaut with Kotlin].
 
-Another difference (more on the implementation side) is that Spring Boot’s classpath contains the AOT program and relies on the runtime classpath of the application. On the other hand, Micronaut’s AOT utility is an external tool that needs to be resolved and invoked.
+The key implementation difference from Spring Boot is that Spring Boot's AOT processor rides on the application's runtime classpath, while Micronaut's AOT support is centered around a separate CLI tool that must itself be resolved and run.
 
 === Key Observations
 
-- Compile-time dependency injection
-- External AOT CLI
+- *Compile-time dependency injection:* Micronaut moves more work into compilation and annotation processing. That reduces runtime reflection, but it also makes the build configuration more important because the annotation processor inputs need to be correct.
 
-Mill integrates Micronaut optimisations through two AOT modules, one for JVM and one for native: `MicronautAotModule` and `MicronautNativeAotModule`.
+- *External AOT CLI:* Mill's Micronaut support does not just call back into the app's classpath. It resolves the Micronaut AOT CLI, writes the AOT properties file and invokes the CLI as an explicit step in the task graph.
 
-From a build tool's perspective, it remains very similar to the Spring Boot setup, with the main difference being the AOT utility.
+- *Two flavours of AOT support:* Mill exposes this as `MicronautAotModule` for JVM-oriented AOT and `MicronautNativeAotModule` for native builds, which is a good fit for Micronaut's own split between JIT and native-oriented optimisations.
 
-.Micronaut:  Native
+- *Native builds reuse the general native-image machinery:* Once Micronaut's AOT step has generated classes and configuration, those outputs plug into Mill's `NativeImageModule` in a fairly direct way.
+
+From a build-tool perspective, Micronaut remains close to the Spring Boot setup but with a more explicit AOT boundary. The build has to fetch the AOT tool, generate its configuration, run it and then feed its output into later stages.
+
+.Micronaut: Native
 [graphviz]
 ....
 digraph MicronautNative {
@@ -224,97 +268,74 @@ digraph MicronautNative {
   "Micronaut AOT Config" -> "AOT (MicronautNativeAotModule)"
   "AOT (MicronautNativeAotModule)" -> "Native Image Options"
   "AOT (MicronautNativeAotModule)" -> "Optimised Classes"
-  "Native Image Options" -> "GraalVM Native Build (NativeImageModule)"
-  "Optimised Classes" -> "GraalVM Native Build (NativeImageModule)"
-  "GraalVM Native Build (NativeImageModule)" -> "native binary"
+  "Native Image Options" → "GraalVM Native Build (NativeImageModule)"
+  "Optimised Classes" → "GraalVM Native Build (NativeImageModule)"
+  "GraalVM Native Build (NativeImageModule)" → "native binary"
 }
 ....
+
 === Native Image Integration
 
 Micronaut extends naturally into native builds:
 
-- Adjusts https://micronaut-projects.github.io/micronaut-aot/latest/guide/configurationreference.html[AOT config] for native runtime
-- Adds reachability metadata into GraalVM build inputs
+- *AOT configuration changes for native runtime:* The native path turns on Micronaut's native-oriented service loading and GraalVM configuration generation.
 
-Check out this xref:mill::javalib/web-examples.adoc#_micronaut_native_graalvm[native example] to get a feel for how things are connected.
+- *Generated metadata feeds native-image:* The output of the AOT phase is not just compiled classes. It also contributes metadata that the native build needs to succeed.
+
+- *Reachability metadata still matters:* Unlike Quarkus, Micronaut still fits naturally into the reachability-metadata-based native-image ecosystem, so Mill's native-image support remains a central piece of the experience.
+
+Check out this xref:mill::javalib/web-examples.adoc#_micronaut_native_graalvm[native example] to see the full wiring.
 
 === Challenges
 
-- Treating AOT as a first-class build step
-- Orchestrating external CLI tools
-- Managing generated outputs and classpaths
+- *Treating AOT as a first-class build step:* Micronaut AOT is not an afterthought. The build needs to model it explicitly and predictably.
 
-Compared to Spring, Micronaut is much more build-driven, but still relatively modular in its integration. Both rely on a utility program for AOT, whose output—along with the reachability metadata—is used for building the native image of the app.
+- *Orchestrating external tools:* The AOT CLI must be resolved, configured, executed, and its outputs cached like any other meaningful build step.
 
-For Mill, this use case relies heavily on the correct behaviour of the `NativeImageModule`. Along with resolving dependencies, it also resolves the relevant reachability metadata. As a result, the work to support Micronaut Native also https://github.com/com-lihaoyi/mill/pull/6547[extended the support] for Mill's `NativeImageModule`.
+- *Managing generated outputs and classpaths:* The generated classes and metadata have to appear in exactly the right places for both JVM and native builds.
+
+Compared to Spring Boot, Micronaut is more build-driven, but still modular in the way it integrates with Mill. The key work is not inventing a new build model from scratch, but making the AOT toolchain feel like a natural part of the existing one.
 
 == Quarkus Support in Mill
 
-Quarkus is fundamentally different and, as a result, more complex to support.
+This section explains why Quarkus is the hardest of the three frameworks to support in a build tool: it does not just add a build step, it expects the build tool to participate in constructing Quarkus' own application model.
 
-Despite the complexity on Mill's side in supporting Quarkus, you can easily configure a Quarkus app with Mill as shown below:
+Even so, a basic Quarkus app in Mill can still be configured concisely:
 
-[code, scala]
+[source,yaml]
 ----
-package build
+extends: [mill.javalib.quarkus.QuarkusModule, MavenModule]
+jvmVersion: graalvm-community:23.0.1
+quarkusPlatformVersion: 3.31.3
+artifactGroupId: com.lihaoyi.example
+artifactId: 6-quarkus-getting-started
+artifactVersion: 0.0.1-SNAPSHOT
 
-import mill.*, javalib.*
+mvnDeps:
+- io.quarkus:quarkus-arc
+- io.quarkus:quarkus-rest
 
-import mill.javalib.quarkus.QuarkusModule
-
-object `package` extends QuarkusModule, MavenModule {
-
-  def jvmVersion = "graalvm-community:23.0.1"
-  def quarkusPlatformVersion = "3.31.3"
-
-  def artifactGroupId = "com.lihaoyi.example"
-  def artifactId = "7-quarkus-todo"
-  def artifactVersion = "0.0.1-SNAPSHOT"
-
-  def mvnDeps = Seq(
-    mvn"io.quarkus:quarkus-arc",
-    mvn"io.quarkus:quarkus-rest",
-    mvn"io.quarkus:quarkus-qute",
-    mvn"io.quarkus:quarkus-rest-qute",
-    mvn"io.quarkus:quarkus-jdbc-h2",
-    mvn"io.quarkus:quarkus-hibernate-orm-panache"
-  )
-
-  trait QuarkusTestBase extends MavenTests, QuarkusJunit {
-    def mvnDeps = Seq(
-      mvn"io.rest-assured:rest-assured"
-    )
-  }
-
-  object test extends QuarkusTestBase
-
-  object `native-test` extends QuarkusTestBase, QuarkusNativeTest {
-    def moduleDeps = super.moduleDeps ++ Seq(test)
-  }
-}
+object test:
+  extends: [MavenTests, QuarkusJunit]
+  mvnDeps:
+  - io.rest-assured:rest-assured
 ----
 
-You can try more non-trivial examples xref:mill::javalib/web-examples.adoc#_quarkus_todomvc_example[here]
+For fuller examples, see xref:mill::javalib/web-examples.adoc#_quarkus_example[Quarkus Example] and xref:mill::javalib/web-examples.adoc#_quarkus_todomvc_example[Quarkus TodoMVC Example].
 
 === Key Observations
 
-- Build-time augmentation is core
-- Requires a full "application model"
-- Separates runtime and deployment dependencies
+- *Build-time augmentation is core:* Quarkus does not treat build-time processing as an optional optimisation. The framework's packaging and augmentation steps are central to how the app is produced.
 
-Unlike Spring or Micronaut, Quarkus does not simply run your classpath; it rebuilds it with its own bootstrap process.
+- *A full application model is required:* Before packaging, Mill must assemble the data structure Quarkus expects, including source roots, resource roots, BOM imports, build directories and multiple kinds of dependencies.
 
-Quarkus itself provides internal support for https://github.com/quarkusio/quarkus/tree/main/devtools/maven[Maven] and https://github.com/quarkusio/quarkus/tree/main/devtools/gradle[Gradle]. While these can be followed up to a degree to understand how a build tool should integrate with Quarkus, the difference in approach still acts as a stress test for Mill's design (though not as much as xref:blog::15-android-build-flow.adoc[Android]).
+- *Runtime and deployment dependencies are different things:* Quarkus distinguishes between the libraries your app uses at runtime and the libraries it needs to build and augment the app.
 
-The main challenge is modelling dependencies in the way Quarkus expects them in its application model. Each dependency can be a compile, runtime or deployment dependency.
+- *Framework bootstrapping takes over packaging:* Once the application model is ready, Mill is no longer just zipping classpaths into jars. It hands control to Quarkus Bootstrap so Quarkus can build the runnable jar or native image in its own way.
 
-There are two important nuances with dependencies:
+Unlike Spring Boot or Micronaut, Quarkus does not simply run the classpath the build tool assembled. It effectively rebuilds the classpath, and it expects the build tool to provide the right model for that process.
 
-First, deployment dependencies are not declared or resolved in the "traditional" way. Instead, they act as drop-in counterparts to runtime dependencies. This appears to be Quarkus’ way of curating dependencies for native builds, rather than relying on the https://github.com/oracle/graalvm-reachability-metadata[reachability metadata repository].
-
-Second, extension dependencies are derived from runtime dependencies that contain a descriptor file inside the JAR under `META-INF`. These need to be detected and flagged correctly.
-
-Since Mill uses coursier for dependency resolution, all logic for resolving dependencies, finding deployment dependencies and flagging extensions builds on top of the existing resolution pipeline.
+Quarkus itself provides first-class integration paths for Maven and Gradle. Mill support therefore has to understand enough of Quarkus' build expectations to reproduce the important parts without pretending to be Maven or Gradle.
 
 .Quarkus: Building the application model in Mill
 [graphviz]
@@ -330,58 +351,56 @@ digraph Quarkus {
   "Quarkus Dependencies" -> "Deployment Libs"
   "Compile Libs" -> "Application Model"
   "Runtime Libs" -> "Application Model"
-  "Deployment Libs" -> "Application Model"
-  "Application Model" -> "Quarkus Bootstrap"
-  "Quarkus Bootstrap" -> "Runnable Jar"
-  "Quarkus Bootstrap" -> "Native App"
+  "Deployment Libs" → "Application Model"
+  "Application Model" → "Quarkus Bootstrap"
+  "Quarkus Bootstrap" → "Runnable Jar"
+  "Quarkus Bootstrap" → "Native App"
 }
 ....
 
 === The Application Model
 
-Mill must construct a Quarkus Application Model before anything can run:
+The first Quarkus-specific problem Mill must solve is constructing the Quarkus application model before anything can run or package.
 
 [source,scala]
 ----
 def quarkusAppModel: T[ApplicationModelWorker.AppModel]
 ----
 
-This model includes:
+That model includes:
 
-- Dependencies (runtime, deployment, compile)
-- Module metadata (sources, resources)
-- Platform BOMs
-- Build directories
+- *Dependencies:* compile, runtime and deployment dependencies each matters for different reasons during augmentation.
 
-It is then serialized and passed into Quarkus bootstrap:
+- *Module metadata:* source directories, resource directories and build output locations need to be represented in the shape Quarkus expects.
 
-[source,scala]
-----
-ApplicationModelSerializer.serialize(/*...*/)
-----
+- *Platform imports:* Quarkus wants to know about the platform BOMs and related platform metadata as part of model construction.
+
+- *Build mode information:* jar packaging and native packaging share much of the same flow, but they still require different build properties.
+
+Once assembled, the model is serialized and passed into Quarkus Bootstrap, which then performs the actual framework-driven packaging work.
 
 === Dependency Classification
 
-One of the hardest parts is dependency classification:
-
-- Runtime dependencies
-- Deployment dependencies (paired artifacts)
-- Extension detection via META-INF
+The hardest part of the Quarkus integration is dependency classification because the build cannot treat "all resolved jars" as a single flat set.
 
 [source,scala]
 ----
 runtimeDeps.filter(hasDeploymentDep)
 ----
 
-This requires:
+The dependency story has three important pieces:
 
-- Inspecting JAR contents
-- Detecting Quarkus extension descriptors
-- Expanding dependencies dynamically
+- *Runtime dependencies:* These are the libraries the app actually runs with. Mill resolves them using its normal dependency pipeline, but that is only the starting point.
+
+- *Deployment dependencies:* Some Quarkus extensions have paired `-deployment` artifacts that are needed during augmentation and packaging. These are not just ordinary transitive dependencies that happen to show up on the classpath; Mill has to discover and wire them in deliberately.
+
+- *Extension detection via `META-INF`:* Quarkus marks extension jars with descriptor files under `META-INF`. Mill inspects jars to find those descriptors, flags them as runtime extension artefacts and uses that information to drive further model construction.
+
+That in turn means the build needs to inspect jar contents, detect Quarkus descriptors and expand the dependency graph dynamically based on what it finds.
 
 === Build Execution
 
-Once the model is built, Quarkus takes over:
+After the model has been built and serialized, Quarkus takes over the packaging flow.
 
 [source,scala]
 ----
@@ -389,44 +408,54 @@ val augmentAction = quarkusBootstrap.bootstrap().createAugmentor()
 val app = augmentAction.createProductionApplication()
 ----
 
-This produces:
+This stage produces:
 
-- quarkus-run.jar
-- Optional native binary
+- *`quarkus-run.jar`:* The runnable fast-jar style output that Quarkus manages itself.
+
+- *Optional native binary:* The native path reuses the same overall application model but runs through native-oriented build properties.
+
+- *Framework-managed launch behaviour:* Mill's `run` support points at the Quarkus entry point because Quarkus owns the run classpath once packaging has completed.
 
 === Mill Integration Challenges
 
-- Reconstructing Quarkus’ internal model from scratch
-- Mimicking Gradle/Maven behaviour without those tools
-- Handling deployment vs runtime classpaths
-- Serializing/deserializing build state
+This is the core engineering work behind Quarkus support in Mill.
 
-Quarkus effectively owns the build, and Mill must adapt to it.
+- *Reconstructing Quarkus' internal model from scratch:* Mill has to provide Quarkus with the right view of the project even though Quarkus does not natively understand a Mill build.
+
+- *Mimicking Maven and Gradle behaviour only where necessary:* The goal is not to clone another build tool. The goal is to reproduce the information and steps Quarkus truly depends on.
+
+- *Handling deployment vs runtime classpaths correctly:* Getting this wrong does not just affect performance or elegance. It changes whether packaging and native builds work at all.
+
+- *Serializing and deserializing the build state:* The application model becomes a build artefact in its own right, and that has to fit cleanly into Mill's task graph.
+
+Quarkus effectively owns the build at packaging time, and Mill must adapt to it. That is what makes Quarkus the most technically involved integration of the three.
 
 == Key Differences from a Build Tool Perspective
+
+This section summarises the practical differences discussed above.
 
 |===
 |Aspect | Spring Boot | Micronaut | Quarkus
 
 |Build model
-|Traditional
-|AOT-enhanced
-|Model-driven
+|Traditional JVM build with optional extra stages
+|AOT-enhanced build with explicit tool invocation
+|Model-driven build delegated into Quarkus Bootstrap
 
 |AOT
 |Optional
-|Optional (but core feature)
-|Implicit (augmentation)
+|Optional but central when targeting native output
+|Implicit in framework augmentation
 
 |Dependency model
-|Flat
-|Mostly flat
-|Split (runtime/deployment)
+|Mostly flat and conventional
+|Mostly flat, plus annotation processor and AOT tooling inputs
+|Split across runtime, deployment, and extension-aware handling
 
 |Execution
-|Standard JVM
-|Standard + AOT
-|Custom bootstrap
+|Standard JVM packaging and running
+|Standard JVM packaging plus AOT-generated inputs
+|Custom bootstrap and framework-managed runnable output
 
 |Integration complexity
 |Low
@@ -434,13 +463,19 @@ Quarkus effectively owns the build, and Mill must adapt to it.
 |High
 |===
 
-
 == Conclusion
 
-Supporting Spring Boot, Micronaut and Quarkus in Mill is less about adding features and more about adapting to three different philosophies of Java development.
+Spring Boot, Micronaut and Quarkus are all "Java web frameworks", but they ask very different things of the build tool underneath them.
 
-- Spring Boot fits naturally into Mill’s existing model
-- Micronaut extends it with structured AOT processing
-- Quarkus requires a deeper integration that reshapes how builds are understood
+Spring Boot mostly preserves the normal Java build flow and adds optional AOT and native stages on top. Micronaut pushes more work into the build, especially through its external AOT toolchain, but still fits cleanly into Mill's native-image support. Quarkus goes further and expects the build tool to participate in framework-specific modelling, dependency classification and bootstrapping.
 
-Together, they illustrate the evolution of Java, from runtime/dynamic invocation/reflection-based frameworks to optimised and native systems. Build tools must continuously solve these challenges to keep up.
+That is why supporting all three in Mill is interesting: not because they are three ways to say the same thing, but because they each represent a different point on the spectrum from conventional JVM builds to framework-managed build pipelines.
+
+If you use Spring Boot, Micronaut or Quarkus and want a simpler and faster developer experience than Maven or Gradle usually provide, here are good places to start:
+
+- xref:mill::javalib/spring-boot.adoc[Spring Boot projects in Mill]
+- xref:mill::javalib/spring-boot.adoc#_spring_boot_with_aot_processing_and_native_image_support[Spring Boot with AOT and native image support]
+- xref:mill::javalib/web-examples.adoc#_micronaut_native_graalvm[Micronaut native example]
+- xref:mill::javalib/web-examples.adoc#_quarkus_example[Quarkus example]
+- xref:mill::javalib/web-examples.adoc#_quarkus_todomvc_example[Quarkus TodoMVC example]
+- xref:mill::comparisons/performance.adoc[Mill build performance]
