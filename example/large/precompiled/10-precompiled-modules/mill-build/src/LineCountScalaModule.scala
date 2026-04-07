@@ -1,7 +1,7 @@
 package millbuild
 import mill.*, scalalib.*
 
-class LineCountScalaModule(scriptConfig: mill.api.ScriptModule.Config)
+class LineCountScalaModule(scriptConfig: mill.api.PrecompiledModule.Config)
     extends mill.script.ScalaModule(scriptConfig) {
 
   // Use standard directory-based source handling instead of single-file script handling

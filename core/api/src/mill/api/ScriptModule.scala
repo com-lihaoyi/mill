@@ -5,11 +5,11 @@ import mill.api.{ExternalModule, ModuleCtx}
 import mill.api.daemon.Segments
 import mill.api.internal.HeaderData
 @experimental
-trait ScriptModule extends ExternalModule {
+trait PrecompiledModule extends ExternalModule {
   override def moduleCtx: ModuleCtx = super.moduleCtx
     .withFileName(scriptConfig.scriptFile.toString)
     .withLineNum(0)
-  def scriptConfig: ScriptModule.Config
+  def scriptConfig: PrecompiledModule.Config
 
   override def moduleDir = scriptConfig.scriptFile
 
@@ -33,7 +33,7 @@ trait ScriptModule extends ExternalModule {
     }
 }
 @experimental
-object ScriptModule {
+object PrecompiledModule {
   case class Config(
       scriptFile: os.Path,
       moduleDeps: Seq[mill.api.Module],

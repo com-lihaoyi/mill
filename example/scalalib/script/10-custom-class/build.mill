@@ -21,7 +21,7 @@ Line Count: 17
 //// SNIPPET:END
 
 // Your custom `LineCount{language}Module` must be a `class` take a
-// `mill.script.ScriptModule.Config` as a parameter that is passed to the
+// `mill.script.PrecompiledModule.Config` as a parameter that is passed to the
 // `mill.script.{language}Module`. Custom script module classes allows you to
 // customize the semantics of your Java, Scala, or Kotlin single-file script modules.
 // If you have a large number of scripts with a similar configuration, or you need

@@ -1,11 +1,11 @@
 // Pre-compiled modules allow you to define a `package.mill.yaml` or `build.mill.yaml` file
-// whose `extends` clause refers to a pre-compiled class (a subclass of `mill.api.ScriptModule`).
+// whose `extends` clause refers to a pre-compiled class (a subclass of `mill.api.PrecompiledModule`).
 // Instead of generating Scala code from the YAML file, Mill instantiates the class reflectively
 // at runtime, just like script modules. Pre-compiled modules are invisible to `.mill`
 // files and can only be referenced from other pre-compiled modules and scripts.
 //
 // In this example, `qux/package.mill.yaml` extends `millbuild.LineCountScalaModule`, a custom
-// `ScriptModule` subclass defined in `mill-build/src/`. This module counts the lines
+// `PrecompiledModule` subclass defined in `mill-build/src/`. This module counts the lines
 // of source code and generates a resource file with the line count.
 
 //// SNIPPET:USAGE
@@ -27,5 +27,5 @@ Line Count: 13
 // Pre-compiled modules are useful when you have a class that is already compiled
 // (e.g. from a published library or defined in `mill-build/src/`) and you want to
 // use it as a module via YAML configuration without requiring Mill's code generation.
-// Like script modules, they take a `mill.api.ScriptModule.Config` parameter and
+// Like script modules, they take a `mill.api.PrecompiledModule.Config` parameter and
 // are cached per-evaluation.
