@@ -1,8 +1,8 @@
 package millbuild
-import mill.*, scalalib.*
+import mill.*, javalib.*
 
-class LineCountScalaModule(scriptConfig: mill.api.PrecompiledModule.Config)
-    extends mill.script.ScalaModule(scriptConfig) {
+class LineCountJavaModule(scriptConfig: mill.api.PrecompiledModule.Config)
+    extends mill.script.JavaModule(scriptConfig) {
 
   // Use standard directory-based source handling instead of single-file script handling
   private val moduleRoot: os.Path = scriptConfig.scriptFile / os.up

@@ -4,23 +4,23 @@
 // at runtime, just like script modules. Pre-compiled modules are invisible to `.mill`
 // files and can only be referenced from other pre-compiled modules and scripts.
 //
-// In this example, `qux/package.mill.yaml` extends `millbuild.LineCountScalaModule`, a custom
+// In this example, `qux/package.mill.yaml` extends `millbuild.LineCountJavaModule`, a custom
 // `PrecompiledModule` subclass defined in `mill-build/src/`. This module counts the lines
 // of source code and generates a resource file with the line count.
 
 //// SNIPPET:USAGE
 /** See Also: qux/package.mill.yaml */
-/** See Also: mill-build/src/LineCountScalaModule.scala */
-/** See Also: qux/src/Qux.scala */
+/** See Also: mill-build/src/LineCountJavaModule.scala */
+/** See Also: qux/src/Qux.java */
 
 /** Usage
 
 > ./mill qux.run
 ...
-Line Count: 13
+Line Count: 14
 
 > ./mill show qux.lineCount
-13
+14
 */
 //// SNIPPET:END
 

@@ -1,3 +1,2 @@
-extends: millbuild.LineCountScalaModule
+extends: millbuild.LineCountJavaModule
 mill-precompiled-module: true
-scalaVersion: 3.8.2
