@@ -10,20 +10,20 @@
 // `mill-build/src/`. This module counts the lines of source code and generates a resource
 // file with the line count. It also has a nested `test` module containing the test suite
 // configuration.
-//
-// `LineCountJavaModule` is then inherited by `foo` and `bar`.
+
+/** See Also: mill-build/src/LineCountJavaModule.scala */
+
+
+// `LineCountJavaModule` is then inherited by `foo` and `bar`:
+
+/** See Also: foo/package.mill.yaml */
+/** See Also: bar/package.mill.yaml */
+
 // `bar` declares `moduleDeps: !append [foo]`, so `bar` depends on `foo` and can use `foo`'s
-// classes. Similarly, `bar.test` declares `moduleDeps: !append [foo.test]`, so `bar`'s
+// classes. Similarly, `bar.test` declares `moduleDeps: !append [foo.test]`, so ``bar``'s
 // test module depends on `foo`'s test module and can reuse its test utilities.
 
 //// SNIPPET:USAGE
-/** See Also: foo/package.mill.yaml */
-/** See Also: bar/package.mill.yaml */
-/** See Also: mill-build/src/LineCountJavaModule.scala */
-/** See Also: foo/src/Foo.java */
-/** See Also: bar/src/Bar.java */
-/** See Also: foo/test/src/FooTest.java */
-/** See Also: bar/test/src/BarTest.java */
 
 /** Usage
 
