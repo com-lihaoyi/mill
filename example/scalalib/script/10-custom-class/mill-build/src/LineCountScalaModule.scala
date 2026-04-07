@@ -1,7 +1,7 @@
 package millbuild
 import mill.*, scalalib.*
 
-class LineCountScalaModule(scriptConfig: mill.api.PrecompiledModule.Config)
+class LineCountScalaModule(scriptConfig: mill.api.ScriptModule.Config)
     extends mill.script.ScalaModule(scriptConfig) {
 
   /** Total number of lines in module source files */

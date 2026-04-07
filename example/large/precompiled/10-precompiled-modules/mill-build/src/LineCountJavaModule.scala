@@ -1,8 +1,8 @@
 package millbuild
 import mill.*, javalib.*
 
-class LineCountJavaModule(val scriptConfig: mill.api.PrecompiledModule.Config)
-    extends mill.javalib.JavaModule with mill.api.PrecompiledModule {
+class LineCountJavaModule(val scriptConfig: mill.api.ScriptModule.Config)
+    extends mill.javalib.JavaModule with mill.api.ScriptModule {
 
   override lazy val millDiscover = mill.api.Discover[this.type]
 

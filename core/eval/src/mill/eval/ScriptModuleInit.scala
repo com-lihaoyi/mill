@@ -2,7 +2,7 @@ package mill.eval
 
 import mill.api.daemon.SelectMode
 import mill.api.internal.Located
-import mill.api.{Evaluator, ExternalModule, Result, PrecompiledModule}
+import mill.api.{Evaluator, ExternalModule, Result, ScriptModule}
 import scala.annotation.unused
 
 // Cache instantiated script modules on a per-evaluation basis. This allows us to ensure
@@ -83,7 +83,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
           _,
           extendsConfigStrings.map(_.index),
           scriptText,
-          PrecompiledModule.Config(scriptFile, moduleDeps, compileModuleDeps, runModuleDeps, headerData)
+          ScriptModule.Config(scriptFile, moduleDeps, compileModuleDeps, runModuleDeps, headerData)
         )
       )
     }
@@ -128,7 +128,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
       mill.api.ExecResult.catchWrapException {
         scriptModuleCache.getOrElseUpdate(
           scriptFile,
-          cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[PrecompiledModule]
+          cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[ScriptModule]
         )
       }
     )

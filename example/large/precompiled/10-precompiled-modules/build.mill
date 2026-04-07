@@ -5,7 +5,7 @@
 // files and can only be referenced from other pre-compiled modules and scripts.
 //
 // In this example, `qux/package.mill.yaml` extends `millbuild.LineCountJavaModule`, a custom
-// `PrecompiledModule` subclass defined in `mill-build/src/`. This module counts the lines
+// `ScriptModule` subclass defined in `mill-build/src/`. This module counts the lines
 // of source code and generates a resource file with the line count.
 
 //// SNIPPET:USAGE
