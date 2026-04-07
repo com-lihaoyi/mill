@@ -415,7 +415,31 @@ trait Resolve[T] {
 
       scriptModuleResolver(first) match {
         case Seq(resolved) => handleResolved(resolved, selector.toSeq, remaining)
-        case Nil => fallback
+        case Nil =>
+          // For pre-compiled modules referenced by normal package paths (e.g., "foo.bar.task"),
+          // try progressive splits: resolve "foo" as a directory-based module, then resolve
+          // "bar.task" as segments on that module. Also handles "build.foo.bar.task" by
+          // stripping the "build" prefix.
+          if (selector.isEmpty) {
+            val segments = first.split("\\.").toSeq
+            val startIdx = if (segments.headOption.contains("build")) 1 else 0
+            val effectiveSegments = segments.drop(startIdx)
+
+            val result = (1 until effectiveSegments.length).view.flatMap { i =>
+              val modulePath = effectiveSegments.take(i).mkString("/")
+              val taskSegments = effectiveSegments.drop(i)
+              scriptModuleResolver(modulePath) match {
+                case Seq(resolved) => Some((resolved, taskSegments))
+                case Nil => None
+              }
+            }.headOption
+
+            result match {
+              case Some((resolved, taskSegments)) =>
+                handleResolved(resolved, taskSegments, remaining)
+              case None => fallback
+            }
+          } else fallback
       }
     }
     val resolvedGroups = ParseArgs.separate(scriptArgs).map { group =>

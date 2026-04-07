@@ -62,7 +62,10 @@ object CodeGen {
       resourceDest: os.Path,
       millTopLevelProjectRoot: os.Path,
       parser: MillScalaParser
-  ): Seq[(original: os.Path, generated: os.Path)] = {
+  ): (
+      mappings: Seq[(original: os.Path, generated: os.Path)],
+      precompiledModulePaths: Set[os.Path]
+  ) = {
     val scriptSources = allScriptCode.keys.toSeq.sorted
     val parsedYamlHeaderData = scriptSources
       .filter(_.last.endsWith(".yaml"))
@@ -73,6 +76,12 @@ object CodeGen {
         }
       }
       .toMap
+
+    // Identify .mill.yaml files marked with `mill-precompiled-module: true`.
+    // These are skipped during codegen and instantiated reflectively at runtime.
+    val precompiledModulePaths: Set[os.Path] = parsedYamlHeaderData.collect {
+      case (path, headerData) if headerData.`mill-precompiled-module`.value => path
+    }.toSet
 
     val allowNestedBuildMillFiles = mill.internal.Util.readBooleanFromBuildHeader(
       projectRoot,
@@ -97,6 +106,7 @@ object CodeGen {
 
     val allPackageObjectRefs = scriptSources
       .filter(p => CGConst.nestedBuildFileNames.contains(p.last))
+      .filter(p => !precompiledModulePaths.contains(p))
       .map(p => calcSegments(p / os.up, projectRoot))
       .distinct
       .filter(_.nonEmpty)
@@ -114,11 +124,12 @@ object CodeGen {
     // we ignore the *.mill one. Maybe we could warn users about that?
     val ignoreSources = scriptSources
       .filter(_.last.endsWith(".mill.yaml"))
+      .filter(!precompiledModulePaths.contains(_))
       .map { millYamlSource =>
         millYamlSource / os.up / millYamlSource.last.stripSuffix(".yaml")
       }
       .toSet
-    for (scriptPath <- scriptSources if !ignoreSources(scriptPath)) {
+    for (scriptPath <- scriptSources if !ignoreSources(scriptPath) && !precompiledModulePaths.contains(scriptPath)) {
       val scriptFolderPath = scriptPath / os.up
       val packageSegments = DiscoveredBuildFiles.fileImportToSegments(projectRoot, scriptPath)
       val pkgSegments = packageSegments.drop(1).dropRight(1)
@@ -153,6 +164,7 @@ object CodeGen {
           case path
               if path != scriptPath
                 && allBuildFileNames.contains(path.last)
+                && !precompiledModulePaths.contains(path)
                 && path / os.up / os.up == scriptFolderPath => (path / os.up).last
         }
         .distinct
@@ -351,7 +363,7 @@ object CodeGen {
       createFolders = true
     )
 
-    mappings.toList
+    (mappings = mappings.toList, precompiledModulePaths = precompiledModulePaths)
   }
 
   private def calcSegments(scriptFolderPath: os.Path, projectRoot: os.Path) =

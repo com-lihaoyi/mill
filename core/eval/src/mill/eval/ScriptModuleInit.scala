@@ -195,7 +195,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
       }
   }
 
-  private val scriptExtensions = Set("scala", "java", "kt")
+  private val scriptExtensions = Set("scala", "java", "kt", "yaml")
 
   /**
    * Discovers all script files in the given workspace directory.
@@ -224,16 +224,57 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
     )
       .filter { path =>
         os.isFile(path) &&
-        scriptExtensions.contains(path.ext) // Check if it's a file with the right extension
+        scriptExtensions.contains(path.ext) &&
+        // For .yaml files, only discover pre-compiled modules (ScriptModule subclasses)
+        (path.ext != "yaml" || isPrecompiledYamlModule(path))
       }
   }
 
   /**
-   * Checks if a file starts with a `//|` build header comment.
+   * Checks if a `.mill.yaml` file is a pre-compiled module by looking for the
+   * `mill-precompiled-module: true` flag in its header data.
+   */
+  private def isPrecompiledYamlModule(path: os.Path): Boolean = {
+    mill.internal.Util.parseHeaderData(path) match {
+      case Result.Success(headerData) => headerData.`mill-precompiled-module`.value
+      case _ => false
+    }
+  }
+
+  /**
+   * Resolves a pre-compiled module from a directory path. Checks for
+   * `package.mill.yaml` or `build.mill.yaml` in the directory with
+   * `mill-precompiled-module: true` in their header.
+   */
+  def resolvePrecompiledModule(
+      dirPath: String,
+      eval: Evaluator
+  ): Option[Result[ExternalModule]] = {
+    val dir = os.Path(dirPath, mill.api.BuildCtx.workspaceRoot)
+    if (!os.isDir(dir)) None
+    else {
+      val candidates = Seq("package.mill.yaml", "build.mill.yaml")
+      candidates.iterator.flatMap { name =>
+        val yamlFile = dir / name
+        if (os.isFile(yamlFile) && isPrecompiledYamlModule(yamlFile))
+          resolveScriptModule(yamlFile.toString, eval)
+        else None
+      }.nextOption()
+    }
+  }
+
+  /**
+   * Entry point for the script module resolver. First tries file-based resolution
+   * (for script modules), then tries directory-based resolution (for pre-compiled modules).
    */
   def apply(scriptFileString: String, eval: Evaluator) = {
     mill.api.BuildCtx.withFilesystemCheckerDisabled {
-      resolveScriptModule(scriptFileString, eval).toSeq
+      resolveScriptModule(scriptFileString, eval).toSeq match {
+        case resolved if resolved.nonEmpty => resolved
+        case _ =>
+          // Try resolving as a directory path for pre-compiled modules
+          resolvePrecompiledModule(scriptFileString, eval).toSeq
+      }
     }
   }
 }

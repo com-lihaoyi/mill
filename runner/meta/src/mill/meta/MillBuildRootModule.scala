@@ -89,14 +89,15 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
           wrapped: Seq[PathRef],
           support: Seq[PathRef],
           resources: Seq[PathRef],
-          mappings: Seq[(original: PathRef, generated: PathRef)]
+          mappings: Seq[(original: PathRef, generated: PathRef)],
+          precompiledModulePaths: Set[os.Path]
       )] = Task {
     val wrapped = Task.dest / "wrapped"
     val support = Task.dest / "support"
     val resources = Task.dest / "resources"
 
     val parsed = parseBuildFiles()
-    val mappings = CodeGen.generateWrappedAndSupportSources(
+    val (mappings, precompiledModulePaths) = CodeGen.generateWrappedAndSupportSources(
       rootModuleInfo.projectRoot / os.up,
       parsed.seenScripts,
       wrapped,
@@ -114,18 +115,20 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
           case (original, generated) =>
             (PathRef(original), PathRef(generated))
         }
-      }
+      },
+      precompiledModulePaths = precompiledModulePaths
     )
   }
 
   def millBuildRootModuleResult = Task {
     val (signatures, spanningTree) = codeSignatures()
+    val precompiled = generatedScriptSources().precompiledModulePaths
     Tuple5(
       runClasspath(),
       compile().classes,
       signatures,
       parseBuildFiles().seenScripts.collect {
-        case (k, v) if k.last.endsWith(".mill.yaml") => (k.toNIO, v)
+        case (k, v) if k.last.endsWith(".mill.yaml") && !precompiled.contains(k) => (k.toNIO, v)
       },
       // Serialize to string to avoid classloader issues when crossing classloader boundaries
       spanningTree.render()

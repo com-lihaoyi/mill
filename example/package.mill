@@ -119,6 +119,7 @@ object `package` extends Module {
     object selective extends Cross[ExampleCrossModule](build.listCross)
     object multifile extends Cross[ExampleCrossModule](build.listCross)
     object multilang extends Cross[ExampleCrossModule](build.listCross)
+    object precompiled extends Cross[ExampleCrossModule](build.listCross)
   }
 
   object extending extends Module {
