@@ -20,38 +20,15 @@ object CodeGen {
 
   private def processDataRest[T](
       scriptPath: os.Path,
-      data: HeaderData,
-      sortKeys: Boolean
+      data: HeaderData
   )(
       onProperty: (String, upickle.core.BufferedValue) => T,
       onNestedObject: (String, HeaderData) => T
   ): Seq[T] = {
-    val entries0 = data.rest.toSeq
-    val entries = if (sortKeys) entries0.sortBy(_._1.value) else entries0
-
-    for ((locatedKeyString, v) <- entries)
-      yield locatedKeyString.value.split(" +") match {
-        case Array(k) => onProperty(k, v)
-        case Array("object", k) =>
-          mill.internal.Util
-            .catchUpickleAbort(
-              scriptPath.toNIO,
-              prefix = s"In object ${literalize(k)}: "
-            ) {
-              upickle.core.BufferedValue.transform(v, HeaderData.headerDataReader(scriptPath))
-            } match {
-            case Result.Success(nestedData) => onNestedObject(k, nestedData)
-            case f: Result.Failure => throw new Result.Exception(f.error, Some(f))
-          }
-        case _ => throw new Result.Exception(
-            "",
-            Some(Result.Failure(
-              "Invalid key: " + locatedKeyString.value,
-              scriptPath.toNIO,
-              locatedKeyString.index
-            ))
-          )
-      }
+    HeaderData.processRest(scriptPath, data)(
+      onProperty = (locatedKey, v) => onProperty(locatedKey.value, v),
+      onNestedObject = (_, name, nestedData) => onNestedObject(name, nestedData)
+    )
   }
 
   def generateWrappedAndSupportSources(
@@ -200,7 +177,7 @@ object CodeGen {
 
         def renderTemplate(prefix: String, data: HeaderData, path: Seq[String]): String = {
           val extendsConfig = data.`extends`.value.value.map(_.value)
-          val definitions = processDataRest(scriptPath, data, sortKeys = false)(
+          val definitions = processDataRest(scriptPath, data)(
             onProperty = (_, _) => "", // Properties will be auto-implemented by AutoOverride
             onNestedObject = (k, nestedData) =>
               renderTemplate(s"object $k", nestedData, path :+ k)

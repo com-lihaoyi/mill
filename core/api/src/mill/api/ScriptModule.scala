@@ -29,17 +29,31 @@ trait PrecompiledModule extends ExternalModule {
 
   override def moduleSegments: Segments = Segments.labels(relativeScriptFilePath.toString + ":")
 
-  private[mill] override def moduleDynamicBuildOverrides = scriptConfig
-    .headerData
-    .rest
-    .map { case (k, v) =>
-      val newKey = (moduleSegments ++ mill.api.Segment.Label(k.value)).render
-      val (actualValue, append) = internal.Appendable.unwrapAppendMarker(v)
-      (
-        newKey,
-        internal.Located(scriptConfig.scriptFile, k.index, internal.Appendable(actualValue, append))
-      )
-    }
+  private[mill] override def moduleDynamicBuildOverrides =
+    flattenHeaderDataRest(moduleSegments, scriptConfig.headerData)
+
+  private def flattenHeaderDataRest(
+      segments: Segments,
+      data: HeaderData
+  ): Map[String, internal.Located[internal.Appendable[upickle.core.BufferedValue]]] = {
+    HeaderData.processRest(scriptConfig.scriptFile, data)(
+      onProperty = { (locatedKey, v) =>
+        val newKey = (segments ++ mill.api.Segment.Label(locatedKey.value)).render
+        val (actualValue, append) = internal.Appendable.unwrapAppendMarker(v)
+        Map(newKey -> internal.Located(
+          scriptConfig.scriptFile,
+          locatedKey.index,
+          internal.Appendable(actualValue, append)
+        ))
+      },
+      onNestedObject = { (_, name, nestedData) =>
+        val nestedSegments = segments ++ mill.api.Segment.Label(name)
+        flattenHeaderDataRest(nestedSegments, nestedData)
+      }
+    ).foldLeft(Map.empty[String, internal.Located[internal.Appendable[upickle.core.BufferedValue]]])(
+      _ ++ _
+    )
+  }
 }
 
 @experimental

@@ -1,2 +1,8 @@
 extends: millbuild.LineCountJavaModule
 mill-precompiled-module: true
+mvnDeps:
+- com.google.guava:guava:33.3.0-jre
+
+object test:
+  mvnDeps:
+  - org.hamcrest:hamcrest:2.2

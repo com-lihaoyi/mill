@@ -27,4 +27,34 @@ private[mill] object HeaderData {
       new Appendable.UpickleReader[T]
     upickle.macroR[HeaderData]
   }
+
+  /**
+   * Iterates over the `rest` entries in a [[HeaderData]], dispatching to `onProperty`
+   * for simple keys and `onNestedObject` for `object <name>:` keys. Used by both
+   * code generation and precompiled module dynamic override flattening.
+   */
+  def processRest[T](
+      scriptPath: os.Path,
+      data: HeaderData
+  )(
+      onProperty: (Located[String], BufferedValue) => T,
+      onNestedObject: (Located[String], String, HeaderData) => T
+  ): Seq[T] = {
+    for ((locatedKey, v) <- data.rest.toSeq)
+      yield locatedKey.value.split(" +") match {
+        case Array(_) => onProperty(locatedKey, v)
+        case Array("object", name) =>
+          val nestedData =
+            BufferedValue.transform(v, headerDataReader(scriptPath))
+          onNestedObject(locatedKey, name, nestedData)
+        case _ => throw new mill.api.daemon.Result.Exception(
+            "",
+            Some(mill.api.daemon.Result.Failure(
+              "Invalid key: " + locatedKey.value,
+              scriptPath.toNIO,
+              locatedKey.index
+            ))
+          )
+      }
+  }
 }

@@ -20,10 +20,11 @@
 
 > ./mill qux.run
 ...
-Line Count: 14
+Line Count: 17
+Padding: [00017]
 
 > ./mill show qux.lineCount
-14
+17
 
 > ./mill qux.test
 ...testLineCount...

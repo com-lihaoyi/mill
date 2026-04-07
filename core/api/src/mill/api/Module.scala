@@ -47,7 +47,7 @@ trait Module extends Module.BaseClass with ModuleCtx.Wrapper with ModuleApi {
 
   private[mill] def moduleDynamicBuildOverrides
       : Map[String, internal.Located[internal.Appendable[BufferedValue]]] =
-    Map()
+    Option(moduleCtx.enclosingModule).map(_.moduleDynamicBuildOverrides).getOrElse(Map())
 }
 
 object Module {

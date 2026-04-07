@@ -1,5 +1,6 @@
 package qux;
 
+import com.google.common.base.Strings;
 import java.io.InputStream;
 
 public class Qux {
@@ -9,6 +10,8 @@ public class Qux {
     }
 
     public static void main(String[] args) throws Exception {
-        System.out.println("Line Count: " + getLineCount());
+        String count = getLineCount();
+        System.out.println("Line Count: " + count);
+        System.out.println("Padding: [" + Strings.padStart(count, 5, '0') + "]");
     }
 }
