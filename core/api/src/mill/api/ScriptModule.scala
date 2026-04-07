@@ -50,7 +50,10 @@ trait PrecompiledModule extends ExternalModule {
         val nestedSegments = segments ++ mill.api.Segment.Label(name)
         flattenHeaderDataRest(nestedSegments, nestedData)
       }
-    ).foldLeft(Map.empty[String, internal.Located[internal.Appendable[upickle.core.BufferedValue]]])(
+    ).foldLeft(Map.empty[
+      String,
+      internal.Located[internal.Appendable[upickle.core.BufferedValue]]
+    ])(
       _ ++ _
     )
   }
