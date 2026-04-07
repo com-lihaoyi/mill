@@ -1,33 +1,33 @@
-package mill.contrib.dependencycheck
+package mill.contrib.owaspdependencycheck
 
 import mill.*
 import mill.api.*
 import mill.javalib.*
 
-trait DependencyCheckModule extends Module {
+trait OwaspDependencyCheckModule extends Module {
 
   /**
    * The files to be scanned by the Dependency Check.
    * Like jars, package lock files etc.
    */
-  def dependencyCheckFiles: T[Seq[PathRef]] = Seq.empty
+  def owaspDependencyCheckFiles: T[Seq[PathRef]] = Seq.empty
 
   /**
    * The dependency check flags, check the reference at https://dependency-check.github.io/DependencyCheck/dependency-check-cli/arguments.html
    * By default Seq("--nvdDatafeed", "https://dependency-check.github.io/DependencyCheck_Builder/nvd_cache/") is set.
-   * The --scan flags are appended based on the files in [[dependencyCheckFiles]]
+   * The --scan flags are appended based on the files in [[owaspDependencyCheckFiles]]
    *
-   * The --out dir is set by the [[dependencyCheck]].
+   * The --out dir is set by the [[owaspDependencyCheck]].
    * @return
    */
-  def dependencyCheckConfigArgs: T[Seq[String]] =
+  def owaspDependencyCheckConfigArgs: T[Seq[String]] =
     Seq("--nvdDatafeed", "https://dependency-check.github.io/DependencyCheck_Builder/nvd_cache/")
 
   /**
-   * Be default true, then [[dependencyCheck()]] will fail if the dependency scan fails (eg. --failOnCVSS).
+   * Be default true, then [[owaspDependencyCheck()]] will fail if the dependency scan fails (eg. --failOnCVSS).
    * @return
    */
-  def dependencyCheckFailTask: Boolean = true
+  def owaspDependencyCheckFailTask: Boolean = true
 
   case class DependencyCheckResult(reportFiles: Seq[PathRef], exitCode: Int)
       derives upickle.ReadWriter {
@@ -38,19 +38,19 @@ trait DependencyCheckModule extends Module {
    * Run the dependency check
    * @return
    */
-  final def dependencyCheck(): Task.Command[DependencyCheckResult] =
+  final def owaspDependencyCheck(): Task.Command[DependencyCheckResult] =
     Task.Command(exclusive = true) {
-      val args = dependencyCheckConfigArgs()
-      val files = dependencyCheckFiles()
+      val args = owaspDependencyCheckConfigArgs()
+      val files = owaspDependencyCheckFiles()
       if (files.nonEmpty) {
 
         val scanDirectives = files.flatMap(p => Seq("--scan", p.path.toString))
 
         val arguments = args ++ scanDirectives ++ Seq("--out", Task.dest.toString)
         println(s"Final scan arguments to Dependency Check CLI: ${arguments.mkString(" ")}")
-        val exitCode = DependencyCheckWorker.worker().runScan(arguments)
+        val exitCode = OwaspDependencyCheckWorker.worker().runScan(arguments)
         val result = DependencyCheckResult(os.list(Task.dest).map(PathRef(_)), exitCode)
-        if (dependencyCheckFailTask && !result.success) {
+        if (owaspDependencyCheckFailTask && !result.success) {
           throw new Exception(s"Dependency Check failed with status code $exitCode")
         }
         result
@@ -64,13 +64,14 @@ trait DependencyCheckModule extends Module {
 /**
  * Java Dependency Check, that adds the runtime class path to be scanned in the dependency check.
  */
-trait DependencyCheckJavaModule extends JavaModule with DependencyCheckModule {
-  override def dependencyCheckFiles: T[Seq[PathRef]] = Task {
+trait OwaspDependencyCheckJavaModule extends JavaModule with OwaspDependencyCheckModule {
+  override def owaspDependencyCheckFiles: T[Seq[PathRef]] = Task {
     super.runClasspath().filter(p => p.path.last.endsWith(".jar"))
   }
 }
 
-object DependencyCheckWorker extends ExternalModule with CoursierModule with OfflineSupportModule {
+object OwaspDependencyCheckWorker extends ExternalModule with CoursierModule
+    with OfflineSupportModule {
   lazy val millDiscover = Discover[this.type]
   def dependencyCheckClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
@@ -85,7 +86,8 @@ object DependencyCheckWorker extends ExternalModule with CoursierModule with Off
   def worker: Worker[DependencyCheckInstance] =
     Task.Worker { new DependencyCheckInstance(dependencyCheckClassLoader()) }
 
-  private[dependencycheck] class DependencyCheckInstance(cl: ClassLoader) extends AutoCloseable {
+  private[owaspdependencycheck] class DependencyCheckInstance(cl: ClassLoader)
+      extends AutoCloseable {
     val depencencyCheckCli = cl.loadClass("org.owasp.dependencycheck.App")
     val appConstructor = depencencyCheckCli.getConstructor()
     val mainMethod = depencencyCheckCli.getMethod("run", classOf[Array[String]])

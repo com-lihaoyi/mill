@@ -1,6 +1,9 @@
-package mill.contrib.sbom
+package mill.contrib.owaspdependencycheck
 
-import mill.contrib.dependencycheck.{DependencyCheckJavaModule, DependencyCheckModule}
+import mill.contrib.owaspdependencycheck.{
+  OwaspDependencyCheckJavaModule,
+  OwaspDependencyCheckModule
+}
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.{TestSuite, Tests, test}
 import mill.api.{Discover, PathRef, Task}
@@ -22,29 +25,28 @@ object TestModule extends TestRootModule {
   def isOssIndexCredentialsSet: T[Boolean] = Task:
     ossScanCredentials().nonEmpty
 
-  object emptyScan extends DependencyCheckModule {
-    def dependencyCheckFiles: T[Seq[PathRef]] = Seq.empty
+  object emptyScan extends OwaspDependencyCheckModule {
+    override def owaspDependencyCheckFiles: T[Seq[PathRef]] = Seq.empty
   }
-  object javaExample extends DependencyCheckJavaModule {
+  object javaExample extends OwaspDependencyCheckJavaModule {
     override def mvnDeps: T[Seq[Dep]] = Seq(mvn"ch.qos.logback:logback-classic:1.5.12")
   }
-  object failingJavaExample extends DependencyCheckJavaModule {
+  object failingJavaExample extends OwaspDependencyCheckJavaModule {
     override def mvnDeps: T[Seq[Dep]] = Seq(mvn"org.json:json:20230618")
 
-    override def dependencyCheckConfigArgs: T[Seq[String]] = Task {
-      super.dependencyCheckConfigArgs() ++ ossScanCredentials() ++ Seq("--failOnCVSS", "4")
+    override def owaspDependencyCheckConfigArgs: T[Seq[String]] = Task {
+      super.owaspDependencyCheckConfigArgs() ++ ossScanCredentials() ++ Seq("--failOnCVSS", "4")
     }
   }
-  object failingJavaExampleNoTaskFail extends DependencyCheckJavaModule {
+  object failingJavaExampleNoTaskFail extends OwaspDependencyCheckJavaModule {
     override def mvnDeps: T[Seq[Dep]] = Seq(mvn"org.json:json:20230618")
-    override def dependencyCheckFailTask = false
+    override def owaspDependencyCheckFailTask = false
 
-    override def dependencyCheckConfigArgs: T[Seq[String]] = Task {
-      super.dependencyCheckConfigArgs() ++
-        super.dependencyCheckConfigArgs() ++ ossScanCredentials() ++ Seq("--failOnCVSS", "4")
+    override def owaspDependencyCheckConfigArgs: T[Seq[String]] = Task {
+      super.owaspDependencyCheckConfigArgs() ++ ossScanCredentials() ++ Seq("--failOnCVSS", "4")
     }
   }
-  object examplePackageJson extends DependencyCheckModule {
+  object examplePackageJson extends OwaspDependencyCheckModule {
     def exampleJsonGen: T[PathRef] = Task {
       os.write(
         Task.dest / "package.json",
@@ -61,12 +63,12 @@ object TestModule extends TestRootModule {
       PathRef(Task.dest / "package.json")
     }
 
-    def dependencyCheckFiles: T[Seq[PathRef]] = Task { Seq(exampleJsonGen()) }
+    def owaspDependencyCheckFiles: T[Seq[PathRef]] = Task { Seq(exampleJsonGen()) }
   }
 
   lazy val millDiscover = Discover[this.type]
 }
-class DependencyCheckModuleTests extends TestSuite {
+class OwaspDependencyCheckModuleTests extends TestSuite {
   override def tests = Tests {
     def runIfOssIsEnabled(eval: UnitTester)(runTest: => Unit): Unit = {
       val Right(isOssCredentialsSet) =
@@ -84,13 +86,14 @@ class DependencyCheckModuleTests extends TestSuite {
       null
     ).scoped { eval =>
       runIfOssIsEnabled(eval) {
-        val Right(resultEmpty) = eval.apply(TestModule.emptyScan.dependencyCheck()).runtimeChecked
+        val Right(resultEmpty) =
+          eval.apply(TestModule.emptyScan.owaspDependencyCheck()).runtimeChecked
         assert(resultEmpty.value.success)
         val Right(resultJavaExample) =
-          eval.apply(TestModule.javaExample.dependencyCheck()).runtimeChecked
+          eval.apply(TestModule.javaExample.owaspDependencyCheck()).runtimeChecked
         assert(resultJavaExample.value.success)
         val Right(resultPackageJsonExample) =
-          eval.apply(TestModule.examplePackageJson.dependencyCheck()).runtimeChecked
+          eval.apply(TestModule.examplePackageJson.owaspDependencyCheck()).runtimeChecked
         assert(resultPackageJsonExample.value.success)
       }
     }
@@ -99,9 +102,10 @@ class DependencyCheckModuleTests extends TestSuite {
       null
     ).scoped { eval =>
       runIfOssIsEnabled(eval) {
-        val Left(error) = eval.apply(TestModule.failingJavaExample.dependencyCheck()).runtimeChecked
+        val Left(error) =
+          eval.apply(TestModule.failingJavaExample.owaspDependencyCheck()).runtimeChecked
         val Right(suppressedFailure) =
-          eval.apply(TestModule.failingJavaExampleNoTaskFail.dependencyCheck()).runtimeChecked
+          eval.apply(TestModule.failingJavaExampleNoTaskFail.owaspDependencyCheck()).runtimeChecked
         assert(!suppressedFailure.value.success)
         assert(suppressedFailure.value.reportFiles.size == 1)
       }

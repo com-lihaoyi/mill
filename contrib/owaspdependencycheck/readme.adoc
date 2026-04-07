@@ -1,32 +1,32 @@
 = Dependency Check
-:page-aliases: Plugin_DependencyCheck.adoc
+:page-aliases: Plugin_OwaspDependencyCheck.adoc
 
 Runs https://owasp.org/www-project-dependency-check/[OWASP Dependency Check] against your project's dependencies to identify known vulnerabilities (CVEs).
 
-For Java, Kotlin and Scala, extend the `mill.contrib.dependencycheck.DependencyCheckJavaModule`.
+For Java, Kotlin and Scala, extend the `mill.contrib.owaspdependencycheck.OwaspDependencyCheckJavaModule`.
 It will scan the runtime class path for vulnerabilities.
-Alternatively, use `mill.contrib.dependencycheck.DependencyCheckModule` and provide
-a list of files (jars, package-locks) to be scanned yourself with `dependencyCheckFiles`.
+Alternatively, use `mill.contrib.owaspdependencycheck.OwaspDependencyCheckModule` and provide
+a list of files (jars, package-locks, Javascript files) to be scanned yourself with `owaspDependencyCheckFiles`.
 
 Quickstart:
 
 .`build.mill`
 [source,scala]
 ----
-//| mvnDeps: ["com.lihaoyi::mill-contrib-dependencycheck:$MILL_VERSION"]
+//| mvnDeps: ["com.lihaoyi::mill-contrib-owaspdependencycheck:$MILL_VERSION"]
 package build
 
 import mill.*
 import mill.javalib.*
-import mill.contrib.dependencycheck.{DependencyCheckJavaModule,DependencyCheckModule}
+import mill.contrib.owaspdependencycheck.{OwaspDependencyCheckJavaModule,OwaspDependencyCheckModule}
 
-object backend extends JavaModule with DependencyCheckJavaModule {
+object backend extends JavaModule with OwaspDependencyCheckJavaModule {
   def mvnDeps = Seq(mvn"ch.qos.logback:logback-classic:1.5.12")
 }
-object frontend extends DependencyCheckModule {
+object frontend extends OwaspDependencyCheckModule {
   def packageJson: T[PathRef] = Task.Source(moduleDir / "package.json")
   def packageLock: T[PathRef] = Task.Source(moduleDir / "package-lock.json")
-  def dependencyCheckFiles: T[Seq[PathRef]] = Task { Seq(packageJson(), packageLock()) }
+  def owaspDependencyCheckFiles: T[Seq[PathRef]] = Task { Seq(packageJson(), packageLock()) }
 }
 ----
 
@@ -34,18 +34,18 @@ Then run the vulnerability scan with:
 
 [source,console]
 ----
-> mill backend.dependencyCheck
-> mill frontend.dependencyCheck
+> mill backend.owaspDependencyCheck
+> mill frontend.owaspDependencyCheck
 ----
 
-Reports are written to the dependencyCheck task directory, eg `out/backend/dependencyCheck.dest/`.
+Reports are written to the owaspDependencyCheck task directory, eg `out/backend/owaspDependencyCheck.dest/`.
 
 == Configuration options
 The configuration is done via the dependency check arguments,
 see https://dependency-check.github.io/DependencyCheck/dependency-check-cli/arguments.html[Dependency Check CLI].
 
 These arguments are passed unchanged to the Dependency Check CLI.
-By default, the `nvdDatafeed` is already set to `https://dependency-check.github.io/DependencyCheck_Builder/nvd_cache/`.
+By default, the `nvdDatafeed` is set to `https://dependency-check.github.io/DependencyCheck_Builder/nvd_cache/`.
 
 It is highly recommended to also configure the
 https://ossindex.sonatype.org/doc/auth-required[OSS Index username and password],
@@ -53,8 +53,8 @@ to get decent scan results.
 
 [source,scala]
 ----
-override def dependencyCheckConfigArgs: T[Seq[String]] = Task {
-  super.dependencyCheckConfigArgs() ++
+override def owaspDependencyCheckConfigArgs: T[Seq[String]] = Task {
+  super.owaspDependencyCheckConfigArgs() ++
     Seq("--ossIndexUsername","<user-name>",
         "--ossIndexPassword","<password>")
 }
@@ -65,16 +65,16 @@ To fail a scan on certain vulnerability classes, use the `--failOnCVSS` flag.
 
 [source,scala]
 ----
-override def dependencyCheckConfigArgs: T[Seq[String]] = Task {
-  super.dependencyCheckConfigArgs() ++
+override def owaspDependencyCheckConfigArgs: T[Seq[String]] = Task {
+  super.owaspDependencyCheckConfigArgs() ++
     Seq("--ossIndexUsername","<user-name>",
         "--ossIndexPassword","<password>",
         "--failOnCVSS", "4")
 }
 ----
 
-This will make the `dependencyCheck` fail if any vulnerability with a CVSS score higher than 4 is found.
+This will make the `owaspDependencyCheck` fail if any vulnerability with a CVSS score higher than 4 is found.
 
 If you do not want to fail the task, for example to use the result in a downstream task,
-then set `dependencyCheckFailTask = false`.
+then set `owaspDependencyCheckFailTask = false`.
 
