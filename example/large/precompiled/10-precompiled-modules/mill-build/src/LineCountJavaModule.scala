@@ -1,22 +1,10 @@
 package millbuild
 import mill.*, javalib.*
 
-class LineCountJavaModule(scriptConfig: mill.api.PrecompiledModule.Config)
-    extends mill.script.JavaModule(scriptConfig) {
+class LineCountJavaModule(val scriptConfig: mill.api.PrecompiledModule.Config)
+    extends mill.javalib.JavaModule with mill.api.PrecompiledModule {
 
-  // Use standard directory-based source handling instead of single-file script handling
-  private val moduleRoot: os.Path = scriptConfig.scriptFile / os.up
-  override def sources: T[Seq[PathRef]] = Task.Sources(moduleRoot / "src")
-  override def allSources: T[Seq[PathRef]] = Task { sources() }
-  override def allSourceFiles: T[Seq[PathRef]] = Task {
-    val exts = sourceFileExtensions
-    for {
-      root <- allSources()
-      if os.exists(root.path)
-      path <- if (os.isDir(root.path)) os.walk(root.path) else Seq(root.path)
-      if os.isFile(path) && exts.exists(ex => path.last.endsWith(s".$ex"))
-    } yield PathRef(path)
-  }
+  override lazy val millDiscover = mill.api.Discover[this.type]
 
   /** Total number of lines in module source files */
   def lineCount: T[Int] = Task {
