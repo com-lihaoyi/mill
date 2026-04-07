@@ -422,7 +422,9 @@ trait Resolve[T] {
           // stripping the "build" prefix.
           if (selector.isEmpty) {
             val segments = first.split("\\.").toSeq
-            val startIdx = if (segments.headOption.contains(mill.constants.CodeGenConstants.rootModuleAlias)) 1 else 0
+            val startIdx =
+              if (segments.headOption.contains(mill.constants.CodeGenConstants.rootModuleAlias)) 1
+              else 0
             val effectiveSegments = segments.drop(startIdx)
 
             val result = (1 until effectiveSegments.length).view.flatMap { i =>

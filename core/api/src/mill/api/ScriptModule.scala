@@ -42,6 +42,11 @@ trait PrecompiledModule extends ExternalModule {
     }
 }
 
+@experimental
+object PrecompiledModule {
+  export ScriptModule.Config
+}
+
 /**
  * Trait for single-file script modules (`.scala`, `.java`, `.kt`).
  * Overrides `moduleDir` to point to the script file itself rather than

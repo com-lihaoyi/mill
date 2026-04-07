@@ -3,15 +3,18 @@
 // Instead of generating Scala code from the YAML file, Mill instantiates the class reflectively
 // at runtime, just like script modules. Pre-compiled modules are invisible to `.mill`
 // files and can only be referenced from other pre-compiled modules and scripts.
+// They are enabled via the `mill-precompiled-module: true` key.
 //
 // In this example, `qux/package.mill.yaml` extends `millbuild.LineCountJavaModule`, a custom
 // `PrecompiledModule` subclass defined in `mill-build/src/`. This module counts the lines
-// of source code and generates a resource file with the line count.
+// of source code and generates a resource file with the line count. It also has a nested
+// `test` module containing the test suite configuration.
 
 //// SNIPPET:USAGE
 /** See Also: qux/package.mill.yaml */
 /** See Also: mill-build/src/LineCountJavaModule.scala */
 /** See Also: qux/src/Qux.java */
+/** See Also: qux/test/src/QuxTest.java */
 
 /** Usage
 
@@ -21,11 +24,13 @@ Line Count: 14
 
 > ./mill show qux.lineCount
 14
+
+> ./mill qux.test
+...testLineCount...
 */
 //// SNIPPET:END
 
-// Pre-compiled modules are useful when you have a class that is already compiled
-// (e.g. from a published library or defined in `mill-build/src/`) and you want to
-// use it as a module via YAML configuration without requiring Mill's code generation.
-// Like script modules, they take a `mill.api.ScriptModule.Config` parameter and
-// are cached per-evaluation.
+// Pre-compiled modules are useful when you have a lot of similar modules, as is common in large
+// codebases. Rather than code-generating and compiling a separate build script for each module,
+// these identical modules can be compiled once in your `mill-build/src` or even compiled and
+// published earlier to Maven Central, and from there used throughout your project.

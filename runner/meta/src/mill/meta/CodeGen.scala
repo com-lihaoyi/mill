@@ -126,7 +126,10 @@ object CodeGen {
         millYamlSource / os.up / millYamlSource.last.stripSuffix(".yaml")
       }
       .toSet
-    for (scriptPath <- scriptSources if !ignoreSources(scriptPath) && !precompiledModulePaths.contains(scriptPath)) {
+    for (
+      scriptPath <- scriptSources
+      if !ignoreSources(scriptPath) && !precompiledModulePaths.contains(scriptPath)
+    ) {
       val scriptFolderPath = scriptPath / os.up
       val packageSegments = DiscoveredBuildFiles.fileImportToSegments(projectRoot, scriptPath)
       val pkgSegments = packageSegments.drop(1).dropRight(1)

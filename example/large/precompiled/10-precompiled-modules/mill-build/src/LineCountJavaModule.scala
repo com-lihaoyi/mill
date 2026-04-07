@@ -1,10 +1,12 @@
 package millbuild
 import mill.*, javalib.*
 
-class LineCountJavaModule(val scriptConfig: mill.api.ScriptModule.Config)
+class LineCountJavaModule(val scriptConfig: mill.api.PrecompiledModule.Config)
     extends mill.javalib.JavaModule with mill.api.PrecompiledModule {
 
   override lazy val millDiscover = mill.api.Discover[this.type]
+
+  object test extends JavaTests with mill.javalib.TestModule.Junit5
 
   /** Total number of lines in module source files */
   def lineCount: T[Int] = Task {
