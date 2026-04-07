@@ -62,10 +62,7 @@ object CodeGen {
       resourceDest: os.Path,
       millTopLevelProjectRoot: os.Path,
       parser: MillScalaParser
-  ): (
-      mappings: Seq[(original: os.Path, generated: os.Path)],
-      precompiledModulePaths: Set[os.Path]
-  ) = {
+  ): Seq[(original: os.Path, generated: os.Path)] = {
     val scriptSources = allScriptCode.keys.toSeq.sorted
     val parsedYamlHeaderData = scriptSources
       .filter(_.last.endsWith(".yaml"))
@@ -363,7 +360,7 @@ object CodeGen {
       createFolders = true
     )
 
-    (mappings = mappings.toList, precompiledModulePaths = precompiledModulePaths)
+    mappings.toList
   }
 
   private def calcSegments(scriptFolderPath: os.Path, projectRoot: os.Path) =

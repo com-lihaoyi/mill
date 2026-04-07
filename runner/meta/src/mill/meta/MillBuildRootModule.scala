@@ -89,15 +89,14 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
           wrapped: Seq[PathRef],
           support: Seq[PathRef],
           resources: Seq[PathRef],
-          mappings: Seq[(original: PathRef, generated: PathRef)],
-          precompiledModulePaths: Set[os.Path]
+          mappings: Seq[(original: PathRef, generated: PathRef)]
       )] = Task {
     val wrapped = Task.dest / "wrapped"
     val support = Task.dest / "support"
     val resources = Task.dest / "resources"
 
     val parsed = parseBuildFiles()
-    val (mappings, precompiledModulePaths) = CodeGen.generateWrappedAndSupportSources(
+    val mappings = CodeGen.generateWrappedAndSupportSources(
       rootModuleInfo.projectRoot / os.up,
       parsed.seenScripts,
       wrapped,
@@ -115,20 +114,25 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
           case (original, generated) =>
             (PathRef(original), PathRef(generated))
         }
-      },
-      precompiledModulePaths = precompiledModulePaths
+      }
     )
   }
 
   def millBuildRootModuleResult = Task {
     val (signatures, spanningTree) = codeSignatures()
-    val precompiled = generatedScriptSources().precompiledModulePaths
     Tuple5(
       runClasspath(),
       compile().classes,
       signatures,
       parseBuildFiles().seenScripts.collect {
-        case (k, v) if k.last.endsWith(".mill.yaml") && !precompiled.contains(k) => (k.toNIO, v)
+        case (k, v)
+            if k.last.endsWith(".mill.yaml") && {
+              mill.internal.Util.parseHeaderData(k) match {
+                case Result.Success(hd) => !hd.`mill-precompiled-module`.value
+                case _ => true
+              }
+            } =>
+          (k.toNIO, v)
       },
       // Serialize to string to avoid classloader issues when crossing classloader boundaries
       spanningTree.render()

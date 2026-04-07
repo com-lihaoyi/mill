@@ -225,8 +225,8 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
       .filter { path =>
         os.isFile(path) &&
         scriptExtensions.contains(path.ext) &&
-        // For .yaml files, only discover pre-compiled modules (ScriptModule subclasses)
-        (path.ext != "yaml" || isPrecompiledYamlModule(path))
+        // For .yaml files, only discover *.mill.yaml pre-compiled modules
+        (path.ext != "yaml" || (path.last.endsWith(".mill.yaml") && isPrecompiledYamlModule(path)))
       }
   }
 
