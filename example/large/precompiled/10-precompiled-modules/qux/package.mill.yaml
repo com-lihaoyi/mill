@@ -1,0 +1,3 @@
+extends: millbuild.LineCountScalaModule
+mill-precompiled-module: true
+scalaVersion: 3.8.2
