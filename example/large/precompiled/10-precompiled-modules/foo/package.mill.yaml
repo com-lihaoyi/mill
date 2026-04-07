@@ -1,0 +1,6 @@
+extends: millbuild.LineCountJavaModule
+mill-precompiled-module: true
+
+object test:
+  mvnDeps:
+  - org.hamcrest:hamcrest:2.2
