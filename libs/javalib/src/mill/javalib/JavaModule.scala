@@ -354,19 +354,31 @@ trait JavaModule
    *  which uses a cached result which is also checked to be free of cycle.
    *  @see [[moduleDepsChecked]]
    */
-  def moduleDeps: Seq[JavaModule] = Seq()
+  def moduleDeps: Seq[JavaModule] = this match {
+    case pm: mill.api.PrecompiledModule =>
+      pm.scriptConfig.moduleDeps.getOrElse("", Nil).map(_.asInstanceOf[JavaModule])
+    case _ => Seq()
+  }
 
   /**
    *  The compile-only direct dependencies of this module. These are *not*
    *  transitive, and only take effect in the module that they are declared in.
    */
-  def compileModuleDeps: Seq[JavaModule] = Seq()
+  def compileModuleDeps: Seq[JavaModule] = this match {
+    case pm: mill.api.PrecompiledModule =>
+      pm.scriptConfig.compileModuleDeps.getOrElse("", Nil).map(_.asInstanceOf[JavaModule])
+    case _ => Seq()
+  }
 
   /**
    * The runtime-only direct dependencies of this module. These *are* transitive,
    * and so get propagated to downstream modules automatically
    */
-  def runModuleDeps: Seq[JavaModule] = Seq()
+  def runModuleDeps: Seq[JavaModule] = this match {
+    case pm: mill.api.PrecompiledModule =>
+      pm.scriptConfig.runModuleDeps.getOrElse("", Nil).map(_.asInstanceOf[JavaModule])
+    case _ => Seq()
+  }
 
   /**
    *  Bill of Material (BOM) dependencies of this module.

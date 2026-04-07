@@ -126,12 +126,8 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
       signatures,
       parseBuildFiles().seenScripts.collect {
         case (k, v)
-            if k.last.endsWith(".mill.yaml") && {
-              mill.internal.Util.parseHeaderData(k) match {
-                case Result.Success(hd) => !hd.`mill-precompiled-module`.value
-                case _ => true
-              }
-            } =>
+            if k.last.endsWith(".mill.yaml") &&
+              !mill.internal.Util.isPrecompiledYamlModule(k) =>
           (k.toNIO, v)
       },
       // Serialize to string to avoid classloader issues when crossing classloader boundaries

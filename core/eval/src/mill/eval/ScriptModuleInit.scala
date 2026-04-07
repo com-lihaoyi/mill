@@ -276,16 +276,8 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
       }
   }
 
-  /**
-   * Checks if a `.mill.yaml` file is a pre-compiled module by looking for the
-   * `mill-precompiled-module: true` flag in its header data.
-   */
-  private def isPrecompiledYamlModule(path: os.Path): Boolean = {
-    mill.internal.Util.parseHeaderData(path) match {
-      case Result.Success(headerData) => headerData.`mill-precompiled-module`.value
-      case _ => false
-    }
-  }
+  private def isPrecompiledYamlModule(path: os.Path): Boolean =
+    mill.internal.Util.isPrecompiledYamlModule(path)
 
   /**
    * Resolves a pre-compiled module from a directory path. Checks for

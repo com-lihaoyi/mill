@@ -196,6 +196,13 @@ object Util {
     ))
   }
 
+  def isPrecompiledYamlModule(path: os.Path): Boolean = {
+    parseHeaderData(path) match {
+      case Result.Success(headerData) => headerData.`mill-precompiled-module`.value
+      case _ => false
+    }
+  }
+
   def parseYaml0[T](
       fileName: String,
       headerData: String,
