@@ -19,25 +19,33 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
   val resolvingScripts: collection.mutable.LinkedHashSet[os.Path] =
     collection.mutable.LinkedHashSet.empty
 
+  private case class NestedModuleDeps(
+      key: String,
+      moduleDeps: Seq[Located[String]],
+      compileModuleDeps: Seq[Located[String]],
+      runModuleDeps: Seq[Located[String]],
+      bomModuleDeps: Seq[Located[String]]
+  )
+
   /**
-   * Recursively collects moduleDeps, compileModuleDeps, and runModuleDeps
+   * Recursively collects moduleDeps, compileModuleDeps, runModuleDeps, and bomModuleDeps
    * from a HeaderData tree, keyed by nested path (e.g. "" for root, "test" for nested test).
    */
   private def collectAllModuleDeps(
       scriptFile: os.Path,
       data: mill.api.internal.HeaderData,
       prefix: String
-  ): Seq[(String, Seq[Located[String]], Seq[Located[String]], Seq[Located[String]])] = {
-    val current = Seq((
+  ): Seq[NestedModuleDeps] = {
+    val current = Seq(NestedModuleDeps(
       prefix,
       data.moduleDeps.value.value,
       data.compileModuleDeps.value.value,
-      data.runModuleDeps.value.value
+      data.runModuleDeps.value.value,
+      data.bomModuleDeps.value.value
     ))
 
     val nested = mill.api.internal.HeaderData.processRest(scriptFile, data)(
-      onProperty = (_, _) =>
-        Seq.empty[(String, Seq[Located[String]], Seq[Located[String]], Seq[Located[String]])],
+      onProperty = (_, _) => Seq.empty[NestedModuleDeps],
       onNestedObject = (_, name, nestedData) =>
         collectAllModuleDeps(
           scriptFile,
@@ -83,15 +91,18 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
     val moduleDepsMap = collection.mutable.Map.empty[String, Seq[mill.api.Module]]
     val compileModuleDepsMap = collection.mutable.Map.empty[String, Seq[mill.api.Module]]
     val runModuleDepsMap = collection.mutable.Map.empty[String, Seq[mill.api.Module]]
+    val bomModuleDepsMap = collection.mutable.Map.empty[String, Seq[mill.api.Module]]
 
-    for ((key, mDeps, cDeps, rDeps) <- allLevelDeps) {
-      val (mErrors, mResolved) = mDeps.partitionMap(resolveOrErr)
-      val (cErrors, cResolved) = cDeps.partitionMap(resolveOrErr)
-      val (rErrors, rResolved) = rDeps.partitionMap(resolveOrErr)
-      allErrors ++= mErrors ++= cErrors ++= rErrors
-      if (mResolved.nonEmpty) moduleDepsMap(key) = mResolved
-      if (cResolved.nonEmpty) compileModuleDepsMap(key) = cResolved
-      if (rResolved.nonEmpty) runModuleDepsMap(key) = rResolved
+    for (entry <- allLevelDeps) {
+      def resolve(deps: Seq[Located[String]], target: collection.mutable.Map[String, Seq[mill.api.Module]]): Unit = {
+        val (errors, resolved) = deps.partitionMap(resolveOrErr)
+        allErrors ++= errors
+        if (resolved.nonEmpty) target(entry.key) = resolved
+      }
+      resolve(entry.moduleDeps, moduleDepsMap)
+      resolve(entry.compileModuleDeps, compileModuleDepsMap)
+      resolve(entry.runModuleDeps, runModuleDepsMap)
+      resolve(entry.bomModuleDeps, bomModuleDepsMap)
     }
 
     if (allErrors.nonEmpty) {
@@ -131,6 +142,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
             moduleDepsMap.toMap,
             compileModuleDepsMap.toMap,
             runModuleDepsMap.toMap,
+            bomModuleDepsMap.toMap,
             headerData
           )
         )
@@ -272,12 +284,9 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
         os.isFile(path) &&
         scriptExtensions.contains(path.ext) &&
         // For .yaml files, only discover *.mill.yaml pre-compiled modules
-        (path.ext != "yaml" || (path.last.endsWith(".mill.yaml") && isPrecompiledYamlModule(path)))
+        (path.ext != "yaml" || (path.last.endsWith(".mill.yaml") && mill.internal.Util.isPrecompiledYamlModule(path)))
       }
   }
-
-  private def isPrecompiledYamlModule(path: os.Path): Boolean =
-    mill.internal.Util.isPrecompiledYamlModule(path)
 
   /**
    * Resolves a pre-compiled module from a directory path. Checks for
@@ -294,7 +303,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
       val candidates = Seq("package.mill.yaml", "build.mill.yaml")
       candidates.iterator.flatMap { name =>
         val yamlFile = dir / name
-        if (os.isFile(yamlFile) && isPrecompiledYamlModule(yamlFile))
+        if (os.isFile(yamlFile) && mill.internal.Util.isPrecompiledYamlModule(yamlFile))
           resolveScriptModule(yamlFile.toString, eval)
         else None
       }.nextOption()

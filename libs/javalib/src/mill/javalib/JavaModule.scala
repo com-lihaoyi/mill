@@ -46,6 +46,7 @@ import scala.util.matching.Regex
  */
 trait JavaModule
     extends mill.api.Module
+    with mill.api.ConfigModuleDepsModule
     with WithJvmWorkerModule
     with TestModule.JavaModuleBase
     with DefaultTaskModule
@@ -88,16 +89,10 @@ trait JavaModule
     hierarchyChecks()
 
     override def resources = super[JavaModule].resources
-    override def moduleDeps: Seq[JavaModule] = {
-      val nestedDeps = outer match {
-        case pm: mill.api.PrecompiledModule =>
-          val segName = moduleSegments.parts.last
-          pm.scriptConfig.moduleDeps.getOrElse(segName, Nil)
-            .map(_.asInstanceOf[JavaModule])
-        case _ => Nil
-      }
-      Seq(outer) ++ nestedDeps
-    }
+    override def moduleDeps: Seq[JavaModule] =
+      Seq(outer) ++ outer.configModuleDeps
+        .getOrElse(moduleSegments.parts.last, Nil)
+        .map(_.asInstanceOf[JavaModule])
     override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
       outer.repositoriesTask()
     }
@@ -354,31 +349,22 @@ trait JavaModule
    *  which uses a cached result which is also checked to be free of cycle.
    *  @see [[moduleDepsChecked]]
    */
-  def moduleDeps: Seq[JavaModule] = this match {
-    case pm: mill.api.PrecompiledModule =>
-      pm.scriptConfig.moduleDeps.getOrElse("", Nil).map(_.asInstanceOf[JavaModule])
-    case _ => Seq()
-  }
+  def moduleDeps: Seq[JavaModule] =
+    configModuleDeps.getOrElse("", Nil).map(_.asInstanceOf[JavaModule])
 
   /**
    *  The compile-only direct dependencies of this module. These are *not*
    *  transitive, and only take effect in the module that they are declared in.
    */
-  def compileModuleDeps: Seq[JavaModule] = this match {
-    case pm: mill.api.PrecompiledModule =>
-      pm.scriptConfig.compileModuleDeps.getOrElse("", Nil).map(_.asInstanceOf[JavaModule])
-    case _ => Seq()
-  }
+  def compileModuleDeps: Seq[JavaModule] =
+    configCompileModuleDeps.getOrElse("", Nil).map(_.asInstanceOf[JavaModule])
 
   /**
    * The runtime-only direct dependencies of this module. These *are* transitive,
    * and so get propagated to downstream modules automatically
    */
-  def runModuleDeps: Seq[JavaModule] = this match {
-    case pm: mill.api.PrecompiledModule =>
-      pm.scriptConfig.runModuleDeps.getOrElse("", Nil).map(_.asInstanceOf[JavaModule])
-    case _ => Seq()
-  }
+  def runModuleDeps: Seq[JavaModule] =
+    configRunModuleDeps.getOrElse("", Nil).map(_.asInstanceOf[JavaModule])
 
   /**
    *  Bill of Material (BOM) dependencies of this module.
@@ -387,7 +373,8 @@ trait JavaModule
    *  which uses a cached result which is also checked to be free of cycles.
    *  @see [[bomModuleDepsChecked]]
    */
-  def bomModuleDeps: Seq[BomModule] = Seq()
+  def bomModuleDeps: Seq[BomModule] =
+    configBomModuleDeps.getOrElse("", Nil).map(_.asInstanceOf[BomModule])
 
   /**
    * Same as [[moduleDeps]] but checked to not contain cycles.

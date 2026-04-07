@@ -105,3 +105,15 @@ object Module {
     }
   }
 }
+
+/**
+ * Trait providing config-based module dependency defaults.
+ * Extended by both [[PrecompiledModule]] (which populates from YAML config)
+ * and `JavaModule` (which reads these to provide its `moduleDeps` defaults).
+ */
+private[mill] trait ConfigModuleDepsModule {
+  private[mill] def configModuleDeps: Map[String, Seq[mill.api.Module]] = Map.empty
+  private[mill] def configCompileModuleDeps: Map[String, Seq[mill.api.Module]] = Map.empty
+  private[mill] def configRunModuleDeps: Map[String, Seq[mill.api.Module]] = Map.empty
+  private[mill] def configBomModuleDeps: Map[String, Seq[mill.api.Module]] = Map.empty
+}

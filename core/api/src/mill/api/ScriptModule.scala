@@ -14,11 +14,16 @@ import mill.api.internal.HeaderData
  * which overrides `moduleDir` to point to the script file itself.
  */
 @experimental
-trait PrecompiledModule extends ExternalModule {
+trait PrecompiledModule extends ExternalModule with ConfigModuleDepsModule {
   override def moduleCtx: ModuleCtx = super.moduleCtx
     .withFileName(scriptConfig.scriptFile.toString)
     .withLineNum(0)
   def scriptConfig: ScriptModule.Config
+
+  private[mill] override def configModuleDeps = scriptConfig.moduleDeps
+  private[mill] override def configCompileModuleDeps = scriptConfig.compileModuleDeps
+  private[mill] override def configRunModuleDeps = scriptConfig.runModuleDeps
+  private[mill] override def configBomModuleDeps = scriptConfig.bomModuleDeps
 
   override def moduleDir = scriptConfig.scriptFile / os.up
 
@@ -81,6 +86,7 @@ object ScriptModule {
       moduleDeps: Map[String, Seq[mill.api.Module]],
       compileModuleDeps: Map[String, Seq[mill.api.Module]],
       runModuleDeps: Map[String, Seq[mill.api.Module]],
+      bomModuleDeps: Map[String, Seq[mill.api.Module]],
       headerData: HeaderData
   )
 

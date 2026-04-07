@@ -24,8 +24,6 @@ object JavaModule {
       with mill.javalib.NativeImageModule {
     private[mill] def isScript: Boolean = true
 
-    override def moduleDeps = scriptConfig.moduleDeps.getOrElse("", Nil).map(_.asInstanceOf[mill.javalib.JavaModule])
-
     /** Scripts default to having no source folders */
     override def sources = Task.Sources()
 
