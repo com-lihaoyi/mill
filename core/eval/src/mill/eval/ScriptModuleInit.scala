@@ -19,12 +19,39 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
   val resolvingScripts: collection.mutable.LinkedHashSet[os.Path] =
     collection.mutable.LinkedHashSet.empty
 
+  /**
+   * Recursively collects moduleDeps, compileModuleDeps, and runModuleDeps
+   * from a HeaderData tree, keyed by nested path (e.g. "" for root, "test" for nested test).
+   */
+  private def collectAllModuleDeps(
+      scriptFile: os.Path,
+      data: mill.api.internal.HeaderData,
+      prefix: String
+  ): Seq[(String, Seq[Located[String]], Seq[Located[String]], Seq[Located[String]])] = {
+    val current = Seq((
+      prefix,
+      data.moduleDeps.value.value,
+      data.compileModuleDeps.value.value,
+      data.runModuleDeps.value.value
+    ))
+
+    val nested = mill.api.internal.HeaderData.processRest(scriptFile, data)(
+      onProperty = (_, _) =>
+        Seq.empty[(String, Seq[Located[String]], Seq[Located[String]], Seq[Located[String]])],
+      onNestedObject = (_, name, nestedData) =>
+        collectAllModuleDeps(
+          scriptFile,
+          nestedData,
+          if (prefix.isEmpty) name else s"$prefix.$name"
+        )
+    ).flatten
+
+    current ++ nested
+  }
+
   def moduleFor(
       scriptFile: os.Path,
       extendsConfigStrings: Option[Located[String]],
-      moduleDepsStrings: Seq[Located[String]],
-      compileModuleDepsStrings: Seq[Located[String]],
-      runModuleDepsStrings: Seq[Located[String]],
       eval: Evaluator,
       headerData: mill.api.internal.HeaderData
   ): Result[ExternalModule] = {
@@ -32,6 +59,10 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
 
     def relativize(s: String) = s match {
       case s"//$rest" => rest
+      case _ if scriptFile.ext == "yaml" =>
+        // YAML module dep references are module segment paths (e.g., "foo", "foo.test"),
+        // not file paths, so they should not be relativized to the script file's directory
+        s
       case _ =>
         val scriptFolder = scriptFile / os.up
         (scriptFolder.relativeTo(mill.api.BuildCtx.workspaceRoot) / os.RelPath(s)).toString
@@ -44,12 +75,24 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
         case f: Result.Failure => Left((located, Some(f)))
       }
 
-    val (moduleDepsErrors, moduleDeps) = moduleDepsStrings.partitionMap(resolveOrErr)
-    val (compileModuleDepsErrors, compileModuleDeps) =
-      compileModuleDepsStrings.partitionMap(resolveOrErr)
-    val (runModuleDepsErrors, runModuleDeps) = runModuleDepsStrings.partitionMap(resolveOrErr)
+    // Collect all module deps from all levels (root + nested objects)
+    val allLevelDeps = collectAllModuleDeps(scriptFile, headerData, "")
 
-    val allErrors = moduleDepsErrors ++ compileModuleDepsErrors ++ runModuleDepsErrors
+    // Resolve all deps and collect errors
+    val allErrors = collection.mutable.Buffer.empty[(Located[String], Option[Result.Failure])]
+    val moduleDepsMap = collection.mutable.Map.empty[String, Seq[mill.api.Module]]
+    val compileModuleDepsMap = collection.mutable.Map.empty[String, Seq[mill.api.Module]]
+    val runModuleDepsMap = collection.mutable.Map.empty[String, Seq[mill.api.Module]]
+
+    for ((key, mDeps, cDeps, rDeps) <- allLevelDeps) {
+      val (mErrors, mResolved) = mDeps.partitionMap(resolveOrErr)
+      val (cErrors, cResolved) = cDeps.partitionMap(resolveOrErr)
+      val (rErrors, rResolved) = rDeps.partitionMap(resolveOrErr)
+      allErrors ++= mErrors ++= cErrors ++= rErrors
+      if (mResolved.nonEmpty) moduleDepsMap(key) = mResolved
+      if (cResolved.nonEmpty) compileModuleDepsMap(key) = cResolved
+      if (rResolved.nonEmpty) runModuleDepsMap(key) = rResolved
+    }
 
     if (allErrors.nonEmpty) {
       val failures = allErrors.map {
@@ -62,7 +105,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
             path = scriptFile.toNIO,
             index = located.index
           )
-      }
+      }.toSeq
       Result.Failure.join(failures)
     } else {
       val scriptCls = extendsConfigStrings.map(cls => Result.Success(cls.value)).getOrElse {
@@ -83,7 +126,13 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
           _,
           extendsConfigStrings.map(_.index),
           scriptText,
-          ScriptModule.Config(scriptFile, moduleDeps, compileModuleDeps, runModuleDeps, headerData)
+          ScriptModule.Config(
+            scriptFile,
+            moduleDepsMap.toMap,
+            compileModuleDepsMap.toMap,
+            runModuleDepsMap.toMap,
+            headerData
+          )
         )
       )
     }
@@ -158,9 +207,6 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
             moduleFor(
               scriptFile,
               parsedHeaderData.`extends`.value.value.headOption,
-              parsedHeaderData.moduleDeps.value.value,
-              parsedHeaderData.compileModuleDeps.value.value,
-              parsedHeaderData.runModuleDeps.value.value,
               eval,
               parsedHeaderData
             )

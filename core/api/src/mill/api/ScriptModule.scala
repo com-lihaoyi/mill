@@ -78,9 +78,9 @@ trait ScriptModule extends PrecompiledModule {
 object ScriptModule {
   case class Config(
       scriptFile: os.Path,
-      moduleDeps: Seq[mill.api.Module],
-      compileModuleDeps: Seq[mill.api.Module],
-      runModuleDeps: Seq[mill.api.Module],
+      moduleDeps: Map[String, Seq[mill.api.Module]],
+      compileModuleDeps: Map[String, Seq[mill.api.Module]],
+      runModuleDeps: Map[String, Seq[mill.api.Module]],
       headerData: HeaderData
   )
 

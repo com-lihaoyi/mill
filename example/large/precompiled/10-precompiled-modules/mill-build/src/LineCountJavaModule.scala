@@ -6,6 +6,9 @@ class LineCountJavaModule(val scriptConfig: mill.api.PrecompiledModule.Config)
 
   override lazy val millDiscover = mill.api.Discover[this.type]
 
+  override def moduleDeps =
+    scriptConfig.moduleDeps.getOrElse("", Nil).map(_.asInstanceOf[JavaModule])
+
   object test extends JavaTests with mill.javalib.TestModule.Junit5
 
   /** Total number of lines in module source files */

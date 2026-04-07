@@ -5,29 +5,45 @@
 // files and can only be referenced from other pre-compiled modules and scripts.
 // They are enabled via the `mill-precompiled-module: true` key.
 //
-// In this example, `qux/package.mill.yaml` extends `millbuild.LineCountJavaModule`, a custom
-// `PrecompiledModule` subclass defined in `mill-build/src/`. This module counts the lines
-// of source code and generates a resource file with the line count. It also has a nested
-// `test` module containing the test suite configuration.
+// In this example, `foo/package.mill.yaml` and `bar/package.mill.yaml` both extend
+// `millbuild.LineCountJavaModule`, a custom `PrecompiledModule` subclass defined in
+// `mill-build/src/`. This module counts the lines of source code and generates a resource
+// file with the line count. It also has a nested `test` module containing the test suite
+// configuration.
+//
+// `bar` declares `moduleDeps: !append [foo]`, so `bar` depends on `foo` and can use `foo`'s
+// classes. Similarly, `bar.test` declares `moduleDeps: !append [foo.test]`, so `bar`'s
+// test module depends on `foo`'s test module and can reuse its test utilities.
 
 //// SNIPPET:USAGE
-/** See Also: qux/package.mill.yaml */
+/** See Also: foo/package.mill.yaml */
+/** See Also: bar/package.mill.yaml */
 /** See Also: mill-build/src/LineCountJavaModule.scala */
-/** See Also: qux/src/Qux.java */
-/** See Also: qux/test/src/QuxTest.java */
+/** See Also: foo/src/Foo.java */
+/** See Also: bar/src/Bar.java */
+/** See Also: foo/test/src/FooTest.java */
+/** See Also: bar/test/src/BarTest.java */
 
 /** Usage
 
-> ./mill qux.run
-...
-Line Count: 17
-Padding: [00017]
+> ./mill foo.run
+Hello, Foo!
 
-> ./mill show qux.lineCount
-17
+> ./mill bar.run
+Hello, Bar!, Hello, Qux!
 
-> ./mill qux.test
-...testLineCount...
+> ./mill show foo.lineCount
+11
+
+> ./mill show bar.lineCount
+18
+
+> ./mill foo.test
+...testGreet...
+
+> ./mill bar.test
+...testGreetAll...
+...testFooGreetFromBarTest...
 */
 //// SNIPPET:END
 

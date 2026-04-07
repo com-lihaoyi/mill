@@ -88,7 +88,16 @@ trait JavaModule
     hierarchyChecks()
 
     override def resources = super[JavaModule].resources
-    override def moduleDeps: Seq[JavaModule] = Seq(outer)
+    override def moduleDeps: Seq[JavaModule] = {
+      val nestedDeps = outer match {
+        case pm: mill.api.PrecompiledModule =>
+          val segName = moduleSegments.parts.last
+          pm.scriptConfig.moduleDeps.getOrElse(segName, Nil)
+            .map(_.asInstanceOf[JavaModule])
+        case _ => Nil
+      }
+      Seq(outer) ++ nestedDeps
+    }
     override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
       outer.repositoriesTask()
     }
