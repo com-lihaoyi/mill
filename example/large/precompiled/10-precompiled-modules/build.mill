@@ -11,6 +11,7 @@
 // file with the line count. It also has a nested `test` module containing the test suite
 // configuration.
 //
+// `LineCountJavaModule` is then inherited by `foo` and `bar`.
 // `bar` declares `moduleDeps: !append [foo]`, so `bar` depends on `foo` and can use `foo`'s
 // classes. Similarly, `bar.test` declares `moduleDeps: !append [foo.test]`, so `bar`'s
 // test module depends on `foo`'s test module and can reuse its test utilities.
