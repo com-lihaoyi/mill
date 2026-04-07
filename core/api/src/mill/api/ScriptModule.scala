@@ -4,14 +4,23 @@ import mill.*
 import mill.api.{ExternalModule, ModuleCtx}
 import mill.api.daemon.Segments
 import mill.api.internal.HeaderData
+
+/**
+ * Base trait for modules instantiated from YAML configuration files.
+ * Sets `moduleDir` to the directory containing the config file, suitable for
+ * directory-based modules with standard `src/` layouts.
+ *
+ * For single-file script modules (`.scala`, `.java`, `.kt`), use [[ScriptModule]]
+ * which overrides `moduleDir` to point to the script file itself.
+ */
 @experimental
-trait ScriptModule extends ExternalModule {
+trait PrecompiledModule extends ExternalModule {
   override def moduleCtx: ModuleCtx = super.moduleCtx
     .withFileName(scriptConfig.scriptFile.toString)
     .withLineNum(0)
   def scriptConfig: ScriptModule.Config
 
-  override def moduleDir = scriptConfig.scriptFile
+  override def moduleDir = scriptConfig.scriptFile / os.up
 
   private[mill] def allowNestedExternalModule = true
 
@@ -32,6 +41,17 @@ trait ScriptModule extends ExternalModule {
       )
     }
 }
+
+/**
+ * Trait for single-file script modules (`.scala`, `.java`, `.kt`).
+ * Overrides `moduleDir` to point to the script file itself rather than
+ * its parent directory.
+ */
+@experimental
+trait ScriptModule extends PrecompiledModule {
+  override def moduleDir = scriptConfig.scriptFile
+}
+
 @experimental
 object ScriptModule {
   case class Config(
