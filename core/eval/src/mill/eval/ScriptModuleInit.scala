@@ -94,7 +94,10 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
     val bomModuleDepsMap = collection.mutable.Map.empty[String, Seq[mill.api.Module]]
 
     for (entry <- allLevelDeps) {
-      def resolve(deps: Seq[Located[String]], target: collection.mutable.Map[String, Seq[mill.api.Module]]): Unit = {
+      def resolve(
+          deps: Seq[Located[String]],
+          target: collection.mutable.Map[String, Seq[mill.api.Module]]
+      ): Unit = {
         val (errors, resolved) = deps.partitionMap(resolveOrErr)
         allErrors ++= errors
         if (resolved.nonEmpty) target(entry.key) = resolved
@@ -284,7 +287,9 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
         os.isFile(path) &&
         scriptExtensions.contains(path.ext) &&
         // For .yaml files, only discover *.mill.yaml pre-compiled modules
-        (path.ext != "yaml" || (path.last.endsWith(".mill.yaml") && mill.internal.Util.isPrecompiledYamlModule(path)))
+        (path.ext != "yaml" || (path.last.endsWith(
+          ".mill.yaml"
+        ) && mill.internal.Util.isPrecompiledYamlModule(path)))
       }
   }
 

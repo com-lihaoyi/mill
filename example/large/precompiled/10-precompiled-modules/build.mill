@@ -1,7 +1,6 @@
 // Pre-compiled modules allow you to define a `package.mill.yaml` or `build.mill.yaml` file
 // whose `extends` clause refers to a pre-compiled class (a subclass of `mill.api.PrecompiledModule`).
 
-
 // Pre-compiled modules are useful when you have a lot of similar modules, as is common in large
 // codebases. Rather than code-generating and compiling a separate build script for each module,
 // these identical modules can be compiled once in your `mill-build/src` or even compiled and
@@ -14,7 +13,6 @@
 // configuration.
 
 /** See Also: mill-build/src/LineCountJavaModule.scala */
-
 
 // `LineCountJavaModule` is then inherited by `foo` and `bar`:
 
