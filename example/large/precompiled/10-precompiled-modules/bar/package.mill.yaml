@@ -1,5 +1,5 @@
 extends: millbuild.LineCountJavaModule
-mill-precompiled-module: true
+mill-experimental-precompiled-module: true
 moduleDeps: !append [foo]
 
 object test:

@@ -51,7 +51,7 @@ object CodeGen {
       }
       .toMap
 
-    // Identify .mill.yaml files marked with `mill-precompiled-module: true`.
+    // Identify .mill.yaml files marked with `mill-experimental-precompiled-module: true`.
     // These are skipped during codegen and instantiated reflectively at runtime.
     val precompiledModulePaths: Set[os.Path] = parsedYamlHeaderData.collect {
       case (path, headerData) if headerData.`mill-precompiled-module`.value => path

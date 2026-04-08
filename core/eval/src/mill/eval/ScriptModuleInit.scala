@@ -291,7 +291,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
   /**
    * Resolves a pre-compiled module from a directory path. Checks for
    * `package.mill.yaml` or `build.mill.yaml` in the directory with
-   * `mill-precompiled-module: true` in their header.
+   * `mill-experimental-precompiled-module: true` in their header.
    */
   def resolvePrecompiledModule(
       dirPath: String,
