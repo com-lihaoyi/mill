@@ -1,6 +1,7 @@
 package mill.main.gradle
 
 import mill.main.buildgen.*
+import mill.main.buildgen.BuildInfo.millJacocoDep
 import mill.main.buildgen.ModuleSpec.ModuleDep
 import mill.main.gradle.BuildInfo.exportpluginAssemblyResource
 import mill.util.Jvm
@@ -8,6 +9,7 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import pprint.Util.literalize
 
+import java.io.File
 import java.util.Properties
 import java.util.concurrent.TimeUnit
 import scala.util.Using
@@ -35,9 +37,15 @@ object MillGradleBuildGenMain {
   ): Unit = {
     println("converting Gradle build")
 
-    val buildGen = if (declarative) BuildGenYaml else BuildGenScala
     val gradleWorkspace = os.Path.expandUser(projectDir, os.pwd)
     val millWorkspace = os.pwd
+
+    val gradleWrapperProperties = {
+      val file = gradleWorkspace / "gradle/wrapper/gradle-wrapper.properties"
+      val properties = new Properties()
+      if (os.isFile(file)) Using.resource(os.read.inputStream(file))(properties.load)
+      properties
+    }
 
     val exportPluginJar = Using.resource(
       getClass.getResourceAsStream(exportpluginAssemblyResource)
@@ -60,6 +68,23 @@ object MillGradleBuildGenMain {
         conn
       case conn => conn
     }
+    if (gradleWrapperProperties.getProperty("distributionUrl") == null) {
+      // When no Gradle wrapper/version is defined, use the local Gradle installation instead of the
+      // version corresponding to the Tooling API dependency.
+      System.getenv("GRADLE_HOME") match {
+        case null =>
+          os.proc("gradle", "--no-daemon", "--version").call().out.lines().collectFirst {
+            case s"Gradle ${gradleVersion}" =>
+              println(s"using Gradle version $gradleVersion")
+              gradleConnector.useGradleVersion(gradleVersion)
+          }.getOrElse {
+            sys.error(s"GRADLE_HOME must be set for project with no Gradle wrapper/version")
+          }
+        case gradleHome =>
+          println(s"using Gradle home $gradleHome")
+          gradleConnector.useInstallation(new File(gradleHome))
+      }
+    }
     var packages =
       try Using.resource(gradleConnector.forProjectDirectory(gradleWorkspace.toIO).connect) {
           connection =>
@@ -70,30 +95,33 @@ object MillGradleBuildGenMain {
             upickle.default.read[Seq[PackageSpec]](model.asJson)
         }
       finally gradleConnector.disconnect()
-    packages = normalizeBuild(packages)
+    packages = normalizePackages(packages)
 
-    val (baseModule, packages0) =
-      if (noMeta.value) (None, packages)
-      else buildGen.withBaseModule(packages, "MavenModule" -> "MavenTests")
-        .fold((None, packages))((base, pkgs) => (Some(base), pkgs))
-    val millJvmOpts = {
-      val properties = new Properties()
-      val file = gradleWorkspace / "gradle/wrapper/gradle-wrapper.properties"
-      if (os.isFile(file)) Using.resource(os.read.inputStream(file))(properties.load)
-      val prop = properties.getProperty("org.gradle.jvmargs")
-      if (prop == null) Nil else prop.trim.split("\\s").toSeq
+    val millJvmOpts = Option(
+      gradleWrapperProperties.getProperty("org.gradle.jvmargs")
+    ).fold(Nil)(_.trim.split("\\s+").toSeq)
+    val metaMvnDeps = packages.flatMap(_.module.tree).flatMap(_.supertypes).distinct.collect {
+      case "JacocoTestModule" => millJacocoDep
     }
-    buildGen.writeBuildFiles(
-      baseDir = millWorkspace,
-      packages = packages0,
+
+    val build = BuildSpec(packages)
+    if (!noMeta.value) {
+      if (!declarative) {
+        build.deriveDepNames()
+      }
+      build.deriveBaseModule("MavenModule" -> "MavenTests")
+    }
+    build.writeFiles(
+      declarative = declarative,
       merge = merge.value,
-      baseModule = baseModule,
+      workspace = millWorkspace,
       millJvmVersion = millJvmId,
-      millJvmOpts = millJvmOpts
+      millJvmOpts = millJvmOpts,
+      metaMvnDeps = metaMvnDeps
     )
   }
 
-  private def normalizeBuild(packages: Seq[PackageSpec]) = {
+  private def normalizePackages(packages: Seq[PackageSpec]) = {
     val moduleLookup = packages.flatMap(_.modulesBySegments).toMap
       .compose[ModuleDep](dep => dep.segments ++ dep.childSegment)
     packages.map(pkg =>
@@ -105,6 +133,7 @@ object MillGradleBuildGenMain {
             Either.cond(bomModule.isPublishModule, dep, bomModule)
           }
           if (managedBomModules.nonEmpty) {
+            // Replace references to managed BOM modules
             module0 = module0.copy(
               bomMvnDeps = module0.bomMvnDeps.copy(base =
                 module0.bomMvnDeps.base ++ managedBomModules.flatMap(_.bomMvnDeps.base)

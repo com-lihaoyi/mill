@@ -3,10 +3,11 @@ artifactName: list
 pomSettings:
   organization: org.gradle.sample
   url: http://www.example.com/library
-  licenses: ["The Apache License, Version 2.0"]
-  versionControl: http://example.com/my-library/
+  licenses:
+  - {name: "The Apache License, Version 2.0", url: http://www.apache.org/licenses/LICENSE-2.0.txt}
+  versionControl: {browsableRepository: http://example.com/my-library/, connection: scm:git:git://example.com/my-library.git, developerConnection: scm:git:ssh://example.com/my-library.git}
   developers:
-  - {name: John Doe}
+  - {id: johnd, name: John Doe}
 publishVersion: unspecified
 
 object test:

@@ -1,0 +1,3110 @@
+{
+  "core.js.2_12_20.pomSettings": {
+    "description": "fs2-core",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "core.js.2_13_16.pomSettings": {
+    "description": "fs2-core",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "core.js.3_3_5.pomSettings": {
+    "description": "fs2-core",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "core.jvm.2_12_20.pomSettings": {
+    "description": "fs2-core",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "core.jvm.2_13_16.pomSettings": {
+    "description": "fs2-core",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "core.jvm.3_3_5.pomSettings": {
+    "description": "fs2-core",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "core.native.2_12_20.pomSettings": {
+    "description": "fs2-core",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "core.native.2_13_16.pomSettings": {
+    "description": "fs2-core",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "core.native.3_3_5.pomSettings": {
+    "description": "fs2-core",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "io.js.2_12_20.pomSettings": {
+    "description": "fs2-io",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "io.js.2_13_16.pomSettings": {
+    "description": "fs2-io",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "io.js.3_3_5.pomSettings": {
+    "description": "fs2-io",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "io.jvm.2_12_20.pomSettings": {
+    "description": "fs2-io",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "io.jvm.2_13_16.pomSettings": {
+    "description": "fs2-io",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "io.jvm.3_3_5.pomSettings": {
+    "description": "fs2-io",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "io.native.2_12_20.pomSettings": {
+    "description": "fs2-io",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "io.native.2_13_16.pomSettings": {
+    "description": "fs2-io",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "io.native.3_3_5.pomSettings": {
+    "description": "fs2-io",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "protocols.js.2_12_20.pomSettings": {
+    "description": "fs2-protocols",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "protocols.js.2_13_16.pomSettings": {
+    "description": "fs2-protocols",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "protocols.js.3_3_5.pomSettings": {
+    "description": "fs2-protocols",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "protocols.jvm.2_12_20.pomSettings": {
+    "description": "fs2-protocols",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "protocols.jvm.2_13_16.pomSettings": {
+    "description": "fs2-protocols",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "protocols.jvm.3_3_5.pomSettings": {
+    "description": "fs2-protocols",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "protocols.native.2_12_20.pomSettings": {
+    "description": "fs2-protocols",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "protocols.native.2_13_16.pomSettings": {
+    "description": "fs2-protocols",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "protocols.native.3_3_5.pomSettings": {
+    "description": "fs2-protocols",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "reactive-streams.2_12_20.pomSettings": {
+    "description": "fs2-reactive-streams",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "reactive-streams.2_13_16.pomSettings": {
+    "description": "fs2-reactive-streams",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "reactive-streams.3_3_5.pomSettings": {
+    "description": "fs2-reactive-streams",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "scodec.js.2_12_20.pomSettings": {
+    "description": "fs2-scodec",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "scodec.js.2_13_16.pomSettings": {
+    "description": "fs2-scodec",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "scodec.js.3_3_5.pomSettings": {
+    "description": "fs2-scodec",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "scodec.jvm.2_12_20.pomSettings": {
+    "description": "fs2-scodec",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "scodec.jvm.2_13_16.pomSettings": {
+    "description": "fs2-scodec",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "scodec.jvm.3_3_5.pomSettings": {
+    "description": "fs2-scodec",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "scodec.native.2_12_20.pomSettings": {
+    "description": "fs2-scodec",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "scodec.native.2_13_16.pomSettings": {
+    "description": "fs2-scodec",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "scodec.native.3_3_5.pomSettings": {
+    "description": "fs2-scodec",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "unidocs.2_12_20.pomSettings": {
+    "description": "fs2-docs",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "unidocs.2_13_16.pomSettings": {
+    "description": "fs2-docs",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  },
+  "unidocs.3_3_5.pomSettings": {
+    "description": "fs2-docs",
+    "organization": "co.fs2",
+    "url": "https://typelevel.org/fs2",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "http://opensource.org/licenses/MIT",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/typelevel/fs2",
+      "connection": "scm:git:https://github.com/typelevel/fs2.git",
+      "developerConnection": "scm:git:git@github.com:typelevel/fs2.git"
+    },
+    "developers": [
+      {
+        "id": "typelevel",
+        "name": "fs2 contributors",
+        "url": "https://github.com/typelevel/fs2/contributors"
+      },
+      {
+        "id": "mpilquist",
+        "name": "Michael Pilquist",
+        "url": "https://github.com/mpilquist"
+      },
+      {
+        "id": "pchiusano",
+        "name": "Paul Chiusano",
+        "url": "https://github.com/pchiusano"
+      },
+      {
+        "id": "pchlupacek",
+        "name": "Pavel Chlupáček",
+        "url": "https://github.com/pchlupacek"
+      },
+      {
+        "id": "SystemFw",
+        "name": "Fabio Labella",
+        "url": "https://github.com/SystemFw"
+      },
+      {
+        "id": "alissapajer",
+        "name": "Alissa Pajer",
+        "url": "https://github.com/alissapajer"
+      },
+      {
+        "id": "djspiewak",
+        "name": "Daniel Spiewak",
+        "url": "https://github.com/djspiewak"
+      },
+      {
+        "id": "fthomas",
+        "name": "Frank Thomas",
+        "url": "https://github.com/fthomas"
+      },
+      {
+        "id": "runarorama",
+        "name": "Rúnar Ó. Bjarnason",
+        "url": "https://github.com/runarorama"
+      },
+      {
+        "id": "jedws",
+        "name": "Jed Wesley-Smith",
+        "url": "https://github.com/jedws"
+      },
+      {
+        "id": "durban",
+        "name": "Daniel Urban",
+        "url": "https://github.com/durban"
+      }
+    ]
+  }
+}

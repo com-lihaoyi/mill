@@ -1,0 +1,569 @@
+{
+  "benchmark.2_12_20.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "benchmark.2_13_16.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "benchmark.3_3_5.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "core.js.2_12_20.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "core.js.2_12_20.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "core.js.2_13_16.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "core.js.2_13_16.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "core.js.3_3_5.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "core.js.3_3_5.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "core.jvm.2_12_20.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "core.jvm.2_12_20.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "core.jvm.2_13_16.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "core.jvm.2_13_16.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "core.jvm.3_3_5.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "core.jvm.3_3_5.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "core.native.2_12_20.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "core.native.2_12_20.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "core.native.2_13_16.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "core.native.2_13_16.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "core.native.3_3_5.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "core.native.3_3_5.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "integration.2_12_20.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "integration.2_12_20.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "integration.2_13_16.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "integration.2_13_16.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "integration.3_3_5.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "integration.3_3_5.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "io.js.2_12_20.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "io.js.2_12_20.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "io.js.2_13_16.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "io.js.2_13_16.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "io.js.3_3_5.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "io.js.3_3_5.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "io.jvm.2_12_20.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "io.jvm.2_12_20.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "io.jvm.2_13_16.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "io.jvm.2_13_16.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "io.jvm.3_3_5.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "io.jvm.3_3_5.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "io.native.2_12_20.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "io.native.2_12_20.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "io.native.2_13_16.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "io.native.2_13_16.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "io.native.3_3_5.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "io.native.3_3_5.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "mdoc.2_12_20.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "mdoc.2_13_16.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "mdoc.3_3_5.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "protocols.js.2_12_20.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "protocols.js.2_12_20.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "protocols.js.2_13_16.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "protocols.js.2_13_16.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "protocols.js.3_3_5.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "protocols.js.3_3_5.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "protocols.jvm.2_12_20.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "protocols.jvm.2_12_20.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "protocols.jvm.2_13_16.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "protocols.jvm.2_13_16.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "protocols.jvm.3_3_5.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "protocols.jvm.3_3_5.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "protocols.native.2_12_20.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "protocols.native.2_12_20.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "protocols.native.2_13_16.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "protocols.native.2_13_16.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "protocols.native.3_3_5.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "protocols.native.3_3_5.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "reactive-streams.2_12_20.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "reactive-streams.2_12_20.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "reactive-streams.2_13_16.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "reactive-streams.2_13_16.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "reactive-streams.3_3_5.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "reactive-streams.3_3_5.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "scodec.js.2_12_20.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "scodec.js.2_12_20.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "scodec.js.2_13_16.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "scodec.js.2_13_16.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "scodec.js.3_3_5.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "scodec.js.3_3_5.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "scodec.jvm.2_12_20.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "scodec.jvm.2_12_20.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "scodec.jvm.2_13_16.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "scodec.jvm.2_13_16.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "scodec.jvm.3_3_5.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "scodec.jvm.3_3_5.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "scodec.native.2_12_20.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "scodec.native.2_12_20.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "scodec.native.2_13_16.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "scodec.native.2_13_16.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "scodec.native.3_3_5.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "scodec.native.3_3_5.test.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all",
+    "--release",
+    "8"
+  ],
+  "unidocs.2_12_20.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "unidocs.2_13_16.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ],
+  "unidocs.3_3_5.javacOptions": [
+    "-encoding",
+    "utf8",
+    "-Xlint:all"
+  ]
+}

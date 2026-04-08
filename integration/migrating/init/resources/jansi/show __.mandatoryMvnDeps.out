@@ -1,0 +1,6 @@
+{
+  "mandatoryMvnDeps": [],
+  "test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ]
+}

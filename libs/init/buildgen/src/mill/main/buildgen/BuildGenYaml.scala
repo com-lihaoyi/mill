@@ -1,192 +1,34 @@
 package mill.main.buildgen
 
-import mill.constants.CodeGenConstants.rootModuleAlias
-import mill.internal.Util.backtickWrap
-import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.ModuleSpec.*
-import pprint.Util.literalize
 
 /**
  * Generate YAML-based build/project files for Mill from given [[PakcageSpec]] and [[ModuleSpec]].
  *
  * See also [[BuildGenScala]]
  */
-object BuildGenYaml extends BuildGen {
+object BuildGenYaml {
 
-  private inline def millBuild = os.sub / "mill-build"
+  inline def lineSep: String = System.lineSeparator()
 
-  override def writeBuildFiles(
-      baseDir: os.Path,
+  def writeBuildFiles(
+      workspace: os.Path,
       packages: Seq[PackageSpec],
-      merge: Boolean = false,
-      baseModule: Option[ModuleSpec] = None,
-      millJvmVersion: Option[String] = None,
-      millJvmOpts: Seq[String] = Nil,
-      depNames: Seq[(MvnDep, String)] = Nil,
-      metaMvnDeps: Seq[String] = Nil
-  ): Seq[os.Path] = {
-    var packages0 = fillPackages(packages).sortBy(_.dir)
-    packages0 = if (merge) Seq(mergePackages(packages0.head, packages0.tail)) else packages0
-    removeExistingBuildFiles()
-
-    // Generate base module Scala file if provided
-    val baseFile = for (module <- baseModule) yield {
-      val file = os.sub / millBuild / os.SubPath(s"src/${module.name}.scala")
-      println(s"writing $file")
-      os.write(
-        baseDir / file,
-        Seq(
-          "package millbuild",
-          renderImports(module),
-          renderBaseModule(module)
-        ).mkString(lineSep * 2),
-        createFolders = true
-      )
-      file
-    }
-
-    val rootPackage +: nestedPackages = packages0.runtimeChecked
-    val millVersion = resolveMillVersion
-    val millJvmVersion0 = resolveMillJvmVersion(millJvmVersion)
+      millVersion: String,
+      millJvmVersion: String,
+      millJvmOpts: Seq[String] = Nil
+  ): Unit = {
+    val rootPackage +: nestedPackages = packages.runtimeChecked
 
     println("writing build.mill.yaml")
     os.write(
-      baseDir / "build.mill.yaml",
-      renderYamlPackage(rootPackage, Some(millVersion), Some(millJvmVersion0), millJvmOpts)
+      workspace / "build.mill.yaml",
+      renderYamlPackage(rootPackage, Some(millVersion), Some(millJvmVersion), millJvmOpts)
     )
-    val subFiles = for (pkg <- nestedPackages) yield {
+    for (pkg <- nestedPackages) {
       val file = os.sub / pkg.dir / "package.mill.yaml"
       println(s"writing $file")
-      os.write(baseDir / file, renderYamlPackage(pkg, None, None, Nil))
-      file
-    }
-
-    (baseFile.toSeq ++ subFiles).map(baseDir / _)
-  }
-
-  private def renderBaseModule(module: ModuleSpec): String = {
-    import module.*
-    Seq(
-      s"trait $name ${renderExtendsClause(supertypes)} {",
-      "  " + renderScalaModuleBody(module),
-      "  " + children.sortBy(_.name).map(renderBaseModule).mkString(lineSep * 2),
-      "}"
-    ).mkString(lineSep * 2)
-  }
-
-  private def renderScalaModuleBody(module: ModuleSpec): String = {
-    import module.*
-    val lines = Seq.newBuilder[String]
-
-    renderScalaStringValues("def repositories", repositories).foreach(lines += _)
-    renderScalaModuleDepValues("def bomModuleDeps", bomModuleDeps).foreach(lines += _)
-    renderScalaOptValues("def forkArgs", forkArgs).foreach(lines += _)
-    forkWorkingDir.base.foreach(dir => lines += s"def forkWorkingDir = $dir")
-    renderScalaMvnDepValues("def mandatoryMvnDeps", mandatoryMvnDeps).foreach(lines += _)
-    renderScalaMvnDepValues("def mvnDeps", mvnDeps).foreach(lines += _)
-    renderScalaMvnDepValues("def compileMvnDeps", compileMvnDeps).foreach(lines += _)
-    renderScalaMvnDepValues("def runMvnDeps", runMvnDeps).foreach(lines += _)
-    renderScalaMvnDepValues("def bomMvnDeps", bomMvnDeps).foreach(lines += _)
-    renderScalaMvnDepValues("def depManagement", depManagement).foreach(lines += _)
-    renderScalaOptValues("def javacOptions", javacOptions).foreach(lines += _)
-    renderScalaStringValues("def sources", sourcesFolders).foreach(lines += _)
-    renderScalaMvnDepValues("def errorProneDeps", errorProneDeps).foreach(lines += _)
-    renderScalaStringValues("def errorProneOptions", errorProneOptions).foreach(lines += _)
-    renderScalaOptValues(
-      "def errorProneJavacEnableOptions",
-      errorProneJavacEnableOptions
-    ).foreach(lines += _)
-    renderScalaOptValues("def scalacOptions", scalacOptions).foreach(lines += _)
-    renderScalaMvnDepValues("def scalacPluginMvnDeps", scalacPluginMvnDeps).foreach(lines += _)
-    testParallelism.base.foreach(v => lines += s"def testParallelism = $v")
-    testSandboxWorkingDir.base.foreach(v => lines += s"def testSandboxWorkingDir = $v")
-    renderScalaPomSettings(pomSettings).foreach(lines += _)
-
-    lines.result().mkString(lineSep)
-  }
-
-  /**
-   * Generic helper for rendering Scala value definitions with base/cross parts.
-   * @param prefix The definition prefix (e.g., "def repositories")
-   * @param values The Values container with base, cross, and appendSuper
-   * @param encode Function to encode a sequence of values to a comma-separated string
-   */
-  private def renderScalaValues[T](
-      prefix: String,
-      values: Values[T],
-      encode: Seq[T] => String
-  ): Option[String] = {
-    import values.*
-    val member = prefix.stripPrefix("def ")
-    val basePart = base match {
-      case Nil => None
-      case seq => Some(s"Seq(${encode(seq)})")
-    }
-    val crossPart = cross match {
-      case Nil => None
-      case seq =>
-        val cases = seq.map((k, v) => s"""case "$k" => Seq(${encode(v)})""").mkString(lineSep)
-        Some(s"crossValue match {$lineSep$cases$lineSep}")
-    }
-    (basePart, crossPart) match {
-      case (None, None) => None
-      case (Some(b), None) if appendSuper => Some(s"$prefix = super.$member() ++ $b")
-      case (Some(b), None) => Some(s"$prefix = $b")
-      case (None, Some(c)) if appendSuper => Some(s"$prefix = super.$member() ++ $c")
-      case (None, Some(c)) => Some(s"$prefix = $c")
-      case (Some(b), Some(c)) if appendSuper => Some(s"$prefix = super.$member() ++ $b ++ $c")
-      case (Some(b), Some(c)) => Some(s"$prefix = $b ++ $c")
-    }
-  }
-
-  private def renderScalaStringValues(prefix: String, values: Values[String]): Option[String] =
-    renderScalaValues(prefix, values, _.map(s => s""""$s"""").mkString(", "))
-
-  private def renderScalaMvnDepValues(prefix: String, values: Values[MvnDep]): Option[String] =
-    renderScalaValues(prefix, values, _.map(_.toString).mkString(", "))
-
-  private def renderScalaOptValues(prefix: String, values: Values[Opt]): Option[String] =
-    renderScalaValues(prefix, values, _.flatMap(_.group).map(s => s""""$s"""").mkString(", "))
-
-  private def renderScalaModuleDepValues(
-      prefix: String,
-      values: Values[ModuleDep]
-  ): Option[String] = {
-    def encodeModuleDep(a: ModuleDep): String = {
-      import a.*
-      val suffix = crossSuffix.getOrElse("") + childSegment.fold("")("." + _)
-      (rootModuleAlias +: segments.map(backtickWrap)).mkString("", ".", suffix)
-    }
-    renderScalaValues(prefix, values, _.map(encodeModuleDep).mkString(", "))
-  }
-
-  private def renderScalaPomSettings(value: Value[PomSettings]): Option[String] = {
-    def encodeOpt(o: Option[String]) = o.fold("None")(s => s"Some(\"$s\")")
-    def encodeLicense(a: License) = {
-      import a.*
-      s"""License("$id", "$name", "$url", $isOsiApproved, $isFsfLibre, "$distribution")"""
-    }
-    def encodeVersionControl(a: VersionControl) = {
-      import a.*
-      val browsableRepository0 = encodeOpt(browsableRepository)
-      val connection0 = encodeOpt(connection)
-      val developerConnection0 = encodeOpt(developerConnection)
-      val tag0 = encodeOpt(tag)
-      s"VersionControl($browsableRepository0, $connection0, $developerConnection0, $tag0)"
-    }
-    def encodeDeveloper(a: Developer) = {
-      import a.*
-      val organization0 = encodeOpt(organization)
-      val organizationUrl0 = encodeOpt(organizationUrl)
-      s"""Developer("$id", "$name", "$url", $organization0, $organizationUrl0)"""
-    }
-    value.base.map { a =>
-      import a.*
-      val description0 = literalize(description)
-      val licenses0 = licenses.map(encodeLicense).mkString("Seq(", ", ", ")")
-      val versionControl0 = encodeVersionControl(versionControl)
-      val developers0 = developers.map(encodeDeveloper).mkString("Seq(", ", ", ")")
-      s"""def pomSettings = Task { PomSettings($description0, "$organization", "$url", $licenses0, $versionControl0, $developers0) }"""
+      os.write(workspace / file, renderYamlPackage(pkg, None, None, Nil))
     }
   }
 
@@ -242,6 +84,10 @@ object BuildGenYaml extends BuildGen {
     renderYamlMvnDepsList("runMvnDeps", runMvnDeps).foreach(lines += _)
     renderYamlMvnDepsList("bomMvnDeps", bomMvnDeps).foreach(lines += _)
     renderYamlMvnDepsList("depManagement", depManagement).foreach(lines += _)
+    renderYamlMvnDepsList(
+      "annotationProcessorsMvnDeps",
+      annotationProcessorsMvnDeps
+    ).foreach(lines += _)
 
     // Scala config
     renderYamlStringValue("scalaVersion", scalaVersion).foreach(lines += _)
@@ -269,11 +115,17 @@ object BuildGenYaml extends BuildGen {
 
     // Error prone
     renderYamlMvnDepsList("errorProneDeps", errorProneDeps).foreach(lines += _)
-    renderYamlStringListValuesPlain("errorProneOptions", errorProneOptions).foreach(lines += _)
-    renderYamlStringListValues(
-      "errorProneJavacEnableOptions",
-      errorProneJavacEnableOptions
-    ).foreach(lines += _)
+    renderYamlStringListValues("errorProneOptions", errorProneOptions).foreach(lines += _)
+
+    // Checkstyle
+    renderYamlStringMapValues("checkstyleProperties", checkstyleProperties).foreach(lines += _)
+    renderYamlMvnDepsList("checkstyleMvnDeps", checkstyleMvnDeps).foreach(lines += _)
+    renderYamlRelPathValue("checkstyleConfig", checkstyleConfig).foreach(lines += _)
+    renderYamlStringValue("checkstyleVersion", checkstyleVersion).foreach(lines += _)
+
+    // PMD
+    renderYamlSourcesList("pmdRulesets", pmdRulesets).foreach(lines += _)
+    renderYamlStringValue("pmdVersion", pmdVersion).foreach(lines += _)
 
     // Publishing
     renderYamlStringValue("artifactName", artifactName).foreach(lines += _)
@@ -313,6 +165,12 @@ object BuildGenYaml extends BuildGen {
     "ScalaJSModule" -> "mill.scalajslib.ScalaJSModule",
     "ScalaNativeModule" -> "mill.scalanativelib.ScalaNativeModule",
     "ErrorProneModule" -> "mill.javalib.errorprone.ErrorProneModule",
+    "CheckstyleModule" -> "mill.javalib.checkstyle.CheckstyleModule",
+    "PmdModule" -> "mill.javalib.pmd.PmdModule",
+    "PalantirFormatModule" -> "mill.javalib.palantirformat.PalantirFormatModule",
+    "SpotlessModule" -> "mill.javalib.spotless.SpotlessModule",
+    "RevapiModule" -> "mill.javalib.revapi.RevapiModule",
+    "JacocoTestModule" -> "de.tobiasroeser.mill.jacoco.JacocoTestModule",
     "ProjectBaseModule" -> "millbuild.ProjectBaseModule"
   )
 
@@ -399,6 +257,21 @@ object BuildGenYaml extends BuildGen {
     }
   }
 
+  private def renderYamlStringMapValues(
+      name: String,
+      values: Values[(String, String)]
+  ): Seq[String] = {
+    if (values.base.isEmpty) Nil
+    else {
+      val entries = values.base.map((k, v) => s"  $k: $v")
+      s"$name:" +: entries
+    }
+  }
+
+  private def renderYamlRelPathValue(name: String, value: Value[os.RelPath]): Option[String] = {
+    value.base.map(v => s"$name: $v")
+  }
+
   private def renderYamlPomSettings(value: Value[PomSettings]): Seq[String] = {
     value.base.flatMap { pom =>
       val content = Seq.newBuilder[String]
@@ -407,28 +280,53 @@ object BuildGenYaml extends BuildGen {
       if (pom.organization.nonEmpty) content += s"  organization: ${pom.organization}"
       if (pom.url.nonEmpty && !containsPlaceholder(pom.url)) content += s"  url: ${pom.url}"
       if (pom.licenses.nonEmpty) {
-        val licenseIds = pom.licenses.flatMap { l =>
-          if (l.id.nonEmpty) Some(l.id)
-          else if (l.name.nonEmpty) Some(l.name)
-          else None
-        }.map(yamlEscapeStringInList)
-        if (licenseIds.nonEmpty) {
-          content += s"  licenses: ${licenseIds.mkString("[", ", ", "]")}"
+        content += "  licenses:"
+        for (l <- pom.licenses) {
+          import l.*
+          val parts = Seq(
+            Option.when(id.nonEmpty)(s"id: ${yamlEscapeString(id)}"),
+            Option.when(name.nonEmpty)(s"name: ${yamlEscapeString(name)}"),
+            Option.when(url.nonEmpty && !containsPlaceholder(url))(s"url: $url"),
+            Option.when(isOsiApproved)("isOsiApproved: true"),
+            Option.when(isFsfLibre)("isFsfLibre: true"),
+            Option.when(distribution.nonEmpty)(s"distribution: ${yamlEscapeString(distribution)}")
+          ).flatten
+          content += s"  - {${parts.mkString(", ")}}"
         }
       }
       val vc = pom.versionControl
       // Filter out URLs that contain unresolved placeholders like ${scm.url}
-      val vcUrl = vc.browsableRepository.orElse(vc.connection).filterNot(containsPlaceholder)
-      vcUrl.foreach { url =>
-        content += s"  versionControl: $url"
+      val vcParts = Seq(
+        vc.browsableRepository.collect {
+          case url if url.nonEmpty && !containsPlaceholder(url) => s"browsableRepository: $url"
+        },
+        vc.connection.collect {
+          case url if url.nonEmpty && !containsPlaceholder(url) => s"connection: $url"
+        },
+        vc.developerConnection.collect {
+          case url if url.nonEmpty && !containsPlaceholder(url) => s"developerConnection: $url"
+        },
+        vc.tag.collect {
+          case tag if tag.nonEmpty => s"tag: ${yamlEscapeString(tag)}"
+        }
+      ).flatten
+      if (vcParts.nonEmpty) {
+        content += s"  versionControl: {${vcParts.mkString(", ")}}"
       }
       if (pom.developers.nonEmpty) {
         content += "  developers:"
         for (dev <- pom.developers) {
           val parts = Seq.newBuilder[String]
+          if (dev.id.nonEmpty) parts += s"id: ${yamlEscapeString(dev.id)}"
           if (dev.name.nonEmpty) parts += s"name: ${yamlEscapeString(dev.name)}"
           if (dev.url.nonEmpty && !containsPlaceholder(dev.url)) parts += s"url: ${dev.url}"
-          dev.organization.foreach(o => parts += s"organization: ${yamlEscapeString(o)}")
+          dev.organization.foreach { o =>
+            if (o.nonEmpty) parts += s"organization: ${yamlEscapeString(o)}"
+          }
+          dev.organizationUrl.foreach(url =>
+            if (url.nonEmpty && !containsPlaceholder(url))
+              parts += s"organizationUrl: ${yamlEscapeString(url)}"
+          )
           content += s"  - {${parts.result().mkString(", ")}}"
         }
       }

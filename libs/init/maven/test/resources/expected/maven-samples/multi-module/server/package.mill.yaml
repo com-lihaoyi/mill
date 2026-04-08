@@ -9,6 +9,7 @@ depManagement:
 artifactName: server
 pomSettings:
   description: Logic.
+  organization: com.example.maven-samples
 
 object test:
   extends: ProjectBaseTests

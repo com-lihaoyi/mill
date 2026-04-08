@@ -3,5 +3,6 @@
 package build
 
 import mill.*
+import millbuild.*
 
 object `package` extends Module {}

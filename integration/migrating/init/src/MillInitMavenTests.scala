@@ -7,15 +7,13 @@ object MillInitMavenTests extends MillInitImportTestSuite {
     test("jansi") - checkImport(
       repoName = "jansi",
       initArgs = Seq("--mill-jvm-id", "17"),
-      configsGoldenFile = "golden/maven/jansi",
-      passingTasks = Seq("test")
+      passingTasks = Seq("test"),
+      failingTasks = Seq(Seq("spotless", "--check"))
     )
 
     test("netty") - checkImport(
       repoName = "netty",
       initArgs = Seq("--mill-jvm-id", "17"),
-      // Not sure why this fails in CI but ont locally on my OSX laptop or Ubuntu docker container
-      // configsGoldenFile = "golden/maven/netty",
       passingTasks = Seq("common.compile")
     )
   }

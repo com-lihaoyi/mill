@@ -11,11 +11,10 @@ object `package` extends MavenModule, ErrorProneModule, PublishModule {
 
   def bomMvnDeps = Seq(mvn"org.junit:junit-bom:5.11.0")
 
-  def javacOptions = Seq("-source", "8", "-target", "8")
+  def javacOptions =
+    Seq("-source", "8", "-target", "8", "-XDshould-stop=ifError=FLOW")
 
   def errorProneDeps = Seq(mvn"com.google.errorprone:error_prone_core:2.28.0")
-
-  def errorProneJavacEnableOptions = Seq("-XDshould-stop=ifError=FLOW")
 
   def artifactName = "maven-3-9-11"
 

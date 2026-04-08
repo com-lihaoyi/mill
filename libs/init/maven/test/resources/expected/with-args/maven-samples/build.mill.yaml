@@ -21,7 +21,7 @@ object multi-module:
     description: "Sample multi module Maven project with a working, deployable site."
     organization: com.example.maven-samples
     url: http://www.example.com
-    versionControl: http://github.com/gabrielf/maven-samples
+    versionControl: {browsableRepository: http://github.com/gabrielf/maven-samples, connection: scm:git:git@github.com:gabrielf/maven-samples.git, developerConnection: scm:git:git@github.com:gabrielf/maven-samples.git, tag: HEAD}
   publishVersion: 1.0-SNAPSHOT
   
   object server:
@@ -37,6 +37,7 @@ object multi-module:
     artifactName: server
     pomSettings:
       description: Logic.
+      organization: com.example.maven-samples
     publishVersion: 1.0-SNAPSHOT
     
     object test:
@@ -66,6 +67,7 @@ object multi-module:
     artifactName: webapp
     pomSettings:
       description: Webapp.
+      organization: com.example.maven-samples
     publishVersion: 1.0-SNAPSHOT
 
 object single-module:
@@ -79,7 +81,7 @@ object single-module:
     description: "Sample single module Maven project with a working, deployable site."
     organization: com.example.maven-samples
     url: http://www.example.com
-    versionControl: http://github.com/gabrielf/maven-samples
+    versionControl: {browsableRepository: http://github.com/gabrielf/maven-samples, connection: scm:git:git@github.com:gabrielf/maven-samples.git, developerConnection: scm:git:git@github.com:gabrielf/maven-samples.git, tag: HEAD}
   publishVersion: 1.0-SNAPSHOT
   
   object test:

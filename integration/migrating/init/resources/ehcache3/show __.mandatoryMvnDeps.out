@@ -1,0 +1,85 @@
+{
+  "clustered.ehcache-client.mandatoryMvnDeps": [],
+  "clustered.ehcache-client.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "clustered.ehcache-clustered.mandatoryMvnDeps": [],
+  "clustered.ehcache-common.mandatoryMvnDeps": [],
+  "clustered.ehcache-common.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "clustered.ehcache-common-api.mandatoryMvnDeps": [],
+  "clustered.ehcache-common-api.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "clustered.integration-test.mandatoryMvnDeps": [],
+  "clustered.integration-test.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "clustered.ops-tool.mandatoryMvnDeps": [],
+  "clustered.ops-tool.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "clustered.osgi-test.mandatoryMvnDeps": [],
+  "clustered.osgi-test.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "clustered.server.ehcache-entity.mandatoryMvnDeps": [],
+  "clustered.server.ehcache-entity.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "clustered.server.ehcache-service.mandatoryMvnDeps": [],
+  "clustered.server.ehcache-service.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "clustered.server.ehcache-service-api.mandatoryMvnDeps": [],
+  "clustered.server.ehcache-service-api.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "clustered.test-utils.mandatoryMvnDeps": [],
+  "core-spi-test.mandatoryMvnDeps": [],
+  "demos.00-NoCache.mandatoryMvnDeps": [],
+  "demos.01-CacheAside.mandatoryMvnDeps": [],
+  "ehcache.mandatoryMvnDeps": [],
+  "ehcache-107.mandatoryMvnDeps": [],
+  "ehcache-107.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "ehcache-api.mandatoryMvnDeps": [],
+  "ehcache-api.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "ehcache-core.mandatoryMvnDeps": [],
+  "ehcache-core.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "ehcache-impl.mandatoryMvnDeps": [],
+  "ehcache-impl.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "ehcache-management.mandatoryMvnDeps": [],
+  "ehcache-management.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "ehcache-transactions.mandatoryMvnDeps": [],
+  "ehcache-transactions.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "ehcache-xml.ehcache-xml-spi.mandatoryMvnDeps": [],
+  "ehcache-xml.ehcache-xml-spi.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "ehcache-xml.mandatoryMvnDeps": [],
+  "ehcache-xml.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "integration-test.mandatoryMvnDeps": [],
+  "integration-test.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "osgi-test.mandatoryMvnDeps": [],
+  "osgi-test.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "spi-tester.mandatoryMvnDeps": []
+}

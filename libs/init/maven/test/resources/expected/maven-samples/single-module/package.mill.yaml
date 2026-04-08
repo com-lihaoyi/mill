@@ -7,7 +7,7 @@ pomSettings:
   description: "Sample single module Maven project with a working, deployable site."
   organization: com.example.maven-samples
   url: http://www.example.com
-  versionControl: http://github.com/gabrielf/maven-samples
+  versionControl: {browsableRepository: http://github.com/gabrielf/maven-samples, connection: scm:git:git@github.com:gabrielf/maven-samples.git, developerConnection: scm:git:git@github.com:gabrielf/maven-samples.git, tag: HEAD}
 
 object test:
   extends: ProjectBaseTests

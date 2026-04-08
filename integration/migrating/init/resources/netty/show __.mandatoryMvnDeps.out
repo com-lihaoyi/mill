@@ -1,0 +1,175 @@
+{
+  "all.mandatoryMvnDeps": [],
+  "bom.mandatoryMvnDeps": [],
+  "buffer.mandatoryMvnDeps": [],
+  "buffer.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec.mandatoryMvnDeps": [],
+  "codec-base.mandatoryMvnDeps": [],
+  "codec-base.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-classes-quic.mandatoryMvnDeps": [],
+  "codec-compression.mandatoryMvnDeps": [],
+  "codec-compression.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-dns.mandatoryMvnDeps": [],
+  "codec-dns.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-haproxy.mandatoryMvnDeps": [],
+  "codec-haproxy.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-http.mandatoryMvnDeps": [],
+  "codec-http.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-http2.mandatoryMvnDeps": [],
+  "codec-http2.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-http3.mandatoryMvnDeps": [],
+  "codec-http3.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-marshalling.mandatoryMvnDeps": [],
+  "codec-marshalling.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-memcache.mandatoryMvnDeps": [],
+  "codec-memcache.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-mqtt.mandatoryMvnDeps": [],
+  "codec-mqtt.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-native-quic.mandatoryMvnDeps": [],
+  "codec-native-quic.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-protobuf.mandatoryMvnDeps": [],
+  "codec-protobuf.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-redis.mandatoryMvnDeps": [],
+  "codec-redis.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-smtp.mandatoryMvnDeps": [],
+  "codec-smtp.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-socks.mandatoryMvnDeps": [],
+  "codec-socks.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-stomp.mandatoryMvnDeps": [],
+  "codec-stomp.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-xml.mandatoryMvnDeps": [],
+  "codec-xml.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "common.mandatoryMvnDeps": [],
+  "common.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "dev-tools.mandatoryMvnDeps": [],
+  "example.mandatoryMvnDeps": [],
+  "handler.mandatoryMvnDeps": [],
+  "handler.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "handler-proxy.mandatoryMvnDeps": [],
+  "handler-proxy.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "handler-ssl-ocsp.mandatoryMvnDeps": [],
+  "handler-ssl-ocsp.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "jfr-stub.mandatoryMvnDeps": [],
+  "mandatoryMvnDeps": [],
+  "microbench.mandatoryMvnDeps": [],
+  "pkitesting.mandatoryMvnDeps": [],
+  "pkitesting.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "resolver.mandatoryMvnDeps": [],
+  "resolver.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "resolver-dns.mandatoryMvnDeps": [],
+  "resolver-dns.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "resolver-dns-classes-macos.mandatoryMvnDeps": [],
+  "resolver-dns-native-macos.mandatoryMvnDeps": [],
+  "resolver-dns-native-macos.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "testsuite.mandatoryMvnDeps": [],
+  "testsuite-autobahn.mandatoryMvnDeps": [],
+  "testsuite-http2.mandatoryMvnDeps": [],
+  "testsuite-jpms.mandatoryMvnDeps": [],
+  "testsuite-jpms.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "testsuite-karaf.mandatoryMvnDeps": [],
+  "testsuite-native.mandatoryMvnDeps": [],
+  "testsuite-native.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "testsuite-native-image.mandatoryMvnDeps": [],
+  "testsuite-native-image-client.mandatoryMvnDeps": [],
+  "testsuite-native-image-client-runtime-init.mandatoryMvnDeps": [],
+  "testsuite-osgi.mandatoryMvnDeps": [],
+  "testsuite-osgi.test.mandatoryMvnDeps": [],
+  "testsuite-shading.mandatoryMvnDeps": [],
+  "testsuite-shading.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "transport.mandatoryMvnDeps": [],
+  "transport.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "transport-blockhound-tests.mandatoryMvnDeps": [],
+  "transport-blockhound-tests.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "transport-classes-epoll.mandatoryMvnDeps": [],
+  "transport-classes-io_uring.mandatoryMvnDeps": [],
+  "transport-classes-kqueue.mandatoryMvnDeps": [],
+  "transport-native-epoll.mandatoryMvnDeps": [],
+  "transport-native-epoll.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "transport-native-io_uring.mandatoryMvnDeps": [],
+  "transport-native-io_uring.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "transport-native-kqueue.mandatoryMvnDeps": [],
+  "transport-native-kqueue.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "transport-native-unix-common.mandatoryMvnDeps": [],
+  "transport-native-unix-common.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "transport-native-unix-common-tests.mandatoryMvnDeps": [],
+  "transport-rxtx.mandatoryMvnDeps": [],
+  "transport-sctp.mandatoryMvnDeps": [],
+  "transport-sctp.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "transport-udt.mandatoryMvnDeps": [],
+  "transport-udt.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "varhandle-stub.mandatoryMvnDeps": []
+}

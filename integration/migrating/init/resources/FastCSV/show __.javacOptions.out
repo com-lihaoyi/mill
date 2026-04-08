@@ -1,0 +1,25 @@
+{
+  "example.javacOptions": [
+    "-source",
+    "25",
+    "-target",
+    "25"
+  ],
+  "lib.javacOptions": [
+    "--release",
+    "17",
+    "-Xlint:all",
+    "-Werror",
+    "-XDshould-stop.ifError=FLOW",
+    "-XDshouldStopPolicyIfError=FLOW"
+  ],
+  "lib.test.javacOptions": [
+    "-source",
+    "25",
+    "-target",
+    "25",
+    "-parameters",
+    "-XDshould-stop.ifError=FLOW",
+    "-XDshouldStopPolicyIfError=FLOW"
+  ]
+}

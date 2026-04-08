@@ -1,0 +1,302 @@
+{
+  "benchmark.2_12_20.mvnDeps": [
+    "org.openjdk.jmh:jmh-core:1.37",
+    "org.openjdk.jmh:jmh-generator-bytecode:1.37",
+    "org.openjdk.jmh:jmh-generator-reflection:1.37"
+  ],
+  "benchmark.2_13_16.mvnDeps": [
+    "org.openjdk.jmh:jmh-core:1.37",
+    "org.openjdk.jmh:jmh-generator-bytecode:1.37",
+    "org.openjdk.jmh:jmh-generator-reflection:1.37"
+  ],
+  "benchmark.3_3_5.mvnDeps": [
+    "org.openjdk.jmh:jmh-core:1.37",
+    "org.openjdk.jmh:jmh-generator-bytecode:1.37",
+    "org.openjdk.jmh:jmh-generator-reflection:1.37"
+  ],
+  "core.js.2_12_20.mvnDeps": [
+    "org.scodec::scodec-bits::1.1.38",
+    "org.typelevel::cats-core::2.11.0",
+    "org.typelevel::cats-effect::3.6.0"
+  ],
+  "core.js.2_12_20.test.mvnDeps": [
+    "org.typelevel::cats-effect-laws::3.6.0",
+    "org.typelevel::cats-effect-testkit::3.6.0",
+    "org.typelevel::cats-laws::2.11.0",
+    "org.typelevel::discipline-munit::2.0.0-M3",
+    "org.typelevel::munit-cats-effect::2.0.0",
+    "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
+  ],
+  "core.js.2_13_16.mvnDeps": [
+    "org.scodec::scodec-bits::1.1.38",
+    "org.typelevel::cats-core::2.11.0",
+    "org.typelevel::cats-effect::3.6.0"
+  ],
+  "core.js.2_13_16.test.mvnDeps": [
+    "org.typelevel::cats-effect-laws::3.6.0",
+    "org.typelevel::cats-effect-testkit::3.6.0",
+    "org.typelevel::cats-laws::2.11.0",
+    "org.typelevel::discipline-munit::2.0.0-M3",
+    "org.typelevel::munit-cats-effect::2.0.0",
+    "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
+  ],
+  "core.js.3_3_5.mvnDeps": [
+    "org.scodec::scodec-bits::1.1.38",
+    "org.typelevel::cats-core::2.11.0",
+    "org.typelevel::cats-effect::3.6.0"
+  ],
+  "core.js.3_3_5.test.mvnDeps": [
+    "org.typelevel::cats-effect-laws::3.6.0",
+    "org.typelevel::cats-effect-testkit::3.6.0",
+    "org.typelevel::cats-laws::2.11.0",
+    "org.typelevel::discipline-munit::2.0.0-M3",
+    "org.typelevel::munit-cats-effect::2.0.0",
+    "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
+  ],
+  "core.jvm.2_12_20.mvnDeps": [
+    "org.scodec::scodec-bits::1.1.38",
+    "org.typelevel::cats-core::2.11.0",
+    "org.typelevel::cats-effect::3.6.0"
+  ],
+  "core.jvm.2_12_20.test.mvnDeps": [
+    "org.typelevel::cats-effect-laws::3.6.0",
+    "org.typelevel::cats-effect-testkit::3.6.0",
+    "org.typelevel::cats-laws::2.11.0",
+    "org.typelevel::discipline-munit::2.0.0-M3",
+    "org.typelevel::munit-cats-effect::2.0.0",
+    "org.typelevel::scalacheck-effect-munit::2.0.0-M2",
+    "org.reactivestreams:reactive-streams-tck-flow:1.0.4",
+    "org.scalatestplus::testng-7-5:3.2.14.0"
+  ],
+  "core.jvm.2_13_16.mvnDeps": [
+    "org.scodec::scodec-bits::1.1.38",
+    "org.typelevel::cats-core::2.11.0",
+    "org.typelevel::cats-effect::3.6.0"
+  ],
+  "core.jvm.2_13_16.test.mvnDeps": [
+    "org.typelevel::cats-effect-laws::3.6.0",
+    "org.typelevel::cats-effect-testkit::3.6.0",
+    "org.typelevel::cats-laws::2.11.0",
+    "org.typelevel::discipline-munit::2.0.0-M3",
+    "org.typelevel::munit-cats-effect::2.0.0",
+    "org.typelevel::scalacheck-effect-munit::2.0.0-M2",
+    "org.reactivestreams:reactive-streams-tck-flow:1.0.4",
+    "org.scalatestplus::testng-7-5:3.2.14.0"
+  ],
+  "core.jvm.3_3_5.mvnDeps": [
+    "org.scodec::scodec-bits::1.1.38",
+    "org.typelevel::cats-core::2.11.0",
+    "org.typelevel::cats-effect::3.6.0"
+  ],
+  "core.jvm.3_3_5.test.mvnDeps": [
+    "org.typelevel::cats-effect-laws::3.6.0",
+    "org.typelevel::cats-effect-testkit::3.6.0",
+    "org.typelevel::cats-laws::2.11.0",
+    "org.typelevel::discipline-munit::2.0.0-M3",
+    "org.typelevel::munit-cats-effect::2.0.0",
+    "org.typelevel::scalacheck-effect-munit::2.0.0-M2",
+    "org.reactivestreams:reactive-streams-tck-flow:1.0.4",
+    "org.scalatestplus::testng-7-5:3.2.14.0"
+  ],
+  "core.native.2_12_20.mvnDeps": [
+    "org.scodec::scodec-bits::1.1.38",
+    "org.typelevel::cats-core::2.11.0",
+    "org.typelevel::cats-effect::3.6.0"
+  ],
+  "core.native.2_12_20.test.mvnDeps": [
+    "org.scala-native::test-interface::0.4.17",
+    "org.typelevel::cats-effect-laws::3.6.0",
+    "org.typelevel::cats-effect-testkit::3.6.0",
+    "org.typelevel::cats-laws::2.11.0",
+    "org.typelevel::discipline-munit::2.0.0-M3",
+    "org.typelevel::munit-cats-effect::2.0.0",
+    "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
+  ],
+  "core.native.2_13_16.mvnDeps": [
+    "org.scodec::scodec-bits::1.1.38",
+    "org.typelevel::cats-core::2.11.0",
+    "org.typelevel::cats-effect::3.6.0"
+  ],
+  "core.native.2_13_16.test.mvnDeps": [
+    "org.scala-native::test-interface::0.4.17",
+    "org.typelevel::cats-effect-laws::3.6.0",
+    "org.typelevel::cats-effect-testkit::3.6.0",
+    "org.typelevel::cats-laws::2.11.0",
+    "org.typelevel::discipline-munit::2.0.0-M3",
+    "org.typelevel::munit-cats-effect::2.0.0",
+    "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
+  ],
+  "core.native.3_3_5.mvnDeps": [
+    "org.scodec::scodec-bits::1.1.38",
+    "org.typelevel::cats-core::2.11.0",
+    "org.typelevel::cats-effect::3.6.0"
+  ],
+  "core.native.3_3_5.test.mvnDeps": [
+    "org.scala-native::test-interface::0.4.17",
+    "org.typelevel::cats-effect-laws::3.6.0",
+    "org.typelevel::cats-effect-testkit::3.6.0",
+    "org.typelevel::cats-laws::2.11.0",
+    "org.typelevel::discipline-munit::2.0.0-M3",
+    "org.typelevel::munit-cats-effect::2.0.0",
+    "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
+  ],
+  "integration.2_12_20.mvnDeps": [],
+  "integration.2_12_20.test.mvnDeps": [
+    "org.typelevel::munit-cats-effect::2.0.0"
+  ],
+  "integration.2_13_16.mvnDeps": [],
+  "integration.2_13_16.test.mvnDeps": [
+    "org.typelevel::munit-cats-effect::2.0.0"
+  ],
+  "integration.3_3_5.mvnDeps": [],
+  "integration.3_3_5.test.mvnDeps": [
+    "org.typelevel::munit-cats-effect::2.0.0"
+  ],
+  "io.js.2_12_20.mvnDeps": [
+    "com.comcast::ip4s-core::3.6.0"
+  ],
+  "io.js.2_12_20.test.mvnDeps": [],
+  "io.js.2_13_16.mvnDeps": [
+    "com.comcast::ip4s-core::3.6.0"
+  ],
+  "io.js.2_13_16.test.mvnDeps": [],
+  "io.js.3_3_5.mvnDeps": [
+    "com.comcast::ip4s-core::3.6.0"
+  ],
+  "io.js.3_3_5.test.mvnDeps": [],
+  "io.jvm.2_12_20.mvnDeps": [
+    "com.comcast::ip4s-core::3.6.0"
+  ],
+  "io.jvm.2_12_20.test.mvnDeps": [
+    "com.google.jimfs:jimfs:1.3.0"
+  ],
+  "io.jvm.2_13_16.mvnDeps": [
+    "com.comcast::ip4s-core::3.6.0"
+  ],
+  "io.jvm.2_13_16.test.mvnDeps": [
+    "com.google.jimfs:jimfs:1.3.0"
+  ],
+  "io.jvm.3_3_5.mvnDeps": [
+    "com.comcast::ip4s-core::3.6.0"
+  ],
+  "io.jvm.3_3_5.test.mvnDeps": [
+    "com.google.jimfs:jimfs:1.3.0"
+  ],
+  "io.native.2_12_20.mvnDeps": [
+    "com.comcast::ip4s-core::3.6.0"
+  ],
+  "io.native.2_12_20.test.mvnDeps": [
+    "org.scala-native::test-interface::0.4.17"
+  ],
+  "io.native.2_13_16.mvnDeps": [
+    "com.comcast::ip4s-core::3.6.0"
+  ],
+  "io.native.2_13_16.test.mvnDeps": [
+    "org.scala-native::test-interface::0.4.17"
+  ],
+  "io.native.3_3_5.mvnDeps": [
+    "com.comcast::ip4s-core::3.6.0"
+  ],
+  "io.native.3_3_5.test.mvnDeps": [
+    "org.scala-native::test-interface::0.4.17"
+  ],
+  "mdoc.2_12_20.mvnDeps": [
+    "org.scalameta::mdoc:2.6.2"
+  ],
+  "mdoc.2_13_16.mvnDeps": [
+    "org.scalameta::mdoc:2.6.2"
+  ],
+  "mdoc.3_3_5.mvnDeps": [
+    "org.scalameta::mdoc:2.6.2"
+  ],
+  "protocols.js.2_12_20.mvnDeps": [],
+  "protocols.js.2_12_20.test.mvnDeps": [],
+  "protocols.js.2_13_16.mvnDeps": [],
+  "protocols.js.2_13_16.test.mvnDeps": [],
+  "protocols.js.3_3_5.mvnDeps": [],
+  "protocols.js.3_3_5.test.mvnDeps": [],
+  "protocols.jvm.2_12_20.mvnDeps": [],
+  "protocols.jvm.2_12_20.test.mvnDeps": [],
+  "protocols.jvm.2_13_16.mvnDeps": [],
+  "protocols.jvm.2_13_16.test.mvnDeps": [],
+  "protocols.jvm.3_3_5.mvnDeps": [],
+  "protocols.jvm.3_3_5.test.mvnDeps": [],
+  "protocols.native.2_12_20.mvnDeps": [],
+  "protocols.native.2_12_20.test.mvnDeps": [
+    "org.scala-native::test-interface::0.4.17"
+  ],
+  "protocols.native.2_13_16.mvnDeps": [],
+  "protocols.native.2_13_16.test.mvnDeps": [
+    "org.scala-native::test-interface::0.4.17"
+  ],
+  "protocols.native.3_3_5.mvnDeps": [],
+  "protocols.native.3_3_5.test.mvnDeps": [
+    "org.scala-native::test-interface::0.4.17"
+  ],
+  "reactive-streams.2_12_20.mvnDeps": [
+    "org.reactivestreams:reactive-streams:1.0.4"
+  ],
+  "reactive-streams.2_12_20.test.mvnDeps": [
+    "org.reactivestreams:reactive-streams-tck:1.0.4",
+    "org.scalatestplus::testng-7-5:3.2.17.0"
+  ],
+  "reactive-streams.2_13_16.mvnDeps": [
+    "org.reactivestreams:reactive-streams:1.0.4"
+  ],
+  "reactive-streams.2_13_16.test.mvnDeps": [
+    "org.reactivestreams:reactive-streams-tck:1.0.4",
+    "org.scalatestplus::testng-7-5:3.2.17.0"
+  ],
+  "reactive-streams.3_3_5.mvnDeps": [
+    "org.reactivestreams:reactive-streams:1.0.4"
+  ],
+  "reactive-streams.3_3_5.test.mvnDeps": [
+    "org.reactivestreams:reactive-streams-tck:1.0.4",
+    "org.scalatestplus::testng-7-5:3.2.17.0"
+  ],
+  "scodec.js.2_12_20.mvnDeps": [
+    "org.scodec::scodec-core::1.11.10"
+  ],
+  "scodec.js.2_12_20.test.mvnDeps": [],
+  "scodec.js.2_13_16.mvnDeps": [
+    "org.scodec::scodec-core::1.11.10"
+  ],
+  "scodec.js.2_13_16.test.mvnDeps": [],
+  "scodec.js.3_3_5.mvnDeps": [
+    "org.scodec::scodec-core::2.2.1"
+  ],
+  "scodec.js.3_3_5.test.mvnDeps": [],
+  "scodec.jvm.2_12_20.mvnDeps": [
+    "org.scodec::scodec-core::1.11.10"
+  ],
+  "scodec.jvm.2_12_20.test.mvnDeps": [],
+  "scodec.jvm.2_13_16.mvnDeps": [
+    "org.scodec::scodec-core::1.11.10"
+  ],
+  "scodec.jvm.2_13_16.test.mvnDeps": [],
+  "scodec.jvm.3_3_5.mvnDeps": [
+    "org.scodec::scodec-core::2.2.1"
+  ],
+  "scodec.jvm.3_3_5.test.mvnDeps": [],
+  "scodec.native.2_12_20.mvnDeps": [
+    "org.scodec::scodec-core::1.11.10"
+  ],
+  "scodec.native.2_12_20.test.mvnDeps": [
+    "org.scala-native::test-interface::0.4.17"
+  ],
+  "scodec.native.2_13_16.mvnDeps": [
+    "org.scodec::scodec-core::1.11.10"
+  ],
+  "scodec.native.2_13_16.test.mvnDeps": [
+    "org.scala-native::test-interface::0.4.17"
+  ],
+  "scodec.native.3_3_5.mvnDeps": [
+    "org.scodec::scodec-core::2.2.1"
+  ],
+  "scodec.native.3_3_5.test.mvnDeps": [
+    "org.scala-native::test-interface::0.4.17"
+  ],
+  "unidocs.2_12_20.mvnDeps": [],
+  "unidocs.2_13_16.mvnDeps": [],
+  "unidocs.3_3_5.mvnDeps": []
+}

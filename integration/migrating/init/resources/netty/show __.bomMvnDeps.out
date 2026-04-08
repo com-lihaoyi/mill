@@ -1,0 +1,175 @@
+{
+  "all.bomMvnDeps": [],
+  "bom.bomMvnDeps": [],
+  "bomMvnDeps": [],
+  "buffer.bomMvnDeps": [],
+  "buffer.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "codec.bomMvnDeps": [],
+  "codec-base.bomMvnDeps": [],
+  "codec-base.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "codec-classes-quic.bomMvnDeps": [],
+  "codec-compression.bomMvnDeps": [],
+  "codec-compression.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "codec-dns.bomMvnDeps": [],
+  "codec-dns.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "codec-haproxy.bomMvnDeps": [],
+  "codec-haproxy.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "codec-http.bomMvnDeps": [],
+  "codec-http.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "codec-http2.bomMvnDeps": [],
+  "codec-http2.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "codec-http3.bomMvnDeps": [],
+  "codec-http3.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "codec-marshalling.bomMvnDeps": [],
+  "codec-marshalling.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "codec-memcache.bomMvnDeps": [],
+  "codec-memcache.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "codec-mqtt.bomMvnDeps": [],
+  "codec-mqtt.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "codec-native-quic.bomMvnDeps": [],
+  "codec-native-quic.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "codec-protobuf.bomMvnDeps": [],
+  "codec-protobuf.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "codec-redis.bomMvnDeps": [],
+  "codec-redis.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "codec-smtp.bomMvnDeps": [],
+  "codec-smtp.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "codec-socks.bomMvnDeps": [],
+  "codec-socks.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "codec-stomp.bomMvnDeps": [],
+  "codec-stomp.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "codec-xml.bomMvnDeps": [],
+  "codec-xml.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "common.bomMvnDeps": [],
+  "common.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "dev-tools.bomMvnDeps": [],
+  "example.bomMvnDeps": [],
+  "handler.bomMvnDeps": [],
+  "handler.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "handler-proxy.bomMvnDeps": [],
+  "handler-proxy.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "handler-ssl-ocsp.bomMvnDeps": [],
+  "handler-ssl-ocsp.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "jfr-stub.bomMvnDeps": [],
+  "microbench.bomMvnDeps": [],
+  "pkitesting.bomMvnDeps": [],
+  "pkitesting.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "resolver.bomMvnDeps": [],
+  "resolver.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "resolver-dns.bomMvnDeps": [],
+  "resolver-dns.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "resolver-dns-classes-macos.bomMvnDeps": [],
+  "resolver-dns-native-macos.bomMvnDeps": [],
+  "resolver-dns-native-macos.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "testsuite.bomMvnDeps": [],
+  "testsuite-autobahn.bomMvnDeps": [],
+  "testsuite-http2.bomMvnDeps": [],
+  "testsuite-jpms.bomMvnDeps": [],
+  "testsuite-jpms.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "testsuite-karaf.bomMvnDeps": [],
+  "testsuite-native.bomMvnDeps": [],
+  "testsuite-native.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "testsuite-native-image.bomMvnDeps": [],
+  "testsuite-native-image-client.bomMvnDeps": [],
+  "testsuite-native-image-client-runtime-init.bomMvnDeps": [],
+  "testsuite-osgi.bomMvnDeps": [],
+  "testsuite-osgi.test.bomMvnDeps": [],
+  "testsuite-shading.bomMvnDeps": [],
+  "testsuite-shading.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "transport.bomMvnDeps": [],
+  "transport.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "transport-blockhound-tests.bomMvnDeps": [],
+  "transport-blockhound-tests.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "transport-classes-epoll.bomMvnDeps": [],
+  "transport-classes-io_uring.bomMvnDeps": [],
+  "transport-classes-kqueue.bomMvnDeps": [],
+  "transport-native-epoll.bomMvnDeps": [],
+  "transport-native-epoll.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "transport-native-io_uring.bomMvnDeps": [],
+  "transport-native-io_uring.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "transport-native-kqueue.bomMvnDeps": [],
+  "transport-native-kqueue.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "transport-native-unix-common.bomMvnDeps": [],
+  "transport-native-unix-common.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "transport-native-unix-common-tests.bomMvnDeps": [],
+  "transport-rxtx.bomMvnDeps": [],
+  "transport-sctp.bomMvnDeps": [],
+  "transport-sctp.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "transport-udt.bomMvnDeps": [],
+  "transport-udt.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
+  "varhandle-stub.bomMvnDeps": []
+}

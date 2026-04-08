@@ -1,0 +1,48 @@
+{
+  "2_13_16.pomSettings": {
+    "description": "Airstream",
+    "organization": "com.raquo",
+    "url": "https://github.com/raquo/Airstream",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "https://github.com/raquo/Airstream/blob/master/LICENSE.md",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/raquo/Airstream",
+      "connection": "scm:git@github.com/raquo/Airstream.git"
+    },
+    "developers": [
+      {
+        "id": "raquo",
+        "name": "Nikita Gazarov",
+        "url": "https://github.com/raquo"
+      }
+    ]
+  },
+  "3_3_3.pomSettings": {
+    "description": "Airstream",
+    "organization": "com.raquo",
+    "url": "https://github.com/raquo/Airstream",
+    "licenses": [
+      {
+        "name": "MIT",
+        "url": "https://github.com/raquo/Airstream/blob/master/LICENSE.md",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/raquo/Airstream",
+      "connection": "scm:git@github.com/raquo/Airstream.git"
+    },
+    "developers": [
+      {
+        "id": "raquo",
+        "name": "Nikita Gazarov",
+        "url": "https://github.com/raquo"
+      }
+    ]
+  }
+}

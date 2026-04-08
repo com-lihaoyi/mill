@@ -1,0 +1,29 @@
+{
+  "description": "Jansi is a java library for generating and interpreting ANSI escape sequences.",
+  "organization": "org.fusesource.jansi",
+  "url": "http://fusesource.github.io/jansi",
+  "licenses": [
+    {
+      "name": "Apache License, Version 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+      "distribution": "repo"
+    }
+  ],
+  "versionControl": {
+    "browsableRepository": "https://github.com/fusesource/jansi",
+    "connection": "scm:git:git://github.com/fusesource/jansi.git",
+    "developerConnection": "scm:git:ssh://git@github.com/fusesource/jansi.git",
+    "tag": "jansi-2.4.2"
+  },
+  "developers": [
+    {
+      "id": "chirino",
+      "name": "Hiram Chirino",
+      "url": "http://hiramchirino.com"
+    },
+    {
+      "id": "gnodet",
+      "name": "Guillaume Nodet"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+Module dependencies of example:
+  lib
+Module dependencies of lib:
+Module dependencies of lib.test:
+  lib

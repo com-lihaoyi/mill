@@ -1,0 +1,223 @@
+{
+  "all.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "bom.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "buffer.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "buffer.test.repositories": [],
+  "codec.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-base.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-base.test.repositories": [],
+  "codec-classes-quic.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-compression.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-compression.test.repositories": [],
+  "codec-dns.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-dns.test.repositories": [],
+  "codec-haproxy.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-haproxy.test.repositories": [],
+  "codec-http.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-http.test.repositories": [],
+  "codec-http2.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-http2.test.repositories": [],
+  "codec-http3.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-http3.test.repositories": [],
+  "codec-marshalling.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-marshalling.test.repositories": [],
+  "codec-memcache.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-memcache.test.repositories": [],
+  "codec-mqtt.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-mqtt.test.repositories": [],
+  "codec-native-quic.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-native-quic.test.repositories": [],
+  "codec-protobuf.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-protobuf.test.repositories": [],
+  "codec-redis.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-redis.test.repositories": [],
+  "codec-smtp.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-smtp.test.repositories": [],
+  "codec-socks.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-socks.test.repositories": [],
+  "codec-stomp.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-stomp.test.repositories": [],
+  "codec-xml.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-xml.test.repositories": [],
+  "common.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "common.test.repositories": [],
+  "dev-tools.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "example.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "handler.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "handler.test.repositories": [],
+  "handler-proxy.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "handler-proxy.test.repositories": [],
+  "handler-ssl-ocsp.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "handler-ssl-ocsp.test.repositories": [],
+  "jfr-stub.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "microbench.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "pkitesting.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "pkitesting.test.repositories": [],
+  "repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "resolver.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "resolver.test.repositories": [],
+  "resolver-dns.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "resolver-dns.test.repositories": [],
+  "resolver-dns-classes-macos.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "resolver-dns-native-macos.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "resolver-dns-native-macos.test.repositories": [],
+  "testsuite.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "testsuite-autobahn.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "testsuite-http2.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "testsuite-jpms.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "testsuite-jpms.test.repositories": [],
+  "testsuite-karaf.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "testsuite-native.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "testsuite-native.test.repositories": [],
+  "testsuite-native-image.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "testsuite-native-image-client.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "testsuite-native-image-client-runtime-init.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "testsuite-osgi.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "testsuite-osgi.test.repositories": [],
+  "testsuite-shading.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "testsuite-shading.test.repositories": [],
+  "transport.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport.test.repositories": [],
+  "transport-blockhound-tests.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport-blockhound-tests.test.repositories": [],
+  "transport-classes-epoll.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport-classes-io_uring.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport-classes-kqueue.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport-native-epoll.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport-native-epoll.test.repositories": [],
+  "transport-native-io_uring.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport-native-io_uring.test.repositories": [],
+  "transport-native-kqueue.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport-native-kqueue.test.repositories": [],
+  "transport-native-unix-common.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport-native-unix-common.test.repositories": [],
+  "transport-native-unix-common-tests.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport-rxtx.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport-sctp.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport-sctp.test.repositories": [],
+  "transport-udt.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport-udt.test.repositories": [],
+  "varhandle-stub.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ]
+}

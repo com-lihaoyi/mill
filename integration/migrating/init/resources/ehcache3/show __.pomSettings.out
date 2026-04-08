@@ -1,0 +1,386 @@
+{
+  "clustered.ehcache-client.pomSettings": {
+    "description": "The Client Side Clustering module of Ehcache 3",
+    "organization": "org.ehcache.modules.clustered",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "clustered.ehcache-clustered.pomSettings": {
+    "description": "Ehcache 3 Clustered: Defines the client jar and the kit containing the Terracotta server",
+    "organization": "org.ehcache",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "clustered.ehcache-common.pomSettings": {
+    "description": "The Common Clustering module of Ehcache 3",
+    "organization": "org.ehcache.modules.clustered",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "clustered.ehcache-common-api.pomSettings": {
+    "description": "The Common Clustering API module of Ehcache 3",
+    "organization": "org.ehcache.modules.clustered",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "clustered.server.ehcache-entity.pomSettings": {
+    "description": "The Server Entity module of Ehcache 3",
+    "organization": "org.ehcache.modules.clustered",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "clustered.server.ehcache-service.pomSettings": {
+    "description": "The Server Storage Implementation module of Ehcache 3",
+    "organization": "org.ehcache.modules.clustered",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "clustered.server.ehcache-service-api.pomSettings": {
+    "description": "The Server Storage API module of Ehcache 3",
+    "organization": "org.ehcache.modules.clustered",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "ehcache.pomSettings": {
+    "description": "End-user ehcache3 jar artifact",
+    "organization": "org.ehcache",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "ehcache-107.pomSettings": {
+    "description": "The JSR-107 compatibility module of Ehcache 3",
+    "organization": "org.ehcache.modules",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "ehcache-api.pomSettings": {
+    "description": "The API module of Ehcache 3",
+    "organization": "org.ehcache.modules",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "ehcache-core.pomSettings": {
+    "description": "The Core module of Ehcache 3",
+    "organization": "org.ehcache.modules",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "ehcache-impl.pomSettings": {
+    "description": "The implementation module of Ehcache 3",
+    "organization": "org.ehcache.modules",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "ehcache-management.pomSettings": {
+    "description": "The Management and Monitoring module of Ehcache 3",
+    "organization": "org.ehcache.modules",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "ehcache-transactions.pomSettings": {
+    "description": "The transactions module of Ehcache 3",
+    "organization": "org.ehcache",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "ehcache-xml.ehcache-xml-spi.pomSettings": {
+    "description": "This module contains the XML parsing SPI for Ehcache 3. This allows Ehcache extension services to provide XML configuration capabilities.",
+    "organization": "org.ehcache.modules",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "ehcache-xml.pomSettings": {
+    "description": "The module containing all XML parsing logic Ehcache 3",
+    "organization": "org.ehcache.modules",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "javacOptions": [
+    "--release",
+    "8",
+    "-encoding",
+    "UTF-8"
+  ],
+  "test.javacOptions": [
+    "--release",
+    "8",
+    "-encoding",
+    "UTF-8"
+  ]
+}
