@@ -115,7 +115,42 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
             headerData
           )
         )
+      ).flatMap { module =>
+        validateNestedConfigKeys(scriptFile, headerData, module) match {
+          case Some(f) => f
+          case None => Result.Success(module)
+        }
+      }
+    }
+  }
+
+  /**
+   * Validate that all nested `object` keys in the YAML header correspond to actual
+   * nested objects in the module class. Returns `Some(Failure)` if a mismatch is found.
+   */
+  private def validateNestedConfigKeys(
+      scriptFile: os.Path,
+      headerData: mill.api.internal.HeaderData,
+      module: ExternalModule
+  ): Option[Result.Failure] = {
+    // Collect all nested object names and their Located keys from the HeaderData tree
+    val nestedObjects = mill.api.internal.HeaderData
+      .processRest(scriptFile, headerData)(
+        onProperty = (_, _) => Seq.empty[(Located[String], String)],
+        onNestedObject = (locatedKey, name, _) => Seq((locatedKey, name))
       )
+      .flatten
+
+    nestedObjects.collectFirst {
+      case (locatedKey, name)
+          if (try { module.getClass.getMethod(name); false }
+          catch { case _: NoSuchMethodException => true }) =>
+        Result.Failure(
+          s"Config key ${pprint.Util.literalize("object " + name)} " +
+            s"does not match any nested module in ${module.getClass.getName}",
+          path = scriptFile.toNIO,
+          index = locatedKey.index
+        )
     }
   }
 

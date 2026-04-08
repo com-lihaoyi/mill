@@ -200,7 +200,7 @@ object CodeGen {
                       val depsCode = deps.map(d =>
                         s"""_root_.mill.api.internal.PrecompiledModuleRef.resolveModuleRef(this, ${literalize(
                             d.value
-                          )})"""
+                          )}, ${literalize(relPath.toString)}, ${d.index})"""
                       ).mkString(", ")
                       (kind, s"""${literalize(k)} -> _root_.scala.Seq($depsCode)""")
                   }
@@ -218,9 +218,9 @@ object CodeGen {
                 val valDef =
                   s"""final lazy val $lhs: $extendsClass = _root_.mill.api.internal.PrecompiledModuleRef(this, ${literalize(
                       relPath.toString
-                    )}, ${literalize(extendsClass)}, ${mapCode("moduleDeps")}, ${mapCode(
+                    )}, ${literalize(extendsClass)}, () => ${mapCode("moduleDeps")}, () => ${mapCode(
                       "compileModuleDeps"
-                    )}, ${mapCode("runModuleDeps")}, ${mapCode(
+                    )}, () => ${mapCode("runModuleDeps")}, () => ${mapCode(
                       "bomModuleDeps"
                     )}).asInstanceOf[$extendsClass] // precompiled module reference"""
                 (abstractDef, valDef)
