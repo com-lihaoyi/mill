@@ -15,47 +15,13 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
   val scriptModuleCache: collection.mutable.Map[os.Path, ExternalModule] =
     collection.mutable.Map.empty
 
+  // Clear the global precompiled module cache so that stale instances from previous
+  // evaluation cycles are not reused when YAML configs change between evaluations.
+  mill.api.internal.PrecompiledModuleRef.cache.clear()
+
   // Track the current resolution chain to detect recursive moduleDeps
   val resolvingScripts: collection.mutable.LinkedHashSet[os.Path] =
     collection.mutable.LinkedHashSet.empty
-
-  private case class NestedModuleDeps(
-      key: String,
-      moduleDeps: Seq[Located[String]],
-      compileModuleDeps: Seq[Located[String]],
-      runModuleDeps: Seq[Located[String]],
-      bomModuleDeps: Seq[Located[String]]
-  )
-
-  /**
-   * Recursively collects moduleDeps, compileModuleDeps, runModuleDeps, and bomModuleDeps
-   * from a HeaderData tree, keyed by nested path (e.g. "" for root, "test" for nested test).
-   */
-  private def collectAllModuleDeps(
-      scriptFile: os.Path,
-      data: mill.api.internal.HeaderData,
-      prefix: String
-  ): Seq[NestedModuleDeps] = {
-    val current = Seq(NestedModuleDeps(
-      prefix,
-      data.moduleDeps.value.value,
-      data.compileModuleDeps.value.value,
-      data.runModuleDeps.value.value,
-      data.bomModuleDeps.value.value
-    ))
-
-    val nested = mill.api.internal.HeaderData.processRest(scriptFile, data)(
-      onProperty = (_, _) => Seq.empty[NestedModuleDeps],
-      onNestedObject = (_, name, nestedData) =>
-        collectAllModuleDeps(
-          scriptFile,
-          nestedData,
-          if (prefix.isEmpty) name else s"$prefix.$name"
-        )
-    ).flatten
-
-    current ++ nested
-  }
 
   def moduleFor(
       scriptFile: os.Path,
@@ -84,7 +50,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
       }
 
     // Collect all module deps from all levels (root + nested objects)
-    val allLevelDeps = collectAllModuleDeps(scriptFile, headerData, "")
+    val allLevelDeps = mill.api.internal.HeaderData.collectAllNestedDeps(scriptFile, headerData, "")
 
     // Resolve all deps and collect errors
     val allErrors = collection.mutable.Buffer.empty[(Located[String], Option[Result.Failure])]

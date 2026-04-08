@@ -25,6 +25,40 @@ trait PrecompiledModule extends ExternalModule with ConfigModuleDepsModule {
   private[mill] override def configRunModuleDeps = scriptConfig.runModuleDeps
   private[mill] override def configBomModuleDeps = scriptConfig.bomModuleDeps
 
+  // Validate that all nested config dep keys (e.g. "test") correspond to actual
+  // nested objects in this module class. This catches typos like `object typo:` in YAML
+  // that would otherwise silently have their moduleDeps ignored.
+  locally {
+    val allConfigKeys = (
+      scriptConfig.moduleDeps.keySet ++
+        scriptConfig.compileModuleDeps.keySet ++
+        scriptConfig.runModuleDeps.keySet ++
+        scriptConfig.bomModuleDeps.keySet
+    ).filter(_.nonEmpty) // skip root key ""
+
+    for (key <- allConfigKeys) {
+      // Only validate the first segment (direct child); nested paths like "test.sub"
+      // will be validated when the child module does its own check
+      val directChild = key.split("\\.").head
+      val hasMethod =
+        try { getClass.getMethod(directChild); true }
+        catch { case _: NoSuchMethodException => false }
+      if (!hasMethod) {
+        throw new mill.api.daemon.Result.Exception(
+          s"Config key ${pprint.Util.literalize("object " + directChild)} in " +
+            s"${scriptConfig.scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)} " +
+            s"does not match any nested module in ${getClass.getName}",
+          Some(mill.api.daemon.Result.Failure(
+            s"Config key ${pprint.Util.literalize("object " + directChild)} " +
+              s"does not match any nested module in ${getClass.getName}",
+            scriptConfig.scriptFile.toNIO,
+            0
+          ))
+        )
+      }
+    }
+  }
+
   override def moduleDir = scriptConfig.scriptFile / os.up
 
   private[mill] def allowNestedExternalModule = true

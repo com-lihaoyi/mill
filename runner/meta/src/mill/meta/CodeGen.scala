@@ -184,49 +184,28 @@ object CodeGen {
                 val extendsClass = extendsLocated.value
                 val relPath = scriptFile.relativeTo(projectRoot)
 
-                // Generate module deps map code from the parsed YAML header data
-                def genDepsMap(
-                    data: HeaderData,
-                    prefix: String
-                ): Seq[(String, String)] = {
-                  def extractDeps(
-                      deps: Located[Appendable[Seq[Located[String]]]]
-                  ): Seq[String] = deps.value.value.map(_.value)
+                // Use the shared collectAllNestedDeps to gather deps from all nesting levels
+                val allNestedDeps =
+                  HeaderData.collectAllNestedDeps(scriptFile, headerData, "")
 
-                  val key = prefix
-                  val md = extractDeps(data.moduleDeps)
-                  val cmd = extractDeps(data.compileModuleDeps)
-                  val rmd = extractDeps(data.runModuleDeps)
-                  val bmd = extractDeps(data.bomModuleDeps)
-
-                  val current = Seq(
-                    (s"moduleDeps", key, md),
-                    (s"compileModuleDeps", key, cmd),
-                    (s"runModuleDeps", key, rmd),
-                    (s"bomModuleDeps", key, bmd)
-                  ).collect { case (kind, k, deps) if deps.nonEmpty => (kind, k, deps) }
-                    .map { case (kind, k, deps) =>
+                // Convert NestedModuleDeps entries into (kind, mapEntry) pairs for codegen
+                val depsEntries = allNestedDeps.flatMap { entry =>
+                  Seq(
+                    ("moduleDeps", entry.key, entry.moduleDeps),
+                    ("compileModuleDeps", entry.key, entry.compileModuleDeps),
+                    ("runModuleDeps", entry.key, entry.runModuleDeps),
+                    ("bomModuleDeps", entry.key, entry.bomModuleDeps)
+                  ).collect {
+                    case (kind, k, deps) if deps.nonEmpty =>
                       val depsCode = deps.map(d =>
                         s"""_root_.mill.api.internal.PrecompiledModuleRef.resolveModuleRef(this, ${literalize(
-                            d
+                            d.value
                           )})"""
                       ).mkString(", ")
                       (kind, s"""${literalize(k)} -> _root_.scala.Seq($depsCode)""")
-                    }
-
-                  val nested = HeaderData.processRest(scriptFile, data)(
-                    onProperty = (_, _) => Seq.empty[(String, String)],
-                    onNestedObject = (_, name, nestedData) =>
-                      genDepsMap(
-                        nestedData,
-                        if (prefix.isEmpty) name else s"$prefix.$name"
-                      )
-                  ).flatten
-
-                  current ++ nested
+                  }
                 }
 
-                val depsEntries = genDepsMap(headerData, "")
                 def mapCode(kind: String) = {
                   val entries = depsEntries.filter(_._1 == kind).map(_._2)
                   if (entries.isEmpty)

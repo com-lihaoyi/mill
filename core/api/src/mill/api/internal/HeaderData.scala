@@ -212,4 +212,49 @@ private[mill] object HeaderData {
           )
       }
   }
+
+  /**
+   * Entry for nested module deps collected from a HeaderData tree.
+   * `key` is the nested path (e.g. "" for root, "test" for a nested test object).
+   */
+  case class NestedModuleDeps(
+      key: String,
+      moduleDeps: Seq[Located[String]],
+      compileModuleDeps: Seq[Located[String]],
+      runModuleDeps: Seq[Located[String]],
+      bomModuleDeps: Seq[Located[String]]
+  )
+
+  /**
+   * Recursively collects moduleDeps, compileModuleDeps, runModuleDeps, and bomModuleDeps
+   * from a HeaderData tree, keyed by nested path (e.g. "" for root, "test" for nested test).
+   * Also returns the set of nested object names found at each level, for validation.
+   *
+   * Used by both ScriptModuleInit (runtime resolution) and CodeGen (source generation).
+   */
+  def collectAllNestedDeps(
+      scriptFile: os.Path,
+      data: HeaderData,
+      prefix: String
+  ): Seq[NestedModuleDeps] = {
+    val current = Seq(NestedModuleDeps(
+      prefix,
+      data.moduleDeps.value.value,
+      data.compileModuleDeps.value.value,
+      data.runModuleDeps.value.value,
+      data.bomModuleDeps.value.value
+    ))
+
+    val nested = processRest(scriptFile, data)(
+      onProperty = (_, _) => Seq.empty[NestedModuleDeps],
+      onNestedObject = (_, name, nestedData) =>
+        collectAllNestedDeps(
+          scriptFile,
+          nestedData,
+          if (prefix.isEmpty) name else s"$prefix.$name"
+        )
+    ).flatten
+
+    current ++ nested
+  }
 }

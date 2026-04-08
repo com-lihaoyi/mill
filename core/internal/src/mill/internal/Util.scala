@@ -180,11 +180,17 @@ object Util {
   def parseHeaderData(scriptFile: os.Path): Result[HeaderData] =
     HeaderData.parseHeaderData(scriptFile)
 
+  private val precompiledYamlModuleCache: collection.mutable.Map[os.Path, Boolean] =
+    collection.mutable.Map.empty
+
   def isPrecompiledYamlModule(path: os.Path): Boolean = {
-    parseHeaderData(path) match {
-      case Result.Success(headerData) => headerData.`mill-experimental-precompiled-module`.value
-      case _ => false
-    }
+    precompiledYamlModuleCache.getOrElseUpdate(
+      path,
+      parseHeaderData(path) match {
+        case Result.Success(headerData) => headerData.`mill-experimental-precompiled-module`.value
+        case _ => false
+      }
+    )
   }
 
   def parseYaml0[T](
