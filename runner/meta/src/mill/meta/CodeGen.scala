@@ -218,7 +218,9 @@ object CodeGen {
                 val valDef =
                   s"""final lazy val $lhs: $extendsClass = _root_.mill.api.internal.PrecompiledModuleRef(this, ${literalize(
                       relPath.toString
-                    )}, ${literalize(extendsClass)}, () => ${mapCode("moduleDeps")}, () => ${mapCode(
+                    )}, ${literalize(extendsClass)}, () => ${mapCode(
+                      "moduleDeps"
+                    )}, () => ${mapCode(
                       "compileModuleDeps"
                     )}, () => ${mapCode("runModuleDeps")}, () => ${mapCode(
                       "bomModuleDeps"

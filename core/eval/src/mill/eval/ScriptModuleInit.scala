@@ -198,7 +198,44 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
           mill.api.internal.PrecompiledModuleRef.cache.get(scriptFile) match {
             case Some(m) => m.asInstanceOf[PrecompiledModule]
             case None =>
-              cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[PrecompiledModule]
+              val relPath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
+              val extendsIdx = extendsIndex.getOrElse(0)
+              def fail(msg: String): Nothing =
+                throw new mill.api.daemon.Result.Exception(
+                  msg,
+                  Some(Result.Failure(msg, scriptFile.toNIO, extendsIdx))
+                )
+              if (cls.isInterface) {
+                fail(
+                  s"Precompiled module '$relPath' extends '${cls.getName}' which is a trait. " +
+                    s"Precompiled modules must extend a class with a " +
+                    s"(val scriptConfig: mill.api.PrecompiledModule.Config) constructor parameter"
+                )
+              }
+              if (java.lang.reflect.Modifier.isAbstract(cls.getModifiers)) {
+                fail(
+                  s"Precompiled module '$relPath' extends '${cls.getName}' which is abstract. " +
+                    s"Precompiled modules must extend a concrete class with a " +
+                    s"(val scriptConfig: mill.api.PrecompiledModule.Config) constructor parameter"
+                )
+              }
+              val constructors = cls.getDeclaredConstructors
+              val validCtor = constructors.find { ctor =>
+                val params = ctor.getParameterTypes
+                params.length == 1 &&
+                params(0).isAssignableFrom(classOf[mill.api.ScriptModule.Config])
+              }
+              if (validCtor.isEmpty) {
+                val actualSig = constructors.map { ctor =>
+                  ctor.getParameterTypes.map(_.getSimpleName).mkString("(", ", ", ")")
+                }.mkString(", ")
+                fail(
+                  s"Precompiled module '$relPath' extends '${cls.getName}' which does not have " +
+                    s"a (val scriptConfig: mill.api.PrecompiledModule.Config) constructor parameter. " +
+                    s"Found constructor(s): $actualSig"
+                )
+              }
+              validCtor.get.newInstance(args*).asInstanceOf[PrecompiledModule]
           }
         )
       }

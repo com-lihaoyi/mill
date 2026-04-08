@@ -129,48 +129,85 @@ object PrecompiledModuleRef {
       bomModuleDeps0: () => Map[String, Seq[mill.api.Module]]
   ): mill.api.Module = {
     val scriptFile = os.Path(relPath, mill.api.BuildCtx.workspaceRoot)
-    cache.getOrElseUpdate(scriptFile, {
-      val set = constructing.get()
-      set.add(relPath)
-      try {
-        // Evaluate dep maps now that `relPath` is in the `constructing` set,
-        // so that self-referential deps are detected instead of deadlocking.
-        val moduleDeps = moduleDeps0()
-        val compileModuleDeps = compileModuleDeps0()
-        val runModuleDeps = runModuleDeps0()
-        val bomModuleDeps = bomModuleDeps0()
-        val headerData = HeaderData.parseHeaderData(scriptFile) match {
-          case mill.api.Result.Success(hd) => hd
-          case _ => HeaderData(rest = Map.empty)
-        }
-        val config = mill.api.ScriptModule.Config(
-          scriptFile = scriptFile,
-          moduleDeps = moduleDeps,
-          compileModuleDeps = compileModuleDeps,
-          runModuleDeps = runModuleDeps,
-          bomModuleDeps = bomModuleDeps,
-          headerData = headerData
-        )
-        val cls =
-          try Class.forName(extendsClass)
-          catch {
-            case _: ClassNotFoundException =>
-              try Class.forName(extendsClass.reverse.replaceFirst("\\.", "\\$").reverse)
-              catch {
-                case e: ClassNotFoundException =>
-                  throw new IllegalStateException(
-                    s"Precompiled module $relPath extends class $extendsClass which cannot be found",
-                    e
-                  )
-              }
+    cache.getOrElseUpdate(
+      scriptFile, {
+        val set = constructing.get()
+        set.add(relPath)
+        try {
+          // Evaluate dep maps now that `relPath` is in the `constructing` set,
+          // so that self-referential deps are detected instead of deadlocking.
+          val moduleDeps = moduleDeps0()
+          val compileModuleDeps = compileModuleDeps0()
+          val runModuleDeps = runModuleDeps0()
+          val bomModuleDeps = bomModuleDeps0()
+          val headerData = HeaderData.parseHeaderData(scriptFile) match {
+            case mill.api.Result.Success(hd) => hd
+            case _ => HeaderData(rest = Map.empty)
           }
-        val module =
-          cls.getDeclaredConstructors.head.newInstance(config).asInstanceOf[mill.api.Module]
-        validateNestedConfigKeys(module, scriptFile, headerData)
-        module
-      } finally {
-        set.remove(relPath)
+          val config = mill.api.ScriptModule.Config(
+            scriptFile = scriptFile,
+            moduleDeps = moduleDeps,
+            compileModuleDeps = compileModuleDeps,
+            runModuleDeps = runModuleDeps,
+            bomModuleDeps = bomModuleDeps,
+            headerData = headerData
+          )
+          val cls =
+            try Class.forName(extendsClass)
+            catch {
+              case _: ClassNotFoundException =>
+                try Class.forName(extendsClass.reverse.replaceFirst("\\.", "\\$").reverse)
+                catch {
+                  case e: ClassNotFoundException =>
+                    throw new IllegalStateException(
+                      s"Precompiled module $relPath extends class $extendsClass which cannot be found",
+                      e
+                    )
+                }
+            }
+          val extendsIndex = headerData.`extends`.index
+          def fail(msg: String): Nothing =
+            throw new mill.api.daemon.Result.Exception(
+              msg,
+              Some(mill.api.daemon.Result.Failure(msg, scriptFile.toNIO, extendsIndex))
+            )
+
+          if (cls.isInterface) {
+            fail(
+              s"Precompiled module '$relPath' extends '$extendsClass' which is a trait. " +
+                s"Precompiled modules must extend a class with a " +
+                s"(val scriptConfig: mill.api.PrecompiledModule.Config) constructor parameter"
+            )
+          }
+          if (java.lang.reflect.Modifier.isAbstract(cls.getModifiers)) {
+            fail(
+              s"Precompiled module '$relPath' extends '$extendsClass' which is abstract. " +
+                s"Precompiled modules must extend a concrete class with a " +
+                s"(val scriptConfig: mill.api.PrecompiledModule.Config) constructor parameter"
+            )
+          }
+          val constructors = cls.getDeclaredConstructors
+          val validCtor = constructors.find { ctor =>
+            val params = ctor.getParameterTypes
+            params.length == 1 && params(0).isAssignableFrom(classOf[mill.api.ScriptModule.Config])
+          }
+          if (validCtor.isEmpty) {
+            val actualSig = constructors.map { ctor =>
+              ctor.getParameterTypes.map(_.getSimpleName).mkString("(", ", ", ")")
+            }.mkString(", ")
+            fail(
+              s"Precompiled module '$relPath' extends '$extendsClass' which does not have " +
+                s"a (val scriptConfig: mill.api.PrecompiledModule.Config) constructor parameter. " +
+                s"Found constructor(s): $actualSig"
+            )
+          }
+          val module = validCtor.get.newInstance(config).asInstanceOf[mill.api.Module]
+          validateNestedConfigKeys(module, scriptFile, headerData)
+          module
+        } finally {
+          set.remove(relPath)
+        }
       }
-    })
+    )
   }
 }

@@ -8,3 +8,6 @@ class MyModule(val scriptConfig: mill.api.PrecompiledModule.Config)
 
   object test extends JavaTests with mill.javalib.TestModule.Junit5
 }
+
+// A class with the wrong constructor signature (takes String instead of Config)
+class WrongSigModule(val name: String)
