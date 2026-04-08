@@ -60,97 +60,97 @@ private[mill] object HeaderData {
       visitor0: upickle.core.Visitor[_, T]
   ): mill.api.Result[T] = {
     try mill.api.Result.Success {
-      upickle.core.TraceVisitor.withTrace(true, visitor0) { visitor =>
-        import org.snakeyaml.engine.v2.api.LoadSettings
-        import org.snakeyaml.engine.v2.composer.Composer
-        import org.snakeyaml.engine.v2.parser.ParserImpl
-        import org.snakeyaml.engine.v2.scanner.StreamReader
-        import org.snakeyaml.engine.v2.nodes.*
-        import scala.jdk.CollectionConverters.*
+        upickle.core.TraceVisitor.withTrace(true, visitor0) { visitor =>
+          import org.snakeyaml.engine.v2.api.LoadSettings
+          import org.snakeyaml.engine.v2.composer.Composer
+          import org.snakeyaml.engine.v2.parser.ParserImpl
+          import org.snakeyaml.engine.v2.scanner.StreamReader
+          import org.snakeyaml.engine.v2.nodes.*
+          import scala.jdk.CollectionConverters.*
 
-        val settings = LoadSettings.builder().build()
-        val reader = new StreamReader(settings, headerData)
-        val parser = new ParserImpl(settings, reader)
-        val composer = new Composer(settings, parser)
+          val settings = LoadSettings.builder().build()
+          val reader = new StreamReader(settings, headerData)
+          val parser = new ParserImpl(settings, reader)
+          val composer = new Composer(settings, parser)
 
-        def rec[J](node: Node, v: upickle.core.Visitor[_, J]): J = {
-          val index = node.getStartMark.map(_.getIndex.intValue()).orElse(0)
-          try {
-            node match {
-              case scalar: ScalarNode =>
-                scalar.getTag.getValue match {
-                  case "tag:yaml.org,2002:null" => v.visitNull(index)
-                  case _ => v.visitString(scalar.getValue, index)
-                }
-              case mapping: MappingNode =>
-                val objVisitor =
-                  v.visitObject(mapping.getValue.size(), jsonableKeys = true, index)
-                    .asInstanceOf[upickle.core.ObjVisitor[Any, J]]
-                for (tuple <- mapping.getValue.asScala) {
-                  val keyNode = tuple.getKeyNode
-                  val valueNode = tuple.getValueNode
-                  val keyIndex = keyNode.getStartMark.map(_.getIndex.intValue()).orElse(0)
-                  val key = keyNode match {
-                    case s: ScalarNode => s.getValue
-                    case _ => keyNode.toString
+          def rec[J](node: Node, v: upickle.core.Visitor[_, J]): J = {
+            val index = node.getStartMark.map(_.getIndex.intValue()).orElse(0)
+            try {
+              node match {
+                case scalar: ScalarNode =>
+                  scalar.getTag.getValue match {
+                    case "tag:yaml.org,2002:null" => v.visitNull(index)
+                    case _ => v.visitString(scalar.getValue, index)
                   }
-                  val keyVisitor = objVisitor.visitKey(keyIndex)
-                  objVisitor.visitKeyValue(keyVisitor.visitString(key, keyIndex))
-                  val valueResult = rec(valueNode, objVisitor.subVisitor)
-                  objVisitor.visitValue(
-                    valueResult,
-                    valueNode.getStartMark.map(_.getIndex.intValue()).orElse(0)
-                  )
-                }
-                objVisitor.visitEnd(index)
-              case sequence: SequenceNode =>
-                def visitSequence[T](visitor: upickle.core.Visitor[?, T]): T = {
-                  val arrVisitor = visitor.visitArray(sequence.getValue.size(), index)
-                    .asInstanceOf[upickle.core.ArrVisitor[Any, T]]
-                  for (item <- sequence.getValue.asScala) {
-                    arrVisitor.visitValue(
-                      rec(item, arrVisitor.subVisitor),
-                      item.getStartMark.map(_.getIndex.intValue()).orElse(0)
+                case mapping: MappingNode =>
+                  val objVisitor =
+                    v.visitObject(mapping.getValue.size(), jsonableKeys = true, index)
+                      .asInstanceOf[upickle.core.ObjVisitor[Any, J]]
+                  for (tuple <- mapping.getValue.asScala) {
+                    val keyNode = tuple.getKeyNode
+                    val valueNode = tuple.getValueNode
+                    val keyIndex = keyNode.getStartMark.map(_.getIndex.intValue()).orElse(0)
+                    val key = keyNode match {
+                      case s: ScalarNode => s.getValue
+                      case _ => keyNode.toString
+                    }
+                    val keyVisitor = objVisitor.visitKey(keyIndex)
+                    objVisitor.visitKeyValue(keyVisitor.visitString(key, keyIndex))
+                    val valueResult = rec(valueNode, objVisitor.subVisitor)
+                    objVisitor.visitValue(
+                      valueResult,
+                      valueNode.getStartMark.map(_.getIndex.intValue()).orElse(0)
                     )
                   }
-                  arrVisitor.visitEnd(index)
-                }
-                if (sequence.getTag.getValue == "!append") {
-                  import Appendable.AppendMarkerKey
-                  val objVisitor = v.visitObject(1, jsonableKeys = true, index)
-                    .asInstanceOf[upickle.core.ObjVisitor[Any, J]]
-                  objVisitor.visitKeyValue(objVisitor.visitKey(index).visitString(
-                    AppendMarkerKey,
-                    index
-                  ))
-                  objVisitor.visitValue(visitSequence(objVisitor.subVisitor), index)
                   objVisitor.visitEnd(index)
-                } else {
-                  visitSequence(v)
-                }
+                case sequence: SequenceNode =>
+                  def visitSequence[T](visitor: upickle.core.Visitor[?, T]): T = {
+                    val arrVisitor = visitor.visitArray(sequence.getValue.size(), index)
+                      .asInstanceOf[upickle.core.ArrVisitor[Any, T]]
+                    for (item <- sequence.getValue.asScala) {
+                      arrVisitor.visitValue(
+                        rec(item, arrVisitor.subVisitor),
+                        item.getStartMark.map(_.getIndex.intValue()).orElse(0)
+                      )
+                    }
+                    arrVisitor.visitEnd(index)
+                  }
+                  if (sequence.getTag.getValue == "!append") {
+                    import Appendable.AppendMarkerKey
+                    val objVisitor = v.visitObject(1, jsonableKeys = true, index)
+                      .asInstanceOf[upickle.core.ObjVisitor[Any, J]]
+                    objVisitor.visitKeyValue(objVisitor.visitKey(index).visitString(
+                      AppendMarkerKey,
+                      index
+                    ))
+                    objVisitor.visitValue(visitSequence(objVisitor.subVisitor), index)
+                    objVisitor.visitEnd(index)
+                  } else {
+                    visitSequence(v)
+                  }
+              }
+            } catch {
+              case e: upickle.core.Abort =>
+                throw upickle.core.AbortException(e.getMessage, index, -1, -1, e)
             }
-          } catch {
-            case e: upickle.core.Abort =>
-              throw upickle.core.AbortException(e.getMessage, index, -1, -1, e)
           }
-        }
 
-        if (composer.hasNext) {
-          val node = composer.next()
-          node match {
-            case scalar: ScalarNode if scalar.getTag.getValue == "tag:yaml.org,2002:null" =>
-              val index = node.getStartMark.map(_.getIndex.intValue()).orElse(0)
-              val objVisitor = visitor.visitObject(0, jsonableKeys = true, index)
-              objVisitor.visitEnd(index)
-            case _ =>
-              rec(node, visitor)
+          if (composer.hasNext) {
+            val node = composer.next()
+            node match {
+              case scalar: ScalarNode if scalar.getTag.getValue == "tag:yaml.org,2002:null" =>
+                val index = node.getStartMark.map(_.getIndex.intValue()).orElse(0)
+                val objVisitor = visitor.visitObject(0, jsonableKeys = true, index)
+                objVisitor.visitEnd(index)
+              case _ =>
+                rec(node, visitor)
+            }
+          } else {
+            val objVisitor = visitor.visitObject(0, jsonableKeys = true, 0)
+            objVisitor.visitEnd(0)
           }
-        } else {
-          val objVisitor = visitor.visitObject(0, jsonableKeys = true, 0)
-          objVisitor.visitEnd(0)
         }
       }
-    }
     catch {
       case e: upickle.core.TraceVisitor.TraceException =>
         e.getCause match {
