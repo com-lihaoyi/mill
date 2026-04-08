@@ -123,7 +123,9 @@ trait ScalaPBModule extends ScalaModule {
     }
     val classifier = s"$osStr-$archStr"
     val files = defaultResolver().classpath(
-      Seq(mvn"com.google.protobuf:protoc:${scalaPBProtocVersion()};classifier=$classifier;type=exe"),
+      Seq(
+        mvn"com.google.protobuf:protoc:${scalaPBProtocVersion()};classifier=$classifier;type=exe"
+      ),
       artifactTypes = Some(Set(coursier.Type("exe")))
     )
     val protoc = files.headOption.getOrElse(
