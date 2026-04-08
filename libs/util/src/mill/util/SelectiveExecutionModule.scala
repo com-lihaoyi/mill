@@ -5,6 +5,7 @@ import mill.constants.OutFiles.OutFiles
 import mill.*
 import mill.api.Evaluator
 import mill.api.SelectMode
+import mill.api.SelectiveExecution.Metadata
 
 /**
  * Mill Module to support selective test execution in large projects.
@@ -16,18 +17,28 @@ trait SelectiveExecutionModule extends mill.api.Module {
   /**
    * Run to store a baseline snapshot of the Mill task inputs or implementations
    * necessary to run [[tasks]], to be later compared against metadata computed
-   * after a code change to determine which tasks were affected and need to be re-run
+   * after a code change to determine which tasks were affected and need to be re-run.
+   *
+   * If `empty` is true, then an empty snapshot will be saved to explicitly tell
+   * `selective.run`` to run all given tasks non-selectively.
    */
-  def prepare(evaluator: Evaluator, tasks: String*): Command[Unit] =
+  def prepare(
+      evaluator: Evaluator,
+      empty: Boolean = false,
+      tasks: mainargs.Leftover[String]
+  ): Command[Unit] =
     Task.Command(exclusive = true) {
-      evaluator.resolveTasks(
-        if (tasks.isEmpty) Seq("__") else tasks,
-        SelectMode.Multi
-      ).map { resolvedTasks =>
-        val computed = evaluator.selective.computeMetadata(resolvedTasks)
+      if empty
+      then evaluator.selective.saveMetadata(Metadata(Map.empty, Map.empty))
+      else
+        evaluator.resolveTasks(
+          if (tasks.value.isEmpty) Seq("__") else tasks.value,
+          SelectMode.Multi
+        ).map { resolvedTasks =>
+          val computed = evaluator.selective.computeMetadata(resolvedTasks)
 
-        evaluator.selective.saveMetadata(computed.metadata)
-      }
+          evaluator.selective.saveMetadata(computed.metadata)
+        }
     }
 
   /**

@@ -41,6 +41,90 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
         assert(cached.err.contains("`selective.run` can only be run after `selective.prepare`"))
       }
     }
+    test("reset") {
+      test("basic-reset") - integrationTest { tester =>
+        import tester.*
+
+        // Prepare with some tasks
+        eval(("selective.prepare", "{foo,bar}._"), check = true)
+
+        // Verify metadata file exists and has content
+        val metadataPath = workspacePath / "out/mill-selective-execution.json"
+        assert(os.exists(metadataPath))
+        val prepareContent = os.read(metadataPath)
+        assert(prepareContent.nonEmpty)
+
+        // Reset should create an empty metadata file
+        eval(("selective.prepare", "--empty"), check = true)
+
+        assert(os.exists(metadataPath))
+        val resetContent = os.read(metadataPath)
+        assert(resetContent.isEmpty)
+      }
+
+      test("reset-clears-baseline") - integrationTest { tester =>
+        import tester.*
+
+        // Prepare baseline
+        eval(("selective.prepare", "bar"), check = true)
+
+        // No changes, resolve should return nothing
+        val resolve1 = eval(("selective.resolve", "bar"), check = true)
+        assert(resolve1.out == "")
+
+        // Make a change
+        modifyFile(workspacePath / "bar/bar.txt", _ + "!")
+
+        // Resolve should detect the change
+        val resolve2 = eval(("selective.resolve", "bar"), check = true)
+        assert(resolve2.out.contains("bar.barCommand"))
+
+        // Reset the baseline
+        eval(("selective.prepare", "--empty"), check = true)
+
+        // After reset, resolve should show all tasks since there's no baseline
+        val resolve3 = eval(("selective.resolve", "bar"), check = true)
+        assert(resolve3.out.contains("bar.barCommand"))
+      }
+
+      test("reset-allows-run") - integrationTest { tester =>
+        import tester.*
+
+        // Reset creates the metadata file, so run should not fail
+        eval(("selective.prepare", "--empty"), check = true)
+
+        // This should succeed now (not fail with missing prepare error)
+        eval(("selective.run", "foo.fooCommand"), check = true, stderr = os.Pipe)
+      }
+
+      test("reset-then-prepare") - integrationTest { tester =>
+        import tester.*
+
+        // Prepare initial baseline
+        eval(("selective.prepare", "{foo,bar}._"), check = true)
+
+        // Make a change
+        modifyFile(workspacePath / "bar/bar.txt", _ + "!")
+
+        // Reset clears the baseline
+        eval(("selective.prepare", "--empty"), check = true)
+
+        // Prepare a new baseline
+        eval(("selective.prepare", "{foo,bar}._"), check = true)
+
+        // Without new changes, resolve should return nothing
+        val resolve = eval(("selective.resolve", "{foo,bar}._"), check = true)
+        assert(resolve.out == "")
+
+        // Make a new change
+        modifyFile(workspacePath / "bar/bar.txt", _ + "?")
+
+        // Now only the new change should be detected
+        val resolve2 = eval(("selective.resolve", "{foo,bar}._"), check = true)
+        assert(resolve2.out.contains("bar.barCommand"))
+        assert(!resolve2.out.contains("foo.fooCommand"))
+      }
+    }
     test("renamed-tasks") - integrationTest { tester =>
       import tester.*
       eval(("selective.prepare", "{foo,bar}._"), check = true)
