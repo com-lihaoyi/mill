@@ -959,6 +959,13 @@ trait JavaModule
   def zincIncrementalCompilation: T[Boolean] = Task { allSourceFiles().length > 1 }
 
   /**
+   * Whether to compile directly to a jar file instead of to a directory of classfiles.
+   * This can be faster on some filesystems by avoiding the overhead of creating many
+   * individual class files.
+   */
+  def compileToJar: T[Boolean] = Task { true }
+
+  /**
    * Compiles the current module to generate compiled classfiles/bytecode.
    *
    * When you override this, you probably also want/need to override [[bspCompileClassesPath]],
@@ -995,6 +1002,7 @@ trait JavaModule
         compileClasspath = compileClasspath().map(_.path),
         javacOptions = javacCompilerOptions,
         incrementalCompilation = zincIncrementalCompilation(),
+        compileToJar = compileToJar(),
         workDir = Task.dest
       ),
       javaHome = javaHome().map(_.path),
@@ -1015,7 +1023,7 @@ trait JavaModule
   /** The path where the compiled classes produced by [[compile]] are stored. */
   @internal
   private[mill] def compileClassesPath: UnresolvedPath.DestPath =
-    resolveRelativeToOut(compile, _ / "classes")
+    resolveRelativeToOut(compile, _ / "classes.jar")
 
   /**
    * The path to the compiled classes by [[compile]] without forcing to actually run the compilation.
@@ -1267,7 +1275,11 @@ trait JavaModule
    */
   def jar: T[PathRef] = Task {
     val jar = Task.dest / "out.jar"
-    Jvm.createJar(jar, localClasspath().map(_.path).filter(os.exists), manifest())
+    val classesPath = compile().classes.path
+    val base = if (os.isFile(classesPath) && classesPath.ext == "jar") Some(classesPath) else None
+    val inputs = localClasspath().map(_.path).filter(os.exists)
+    val filteredInputs = inputs.filter(!base.contains(_))
+    Jvm.createJar(jar, filteredInputs, manifest(), base = base)
     PathRef(jar)
   }
 

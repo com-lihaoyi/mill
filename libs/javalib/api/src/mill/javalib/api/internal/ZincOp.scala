@@ -15,7 +15,8 @@ object ZincOp {
       compileClasspath: Seq[os.Path],
       javacOptions: Seq[String],
       incrementalCompilation: Boolean,
-      workDir: os.Path
+      workDir: os.Path,
+      @com.lihaoyi.unroll compileToJar: Boolean = true
   ) extends ZincOp {
     type Response = Result[CompilationResult]
   }
@@ -34,7 +35,8 @@ object ZincOp {
       compilerBridgeOpt: Option[PathRef],
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String],
-      workDir: os.Path
+      workDir: os.Path,
+      @com.lihaoyi.unroll compileToJar: Boolean = true
   ) extends ZincOp {
     type Response = Result[CompilationResult]
   }

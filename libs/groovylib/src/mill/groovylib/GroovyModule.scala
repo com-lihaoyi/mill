@@ -265,6 +265,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
         compileClasspath = compileCp,
         javacOptions = jOpts.compiler,
         incrementalCompilation = true,
+        compileToJar = false,
         workDir = ctx.dest
       ),
       javaHome = javaHome,

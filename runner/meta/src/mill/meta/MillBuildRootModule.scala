@@ -309,6 +309,8 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
           compilerBridgeOpt = scalaCompilerBridge(),
           incrementalCompilation = zincIncrementalCompilation(),
           auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions(),
+          // hardcode false for now since we need to mangle the class files after
+          compileToJar = false,
           workDir = Task.dest
         ),
         javaHome = javaHome().map(_.path),

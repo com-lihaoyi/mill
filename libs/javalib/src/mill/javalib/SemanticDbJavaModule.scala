@@ -147,6 +147,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
           ),
         javacOptions = javacCompilerOptions,
         incrementalCompilation = zincIncrementalCompilation(),
+        compileToJar = false,
         workDir = Task.dest
       ),
       javaHome = javaHome().map(_.path),

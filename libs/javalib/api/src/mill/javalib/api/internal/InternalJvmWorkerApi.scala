@@ -40,6 +40,7 @@ trait InternalJvmWorkerApi extends PublicJvmWorkerApi, AutoCloseable {
         compileClasspath = compileClasspath,
         javacOptions = jOpts.compiler,
         incrementalCompilation = incrementalCompilation,
+        compileToJar = false,
         workDir = workDir
       ),
       javaHome = javaHome,
@@ -83,6 +84,7 @@ trait InternalJvmWorkerApi extends PublicJvmWorkerApi, AutoCloseable {
         compilerBridgeOpt = compilerBridgeOpt,
         incrementalCompilation = incrementalCompilation,
         auxiliaryClassFileExtensions = auxiliaryClassFileExtensions,
+        compileToJar = false,
         workDir = workDir
       ),
       javaHome = javaHome,

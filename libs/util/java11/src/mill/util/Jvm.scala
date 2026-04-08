@@ -405,7 +405,8 @@ object Jvm {
       manifest: JarManifest = JarManifest.Empty,
       fileFilter: (os.Path, os.RelPath) => Boolean = (_, _) => true,
       includeDirs: Boolean = true,
-      timestamp: Option[Long] = None
+      timestamp: Option[Long] = None,
+      base: Option[os.Path] = None
   ): os.Path = {
 
     val curTime = timestamp.getOrElse(System.currentTimeMillis())
@@ -434,21 +435,80 @@ object Jvm {
         jarStream.closeEntry()
       }
 
+      // If a base jar is provided, copy its entries into the output jar
+      base.foreach { baseJar =>
+        val jis = new java.util.jar.JarInputStream(
+          new java.io.BufferedInputStream(Files.newInputStream(baseJar.toNIO))
+        )
+        try {
+          var jarEntry = jis.getNextJarEntry
+          while (jarEntry != null) {
+            val name = jarEntry.getName.stripSuffix("/")
+            if (name.nonEmpty) {
+              val mapping = os.sub / os.SubPath(name)
+              if (!seen(mapping)) {
+                val _ = seen.add(mapping)
+                val entry = new JarEntry(jarEntry.getName)
+                entry.setTime(if (jarEntry.getTime != -1) jarEntry.getTime else curTime)
+                jarStream.putNextEntry(entry)
+                if (!jarEntry.isDirectory) jarStream.write(jis.readAllBytes())
+                jarStream.closeEntry()
+              }
+            }
+            jarEntry = jis.getNextJarEntry
+          }
+        } finally {
+          jis.close()
+        }
+      }
+
       // Note: we only sort each input path, but not the whole archive
-      for {
-        p <- inputPaths
-        (file, mapping) <-
-          if (os.isFile(p)) Seq((p, os.sub / p.last))
-          else os.walk(p).map(sub => (sub, sub.subRelativeTo(p))).sorted
-        if (includeDirs || os.isFile(file)) && !seen(mapping) && fileFilter(p, mapping)
-      } {
-        val _ = seen.add(mapping)
-        val name = mapping.toString() + (if (os.isDir(file)) "/" else "")
-        val entry = new JarEntry(name)
-        entry.setTime(mTime(file))
-        jarStream.putNextEntry(entry)
-        if (os.isFile(file)) jarStream.write(os.read.bytes(file))
-        jarStream.closeEntry()
+      for (p <- inputPaths) {
+        if (os.isFile(p) && p.ext == "jar") {
+          // Extract jar contents into the output jar rather than nesting it
+          val jis = new java.util.jar.JarInputStream(
+            new java.io.BufferedInputStream(Files.newInputStream(p.toNIO))
+          )
+          try {
+            var jarEntry = jis.getNextJarEntry
+            while (jarEntry != null) {
+              val name = jarEntry.getName.stripSuffix("/")
+              if (name.nonEmpty) {
+                val mapping = os.sub / os.SubPath(name)
+                if (!seen(mapping)) {
+                  val isDir = jarEntry.isDirectory
+                  if (includeDirs || !isDir) {
+                    val _ = seen.add(mapping)
+                    val entry = new JarEntry(jarEntry.getName)
+                    entry.setTime(if (jarEntry.getTime != -1) jarEntry.getTime else curTime)
+                    jarStream.putNextEntry(entry)
+                    if (!isDir) jarStream.write(jis.readAllBytes())
+                    jarStream.closeEntry()
+                  }
+                }
+              }
+              jarEntry = jis.getNextJarEntry
+            }
+          } finally {
+            jis.close()
+          }
+        } else {
+          val entries =
+            if (os.isFile(p)) Seq((p, os.sub / p.last))
+            else os.walk(p).map(sub => (sub, sub.subRelativeTo(p))).sorted
+          for {
+            (file, mapping) <- entries
+            if (includeDirs || os.isFile(file)) && !seen(mapping) && fileFilter(p, mapping)
+          } {
+            val _ = seen.add(mapping)
+            val name = mapping.toString() + (if (os.isDir(file)) "/" else "")
+            val entry = new JarEntry(name)
+            entry.setTime(mTime(file))
+            jarStream.putNextEntry(entry)
+            if (os.isFile(file)) jarStream.write(os.read.bytes(file))
+            jarStream.closeEntry()
+          }
+        }
       }
       jar
     } finally {
