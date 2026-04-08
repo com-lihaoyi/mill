@@ -5,10 +5,10 @@ but differ in how they are discovered. When importing a project
 into your IDE, Mill recursively walks your workspace folder looking for
 `.java`, `.scala`, or `.kt` files that may be scripts, skipping those in:
 
-- The `sources`
-- `out/`
+- The `sources`,
+- The `out` directory,
 - `**/src/`
-- `**/src-*/`
+- `\**/src-*/`
 - `**/resources/`
 - `**/out/`
 - `**/target/`
