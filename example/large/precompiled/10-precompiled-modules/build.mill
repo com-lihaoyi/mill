@@ -73,5 +73,7 @@ Hello, Bar!, Hello, Qux!
 
 // Instead of generating Scala code from the YAML file, Mill instantiates the pre-compiled
 // module class reflectively at runtime, similar to xref:javalib/script.adoc[script modules].
-// Pre-compiled modules are invisible to `.mill` files and can only be referenced from other
-// pre-compiled modules and scripts. They are enabled via the `mill-experimental-precompiled-module: true` key.
+// Pre-compiled modules are visible to `resolve` and can be referenced from other
+// pre-compiled modules and scripts, but not from `.mill` files since they are instantiated
+// at resolution time after `.mill` files are already compiled. They are enabled via the
+// `mill-experimental-precompiled-module: true` key.

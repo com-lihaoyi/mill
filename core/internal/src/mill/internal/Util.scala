@@ -177,24 +177,8 @@ object Util {
     fansi.Str.join(output, "\n").render
   }
 
-  def parseHeaderData(scriptFile: os.Path): Result[HeaderData] = {
-    val headerDataOpt = mill.api.BuildCtx.withFilesystemCheckerDisabled {
-      // If the module file got deleted, handle that gracefully
-      if (!os.exists(scriptFile)) Result.Success("")
-      else mill.api.ExecResult.catchWrapException {
-        mill.constants.Util.readBuildHeader(scriptFile.toNIO, scriptFile.last, true)
-          .replace("\r", "")
-      }
-    }
-
-    def relativePath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
-    given upickle.Reader[HeaderData] = HeaderData.headerDataReader(scriptFile)
-    headerDataOpt.flatMap(parseYaml0(
-      relativePath.toString,
-      _,
-      upickle.reader[HeaderData]
-    ))
-  }
+  def parseHeaderData(scriptFile: os.Path): Result[HeaderData] =
+    HeaderData.parseHeaderData(scriptFile)
 
   def isPrecompiledYamlModule(path: os.Path): Boolean = {
     parseHeaderData(path) match {
@@ -207,145 +191,8 @@ object Util {
       fileName: String,
       headerData: String,
       visitor0: upickle.core.Visitor[_, T]
-  ): Result[T] = {
-
-    val filePath = os.Path(fileName, mill.api.BuildCtx.workspaceRoot).toNIO
-    try catchUpickleAbort(filePath) {
-        upickle.core.TraceVisitor.withTrace(true, visitor0) { visitor =>
-          import org.snakeyaml.engine.v2.api.LoadSettings
-          import org.snakeyaml.engine.v2.composer.Composer
-          import org.snakeyaml.engine.v2.parser.ParserImpl
-          import org.snakeyaml.engine.v2.scanner.StreamReader
-          import org.snakeyaml.engine.v2.nodes.*
-          import scala.jdk.CollectionConverters.*
-
-          val settings = LoadSettings.builder().build()
-          val reader = new StreamReader(settings, headerData)
-          val parser = new ParserImpl(settings, reader)
-          val composer = new Composer(settings, parser)
-
-          // recursively convert Node using the visitor, preserving character offsets
-          def rec[J](node: Node, v: upickle.core.Visitor[_, J]): J = {
-            val index = node.getStartMark.map(_.getIndex.intValue()).orElse(0)
-
-            try {
-              node match {
-                case scalar: ScalarNode =>
-                  // Parse all YAML scalars as strings. In general, the `upickle.Reader`s that
-                  // consume these events downstream all are able to handle strings elegantly,
-                  // and this avoids the loss of precision that may result if we try to emit
-                  // e.g. booleans using `visitTrue`/`visitFalse which would result in the
-                  // distinction between `true`/`True`/`TRUE` collapsing into just `true` even
-                  // if the final parse wants the actual string value.
-                  scalar.getTag.getValue match {
-                    case "tag:yaml.org,2002:null" => v.visitNull(index)
-                    case _ => v.visitString(scalar.getValue, index)
-                  }
-
-                case mapping: MappingNode =>
-                  val objVisitor =
-                    v.visitObject(mapping.getValue.size(), jsonableKeys = true, index)
-                      .asInstanceOf[upickle.core.ObjVisitor[Any, J]]
-                  for (tuple <- mapping.getValue.asScala) {
-                    val keyNode = tuple.getKeyNode
-                    val valueNode = tuple.getValueNode
-                    val keyIndex = keyNode.getStartMark.map(_.getIndex.intValue()).orElse(0)
-                    val key = keyNode match {
-                      case s: ScalarNode => s.getValue
-                      case _ => keyNode.toString
-                    }
-                    val keyVisitor = objVisitor.visitKey(keyIndex)
-                    objVisitor.visitKeyValue(keyVisitor.visitString(key, keyIndex))
-                    val valueResult = rec(valueNode, objVisitor.subVisitor)
-                    objVisitor.visitValue(
-                      valueResult,
-                      valueNode.getStartMark.map(_.getIndex.intValue()).orElse(0)
-                    )
-                  }
-                  objVisitor.visitEnd(index)
-
-                case sequence: SequenceNode =>
-                  def visitSequence[T](visitor: upickle.core.Visitor[?, T]): T = {
-                    val arrVisitor = visitor.visitArray(sequence.getValue.size(), index)
-                      .asInstanceOf[upickle.core.ArrVisitor[Any, T]]
-                    for (item <- sequence.getValue.asScala) {
-                      arrVisitor.visitValue(
-                        rec(item, arrVisitor.subVisitor),
-                        item.getStartMark.map(_.getIndex.intValue()).orElse(0)
-                      )
-                    }
-                    arrVisitor.visitEnd(index)
-                  }
-                  // Check for !append tag - if present, wrap in {$millAppend: <array>}
-                  if (sequence.getTag.getValue == "!append") {
-                    import mill.api.internal.Appendable.AppendMarkerKey
-                    val objVisitor = v.visitObject(1, jsonableKeys = true, index)
-                      .asInstanceOf[upickle.core.ObjVisitor[Any, J]]
-                    objVisitor.visitKeyValue(objVisitor.visitKey(index).visitString(
-                      AppendMarkerKey,
-                      index
-                    ))
-                    objVisitor.visitValue(visitSequence(objVisitor.subVisitor), index)
-                    objVisitor.visitEnd(index)
-                  } else {
-                    visitSequence(v)
-                  }
-              }
-            } catch {
-              case e: upickle.core.Abort =>
-                throw upickle.core.AbortException(e.getMessage, index, -1, -1, e)
-            }
-          }
-
-          // Treat a top-level `null` or empty document as an empty object
-          if (composer.hasNext) {
-            val node = composer.next()
-            node match {
-              case scalar: ScalarNode if scalar.getTag.getValue == "tag:yaml.org,2002:null" =>
-                val index = node.getStartMark.map(_.getIndex.intValue()).orElse(0)
-                val objVisitor = visitor.visitObject(0, jsonableKeys = true, index)
-                objVisitor.visitEnd(index)
-              case _ =>
-                rec(node, visitor)
-            }
-          } else {
-            val objVisitor = visitor.visitObject(0, jsonableKeys = true, 0)
-            objVisitor.visitEnd(0)
-          }
-        }
-      }
-    catch {
-      case e: upickle.core.TraceVisitor.TraceException =>
-        e.getCause match {
-          case e: org.snakeyaml.engine.v2.exceptions.ParserException =>
-            val mark = e.getProblemMark.or(() => e.getContextMark)
-            if (mark.isPresent) {
-              val m = mark.get()
-              val problem = Option(e.getProblem).getOrElse("YAML syntax error")
-              Result.Failure(
-                problem,
-                os.Path(fileName, mill.api.BuildCtx.workspaceRoot).toNIO,
-                m.getIndex
-              )
-            } else {
-              Result.Failure(
-                s"Failed parsing build header in $fileName: " + e.getMessage
-              )
-            }
-          case abort: upickle.core.AbortException =>
-            Result.Failure(
-              s"Failed de-serializing config key ${e.jsonPath}: ${e.getCause.getCause.getMessage}",
-              filePath,
-              abort.index
-            )
-
-          case _ =>
-            Result.Failure(
-              s"$fileName Failed de-serializing config key ${e.jsonPath} ${e.getCause.getMessage}"
-            )
-        }
-    }
-  }
+  ): Result[T] =
+    HeaderData.parseYaml0(os.Path(fileName, mill.api.BuildCtx.workspaceRoot), headerData, visitor0)
 
   /**
    * Parses a config value from the YAML header data.

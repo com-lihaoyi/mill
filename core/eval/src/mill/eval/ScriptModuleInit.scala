@@ -192,7 +192,13 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
       mill.api.ExecResult.catchWrapException {
         scriptModuleCache.getOrElseUpdate(
           scriptFile,
-          cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[PrecompiledModule]
+          // Check PrecompiledModuleRef's cache first to reuse instances created
+          // by child aliases in the parent build module, avoiding duplicate instances
+          mill.api.internal.PrecompiledModuleRef.cache.get(scriptFile) match {
+            case Some(m) => m.asInstanceOf[PrecompiledModule]
+            case None =>
+              cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[PrecompiledModule]
+          }
         )
       }
     )
