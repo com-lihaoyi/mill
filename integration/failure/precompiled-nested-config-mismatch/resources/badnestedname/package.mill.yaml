@@ -1,0 +1,5 @@
+extends: millbuild.MyModule
+mill-experimental-precompiled-module: true
+
+object typo:
+  moduleDeps: [badnestedname]
