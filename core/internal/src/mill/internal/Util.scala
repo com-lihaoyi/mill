@@ -198,7 +198,7 @@ object Util {
 
   def isPrecompiledYamlModule(path: os.Path): Boolean = {
     parseHeaderData(path) match {
-      case Result.Success(headerData) => headerData.`mill-precompiled-module`.value
+      case Result.Success(headerData) => headerData.`mill-experimental-precompiled-module`.value
       case _ => false
     }
   }

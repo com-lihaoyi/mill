@@ -29,10 +29,15 @@ trait PrecompiledModule extends ExternalModule with ConfigModuleDepsModule {
 
   private[mill] def allowNestedExternalModule = true
 
-  private def relativeScriptFilePath =
+  private[api] def relativeScriptFilePath =
     scriptConfig.scriptFile.subRelativeTo(mill.api.BuildCtx.workspaceRoot)
 
-  override def moduleSegments: Segments = Segments.labels(relativeScriptFilePath.toString + ":")
+  // For directory-based YAML modules (package.mill.yaml), use the directory path
+  // so that segments render as e.g. "foo.test" instead of "foo/package.mill.yaml:test"
+  override def moduleSegments: Segments = {
+    val dirPath = relativeScriptFilePath / os.up
+    Segments(dirPath.segments.map(s => mill.api.Segment.Label(s)).toVector)
+  }
 
   private[mill] override def moduleDynamicBuildOverrides =
     flattenHeaderDataRest(moduleSegments, scriptConfig.headerData)
@@ -77,6 +82,8 @@ object PrecompiledModule {
 @experimental
 trait ScriptModule extends PrecompiledModule {
   override def moduleDir = scriptConfig.scriptFile
+  // For single-file scripts, use the file path with ':' suffix for script module convention
+  override def moduleSegments: Segments = Segments.labels(relativeScriptFilePath.toString + ":")
 }
 
 @experimental

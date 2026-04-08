@@ -54,7 +54,7 @@ object CodeGen {
     // Identify .mill.yaml files marked with `mill-experimental-precompiled-module: true`.
     // These are skipped during codegen and instantiated reflectively at runtime.
     val precompiledModulePaths: Set[os.Path] = parsedYamlHeaderData.collect {
-      case (path, headerData) if headerData.`mill-precompiled-module`.value => path
+      case (path, headerData) if headerData.`mill-experimental-precompiled-module`.value => path
     }.toSet
 
     val allowNestedBuildMillFiles = mill.internal.Util.readBooleanFromBuildHeader(
@@ -146,6 +146,17 @@ object CodeGen {
         }
         .distinct
 
+      // Collect precompiled module children for this script's directory
+      val precompiledChildNames = scriptSources
+        .collect {
+          case path
+              if path != scriptPath
+                && allBuildFileNames.contains(path.last)
+                && precompiledModulePaths.contains(path)
+                && path / os.up / os.up == scriptFolderPath => (path / os.up).last
+        }
+        .distinct
+
       def pkgSelector2(s: Option[String]) =
         s"_root_.${pkgSelector0(Some(CGConst.globalPackagePrefix), s)}"
 
@@ -161,7 +172,88 @@ object CodeGen {
             (abstractDef, valDef)
           }
           .unzip
-        (aliases.mkString("\n  "), aliasesDefs.mkString("\n  "))
+
+        // For precompiled module children, generate lazy val aliases that instantiate
+        // the precompiled module at runtime using the class from its extends clause
+        val (precompiledAliasesDefs, precompiledAliases) = precompiledChildNames
+          .flatMap { c =>
+            val scriptFile = scriptFolderPath / c / "package.mill.yaml"
+            parsedYamlHeaderData.get(scriptFile).flatMap { headerData =>
+              headerData.`extends`.value.value.headOption.map { extendsLocated =>
+                val lhs = backtickWrap(c)
+                val extendsClass = extendsLocated.value
+                val relPath = scriptFile.relativeTo(projectRoot)
+
+                // Generate module deps map code from the parsed YAML header data
+                def genDepsMap(
+                    data: HeaderData,
+                    prefix: String
+                ): Seq[(String, String)] = {
+                  def extractDeps(
+                      deps: Located[Appendable[Seq[Located[String]]]]
+                  ): Seq[String] = deps.value.value.map(_.value)
+
+                  val key = prefix
+                  val md = extractDeps(data.moduleDeps)
+                  val cmd = extractDeps(data.compileModuleDeps)
+                  val rmd = extractDeps(data.runModuleDeps)
+                  val bmd = extractDeps(data.bomModuleDeps)
+
+                  val current = Seq(
+                    (s"moduleDeps", key, md),
+                    (s"compileModuleDeps", key, cmd),
+                    (s"runModuleDeps", key, rmd),
+                    (s"bomModuleDeps", key, bmd)
+                  ).collect { case (kind, k, deps) if deps.nonEmpty => (kind, k, deps) }
+                    .map { case (kind, k, deps) =>
+                      val depsCode = deps.map(d =>
+                        s"""_root_.mill.api.internal.PrecompiledModuleRef.resolveModuleRef(this, ${literalize(
+                            d
+                          )})"""
+                      ).mkString(", ")
+                      (kind, s"""${literalize(k)} -> _root_.scala.Seq($depsCode)""")
+                    }
+
+                  val nested = HeaderData.processRest(scriptFile, data)(
+                    onProperty = (_, _) => Seq.empty[(String, String)],
+                    onNestedObject = (_, name, nestedData) =>
+                      genDepsMap(
+                        nestedData,
+                        if (prefix.isEmpty) name else s"$prefix.$name"
+                      )
+                  ).flatten
+
+                  current ++ nested
+                }
+
+                val depsEntries = genDepsMap(headerData, "")
+                def mapCode(kind: String) = {
+                  val entries = depsEntries.filter(_._1 == kind).map(_._2)
+                  if (entries.isEmpty)
+                    "_root_.scala.collection.immutable.Map.empty[String, Seq[_root_.mill.api.Module]]"
+                  else
+                    s"_root_.scala.collection.immutable.Map[String, Seq[_root_.mill.api.Module]](${entries.mkString(", ")})"
+                }
+
+                val abstractDef = s"def $lhs: $extendsClass // precompiled module reference"
+                val valDef =
+                  s"""final lazy val $lhs: $extendsClass = _root_.mill.api.internal.PrecompiledModuleRef(this, ${literalize(
+                      relPath.toString
+                    )}, ${literalize(extendsClass)}, ${mapCode("moduleDeps")}, ${mapCode(
+                      "compileModuleDeps"
+                    )}, ${mapCode("runModuleDeps")}, ${mapCode(
+                      "bomModuleDeps"
+                    )}).asInstanceOf[$extendsClass] // precompiled module reference"""
+                (abstractDef, valDef)
+              }
+            }
+          }
+          .unzip
+
+        (
+          (aliases ++ precompiledAliases).mkString("\n  "),
+          (aliasesDefs ++ precompiledAliasesDefs).mkString("\n  ")
+        )
       }
 
       if (scriptPath.last.endsWith(".yaml")) {

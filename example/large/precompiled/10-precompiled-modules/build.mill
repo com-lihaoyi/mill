@@ -27,6 +27,29 @@
 
 /** Usage
 
+> ./mill resolve _
+...
+bar
+...
+foo
+...
+
+> ./mill resolve foo._
+foo.test
+...
+foo.compile
+...
+foo.run
+...
+foo.lineCount
+...
+
+> ./mill resolve bar.test._
+bar.test.compile
+...
+bar.test.testForked
+...
+
 > ./mill foo.run
 Hello, Foo!
 
