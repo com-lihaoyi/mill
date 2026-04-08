@@ -27,8 +27,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
       Deps.pprint,
       Deps.fansi,
       Deps.mainargs,
-      Deps.fastparse,
-      Deps.snakeyamlEngine
+      Deps.fastparse
     )
   }
 

@@ -92,7 +92,7 @@ trait JavaModule
     override def moduleDeps: Seq[JavaModule] =
       Seq(outer) ++ outer.configModuleDeps
         .getOrElse(moduleSegments.parts.last, Nil)
-        .map(_.asInstanceOf[JavaModule])
+        .collect { case m: JavaModule => m }
     override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
       outer.repositoriesTask()
     }
@@ -350,21 +350,21 @@ trait JavaModule
    *  @see [[moduleDepsChecked]]
    */
   def moduleDeps: Seq[JavaModule] =
-    configModuleDeps.getOrElse("", Nil).map(_.asInstanceOf[JavaModule])
+    configModuleDeps.getOrElse("", Nil).collect { case m: JavaModule => m }
 
   /**
    *  The compile-only direct dependencies of this module. These are *not*
    *  transitive, and only take effect in the module that they are declared in.
    */
   def compileModuleDeps: Seq[JavaModule] =
-    configCompileModuleDeps.getOrElse("", Nil).map(_.asInstanceOf[JavaModule])
+    configCompileModuleDeps.getOrElse("", Nil).collect { case m: JavaModule => m }
 
   /**
    * The runtime-only direct dependencies of this module. These *are* transitive,
    * and so get propagated to downstream modules automatically
    */
   def runModuleDeps: Seq[JavaModule] =
-    configRunModuleDeps.getOrElse("", Nil).map(_.asInstanceOf[JavaModule])
+    configRunModuleDeps.getOrElse("", Nil).collect { case m: JavaModule => m }
 
   /**
    *  Bill of Material (BOM) dependencies of this module.
@@ -374,7 +374,7 @@ trait JavaModule
    *  @see [[bomModuleDepsChecked]]
    */
   def bomModuleDeps: Seq[BomModule] =
-    configBomModuleDeps.getOrElse("", Nil).map(_.asInstanceOf[BomModule])
+    configBomModuleDeps.getOrElse("", Nil).collect { case m: BomModule => m }
 
   /**
    * Same as [[moduleDeps]] but checked to not contain cycles.

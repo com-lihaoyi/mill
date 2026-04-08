@@ -20,9 +20,24 @@ object PrecompiledModuleRef {
    * without access to the ScriptModuleInit instance. It must be cleared at the start of
    * each evaluation cycle to avoid stale instances when YAML configs change; this is done
    * by ScriptModuleInit's constructor.
+   *
+   * Uses ConcurrentHashMap for thread safety since lazy val initialization in generated
+   * code and script module resolution may happen on different threads.
    */
-  private[mill] val cache: collection.mutable.Map[os.Path, mill.api.Module] =
-    collection.mutable.Map.empty
+  private[mill] val cache: java.util.concurrent.ConcurrentHashMap[os.Path, mill.api.Module] =
+    new java.util.concurrent.ConcurrentHashMap()
+
+  /** Scala-friendly cache access */
+  private[mill] def cacheGet(key: os.Path): Option[mill.api.Module] =
+    Option(cache.get(key))
+
+  /**
+   * Pluggable YAML header data parser. Set by ScriptModuleInit (in core/eval)
+   * at the start of each evaluation cycle. This allows PrecompiledModuleRef
+   * (in core/api) to parse YAML headers without depending on snakeyaml directly.
+   */
+  @volatile private[mill] var headerDataParser: os.Path => mill.api.Result[HeaderData] =
+    _ => mill.api.Result.Success(HeaderData(rest = Map.empty))
 
   // Tracks which relPaths are currently being constructed by `apply` on the current thread.
   // Used to detect self-referential moduleDeps (e.g. module A depends on A) that
@@ -45,18 +60,25 @@ object PrecompiledModuleRef {
       index: Int
   ): mill.api.Module = {
     val scriptPath = os.Path(scriptFile, mill.api.BuildCtx.workspaceRoot)
-    // Check if the target module is currently being constructed on this thread.
-    // The ref "foo" or "foo.bar" maps to a precompiled module at e.g. "foo/package.mill.yaml".
-    // If that path is in `constructing`, invoking it would deadlock on the lazy val lock.
+    // Check if the target module (identified by its first segment, which maps to a
+    // directory containing a precompiled YAML module) is currently being constructed
+    // on this thread. This detects both direct self-references (A depends on A) and
+    // indirect cycles (A depends on B, B depends on A) since each module in the chain
+    // adds its path to `constructing` before evaluating its deps.
     val firstSegment = ref.split("\\.").head
     val set = constructing.get()
     for (name <- Seq("package.mill.yaml", "build.mill.yaml")) {
       val candidate = s"$firstSegment/$name"
       if (set.contains(candidate)) {
+        // Build a human-readable cycle description from the constructing set
+        val chain = set.toArray.map(_.toString).toSeq
+        val cycleDesc =
+          if (chain.size <= 1) s"precompiled module '$ref' depends on itself"
+          else s"circular moduleDeps: ${chain.mkString(" -> ")} -> $candidate"
         throw new mill.api.daemon.Result.Exception(
-          s"Circular moduleDeps detected: precompiled module '$ref' depends on itself",
+          s"Circular moduleDeps detected: $cycleDesc",
           Some(mill.api.daemon.Result.Failure(
-            s"Circular moduleDeps detected: precompiled module '$ref' depends on itself",
+            s"Circular moduleDeps detected: $cycleDesc",
             scriptPath.toNIO,
             index
           ))
@@ -83,15 +105,16 @@ object PrecompiledModuleRef {
 
   /**
    * Validate that all nested `object` keys in the YAML header correspond to actual
-   * nested objects in the module class. Throws [[mill.api.daemon.Result.Exception]]
-   * if a mismatch is found, which gets caught by the resolution chain's
-   * `ExecResult.catchWrapException` and surfaced as a proper error.
+   * nested objects in the module class. Returns `None` if valid, or `Some(Failure)`
+   * describing the first mismatch found.
+   *
+   * Shared between [[apply]] (CodeGen path) and ScriptModuleInit (script path).
    */
-  private def validateNestedConfigKeys(
+  private[mill] def findNestedConfigMismatch(
       module: mill.api.Module,
       scriptFile: os.Path,
       headerData: HeaderData
-  ): Unit = {
+  ): Option[mill.api.daemon.Result.Failure] = {
     val nestedObjects = HeaderData
       .processRest(scriptFile, headerData)(
         onProperty = (_, _) => Seq.empty[(Located[String], String)],
@@ -99,28 +122,75 @@ object PrecompiledModuleRef {
       )
       .flatten
 
-    for ((locatedKey, name) <- nestedObjects) {
-      val hasMethod =
-        try { module.getClass.getMethod(name); true }
-        catch { case _: NoSuchMethodException => false }
-      if (!hasMethod) {
-        throw new mill.api.daemon.Result.Exception(
-          s"Config key ${pprint.Util.literalize("object " + name)} in " +
-            s"${scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)} " +
+    nestedObjects.collectFirst {
+      case (locatedKey, name)
+          if (try { module.getClass.getMethod(name); false }
+          catch { case _: NoSuchMethodException => true }) =>
+        mill.api.daemon.Result.Failure(
+          s"Config key ${pprint.Util.literalize("object " + name)} " +
             s"does not match any nested module in ${module.getClass.getName}",
-          Some(mill.api.daemon.Result.Failure(
-            s"Config key ${pprint.Util.literalize("object " + name)} " +
-              s"does not match any nested module in ${module.getClass.getName}",
-            scriptFile.toNIO,
-            locatedKey.index
-          ))
+          path = scriptFile.toNIO,
+          index = locatedKey.index
         )
-      }
+    }
+  }
+
+  /**
+   * Validates that a class is suitable for precompiled module instantiation:
+   * not a trait, not abstract, and has a constructor taking `ScriptModule.Config`.
+   *
+   * Returns the valid constructor, or throws [[mill.api.daemon.Result.Exception]]
+   * with a descriptive error message.
+   *
+   * Shared between [[apply]] (CodeGen path) and ScriptModuleInit (script path).
+   */
+  private[mill] def validatePrecompiledClass(
+      cls: Class[?],
+      relPath: String,
+      scriptFile: os.Path,
+      extendsIndex: Int
+  ): java.lang.reflect.Constructor[?] = {
+    def fail(msg: String): Nothing =
+      throw new mill.api.daemon.Result.Exception(
+        msg,
+        Some(mill.api.daemon.Result.Failure(msg, scriptFile.toNIO, extendsIndex))
+      )
+
+    if (cls.isInterface) {
+      fail(
+        s"Precompiled module '$relPath' extends '${cls.getName}' which is a trait. " +
+          s"Precompiled modules must extend a class with a " +
+          s"(val scriptConfig: mill.api.PrecompiledModule.Config) constructor parameter"
+      )
+    }
+    if (java.lang.reflect.Modifier.isAbstract(cls.getModifiers)) {
+      fail(
+        s"Precompiled module '$relPath' extends '${cls.getName}' which is abstract. " +
+          s"Precompiled modules must extend a concrete class with a " +
+          s"(val scriptConfig: mill.api.PrecompiledModule.Config) constructor parameter"
+      )
+    }
+    val constructors = cls.getDeclaredConstructors
+    val validCtor = constructors.find { ctor =>
+      val params = ctor.getParameterTypes
+      params.length == 1 && params(0).isAssignableFrom(classOf[mill.api.ScriptModule.Config])
+    }
+    validCtor match {
+      case Some(ctor) => ctor
+      case None =>
+        val actualSig = constructors.map { ctor =>
+          ctor.getParameterTypes.map(_.getSimpleName).mkString("(", ", ", ")")
+        }.mkString(", ")
+        fail(
+          s"Precompiled module '$relPath' extends '${cls.getName}' which does not have " +
+            s"a (val scriptConfig: mill.api.PrecompiledModule.Config) constructor parameter. " +
+            s"Found constructor(s): $actualSig"
+        )
     }
   }
 
   def apply(
-      parent: mill.api.Module,
+      @scala.annotation.unused parent: mill.api.Module,
       relPath: String,
       extendsClass: String,
       moduleDeps0: () => Map[String, Seq[mill.api.Module]],
@@ -129,8 +199,10 @@ object PrecompiledModuleRef {
       bomModuleDeps0: () => Map[String, Seq[mill.api.Module]]
   ): mill.api.Module = {
     val scriptFile = os.Path(relPath, mill.api.BuildCtx.workspaceRoot)
-    cache.getOrElseUpdate(
-      scriptFile, {
+    // Use computeIfAbsent for thread-safe atomic cache population
+    cache.computeIfAbsent(
+      scriptFile,
+      _ => {
         val set = constructing.get()
         set.add(relPath)
         try {
@@ -140,7 +212,7 @@ object PrecompiledModuleRef {
           val compileModuleDeps = compileModuleDeps0()
           val runModuleDeps = runModuleDeps0()
           val bomModuleDeps = bomModuleDeps0()
-          val headerData = HeaderData.parseHeaderData(scriptFile) match {
+          val headerData = headerDataParser(scriptFile) match {
             case mill.api.Result.Success(hd) => hd
             case _ => HeaderData(rest = Map.empty)
           }
@@ -166,43 +238,14 @@ object PrecompiledModuleRef {
                 }
             }
           val extendsIndex = headerData.`extends`.index
-          def fail(msg: String): Nothing =
+          val validCtor = validatePrecompiledClass(cls, relPath, scriptFile, extendsIndex)
+          val module = validCtor.newInstance(config).asInstanceOf[mill.api.Module]
+          findNestedConfigMismatch(module, scriptFile, headerData).foreach { f =>
             throw new mill.api.daemon.Result.Exception(
-              msg,
-              Some(mill.api.daemon.Result.Failure(msg, scriptFile.toNIO, extendsIndex))
-            )
-
-          if (cls.isInterface) {
-            fail(
-              s"Precompiled module '$relPath' extends '$extendsClass' which is a trait. " +
-                s"Precompiled modules must extend a class with a " +
-                s"(val scriptConfig: mill.api.PrecompiledModule.Config) constructor parameter"
+              s"${f.error} in ${scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)}",
+              Some(f)
             )
           }
-          if (java.lang.reflect.Modifier.isAbstract(cls.getModifiers)) {
-            fail(
-              s"Precompiled module '$relPath' extends '$extendsClass' which is abstract. " +
-                s"Precompiled modules must extend a concrete class with a " +
-                s"(val scriptConfig: mill.api.PrecompiledModule.Config) constructor parameter"
-            )
-          }
-          val constructors = cls.getDeclaredConstructors
-          val validCtor = constructors.find { ctor =>
-            val params = ctor.getParameterTypes
-            params.length == 1 && params(0).isAssignableFrom(classOf[mill.api.ScriptModule.Config])
-          }
-          if (validCtor.isEmpty) {
-            val actualSig = constructors.map { ctor =>
-              ctor.getParameterTypes.map(_.getSimpleName).mkString("(", ", ", ")")
-            }.mkString(", ")
-            fail(
-              s"Precompiled module '$relPath' extends '$extendsClass' which does not have " +
-                s"a (val scriptConfig: mill.api.PrecompiledModule.Config) constructor parameter. " +
-                s"Found constructor(s): $actualSig"
-            )
-          }
-          val module = validCtor.get.newInstance(config).asInstanceOf[mill.api.Module]
-          validateNestedConfigKeys(module, scriptFile, headerData)
           module
         } finally {
           set.remove(relPath)

@@ -45,6 +45,17 @@ object PrecompiledNestedConfigMismatchTests extends UtestIntegrationTestSuite {
         "Circular moduleDeps detected: precompiled module 'selfref' depends on itself"
       )
     }
+    test("indirectCircularModuleDeps") - integrationTest { tester =>
+      import tester.*
+      // `circularA` depends on `circularB` and `circularB` depends on `circularA`.
+      // Should produce a proper error rather than deadlocking.
+      val res = eval("circularA.compile")
+      assert(res.isSuccess == false)
+      assert(
+        res.err.contains("Circular") || res.err.contains("Recursive") ||
+          res.err.contains("circular") || res.err.contains("recursive")
+      )
+    }
     test("badExtendsClass") - integrationTest { tester =>
       import tester.*
       // A precompiled module referencing a non-existent class should produce
