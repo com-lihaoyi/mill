@@ -797,28 +797,33 @@ trait AndroidAppModule extends AndroidModule { outer =>
    *                 If not provided, runs the main activity detected from the manifest.
    * @return
    */
-  def androidRun(activity: Option[String] = None): Command[Vector[String]] =
-    Task.Command(exclusive = true) {
-      val emulator = runningEmulator()
-
-      val activity0 = activity.getOrElse(androidMainActivity())
-
-      Task.log.info(s"Starting activity $activity0 on emulator $emulator")
-
-      os.call(
-        (
-          androidSdkModule().adbExe().path,
-          "-s",
-          emulator,
-          "shell",
-          "am",
-          "start",
-          "-n",
-          s"${androidApplicationId}/${activity0}",
-          "-W"
-        )
-      ).out.lines()
+  def androidRun(activity: Option[String] = None): Command[Vector[String]] = {
+    if (activity.isEmpty) {
+      Task.Command(exclusive = true) { androidRunWith(androidMainActivity)() }
+    } else {
+      Task.Command(exclusive = true) { androidRunWith(Task.Anon(activity.get))() }
     }
+  }
+
+  private def androidRunWith(activity: Task[String]): Task[Vector[String]] = Task.Anon {
+    val emulator = runningEmulator()
+
+    Task.log.info(s"Starting activity ${activity()} on emulator $emulator")
+
+    os.call(
+      (
+        androidSdkModule().adbExe().path,
+        "-s",
+        emulator,
+        "shell",
+        "am",
+        "start",
+        "-n",
+        s"${androidApplicationId}/${activity()}",
+        "-W"
+      )
+    ).out.lines()
+  }
 
   /**
    * Default os.Path to the keystore file, derived from `androidReleaseKeyName()`.
