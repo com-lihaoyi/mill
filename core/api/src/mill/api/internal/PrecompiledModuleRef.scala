@@ -24,12 +24,12 @@ object PrecompiledModuleRef {
    * Uses ConcurrentHashMap for thread safety since lazy val initialization in generated
    * code and script module resolution may happen on different threads.
    */
-  private[mill] val cache: java.util.concurrent.ConcurrentHashMap[os.Path, mill.api.Module] =
-    new java.util.concurrent.ConcurrentHashMap()
+  private[mill] val cache: collection.mutable.Map[os.Path, mill.api.Module] =
+    collection.concurrent.TrieMap.empty
 
   /** Scala-friendly cache access */
   private[mill] def cacheGet(key: os.Path): Option[mill.api.Module] =
-    Option(cache.get(key))
+    cache.get(key)
 
   /**
    * Pluggable YAML header data parser. Set by ScriptModuleInit (in core/eval)
@@ -199,10 +199,12 @@ object PrecompiledModuleRef {
       bomModuleDeps0: () => Map[String, Seq[mill.api.Module]]
   ): mill.api.Module = {
     val scriptFile = os.Path(relPath, mill.api.BuildCtx.workspaceRoot)
-    // Use computeIfAbsent for thread-safe atomic cache population
-    cache.computeIfAbsent(
-      scriptFile,
-      _ => {
+    // Use synchronized getOrElseUpdate instead of ConcurrentHashMap.computeIfAbsent,
+    // because computeIfAbsent holds a bucket lock during the lambda, and recursive
+    // calls (moduleDeps0 triggering another apply) can deadlock if keys hash to the
+    // same bucket.
+    cache.getOrElseUpdate(
+      scriptFile, {
         val set = constructing.get()
         set.add(relPath)
         try {

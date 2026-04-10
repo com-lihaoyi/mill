@@ -19,9 +19,11 @@ private[mill] object HeaderData {
 
   private def nestedHeaderDataError(
       scriptPath: os.Path,
+      name: String,
       abort: upickle.core.AbortException
   ) = {
-    val message = Option(abort.getMessage).getOrElse("YAML type mismatch")
+    val inner = Option(abort.getMessage).getOrElse("YAML type mismatch")
+    val message = s"In object ${pprint.Util.literalize(name)}: $inner"
     throw new mill.api.daemon.Result.Exception(
       message,
       Some(mill.api.daemon.Result.Failure(message, scriptPath.toNIO, abort.index))
@@ -59,7 +61,7 @@ private[mill] object HeaderData {
             try BufferedValue.transform(v, headerDataReader(scriptPath))
             catch {
               case abort: upickle.core.AbortException =>
-                nestedHeaderDataError(scriptPath, abort)
+                nestedHeaderDataError(scriptPath, name, abort)
             }
           onNestedObject(locatedKey, name, nestedData)
         case _ => throw new mill.api.daemon.Result.Exception(

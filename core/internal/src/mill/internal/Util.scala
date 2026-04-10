@@ -11,21 +11,6 @@ import scala.collection.mutable
 
 object Util {
 
-  private[mill] def catchUpickleAbort[T](
-      path: java.nio.file.Path,
-      prefix: String = ""
-  )(t: => T): Result[T] = {
-    try Result.Success(t)
-    catch {
-      case abort: upickle.core.AbortException =>
-        Result.Failure(
-          prefix + Option(abort.getMessage).getOrElse("YAML type mismatch"),
-          path,
-          abort.index
-        )
-    }
-  }
-
   val alphaKeywords: Set[String] = Set(
     "abstract",
     "case",
@@ -322,8 +307,8 @@ object Util {
   ): Result[T] =
     parseYaml0(os.Path(fileName, mill.api.BuildCtx.workspaceRoot), headerData, visitor0)
 
-  private val precompiledYamlModuleCache: collection.mutable.Map[os.Path, Boolean] =
-    collection.mutable.Map.empty
+  private val precompiledYamlModuleCache: collection.concurrent.TrieMap[os.Path, Boolean] =
+    collection.concurrent.TrieMap.empty
 
   /** Clear the precompiled YAML module cache between evaluation cycles. */
   def clearPrecompiledYamlModuleCache(): Unit = precompiledYamlModuleCache.clear()
