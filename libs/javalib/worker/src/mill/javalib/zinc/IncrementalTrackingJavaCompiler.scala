@@ -179,6 +179,11 @@ private[mill] final class IncrementalTrackingJavaCompiler(compiler: javax.tools.
   }
 }
 
+private sealed trait TrackingOutputObject {
+  def delegate: FileObject
+  def path: Option[Path]
+}
+
 private final case class TrackingVirtualJavaFileObject(underlying: VirtualFile)
     extends javax.tools.SimpleJavaFileObject(new URI("vf", "tmp", s"/${underlying.id}", null), Kind.SOURCE) {
   override def openInputStream = underlying.input
@@ -203,17 +208,8 @@ private final class TrackingFileManager(
       sibling: FileObject
   ): JavaFileObject = {
     val output = super.getJavaFileForOutput(location, className, kind, sibling)
-    new TrackingJavaFileObject(output, sibling, classFileManager, tracker)
-  }
-
-  override def getFileForOutput(
-      location: JavaFileManager.Location,
-      packageName: String,
-      relativeName: String,
-      sibling: FileObject
-  ): FileObject = {
-    val output = super.getFileForOutput(location, packageName, relativeName, sibling)
-    new TrackingPlainFileObject(output, sibling, tracker)
+    if (kind == Kind.CLASS) new TrackingJavaFileObject(output, sibling, classFileManager, tracker)
+    else output
   }
 
   override def isSameFile(a: FileObject, b: FileObject): Boolean =
@@ -223,8 +219,7 @@ private final class TrackingFileManager(
 private object TrackingFileManager {
   def unwrap(fileObject: FileObject): AnyRef =
     fileObject match {
-      case tracked: TrackingJavaFileObject => tracked.delegate
-      case tracked: TrackingPlainFileObject => tracked.delegate
+      case tracked: TrackingOutputObject => tracked.delegate
       case other => other
     }
 }
@@ -234,7 +229,8 @@ private final class TrackingJavaFileObject(
     sibling: FileObject,
     classFileManager: Option[xsbti.compile.ClassFileManager],
     tracker: Option[IncrementalAnnotationProcessing.CompileTracker]
-) extends ForwardingJavaFileObject[JavaFileObject](delegate) {
+) extends ForwardingJavaFileObject[JavaFileObject](delegate)
+    with TrackingOutputObject {
   val path: Option[Path] = IncrementalAnnotationProcessing.fileObjectPath(delegate)
 
   override def openWriter(): Writer = {
@@ -247,16 +243,17 @@ private final class TrackingJavaFileObject(
 
   private def onOpen[T](result: => T): T = {
     classFileManager.foreach(_.generated(Array[VirtualFile](sbt.internal.inc.PlainVirtualFile(Paths.get(toUri)))))
-    tracker.foreach(_.recordGenerated(delegate, Option(sibling)))
+    tracker.foreach(_.recordSiblingGenerated(delegate, Option(sibling)))
     result
   }
 }
 
-private final class TrackingPlainFileObject(
-    val delegate: FileObject,
-    sibling: FileObject,
-    tracker: Option[IncrementalAnnotationProcessing.CompileTracker]
-) extends ForwardingFileObject[FileObject](delegate) {
+private final class TrackingFilerJavaFileObject(
+    val delegate: JavaFileObject,
+    tracker: Option[IncrementalAnnotationProcessing.CompileTracker],
+    owners: Set[os.Path]
+) extends ForwardingJavaFileObject[JavaFileObject](delegate)
+    with TrackingOutputObject {
   val path: Option[Path] = IncrementalAnnotationProcessing.fileObjectPath(delegate)
 
   override def openWriter(): Writer = {
@@ -268,7 +265,29 @@ private final class TrackingPlainFileObject(
   }
 
   private def onOpen[T](result: => T): T = {
-    tracker.foreach(_.recordGenerated(delegate, Option(sibling)))
+    tracker.foreach(_.recordOwnedGenerated(delegate, owners))
+    result
+  }
+}
+
+private final class TrackingFilerFileObject(
+    val delegate: FileObject,
+    tracker: Option[IncrementalAnnotationProcessing.CompileTracker],
+    owners: Set[os.Path]
+) extends ForwardingFileObject[FileObject](delegate)
+    with TrackingOutputObject {
+  val path: Option[Path] = IncrementalAnnotationProcessing.fileObjectPath(delegate)
+
+  override def openWriter(): Writer = {
+    onOpen(super.openWriter())
+  }
+
+  override def openOutputStream(): OutputStream = {
+    onOpen(super.openOutputStream())
+  }
+
+  private def onOpen[T](result: => T): T = {
+    tracker.foreach(_.recordOwnedGenerated(delegate, owners))
     result
   }
 }
@@ -319,8 +338,7 @@ private final class TrackingFiler(delegate: ProcessingEnvironment) extends Filer
       originatingElements: Element*
   ): JavaFileObject = {
     val file = filer.createSourceFile(name, originatingElements*)
-    register(file, originatingElements)
-    file
+    new TrackingFilerJavaFileObject(file, tracker, ownersFor(originatingElements))
   }
 
   override def createClassFile(
@@ -328,8 +346,7 @@ private final class TrackingFiler(delegate: ProcessingEnvironment) extends Filer
       originatingElements: Element*
   ): JavaFileObject = {
     val file = filer.createClassFile(name, originatingElements*)
-    register(file, originatingElements)
-    file
+    new TrackingFilerJavaFileObject(file, tracker, ownersFor(originatingElements))
   }
 
   override def createResource(
@@ -339,8 +356,7 @@ private final class TrackingFiler(delegate: ProcessingEnvironment) extends Filer
       originatingElements: Element*
   ): FileObject = {
     val file = filer.createResource(location, pkg, relativeName, originatingElements*)
-    register(file, originatingElements)
-    file
+    new TrackingFilerFileObject(file, tracker, ownersFor(originatingElements))
   }
 
   override def getResource(
@@ -350,11 +366,8 @@ private final class TrackingFiler(delegate: ProcessingEnvironment) extends Filer
   ): FileObject =
     filer.getResource(location, pkg, relativeName)
 
-  private def register(file: FileObject, originatingElements: Seq[Element]): Unit = {
-    tracker.foreach { compileTracker =>
-      val owners =
-        compileTracker.ownersForElements(originatingElements, trees, delegate.getElementUtils)
-      compileTracker.recordExplicitOwnership(file, owners)
-    }
-  }
+  private def ownersFor(originatingElements: Seq[Element]): Set[os.Path] =
+    tracker
+      .map(_.ownersForElements(originatingElements, trees, delegate.getElementUtils))
+      .getOrElse(Set.empty)
 }

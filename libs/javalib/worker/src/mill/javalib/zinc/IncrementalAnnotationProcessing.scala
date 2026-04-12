@@ -320,8 +320,7 @@ private[mill] object IncrementalAnnotationProcessing {
 
   def fileObjectPath(fileObject: FileObject): Option[Path] =
     fileObject match {
-      case tracked: TrackingJavaFileObject => tracked.path
-      case tracked: TrackingPlainFileObject => tracked.path
+      case tracked: TrackingOutputObject => tracked.path
       case _ =>
         reflectedUnderlyingVirtualFile(fileObject)
           .collect { case pathBased: PathBasedFile => pathBased.toPath.toAbsolutePath.normalize() }
@@ -478,12 +477,6 @@ private[mill] object IncrementalAnnotationProcessing {
     private val products = mutable.LinkedHashMap.empty[os.Path, ProductOwnership]
     private val touchedProducts = mutable.LinkedHashSet.empty[os.Path]
 
-    def recordExplicitOwnership(fileObject: FileObject, owners: Set[os.Path]): Unit =
-      for (outputPath <- fileObjectPath(fileObject)) {
-        generatedOwners(outputPath) =
-          if (owners.nonEmpty) Provenance.Known(owners) else Provenance.Unknown
-      }
-
     def ownersForElements(
         elements: Iterable[Element],
         trees: Option[com.sun.source.util.Trees],
@@ -491,9 +484,18 @@ private[mill] object IncrementalAnnotationProcessing {
     ): Set[os.Path] =
       elements.iterator.flatMap(ownerForElement(_, trees, elementUtils)).toSet
 
-    def recordGenerated(fileObject: FileObject, sibling: Option[FileObject]): Unit = {
+    def recordOwnedGenerated(fileObject: FileObject, owners: Set[os.Path]): Unit =
+      recordGenerated(fileObject, _ => ownershipForOwners(owners))
+
+    def recordSiblingGenerated(fileObject: FileObject, sibling: Option[FileObject]): Unit =
+      recordGenerated(fileObject, previous => previous.getOrElse(ownerFor(sibling.flatMap(fileObjectPath))))
+
+    private def recordGenerated(
+        fileObject: FileObject,
+        resolveProvenance: Option[Provenance] => Provenance
+    ): Unit = {
       for (outputPath <- fileObjectPath(fileObject)) {
-        val provenance = generatedOwners.getOrElse(outputPath, ownerFor(sibling.flatMap(fileObjectPath)))
+        val provenance = resolveProvenance(generatedOwners.get(outputPath))
         generatedOwners(outputPath) = provenance
         val outputOsPath = os.Path(outputPath)
         if (outputOsPath.startsWith(classesDir)) {
@@ -516,6 +518,9 @@ private[mill] object IncrementalAnnotationProcessing {
       siblingPath
         .flatMap(path => sourceOwners.get(path).orElse(generatedOwners.get(path)))
         .getOrElse(Provenance.Unknown)
+
+    private def ownershipForOwners(owners: Set[os.Path]): Provenance =
+      if (owners.nonEmpty) Provenance.Known(owners) else Provenance.Unknown
 
     private def ownershipFor(provenance: Provenance): ProductOwnership =
       provenance match {
