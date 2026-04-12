@@ -466,7 +466,9 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
 
     val finalScalacOptions = addColorNeverOption.toSeq ++ scalacOptions
 
-    val (originalSourcesMap, posMapperOpt) = PositionMapper.create(virtualSources)
+    val (originalSourcesMap, posMapperOpt) =
+      if (virtualSources.iterator.exists(_.name.endsWith(".mill"))) PositionMapper.create(virtualSources)
+      else (Map.empty[os.Path, os.Path], None)
 
     val newReporter = reporter match {
       case None =>
