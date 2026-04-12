@@ -81,7 +81,7 @@ private[mill] object IncrementalAnnotationProcessing {
         .getOrElse(compileClasspath)
       val metadataPath = (processorPath ++ compileClasspath).distinct
 
-      val activeProcessors = explicitProcessors(javacOptions).getOrElse {
+      val activeProcessors = explicitProcessors(javacOptions).map(_.toSet).getOrElse {
         processorPath.iterator.flatMap(readProcessorServiceFile).toSet
       }
 
@@ -147,7 +147,11 @@ private[mill] object IncrementalAnnotationProcessing {
       }
     }.toSet
 
-    val tracked = tracker.snapshot
+    val tracked = mergeSnapshots(
+      previous = decodeSnapshot(readSnapshot(snapshotPath(workDir)), workDir, classesDir),
+      current = tracker.snapshot,
+      managedProducts = managedProducts
+    )
     val filteredIsolating = tracked.isolatingProducts.view
       .mapValues(_.filterNot(managedProducts))
       .filter(_._2.nonEmpty)
@@ -250,9 +254,9 @@ private[mill] object IncrementalAnnotationProcessing {
     new DefaultExternalHooks(Optional.of(lookup), Optional.empty())
   }
 
-  def explicitProcessors(javacOptions: Seq[String]): Option[Set[String]] =
+  def explicitProcessors(javacOptions: Seq[String]): Option[Seq[String]] =
     parseSimpleOption(javacOptions, "-processor", "-processor")
-      .map(_.split(',').iterator.map(_.trim).filter(_.nonEmpty).toSet)
+      .map(_.split(',').iterator.map(_.trim).filter(_.nonEmpty).toSeq)
 
   def parsePathOption(javacOptions: Seq[String], short: String, long: String): Option[Seq[String]] =
     parseSimpleOption(javacOptions, short, long)
@@ -273,8 +277,8 @@ private[mill] object IncrementalAnnotationProcessing {
     }
   }
 
-  def readProcessorServiceFile(path: os.Path): Set[String] =
-    readTextFile(path, ProcessorServicePath).toSet
+  def readProcessorServiceFile(path: os.Path): Seq[String] =
+    readTextFile(path, ProcessorServicePath)
 
   def readProcessorMetadata(path: os.Path): Seq[(String, String)] =
     readTextFile(path, MetadataPath)
@@ -351,6 +355,54 @@ private[mill] object IncrementalAnnotationProcessing {
       else Set.empty[os.Path]
 
     staleIsolating ++ staleAggregating ++ staleUnknown
+  }
+
+  private def decodeSnapshot(
+      snapshot: Snapshot,
+      workDir: os.Path,
+      classesDir: os.Path
+  ): TrackerSnapshot =
+    TrackerSnapshot(
+      isolatingProducts = snapshot.isolatingProducts.iterator.map { case (source, products) =>
+        (workDir / os.RelPath(source)) -> products.iterator.map(classesDir / os.RelPath(_)).toSet
+      }.toMap,
+      aggregatingProducts = snapshot.aggregatingProducts.iterator.map { case (product, owners) =>
+        (classesDir / os.RelPath(product)) -> owners.iterator.map(workDir / os.RelPath(_)).toSet
+      }.toMap,
+      unknownProducts = snapshot.unknownProducts.iterator.map(classesDir / os.RelPath(_)).toSet,
+      touchedProducts = Set.empty
+    )
+
+  private def mergeSnapshots(
+      previous: TrackerSnapshot,
+      current: TrackerSnapshot,
+      managedProducts: Set[os.Path]
+  ): TrackerSnapshot = {
+    def keepUntouched(product: os.Path): Boolean =
+      !managedProducts(product) && !current.touchedProducts(product) && os.exists(product)
+
+    def keepCurrent(product: os.Path): Boolean =
+      !managedProducts(product) && os.exists(product)
+
+    val mergedIsolating = (
+      previous.isolatingProducts.iterator.map { case (source, products) =>
+        source -> products.filter(keepUntouched)
+      } ++ current.isolatingProducts.iterator.map { case (source, products) =>
+        source -> products.filter(keepCurrent)
+      }
+    ).foldLeft(Map.empty[os.Path, Set[os.Path]]) { case (acc, (source, products)) =>
+      if (products.isEmpty) acc else acc.updated(source, acc.getOrElse(source, Set.empty) ++ products)
+    }
+
+    TrackerSnapshot(
+      isolatingProducts = mergedIsolating,
+      aggregatingProducts =
+        previous.aggregatingProducts.filter { case (product, _) => keepUntouched(product) } ++
+          current.aggregatingProducts.filter { case (product, _) => keepCurrent(product) },
+      unknownProducts =
+        previous.unknownProducts.filter(keepUntouched) ++ current.unknownProducts.filter(keepCurrent),
+      touchedProducts = current.touchedProducts
+    )
   }
 
   private def forcedChangedSourcesFor(
@@ -496,7 +548,8 @@ private[mill] object IncrementalAnnotationProcessing {
       TrackerSnapshot(
         isolatingProducts = isolatingProducts.view.mapValues(_.toSet).toMap,
         aggregatingProducts = aggregatingProducts.toMap,
-        unknownProducts = unknownProducts.toSet
+        unknownProducts = unknownProducts.toSet,
+        touchedProducts = touchedProducts.toSet
       )
 
     private def ownerFor(siblingPath: Option[Path], outputPath: Path): Provenance =
@@ -571,7 +624,8 @@ private[mill] object IncrementalAnnotationProcessing {
   case class TrackerSnapshot(
       isolatingProducts: Map[os.Path, Set[os.Path]],
       aggregatingProducts: Map[os.Path, Set[os.Path]],
-      unknownProducts: Set[os.Path]
+      unknownProducts: Set[os.Path],
+      touchedProducts: Set[os.Path]
   )
 
   case class SourceMetadata(path: os.Path, simpleName: String, packageName: String, packagePath: String) {

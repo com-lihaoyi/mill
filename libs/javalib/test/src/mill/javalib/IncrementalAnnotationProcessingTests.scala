@@ -312,6 +312,41 @@ object IncrementalAnnotationProcessingTests extends TestSuite {
       assert(os.exists(helperClass))
     }
 
+    test("localMetadataConfigRetainsUntouchedOutputs") - testEval().scoped { eval =>
+      val generatedResourceOne =
+        eval.outPath / "localMetadataConfig/compile.dest/classes/META-INF/incremental/example.Annotated.txt"
+      val generatedResourceTwo =
+        eval.outPath / "localMetadataConfig/compile.dest/classes/META-INF/incremental/example.AnnotatedTwo.txt"
+
+      val Right(first) = eval(Modules.localMetadataConfig.compile).runtimeChecked
+      assert(first.evalCount > 0, os.exists(generatedResourceOne), os.exists(generatedResourceTwo))
+
+      os.write.over(
+        Modules.localMetadataConfig.moduleDir / "src/example/Annotated.java",
+        """package example;
+          |
+          |@Generate
+          |public class Annotated {
+          |    public static String value() {
+          |        return "changed";
+          |    }
+          |}
+          |""".stripMargin
+      )
+
+      val Right(second) = eval(Modules.localMetadataConfig.compile).runtimeChecked
+      assert(second.evalCount > 0)
+      assert(os.exists(generatedResourceOne))
+      assert(os.exists(generatedResourceTwo))
+
+      os.remove(Modules.localMetadataConfig.moduleDir / "src/example/AnnotatedTwo.java")
+
+      val Right(third) = eval(Modules.localMetadataConfig.compile).runtimeChecked
+      assert(third.evalCount > 0)
+      assert(!os.exists(generatedResourceTwo))
+      assert(os.exists(generatedResourceOne))
+    }
+
     test("dagger") - testEval().scoped { eval =>
       val generatedComponent =
         eval.outPath / "dagger/compile.dest/classes/example/DaggerMessageComponent.class"

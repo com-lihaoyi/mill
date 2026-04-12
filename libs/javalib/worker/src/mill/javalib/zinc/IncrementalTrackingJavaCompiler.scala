@@ -97,14 +97,17 @@ private[mill] final class IncrementalTrackingJavaCompiler(compiler: javax.tools.
       )
 
     val processorPath = processorPathFromOptions(cleanedOptions.toSeq)
-    val activeProcessors = wrappedProcessors(cleanedOptions.toSeq, processorPath)
-    if (activeProcessors.nonEmpty) task.setProcessors(activeProcessors.asJava)
+    val loaderAndProcessors = wrappedProcessors(cleanedOptions.toSeq, processorPath)
+    loaderAndProcessors.foreach { case (_, activeProcessors) =>
+      if (activeProcessors.nonEmpty) task.setProcessors(activeProcessors.asJava)
+    }
 
     var compileSuccess = false
     try {
       val success = task.call()
       compileSuccess = success && !diagnostics.hasErrors
     } finally {
+      loaderAndProcessors.foreach(_._1.close())
       customizedFileManager.close()
       logger.flushLines(if (compileSuccess) Level.Warn else Level.Error)
     }
@@ -127,22 +130,20 @@ private[mill] final class IncrementalTrackingJavaCompiler(compiler: javax.tools.
   private def wrappedProcessors(
       javacOptions: Seq[String],
       processorPath: Seq[os.Path]
-  ): Seq[Processor] = {
+  ): Option[(java.net.URLClassLoader, Seq[Processor])] = {
+    val names = IncrementalAnnotationProcessing.explicitProcessors(javacOptions).getOrElse {
+      processorPath.iterator.flatMap(IncrementalAnnotationProcessing.readProcessorServiceFile).toSeq
+    }.distinct
+
+    if (names.isEmpty) None
+    else {
     val urls = processorPath.iterator.map(_.toIO.toURI.toURL).toArray
     val loader = new java.net.URLClassLoader(urls, getClass.getClassLoader)
-
-    val names = IncrementalAnnotationProcessing.explicitProcessors(javacOptions).getOrElse {
-      processorPath.iterator.flatMap(IncrementalAnnotationProcessing.readProcessorServiceFile).toSet
-    }
-
-    try {
-      names.toSeq.sorted.map { name =>
+      val processors = names.map { name =>
         val delegate = loader.loadClass(name).getDeclaredConstructor().newInstance().asInstanceOf[Processor]
         new TrackingProcessor(delegate)
       }
-    } finally {
-      // Keep the classloader alive for the processors during compilation.
-      // It will be released when the processors become unreachable after task completion.
+      Some((loader, processors))
     }
   }
 
