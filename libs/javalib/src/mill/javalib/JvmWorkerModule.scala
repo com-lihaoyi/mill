@@ -7,6 +7,7 @@ import mill.api.daemon.internal.{CompileProblemReporter, internal}
 import mill.javalib.CoursierModule.Resolver
 import mill.javalib.api.JvmWorkerUtil.isBinaryBridgeAvailable
 import mill.javalib.api.internal.InternalJvmWorkerApi
+import mill.javalib.api.internal.SharedCompilerClassLoaderCache
 import mill.javalib.api.{CompilationResult, JvmWorkerApi, JvmWorkerArgs, JvmWorkerUtil, Versions}
 import mill.javalib.api.internal.ZincCompilerBridgeProvider
 import scala.annotation.nowarn
@@ -168,6 +169,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
 
     val args = JvmWorkerArgs(
       zincCompilerBridge,
+      sharedClassLoaderCache = SharedCompilerClassLoaderCache,
       classPath = classpath().map(_.path),
       jobs = jobs,
       zincLogDebug = zincLogDebug(),
