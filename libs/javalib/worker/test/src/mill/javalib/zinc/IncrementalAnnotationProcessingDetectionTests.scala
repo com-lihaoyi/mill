@@ -121,7 +121,10 @@ object IncrementalAnnotationProcessingDetectionTests extends TestSuite {
         )
 
         val mode = IncrementalAnnotationProcessing.detect(
-          javacOptions = Seq("-processorpath", s"${relevantProcessor}${java.io.File.pathSeparator}${unrelatedProcessor}"),
+          javacOptions = Seq(
+            "-processorpath",
+            s"${relevantProcessor}${java.io.File.pathSeparator}${unrelatedProcessor}"
+          ),
           compileClasspath = Nil,
           sources = Seq(src),
           workDir = workDir,

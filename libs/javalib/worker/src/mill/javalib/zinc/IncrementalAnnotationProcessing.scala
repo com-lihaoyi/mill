@@ -114,12 +114,14 @@ private[mill] object IncrementalAnnotationProcessing {
         .getOrElse(compileClasspath)
       val metadataPath = (processorPath ++ compileClasspath).distinct
 
-      val activeProcessors = activeProcessorNames(javacOptions, processorPath, compileClasspath, sources)
+      val activeProcessors =
+        activeProcessorNames(javacOptions, processorPath, compileClasspath, sources)
 
       if (activeProcessors.isEmpty) Mode.None
       else {
         val metadata = metadataPath.iterator.flatMap(readProcessorMetadata).toMap
-        val kinds = resolveTrackingModes(activeProcessors.toSet, metadata, processorPath, compileClasspath)
+        val kinds =
+          resolveTrackingModes(activeProcessors.toSet, metadata, processorPath, compileClasspath)
         kinds match {
           case None => Mode.Disabled
           case Some(activeKinds) =>
@@ -142,7 +144,9 @@ private[mill] object IncrementalAnnotationProcessing {
             }
             val requiresFullRecompile =
               (trackingMode == TrackingMode.Aggregating && sourceSetDidChange) ||
-                (sourceSetDidChange && previous.products.valuesIterator.exists(_ == ProductOwnership.Unknown))
+                (sourceSetDidChange && previous.products.valuesIterator.exists(
+                  _ == ProductOwnership.Unknown
+                ))
             Mode.Enabled(
               CompilePlan(
                 sourceStamps = sourceStamps,
@@ -509,7 +513,9 @@ private[mill] object IncrementalAnnotationProcessing {
       classesDir: os.Path
   ) {
     private val sourceOwners =
-      sources.iterator.map(p => p.toNIO.toAbsolutePath.normalize() -> Provenance.Known(Set(p))).toMap
+      sources.iterator.map(p =>
+        p.toNIO.toAbsolutePath.normalize() -> Provenance.Known(Set(p))
+      ).toMap
     private val sourceMetadata = sources.iterator.map(SourceMetadata.apply).toSeq
     private val generatedOwners = mutable.LinkedHashMap.empty[Path, Provenance]
     private val products = mutable.LinkedHashMap.empty[os.Path, ProductOwnership]
@@ -526,7 +532,10 @@ private[mill] object IncrementalAnnotationProcessing {
       recordGenerated(fileObject, _ => ownershipForOwners(owners))
 
     def recordSiblingGenerated(fileObject: FileObject, sibling: Option[FileObject]): Unit =
-      recordGenerated(fileObject, previous => previous.getOrElse(ownerFor(sibling.flatMap(fileObjectPath))))
+      recordGenerated(
+        fileObject,
+        previous => previous.getOrElse(ownerFor(sibling.flatMap(fileObjectPath)))
+      )
 
     private def recordGenerated(
         fileObject: FileObject,
@@ -562,7 +571,8 @@ private[mill] object IncrementalAnnotationProcessing {
 
     private def ownershipFor(provenance: Provenance): ProductOwnership =
       provenance match {
-        case Provenance.Known(owners) if trackingMode == TrackingMode.Isolating && owners.size == 1 =>
+        case Provenance.Known(owners)
+            if trackingMode == TrackingMode.Isolating && owners.size == 1 =>
           ProductOwnership.Isolating(owners.head)
         case Provenance.Known(owners) if owners.nonEmpty =>
           ProductOwnership.Aggregating(owners)
@@ -603,7 +613,8 @@ private[mill] object IncrementalAnnotationProcessing {
                 .map(_.getQualifiedName.toString)
                 .getOrElse("")
             val simpleName =
-              qualifiedName.stripPrefix(if (packageName.isEmpty) "" else packageName + ".").takeWhile(_ != '$')
+              qualifiedName.stripPrefix(if (packageName.isEmpty) ""
+              else packageName + ".").takeWhile(_ != '$')
             val matches = sourceMetadata.filter(_.matchesType(packageName, simpleName))
             Option.when(matches.size == 1)(matches.head.path)
           }
@@ -648,7 +659,9 @@ private[mill] object IncrementalAnnotationProcessing {
         exactNames.contains(supportedType) ||
         simpleNames.contains(supportedType) ||
         simpleNames.contains(supportedType.split('.').last) ||
-        supportedType.endsWith(".*") && exactNames.exists(_.startsWith(supportedType.stripSuffix("*")))
+        supportedType.endsWith(".*") && exactNames.exists(
+          _.startsWith(supportedType.stripSuffix("*"))
+        )
   }
 
   object SourceAnnotationIndex {
@@ -682,7 +695,9 @@ private[mill] object IncrementalAnnotationProcessing {
         simple: mutable.Set[String]
     ): Unit = {
       val packageName = Option(unit.getPackageName).map(_.toString)
-      val imports = unit.getImports.asScala.collect { case imp: ImportTree => imp.getQualifiedIdentifier.toString }
+      val imports = unit.getImports.asScala.collect { case imp: ImportTree =>
+        imp.getQualifiedIdentifier.toString
+      }
       val exactImports = imports.filterNot(_.endsWith(".*")).map { imported =>
         imported.split('.').last -> imported
       }.toMap

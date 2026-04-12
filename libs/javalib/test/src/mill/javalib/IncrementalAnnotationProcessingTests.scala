@@ -293,7 +293,8 @@ object IncrementalAnnotationProcessingTests extends TestSuite {
         eval.outPath / "localMetadataConfig/compile.dest/classes/META-INF/incremental/example.Annotated.txt"
       val generatedResourceTwo =
         eval.outPath / "localMetadataConfig/compile.dest/classes/META-INF/incremental/example.AnnotatedTwo.txt"
-      val helperClass = eval.outPath / "localMetadataConfig/compile.dest/classes/example/Helper.class"
+      val helperClass =
+        eval.outPath / "localMetadataConfig/compile.dest/classes/example/Helper.class"
 
       val Right(first) = eval(Modules.localMetadataConfig.compile).runtimeChecked
       assert(

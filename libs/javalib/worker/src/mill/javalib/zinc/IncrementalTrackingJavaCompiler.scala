@@ -35,7 +35,9 @@ private[mill] object IncrementalTrackingJavaCompiler {
   }
 
   def local: Option[XJavaCompiler] =
-    Option(javax.tools.ToolProvider.getSystemJavaCompiler).map(new IncrementalTrackingJavaCompiler(_))
+    Option(
+      javax.tools.ToolProvider.getSystemJavaCompiler
+    ).map(new IncrementalTrackingJavaCompiler(_))
 
   private[mill] def maybeLoadTrackingProcessors(
       javacOptions: Seq[String],
@@ -45,7 +47,9 @@ private[mill] object IncrementalTrackingJavaCompiler {
     if (!trackingEnabled) None
     else {
       val names = IncrementalAnnotationProcessing.explicitProcessors(javacOptions).getOrElse {
-        processorPath.iterator.flatMap(IncrementalAnnotationProcessing.readProcessorServiceFile).toSeq
+        processorPath.iterator.flatMap(
+          IncrementalAnnotationProcessing.readProcessorServiceFile
+        ).toSeq
       }.distinct
 
       if (names.isEmpty) None
@@ -53,7 +57,8 @@ private[mill] object IncrementalTrackingJavaCompiler {
         val urls = processorPath.iterator.map(_.toIO.toURI.toURL).toArray
         val loader = new java.net.URLClassLoader(urls, getClass.getClassLoader)
         val processors = names.map { name =>
-          val delegate = loader.loadClass(name).getDeclaredConstructor().newInstance().asInstanceOf[Processor]
+          val delegate =
+            loader.loadClass(name).getDeclaredConstructor().newInstance().asInstanceOf[Processor]
           new TrackingProcessor(delegate)
         }
         Some(LoadedProcessors(loader, processors))
@@ -195,7 +200,10 @@ private sealed trait TrackingOutputObject {
 }
 
 private final case class TrackingVirtualJavaFileObject(underlying: VirtualFile)
-    extends javax.tools.SimpleJavaFileObject(new URI("vf", "tmp", s"/${underlying.id}", null), Kind.SOURCE) {
+    extends javax.tools.SimpleJavaFileObject(
+      new URI("vf", "tmp", s"/${underlying.id}", null),
+      Kind.SOURCE
+    ) {
   override def openInputStream = underlying.input
   override def getName: String = underlying.name
   override def toString: String = underlying.id
@@ -252,7 +260,9 @@ private final class TrackingJavaFileObject(
   }
 
   private def onOpen[T](result: => T): T = {
-    classFileManager.foreach(_.generated(Array[VirtualFile](sbt.internal.inc.PlainVirtualFile(Paths.get(toUri)))))
+    classFileManager.foreach(
+      _.generated(Array[VirtualFile](sbt.internal.inc.PlainVirtualFile(Paths.get(toUri))))
+    )
     tracker.foreach(_.recordSiblingGenerated(delegate, Option(sibling)))
     result
   }
@@ -304,7 +314,8 @@ private final class TrackingFilerFileObject(
 
 private final class TrackingProcessor(delegate: Processor) extends Processor {
   override def getSupportedOptions(): java.util.Set[String] = delegate.getSupportedOptions
-  override def getSupportedAnnotationTypes(): java.util.Set[String] = delegate.getSupportedAnnotationTypes
+  override def getSupportedAnnotationTypes(): java.util.Set[String] =
+    delegate.getSupportedAnnotationTypes
   override def getSupportedSourceVersion(): SourceVersion = delegate.getSupportedSourceVersion
   override def getCompletions(
       element: Element,
@@ -312,7 +323,12 @@ private final class TrackingProcessor(delegate: Processor) extends Processor {
       member: ExecutableElement,
       userText: String
   ): java.lang.Iterable[Completion] =
-    delegate.getCompletions(element, annotation, member, userText).asInstanceOf[java.lang.Iterable[Completion]]
+    delegate.getCompletions(
+      element,
+      annotation,
+      member,
+      userText
+    ).asInstanceOf[java.lang.Iterable[Completion]]
 
   override def init(processingEnv: ProcessingEnvironment): Unit =
     delegate.init(new TrackingProcessingEnvironment(processingEnv))
