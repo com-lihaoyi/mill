@@ -10,6 +10,7 @@ trait ClassLoaderCache {
   def release(classPath: Seq[PathRefApi]): Unit
 }
 
+/** Special-cased cache handling to let us share classloaders across meta-build boundaries */
 object ClassLoaderCache {
   val sharedCompiler: ClassLoaderCache = new ClassLoaderCache {
     private case class Key(paths: Seq[(java.nio.file.Path, Boolean, Int)])
