@@ -8,6 +8,7 @@ import xsbti.compile.{CompileAnalysis, DefaultExternalHooks, ExternalHooks, File
 import java.io.File
 import java.nio.file.Path
 import java.util.Optional
+import java.util.jar.JarFile
 import javax.annotation.processing.Processor
 import javax.lang.model.element.{Element, ElementKind, TypeElement}
 import javax.lang.model.util.Elements
@@ -20,6 +21,24 @@ import scala.util.Using
 import IncrementalAnnotationProcessingSeqCompat.*
 
 private[mill] object IncrementalAnnotationProcessing {
+  private val jarTextFileCache =
+    new java.util.concurrent.ConcurrentHashMap[(os.Path, os.RelPath), Seq[String]]()
+  private val reflectedFieldCache = new ClassValue[Array[java.lang.reflect.Field]] {
+    override def computeValue(cls: Class[?]): Array[java.lang.reflect.Field] =
+      Iterator
+        .iterate(Option(cls))(_.flatMap(current => Option(current.getSuperclass)))
+        .takeWhile(_.nonEmpty)
+        .flatten
+        .flatMap { current =>
+          current.getDeclaredFields.iterator.flatMap { field =>
+            scala.util.Try {
+              field.setAccessible(true)
+              field
+            }.toOption
+          }
+        }
+        .toArray
+  }
 
   enum TrackingMode {
     case Isolating
@@ -336,8 +355,18 @@ private[mill] object IncrementalAnnotationProcessing {
       .map(parseEntries)
       .getOrElse(Nil)
     else if (os.isFile(root) && root.ext == "jar") {
-      Using.resource(os.zip.open(root)) { zip =>
-        Option.when(os.exists(zip / relPath))(parseEntries(os.read(zip / relPath))).getOrElse(Nil)
+      Option(jarTextFileCache.get((root, relPath))).getOrElse {
+        val value = Using.resource(new JarFile(root.toIO)) { jar =>
+          Option(jar.getJarEntry(relPath.toString))
+            .map { entry =>
+              Using.resource(jar.getInputStream(entry)) { in =>
+                parseEntries(new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8))
+              }
+            }
+            .getOrElse(Nil)
+        }
+        jarTextFileCache.putIfAbsent((root, relPath), value)
+        Option(jarTextFileCache.get((root, relPath))).getOrElse(value)
       }
     } else Nil
   }
@@ -348,6 +377,7 @@ private[mill] object IncrementalAnnotationProcessing {
       case _ =>
         reflectedUnderlyingVirtualFile(fileObject)
           .collect { case pathBased: PathBasedFile => pathBased.toPath.toAbsolutePath.normalize() }
+          .orElse(reflectedPath(fileObject))
           .orElse(reflectedNestedFileObject(fileObject).flatMap(fileObjectPath))
           .orElse {
             Option(fileObject.toUri)
@@ -441,15 +471,19 @@ private[mill] object IncrementalAnnotationProcessing {
       case nested: FileObject if nested ne fileObject => nested
     }
 
+  private def reflectedPath(fileObject: FileObject): Option[Path] =
+    Option.when(fileObject.getClass.getName.startsWith("com.sun.tools.javac.file.")) {
+      reflectedValues(fileObject).collectFirst { case path: Path =>
+        path.toAbsolutePath.normalize()
+      }
+    }.flatten
+
   private def reflectedValues(value: AnyRef): Iterator[AnyRef] =
-    Iterator
-      .iterate(Option(value.getClass))(_.flatMap(cls => Option(cls.getSuperclass)))
-      .takeWhile(_.nonEmpty)
-      .flatten
-      .flatMap(_.getDeclaredFields.iterator)
+    reflectedFieldCache
+      .get(value.getClass)
+      .iterator
       .flatMap { field =>
         scala.util.Try {
-          field.setAccessible(true)
           field.get(value)
         }.toOption.collect { case ref: AnyRef => ref }
       }
@@ -528,20 +562,20 @@ private[mill] object IncrementalAnnotationProcessing {
     ): Set[os.Path] =
       elements.iterator.flatMap(ownerForElement(_, trees, elementUtils)).toSet
 
-    def recordOwnedGenerated(fileObject: FileObject, owners: Set[os.Path]): Unit =
-      recordGenerated(fileObject, _ => ownershipForOwners(owners))
+    def recordOwnedGenerated(outputPath: Option[Path], owners: Set[os.Path]): Unit =
+      recordGenerated(outputPath, _ => ownershipForOwners(owners))
 
-    def recordSiblingGenerated(fileObject: FileObject, sibling: Option[FileObject]): Unit =
+    def recordSiblingGenerated(outputPath: Option[Path], siblingPath: Option[Path]): Unit =
       recordGenerated(
-        fileObject,
-        previous => previous.getOrElse(ownerFor(sibling.flatMap(fileObjectPath)))
+        outputPath,
+        previous => previous.getOrElse(ownerFor(siblingPath))
       )
 
     private def recordGenerated(
-        fileObject: FileObject,
+        outputPath: Option[Path],
         resolveProvenance: Option[Provenance] => Provenance
     ): Unit = {
-      for (outputPath <- fileObjectPath(fileObject)) {
+      for (outputPath <- outputPath) {
         val provenance = resolveProvenance(generatedOwners.get(outputPath))
         generatedOwners(outputPath) = provenance
         val outputOsPath = os.Path(outputPath)

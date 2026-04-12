@@ -28,8 +28,14 @@ object IncrementalAnnotationProcessingTrackerTests extends TestSuite {
         val generatedSourceFile = fileObject(generatedSource, JavaFileObject.Kind.SOURCE)
         val generatedClassFile = fileObject(generatedClass, JavaFileObject.Kind.CLASS)
 
-        tracker.recordOwnedGenerated(generatedSourceFile, Set(source))
-        tracker.recordSiblingGenerated(generatedClassFile, Some(generatedSourceFile))
+        tracker.recordOwnedGenerated(
+          IncrementalAnnotationProcessing.fileObjectPath(generatedSourceFile),
+          Set(source)
+        )
+        tracker.recordSiblingGenerated(
+          IncrementalAnnotationProcessing.fileObjectPath(generatedClassFile),
+          Some(generatedSource.toNIO.toAbsolutePath.normalize())
+        )
 
         assert(
           tracker.snapshot.products == Map(
@@ -57,9 +63,18 @@ object IncrementalAnnotationProcessingTrackerTests extends TestSuite {
         val generatedSourceFile = fileObject(generatedSource, JavaFileObject.Kind.SOURCE)
         val generatedClassFile = fileObject(generatedClass, JavaFileObject.Kind.CLASS)
 
-        tracker.recordOwnedGenerated(generatedSourceFile, Set(source))
-        tracker.recordSiblingGenerated(generatedSourceFile, None)
-        tracker.recordSiblingGenerated(generatedClassFile, Some(generatedSourceFile))
+        tracker.recordOwnedGenerated(
+          IncrementalAnnotationProcessing.fileObjectPath(generatedSourceFile),
+          Set(source)
+        )
+        tracker.recordSiblingGenerated(
+          IncrementalAnnotationProcessing.fileObjectPath(generatedSourceFile),
+          None
+        )
+        tracker.recordSiblingGenerated(
+          IncrementalAnnotationProcessing.fileObjectPath(generatedClassFile),
+          Some(generatedSource.toNIO.toAbsolutePath.normalize())
+        )
 
         assert(
           tracker.snapshot.products == Map(

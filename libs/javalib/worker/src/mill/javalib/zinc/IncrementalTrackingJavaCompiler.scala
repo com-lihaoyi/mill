@@ -250,6 +250,7 @@ private final class TrackingJavaFileObject(
 ) extends ForwardingJavaFileObject[JavaFileObject](delegate)
     with TrackingOutputObject {
   val path: Option[Path] = IncrementalAnnotationProcessing.fileObjectPath(delegate)
+  private val siblingPath = Option(sibling).flatMap(IncrementalAnnotationProcessing.fileObjectPath)
 
   override def openWriter(): Writer = {
     onOpen(super.openWriter())
@@ -261,9 +262,9 @@ private final class TrackingJavaFileObject(
 
   private def onOpen[T](result: => T): T = {
     classFileManager.foreach(
-      _.generated(Array[VirtualFile](sbt.internal.inc.PlainVirtualFile(Paths.get(toUri))))
+      _.generated(Array[VirtualFile](sbt.internal.inc.PlainVirtualFile(path.getOrElse(Paths.get(toUri)))))
     )
-    tracker.foreach(_.recordSiblingGenerated(delegate, Option(sibling)))
+    tracker.foreach(_.recordSiblingGenerated(path, siblingPath))
     result
   }
 }
@@ -285,7 +286,7 @@ private final class TrackingFilerJavaFileObject(
   }
 
   private def onOpen[T](result: => T): T = {
-    tracker.foreach(_.recordOwnedGenerated(delegate, owners))
+    tracker.foreach(_.recordOwnedGenerated(path, owners))
     result
   }
 }
@@ -307,7 +308,7 @@ private final class TrackingFilerFileObject(
   }
 
   private def onOpen[T](result: => T): T = {
-    tracker.foreach(_.recordOwnedGenerated(delegate, owners))
+    tracker.foreach(_.recordOwnedGenerated(path, owners))
     result
   }
 }
