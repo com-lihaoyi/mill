@@ -363,8 +363,16 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       os.remove.all(classesDir)
       os.remove.all(IncrementalAnnotationProcessing.snapshotPath(workDir))
     } else incrementalAnnotationProcessing match {
-      case IncrementalAnnotationProcessing.Mode.Enabled(state) =>
-        state.prepareBeforeCompile()
+      case IncrementalAnnotationProcessing.Mode.Enabled(
+            _,
+            sourceSnapshotChanged,
+            previousExtraProducts,
+            _
+          ) =>
+        IncrementalAnnotationProcessing.prepareBeforeCompile(
+          sourceSnapshotChanged = sourceSnapshotChanged,
+          previousExtraProducts = previousExtraProducts
+        )
       case _ =>
     }
 
@@ -424,8 +432,8 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       auxiliaryClassFileExtensions.map(new AuxiliaryClassFileExtension(_)).toArray
     )
     val incOptions = incrementalAnnotationProcessing match {
-      case IncrementalAnnotationProcessing.Mode.Enabled(state) =>
-        incOptions0.withExternalHooks(state.externalHooks)
+      case IncrementalAnnotationProcessing.Mode.Enabled(_, _, _, externalHooks) =>
+        incOptions0.withExternalHooks(externalHooks)
       case _ => incOptions0
     }
     val compileProgress = reporter.map { reporter =>
@@ -519,12 +527,13 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       store.set(AnalysisContents.create(newResult.analysis(), newResult.setup()))
 
       incrementalAnnotationProcessing match {
-        case IncrementalAnnotationProcessing.Mode.Enabled(state) =>
-          state.persist(
+        case IncrementalAnnotationProcessing.Mode.Enabled(sourceFingerprint, _, _, _) =>
+          IncrementalAnnotationProcessing.persist(
             workDir = workDir,
             classesDir = classesDir,
             analysis = newResult.analysis().asInstanceOf[Analysis],
-            auxiliaryClassFileExtensions = auxiliaryClassFileExtensions
+            auxiliaryClassFileExtensions = auxiliaryClassFileExtensions,
+            sourceFingerprint = sourceFingerprint
           )
         case _ =>
       }

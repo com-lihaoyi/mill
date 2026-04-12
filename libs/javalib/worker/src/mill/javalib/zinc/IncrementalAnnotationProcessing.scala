@@ -16,39 +16,12 @@ private[mill] object IncrementalAnnotationProcessing {
   enum Mode {
     case None
     case Disabled(reason: String)
-    case Enabled(state: State)
-  }
-
-  case class State(
-      sourceFingerprint: String,
-      sourceSnapshotChanged: Boolean,
-      previousExtraProducts: Set[os.Path],
-      externalHooks: ExternalHooks
-  ) {
-    def prepareBeforeCompile(): Unit = {
-      if (sourceSnapshotChanged) previousExtraProducts.foreach(os.remove.all(_))
-    }
-
-    def persist(
-        workDir: os.Path,
-        classesDir: os.Path,
-        analysis: Analysis,
-        auxiliaryClassFileExtensions: Seq[String]
-    ): Unit = {
-      val managedProducts = analysis.relations.allProducts.iterator.flatMap { product =>
-        val path = os.Path(product.id)
-        Iterator.single(path) ++ auxiliaryClassFileExtensions.iterator.map { ext =>
-          path / os.up / s"${path.last.stripSuffix(".class")}.$ext"
-        }
-      }.toSet
-
-      val extraProducts =
-        if (os.exists(classesDir)) {
-          os.walk(classesDir).iterator.filter(os.isFile).toSet -- managedProducts
-        } else Set.empty[os.Path]
-
-      writeSnapshot(snapshotPath(workDir), sourceFingerprint, extraProducts)
-    }
+    case Enabled(
+        sourceFingerprint: String,
+        sourceSnapshotChanged: Boolean,
+        previousExtraProducts: Set[os.Path],
+        externalHooks: ExternalHooks
+    )
   }
 
   val MetadataPath = os.RelPath("META-INF/gradle/incremental.annotation.processors")
@@ -96,16 +69,43 @@ private[mill] object IncrementalAnnotationProcessing {
             )
           }
           Mode.Enabled(
-            State(
-              sourceFingerprint = sourceFingerprint,
-              sourceSnapshotChanged = sourceSnapshotChanged,
-              previousExtraProducts = previousExtraProducts,
-              externalHooks = externalHooks(previousExtraProducts, sourceSnapshotChanged)
-            )
+            sourceFingerprint = sourceFingerprint,
+            sourceSnapshotChanged = sourceSnapshotChanged,
+            previousExtraProducts = previousExtraProducts,
+            externalHooks = externalHooks(previousExtraProducts, sourceSnapshotChanged)
           )
         }
       }
     }
+  }
+
+  def prepareBeforeCompile(
+      sourceSnapshotChanged: Boolean,
+      previousExtraProducts: Set[os.Path]
+  ): Unit = {
+    if (sourceSnapshotChanged) previousExtraProducts.foreach(os.remove.all(_))
+  }
+
+  def persist(
+      workDir: os.Path,
+      classesDir: os.Path,
+      analysis: Analysis,
+      auxiliaryClassFileExtensions: Seq[String],
+      sourceFingerprint: String
+  ): Unit = {
+    val managedProducts = analysis.relations.allProducts.iterator.flatMap { product =>
+      val path = os.Path(product.id)
+      Iterator.single(path) ++ auxiliaryClassFileExtensions.iterator.map { ext =>
+        path / os.up / s"${path.last.stripSuffix(".class")}.$ext"
+      }
+    }.toSet
+
+    val extraProducts =
+      if (os.exists(classesDir)) {
+        os.walk(classesDir).iterator.filter(os.isFile).toSet -- managedProducts
+      } else Set.empty[os.Path]
+
+    writeSnapshot(snapshotPath(workDir), sourceFingerprint, extraProducts)
   }
 
   def externalHooks(
