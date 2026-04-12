@@ -3,11 +3,11 @@ package mill.javalib
 import mainargs.Flag
 import mill.*
 import mill.api.{PathRef, Task, *}
+import mill.api.daemon.ClassLoaderCache
 import mill.api.daemon.internal.{CompileProblemReporter, internal}
 import mill.javalib.CoursierModule.Resolver
 import mill.javalib.api.JvmWorkerUtil.isBinaryBridgeAvailable
 import mill.javalib.api.internal.InternalJvmWorkerApi
-import mill.javalib.api.internal.SharedCompilerClassLoaderCache
 import mill.javalib.api.{CompilationResult, JvmWorkerApi, JvmWorkerArgs, JvmWorkerUtil, Versions}
 import mill.javalib.api.internal.ZincCompilerBridgeProvider
 import scala.annotation.nowarn
@@ -151,7 +151,12 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
   }
 
   def internalWorkerClassLoader: Worker[ClassLoader & AutoCloseable] = Task.Worker {
-    mill.util.Jvm.createClassLoader(classpath().map(_.path), getClass.getClassLoader)
+    mill.util.Jvm.createClassLoader(
+      classpath().map(_.path),
+      parent = getClass.getClassLoader,
+      sharedLoader = classOf[ClassLoaderCache].getClassLoader,
+      sharedPrefixes = Seq("xsbti")
+    )
   }
 
   @internal def internalWorker: Worker[InternalJvmWorkerApi] = Task.Worker {
@@ -169,7 +174,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
 
     val args = JvmWorkerArgs(
       zincCompilerBridge,
-      sharedClassLoaderCache = SharedCompilerClassLoaderCache,
+      sharedClassLoaderCache = ClassLoaderCache.sharedCompiler,
       classPath = classpath().map(_.path),
       jobs = jobs,
       zincLogDebug = zincLogDebug(),
