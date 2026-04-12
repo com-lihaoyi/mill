@@ -359,6 +359,17 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
              |compile-time classpath entry with that metadata.""".stripMargin
         )
         false
+      case IncrementalAnnotationProcessing.Mode.Enabled(
+            _,
+            _,
+            _,
+            true,
+            forcedChangedSources,
+            _,
+            _,
+            _
+          ) if forcedChangedSources.nonEmpty =>
+        false
       case _ => incrementalCompilation
     }
 
@@ -371,13 +382,16 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
     } else incrementalAnnotationProcessing match {
       case IncrementalAnnotationProcessing.Mode.Enabled(
             _,
-            sourceSnapshotChanged,
-            previousExtraProducts,
+            _,
+            staleProducts,
+            _,
+            _,
+            _,
+            _,
             _
           ) =>
         IncrementalAnnotationProcessing.prepareBeforeCompile(
-          sourceSnapshotChanged = sourceSnapshotChanged,
-          previousExtraProducts = previousExtraProducts
+          staleProducts = staleProducts
         )
       case IncrementalAnnotationProcessing.Mode.None =>
         IncrementalAnnotationProcessing.previousExtraProducts(workDir).foreach(os.remove.all(_))
@@ -441,7 +455,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       auxiliaryClassFileExtensions.map(new AuxiliaryClassFileExtension(_)).toArray
     )
     val incOptions = incrementalAnnotationProcessing match {
-      case IncrementalAnnotationProcessing.Mode.Enabled(_, _, _, externalHooks) =>
+      case IncrementalAnnotationProcessing.Mode.Enabled(_, _, _, _, _, _, externalHooks, _) =>
         incOptions0.withExternalHooks(externalHooks)
       case _ => incOptions0
     }
@@ -528,6 +542,11 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
     val previousScalaColor = sys.props(scalaColorProp)
     try {
       sys.props(scalaColorProp) = if (localConfig.logPromptColored) "true" else "false"
+      incrementalAnnotationProcessing match {
+        case IncrementalAnnotationProcessing.Mode.Enabled(_, _, _, _, _, _, _, tracker) =>
+          IncrementalAnnotationProcessing.installTracker(tracker)
+        case _ =>
+      }
 
       val newResult = incrementalCompiler.compile(in = inputs, logger = logger)
 
@@ -536,13 +555,14 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       store.set(AnalysisContents.create(newResult.analysis(), newResult.setup()))
 
       incrementalAnnotationProcessing match {
-        case IncrementalAnnotationProcessing.Mode.Enabled(sourceFingerprint, _, _, _) =>
+        case IncrementalAnnotationProcessing.Mode.Enabled(_, sourceStamps, _, _, _, _, _, tracker) =>
           IncrementalAnnotationProcessing.persist(
             workDir = workDir,
             classesDir = classesDir,
             analysis = newResult.analysis().asInstanceOf[Analysis],
             auxiliaryClassFileExtensions = auxiliaryClassFileExtensions,
-            sourceFingerprint = sourceFingerprint
+            sourceStamps = sourceStamps,
+            tracker = tracker
           )
         case _ =>
       }
@@ -550,8 +570,14 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       Result.Success(CompilationResult(workDir / zincCache, PathRef(classesDir)))
     } catch {
       case e: CompileFailed =>
+        incrementalAnnotationProcessing match {
+          case IncrementalAnnotationProcessing.Mode.Enabled(_, _, _, _, _, _, _, tracker) =>
+            tracker.cleanupFailedCompile()
+          case _ =>
+        }
         Result.Failure(e.toString)
     } finally {
+      IncrementalAnnotationProcessing.clearTracker()
       for (rep <- reporter) {
         for (f <- sources) {
           rep.fileVisited(f.toNIO)
@@ -706,7 +732,7 @@ object ZincWorker {
   private case class JavaCompilerCacheKey(javacOptions: Seq[String])
 
   private def getLocalOrCreateJavaTools(): JavaTools = {
-    val compiler = javac.JavaCompiler.local.getOrElse(javac.JavaCompiler.fork())
+    val compiler = IncrementalTrackingJavaCompiler.local.getOrElse(javac.JavaCompiler.fork())
     val docs = javac.Javadoc.local.getOrElse(javac.Javadoc.fork())
     javac.JavaTools(compiler, docs)
   }

@@ -2,30 +2,67 @@ package mill.javalib.zinc
 
 import mill.api.daemon.Logger
 import sbt.internal.inc.Analysis
-import xsbti.VirtualFileRef
+import xsbti.{PathBasedFile, VirtualFile, VirtualFileRef}
 import xsbti.compile.{CompileAnalysis, DefaultExternalHooks, ExternalHooks, FileHash}
 
 import java.io.File
+import java.nio.file.Path
 import java.util.Optional
+import javax.annotation.processing.Processor
+import javax.tools.FileObject
+import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 import scala.util.Using
+import IncrementalAnnotationProcessingSeqCompat.*
 
 private[mill] object IncrementalAnnotationProcessing {
+
+  enum TrackingMode {
+    case Isolating
+    case Aggregating
+  }
 
   enum Mode {
     case None
     case Disabled
     case Enabled(
-        sourceFingerprint: String,
-        sourceSnapshotChanged: Boolean,
-        previousExtraProducts: Set[os.Path],
-        externalHooks: ExternalHooks
+        trackingMode: TrackingMode,
+        sourceStamps: Map[os.Path, SourceStamp],
+        staleProducts: Set[os.Path],
+        forceFullRecompile: Boolean,
+        forcedChangedSources: Set[os.Path],
+        removedSources: Set[os.Path],
+        externalHooks: ExternalHooks,
+        tracker: CompileTracker
     )
+  }
+
+  case class SourceStamp(mtimeMillis: Long, size: Long) derives upickle.default.ReadWriter
+
+  case class Snapshot(
+      sourceStamps: Map[String, SourceStamp],
+      isolatingProducts: Map[String, Seq[String]],
+      aggregatingProducts: Seq[String]
+  ) derives upickle.default.ReadWriter
+
+  sealed trait Owner derives CanEqual
+  object Owner {
+    case class Source(path: os.Path) extends Owner
+    case object Aggregate extends Owner
   }
 
   val MetadataPath = os.RelPath("META-INF/gradle/incremental.annotation.processors")
   val ProcessorServicePath = os.RelPath("META-INF/services/javax.annotation.processing.Processor")
-  val SupportedKinds = Set("isolating", "aggregating", "dynamic")
+  private val DynamicIsolatingOption = "org.gradle.annotation.processing.isolating"
+  private val DynamicAggregatingOption = "org.gradle.annotation.processing.aggregating"
+
+  private val trackerLocal = new ThreadLocal[CompileTracker]()
+
+  def currentTracker: Option[CompileTracker] = Option(trackerLocal.get())
+
+  def installTracker(tracker: CompileTracker): Unit = trackerLocal.set(tracker)
+
+  def clearTracker(): Unit = trackerLocal.remove()
 
   def detect(
       javacOptions: Seq[String],
@@ -40,7 +77,7 @@ private[mill] object IncrementalAnnotationProcessing {
       val processorPath = parsePathOption(javacOptions, "-processorpath", "--processor-path")
         .map(_.map(os.Path(_, os.pwd)))
         .getOrElse(compileClasspath)
-      val metadataPath = processorPath ++ compileClasspath
+      val metadataPath = (processorPath ++ compileClasspath).distinct
 
       val activeProcessors = explicitProcessors(javacOptions).getOrElse {
         processorPath.iterator.flatMap(readProcessorServiceFile).toSet
@@ -49,47 +86,65 @@ private[mill] object IncrementalAnnotationProcessing {
       if (activeProcessors.isEmpty) Mode.None
       else {
         val metadata = metadataPath.iterator.flatMap(readProcessorMetadata).toMap
-        val unsupported = activeProcessors.toSeq.sorted.collect {
-          case processor if !metadata.get(processor).exists(SupportedKinds) => processor
-        }
+        val kinds = resolveTrackingModes(activeProcessors, metadata, processorPath, compileClasspath)
+        kinds match {
+          case None => Mode.Disabled
+          case Some(activeKinds) =>
+            val trackingMode =
+              if (activeKinds.exists(_ == TrackingMode.Aggregating)) TrackingMode.Aggregating
+              else TrackingMode.Isolating
 
-        if (unsupported.nonEmpty) {
-          Mode.Disabled
-        } else {
-          val sourceFingerprint = fingerprintSources(sources)
-          val previous = readSnapshot(snapshotPath(workDir))
-          val previousExtraProducts =
-            previous.products.map(workDir / "classes" / os.RelPath(_)).toSet
-          val sourceSnapshotChanged = previous.sourceFingerprint.exists(_ != sourceFingerprint)
-          if (sourceSnapshotChanged && previousExtraProducts.nonEmpty) {
-            log.debug(
-              s"Incremental annotation processing invalidated ${previousExtraProducts.size} extra generated outputs"
+            val sourceStamps = snapshotSources(sources)
+            val previous = readSnapshot(snapshotPath(workDir))
+            val previousStamps = previous.sourceStamps.iterator.map { case (path, stamp) =>
+              workDir / os.RelPath(path) -> stamp
+            }.toMap
+            val staleProducts = staleProductsFor(previous, sourceStamps, workDir)
+            val removedSources = previousStamps.keySet -- sourceStamps.keySet
+            val sourceSetDidChange = sourceSetChanged(previousStamps, sourceStamps)
+            val unresolvedIsolatingFallback =
+              trackingMode == TrackingMode.Isolating &&
+                previous.aggregatingProducts.nonEmpty &&
+                sourceSetDidChange
+            val forcedChangedSources =
+              if (trackingMode == TrackingMode.Aggregating && sourceSetDidChange)
+                sourceStamps.keySet
+              else if (unresolvedIsolatingFallback)
+                sourceStamps.keySet
+              else Set.empty[os.Path]
+            if (staleProducts.nonEmpty) {
+              log.debug(
+                s"Incremental annotation processing invalidated ${staleProducts.size} generated outputs"
+              )
+            }
+            Mode.Enabled(
+              trackingMode = trackingMode,
+              sourceStamps = sourceStamps,
+              staleProducts = staleProducts,
+              forceFullRecompile =
+                trackingMode == TrackingMode.Aggregating && sourceSetDidChange ||
+                  unresolvedIsolatingFallback,
+              forcedChangedSources = forcedChangedSources,
+              removedSources = removedSources,
+              externalHooks =
+                externalHooks(staleProducts, forcedChangedSources, removedSources, sourceStamps.keySet),
+              tracker = new CompileTracker(trackingMode, sources.toSet, workDir / "classes")
             )
-          }
-          Mode.Enabled(
-            sourceFingerprint = sourceFingerprint,
-            sourceSnapshotChanged = sourceSnapshotChanged,
-            previousExtraProducts = previousExtraProducts,
-            externalHooks = externalHooks(previousExtraProducts, sourceSnapshotChanged)
-          )
         }
       }
     }
   }
 
-  def prepareBeforeCompile(
-      sourceSnapshotChanged: Boolean,
-      previousExtraProducts: Set[os.Path]
-  ): Unit = {
-    if (sourceSnapshotChanged) previousExtraProducts.foreach(os.remove.all(_))
-  }
+  def prepareBeforeCompile(staleProducts: Set[os.Path]): Unit =
+    staleProducts.foreach(os.remove.all(_))
 
   def persist(
       workDir: os.Path,
       classesDir: os.Path,
       analysis: Analysis,
       auxiliaryClassFileExtensions: Seq[String],
-      sourceFingerprint: String
+      sourceStamps: Map[os.Path, SourceStamp],
+      tracker: CompileTracker
   ): Unit = {
     val managedProducts = analysis.relations.allProducts.iterator.flatMap { product =>
       val path = os.Path(product.id)
@@ -98,27 +153,78 @@ private[mill] object IncrementalAnnotationProcessing {
       }
     }.toSet
 
-    val extraProducts =
-      if (os.exists(classesDir)) {
-        os.walk(classesDir).iterator.filter(os.isFile).toSet -- managedProducts
-      } else Set.empty[os.Path]
+    val tracked = tracker.snapshot
+    val filteredIsolating = tracked.isolatingProducts.view
+      .mapValues(_.filterNot(managedProducts))
+      .filter(_._2.nonEmpty)
+      .map { case (source, products) => source.relativeTo(workDir).toString -> products }
+      .toMap
 
-    writeSnapshot(snapshotPath(workDir), sourceFingerprint, extraProducts)
+    val filteredAggregating =
+      tracked.aggregatingProducts.filterNot(managedProducts).toSeq.sortBy(_.toString)
+
+    writeSnapshot(
+      snapshotPath(workDir),
+      Snapshot(
+        sourceStamps = sourceStamps.toSeq.sortBy(_._1.toString).map { case (path, stamp) =>
+          path.relativeTo(workDir).toString -> stamp
+        }.toMap,
+        isolatingProducts = filteredIsolating.view
+          .mapValues(_.toSeq.sortBy(_.toString).map(_.relativeTo(classesDir).toString))
+          .toMap,
+        aggregatingProducts = filteredAggregating.map(_.relativeTo(classesDir).toString)
+      )
+    )
+  }
+
+  def previousExtraProducts(workDir: os.Path): Set[os.Path] = {
+    val snapshot = readSnapshot(snapshotPath(workDir))
+    val classesDir = workDir / "classes"
+    snapshot.isolatingProducts.values.flatten.map(classesDir / os.RelPath(_)).toSet ++
+      snapshot.aggregatingProducts.map(classesDir / os.RelPath(_))
+  }
+
+  def snapshotPath(workDir: os.Path): os.Path =
+    workDir / "incremental-annotation-processing.json"
+
+  def readSnapshot(path: os.Path): Snapshot =
+    if (!os.exists(path)) Snapshot(Map.empty, Map.empty, Nil)
+    else
+      scala.util.Try(upickle.default.read[Snapshot](os.read(path)))
+        .getOrElse(Snapshot(Map.empty, Map.empty, Nil))
+
+  def writeSnapshot(path: os.Path, snapshot: Snapshot): Unit = {
+    os.makeDir.all(path / os.up)
+    os.write.over(path, upickle.default.write(snapshot, indent = 2))
   }
 
   def externalHooks(
-      previousExtraProducts: Set[os.Path],
-      sourceSnapshotChanged: Boolean
+      staleProducts: Set[os.Path],
+      forcedChangedSources: Set[os.Path],
+      removedSources: Set[os.Path],
+      currentSources: Set[os.Path]
   ): ExternalHooks = {
-    val removedProducts =
-      if (sourceSnapshotChanged)
-        previousExtraProducts.map(p => VirtualFileRef.of(p.toString)).asJava
-      else Set.empty[VirtualFileRef].asJava
+    val removedProducts = staleProducts.map(p => VirtualFileRef.of(p.toString)).asJava
+    val changedSources =
+      if (forcedChangedSources.nonEmpty || removedSources.nonEmpty)
+        Optional.of(new xsbti.compile.Changes[VirtualFileRef] {
+          override def getAdded(): java.util.Set[VirtualFileRef] =
+            Set.empty[VirtualFileRef].asJava
+          override def getRemoved(): java.util.Set[VirtualFileRef] =
+            removedSources.map(p => VirtualFileRef.of(p.toString)).asJava
+          override def getChanged(): java.util.Set[VirtualFileRef] =
+            forcedChangedSources.map(p => VirtualFileRef.of(p.toString)).asJava
+          override def getUnmodified(): java.util.Set[VirtualFileRef] =
+            (currentSources -- forcedChangedSources).map(p => VirtualFileRef.of(p.toString)).asJava
+          override def isEmpty(): java.lang.Boolean =
+            java.lang.Boolean.valueOf(forcedChangedSources.isEmpty && removedSources.isEmpty)
+        })
+      else Optional.empty[xsbti.compile.Changes[VirtualFileRef]]()
 
     val lookup = new ExternalHooks.Lookup {
       override def getChangedSources(
           previousAnalysis: CompileAnalysis
-      ): Optional[xsbti.compile.Changes[VirtualFileRef]] = Optional.empty()
+      ): Optional[xsbti.compile.Changes[VirtualFileRef]] = changedSources
 
       override def getChangedBinaries(
           previousAnalysis: CompileAnalysis
@@ -142,39 +248,6 @@ private[mill] object IncrementalAnnotationProcessing {
 
     new DefaultExternalHooks(Optional.of(lookup), Optional.empty())
   }
-
-  case class Snapshot(sourceFingerprint: Option[String], products: Seq[String])
-      derives upickle.default.ReadWriter
-
-  def snapshotPath(workDir: os.Path): os.Path =
-    workDir / "incremental-annotation-processing.json"
-
-  def readSnapshot(path: os.Path): Snapshot = {
-    if (!os.exists(path)) Snapshot(None, Nil)
-    else
-      scala.util.Try(upickle.default.read[Snapshot](os.read(path))).getOrElse(Snapshot(None, Nil))
-  }
-
-  def previousExtraProducts(workDir: os.Path): Set[os.Path] = {
-    val snapshot = readSnapshot(snapshotPath(workDir))
-    snapshot.products.map(workDir / "classes" / os.RelPath(_)).toSet
-  }
-
-  def writeSnapshot(path: os.Path, sourceFingerprint: String, products: Set[os.Path]): Unit = {
-    os.makeDir.all(path / os.up)
-    val classesDir = path / os.up / "classes"
-    val snapshot = Snapshot(
-      sourceFingerprint = Some(sourceFingerprint),
-      products = products.toSeq.sortBy(_.toString).map(_.relativeTo(classesDir).toString)
-    )
-    os.write.over(path, upickle.default.write(snapshot, indent = 2))
-  }
-
-  def fingerprintSources(sources: Seq[os.Path]): String =
-    sources.toSeq.sorted.map { source =>
-      val stat = os.stat(source)
-      s"${source.toString}\t${stat.mtime.toMillis}\t${stat.size}"
-    }.mkString("\n")
 
   def explicitProcessors(javacOptions: Seq[String]): Option[Set[String]] =
     parseSimpleOption(javacOptions, "-processor", "-processor")
@@ -209,8 +282,6 @@ private[mill] object IncrementalAnnotationProcessing {
           processor.trim -> kind.trim.toLowerCase(java.util.Locale.ROOT)
       }
 
-  // Gradle documents this metadata file format here:
-  // https://docs.gradle.org/current/userguide/java_plugin.html#sec:incremental_annotation_processing
   def readTextFile(root: os.Path, relPath: os.RelPath): Seq[String] = {
     def parseEntries(content: String): Seq[String] =
       content.linesIterator.map(_.trim).filter(line => line.nonEmpty && !line.startsWith("#")).toSeq
@@ -220,10 +291,233 @@ private[mill] object IncrementalAnnotationProcessing {
       .getOrElse(Nil)
     else if (os.isFile(root) && root.ext == "jar") {
       Using.resource(os.zip.open(root)) { zip =>
-        Option.when(
-          os.exists(zip / relPath)
-        ) { parseEntries(os.read(zip / relPath)) }.getOrElse(Nil)
+        Option.when(os.exists(zip / relPath))(parseEntries(os.read(zip / relPath))).getOrElse(Nil)
       }
     } else Nil
   }
+
+  def fileObjectPath(fileObject: FileObject): Option[Path] =
+    fileObject match {
+      case tracked: TrackingJavaFileObject => tracked.path
+      case tracked: TrackingPlainFileObject => tracked.path
+      case _ =>
+        reflectedUnderlyingVirtualFile(fileObject)
+          .collect { case pathBased: PathBasedFile => pathBased.toPath.toAbsolutePath.normalize() }
+          .orElse(reflectedNestedFileObject(fileObject).flatMap(fileObjectPath))
+          .orElse {
+            Option(fileObject.toUri)
+              .filter(_.getScheme == "file")
+              .map(uri => Path.of(uri).toAbsolutePath.normalize())
+          }
+    }
+
+  private def snapshotSources(sources: Seq[os.Path]): Map[os.Path, SourceStamp] =
+    sources.iterator.map { source =>
+      val stat = os.stat(source)
+      source -> SourceStamp(stat.mtime.toMillis, stat.size)
+    }.toMap
+
+  private def staleProductsFor(
+      previous: Snapshot,
+      currentStamps: Map[os.Path, SourceStamp],
+      workDir: os.Path
+  ): Set[os.Path] = {
+    val classesDir = workDir / "classes"
+    val previousStamps = previous.sourceStamps.iterator.map { case (path, stamp) =>
+      workDir / os.RelPath(path) -> stamp
+    }.toMap
+    val changedSources = changedSourcesSince(previousStamps, currentStamps)
+    val anySourceChanged = sourceSetChanged(previousStamps, currentStamps)
+
+    val staleIsolating =
+      changedSources.iterator
+        .flatMap(source => previous.isolatingProducts.get(source.relativeTo(workDir).toString).iterator)
+        .flatten
+        .map(classesDir / os.RelPath(_))
+        .toSet
+
+    val staleAggregating =
+      if (anySourceChanged)
+        previous.aggregatingProducts.iterator.map(classesDir / os.RelPath(_)).toSet
+      else Set.empty[os.Path]
+
+    staleIsolating ++ staleAggregating
+  }
+
+  private def resolveTrackingModes(
+      activeProcessors: Set[String],
+      metadata: Map[String, String],
+      processorPath: Seq[os.Path],
+      compileClasspath: Seq[os.Path]
+  ): Option[Set[TrackingMode]] = {
+    val classpath = (processorPath ++ compileClasspath).distinct
+    activeProcessors.iterator.map { processor =>
+      metadata.get(processor) match {
+        case Some("isolating") => Some(TrackingMode.Isolating)
+        case Some("aggregating") => Some(TrackingMode.Aggregating)
+        case Some("dynamic") => resolveDynamicTrackingMode(processor, classpath)
+        case _ => None
+      }
+    }.toSeq.sequence.map(_.toSet)
+  }
+
+  private def reflectedUnderlyingVirtualFile(fileObject: FileObject): Option[VirtualFile] =
+    reflectedValues(fileObject).collectFirst { case virtual: VirtualFile => virtual }
+
+  private def reflectedNestedFileObject(fileObject: FileObject): Option[FileObject] =
+    reflectedValues(fileObject).collectFirst {
+      case nested: FileObject if nested ne fileObject => nested
+    }
+
+  private def reflectedValues(value: AnyRef): Iterator[AnyRef] =
+    Iterator
+      .iterate(Option(value.getClass))(_.flatMap(cls => Option(cls.getSuperclass)))
+      .takeWhile(_.nonEmpty)
+      .flatten
+      .flatMap(_.getDeclaredFields.iterator)
+      .flatMap { field =>
+        scala.util.Try {
+          field.setAccessible(true)
+          field.get(value)
+        }.toOption.collect { case ref: AnyRef => ref }
+      }
+
+  private def changedSourcesSince(
+      previousStamps: Map[os.Path, SourceStamp],
+      currentStamps: Map[os.Path, SourceStamp]
+  ): Set[os.Path] =
+    previousStamps.iterator.collect {
+      case (source, stamp) if currentStamps.get(source) != Some(stamp) => source
+    }.toSet
+
+  private def sourceSetChanged(
+      previousStamps: Map[os.Path, SourceStamp],
+      currentStamps: Map[os.Path, SourceStamp]
+  ): Boolean =
+    changedSourcesSince(previousStamps, currentStamps).nonEmpty ||
+      (currentStamps.keySet -- previousStamps.keySet).nonEmpty
+
+  private def resolveDynamicTrackingMode(
+      processorClassName: String,
+      classpath: Seq[os.Path]
+  ): Option[TrackingMode] = {
+    val urls = classpath.iterator.map(_.toIO.toURI.toURL).toArray
+    Using.resource(new java.net.URLClassLoader(urls, getClass.getClassLoader)) { loader =>
+      scala.util
+        .Try {
+          val cls = loader.loadClass(processorClassName)
+          val processor = cls.getDeclaredConstructor().newInstance().asInstanceOf[Processor]
+          val options = processor.getSupportedOptions.asScala
+          if (options.contains(DynamicAggregatingOption)) TrackingMode.Aggregating
+          else if (options.contains(DynamicIsolatingOption)) TrackingMode.Isolating
+          else null
+        }
+        .toOption
+        .filter(_ != null)
+    }
+  }
+
+  final class CompileTracker(
+      trackingMode: TrackingMode,
+      sources: Set[os.Path],
+      classesDir: os.Path
+  ) {
+    private val sourceOwners = sources.iterator.map(p => p.toNIO.toAbsolutePath.normalize() -> Owner.Source(p)).toMap
+    private val sourceMetadata = sources.iterator.map(SourceMetadata.apply).toSeq
+    private val generatedOwners = mutable.LinkedHashMap.empty[Path, Owner]
+    private val isolatingProducts = mutable.LinkedHashMap.empty[os.Path, mutable.LinkedHashSet[os.Path]]
+    private val aggregatingProducts = mutable.LinkedHashSet.empty[os.Path]
+    private val touchedProducts = mutable.LinkedHashSet.empty[os.Path]
+
+    def recordGenerated(fileObject: FileObject, sibling: Option[FileObject]): Unit = {
+      for (outputPath <- fileObjectPath(fileObject)) {
+        val siblingPath = sibling.flatMap(fileObjectPath)
+        val owner = ownerFor(siblingPath, outputPath)
+        generatedOwners(outputPath) = owner
+        val outputOsPath = os.Path(outputPath)
+        if (outputOsPath.startsWith(classesDir)) {
+          touchedProducts += outputOsPath
+          owner match {
+            case Owner.Source(source) if trackingMode == TrackingMode.Isolating =>
+              val products = isolatingProducts.getOrElseUpdate(source, mutable.LinkedHashSet.empty)
+              products += outputOsPath
+            case _ =>
+              aggregatingProducts += outputOsPath
+          }
+        }
+      }
+    }
+
+    def cleanupFailedCompile(): Unit =
+      touchedProducts.foreach(os.remove.all(_))
+
+    def snapshot: TrackerSnapshot =
+      TrackerSnapshot(
+        isolatingProducts = isolatingProducts.view.mapValues(_.toSet).toMap,
+        aggregatingProducts = aggregatingProducts.toSet
+      )
+
+    private def ownerFor(siblingPath: Option[Path], outputPath: Path): Owner =
+      trackingMode match {
+        case TrackingMode.Aggregating => Owner.Aggregate
+        case TrackingMode.Isolating =>
+          siblingPath
+            .flatMap(path => sourceOwners.get(path).orElse(generatedOwners.get(path)))
+            .orElse(inferOwnerFromOutputPath(outputPath))
+            .getOrElse(Owner.Aggregate)
+      }
+
+    private def inferOwnerFromOutputPath(outputPath: Path): Option[Owner.Source] = {
+      val normalized = outputPath.toAbsolutePath.normalize()
+      val outputString = normalized.toString
+      val fileName = normalized.getFileName.toString
+      val stem = {
+        val withoutExt = fileName.reverse.dropWhile(_ != '.').drop(1).reverse
+        val base = if (withoutExt.nonEmpty) withoutExt else fileName
+        base.split('.').last
+      }
+      val candidates = sourceMetadata.filter { source =>
+        outputString.contains(source.packagePath) && source.matchesGeneratedStem(stem)
+      }
+      Option.when(candidates.size == 1)(Owner.Source(candidates.head.path))
+    }
+  }
+
+  case class TrackerSnapshot(
+      isolatingProducts: Map[os.Path, Set[os.Path]],
+      aggregatingProducts: Set[os.Path]
+  )
+
+  case class SourceMetadata(path: os.Path, simpleName: String, packagePath: String) {
+    def matchesGeneratedStem(stem: String): Boolean =
+      stem == simpleName ||
+        stem.startsWith(simpleName) ||
+        stem.endsWith(simpleName)
+  }
+
+  object SourceMetadata {
+    def apply(path: os.Path): SourceMetadata = {
+      val simpleName = path.baseName
+      val parentSegments = path.segments.toSeq
+      val srcIndex = parentSegments.indexOf("src")
+      val packageSegments =
+        if (srcIndex >= 0) parentSegments.drop(srcIndex + 1).dropRight(1)
+        else parentSegments.dropRight(1)
+      val packagePath =
+        if (packageSegments.isEmpty) File.separator
+        else packageSegments.mkString(File.separator, File.separator, File.separator)
+      SourceMetadata(path, simpleName, packagePath)
+    }
+  }
+}
+
+private object IncrementalAnnotationProcessingSeqCompat {
+  extension [A](items: Seq[Option[A]])
+    def sequence: Option[Seq[A]] =
+      items.foldRight(Option(Seq.empty[A])) { (item, acc) =>
+        for {
+          value <- item
+          rest <- acc
+        } yield value +: rest
+      }
 }

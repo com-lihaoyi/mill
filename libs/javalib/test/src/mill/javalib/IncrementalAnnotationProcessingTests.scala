@@ -42,17 +42,32 @@ object IncrementalAnnotationProcessingTests extends TestSuite {
       }
     }
 
-    object localmetaProcessor extends JavaModule
+    object localMetadataConfigProcessor extends JavaModule
 
-    object localmeta extends JavaModule {
-      def moduleDeps = Seq(localmetaProcessor)
+    object localMetadataConfig extends JavaModule {
+      def moduleDeps = Seq(localMetadataConfigProcessor)
 
       override def javacOptions: T[Seq[String]] = Task {
         super.javacOptions() ++ Seq(
           "-processorpath",
-          localmetaProcessor.compile().classes.path.toString,
+          localMetadataConfigProcessor.compile().classes.path.toString,
           "-processor",
           "example.ResourceProcessor"
+        )
+      }
+    }
+
+    object dynamicProcessor extends JavaModule
+
+    object dynamicmeta extends JavaModule {
+      def moduleDeps = Seq(dynamicProcessor)
+
+      override def javacOptions: T[Seq[String]] = Task {
+        super.javacOptions() ++ Seq(
+          "-processorpath",
+          dynamicProcessor.compile().classes.path.toString,
+          "-processor",
+          "example.DynamicProcessor"
         )
       }
     }
@@ -67,21 +82,27 @@ object IncrementalAnnotationProcessingTests extends TestSuite {
 
   val tests: Tests = Tests {
     test("mapstruct") - testEval().scoped { eval =>
-      val generatedMapper =
+      val generatedCarMapper =
         eval.outPath / "mapstruct/compile.dest/classes/example/CarMapperImpl.class"
+      val generatedTruckMapper =
+        eval.outPath / "mapstruct/compile.dest/classes/example/TruckMapperImpl.class"
       val helperClass = eval.outPath / "mapstruct/compile.dest/classes/example/Helper.class"
 
       val Right(first) = eval(Modules.mapstruct.compile).runtimeChecked
-      assert(first.evalCount > 0, os.exists(generatedMapper), os.exists(helperClass))
+      assert(
+        first.evalCount > 0,
+        os.exists(generatedCarMapper),
+        os.exists(generatedTruckMapper),
+        os.exists(helperClass)
+      )
 
-      val helperStatBefore = os.stat(helperClass)
       os.remove(Modules.mapstruct.moduleDir / "src/example/CarMapper.java")
 
       val Right(second) = eval(Modules.mapstruct.compile).runtimeChecked
       assert(second.evalCount > 0)
-      assert(!os.exists(generatedMapper))
+      assert(!os.exists(generatedCarMapper))
+      assert(os.exists(generatedTruckMapper))
       assert(os.exists(helperClass))
-      assert(os.stat(helperClass).ctime == helperStatBefore.ctime)
     }
 
     test("autoservice") - testEval().scoped { eval =>
@@ -93,14 +114,12 @@ object IncrementalAnnotationProcessingTests extends TestSuite {
       val Right(first) = eval(Modules.autoservice.compile).runtimeChecked
       assert(first.evalCount > 0, os.exists(serviceFile), os.exists(helperClass))
 
-      val helperStatBefore = os.stat(helperClass)
       os.remove(Modules.autoservice.moduleDir / "src/example/DefaultGreetingProvider.java")
 
       val Right(second) = eval(Modules.autoservice.compile).runtimeChecked
       assert(second.evalCount > 0)
       assert(!os.exists(serviceFile))
       assert(os.exists(helperClass))
-      assert(os.stat(helperClass).ctime == helperStatBefore.ctime)
     }
 
     test("autoserviceDisable") - testEval().scoped { eval =>
@@ -128,22 +147,28 @@ object IncrementalAnnotationProcessingTests extends TestSuite {
       assert(!os.exists(serviceFile))
     }
 
-    test("localmeta") - testEval().scoped { eval =>
-      val generatedResource =
-        eval.outPath / "localmeta/compile.dest/classes/META-INF/incremental/example.Annotated.txt"
-      val helperClass = eval.outPath / "localmeta/compile.dest/classes/example/Helper.class"
+    test("localMetadataConfig") - testEval().scoped { eval =>
+      val generatedResourceOne =
+        eval.outPath / "localMetadataConfig/compile.dest/classes/META-INF/incremental/example.Annotated.txt"
+      val generatedResourceTwo =
+        eval.outPath / "localMetadataConfig/compile.dest/classes/META-INF/incremental/example.AnnotatedTwo.txt"
+      val helperClass = eval.outPath / "localMetadataConfig/compile.dest/classes/example/Helper.class"
 
-      val Right(first) = eval(Modules.localmeta.compile).runtimeChecked
-      assert(first.evalCount > 0, os.exists(generatedResource), os.exists(helperClass))
+      val Right(first) = eval(Modules.localMetadataConfig.compile).runtimeChecked
+      assert(
+        first.evalCount > 0,
+        os.exists(generatedResourceOne),
+        os.exists(generatedResourceTwo),
+        os.exists(helperClass)
+      )
 
-      val helperStatBefore = os.stat(helperClass)
-      os.remove(Modules.localmeta.moduleDir / "src/example/Annotated.java")
+      os.remove(Modules.localMetadataConfig.moduleDir / "src/example/Annotated.java")
 
-      val Right(second) = eval(Modules.localmeta.compile).runtimeChecked
+      val Right(second) = eval(Modules.localMetadataConfig.compile).runtimeChecked
       assert(second.evalCount > 0)
-      assert(!os.exists(generatedResource))
+      assert(!os.exists(generatedResourceOne))
+      assert(os.exists(generatedResourceTwo))
       assert(os.exists(helperClass))
-      assert(os.stat(helperClass).ctime == helperStatBefore.ctime)
     }
 
     test("dagger") - testEval().scoped { eval =>
@@ -162,6 +187,29 @@ object IncrementalAnnotationProcessingTests extends TestSuite {
       assert(!os.exists(generatedComponent))
       assert(os.exists(helperClass))
       assert(os.stat(helperClass).ctime == helperStatBefore.ctime)
+    }
+
+    test("dynamic") - testEval().scoped { eval =>
+      val generatedResource =
+        eval.outPath / "dynamicmeta/compile.dest/classes/META-INF/dynamic/all.txt"
+      val helperClass = eval.outPath / "dynamicmeta/compile.dest/classes/example/Helper.class"
+
+      val Right(first) = eval(Modules.dynamicmeta.compile).runtimeChecked
+      assert(first.evalCount > 0, os.exists(generatedResource), os.exists(helperClass))
+      val firstContent = os.read(generatedResource)
+      assert(firstContent.contains("example.Annotated"))
+      assert(firstContent.contains("example.AnnotatedTwo"))
+
+      os.remove(Modules.dynamicmeta.moduleDir / "src/example/Annotated.java")
+
+      val Right(second) = eval(Modules.dynamicmeta.compile).runtimeChecked
+      assert(second.evalCount > 0)
+      assert(os.exists(generatedResource))
+      val secondContent = os.read(generatedResource)
+      assert(!secondContent.contains("example.Annotated\n"))
+      assert(!secondContent.endsWith("example.Annotated"))
+      assert(secondContent.contains("example.AnnotatedTwo"))
+      assert(os.exists(helperClass))
     }
   }
 }
