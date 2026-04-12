@@ -262,7 +262,9 @@ private final class TrackingJavaFileObject(
 
   private def onOpen[T](result: => T): T = {
     classFileManager.foreach(
-      _.generated(Array[VirtualFile](sbt.internal.inc.PlainVirtualFile(path.getOrElse(Paths.get(toUri)))))
+      _.generated(
+        Array[VirtualFile](sbt.internal.inc.PlainVirtualFile(path.getOrElse(Paths.get(toUri))))
+      )
     )
     tracker.foreach(_.recordSiblingGenerated(path, siblingPath))
     result
