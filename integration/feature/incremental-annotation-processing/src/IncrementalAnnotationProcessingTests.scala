@@ -78,7 +78,7 @@ object IncrementalAnnotationProcessingTests extends UtestIntegrationTestSuite {
   )
 }
 """,
-            """object autoservice extends JavaModule {
+          """object autoservice extends JavaModule {
   def mvnDeps = Seq(
     mvn"com.google.auto.service:auto-service-annotations:1.1.1"
   )
