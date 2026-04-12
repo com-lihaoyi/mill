@@ -338,6 +338,11 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
     os.makeDir.all(workDir)
 
     val classesDir = workDir / "classes"
+    if (!incrementalCompilation) {
+      // Non-incremental compiles need a clean output directory; otherwise stale classes from
+      // deleted sources remain visible on the classpath and can mask compilation failures.
+      os.remove.all(classesDir)
+    }
 
     if (localConfig.logDebugEnabled) {
       processConfig.log.debug(
