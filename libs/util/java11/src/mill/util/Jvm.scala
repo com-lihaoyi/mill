@@ -365,6 +365,10 @@ object Jvm {
       sharedLoader = sharedLoader,
       sharedPrefixes = sharedPrefixes
     )
+    // Snapshot security providers before running, so we can clean up any
+    // providers registered by code in the isolated classloader. Providers
+    // from a closed classloader would cause ClassCastExceptions on reuse.
+    val providersBefore = java.security.Security.getProviders.map(_.getName).toSet
     Thread.currentThread().setContextClassLoader(newClassloader)
     try {
       f(newClassloader)
@@ -374,6 +378,14 @@ object Jvm {
     } finally {
       Thread.currentThread().setContextClassLoader(oldClassloader)
       newClassloader.close()
+      // Remove any security providers that were added by code in the
+      // now-closed classloader, to prevent ClassCastExceptions when a
+      // subsequent classloader loads the same provider classes
+      for (p <- java.security.Security.getProviders) {
+        if (!providersBefore.contains(p.getName)) {
+          java.security.Security.removeProvider(p.getName)
+        }
+      }
     }
   }
 
