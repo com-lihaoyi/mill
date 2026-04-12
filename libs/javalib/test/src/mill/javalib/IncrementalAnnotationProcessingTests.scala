@@ -119,7 +119,7 @@ object IncrementalAnnotationProcessingTests extends TestSuite {
           |}
           |""".stripMargin
       )
-      os.remove(resourcePath / "autoservice-enabled")
+      os.remove(eval.evaluator.workspace / "autoservice-enabled")
 
       val Right(second) = eval(Modules.autoservice.compile).runtimeChecked
       assert(second.evalCount > 0)

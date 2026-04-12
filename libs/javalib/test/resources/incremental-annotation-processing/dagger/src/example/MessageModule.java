@@ -6,7 +6,7 @@ import dagger.Provides;
 @Module
 public class MessageModule {
     @Provides
-    static String provideMessage() {
+    static String message() {
         return "hello";
     }
 }
