@@ -80,29 +80,170 @@ object IncrementalAnnotationProcessingTests extends TestSuite {
 
   def testEval() = UnitTester(Modules, resourcePath)
 
-  val tests: Tests = Tests {
-    test("mapstruct") - testEval().scoped { eval =>
-      val generatedCarMapper =
-        eval.outPath / "mapstruct/compile.dest/classes/example/CarMapperImpl.class"
-      val generatedTruckMapper =
-        eval.outPath / "mapstruct/compile.dest/classes/example/TruckMapperImpl.class"
-      val helperClass = eval.outPath / "mapstruct/compile.dest/classes/example/Helper.class"
+  private def mtimeMillis(path: os.Path): Long = os.stat(path).mtime.toMillis
 
-      val Right(first) = eval(Modules.mapstruct.compile).runtimeChecked
-      assert(
-        first.evalCount > 0,
-        os.exists(generatedCarMapper),
-        os.exists(generatedTruckMapper),
-        os.exists(helperClass)
+  private def assertUpdated(path: os.Path, before: Long): Unit =
+    assert(os.exists(path), mtimeMillis(path) != before)
+
+  private def assertUnchanged(path: os.Path, before: Long): Unit =
+    assert(os.exists(path), mtimeMillis(path) == before)
+
+  val tests: Tests = Tests {
+    test("mapstruct") {
+      val baseOutputs = Seq(
+        "Car.class",
+        "CarDto.class",
+        "CarMapper.class",
+        "CarMapperImpl.class",
+        "Helper.class",
+        "Support.class",
+        "Truck.class",
+        "TruckDto.class",
+        "TruckMapper.class",
+        "TruckMapperImpl.class"
       )
 
-      os.remove(Modules.mapstruct.moduleDir / "src/example/CarMapper.java")
+      def outputs(eval: mill.testkit.UnitTester): Map[String, os.Path] =
+        baseOutputs.map { name =>
+          name -> (eval.outPath / os.RelPath(s"mapstruct/compile.dest/classes/example/$name"))
+        }.toMap
 
-      val Right(second) = eval(Modules.mapstruct.compile).runtimeChecked
-      assert(second.evalCount > 0)
-      assert(!os.exists(generatedCarMapper))
-      assert(os.exists(generatedTruckMapper))
-      assert(os.exists(helperClass))
+      def assertScenario(
+          eval: mill.testkit.UnitTester,
+          mutate: os.Path => Unit,
+          updated: Set[String] = Set.empty,
+          deleted: Set[String] = Set.empty
+      ): Unit = {
+        val compiledOutputs = outputs(eval)
+
+        val Right(first) = eval(Modules.mapstruct.compile).runtimeChecked
+        assert(first.evalCount > 0, compiledOutputs.values.forall(os.exists))
+
+        val before = compiledOutputs.view.mapValues(mtimeMillis).toMap
+
+        mutate(Modules.mapstruct.moduleDir)
+
+        val Right(second) = eval(Modules.mapstruct.compile).runtimeChecked
+        assert(second.evalCount > 0)
+
+        updated.foreach(name => assertUpdated(compiledOutputs(name), before(name)))
+        deleted.foreach(name => assert(!os.exists(compiledOutputs(name))))
+
+        val unchanged = compiledOutputs.keySet -- updated -- deleted
+        unchanged.foreach(name => assertUnchanged(compiledOutputs(name), before(name)))
+      }
+
+      test("deleteCarMapper") - testEval().scoped { eval =>
+        assertScenario(
+          eval,
+          moduleDir => os.remove(moduleDir / "src/example/CarMapper.java"),
+          deleted = Set("CarMapper.class", "CarMapperImpl.class")
+        )
+      }
+
+      test("changeCarMapper") - testEval().scoped { eval =>
+        assertScenario(
+          eval,
+          moduleDir =>
+            os.write.over(
+              moduleDir / "src/example/CarMapper.java",
+              """package example;
+                |
+                |import org.mapstruct.Mapper;
+                |
+                |@Mapper
+                |public interface CarMapper {
+                |    CarDto map(Car car);
+                |    Car map(CarDto carDto);
+                |}
+                |""".stripMargin
+            ),
+          updated = Set("CarMapper.class", "CarMapperImpl.class")
+        )
+      }
+
+      test("deleteTruckMapper") - testEval().scoped { eval =>
+        assertScenario(
+          eval,
+          moduleDir => os.remove(moduleDir / "src/example/TruckMapper.java"),
+          deleted = Set("TruckMapper.class", "TruckMapperImpl.class")
+        )
+      }
+
+      test("changeTruckMapper") - testEval().scoped { eval =>
+        assertScenario(
+          eval,
+          moduleDir =>
+            os.write.over(
+              moduleDir / "src/example/TruckMapper.java",
+              """package example;
+                |
+                |import org.mapstruct.Mapper;
+                |
+                |@Mapper
+                |public interface TruckMapper {
+                |    TruckDto map(Truck truck);
+                |    Truck map(TruckDto truckDto);
+                |}
+                |""".stripMargin
+            ),
+          updated = Set("TruckMapper.class", "TruckMapperImpl.class")
+        )
+      }
+
+      test("deleteHelper") - testEval().scoped { eval =>
+        assertScenario(
+          eval,
+          moduleDir => os.remove(moduleDir / "src/example/Helper.java"),
+          deleted = Set("Helper.class")
+        )
+      }
+
+      test("changeHelper") - testEval().scoped { eval =>
+        assertScenario(
+          eval,
+          moduleDir =>
+            os.write.over(
+              moduleDir / "src/example/Helper.java",
+              """package example;
+                |
+                |public class Helper {
+                |    public static String value() {
+                |        return "helper changed";
+                |    }
+                |}
+                |""".stripMargin
+            ),
+          updated = Set("Helper.class")
+        )
+      }
+
+      test("deleteSupport") - testEval().scoped { eval =>
+        assertScenario(
+          eval,
+          moduleDir => os.remove(moduleDir / "src/example/Support.java"),
+          deleted = Set("Support.class")
+        )
+      }
+
+      test("changeSupport") - testEval().scoped { eval =>
+        assertScenario(
+          eval,
+          moduleDir =>
+            os.write.over(
+              moduleDir / "src/example/Support.java",
+              """package example;
+                |
+                |public class Support {
+                |    public static String value() {
+                |        return "support changed";
+                |    }
+                |}
+                |""".stripMargin
+            ),
+          updated = Set("Support.class")
+        )
+      }
     }
 
     test("autoservice") - testEval().scoped { eval =>

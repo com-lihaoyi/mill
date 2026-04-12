@@ -9,6 +9,8 @@ import java.io.File
 import java.nio.file.Path
 import java.util.Optional
 import javax.annotation.processing.Processor
+import javax.lang.model.element.{Element, ElementKind, TypeElement}
+import javax.lang.model.util.Elements
 import javax.tools.FileObject
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
@@ -42,13 +44,13 @@ private[mill] object IncrementalAnnotationProcessing {
   case class Snapshot(
       sourceStamps: Map[String, SourceStamp],
       isolatingProducts: Map[String, Seq[String]],
-      aggregatingProducts: Seq[String]
+      aggregatingProducts: Map[String, Seq[String]],
+      unknownProducts: Seq[String]
   ) derives upickle.default.ReadWriter
 
-  sealed trait Owner derives CanEqual
-  object Owner {
-    case class Source(path: os.Path) extends Owner
-    case object Aggregate extends Owner
+  enum Provenance {
+    case Known(owners: Set[os.Path])
+    case Unknown
   }
 
   val MetadataPath = os.RelPath("META-INF/gradle/incremental.annotation.processors")
@@ -102,16 +104,8 @@ private[mill] object IncrementalAnnotationProcessing {
             val staleProducts = staleProductsFor(previous, sourceStamps, workDir)
             val removedSources = previousStamps.keySet -- sourceStamps.keySet
             val sourceSetDidChange = sourceSetChanged(previousStamps, sourceStamps)
-            val unresolvedIsolatingFallback =
-              trackingMode == TrackingMode.Isolating &&
-                previous.aggregatingProducts.nonEmpty &&
-                sourceSetDidChange
             val forcedChangedSources =
-              if (trackingMode == TrackingMode.Aggregating && sourceSetDidChange)
-                sourceStamps.keySet
-              else if (unresolvedIsolatingFallback)
-                sourceStamps.keySet
-              else Set.empty[os.Path]
+              forcedChangedSourcesFor(previous, sourceStamps.keySet, removedSources, workDir)
             if (staleProducts.nonEmpty) {
               log.debug(
                 s"Incremental annotation processing invalidated ${staleProducts.size} generated outputs"
@@ -122,8 +116,8 @@ private[mill] object IncrementalAnnotationProcessing {
               sourceStamps = sourceStamps,
               staleProducts = staleProducts,
               forceFullRecompile =
-                trackingMode == TrackingMode.Aggregating && sourceSetDidChange ||
-                  unresolvedIsolatingFallback,
+                (previous.unknownProducts.nonEmpty && sourceSetDidChange) ||
+                  (trackingMode == TrackingMode.Aggregating && sourceSetDidChange),
               forcedChangedSources = forcedChangedSources,
               removedSources = removedSources,
               externalHooks =
@@ -160,9 +154,6 @@ private[mill] object IncrementalAnnotationProcessing {
       .map { case (source, products) => source.relativeTo(workDir).toString -> products }
       .toMap
 
-    val filteredAggregating =
-      tracked.aggregatingProducts.filterNot(managedProducts).toSeq.sortBy(_.toString)
-
     writeSnapshot(
       snapshotPath(workDir),
       Snapshot(
@@ -172,7 +163,16 @@ private[mill] object IncrementalAnnotationProcessing {
         isolatingProducts = filteredIsolating.view
           .mapValues(_.toSeq.sortBy(_.toString).map(_.relativeTo(classesDir).toString))
           .toMap,
-        aggregatingProducts = filteredAggregating.map(_.relativeTo(classesDir).toString)
+        aggregatingProducts = tracked.aggregatingProducts.view
+          .filter { case (product, _) => !managedProducts(product) }
+          .mapValues(_.toSeq.sortBy(_.toString).map(_.relativeTo(workDir).toString))
+          .map { case (product, owners) => product.relativeTo(classesDir).toString -> owners }
+          .toMap,
+        unknownProducts = tracked.unknownProducts
+          .filterNot(managedProducts)
+          .toSeq
+          .sortBy(_.toString)
+          .map(_.relativeTo(classesDir).toString)
       )
     )
   }
@@ -181,17 +181,18 @@ private[mill] object IncrementalAnnotationProcessing {
     val snapshot = readSnapshot(snapshotPath(workDir))
     val classesDir = workDir / "classes"
     snapshot.isolatingProducts.values.flatten.map(classesDir / os.RelPath(_)).toSet ++
-      snapshot.aggregatingProducts.map(classesDir / os.RelPath(_))
+      snapshot.aggregatingProducts.keys.map(classesDir / os.RelPath(_)) ++
+      snapshot.unknownProducts.map(classesDir / os.RelPath(_))
   }
 
   def snapshotPath(workDir: os.Path): os.Path =
     workDir / "incremental-annotation-processing.json"
 
   def readSnapshot(path: os.Path): Snapshot =
-    if (!os.exists(path)) Snapshot(Map.empty, Map.empty, Nil)
+    if (!os.exists(path)) Snapshot(Map.empty, Map.empty, Map.empty, Nil)
     else
       scala.util.Try(upickle.default.read[Snapshot](os.read(path)))
-        .getOrElse(Snapshot(Map.empty, Map.empty, Nil))
+        .getOrElse(Snapshot(Map.empty, Map.empty, Map.empty, Nil))
 
   def writeSnapshot(path: os.Path, snapshot: Snapshot): Unit = {
     os.makeDir.all(path / os.up)
@@ -328,6 +329,7 @@ private[mill] object IncrementalAnnotationProcessing {
     }.toMap
     val changedSources = changedSourcesSince(previousStamps, currentStamps)
     val anySourceChanged = sourceSetChanged(previousStamps, currentStamps)
+    val removedSources = previousStamps.keySet -- currentStamps.keySet
 
     val staleIsolating =
       changedSources.iterator
@@ -337,11 +339,32 @@ private[mill] object IncrementalAnnotationProcessing {
         .toSet
 
     val staleAggregating =
-      if (anySourceChanged)
-        previous.aggregatingProducts.iterator.map(classesDir / os.RelPath(_)).toSet
+      previous.aggregatingProducts.iterator.collect {
+        case (product, owners)
+            if owners.iterator.map(workDir / os.RelPath(_)).exists(changedSources.contains) ||
+              owners.iterator.map(workDir / os.RelPath(_)).exists(removedSources.contains) =>
+          classesDir / os.RelPath(product)
+      }.toSet
+
+    val staleUnknown =
+      if (anySourceChanged) previous.unknownProducts.iterator.map(classesDir / os.RelPath(_)).toSet
       else Set.empty[os.Path]
 
-    staleIsolating ++ staleAggregating
+    staleIsolating ++ staleAggregating ++ staleUnknown
+  }
+
+  private def forcedChangedSourcesFor(
+      previous: Snapshot,
+      currentSources: Set[os.Path],
+      removedSources: Set[os.Path],
+      workDir: os.Path
+  ): Set[os.Path] = {
+    val _ = removedSources
+    previous.aggregatingProducts.valuesIterator
+      .flatten
+      .map(workDir / os.RelPath(_))
+      .filter(currentSources.contains)
+      .toSet
   }
 
   private def resolveTrackingModes(
@@ -422,27 +445,45 @@ private[mill] object IncrementalAnnotationProcessing {
       sources: Set[os.Path],
       classesDir: os.Path
   ) {
-    private val sourceOwners = sources.iterator.map(p => p.toNIO.toAbsolutePath.normalize() -> Owner.Source(p)).toMap
+    private val sourceOwners =
+      sources.iterator.map(p => p.toNIO.toAbsolutePath.normalize() -> Provenance.Known(Set(p))).toMap
     private val sourceMetadata = sources.iterator.map(SourceMetadata.apply).toSeq
-    private val generatedOwners = mutable.LinkedHashMap.empty[Path, Owner]
+    private val generatedOwners = mutable.LinkedHashMap.empty[Path, Provenance]
     private val isolatingProducts = mutable.LinkedHashMap.empty[os.Path, mutable.LinkedHashSet[os.Path]]
-    private val aggregatingProducts = mutable.LinkedHashSet.empty[os.Path]
+    private val aggregatingProducts = mutable.LinkedHashMap.empty[os.Path, Set[os.Path]]
+    private val unknownProducts = mutable.LinkedHashSet.empty[os.Path]
     private val touchedProducts = mutable.LinkedHashSet.empty[os.Path]
+
+    def recordExplicitOwnership(fileObject: FileObject, owners: Set[os.Path]): Unit =
+      for (outputPath <- fileObjectPath(fileObject)) {
+        generatedOwners(outputPath) =
+          if (owners.nonEmpty) Provenance.Known(owners) else Provenance.Unknown
+      }
+
+    def ownersForElements(
+        elements: Iterable[Element],
+        trees: Option[com.sun.source.util.Trees],
+        elementUtils: Elements
+    ): Set[os.Path] =
+      elements.iterator.flatMap(ownerForElement(_, trees, elementUtils)).toSet
 
     def recordGenerated(fileObject: FileObject, sibling: Option[FileObject]): Unit = {
       for (outputPath <- fileObjectPath(fileObject)) {
         val siblingPath = sibling.flatMap(fileObjectPath)
-        val owner = ownerFor(siblingPath, outputPath)
-        generatedOwners(outputPath) = owner
+        val provenance = generatedOwners.getOrElse(outputPath, ownerFor(siblingPath, outputPath))
+        generatedOwners(outputPath) = provenance
         val outputOsPath = os.Path(outputPath)
         if (outputOsPath.startsWith(classesDir)) {
           touchedProducts += outputOsPath
-          owner match {
-            case Owner.Source(source) if trackingMode == TrackingMode.Isolating =>
+          provenance match {
+            case Provenance.Known(owners) if trackingMode == TrackingMode.Isolating && owners.size == 1 =>
+              val source = owners.head
               val products = isolatingProducts.getOrElseUpdate(source, mutable.LinkedHashSet.empty)
               products += outputOsPath
+            case Provenance.Known(owners) if owners.nonEmpty =>
+              aggregatingProducts(outputOsPath) = owners
             case _ =>
-              aggregatingProducts += outputOsPath
+              unknownProducts += outputOsPath
           }
         }
       }
@@ -454,20 +495,24 @@ private[mill] object IncrementalAnnotationProcessing {
     def snapshot: TrackerSnapshot =
       TrackerSnapshot(
         isolatingProducts = isolatingProducts.view.mapValues(_.toSet).toMap,
-        aggregatingProducts = aggregatingProducts.toSet
+        aggregatingProducts = aggregatingProducts.toMap,
+        unknownProducts = unknownProducts.toSet
       )
 
-    private def ownerFor(siblingPath: Option[Path], outputPath: Path): Owner =
+    private def ownerFor(siblingPath: Option[Path], outputPath: Path): Provenance =
       trackingMode match {
-        case TrackingMode.Aggregating => Owner.Aggregate
+        case TrackingMode.Aggregating =>
+          siblingPath
+            .flatMap(path => sourceOwners.get(path).orElse(generatedOwners.get(path)))
+            .getOrElse(Provenance.Unknown)
         case TrackingMode.Isolating =>
           siblingPath
             .flatMap(path => sourceOwners.get(path).orElse(generatedOwners.get(path)))
             .orElse(inferOwnerFromOutputPath(outputPath))
-            .getOrElse(Owner.Aggregate)
+            .getOrElse(Provenance.Unknown)
       }
 
-    private def inferOwnerFromOutputPath(outputPath: Path): Option[Owner.Source] = {
+    private def inferOwnerFromOutputPath(outputPath: Path): Option[Provenance.Known] = {
       val normalized = outputPath.toAbsolutePath.normalize()
       val outputString = normalized.toString
       val fileName = normalized.getFileName.toString
@@ -479,20 +524,64 @@ private[mill] object IncrementalAnnotationProcessing {
       val candidates = sourceMetadata.filter { source =>
         outputString.contains(source.packagePath) && source.matchesGeneratedStem(stem)
       }
-      Option.when(candidates.size == 1)(Owner.Source(candidates.head.path))
+      Option.when(candidates.size == 1)(Provenance.Known(Set(candidates.head.path)))
+    }
+
+    private def ownerForElement(
+        element: Element,
+        trees: Option[com.sun.source.util.Trees],
+        elementUtils: Elements
+    ): Option[os.Path] = {
+      val topLevelType = Iterator
+        .iterate(Option(element))(_.flatMap(e => Option(e.getEnclosingElement)))
+        .takeWhile(_.nonEmpty)
+        .flatten
+        .collectFirst {
+          case tpe: TypeElement
+              if Option(tpe.getEnclosingElement).exists(_.getKind == ElementKind.PACKAGE) =>
+            tpe
+        }
+
+      trees
+        .flatMap(_.getPath(element) match {
+          case null => None
+          case path =>
+            Option(path.getCompilationUnit)
+              .flatMap(unit => Option(unit.getSourceFile))
+              .flatMap(fileObjectPath)
+              .map(os.Path(_))
+        })
+        .orElse {
+          topLevelType.flatMap { tpe =>
+            val qualifiedName = elementUtils.getBinaryName(tpe).toString
+            val packageName =
+              Option(elementUtils.getPackageOf(tpe))
+                .filterNot(_.isUnnamed)
+                .map(_.getQualifiedName.toString)
+                .getOrElse("")
+            val simpleName =
+              qualifiedName.stripPrefix(if (packageName.isEmpty) "" else packageName + ".").takeWhile(_ != '$')
+            val matches = sourceMetadata.filter(_.matchesType(packageName, simpleName))
+            Option.when(matches.size == 1)(matches.head.path)
+          }
+        }
     }
   }
 
   case class TrackerSnapshot(
       isolatingProducts: Map[os.Path, Set[os.Path]],
-      aggregatingProducts: Set[os.Path]
+      aggregatingProducts: Map[os.Path, Set[os.Path]],
+      unknownProducts: Set[os.Path]
   )
 
-  case class SourceMetadata(path: os.Path, simpleName: String, packagePath: String) {
+  case class SourceMetadata(path: os.Path, simpleName: String, packageName: String, packagePath: String) {
     def matchesGeneratedStem(stem: String): Boolean =
       stem == simpleName ||
         stem.startsWith(simpleName) ||
         stem.endsWith(simpleName)
+
+    def matchesType(candidatePackageName: String, candidateSimpleName: String): Boolean =
+      packageName == candidatePackageName && simpleName == candidateSimpleName
   }
 
   object SourceMetadata {
@@ -506,7 +595,8 @@ private[mill] object IncrementalAnnotationProcessing {
       val packagePath =
         if (packageSegments.isEmpty) File.separator
         else packageSegments.mkString(File.separator, File.separator, File.separator)
-      SourceMetadata(path, simpleName, packagePath)
+      val packageName = packageSegments.mkString(".")
+      SourceMetadata(path, simpleName, packageName, packagePath)
     }
   }
 }

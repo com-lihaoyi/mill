@@ -1,16 +1,18 @@
 package mill.javalib.zinc
 
 import sbt.internal.inc.javac.{DirectToJarFileManager, SameFileFixFileManager}
-import sbt.util.Logger
-import sbt.util.Level
-import xsbti.Reporter
-import xsbti.VirtualFile
+import sbt.util.{Level, Logger}
+import xsbti.{Reporter, VirtualFile}
 import xsbti.compile.{IncToolOptions, JavaCompiler as XJavaCompiler, Output}
 
 import java.io.{OutputStream, PrintWriter, Writer}
 import java.net.URI
 import java.nio.charset.Charset
 import java.nio.file.{Files, Path, Paths}
+import javax.annotation.processing.{Completion, Filer, Messager, Processor, ProcessingEnvironment}
+import javax.lang.model.SourceVersion
+import javax.lang.model.element.{AnnotationMirror, Element, ExecutableElement, TypeElement}
+import javax.lang.model.util.{Elements, Types}
 import javax.tools.DiagnosticListener
 import javax.tools.JavaFileObject.Kind
 import javax.tools.{
@@ -44,7 +46,6 @@ private[mill] final class IncrementalTrackingJavaCompiler(compiler: javax.tools.
     val log: Logger = log0
     val logger = new sbt.internal.util.LoggerWriter(log)
     val logWriter = new PrintWriter(logger)
-    log.debug("Attempting to call javac directly with incremental annotation processing tracking...")
     val diagnostics = new sbt.internal.inc.javac.DiagnosticsReporter(reporter)
 
     val (invalidOptions, cleanedOptions) = options.partition(_.startsWith("-J"))
@@ -60,51 +61,89 @@ private[mill] final class IncrementalTrackingJavaCompiler(compiler: javax.tools.
         (new DirectToJarFileManager(outputJar, standardFileManager), cleanedOptions.toSeq)
       case None =>
         Option(output.getSingleOutputAsPath.orElse(null: Path)).foreach(Files.createDirectories(_))
-        val fileManager =
+        val baseFileManager =
           if (cleanedOptions.contains("-XDuseOptimizedZip=false"))
             fileManagerWithoutOptimizedZips(diagnostics)
           else standardFileManager
         val outputOption = sbt.internal.inc.CompilerArguments.outputOption(output)
-        (fileManager, outputOption ++ cleanedOptions)
+        (baseFileManager, outputOption ++ cleanedOptions)
     }
 
     val jfiles = sources.toList.map(TrackingVirtualJavaFileObject(_))
     val customizedFileManager = {
       val maybeClassFileManager = incToolOptions.classFileManager()
-      val base =
-        if (incToolOptions.useCustomizedFileManager && maybeClassFileManager.isPresent)
-          new TrackingFileManager(
-            fileManager,
-            Some(maybeClassFileManager.get),
-            IncrementalAnnotationProcessing.currentTracker
-          )
-        else
-          new TrackingFileManager(
-            new SameFileFixFileManager(fileManager),
-            None,
-            IncrementalAnnotationProcessing.currentTracker
-          )
-      base
+      if (incToolOptions.useCustomizedFileManager && maybeClassFileManager.isPresent)
+        new TrackingFileManager(
+          fileManager,
+          Some(maybeClassFileManager.get),
+          IncrementalAnnotationProcessing.currentTracker
+        )
+      else
+        new TrackingFileManager(
+          new SameFileFixFileManager(fileManager),
+          None,
+          IncrementalAnnotationProcessing.currentTracker
+        )
     }
+
+    val task =
+      compiler.getTask(
+        logWriter,
+        customizedFileManager,
+        diagnostics,
+        javacOptions.toList.asJava,
+        null,
+        jfiles.asJava
+      )
+
+    val processorPath = processorPathFromOptions(cleanedOptions.toSeq)
+    val activeProcessors = wrappedProcessors(cleanedOptions.toSeq, processorPath)
+    if (activeProcessors.nonEmpty) task.setProcessors(activeProcessors.asJava)
 
     var compileSuccess = false
     try {
-      val success = compiler
-        .getTask(
-          logWriter,
-          customizedFileManager,
-          diagnostics,
-          javacOptions.toList.asJava,
-          null,
-          jfiles.asJava
-        )
-        .call()
+      val success = task.call()
       compileSuccess = success && !diagnostics.hasErrors
     } finally {
       customizedFileManager.close()
       logger.flushLines(if (compileSuccess) Level.Warn else Level.Error)
     }
     compileSuccess
+  }
+
+  private def processorPathFromOptions(javacOptions: Seq[String]): Seq[os.Path] = {
+    val classpath = IncrementalAnnotationProcessing
+      .parsePathOption(javacOptions, "-classpath", "-classpath")
+      .orElse(IncrementalAnnotationProcessing.parsePathOption(javacOptions, "-cp", "-cp"))
+      .getOrElse(Nil)
+      .map(os.Path(_, os.pwd))
+
+    IncrementalAnnotationProcessing
+      .parsePathOption(javacOptions, "-processorpath", "--processor-path")
+      .map(_.map(os.Path(_, os.pwd)))
+      .getOrElse(classpath)
+  }
+
+  private def wrappedProcessors(
+      javacOptions: Seq[String],
+      processorPath: Seq[os.Path]
+  ): Seq[Processor] = {
+    val urls = processorPath.iterator.map(_.toIO.toURI.toURL).toArray
+    val loader = new java.net.URLClassLoader(urls, getClass.getClassLoader)
+
+    val names = IncrementalAnnotationProcessing.explicitProcessors(javacOptions).getOrElse {
+      processorPath.iterator.flatMap(IncrementalAnnotationProcessing.readProcessorServiceFile).toSet
+    }
+
+    try {
+      names.toSeq.sorted.map { name =>
+        val delegate = loader.loadClass(name).getDeclaredConstructor().newInstance().asInstanceOf[Processor]
+        new TrackingProcessor(delegate)
+      }
+    } finally {
+      // Keep the classloader alive for the processors during compilation.
+      // It will be released when the processors become unreachable after task completion.
+    }
   }
 
   private def fileManagerWithoutOptimizedZips(
@@ -135,10 +174,7 @@ private[mill] final class IncrementalTrackingJavaCompiler(compiler: javax.tools.
 }
 
 private final case class TrackingVirtualJavaFileObject(underlying: VirtualFile)
-    extends javax.tools.SimpleJavaFileObject(
-      new URI("vf", "tmp", s"/${underlying.id}", null),
-      Kind.SOURCE
-    ) {
+    extends javax.tools.SimpleJavaFileObject(new URI("vf", "tmp", s"/${underlying.id}", null), Kind.SOURCE) {
   override def openInputStream = underlying.input
   override def getName: String = underlying.name
   override def toString: String = underlying.id
@@ -226,5 +262,91 @@ private final class TrackingPlainFileObject(
   override def openOutputStream(): OutputStream = {
     tracker.foreach(_.recordGenerated(delegate, Option(sibling)))
     super.openOutputStream()
+  }
+}
+
+private final class TrackingProcessor(delegate: Processor) extends Processor {
+  override def getSupportedOptions(): java.util.Set[String] = delegate.getSupportedOptions
+  override def getSupportedAnnotationTypes(): java.util.Set[String] = delegate.getSupportedAnnotationTypes
+  override def getSupportedSourceVersion(): SourceVersion = delegate.getSupportedSourceVersion
+  override def getCompletions(
+      element: Element,
+      annotation: AnnotationMirror,
+      member: ExecutableElement,
+      userText: String
+  ): java.lang.Iterable[Completion] =
+    delegate.getCompletions(element, annotation, member, userText).asInstanceOf[java.lang.Iterable[Completion]]
+
+  override def init(processingEnv: ProcessingEnvironment): Unit =
+    delegate.init(new TrackingProcessingEnvironment(processingEnv))
+
+  override def process(
+      annotations: java.util.Set[_ <: TypeElement],
+      roundEnv: javax.annotation.processing.RoundEnvironment
+  ): Boolean =
+    delegate.process(annotations, roundEnv)
+}
+
+private final class TrackingProcessingEnvironment(delegate: ProcessingEnvironment)
+    extends ProcessingEnvironment {
+  private lazy val filer = new TrackingFiler(delegate)
+
+  override def getOptions(): java.util.Map[String, String] = delegate.getOptions
+  override def getMessager(): Messager = delegate.getMessager
+  override def getFiler(): Filer = filer
+  override def getElementUtils(): Elements = delegate.getElementUtils
+  override def getTypeUtils(): Types = delegate.getTypeUtils
+  override def getSourceVersion(): SourceVersion = delegate.getSourceVersion
+  override def getLocale(): java.util.Locale = delegate.getLocale
+}
+
+private final class TrackingFiler(delegate: ProcessingEnvironment) extends Filer {
+  private lazy val filer = delegate.getFiler
+  private lazy val tracker = IncrementalAnnotationProcessing.currentTracker
+  private lazy val trees =
+    scala.util.Try(com.sun.source.util.Trees.instance(delegate)).toOption
+
+  override def createSourceFile(
+      name: CharSequence,
+      originatingElements: Element*
+  ): JavaFileObject = {
+    val file = filer.createSourceFile(name, originatingElements*)
+    register(file, originatingElements)
+    file
+  }
+
+  override def createClassFile(
+      name: CharSequence,
+      originatingElements: Element*
+  ): JavaFileObject = {
+    val file = filer.createClassFile(name, originatingElements*)
+    register(file, originatingElements)
+    file
+  }
+
+  override def createResource(
+      location: javax.tools.JavaFileManager.Location,
+      pkg: CharSequence,
+      relativeName: CharSequence,
+      originatingElements: Element*
+  ): FileObject = {
+    val file = filer.createResource(location, pkg, relativeName, originatingElements*)
+    register(file, originatingElements)
+    file
+  }
+
+  override def getResource(
+      location: javax.tools.JavaFileManager.Location,
+      pkg: CharSequence,
+      relativeName: CharSequence
+  ): FileObject =
+    filer.getResource(location, pkg, relativeName)
+
+  private def register(file: FileObject, originatingElements: Seq[Element]): Unit = {
+    tracker.foreach { compileTracker =>
+      val owners =
+        compileTracker.ownersForElements(originatingElements, trees, delegate.getElementUtils)
+      compileTracker.recordExplicitOwnership(file, owners)
+    }
   }
 }
