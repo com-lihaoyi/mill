@@ -751,16 +751,15 @@ object ZincWorker {
       compileClasspath: Seq[PathRef],
       classesDir: os.Path
   ): Array[FileHash] = {
-    val pathHashes = compileClasspath.iterator.map { ref =>
-      ref.path.toNIO.toAbsolutePath.normalize() -> ref.sig
-    }.toMap
+    val pathHashes = compileClasspath.iterator.map(ref => ref.path -> ref.sig).toMap
 
-    (compileClasspath.iterator.map(_.path) ++ Iterator.single(classesDir)).map { path =>
-      val nioPath = path.toNIO.toAbsolutePath.normalize()
-      val hash =
-        if (java.nio.file.Files.isDirectory(nioPath)) DirectoryFileHash
-        else pathHashes.getOrElse(nioPath, PathRef(path, quick = true).sig)
-      FileHash.of(nioPath, hash)
-    }.toArray
+    (compileClasspath.iterator.map(_.path) ++ Iterator.single(classesDir))
+      .map { path =>
+        val hash =
+          if (os.isDir(path)) DirectoryFileHash
+          else pathHashes.getOrElse(path, PathRef(path, quick = true).sig)
+        FileHash.of(path.toNIO, hash)
+      }
+      .toArray
   }
 }
