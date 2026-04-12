@@ -468,7 +468,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
 
     val (originalSourcesMap, posMapperOpt) = virtualSources.filter(_.name.endsWith(".mill")) {
       case Nil => (Map.empty[os.Path, os.Path], None)
-      case millSources => PositionMapper.create(millSources)   
+      case millSources => PositionMapper.create(millSources)
     }
 
     val newReporter = reporter match {
