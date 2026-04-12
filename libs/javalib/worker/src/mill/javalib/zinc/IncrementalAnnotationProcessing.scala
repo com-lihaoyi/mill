@@ -41,6 +41,16 @@ private[mill] object IncrementalAnnotationProcessing {
     case Isolating(source: String)
     case Aggregating(sources: Seq[String])
     case Unknown
+
+    def decode(workDir: os.Path): ProductOwnership =
+      this match {
+        case Isolating(source) =>
+          ProductOwnership.Isolating(workDir / os.RelPath(source))
+        case Aggregating(sources) =>
+          ProductOwnership.Aggregating(sources.iterator.map(workDir / os.RelPath(_)).toSet)
+        case Unknown =>
+          ProductOwnership.Unknown
+      }
   }
 
   enum Provenance {
@@ -52,6 +62,18 @@ private[mill] object IncrementalAnnotationProcessing {
     case Isolating(source: os.Path)
     case Aggregating(sources: Set[os.Path])
     case Unknown
+
+    def encode(workDir: os.Path): PersistedOwnership =
+      this match {
+        case Isolating(source) =>
+          PersistedOwnership.Isolating(source.relativeTo(workDir).toString)
+        case Aggregating(sources) =>
+          PersistedOwnership.Aggregating(
+            sources.toSeq.sortBy(_.toString).map(_.relativeTo(workDir).toString)
+          )
+        case Unknown =>
+          PersistedOwnership.Unknown
+      }
   }
 
   case class CompilePlan(
@@ -170,7 +192,7 @@ private[mill] object IncrementalAnnotationProcessing {
         products = tracked.products.iterator
           .filter { case (product, _) => !managedProducts(product) && os.exists(product) }
           .map { case (product, ownership) =>
-            product.relativeTo(classesDir).toString -> encodeOwnership(ownership, workDir)
+            product.relativeTo(classesDir).toString -> ownership.encode(workDir)
           }
           .toSeq
           .sortBy(_._1)
@@ -348,7 +370,7 @@ private[mill] object IncrementalAnnotationProcessing {
         (workDir / os.RelPath(path)) -> stamp
       }.toMap,
       products = snapshot.products.iterator.map { case (product, ownership) =>
-        (classesDir / os.RelPath(product)) -> decodeOwnership(ownership, workDir)
+        (classesDir / os.RelPath(product)) -> ownership.decode(workDir)
       }.toMap
     )
 
@@ -443,32 +465,6 @@ private[mill] object IncrementalAnnotationProcessing {
         .filter(_ != null)
     }
   }
-
-  private def encodeOwnership(
-      ownership: ProductOwnership,
-      workDir: os.Path
-  ): PersistedOwnership =
-    ownership match {
-      case ProductOwnership.Isolating(source) =>
-        PersistedOwnership.Isolating(source.relativeTo(workDir).toString)
-      case ProductOwnership.Aggregating(sources) =>
-        PersistedOwnership.Aggregating(sources.toSeq.sortBy(_.toString).map(_.relativeTo(workDir).toString))
-      case ProductOwnership.Unknown =>
-        PersistedOwnership.Unknown
-    }
-
-  private def decodeOwnership(
-      ownership: PersistedOwnership,
-      workDir: os.Path
-  ): ProductOwnership =
-    ownership match {
-      case PersistedOwnership.Isolating(source) =>
-        ProductOwnership.Isolating(workDir / os.RelPath(source))
-      case PersistedOwnership.Aggregating(sources) =>
-        ProductOwnership.Aggregating(sources.iterator.map(workDir / os.RelPath(_)).toSet)
-      case PersistedOwnership.Unknown =>
-        ProductOwnership.Unknown
-    }
 
   final class CompileTracker(
       trackingMode: TrackingMode,
