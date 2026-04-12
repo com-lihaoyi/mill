@@ -60,13 +60,15 @@ object IncrementalAnnotationProcessingTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "incremental-annotation-processing"
+  val resourcePath =
+    os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "incremental-annotation-processing"
 
   def testEval() = UnitTester(Modules, resourcePath)
 
   val tests: Tests = Tests {
     test("mapstruct") - testEval().scoped { eval =>
-      val generatedMapper = eval.outPath / "mapstruct/compile.dest/classes/example/CarMapperImpl.class"
+      val generatedMapper =
+        eval.outPath / "mapstruct/compile.dest/classes/example/CarMapperImpl.class"
       val helperClass = eval.outPath / "mapstruct/compile.dest/classes/example/Helper.class"
 
       val Right(first) = eval(Modules.mapstruct.compile).runtimeChecked
