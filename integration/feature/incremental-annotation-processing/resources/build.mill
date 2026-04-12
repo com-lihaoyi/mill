@@ -1,0 +1,32 @@
+import mill.*
+import mill.javalib.*
+
+object mapstruct extends JavaModule {
+  def mvnDeps = Seq(
+    mvn"org.mapstruct:mapstruct:1.6.3"
+  )
+
+  def annotationProcessorsMvnDeps = Seq(
+    mvn"org.mapstruct:mapstruct-processor:1.6.3"
+  )
+}
+object dagger extends JavaModule {
+  def mvnDeps = Seq(
+    mvn"com.google.dagger:dagger:2.57",
+    mvn"javax.inject:javax.inject:1"
+  )
+
+  def annotationProcessorsMvnDeps = Seq(
+    mvn"com.google.dagger:dagger-compiler:2.57"
+  )
+}
+
+object autoservice extends JavaModule {
+  def mvnDeps = Seq(
+    mvn"com.google.auto.service:auto-service-annotations:1.1.1"
+  )
+
+  def annotationProcessorsMvnDeps = Seq(
+    mvn"com.google.auto.service:auto-service:1.1.1"
+  )
+}

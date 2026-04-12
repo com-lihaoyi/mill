@@ -337,11 +337,35 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
 
     os.makeDir.all(workDir)
 
+    val incrementalAnnotationProcessing =
+      IncrementalAnnotationProcessing.detect(
+        javacOptions = javacOptions,
+        compileClasspath = compileClasspath,
+        sources = sources,
+        workDir = workDir,
+        incrementalCompilation = incrementalCompilation,
+        log = processConfig.log
+      )
+
+    val effectiveIncrementalCompilation = incrementalAnnotationProcessing match {
+      case IncrementalAnnotationProcessing.Mode.Disabled(reason) =>
+        processConfig.log.debug(
+          s"Disabling zinc incremental compilation because $reason"
+        )
+        false
+      case _ => incrementalCompilation
+    }
+
     val classesDir = workDir / "classes"
-    if (!incrementalCompilation) {
+    if (!effectiveIncrementalCompilation) {
       // Non-incremental compiles need a clean output directory; otherwise stale classes from
       // deleted sources remain visible on the classpath and can mask compilation failures.
       os.remove.all(classesDir)
+      IncrementalAnnotationProcessing.clearSnapshot(workDir)
+    } else incrementalAnnotationProcessing match {
+      case IncrementalAnnotationProcessing.Mode.Enabled(state) =>
+        state.prepareBeforeCompile()
+      case _ =>
     }
 
     if (localConfig.logDebugEnabled) {
@@ -396,9 +420,14 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       .map(path => converter.toVirtualFile(path.toNIO))
       .toArray
 
-    val incOptions = IncOptions.of().withAuxiliaryClassFiles(
+    val incOptions0 = IncOptions.of().withAuxiliaryClassFiles(
       auxiliaryClassFileExtensions.map(new AuxiliaryClassFileExtension(_)).toArray
     )
+    val incOptions = incrementalAnnotationProcessing match {
+      case IncrementalAnnotationProcessing.Mode.Enabled(state) =>
+        incOptions0.withExternalHooks(state.externalHooks)
+      case _ => incOptions0
+    }
     val compileProgress = reporter.map { reporter =>
       new CompileProgress {
         override def advance(
@@ -467,7 +496,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
         earlyAnalysisStore = None,
         extra = Array()
       ),
-      pr = if (incrementalCompilation) {
+      pr = if (effectiveIncrementalCompilation) {
         val prev = store.get()
         PreviousResult.of(prev.map(_.getAnalysis), prev.map(_.getMiniSetup))
       } else {
@@ -488,6 +517,17 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       if (reportCachedProblems) newReporter.logOldProblems(newResult.analysis())
 
       store.set(AnalysisContents.create(newResult.analysis(), newResult.setup()))
+
+      incrementalAnnotationProcessing match {
+        case IncrementalAnnotationProcessing.Mode.Enabled(state) =>
+          state.persist(
+            workDir = workDir,
+            classesDir = classesDir,
+            analysis = newResult.analysis().asInstanceOf[Analysis],
+            auxiliaryClassFileExtensions = auxiliaryClassFileExtensions
+          )
+        case _ =>
+      }
 
       Result.Success(CompilationResult(workDir / zincCache, PathRef(classesDir)))
     } catch {
