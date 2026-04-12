@@ -11,7 +11,9 @@ import java.util.Optional
 import javax.annotation.processing.Processor
 import javax.lang.model.element.{Element, ElementKind, TypeElement}
 import javax.lang.model.util.Elements
-import javax.tools.FileObject
+import javax.tools.{FileObject, StandardJavaFileManager, ToolProvider}
+import com.sun.source.tree.{AnnotationTree, CompilationUnitTree, ImportTree}
+import com.sun.source.util.{JavacTask, TreeScanner}
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 import scala.util.Using
@@ -112,9 +114,7 @@ private[mill] object IncrementalAnnotationProcessing {
         .getOrElse(compileClasspath)
       val metadataPath = (processorPath ++ compileClasspath).distinct
 
-      val activeProcessors = explicitProcessors(javacOptions).getOrElse {
-        processorPath.iterator.flatMap(readProcessorServiceFile).toSeq
-      }
+      val activeProcessors = activeProcessorNames(javacOptions, processorPath, compileClasspath, sources)
 
       if (activeProcessors.isEmpty) Mode.None
       else {
@@ -304,6 +304,26 @@ private[mill] object IncrementalAnnotationProcessing {
           processor.trim -> kind.trim.toLowerCase(java.util.Locale.ROOT)
       }
 
+  def activeProcessorNames(
+      javacOptions: Seq[String],
+      processorPath: Seq[os.Path],
+      compileClasspath: Seq[os.Path],
+      sources: Seq[os.Path]
+  ): Seq[String] =
+    explicitProcessors(javacOptions).getOrElse {
+      val discovered = processorPath.iterator.flatMap(readProcessorServiceFile).toSeq.distinct
+      if (discovered.isEmpty) Nil
+      else {
+        SourceAnnotationIndex.fromSources(sources) match {
+          case Some(annotationIndex) =>
+            val loadPath = (processorPath ++ compileClasspath).distinct
+            discovered.filter(processorMayRun(_, loadPath, annotationIndex))
+          case None =>
+            discovered
+        }
+      }
+    }
+
   def readTextFile(root: os.Path, relPath: os.RelPath): Seq[String] = {
     def parseEntries(content: String): Seq[String] =
       content.linesIterator.map(_.trim).filter(line => line.nonEmpty && !line.startsWith("#")).toSeq
@@ -465,6 +485,24 @@ private[mill] object IncrementalAnnotationProcessing {
     }
   }
 
+  private def processorMayRun(
+      processorClassName: String,
+      classpath: Seq[os.Path],
+      annotationIndex: SourceAnnotationIndex
+  ): Boolean = {
+    val urls = classpath.iterator.map(_.toIO.toURI.toURL).toArray
+    Using.resource(new java.net.URLClassLoader(urls, getClass.getClassLoader)) { loader =>
+      scala.util
+        .Try {
+          val cls = loader.loadClass(processorClassName)
+          val processor = cls.getDeclaredConstructor().newInstance().asInstanceOf[Processor]
+          val supported = processor.getSupportedAnnotationTypes.asScala.toSet
+          supported.isEmpty || supported.exists(annotationIndex.matches)
+        }
+        .getOrElse(true)
+    }
+  }
+
   final class CompileTracker(
       trackingMode: TrackingMode,
       sources: Set[os.Path],
@@ -598,6 +636,71 @@ private[mill] object IncrementalAnnotationProcessing {
         else parentSegments.dropRight(1)
       val packageName = packageSegments.mkString(".")
       SourceMetadata(path, simpleName, packageName)
+    }
+  }
+
+  case class SourceAnnotationIndex(
+      exactNames: Set[String],
+      simpleNames: Set[String]
+  ) {
+    def matches(supportedType: String): Boolean =
+      supportedType == "*" ||
+        exactNames.contains(supportedType) ||
+        simpleNames.contains(supportedType) ||
+        simpleNames.contains(supportedType.split('.').last) ||
+        supportedType.endsWith(".*") && exactNames.exists(_.startsWith(supportedType.stripSuffix("*")))
+  }
+
+  object SourceAnnotationIndex {
+    def fromSources(sources: Seq[os.Path]): Option[SourceAnnotationIndex] =
+      Option(ToolProvider.getSystemJavaCompiler).flatMap { compiler =>
+        def standardFileManager: StandardJavaFileManager =
+          compiler.getStandardFileManager(null, null, null)
+
+        scala.util.Try {
+          Using.resource(standardFileManager) { fileManager =>
+            val javaFiles = fileManager.getJavaFileObjectsFromPaths(sources.map(_.toNIO).asJava)
+            val task = compiler
+              .getTask(null, fileManager, null, Nil.asJava, null, javaFiles)
+              .asInstanceOf[JavacTask]
+
+            val exact = mutable.LinkedHashSet.empty[String]
+            val simple = mutable.LinkedHashSet.empty[String]
+
+            task.parse().iterator().asScala.foreach { unit =>
+              addAnnotationsFromUnit(unit, exact, simple)
+            }
+
+            SourceAnnotationIndex(exact.toSet, simple.toSet)
+          }
+        }.toOption
+      }
+
+    private def addAnnotationsFromUnit(
+        unit: CompilationUnitTree,
+        exact: mutable.Set[String],
+        simple: mutable.Set[String]
+    ): Unit = {
+      val packageName = Option(unit.getPackageName).map(_.toString)
+      val imports = unit.getImports.asScala.collect { case imp: ImportTree => imp.getQualifiedIdentifier.toString }
+      val exactImports = imports.filterNot(_.endsWith(".*")).map { imported =>
+        imported.split('.').last -> imported
+      }.toMap
+      val wildcardImports = imports.filter(_.endsWith(".*")).map(_.stripSuffix(".*"))
+
+      new TreeScanner[Unit, Unit] {
+        override def visitAnnotation(node: AnnotationTree, p: Unit): Unit = {
+          val name = node.getAnnotationType.toString
+          simple += name.split('.').last
+          if (name.contains(".")) exact += name
+          else {
+            exactImports.get(name).foreach(exact += _)
+            packageName.foreach(pkg => exact += s"$pkg.$name")
+            wildcardImports.foreach(pkg => exact += s"$pkg.$name")
+          }
+          super.visitAnnotation(node, p)
+        }
+      }.scan(unit, ())
     }
   }
 }

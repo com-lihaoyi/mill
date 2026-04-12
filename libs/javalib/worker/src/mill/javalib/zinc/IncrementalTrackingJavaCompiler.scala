@@ -27,13 +27,39 @@ import javax.tools.{
 import scala.jdk.CollectionConverters.*
 
 private[mill] object IncrementalTrackingJavaCompiler {
-  private case class LoadedProcessors(
+  private[mill] final case class LoadedProcessors(
       loader: java.net.URLClassLoader,
       processors: Seq[Processor]
-  )
+  ) extends AutoCloseable {
+    override def close(): Unit = loader.close()
+  }
 
   def local: Option[XJavaCompiler] =
     Option(javax.tools.ToolProvider.getSystemJavaCompiler).map(new IncrementalTrackingJavaCompiler(_))
+
+  private[mill] def maybeLoadTrackingProcessors(
+      javacOptions: Seq[String],
+      processorPath: Seq[os.Path],
+      trackingEnabled: Boolean
+  ): Option[LoadedProcessors] = {
+    if (!trackingEnabled) None
+    else {
+      val names = IncrementalAnnotationProcessing.explicitProcessors(javacOptions).getOrElse {
+        processorPath.iterator.flatMap(IncrementalAnnotationProcessing.readProcessorServiceFile).toSeq
+      }.distinct
+
+      if (names.isEmpty) None
+      else {
+        val urls = processorPath.iterator.map(_.toIO.toURI.toURL).toArray
+        val loader = new java.net.URLClassLoader(urls, getClass.getClassLoader)
+        val processors = names.map { name =>
+          val delegate = loader.loadClass(name).getDeclaredConstructor().newInstance().asInstanceOf[Processor]
+          new TrackingProcessor(delegate)
+        }
+        Some(LoadedProcessors(loader, processors))
+      }
+    }
+  }
 }
 
 private[mill] final class IncrementalTrackingJavaCompiler(compiler: javax.tools.JavaCompiler)
@@ -102,7 +128,11 @@ private[mill] final class IncrementalTrackingJavaCompiler(compiler: javax.tools.
       )
 
     val processorPath = processorPathFromOptions(cleanedOptions.toSeq)
-    val loadedProcessors = wrappedProcessors(cleanedOptions.toSeq, processorPath)
+    val loadedProcessors = IncrementalTrackingJavaCompiler.maybeLoadTrackingProcessors(
+      cleanedOptions.toSeq,
+      processorPath,
+      IncrementalAnnotationProcessing.currentTracker.nonEmpty
+    )
     loadedProcessors.foreach { loaded =>
       if (loaded.processors.nonEmpty) task.setProcessors(loaded.processors.asJava)
     }
@@ -112,7 +142,7 @@ private[mill] final class IncrementalTrackingJavaCompiler(compiler: javax.tools.
       val success = task.call()
       compileSuccess = success && !diagnostics.hasErrors
     } finally {
-      loadedProcessors.foreach(_.loader.close())
+      loadedProcessors.foreach(_.close())
       customizedFileManager.close()
       logger.flushLines(if (compileSuccess) Level.Warn else Level.Error)
     }
@@ -130,26 +160,6 @@ private[mill] final class IncrementalTrackingJavaCompiler(compiler: javax.tools.
       .parsePathOption(javacOptions, "-processorpath", "--processor-path")
       .map(_.map(os.Path(_, os.pwd)))
       .getOrElse(classpath)
-  }
-
-  private def wrappedProcessors(
-      javacOptions: Seq[String],
-      processorPath: Seq[os.Path]
-  ): Option[IncrementalTrackingJavaCompiler.LoadedProcessors] = {
-    val names = IncrementalAnnotationProcessing.explicitProcessors(javacOptions).getOrElse {
-      processorPath.iterator.flatMap(IncrementalAnnotationProcessing.readProcessorServiceFile).toSeq
-    }.distinct
-
-    if (names.isEmpty) None
-    else {
-      val urls = processorPath.iterator.map(_.toIO.toURI.toURL).toArray
-      val loader = new java.net.URLClassLoader(urls, getClass.getClassLoader)
-      val processors = names.map { name =>
-        val delegate = loader.loadClass(name).getDeclaredConstructor().newInstance().asInstanceOf[Processor]
-        new TrackingProcessor(delegate)
-      }
-      Some(IncrementalTrackingJavaCompiler.LoadedProcessors(loader, processors))
-    }
   }
 
   private def fileManagerWithoutOptimizedZips(
