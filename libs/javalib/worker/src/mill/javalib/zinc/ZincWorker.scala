@@ -359,16 +359,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
              |compile-time classpath entry with that metadata.""".stripMargin
         )
         false
-      case IncrementalAnnotationProcessing.Mode.Enabled(
-            _,
-            _,
-            _,
-            true,
-            forcedChangedSources,
-            _,
-            _,
-            _
-          ) if forcedChangedSources.nonEmpty =>
+      case IncrementalAnnotationProcessing.Mode.Enabled(plan) if plan.requiresFullRecompile =>
         false
       case _ => incrementalCompilation
     }
@@ -380,18 +371,9 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       os.remove.all(classesDir)
       os.remove.all(IncrementalAnnotationProcessing.snapshotPath(workDir))
     } else incrementalAnnotationProcessing match {
-      case IncrementalAnnotationProcessing.Mode.Enabled(
-            _,
-            _,
-            staleProducts,
-            _,
-            _,
-            _,
-            _,
-            _
-          ) =>
+      case IncrementalAnnotationProcessing.Mode.Enabled(plan) =>
         IncrementalAnnotationProcessing.prepareBeforeCompile(
-          staleProducts = staleProducts
+          staleProducts = plan.staleProducts
         )
       case IncrementalAnnotationProcessing.Mode.None =>
         IncrementalAnnotationProcessing.previousExtraProducts(workDir).foreach(os.remove.all(_))
@@ -455,8 +437,8 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       auxiliaryClassFileExtensions.map(new AuxiliaryClassFileExtension(_)).toArray
     )
     val incOptions = incrementalAnnotationProcessing match {
-      case IncrementalAnnotationProcessing.Mode.Enabled(_, _, _, _, _, _, externalHooks, _) =>
-        incOptions0.withExternalHooks(externalHooks)
+      case IncrementalAnnotationProcessing.Mode.Enabled(plan) =>
+        plan.externalHooks.fold(incOptions0)(incOptions0.withExternalHooks)
       case _ => incOptions0
     }
     val compileProgress = reporter.map { reporter =>
@@ -543,8 +525,8 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
     try {
       sys.props(scalaColorProp) = if (localConfig.logPromptColored) "true" else "false"
       incrementalAnnotationProcessing match {
-        case IncrementalAnnotationProcessing.Mode.Enabled(_, _, _, _, _, _, _, tracker) =>
-          IncrementalAnnotationProcessing.installTracker(tracker)
+        case IncrementalAnnotationProcessing.Mode.Enabled(plan) =>
+          IncrementalAnnotationProcessing.installTracker(plan.tracker)
         case _ =>
       }
 
@@ -555,14 +537,14 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       store.set(AnalysisContents.create(newResult.analysis(), newResult.setup()))
 
       incrementalAnnotationProcessing match {
-        case IncrementalAnnotationProcessing.Mode.Enabled(_, sourceStamps, _, _, _, _, _, tracker) =>
+        case IncrementalAnnotationProcessing.Mode.Enabled(plan) =>
           IncrementalAnnotationProcessing.persist(
             workDir = workDir,
             classesDir = classesDir,
             analysis = newResult.analysis().asInstanceOf[Analysis],
             auxiliaryClassFileExtensions = auxiliaryClassFileExtensions,
-            sourceStamps = sourceStamps,
-            tracker = tracker
+            sourceStamps = plan.sourceStamps,
+            tracker = plan.tracker
           )
         case _ =>
       }
@@ -571,8 +553,8 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
     } catch {
       case e: CompileFailed =>
         incrementalAnnotationProcessing match {
-          case IncrementalAnnotationProcessing.Mode.Enabled(_, _, _, _, _, _, _, tracker) =>
-            tracker.cleanupFailedCompile()
+          case IncrementalAnnotationProcessing.Mode.Enabled(plan) =>
+            plan.tracker.cleanupFailedCompile()
           case _ =>
         }
         Result.Failure(e.toString)
