@@ -14,7 +14,7 @@ private[mill] object IncrementalAnnotationProcessing {
 
   enum Mode {
     case None
-    case Disabled(reason: String)
+    case Disabled
     case Enabled(
         sourceFingerprint: String,
         sourceSnapshotChanged: Boolean,
@@ -40,6 +40,7 @@ private[mill] object IncrementalAnnotationProcessing {
       val processorPath = parsePathOption(javacOptions, "-processorpath", "--processor-path")
         .map(_.map(os.Path(_, os.pwd)))
         .getOrElse(compileClasspath)
+      val metadataPath = processorPath ++ compileClasspath
 
       val activeProcessors = explicitProcessors(javacOptions).getOrElse {
         processorPath.iterator.flatMap(readProcessorServiceFile).toSet
@@ -47,15 +48,13 @@ private[mill] object IncrementalAnnotationProcessing {
 
       if (activeProcessors.isEmpty) Mode.None
       else {
-        val metadata = processorPath.iterator.flatMap(readProcessorMetadata).toMap
+        val metadata = metadataPath.iterator.flatMap(readProcessorMetadata).toMap
         val unsupported = activeProcessors.toSeq.sorted.collect {
           case processor if !metadata.get(processor).exists(SupportedKinds) => processor
         }
 
         if (unsupported.nonEmpty) {
-          Mode.Disabled(
-            s"annotation processors do not declare supported incremental metadata: ${unsupported.mkString(", ")}"
-          )
+          Mode.Disabled
         } else {
           val sourceFingerprint = fingerprintSources(sources)
           val previous = readSnapshot(snapshotPath(workDir))

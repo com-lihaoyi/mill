@@ -30,3 +30,18 @@ object autoservice extends JavaModule {
     mvn"com.google.auto.service:auto-service:1.1.1"
   )
 }
+
+object localmetaProcessor extends JavaModule
+
+object localmeta extends JavaModule {
+  def moduleDeps = Seq(localmetaProcessor)
+
+  override def javacOptions = Task {
+    super.javacOptions() ++ Seq(
+      "-processorpath",
+      localmetaProcessor.compile().classes.path.toString,
+      "-processor",
+      "example.ResourceProcessor"
+    )
+  }
+}
