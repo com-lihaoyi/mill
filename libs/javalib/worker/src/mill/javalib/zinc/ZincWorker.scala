@@ -361,7 +361,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       // Non-incremental compiles need a clean output directory; otherwise stale classes from
       // deleted sources remain visible on the classpath and can mask compilation failures.
       os.remove.all(classesDir)
-      IncrementalAnnotationProcessing.clearSnapshot(workDir)
+      os.remove.all(IncrementalAnnotationProcessing.snapshotPath(workDir))
     } else incrementalAnnotationProcessing match {
       case IncrementalAnnotationProcessing.Mode.Enabled(state) =>
         state.prepareBeforeCompile()
