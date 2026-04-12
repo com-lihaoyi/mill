@@ -497,8 +497,7 @@ private[mill] object IncrementalAnnotationProcessing {
 
     def recordGenerated(fileObject: FileObject, sibling: Option[FileObject]): Unit = {
       for (outputPath <- fileObjectPath(fileObject)) {
-        val siblingPath = sibling.flatMap(fileObjectPath)
-        val provenance = generatedOwners.getOrElse(outputPath, ownerFor(siblingPath, outputPath))
+        val provenance = generatedOwners.getOrElse(outputPath, ownerFor(sibling.flatMap(fileObjectPath)))
         generatedOwners(outputPath) = provenance
         val outputOsPath = os.Path(outputPath)
         if (outputOsPath.startsWith(classesDir)) {
@@ -517,6 +516,11 @@ private[mill] object IncrementalAnnotationProcessing {
         touchedProducts = touchedProducts.toSet
       )
 
+    private def ownerFor(siblingPath: Option[Path]): Provenance =
+      siblingPath
+        .flatMap(path => sourceOwners.get(path).orElse(generatedOwners.get(path)))
+        .getOrElse(Provenance.Unknown)
+
     private def ownershipFor(provenance: Provenance): ProductOwnership =
       provenance match {
         case Provenance.Known(owners) if trackingMode == TrackingMode.Isolating && owners.size == 1 =>
@@ -526,34 +530,6 @@ private[mill] object IncrementalAnnotationProcessing {
         case _ =>
           ProductOwnership.Unknown
       }
-
-    private def ownerFor(siblingPath: Option[Path], outputPath: Path): Provenance =
-      trackingMode match {
-        case TrackingMode.Aggregating =>
-          siblingPath
-            .flatMap(path => sourceOwners.get(path).orElse(generatedOwners.get(path)))
-            .getOrElse(Provenance.Unknown)
-        case TrackingMode.Isolating =>
-          siblingPath
-            .flatMap(path => sourceOwners.get(path).orElse(generatedOwners.get(path)))
-            .orElse(inferOwnerFromOutputPath(outputPath))
-            .getOrElse(Provenance.Unknown)
-      }
-
-    private def inferOwnerFromOutputPath(outputPath: Path): Option[Provenance.Known] = {
-      val normalized = outputPath.toAbsolutePath.normalize()
-      val outputString = normalized.toString
-      val fileName = normalized.getFileName.toString
-      val stem = {
-        val withoutExt = fileName.reverse.dropWhile(_ != '.').drop(1).reverse
-        val base = if (withoutExt.nonEmpty) withoutExt else fileName
-        base.split('.').last
-      }
-      val candidates = sourceMetadata.filter { source =>
-        outputString.contains(source.packagePath) && source.matchesGeneratedStem(stem)
-      }
-      Option.when(candidates.size == 1)(Provenance.Known(Set(candidates.head.path)))
-    }
 
     private def ownerForElement(
         element: Element,
@@ -606,12 +582,7 @@ private[mill] object IncrementalAnnotationProcessing {
       touchedProducts: Set[os.Path]
   )
 
-  case class SourceMetadata(path: os.Path, simpleName: String, packageName: String, packagePath: String) {
-    def matchesGeneratedStem(stem: String): Boolean =
-      stem == simpleName ||
-        stem.startsWith(simpleName) ||
-        stem.endsWith(simpleName)
-
+  case class SourceMetadata(path: os.Path, simpleName: String, packageName: String) {
     def matchesType(candidatePackageName: String, candidateSimpleName: String): Boolean =
       packageName == candidatePackageName && simpleName == candidateSimpleName
   }
@@ -624,11 +595,8 @@ private[mill] object IncrementalAnnotationProcessing {
       val packageSegments =
         if (srcIndex >= 0) parentSegments.drop(srcIndex + 1).dropRight(1)
         else parentSegments.dropRight(1)
-      val packagePath =
-        if (packageSegments.isEmpty) File.separator
-        else packageSegments.mkString(File.separator, File.separator, File.separator)
       val packageName = packageSegments.mkString(".")
-      SourceMetadata(path, simpleName, packageName, packagePath)
+      SourceMetadata(path, simpleName, packageName)
     }
   }
 }
