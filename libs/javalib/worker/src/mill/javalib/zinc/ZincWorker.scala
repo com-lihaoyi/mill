@@ -321,7 +321,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
   private def compileInternal(
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Seq[os.Path],
-      compileClasspath: Seq[os.Path],
+      compileClasspath: Seq[PathRef],
       javacOptions: Seq[String],
       scalacOptions: Seq[String],
       compilers: Compilers,
@@ -336,11 +336,12 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
   ): Result[CompilationResult] = {
 
     os.makeDir.all(workDir)
+    val compileClasspathPaths = compileClasspath.map(_.path)
 
     val incrementalAnnotationProcessing =
       IncrementalAnnotationProcessing.detect(
         javacOptions = javacOptions,
-        compileClasspath = compileClasspath,
+        compileClasspath = compileClasspathPaths,
         sources = sources,
         workDir = workDir,
         incrementalCompilation = incrementalCompilation,
@@ -387,7 +388,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
            |  javacOptions: ${javacOptions.map("'" + _ + "'").mkString(" ")}
            |  scalacOptions: ${scalacOptions.map("'" + _ + "'").mkString(" ")}
            |  sources: ${sources.map("'" + _ + "'").mkString(" ")}
-           |  classpath: ${compileClasspath.map("'" + _ + "'").mkString(" ")}
+           |  classpath: ${compileClasspathPaths.map("'" + _ + "'").mkString(" ")}
            |  output: $classesDir"""
           .stripMargin
       )
@@ -426,21 +427,32 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
 
     // Fix jdk classes marked as binary dependencies, see https://github.com/com-lihaoyi/mill/pull/1904
     val converter = MappedFileConverter.empty
-    val classpath = (compileClasspath.iterator ++ Some(classesDir))
+    val classpath = (compileClasspathPaths.iterator ++ Some(classesDir))
       .map(path => converter.toVirtualFile(path.toNIO))
       .toArray
     val virtualSources = sources.iterator
       .map(path => converter.toVirtualFile(path.toNIO))
       .toArray
 
+    val externalHooks = new DefaultExternalHooks(
+      Optional.of(
+        MillExternalLookup(
+          classpathHashes = ZincWorker.classpathFileHashes(
+            compileClasspath = compileClasspath,
+            classesDir = classesDir
+          ),
+          incrementalAnnotationProcessing match {
+            case IncrementalAnnotationProcessing.Mode.Enabled(plan) => plan.lookupData
+            case _ => None
+          }
+        )
+      ),
+      Optional.empty()
+    )
     val incOptions0 = IncOptions.of().withAuxiliaryClassFiles(
       auxiliaryClassFileExtensions.map(new AuxiliaryClassFileExtension(_)).toArray
-    )
-    val incOptions = incrementalAnnotationProcessing match {
-      case IncrementalAnnotationProcessing.Mode.Enabled(plan) =>
-        plan.externalHooks.fold(incOptions0)(incOptions0.withExternalHooks)
-      case _ => incOptions0
-    }
+    ).withExternalHooks(externalHooks)
+    val incOptions = incOptions0
     val compileProgress = reporter.map { reporter =>
       new CompileProgress {
         override def advance(
@@ -466,10 +478,10 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
 
     val finalScalacOptions = addColorNeverOption.toSeq ++ scalacOptions
 
-    val (originalSourcesMap, posMapperOpt) = virtualSources.filter(_.name.endsWith(".mill")) {
-      case Nil => (Map.empty[os.Path, os.Path], None)
-      case millSources => PositionMapper.create(millSources)
-    }
+    val millSources = virtualSources.filter(_.name.endsWith(".mill"))
+    val (originalSourcesMap, posMapperOpt) =
+      if (millSources.isEmpty) (Map.empty[os.Path, os.Path], None)
+      else PositionMapper.create(millSources)
 
     val newReporter = reporter match {
       case None =>
@@ -680,6 +692,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
 }
 
 object ZincWorker {
+  private val DirectoryFileHash = 42
 
   /**
    * Dependencies of the invocation.
@@ -733,4 +746,21 @@ object ZincWorker {
       // No need to utilize more than 8 cores to serialize a small file
       parallelism = math.min(Runtime.getRuntime.availableProcessors(), 8)
     )
+
+  private[zinc] def classpathFileHashes(
+      compileClasspath: Seq[PathRef],
+      classesDir: os.Path
+  ): Array[FileHash] = {
+    val pathHashes = compileClasspath.iterator.map { ref =>
+      ref.path.toNIO.toAbsolutePath.normalize() -> ref.sig
+    }.toMap
+
+    (compileClasspath.iterator.map(_.path) ++ Iterator.single(classesDir)).map { path =>
+      val nioPath = path.toNIO.toAbsolutePath.normalize()
+      val hash =
+        if (java.nio.file.Files.isDirectory(nioPath)) DirectoryFileHash
+        else pathHashes.getOrElse(nioPath, PathRef(path, quick = true).sig)
+      FileHash.of(nioPath, hash)
+    }.toArray
+  }
 }

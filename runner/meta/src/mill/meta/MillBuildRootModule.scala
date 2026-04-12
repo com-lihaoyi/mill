@@ -302,7 +302,7 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
         ZincOp.CompileMixed(
           upstreamCompileOutput = upstreamCompileOutput(),
           sources = Seq.from(sources.map(_.path)),
-          compileClasspath = compileClasspath().map(_.path),
+          compileClasspath = compileClasspath(),
           javacOptions = jOpts.compiler,
           scalaVersion = scalaVersion(),
           scalaOrganization = JvmWorkerUtil.scalaOrganization(scalaVersion()),

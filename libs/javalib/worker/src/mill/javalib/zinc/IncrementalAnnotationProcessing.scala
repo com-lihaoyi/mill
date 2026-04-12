@@ -3,8 +3,6 @@ package mill.javalib.zinc
 import mill.api.daemon.Logger
 import sbt.internal.inc.Analysis
 import xsbti.{PathBasedFile, VirtualFile, VirtualFileRef}
-import xsbti.compile.{CompileAnalysis, DefaultExternalHooks, ExternalHooks, FileHash}
-
 import java.io.File
 import java.nio.file.Path
 import java.util.Optional
@@ -101,8 +99,13 @@ private[mill] object IncrementalAnnotationProcessing {
       sourceStamps: Map[os.Path, SourceStamp],
       staleProducts: Set[os.Path],
       requiresFullRecompile: Boolean,
-      externalHooks: Option[ExternalHooks],
+      lookupData: Option[LookupData],
       tracker: CompileTracker
+  )
+
+  case class LookupData(
+      changedSources: Optional[xsbti.compile.Changes[VirtualFileRef]],
+      removedProducts: Optional[java.util.Set[VirtualFileRef]]
   )
 
   val MetadataPath = os.RelPath("META-INF/gradle/incremental.annotation.processors")
@@ -171,8 +174,8 @@ private[mill] object IncrementalAnnotationProcessing {
                 sourceStamps = sourceStamps,
                 staleProducts = staleProducts,
                 requiresFullRecompile = requiresFullRecompile,
-                externalHooks = Option.when(!requiresFullRecompile) {
-                  externalHooks(staleProducts, changedSources, removedSources, sourceStamps.keySet)
+                lookupData = Option.when(!requiresFullRecompile) {
+                  lookupData(staleProducts, changedSources, removedSources, sourceStamps.keySet)
                 },
                 tracker = new CompileTracker(trackingMode, sources.toSet, classesDir)
               )
@@ -243,12 +246,12 @@ private[mill] object IncrementalAnnotationProcessing {
     os.write.over(path, upickle.default.write(snapshot, indent = 2))
   }
 
-  def externalHooks(
+  def lookupData(
       staleProducts: Set[os.Path],
       changedSources: Set[os.Path],
       removedSources: Set[os.Path],
       currentSources: Set[os.Path]
-  ): ExternalHooks = {
+  ): LookupData = {
     val removedProducts = staleProducts.map(p => VirtualFileRef.of(p.toString)).asJava
     val changedSourcesOpt =
       if (changedSources.nonEmpty || removedSources.nonEmpty)
@@ -266,32 +269,12 @@ private[mill] object IncrementalAnnotationProcessing {
         })
       else Optional.empty[xsbti.compile.Changes[VirtualFileRef]]()
 
-    val lookup = new ExternalHooks.Lookup {
-      override def getChangedSources(
-          previousAnalysis: CompileAnalysis
-      ): Optional[xsbti.compile.Changes[VirtualFileRef]] = changedSourcesOpt
-
-      override def getChangedBinaries(
-          previousAnalysis: CompileAnalysis
-      ): Optional[java.util.Set[VirtualFileRef]] = Optional.empty()
-
-      override def getRemovedProducts(
-          previousAnalysis: CompileAnalysis
-      ): Optional[java.util.Set[VirtualFileRef]] =
+    LookupData(
+      changedSources = changedSourcesOpt,
+      removedProducts =
         if (removedProducts.isEmpty) Optional.empty()
         else Optional.of(removedProducts)
-
-      override def shouldDoIncrementalCompilation(
-          changedClasses: java.util.Set[String],
-          previousAnalysis: CompileAnalysis
-      ): Boolean = true
-
-      override def hashClasspath(
-          classpath: Array[xsbti.VirtualFile]
-      ): Optional[Array[FileHash]] = Optional.empty()
-    }
-
-    new DefaultExternalHooks(Optional.of(lookup), Optional.empty())
+    )
   }
 
   def explicitProcessors(javacOptions: Seq[String]): Option[Seq[String]] =
