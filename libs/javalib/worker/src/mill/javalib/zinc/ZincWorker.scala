@@ -321,7 +321,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
   private def compileInternal(
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Seq[os.Path],
-      compileClasspath: Seq[os.Path],
+      compileClasspath: Seq[PathRef],
       javacOptions: Seq[String],
       scalacOptions: Seq[String],
       compilers: Compilers,
@@ -336,12 +336,50 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
   ): Result[CompilationResult] = {
 
     os.makeDir.all(workDir)
+    val compileClasspathPaths = compileClasspath.map(_.path)
+
+    val incrementalAnnotationProcessing =
+      IncrementalAnnotationProcessing.detect(
+        javacOptions = javacOptions,
+        compileClasspath = compileClasspathPaths,
+        sources = sources,
+        workDir = workDir,
+        incrementalCompilation = incrementalCompilation,
+        log = processConfig.log
+      )
+
+    val effectiveIncrementalCompilation = incrementalAnnotationProcessing match {
+      case IncrementalAnnotationProcessing.Mode.Disabled =>
+        processConfig.log.warn(
+          s"""Disabling zinc incremental compilation because annotation processors do not declare supported
+             |incremental metadata.
+             |Mill only reads incremental annotation processor metadata from the active processor path
+             |and the compile classpath.
+             |To enable incremental annotation processing, use processors that publish
+             |`META-INF/gradle/incremental.annotation.processors`, or add a patched jar/directory or
+             |compile-time classpath entry with that metadata.""".stripMargin
+        )
+        false
+      case IncrementalAnnotationProcessing.Mode.Enabled(plan) if plan.requiresFullRecompile =>
+        false
+      case _ => incrementalCompilation
+    }
 
     val classesDir = workDir / "classes"
-    if (!incrementalCompilation) {
+    if (!effectiveIncrementalCompilation) {
       // Non-incremental compiles need a clean output directory; otherwise stale classes from
       // deleted sources remain visible on the classpath and can mask compilation failures.
       os.remove.all(classesDir)
+      os.remove.all(IncrementalAnnotationProcessing.snapshotPath(workDir))
+    } else incrementalAnnotationProcessing match {
+      case IncrementalAnnotationProcessing.Mode.Enabled(plan) =>
+        IncrementalAnnotationProcessing.prepareBeforeCompile(
+          staleProducts = plan.staleProducts
+        )
+      case IncrementalAnnotationProcessing.Mode.None =>
+        IncrementalAnnotationProcessing.previousExtraProducts(workDir).foreach(os.remove.all(_))
+        os.remove.all(IncrementalAnnotationProcessing.snapshotPath(workDir))
+      case IncrementalAnnotationProcessing.Mode.Disabled =>
     }
 
     if (localConfig.logDebugEnabled) {
@@ -350,7 +388,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
            |  javacOptions: ${javacOptions.map("'" + _ + "'").mkString(" ")}
            |  scalacOptions: ${scalacOptions.map("'" + _ + "'").mkString(" ")}
            |  sources: ${sources.map("'" + _ + "'").mkString(" ")}
-           |  classpath: ${compileClasspath.map("'" + _ + "'").mkString(" ")}
+           |  classpath: ${compileClasspathPaths.map("'" + _ + "'").mkString(" ")}
            |  output: $classesDir"""
           .stripMargin
       )
@@ -389,16 +427,32 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
 
     // Fix jdk classes marked as binary dependencies, see https://github.com/com-lihaoyi/mill/pull/1904
     val converter = MappedFileConverter.empty
-    val classpath = (compileClasspath.iterator ++ Some(classesDir))
+    val classpath = (compileClasspathPaths.iterator ++ Some(classesDir))
       .map(path => converter.toVirtualFile(path.toNIO))
       .toArray
     val virtualSources = sources.iterator
       .map(path => converter.toVirtualFile(path.toNIO))
       .toArray
 
-    val incOptions = IncOptions.of().withAuxiliaryClassFiles(
-      auxiliaryClassFileExtensions.map(new AuxiliaryClassFileExtension(_)).toArray
+    val externalHooks = new DefaultExternalHooks(
+      Optional.of(
+        MillExternalLookup(
+          classpathHashes = ZincWorker.classpathFileHashes(
+            compileClasspath = compileClasspath,
+            classesDir = classesDir
+          ),
+          incrementalAnnotationProcessing match {
+            case IncrementalAnnotationProcessing.Mode.Enabled(plan) => plan.lookupData
+            case _ => None
+          }
+        )
+      ),
+      Optional.empty()
     )
+    val incOptions0 = IncOptions.of().withAuxiliaryClassFiles(
+      auxiliaryClassFileExtensions.map(new AuxiliaryClassFileExtension(_)).toArray
+    ).withExternalHooks(externalHooks)
+    val incOptions = incOptions0
     val compileProgress = reporter.map { reporter =>
       new CompileProgress {
         override def advance(
@@ -424,7 +478,10 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
 
     val finalScalacOptions = addColorNeverOption.toSeq ++ scalacOptions
 
-    val (originalSourcesMap, posMapperOpt) = PositionMapper.create(virtualSources)
+    val millSources = virtualSources.filter(_.name.endsWith(".mill"))
+    val (originalSourcesMap, posMapperOpt) =
+      if (millSources.isEmpty) (Map.empty[os.Path, os.Path], None)
+      else PositionMapper.create(millSources)
 
     val newReporter = reporter match {
       case None =>
@@ -467,7 +524,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
         earlyAnalysisStore = None,
         extra = Array()
       ),
-      pr = if (incrementalCompilation) {
+      pr = if (effectiveIncrementalCompilation) {
         val prev = store.get()
         PreviousResult.of(prev.map(_.getAnalysis), prev.map(_.getMiniSetup))
       } else {
@@ -482,6 +539,11 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
     val previousScalaColor = sys.props(scalaColorProp)
     try {
       sys.props(scalaColorProp) = if (localConfig.logPromptColored) "true" else "false"
+      incrementalAnnotationProcessing match {
+        case IncrementalAnnotationProcessing.Mode.Enabled(plan) =>
+          IncrementalAnnotationProcessing.installTracker(plan.tracker)
+        case _ =>
+      }
 
       val newResult = incrementalCompiler.compile(in = inputs, logger = logger)
 
@@ -489,11 +551,30 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
 
       store.set(AnalysisContents.create(newResult.analysis(), newResult.setup()))
 
+      incrementalAnnotationProcessing match {
+        case IncrementalAnnotationProcessing.Mode.Enabled(plan) =>
+          IncrementalAnnotationProcessing.persist(
+            workDir = workDir,
+            classesDir = classesDir,
+            analysis = newResult.analysis().asInstanceOf[Analysis],
+            auxiliaryClassFileExtensions = auxiliaryClassFileExtensions,
+            sourceStamps = plan.sourceStamps,
+            tracker = plan.tracker
+          )
+        case _ =>
+      }
+
       Result.Success(CompilationResult(workDir / zincCache, PathRef(classesDir)))
     } catch {
       case e: CompileFailed =>
+        incrementalAnnotationProcessing match {
+          case IncrementalAnnotationProcessing.Mode.Enabled(plan) =>
+            plan.tracker.cleanupFailedCompile()
+          case _ =>
+        }
         Result.Failure(e.toString)
     } finally {
+      IncrementalAnnotationProcessing.clearTracker()
       for (rep <- reporter) {
         for (f <- sources) {
           rep.fileVisited(f.toNIO)
@@ -611,6 +692,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
 }
 
 object ZincWorker {
+  private val DirectoryFileHash = 42
 
   /**
    * Dependencies of the invocation.
@@ -648,7 +730,7 @@ object ZincWorker {
   private case class JavaCompilerCacheKey(javacOptions: Seq[String])
 
   private def getLocalOrCreateJavaTools(): JavaTools = {
-    val compiler = javac.JavaCompiler.local.getOrElse(javac.JavaCompiler.fork())
+    val compiler = IncrementalTrackingJavaCompiler.local.getOrElse(javac.JavaCompiler.fork())
     val docs = javac.Javadoc.local.getOrElse(javac.Javadoc.fork())
     javac.JavaTools(compiler, docs)
   }
@@ -664,4 +746,20 @@ object ZincWorker {
       // No need to utilize more than 8 cores to serialize a small file
       parallelism = math.min(Runtime.getRuntime.availableProcessors(), 8)
     )
+
+  private[zinc] def classpathFileHashes(
+      compileClasspath: Seq[PathRef],
+      classesDir: os.Path
+  ): Array[FileHash] = {
+    val pathHashes = compileClasspath.iterator.map(ref => ref.path -> ref.sig).toMap
+
+    (compileClasspath.iterator.map(_.path) ++ Iterator.single(classesDir))
+      .map { path =>
+        val hash =
+          if (os.isDir(path)) DirectoryFileHash
+          else pathHashes.getOrElse(path, PathRef(path, quick = true).sig)
+        FileHash.of(path.toNIO, hash)
+      }
+      .toArray
+  }
 }

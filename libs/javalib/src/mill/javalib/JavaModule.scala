@@ -1000,7 +1000,7 @@ trait JavaModule
       ZincOp.CompileJava(
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
-        compileClasspath = compileClasspath().map(_.path),
+        compileClasspath = compileClasspath(),
         javacOptions = javacCompilerOptions,
         incrementalCompilation = zincIncrementalCompilation(),
         workDir = Task.dest

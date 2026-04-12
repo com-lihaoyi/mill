@@ -6,7 +6,7 @@ import utest.*
 
 object PrecompiledNestedConfigMismatchTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
-    test("mismatchedNestedObjectName") - integrationTest { tester =>
+    test("nestedObject") - integrationTest { tester =>
       import tester.*
       // `badnestedname/package.mill.yaml` declares `object typo:` but the
       // precompiled class `MyModule` only has `object test`.
@@ -19,7 +19,7 @@ object PrecompiledNestedConfigMismatchTests extends UtestIntegrationTestSuite {
         """Config key "object typo" does not match any nested module in millbuild.MyModule"""
       )
     }
-    test("mismatchedNestedConfigKey") - integrationTest { tester =>
+    test("nestedKey") - integrationTest { tester =>
       import tester.*
       // `badnestedkey/package.mill.yaml` declares `object test:` (which exists)
       // but sets `mvnDep:` (singular) instead of `mvnDeps:` (plural).
@@ -32,7 +32,7 @@ object PrecompiledNestedConfigMismatchTests extends UtestIntegrationTestSuite {
         """key "mvnDep" does not override any task on millbuild.MyModule, did you mean "mvnDeps"?"""
       )
     }
-    test("selfReferentialModuleDeps") - integrationTest { tester =>
+    test("selfRef") - integrationTest { tester =>
       import tester.*
       // `selfref/package.mill.yaml` declares `moduleDeps: [selfref]`, referencing
       // itself. Should produce a proper error rather than deadlocking.
@@ -45,7 +45,7 @@ object PrecompiledNestedConfigMismatchTests extends UtestIntegrationTestSuite {
         "Circular moduleDeps detected: precompiled module 'selfref' depends on itself"
       )
     }
-    test("indirectCircularModuleDeps") - integrationTest { tester =>
+    test("indirectCycle") - integrationTest { tester =>
       import tester.*
       // `circularA` depends on `circularB` and `circularB` depends on `circularA`.
       // Should produce a proper error rather than deadlocking.
@@ -72,7 +72,7 @@ object PrecompiledNestedConfigMismatchTests extends UtestIntegrationTestSuite {
       )
       os.remove.all(tester.workspacePath / "badextendsclass")
     }
-    test("wrongConstructorSignature") - integrationTest { tester =>
+    test("wrongCtor") - integrationTest { tester =>
       import tester.*
       // A precompiled module extending a class whose constructor doesn't take
       // PrecompiledModule.Config should produce a runtime error on instantiation.

@@ -8,7 +8,7 @@ object BspModulesTests extends UtestIntegrationTestSuite {
   val bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", Constants.bspProtocolVersion)
 
   def tests: Tests = Tests {
-    test("BSP module with foreign modules") {
+    test("foreign") {
       test("can be installed") - integrationTest { tester =>
         import tester.*
         val res = eval("mill.bsp.BSP/install")
@@ -22,7 +22,7 @@ object BspModulesTests extends UtestIntegrationTestSuite {
         assert(checkRes.out.contains("checkExecutable succeeded"))
         ()
       }
-      test("ModuleUtils resolves all referenced transitive modules") - integrationTest { tester =>
+      test("transitive") - integrationTest { tester =>
         import tester.*
         val res = eval("validate")
         assert(res.isSuccess)
