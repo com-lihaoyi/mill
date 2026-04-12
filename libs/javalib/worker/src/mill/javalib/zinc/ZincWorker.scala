@@ -373,7 +373,10 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
           sourceSnapshotChanged = sourceSnapshotChanged,
           previousExtraProducts = previousExtraProducts
         )
-      case _ =>
+      case IncrementalAnnotationProcessing.Mode.None =>
+        IncrementalAnnotationProcessing.previousExtraProducts(workDir).foreach(os.remove.all(_))
+        os.remove.all(IncrementalAnnotationProcessing.snapshotPath(workDir))
+      case IncrementalAnnotationProcessing.Mode.Disabled(_) =>
     }
 
     if (localConfig.logDebugEnabled) {

@@ -10,7 +10,6 @@ import java.util.Optional
 import scala.jdk.CollectionConverters.*
 import scala.util.Using
 
-
 private[mill] object IncrementalAnnotationProcessing {
 
   enum Mode {
@@ -113,7 +112,8 @@ private[mill] object IncrementalAnnotationProcessing {
       sourceSnapshotChanged: Boolean
   ): ExternalHooks = {
     val removedProducts =
-      if (sourceSnapshotChanged) previousExtraProducts.map(p => VirtualFileRef.of(p.toString)).asJava
+      if (sourceSnapshotChanged)
+        previousExtraProducts.map(p => VirtualFileRef.of(p.toString)).asJava
       else Set.empty[VirtualFileRef].asJava
 
     val lookup = new ExternalHooks.Lookup {
@@ -152,7 +152,13 @@ private[mill] object IncrementalAnnotationProcessing {
 
   def readSnapshot(path: os.Path): Snapshot = {
     if (!os.exists(path)) Snapshot(None, Nil)
-    else scala.util.Try(upickle.default.read[Snapshot](os.read(path))).getOrElse(Snapshot(None, Nil))
+    else
+      scala.util.Try(upickle.default.read[Snapshot](os.read(path))).getOrElse(Snapshot(None, Nil))
+  }
+
+  def previousExtraProducts(workDir: os.Path): Set[os.Path] = {
+    val snapshot = readSnapshot(snapshotPath(workDir))
+    snapshot.products.map(workDir / "classes" / os.RelPath(_)).toSet
   }
 
   def writeSnapshot(path: os.Path, sourceFingerprint: String, products: Set[os.Path]): Unit = {
@@ -172,7 +178,7 @@ private[mill] object IncrementalAnnotationProcessing {
     }.mkString("\n")
 
   def explicitProcessors(javacOptions: Seq[String]): Option[Set[String]] =
-    parseSimpleOption(javacOptions, "-processor", "--processor")
+    parseSimpleOption(javacOptions, "-processor", "-processor")
       .map(_.split(',').iterator.map(_.trim).filter(_.nonEmpty).toSet)
 
   def parsePathOption(javacOptions: Seq[String], short: String, long: String): Option[Seq[String]] =
@@ -188,8 +194,8 @@ private[mill] object IncrementalAnnotationProcessing {
       case Seq(flag, value) if flag == short || flag == long => value
     }.orElse {
       javacOptions.collectFirst {
-        case option if option.startsWith(short + "=") => option.stripPrefix(short + "=")
-        case option if option.startsWith(long + "=") => option.stripPrefix(long + "=")
+        case s"${`short`}=$option" => option
+        case s"${`long`}=$option" => option
       }
     }
   }
@@ -199,12 +205,9 @@ private[mill] object IncrementalAnnotationProcessing {
 
   def readProcessorMetadata(path: os.Path): Seq[(String, String)] =
     readTextFile(path, MetadataPath)
-      .flatMap { line =>
-        line match {
-          case s"$processor,$kind" if processor.trim.nonEmpty && kind.trim.nonEmpty =>
-            Some(processor.trim -> kind.trim.toLowerCase(java.util.Locale.ROOT))
-          case _ => None
-        }
+      .collect {
+        case s"$processor,$kind" if processor.trim.nonEmpty && kind.trim.nonEmpty =>
+          processor.trim -> kind.trim.toLowerCase(java.util.Locale.ROOT)
       }
 
   // Gradle documents this metadata file format here:
@@ -218,7 +221,9 @@ private[mill] object IncrementalAnnotationProcessing {
       .getOrElse(Nil)
     else if (os.isFile(root) && root.ext == "jar") {
       Using.resource(os.zip.open(root)) { zip =>
-        Option.when(os.exists(zip / relPath)) { parseEntries(os.read(zip / relPath)) }.getOrElse(Nil)
+        Option.when(
+          os.exists(zip / relPath)
+        ) { parseEntries(os.read(zip / relPath)) }.getOrElse(Nil)
       }
     } else Nil
   }
