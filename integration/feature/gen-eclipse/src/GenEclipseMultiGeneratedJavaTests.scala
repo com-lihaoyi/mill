@@ -11,7 +11,7 @@ object GenEclipseMultiGeneratedJavaTests extends UtestIntegrationTestSuite {
     super.workspaceSourcePath / "multi-generated-java-project"
 
   def tests: Tests = Tests {
-    test("Multi module project with generated sources") - integrationTest { tester =>
+    test("multiGenerated") - integrationTest { tester =>
       import tester.*
 
       val ret = eval("mill.eclipse/", check = true)
