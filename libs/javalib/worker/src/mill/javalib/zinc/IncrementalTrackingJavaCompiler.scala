@@ -1,5 +1,4 @@
 package mill.javalib.zinc
-
 import sbt.internal.inc.javac.{DirectToJarFileManager, SameFileFixFileManager}
 import sbt.util.{Level, Logger}
 import xsbti.{Reporter, VirtualFile}
@@ -25,6 +24,7 @@ import javax.tools.{
   StandardJavaFileManager
 }
 import scala.jdk.CollectionConverters.*
+import xsbti.PathBasedFile
 
 private[mill] object IncrementalTrackingJavaCompiler {
   private[mill] final case class LoadedProcessors(
@@ -201,7 +201,7 @@ private sealed trait TrackingOutputObject {
 
 private final case class TrackingVirtualJavaFileObject(underlying: VirtualFile)
     extends javax.tools.SimpleJavaFileObject(
-      new URI("vf", "tmp", s"/${underlying.id}", null),
+      TrackingVirtualJavaFileObject.uriFor(underlying),
       Kind.SOURCE
     ) {
   override def openInputStream = underlying.input
@@ -212,6 +212,14 @@ private final case class TrackingVirtualJavaFileObject(underlying: VirtualFile)
     try sbt.io.IO.readStream(in)
     finally in.close()
   }
+}
+
+private object TrackingVirtualJavaFileObject {
+  def uriFor(underlying: VirtualFile): URI =
+    underlying match {
+      case pathBased: PathBasedFile => pathBased.toPath.toUri
+      case _ => new URI("vf", "tmp", s"/${underlying.id}", null)
+    }
 }
 
 private final class TrackingFileManager(
@@ -261,13 +269,14 @@ private final class TrackingJavaFileObject(
   }
 
   private def onOpen[T](result: => T): T = {
+    val opened = result
     classFileManager.foreach(
       _.generated(
         Array[VirtualFile](sbt.internal.inc.PlainVirtualFile(path.getOrElse(Paths.get(toUri))))
       )
     )
     tracker.foreach(_.recordSiblingGenerated(path, siblingPath))
-    result
+    opened
   }
 }
 
@@ -288,8 +297,9 @@ private final class TrackingFilerJavaFileObject(
   }
 
   private def onOpen[T](result: => T): T = {
+    val opened = result
     tracker.foreach(_.recordOwnedGenerated(path, owners))
-    result
+    opened
   }
 }
 
@@ -310,8 +320,9 @@ private final class TrackingFilerFileObject(
   }
 
   private def onOpen[T](result: => T): T = {
+    val opened = result
     tracker.foreach(_.recordOwnedGenerated(path, owners))
-    result
+    opened
   }
 }
 

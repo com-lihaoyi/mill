@@ -358,9 +358,12 @@ private[mill] object IncrementalAnnotationProcessing {
     fileObject match {
       case tracked: TrackingOutputObject => tracked.path
       case _ =>
-        reflectedUnderlyingVirtualFile(fileObject)
+        explicitUnderlyingVirtualFile(fileObject)
+          .orElse(reflectedUnderlyingVirtualFile(fileObject))
           .collect { case pathBased: PathBasedFile => pathBased.toPath.toAbsolutePath.normalize() }
+          .orElse(explicitPath(fileObject))
           .orElse(reflectedPath(fileObject))
+          .orElse(explicitNestedFileObject(fileObject).flatMap(fileObjectPath))
           .orElse(reflectedNestedFileObject(fileObject).flatMap(fileObjectPath))
           .orElse {
             Option(fileObject.toUri)
@@ -449,10 +452,18 @@ private[mill] object IncrementalAnnotationProcessing {
   private def reflectedUnderlyingVirtualFile(fileObject: FileObject): Option[VirtualFile] =
     reflectedValues(fileObject).collectFirst { case virtual: VirtualFile => virtual }
 
+  private def explicitUnderlyingVirtualFile(fileObject: FileObject): Option[VirtualFile] =
+    namedFieldValues(fileObject, "underlying", "delegate", "clientFileObject")
+      .collectFirst { case virtual: VirtualFile => virtual }
+
   private def reflectedNestedFileObject(fileObject: FileObject): Option[FileObject] =
     reflectedValues(fileObject).collectFirst {
       case nested: FileObject if nested ne fileObject => nested
     }
+
+  private def explicitNestedFileObject(fileObject: FileObject): Option[FileObject] =
+    namedFieldValues(fileObject, "underlying", "delegate", "fileObject", "clientFileObject")
+      .collectFirst { case nested: FileObject if nested ne fileObject => nested }
 
   private def reflectedPath(fileObject: FileObject): Option[Path] =
     Option.when(fileObject.getClass.getName.startsWith("com.sun.tools.javac.file.")) {
@@ -460,6 +471,10 @@ private[mill] object IncrementalAnnotationProcessing {
         path.toAbsolutePath.normalize()
       }
     }.flatten
+
+  private def explicitPath(fileObject: FileObject): Option[Path] =
+    namedFieldValues(fileObject, "path", "file", "entry")
+      .collectFirst { case path: Path => path.toAbsolutePath.normalize() }
 
   private def reflectedValues(value: AnyRef): Iterator[AnyRef] =
     reflectedFieldCache
@@ -470,6 +485,19 @@ private[mill] object IncrementalAnnotationProcessing {
           field.get(value)
         }.toOption.collect { case ref: AnyRef => ref }
       }
+
+  private def namedFieldValues(value: AnyRef, names: String*): Iterator[AnyRef] = {
+    val nameSet = names.toSet
+    reflectedFieldCache
+      .get(value.getClass)
+      .iterator
+      .filter(field => nameSet(field.getName))
+      .flatMap { field =>
+        scala.util.Try {
+          field.get(value)
+        }.toOption.collect { case ref: AnyRef => ref }
+      }
+  }
 
   private def changedSourcesSince(
       previousStamps: Map[os.Path, SourceStamp],
