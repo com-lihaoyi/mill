@@ -6,14 +6,14 @@ object InitSbtScala3Tests extends InitTestSuite(
       Seq("--mill-jvm-id", "17")
     ) {
   def tests = Tests {
-    test("shared base directory") {
+    test("sharedBase") {
       val pkgLines = os.read.lines(tester.workspacePath / "compiler/package.mill")
       assert(pkgLines.count(_.trim == "def moduleDir = outer.moduleDir") == 4)
     }
-    test("mimaBackwardIssueFilters") - assert(
+    test("mimaBackward") - assert(
       eval(("show", "library.scala3-library-bootstrapped.mimaBackwardIssueFilters")).isSuccess
     )
-    test("mimaForwardIssueFilters") - assert(
+    test("mimaForward") - assert(
       eval(("show", "tasty.tasty-core-bootstrapped.mimaForwardIssueFilters")).isSuccess
     )
   }

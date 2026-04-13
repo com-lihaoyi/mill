@@ -346,7 +346,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       ZincOp.CompileMixed(
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
-        compileClasspath = compileClasspath().map(_.path),
+        compileClasspath = compileClasspath(),
         javacOptions = jOpts.compiler,
         scalaVersion = sv,
         scalaOrganization = scalaOrganization0(sv),
@@ -703,7 +703,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
           compileClasspath =
             (compileClasspathTask(
               CompileFor.SemanticDb
-            )() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(_.path),
+            )() ++ resolvedSemanticDbJavaPluginMvnDeps()),
           javacOptions = jOpts.compiler,
           scalaVersion = sv,
           scalaOrganization = scalaOrganization0(sv),

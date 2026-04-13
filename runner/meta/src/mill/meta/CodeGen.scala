@@ -20,38 +20,15 @@ object CodeGen {
 
   private def processDataRest[T](
       scriptPath: os.Path,
-      data: HeaderData,
-      sortKeys: Boolean
+      data: HeaderData
   )(
       onProperty: (String, upickle.core.BufferedValue) => T,
       onNestedObject: (String, HeaderData) => T
   ): Seq[T] = {
-    val entries0 = data.rest.toSeq
-    val entries = if (sortKeys) entries0.sortBy(_._1.value) else entries0
-
-    for ((locatedKeyString, v) <- entries)
-      yield locatedKeyString.value.split(" +") match {
-        case Array(k) => onProperty(k, v)
-        case Array("object", k) =>
-          mill.internal.Util
-            .catchUpickleAbort(
-              scriptPath.toNIO,
-              prefix = s"In object ${literalize(k)}: "
-            ) {
-              upickle.core.BufferedValue.transform(v, HeaderData.headerDataReader(scriptPath))
-            } match {
-            case Result.Success(nestedData) => onNestedObject(k, nestedData)
-            case f: Result.Failure => throw new Result.Exception(f.error, Some(f))
-          }
-        case _ => throw new Result.Exception(
-            "",
-            Some(Result.Failure(
-              "Invalid key: " + locatedKeyString.value,
-              scriptPath.toNIO,
-              locatedKeyString.index
-            ))
-          )
-      }
+    HeaderData.processRest(scriptPath, data)(
+      onProperty = (locatedKey, v) => onProperty(locatedKey.value, v),
+      onNestedObject = (_, name, nestedData) => onNestedObject(name, nestedData)
+    )
   }
 
   def generateWrappedAndSupportSources(
@@ -73,6 +50,12 @@ object CodeGen {
         }
       }
       .toMap
+
+    // Identify .mill.yaml files marked with `mill-experimental-precompiled-module: true`.
+    // These are skipped during codegen and instantiated reflectively at runtime.
+    val precompiledModulePaths: Set[os.Path] = parsedYamlHeaderData.collect {
+      case (path, headerData) if headerData.`mill-experimental-precompiled-module`.value => path
+    }.toSet
 
     val allowNestedBuildMillFiles = mill.internal.Util.readBooleanFromBuildHeader(
       projectRoot,
@@ -97,6 +80,7 @@ object CodeGen {
 
     val allPackageObjectRefs = scriptSources
       .filter(p => CGConst.nestedBuildFileNames.contains(p.last))
+      .filter(p => !precompiledModulePaths.contains(p))
       .map(p => calcSegments(p / os.up, projectRoot))
       .distinct
       .filter(_.nonEmpty)
@@ -114,11 +98,15 @@ object CodeGen {
     // we ignore the *.mill one. Maybe we could warn users about that?
     val ignoreSources = scriptSources
       .filter(_.last.endsWith(".mill.yaml"))
+      .filter(!precompiledModulePaths.contains(_))
       .map { millYamlSource =>
         millYamlSource / os.up / millYamlSource.last.stripSuffix(".yaml")
       }
       .toSet
-    for (scriptPath <- scriptSources if !ignoreSources(scriptPath)) {
+    for (
+      scriptPath <- scriptSources
+      if !ignoreSources(scriptPath) && !precompiledModulePaths.contains(scriptPath)
+    ) {
       val scriptFolderPath = scriptPath / os.up
       val packageSegments = DiscoveredBuildFiles.fileImportToSegments(projectRoot, scriptPath)
       val pkgSegments = packageSegments.drop(1).dropRight(1)
@@ -153,6 +141,18 @@ object CodeGen {
           case path
               if path != scriptPath
                 && allBuildFileNames.contains(path.last)
+                && !precompiledModulePaths.contains(path)
+                && path / os.up / os.up == scriptFolderPath => (path / os.up).last
+        }
+        .distinct
+
+      // Collect precompiled module children for this script's directory
+      val precompiledChildNames = scriptSources
+        .collect {
+          case path
+              if path != scriptPath
+                && allBuildFileNames.contains(path.last)
+                && precompiledModulePaths.contains(path)
                 && path / os.up / os.up == scriptFolderPath => (path / os.up).last
         }
         .distinct
@@ -172,7 +172,69 @@ object CodeGen {
             (abstractDef, valDef)
           }
           .unzip
-        (aliases.mkString("\n  "), aliasesDefs.mkString("\n  "))
+
+        // For precompiled module children, generate lazy val aliases that instantiate
+        // the precompiled module at runtime using the class from its extends clause
+        val (precompiledAliasesDefs, precompiledAliases) = precompiledChildNames
+          .flatMap { c =>
+            val scriptFile = scriptFolderPath / c / "package.mill.yaml"
+            parsedYamlHeaderData.get(scriptFile).flatMap { headerData =>
+              headerData.`extends`.value.value.headOption.map { extendsLocated =>
+                val lhs = backtickWrap(c)
+                val extendsClass = extendsLocated.value
+                val relPath = scriptFile.relativeTo(projectRoot)
+
+                // Use the shared collectAllNestedDeps to gather deps from all nesting levels
+                val allNestedDeps =
+                  HeaderData.collectAllNestedDeps(scriptFile, headerData, "")
+
+                // Convert NestedModuleDeps entries into (kind, mapEntry) pairs for codegen
+                val depsEntries = allNestedDeps.flatMap { entry =>
+                  Seq(
+                    ("moduleDeps", entry.key, entry.moduleDeps),
+                    ("compileModuleDeps", entry.key, entry.compileModuleDeps),
+                    ("runModuleDeps", entry.key, entry.runModuleDeps),
+                    ("bomModuleDeps", entry.key, entry.bomModuleDeps)
+                  ).collect {
+                    case (kind, k, deps) if deps.nonEmpty =>
+                      val depsCode = deps.map(d =>
+                        s"""_root_.mill.api.internal.PrecompiledModuleRef.resolveModuleRef(this, ${literalize(
+                            d.value
+                          )}, ${literalize(relPath.toString)}, ${d.index})"""
+                      ).mkString(", ")
+                      (kind, s"""${literalize(k)} -> _root_.scala.Seq($depsCode)""")
+                  }
+                }
+
+                def mapCode(kind: String) = {
+                  val entries = depsEntries.filter(_._1 == kind).map(_._2)
+                  if (entries.isEmpty)
+                    "_root_.scala.collection.immutable.Map.empty[String, Seq[_root_.mill.api.Module]]"
+                  else
+                    s"_root_.scala.collection.immutable.Map[String, Seq[_root_.mill.api.Module]](${entries.mkString(", ")})"
+                }
+
+                val abstractDef = s"def $lhs: $extendsClass // precompiled module reference"
+                val valDef =
+                  s"""final lazy val $lhs: $extendsClass = _root_.mill.api.internal.PrecompiledModuleRef(this, ${literalize(
+                      relPath.toString
+                    )}, ${literalize(extendsClass)}, () => ${mapCode(
+                      "moduleDeps"
+                    )}, () => ${mapCode(
+                      "compileModuleDeps"
+                    )}, () => ${mapCode("runModuleDeps")}, () => ${mapCode(
+                      "bomModuleDeps"
+                    )}).asInstanceOf[$extendsClass] // precompiled module reference"""
+                (abstractDef, valDef)
+              }
+            }
+          }
+          .unzip
+
+        (
+          (aliases ++ precompiledAliases).mkString("\n  "),
+          (aliasesDefs ++ precompiledAliasesDefs).mkString("\n  ")
+        )
       }
 
       if (scriptPath.last.endsWith(".yaml")) {
@@ -188,7 +250,7 @@ object CodeGen {
 
         def renderTemplate(prefix: String, data: HeaderData, path: Seq[String]): String = {
           val extendsConfig = data.`extends`.value.value.map(_.value)
-          val definitions = processDataRest(scriptPath, data, sortKeys = false)(
+          val definitions = processDataRest(scriptPath, data)(
             onProperty = (_, _) => "", // Properties will be auto-implemented by AutoOverride
             onNestedObject = (k, nestedData) =>
               renderTemplate(s"object $k", nestedData, path :+ k)

@@ -8,14 +8,14 @@ import utest.*
 object OutputDirectoryTests extends UtestIntegrationTestSuite {
 
   def tests: Tests = Tests {
-    test("Output directory sanity check") - integrationTest { tester =>
+    test("sanity") - integrationTest { tester =>
       import tester.*
       eval("__.compile").isSuccess ==> true
       val defaultOutDir = workspacePath / OutFiles.defaultOut
       assert(os.isDir(defaultOutDir))
     }
 
-    test("Output directory elsewhere in workspace") - integrationTest { tester =>
+    test("elsewhere") - integrationTest { tester =>
       import tester.*
       eval(
         "__.compile",
@@ -27,7 +27,7 @@ object OutputDirectoryTests extends UtestIntegrationTestSuite {
       assert(!os.exists(defaultOutDir))
     }
 
-    test("Output directory outside workspace") - integrationTest { tester =>
+    test("outside") - integrationTest { tester =>
       import tester.*
       val outDir = os.temp.dir() / "tmp-out"
       eval(
