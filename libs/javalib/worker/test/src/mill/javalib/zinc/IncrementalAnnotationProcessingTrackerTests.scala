@@ -6,7 +6,10 @@ import javax.tools.{FileObject, JavaFileObject, SimpleJavaFileObject}
 
 object IncrementalAnnotationProcessingTrackerTests extends TestSuite {
 
-  private def fileObject(path: os.Path, kind: JavaFileObject.Kind): FileObject =
+  private final class DelegateFileObject(val delegate: JavaFileObject)
+      extends SimpleJavaFileObject(delegate.toUri, delegate.getKind) {}
+
+  private def fileObject(path: os.Path, kind: JavaFileObject.Kind): JavaFileObject =
     new SimpleJavaFileObject(path.toNIO.toUri, kind) {}
 
   val tests: Tests = Tests {
@@ -79,6 +82,21 @@ object IncrementalAnnotationProcessingTrackerTests extends TestSuite {
         assert(
           tracker.snapshot.products == Map(
             generatedClass -> IncrementalAnnotationProcessing.ProductOwnership.Isolating(source)
+          )
+        )
+      } finally os.remove.all(workDir)
+    }
+
+    test("fileObjectPathPrefersKnownDelegateFields") {
+      val workDir = os.temp.dir()
+      try {
+        val source = workDir / "generated/example/MapperImpl.java"
+        val delegate = fileObject(source, JavaFileObject.Kind.SOURCE)
+        val wrapped = new DelegateFileObject(delegate)
+
+        assert(
+          IncrementalAnnotationProcessing.fileObjectPath(wrapped).contains(
+            source.toNIO.toAbsolutePath.normalize()
           )
         )
       } finally os.remove.all(workDir)

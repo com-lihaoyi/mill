@@ -269,13 +269,14 @@ private final class TrackingJavaFileObject(
   }
 
   private def onOpen[T](result: => T): T = {
+    val opened = result
     classFileManager.foreach(
       _.generated(
         Array[VirtualFile](sbt.internal.inc.PlainVirtualFile(path.getOrElse(Paths.get(toUri))))
       )
     )
     tracker.foreach(_.recordSiblingGenerated(path, siblingPath))
-    result
+    opened
   }
 }
 
@@ -296,8 +297,9 @@ private final class TrackingFilerJavaFileObject(
   }
 
   private def onOpen[T](result: => T): T = {
+    val opened = result
     tracker.foreach(_.recordOwnedGenerated(path, owners))
-    result
+    opened
   }
 }
 
@@ -318,8 +320,9 @@ private final class TrackingFilerFileObject(
   }
 
   private def onOpen[T](result: => T): T = {
+    val opened = result
     tracker.foreach(_.recordOwnedGenerated(path, owners))
-    result
+    opened
   }
 }
 
