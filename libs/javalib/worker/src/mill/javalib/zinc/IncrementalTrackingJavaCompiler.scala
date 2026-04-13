@@ -59,20 +59,12 @@ private[mill] object IncrementalTrackingJavaCompiler {
         val processors = names.map { name =>
           val delegate =
             loader.loadClass(name).getDeclaredConstructor().newInstance().asInstanceOf[Processor]
-          if (needsRawProcessingEnvironment(delegate)) delegate
-          else new TrackingProcessor(delegate)
+          new TrackingProcessor(delegate)
         }
         Some(LoadedProcessors(loader, processors))
       }
     }
   }
-
-  // Lombok's processor stack expects the original javac ProcessingEnvironment rather than our
-  // TrackingProcessingEnvironment wrapper. See:
-  // - https://github.com/projectlombok/lombok/blob/v1.18.38/src/core/lombok/launch/AnnotationProcessor.java
-  // - https://github.com/projectlombok/lombok/blob/v1.18.38/src/core/lombok/javac/apt/Processor.java
-  private def needsRawProcessingEnvironment(processor: Processor): Boolean =
-    processor.getClass.getName.startsWith("lombok.")
 }
 
 private[mill] final class IncrementalTrackingJavaCompiler(compiler: javax.tools.JavaCompiler)
