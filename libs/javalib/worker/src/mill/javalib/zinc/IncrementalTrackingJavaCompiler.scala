@@ -1,5 +1,4 @@
 package mill.javalib.zinc
-
 import sbt.internal.inc.javac.{DirectToJarFileManager, SameFileFixFileManager}
 import sbt.util.{Level, Logger}
 import xsbti.{Reporter, VirtualFile}
@@ -8,7 +7,7 @@ import xsbti.compile.{IncToolOptions, JavaCompiler as XJavaCompiler, Output}
 import java.io.{OutputStream, PrintWriter, Writer}
 import java.net.URI
 import java.nio.charset.Charset
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.{Files, InvalidPathException, Path, Paths}
 import javax.annotation.processing.{Completion, Filer, Messager, Processor, ProcessingEnvironment}
 import javax.lang.model.SourceVersion
 import javax.lang.model.element.{AnnotationMirror, Element, ExecutableElement, TypeElement}
@@ -59,12 +58,16 @@ private[mill] object IncrementalTrackingJavaCompiler {
         val processors = names.map { name =>
           val delegate =
             loader.loadClass(name).getDeclaredConstructor().newInstance().asInstanceOf[Processor]
-          new TrackingProcessor(delegate)
+          if (needsRawProcessingEnvironment(delegate)) delegate
+          else new TrackingProcessor(delegate)
         }
         Some(LoadedProcessors(loader, processors))
       }
     }
   }
+
+  private def needsRawProcessingEnvironment(processor: Processor): Boolean =
+    processor.getClass.getName.startsWith("lombok.")
 }
 
 private[mill] final class IncrementalTrackingJavaCompiler(compiler: javax.tools.JavaCompiler)
@@ -201,7 +204,7 @@ private sealed trait TrackingOutputObject {
 
 private final case class TrackingVirtualJavaFileObject(underlying: VirtualFile)
     extends javax.tools.SimpleJavaFileObject(
-      new URI("vf", "tmp", s"/${underlying.id}", null),
+      TrackingVirtualJavaFileObject.uriFor(underlying),
       Kind.SOURCE
     ) {
   override def openInputStream = underlying.input
@@ -212,6 +215,15 @@ private final case class TrackingVirtualJavaFileObject(underlying: VirtualFile)
     try sbt.io.IO.readStream(in)
     finally in.close()
   }
+}
+
+private object TrackingVirtualJavaFileObject {
+  def uriFor(underlying: VirtualFile): URI =
+    try Paths.get(underlying.id).toUri
+    catch {
+      case _: InvalidPathException =>
+        new URI("vf", "tmp", s"/${underlying.id}", null)
+    }
 }
 
 private final class TrackingFileManager(

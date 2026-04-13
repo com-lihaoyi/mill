@@ -42,6 +42,17 @@ object IncrementalAnnotationProcessingTests extends TestSuite {
       }
     }
 
+    object lombok extends JavaModule {
+      def mvnDeps = Seq(
+        mvn"org.projectlombok:lombok:1.18.38",
+        mvn"org.slf4j:slf4j-api:2.0.17"
+      )
+
+      override def annotationProcessorsMvnDeps: T[Seq[Dep]] = Task {
+        Seq(mvn"org.projectlombok:lombok:1.18.38")
+      }
+    }
+
     object localMetadataConfigProcessor extends JavaModule
 
     object localMetadataConfig extends JavaModule {
@@ -286,6 +297,33 @@ object IncrementalAnnotationProcessingTests extends TestSuite {
       val Right(second) = eval(Modules.autoservice.compile).runtimeChecked
       assert(second.evalCount > 0)
       assert(!os.exists(serviceFile))
+    }
+
+    test("lombok") - testEval().scoped { eval =>
+      val appClass = eval.outPath / "lombok/compile.dest/classes/example/App.class"
+
+      val Right(first) = eval(Modules.lombok.compile).runtimeChecked
+      assert(first.evalCount > 0, os.exists(appClass))
+
+      val before = mtimeMillis(appClass)
+      os.write.over(
+        Modules.lombok.moduleDir / "src/example/App.java",
+        """package example;
+          |
+          |import lombok.extern.slf4j.Slf4j;
+          |
+          |@Slf4j
+          |public class App {
+          |    public static void main(String[] args) {
+          |        LOGGER.info("hello again");
+          |    }
+          |}
+          |""".stripMargin
+      )
+
+      val Right(second) = eval(Modules.lombok.compile).runtimeChecked
+      assert(second.evalCount > 0)
+      assertUpdated(appClass, before)
     }
 
     test("localMetadataConfig") - testEval().scoped { eval =>
