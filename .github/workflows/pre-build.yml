@@ -39,7 +39,7 @@ jobs:
 
       - run: ./mill -k ${{ inputs.compileargs }}
 
-      - uses: actions/upload-artifact@v6.0.0
+      - uses: actions/upload-artifact@v7.0.1
         with:
           path: .
           name: ${{ inputs.os }}-artifact
