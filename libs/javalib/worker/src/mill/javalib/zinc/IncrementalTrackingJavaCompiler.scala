@@ -7,7 +7,7 @@ import xsbti.compile.{IncToolOptions, JavaCompiler as XJavaCompiler, Output}
 import java.io.{OutputStream, PrintWriter, Writer}
 import java.net.URI
 import java.nio.charset.Charset
-import java.nio.file.{Files, InvalidPathException, Path, Paths}
+import java.nio.file.{Files, Path, Paths}
 import javax.annotation.processing.{Completion, Filer, Messager, Processor, ProcessingEnvironment}
 import javax.lang.model.SourceVersion
 import javax.lang.model.element.{AnnotationMirror, Element, ExecutableElement, TypeElement}
@@ -24,6 +24,7 @@ import javax.tools.{
   StandardJavaFileManager
 }
 import scala.jdk.CollectionConverters.*
+import xsbti.PathBasedFile
 
 private[mill] object IncrementalTrackingJavaCompiler {
   private[mill] final case class LoadedProcessors(
@@ -219,10 +220,9 @@ private final case class TrackingVirtualJavaFileObject(underlying: VirtualFile)
 
 private object TrackingVirtualJavaFileObject {
   def uriFor(underlying: VirtualFile): URI =
-    try Paths.get(underlying.id).toUri
-    catch {
-      case _: InvalidPathException =>
-        new URI("vf", "tmp", s"/${underlying.id}", null)
+    underlying match {
+      case pathBased: PathBasedFile => pathBased.toPath.toUri
+      case _ => new URI("vf", "tmp", s"/${underlying.id}", null)
     }
 }
 
