@@ -26,6 +26,17 @@ object ProguardTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("Proguard module") {
+      test("finalJavaHome should resolve inside task context") - UnitTester(
+        proguard,
+        testModuleSourcesPath
+      ).scoped { eval =>
+        val Right(result) = eval.apply(proguard.finalJavaHome).runtimeChecked
+        assert(
+          os.exists(result.value.path),
+          result.value.path.toString().nonEmpty
+        )
+      }
+
       test("should download proguard jars") - UnitTester(proguard, testModuleSourcesPath).scoped {
         eval =>
           val Right(result) = eval.apply(proguard.proguardClasspath).runtimeChecked
