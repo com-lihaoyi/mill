@@ -5,7 +5,10 @@
 
 _{author}, {revdate}_
 
-Spring Boot, Micronaut and Quarkus each expect different things from a build tool. Spring Boot layers AOT and native support on top of a conventional JVM build, Micronaut adds an explicit AOT pipeline and Quarkus takes over much more of packaging and dependency modelling. This post walks through those differences and shows how Mill supports each framework while keeping configuration approachable and builds fast.
+Spring Boot, Micronaut and Quarkus each expect different things from a build tool. Spring Boot layers AOT and native support on top of a conventional JVM build, Micronaut adds an explicit AOT pipeline and Quarkus takes over much more of packaging and dependency modelling.
+
+In this post, we explore how the Mill build tool supports these frameworks, providing a faster and smoother developer experience than
+traditional build tools like Maven and Gradle.
 
 // end::header[]
 
