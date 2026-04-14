@@ -236,7 +236,7 @@ trait FlywayModule extends JavaModule {
       password: String,
       fileLocations: Seq[PathRef],
       placeholders: Map[String, String],
-      extraConfig: Map[String, String] = Map.empty
+      extraConfig: Map[String, String]
   )(
       f: (AnyRef, MillURLClassLoader, String) => T
   ): T = {
