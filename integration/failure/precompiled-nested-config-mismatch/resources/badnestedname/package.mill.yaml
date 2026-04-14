@@ -1,0 +1,6 @@
+extends: millbuild.MyModule
+mill-experimental-precompiled-module: true
+
+object typo:
+  mvnDeps:
+  - org.hamcrest:hamcrest:2.2

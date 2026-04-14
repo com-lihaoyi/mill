@@ -312,7 +312,8 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       val isJava = javaSourceFiles.nonEmpty
       val isMixed = isKotlin && isJava
 
-      val compileCp = compileClasspath().map(_.path).filter(os.exists)
+      val compileCp = compileClasspath().filter(ref => os.exists(ref.path))
+      val compileCpPaths = compileCp.map(_.path)
       val updateCompileOutput = upstreamCompileOutput()
 
       def compileJava: Result[CompilationResult] = {
@@ -346,9 +347,9 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
           // TODO if there is penalty for activating it in the compiler, put it behind configuration flag
           Seq("-Xmulti-platform"),
           // classpath
-          when(compileCp.iterator.nonEmpty)(
+          when(compileCpPaths.iterator.nonEmpty)(
             "-classpath",
-            compileCp.iterator.mkString(File.pathSeparator)
+            compileCpPaths.iterator.mkString(File.pathSeparator)
           ),
           when(kotlinExplicitApi())(
             "-Xexplicit-api=strict"
@@ -452,7 +453,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       worker: InternalJvmWorkerApi,
       upstreamCompileOutput: Seq[CompilationResult],
       javaSourceFiles: Seq[os.Path],
-      compileCp: Seq[os.Path],
+      compileCp: Seq[PathRef],
       javaHome: Option[os.Path],
       javacOptions: Seq[String],
       compileProblemReporter: Option[CompileProblemReporter],

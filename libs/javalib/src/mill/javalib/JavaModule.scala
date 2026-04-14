@@ -46,6 +46,7 @@ import scala.util.matching.Regex
  */
 trait JavaModule
     extends mill.api.Module
+    with mill.api.ConfigModuleDepsModule
     with WithJvmWorkerModule
     with TestModule.JavaModuleBase
     with DefaultTaskModule
@@ -88,7 +89,10 @@ trait JavaModule
     hierarchyChecks()
 
     override def resources = super[JavaModule].resources
-    override def moduleDeps: Seq[JavaModule] = Seq(outer)
+    override def moduleDeps: Seq[JavaModule] =
+      Seq(outer) ++ outer.configModuleDeps
+        .getOrElse(moduleSegments.parts.last, Nil)
+        .collect { case m: JavaModule => m }
     override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
       outer.repositoriesTask()
     }
@@ -345,19 +349,22 @@ trait JavaModule
    *  which uses a cached result which is also checked to be free of cycle.
    *  @see [[moduleDepsChecked]]
    */
-  def moduleDeps: Seq[JavaModule] = Seq()
+  def moduleDeps: Seq[JavaModule] =
+    configModuleDeps.getOrElse("", Nil).collect { case m: JavaModule => m }
 
   /**
    *  The compile-only direct dependencies of this module. These are *not*
    *  transitive, and only take effect in the module that they are declared in.
    */
-  def compileModuleDeps: Seq[JavaModule] = Seq()
+  def compileModuleDeps: Seq[JavaModule] =
+    configCompileModuleDeps.getOrElse("", Nil).collect { case m: JavaModule => m }
 
   /**
    * The runtime-only direct dependencies of this module. These *are* transitive,
    * and so get propagated to downstream modules automatically
    */
-  def runModuleDeps: Seq[JavaModule] = Seq()
+  def runModuleDeps: Seq[JavaModule] =
+    configRunModuleDeps.getOrElse("", Nil).collect { case m: JavaModule => m }
 
   /**
    *  Bill of Material (BOM) dependencies of this module.
@@ -366,7 +373,8 @@ trait JavaModule
    *  which uses a cached result which is also checked to be free of cycles.
    *  @see [[bomModuleDepsChecked]]
    */
-  def bomModuleDeps: Seq[BomModule] = Seq()
+  def bomModuleDeps: Seq[BomModule] =
+    configBomModuleDeps.getOrElse("", Nil).collect { case m: BomModule => m }
 
   /**
    * Same as [[moduleDeps]] but checked to not contain cycles.
@@ -992,7 +1000,7 @@ trait JavaModule
       ZincOp.CompileJava(
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
-        compileClasspath = compileClasspath().map(_.path),
+        compileClasspath = compileClasspath(),
         javacOptions = javacCompilerOptions,
         incrementalCompilation = zincIncrementalCompilation(),
         workDir = Task.dest
