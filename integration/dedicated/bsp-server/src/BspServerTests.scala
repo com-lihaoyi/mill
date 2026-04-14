@@ -507,7 +507,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
       assert(expectedMessages == messages0)
     }
 
-    test("bspScriptIgnoreDefault without meta-build") - integrationTest { tester =>
+    test("ignoreDefault") - integrationTest { tester =>
       import tester.*
       os.remove.all(workspacePath / "build.mill")
       os.remove.all(workspacePath / "mill-build")

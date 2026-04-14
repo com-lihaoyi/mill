@@ -63,15 +63,24 @@ object ExternalSummary {
         val resourcePath =
           os.resource(using upstreamClassloader) / os.SubPath(cls.name.replace('.', '/') + ".class")
 
-        new ClassReader(os.read.inputStream(resourcePath)).accept(
-          visitor,
-          ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG
-        )
+        // Skip classes whose .class files can't be found on the classpath.
+        // This can happen when stale class files from incremental compilation
+        // reference types that are no longer on the current classpath.
+        val streamOpt =
+          try Some(os.read.inputStream(resourcePath))
+          catch { case _: os.ResourceNotFoundException => None }
 
-        directSuperclasses(cls) = visitor.superclass
-        methodsPerCls(cls) = visitor.methods
-        ancestorsPerCls(cls) = visitor.ancestors
-        ancestorsPerCls(cls).foreach(load)
+        streamOpt.foreach { stream =>
+          new ClassReader(stream).accept(
+            visitor,
+            ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG
+          )
+
+          directSuperclasses(cls) = visitor.superclass
+          methodsPerCls(cls) = visitor.methods
+          ancestorsPerCls(cls) = visitor.ancestors
+          ancestorsPerCls(cls).foreach(load)
+        }
       }
 
       (allDirectAncestors ++ allMethodCallParamClasses ++ asmPreciseTypes)
