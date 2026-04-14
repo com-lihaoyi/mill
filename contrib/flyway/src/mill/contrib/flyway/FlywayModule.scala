@@ -36,11 +36,12 @@ trait FlywayModule extends JavaModule {
     Map.empty[String, String]
   }
 
-  /** Extra Flyway configuration properties beyond URL/user/password.
-    * Override this to add properties like SCHEMAS, OUT_OF_ORDER, CLEAN_DISABLED, etc.
-    * Keys should be Flyway configuration property names (e.g. "flyway.schemas").
-    * These are merged into the config map passed to Flyway.configure().
-    */
+  /**
+   * Extra Flyway configuration properties beyond URL/user/password.
+   * Override this to add properties like SCHEMAS, OUT_OF_ORDER, CLEAN_DISABLED, etc.
+   * Keys should be Flyway configuration property names (e.g. "flyway.schemas").
+   * These are merged into the config map passed to Flyway.configure().
+   */
   def flywayExtraConfig: T[Map[String, String]] = Task { Map.empty[String, String] }
 
   def flywayDriverDeps: T[Seq[Dep]]
