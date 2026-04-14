@@ -36,6 +36,13 @@ trait FlywayModule extends JavaModule {
     Map.empty[String, String]
   }
 
+  /** Extra Flyway configuration properties beyond URL/user/password.
+    * Override this to add properties like SCHEMAS, OUT_OF_ORDER, CLEAN_DISABLED, etc.
+    * Keys should be Flyway configuration property names (e.g. "flyway.schemas").
+    * These are merged into the config map passed to Flyway.configure().
+    */
+  def flywayExtraConfig: T[Map[String, String]] = Task { Map.empty[String, String] }
+
   def flywayDriverDeps: T[Seq[Dep]]
   def flywayPluginDeps: T[Seq[Dep]] = Task {
     Seq.empty
@@ -92,7 +99,8 @@ trait FlywayModule extends JavaModule {
 
     val configProps = Map(flyway.URL -> flywayUrl()) ++
       strToOptPair(flyway.USER, flywayUser()) ++
-      strToOptPair(flyway.PASSWORD, flywayPassword())
+      strToOptPair(flyway.PASSWORD, flywayPassword()) ++
+      flywayExtraConfig()
 
     LogFactory.setLogCreator(new ConsoleLogCreator(Level.INFO))
 
@@ -114,7 +122,8 @@ trait FlywayModule extends JavaModule {
       flywayUser(),
       flywayPassword(),
       flywayFileLocations(),
-      flywayPlaceholders()
+      flywayPlaceholders(),
+      flywayExtraConfig()
     ) {
       (flyway, _, _) => toMigrateResult(callNoArg(flyway, "migrate"))
     }
@@ -129,7 +138,8 @@ trait FlywayModule extends JavaModule {
       flywayUser(),
       flywayPassword(),
       flywayFileLocations(),
-      flywayPlaceholders()
+      flywayPlaceholders(),
+      flywayExtraConfig()
     ) {
       (flyway, _, _) => toCleanResult(callNoArg(flyway, "clean"))
     }
@@ -144,7 +154,8 @@ trait FlywayModule extends JavaModule {
       flywayUser(),
       flywayPassword(),
       flywayFileLocations(),
-      flywayPlaceholders()
+      flywayPlaceholders(),
+      flywayExtraConfig()
     ) {
       (flyway, _, _) => toBaselineResult(callNoArg(flyway, "baseline"))
     }
@@ -159,7 +170,8 @@ trait FlywayModule extends JavaModule {
       flywayUser(),
       flywayPassword(),
       flywayFileLocations(),
-      flywayPlaceholders()
+      flywayPlaceholders(),
+      flywayExtraConfig()
     ) {
       (flyway, isolatedLoader, _) =>
         val info = callNoArg(flyway, "info")
@@ -191,7 +203,8 @@ trait FlywayModule extends JavaModule {
       flywayUser(),
       flywayPassword(),
       flywayFileLocations(),
-      flywayPlaceholders()
+      flywayPlaceholders(),
+      flywayExtraConfig()
     ) {
       (flyway, flywayLoader, currentUrl) =>
         val conf = callNoArg(flyway, "getConfiguration")
@@ -221,7 +234,8 @@ trait FlywayModule extends JavaModule {
       user: String,
       password: String,
       fileLocations: Seq[PathRef],
-      placeholders: Map[String, String]
+      placeholders: Map[String, String],
+      extraConfig: Map[String, String] = Map.empty
   )(
       f: (AnyRef, MillURLClassLoader, String) => T
   ): T = {
@@ -229,7 +243,7 @@ trait FlywayModule extends JavaModule {
       loader,
       fileLocations.map(pr => s"filesystem:${pr.path}"),
       placeholders,
-      configProps(url, user, password)
+      configProps(url, user, password) ++ extraConfig
     )
     f(flyway, loader, url)
   }
