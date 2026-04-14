@@ -5,13 +5,13 @@
 
 _{author}, {revdate}_
 
-Spring Boot, Micronaut and Quarkus each expect different things from a build tool. Spring Boot layers AOT and native support on top of a conventional JVM build, Micronaut adds an explicit AOT pipeline, and Quarkus takes over much more of packaging and dependency modelling. This post walks through those differences and shows how Mill supports each framework while keeping configuration approachable and builds fast.
+Spring Boot, Micronaut and Quarkus each expect different things from a build tool. Spring Boot layers AOT and native support on top of a conventional JVM build, Micronaut adds an explicit AOT pipeline and Quarkus takes over much more of packaging and dependency modelling. This post walks through those differences and shows how Mill supports each framework while keeping configuration approachable and builds fast.
 
 // end::header[]
 
 == Why Mill?
 
-This section explains why Mill is a good fit for modern Java web frameworks: it keeps project configuration compact, it is easy to extend when a framework needs special handling, and it provides a fast local feedback loop.
+This section explains why Mill is a good fit for modern Java web frameworks: it keeps project configuration compact, it is easy to extend when a framework needs special handling and it provides a fast local feedback loop.
 
 === Simplicity
 
@@ -101,13 +101,15 @@ Mill's documentation also describes `build.mill.yaml` files as often being aroun
 
 === Build Performance
 
-Even when framework support becomes more sophisticated, the day-to-day edit-build-test loop still benefits from Mill's daemon, caching and parallel execution.
+== Build Performance
 
-Mill's published performance numbers are based on the Netty codebase rather than a Spring Boot sample, but they show the underlying build-engine behaviour clearly.
-On those benchmarks, Mill is reported as 4.0x to 7.0x faster than Maven for clean compiles, 30.7x faster for an incremental single-module compile and 44.0x faster for a no-op single-module compile.
-The same mechanisms that produce those wins there are the ones that also help Spring Boot, Micronaut and Quarkus projects during local development: a warm daemon, aggressive caching and parallel task execution.
+This section explains the performance argument for Mill: even when framework support becomes more sophisticated, the day-to-day edit-build-test loop still benefits from Mill's daemon, caching and parallel execution.
 
-For the detailed benchmark methodology and raw numbers, see xref:mill::comparisons/performance.adoc[Mill Build Performance].
+To make this more concrete, a few ad-hoc measurements were executed on a minimal Spring Boot project generated from https://start.spring.io/[start.spring.io]. The project was intentionally simple, with a single Java source file, measured wall-clock times for `compile` after cleaning the build outputs. Across three runs, Mill averaged about 1.47 seconds for `mill compile`, while Maven averaged about 2.54 seconds for `./mvnw compile` in the same clean-build scenario. In other words, for this small Spring Boot example, Mill was about 1.7x faster on average in end-to-end wall-clock time than Maven.
+
+This is not meant to be a rigorous benchmark, but rather a small sanity check on a starter project. The exact numbers will vary depending on machine, JDK setup and filesystem state.
+
+For more details, see xref:mill::comparisons/performance.adoc[Mill Build Performance].
 
 == Overview
 
@@ -313,7 +315,7 @@ Check out this xref:mill::javalib/web-examples.adoc#_micronaut_native_graalvm[na
 
 - *Treating AOT as a first-class build step:* Micronaut AOT is not an afterthought. The build needs to model it explicitly and predictably.
 
-- *Orchestrating external tools:* The AOT CLI must be resolved, configured, executed, and its outputs cached like any other meaningful build step.
+- *Orchestrating external tools:* The AOT CLI must be resolved, configured, executed and its outputs cached like any other meaningful build step.
 
 - *Managing generated outputs and classpaths:* The generated classes and metadata have to appear in exactly the right places for both JVM and native builds.
 
