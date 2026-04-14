@@ -1651,6 +1651,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/contrib/flyway/FlywayModule.html#flywayClassloader-0","e":false,"i":"","n":"flywayClassloader","t":"flywayClassloader: Worker[MillURLClassLoader]","d":"mill.contrib.flyway.FlywayModule","k":"def","x":""},
 {"l":"mill/contrib/flyway/FlywayModule.html#flywayClean-936","e":false,"i":"","n":"flywayClean","t":"flywayClean(): Command[CleanResult]","d":"mill.contrib.flyway.FlywayModule","k":"def","x":""},
 {"l":"mill/contrib/flyway/FlywayModule.html#flywayDriverDeps-0","e":false,"i":"","n":"flywayDriverDeps","t":"flywayDriverDeps: Simple[Seq[Dep]]","d":"mill.contrib.flyway.FlywayModule","k":"def","x":""},
+{"l":"mill/contrib/flyway/FlywayModule.html#flywayExtraConfig-0","e":false,"i":"","n":"flywayExtraConfig","t":"flywayExtraConfig: Simple[Map[String, String]]","d":"mill.contrib.flyway.FlywayModule","k":"def","x":""},
 {"l":"mill/contrib/flyway/FlywayModule.html#flywayFileLocations-0","e":false,"i":"","n":"flywayFileLocations","t":"flywayFileLocations: Simple[Seq[PathRef]]","d":"mill.contrib.flyway.FlywayModule","k":"def","x":""},
 {"l":"mill/contrib/flyway/FlywayModule.html#flywayInfo-936","e":false,"i":"","n":"flywayInfo","t":"flywayInfo(): Command[String]","d":"mill.contrib.flyway.FlywayModule","k":"def","x":""},
 {"l":"mill/contrib/flyway/FlywayModule.html#flywayInstance-0","e":false,"i":"","n":"flywayInstance","t":"flywayInstance: Worker[Flyway]","d":"mill.contrib.flyway.FlywayModule","k":"def","x":""},
