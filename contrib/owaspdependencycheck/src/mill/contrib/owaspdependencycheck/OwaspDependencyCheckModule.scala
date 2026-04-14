@@ -70,8 +70,7 @@ trait OwaspDependencyCheckJavaModule extends JavaModule with OwaspDependencyChec
   }
 }
 
-object OwaspDependencyCheckWorker extends ExternalModule with CoursierModule
-    with OfflineSupportModule {
+object OwaspDependencyCheckWorker extends ExternalModule with CoursierModule {
   lazy val millDiscover = Discover[this.type]
   def dependencyCheckClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
