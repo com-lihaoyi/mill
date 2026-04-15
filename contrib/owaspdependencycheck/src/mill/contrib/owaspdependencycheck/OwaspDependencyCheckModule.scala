@@ -62,16 +62,15 @@ trait OwaspDependencyCheckModule extends Module {
 }
 
 /**
- * Java Dependency Check, that adds the runtime class path to be scanned in the dependency check.
+ * Java Dependency Check, that adds the resolvedRunMvnDeps path to be scanned in the dependency check.
  */
 trait OwaspDependencyCheckJavaModule extends JavaModule with OwaspDependencyCheckModule {
   override def owaspDependencyCheckFiles: T[Seq[PathRef]] = Task {
-    super.runClasspath().filter(p => p.path.last.endsWith(".jar"))
+    super.resolvedRunMvnDeps()
   }
 }
 
-object OwaspDependencyCheckWorker extends ExternalModule with CoursierModule
-    with OfflineSupportModule {
+object OwaspDependencyCheckWorker extends ExternalModule with CoursierModule {
   lazy val millDiscover = Discover[this.type]
   def dependencyCheckClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(

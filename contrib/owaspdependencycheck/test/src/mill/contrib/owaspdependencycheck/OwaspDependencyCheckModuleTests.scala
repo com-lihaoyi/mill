@@ -29,10 +29,29 @@ object TestModule extends TestRootModule {
     override def owaspDependencyCheckFiles: T[Seq[PathRef]] = Seq.empty
   }
   object javaExample extends OwaspDependencyCheckJavaModule {
-    override def mvnDeps: T[Seq[Dep]] = Seq(mvn"ch.qos.logback:logback-classic:1.5.12")
+    override def mvnDeps: T[Seq[Dep]] = Seq(mvn"ch.qos.logback:logback-classic:1.5.32")
   }
   object failingJavaExample extends OwaspDependencyCheckJavaModule {
     override def mvnDeps: T[Seq[Dep]] = Seq(mvn"org.json:json:20230618")
+
+    override def owaspDependencyCheckConfigArgs: T[Seq[String]] = Task {
+      super.owaspDependencyCheckConfigArgs() ++ ossScanCredentials() ++ Seq("--failOnCVSS", "4")
+    }
+  }
+  object failingTransitiveDeps extends OwaspDependencyCheckJavaModule {
+    override def moduleDeps = Seq(failingJavaExample)
+    override def mvnDeps: T[Seq[Dep]] = Seq(mvn"ch.qos.logback:logback-classic:1.5.32")
+
+    override def owaspDependencyCheckConfigArgs: T[Seq[String]] = Task {
+      super.owaspDependencyCheckConfigArgs() ++ ossScanCredentials() ++ Seq("--failOnCVSS", "4")
+    }
+  }
+  object avoidCompile extends OwaspDependencyCheckJavaModule {
+    override def mvnDeps: T[Seq[Dep]] = Seq(mvn"ch.qos.logback:logback-classic:1.5.32")
+    override def compile: T[mill.javalib.api.CompilationResult] = Task {
+      super.compile()
+      throw new AssertionError("should not be invoked")
+    }
 
     override def owaspDependencyCheckConfigArgs: T[Seq[String]] = Task {
       super.owaspDependencyCheckConfigArgs() ++ ossScanCredentials() ++ Seq("--failOnCVSS", "4")
@@ -95,6 +114,9 @@ class OwaspDependencyCheckModuleTests extends TestSuite {
         val Right(resultPackageJsonExample) =
           eval.apply(TestModule.examplePackageJson.owaspDependencyCheck()).runtimeChecked
         assert(resultPackageJsonExample.value.success)
+        val Right(resultNoCompile) =
+          eval.apply(TestModule.avoidCompile.owaspDependencyCheck()).runtimeChecked
+        assert(resultNoCompile.value.success)
       }
     }
     test("Run failing dependency scans") - UnitTester(
@@ -104,6 +126,8 @@ class OwaspDependencyCheckModuleTests extends TestSuite {
       runIfOssIsEnabled(eval) {
         val Left(error) =
           eval.apply(TestModule.failingJavaExample.owaspDependencyCheck()).runtimeChecked
+        val Left(errorTransitive) =
+          eval.apply(TestModule.failingTransitiveDeps.owaspDependencyCheck()).runtimeChecked
         val Right(suppressedFailure) =
           eval.apply(TestModule.failingJavaExampleNoTaskFail.owaspDependencyCheck()).runtimeChecked
         assert(!suppressedFailure.value.success)
