@@ -28,7 +28,23 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
   private case class LinkerInput(
       dest: Either[File, sjs.OutputDirectory],
       config: sjs.StandardConfig
-  )
+  ) {
+    // sjs.StandardConfig is a `final class` with reference equality, so the
+    // auto-generated case-class equals would never match across fastLinkJS
+    // invocations (each invocation builds a fresh StandardConfig via
+    // ScalaJSConfig.config(...)). That made the ScalaJSLinker CachedFactory
+    // miss every time, discarding the optimizer/emitter incremental state.
+    // Use StandardConfig.fingerprint for a structural comparison instead.
+    override def equals(other: Any): Boolean = other match {
+      case that: LinkerInput =>
+        dest == that.dest &&
+          sjs.StandardConfig.fingerprint(config) ==
+            sjs.StandardConfig.fingerprint(that.config)
+      case _ => false
+    }
+    override def hashCode(): Int =
+      (dest, sjs.StandardConfig.fingerprint(config)).hashCode
+  }
   private def minorIsGreaterThanOrEqual(number: Int) = ScalaJSVersions.current match {
     case s"1.$n.$_" if n.toIntOption.exists(_ < number) => false
     case _ => true
