@@ -75,7 +75,7 @@ object TutorialTests extends TestSuite {
   object TutorialWithResolvedProtoc extends TutorialBase {
     object core extends TutorialModule {
       override def scalaPBProtocPath: T[Option[String]] =
-        Task { Some(resolveProtoc().path.toString) }
+        Task { Some(scalaPBResolveProtoc().path.toString) }
     }
     lazy val millDiscover = Discover[this.type]
   }
@@ -257,7 +257,7 @@ object TutorialTests extends TestSuite {
       }
     }
 
-    test("resolveProtoc") {
+    test("scalaPBResolveProtoc") {
       test("extractsVersionFromScalaPB") - UnitTester(Tutorial, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(Tutorial.core.scalaPBProtocVersion).runtimeChecked
         // ScalaPB 0.11.7 ships with protoc 3.x
@@ -268,7 +268,7 @@ object TutorialTests extends TestSuite {
       test("resolvesExecutableBinary") - UnitTester(Tutorial, resourcePath).scoped { eval =>
         if (Util.isWindows) "Skipped test on Windows"
         else {
-          val Right(result) = eval.apply(Tutorial.core.resolveProtoc).runtimeChecked
+          val Right(result) = eval.apply(Tutorial.core.scalaPBResolveProtoc).runtimeChecked
           val protocPath = result.value.path
           assert(os.exists(protocPath))
           assert(os.perms(protocPath).toString.contains("x"))
@@ -298,7 +298,7 @@ object TutorialTests extends TestSuite {
           if (Util.isWindows) "Skipped test on Windows"
           else {
             val Right(protocResult) =
-              eval.apply(TutorialWithResolvedProtoc.core.resolveProtoc).runtimeChecked
+              eval.apply(TutorialWithResolvedProtoc.core.scalaPBResolveProtoc).runtimeChecked
             val Right(optsResult) =
               eval.apply(TutorialWithResolvedProtoc.core.scalaPBCompileOptions).runtimeChecked
             assert(optsResult.value.contains(s"--protoc=${protocResult.value.path}"))

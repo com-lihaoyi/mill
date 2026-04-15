@@ -109,7 +109,7 @@ trait ScalaPBModule extends ScalaModule {
    *
    * By resolving protoc as a Mill task, the binary is downloaded once and cached.
    */
-  def resolveProtoc: T[PathRef] = Task {
+  def scalaPBResolveProtoc: T[PathRef] = Task {
     val osStr = System.getProperty("os.name").toLowerCase match {
       case os if os.contains("linux") => "linux"
       case os if os.contains("mac") => "osx"
@@ -143,7 +143,7 @@ trait ScalaPBModule extends ScalaModule {
 
   /**
    * Path to the protoc compiler. Defaults to `None`, which uses ScalaPB's
-   * embedded Java protoc. Override to `Some(resolveProtoc().path.toString)` to
+   * embedded Java protoc. Override to `Some(scalaPBResolveProtoc().path.toString)` to
    * use a platform-specific native binary resolved via Coursier, or to
    * `Some("/path/to/protoc")` for a custom binary.
    */
