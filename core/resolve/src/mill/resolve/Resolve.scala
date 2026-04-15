@@ -150,7 +150,13 @@ object Resolve {
             )
 
             directChildrenOrErr.flatMap(directChildren =>
-              directChildren.head match {
+              if (directChildren.isEmpty) {
+                Result.Failure(
+                  s"Cannot resolve default task '${value.defaultTask()}' " +
+                    s"in module '${value.moduleSegments.render}'. " +
+                    s"Check that the task name is spelled correctly."
+                )
+              } else directChildren.head match {
                 case r: Resolved.NamedTask => instantiateNamedTask(r, value, cache).map(Some(_))
                 case r: Resolved.Command =>
                   instantiateCommand(
