@@ -1,10 +1,11 @@
 package mill.contrib.owaspdependencycheck
 
+import mainargs.Flag
 import mill.*
 import mill.api.*
 import mill.javalib.*
 
-trait OwaspDependencyCheckModule extends Module {
+trait OwaspDependencyCheckModule extends Module with OfflineSupportModule {
 
   /**
    * The files to be scanned by the Dependency Check.
@@ -32,6 +33,10 @@ trait OwaspDependencyCheckModule extends Module {
   case class DependencyCheckResult(reportFiles: Seq[PathRef], exitCode: Int)
       derives upickle.ReadWriter {
     def success: Boolean = exitCode == 0
+  }
+
+  override def prepareOffline(all: Flag): Command[Seq[PathRef]] = Task.Command {
+    super.prepareOffline(all)() ++ OwaspDependencyCheckWorker.dependencyCheckClasspath()
   }
 
   /**
