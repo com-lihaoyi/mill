@@ -38,8 +38,8 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
     override def equals(other: Any): Boolean = other match {
       case that: LinkerInput =>
         dest == that.dest &&
-          sjs.StandardConfig.fingerprint(config) ==
-            sjs.StandardConfig.fingerprint(that.config)
+        sjs.StandardConfig.fingerprint(config) ==
+          sjs.StandardConfig.fingerprint(that.config)
       case _ => false
     }
     override def hashCode(): Int =
