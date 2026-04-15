@@ -7,7 +7,7 @@
 </div>
 <div class="main-signature mono-small-block">
  <div class="signature">
-  <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="OwaspDependencyCheckWorker$.html" t="n" class="documentableName ">OwaspDependencyCheckWorker</a><span t="k"> extends </span><a href="../../api/ExternalModule.html" t="t">ExternalModule</a><span t="k">, </span></span><span class="signature-long"><a href="../../javalib/CoursierModule.html" t="t">CoursierModule</a><span t="k">, </span><a href="../../javalib/OfflineSupportModule.html" t="t">OfflineSupportModule</a></span>
+  <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="OwaspDependencyCheckWorker$.html" t="n" class="documentableName ">OwaspDependencyCheckWorker</a><span t="k"> extends </span><a href="../../api/ExternalModule.html" t="t">ExternalModule</a><span t="k">, </span></span><span class="signature-long"><a href="../../javalib/CoursierModule.html" t="t">CoursierModule</a></span>
  </div>
 </div>
 <div class="cover">
@@ -43,7 +43,6 @@ node10 [id=node10, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../../
 node11 [id=node11, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../../api/daemon/internal/ModuleApi.html\" t=\"n\">ModuleApi</a></span>", class="trait vertex"];
 node12 [id=node12, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../../api/daemon/internal/BaseModuleApi.html\" t=\"n\">BaseModuleApi</a></span>", class="trait vertex"];
 node13 [id=node13, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../../javalib/CoursierModule.html\" t=\"n\">CoursierModule</a></span>", class="trait vertex"];
-node14 [id=node14, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../../javalib/OfflineSupportModule.html\" t=\"n\">OfflineSupportModule</a></span>", class="trait vertex"];
 
 
  node0 -> node1;
@@ -69,9 +68,6 @@ node12 -> node11;
 node0 -> node13;
 node13 -> node3;
 node13 -> node9;
-node0 -> node14;
-node14 -> node3;
-node14 -> node9;
 
 }
 </script>
@@ -82,9 +78,6 @@ node14 -> node9;
    </dt>
    <dd class="body-medium">
     <div class="mono-small-block supertypes">
-     <div>
-      trait <a href="../../javalib/OfflineSupportModule.html" t="n">OfflineSupportModule</a>
-     </div>
      <div>
       trait <a href="../../javalib/CoursierModule.html" t="n">CoursierModule</a>
      </div>
@@ -833,56 +826,6 @@ node14 -> node9;
               </dt>
               <dd class="body-medium">
                <a href="https://github.com/com-lihaoyi/mill/blob/main/core/api/src/mill/api/ExternalModule.scala" target="_blank">ExternalModule.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="prepareOffline-e9a" data-f-inherited="OfflineSupportModule">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="OwaspDependencyCheckWorker$.html#prepareOffline-e9a" t="n" class="documentableName ">prepareOffline</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">all</span>: <span data-unresolved-link="" t="t">Flag</span>): <a href="../../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../api/PathRef.html" t="t">PathRef</a>]]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Prepare the module for working offline. This should typically fetch (missing) resources like Maven dependencies.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Prepare the module for working offline. This should typically fetch (missing) resources like Maven dependencies.</p>
-             </div>
-             <h2 class="h200">Value parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               all
-              </dt>
-              <dd class="body-medium">
-               <p>If <code>true</code>, it also fetches resources not always needed.</p>
-              </dd>
-             </dl>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="../../javalib/OfflineSupportModule.html#prepareOffline-e9a">OfflineSupportModule</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/OfflineSupportModule.scala" target="_blank">OfflineSupportModule.scala</a>
               </dd>
              </dl>
             </div>
