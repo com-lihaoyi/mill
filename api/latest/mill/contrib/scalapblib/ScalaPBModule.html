@@ -1328,11 +1328,83 @@ node31 -> node29;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>A <span data-unresolved-link="">Option</span> option which determines the protoc compiler to use. If <code>None</code>, a java embedded protoc will be used, if set to <code>Some</code> path, the given binary is used.</p>
+             <p>Path to the protoc compiler. Defaults to <code>None</code>, which uses ScalaPB's embedded Java protoc. Override to <code>Some(scalaPBResolveProtoc().path.toString)</code> to use a platform-specific native binary resolved via Coursier, or to <code>Some("/path/to/protoc")</code> for a custom binary.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>A <span data-unresolved-link="">Option</span> option which determines the protoc compiler to use. If <code>None</code>, a java embedded protoc will be used, if set to <code>Some</code> path, the given binary is used.</p>
+              <p>Path to the protoc compiler. Defaults to <code>None</code>, which uses ScalaPB's embedded Java protoc. Override to <code>Some(scalaPBResolveProtoc().path.toString)</code> to use a platform-specific native binary resolved via Coursier, or to <code>Some("/path/to/protoc")</code> for a custom binary.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/contrib/scalapblib/src/mill/contrib/scalapblib/ScalaPBModule.scala" target="_blank">ScalaPBModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="scalaPBProtocVersion-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScalaPBModule.html#scalaPBProtocVersion-0" t="n" class="documentableName ">scalaPBProtocVersion</a>: <a href="../../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">String</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The protoc compiler version to resolve. Defaults to the version that the configured ScalaPB release was built against, extracted reflectively from <code>scalapb.compiler.Version.protobufVersion</code>. Can be overridden to pin a specific protoc version.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>The protoc compiler version to resolve. Defaults to the version that the configured ScalaPB release was built against, extracted reflectively from <code>scalapb.compiler.Version.protobufVersion</code>. Can be overridden to pin a specific protoc version.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/contrib/scalapblib/src/mill/contrib/scalapblib/ScalaPBModule.scala" target="_blank">ScalaPBModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="scalaPBResolveProtoc-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScalaPBModule.html#scalaPBResolveProtoc-0" t="n" class="documentableName ">scalaPBResolveProtoc</a>: <a href="../../api/Task$$Simple.html" t="t">Simple</a>[<a href="../../api/PathRef.html" t="t">PathRef</a>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Resolves a platform-specific <code>protoc</code> binary via Coursier.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Resolves a platform-specific <code>protoc</code> binary via Coursier.</p>
+              <p>This avoids the embedded Java protoc that ScalaPB bundles, which is prone to race conditions when multiple modules compile in parallel (each tries to download/extract the same binary concurrently).</p>
+              <p>By resolving protoc as a Mill task, the binary is downloaded once and cached.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
