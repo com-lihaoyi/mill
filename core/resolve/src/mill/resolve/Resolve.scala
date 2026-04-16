@@ -158,7 +158,7 @@ object Resolve {
                   val issue = defaultTaskName match {
                     case null => "The task name must not be null."
                     case s if s.isBlank => "The task name must not be empty or blank."
-                    case s => s"Check that the task name is spelled correctly."
+                    case _ => s"Check that the task name is spelled correctly."
                   }
                   Result.Failure(msg + issue)
 
