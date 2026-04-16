@@ -1,0 +1,9 @@
+package build
+// Issue https://github.com/com-lihaoyi/mill/issues/7015
+import mill.*
+import mill.scalalib.*
+
+object app extends ScalaModule {
+  def scalaVersion = "3.8.3"
+  def zincIncrementalCompilation = true
+}
