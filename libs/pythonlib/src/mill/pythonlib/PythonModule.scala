@@ -45,7 +45,10 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
   def venv: T[PathRef] = Task {
     val venv = Task.dest / "venv"
     os.call((hostPythonCommand(), "-m", "venv", venv))
-    os.call((venv / "bin/python3", "-m", "pip", "install", pipInstallArgs().args), stdout = os.Inherit)
+    os.call(
+      (venv / "bin/python3", "-m", "pip", "install", pipInstallArgs().args),
+      stdout = os.Inherit
+    )
     PathRef(venv)
   }
 
