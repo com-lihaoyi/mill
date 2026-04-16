@@ -35,15 +35,15 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
     // ScalaJSConfig.config(...)). That made the ScalaJSLinker CachedFactory
     // miss every time, discarding the optimizer/emitter incremental state.
     // Use StandardConfig.fingerprint for a structural comparison instead.
+    // The fingerprint is cached so CachedFactory lookups (hashCode + equals
+    // on each candidate) don't rebuild the string repeatedly.
+    private lazy val configFingerprint: String = sjs.StandardConfig.fingerprint(config)
     override def equals(other: Any): Boolean = other match {
       case that: LinkerInput =>
-        dest == that.dest &&
-        sjs.StandardConfig.fingerprint(config) ==
-          sjs.StandardConfig.fingerprint(that.config)
+        dest == that.dest && configFingerprint == that.configFingerprint
       case _ => false
     }
-    override def hashCode(): Int =
-      (dest, sjs.StandardConfig.fingerprint(config)).hashCode
+    override def hashCode(): Int = (dest, configFingerprint).hashCode
   }
   private def minorIsGreaterThanOrEqual(number: Int) = ScalaJSVersions.current match {
     case s"1.$n.$_" if n.toIntOption.exists(_ < number) => false
