@@ -4834,6 +4834,8 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/pythonlib/PythonModule.html#transitivePythonPath-0","e":false,"i":"","n":"transitivePythonPath","t":"transitivePythonPath: Simple[Seq[PathRef]]","d":"mill.pythonlib.PythonModule","k":"def","x":""},
 {"l":"mill/pythonlib/PythonModule.html#typeCheck-0","e":false,"i":"","n":"typeCheck","t":"typeCheck: Simple[Unit]","d":"mill.pythonlib.PythonModule","k":"def","x":""},
 {"l":"mill/pythonlib/PythonModule.html#unmanagedPythonPath-0","e":false,"i":"","n":"unmanagedPythonPath","t":"unmanagedPythonPath: Simple[Seq[PathRef]]","d":"mill.pythonlib.PythonModule","k":"def","x":""},
+{"l":"mill/pythonlib/PythonModule.html#venv-0","e":false,"i":"","n":"venv","t":"venv: Simple[PathRef]","d":"mill.pythonlib.PythonModule","k":"def","x":""},
+{"l":"mill/pythonlib/PythonModule.html#venvBin-0","e":false,"i":"","n":"venvBin","t":"venvBin: Simple[PathRef]","d":"mill.pythonlib.PythonModule","k":"def","x":""},
 {"l":"mill/pythonlib/PythonModule$PythonTests.html#","e":false,"i":"","n":"PythonTests","t":"PythonTests extends PythonModule","d":"mill.pythonlib.PythonModule","k":"trait","x":""},
 {"l":"mill/pythonlib/PythonModule$.html#","e":false,"i":"","n":"PythonModule","t":"PythonModule","d":"mill.pythonlib","k":"object","x":""},
 {"l":"mill/pythonlib/PythonModule$$Runner.html#","e":false,"i":"","n":"Runner","t":"Runner","d":"mill.pythonlib.PythonModule","k":"trait","x":""},
