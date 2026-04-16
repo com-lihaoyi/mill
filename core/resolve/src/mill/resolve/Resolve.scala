@@ -140,19 +140,31 @@ object Resolve {
           cache
         ).flatMap {
           case value: DefaultTaskModule =>
+            val defaultTaskName = value.defaultTask()
             val directChildrenOrErr = ResolveCore.resolveDirectChildren(
               rootModule,
               r.rootModulePrefix,
               value.getClass,
-              Some(value.defaultTask()),
+              Some(defaultTaskName),
               value.moduleSegments,
               cache = cache
             )
 
             directChildrenOrErr.flatMap(directChildren =>
-              directChildren.head match {
-                case r: Resolved.NamedTask => instantiateNamedTask(r, value, cache).map(Some(_))
-                case r: Resolved.Command =>
+              directChildren.headOption match {
+                case None =>
+                  val msg =
+                    s"Cannot resolve default task '${defaultTaskName}' of module '${value.moduleSegments.render}'. "
+                  val issue = defaultTaskName match {
+                    case null => "The task name must not be null."
+                    case s if s.isBlank => "The task name must not be empty or blank."
+                    case _ => s"Check that the task name is spelled correctly."
+                  }
+                  Result.Failure(msg + issue)
+
+                case Some(r: Resolved.NamedTask) =>
+                  instantiateNamedTask(r, value, cache).map(Some(_))
+                case Some(r: Resolved.Command) =>
                   instantiateCommand(
                     rootModule,
                     r,
