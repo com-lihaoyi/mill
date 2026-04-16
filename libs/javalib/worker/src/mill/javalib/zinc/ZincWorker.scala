@@ -467,9 +467,12 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       }
     }
 
+    // Inject `-color:never` unconditionally for Scala 3 so the stored Zinc
+    // MiniSetup stays stable across clients with different TTY state. Making
+    // this depend on per-RPC `logPromptColored` caused full cold rebuilds on
+    // every TTY transition — see https://github.com/com-lihaoyi/mill/issues/7015
     val addColorNeverOption = Option.when(
-      !localConfig.logPromptColored &&
-        compilers.scalac().scalaInstance().version().startsWith("3.") &&
+      compilers.scalac().scalaInstance().version().startsWith("3.") &&
         // might be too broad
         !scalacOptions.exists(_.startsWith("-color:"))
     ) {
