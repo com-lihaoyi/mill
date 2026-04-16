@@ -9,9 +9,9 @@ class Checker[T <: RootModule0](module: T) {
 
   def apply(
       selectorString: String,
-      expected0: Result[Set[T => Task.Named[?]]],
+      expectedTasks: Result[Set[T => Task.Named[?]]],
       expectedMetadata: Set[String] = Set()
-  ) = checkSeq(Seq(selectorString), expected0, expectedMetadata)
+  ) = checkSeq(Seq(selectorString), expectedTasks, expectedMetadata)
 
   def checkSeq(
       selectorStrings: Seq[String],
