@@ -99,7 +99,16 @@ object Deps {
   val ammoniteVersion = "3.0.4"
   val asmAnalysis = mvn"org.ow2.asm:asm-analysis:9.9.1"
   val asmTree = mvn"org.ow2.asm:asm-tree:9.9.1"
+
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
+  val bouncyCastleVersion = "1.84"
+  val keytoolDeps = Seq(
+    mvn"org.bouncycastle:bcpkix-jdk18on:${bouncyCastleVersion}",
+    mvn"org.bouncycastle:bcprov-jdk18on:${bouncyCastleVersion}",
+    mvn"org.bouncycastle:bcutil-jdk18on:${bouncyCastleVersion}"
+  )
+  val bouncyCastleProv = mvn"org.bouncycastle:bcprov-jdk18on:${bouncyCastleVersion}"
+  val bouncyCastlePgp = mvn"org.bouncycastle:bcpg-jdk18on:${bouncyCastleVersion}"
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.184"
   val coursierVersion = "2.1.25-M24"
@@ -204,7 +213,7 @@ object Deps {
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.4"
 
   val springBootTools_api = mvn"org.springframework.boot:spring-boot-loader-tools:3.3.0"
-  val springBootTools_runtime = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.5"
+  val springBootTools_runtime = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.13"
   val quarkusAppModel_api = mvn"io.quarkus:quarkus-bootstrap-app-model:3.31.1"
   val quarkusBootstrapCore_api = mvn"io.quarkus:quarkus-bootstrap-core:3.31.1"
   val quarkusCoreDeployment_api = mvn"io.quarkus:quarkus-core-deployment:3.31.1"
@@ -291,11 +300,12 @@ object Deps {
     val koverJvmAgent_runtime = mvn"org.jetbrains.kotlinx:kover-jvm-agent:$koverVersion_runtime"
     val ktfmt_runtime = mvn"com.facebook:ktfmt:0.58"
     val ktlint_runtime = mvn"com.pinterest.ktlint:ktlint-core:0.49.1"
+    val owaspDependencyCheckCli_runtime = mvn"org.owasp:dependency-check-cli:12.2.1"
     val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.74.0"
+    val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.15.0"
     val proguard_runtime = mvn"com.guardsquare:proguard-base:7.7.0"
     val revApi_runtime = mvn"org.revapi:revapi-standalone:0.12.0"
     val sbtTestInterface = mvn"com.github.sbt:junit-interface:0.13.2"
-    val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.15.0"
 
     def updateable = Seq(
       detektCli_runtime,
@@ -313,11 +323,12 @@ object Deps {
       koverJvmAgent_runtime,
       ktfmt_runtime,
       ktlint_runtime,
+      owaspDependencyCheckCli_runtime,
       palantirFormat_runtime,
+      pmdDist_runtime,
       proguard_runtime,
       revApi_runtime,
-      sbtTestInterface,
-      pmdDist_runtime
+      sbtTestInterface
     )
   }
 
@@ -375,12 +386,5 @@ object Deps {
     )
 
   }
-  val keytoolDeps = Seq(
-    mvn"org.bouncycastle:bcpkix-jdk18on:1.83",
-    mvn"org.bouncycastle:bcprov-jdk18on:1.83",
-    mvn"org.bouncycastle:bcutil-jdk18on:1.83"
-  )
-  val bouncyCastleProv = mvn"org.bouncycastle:bcprov-jdk18on:1.83"
-  val bouncyCastlePgp = mvn"org.bouncycastle:bcpg-jdk18on:1.83"
 
 }

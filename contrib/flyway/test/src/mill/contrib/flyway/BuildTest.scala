@@ -40,6 +40,22 @@ object BuildTest extends TestSuite {
       def flywayDriverDeps = Seq(h2)
     }
 
+    object extraConfigBuild extends FlywayModule {
+      override def resources = Task.Sources(resourceFolder)
+
+      def h2 = mvn"com.h2database:h2:2.1.214"
+
+      def flywayUrl = "jdbc:h2:mem:extra_config_db;DB_CLOSE_DELAY=-1"
+      def flywayDriverDeps = Seq(h2)
+
+      override def flywayExtraConfig = Task {
+        Map(
+          "flyway.outOfOrder" -> "true",
+          "flyway.schemas" -> "PUBLIC"
+        )
+      }
+    }
+
     object pgBuild extends FlywayModule {
       override def resources = Task.Sources(resourceFolder)
       def flywayUrl = "jdbc:postgresql://127.0.0.1:1/flywaydb"
@@ -97,6 +113,24 @@ object BuildTest extends TestSuite {
 
     test("info") - UnitTester(Build, null).scoped { eval =>
       val Right(result) = eval(Build.build.flywayInfo()).runtimeChecked
+      assert(result.evalCount > 0)
+    }
+
+    test("extraConfig_migrate") - UnitTester(Build, null).scoped { eval =>
+      val Right(result) = eval(Build.extraConfigBuild.flywayMigrate()).runtimeChecked
+      assert(
+        result.evalCount > 0,
+        result.value.migrationsExecuted == 1
+      )
+    }
+
+    test("extraConfig_clean") - UnitTester(Build, null).scoped { eval =>
+      val Right(result) = eval(Build.extraConfigBuild.flywayClean()).runtimeChecked
+      assert(result.evalCount > 0)
+    }
+
+    test("extraConfig_info") - UnitTester(Build, null).scoped { eval =>
+      val Right(result) = eval(Build.extraConfigBuild.flywayInfo()).runtimeChecked
       assert(result.evalCount > 0)
     }
 

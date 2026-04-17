@@ -241,4 +241,16 @@ object `package` extends mill.Module {
     def compileModuleDeps = Seq(build.libs.scalalib)
     def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.libs.scalalib)
   }
+
+  object owaspdependencycheck extends ContribModule, BuildInfo {
+    def compileModuleDeps = Seq(build.libs.javalib)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
+    override def buildInfoPackageName: String = "mill.contrib.owaspdependencycheck"
+    override def buildInfoMembers: T[Seq[BuildInfo.Value]] = Seq(
+      BuildInfo.Value(
+        "owaspDependencyCheckVersion",
+        Deps.RuntimeDeps.owaspDependencyCheckCli_runtime.version
+      )
+    )
+  }
 }

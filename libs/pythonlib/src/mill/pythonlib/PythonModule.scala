@@ -38,15 +38,36 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
    */
   def hostPythonCommand: T[String] = Task { "python3" }
 
+  /*
+   * Initalize a virtual environment for this module, and install all libraries and tools
+   * needed by this module and its dependencies.
+   */
+  def venv: T[PathRef] = Task {
+    val venv = Task.dest / "venv"
+    os.call((hostPythonCommand(), "-m", "venv", venv))
+    os.call(
+      (venv / "bin/python3", "-m", "pip", "install", pipInstallArgs().args),
+      stdout = os.Inherit
+    )
+    PathRef(venv)
+  }
+
+  /*
+   * The path to the binary directory of the virtual environment which has been
+   * initialized to contain all libraries and tools needed by this module and its
+   * dependencies.
+   */
+  def venvBin: T[PathRef] = Task {
+    PathRef(venv().path / "bin")
+  }
+
   /**
    * An executable python interpreter. This interpreter is set up to run in a
    * virtual environment which has been initialized to contain all libraries and
    * tools needed by this module and its dependencies.
    */
   def pythonExe: T[PathRef] = Task {
-    os.call((hostPythonCommand(), "-m", "venv", Task.dest / "venv"))
-    val python = Task.dest / "venv/bin/python3"
-    os.call((python, "-m", "pip", "install", pipInstallArgs().args), stdout = os.Inherit)
+    val python = venvBin().path / "python3"
     PathRef(python)
   }
 
