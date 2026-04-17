@@ -99,7 +99,16 @@ object Deps {
   val ammoniteVersion = "3.0.4"
   val asmAnalysis = mvn"org.ow2.asm:asm-analysis:9.9.1"
   val asmTree = mvn"org.ow2.asm:asm-tree:9.9.1"
+
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
+  val bouncyCastleVersion = "1.84"
+  val keytoolDeps = Seq(
+    mvn"org.bouncycastle:bcpkix-jdk18on:${bouncyCastleVersion}",
+    mvn"org.bouncycastle:bcprov-jdk18on:${bouncyCastleVersion}",
+    mvn"org.bouncycastle:bcutil-jdk18on:${bouncyCastleVersion}"
+  )
+  val bouncyCastleProv = mvn"org.bouncycastle:bcprov-jdk18on:${bouncyCastleVersion}"
+  val bouncyCastlePgp = mvn"org.bouncycastle:bcpg-jdk18on:${bouncyCastleVersion}"
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.184"
   val coursierVersion = "2.1.25-M24"
@@ -375,12 +384,5 @@ object Deps {
     )
 
   }
-  val keytoolDeps = Seq(
-    mvn"org.bouncycastle:bcpkix-jdk18on:1.83",
-    mvn"org.bouncycastle:bcprov-jdk18on:1.83",
-    mvn"org.bouncycastle:bcutil-jdk18on:1.83"
-  )
-  val bouncyCastleProv = mvn"org.bouncycastle:bcprov-jdk18on:1.83"
-  val bouncyCastlePgp = mvn"org.bouncycastle:bcpg-jdk18on:1.83"
 
 }
