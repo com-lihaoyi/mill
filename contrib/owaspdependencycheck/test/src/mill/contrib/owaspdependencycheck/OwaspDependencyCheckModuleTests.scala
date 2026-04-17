@@ -1,9 +1,5 @@
 package mill.contrib.owaspdependencycheck
 
-import mill.contrib.owaspdependencycheck.{
-  OwaspDependencyCheckJavaModule,
-  OwaspDependencyCheckModule
-}
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.{TestSuite, Tests, test}
 import mill.api.{Discover, PathRef, Task}
