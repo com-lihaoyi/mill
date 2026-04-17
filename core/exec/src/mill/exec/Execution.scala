@@ -114,7 +114,17 @@ case class Execution(
     spanningInvalidationTree = spanningInvalidationTree
   )
 
-  def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)
+  def withBaseLogger(newBaseLogger: Logger) = {
+    // If the new logger redirects stdout to stderr (e.g. when `show` is used),
+    // also redirect exclusiveSystemStreams so exclusive tasks like `resolve` and
+    // `plan` also send their output to stderr rather than stdout.
+    val newExclusiveSystemStreams =
+      if (newBaseLogger.redirectOutToErr) {
+        val err = exclusiveSystemStreams.err
+        new SystemStreams(err, err, exclusiveSystemStreams.in)
+      } else exclusiveSystemStreams
+    this.copy(baseLogger = newBaseLogger, exclusiveSystemStreams = newExclusiveSystemStreams)
+  }
 
   def withIsFinalDepth(newIsFinalDepth: Boolean) = this.copy(isFinalDepth = newIsFinalDepth)
 

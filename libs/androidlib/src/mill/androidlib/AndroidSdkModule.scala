@@ -144,7 +144,8 @@ trait AndroidSdkModule extends Module {
       buildToolsVersion = buildToolsVersion,
       platformsVersion = platformsVersion,
       remoteReposInfo = remoteReposInfo,
-      autoAcceptLicenses = autoAcceptLicenses
+      autoAcceptLicenses = autoAcceptLicenses,
+      installPlatformSources = installPlatformSources
     )()
   }
 
@@ -306,9 +307,22 @@ trait AndroidSdkModule extends Module {
     cmdlineTools().sdkmanagerExe
   }
 
+  /**
+   * Whether to automatically accept licenses when installing Android SDK components.
+   * Defaults to `true` in CI environments
+   */
   def autoAcceptLicenses: T[Boolean] = Task.Input {
     // Automatically accept licenses in CI environments
     isCI(Task.env)
+  }
+
+  /**
+   * Whether to install sources for the Android platform (`android.jar`),
+   * which is used for IDE features.
+   * Defaults to `true` except in CI where they are not needed.
+   */
+  def installPlatformSources: T[Boolean] = Task.Input {
+    !isCI(Task.env)
   }
 
   private def isCI(env: Map[String, String]): Boolean = {

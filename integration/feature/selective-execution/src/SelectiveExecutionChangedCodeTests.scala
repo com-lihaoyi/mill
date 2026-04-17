@@ -9,7 +9,7 @@ object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
   implicit val retryMax: RetryMax = RetryMax(120.seconds)
   implicit val retryInterval: RetryInterval = RetryInterval(1.seconds)
   val tests: Tests = Tests {
-    test("changed-code") - integrationTest { tester =>
+    test("changedCode") - integrationTest { tester =>
       import tester.*
 
       // Check method body code changes correctly trigger downstream evaluation
@@ -48,7 +48,7 @@ object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
       assert(!cached2.out.contains("Computing barCommand"))
     }
 
-    test("resolveTree-shows-code-changed") - integrationTest { tester =>
+    test("resolveTreeCode") - integrationTest { tester =>
       import tester.*
 
       // Prepare selective execution
@@ -131,12 +131,14 @@ object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
       )
     }
 
-    test("resolveTree-adding-scalamodule-does-not-show-clinit") - integrationTest { tester =>
+    test("resolveTreeClinit") - integrationTest { tester =>
       import tester.*
 
       if (tester.daemonMode) {
         eval("shutdown", check = true, stderr = os.Inherit)
       }
+
+      os.remove.all(workspacePath / "out")
 
       os.write.over(
         workspacePath / "build.mill",

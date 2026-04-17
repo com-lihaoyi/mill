@@ -184,9 +184,14 @@ final class EvaluatorImpl(
     val allBuildOverrides = staticBuildOverrides ++ scriptBuildOverrides
 
     allModules.flatMap { module =>
-      val discover = module match {
-        case x: ExternalModule => x.millDiscover
-        case _ => rootModule.millDiscover
+      val discover = {
+        def findDiscover(m: ModuleCtx.Wrapper): Discover = m match {
+          case x: ExternalModule => x.millDiscover
+          case _ =>
+            val parent = m.moduleCtx.enclosingModule
+            if (parent != null) findDiscover(parent) else rootModule.millDiscover
+        }
+        findDiscover(module)
       }
 
       val moduleTaskNames = discover

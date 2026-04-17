@@ -103,7 +103,6 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
       support,
       resources,
       rootModuleInfo.topLevelProjectRoot,
-      rootModuleInfo.output,
       MillScalaParser.current.value
     )
     (
@@ -126,7 +125,10 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
       compile().classes,
       signatures,
       parseBuildFiles().seenScripts.collect {
-        case (k, v) if k.last.endsWith(".mill.yaml") => (k.toNIO, v)
+        case (k, v)
+            if k.last.endsWith(".mill.yaml") &&
+              !mill.internal.Util.isPrecompiledYamlModule(k) =>
+          (k.toNIO, v)
       },
       // Serialize to string to avoid classloader issues when crossing classloader boundaries
       spanningTree.render()
@@ -300,7 +302,7 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
         ZincOp.CompileMixed(
           upstreamCompileOutput = upstreamCompileOutput(),
           sources = Seq.from(sources.map(_.path)),
-          compileClasspath = compileClasspath().map(_.path),
+          compileClasspath = compileClasspath(),
           javacOptions = jOpts.compiler,
           scalaVersion = scalaVersion(),
           scalaOrganization = JvmWorkerUtil.scalaOrganization(scalaVersion()),

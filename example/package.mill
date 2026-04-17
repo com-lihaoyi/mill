@@ -27,6 +27,7 @@ object `package` extends Module {
   object androidlib extends Module {
     object java extends Cross[ExampleCrossModuleAndroid](build.listCross)
     object kotlin extends Cross[ExampleCrossModuleAndroid](build.listCross)
+    object scala extends Cross[ExampleCrossModuleAndroid](build.listCross)
   }
   object javalib extends Module {
 
@@ -118,6 +119,7 @@ object `package` extends Module {
     object selective extends Cross[ExampleCrossModule](build.listCross)
     object multifile extends Cross[ExampleCrossModule](build.listCross)
     object multilang extends Cross[ExampleCrossModule](build.listCross)
+    object precompiled extends Cross[ExampleCrossModule](build.listCross)
   }
 
   object extending extends Module {
@@ -431,7 +433,9 @@ $frontMatter
     def repoSlug = repoPath.split("/").last
 
     def downloadTestRepo(label: String, commit: String, dest: os.Path) = {
-      os.unzip.stream(requests.get.stream(s"https://github.com/$label/archive/$commit.zip"), dest)
+      mill.util.Retry() {
+        os.unzip.stream(requests.get.stream(s"https://github.com/$label/archive/$commit.zip"), dest)
+      }
       dest
     }
 

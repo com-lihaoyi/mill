@@ -34,10 +34,10 @@ object InitSbtZioHttpTests extends InitTestSuite(
       eval("zio-http.__.reformat").isSuccess
     )
     test("issues") {
-      test("fastLinkJSTest linking errors") - assert(
+      test("fastLinkJS") - assert(
         !eval("zio-http.js.2_12_20.test").isSuccess
       )
-      test("requires mapping for sbt-protoc plugin") - assert(
+      test("protoc") - assert(
         !eval("sbt-zio-http-grpc-tests.2_12_20.test.compile").isSuccess
       )
     }

@@ -22,16 +22,16 @@ object InitSbtGatlingTests extends InitTestSuite(
       eval(("gatling-core.fix", "--rules", "NoAutoTupling")).isSuccess
     )
     test("issues") {
-      test("missing generated resources") - assert(
+      test("generated") - assert(
         !eval((
           "gatling-charts.test.testOnly",
           "io.gatling.charts.result.reader.LogFileReaderSpec"
         )).isSuccess
       )
-      test("Scaladoc generation fails for module with Java only sources") - assert(
+      test("scaladoc") - assert(
         !eval("gatling-netty-util.scalaDocGenerated").isSuccess
       )
-      test("ScalafmtModule requires config file") - assert(
+      test("scalafmt") - assert(
         !eval("gatling-core.checkFormat").isSuccess
       )
     }

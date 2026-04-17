@@ -402,6 +402,42 @@ object MainModuleTests extends TestSuite {
           assert(res("inputsHash").numOpt.isDefined)
         }
       }
+
+      test("resolve") {
+        // Verify that `show resolve` sends the plain text task listing to stderr,
+        // and only the JSON array goes to stdout
+        val outStream = new ByteArrayOutputStream()
+        val errStream = new ByteArrayOutputStream()
+        UnitTester(
+          mainModule,
+          null,
+          outStream = new PrintStream(outStream, true),
+          errStream = new PrintStream(errStream, true)
+        ).scoped { evaluator =>
+
+          val results =
+            evaluator.evaluator.execute(Seq(mainModule.show(
+              evaluator.evaluator,
+              "resolve",
+              "_"
+            ))).executionResults
+
+          assert(results.transitiveFailing.size == 0)
+
+          // stdout should contain only the JSON array of resolved task names
+          val shown = ujson.read(outStream.toByteArray)
+          assert(shown.isInstanceOf[ujson.Arr])
+          val taskNames = shown.arr.map(_.str).toSet
+          assert(taskNames.contains("hello"))
+          assert(taskNames.contains("hello2"))
+          assert(taskNames.contains("helloCommand"))
+
+          // The plain text listing from `resolve` should go to stderr, not stdout
+          checkErrStream(errStream) { strippedErr =>
+            assert(strippedErr.contains("hello"))
+          }
+        }
+      }
     }
 
     test("showNamed") {
