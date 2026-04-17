@@ -28,7 +28,8 @@ trait OwaspDependencyCheckModule extends Module, OfflineSupportModule {
   /**
    * The worker is version specific, so is another version is required, it can be customized here.
    */
-  val owaspDependencyCheckWorker: ModuleRef[OwaspDependencyCheckWorker] = ModuleRef(OwaspDependencyCheckWorker)
+  val owaspDependencyCheckWorker: ModuleRef[OwaspDependencyCheckWorker] =
+    ModuleRef(OwaspDependencyCheckWorker)
 
   /**
    * Be default true, then [[owaspDependencyCheck()]] will fail if the dependency scan fails (eg. --failOnCVSS).
@@ -38,7 +39,7 @@ trait OwaspDependencyCheckModule extends Module, OfflineSupportModule {
   def owaspDependencyCheckFailTask: Boolean = true
 
   case class DependencyCheckResult(reportFiles: Seq[PathRef], exitCode: Int)
-    derives upickle.ReadWriter {
+      derives upickle.ReadWriter {
     def success: Boolean = exitCode == 0
   }
 
@@ -97,8 +98,9 @@ trait OwaspDependencyCheckWorker extends CoursierModule, OfflineSupportModule {
     new DependencyCheckInstance(dependencyCheckClasspath().map(_.path))
   }
 
-  private[owaspdependencycheck] class DependencyCheckInstance(dependencyCheckClasspath: Seq[os.Path])
-    extends AutoCloseable {
+  private[owaspdependencycheck] class DependencyCheckInstance(
+      dependencyCheckClasspath: Seq[os.Path]
+  ) extends AutoCloseable {
     val classLoader = mill.util.Jvm.createClassLoader(dependencyCheckClasspath)
     val depencencyCheckCli = classLoader.loadClass("org.owasp.dependencycheck.App")
     val appConstructor = depencencyCheckCli.getConstructor()
