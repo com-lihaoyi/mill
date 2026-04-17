@@ -204,7 +204,7 @@ object Deps {
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.4"
 
   val springBootTools_api = mvn"org.springframework.boot:spring-boot-loader-tools:3.3.0"
-  val springBootTools_runtime = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.5"
+  val springBootTools_runtime = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.13"
   val quarkusAppModel_api = mvn"io.quarkus:quarkus-bootstrap-app-model:3.31.1"
   val quarkusBootstrapCore_api = mvn"io.quarkus:quarkus-bootstrap-core:3.31.1"
   val quarkusCoreDeployment_api = mvn"io.quarkus:quarkus-core-deployment:3.31.1"
