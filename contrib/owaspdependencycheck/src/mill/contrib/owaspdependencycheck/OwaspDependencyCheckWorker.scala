@@ -50,7 +50,7 @@ trait OwaspDependencyCheckWorker extends CoursierModule, OfflineSupportModule {
 }
 
 object OwaspDependencyCheckWorker extends ExternalModule, OwaspDependencyCheckWorker {
-  def dependencyCheckVersion: T[String] = "12.2.0" // FIXME: source from build
+  def dependencyCheckVersion: T[String] = BuildInfo.owaspDependencyCheckVersion
 
   override lazy val millDiscover = Discover[this.type]
 }
