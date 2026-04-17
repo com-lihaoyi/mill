@@ -335,6 +335,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val androidNs = "http://schemas.android.com/apk/res/android"
     val actionMain = "android.intent.action.MAIN"
     val categoryLauncher = "android.intent.category.LAUNCHER"
+    val leanback_launcher = "android.intent.category.LEANBACK_LAUNCHER"
 
     def nodeNameOpt(node: Node): Option[String] = {
       node.attribute(androidNs, "name").map(_.text)
@@ -350,7 +351,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
       hasName && filters.exists { filter =>
         val hasMainAction = (filter \ "action").exists(nodeNameOpt(_).contains(actionMain))
         val hasLauncherCategory =
-          (filter \ "category").exists(nodeNameOpt(_).contains(categoryLauncher))
+          (filter \ "category").exists(launcher => {
+            val launcherNode = nodeNameOpt(launcher)
+            launcherNode.contains(categoryLauncher) || launcherNode.contains(leanback_launcher)
+          })
 
         hasMainAction && hasLauncherCategory
       }
@@ -797,28 +801,32 @@ trait AndroidAppModule extends AndroidModule { outer =>
    *                 If not provided, runs the main activity detected from the manifest.
    * @return
    */
-  def androidRun(activity: Option[String] = None): Command[Vector[String]] =
-    Task.Command(exclusive = true) {
-      val emulator = runningEmulator()
+  def androidRun(activity: Option[String] = None): Command[Vector[String]] = activity match {
+    case Some(providedActivity) =>
+      Task.Command(exclusive = true) { androidRunWith(Task.Anon(providedActivity))() }
+    case None =>
+      Task.Command(exclusive = true) { androidRunWith(androidMainActivity)() }
+  }
 
-      val activity0 = activity.getOrElse(androidMainActivity())
+  private def androidRunWith(activity: Task[String]): Task[Vector[String]] = Task.Anon {
+    val emulator = runningEmulator()
 
-      Task.log.info(s"Starting activity $activity0 on emulator $emulator")
+    Task.log.info(s"Starting activity ${activity()} on emulator $emulator")
 
-      os.call(
-        (
-          androidSdkModule().adbExe().path,
-          "-s",
-          emulator,
-          "shell",
-          "am",
-          "start",
-          "-n",
-          s"${androidApplicationId}/${activity0}",
-          "-W"
-        )
-      ).out.lines()
-    }
+    os.call(
+      (
+        androidSdkModule().adbExe().path,
+        "-s",
+        emulator,
+        "shell",
+        "am",
+        "start",
+        "-n",
+        s"${androidApplicationId}/${activity()}",
+        "-W"
+      )
+    ).out.lines()
+  }
 
   /**
    * Default os.Path to the keystore file, derived from `androidReleaseKeyName()`.
