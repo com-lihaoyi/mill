@@ -1,7 +1,7 @@
 package mill.contrib.owaspdependencycheck
 
 import mainargs.Flag
-import mill.api.Task.{Command, Simple as T}
+import mill.api.Task.Command
 import mill.api.Task.{Worker, Simple as T}
 import mill.api.{Discover, ExternalModule, PathRef, Task}
 import mill.javalib.{CoursierModule, DepSyntax, OfflineSupportModule}

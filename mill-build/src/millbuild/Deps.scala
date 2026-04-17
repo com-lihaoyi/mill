@@ -319,7 +319,7 @@ object Deps {
       pmdDist_runtime,
       proguard_runtime,
       revApi_runtime,
-      sbtTestInterface,
+      sbtTestInterface
     )
   }
 
