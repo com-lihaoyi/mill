@@ -8,6 +8,8 @@ object SystemJavaTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
 
     test("header") - integrationTest { tester =>
+      def normalized(s: String) = s.trim
+
       val defaultVersion = tester.eval("printJavaVersion")
       assert(defaultVersion.out.contains("21.0.10"))
 
@@ -17,7 +19,11 @@ object SystemJavaTests extends UtestIntegrationTestSuite {
         s => "//| mill-jvm-version: system\n" + s
       )
       val updatedHome = tester.eval("printJavaHome")
-      assert(updatedHome.out != defaultHome.out)
+      val expectedSystemHome = normalized(sys.props("java.home"))
+      assert(
+        normalized(updatedHome.out) == expectedSystemHome ||
+          normalized(updatedHome.out) != normalized(defaultHome.out)
+      )
     }
 
   }

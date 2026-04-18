@@ -10,6 +10,26 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
 
   import FullRunLogsUtils.normalize
 
+  private def latestRunProfile(workspacePath: os.Path, fileName: String): Option[os.Path] =
+    os.list(workspacePath / OutFiles.out)
+      .filter(p => p.last.startsWith("mill-run-"))
+      .sorted
+      .reverseIterator
+      .map(_ / fileName)
+      .find(os.exists)
+
+  private def waitForFile(workspacePath: os.Path, path: os.Path): os.Path = {
+    val deadline = System.currentTimeMillis() + (if (sys.env.contains("CI")) 60000 else 15000)
+    while (
+      !os.exists(path) &&
+      latestRunProfile(workspacePath, path.last).isEmpty &&
+      System.currentTimeMillis() < deadline
+    ) Thread.sleep(10)
+
+    if (os.exists(path)) path
+    else latestRunProfile(workspacePath, path.last).get
+  }
+
   def tests: Tests = Tests {
     test("keepGoingFailure") - integrationTest { tester =>
       import tester.*
@@ -146,9 +166,12 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
       // like `show`, both outer and inner evaluations hae their metadata end up in the
       // same profile files so a user can see what's going on in either
       eval(("show", "compile"), propagateEnv = false)
-      val millProfile = ujson.read(os.read(workspacePath / OutFiles.out / "mill-profile.json")).arr
-      val millChromeProfile =
-        ujson.read(os.read(workspacePath / OutFiles.out / "mill-chrome-profile.json")).arr
+      val millProfilePath =
+        waitForFile(workspacePath, workspacePath / OutFiles.out / "mill-profile.json")
+      val millChromeProfilePath =
+        waitForFile(workspacePath, workspacePath / OutFiles.out / "mill-chrome-profile.json")
+      val millProfile = ujson.read(os.read(millProfilePath)).arr
+      val millChromeProfile = ujson.read(os.read(millChromeProfilePath)).arr
       // Profile logs for the thing called by show
       assert(millProfile.exists(_.obj("label").str == "compile"))
       assert(millProfile.exists(_.obj("label").str == "compileClasspath"))

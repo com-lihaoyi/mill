@@ -197,7 +197,7 @@ class MillBuildBootstrap(
     // can be shared across concurrent commands. SharedWorkerCache.forDepth
     // handles classloader changes automatically (closes stale workers).
     val workerCache =
-      SharedWorkerCache.forDepth(depth, millClassloaderIdentityHash0)
+      SharedWorkerCache.forDepth(topLevelProjectRoot, depth, millClassloaderIdentityHash0)
 
     makeEvaluator0(
       projectRoot = topLevelProjectRoot,

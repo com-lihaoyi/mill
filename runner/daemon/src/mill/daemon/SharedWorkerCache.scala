@@ -15,26 +15,30 @@ import scala.collection.mutable
  * workers are closed and replaced with a fresh empty map.
  */
 object SharedWorkerCache {
+  private case class CacheKey(workspaceRoot: String, depth: Int)
+
   private case class DepthEntry(
       classLoaderIdentityHash: Int,
       workers: mutable.Map[String, (Int, Val, TaskApi[?])]
   )
 
   private val lock = new Object
-  private val caches = new java.util.concurrent.ConcurrentHashMap[Int, DepthEntry]()
+  private val caches = new java.util.concurrent.ConcurrentHashMap[CacheKey, DepthEntry]()
 
   def forDepth(
+      workspaceRoot: os.Path,
       depth: Int,
       classLoaderIdentityHash: Int
   ): mutable.Map[String, (Int, Val, TaskApi[?])] =
     lock.synchronized {
-      caches.get(depth) match {
+      val key = CacheKey(workspaceRoot.toString, depth)
+      caches.get(key) match {
         case entry if entry != null && entry.classLoaderIdentityHash == classLoaderIdentityHash =>
           entry.workers
         case stale =>
           if (stale != null) closeWorkers(stale.workers)
           val fresh = mutable.Map.empty[String, (Int, Val, TaskApi[?])]
-          caches.put(depth, DepthEntry(classLoaderIdentityHash, fresh))
+          caches.put(key, DepthEntry(classLoaderIdentityHash, fresh))
           fresh
       }
     }

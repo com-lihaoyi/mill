@@ -5,16 +5,23 @@ import mill.testkit.UtestIntegrationTestSuite
 import utest.*
 
 object SubprocessStdoutTests extends UtestIntegrationTestSuite {
+  private def normalizedOutput(output: String): String =
+    output
+      .replaceAll("\r\n", "\n")
+      .linesIterator
+      .filterNot(_.contains("setlocale: LC_ALL: cannot change locale"))
+      .mkString("\n")
+
   val tests: Tests = Tests {
     test - integrationTest { tester =>
       import tester.*
-      val res1 = eval("inheritInterleaved", mergeErrIntoOut = true).out
+      val res1 = normalizedOutput(eval("inheritInterleaved", mergeErrIntoOut = true).out)
       // Make sure that when a lot of printed/inherited stdout/stderr is printed
       // in quick succession, the output ordering is preserved, and it doesn't get
       // jumbled up
       retry(3) {
         assert(
-          res1.replaceAll("\r\n", "\n").contains(
+          res1.contains(
             s"""print stdout1
                |proc stdout1
                |print stderr1
@@ -50,7 +57,7 @@ object SubprocessStdoutTests extends UtestIntegrationTestSuite {
                |print stdout9
                |proc stdout9
                |print stderr9
-               |proc stderr9""".stripMargin.replaceAll("\r\n", "\n")
+               |proc stderr9""".stripMargin
           )
         )
       }
@@ -60,16 +67,16 @@ object SubprocessStdoutTests extends UtestIntegrationTestSuite {
       // be out of order from the original Mill stdout/stderr, but they should still at least turn
       // up in the console somewhere and not disappear
       //
-      val res2 = eval("inheritRaw", mergeErrIntoOut = true).out
+      val res2 = normalizedOutput(eval("inheritRaw", mergeErrIntoOut = true).out)
       if (!tester.daemonMode) {
         // For `fork` tests, which represent `-i`/`--interactive`/`--no-server`, the output should
         // be properly ordered since it all comes directly from the stdout/stderr of the same process
         assert(
-          res2.replaceAll("\r\n", "\n").contains(
+          res2.contains(
             """print stdoutRaw
               |proc stdoutRaw
               |print stderrRaw
-              |proc stderrRaw""".stripMargin.replaceAll("\r\n", "\n")
+              |proc stderrRaw""".stripMargin
           )
         )
       } else {
@@ -80,8 +87,8 @@ object SubprocessStdoutTests extends UtestIntegrationTestSuite {
           """print stdoutRaw
             |print stderrRaw
             |proc stdoutRaw
-            |proc stderrRaw""".stripMargin.replaceAll("\r\n", "\n").linesIterator.toSet.subsetOf(
-            res2.replaceAll("\r\n", "\n").linesIterator.toSet
+            |proc stderrRaw""".stripMargin.linesIterator.toSet.subsetOf(
+            res2.linesIterator.toSet
           )
         )
       }
