@@ -452,7 +452,12 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
     val incOptions0 = IncOptions.of().withAuxiliaryClassFiles(
       auxiliaryClassFileExtensions.map(new AuxiliaryClassFileExtension(_)).toArray
     ).withExternalHooks(externalHooks)
-    val incOptions = incOptions0
+    // Exclude `-color:*` from Zinc's MiniSetup equivalence check. The option
+    // is injected per-client below based on TTY state, so without this,
+    // alternating TTY and non-TTY clients against the same daemon would
+    // invalidate the stored analysis and cold-rebuild the whole module on
+    // every edit. See https://github.com/com-lihaoyi/mill/issues/7015
+    val incOptions = incOptions0.withIgnoredScalacOptions(Array("-color:.*"))
     val compileProgress = reporter.map { reporter =>
       new CompileProgress {
         override def advance(
