@@ -630,6 +630,12 @@ object ResolveTests extends TestSuite {
         Set("myCross.b.myTask")
       )
 
+      test("crossDefaultCompat") - check(
+        "myCross[].myTask",
+        Result.Success(Set(_.myCross("a").myTask)),
+        Set("myCross.a.myTask")
+      )
+
       // Test wildcard across cross values
       test("crossWildcard") - check(
         "myCross._.myTask",
