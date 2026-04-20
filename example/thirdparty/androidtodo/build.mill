@@ -107,7 +107,7 @@ object app
     mvn"com.google.dagger:hilt-android-compiler:2.56"
   )
 
-  object test extends KspTests, AndroidAppKotlinTests, AndroidHiltSupport, TestModule.Junit4,
+  object test extends KspTests, AndroidHiltSupport, AndroidAppKotlinTests, TestModule.Junit4,
         KotlinIdeaModule {
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
