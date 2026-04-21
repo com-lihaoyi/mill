@@ -1,0 +1,54 @@
+package build
+
+import mill.*
+
+object `package` extends mill.Module {
+  private def workspace = mill.api.BuildCtx.workspaceRoot
+
+  private def gate(name: String) = workspace / s"$name-wait"
+
+  private def waitFor(name: String): Unit = {
+    println(s"entered-$name")
+    mill.api.BuildCtx.withFilesystemCheckerDisabled {
+      while (os.exists(gate(name))) Thread.sleep(100L)
+    }
+  }
+
+  def sameTask = Task {
+    waitFor("same-task")
+    "same-task-value"
+  }
+
+  def runSameTask() = Task.Command {
+    println(sameTask())
+  }
+
+  def shared = Task {
+    waitFor("shared")
+    "shared-value"
+  }
+
+  def runShared() = Task.Command {
+    println(shared())
+  }
+
+  def left = Task {
+    val value = shared()
+    waitFor("left")
+    value + "-left"
+  }
+
+  def runLeft() = Task.Command {
+    println(left())
+  }
+
+  def right = Task {
+    val value = shared()
+    waitFor("right")
+    value + "-right"
+  }
+
+  def runRight() = Task.Command {
+    println(right())
+  }
+}
