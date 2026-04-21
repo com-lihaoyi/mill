@@ -111,5 +111,32 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       assert(launcher1.out.text().contains("shared-value-left"))
       assert(!combinedText(launcher1).contains("Another Mill command in the current daemon"))
     }
+
+    test("meta-build-write-update-blocked-by-active-meta-build-read") - integrationTest { tester =>
+      import tester.*
+      assert(tester.daemonMode)
+
+      val gate = waitFile(tester, "meta-build-read-wait")
+      os.write.over(gate, "")
+
+      val launcher1 = spawn(("runHoldMetaBuildRead"))
+      assertEventually(combinedText(launcher1).contains(enteredMarker("meta-build-read")))
+
+      modifyFile(workspacePath / "build.mill", _ + "\n// force meta-build refresh\n")
+
+      val launcher2 = spawn(("runShared"))
+      assertEventually(blockedBy(launcher2, "runShared"))
+      assert(launcher2.process.isAlive())
+      assert(!combinedText(launcher2).contains("shared-value"))
+
+      release(gate)
+      launcher1.process.waitFor()
+      launcher2.process.waitFor()
+
+      assert(launcher1.process.exitCode() == 0)
+      assert(launcher2.process.exitCode() == 0)
+      assert(launcher1.out.text().contains("0.13.1"))
+      assert(launcher2.out.text().contains("shared-value"))
+    }
   }
 }

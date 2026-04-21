@@ -337,7 +337,7 @@ class MillBuildBootstrap(
 
         // Check whether the published meta-build state at this depth needs a classloader refresh.
         // Compares the compiled runClasspath against the published frame's classpath and checks
-        // whether any module-watched files in the outer frame have changed.
+        // whether any module-watched files relevant to this frame have changed.
         def needsClassloaderRefresh(
             publishedFrameOpt: Option[RunnerState.Frame],
             publishedOuterFrameOpt: Option[RunnerState.Frame]
@@ -345,17 +345,17 @@ class MillBuildBootstrap(
           val runClasspathChanged = !publishedFrameOpt.exists(
             _.runClasspath.map(_.sig).sum == runClasspath.map(_.sig).sum
           )
-          // handling module watching is a bit weird; we need to know whether
-          // to create a new classloader immediately after the `runClasspath`
-          // is compiled, but we only know what the respective `moduleWatched`
-          // contains after the evaluation on this classloader has executed, which
-          // happens one level up in the recursion. Thus, to check whether
-          // `moduleWatched` needs us to re-create the classloader, we have to
-          // look at the `moduleWatched` of one frame up (`publishedOuterFrameOpt`),
-          // and not the `moduleWatched` from the current frame (`publishedFrameOpt`)
-          val moduleWatchChanged = publishedOuterFrameOpt
-            .exists(_.moduleWatched.exists(w => !Watching.haveNotChanged(w)))
-          runClasspathChanged || moduleWatchChanged
+          // Handling module watching is a bit weird; for nested meta-builds the
+          // watches that determine whether this frame needs a new classloader are
+          // captured one level up in the recursion, after evaluation on that
+          // classloader completes. At depth 0 there is no outer frame, so we must
+          // fall back to the current frame's module watches to detect changes to
+          // the root build itself (e.g. build.mill changes).
+          val watchedFrames = Seq(publishedOuterFrameOpt, publishedFrameOpt).flatten.distinct
+          val watchedInputsChanged = watchedFrames.exists { frame =>
+            (frame.moduleWatched ++ frame.evalWatched).exists(w => !Watching.haveNotChanged(w))
+          }
+          runClasspathChanged || watchedInputsChanged
         }
 
         def snapshotFrames(): (Option[RunnerState.Frame], Option[RunnerState.Frame]) = {
@@ -375,7 +375,7 @@ class MillBuildBootstrap(
 
           val evalState = RunnerState.Frame(
             workerCache = evaluator.workerCache.toMap,
-            evalWatched = evalWatches,
+            evalWatched = evalWatches ++ nestedState.bootstrapEvalWatched,
             moduleWatched = moduleWatches,
             codeSignatures = codeSignatures,
             classLoaderOpt = Some(classLoader),

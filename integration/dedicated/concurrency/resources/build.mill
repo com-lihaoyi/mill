@@ -1,6 +1,7 @@
 package build
 
 import mill.*
+import constant.Constant
 
 object `package` extends mill.Module {
   private def workspace = mill.api.BuildCtx.workspaceRoot
@@ -50,5 +51,18 @@ object `package` extends mill.Module {
 
   def runRight() = Task.Command {
     println(right())
+  }
+
+  def runHoldMetaBuildRead() = Task.Command {
+    println(fast())
+    waitFor("meta-build-read")
+  }
+
+  def fast = Task {
+    Constant.scalatagsVersion
+  }
+
+  def runFast() = Task.Command {
+    println(fast())
   }
 }
