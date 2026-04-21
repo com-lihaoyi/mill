@@ -42,8 +42,12 @@ object WorkspaceLockingTests extends TestSuite {
         assert(Files.isSymbolicLink((out / OutFiles.millProfile).toNIO))
         assert(Files.isSymbolicLink((out / OutFiles.millChromeProfile).toNIO))
         assert(Files.isSymbolicLink(activeLink.toNIO))
-        assert(Files.readSymbolicLink((out / OutFiles.millProfile).toNIO).toString.startsWith("mill-run/"))
-        assert(Files.readSymbolicLink((out / OutFiles.millChromeProfile).toNIO).toString.startsWith("mill-run/"))
+        assert(Files.readSymbolicLink(
+          (out / OutFiles.millProfile).toNIO
+        ).toString.startsWith("mill-run/"))
+        assert(Files.readSymbolicLink(
+          (out / OutFiles.millChromeProfile).toNIO
+        ).toString.startsWith("mill-run/"))
 
         manager.close()
 
@@ -56,8 +60,12 @@ object WorkspaceLockingTests extends TestSuite {
         assert(os.read(out / OutFiles.millChromeProfile) == "chrome")
         assert(Files.isSymbolicLink((out / OutFiles.millProfile).toNIO))
         assert(Files.isSymbolicLink((out / OutFiles.millChromeProfile).toNIO))
-        assert(Files.readSymbolicLink((out / OutFiles.millProfile).toNIO).toString.startsWith("mill-run/"))
-        assert(Files.readSymbolicLink((out / OutFiles.millChromeProfile).toNIO).toString.startsWith("mill-run/"))
+        assert(Files.readSymbolicLink(
+          (out / OutFiles.millProfile).toNIO
+        ).toString.startsWith("mill-run/"))
+        assert(Files.readSymbolicLink(
+          (out / OutFiles.millChromeProfile).toNIO
+        ).toString.startsWith("mill-run/"))
       }
     }
   }
