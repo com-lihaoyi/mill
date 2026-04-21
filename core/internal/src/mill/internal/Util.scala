@@ -11,21 +11,6 @@ import scala.collection.mutable
 
 object Util {
 
-  private[mill] def catchUpickleAbort[T](
-      path: java.nio.file.Path,
-      prefix: String = ""
-  )(t: => T): Result[T] = {
-    try Result.Success(t)
-    catch {
-      case abort: upickle.core.AbortException =>
-        Result.Failure(
-          prefix + Option(abort.getMessage).getOrElse("YAML type mismatch"),
-          path,
-          abort.index
-        )
-    }
-  }
-
   val alphaKeywords: Set[String] = Set(
     "abstract",
     "case",
@@ -179,31 +164,22 @@ object Util {
 
   def parseHeaderData(scriptFile: os.Path): Result[HeaderData] = {
     val headerDataOpt = mill.api.BuildCtx.withFilesystemCheckerDisabled {
-      // If the module file got deleted, handle that gracefully
       if (!os.exists(scriptFile)) Result.Success("")
       else mill.api.ExecResult.catchWrapException {
         mill.constants.Util.readBuildHeader(scriptFile.toNIO, scriptFile.last, true)
           .replace("\r", "")
       }
     }
-
-    def relativePath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
     given upickle.Reader[HeaderData] = HeaderData.headerDataReader(scriptFile)
-    headerDataOpt.flatMap(parseYaml0(
-      relativePath.toString,
-      _,
-      upickle.reader[HeaderData]
-    ))
+    headerDataOpt.flatMap(parseYaml0(scriptFile, _, upickle.reader[HeaderData]))
   }
 
   def parseYaml0[T](
-      fileName: String,
+      scriptFile: os.Path,
       headerData: String,
       visitor0: upickle.core.Visitor[_, T]
   ): Result[T] = {
-
-    val filePath = os.Path(fileName, mill.api.BuildCtx.workspaceRoot).toNIO
-    try catchUpickleAbort(filePath) {
+    try Result.Success {
         upickle.core.TraceVisitor.withTrace(true, visitor0) { visitor =>
           import org.snakeyaml.engine.v2.api.LoadSettings
           import org.snakeyaml.engine.v2.composer.Composer
@@ -217,24 +193,15 @@ object Util {
           val parser = new ParserImpl(settings, reader)
           val composer = new Composer(settings, parser)
 
-          // recursively convert Node using the visitor, preserving character offsets
           def rec[J](node: Node, v: upickle.core.Visitor[_, J]): J = {
             val index = node.getStartMark.map(_.getIndex.intValue()).orElse(0)
-
             try {
               node match {
                 case scalar: ScalarNode =>
-                  // Parse all YAML scalars as strings. In general, the `upickle.Reader`s that
-                  // consume these events downstream all are able to handle strings elegantly,
-                  // and this avoids the loss of precision that may result if we try to emit
-                  // e.g. booleans using `visitTrue`/`visitFalse which would result in the
-                  // distinction between `true`/`True`/`TRUE` collapsing into just `true` even
-                  // if the final parse wants the actual string value.
                   scalar.getTag.getValue match {
                     case "tag:yaml.org,2002:null" => v.visitNull(index)
                     case _ => v.visitString(scalar.getValue, index)
                   }
-
                 case mapping: MappingNode =>
                   val objVisitor =
                     v.visitObject(mapping.getValue.size(), jsonableKeys = true, index)
@@ -256,7 +223,6 @@ object Util {
                     )
                   }
                   objVisitor.visitEnd(index)
-
                 case sequence: SequenceNode =>
                   def visitSequence[T](visitor: upickle.core.Visitor[?, T]): T = {
                     val arrVisitor = visitor.visitArray(sequence.getValue.size(), index)
@@ -269,7 +235,6 @@ object Util {
                     }
                     arrVisitor.visitEnd(index)
                   }
-                  // Check for !append tag - if present, wrap in {$millAppend: <array>}
                   if (sequence.getTag.getValue == "!append") {
                     import mill.api.internal.Appendable.AppendMarkerKey
                     val objVisitor = v.visitObject(1, jsonableKeys = true, index)
@@ -290,7 +255,6 @@ object Util {
             }
           }
 
-          // Treat a top-level `null` or empty document as an empty object
           if (composer.hasNext) {
             val node = composer.next()
             node match {
@@ -315,29 +279,48 @@ object Util {
             if (mark.isPresent) {
               val m = mark.get()
               val problem = Option(e.getProblem).getOrElse("YAML syntax error")
-              Result.Failure(
-                problem,
-                os.Path(fileName, mill.api.BuildCtx.workspaceRoot).toNIO,
-                m.getIndex
-              )
+              Result.Failure(problem, scriptFile.toNIO, m.getIndex)
             } else {
               Result.Failure(
-                s"Failed parsing build header in $fileName: " + e.getMessage
+                s"Failed parsing build header in $scriptFile: " + e.getMessage
               )
             }
           case abort: upickle.core.AbortException =>
             Result.Failure(
               s"Failed de-serializing config key ${e.jsonPath}: ${e.getCause.getCause.getMessage}",
-              filePath,
+              scriptFile.toNIO,
               abort.index
             )
-
           case _ =>
             Result.Failure(
-              s"$fileName Failed de-serializing config key ${e.jsonPath} ${e.getCause.getMessage}"
+              s"$scriptFile Failed de-serializing config key ${e.jsonPath} ${e.getCause.getMessage}"
             )
         }
     }
+  }
+
+  /** Overload for backward compatibility with callers passing fileName as String */
+  def parseYaml0[T](
+      fileName: String,
+      headerData: String,
+      visitor0: upickle.core.Visitor[_, T]
+  ): Result[T] =
+    parseYaml0(os.Path(fileName, mill.api.BuildCtx.workspaceRoot), headerData, visitor0)
+
+  private val precompiledYamlModuleCache: collection.concurrent.TrieMap[os.Path, Boolean] =
+    collection.concurrent.TrieMap.empty
+
+  /** Clear the precompiled YAML module cache between evaluation cycles. */
+  def clearPrecompiledYamlModuleCache(): Unit = precompiledYamlModuleCache.clear()
+
+  def isPrecompiledYamlModule(path: os.Path): Boolean = {
+    precompiledYamlModuleCache.getOrElseUpdate(
+      path,
+      parseHeaderData(path) match {
+        case Result.Success(headerData) => headerData.`mill-experimental-precompiled-module`.value
+        case _ => false
+      }
+    )
   }
 
   /**

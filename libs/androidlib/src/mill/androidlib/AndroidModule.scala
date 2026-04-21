@@ -962,7 +962,7 @@ trait AndroidModule extends JavaModule { outer =>
         ZincOp.CompileJava(
           upstreamCompileOutput = upstreamCompileOutput(),
           sources = sources.map(_.path),
-          compileClasspath = androidTransitiveLibRClasspath().map(_.path),
+          compileClasspath = androidTransitiveLibRClasspath(),
           javacOptions = jOpts.compiler,
           incrementalCompilation = zincIncrementalCompilation(),
           workDir = Task.dest

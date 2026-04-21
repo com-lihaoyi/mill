@@ -140,19 +140,31 @@ object Resolve {
           cache
         ).flatMap {
           case value: DefaultTaskModule =>
+            val defaultTaskName = value.defaultTask()
             val directChildrenOrErr = ResolveCore.resolveDirectChildren(
               rootModule,
               r.rootModulePrefix,
               value.getClass,
-              Some(value.defaultTask()),
+              Some(defaultTaskName),
               value.moduleSegments,
               cache = cache
             )
 
             directChildrenOrErr.flatMap(directChildren =>
-              directChildren.head match {
-                case r: Resolved.NamedTask => instantiateNamedTask(r, value, cache).map(Some(_))
-                case r: Resolved.Command =>
+              directChildren.headOption match {
+                case None =>
+                  val msg =
+                    s"Cannot resolve default task '${defaultTaskName}' of module '${value.moduleSegments.render}'. "
+                  val issue = defaultTaskName match {
+                    case null => "The task name must not be null."
+                    case s if s.isBlank => "The task name must not be empty or blank."
+                    case _ => s"Check that the task name is spelled correctly."
+                  }
+                  Result.Failure(msg + issue)
+
+                case Some(r: Resolved.NamedTask) =>
+                  instantiateNamedTask(r, value, cache).map(Some(_))
+                case Some(r: Resolved.Command) =>
                   instantiateCommand(
                     rootModule,
                     r,
@@ -415,7 +427,38 @@ trait Resolve[T] {
 
       scriptModuleResolver(first) match {
         case Seq(resolved) => handleResolved(resolved, selector.toSeq, remaining)
-        case Nil => fallback
+        case Nil =>
+          // For pre-compiled modules referenced by normal package paths (e.g., "foo.bar.task"),
+          // try progressive splits: resolve "foo" as a directory-based module, then resolve
+          // "bar.task" as segments on that module. Also handles "build.foo.bar.task" by
+          // stripping the "build" prefix.
+          if (selector.isEmpty) {
+            val segments = first.split("\\.").toSeq
+            val startIdx =
+              if (segments.headOption.contains(mill.constants.CodeGenConstants.rootModuleAlias)) 1
+              else 0
+            val effectiveSegments = segments.drop(startIdx)
+
+            // Cap the number of prefix splits we try, to avoid excessive disk I/O
+            // in deeply nested module paths. We only need to try as many splits as
+            // there are actual directory levels, and in practice precompiled modules
+            // are rarely more than a few levels deep.
+            val maxSplits = math.min(effectiveSegments.length - 1, 10)
+            val result = (1 to maxSplits).view.flatMap { i =>
+              val modulePath = effectiveSegments.take(i).mkString("/")
+              val taskSegments = effectiveSegments.drop(i)
+              scriptModuleResolver(modulePath) match {
+                case Seq(resolved) => Some((resolved, taskSegments))
+                case Nil => None
+              }
+            }.headOption
+
+            result match {
+              case Some((resolved, taskSegments)) =>
+                handleResolved(resolved, taskSegments, remaining)
+              case None => fallback
+            }
+          } else fallback
       }
     }
     val resolvedGroups = ParseArgs.separate(scriptArgs).map { group =>

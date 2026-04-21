@@ -65,6 +65,7 @@
 ** xref:large/selective-execution.adoc[]
 ** xref:large/multi-file-builds.adoc[]
 ** xref:large/multi-language-builds.adoc[]
+** xref:large/pre-compiled-modules.adoc[]
 // This section talks about Mill plugins. While it could theoretically fit in
 // either section above, it is probably an important enough topic it is worth
 // breaking out on its own
@@ -75,6 +76,7 @@
 *** xref:contrib/artifactory.adoc[]
 *** xref:contrib/buildinfo.adoc[]
 *** xref:contrib/codeartifact.adoc[]
+*** xref:contrib/owaspdependencycheck.adoc[]
 *** xref:contrib/docker.adoc[]
 *** xref:contrib/flyway.adoc[]
 *** xref:contrib/gitlab.adoc[]

@@ -9,7 +9,7 @@ object GenEclipseKotlinTests extends UtestIntegrationTestSuite {
   override def workspaceSourcePath: Path = super.workspaceSourcePath / "kotlin-project"
 
   def tests: Tests = Tests {
-    test("No project generation for Kotlin projects") - integrationTest { tester =>
+    test("kotlin") - integrationTest { tester =>
       import tester.*
 
       val ret = eval("mill.eclipse/", check = true)

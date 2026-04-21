@@ -2,7 +2,7 @@ package mill.eval
 
 import mill.api.daemon.SelectMode
 import mill.api.internal.Located
-import mill.api.{Evaluator, ExternalModule, Result, ScriptModule}
+import mill.api.{Evaluator, ExternalModule, PrecompiledModule, Result, ScriptModule}
 import scala.annotation.unused
 
 // Cache instantiated script modules on a per-evaluation basis. This allows us to ensure
@@ -15,6 +15,12 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
   val scriptModuleCache: collection.mutable.Map[os.Path, ExternalModule] =
     collection.mutable.Map.empty
 
+  // Clear global caches so that stale instances from previous evaluation cycles
+  // are not reused when YAML configs change between evaluations.
+  mill.api.internal.PrecompiledModuleRef.cache.clear()
+  mill.api.internal.PrecompiledModuleRef.headerDataParser = mill.internal.Util.parseHeaderData
+  mill.internal.Util.clearPrecompiledYamlModuleCache()
+
   // Track the current resolution chain to detect recursive moduleDeps
   val resolvingScripts: collection.mutable.LinkedHashSet[os.Path] =
     collection.mutable.LinkedHashSet.empty
@@ -22,9 +28,6 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
   def moduleFor(
       scriptFile: os.Path,
       extendsConfigStrings: Option[Located[String]],
-      moduleDepsStrings: Seq[Located[String]],
-      compileModuleDepsStrings: Seq[Located[String]],
-      runModuleDepsStrings: Seq[Located[String]],
       eval: Evaluator,
       headerData: mill.api.internal.HeaderData
   ): Result[ExternalModule] = {
@@ -32,6 +35,10 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
 
     def relativize(s: String) = s match {
       case s"//$rest" => rest
+      case _ if scriptFile.ext == "yaml" =>
+        // YAML module dep references are module segment paths (e.g., "foo", "foo.test"),
+        // not file paths, so they should not be relativized to the script file's directory
+        s
       case _ =>
         val scriptFolder = scriptFile / os.up
         (scriptFolder.relativeTo(mill.api.BuildCtx.workspaceRoot) / os.RelPath(s)).toString
@@ -44,12 +51,30 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
         case f: Result.Failure => Left((located, Some(f)))
       }
 
-    val (moduleDepsErrors, moduleDeps) = moduleDepsStrings.partitionMap(resolveOrErr)
-    val (compileModuleDepsErrors, compileModuleDeps) =
-      compileModuleDepsStrings.partitionMap(resolveOrErr)
-    val (runModuleDepsErrors, runModuleDeps) = runModuleDepsStrings.partitionMap(resolveOrErr)
+    // Collect all module deps from all levels (root + nested objects)
+    val allLevelDeps = mill.api.internal.HeaderData.collectAllNestedDeps(scriptFile, headerData, "")
 
-    val allErrors = moduleDepsErrors ++ compileModuleDepsErrors ++ runModuleDepsErrors
+    // Resolve all deps and collect errors
+    val allErrors = collection.mutable.Buffer.empty[(Located[String], Option[Result.Failure])]
+    val moduleDepsMap = collection.mutable.Map.empty[String, Seq[mill.api.Module]]
+    val compileModuleDepsMap = collection.mutable.Map.empty[String, Seq[mill.api.Module]]
+    val runModuleDepsMap = collection.mutable.Map.empty[String, Seq[mill.api.Module]]
+    val bomModuleDepsMap = collection.mutable.Map.empty[String, Seq[mill.api.Module]]
+
+    for (entry <- allLevelDeps) {
+      def resolve(
+          deps: Seq[Located[String]],
+          target: collection.mutable.Map[String, Seq[mill.api.Module]]
+      ): Unit = {
+        val (errors, resolved) = deps.partitionMap(resolveOrErr)
+        allErrors ++= errors
+        if (resolved.nonEmpty) target(entry.key) = resolved
+      }
+      resolve(entry.moduleDeps, moduleDepsMap)
+      resolve(entry.compileModuleDeps, compileModuleDepsMap)
+      resolve(entry.runModuleDeps, runModuleDepsMap)
+      resolve(entry.bomModuleDeps, bomModuleDepsMap)
+    }
 
     if (allErrors.nonEmpty) {
       val failures = allErrors.map {
@@ -62,7 +87,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
             path = scriptFile.toNIO,
             index = located.index
           )
-      }
+      }.toSeq
       Result.Failure.join(failures)
     } else {
       val scriptCls = extendsConfigStrings.map(cls => Result.Success(cls.value)).getOrElse {
@@ -83,11 +108,27 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
           _,
           extendsConfigStrings.map(_.index),
           scriptText,
-          ScriptModule.Config(scriptFile, moduleDeps, compileModuleDeps, runModuleDeps, headerData)
+          ScriptModule.Config(
+            scriptFile,
+            moduleDepsMap.toMap,
+            compileModuleDepsMap.toMap,
+            runModuleDepsMap.toMap,
+            bomModuleDepsMap.toMap,
+            headerData
+          )
         )
-      )
+      ).flatMap { module =>
+        mill.api.internal.PrecompiledModuleRef
+          .findNestedConfigMismatch(module, scriptFile, headerData) match {
+          case Some(f) => f
+          case None => Result.Success(module)
+        }
+      }
     }
   }
+
+  // Nested config key validation is shared with PrecompiledModuleRef —
+  // see PrecompiledModuleRef.findNestedConfigMismatch
 
   def resolveModuleDep(eval: Evaluator, s: String): Result[Option[mill.Module]] = {
     eval.resolveModulesOrTasks(Seq(s), SelectMode.Multi).map(_.collectFirst { case Left(m) => m })
@@ -128,7 +169,17 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
       mill.api.ExecResult.catchWrapException {
         scriptModuleCache.getOrElseUpdate(
           scriptFile,
-          cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[ScriptModule]
+          // Check PrecompiledModuleRef's cache first to reuse instances created
+          // by child aliases in the parent build module, avoiding duplicate instances
+          mill.api.internal.PrecompiledModuleRef.cacheGet(scriptFile) match {
+            case Some(m) => m.asInstanceOf[PrecompiledModule]
+            case None =>
+              val relPath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot).toString
+              val extendsIdx = extendsIndex.getOrElse(0)
+              val validCtor = mill.api.internal.PrecompiledModuleRef
+                .validatePrecompiledClass(cls, relPath, scriptFile, extendsIdx)
+              validCtor.newInstance(args*).asInstanceOf[PrecompiledModule]
+          }
         )
       }
     )
@@ -158,9 +209,6 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
             moduleFor(
               scriptFile,
               parsedHeaderData.`extends`.value.value.headOption,
-              parsedHeaderData.moduleDeps.value.value,
-              parsedHeaderData.compileModuleDeps.value.value,
-              parsedHeaderData.runModuleDeps.value.value,
               eval,
               parsedHeaderData
             )
@@ -195,7 +243,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
       }
   }
 
-  private val scriptExtensions = Set("scala", "java", "kt")
+  private val scriptExtensions = Set("scala", "java", "kt", "yaml")
 
   /**
    * Discovers all script files in the given workspace directory.
@@ -224,16 +272,48 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
     )
       .filter { path =>
         os.isFile(path) &&
-        scriptExtensions.contains(path.ext) // Check if it's a file with the right extension
+        scriptExtensions.contains(path.ext) &&
+        // For .yaml files, only discover *.mill.yaml pre-compiled modules
+        (path.ext != "yaml" || (path.last.endsWith(
+          ".mill.yaml"
+        ) && mill.internal.Util.isPrecompiledYamlModule(path)))
       }
   }
 
   /**
-   * Checks if a file starts with a `//|` build header comment.
+   * Resolves a pre-compiled module from a directory path. Checks for
+   * `package.mill.yaml` or `build.mill.yaml` in the directory with
+   * `mill-experimental-precompiled-module: true` in their header.
+   */
+  def resolvePrecompiledModule(
+      dirPath: String,
+      eval: Evaluator
+  ): Option[Result[ExternalModule]] = {
+    val dir = os.Path(dirPath, mill.api.BuildCtx.workspaceRoot)
+    if (!os.isDir(dir)) None
+    else {
+      val candidates = Seq("package.mill.yaml", "build.mill.yaml")
+      candidates.iterator.flatMap { name =>
+        val yamlFile = dir / name
+        if (os.isFile(yamlFile) && mill.internal.Util.isPrecompiledYamlModule(yamlFile))
+          resolveScriptModule(yamlFile.toString, eval)
+        else None
+      }.nextOption()
+    }
+  }
+
+  /**
+   * Entry point for the script module resolver. First tries file-based resolution
+   * (for script modules), then tries directory-based resolution (for pre-compiled modules).
    */
   def apply(scriptFileString: String, eval: Evaluator) = {
     mill.api.BuildCtx.withFilesystemCheckerDisabled {
-      resolveScriptModule(scriptFileString, eval).toSeq
+      resolveScriptModule(scriptFileString, eval).toSeq match {
+        case resolved if resolved.nonEmpty => resolved
+        case _ =>
+          // Try resolving as a directory path for pre-compiled modules
+          resolvePrecompiledModule(scriptFileString, eval).toSeq
+      }
     }
   }
 }
