@@ -33,6 +33,7 @@ object WorkspaceLocking {
 
     /** Returns a per-run profile path to avoid corruption under concurrent daemon runs. */
     def profilePathJava(default: java.nio.file.Path): java.nio.file.Path = default
+
     /** Returns a per-run chrome profile path to avoid corruption under concurrent daemon runs. */
     def chromeProfilePathJava(default: java.nio.file.Path): java.nio.file.Path = default
 
@@ -81,7 +82,8 @@ object WorkspaceLocking {
   // Never evicted; bounded by the number of distinct lock keys (tasks + meta-build depths)
   private val lockTable = new ConcurrentHashMap[String, Semaphore]()
 
-  private val runDirPrefix = "mill-run-"
+  private val runRootDirName = "mill-run"
+  private val legacyRunDirPrefix = "mill-run-"
 
   /** Maximum number of per-run directories to retain for debugging. */
   private val maxRetainedRuns = 10
@@ -91,6 +93,7 @@ object WorkspaceLocking {
       runDir: os.Path,
       consoleTail: os.Path,
       activeFile: os.Path,
+      var active: Boolean = true,
       var published: Boolean = false,
       var profilePathOpt: Option[os.Path] = None,
       var chromeProfilePathOpt: Option[os.Path] = None
@@ -98,24 +101,34 @@ object WorkspaceLocking {
 
   private val activeRunsLock = new Object
   private val activeRuns =
-    scala.collection.mutable.Map.empty[String, scala.collection.mutable.LinkedHashMap[String, ActiveRun]]
+    scala.collection.mutable.Map.empty[String, scala.collection.mutable.LinkedHashMap[
+      String,
+      ActiveRun
+    ]]
 
   /**
-   * Clean up old per-run directories in `out`, keeping the most recent [[maxRetainedRuns]].
-   * Directories are named `mill-run-{timestamp}-{counter}` and sort chronologically.
+   * Clean up old per-run directories in `out/mill-run`, keeping the most recent [[maxRetainedRuns]].
+   * Directories are named `{timestamp}-{counter}` and sort chronologically.
    */
   private def cleanupOldRunDirs(out: os.Path): Unit = {
     try {
       if (!os.exists(out)) return
       activeRunsLock.synchronized {
-        val activeRunDirs = activeRuns
-          .getOrElse(out.toString, scala.collection.mutable.LinkedHashMap.empty)
+        val runsForOut =
+          activeRuns.getOrElse(out.toString, scala.collection.mutable.LinkedHashMap.empty)
+        val activeRunDirs = runsForOut
           .valuesIterator
+          .filter(_.active)
           .map(_.runDir)
           .toSet
 
-        val runDirs = os.list(out)
-          .filter(p => os.isDir(p) && p.last.startsWith(runDirPrefix))
+        val runRootDir = out / runRootDirName
+        val runDirs =
+          if (os.exists(runRootDir)) os.list(runRootDir).filter(os.isDir(_)).sortBy(_.last)
+          else Seq.empty
+
+        val legacyRunDirs = os.list(out)
+          .filter(p => os.isDir(p) && p.last.startsWith(legacyRunDirPrefix))
           .sortBy(_.last)
 
         val removable = runDirs.filterNot(activeRunDirs)
@@ -125,6 +138,14 @@ object WorkspaceLocking {
           try os.remove.all(dir)
           catch { case _: Throwable => }
         }
+
+        legacyRunDirs.foreach { dir =>
+          try os.remove.all(dir)
+          catch { case _: Throwable => }
+        }
+
+        runsForOut.retain((_, run) => os.exists(run.runDir))
+        if (runsForOut.isEmpty) activeRuns.remove(out.toString)
       }
     } catch {
       case _: Throwable => // best-effort cleanup
@@ -169,12 +190,16 @@ object WorkspaceLocking {
   }
 
   private def refreshWellKnownLinks(out: os.Path): Unit = activeRunsLock.synchronized {
-    val latestRunOpt = activeRuns
-      .get(out.toString)
+    val runsForOutOpt = activeRuns.get(out.toString)
+
+    val latestRunOpt = runsForOutOpt
       .flatMap(_.valuesIterator.filter(_.published).toSeq.lastOption)
 
+    val latestActiveRunOpt = runsForOutOpt
+      .flatMap(_.valuesIterator.filter(run => run.active && run.published).toSeq.lastOption)
+
     updateSymlink(out / DaemonFiles.millConsoleTail, latestRunOpt.map(_.consoleTail))
-    updateSymlink(out / OutFiles.millActive, latestRunOpt.map(_.activeFile))
+    updateSymlink(out / OutFiles.millActive, latestActiveRunOpt.map(_.activeFile))
     updateSymlink(out / OutFiles.millProfile, latestRunOpt.flatMap(_.profilePathOpt))
     updateSymlink(out / OutFiles.millChromeProfile, latestRunOpt.flatMap(_.chromeProfilePathOpt))
   }
@@ -190,7 +215,8 @@ object WorkspaceLocking {
     override val runId: String =
       s"${System.currentTimeMillis()}-${nextTiebreaker.getAndIncrement()}"
 
-    private val runDir: os.Path = out / s"$runDirPrefix$runId"
+    private val runRootDir: os.Path = out / runRootDirName
+    private val runDir: os.Path = runRootDir / runId
     os.makeDir.all(runDir)
 
     val consoleTail: os.Path = runDir / "mill-console-tail"
@@ -201,7 +227,9 @@ object WorkspaceLocking {
 
     os.write.over(
       activeFile,
-      s"""{"command":${quoteJson(activeCommandMessage)},"processDir":${quoteJson(daemonDir.toString)},"pid":${ProcessHandle.current().pid()},"runId":${quoteJson(runId)}}"""
+      s"""{"command":${quoteJson(activeCommandMessage)},"processDir":${quoteJson(
+          daemonDir.toString
+        )},"pid":${ProcessHandle.current().pid()},"runId":${quoteJson(runId)}}"""
     )
 
     activeRunsLock.synchronized {
@@ -238,10 +266,7 @@ object WorkspaceLocking {
 
     override def close(): Unit = {
       activeRunsLock.synchronized {
-        activeRuns.get(out.toString).foreach { runsForOut =>
-          runsForOut.remove(runId)
-          if (runsForOut.isEmpty) activeRuns.remove(out.toString)
-        }
+        activeRun.active = false
         refreshWellKnownLinks(out)
       }
       cleanupOldRunDirs(out)
@@ -264,8 +289,7 @@ object WorkspaceLocking {
       if (noBuildLock || resources.isEmpty) {
         publishRun()
         () => ()
-      }
-      else {
+      } else {
         val distinct = resources.distinct
         val duplicateKinds = distinct
           .groupBy(_.key)

@@ -15,7 +15,8 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
     output.contains("can't set up watch, no file system changes detected")
   }
 
-  private def stopIfWatchUnavailable(spawned: mill.testkit.IntegrationTester.SpawnedProcess): Boolean =
+  private def stopIfWatchUnavailable(spawned: mill.testkit.IntegrationTester.SpawnedProcess)
+      : Boolean =
     if (watchUnavailable(spawned)) {
       spawned.process.destroy(recursive = false)
       spawned.process.waitFor()
@@ -155,7 +156,9 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
     spawned.clear()
     modifyFile(workspacePath / "build.mill", _.replace("sys.error(\"boom bar\")", ""))
 
-    assertEventually { watchUnavailable(spawned) || spawned.out.text().contains("Computing barCommand") }
+    assertEventually {
+      watchUnavailable(spawned) || spawned.out.text().contains("Computing barCommand")
+    }
   }
   val tests: Tests = Tests {
 

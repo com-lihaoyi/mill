@@ -706,7 +706,9 @@ object MillMain0 {
       terminalDimsCallback = terminalDimsCallback,
       currentTimeMillis = () => System.currentTimeMillis(),
       chromeProfileLogger = new JsonArrayLogger.ChromeProfile(
-        os.Path(workspaceLockManager.chromeProfilePathJava((out / OutFiles.millChromeProfile).toNIO))
+        os.Path(
+          workspaceLockManager.chromeProfilePathJava((out / OutFiles.millChromeProfile).toNIO)
+        )
       )
     )
     new PrefixLogger(promptLogger, Nil) with AutoCloseable {

@@ -320,11 +320,17 @@ trait GroupExecution {
             )
 
             upToDateWorker.map { w =>
-              cachedResult(ExecResult.Success((w, inputsHash)), Nil) -> cached.map(_._1).getOrElse(-1)
+              cachedResult(
+                ExecResult.Success((w, inputsHash)),
+                Nil
+              ) -> cached.map(_._1).getOrElse(-1)
             }.orElse(
               cached.flatMap { case (previousInputsHash, valOpt, valueHash) =>
                 valOpt.map { case (v, serializedPaths) =>
-                  cachedResult(ExecResult.Success((v, valueHash)), serializedPaths) -> previousInputsHash
+                  cachedResult(
+                    ExecResult.Success((v, valueHash)),
+                    serializedPaths
+                  ) -> previousInputsHash
                 }
               }
             )
@@ -396,7 +402,8 @@ trait GroupExecution {
                         (0, Nil, false)
                     }
 
-                    if (success && isFinalDepth) retainTerminalReadLock(writeLease.downgradeToRead())
+                    if (success && isFinalDepth)
+                      retainTerminalReadLock(writeLease.downgradeToRead())
                     else writeLease.close()
 
                     GroupExecution.Results(
@@ -447,7 +454,8 @@ trait GroupExecution {
                   case Left(e) => buildOverrideDeserializationError(e, located)
                 }
               }
-            if (execRes.asSuccess.nonEmpty && isFinalDepth) retainTerminalReadLock(writeLease.downgradeToRead())
+            if (execRes.asSuccess.nonEmpty && isFinalDepth)
+              retainTerminalReadLock(writeLease.downgradeToRead())
             else writeLease.close()
             cachedResult(execRes, serializedPaths)
           }

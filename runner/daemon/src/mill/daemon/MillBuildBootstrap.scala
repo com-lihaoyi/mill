@@ -125,37 +125,37 @@ class MillBuildBootstrap(
       requestedDepth: Int
   ): RunnerState = {
     rootModuleRes match {
-    case f: Result.Failure =>
-      nestedState.add(errorOpt = Some(Util.formatError(f, logger.prompt.errorColor)))
+      case f: Result.Failure =>
+        nestedState.add(errorOpt = Some(Util.formatError(f, logger.prompt.errorColor)))
 
-    case Result.Success(buildFileApi) =>
-      Using.resource(makeEvaluator(nestedState, buildFileApi.rootModule, depth)) { evaluator =>
-        // Check if all requested tasks are @nonBootstrapped
-        val shouldShortCircuit =
-          // When there is an explicit `--meta-level`, use that and ignore any
-          // `@nonBootstrapped` annotations
-          if (requestedMetaLevel.nonEmpty) Result.Success(false)
-          else
-            evaluator.areAllNonBootstrapped(
-              tasksAndParams,
-              SelectMode.Separated,
-              allowPositionalCommandArgs
-            )
+      case Result.Success(buildFileApi) =>
+        Using.resource(makeEvaluator(nestedState, buildFileApi.rootModule, depth)) { evaluator =>
+          // Check if all requested tasks are @nonBootstrapped
+          val shouldShortCircuit =
+            // When there is an explicit `--meta-level`, use that and ignore any
+            // `@nonBootstrapped` annotations
+            if (requestedMetaLevel.nonEmpty) Result.Success(false)
+            else
+              evaluator.areAllNonBootstrapped(
+                tasksAndParams,
+                SelectMode.Separated,
+                allowPositionalCommandArgs
+              )
 
-        shouldShortCircuit match {
-          case Result.Success(true) => processFinalTasks(nestedState, buildFileApi, evaluator)
+          shouldShortCircuit match {
+            case Result.Success(true) => processFinalTasks(nestedState, buildFileApi, evaluator)
 
-          // For both Success(false) and Failure, proceed with normal evaluation.
-          // If areAllNonBootstrapped failed (e.g., task doesn't exist), the actual
-          // evaluation will also fail, but moduleWatched will be properly captured.
-          case _ =>
-            if (depth > requestedDepth) {
-              processRunClasspath(nestedState, buildFileApi, evaluator, depth)
-            } else if (depth == requestedDepth) {
-              processFinalTasks(nestedState, buildFileApi, evaluator)
-            } else ??? // should be handled by outer conditional
+            // For both Success(false) and Failure, proceed with normal evaluation.
+            // If areAllNonBootstrapped failed (e.g., task doesn't exist), the actual
+            // evaluation will also fail, but moduleWatched will be properly captured.
+            case _ =>
+              if (depth > requestedDepth) {
+                processRunClasspath(nestedState, buildFileApi, evaluator, depth)
+              } else if (depth == requestedDepth) {
+                processFinalTasks(nestedState, buildFileApi, evaluator)
+              } else ??? // should be handled by outer conditional
+          }
         }
-      }
     }
   }
 

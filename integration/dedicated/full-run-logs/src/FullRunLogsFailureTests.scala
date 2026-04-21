@@ -11,12 +11,14 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
   import FullRunLogsUtils.normalize
 
   private def latestRunProfile(workspacePath: os.Path, fileName: String): Option[os.Path] =
-    os.list(workspacePath / OutFiles.out)
-      .filter(p => p.last.startsWith("mill-run-"))
-      .sorted
-      .reverseIterator
-      .map(_ / fileName)
-      .find(os.exists)
+    Option.when(os.exists(workspacePath / OutFiles.out / "mill-run")) {
+      os.list(workspacePath / OutFiles.out / "mill-run")
+        .filter(os.isDir(_))
+        .sorted
+        .reverseIterator
+        .map(_ / fileName)
+        .find(os.exists)
+    }.flatten
 
   private def waitForFile(workspacePath: os.Path, path: os.Path): os.Path = {
     val deadline = System.currentTimeMillis() + (if (sys.env.contains("CI")) 60000 else 15000)
