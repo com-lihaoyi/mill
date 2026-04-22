@@ -30,16 +30,22 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
         val consoleTail = outPath / DaemonFiles.millConsoleTail
         val profile = outPath / OutFiles.millProfile
         val chromeProfile = outPath / OutFiles.millChromeProfile
+        val dependencyTree = outPath / OutFiles.millDependencyTree
+        val invalidationTree = outPath / OutFiles.millInvalidationTree
         val active = outPath / OutFiles.millActive
 
         assertEventually {
           os.exists(consoleTail) &&
           os.exists(profile) &&
           os.exists(chromeProfile) &&
+          os.exists(dependencyTree) &&
+          os.exists(invalidationTree) &&
           os.exists(active) &&
           java.nio.file.Files.isSymbolicLink(consoleTail.toNIO) &&
           java.nio.file.Files.isSymbolicLink(profile.toNIO) &&
           java.nio.file.Files.isSymbolicLink(chromeProfile.toNIO) &&
+          java.nio.file.Files.isSymbolicLink(dependencyTree.toNIO) &&
+          java.nio.file.Files.isSymbolicLink(invalidationTree.toNIO) &&
           java.nio.file.Files.isSymbolicLink(active.toNIO)
         }
         assert(os.read(active).contains("blockWhileExists"))

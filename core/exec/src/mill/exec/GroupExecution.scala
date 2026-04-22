@@ -280,23 +280,34 @@ trait GroupExecution {
           serializedPaths = serializedPaths
         )
 
-        def withTaskWriteLock[T](t: WorkspaceLocking.ResourceLease => T): T =
-          if (!isFinalDepth) t(WorkspaceLocking.NoopManager.acquireLock(
+        // If isFinalDepth, hold the downgraded read lease until the outermost executeTasks
+        // finishes so downstream tasks see a stable dest dir; otherwise release now.
+        def retainOrClose(
+            lease: WorkspaceLocking.ResourceLease,
+            shouldRetain: Boolean
+        ): Unit =
+          if (shouldRetain && isFinalDepth) retainTerminalReadLock(lease.downgradeToRead())
+          else lease.close()
+
+        def acquireTaskWriteLock(): WorkspaceLocking.ResourceLease =
+          if (!isFinalDepth) WorkspaceLocking.NoopManager.acquireLock(
             WorkspaceLocking.Resource("noop", WorkspaceLocking.LockKind.Write)
-          ))
-          else {
-            val lease = workspaceLockManager.acquireLock(
-              GroupExecution.taskLockResource(labelled, outPath, externalOutPath)
-            )
-            var keepLease = false
-            try {
-              val result = t(lease)
-              keepLease = true
-              result
-            } finally {
-              if (!keepLease) lease.close()
-            }
+          )
+          else workspaceLockManager.acquireLock(
+            GroupExecution.taskLockResource(labelled, outPath, externalOutPath)
+          )
+
+        def withTaskWriteLock[T](t: WorkspaceLocking.ResourceLease => T): T = {
+          val lease = acquireTaskWriteLock()
+          var ownershipTransferred = false
+          try {
+            val result = t(lease)
+            ownershipTransferred = true
+            result
+          } finally {
+            if (!ownershipTransferred) lease.close()
           }
+        }
 
         // Helper to evaluate the task with full caching support
         def evaluateTaskWithCaching(): GroupExecution.Results = {
@@ -354,17 +365,16 @@ trait GroupExecution {
 
           readLockedResult match {
             case Some((res, _)) =>
-              readLeaseOpt.foreach(retainTerminalReadLock)
+              readLeaseOpt.foreach(retainOrClose(_, shouldRetain = true))
               res
 
             case None =>
-              readLeaseOpt.foreach(_.close())
+              readLeaseOpt.foreach(retainOrClose(_, shouldRetain = false))
               withTaskWriteLock { writeLease =>
                 val cached = loadCachedJson(logger, inputsHash, labelled, paths)
                 loadCachedOrWorker(forceDiscard = true) match {
                   case Some((res, _)) =>
-                    if (isFinalDepth) retainTerminalReadLock(writeLease.downgradeToRead())
-                    else writeLease.close()
+                    retainOrClose(writeLease, shouldRetain = true)
                     res
                   case None =>
                     if (!labelled.persistent && os.exists(paths.dest)) {
@@ -402,9 +412,7 @@ trait GroupExecution {
                         (0, Nil, false)
                     }
 
-                    if (success && isFinalDepth)
-                      retainTerminalReadLock(writeLease.downgradeToRead())
-                    else writeLease.close()
+                    retainOrClose(writeLease, shouldRetain = success)
 
                     GroupExecution.Results(
                       newResults = newResults,
@@ -454,9 +462,7 @@ trait GroupExecution {
                   case Left(e) => buildOverrideDeserializationError(e, located)
                 }
               }
-            if (execRes.asSuccess.nonEmpty && isFinalDepth)
-              retainTerminalReadLock(writeLease.downgradeToRead())
-            else writeLease.close()
+            retainOrClose(writeLease, shouldRetain = execRes.asSuccess.nonEmpty)
             cachedResult(execRes, serializedPaths)
           }
         }

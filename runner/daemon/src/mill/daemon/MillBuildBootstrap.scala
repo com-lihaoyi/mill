@@ -283,7 +283,7 @@ class MillBuildBootstrap(
     ) match {
       case (f: Result.Failure, evalWatches, moduleWatches) =>
         val evalState = RunnerState.Frame(
-          workerCache = evaluator.workerCache.toMap,
+          workerCacheSummary = RunnerState.Frame.summarizeWorkerCache(evaluator.workerCache),
           evalWatched = evalWatches,
           moduleWatched = moduleWatches,
           codeSignatures = Map.empty,
@@ -374,7 +374,7 @@ class MillBuildBootstrap(
           val needsUpdate = needsClassloaderRefresh(publishedFrameOpt, publishedOuterFrameOpt)
 
           val evalState = RunnerState.Frame(
-            workerCache = evaluator.workerCache.toMap,
+            workerCacheSummary = RunnerState.Frame.summarizeWorkerCache(evaluator.workerCache),
             evalWatched = evalWatches ++ nestedState.bootstrapEvalWatched,
             moduleWatched = moduleWatches,
             codeSignatures = codeSignatures,
@@ -390,64 +390,52 @@ class MillBuildBootstrap(
           nestedState.add(frame = evalState)
         }
 
-        val initialReadLease = workspaceLockManager.acquireMetaBuildRead(depth)
-        var initialReadLeaseClosed = false
-        try {
-          val (currentFrameOpt, currentOuterFrameOpt) = snapshotFrames()
-          val canReusePublished =
-            currentFrameOpt.exists(_.classLoaderOpt.isDefined) &&
-              !needsClassloaderRefresh(currentFrameOpt, currentOuterFrameOpt)
+        def acquireRead() = workspaceLockManager.acquireLock(
+          WorkspaceLocking.metaBuildResource(depth, WorkspaceLocking.LockKind.Read)
+        )
+        def acquireWrite() = workspaceLockManager.acquireLock(
+          WorkspaceLocking.metaBuildResource(depth, WorkspaceLocking.LockKind.Write)
+        )
 
-          if (canReusePublished) {
-            nextStateFor(currentFrameOpt.get.classLoaderOpt.get, Some(initialReadLease))
+        // Happy path: acquire a read lease, check whether we can reuse the published classloader.
+        // On miss, drop the read and reacquire as a write (the semaphore-based lock is not
+        // reentrant, so we cannot upgrade). Under the write, re-check (another writer may have
+        // refreshed while we waited), then either reuse or build a fresh classloader and publish.
+        // Finally downgrade the write back to a read lease for the returned frame to own.
+        val readLease = acquireRead()
+        closeOnThrow(readLease) {
+          val (frameOpt, outerFrameOpt) = snapshotFrames()
+          if (
+            frameOpt.exists(_.classLoaderOpt.isDefined) &&
+            !needsClassloaderRefresh(frameOpt, outerFrameOpt)
+          ) {
+            nextStateFor(frameOpt.get.classLoaderOpt.get, Some(readLease))
           } else {
-            initialReadLease.close()
-            initialReadLeaseClosed = true
-            // Use explicit write lease so we can downgrade to read before returning.
-            // We cannot call acquireMetaBuildRead inside a write lock because the
-            // semaphore-based lock is not reentrant (unlike ReentrantReadWriteLock).
-            val writeLease = workspaceLockManager.acquireMetaBuildWrite(depth)
-            try {
+            readLease.close()
+            val writeLease = acquireWrite()
+            closeOnThrow(writeLease) {
               val (latestFrameOpt, latestOuterFrameOpt) = snapshotFrames()
               val needsUpdate = needsClassloaderRefresh(latestFrameOpt, latestOuterFrameOpt)
-
-              if (!needsUpdate && latestFrameOpt.exists(_.classLoaderOpt.isDefined)) {
-                val readLease = writeLease.downgradeToRead()
-                nextStateFor(latestFrameOpt.get.classLoaderOpt.get, Some(readLease))
-              } else {
-                // Close old classloaders to avoid memory leaks. Workers at this depth
-                // are handled by SharedWorkerCache.forDepth (called in makeEvaluator),
-                // which detects the classloader change and closes stale workers.
-                val previousClassLoaders =
-                  Seq(
+              val classLoader =
+                if (!needsUpdate && latestFrameOpt.exists(_.classLoaderOpt.isDefined)) {
+                  latestFrameOpt.get.classLoaderOpt.get
+                } else {
+                  // Close old classloaders to avoid memory leaks. Workers at this depth are
+                  // handled by SharedWorkerCache.forDepth (called in makeEvaluator), which
+                  // detects the classloader change and closes stale workers.
+                  val previousClassLoaders = Seq(
                     prevCommandState.frames.lift(depth).flatMap(_.classLoaderOpt),
                     snapshotPublishedState().frame(depth).flatMap(_.classLoaderOpt)
                   ).flatten.distinct
-                previousClassLoaders.foreach(_.close())
-                val nextState = nextStateFor(createClassLoader(), None)
-                publishReusableState(depth, nextState.frames)
-                val readLease = writeLease.downgradeToRead()
-                nextState.copy(
-                  frames = nextState.frames.updated(
-                    0,
-                    nextState.frames.head.copy(metaBuildReadLeaseOpt = Some(readLease))
-                  )
-                )
-              }
-            } catch {
-              case e: Throwable =>
-                try writeLease.close()
-                catch { case _: Throwable => }
-                throw e
+                  previousClassLoaders.foreach(_.close())
+                  val cl = createClassLoader()
+                  publishReusableState(depth, nextStateFor(cl, None).frames)
+                  cl
+                }
+              writeLease.downgradeToRead()
+              nextStateFor(classLoader, Some(writeLease))
             }
           }
-        } catch {
-          case e: Throwable =>
-            if (!initialReadLeaseClosed) {
-              try initialReadLease.close()
-              catch { case _: Throwable => }
-            }
-            throw e
         }
 
       case unknown => sys.error(unknown.toString())
@@ -476,7 +464,7 @@ class MillBuildBootstrap(
     )
 
     val evalState = RunnerState.Frame(
-      workerCache = evaluator.workerCache.toMap,
+      workerCacheSummary = RunnerState.Frame.summarizeWorkerCache(evaluator.workerCache),
       evalWatched = evalWatched,
       moduleWatched = moduleWatches,
       codeSignatures = Map.empty,
@@ -501,6 +489,17 @@ class MillBuildBootstrap(
 }
 
 object MillBuildBootstrap {
+
+  /** Run `body`; if it throws, best-effort close `resource` (suppressing cleanup failures). */
+  private def closeOnThrow[R <: AutoCloseable, A](resource: R)(body: => A): A =
+    try body
+    catch {
+      case e: Throwable =>
+        try resource.close()
+        catch { case _: Throwable => }
+        throw e
+    }
+
   // Keep this outside of `case class MillBuildBootstrap` because otherwise the lambdas
   // tend to capture the entire enclosing instance, causing memory leaks
   def makeEvaluator0(

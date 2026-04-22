@@ -3,6 +3,7 @@ package mill.api.daemon
 import mill.constants.{DaemonFiles, OutFiles}
 
 import java.io.PrintStream
+import java.nio.file.StandardCopyOption
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicLong
@@ -31,11 +32,8 @@ object WorkspaceLocking {
     def noBuildLock: Boolean
     def noWaitForBuildLock: Boolean
 
-    /** Returns a per-run profile path to avoid corruption under concurrent daemon runs. */
-    def profilePathJava(default: java.nio.file.Path): java.nio.file.Path = default
-
-    /** Returns a per-run chrome profile path to avoid corruption under concurrent daemon runs. */
-    def chromeProfilePathJava(default: java.nio.file.Path): java.nio.file.Path = default
+    /** Returns a per-run path for well-known out/ artifacts in daemon mode. */
+    def runFileJava(default: java.nio.file.Path): java.nio.file.Path = default
 
     def acquireLock(resource: Resource): ResourceLease
     def acquireLocks(resources: Seq[Resource]): Lease
@@ -44,15 +42,13 @@ object WorkspaceLocking {
       try t
       finally lease.close()
     }
-    def acquireMetaBuildRead(depth: Int): Lease =
-      acquireLocks(Seq(Resource(s"meta-build:$depth", LockKind.Read)))
-    def acquireMetaBuildWrite(depth: Int): ResourceLease =
-      acquireLock(Resource(s"meta-build:$depth", LockKind.Write))
-    def withMetaBuildRead[T](depth: Int)(t: => T): T =
-      withLocks(Seq(Resource(s"meta-build:$depth", LockKind.Read)))(t)
-    def withMetaBuildWrite[T](depth: Int)(t: => T): T =
-      withLocks(Seq(Resource(s"meta-build:$depth", LockKind.Write)))(t)
   }
+
+  def globalFileResource(path: os.Path, kind: LockKind): Resource =
+    Resource(s"global:$path", kind)
+
+  def metaBuildResource(depth: Int, kind: LockKind): Resource =
+    Resource(s"meta-build:$depth", kind)
 
   object NoopManager extends Manager {
     override def runId: String = "noop"
@@ -95,72 +91,121 @@ object WorkspaceLocking {
       activeFile: os.Path,
       var active: Boolean = true,
       var published: Boolean = false,
-      var profilePathOpt: Option[os.Path] = None,
-      var chromeProfilePathOpt: Option[os.Path] = None
+      publishedFiles: scala.collection.mutable.Map[String, os.Path] =
+        scala.collection.mutable.LinkedHashMap.empty
   )
 
-  private val activeRunsLock = new Object
-  private val activeRuns =
-    scala.collection.mutable.Map.empty[String, scala.collection.mutable.LinkedHashMap[
-      String,
-      ActiveRun
-    ]]
-
   /**
-   * Clean up old per-run directories in `out/mill-run`, keeping the most recent [[maxRetainedRuns]].
-   * Directories are named `{timestamp}-{counter}` and sort chronologically.
+   * Per-out-folder coordination shared across concurrent `InProcessManager`s that target the
+   * same out/. Holds the set of active runs and manages the mill-run directory and well-known
+   * symlinks under out/.
    */
-  private def cleanupOldRunDirs(out: os.Path): Unit = {
-    try {
-      if (!os.exists(out)) return
-      activeRunsLock.synchronized {
-        val runsForOut =
-          activeRuns.getOrElse(out.toString, scala.collection.mutable.LinkedHashMap.empty)
-        val activeRunDirs = runsForOut
-          .valuesIterator
-          .filter(_.active)
-          .map(_.runDir)
-          .toSet
+  private class OutCoordinator(out: os.Path) {
+    private val lock = new Object
+    private val runs = scala.collection.mutable.LinkedHashMap.empty[String, ActiveRun]
 
-        val runRootDir = out / runRootDirName
-        val runDirs =
-          if (os.exists(runRootDir)) os.list(runRootDir).filter(os.isDir(_)).sortBy(_.last)
-          else Seq.empty
+    def register(run: ActiveRun): Unit = lock.synchronized { runs.update(run.runId, run) }
 
-        val legacyRunDirs = os.list(out)
-          .filter(p => os.isDir(p) && p.last.startsWith(legacyRunDirPrefix))
-          .sortBy(_.last)
-
-        val removable = runDirs.filterNot(activeRunDirs)
-        val toRemove =
-          removable.take(math.min(removable.size, math.max(0, runDirs.size - maxRetainedRuns)))
-        toRemove.foreach { dir =>
-          try os.remove.all(dir)
-          catch { case _: Throwable => }
-        }
-
-        legacyRunDirs.foreach { dir =>
-          try os.remove.all(dir)
-          catch { case _: Throwable => }
-        }
-
-        runsForOut.retain((_, run) => os.exists(run.runDir))
-        if (runsForOut.isEmpty) activeRuns.remove(out.toString)
+    def publish(run: ActiveRun): Unit = lock.synchronized {
+      if (!run.published) {
+        run.published = true
+        refreshWellKnownLinks()
       }
-    } catch {
-      case _: Throwable => // best-effort cleanup
+    }
+
+    def recordPublishedFile(run: ActiveRun, path: os.Path): Unit = lock.synchronized {
+      run.publishedFiles.update(path.last, path)
+      refreshWellKnownLinks()
+    }
+
+    def deactivate(run: ActiveRun): Unit = lock.synchronized {
+      run.active = false
+      refreshWellKnownLinks()
+    }
+
+    /**
+     * Clean up old per-run directories in `out/mill-run`, keeping the most recent
+     * [[maxRetainedRuns]]. Directories are named `{timestamp}-{counter}` and sort chronologically.
+     */
+    def cleanupOldRunDirs(): Unit = {
+      try {
+        if (!os.exists(out)) return
+        lock.synchronized {
+          val activeRunDirs = runs.valuesIterator.filter(_.active).map(_.runDir).toSet
+
+          val runRootDir = out / runRootDirName
+          val runDirs =
+            if (os.exists(runRootDir)) os.list(runRootDir).filter(os.isDir(_)).sortBy(_.last)
+            else Seq.empty
+
+          val legacyRunDirs = os.list(out)
+            .filter(p => os.isDir(p) && p.last.startsWith(legacyRunDirPrefix))
+            .sortBy(_.last)
+
+          val removable = runDirs.filterNot(activeRunDirs)
+          val toRemove =
+            removable.take(math.min(removable.size, math.max(0, runDirs.size - maxRetainedRuns)))
+          toRemove.foreach { dir =>
+            try os.remove.all(dir)
+            catch { case _: Throwable => }
+          }
+
+          legacyRunDirs.foreach { dir =>
+            try os.remove.all(dir)
+            catch { case _: Throwable => }
+          }
+
+          runs.retain((_, run) => os.exists(run.runDir))
+        }
+      } catch {
+        case _: Throwable => // best-effort cleanup
+      }
+    }
+
+    private def refreshWellKnownLinks(): Unit = {
+      val latestRunOpt = runs.valuesIterator.filter(_.published).toSeq.lastOption
+      val latestActiveRunOpt =
+        runs.valuesIterator.filter(r => r.active && r.published).toSeq.lastOption
+
+      updateSymlink(out / DaemonFiles.millConsoleTail, latestRunOpt.map(_.consoleTail))
+      updateSymlink(out / OutFiles.millActive, latestActiveRunOpt.map(_.activeFile))
+      val publishedNames = runs.valuesIterator.flatMap(_.publishedFiles.keys).toSet
+      publishedNames.foreach { fileName =>
+        updateSymlink(out / fileName, latestRunOpt.flatMap(_.publishedFiles.get(fileName)))
+      }
     }
   }
+
+  private val outCoordinators = new ConcurrentHashMap[String, OutCoordinator]()
+  private def coordinatorFor(out: os.Path): OutCoordinator =
+    outCoordinators.computeIfAbsent(out.toString, _ => new OutCoordinator(out))
 
   /** Atomically replace `link` with a relative symlink pointing to `target`. */
   private def updateSymlink(link: os.Path, targetOpt: Option[os.Path]): Unit = {
     try {
-      try os.remove.all(link)
-      catch { case _: Throwable => }
-
-      targetOpt.foreach { target =>
-        val rel = target.relativeTo(link / os.up)
-        os.symlink(link, rel)
+      targetOpt match {
+        case Some(target) =>
+          os.makeDir.all(link / os.up)
+          val rel = target.relativeTo(link / os.up)
+          val tmp =
+            link / os.up / s".${link.last}.tmp-${System.nanoTime()}-${nextTiebreaker.getAndIncrement()}"
+          try {
+            try os.remove.all(tmp)
+            catch { case _: Throwable => }
+            os.symlink(tmp, rel)
+            java.nio.file.Files.move(
+              tmp.toNIO,
+              link.toNIO,
+              StandardCopyOption.REPLACE_EXISTING,
+              StandardCopyOption.ATOMIC_MOVE
+            )
+          } finally {
+            try os.remove.all(tmp)
+            catch { case _: Throwable => }
+          }
+        case None =>
+          try os.remove.all(link)
+          catch { case _: Throwable => }
       }
     } catch {
       case _: Throwable => // best-effort; non-critical for correctness
@@ -189,21 +234,6 @@ object WorkspaceLocking {
     }
   }
 
-  private def refreshWellKnownLinks(out: os.Path): Unit = activeRunsLock.synchronized {
-    val runsForOutOpt = activeRuns.get(out.toString)
-
-    val latestRunOpt = runsForOutOpt
-      .flatMap(_.valuesIterator.filter(_.published).toSeq.lastOption)
-
-    val latestActiveRunOpt = runsForOutOpt
-      .flatMap(_.valuesIterator.filter(run => run.active && run.published).toSeq.lastOption)
-
-    updateSymlink(out / DaemonFiles.millConsoleTail, latestRunOpt.map(_.consoleTail))
-    updateSymlink(out / OutFiles.millActive, latestActiveRunOpt.map(_.activeFile))
-    updateSymlink(out / OutFiles.millProfile, latestRunOpt.flatMap(_.profilePathOpt))
-    updateSymlink(out / OutFiles.millChromeProfile, latestRunOpt.flatMap(_.chromeProfilePathOpt))
-  }
-
   final class InProcessManager(
       out: os.Path,
       daemonDir: os.Path,
@@ -224,6 +254,7 @@ object WorkspaceLocking {
     private val activeFile: os.Path = runDir / OutFiles.millActive
 
     private val activeRun = ActiveRun(runId, runDir, consoleTail, activeFile)
+    private val coordinator = coordinatorFor(out)
 
     os.write.over(
       activeFile,
@@ -232,44 +263,20 @@ object WorkspaceLocking {
         )},"pid":${ProcessHandle.current().pid()},"runId":${quoteJson(runId)}}"""
     )
 
-    activeRunsLock.synchronized {
-      val runsForOut =
-        activeRuns.getOrElseUpdate(out.toString, scala.collection.mutable.LinkedHashMap.empty)
-      runsForOut.update(runId, activeRun)
-    }
-    cleanupOldRunDirs(out)
+    coordinator.register(activeRun)
+    coordinator.cleanupOldRunDirs()
 
-    private def publishRun(): Unit = activeRunsLock.synchronized {
-      if (!activeRun.published) {
-        activeRun.published = true
-        refreshWellKnownLinks(out)
-      }
-    }
+    private def publishRun(): Unit = coordinator.publish(activeRun)
 
-    override def profilePathJava(default: java.nio.file.Path): java.nio.file.Path = {
+    override def runFileJava(default: java.nio.file.Path): java.nio.file.Path = {
       val path = runDir / os.Path(default).last
-      activeRunsLock.synchronized {
-        activeRun.profilePathOpt = Some(path)
-        refreshWellKnownLinks(out)
-      }
-      path.toNIO
-    }
-
-    override def chromeProfilePathJava(default: java.nio.file.Path): java.nio.file.Path = {
-      val path = runDir / os.Path(default).last
-      activeRunsLock.synchronized {
-        activeRun.chromeProfilePathOpt = Some(path)
-        refreshWellKnownLinks(out)
-      }
+      coordinator.recordPublishedFile(activeRun, path)
       path.toNIO
     }
 
     override def close(): Unit = {
-      activeRunsLock.synchronized {
-        activeRun.active = false
-        refreshWellKnownLinks(out)
-      }
-      cleanupOldRunDirs(out)
+      coordinator.deactivate(activeRun)
+      coordinator.cleanupOldRunDirs()
     }
 
     override def acquireLock(resource0: Resource): ResourceLease =
@@ -282,7 +289,7 @@ object WorkspaceLocking {
       else {
         acquire(resource0)
         publishRun()
-        InProcessResourceLease(resource0)
+        new InProcessResourceLease(resource0)
       }
 
     override def acquireLocks(resources: Seq[Resource]): Lease =
@@ -306,24 +313,28 @@ object WorkspaceLocking {
         () => acquired.reverseIterator.foreach(_.close())
       }
 
-    private case class InProcessResourceLease(
-        override val resource: Resource
-    ) extends ResourceLease {
+    private class InProcessResourceLease(override val resource: Resource) extends ResourceLease {
       private val closed = new java.util.concurrent.atomic.AtomicBoolean(false)
-      override def kind: LockKind = resource.kind
+      @volatile private var currentKind: LockKind = resource.kind
+      override def kind: LockKind = currentKind
 
-      override def downgradeToRead(): ResourceLease =
-        if (kind == LockKind.Read || closed.get()) this
-        else {
-          val sem = semaphore(resource)
+      override def downgradeToRead(): ResourceLease = {
+        if (currentKind == LockKind.Write && !closed.get()) {
           // Downgrade: release write permits minus 1 (keeping 1 read permit)
-          sem.release(maxPermits - 1)
-          closed.set(true)
-          InProcessResourceLease(resource.copy(kind = LockKind.Read))
+          semaphore(resource).release(maxPermits - 1)
+          currentKind = LockKind.Read
         }
+        this
+      }
 
       override def close(): Unit =
-        if (closed.compareAndSet(false, true)) release(resource)
+        if (closed.compareAndSet(false, true)) {
+          val permits = currentKind match {
+            case LockKind.Read => 1
+            case LockKind.Write => maxPermits
+          }
+          semaphore(resource).release(permits)
+        }
     }
 
     private def semaphore(resource: Resource): Semaphore =
@@ -359,12 +370,5 @@ object WorkspaceLocking {
       }
     }
 
-    private def release(resource: Resource): Unit = {
-      val sem = semaphore(resource)
-      resource.kind match {
-        case LockKind.Read => sem.release(1)
-        case LockKind.Write => sem.release(maxPermits)
-      }
-    }
   }
 }

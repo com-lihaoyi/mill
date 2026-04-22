@@ -22,14 +22,20 @@ object WorkspaceLockingTests extends TestSuite {
           noWaitForBuildLock = false
         )
 
-        val profilePath = os.Path(manager.profilePathJava((out / OutFiles.millProfile).toNIO))
+        val profilePath = os.Path(manager.runFileJava((out / OutFiles.millProfile).toNIO))
         val chromePath =
-          os.Path(manager.chromeProfilePathJava((out / OutFiles.millChromeProfile).toNIO))
+          os.Path(manager.runFileJava((out / OutFiles.millChromeProfile).toNIO))
+        val dependencyTreePath =
+          os.Path(manager.runFileJava((out / OutFiles.millDependencyTree).toNIO))
+        val invalidationTreePath =
+          os.Path(manager.runFileJava((out / OutFiles.millInvalidationTree).toNIO))
         val consoleTailPath = os.Path(manager.consoleTailJava)
 
         os.write.over(consoleTailPath, "tail")
         os.write.over(profilePath, "profile")
         os.write.over(chromePath, "chrome")
+        os.write.over(dependencyTreePath, """{"kind":"dependency"}""")
+        os.write.over(invalidationTreePath, """{"kind":"invalidation"}""")
 
         manager.acquireLocks(Seq.empty).close()
 
@@ -37,10 +43,14 @@ object WorkspaceLockingTests extends TestSuite {
         assert(os.exists(out / DaemonFiles.millConsoleTail))
         assert(os.exists(out / OutFiles.millProfile))
         assert(os.exists(out / OutFiles.millChromeProfile))
+        assert(os.exists(out / OutFiles.millDependencyTree))
+        assert(os.exists(out / OutFiles.millInvalidationTree))
         assert(os.exists(activeLink))
 
         assert(Files.isSymbolicLink((out / OutFiles.millProfile).toNIO))
         assert(Files.isSymbolicLink((out / OutFiles.millChromeProfile).toNIO))
+        assert(Files.isSymbolicLink((out / OutFiles.millDependencyTree).toNIO))
+        assert(Files.isSymbolicLink((out / OutFiles.millInvalidationTree).toNIO))
         assert(Files.isSymbolicLink(activeLink.toNIO))
         assert(Files.readSymbolicLink(
           (out / OutFiles.millProfile).toNIO
@@ -54,12 +64,18 @@ object WorkspaceLockingTests extends TestSuite {
         assert(os.exists(out / DaemonFiles.millConsoleTail))
         assert(os.exists(out / OutFiles.millProfile))
         assert(os.exists(out / OutFiles.millChromeProfile))
+        assert(os.exists(out / OutFiles.millDependencyTree))
+        assert(os.exists(out / OutFiles.millInvalidationTree))
         assert(!os.exists(activeLink))
 
         assert(os.read(out / OutFiles.millProfile) == "profile")
         assert(os.read(out / OutFiles.millChromeProfile) == "chrome")
+        assert(os.read(out / OutFiles.millDependencyTree) == """{"kind":"dependency"}""")
+        assert(os.read(out / OutFiles.millInvalidationTree) == """{"kind":"invalidation"}""")
         assert(Files.isSymbolicLink((out / OutFiles.millProfile).toNIO))
         assert(Files.isSymbolicLink((out / OutFiles.millChromeProfile).toNIO))
+        assert(Files.isSymbolicLink((out / OutFiles.millDependencyTree).toNIO))
+        assert(Files.isSymbolicLink((out / OutFiles.millInvalidationTree).toNIO))
         assert(Files.readSymbolicLink(
           (out / OutFiles.millProfile).toNIO
         ).toString.startsWith("mill-run/"))

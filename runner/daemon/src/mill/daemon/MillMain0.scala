@@ -285,7 +285,16 @@ object MillMain0 {
                             // because we still want to generate the selective execution metadata json
                             // for subsequent runs that may use it
                             if (skipSelectiveExecution)
-                              os.remove(out / OutFiles.millSelectiveExecution)
+                              manager.withLocks(
+                                Seq(
+                                  WorkspaceLocking.globalFileResource(
+                                    out / OutFiles.millSelectiveExecution,
+                                    WorkspaceLocking.LockKind.Write
+                                  )
+                                )
+                              ) {
+                                os.remove(out / OutFiles.millSelectiveExecution)
+                              }
                             mill.api.SystemStreamsUtils.withStreams(logger.streams) {
                               mill.api.FilesystemCheckerEnabled.withValue(
                                 !config.noFilesystemChecker.value
@@ -706,9 +715,7 @@ object MillMain0 {
       terminalDimsCallback = terminalDimsCallback,
       currentTimeMillis = () => System.currentTimeMillis(),
       chromeProfileLogger = new JsonArrayLogger.ChromeProfile(
-        os.Path(
-          workspaceLockManager.chromeProfilePathJava((out / OutFiles.millChromeProfile).toNIO)
-        )
+        os.Path(workspaceLockManager.runFileJava((out / OutFiles.millChromeProfile).toNIO))
       )
     )
     new PrefixLogger(promptLogger, Nil) with AutoCloseable {

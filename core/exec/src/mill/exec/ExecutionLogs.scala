@@ -1,5 +1,6 @@
 package mill.exec
 
+import mill.api.daemon.WorkspaceLocking
 import mill.constants.OutFiles.OutFiles
 import mill.api.Task
 import mill.internal.{InvalidationForest, SpanningForest}
@@ -11,13 +12,14 @@ private object ExecutionLogs {
   def logDependencyTree(
       interGroupDeps: Map[Task[?], Seq[Task[?]]],
       indexToTerminal: Array[Task[?]],
-      outPath: os.Path
+      outPath: os.Path,
+      workspaceLockManager: WorkspaceLocking.Manager
   ): Unit = {
     val ( /*vertexToIndex*/ _, edgeIndices) =
       SpanningForest.graphMapToIndices(indexToTerminal, interGroupDeps)
 
     SpanningForest.writeJsonFile(
-      outPath / OutFiles.millDependencyTree,
+      os.Path(workspaceLockManager.runFileJava((outPath / OutFiles.millDependencyTree).toNIO)),
       edgeIndices,
       indexToTerminal.indices.toSet,
       indexToTerminal(_).toString
@@ -26,6 +28,7 @@ private object ExecutionLogs {
   def logInvalidationTree(
       interGroupDeps: Map[Task[?], Seq[Task[?]]],
       outPath: os.Path,
+      workspaceLockManager: WorkspaceLocking.Manager,
       uncached: ConcurrentHashMap[Task[?], Unit],
       changedValueHash: ConcurrentHashMap[Task[?], Unit],
       // JSON string to avoid classloader issues when crossing classloader boundaries
@@ -51,6 +54,9 @@ private object ExecutionLogs {
       taskInvalidationReasons = taskInvalidationReasons
     )
 
-    os.write.over(outPath / OutFiles.millInvalidationTree, finalTree.render(indent = 2))
+    os.write.over(
+      os.Path(workspaceLockManager.runFileJava((outPath / OutFiles.millInvalidationTree).toNIO)),
+      finalTree.render(indent = 2)
+    )
   }
 }

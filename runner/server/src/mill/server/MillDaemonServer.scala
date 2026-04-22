@@ -43,7 +43,7 @@ abstract class MillDaemonServer[State](
 
   def initialStateCache: State
 
-  private var lastConfig: Option[DaemonConfig] = None
+  private val lastConfig = new AtomicReference[Option[DaemonConfig]](None)
 
   override def connectionHandlerThreadName(socket: Socket): String =
     s"MillServerActionRunner(${socket.getInetAddress}:${socket.getPort})"
@@ -116,7 +116,9 @@ abstract class MillDaemonServer[State](
           millRepositories = init.millRepositories
         )
 
-        lastConfig.foreach { stored =>
+        // CAS: the first connection installs its config, concurrent connections see it and validate.
+        lastConfig.compareAndSet(None, Some(clientConfig))
+        lastConfig.get().foreach { stored =>
           val mismatchReasons = stored.checkMismatchAgainst(clientConfig)
           if (mismatchReasons.nonEmpty) {
             mismatchReasons.foreach(reason => stderr.println(s"$reason, re-starting server"))
@@ -129,7 +131,6 @@ abstract class MillDaemonServer[State](
             )
           }
         }
-        lastConfig = Some(clientConfig)
 
         // Create an InputStream that polls the client for stdin data via RPC.
         // This allows the watch mode to detect Enter key presses.

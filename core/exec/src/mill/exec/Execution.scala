@@ -88,7 +88,7 @@ case class Execution(
   ) = this(
     baseLogger = baseLogger,
     profileLogger = new JsonArrayLogger.Profile(
-      os.Path(workspaceLockManager.profilePathJava((os.Path(outPath) / millProfile).toNIO))
+      os.Path(workspaceLockManager.runFileJava((os.Path(outPath) / millProfile).toNIO))
     ),
     workspace = os.Path(workspace),
     outPath = os.Path(outPath),
@@ -188,7 +188,12 @@ case class Execution(
       val plan = PlanImpl.plan(goals)
       val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
       val indexToTerminal = plan.sortedGroups.keys().toArray
-      ExecutionLogs.logDependencyTree(interGroupDeps, indexToTerminal, outPath)
+      ExecutionLogs.logDependencyTree(
+        interGroupDeps,
+        indexToTerminal,
+        outPath,
+        workspaceLockManager
+      )
       // Prepare a lookup tables up front of all the method names that each class owns,
       // and the class hierarchy, so during evaluation it is cheap to look up what class
       // each task belongs to determine of the enclosing class code signature changed.
@@ -402,6 +407,7 @@ case class Execution(
       ExecutionLogs.logInvalidationTree(
         interGroupDeps = interGroupDeps,
         outPath = outPath,
+        workspaceLockManager = workspaceLockManager,
         uncached = uncached,
         changedValueHash = changedValueHash,
         spanningInvalidationTree = spanningInvalidationTree,

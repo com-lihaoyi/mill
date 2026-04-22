@@ -43,8 +43,8 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
     val resources =
       if (isFinalDepth && selectiveExecution)
         Seq(
-          WorkspaceLocking.Resource(
-            s"global:${outPath / OutFiles.millSelectiveExecution}",
+          WorkspaceLocking.globalFileResource(
+            outPath / OutFiles.millSelectiveExecution,
             WorkspaceLocking.LockKind.Write
           )
         )

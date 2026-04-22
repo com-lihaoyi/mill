@@ -77,22 +77,10 @@ object RunnerState {
   ) {
     def frame(depth: Int): Option[Frame] = frames.lift(depth)
 
-    def updated(depth: Int, updatedFrames: Seq[Frame]): ReusableSnapshot = {
-      // Pad so that `frames` has at least `depth` elements (indices 0..depth-1).
-      // `patch(depth, ...)` then replaces/appends from index `depth` onward.
-      val paddedFrames =
-        if (frames.size >= depth) frames
-        else frames ++ Vector.fill(depth - frames.size)(Frame.empty)
-
-      val nextFrames =
-        paddedFrames.patch(
-          depth,
-          updatedFrames.iterator.map(_.sanitizedForConcurrentReuse).toVector,
-          math.max(0, paddedFrames.size - depth)
-        )
-
-      copy(frames = nextFrames)
-    }
+    def updated(depth: Int, updatedFrames: Seq[Frame]): ReusableSnapshot = copy(
+      frames = frames.take(depth).padTo(depth, Frame.empty) ++
+        updatedFrames.iterator.map(_.sanitizedForConcurrentReuse).toVector
+    )
   }
 
   object ReusableSnapshot {
@@ -103,7 +91,9 @@ object RunnerState {
 
   @internal
   case class Frame(
-      workerCache: Map[String, (Int, Val, TaskApi[?])],
+      // Summary of the worker cache captured when the frame was built, for disk logging only.
+      // Actual worker objects live in the process-level SharedWorkerCache.
+      workerCacheSummary: Map[String, Frame.WorkerInfo],
       evalWatched: Seq[Watchable],
       moduleWatched: Seq[Watchable],
       codeSignatures: Map[String, Int],
@@ -119,9 +109,7 @@ object RunnerState {
 
     def loggedData: Frame.Logged = {
       Frame.Logged(
-        workerCache.map { case (k, (i, v, _)) =>
-          (k, Frame.WorkerInfo(System.identityHashCode(v), i))
-        },
+        workerCacheSummary,
         evalWatched.collect { case Watchable.Path(p, _, _) =>
           os.Path(p)
         },
@@ -135,7 +123,6 @@ object RunnerState {
     }
 
     def sanitizedForConcurrentReuse: Frame = copy(
-      workerCache = Map.empty,
       metaBuildReadLeaseOpt = None,
       evaluator = None
     )
@@ -152,6 +139,13 @@ object RunnerState {
   object Frame {
     case class WorkerInfo(identityHashCode: Int, inputHash: Int)
     implicit val workerInfoRw: ReadWriter[WorkerInfo] = macroRW
+
+    def summarizeWorkerCache(
+        workerCache: collection.Map[String, (Int, Val, TaskApi[?])]
+    ): Map[String, WorkerInfo] =
+      workerCache.iterator.map { case (k, (i, v, _)) =>
+        (k, WorkerInfo(System.identityHashCode(v), i))
+      }.toMap
 
     case class ClassLoaderInfo(identityHashCode: Int, paths: Seq[String], buildHash: Int)
     implicit val classLoaderInfoRw: ReadWriter[ClassLoaderInfo] = macroRW
@@ -171,7 +165,7 @@ object RunnerState {
     implicit val loggedRw: ReadWriter[Logged] = macroRW
 
     def empty: Frame =
-      Frame(Map.empty, Nil, Nil, Map.empty, None, None, Nil, None, None, Map(), None)
+      Frame(Map.empty, Nil, Nil, Map.empty, None, None, Nil, None, None, Map.empty, None)
   }
 
 }
