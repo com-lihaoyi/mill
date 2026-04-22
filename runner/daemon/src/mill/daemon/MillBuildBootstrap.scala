@@ -143,7 +143,7 @@ class MillBuildBootstrap(
               )
 
           shouldShortCircuit match {
-            case Result.Success(true) => processFinalTasks(nestedState, buildFileApi, evaluator)
+            case Result.Success(true) => processFinalTasks(nestedState, buildFileApi, evaluator, depth)
 
             // For both Success(false) and Failure, proceed with normal evaluation.
             // If areAllNonBootstrapped failed (e.g., task doesn't exist), the actual
@@ -152,7 +152,7 @@ class MillBuildBootstrap(
               if (depth > requestedDepth) {
                 processRunClasspath(nestedState, buildFileApi, evaluator, depth)
               } else if (depth == requestedDepth) {
-                processFinalTasks(nestedState, buildFileApi, evaluator)
+                processFinalTasks(nestedState, buildFileApi, evaluator, depth)
               } else ??? // should be handled by outer conditional
           }
         }
@@ -345,6 +345,12 @@ class MillBuildBootstrap(
           val runClasspathChanged = !publishedFrameOpt.exists(
             _.runClasspath.map(_.sig).sum == runClasspath.map(_.sig).sum
           )
+          // Some build-structure changes are only tracked via module watches on
+          // the final evaluated frames. If any such watch changed, conservatively
+          // refresh the classloader so root/build singletons get re-instantiated.
+          val anyModuleWatchesChanged = (
+            snapshotPublishedState().frames.iterator ++ prevCommandState.frames.iterator
+          ).exists(_.moduleWatched.exists(w => !Watching.haveNotChanged(w)))
           // Handling module watching is a bit weird; for nested meta-builds the
           // watches that determine whether this frame needs a new classloader are
           // captured one level up in the recursion, after evaluation on that
@@ -355,7 +361,7 @@ class MillBuildBootstrap(
           val watchedInputsChanged = watchedFrames.exists { frame =>
             (frame.moduleWatched ++ frame.evalWatched).exists(w => !Watching.haveNotChanged(w))
           }
-          runClasspathChanged || watchedInputsChanged
+          runClasspathChanged || watchedInputsChanged || anyModuleWatchesChanged
         }
 
         def snapshotFrames(): (Option[RunnerState.Frame], Option[RunnerState.Frame]) = {
@@ -450,7 +456,8 @@ class MillBuildBootstrap(
   def processFinalTasks(
       nestedState: RunnerState,
       buildFileApi: BuildFileApi,
-      evaluator0: EvaluatorApi
+      evaluator0: EvaluatorApi,
+      depth: Int
   ): RunnerState = {
     assert(nestedState.frames.forall(_.evaluator.isDefined))
 
@@ -477,13 +484,16 @@ class MillBuildBootstrap(
       spanningInvalidationTree = None
     )
 
-    nestedState.add(
+    val nextState = nestedState.add(
       frame = evalState,
       errorOpt = evaled match {
         case f: Result.Failure => Some(mill.internal.Util.formatError(f, logger.prompt.errorColor))
         case _ => None
       }
     )
+
+    publishReusableState(depth, nextState.frames)
+    nextState
   }
 
 }

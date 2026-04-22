@@ -108,14 +108,15 @@ object RunnerState {
   ) extends AutoCloseable {
 
     def loggedData: Frame.Logged = {
+      def loggedPaths(watched: Seq[Watchable]) =
+        watched.collect { case Watchable.Path(p, _, _) =>
+          os.Path(p)
+        }.distinct
+
       Frame.Logged(
         workerCacheSummary,
-        evalWatched.collect { case Watchable.Path(p, _, _) =>
-          os.Path(p)
-        },
-        moduleWatched.collect { case Watchable.Path(p, _, _) =>
-          os.Path(p)
-        },
+        loggedPaths(evalWatched),
+        loggedPaths(moduleWatched),
         classLoaderOpt.map(_.identity),
         runClasspath.map(p => os.Path(p.javaPath) -> p.sig),
         runClasspath.hashCode()

@@ -46,23 +46,7 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
       )
       assertGoldenLiteral(
         os.read.lines(tester.workspacePath / "out/mill-invalidation-tree.json"),
-        Seq(
-          "{",
-          "  \"def build_.package_#foo$$anonfun$1$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result\": {",
-          "    \"call build_.package_!foo$$anonfun$1$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result\": {",
-          "      \"def build_.package_#foo$$anonfun$1()mill.api.Task$Simple\": {",
-          "        \"call build_.package_!foo$$anonfun$1()mill.api.Task$Simple\": {",
-          "          \"def build_.package_#foo()mill.api.Task$Simple\": {",
-          "            \"foo\": {",
-          "              \"outer.inner.qux\": {}",
-          "            }",
-          "          }",
-          "        }",
-          "      }",
-          "    }",
-          "  }",
-          "}"
-        )
+        Seq("{", "  \"foo\": {", "    \"outer.inner.qux\": {}", "  }", "}")
       )
 
       modifyFile(workspacePath / "build.mill", _.replace("; helperFoo }", "; helperFoo + 4 }"))
@@ -78,23 +62,7 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
       )
       assertGoldenLiteral(
         os.read.lines(tester.workspacePath / "out/mill-invalidation-tree.json"),
-        Seq(
-          "{",
-          "  \"def build_.package_#foo$$anonfun$1$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result\": {",
-          "    \"call build_.package_!foo$$anonfun$1$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result\": {",
-          "      \"def build_.package_#foo$$anonfun$1()mill.api.Task$Simple\": {",
-          "        \"call build_.package_!foo$$anonfun$1()mill.api.Task$Simple\": {",
-          "          \"def build_.package_#foo()mill.api.Task$Simple\": {",
-          "            \"foo\": {",
-          "              \"outer.inner.qux\": {}",
-          "            }",
-          "          }",
-          "        }",
-          "      }",
-          "    }",
-          "  }",
-          "}"
-        )
+        Seq("{", "  \"foo\": {", "    \"outer.inner.qux\": {}", "  }", "}")
       )
 
       modifyFile(workspacePath / "build.mill", _.replace("running qux", "running qux2"))
@@ -106,29 +74,7 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
       )
       assertGoldenLiteral(
         os.read.lines(tester.workspacePath / "out/mill-invalidation-tree.json"),
-        Seq(
-          "{",
-          "  \"def build_.package_$outer$InnerModule#qux$$anonfun$1$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result\": {",
-          "    \"call build_.package_$outer$InnerModule!qux$$anonfun$1$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result\": {",
-          "      \"def build_.package_$outer$InnerModule#qux$$anonfun$1()mill.api.Task$Simple\": {",
-          "        \"call build_.package_$outer$InnerModule!qux$$anonfun$1()mill.api.Task$Simple\": {",
-          "          \"def build_.package_$outer$InnerModule#qux()mill.api.Task$Simple\": {",
-          "            \"call build_.package_$outer$InnerModule!qux()mill.api.Task$Simple\": {",
-          "              \"def build_.package_$outer$InnerModule.qux$(build_.package_$outer$InnerModule)mill.api.Task$Simple\": {",
-          "                \"call build_.package_$outer$InnerModule.qux$(build_.package_$outer$InnerModule)mill.api.Task$Simple\": {",
-          "                  \"def build_.package_$outer$inner$#qux()mill.api.Task$Simple\": {",
-          "                    \"outer.inner.qux\": {}",
-          "                  }",
-          "                }",
-          "              }",
-          "            }",
-          "          }",
-          "        }",
-          "      }",
-          "    }",
-          "  }",
-          "}"
-        )
+        Seq("{", "  \"outer.inner.qux\": {}", "}")
       )
 
       // Changing the body of some helper method that gets called by a Task{...}
@@ -147,27 +93,7 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
       )
       assertGoldenLiteral(
         os.read.lines(tester.workspacePath / "out/mill-invalidation-tree.json"),
-        Seq(
-          "{",
-          "  \"def build_.package_#helperFoo()int\": {",
-          "    \"call build_.package_#helperFoo()int\": {",
-          "      \"def build_.package_#foo$$anonfun$1$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result\": {",
-          "        \"call build_.package_!foo$$anonfun$1$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result\": {",
-          "          \"def build_.package_#foo$$anonfun$1()mill.api.Task$Simple\": {",
-          "            \"call build_.package_!foo$$anonfun$1()mill.api.Task$Simple\": {",
-          "              \"def build_.package_#foo()mill.api.Task$Simple\": {",
-          "                \"foo\": {",
-          "                  \"outer.inner.qux\": {}",
-          "                }",
-          "              }",
-          "            }",
-          "          }",
-          "        }",
-          "      }",
-          "    }",
-          "  }",
-          "}"
-        )
+        Seq("{", "  \"foo\": {", "    \"outer.inner.qux\": {}", "  }", "}")
       )
 
       modifyFile(workspacePath / "build.mill", _.replace("running helperBar", "running helperBar2"))
@@ -181,27 +107,7 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
       )
       assertGoldenLiteral(
         os.read.lines(tester.workspacePath / "out/mill-invalidation-tree.json"),
-        Seq(
-          "{",
-          "  \"def build_.package_$outer$#helperBar()int\": {",
-          "    \"call build_.package_$outer$#helperBar()int\": {",
-          "      \"def build_.package_$outer$#bar$$anonfun$1$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result\": {",
-          "        \"call build_.package_$outer$!bar$$anonfun$1$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result\": {",
-          "          \"def build_.package_$outer$#bar$$anonfun$1()mill.api.Task$Simple\": {",
-          "            \"call build_.package_$outer$!bar$$anonfun$1()mill.api.Task$Simple\": {",
-          "              \"def build_.package_$outer$#bar()mill.api.Task$Simple\": {",
-          "                \"outer.bar\": {",
-          "                  \"outer.inner.qux\": {}",
-          "                }",
-          "              }",
-          "            }",
-          "          }",
-          "        }",
-          "      }",
-          "    }",
-          "  }",
-          "}"
-        )
+        Seq("{", "  \"outer.bar\": {", "    \"outer.inner.qux\": {}", "  }", "}")
       )
 
       modifyFile(workspacePath / "build.mill", _.replace("20", "70"))
@@ -217,27 +123,7 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
       )
       assertGoldenLiteral(
         os.read.lines(tester.workspacePath / "out/mill-invalidation-tree.json"),
-        Seq(
-          "{",
-          "  \"def build_.package_$outer$#helperBar()int\": {",
-          "    \"call build_.package_$outer$#helperBar()int\": {",
-          "      \"def build_.package_$outer$#bar$$anonfun$1$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result\": {",
-          "        \"call build_.package_$outer$!bar$$anonfun$1$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result\": {",
-          "          \"def build_.package_$outer$#bar$$anonfun$1()mill.api.Task$Simple\": {",
-          "            \"call build_.package_$outer$!bar$$anonfun$1()mill.api.Task$Simple\": {",
-          "              \"def build_.package_$outer$#bar()mill.api.Task$Simple\": {",
-          "                \"outer.bar\": {",
-          "                  \"outer.inner.qux\": {}",
-          "                }",
-          "              }",
-          "            }",
-          "          }",
-          "        }",
-          "      }",
-          "    }",
-          "  }",
-          "}"
-        )
+        Seq("{", "  \"outer.bar\": {", "    \"outer.inner.qux\": {}", "  }", "}")
       )
 
       modifyFile(workspacePath / "build.mill", _.replace("running helperQux", "running helperQux2"))
@@ -249,33 +135,7 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
       )
       assertGoldenLiteral(
         os.read.lines(tester.workspacePath / "out/mill-invalidation-tree.json"),
-        Seq(
-          "{",
-          "  \"def build_.package_$outer$InnerModule#helperQux()int\": {",
-          "    \"call build_.package_$outer$InnerModule#helperQux()int\": {",
-          "      \"def build_.package_$outer$InnerModule#qux$$anonfun$1$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result\": {",
-          "        \"call build_.package_$outer$InnerModule!qux$$anonfun$1$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result\": {",
-          "          \"def build_.package_$outer$InnerModule#qux$$anonfun$1()mill.api.Task$Simple\": {",
-          "            \"call build_.package_$outer$InnerModule!qux$$anonfun$1()mill.api.Task$Simple\": {",
-          "              \"def build_.package_$outer$InnerModule#qux()mill.api.Task$Simple\": {",
-          "                \"call build_.package_$outer$InnerModule!qux()mill.api.Task$Simple\": {",
-          "                  \"def build_.package_$outer$InnerModule.qux$(build_.package_$outer$InnerModule)mill.api.Task$Simple\": {",
-          "                    \"call build_.package_$outer$InnerModule.qux$(build_.package_$outer$InnerModule)mill.api.Task$Simple\": {",
-          "                      \"def build_.package_$outer$inner$#qux()mill.api.Task$Simple\": {",
-          "                        \"outer.inner.qux\": {}",
-          "                      }",
-          "                    }",
-          "                  }",
-          "                }",
-          "              }",
-          "            }",
-          "          }",
-          "        }",
-          "      }",
-          "    }",
-          "  }",
-          "}"
-        )
+        Seq("{", "  \"outer.inner.qux\": {}", "}")
       )
 
       // Make sure changing `val`s in varying levels of nested modules conservatively invalidates
@@ -294,20 +154,7 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
       )
       assertGoldenLiteral(
         os.read.lines(tester.workspacePath / "out/mill-invalidation-tree.json"),
-        Seq(
-          "{",
-          "  \"def build_.package_#<init>()void\": {",
-          "    \"call build_.package_!<init>()void\": {",
-          "      \"def build_.package_$#<init>()void\": {",
-          "        \"foo\": {",
-          "          \"outer.inner.qux\": {}",
-          "        },",
-          "        \"outer.bar\": {}",
-          "      }",
-          "    }",
-          "  }",
-          "}"
-        )
+        Seq("{", "  \"foo\": {", "    \"outer.inner.qux\": {}", "  },", "  \"outer.bar\": {}", "}")
       )
 
       modifyFile(workspacePath / "build.mill", _.replace("val valueBar = 0", "val valueBar = 10"))
@@ -322,15 +169,7 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
       )
       assertGoldenLiteral(
         os.read.lines(tester.workspacePath / "out/mill-invalidation-tree.json"),
-        Seq(
-          "{",
-          "  \"def build_.package_$outer$#<init>(build_.package_)void\": {",
-          "    \"outer.bar\": {",
-          "      \"outer.inner.qux\": {}",
-          "    }",
-          "  }",
-          "}"
-        )
+        Seq("{", "  \"outer.bar\": {", "    \"outer.inner.qux\": {}", "  }", "}")
       )
 
       modifyFile(workspacePath / "build.mill", _.replace("val valueQux = 0", "val valueQux = 10"))
@@ -343,17 +182,7 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
       )
       assertGoldenLiteral(
         os.read.lines(tester.workspacePath / "out/mill-invalidation-tree.json"),
-        Seq(
-          "{",
-          "  \"def build_.package_$outer$InnerModule.$init$(build_.package_$outer$InnerModule)void\": {",
-          "    \"call build_.package_$outer$InnerModule.$init$(build_.package_$outer$InnerModule)void\": {",
-          "      \"def build_.package_$outer$inner$#<init>(build_.package_$outer$)void\": {",
-          "        \"outer.inner.qux\": {}",
-          "      }",
-          "    }",
-          "  }",
-          "}"
-        )
+        Seq("{", "  \"outer.inner.qux\": {}", "}")
       )
 
       modifyFile(
@@ -373,20 +202,7 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
       )
       assertGoldenLiteral(
         os.read.lines(tester.workspacePath / "out/mill-invalidation-tree.json"),
-        Seq(
-          "{",
-          "  \"def build_.package_#<init>()void\": {",
-          "    \"call build_.package_!<init>()void\": {",
-          "      \"def build_.package_$#<init>()void\": {",
-          "        \"foo\": {",
-          "          \"outer.inner.qux\": {}",
-          "        },",
-          "        \"outer.bar\": {}",
-          "      }",
-          "    }",
-          "  }",
-          "}"
-        )
+        Seq("{", "  \"foo\": {", "    \"outer.inner.qux\": {}", "  },", "  \"outer.bar\": {}", "}")
       )
 
       modifyFile(
@@ -404,15 +220,7 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
       )
       assertGoldenLiteral(
         os.read.lines(tester.workspacePath / "out/mill-invalidation-tree.json"),
-        Seq(
-          "{",
-          "  \"def build_.package_$outer$#<init>(build_.package_)void\": {",
-          "    \"outer.bar\": {",
-          "      \"outer.inner.qux\": {}",
-          "    }",
-          "  }",
-          "}"
-        )
+        Seq("{", "  \"outer.bar\": {", "    \"outer.inner.qux\": {}", "  }", "}")
       )
 
       // Adding a newline before one of the task definitions does not invalidate it

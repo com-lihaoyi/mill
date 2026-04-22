@@ -50,13 +50,7 @@ object CodeSigNestedTraitTests extends UtestIntegrationTestSuite {
       )
       assertGoldenLiteral(
         os.read.lines(tester.workspacePath / "out/mill-invalidation-tree.json"),
-        Seq(
-          "{",
-          "  \"def build_.package_$TraitOuter$traitInner$#<init>(build_.package_$TraitOuter)void\": {",
-          "    \"traitOuter.traitInner.inner\": {}",
-          "  }",
-          "}"
-        )
+        Seq("{", "  \"traitOuter.traitInner.inner\": {}", "}")
       )
 
       modifyFile(
@@ -74,19 +68,7 @@ object CodeSigNestedTraitTests extends UtestIntegrationTestSuite {
       )
       assertGoldenLiteral(
         os.read.lines(tester.workspacePath / "out/mill-invalidation-tree.json"),
-        Seq(
-          "{",
-          "  \"def build_.package_$TraitOuter.$init$(build_.package_$TraitOuter)void\": {",
-          "    \"call build_.package_$TraitOuter.$init$(build_.package_$TraitOuter)void\": {",
-          "      \"def build_.package_$traitOuter$#<init>(build_.package_)void\": {",
-          "        \"traitOuter.outer\": {",
-          "          \"traitOuter.traitInner.inner\": {}",
-          "        }",
-          "      }",
-          "    }",
-          "  }",
-          "}"
-        )
+        Seq("{", "  \"traitOuter.outer\": {", "    \"traitOuter.traitInner.inner\": {}", "  }", "}")
       )
     }
   }
