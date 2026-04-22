@@ -143,7 +143,8 @@ class MillBuildBootstrap(
               )
 
           shouldShortCircuit match {
-            case Result.Success(true) => processFinalTasks(nestedState, buildFileApi, evaluator, depth)
+            case Result.Success(true) =>
+              processFinalTasks(nestedState, buildFileApi, evaluator, depth)
 
             // For both Success(false) and Failure, proceed with normal evaluation.
             // If areAllNonBootstrapped failed (e.g., task doesn't exist), the actual
