@@ -686,6 +686,66 @@ trait AndroidModule extends JavaModule { outer =>
   def androidNamespace: String
 
   /**
+   * If true, desugaring will be enabled during dexing.
+   * Defaults to false.
+   */
+  def enableDesugaring: T[Boolean] = Task {
+    false
+  }
+
+  /**
+   * The desugar_jdk_libs dependency to use for desugaring.
+   */
+  def desugaringLibrary: T[Option[Dep]] = Task {
+    None
+  }
+
+  def resolvedDesugarJdkLibs: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(desugaringLibrary().toSeq)
+  }
+
+  def desugarJdkClasspath: T[Seq[PathRef]] = Task {
+    resolvedDesugarJdkLibs().filterNot(p => p.path.toString().contains("configuration"))
+  }
+
+  /**
+   * Extracts desugar.json from desugar_jdk_libs configuration jar
+   */
+  def desugarJdkConfig: T[Option[PathRef]] = Task {
+    if (desugaringLibrary().isDefined) {
+      val configurationJar =
+        resolvedDesugarJdkLibs().find(p => p.path.toString().contains("configuration")).get.path
+      val extractDir = Task.dest / "desugar-config"
+      os.unzip(configurationJar, extractDir)
+      val config = os.walk(extractDir).find(_.last == "desugar.json").get
+      Some(PathRef(config))
+    } else {
+      None
+    }
+  }
+
+  def androidDexDesugaringArgs: T[Seq[String]] = Task {
+    if (enableDesugaring()) {
+      if (desugaringLibrary().isEmpty) {
+        throw new Exception(
+          s"Desugaring is enabled, but no desugaring library is provided. Please provide one via desugaringLibrary."
+        )
+      }
+      desugarJdkClasspath().flatMap { desugarDep =>
+        Seq(
+          "--lib",
+          desugarDep.path.toString
+        )
+      } ++ Seq(
+        "--desugared-lib",
+        desugarJdkConfig().get.path.toString
+      )
+    } else {
+      Seq.empty
+    }
+  }
+
+  /**
    * If true, a BuildConfig.java file will be generated.
    * Defaults to true.
    *

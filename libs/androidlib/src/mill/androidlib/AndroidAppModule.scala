@@ -1007,7 +1007,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       androidMinSdk().toString,
       "--main-dex-rules",
       proguardFile.toString()
-    ) :+ s"@$filenamesFile"
+    ) ++ androidDexDesugaringArgs() :+ s"@$filenamesFile"
 
     Task.log.info(s"Running d8 with the command: ${d8Args.mkString(" ")}")
 

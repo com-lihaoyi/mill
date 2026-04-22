@@ -45,6 +45,8 @@ object app extends AndroidR8AppModule { // <2>
   override def androidVirtualDevice = super.androidVirtualDevice().withName("java-r8-test")
   override def androidEmulatorPort: String = System.getenv.getOrDefault("EMULATOR_PORT", "5554")
   override def androidIsDebug: T[Boolean] = Task { false }
+  override def enableDesugaring = Task { true }
+  override def desugaringLibrary = Task { Some(mvn"com.android.tools:desugar_jdk_libs:2.1.4") }
 
   def androidProjectProguardFiles = Task.Sources(
     "proguard-rules.pro"
@@ -64,8 +66,10 @@ object app extends AndroidR8AppModule { // <2>
     }
 
     override def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
-      AndroidBuildTypeSettings(isMinifyEnabled = false)
+      AndroidBuildTypeSettings(isMinifyEnabled = false, enableDesugaring = true)
     }
+
+    override def desugaringLibrary = app.desugaringLibrary()
 
     override def androidProjectProguardFiles = Task.Sources(
       "test-proguard-rules.pro"
@@ -85,6 +89,14 @@ object app extends AndroidR8AppModule { // <2>
 // <2> The actual Android application
 
 /** Usage
+
+ > ./mill show app.androidDexDesugaringArgs
+[
+  "--lib",
+  ...,
+  "--desugared-lib",
+  ...
+]
 
 > ./mill show app.androidApk
 
