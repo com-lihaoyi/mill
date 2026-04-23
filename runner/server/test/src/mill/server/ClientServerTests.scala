@@ -37,7 +37,7 @@ trait ClientServerTestsBase extends TestSuite {
       locks: Locks,
       testLogEvenWhenServerIdWrong: Boolean,
       commandSleepMillis: Int = 0
-  ) extends MillDaemonServer[Option[Int]](
+  ) extends MillDaemonServer(
         daemonDir,
         1000.millis,
         locks,
@@ -47,8 +47,6 @@ trait ClientServerTestsBase extends TestSuite {
     override def outLock = mill.client.lock.Lock.memory()
 
     override def outFolder = os.temp.dir()
-
-    def initialStateCache = None
 
     override def serverLog0(s: String) = {
       println(s)
@@ -63,7 +61,6 @@ trait ClientServerTestsBase extends TestSuite {
     }
     def main0(
         args: Array[String],
-        stateCache: Option[Int],
         mainInteractive: Boolean,
         streams: SystemStreams,
         env: Map[String, String],

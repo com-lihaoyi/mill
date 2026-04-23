@@ -50,12 +50,12 @@ object MillNoDaemonMain0 {
           .defaultRunSubprocessWithStreams(None)(DaemonRpc.ServerToClient.RunSubprocess(config))
           .exitCode
 
-    val (result, _) =
+    val result =
       try MillMain0.main0(
           args = args.rest.toArray,
-          stateCache = RunnerState.ReusableSnapshot.empty,
-          snapshotPublishedState = () => RunnerState.ReusableSnapshot.empty,
-          publishReusableState = (_, _) => (),
+          // Each --no-daemon invocation runs in its own process, so a freshly-empty
+          // store is fine; state is naturally thrown away on exit.
+          sharedFrames = new RunnerState.SharedFrames(),
           mainInteractive = mill.constants.Util.hasConsole(),
           streams0 = initialSystemStreams,
           env = System.getenv().asScala.toMap,
@@ -69,7 +69,7 @@ object MillNoDaemonMain0 {
           serverToClientOpt = None,
           millRepositories = Seq.empty
         )
-      catch handleMillException(initialSystemStreams.err, ())
+      catch handleMillException(initialSystemStreams.err)
 
     System.exit(if (result) 0 else 1)
   }

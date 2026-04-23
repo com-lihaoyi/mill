@@ -14,7 +14,7 @@ import java.net.Socket
 import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.duration.FiniteDuration
 
-abstract class MillDaemonServer[State](
+abstract class MillDaemonServer(
     daemonDir: os.Path,
     acceptTimeout: FiniteDuration,
     locks: Locks,
@@ -29,13 +29,6 @@ abstract class MillDaemonServer[State](
 
   def outLock: mill.client.lock.Lock
   def outFolder: os.Path
-
-  private val stateCache = new AtomicReference[State](initialStateCache)
-
-  protected def snapshotStateCache(): State = stateCache.get()
-  protected def modifyStateCache(f: State => State): Unit = stateCache.updateAndGet(f(_))
-
-  def initialStateCache: State
 
   private val lastConfig = new AtomicReference[Option[DaemonConfig]](None)
 
@@ -130,13 +123,8 @@ abstract class MillDaemonServer[State](
         // This allows the watch mode to detect Enter key presses.
         val rpcStdin = new MillDaemonServer.RpcStdinInputStream(serverToClient)
 
-        // Run the actual command. State updates are applied incrementally via
-        // modifyStateCache during execution, so a whole-cache publish here would
-        // race with concurrent commands and clobber their updates.
-        val currentStateCache = snapshotStateCache()
         val result = main0(
           args = init.args.toArray,
-          stateCache = currentStateCache,
           mainInteractive = init.interactive,
           streams = new SystemStreams(stdout, stderr, rpcStdin),
           env = init.env.updated("MILL_LAUNCHER_PID", init.clientPid.toString),
@@ -214,7 +202,6 @@ abstract class MillDaemonServer[State](
 
   def main0(
       args: Array[String],
-      stateCache: State,
       mainInteractive: Boolean,
       streams: SystemStreams,
       env: Map[String, String],

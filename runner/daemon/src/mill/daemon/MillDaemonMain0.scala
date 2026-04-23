@@ -74,13 +74,7 @@ class MillDaemonMain0(
     acceptTimeout: FiniteDuration,
     locks: Locks,
     outMode: OutFolderMode
-) extends mill.server.MillDaemonServer[RunnerState.ReusableSnapshot](
-      daemonDir,
-      acceptTimeout,
-      locks
-    ) {
-
-  def initialStateCache = RunnerState.ReusableSnapshot.empty
+) extends mill.server.MillDaemonServer(daemonDir, acceptTimeout, locks) {
 
   val outFolder: os.Path = os.Path(OutFiles.outFor(outMode), BuildCtx.workspaceRoot)
 
@@ -91,6 +85,11 @@ class MillDaemonMain0(
   // allowing intra-daemon concurrency (file locks are per-process in Java).
   @scala.annotation.nowarn("msg=unused private member")
   private val outFileLockLease = outFileLock.lock()
+
+  // Shared meta-build frames across concurrent launchers served by this daemon.
+  // Lives for the whole daemon lifetime; per-depth writes are sequenced by the
+  // meta-build write lock in [[mill.api.daemon.WorkspaceLocking]].
+  private val sharedFrames = new RunnerState.SharedFrames()
 
   def main0(
       args: Array[String],
@@ -111,9 +110,7 @@ class MillDaemonMain0(
 
     try MillMain0.main0(
         args = args,
-        snapshotPublishedState = () => snapshotStateCache(),
-        publishReusableState = (depth, frames) =>
-          modifyStateCache(_.updated(depth, frames)),
+        sharedFrames = sharedFrames,
         mainInteractive = mainInteractive,
         streams0 = streams,
         env = env,

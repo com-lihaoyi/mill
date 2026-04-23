@@ -103,8 +103,7 @@ object MillMain0 {
 
   def main0(
       args: Array[String],
-      snapshotPublishedState: () => RunnerState.ReusableSnapshot,
-      publishReusableState: (Int, Seq[RunnerState.Frame]) => Unit,
+      sharedFrames: RunnerState.SharedFrames,
       mainInteractive: Boolean,
       streams0: SystemStreams,
       env: Map[String, String],
@@ -224,19 +223,16 @@ object MillMain0 {
                   )(false))
                   .getOrElse(true)
 
-                val (success, nextStateCache) = {
+                val success: Boolean = {
                   if (bspInstallModeJobCountOpt.isDefined) {
                     BSP.install(bspInstallModeJobCountOpt.get, config.debugLog.value, streams.err)
-                    (true, stateCache)
+                    true
                   } else if (!bspMode && config.leftoverArgs.value.isEmpty) {
                     println(MillCliConfig.shortUsageText)
-
-                    (true, stateCache)
-
+                    true
                   } else if (maybeThreadCount.errorOpt.isDefined) {
                     streams.err.println(maybeThreadCount.errorOpt.get)
-                    (false, stateCache)
-
+                    false
                   } else {
                     val userSpecifiedProperties =
                       userSpecifiedProperties0 ++ config.extraSystemProperties
@@ -307,10 +303,9 @@ object MillMain0 {
                                     offline = config.offline.value,
                                     useFileLocks = config.useFileLocks.value,
                                     workspaceLockManager = manager,
+                                    sharedFrames = sharedFrames,
                                     reporter = reporter,
-                                    enableTicker = enableTicker,
-                                    snapshotPublishedState = snapshotPublishedState,
-                                    publishReusableState = publishReusableState
+                                    enableTicker = enableTicker
                                   ).evaluate()
                                 }
                               }
@@ -429,7 +424,7 @@ object MillMain0 {
                           prevRunnerStateOpt = Some(watchRes)
 
                           val sessionResultFuture = bspServerHandle.startSession(
-                            evaluators = watchRes.frames.flatMap(_.evaluator),
+                            evaluators = watchRes.allEvaluators,
                             errored = watchRes.errorOpt.nonEmpty,
                             watched = watchRes.watched
                           )
@@ -513,7 +508,7 @@ object MillMain0 {
                             "BSP:initialize"
                           )
                         IdeWorkerSupport.runIdeaGeneration(
-                          runnerState.frames.flatMap(_.evaluator)
+                          runnerState.allEvaluators
                         )
                         runnerState.close()
                         true
@@ -530,7 +525,7 @@ object MillMain0 {
                             streams,
                             "BSP:initialize"
                           )
-                        new mill.eclipse.GenEclipseImpl(runnerState.frames.flatMap(_.evaluator))
+                        new mill.eclipse.GenEclipseImpl(runnerState.allEvaluators)
                           .run()
                         runnerState.close()
                         true
@@ -570,7 +565,7 @@ object MillMain0 {
                     println("\u0007")
                   }
                 }
-                (success, nextStateCache)
+                success
 
             }
           }
