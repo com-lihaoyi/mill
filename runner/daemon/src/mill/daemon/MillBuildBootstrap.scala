@@ -39,16 +39,25 @@ import scala.collection.mutable.Buffer
  *
  * When Mill is run in client-server mode, or with `--watch`, then reusable
  * meta-build data is shared across concurrent launchers via the per-daemon
- * [[sharedState]] (which is itself a [[RunnerState]] holding only the
- * "stripped" shared parts of each meta-build frame), and per-launcher state
- * is kept in [[prevCommandState]] so a subsequent watch iteration can pick up
- * fallback classloaders to close on refresh.
+ * [[sharedState]] (a [[RunnerState]] whose meta-build frames have per-launcher
+ * overlays — [[RunnerState.MetaBuildFrame.evaluator]] and
+ * [[RunnerState.MetaBuildFrame.metaBuildReadLease]] — left empty). Per-launcher
+ * state is kept in [[prevCommandState]] so a subsequent watch iteration can pick
+ * up fallback classloaders to close on refresh.
  *
- * When a subsequent evaluation happens, each level of [[evaluateRec]] reads
- * the current published meta-build frame under the per-depth read lock and,
- * if reusable, wraps it in a [[RunnerState.MetaBuildFrame]] alongside this
+ * When a subsequent evaluation happens, each level of [[evaluateRec]] reads the
+ * current published meta-build frame under the per-depth read lock and, if
+ * reusable, wraps it in a [[RunnerState.MetaBuildFrame]] alongside this
  * launcher's own lease/evaluator. If not reusable, the launcher takes the
  * write lock, refreshes, and publishes a new frame to [[sharedState]].
+ *
+ * Known limitation: [[processRunClasspath]]'s call to `evaluateWithWatches`
+ * runs outside the meta-build write lock — task-level locks protect the
+ * individual writes, but the window between the retained-task-read drain and
+ * classloader creation is unprotected. A concurrent launcher with different
+ * inputs for the same meta-build task could theoretically overwrite class
+ * files in this window. Rare in practice (requires different inputs for the
+ * same source in the same workspace).
  */
 class MillBuildBootstrap(
     topLevelProjectRoot: os.Path,
@@ -332,12 +341,12 @@ class MillBuildBootstrap(
         // The outer frame's moduleWatched tracks files watched by tasks running at depth-1
         // under this classloader; consulting it signals whether anything watched changed
         // since the previous run, which in turn is a reason to re-create the classloader.
-        // For the shallowest meta-build (depth=1), the outer level is the final depth and
-        // we consult prevCommandState because the final frame is per-launcher and not
-        // published into the daemon-wide shared state.
+        // Prefer the shared state first: it reflects the provenance of the currently
+        // published classloader we're about to reuse. Fall back to prevCommandState on
+        // the first daemon command, before anything has published at this depth.
         def outerModuleWatched: Seq[Watchable] =
-          prevCommandState.moduleWatchedAt(depth - 1)
-            .orElse(sharedState.get().moduleWatchedAt(depth - 1))
+          sharedState.get().moduleWatchedAt(depth - 1)
+            .orElse(prevCommandState.moduleWatchedAt(depth - 1))
             .getOrElse(Nil)
 
         def needsClassloaderRefresh(at: Option[RunnerState.MetaBuildFrame]): Boolean = {
@@ -441,7 +450,7 @@ class MillBuildBootstrap(
     val withFinal = nestedState.withFinalFrame(
       RunnerState.FinalFrame(depth, evaluator, evalWatched, moduleWatched)
     )
-    sharedState.updateAndGet(_.withModuleWatched(depth, moduleWatched))
+    sharedState.getAndUpdate(_.withModuleWatched(depth, moduleWatched))
     evaled match {
       case f: Result.Failure =>
         withFinal.withError(mill.internal.Util.formatError(f, logger.prompt.errorColor))
