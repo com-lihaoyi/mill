@@ -17,40 +17,21 @@ trait WatchTests extends UtestIntegrationTestSuite {
 
   val maxDurationMillis: Int = if (sys.env.contains("CI")) 120000 else 15000
 
-  def watchUnavailable(spawned: IntegrationTester.SpawnedProcess): Boolean = {
-    val output = spawned.out.text() + spawned.err.text()
-    output.contains("FSEventStreamStart returned false") ||
-    output.contains("can't set up watch, no file system changes detected")
-  }
-
-  def stopIfWatchUnavailable(spawned: IntegrationTester.SpawnedProcess): Boolean =
-    if (watchUnavailable(spawned)) {
-      spawned.process.destroy(recursive = false)
-      spawned.process.waitFor()
-      true
-    } else false
-
-  def awaitCompletionMarker(
-      tester: IntegrationTester,
-      name: String,
-      spawned: IntegrationTester.SpawnedProcess
-  ): Boolean = {
+  def awaitCompletionMarker(tester: IntegrationTester, name: String): Unit = {
     val maxTime = System.currentTimeMillis() + maxDurationMillis
     while (!os.exists(tester.workspacePath / "out" / name)) {
-      if (stopIfWatchUnavailable(spawned)) return false
       if (System.currentTimeMillis() > maxTime) {
         sys.error(s"awaitCompletionMarker($name) timed out")
       }
       Thread.sleep(100)
     }
-    true
   }
 
   def testBase(
       spawned: IntegrationTester.SpawnedProcess
   )(f: IntegrationTester.SpawnedProcess => Unit): Unit = {
     f(spawned)
-    if (spawned.process.isAlive()) spawned.process.waitFor()
+    spawned.process.waitFor()
   }
 
   def assertLines(
@@ -114,8 +95,8 @@ object WatchSourceTests extends WatchTests {
       val spawned = spawn(("--watch", showArgs, "qux"))
 
       testBase(spawned) { spawned =>
-        if (!awaitCompletionMarker(tester, "initialized0", spawned)) return
-        if (!awaitCompletionMarker(tester, "quxRan0", spawned)) return
+        awaitCompletionMarker(tester, "initialized0")
+        awaitCompletionMarker(tester, "quxRan0")
         assertLines(
           spawned,
           show,
@@ -130,7 +111,7 @@ object WatchSourceTests extends WatchTests {
         )
 
         os.write.over(workspacePath / "foo1.txt", "edited-foo1")
-        if (!awaitCompletionMarker(tester, "quxRan1", spawned)) return
+        awaitCompletionMarker(tester, "quxRan1")
         assertLines(
           spawned,
           show,
@@ -145,7 +126,7 @@ object WatchSourceTests extends WatchTests {
         )
 
         os.write.over(workspacePath / "foo2.txt", "edited-foo2")
-        if (!awaitCompletionMarker(tester, "quxRan2", spawned)) return
+        awaitCompletionMarker(tester, "quxRan2")
         assertLines(
           spawned,
           show,
@@ -160,7 +141,7 @@ object WatchSourceTests extends WatchTests {
         )
 
         os.write.over(workspacePath / "bar.txt", "edited-bar")
-        if (!awaitCompletionMarker(tester, "quxRan3", spawned)) return
+        awaitCompletionMarker(tester, "quxRan3")
         assertLines(
           spawned,
           show,
@@ -175,7 +156,7 @@ object WatchSourceTests extends WatchTests {
         )
 
         os.write.append(workspacePath / "build.mill", "\ndef unrelated = true")
-        if (!awaitCompletionMarker(tester, "initialized1", spawned)) return
+        awaitCompletionMarker(tester, "initialized1")
         assertLines(
           spawned,
           show,
@@ -185,7 +166,7 @@ object WatchSourceTests extends WatchTests {
         )
 
         os.write.over(workspacePath / "watchValue.txt", "exit")
-        if (!awaitCompletionMarker(tester, "initialized2", spawned)) return
+        awaitCompletionMarker(tester, "initialized2")
         assertLines(
           spawned,
           show,
@@ -217,14 +198,14 @@ object WatchSourceTests extends WatchTests {
 object WatchInputTests extends WatchTests {
   val tests: Tests = Tests {
 
-    def testWatchInput(tester: IntegrationTester, show: Boolean): Unit = {
+    def testWatchInput(tester: IntegrationTester, show: Boolean) = {
       val showArgs = if (show) Seq("show") else Nil
       import tester.*
       val spawned = spawn(("--watch", showArgs, "lol"))
 
       testBase(spawned) { spawned =>
-        if (!awaitCompletionMarker(tester, "initialized0", spawned)) return
-        if (!awaitCompletionMarker(tester, "lolRan0", spawned)) return
+        awaitCompletionMarker(tester, "initialized0")
+        awaitCompletionMarker(tester, "lolRan0")
         assertLines(
           spawned,
           show,
@@ -234,7 +215,7 @@ object WatchInputTests extends WatchTests {
         )
 
         os.write.over(workspacePath / "baz.txt", "edited-baz")
-        if (!awaitCompletionMarker(tester, "lolRan1", spawned)) return
+        awaitCompletionMarker(tester, "lolRan1")
         assertLines(
           spawned,
           show,
@@ -244,7 +225,7 @@ object WatchInputTests extends WatchTests {
         )
 
         os.write.over(workspacePath / "watchValue.txt", "edited-watchValue")
-        if (!awaitCompletionMarker(tester, "initialized1", spawned)) return
+        awaitCompletionMarker(tester, "initialized1")
         assertLines(
           spawned,
           show,
@@ -254,7 +235,7 @@ object WatchInputTests extends WatchTests {
         )
 
         os.write.over(workspacePath / "watchValue.txt", "exit")
-        if (!awaitCompletionMarker(tester, "initialized2", spawned)) return
+        awaitCompletionMarker(tester, "initialized2")
         assertLines(
           spawned,
           show,
