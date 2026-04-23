@@ -161,17 +161,11 @@ object WorkspaceLocking {
               .sortBy(_.last)
 
             val removable = runDirs.filterNot(protectedRunDirs)
-            val toRemove =
-              removable.take(math.min(removable.size, math.max(0, runDirs.size - maxRetainedRuns)))
-            toRemove.foreach { dir =>
+            val toRemove = removable.take(runDirs.size - maxRetainedRuns)
+            (toRemove ++ legacyRunDirs).foreach(dir =>
               try os.remove.all(dir)
               catch { case _: Throwable => }
-            }
-
-            legacyRunDirs.foreach { dir =>
-              try os.remove.all(dir)
-              catch { case _: Throwable => }
-            }
+            )
 
             runs.retain((_, run) => os.exists(run.runDir))
           }
@@ -511,25 +505,22 @@ object WorkspaceLocking {
         case LockKind.Read => 1
         case LockKind.Write => maxPermits
       }
-      def waitMessage(action: String): Unit = {
+      def blockerDescription: String = {
         val blocker = blockingOwner(resource)
         val command = blocker.map(_.command).getOrElse("<unknown>")
         val pid = blocker.map(_.pid.toString).getOrElse("<unknown>")
-        waitingErr.println(
-          s"Another Mill command in the current daemon is running '$command' with PID $pid, $action " +
-            s"(tail -F out/${DaemonFiles.millConsoleTail} to see its progress)"
-        )
+        s"Another Mill command in the current daemon is running '$command' with PID $pid"
       }
       val acquired =
-        try {
-          if (noWaitForBuildLock) sem.tryAcquire(permits, 0L, TimeUnit.MILLISECONDS)
-          else if (sem.tryAcquire(permits, 0L, TimeUnit.MILLISECONDS)) true
-          else {
-            waitMessage("waiting for it to be done...")
+        try sem.tryAcquire(permits, 0L, TimeUnit.MILLISECONDS) || !noWaitForBuildLock && {
+            waitingErr.println(
+              s"$blockerDescription, waiting for it to be done... " +
+                s"(tail -F out/${DaemonFiles.millConsoleTail} to see its progress)"
+            )
             sem.acquire(permits)
             true
           }
-        } catch {
+        catch {
           case e: Throwable =>
             releaseLockEntry(resource, lockEntry)
             throw e
@@ -537,11 +528,8 @@ object WorkspaceLocking {
 
       if (!acquired) {
         releaseLockEntry(resource, lockEntry)
-        val blocker = blockingOwner(resource)
-        val command = blocker.map(_.command).getOrElse("<unknown>")
-        val pid = blocker.map(_.pid.toString).getOrElse("<unknown>")
         throw new Exception(
-          s"Another Mill command in the current daemon is running '$command' with PID $pid and using resource '${resource.key}', failing"
+          s"$blockerDescription and using resource '${resource.key}', failing"
         )
       }
 

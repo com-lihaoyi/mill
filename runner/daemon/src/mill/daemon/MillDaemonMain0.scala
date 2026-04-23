@@ -94,7 +94,6 @@ class MillDaemonMain0(
 
   def main0(
       args: Array[String],
-      stateCache: RunnerState.ReusableSnapshot,
       mainInteractive: Boolean,
       streams: SystemStreams,
       env: Map[String, String],
@@ -110,10 +109,8 @@ class MillDaemonMain0(
       config =>
         serverToClient(mill.launcher.DaemonRpc.ServerToClient.RunSubprocess(config)).exitCode
 
-    try {
-      val (success, _) = MillMain0.main0(
+    try MillMain0.main0(
         args = args,
-        stateCache = stateCache,
         snapshotPublishedState = () => snapshotStateCache(),
         publishReusableState = (depth, frames) =>
           modifyStateCache(_.updated(depth, frames)),
@@ -130,13 +127,11 @@ class MillDaemonMain0(
         serverToClientOpt = Some(serverToClient),
         millRepositories = millRepositories
       )
-      success
-    } catch {
+    catch {
       // Let InterruptedException propagate without printing (used by deferredStopServer for shutdown)
       case e: InterruptedException => throw e
-      case e if MillMain0.handleMillException(streams.err, ()).isDefinedAt(e) =>
-        val (success, _) = MillMain0.handleMillException(streams.err, ())(e)
-        success
+      case e if MillMain0.handleMillException(streams.err).isDefinedAt(e) =>
+        MillMain0.handleMillException(streams.err)(e)
     }
   }
 }

@@ -34,17 +34,14 @@ import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Using}
 
 object MillMain0 {
-  def handleMillException[T](
-      err: PrintStream,
-      onError: => T
-  ): PartialFunction[Throwable, (Boolean, T)] = {
+  def handleMillException(err: PrintStream): PartialFunction[Throwable, Boolean] = {
     case e: MillException =>
       err.println(e.getMessage())
-      (false, onError)
+      false
     case e: InvocationTargetException
         if e.getCause != null && e.getCause.isInstanceOf[MillException] =>
       err.println(e.getCause.getMessage())
-      (false, onError)
+      false
     case e =>
       val str = new StringWriter
       e.printStackTrace(new PrintWriter(str))
@@ -106,7 +103,6 @@ object MillMain0 {
 
   def main0(
       args: Array[String],
-      stateCache: RunnerState.ReusableSnapshot,
       snapshotPublishedState: () => RunnerState.ReusableSnapshot,
       publishReusableState: (Int, Seq[RunnerState.Frame]) => Unit,
       mainInteractive: Boolean,
@@ -121,9 +117,7 @@ object MillMain0 {
       launcherSubprocessRunner: mill.api.daemon.LauncherSubprocess.Runner,
       serverToClientOpt: Option[mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient]],
       millRepositories: Seq[String]
-  ): (Boolean, RunnerState.ReusableSnapshot) = mill.api.daemon.MillRepositories.withValue(
-    millRepositories
-  ) {
+  ): Boolean = mill.api.daemon.MillRepositories.withValue(millRepositories) {
     mill.api.daemon.LauncherSubprocess.withValue(launcherSubprocessRunner) {
       mill.api.daemon.internal.MillScalaParser.current.withValue(MillScalaParserImpl) {
         os.SubProcess.env.withValue(env) {
@@ -140,15 +134,15 @@ object MillMain0 {
               // Cannot parse args
               case f: Result.Failure =>
                 streams.err.println(f.error)
-                (false, RunnerState.ReusableSnapshot.empty)
+                false
 
               case Result.Success(config) if config.help.value =>
                 streams.out.println(MillCliConfig.longUsageText)
-                (true, RunnerState.ReusableSnapshot.empty)
+                true
 
               case Result.Success(config) if config.helpAdvanced.value =>
                 streams.out.println(MillCliConfig.helpAdvancedUsageText)
-                (true, RunnerState.ReusableSnapshot.empty)
+                true
 
               case Result.Success(config) if config.showVersion.value =>
                 val interestingProps = Seq(
@@ -166,16 +160,15 @@ object MillMain0 {
                     interestingProps.map(k => s"$k: ${System.getProperty(k, s"<unknown $k>")}")
                       .mkString("\n")
                 )
-                (true, RunnerState.ReusableSnapshot.empty)
+                true
 
               case Result.Success(config) if config.noDaemonEnabled > 1 =>
                 streams.err.println(
                   "Only one of -i/--interactive, --no-daemon or --bsp may be given"
                 )
-                (false, RunnerState.ReusableSnapshot.empty)
+                false
 
               case Result.Success(config) =>
-                var currentReusableState = stateCache
                 val noColorViaEnv = env.get("NO_COLOR").exists(_.nonEmpty)
                 val forceColorViaEnv = env.get("FORCE_COLOR").exists(_.nonEmpty)
                 val colored = config.color.getOrElse(
@@ -270,12 +263,6 @@ object MillMain0 {
                           extraEnv: Seq[(String, String)] = Nil,
                           metaLevelOverride: Option[Int] = None
                       ): RunnerState = {
-                        val publishCurrentReusableState =
-                          (depth: Int, frames: Seq[RunnerState.Frame]) => {
-                            currentReusableState = currentReusableState.updated(depth, frames)
-                            publishReusableState(depth, frames)
-                          }
-
                         def runWithLogger(manager: WorkspaceLocking.Manager): RunnerState = {
                           def proceed(logger: Logger): RunnerState = {
                             // Enter key pressed, removing mill-selective-execution.json to
@@ -323,7 +310,7 @@ object MillMain0 {
                                     reporter = reporter,
                                     enableTicker = enableTicker,
                                     snapshotPublishedState = snapshotPublishedState,
-                                    publishReusableState = publishCurrentReusableState
+                                    publishReusableState = publishReusableState
                                   ).evaluate()
                                 }
                               }
@@ -393,8 +380,7 @@ object MillMain0 {
                           "tab-completion"
                         )
                         bootstrapped.close()
-
-                        (true, currentReusableState)
+                        true
                       } else if (bspMode) {
                         // Can happen if a concurrent BSP server starts and shuts us down.
                         // We log in the console what happened just in case, so that users know why we exit.
@@ -512,8 +498,7 @@ object MillMain0 {
 
                         prevRunnerStateOpt.foreach(_.close())
                         streams.err.println("Exiting BSP runner loop")
-
-                        (!errored, currentReusableState)
+                        !errored
                       } else if (
                         config.leftoverArgs.value == Seq("mill.idea.GenIdea/idea") ||
                         config.leftoverArgs.value == Seq("mill.idea.GenIdea/") ||
@@ -531,7 +516,7 @@ object MillMain0 {
                           runnerState.frames.flatMap(_.evaluator)
                         )
                         runnerState.close()
-                        (true, currentReusableState)
+                        true
                       } else if (
                         config.leftoverArgs.value == Seq("mill.eclipse.GenEclipse/eclipse") ||
                         config.leftoverArgs.value == Seq("mill.eclipse.GenEclipse/") ||
@@ -548,7 +533,7 @@ object MillMain0 {
                         new mill.eclipse.GenEclipseImpl(runnerState.frames.flatMap(_.evaluator))
                           .run()
                         runnerState.close()
-                        (true, currentReusableState)
+                        true
                       } else {
                         val (watchSuccess, watchState) = Watching.watchLoop(
                           ringBell = config.ringBell.value,
@@ -572,7 +557,7 @@ object MillMain0 {
                             }
                         )
                         watchState.close()
-                        (watchSuccess, currentReusableState)
+                        watchSuccess
                       }
                     }
                   }
