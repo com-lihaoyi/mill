@@ -1,6 +1,6 @@
 package mill.api.daemon
 
-import mill.constants.{DaemonFiles, OutFiles}
+import mill.constants.DaemonFiles
 
 import java.io.PrintStream
 import java.nio.file.StandardCopyOption
@@ -44,8 +44,8 @@ object WorkspaceLocking {
     }
   }
 
-  def globalFileResource(path: os.Path, kind: LockKind): Resource =
-    Resource(s"global:$path", kind)
+  def globalFileResource(path: java.nio.file.Path, kind: LockKind): Resource =
+    Resource(s"global:${path.toAbsolutePath.normalize()}", kind)
 
   def metaBuildResource(depth: Int, kind: LockKind): Resource =
     Resource(s"meta-build:$depth", kind)
@@ -88,12 +88,19 @@ object WorkspaceLocking {
       runId: String,
       runDir: os.Path,
       consoleTail: os.Path,
-      activeFile: os.Path,
       var active: Boolean = true,
       var published: Boolean = false,
       publishedFiles: scala.collection.mutable.Map[String, os.Path] =
         scala.collection.mutable.LinkedHashMap.empty
   )
+
+  private case class LockOwner(runId: String, pid: Long, command: String)
+  private case class LockOwnerCount(owner: LockOwner, var count: Int)
+  private class ResourceOwners {
+    var writeOwnerOpt: Option[LockOwnerCount] = None
+    val readOwners = scala.collection.mutable.LinkedHashMap.empty[String, LockOwnerCount]
+  }
+  private case class OwnedResource(var kind: LockKind, var count: Int)
 
   /**
    * Per-out-folder coordination shared across concurrent `InProcessManager`s that target the
@@ -164,11 +171,8 @@ object WorkspaceLocking {
 
     private def refreshWellKnownLinks(): Unit = {
       val latestRunOpt = runs.valuesIterator.filter(_.published).toSeq.lastOption
-      val latestActiveRunOpt =
-        runs.valuesIterator.filter(r => r.active && r.published).toSeq.lastOption
 
       updateSymlink(out / DaemonFiles.millConsoleTail, latestRunOpt.map(_.consoleTail))
-      updateSymlink(out / OutFiles.millActive, latestActiveRunOpt.map(_.activeFile))
       val publishedNames = runs.valuesIterator.flatMap(_.publishedFiles.keys).toSet
       publishedNames.foreach { fileName =>
         updateSymlink(out / fileName, latestRunOpt.flatMap(_.publishedFiles.get(fileName)))
@@ -179,6 +183,20 @@ object WorkspaceLocking {
   private val outCoordinators = new ConcurrentHashMap[String, OutCoordinator]()
   private def coordinatorFor(out: os.Path): OutCoordinator =
     outCoordinators.computeIfAbsent(out.toString, _ => new OutCoordinator(out))
+
+  private def quoteJson(s: String): String =
+    "\"" + s
+      .flatMap {
+        case '"' => "\\\""
+        case '\\' => "\\\\"
+        case '\b' => "\\b"
+        case '\f' => "\\f"
+        case '\n' => "\\n"
+        case '\r' => "\\r"
+        case '\t' => "\\t"
+        case c if c.isControl => f"\\u${c.toInt}%04x"
+        case c => c.toString
+      } + "\""
 
   /** Atomically replace `link` with a relative symlink pointing to `target`. */
   private def updateSymlink(link: os.Path, targetOpt: Option[os.Path]): Unit = {
@@ -212,32 +230,87 @@ object WorkspaceLocking {
     }
   }
 
-  private def quoteJson(s: String): String =
-    "\"" + s.flatMap {
-      case '"' => "\\\""
-      case '\\' => "\\\\"
-      case '\b' => "\\b"
-      case '\f' => "\\f"
-      case '\n' => "\\n"
-      case '\r' => "\\r"
-      case '\t' => "\\t"
-      case c if c.isControl => f"\\u${c.toInt}%04x"
-      case c => c.toString
-    } + "\""
+  private val resourceOwnersTable = new ConcurrentHashMap[String, ResourceOwners]()
 
-  private def readActiveCommand(out: os.Path): Option[String] = {
-    try {
-      val json = os.read(out / OutFiles.millActive)
-      """"command"\s*:\s*"([^"]*)"""".r.findFirstMatchIn(json).map(_.group(1))
-    } catch {
-      case _: Throwable => None
+  private def resourceOwners(resource: Resource): ResourceOwners =
+    resourceOwnersTable.computeIfAbsent(resource.key, _ => new ResourceOwners)
+
+  private def registerOwner(resource: Resource, owner: LockOwner): Unit = {
+    val owners = resourceOwners(resource)
+    owners.synchronized {
+      resource.kind match {
+        case LockKind.Write =>
+          owners.writeOwnerOpt match {
+            case Some(existing) if existing.owner.runId == owner.runId =>
+              existing.count += 1
+            case Some(existing) =>
+              throw new IllegalStateException(
+                s"Resource ${resource.key} already has write owner ${existing.owner.runId}"
+              )
+            case None =>
+              owners.writeOwnerOpt = Some(LockOwnerCount(owner, 1))
+          }
+        case LockKind.Read =>
+          owners.readOwners.get(owner.runId) match {
+            case Some(existing) => existing.count += 1
+            case None => owners.readOwners(owner.runId) = LockOwnerCount(owner, 1)
+          }
+      }
     }
+  }
+
+  private def unregisterOwner(resource: Resource, owner: LockOwner, kind: LockKind): Unit = {
+    val owners = resourceOwnersTable.get(resource.key)
+    if (owners == null) return
+
+    val shouldRemove = owners.synchronized {
+      kind match {
+        case LockKind.Write =>
+          owners.writeOwnerOpt match {
+            case Some(existing) if existing.owner.runId == owner.runId =>
+              existing.count -= 1
+              if (existing.count <= 0) owners.writeOwnerOpt = None
+            case _ =>
+          }
+        case LockKind.Read =>
+          owners.readOwners.get(owner.runId).foreach { existing =>
+            existing.count -= 1
+            if (existing.count <= 0) owners.readOwners.remove(owner.runId)
+          }
+      }
+
+      owners.writeOwnerOpt.isEmpty && owners.readOwners.isEmpty
+    }
+
+    if (shouldRemove) resourceOwnersTable.remove(resource.key, owners)
+  }
+
+  private def downgradeOwner(resource: Resource, owner: LockOwner): Unit = {
+    unregisterOwner(resource, owner, LockKind.Write)
+    registerOwner(resource.copy(kind = LockKind.Read), owner)
+  }
+
+  private def blockingOwner(resource: Resource): Option[LockOwner] = {
+    val owners = resourceOwnersTable.get(resource.key)
+    if (owners == null) None
+    else
+      owners.synchronized {
+        resource.kind match {
+          case LockKind.Read =>
+            owners.writeOwnerOpt.map(_.owner)
+          case LockKind.Write =>
+            owners.writeOwnerOpt
+              .map(_.owner)
+              .orElse(owners.readOwners.headOption.map(_._2.owner))
+        }
+      }
   }
 
   final class InProcessManager(
       out: os.Path,
       daemonDir: os.Path,
       activeCommandMessage: String,
+      launcherPid: Long,
       waitingErr: PrintStream,
       override val noBuildLock: Boolean,
       override val noWaitForBuildLock: Boolean
@@ -248,25 +321,64 @@ object WorkspaceLocking {
     private val runRootDir: os.Path = out / runRootDirName
     private val runDir: os.Path = runRootDir / runId
     os.makeDir.all(runDir)
+    private val launcherRunFile = daemonDir / os.RelPath(DaemonFiles.launcherRun(runId))
+    private val ownedResources =
+      scala.collection.mutable.LinkedHashMap.empty[String, OwnedResource]
 
     val consoleTail: os.Path = runDir / "mill-console-tail"
     override def consoleTailJava: java.nio.file.Path = consoleTail.toNIO
-    private val activeFile: os.Path = runDir / OutFiles.millActive
+    private val owner = LockOwner(runId, launcherPid, activeCommandMessage)
 
-    private val activeRun = ActiveRun(runId, runDir, consoleTail, activeFile)
+    private val activeRun = ActiveRun(runId, runDir, consoleTail)
     private val coordinator = coordinatorFor(out)
-
-    os.write.over(
-      activeFile,
-      s"""{"command":${quoteJson(activeCommandMessage)},"processDir":${quoteJson(
-          daemonDir.toString
-        )},"pid":${ProcessHandle.current().pid()},"runId":${quoteJson(runId)}}"""
-    )
 
     coordinator.register(activeRun)
     coordinator.cleanupOldRunDirs()
+    updateLauncherRunFile()
 
     private def publishRun(): Unit = coordinator.publish(activeRun)
+
+    private def updateLauncherRunFile(): Unit = {
+      val json = ownedResources.synchronized {
+        val resourcesJson = ownedResources.iterator.map { case (key, state) =>
+          s"""{"resource":${quoteJson(key)},"kind":${quoteJson(
+              state.kind.toString
+            )},"count":${state.count}}"""
+        }.mkString("[", ",", "]")
+        s"""{"runId":${quoteJson(runId)},"pid":${owner.pid},"command":${quoteJson(
+            owner.command
+          )},"resources":$resourcesJson}"""
+      }
+      os.makeDir.all(launcherRunFile / os.up)
+      os.write.over(launcherRunFile, json)
+    }
+
+    private def registerOwnedResource(resource: Resource): Unit = ownedResources.synchronized {
+      ownedResources.get(resource.key) match {
+        case Some(existing) =>
+          existing.kind = resource.kind
+          existing.count += 1
+        case None =>
+          ownedResources(resource.key) = OwnedResource(resource.kind, 1)
+      }
+      updateLauncherRunFile()
+    }
+
+    private def unregisterOwnedResource(resource: Resource, kind: LockKind): Unit =
+      ownedResources.synchronized {
+        ownedResources.get(resource.key).foreach { existing =>
+          if (existing.kind == kind) {
+            existing.count -= 1
+            if (existing.count <= 0) ownedResources.remove(resource.key)
+          }
+        }
+        updateLauncherRunFile()
+      }
+
+    private def downgradeOwnedResource(resource: Resource): Unit = ownedResources.synchronized {
+      ownedResources.get(resource.key).foreach(_.kind = LockKind.Read)
+      updateLauncherRunFile()
+    }
 
     override def runFileJava(default: java.nio.file.Path): java.nio.file.Path = {
       val path = runDir / os.Path(default).last
@@ -276,6 +388,8 @@ object WorkspaceLocking {
 
     override def close(): Unit = {
       coordinator.deactivate(activeRun)
+      try os.remove(launcherRunFile)
+      catch { case _: Throwable => }
       coordinator.cleanupOldRunDirs()
     }
 
@@ -321,6 +435,8 @@ object WorkspaceLocking {
       override def downgradeToRead(): ResourceLease = {
         if (currentKind == LockKind.Write && !closed.get()) {
           // Downgrade: release write permits minus 1 (keeping 1 read permit)
+          downgradeOwner(resource, owner)
+          downgradeOwnedResource(resource)
           semaphore(resource).release(maxPermits - 1)
           currentKind = LockKind.Read
         }
@@ -329,6 +445,8 @@ object WorkspaceLocking {
 
       override def close(): Unit =
         if (closed.compareAndSet(false, true)) {
+          unregisterOwner(resource, owner, currentKind)
+          unregisterOwnedResource(resource, currentKind)
           val permits = currentKind match {
             case LockKind.Read => 1
             case LockKind.Write => maxPermits
@@ -347,9 +465,11 @@ object WorkspaceLocking {
         case LockKind.Write => maxPermits
       }
       def waitMessage(action: String): Unit = {
-        val command = readActiveCommand(out).getOrElse(activeCommandMessage)
+        val blocker = blockingOwner(resource)
+        val command = blocker.map(_.command).getOrElse("<unknown>")
+        val pid = blocker.map(_.pid.toString).getOrElse("<unknown>")
         waitingErr.println(
-          s"Another Mill command in the current daemon is running '$command', $action " +
+          s"Another Mill command in the current daemon is running '$command' with PID $pid, $action " +
             s"(tail -F out/${DaemonFiles.millConsoleTail} to see its progress)"
         )
       }
@@ -363,11 +483,16 @@ object WorkspaceLocking {
         }
 
       if (!acquired) {
-        val command = readActiveCommand(out).getOrElse(activeCommandMessage)
+        val blocker = blockingOwner(resource)
+        val command = blocker.map(_.command).getOrElse("<unknown>")
+        val pid = blocker.map(_.pid.toString).getOrElse("<unknown>")
         throw new Exception(
-          s"Another Mill command in the current daemon is running '$command' and using resource '${resource.key}', failing"
+          s"Another Mill command in the current daemon is running '$command' with PID $pid and using resource '${resource.key}', failing"
         )
       }
+
+      registerOwner(resource, owner)
+      registerOwnedResource(resource)
     }
 
   }

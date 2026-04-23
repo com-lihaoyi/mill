@@ -73,6 +73,7 @@ class MillServerLauncher(
 
       val init = DaemonRpc.Initialize(
         interactive = Util.hasConsole(),
+        clientPid = ProcessHandle.current().pid(),
         clientMillVersion = BuildInfo.millVersion,
         clientJavaVersion = javaHome.map(_.toString).getOrElse(""),
         clientJvmOpts = jvmOpts,

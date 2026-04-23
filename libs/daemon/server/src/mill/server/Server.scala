@@ -4,7 +4,6 @@ import mill.api.daemon.{StartThread, SystemStreams}
 import mill.api.daemon.internal.NonFatal
 import mill.client.lock.{Lock, Locks}
 import mill.constants.{DaemonFiles, SocketUtil}
-import mill.constants.OutFiles.OutFiles
 import mill.server.Server.ConnectionData
 import sun.misc.{Signal, SignalHandler}
 
@@ -471,9 +470,26 @@ object Server {
   )(t: => T): T = {
     if (noBuildLock) t
     else {
+      val launcherRunsDir = daemonDir / DaemonFiles.launcherRuns
+
+      def quoteJson(s: String): String =
+        "\"" + s
+          .flatMap {
+            case '"' => "\\\""
+            case '\\' => "\\\\"
+            case '\b' => "\\b"
+            case '\f' => "\\f"
+            case '\n' => "\\n"
+            case '\r' => "\\r"
+            case '\t' => "\\t"
+            case c if c.isControl => f"\\u${c.toInt}%04x"
+            case c => c.toString
+          } + "\""
+
       def readActiveInfo(): (command: String, processDir: Option[os.Path], pid: Option[Long]) = {
         try {
-          val json = os.read(out / OutFiles.millActive)
+          val activeFile = os.list(launcherRunsDir).filter(os.isFile(_)).sortBy(_.last).last
+          val json = os.read(activeFile)
           // Simple JSON parsing for {"command":"...","processDir":"..."}
           val commandPattern = """"command"\s*:\s*"([^"]*)"""".r
           val processDirPattern = """"processDir"\s*:\s*"([^"]*)"""".r
@@ -510,11 +526,15 @@ object Server {
         setIdle(false)
         if (Thread.interrupted()) throw new InterruptedException()
         val pid = ProcessHandle.current().pid()
+        val activeFile = daemonDir / os.RelPath(DaemonFiles.launcherRun(s"pid-$pid"))
         val json =
-          s"""{"command":"$millActiveCommandMessage","processDir":"$daemonDir","pid":$pid}"""
-        os.write.over(out / OutFiles.millActive, json)
+          s"""{"command":${quoteJson(millActiveCommandMessage)},"processDir":${quoteJson(
+              daemonDir.toString
+            )},"pid":$pid}"""
+        os.makeDir.all(launcherRunsDir)
+        os.write.over(activeFile, json)
         try t
-        finally os.remove.all(out / OutFiles.millActive)
+        finally os.remove.all(activeFile)
       }
     }
   }

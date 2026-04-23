@@ -14,6 +14,7 @@ object DaemonRpc {
   given ReadWriter[LauncherSubprocess.Config] = upickle.default.macroRW
   case class Initialize(
       interactive: Boolean,
+      clientPid: Long,
       clientMillVersion: String,
       clientJavaVersion: String,
       clientJvmOpts: Seq[String],

@@ -67,9 +67,9 @@ case class MillCliConfig(
     @arg(
       hidden = true,
       name = "notify-watch",
-      doc = "Use filesystem based file watching instead of polling based one (defaults to true)."
+      doc = "Use filesystem based file watching instead of polling based one (defaults to false)."
     )
-    watchViaFsNotify: Boolean = true,
+    watchViaFsNotify: Boolean = false,
     @arg(name = "task", doc = "The name or a query of the tasks(s) you want to build.")
     leftoverArgs: Leftover[String] = Leftover(),
     @arg(doc =

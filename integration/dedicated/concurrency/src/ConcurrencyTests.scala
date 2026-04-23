@@ -1,5 +1,6 @@
 package mill.integration
 
+import mill.constants.{DaemonFiles, OutFiles}
 import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
 import utest.*
 import utest.asserts.{RetryInterval, RetryMax}
@@ -15,11 +16,32 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
 
   private def blockedBy(
       launcher: mill.testkit.IntegrationTester.SpawnedProcess,
-      command: String
+      command: String,
+      pid: Long
   ): Boolean =
     combinedText(launcher).contains(
-      s"Another Mill command in the current daemon is running '$command', waiting for it to be done..."
+      s"Another Mill command in the current daemon is running '$command' with PID $pid, waiting for it to be done..."
     )
+
+  private def activeLauncherPid(tester: IntegrationTester.Impl, command: String): Option[Long] = {
+    val launcherRuns =
+      tester.workspacePath / "out" / OutFiles.millDaemon / os.RelPath(DaemonFiles.launcherRuns)
+    if (!os.exists(launcherRuns)) None
+    else {
+      val commandPattern = """"command"\s*:\s*"([^"]*)"""".r
+      val pidPattern = """"pid"\s*:\s*([0-9]+)""".r
+      os.list(launcherRuns).iterator
+        .filter(os.isFile(_))
+        .flatMap { path =>
+          val json = os.read(path)
+          val fileCommand = commandPattern.findFirstMatchIn(json).map(_.group(1))
+          val filePid = pidPattern.findFirstMatchIn(json).flatMap(_.group(1).toLongOption)
+          Option.when(fileCommand.contains(command))(filePid).flatten
+        }
+        .toSeq
+        .lastOption
+    }
+  }
 
   private def combinedText(launcher: mill.testkit.IntegrationTester.SpawnedProcess): String =
     launcher.out.text() + "\n" + launcher.err.text()
@@ -37,9 +59,11 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
 
       val launcher1 = spawn(("runSameTask"))
       assertEventually(combinedText(launcher1).contains(enteredMarker("same-task")))
+      assertEventually(activeLauncherPid(tester, "runSameTask").nonEmpty)
+      val blockerPid = activeLauncherPid(tester, "runSameTask").get
 
       val launcher2 = spawn(("runSameTask"))
-      assertEventually(blockedBy(launcher2, "runSameTask"))
+      assertEventually(blockedBy(launcher2, "runSameTask", blockerPid))
       assert(launcher2.process.isAlive())
       assert(!combinedText(launcher2).contains("same-task-value"))
 
@@ -62,9 +86,11 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
 
       val launcher1 = spawn(("runLeft"))
       assertEventually(combinedText(launcher1).contains(enteredMarker("shared")))
+      assertEventually(activeLauncherPid(tester, "runLeft").nonEmpty)
+      val blockerPid = activeLauncherPid(tester, "runLeft").get
 
       val launcher2 = spawn(("runShared"))
-      assertEventually(blockedBy(launcher2, "runShared"))
+      assertEventually(blockedBy(launcher2, "runLeft", blockerPid))
       assert(launcher2.process.isAlive())
       assert(!combinedText(launcher2).contains("shared-value"))
 
@@ -121,11 +147,13 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
 
       val launcher1 = spawn(("runHoldMetaBuildRead"))
       assertEventually(combinedText(launcher1).contains(enteredMarker("meta-build-read")))
+      assertEventually(activeLauncherPid(tester, "runHoldMetaBuildRead").nonEmpty)
+      val blockerPid = activeLauncherPid(tester, "runHoldMetaBuildRead").get
 
       modifyFile(workspacePath / "build.mill", _ + "\n// force meta-build refresh\n")
 
       val launcher2 = spawn(("runShared"))
-      assertEventually(blockedBy(launcher2, "runShared"))
+      assertEventually(blockedBy(launcher2, "runHoldMetaBuildRead", blockerPid))
       assert(launcher2.process.isAlive())
       assert(!combinedText(launcher2).contains("shared-value"))
 

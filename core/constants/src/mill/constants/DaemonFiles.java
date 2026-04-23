@@ -75,4 +75,13 @@ public class DaemonFiles {
    * Console log file containing output from the running Mill command
    */
   public static final String millConsoleTail = "mill-console-tail";
+
+  /**
+   * Directory containing one metadata file per active launcher connected to the daemon.
+   */
+  public static final String launcherRuns = "launcher-runs";
+
+  public static String launcherRun(String runId) {
+    return launcherRuns + "/" + runId + ".json";
+  }
 }

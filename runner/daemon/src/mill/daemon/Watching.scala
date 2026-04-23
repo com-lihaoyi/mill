@@ -8,6 +8,7 @@ import mill.internal.Colors
 import java.io.InputStream
 import java.nio.channels.ClosedChannelException
 import scala.annotation.tailrec
+import scala.util.control.NonFatal
 import scala.util.Using
 
 /**
@@ -73,8 +74,11 @@ object Watching {
 
         // Exits when the thread gets interrupted.
         while (true) {
-          val result = evaluate(skipSelectiveExecution, prevState)
+          // Release any retained leases from the previous evaluation before rerunning.
+          // Keeping them across the rerun causes the watched command to block on itself
+          // when it needs to reacquire the same workspace resources.
           prevState.foreach(_.close())
+          val result = evaluate(skipSelectiveExecution, prevState)
           prevState = Some(result)
           handleError(result.errorOpt)
 
@@ -236,7 +240,18 @@ object Watching {
       )
     }
 
-    if (watchArgs.useNotify) doWatchFsNotify() else doWatchPolling()
+    if (watchArgs.useNotify) {
+      try doWatchFsNotify()
+      catch {
+        case NonFatal(e) =>
+          log(
+            watchArgs.colors.error(
+              s"Native file watcher failed (${e.getMessage}), falling back to polling."
+            ).toString()
+          )
+          doWatchPolling()
+      }
+    } else doWatchPolling()
   }
 
   /**

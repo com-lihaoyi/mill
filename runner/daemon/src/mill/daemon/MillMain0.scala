@@ -257,6 +257,8 @@ object MillMain0 {
                       else Some(mill.exec.ExecutionContexts.createExecutor(threadCount))
 
                     val out = os.Path(OutFiles.outFor(outMode), BuildCtx.workspaceRoot)
+                    val launcherPid =
+                      env.get("MILL_LAUNCHER_PID").flatMap(_.toLongOption).getOrElse(-1L)
                     Using.resources(new TailManager(daemonDir), createEc()) { (tailManager, ec) =>
                       def runMillBootstrap(
                           skipSelectiveExecution: Boolean,
@@ -288,7 +290,7 @@ object MillMain0 {
                               manager.withLocks(
                                 Seq(
                                   WorkspaceLocking.globalFileResource(
-                                    out / OutFiles.millSelectiveExecution,
+                                    (out / OutFiles.millSelectiveExecution).toNIO,
                                     WorkspaceLocking.LockKind.Write
                                   )
                                 )
@@ -360,6 +362,7 @@ object MillMain0 {
                               out = out,
                               daemonDir = daemonDir,
                               activeCommandMessage = millActiveCommandMessage,
+                              launcherPid = launcherPid,
                               waitingErr = streams.err,
                               noBuildLock = config.noBuildLock.value,
                               noWaitForBuildLock = config.noWaitForBuildLock.value

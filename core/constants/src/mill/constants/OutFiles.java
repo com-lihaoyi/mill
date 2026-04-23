@@ -135,11 +135,6 @@ public class OutFiles {
     }
 
     /**
-     * JSON file containing info about the active Mill process (command and process directory)
-     */
-    public final String millActive = "mill-active.json";
-
-    /**
      * JSON file containing info about the active Mill BSP process for that lock id (process directory and PID)
      */
     public final String millActiveBsp(String lockId) {
@@ -201,12 +196,6 @@ public class OutFiles {
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
   public static final String millOutLock = OutFiles.millOutLock;
-  /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
-  @Deprecated
-  public static final String millActive = OutFiles.millActive;
-  /** @deprecated Use millActive instead */
-  @Deprecated
-  public static final String millActiveCommand = OutFiles.millActive;
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
   public static final String millSelectiveExecution = OutFiles.millSelectiveExecution;

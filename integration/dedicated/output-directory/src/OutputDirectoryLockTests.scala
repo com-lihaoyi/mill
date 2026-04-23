@@ -11,6 +11,27 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
 
   implicit val retryMax: RetryMax = RetryMax(60000.millis)
   implicit val retryInterval: RetryInterval = RetryInterval(50.millis)
+
+  private def activeLauncherPid(workspacePath: os.Path, command: String): Option[Long] = {
+    val launcherRuns =
+      workspacePath / "out" / OutFiles.millDaemon / os.RelPath(DaemonFiles.launcherRuns)
+    if (!os.exists(launcherRuns)) None
+    else {
+      val commandPattern = """"command"\s*:\s*"([^"]*)"""".r
+      val pidPattern = """"pid"\s*:\s*([0-9]+)""".r
+      os.list(launcherRuns).iterator
+        .filter(os.isFile(_))
+        .flatMap { path =>
+          val json = os.read(path)
+          val fileCommand = commandPattern.findFirstMatchIn(json).map(_.group(1))
+          val filePid = pidPattern.findFirstMatchIn(json).flatMap(_.group(1).toLongOption)
+          Option.when(fileCommand.contains(command))(filePid).flatten
+        }
+        .toSeq
+        .lastOption
+    }
+  }
+
   def tests: Tests = Tests {
     test("taskLocks") - integrationTest { tester =>
       import tester.*
@@ -32,30 +53,33 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
         val chromeProfile = outPath / OutFiles.millChromeProfile
         val dependencyTree = outPath / OutFiles.millDependencyTree
         val invalidationTree = outPath / OutFiles.millInvalidationTree
-        val active = outPath / OutFiles.millActive
-
         assertEventually {
           os.exists(consoleTail) &&
           os.exists(profile) &&
           os.exists(chromeProfile) &&
           os.exists(dependencyTree) &&
           os.exists(invalidationTree) &&
-          os.exists(active) &&
           java.nio.file.Files.isSymbolicLink(consoleTail.toNIO) &&
           java.nio.file.Files.isSymbolicLink(profile.toNIO) &&
           java.nio.file.Files.isSymbolicLink(chromeProfile.toNIO) &&
           java.nio.file.Files.isSymbolicLink(dependencyTree.toNIO) &&
-          java.nio.file.Files.isSymbolicLink(invalidationTree.toNIO) &&
-          java.nio.file.Files.isSymbolicLink(active.toNIO)
+          java.nio.file.Files.isSymbolicLink(invalidationTree.toNIO)
         }
-        assert(os.read(active).contains("blockWhileExists"))
+        assertEventually(activeLauncherPid(
+          workspacePath,
+          s"blockWhileExists --path $signalFile1"
+        ).nonEmpty)
+        val blockerPid =
+          activeLauncherPid(workspacePath, s"blockWhileExists --path $signalFile1").get
 
         // Same task should fail immediately in no-wait mode
         val noWaitRes = eval(
           ("--no-wait-for-build-lock", "blockWhileExists", "--path", signalFile2)
         )
         assert(
-          noWaitRes.err.contains("Another Mill command in the current daemon is running")
+          noWaitRes.err.contains(
+            s"Another Mill command in the current daemon is running 'blockWhileExists --path $signalFile1' with PID $blockerPid"
+          )
         )
 
         // Same task should wait by default
@@ -65,8 +89,9 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
           val stderrText = spawnedWaitingRes.err.text()
           spawnedWaitingRes.process.isAlive() &&
           !os.exists(signalFile2) &&
-          stderrText.contains("Another Mill command in the current daemon is running") &&
-          stderrText.contains("waiting for it to be done") &&
+          stderrText.contains(
+            s"Another Mill command in the current daemon is running 'blockWhileExists --path $signalFile1' with PID $blockerPid, waiting for it to be done..."
+          ) &&
           stderrText.contains("tail -F out/mill-console-tail")
         }
 

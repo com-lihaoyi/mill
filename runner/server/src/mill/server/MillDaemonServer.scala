@@ -143,7 +143,7 @@ abstract class MillDaemonServer[State](
           stateCache = currentStateCache,
           mainInteractive = init.interactive,
           streams = new SystemStreams(stdout, stderr, rpcStdin),
-          env = init.env,
+          env = init.env.updated("MILL_LAUNCHER_PID", init.clientPid.toString),
           setIdle = setIdleInner(_),
           userSpecifiedProperties = init.userSpecifiedProperties,
           initialSystemProperties = connectionData.initialSystemProperties,

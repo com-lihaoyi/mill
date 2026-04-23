@@ -17,10 +17,13 @@ object WorkspaceLockingTests extends TestSuite {
           out = out,
           daemonDir = out / OutFiles.millDaemon,
           activeCommandMessage = "test-command",
+          launcherPid = 12345L,
           waitingErr = new PrintStream(System.err),
           noBuildLock = false,
           noWaitForBuildLock = false
         )
+        val launcherRunFile =
+          out / OutFiles.millDaemon / os.RelPath(DaemonFiles.launcherRun(manager.runId))
 
         val profilePath = os.Path(manager.runFileJava((out / OutFiles.millProfile).toNIO))
         val chromePath =
@@ -39,19 +42,20 @@ object WorkspaceLockingTests extends TestSuite {
 
         manager.acquireLocks(Seq.empty).close()
 
-        val activeLink = out / OutFiles.millActive
+        assert(os.exists(launcherRunFile))
+        assert(os.read(launcherRunFile).contains(""""pid":12345"""))
+        assert(os.read(launcherRunFile).contains("test-command"))
+
         assert(os.exists(out / DaemonFiles.millConsoleTail))
         assert(os.exists(out / OutFiles.millProfile))
         assert(os.exists(out / OutFiles.millChromeProfile))
         assert(os.exists(out / OutFiles.millDependencyTree))
         assert(os.exists(out / OutFiles.millInvalidationTree))
-        assert(os.exists(activeLink))
 
         assert(Files.isSymbolicLink((out / OutFiles.millProfile).toNIO))
         assert(Files.isSymbolicLink((out / OutFiles.millChromeProfile).toNIO))
         assert(Files.isSymbolicLink((out / OutFiles.millDependencyTree).toNIO))
         assert(Files.isSymbolicLink((out / OutFiles.millInvalidationTree).toNIO))
-        assert(Files.isSymbolicLink(activeLink.toNIO))
         assert(Files.readSymbolicLink(
           (out / OutFiles.millProfile).toNIO
         ).toString.startsWith("mill-run/"))
@@ -61,12 +65,13 @@ object WorkspaceLockingTests extends TestSuite {
 
         manager.close()
 
+        assert(!os.exists(launcherRunFile))
+
         assert(os.exists(out / DaemonFiles.millConsoleTail))
         assert(os.exists(out / OutFiles.millProfile))
         assert(os.exists(out / OutFiles.millChromeProfile))
         assert(os.exists(out / OutFiles.millDependencyTree))
         assert(os.exists(out / OutFiles.millInvalidationTree))
-        assert(!os.exists(activeLink))
 
         assert(os.read(out / OutFiles.millProfile) == "profile")
         assert(os.read(out / OutFiles.millChromeProfile) == "chrome")

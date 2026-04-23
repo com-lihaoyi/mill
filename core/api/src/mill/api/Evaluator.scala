@@ -44,7 +44,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
       if (isFinalDepth && selectiveExecution)
         Seq(
           WorkspaceLocking.globalFileResource(
-            outPath / OutFiles.millSelectiveExecution,
+            (outPath / OutFiles.millSelectiveExecution).toNIO,
             WorkspaceLocking.LockKind.Write
           )
         )
