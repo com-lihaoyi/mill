@@ -345,7 +345,14 @@ object WorkspaceLocking {
     coordinator.cleanupOldRunDirs()
     updateLauncherRunFile()
 
+    private def ensureOpen(): Unit =
+      if (closed.get()) throw new IllegalStateException(s"Lock manager $runId is closed")
+
     private def publishRun(): Unit = coordinator.publish(activeRun)
+    private def publishRunIfOpen(): Unit = activeLeases.synchronized {
+      ensureOpen()
+      publishRun()
+    }
 
     private def updateLauncherRunFile(): Unit = {
       if (!closed.get()) {
@@ -360,10 +367,13 @@ object WorkspaceLocking {
           s"""{"runId":$runIdJson,"pid":${owner.pid},"command":$commandJson,"resources":$resourcesJson}"""
         }
         if (!closed.get()) {
-          mill.api.BuildCtx.withFilesystemCheckerDisabled {
-            os.makeDir.all(launcherRunFile / os.up)
-            os.write.over(launcherRunFile, json)
+          try {
+            mill.api.BuildCtx.withFilesystemCheckerDisabled {
+              os.makeDir.all(launcherRunFile / os.up)
+              os.write.over(launcherRunFile, json)
+            }
           }
+          catch { case _: Throwable => }
         }
       }
     }
@@ -400,13 +410,18 @@ object WorkspaceLocking {
       val target =
         if (link.startsWith(out)) runDir / link.relativeTo(out)
         else runDir / link.last
+      os.makeDir.all(target / os.up)
       coordinator.recordPublishedFile(activeRun, link, target)
       target.toNIO
     }
 
     override def close(): Unit = {
-      if (closed.compareAndSet(false, true)) {
-        val leases = activeLeases.synchronized(activeLeases.toSeq)
+      var shouldClose = false
+      val leases = activeLeases.synchronized {
+        shouldClose = closed.compareAndSet(false, true)
+        if (shouldClose) activeLeases.toSeq else Nil
+      }
+      if (shouldClose) {
         leases.foreach(lease =>
           try lease.close()
           catch { case _: Throwable => }
@@ -421,22 +436,32 @@ object WorkspaceLocking {
     }
 
     override def acquireLock(resource0: Resource): ResourceLease = {
-      if (closed.get()) throw new IllegalStateException(s"Lock manager $runId is closed")
+      ensureOpen()
       if (noBuildLock) {
-        publishRun()
+        publishRunIfOpen()
         NoopManager.acquireLock(resource0)
       } else {
         val lockEntry = acquire(resource0)
-        publishRun()
         val lease = new InProcessResourceLease(resource0, lockEntry)
-        activeLeases.synchronized(activeLeases += lease)
-        lease
+        try {
+          activeLeases.synchronized {
+            ensureOpen()
+            activeLeases += lease
+            publishRun()
+          }
+          lease
+        } catch {
+          case e: Throwable =>
+            try lease.close()
+            catch { case _: Throwable => }
+            throw e
+        }
       }
     }
 
     override def acquireLocks(resources: Seq[Resource]): Lease =
       if (noBuildLock || resources.isEmpty) {
-        publishRun()
+        publishRunIfOpen()
         () => ()
       } else {
         val distinct = resources.distinct

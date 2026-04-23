@@ -40,7 +40,8 @@ case class RunnerState(
     bootstrapEvalWatched: Seq[Watchable] = Nil,
     metaBuildFrames: Seq[RunnerState.MetaBuildFrame] = Nil,
     finalFrame: Option[RunnerState.FinalFrame] = None,
-    moduleWatchedByDepth: Map[Int, Seq[Watchable]] = Map.empty
+    moduleWatchedByDepth: Map[Int, Seq[Watchable]] = Map.empty,
+    closeables: Seq[AutoCloseable] = Nil
 ) extends Watching.Result
     with AutoCloseable {
   import RunnerState.*
@@ -58,6 +59,9 @@ case class RunnerState(
 
   def withModuleWatched(depth: Int, watched: Seq[Watchable]): RunnerState =
     copy(moduleWatchedByDepth = moduleWatchedByDepth.updated(depth, watched))
+
+  def withCloseable(closeable: AutoCloseable): RunnerState =
+    copy(closeables = closeable +: closeables)
 
   def moduleWatchedAt(depth: Int): Option[Seq[Watchable]] =
     metaBuildFrameAt(depth).map(_.moduleWatched)
@@ -83,6 +87,7 @@ case class RunnerState(
     // SharedWorkerCache and must not be closed when a command finishes,
     // since they may be shared with concurrent or subsequent commands.
     metaBuildFrames.iterator.foreach(_.metaBuildReadLease.foreach(_.close()))
+    closeables.foreach(_.close())
   }
 }
 

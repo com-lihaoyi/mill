@@ -332,8 +332,15 @@ object MillMain0 {
                         def runWithLockManager(manager: WorkspaceLocking.Manager): RunnerState =
                           try {
                             setIdle(false)
-                            runWithLogger(manager)
-                          } finally manager.close()
+                            val state = runWithLogger(manager)
+                            if (manager == WorkspaceLocking.NoopManager) state
+                            else state.withCloseable(manager)
+                          } catch {
+                            case e: Throwable =>
+                              try manager.close()
+                              catch { case _: Throwable => }
+                              throw e
+                          }
 
                         if (serverToClientOpt.nonEmpty) {
                           runWithLockManager(
@@ -364,17 +371,17 @@ object MillMain0 {
                       }
 
                       if (config.tabComplete.value) {
-                        val bootstrapped = runMillBootstrap(
-                          skipSelectiveExecution = false,
-                          None,
-                          Seq(
-                            "mill.tabcomplete.TabCompleteModule/complete"
-                          ) ++ config.leftoverArgs.value,
-                          streams,
-                          "tab-completion"
-                        )
-                        bootstrapped.close()
-                        true
+                        Using.resource(
+                          runMillBootstrap(
+                            skipSelectiveExecution = false,
+                            None,
+                            Seq(
+                              "mill.tabcomplete.TabCompleteModule/complete"
+                            ) ++ config.leftoverArgs.value,
+                            streams,
+                            "tab-completion"
+                          )
+                        )(_ => true)
                       } else if (bspMode) {
                         // Can happen if a concurrent BSP server starts and shuts us down.
                         // We log in the console what happened just in case, so that users know why we exit.
@@ -498,7 +505,7 @@ object MillMain0 {
                         config.leftoverArgs.value == Seq("mill.idea.GenIdea/") ||
                         config.leftoverArgs.value == Seq("mill.idea/")
                       ) {
-                        val runnerState =
+                        Using.resource(
                           runMillBootstrap(
                             false,
                             None,
@@ -506,17 +513,18 @@ object MillMain0 {
                             streams,
                             "BSP:initialize"
                           )
-                        IdeWorkerSupport.runIdeaGeneration(
-                          runnerState.allEvaluators
-                        )
-                        runnerState.close()
+                        ) { runnerState =>
+                          IdeWorkerSupport.runIdeaGeneration(
+                            runnerState.allEvaluators
+                          )
+                        }
                         true
                       } else if (
                         config.leftoverArgs.value == Seq("mill.eclipse.GenEclipse/eclipse") ||
                         config.leftoverArgs.value == Seq("mill.eclipse.GenEclipse/") ||
                         config.leftoverArgs.value == Seq("mill.eclipse/")
                       ) {
-                        val runnerState =
+                        Using.resource(
                           runMillBootstrap(
                             false,
                             None,
@@ -524,9 +532,10 @@ object MillMain0 {
                             streams,
                             "BSP:initialize"
                           )
-                        new mill.eclipse.GenEclipseImpl(runnerState.allEvaluators)
-                          .run()
-                        runnerState.close()
+                        ) { runnerState =>
+                          new mill.eclipse.GenEclipseImpl(runnerState.allEvaluators)
+                            .run()
+                        }
                         true
                       } else {
                         val (watchSuccess, watchState) = Watching.watchLoop(
@@ -550,8 +559,8 @@ object MillMain0 {
                               )
                             }
                         )
-                        watchState.close()
-                        watchSuccess
+                        try watchSuccess
+                        finally watchState.close()
                       }
                     }
                   }

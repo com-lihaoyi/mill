@@ -6,7 +6,6 @@ import mill.bsp.worker.Utils.groupList
 import mill.client.lock.Lock
 import mill.api.internal.WatchSig
 import mill.internal.PrefixLogger
-import mill.server.Server
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
 
 import java.util.concurrent.{CompletableFuture, LinkedBlockingQueue, TimeUnit}
@@ -35,7 +34,7 @@ private abstract class MillBuildServer(
     protected val serverName: String,
     protected val canReload: Boolean,
     protected val onShutdown: () => Unit,
-    outLock: Lock,
+    @unused outLock: Lock,
     protected val baseLogger: Logger,
     out: os.Path,
     daemonDir: os.Path,
@@ -291,31 +290,20 @@ private abstract class MillBuildServer(
           if (pendingRequest.isEmpty)
             pendingRequest = Option(queue.poll(1L, TimeUnit.SECONDS))
 
-          for ((handler, logger, requestName) <- pendingRequest) {
+          for ((handler, logger, _) <- pendingRequest) {
             Await.result(bspEvaluators.future, Duration.Inf)
-            Server.withOutLock(
-              noBuildLock = false,
-              noWaitForBuildLock = false,
-              out = out,
-              daemonDir = daemonDir,
-              millActiveCommandMessage = s"IDE:$requestName",
-              streams = logger.streams,
-              outLock = outLock,
-              setIdle = _ => ()
-            ) {
-              for (evaluator <- bspEvaluatorsOpt()) {
-                if (evaluator.watched.forall(WatchSig.haveNotChanged)) {
-                  pendingRequest = None
-                  try handler(evaluator)
-                  catch {
-                    case t: Throwable =>
-                      logger.error(s"Could not process request: $t")
-                      t.printStackTrace(logger.streams.err)
-                  }
-                } else {
-                  resetEvaluator()
-                  sessionResult.trySuccess(BspServerResult.ReloadWorkspace)
+            for (evaluator <- bspEvaluatorsOpt()) {
+              if (evaluator.watched.forall(WatchSig.haveNotChanged)) {
+                pendingRequest = None
+                try handler(evaluator)
+                catch {
+                  case t: Throwable =>
+                    logger.error(s"Could not process request: $t")
+                    t.printStackTrace(logger.streams.err)
                 }
+              } else {
+                resetEvaluator()
+                sessionResult.trySuccess(BspServerResult.ReloadWorkspace)
               }
             }
           }

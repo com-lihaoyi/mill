@@ -213,8 +213,8 @@ object WorkspaceLockingTests extends TestSuite {
           OutFiles.millProfile
         ))
 
-        os.write.over(topLevelProfile, "top-level-profile", createFolders = true)
-        os.write.over(metaBuildProfile, "meta-build-profile", createFolders = true)
+        os.write.over(topLevelProfile, "top-level-profile")
+        os.write.over(metaBuildProfile, "meta-build-profile")
         manager.acquireLocks(Seq.empty).close()
 
         assert(os.isLink(out / OutFiles.millProfile))
