@@ -59,9 +59,14 @@ case class RunnerState(
       finalFrame.iterator.flatMap(f => f.evalWatched ++ f.moduleWatched).toSeq ++
       bootstrapEvalWatched
 
-  /** All evaluators across meta-build and final frames, in no particular order. */
+  /**
+   * Evaluators ordered final-first, then meta-build frames from shallowest to
+   * deepest. BSP script discovery and IDE generation walk this in order and
+   * expect the workspace evaluator at `headOption`.
+   */
   def allEvaluators: Seq[EvaluatorApi] =
-    metaBuildFrames.flatMap(_.evaluator) ++ finalFrame.iterator.map(_.evaluator)
+    finalFrame.iterator.map(_.evaluator).toSeq ++
+      metaBuildFrames.sortBy(_.depth).flatMap(_.evaluator)
 
   override def close(): Unit = {
     // Only release locking leases. Workers live in the process-level
@@ -75,39 +80,55 @@ object RunnerState {
   def empty: RunnerState = RunnerState(None, None)
 
   /**
-   * The state of a meta-build at a given depth.
+   * The deterministic meta-build outputs at a given depth: classloader, compiled
+   * classpath, code signatures, etc. Populated once a meta-build compiles
+   * successfully and safe to share across concurrent launchers via the daemon-wide
+   * `AtomicReference[RunnerState]`. Writes are sequenced by the meta-build write
+   * lock in [[mill.api.daemon.WorkspaceLocking]].
+   */
+  @internal
+  case class ReusableFrame(
+      classLoader: MillURLClassLoader,
+      runClasspath: Seq[PathRefApi],
+      compileOutput: PathRefApi,
+      codeSignatures: Map[String, Int],
+      buildOverrideFiles: Map[java.nio.file.Path, String],
+      // JSON string to avoid classloader issues when crossing classloader boundaries
+      spanningInvalidationTree: String,
+      workerCacheSummary: Map[String, Frame.WorkerInfo]
+  )
+
+  /**
+   * A launcher's per-depth meta-build state.
    *
-   * The "shared" fields ([[classLoaderOpt]], [[runClasspath]], [[compileOutput]],
-   * [[codeSignatures]], [[buildOverrideFiles]], [[spanningInvalidationTree]],
-   * [[workerCacheSummary]], [[evalWatched]], [[moduleWatched]]) are deterministic in
-   * the meta-build source and are safe to share across concurrent launchers via
-   * [[SharedFrames]]; writes are sequenced by the meta-build write lock in
-   * [[mill.api.daemon.WorkspaceLocking]].
+   * [[reusable]] references the shared [[ReusableFrame]] produced by the publishing
+   * launcher (and visible to every other launcher at the same classloader identity).
+   * It is [[None]] if the meta-build failed to compile at this depth; we still carry
+   * the frame so [[evalWatched]] / [[moduleWatched]] can drive a `--watch` re-run.
    *
-   * The "per-launcher" fields ([[evaluator]] and [[metaBuildReadLease]]) are set
-   * only in a launcher's [[RunnerState]]; [[SharedFrames.put]] strips them before
-   * publishing so readers can't accidentally consume another launcher's state.
-   *
-   * If the meta-build failed to compile at this depth, all shared fields are
-   * empty/[[None]]; we still carry the frame so [[evalWatched]] / [[moduleWatched]]
-   * can drive a `--watch` re-run.
+   * [[evaluator]] and [[metaBuildReadLease]] are per-launcher overlays and must be
+   * zeroed via [[stripped]] before a frame is stored in the daemon-wide shared
+   * state.
    */
   @internal
   case class MetaBuildFrame(
       depth: Int,
-      classLoaderOpt: Option[MillURLClassLoader],
-      runClasspath: Seq[PathRefApi],
-      compileOutput: Option[PathRefApi],
-      codeSignatures: Map[String, Int],
-      buildOverrideFiles: Map[java.nio.file.Path, String],
-      // JSON string to avoid classloader issues when crossing classloader boundaries
-      spanningInvalidationTree: Option[String],
-      workerCacheSummary: Map[String, Frame.WorkerInfo],
+      reusable: Option[ReusableFrame],
       evalWatched: Seq[Watchable],
       moduleWatched: Seq[Watchable],
       evaluator: Option[EvaluatorApi] = None,
       metaBuildReadLease: Option[mill.api.daemon.WorkspaceLocking.Lease] = None
   ) {
+    def classLoaderOpt: Option[MillURLClassLoader] = reusable.map(_.classLoader)
+    def runClasspath: Seq[PathRefApi] = reusable.map(_.runClasspath).getOrElse(Nil)
+    def compileOutput: Option[PathRefApi] = reusable.map(_.compileOutput)
+    def codeSignatures: Map[String, Int] = reusable.map(_.codeSignatures).getOrElse(Map.empty)
+    def buildOverrideFiles: Map[java.nio.file.Path, String] =
+      reusable.map(_.buildOverrideFiles).getOrElse(Map.empty)
+    def spanningInvalidationTree: Option[String] = reusable.map(_.spanningInvalidationTree)
+    def workerCacheSummary: Map[String, Frame.WorkerInfo] =
+      reusable.map(_.workerCacheSummary).getOrElse(Map.empty)
+
     def loggedData: Frame.Logged = Frame.loggedFor(
       workerCacheSummary,
       evalWatched,
@@ -122,7 +143,7 @@ object RunnerState {
 
   object MetaBuildFrame {
 
-    /** A failed-compile frame: no shared data, just watches so `--watch` can retry. */
+    /** A failed-compile frame: no [[ReusableFrame]], just watches so `--watch` can retry. */
     def failed(
         depth: Int,
         evaluator: EvaluatorApi,
@@ -130,13 +151,7 @@ object RunnerState {
         moduleWatched: Seq[Watchable]
     ): MetaBuildFrame = MetaBuildFrame(
       depth = depth,
-      classLoaderOpt = None,
-      runClasspath = Nil,
-      compileOutput = None,
-      codeSignatures = Map.empty,
-      buildOverrideFiles = Map.empty,
-      spanningInvalidationTree = None,
-      workerCacheSummary = Map.empty,
+      reusable = None,
       evalWatched = evalWatched,
       moduleWatched = moduleWatched,
       evaluator = Some(evaluator)

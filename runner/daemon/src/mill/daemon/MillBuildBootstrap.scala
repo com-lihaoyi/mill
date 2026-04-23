@@ -83,23 +83,17 @@ class MillBuildBootstrap(
     // Meta-build frame logs go to shared canonical paths. Writes are idempotent
     // because the content is deterministic for a given published classloader —
     // concurrent launchers racing on the same path produce the same bytes.
-    for (frame <- runnerState.metaBuildFrames) {
+    // Final-frame logs go to the same convention; concurrent launchers overwrite
+    // each other's data at the final depth, which is acceptable since the log is
+    // only consumed by the writer for debugging and by tests.
+    def write(depth: Int, logged: RunnerState.Frame.Logged): Unit =
       os.write.over(
-        recOut(output, frame.depth) / millRunnerState,
-        upickle.write(frame.loggedData, indent = 4),
+        recOut(output, depth) / millRunnerState,
+        upickle.write(logged, indent = 4),
         createFolders = true
       )
-    }
-    // Final-frame log goes to a per-launcher path with a symlink at the canonical
-    // location, since the final frame's data is launcher-specific.
-    for (frame <- runnerState.finalFrame) {
-      val canonical = (recOut(output, frame.depth) / millRunnerState).toNIO
-      os.write.over(
-        os.Path(workspaceLockManager.runFileJava(canonical)),
-        upickle.write(frame.loggedData, indent = 4),
-        createFolders = true
-      )
-    }
+    for (frame <- runnerState.metaBuildFrames) write(frame.depth, frame.loggedData)
+    for (frame <- runnerState.finalFrame) write(frame.depth, frame.loggedData)
 
     runnerState
   }
@@ -340,7 +334,7 @@ class MillBuildBootstrap(
         // since the previous run, which in turn is a reason to re-create the classloader.
         // For the shallowest meta-build (depth=1), the outer level is the final depth and
         // we consult prevCommandState because the final frame is per-launcher and not
-        // published into sharedFrames.
+        // published into the daemon-wide shared state.
         def outerModuleWatched: Seq[Watchable] =
           prevCommandState.metaBuildFrameAt(depth - 1).map(_.moduleWatched)
             .orElse(prevCommandState.finalFrame.map(_.moduleWatched))
@@ -356,21 +350,26 @@ class MillBuildBootstrap(
         def acquireMetaBuildLock(kind: WorkspaceLocking.LockKind) =
           workspaceLockManager.acquireLock(WorkspaceLocking.metaBuildResource(depth, kind))
 
-        // The shared fields on a [[MetaBuildFrame]] we'd publish once this compile landed.
-        // Per-launcher fields (evaluator, metaBuildReadLease) get attached to the launcher's
-        // own copy below; [[SharedFrames.put]] strips them before storing.
-        val sharedForThisLauncher = RunnerState.MetaBuildFrame(
-          depth = depth,
-          classLoaderOpt = None, // filled in once we have a classloader to publish
+        def buildReusable(classLoader: mill.api.MillURLClassLoader) = RunnerState.ReusableFrame(
+          classLoader = classLoader,
           runClasspath = runClasspath,
-          compileOutput = Some(compileClasses),
+          compileOutput = compileClasses,
           codeSignatures = codeSignatures,
           buildOverrideFiles = buildOverrideFiles,
-          spanningInvalidationTree = Some(spanningInvalidationTree),
-          workerCacheSummary = RunnerState.Frame.summarizeWorkerCache(evaluator.workerCache),
+          spanningInvalidationTree = spanningInvalidationTree,
+          workerCacheSummary = RunnerState.Frame.summarizeWorkerCache(evaluator.workerCache)
+        )
+
+        def launcherFrame(
+            reusable: RunnerState.ReusableFrame,
+            lease: WorkspaceLocking.ResourceLease
+        ) = RunnerState.MetaBuildFrame(
+          depth = depth,
+          reusable = Some(reusable),
           evalWatched = evalWatches,
           moduleWatched = moduleWatches,
-          evaluator = Some(evaluator)
+          evaluator = Some(evaluator),
+          metaBuildReadLease = Some(lease)
         )
 
         // Happy path: read lease + reuse the published frame. On miss, drop the read
@@ -380,19 +379,16 @@ class MillBuildBootstrap(
         val readLease = acquireMetaBuildLock(WorkspaceLocking.LockKind.Read)
         val frame = closeOnThrow(readLease) {
           val published = sharedState.get().metaBuildFrameAt(depth)
-          if (published.exists(_.classLoaderOpt.isDefined) && !needsClassloaderRefresh(published))
-            sharedForThisLauncher.copy(
-              classLoaderOpt = published.get.classLoaderOpt,
-              metaBuildReadLease = Some(readLease)
-            )
+          if (published.flatMap(_.reusable).isDefined && !needsClassloaderRefresh(published))
+            launcherFrame(published.get.reusable.get, readLease)
           else {
             readLease.close()
             val writeLease = acquireMetaBuildLock(WorkspaceLocking.LockKind.Write)
             closeOnThrow(writeLease) {
               val latest = sharedState.get().metaBuildFrameAt(depth)
-              val classLoader =
-                if (!needsClassloaderRefresh(latest) && latest.exists(_.classLoaderOpt.isDefined))
-                  latest.get.classLoaderOpt.get
+              val reusable =
+                if (!needsClassloaderRefresh(latest) && latest.flatMap(_.reusable).isDefined)
+                  latest.get.reusable.get
                 else {
                   // Close any classloaders we're about to replace. Workers at this depth
                   // are handled by SharedWorkerCache.forDepth (called in makeEvaluator).
@@ -400,16 +396,19 @@ class MillBuildBootstrap(
                     prevCommandState.metaBuildFrameAt(depth).flatMap(_.classLoaderOpt),
                     latest.flatMap(_.classLoaderOpt)
                   ).flatten.distinct.foreach(_.close())
-                  val cl = createClassLoader()
-                  val published = sharedForThisLauncher.copy(classLoaderOpt = Some(cl)).stripped
-                  sharedState.updateAndGet(_.withMetaBuildFrame(published))
-                  cl
+                  val fresh = buildReusable(createClassLoader())
+                  sharedState.updateAndGet(_.withMetaBuildFrame(
+                    RunnerState.MetaBuildFrame(
+                      depth = depth,
+                      reusable = Some(fresh),
+                      evalWatched = Nil,
+                      moduleWatched = Nil
+                    )
+                  ))
+                  fresh
                 }
               writeLease.downgradeToRead()
-              sharedForThisLauncher.copy(
-                classLoaderOpt = Some(classLoader),
-                metaBuildReadLease = Some(writeLease)
-              )
+              launcherFrame(reusable, writeLease)
             }
           }
         }
