@@ -55,10 +55,10 @@ object WorkspaceLockingTests extends TestSuite {
         assert(os.exists(out / OutFiles.millDependencyTree))
         assert(os.exists(out / OutFiles.millInvalidationTree))
 
-        assert(Files.isSymbolicLink((out / OutFiles.millProfile).toNIO))
-        assert(Files.isSymbolicLink((out / OutFiles.millChromeProfile).toNIO))
-        assert(Files.isSymbolicLink((out / OutFiles.millDependencyTree).toNIO))
-        assert(Files.isSymbolicLink((out / OutFiles.millInvalidationTree).toNIO))
+        assert(os.isLink(out / OutFiles.millProfile))
+        assert(os.isLink(out / OutFiles.millChromeProfile))
+        assert(os.isLink(out / OutFiles.millDependencyTree))
+        assert(os.isLink(out / OutFiles.millInvalidationTree))
         assert(Files.readSymbolicLink(
           (out / OutFiles.millProfile).toNIO
         ).toString.startsWith("mill-run/"))
@@ -80,10 +80,10 @@ object WorkspaceLockingTests extends TestSuite {
         assert(os.read(out / OutFiles.millChromeProfile) == "chrome")
         assert(os.read(out / OutFiles.millDependencyTree) == """{"kind":"dependency"}""")
         assert(os.read(out / OutFiles.millInvalidationTree) == """{"kind":"invalidation"}""")
-        assert(Files.isSymbolicLink((out / OutFiles.millProfile).toNIO))
-        assert(Files.isSymbolicLink((out / OutFiles.millChromeProfile).toNIO))
-        assert(Files.isSymbolicLink((out / OutFiles.millDependencyTree).toNIO))
-        assert(Files.isSymbolicLink((out / OutFiles.millInvalidationTree).toNIO))
+        assert(os.isLink(out / OutFiles.millProfile))
+        assert(os.isLink(out / OutFiles.millChromeProfile))
+        assert(os.isLink(out / OutFiles.millDependencyTree))
+        assert(os.isLink(out / OutFiles.millInvalidationTree))
         assert(Files.readSymbolicLink(
           (out / OutFiles.millProfile).toNIO
         ).toString.startsWith("mill-run/"))

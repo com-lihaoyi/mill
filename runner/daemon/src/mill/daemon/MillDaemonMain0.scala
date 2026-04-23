@@ -89,6 +89,7 @@ class MillDaemonMain0(
   // Hold the file-level lock on out/ for the daemon's lifetime.
   // This excludes --no-daemon processes from the same workspace while still
   // allowing intra-daemon concurrency (file locks are per-process in Java).
+  @scala.annotation.nowarn("msg=unused private member")
   private val outFileLockLease = outFileLock.lock()
 
   def main0(

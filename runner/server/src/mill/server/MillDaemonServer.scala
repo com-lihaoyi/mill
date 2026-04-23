@@ -34,7 +34,6 @@ abstract class MillDaemonServer[State](
   private val stateCache = new AtomicReference[State](initialStateCache)
 
   protected def snapshotStateCache(): State = stateCache.get()
-  protected def publishStateCache(newState: State): Unit = stateCache.set(newState)
   protected def modifyStateCache(f: State => State): Unit =
     stateCache.updateAndGet(new UnaryOperator[State] {
       override def apply(t: State): State = f(t)

@@ -32,6 +32,15 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
     }
   }
 
+  private def awaitActiveLauncherPid(workspacePath: os.Path, command: String): Long = {
+    var pid = Option.empty[Long]
+    assertEventually {
+      pid = activeLauncherPid(workspacePath, command)
+      pid.nonEmpty
+    }
+    pid.get
+  }
+
   def tests: Tests = Tests {
     test("taskLocks") - integrationTest { tester =>
       import tester.*
@@ -54,12 +63,10 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
           os.isLink(workspacePath / "out" / OutFiles.millDependencyTree) &&
           os.isLink(workspacePath / "out" / OutFiles.millInvalidationTree)
         }
-        assertEventually(activeLauncherPid(
+        val blockerPid = awaitActiveLauncherPid(
           workspacePath,
           s"blockWhileExists --path $signalFile1"
-        ).nonEmpty)
-        val blockerPid =
-          activeLauncherPid(workspacePath, s"blockWhileExists --path $signalFile1").get
+        )
 
         // Same task should fail immediately in no-wait mode
         val noWaitRes = eval(

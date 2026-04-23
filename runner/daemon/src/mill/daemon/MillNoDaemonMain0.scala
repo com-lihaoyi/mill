@@ -55,7 +55,7 @@ object MillNoDaemonMain0 {
           args = args.rest.toArray,
           stateCache = RunnerState.ReusableSnapshot.empty,
           snapshotPublishedState = () => RunnerState.ReusableSnapshot.empty,
-          publishReusableState = MillMain0.noopPublishReusableState,
+          publishReusableState = (_, _) => (),
           mainInteractive = mill.constants.Util.hasConsole(),
           streams0 = initialSystemStreams,
           env = System.getenv().asScala.toMap,

@@ -281,7 +281,9 @@ trait GroupExecution {
         )
 
         // Retained leases stay alive until the outermost executeTasks finishes so downstream
-        // tasks see a stable dest dir. Non-final-depth write locks are inert NoopManager leases.
+        // tasks see a stable dest dir. Applies at every depth: at meta-build depths the
+        // lease protects the per-task dest under out/mill-build from concurrent writers,
+        // at the final depth it protects the per-task dest under out/.
         val retainedLeases = java.util.Collections.newSetFromMap(
           new java.util.IdentityHashMap[WorkspaceLocking.ResourceLease, java.lang.Boolean]
         )
@@ -297,7 +299,7 @@ trait GroupExecution {
           }
 
         def acquireTaskWriteLock(): WorkspaceLocking.ResourceLease =
-          (if (isFinalDepth) workspaceLockManager else WorkspaceLocking.NoopManager)
+          workspaceLockManager
             .acquireLock(GroupExecution.taskLockResource(labelled, outPath, externalOutPath))
 
         def withTaskWriteLock[T](t: WorkspaceLocking.ResourceLease => T): T = {
@@ -350,13 +352,11 @@ trait GroupExecution {
             )
           }
 
-          val readLeaseOpt =
-            Option.when(isFinalDepth) {
-              workspaceLockManager.acquireLock(
-                GroupExecution.taskLockResource(labelled, outPath, externalOutPath)
-                  .copy(kind = WorkspaceLocking.LockKind.Read)
-              )
-            }
+          val readLease =
+            workspaceLockManager.acquireLock(
+              GroupExecution.taskLockResource(labelled, outPath, externalOutPath)
+                .copy(kind = WorkspaceLocking.LockKind.Read)
+            )
 
           val readLockedResult =
             try loadCachedOrWorker(
@@ -365,17 +365,17 @@ trait GroupExecution {
               )
             catch {
               case e: Throwable =>
-                readLeaseOpt.foreach(_.close())
+                readLease.close()
                 throw e
             }
 
           readLockedResult match {
             case Some(res) =>
-              readLeaseOpt.foreach(retainOrClose(_, shouldRetain = true))
+              retainOrClose(readLease, shouldRetain = true)
               res
 
             case None =>
-              readLeaseOpt.foreach(retainOrClose(_, shouldRetain = false))
+              retainOrClose(readLease, shouldRetain = false)
               withTaskWriteLock { writeLease =>
                 // Re-read under the write lock: a sibling writer may have populated
                 // the cache while we were waiting for the lock.

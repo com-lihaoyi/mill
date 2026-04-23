@@ -89,7 +89,7 @@ trait ClientServerTestsBase extends TestSuite {
         streams.out.flush()
         streams.err.flush()
       }
-      (true, None)
+      true
     }
   }
 

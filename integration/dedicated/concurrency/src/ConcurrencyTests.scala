@@ -43,6 +43,15 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
     }
   }
 
+  private def awaitActiveLauncherPid(tester: IntegrationTester.Impl, command: String): Long = {
+    var pid = Option.empty[Long]
+    assertEventually {
+      pid = activeLauncherPid(tester, command)
+      pid.nonEmpty
+    }
+    pid.get
+  }
+
   private def combinedText(launcher: mill.testkit.IntegrationTester.SpawnedProcess): String =
     launcher.out.text() + "\n" + launcher.err.text()
 
@@ -59,8 +68,7 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
 
       val launcher1 = spawn(("runSameTask"))
       assertEventually(combinedText(launcher1).contains(enteredMarker("same-task")))
-      assertEventually(activeLauncherPid(tester, "runSameTask").nonEmpty)
-      val blockerPid = activeLauncherPid(tester, "runSameTask").get
+      val blockerPid = awaitActiveLauncherPid(tester, "runSameTask")
 
       val launcher2 = spawn(("runSameTask"))
       assertEventually(blockedBy(launcher2, "runSameTask", blockerPid))
@@ -86,8 +94,7 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
 
       val launcher1 = spawn(("runLeft"))
       assertEventually(combinedText(launcher1).contains(enteredMarker("shared")))
-      assertEventually(activeLauncherPid(tester, "runLeft").nonEmpty)
-      val blockerPid = activeLauncherPid(tester, "runLeft").get
+      val blockerPid = awaitActiveLauncherPid(tester, "runLeft")
 
       val launcher2 = spawn(("runShared"))
       assertEventually(blockedBy(launcher2, "runLeft", blockerPid))
@@ -147,8 +154,7 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
 
       val launcher1 = spawn(("runHoldMetaBuildRead"))
       assertEventually(combinedText(launcher1).contains(enteredMarker("meta-build-read")))
-      assertEventually(activeLauncherPid(tester, "runHoldMetaBuildRead").nonEmpty)
-      val blockerPid = activeLauncherPid(tester, "runHoldMetaBuildRead").get
+      val blockerPid = awaitActiveLauncherPid(tester, "runHoldMetaBuildRead")
 
       modifyFile(workspacePath / "build.mill", _.replace("val fastSuffix = 0", "val fastSuffix = 1"))
 
@@ -181,8 +187,7 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
 
       val launcher1 = spawn(("runUseWorker"))
       assertEventually(combinedText(launcher1).contains(enteredMarker("worker-use")))
-      assertEventually(activeLauncherPid(tester, "runUseWorker").nonEmpty)
-      val blockerPid = activeLauncherPid(tester, "runUseWorker").get
+      val blockerPid = awaitActiveLauncherPid(tester, "runUseWorker")
 
       os.write.over(versionFile, "1")
       val launcher2 = spawn(("runUseWorker"))

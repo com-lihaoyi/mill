@@ -34,8 +34,6 @@ import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Using}
 
 object MillMain0 {
-  val noopPublishReusableState: (Int, Seq[RunnerState.Frame]) => Unit = (_, _) => ()
-
   def handleMillException[T](
       err: PrintStream,
       onError: => T

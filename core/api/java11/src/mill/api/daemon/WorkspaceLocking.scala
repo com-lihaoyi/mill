@@ -31,8 +31,6 @@ object WorkspaceLocking {
     // like Execution may be loaded by a MillURLClassLoader. os.Path is NOT in the
     // shared prefixes, so using it here would cause LinkageError.
     def consoleTailJava: java.nio.file.Path
-    def noBuildLock: Boolean
-    def noWaitForBuildLock: Boolean
 
     /** Returns a per-run path for well-known out/ artifacts in daemon mode. */
     def runFileJava(default: java.nio.file.Path): java.nio.file.Path = default
@@ -56,8 +54,6 @@ object WorkspaceLocking {
     override def runId: String = "noop"
     override def consoleTailJava: java.nio.file.Path =
       java.nio.file.Path.of("out", "mill-console-tail")
-    override def noBuildLock: Boolean = false
-    override def noWaitForBuildLock: Boolean = false
     override def acquireLock(resource0: Resource): ResourceLease = new ResourceLease {
       override def resource: Resource = resource0
       override def kind: LockKind = resource0.kind
@@ -327,14 +323,13 @@ object WorkspaceLocking {
       activeCommandMessage: String,
       launcherPid: Long,
       waitingErr: PrintStream,
-      override val noBuildLock: Boolean,
-      override val noWaitForBuildLock: Boolean
+      noBuildLock: Boolean,
+      noWaitForBuildLock: Boolean
   ) extends Manager {
     override val runId: String =
       s"${System.currentTimeMillis()}-${nextTiebreaker.getAndIncrement()}"
 
-    private val runRootDir: os.Path = out / runRootDirName
-    private val runDir: os.Path = runRootDir / runId
+    private val runDir: os.Path = out / runRootDirName / runId
     os.makeDir.all(runDir)
     private val launcherRunFile = daemonDir / os.RelPath(DaemonFiles.launcherRun(runId))
     private val closed = new AtomicBoolean(false)
@@ -419,13 +414,16 @@ object WorkspaceLocking {
       }
     }
 
-    override def acquireLock(resource0: Resource): ResourceLease =
-      {
-        val lockEntryOpt = Option.when(!noBuildLock)(acquire(resource0))
+    override def acquireLock(resource0: Resource): ResourceLease = {
+      if (noBuildLock) {
         publishRun()
-        if (noBuildLock) NoopManager.acquireLock(resource0)
-        else new InProcessResourceLease(resource0, lockEntryOpt.get)
+        NoopManager.acquireLock(resource0)
+      } else {
+        val lockEntry = acquire(resource0)
+        publishRun()
+        new InProcessResourceLease(resource0, lockEntry)
       }
+    }
 
     override def acquireLocks(resources: Seq[Resource]): Lease =
       if (noBuildLock || resources.isEmpty) {
