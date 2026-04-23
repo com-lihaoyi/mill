@@ -14,16 +14,19 @@ import upickle.{ReadWriter, macroRW}
  * the daemon-wide shared state held in an `AtomicReference[RunnerState]` (with
  * only the shared parts of meta-build frames populated and [[finalFrame]] empty).
  *
- * - [[metaBuildFrames]] contains one [[RunnerState.MetaBuildFrame]] per meta-build
- *   depth. Most of a meta-build frame's fields are deterministic in the
- *   meta-build source and safe to share across concurrent launchers; the
+ * - [[metaBuildFrames]] is indexed by meta-build depth and contains one
+ *   [[RunnerState.MetaBuildFrame]] per depth that has been compiled, with
+ *   [[RunnerState.MetaBuildFrame.empty]] filling depths that have no frame. Most of a
+ *   meta-build frame's fields are deterministic in the meta-build source and
+ *   safe to share across concurrent launchers; the
  *   [[RunnerState.MetaBuildFrame.evaluator]] and
  *   [[RunnerState.MetaBuildFrame.metaBuildReadLease]] fields are only populated
  *   in per-launcher states.
- * - [[finalFrame]] holds the launcher-unique state from running the user's tasks
- *   at `requestedDepth`. It has no shared data because nothing about it is
- *   deterministic enough to cache across launchers, and is never present in the
- *   daemon-wide shared state.
+ * - [[finalFrames]] is indexed by requested depth and holds the launcher-unique
+ *   state from running the user's tasks, with [[RunnerState.FinalFrame.empty]]
+ *   filling depths that have no final frame. It has no shared data because nothing
+ *   about it is deterministic enough to cache across launchers, and is never
+ *   present in the daemon-wide shared state.
  * - [[moduleWatchedByDepth]] carries only the module-level watch snapshots that
  *   later runs need to decide whether a shared classloader must be refreshed.
  *
@@ -39,21 +42,34 @@ case class RunnerState(
     // a bootstrap failure produces no frames to carry them.
     bootstrapEvalWatched: Seq[Watchable] = Nil,
     metaBuildFrames: Seq[RunnerState.MetaBuildFrame] = Nil,
-    finalFrame: Option[RunnerState.FinalFrame] = None,
+    finalFrames: Seq[RunnerState.FinalFrame] = Nil,
     moduleWatchedByDepth: Map[Int, Seq[Watchable]] = Map.empty,
     closeables: Seq[AutoCloseable] = Nil
 ) extends Watching.Result
     with AutoCloseable {
   import RunnerState.*
 
-  /** Insert or replace the [[MetaBuildFrame]] at `frame.depth`. */
-  def withMetaBuildFrame(frame: MetaBuildFrame): RunnerState =
-    copy(metaBuildFrames = frame +: metaBuildFrames.filterNot(_.depth == frame.depth))
+  /** Insert or replace the [[MetaBuildFrame]] at `depth`. */
+  def withMetaBuildFrame(depth: Int, frame: MetaBuildFrame): RunnerState =
+    copy(metaBuildFrames = updatedAt(metaBuildFrames, depth, frame, MetaBuildFrame.empty))
 
   def metaBuildFrameAt(depth: Int): Option[MetaBuildFrame] =
-    metaBuildFrames.find(_.depth == depth)
+    frameAt(metaBuildFrames, depth)(_.nonEmpty)
 
-  def withFinalFrame(frame: FinalFrame): RunnerState = copy(finalFrame = Some(frame))
+  def withFinalFrame(depth: Int, frame: FinalFrame): RunnerState =
+    copy(finalFrames = updatedAt(Nil, depth, frame, FinalFrame.empty))
+
+  def finalFrame: Option[FinalFrame] =
+    finalFrames.find(_.nonEmpty)
+
+  def finalFrameAt(depth: Int): Option[FinalFrame] =
+    frameAt(finalFrames, depth)(_.nonEmpty)
+
+  def metaBuildFramesWithDepth: Seq[(Int, MetaBuildFrame)] =
+    framesWithDepth(metaBuildFrames)(_.nonEmpty)
+
+  def finalFramesWithDepth: Seq[(Int, FinalFrame)] =
+    framesWithDepth(finalFrames)(_.nonEmpty)
 
   def withError(err: String): RunnerState = copy(errorOpt = Some(err))
 
@@ -65,12 +81,16 @@ case class RunnerState(
 
   def moduleWatchedAt(depth: Int): Option[Seq[Watchable]] =
     metaBuildFrameAt(depth).map(_.moduleWatched)
-      .orElse(finalFrame.filter(_.depth == depth).map(_.moduleWatched))
+      .orElse(finalFrameAt(depth).map(_.moduleWatched))
       .orElse(moduleWatchedByDepth.get(depth))
 
   def watched: Seq[Watchable] =
-    metaBuildFrames.flatMap(f => f.evalWatched ++ f.moduleWatched) ++
-      finalFrame.iterator.flatMap(f => f.evalWatched ++ f.moduleWatched).toSeq ++
+    metaBuildFrames.iterator.filter(_.nonEmpty).flatMap(f =>
+      f.evalWatched ++ f.moduleWatched
+    ).toSeq ++
+      finalFrames.iterator.filter(_.nonEmpty).flatMap(f =>
+        f.evalWatched ++ f.moduleWatched
+      ).toSeq ++
       bootstrapEvalWatched
 
   /**
@@ -79,16 +99,27 @@ case class RunnerState(
    * expect the workspace evaluator at `headOption`.
    */
   def allEvaluators: Seq[EvaluatorApi] =
-    finalFrame.iterator.map(_.evaluator).toSeq ++
-      metaBuildFrames.sortBy(_.depth).flatMap(_.evaluator)
+    finalFrame.flatMap(_.evaluator).toSeq ++
+      metaBuildFrames.flatMap(_.evaluator)
 
   override def close(): Unit = {
     // Only release locking leases. Workers live in the process-level
     // SharedWorkerCache and must not be closed when a command finishes,
     // since they may be shared with concurrent or subsequent commands.
-    metaBuildFrames.iterator.foreach(_.metaBuildReadLease.foreach(_.close()))
+    metaBuildFrames.foreach(_.metaBuildReadLease.foreach(_.close()))
     closeables.foreach(_.close())
   }
+
+  private def frameAt[T](frames: Seq[T], depth: Int)(isNonEmpty: T => Boolean): Option[T] =
+    if (depth < 0) None else frames.lift(depth).filter(isNonEmpty)
+
+  private def updatedAt[T](frames: Seq[T], depth: Int, frame: T, empty: T): Seq[T] = {
+    require(depth >= 0, s"Frame depth must be non-negative, got $depth")
+    frames.padTo(depth + 1, empty).updated(depth, frame)
+  }
+
+  private def framesWithDepth[T](frames: Seq[T])(isNonEmpty: T => Boolean): Seq[(Int, T)] =
+    frames.zipWithIndex.collect { case (frame, depth) if isNonEmpty(frame) => depth -> frame }
 }
 
 object RunnerState {
@@ -126,13 +157,19 @@ object RunnerState {
    */
   @internal
   case class MetaBuildFrame(
-      depth: Int,
       reusable: Option[ReusableFrame],
       evalWatched: Seq[Watchable],
       moduleWatched: Seq[Watchable],
       evaluator: Option[EvaluatorApi] = None,
       metaBuildReadLease: Option[mill.api.daemon.WorkspaceLocking.Lease] = None
   ) {
+    def nonEmpty: Boolean =
+      reusable.nonEmpty ||
+        evalWatched.nonEmpty ||
+        moduleWatched.nonEmpty ||
+        evaluator.nonEmpty ||
+        metaBuildReadLease.nonEmpty
+
     def classLoaderOpt: Option[MillURLClassLoader] = reusable.map(_.classLoader)
     def runClasspath: Seq[PathRefApi] = reusable.map(_.runClasspath).getOrElse(Nil)
     def compileOutput: Option[PathRefApi] = reusable.map(_.compileOutput)
@@ -153,15 +190,14 @@ object RunnerState {
   }
 
   object MetaBuildFrame {
+    def empty: MetaBuildFrame = MetaBuildFrame(None, Nil, Nil)
 
     /** A failed-compile frame: no [[ReusableFrame]], just watches so `--watch` can retry. */
     def failed(
-        depth: Int,
         evaluator: EvaluatorApi,
         evalWatched: Seq[Watchable],
         moduleWatched: Seq[Watchable]
     ): MetaBuildFrame = MetaBuildFrame(
-      depth = depth,
       reusable = None,
       evalWatched = evalWatched,
       moduleWatched = moduleWatched,
@@ -172,16 +208,28 @@ object RunnerState {
   /**
    * The frame at `requestedDepth` where user-visible tasks ran. Carries only
    * per-launcher data: the evaluator and the watched sets recorded during this
-   * evaluation. [[depth]] is whatever `requestedDepth` resolved to for this run.
+   * evaluation. Its depth is its position in [[RunnerState.finalFrames]].
    */
   @internal
   case class FinalFrame(
-      depth: Int,
-      evaluator: EvaluatorApi,
+      evaluator: Option[EvaluatorApi],
       evalWatched: Seq[Watchable],
       moduleWatched: Seq[Watchable]
   ) {
+    def nonEmpty: Boolean =
+      evaluator.nonEmpty || evalWatched.nonEmpty || moduleWatched.nonEmpty
+
     def loggedData: Frame.Logged = Frame.loggedFor(Map.empty, evalWatched, moduleWatched, None, Nil)
+  }
+
+  object FinalFrame {
+    def empty: FinalFrame = FinalFrame(None, Nil, Nil)
+
+    def apply(
+        evaluator: EvaluatorApi,
+        evalWatched: Seq[Watchable],
+        moduleWatched: Seq[Watchable]
+    ): FinalFrame = FinalFrame(Some(evaluator), evalWatched, moduleWatched)
   }
 
   object Frame {

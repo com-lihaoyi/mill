@@ -101,15 +101,15 @@ class MillBuildBootstrap(
         upickle.write(logged, indent = 4),
         createFolders = true
       )
-    for (frame <- runnerState.metaBuildFrames) write(frame.depth, frame.loggedData)
-    for (frame <- runnerState.finalFrame) write(frame.depth, frame.loggedData)
+    for ((depth, frame) <- runnerState.metaBuildFramesWithDepth) write(depth, frame.loggedData)
+    for ((depth, frame) <- runnerState.finalFramesWithDepth) write(depth, frame.loggedData)
 
     runnerState
   }
 
   /** Total depths already processed in `nestedState`: meta-build frames + final frame. */
   private def processedDepths(state: RunnerState): Int =
-    state.metaBuildFrames.size + state.finalFrame.size
+    state.metaBuildFramesWithDepth.size + state.finalFrame.size
 
   def evaluateRec(depth: Int): RunnerState = logger.withChromeProfile(s"meta-level $depth") {
     // println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
@@ -300,7 +300,8 @@ class MillBuildBootstrap(
       case (f: Result.Failure, evalWatches, moduleWatches) =>
         nestedState
           .withMetaBuildFrame(
-            RunnerState.MetaBuildFrame.failed(depth, evaluator, evalWatches, moduleWatches)
+            depth,
+            RunnerState.MetaBuildFrame.failed(evaluator, evalWatches, moduleWatches)
           )
           .withError(mill.internal.Util.formatError(f, logger.prompt.errorColor))
 
@@ -373,7 +374,6 @@ class MillBuildBootstrap(
             reusable: RunnerState.ReusableFrame,
             lease: WorkspaceLocking.ResourceLease
         ) = RunnerState.MetaBuildFrame(
-          depth = depth,
           reusable = Some(reusable),
           evalWatched = evalWatches,
           moduleWatched = moduleWatches,
@@ -407,8 +407,8 @@ class MillBuildBootstrap(
                   ).flatten.distinct.foreach(_.close())
                   val fresh = buildReusable(createClassLoader())
                   sharedState.updateAndGet(_.withMetaBuildFrame(
+                    depth,
                     RunnerState.MetaBuildFrame(
-                      depth = depth,
                       reusable = Some(fresh),
                       evalWatched = evalWatches,
                       moduleWatched = moduleWatches
@@ -421,7 +421,7 @@ class MillBuildBootstrap(
             }
           }
         }
-        nestedState.withMetaBuildFrame(frame)
+        nestedState.withMetaBuildFrame(depth, frame)
 
       case unknown => sys.error(unknown.toString())
     }
@@ -448,7 +448,8 @@ class MillBuildBootstrap(
     )
 
     val withFinal = nestedState.withFinalFrame(
-      RunnerState.FinalFrame(depth, evaluator, evalWatched, moduleWatched)
+      depth,
+      RunnerState.FinalFrame(evaluator, evalWatched, moduleWatched)
     )
     sharedState.getAndUpdate(_.withModuleWatched(depth, moduleWatched))
     evaled match {

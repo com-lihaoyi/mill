@@ -372,8 +372,7 @@ object WorkspaceLocking {
               os.makeDir.all(launcherRunFile / os.up)
               os.write.over(launcherRunFile, json)
             }
-          }
-          catch { case _: Throwable => }
+          } catch { case _: Throwable => }
         }
       }
     }
@@ -523,10 +522,14 @@ object WorkspaceLocking {
     }
 
     private def retainLockEntry(resource: Resource): LockEntry = resourceOwnersLock.synchronized {
-      val entry = lockTable.computeIfAbsent(resource.key, _ => new LockEntry(
-        new Semaphore(maxPermits, true),
-        0
-      ))
+      val entry = lockTable.computeIfAbsent(
+        resource.key,
+        _ =>
+          new LockEntry(
+            new Semaphore(maxPermits, true),
+            0
+          )
+      )
       entry.refCount += 1
       entry
     }

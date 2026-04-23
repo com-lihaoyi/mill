@@ -205,7 +205,11 @@ object WorkspaceLockingTests extends TestSuite {
         ))
 
         assert(topLevelProfile != metaBuildProfile)
-        assert(topLevelProfile.relativeTo(out).segments == Seq("mill-run", manager.runId, OutFiles.millProfile))
+        assert(topLevelProfile.relativeTo(out).segments == Seq(
+          "mill-run",
+          manager.runId,
+          OutFiles.millProfile
+        ))
         assert(metaBuildProfile.relativeTo(out).segments == Seq(
           "mill-run",
           manager.runId,
@@ -255,7 +259,8 @@ object WorkspaceLockingTests extends TestSuite {
         @volatile var secondReadLease: WorkspaceLocking.ResourceLease = null
 
         val writerThread = new Thread(() => {
-          writerLease = writerManager.acquireLock(resource.copy(kind = WorkspaceLocking.LockKind.Write))
+          writerLease =
+            writerManager.acquireLock(resource.copy(kind = WorkspaceLocking.LockKind.Write))
           writerAcquired.countDown()
           releaseWriter.await(5, TimeUnit.SECONDS)
           writerLease.close()
@@ -308,14 +313,16 @@ object WorkspaceLockingTests extends TestSuite {
         val firstReaderManager = manager("first-reader")
         val writerManager = manager("writer")
         val noWaitReaderManager = manager("no-wait-reader", noWait = true)
-        val resource = WorkspaceLocking.Resource("no-wait-fair-resource", WorkspaceLocking.LockKind.Read)
+        val resource =
+          WorkspaceLocking.Resource("no-wait-fair-resource", WorkspaceLocking.LockKind.Read)
         val firstReadLease = firstReaderManager.acquireLock(resource)
         val writerAcquired = new CountDownLatch(1)
         val releaseWriter = new CountDownLatch(1)
         @volatile var writerLease: WorkspaceLocking.ResourceLease = null
 
         val writerThread = new Thread(() => {
-          writerLease = writerManager.acquireLock(resource.copy(kind = WorkspaceLocking.LockKind.Write))
+          writerLease =
+            writerManager.acquireLock(resource.copy(kind = WorkspaceLocking.LockKind.Write))
           writerAcquired.countDown()
           releaseWriter.await(5, TimeUnit.SECONDS)
           writerLease.close()

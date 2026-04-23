@@ -154,7 +154,10 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       assertEventually(combinedText(launcher1).contains(enteredMarker("meta-build-read")))
       val blockerPid = awaitActiveLauncherPid(tester, "runHoldMetaBuildRead")
 
-      modifyFile(workspacePath / "build.mill", _.replace("val fastSuffix = 0", "val fastSuffix = 1"))
+      modifyFile(
+        workspacePath / "build.mill",
+        _.replace("val fastSuffix = 0", "val fastSuffix = 1")
+      )
 
       val launcher2 = spawn(("runShared"))
       assertEventually(blockedBy(launcher2, "runHoldMetaBuildRead", blockerPid))
