@@ -150,7 +150,7 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       assertEventually(activeLauncherPid(tester, "runHoldMetaBuildRead").nonEmpty)
       val blockerPid = activeLauncherPid(tester, "runHoldMetaBuildRead").get
 
-      modifyFile(workspacePath / "build.mill", _ + "\n// force meta-build refresh\n")
+      modifyFile(workspacePath / "build.mill", _.replace("val fastSuffix = 0", "val fastSuffix = 1"))
 
       val launcher2 = spawn(("runShared"))
       assertEventually(blockedBy(launcher2, "runHoldMetaBuildRead", blockerPid))
@@ -163,7 +163,7 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
 
       assert(launcher1.process.exitCode() == 0)
       assert(launcher2.process.exitCode() == 0)
-      assert(launcher1.out.text().contains("0.13.1"))
+      assert(launcher1.out.text().contains("fast-value-0"))
       assert(launcher2.out.text().contains("shared-value"))
     }
   }

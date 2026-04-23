@@ -1,9 +1,10 @@
 package build
 
 import mill.*
-import constant.Constant
 
 object `package` extends mill.Module {
+  val fastSuffix = 0
+
   private def workspace = mill.api.BuildCtx.workspaceRoot
 
   private def gate(name: String) = workspace / s"$name-wait"
@@ -59,7 +60,7 @@ object `package` extends mill.Module {
   }
 
   def fast = Task {
-    Constant.scalatagsVersion
+    s"fast-value-$fastSuffix"
   }
 
   def runFast() = Task.Command {
