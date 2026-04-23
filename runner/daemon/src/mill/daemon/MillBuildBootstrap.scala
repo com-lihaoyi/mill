@@ -328,12 +328,13 @@ class MillBuildBootstrap(
             createFolders = true
           )
 
-          mill.util.Jvm.createClassLoader(
+          val cl = mill.util.Jvm.createClassLoader(
             runClasspath.map(p => os.Path(p.javaPath)) :+ rootModuleInfoDir,
             null,
             sharedLoader = classOf[MillBuildBootstrap].getClassLoader,
             sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.api.daemon", "sbt.testing.")
           )
+          cl
         }
 
         // Check whether the published meta-build state at this depth needs a classloader refresh.
@@ -346,23 +347,16 @@ class MillBuildBootstrap(
           val runClasspathChanged = !publishedFrameOpt.exists(
             _.runClasspath.map(_.sig).sum == runClasspath.map(_.sig).sum
           )
-          // Some build-structure changes are only tracked via module watches on
-          // the final evaluated frames. If any such watch changed, conservatively
-          // refresh the classloader so root/build singletons get re-instantiated.
-          val anyModuleWatchesChanged = (
-            snapshotPublishedState().frames.iterator ++ prevCommandState.frames.iterator
-          ).exists(_.moduleWatched.exists(w => !Watching.haveNotChanged(w)))
-          // Handling module watching is a bit weird; for nested meta-builds the
-          // watches that determine whether this frame needs a new classloader are
-          // captured one level up in the recursion, after evaluation on that
-          // classloader completes. At depth 0 there is no outer frame, so we must
-          // fall back to the current frame's module watches to detect changes to
-          // the root build itself (e.g. build.mill changes).
-          val watchedFrames = Seq(publishedOuterFrameOpt, publishedFrameOpt).flatten.distinct
-          val watchedInputsChanged = watchedFrames.exists { frame =>
-            (frame.moduleWatched ++ frame.evalWatched).exists(w => !Watching.haveNotChanged(w))
-          }
-          runClasspathChanged || watchedInputsChanged || anyModuleWatchesChanged
+          // Handling module watching is a bit weird; we need to know whether
+          // to create a new classloader immediately after the `runClasspath`
+          // is compiled, but we only know what the respective `moduleWatched`
+          // contains after the evaluation on this classloader has executed, which
+          // happens one level up in the recursion. Thus, to check whether
+          // `moduleWatched` needs us to re-create the classloader, we have to
+          // look at the `moduleWatched` of one frame up, and not the current frame.
+          val moduleWatchChanged = publishedOuterFrameOpt
+            .exists(_.moduleWatched.exists(w => !Watching.haveNotChanged(w)))
+          runClasspathChanged || moduleWatchChanged
         }
 
         def snapshotFrames(): (Option[RunnerState.Frame], Option[RunnerState.Frame]) = {
@@ -375,14 +369,15 @@ class MillBuildBootstrap(
 
         def nextStateFor(
             classLoader: mill.api.MillURLClassLoader,
-            metaBuildReadLeaseOpt: Option[WorkspaceLocking.Lease]
+            metaBuildReadLeaseOpt: Option[WorkspaceLocking.Lease],
+            forceSpanningInvalidationTree: Boolean = false
         ) = {
           val (publishedFrameOpt, publishedOuterFrameOpt) = snapshotFrames()
           val needsUpdate = needsClassloaderRefresh(publishedFrameOpt, publishedOuterFrameOpt)
 
           val evalState = RunnerState.Frame(
             workerCacheSummary = RunnerState.Frame.summarizeWorkerCache(evaluator.workerCache),
-            evalWatched = evalWatches ++ nestedState.bootstrapEvalWatched,
+            evalWatched = evalWatches,
             moduleWatched = moduleWatches,
             codeSignatures = codeSignatures,
             classLoaderOpt = Some(classLoader),
@@ -392,7 +387,8 @@ class MillBuildBootstrap(
             evaluator = Option(evaluator),
             buildOverrideFiles = buildOverrideFiles,
             // Only pass the spanning tree when the published meta-build state changed
-            spanningInvalidationTree = Option.when(needsUpdate)(spanningInvalidationTree)
+            spanningInvalidationTree =
+              Option.when(forceSpanningInvalidationTree || needsUpdate)(spanningInvalidationTree)
           )
           nestedState.add(frame = evalState)
         }
@@ -436,11 +432,18 @@ class MillBuildBootstrap(
                   ).flatten.distinct
                   previousClassLoaders.foreach(_.close())
                   val cl = createClassLoader()
-                  publishReusableState(depth, nextStateFor(cl, None).frames)
+                  publishReusableState(
+                    depth,
+                    nextStateFor(cl, None, forceSpanningInvalidationTree = true).frames
+                  )
                   cl
                 }
               writeLease.downgradeToRead()
-              nextStateFor(classLoader, Some(writeLease))
+              nextStateFor(
+                classLoader,
+                Some(writeLease),
+                forceSpanningInvalidationTree = needsUpdate
+              )
             }
           }
         }

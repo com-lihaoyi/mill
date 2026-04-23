@@ -68,10 +68,7 @@ trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
         .sorted
 
       val expectedWatched = expectedWatched0.sorted
-      val optionalOuterBuild = tester.workspacePath / "build.mill"
-      val matchesWithOptionalOuterBuild =
-        frameWatched == optionalOuterBuild +: expectedWatched
-      assert(frameWatched == expectedWatched || matchesWithOptionalOuterBuild)
+      assert(frameWatched == expectedWatched)
     }
   }
 

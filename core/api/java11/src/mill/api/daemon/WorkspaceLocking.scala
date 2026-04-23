@@ -136,33 +136,34 @@ object WorkspaceLocking {
      */
     def cleanupOldRunDirs(): Unit = {
       try {
-        if (!os.exists(out)) return
-        lock.synchronized {
-          val activeRunDirs = runs.valuesIterator.filter(_.active).map(_.runDir).toSet
+        if (os.exists(out)) {
+          lock.synchronized {
+            val activeRunDirs = runs.valuesIterator.filter(_.active).map(_.runDir).toSet
 
-          val runRootDir = out / runRootDirName
-          val runDirs =
-            if (os.exists(runRootDir)) os.list(runRootDir).filter(os.isDir(_)).sortBy(_.last)
-            else Seq.empty
+            val runRootDir = out / runRootDirName
+            val runDirs =
+              if (os.exists(runRootDir)) os.list(runRootDir).filter(os.isDir(_)).sortBy(_.last)
+              else Seq.empty
 
-          val legacyRunDirs = os.list(out)
-            .filter(p => os.isDir(p) && p.last.startsWith(legacyRunDirPrefix))
-            .sortBy(_.last)
+            val legacyRunDirs = os.list(out)
+              .filter(p => os.isDir(p) && p.last.startsWith(legacyRunDirPrefix))
+              .sortBy(_.last)
 
-          val removable = runDirs.filterNot(activeRunDirs)
-          val toRemove =
-            removable.take(math.min(removable.size, math.max(0, runDirs.size - maxRetainedRuns)))
-          toRemove.foreach { dir =>
-            try os.remove.all(dir)
-            catch { case _: Throwable => }
+            val removable = runDirs.filterNot(activeRunDirs)
+            val toRemove =
+              removable.take(math.min(removable.size, math.max(0, runDirs.size - maxRetainedRuns)))
+            toRemove.foreach { dir =>
+              try os.remove.all(dir)
+              catch { case _: Throwable => }
+            }
+
+            legacyRunDirs.foreach { dir =>
+              try os.remove.all(dir)
+              catch { case _: Throwable => }
+            }
+
+            runs.retain((_, run) => os.exists(run.runDir))
           }
-
-          legacyRunDirs.foreach { dir =>
-            try os.remove.all(dir)
-            catch { case _: Throwable => }
-          }
-
-          runs.retain((_, run) => os.exists(run.runDir))
         }
       } catch {
         case _: Throwable => // best-effort cleanup
@@ -261,28 +262,28 @@ object WorkspaceLocking {
 
   private def unregisterOwner(resource: Resource, owner: LockOwner, kind: LockKind): Unit = {
     val owners = resourceOwnersTable.get(resource.key)
-    if (owners == null) return
-
-    val shouldRemove = owners.synchronized {
-      kind match {
-        case LockKind.Write =>
-          owners.writeOwnerOpt match {
-            case Some(existing) if existing.owner.runId == owner.runId =>
+    if (owners != null) {
+      val shouldRemove = owners.synchronized {
+        kind match {
+          case LockKind.Write =>
+            owners.writeOwnerOpt match {
+              case Some(existing) if existing.owner.runId == owner.runId =>
+                existing.count -= 1
+                if (existing.count <= 0) owners.writeOwnerOpt = None
+              case _ =>
+            }
+          case LockKind.Read =>
+            owners.readOwners.get(owner.runId).foreach { existing =>
               existing.count -= 1
-              if (existing.count <= 0) owners.writeOwnerOpt = None
-            case _ =>
-          }
-        case LockKind.Read =>
-          owners.readOwners.get(owner.runId).foreach { existing =>
-            existing.count -= 1
-            if (existing.count <= 0) owners.readOwners.remove(owner.runId)
-          }
+              if (existing.count <= 0) owners.readOwners.remove(owner.runId)
+            }
+        }
+
+        owners.writeOwnerOpt.isEmpty && owners.readOwners.isEmpty
       }
 
-      owners.writeOwnerOpt.isEmpty && owners.readOwners.isEmpty
+      if (shouldRemove) resourceOwnersTable.remove(resource.key, owners)
     }
-
-    if (shouldRemove) resourceOwnersTable.remove(resource.key, owners)
   }
 
   private def downgradeOwner(resource: Resource, owner: LockOwner): Unit = {
@@ -349,8 +350,10 @@ object WorkspaceLocking {
             owner.command
           )},"resources":$resourcesJson}"""
       }
-      os.makeDir.all(launcherRunFile / os.up)
-      os.write.over(launcherRunFile, json)
+      mill.api.BuildCtx.withFilesystemCheckerDisabled {
+        os.makeDir.all(launcherRunFile / os.up)
+        os.write.over(launcherRunFile, json)
+      }
     }
 
     private def registerOwnedResource(resource: Resource): Unit = ownedResources.synchronized {
@@ -388,17 +391,22 @@ object WorkspaceLocking {
 
     override def close(): Unit = {
       coordinator.deactivate(activeRun)
-      try os.remove(launcherRunFile)
+      try mill.api.BuildCtx.withFilesystemCheckerDisabled {
+          os.remove(launcherRunFile)
+        }
       catch { case _: Throwable => }
       coordinator.cleanupOldRunDirs()
     }
 
     override def acquireLock(resource0: Resource): ResourceLease =
-      if (noBuildLock) new ResourceLease {
-        override def resource: Resource = resource0
-        override def kind: LockKind = resource0.kind
-        override def downgradeToRead(): ResourceLease = this
-        override def close(): Unit = ()
+      if (noBuildLock) {
+        publishRun()
+        new ResourceLease {
+          override def resource: Resource = resource0
+          override def kind: LockKind = resource0.kind
+          override def downgradeToRead(): ResourceLease = this
+          override def close(): Unit = ()
+        }
       }
       else {
         acquire(resource0)

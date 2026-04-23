@@ -10,12 +10,6 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
 
   import FullRunLogsUtils.normalize
 
-  private def waitForFile(path: os.Path): os.Path = {
-    val deadline = System.currentTimeMillis() + (if (sys.env.contains("CI")) 60000 else 15000)
-    while (!os.exists(path) && System.currentTimeMillis() < deadline) Thread.sleep(10)
-    path
-  }
-
   def tests: Tests = Tests {
     test("keepGoingFailure") - integrationTest { tester =>
       import tester.*
@@ -152,11 +146,9 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
       // like `show`, both outer and inner evaluations hae their metadata end up in the
       // same profile files so a user can see what's going on in either
       eval(("show", "compile"), propagateEnv = false)
-      val millProfilePath = waitForFile(workspacePath / OutFiles.out / "mill-profile.json")
-      val millChromeProfilePath =
-        waitForFile(workspacePath / OutFiles.out / "mill-chrome-profile.json")
-      val millProfile = ujson.read(os.read(millProfilePath)).arr
-      val millChromeProfile = ujson.read(os.read(millChromeProfilePath)).arr
+      val millProfile = ujson.read(os.read(workspacePath / OutFiles.out / "mill-profile.json")).arr
+      val millChromeProfile =
+        ujson.read(os.read(workspacePath / OutFiles.out / "mill-chrome-profile.json")).arr
       // Profile logs for the thing called by show
       assert(millProfile.exists(_.obj("label").str == "compile"))
       assert(millProfile.exists(_.obj("label").str == "compileClasspath"))

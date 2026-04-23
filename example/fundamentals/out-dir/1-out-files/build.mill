@@ -232,13 +232,9 @@ out/mill-runner-state.json
   "foo.sources": {
     "foo.allSources": {
       "foo.allSourceFiles": {
+        "foo.compile": {},
         "foo.zincIncrementalCompilation": {}
       }
-    }
-  },
-  "mill.javalib.JvmWorkerModule/internalWorkerClassLoader": {
-    "mill.javalib.JvmWorkerModule/internalWorker": {
-      "foo.compile": {}
     }
   }
 }
@@ -252,8 +248,9 @@ out/mill-runner-state.json
 //
 // Sometimes invalidation can be caused by a code change in your `build.mill`/`package.mill`
 // files, rather than by a change in the project's source files or inputs. In such cases,
-// `mill-invalidation-tree.json` will show the affected tasks and how the invalidation
-// propagates through the build definition to reach them.
+// `mill-invalidation-tree.json` will show the method-level code changes that caused the
+// invalidation, with `def` and `call` nodes showing how the code change propagates through
+// the build definition to reach the invalidated tasks.
 
 /** Usage
 
@@ -263,27 +260,18 @@ out/mill-runner-state.json
 
 > cat out/mill-invalidation-tree.json
 {
-  "foo.compileGeneratedSources": {
-    "foo.compile": {}
-  },
-  "foo.generatedSources": {
-    "foo.allSources": {}
-  },
-  "foo.wrappedSources": {
-    "foo.allSourceFiles": {
-      "foo.zincIncrementalCompilation": {}
-    }
-  },
-  "mill.javalib.JvmWorkerModule/internalWorkerClassLoader": {
-    "mill.javalib.JvmWorkerModule/internalWorker": {}
-  }
+  "def build_.package_$foo$#<init>(build_.package_)void": {
+    "foo.compileGeneratedSources": {
+      "foo.compile": {}
 ...
 
 */
 
-// In the `mill-invalidation-tree.json` above, we can see the task-level downstream effects
-// of changing the build definition. Mill now renders this invalidation tree in terms of the
-// affected tasks, rather than exposing the lower-level method/call graph that led to them.
+// In the `mill-invalidation-tree.json` above, we can see how the addition of the call
+// to `scala.Predef.println` caused the `<init>` constructor method of `build_.package_.foo`
+// to be invalidated, and ends up invalidating `def build_.package_#foo()` which is the method
+// representing the `build.foo` module. All tasks defined in that module (including `foo.compile`)
+// are shown as invalidated underneath.
 //
 // Mill's code-change invalidation analysis is _approximate_ and _conservative_. That means
 // that it invalidates each task when any method it calls (transitively) is changed. This may

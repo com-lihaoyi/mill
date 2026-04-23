@@ -9,15 +9,6 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
   implicit val retryMax: RetryMax = RetryMax((if (sys.env.contains("CI")) 120000 else 15000).millis)
   implicit val retryInterval: RetryInterval = RetryInterval(50.millis)
 
-  private def waitingMessageSeen(launcher: mill.testkit.IntegrationTester.SpawnedProcess): Boolean =
-    launcher.err.text().contains("Another Mill process with PID ") &&
-      launcher.err
-        .text()
-        .contains(" is running 'waitForExists --fileName file1.txt', waiting for it to be done...")
-
-  private def ranImmediately(launcher: mill.testkit.IntegrationTester.SpawnedProcess): Boolean =
-    launcher.out.text().contains("Hello i am cow")
-
   val tests: Tests = Tests {
     test("interrupt-blocked") - integrationTest { tester =>
       import tester.*
@@ -28,7 +19,14 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
       val launcher2 = spawn(("runNow", "--text", "i am cow"))
 
       assertEventually(
-        waitingMessageSeen(launcher2) || ranImmediately(launcher2)
+        launcher2.err.text().contains(
+          "Another Mill process with PID "
+        )
+      )
+      assertEventually(
+        launcher2.err.text().contains(
+          " is running 'waitForExists --fileName file1.txt', waiting for it to be done..."
+        )
       )
       launcher2.process.destroy(recursive = false)
       assertEventually(!launcher2.process.isAlive())
@@ -46,7 +44,14 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
       val launcher2 = spawn(("runNow", "--text", "i am cow"))
 
       assertEventually(
-        waitingMessageSeen(launcher2) || ranImmediately(launcher2)
+        launcher2.err.text().contains(
+          "Another Mill process with PID "
+        )
+      )
+      assertEventually(
+        launcher2.err.text().contains(
+          " is running 'waitForExists --fileName file1.txt', waiting for it to be done..."
+        )
       )
       launcher1.process.destroy(recursive = false)
       assertEventually(!launcher1.process.isAlive())

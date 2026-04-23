@@ -65,7 +65,9 @@ formatting build.mill
 formatted 4 files
 
 > ./mill spotless           # fast incremental format
-format completed
+1 java files are already formatted
+1 scala files are already formatted
+1 scala files are already formatted
 */
 
 // This demonstrates how different file groups can be formatted with a single command.
