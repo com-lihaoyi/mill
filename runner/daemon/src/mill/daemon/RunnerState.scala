@@ -100,7 +100,7 @@ object RunnerState {
       buildOverrideFiles: Map[java.nio.file.Path, String],
       // JSON string to avoid classloader issues when crossing classloader boundaries
       spanningInvalidationTree: Option[String]
-  ) extends AutoCloseable {
+  ) {
 
     def loggedData: Frame.Logged = {
       def loggedPaths(watched: Seq[Watchable]) =
@@ -123,13 +123,8 @@ object RunnerState {
       evaluator = None
     )
 
-    def releaseLocks(): Unit = {
+    def releaseLocks(): Unit =
       metaBuildReadLeaseOpt.foreach(_.close())
-    }
-
-    override def close(): Unit = {
-      releaseLocks()
-    }
   }
 
   object Frame {

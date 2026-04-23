@@ -17,14 +17,12 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
       workspacePath / "out" / OutFiles.millDaemon / os.RelPath(DaemonFiles.launcherRuns)
     if (!os.exists(launcherRuns)) None
     else {
-      val commandPattern = """"command"\s*:\s*"([^"]*)"""".r
-      val pidPattern = """"pid"\s*:\s*([0-9]+)""".r
       os.list(launcherRuns).iterator
         .filter(os.isFile(_))
         .flatMap { path =>
-          val json = os.read(path)
-          val fileCommand = commandPattern.findFirstMatchIn(json).map(_.group(1))
-          val filePid = pidPattern.findFirstMatchIn(json).flatMap(_.group(1).toLongOption)
+          val json = ujson.read(os.read(path)).obj
+          val fileCommand = json.get("command").map(_.str)
+          val filePid = json.get("pid").map(_.num.toLong)
           Option.when(fileCommand.contains(command))(filePid).flatten
         }
         .toSeq
@@ -53,8 +51,7 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
 
       if (tester.daemonMode) {
         // Different task should be able to run while the blocker holds its task lock
-        val helloRes = eval(("hello"), check = true)
-        assert(helloRes.exitCode == 0)
+        eval(("hello"), check = true)
 
         assertEventually {
           os.isLink(workspacePath / "out" / DaemonFiles.millConsoleTail) &&

@@ -472,21 +472,16 @@ object Server {
     else {
       val launcherRunsDir = daemonDir / DaemonFiles.launcherRuns
 
-      def readActiveInfo(): (command: String, processDir: Option[os.Path], pid: Option[Long]) = {
-        try {
-          os.list(launcherRunsDir).filter(os.isFile(_)).sortBy(_.last).lastOption match {
+      def readActiveInfo(): (command: String, pid: Option[Long]) =
+        try os.list(launcherRunsDir).filter(os.isFile(_)).sortBy(_.last).lastOption match {
             case Some(activeFile) =>
               val json = ujson.read(os.read(activeFile)).obj
               val command = json.get("command").map(_.str).getOrElse("<unknown>")
-              val processDir = json.get("processDir").map(v => os.Path(v.str))
               val pid = json.get("pid").map(_.num.toLong)
-              (command, processDir, pid)
-            case None => ("<unknown>", None, None)
+              (command, pid)
+            case None => ("<unknown>", None)
           }
-        } catch {
-          case NonFatal(_) => ("<unknown>", None, None)
-        }
-      }
+        catch { case NonFatal(_) => ("<unknown>", None) }
 
       def activeTaskPrefix(command: String, pidOpt: Option[Long]) =
         s"Another Mill process with PID ${pidOpt.fold("<unknown>")(_.toString)} is running '$command',"
@@ -496,10 +491,10 @@ object Server {
         val tryLocked = outLock.tryLock()
         if (tryLocked.isLocked) tryLocked
         else if (noWaitForBuildLock) {
-          val (command, _, pidOpt) = readActiveInfo()
+          val (command, pidOpt) = readActiveInfo()
           throw new Exception(s"${activeTaskPrefix(command, pidOpt)} failing")
         } else {
-          val (command, _, pidOpt) = readActiveInfo()
+          val (command, pidOpt) = readActiveInfo()
           val consoleLogPath = out / DaemonFiles.millConsoleTail
           streams.err.println(
             s"${activeTaskPrefix(command, pidOpt)} waiting for it to be done... " +

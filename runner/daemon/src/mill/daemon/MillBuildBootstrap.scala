@@ -351,75 +351,54 @@ class MillBuildBootstrap(
           runClasspathChanged || moduleWatchChanged
         }
 
-        def snapshotFrames(
-            snapshot: RunnerState.ReusableSnapshot = snapshotPublishedState()
-        ): (Option[RunnerState.Frame], Option[RunnerState.Frame]) = {
-          val frameOpt = snapshot.frame(depth).orElse(prevCommandState.frames.lift(depth))
-          val outerFrameOpt =
-            snapshot.frame(depth - 1).orElse(prevCommandState.frames.lift(depth - 1))
-          (frameOpt, outerFrameOpt)
-        }
+        def framesFrom(snapshot: RunnerState.ReusableSnapshot)
+            : (Option[RunnerState.Frame], Option[RunnerState.Frame]) = (
+          snapshot.frame(depth).orElse(prevCommandState.frames.lift(depth)),
+          snapshot.frame(depth - 1).orElse(prevCommandState.frames.lift(depth - 1))
+        )
 
         def frameFor(
             classLoader: mill.api.MillURLClassLoader,
             metaBuildReadLeaseOpt: Option[WorkspaceLocking.Lease],
-            forceSpanningInvalidationTree: Boolean,
-            snapshot: RunnerState.ReusableSnapshot = snapshotPublishedState()
-        ) = {
-          val (publishedFrameOpt, publishedOuterFrameOpt) = snapshotFrames(snapshot)
-          val needsUpdate = needsClassloaderRefresh(publishedFrameOpt, publishedOuterFrameOpt)
-
-          RunnerState.Frame(
-            workerCacheSummary = RunnerState.Frame.summarizeWorkerCache(evaluator.workerCache),
-            evalWatched = evalWatches,
-            moduleWatched = moduleWatches,
-            codeSignatures = codeSignatures,
-            classLoaderOpt = Some(classLoader),
-            metaBuildReadLeaseOpt = metaBuildReadLeaseOpt,
-            runClasspath = runClasspath,
-            compileOutput = Some(compileClasses),
-            evaluator = Option(evaluator),
-            buildOverrideFiles = buildOverrideFiles,
-            // Only pass the spanning tree when the published meta-build state changed
-            spanningInvalidationTree =
-              Option.when(forceSpanningInvalidationTree || needsUpdate)(spanningInvalidationTree)
-          )
-        }
-
-        def nextStateFor(
-            classLoader: mill.api.MillURLClassLoader,
-            metaBuildReadLeaseOpt: Option[WorkspaceLocking.Lease],
-            forceSpanningInvalidationTree: Boolean = false
-        ) = nestedState.add(
-          frame = frameFor(classLoader, metaBuildReadLeaseOpt, forceSpanningInvalidationTree)
+            needsUpdate: Boolean
+        ) = RunnerState.Frame(
+          workerCacheSummary = RunnerState.Frame.summarizeWorkerCache(evaluator.workerCache),
+          evalWatched = evalWatches,
+          moduleWatched = moduleWatches,
+          codeSignatures = codeSignatures,
+          classLoaderOpt = Some(classLoader),
+          metaBuildReadLeaseOpt = metaBuildReadLeaseOpt,
+          runClasspath = runClasspath,
+          compileOutput = Some(compileClasses),
+          evaluator = Option(evaluator),
+          buildOverrideFiles = buildOverrideFiles,
+          // Only pass the spanning tree when the published meta-build state changed
+          spanningInvalidationTree = Option.when(needsUpdate)(spanningInvalidationTree)
         )
 
-        def acquireRead() = workspaceLockManager.acquireLock(
-          WorkspaceLocking.metaBuildResource(depth, WorkspaceLocking.LockKind.Read)
-        )
-        def acquireWrite() = workspaceLockManager.acquireLock(
-          WorkspaceLocking.metaBuildResource(depth, WorkspaceLocking.LockKind.Write)
-        )
+        def acquireMetaBuildLock(kind: WorkspaceLocking.LockKind) =
+          workspaceLockManager.acquireLock(WorkspaceLocking.metaBuildResource(depth, kind))
 
-        // Happy path: acquire a read lease, check whether we can reuse the published classloader.
-        // On miss, drop the read and reacquire as a write (the semaphore-based lock is not
-        // reentrant, so we cannot upgrade). Under the write, re-check (another writer may have
-        // refreshed while we waited), then either reuse or build a fresh classloader and publish.
-        // Finally downgrade the write back to a read lease for the returned frame to own.
-        val readLease = acquireRead()
+        // Happy path: read lease + reuse the published classloader. On miss, drop the read
+        // and reacquire as write (the semaphore is not reentrant), re-check under the write,
+        // then either reuse or build a fresh classloader and publish. Downgrade to a read
+        // lease for the returned frame to own.
+        val readLease = acquireMetaBuildLock(WorkspaceLocking.LockKind.Read)
         closeOnThrow(readLease) {
-          val (frameOpt, outerFrameOpt) = snapshotFrames()
+          val (frameOpt, outerFrameOpt) = framesFrom(snapshotPublishedState())
           if (
             frameOpt.exists(_.classLoaderOpt.isDefined) &&
             !needsClassloaderRefresh(frameOpt, outerFrameOpt)
           ) {
-            nextStateFor(frameOpt.get.classLoaderOpt.get, Some(readLease))
+            nestedState.add(frame =
+              frameFor(frameOpt.get.classLoaderOpt.get, Some(readLease), needsUpdate = false)
+            )
           } else {
             readLease.close()
-            val writeLease = acquireWrite()
+            val writeLease = acquireMetaBuildLock(WorkspaceLocking.LockKind.Write)
             closeOnThrow(writeLease) {
               val latestSnapshot = snapshotPublishedState()
-              val (latestFrameOpt, latestOuterFrameOpt) = snapshotFrames(latestSnapshot)
+              val (latestFrameOpt, latestOuterFrameOpt) = framesFrom(latestSnapshot)
               val needsUpdate = needsClassloaderRefresh(latestFrameOpt, latestOuterFrameOpt)
               val classLoader =
                 if (!needsUpdate && latestFrameOpt.exists(_.classLoaderOpt.isDefined)) {
@@ -428,29 +407,16 @@ class MillBuildBootstrap(
                   // Close old classloaders to avoid memory leaks. Workers at this depth are
                   // handled by SharedWorkerCache.forDepth (called in makeEvaluator), which
                   // detects the classloader change and closes stale workers.
-                  val previousClassLoaders = Seq(
+                  Seq(
                     prevCommandState.frames.lift(depth).flatMap(_.classLoaderOpt),
                     latestSnapshot.frame(depth).flatMap(_.classLoaderOpt)
-                  ).flatten.distinct
-                  previousClassLoaders.foreach(_.close())
+                  ).flatten.distinct.foreach(_.close())
                   val cl = createClassLoader()
-                  publishReusableState(
-                    depth,
-                    Seq(frameFor(
-                      cl,
-                      None,
-                      forceSpanningInvalidationTree = true,
-                      snapshot = latestSnapshot
-                    ))
-                  )
+                  publishReusableState(depth, Seq(frameFor(cl, None, needsUpdate = true)))
                   cl
                 }
               writeLease.downgradeToRead()
-              nextStateFor(
-                classLoader,
-                Some(writeLease),
-                forceSpanningInvalidationTree = needsUpdate
-              )
+              nestedState.add(frame = frameFor(classLoader, Some(writeLease), needsUpdate))
             }
           }
         }

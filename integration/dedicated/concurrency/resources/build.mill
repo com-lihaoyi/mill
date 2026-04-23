@@ -63,10 +63,6 @@ object `package` extends mill.Module {
     s"fast-value-$fastSuffix"
   }
 
-  def runFast() = Task.Command {
-    println(fast())
-  }
-
   def workerVersion = Task.Input {
     mill.api.BuildCtx.withFilesystemCheckerDisabled {
       os.read(workspace / "worker-version")

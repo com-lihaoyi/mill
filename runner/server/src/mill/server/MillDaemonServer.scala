@@ -12,7 +12,6 @@ import mill.server.Server.ConnectionData
 import java.io.*
 import java.net.Socket
 import java.util.concurrent.atomic.AtomicReference
-import java.util.function.UnaryOperator
 import scala.concurrent.duration.FiniteDuration
 
 abstract class MillDaemonServer[State](
@@ -34,10 +33,7 @@ abstract class MillDaemonServer[State](
   private val stateCache = new AtomicReference[State](initialStateCache)
 
   protected def snapshotStateCache(): State = stateCache.get()
-  protected def modifyStateCache(f: State => State): Unit =
-    stateCache.updateAndGet(new UnaryOperator[State] {
-      override def apply(t: State): State = f(t)
-    })
+  protected def modifyStateCache(f: State => State): Unit = stateCache.updateAndGet(f(_))
 
   def initialStateCache: State
 
