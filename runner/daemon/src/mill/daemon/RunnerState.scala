@@ -94,8 +94,8 @@ case class RunnerState(
       bootstrapEvalWatched
 
   /**
-   * Evaluators ordered final-first, then meta-build frames from shallowest to
-   * deepest. BSP script discovery and IDE generation walk this in order and
+   * Live evaluators ordered final-first, then meta-build frames from shallowest
+   * to deepest. BSP script discovery and IDE generation walk this in order and
    * expect the workspace evaluator at `headOption`.
    */
   def allEvaluators: Seq[EvaluatorApi] =
@@ -103,11 +103,24 @@ case class RunnerState(
       metaBuildFrames.flatMap(_.evaluator)
 
   override def close(): Unit = {
-    // Only release locking leases. Workers live in the process-level
-    // SharedWorkerCache and must not be closed when a command finishes,
-    // since they may be shared with concurrent or subsequent commands.
-    metaBuildFrames.foreach(_.metaBuildReadLease.foreach(_.close()))
-    closeables.foreach(_.close())
+    // Evaluators stay alive after bootstrap evaluation so BSP/IDE follow-up can
+    // execute more tasks against the returned RunnerState. Closing them here only
+    // tears down per-run execution resources (e.g. profile loggers); workers live
+    // in the process-level SharedWorkerCache and must remain shared.
+    closeAll(allEvaluators.distinct ++ metaBuildFrames.flatMap(_.metaBuildReadLease) ++ closeables)
+  }
+
+  private def closeAll(resources: Seq[AutoCloseable]): Unit = {
+    var firstError: Throwable = null
+    for (resource <- resources) {
+      try resource.close()
+      catch {
+        case e: Throwable =>
+          if (firstError == null) firstError = e
+          else firstError.addSuppressed(e)
+      }
+    }
+    if (firstError != null) throw firstError
   }
 
   private def frameAt[T](frames: Seq[T], depth: Int)(isNonEmpty: T => Boolean): Option[T] =

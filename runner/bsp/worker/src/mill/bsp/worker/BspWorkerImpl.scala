@@ -5,7 +5,6 @@ import mill.bsp.BuildInfo
 import mill.api.daemon.internal.EvaluatorApi
 import mill.bsp.Constants
 import mill.api.{Logger, Result, SystemStreams}
-import mill.client.lock.Lock
 import mill.api.daemon.Watchable
 import org.eclipse.lsp4j.jsonrpc.Launcher
 
@@ -22,10 +21,8 @@ object BspWorkerImpl {
       streams: SystemStreams,
       logDir: os.Path,
       canReload: Boolean,
-      outLock: Lock,
       baseLogger: Logger,
       out: os.Path,
-      daemonDir: os.Path,
       noWaitForBspLock: Boolean,
       killOther: Boolean
   ): mill.api.Result[(BspServerHandle, BuildClient)] = {
@@ -44,10 +41,8 @@ object BspWorkerImpl {
             listening.cancel(true)
             executor.shutdown()
           },
-          outLock = outLock,
           baseLogger = baseLogger,
           out = out,
-          daemonDir = daemonDir,
           noWaitForBspLock = noWaitForBspLock,
           killOther = killOther
         ) with EndpointsJvm

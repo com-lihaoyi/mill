@@ -19,8 +19,6 @@ import mill.api.daemon.internal.bsp.{BspModuleApi, BspServerResult}
 import mill.api.daemon.internal.*
 import mill.constants.OutFiles.OutFiles
 
-import scala.annotation.unused
-
 /**
  * Mill's BSP server implementation.
  *
@@ -34,10 +32,8 @@ private abstract class MillBuildServer(
     protected val serverName: String,
     protected val canReload: Boolean,
     protected val onShutdown: () => Unit,
-    @unused outLock: Lock,
     protected val baseLogger: Logger,
     out: os.Path,
-    daemonDir: os.Path,
     noWaitForBspLock: Boolean,
     killOther: Boolean
 ) extends EndpointsApi with AutoCloseable {
@@ -67,17 +63,13 @@ private abstract class MillBuildServer(
     assert(bspLock == null)
     bspLock = Lock.file((out / OutFiles.millBspLock(bspLockId)).toString)
     val activeBspFile = out / OutFiles.millActiveBsp(bspLockId)
-    def readActiveInfo(): (Option[os.Path], Option[Long]) =
+    def readActiveInfo(): Option[Long] =
       try {
         val json = os.read(activeBspFile)
-        // Simple JSON parsing for {"processDir":"...","pid":...}
-        val processDirPattern = """"processDir"\s*:\s*"([^"]*)"""".r
         val pidPattern = """"pid"\s*:\s*([0-9]+)""".r
-        val processDir = processDirPattern.findFirstMatchIn(json).map(m => os.Path(m.group(1)))
-        val pid = pidPattern.findFirstMatchIn(json).flatMap(m => m.group(1).toLongOption)
-        (processDir, pid)
+        pidPattern.findFirstMatchIn(json).flatMap(m => m.group(1).toLongOption)
       } catch {
-        case NonFatal(_) => (None, None)
+        case NonFatal(_) => None
       }
 
     val tryLocked = bspLock.tryLock()
@@ -86,7 +78,7 @@ private abstract class MillBuildServer(
     else if (noWaitForBspLock)
       throw new Exception("Another Mill BSP process is running, failing")
     else {
-      val (_, pidOpt) = readActiveInfo()
+      val pidOpt = readActiveInfo()
       if (killOther)
         pidOpt match {
           case Some(pid) =>
@@ -121,7 +113,7 @@ private abstract class MillBuildServer(
     }
 
     val pid = ProcessHandle.current().pid()
-    val json = s"""{"processDir":"$daemonDir","pid":$pid}"""
+    val json = s"""{"pid":$pid}"""
     os.write.over(activeBspFile, json)
   }
 
@@ -177,14 +169,10 @@ private abstract class MillBuildServer(
     bspEvaluators.success(evaluators0)
 
     if (client != null && previousEvaluatorsOpt.nonEmpty) {
-      val newTargetIds = evaluators0.bspModulesIdList.map { case (id, (_, ev)) => id -> ev }
-      val previousTargetIds = previousEvaluatorsOpt.map(_.bspModulesIdList).getOrElse(Nil).map {
-        case (id, (_, ev)) => id -> ev
-      }
       ChangeNotifier.notifyChanges(
         client,
-        previousTargetIds,
-        newTargetIds,
+        previousEvaluatorsOpt.map(_.targetSnapshots).getOrElse(Nil),
+        evaluators0.targetSnapshots,
         forceMillBuildChanged = errored
       )
     }
@@ -278,19 +266,19 @@ private abstract class MillBuildServer(
     }
   }
 
-  private val queue = new LinkedBlockingQueue[(BspEvaluators => Unit, Logger, String)]
+  private val queue = new LinkedBlockingQueue[(BspEvaluators => Unit, Logger)]
   private var stopped = false
 
   /** Background thread that processes BSP requests sequentially. */
   private val evaluatorRequestsThread: Thread =
     mill.api.daemon.StartThread("mill-bsp-evaluator", daemon = true) {
       try {
-        var pendingRequest = Option.empty[(BspEvaluators => Unit, Logger, String)]
+        var pendingRequest = Option.empty[(BspEvaluators => Unit, Logger)]
         while (!stopped) {
           if (pendingRequest.isEmpty)
             pendingRequest = Option(queue.poll(1L, TimeUnit.SECONDS))
 
-          for ((handler, logger, _) <- pendingRequest) {
+          for ((handler, logger) <- pendingRequest) {
             Await.result(bspEvaluators.future, Duration.Inf)
             for (evaluator <- bspEvaluatorsOpt()) {
               if (evaluator.watched.forall(WatchSig.haveNotChanged)) {
@@ -336,8 +324,7 @@ private abstract class MillBuildServer(
             logger.info(s"$prefix was cancelled")
           }
         },
-        logger,
-        prefix
+        logger
       ))
     }
     future
@@ -405,7 +392,7 @@ private abstract class MillBuildServer(
 
   protected def evaluate(
       evaluator: EvaluatorApi,
-      @unused requestDescription: String,
+      requestDescription: String,
       goals: Seq[TaskApi[?]],
       logger: Logger,
       reporter: Int => Option[CompileProblemReporter],

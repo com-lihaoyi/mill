@@ -89,6 +89,25 @@ class BspEvaluators(
     map
   }
 
+  lazy val targetSnapshots: Seq[ChangeNotifier.TargetSnapshot] =
+    bspModulesIdList.map { case (id, (module, ev)) =>
+      val dependencyUris = module match {
+        case jm: JavaModuleApi =>
+          (jm.recursiveModuleDeps ++ jm.compileModuleDepsChecked)
+            .distinct
+            .collect { case bm: BspModuleApi => bspIdByModule(bm).getUri }
+            .sorted
+        case _ => Nil
+      }
+
+      ChangeNotifier.TargetSnapshot(
+        id = id,
+        buildTarget = module.bspBuildTarget,
+        dependencyUris = dependencyUris,
+        classLoaderIdentityHash = ev.classLoaderIdentityHash
+      )
+    }
+
   lazy val rootModules: Seq[BaseModuleApi] = evaluators.map(_.rootModule)
 
   lazy val bspIdByModule: Map[BspModuleApi, BuildTargetIdentifier] =

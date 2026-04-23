@@ -508,9 +508,7 @@ object Server {
         val pid = ProcessHandle.current().pid()
         val activeFile = daemonDir / os.RelPath(DaemonFiles.launcherRun(s"pid-$pid"))
         val commandJson = ujson.write(ujson.Str(millActiveCommandMessage))
-        val processDirJson = ujson.write(ujson.Str(daemonDir.toString))
-        val json =
-          s"""{"command":$commandJson,"processDir":$processDirJson,"pid":$pid}"""
+        val json = s"""{"command":$commandJson,"pid":$pid}"""
         os.makeDir.all(launcherRunsDir)
         os.write.over(activeFile, json)
         try t

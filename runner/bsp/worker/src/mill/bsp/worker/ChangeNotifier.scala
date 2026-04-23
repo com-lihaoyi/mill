@@ -2,7 +2,7 @@ package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.{BuildClient, BuildTargetIdentifier}
-import mill.api.daemon.internal.EvaluatorApi
+import mill.api.daemon.internal.bsp.BspBuildTarget
 
 import scala.jdk.CollectionConverters.*
 
@@ -11,26 +11,37 @@ import scala.jdk.CollectionConverters.*
  * when build targets are created, modified, or deleted.
  */
 private[worker] object ChangeNotifier {
+  case class TargetSnapshot(
+      id: BuildTargetIdentifier,
+      buildTarget: BspBuildTarget,
+      dependencyUris: Seq[String],
+      classLoaderIdentityHash: Int
+  ) {
+    def differsFrom(other: TargetSnapshot): Boolean =
+      buildTarget != other.buildTarget ||
+        dependencyUris != other.dependencyUris ||
+        classLoaderIdentityHash != other.classLoaderIdentityHash
+  }
 
   /**
    * Computes the difference between previous and current build targets and sends
    * appropriate change notifications to the client.
    *
    * @param client The BSP client to notify
-   * @param previousTargetIds Previous build target IDs with their evaluators
-   * @param newTargetIds Current build target IDs with their evaluators
+   * @param previousTargets Previous build target snapshots
+   * @param newTargets Current build target snapshots
    */
   def notifyChanges(
       client: BuildClient,
-      previousTargetIds: Seq[(BuildTargetIdentifier, EvaluatorApi)],
-      newTargetIds: Seq[(BuildTargetIdentifier, EvaluatorApi)],
+      previousTargets: Seq[TargetSnapshot],
+      newTargets: Seq[TargetSnapshot],
       forceMillBuildChanged: Boolean
   ): Unit = {
-    val createdAndModifiedEvents = computeCreatedAndModified(previousTargetIds, newTargetIds)
-    val deletedEvents = computeDeleted(previousTargetIds, newTargetIds)
+    val createdAndModifiedEvents = computeCreatedAndModified(previousTargets, newTargets)
+    val deletedEvents = computeDeleted(previousTargets, newTargets)
     val millBuildEvent = computeMillBuildChanged(
-      previousTargetIds,
-      newTargetIds,
+      previousTargets,
+      newTargets,
       deletedEvents ++ createdAndModifiedEvents,
       forceMillBuildChanged
     )
@@ -41,18 +52,18 @@ private[worker] object ChangeNotifier {
   }
 
   private def computeCreatedAndModified(
-      previousTargetIds: Seq[(BuildTargetIdentifier, EvaluatorApi)],
-      newTargetIds: Seq[(BuildTargetIdentifier, EvaluatorApi)]
+      previousTargets: Seq[TargetSnapshot],
+      newTargets: Seq[TargetSnapshot]
   ): Seq[bsp4j.BuildTargetEvent] = {
-    val previousTargetIdsMap = previousTargetIds.toMap
-    newTargetIds.flatMap { case (id, ev) =>
-      previousTargetIdsMap.get(id) match {
+    val previousTargetsByUri = previousTargets.iterator.map(t => t.id.getUri -> t).toMap
+    newTargets.flatMap { target =>
+      previousTargetsByUri.get(target.id.getUri) match {
         case None =>
-          val event = new bsp4j.BuildTargetEvent(id)
+          val event = new bsp4j.BuildTargetEvent(target.id)
           event.setKind(bsp4j.BuildTargetEventKind.CREATED)
           Seq(event)
-        case Some(prevEv) if prevEv.classLoaderIdentityHash != ev.classLoaderIdentityHash =>
-          val event = new bsp4j.BuildTargetEvent(id)
+        case Some(previous) if target.differsFrom(previous) =>
+          val event = new bsp4j.BuildTargetEvent(target.id)
           event.setKind(bsp4j.BuildTargetEventKind.CHANGED)
           Seq(event)
         case Some(_) =>
@@ -62,21 +73,21 @@ private[worker] object ChangeNotifier {
   }
 
   private def computeDeleted(
-      previousTargetIds: Seq[(BuildTargetIdentifier, EvaluatorApi)],
-      newTargetIds: Seq[(BuildTargetIdentifier, EvaluatorApi)]
+      previousTargets: Seq[TargetSnapshot],
+      newTargets: Seq[TargetSnapshot]
   ): Seq[bsp4j.BuildTargetEvent] = {
-    val newTargetIdsMap = newTargetIds.toMap
-    previousTargetIds.collect {
-      case (id, _) if !newTargetIdsMap.contains(id) =>
-        val event = new bsp4j.BuildTargetEvent(id)
+    val newTargetUris = newTargets.iterator.map(_.id.getUri).toSet
+    previousTargets.collect {
+      case target if !newTargetUris.contains(target.id.getUri) =>
+        val event = new bsp4j.BuildTargetEvent(target.id)
         event.setKind(bsp4j.BuildTargetEventKind.DELETED)
         event
     }
   }
 
   private def computeMillBuildChanged(
-      previousTargetIds: Seq[(BuildTargetIdentifier, EvaluatorApi)],
-      newTargetIds: Seq[(BuildTargetIdentifier, EvaluatorApi)],
+      previousTargets: Seq[TargetSnapshot],
+      newTargets: Seq[TargetSnapshot],
       otherEvents: Seq[bsp4j.BuildTargetEvent],
       forceMillBuildChanged: Boolean
   ): Seq[bsp4j.BuildTargetEvent] = {
@@ -85,11 +96,11 @@ private[worker] object ChangeNotifier {
     if (
       (forceMillBuildChanged || otherEvents.nonEmpty) &&
       !otherEvents.exists(event => isMillBuild(event.getTarget)) &&
-      previousTargetIds.exists((id, _) => isMillBuild(id)) &&
-      newTargetIds.exists((id, _) => isMillBuild(id))
+      previousTargets.exists(target => isMillBuild(target.id)) &&
+      newTargets.exists(target => isMillBuild(target.id))
     ) {
-      val event = new bsp4j.BuildTargetEvent(newTargetIds.collectFirst {
-        case (id, _) if isMillBuild(id) => id
+      val event = new bsp4j.BuildTargetEvent(newTargets.collectFirst {
+        case target if isMillBuild(target.id) => target.id
       }.get)
       event.setKind(bsp4j.BuildTargetEventKind.CHANGED)
       Seq(event)

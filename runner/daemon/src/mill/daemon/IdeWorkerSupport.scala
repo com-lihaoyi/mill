@@ -6,7 +6,6 @@ import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
 import mill.api.daemon.internal.bsp.BspServerHandle
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.javalib.api.JvmWorkerUtil
-import mill.client.lock.Lock
 import mill.util.{BuildInfo, Jvm}
 
 private object IdeWorkerSupport {
@@ -89,9 +88,7 @@ private object IdeWorkerSupport {
       classOf[SystemStreams],
       classOf[os.Path],
       java.lang.Boolean.TYPE,
-      classOf[Lock],
       classOf[Logger],
-      classOf[os.Path],
       classOf[os.Path],
       classOf[Boolean],
       classOf[Boolean]
@@ -133,10 +130,8 @@ private object IdeWorkerSupport {
       streams: SystemStreams,
       logDir: os.Path,
       canReload: Boolean,
-      outLock: Lock,
       baseLogger: Logger,
       out: os.Path,
-      daemonDir: os.Path,
       noWaitForBspLock: Boolean,
       killOther: Boolean
   ): (BspServerHandle, BspBuildClient) = {
@@ -148,10 +143,8 @@ private object IdeWorkerSupport {
         streams,
         logDir,
         java.lang.Boolean.valueOf(canReload),
-        outLock,
         baseLogger,
         out,
-        daemonDir,
         noWaitForBspLock,
         killOther
       )).asInstanceOf[Result[(Any, Any)]]

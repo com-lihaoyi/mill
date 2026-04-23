@@ -395,9 +395,7 @@ object MillMain0 {
                         var prevRunnerStateOpt = Option.empty[RunnerState]
                         val (bspServerHandle, buildClient) = startBspServer(
                           streams0,
-                          outLock,
                           bspLogger,
-                          daemonDir,
                           noWaitForBspLock = config.noWaitForBspLock.value,
                           killOther = !config.bspNoKillOther.value
                         )
@@ -589,9 +587,7 @@ object MillMain0 {
    */
   def startBspServer(
       bspStreams: SystemStreams,
-      outLock: Lock,
       bspLogger: Logger,
-      daemonDir: os.Path,
       noWaitForBspLock: Boolean,
       killOther: Boolean
   ): (BspServerHandle, IdeWorkerSupport.BspBuildClient) = {
@@ -608,10 +604,8 @@ object MillMain0 {
         streams = bspStreams,
         logDir = logDir,
         canReload = true,
-        outLock = outLock,
         baseLogger = bspLogger,
         out = outFolder,
-        daemonDir = daemonDir,
         noWaitForBspLock = noWaitForBspLock,
         killOther = killOther
       )
