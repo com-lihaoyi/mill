@@ -90,7 +90,7 @@ object WorkspaceLocking {
       var active: Boolean = true,
       var inactiveSinceMillis: Long = 0L,
       var published: Boolean = false,
-      publishedFiles: scala.collection.mutable.Map[String, os.Path] =
+      publishedFiles: scala.collection.mutable.Map[os.Path, os.Path] =
         scala.collection.mutable.LinkedHashMap.empty
   )
 
@@ -120,10 +120,11 @@ object WorkspaceLocking {
       }
     }
 
-    def recordPublishedFile(run: ActiveRun, path: os.Path): Unit = lock.synchronized {
-      run.publishedFiles.update(path.last, path)
-      refreshWellKnownLinks()
-    }
+    def recordPublishedFile(run: ActiveRun, link: os.Path, target: os.Path): Unit =
+      lock.synchronized {
+        run.publishedFiles.update(link, target)
+        refreshWellKnownLinks()
+      }
 
     def deactivate(run: ActiveRun): Unit = lock.synchronized {
       run.active = false
@@ -167,7 +168,9 @@ object WorkspaceLocking {
               catch { case _: Throwable => }
             )
 
+            val before = runs.size
             runs.retain((_, run) => os.exists(run.runDir))
+            if (runs.size != before) refreshWellKnownLinks()
           }
         }
       } catch {
@@ -179,11 +182,11 @@ object WorkspaceLocking {
       val publishedRuns = runs.valuesIterator.filter(_.published).toSeq
 
       updateSymlink(out / DaemonFiles.millConsoleTail, publishedRuns.lastOption.map(_.consoleTail))
-      val publishedNames = runs.valuesIterator.flatMap(_.publishedFiles.keys).toSet
-      publishedNames.foreach { fileName =>
+      val publishedLinks = runs.valuesIterator.flatMap(_.publishedFiles.keys).toSet
+      publishedLinks.foreach { link =>
         updateSymlink(
-          out / fileName,
-          publishedRuns.reverseIterator.flatMap(_.publishedFiles.get(fileName)).nextOption()
+          link,
+          publishedRuns.reverseIterator.flatMap(_.publishedFiles.get(link)).nextOption()
         )
       }
     }
@@ -329,6 +332,7 @@ object WorkspaceLocking {
     private val closed = new AtomicBoolean(false)
     private val ownedResources =
       scala.collection.mutable.LinkedHashMap.empty[String, OwnedResource]
+    private val activeLeases = scala.collection.mutable.Set.empty[InProcessResourceLease]
 
     val consoleTail: os.Path = runDir / "mill-console-tail"
     override def consoleTailJava: java.nio.file.Path = consoleTail.toNIO
@@ -392,13 +396,21 @@ object WorkspaceLocking {
     }
 
     override def runFileJava(default: java.nio.file.Path): java.nio.file.Path = {
-      val path = runDir / os.Path(default).last
-      coordinator.recordPublishedFile(activeRun, path)
-      path.toNIO
+      val link = os.Path(default)
+      val target =
+        if (link.startsWith(out)) runDir / link.relativeTo(out)
+        else runDir / link.last
+      coordinator.recordPublishedFile(activeRun, link, target)
+      target.toNIO
     }
 
     override def close(): Unit = {
       if (closed.compareAndSet(false, true)) {
+        val leases = activeLeases.synchronized(activeLeases.toSeq)
+        leases.foreach(lease =>
+          try lease.close()
+          catch { case _: Throwable => }
+        )
         coordinator.deactivate(activeRun)
         try mill.api.BuildCtx.withFilesystemCheckerDisabled {
             os.remove(launcherRunFile)
@@ -409,13 +421,16 @@ object WorkspaceLocking {
     }
 
     override def acquireLock(resource0: Resource): ResourceLease = {
+      if (closed.get()) throw new IllegalStateException(s"Lock manager $runId is closed")
       if (noBuildLock) {
         publishRun()
         NoopManager.acquireLock(resource0)
       } else {
         val lockEntry = acquire(resource0)
         publishRun()
-        new InProcessResourceLease(resource0, lockEntry)
+        val lease = new InProcessResourceLease(resource0, lockEntry)
+        activeLeases.synchronized(activeLeases += lease)
+        lease
       }
     }
 
@@ -478,6 +493,7 @@ object WorkspaceLocking {
           }
           lockEntry.semaphore.release(permits)
           releaseLockEntry(resource, lockEntry)
+          activeLeases.synchronized(activeLeases -= this)
         }
     }
 

@@ -122,6 +122,34 @@ object WorkspaceLockingTests extends TestSuite {
       }
     }
 
+    test("manager-close-releases-outstanding-locks") {
+      withTmpDir { tmpDir =>
+        val out = tmpDir / "out"
+        os.makeDir.all(out)
+
+        def manager(command: String, noWait: Boolean = false) =
+          new WorkspaceLocking.InProcessManager(
+            out = out,
+            daemonDir = out / OutFiles.millDaemon,
+            activeCommandMessage = command,
+            launcherPid = 12345L,
+            waitingErr = new PrintStream(System.err),
+            noBuildLock = false,
+            noWaitForBuildLock = noWait
+          )
+
+        val resource = WorkspaceLocking.Resource("close-release", WorkspaceLocking.LockKind.Write)
+        val first = manager("first")
+        first.acquireLock(resource)
+        first.close()
+
+        val second = manager("second", noWait = true)
+        val secondLease = second.acquireLock(resource)
+        secondLease.close()
+        second.close()
+      }
+    }
+
     test("latest-links-fall-back-to-most-recent-run-that-published-each-file") {
       withTmpDir { tmpDir =>
         val out = tmpDir / "out"
@@ -153,6 +181,48 @@ object WorkspaceLockingTests extends TestSuite {
 
         first.close()
         second.close()
+      }
+    }
+
+    test("per-run-files-preserve-path-relative-to-out") {
+      withTmpDir { tmpDir =>
+        val out = tmpDir / "out"
+        os.makeDir.all(out)
+
+        val manager = new WorkspaceLocking.InProcessManager(
+          out = out,
+          daemonDir = out / OutFiles.millDaemon,
+          activeCommandMessage = "test-command",
+          launcherPid = 12345L,
+          waitingErr = new PrintStream(System.err),
+          noBuildLock = false,
+          noWaitForBuildLock = false
+        )
+
+        val topLevelProfile = os.Path(manager.runFileJava((out / OutFiles.millProfile).toNIO))
+        val metaBuildProfile = os.Path(manager.runFileJava(
+          (out / OutFiles.millBuild / OutFiles.millProfile).toNIO
+        ))
+
+        assert(topLevelProfile != metaBuildProfile)
+        assert(topLevelProfile.relativeTo(out).segments == Seq("mill-run", manager.runId, OutFiles.millProfile))
+        assert(metaBuildProfile.relativeTo(out).segments == Seq(
+          "mill-run",
+          manager.runId,
+          OutFiles.millBuild,
+          OutFiles.millProfile
+        ))
+
+        os.write.over(topLevelProfile, "top-level-profile", createFolders = true)
+        os.write.over(metaBuildProfile, "meta-build-profile", createFolders = true)
+        manager.acquireLocks(Seq.empty).close()
+
+        assert(os.isLink(out / OutFiles.millProfile))
+        assert(os.isLink(out / OutFiles.millBuild / OutFiles.millProfile))
+        assert(os.read(out / OutFiles.millProfile) == "top-level-profile")
+        assert(os.read(out / OutFiles.millBuild / OutFiles.millProfile) == "meta-build-profile")
+
+        manager.close()
       }
     }
 

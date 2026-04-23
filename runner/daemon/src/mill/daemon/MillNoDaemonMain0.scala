@@ -59,6 +59,7 @@ object MillNoDaemonMain0 {
           mainInteractive = mill.constants.Util.hasConsole(),
           streams0 = initialSystemStreams,
           env = System.getenv().asScala.toMap,
+          launcherPid = processId,
           setIdle = _ => (),
           userSpecifiedProperties0 = Map(),
           initialSystemProperties = sys.props.toMap,

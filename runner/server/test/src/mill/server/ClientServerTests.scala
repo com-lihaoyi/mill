@@ -64,6 +64,7 @@ trait ClientServerTestsBase extends TestSuite {
         mainInteractive: Boolean,
         streams: SystemStreams,
         env: Map[String, String],
+        launcherPid: Long,
         setIdle: Boolean => Unit,
         systemProperties: Map[String, String],
         initialSystemProperties: Map[String, String],

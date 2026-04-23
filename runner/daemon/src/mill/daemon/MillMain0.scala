@@ -107,6 +107,7 @@ object MillMain0 {
       mainInteractive: Boolean,
       streams0: SystemStreams,
       env: Map[String, String],
+      launcherPid: Long,
       setIdle: Boolean => Unit,
       userSpecifiedProperties0: Map[String, String],
       initialSystemProperties: Map[String, String],
@@ -244,8 +245,6 @@ object MillMain0 {
                       else Some(mill.exec.ExecutionContexts.createExecutor(threadCount))
 
                     val out = os.Path(OutFiles.outFor(outMode), BuildCtx.workspaceRoot)
-                    val launcherPid =
-                      env.get("MILL_LAUNCHER_PID").flatMap(_.toLongOption).getOrElse(-1L)
                     Using.resources(new TailManager(daemonDir), createEc()) { (tailManager, ec) =>
                       def runMillBootstrap(
                           skipSelectiveExecution: Boolean,

@@ -18,13 +18,14 @@ import upickle.{ReadWriter, macroRW}
  *   depth. Most of a meta-build frame's fields are deterministic in the
  *   meta-build source and safe to share across concurrent launchers; the
  *   [[RunnerState.MetaBuildFrame.evaluator]] and
- *   [[RunnerState.MetaBuildFrame.metaBuildReadLease]] are per-launcher overlays
- *   and are stripped via [[RunnerState.MetaBuildFrame.stripped]] before being
- *   stored in the daemon-wide shared state.
+ *   [[RunnerState.MetaBuildFrame.metaBuildReadLease]] fields are only populated
+ *   in per-launcher states.
  * - [[finalFrame]] holds the launcher-unique state from running the user's tasks
  *   at `requestedDepth`. It has no shared data because nothing about it is
  *   deterministic enough to cache across launchers, and is never present in the
  *   daemon-wide shared state.
+ * - [[moduleWatchedByDepth]] carries only the module-level watch snapshots that
+ *   later runs need to decide whether a shared classloader must be refreshed.
  *
  * If evaluation fails before reaching the requested depth, [[errorOpt]] is set
  * and [[finalFrame]] is [[None]].
@@ -38,7 +39,8 @@ case class RunnerState(
     // a bootstrap failure produces no frames to carry them.
     bootstrapEvalWatched: Seq[Watchable] = Nil,
     metaBuildFrames: Seq[RunnerState.MetaBuildFrame] = Nil,
-    finalFrame: Option[RunnerState.FinalFrame] = None
+    finalFrame: Option[RunnerState.FinalFrame] = None,
+    moduleWatchedByDepth: Map[Int, Seq[Watchable]] = Map.empty
 ) extends Watching.Result
     with AutoCloseable {
   import RunnerState.*
@@ -53,6 +55,14 @@ case class RunnerState(
   def withFinalFrame(frame: FinalFrame): RunnerState = copy(finalFrame = Some(frame))
 
   def withError(err: String): RunnerState = copy(errorOpt = Some(err))
+
+  def withModuleWatched(depth: Int, watched: Seq[Watchable]): RunnerState =
+    copy(moduleWatchedByDepth = moduleWatchedByDepth.updated(depth, watched))
+
+  def moduleWatchedAt(depth: Int): Option[Seq[Watchable]] =
+    metaBuildFrameAt(depth).map(_.moduleWatched)
+      .orElse(finalFrame.filter(_.depth == depth).map(_.moduleWatched))
+      .orElse(moduleWatchedByDepth.get(depth))
 
   def watched: Seq[Watchable] =
     metaBuildFrames.flatMap(f => f.evalWatched ++ f.moduleWatched) ++
@@ -106,9 +116,8 @@ object RunnerState {
    * It is [[None]] if the meta-build failed to compile at this depth; we still carry
    * the frame so [[evalWatched]] / [[moduleWatched]] can drive a `--watch` re-run.
    *
-   * [[evaluator]] and [[metaBuildReadLease]] are per-launcher overlays and must be
-   * zeroed via [[stripped]] before a frame is stored in the daemon-wide shared
-   * state.
+   * [[evaluator]] and [[metaBuildReadLease]] are per-launcher overlays and are
+   * left empty in the daemon-wide shared state.
    */
   @internal
   case class MetaBuildFrame(
@@ -136,9 +145,6 @@ object RunnerState {
       classLoaderOpt.map(_.identity),
       runClasspath
     )
-
-    /** A copy with per-launcher fields stripped, suitable for the daemon-wide shared state. */
-    def stripped: MetaBuildFrame = copy(evaluator = None, metaBuildReadLease = None)
   }
 
   object MetaBuildFrame {

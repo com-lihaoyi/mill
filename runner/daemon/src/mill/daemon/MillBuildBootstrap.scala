@@ -197,7 +197,7 @@ class MillBuildBootstrap(
 
     val millClassloaderIdentityHash0 = nestedFrame
       .flatMap(_.classLoaderOpt)
-      .map(_.hashCode())
+      .map(_.identity)
       .getOrElse(0)
 
     // Use the process-level shared worker cache. Workers are thread-safe and
@@ -336,8 +336,8 @@ class MillBuildBootstrap(
         // we consult prevCommandState because the final frame is per-launcher and not
         // published into the daemon-wide shared state.
         def outerModuleWatched: Seq[Watchable] =
-          prevCommandState.metaBuildFrameAt(depth - 1).map(_.moduleWatched)
-            .orElse(prevCommandState.finalFrame.map(_.moduleWatched))
+          prevCommandState.moduleWatchedAt(depth - 1)
+            .orElse(sharedState.get().moduleWatchedAt(depth - 1))
             .getOrElse(Nil)
 
         def needsClassloaderRefresh(at: Option[RunnerState.MetaBuildFrame]): Boolean = {
@@ -401,8 +401,8 @@ class MillBuildBootstrap(
                     RunnerState.MetaBuildFrame(
                       depth = depth,
                       reusable = Some(fresh),
-                      evalWatched = Nil,
-                      moduleWatched = Nil
+                      evalWatched = evalWatches,
+                      moduleWatched = moduleWatches
                     )
                   ))
                   fresh
@@ -441,6 +441,7 @@ class MillBuildBootstrap(
     val withFinal = nestedState.withFinalFrame(
       RunnerState.FinalFrame(depth, evaluator, evalWatched, moduleWatched)
     )
+    sharedState.updateAndGet(_.withModuleWatched(depth, moduleWatched))
     evaled match {
       case f: Result.Failure =>
         withFinal.withError(mill.internal.Util.formatError(f, logger.prompt.errorColor))
