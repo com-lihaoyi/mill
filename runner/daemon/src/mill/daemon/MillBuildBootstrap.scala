@@ -85,7 +85,7 @@ class MillBuildBootstrap(
         createFolders = true
       )
 
-    for ((depth, frame) <- runnerState.metaBuildFrames) writeLogged(depth, frame.loggedData)
+    for (frame <- runnerState.metaBuildFrames) writeLogged(frame.depth, frame.loggedData)
     for (frame <- runnerState.finalFrame) writeLogged(frame.depth, frame.loggedData)
 
     runnerState
@@ -115,7 +115,7 @@ class MillBuildBootstrap(
       // Final tasks already ran at a deeper level (--meta-level or @nonBootstrapped); nothing to do here.
       nestedState
     } else {
-      val rootModuleRes = nestedState.metaBuildFrames.get(depth + 1) match {
+      val rootModuleRes = nestedState.metaBuildFrameAt(depth + 1) match {
         case None => Result.Success(BuildFileApi.Bootstrap(nestedState.bootstrapModuleOpt.get))
         case Some(nestedFrame) => getRootModule(nestedFrame.classLoaderOpt.get)
       }
@@ -183,7 +183,7 @@ class MillBuildBootstrap(
     // The classloader that will load the code at this depth lives on the meta-build
     // frame one level deeper (depth + 1). If there is no such frame, we're loading
     // from bootstrap and have no prior classloader to reference.
-    val nestedFrame = nestedState.metaBuildFrames.get(depth + 1)
+    val nestedFrame = nestedState.metaBuildFrameAt(depth + 1)
 
     val staticBuildOverrideFiles =
       staticBuildOverrides0.toSeq ++ nestedFrame.fold(Map.empty)(_.buildOverrideFiles)
@@ -284,8 +284,7 @@ class MillBuildBootstrap(
       case (f: Result.Failure, evalWatches, moduleWatches) =>
         nestedState
           .addMetaBuildFrame(
-            depth,
-            RunnerState.MetaBuildFrame.failed(evaluator, evalWatches, moduleWatches)
+            RunnerState.MetaBuildFrame.failed(depth, evaluator, evalWatches, moduleWatches)
           )
           .withError(mill.internal.Util.formatError(f, logger.prompt.errorColor))
 
@@ -330,7 +329,7 @@ class MillBuildBootstrap(
         // we consult prevCommandState because the final frame is per-launcher and not
         // published into sharedFrames.
         def outerModuleWatched: Seq[Watchable] =
-          prevCommandState.metaBuildFrames.get(depth - 1).map(_.moduleWatched)
+          prevCommandState.metaBuildFrameAt(depth - 1).map(_.moduleWatched)
             .orElse(prevCommandState.finalFrame.map(_.moduleWatched))
             .getOrElse(Nil)
 
@@ -348,6 +347,7 @@ class MillBuildBootstrap(
         // Per-launcher fields (evaluator, metaBuildReadLease) get attached to the launcher's
         // own copy below; [[SharedFrames.put]] strips them before storing.
         val sharedForThisLauncher = RunnerState.MetaBuildFrame(
+          depth = depth,
           classLoaderOpt = None, // filled in once we have a classloader to publish
           runClasspath = runClasspath,
           compileOutput = Some(compileClasses),
@@ -384,11 +384,11 @@ class MillBuildBootstrap(
                   // Close any classloaders we're about to replace. Workers at this depth
                   // are handled by SharedWorkerCache.forDepth (called in makeEvaluator).
                   Seq(
-                    prevCommandState.metaBuildFrames.get(depth).flatMap(_.classLoaderOpt),
+                    prevCommandState.metaBuildFrameAt(depth).flatMap(_.classLoaderOpt),
                     latest.flatMap(_.classLoaderOpt)
                   ).flatten.distinct.foreach(_.close())
                   val cl = createClassLoader()
-                  sharedFrames.put(depth, sharedForThisLauncher.copy(classLoaderOpt = Some(cl)))
+                  sharedFrames.put(sharedForThisLauncher.copy(classLoaderOpt = Some(cl)))
                   cl
                 }
               writeLease.downgradeToRead()
@@ -399,7 +399,7 @@ class MillBuildBootstrap(
             }
           }
         }
-        nestedState.addMetaBuildFrame(depth, frame)
+        nestedState.addMetaBuildFrame(frame)
 
       case unknown => sys.error(unknown.toString())
     }

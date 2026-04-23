@@ -36,33 +36,36 @@ case class RunnerState(
     // Watches captured during bootstrap module instantiation. Tracked separately because
     // a bootstrap failure produces no frames to carry them.
     bootstrapEvalWatched: Seq[Watchable] = Nil,
-    metaBuildFrames: Map[Int, RunnerState.MetaBuildFrame] = Map.empty,
+    metaBuildFrames: Seq[RunnerState.MetaBuildFrame] = Nil,
     finalFrame: Option[RunnerState.FinalFrame] = None
 ) extends Watching.Result
     with AutoCloseable {
   import RunnerState.*
 
-  def addMetaBuildFrame(depth: Int, frame: MetaBuildFrame): RunnerState =
-    copy(metaBuildFrames = metaBuildFrames.updated(depth, frame))
+  def addMetaBuildFrame(frame: MetaBuildFrame): RunnerState =
+    copy(metaBuildFrames = frame +: metaBuildFrames)
+
+  def metaBuildFrameAt(depth: Int): Option[MetaBuildFrame] =
+    metaBuildFrames.find(_.depth == depth)
 
   def withFinalFrame(frame: FinalFrame): RunnerState = copy(finalFrame = Some(frame))
 
   def withError(err: String): RunnerState = copy(errorOpt = Some(err))
 
   def watched: Seq[Watchable] =
-    metaBuildFrames.valuesIterator.flatMap(f => f.evalWatched ++ f.moduleWatched).toSeq ++
+    metaBuildFrames.flatMap(f => f.evalWatched ++ f.moduleWatched) ++
       finalFrame.iterator.flatMap(f => f.evalWatched ++ f.moduleWatched).toSeq ++
       bootstrapEvalWatched
 
   /** All evaluators across meta-build and final frames, in no particular order. */
   def allEvaluators: Seq[EvaluatorApi] =
-    metaBuildFrames.valuesIterator.flatMap(_.evaluator).toSeq ++ finalFrame.iterator.map(_.evaluator)
+    metaBuildFrames.flatMap(_.evaluator) ++ finalFrame.iterator.map(_.evaluator)
 
   override def close(): Unit = {
     // Only release locking leases. Workers live in the process-level
     // SharedWorkerCache and must not be closed when a command finishes,
     // since they may be shared with concurrent or subsequent commands.
-    metaBuildFrames.valuesIterator.foreach(_.metaBuildReadLease.foreach(_.close()))
+    metaBuildFrames.iterator.foreach(_.metaBuildReadLease.foreach(_.close()))
   }
 }
 
@@ -89,6 +92,7 @@ object RunnerState {
    */
   @internal
   case class MetaBuildFrame(
+      depth: Int,
       classLoaderOpt: Option[MillURLClassLoader],
       runClasspath: Seq[PathRefApi],
       compileOutput: Option[PathRefApi],
@@ -115,10 +119,12 @@ object RunnerState {
 
     /** A failed-compile frame: no shared data, just watches so `--watch` can retry. */
     def failed(
+        depth: Int,
         evaluator: EvaluatorApi,
         evalWatched: Seq[Watchable],
         moduleWatched: Seq[Watchable]
     ): MetaBuildFrame = MetaBuildFrame(
+      depth = depth,
       classLoaderOpt = None,
       runClasspath = Nil,
       compileOutput = None,
@@ -206,8 +212,8 @@ object RunnerState {
   final class SharedFrames {
     private val store = new ConcurrentHashMap[Int, MetaBuildFrame]()
     def get(depth: Int): Option[MetaBuildFrame] = Option(store.get(depth))
-    def put(depth: Int, frame: MetaBuildFrame): Unit = {
-      store.put(depth, frame.copy(evaluator = None, metaBuildReadLease = None))
+    def put(frame: MetaBuildFrame): Unit = {
+      store.put(frame.depth, frame.copy(evaluator = None, metaBuildReadLease = None))
       ()
     }
   }
