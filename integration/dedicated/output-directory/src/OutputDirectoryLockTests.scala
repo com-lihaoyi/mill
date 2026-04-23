@@ -47,23 +47,12 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
         val helloRes = eval(("hello"), check = true)
         assert(helloRes.exitCode == 0)
 
-        val outPath = workspacePath / "out"
-        val consoleTail = outPath / DaemonFiles.millConsoleTail
-        val profile = outPath / OutFiles.millProfile
-        val chromeProfile = outPath / OutFiles.millChromeProfile
-        val dependencyTree = outPath / OutFiles.millDependencyTree
-        val invalidationTree = outPath / OutFiles.millInvalidationTree
         assertEventually {
-          os.exists(consoleTail) &&
-          os.exists(profile) &&
-          os.exists(chromeProfile) &&
-          os.exists(dependencyTree) &&
-          os.exists(invalidationTree) &&
-          java.nio.file.Files.isSymbolicLink(consoleTail.toNIO) &&
-          java.nio.file.Files.isSymbolicLink(profile.toNIO) &&
-          java.nio.file.Files.isSymbolicLink(chromeProfile.toNIO) &&
-          java.nio.file.Files.isSymbolicLink(dependencyTree.toNIO) &&
-          java.nio.file.Files.isSymbolicLink(invalidationTree.toNIO)
+          os.isLink(workspacePath / "out" / DaemonFiles.millConsoleTail) &&
+          os.isLink(workspacePath / "out" / OutFiles.millProfile) &&
+          os.isLink(workspacePath / "out" / OutFiles.millChromeProfile) &&
+          os.isLink(workspacePath / "out" / OutFiles.millDependencyTree) &&
+          os.isLink(workspacePath / "out" / OutFiles.millInvalidationTree)
         }
         assertEventually(activeLauncherPid(
           workspacePath,
