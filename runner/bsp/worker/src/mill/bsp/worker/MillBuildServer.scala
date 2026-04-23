@@ -182,7 +182,12 @@ private abstract class MillBuildServer(
       val previousTargetIds = previousEvaluatorsOpt.map(_.bspModulesIdList).getOrElse(Nil).map {
         case (id, (_, ev)) => id -> ev
       }
-      ChangeNotifier.notifyChanges(client, previousTargetIds, newTargetIds)
+      ChangeNotifier.notifyChanges(
+        client,
+        previousTargetIds,
+        newTargetIds,
+        forceMillBuildChanged = errored
+      )
     }
   }
 

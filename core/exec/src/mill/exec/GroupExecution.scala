@@ -280,29 +280,32 @@ trait GroupExecution {
           serializedPaths = serializedPaths
         )
 
-        // If isFinalDepth, hold the downgraded read lease until the outermost executeTasks
-        // finishes so downstream tasks see a stable dest dir; otherwise release now.
+        // Retained leases stay alive until the outermost executeTasks finishes so downstream
+        // tasks see a stable dest dir. Non-final-depth write locks are inert NoopManager leases.
+        val retainedLeases = java.util.Collections.newSetFromMap(
+          new java.util.IdentityHashMap[WorkspaceLocking.ResourceLease, java.lang.Boolean]
+        )
         def retainOrClose(
             lease: WorkspaceLocking.ResourceLease,
             shouldRetain: Boolean
         ): Unit =
-          if (shouldRetain && isFinalDepth) retainTerminalReadLock(lease.downgradeToRead())
-          else lease.close()
+          if (shouldRetain) {
+            retainTerminalReadLock(lease.downgradeToRead())
+            retainedLeases.add(lease)
+          } else {
+            lease.close()
+          }
 
         def acquireTaskWriteLock(): WorkspaceLocking.ResourceLease =
-          if (!isFinalDepth) WorkspaceLocking.NoopManager.acquireLock(
-            WorkspaceLocking.Resource("noop", WorkspaceLocking.LockKind.Write)
-          )
-          else workspaceLockManager.acquireLock(
-            GroupExecution.taskLockResource(labelled, outPath, externalOutPath)
-          )
+          (if (isFinalDepth) workspaceLockManager else WorkspaceLocking.NoopManager)
+            .acquireLock(GroupExecution.taskLockResource(labelled, outPath, externalOutPath))
 
         def withTaskWriteLock[T](t: WorkspaceLocking.ResourceLease => T): T = {
           val lease = acquireTaskWriteLock()
           try t(lease)
           catch {
             case e: Throwable =>
-              lease.close()
+              if (!retainedLeases.contains(lease)) lease.close()
               throw e
           }
         }
@@ -310,7 +313,8 @@ trait GroupExecution {
         // Helper to evaluate the task with full caching support
         def evaluateTaskWithCaching(): GroupExecution.Results = {
           def loadCachedOrWorker(
-              cached: Option[(Int, Option[(Val, Seq[PathRef])], Int)]
+              cached: Option[(Int, Option[(Val, Seq[PathRef])], Int)],
+              closeStaleWorker: Boolean
           ): Option[GroupExecution.Results] = {
             val (multiLogger, _) = resolveLogger(Some(paths).map(_.log), logger)
             val upToDateWorker = loadUpToDateWorker(
@@ -322,6 +326,7 @@ trait GroupExecution {
               paths = Some(paths),
               upstreamPathRefs = upstreamPathRefs,
               exclusive = exclusive,
+              closeStaleWorker = closeStaleWorker,
               multiLogger = multiLogger,
               counterMsg = countMsg,
               destCreator = new GroupExecution.DestCreator(Some(paths)),
@@ -354,7 +359,10 @@ trait GroupExecution {
             }
 
           val readLockedResult =
-            try loadCachedOrWorker(loadCachedJson(logger, inputsHash, labelled, paths))
+            try loadCachedOrWorker(
+                loadCachedJson(logger, inputsHash, labelled, paths),
+                closeStaleWorker = false
+              )
             catch {
               case e: Throwable =>
                 readLeaseOpt.foreach(_.close())
@@ -372,7 +380,7 @@ trait GroupExecution {
                 // Re-read under the write lock: a sibling writer may have populated
                 // the cache while we were waiting for the lock.
                 val cached = loadCachedJson(logger, inputsHash, labelled, paths)
-                loadCachedOrWorker(cached) match {
+                loadCachedOrWorker(cached, closeStaleWorker = true) match {
                   case Some(res) =>
                     retainOrClose(writeLease, shouldRetain = true)
                     res
@@ -785,6 +793,7 @@ trait GroupExecution {
       paths: Option[ExecutionPaths],
       upstreamPathRefs: Seq[PathRef],
       exclusive: Boolean,
+      closeStaleWorker: Boolean,
       multiLogger: Logger,
       counterMsg: String,
       destCreator: GroupExecution.DestCreator,
@@ -801,7 +810,7 @@ trait GroupExecution {
             if cachedHash == workerCacheHash(inputsHash) && !forceDiscard =>
           Some(upToDate)
 
-        case (_, Val(_: AutoCloseable), _) =>
+        case (_, Val(_: AutoCloseable), _) if closeStaleWorker =>
           // Close this worker and all workers that depend on it
           val allToClose =
             SpanningForest.breadthFirst(Seq(labelled: TaskApi[?]))(n =>

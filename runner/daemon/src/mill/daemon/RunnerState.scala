@@ -55,12 +55,6 @@ case class RunnerState(
   def watched: Seq[Watchable] =
     frames.flatMap(f => f.evalWatched ++ f.moduleWatched ++ bootstrapEvalWatched)
 
-  def sanitizedForConcurrentReuse: RunnerState = copy(
-    bootstrapModuleOpt = None,
-    frames = frames.map(_.sanitizedForConcurrentReuse),
-    errorOpt = None
-  )
-
   override def close(): Unit = {
     // Only release locking leases. Workers live in the process-level
     // SharedWorkerCache and must not be closed when a command finishes,
@@ -79,7 +73,8 @@ object RunnerState {
 
     def updated(depth: Int, updatedFrames: Seq[Frame]): ReusableSnapshot = copy(
       frames = frames.take(depth).padTo(depth, Frame.empty) ++
-        updatedFrames.iterator.map(_.sanitizedForConcurrentReuse).toVector
+        updatedFrames.iterator.map(_.sanitizedForConcurrentReuse).toVector ++
+        frames.drop(depth + updatedFrames.size)
     )
   }
 
@@ -143,10 +138,11 @@ object RunnerState {
 
     def summarizeWorkerCache(
         workerCache: collection.Map[String, (Int, Val, TaskApi[?])]
-    ): Map[String, WorkerInfo] =
+    ): Map[String, WorkerInfo] = workerCache.synchronized {
       workerCache.iterator.map { case (k, (i, v, _)) =>
         (k, WorkerInfo(System.identityHashCode(v), i))
       }.toMap
+    }
 
     case class ClassLoaderInfo(identityHashCode: Int, paths: Seq[String], buildHash: Int)
     implicit val classLoaderInfoRw: ReadWriter[ClassLoaderInfo] = macroRW

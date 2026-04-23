@@ -6,7 +6,9 @@ import java.io.PrintStream
 import java.nio.file.StandardCopyOption
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Semaphore
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
+import scala.concurrent.duration.*
 
 object WorkspaceLocking {
   enum LockKind {
@@ -75,20 +77,22 @@ object WorkspaceLocking {
   // released on the main thread when retainedTerminalReadLocks is drained.
   // Read = acquire(1), Write = acquire(maxPermits). Fair ordering ensures no starvation.
   private val maxPermits = 1_000_000
-  // Never evicted; bounded by the number of distinct lock keys (tasks + meta-build depths)
-  private val lockTable = new ConcurrentHashMap[String, Semaphore]()
+  private class LockEntry(val semaphore: Semaphore, var refCount: Int)
+  private val lockTable = new ConcurrentHashMap[String, LockEntry]()
 
   private val runRootDirName = "mill-run"
   private val legacyRunDirPrefix = "mill-run-"
 
   /** Maximum number of per-run directories to retain for debugging. */
   private val maxRetainedRuns = 10
+  private val inactiveRunCleanupGracePeriodMillis = 5.seconds.toMillis
 
   private case class ActiveRun(
       runId: String,
       runDir: os.Path,
       consoleTail: os.Path,
       var active: Boolean = true,
+      var inactiveSinceMillis: Long = 0L,
       var published: Boolean = false,
       publishedFiles: scala.collection.mutable.Map[String, os.Path] =
         scala.collection.mutable.LinkedHashMap.empty
@@ -97,7 +101,7 @@ object WorkspaceLocking {
   private case class LockOwner(runId: String, pid: Long, command: String)
   private case class LockOwnerCount(owner: LockOwner, var count: Int)
   private class ResourceOwners {
-    var writeOwnerOpt: Option[LockOwnerCount] = None
+    var writeOwnerOpt: Option[LockOwner] = None
     val readOwners = scala.collection.mutable.LinkedHashMap.empty[String, LockOwnerCount]
   }
   private case class OwnedResource(var kind: LockKind, var count: Int)
@@ -127,6 +131,7 @@ object WorkspaceLocking {
 
     def deactivate(run: ActiveRun): Unit = lock.synchronized {
       run.active = false
+      run.inactiveSinceMillis = System.currentTimeMillis()
       refreshWellKnownLinks()
     }
 
@@ -138,7 +143,15 @@ object WorkspaceLocking {
       try {
         if (os.exists(out)) {
           lock.synchronized {
-            val activeRunDirs = runs.valuesIterator.filter(_.active).map(_.runDir).toSet
+            val now = System.currentTimeMillis()
+            val protectedRunDirs = runs.valuesIterator
+              .filter(run =>
+                run.active ||
+                  run.inactiveSinceMillis == 0L ||
+                  now - run.inactiveSinceMillis < inactiveRunCleanupGracePeriodMillis
+              )
+              .map(_.runDir)
+              .toSet
 
             val runRootDir = out / runRootDirName
             val runDirs =
@@ -151,7 +164,7 @@ object WorkspaceLocking {
               .filter(p => os.isDir(p) && p.last.startsWith(legacyRunDirPrefix))
               .sortBy(_.last)
 
-            val removable = runDirs.filterNot(activeRunDirs)
+            val removable = runDirs.filterNot(protectedRunDirs)
             val toRemove =
               removable.take(math.min(removable.size, math.max(0, runDirs.size - maxRetainedRuns)))
             toRemove.foreach { dir =>
@@ -236,10 +249,10 @@ object WorkspaceLocking {
           owners.writeOwnerOpt match {
             case Some(existing) =>
               throw new IllegalStateException(
-                s"Resource ${resource.key} already has write owner ${existing.owner.runId}"
+                s"Resource ${resource.key} already has write owner ${existing.runId}"
               )
             case None =>
-              owners.writeOwnerOpt = Some(LockOwnerCount(owner, 1))
+              owners.writeOwnerOpt = Some(owner)
           }
         case LockKind.Read =>
           owners.readOwners.get(owner.runId) match {
@@ -257,9 +270,8 @@ object WorkspaceLocking {
         kind match {
           case LockKind.Write =>
             owners.writeOwnerOpt match {
-              case Some(existing) if existing.owner.runId == owner.runId =>
-                existing.count -= 1
-                if (existing.count <= 0) owners.writeOwnerOpt = None
+              case Some(existing) if existing.runId == owner.runId =>
+                owners.writeOwnerOpt = None
               case _ =>
             }
           case LockKind.Read =>
@@ -281,9 +293,8 @@ object WorkspaceLocking {
       val owners = resourceOwnersTable.get(resource.key)
       if (owners != null) {
         owners.writeOwnerOpt match {
-          case Some(existing) if existing.owner.runId == owner.runId =>
-            existing.count -= 1
-            if (existing.count <= 0) owners.writeOwnerOpt = None
+          case Some(existing) if existing.runId == owner.runId =>
+            owners.writeOwnerOpt = None
           case _ =>
         }
         owners.readOwners.get(owner.runId) match {
@@ -301,10 +312,9 @@ object WorkspaceLocking {
       else {
         resource.kind match {
           case LockKind.Read =>
-            owners.writeOwnerOpt.map(_.owner)
+            owners.writeOwnerOpt
           case LockKind.Write =>
             owners.writeOwnerOpt
-              .map(_.owner)
               .orElse(owners.readOwners.headOption.map(_._2.owner))
         }
       }
@@ -410,18 +420,11 @@ object WorkspaceLocking {
     }
 
     override def acquireLock(resource0: Resource): ResourceLease =
-      if (noBuildLock) {
+      {
+        val lockEntryOpt = Option.when(!noBuildLock)(acquire(resource0))
         publishRun()
-        new ResourceLease {
-          override def resource: Resource = resource0
-          override def kind: LockKind = resource0.kind
-          override def downgradeToRead(): ResourceLease = this
-          override def close(): Unit = ()
-        }
-      } else {
-        acquire(resource0)
-        publishRun()
-        new InProcessResourceLease(resource0)
+        if (noBuildLock) NoopManager.acquireLock(resource0)
+        else new InProcessResourceLease(resource0, lockEntryOpt.get)
       }
 
     override def acquireLocks(resources: Seq[Resource]): Lease =
@@ -454,7 +457,10 @@ object WorkspaceLocking {
         }
       }
 
-    private class InProcessResourceLease(override val resource: Resource) extends ResourceLease {
+    private class InProcessResourceLease(
+        override val resource: Resource,
+        lockEntry: LockEntry
+    ) extends ResourceLease {
       private val closed = new java.util.concurrent.atomic.AtomicBoolean(false)
       @volatile private var currentKind: LockKind = resource.kind
       override def kind: LockKind = currentKind
@@ -464,7 +470,7 @@ object WorkspaceLocking {
           // Downgrade: release write permits minus 1 (keeping 1 read permit)
           downgradeOwner(resource, owner)
           downgradeOwnedResource(resource)
-          semaphore(resource).release(maxPermits - 1)
+          lockEntry.semaphore.release(maxPermits - 1)
           currentKind = LockKind.Read
         }
         this
@@ -478,15 +484,31 @@ object WorkspaceLocking {
             case LockKind.Read => 1
             case LockKind.Write => maxPermits
           }
-          semaphore(resource).release(permits)
+          lockEntry.semaphore.release(permits)
+          releaseLockEntry(resource, lockEntry)
         }
     }
 
-    private def semaphore(resource: Resource): Semaphore =
-      lockTable.computeIfAbsent(resource.key, _ => new Semaphore(maxPermits, true))
+    private def retainLockEntry(resource: Resource): LockEntry = resourceOwnersLock.synchronized {
+      val entry = lockTable.computeIfAbsent(resource.key, _ => new LockEntry(
+        new Semaphore(maxPermits, true),
+        0
+      ))
+      entry.refCount += 1
+      entry
+    }
 
-    private def acquire(resource: Resource): Unit = {
-      val sem = semaphore(resource)
+    private def releaseLockEntry(resource: Resource, entry: LockEntry): Unit =
+      resourceOwnersLock.synchronized {
+        entry.refCount -= 1
+        if (entry.refCount <= 0 && !resourceOwnersTable.containsKey(resource.key)) {
+          lockTable.remove(resource.key, entry)
+        }
+      }
+
+    private def acquire(resource: Resource): LockEntry = {
+      val lockEntry = retainLockEntry(resource)
+      val sem = lockEntry.semaphore
       val permits = resource.kind match {
         case LockKind.Read => 1
         case LockKind.Write => maxPermits
@@ -501,15 +523,22 @@ object WorkspaceLocking {
         )
       }
       val acquired =
-        if (noWaitForBuildLock) sem.tryAcquire(permits)
-        else if (sem.tryAcquire(permits)) true
-        else {
-          waitMessage("waiting for it to be done...")
-          sem.acquire(permits)
-          true
+        try {
+          if (noWaitForBuildLock) sem.tryAcquire(permits, 0L, TimeUnit.MILLISECONDS)
+          else if (sem.tryAcquire(permits, 0L, TimeUnit.MILLISECONDS)) true
+          else {
+            waitMessage("waiting for it to be done...")
+            sem.acquire(permits)
+            true
+          }
+        } catch {
+          case e: Throwable =>
+            releaseLockEntry(resource, lockEntry)
+            throw e
         }
 
       if (!acquired) {
+        releaseLockEntry(resource, lockEntry)
         val blocker = blockingOwner(resource)
         val command = blocker.map(_.command).getOrElse("<unknown>")
         val pid = blocker.map(_.pid.toString).getOrElse("<unknown>")
@@ -518,8 +547,16 @@ object WorkspaceLocking {
         )
       }
 
-      registerOwner(resource, owner)
-      registerOwnedResource(resource)
+      try {
+        registerOwner(resource, owner)
+        registerOwnedResource(resource)
+        lockEntry
+      } catch {
+        case e: Throwable =>
+          sem.release(permits)
+          releaseLockEntry(resource, lockEntry)
+          throw e
+      }
     }
 
   }

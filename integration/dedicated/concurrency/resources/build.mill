@@ -66,4 +66,31 @@ object `package` extends mill.Module {
   def runFast() = Task.Command {
     println(fast())
   }
+
+  def workerVersion = Task.Input {
+    mill.api.BuildCtx.withFilesystemCheckerDisabled {
+      os.read(workspace / "worker-version")
+    }
+  }
+
+  class TestWorker(version: String) extends AutoCloseable {
+    def value = version
+    override def close(): Unit =
+      mill.api.BuildCtx.withFilesystemCheckerDisabled {
+        os.write.over(workspace / s"worker-closed-$version", "")
+      }
+  }
+
+  def testWorker = Task.Worker {
+    new TestWorker(workerVersion())
+  }
+
+  def runWorkerValue() = Task.Command {
+    println(s"worker-value-${testWorker().value}")
+  }
+
+  def runUseWorker() = Task.Command {
+    println(s"worker-value-${testWorker().value}")
+    waitFor("worker-use")
+  }
 }

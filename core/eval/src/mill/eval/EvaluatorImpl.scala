@@ -56,6 +56,7 @@ final class EvaluatorImpl(
   override def workspaceLockManager: WorkspaceLocking.Manager = execution.workspaceLockManager
   override def spanningInvalidationTree: Option[String] = execution.spanningInvalidationTree
   override def classLoaderSigHash: Int = execution.classLoaderSigHash
+  override def classLoaderIdentityHash: Int = execution.classLoaderIdentityHash
 
   def withBaseLogger(newBaseLogger: Logger): Evaluator = new EvaluatorImpl(
     allowPositionalCommandArgs,

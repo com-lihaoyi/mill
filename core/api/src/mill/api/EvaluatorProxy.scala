@@ -22,6 +22,7 @@ final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
   override def staticBuildOverrides = delegate.staticBuildOverrides
   override def spanningInvalidationTree: Option[String] = delegate.spanningInvalidationTree
   override def classLoaderSigHash: Int = delegate.classLoaderSigHash
+  override def classLoaderIdentityHash: Int = delegate.classLoaderIdentityHash
   def withBaseLogger(newBaseLogger: Logger): Evaluator = delegate.withBaseLogger(newBaseLogger)
 
   def resolveSegments(

@@ -439,6 +439,8 @@ object MillMain0 {
 
                           for (err <- watchRes.errorOpt) bspLogger.streams.err.println(err)
 
+                          // The previous loop iteration called resetSession before continuing, so
+                          // these leases belong to an inactive BSP session state.
                           prevRunnerStateOpt.foreach(_.close())
                           prevRunnerStateOpt = Some(watchRes)
 

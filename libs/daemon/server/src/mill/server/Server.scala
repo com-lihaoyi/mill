@@ -474,16 +474,15 @@ object Server {
 
       def readActiveInfo(): (command: String, processDir: Option[os.Path], pid: Option[Long]) = {
         try {
-          val activeFile = os.list(launcherRunsDir).filter(os.isFile(_)).sortBy(_.last).last
-          val json = os.read(activeFile)
-          // Simple JSON parsing for {"command":"...","processDir":"..."}
-          val commandPattern = """"command"\s*:\s*"([^"]*)"""".r
-          val processDirPattern = """"processDir"\s*:\s*"([^"]*)"""".r
-          val pidPattern = """"pid"\s*:\s*([0-9]+)""".r
-          val command = commandPattern.findFirstMatchIn(json).map(_.group(1)).getOrElse("<unknown>")
-          val processDir = processDirPattern.findFirstMatchIn(json).map(m => os.Path(m.group(1)))
-          val pid = pidPattern.findFirstMatchIn(json).flatMap(m => m.group(1).toLongOption)
-          (command, processDir, pid)
+          os.list(launcherRunsDir).filter(os.isFile(_)).sortBy(_.last).lastOption match {
+            case Some(activeFile) =>
+              val json = ujson.read(os.read(activeFile)).obj
+              val command = json.get("command").map(_.str).getOrElse("<unknown>")
+              val processDir = json.get("processDir").map(v => os.Path(v.str))
+              val pid = json.get("pid").map(_.num.toLong)
+              (command, processDir, pid)
+            case None => ("<unknown>", None, None)
+          }
         } catch {
           case NonFatal(_) => ("<unknown>", None, None)
         }

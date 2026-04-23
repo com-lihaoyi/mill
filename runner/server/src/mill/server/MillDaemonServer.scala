@@ -12,6 +12,7 @@ import mill.server.Server.ConnectionData
 import java.io.*
 import java.net.Socket
 import java.util.concurrent.atomic.AtomicReference
+import java.util.function.UnaryOperator
 import scala.concurrent.duration.FiniteDuration
 
 abstract class MillDaemonServer[State](
@@ -30,16 +31,14 @@ abstract class MillDaemonServer[State](
   def outLock: mill.client.lock.Lock
   def outFolder: os.Path
 
-  private var stateCache: State = initialStateCache
-  private val stateLock = new Object
+  private val stateCache = new AtomicReference[State](initialStateCache)
 
-  protected def snapshotStateCache(): State = stateLock.synchronized(stateCache)
-  protected def publishStateCache(newState: State): Unit = stateLock.synchronized {
-    stateCache = newState
-  }
-  protected def modifyStateCache(f: State => State): Unit = stateLock.synchronized {
-    stateCache = f(stateCache)
-  }
+  protected def snapshotStateCache(): State = stateCache.get()
+  protected def publishStateCache(newState: State): Unit = stateCache.set(newState)
+  protected def modifyStateCache(f: State => State): Unit =
+    stateCache.updateAndGet(new UnaryOperator[State] {
+      override def apply(t: State): State = f(t)
+    })
 
   def initialStateCache: State
 

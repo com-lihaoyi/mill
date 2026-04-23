@@ -23,11 +23,18 @@ private[worker] object ChangeNotifier {
   def notifyChanges(
       client: BuildClient,
       previousTargetIds: Seq[(BuildTargetIdentifier, EvaluatorApi)],
-      newTargetIds: Seq[(BuildTargetIdentifier, EvaluatorApi)]
+      newTargetIds: Seq[(BuildTargetIdentifier, EvaluatorApi)],
+      forceMillBuildChanged: Boolean
   ): Unit = {
     val createdAndModifiedEvents = computeCreatedAndModified(previousTargetIds, newTargetIds)
     val deletedEvents = computeDeleted(previousTargetIds, newTargetIds)
-    val allEvents = deletedEvents ++ createdAndModifiedEvents
+    val millBuildEvent = computeMillBuildChanged(
+      previousTargetIds,
+      newTargetIds,
+      deletedEvents ++ createdAndModifiedEvents,
+      forceMillBuildChanged
+    )
+    val allEvents = deletedEvents ++ createdAndModifiedEvents ++ millBuildEvent
 
     if (allEvents.nonEmpty)
       client.onBuildTargetDidChange(new bsp4j.DidChangeBuildTarget(allEvents.asJava))
@@ -44,7 +51,7 @@ private[worker] object ChangeNotifier {
           val event = new bsp4j.BuildTargetEvent(id)
           event.setKind(bsp4j.BuildTargetEventKind.CREATED)
           Seq(event)
-        case Some(prevEv) if prevEv != ev =>
+        case Some(prevEv) if prevEv.classLoaderIdentityHash != ev.classLoaderIdentityHash =>
           val event = new bsp4j.BuildTargetEvent(id)
           event.setKind(bsp4j.BuildTargetEventKind.CHANGED)
           Seq(event)
@@ -65,5 +72,27 @@ private[worker] object ChangeNotifier {
         event.setKind(bsp4j.BuildTargetEventKind.DELETED)
         event
     }
+  }
+
+  private def computeMillBuildChanged(
+      previousTargetIds: Seq[(BuildTargetIdentifier, EvaluatorApi)],
+      newTargetIds: Seq[(BuildTargetIdentifier, EvaluatorApi)],
+      otherEvents: Seq[bsp4j.BuildTargetEvent],
+      forceMillBuildChanged: Boolean
+  ): Seq[bsp4j.BuildTargetEvent] = {
+    def isMillBuild(id: BuildTargetIdentifier) = id.getUri.endsWith("/mill-build")
+
+    if (
+      (forceMillBuildChanged || otherEvents.nonEmpty) &&
+      !otherEvents.exists(event => isMillBuild(event.getTarget)) &&
+      previousTargetIds.exists((id, _) => isMillBuild(id)) &&
+      newTargetIds.exists((id, _) => isMillBuild(id))
+    ) {
+      val event = new bsp4j.BuildTargetEvent(newTargetIds.collectFirst {
+        case (id, _) if isMillBuild(id) => id
+      }.get)
+      event.setKind(bsp4j.BuildTargetEventKind.CHANGED)
+      Seq(event)
+    } else Nil
   }
 }

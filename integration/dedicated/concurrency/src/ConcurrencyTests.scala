@@ -166,5 +166,41 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       assert(launcher1.out.text().contains("fast-value-0"))
       assert(launcher2.out.text().contains("shared-value"))
     }
+
+    test("stale-shared-worker-is-not-closed-under-read-lock") - integrationTest { tester =>
+      import tester.*
+      assert(tester.daemonMode)
+
+      val versionFile = workspacePath / "worker-version"
+      val closeMarker = workspacePath / "worker-closed-0"
+      os.write.over(versionFile, "0")
+      eval(("runWorkerValue"), check = true)
+
+      val gate = waitFile(tester, "worker-use-wait")
+      os.write.over(gate, "")
+
+      val launcher1 = spawn(("runUseWorker"))
+      assertEventually(combinedText(launcher1).contains(enteredMarker("worker-use")))
+      assertEventually(activeLauncherPid(tester, "runUseWorker").nonEmpty)
+      val blockerPid = activeLauncherPid(tester, "runUseWorker").get
+
+      os.write.over(versionFile, "1")
+      val launcher2 = spawn(("runUseWorker"))
+      assertEventually(blockedBy(launcher2, "runUseWorker", blockerPid))
+      assert(launcher2.process.isAlive())
+      assert(!os.exists(closeMarker))
+
+      release(gate)
+      launcher1.process.waitFor()
+      assertEventually(os.exists(closeMarker))
+
+      release(gate)
+      launcher2.process.waitFor()
+
+      assert(launcher1.process.exitCode() == 0)
+      assert(launcher2.process.exitCode() == 0)
+      assert(launcher1.out.text().contains("worker-value-0"))
+      assert(launcher2.out.text().contains("worker-value-1"))
+    }
   }
 }

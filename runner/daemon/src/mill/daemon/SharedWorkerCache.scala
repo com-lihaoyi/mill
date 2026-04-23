@@ -25,6 +25,7 @@ object SharedWorkerCache {
 
   private val lock = new Object
   private val caches = mutable.Map.empty[CacheKey, DepthEntry]
+  sys.addShutdownHook(closeAll())
 
   def forDepth(
       workspaceRoot: os.Path,

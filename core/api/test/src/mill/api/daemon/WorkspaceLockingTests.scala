@@ -4,7 +4,10 @@ import mill.constants.{DaemonFiles, OutFiles}
 import utest.*
 
 import java.io.PrintStream
+import java.io.ByteArrayOutputStream
 import java.nio.file.Files
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 object WorkspaceLockingTests extends TestSuite {
   val tests: Tests = Tests {
@@ -152,11 +155,133 @@ object WorkspaceLockingTests extends TestSuite {
         second.close()
       }
     }
+
+    test("concurrent-managers-respect-fair-lock-order") {
+      withTmpDir { tmpDir =>
+        val out = tmpDir / "out"
+        os.makeDir.all(out)
+        val waitingBytes = new ByteArrayOutputStream()
+        val waitingErr = new PrintStream(waitingBytes)
+
+        def manager(command: String) = new WorkspaceLocking.InProcessManager(
+          out = out,
+          daemonDir = out / OutFiles.millDaemon,
+          activeCommandMessage = command,
+          launcherPid = 12345L,
+          waitingErr = waitingErr,
+          noBuildLock = false,
+          noWaitForBuildLock = false
+        )
+
+        val firstReaderManager = manager("first-reader")
+        val writerManager = manager("writer")
+        val secondReaderManager = manager("second-reader")
+        val resource = WorkspaceLocking.Resource("fair-resource", WorkspaceLocking.LockKind.Read)
+        val firstReadLease = firstReaderManager.acquireLock(resource)
+        val writerAcquired = new CountDownLatch(1)
+        val releaseWriter = new CountDownLatch(1)
+        val secondReaderAcquired = new CountDownLatch(1)
+        @volatile var writerLease: WorkspaceLocking.ResourceLease = null
+        @volatile var secondReadLease: WorkspaceLocking.ResourceLease = null
+
+        val writerThread = new Thread(() => {
+          writerLease = writerManager.acquireLock(resource.copy(kind = WorkspaceLocking.LockKind.Write))
+          writerAcquired.countDown()
+          releaseWriter.await(5, TimeUnit.SECONDS)
+          writerLease.close()
+        })
+        writerThread.start()
+
+        assertEventually(waitingBytes.size() > 0)
+
+        val secondReaderThread = new Thread(() => {
+          secondReadLease = secondReaderManager.acquireLock(resource)
+          secondReaderAcquired.countDown()
+        })
+        secondReaderThread.start()
+
+        firstReadLease.close()
+
+        assert(writerAcquired.await(5, TimeUnit.SECONDS))
+        assert(!secondReaderAcquired.await(100, TimeUnit.MILLISECONDS))
+
+        releaseWriter.countDown()
+        assert(secondReaderAcquired.await(5, TimeUnit.SECONDS))
+
+        secondReadLease.close()
+        writerThread.join(5000)
+        secondReaderThread.join(5000)
+        firstReaderManager.close()
+        writerManager.close()
+        secondReaderManager.close()
+      }
+    }
+
+    test("no-wait-reader-does-not-barge-ahead-of-queued-writer") {
+      withTmpDir { tmpDir =>
+        val out = tmpDir / "out"
+        os.makeDir.all(out)
+        val waitingBytes = new ByteArrayOutputStream()
+        val waitingErr = new PrintStream(waitingBytes)
+
+        def manager(command: String, noWait: Boolean = false) =
+          new WorkspaceLocking.InProcessManager(
+            out = out,
+            daemonDir = out / OutFiles.millDaemon,
+            activeCommandMessage = command,
+            launcherPid = 12345L,
+            waitingErr = waitingErr,
+            noBuildLock = false,
+            noWaitForBuildLock = noWait
+          )
+
+        val firstReaderManager = manager("first-reader")
+        val writerManager = manager("writer")
+        val noWaitReaderManager = manager("no-wait-reader", noWait = true)
+        val resource = WorkspaceLocking.Resource("no-wait-fair-resource", WorkspaceLocking.LockKind.Read)
+        val firstReadLease = firstReaderManager.acquireLock(resource)
+        val writerAcquired = new CountDownLatch(1)
+        val releaseWriter = new CountDownLatch(1)
+        @volatile var writerLease: WorkspaceLocking.ResourceLease = null
+
+        val writerThread = new Thread(() => {
+          writerLease = writerManager.acquireLock(resource.copy(kind = WorkspaceLocking.LockKind.Write))
+          writerAcquired.countDown()
+          releaseWriter.await(5, TimeUnit.SECONDS)
+          writerLease.close()
+        })
+        writerThread.start()
+        assertEventually(waitingBytes.size() > 0)
+
+        val ex =
+          try {
+            noWaitReaderManager.acquireLock(resource)
+            throw new java.lang.AssertionError("expected no-wait acquisition to fail")
+          } catch {
+            case e: Exception => e
+          }
+        assert(ex.getMessage.contains("no-wait-fair-resource"))
+
+        firstReadLease.close()
+        assert(writerAcquired.await(5, TimeUnit.SECONDS))
+        releaseWriter.countDown()
+        writerThread.join(5000)
+        firstReaderManager.close()
+        writerManager.close()
+        noWaitReaderManager.close()
+      }
+    }
   }
 
   private def withTmpDir[T](body: os.Path => T): T = {
     val tmpDir = os.Path(Files.createTempDirectory("workspace-locking-tests"))
     try body(tmpDir)
     finally os.remove.all(tmpDir)
+  }
+
+  private def assertEventually(predicate: => Boolean): Unit = {
+    val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5)
+    while (!predicate && System.nanoTime() < deadline) Thread.sleep(10)
+    if (!predicate) throw new java.lang.AssertionError("predicate did not become true")
   }
 }

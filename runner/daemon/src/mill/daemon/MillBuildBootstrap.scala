@@ -359,8 +359,9 @@ class MillBuildBootstrap(
           runClasspathChanged || moduleWatchChanged
         }
 
-        def snapshotFrames(): (Option[RunnerState.Frame], Option[RunnerState.Frame]) = {
-          val snapshot = snapshotPublishedState()
+        def snapshotFrames(
+            snapshot: RunnerState.ReusableSnapshot = snapshotPublishedState()
+        ): (Option[RunnerState.Frame], Option[RunnerState.Frame]) = {
           val frameOpt = snapshot.frame(depth).orElse(prevCommandState.frames.lift(depth))
           val outerFrameOpt =
             snapshot.frame(depth - 1).orElse(prevCommandState.frames.lift(depth - 1))
@@ -370,9 +371,10 @@ class MillBuildBootstrap(
         def frameFor(
             classLoader: mill.api.MillURLClassLoader,
             metaBuildReadLeaseOpt: Option[WorkspaceLocking.Lease],
-            forceSpanningInvalidationTree: Boolean
+            forceSpanningInvalidationTree: Boolean,
+            snapshot: RunnerState.ReusableSnapshot = snapshotPublishedState()
         ) = {
-          val (publishedFrameOpt, publishedOuterFrameOpt) = snapshotFrames()
+          val (publishedFrameOpt, publishedOuterFrameOpt) = snapshotFrames(snapshot)
           val needsUpdate = needsClassloaderRefresh(publishedFrameOpt, publishedOuterFrameOpt)
 
           RunnerState.Frame(
@@ -424,7 +426,8 @@ class MillBuildBootstrap(
             readLease.close()
             val writeLease = acquireWrite()
             closeOnThrow(writeLease) {
-              val (latestFrameOpt, latestOuterFrameOpt) = snapshotFrames()
+              val latestSnapshot = snapshotPublishedState()
+              val (latestFrameOpt, latestOuterFrameOpt) = snapshotFrames(latestSnapshot)
               val needsUpdate = needsClassloaderRefresh(latestFrameOpt, latestOuterFrameOpt)
               val classLoader =
                 if (!needsUpdate && latestFrameOpt.exists(_.classLoaderOpt.isDefined)) {
@@ -435,15 +438,18 @@ class MillBuildBootstrap(
                   // detects the classloader change and closes stale workers.
                   val previousClassLoaders = Seq(
                     prevCommandState.frames.lift(depth).flatMap(_.classLoaderOpt),
-                    snapshotPublishedState().frame(depth).flatMap(_.classLoaderOpt)
+                    latestSnapshot.frame(depth).flatMap(_.classLoaderOpt)
                   ).flatten.distinct
                   previousClassLoaders.foreach(_.close())
                   val cl = createClassLoader()
                   publishReusableState(
                     depth,
-                    nestedState.add(
-                      frame = frameFor(cl, None, forceSpanningInvalidationTree = true)
-                    ).frames
+                    Seq(frameFor(
+                      cl,
+                      None,
+                      forceSpanningInvalidationTree = true,
+                      snapshot = latestSnapshot
+                    ))
                   )
                   cl
                 }
