@@ -299,13 +299,11 @@ trait GroupExecution {
 
         def withTaskWriteLock[T](t: WorkspaceLocking.ResourceLease => T): T = {
           val lease = acquireTaskWriteLock()
-          var ownershipTransferred = false
-          try {
-            val result = t(lease)
-            ownershipTransferred = true
-            result
-          } finally {
-            if (!ownershipTransferred) lease.close()
+          try t(lease)
+          catch {
+            case e: Throwable =>
+              lease.close()
+              throw e
           }
         }
 
@@ -372,7 +370,7 @@ trait GroupExecution {
               readLeaseOpt.foreach(retainOrClose(_, shouldRetain = false))
               withTaskWriteLock { writeLease =>
                 val cached = loadCachedJson(logger, inputsHash, labelled, paths)
-                loadCachedOrWorker(forceDiscard = true) match {
+                loadCachedOrWorker(forceDiscard = false) match {
                   case Some((res, _)) =>
                     retainOrClose(writeLease, shouldRetain = true)
                     res

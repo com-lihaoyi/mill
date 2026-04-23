@@ -89,6 +89,69 @@ object WorkspaceLockingTests extends TestSuite {
         ).toString.startsWith("mill-run/"))
       }
     }
+
+    test("closing-lease-after-manager-close-does-not-resurrect-launcher-run-file") {
+      withTmpDir { tmpDir =>
+        val out = tmpDir / "out"
+        os.makeDir.all(out)
+
+        val manager = new WorkspaceLocking.InProcessManager(
+          out = out,
+          daemonDir = out / OutFiles.millDaemon,
+          activeCommandMessage = "test-command",
+          launcherPid = 12345L,
+          waitingErr = new PrintStream(System.err),
+          noBuildLock = false,
+          noWaitForBuildLock = false
+        )
+        val launcherRunFile =
+          out / OutFiles.millDaemon / os.RelPath(DaemonFiles.launcherRun(manager.runId))
+        val lease = manager.acquireLock(
+          WorkspaceLocking.metaBuildResource(0, WorkspaceLocking.LockKind.Write)
+        )
+        lease.downgradeToRead()
+
+        manager.close()
+        assert(!os.exists(launcherRunFile))
+
+        lease.close()
+        assert(!os.exists(launcherRunFile))
+      }
+    }
+
+    test("latest-links-fall-back-to-most-recent-run-that-published-each-file") {
+      withTmpDir { tmpDir =>
+        val out = tmpDir / "out"
+        os.makeDir.all(out)
+
+        def manager(command: String) = new WorkspaceLocking.InProcessManager(
+          out = out,
+          daemonDir = out / OutFiles.millDaemon,
+          activeCommandMessage = command,
+          launcherPid = 12345L,
+          waitingErr = new PrintStream(System.err),
+          noBuildLock = false,
+          noWaitForBuildLock = false
+        )
+
+        val first = manager("first")
+        val firstProfilePath = os.Path(first.runFileJava((out / OutFiles.millProfile).toNIO))
+        os.write.over(firstProfilePath, "first-profile")
+        first.acquireLocks(Seq.empty).close()
+
+        val second = manager("second")
+        val secondChromePath =
+          os.Path(second.runFileJava((out / OutFiles.millChromeProfile).toNIO))
+        os.write.over(secondChromePath, "second-chrome")
+        second.acquireLocks(Seq.empty).close()
+
+        assert(os.read(out / OutFiles.millProfile) == "first-profile")
+        assert(os.read(out / OutFiles.millChromeProfile) == "second-chrome")
+
+        first.close()
+        second.close()
+      }
+    }
   }
 
   private def withTmpDir[T](body: os.Path => T): T = {

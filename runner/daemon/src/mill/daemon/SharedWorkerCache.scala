@@ -23,7 +23,7 @@ object SharedWorkerCache {
   )
 
   private val lock = new Object
-  private val caches = new java.util.concurrent.ConcurrentHashMap[CacheKey, DepthEntry]()
+  private val caches = mutable.Map.empty[CacheKey, DepthEntry]
 
   def forDepth(
       workspaceRoot: os.Path,
@@ -33,18 +33,18 @@ object SharedWorkerCache {
     lock.synchronized {
       val key = CacheKey(workspaceRoot.toString, depth)
       caches.get(key) match {
-        case entry if entry != null && entry.classLoaderIdentityHash == classLoaderIdentityHash =>
+        case Some(entry) if entry.classLoaderIdentityHash == classLoaderIdentityHash =>
           entry.workers
-        case stale =>
-          if (stale != null) closeWorkers(stale.workers)
+        case staleOpt =>
+          staleOpt.foreach(stale => closeWorkers(stale.workers))
           val fresh = mutable.Map.empty[String, (Int, Val, TaskApi[?])]
-          caches.put(key, DepthEntry(classLoaderIdentityHash, fresh))
+          caches(key) = DepthEntry(classLoaderIdentityHash, fresh)
           fresh
       }
     }
 
   def closeAll(): Unit = lock.synchronized {
-    caches.forEach { (_, entry) => closeWorkers(entry.workers) }
+    caches.valuesIterator.foreach(entry => closeWorkers(entry.workers))
     caches.clear()
   }
 

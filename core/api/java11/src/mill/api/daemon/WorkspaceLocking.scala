@@ -6,7 +6,7 @@ import java.io.PrintStream
 import java.nio.file.StandardCopyOption
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Semaphore
-import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 
 object WorkspaceLocking {
   enum LockKind {
@@ -145,6 +145,8 @@ object WorkspaceLocking {
               if (os.exists(runRootDir)) os.list(runRootDir).filter(os.isDir(_)).sortBy(_.last)
               else Seq.empty
 
+            // Defensive cleanup for old builds that created run directories directly under out/.
+            // Current builds place per-run files under out/mill-run/.
             val legacyRunDirs = os.list(out)
               .filter(p => os.isDir(p) && p.last.startsWith(legacyRunDirPrefix))
               .sortBy(_.last)
@@ -171,12 +173,15 @@ object WorkspaceLocking {
     }
 
     private def refreshWellKnownLinks(): Unit = {
-      val latestRunOpt = runs.valuesIterator.filter(_.published).toSeq.lastOption
+      val publishedRuns = runs.valuesIterator.filter(_.published).toSeq
 
-      updateSymlink(out / DaemonFiles.millConsoleTail, latestRunOpt.map(_.consoleTail))
+      updateSymlink(out / DaemonFiles.millConsoleTail, publishedRuns.lastOption.map(_.consoleTail))
       val publishedNames = runs.valuesIterator.flatMap(_.publishedFiles.keys).toSet
       publishedNames.foreach { fileName =>
-        updateSymlink(out / fileName, latestRunOpt.flatMap(_.publishedFiles.get(fileName)))
+        updateSymlink(
+          out / fileName,
+          publishedRuns.reverseIterator.flatMap(_.publishedFiles.get(fileName)).nextOption()
+        )
       }
     }
   }
@@ -184,20 +189,6 @@ object WorkspaceLocking {
   private val outCoordinators = new ConcurrentHashMap[String, OutCoordinator]()
   private def coordinatorFor(out: os.Path): OutCoordinator =
     outCoordinators.computeIfAbsent(out.toString, _ => new OutCoordinator(out))
-
-  private def quoteJson(s: String): String =
-    "\"" + s
-      .flatMap {
-        case '"' => "\\\""
-        case '\\' => "\\\\"
-        case '\b' => "\\b"
-        case '\f' => "\\f"
-        case '\n' => "\\n"
-        case '\r' => "\\r"
-        case '\t' => "\\t"
-        case c if c.isControl => f"\\u${c.toInt}%04x"
-        case c => c.toString
-      } + "\""
 
   /** Atomically replace `link` with a relative symlink pointing to `target`. */
   private def updateSymlink(link: os.Path, targetOpt: Option[os.Path]): Unit = {
@@ -232,18 +223,17 @@ object WorkspaceLocking {
   }
 
   private val resourceOwnersTable = new ConcurrentHashMap[String, ResourceOwners]()
+  private val resourceOwnersLock = new Object
 
   private def resourceOwners(resource: Resource): ResourceOwners =
     resourceOwnersTable.computeIfAbsent(resource.key, _ => new ResourceOwners)
 
   private def registerOwner(resource: Resource, owner: LockOwner): Unit = {
-    val owners = resourceOwners(resource)
-    owners.synchronized {
+    resourceOwnersLock.synchronized {
+      val owners = resourceOwners(resource)
       resource.kind match {
         case LockKind.Write =>
           owners.writeOwnerOpt match {
-            case Some(existing) if existing.owner.runId == owner.runId =>
-              existing.count += 1
             case Some(existing) =>
               throw new IllegalStateException(
                 s"Resource ${resource.key} already has write owner ${existing.owner.runId}"
@@ -261,9 +251,9 @@ object WorkspaceLocking {
   }
 
   private def unregisterOwner(resource: Resource, owner: LockOwner, kind: LockKind): Unit = {
-    val owners = resourceOwnersTable.get(resource.key)
-    if (owners != null) {
-      val shouldRemove = owners.synchronized {
+    resourceOwnersLock.synchronized {
+      val owners = resourceOwnersTable.get(resource.key)
+      if (owners != null) {
         kind match {
           case LockKind.Write =>
             owners.writeOwnerOpt match {
@@ -279,23 +269,36 @@ object WorkspaceLocking {
             }
         }
 
-        owners.writeOwnerOpt.isEmpty && owners.readOwners.isEmpty
+        if (owners.writeOwnerOpt.isEmpty && owners.readOwners.isEmpty) {
+          resourceOwnersTable.remove(resource.key, owners)
+        }
       }
-
-      if (shouldRemove) resourceOwnersTable.remove(resource.key, owners)
     }
   }
 
   private def downgradeOwner(resource: Resource, owner: LockOwner): Unit = {
-    unregisterOwner(resource, owner, LockKind.Write)
-    registerOwner(resource.copy(kind = LockKind.Read), owner)
+    resourceOwnersLock.synchronized {
+      val owners = resourceOwnersTable.get(resource.key)
+      if (owners != null) {
+        owners.writeOwnerOpt match {
+          case Some(existing) if existing.owner.runId == owner.runId =>
+            existing.count -= 1
+            if (existing.count <= 0) owners.writeOwnerOpt = None
+          case _ =>
+        }
+        owners.readOwners.get(owner.runId) match {
+          case Some(existing) => existing.count += 1
+          case None => owners.readOwners(owner.runId) = LockOwnerCount(owner, 1)
+        }
+      }
+    }
   }
 
   private def blockingOwner(resource: Resource): Option[LockOwner] = {
-    val owners = resourceOwnersTable.get(resource.key)
-    if (owners == null) None
-    else
-      owners.synchronized {
+    resourceOwnersLock.synchronized {
+      val owners = resourceOwnersTable.get(resource.key)
+      if (owners == null) None
+      else {
         resource.kind match {
           case LockKind.Read =>
             owners.writeOwnerOpt.map(_.owner)
@@ -305,6 +308,7 @@ object WorkspaceLocking {
               .orElse(owners.readOwners.headOption.map(_._2.owner))
         }
       }
+    }
   }
 
   final class InProcessManager(
@@ -323,6 +327,7 @@ object WorkspaceLocking {
     private val runDir: os.Path = runRootDir / runId
     os.makeDir.all(runDir)
     private val launcherRunFile = daemonDir / os.RelPath(DaemonFiles.launcherRun(runId))
+    private val closed = new AtomicBoolean(false)
     private val ownedResources =
       scala.collection.mutable.LinkedHashMap.empty[String, OwnedResource]
 
@@ -340,19 +345,23 @@ object WorkspaceLocking {
     private def publishRun(): Unit = coordinator.publish(activeRun)
 
     private def updateLauncherRunFile(): Unit = {
-      val json = ownedResources.synchronized {
-        val resourcesJson = ownedResources.iterator.map { case (key, state) =>
-          s"""{"resource":${quoteJson(key)},"kind":${quoteJson(
-              state.kind.toString
-            )},"count":${state.count}}"""
-        }.mkString("[", ",", "]")
-        s"""{"runId":${quoteJson(runId)},"pid":${owner.pid},"command":${quoteJson(
-            owner.command
-          )},"resources":$resourcesJson}"""
-      }
-      mill.api.BuildCtx.withFilesystemCheckerDisabled {
-        os.makeDir.all(launcherRunFile / os.up)
-        os.write.over(launcherRunFile, json)
+      if (!closed.get()) {
+        val json = ownedResources.synchronized {
+          val resourcesJson = ownedResources.iterator.map { case (key, state) =>
+            val resourceJson = ujson.write(ujson.Str(key))
+            val kindJson = ujson.write(ujson.Str(state.kind.toString))
+            s"""{"resource":$resourceJson,"kind":$kindJson,"count":${state.count}}"""
+          }.mkString("[", ",", "]")
+          val runIdJson = ujson.write(ujson.Str(runId))
+          val commandJson = ujson.write(ujson.Str(owner.command))
+          s"""{"runId":$runIdJson,"pid":${owner.pid},"command":$commandJson,"resources":$resourcesJson}"""
+        }
+        if (!closed.get()) {
+          mill.api.BuildCtx.withFilesystemCheckerDisabled {
+            os.makeDir.all(launcherRunFile / os.up)
+            os.write.over(launcherRunFile, json)
+          }
+        }
       }
     }
 
@@ -390,12 +399,14 @@ object WorkspaceLocking {
     }
 
     override def close(): Unit = {
-      coordinator.deactivate(activeRun)
-      try mill.api.BuildCtx.withFilesystemCheckerDisabled {
-          os.remove(launcherRunFile)
-        }
-      catch { case _: Throwable => }
-      coordinator.cleanupOldRunDirs()
+      if (closed.compareAndSet(false, true)) {
+        coordinator.deactivate(activeRun)
+        try mill.api.BuildCtx.withFilesystemCheckerDisabled {
+            os.remove(launcherRunFile)
+          }
+        catch { case _: Throwable => }
+        coordinator.cleanupOldRunDirs()
+      }
     }
 
     override def acquireLock(resource0: Resource): ResourceLease =
@@ -407,8 +418,7 @@ object WorkspaceLocking {
           override def downgradeToRead(): ResourceLease = this
           override def close(): Unit = ()
         }
-      }
-      else {
+      } else {
         acquire(resource0)
         publishRun()
         new InProcessResourceLease(resource0)
@@ -429,10 +439,19 @@ object WorkspaceLocking {
         )
         val sorted = distinct.sortBy(r => (r.key, r.kind.toString))
         val acquired = scala.collection.mutable.Buffer.empty[ResourceLease]
-        sorted.foreach { resource =>
-          acquired += acquireLock(resource)
+        try {
+          sorted.foreach { resource =>
+            acquired += acquireLock(resource)
+          }
+          () => acquired.reverseIterator.foreach(_.close())
+        } catch {
+          case e: Throwable =>
+            acquired.reverseIterator.foreach { lease =>
+              try lease.close()
+              catch { case _: Throwable => }
+            }
+            throw e
         }
-        () => acquired.reverseIterator.foreach(_.close())
       }
 
     private class InProcessResourceLease(override val resource: Resource) extends ResourceLease {

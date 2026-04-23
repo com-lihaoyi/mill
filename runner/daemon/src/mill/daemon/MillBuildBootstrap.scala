@@ -367,15 +367,15 @@ class MillBuildBootstrap(
           (frameOpt, outerFrameOpt)
         }
 
-        def nextStateFor(
+        def frameFor(
             classLoader: mill.api.MillURLClassLoader,
             metaBuildReadLeaseOpt: Option[WorkspaceLocking.Lease],
-            forceSpanningInvalidationTree: Boolean = false
+            forceSpanningInvalidationTree: Boolean
         ) = {
           val (publishedFrameOpt, publishedOuterFrameOpt) = snapshotFrames()
           val needsUpdate = needsClassloaderRefresh(publishedFrameOpt, publishedOuterFrameOpt)
 
-          val evalState = RunnerState.Frame(
+          RunnerState.Frame(
             workerCacheSummary = RunnerState.Frame.summarizeWorkerCache(evaluator.workerCache),
             evalWatched = evalWatches,
             moduleWatched = moduleWatches,
@@ -390,8 +390,15 @@ class MillBuildBootstrap(
             spanningInvalidationTree =
               Option.when(forceSpanningInvalidationTree || needsUpdate)(spanningInvalidationTree)
           )
-          nestedState.add(frame = evalState)
         }
+
+        def nextStateFor(
+            classLoader: mill.api.MillURLClassLoader,
+            metaBuildReadLeaseOpt: Option[WorkspaceLocking.Lease],
+            forceSpanningInvalidationTree: Boolean = false
+        ) = nestedState.add(
+          frame = frameFor(classLoader, metaBuildReadLeaseOpt, forceSpanningInvalidationTree)
+        )
 
         def acquireRead() = workspaceLockManager.acquireLock(
           WorkspaceLocking.metaBuildResource(depth, WorkspaceLocking.LockKind.Read)
@@ -434,7 +441,9 @@ class MillBuildBootstrap(
                   val cl = createClassLoader()
                   publishReusableState(
                     depth,
-                    nextStateFor(cl, None, forceSpanningInvalidationTree = true).frames
+                    nestedState.add(
+                      frame = frameFor(cl, None, forceSpanningInvalidationTree = true)
+                    ).frames
                   )
                   cl
                 }

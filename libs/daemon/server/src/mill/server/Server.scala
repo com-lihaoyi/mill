@@ -472,20 +472,6 @@ object Server {
     else {
       val launcherRunsDir = daemonDir / DaemonFiles.launcherRuns
 
-      def quoteJson(s: String): String =
-        "\"" + s
-          .flatMap {
-            case '"' => "\\\""
-            case '\\' => "\\\\"
-            case '\b' => "\\b"
-            case '\f' => "\\f"
-            case '\n' => "\\n"
-            case '\r' => "\\r"
-            case '\t' => "\\t"
-            case c if c.isControl => f"\\u${c.toInt}%04x"
-            case c => c.toString
-          } + "\""
-
       def readActiveInfo(): (command: String, processDir: Option[os.Path], pid: Option[Long]) = {
         try {
           val activeFile = os.list(launcherRunsDir).filter(os.isFile(_)).sortBy(_.last).last
@@ -527,10 +513,10 @@ object Server {
         if (Thread.interrupted()) throw new InterruptedException()
         val pid = ProcessHandle.current().pid()
         val activeFile = daemonDir / os.RelPath(DaemonFiles.launcherRun(s"pid-$pid"))
+        val commandJson = ujson.write(ujson.Str(millActiveCommandMessage))
+        val processDirJson = ujson.write(ujson.Str(daemonDir.toString))
         val json =
-          s"""{"command":${quoteJson(millActiveCommandMessage)},"processDir":${quoteJson(
-              daemonDir.toString
-            )},"pid":$pid}"""
+          s"""{"command":$commandJson,"processDir":$processDirJson,"pid":$pid}"""
         os.makeDir.all(launcherRunsDir)
         os.write.over(activeFile, json)
         try t
