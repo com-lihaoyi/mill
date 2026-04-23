@@ -2,6 +2,7 @@ package mill.daemon
 
 import mill.api.Val
 import mill.api.daemon.internal.TaskApi
+import mill.exec.GroupExecution
 
 import scala.collection.mutable
 
@@ -48,14 +49,20 @@ object SharedWorkerCache {
     caches.clear()
   }
 
+  // Close workers in reverse topological order so a worker's close() sees its
+  // downstream workers still alive. Matches the intra-run invalidation path in
+  // GroupExecution.loadUpToDateWorker.
   private def closeWorkers(workers: mutable.Map[String, (Int, Val, TaskApi[?])]): Unit =
     workers.synchronized {
-      workers.valuesIterator.foreach {
-        case (_, Val(closeable: AutoCloseable), _) =>
+      val deps = GroupExecution.workerDependencies(workers.toMap)
+      val topoIndex = deps.iterator.map(_._1).zipWithIndex.toMap
+      GroupExecution.closeWorkersInReverseTopologicalOrder(
+        topoIndex.keys,
+        workers,
+        topoIndex,
+        closeable =>
           try closeable.close()
           catch { case _: Throwable => }
-        case _ =>
-      }
-      workers.clear()
+      )
     }
 }

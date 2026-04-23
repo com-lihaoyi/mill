@@ -309,15 +309,15 @@ trait GroupExecution {
 
         // Helper to evaluate the task with full caching support
         def evaluateTaskWithCaching(): GroupExecution.Results = {
-          def loadCachedOrWorker(forceDiscard: Boolean): Option[(GroupExecution.Results, Int)] = {
-            val cached = loadCachedJson(logger, inputsHash, labelled, paths)
-
+          def loadCachedOrWorker(
+              cached: Option[(Int, Option[(Val, Seq[PathRef])], Int)]
+          ): Option[GroupExecution.Results] = {
             val (multiLogger, _) = resolveLogger(Some(paths).map(_.log), logger)
             val upToDateWorker = loadUpToDateWorker(
               logger = logger,
               inputsHash = inputsHash,
               labelled = labelled,
-              forceDiscard = forceDiscard || cached.isEmpty,
+              forceDiscard = cached.isEmpty,
               deps = deps,
               paths = Some(paths),
               upstreamPathRefs = upstreamPathRefs,
@@ -332,14 +332,14 @@ trait GroupExecution {
               cachedResult(
                 ExecResult.Success((w, inputsHash)),
                 Nil
-              ) -> cached.map(_._1).getOrElse(-1)
+              )
             }.orElse(
-              cached.flatMap { case (previousInputsHash, valOpt, valueHash) =>
+              cached.flatMap { case (_, valOpt, valueHash) =>
                 valOpt.map { case (v, serializedPaths) =>
                   cachedResult(
                     ExecResult.Success((v, valueHash)),
                     serializedPaths
-                  ) -> previousInputsHash
+                  )
                 }
               }
             )
@@ -354,7 +354,7 @@ trait GroupExecution {
             }
 
           val readLockedResult =
-            try loadCachedOrWorker(forceDiscard = false)
+            try loadCachedOrWorker(loadCachedJson(logger, inputsHash, labelled, paths))
             catch {
               case e: Throwable =>
                 readLeaseOpt.foreach(_.close())
@@ -362,16 +362,18 @@ trait GroupExecution {
             }
 
           readLockedResult match {
-            case Some((res, _)) =>
+            case Some(res) =>
               readLeaseOpt.foreach(retainOrClose(_, shouldRetain = true))
               res
 
             case None =>
               readLeaseOpt.foreach(retainOrClose(_, shouldRetain = false))
               withTaskWriteLock { writeLease =>
+                // Re-read under the write lock: a sibling writer may have populated
+                // the cache while we were waiting for the lock.
                 val cached = loadCachedJson(logger, inputsHash, labelled, paths)
-                loadCachedOrWorker(forceDiscard = false) match {
-                  case Some((res, _)) =>
+                loadCachedOrWorker(cached) match {
+                  case Some(res) =>
                     retainOrClose(writeLease, shouldRetain = true)
                     res
                   case None =>

@@ -136,9 +136,11 @@ abstract class MillDaemonServer[State](
         // This allows the watch mode to detect Enter key presses.
         val rpcStdin = new MillDaemonServer.RpcStdinInputStream(serverToClient)
 
-        // Run the actual command
+        // Run the actual command. State updates are applied incrementally via
+        // modifyStateCache during execution, so a whole-cache publish here would
+        // race with concurrent commands and clobber their updates.
         val currentStateCache = snapshotStateCache()
-        val (result, newStateCache) = main0(
+        val result = main0(
           args = init.args.toArray,
           stateCache = currentStateCache,
           mainInteractive = init.interactive,
@@ -152,7 +154,6 @@ abstract class MillDaemonServer[State](
           millRepositories = init.millRepositories
         )
 
-        publishStateCache(newStateCache)
         commandExitCode = if (result) 0 else 1
         DaemonRpc.RunCommandResult(commandExitCode)
       }
@@ -229,7 +230,7 @@ abstract class MillDaemonServer[State](
       stopServer: Server.StopServer,
       serverToClient: mill.rpc.MillRpcChannel[DaemonRpc.ServerToClient],
       millRepositories: Seq[String]
-  ): (Boolean, State)
+  ): Boolean
 }
 
 object MillDaemonServer {

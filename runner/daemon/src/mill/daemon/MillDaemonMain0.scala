@@ -103,7 +103,7 @@ class MillDaemonMain0(
       systemExit: Server.StopServer,
       serverToClient: mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient],
       millRepositories: Seq[String]
-  ): (Boolean, RunnerState.ReusableSnapshot) = {
+  ): Boolean = {
     // Create runner that sends subprocess requests to the launcher via RPC
     val launcherRunner: mill.api.daemon.LauncherSubprocess.Runner =
       config =>
@@ -129,12 +129,13 @@ class MillDaemonMain0(
         serverToClientOpt = Some(serverToClient),
         millRepositories = millRepositories
       )
-      (success, snapshotStateCache())
+      success
     } catch {
       // Let InterruptedException propagate without printing (used by deferredStopServer for shutdown)
       case e: InterruptedException => throw e
-      case e if MillMain0.handleMillException(streams.err, snapshotStateCache()).isDefinedAt(e) =>
-        MillMain0.handleMillException(streams.err, snapshotStateCache())(e)
+      case e if MillMain0.handleMillException(streams.err, ()).isDefinedAt(e) =>
+        val (success, _) = MillMain0.handleMillException(streams.err, ())(e)
+        success
     }
   }
 }
