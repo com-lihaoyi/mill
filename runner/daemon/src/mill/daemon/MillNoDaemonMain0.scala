@@ -54,8 +54,8 @@ object MillNoDaemonMain0 {
       try MillMain0.main0(
           args = args.rest.toArray,
           // Each --no-daemon invocation runs in its own process, so a freshly-empty
-          // store is fine; state is naturally thrown away on exit.
-          sharedFrames = new RunnerState.SharedFrames(),
+          // shared state is fine; state is naturally thrown away on exit.
+          sharedState = new java.util.concurrent.atomic.AtomicReference(RunnerState.empty),
           mainInteractive = mill.constants.Util.hasConsole(),
           streams0 = initialSystemStreams,
           env = System.getenv().asScala.toMap,

@@ -88,8 +88,11 @@ class MillDaemonMain0(
 
   // Shared meta-build frames across concurrent launchers served by this daemon.
   // Lives for the whole daemon lifetime; per-depth writes are sequenced by the
-  // meta-build write lock in [[mill.api.daemon.WorkspaceLocking]].
-  private val sharedFrames = new RunnerState.SharedFrames()
+  // meta-build write lock in [[mill.api.daemon.WorkspaceLocking]]; the
+  // AtomicReference handles concurrent updates from launchers operating at
+  // different depths in parallel.
+  private val sharedState =
+    new java.util.concurrent.atomic.AtomicReference[RunnerState](RunnerState.empty)
 
   def main0(
       args: Array[String],
@@ -110,7 +113,7 @@ class MillDaemonMain0(
 
     try MillMain0.main0(
         args = args,
-        sharedFrames = sharedFrames,
+        sharedState = sharedState,
         mainInteractive = mainInteractive,
         streams0 = streams,
         env = env,

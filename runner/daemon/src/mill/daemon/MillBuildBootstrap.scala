@@ -26,6 +26,7 @@ import os.Path
 import java.io.File
 import java.net.URLClassLoader
 import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.atomic.AtomicReference
 import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.Using
 import scala.collection.mutable.Buffer
@@ -38,15 +39,16 @@ import scala.collection.mutable.Buffer
  *
  * When Mill is run in client-server mode, or with `--watch`, then reusable
  * meta-build data is shared across concurrent launchers via the per-daemon
- * [[sharedFrames]] store, and per-launcher state is kept in
- * [[prevCommandState]] so a subsequent watch iteration can pick up fallback
- * classloaders to close on refresh.
+ * [[sharedState]] (which is itself a [[RunnerState]] holding only the
+ * "stripped" shared parts of each meta-build frame), and per-launcher state
+ * is kept in [[prevCommandState]] so a subsequent watch iteration can pick up
+ * fallback classloaders to close on refresh.
  *
  * When a subsequent evaluation happens, each level of [[evaluateRec]] reads
  * the current published meta-build frame under the per-depth read lock and,
  * if reusable, wraps it in a [[RunnerState.MetaBuildFrame]] alongside this
  * launcher's own lease/evaluator. If not reusable, the launcher takes the
- * write lock, refreshes, and publishes a new [[RunnerState.ReusableFrame]].
+ * write lock, refreshes, and publishes a new frame to [[sharedState]].
  */
 class MillBuildBootstrap(
     topLevelProjectRoot: os.Path,
@@ -66,7 +68,7 @@ class MillBuildBootstrap(
     offline: Boolean,
     useFileLocks: Boolean,
     workspaceLockManager: WorkspaceLocking.Manager,
-    sharedFrames: RunnerState.SharedFrames,
+    sharedState: AtomicReference[RunnerState],
     reporter: EvaluatorApi => Int => Option[CompileProblemReporter],
     enableTicker: Boolean
 ) { outer =>
@@ -78,15 +80,26 @@ class MillBuildBootstrap(
   def evaluate(): RunnerState = CliImports.withValue(imports) {
     val runnerState = evaluateRec(0)
 
-    def writeLogged(depth: Int, logged: RunnerState.Frame.Logged): Unit =
+    // Meta-build frame logs go to shared canonical paths. Writes are idempotent
+    // because the content is deterministic for a given published classloader —
+    // concurrent launchers racing on the same path produce the same bytes.
+    for (frame <- runnerState.metaBuildFrames) {
       os.write.over(
-        recOut(output, depth) / millRunnerState,
-        upickle.write(logged, indent = 4),
+        recOut(output, frame.depth) / millRunnerState,
+        upickle.write(frame.loggedData, indent = 4),
         createFolders = true
       )
-
-    for (frame <- runnerState.metaBuildFrames) writeLogged(frame.depth, frame.loggedData)
-    for (frame <- runnerState.finalFrame) writeLogged(frame.depth, frame.loggedData)
+    }
+    // Final-frame log goes to a per-launcher path with a symlink at the canonical
+    // location, since the final frame's data is launcher-specific.
+    for (frame <- runnerState.finalFrame) {
+      val canonical = (recOut(output, frame.depth) / millRunnerState).toNIO
+      os.write.over(
+        os.Path(workspaceLockManager.runFileJava(canonical)),
+        upickle.write(frame.loggedData, indent = 4),
+        createFolders = true
+      )
+    }
 
     runnerState
   }
@@ -283,7 +296,7 @@ class MillBuildBootstrap(
     ) match {
       case (f: Result.Failure, evalWatches, moduleWatches) =>
         nestedState
-          .addMetaBuildFrame(
+          .withMetaBuildFrame(
             RunnerState.MetaBuildFrame.failed(depth, evaluator, evalWatches, moduleWatches)
           )
           .withError(mill.internal.Util.formatError(f, logger.prompt.errorColor))
@@ -366,7 +379,7 @@ class MillBuildBootstrap(
         // lease for the returned frame to own.
         val readLease = acquireMetaBuildLock(WorkspaceLocking.LockKind.Read)
         val frame = closeOnThrow(readLease) {
-          val published = sharedFrames.get(depth)
+          val published = sharedState.get().metaBuildFrameAt(depth)
           if (published.exists(_.classLoaderOpt.isDefined) && !needsClassloaderRefresh(published))
             sharedForThisLauncher.copy(
               classLoaderOpt = published.get.classLoaderOpt,
@@ -376,7 +389,7 @@ class MillBuildBootstrap(
             readLease.close()
             val writeLease = acquireMetaBuildLock(WorkspaceLocking.LockKind.Write)
             closeOnThrow(writeLease) {
-              val latest = sharedFrames.get(depth)
+              val latest = sharedState.get().metaBuildFrameAt(depth)
               val classLoader =
                 if (!needsClassloaderRefresh(latest) && latest.exists(_.classLoaderOpt.isDefined))
                   latest.get.classLoaderOpt.get
@@ -388,7 +401,8 @@ class MillBuildBootstrap(
                     latest.flatMap(_.classLoaderOpt)
                   ).flatten.distinct.foreach(_.close())
                   val cl = createClassLoader()
-                  sharedFrames.put(sharedForThisLauncher.copy(classLoaderOpt = Some(cl)))
+                  val published = sharedForThisLauncher.copy(classLoaderOpt = Some(cl)).stripped
+                  sharedState.updateAndGet(_.withMetaBuildFrame(published))
                   cl
                 }
               writeLease.downgradeToRead()
@@ -399,7 +413,7 @@ class MillBuildBootstrap(
             }
           }
         }
-        nestedState.addMetaBuildFrame(frame)
+        nestedState.withMetaBuildFrame(frame)
 
       case unknown => sys.error(unknown.toString())
     }

@@ -8,22 +8,23 @@ import mill.api.daemon.Watchable
 import mill.api.MillURLClassLoader
 import upickle.{ReadWriter, macroRW}
 
-import java.util.concurrent.ConcurrentHashMap
-
 /**
- * Per-launcher bootstrap state. Splits into meta-build frames and this launcher's
- * own [[RunnerState.FinalFrame]], if it reached the requested depth.
+ * Bootstrap state. Doubles as both a per-launcher state (with [[finalFrame]] set
+ * and per-launcher overlays attached to each [[RunnerState.MetaBuildFrame]]) and
+ * the daemon-wide shared state held in an `AtomicReference[RunnerState]` (with
+ * only the shared parts of meta-build frames populated and [[finalFrame]] empty).
  *
  * - [[metaBuildFrames]] contains one [[RunnerState.MetaBuildFrame]] per meta-build
- *   depth processed in this run. Most of a meta-build frame's fields are
- *   deterministic in the meta-build source at that depth and are cached across
- *   concurrent launchers via the daemon-wide [[RunnerState.SharedFrames]]; the
+ *   depth. Most of a meta-build frame's fields are deterministic in the
+ *   meta-build source and safe to share across concurrent launchers; the
  *   [[RunnerState.MetaBuildFrame.evaluator]] and
  *   [[RunnerState.MetaBuildFrame.metaBuildReadLease]] are per-launcher overlays
- *   and are stripped before publishing into [[RunnerState.SharedFrames]].
+ *   and are stripped via [[RunnerState.MetaBuildFrame.stripped]] before being
+ *   stored in the daemon-wide shared state.
  * - [[finalFrame]] holds the launcher-unique state from running the user's tasks
  *   at `requestedDepth`. It has no shared data because nothing about it is
- *   deterministic enough to cache across launchers.
+ *   deterministic enough to cache across launchers, and is never present in the
+ *   daemon-wide shared state.
  *
  * If evaluation fails before reaching the requested depth, [[errorOpt]] is set
  * and [[finalFrame]] is [[None]].
@@ -42,8 +43,9 @@ case class RunnerState(
     with AutoCloseable {
   import RunnerState.*
 
-  def addMetaBuildFrame(frame: MetaBuildFrame): RunnerState =
-    copy(metaBuildFrames = frame +: metaBuildFrames)
+  /** Insert or replace the [[MetaBuildFrame]] at `frame.depth`. */
+  def withMetaBuildFrame(frame: MetaBuildFrame): RunnerState =
+    copy(metaBuildFrames = frame +: metaBuildFrames.filterNot(_.depth == frame.depth))
 
   def metaBuildFrameAt(depth: Int): Option[MetaBuildFrame] =
     metaBuildFrames.find(_.depth == depth)
@@ -113,6 +115,9 @@ object RunnerState {
       classLoaderOpt.map(_.identity),
       runClasspath
     )
+
+    /** A copy with per-launcher fields stripped, suitable for the daemon-wide shared state. */
+    def stripped: MetaBuildFrame = copy(evaluator = None, metaBuildReadLease = None)
   }
 
   object MetaBuildFrame {
@@ -199,22 +204,4 @@ object RunnerState {
     }
   }
 
-  /**
-   * Per-daemon-process store of meta-build frames keyed by depth. One instance lives
-   * in [[mill.daemon.MillDaemonMain0]] (for daemon runs) or is created locally in
-   * [[mill.daemon.MillNoDaemonMain0]] (for --no-daemon runs). Writes are sequenced
-   * by the meta-build write lock at the corresponding depth.
-   *
-   * Per-launcher fields ([[MetaBuildFrame.evaluator]] and
-   * [[MetaBuildFrame.metaBuildReadLease]]) are stripped on publish so no reader can
-   * see another launcher's lease or evaluator.
-   */
-  final class SharedFrames {
-    private val store = new ConcurrentHashMap[Int, MetaBuildFrame]()
-    def get(depth: Int): Option[MetaBuildFrame] = Option(store.get(depth))
-    def put(frame: MetaBuildFrame): Unit = {
-      store.put(frame.depth, frame.copy(evaluator = None, metaBuildReadLease = None))
-      ()
-    }
-  }
 }

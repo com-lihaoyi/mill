@@ -103,7 +103,7 @@ object MillMain0 {
 
   def main0(
       args: Array[String],
-      sharedFrames: RunnerState.SharedFrames,
+      sharedState: java.util.concurrent.atomic.AtomicReference[RunnerState],
       mainInteractive: Boolean,
       streams0: SystemStreams,
       env: Map[String, String],
@@ -303,7 +303,7 @@ object MillMain0 {
                                     offline = config.offline.value,
                                     useFileLocks = config.useFileLocks.value,
                                     workspaceLockManager = manager,
-                                    sharedFrames = sharedFrames,
+                                    sharedState = sharedState,
                                     reporter = reporter,
                                     enableTicker = enableTicker
                                   ).evaluate()
