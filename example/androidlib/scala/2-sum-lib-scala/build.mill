@@ -53,6 +53,7 @@ object app extends AndroidAppScalaModule {
     def junit4Version = "4.13.2"
   }
 }
+
 /** Usage
 
 > ./mill lib.publishM2Local
