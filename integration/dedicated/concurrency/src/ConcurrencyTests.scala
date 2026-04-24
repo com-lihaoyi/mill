@@ -56,6 +56,47 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
   private def release(waitFile: os.Path): Unit =
     if (os.exists(waitFile)) os.remove(waitFile)
 
+  /**
+   * Spawn a Mill subprocess with an explicit `--no-daemon` flag, bypassing the
+   * tester's `daemonMode`. Used to exercise coarse-grained no-daemon locking
+   * paths from this daemon-mode suite.
+   */
+  private def spawnNoDaemon(
+      tester: IntegrationTester.Impl,
+      args: String*
+  ): IntegrationTester.SpawnedProcess = {
+    val chunks = collection.mutable.Buffer.empty[Either[geny.Bytes, geny.Bytes]]
+    val stdout = os.ProcessOutput.ReadBytes { (arr, n) =>
+      System.out.write(arr, 0, n)
+      chunks.synchronized { chunks += Left(new geny.Bytes(arr.take(n))) }
+    }
+    val stderr = os.ProcessOutput.ReadBytes { (arr, n) =>
+      System.err.write(arr, 0, n)
+      chunks.synchronized { chunks += Right(new geny.Bytes(arr.take(n))) }
+    }
+    val process = os.spawn(
+      cmd = (tester.millExecutable, "--no-daemon", "--ticker", "false", args),
+      env = tester.millTestSuiteEnv,
+      cwd = tester.workspacePath,
+      stdout = stdout,
+      stderr = stderr
+    )
+    IntegrationTester.SpawnedProcess(process, chunks)
+  }
+
+  // Two `--no-daemon` launchers don't share their `launcher-runs` directory
+  // (each has its own process-scoped `out/mill-no-daemon/<sig>/launcher-runs`),
+  // and a no-daemon launcher blocked by an active daemon also looks in its own
+  // per-process dir rather than `out/mill-daemon/launcher-runs`. So the command
+  // and PID of the blocker are reported as `<unknown>`. That's the coarse-grained
+  // no-daemon fallback — this matcher just asserts that fallback fired.
+  private def coarseBlockMessage(
+      launcher: mill.testkit.IntegrationTester.SpawnedProcess
+  ): Boolean =
+    combinedText(launcher).contains(
+      "Another Mill process with PID <unknown> is running '<unknown>', waiting for it to be done..."
+    )
+
   val tests: Tests = Tests {
     test("same-task-write-lock-blocks-second-launcher") - integrationTest { tester =>
       import tester.*
@@ -207,6 +248,69 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       assert(launcher2.process.exitCode() == 0)
       assert(launcher1.out.text().contains("worker-value-0"))
       assert(launcher2.out.text().contains("worker-value-1"))
+    }
+
+    test("two-no-daemon-launchers-block-on-each-other") - integrationTest { tester =>
+      import tester.*
+      assert(tester.daemonMode)
+
+      val gate = waitFile(tester, "shared-wait")
+      os.write.over(gate, "")
+
+      // Both launchers run as separate --no-daemon processes. They fall back to
+      // the coarse out-directory file lock, so the second launcher blocks on the
+      // first even though there's no fine-grained contention at the task level.
+      val launcher1 = spawnNoDaemon(tester, "runShared")
+      assertEventually(combinedText(launcher1).contains(enteredMarker("shared")))
+
+      val launcher2 = spawnNoDaemon(tester, "runShared")
+      assertEventually(coarseBlockMessage(launcher2))
+      assert(launcher2.process.isAlive())
+      assert(!combinedText(launcher2).contains("shared-value"))
+
+      release(gate)
+      launcher1.process.waitFor()
+      launcher2.process.waitFor()
+
+      assert(launcher1.process.exitCode() == 0)
+      assert(launcher2.process.exitCode() == 0)
+      assert(launcher1.out.text().contains("shared-value"))
+      assert(launcher2.out.text().contains("shared-value"))
+    }
+
+    test("daemon-launcher-blocks-no-daemon-launcher-on-unrelated-task") - integrationTest {
+      tester =>
+        import tester.*
+        assert(tester.daemonMode)
+
+        val sharedGate = waitFile(tester, "shared-wait")
+        os.write.over(sharedGate, "")
+
+        // Launcher1 runs under the daemon, which holds the out-directory file
+        // lock for its entire lifetime. Launcher2 is a --no-daemon process that
+        // runs an unrelated task, yet it still has to wait: coarse-grained
+        // no-daemon processes serialize with the whole daemon, not just with the
+        // task they would otherwise contend on.
+        val launcher1 = spawn(("runShared"))
+        assertEventually(combinedText(launcher1).contains(enteredMarker("shared")))
+
+        os.write.over(workspacePath / "worker-version", "0")
+        val launcher2 = spawnNoDaemon(tester, "runWorkerValue")
+        assertEventually(coarseBlockMessage(launcher2))
+        assert(launcher2.process.isAlive())
+        assert(!combinedText(launcher2).contains("worker-value"))
+
+        // Freeing launcher1 doesn't unblock launcher2: the daemon outlives the
+        // launcher and keeps the file lock held. Tear launcher2 down explicitly
+        // so it doesn't hang past the daemon's shutdown at test cleanup.
+        release(sharedGate)
+        launcher1.process.waitFor()
+        assert(launcher1.process.exitCode() == 0)
+        assert(launcher1.out.text().contains("shared-value"))
+        assert(launcher2.process.isAlive())
+
+        launcher2.process.destroy()
+        launcher2.process.waitFor()
     }
   }
 }

@@ -413,8 +413,13 @@ class MillBuildBootstrap(
 
           val latest = sharedState.get().frameAt(depth)
           val (sharedFrame, classLoaderChanged) =
-            if (!needsClassloaderRefresh(latest) && latest.isDefined) (latest.get, false)
-            else {
+            if (!needsClassloaderRefresh(latest) && latest.isDefined) {
+              // Refresh this depth's moduleWatched on the reused shared frame so the
+              // depth-above launcher sees the latest snapshot. The fresh-frame branch
+              // already publishes moduleWatched as part of buildSharedFrame + withFrame.
+              sharedState.getAndUpdate(_.withModuleWatched(depth, moduleWatches))
+              (latest.get, false)
+            } else {
               // Close any classloaders we're about to replace. Workers at this depth
               // are handled by SharedWorkerCache.forDepth (called in makeEvaluator).
               Seq(
@@ -426,11 +431,6 @@ class MillBuildBootstrap(
               sharedState.updateAndGet(_.withFrame(depth, fresh))
               (fresh, true)
             }
-
-          // Publish this depth's moduleWatched snapshot so the depth-above launcher
-          // can detect whether anything watched under this classloader has changed.
-          // Mirrors what processFinalTasks does for final-depth tasks.
-          sharedState.getAndUpdate(_.withModuleWatched(depth, moduleWatches))
 
           writeLease.downgradeToRead()
           nestedState.withMetaBuildFrame(launcherFrame(sharedFrame, writeLease, classLoaderChanged))

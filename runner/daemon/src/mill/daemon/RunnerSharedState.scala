@@ -44,8 +44,14 @@ case class RunnerSharedState(
   def moduleWatchedAt(depth: Int): Option[Seq[Watchable]] =
     frames.get(depth).flatMap(_.moduleWatched)
 
+  // Preserve the prior moduleWatched if the incoming frame didn't set one, so callers
+  // publishing a refreshed reusable payload don't accidentally drop a snapshot that a
+  // concurrent launcher already recorded at this depth.
   def withFrame(depth: Int, frame: Frame): RunnerSharedState =
-    copy(frames = frames.updated(depth, frame))
+    copy(frames = frames.updated(
+      depth,
+      frame.copy(moduleWatched = frame.moduleWatched.orElse(at(depth).moduleWatched))
+    ))
 
   def withModuleWatched(depth: Int, watched: Seq[Watchable]): RunnerSharedState =
     copy(frames = frames.updated(depth, at(depth).copy(moduleWatched = Some(watched))))
