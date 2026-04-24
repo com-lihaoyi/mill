@@ -58,7 +58,7 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
     )
   }
 
-  def androidLibraryProguardConfigs: Task[Seq[PathRef]] = Task {
+  def androidLibraryProguardConfigs: T[Seq[PathRef]] = Task {
     androidUnpackRunArchives()
       // TODO need also collect rules from other modules,
       // but Android lib module doesn't yet exist
