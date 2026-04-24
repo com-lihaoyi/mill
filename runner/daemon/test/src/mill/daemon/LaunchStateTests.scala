@@ -50,9 +50,9 @@ object LaunchStateTests extends TestSuite {
       val finalEvaluator = new StubEvaluator(() => closed += "final")
 
       val state = LaunchState.empty
-        .withMetaBuildOverlay(
+        .withFrameData(
           1,
-          LaunchState.MetaBuildOverlay(
+          LaunchState.FrameData(
             evaluator = metaEvaluator,
             evalWatched = Nil,
             moduleWatched = Nil,
@@ -74,12 +74,12 @@ object LaunchStateTests extends TestSuite {
     }
 
     test("overlayAt and moduleWatchedAt find the right depth") {
-      val overlay0 = LaunchState.MetaBuildOverlay.failed(new StubEvaluator(() => ()), Nil, Nil)
-      val overlay1 = LaunchState.MetaBuildOverlay.failed(new StubEvaluator(() => ()), Nil, Nil)
+      val overlay0 = LaunchState.FrameData.failed(new StubEvaluator(() => ()), Nil, Nil)
+      val overlay1 = LaunchState.FrameData.failed(new StubEvaluator(() => ()), Nil, Nil)
 
       val state = LaunchState.empty
-        .withMetaBuildOverlay(0, overlay0)
-        .withMetaBuildOverlay(1, overlay1)
+        .withFrameData(0, overlay0)
+        .withFrameData(1, overlay1)
 
       assert(state.overlayAt(0).contains(overlay0))
       assert(state.overlayAt(1).contains(overlay1))

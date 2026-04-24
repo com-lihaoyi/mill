@@ -105,7 +105,7 @@ class MillBuildBootstrap(
 
   /** Total depths already processed in `nestedState`: overlays + final frame. */
   private def processedDepths(state: LaunchState): Int =
-    state.metaBuildOverlays.size + state.finalFrame.size
+    state.FrameDatas.size + state.finalFrame.size
 
   def evaluateRec(depth: Int): LaunchState = logger.withChromeProfile(s"meta-level $depth") {
     // println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
@@ -317,9 +317,9 @@ class MillBuildBootstrap(
         case (f: Result.Failure, evalWatches, moduleWatches) =>
           writeLease.close()
           nestedState
-            .withMetaBuildOverlay(
+            .withFrameData(
               depth,
-              LaunchState.MetaBuildOverlay.failed(evaluator, evalWatches, moduleWatches)
+              LaunchState.FrameData.failed(evaluator, evalWatches, moduleWatches)
             )
             .withError(mill.internal.Util.formatError(f, logger.prompt.errorColor))
 
@@ -391,7 +391,7 @@ class MillBuildBootstrap(
           def launcherOverlay(
               reusable: SharedMetaBuildState.ReusableFrame,
               lease: WorkspaceLocking.ResourceLease
-          ) = LaunchState.MetaBuildOverlay(
+          ) = LaunchState.FrameData(
             evaluator = evaluator,
             evalWatched = evalWatches,
             moduleWatched = moduleWatches,
@@ -420,7 +420,7 @@ class MillBuildBootstrap(
           sharedState.getAndUpdate(_.withModuleWatched(depth, moduleWatches))
 
           writeLease.downgradeToRead()
-          nestedState.withMetaBuildOverlay(depth, launcherOverlay(reusable, writeLease))
+          nestedState.withFrameData(depth, launcherOverlay(reusable, writeLease))
 
         case unknown => sys.error(unknown.toString())
       }

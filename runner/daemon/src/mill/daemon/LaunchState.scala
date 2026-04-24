@@ -15,7 +15,7 @@ import upickle.{ReadWriter, macroRW}
  *
  * A [[LaunchState]] carries:
  *
- * - [[metaBuildOverlays]] — keyed by meta-build depth; only populated depths
+ * - [[FrameDatas]] — keyed by meta-build depth; only populated depths
  *   appear. Each overlay points at the [[SharedMetaBuildState.ReusableFrame]]
  *   this launcher actually used (not necessarily the currently-published one,
  *   which another launcher may have replaced since), plus this launcher's
@@ -40,17 +40,17 @@ case class LaunchState(
     // Watches captured during bootstrap module instantiation. Tracked separately because
     // a bootstrap failure produces no overlays to carry them.
     bootstrapEvalWatched: Seq[Watchable] = Nil,
-    metaBuildOverlays: Map[Int, LaunchState.MetaBuildOverlay] = Map.empty,
+    FrameDatas: Map[Int, LaunchState.FrameData] = Map.empty,
     finalFrame: Option[(Int, LaunchState.FinalFrame)] = None,
     closeables: Seq[AutoCloseable] = Nil
 ) extends Watching.Result
     with AutoCloseable {
   import LaunchState.*
 
-  def withMetaBuildOverlay(depth: Int, overlay: MetaBuildOverlay): LaunchState =
-    copy(metaBuildOverlays = metaBuildOverlays.updated(depth, overlay))
+  def withFrameData(depth: Int, overlay: FrameData): LaunchState =
+    copy(FrameDatas = FrameDatas.updated(depth, overlay))
 
-  def overlayAt(depth: Int): Option[MetaBuildOverlay] = metaBuildOverlays.get(depth)
+  def overlayAt(depth: Int): Option[FrameData] = FrameDatas.get(depth)
 
   def withFinalFrame(depth: Int, frame: FinalFrame): LaunchState =
     copy(finalFrame = Some(depth -> frame))
@@ -83,8 +83,8 @@ case class LaunchState(
     finalFrame.map(_._2.evaluator).toSeq ++ sortedOverlays.map(_._2.evaluator)
 
   /** Overlays sorted shallowest-to-deepest. */
-  def sortedOverlays: Seq[(Int, MetaBuildOverlay)] =
-    metaBuildOverlays.toSeq.sortBy(_._1)
+  def sortedOverlays: Seq[(Int, FrameData)] =
+    FrameDatas.toSeq.sortBy(_._1)
 
   override def close(): Unit = {
     // Evaluators stay alive after bootstrap evaluation so BSP/IDE follow-up can
@@ -134,7 +134,7 @@ object LaunchState {
    * writers cannot close [[reusable]]'s classloader while we're still using it.
    */
   @internal
-  case class MetaBuildOverlay(
+  case class FrameData(
       evaluator: EvaluatorApi,
       evalWatched: Seq[Watchable],
       moduleWatched: Seq[Watchable],
@@ -142,13 +142,13 @@ object LaunchState {
       metaBuildReadLease: Option[WorkspaceLocking.Lease] = None
   )
 
-  object MetaBuildOverlay {
+  object FrameData {
     /** An overlay for a meta-build that failed to compile: no [[SharedMetaBuildState.ReusableFrame]]. */
     def failed(
         evaluator: EvaluatorApi,
         evalWatched: Seq[Watchable],
         moduleWatched: Seq[Watchable]
-    ): MetaBuildOverlay = MetaBuildOverlay(evaluator, evalWatched, moduleWatched)
+    ): FrameData = FrameData(evaluator, evalWatched, moduleWatched)
   }
 
   /**
@@ -188,7 +188,7 @@ object LaunchState {
     implicit val loggedRw: ReadWriter[Logged] = macroRW
 
     def loggedForMetaBuild(
-        overlay: MetaBuildOverlay
+        overlay: FrameData
     ): Logged = {
       val workerCache = overlay.reusable.map(_.workerCacheSummary).getOrElse(Map.empty)
       val classLoaderIdentity = overlay.reusable.map(_.classLoader.identity)
