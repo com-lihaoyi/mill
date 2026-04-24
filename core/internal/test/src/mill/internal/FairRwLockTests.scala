@@ -303,6 +303,54 @@ object FairRwLockTests extends TestSuite {
 
       first.close()
     }
+
+    test("waiting-message-names-a-still-holding-reader-not-a-released-one") {
+      // Regression test for the lastHolder bug: if two readers coexist and
+      // the more-recent acquirer releases first, a subsequent writer that
+      // blocks must be told about the STILL-HOLDING older reader, not about
+      // the already-released most-recent acquirer.
+      //
+      // With a single `lastHolder` field, releasing the most-recent holder
+      // left that field pointing at the released launcher. A new writer's
+      // waiting message then reported the wrong PID (sometimes the waiter's
+      // own — the same launcher that just released — which made it look like
+      // the launcher was blocked by itself).
+      val waitingBytes = new ByteArrayOutputStream()
+      val waitingErr = new PrintStream(waitingBytes)
+      val lock = new FairRwLock("stale-last-holder")
+
+      val stillHolding = HolderInfo(pid = 1111, command = "stillHoldingCmd")
+      val alreadyReleased = HolderInfo(pid = 2222, command = "alreadyReleasedCmd")
+      val waiter = HolderInfo(pid = 3333, command = "waiterCmd")
+
+      val firstReader = lock.acquire(LockKind.Read, waitingErr, noWait = false, stillHolding)
+      val secondReader = lock.acquire(LockKind.Read, waitingErr, noWait = false, alreadyReleased)
+      // Release the MORE RECENT reader. Only `stillHolding` remains active.
+      secondReader.close()
+
+      // New writer arrives. It must block (readerCount > 0) and emit a
+      // waiting message that names the still-holding reader — NOT the one
+      // that just released.
+      val writerAcquired = new CountDownLatch(1)
+      val writerLeaseRef = new AtomicReference[LauncherLocking.Lease]()
+      val writerThread = new Thread(() => {
+        writerLeaseRef.set(lock.acquire(LockKind.Write, waitingErr, noWait = false, waiter))
+        writerAcquired.countDown()
+      })
+      writerThread.start()
+
+      assertEventually(waitingBytes.size() > 0)
+      val msg = waitingBytes.toString
+      assert(msg.contains("'stillHoldingCmd'"))
+      assert(msg.contains("PID 1111"))
+      assert(!msg.contains("'alreadyReleasedCmd'"))
+      assert(!msg.contains("PID 2222"))
+
+      firstReader.close()
+      assert(writerAcquired.await(5, TimeUnit.SECONDS))
+      writerLeaseRef.get().close()
+      writerThread.join(3000)
+    }
   }
 
   private def assertEventually(predicate: => Boolean): Unit = {

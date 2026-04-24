@@ -1,6 +1,5 @@
 package mill.internal
 
-import mill.api.daemon.internal.LauncherLocking
 import mill.api.daemon.internal.LauncherLocking.{HolderInfo, Lease, LockKind}
 import mill.constants.DaemonFiles
 
@@ -18,12 +17,21 @@ private[mill] final class FairRwLock(label: String) {
   private var readerCount = 0
   private var writerActive = false
   private var waitingWriters = 0
-  // Most recent holder(s); used only to describe who is blocking us in waiting
-  // messages. Cleared opportunistically once the lock becomes fully idle.
-  private var lastHolder: Option[HolderInfo] = None
+  // Holder info for every currently-held lease, so waiting messages can name
+  // a real blocker even when the most-recent acquirer has already released
+  // (e.g. a launcher that took read then dropped it while another reader is
+  // still holding). Keyed by lease identity (LinkedHashMap preserves
+  // insertion order so we report the oldest active holder, which usually
+  // reads best).
+  private val holders = new java.util.LinkedHashMap[Lease, HolderInfo]()
 
   private def canAcquireRead: Boolean = !writerActive && waitingWriters == 0
   private def canAcquireWrite: Boolean = !writerActive && readerCount == 0
+
+  private def currentBlocker(): Option[HolderInfo] = {
+    val it = holders.values().iterator()
+    if (it.hasNext) Some(it.next()) else None
+  }
 
   private def waitingMessage(blocker: Option[HolderInfo]): String = blocker match {
     case Some(h) =>
@@ -44,53 +52,56 @@ private[mill] final class FairRwLock(label: String) {
     // writer. Doing both under the same monitor acquisition eliminates the race
     // where two concurrent writers both observe "available" and neither
     // registers as a waiter.
-    val reservedImmediately = monitor.synchronized {
+    val leaseOpt = monitor.synchronized {
       val available = if (isWrite) canAcquireWrite else canAcquireRead
       if (available) {
         if (isWrite) writerActive = true else readerCount += 1
-        lastHolder = Some(acquirer)
-        true
+        val lease = newLease(initiallyWrite = isWrite)
+        holders.put(lease, acquirer)
+        Some(lease)
       } else if (noWait) {
         // --no-wait failures surface up to the user, so include the contested
         // resource label in addition to the blocking launcher's identity.
         throw new Exception(
-          s"${waitingMessage(lastHolder)} (resource: '$label') and --no-wait was set, failing"
+          s"${waitingMessage(currentBlocker())} (resource: '$label') and --no-wait was set, failing"
         )
       } else {
         if (isWrite) waitingWriters += 1
-        val blocker = lastHolder
+        val blocker = currentBlocker()
         waitingErr.println(
           s"${waitingMessage(blocker)}, waiting for it to be done... " +
             s"(tail -F out/${DaemonFiles.millConsoleTail} to see its progress)"
         )
-        false
+        None
       }
     }
 
-    // Phase 2 (only if we didn't reserve): wait until acquirable, then reserve.
-    if (!reservedImmediately) monitor.synchronized {
-      try {
-        while ({
-          val available = if (isWrite) canAcquireWrite else canAcquireRead
-          !available
-        }) monitor.wait()
-      } catch {
-        case e: Throwable =>
-          if (isWrite) {
-            waitingWriters -= 1
-            monitor.notifyAll()
-          }
-          throw e
+    leaseOpt.getOrElse {
+      // Phase 2: wait until acquirable, then reserve.
+      monitor.synchronized {
+        try {
+          while ({
+            val available = if (isWrite) canAcquireWrite else canAcquireRead
+            !available
+          }) monitor.wait()
+        } catch {
+          case e: Throwable =>
+            if (isWrite) {
+              waitingWriters -= 1
+              monitor.notifyAll()
+            }
+            throw e
+        }
+        if (isWrite) waitingWriters -= 1
+        if (isWrite) writerActive = true else readerCount += 1
+        val lease = newLease(initiallyWrite = isWrite)
+        holders.put(lease, acquirer)
+        lease
       }
-      if (isWrite) waitingWriters -= 1
-      if (isWrite) writerActive = true else readerCount += 1
-      lastHolder = Some(acquirer)
     }
-
-    newLease(initiallyWrite = isWrite)
   }
 
-  private def newLease(initiallyWrite: Boolean): Lease = new Lease {
+  private def newLease(initiallyWrite: Boolean): Lease = new Lease { self =>
     private var closed = false
     private var readMode = !initiallyWrite
 
@@ -108,7 +119,7 @@ private[mill] final class FairRwLock(label: String) {
         if (readMode) readerCount -= 1
         else writerActive = false
         closed = true
-        if (readerCount == 0 && !writerActive) lastHolder = None
+        holders.remove(self)
         monitor.notifyAll()
       }
     }
