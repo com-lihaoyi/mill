@@ -4,7 +4,7 @@ import mill.api.Val
 import mill.api.JsonFormatters.*
 import mill.api.daemon.internal.{EvaluatorApi, internal, PathRefApi, TaskApi}
 import mill.api.daemon.Watchable
-import mill.api.daemon.WorkspaceLocking
+import mill.api.internal.WorkspaceLocking
 import upickle.{ReadWriter, macroRW}
 
 /**

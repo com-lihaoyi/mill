@@ -3,7 +3,7 @@ package mill.daemon
 import mill.api.daemon.internal.bsp.BspServerHandle
 import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
 import mill.api.{Logger, MillException, Result, SystemStreams}
-import mill.api.daemon.WorkspaceLocking
+import mill.api.internal.WorkspaceLocking
 import mill.bsp.BSP
 import mill.client.lock.{DoubleLock, Lock}
 import mill.constants.{DaemonFiles, OutFolderMode}
@@ -277,7 +277,7 @@ object MillMain0 {
                               manager.withLocks(
                                 Seq(
                                   WorkspaceLocking.globalFileResource(
-                                    (out / OutFiles.millSelectiveExecution).toNIO,
+                                    out / OutFiles.millSelectiveExecution,
                                     WorkspaceLocking.LockKind.Write
                                   )
                                 )
@@ -674,7 +674,7 @@ object MillMain0 {
     // Console log file for monitoring progress when another process is waiting
     val consoleLogPath = workspaceLockManager match {
       case WorkspaceLocking.NoopManager => out / DaemonFiles.millConsoleTail
-      case manager => os.Path(manager.consoleTailJava)
+      case manager => manager.consoleTail
     }
     val consoleLogStream = new RotatingConsoleLogOutputStream(consoleLogPath)
 
@@ -712,7 +712,7 @@ object MillMain0 {
       terminalDimsCallback = terminalDimsCallback,
       currentTimeMillis = () => System.currentTimeMillis(),
       chromeProfileLogger = new JsonArrayLogger.ChromeProfile(
-        os.Path(workspaceLockManager.runFileJava((out / OutFiles.millChromeProfile).toNIO))
+        workspaceLockManager.runFile(out / OutFiles.millChromeProfile)
       )
     )
     new PrefixLogger(promptLogger, Nil) with AutoCloseable {

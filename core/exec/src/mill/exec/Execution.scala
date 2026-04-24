@@ -1,7 +1,7 @@
 package mill.exec
 
 import mill.api.daemon.internal.*
-import mill.api.daemon.WorkspaceLocking
+import mill.api.internal.WorkspaceLocking
 import mill.constants.OutFiles.OutFiles.millProfile
 import mill.api.*
 import mill.internal.{CodeSigUtils, JsonArrayLogger, PrefixLogger, SpanningForest}
@@ -88,7 +88,7 @@ case class Execution(
   ) = this(
     baseLogger = baseLogger,
     profileLogger = new JsonArrayLogger.Profile(
-      os.Path(workspaceLockManager.runFileJava((os.Path(outPath) / millProfile).toNIO))
+      workspaceLockManager.runFile(os.Path(outPath) / millProfile)
     ),
     workspace = os.Path(workspace),
     outPath = os.Path(outPath),

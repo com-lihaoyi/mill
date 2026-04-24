@@ -2,7 +2,7 @@ package mill.exec
 
 import mill.api.ExecResult.{OuterStack, Success}
 import mill.api.*
-import mill.api.daemon.WorkspaceLocking
+import mill.api.internal.WorkspaceLocking
 import mill.api.daemon.internal.NonFatal
 import mill.api.internal.{Appendable, Cached, Located}
 import mill.internal.{CodeSigUtils, FileLogger, MultiLogger}
@@ -460,7 +460,6 @@ trait GroupExecution {
                 evaluateBuildOverride(located, labelled) match {
                   case Right(yamlValue) =>
                     val (data, serializedPaths) = PathRef.withSerializedPaths { yamlValue }
-                    // Write build header override JSON to meta `.json` file to support `show`
                     writeCacheJson(
                       paths.meta,
                       upickle.core.BufferedValue.transform(located.value.value, ujson.Value),

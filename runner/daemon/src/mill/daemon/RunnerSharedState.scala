@@ -12,7 +12,7 @@ import mill.api.internal.RootModule
  *
  * - [[frames]] is keyed by meta-build depth; absent entries simply mean "nothing
  *   published at that depth yet". Writes are sequenced by a single process-wide
- *   meta-build write lock (see [[mill.api.daemon.WorkspaceLocking.metaBuildResource]]);
+ *   meta-build write lock (see [[mill.api.internal.WorkspaceLocking.metaBuildResource]]);
  *   concurrent launchers can read while a writer holds the lock only after it
  *   downgrades to read, which happens after the frame is installed here.
  *
@@ -44,14 +44,8 @@ case class RunnerSharedState(
   def moduleWatchedAt(depth: Int): Option[Seq[Watchable]] =
     frames.get(depth).flatMap(_.moduleWatched)
 
-  // Preserve the prior moduleWatched if the incoming frame didn't set one, so callers
-  // publishing a refreshed reusable payload don't accidentally drop a snapshot that a
-  // concurrent launcher already recorded at this depth.
   def withFrame(depth: Int, frame: Frame): RunnerSharedState =
-    copy(frames = frames.updated(
-      depth,
-      frame.copy(moduleWatched = frame.moduleWatched.orElse(at(depth).moduleWatched))
-    ))
+    copy(frames = frames.updated(depth, frame))
 
   def withModuleWatched(depth: Int, watched: Seq[Watchable]): RunnerSharedState =
     copy(frames = frames.updated(depth, at(depth).copy(moduleWatched = Some(watched))))

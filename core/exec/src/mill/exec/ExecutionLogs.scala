@@ -1,6 +1,6 @@
 package mill.exec
 
-import mill.api.daemon.WorkspaceLocking
+import mill.api.internal.WorkspaceLocking
 import mill.constants.OutFiles.OutFiles
 import mill.api.Task
 import mill.internal.{InvalidationForest, SpanningForest}
@@ -19,7 +19,7 @@ private object ExecutionLogs {
       SpanningForest.graphMapToIndices(indexToTerminal, interGroupDeps)
 
     SpanningForest.writeJsonFile(
-      os.Path(workspaceLockManager.runFileJava((outPath / OutFiles.millDependencyTree).toNIO)),
+      workspaceLockManager.runFile(outPath / OutFiles.millDependencyTree),
       edgeIndices,
       indexToTerminal.indices.toSet,
       indexToTerminal(_).toString
@@ -55,7 +55,7 @@ private object ExecutionLogs {
     )
 
     os.write.over(
-      os.Path(workspaceLockManager.runFileJava((outPath / OutFiles.millInvalidationTree).toNIO)),
+      workspaceLockManager.runFile(outPath / OutFiles.millInvalidationTree),
       finalTree.render(indent = 2)
     )
   }

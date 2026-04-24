@@ -141,7 +141,7 @@ class UnitTester(
     getEvaluator = () => evaluator,
     offline = offline,
     useFileLocks = false,
-    workspaceLockManager = mill.api.daemon.WorkspaceLocking.NoopManager,
+    workspaceLockManager = mill.api.internal.WorkspaceLocking.NoopManager,
     enableTicker = false,
     staticBuildOverrideFiles = Map(),
     depth = 0,

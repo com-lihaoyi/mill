@@ -1,5 +1,6 @@
 package mill.api.daemon
 
+import mill.api.internal.WorkspaceLocking
 import mill.constants.{DaemonFiles, OutFiles}
 import utest.*
 
@@ -28,13 +29,13 @@ object WorkspaceLockingTests extends TestSuite {
         val launcherRunFile =
           out / OutFiles.millDaemon / os.RelPath(DaemonFiles.launcherRun(manager.runId))
 
-        val profilePath = os.Path(manager.runFileJava((out / OutFiles.millProfile).toNIO))
+        val profilePath = os.Path(manager.runFile(out / OutFiles.millProfile))
         val chromePath =
-          os.Path(manager.runFileJava((out / OutFiles.millChromeProfile).toNIO))
+          os.Path(manager.runFile(out / OutFiles.millChromeProfile))
         val dependencyTreePath =
-          os.Path(manager.runFileJava((out / OutFiles.millDependencyTree).toNIO))
+          os.Path(manager.runFile(out / OutFiles.millDependencyTree))
         val invalidationTreePath =
-          os.Path(manager.runFileJava((out / OutFiles.millInvalidationTree).toNIO))
+          os.Path(manager.runFile(out / OutFiles.millInvalidationTree))
         val consoleTailPath = os.Path(manager.consoleTailJava)
 
         os.write.over(consoleTailPath, "tail")
@@ -166,13 +167,13 @@ object WorkspaceLockingTests extends TestSuite {
         )
 
         val first = manager("first")
-        val firstProfilePath = os.Path(first.runFileJava((out / OutFiles.millProfile).toNIO))
+        val firstProfilePath = os.Path(first.runFile(out / OutFiles.millProfile))
         os.write.over(firstProfilePath, "first-profile")
         first.acquireLocks(Seq.empty).close()
 
         val second = manager("second")
         val secondChromePath =
-          os.Path(second.runFileJava((out / OutFiles.millChromeProfile).toNIO))
+          os.Path(second.runFile(out / OutFiles.millChromeProfile))
         os.write.over(secondChromePath, "second-chrome")
         second.acquireLocks(Seq.empty).close()
 
@@ -199,9 +200,9 @@ object WorkspaceLockingTests extends TestSuite {
           noWaitForBuildLock = false
         )
 
-        val topLevelProfile = os.Path(manager.runFileJava((out / OutFiles.millProfile).toNIO))
-        val metaBuildProfile = os.Path(manager.runFileJava(
-          (out / OutFiles.millBuild / OutFiles.millProfile).toNIO
+        val topLevelProfile = os.Path(manager.runFile(out / OutFiles.millProfile))
+        val metaBuildProfile = os.Path(manager.runFile(
+          out / OutFiles.millBuild / OutFiles.millProfile
         ))
 
         assert(topLevelProfile != metaBuildProfile)

@@ -1,7 +1,7 @@
 package mill.eval
 
 import mill.api.daemon.internal.{CompileProblemReporter, TestReporter}
-import mill.api.daemon.WorkspaceLocking
+import mill.api.internal.WorkspaceLocking
 import mill.constants.OutFiles.OutFiles
 import mill.api.{PathRef, *}
 import mill.api.internal.{ResolveChecker, Resolved, RootModule0}

@@ -28,6 +28,7 @@ trait EvaluatorApi extends AutoCloseable {
   private[mill] def baseLogger: Logger
   private[mill] def rootModule: BaseModuleApi
   private[mill] def outPathJava: java.nio.file.Path
+  private[mill] def classLoaderSigHash: Int = 0
   private[mill] def classLoaderIdentityHash: Int = 0
 
   /**

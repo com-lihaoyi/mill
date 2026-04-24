@@ -20,7 +20,7 @@ final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
   override def offline: Boolean = delegate.offline
   override def isFinalDepth: Boolean = delegate.isFinalDepth
   override def useFileLocks: Boolean = delegate.useFileLocks
-  override def workspaceLockManager: mill.api.daemon.WorkspaceLocking.Manager =
+  override def workspaceLockManager: mill.api.internal.WorkspaceLocking.Manager =
     delegate.workspaceLockManager
   override def staticBuildOverrides = delegate.staticBuildOverrides
   override def spanningInvalidationTree: Option[String] = delegate.spanningInvalidationTree
