@@ -10,6 +10,7 @@ import mill.exec.{Execution, PlanImpl}
 import mill.internal.PrefixLogger
 import mill.resolve.Resolve
 import mill.api.internal.ParseArgs
+import mill.eval.SelectiveExecutionImpl.transitiveNamedSelective
 
 /**
  * [[EvaluatorImpl]] is the primary API through which a user interacts with the Mill
@@ -176,6 +177,31 @@ final class EvaluatorImpl(
         )
 
       case f: Result.Failure => f // Pass through failure
+    }
+  }
+
+  override private[mill] def hasNoChanges(
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      previousMetadata: Any,
+      allowPositionalCommandArgs: Boolean = false
+  ): mill.api.Result[Boolean] =
+    probeSelectiveMetadata(scriptArgs, selectMode, previousMetadata, allowPositionalCommandArgs)
+      .map(_._1)
+
+  override private[mill] def probeSelectiveMetadata(
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      previousMetadata: Any,
+      allowPositionalCommandArgs: Boolean = false
+  ): mill.api.Result[(Boolean, Any)] = {
+    resolveTasks(scriptArgs, selectMode, allowPositionalCommandArgs).map { tasks =>
+      val oldMetadata = previousMetadata.asInstanceOf[SelectiveExecution.Metadata]
+      val transitiveNamed = transitiveNamedSelective(tasks)
+      val computed = SelectiveExecutionImpl.Metadata.compute0(this, transitiveNamed)
+      val (_, downstream) =
+        selective.computeDownstream(transitiveNamed, oldMetadata, computed.metadata)
+      (downstream.isEmpty, computed.metadata)
     }
   }
 

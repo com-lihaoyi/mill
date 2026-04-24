@@ -1,6 +1,7 @@
 package mill.daemon
 
 import mill.api.MillURLClassLoader
+import mill.api.SelectiveExecution
 import mill.api.daemon.Watchable
 import mill.api.daemon.internal.{PathRefApi, internal}
 import mill.api.internal.RootModule
@@ -68,13 +69,15 @@ object RunnerSharedState {
    * and the most recent moduleWatched snapshot recorded at that depth.
    */
   case class Frame(
+      evalWatched: Seq[Watchable] = Nil,
       moduleWatched: Option[Seq[Watchable]] = None,
       classLoaderOpt: Option[MillURLClassLoader] = None,
       runClasspath: Seq[PathRefApi] = Nil,
       compileOutputOpt: Option[PathRefApi] = None,
       codeSignatures: Map[String, Int] = Map.empty,
       buildOverrideFiles: Map[java.nio.file.Path, String] = Map.empty,
-      workerCacheSummary: Map[String, RunnerLauncherState.Frame.WorkerInfo] = Map.empty
+      workerCacheSummary: Map[String, RunnerLauncherState.Frame.WorkerInfo] = Map.empty,
+      selectiveMetadata: Option[SelectiveExecution.Metadata] = None
   ) {
     def hasReusable: Boolean = classLoaderOpt.nonEmpty
   }

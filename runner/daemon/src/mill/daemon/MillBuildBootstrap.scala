@@ -305,177 +305,185 @@ class MillBuildBootstrap(
       evaluator: EvaluatorApi,
       depth: Int
   ): RunnerLauncherState = {
-    // Speculate with a read lease: evaluateWithWatches is the expensive step
-    // (meta-build compile / cache check), and in the common case the current
-    // shared frame is reusable, so we can stay on read and let concurrent
-    // launchers do the same. Only if we actually need to refresh do we
-    // escalate to write — that waits for all readers to release, which is the
-    // correct serialization point for installing a new classloader.
     val readLease = workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Read)
-    val evalResult =
-      try evaluateWithWatches(
-          buildFileApi,
-          evaluator,
-          Seq("millBuildRootModuleResult"),
-          selectiveExecution = false,
-          reporter = reporter(evaluator)
-        )
-      catch {
-        case t: Throwable =>
-          try readLease.close()
-          catch { case _: Throwable => }
-          throw t
+    val taskSelector = Seq("millBuildRootModuleResult")
+
+    def outerModuleWatched: Seq[Watchable] =
+      sharedState.get().moduleWatchedAt(depth - 1)
+        .orElse(prevCommandState.moduleWatchedAt(depth - 1))
+        .getOrElse(Nil)
+
+    def watchedParentInputsChanged(): Boolean =
+      outerModuleWatched.exists(w => !Watching.haveNotChanged(w))
+
+    def reusable(
+        frameOpt: Option[RunnerSharedState.Frame]
+    ): Result[Option[(RunnerSharedState.Frame, mill.api.SelectiveExecution.Metadata)]] =
+      frameOpt match {
+        case None => Result.Success(None)
+        case Some(_) if watchedParentInputsChanged() => Result.Success(None)
+        case Some(frame) =>
+          frame.selectiveMetadata match {
+            case None => Result.Success(None)
+            case Some(previousMetadata) =>
+              evaluator
+                .probeSelectiveMetadata(taskSelector, SelectMode.Separated, previousMetadata)
+                .map {
+                  case (true, currentMetadata) =>
+                    val metadata =
+                      currentMetadata.asInstanceOf[mill.api.SelectiveExecution.Metadata]
+                    Some((frame.copy(selectiveMetadata = Some(metadata)), metadata))
+                  case _ => None
+                }
+          }
       }
 
-    evalResult match {
-      case (f: Result.Failure, evalWatches, moduleWatches) =>
-        readLease.close()
-        nestedState
-          .withMetaBuildFrame(
-            RunnerLauncherState.MetaBuildFrame.failed(
-              depth,
-              evaluator,
-              evalWatches,
-              moduleWatches
-            )
-          )
-          .withError(mill.internal.Util.formatError(f, logger.prompt.errorColor))
+    def launcherFrame(
+        sharedFrame: RunnerSharedState.Frame,
+        lease: LauncherLocking.Lease,
+        classLoaderChanged: Boolean,
+        spanningInvalidationTree: Option[String] = None
+    ) = RunnerLauncherState.MetaBuildFrame(
+      depth = depth,
+      evaluator = evaluator,
+      evalWatched = sharedFrame.evalWatched,
+      sharedFrame = sharedFrame,
+      metaBuildReadLease = Some(lease),
+      spanningInvalidationTree = Option.when(classLoaderChanged)(spanningInvalidationTree).flatten
+    )
 
-      case (
-            Result.Success(Seq(Tuple5(
-              runClasspath: Seq[PathRefApi],
-              compileClasses: PathRefApi,
-              codeSignatures: Map[String, Int],
-              buildOverrideFiles: Map[java.nio.file.Path, String],
-              spanningInvalidationTree: String
-            ))),
-            evalWatches,
-            moduleWatches
-          ) =>
-        def createClassLoader() = {
-          // Write root module info as a classpath resource so BuildFileCls can
-          // read it from the classloader without needing mutable global state.
-          // This classloader will be used at depth-1 to load the root module.
-          val rootModuleInfoDir = recOut(output, depth) / "rootModuleInfo.dest"
-          os.write.over(
-            rootModuleInfoDir / "mill" / "rootModuleInfo.json",
-            ujson.Obj(
-              "projectRoot" -> recRoot(topLevelProjectRoot, depth - 1).toString,
-              "output" -> output.toString,
-              "topLevelProjectRoot" -> topLevelProjectRoot.toString
-            ).render(indent = 2),
-            createFolders = true
-          )
-
-          mill.util.Jvm.createClassLoader(
-            runClasspath.map(p => os.Path(p.javaPath)) :+ rootModuleInfoDir,
-            null,
-            sharedLoader = classOf[MillBuildBootstrap].getClassLoader,
-            sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.api.daemon", "sbt.testing.")
-          )
-        }
-
-        // The outer frame's moduleWatched tracks files watched by tasks running at depth-1
-        // under this classloader; consulting it signals whether anything watched changed
-        // since the previous run, which in turn is a reason to re-create the classloader.
-        // Prefer the shared state first: it reflects the provenance of the currently
-        // published classloader we're about to reuse. Fall back to prevCommandState on
-        // the first daemon command, before anything has published at this depth.
-        def outerModuleWatched: Seq[Watchable] =
-          sharedState.get().moduleWatchedAt(depth - 1)
-            .orElse(prevCommandState.moduleWatchedAt(depth - 1))
-            .getOrElse(Nil)
-
-        def needsClassloaderRefresh(
-            at: Option[RunnerSharedState.Frame]
-        ): Boolean = {
-          val runClasspathChanged =
-            !at.exists(
-              _.runClasspath.map(p => (os.Path(p.javaPath), p.sig)) ==
-                runClasspath.map(p => (os.Path(p.javaPath), p.sig))
-            )
-          val moduleWatchChanged = outerModuleWatched.exists(w => !Watching.haveNotChanged(w))
-          runClasspathChanged || moduleWatchChanged
-        }
-
-        def buildSharedFrame(classLoader: mill.api.MillURLClassLoader) =
-          RunnerSharedState.Frame(
-            moduleWatched = Some(moduleWatches),
-            classLoaderOpt = Some(classLoader),
-            runClasspath = runClasspath,
-            compileOutputOpt = Some(compileClasses),
-            codeSignatures = codeSignatures,
-            buildOverrideFiles = buildOverrideFiles,
-            workerCacheSummary = RunnerLauncherState.Frame.summarizeWorkerCache(
-              evaluator.workerCache
-            )
-          )
-
-        def launcherFrame(
-            sharedFrame: RunnerSharedState.Frame,
-            lease: LauncherLocking.Lease,
-            classLoaderChanged: Boolean
-        ) = RunnerLauncherState.MetaBuildFrame(
-          depth = depth,
-          evaluator = evaluator,
-          evalWatched = evalWatches,
-          sharedFrame = sharedFrame,
-          metaBuildReadLease = Some(lease),
-          spanningInvalidationTree = Option.when(classLoaderChanged)(spanningInvalidationTree)
+    def currentSelectiveMetadata(): Result[mill.api.SelectiveExecution.Metadata] =
+      evaluator
+        .probeSelectiveMetadata(
+          taskSelector,
+          SelectMode.Separated,
+          mill.api.SelectiveExecution.Metadata(Map.empty, Map.empty)
         )
+        .map(_._2.asInstanceOf[mill.api.SelectiveExecution.Metadata])
 
-        val latest = sharedState.get().frameAt(depth)
-        // Fast path: shared frame is reusable. Keep the read lease we already
-        // hold; concurrent launchers on the same reusable frame coexist.
-        // moduleWatched is "last writer wins" via the AtomicReference — safe
-        // because every concurrent launcher at this depth computes the same
-        // moduleWatched from the same `millBuildRootModuleResult` task graph.
-        if (!needsClassloaderRefresh(latest) && latest.isDefined) {
-          val reused = latest.get.copy(moduleWatched = Some(moduleWatches))
-          sharedState.updateAndGet(_.withFrame(depth, reused))
-          nestedState.withMetaBuildFrame(launcherFrame(
-            reused,
-            readLease,
-            classLoaderChanged = false
-          ))
-        } else {
-          // Slow path: need to install a new classloader. Drop read, acquire
-          // write (which waits for all readers — other launchers may still be
-          // using the old classloader — before we can safely close it).
-          readLease.close()
-          val writeLease = workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Write)
-          closeOnThrow(writeLease) {
-            // Re-check under write: another writer may have refreshed to a
-            // frame that matches our runClasspath while we were waiting.
-            val current = sharedState.get().frameAt(depth)
-            val (sharedFrame, classLoaderChanged) =
-              if (!needsClassloaderRefresh(current) && current.isDefined) {
-                val reused = current.get.copy(moduleWatched = Some(moduleWatches))
-                sharedState.updateAndGet(_.withFrame(depth, reused))
-                (reused, false)
-              } else {
-                // Close any classloaders we're about to replace. All readers
-                // have released by now (write-lock invariant); workers at this
-                // depth are handled by SharedWorkerCache.forDepth.
-                Seq(
-                  prevCommandState.metaBuildFrameAt(depth)
-                    .flatMap(_.sharedFrame.classLoaderOpt),
-                  current.flatMap(_.classLoaderOpt)
-                ).flatten.distinct.foreach(_.close())
-                val fresh = buildSharedFrame(createClassLoader())
-                sharedState.updateAndGet(_.withFrame(depth, fresh))
-                (fresh, true)
+    reusable(sharedState.get().frameAt(depth)) match {
+      case f: Result.Failure =>
+        readLease.close()
+        nestedState.withError(mill.internal.Util.formatError(f, logger.prompt.errorColor))
+
+      case Result.Success(Some((frame, _))) =>
+        sharedState.updateAndGet(_.withFrame(depth, frame))
+        nestedState.withMetaBuildFrame(launcherFrame(frame, readLease, classLoaderChanged = false))
+
+      case Result.Success(None) =>
+        readLease.close()
+        val writeLease = workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Write)
+        closeOnThrow(writeLease) {
+          reusable(sharedState.get().frameAt(depth)) match {
+            case f: Result.Failure =>
+              writeLease.close()
+              nestedState.withError(mill.internal.Util.formatError(f, logger.prompt.errorColor))
+
+            case Result.Success(Some((frame, _))) =>
+              sharedState.updateAndGet(_.withFrame(depth, frame))
+              writeLease.downgradeToRead()
+              nestedState.withMetaBuildFrame(launcherFrame(
+                frame,
+                writeLease,
+                classLoaderChanged = false
+              ))
+
+            case Result.Success(None) =>
+              evaluateWithWatches(
+                buildFileApi,
+                evaluator,
+                taskSelector,
+                selectiveExecution = false,
+                reporter = reporter(evaluator)
+              ) match {
+                case (f: Result.Failure, evalWatches, moduleWatches) =>
+                  writeLease.close()
+                  nestedState
+                    .withMetaBuildFrame(
+                      RunnerLauncherState.MetaBuildFrame.failed(
+                        depth,
+                        evaluator,
+                        evalWatches,
+                        moduleWatches
+                      )
+                    )
+                    .withError(mill.internal.Util.formatError(f, logger.prompt.errorColor))
+
+                case (
+                      Result.Success(Seq(Tuple5(
+                        runClasspath: Seq[PathRefApi],
+                        compileClasses: PathRefApi,
+                        codeSignatures: Map[String, Int],
+                        buildOverrideFiles: Map[java.nio.file.Path, String],
+                        spanningInvalidationTree: String
+                      ))),
+                      evalWatches,
+                      moduleWatches
+                    ) =>
+                  currentSelectiveMetadata() match {
+                    case f: Result.Failure =>
+                      writeLease.close()
+                      nestedState.withError(mill.internal.Util.formatError(
+                        f,
+                        logger.prompt.errorColor
+                      ))
+
+                    case Result.Success(selectiveMetadata) =>
+                      def createClassLoader() = {
+                        val rootModuleInfoDir = recOut(output, depth) / "rootModuleInfo.dest"
+                        os.write.over(
+                          rootModuleInfoDir / "mill" / "rootModuleInfo.json",
+                          ujson.Obj(
+                            "projectRoot" -> recRoot(topLevelProjectRoot, depth - 1).toString,
+                            "output" -> output.toString,
+                            "topLevelProjectRoot" -> topLevelProjectRoot.toString
+                          ).render(indent = 2),
+                          createFolders = true
+                        )
+
+                        mill.util.Jvm.createClassLoader(
+                          runClasspath.map(p => os.Path(p.javaPath)) :+ rootModuleInfoDir,
+                          null,
+                          sharedLoader = classOf[MillBuildBootstrap].getClassLoader,
+                          sharedPrefixes =
+                            Seq("java.", "javax.", "scala.", "mill.api.daemon", "sbt.testing.")
+                        )
+                      }
+
+                      val current = sharedState.get().frameAt(depth)
+                      Seq(
+                        prevCommandState.metaBuildFrameAt(depth)
+                          .flatMap(_.sharedFrame.classLoaderOpt),
+                        current.flatMap(_.classLoaderOpt)
+                      ).flatten.distinct.foreach(_.close())
+
+                      val fresh = RunnerSharedState.Frame(
+                        evalWatched = evalWatches,
+                        moduleWatched = Some(moduleWatches),
+                        classLoaderOpt = Some(createClassLoader()),
+                        runClasspath = runClasspath,
+                        compileOutputOpt = Some(compileClasses),
+                        codeSignatures = codeSignatures,
+                        buildOverrideFiles = buildOverrideFiles,
+                        workerCacheSummary = RunnerLauncherState.Frame.summarizeWorkerCache(
+                          evaluator.workerCache
+                        ),
+                        selectiveMetadata = Some(selectiveMetadata)
+                      )
+                      sharedState.updateAndGet(_.withFrame(depth, fresh))
+                      writeLease.downgradeToRead()
+                      nestedState.withMetaBuildFrame(launcherFrame(
+                        fresh,
+                        writeLease,
+                        classLoaderChanged = true,
+                        spanningInvalidationTree = Some(spanningInvalidationTree)
+                      ))
+                  }
+
+                case unknown => sys.error(unknown.toString())
               }
-            writeLease.downgradeToRead()
-            nestedState.withMetaBuildFrame(launcherFrame(
-              sharedFrame,
-              writeLease,
-              classLoaderChanged
-            ))
           }
         }
-
-      case unknown => sys.error(unknown.toString())
     }
   }
 

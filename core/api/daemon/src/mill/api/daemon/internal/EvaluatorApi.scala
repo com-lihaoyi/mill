@@ -41,6 +41,29 @@ trait EvaluatorApi extends AutoCloseable {
   ): Result[Boolean] = Result.Success(false)
 
   /**
+   * Compares the current selective-execution metadata for the resolved task graph
+   * against a previously-published snapshot, without executing the task graph.
+   */
+  private[mill] def hasNoChanges(
+      @unused scriptArgs: Seq[String],
+      @unused selectMode: SelectMode,
+      @unused previousMetadata: Any,
+      @unused allowPositionalCommandArgs: Boolean = false
+  ): Result[Boolean] = Result.Success(false)
+
+  /**
+   * Computes current selective-execution metadata for the resolved task graph and
+   * reports whether it matches a previously-published snapshot.
+   */
+  private[mill] def probeSelectiveMetadata(
+      @unused scriptArgs: Seq[String],
+      @unused selectMode: SelectMode,
+      @unused previousMetadata: Any,
+      @unused allowPositionalCommandArgs: Boolean = false
+  ): Result[(Boolean, Any)] =
+    Result.Success((false, previousMetadata))
+
+  /**
    * Returns a copy of this evaluator with the isFinalDepth flag set to the given value.
    * Used to defer the decision of whether this is the final depth until after
    * determining if we should short-circuit for @nonBootstrapped tasks.

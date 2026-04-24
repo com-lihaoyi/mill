@@ -63,6 +63,26 @@ final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
   ): mill.api.Result[List[Task.Named[?]]] = {
     delegate.resolveTasks(scriptArgs, selectMode, allowPositionalCommandArgs, resolveToModuleTasks)
   }
+  override private[mill] def hasNoChanges(
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      previousMetadata: Any,
+      allowPositionalCommandArgs: Boolean
+  ): mill.api.Result[Boolean] =
+    delegate.hasNoChanges(scriptArgs, selectMode, previousMetadata, allowPositionalCommandArgs)
+  override private[mill] def probeSelectiveMetadata(
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      previousMetadata: Any,
+      allowPositionalCommandArgs: Boolean
+  ): mill.api.Result[(Boolean, Any)] =
+    delegate.probeSelectiveMetadata(
+      scriptArgs,
+      selectMode,
+      previousMetadata,
+      allowPositionalCommandArgs
+    )
+
   def resolveModulesOrTasks(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
