@@ -7,7 +7,6 @@ import mill.api.daemon.internal.LauncherLocking
 import mill.api.BuildCtx
 import mill.api.daemon.internal.{EvaluatorApi, TaskApi}
 import mill.api.internal.{Located, Resolved, RootModule0}
-import mill.constants.OutFiles
 import upickle.core.BufferedValue
 import scala.util.DynamicVariable
 import scala.collection.mutable
@@ -39,11 +38,6 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def useFileLocks: Boolean = false
   private[mill] def workspaceLocking: LauncherLocking =
     LauncherLocking.Noop
-  private[mill] def withGlobalWorkspaceLocks[T](selectiveExecution: Boolean)(t: => T): T = {
-    if (isFinalDepth && selectiveExecution)
-      workspaceLocking.withSelectiveExecutionLock((outPath / OutFiles.millSelectiveExecution).toNIO)(t)
-    else t
-  }
   private[mill] def staticBuildOverrides: Map[String, Located[internal.Appendable[BufferedValue]]] =
     Map()
   // JSON string to avoid classloader issues when crossing classloader boundaries

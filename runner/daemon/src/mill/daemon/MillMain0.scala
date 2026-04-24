@@ -320,11 +320,7 @@ object MillMain0 {
                             // because we still want to generate the selective execution metadata json
                             // for subsequent runs that may use it
                             if (skipSelectiveExecution)
-                              workspaceLocking.withSelectiveExecutionLock(
-                                (out / OutFiles.millSelectiveExecution).toNIO
-                              ) {
-                                os.remove(out / OutFiles.millSelectiveExecution)
-                              }
+                              os.remove(out / OutFiles.millSelectiveExecution)
                             // Make this run's tail log + artifacts the ones `out/mill-*`
                             // symlinks point at, so concurrent launchers waiting on locks
                             // (and humans tailing the log) see the right file.

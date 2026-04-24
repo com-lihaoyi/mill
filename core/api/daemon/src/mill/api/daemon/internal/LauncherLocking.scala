@@ -10,7 +10,6 @@ import java.nio.file.Path
 private[mill] trait LauncherLocking extends AutoCloseable {
   def metaBuildLock(kind: LauncherLocking.LockKind): LauncherLocking.Lease
   def taskLock(path: Path, kind: LauncherLocking.LockKind): LauncherLocking.Lease
-  def withSelectiveExecutionLock[T](@scala.annotation.unused path: Path)(t: => T): T = t
 }
 
 private[mill] object LauncherLocking {
