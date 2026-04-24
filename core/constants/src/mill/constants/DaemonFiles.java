@@ -79,9 +79,9 @@ public class DaemonFiles {
   /**
    * Directory containing one metadata file per active launcher connected to the daemon.
    */
-  public static final String launcherRuns = "launcher-runs";
+  public static final String millLauncherFiles = "mill-launcher-files";
 
-  public static String launcherRun(String runId) {
-    return launcherRuns + "/" + runId + ".json";
+  public static String perLauncherFilePath(String runId) {
+    return millLauncherFiles + "/" + runId + ".json";
   }
 }

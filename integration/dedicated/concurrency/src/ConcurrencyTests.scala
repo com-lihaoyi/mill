@@ -24,11 +24,11 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
     )
 
   private def activeLauncherPid(tester: IntegrationTester.Impl, command: String): Option[Long] = {
-    val launcherRuns =
-      tester.workspacePath / "out" / OutFiles.millDaemon / os.RelPath(DaemonFiles.launcherRuns)
-    if (!os.exists(launcherRuns)) None
+    val millLauncherFiles =
+      tester.workspacePath / "out" / OutFiles.millDaemon / os.RelPath(DaemonFiles.millLauncherFiles)
+    if (!os.exists(millLauncherFiles)) None
     else {
-      os.list(launcherRuns).iterator
+      os.list(millLauncherFiles).iterator
         .filter(os.isFile(_))
         .flatMap { path =>
           val json = ujson.read(os.read(path)).obj

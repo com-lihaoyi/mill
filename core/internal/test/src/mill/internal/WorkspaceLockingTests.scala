@@ -15,7 +15,7 @@ object WorkspaceLockingTests extends TestSuite {
         val out = tmpDir / "out"
         os.makeDir.all(out)
 
-        val manager = new LauncherLockSession(
+        val manager = new LauncherLockingImpl(
           out = out,
           daemonDir = out / OutFiles.millDaemon,
           activeCommandMessage = "test-command",
@@ -25,13 +25,13 @@ object WorkspaceLockingTests extends TestSuite {
           noWaitForBuildLock = false
         )
         val launcherRunFile =
-          out / OutFiles.millDaemon / os.RelPath(DaemonFiles.launcherRun(manager.runId))
+          out / OutFiles.millDaemon / os.RelPath(DaemonFiles.perLauncherFilePath(manager.runId))
 
-        val profilePath = manager.artifactPath(out / OutFiles.millProfile)
-        val chromePath = manager.artifactPath(out / OutFiles.millChromeProfile)
-        val dependencyTreePath = manager.artifactPath(out / OutFiles.millDependencyTree)
-        val invalidationTreePath = manager.artifactPath(out / OutFiles.millInvalidationTree)
-        val consoleTailPath = manager.consoleTail
+        val profilePath = os.Path(manager.artifactPath((out / OutFiles.millProfile).toNIO))
+        val chromePath = os.Path(manager.artifactPath((out / OutFiles.millChromeProfile).toNIO))
+        val dependencyTreePath = os.Path(manager.artifactPath((out / OutFiles.millDependencyTree).toNIO))
+        val invalidationTreePath = os.Path(manager.artifactPath((out / OutFiles.millInvalidationTree).toNIO))
+        val consoleTailPath = os.Path(manager.consoleTail)
 
         os.write.over(consoleTailPath, "tail")
         os.write.over(profilePath, "profile")
@@ -94,7 +94,7 @@ object WorkspaceLockingTests extends TestSuite {
         val out = tmpDir / "out"
         os.makeDir.all(out)
 
-        val manager = new LauncherLockSession(
+        val manager = new LauncherLockingImpl(
           out = out,
           daemonDir = out / OutFiles.millDaemon,
           activeCommandMessage = "test-command",
@@ -104,7 +104,7 @@ object WorkspaceLockingTests extends TestSuite {
           noWaitForBuildLock = false
         )
         val launcherRunFile =
-          out / OutFiles.millDaemon / os.RelPath(DaemonFiles.launcherRun(manager.runId))
+          out / OutFiles.millDaemon / os.RelPath(DaemonFiles.perLauncherFilePath(manager.runId))
         val lease = manager.metaBuildLock(LauncherLocking.LockKind.Write)
         lease.downgradeToRead()
 
@@ -122,7 +122,7 @@ object WorkspaceLockingTests extends TestSuite {
         os.makeDir.all(out)
 
         def manager(command: String, noWait: Boolean = false) =
-          new LauncherLockSession(
+          new LauncherLockingImpl(
             out = out,
             daemonDir = out / OutFiles.millDaemon,
             activeCommandMessage = command,
@@ -134,11 +134,11 @@ object WorkspaceLockingTests extends TestSuite {
 
         val resource = out / "close-release"
         val first = manager("first")
-        first.taskLock(resource, LauncherLocking.LockKind.Write)
+        first.taskLock(resource.toNIO, LauncherLocking.LockKind.Write)
         first.close()
 
         val second = manager("second", noWait = true)
-        val secondLease = second.taskLock(resource, LauncherLocking.LockKind.Write)
+        val secondLease = second.taskLock(resource.toNIO, LauncherLocking.LockKind.Write)
         secondLease.close()
         second.close()
       }
@@ -149,7 +149,7 @@ object WorkspaceLockingTests extends TestSuite {
         val out = tmpDir / "out"
         os.makeDir.all(out)
 
-        def manager(command: String) = new LauncherLockSession(
+        def manager(command: String) = new LauncherLockingImpl(
           out = out,
           daemonDir = out / OutFiles.millDaemon,
           activeCommandMessage = command,
@@ -160,12 +160,12 @@ object WorkspaceLockingTests extends TestSuite {
         )
 
         val first = manager("first")
-        val firstProfilePath = first.artifactPath(out / OutFiles.millProfile)
+        val firstProfilePath = os.Path(first.artifactPath((out / OutFiles.millProfile).toNIO))
         os.write.over(firstProfilePath, "first-profile")
         first.publishArtifacts()
 
         val second = manager("second")
-        val secondChromePath = second.artifactPath(out / OutFiles.millChromeProfile)
+        val secondChromePath = os.Path(second.artifactPath((out / OutFiles.millChromeProfile).toNIO))
         os.write.over(secondChromePath, "second-chrome")
         second.publishArtifacts()
 
@@ -182,7 +182,7 @@ object WorkspaceLockingTests extends TestSuite {
         val out = tmpDir / "out"
         os.makeDir.all(out)
 
-        val manager = new LauncherLockSession(
+        val manager = new LauncherLockingImpl(
           out = out,
           daemonDir = out / OutFiles.millDaemon,
           activeCommandMessage = "test-command",
@@ -192,10 +192,10 @@ object WorkspaceLockingTests extends TestSuite {
           noWaitForBuildLock = false
         )
 
-        val topLevelProfile = manager.artifactPath(out / OutFiles.millProfile)
-        val metaBuildProfile = manager.artifactPath(
-          out / OutFiles.millBuild / OutFiles.millProfile
-        )
+        val topLevelProfile =
+          os.Path(manager.artifactPath((out / OutFiles.millProfile).toNIO))
+        val metaBuildProfile =
+          os.Path(manager.artifactPath((out / OutFiles.millBuild / OutFiles.millProfile).toNIO))
 
         assert(topLevelProfile != metaBuildProfile)
         assert(topLevelProfile.relativeTo(out).segments == Seq(
@@ -230,7 +230,7 @@ object WorkspaceLockingTests extends TestSuite {
         val waitingBytes = new ByteArrayOutputStream()
         val waitingErr = new PrintStream(waitingBytes)
 
-        def manager(command: String) = new LauncherLockSession(
+        def manager(command: String) = new LauncherLockingImpl(
           out = out,
           daemonDir = out / OutFiles.millDaemon,
           activeCommandMessage = command,
@@ -244,7 +244,7 @@ object WorkspaceLockingTests extends TestSuite {
         val writerManager = manager("writer")
         val secondReaderManager = manager("second-reader")
         val resource = out / "fair-resource"
-        val firstReadLease = firstReaderManager.taskLock(resource, LauncherLocking.LockKind.Read)
+        val firstReadLease = firstReaderManager.taskLock(resource.toNIO, LauncherLocking.LockKind.Read)
         val writerAcquired = new CountDownLatch(1)
         val releaseWriter = new CountDownLatch(1)
         val secondReaderAcquired = new CountDownLatch(1)
@@ -252,7 +252,7 @@ object WorkspaceLockingTests extends TestSuite {
         @volatile var secondReadLease: LauncherLocking.Lease = null
 
         val writerThread = new Thread(() => {
-          writerLease = writerManager.taskLock(resource, LauncherLocking.LockKind.Write)
+          writerLease = writerManager.taskLock(resource.toNIO, LauncherLocking.LockKind.Write)
           writerAcquired.countDown()
           releaseWriter.await(5, TimeUnit.SECONDS)
           writerLease.close()
@@ -262,7 +262,7 @@ object WorkspaceLockingTests extends TestSuite {
         assertEventually(waitingBytes.size() > 0)
 
         val secondReaderThread = new Thread(() => {
-          secondReadLease = secondReaderManager.taskLock(resource, LauncherLocking.LockKind.Read)
+          secondReadLease = secondReaderManager.taskLock(resource.toNIO, LauncherLocking.LockKind.Read)
           secondReaderAcquired.countDown()
         })
         secondReaderThread.start()
@@ -292,7 +292,7 @@ object WorkspaceLockingTests extends TestSuite {
         val waitingErr = new PrintStream(waitingBytes)
 
         def manager(command: String, noWait: Boolean = false) =
-          new LauncherLockSession(
+          new LauncherLockingImpl(
             out = out,
             daemonDir = out / OutFiles.millDaemon,
             activeCommandMessage = command,
@@ -306,13 +306,13 @@ object WorkspaceLockingTests extends TestSuite {
         val writerManager = manager("writer")
         val noWaitReaderManager = manager("no-wait-reader", noWait = true)
         val resource = out / "no-wait-fair-resource"
-        val firstReadLease = firstReaderManager.taskLock(resource, LauncherLocking.LockKind.Read)
+        val firstReadLease = firstReaderManager.taskLock(resource.toNIO, LauncherLocking.LockKind.Read)
         val writerAcquired = new CountDownLatch(1)
         val releaseWriter = new CountDownLatch(1)
         @volatile var writerLease: LauncherLocking.Lease = null
 
         val writerThread = new Thread(() => {
-          writerLease = writerManager.taskLock(resource, LauncherLocking.LockKind.Write)
+          writerLease = writerManager.taskLock(resource.toNIO, LauncherLocking.LockKind.Write)
           writerAcquired.countDown()
           releaseWriter.await(5, TimeUnit.SECONDS)
           writerLease.close()
@@ -322,7 +322,7 @@ object WorkspaceLockingTests extends TestSuite {
 
         val ex =
           try {
-            noWaitReaderManager.taskLock(resource, LauncherLocking.LockKind.Read)
+            noWaitReaderManager.taskLock(resource.toNIO, LauncherLocking.LockKind.Read)
             throw new java.lang.AssertionError("expected no-wait acquisition to fail")
           } catch {
             case e: Exception => e

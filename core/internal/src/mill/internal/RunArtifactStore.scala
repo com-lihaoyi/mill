@@ -23,7 +23,7 @@ private object RunArtifactStore {
       runInfo: RunInfo
   ) extends AutoCloseable {
     private val runDir = out / runRootDirName / runId
-    private val launcherRunFile = daemonDir / os.RelPath(DaemonFiles.launcherRun(runId))
+    private val launcherRunFile = daemonDir / os.RelPath(DaemonFiles.perLauncherFilePath(runId))
     private val activeRun = ActiveRun(runId, runDir, runDir / "mill-console-tail")
     private val coordinator = coordinatorFor(out)
     private val closed = new AtomicBoolean(false)

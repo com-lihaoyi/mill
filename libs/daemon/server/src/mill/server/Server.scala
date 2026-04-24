@@ -470,7 +470,7 @@ object Server {
   )(t: => T): T = {
     if (noBuildLock) t
     else {
-      val launcherRunsDir = daemonDir / DaemonFiles.launcherRuns
+      val launcherRunsDir = daemonDir / DaemonFiles.millLauncherFiles
 
       def readActiveInfo(): (command: String, pid: Option[Long]) =
         try os.list(launcherRunsDir).filter(os.isFile(_)).sortBy(_.last).lastOption match {
@@ -506,7 +506,7 @@ object Server {
         setIdle(false)
         if (Thread.interrupted()) throw new InterruptedException()
         val pid = ProcessHandle.current().pid()
-        val activeFile = daemonDir / os.RelPath(DaemonFiles.launcherRun(s"pid-$pid"))
+        val activeFile = daemonDir / os.RelPath(DaemonFiles.perLauncherFilePath(s"pid-$pid"))
         val commandJson = ujson.write(ujson.Str(millActiveCommandMessage))
         val json = s"""{"command":$commandJson,"pid":$pid}"""
         os.makeDir.all(launcherRunsDir)

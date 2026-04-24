@@ -13,11 +13,11 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
   implicit val retryInterval: RetryInterval = RetryInterval(50.millis)
 
   private def activeLauncherPid(workspacePath: os.Path, command: String): Option[Long] = {
-    val launcherRuns =
-      workspacePath / "out" / OutFiles.millDaemon / os.RelPath(DaemonFiles.launcherRuns)
-    if (!os.exists(launcherRuns)) None
+    val millLauncherFiles =
+      workspacePath / "out" / OutFiles.millDaemon / os.RelPath(DaemonFiles.millLauncherFiles)
+    if (!os.exists(millLauncherFiles)) None
     else {
-      os.list(launcherRuns).iterator
+      os.list(millLauncherFiles).iterator
         .filter(os.isFile(_))
         .flatMap { path =>
           val json = ujson.read(os.read(path)).obj

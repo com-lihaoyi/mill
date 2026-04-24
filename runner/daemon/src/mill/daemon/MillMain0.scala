@@ -17,7 +17,7 @@ import mill.api.BuildCtx
     PrefixLogger,
     PromptLogger,
     BspLogger,
-    LauncherLockSession
+    LauncherLockingImpl
   }
 import mill.server.Server
 import mill.util.BuildInfo
@@ -340,7 +340,7 @@ object MillMain0 {
                           }
                         }
 
-                        def runWithSession(session: LauncherLockSession): RunnerLauncherState =
+                        def runWithSession(session: LauncherLockingImpl): RunnerLauncherState =
                           try {
                             setIdle(false)
                             runWithLogger(session, session).withCloseable(session)
@@ -353,7 +353,7 @@ object MillMain0 {
 
                         if (serverToClientOpt.nonEmpty) {
                           runWithSession(
-                            new LauncherLockSession(
+                            new LauncherLockingImpl(
                               out = out,
                               daemonDir = daemonDir,
                               activeCommandMessage = millActiveCommandMessage,
