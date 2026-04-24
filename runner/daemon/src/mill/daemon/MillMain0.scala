@@ -4,6 +4,7 @@ import mill.api.daemon.internal.bsp.BspServerHandle
 import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.api.internal.WorkspaceLocking
+import mill.api.internal.InProcessWorkspaceLockManager
 import mill.bsp.BSP
 import mill.client.lock.{DoubleLock, Lock}
 import mill.constants.{DaemonFiles, OutFolderMode}
@@ -348,7 +349,7 @@ object MillMain0 {
 
                         if (serverToClientOpt.nonEmpty) {
                           runWithLockManager(
-                            new WorkspaceLocking.InProcessManager(
+                            new InProcessWorkspaceLockManager(
                               out = out,
                               daemonDir = daemonDir,
                               activeCommandMessage = millActiveCommandMessage,

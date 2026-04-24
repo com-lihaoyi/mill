@@ -1,4 +1,4 @@
-package mill.api.internal
+package mill.internal
 
 import mill.constants.DaemonFiles
 
