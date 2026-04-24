@@ -265,10 +265,53 @@ object MillMain0 {
                           extraEnv: Seq[(String, String)] = Nil,
                           metaLevelOverride: Option[Int] = None
                       ): RunnerLauncherState = {
-                        def runWithLogger(
-                            workspaceLocking: LauncherLocking,
-                            runArtifacts: LauncherOutFiles
-                        ): RunnerLauncherState = {
+                        val sessionOpt: Option[LauncherLockingImpl] =
+                          Option.when(serverToClientOpt.nonEmpty) {
+                            new LauncherLockingImpl(
+                              out = out,
+                              daemonDir = daemonDir,
+                              activeCommandMessage = millActiveCommandMessage,
+                              launcherPid = launcherPid,
+                              waitingErr = streams.err,
+                              noBuildLock = config.noBuildLock.value,
+                              noWaitForBuildLock = config.noWaitForBuildLock.value
+                            )
+                          }
+
+                        val (workspaceLocking, runArtifacts): (LauncherLocking, LauncherOutFiles) =
+                          sessionOpt match {
+                            case Some(s) => (s, s)
+                            case None => (LauncherLocking.Noop, LauncherOutFiles.Noop)
+                          }
+
+                        def withLocking[T](block: => T): T = sessionOpt match {
+                          case Some(session) =>
+                            try {
+                              setIdle(false)
+                              block
+                            } catch {
+                              case e: Throwable =>
+                                try session.close()
+                                catch { case _: Throwable => }
+                                throw e
+                            }
+                          case None =>
+                            Server.withOutLock(
+                              noBuildLock = config.noBuildLock.value,
+                              noWaitForBuildLock = config.noWaitForBuildLock.value,
+                              out = out,
+                              daemonDir = daemonDir,
+                              millActiveCommandMessage = millActiveCommandMessage,
+                              streams = streams,
+                              outLock = outLock,
+                              setIdle = setIdle
+                            ) {
+                              setIdle(false)
+                              block
+                            }
+                        }
+
+                        val evaluated = withLocking {
                           def proceed(logger: Logger): RunnerLauncherState = {
                             // Enter key pressed, removing mill-selective-execution.json to
                             // ensure all tasks re-run even though no inputs may have changed
@@ -340,44 +383,7 @@ object MillMain0 {
                           }
                         }
 
-                        def runWithSession(session: LauncherLockingImpl): RunnerLauncherState =
-                          try {
-                            setIdle(false)
-                            runWithLogger(session, session).withCloseable(session)
-                          } catch {
-                            case e: Throwable =>
-                              try session.close()
-                              catch { case _: Throwable => }
-                              throw e
-                          }
-
-                        if (serverToClientOpt.nonEmpty) {
-                          runWithSession(
-                            new LauncherLockingImpl(
-                              out = out,
-                              daemonDir = daemonDir,
-                              activeCommandMessage = millActiveCommandMessage,
-                              launcherPid = launcherPid,
-                              waitingErr = streams.err,
-                              noBuildLock = config.noBuildLock.value,
-                              noWaitForBuildLock = config.noWaitForBuildLock.value
-                            )
-                          )
-                        } else {
-                          Server.withOutLock(
-                            noBuildLock = config.noBuildLock.value,
-                            noWaitForBuildLock = config.noWaitForBuildLock.value,
-                            out = out,
-                            daemonDir = daemonDir,
-                            millActiveCommandMessage = millActiveCommandMessage,
-                            streams = streams,
-                            outLock = outLock,
-                            setIdle = setIdle
-                          ) {
-                            setIdle(false)
-                            runWithLogger(LauncherLocking.Noop, LauncherOutFiles.Noop)
-                          }
-                        }
+                        sessionOpt.fold(evaluated)(evaluated.withCloseable)
                       }
 
                       if (config.tabComplete.value) {
