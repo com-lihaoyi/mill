@@ -307,7 +307,7 @@ class MillBuildBootstrap(
       depth: Int
   ): RunnerLauncherState = {
     def acquireMetaBuildLock(kind: WorkspaceLocking.LockKind) =
-      workspaceLockManager.acquireLock(WorkspaceLocking.metaBuildResource(kind))
+      workspaceLockManager.metaBuildLock(kind)
 
     val writeLease = acquireMetaBuildLock(WorkspaceLocking.LockKind.Write)
     closeOnThrow(writeLease) {
@@ -400,7 +400,7 @@ class MillBuildBootstrap(
 
           def launcherFrame(
               sharedFrame: RunnerSharedState.Frame,
-              lease: WorkspaceLocking.ResourceLease,
+              lease: WorkspaceLocking.DowngradableLease,
               classLoaderChanged: Boolean
           ) = RunnerLauncherState.MetaBuildFrame(
             depth = depth,

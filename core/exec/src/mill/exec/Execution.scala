@@ -84,11 +84,11 @@ case class Execution(
       depth: Int,
       isFinalDepth: Boolean,
       // JSON string to avoid classloader issues when crossing classloader boundaries
-      spanningInvalidationTree: Option[String]
+    spanningInvalidationTree: Option[String]
   ) = this(
     baseLogger = baseLogger,
     profileLogger = new JsonArrayLogger.Profile(
-      workspaceLockManager.runFile(os.Path(outPath) / millProfile)
+      workspaceLockManager.artifactPath(os.Path(outPath) / millProfile)
     ),
     workspace = os.Path(workspace),
     outPath = os.Path(outPath),
@@ -128,7 +128,7 @@ case class Execution(
 
   def withIsFinalDepth(newIsFinalDepth: Boolean) = this.copy(isFinalDepth = newIsFinalDepth)
 
-  override def retainTerminalReadLock(lease: WorkspaceLocking.ResourceLease): Unit =
+  override def retainTerminalReadLock(lease: WorkspaceLocking.Lease): Unit =
     retainedTerminalReadLocks.add(lease)
 
   /**

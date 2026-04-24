@@ -5,40 +5,240 @@ import mill.constants.DaemonFiles
 
 import java.nio.file.StandardCopyOption
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicLong
 import scala.concurrent.duration.*
 
 private object WorkpaceLockingUtils {
-  // Monotonic tiebreaker so that two InProcessManagers created in the same
-  // millisecond still get distinct runIds.
-  val nextTiebreaker = new AtomicLong(0L)
+  private val nextTiebreaker = new AtomicLong(0L)
 
-  // Semaphore-based read-write lock that is NOT thread-bound (unlike ReentrantReadWriteLock).
-  // This is critical because task read locks are acquired on thread-pool worker threads but
-  // released on the main thread when retainedTerminalReadLocks is drained.
-  // Read = acquire(1), Write = acquire(maxPermits). Fair ordering ensures no starvation.
-  val maxPermits = 1_000_000
+  def nextRunId(): String =
+    s"${System.currentTimeMillis()}-${nextTiebreaker.getAndIncrement()}"
 
   case class LockOwner(runId: String, pid: Long, command: String)
-  case class LockOwnerCount(owner: LockOwner, var count: Int)
 
-  final class ResourceState {
-    val semaphore = new Semaphore(maxPermits, true)
-    var refCount = 0
-    var writeOwnerOpt: Option[LockOwner] = None
-    val readOwners = scala.collection.mutable.LinkedHashMap.empty[String, LockOwnerCount]
+  enum LockId {
+    case MetaBuild
+    case SelectiveExecution(path: String)
+    case Task(path: String)
+  }
+  object LockId {
+    def selectiveExecution(path: os.Path): LockId.SelectiveExecution =
+      LockId.SelectiveExecution(path.toNIO.toAbsolutePath.normalize().toString)
+
+    def task(path: os.Path): LockId.Task =
+      LockId.Task(path.toNIO.toAbsolutePath.normalize().toString)
   }
 
-  private val resourceStates = scala.collection.mutable.HashMap.empty[String, ResourceState]
-  private val resourceStatesLock = new Object
+  trait ManagedLease extends DowngradableLease
+
+  final class LockRegistry {
+    private val states = new ConcurrentHashMap[LockId, FairRwLock]()
+
+    def acquire(
+        id: LockId,
+        kind: LockKind,
+        owner: LockOwner,
+        waitingErr: java.io.PrintStream,
+        noWait: Boolean
+    ): ManagedLease = {
+      val lock = states.computeIfAbsent(id, _ => new FairRwLock(id))
+      lock.acquire(kind, owner, waitingErr, noWait)
+    }
+  }
+
+  /**
+   * A small fair read/write lock with lease-based ownership rather than thread-based ownership.
+   *
+   * We cannot use `java.util.concurrent.locks.ReentrantReadWriteLock` here because Mill acquires
+   * task/meta-build locks on worker threads, may downgrade them to read locks, and then retains
+   * those read leases until later cleanup on a different thread. The standard library RW locks
+   * tie lock ownership to the acquiring thread, while this lock ties ownership to the returned
+   * lease object instead.
+   */
+  private final class FairRwLock(id: LockId) {
+    private val monitor = new Object
+    private var readerCount = 0
+    private var writerActive = false
+    private var waitingWriters = 0
+    private var writerOwner = Option.empty[LockOwner]
+    private val readerOwners = scala.collection.mutable.LinkedHashMap.empty[String, (LockOwner, Int)]
+
+    private def canAcquire(kind: LockKind): Boolean =
+      kind match {
+        case LockKind.Read => !writerActive && waitingWriters == 0
+        case LockKind.Write => !writerActive && readerCount == 0
+      }
+
+    private def describeBlocker(kind: LockKind): String = {
+      val blocker = kind match {
+        case LockKind.Read => writerOwner
+        case LockKind.Write => writerOwner.orElse(readerOwners.headOption.map(_._2._1))
+      }
+      val command = blocker.map(_.command).getOrElse("<unknown>")
+      val pid = blocker.map(_.pid.toString).getOrElse("<unknown>")
+      s"Another Mill command in the current daemon is running '$command' with PID $pid"
+    }
+
+    private def addReader(owner: LockOwner): Unit =
+      readerOwners.get(owner.runId) match {
+        case Some((existing, count)) => readerOwners.update(owner.runId, (existing, count + 1))
+        case None => readerOwners.update(owner.runId, (owner, 1))
+      }
+
+    private def removeReader(owner: LockOwner): Unit =
+      readerOwners.get(owner.runId).foreach {
+        case (_, count) if count <= 1 => readerOwners.remove(owner.runId)
+        case (existing, count) => readerOwners.update(owner.runId, (existing, count - 1))
+      }
+
+    def acquire(
+        initialKind: LockKind,
+        owner: LockOwner,
+        waitingErr: java.io.PrintStream,
+        noWait: Boolean
+    ): ManagedLease = {
+      val shouldWait = monitor.synchronized {
+        if (canAcquire(initialKind)) false
+        else if (noWait) {
+          throw new Exception(s"${describeBlocker(initialKind)} and using resource '$id', failing")
+        } else {
+          if (initialKind == LockKind.Write) waitingWriters += 1
+          true
+        }
+      }
+
+      if (shouldWait) {
+        waitingErr.println(
+          s"${monitor.synchronized(describeBlocker(initialKind))}, waiting for it to be done... " +
+            s"(tail -F out/${DaemonFiles.millConsoleTail} to see its progress)"
+        )
+      }
+
+      monitor.synchronized {
+        val waitingWriterRegistered = shouldWait && initialKind == LockKind.Write
+        try {
+          while (!canAcquire(initialKind)) monitor.wait()
+        } catch {
+          case e: Throwable =>
+            if (waitingWriterRegistered) {
+              waitingWriters -= 1
+              monitor.notifyAll()
+            }
+            throw e
+        }
+        if (waitingWriterRegistered) {
+          waitingWriters -= 1
+        }
+
+        initialKind match {
+          case LockKind.Read =>
+            readerCount += 1
+            addReader(owner)
+          case LockKind.Write =>
+            writerActive = true
+            writerOwner = Some(owner)
+        }
+
+        new ManagedLease {
+          private var currentKind = initialKind
+          private var closed = false
+
+          override def kind: LockKind = monitor.synchronized(currentKind)
+
+          override def downgradeToRead(): Unit = monitor.synchronized {
+            if (!closed && currentKind == LockKind.Write) {
+              writerActive = false
+              writerOwner = None
+              readerCount += 1
+              addReader(owner)
+              currentKind = LockKind.Read
+              monitor.notifyAll()
+            }
+          }
+
+          override def close(): Unit = monitor.synchronized {
+            if (!closed) {
+              currentKind match {
+                case LockKind.Read =>
+                  readerCount -= 1
+                  removeReader(owner)
+                case LockKind.Write =>
+                  writerActive = false
+                  writerOwner = None
+              }
+              closed = true
+              monitor.notifyAll()
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private val registries = new ConcurrentHashMap[String, LockRegistry]()
+
+  def locksFor(out: os.Path): LockRegistry =
+    registries.computeIfAbsent(out.toString, _ => new LockRegistry)
 
   val runRootDirName = "mill-run"
   private val legacyRunDirPrefix = "mill-run-"
   private val maxRetainedRuns = 10
   private val inactiveRunCleanupGracePeriodMillis = 5.seconds.toMillis
 
-  case class ActiveRun(
+  final class RunArtifacts(
+      runId: String,
+      out: os.Path,
+      daemonDir: os.Path,
+      owner: LockOwner
+  ) extends AutoCloseable {
+    private val runDir = out / runRootDirName / runId
+    private val launcherRunFile = daemonDir / os.RelPath(DaemonFiles.launcherRun(runId))
+    private val activeRun = ActiveRun(runId, runDir, runDir / "mill-console-tail")
+    private val coordinator = coordinatorFor(out)
+    private val closed = new java.util.concurrent.atomic.AtomicBoolean(false)
+
+    val consoleTail: os.Path = activeRun.consoleTail
+
+    os.makeDir.all(runDir)
+    coordinator.register(activeRun)
+    writeLauncherRunFile()
+
+    def artifactPath(default: os.Path): os.Path = {
+      val target =
+        if (default.startsWith(out)) runDir / default.relativeTo(out)
+        else runDir / default.last
+      os.makeDir.all(target / os.up)
+      coordinator.recordPublishedFile(activeRun, default, target)
+      target
+    }
+
+    def publish(): Unit =
+      if (!closed.get()) coordinator.publish(activeRun)
+
+    def cleanupOldRunDirs(): Unit =
+      coordinator.cleanupOldRunDirs()
+
+    override def close(): Unit =
+      if (closed.compareAndSet(false, true)) {
+        coordinator.deactivate(activeRun)
+        try mill.api.BuildCtx.withFilesystemCheckerDisabled(os.remove(launcherRunFile))
+        catch { case _: Throwable => }
+        coordinator.cleanupOldRunDirs()
+      }
+
+    private def writeLauncherRunFile(): Unit = {
+      val commandJson = ujson.write(ujson.Str(owner.command))
+      val json = s"""{"pid":${owner.pid},"command":$commandJson}"""
+      try {
+        mill.api.BuildCtx.withFilesystemCheckerDisabled {
+          os.makeDir.all(launcherRunFile / os.up)
+          os.write.over(launcherRunFile, json)
+        }
+      } catch { case _: Throwable => }
+    }
+  }
+
+  private case class ActiveRun(
       runId: String,
       runDir: os.Path,
       consoleTail: os.Path,
@@ -49,7 +249,7 @@ private object WorkpaceLockingUtils {
         scala.collection.mutable.LinkedHashMap.empty
   )
 
-  final class OutCoordinator(out: os.Path) {
+  private final class RunArtifactsCoordinator(out: os.Path) {
     private val lock = new Object
     private val runs = scala.collection.mutable.LinkedHashMap.empty[String, ActiveRun]
 
@@ -128,10 +328,10 @@ private object WorkpaceLockingUtils {
     }
   }
 
-  private val outCoordinators = new ConcurrentHashMap[String, OutCoordinator]()
+  private val coordinators = new ConcurrentHashMap[String, RunArtifactsCoordinator]()
 
-  def coordinatorFor(out: os.Path): OutCoordinator =
-    outCoordinators.computeIfAbsent(out.toString, _ => new OutCoordinator(out))
+  private def coordinatorFor(out: os.Path): RunArtifactsCoordinator =
+    coordinators.computeIfAbsent(out.toString, _ => new RunArtifactsCoordinator(out))
 
   private def updateSymlink(link: os.Path, targetOpt: Option[os.Path]): Unit = {
     try {
@@ -161,104 +361,6 @@ private object WorkpaceLockingUtils {
       }
     } catch {
       case _: Throwable =>
-    }
-  }
-
-  private def resourceState(resource: Resource): ResourceState =
-    resourceStates.getOrElseUpdate(resource.key, new ResourceState)
-
-  def retainResourceState(resource: Resource): ResourceState = resourceStatesLock.synchronized {
-    val state = resourceState(resource)
-    state.refCount += 1
-    state
-  }
-
-  def releaseResourceState(resource: Resource, state: ResourceState): Unit =
-    resourceStatesLock.synchronized {
-      state.refCount -= 1
-      if (state.refCount <= 0 && state.writeOwnerOpt.isEmpty && state.readOwners.isEmpty) {
-        resourceStates.get(resource.key).filter(_ eq state).foreach(_ => resourceStates.remove(resource.key))
-      }
-    }
-
-  def registerOwner(resource: Resource, state: ResourceState, owner: LockOwner): Unit = {
-    resourceStatesLock.synchronized {
-      resource.kind match {
-        case LockKind.Write =>
-          state.writeOwnerOpt match {
-            case Some(existing) =>
-              throw new IllegalStateException(
-                s"Resource ${resource.key} already has write owner ${existing.runId}"
-              )
-            case None =>
-              state.writeOwnerOpt = Some(owner)
-          }
-        case LockKind.Read =>
-          state.readOwners.get(owner.runId) match {
-            case Some(existing) => existing.count += 1
-            case None => state.readOwners(owner.runId) = LockOwnerCount(owner, 1)
-          }
-      }
-    }
-  }
-
-  def unregisterOwner(
-      resource: Resource,
-      state: ResourceState,
-      owner: LockOwner,
-      kind: LockKind
-  ): Unit = {
-    resourceStatesLock.synchronized {
-      if (resourceStates.get(resource.key).contains(state)) {
-        kind match {
-          case LockKind.Write =>
-            state.writeOwnerOpt match {
-              case Some(existing) if existing.runId == owner.runId =>
-                state.writeOwnerOpt = None
-              case _ =>
-            }
-          case LockKind.Read =>
-            state.readOwners.get(owner.runId).foreach { existing =>
-              existing.count -= 1
-              if (existing.count <= 0) state.readOwners.remove(owner.runId)
-            }
-        }
-
-        if (state.refCount <= 0 && state.writeOwnerOpt.isEmpty && state.readOwners.isEmpty) {
-          resourceStates.get(resource.key).filter(_ eq state).foreach(_ => resourceStates.remove(resource.key))
-        }
-      }
-    }
-  }
-
-  def downgradeOwner(resource: Resource, state: ResourceState, owner: LockOwner): Unit = {
-    resourceStatesLock.synchronized {
-      if (resourceStates.get(resource.key).contains(state)) {
-        state.writeOwnerOpt match {
-          case Some(existing) if existing.runId == owner.runId =>
-            state.writeOwnerOpt = None
-          case _ =>
-        }
-        state.readOwners.get(owner.runId) match {
-          case Some(existing) => existing.count += 1
-          case None => state.readOwners(owner.runId) = LockOwnerCount(owner, 1)
-        }
-      }
-    }
-  }
-
-  def blockingOwner(resource: Resource): Option[LockOwner] = {
-    resourceStatesLock.synchronized {
-      resourceStates.get(resource.key) match {
-        case None => None
-        case Some(state) =>
-          resource.kind match {
-            case LockKind.Read =>
-              state.writeOwnerOpt
-            case LockKind.Write =>
-              state.writeOwnerOpt.orElse(state.readOwners.headOption.map(_._2.owner))
-          }
-      }
     }
   }
 }

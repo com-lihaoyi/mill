@@ -19,7 +19,7 @@ private object ExecutionLogs {
       SpanningForest.graphMapToIndices(indexToTerminal, interGroupDeps)
 
     SpanningForest.writeJsonFile(
-      workspaceLockManager.runFile(outPath / OutFiles.millDependencyTree),
+      workspaceLockManager.artifactPath(outPath / OutFiles.millDependencyTree),
       edgeIndices,
       indexToTerminal.indices.toSet,
       indexToTerminal(_).toString
@@ -55,7 +55,7 @@ private object ExecutionLogs {
     )
 
     os.write.over(
-      workspaceLockManager.runFile(outPath / OutFiles.millInvalidationTree),
+      workspaceLockManager.artifactPath(outPath / OutFiles.millInvalidationTree),
       finalTree.render(indent = 2)
     )
   }

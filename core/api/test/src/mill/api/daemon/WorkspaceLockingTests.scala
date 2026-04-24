@@ -29,14 +29,11 @@ object WorkspaceLockingTests extends TestSuite {
         val launcherRunFile =
           out / OutFiles.millDaemon / os.RelPath(DaemonFiles.launcherRun(manager.runId))
 
-        val profilePath = os.Path(manager.runFile(out / OutFiles.millProfile))
-        val chromePath =
-          os.Path(manager.runFile(out / OutFiles.millChromeProfile))
-        val dependencyTreePath =
-          os.Path(manager.runFile(out / OutFiles.millDependencyTree))
-        val invalidationTreePath =
-          os.Path(manager.runFile(out / OutFiles.millInvalidationTree))
-        val consoleTailPath = os.Path(manager.consoleTailJava)
+        val profilePath = manager.artifactPath(out / OutFiles.millProfile)
+        val chromePath = manager.artifactPath(out / OutFiles.millChromeProfile)
+        val dependencyTreePath = manager.artifactPath(out / OutFiles.millDependencyTree)
+        val invalidationTreePath = manager.artifactPath(out / OutFiles.millInvalidationTree)
+        val consoleTailPath = manager.consoleTail
 
         os.write.over(consoleTailPath, "tail")
         os.write.over(profilePath, "profile")
@@ -44,7 +41,7 @@ object WorkspaceLockingTests extends TestSuite {
         os.write.over(dependencyTreePath, """{"kind":"dependency"}""")
         os.write.over(invalidationTreePath, """{"kind":"invalidation"}""")
 
-        manager.acquireLocks(Seq.empty).close()
+        manager.publishArtifacts()
 
         assert(os.exists(launcherRunFile))
         assert(os.read(launcherRunFile).contains(""""pid":12345"""))
@@ -110,9 +107,7 @@ object WorkspaceLockingTests extends TestSuite {
         )
         val launcherRunFile =
           out / OutFiles.millDaemon / os.RelPath(DaemonFiles.launcherRun(manager.runId))
-        val lease = manager.acquireLock(
-          WorkspaceLocking.metaBuildResource(WorkspaceLocking.LockKind.Write)
-        )
+        val lease = manager.metaBuildLock(WorkspaceLocking.LockKind.Write)
         lease.downgradeToRead()
 
         manager.close()
@@ -139,13 +134,13 @@ object WorkspaceLockingTests extends TestSuite {
             noWaitForBuildLock = noWait
           )
 
-        val resource = WorkspaceLocking.Resource("close-release", WorkspaceLocking.LockKind.Write)
+        val resource = out / "close-release"
         val first = manager("first")
-        first.acquireLock(resource)
+        first.taskLock(resource, WorkspaceLocking.LockKind.Write)
         first.close()
 
         val second = manager("second", noWait = true)
-        val secondLease = second.acquireLock(resource)
+        val secondLease = second.taskLock(resource, WorkspaceLocking.LockKind.Write)
         secondLease.close()
         second.close()
       }
@@ -167,15 +162,14 @@ object WorkspaceLockingTests extends TestSuite {
         )
 
         val first = manager("first")
-        val firstProfilePath = os.Path(first.runFile(out / OutFiles.millProfile))
+        val firstProfilePath = first.artifactPath(out / OutFiles.millProfile)
         os.write.over(firstProfilePath, "first-profile")
-        first.acquireLocks(Seq.empty).close()
+        first.publishArtifacts()
 
         val second = manager("second")
-        val secondChromePath =
-          os.Path(second.runFile(out / OutFiles.millChromeProfile))
+        val secondChromePath = second.artifactPath(out / OutFiles.millChromeProfile)
         os.write.over(secondChromePath, "second-chrome")
-        second.acquireLocks(Seq.empty).close()
+        second.publishArtifacts()
 
         assert(os.read(out / OutFiles.millProfile) == "first-profile")
         assert(os.read(out / OutFiles.millChromeProfile) == "second-chrome")
@@ -200,10 +194,10 @@ object WorkspaceLockingTests extends TestSuite {
           noWaitForBuildLock = false
         )
 
-        val topLevelProfile = os.Path(manager.runFile(out / OutFiles.millProfile))
-        val metaBuildProfile = os.Path(manager.runFile(
+        val topLevelProfile = manager.artifactPath(out / OutFiles.millProfile)
+        val metaBuildProfile = manager.artifactPath(
           out / OutFiles.millBuild / OutFiles.millProfile
-        ))
+        )
 
         assert(topLevelProfile != metaBuildProfile)
         assert(topLevelProfile.relativeTo(out).segments == Seq(
@@ -220,7 +214,7 @@ object WorkspaceLockingTests extends TestSuite {
 
         os.write.over(topLevelProfile, "top-level-profile")
         os.write.over(metaBuildProfile, "meta-build-profile")
-        manager.acquireLocks(Seq.empty).close()
+        manager.publishArtifacts()
 
         assert(os.isLink(out / OutFiles.millProfile))
         assert(os.isLink(out / OutFiles.millBuild / OutFiles.millProfile))
@@ -251,17 +245,16 @@ object WorkspaceLockingTests extends TestSuite {
         val firstReaderManager = manager("first-reader")
         val writerManager = manager("writer")
         val secondReaderManager = manager("second-reader")
-        val resource = WorkspaceLocking.Resource("fair-resource", WorkspaceLocking.LockKind.Read)
-        val firstReadLease = firstReaderManager.acquireLock(resource)
+        val resource = out / "fair-resource"
+        val firstReadLease = firstReaderManager.taskLock(resource, WorkspaceLocking.LockKind.Read)
         val writerAcquired = new CountDownLatch(1)
         val releaseWriter = new CountDownLatch(1)
         val secondReaderAcquired = new CountDownLatch(1)
-        @volatile var writerLease: WorkspaceLocking.ResourceLease = null
-        @volatile var secondReadLease: WorkspaceLocking.ResourceLease = null
+        @volatile var writerLease: WorkspaceLocking.DowngradableLease = null
+        @volatile var secondReadLease: WorkspaceLocking.DowngradableLease = null
 
         val writerThread = new Thread(() => {
-          writerLease =
-            writerManager.acquireLock(resource.copy(kind = WorkspaceLocking.LockKind.Write))
+          writerLease = writerManager.taskLock(resource, WorkspaceLocking.LockKind.Write)
           writerAcquired.countDown()
           releaseWriter.await(5, TimeUnit.SECONDS)
           writerLease.close()
@@ -271,7 +264,7 @@ object WorkspaceLockingTests extends TestSuite {
         assertEventually(waitingBytes.size() > 0)
 
         val secondReaderThread = new Thread(() => {
-          secondReadLease = secondReaderManager.acquireLock(resource)
+          secondReadLease = secondReaderManager.taskLock(resource, WorkspaceLocking.LockKind.Read)
           secondReaderAcquired.countDown()
         })
         secondReaderThread.start()
@@ -314,16 +307,14 @@ object WorkspaceLockingTests extends TestSuite {
         val firstReaderManager = manager("first-reader")
         val writerManager = manager("writer")
         val noWaitReaderManager = manager("no-wait-reader", noWait = true)
-        val resource =
-          WorkspaceLocking.Resource("no-wait-fair-resource", WorkspaceLocking.LockKind.Read)
-        val firstReadLease = firstReaderManager.acquireLock(resource)
+        val resource = out / "no-wait-fair-resource"
+        val firstReadLease = firstReaderManager.taskLock(resource, WorkspaceLocking.LockKind.Read)
         val writerAcquired = new CountDownLatch(1)
         val releaseWriter = new CountDownLatch(1)
-        @volatile var writerLease: WorkspaceLocking.ResourceLease = null
+        @volatile var writerLease: WorkspaceLocking.DowngradableLease = null
 
         val writerThread = new Thread(() => {
-          writerLease =
-            writerManager.acquireLock(resource.copy(kind = WorkspaceLocking.LockKind.Write))
+          writerLease = writerManager.taskLock(resource, WorkspaceLocking.LockKind.Write)
           writerAcquired.countDown()
           releaseWriter.await(5, TimeUnit.SECONDS)
           writerLease.close()
@@ -333,7 +324,7 @@ object WorkspaceLockingTests extends TestSuite {
 
         val ex =
           try {
-            noWaitReaderManager.acquireLock(resource)
+            noWaitReaderManager.taskLock(resource, WorkspaceLocking.LockKind.Read)
             throw new java.lang.AssertionError("expected no-wait acquisition to fail")
           } catch {
             case e: Exception => e

@@ -189,7 +189,7 @@ trait GroupExecution {
   def offline: Boolean
   def useFileLocks: Boolean
   def workspaceLockManager: WorkspaceLocking.Manager
-  def retainTerminalReadLock(lease: WorkspaceLocking.ResourceLease): Unit
+  def retainTerminalReadLock(lease: WorkspaceLocking.Lease): Unit
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
     CodeSigUtils.constructorHashSignatures(codeSignatures)
 
@@ -285,24 +285,27 @@ trait GroupExecution {
         // lease protects the per-task dest under out/mill-build from concurrent writers,
         // at the final depth it protects the per-task dest under out/.
         val retainedLeases = java.util.Collections.newSetFromMap(
-          new java.util.IdentityHashMap[WorkspaceLocking.ResourceLease, java.lang.Boolean]
+          new java.util.IdentityHashMap[WorkspaceLocking.DowngradableLease, java.lang.Boolean]
         )
         def retainOrClose(
-            lease: WorkspaceLocking.ResourceLease,
+            lease: WorkspaceLocking.DowngradableLease,
             shouldRetain: Boolean
         ): Unit =
           if (shouldRetain) {
-            retainTerminalReadLock(lease.downgradeToRead())
+            lease.downgradeToRead()
+            retainTerminalReadLock(lease)
             retainedLeases.add(lease)
           } else {
             lease.close()
           }
 
-        def acquireTaskWriteLock(): WorkspaceLocking.ResourceLease =
-          workspaceLockManager
-            .acquireLock(GroupExecution.taskLockResource(labelled, outPath, externalOutPath))
+        def acquireTaskWriteLock(): WorkspaceLocking.DowngradableLease =
+          workspaceLockManager.taskLock(
+            GroupExecution.taskLockPath(labelled, outPath, externalOutPath),
+            WorkspaceLocking.LockKind.Write
+          )
 
-        def withTaskWriteLock[T](t: WorkspaceLocking.ResourceLease => T): T = {
+        def withTaskWriteLock[T](t: WorkspaceLocking.DowngradableLease => T): T = {
           val lease = acquireTaskWriteLock()
           try t(lease)
           catch {
@@ -353,9 +356,9 @@ trait GroupExecution {
           }
 
           val readLease =
-            workspaceLockManager.acquireLock(
-              GroupExecution.taskLockResource(labelled, outPath, externalOutPath)
-                .copy(kind = WorkspaceLocking.LockKind.Read)
+            workspaceLockManager.taskLock(
+              GroupExecution.taskLockPath(labelled, outPath, externalOutPath),
+              WorkspaceLocking.LockKind.Read
             )
 
           val readLockedResult =
@@ -847,16 +850,13 @@ trait GroupExecution {
 }
 
 object GroupExecution {
-  def taskLockResource(
+  def taskLockPath(
       named: Task.Named[?],
       outPath: os.Path,
       externalOutPath: os.Path
-  ): WorkspaceLocking.Resource = {
+  ): os.Path = {
     val out = if (!named.ctx.external) outPath else externalOutPath
-    WorkspaceLocking.Resource(
-      s"task:${ExecutionPaths.resolve(out, named.ctx.segments).dest}",
-      WorkspaceLocking.LockKind.Write
-    )
+    ExecutionPaths.resolve(out, named.ctx.segments).dest
   }
 
   class DestCreator(paths: Option[ExecutionPaths]) {

@@ -40,16 +40,9 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def workspaceLockManager: WorkspaceLocking.Manager =
     WorkspaceLocking.NoopManager
   private[mill] def withGlobalWorkspaceLocks[T](selectiveExecution: Boolean)(t: => T): T = {
-    val resources =
-      if (isFinalDepth && selectiveExecution)
-        Seq(
-          WorkspaceLocking.globalFileResource(
-            outPath / OutFiles.millSelectiveExecution,
-            WorkspaceLocking.LockKind.Write
-          )
-        )
-      else Nil
-    workspaceLockManager.withLocks(resources)(t)
+    if (isFinalDepth && selectiveExecution)
+      workspaceLockManager.withSelectiveExecutionLock(outPath / OutFiles.millSelectiveExecution)(t)
+    else t
   }
   private[mill] def staticBuildOverrides: Map[String, Located[internal.Appendable[BufferedValue]]] =
     Map()

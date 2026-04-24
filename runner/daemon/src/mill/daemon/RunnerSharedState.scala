@@ -12,7 +12,7 @@ import mill.api.internal.RootModule
  *
  * - [[frames]] is keyed by meta-build depth; absent entries simply mean "nothing
  *   published at that depth yet". Writes are sequenced by a single process-wide
- *   meta-build write lock (see [[mill.api.internal.WorkspaceLocking.metaBuildResource]]);
+ *   meta-build write lock (see [[mill.api.internal.WorkspaceLocking.Manager.metaBuildLock]]);
  *   concurrent launchers can read while a writer holds the lock only after it
  *   downgrades to read, which happens after the frame is installed here.
  *
