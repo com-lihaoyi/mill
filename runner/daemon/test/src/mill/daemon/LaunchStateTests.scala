@@ -54,7 +54,7 @@ object LaunchStateTests extends TestSuite {
           1,
           LaunchState.MetaBuildOverlay(
             reusable = None,
-            evaluator = metaEvaluator,
+            evaluator = Some(metaEvaluator),
             evalWatched = Nil,
             moduleWatched = Nil,
             metaBuildReadLease = Some(() => closed += "lease")

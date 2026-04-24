@@ -94,7 +94,7 @@ class MillBuildBootstrap(
           upickle.write(logged, indent = 4),
           createFolders = true
         )
-      for ((depth, overlay) <- launchState.metaBuildOverlays.toSeq.sortBy(_._1))
+      for ((depth, overlay) <- launchState.overlaysWithDepth)
         write(depth, LaunchState.Frame.loggedForMetaBuild(overlay))
       for ((depth, frame) <- launchState.finalFrame)
         write(depth, LaunchState.Frame.loggedForFinal(frame))
@@ -105,7 +105,7 @@ class MillBuildBootstrap(
 
   /** Total depths already processed in `nestedState`: overlays + final frame. */
   private def processedDepths(state: LaunchState): Int =
-    state.metaBuildOverlays.size + state.finalFrame.size
+    state.metaBuildOverlays.count(_.nonEmpty) + state.finalFrame.size
 
   def evaluateRec(depth: Int): LaunchState = logger.withChromeProfile(s"meta-level $depth") {
     // println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
@@ -386,7 +386,7 @@ class MillBuildBootstrap(
               lease: WorkspaceLocking.ResourceLease
           ) = LaunchState.MetaBuildOverlay(
             reusable = Some(reusable),
-            evaluator = evaluator,
+            evaluator = Some(evaluator),
             evalWatched = evalWatches,
             moduleWatched = moduleWatches,
             metaBuildReadLease = Some(lease)
