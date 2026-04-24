@@ -1,6 +1,6 @@
 package mill.internal
 
-import mill.api.internal.{WorkpaceLockingUtils, WorkspaceLocking, WorkspaceRunArtifacts}
+import mill.api.internal.WorkspaceLocking
 
 import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicBoolean

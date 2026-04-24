@@ -4,21 +4,21 @@ import mill.api.daemon.internal.bsp.BspServerHandle
 import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.api.internal.WorkspaceLocking
-import mill.api.internal.InProcessWorkspaceLockManager
 import mill.bsp.BSP
 import mill.client.lock.{DoubleLock, Lock}
 import mill.constants.{DaemonFiles, OutFolderMode}
 import mill.constants.OutFiles.OutFiles
 import mill.api.BuildCtx
-import mill.internal.{
-  Colors,
-  JsonArrayLogger,
-  MillCliConfig,
-  MultiStream,
-  PrefixLogger,
-  PromptLogger,
-  BspLogger
-}
+  import mill.internal.{
+    Colors,
+    JsonArrayLogger,
+    MillCliConfig,
+    MultiStream,
+    PrefixLogger,
+    PromptLogger,
+    BspLogger,
+    WorkspaceLockManager
+  }
 import mill.server.Server
 import mill.util.BuildInfo
 import mill.api
@@ -349,7 +349,7 @@ object MillMain0 {
 
                         if (serverToClientOpt.nonEmpty) {
                           runWithLockManager(
-                            new InProcessWorkspaceLockManager(
+                            new WorkspaceLockManager(
                               out = out,
                               daemonDir = daemonDir,
                               activeCommandMessage = millActiveCommandMessage,

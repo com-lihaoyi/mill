@@ -1,6 +1,6 @@
 package mill.internal
 
-import mill.api.internal.{InProcessWorkspaceLockManager, WorkspaceLocking}
+import mill.api.internal.WorkspaceLocking
 import mill.constants.{DaemonFiles, OutFiles}
 import utest.*
 

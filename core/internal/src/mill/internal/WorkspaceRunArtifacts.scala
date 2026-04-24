@@ -38,11 +38,12 @@ private object WorkspaceRunArtifacts {
     writeLauncherRunFile()
 
     def artifactPath(default: os.Path): os.Path = {
-      val target =
-        if (default.startsWith(out)) runDir / default.relativeTo(out)
-        else runDir / default.last
+      val relativePath =
+        if (default.startsWith(out)) default.relativeTo(out)
+        else os.RelPath(default.last)
+      val target = runDir / relativePath
       os.makeDir.all(target / os.up)
-      coordinator.recordPublishedFile(activeRun, default, target)
+      coordinator.recordPublishedFile(activeRun, relativePath)
       target
     }
 
@@ -79,8 +80,8 @@ private object WorkspaceRunArtifacts {
       var active: Boolean = true,
       var inactiveSinceMillis: Long = 0L,
       var published: Boolean = false,
-      publishedFiles: scala.collection.mutable.Map[os.Path, os.Path] =
-        scala.collection.mutable.LinkedHashMap.empty
+      publishedRelativePaths: scala.collection.mutable.Set[os.RelPath] =
+        scala.collection.mutable.LinkedHashSet.empty
   )
 
   private final class RunArtifactsCoordinator(out: os.Path) {
@@ -96,9 +97,9 @@ private object WorkspaceRunArtifacts {
       }
     }
 
-    def recordPublishedFile(run: ActiveRun, link: os.Path, target: os.Path): Unit =
+    def recordPublishedFile(run: ActiveRun, relativePath: os.RelPath): Unit =
       lock.synchronized {
-        run.publishedFiles.update(link, target)
+        run.publishedRelativePaths += relativePath
         refreshWellKnownLinks()
       }
 
@@ -152,11 +153,14 @@ private object WorkspaceRunArtifacts {
       val publishedRuns = runs.valuesIterator.filter(_.published).toSeq
 
       updateSymlink(out / DaemonFiles.millConsoleTail, publishedRuns.lastOption.map(_.consoleTail))
-      val publishedLinks = runs.valuesIterator.flatMap(_.publishedFiles.keys).toSet
-      publishedLinks.foreach { link =>
+      val publishedRelativePaths = runs.valuesIterator.flatMap(_.publishedRelativePaths).toSet
+      publishedRelativePaths.foreach { relativePath =>
+        val link = out / relativePath
         updateSymlink(
           link,
-          publishedRuns.reverseIterator.flatMap(_.publishedFiles.get(link)).nextOption()
+          publishedRuns.reverseIterator
+            .find(_.publishedRelativePaths.contains(relativePath))
+            .map(_.runDir / relativePath)
         )
       }
     }

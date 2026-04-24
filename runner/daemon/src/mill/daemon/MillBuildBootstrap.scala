@@ -380,7 +380,10 @@ class MillBuildBootstrap(
               at: Option[RunnerSharedState.Frame]
           ): Boolean = {
             val runClasspathChanged =
-              !at.exists(_.runClasspath.map(_.sig).sum == runClasspath.map(_.sig).sum)
+              !at.exists(
+                _.runClasspath.map(p => (os.Path(p.javaPath), p.sig)) ==
+                  runClasspath.map(p => (os.Path(p.javaPath), p.sig))
+              )
             val moduleWatchChanged = outerModuleWatched.exists(w => !Watching.haveNotChanged(w))
             runClasspathChanged || moduleWatchChanged
           }
