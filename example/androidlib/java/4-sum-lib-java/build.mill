@@ -24,6 +24,7 @@ object androidSdkModule0 extends AndroidSdkModule {
 
 object lib extends AndroidLibModule, PublishModule {
 
+  def artifactName = "sumlib-java"
   def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
   def androidCompileSdk = 35
@@ -32,23 +33,13 @@ object lib extends AndroidLibModule, PublishModule {
 
   def publishVersion = "0.0.1"
   def pomSettings = PomSettings(
-    description = "sumlib",
+    description = "sumlib-java",
     organization = "com.example.sumlib",
     url = "https://github.com/lihaoyi/example",
     licenses = Seq(License.MIT),
     versionControl = VersionControl.github("lihaoyi", "example"),
     developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
-
-  /**
-   * Configuration for ReleaseKey
-   * WARNING: Replace these default values with secure and private credentials before using in production.
-   * Never use these defaults in a production environment as they are not secure.
-   * This is just for testing purposes.
-   */
-  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
-  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
-  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
   object test extends AndroidLibTests, TestModule.Junit4 {
     def mvnDeps = Seq(mvn"junit:junit:4.13.2")
@@ -71,7 +62,7 @@ object app extends AndroidAppModule {
     )
   }
 
-  def mvnDeps = Seq(mvn"com.example.sumlib:lib:0.0.1")
+  def mvnDeps = Seq(mvn"com.example.sumlib:sumlib-java:0.0.1")
 
   object test extends AndroidAppTests, TestModule.Junit4 {
     def junit4Version = "4.13.2"
@@ -114,19 +105,19 @@ object app extends AndroidAppModule {
 /** Usage
 
 > ./mill lib.publishM2Local
-Publish ... to /home/.../.m2/repository/...
+Publish sumlib-java-0.0.1 to /home/.../.m2/repository/...
 
 > ./mill show lib.publishArtifacts
 {
   "meta": {
     "group": "com.example.sumlib",
-    "id": "lib",
+    "id": "sumlib-java",
     "version": "0.0.1"
   },
   "payload": [
     [
       ".../out/lib/androidAar.dest/library.aar",
-      "lib-0.0.1.aar"
+      "sumlib-java-0.0.1.aar"
     ],
 ...
 
