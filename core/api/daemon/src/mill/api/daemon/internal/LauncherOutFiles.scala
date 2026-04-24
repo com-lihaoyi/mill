@@ -19,7 +19,18 @@ private[mill] trait LauncherOutFiles extends AutoCloseable {
   /** Returns a per-run path for a well-known `out/` artifact. */
   def artifactPath(default: Path): Path = default
 
-  /** Publishes this run's well-known artifacts as the latest visible ones under `out/`. */
+  /**
+   * Publishes only the live console-tail symlink so concurrent observers can
+   * tail this run's log while it's still running. Other artifact symlinks are
+   * intentionally NOT yet updated: they would point at not-yet-written files
+   * and appear broken to observers reading mid-run.
+   */
+  def publishLiveArtifacts(): Unit = ()
+
+  /**
+   * Publishes this run's completed artifacts (profile / dependency tree / etc.)
+   * as the latest visible ones under `out/`. Call after evaluation finishes.
+   */
   def publishArtifacts(): Unit = ()
 }
 

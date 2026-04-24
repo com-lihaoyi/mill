@@ -56,6 +56,7 @@ object MillNoDaemonMain0 {
           // Each --no-daemon invocation runs in its own process, so a freshly-empty
           // shared state is fine; state is naturally thrown away on exit.
           sharedState = new java.util.concurrent.atomic.AtomicReference(RunnerSharedState.empty),
+          LauncherLocks = new mill.internal.LauncherLocks,
           mainInteractive = mill.constants.Util.hasConsole(),
           streams0 = initialSystemStreams,
           env = System.getenv().asScala.toMap,

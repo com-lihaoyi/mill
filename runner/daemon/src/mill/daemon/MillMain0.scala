@@ -105,6 +105,7 @@ object MillMain0 {
   def main0(
       args: Array[String],
       sharedState: java.util.concurrent.atomic.AtomicReference[RunnerSharedState],
+      LauncherLocks: mill.internal.LauncherLocks,
       mainInteractive: Boolean,
       streams0: SystemStreams,
       env: Map[String, String],
@@ -274,7 +275,8 @@ object MillMain0 {
                               launcherPid = launcherPid,
                               waitingErr = streams.err,
                               noBuildLock = config.noBuildLock.value,
-                              noWaitForBuildLock = config.noWaitForBuildLock.value
+                              noWaitForBuildLock = config.noWaitForBuildLock.value,
+                              shared = LauncherLocks
                             )
                           }
 
@@ -321,11 +323,14 @@ object MillMain0 {
                             // for subsequent runs that may use it
                             if (skipSelectiveExecution)
                               os.remove(out / OutFiles.millSelectiveExecution)
-                            // Make this run's tail log + artifacts the ones `out/mill-*`
-                            // symlinks point at, so concurrent launchers waiting on locks
-                            // (and humans tailing the log) see the right file.
-                            runArtifacts.publishArtifacts()
-                            mill.api.SystemStreamsUtils.withStreams(logger.streams) {
+                            // Point the top-level `out/mill-console-tail` symlink at
+                            // this run's live log so concurrent launchers waiting on
+                            // locks (and humans tailing the log) see current progress.
+                            // The other artifact symlinks are published only after
+                            // evaluation completes, to avoid advertising broken
+                            // symlinks to not-yet-written files mid-run.
+                            runArtifacts.publishLiveArtifacts()
+                            try mill.api.SystemStreamsUtils.withStreams(logger.streams) {
                               mill.api.FilesystemCheckerEnabled.withValue(
                                 !config.noFilesystemChecker.value
                               ) {
@@ -358,7 +363,7 @@ object MillMain0 {
                                   ).evaluate()
                                 }
                               }
-                            }
+                            } finally runArtifacts.publishArtifacts()
                           }
 
                           loggerOpt match {

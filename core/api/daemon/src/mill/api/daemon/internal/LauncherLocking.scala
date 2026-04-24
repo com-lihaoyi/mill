@@ -5,10 +5,12 @@ import java.nio.file.Path
 /**
  * A per-run handle into workspace locking. Locks are shared across concurrent
  * launchers in the same daemon; one [[LauncherLocking]] instance represents a
- * single run's point of access to them.
+ * single run's point of access to them. Meta-build locks are keyed by meta-build
+ * depth so that a read lease retained at a deeper depth does not block a writer
+ * acquiring the shallower depth's lock during the same run.
  */
 private[mill] trait LauncherLocking extends AutoCloseable {
-  def metaBuildLock(kind: LauncherLocking.LockKind): LauncherLocking.Lease
+  def metaBuildLock(depth: Int, kind: LauncherLocking.LockKind): LauncherLocking.Lease
   def taskLock(path: Path, kind: LauncherLocking.LockKind): LauncherLocking.Lease
 }
 
@@ -16,6 +18,12 @@ private[mill] object LauncherLocking {
   enum LockKind {
     case Read, Write
   }
+
+  /**
+   * Identifies the launcher that acquired a lease, used to compose waiting
+   * messages shown to other launchers that block on the same lock.
+   */
+  final case class HolderInfo(pid: Long, command: String)
 
   /**
    * A held read or write acquisition. `downgradeToRead()` is a no-op on read leases
@@ -34,7 +42,7 @@ private[mill] object LauncherLocking {
     private object NoopLease extends Lease {
       override def close(): Unit = ()
     }
-    override def metaBuildLock(kind: LockKind): Lease = NoopLease
+    override def metaBuildLock(depth: Int, kind: LockKind): Lease = NoopLease
     override def taskLock(path: Path, kind: LockKind): Lease = NoopLease
     override def close(): Unit = ()
   }

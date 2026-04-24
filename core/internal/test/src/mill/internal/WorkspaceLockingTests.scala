@@ -22,7 +22,8 @@ object WorkspaceLockingTests extends TestSuite {
           launcherPid = 12345L,
           waitingErr = new PrintStream(System.err),
           noBuildLock = false,
-          noWaitForBuildLock = false
+          noWaitForBuildLock = false,
+          shared = new LauncherLocks
         )
         val launcherRunFile =
           out / OutFiles.millDaemon / os.RelPath(DaemonFiles.perLauncherFilePath(manager.runId))
@@ -101,11 +102,12 @@ object WorkspaceLockingTests extends TestSuite {
           launcherPid = 12345L,
           waitingErr = new PrintStream(System.err),
           noBuildLock = false,
-          noWaitForBuildLock = false
+          noWaitForBuildLock = false,
+          shared = new LauncherLocks
         )
         val launcherRunFile =
           out / OutFiles.millDaemon / os.RelPath(DaemonFiles.perLauncherFilePath(manager.runId))
-        val lease = manager.metaBuildLock(LauncherLocking.LockKind.Write)
+        val lease = manager.metaBuildLock(0, LauncherLocking.LockKind.Write)
         lease.downgradeToRead()
 
         manager.close()
@@ -120,6 +122,7 @@ object WorkspaceLockingTests extends TestSuite {
       withTmpDir { tmpDir =>
         val out = tmpDir / "out"
         os.makeDir.all(out)
+        val shared = new LauncherLocks
 
         def manager(command: String, noWait: Boolean = false) =
           new LauncherLockingImpl(
@@ -129,7 +132,8 @@ object WorkspaceLockingTests extends TestSuite {
             launcherPid = 12345L,
             waitingErr = new PrintStream(System.err),
             noBuildLock = false,
-            noWaitForBuildLock = noWait
+            noWaitForBuildLock = noWait,
+            shared = shared
           )
 
         val resource = out / "close-release"
@@ -148,6 +152,7 @@ object WorkspaceLockingTests extends TestSuite {
       withTmpDir { tmpDir =>
         val out = tmpDir / "out"
         os.makeDir.all(out)
+        val shared = new LauncherLocks
 
         def manager(command: String) = new LauncherLockingImpl(
           out = out,
@@ -156,7 +161,8 @@ object WorkspaceLockingTests extends TestSuite {
           launcherPid = 12345L,
           waitingErr = new PrintStream(System.err),
           noBuildLock = false,
-          noWaitForBuildLock = false
+          noWaitForBuildLock = false,
+          shared = shared
         )
 
         val first = manager("first")
@@ -189,7 +195,8 @@ object WorkspaceLockingTests extends TestSuite {
           launcherPid = 12345L,
           waitingErr = new PrintStream(System.err),
           noBuildLock = false,
-          noWaitForBuildLock = false
+          noWaitForBuildLock = false,
+          shared = new LauncherLocks
         )
 
         val topLevelProfile =
@@ -229,6 +236,7 @@ object WorkspaceLockingTests extends TestSuite {
         os.makeDir.all(out)
         val waitingBytes = new ByteArrayOutputStream()
         val waitingErr = new PrintStream(waitingBytes)
+        val shared = new LauncherLocks
 
         def manager(command: String) = new LauncherLockingImpl(
           out = out,
@@ -237,7 +245,8 @@ object WorkspaceLockingTests extends TestSuite {
           launcherPid = 12345L,
           waitingErr = waitingErr,
           noBuildLock = false,
-          noWaitForBuildLock = false
+          noWaitForBuildLock = false,
+          shared = shared
         )
 
         val firstReaderManager = manager("first-reader")
@@ -290,6 +299,7 @@ object WorkspaceLockingTests extends TestSuite {
         os.makeDir.all(out)
         val waitingBytes = new ByteArrayOutputStream()
         val waitingErr = new PrintStream(waitingBytes)
+        val shared = new LauncherLocks
 
         def manager(command: String, noWait: Boolean = false) =
           new LauncherLockingImpl(
@@ -299,7 +309,8 @@ object WorkspaceLockingTests extends TestSuite {
             launcherPid = 12345L,
             waitingErr = waitingErr,
             noBuildLock = false,
-            noWaitForBuildLock = noWait
+            noWaitForBuildLock = noWait,
+            shared = shared
           )
 
         val firstReaderManager = manager("first-reader")

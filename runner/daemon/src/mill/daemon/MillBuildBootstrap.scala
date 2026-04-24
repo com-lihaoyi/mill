@@ -305,7 +305,7 @@ class MillBuildBootstrap(
       evaluator: EvaluatorApi,
       depth: Int
   ): RunnerLauncherState = {
-    val writeLease = workspaceLocking.metaBuildLock(LauncherLocking.LockKind.Write)
+    val writeLease = workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Write)
     closeOnThrow(writeLease) {
       evaluateWithWatches(
         buildFileApi,
@@ -465,7 +465,16 @@ class MillBuildBootstrap(
     val withFinal = nestedState.withFinalFrame(
       RunnerLauncherState.FinalFrame(depth, evaluator, evalWatched, moduleWatched)
     )
-    sharedState.getAndUpdate(_.withModuleWatched(depth, moduleWatched))
+    // Sequence the shared-state write under this depth's meta-build write
+    // lock so concurrent launchers at the same final depth don't last-write-
+    // wins each other's moduleWatched. Readers at the depth above consult
+    // this to decide whether to refresh the classloader; inconsistent
+    // snapshots could mask a needed refresh. No self-reentrance issue: when
+    // we reach processFinalTasks at this depth, processRunClasspath for this
+    // depth was not called, so our launcher holds no read lease here.
+    val shareLease = workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Write)
+    try sharedState.getAndUpdate(_.withModuleWatched(depth, moduleWatched))
+    finally shareLease.close()
     evaled match {
       case f: Result.Failure =>
         withFinal.withError(mill.internal.Util.formatError(f, logger.prompt.errorColor))
