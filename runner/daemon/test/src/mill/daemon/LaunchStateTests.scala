@@ -12,7 +12,7 @@ import utest.*
 
 import scala.collection.mutable
 
-object RunnerLauncherStateTests extends TestSuite {
+object LaunchStateTests extends TestSuite {
   private class StubEvaluator(onClose: () => Unit) extends EvaluatorApi {
     override def close(): Unit = onClose()
 
@@ -55,8 +55,7 @@ object RunnerLauncherStateTests extends TestSuite {
             depth = 1,
             evaluator = metaEvaluator,
             evalWatched = Nil,
-            moduleWatched = Nil,
-            reusable = None,
+            sharedFrame = RunnerSharedState.Frame(moduleWatched = Some(Nil)),
             metaBuildReadLease = Some(() => closed += "lease")
           )
         )
@@ -74,8 +73,10 @@ object RunnerLauncherStateTests extends TestSuite {
     }
 
     test("metaBuildFrameAt and moduleWatchedAt find the right depth") {
-      val overlay0 = RunnerLauncherState.MetaBuildFrame.failed(0, new StubEvaluator(() => ()), Nil, Nil)
-      val overlay1 = RunnerLauncherState.MetaBuildFrame.failed(1, new StubEvaluator(() => ()), Nil, Nil)
+      val overlay0 =
+        RunnerLauncherState.MetaBuildFrame.failed(0, new StubEvaluator(() => ()), Nil, Nil)
+      val overlay1 =
+        RunnerLauncherState.MetaBuildFrame.failed(1, new StubEvaluator(() => ()), Nil, Nil)
 
       val state = RunnerLauncherState.empty
         .withMetaBuildFrame(overlay1)

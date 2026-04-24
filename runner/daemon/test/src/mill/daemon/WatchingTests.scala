@@ -26,38 +26,37 @@ object WatchingTests extends TestSuite {
       val evaluated = new CountDownLatch(1)
       val daemonDir = os.temp.dir()
 
-      val thread = new Thread(
-        () =>
-          try {
-            Watching.watchLoop(
-              ringBell = false,
-              watch = Some(Watching.WatchArgs(
-                setIdle = _ => (),
-                colors = Colors.BlackWhite,
-                useNotify = false,
-                daemonDir = daemonDir
-              )),
-              streams = new SystemStreams(
-                new PrintStream(new ByteArrayOutputStream()),
-                new PrintStream(new ByteArrayOutputStream()),
-                new ByteArrayInputStream(Array.emptyByteArray)
-              ),
-              evaluate = new Watching.Evaluate[CloseTrackedResult] {
-                override def apply(
-                    skipSelectiveExecution: Boolean,
-                    previousState: Option[CloseTrackedResult]
-                ): CloseTrackedResult = {
-                  val _ = skipSelectiveExecution
-                  val _ = previousState
-                  evaluated.countDown()
-                  CloseTrackedResult("current", closed)
-                }
+      val thread = new Thread(() =>
+        try {
+          Watching.watchLoop(
+            ringBell = false,
+            watch = Some(Watching.WatchArgs(
+              setIdle = _ => (),
+              colors = Colors.BlackWhite,
+              useNotify = false,
+              daemonDir = daemonDir
+            )),
+            streams = new SystemStreams(
+              new PrintStream(new ByteArrayOutputStream()),
+              new PrintStream(new ByteArrayOutputStream()),
+              new ByteArrayInputStream(Array.emptyByteArray)
+            ),
+            evaluate = new Watching.Evaluate[CloseTrackedResult] {
+              override def apply(
+                  skipSelectiveExecution: Boolean,
+                  previousState: Option[CloseTrackedResult]
+              ): CloseTrackedResult = {
+                val _ = skipSelectiveExecution
+                val _ = previousState
+                evaluated.countDown()
+                CloseTrackedResult("current", closed)
               }
-            )
-            ()
-          } catch {
-            case _: InterruptedException => ()
-          }
+            }
+          )
+          ()
+        } catch {
+          case _: InterruptedException => ()
+        }
       )
 
       thread.start()

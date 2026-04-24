@@ -17,8 +17,7 @@ import mill.api.internal.RootModule
  *   downgrades to read, which happens after the frame is installed here.
  *
  * Each [[RunnerSharedState.Frame]] carries:
- * - [[RunnerSharedState.Frame.reusable]]: the currently-published
- *   [[ReusableFrame]] at that depth, if any.
+ * - the currently-published reusable meta-build payload at that depth, if any
  * - [[RunnerSharedState.Frame.moduleWatched]]: the module-level watches
  *   recorded by the most recent launcher to run at that depth. A later launcher
  *   consults it to decide whether anything watched under the currently-published
@@ -37,14 +36,14 @@ case class RunnerSharedState(
 ) {
   import RunnerSharedState.*
 
-  def frameAt(depth: Int): Option[ReusableFrame] =
-    frames.get(depth).flatMap(_.reusable)
+  def frameAt(depth: Int): Option[Frame] =
+    frames.get(depth).filter(_.hasReusable)
 
   def moduleWatchedAt(depth: Int): Option[Seq[Watchable]] =
     frames.get(depth).flatMap(_.moduleWatched)
 
-  def withFrame(depth: Int, frame: ReusableFrame): RunnerSharedState =
-    copy(frames = frames.updated(depth, at(depth).copy(reusable = Some(frame))))
+  def withFrame(depth: Int, frame: Frame): RunnerSharedState =
+    copy(frames = frames.updated(depth, frame))
 
   def withModuleWatched(depth: Int, watched: Seq[Watchable]): RunnerSharedState =
     copy(frames = frames.updated(depth, at(depth).copy(moduleWatched = Some(watched))))
@@ -58,26 +57,19 @@ case class RunnerSharedState(
 object RunnerSharedState {
   def empty: RunnerSharedState = RunnerSharedState()
 
-  /** One depth's shared state: the published [[ReusableFrame]] (if any) and the
-   *  most recent moduleWatched snapshot recorded at that depth. */
-  case class Frame(
-      reusable: Option[ReusableFrame] = None,
-      moduleWatched: Option[Seq[Watchable]] = None
-  )
-
   /**
-   * The deterministic meta-build outputs at a given depth: classloader, compiled
-   * classpath, code signatures, etc. Produced when a meta-build compiles
-   * successfully, and safe to share across concurrent launchers because every
-   * field is a pure function of the meta-build source.
+   * One depth's shared state: the published reusable meta-build payload (if any)
+   * and the most recent moduleWatched snapshot recorded at that depth.
    */
-  @internal
-  case class ReusableFrame(
-      classLoader: MillURLClassLoader,
-      runClasspath: Seq[PathRefApi],
-      compileOutput: PathRefApi,
-      codeSignatures: Map[String, Int],
-      buildOverrideFiles: Map[java.nio.file.Path, String],
-      workerCacheSummary: Map[String, RunnerLauncherState.Frame.WorkerInfo]
-  )
+  case class Frame(
+      moduleWatched: Option[Seq[Watchable]] = None,
+      classLoaderOpt: Option[MillURLClassLoader] = None,
+      runClasspath: Seq[PathRefApi] = Nil,
+      compileOutputOpt: Option[PathRefApi] = None,
+      codeSignatures: Map[String, Int] = Map.empty,
+      buildOverrideFiles: Map[java.nio.file.Path, String] = Map.empty,
+      workerCacheSummary: Map[String, RunnerLauncherState.Frame.WorkerInfo] = Map.empty
+  ) {
+    def hasReusable: Boolean = classLoaderOpt.nonEmpty
+  }
 }

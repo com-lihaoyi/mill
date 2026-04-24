@@ -258,7 +258,8 @@ object MillMain0 {
                           extraEnv: Seq[(String, String)] = Nil,
                           metaLevelOverride: Option[Int] = None
                       ): RunnerLauncherState = {
-                        def runWithLogger(manager: WorkspaceLocking.Manager): RunnerLauncherState = {
+                        def runWithLogger(manager: WorkspaceLocking.Manager)
+                            : RunnerLauncherState = {
                           def proceed(logger: Logger): RunnerLauncherState = {
                             // Enter key pressed, removing mill-selective-execution.json to
                             // ensure all tasks re-run even though no inputs may have changed
@@ -292,7 +293,8 @@ object MillMain0 {
                                     env = env ++ extraEnv,
                                     ec = ec,
                                     tasksAndParams = tasksAndParams,
-                                    prevCommandState = prevState.getOrElse(RunnerLauncherState.empty),
+                                    prevCommandState =
+                                      prevState.getOrElse(RunnerLauncherState.empty),
                                     logger = logger,
                                     requestedMetaLevel = config.metaLevel.orElse(metaLevelOverride),
                                     allowPositionalCommandArgs = config.allowPositional.value,
@@ -329,7 +331,8 @@ object MillMain0 {
                           }
                         }
 
-                        def runWithLockManager(manager: WorkspaceLocking.Manager): RunnerLauncherState =
+                        def runWithLockManager(manager: WorkspaceLocking.Manager)
+                            : RunnerLauncherState =
                           try {
                             setIdle(false)
                             val state = runWithLogger(manager)
@@ -546,7 +549,10 @@ object MillMain0 {
                           )),
                           streams = streams,
                           evaluate =
-                            (skipSelectiveExecution: Boolean, prevState: Option[RunnerLauncherState]) => {
+                            (
+                                skipSelectiveExecution: Boolean,
+                                prevState: Option[RunnerLauncherState]
+                            ) => {
                               adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
                               runMillBootstrap(
                                 skipSelectiveExecution = skipSelectiveExecution,
