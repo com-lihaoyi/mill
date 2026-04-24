@@ -92,8 +92,8 @@ class MillDaemonMain0(
   // AtomicReference handles concurrent updates from launchers operating at
   // different depths in parallel.
   private val sharedState =
-    new java.util.concurrent.atomic.AtomicReference[SharedRunnerState](
-      SharedRunnerState.empty
+    new java.util.concurrent.atomic.AtomicReference[RunnerSharedState](
+      RunnerSharedState.empty
     )
 
   def main0(

@@ -10,14 +10,14 @@ import upickle.{ReadWriter, macroRW}
 /**
  * Per-launcher bootstrap state, returned from [[MillBuildBootstrap.evaluate]]
  * and threaded through one launcher's lifetime (across `--watch` iterations,
- * BSP sessions, etc). Distinct from [[SharedRunnerState]], which holds the
+ * BSP sessions, etc). Distinct from [[RunnerSharedState]], which holds the
  * deterministic meta-build outputs shared across concurrent launchers.
  *
- * A [[LauncherRunnerState]] carries:
+ * A [[RunnerLauncherState]] carries:
  *
  * - [[metaBuildFrames]] — ordered shallowest-to-deepest, matching the
  *   bootstrap stack. Each frame points at the
- *   [[SharedRunnerState.ReusableFrame]]
+ *   [[RunnerSharedState.ReusableFrame]]
  *   this launcher actually used (not necessarily the currently-published one,
  *   which another launcher may have replaced since), plus this launcher's
  *   evaluator, watches, meta-build read lease, and any per-run
@@ -27,7 +27,7 @@ import upickle.{ReadWriter, macroRW}
  * - [[buildFile]] / [[bootstrapEvalWatched]] — per-launcher bootstrap-derived
  *   info (the root build file name found on disk and the [[Watchable]] for it).
  *   Tracked here so `--watch` can still surface the build file even when
- *   bootstrap fails. The actual bootstrap module lives on [[SharedRunnerState]],
+ *   bootstrap fails. The actual bootstrap module lives on [[RunnerSharedState]],
  *   since it is deterministic in the workspace and cheap to share across launchers.
  * - [[closeables]] — additional per-launcher resources (e.g. the workspace
  *   lock manager) closed when the state is closed.
@@ -36,31 +36,31 @@ import upickle.{ReadWriter, macroRW}
  * and [[finalFrame]] is [[None]].
  */
 @internal
-case class LauncherRunnerState(
+case class RunnerLauncherState(
     errorOpt: Option[String] = None,
     buildFile: Option[String] = None,
     // Watches captured during bootstrap module instantiation. Tracked separately because
     // a bootstrap failure produces no overlays to carry them.
     bootstrapEvalWatched: Seq[Watchable] = Nil,
-    metaBuildFrames: List[LauncherRunnerState.MetaBuildFrame] = Nil,
-    finalFrame: Option[LauncherRunnerState.FinalFrame] = None,
+    metaBuildFrames: List[RunnerLauncherState.MetaBuildFrame] = Nil,
+    finalFrame: Option[RunnerLauncherState.FinalFrame] = None,
     closeables: Seq[AutoCloseable] = Nil
 ) extends Watching.Result
     with AutoCloseable {
-  import LauncherRunnerState.*
+  import RunnerLauncherState.*
 
-  def withMetaBuildFrame(frame: MetaBuildFrame): LauncherRunnerState =
+  def withMetaBuildFrame(frame: MetaBuildFrame): RunnerLauncherState =
     copy(metaBuildFrames = frame +: metaBuildFrames)
 
   def metaBuildFrameAt(depth: Int): Option[MetaBuildFrame] =
     metaBuildFrames.find(_.depth == depth)
 
-  def withFinalFrame(frame: FinalFrame): LauncherRunnerState =
+  def withFinalFrame(frame: FinalFrame): RunnerLauncherState =
     copy(finalFrame = Some(frame))
 
-  def withError(err: String): LauncherRunnerState = copy(errorOpt = Some(err))
+  def withError(err: String): RunnerLauncherState = copy(errorOpt = Some(err))
 
-  def withCloseable(closeable: AutoCloseable): LauncherRunnerState =
+  def withCloseable(closeable: AutoCloseable): RunnerLauncherState =
     copy(closeables = closeable +: closeables)
 
   /** Total depths already processed in this launch: meta-builds + final frame. */
@@ -119,11 +119,11 @@ case class LauncherRunnerState(
   }
 }
 
-object LauncherRunnerState {
-  def empty: LauncherRunnerState = LauncherRunnerState()
+object RunnerLauncherState {
+  def empty: RunnerLauncherState = RunnerLauncherState()
 
   /**
-   * One launcher's per-depth meta-build overlay over a [[SharedRunnerState.ReusableFrame]].
+   * One launcher's per-depth meta-build overlay over a [[RunnerSharedState.ReusableFrame]].
    *
    * [[reusable]] points at the frame this launcher is actually bound to. Normally
    * this equals the currently-published shared frame, but another launcher may
@@ -141,7 +141,7 @@ object LauncherRunnerState {
       evaluator: EvaluatorApi,
       evalWatched: Seq[Watchable],
       moduleWatched: Seq[Watchable],
-      reusable: Option[SharedRunnerState.ReusableFrame] = None,
+      reusable: Option[RunnerSharedState.ReusableFrame] = None,
       metaBuildReadLease: Option[WorkspaceLocking.Lease] = None,
       // Only populated on runs that refreshed the classloader at this depth.
       // Reused classloaders intentionally do not carry a stale invalidation tree forward.
@@ -149,7 +149,7 @@ object LauncherRunnerState {
   )
 
   object MetaBuildFrame {
-    /** An overlay for a meta-build that failed to compile: no [[SharedRunnerState.ReusableFrame]]. */
+    /** An overlay for a meta-build that failed to compile: no [[RunnerSharedState.ReusableFrame]]. */
     def failed(
         depth: Int,
         evaluator: EvaluatorApi,

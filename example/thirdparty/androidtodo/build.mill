@@ -274,7 +274,7 @@ object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport, KotlinIdea
 [
   "Starting: Intent { cmp=com.example.android.architecture.blueprints.main/com.example.android.architecture.blueprints.todoapp.TodoActivity }",
   "Status: ok",
-  "LauncherRunnerState: COLD",
+  "RunnerLauncherState: COLD",
   "Activity: com.example.android.architecture.blueprints.main/com.example.android.architecture.blueprints.todoapp.TodoActivity",
   "TotalTime: ...",
   "WaitTime: ...",

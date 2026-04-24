@@ -7,7 +7,7 @@ import mill.api.internal.RootModule
 
 /**
  * Daemon-wide state shared across concurrent launchers, held in an
- * `AtomicReference[SharedRunnerState]` on [[MillDaemonMain0]]. Contains only
+ * `AtomicReference[RunnerSharedState]` on [[MillDaemonMain0]]. Contains only
  * data that is deterministic in the meta-build source and safe to share.
  *
  * - [[frames]] is keyed by meta-build depth; absent entries simply mean "nothing
@@ -16,10 +16,10 @@ import mill.api.internal.RootModule
  *   concurrent launchers can read while a writer holds the lock only after it
  *   downgrades to read, which happens after the frame is installed here.
  *
- * Each [[SharedRunnerState.Frame]] carries:
- * - [[SharedRunnerState.Frame.reusable]]: the currently-published
+ * Each [[RunnerSharedState.Frame]] carries:
+ * - [[RunnerSharedState.Frame.reusable]]: the currently-published
  *   [[ReusableFrame]] at that depth, if any.
- * - [[SharedRunnerState.Frame.moduleWatched]]: the module-level watches
+ * - [[RunnerSharedState.Frame.moduleWatched]]: the module-level watches
  *   recorded by the most recent launcher to run at that depth. A later launcher
  *   consults it to decide whether anything watched under the currently-published
  *   classloader has changed, which in turn is a reason to refresh the classloader.
@@ -30,12 +30,12 @@ import mill.api.internal.RootModule
  * slots stay empty so the next launcher retries.
  */
 @internal
-case class SharedRunnerState(
-    frames: Map[Int, SharedRunnerState.Frame] = Map.empty,
+case class RunnerSharedState(
+    frames: Map[Int, RunnerSharedState.Frame] = Map.empty,
     bootstrapModule: Option[RootModule] = None,
     bootstrapBuildFile: Option[String] = None
 ) {
-  import SharedRunnerState.*
+  import RunnerSharedState.*
 
   def frameAt(depth: Int): Option[ReusableFrame] =
     frames.get(depth).flatMap(_.reusable)
@@ -43,20 +43,20 @@ case class SharedRunnerState(
   def moduleWatchedAt(depth: Int): Option[Seq[Watchable]] =
     frames.get(depth).flatMap(_.moduleWatched)
 
-  def withFrame(depth: Int, frame: ReusableFrame): SharedRunnerState =
+  def withFrame(depth: Int, frame: ReusableFrame): RunnerSharedState =
     copy(frames = frames.updated(depth, at(depth).copy(reusable = Some(frame))))
 
-  def withModuleWatched(depth: Int, watched: Seq[Watchable]): SharedRunnerState =
+  def withModuleWatched(depth: Int, watched: Seq[Watchable]): RunnerSharedState =
     copy(frames = frames.updated(depth, at(depth).copy(moduleWatched = Some(watched))))
 
-  def withBootstrap(module: RootModule, buildFile: String): SharedRunnerState =
+  def withBootstrap(module: RootModule, buildFile: String): RunnerSharedState =
     copy(bootstrapModule = Some(module), bootstrapBuildFile = Some(buildFile))
 
   private def at(depth: Int): Frame = frames.getOrElse(depth, Frame())
 }
 
-object SharedRunnerState {
-  def empty: SharedRunnerState = SharedRunnerState()
+object RunnerSharedState {
+  def empty: RunnerSharedState = RunnerSharedState()
 
   /** One depth's shared state: the published [[ReusableFrame]] (if any) and the
    *  most recent moduleWatched snapshot recorded at that depth. */
@@ -78,6 +78,6 @@ object SharedRunnerState {
       compileOutput: PathRefApi,
       codeSignatures: Map[String, Int],
       buildOverrideFiles: Map[java.nio.file.Path, String],
-      workerCacheSummary: Map[String, LauncherRunnerState.Frame.WorkerInfo]
+      workerCacheSummary: Map[String, RunnerLauncherState.Frame.WorkerInfo]
   )
 }

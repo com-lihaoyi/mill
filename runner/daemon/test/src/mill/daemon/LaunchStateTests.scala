@@ -12,7 +12,7 @@ import utest.*
 
 import scala.collection.mutable
 
-object LauncherRunnerStateTests extends TestSuite {
+object RunnerLauncherStateTests extends TestSuite {
   private class StubEvaluator(onClose: () => Unit) extends EvaluatorApi {
     override def close(): Unit = onClose()
 
@@ -44,14 +44,14 @@ object LauncherRunnerStateTests extends TestSuite {
   }
 
   def tests: Tests = Tests {
-    test("LauncherRunnerState owns evaluators and leases until close") {
+    test("RunnerLauncherState owns evaluators and leases until close") {
       val closed = mutable.Buffer.empty[String]
       val metaEvaluator = new StubEvaluator(() => closed += "meta")
       val finalEvaluator = new StubEvaluator(() => closed += "final")
 
-      val state = LauncherRunnerState.empty
+      val state = RunnerLauncherState.empty
         .withMetaBuildFrame(
-          LauncherRunnerState.MetaBuildFrame(
+          RunnerLauncherState.MetaBuildFrame(
             depth = 1,
             evaluator = metaEvaluator,
             evalWatched = Nil,
@@ -60,7 +60,7 @@ object LauncherRunnerStateTests extends TestSuite {
             metaBuildReadLease = Some(() => closed += "lease")
           )
         )
-        .withFinalFrame(LauncherRunnerState.FinalFrame(0, finalEvaluator, Nil, Nil))
+        .withFinalFrame(RunnerLauncherState.FinalFrame(0, finalEvaluator, Nil, Nil))
         .withCloseable(() => closed += "manager")
 
       assert(state.allEvaluators == Seq(finalEvaluator, metaEvaluator))
@@ -74,10 +74,10 @@ object LauncherRunnerStateTests extends TestSuite {
     }
 
     test("metaBuildFrameAt and moduleWatchedAt find the right depth") {
-      val overlay0 = LauncherRunnerState.MetaBuildFrame.failed(0, new StubEvaluator(() => ()), Nil, Nil)
-      val overlay1 = LauncherRunnerState.MetaBuildFrame.failed(1, new StubEvaluator(() => ()), Nil, Nil)
+      val overlay0 = RunnerLauncherState.MetaBuildFrame.failed(0, new StubEvaluator(() => ()), Nil, Nil)
+      val overlay1 = RunnerLauncherState.MetaBuildFrame.failed(1, new StubEvaluator(() => ()), Nil, Nil)
 
-      val state = LauncherRunnerState.empty
+      val state = RunnerLauncherState.empty
         .withMetaBuildFrame(overlay1)
         .withMetaBuildFrame(overlay0)
 
@@ -90,8 +90,8 @@ object LauncherRunnerStateTests extends TestSuite {
       assert(state.processedDepths == 2)
     }
 
-    test("SharedRunnerState frameAt and moduleWatchedAt round-trip") {
-      val state = SharedRunnerState.empty.withModuleWatched(0, Nil)
+    test("RunnerSharedState frameAt and moduleWatchedAt round-trip") {
+      val state = RunnerSharedState.empty.withModuleWatched(0, Nil)
       assert(state.moduleWatchedAt(0).contains(Nil))
       assert(state.moduleWatchedAt(1).isEmpty)
       assert(state.frameAt(0).isEmpty)
