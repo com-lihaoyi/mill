@@ -36,12 +36,12 @@ private[mill] final class LauncherLockingImpl(
     waitingErr: PrintStream,
     noBuildLock: Boolean,
     noWaitForBuildLock: Boolean,
-    shared: LauncherLocks
+    launcherLocks: LauncherLocks
 ) extends LauncherLocking with LauncherOutFiles {
   import LauncherLockingImpl.*
 
   private val holder = HolderInfo(launcherPid, activeCommandMessage)
-  override val runId: String = shared.nextRunId()
+  override val runId: String = launcherLocks.nextRunId()
   private val runDir = out / LauncherLocks.runRootDirName / runId
   override val consoleTail: java.nio.file.Path = (runDir / "mill-console-tail").toNIO
   private val launcherRunFile = daemonDir / os.RelPath(DaemonFiles.perLauncherFilePath(runId))
@@ -90,7 +90,7 @@ private[mill] final class LauncherLockingImpl(
   ): LauncherLocking.Lease = {
     ensureOpen()
     if (noBuildLock) LauncherLocking.Noop.metaBuildLock(depth, kind)
-    else acquireManagedLease(shared.metaBuildLockFor(depth).acquire(
+    else acquireManagedLease(launcherLocks.metaBuildLockFor(depth).acquire(
       kind,
       waitingErr,
       noWaitForBuildLock,
@@ -106,7 +106,7 @@ private[mill] final class LauncherLockingImpl(
     if (noBuildLock) LauncherLocking.Noop.taskLock(path, kind)
     else {
       val normalized = path.toAbsolutePath.normalize().toString
-      val lock = shared.taskLockFor(normalized)
+      val lock = launcherLocks.taskLockFor(normalized)
       acquireManagedLease(lock.acquire(kind, waitingErr, noWaitForBuildLock, holder))
     }
   }
@@ -161,7 +161,7 @@ private[mill] final class LauncherLockingImpl(
       os.makeDir.all(link / os.up)
       val rel = relativizeTarget(link, target)
       val tmp =
-        link / os.up / s".${link.last}.tmp-${System.nanoTime()}-${shared.nextTmpSuffix()}"
+        link / os.up / s".${link.last}.tmp-${System.nanoTime()}-${launcherLocks.nextTmpSuffix()}"
       try {
         try os.remove.all(tmp)
         catch { case _: Throwable => }

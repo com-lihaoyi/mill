@@ -276,7 +276,7 @@ object MillMain0 {
                               waitingErr = streams.err,
                               noBuildLock = config.noBuildLock.value,
                               noWaitForBuildLock = config.noWaitForBuildLock.value,
-                              shared = LauncherLocks
+                              launcherLocks = LauncherLocks
                             )
                           }
 
