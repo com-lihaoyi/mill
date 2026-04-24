@@ -460,6 +460,7 @@ trait GroupExecution {
                 evaluateBuildOverride(located, labelled) match {
                   case Right(yamlValue) =>
                     val (data, serializedPaths) = PathRef.withSerializedPaths { yamlValue }
+                    // Write build header override JSON to meta `.json` file to support `show`
                     writeCacheJson(
                       paths.meta,
                       upickle.core.BufferedValue.transform(located.value.value, ujson.Value),
