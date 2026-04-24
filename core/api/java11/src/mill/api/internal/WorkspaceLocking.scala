@@ -11,7 +11,6 @@ private[mill] object WorkspaceLocking {
   trait Lease extends AutoCloseable
 
   trait DowngradableLease extends Lease {
-    def kind: LockKind
     def downgradeToRead(): Unit
   }
 
@@ -34,7 +33,6 @@ private[mill] object WorkspaceLocking {
     override def runId: String = "noop"
     override def consoleTail: os.Path = os.pwd / "out" / "mill-console-tail"
     override def metaBuildLock(lockKind: LockKind): DowngradableLease = new DowngradableLease {
-      override def kind: LockKind = lockKind
       override def downgradeToRead(): Unit = ()
       override def close(): Unit = ()
     }
@@ -51,13 +49,12 @@ private[mill] object WorkspaceLocking {
       noBuildLock: Boolean,
       noWaitForBuildLock: Boolean
   ) extends Manager {
-    private val owner = WorkpaceLockingUtils.LockOwner("", launcherPid, activeCommandMessage)
-    override val runId: String = WorkpaceLockingUtils.nextRunId()
+    private val runInfo = WorkspaceRunArtifacts.RunInfo(launcherPid, activeCommandMessage)
+    override val runId: String = WorkspaceRunArtifacts.nextRunId()
     private val closed = new AtomicBoolean(false)
-    private val activeLeases = scala.collection.mutable.Set.empty[ManagedLease]
-    private val artifacts = new WorkpaceLockingUtils.RunArtifacts(runId, out, daemonDir, owner)
+    private val activeLeases = scala.collection.mutable.Set.empty[LeaseWrapper]
+    private val artifacts = new WorkspaceRunArtifacts.RunArtifacts(runId, out, daemonDir, runInfo)
     private val locks = WorkpaceLockingUtils.locksFor(out)
-    private val runOwner = owner.copy(runId = runId)
 
     override val consoleTail: os.Path = artifacts.consoleTail
 
@@ -74,48 +71,48 @@ private[mill] object WorkspaceLocking {
       artifacts.publish()
     }
 
-    override def withSelectiveExecutionLock[T](path: os.Path)(t: => T): T = {
-      val lease = locks.acquire(
-        WorkpaceLockingUtils.LockId.selectiveExecution(path),
-        LockKind.Write,
-        runOwner,
-        waitingErr,
-        noWaitForBuildLock
-      )
-      try t
-      finally lease.close()
-    }
+    override def withSelectiveExecutionLock[T](@scala.annotation.unused path: os.Path)(t: => T): T =
+      if (noBuildLock) {
+        publishArtifacts()
+        t
+      } else locks.withSelectiveExecutionLock(waitingErr, noWaitForBuildLock)(t)
 
-    override def metaBuildLock(kind: LockKind): DowngradableLease =
-      acquireManagedLease(WorkpaceLockingUtils.LockId.MetaBuild, kind)
-
-    override def taskLock(path: os.Path, kind: LockKind): DowngradableLease =
-      acquireManagedLease(WorkpaceLockingUtils.LockId.task(path), kind)
-
-    private def acquireManagedLease(
-        lockId: WorkpaceLockingUtils.LockId,
-        kind: LockKind
-    ): DowngradableLease = {
+    override def metaBuildLock(kind: LockKind): DowngradableLease = {
       ensureOpen()
       if (noBuildLock) {
         publishArtifacts()
         NoopManager.metaBuildLock(kind)
       } else {
-        val underlying = locks.acquire(lockId, kind, runOwner, waitingErr, noWaitForBuildLock)
-        val lease = new ManagedLease(underlying)
-        try {
-          activeLeases.synchronized {
-            ensureOpen()
-            activeLeases += lease
-            artifacts.publish()
-          }
-          lease
-        } catch {
-          case e: Throwable =>
-            try lease.close()
-            catch { case _: Throwable => }
-            throw e
+        acquireManagedLease(locks.metaBuildLock(kind, waitingErr, noWaitForBuildLock))
+      }
+    }
+
+    override def taskLock(path: os.Path, kind: LockKind): DowngradableLease = {
+      ensureOpen()
+      if (noBuildLock) {
+        publishArtifacts()
+        NoopManager.metaBuildLock(kind)
+      } else {
+        acquireManagedLease(locks.taskLock(path, kind, waitingErr, noWaitForBuildLock))
+      }
+    }
+
+    private def acquireManagedLease(
+        underlying: DowngradableLease
+    ): DowngradableLease = {
+      val lease = new LeaseWrapper(underlying)
+      try {
+        activeLeases.synchronized {
+          ensureOpen()
+          activeLeases += lease
+          artifacts.publish()
         }
+        lease
+      } catch {
+        case e: Throwable =>
+          try lease.close()
+          catch { case _: Throwable => }
+          throw e
       }
     }
 
@@ -134,12 +131,10 @@ private[mill] object WorkspaceLocking {
       }
     }
 
-    private final class ManagedLease(
-        underlying: WorkpaceLockingUtils.ManagedLease
+    private final class LeaseWrapper(
+        underlying: DowngradableLease
     ) extends DowngradableLease {
       private val closed = new AtomicBoolean(false)
-
-      override def kind: LockKind = underlying.kind
 
       override def downgradeToRead(): Unit =
         if (!closed.get()) underlying.downgradeToRead()
