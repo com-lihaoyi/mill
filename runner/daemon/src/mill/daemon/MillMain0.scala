@@ -17,7 +17,8 @@ import mill.api.BuildCtx
     PrefixLogger,
     PromptLogger,
     BspLogger,
-    LauncherLockingImpl
+    LauncherLockingImpl,
+    LauncherOutFilesImpl
   }
 import mill.server.Server
 import mill.util.BuildInfo
@@ -103,22 +104,22 @@ object MillMain0 {
       }
 
   def main0(
-      args: Array[String],
-      sharedState: java.util.concurrent.atomic.AtomicReference[RunnerSharedState],
-      LauncherLocks: mill.internal.LauncherLocks,
-      mainInteractive: Boolean,
-      streams0: SystemStreams,
-      env: Map[String, String],
-      launcherPid: Long,
-      setIdle: Boolean => Unit,
-      userSpecifiedProperties0: Map[String, String],
-      initialSystemProperties: Map[String, String],
-      systemExit: Server.StopServer,
-      daemonDir: os.Path,
-      outLock: Lock,
-      launcherSubprocessRunner: mill.api.daemon.LauncherSubprocess.Runner,
-      serverToClientOpt: Option[mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient]],
-      millRepositories: Seq[String]
+             args: Array[String],
+             sharedState: java.util.concurrent.atomic.AtomicReference[RunnerSharedState],
+             LauncherLocks: mill.internal.LauncherLockingState,
+             mainInteractive: Boolean,
+             streams0: SystemStreams,
+             env: Map[String, String],
+             launcherPid: Long,
+             setIdle: Boolean => Unit,
+             userSpecifiedProperties0: Map[String, String],
+             initialSystemProperties: Map[String, String],
+             systemExit: Server.StopServer,
+             daemonDir: os.Path,
+             outLock: Lock,
+             launcherSubprocessRunner: mill.api.daemon.LauncherSubprocess.Runner,
+             serverToClientOpt: Option[mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient]],
+             millRepositories: Seq[String]
   ): Boolean = mill.api.daemon.MillRepositories.withValue(millRepositories) {
     mill.api.daemon.LauncherSubprocess.withValue(launcherSubprocessRunner) {
       mill.api.daemon.internal.MillScalaParser.current.withValue(MillScalaParserImpl) {
@@ -266,34 +267,45 @@ object MillMain0 {
                           extraEnv: Seq[(String, String)] = Nil,
                           metaLevelOverride: Option[Int] = None
                       ): RunnerLauncherState = {
-                        val sessionOpt: Option[LauncherLockingImpl] =
+                        val sessionOpt: Option[(LauncherLockingImpl, LauncherOutFilesImpl)] =
                           Option.when(serverToClientOpt.nonEmpty) {
-                            new LauncherLockingImpl(
-                              out = out,
-                              daemonDir = daemonDir,
+                            val runId = LauncherLocks.nextRunId()
+                            val locking = new LauncherLockingImpl(
                               activeCommandMessage = millActiveCommandMessage,
                               launcherPid = launcherPid,
                               waitingErr = streams.err,
                               noBuildLock = config.noBuildLock.value,
                               noWaitForBuildLock = config.noWaitForBuildLock.value,
-                              launcherLocks = LauncherLocks
+                              launcherLocks = LauncherLocks,
+                              runId = runId
                             )
+                            val outFiles = new LauncherOutFilesImpl(
+                              out = out,
+                              daemonDir = daemonDir,
+                              activeCommandMessage = millActiveCommandMessage,
+                              launcherPid = launcherPid,
+                              launcherLocks = LauncherLocks,
+                              runId = runId
+                            )
+                            (locking, outFiles)
                           }
 
                         val (workspaceLocking, runArtifacts): (LauncherLocking, LauncherOutFiles) =
                           sessionOpt match {
-                            case Some(s) => (s, s)
+                            case Some((l, o)) => (l, o)
                             case None => (LauncherLocking.Noop, LauncherOutFiles.Noop)
                           }
 
                         def withLocking[T](block: => T): T = sessionOpt match {
-                          case Some(session) =>
+                          case Some((locking, outFiles)) =>
                             try {
                               setIdle(false)
                               block
                             } catch {
                               case e: Throwable =>
-                                try session.close()
+                                try locking.close()
+                                catch { case _: Throwable => }
+                                try outFiles.close()
                                 catch { case _: Throwable => }
                                 throw e
                             }
@@ -384,7 +396,11 @@ object MillMain0 {
                           }
                         }
 
-                        sessionOpt.fold(evaluated)(evaluated.withCloseable)
+                        sessionOpt match {
+                          case Some((locking, outFiles)) =>
+                            evaluated.withCloseable(locking).withCloseable(outFiles)
+                          case None => evaluated
+                        }
                       }
 
                       if (config.tabComplete.value) {

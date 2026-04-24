@@ -4,7 +4,7 @@ import mill.api.{BuildCtx, SystemStreams}
 import mill.client.lock.Locks
 import mill.constants.OutFolderMode
 import mill.constants.OutFiles.OutFiles
-import mill.internal.LauncherLocks
+import mill.internal.LauncherLockingState
 import mill.server.Server
 
 import scala.concurrent.duration.*
@@ -100,7 +100,7 @@ class MillDaemonMain0(
   // Shared fine-grained locks (meta-build / task) across concurrent launchers
   // served by this daemon. Passed explicitly into each session rather than
   // pulled from process-wide globals.
-  private val LauncherLocks = new LauncherLocks
+  private val LauncherLocks = new LauncherLockingState
 
   def main0(
       args: Array[String],

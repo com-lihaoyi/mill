@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong
  * lease at a shallower depth on the same thread; depths are independent
  * build-artifact scopes. Task locks are keyed by normalized absolute path.
  */
-private[mill] final class LauncherLocks {
+private[mill] final class LauncherLockingState {
   private val metaBuildLocks = new ConcurrentHashMap[Int, FairRwLock]()
   private val taskLocks = new ConcurrentHashMap[String, FairRwLock]()
   private val runIdCounter = new AtomicLong(0L)
@@ -32,6 +32,6 @@ private[mill] final class LauncherLocks {
   def nextTmpSuffix(): Long = tmpNameCounter.getAndIncrement()
 }
 
-private[mill] object LauncherLocks {
+private[mill] object LauncherLockingState {
   val runRootDirName = "mill-run"
 }
