@@ -94,10 +94,8 @@ class MillBuildBootstrap(
           upickle.write(logged, indent = 4),
           createFolders = true
         )
-      for (frame <- runnerLauncherState.metaBuildFrames)
-        write(frame.depth, RunnerLauncherState.Frame.loggedForMetaBuild(frame))
-      for (frame <- runnerLauncherState.finalFrame)
-        write(frame.depth, RunnerLauncherState.Frame.loggedForFinal(frame))
+      for (frame <- runnerLauncherState.metaBuildFrames) write(frame.depth, frame.logged)
+      for (frame <- runnerLauncherState.finalFrame) write(frame.depth, frame.logged)
 
       runnerLauncherState
     }
@@ -228,8 +226,7 @@ class MillBuildBootstrap(
     // Use the process-level shared worker cache. Workers are thread-safe and
     // can be shared across concurrent commands. SharedWorkerCache.forDepth
     // handles classloader changes automatically (closes stale workers).
-    val workerCache =
-      SharedWorkerCache.forDepth(topLevelProjectRoot, depth, millClassloaderIdentityHash0)
+    val workerCache = SharedWorkerCache.forDepth(depth, millClassloaderIdentityHash0)
 
     makeEvaluator0(
       projectRoot = topLevelProjectRoot,
@@ -306,10 +303,7 @@ class MillBuildBootstrap(
       evaluator: EvaluatorApi,
       depth: Int
   ): RunnerLauncherState = {
-    def acquireMetaBuildLock(kind: WorkspaceLocking.LockKind) =
-      workspaceLockManager.metaBuildLock(kind)
-
-    val writeLease = acquireMetaBuildLock(WorkspaceLocking.LockKind.Write)
+    val writeLease = workspaceLockManager.metaBuildLock(WorkspaceLocking.LockKind.Write)
     closeOnThrow(writeLease) {
       evaluateWithWatches(
         buildFileApi,
@@ -415,9 +409,17 @@ class MillBuildBootstrap(
           )
 
           val latest = sharedState.get().frameAt(depth)
+          // Publish this depth's moduleWatched snapshot so the depth-above launcher can
+          // detect whether anything watched under this classloader has changed. Baked
+          // into the shared frame (whether fresh or reused) rather than updated
+          // separately, so readers always see a consistent (classloader, moduleWatched)
+          // pair. Mirrors what processFinalTasks does for final-depth tasks.
           val (sharedFrame, classLoaderChanged) =
-            if (!needsClassloaderRefresh(latest) && latest.isDefined) (latest.get, false)
-            else {
+            if (!needsClassloaderRefresh(latest) && latest.isDefined) {
+              val reused = latest.get.copy(moduleWatched = Some(moduleWatches))
+              sharedState.updateAndGet(_.withFrame(depth, reused))
+              (reused, false)
+            } else {
               // Close any classloaders we're about to replace. Workers at this depth
               // are handled by SharedWorkerCache.forDepth (called in makeEvaluator).
               Seq(
@@ -429,11 +431,6 @@ class MillBuildBootstrap(
               sharedState.updateAndGet(_.withFrame(depth, fresh))
               (fresh, true)
             }
-
-          // Publish this depth's moduleWatched snapshot so the depth-above launcher
-          // can detect whether anything watched under this classloader has changed.
-          // Mirrors what processFinalTasks does for final-depth tasks.
-          sharedState.getAndUpdate(_.withModuleWatched(depth, moduleWatches))
 
           writeLease.downgradeToRead()
           nestedState.withMetaBuildFrame(launcherFrame(sharedFrame, writeLease, classLoaderChanged))

@@ -5,14 +5,11 @@ import mill.constants.DaemonFiles
 import java.nio.file.StandardCopyOption
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
-import scala.concurrent.duration.*
 
 private object WorkspaceRunArtifacts {
   private val nextTiebreaker = new AtomicLong(0L)
   val runRootDirName = "mill-run"
-  private val legacyRunDirPrefix = "mill-run-"
   private val maxRetainedRuns = 10
-  private val inactiveRunCleanupGracePeriodMillis = 5.seconds.toMillis
 
   def nextRunId(): String =
     s"${System.currentTimeMillis()}-${nextTiebreaker.getAndIncrement()}"
@@ -78,7 +75,6 @@ private object WorkspaceRunArtifacts {
       runDir: os.Path,
       consoleTail: os.Path,
       var active: Boolean = true,
-      var inactiveSinceMillis: Long = 0L,
       var published: Boolean = false,
       publishedRelativePaths: scala.collection.mutable.Set[os.RelPath] =
         scala.collection.mutable.LinkedHashSet.empty
@@ -105,44 +101,31 @@ private object WorkspaceRunArtifacts {
 
     def deactivate(run: ActiveRun): Unit = lock.synchronized {
       run.active = false
-      run.inactiveSinceMillis = System.currentTimeMillis()
       refreshWellKnownLinks()
     }
 
     def cleanupOldRunDirs(): Unit = {
       try {
-        if (os.exists(out)) {
-          lock.synchronized {
-            val now = System.currentTimeMillis()
-            val protectedRunDirs = runs.valuesIterator
-              .filter(run =>
-                run.active ||
-                  run.inactiveSinceMillis == 0L ||
-                  now - run.inactiveSinceMillis < inactiveRunCleanupGracePeriodMillis
-              )
-              .map(_.runDir)
-              .toSet
+        if (os.exists(out)) lock.synchronized {
+          // Never delete dirs of runs still actively executing, even if they fall
+          // outside the most-recent-N window. Finished runs are eligible for deletion.
+          val protectedRunDirs = runs.valuesIterator.filter(_.active).map(_.runDir).toSet
 
-            val runRootDir = out / runRootDirName
-            val runDirs =
-              if (os.exists(runRootDir)) os.list(runRootDir).filter(os.isDir(_)).sortBy(_.last)
-              else Seq.empty
+          val runRootDir = out / runRootDirName
+          val runDirs =
+            if (os.exists(runRootDir)) os.list(runRootDir).filter(os.isDir(_)).sortBy(_.last)
+            else Seq.empty
 
-            val legacyRunDirs = os.list(out)
-              .filter(p => os.isDir(p) && p.last.startsWith(legacyRunDirPrefix))
-              .sortBy(_.last)
+          val removable = runDirs.filterNot(protectedRunDirs)
+          val toRemove = removable.take(runDirs.size - maxRetainedRuns)
+          toRemove.foreach(dir =>
+            try os.remove.all(dir)
+            catch { case _: Throwable => }
+          )
 
-            val removable = runDirs.filterNot(protectedRunDirs)
-            val toRemove = removable.take(runDirs.size - maxRetainedRuns)
-            (toRemove ++ legacyRunDirs).foreach(dir =>
-              try os.remove.all(dir)
-              catch { case _: Throwable => }
-            )
-
-            val before = runs.size
-            runs.retain((_, run) => os.exists(run.runDir))
-            if (runs.size != before) refreshWellKnownLinks()
-          }
+          val before = runs.size
+          runs.retain((_, run) => os.exists(run.runDir))
+          if (runs.size != before) refreshWellKnownLinks()
         }
       } catch {
         case _: Throwable =>

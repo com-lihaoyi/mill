@@ -16,39 +16,29 @@ import scala.collection.mutable
  * workers are closed and replaced with a fresh empty map.
  */
 object SharedWorkerCache {
-  private case class CacheKey(workspaceRoot: String, depth: Int)
-
   private case class DepthEntry(
       classLoaderIdentityHash: Int,
       workers: mutable.Map[String, (Int, Val, TaskApi[?])]
   )
 
   private val lock = new Object
-  private val caches = mutable.Map.empty[CacheKey, DepthEntry]
-  sys.addShutdownHook(closeAll())
+  private val caches = mutable.Map.empty[Int, DepthEntry]
 
   def forDepth(
-      workspaceRoot: os.Path,
       depth: Int,
       classLoaderIdentityHash: Int
   ): mutable.Map[String, (Int, Val, TaskApi[?])] =
     lock.synchronized {
-      val key = CacheKey(workspaceRoot.toString, depth)
-      caches.get(key) match {
+      caches.get(depth) match {
         case Some(entry) if entry.classLoaderIdentityHash == classLoaderIdentityHash =>
           entry.workers
         case staleOpt =>
           staleOpt.foreach(stale => closeWorkers(stale.workers))
           val fresh = mutable.Map.empty[String, (Int, Val, TaskApi[?])]
-          caches(key) = DepthEntry(classLoaderIdentityHash, fresh)
+          caches(depth) = DepthEntry(classLoaderIdentityHash, fresh)
           fresh
       }
     }
-
-  def closeAll(): Unit = lock.synchronized {
-    caches.valuesIterator.foreach(entry => closeWorkers(entry.workers))
-    caches.clear()
-  }
 
   // Close workers in reverse topological order so a worker's close() sees its
   // downstream workers still alive. Matches the intra-run invalidation path in

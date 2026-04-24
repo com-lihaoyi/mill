@@ -147,7 +147,15 @@ object RunnerLauncherState {
       // Only populated on runs that refreshed the classloader at this depth.
       // Reused classloaders intentionally do not carry a stale invalidation tree forward.
       spanningInvalidationTree: Option[String] = None
-  )
+  ) {
+    def logged: Frame.Logged = Frame.build(
+      sharedFrame.workerCacheSummary,
+      evalWatched,
+      sharedFrame.moduleWatched.getOrElse(Nil),
+      sharedFrame.classLoaderOpt.map(_.identity),
+      sharedFrame.runClasspath
+    )
+  }
 
   object MetaBuildFrame {
 
@@ -177,7 +185,9 @@ object RunnerLauncherState {
       evaluator: EvaluatorApi,
       evalWatched: Seq[Watchable],
       moduleWatched: Seq[Watchable]
-  )
+  ) {
+    def logged: Frame.Logged = Frame.build(Map.empty, evalWatched, moduleWatched, None, Nil)
+  }
 
   object Frame {
     case class WorkerInfo(identityHashCode: Int, inputHash: Int)
@@ -202,24 +212,7 @@ object RunnerLauncherState {
     )
     implicit val loggedRw: ReadWriter[Logged] = macroRW
 
-    def loggedForMetaBuild(
-        frame: MetaBuildFrame
-    ): Logged = {
-      val sharedFrame = frame.sharedFrame
-      val classLoaderIdentity = sharedFrame.classLoaderOpt.map(_.identity)
-      build(
-        sharedFrame.workerCacheSummary,
-        frame.evalWatched,
-        sharedFrame.moduleWatched.getOrElse(Nil),
-        classLoaderIdentity,
-        sharedFrame.runClasspath
-      )
-    }
-
-    def loggedForFinal(frame: FinalFrame): Logged =
-      build(Map.empty, frame.evalWatched, frame.moduleWatched, None, Nil)
-
-    private def build(
+    private[RunnerLauncherState] def build(
         workerCache: Map[String, WorkerInfo],
         evalWatched: Seq[Watchable],
         moduleWatched: Seq[Watchable],

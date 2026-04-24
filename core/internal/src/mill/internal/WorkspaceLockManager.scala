@@ -1,8 +1,10 @@
 package mill.internal
 
 import mill.api.internal.WorkspaceLocking
+import mill.api.internal.WorkspaceLocking.{DowngradableLease, LockKind}
 
 import java.io.PrintStream
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 
 private[mill] final class WorkspaceLockManager(
@@ -19,7 +21,7 @@ private[mill] final class WorkspaceLockManager(
   private val closed = new AtomicBoolean(false)
   private val activeLeases = scala.collection.mutable.Set.empty[LeaseWrapper]
   private val artifacts = new WorkspaceRunArtifacts.RunArtifacts(runId, out, daemonDir, runInfo)
-  private val locks = WorkpaceLockingUtils.locksFor(out)
+  private val locks = WorkspaceLockManager.locksFor(out)
 
   override val consoleTail: os.Path = artifacts.consoleTail
 
@@ -40,7 +42,12 @@ private[mill] final class WorkspaceLockManager(
     if (noBuildLock) {
       publishArtifacts()
       t
-    } else locks.withSelectiveExecutionLock(waitingErr, noWaitForBuildLock)(t)
+    } else {
+      val lease =
+        locks.selectiveExecutionLock.acquire(LockKind.Write, waitingErr, noWaitForBuildLock)
+      try t
+      finally lease.close()
+    }
 
   override def metaBuildLock(kind: WorkspaceLocking.LockKind): WorkspaceLocking.DowngradableLease = {
     ensureOpen()
@@ -48,7 +55,7 @@ private[mill] final class WorkspaceLockManager(
       publishArtifacts()
       WorkspaceLocking.NoopManager.metaBuildLock(kind)
     } else {
-      acquireManagedLease(locks.metaBuildLock(kind, waitingErr, noWaitForBuildLock))
+      acquireManagedLease(locks.metaBuildLock.acquire(kind, waitingErr, noWaitForBuildLock))
     }
   }
 
@@ -61,7 +68,9 @@ private[mill] final class WorkspaceLockManager(
       publishArtifacts()
       WorkspaceLocking.NoopManager.metaBuildLock(kind)
     } else {
-      acquireManagedLease(locks.taskLock(path, kind, waitingErr, noWaitForBuildLock))
+      val normalized = path.toNIO.toAbsolutePath.normalize().toString
+      val lock = locks.taskLocks.computeIfAbsent(normalized, _ => new FairRwLock(normalized))
+      acquireManagedLease(lock.acquire(kind, waitingErr, noWaitForBuildLock))
     }
   }
 
@@ -113,4 +122,21 @@ private[mill] final class WorkspaceLockManager(
         activeLeases.synchronized(activeLeases -= this)
       }
   }
+}
+
+private[mill] object WorkspaceLockManager {
+  // Locks are shared across all WorkspaceLockManagers for the same `out` path so
+  // concurrent launchers in the same daemon serialize correctly. Keyed by `out`
+  // rather than daemon-scoped because daemon lifecycle threading would require
+  // plumbing a shared instance through every caller.
+  private final class Locks {
+    val metaBuildLock = new FairRwLock("meta-build")
+    val selectiveExecutionLock = new FairRwLock("selective-execution")
+    val taskLocks = new ConcurrentHashMap[String, FairRwLock]()
+  }
+
+  private val locksByOut = new ConcurrentHashMap[String, Locks]()
+
+  private def locksFor(out: os.Path): Locks =
+    locksByOut.computeIfAbsent(out.toString, _ => new Locks)
 }
