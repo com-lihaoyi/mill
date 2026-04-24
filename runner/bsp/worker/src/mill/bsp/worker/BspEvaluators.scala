@@ -104,7 +104,7 @@ class BspEvaluators(
         id = id,
         buildTarget = module.bspBuildTarget,
         dependencyUris = dependencyUris,
-        classLoaderIdentityHash = ev.classLoaderIdentityHash
+        classLoader = ev.rootModule.getClass.getClassLoader
       )
     }
 

@@ -15,12 +15,12 @@ private[worker] object ChangeNotifier {
       id: BuildTargetIdentifier,
       buildTarget: BspBuildTarget,
       dependencyUris: Seq[String],
-      classLoaderIdentityHash: Int
+      classLoader: ClassLoader
   ) {
     def differsFrom(other: TargetSnapshot): Boolean =
       buildTarget != other.buildTarget ||
         dependencyUris != other.dependencyUris ||
-        classLoaderIdentityHash != other.classLoaderIdentityHash
+        (classLoader ne other.classLoader)
   }
 
   /**

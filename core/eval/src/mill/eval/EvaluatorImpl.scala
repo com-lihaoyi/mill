@@ -1,7 +1,7 @@
 package mill.eval
 
 import mill.api.daemon.internal.{CompileProblemReporter, TestReporter}
-import mill.api.internal.WorkspaceLocking
+import mill.api.daemon.internal.LauncherLocking
 import mill.constants.OutFiles.OutFiles
 import mill.api.{PathRef, *}
 import mill.api.internal.{ResolveChecker, Resolved, RootModule0}
@@ -53,10 +53,9 @@ final class EvaluatorImpl(
   override def offline: Boolean = execution.offline
   override def isFinalDepth: Boolean = execution.isFinalDepth
   override def useFileLocks: Boolean = execution.useFileLocks
-  override def workspaceLockManager: WorkspaceLocking.Manager = execution.workspaceLockManager
+  override def workspaceLocking: LauncherLocking = execution.workspaceLocking
   override def spanningInvalidationTree: Option[String] = execution.spanningInvalidationTree
   override def classLoaderSigHash: Int = execution.classLoaderSigHash
-  override def classLoaderIdentityHash: Int = execution.classLoaderIdentityHash
 
   def withBaseLogger(newBaseLogger: Logger): Evaluator = new EvaluatorImpl(
     allowPositionalCommandArgs,

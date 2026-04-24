@@ -3,7 +3,7 @@ package mill.api
 import mill.api.daemon.internal.{CompileProblemReporter, TestReporter}
 import mill.api.*
 import mill.api.daemon.Watchable
-import mill.api.internal.WorkspaceLocking
+import mill.api.daemon.internal.LauncherLocking
 import mill.api.BuildCtx
 import mill.api.daemon.internal.{EvaluatorApi, TaskApi}
 import mill.api.internal.{Located, Resolved, RootModule0}
@@ -37,11 +37,11 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def offline: Boolean
   private[mill] def isFinalDepth: Boolean = true
   private[mill] def useFileLocks: Boolean = false
-  private[mill] def workspaceLockManager: WorkspaceLocking.Manager =
-    WorkspaceLocking.NoopManager
+  private[mill] def workspaceLocking: LauncherLocking =
+    LauncherLocking.Noop
   private[mill] def withGlobalWorkspaceLocks[T](selectiveExecution: Boolean)(t: => T): T = {
     if (isFinalDepth && selectiveExecution)
-      workspaceLockManager.withSelectiveExecutionLock(outPath / OutFiles.millSelectiveExecution)(t)
+      workspaceLocking.withSelectiveExecutionLock((outPath / OutFiles.millSelectiveExecution).toNIO)(t)
     else t
   }
   private[mill] def staticBuildOverrides: Map[String, Located[internal.Appendable[BufferedValue]]] =
@@ -49,8 +49,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   // JSON string to avoid classloader issues when crossing classloader boundaries
   private[mill] def spanningInvalidationTree: Option[String] = None
   // Hash of the classloader signature (Mill jars + dependencies), used for selective execution
-  override private[mill] def classLoaderSigHash: Int = 0
-  override private[mill] def classLoaderIdentityHash: Int = 0
+  private[mill] def classLoaderSigHash: Int = 0
   def withBaseLogger(newBaseLogger: Logger): Evaluator
 
   def resolveSegments(

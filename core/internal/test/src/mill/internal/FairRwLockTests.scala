@@ -1,7 +1,7 @@
 package mill.internal
 
-import mill.api.internal.WorkspaceLocking
-import mill.api.internal.WorkspaceLocking.LockKind
+import mill.api.daemon.internal.LauncherLocking
+import mill.api.daemon.internal.LauncherLocking.LockKind
 import utest.*
 
 import java.io.{ByteArrayOutputStream, PrintStream}
@@ -17,7 +17,7 @@ object FairRwLockTests extends TestSuite {
 
       val first = lock.acquire(LockKind.Read, waitingErr, noWait = false)
       val secondAcquired = new CountDownLatch(1)
-      val secondLeaseRef = new AtomicReference[WorkspaceLocking.DowngradableLease]()
+      val secondLeaseRef = new AtomicReference[LauncherLocking.Lease]()
 
       val secondThread = new Thread(() => {
         secondLeaseRef.set(lock.acquire(LockKind.Read, waitingErr, noWait = false))
@@ -40,7 +40,7 @@ object FairRwLockTests extends TestSuite {
 
       val first = lock.acquire(LockKind.Write, waitingErr, noWait = false)
       val secondAcquired = new CountDownLatch(1)
-      val secondLeaseRef = new AtomicReference[WorkspaceLocking.DowngradableLease]()
+      val secondLeaseRef = new AtomicReference[LauncherLocking.Lease]()
 
       val secondThread = new Thread(() => {
         secondLeaseRef.set(lock.acquire(LockKind.Write, waitingErr, noWait = false))
@@ -67,8 +67,8 @@ object FairRwLockTests extends TestSuite {
       val writerAcquired = new CountDownLatch(1)
       val releaseWriter = new CountDownLatch(1)
       val secondReaderAcquired = new CountDownLatch(1)
-      val writerLeaseRef = new AtomicReference[WorkspaceLocking.DowngradableLease]()
-      val secondReaderLeaseRef = new AtomicReference[WorkspaceLocking.DowngradableLease]()
+      val writerLeaseRef = new AtomicReference[LauncherLocking.Lease]()
+      val secondReaderLeaseRef = new AtomicReference[LauncherLocking.Lease]()
 
       val writerThread = new Thread(() => {
         writerLeaseRef.set(lock.acquire(LockKind.Write, waitingErr, noWait = false))
@@ -103,7 +103,7 @@ object FairRwLockTests extends TestSuite {
       val waitingErr = new PrintStream(new ByteArrayOutputStream())
       val lock = new FairRwLock("cross-thread-write-close")
 
-      val acquiredLease = new AtomicReference[WorkspaceLocking.DowngradableLease]()
+      val acquiredLease = new AtomicReference[LauncherLocking.Lease]()
       val writerReady = new CountDownLatch(1)
       val writerThread = new Thread(() => {
         acquiredLease.set(lock.acquire(LockKind.Write, waitingErr, noWait = false))
@@ -113,7 +113,7 @@ object FairRwLockTests extends TestSuite {
       assert(writerReady.await(5, TimeUnit.SECONDS))
 
       val secondWriterAcquired = new CountDownLatch(1)
-      val secondWriterLeaseRef = new AtomicReference[WorkspaceLocking.DowngradableLease]()
+      val secondWriterLeaseRef = new AtomicReference[LauncherLocking.Lease]()
       val secondWriterThread = new Thread(() => {
         secondWriterLeaseRef.set(lock.acquire(LockKind.Write, waitingErr, noWait = false))
         secondWriterAcquired.countDown()
@@ -137,7 +137,7 @@ object FairRwLockTests extends TestSuite {
       val waitingErr = new PrintStream(new ByteArrayOutputStream())
       val lock = new FairRwLock("cross-thread-read-close")
 
-      val acquiredLease = new AtomicReference[WorkspaceLocking.DowngradableLease]()
+      val acquiredLease = new AtomicReference[LauncherLocking.Lease]()
       val readerReady = new CountDownLatch(1)
       val readerThread = new Thread(() => {
         acquiredLease.set(lock.acquire(LockKind.Read, waitingErr, noWait = false))
@@ -147,7 +147,7 @@ object FairRwLockTests extends TestSuite {
       assert(readerReady.await(5, TimeUnit.SECONDS))
 
       val writerAcquired = new CountDownLatch(1)
-      val writerLeaseRef = new AtomicReference[WorkspaceLocking.DowngradableLease]()
+      val writerLeaseRef = new AtomicReference[LauncherLocking.Lease]()
       val writerThread = new Thread(() => {
         writerLeaseRef.set(lock.acquire(LockKind.Write, waitingErr, noWait = false))
         writerAcquired.countDown()

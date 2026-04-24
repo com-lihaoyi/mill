@@ -1,6 +1,6 @@
 package mill.exec
 
-import mill.api.internal.WorkspaceLocking
+import mill.api.daemon.internal.LauncherOutFiles
 import mill.constants.OutFiles.OutFiles
 import mill.api.Task
 import mill.internal.{InvalidationForest, SpanningForest}
@@ -13,13 +13,13 @@ private object ExecutionLogs {
       interGroupDeps: Map[Task[?], Seq[Task[?]]],
       indexToTerminal: Array[Task[?]],
       outPath: os.Path,
-      workspaceLockManager: WorkspaceLocking.Manager
+      runArtifacts: LauncherOutFiles
   ): Unit = {
     val ( /*vertexToIndex*/ _, edgeIndices) =
       SpanningForest.graphMapToIndices(indexToTerminal, interGroupDeps)
 
     SpanningForest.writeJsonFile(
-      workspaceLockManager.artifactPath(outPath / OutFiles.millDependencyTree),
+      os.Path(runArtifacts.artifactPath((outPath / OutFiles.millDependencyTree).toNIO)),
       edgeIndices,
       indexToTerminal.indices.toSet,
       indexToTerminal(_).toString
@@ -28,7 +28,7 @@ private object ExecutionLogs {
   def logInvalidationTree(
       interGroupDeps: Map[Task[?], Seq[Task[?]]],
       outPath: os.Path,
-      workspaceLockManager: WorkspaceLocking.Manager,
+      runArtifacts: LauncherOutFiles,
       uncached: ConcurrentHashMap[Task[?], Unit],
       changedValueHash: ConcurrentHashMap[Task[?], Unit],
       // JSON string to avoid classloader issues when crossing classloader boundaries
@@ -55,7 +55,7 @@ private object ExecutionLogs {
     )
 
     os.write.over(
-      workspaceLockManager.artifactPath(outPath / OutFiles.millInvalidationTree),
+      os.Path(runArtifacts.artifactPath((outPath / OutFiles.millInvalidationTree).toNIO)),
       finalTree.render(indent = 2)
     )
   }

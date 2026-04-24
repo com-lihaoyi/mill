@@ -1,6 +1,6 @@
 package mill.internal
 
-import mill.api.internal.WorkspaceLocking
+import mill.api.daemon.internal.LauncherLocking
 import mill.constants.{DaemonFiles, OutFiles}
 import utest.*
 
@@ -15,7 +15,7 @@ object WorkspaceLockingTests extends TestSuite {
         val out = tmpDir / "out"
         os.makeDir.all(out)
 
-        val manager = new WorkspaceLockManager(
+        val manager = new LauncherLockSession(
           out = out,
           daemonDir = out / OutFiles.millDaemon,
           activeCommandMessage = "test-command",
@@ -94,7 +94,7 @@ object WorkspaceLockingTests extends TestSuite {
         val out = tmpDir / "out"
         os.makeDir.all(out)
 
-        val manager = new WorkspaceLockManager(
+        val manager = new LauncherLockSession(
           out = out,
           daemonDir = out / OutFiles.millDaemon,
           activeCommandMessage = "test-command",
@@ -105,7 +105,7 @@ object WorkspaceLockingTests extends TestSuite {
         )
         val launcherRunFile =
           out / OutFiles.millDaemon / os.RelPath(DaemonFiles.launcherRun(manager.runId))
-        val lease = manager.metaBuildLock(WorkspaceLocking.LockKind.Write)
+        val lease = manager.metaBuildLock(LauncherLocking.LockKind.Write)
         lease.downgradeToRead()
 
         manager.close()
@@ -122,7 +122,7 @@ object WorkspaceLockingTests extends TestSuite {
         os.makeDir.all(out)
 
         def manager(command: String, noWait: Boolean = false) =
-          new WorkspaceLockManager(
+          new LauncherLockSession(
             out = out,
             daemonDir = out / OutFiles.millDaemon,
             activeCommandMessage = command,
@@ -134,11 +134,11 @@ object WorkspaceLockingTests extends TestSuite {
 
         val resource = out / "close-release"
         val first = manager("first")
-        first.taskLock(resource, WorkspaceLocking.LockKind.Write)
+        first.taskLock(resource, LauncherLocking.LockKind.Write)
         first.close()
 
         val second = manager("second", noWait = true)
-        val secondLease = second.taskLock(resource, WorkspaceLocking.LockKind.Write)
+        val secondLease = second.taskLock(resource, LauncherLocking.LockKind.Write)
         secondLease.close()
         second.close()
       }
@@ -149,7 +149,7 @@ object WorkspaceLockingTests extends TestSuite {
         val out = tmpDir / "out"
         os.makeDir.all(out)
 
-        def manager(command: String) = new WorkspaceLockManager(
+        def manager(command: String) = new LauncherLockSession(
           out = out,
           daemonDir = out / OutFiles.millDaemon,
           activeCommandMessage = command,
@@ -182,7 +182,7 @@ object WorkspaceLockingTests extends TestSuite {
         val out = tmpDir / "out"
         os.makeDir.all(out)
 
-        val manager = new WorkspaceLockManager(
+        val manager = new LauncherLockSession(
           out = out,
           daemonDir = out / OutFiles.millDaemon,
           activeCommandMessage = "test-command",
@@ -230,7 +230,7 @@ object WorkspaceLockingTests extends TestSuite {
         val waitingBytes = new ByteArrayOutputStream()
         val waitingErr = new PrintStream(waitingBytes)
 
-        def manager(command: String) = new WorkspaceLockManager(
+        def manager(command: String) = new LauncherLockSession(
           out = out,
           daemonDir = out / OutFiles.millDaemon,
           activeCommandMessage = command,
@@ -244,15 +244,15 @@ object WorkspaceLockingTests extends TestSuite {
         val writerManager = manager("writer")
         val secondReaderManager = manager("second-reader")
         val resource = out / "fair-resource"
-        val firstReadLease = firstReaderManager.taskLock(resource, WorkspaceLocking.LockKind.Read)
+        val firstReadLease = firstReaderManager.taskLock(resource, LauncherLocking.LockKind.Read)
         val writerAcquired = new CountDownLatch(1)
         val releaseWriter = new CountDownLatch(1)
         val secondReaderAcquired = new CountDownLatch(1)
-        @volatile var writerLease: WorkspaceLocking.DowngradableLease = null
-        @volatile var secondReadLease: WorkspaceLocking.DowngradableLease = null
+        @volatile var writerLease: LauncherLocking.Lease = null
+        @volatile var secondReadLease: LauncherLocking.Lease = null
 
         val writerThread = new Thread(() => {
-          writerLease = writerManager.taskLock(resource, WorkspaceLocking.LockKind.Write)
+          writerLease = writerManager.taskLock(resource, LauncherLocking.LockKind.Write)
           writerAcquired.countDown()
           releaseWriter.await(5, TimeUnit.SECONDS)
           writerLease.close()
@@ -262,7 +262,7 @@ object WorkspaceLockingTests extends TestSuite {
         assertEventually(waitingBytes.size() > 0)
 
         val secondReaderThread = new Thread(() => {
-          secondReadLease = secondReaderManager.taskLock(resource, WorkspaceLocking.LockKind.Read)
+          secondReadLease = secondReaderManager.taskLock(resource, LauncherLocking.LockKind.Read)
           secondReaderAcquired.countDown()
         })
         secondReaderThread.start()
@@ -292,7 +292,7 @@ object WorkspaceLockingTests extends TestSuite {
         val waitingErr = new PrintStream(waitingBytes)
 
         def manager(command: String, noWait: Boolean = false) =
-          new WorkspaceLockManager(
+          new LauncherLockSession(
             out = out,
             daemonDir = out / OutFiles.millDaemon,
             activeCommandMessage = command,
@@ -306,13 +306,13 @@ object WorkspaceLockingTests extends TestSuite {
         val writerManager = manager("writer")
         val noWaitReaderManager = manager("no-wait-reader", noWait = true)
         val resource = out / "no-wait-fair-resource"
-        val firstReadLease = firstReaderManager.taskLock(resource, WorkspaceLocking.LockKind.Read)
+        val firstReadLease = firstReaderManager.taskLock(resource, LauncherLocking.LockKind.Read)
         val writerAcquired = new CountDownLatch(1)
         val releaseWriter = new CountDownLatch(1)
-        @volatile var writerLease: WorkspaceLocking.DowngradableLease = null
+        @volatile var writerLease: LauncherLocking.Lease = null
 
         val writerThread = new Thread(() => {
-          writerLease = writerManager.taskLock(resource, WorkspaceLocking.LockKind.Write)
+          writerLease = writerManager.taskLock(resource, LauncherLocking.LockKind.Write)
           writerAcquired.countDown()
           releaseWriter.await(5, TimeUnit.SECONDS)
           writerLease.close()
@@ -322,7 +322,7 @@ object WorkspaceLockingTests extends TestSuite {
 
         val ex =
           try {
-            noWaitReaderManager.taskLock(resource, WorkspaceLocking.LockKind.Read)
+            noWaitReaderManager.taskLock(resource, LauncherLocking.LockKind.Read)
             throw new java.lang.AssertionError("expected no-wait acquisition to fail")
           } catch {
             case e: Exception => e

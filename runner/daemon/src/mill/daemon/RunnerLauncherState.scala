@@ -4,7 +4,7 @@ import mill.api.Val
 import mill.api.JsonFormatters.*
 import mill.api.daemon.internal.{EvaluatorApi, internal, PathRefApi, TaskApi}
 import mill.api.daemon.Watchable
-import mill.api.internal.WorkspaceLocking
+import mill.api.daemon.internal.LauncherLocking
 import upickle.{ReadWriter, macroRW}
 
 /**
@@ -143,7 +143,7 @@ object RunnerLauncherState {
       evaluator: EvaluatorApi,
       evalWatched: Seq[Watchable],
       sharedFrame: RunnerSharedState.Frame,
-      metaBuildReadLease: Option[WorkspaceLocking.Lease] = None,
+      metaBuildReadLease: Option[LauncherLocking.Lease] = None,
       // Only populated on runs that refreshed the classloader at this depth.
       // Reused classloaders intentionally do not carry a stale invalidation tree forward.
       spanningInvalidationTree: Option[String] = None

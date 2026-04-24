@@ -3,7 +3,7 @@ package mill.daemon
 import mill.api.daemon.internal.bsp.BspServerHandle
 import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
 import mill.api.{Logger, MillException, Result, SystemStreams}
-import mill.api.internal.WorkspaceLocking
+import mill.api.daemon.internal.{LauncherOutFiles, LauncherLocking}
 import mill.bsp.BSP
 import mill.client.lock.{DoubleLock, Lock}
 import mill.constants.{DaemonFiles, OutFolderMode}
@@ -17,7 +17,7 @@ import mill.api.BuildCtx
     PrefixLogger,
     PromptLogger,
     BspLogger,
-    WorkspaceLockManager
+    LauncherLockSession
   }
 import mill.server.Server
 import mill.util.BuildInfo
@@ -265,8 +265,10 @@ object MillMain0 {
                           extraEnv: Seq[(String, String)] = Nil,
                           metaLevelOverride: Option[Int] = None
                       ): RunnerLauncherState = {
-                        def runWithLogger(manager: WorkspaceLocking.Manager)
-                            : RunnerLauncherState = {
+                        def runWithLogger(
+                            workspaceLocking: LauncherLocking,
+                            runArtifacts: LauncherOutFiles
+                        ): RunnerLauncherState = {
                           def proceed(logger: Logger): RunnerLauncherState = {
                             // Enter key pressed, removing mill-selective-execution.json to
                             // ensure all tasks re-run even though no inputs may have changed
@@ -275,11 +277,15 @@ object MillMain0 {
                             // because we still want to generate the selective execution metadata json
                             // for subsequent runs that may use it
                             if (skipSelectiveExecution)
-                              manager.withSelectiveExecutionLock(
-                                out / OutFiles.millSelectiveExecution
+                              workspaceLocking.withSelectiveExecutionLock(
+                                (out / OutFiles.millSelectiveExecution).toNIO
                               ) {
                                 os.remove(out / OutFiles.millSelectiveExecution)
                               }
+                            // Make this run's tail log + artifacts the ones `out/mill-*`
+                            // symlinks point at, so concurrent launchers waiting on locks
+                            // (and humans tailing the log) see the right file.
+                            runArtifacts.publishArtifacts()
                             mill.api.SystemStreamsUtils.withStreams(logger.streams) {
                               mill.api.FilesystemCheckerEnabled.withValue(
                                 !config.noFilesystemChecker.value
@@ -305,7 +311,8 @@ object MillMain0 {
                                     selectiveExecution = config.watch.value,
                                     offline = config.offline.value,
                                     useFileLocks = config.useFileLocks.value,
-                                    workspaceLockManager = manager,
+                                    workspaceLocking = workspaceLocking,
+                                    runArtifacts = runArtifacts,
                                     sharedState = sharedState,
                                     reporter = reporter,
                                     enableTicker = enableTicker
@@ -325,7 +332,7 @@ object MillMain0 {
                                 colored = colored,
                                 colors = colors,
                                 out = out,
-                                workspaceLockManager = manager,
+                                runArtifacts = runArtifacts,
                                 serverToClientOpt = serverToClientOpt
                               )) { logger =>
                                 proceed(logger)
@@ -333,23 +340,20 @@ object MillMain0 {
                           }
                         }
 
-                        def runWithLockManager(manager: WorkspaceLocking.Manager)
-                            : RunnerLauncherState =
+                        def runWithSession(session: LauncherLockSession): RunnerLauncherState =
                           try {
                             setIdle(false)
-                            val state = runWithLogger(manager)
-                            if (manager == WorkspaceLocking.NoopManager) state
-                            else state.withCloseable(manager)
+                            runWithLogger(session, session).withCloseable(session)
                           } catch {
                             case e: Throwable =>
-                              try manager.close()
+                              try session.close()
                               catch { case _: Throwable => }
                               throw e
                           }
 
                         if (serverToClientOpt.nonEmpty) {
-                          runWithLockManager(
-                            new WorkspaceLockManager(
+                          runWithSession(
+                            new LauncherLockSession(
                               out = out,
                               daemonDir = daemonDir,
                               activeCommandMessage = millActiveCommandMessage,
@@ -370,7 +374,8 @@ object MillMain0 {
                             outLock = outLock,
                             setIdle = setIdle
                           ) {
-                            runWithLockManager(WorkspaceLocking.NoopManager)
+                            setIdle(false)
+                            runWithLogger(LauncherLocking.Noop, LauncherOutFiles.Noop)
                           }
                         }
                       }
@@ -651,7 +656,7 @@ object MillMain0 {
       colored: Boolean,
       colors: Colors,
       out: os.Path,
-      workspaceLockManager: WorkspaceLocking.Manager,
+      runArtifacts: LauncherOutFiles,
       serverToClientOpt: Option[mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient]]
   ): Logger & AutoCloseable = {
     val cmdTitle = sys.props.get("mill.main.cli")
@@ -667,10 +672,12 @@ object MillMain0 {
       // Fallback
       .getOrElse("mill")
 
-    // Console log file for monitoring progress when another process is waiting
-    val consoleLogPath = workspaceLockManager match {
-      case WorkspaceLocking.NoopManager => out / DaemonFiles.millConsoleTail
-      case manager => manager.consoleTail
+    // Console log file for monitoring progress when another process is waiting.
+    // Noop routing returns a workspace-root-relative path (os.pwd fallback); in
+    // non-daemon mode we want the actual out/ location.
+    val consoleLogPath: os.Path = runArtifacts match {
+      case LauncherOutFiles.Noop => out / DaemonFiles.millConsoleTail
+      case _ => os.Path(runArtifacts.consoleTail)
     }
     val consoleLogStream = new RotatingConsoleLogOutputStream(consoleLogPath)
 
@@ -708,7 +715,7 @@ object MillMain0 {
       terminalDimsCallback = terminalDimsCallback,
       currentTimeMillis = () => System.currentTimeMillis(),
       chromeProfileLogger = new JsonArrayLogger.ChromeProfile(
-        workspaceLockManager.artifactPath(out / OutFiles.millChromeProfile)
+        os.Path(runArtifacts.artifactPath((out / OutFiles.millChromeProfile).toNIO))
       )
     )
     new PrefixLogger(promptLogger, Nil) with AutoCloseable {

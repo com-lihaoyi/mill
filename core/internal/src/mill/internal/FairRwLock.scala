@@ -1,6 +1,6 @@
 package mill.internal
 
-import mill.api.internal.WorkspaceLocking.{DowngradableLease, LockKind}
+import mill.api.daemon.internal.LauncherLocking.{Lease, LockKind}
 import mill.constants.DaemonFiles
 
 /**
@@ -28,7 +28,7 @@ private[mill] final class FairRwLock(label: String) {
       kind: LockKind,
       waitingErr: java.io.PrintStream,
       noWait: Boolean
-  ): DowngradableLease = acquire0(
+  ): Lease = acquire0(
     isWrite = kind == LockKind.Write,
     waitingErr = waitingErr,
     noWait = noWait
@@ -38,7 +38,7 @@ private[mill] final class FairRwLock(label: String) {
       isWrite: Boolean,
       waitingErr: java.io.PrintStream,
       noWait: Boolean
-  ): DowngradableLease = {
+  ): Lease = {
     val shouldWait = monitor.synchronized {
       val available = if (isWrite) canAcquireWrite else canAcquireRead
       if (available) false
@@ -76,7 +76,7 @@ private[mill] final class FairRwLock(label: String) {
       if (isWrite) writerActive = true
       else readerCount += 1
 
-      new DowngradableLease {
+      new Lease {
         private var closed = false
         private var readMode = !isWrite
 

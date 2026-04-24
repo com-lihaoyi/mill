@@ -2,7 +2,7 @@ package mill.exec
 
 import mill.api.ExecResult.{OuterStack, Success}
 import mill.api.*
-import mill.api.internal.WorkspaceLocking
+import mill.api.daemon.internal.LauncherLocking
 import mill.api.daemon.internal.NonFatal
 import mill.api.internal.{Appendable, Cached, Located}
 import mill.internal.{CodeSigUtils, FileLogger, MultiLogger}
@@ -188,8 +188,8 @@ trait GroupExecution {
 
   def offline: Boolean
   def useFileLocks: Boolean
-  def workspaceLockManager: WorkspaceLocking.Manager
-  def retainTerminalReadLock(lease: WorkspaceLocking.Lease): Unit
+  def workspaceLocking: LauncherLocking
+  def retainTerminalReadLock(lease: LauncherLocking.Lease): Unit
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
     CodeSigUtils.constructorHashSignatures(codeSignatures)
 
@@ -285,10 +285,10 @@ trait GroupExecution {
         // lease protects the per-task dest under out/mill-build from concurrent writers,
         // at the final depth it protects the per-task dest under out/.
         val retainedLeases = java.util.Collections.newSetFromMap(
-          new java.util.IdentityHashMap[WorkspaceLocking.DowngradableLease, java.lang.Boolean]
+          new java.util.IdentityHashMap[LauncherLocking.Lease, java.lang.Boolean]
         )
         def retainOrClose(
-            lease: WorkspaceLocking.DowngradableLease,
+            lease: LauncherLocking.Lease,
             shouldRetain: Boolean
         ): Unit =
           if (shouldRetain) {
@@ -299,13 +299,13 @@ trait GroupExecution {
             lease.close()
           }
 
-        def acquireTaskWriteLock(): WorkspaceLocking.DowngradableLease =
-          workspaceLockManager.taskLock(
-            GroupExecution.taskLockPath(labelled, outPath, externalOutPath),
-            WorkspaceLocking.LockKind.Write
+        def acquireTaskWriteLock(): LauncherLocking.Lease =
+          workspaceLocking.taskLock(
+            GroupExecution.taskLockPath(labelled, outPath, externalOutPath).toNIO,
+            LauncherLocking.LockKind.Write
           )
 
-        def withTaskWriteLock[T](t: WorkspaceLocking.DowngradableLease => T): T = {
+        def withTaskWriteLock[T](t: LauncherLocking.Lease => T): T = {
           val lease = acquireTaskWriteLock()
           try t(lease)
           catch {
@@ -356,9 +356,9 @@ trait GroupExecution {
           }
 
           val readLease =
-            workspaceLockManager.taskLock(
-              GroupExecution.taskLockPath(labelled, outPath, externalOutPath),
-              WorkspaceLocking.LockKind.Read
+            workspaceLocking.taskLock(
+              GroupExecution.taskLockPath(labelled, outPath, externalOutPath).toNIO,
+              LauncherLocking.LockKind.Read
             )
 
           val readLockedResult =

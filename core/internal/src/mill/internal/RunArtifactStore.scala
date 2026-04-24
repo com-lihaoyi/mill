@@ -6,7 +6,7 @@ import java.nio.file.StandardCopyOption
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 
-private object WorkspaceRunArtifacts {
+private object RunArtifactStore {
   private val nextTiebreaker = new AtomicLong(0L)
   val runRootDirName = "mill-run"
   private val maxRetainedRuns = 10

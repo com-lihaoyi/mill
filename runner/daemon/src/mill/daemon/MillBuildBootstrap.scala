@@ -17,7 +17,7 @@ import mill.api.internal.RootModule
 import mill.internal.PrefixLogger
 import mill.meta.{BootstrapRootModule, MillBuildRootModule}
 import mill.api.daemon.internal.CliImports
-import mill.api.internal.WorkspaceLocking
+import mill.api.daemon.internal.{LauncherOutFiles, LauncherLocking}
 import mill.meta.DiscoveredBuildFiles.findRootBuildFiles
 import mill.server.Server
 import mill.util.BuildInfo
@@ -69,7 +69,8 @@ class MillBuildBootstrap(
     selectiveExecution: Boolean,
     offline: Boolean,
     useFileLocks: Boolean,
-    workspaceLockManager: WorkspaceLocking.Manager,
+    workspaceLocking: LauncherLocking,
+    runArtifacts: LauncherOutFiles,
     sharedState: AtomicReference[RunnerSharedState],
     reporter: EvaluatorApi => Int => Option[CompileProblemReporter],
     enableTicker: Boolean
@@ -241,7 +242,8 @@ class MillBuildBootstrap(
       selectiveExecution = selectiveExecution,
       offline = offline,
       useFileLocks = useFileLocks,
-      workspaceLockManager = workspaceLockManager,
+      workspaceLocking = workspaceLocking,
+      runArtifacts = runArtifacts,
       workerCache = workerCache,
       codeSignatures = nestedSharedFrame.map(_.codeSignatures).getOrElse(Map.empty),
       // Pass spanning tree only from a classloader refresh in this launch.
@@ -303,7 +305,7 @@ class MillBuildBootstrap(
       evaluator: EvaluatorApi,
       depth: Int
   ): RunnerLauncherState = {
-    val writeLease = workspaceLockManager.metaBuildLock(WorkspaceLocking.LockKind.Write)
+    val writeLease = workspaceLocking.metaBuildLock(LauncherLocking.LockKind.Write)
     closeOnThrow(writeLease) {
       evaluateWithWatches(
         buildFileApi,
@@ -397,7 +399,7 @@ class MillBuildBootstrap(
 
           def launcherFrame(
               sharedFrame: RunnerSharedState.Frame,
-              lease: WorkspaceLocking.DowngradableLease,
+              lease: LauncherLocking.Lease,
               classLoaderChanged: Boolean
           ) = RunnerLauncherState.MetaBuildFrame(
             depth = depth,
@@ -500,7 +502,8 @@ object MillBuildBootstrap {
       selectiveExecution: Boolean,
       offline: Boolean,
       useFileLocks: Boolean,
-      workspaceLockManager: WorkspaceLocking.Manager,
+      workspaceLocking: LauncherLocking,
+      runArtifacts: LauncherOutFiles,
       workerCache: collection.mutable.Map[String, (Int, Val, TaskApi[?])],
       codeSignatures: Map[String, Int],
       // JSON string to avoid classloader issues when crossing classloader boundaries
@@ -551,7 +554,8 @@ object MillBuildBootstrap {
           () => evaluator,
           offline,
           useFileLocks,
-          workspaceLockManager,
+          workspaceLocking,
+          runArtifacts,
           staticBuildOverrideFiles,
           enableTicker,
           depth,

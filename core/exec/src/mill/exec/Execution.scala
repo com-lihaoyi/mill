@@ -1,7 +1,7 @@
 package mill.exec
 
 import mill.api.daemon.internal.*
-import mill.api.internal.WorkspaceLocking
+import mill.api.daemon.internal.{LauncherLocking, LauncherOutFiles}
 import mill.constants.OutFiles.OutFiles.millProfile
 import mill.api.*
 import mill.internal.{CodeSigUtils, JsonArrayLogger, PrefixLogger, SpanningForest}
@@ -33,7 +33,8 @@ case class Execution(
     getEvaluator: () => EvaluatorApi,
     offline: Boolean,
     useFileLocks: Boolean,
-    workspaceLockManager: WorkspaceLocking.Manager,
+    workspaceLocking: LauncherLocking,
+    runArtifacts: LauncherOutFiles,
     staticBuildOverrideFiles: Map[java.nio.file.Path, String],
     enableTicker: Boolean,
     depth: Int,
@@ -47,7 +48,7 @@ case class Execution(
   // Track nesting depth of executeTasks calls to only show final status on outermost call
   private val executionNestingDepth = new AtomicInteger(0)
   private val retainedTerminalReadLocks =
-    new java.util.concurrent.ConcurrentLinkedQueue[WorkspaceLocking.Lease]()
+    new java.util.concurrent.ConcurrentLinkedQueue[LauncherLocking.Lease]()
 
   // Lazily computed worker dependency graph, cached for the duration of the execution. It's
   // ok to take a snapshot of the cache, since the workerCache entries we may want to remove
@@ -78,7 +79,8 @@ case class Execution(
       getEvaluator: () => EvaluatorApi,
       offline: Boolean,
       useFileLocks: Boolean,
-      workspaceLockManager: WorkspaceLocking.Manager,
+      workspaceLocking: LauncherLocking,
+      runArtifacts: LauncherOutFiles,
       staticBuildOverrideFiles: Map[java.nio.file.Path, String],
       enableTicker: Boolean,
       depth: Int,
@@ -88,7 +90,7 @@ case class Execution(
   ) = this(
     baseLogger = baseLogger,
     profileLogger = new JsonArrayLogger.Profile(
-      workspaceLockManager.artifactPath(os.Path(outPath) / millProfile)
+      os.Path(runArtifacts.artifactPath((os.Path(outPath) / millProfile).toNIO))
     ),
     workspace = os.Path(workspace),
     outPath = os.Path(outPath),
@@ -106,7 +108,8 @@ case class Execution(
     getEvaluator = getEvaluator,
     offline = offline,
     useFileLocks = useFileLocks,
-    workspaceLockManager = workspaceLockManager,
+    workspaceLocking = workspaceLocking,
+    runArtifacts = runArtifacts,
     staticBuildOverrideFiles = staticBuildOverrideFiles,
     enableTicker = enableTicker,
     depth = depth,
@@ -128,7 +131,7 @@ case class Execution(
 
   def withIsFinalDepth(newIsFinalDepth: Boolean) = this.copy(isFinalDepth = newIsFinalDepth)
 
-  override def retainTerminalReadLock(lease: WorkspaceLocking.Lease): Unit =
+  override def retainTerminalReadLock(lease: LauncherLocking.Lease): Unit =
     retainedTerminalReadLocks.add(lease)
 
   /**
@@ -192,7 +195,7 @@ case class Execution(
         interGroupDeps,
         indexToTerminal,
         outPath,
-        workspaceLockManager
+        runArtifacts
       )
       // Prepare a lookup tables up front of all the method names that each class owns,
       // and the class hierarchy, so during evaluation it is cheap to look up what class
@@ -407,7 +410,7 @@ case class Execution(
       ExecutionLogs.logInvalidationTree(
         interGroupDeps = interGroupDeps,
         outPath = outPath,
-        workspaceLockManager = workspaceLockManager,
+        runArtifacts = runArtifacts,
         uncached = uncached,
         changedValueHash = changedValueHash,
         spanningInvalidationTree = spanningInvalidationTree,
