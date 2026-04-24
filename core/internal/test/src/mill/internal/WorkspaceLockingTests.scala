@@ -15,7 +15,7 @@ object WorkspaceLockingTests extends TestSuite {
         val out = tmpDir / "out"
         os.makeDir.all(out)
 
-        val manager = new InProcessWorkspaceLockManager(
+        val manager = new WorkspaceLockManager(
           out = out,
           daemonDir = out / OutFiles.millDaemon,
           activeCommandMessage = "test-command",
@@ -94,7 +94,7 @@ object WorkspaceLockingTests extends TestSuite {
         val out = tmpDir / "out"
         os.makeDir.all(out)
 
-        val manager = new InProcessWorkspaceLockManager(
+        val manager = new WorkspaceLockManager(
           out = out,
           daemonDir = out / OutFiles.millDaemon,
           activeCommandMessage = "test-command",
@@ -122,7 +122,7 @@ object WorkspaceLockingTests extends TestSuite {
         os.makeDir.all(out)
 
         def manager(command: String, noWait: Boolean = false) =
-          new InProcessWorkspaceLockManager(
+          new WorkspaceLockManager(
             out = out,
             daemonDir = out / OutFiles.millDaemon,
             activeCommandMessage = command,
@@ -149,7 +149,7 @@ object WorkspaceLockingTests extends TestSuite {
         val out = tmpDir / "out"
         os.makeDir.all(out)
 
-        def manager(command: String) = new InProcessWorkspaceLockManager(
+        def manager(command: String) = new WorkspaceLockManager(
           out = out,
           daemonDir = out / OutFiles.millDaemon,
           activeCommandMessage = command,
@@ -182,7 +182,7 @@ object WorkspaceLockingTests extends TestSuite {
         val out = tmpDir / "out"
         os.makeDir.all(out)
 
-        val manager = new InProcessWorkspaceLockManager(
+        val manager = new WorkspaceLockManager(
           out = out,
           daemonDir = out / OutFiles.millDaemon,
           activeCommandMessage = "test-command",
@@ -230,7 +230,7 @@ object WorkspaceLockingTests extends TestSuite {
         val waitingBytes = new ByteArrayOutputStream()
         val waitingErr = new PrintStream(waitingBytes)
 
-        def manager(command: String) = new InProcessWorkspaceLockManager(
+        def manager(command: String) = new WorkspaceLockManager(
           out = out,
           daemonDir = out / OutFiles.millDaemon,
           activeCommandMessage = command,
@@ -292,7 +292,7 @@ object WorkspaceLockingTests extends TestSuite {
         val waitingErr = new PrintStream(waitingBytes)
 
         def manager(command: String, noWait: Boolean = false) =
-          new InProcessWorkspaceLockManager(
+          new WorkspaceLockManager(
             out = out,
             daemonDir = out / OutFiles.millDaemon,
             activeCommandMessage = command,

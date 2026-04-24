@@ -5,7 +5,7 @@ import mill.api.internal.{WorkpaceLockingUtils, WorkspaceLocking, WorkspaceRunAr
 import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicBoolean
 
-private[mill] final class InProcessWorkspaceLockManager(
+private[mill] final class WorkspaceLockManager(
     out: os.Path,
     daemonDir: os.Path,
     activeCommandMessage: String,
