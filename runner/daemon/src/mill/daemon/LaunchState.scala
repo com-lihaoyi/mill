@@ -15,12 +15,11 @@ import upickle.{ReadWriter, macroRW}
  *
  * A [[LaunchState]] carries:
  *
- * - [[metaBuildOverlays]] — indexed by meta-build depth; [[MetaBuildOverlay.empty]]
- *   fills depths this launcher did not produce an overlay for. Each populated
- *   overlay points at the [[SharedMetaBuildState.ReusableFrame]] this launcher
- *   actually used (not necessarily the currently-published one, which another
- *   launcher may have replaced since), plus this launcher's evaluator, watches,
- *   and meta-build read lease.
+ * - [[metaBuildOverlays]] — keyed by meta-build depth; only populated depths
+ *   appear. Each overlay points at the [[SharedMetaBuildState.ReusableFrame]]
+ *   this launcher actually used (not necessarily the currently-published one,
+ *   which another launcher may have replaced since), plus this launcher's
+ *   evaluator, watches, and meta-build read lease.
  * - [[finalFrame]] — depth + [[FinalFrame]] for the level where user-visible
  *   tasks ran. At most one.
  * - [[buildFile]] / [[bootstrapEvalWatched]] — per-launcher bootstrap-derived
@@ -41,26 +40,17 @@ case class LaunchState(
     // Watches captured during bootstrap module instantiation. Tracked separately because
     // a bootstrap failure produces no overlays to carry them.
     bootstrapEvalWatched: Seq[Watchable] = Nil,
-    metaBuildOverlays: Seq[LaunchState.MetaBuildOverlay] = Nil,
+    metaBuildOverlays: Map[Int, LaunchState.MetaBuildOverlay] = Map.empty,
     finalFrame: Option[(Int, LaunchState.FinalFrame)] = None,
     closeables: Seq[AutoCloseable] = Nil
 ) extends Watching.Result
     with AutoCloseable {
   import LaunchState.*
 
-  def withMetaBuildOverlay(depth: Int, overlay: MetaBuildOverlay): LaunchState = {
-    require(depth >= 0, s"depth must be non-negative, got $depth")
-    copy(metaBuildOverlays =
-      metaBuildOverlays.padTo(depth + 1, MetaBuildOverlay.empty).updated(depth, overlay))
-  }
+  def withMetaBuildOverlay(depth: Int, overlay: MetaBuildOverlay): LaunchState =
+    copy(metaBuildOverlays = metaBuildOverlays.updated(depth, overlay))
 
-  def overlayAt(depth: Int): Option[MetaBuildOverlay] =
-    if (depth < 0) None else metaBuildOverlays.lift(depth).filter(_.nonEmpty)
-
-  def overlaysWithDepth: Seq[(Int, MetaBuildOverlay)] =
-    metaBuildOverlays.zipWithIndex.collect {
-      case (o, d) if o.nonEmpty => d -> o
-    }
+  def overlayAt(depth: Int): Option[MetaBuildOverlay] = metaBuildOverlays.get(depth)
 
   def withFinalFrame(depth: Int, frame: FinalFrame): LaunchState =
     copy(finalFrame = Some(depth -> frame))
@@ -80,7 +70,7 @@ case class LaunchState(
 
   /** All watches this launcher accumulated — drives `--watch` re-runs. */
   def watched: Seq[Watchable] =
-    metaBuildOverlays.flatMap(o => o.evalWatched ++ o.moduleWatched) ++
+    sortedOverlays.flatMap { case (_, o) => o.evalWatched ++ o.moduleWatched } ++
       finalFrame.toSeq.flatMap { case (_, f) => f.evalWatched ++ f.moduleWatched } ++
       bootstrapEvalWatched
 
@@ -90,7 +80,11 @@ case class LaunchState(
    * in order and expect the workspace evaluator at `headOption`.
    */
   def allEvaluators: Seq[EvaluatorApi] =
-    finalFrame.map(_._2.evaluator).toSeq ++ metaBuildOverlays.flatMap(_.evaluator)
+    finalFrame.map(_._2.evaluator).toSeq ++ sortedOverlays.map(_._2.evaluator)
+
+  /** Overlays sorted shallowest-to-deepest. */
+  def sortedOverlays: Seq[(Int, MetaBuildOverlay)] =
+    metaBuildOverlays.toSeq.sortBy(_._1)
 
   override def close(): Unit = {
     // Evaluators stay alive after bootstrap evaluation so BSP/IDE follow-up can
@@ -104,7 +98,7 @@ case class LaunchState(
     // closeables (e.g. the workspace lock manager itself).
     closeAll(
       allEvaluators.distinct ++
-        metaBuildOverlays.flatMap(_.metaBuildReadLease) ++
+        sortedOverlays.flatMap { case (_, o) => o.metaBuildReadLease } ++
         closeables
     )
   }
@@ -141,34 +135,20 @@ object LaunchState {
    */
   @internal
   case class MetaBuildOverlay(
+      evaluator: EvaluatorApi,
+      evalWatched: Seq[Watchable],
+      moduleWatched: Seq[Watchable],
       reusable: Option[SharedMetaBuildState.ReusableFrame] = None,
-      evaluator: Option[EvaluatorApi] = None,
-      evalWatched: Seq[Watchable] = Nil,
-      moduleWatched: Seq[Watchable] = Nil,
       metaBuildReadLease: Option[WorkspaceLocking.Lease] = None
-  ) {
-    def nonEmpty: Boolean =
-      reusable.nonEmpty ||
-        evaluator.nonEmpty ||
-        evalWatched.nonEmpty ||
-        moduleWatched.nonEmpty ||
-        metaBuildReadLease.nonEmpty
-  }
+  )
 
   object MetaBuildOverlay {
-    def empty: MetaBuildOverlay = MetaBuildOverlay()
-
     /** An overlay for a meta-build that failed to compile: no [[SharedMetaBuildState.ReusableFrame]]. */
     def failed(
         evaluator: EvaluatorApi,
         evalWatched: Seq[Watchable],
         moduleWatched: Seq[Watchable]
-    ): MetaBuildOverlay = MetaBuildOverlay(
-      reusable = None,
-      evaluator = Some(evaluator),
-      evalWatched = evalWatched,
-      moduleWatched = moduleWatched
-    )
+    ): MetaBuildOverlay = MetaBuildOverlay(evaluator, evalWatched, moduleWatched)
   }
 
   /**

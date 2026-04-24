@@ -8,14 +8,13 @@ import mill.api.internal.RootModule
 /**
  * Daemon-wide state shared across concurrent launchers, held in an
  * `AtomicReference[SharedMetaBuildState]` on [[MillDaemonMain0]]. Contains only
- * data that is deterministic in the meta-build source and safe to share:
+ * data that is deterministic in the meta-build source and safe to share.
  *
- * - [[frames]] is indexed by meta-build depth. [[SharedMetaBuildState.Frame.empty]]
- *   fills depths that have no published frame yet. Writes are sequenced by a
- *   single process-wide meta-build write lock (see
- *   [[mill.api.daemon.WorkspaceLocking.metaBuildResource]]); concurrent
- *   launchers can read while a writer holds the lock only after it downgrades
- *   to read, which happens after the frame is installed here.
+ * - [[frames]] is keyed by meta-build depth; absent entries simply mean "nothing
+ *   published at that depth yet". Writes are sequenced by a single process-wide
+ *   meta-build write lock (see [[mill.api.daemon.WorkspaceLocking.metaBuildResource]]);
+ *   concurrent launchers can read while a writer holds the lock only after it
+ *   downgrades to read, which happens after the frame is installed here.
  *
  * Each [[SharedMetaBuildState.Frame]] carries:
  * - [[SharedMetaBuildState.Frame.reusable]]: the currently-published
@@ -32,32 +31,28 @@ import mill.api.internal.RootModule
  */
 @internal
 case class SharedMetaBuildState(
-    frames: Seq[SharedMetaBuildState.Frame] = Nil,
+    frames: Map[Int, SharedMetaBuildState.Frame] = Map.empty,
     bootstrapModule: Option[RootModule] = None,
     bootstrapBuildFile: Option[String] = None
 ) {
   import SharedMetaBuildState.*
 
   def frameAt(depth: Int): Option[ReusableFrame] =
-    if (depth < 0) None else frames.lift(depth).flatMap(_.reusable)
+    frames.get(depth).flatMap(_.reusable)
 
   def moduleWatchedAt(depth: Int): Option[Seq[Watchable]] =
-    if (depth < 0) None else frames.lift(depth).flatMap(_.moduleWatched)
+    frames.get(depth).flatMap(_.moduleWatched)
 
   def withFrame(depth: Int, frame: ReusableFrame): SharedMetaBuildState =
-    copy(frames = updateAt(depth, _.copy(reusable = Some(frame))))
+    copy(frames = frames.updated(depth, at(depth).copy(reusable = Some(frame))))
 
   def withModuleWatched(depth: Int, watched: Seq[Watchable]): SharedMetaBuildState =
-    copy(frames = updateAt(depth, _.copy(moduleWatched = Some(watched))))
+    copy(frames = frames.updated(depth, at(depth).copy(moduleWatched = Some(watched))))
 
   def withBootstrap(module: RootModule, buildFile: String): SharedMetaBuildState =
     copy(bootstrapModule = Some(module), bootstrapBuildFile = Some(buildFile))
 
-  private def updateAt(depth: Int, f: Frame => Frame): Seq[Frame] = {
-    require(depth >= 0, s"depth must be non-negative, got $depth")
-    val padded = frames.padTo(depth + 1, Frame.empty)
-    padded.updated(depth, f(padded(depth)))
-  }
+  private def at(depth: Int): Frame = frames.getOrElse(depth, Frame())
 }
 
 object SharedMetaBuildState {
@@ -68,12 +63,7 @@ object SharedMetaBuildState {
   case class Frame(
       reusable: Option[ReusableFrame] = None,
       moduleWatched: Option[Seq[Watchable]] = None
-  ) {
-    def nonEmpty: Boolean = reusable.nonEmpty || moduleWatched.nonEmpty
-  }
-  object Frame {
-    def empty: Frame = Frame()
-  }
+  )
 
   /**
    * The deterministic meta-build outputs at a given depth: classloader, compiled
