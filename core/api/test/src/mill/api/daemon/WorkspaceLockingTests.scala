@@ -110,7 +110,7 @@ object WorkspaceLockingTests extends TestSuite {
         val launcherRunFile =
           out / OutFiles.millDaemon / os.RelPath(DaemonFiles.launcherRun(manager.runId))
         val lease = manager.acquireLock(
-          WorkspaceLocking.metaBuildResource(0, WorkspaceLocking.LockKind.Write)
+          WorkspaceLocking.metaBuildResource(WorkspaceLocking.LockKind.Write)
         )
         lease.downgradeToRead()
 

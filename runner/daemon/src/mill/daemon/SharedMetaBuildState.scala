@@ -3,6 +3,7 @@ package mill.daemon
 import mill.api.MillURLClassLoader
 import mill.api.daemon.Watchable
 import mill.api.daemon.internal.{PathRefApi, internal}
+import mill.api.internal.RootModule
 
 /**
  * Daemon-wide state shared across concurrent launchers, held in an
@@ -10,11 +11,11 @@ import mill.api.daemon.internal.{PathRefApi, internal}
  * data that is deterministic in the meta-build source and safe to share:
  *
  * - [[frames]] is indexed by meta-build depth. [[SharedMetaBuildState.Frame.empty]]
- *   fills depths that have no published frame yet. Writes to a given depth are
- *   sequenced by the per-depth meta-build write lock in
- *   [[mill.api.daemon.WorkspaceLocking]]; concurrent launchers can read while a
- *   writer holds the lock only after it downgrades to read, which happens after
- *   the frame is installed here.
+ *   fills depths that have no published frame yet. Writes are sequenced by a
+ *   single process-wide meta-build write lock (see
+ *   [[mill.api.daemon.WorkspaceLocking.metaBuildResource]]); concurrent
+ *   launchers can read while a writer holds the lock only after it downgrades
+ *   to read, which happens after the frame is installed here.
  *
  * Each [[SharedMetaBuildState.Frame]] carries:
  * - [[SharedMetaBuildState.Frame.reusable]]: the currently-published
@@ -23,10 +24,17 @@ import mill.api.daemon.internal.{PathRefApi, internal}
  *   recorded by the most recent launcher to run at that depth. A later launcher
  *   consults it to decide whether anything watched under the currently-published
  *   classloader has changed, which in turn is a reason to refresh the classloader.
+ *
+ * [[bootstrapModule]] / [[bootstrapBuildFile]] cache the in-process bootstrap
+ * module across launchers, keyed by the build file name so a rename invalidates
+ * the cached instance. Populated only on successful bootstrap; on failure the
+ * slots stay empty so the next launcher retries.
  */
 @internal
 case class SharedMetaBuildState(
-    frames: Seq[SharedMetaBuildState.Frame] = Nil
+    frames: Seq[SharedMetaBuildState.Frame] = Nil,
+    bootstrapModule: Option[RootModule] = None,
+    bootstrapBuildFile: Option[String] = None
 ) {
   import SharedMetaBuildState.*
 
@@ -41,6 +49,9 @@ case class SharedMetaBuildState(
 
   def withModuleWatched(depth: Int, watched: Seq[Watchable]): SharedMetaBuildState =
     copy(frames = updateAt(depth, _.copy(moduleWatched = Some(watched))))
+
+  def withBootstrap(module: RootModule, buildFile: String): SharedMetaBuildState =
+    copy(bootstrapModule = Some(module), bootstrapBuildFile = Some(buildFile))
 
   private def updateAt(depth: Int, f: Frame => Frame): Seq[Frame] = {
     require(depth >= 0, s"depth must be non-negative, got $depth")

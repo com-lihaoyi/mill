@@ -47,8 +47,8 @@ object WorkspaceLocking {
   def globalFileResource(path: java.nio.file.Path, kind: LockKind): Resource =
     Resource(s"global:${path.toAbsolutePath.normalize()}", kind)
 
-  def metaBuildResource(depth: Int, kind: LockKind): Resource =
-    Resource(s"meta-build:$depth", kind)
+  def metaBuildResource(kind: LockKind): Resource =
+    Resource("meta-build", kind)
 
   object NoopManager extends Manager {
     override def runId: String = "noop"

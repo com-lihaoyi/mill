@@ -46,11 +46,11 @@ import scala.collection.mutable.Buffer
  * on refresh.
  *
  * When a subsequent evaluation happens, each level of [[evaluateRec]] serializes
- * meta-build compilation under the per-depth write lock, then downgrades to a
- * read lease once the reusable frame has been finalized and published. That
- * keeps the compiled outputs, classloader creation, and shared-state publish in
- * one critical section while still allowing downstream readers to share the
- * published classloader.
+ * meta-build compilation under a single process-wide meta-build write lock
+ * (shared across all depths), then downgrades to a read lease once the reusable
+ * frame has been finalized and published. That keeps compiled outputs,
+ * classloader creation, and shared-state publish in one critical section while
+ * still allowing downstream readers to share the published classloader.
  */
 class MillBuildBootstrap(
     topLevelProjectRoot: os.Path,
@@ -128,7 +128,7 @@ class MillBuildBootstrap(
       nestedState
     } else {
       val rootModuleRes = nestedState.overlayAt(depth + 1) match {
-        case None => Result.Success(BuildFileApi.Bootstrap(nestedState.bootstrapModuleOpt.get))
+        case None => Result.Success(BuildFileApi.Bootstrap(sharedState.get().bootstrapModule.get))
         case Some(nestedOverlay) =>
           getRootModule(nestedOverlay.reusable.get.classLoader)
       }
@@ -176,17 +176,24 @@ class MillBuildBootstrap(
 
   private def makeBootstrapState(currentRoot: os.Path): LaunchState = {
     val (useDummy, foundRootBuildFileName) = findRootBuildFiles(topLevelProjectRoot)
-
-    val (mod, error) = makeBootstrapModule(currentRoot, foundRootBuildFileName, useDummy) match {
-      case Result.Success(bootstrapModule) => (Some(bootstrapModule), None)
-      case f: Result.Failure => (None, Some(Util.formatError(f, logger.prompt.errorColor)))
-    }
-
     val bootstrapEvalWatched =
       Watchable.Path.from(PathRef(topLevelProjectRoot / foundRootBuildFileName))
 
+    // Reuse the daemon-cached bootstrap module when it was built against the
+    // same build file; otherwise (re)construct and publish it. Caching only
+    // happens on success, so a bootstrap failure leaves the slot empty and the
+    // next launcher retries.
+    val alreadyCached = sharedState.get().bootstrapBuildFile.contains(foundRootBuildFileName)
+    val error =
+      if (alreadyCached) None
+      else makeBootstrapModule(currentRoot, foundRootBuildFileName, useDummy) match {
+        case Result.Success(bootstrapModule) =>
+          sharedState.updateAndGet(_.withBootstrap(bootstrapModule, foundRootBuildFileName))
+          None
+        case f: Result.Failure => Some(Util.formatError(f, logger.prompt.errorColor))
+      }
+
     LaunchState(
-      bootstrapModuleOpt = mod,
       errorOpt = error,
       buildFile = Some(foundRootBuildFileName),
       bootstrapEvalWatched = Seq(bootstrapEvalWatched)
@@ -296,7 +303,7 @@ class MillBuildBootstrap(
       depth: Int
   ): LaunchState = {
     def acquireMetaBuildLock(kind: WorkspaceLocking.LockKind) =
-      workspaceLockManager.acquireLock(WorkspaceLocking.metaBuildResource(depth, kind))
+      workspaceLockManager.acquireLock(WorkspaceLocking.metaBuildResource(kind))
 
     val writeLease = acquireMetaBuildLock(WorkspaceLocking.LockKind.Write)
     closeOnThrow(writeLease) {

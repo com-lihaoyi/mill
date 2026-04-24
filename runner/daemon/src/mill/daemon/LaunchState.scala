@@ -3,7 +3,6 @@ package mill.daemon
 import mill.api.Val
 import mill.api.JsonFormatters.*
 import mill.api.daemon.internal.{EvaluatorApi, internal, PathRefApi, TaskApi}
-import mill.api.internal.RootModule
 import mill.api.daemon.Watchable
 import mill.api.daemon.WorkspaceLocking
 import upickle.{ReadWriter, macroRW}
@@ -24,9 +23,11 @@ import upickle.{ReadWriter, macroRW}
  *   and meta-build read lease.
  * - [[finalFrame]] — depth + [[FinalFrame]] for the level where user-visible
  *   tasks ran. At most one.
- * - [[bootstrapModuleOpt]] / [[buildFile]] / [[bootstrapEvalWatched]] — state
- *   from bootstrap module instantiation, tracked separately so a bootstrap
- *   failure still surfaces its watches.
+ * - [[buildFile]] / [[bootstrapEvalWatched]] — per-launcher bootstrap-derived
+ *   info (the root build file name found on disk and the [[Watchable]] for it).
+ *   Tracked here so `--watch` can still surface the build file even when
+ *   bootstrap fails. The actual bootstrap module lives on [[SharedMetaBuildState]],
+ *   since it is deterministic in the workspace and cheap to share across launchers.
  * - [[closeables]] — additional per-launcher resources (e.g. the workspace
  *   lock manager) closed when the state is closed.
  *
@@ -35,7 +36,6 @@ import upickle.{ReadWriter, macroRW}
  */
 @internal
 case class LaunchState(
-    bootstrapModuleOpt: Option[RootModule] = None,
     errorOpt: Option[String] = None,
     buildFile: Option[String] = None,
     // Watches captured during bootstrap module instantiation. Tracked separately because
