@@ -121,7 +121,7 @@ class UnitTester(
     if (effectiveThreadCount == 1) None
     else Some(mill.exec.ExecutionContexts.createExecutor(effectiveThreadCount))
 
-  val execution = mill.exec.Execution(
+  val execution = new mill.exec.Execution(
     baseLogger = new mill.internal.PrefixLogger(logger, Nil),
     profileLogger = new mill.internal.JsonArrayLogger.Profile(outPath / millProfile),
     workspace = module.moduleDir,
@@ -142,8 +142,8 @@ class UnitTester(
     offline = offline,
     useFileLocks = false,
     workspaceLockManager = mill.api.daemon.WorkspaceLocking.NoopManager,
-    staticBuildOverrideFiles = Map(),
     enableTicker = false,
+    staticBuildOverrideFiles = Map(),
     depth = 0,
     isFinalDepth = true,
     spanningInvalidationTree = None
