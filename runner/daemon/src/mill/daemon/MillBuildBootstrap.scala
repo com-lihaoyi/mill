@@ -38,10 +38,10 @@ import scala.collection.mutable.Buffer
  *
  * When Mill is run in client-server mode, or with `--watch`, then reusable
  * meta-build data is shared across concurrent launchers via the per-daemon
- * [[sharedState]] (a [[SharedMetaBuildState]] holding the deterministic
- * [[SharedMetaBuildState.ReusableFrame]] at each depth, plus per-depth
+ * [[sharedState]] (a [[SharedRunnerState]] holding the deterministic
+ * [[SharedRunnerState.ReusableFrame]] at each depth, plus per-depth
  * module-watch snapshots). Per-launcher state — evaluators, watches, meta-build
- * read leases — is kept in [[prevCommandState]] and the returned [[LaunchState]]
+ * read leases — is kept in [[prevCommandState]] and the returned [[LauncherRunnerState]]
  * so a subsequent watch iteration can pick up fallback classloaders to close
  * on refresh.
  *
@@ -60,7 +60,7 @@ class MillBuildBootstrap(
     env: Map[String, String],
     ec: Option[ThreadPoolExecutor],
     tasksAndParams: Seq[String],
-    prevCommandState: LaunchState,
+    prevCommandState: LauncherRunnerState,
     logger: Logger,
     requestedMetaLevel: Option[Int],
     allowPositionalCommandArgs: Boolean,
@@ -70,7 +70,7 @@ class MillBuildBootstrap(
     offline: Boolean,
     useFileLocks: Boolean,
     workspaceLockManager: WorkspaceLocking.Manager,
-    sharedState: AtomicReference[SharedMetaBuildState],
+    sharedState: AtomicReference[SharedRunnerState],
     reporter: EvaluatorApi => Int => Option[CompileProblemReporter],
     enableTicker: Boolean
 ) { outer =>
@@ -79,35 +79,31 @@ class MillBuildBootstrap(
   val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(output)
   val millBootClasspathPathRefs: Seq[PathRef] = millBootClasspath.map(PathRef(_, quick = true))
 
-  def evaluate(): LaunchState = CliImports.withValue(imports) {
-    val launchState = evaluateRec(0)
-    closeOnThrow(launchState) {
+  def evaluate(): LauncherRunnerState = CliImports.withValue(imports) {
+    val LauncherRunnerState = evaluateRec(0)
+    closeOnThrow(LauncherRunnerState) {
       // Meta-build overlay logs go to shared canonical paths. Writes are idempotent
       // because the content is deterministic for a given published classloader —
       // concurrent launchers racing on the same path produce the same bytes.
       // Final-frame logs go to the same convention; concurrent launchers overwrite
       // each other's data at the final depth, which is acceptable since the log is
       // only consumed by the writer for debugging and by tests.
-      def write(depth: Int, logged: LaunchState.Frame.Logged): Unit =
+      def write(depth: Int, logged: LauncherRunnerState.Frame.Logged): Unit =
         os.write.over(
           recOut(output, depth) / millRunnerState,
           upickle.write(logged, indent = 4),
           createFolders = true
         )
-      for ((depth, overlay) <- launchState.sortedOverlays)
-        write(depth, LaunchState.Frame.loggedForMetaBuild(overlay))
-      for ((depth, frame) <- launchState.finalFrame)
-        write(depth, LaunchState.Frame.loggedForFinal(frame))
+      for (frame <- LauncherRunnerState.metaBuildFrames)
+        write(frame.depth, LauncherRunnerState.Frame.loggedForMetaBuild(frame))
+      for (frame <- LauncherRunnerState.finalFrame)
+        write(frame.depth, LauncherRunnerState.Frame.loggedForFinal(frame))
 
-      launchState
+      LauncherRunnerState
     }
   }
 
-  /** Total depths already processed in `nestedState`: overlays + final frame. */
-  private def processedDepths(state: LaunchState): Int =
-    state.FrameDatas.size + state.finalFrame.size
-
-  def evaluateRec(depth: Int): LaunchState = logger.withChromeProfile(s"meta-level $depth") {
+  def evaluateRec(depth: Int): LauncherRunnerState = logger.withChromeProfile(s"meta-level $depth") {
     // println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
     val currentRoot = recRoot(topLevelProjectRoot, depth)
 
@@ -115,7 +111,7 @@ class MillBuildBootstrap(
       if (containsBuildFile(currentRoot)) evaluateRec(depth + 1)
       else makeBootstrapState(currentRoot)
 
-    val nestedDepths = processedDepths(nestedState)
+    val nestedDepths = nestedState.processedDepths
     val requestedDepth = computeRequestedDepth(requestedMetaLevel, depth, nestedDepths)
 
     // If an earlier frame errored out, just propagate the error to this frame
@@ -127,10 +123,10 @@ class MillBuildBootstrap(
       // Final tasks already ran at a deeper level (--meta-level or @nonBootstrapped); nothing to do here.
       nestedState
     } else {
-      val rootModuleRes = nestedState.overlayAt(depth + 1) match {
+      val rootModuleRes = nestedState.metaBuildFrames.headOption match {
         case None => Result.Success(BuildFileApi.Bootstrap(sharedState.get().bootstrapModule.get))
-        case Some(nestedOverlay) =>
-          getRootModule(nestedOverlay.reusable.get.classLoader)
+        case Some(nestedFrame) =>
+          getRootModule(nestedFrame.reusable.get.classLoader)
       }
 
       rootModuleRes match {
@@ -138,9 +134,9 @@ class MillBuildBootstrap(
           nestedState.withError(Util.formatError(f, logger.prompt.errorColor))
 
         case Result.Success(buildFileApi) =>
-          // The returned LaunchState may hand these evaluators to BSP/IDE follow-up
+          // The returned LauncherRunnerState may hand these evaluators to BSP/IDE follow-up
           // work after bootstrap evaluation completes, so keep them alive on success
-          // and let LaunchState.close() own their cleanup.
+          // and let LauncherRunnerState.close() own their cleanup.
           val evaluator = makeEvaluator(nestedState, buildFileApi.rootModule, depth)
           closeOnThrow(evaluator) {
             // Check if all requested tasks are @nonBootstrapped
@@ -174,7 +170,7 @@ class MillBuildBootstrap(
     }
   }
 
-  private def makeBootstrapState(currentRoot: os.Path): LaunchState = {
+  private def makeBootstrapState(currentRoot: os.Path): LauncherRunnerState = {
     val (useDummy, foundRootBuildFileName) = findRootBuildFiles(topLevelProjectRoot)
     val bootstrapEvalWatched =
       Watchable.Path.from(PathRef(topLevelProjectRoot / foundRootBuildFileName))
@@ -193,7 +189,7 @@ class MillBuildBootstrap(
         case f: Result.Failure => Some(Util.formatError(f, logger.prompt.errorColor))
       }
 
-    LaunchState(
+    LauncherRunnerState(
       errorOpt = error,
       buildFile = Some(foundRootBuildFileName),
       bootstrapEvalWatched = Seq(bootstrapEvalWatched)
@@ -201,7 +197,7 @@ class MillBuildBootstrap(
   }
 
   def makeEvaluator(
-      nestedState: LaunchState,
+      nestedState: LauncherRunnerState,
       rootModule: RootModuleApi,
       depth: Int
   ): EvaluatorApi = {
@@ -212,7 +208,8 @@ class MillBuildBootstrap(
     // The classloader that will load the code at this depth lives on the meta-build
     // frame one level deeper (depth + 1). If there is no such frame, we're loading
     // from bootstrap and have no prior classloader to reference.
-    val nestedReusable = nestedState.overlayAt(depth + 1).flatMap(_.reusable)
+    val nestedMetaBuildFrame = nestedState.metaBuildFrames.headOption
+    val nestedReusable = nestedMetaBuildFrame.flatMap(_.reusable)
 
     val staticBuildOverrideFiles =
       staticBuildOverrides0.toSeq ++ nestedReusable.fold(Map.empty)(_.buildOverrideFiles)
@@ -243,8 +240,8 @@ class MillBuildBootstrap(
       workspaceLockManager = workspaceLockManager,
       workerCache = workerCache,
       codeSignatures = nestedReusable.map(_.codeSignatures).getOrElse(Map.empty),
-      // Pass spanning tree from the frame - only populated when classloader changed
-      spanningInvalidationTree = nestedReusable.map(_.spanningInvalidationTree),
+      // Pass spanning tree only from a classloader refresh in this launch.
+      spanningInvalidationTree = nestedMetaBuildFrame.flatMap(_.spanningInvalidationTree),
       rootModule = rootModule,
       // Use the current frame's runClasspath (includes mvnDeps and Mill jars) but filter out
       // compile.dest and generatedScriptSources.dest since build code changes are handled
@@ -297,11 +294,11 @@ class MillBuildBootstrap(
    * inside to be re-JITed
    */
   def processRunClasspath(
-      nestedState: LaunchState,
+      nestedState: LauncherRunnerState,
       buildFileApi: BuildFileApi,
       evaluator: EvaluatorApi,
       depth: Int
-  ): LaunchState = {
+  ): LauncherRunnerState = {
     def acquireMetaBuildLock(kind: WorkspaceLocking.LockKind) =
       workspaceLockManager.acquireLock(WorkspaceLocking.metaBuildResource(kind))
 
@@ -317,9 +314,8 @@ class MillBuildBootstrap(
         case (f: Result.Failure, evalWatches, moduleWatches) =>
           writeLease.close()
           nestedState
-            .withFrameData(
-              depth,
-              LaunchState.FrameData.failed(evaluator, evalWatches, moduleWatches)
+            .withMetaBuildFrame(
+              LauncherRunnerState.MetaBuildFrame.failed(depth, evaluator, evalWatches, moduleWatches)
             )
             .withError(mill.internal.Util.formatError(f, logger.prompt.errorColor))
 
@@ -369,7 +365,7 @@ class MillBuildBootstrap(
               .getOrElse(Nil)
 
           def needsClassloaderRefresh(
-              at: Option[SharedMetaBuildState.ReusableFrame]
+              at: Option[SharedRunnerState.ReusableFrame]
           ): Boolean = {
             val runClasspathChanged =
               !at.exists(_.runClasspath.map(_.sig).sum == runClasspath.map(_.sig).sum)
@@ -378,40 +374,42 @@ class MillBuildBootstrap(
           }
 
           def buildReusable(classLoader: mill.api.MillURLClassLoader) =
-            SharedMetaBuildState.ReusableFrame(
+            SharedRunnerState.ReusableFrame(
               classLoader = classLoader,
               runClasspath = runClasspath,
               compileOutput = compileClasses,
               codeSignatures = codeSignatures,
               buildOverrideFiles = buildOverrideFiles,
-              spanningInvalidationTree = spanningInvalidationTree,
-              workerCacheSummary = LaunchState.Frame.summarizeWorkerCache(evaluator.workerCache)
+              workerCacheSummary = LauncherRunnerState.Frame.summarizeWorkerCache(evaluator.workerCache)
             )
 
-          def launcherOverlay(
-              reusable: SharedMetaBuildState.ReusableFrame,
-              lease: WorkspaceLocking.ResourceLease
-          ) = LaunchState.FrameData(
+          def launcherFrame(
+              reusable: SharedRunnerState.ReusableFrame,
+              lease: WorkspaceLocking.ResourceLease,
+              classLoaderChanged: Boolean
+          ) = LauncherRunnerState.MetaBuildFrame(
+            depth = depth,
             evaluator = evaluator,
             evalWatched = evalWatches,
             moduleWatched = moduleWatches,
             reusable = Some(reusable),
-            metaBuildReadLease = Some(lease)
+            metaBuildReadLease = Some(lease),
+            spanningInvalidationTree = Option.when(classLoaderChanged)(spanningInvalidationTree)
           )
 
           val latest = sharedState.get().frameAt(depth)
-          val reusable =
-            if (!needsClassloaderRefresh(latest) && latest.isDefined) latest.get
+          val (reusable, classLoaderChanged) =
+            if (!needsClassloaderRefresh(latest) && latest.isDefined) (latest.get, false)
             else {
               // Close any classloaders we're about to replace. Workers at this depth
               // are handled by SharedWorkerCache.forDepth (called in makeEvaluator).
               Seq(
-                prevCommandState.overlayAt(depth).flatMap(_.reusable).map(_.classLoader),
+                prevCommandState.metaBuildFrameAt(depth).flatMap(_.reusable).map(_.classLoader),
                 latest.map(_.classLoader)
               ).flatten.distinct.foreach(_.close())
               val fresh = buildReusable(createClassLoader())
               sharedState.updateAndGet(_.withFrame(depth, fresh))
-              fresh
+              (fresh, true)
             }
 
           // Publish this depth's moduleWatched snapshot so the depth-above launcher
@@ -420,7 +418,7 @@ class MillBuildBootstrap(
           sharedState.getAndUpdate(_.withModuleWatched(depth, moduleWatches))
 
           writeLease.downgradeToRead()
-          nestedState.withFrameData(depth, launcherOverlay(reusable, writeLease))
+          nestedState.withMetaBuildFrame(launcherFrame(reusable, writeLease, classLoaderChanged))
 
         case unknown => sys.error(unknown.toString())
       }
@@ -433,11 +431,11 @@ class MillBuildBootstrap(
    * classloader, or runClasspath.
    */
   def processFinalTasks(
-      nestedState: LaunchState,
+      nestedState: LauncherRunnerState,
       buildFileApi: BuildFileApi,
       evaluator0: EvaluatorApi,
       depth: Int
-  ): LaunchState = {
+  ): LauncherRunnerState = {
     val evaluator = evaluator0.withIsFinalDepth(true)
     val (evaled, evalWatched, moduleWatched) = evaluateWithWatches(
       buildFileApi = buildFileApi,
@@ -448,8 +446,7 @@ class MillBuildBootstrap(
     )
 
     val withFinal = nestedState.withFinalFrame(
-      depth,
-      LaunchState.FinalFrame(evaluator, evalWatched, moduleWatched)
+      LauncherRunnerState.FinalFrame(depth, evaluator, evalWatched, moduleWatched)
     )
     sharedState.getAndUpdate(_.withModuleWatched(depth, moduleWatched))
     evaled match {

@@ -67,7 +67,7 @@ object `endless-tunnel` extends mill.api.Module {
 [
   "Starting: Intent { cmp=com.google.sample.tunnel/android.app.NativeActivity }",
   "Status: ok",
-  "LaunchState: COLD",
+  "LauncherRunnerState: COLD",
   "Activity: com.google.sample.tunnel/android.app.NativeActivity",
   "TotalTime: ...",
   "WaitTime: ...",

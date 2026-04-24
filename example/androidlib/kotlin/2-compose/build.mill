@@ -78,7 +78,7 @@ object app extends AndroidAppKotlinModule {
 [
   "Starting: Intent { cmp=com.example.composetest/.MainActivity }",
   "Status: ok",
-  "LaunchState: COLD",
+  "LauncherRunnerState: COLD",
   "Activity: com.example.composetest/.MainActivity",
   "TotalTime: ...",
   "WaitTime: ...",
