@@ -15,9 +15,10 @@ import java.nio.file.Path
 private[mill] trait LauncherOutFiles extends AutoCloseable {
   def runId: String
   def consoleTail: Path
-
-  /** Returns a per-run path for a well-known `out/` artifact. */
-  def artifactPath(default: Path): Path = default
+  def profile: Path = Path.of("out", "mill-profile.json")
+  def chromeProfile: Path = Path.of("out", "mill-chrome-profile.json")
+  def dependencyTree: Path = Path.of("out", "mill-dependency-tree.json")
+  def invalidationTree: Path = Path.of("out", "mill-invalidation-tree.json")
 
   /**
    * Publishes only the live console-tail symlink so concurrent observers can

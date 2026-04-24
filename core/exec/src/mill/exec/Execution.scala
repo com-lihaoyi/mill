@@ -2,7 +2,6 @@ package mill.exec
 
 import mill.api.daemon.internal.*
 import mill.api.daemon.internal.{LauncherLocking, LauncherOutFiles}
-import mill.constants.OutFiles.OutFiles.millProfile
 import mill.api.*
 import mill.internal.{CodeSigUtils, JsonArrayLogger, PrefixLogger, SpanningForest}
 
@@ -89,9 +88,10 @@ case class Execution(
       spanningInvalidationTree: Option[String]
   ) = this(
     baseLogger = baseLogger,
-    profileLogger = new JsonArrayLogger.Profile(
-      os.Path(runArtifacts.artifactPath((os.Path(outPath) / millProfile).toNIO))
-    ),
+    profileLogger = new JsonArrayLogger.Profile(runArtifacts match {
+      case LauncherOutFiles.Noop => os.Path(outPath) / "mill-profile.json"
+      case _ => os.Path(runArtifacts.profile)
+    }),
     workspace = os.Path(workspace),
     outPath = os.Path(outPath),
     externalOutPath = os.Path(externalOutPath),

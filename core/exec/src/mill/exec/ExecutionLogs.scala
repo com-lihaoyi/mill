@@ -15,11 +15,15 @@ private object ExecutionLogs {
       outPath: os.Path,
       runArtifacts: LauncherOutFiles
   ): Unit = {
+    val dependencyTreePath = runArtifacts match {
+      case LauncherOutFiles.Noop => outPath / "mill-dependency-tree.json"
+      case _ => os.Path(runArtifacts.dependencyTree)
+    }
     val ( /*vertexToIndex*/ _, edgeIndices) =
       SpanningForest.graphMapToIndices(indexToTerminal, interGroupDeps)
 
     SpanningForest.writeJsonFile(
-      os.Path(runArtifacts.artifactPath((outPath / OutFiles.millDependencyTree).toNIO)),
+      dependencyTreePath,
       edgeIndices,
       indexToTerminal.indices.toSet,
       indexToTerminal(_).toString
@@ -36,6 +40,10 @@ private object ExecutionLogs {
       // Per-task invalidation reasons (e.g., version mismatch reasons)
       taskInvalidationReasons: Map[String, String] = Map.empty
   ): Unit = {
+    val invalidationTreePath = runArtifacts match {
+      case LauncherOutFiles.Noop => outPath / "mill-invalidation-tree.json"
+      case _ => os.Path(runArtifacts.invalidationTree)
+    }
     val changedTasks = changedValueHash.keys().asScala.toSet
     val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
     val filteredReverseInterGroupDeps = reverseInterGroupDeps.view.filterKeys(changedTasks).toMap
@@ -55,7 +63,7 @@ private object ExecutionLogs {
     )
 
     os.write.over(
-      os.Path(runArtifacts.artifactPath((outPath / OutFiles.millInvalidationTree).toNIO)),
+      invalidationTreePath,
       finalTree.render(indent = 2)
     )
   }

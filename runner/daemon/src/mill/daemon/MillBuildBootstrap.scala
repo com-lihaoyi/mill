@@ -11,6 +11,7 @@ import mill.api.daemon.internal.{
 import mill.api.{BuildCtx, Logger, PathRef, Result, SelectMode, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.OutFiles.{millBuild, millRunnerState}
+import mill.constants.OutFiles.OutFiles
 import mill.internal.Util
 import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
@@ -45,12 +46,12 @@ import scala.collection.mutable.Buffer
  * so a subsequent watch iteration can pick up fallback classloaders to close
  * on refresh.
  *
- * When a subsequent evaluation happens, each level of [[evaluateRec]] serializes
- * meta-build compilation under a single process-wide meta-build write lock
- * (shared across all depths), then downgrades to a read lease once the reusable
- * frame has been finalized and published. That keeps compiled outputs,
- * classloader creation, and shared-state publish in one critical section while
- * still allowing downstream readers to share the published classloader.
+ * When a subsequent evaluation happens, each level of [[evaluateRec]] uses its
+ * own per-depth meta-build read/write lock. Launchers first probe reuse under a
+ * read lock, then only upgrade to a write lock when that depth must actually be
+ * refreshed. After publishing a refreshed frame they downgrade back to read so
+ * the classloader remains stable for the rest of the launch while unrelated
+ * depths continue independently.
  */
 class MillBuildBootstrap(
     topLevelProjectRoot: os.Path,
@@ -185,13 +186,23 @@ class MillBuildBootstrap(
         cachedState.bootstrapUsesDummy.contains(useDummy)
     val error =
       if (alreadyCached) None
-      else makeBootstrapModule(currentRoot, foundRootBuildFileName, useDummy) match {
-        case Result.Success(bootstrapModule) =>
-          sharedState.updateAndGet(
-            _.withBootstrap(bootstrapModule, foundRootBuildFileName, useDummy)
-          )
-          None
-        case f: Result.Failure => Some(Util.formatError(f, logger.prompt.errorColor))
+      else {
+        val shareLease = workspaceLocking.metaBuildLock(0, LauncherLocking.LockKind.Write)
+        try {
+          val refreshed = sharedState.get()
+          val stillMissing =
+            !refreshed.bootstrapBuildFile.contains(foundRootBuildFileName) ||
+              !refreshed.bootstrapUsesDummy.contains(useDummy)
+          if (!stillMissing) None
+          else makeBootstrapModule(currentRoot, foundRootBuildFileName, useDummy) match {
+            case Result.Success(bootstrapModule) =>
+              sharedState.updateAndGet(
+                _.withBootstrap(bootstrapModule, foundRootBuildFileName, useDummy)
+              )
+              None
+            case f: Result.Failure => Some(Util.formatError(f, logger.prompt.errorColor))
+          }
+        } finally shareLease.close()
       }
 
     RunnerLauncherState(
@@ -307,6 +318,7 @@ class MillBuildBootstrap(
   ): RunnerLauncherState = {
     val readLease = workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Read)
     val taskSelector = Seq("millBuildRootModuleResult")
+    val collectSelectiveMetadata = tasksAndParams.nonEmpty
 
     def outerModuleWatched: Seq[Watchable] =
       sharedState.get().moduleWatchedAt(depth - 1)
@@ -316,9 +328,7 @@ class MillBuildBootstrap(
     def watchedParentInputsChanged(): Boolean =
       outerModuleWatched.exists(w => !Watching.haveNotChanged(w))
 
-    def reusable(
-        frameOpt: Option[RunnerSharedState.Frame]
-    ): Result[Option[(RunnerSharedState.Frame, mill.api.SelectiveExecution.Metadata)]] =
+    def reusable(frameOpt: Option[RunnerSharedState.Frame]): Result[Option[RunnerSharedState.Frame]] =
       frameOpt match {
         case None => Result.Success(None)
         case Some(_) if watchedParentInputsChanged() => Result.Success(None)
@@ -327,13 +337,10 @@ class MillBuildBootstrap(
             case None => Result.Success(None)
             case Some(previousMetadata) =>
               evaluator
-                .probeSelectiveMetadata(taskSelector, SelectMode.Separated, previousMetadata)
-                .map {
-                  case (true, currentMetadata) =>
-                    val metadata =
-                      currentMetadata.asInstanceOf[mill.api.SelectiveExecution.Metadata]
-                    Some((frame.copy(selectiveMetadata = Some(metadata)), metadata))
-                  case _ => None
+                .probeSelectiveMetadata(taskSelector, SelectMode.Separated, previousMetadata) match {
+                  case Result.Success((true, _)) => Result.Success(Some(frame))
+                  case Result.Success(_) => Result.Success(None)
+                  case _: Result.Failure => Result.Success(None)
                 }
           }
       }
@@ -349,25 +356,20 @@ class MillBuildBootstrap(
       evalWatched = sharedFrame.evalWatched,
       sharedFrame = sharedFrame,
       metaBuildReadLease = Some(lease),
-      spanningInvalidationTree = Option.when(classLoaderChanged)(spanningInvalidationTree).flatten
-    )
-
-    def currentSelectiveMetadata(): Result[mill.api.SelectiveExecution.Metadata] =
-      evaluator
-        .probeSelectiveMetadata(
-          taskSelector,
-          SelectMode.Separated,
-          mill.api.SelectiveExecution.Metadata(Map.empty, Map.empty)
+          spanningInvalidationTree = Option.when(classLoaderChanged)(spanningInvalidationTree).flatten
         )
-        .map(_._2.asInstanceOf[mill.api.SelectiveExecution.Metadata])
+
+    def readSelectiveMetadataFile(): Option[String] = {
+      val metadataFile = os.Path(evaluator.outPathJava) / OutFiles.millSelectiveExecution
+      Option.when(os.exists(metadataFile))(os.read(metadataFile))
+    }
 
     reusable(sharedState.get().frameAt(depth)) match {
       case f: Result.Failure =>
         readLease.close()
         nestedState.withError(mill.internal.Util.formatError(f, logger.prompt.errorColor))
 
-      case Result.Success(Some((frame, _))) =>
-        sharedState.updateAndGet(_.withFrame(depth, frame))
+      case Result.Success(Some(frame)) =>
         nestedState.withMetaBuildFrame(launcherFrame(frame, readLease, classLoaderChanged = false))
 
       case Result.Success(None) =>
@@ -379,8 +381,7 @@ class MillBuildBootstrap(
               writeLease.close()
               nestedState.withError(mill.internal.Util.formatError(f, logger.prompt.errorColor))
 
-            case Result.Success(Some((frame, _))) =>
-              sharedState.updateAndGet(_.withFrame(depth, frame))
+            case Result.Success(Some(frame)) =>
               writeLease.downgradeToRead()
               nestedState.withMetaBuildFrame(launcherFrame(
                 frame,
@@ -389,11 +390,13 @@ class MillBuildBootstrap(
               ))
 
             case Result.Success(None) =>
+              val metadataFile = os.Path(evaluator.outPathJava) / OutFiles.millSelectiveExecution
+              if (collectSelectiveMetadata && os.exists(metadataFile)) os.remove(metadataFile)
               evaluateWithWatches(
                 buildFileApi,
                 evaluator,
                 taskSelector,
-                selectiveExecution = false,
+                selectiveExecution = collectSelectiveMetadata,
                 reporter = reporter(evaluator)
               ) match {
                 case (f: Result.Failure, evalWatches, moduleWatches) =>
@@ -420,65 +423,56 @@ class MillBuildBootstrap(
                       evalWatches,
                       moduleWatches
                     ) =>
-                  currentSelectiveMetadata() match {
-                    case f: Result.Failure =>
-                      writeLease.close()
-                      nestedState.withError(mill.internal.Util.formatError(
-                        f,
-                        logger.prompt.errorColor
-                      ))
+                  def createClassLoader() = {
+                    val rootModuleInfoDir = recOut(output, depth) / "rootModuleInfo.dest"
+                    os.write.over(
+                      rootModuleInfoDir / "mill" / "rootModuleInfo.json",
+                      ujson.Obj(
+                        "projectRoot" -> recRoot(topLevelProjectRoot, depth - 1).toString,
+                        "output" -> output.toString,
+                        "topLevelProjectRoot" -> topLevelProjectRoot.toString
+                      ).render(indent = 2),
+                      createFolders = true
+                    )
 
-                    case Result.Success(selectiveMetadata) =>
-                      def createClassLoader() = {
-                        val rootModuleInfoDir = recOut(output, depth) / "rootModuleInfo.dest"
-                        os.write.over(
-                          rootModuleInfoDir / "mill" / "rootModuleInfo.json",
-                          ujson.Obj(
-                            "projectRoot" -> recRoot(topLevelProjectRoot, depth - 1).toString,
-                            "output" -> output.toString,
-                            "topLevelProjectRoot" -> topLevelProjectRoot.toString
-                          ).render(indent = 2),
-                          createFolders = true
-                        )
-
-                        mill.util.Jvm.createClassLoader(
-                          runClasspath.map(p => os.Path(p.javaPath)) :+ rootModuleInfoDir,
-                          null,
-                          sharedLoader = classOf[MillBuildBootstrap].getClassLoader,
-                          sharedPrefixes =
-                            Seq("java.", "javax.", "scala.", "mill.api.daemon", "sbt.testing.")
-                        )
-                      }
-
-                      val current = sharedState.get().frameAt(depth)
-                      Seq(
-                        prevCommandState.metaBuildFrameAt(depth)
-                          .flatMap(_.sharedFrame.classLoaderOpt),
-                        current.flatMap(_.classLoaderOpt)
-                      ).flatten.distinct.foreach(_.close())
-
-                      val fresh = RunnerSharedState.Frame(
-                        evalWatched = evalWatches,
-                        moduleWatched = Some(moduleWatches),
-                        classLoaderOpt = Some(createClassLoader()),
-                        runClasspath = runClasspath,
-                        compileOutputOpt = Some(compileClasses),
-                        codeSignatures = codeSignatures,
-                        buildOverrideFiles = buildOverrideFiles,
-                        workerCacheSummary = RunnerLauncherState.Frame.summarizeWorkerCache(
-                          evaluator.workerCache
-                        ),
-                        selectiveMetadata = Some(selectiveMetadata)
-                      )
-                      sharedState.updateAndGet(_.withFrame(depth, fresh))
-                      writeLease.downgradeToRead()
-                      nestedState.withMetaBuildFrame(launcherFrame(
-                        fresh,
-                        writeLease,
-                        classLoaderChanged = true,
-                        spanningInvalidationTree = Some(spanningInvalidationTree)
-                      ))
+                    mill.util.Jvm.createClassLoader(
+                      runClasspath.map(p => os.Path(p.javaPath)) :+ rootModuleInfoDir,
+                      null,
+                      sharedLoader = classOf[MillBuildBootstrap].getClassLoader,
+                      sharedPrefixes =
+                        Seq("java.", "javax.", "scala.", "mill.api.daemon", "sbt.testing.")
+                    )
                   }
+
+                  val current = sharedState.get().frameAt(depth)
+                  Seq(
+                    prevCommandState.metaBuildFrameAt(depth)
+                      .flatMap(_.sharedFrame.classLoaderOpt),
+                    current.flatMap(_.classLoaderOpt)
+                  ).flatten.distinct.foreach(_.close())
+
+                  val fresh = RunnerSharedState.Frame(
+                    evalWatched = evalWatches,
+                    moduleWatched = Some(moduleWatches),
+                    classLoaderOpt = Some(createClassLoader()),
+                    runClasspath = runClasspath,
+                    compileOutputOpt = Some(compileClasses),
+                    codeSignatures = codeSignatures,
+                    buildOverrideFiles = buildOverrideFiles,
+                    workerCacheSummary = RunnerLauncherState.Frame.summarizeWorkerCache(
+                      evaluator.workerCache
+                    ),
+                    selectiveMetadata =
+                      Option.when(collectSelectiveMetadata)(readSelectiveMetadataFile()).flatten
+                  )
+                  sharedState.updateAndGet(_.withFrame(depth, fresh))
+                  writeLease.downgradeToRead()
+                  nestedState.withMetaBuildFrame(launcherFrame(
+                    fresh,
+                    writeLease,
+                    classLoaderChanged = true,
+                    spanningInvalidationTree = Some(spanningInvalidationTree)
+                  ))
 
                 case unknown => sys.error(unknown.toString())
               }

@@ -3,6 +3,7 @@ package mill.integration
 import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.nio.file.Paths
+import java.util.concurrent.TimeUnit
 import scala.build.bsp.WrappedSourcesParams
 import scala.collection.mutable
 import scala.concurrent.{Await, Promise}
@@ -535,6 +536,47 @@ object BspServerTests extends UtestIntegrationTestSuite {
       assert(os.exists(workspacePath / ".bsp/out"))
       assert(os.exists(workspacePath / ".bsp/out" / OutFiles.millDaemon / "processId"))
       assert(!os.exists(workspacePath / "out" / OutFiles.millDaemon / "processId"))
+    }
+
+    test("sharedOutDirAllowsConcurrentCliAndBspWork") - integrationTest { tester =>
+      import tester.*
+
+      eval(
+        ("--bsp-install", "--jobs", "1"),
+        stdout = os.Inherit,
+        stderr = os.Inherit,
+        check = true,
+        env = Map("MILL_EXECUTABLE_PATH" -> tester.millExecutable.toString)
+      )
+
+      withBspServer(workspacePath, millTestSuiteEnv) { (buildServer, _) =>
+        val targets = buildServer.workspaceBuildTargets().get().getTargets.asScala
+        val delayed = targets.find(_.getDisplayName == "delayed").map(_.getId).get
+        val delayedCompileFuture =
+          buildServer.buildTargetCompile(new b.CompileParams(Seq(delayed).asJava))
+
+        Thread.sleep(1000L)
+
+        val cliResult = eval(("hello-java.compile"))
+        assert(cliResult.isSuccess)
+        assert(!cliResult.err.contains("Another Mill command in the current daemon"))
+
+        val delayedResult = delayedCompileFuture.get(30, TimeUnit.SECONDS)
+        assert(delayedResult.getStatusCode == b.StatusCode.OK)
+
+        assertEventually {
+          os.isLink(workspacePath / "out" / mill.constants.DaemonFiles.millConsoleTail) &&
+          os.exists(workspacePath / "out" / mill.constants.DaemonFiles.millConsoleTail, followLinks = true) &&
+          os.isLink(workspacePath / "out" / OutFiles.millProfile) &&
+          os.exists(workspacePath / "out" / OutFiles.millProfile, followLinks = true) &&
+          os.isLink(workspacePath / "out" / OutFiles.millChromeProfile) &&
+          os.exists(workspacePath / "out" / OutFiles.millChromeProfile, followLinks = true) &&
+          os.isLink(workspacePath / "out" / OutFiles.millDependencyTree) &&
+          os.exists(workspacePath / "out" / OutFiles.millDependencyTree, followLinks = true) &&
+          os.isLink(workspacePath / "out" / OutFiles.millInvalidationTree) &&
+          os.exists(workspacePath / "out" / OutFiles.millInvalidationTree, followLinks = true)
+        }
+      }
     }
 
     test("ignoreDefault") - integrationTest { tester =>

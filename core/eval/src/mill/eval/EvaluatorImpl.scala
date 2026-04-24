@@ -196,12 +196,12 @@ final class EvaluatorImpl(
       allowPositionalCommandArgs: Boolean = false
   ): mill.api.Result[(Boolean, Any)] = {
     resolveTasks(scriptArgs, selectMode, allowPositionalCommandArgs).map { tasks =>
-      val oldMetadata = previousMetadata.asInstanceOf[SelectiveExecution.Metadata]
+      val oldMetadata = upickle.read[SelectiveExecution.Metadata](previousMetadata.asInstanceOf[String])
       val transitiveNamed = transitiveNamedSelective(tasks)
       val computed = SelectiveExecutionImpl.Metadata.compute0(this, transitiveNamed)
       val (_, downstream) =
         selective.computeDownstream(transitiveNamed, oldMetadata, computed.metadata)
-      (downstream.isEmpty, computed.metadata)
+      (downstream.isEmpty, upickle.write(computed.metadata))
     }
   }
 

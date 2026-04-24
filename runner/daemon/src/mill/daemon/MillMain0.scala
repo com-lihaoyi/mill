@@ -739,9 +739,10 @@ object MillMain0 {
       titleText = (cmdTitle +: config.leftoverArgs.value).mkString(" "),
       terminalDimsCallback = terminalDimsCallback,
       currentTimeMillis = () => System.currentTimeMillis(),
-      chromeProfileLogger = new JsonArrayLogger.ChromeProfile(
-        os.Path(runArtifacts.artifactPath((out / OutFiles.millChromeProfile).toNIO))
-      )
+      chromeProfileLogger = new JsonArrayLogger.ChromeProfile(runArtifacts match {
+        case LauncherOutFiles.Noop => out / OutFiles.millChromeProfile
+        case _ => os.Path(runArtifacts.chromeProfile)
+      })
     )
     new PrefixLogger(promptLogger, Nil) with AutoCloseable {
       override def close(): Unit = {

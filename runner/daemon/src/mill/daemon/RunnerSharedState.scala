@@ -1,7 +1,6 @@
 package mill.daemon
 
 import mill.api.MillURLClassLoader
-import mill.api.SelectiveExecution
 import mill.api.daemon.Watchable
 import mill.api.daemon.internal.{PathRefApi, internal}
 import mill.api.internal.RootModule
@@ -12,10 +11,10 @@ import mill.api.internal.RootModule
  * data that is deterministic in the meta-build source and safe to share.
  *
  * - [[frames]] is keyed by meta-build depth; absent entries simply mean "nothing
- *   published at that depth yet". Writes are sequenced by a single process-wide
- *   meta-build write lock (see [[mill.api.daemon.internal.LauncherLocking.metaBuildLock]]);
- *   concurrent launchers can read while a writer holds the lock only after it
- *   downgrades to read, which happens after the frame is installed here.
+ *   published at that depth yet". Writes are sequenced by the corresponding
+ *   per-depth meta-build write lock (see [[mill.api.daemon.internal.LauncherLocking.metaBuildLock]]).
+ *   Published frames are immutable once installed; launchers pin and reuse them
+ *   under read leases rather than mutating them on the read path.
  *
  * Each [[RunnerSharedState.Frame]] carries:
  * - the currently-published reusable meta-build payload at that depth, if any
@@ -77,7 +76,7 @@ object RunnerSharedState {
       codeSignatures: Map[String, Int] = Map.empty,
       buildOverrideFiles: Map[java.nio.file.Path, String] = Map.empty,
       workerCacheSummary: Map[String, RunnerLauncherState.Frame.WorkerInfo] = Map.empty,
-      selectiveMetadata: Option[SelectiveExecution.Metadata] = None
+      selectiveMetadata: Option[String] = None
   ) {
     def hasReusable: Boolean = classLoaderOpt.nonEmpty
   }

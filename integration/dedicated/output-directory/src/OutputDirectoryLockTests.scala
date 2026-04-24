@@ -39,6 +39,9 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
     pid.get
   }
 
+  private def combinedText(launcher: mill.testkit.IntegrationTester.SpawnedProcess): String =
+    launcher.out.text() + "\n" + launcher.err.text()
+
   def tests: Tests = Tests {
     test("taskLocks") - integrationTest { tester =>
       import tester.*
@@ -114,6 +117,28 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
         blocker.process.waitFor()
         spawnedWaitingRes.process.waitFor()
         assert(os.exists(waitingCompleteFile))
+      }
+    }
+
+    test("daemonAndNoDaemonProcessesExcludeEachOther") - integrationTest { tester =>
+      import tester.*
+      val signalFile1 = workspacePath / "daemon-process-lock-1"
+      val signalFile2 = workspacePath / "daemon-process-lock-2"
+
+      if (tester.daemonMode) {
+        val daemonBlocker = spawn(("blockWhileExists", "--path", signalFile1))
+        assertEventually { os.exists(signalFile1) }
+
+        val noDaemonRejected = eval(
+          ("--no-daemon", "--no-wait-for-build-lock", "writeMarker", "--path", signalFile2)
+        )
+        val stderrText = noDaemonRejected.err
+        assert(!noDaemonRejected.isSuccess)
+        assert(stderrText.contains("Another Mill process with PID "))
+        assert(!os.exists(signalFile2))
+
+        os.remove(signalFile1)
+        daemonBlocker.process.waitFor()
       }
     }
   }

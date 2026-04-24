@@ -2,10 +2,11 @@ package mill.internal
 
 import mill.api.daemon.internal.LauncherOutFiles
 import mill.constants.DaemonFiles
+import mill.constants.OutFiles
 
 import java.nio.file.StandardCopyOption
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
+import scala.jdk.OptionConverters.RichOptional
 
 /**
  * One run's concrete [[LauncherOutFiles]] handle: per-run scratch directory at
@@ -33,39 +34,42 @@ private[mill] final class LauncherOutFilesImpl(
 
   private val runDir = out / LauncherLockingState.runRootDirName / runId
   override val consoleTail: java.nio.file.Path = (runDir / "mill-console-tail").toNIO
+  override val profile: java.nio.file.Path = (runDir / OutFiles.millProfile).toNIO
+  override val chromeProfile: java.nio.file.Path = (runDir / OutFiles.millChromeProfile).toNIO
+  override val dependencyTree: java.nio.file.Path = (runDir / OutFiles.millDependencyTree).toNIO
+  override val invalidationTree: java.nio.file.Path = (runDir / OutFiles.millInvalidationTree).toNIO
   private val launcherRunFile = daemonDir / os.RelPath(DaemonFiles.perLauncherFilePath(runId))
-  private val ownedArtifactPaths = ConcurrentHashMap.newKeySet[os.RelPath]()
   private val closed = new AtomicBoolean(false)
+
+  private val publishedArtifacts = Seq(
+    PublishedArtifact(out / DaemonFiles.millConsoleTail, os.Path(consoleTail), copyFallback = false),
+    PublishedArtifact(out / OutFiles.millProfile, os.Path(profile), copyFallback = true),
+    PublishedArtifact(out / OutFiles.millChromeProfile, os.Path(chromeProfile), copyFallback = true),
+    PublishedArtifact(
+      out / OutFiles.millDependencyTree,
+      os.Path(dependencyTree),
+      copyFallback = true
+    ),
+    PublishedArtifact(
+      out / OutFiles.millInvalidationTree,
+      os.Path(invalidationTree),
+      copyFallback = true
+    )
+  )
 
   os.makeDir.all(runDir)
   writeLauncherRunFile()
   cleanup(out, daemonDir)
 
-  override def artifactPath(default: java.nio.file.Path): java.nio.file.Path = {
-    val defaultPath = os.Path(default)
-    val rel =
-      if (defaultPath.startsWith(out)) defaultPath.relativeTo(out)
-      else os.RelPath(defaultPath.last)
-    ownedArtifactPaths.add(rel)
-    val target = runDir / rel
-    os.makeDir.all(target / os.up)
-    target.toNIO
-  }
-
   override def publishLiveArtifacts(): Unit =
     if (!closed.get())
-      updateSymlink(out / DaemonFiles.millConsoleTail, os.Path(consoleTail), launcherLocks)
+      publishLatest(
+        PublishedArtifact(out / DaemonFiles.millConsoleTail, os.Path(consoleTail), copyFallback = false),
+        launcherLocks
+      )
 
   override def publishArtifacts(): Unit =
-    if (!closed.get()) {
-      val consoleTailPath = os.Path(consoleTail)
-      if (os.exists(consoleTailPath))
-        updateSymlink(out / DaemonFiles.millConsoleTail, consoleTailPath, launcherLocks)
-      ownedArtifactPaths.forEach { rel =>
-        val target = runDir / rel
-        if (os.exists(target)) updateSymlink(out / rel, target, launcherLocks)
-      }
-    }
+    if (!closed.get()) publishedArtifacts.foreach(publishLatest(_, launcherLocks))
 
   override def close(): Unit =
     if (closed.compareAndSet(false, true)) {
@@ -87,6 +91,15 @@ private[mill] final class LauncherOutFilesImpl(
 
 private[mill] object LauncherOutFilesImpl {
   private val maxRetainedRuns = 10
+  private case class PublishedArtifact(link: os.Path, target: os.Path, copyFallback: Boolean)
+
+  private val wellKnownArtifactLinks = Seq(
+    os.RelPath(DaemonFiles.millConsoleTail),
+    os.RelPath(OutFiles.millProfile),
+    os.RelPath(OutFiles.millChromeProfile),
+    os.RelPath(OutFiles.millDependencyTree),
+    os.RelPath(OutFiles.millInvalidationTree)
+  )
 
   /**
    * Set of run-ids whose launcher process is still alive. "Still alive" means
@@ -104,7 +117,7 @@ private[mill] object LauncherOutFilesImpl {
         val pidOpt =
           try ujson.read(os.read(file)).obj.get("pid").map(_.num.toLong)
           catch { case _: Throwable => None }
-        pidOpt.filter(pid => java.lang.ProcessHandle.of(pid).isPresent).map(_ => runId)
+        pidOpt.flatMap(pid => java.lang.ProcessHandle.of(pid).toScala.filter(_.isAlive).map(_ => runId))
       }
       .toSet
   }
@@ -127,12 +140,11 @@ private[mill] object LauncherOutFilesImpl {
         )
       }
 
-      if (os.exists(out)) {
-        os.list(out).filter(os.isLink(_)).foreach { link =>
-          if (!os.exists(link, followLinks = true)) {
-            try os.remove(link)
-            catch { case _: Throwable => }
-          }
+      wellKnownArtifactLinks.foreach { rel =>
+        val link = out / rel
+        if (os.isLink(link) && !os.exists(link, followLinks = true)) {
+          try os.remove(link)
+          catch { case _: Throwable => }
         }
       }
     } catch { case _: Throwable => }
@@ -147,26 +159,63 @@ private[mill] object LauncherOutFilesImpl {
       target: os.Path,
       launcherLocks: LauncherLockingState
   ): Unit = {
+    os.makeDir.all(link / os.up)
+    val rel = relativizeTarget(link, target)
+    val tmp =
+      link / os.up / s".${link.last}.tmp-${System.nanoTime()}-${launcherLocks.nextTmpSuffix()}"
     try {
-      os.makeDir.all(link / os.up)
-      val rel = relativizeTarget(link, target)
-      val tmp =
-        link / os.up / s".${link.last}.tmp-${System.nanoTime()}-${launcherLocks.nextTmpSuffix()}"
-      try {
-        try os.remove.all(tmp)
-        catch { case _: Throwable => }
-        os.symlink(tmp, rel)
-        java.nio.file.Files.move(
-          tmp.toNIO,
-          link.toNIO,
-          StandardCopyOption.REPLACE_EXISTING,
-          StandardCopyOption.ATOMIC_MOVE
-        )
-      } finally {
-        try os.remove.all(tmp)
-        catch { case _: Throwable => }
+      try os.remove.all(tmp)
+      catch { case _: Throwable => }
+      os.symlink(tmp, rel)
+      java.nio.file.Files.move(
+        tmp.toNIO,
+        link.toNIO,
+        StandardCopyOption.REPLACE_EXISTING,
+        StandardCopyOption.ATOMIC_MOVE
+      )
+    } finally {
+      try os.remove.all(tmp)
+      catch { case _: Throwable => }
+    }
+  }
+
+  private def replaceWithCopy(
+      link: os.Path,
+      target: os.Path,
+      launcherLocks: LauncherLockingState
+  ): Unit = {
+    os.makeDir.all(link / os.up)
+    val tmp =
+      link / os.up / s".${link.last}.copy-${System.nanoTime()}-${launcherLocks.nextTmpSuffix()}"
+    try {
+      try os.remove.all(tmp)
+      catch { case _: Throwable => }
+      os.copy.over(target, tmp, createFolders = true)
+      java.nio.file.Files.move(
+        tmp.toNIO,
+        link.toNIO,
+        StandardCopyOption.REPLACE_EXISTING,
+        StandardCopyOption.ATOMIC_MOVE
+      )
+    } finally {
+      try os.remove.all(tmp)
+      catch { case _: Throwable => }
+    }
+  }
+
+  private def publishLatest(
+      artifact: PublishedArtifact,
+      launcherLocks: LauncherLockingState
+  ): Unit = {
+    if (os.exists(artifact.target))
+      try updateSymlink(artifact.link, artifact.target, launcherLocks)
+      catch {
+        case e: Throwable =>
+          mill.api.Debug(
+            s"Failed to publish ${artifact.link.last} as a symlink: ${e.getClass.getSimpleName}: ${e.getMessage}"
+          )
+          if (artifact.copyFallback) replaceWithCopy(artifact.link, artifact.target, launcherLocks)
       }
-    } catch { case _: Throwable => }
   }
 
   /**
