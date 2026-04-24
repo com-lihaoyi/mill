@@ -5,7 +5,10 @@ import java.net.URI
 import java.nio.file.Paths
 import scala.build.bsp.WrappedSourcesParams
 import scala.collection.mutable
+import scala.concurrent.{Await, Promise}
+import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters.*
+import scala.util.Success
 import scala.util.chaining.given
 import ch.epfl.scala.bsp4j as b
 import mill.api.BuildInfo
@@ -405,8 +408,10 @@ object BspServerTests extends UtestIntegrationTestSuite {
         }
       }
 
-      // Verify that no `out/` folder was created - all BSP operations should use .bsp/out/
-      assert(!os.exists(workspacePath / "out"))
+      // BSP should now share the regular out/ directory and daemon by default.
+      assert(os.exists(workspacePath / "out"))
+      assert(os.exists(workspacePath / "out" / OutFiles.millDaemon / "processId"))
+      assert(!os.exists(workspacePath / ".bsp/out"))
     }
 
     test("logging") - integrationTest { tester =>
@@ -507,6 +512,31 @@ object BspServerTests extends UtestIntegrationTestSuite {
       assert(expectedMessages == messages0)
     }
 
+    test("separateOutputDirViaBuildHeader") - integrationTest { tester =>
+      import tester.*
+
+      modifyFile(
+        workspacePath / "build.mill",
+        "//| mill-separate-bsp-output-dir: true\n" + _
+      )
+
+      eval(
+        ("--bsp-install", "--jobs", "1"),
+        stdout = os.Inherit,
+        stderr = os.Inherit,
+        check = true,
+        env = Map("MILL_EXECUTABLE_PATH" -> tester.millExecutable.toString)
+      )
+
+      withBspServer(workspacePath, millTestSuiteEnv) { (buildServer, _) =>
+        buildServer.workspaceBuildTargets().get()
+      }
+
+      assert(os.exists(workspacePath / ".bsp/out"))
+      assert(os.exists(workspacePath / ".bsp/out" / OutFiles.millDaemon / "processId"))
+      assert(!os.exists(workspacePath / "out" / OutFiles.millDaemon / "processId"))
+    }
+
     test("ignoreDefault") - integrationTest { tester =>
       import tester.*
       os.remove.all(workspacePath / "build.mill")
@@ -546,6 +576,58 @@ object BspServerTests extends UtestIntegrationTestSuite {
               .toASCIIString
           )
         )
+      }
+    }
+
+    test("reloadFromScriptOnlyWorkspace") - integrationTest { tester =>
+      import tester.*
+
+      val sourceWorkspacePath = BspServerTests.workspaceSourcePath
+
+      os.remove.all(workspacePath / "build.mill")
+      os.remove.all(workspacePath / "mill-build")
+      os.write.over(
+        workspacePath / "scripts/visible.scala",
+        """object visible
+          |""".stripMargin
+      )
+
+      eval(
+        ("--bsp-install", "--jobs", "1"),
+        stdout = os.Inherit,
+        stderr = os.Inherit,
+        check = true,
+        env = Map("MILL_EXECUTABLE_PATH" -> tester.millExecutable.toString)
+      )
+
+      val didChangePromise = Promise[b.DidChangeBuildTarget]()
+      val client = new DummyBuildClient {
+        override def onBuildTargetDidChange(params: b.DidChangeBuildTarget): Unit =
+          didChangePromise.tryComplete(Success(params))
+      }
+
+      def targetUri(path: os.Path): String =
+        path.toNIO.toUri.toASCIIString.stripSuffix("/")
+
+      withBspServer(workspacePath, millTestSuiteEnv, client = client) { (buildServer, _) =>
+        val initialTargetUris = buildServer.workspaceBuildTargets().get().getTargets.asScala
+          .map(_.getId.getUri)
+          .toSet
+
+        assert(initialTargetUris.contains((workspacePath / "scripts/visible.scala").toURI.toASCIIString))
+        assert(!initialTargetUris.contains(targetUri(workspacePath / "app")))
+
+        os.copy.over(sourceWorkspacePath / "build.mill", workspacePath / "build.mill")
+        os.copy.into(sourceWorkspacePath / "mill-build", workspacePath)
+
+        Await.result(didChangePromise.future, 1.minute)
+
+        val reloadedTargetUris = buildServer.workspaceBuildTargets().get().getTargets.asScala
+          .map(_.getId.getUri)
+          .toSet
+
+        assert(reloadedTargetUris.contains(targetUri(workspacePath / "app")))
+        assert(reloadedTargetUris.contains(targetUri(workspacePath / "mill-build")))
       }
     }
 

@@ -178,8 +178,7 @@ case class MillCliConfig(
     Seq(
       interactive,
       noDaemon,
-      noServer,
-      bsp
+      noServer
     ).count(_.value)
 }
 

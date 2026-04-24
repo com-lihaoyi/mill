@@ -26,12 +26,13 @@ public class OutFiles {
      */
     private final String envBspOutOrNull = System.getenv(EnvVars.MILL_BSP_OUTPUT_DIR);
 
-    /** @see EnvVars#MILL_NO_SEPARATE_BSP_OUTPUT_DIR */
-    public final boolean mergeBspOut =
-        // explicit request
-        "1".equals(System.getenv(EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR))
-            // user specified MILL_OUTPUT_DIR but not MILL_BSP_OUTPUT_DIR
-            || (envOutOrNull != null && envBspOutOrNull == null);
+    /**
+     * Whether BSP should share the regular output directory. This is now the
+     * default; BSP only uses a separate output directory when
+     * {@link EnvVars#MILL_BSP_OUTPUT_DIR} is set in the effective process
+     * environment.
+     */
+    public final boolean mergeBspOut = envBspOutOrNull == null;
 
     /**
      * Default hard-coded value for the Mill `out/` folder path.
@@ -40,8 +41,8 @@ public class OutFiles {
     public final String defaultOut = "out";
 
     /**
-     * Default hard-coded value for the Mill `out/` folder path in BSP server mode.
-     * To get the effective out dir, use {@link #outFor}.
+     * Conventional dedicated BSP output directory for users who explicitly opt
+     * into a separate BSP out dir via {@link EnvVars#MILL_BSP_OUTPUT_DIR}.
      */
     public final String defaultBspOut = ".bsp/out";
 
@@ -55,8 +56,7 @@ public class OutFiles {
      * Effective path of the Mill `out/` folder when Mill is running in BSP mode.
      * You should favor using {@link #outFor} instead.
      */
-    public final String bspOut =
-        mergeBspOut ? out : envBspOutOrNull != null ? envBspOutOrNull : defaultBspOut;
+    public final String bspOut = envBspOutOrNull != null ? envBspOutOrNull : out;
 
     /**
      * Path of the Mill {@link #out} folder.

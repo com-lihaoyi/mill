@@ -23,16 +23,18 @@ import mill.api.internal.RootModule
  *   consults it to decide whether anything watched under the currently-published
  *   classloader has changed, which in turn is a reason to refresh the classloader.
  *
- * [[bootstrapModule]] / [[bootstrapBuildFile]] cache the in-process bootstrap
- * module across launchers, keyed by the build file name so a rename invalidates
- * the cached instance. Populated only on successful bootstrap; on failure the
+ * [[bootstrapModule]] / [[bootstrapBuildFile]] / [[bootstrapUsesDummy]] cache the
+ * in-process bootstrap module across launchers, keyed by both the discovered
+ * root build file name and whether we had to synthesize the lightweight
+ * script-only bootstrap. Populated only on successful bootstrap; on failure the
  * slots stay empty so the next launcher retries.
  */
 @internal
 case class RunnerSharedState(
     frames: Map[Int, RunnerSharedState.Frame] = Map.empty,
     bootstrapModule: Option[RootModule] = None,
-    bootstrapBuildFile: Option[String] = None
+    bootstrapBuildFile: Option[String] = None,
+    bootstrapUsesDummy: Option[Boolean] = None
 ) {
   import RunnerSharedState.*
 
@@ -48,8 +50,12 @@ case class RunnerSharedState(
   def withModuleWatched(depth: Int, watched: Seq[Watchable]): RunnerSharedState =
     copy(frames = frames.updated(depth, at(depth).copy(moduleWatched = Some(watched))))
 
-  def withBootstrap(module: RootModule, buildFile: String): RunnerSharedState =
-    copy(bootstrapModule = Some(module), bootstrapBuildFile = Some(buildFile))
+  def withBootstrap(module: RootModule, buildFile: String, usesDummy: Boolean): RunnerSharedState =
+    copy(
+      bootstrapModule = Some(module),
+      bootstrapBuildFile = Some(buildFile),
+      bootstrapUsesDummy = Some(usesDummy)
+    )
 
   private def at(depth: Int): Frame = frames.getOrElse(depth, Frame())
 }

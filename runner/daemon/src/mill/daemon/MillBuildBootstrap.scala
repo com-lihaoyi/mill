@@ -176,16 +176,21 @@ class MillBuildBootstrap(
     val bootstrapEvalWatched =
       Watchable.Path.from(PathRef(topLevelProjectRoot / foundRootBuildFileName))
 
-    // Reuse the daemon-cached bootstrap module when it was built against the
-    // same build file; otherwise (re)construct and publish it. Caching only
-    // happens on success, so a bootstrap failure leaves the slot empty and the
-    // next launcher retries.
-    val alreadyCached = sharedState.get().bootstrapBuildFile.contains(foundRootBuildFileName)
+    // Reuse the daemon-cached bootstrap module only when it was built against
+    // the same root build file *and* the same dummy-vs-real bootstrap mode.
+    // Caching only happens on success, so a bootstrap failure leaves the slot
+    // empty and the next launcher retries.
+    val cachedState = sharedState.get()
+    val alreadyCached =
+      cachedState.bootstrapBuildFile.contains(foundRootBuildFileName) &&
+        cachedState.bootstrapUsesDummy.contains(useDummy)
     val error =
       if (alreadyCached) None
       else makeBootstrapModule(currentRoot, foundRootBuildFileName, useDummy) match {
         case Result.Success(bootstrapModule) =>
-          sharedState.updateAndGet(_.withBootstrap(bootstrapModule, foundRootBuildFileName))
+          sharedState.updateAndGet(
+            _.withBootstrap(bootstrapModule, foundRootBuildFileName, useDummy)
+          )
           None
         case f: Result.Failure => Some(Util.formatError(f, logger.prompt.errorColor))
       }
