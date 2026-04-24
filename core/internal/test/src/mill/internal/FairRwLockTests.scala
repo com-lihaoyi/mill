@@ -83,7 +83,12 @@ object FairRwLockTests extends TestSuite {
       assertEventually(waitingBytes.size() > 0)
 
       val secondReaderThread = new Thread(() => {
-        secondReaderLeaseRef.set(lock.acquire(LockKind.Read, waitingErr, noWait = false, testHolder))
+        secondReaderLeaseRef.set(lock.acquire(
+          LockKind.Read,
+          waitingErr,
+          noWait = false,
+          testHolder
+        ))
         secondReaderAcquired.countDown()
       })
       secondReaderThread.start()
@@ -117,7 +122,12 @@ object FairRwLockTests extends TestSuite {
       val secondWriterAcquired = new CountDownLatch(1)
       val secondWriterLeaseRef = new AtomicReference[LauncherLocking.Lease]()
       val secondWriterThread = new Thread(() => {
-        secondWriterLeaseRef.set(lock.acquire(LockKind.Write, waitingErr, noWait = false, testHolder))
+        secondWriterLeaseRef.set(lock.acquire(
+          LockKind.Write,
+          waitingErr,
+          noWait = false,
+          testHolder
+        ))
         secondWriterAcquired.countDown()
       })
       secondWriterThread.start()

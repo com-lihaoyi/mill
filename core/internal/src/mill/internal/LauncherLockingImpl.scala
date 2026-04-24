@@ -16,13 +16,13 @@ import java.util.concurrent.atomic.AtomicBoolean
  * created together per run and closed independently.
  */
 private[mill] final class LauncherLockingImpl(
-                                               activeCommandMessage: String,
-                                               launcherPid: Long,
-                                               waitingErr: PrintStream,
-                                               noBuildLock: Boolean,
-                                               noWaitForBuildLock: Boolean,
-                                               launcherLocks: LauncherLockingState,
-                                               runId: String
+    activeCommandMessage: String,
+    launcherPid: Long,
+    waitingErr: PrintStream,
+    noBuildLock: Boolean,
+    noWaitForBuildLock: Boolean,
+    launcherLocks: LauncherLockingState,
+    runId: String
 ) extends LauncherLocking {
   private val holder = HolderInfo(launcherPid, activeCommandMessage)
   private val closed = new AtomicBoolean(false)

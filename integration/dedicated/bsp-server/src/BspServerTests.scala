@@ -614,7 +614,9 @@ object BspServerTests extends UtestIntegrationTestSuite {
           .map(_.getId.getUri)
           .toSet
 
-        assert(initialTargetUris.contains((workspacePath / "scripts/visible.scala").toURI.toASCIIString))
+        assert(
+          initialTargetUris.contains((workspacePath / "scripts/visible.scala").toURI.toASCIIString)
+        )
         assert(!initialTargetUris.contains(targetUri(workspacePath / "app")))
 
         os.copy.over(sourceWorkspacePath / "build.mill", workspacePath / "build.mill")

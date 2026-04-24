@@ -9,17 +9,17 @@ import mill.client.lock.{DoubleLock, Lock}
 import mill.constants.{DaemonFiles, OutFolderMode}
 import mill.constants.OutFiles.OutFiles
 import mill.api.BuildCtx
-  import mill.internal.{
-    Colors,
-    JsonArrayLogger,
-    MillCliConfig,
-    MultiStream,
-    PrefixLogger,
-    PromptLogger,
-    BspLogger,
-    LauncherLockingImpl,
-    LauncherOutFilesImpl
-  }
+import mill.internal.{
+  Colors,
+  JsonArrayLogger,
+  MillCliConfig,
+  MultiStream,
+  PrefixLogger,
+  PromptLogger,
+  BspLogger,
+  LauncherLockingImpl,
+  LauncherOutFilesImpl
+}
 import mill.server.Server
 import mill.util.BuildInfo
 import mill.api
@@ -104,22 +104,22 @@ object MillMain0 {
       }
 
   def main0(
-             args: Array[String],
-             sharedState: java.util.concurrent.atomic.AtomicReference[RunnerSharedState],
-             LauncherLocks: mill.internal.LauncherLockingState,
-             mainInteractive: Boolean,
-             streams0: SystemStreams,
-             env: Map[String, String],
-             launcherPid: Long,
-             setIdle: Boolean => Unit,
-             userSpecifiedProperties0: Map[String, String],
-             initialSystemProperties: Map[String, String],
-             systemExit: Server.StopServer,
-             daemonDir: os.Path,
-             outLock: Lock,
-             launcherSubprocessRunner: mill.api.daemon.LauncherSubprocess.Runner,
-             serverToClientOpt: Option[mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient]],
-             millRepositories: Seq[String]
+      args: Array[String],
+      sharedState: java.util.concurrent.atomic.AtomicReference[RunnerSharedState],
+      LauncherLocks: mill.internal.LauncherLockingState,
+      mainInteractive: Boolean,
+      streams0: SystemStreams,
+      env: Map[String, String],
+      launcherPid: Long,
+      setIdle: Boolean => Unit,
+      userSpecifiedProperties0: Map[String, String],
+      initialSystemProperties: Map[String, String],
+      systemExit: Server.StopServer,
+      daemonDir: os.Path,
+      outLock: Lock,
+      launcherSubprocessRunner: mill.api.daemon.LauncherSubprocess.Runner,
+      serverToClientOpt: Option[mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient]],
+      millRepositories: Seq[String]
   ): Boolean = mill.api.daemon.MillRepositories.withValue(millRepositories) {
     mill.api.daemon.LauncherSubprocess.withValue(launcherSubprocessRunner) {
       mill.api.daemon.internal.MillScalaParser.current.withValue(MillScalaParserImpl) {
@@ -343,39 +343,41 @@ object MillMain0 {
                             // symlinks to not-yet-written files mid-run.
                             runArtifacts.publishLiveArtifacts()
                             try mill.api.SystemStreamsUtils.withStreams(logger.streams) {
-                              mill.api.FilesystemCheckerEnabled.withValue(
-                                !config.noFilesystemChecker.value
-                              ) {
-                                tailManager.withOutErr(logger.streams.out, logger.streams.err) {
-                                  new MillBuildBootstrap(
-                                    topLevelProjectRoot = BuildCtx.workspaceRoot,
-                                    output = out,
-                                    // In BSP server, we want to evaluate as many tasks as possible,
-                                    // in order to give as many results as available in BSP responses
-                                    keepGoing = bspMode || config.keepGoing.value,
-                                    imports = config.imports,
-                                    env = env ++ extraEnv,
-                                    ec = ec,
-                                    tasksAndParams = tasksAndParams,
-                                    prevCommandState =
-                                      prevState.getOrElse(RunnerLauncherState.empty),
-                                    logger = logger,
-                                    requestedMetaLevel = config.metaLevel.orElse(metaLevelOverride),
-                                    allowPositionalCommandArgs = config.allowPositional.value,
-                                    systemExit = systemExit,
-                                    streams0 = streams,
-                                    selectiveExecution = config.watch.value,
-                                    offline = config.offline.value,
-                                    useFileLocks = config.useFileLocks.value,
-                                    workspaceLocking = workspaceLocking,
-                                    runArtifacts = runArtifacts,
-                                    sharedState = sharedState,
-                                    reporter = reporter,
-                                    enableTicker = enableTicker
-                                  ).evaluate()
+                                mill.api.FilesystemCheckerEnabled.withValue(
+                                  !config.noFilesystemChecker.value
+                                ) {
+                                  tailManager.withOutErr(logger.streams.out, logger.streams.err) {
+                                    new MillBuildBootstrap(
+                                      topLevelProjectRoot = BuildCtx.workspaceRoot,
+                                      output = out,
+                                      // In BSP server, we want to evaluate as many tasks as possible,
+                                      // in order to give as many results as available in BSP responses
+                                      keepGoing = bspMode || config.keepGoing.value,
+                                      imports = config.imports,
+                                      env = env ++ extraEnv,
+                                      ec = ec,
+                                      tasksAndParams = tasksAndParams,
+                                      prevCommandState =
+                                        prevState.getOrElse(RunnerLauncherState.empty),
+                                      logger = logger,
+                                      requestedMetaLevel =
+                                        config.metaLevel.orElse(metaLevelOverride),
+                                      allowPositionalCommandArgs = config.allowPositional.value,
+                                      systemExit = systemExit,
+                                      streams0 = streams,
+                                      selectiveExecution = config.watch.value,
+                                      offline = config.offline.value,
+                                      useFileLocks = config.useFileLocks.value,
+                                      workspaceLocking = workspaceLocking,
+                                      runArtifacts = runArtifacts,
+                                      sharedState = sharedState,
+                                      reporter = reporter,
+                                      enableTicker = enableTicker
+                                    ).evaluate()
+                                  }
                                 }
                               }
-                            } finally runArtifacts.publishArtifacts()
+                            finally runArtifacts.publishArtifacts()
                           }
 
                           loggerOpt match {

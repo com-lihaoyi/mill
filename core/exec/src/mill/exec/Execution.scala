@@ -86,7 +86,7 @@ case class Execution(
       depth: Int,
       isFinalDepth: Boolean,
       // JSON string to avoid classloader issues when crossing classloader boundaries
-    spanningInvalidationTree: Option[String]
+      spanningInvalidationTree: Option[String]
   ) = this(
     baseLogger = baseLogger,
     profileLogger = new JsonArrayLogger.Profile(

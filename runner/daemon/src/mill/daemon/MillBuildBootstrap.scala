@@ -314,12 +314,12 @@ class MillBuildBootstrap(
     val readLease = workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Read)
     val evalResult =
       try evaluateWithWatches(
-        buildFileApi,
-        evaluator,
-        Seq("millBuildRootModuleResult"),
-        selectiveExecution = false,
-        reporter = reporter(evaluator)
-      )
+          buildFileApi,
+          evaluator,
+          Seq("millBuildRootModuleResult"),
+          selectiveExecution = false,
+          reporter = reporter(evaluator)
+        )
       catch {
         case t: Throwable =>
           try readLease.close()
@@ -433,7 +433,11 @@ class MillBuildBootstrap(
         if (!needsClassloaderRefresh(latest) && latest.isDefined) {
           val reused = latest.get.copy(moduleWatched = Some(moduleWatches))
           sharedState.updateAndGet(_.withFrame(depth, reused))
-          nestedState.withMetaBuildFrame(launcherFrame(reused, readLease, classLoaderChanged = false))
+          nestedState.withMetaBuildFrame(launcherFrame(
+            reused,
+            readLease,
+            classLoaderChanged = false
+          ))
         } else {
           // Slow path: need to install a new classloader. Drop read, acquire
           // write (which waits for all readers — other launchers may still be
@@ -463,7 +467,11 @@ class MillBuildBootstrap(
                 (fresh, true)
               }
             writeLease.downgradeToRead()
-            nestedState.withMetaBuildFrame(launcherFrame(sharedFrame, writeLease, classLoaderChanged))
+            nestedState.withMetaBuildFrame(launcherFrame(
+              sharedFrame,
+              writeLease,
+              classLoaderChanged
+            ))
           }
         }
 

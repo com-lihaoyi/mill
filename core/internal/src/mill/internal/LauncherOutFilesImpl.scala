@@ -22,12 +22,12 @@ import java.util.concurrent.atomic.AtomicBoolean
  * dir is pruned) are swept at cleanup time.
  */
 private[mill] final class LauncherOutFilesImpl(
-                                                out: os.Path,
-                                                daemonDir: os.Path,
-                                                activeCommandMessage: String,
-                                                launcherPid: Long,
-                                                launcherLocks: LauncherLockingState,
-                                                override val runId: String
+    out: os.Path,
+    daemonDir: os.Path,
+    activeCommandMessage: String,
+    launcherPid: Long,
+    launcherLocks: LauncherLockingState,
+    override val runId: String
 ) extends LauncherOutFiles {
   import LauncherOutFilesImpl.*
 
@@ -53,7 +53,8 @@ private[mill] final class LauncherOutFilesImpl(
   }
 
   override def publishLiveArtifacts(): Unit =
-    if (!closed.get()) updateSymlink(out / DaemonFiles.millConsoleTail, os.Path(consoleTail), launcherLocks)
+    if (!closed.get())
+      updateSymlink(out / DaemonFiles.millConsoleTail, os.Path(consoleTail), launcherLocks)
 
   override def publishArtifacts(): Unit =
     if (!closed.get()) {
@@ -77,9 +78,10 @@ private[mill] final class LauncherOutFilesImpl(
     val commandJson = ujson.write(ujson.Str(activeCommandMessage))
     val json = s"""{"pid":$launcherPid,"command":$commandJson}"""
     try mill.api.BuildCtx.withFilesystemCheckerDisabled {
-      os.makeDir.all(launcherRunFile / os.up)
-      os.write.over(launcherRunFile, json)
-    } catch { case _: Throwable => }
+        os.makeDir.all(launcherRunFile / os.up)
+        os.write.over(launcherRunFile, json)
+      }
+    catch { case _: Throwable => }
   }
 }
 
@@ -140,7 +142,11 @@ private[mill] object LauncherOutFilesImpl {
    * Atomic-move a symlink at `link` to point at `target`. Uses a sibling tmp
    * file and `ATOMIC_MOVE` so readers never observe an in-progress state.
    */
-  private def updateSymlink(link: os.Path, target: os.Path, launcherLocks: LauncherLockingState): Unit = {
+  private def updateSymlink(
+      link: os.Path,
+      target: os.Path,
+      launcherLocks: LauncherLockingState
+  ): Unit = {
     try {
       os.makeDir.all(link / os.up)
       val rel = relativizeTarget(link, target)
