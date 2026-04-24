@@ -103,7 +103,7 @@ object MillMain0 {
 
   def main0(
       args: Array[String],
-      sharedState: java.util.concurrent.atomic.AtomicReference[RunnerState],
+      sharedState: java.util.concurrent.atomic.AtomicReference[SharedMetaBuildState],
       mainInteractive: Boolean,
       streams0: SystemStreams,
       env: Map[String, String],
@@ -248,7 +248,7 @@ object MillMain0 {
                     Using.resources(new TailManager(daemonDir), createEc()) { (tailManager, ec) =>
                       def runMillBootstrap(
                           skipSelectiveExecution: Boolean,
-                          prevState: Option[RunnerState],
+                          prevState: Option[LaunchState],
                           tasksAndParams: Seq[String],
                           streams: SystemStreams,
                           millActiveCommandMessage: String,
@@ -257,9 +257,9 @@ object MillMain0 {
                             _ => _ => None,
                           extraEnv: Seq[(String, String)] = Nil,
                           metaLevelOverride: Option[Int] = None
-                      ): RunnerState = {
-                        def runWithLogger(manager: WorkspaceLocking.Manager): RunnerState = {
-                          def proceed(logger: Logger): RunnerState = {
+                      ): LaunchState = {
+                        def runWithLogger(manager: WorkspaceLocking.Manager): LaunchState = {
+                          def proceed(logger: Logger): LaunchState = {
                             // Enter key pressed, removing mill-selective-execution.json to
                             // ensure all tasks re-run even though no inputs may have changed
                             //
@@ -292,7 +292,7 @@ object MillMain0 {
                                     env = env ++ extraEnv,
                                     ec = ec,
                                     tasksAndParams = tasksAndParams,
-                                    prevCommandState = prevState.getOrElse(RunnerState.empty),
+                                    prevCommandState = prevState.getOrElse(LaunchState.empty),
                                     logger = logger,
                                     requestedMetaLevel = config.metaLevel.orElse(metaLevelOverride),
                                     allowPositionalCommandArgs = config.allowPositional.value,
@@ -329,7 +329,7 @@ object MillMain0 {
                           }
                         }
 
-                        def runWithLockManager(manager: WorkspaceLocking.Manager): RunnerState =
+                        def runWithLockManager(manager: WorkspaceLocking.Manager): LaunchState =
                           try {
                             setIdle(false)
                             val state = runWithLogger(manager)
@@ -392,7 +392,7 @@ object MillMain0 {
                         )
 
                         val bspLogger = getBspLogger(streams, config)
-                        var prevRunnerStateOpt = Option.empty[RunnerState]
+                        var prevLaunchStateOpt = Option.empty[LaunchState]
                         val (bspServerHandle, buildClient) = startBspServer(
                           streams0,
                           bspLogger,
@@ -406,7 +406,7 @@ object MillMain0 {
                         while (keepGoing) {
                           val watchRes = runMillBootstrap(
                             skipSelectiveExecution = false,
-                            prevState = prevRunnerStateOpt,
+                            prevState = prevLaunchStateOpt,
                             tasksAndParams = Seq("resolve", "_"),
                             streams = initCommandLogger.streams,
                             millActiveCommandMessage = "BSP:initialize",
@@ -423,9 +423,9 @@ object MillMain0 {
                           for (err <- watchRes.errorOpt) bspLogger.streams.err.println(err)
 
                           // The previous loop iteration called resetSession before continuing, so
-                          // these leases belong to an inactive BSP session state.
-                          prevRunnerStateOpt.foreach(_.close())
-                          prevRunnerStateOpt = Some(watchRes)
+                          // the previous launch state belongs to an inactive BSP session.
+                          prevLaunchStateOpt.foreach(_.close())
+                          prevLaunchStateOpt = Some(watchRes)
 
                           val sessionResultFuture = bspServerHandle.startSession(
                             evaluators = watchRes.allEvaluators,
@@ -495,7 +495,7 @@ object MillMain0 {
                           }
                         }
 
-                        prevRunnerStateOpt.foreach(_.close())
+                        prevLaunchStateOpt.foreach(_.close())
                         streams.err.println("Exiting BSP runner loop")
                         !errored
                       } else if (
@@ -546,7 +546,7 @@ object MillMain0 {
                           )),
                           streams = streams,
                           evaluate =
-                            (skipSelectiveExecution: Boolean, prevState: Option[RunnerState]) => {
+                            (skipSelectiveExecution: Boolean, prevState: Option[LaunchState]) => {
                               adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
                               runMillBootstrap(
                                 skipSelectiveExecution = skipSelectiveExecution,

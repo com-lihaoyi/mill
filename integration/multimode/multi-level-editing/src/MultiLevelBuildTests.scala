@@ -2,7 +2,7 @@ package mill.integration
 
 import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
 import mill.constants.OutFiles.OutFiles.*
-import mill.daemon.RunnerState
+import mill.daemon.LaunchState
 import utest.*
 
 import scala.util.matching.Regex
@@ -43,13 +43,13 @@ trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
   def loadFrames(
       tester: IntegrationTester,
       n: Int
-  ): IndexedSeq[(RunnerState.Frame.Logged, os.Path)] = {
+  ): IndexedSeq[(LaunchState.Frame.Logged, os.Path)] = {
     for (depth <- Range(0, n))
       yield {
         val path =
           tester.workspacePath / "out" / Seq.fill(depth)(millBuild) / millRunnerState
-        if (os.exists(path)) upickle.read[RunnerState.Frame.Logged](os.read(path)) -> path
-        else RunnerState.Frame.Logged(Map(), Seq(), Seq(), None, Seq(), 0) -> path
+        if (os.exists(path)) upickle.read[LaunchState.Frame.Logged](os.read(path)) -> path
+        else LaunchState.Frame.Logged(Map(), Seq(), Seq(), None, Seq(), 0) -> path
       }
   }
 
