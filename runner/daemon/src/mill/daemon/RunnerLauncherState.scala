@@ -91,13 +91,14 @@ case class RunnerLauncherState(
   override def close(): Unit = {
     // Evaluators stay alive after bootstrap evaluation so BSP/IDE follow-up can
     // execute more tasks against the returned state. Closing them here only
-    // tears down per-run execution resources (e.g. profile loggers); workers live
-    // in the process-level SharedWorkerCache and must remain shared.
+    // tears down per-run execution resources (e.g. profile loggers); workers
+    // live in the process-level SharedWorkerCache and must remain shared.
     //
-    // Order matters: evaluators first (they may read from the classloader
-    // protected by the meta-build read lease), then leases (releasing them
-    // unblocks concurrent writers that may close the classloader), then
-    // closeables (e.g. the workspace lock manager itself).
+    // Order: evaluators (so any evaluator-owned resources are flushed before
+    // their meta-build classloader could be replaced), then meta-build read
+    // leases (releasing them unblocks concurrent writers that may eventually
+    // close the previously-published classloader), then external closeables
+    // such as the workspace lock manager and per-run artifact files.
     closeAll(
       allEvaluators.distinct ++
         metaBuildFrames.flatMap(_.metaBuildReadLease) ++

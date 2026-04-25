@@ -28,6 +28,11 @@ object ScalafmtWorkerModule extends ExternalModule with JavaModule {
 }
 
 private[scalafmt] class ScalafmtWorker(cl: ClassLoader) extends AutoCloseable {
+  // Guarded by `lock`. Reads of both fields and any reformat invocation must
+  // hold the lock so concurrent launchers sharing this worker don't observe
+  // a torn (reformatted, configSig) snapshot or race on the underlying
+  // scalafmt instance.
+  private val lock = new Object
   private val reformatted: mutable.Map[os.Path, Int] = mutable.Map.empty
   private var configSig: Int = 0
 
@@ -61,13 +66,12 @@ private[scalafmt] class ScalafmtWorker(cl: ClassLoader) extends AutoCloseable {
       input: Seq[PathRef],
       scalafmtConfig: PathRef,
       dryRun: Boolean
-  )(using ctx: TaskCtx): Seq[PathRef] = {
+  )(using ctx: TaskCtx): Seq[PathRef] = lock.synchronized {
 
     // only consider files that have changed since last reformat
-    val toConsider = reformatted.synchronized {
+    val toConsider =
       if (scalafmtConfig.sig != configSig) input
       else input.filterNot(ref => reformatted.get(ref.path).contains(ref.sig))
-    }
 
     if (toConsider.nonEmpty) {
 
@@ -84,9 +88,7 @@ private[scalafmt] class ScalafmtWorker(cl: ClassLoader) extends AutoCloseable {
 
       def markFormatted(path: PathRef) = {
         val updRef = PathRef(path.path)
-        reformatted.synchronized {
-          reformatted += updRef.path -> updRef.sig
-        }
+        reformatted += updRef.path -> updRef.sig
       }
 
       toConsider.foreach { pathToFormat =>
@@ -119,7 +121,7 @@ private[scalafmt] class ScalafmtWorker(cl: ClassLoader) extends AutoCloseable {
     }
   }
 
-  override def close(): Unit = {
+  override def close(): Unit = lock.synchronized {
     scalafmt
       .getClass
       .getMethods
@@ -127,7 +129,7 @@ private[scalafmt] class ScalafmtWorker(cl: ClassLoader) extends AutoCloseable {
       .head
       .invoke(scalafmt)
 
-    reformatted.synchronized { reformatted.clear() }
+    reformatted.clear()
     configSig = 0
   }
 }

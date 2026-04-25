@@ -41,17 +41,6 @@ trait EvaluatorApi extends AutoCloseable {
   ): Result[Boolean] = Result.Success(false)
 
   /**
-   * Compares the current selective-execution metadata for the resolved task graph
-   * against a previously-published snapshot, without executing the task graph.
-   */
-  private[mill] def hasNoChanges(
-      @unused scriptArgs: Seq[String],
-      @unused selectMode: SelectMode,
-      @unused previousMetadata: Any,
-      @unused allowPositionalCommandArgs: Boolean = false
-  ): Result[Boolean] = Result.Success(false)
-
-  /**
    * Computes current selective-execution metadata for the resolved task graph and
    * reports whether it matches a previously-published snapshot.
    */

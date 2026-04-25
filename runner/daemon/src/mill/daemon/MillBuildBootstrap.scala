@@ -187,7 +187,10 @@ class MillBuildBootstrap(
     val error =
       if (alreadyCached) None
       else {
-        val shareLease = workspaceLocking.metaBuildLock(0, LauncherLocking.LockKind.Write)
+        // Dedicated bootstrap lock — the bootstrap module is a single shared
+        // slot in RunnerSharedState that isn't depth-keyed, so we don't reuse
+        // any meta-build depth lock for it.
+        val shareLease = workspaceLocking.bootstrapLock(LauncherLocking.LockKind.Write)
         try {
           val refreshed = sharedState.get()
           val stillMissing =
@@ -364,7 +367,13 @@ class MillBuildBootstrap(
       Option.when(os.exists(metadataFile))(os.read(metadataFile))
     }
 
-    reusable(sharedState.get().frameAt(depth)) match {
+    // closeOnThrow guards the lease against any throw from `reusable` itself
+    // (e.g. evaluator.probeSelectiveMetadata or Watching.haveNotChanged
+    // throwing); without it, a leaked read lease would block every concurrent
+    // meta-build write at this depth until daemon shutdown.
+    closeOnThrow(readLease) {
+      reusable(sharedState.get().frameAt(depth))
+    } match {
       case f: Result.Failure =>
         readLease.close()
         nestedState.withError(mill.internal.Util.formatError(f, logger.prompt.errorColor))
@@ -444,13 +453,10 @@ class MillBuildBootstrap(
                     )
                   }
 
-                  val current = sharedState.get().frameAt(depth)
-                  Seq(
-                    prevCommandState.metaBuildFrameAt(depth)
-                      .flatMap(_.sharedFrame.classLoaderOpt),
-                    current.flatMap(_.classLoaderOpt)
-                  ).flatten.distinct.foreach(_.close())
-
+                  // Build the new frame *first* so a failure in createClassLoader
+                  // leaves the previously-published frame intact and reusable.
+                  // Old classloaders are closed only after the new frame is
+                  // successfully published.
                   val fresh = RunnerSharedState.Frame(
                     evalWatched = evalWatches,
                     moduleWatched = Some(moduleWatches),
@@ -465,7 +471,12 @@ class MillBuildBootstrap(
                     selectiveMetadata =
                       Option.when(collectSelectiveMetadata)(readSelectiveMetadataFile()).flatten
                   )
-                  sharedState.updateAndGet(_.withFrame(depth, fresh))
+                  val previous = sharedState.getAndUpdate(_.withFrame(depth, fresh))
+                  Seq(
+                    prevCommandState.metaBuildFrameAt(depth)
+                      .flatMap(_.sharedFrame.classLoaderOpt),
+                    previous.frames.get(depth).flatMap(_.classLoaderOpt)
+                  ).flatten.distinct.foreach(_.close())
                   writeLease.downgradeToRead()
                   nestedState.withMetaBuildFrame(launcherFrame(
                     fresh,
@@ -504,16 +515,13 @@ class MillBuildBootstrap(
     val withFinal = nestedState.withFinalFrame(
       RunnerLauncherState.FinalFrame(depth, evaluator, evalWatched, moduleWatched)
     )
-    // Sequence the shared-state write under this depth's meta-build write
-    // lock so concurrent launchers at the same final depth don't last-write-
-    // wins each other's moduleWatched. Readers at the depth above consult
-    // this to decide whether to refresh the classloader; inconsistent
-    // snapshots could mask a needed refresh. No self-reentrance issue: when
-    // we reach processFinalTasks at this depth, processRunClasspath for this
-    // depth was not called, so our launcher holds no read lease here.
-    val shareLease = workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Write)
-    try sharedState.getAndUpdate(_.withModuleWatched(depth, moduleWatched))
-    finally shareLease.close()
+    // sharedState is an AtomicReference; getAndUpdate is already atomic, so
+    // concurrent launchers updating moduleWatched at the same final depth
+    // settle on a well-defined "last write wins" order without needing a
+    // meta-build write lease here. The previous lock just serialized the
+    // brief update against unrelated processRunClasspath readers at the same
+    // depth and offered no consistency benefit, so we drop it.
+    sharedState.getAndUpdate(_.withModuleWatched(depth, moduleWatched))
     evaled match {
       case f: Result.Failure =>
         withFinal.withError(mill.internal.Util.formatError(f, logger.prompt.errorColor))

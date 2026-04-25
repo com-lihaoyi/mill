@@ -84,6 +84,8 @@ object BspWorkerImpl {
         try listening.get()
         catch {
           case _: CancellationException => // normal exit
+          case t: Throwable =>
+            streams.err.println(s"BSP listener exited with error: $t")
         }
         streams.err.println("Shutting down executor")
         executor.shutdown()

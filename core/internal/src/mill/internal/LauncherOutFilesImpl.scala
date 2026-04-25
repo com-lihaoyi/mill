@@ -41,6 +41,9 @@ private[mill] final class LauncherOutFilesImpl(
   private val launcherRunFile = daemonDir / os.RelPath(DaemonFiles.perLauncherFilePath(runId))
   private val closed = new AtomicBoolean(false)
 
+  // Head is the live console-tail symlink, published mid-run by
+  // `publishLiveArtifacts`. The remaining entries are the post-run artifacts
+  // published by `publishArtifacts` once evaluation finishes.
   private val publishedArtifacts = Seq(
     PublishedArtifact(out / DaemonFiles.millConsoleTail, os.Path(consoleTail), copyFallback = false),
     PublishedArtifact(out / OutFiles.millProfile, os.Path(profile), copyFallback = true),
@@ -62,11 +65,7 @@ private[mill] final class LauncherOutFilesImpl(
   cleanup(out, daemonDir)
 
   override def publishLiveArtifacts(): Unit =
-    if (!closed.get())
-      publishLatest(
-        PublishedArtifact(out / DaemonFiles.millConsoleTail, os.Path(consoleTail), copyFallback = false),
-        launcherLocks
-      )
+    if (!closed.get()) publishLatest(publishedArtifacts.head, launcherLocks)
 
   override def publishArtifacts(): Unit =
     if (!closed.get()) publishedArtifacts.foreach(publishLatest(_, launcherLocks))
@@ -101,6 +100,16 @@ private[mill] object LauncherOutFilesImpl {
     os.RelPath(OutFiles.millInvalidationTree)
   )
 
+  // Run id format is "<millis>-<seq>"; sort key is (millis, seq) so order
+  // stays chronological even if millis-string widths ever change.
+  private def runDirSortKey(p: os.Path): (Long, Long) = {
+    val name = p.last
+    val dash = name.indexOf('-')
+    if (dash < 0) (0L, 0L)
+    else (name.substring(0, dash).toLongOption.getOrElse(0L),
+          name.substring(dash + 1).toLongOption.getOrElse(0L))
+  }
+
   /**
    * Set of run-ids whose launcher process is still alive. "Still alive" means
    * the `mill-launcher-files/<runId>.json` record exists AND the PID recorded
@@ -123,18 +132,29 @@ private[mill] object LauncherOutFilesImpl {
   }
 
   /**
-   * Keep the N most recent run dirs plus any currently-active ones; remove the
-   * rest. Then sweep any `out/mill-*` symlink whose target no longer resolves.
+   * Cap the total number of retained run dirs at [[maxRetainedRuns]] when we
+   * can: never delete a currently-active run dir, and prefer to evict the
+   * oldest inactive ones first. If actives alone exceed the cap, all inactive
+   * dirs are removed but no actives are touched (so the actual on-disk count
+   * may exceed the cap until those launchers exit).
+   *
+   * Then sweep any `out/mill-*` symlink whose target no longer resolves.
    */
   private def cleanup(out: os.Path, daemonDir: os.Path): Unit = {
     try {
       val runRootDir = out / LauncherLockingState.runRootDirName
       if (os.exists(runRootDir)) {
         val active = activeRunIds(daemonDir)
-        val runDirs = os.list(runRootDir).filter(os.isDir(_)).sortBy(_.last)
-        val eligible = runDirs.filterNot(d => active.contains(d.last))
-        val toRemove = eligible.take(runDirs.size - maxRetainedRuns)
-        toRemove.foreach(d =>
+        // Sort inactives oldest-first by parsing the leading millis prefix of
+        // each run id. This avoids relying on lexicographic ordering staying
+        // chronological for fixed-width millis strings.
+        val runDirs = os.list(runRootDir).filter(os.isDir(_))
+        val eligible = runDirs.filterNot(d => active.contains(d.last)).sortBy(runDirSortKey)
+        val toRemoveCount = math.min(
+          math.max(0, runDirs.size - maxRetainedRuns),
+          eligible.size
+        )
+        eligible.take(toRemoveCount).foreach(d =>
           try os.remove.all(d)
           catch { case _: Throwable => }
         )

@@ -20,8 +20,6 @@ final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
   override def offline: Boolean = delegate.offline
   override def isFinalDepth: Boolean = delegate.isFinalDepth
   override def useFileLocks: Boolean = delegate.useFileLocks
-  override def workspaceLocking: mill.api.daemon.internal.LauncherLocking =
-    delegate.workspaceLocking
   override def staticBuildOverrides = delegate.staticBuildOverrides
   override def spanningInvalidationTree: Option[String] = delegate.spanningInvalidationTree
   override def classLoaderSigHash: Int = delegate.classLoaderSigHash
@@ -63,13 +61,6 @@ final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
   ): mill.api.Result[List[Task.Named[?]]] = {
     delegate.resolveTasks(scriptArgs, selectMode, allowPositionalCommandArgs, resolveToModuleTasks)
   }
-  override private[mill] def hasNoChanges(
-      scriptArgs: Seq[String],
-      selectMode: SelectMode,
-      previousMetadata: Any,
-      allowPositionalCommandArgs: Boolean
-  ): mill.api.Result[Boolean] =
-    delegate.hasNoChanges(scriptArgs, selectMode, previousMetadata, allowPositionalCommandArgs)
   override private[mill] def probeSelectiveMetadata(
       scriptArgs: Seq[String],
       selectMode: SelectMode,

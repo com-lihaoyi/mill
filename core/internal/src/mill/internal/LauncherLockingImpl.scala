@@ -58,6 +58,19 @@ private[mill] final class LauncherLockingImpl(
     }
   }
 
+  override def bootstrapLock(
+      kind: LauncherLocking.LockKind
+  ): LauncherLocking.Lease = {
+    ensureOpen()
+    if (noBuildLock) LauncherLocking.Noop.bootstrapLock(kind)
+    else acquireManagedLease(launcherLocks.bootstrapLock.acquire(
+      kind,
+      waitingErr,
+      noWaitForBuildLock,
+      holder
+    ))
+  }
+
   private def acquireManagedLease(
       underlying: LauncherLocking.Lease
   ): LauncherLocking.Lease = {

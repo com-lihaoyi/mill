@@ -35,7 +35,7 @@ private[mill] final class FairRwLock(label: String) {
 
   private def waitingMessage(blocker: Option[HolderInfo]): String = blocker match {
     case Some(h) =>
-      s"Another Mill command in the current daemon is running '${h.command}' with PID ${h.pid} (resource: '$label')"
+      s"Another Mill command in the current daemon is running '${h.command}' with PID ${h.pid}"
     case None =>
       s"Another Mill command in the current daemon is using '$label'"
   }
@@ -73,9 +73,16 @@ private[mill] final class FairRwLock(label: String) {
 
     leaseOpt.getOrElse {
       val blocker = monitor.synchronized(currentBlocker())
+      // Resource label is appended at the end of the line so substring
+      // matchers like `ConcurrencyTests.blockedBy`, which look for the
+      // command-and-PID prefix, still match while resource-aware checks
+      // (e.g. `BspServerTests.sharedOutDirAllowsConcurrentCliAndBspWork`,
+      // which classifies waits as benign by inspecting the resource path)
+      // can still find the contested resource on the same line.
       waitingErr.println(
         s"${waitingMessage(blocker)}, waiting for it to be done... " +
-          s"(tail -F out/${DaemonFiles.millConsoleTail} to see its progress)"
+          s"(tail -F out/${DaemonFiles.millConsoleTail} to see its progress) " +
+          s"(resource: '$label')"
       )
 
       // Phase 2: wait until acquirable, then reserve.

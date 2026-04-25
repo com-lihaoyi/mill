@@ -34,16 +34,14 @@ private[worker] object ChangeNotifier {
   def notifyChanges(
       client: BuildClient,
       previousTargets: Seq[TargetSnapshot],
-      newTargets: Seq[TargetSnapshot],
-      forceMillBuildChanged: Boolean
+      newTargets: Seq[TargetSnapshot]
   ): Unit = {
     val createdAndModifiedEvents = computeCreatedAndModified(previousTargets, newTargets)
     val deletedEvents = computeDeleted(previousTargets, newTargets)
     val millBuildEvent = computeMillBuildChanged(
       previousTargets,
       newTargets,
-      deletedEvents ++ createdAndModifiedEvents,
-      forceMillBuildChanged
+      deletedEvents ++ createdAndModifiedEvents
     )
     val allEvents = deletedEvents ++ createdAndModifiedEvents ++ millBuildEvent
 
@@ -88,13 +86,12 @@ private[worker] object ChangeNotifier {
   private def computeMillBuildChanged(
       previousTargets: Seq[TargetSnapshot],
       newTargets: Seq[TargetSnapshot],
-      otherEvents: Seq[bsp4j.BuildTargetEvent],
-      forceMillBuildChanged: Boolean
+      otherEvents: Seq[bsp4j.BuildTargetEvent]
   ): Seq[bsp4j.BuildTargetEvent] = {
     def isMillBuild(id: BuildTargetIdentifier) = id.getUri.endsWith("/mill-build")
 
     if (
-      (forceMillBuildChanged || otherEvents.nonEmpty) &&
+      otherEvents.nonEmpty &&
       !otherEvents.exists(event => isMillBuild(event.getTarget)) &&
       previousTargets.exists(target => isMillBuild(target.id)) &&
       newTargets.exists(target => isMillBuild(target.id))

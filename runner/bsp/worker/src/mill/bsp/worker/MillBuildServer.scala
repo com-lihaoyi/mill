@@ -10,7 +10,7 @@ import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
 
 import java.util.concurrent.{CompletableFuture, LinkedBlockingQueue, TimeUnit}
 import java.util.concurrent.atomic.AtomicInteger
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.Promise
 import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success}
 import mill.api.daemon.internal.NonFatal
@@ -169,14 +169,28 @@ private abstract class MillBuildServer(
     watcherThread = mill.api.daemon.StartThread("mill-bsp-watcher", daemon = true) {
       var prevTargetSnapshots = Seq.empty[ChangeNotifier.TargetSnapshot]
       var seenAnyBootstrap = false
-      try while (!stopped && !shutdownPromise.isCompleted) {
-          try bootstrapBridge.runBootstrap(
+      try while (
+          !stopped &&
+            !shutdownPromise.isCompleted &&
+            !Thread.currentThread().isInterrupted
+        ) {
+          try {
+            // Compute snapshots inside the bridge body, then return so the
+            // bootstrap's read leases are released before we start polling.
+            // Holding leases during the poll would block any concurrent BSP
+            // request that needs to acquire a meta-build/task write lease
+            // (e.g. when build.mill changed and the request needs to refresh
+            // the meta-build classloader), creating a deadlock — the request
+            // can't make progress until the watcher releases, and the watcher
+            // only loops when something changes, which a blocked request can't
+            // produce.
+            val watchedSeq = bootstrapBridge.runBootstrap(
               "BSP:watch",
-              new BspBootstrapBridge.Body[Unit] {
+              new BspBootstrapBridge.Body[Seq[Watchable]] {
                 override def apply(
                     evaluators: java.util.List[EvaluatorApi],
                     watched: java.util.List[Watchable]
-                ): Unit = {
+                ): Seq[Watchable] = {
                   val bspEvaluators = new BspEvaluators(
                     topLevelProjectRoot,
                     evaluators.asScala.toSeq,
@@ -188,34 +202,42 @@ private abstract class MillBuildServer(
                     ChangeNotifier.notifyChanges(
                       client0,
                       prevTargetSnapshots,
-                      current,
-                      forceMillBuildChanged = false
+                      current
                     )
                   prevTargetSnapshots = current
                   seenAnyBootstrap = true
-
-                  val watchedSeq = watched.asScala.toSeq
-                  // Poll until something changes or shutdown is requested.
-                  // We poll filesystem-style watches via WatchSig; this also
-                  // re-evaluates Task.Input style watch closures, which is
-                  // safe here because the bootstrap's leases are still held
-                  // for the whole body.
-                  while (
-                    !stopped &&
-                      !shutdownPromise.isCompleted &&
-                      watchedSeq.forall(WatchSig.haveNotChanged)
-                  ) {
-                    try Thread.sleep(watcherPollIntervalMs)
-                    catch {
-                      case _: InterruptedException =>
-                        Thread.currentThread().interrupt()
-                        return
-                    }
-                  }
+                  watched.asScala.toSeq
                 }
               }
             )
-          catch {
+
+            // Poll without holding leases. WatchSig.haveNotChanged on a
+            // filesystem-style watch is pure I/O, but Task.Input watches can
+            // re-invoke closures whose classes lived in the meta-build
+            // classloader; once leases are released a concurrent refresh may
+            // close that classloader. Treat any throw from the closure as
+            // "something changed" and re-bootstrap on the next iteration.
+            def stillUnchanged(): Boolean =
+              try watchedSeq.forall(WatchSig.haveNotChanged)
+              catch { case NonFatal(_) => false }
+
+            while (
+              !stopped &&
+                !shutdownPromise.isCompleted &&
+                !Thread.currentThread().isInterrupted &&
+                stillUnchanged()
+            ) {
+              try Thread.sleep(watcherPollIntervalMs)
+              catch {
+                case _: InterruptedException =>
+                  // Re-set the interrupt flag so the loop condition above
+                  // exits on the next iteration (and so the outer
+                  // `while (!stopped && !shutdownPromise.isCompleted)` exits
+                  // when its body propagates the InterruptedException).
+                  Thread.currentThread().interrupt()
+              }
+            }
+          } catch {
             case _: InterruptedException => Thread.currentThread().interrupt()
             case NonFatal(ex) =>
               watchLogger.error(s"BSP watcher iteration failed: $ex")
@@ -239,11 +261,26 @@ private abstract class MillBuildServer(
 
   def close(): Unit = {
     stopped = true
-    shutdownPromise.tryFailure(
-      new java.util.concurrent.CancellationException("BSP server shutting down")
-    )
+    // Settle the shutdown future as Shutdown if no other result has been
+    // recorded; trySuccess is a no-op once already completed. Using
+    // trySuccess (rather than tryFailure) avoids the daemon's BSP block
+    // misreporting an intentional close as "BSP server threw an exception".
+    shutdownPromise.trySuccess(BspServerResult.Shutdown)
     evaluatorRequestsThread.interrupt()
     if (watcherThread != null) watcherThread.interrupt()
+    // Pending queued requests are drained by the evaluator thread itself
+    // when it exits its run loop (see [[evaluatorRequestsThread]]), so any
+    // request that the evaluator thread had already started processing
+    // gets a chance to complete normally before its future is failed.
+  }
+
+  private def drainPendingRequests(cause: Throwable): Unit = {
+    val drained = new java.util.ArrayList[QueuedRequest]
+    queue.drainTo(drained)
+    drained.forEach(req =>
+      try req.failFuture(cause)
+      catch { case _: Throwable => }
+    )
   }
 
   def onConnectWithClient(buildClient: BuildClient): Unit = client = buildClient
@@ -314,13 +351,17 @@ private abstract class MillBuildServer(
 
   /**
    * One queued request: a pre-prepared logger, a request name (for active-
-   * command messages and timing), and the body closure that runs against
-   * fresh evaluators+watches obtained per-request from the bootstrap bridge.
+   * command messages and timing), the client-facing future, the body closure
+   * that runs against fresh evaluators+watches obtained per-request from the
+   * bootstrap bridge, and a callback to fail the future if the request can't
+   * be processed (bootstrap throw, server shutdown, etc.).
    */
   private case class QueuedRequest(
       requestName: String,
       logger: Logger,
-      run: (Seq[EvaluatorApi], Seq[Watchable]) => Unit
+      future: CompletableFuture[?],
+      run: (Seq[EvaluatorApi], Seq[Watchable]) => Unit,
+      failFuture: Throwable => Unit
   )
 
   private val queue = new LinkedBlockingQueue[QueuedRequest]
@@ -349,10 +390,28 @@ private abstract class MillBuildServer(
         }
       } catch {
         case _: InterruptedException => // Normal exit
+      } finally {
+        // Drain any requests still queued at shutdown time. Their bodies
+        // never ran, so without this their CompletableFutures (returned
+        // earlier to lsp4j) would never complete and the client would
+        // hang. Done here, after the run loop exits, so we don't race
+        // with in-flight requests that close() interrupted.
+        drainPendingRequests(new java.util.concurrent.CancellationException(
+          "BSP server is shutting down"
+        ))
       }
     }
 
   private def runQueuedRequest(req: QueuedRequest): Unit = {
+    // Fast path: if the future was cancelled before this request reached
+    // the worker thread (lsp4j's `$/cancelRequest` got delivered before we
+    // dequeued), skip the bootstrap entirely and just log "was cancelled".
+    // Skipping bootstrap also avoids racing with a near-simultaneous
+    // shutdown that could interrupt the bootstrap before req.run runs.
+    if (req.future.isCancelled()) {
+      req.logger.info(s"${req.requestName} was cancelled")
+      return
+    }
     try {
       bootstrapBridge.runBootstrap(
         s"BSP:${req.requestName}",
@@ -368,6 +427,9 @@ private abstract class MillBuildServer(
       case t: Throwable =>
         req.logger.error(s"Could not process request: $t")
         t.printStackTrace(req.logger.streams.err)
+        // If the bootstrap threw before req.run could complete the future,
+        // surface the failure to the client; otherwise this is a no-op.
+        req.failFuture(t)
     }
   }
 
@@ -393,11 +455,19 @@ private abstract class MillBuildServer(
       val msg = s"Can not respond to $prefix request before receiving the `initialize` request."
       logger.error(msg)
       future.completeExceptionally(new Exception(msg))
+    } else if (stopped) {
+      future.completeExceptionally(new java.util.concurrent.CancellationException(
+        s"BSP server is shutting down; rejecting request $prefix"
+      ))
     } else {
-      queue.put(QueuedRequest(
+      val req = QueuedRequest(
         requestName = prefix,
         logger = logger,
+        future = future,
         run = (evaluators, watched) => {
+          // The cancel check is also done in `runQueuedRequest` before the
+          // bootstrap, but a request might be cancelled between bootstrap
+          // start and body invocation; preserve that behavior here too.
           if (future.isCancelled()) {
             logger.info(s"$prefix was cancelled")
           } else {
@@ -409,8 +479,13 @@ private abstract class MillBuildServer(
             )
             executeWithTiming(prefix, logger, future)(block(bspEvaluators, logger))
           }
-        }
-      ))
+        },
+        failFuture = t => future.completeExceptionally(t)
+      )
+      queue.put(req)
+      // If close() ran between our `stopped` check and the `put`, the
+      // evaluator thread's `finally`-block drain will pick up this entry
+      // and fail its future on its way out. No need to drain here.
     }
     future
   }

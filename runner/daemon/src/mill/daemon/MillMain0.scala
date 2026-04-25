@@ -5,7 +5,7 @@ import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.api.daemon.internal.{LauncherOutFiles, LauncherLocking}
 import mill.bsp.BSP
-import mill.client.lock.{DoubleLock, Lock}
+import mill.client.lock.Lock
 import mill.constants.{DaemonFiles, OutFolderMode}
 import mill.constants.OutFiles.OutFiles
 import mill.api.BuildCtx
@@ -51,22 +51,16 @@ object MillMain0 {
       throw e
   }
 
-  private val outMemoryLock = Lock.memory()
-
   /**
-   * Creates both a [[DoubleLock]] (for non-daemon command-level locking) and
-   * the underlying file lock (for cross-process daemon-lifetime exclusion).
-   *
-   * The DoubleLock combines an in-memory lock (for intra-process thread
-   * serialization) with the file lock (for cross-process exclusion). The
-   * daemon holds the file lock for its entire lifetime to exclude --no-daemon
-   * processes, while the DoubleLock is only used in non-daemon and
-   * config-mismatch code paths.
+   * The cross-process file lock that arbitrates exclusive access to the `out/`
+   * directory between a daemon and a `--no-daemon` process. The daemon holds
+   * it for its entire lifetime; `--no-daemon` takes it for the duration of
+   * one command. There is no in-memory companion because the only callers
+   * that use this for command-level locking (the `--no-daemon` path) are
+   * single-threaded by construction.
    */
-  def outLocks(out: os.Path): (DoubleLock, Lock) = {
-    val fileLock = Lock.file((out / OutFiles.millOutLock).toString)
-    (DoubleLock(outMemoryLock, fileLock), fileLock)
-  }
+  def outFileLock(out: os.Path): Lock =
+    Lock.file((out / OutFiles.millOutLock).toString)
 
   private def withStreams[T](
       bspMode: Boolean,
@@ -440,20 +434,23 @@ object MillMain0 {
                         // and share the cached meta-build classloader via
                         // RunnerSharedState, serializing at lock granularity
                         // via processRunClasspath's read-first speculation.
-                        val bridgeBuildClient =
-                          new java.util.concurrent.atomic.AtomicReference[
-                            IdeWorkerSupport.BspBuildClient
-                          ](null)
+                        // Promise-backed so `bridgeReporter` blocks until the BuildClient is
+                        // wired in. Without this, an early watcher iteration that fires
+                        // between startBspServer returning and the .set call would silently
+                        // drop diagnostics from the very first compile after build/initialize.
+                        val bridgeBuildClientPromise =
+                          scala.concurrent.Promise[IdeWorkerSupport.BspBuildClient]()
                         val bridgeReporter: EvaluatorApi => Int => Option[CompileProblemReporter] =
                           ev => {
-                            val client = bridgeBuildClient.get()
-                            if (client == null) _ => None
-                            else
-                              IdeWorkerSupport.bspReporterPool(
-                                workspaceDir = BuildCtx.workspaceRoot,
-                                evaluators = Seq(ev),
-                                buildClient = client
-                              )
+                            val client = scala.concurrent.Await.result(
+                              bridgeBuildClientPromise.future,
+                              scala.concurrent.duration.Duration.Inf
+                            )
+                            IdeWorkerSupport.bspReporterPool(
+                              workspaceDir = BuildCtx.workspaceRoot,
+                              evaluators = Seq(ev),
+                              buildClient = client
+                            )
                           }
 
                         val bootstrapBridge = new mill.api.daemon.internal.bsp.BspBootstrapBridge {
@@ -487,7 +484,7 @@ object MillMain0 {
                           bspWatch = config.bspWatch,
                           bootstrapBridge = bootstrapBridge
                         )
-                        bridgeBuildClient.set(buildClient)
+                        bridgeBuildClientPromise.success(buildClient)
 
                         val shutdownResult =
                           try Success(Await.result(

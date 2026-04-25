@@ -489,9 +489,13 @@ object BspServerTests extends UtestIntegrationTestSuite {
         ignoreLine = {
           // ignore watcher logs
           val watchGlob = TestRunnerUtils.matchesGlob("bsp-watch] *")
-          // ignoring compilation warnings that might go away in the future
-          val waitingGlob =
-            TestRunnerUtils.matchesGlob("*] Another Mill process with PID * is running *")
+          // ignore lock-contention waiting messages — these are timing-
+          // dependent (e.g. the BSP watcher's bootstrap may briefly hold a
+          // meta-build read lease, causing concurrent BSP requests to print
+          // this line) and should not affect test stability.
+          val waitingGlob = TestRunnerUtils.matchesGlob(
+            "*Another Mill command in the current daemon is*waiting for it to be done*"
+          )
           s =>
             watchGlob(s) || waitingGlob(s) ||
               // These can happen in different orders due to filesystem ordering, not stable to

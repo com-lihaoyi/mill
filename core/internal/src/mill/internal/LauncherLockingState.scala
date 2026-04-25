@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicLong
 private[mill] final class LauncherLockingState {
   private val metaBuildLocks = new ConcurrentHashMap[Int, FairRwLock]()
   private val taskLocks = new ConcurrentHashMap[String, FairRwLock]()
+  private val bootstrapLockInstance = new FairRwLock("bootstrap-module")
   private val runIdCounter = new AtomicLong(0L)
   private val tmpNameCounter = new AtomicLong(0L)
 
@@ -25,6 +26,8 @@ private[mill] final class LauncherLockingState {
 
   def taskLockFor(normalizedAbsolutePath: String): FairRwLock =
     taskLocks.computeIfAbsent(normalizedAbsolutePath, p => new FairRwLock(p))
+
+  def bootstrapLock: FairRwLock = bootstrapLockInstance
 
   def nextRunId(): String =
     s"${System.currentTimeMillis()}-${runIdCounter.getAndIncrement()}"

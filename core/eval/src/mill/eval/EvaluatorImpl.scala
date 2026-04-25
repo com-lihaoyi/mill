@@ -1,7 +1,6 @@
 package mill.eval
 
 import mill.api.daemon.internal.{CompileProblemReporter, TestReporter}
-import mill.api.daemon.internal.LauncherLocking
 import mill.constants.OutFiles.OutFiles
 import mill.api.{PathRef, *}
 import mill.api.internal.{ResolveChecker, Resolved, RootModule0}
@@ -54,7 +53,6 @@ final class EvaluatorImpl(
   override def offline: Boolean = execution.offline
   override def isFinalDepth: Boolean = execution.isFinalDepth
   override def useFileLocks: Boolean = execution.useFileLocks
-  override def workspaceLocking: LauncherLocking = execution.workspaceLocking
   override def spanningInvalidationTree: Option[String] = execution.spanningInvalidationTree
   override def classLoaderSigHash: Int = execution.classLoaderSigHash
 
@@ -179,15 +177,6 @@ final class EvaluatorImpl(
       case f: Result.Failure => f // Pass through failure
     }
   }
-
-  override private[mill] def hasNoChanges(
-      scriptArgs: Seq[String],
-      selectMode: SelectMode,
-      previousMetadata: Any,
-      allowPositionalCommandArgs: Boolean = false
-  ): mill.api.Result[Boolean] =
-    probeSelectiveMetadata(scriptArgs, selectMode, previousMetadata, allowPositionalCommandArgs)
-      .map(_._1)
 
   override private[mill] def probeSelectiveMetadata(
       scriptArgs: Seq[String],

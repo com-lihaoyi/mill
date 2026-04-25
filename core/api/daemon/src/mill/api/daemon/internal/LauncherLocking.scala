@@ -12,6 +12,13 @@ import java.nio.file.Path
 private[mill] trait LauncherLocking extends AutoCloseable {
   def metaBuildLock(depth: Int, kind: LauncherLocking.LockKind): LauncherLocking.Lease
   def taskLock(path: Path, kind: LauncherLocking.LockKind): LauncherLocking.Lease
+
+  /**
+   * Lock guarding the daemon-wide bootstrap module install. Held only for
+   * the duration of [[mill.daemon.MillBuildBootstrap.makeBootstrapState]]'s
+   * shared-state mutation; not coupled to any meta-build depth.
+   */
+  def bootstrapLock(kind: LauncherLocking.LockKind): LauncherLocking.Lease
 }
 
 private[mill] object LauncherLocking {
@@ -44,6 +51,7 @@ private[mill] object LauncherLocking {
     }
     override def metaBuildLock(depth: Int, kind: LockKind): Lease = NoopLease
     override def taskLock(path: Path, kind: LockKind): Lease = NoopLease
+    override def bootstrapLock(kind: LockKind): Lease = NoopLease
     override def close(): Unit = ()
   }
 }
