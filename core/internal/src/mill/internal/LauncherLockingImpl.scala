@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * One run's concrete [[LauncherLocking]] handle: meta-build and task
- * read/write leases acquired against the daemon-wide [[LauncherLockingState]], plus
+ * read/write leases acquired against the daemon-wide [[LauncherSessionState]], plus
  * bookkeeping that releases every outstanding lease when the session closes.
  *
  * Only locking concerns live here; per-run artifact-file routing lives in the
@@ -21,7 +21,7 @@ private[mill] final class LauncherLockingImpl(
     waitingErr: PrintStream,
     noBuildLock: Boolean,
     noWaitForBuildLock: Boolean,
-    launcherLocks: LauncherLockingState,
+    launcherLocks: LauncherSessionState,
     runId: String
 ) extends LauncherLocking {
   private val holder = HolderInfo(launcherPid, activeCommandMessage)

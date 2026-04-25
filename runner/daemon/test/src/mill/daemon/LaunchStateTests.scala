@@ -92,10 +92,11 @@ object LaunchStateTests extends TestSuite {
     }
 
     test("RunnerSharedState frameAt and moduleWatchedAt round-trip") {
-      val state = RunnerSharedState.empty.withModuleWatched(0, Nil)
+      val frame = RunnerSharedState.Frame(moduleWatched = Some(Nil))
+      val state = RunnerSharedState.empty.withFrame(0, frame)
       assert(state.moduleWatchedAt(0).contains(Nil))
       assert(state.moduleWatchedAt(1).isEmpty)
-      assert(state.frameAt(0).isEmpty)
+      assert(state.frameAt(0).isEmpty) // hasReusable is false because no classloader
     }
   }
 }

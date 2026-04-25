@@ -87,6 +87,13 @@ object BspWorkerImpl {
           case t: Throwable =>
             streams.err.println(s"BSP listener exited with error: $t")
         }
+        // The lsp4j listener future just returned, which means the JSON-RPC
+        // stream has closed. If the client never sent build/exit or
+        // workspace/reload, [[shutdownPromise]] is still unsettled and the
+        // daemon's Await would block forever; settle it as Shutdown here so
+        // the daemon's BSP block can exit cleanly. trySuccess is a no-op if
+        // onBuildExit/workspaceReload already settled it.
+        millServer.shutdownPromise.trySuccess(BspServerResult.Shutdown)
         streams.err.println("Shutting down executor")
         executor.shutdown()
       }

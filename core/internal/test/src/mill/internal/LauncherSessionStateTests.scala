@@ -8,10 +8,10 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.{CountDownLatch, TimeUnit}
 
-object LauncherLockingStateTests extends TestSuite {
+object LauncherSessionStateTests extends TestSuite {
   val tests: Tests = Tests {
     test("meta-build-locks-are-independent-per-depth") {
-      val state = new LauncherLockingState
+      val state = new LauncherSessionState
       val blocker = new LauncherLockingImpl(
         activeCommandMessage = "depth-2-reader",
         launcherPid = 1001L,

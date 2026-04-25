@@ -27,12 +27,12 @@ private[mill] final class LauncherOutFilesImpl(
     daemonDir: os.Path,
     activeCommandMessage: String,
     launcherPid: Long,
-    launcherLocks: LauncherLockingState,
+    launcherLocks: LauncherSessionState,
     override val runId: String
 ) extends LauncherOutFiles {
   import LauncherOutFilesImpl.*
 
-  private val runDir = out / LauncherLockingState.runRootDirName / runId
+  private val runDir = out / LauncherSessionState.runRootDirName / runId
   override val consoleTail: java.nio.file.Path = (runDir / "mill-console-tail").toNIO
   override val profile: java.nio.file.Path = (runDir / OutFiles.millProfile).toNIO
   override val chromeProfile: java.nio.file.Path = (runDir / OutFiles.millChromeProfile).toNIO
@@ -142,7 +142,7 @@ private[mill] object LauncherOutFilesImpl {
    */
   private def cleanup(out: os.Path, daemonDir: os.Path): Unit = {
     try {
-      val runRootDir = out / LauncherLockingState.runRootDirName
+      val runRootDir = out / LauncherSessionState.runRootDirName
       if (os.exists(runRootDir)) {
         val active = activeRunIds(daemonDir)
         // Sort inactives oldest-first by parsing the leading millis prefix of
@@ -160,6 +160,15 @@ private[mill] object LauncherOutFilesImpl {
         )
       }
 
+      // Sweep dangling well-known symlinks (point at a target that no longer
+      // resolves, e.g. because the target's run dir was just GC'd above). The
+      // isLink + exists + remove chain is technically racy against another
+      // launcher that's mid-publish for the same artifact: between our checks
+      // and our delete, that launcher could atomic-move a fresh symlink into
+      // place and we'd delete a freshly-valid link. We accept the rare case
+      // — the next publish or cleanup will restore it — rather than serialize
+      // publishes against cleanups, which would defeat the concurrent-
+      // launcher design.
       wellKnownArtifactLinks.foreach { rel =>
         val link = out / rel
         if (os.isLink(link) && !os.exists(link, followLinks = true)) {
@@ -177,7 +186,7 @@ private[mill] object LauncherOutFilesImpl {
   private def updateSymlink(
       link: os.Path,
       target: os.Path,
-      launcherLocks: LauncherLockingState
+      launcherLocks: LauncherSessionState
   ): Unit = {
     os.makeDir.all(link / os.up)
     val rel = relativizeTarget(link, target)
@@ -202,7 +211,7 @@ private[mill] object LauncherOutFilesImpl {
   private def replaceWithCopy(
       link: os.Path,
       target: os.Path,
-      launcherLocks: LauncherLockingState
+      launcherLocks: LauncherSessionState
   ): Unit = {
     os.makeDir.all(link / os.up)
     val tmp =
@@ -225,7 +234,7 @@ private[mill] object LauncherOutFilesImpl {
 
   private def publishLatest(
       artifact: PublishedArtifact,
-      launcherLocks: LauncherLockingState
+      launcherLocks: LauncherSessionState
   ): Unit = {
     if (os.exists(artifact.target))
       try updateSymlink(artifact.link, artifact.target, launcherLocks)

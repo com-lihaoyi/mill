@@ -100,7 +100,7 @@ object MillMain0 {
   def main0(
       args: Array[String],
       sharedState: java.util.concurrent.atomic.AtomicReference[RunnerSharedState],
-      LauncherLocks: mill.internal.LauncherLockingState,
+      launcherLocks: mill.internal.LauncherSessionState,
       mainInteractive: Boolean,
       streams0: SystemStreams,
       env: Map[String, String],
@@ -263,14 +263,14 @@ object MillMain0 {
                       ): RunnerLauncherState = {
                         val sessionOpt: Option[(LauncherLockingImpl, LauncherOutFilesImpl)] =
                           Option.when(serverToClientOpt.nonEmpty) {
-                            val runId = LauncherLocks.nextRunId()
+                            val runId = launcherLocks.nextRunId()
                             val locking = new LauncherLockingImpl(
                               activeCommandMessage = millActiveCommandMessage,
                               launcherPid = launcherPid,
                               waitingErr = streams.err,
                               noBuildLock = config.noBuildLock.value,
                               noWaitForBuildLock = config.noWaitForBuildLock.value,
-                              launcherLocks = LauncherLocks,
+                              launcherLocks = launcherLocks,
                               runId = runId
                             )
                             val outFiles = new LauncherOutFilesImpl(
@@ -278,7 +278,7 @@ object MillMain0 {
                               daemonDir = daemonDir,
                               activeCommandMessage = millActiveCommandMessage,
                               launcherPid = launcherPid,
-                              launcherLocks = LauncherLocks,
+                              launcherLocks = launcherLocks,
                               runId = runId
                             )
                             (locking, outFiles)

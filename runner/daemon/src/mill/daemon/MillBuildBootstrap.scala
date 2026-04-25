@@ -515,13 +515,18 @@ class MillBuildBootstrap(
     val withFinal = nestedState.withFinalFrame(
       RunnerLauncherState.FinalFrame(depth, evaluator, evalWatched, moduleWatched)
     )
-    // sharedState is an AtomicReference; getAndUpdate is already atomic, so
-    // concurrent launchers updating moduleWatched at the same final depth
-    // settle on a well-defined "last write wins" order without needing a
-    // meta-build write lease here. The previous lock just serialized the
-    // brief update against unrelated processRunClasspath readers at the same
-    // depth and offered no consistency benefit, so we drop it.
-    sharedState.getAndUpdate(_.withModuleWatched(depth, moduleWatched))
+    // Final-depth moduleWatched is intentionally NOT published into
+    // [[sharedState]]. Different launchers select different module subsets
+    // (e.g. `mill foo.compile` vs `mill bar.compile`) and produce disjoint
+    // moduleWatched sets at the final depth; clobbering shared state with the
+    // last-writer's set would let a concurrent meta-build reuse-check at
+    // depth+1 read a watch set that doesn't correspond to any cached frame at
+    // this depth, defeating the watchedParentInputsChanged() invalidation.
+    // Final-depth moduleWatched lives only on this launcher's
+    // [[RunnerLauncherState.FinalFrame]] (see
+    // [[RunnerLauncherState.moduleWatchedAt]]) and feeds back into the same
+    // launcher's `prevCommandState.moduleWatchedAt(depth-1)` fallback in
+    // [[processRunClasspath]] on the next watch iteration.
     evaled match {
       case f: Result.Failure =>
         withFinal.withError(mill.internal.Util.formatError(f, logger.prompt.errorColor))

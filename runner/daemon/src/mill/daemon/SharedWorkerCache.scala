@@ -14,6 +14,25 @@ import scala.collection.mutable
  * mutable map reference. Each depth level keeps its own worker map scoped to
  * the classloader identity at that depth; when the classloader changes, stale
  * workers are closed and replaced with a fresh empty map.
+ *
+ * Lifecycle / classloader contract:
+ *
+ * Stale workers are closed under the meta-build write lease at the depth
+ * whose classloader identity is changing. That lease is held by the
+ * publishing launcher in [[mill.daemon.MillBuildBootstrap.processRunClasspath]]
+ * for the entire publish-and-close-old-classloader window, so any concurrent
+ * launcher that pinned the old classloader via a meta-build read lease has
+ * either already released its lease (in which case the close is safe) or is
+ * still holding it (in which case the writer-preferring lock blocks the
+ * publish until it releases).
+ *
+ * Invariant for worker authors: a worker's `close()` must only access classes
+ * loaded from the same classloader the worker was constructed under. It must
+ * not transitively dereference downstream worker classloaders that have
+ * already unloaded — the reverse-topological close order in
+ * [[closeWorkers]] guarantees downstream workers are still alive when an
+ * upstream worker's close runs at the same depth, but it does NOT extend
+ * across meta-build depths.
  */
 object SharedWorkerCache {
   private case class DepthEntry(

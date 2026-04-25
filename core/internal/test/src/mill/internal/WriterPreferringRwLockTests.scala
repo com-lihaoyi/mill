@@ -8,14 +8,14 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.{CountDownLatch, TimeUnit}
 
-object FairRwLockTests extends TestSuite {
+object WriterPreferringRwLockTests extends TestSuite {
   private val testHolder = HolderInfo(pid = 1234, command = "unit-test")
 
   val tests: Tests = Tests {
     test("allows-concurrent-reads") {
       val waitingBytes = new ByteArrayOutputStream()
       val waitingErr = new PrintStream(waitingBytes)
-      val lock = new FairRwLock("concurrent-reads")
+      val lock = new WriterPreferringRwLock("concurrent-reads")
 
       val first = lock.acquire(LockKind.Read, waitingErr, noWait = false, testHolder)
       val secondAcquired = new CountDownLatch(1)
@@ -38,7 +38,7 @@ object FairRwLockTests extends TestSuite {
     test("enforces-write-exclusion") {
       val waitingBytes = new ByteArrayOutputStream()
       val waitingErr = new PrintStream(waitingBytes)
-      val lock = new FairRwLock("write-exclusion")
+      val lock = new WriterPreferringRwLock("write-exclusion")
 
       val first = lock.acquire(LockKind.Write, waitingErr, noWait = false, testHolder)
       val secondAcquired = new CountDownLatch(1)
@@ -63,7 +63,7 @@ object FairRwLockTests extends TestSuite {
     test("enforces-read-write-exclusion-and-writer-priority") {
       val waitingBytes = new ByteArrayOutputStream()
       val waitingErr = new PrintStream(waitingBytes)
-      val lock = new FairRwLock("reader-writer-fairness")
+      val lock = new WriterPreferringRwLock("reader-writer-fairness")
 
       val firstReader = lock.acquire(LockKind.Read, waitingErr, noWait = false, testHolder)
       val writerAcquired = new CountDownLatch(1)
@@ -108,7 +108,7 @@ object FairRwLockTests extends TestSuite {
 
     test("write-lease-can-be-closed-on-a-different-thread") {
       val waitingErr = new PrintStream(new ByteArrayOutputStream())
-      val lock = new FairRwLock("cross-thread-write-close")
+      val lock = new WriterPreferringRwLock("cross-thread-write-close")
 
       val acquiredLease = new AtomicReference[LauncherLocking.Lease]()
       val writerReady = new CountDownLatch(1)
@@ -147,7 +147,7 @@ object FairRwLockTests extends TestSuite {
 
     test("read-lease-can-be-closed-on-a-different-thread") {
       val waitingErr = new PrintStream(new ByteArrayOutputStream())
-      val lock = new FairRwLock("cross-thread-read-close")
+      val lock = new WriterPreferringRwLock("cross-thread-read-close")
 
       val acquiredLease = new AtomicReference[LauncherLocking.Lease]()
       val readerReady = new CountDownLatch(1)
@@ -184,7 +184,7 @@ object FairRwLockTests extends TestSuite {
       // worker thread, then the read lease is closed later by RunnerLauncherState
       // cleanup on a different thread.
       val waitingErr = new PrintStream(new ByteArrayOutputStream())
-      val lock = new FairRwLock("downgrade-cross-thread-close")
+      val lock = new WriterPreferringRwLock("downgrade-cross-thread-close")
 
       val leaseRef = new AtomicReference[LauncherLocking.Lease]()
       val acquireThread = new Thread(() => {
@@ -221,7 +221,7 @@ object FairRwLockTests extends TestSuite {
       // identify what's blocking them.
       val waitingBytes = new ByteArrayOutputStream()
       val waitingErr = new PrintStream(waitingBytes)
-      val lock = new FairRwLock("holder-naming")
+      val lock = new WriterPreferringRwLock("holder-naming")
 
       val blocker = HolderInfo(pid = 9876, command = "blockerTask")
       val firstLease = lock.acquire(LockKind.Write, waitingErr, noWait = false, blocker)
@@ -255,7 +255,7 @@ object FairRwLockTests extends TestSuite {
       // acquire path, either writer is either reserved immediately or
       // registered as a waiter.
       val waitingErr = new PrintStream(new ByteArrayOutputStream())
-      val lock = new FairRwLock("writer-starvation")
+      val lock = new WriterPreferringRwLock("writer-starvation")
 
       // Hold a reader so neither writer can acquire immediately.
       val firstReader = lock.acquire(LockKind.Read, waitingErr, noWait = false, testHolder)
@@ -295,7 +295,7 @@ object FairRwLockTests extends TestSuite {
 
     test("no-wait-fails-with-holder-info-in-message") {
       val waitingErr = new PrintStream(new ByteArrayOutputStream())
-      val lock = new FairRwLock("no-wait")
+      val lock = new WriterPreferringRwLock("no-wait")
       val blocker = HolderInfo(pid = 7777, command = "blockerCmd")
       val first = lock.acquire(LockKind.Write, waitingErr, noWait = false, blocker)
 
@@ -327,7 +327,7 @@ object FairRwLockTests extends TestSuite {
       // the launcher was blocked by itself).
       val waitingBytes = new ByteArrayOutputStream()
       val waitingErr = new PrintStream(waitingBytes)
-      val lock = new FairRwLock("stale-last-holder")
+      val lock = new WriterPreferringRwLock("stale-last-holder")
 
       val stillHolding = HolderInfo(pid = 1111, command = "stillHoldingCmd")
       val alreadyReleased = HolderInfo(pid = 2222, command = "alreadyReleasedCmd")

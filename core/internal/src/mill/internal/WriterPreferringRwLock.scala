@@ -4,15 +4,29 @@ import mill.api.daemon.internal.LauncherLocking.{HolderInfo, Lease, LockKind}
 import mill.constants.DaemonFiles
 
 /**
- * A small fair read/write lock with lease-based ownership rather than thread-based ownership.
+ * A small writer-preferring read/write lock with lease-based ownership rather than
+ * thread-based ownership.
  *
  * We cannot use `java.util.concurrent.locks.ReentrantReadWriteLock` here because Mill acquires
  * task/meta-build locks on worker threads, may downgrade them to read locks, and then retains
  * those read leases until later cleanup on a different thread. The standard library RW locks
  * tie lock ownership to the acquiring thread, while this lock ties ownership to the returned
  * lease object instead.
+ *
+ * Policy:
+ *  - Writer-preferring: while a writer is queued, new readers wait too. Prevents
+ *    indefinite reader starvation but is not strict FIFO; among readers/writers
+ *    woken by `notifyAll`, JVM scheduling decides who acquires next.
+ *  - No in-place upgrade: a held read lease cannot become a write lease. Callers
+ *    that need to mutate after speculating must close the read lease, acquire a
+ *    fresh write lease, and re-validate any cached state under the write. The
+ *    lock deliberately omits a `tryUpgrade` primitive because such an upgrade
+ *    would deadlock as soon as two readers attempted it simultaneously. See
+ *    [[mill.internal.RwLockOps.speculateReadElseWrite]] for the canonical
+ *    helper.
+ *  - Downgrade is supported via [[mill.api.daemon.internal.LauncherLocking.Lease.downgradeToRead]].
  */
-private[mill] final class FairRwLock(label: String) {
+private[mill] final class WriterPreferringRwLock(label: String) {
   private val monitor = new Object
   private var readerCount = 0
   private var writerActive = false

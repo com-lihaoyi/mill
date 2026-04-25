@@ -4,7 +4,7 @@ import mill.api.{BuildCtx, SystemStreams}
 import mill.client.lock.Locks
 import mill.constants.OutFolderMode
 import mill.constants.OutFiles.OutFiles
-import mill.internal.LauncherLockingState
+import mill.internal.LauncherSessionState
 import mill.server.Server
 
 import scala.concurrent.duration.*
@@ -81,11 +81,16 @@ class MillDaemonMain0(
 
   val outLock = MillMain0.outFileLock(outFolder)
 
-  // Hold the file-level lock on out/ for the daemon's lifetime.
-  // This excludes --no-daemon processes from the same workspace while still
-  // allowing intra-daemon concurrency (file locks are per-process in Java).
-  @scala.annotation.nowarn("msg=unused private member")
+  // Hold the file-level lock on out/ for the daemon's lifetime. The lease is
+  // released by a JVM shutdown hook so the file lock survives until the
+  // process exits, even if no other code path closes it. This excludes
+  // --no-daemon processes from the same workspace while still allowing
+  // intra-daemon concurrency (file locks are per-process in Java).
   private val outFileLockLease = outLock.lock()
+  Runtime.getRuntime.addShutdownHook(new Thread(() =>
+    try outFileLockLease.close()
+    catch { case _: Throwable => () }
+  ))
 
   // Shared meta-build frames across concurrent launchers served by this daemon.
   // Lives for the whole daemon lifetime; per-depth writes are sequenced by the
@@ -100,7 +105,7 @@ class MillDaemonMain0(
   // Shared fine-grained locks (meta-build / task) across concurrent launchers
   // served by this daemon. Passed explicitly into each session rather than
   // pulled from process-wide globals.
-  private val LauncherLocks = new LauncherLockingState
+  private val launcherLocks = new LauncherSessionState
 
   def main0(
       args: Array[String],
@@ -123,7 +128,7 @@ class MillDaemonMain0(
     try MillMain0.main0(
         args = args,
         sharedState = sharedState,
-        LauncherLocks = LauncherLocks,
+        launcherLocks = launcherLocks,
         mainInteractive = mainInteractive,
         streams0 = streams,
         env = env,

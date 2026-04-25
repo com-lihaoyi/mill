@@ -19,9 +19,16 @@ import mill.api.internal.RootModule
  * Each [[RunnerSharedState.Frame]] carries:
  * - the currently-published reusable meta-build payload at that depth, if any
  * - [[RunnerSharedState.Frame.moduleWatched]]: the module-level watches
- *   recorded by the most recent launcher to run at that depth. A later launcher
- *   consults it to decide whether anything watched under the currently-published
- *   classloader has changed, which in turn is a reason to refresh the classloader.
+ *   recorded for the cached frame. Set together with the rest of the Frame
+ *   under the depth-N meta-build write lease in
+ *   [[MillBuildBootstrap.processRunClasspath]] and never mutated afterwards
+ *   — every Frame's moduleWatched corresponds 1:1 with the cached classloader
+ *   in the same Frame, so a launcher consulting depth-N's moduleWatched to
+ *   decide whether to invalidate the depth-(N-1) frame always sees a coherent
+ *   pair. NB: final-depth (user-task-evaluation) moduleWatched is NOT
+ *   published here — it is per-launcher (depends on which modules the user's
+ *   command selected) and lives only on
+ *   [[RunnerLauncherState.FinalFrame.moduleWatched]].
  *
  * [[bootstrapModule]] / [[bootstrapBuildFile]] / [[bootstrapUsesDummy]] cache the
  * in-process bootstrap module across launchers, keyed by both the discovered
@@ -47,17 +54,12 @@ case class RunnerSharedState(
   def withFrame(depth: Int, frame: Frame): RunnerSharedState =
     copy(frames = frames.updated(depth, frame))
 
-  def withModuleWatched(depth: Int, watched: Seq[Watchable]): RunnerSharedState =
-    copy(frames = frames.updated(depth, at(depth).copy(moduleWatched = Some(watched))))
-
   def withBootstrap(module: RootModule, buildFile: String, usesDummy: Boolean): RunnerSharedState =
     copy(
       bootstrapModule = Some(module),
       bootstrapBuildFile = Some(buildFile),
       bootstrapUsesDummy = Some(usesDummy)
     )
-
-  private def at(depth: Int): Frame = frames.getOrElse(depth, Frame())
 }
 
 object RunnerSharedState {

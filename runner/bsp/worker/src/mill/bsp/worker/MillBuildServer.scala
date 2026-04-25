@@ -164,7 +164,6 @@ private abstract class MillBuildServer(
   @volatile private var watcherThread: Thread = null
   private val watcherPollIntervalMs: Long = 500L
   private def startWatcherThread(): Unit = {
-    val client0 = client
     val watchLogger = new PrefixLogger(baseLogger, Seq("watch"))
     watcherThread = mill.api.daemon.StartThread("mill-bsp-watcher", daemon = true) {
       var prevTargetSnapshots = Seq.empty[ChangeNotifier.TargetSnapshot]
@@ -198,9 +197,14 @@ private abstract class MillBuildServer(
                     watched.asScala.toSeq
                   )
                   val current = bspEvaluators.targetSnapshots
-                  if (seenAnyBootstrap && client0 != null)
+                  // Re-read `client` each iteration: `onConnectWithClient`
+                  // may run after `startWatcherThread`, so capturing once at
+                  // thread start would silently leave `client0` null forever
+                  // and never deliver `buildTargetDidChange`.
+                  val currentClient = client
+                  if (seenAnyBootstrap && currentClient != null)
                     ChangeNotifier.notifyChanges(
-                      client0,
+                      currentClient,
                       prevTargetSnapshots,
                       current
                     )
@@ -261,10 +265,15 @@ private abstract class MillBuildServer(
 
   def close(): Unit = {
     stopped = true
-    // Settle the shutdown future as Shutdown if no other result has been
-    // recorded; trySuccess is a no-op once already completed. Using
-    // trySuccess (rather than tryFailure) avoids the daemon's BSP block
-    // misreporting an intentional close as "BSP server threw an exception".
+    // Settle the shutdown future as Shutdown only if neither
+    // [[completeSessionResult]] (called from `onBuildExit` /
+    // `workspaceReload`) nor the JSON-RPC listener thread has already settled
+    // it. trySuccess is the right primitive here: first writer wins, so a
+    // workspaceReload that lands just before close() preserves its
+    // ReloadWorkspace result, and an external close that arrives first wins
+    // with Shutdown. Using trySuccess (rather than tryFailure) avoids the
+    // daemon's BSP block misreporting an intentional close as "BSP server
+    // threw an exception".
     shutdownPromise.trySuccess(BspServerResult.Shutdown)
     evaluatorRequestsThread.interrupt()
     if (watcherThread != null) watcherThread.interrupt()

@@ -36,6 +36,14 @@ private[mill] object LauncherLocking {
    * A held read or write acquisition. `downgradeToRead()` is a no-op on read leases
    * and on already-closed leases; callers can call it unconditionally without
    * tracking whether the lease is currently write-held.
+   *
+   * NB: there is intentionally no `upgradeToWrite` primitive. The underlying
+   * lock cannot upgrade a held read lease to a write lease without deadlock as
+   * soon as two readers attempt it simultaneously, so callers that need to
+   * mutate after speculating must close the read lease, acquire a fresh write
+   * lease, and re-validate any speculation under the new write. See
+   * `mill.internal.RwLockOps.speculateReadElseWrite` for the canonical
+   * implementation of this dance.
    */
   trait Lease extends AutoCloseable {
     def downgradeToRead(): Unit = ()
