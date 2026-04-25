@@ -135,6 +135,13 @@ public class OutFiles {
     }
 
     /**
+     * JSON file containing info about the active Mill process (command and process directory)
+     *
+     * Unused, just kept for binary compatibility
+     */
+    public final String millActive = "mill-active.json";
+
+    /**
      * JSON file containing info about the active Mill BSP process for that lock id (process directory and PID)
      */
     public final String millActiveBsp(String lockId) {
