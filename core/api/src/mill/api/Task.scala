@@ -306,9 +306,6 @@ object Task {
    *
    * Like [[PersistentImpl]], The user defining a [[Worker]] assumes the
    * responsibility of ensuring the implementation is idempotent regardless of
-   * what in-memory state the worker may have. Workers additionally are required
-   * to be thread safe, and the object returned by a [[Worker]] task may have its
-   * methods invoked in parallel from different threads running in parallel
    */
   inline def Worker[T](inline t: Result[T])(using inline ctx: mill.api.ModuleCtx): Worker[T] =
     ${ Macros.workerImpl2[T]('t)('ctx) }

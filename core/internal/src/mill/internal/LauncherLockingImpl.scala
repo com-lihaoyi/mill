@@ -6,15 +6,6 @@ import mill.api.daemon.internal.LauncherLocking.HolderInfo
 import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicBoolean
 
-/**
- * One run's concrete [[LauncherLocking]] handle: meta-build and task
- * read/write leases acquired against the daemon-wide [[LauncherSessionState]], plus
- * bookkeeping that releases every outstanding lease when the session closes.
- *
- * Only locking concerns live here; per-run artifact-file routing lives in the
- * sibling [[LauncherOutFilesImpl]]. The two are independent objects, typically
- * created together per run and closed independently.
- */
 private[mill] final class LauncherLockingImpl(
     activeCommandMessage: String,
     launcherPid: Long,

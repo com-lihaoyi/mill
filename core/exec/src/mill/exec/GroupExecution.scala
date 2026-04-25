@@ -231,9 +231,6 @@ trait GroupExecution {
       executionContext: mill.api.TaskCtx.Fork.Api,
       exclusive: Boolean,
       upstreamPathRefs: Seq[PathRef],
-      // Per-execute0 lease tracker. Captured by execute0 and threaded
-      // through here so retention routes to the calling execute0's tracker
-      // even when nested executions overlap on the same task.
       leaseTracker: Execution.LeaseTracker
   ): GroupExecution.Results = {
 
@@ -351,8 +348,6 @@ trait GroupExecution {
                 LauncherLocking.ReadThenWrite.Escalate
             }
           } { scope =>
-            // Re-read under the write lock: a sibling writer may have populated
-            // the cache while we were waiting for the lock.
             val cached = loadCachedJson(logger, inputsHash, labelled, paths)
             loadCachedOrWorker(cached, closeStaleWorker = true) match {
               case Some(res) =>

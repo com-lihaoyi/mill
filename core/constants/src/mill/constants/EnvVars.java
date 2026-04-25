@@ -29,18 +29,10 @@ public class EnvVars {
 
   /**
    * Output directory where Mill workers' state and Mill tasks output should be
-   * written to in BSP server mode. Setting this opts BSP into its own output
-   * directory instead of sharing the regular {@link OutFiles#out} directory.
-   * The root build header key {@code mill-separate-bsp-output-dir: true} is a
-   * convenient way to request the default dedicated BSP directory.
    */
   public static final String MILL_BSP_OUTPUT_DIR = "MILL_BSP_OUTPUT_DIR";
 
   /**
-   * Legacy compatibility switch kept for older setups. BSP now re-uses the
-   * regular {@link OutFiles#out} directory by default, so this no longer needs
-   * to be set in normal usage. It can still be used to force shared BSP output
-   * even when a workspace requests a dedicated BSP output dir via build header.
    */
   public static final String MILL_NO_SEPARATE_BSP_OUTPUT_DIR = "MILL_NO_SEPARATE_BSP_OUTPUT_DIR";
 

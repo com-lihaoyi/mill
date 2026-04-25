@@ -129,27 +129,11 @@ case class Execution(
 
   def withIsFinalDepth(newIsFinalDepth: Boolean) = this.copy(isFinalDepth = newIsFinalDepth)
 
-  /**
-   * Build a fresh per-execute0 lease tracker. Each `execute0` call creates
-   * its own tracker so nested calls (e.g. a Task.Command using
-   * `getEvaluator().executeApi(...)` to evaluate a sub-task graph) cannot
-   * stomp on each other's per-task queues. Each tracker owns:
-   *
-   *   - retainedLeasesByTask: queue of leases retained for each terminal,
-   *     released as soon as every in-run downstream consumer has finished
-   *   - pendingDownstreamCount: per-terminal countdown; release the
-   *     terminal's leases when its count hits zero
-   *
-   * `onCompleted(terminal)` is called when each terminal's group finishes;
-   * it decrements the pending-downstream count for `terminal`'s deps and
-   * releases their retained leases when the count reaches zero. It also
-   * releases `terminal`'s own leases if `terminal` has no in-run downstream
-   * (count was already zero at construction).
-   */
   private def newDownstreamTracker(
       indexToTerminal: Array[Task[?]],
       interGroupDeps: Map[Task[?], Seq[Task[?]]]
   ): Execution.LeaseTracker = {
+    // Retained leases stay alive until every in-run downstream terminal has completed.
     val retainedLeasesByTask =
       new ConcurrentHashMap[Task[?], java.util.concurrent.ConcurrentLinkedQueue[
         LauncherLocking.Lease
@@ -181,10 +165,6 @@ case class Execution(
 
     new Execution.LeaseTracker {
       override def retain(task: Task[?], lease: LauncherLocking.Lease): Unit = {
-        // `task` is always a terminal of this execute0's graph, so its queue
-        // exists. If a future refactor ever calls `retain` for a task outside
-        // `indexToTerminal`, fall through to closing the lease here rather
-        // than leaking it.
         val q = retainedLeasesByTask.get(task)
         if (q != null) q.add(lease)
         else
@@ -193,13 +173,10 @@ case class Execution(
       }
 
       override def onCompleted(terminal: Task[?]): Unit = {
-        // Decrement counts for our deps; release theirs if hit zero.
         for (dep <- interGroupDeps.getOrElse(terminal, Nil)) {
           val c = pendingCount.get(dep)
           if (c != null && c.decrementAndGet() == 0) releaseLeasesFor(dep)
         }
-        // If our own count is already zero (i.e. nothing in this run depends
-        // on us), release our own leases now too.
         val ownCount = pendingCount.get(terminal)
         if (ownCount != null && ownCount.get() == 0) releaseLeasesFor(terminal)
       }
@@ -284,10 +261,6 @@ case class Execution(
       val uncached = new ConcurrentHashMap[Task[?], Unit]()
       val changedValueHash = new ConcurrentHashMap[Task[?], Unit]()
       val prefixes = new ConcurrentHashMap[Task[?], Seq[String]]()
-      // The tracker is constructed below (`tracker`) and drained at the end
-      // of this block, so any leases retained by terminals whose downstream
-      // count never reached zero (e.g. due to early failure) are released
-      // before this execute0 returns.
 
       val futures = mutable.Map.empty[Task[?], Future[Option[GroupExecution.Results]]]
 
@@ -314,12 +287,6 @@ case class Execution(
           downstreamEdges.getOrElse(t, Set())
         )
 
-      // Per-execute0 lease tracker: each call (including nested calls via
-      // getEvaluator().executeApi) gets its own, so overlapping task IDs
-      // across nested executions never collide on a shared per-task queue.
-      // The tracker is captured by lexical scope in the future bodies and
-      // passed explicitly into executeGroupCached so GroupExecution's lease
-      // retention routes back to THIS execute0's tracker.
       val tracker = newDownstreamTracker(indexToTerminal, interGroupDeps)
       def onTerminalCompleted(t: Task[?]): Unit = tracker.onCompleted(t)
       try {
@@ -332,11 +299,6 @@ case class Execution(
             ec.fold(ExecutionContexts.RunNow)(new ExecutionContexts.ThreadPool(_))
           implicit val taskExecutionContext =
             if (exclusive) ExecutionContexts.RunNow else forkExecutionContext
-          // We walk the task graph in topological order and schedule the futures
-          // to run asynchronously. During this walk, we store the scheduled futures
-          // in a dictionary. When scheduling each future, we are guaranteed that the
-          // necessary upstream futures will have already been scheduled and stored,
-          // due to the topological order of traversal.
           for (terminal <- terminals) {
             val deps = interGroupDeps(terminal)
 
@@ -352,10 +314,6 @@ case class Execution(
                 .map(t => (t, failure))
                 .toMap
 
-              // Synthetic failure path: no group actually ran, so nothing was
-              // retained for this terminal. Still notify the tracker so any
-              // upstream we "consumed" (none here, but symmetric with the real
-              // path) gets its downstream count decremented.
               onTerminalCompleted(terminal)
               futures(terminal) = Future.successful(
                 Some(GroupExecution.Results(
@@ -420,13 +378,11 @@ case class Execution(
                         leaseTracker = tracker
                       )
 
-                      // Count new failures - if there are upstream failures, tasks should be skipped, not failed
                       val newFailures = res.newResults.values.count(r => r.asFailing.isDefined)
 
                       rootFailedCount.addAndGet(newFailures)
                       completedCount.incrementAndGet()
 
-                      // Always show completed count in header after task finishes
                       logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix())
 
                       if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
@@ -452,31 +408,18 @@ case class Execution(
                     }
                   }
                 } catch {
-                  // Let StopWithResponse propagate - it's a controlled shutdown signal
                   case e: mill.api.daemon.StopWithResponse[?] => throw e
-                  // Wrapping the fatal error in a non-fatal exception, so it would be caught by Scala's Future
-                  // infrastructure, rather than silently terminating the future and leaving downstream Awaits hanging.
                   case e: Throwable if !mill.api.daemon.internal.NonFatal(e) =>
                     val nonFatal = new Exception(s"fatal exception occurred: $e", e)
-                    // Set the stack trace of the non-fatal exception to the original exception's stack trace
-                    // as it actually indicates the location of the error.
                     nonFatal.setStackTrace(e.getStackTrace)
                     throw nonFatal
                 } finally {
-                  // Whether the group ran successfully, was skipped due to an
-                  // upstream failure, or threw, this terminal is now "done":
-                  // notify the downstream tracker so any in-run consumers we
-                  // were upstream of can decrement our retained-leases count
-                  // (and so OUR leases can be released early if nothing in this
-                  // run is downstream of us).
                   onTerminalCompleted(terminal)
                 }
               }
             }
           }
 
-          // Make sure we wait for all tasks from this batch to finish before starting the next
-          // one, so we don't mix up exclusive and non-exclusive tasks running at the same time
           terminals.map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
         }
 
@@ -485,15 +428,10 @@ case class Execution(
           case _ => !serialCommandExec
         }
 
-        // Run all non-command tasks according to the threads
-        // given but run the commands in linear order
         val nonExclusiveResults = evaluateTerminals(nonExclusiveTasks, exclusive = false)
 
         val exclusiveResults = evaluateTerminals(leafExclusiveCommands, exclusive = true)
 
-        // Set final header showing SUCCESS/FAILED status:
-        // - FAILED: show for any outermost execution with failures (meta-build failures terminate bootstrapping)
-        // - SUCCESS: only show for the final requested depth (depth 0 normally, or --meta-level if specified)
         val isOutermostExecution = executionNestingDepth.get() == 1
         val hasFailures = rootFailedCount.get() > 0
         val showFinalStatus = isOutermostExecution && (hasFailures || isFinalDepth)
@@ -503,7 +441,6 @@ case class Execution(
 
         val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
 
-        // Convert versionMismatchReasons to Map[String, String] for InvalidationForest
         val taskInvalidationReasons = {
           import scala.jdk.CollectionConverters.ConcurrentMapHasAsScala
           versionMismatchReasons.asScala.collect {
@@ -558,11 +495,6 @@ case class Execution(
 
 object Execution {
 
-  /**
-   * Per-execute0-call lease retention sink. Threading: `retain` and
-   * `onCompleted` are called from many futures in parallel; `drain` is
-   * called from the execute0 thread after all futures have completed.
-   */
   trait LeaseTracker {
     def retain(task: Task[?], lease: LauncherLocking.Lease): Unit
     def onCompleted(terminal: Task[?]): Unit

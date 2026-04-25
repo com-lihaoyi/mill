@@ -40,10 +40,6 @@ trait EvaluatorApi extends AutoCloseable {
       @unused allowPositionalCommandArgs: Boolean = false
   ): Result[Boolean] = Result.Success(false)
 
-  /**
-   * Computes current selective-execution metadata for the resolved task graph and
-   * reports whether it matches a previously-published snapshot.
-   */
   private[mill] def probeSelectiveMetadata(
       @unused scriptArgs: Seq[String],
       @unused selectMode: SelectMode,

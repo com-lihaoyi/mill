@@ -26,12 +26,6 @@ public class OutFiles {
      */
     private final String envBspOutOrNull = System.getenv(EnvVars.MILL_BSP_OUTPUT_DIR);
 
-    /**
-     * Whether BSP should share the regular output directory. This is now the
-     * default; BSP only uses a separate output directory when
-     * {@link EnvVars#MILL_BSP_OUTPUT_DIR} is set in the effective process
-     * environment.
-     */
     public final boolean mergeBspOut = envBspOutOrNull == null;
 
     /**
@@ -41,8 +35,6 @@ public class OutFiles {
     public final String defaultOut = "out";
 
     /**
-     * Conventional dedicated BSP output directory for users who explicitly opt
-     * into a separate BSP out dir via {@link EnvVars#MILL_BSP_OUTPUT_DIR}.
      */
     public final String defaultBspOut = ".bsp/out";
 
@@ -136,8 +128,6 @@ public class OutFiles {
 
     /**
      * JSON file containing info about the active Mill process (command and process directory)
-     *
-     * Unused, just kept for binary compatibility
      */
     public final String millActive = "mill-active.json";
 
@@ -203,7 +193,6 @@ public class OutFiles {
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
   public static final String millOutLock = OutFiles.millOutLock;
-  /** @deprecated No longer written by Mill; kept for binary compatibility. */
   @Deprecated
   public static final String millActive = "mill-active.json";
   /** @deprecated Use millActive instead */

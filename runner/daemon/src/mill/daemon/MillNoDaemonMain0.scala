@@ -54,8 +54,6 @@ object MillNoDaemonMain0 {
     val result =
       try MillMain0.main0(
           args = args.rest.toArray,
-          // Each --no-daemon invocation runs in its own process, so a freshly-empty
-          // shared state is fine; state is naturally thrown away on exit.
           sharedState = new java.util.concurrent.atomic.AtomicReference(RunnerSharedState.empty),
           launcherLocks = new mill.internal.LauncherSessionState,
           mainInteractive = mill.constants.Util.hasConsole(),

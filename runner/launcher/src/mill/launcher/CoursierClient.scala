@@ -12,7 +12,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import mill.api.JsonFormatters.*
 object CoursierClient {
 
-  // Compute the cache directory based on the effective out dir chosen by the launcher.
   private def cacheDir(outDir: String): os.Path =
     os.Path(outDir, os.pwd) / "mill-daemon" / "cache"
 

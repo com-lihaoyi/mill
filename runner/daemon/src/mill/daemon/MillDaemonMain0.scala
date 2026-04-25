@@ -81,31 +81,17 @@ class MillDaemonMain0(
 
   val outLock = MillMain0.outFileLock(outFolder)
 
-  // Refcounted handle to the cross-process out/ folder file lock. The daemon
-  // does NOT hold the file lock at startup; instead, each launcher takes a
-  // lease for the duration of its evaluation, and the underlying file lock
-  // is held only when at least one launcher is active. This means an idle
-  // daemon (no launchers running, e.g. between --watch iterations) does not
-  // block other Mill processes from running.
   private val sharedOutLockManager = new SharedOutLockManager(outLock, outFolder)
   Runtime.getRuntime.addShutdownHook(new Thread(() =>
     try sharedOutLockManager.close()
     catch { case _: Throwable => () }
   ))
 
-  // Shared meta-build frames across concurrent launchers served by this daemon.
-  // Lives for the whole daemon lifetime; per-depth writes are sequenced by the
-  // meta-build write lock in [[mill.api.daemon.internal.LauncherLocking]]; the
-  // AtomicReference handles concurrent updates from launchers operating at
-  // different depths in parallel.
   private val sharedState =
     new java.util.concurrent.atomic.AtomicReference[RunnerSharedState](
       RunnerSharedState.empty
     )
 
-  // Shared fine-grained locks (meta-build / task) across concurrent launchers
-  // served by this daemon. Passed explicitly into each session rather than
-  // pulled from process-wide globals.
   private val launcherLocks = new LauncherSessionState
 
   def main0(

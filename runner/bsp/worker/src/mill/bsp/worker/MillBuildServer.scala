@@ -58,44 +58,10 @@ private abstract class MillBuildServer(
   @volatile protected var sessionInfo: MillBspEndpoints.SessionInfo =
     scala.compiletime.uninitialized
 
-  /**
-   * Completes when the BSP client signals end-of-session (`build/exit`) or
-   * requests `workspace/reload`. The daemon awaits this future to know when
-   * to exit its BSP block.
-   */
   protected[worker] val shutdownPromise: Promise[BspServerResult] = Promise[BspServerResult]()
 
   private val requestCount = new AtomicInteger
 
-  /**
-   * Executor for BSP request handling. Each request runs concurrently in its
-   * own thread.
-   *
-   * Why removing the previous serialization barrier is safe under the
-   * fresh-bootstrap-per-request design:
-   *   1. Each request goes through `bootstrapBridge.runBootstrap`, which calls
-   *      `runMillBootstrap`. That returns a request-local `RunnerLauncherState`
-   *      with its own freshly-instantiated `EvaluatorImpl` (and its own
-   *      `Execution` with its own per-execute0 lease tracker, nesting depth,
-   *      mismatch reasons, profile logger).
-   *   2. `BspEvaluators` is constructed from those request-local evaluators,
-   *      so `extractInputPaths`'s `ev.executeApi(inputTasks)` call operates on
-   *      a per-request evaluator instance. No mutable evaluator state is
-   *      shared across concurrent requests.
-   *   3. The shared resources `executeApi` reaches — `RunnerSharedState` frames,
-   *      meta-build classloader, daemon-shared worker caches, per-task locks via
-   *      `LauncherLocking` — already have their own concurrency control
-   *      (atomic publish, refcounted file lock, writer-preferring rwlock,
-   *      `ConcurrentHashMap.compute`) and are designed for concurrent
-   *      multi-launcher access — concurrent CLI commands already exercise
-   *      these.
-   *   4. The watcher thread also runs its own bootstrap with its own evaluator;
-   *      it composes with request bootstraps via the same shared-resource
-   *      concurrency control.
-   *
-   * The historical `bootstrapRunLock` was therefore covering a hazard that no
-   * longer exists in this design.
-   */
   private val bspRequestExecutor: ExecutorService = {
     val counter = new AtomicInteger(0)
     val threadFactory: ThreadFactory = (r: Runnable) => {
@@ -284,28 +250,7 @@ private abstract class MillBuildServer(
   }
 
   /**
-   * Background thread that pushes `onBuildTargetDidChange` notifications to
-   * the connected BSP client whenever any of the previous bootstrap's
-   * watched inputs change. Each iteration:
    *
-   *   1. Asks the bridge to bootstrap fresh evaluators+watches.
-   *   2. Inside the bridge body, computes target snapshots, diffs vs. the
-   *      previous iteration's snapshots, sends `buildTargetDidChange` if
-   *      they differ, and polls `WatchSig.haveNotChanged` until something
-   *      changes (or shutdown is requested).
-   *   3. Returns from the body — the bridge tears down the bootstrap state
-   *      and releases all read leases — then loops.
-   *
-   * The polling loop holds the bootstrap's read leases (meta-build read
-   * lease + per-task read leases retained from the `resolve _` evaluation)
-   * for the duration of one iteration. Concurrent BSP requests and CLI
-   * commands run independent bootstraps; they each acquire their own read
-   * leases on the same locks, which is compatible. A concurrent CLI command
-   * that needs to write the meta-build classloader (e.g. `build.mill`
-   * changed) escalates to a write lease, waits for this iteration's read
-   * lease to be released — which happens at most one watcher poll interval
-   * after the change is detected — then refreshes; the watcher then
-   * bootstraps against the post-refresh classloader on its next iteration.
    */
   @volatile private var watcherThread: Thread = null
   private val watcherPollIntervalMs: Long = 500L
@@ -321,20 +266,10 @@ private abstract class MillBuildServer(
           !Thread.currentThread().isInterrupted
         ) {
           try {
-            // Compute snapshots inside the bridge body, then return so the
-            // bootstrap's read leases are released before we start polling.
-            // Holding leases during the poll would block any concurrent CLI
-            // command that needs to acquire a meta-build/task write lease
-            // (e.g. when build.mill changed and the command needs to refresh
-            // the meta-build classloader), starving it.
             val watchedSeq =
               withBootstrappedEvaluators("BSP:watch")(state => state.watched.asScala.toSeq) {
                 (bspEvaluators, state) =>
                   val current = bspEvaluators.targetSnapshots
-                  // Re-read `client` each iteration: `onConnectWithClient`
-                  // may run after `startWatcherThread`, so capturing once at
-                  // thread start would silently leave `client0` null forever
-                  // and never deliver `buildTargetDidChange`.
                   val currentClient = client
                   if (seenAnyBootstrap && currentClient != null)
                     ChangeNotifier.notifyChanges(
@@ -347,12 +282,6 @@ private abstract class MillBuildServer(
                   state.watched.asScala.toSeq
               }
 
-            // Poll without holding leases. WatchSig.haveNotChanged on a
-            // filesystem-style watch is pure I/O, but Task.Input watches can
-            // re-invoke closures whose classes lived in the meta-build
-            // classloader; once leases are released a concurrent refresh may
-            // close that classloader. Treat any throw from the closure as
-            // "something changed" and re-bootstrap on the next iteration.
             def stillUnchanged(): Boolean =
               try watchedSeq.forall(WatchSig.haveNotChanged)
               catch { case NonFatal(_) => false }
@@ -366,10 +295,6 @@ private abstract class MillBuildServer(
               try Thread.sleep(watcherPollIntervalMs)
               catch {
                 case _: InterruptedException =>
-                  // Re-set the interrupt flag so the loop condition above
-                  // exits on the next iteration (and so the outer
-                  // `while (!stopped && !shutdownPromise.isCompleted)` exits
-                  // when its body propagates the InterruptedException).
                   Thread.currentThread().interrupt()
               }
             }
@@ -391,9 +316,6 @@ private abstract class MillBuildServer(
     }
   }
 
-  // ==========================================================================
-  // Lifecycle Management
-  // ==========================================================================
 
   def close(): Unit = {
     stopped = true
@@ -426,18 +348,8 @@ private abstract class MillBuildServer(
     bspProcessLockLease = null
     activeBspFile = null
     activeBspLockId = null
-    // Settle the shutdown future as Shutdown only if neither
-    // [[completeSessionResult]] (called from `onBuildExit` /
-    // `workspaceReload`) nor the JSON-RPC listener thread has already settled
-    // it. trySuccess is the right primitive here: first writer wins, so a
-    // workspaceReload that lands just before close() preserves its
-    // ReloadWorkspace result, and an external close that arrives first wins
-    // with Shutdown. Using trySuccess (rather than tryFailure) avoids the
-    // daemon's BSP block misreporting an intentional close as "BSP server
-    // threw an exception".
     shutdownPromise.trySuccess(BspServerResult.Shutdown)
     if (watcherThread != null) watcherThread.interrupt()
-    // Reject any newly-submitted requests; let in-flight ones finish.
     bspRequestExecutor.shutdown()
     try {
       if (!bspRequestExecutor.awaitTermination(2, TimeUnit.SECONDS))
@@ -517,11 +429,6 @@ private abstract class MillBuildServer(
 
   @volatile private var stopped = false
 
-  /**
-   * Signals end-of-session to the daemon's BSP block. Called from the
-   * client-driven JSON-RPC handlers `onBuildExit` ([[BspServerResult.Shutdown]])
-   * and `workspaceReload` ([[BspServerResult.ReloadWorkspace]]).
-   */
   protected def completeSessionResult(result: BspServerResult): Unit =
     shutdownPromise.trySuccess(result)
 
@@ -544,10 +451,6 @@ private abstract class MillBuildServer(
         s"BSP server is shutting down; rejecting request $prefix"
       ))
     } else {
-      // Submit each request to the BSP request executor so multiple requests
-      // can bootstrap and evaluate concurrently. Mill's per-task and per-meta-
-      // build locks keep concurrent requests safe; metadata-only requests can
-      // proceed in parallel with a long-running compile request.
       try bspRequestExecutor.execute(() => runRequest(prefix, logger, future, block))
       catch {
         case _: java.util.concurrent.RejectedExecutionException =>
@@ -565,9 +468,6 @@ private abstract class MillBuildServer(
       future: CompletableFuture[V],
       block: (BspEvaluators, Logger) => V
   ): Unit = {
-    // Fast path: if the future was cancelled before this request reached the
-    // executor (lsp4j's `$/cancelRequest` got delivered before we picked it
-    // up), skip the bootstrap entirely.
     if (future.isCancelled()) {
       logger.info(s"$prefix was cancelled")
       return

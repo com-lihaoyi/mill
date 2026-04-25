@@ -72,8 +72,6 @@ object LaunchStateTests extends TestSuite {
 
       state.close()
 
-      // Expected order: evaluators (final, then meta-build from shallowest to deepest),
-      // then meta-build read leases in the same order, then the session.
       assert(closed.toSeq == Seq("final", "meta", "lease", "manager"))
     }
 

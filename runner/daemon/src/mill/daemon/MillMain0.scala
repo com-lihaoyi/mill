@@ -47,12 +47,6 @@ object MillMain0 {
   }
 
   /**
-   * The cross-process file lock that arbitrates exclusive access to the `out/`
-   * directory between a daemon and a `--no-daemon` process. The daemon holds
-   * it for its entire lifetime; `--no-daemon` takes it for the duration of
-   * one command. There is no in-memory companion because the only callers
-   * that use this for command-level locking (the `--no-daemon` path) are
-   * single-threaded by construction.
    */
   def outFileLock(out: os.Path): Lock =
     Lock.file((out / OutFiles.millOutLock).toString)
@@ -257,23 +251,11 @@ object MillMain0 {
                           metaLevelOverride: Option[Int] = None,
                           useBspRequestLogger: Boolean = false
                       ): RunnerLauncherState = {
-                        // Brief lease wrapper used by LauncherOutFilesImpl for
-                        // its setup, publish, and close-time mutations. When
-                        // called from inside withLocking the daemon already
-                        // holds a lease (refcounting makes this near-free);
-                        // when called from outFiles.close() running after the
-                        // launcher's main lease has been released — e.g. from
-                        // RunnerLauncherState.close() invoked by Watching or
-                        // Using.resource — this re-acquires briefly so the
-                        // close-time cleanup still runs under the cross-process
-                        // file lock.
                         def withFileLockHeld(body: => Unit): Unit = {
                           val lease = sharedOutLockManager.lease(
                             activeCommandMessage = millActiveCommandMessage,
                             launcherPid = launcherPid,
                             noBuildLock = config.noBuildLock.value,
-                            // Best-effort: never block close-time cleanup on
-                            // an external holder if --no-wait was requested.
                             noWaitForBuildLock = config.noWaitForBuildLock.value,
                             waitingErr = streams.err
                           )
@@ -281,13 +263,6 @@ object MillMain0 {
                           finally lease.foreach(_.release())
                         }
 
-                        // In daemon mode we build a real per-launcher session
-                        // (locking + out-files); in no-daemon mode we use the
-                        // Noop session uniformly so no Option-juggling later.
-                        // Locking is constructed up-front because it only
-                        // mutates in-memory daemon state; out-files are built
-                        // inside withLocking so their setup runs under the
-                        // cross-process file lock.
                         val launcherLockingOpt: Option[LauncherLockingImpl] =
                           Option.when(serverToClientOpt.nonEmpty) {
                             new LauncherLockingImpl(
@@ -305,18 +280,6 @@ object MillMain0 {
                           launcherLockingOpt.getOrElse(LauncherLocking.Noop)
 
                         def withLocking[T](block: LauncherSession => T): T = {
-                          // Take a lease against the shared cross-process out/
-                          // file lock for the duration of this evaluation. In
-                          // the daemon, multiple concurrent launchers share one
-                          // file-lock acquisition via SharedOutLockManager; in
-                          // no-daemon mode there's just one lease at a time.
-                          // The lease is released as soon as this evaluation
-                          // returns — in particular, --watch wait phases run
-                          // outside this block so an idle/watching daemon or
-                          // no-daemon does not block other launchers.
-                          //
-                          // Mark the server idle while we wait for the lock so
-                          // it doesn't time out, then non-idle once we have it.
                           setIdle(true)
                           val outLockLease = sharedOutLockManager.lease(
                             activeCommandMessage = millActiveCommandMessage,
@@ -328,14 +291,6 @@ object MillMain0 {
                           setIdle(false)
 
                           try {
-                            // Build the per-launcher session INSIDE the locked
-                            // region so out-files setup (run-dir creation,
-                            // launcher-file write, dangling-symlink sweep) is
-                            // covered by the cross-process file lock.
-                            // session.close() (run later via RunnerLauncherState
-                            // teardown) also re-acquires the file lock briefly
-                            // via withFileLockHeld so close-time cleanup is
-                            // covered.
                             val session: LauncherSession = launcherLockingOpt match {
                               case Some(locking) =>
                                 new LauncherSession.Daemon(
@@ -364,20 +319,8 @@ object MillMain0 {
                         withLocking { session =>
                           val runArtifacts = session.runArtifacts
                           def proceed(logger: Logger): RunnerLauncherState = {
-                            // Enter key pressed, removing mill-selective-execution.json to
-                            // ensure all tasks re-run even though no inputs may have changed
-                            //
-                            // Do this by removing the file rather than disabling selective execution,
-                            // because we still want to generate the selective execution metadata json
-                            // for subsequent runs that may use it
                             if (skipSelectiveExecution)
                               os.remove(out / OutFiles.millSelectiveExecution)
-                            // Point the top-level `out/mill-console-tail` symlink at
-                            // this run's live log so concurrent launchers waiting on
-                            // locks (and humans tailing the log) see current progress.
-                            // The other artifact symlinks are published only after
-                            // evaluation completes, to avoid advertising broken
-                            // symlinks to not-yet-written files mid-run.
                             runArtifacts.publishLiveArtifacts()
                             try mill.api.SystemStreamsUtils.withStreams(logger.streams) {
                                 mill.api.FilesystemCheckerEnabled.withValue(
@@ -390,8 +333,6 @@ object MillMain0 {
                                     new MillBuildBootstrap(
                                       topLevelProjectRoot = BuildCtx.workspaceRoot,
                                       output = out,
-                                      // In BSP server, we want to evaluate as many tasks as possible,
-                                      // in order to give as many results as available in BSP responses
                                       keepGoing = bspMode || config.keepGoing.value,
                                       imports = config.imports,
                                       env = env ++ extraEnv,
@@ -456,12 +397,6 @@ object MillMain0 {
                                 proceed(logger)
                               }
                           }
-                          // Attach the per-launcher session (locking + out-files)
-                          // as the state's single closeable. session.close()
-                          // re-acquires the file lock briefly via
-                          // withFileLockHeld so close-time cleanup runs under
-                          // the cross-process lock even though it executes
-                          // outside this withLocking block.
                           state.withSession(session)
                         }
                       }
@@ -687,9 +622,6 @@ object MillMain0 {
       // Fallback
       .getOrElse("mill")
 
-    // Console log file for monitoring progress when another process is waiting.
-    // Noop routing returns a workspace-root-relative path (os.pwd fallback); in
-    // non-daemon mode we want the actual out/ location.
     val consoleLogPath: os.Path = runArtifacts match {
       case LauncherOutFiles.Noop => out / DaemonFiles.millConsoleTail
       case _ => os.Path(runArtifacts.consoleTail)

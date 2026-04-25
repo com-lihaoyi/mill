@@ -76,9 +76,6 @@ public class DaemonFiles {
    */
   public static final String millConsoleTail = "mill-console-tail";
 
-  /**
-   * Directory containing one metadata file per active launcher connected to the daemon.
-   */
   public static final String millLauncherFiles = "mill-launcher-files";
 
   public static String perLauncherFilePath(String runId) {

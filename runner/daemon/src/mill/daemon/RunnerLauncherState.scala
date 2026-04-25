@@ -7,40 +7,10 @@ import mill.api.daemon.Watchable
 import mill.api.daemon.internal.LauncherLocking
 import upickle.{ReadWriter, macroRW}
 
-/**
- * Per-launcher bootstrap state, returned from [[MillBuildBootstrap.evaluate]]
- * and threaded through one launcher's lifetime (across `--watch` iterations,
- * BSP sessions, etc). Distinct from [[RunnerSharedState]], which holds the
- * deterministic meta-build outputs shared across concurrent launchers.
- *
- * A [[RunnerLauncherState]] carries:
- *
- * - [[metaBuildFrames]] — ordered shallowest-to-deepest, matching the
- *   bootstrap stack. Each frame carries the launcher-local evaluator and
- *   eval watches, plus the pinned shared-frame snapshot this launcher
- *   actually used (not necessarily the currently-published one, which
- *   another launcher may have replaced since), its meta-build read lease,
- *   and any per-run invalidation tree produced when that classloader was
- *   refreshed.
- * - [[finalFrame]] — the level where user-visible
- *   tasks ran. At most one.
- * - [[buildFile]] / [[bootstrapEvalWatched]] — per-launcher bootstrap-derived
- *   info (the root build file name found on disk and the [[Watchable]] for it).
- *   Tracked here so `--watch` can still surface the build file even when
- *   bootstrap fails. The actual bootstrap module lives on [[RunnerSharedState]],
- *   since it is deterministic in the workspace and cheap to share across launchers.
- * - [[session]] — the per-launcher [[LauncherSession]] (locking handle and
- *   per-run out-files handle), closed when the state is closed.
- *
- * If evaluation fails before reaching the requested depth, [[errorOpt]] is set
- * and [[finalFrame]] is [[None]].
- */
 @internal
 case class RunnerLauncherState(
     errorOpt: Option[String] = None,
     buildFile: Option[String] = None,
-    // Watches captured during bootstrap module instantiation. Tracked separately because
-    // a bootstrap failure produces no overlays to carry them.
     bootstrapEvalWatched: Seq[Watchable] = Nil,
     metaBuildFrames: List[RunnerLauncherState.MetaBuildFrame] = Nil,
     finalFrame: Option[RunnerLauncherState.FinalFrame] = None,
@@ -63,13 +33,8 @@ case class RunnerLauncherState(
   def withSession(s: LauncherSession): RunnerLauncherState =
     copy(session = s)
 
-  /** Total depths already processed in this launch: meta-builds + final frame. */
   def processedDepths: Int = metaBuildFrames.size + finalFrame.size
 
-  /**
-   * Module-level watches captured at `depth` during this launcher's run. Used
-   * to decide whether a shared classloader at the depth above needs refreshing.
-   */
   def moduleWatchedAt(depth: Int): Option[Seq[Watchable]] =
     metaBuildFrameAt(depth).flatMap(_.sharedFrame.moduleWatched)
       .orElse(finalFrame.collect { case frame if frame.depth == depth => frame.moduleWatched })
@@ -77,45 +42,16 @@ case class RunnerLauncherState(
   def finalModuleWatchedAt(depth: Int): Option[Seq[Watchable]] =
     finalFrame.collect { case frame if frame.depth == depth => frame.moduleWatched }
 
-  /** All watches this launcher accumulated — drives `--watch` re-runs. */
   def watched: Seq[Watchable] =
     metaBuildFrames.flatMap(f => f.evalWatched ++ f.sharedFrame.moduleWatched.getOrElse(Nil)) ++
       finalFrame.toSeq.flatMap(f => f.evalWatched ++ f.moduleWatched) ++
       bootstrapEvalWatched
 
-  /**
-   * Live evaluators ordered final-first, then meta-build overlays from
-   * shallowest to deepest. BSP script discovery and IDE generation walk this
-   * in order and expect the workspace evaluator at `headOption`.
-   */
   def allEvaluators: Seq[EvaluatorApi] =
     finalFrame.map(_.evaluator).toSeq ++ metaBuildFrames.map(_.evaluator)
 
-  /**
-   * Release per-launcher resources: evaluators, meta-build read leases, and
-   * other registered closeables.
-   *
-   * **Post-close invariant:** the case-class data fields ([[errorOpt]],
-   * [[buildFile]], [[bootstrapEvalWatched]], [[metaBuildFrames]],
-   * [[finalFrame]]) remain readable after close — only the resources they
-   * reference (evaluators, leases, closeables) become invalid. This lets
-   * [[Watching.watchLoop]] safely close a previous iteration's state and
-   * still pass the same object forward as `prevCommandState` so that
-   * [[mill.daemon.MillBuildBootstrap.processFinalTasks]] can read its
-   * watches for the short-circuit check. Do not mutate the data fields
-   * during close; do not start reading evaluator-owned mutable state from
-   * a closed instance.
-   *
-   * Order: evaluators first (so any evaluator-owned resources are flushed
-   * before their meta-build classloader could be replaced), then meta-build
-   * read leases (releasing them unblocks concurrent writers that may
-   * eventually close the previously-published classloader), then the
-   * [[LauncherSession]] (workspace lock manager + per-run artifact files).
-   *
-   * Workers live in daemon-shared state ([[RunnerSharedState.sharedWorkerCache]])
-   * and are NOT torn down here.
-   */
   override def close(): Unit = {
+    // Keep the case-class data readable after close; only tear down the resources it points at.
     closeAll(
       allEvaluators.distinct ++
         metaBuildFrames.flatMap(_.metaBuildReadLease) ++
@@ -140,21 +76,6 @@ case class RunnerLauncherState(
 object RunnerLauncherState {
   def empty: RunnerLauncherState = RunnerLauncherState()
 
-  /**
-   * One launcher's per-depth meta-build overlay over a [[RunnerSharedState.Frame]].
-   *
-   * [[sharedFrame]] points at the frame this launcher is actually bound to.
-   * Normally this equals the currently-published shared frame, but another
-   * launcher may have replaced the shared frame since — in which case this
-   * overlay still references the older frame it used during evaluation.
-   * [[sharedFrame]] may contain only [[RunnerSharedState.Frame.moduleWatched]]
-   * when the meta-build compile failed at this depth; the overlay is still
-   * retained so [[evalWatched]] and the stored module watches can drive a `--watch`
-   * re-run.
-   *
-   * [[metaBuildReadLease]] is held for the launcher's lifetime so concurrent
-   * writers cannot close [[sharedFrame]]'s classloader while we're still using it.
-   */
   @internal
   case class MetaBuildFrame(
       depth: Int,
@@ -162,8 +83,6 @@ object RunnerLauncherState {
       evalWatched: Seq[Watchable],
       sharedFrame: RunnerSharedState.Frame,
       metaBuildReadLease: Option[LauncherLocking.Lease] = None,
-      // Only populated on runs that refreshed the classloader at this depth.
-      // Reused classloaders intentionally do not carry a stale invalidation tree forward.
       spanningInvalidationTree: Option[String] = None
   ) {
     def logged: Frame.Logged = Frame.build(
@@ -177,7 +96,6 @@ object RunnerLauncherState {
 
   object MetaBuildFrame {
 
-    /** An overlay for a meta-build that failed to compile: no reusable payload. */
     def failed(
         depth: Int,
         evaluator: EvaluatorApi,
@@ -192,13 +110,6 @@ object RunnerLauncherState {
       )
   }
 
-  /**
-   * The frame at `requestedDepth` where user-visible tasks ran. Carries only
-   * per-launcher data: the evaluator and the watched sets recorded during this
-   * evaluation. `tasksAndParams` is recorded so a future bootstrap can verify
-   * the same task selector before short-circuiting via this frame's watches.
-   * There is at most one per launcher.
-   */
   @internal
   case class FinalFrame(
       depth: Int,
@@ -222,7 +133,6 @@ object RunnerLauncherState {
       }.toMap
     }
 
-    /** Simplified representation of a frame, written to disk for debugging. */
     case class Logged(
         workerCache: Map[String, WorkerInfo],
         evalWatched: Seq[os.Path],

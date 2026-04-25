@@ -267,10 +267,6 @@ object BspServerTestUtil {
       value
     } finally {
       try {
-        // The BSP launcher subprocess often exits on its own in response to
-        // `onBuildExit`, in which case its stdin is already a closed
-        // NullOutputStream and `close()` throws IOException. That isn't a test
-        // failure — swallow it so the actual test result surfaces.
         try proc.stdin.close()
         catch { case _: java.io.IOException => () }
         try proc.stdout.close()
@@ -296,10 +292,6 @@ object BspServerTestUtil {
     }
 
     if (proc.isAlive()) {
-      // `os.SubProcess.join(timeout)` falls back to recursive destruction on
-      // timeout, which uses `ProcessHandle.children()` and is not permitted in
-      // this macOS sandbox. BSP launchers are top-level processes for these
-      // tests, so a non-recursive destroy is sufficient here.
       proc.destroy(recursive = false)
 
       val shutdownDeadlineNanos = System.nanoTime() + 5000L * 1000000L

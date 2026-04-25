@@ -180,9 +180,6 @@ object WriterPreferringRwLockTests extends TestSuite {
     }
 
     test("downgraded-lease-can-be-closed-on-a-different-thread") {
-      // Real usage pattern: a task acquires write, downgrades to read on its
-      // worker thread, then the read lease is closed later by RunnerLauncherState
-      // cleanup on a different thread.
       val waitingErr = new PrintStream(new ByteArrayOutputStream())
       val lock = new WriterPreferringRwLock("downgrade-cross-thread-close")
 
@@ -216,9 +213,6 @@ object WriterPreferringRwLockTests extends TestSuite {
     }
 
     test("waiting-message-names-the-current-holder") {
-      // Regression test: the waiting message must include the blocking
-      // launcher's command and PID so users (and integration tests) can
-      // identify what's blocking them.
       val waitingBytes = new ByteArrayOutputStream()
       val waitingErr = new PrintStream(waitingBytes)
       val lock = new WriterPreferringRwLock("holder-naming")
@@ -248,16 +242,9 @@ object WriterPreferringRwLockTests extends TestSuite {
     }
 
     test("writer-is-not-starved-by-steady-reader-stream") {
-      // Regression test for the prior fairness bug: two concurrent writers
-      // could both observe "available" and neither register as a waiter; the
-      // second writer then waits with waitingWriters == 0, so a steady stream
-      // of readers could jump the queue and starve it. With the merged
-      // acquire path, either writer is either reserved immediately or
-      // registered as a waiter.
       val waitingErr = new PrintStream(new ByteArrayOutputStream())
       val lock = new WriterPreferringRwLock("writer-starvation")
 
-      // Hold a reader so neither writer can acquire immediately.
       val firstReader = lock.acquire(LockKind.Read, waitingErr, noWait = false, testHolder)
 
       val writerAcquired = new CountDownLatch(1)
@@ -268,11 +255,8 @@ object WriterPreferringRwLockTests extends TestSuite {
       })
       writerThread.start()
 
-      // Give the writer time to register as waiting.
       Thread.sleep(50)
 
-      // Now spawn a steady stream of readers. With waitingWriters incremented,
-      // each of these should observe canAcquireRead = false and queue.
       val readerThreads = (1 to 20).map(_ => {
         val t = new Thread(() => {
           val r = lock.acquire(LockKind.Read, waitingErr, noWait = false, testHolder)
@@ -283,7 +267,6 @@ object WriterPreferringRwLockTests extends TestSuite {
         t
       })
 
-      // Release the initial reader. Writer should win the next acquisition.
       firstReader.close()
 
       assert(writerAcquired.await(5, TimeUnit.SECONDS))
@@ -315,16 +298,6 @@ object WriterPreferringRwLockTests extends TestSuite {
     }
 
     test("waiting-message-names-a-still-holding-reader-not-a-released-one") {
-      // Regression test for the lastHolder bug: if two readers coexist and
-      // the more-recent acquirer releases first, a subsequent writer that
-      // blocks must be told about the STILL-HOLDING older reader, not about
-      // the already-released most-recent acquirer.
-      //
-      // With a single `lastHolder` field, releasing the most-recent holder
-      // left that field pointing at the released launcher. A new writer's
-      // waiting message then reported the wrong PID (sometimes the waiter's
-      // own — the same launcher that just released — which made it look like
-      // the launcher was blocked by itself).
       val waitingBytes = new ByteArrayOutputStream()
       val waitingErr = new PrintStream(waitingBytes)
       val lock = new WriterPreferringRwLock("stale-last-holder")
@@ -335,12 +308,8 @@ object WriterPreferringRwLockTests extends TestSuite {
 
       val firstReader = lock.acquire(LockKind.Read, waitingErr, noWait = false, stillHolding)
       val secondReader = lock.acquire(LockKind.Read, waitingErr, noWait = false, alreadyReleased)
-      // Release the MORE RECENT reader. Only `stillHolding` remains active.
       secondReader.close()
 
-      // New writer arrives. It must block (readerCount > 0) and emit a
-      // waiting message that names the still-holding reader — NOT the one
-      // that just released.
       val writerAcquired = new CountDownLatch(1)
       val writerLeaseRef = new AtomicReference[LauncherLocking.Lease]()
       val writerThread = new Thread(() => {

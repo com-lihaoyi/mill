@@ -7,35 +7,12 @@ import mill.constants.OutFiles
 import java.nio.file.StandardCopyOption
 import java.util.concurrent.atomic.AtomicBoolean
 
-/**
- * One run's concrete [[LauncherOutFiles]] handle: per-run scratch directory at
- * `out/mill-run/<runId>/`, routing of well-known artifact paths (profile,
- * chrome-profile, dependency-tree, etc.) into that directory, two-phase publish
- * of top-level `out/mill-*` symlinks, and lifecycle of the
- * `mill-launcher-files/<runId>.json` record that advertises this launcher as
- * live to other launchers and to cleanup sweeps.
- *
- * Active-vs-finished is encoded entirely on disk: the launcher file exists
- * iff the run is active. This run only rewrites top-level symlinks for paths
- * it actually produced; concurrent runs that each produce different files
- * therefore coexist naturally. Dangling symlinks (e.g. left behind after a run
- * dir is pruned) are swept at cleanup time.
- */
 private[mill] final class LauncherOutFilesImpl(
     out: os.Path,
     activeCommandMessage: String,
     launcherPid: Long,
     launcherLocks: LauncherSessionState,
     override val runId: String,
-    /**
-     * Wrapper that runs the given thunk under the cross-process out/ file
-     * lock. Setup, publish, and close-time cleanup all mutate `out/` (run-dir
-     * creation, dangling-symlink sweeps, atomic-replace publishes), so they
-     * must be serialized against concurrent CLI / no-daemon / other-daemon
-     * processes that could be doing the same. The caller plumbs in a thunk
-     * that takes a brief lease via SharedOutLockManager — refcounting makes
-     * this near-free when the lock is already held.
-     */
     withFileLockHeld: (=> Unit) => Unit
 ) extends LauncherOutFiles {
   import LauncherOutFilesImpl.*
@@ -46,16 +23,8 @@ private[mill] final class LauncherOutFilesImpl(
   override val chromeProfile: java.nio.file.Path = (runDir / OutFiles.millChromeProfile).toNIO
   override val dependencyTree: java.nio.file.Path = (runDir / OutFiles.millDependencyTree).toNIO
   override val invalidationTree: java.nio.file.Path = (runDir / OutFiles.millInvalidationTree).toNIO
-  // Workspace-level launcher-record file. Visible to other Mill processes
-  // (other daemons, no-daemon) so they can identify the holder of the
-  // cross-process out/ file lock when waiting for it. Daemon-specific
-  // tracking dirs were eliminated so a single source of truth covers both
-  // intra-daemon cleanup and cross-process holder identification.
   private val closed = new AtomicBoolean(false)
 
-  // Head is the live console-tail symlink, published mid-run by
-  // `publishLiveArtifacts`. The remaining entries are the post-run artifacts
-  // published by `publishArtifacts` once evaluation finishes.
   private val publishedArtifacts = Seq(
     PublishedArtifact(
       out / DaemonFiles.millConsoleTail,
@@ -118,8 +87,6 @@ private[mill] object LauncherOutFilesImpl {
     os.RelPath(OutFiles.millInvalidationTree)
   )
 
-  // Run id format is "<millis>-<seq>"; sort key is (millis, seq) so order
-  // stays chronological even if millis-string widths ever change.
   private def runDirSortKey(p: os.Path): (Long, Long) = {
     val name = p.last
     val dash = name.indexOf('-')
@@ -130,22 +97,6 @@ private[mill] object LauncherOutFilesImpl {
     )
   }
 
-  /**
-   * Cap the total number of retained run dirs at [[maxRetainedRuns]] when we
-   * can: never delete a currently-active run dir, and prefer to evict the
-   * oldest inactive ones first. If actives alone exceed the cap, all inactive
-   * dirs are removed but no actives are touched (so the actual on-disk count
-   * may exceed the cap until those launchers exit).
-   *
-   * Then sweep any `out/mill-*` symlink whose target no longer resolves.
-   *
-   * Per-link operations are also serialized against in-process publishes via
-   * [[withArtifactLock]] so that the "is dangling? then remove" check cannot
-   * be invalidated by an interleaving `publishLatest` that has already
-   * atomically replaced the link with a fresh valid target. The caller
-   * provides the cross-process file-lock guarantee separately (this method
-   * is invoked from inside a `withFileLockHeld` block).
-   */
   private def cleanup(
       out: os.Path,
       launcherLocks: LauncherSessionState
@@ -154,9 +105,6 @@ private[mill] object LauncherOutFilesImpl {
       val active = LauncherRecordStore.sweepActive(out).iterator.map(_.runId).toSet
       val runRootDir = out / LauncherSessionState.runRootDirName
       if (os.exists(runRootDir)) {
-        // Sort inactives oldest-first by parsing the leading millis prefix of
-        // each run id. This avoids relying on lexicographic ordering staying
-        // chronological for fixed-width millis strings.
         val runDirs = os.list(runRootDir).filter(os.isDir(_))
         val eligible = runDirs.filterNot(d => active.contains(d.last)).sortBy(runDirSortKey)
         val toRemoveCount = math.min(
@@ -181,11 +129,6 @@ private[mill] object LauncherOutFilesImpl {
     } catch { case _: Throwable => }
   }
 
-  /**
-   * Per-link, intra-process serialization for the symlink test-then-act
-   * sequences in [[cleanup]] and [[publishLatest]]. Cross-process exclusion
-   * is provided by the caller's `withFileLockHeld` wrapping.
-   */
   private def withArtifactLock[T](
       link: os.Path,
       launcherLocks: LauncherSessionState
@@ -194,12 +137,6 @@ private[mill] object LauncherOutFilesImpl {
     launcherLocks.artifactLockFor(key).synchronized(body)
   }
 
-  /**
-   * Atomic-move a symlink at `link` to point at `target`. Uses a sibling tmp
-   * file (named with `nanoTime` + a per-session counter so concurrent
-   * launchers can't clash) and `ATOMIC_MOVE` so readers never observe an
-   * in-progress state.
-   */
   private def updateSymlink(
       link: os.Path,
       target: os.Path,
@@ -267,10 +204,6 @@ private[mill] object LauncherOutFilesImpl {
     }
   }
 
-  /**
-   * Prefer a relative symlink so the link survives a move of `out/`. Falls
-   * back to the absolute target if link and target don't share a common ancestor.
-   */
   private def relativizeTarget(link: os.Path, target: os.Path): os.FilePath =
     try target.relativeTo(link / os.up)
     catch { case _: Throwable => target }

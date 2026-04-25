@@ -85,7 +85,6 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ProblemFilter.exclude[Problem]("mill.util.internal.DummyMiscInfo*"),
     ProblemFilter.exclude[Problem]("mill.api.internal.RootModule$Info*"),
     ProblemFilter.exclude[Problem]("mill.api.internal.RootModule#Info*"),
-    // internal stuff
     ProblemFilter.exclude[Problem]("mill.api.daemon.internal.bsp.BspServerHandle.*")
 
   )

@@ -35,9 +35,6 @@ object MillLauncherMain {
     val bspMode = bspServerMode || parsedConfig.exists(_.bspInstall.value)
     val useFileLocks = parsedConfig.exists(_.useFileLocks.value)
 
-    // BSP server sessions now default to daemon mode so they can share the
-    // same task/output concurrency machinery as normal CLI runs. `--bsp-install`
-    // still runs in a short-lived process because it only writes metadata.
     val runNoDaemon = parsedConfig.exists(c => c.noDaemonEnabled > 0 || c.bspInstall.value)
 
     val outMode = if (bspMode) OutFolderMode.BSP else OutFolderMode.REGULAR

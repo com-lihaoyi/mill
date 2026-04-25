@@ -409,7 +409,6 @@ object BspServerTests extends UtestIntegrationTestSuite {
         }
       }
 
-      // BSP should now share the regular out/ directory and daemon by default.
       assert(os.exists(workspacePath / "out"))
       assert(os.exists(workspacePath / "out" / OutFiles.millDaemon / "processId"))
       assert(!os.exists(workspacePath / ".bsp/out"))
@@ -489,9 +488,6 @@ object BspServerTests extends UtestIntegrationTestSuite {
         ignoreLine = {
           // ignore watcher logs
           val watchGlob = TestRunnerUtils.matchesGlob("bsp-watch] *")
-          // Fresh-per-request BSP bootstrap now re-emits disabled-target notices and the
-          // `resolve _` listing. Those lines are bootstrap implementation noise rather than
-          // stable user-facing logging behavior.
           val bootstrapDisabledTargetPattern =
             raw"""bsp(?:-[^]]+)?\] BSP disabled for target .*""".r
           def isBootstrapResolveListingLine(s: String): Boolean = {
@@ -500,10 +496,6 @@ object BspServerTests extends UtestIntegrationTestSuite {
             s.startsWith("bsp") &&
             !s.substring(splitIdx + 2).contains(" ")
           }
-          // ignore lock-contention waiting messages — these are timing-
-          // dependent (e.g. the BSP watcher's bootstrap may briefly hold a
-          // meta-build read lease, causing concurrent BSP requests to print
-          // this line) and should not affect test stability.
           val waitingGlob = TestRunnerUtils.matchesGlob(
             "*Another Mill command in the current daemon is*waiting for it to be done*"
           )
@@ -577,13 +569,6 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         val cliResult = eval(("hello-java.compile"))
         assert(cliResult.isSuccess)
-        // Brief contention on shared infrastructure tasks (Task.Input,
-        // CoursierConfigModule.coursierEnv, JvmWorkerModule.zincLogDebug, etc.)
-        // is expected when CLI runs concurrently with an active BSP request:
-        // both evaluate the same root-of-graph helpers and serialize on those
-        // task locks for sub-millisecond stretches. We only fail the test if
-        // CLI is blocked on a USER-MODULE compile or test task that should
-        // never serialize across launchers.
         val benignBlockerResources = Seq(
           "JvmWorkerModule",
           "CoursierConfigModule",

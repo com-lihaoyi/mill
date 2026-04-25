@@ -103,15 +103,12 @@ abstract class MillDaemonServer(
           millRepositories = init.millRepositories
         )
 
-        // CAS: the first connection installs its config, concurrent connections see it and validate.
         lastConfig.compareAndSet(None, Some(clientConfig))
         lastConfig.get().foreach { stored =>
           val mismatchReasons = stored.checkMismatchAgainst(clientConfig)
           if (mismatchReasons.nonEmpty) {
             mismatchReasons.foreach(reason => stderr.println(s"$reason, re-starting server"))
 
-            // The daemon already holds the out/ file lock for its lifetime, so trying to
-            // re-enter the legacy out lock here risks same-process file lock overlap.
             deferredStopServer(
               s"config mismatch: ${mismatchReasons.mkString(", ")}",
               ClientUtil.ServerExitPleaseRetry
@@ -231,19 +228,9 @@ object MillDaemonServer {
   /**
    * An InputStream that polls the client for stdin data via RPC.
    *
-   * Two modes of use:
-   *   - watch mode's `lookForEnterKey` calls [[available]] first and only then
-   *     [[read]] when bytes are present;
-   *   - BSP and any other consumer that calls [[read]] directly (e.g. lsp4j
-   *     reading JSON-RPC frames via `BufferedReader`) needs proper blocking
-   *     semantics: [[read]] must block until at least one byte is available
-   *     and only return -1 on EOF/disconnect, never as a "no data right now"
-   *     signal. Returning -1 prematurely makes lsp4j think the connection
-   *     ended and shut its listener down silently.
-   *
-   * To serve both, [[read]] busy-polls via [[available]] with a short sleep
-   * when the buffer is empty until data arrives or the RPC call to the
-   * launcher fails (treated as EOF).
+   * `available()` serves watch-mode polling, while `read()` must block until bytes
+   * arrive or the client disconnects so higher-level readers do not treat "no data yet"
+   * as EOF.
    */
   class RpcStdinInputStream(
       serverToClient: mill.rpc.MillRpcChannel[DaemonRpc.ServerToClient]
@@ -253,10 +240,6 @@ object MillDaemonServer {
 
     private def bufferedAvailable: Int = buffer.length - pos
 
-    /**
-     * Refill the buffer by polling the launcher; returns the new buffered
-     *  count, or -1 if the launcher disconnected.
-     */
     private def pollOnce(): Int =
       try {
         val result = serverToClient(DaemonRpc.ServerToClient.PollStdin())
@@ -267,7 +250,6 @@ object MillDaemonServer {
         case _: Throwable => -1
       }
 
-    /** Block until [[buffer]] has at least one byte or the launcher disconnects. */
     private def waitForBytes(): Boolean = {
       while (bufferedAvailable == 0) {
         pollOnce() match {
@@ -288,9 +270,6 @@ object MillDaemonServer {
     override def available(): Int = {
       if (bufferedAvailable > 0) bufferedAvailable
       else {
-        // Don't catch exceptions in this path — watch mode's polling needs
-        // to surface RPC failure so the RPC loop exits cleanly on client
-        // disconnect (matches the historical behavior).
         val result = serverToClient(DaemonRpc.ServerToClient.PollStdin())
         buffer = result.bytes
         pos = 0

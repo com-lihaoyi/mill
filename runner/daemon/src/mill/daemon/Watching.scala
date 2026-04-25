@@ -73,11 +73,7 @@ object Watching {
         var skipSelectiveExecution = true // Always skip selective execution for first run
 
         try {
-          // Exits when the thread gets interrupted.
           while (true) {
-            // Release any retained leases from the previous evaluation before rerunning.
-            // Keeping them across the rerun causes the watched command to block on itself
-            // when it needs to reacquire the same workspace resources.
             val previousState = prevState
             previousState.foreach(_.close())
             prevState = None

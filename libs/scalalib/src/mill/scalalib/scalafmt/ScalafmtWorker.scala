@@ -28,10 +28,6 @@ object ScalafmtWorkerModule extends ExternalModule with JavaModule {
 }
 
 private[scalafmt] class ScalafmtWorker(cl: ClassLoader) extends AutoCloseable {
-  // Guarded by `lock`. Reads of both fields and any reformat invocation must
-  // hold the lock so concurrent launchers sharing this worker don't observe
-  // a torn (reformatted, configSig) snapshot or race on the underlying
-  // scalafmt instance.
   private val lock = new Object
   private val reformatted: mutable.Map[os.Path, Int] = mutable.Map.empty
   private var configSig: Int = 0

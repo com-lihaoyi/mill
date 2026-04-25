@@ -53,7 +53,6 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
       assertEventually { os.exists(signalFile1) }
 
       if (tester.daemonMode) {
-        // Different task should be able to run while the blocker holds its task lock
         eval(("hello"), check = true)
 
         assertEventually {
@@ -68,7 +67,6 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
           s"blockWhileExists --path $signalFile1"
         )
 
-        // Same task should fail immediately in no-wait mode
         val noWaitRes = eval(
           ("--no-wait-for-build-lock", "blockWhileExists", "--path", signalFile2)
         )
@@ -78,7 +76,6 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
           )
         )
 
-        // Same task should wait by default
         val spawnedWaitingRes = spawn(("blockWhileExists", "--path", signalFile2))
 
         assertEventually {
@@ -91,7 +88,6 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
           stderrText.contains("tail -F out/mill-console-tail")
         }
 
-        // Terminate blocking task, make sure waiting task now completes
         os.remove(signalFile1)
         blocker.process.waitFor()
         assertEventually { os.exists(signalFile2) }
@@ -99,7 +95,6 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
         spawnedWaitingRes.process.waitFor()
         assert(!spawnedWaitingRes.process.isAlive())
       } else {
-        // In no-daemon mode we keep the coarse global lock
         val waitingCompleteFile = workspacePath / "waitingCompleteFile"
         val spawnedWaitingRes = spawn(("writeMarker", "--path", waitingCompleteFile))
 
