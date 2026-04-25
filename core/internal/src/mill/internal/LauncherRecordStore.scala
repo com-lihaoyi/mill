@@ -1,0 +1,86 @@
+package mill.internal
+
+import mill.constants.DaemonFiles
+
+import scala.jdk.OptionConverters.RichOptional
+
+private[mill] object LauncherRecordStore {
+  final case class Record(runId: String, pid: Long, command: String)
+
+  def path(out: os.Path, runId: String): os.Path =
+    out / os.RelPath(DaemonFiles.perLauncherFilePath(runId))
+
+  def write(out: os.Path, runId: String, pid: Long, command: String): Unit = {
+    val commandJson = ujson.write(ujson.Str(command))
+    val json = s"""{"pid":$pid,"command":$commandJson}"""
+    val file = path(out, runId)
+    try mill.api.BuildCtx.withFilesystemCheckerDisabled {
+        os.makeDir.all(file / os.up)
+        os.write.over(file, json)
+      }
+    catch { case _: Throwable => () }
+  }
+
+  def remove(out: os.Path, runId: String): Unit =
+    try mill.api.BuildCtx.withFilesystemCheckerDisabled(os.remove(path(out, runId), checkExists = false))
+    catch { case _: Throwable => () }
+
+  def sweepActive(out: os.Path): Seq[Record] = {
+    val dir = out / os.RelPath(DaemonFiles.millLauncherFiles)
+    if (!os.exists(dir)) Nil
+    else
+      os.list(dir)
+        .filter(os.isFile(_))
+        .flatMap(readActiveRecord(_, removeStale = true))
+        .sortBy(record => runIdSortKey(record.runId))
+  }
+
+  def mostRecentActive(out: os.Path): Option[Record] =
+    scanActive(out, removeStale = false).lastOption
+
+  private def scanActive(out: os.Path, removeStale: Boolean): Seq[Record] = {
+    val dir = out / os.RelPath(DaemonFiles.millLauncherFiles)
+    if (!os.exists(dir)) Nil
+    else
+      os.list(dir)
+        .filter(os.isFile(_))
+        .flatMap(readActiveRecord(_, removeStale))
+        .sortBy(record => runIdSortKey(record.runId))
+  }
+
+  private def readActiveRecord(file: os.Path, removeStale: Boolean): Option[Record] = {
+    val recordOpt =
+      try {
+        val json = ujson.read(os.read(file)).obj
+        for {
+          pid <- json.get("pid").map(_.num.toLong)
+        } yield Record(
+          runId = file.baseName,
+          pid = pid,
+          command = json.get("command").map(_.str).getOrElse("")
+        )
+      } catch {
+        case _: Throwable => None
+      }
+
+    recordOpt match {
+      case Some(record) if java.lang.ProcessHandle.of(record.pid).toScala.exists(_.isAlive) =>
+        Some(record)
+      case _ =>
+        if (removeStale) {
+          try os.remove(file, checkExists = false)
+          catch { case _: Throwable => () }
+        }
+        None
+    }
+  }
+
+  private def runIdSortKey(runId: String): (Long, Long) = {
+    val dash = runId.indexOf('-')
+    if (dash < 0) (0L, 0L)
+    else (
+      runId.substring(0, dash).toLongOption.getOrElse(0L),
+      runId.substring(dash + 1).toLongOption.getOrElse(0L)
+    )
+  }
+}
