@@ -1,23 +1,25 @@
 package mill.api.daemon.internal.bsp
 
-import mill.api.daemon.internal.EvaluatorApi
-import mill.api.daemon.Watchable
-
 import scala.concurrent.Future
 
-/** With this server handle you can interact with a running Mill BSP server. */
+/**
+ * Daemon-side handle to a running BSP server.
+ *
+ * In the simplified architecture, the BSP server no longer publishes a
+ * long-lived "session" of evaluators — each BSP request runs its own
+ * bootstrap via [[BspBootstrapBridge]]. The daemon's only handle into the
+ * server is therefore [[shutdownFuture]], which completes when the BSP
+ * client sends `build/exit` or `workspace/reload`, and [[close]] for forced
+ * teardown.
+ */
 trait BspServerHandle {
 
   /**
-   * Starts a new session with the given evaluator. Doesn't block or wait for the session to end.
+   * Completes when the BSP client signals end-of-session (e.g. `build/exit`)
+   * or requests a workspace reload. The daemon's BSP block awaits this
+   * future and exits when it resolves.
    */
-  def startSession(
-      evaluators: Seq[EvaluatorApi],
-      errored: Boolean,
-      watched: Seq[Watchable]
-  ): Future[BspServerResult]
-
-  def resetSession(): Unit
+  def shutdownFuture: Future[BspServerResult]
 
   /** Stops the BSP server. */
   def close(): Unit

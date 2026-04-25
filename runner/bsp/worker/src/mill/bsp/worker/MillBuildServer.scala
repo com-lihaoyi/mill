@@ -10,12 +10,15 @@ import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
 
 import java.util.concurrent.{CompletableFuture, LinkedBlockingQueue, TimeUnit}
 import java.util.concurrent.atomic.AtomicInteger
-import scala.concurrent.{Await, Future, Promise}
-import scala.concurrent.duration.Duration
+import scala.concurrent.{Future, Promise}
 import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success}
 import mill.api.daemon.internal.NonFatal
-import mill.api.daemon.internal.bsp.{BspModuleApi, BspServerResult}
+import mill.api.daemon.internal.bsp.{
+  BspBootstrapBridge,
+  BspModuleApi,
+  BspServerResult
+}
 import mill.api.daemon.internal.*
 import mill.constants.OutFiles.OutFiles
 
@@ -35,7 +38,9 @@ private abstract class MillBuildServer(
     protected val baseLogger: Logger,
     out: os.Path,
     noWaitForBspLock: Boolean,
-    killOther: Boolean
+    killOther: Boolean,
+    bspWatch: Boolean,
+    bootstrapBridge: BspBootstrapBridge
 ) extends EndpointsApi with AutoCloseable {
 
   import MillBuildServer.*
@@ -44,20 +49,15 @@ private abstract class MillBuildServer(
   // Session State
   // ==========================================================================
 
-  // Mutable variables representing the lifecycle stages:
   @volatile protected var client: BuildClient = scala.compiletime.uninitialized
   @volatile protected var sessionInfo: MillBspEndpoints.SessionInfo = scala.compiletime.uninitialized
-  private val snapshotLock = new Object
-  private case class Snapshot(
-      evaluators: BspEvaluators,
-      sessionResult: Promise[BspServerResult]
-  )
-  private case class SnapshotState(
-      current: Option[Snapshot] = None,
-      savedPreviousEvaluators: Option[BspEvaluators] = None,
-      nextSnapshot: Promise[Snapshot] = Promise[Snapshot]()
-  )
-  private var snapshotState = SnapshotState()
+
+  /**
+   * Completes when the BSP client signals end-of-session (`build/exit`) or
+   * requests `workspace/reload`. The daemon awaits this future to know when
+   * to exit its BSP block.
+   */
+  protected[worker] val shutdownPromise: Promise[BspServerResult] = Promise[BspServerResult]()
 
   private val requestCount = new AtomicInteger
 
@@ -132,8 +132,105 @@ private abstract class MillBuildServer(
         .replace("/", "_")
         .replace("\\", "_")
       initLock(bspLockId)
+      if (bspWatch) startWatcherThread()
     } else
       baseLogger.warn("Mill BSP server initialized more than once")
+  }
+
+  /**
+   * Background thread that pushes `onBuildTargetDidChange` notifications to
+   * the connected BSP client whenever any of the previous bootstrap's
+   * watched inputs change. Each iteration:
+   *
+   *   1. Asks the bridge to bootstrap fresh evaluators+watches.
+   *   2. Inside the bridge body, computes target snapshots, diffs vs. the
+   *      previous iteration's snapshots, sends `buildTargetDidChange` if
+   *      they differ, and polls `WatchSig.haveNotChanged` until something
+   *      changes (or shutdown is requested).
+   *   3. Returns from the body — the bridge tears down the bootstrap state
+   *      and releases all read leases — then loops.
+   *
+   * The polling loop holds the bootstrap's read leases (meta-build read
+   * lease + per-task read leases retained from the `resolve _` evaluation)
+   * for the duration of one iteration. Concurrent BSP requests and CLI
+   * commands run independent bootstraps; they each acquire their own read
+   * leases on the same locks, which is compatible. A concurrent CLI command
+   * that needs to write the meta-build classloader (e.g. `build.mill`
+   * changed) escalates to a write lease, waits for this iteration's read
+   * lease to be released — which happens at most one watcher poll interval
+   * after the change is detected — then refreshes; the watcher then
+   * bootstraps against the post-refresh classloader on its next iteration.
+   */
+  @volatile private var watcherThread: Thread = null
+  private val watcherPollIntervalMs: Long = 500L
+  private def startWatcherThread(): Unit = {
+    val client0 = client
+    val watchLogger = new PrefixLogger(baseLogger, Seq("watch"))
+    watcherThread = mill.api.daemon.StartThread("mill-bsp-watcher", daemon = true) {
+      var prevTargetSnapshots = Seq.empty[ChangeNotifier.TargetSnapshot]
+      var seenAnyBootstrap = false
+      try while (!stopped && !shutdownPromise.isCompleted) {
+          try bootstrapBridge.runBootstrap(
+              "BSP:watch",
+              new BspBootstrapBridge.Body[Unit] {
+                override def apply(
+                    evaluators: java.util.List[EvaluatorApi],
+                    watched: java.util.List[Watchable]
+                ): Unit = {
+                  val bspEvaluators = new BspEvaluators(
+                    topLevelProjectRoot,
+                    evaluators.asScala.toSeq,
+                    s => baseLogger.debug(s()),
+                    watched.asScala.toSeq
+                  )
+                  val current = bspEvaluators.targetSnapshots
+                  if (seenAnyBootstrap && client0 != null)
+                    ChangeNotifier.notifyChanges(
+                      client0,
+                      prevTargetSnapshots,
+                      current,
+                      forceMillBuildChanged = false
+                    )
+                  prevTargetSnapshots = current
+                  seenAnyBootstrap = true
+
+                  val watchedSeq = watched.asScala.toSeq
+                  // Poll until something changes or shutdown is requested.
+                  // We poll filesystem-style watches via WatchSig; this also
+                  // re-evaluates Task.Input style watch closures, which is
+                  // safe here because the bootstrap's leases are still held
+                  // for the whole body.
+                  while (
+                    !stopped &&
+                      !shutdownPromise.isCompleted &&
+                      watchedSeq.forall(WatchSig.haveNotChanged)
+                  ) {
+                    try Thread.sleep(watcherPollIntervalMs)
+                    catch {
+                      case _: InterruptedException =>
+                        Thread.currentThread().interrupt()
+                        return
+                    }
+                  }
+                }
+              }
+            )
+          catch {
+            case _: InterruptedException => Thread.currentThread().interrupt()
+            case NonFatal(ex) =>
+              watchLogger.error(s"BSP watcher iteration failed: $ex")
+              ex.printStackTrace(watchLogger.streams.err)
+              try Thread.sleep(1000L)
+              catch {
+                case _: InterruptedException =>
+                  Thread.currentThread().interrupt()
+              }
+          }
+        }
+      catch {
+        case _: InterruptedException => ()
+      }
+    }
   }
 
   // ==========================================================================
@@ -142,100 +239,11 @@ private abstract class MillBuildServer(
 
   def close(): Unit = {
     stopped = true
-    // Wake any thread parked in `awaitFreshSnapshot` so it can observe
-    // `stopped` and exit instead of blocking on a snapshot that will never
-    // be published.
-    snapshotLock.synchronized {
-      snapshotState.nextSnapshot.tryFailure(
-        new java.util.concurrent.CancellationException("BSP server shutting down")
-      )
-      snapshotState.current.foreach(
-        _.sessionResult.tryFailure(
-          new java.util.concurrent.CancellationException("BSP server shutting down")
-        )
-      )
-    }
+    shutdownPromise.tryFailure(
+      new java.util.concurrent.CancellationException("BSP server shutting down")
+    )
     evaluatorRequestsThread.interrupt()
-  }
-
-  /**
-   * Updates the BSP server evaluators.
-   *
-   * If errored is true, this method attempts to keep former evaluators for
-   * build levels that don't have new evaluators, so IDE features still work
-   * for non-broken parts of the build.
-   */
-  def updateEvaluator(
-      evaluators: Seq[EvaluatorApi],
-      errored: Boolean,
-      watched: Seq[Watchable]
-  ): Future[BspServerResult] = {
-    baseLogger.debug(s"Updating Evaluator: $evaluators")
-
-    val (previousEvaluatorsOpt, evaluators0, sessionFuture) = snapshotLock.synchronized {
-      val previousEvaluatorsOpt =
-        snapshotState.current.map(_.evaluators).orElse(snapshotState.savedPreviousEvaluators)
-
-      val updatedEvaluators =
-        if (errored) mergeWithPrevious(evaluators, previousEvaluatorsOpt.map(_.evaluators))
-        else evaluators
-
-      val evaluators0 = new BspEvaluators(
-        topLevelProjectRoot,
-        updatedEvaluators,
-        s => baseLogger.debug(s()),
-        watched
-      )
-      val snapshot = Snapshot(
-        evaluators = evaluators0,
-        sessionResult = Promise[BspServerResult]()
-      )
-      val pendingSnapshot = snapshotState.nextSnapshot
-      snapshotState = snapshotState.copy(
-        current = Some(snapshot),
-        savedPreviousEvaluators = None,
-        nextSnapshot = Promise[Snapshot]()
-      )
-      pendingSnapshot.trySuccess(snapshot)
-      (previousEvaluatorsOpt, evaluators0, snapshot.sessionResult.future)
-    }
-
-    if (client != null && previousEvaluatorsOpt.nonEmpty) {
-      ChangeNotifier.notifyChanges(
-        client,
-        previousEvaluatorsOpt.map(_.targetSnapshots).getOrElse(Nil),
-        evaluators0.targetSnapshots,
-        forceMillBuildChanged = errored
-      )
-    }
-    sessionFuture
-  }
-
-  /** Merges new evaluators with previous ones when the build is errored. */
-  private def mergeWithPrevious(
-      newEvaluators: Seq[EvaluatorApi],
-      previousOpt: Option[Seq[EvaluatorApi]]
-  ): Seq[EvaluatorApi] = previousOpt match {
-    case None => newEvaluators
-    case Some(previous) =>
-      newEvaluators.headOption match {
-        case None => previous
-        case Some(head) =>
-          val idx = previous.indexWhere(_.outPathJava == head.outPathJava)
-          if (idx < 0) newEvaluators
-          else previous.take(idx) ++ newEvaluators
-      }
-  }
-
-  def resetEvaluator(): Unit = {
-    baseLogger.debug("Resetting Evaluator")
-    snapshotLock.synchronized {
-      snapshotState = snapshotState.copy(
-        savedPreviousEvaluators =
-          snapshotState.current.map(_.evaluators).orElse(snapshotState.savedPreviousEvaluators),
-        current = None
-      )
-    }
+    if (watcherThread != null) watcherThread.interrupt()
   }
 
   def onConnectWithClient(buildClient: BuildClient): Unit = client = buildClient
@@ -304,87 +312,72 @@ private abstract class MillBuildServer(
     }
   }
 
-  private val queue = new LinkedBlockingQueue[(BspEvaluators => Unit, Logger)]
+  /**
+   * One queued request: a pre-prepared logger, a request name (for active-
+   * command messages and timing), and the body closure that runs against
+   * fresh evaluators+watches obtained per-request from the bootstrap bridge.
+   */
+  private case class QueuedRequest(
+      requestName: String,
+      logger: Logger,
+      run: (Seq[EvaluatorApi], Seq[Watchable]) => Unit
+  )
+
+  private val queue = new LinkedBlockingQueue[QueuedRequest]
   private var stopped = false
 
-  /** Background thread that processes BSP requests sequentially. */
+  /**
+   * Background thread that processes BSP evaluator requests sequentially.
+   *
+   * Each request bootstraps fresh evaluators by calling
+   * [[BspBootstrapBridge.runBootstrap]], runs the body, and lets the daemon
+   * tear the bootstrap state down before the next request runs. Sequential
+   * processing is preserved (one bootstrap at a time on this thread) so that
+   * cross-request ordering matches the previous snapshot-cache design;
+   * concurrent CLI launchers are unaffected because the per-request
+   * bootstrap takes its own meta-build read leases via
+   * [[mill.daemon.MillBuildBootstrap.processRunClasspath]]'s read-first
+   * speculation, which composes safely with concurrent task and meta-build
+   * read leases held by other launchers.
+   */
   private val evaluatorRequestsThread: Thread =
     mill.api.daemon.StartThread("mill-bsp-evaluator", daemon = true) {
       try {
-        var pendingRequest = Option.empty[(BspEvaluators => Unit, Logger)]
         while (!stopped) {
-          if (pendingRequest.isEmpty)
-            pendingRequest = Option(queue.poll(1L, TimeUnit.SECONDS))
-
-          for ((handler, logger) <- pendingRequest) {
-            val snapshot = awaitFreshSnapshot(logger)
-            pendingRequest = None
-            try handler(snapshot.evaluators)
-            catch {
-              case t: Throwable =>
-                logger.error(s"Could not process request: $t")
-                t.printStackTrace(logger.streams.err)
-            }
-          }
+          val req = queue.poll(1L, TimeUnit.SECONDS)
+          if (req != null) runQueuedRequest(req)
         }
       } catch {
         case _: InterruptedException => // Normal exit
       }
     }
 
-  /**
-   * Returns a current snapshot whose watched inputs are still valid, blocking
-   * on the next bootstrap publication if the current one is stale or absent.
-   * Throws [[InterruptedException]] when [[close]] cancels the wait so the
-   * background request thread can exit cleanly.
-   */
-  private def awaitFreshSnapshot(logger: Logger): Snapshot = {
-    def loop(): Snapshot = {
-      val currentOrNext = snapshotLock.synchronized {
-        snapshotState.current match {
-          case Some(snapshot) if snapshot.evaluators.watched.forall(WatchSig.haveNotChanged) =>
-            Left(snapshot)
-          case Some(snapshot) =>
-            // Stale: evict and signal the launcher loop to reload via the
-            // session result. The next bootstrap publication completes
-            // `nextSnapshot`. Holding `snapshotLock` from the outer match
-            // through this branch makes the eviction atomic — no inner
-            // generation re-check needed.
-            snapshotState = snapshotState.copy(
-              savedPreviousEvaluators = Some(snapshot.evaluators),
-              current = None
-            )
-            snapshot.sessionResult.trySuccess(BspServerResult.ReloadWorkspace)
-            Right(snapshotState.nextSnapshot.future)
-          case None =>
-            Right(snapshotState.nextSnapshot.future)
+  private def runQueuedRequest(req: QueuedRequest): Unit = {
+    try {
+      bootstrapBridge.runBootstrap(
+        s"BSP:${req.requestName}",
+        new BspBootstrapBridge.Body[Unit] {
+          override def apply(
+              evaluators: java.util.List[EvaluatorApi],
+              watched: java.util.List[Watchable]
+          ): Unit =
+            req.run(evaluators.asScala.toSeq, watched.asScala.toSeq)
         }
-      }
-
-      currentOrNext match {
-        case Left(snapshot) => snapshot
-        case Right(nextSnapshotFuture) =>
-          logger.debug("Waiting for a fresh BSP bootstrap snapshot")
-          // Poll with a finite timeout so `close()` can wake us promptly via
-          // `stopped`. `Await.result(_, Duration.Inf)` would park here past
-          // shutdown.
-          while (!nextSnapshotFuture.isCompleted) {
-            if (stopped) throw new InterruptedException("BSP server shutting down")
-            try Await.ready(nextSnapshotFuture, Duration(250, TimeUnit.MILLISECONDS))
-            catch { case _: java.util.concurrent.TimeoutException => () }
-          }
-          if (stopped) throw new InterruptedException("BSP server shutting down")
-          loop()
-      }
+      )
+    } catch {
+      case t: Throwable =>
+        req.logger.error(s"Could not process request: $t")
+        t.printStackTrace(req.logger.streams.err)
     }
-
-    loop()
   }
 
+  /**
+   * Signals end-of-session to the daemon's BSP block. Called from the
+   * client-driven JSON-RPC handlers `onBuildExit` ([[BspServerResult.Shutdown]])
+   * and `workspaceReload` ([[BspServerResult.ReloadWorkspace]]).
+   */
   protected def completeSessionResult(result: BspServerResult): Unit =
-    snapshotLock.synchronized {
-      snapshotState.current.foreach(_.sessionResult.trySuccess(result))
-    }
+    shutdownPromise.trySuccess(result)
 
   protected def handlerEvaluators[V](
       checkInitialized: Boolean = true
@@ -401,15 +394,22 @@ private abstract class MillBuildServer(
       logger.error(msg)
       future.completeExceptionally(new Exception(msg))
     } else {
-      queue.put((
-        evaluators => {
-          if (!future.isCancelled()) {
-            executeWithTiming(prefix, logger, future)(block(evaluators, logger))
-          } else {
+      queue.put(QueuedRequest(
+        requestName = prefix,
+        logger = logger,
+        run = (evaluators, watched) => {
+          if (future.isCancelled()) {
             logger.info(s"$prefix was cancelled")
+          } else {
+            val bspEvaluators = new BspEvaluators(
+              topLevelProjectRoot,
+              evaluators,
+              s => baseLogger.debug(s()),
+              watched
+            )
+            executeWithTiming(prefix, logger, future)(block(bspEvaluators, logger))
           }
-        },
-        logger
+        }
       ))
     }
     future

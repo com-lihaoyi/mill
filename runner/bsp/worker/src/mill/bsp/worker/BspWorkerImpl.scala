@@ -2,17 +2,19 @@ package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.BuildClient
 import mill.bsp.BuildInfo
-import mill.api.daemon.internal.EvaluatorApi
 import mill.bsp.Constants
 import mill.api.{Logger, Result, SystemStreams}
-import mill.api.daemon.Watchable
 import org.eclipse.lsp4j.jsonrpc.Launcher
 
 import java.io.PrintWriter
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, Executors, ThreadFactory}
 import scala.concurrent.{CancellationException, Future}
-import mill.api.daemon.internal.bsp.{BspServerHandle, BspServerResult}
+import mill.api.daemon.internal.bsp.{
+  BspBootstrapBridge,
+  BspServerHandle,
+  BspServerResult
+}
 
 object BspWorkerImpl {
 
@@ -24,7 +26,9 @@ object BspWorkerImpl {
       baseLogger: Logger,
       out: os.Path,
       noWaitForBspLock: Boolean,
-      killOther: Boolean
+      killOther: Boolean,
+      bspWatch: Boolean,
+      bootstrapBridge: BspBootstrapBridge
   ): mill.api.Result[(BspServerHandle, BuildClient)] = {
 
     try {
@@ -44,7 +48,9 @@ object BspWorkerImpl {
           baseLogger = baseLogger,
           out = out,
           noWaitForBspLock = noWaitForBspLock,
-          killOther = killOther
+          killOther = killOther,
+          bspWatch = bspWatch,
+          bootstrapBridge = bootstrapBridge
         ) with EndpointsJvm
           with EndpointsJava
           with EndpointsScala
@@ -64,20 +70,13 @@ object BspWorkerImpl {
       millServer.onConnectWithClient(client)
 
       val bspServerHandle = new BspServerHandle {
-        override def startSession(
-            evaluators: Seq[EvaluatorApi],
-            errored: Boolean,
-            watched: Seq[Watchable]
-        ): Future[BspServerResult] =
-          millServer.updateEvaluator(evaluators, errored = errored, watched = watched)
-
-        override def resetSession(): Unit = {
-          millServer.resetEvaluator()
-        }
+        override def shutdownFuture: Future[BspServerResult] =
+          millServer.shutdownPromise.future
 
         override def close(): Unit = {
           streams.err.println("Stopping server via handle...")
           listening.cancel(true)
+          millServer.close()
         }
       }
 

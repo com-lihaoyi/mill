@@ -91,7 +91,9 @@ private object IdeWorkerSupport {
       classOf[Logger],
       classOf[os.Path],
       classOf[Boolean],
-      classOf[Boolean]
+      classOf[Boolean],
+      classOf[Boolean],
+      classOf[mill.api.daemon.internal.bsp.BspBootstrapBridge]
     )
 
     val bspEvaluatorsClass = classLoader.loadClass("mill.bsp.worker.BspEvaluators")
@@ -133,7 +135,9 @@ private object IdeWorkerSupport {
       baseLogger: Logger,
       out: os.Path,
       noWaitForBspLock: Boolean,
-      killOther: Boolean
+      killOther: Boolean,
+      bspWatch: Boolean,
+      bootstrapBridge: mill.api.daemon.internal.bsp.BspBootstrapBridge
   ): (BspServerHandle, BspBuildClient) = {
     val handles = bspHandles
     val result = mill.api.daemon.ClassLoader.withContextClassLoader(handles.classLoader) {
@@ -146,7 +150,9 @@ private object IdeWorkerSupport {
         baseLogger,
         out,
         noWaitForBspLock,
-        killOther
+        killOther,
+        java.lang.Boolean.valueOf(bspWatch),
+        bootstrapBridge
       )).asInstanceOf[Result[(Any, Any)]]
     }
 
