@@ -93,9 +93,14 @@ class BspEvaluators(
     bspModulesIdList.map { case (id, (module, ev)) =>
       val dependencyUris = module match {
         case jm: JavaModuleApi =>
+          // Some module deps may not appear in [[bspIdByModule]] if they were
+          // excluded from BSP discovery (e.g. via `bspScriptIgnore`). Skip
+          // those rather than throwing a NoSuchElementException — the
+          // dependency is real but simply isn't surfaced to BSP.
           (jm.recursiveModuleDeps ++ jm.compileModuleDepsChecked)
             .distinct
-            .collect { case bm: BspModuleApi => bspIdByModule(bm).getUri }
+            .collect { case bm: BspModuleApi => bm }
+            .flatMap(bm => bspIdByModule.get(bm).map(_.getUri))
             .sorted
         case _ => Nil
       }
