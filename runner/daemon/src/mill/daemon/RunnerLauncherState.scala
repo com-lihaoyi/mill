@@ -51,7 +51,6 @@ case class RunnerLauncherState(
     finalFrame.map(_.evaluator).toSeq ++ metaBuildFrames.map(_.evaluator)
 
   override def close(): Unit = {
-    // Keep the case-class data readable after close; only tear down the resources it points at.
     closeAll(
       allEvaluators.distinct ++
         metaBuildFrames.flatMap(_.metaBuildReadLease) ++

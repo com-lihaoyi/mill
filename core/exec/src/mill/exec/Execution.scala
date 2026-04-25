@@ -133,7 +133,6 @@ case class Execution(
       indexToTerminal: Array[Task[?]],
       interGroupDeps: Map[Task[?], Seq[Task[?]]]
   ): Execution.LeaseTracker = {
-    // Retained leases stay alive until every in-run downstream terminal has completed.
     val retainedLeasesByTask =
       new ConcurrentHashMap[Task[?], java.util.concurrent.ConcurrentLinkedQueue[
         LauncherLocking.Lease

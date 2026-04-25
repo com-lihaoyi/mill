@@ -42,12 +42,9 @@ private[mill] object LauncherLocking {
   final case class HolderInfo(pid: Long, command: String)
 
   trait Lease extends AutoCloseable {
-    // Read leases ignore this; there is intentionally no matching upgrade primitive.
     def downgradeToRead(): Unit = ()
   }
 
-  // Probe under a read lease first, then reacquire under write when the read path
-  // discovers it must mutate shared state.
   def withReadThenWrite[T](
       acquireRead: => Lease,
       acquireWrite: => Lease

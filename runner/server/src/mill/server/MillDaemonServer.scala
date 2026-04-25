@@ -81,7 +81,6 @@ abstract class MillDaemonServer(
         s"deferredStopServer: storing shutdown request (reason=$reason, exitCode=$exitCode)"
       )
       data.shutdownRequest.set(MillDaemonServer.ShutdownRequest(reason, exitCode))
-      // Throw StopWithResponse to stop the RPC loop and send the response
       throw new StopWithResponse(DaemonRpc.RunCommandResult(exitCode))
     }
 
@@ -228,9 +227,6 @@ object MillDaemonServer {
   /**
    * An InputStream that polls the client for stdin data via RPC.
    *
-   * `available()` serves watch-mode polling, while `read()` must block until bytes
-   * arrive or the client disconnects so higher-level readers do not treat "no data yet"
-   * as EOF.
    */
   class RpcStdinInputStream(
       serverToClient: mill.rpc.MillRpcChannel[DaemonRpc.ServerToClient]

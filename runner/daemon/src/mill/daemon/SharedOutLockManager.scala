@@ -7,7 +7,6 @@ import mill.internal.LauncherRecordStore
 import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicBoolean
 
-// Refcounts one cross-process out/ lock across concurrent launchers inside a daemon.
 private[mill] final class SharedOutLockManager(
     fileLock: Lock,
     out: os.Path
