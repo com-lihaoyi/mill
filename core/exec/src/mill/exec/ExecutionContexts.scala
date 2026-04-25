@@ -11,6 +11,62 @@ import mill.api.Logger
 import mill.api.daemon.internal.NonFatal
 
 object ExecutionContexts {
+  private object RunnablePriority {
+    private val priorityMethod = new ClassValue[Option[java.lang.reflect.Method]] {
+      override def computeValue(clazz: Class[?]): Option[java.lang.reflect.Method] =
+        try {
+          val method = clazz.getMethod("priority")
+          method.trySetAccessible()
+          Some(method)
+        } catch {
+          case _: ReflectiveOperationException => None
+        }
+    }
+
+    def apply(runnable: Runnable): Int =
+      priorityMethod.get(runnable.getClass) match {
+        case Some(method) => method.invoke(runnable).asInstanceOf[Int]
+        case None => 0
+      }
+  }
+
+  private final class QueuedRunnable(
+      runnable: Runnable,
+      val priority: Int,
+      val submissionIndex: Long
+  ) extends Runnable
+      with Comparable[QueuedRunnable] {
+    def run(): Unit = runnable.run()
+
+    override def compareTo(other: QueuedRunnable): Int =
+      priority.compareTo(other.priority) match {
+        case 0 => submissionIndex.compareTo(other.submissionIndex)
+        case n => n
+      }
+  }
+
+  private final class PriorityThreadPoolExecutor(
+      threadCount: Int,
+      threadFactory: ThreadFactory
+  ) extends ThreadPoolExecutor(
+        threadCount,
+        threadCount,
+        60 * 1000,
+        TimeUnit.SECONDS,
+        new PriorityBlockingQueue[Runnable](),
+        threadFactory
+      ) {
+    private val submissionCount = new java.util.concurrent.atomic.AtomicLong()
+
+    override def execute(command: Runnable): Unit =
+      super.execute(
+        new QueuedRunnable(
+          runnable = command,
+          priority = RunnablePriority(command),
+          submissionIndex = submissionCount.getAndIncrement()
+        )
+      )
+  }
 
   /**
    * Execution context that runs code immediately when scheduled, without
@@ -76,8 +132,6 @@ object ExecutionContexts {
     def reportFailure(t: Throwable): Unit = {}
     def close(): Unit = executor.shutdown()
 
-    val priorityRunnableCount = java.util.concurrent.atomic.AtomicLong()
-
     /**
      * Subclass of [[java.lang.Runnable]] that assigns a priority to execute it
      *
@@ -85,20 +139,8 @@ object ExecutionContexts {
      * prioritize this runnable over most other tasks, while priorities >0 can be used to
      * de-prioritize it.
      */
-    class PriorityRunnable(val priority: Int, run0: () => Unit) extends Runnable
-        with Comparable[PriorityRunnable] {
-      def run() = run0()
-      val priorityRunnableIndex: Long = priorityRunnableCount.getAndIncrement()
-      override def compareTo(o: PriorityRunnable): Int = priority.compareTo(o.priority) match {
-        case 0 =>
-          // `Comparable` wants a *total* ordering, so we need to use `priorityRunnableIndex`
-          // to break ties between instances with the same priority. This index is assigned
-          // when a task is submitted, so it should more or less follow insertion order,
-          // and is a `Long` which should be big enough never to overflow
-          assert(this == o || this.priorityRunnableIndex != o.priorityRunnableIndex)
-          this.priorityRunnableIndex.compareTo(o.priorityRunnableIndex)
-        case n => n
-      }
+    class PriorityRunnable(val priority: Int, run0: () => Unit) extends Runnable {
+      def run(): Unit = run0()
     }
 
     /**
@@ -151,25 +193,15 @@ object ExecutionContexts {
   def createExecutor(threadCount: Int): ThreadPoolExecutor = {
     val executorIndex = executorCounter.incrementAndGet()
     val threadCounter = new AtomicInteger
-    new ThreadPoolExecutor(
-      threadCount,
-      threadCount,
-      60 * 1000,
-      TimeUnit.SECONDS,
-      // Use a `Deque` rather than a normal `Queue`, with the various `poll`/`take`
-      // operations reversed, providing elements in a LIFO order. This ensures that
-      // child `fork.async` tasks always take priority over parent tasks, avoiding
-      // large numbers of blocked parent tasks from piling up
-      new PriorityBlockingQueue[Runnable](),
-      runnable => {
-        val threadIndex = threadCounter.incrementAndGet()
-        val t = new Thread(
-          runnable,
-          s"execution-contexts-threadpool-$executorIndex-thread-$threadIndex"
-        )
-        t.setDaemon(true)
-        t
-      }
-    )
+    val threadFactory: ThreadFactory = runnable => {
+      val threadIndex = threadCounter.incrementAndGet()
+      val t = new Thread(
+        runnable,
+        s"execution-contexts-threadpool-$executorIndex-thread-$threadIndex"
+      )
+      t.setDaemon(true)
+      t
+    }
+    new PriorityThreadPoolExecutor(threadCount, threadFactory)
   }
 }

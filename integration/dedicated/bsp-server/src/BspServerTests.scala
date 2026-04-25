@@ -489,6 +489,17 @@ object BspServerTests extends UtestIntegrationTestSuite {
         ignoreLine = {
           // ignore watcher logs
           val watchGlob = TestRunnerUtils.matchesGlob("bsp-watch] *")
+          // Fresh-per-request BSP bootstrap now re-emits disabled-target notices and the
+          // `resolve _` listing. Those lines are bootstrap implementation noise rather than
+          // stable user-facing logging behavior.
+          val bootstrapDisabledTargetPattern =
+            raw"""bsp(?:-[^]]+)?\] BSP disabled for target .*""".r
+          def isBootstrapResolveListingLine(s: String): Boolean = {
+            val splitIdx = s.indexOf("] ")
+            splitIdx >= 0 &&
+            s.startsWith("bsp") &&
+            !s.substring(splitIdx + 2).contains(" ")
+          }
           // ignore lock-contention waiting messages — these are timing-
           // dependent (e.g. the BSP watcher's bootstrap may briefly hold a
           // meta-build read lease, causing concurrent BSP requests to print
@@ -497,7 +508,10 @@ object BspServerTests extends UtestIntegrationTestSuite {
             "*Another Mill command in the current daemon is*waiting for it to be done*"
           )
           s =>
-            watchGlob(s) || waitingGlob(s) ||
+            watchGlob(s) ||
+              bootstrapDisabledTargetPattern.matches(s) ||
+              isBootstrapResolveListingLine(s) ||
+              waitingGlob(s) ||
               // These can happen in different orders due to filesystem ordering, not stable to
               // assert against
               s.contains("Skipping script discovery") ||

@@ -276,13 +276,39 @@ object BspServerTestUtil {
         try proc.stdout.close()
         catch { case _: java.io.IOException => () }
 
-        proc.join(30000L)
+        waitForProcessExit(proc, 30000L)
       } finally {
         if (!success && isCI) {
           System.err.println(" == BSP server output ==")
           System.err.write(stderr.toByteArray)
           System.err.println(" == end of BSP server output ==")
         }
+      }
+    }
+  }
+
+  private def waitForProcessExit(proc: os.SubProcess, timeoutMillis: Long): Unit = {
+    val waitIntervalMillis = 50L
+    val deadlineNanos = System.nanoTime() + timeoutMillis * 1000000L
+
+    while (proc.isAlive() && System.nanoTime() < deadlineNanos) {
+      Thread.sleep(waitIntervalMillis)
+    }
+
+    if (proc.isAlive()) {
+      // `os.SubProcess.join(timeout)` falls back to recursive destruction on
+      // timeout, which uses `ProcessHandle.children()` and is not permitted in
+      // this macOS sandbox. BSP launchers are top-level processes for these
+      // tests, so a non-recursive destroy is sufficient here.
+      proc.destroy(recursive = false)
+
+      val shutdownDeadlineNanos = System.nanoTime() + 5000L * 1000000L
+      while (proc.isAlive() && System.nanoTime() < shutdownDeadlineNanos) {
+        Thread.sleep(waitIntervalMillis)
+      }
+
+      if (proc.isAlive()) {
+        throw new RuntimeException("BSP server did not exit within the expected timeout")
       }
     }
   }

@@ -10,44 +10,9 @@ bsp-build.mill-*] [warn] build.mill:107:18
 bsp-build.mill-*]   def theThing = thing
 bsp-build.mill-*]                  ^^^^^
 bsp-build.mill-*] method thing in object diag is deprecated since 0.0.1: deprecated
-bsp-build.mill-*] 
 bsp-build.mill-*] [warn] one warning found
 bsp-build.mill-*] done compiling
-bsp] BSP disabled for target file:///workspace/skipped
-bsp] app
-bsp] delayed
-bsp] dependsOnSkipped
-bsp] diag
-bsp] errored
-bsp] hello-java
-bsp] hello-kotlin
-bsp] hello-scala
-bsp] lib
-bsp] scripts
-bsp] selective
-bsp] skipped
-bsp] sourcesNeedCompile
-bsp] clean
-bsp] init
-bsp] inspect
-bsp] java
-bsp] javac
-bsp] javap
-bsp] jfr
-bsp] jps
-bsp] jstack
-bsp] path
-bsp] plan
-bsp] resolve
-bsp] show
-bsp] showNamed
-bsp] shutdown
-bsp] updateMillScripts
-bsp] version
-bsp] visualize
-bsp] visualizePlan
 2-workspaceBuildTargets] Entered workspaceBuildTargets
-bsp] BSP disabled for target file:///workspace/skipped
 2-workspaceBuildTargets] Evaluating * tasks
 2-workspaceBuildTargets] Done
 2-workspaceBuildTargets] [error] Request 'workspaceBuildTargets' failed for file:///workspace/dependsOnSkipped: java.util.NoSuchElementException: key not found: skipped
@@ -56,75 +21,7 @@ bsp] BSP disabled for target file:///workspace/skipped
 2-workspaceBuildTargets] Evaluating 1 task
 2-workspaceBuildTargets] Done
 2-workspaceBuildTargets] workspaceBuildTargets took * msec
-bsp] BSP disabled for target file:///workspace/skipped
-bsp] app
-bsp] delayed
-bsp] dependsOnSkipped
-bsp] diag
-bsp] errored
-bsp] hello-java
-bsp] hello-kotlin
-bsp] hello-scala
-bsp] lib
-bsp] scripts
-bsp] selective
-bsp] skipped
-bsp] sourcesNeedCompile
-bsp] clean
-bsp] init
-bsp] inspect
-bsp] java
-bsp] javac
-bsp] javap
-bsp] jfr
-bsp] jps
-bsp] jstack
-bsp] path
-bsp] plan
-bsp] resolve
-bsp] show
-bsp] showNamed
-bsp] shutdown
-bsp] updateMillScripts
-bsp] version
-bsp] visualize
-bsp] visualizePlan
-bsp] BSP disabled for target file:///workspace/skipped
-bsp] app
-bsp] delayed
-bsp] dependsOnSkipped
-bsp] diag
-bsp] errored
-bsp] hello-java
-bsp] hello-kotlin
-bsp] hello-scala
-bsp] lib
-bsp] scripts
-bsp] selective
-bsp] skipped
-bsp] sourcesNeedCompile
-bsp] clean
-bsp] init
-bsp] inspect
-bsp] java
-bsp] javac
-bsp] javap
-bsp] jfr
-bsp] jps
-bsp] jstack
-bsp] path
-bsp] plan
-bsp] resolve
-bsp] show
-bsp] showNamed
-bsp] shutdown
-bsp] updateMillScripts
-bsp] version
-bsp] visualize
-bsp] visualizePlan
-bsp] BSP disabled for target file:///workspace/skipped
 3-loggingTest] Entered loggingTest
-bsp] BSP disabled for target file:///workspace/skipped
 3-loggingTest] Evaluating 1 task
 3-loggingTest-*] bspLoggingTest from System.out
 3-loggingTest-*] bspLoggingTest from System.err
@@ -133,80 +30,12 @@ bsp] BSP disabled for target file:///workspace/skipped
 3-loggingTest-*] bspLoggingTest from Task.log.info
 3-loggingTest] Done
 3-loggingTest] loggingTest took * msec
-bsp] BSP disabled for target file:///workspace/skipped
-bsp] app
-bsp] delayed
-bsp] dependsOnSkipped
-bsp] diag
-bsp] errored
-bsp] hello-java
-bsp] hello-kotlin
-bsp] hello-scala
-bsp] lib
-bsp] scripts
-bsp] selective
-bsp] skipped
-bsp] sourcesNeedCompile
-bsp] clean
-bsp] init
-bsp] inspect
-bsp] java
-bsp] javac
-bsp] javap
-bsp] jfr
-bsp] jps
-bsp] jstack
-bsp] path
-bsp] plan
-bsp] resolve
-bsp] show
-bsp] showNamed
-bsp] shutdown
-bsp] updateMillScripts
-bsp] version
-bsp] visualize
-bsp] visualizePlan
 4-compile] Entered buildTargetCompile
-bsp] BSP disabled for target file:///workspace/skipped
 4-compile] Evaluating 1 task
 4-compile-*] Compiling compiler interface...
 4-compile] Done
 4-compile] buildTargetCompile took * msec
-bsp] BSP disabled for target file:///workspace/skipped
-bsp] app
-bsp] delayed
-bsp] dependsOnSkipped
-bsp] diag
-bsp] errored
-bsp] hello-java
-bsp] hello-kotlin
-bsp] hello-scala
-bsp] lib
-bsp] scripts
-bsp] selective
-bsp] skipped
-bsp] sourcesNeedCompile
-bsp] clean
-bsp] init
-bsp] inspect
-bsp] java
-bsp] javac
-bsp] javap
-bsp] jfr
-bsp] jps
-bsp] jstack
-bsp] path
-bsp] plan
-bsp] resolve
-bsp] show
-bsp] showNamed
-bsp] shutdown
-bsp] updateMillScripts
-bsp] version
-bsp] visualize
-bsp] visualizePlan
 5-compile] Entered buildTargetCompile
-bsp] BSP disabled for target file:///workspace/skipped
 5-compile] Evaluating 1 task
 5-compile-*] compiling * Scala source to * ...
 5-compile-*] [error] errored/compilation-error/src/Thing.scala:2:3
@@ -218,41 +47,7 @@ bsp] BSP disabled for target file:///workspace/skipped
 5-compile-*] [error] errored.compilation-error.semanticDbDataDetailed task failed
 5-compile] Done
 5-compile] buildTargetCompile took * msec
-bsp] BSP disabled for target file:///workspace/skipped
-bsp] app
-bsp] delayed
-bsp] dependsOnSkipped
-bsp] diag
-bsp] errored
-bsp] hello-java
-bsp] hello-kotlin
-bsp] hello-scala
-bsp] lib
-bsp] scripts
-bsp] selective
-bsp] skipped
-bsp] sourcesNeedCompile
-bsp] clean
-bsp] init
-bsp] inspect
-bsp] java
-bsp] javac
-bsp] javap
-bsp] jfr
-bsp] jps
-bsp] jstack
-bsp] path
-bsp] plan
-bsp] resolve
-bsp] show
-bsp] showNamed
-bsp] shutdown
-bsp] updateMillScripts
-bsp] version
-bsp] visualize
-bsp] visualizePlan
 6-compile] Entered buildTargetCompile
-bsp] BSP disabled for target file:///workspace/skipped
 6-compile] Evaluating 1 task
 6-compile] Done
 6-compile] buildTargetCompile took * msec

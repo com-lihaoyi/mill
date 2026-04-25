@@ -502,6 +502,7 @@ object MillMain0 {
                           val (bspServerHandle, buildClient) = startBspServer(
                             streams0,
                             bspLogger,
+                            launcherPid = launcherPid,
                             noWaitForBspLock = config.noWaitForBspLock.value,
                             killOther = !config.bspNoKillOther.value,
                             bspWatch = config.bspWatch,
@@ -629,6 +630,7 @@ object MillMain0 {
   def startBspServer(
       bspStreams: SystemStreams,
       bspLogger: Logger,
+      launcherPid: Long,
       noWaitForBspLock: Boolean,
       killOther: Boolean,
       bspWatch: Boolean,
@@ -649,6 +651,7 @@ object MillMain0 {
         canReload = true,
         baseLogger = bspLogger,
         out = outFolder,
+        sessionProcessPid = launcherPid,
         noWaitForBspLock = noWaitForBspLock,
         killOther = killOther,
         bspWatch = bspWatch,

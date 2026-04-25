@@ -45,13 +45,17 @@ object BspServerErrorTests extends UtestIntegrationTestSuite {
         bspLog = Some((bytes, len) => stderr.write(bytes, 0, len))
       ) { (buildServer, initRes) =>
 
+        val firstServerDeadline = System.nanoTime() + 5000L * 1000000L
+        while (firstServerProc.isAlive() && System.nanoTime() < firstServerDeadline) {
+          Thread.sleep(50L)
+        }
         assert(!firstServerProc.isAlive())
 
         val firstServerStderrStr = new String(firstServerStderr.toByteArray)
-        assert(firstServerStderrStr.contains("Received SIGTERM, exiting"))
+        assert(firstServerStderrStr.contains("BSP shutdown asked by client, exiting"))
 
         val currentStderrStr = new String(stderr.toByteArray)
-        assert(currentStderrStr.contains("Sent SIGTERM to process"))
+        assert(currentStderrStr.contains("Asked the active BSP session for 'Mill_Integration' to shut down"))
 
         assert(initRes.getCapabilities.getInverseSourcesProvider == true)
 

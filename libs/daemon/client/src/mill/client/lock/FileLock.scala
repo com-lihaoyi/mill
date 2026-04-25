@@ -1,7 +1,7 @@
 package mill.client.lock
 
 import java.io.RandomAccessFile
-import java.nio.channels.FileChannel
+import java.nio.channels.{FileChannel, OverlappingFileLockException}
 import scala.compiletime.uninitialized
 
 class FileLock(path: String) extends Lock {
@@ -29,12 +29,17 @@ class FileLock(path: String) extends Lock {
 
   override def tryLock(): TryLocked = {
     initializeIfNeeded()
-    new FileTryLocked(chan.tryLock())
+    new FileTryLocked(
+      try chan.tryLock()
+      catch { case _: OverlappingFileLockException => null }
+    )
   }
 
   override def probe(): Boolean = {
     initializeIfNeeded()
-    val l = chan.tryLock()
+    val l =
+      try chan.tryLock()
+      catch { case _: OverlappingFileLockException => null }
     if (l == null) false
     else {
       l.release()

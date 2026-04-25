@@ -24,6 +24,13 @@ class BspEvaluators(
     val watched: Seq[Watchable],
     val bootstrapErrorOpt: Option[String] = None
 ) {
+  def this(
+      workspaceDir: os.Path,
+      evaluators: Seq[EvaluatorApi],
+      debug: (() => String) => Unit,
+      watched: Seq[Watchable]
+  ) = this(workspaceDir, evaluators, debug, watched, None)
+
   private lazy val disabledBspModules: Set[ModuleApi] =
     Utils.computeDisabledBspModules(evaluators)
 

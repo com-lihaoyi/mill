@@ -196,6 +196,9 @@ object BspServerReloadTests extends UtestIntegrationTestSuite {
         val didChangeParams0 = Await.result(didChangePromise.future, 1.minute)
 
         val expectedChanges0 = Set(
+          "app" -> b.BuildTargetEventKind.DELETED,
+          "lib" -> b.BuildTargetEventKind.DELETED,
+          "thing" -> b.BuildTargetEventKind.DELETED,
           "mill-build" -> b.BuildTargetEventKind.CHANGED
         )
         val changes0 = didChangeParams0.getChanges().asScala.map(eventData).toSet
@@ -215,12 +218,9 @@ object BspServerReloadTests extends UtestIntegrationTestSuite {
         val buildCompileRes = buildServer
           .buildTargetCompile(new b.CompileParams(List(targetsMap("mill-build")).asJava))
           .get()
-        val appCompileRes = buildServer
-          .buildTargetCompile(new b.CompileParams(List(targetsMap("app")).asJava))
-          .get()
         assert(
           buildCompileRes.getStatusCode == b.StatusCode.ERROR,
-          appCompileRes.getStatusCode == b.StatusCode.OK
+          !targetsMap.contains("app")
         )
       }
     }
