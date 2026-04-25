@@ -53,7 +53,7 @@ runs:
       shell: bash
 
     - run: ./mill -k selective.prepare ${{ inputs.prepareargs }}
-      if: ${{ (github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'run-all-tests')) || github.repository != 'com-lihaoyi/mill' }}
+      if: ${{ ((github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'run-all-tests')) || github.repository != 'com-lihaoyi/mill') && github.event_name != 'schedule' && github.event_name != 'workflow_dispatch' }}
       shell: ${{ inputs.shell }}
 
     - uses: actions/upload-artifact@v4.6.0
