@@ -42,8 +42,9 @@ private[mill] object LauncherLocking {
    * soon as two readers attempt it simultaneously, so callers that need to
    * mutate after speculating must close the read lease, acquire a fresh write
    * lease, and re-validate any speculation under the new write. See
-   * `mill.internal.RwLockOps.speculateReadElseWrite` for the canonical
-   * implementation of this dance.
+   * `mill.daemon.MillBuildBootstrap.processRunClasspath` and
+   * `mill.exec.GroupExecution.evaluateTaskWithCaching` for the canonical
+   * open-coded versions of this dance.
    */
   trait Lease extends AutoCloseable {
     def downgradeToRead(): Unit = ()

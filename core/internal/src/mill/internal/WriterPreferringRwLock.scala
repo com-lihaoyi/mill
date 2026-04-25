@@ -22,8 +22,9 @@ import mill.constants.DaemonFiles
  *    fresh write lease, and re-validate any cached state under the write. The
  *    lock deliberately omits a `tryUpgrade` primitive because such an upgrade
  *    would deadlock as soon as two readers attempted it simultaneously. See
- *    [[mill.internal.RwLockOps.speculateReadElseWrite]] for the canonical
- *    helper.
+ *    `mill.daemon.MillBuildBootstrap.processRunClasspath` and
+ *    `mill.exec.GroupExecution.evaluateTaskWithCaching` for the canonical
+ *    open-coded versions of this dance.
  *  - Downgrade is supported via [[mill.api.daemon.internal.LauncherLocking.Lease.downgradeToRead]].
  */
 private[mill] final class WriterPreferringRwLock(label: String) {
