@@ -267,8 +267,14 @@ object BspServerTestUtil {
       value
     } finally {
       try {
-        proc.stdin.close()
-        proc.stdout.close()
+        // The BSP launcher subprocess often exits on its own in response to
+        // `onBuildExit`, in which case its stdin is already a closed
+        // NullOutputStream and `close()` throws IOException. That isn't a test
+        // failure — swallow it so the actual test result surfaces.
+        try proc.stdin.close()
+        catch { case _: java.io.IOException => () }
+        try proc.stdout.close()
+        catch { case _: java.io.IOException => () }
 
         proc.join(30000L)
       } finally {

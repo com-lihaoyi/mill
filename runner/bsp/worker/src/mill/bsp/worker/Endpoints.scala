@@ -125,7 +125,7 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
     val logger = createLogger()
     logger.info("Entered onBuildExit")
     SemanticDbJavaModuleApi.resetContext()
-    sessionResult.trySuccess(BspServerResult.Shutdown)
+    completeSessionResult(BspServerResult.Shutdown)
     onShutdown()
   }
 
@@ -184,7 +184,7 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
     handlerRaw { _ =>
       // Instead stop and restart the command
       // BSP.install(evaluator)
-      sessionResult.trySuccess(BspServerResult.ReloadWorkspace)
+      completeSessionResult(BspServerResult.ReloadWorkspace)
       ().asInstanceOf[Object]
     }
 

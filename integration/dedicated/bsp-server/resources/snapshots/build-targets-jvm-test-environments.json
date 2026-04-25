@@ -11,13 +11,13 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/<version>/protobuf-java-<version>.jar",
         "file:///workspace/lib/compile-resources",
         "file:///workspace/lib/resources",
-        "file:///workspace/.bsp/out/lib/compile.dest/classes",
+        "file:///workspace/out/lib/compile.dest/classes",
         "file:///workspace/app/compile-resources",
         "file:///workspace/app/resources",
-        "file:///workspace/.bsp/out/app/compile.dest/classes",
+        "file:///workspace/out/app/compile.dest/classes",
         "file:///workspace/app/test/compile-resources",
         "file:///workspace/app/test/resources",
-        "file:///workspace/.bsp/out/app/test/compile.dest/classes",
+        "file:///workspace/out/app/test/compile.dest/classes",
         "file:///mill-workspace/out/dist/localRepo.dest/com/lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/mill-libs-javalib-testrunner-entrypoint-SNAPSHOT.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/<version>/test-interface-<version>.jar"
       ],
@@ -33,7 +33,7 @@
           "className": "mill.javalib.testrunner.entrypoint.MillTestRunnerMain",
           "arguments": [
             "",
-            "/workspace/.bsp/out/app/test/getTestEnvironmentVars.dest/testargs"
+            "/workspace/out/app/test/getTestEnvironmentVars.dest/testargs"
           ]
         }
       ]
@@ -49,10 +49,10 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/<version>/hamcrest-core-<version>.jar",
         "file:///workspace/hello-java/compile-resources",
         "file:///workspace/hello-java/resources",
-        "file:///workspace/.bsp/out/hello-java/compile.dest/classes",
+        "file:///workspace/out/hello-java/compile.dest/classes",
         "file:///workspace/hello-java/test/compile-resources",
         "file:///workspace/hello-java/test/resources",
-        "file:///workspace/.bsp/out/hello-java/test/compile.dest/classes",
+        "file:///workspace/out/hello-java/test/compile.dest/classes",
         "file:///mill-workspace/out/dist/localRepo.dest/com/lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/mill-libs-javalib-testrunner-entrypoint-SNAPSHOT.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/<version>/test-interface-<version>.jar"
       ],
@@ -68,7 +68,7 @@
           "className": "mill.javalib.testrunner.entrypoint.MillTestRunnerMain",
           "arguments": [
             "",
-            "/workspace/.bsp/out/hello-java/test/getTestEnvironmentVars.dest/testargs"
+            "/workspace/out/hello-java/test/getTestEnvironmentVars.dest/testargs"
           ]
         }
       ]
@@ -85,10 +85,10 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/<scala-version>/scala-reflect-<scala-version>.jar",
         "file:///workspace/hello-scala/compile-resources",
         "file:///workspace/hello-scala/resources",
-        "file:///workspace/.bsp/out/hello-scala/compile.dest/classes",
+        "file:///workspace/out/hello-scala/compile.dest/classes",
         "file:///workspace/hello-scala/test/compile-resources",
         "file:///workspace/hello-scala/test/resources",
-        "file:///workspace/.bsp/out/hello-scala/test/compile.dest/classes",
+        "file:///workspace/out/hello-scala/test/compile.dest/classes",
         "file:///mill-workspace/out/dist/localRepo.dest/com/lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/mill-libs-javalib-testrunner-entrypoint-SNAPSHOT.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/<version>/test-interface-<version>.jar"
       ],
@@ -104,7 +104,7 @@
           "className": "mill.javalib.testrunner.entrypoint.MillTestRunnerMain",
           "arguments": [
             "",
-            "/workspace/.bsp/out/hello-scala/test/getTestEnvironmentVars.dest/testargs"
+            "/workspace/out/hello-scala/test/getTestEnvironmentVars.dest/testargs"
           ]
         }
       ]
@@ -132,9 +132,9 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/<version>/slf4j-api-<version>.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/<version>/hamcrest-core-<version>.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/javassist/javassist/<version>/javassist-<version>.jar",
-        "file:///workspace/.bsp/out/scripts/folder2/Foo.java/compile.dest/classes",
+        "file:///workspace/out/scripts/folder2/Foo.java/compile.dest/classes",
         "file:///workspace/scripts/folder2/FooTest.java/resources",
-        "file:///workspace/.bsp/out/scripts/folder2/FooTest.java/compile.dest/classes",
+        "file:///workspace/out/scripts/folder2/FooTest.java/compile.dest/classes",
         "file:///mill-workspace/out/dist/localRepo.dest/com/lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/mill-libs-javalib-testrunner-entrypoint-SNAPSHOT.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/<version>/test-interface-<version>.jar"
       ],
@@ -150,7 +150,7 @@
           "className": "mill.javalib.testrunner.entrypoint.MillTestRunnerMain",
           "arguments": [
             "",
-            "/workspace/.bsp/out/scripts/folder2/FooTest.java/getTestEnvironmentVars.dest/testargs"
+            "/workspace/out/scripts/folder2/FooTest.java/getTestEnvironmentVars.dest/testargs"
           ]
         }
       ]

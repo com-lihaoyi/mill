@@ -38,10 +38,9 @@ trait EndpointsApi {
   protected def client: BuildClient
   protected def sessionInfo: MillBspEndpoints.SessionInfo
   protected def sessionInfo_=(info: MillBspEndpoints.SessionInfo): Unit
-  protected[worker] def sessionResult: scala.concurrent.Promise[BspServerResult]
-  protected[worker] def sessionResult_=(p: scala.concurrent.Promise[BspServerResult]): Unit
 
   protected def doneInitializingBuild(): Unit
+  protected def completeSessionResult(result: BspServerResult): Unit
 
   protected def handlerRaw[V](block: Logger => V)(using
       name: sourcecode.Name,

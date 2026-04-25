@@ -230,10 +230,20 @@ object MillDaemonServer {
 
   /**
    * An InputStream that polls the client for stdin data via RPC.
-   * Used to support "Enter to re-run" in watch mode when running in daemon mode.
    *
-   * Note: This is designed for use with `lookForEnterKey` which calls `available()`
-   * first, then `read()`. The polling only happens in `available()`.
+   * Two modes of use:
+   *   - watch mode's `lookForEnterKey` calls [[available]] first and only then
+   *     [[read]] when bytes are present;
+   *   - BSP and any other consumer that calls [[read]] directly (e.g. lsp4j
+   *     reading JSON-RPC frames via `BufferedReader`) needs proper blocking
+   *     semantics: [[read]] must block until at least one byte is available
+   *     and only return -1 on EOF/disconnect, never as a "no data right now"
+   *     signal. Returning -1 prematurely makes lsp4j think the connection
+   *     ended and shut its listener down silently.
+   *
+   * To serve both, [[read]] busy-polls via [[available]] with a short sleep
+   * when the buffer is empty until data arrives or the RPC call to the
+   * launcher fails (treated as EOF).
    */
   class RpcStdinInputStream(
       serverToClient: mill.rpc.MillRpcChannel[DaemonRpc.ServerToClient]
@@ -243,13 +253,42 @@ object MillDaemonServer {
 
     private def bufferedAvailable: Int = buffer.length - pos
 
+    /** Refill the buffer by polling the launcher; returns the new buffered
+     *  count, or -1 if the launcher disconnected. */
+    private def pollOnce(): Int =
+      try {
+        val result = serverToClient(DaemonRpc.ServerToClient.PollStdin())
+        buffer = result.bytes
+        pos = 0
+        buffer.length
+      } catch {
+        case _: Throwable => -1
+      }
+
+    /** Block until [[buffer]] has at least one byte or the launcher disconnects. */
+    private def waitForBytes(): Boolean = {
+      while (bufferedAvailable == 0) {
+        pollOnce() match {
+          case -1 => return false
+          case 0 =>
+            try Thread.sleep(20L)
+            catch {
+              case _: InterruptedException =>
+                Thread.currentThread().interrupt()
+                return false
+            }
+          case _ => // buffer filled
+        }
+      }
+      true
+    }
+
     override def available(): Int = {
-      if (bufferedAvailable > 0) {
-        bufferedAvailable
-      } else {
-        // Poll the client for available stdin data.
-        // Don't catch exceptions - let them propagate so the RPC loop exits
-        // cleanly when the client disconnects.
+      if (bufferedAvailable > 0) bufferedAvailable
+      else {
+        // Don't catch exceptions in this path — watch mode's polling needs
+        // to surface RPC failure so the RPC loop exits cleanly on client
+        // disconnect (matches the historical behavior).
         val result = serverToClient(DaemonRpc.ServerToClient.PollStdin())
         buffer = result.bytes
         pos = 0
@@ -258,8 +297,7 @@ object MillDaemonServer {
     }
 
     override def read(): Int = {
-      // Only read from buffer; caller should check available() first
-      if (bufferedAvailable == 0) -1
+      if (!waitForBytes()) -1
       else {
         val b = buffer(pos) & 0xff
         pos += 1
@@ -269,9 +307,8 @@ object MillDaemonServer {
 
     override def read(b: Array[Byte], off: Int, len: Int): Int = {
       if (len == 0) return 0
-      // Only read from buffer; caller should check available() first
+      if (!waitForBytes()) return -1
       val avail = bufferedAvailable
-      if (avail == 0) return -1
       val toRead = math.min(len, avail)
       System.arraycopy(buffer, pos, b, off, toRead)
       pos += toRead

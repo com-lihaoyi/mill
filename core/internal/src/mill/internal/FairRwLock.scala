@@ -35,7 +35,7 @@ private[mill] final class FairRwLock(label: String) {
 
   private def waitingMessage(blocker: Option[HolderInfo]): String = blocker match {
     case Some(h) =>
-      s"Another Mill command in the current daemon is running '${h.command}' with PID ${h.pid}"
+      s"Another Mill command in the current daemon is running '${h.command}' with PID ${h.pid} (resource: '$label')"
     case None =>
       s"Another Mill command in the current daemon is using '$label'"
   }
@@ -67,16 +67,17 @@ private[mill] final class FairRwLock(label: String) {
         )
       } else {
         if (isWrite) waitingWriters += 1
-        val blocker = currentBlocker()
-        waitingErr.println(
-          s"${waitingMessage(blocker)}, waiting for it to be done... " +
-            s"(tail -F out/${DaemonFiles.millConsoleTail} to see its progress)"
-        )
         None
       }
     }
 
     leaseOpt.getOrElse {
+      val blocker = monitor.synchronized(currentBlocker())
+      waitingErr.println(
+        s"${waitingMessage(blocker)}, waiting for it to be done... " +
+          s"(tail -F out/${DaemonFiles.millConsoleTail} to see its progress)"
+      )
+
       // Phase 2: wait until acquirable, then reserve.
       monitor.synchronized {
         try {

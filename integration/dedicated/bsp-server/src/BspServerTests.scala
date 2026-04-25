@@ -559,7 +559,29 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         val cliResult = eval(("hello-java.compile"))
         assert(cliResult.isSuccess)
-        assert(!cliResult.err.contains("Another Mill command in the current daemon"))
+        // Brief contention on shared infrastructure tasks (Task.Input,
+        // CoursierConfigModule.coursierEnv, JvmWorkerModule.zincLogDebug, etc.)
+        // is expected when CLI runs concurrently with an active BSP request:
+        // both evaluate the same root-of-graph helpers and serialize on those
+        // task locks for sub-millisecond stretches. We only fail the test if
+        // CLI is blocked on a USER-MODULE compile or test task that should
+        // never serialize across launchers.
+        val benignBlockerResources = Seq(
+          "JvmWorkerModule",
+          "CoursierConfigModule",
+          "InternalCoursierConfigModule",
+          "/coursierResolutionParams.dest",
+          "/coursierEnv.dest",
+          "/javaHome.dest",
+          "/scalaCompilerClasspath.dest",
+          "/zincLogDebug.dest",
+          "/useFileLocks.dest"
+        )
+        val unexpectedWaits = cliResult.err.linesIterator
+          .filter(_.contains("Another Mill command in the current daemon"))
+          .filterNot(line => benignBlockerResources.exists(line.contains))
+          .toVector
+        assert(unexpectedWaits.isEmpty)
 
         val delayedResult = delayedCompileFuture.get(30, TimeUnit.SECONDS)
         assert(delayedResult.getStatusCode == b.StatusCode.OK)

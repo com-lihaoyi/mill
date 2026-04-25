@@ -11,7 +11,7 @@ import org.eclipse.lsp4j.jsonrpc.Launcher
 import java.io.PrintWriter
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, Executors, ThreadFactory}
-import scala.concurrent.{CancellationException, Future, Promise}
+import scala.concurrent.{CancellationException, Future}
 import mill.api.daemon.internal.bsp.{BspServerHandle, BspServerResult}
 
 object BspWorkerImpl {
@@ -68,13 +68,8 @@ object BspWorkerImpl {
             evaluators: Seq[EvaluatorApi],
             errored: Boolean,
             watched: Seq[Watchable]
-        ): Future[BspServerResult] = {
-          // FIXME We might be losing some shutdown requests here
-          val sessionResultPromise = Promise[BspServerResult]()
-          millServer.sessionResult = sessionResultPromise
+        ): Future[BspServerResult] =
           millServer.updateEvaluator(evaluators, errored = errored, watched = watched)
-          sessionResultPromise.future
-        }
 
         override def resetSession(): Unit = {
           millServer.resetEvaluator()
