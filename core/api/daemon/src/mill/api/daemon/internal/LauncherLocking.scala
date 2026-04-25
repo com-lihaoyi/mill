@@ -10,6 +10,12 @@ import java.nio.file.Path
  * acquiring the shallower depth's lock during the same run.
  */
 private[mill] trait LauncherLocking extends AutoCloseable {
+  /**
+   * Acquire a meta-build lock keyed by `depth`. The bootstrap module install
+   * (see [[mill.daemon.MillBuildBootstrap.makeBootstrapState]]) reuses this
+   * with the deepest recursion depth — there is no `processRunClasspath`
+   * running at that depth, so the lock is unambiguously the bootstrap's.
+   */
   def metaBuildLock(depth: Int, kind: LauncherLocking.LockKind): LauncherLocking.Lease
 
   /**
@@ -22,13 +28,6 @@ private[mill] trait LauncherLocking extends AutoCloseable {
       displayLabel: String,
       kind: LauncherLocking.LockKind
   ): LauncherLocking.Lease
-
-  /**
-   * Lock guarding the daemon-wide bootstrap module install. Held only for
-   * the duration of [[mill.daemon.MillBuildBootstrap.makeBootstrapState]]'s
-   * shared-state mutation; not coupled to any meta-build depth.
-   */
-  def bootstrapLock(kind: LauncherLocking.LockKind): LauncherLocking.Lease
 }
 
 private[mill] object LauncherLocking {
@@ -70,7 +69,6 @@ private[mill] object LauncherLocking {
     }
     override def metaBuildLock(depth: Int, kind: LockKind): Lease = NoopLease
     override def taskLock(path: Path, displayLabel: String, kind: LockKind): Lease = NoopLease
-    override def bootstrapLock(kind: LockKind): Lease = NoopLease
     override def close(): Unit = ()
   }
 }

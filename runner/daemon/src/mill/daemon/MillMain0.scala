@@ -255,16 +255,7 @@ object MillMain0 {
                             _ => _ => None,
                           extraEnv: Seq[(String, String)] = Nil,
                           metaLevelOverride: Option[Int] = None,
-                          useBspRequestLogger: Boolean = false,
-                          // Cross-bootstrap snapshot of a prior successful
-                          // bootstrap's final-task watches/selector. When non-
-                          // empty AND the watches are still unchanged AND the
-                          // selector matches, MillBuildBootstrap will short-
-                          // circuit and skip the final task evaluation.
-                          // Currently populated only by the BSP bridge; CLI
-                          // watch already passes prevState which serves the
-                          // same purpose for its own iterations.
-                          priorBootstrap: Option[BspPriorBootstrap] = None
+                          useBspRequestLogger: Boolean = false
                       ): RunnerLauncherState = {
                         // Brief lease wrapper used by LauncherOutFilesImpl for
                         // its setup, publish, and close-time mutations. When
@@ -351,7 +342,6 @@ object MillMain0 {
                                   workspaceLocking = locking,
                                   runArtifacts = new LauncherOutFilesImpl(
                                     out = out,
-                                    daemonDir = daemonDir,
                                     activeCommandMessage = millActiveCommandMessage,
                                     launcherPid = launcherPid,
                                     launcherLocks = launcherLocks,
@@ -424,8 +414,7 @@ object MillMain0 {
                                       sharedState = sharedState,
                                       reporter = reporter,
                                       enableTicker = enableTicker,
-                                      disableFinalTaskShortCircuit = skipSelectiveExecution,
-                                      priorBootstrap = priorBootstrap
+                                      skipSelectiveExecution = skipSelectiveExecution
                                     ).evaluate()
                                   }
                                 }
@@ -505,8 +494,7 @@ object MillMain0 {
                                 strm,
                                 msg,
                                 reporter,
-                                useBspLogger,
-                                priorBoot
+                                useBspLogger
                             ) =>
                               runMillBootstrap(
                                 skipSelectiveExecution = skipSel,
@@ -515,8 +503,7 @@ object MillMain0 {
                                 streams = strm,
                                 millActiveCommandMessage = msg,
                                 reporter = reporter,
-                                useBspRequestLogger = useBspLogger,
-                                priorBootstrap = priorBoot
+                                useBspRequestLogger = useBspLogger
                               ),
                             startBspServer = bridge =>
                               startBspServer(

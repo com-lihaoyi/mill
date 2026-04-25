@@ -26,8 +26,6 @@ private[mill] final class LauncherSessionState {
   // racing on a single link's test-then-act sequence even while the daemon
   // holds the file lock against external processes.
   private val artifactLocks = new ConcurrentHashMap[String, AnyRef]()
-  private val bootstrapLockInstance =
-    new WriterPreferringRwLock(label = "bootstrap-module", displayLabel = "bootstrap-module")
   private val runIdCounter = new AtomicLong(0L)
   private val tmpNameCounter = new AtomicLong(0L)
 
@@ -48,8 +46,6 @@ private[mill] final class LauncherSessionState {
 
   def artifactLockFor(normalizedAbsolutePath: String): AnyRef =
     artifactLocks.computeIfAbsent(normalizedAbsolutePath, _ => new Object)
-
-  def bootstrapLock: WriterPreferringRwLock = bootstrapLockInstance
 
   def nextRunId(): String =
     s"${System.currentTimeMillis()}-${runIdCounter.getAndIncrement()}"

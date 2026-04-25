@@ -75,8 +75,7 @@ class MillBuildBootstrap(
     sharedState: AtomicReference[RunnerSharedState],
     reporter: EvaluatorApi => Int => Option[CompileProblemReporter],
     enableTicker: Boolean,
-    disableFinalTaskShortCircuit: Boolean,
-    priorBootstrap: Option[BspPriorBootstrap]
+    skipSelectiveExecution: Boolean
 ) { outer =>
   import MillBuildBootstrap.*
 
@@ -112,7 +111,7 @@ class MillBuildBootstrap(
 
       val nestedState =
         if (containsBuildFile(currentRoot)) evaluateRec(depth + 1)
-        else makeBootstrapState(currentRoot)
+        else makeBootstrapState(currentRoot, depth)
 
       val nestedDepths = nestedState.processedDepths
       val requestedDepth = computeRequestedDepth(requestedMetaLevel, depth, nestedDepths)
@@ -173,7 +172,7 @@ class MillBuildBootstrap(
       }
     }
 
-  private def makeBootstrapState(currentRoot: os.Path): RunnerLauncherState = {
+  private def makeBootstrapState(currentRoot: os.Path, depth: Int): RunnerLauncherState = {
     val (useDummy, foundRootBuildFileName) = findRootBuildFiles(topLevelProjectRoot)
     val bootstrapEvalWatched =
       Watchable.Path.from(PathRef(topLevelProjectRoot / foundRootBuildFileName))
@@ -189,10 +188,10 @@ class MillBuildBootstrap(
     val error =
       if (alreadyCached) None
       else {
-        // Dedicated bootstrap lock — the bootstrap module is a single shared
-        // slot in RunnerSharedState that isn't depth-keyed, so we don't reuse
-        // any meta-build depth lock for it.
-        val shareLease = workspaceLocking.bootstrapLock(LauncherLocking.LockKind.Write)
+        // Reuse the meta-build lock at the bootstrap's recursion depth: no
+        // `processRunClasspath` runs at this depth (there's no build file
+        // here), so the lock is unambiguously the bootstrap's.
+        val shareLease = workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Write)
         try {
           val refreshed = sharedState.get()
           val stillMissing =
@@ -554,8 +553,8 @@ class MillBuildBootstrap(
    * and reuse prev's watches. This avoids the cost of re-running tasks like
    * `resolve _` (used by BSP requests to populate evaluators) when nothing
    * has changed since the previous successful evaluation. The bypass is
-   * gated on `disableFinalTaskShortCircuit` so the watch loop can force a
-   * re-run on user input (Enter pressed) even when no watched file changed.
+   * gated on `skipSelectiveExecution` so the watch loop can force a re-run
+   * on user input (Enter pressed) even when no watched file changed.
    */
   def processFinalTasks(
       nestedState: RunnerLauncherState,
@@ -566,18 +565,13 @@ class MillBuildBootstrap(
     val evaluator = evaluator0.withIsFinalDepth(true)
 
     val shortCircuitSource: Option[(Seq[Watchable], Seq[Watchable])] =
-      if (disableFinalTaskShortCircuit) None
+      if (skipSelectiveExecution) None
       else
         prevCommandState.finalFrame
           .filter(f =>
             f.depth == depth && f.tasksAndParams == tasksAndParams
           )
           .map(f => (f.evalWatched, f.moduleWatched))
-          .orElse(
-            priorBootstrap
-              .filter(p => p.finalDepth == depth && p.tasksAndParams == tasksAndParams)
-              .map(p => (p.evalWatched, p.moduleWatched))
-          )
           .filter { case (ev, mw) =>
             ev.forall(Watching.haveNotChanged) && mw.forall(Watching.haveNotChanged)
           }

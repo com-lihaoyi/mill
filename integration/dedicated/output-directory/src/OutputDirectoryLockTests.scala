@@ -14,7 +14,7 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
 
   private def activeLauncherPid(workspacePath: os.Path, command: String): Option[Long] = {
     val millLauncherFiles =
-      workspacePath / "out" / OutFiles.millDaemon / os.RelPath(DaemonFiles.millLauncherFiles)
+      workspacePath / "out" / os.RelPath(DaemonFiles.millLauncherFiles)
     if (!os.exists(millLauncherFiles)) None
     else {
       os.list(millLauncherFiles).iterator

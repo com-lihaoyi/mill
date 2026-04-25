@@ -1,6 +1,6 @@
 package mill.integration
 
-import mill.constants.{DaemonFiles, OutFiles}
+import mill.constants.DaemonFiles
 import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
 import utest.*
 import utest.asserts.{RetryInterval, RetryMax}
@@ -25,7 +25,7 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
 
   private def activeLauncherPid(tester: IntegrationTester.Impl, command: String): Option[Long] = {
     val millLauncherFiles =
-      tester.workspacePath / "out" / OutFiles.millDaemon / os.RelPath(DaemonFiles.millLauncherFiles)
+      tester.workspacePath / "out" / os.RelPath(DaemonFiles.millLauncherFiles)
     if (!os.exists(millLauncherFiles)) None
     else {
       os.list(millLauncherFiles).iterator

@@ -23,12 +23,11 @@ import java.util.concurrent.atomic.AtomicBoolean
  * For no-daemon mode there is at most one outstanding lease; the same code
  * path still works (count goes 0→1 then 1→0 around each evaluation).
  *
- * To make the holder of the lock identifiable to external waiters, the
- * first acquiring launcher writes its command + PID to a workspace-level
- * holder file (`out/mill-out-lock-holder.json`). Subsequent intra-daemon
- * peers leave this file alone (the original acquirer is the one that's
- * "in the way" until its work is done plus all peers it gathered). The
- * file is removed when the last lease is released.
+ * Holder identification for external waiters is sourced from the
+ * workspace-level `out/mill-launcher-files/<runId>.json` records (written
+ * by [[mill.internal.LauncherOutFilesImpl]]) — those records are visible
+ * to other Mill processes and are GC'd by PID-liveness on each new launch,
+ * so no separate holder file is needed here.
  */
 private[mill] final class SharedOutLockManager(
     fileLock: Lock,
@@ -59,6 +58,7 @@ private[mill] final class SharedOutLockManager(
       noWaitForBuildLock: Boolean,
       waitingErr: PrintStream
   ): Option[Locked] = {
+    val _ = (activeCommandMessage, launcherPid)
     if (noBuildLock) return None
 
     val mustAcquire = monitor.synchronized {
@@ -105,8 +105,6 @@ private[mill] final class SharedOutLockManager(
             throw t
         }
 
-      writeHolderFile(out, activeCommandMessage, launcherPid)
-
       monitor.synchronized {
         heldLease = locked
         acquiring = false
@@ -130,7 +128,6 @@ private[mill] final class SharedOutLockManager(
           } else null
         }
         if (toRelease != null) {
-          removeHolderFile(out)
           try toRelease.release()
           catch { case _: Throwable => () }
         }
@@ -140,7 +137,6 @@ private[mill] final class SharedOutLockManager(
   override def close(): Unit = monitor.synchronized {
     closed = true
     if (heldLease != null) {
-      removeHolderFile(out)
       try heldLease.release()
       catch { case _: Throwable => () }
       heldLease = null
@@ -150,47 +146,32 @@ private[mill] final class SharedOutLockManager(
 
 private[mill] object SharedOutLockManager {
 
-  private val holderFileName = "mill-out-lock-holder.json"
-
   /**
    * Compose the prefix string used in waiting / no-wait messages when the
    * cross-process file lock is held by an external Mill process. Reads the
-   * workspace-level holder file (written by whichever process currently
-   * holds the file lock) to identify it.
+   * workspace-level `out/mill-launcher-files/` records (written by every
+   * launcher) to identify the most recently-started external launcher.
    */
   def activeOtherProcessPrefix(out: os.Path): String = {
-    val (command, pidOpt) = readHolderFile(out)
+    val (command, pidOpt) = readMostRecentLauncherInfo(out)
     val cmdSuffix = if (command.isEmpty) "" else s" running '$command',"
     s"Another Mill process with PID ${pidOpt.fold("<unknown>")(_.toString)} is" +
       (if (cmdSuffix.isEmpty) " using out/," else cmdSuffix)
   }
 
-  private def writeHolderFile(out: os.Path, command: String, pid: Long): Unit = {
-    try mill.api.BuildCtx.withFilesystemCheckerDisabled {
-        val cmdJson = ujson.write(ujson.Str(command))
-        val json = s"""{"pid":$pid,"command":$cmdJson}"""
-        os.makeDir.all(out)
-        os.write.over(out / holderFileName, json)
-      }
-    catch { case _: Throwable => () }
-  }
-
-  private def removeHolderFile(out: os.Path): Unit = {
-    try mill.api.BuildCtx.withFilesystemCheckerDisabled(
-        os.remove(out / holderFileName, checkExists = false)
-      )
-    catch { case _: Throwable => () }
-  }
-
-  private def readHolderFile(out: os.Path): (String, Option[Long]) = {
-    val file = out / holderFileName
-    if (!os.exists(file)) ("", None)
+  private def readMostRecentLauncherInfo(out: os.Path): (String, Option[Long]) = {
+    val dir = out / DaemonFiles.millLauncherFiles
+    if (!os.exists(dir)) ("", None)
     else
       try {
-        val json = ujson.read(os.read(file)).obj
-        val command = json.get("command").map(_.str).getOrElse("")
-        val pid = json.get("pid").map(_.num.toLong)
-        (command, pid)
+        os.list(dir).filter(os.isFile(_)).sortBy(_.last).lastOption match {
+          case Some(file) =>
+            val json = ujson.read(os.read(file)).obj
+            val command = json.get("command").map(_.str).getOrElse("")
+            val pid = json.get("pid").map(_.num.toLong)
+            (command, pid)
+          case None => ("", None)
+        }
       } catch { case NonFatal(_) => ("", None) }
   }
 }

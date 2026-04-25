@@ -36,8 +36,7 @@ private[daemon] object BspMode {
           /*streams*/ SystemStreams,
           /*millActiveCommandMessage*/ String,
           /*reporter*/ EvaluatorApi => Int => Option[CompileProblemReporter],
-          /*useBspRequestLogger*/ Boolean,
-          /*priorBootstrap*/ Option[BspPriorBootstrap]
+          /*useBspRequestLogger*/ Boolean
       ) => RunnerLauncherState,
       startBspServer: BspBootstrapBridge => (BspServerHandle, IdeWorkerSupport.BspBuildClient)
   ): Boolean = {
@@ -73,13 +72,15 @@ private[daemon] object BspMode {
         )
       }
 
-    // Cross-request snapshot of the most recent bootstrap's final-task
-    // watches/selector. Used by MillBuildBootstrap.processFinalTasks to
-    // short-circuit (skip running `resolve _`) when nothing has changed.
-    // Holds *data only* — never any meta-build read leases — so that
-    // concurrent CLI commands needing a meta-build write are never blocked
-    // by an idle BSP server.
-    val bspPrevState = new AtomicReference[Option[BspPriorBootstrap]](None)
+    // Cross-request snapshot of the most recent bootstrap. Used by
+    // MillBuildBootstrap.processFinalTasks to short-circuit (skip running
+    // `resolve _`) when nothing has changed. The reference holds an
+    // already-closed [[RunnerLauncherState]]: meta-build read leases and
+    // evaluators have been torn down, but the case-class data fields
+    // (errorOpt, finalFrame, etc.) remain readable per
+    // [[RunnerLauncherState.close()]]'s post-close invariant. This keeps
+    // an idle BSP server from blocking concurrent CLI meta-build writes.
+    val bspPrevState = new AtomicReference[Option[RunnerLauncherState]](None)
 
     val bootstrapBridge = new BspBootstrapBridge {
       override def runBootstrap[T](
@@ -88,16 +89,18 @@ private[daemon] object BspMode {
       ): T = Using.resource(
         runMillBootstrap(
           /*skipSelectiveExecution=*/ false,
-          /*prevState=*/ None,
+          /*prevState=*/ bspPrevState.get(),
           /*tasksAndParams=*/ Seq("resolve", "_"),
           /*streams=*/ streams,
           /*millActiveCommandMessage=*/ activeCommandMessage,
           /*reporter=*/ bridgeReporter,
-          /*useBspRequestLogger=*/ true,
-          /*priorBootstrap=*/ bspPrevState.get()
+          /*useBspRequestLogger=*/ true
         )
       ) { runnerState =>
-        BspPriorBootstrap.from(runnerState).foreach(snap => bspPrevState.set(Some(snap)))
+        // Cache only successful bootstraps so the next request short-circuits
+        // off real watches; on failure leave the prior snapshot in place.
+        if (runnerState.errorOpt.isEmpty && runnerState.finalFrame.isDefined)
+          bspPrevState.set(Some(runnerState))
         body.apply(
           BspBootstrapBridge.BootstrapState(
             runnerState.allEvaluators.asJava,
