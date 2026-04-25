@@ -55,7 +55,9 @@ object BspServerErrorTests extends UtestIntegrationTestSuite {
         assert(firstServerStderrStr.contains("BSP shutdown asked by client, exiting"))
 
         val currentStderrStr = new String(stderr.toByteArray)
-        assert(currentStderrStr.contains("Asked the active BSP session for 'Mill_Integration' to shut down"))
+        assert(currentStderrStr.contains(
+          "Asked the active BSP session for 'Mill_Integration' to shut down"
+        ))
 
         assert(initRes.getCapabilities.getInverseSourcesProvider == true)
 

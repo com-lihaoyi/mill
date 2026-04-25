@@ -91,15 +91,19 @@ object ExecutionTests extends TestSuite {
   class Checker[T <: mill.testkit.TestRootModule](module: T)
       extends exec.Checker(module)
 
-  private final class ChildFirstExecutionContextsLoader(urls: Array[java.net.URL], parent: ClassLoader)
-      extends URLClassLoader(urls, parent) {
+  private final class ChildFirstExecutionContextsLoader(
+      urls: Array[java.net.URL],
+      parent: ClassLoader
+  ) extends URLClassLoader(urls, parent) {
     override def loadClass(name: String, resolve: Boolean): Class[?] = synchronized {
       val alreadyLoaded = findLoadedClass(name)
       val loaded =
         if (alreadyLoaded != null) alreadyLoaded
-        else if (name == "mill.exec.ExecutionContexts$" || name.startsWith(
+        else if (
+          name == "mill.exec.ExecutionContexts$" || name.startsWith(
             "mill.exec.ExecutionContexts$"
-          )) {
+          )
+        ) {
           try findClass(name)
           catch {
             case _: ClassNotFoundException => super.loadClass(name, false)
@@ -597,7 +601,10 @@ object ExecutionTests extends TestSuite {
       val localPool = new ExecutionContexts.ThreadPool(executor)
       val codeSourceUrl = ExecutionContexts.getClass.getProtectionDomain.getCodeSource.getLocation
       val childLoader =
-        new ChildFirstExecutionContextsLoader(Array(codeSourceUrl), ExecutionTests.getClass.getClassLoader)
+        new ChildFirstExecutionContextsLoader(
+          Array(codeSourceUrl),
+          ExecutionTests.getClass.getClassLoader
+        )
 
       val blockerStarted = new CountDownLatch(1)
       val unblock = new CountDownLatch(1)

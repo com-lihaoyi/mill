@@ -47,13 +47,14 @@ private[mill] final class LauncherLockingImpl(
 
   override def taskLock(
       path: java.nio.file.Path,
+      displayLabel: String,
       kind: LauncherLocking.LockKind
   ): LauncherLocking.Lease = {
     ensureOpen()
-    if (noBuildLock) LauncherLocking.Noop.taskLock(path, kind)
+    if (noBuildLock) LauncherLocking.Noop.taskLock(path, displayLabel, kind)
     else {
       val normalized = path.toAbsolutePath.normalize().toString
-      val lock = launcherLocks.taskLockFor(normalized)
+      val lock = launcherLocks.taskLockFor(normalized, displayLabel)
       acquireManagedLease(lock.acquire(kind, waitingErr, noWaitForBuildLock, holder))
     }
   }

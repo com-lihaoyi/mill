@@ -253,8 +253,10 @@ object MillDaemonServer {
 
     private def bufferedAvailable: Int = buffer.length - pos
 
-    /** Refill the buffer by polling the launcher; returns the new buffered
-     *  count, or -1 if the launcher disconnected. */
+    /**
+     * Refill the buffer by polling the launcher; returns the new buffered
+     *  count, or -1 if the launcher disconnected.
+     */
     private def pollOnce(): Int =
       try {
         val result = serverToClient(DaemonRpc.ServerToClient.PollStdin())

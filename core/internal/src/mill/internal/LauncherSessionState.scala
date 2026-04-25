@@ -19,19 +19,25 @@ import java.util.concurrent.atomic.AtomicLong
 private[mill] final class LauncherSessionState {
   private val metaBuildLocks = new ConcurrentHashMap[Int, WriterPreferringRwLock]()
   private val taskLocks = new ConcurrentHashMap[String, WriterPreferringRwLock]()
-  private val artifactLocks = new ConcurrentHashMap[String, AnyRef]()
-  private val bootstrapLockInstance = new WriterPreferringRwLock("bootstrap-module")
+  private val bootstrapLockInstance =
+    new WriterPreferringRwLock(label = "bootstrap-module", displayLabel = "bootstrap-module")
   private val runIdCounter = new AtomicLong(0L)
   private val tmpNameCounter = new AtomicLong(0L)
 
   def metaBuildLockFor(depth: Int): WriterPreferringRwLock =
-    metaBuildLocks.computeIfAbsent(depth, d => new WriterPreferringRwLock(s"meta-build-$d"))
+    metaBuildLocks.computeIfAbsent(
+      depth,
+      d => new WriterPreferringRwLock(label = s"meta-build-$d")
+    )
 
-  def taskLockFor(normalizedAbsolutePath: String): WriterPreferringRwLock =
-    taskLocks.computeIfAbsent(normalizedAbsolutePath, p => new WriterPreferringRwLock(p))
-
-  def artifactLockFor(normalizedAbsolutePath: String): AnyRef =
-    artifactLocks.computeIfAbsent(normalizedAbsolutePath, _ => new Object)
+  def taskLockFor(
+      normalizedAbsolutePath: String,
+      displayLabel: String
+  ): WriterPreferringRwLock =
+    taskLocks.computeIfAbsent(
+      normalizedAbsolutePath,
+      p => new WriterPreferringRwLock(label = p, displayLabel = displayLabel)
+    )
 
   def bootstrapLock: WriterPreferringRwLock = bootstrapLockInstance
 

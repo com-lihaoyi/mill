@@ -91,17 +91,32 @@ case class RunnerLauncherState(
   def allEvaluators: Seq[EvaluatorApi] =
     finalFrame.map(_.evaluator).toSeq ++ metaBuildFrames.map(_.evaluator)
 
+  /**
+   * Release per-launcher resources: evaluators, meta-build read leases, and
+   * other registered closeables.
+   *
+   * **Post-close invariant:** the case-class data fields ([[errorOpt]],
+   * [[buildFile]], [[bootstrapEvalWatched]], [[metaBuildFrames]],
+   * [[finalFrame]]) remain readable after close — only the resources they
+   * reference (evaluators, leases, closeables) become invalid. This lets
+   * [[Watching.watchLoop]] safely close a previous iteration's state and
+   * still pass the same object forward as `prevCommandState` so that
+   * [[mill.daemon.MillBuildBootstrap.processFinalTasks]] can read its
+   * watches for the short-circuit check. Do not mutate the data fields
+   * during close; do not start reading evaluator-owned mutable state from
+   * a closed instance.
+   *
+   * Order: evaluators first (so any evaluator-owned resources are flushed
+   * before their meta-build classloader could be replaced), then meta-build
+   * read leases (releasing them unblocks concurrent writers that may
+   * eventually close the previously-published classloader), then external
+   * closeables such as the workspace lock manager and per-run artifact
+   * files.
+   *
+   * Workers live in the process-level [[mill.daemon.SharedWorkerCache]] and
+   * are NOT torn down here.
+   */
   override def close(): Unit = {
-    // Evaluators stay alive after bootstrap evaluation so BSP/IDE follow-up can
-    // execute more tasks against the returned state. Closing them here only
-    // tears down per-run execution resources (e.g. profile loggers); workers
-    // live in the process-level SharedWorkerCache and must remain shared.
-    //
-    // Order: evaluators (so any evaluator-owned resources are flushed before
-    // their meta-build classloader could be replaced), then meta-build read
-    // leases (releasing them unblocks concurrent writers that may eventually
-    // close the previously-published classloader), then external closeables
-    // such as the workspace lock manager and per-run artifact files.
     closeAll(
       allEvaluators.distinct ++
         metaBuildFrames.flatMap(_.metaBuildReadLease) ++
@@ -181,14 +196,17 @@ object RunnerLauncherState {
   /**
    * The frame at `requestedDepth` where user-visible tasks ran. Carries only
    * per-launcher data: the evaluator and the watched sets recorded during this
-   * evaluation. There is at most one per launcher.
+   * evaluation. `tasksAndParams` is recorded so a future bootstrap can verify
+   * the same task selector before short-circuiting via this frame's watches.
+   * There is at most one per launcher.
    */
   @internal
   case class FinalFrame(
       depth: Int,
       evaluator: EvaluatorApi,
       evalWatched: Seq[Watchable],
-      moduleWatched: Seq[Watchable]
+      moduleWatched: Seq[Watchable],
+      tasksAndParams: Seq[String]
   ) {
     def logged: Frame.Logged = Frame.build(Map.empty, evalWatched, moduleWatched, None, Nil)
   }

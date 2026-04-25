@@ -81,14 +81,15 @@ class MillDaemonMain0(
 
   val outLock = MillMain0.outFileLock(outFolder)
 
-  // Hold the file-level lock on out/ for the daemon's lifetime. The lease is
-  // released by a JVM shutdown hook so the file lock survives until the
-  // process exits, even if no other code path closes it. This excludes
-  // --no-daemon processes from the same workspace while still allowing
-  // intra-daemon concurrency (file locks are per-process in Java).
-  private val outFileLockLease = outLock.lock()
+  // Refcounted handle to the cross-process out/ folder file lock. The daemon
+  // does NOT hold the file lock at startup; instead, each launcher takes a
+  // lease for the duration of its evaluation, and the underlying file lock
+  // is held only when at least one launcher is active. This means an idle
+  // daemon (no launchers running, e.g. between --watch iterations) does not
+  // block other Mill processes from running.
+  private val sharedOutLockManager = new SharedOutLockManager(outLock, outFolder)
   Runtime.getRuntime.addShutdownHook(new Thread(() =>
-    try outFileLockLease.close()
+    try sharedOutLockManager.close()
     catch { case _: Throwable => () }
   ))
 
@@ -138,7 +139,7 @@ class MillDaemonMain0(
         initialSystemProperties = initialSystemProperties,
         systemExit = systemExit,
         daemonDir = daemonDir,
-        outLock = outLock,
+        sharedOutLockManager = sharedOutLockManager,
         launcherSubprocessRunner = launcherRunner,
         serverToClientOpt = Some(serverToClient),
         millRepositories = millRepositories

@@ -110,7 +110,7 @@ object MillMain0 {
       initialSystemProperties: Map[String, String],
       systemExit: Server.StopServer,
       daemonDir: os.Path,
-      outLock: Lock,
+      sharedOutLockManager: SharedOutLockManager,
       launcherSubprocessRunner: mill.api.daemon.LauncherSubprocess.Runner,
       serverToClientOpt: Option[mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient]],
       millRepositories: Seq[String]
@@ -260,7 +260,16 @@ object MillMain0 {
                             _ => _ => None,
                           extraEnv: Seq[(String, String)] = Nil,
                           metaLevelOverride: Option[Int] = None,
-                          useBspRequestLogger: Boolean = false
+                          useBspRequestLogger: Boolean = false,
+                          // Cross-bootstrap snapshot of a prior successful
+                          // bootstrap's final-task watches/selector. When non-
+                          // empty AND the watches are still unchanged AND the
+                          // selector matches, MillBuildBootstrap will short-
+                          // circuit and skip the final task evaluation.
+                          // Currently populated only by the BSP bridge; CLI
+                          // watch already passes prevState which serves the
+                          // same purpose for its own iterations.
+                          priorBootstrap: Option[BspPriorBootstrap] = None
                       ): RunnerLauncherState = {
                         val sessionOpt: Option[(LauncherLockingImpl, LauncherOutFilesImpl)] =
                           Option.when(serverToClientOpt.nonEmpty) {
@@ -291,33 +300,43 @@ object MillMain0 {
                             case None => (LauncherLocking.Noop, LauncherOutFiles.Noop)
                           }
 
-                        def withLocking[T](block: => T): T = sessionOpt match {
-                          case Some((locking, outFiles)) =>
-                            try {
-                              setIdle(false)
-                              block
-                            } catch {
-                              case e: Throwable =>
-                                try locking.close()
-                                catch { case _: Throwable => }
-                                try outFiles.close()
-                                catch { case _: Throwable => }
-                                throw e
+                        def withLocking[T](block: => T): T = {
+                          // Take a lease against the shared cross-process out/
+                          // file lock for the duration of this evaluation. In
+                          // the daemon, multiple concurrent launchers share one
+                          // file-lock acquisition via SharedOutLockManager; in
+                          // no-daemon mode there's just one lease at a time.
+                          // The lease is released as soon as this evaluation
+                          // returns — in particular, --watch wait phases run
+                          // outside this block so an idle/watching daemon or
+                          // no-daemon does not block other launchers.
+                          //
+                          // Mark the server idle while we wait for the lock so
+                          // it doesn't time out, then non-idle once we have it.
+                          setIdle(true)
+                          val outLockLease = sharedOutLockManager.lease(
+                            activeCommandMessage = millActiveCommandMessage,
+                            launcherPid = launcherPid,
+                            noBuildLock = config.noBuildLock.value,
+                            noWaitForBuildLock = config.noWaitForBuildLock.value,
+                            waitingErr = streams.err
+                          )
+                          setIdle(false)
+
+                          try sessionOpt match {
+                              case Some((locking, outFiles)) =>
+                                try block
+                                catch {
+                                  case e: Throwable =>
+                                    try locking.close()
+                                    catch { case _: Throwable => }
+                                    try outFiles.close()
+                                    catch { case _: Throwable => }
+                                    throw e
+                                }
+                              case None => block
                             }
-                          case None =>
-                            Server.withOutLock(
-                              noBuildLock = config.noBuildLock.value,
-                              noWaitForBuildLock = config.noWaitForBuildLock.value,
-                              out = out,
-                              daemonDir = daemonDir,
-                              millActiveCommandMessage = millActiveCommandMessage,
-                              streams = streams,
-                              outLock = outLock,
-                              setIdle = setIdle
-                            ) {
-                              setIdle(false)
-                              block
-                            }
+                          finally outLockLease.foreach(_.release())
                         }
 
                         val evaluated = withLocking {
@@ -367,7 +386,17 @@ object MillMain0 {
                                       runArtifacts = runArtifacts,
                                       sharedState = sharedState,
                                       reporter = reporter,
-                                      enableTicker = enableTicker
+                                      enableTicker = enableTicker,
+                                      // Force a full re-run when the user
+                                      // pressed Enter in --watch mode (the
+                                      // selective-execution metadata file has
+                                      // been removed above to invalidate the
+                                      // task-level cache; here we also disable
+                                      // the bootstrap-level final-task short
+                                      // circuit so file-watches alone cannot
+                                      // suppress the requested re-run).
+                                      disableFinalTaskShortCircuit = skipSelectiveExecution,
+                                      priorBootstrap = priorBootstrap
                                     ).evaluate()
                                   }
                                 }
@@ -388,7 +417,8 @@ object MillMain0 {
                                       case _ => os.Path(runArtifacts.chromeProfile)
                                     },
                                     consoleLogPathOpt = Some(runArtifacts match {
-                                      case LauncherOutFiles.Noop => out / DaemonFiles.millConsoleTail
+                                      case LauncherOutFiles.Noop =>
+                                        out / DaemonFiles.millConsoleTail
                                       case _ => os.Path(runArtifacts.consoleTail)
                                     })
                                   )
@@ -461,7 +491,8 @@ object MillMain0 {
                           // drop diagnostics from the very first compile after build/initialize.
                           val bridgeBuildClientPromise =
                             scala.concurrent.Promise[IdeWorkerSupport.BspBuildClient]()
-                          val bridgeReporter: EvaluatorApi => Int => Option[CompileProblemReporter] =
+                          val bridgeReporter
+                              : EvaluatorApi => Int => Option[CompileProblemReporter] =
                             ev => {
                               val client = scala.concurrent.Await.result(
                                 bridgeBuildClientPromise.future,
@@ -474,30 +505,43 @@ object MillMain0 {
                               )
                             }
 
-                          val bootstrapBridge = new mill.api.daemon.internal.bsp.BspBootstrapBridge {
-                            override def runBootstrap[T](
-                                activeCommandMessage: String,
-                                body: mill.api.daemon.internal.bsp.BspBootstrapBridge.Body[T]
-                            ): T = Using.resource(
-                              runMillBootstrap(
-                                skipSelectiveExecution = false,
-                                prevState = None,
-                                tasksAndParams = Seq("resolve", "_"),
-                                streams = streams,
-                                millActiveCommandMessage = activeCommandMessage,
-                                reporter = bridgeReporter,
-                                useBspRequestLogger = true
-                              )
-                            ) { runnerState =>
-                              body.apply(
-                                mill.api.daemon.internal.bsp.BspBootstrapBridge.BootstrapState(
-                                  runnerState.allEvaluators.asJava,
-                                  runnerState.watched.asJava,
-                                  runnerState.errorOpt
+                          // Cross-request snapshot of the most recent
+                          // bootstrap's final-task watches/selector. Used by
+                          // MillBuildBootstrap.processFinalTasks to short-
+                          // circuit (skip running `resolve _`) when nothing
+                          // has changed. Holds *data only* — never any
+                          // meta-build read leases — so that concurrent CLI
+                          // commands needing a meta-build write are never
+                          // blocked by an idle BSP server.
+                          val bspPrevStateCache = new BspPrevStateCache
+                          val bootstrapBridge =
+                            new mill.api.daemon.internal.bsp.BspBootstrapBridge {
+                              override def runBootstrap[T](
+                                  activeCommandMessage: String,
+                                  body: mill.api.daemon.internal.bsp.BspBootstrapBridge.Body[T]
+                              ): T = Using.resource(
+                                runMillBootstrap(
+                                  skipSelectiveExecution = false,
+                                  prevState = None,
+                                  priorBootstrap = bspPrevStateCache.get(),
+                                  tasksAndParams = Seq("resolve", "_"),
+                                  streams = streams,
+                                  millActiveCommandMessage = activeCommandMessage,
+                                  reporter = bridgeReporter,
+                                  useBspRequestLogger = true
                                 )
-                              )
+                              ) { runnerState =>
+                                BspPriorBootstrap.from(runnerState)
+                                  .foreach(bspPrevStateCache.set)
+                                body.apply(
+                                  mill.api.daemon.internal.bsp.BspBootstrapBridge.BootstrapState(
+                                    runnerState.allEvaluators.asJava,
+                                    runnerState.watched.asJava,
+                                    runnerState.errorOpt
+                                  )
+                                )
+                              }
                             }
-                          }
 
                           val (bspServerHandle, buildClient) = startBspServer(
                             streams0,
@@ -512,9 +556,9 @@ object MillMain0 {
 
                           val shutdownResult =
                             try Success(Await.result(
-                              bspServerHandle.shutdownFuture,
-                              Duration.Inf
-                            ))
+                                bspServerHandle.shutdownFuture,
+                                Duration.Inf
+                              ))
                             catch { case NonFatal(ex) => Failure(ex) }
 
                           val errored = shutdownResult match {

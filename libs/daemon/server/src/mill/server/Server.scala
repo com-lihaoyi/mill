@@ -1,6 +1,6 @@
 package mill.server
 
-import mill.api.daemon.{StartThread, SystemStreams}
+import mill.api.daemon.StartThread
 import mill.api.daemon.internal.NonFatal
 import mill.client.lock.{Lock, Locks}
 import mill.constants.{DaemonFiles, SocketUtil}
@@ -14,7 +14,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.duration.FiniteDuration
-import scala.util.{Try, Using}
+import scala.util.Try
 
 /**
  * Implementation of a server that binds to a random port, informs a client of the port,
@@ -453,67 +453,4 @@ object Server {
       serverToClient: BufferedOutputStream,
       initialSystemProperties: Map[String, String]
   )
-
-  /**
-   * Acquires the output folder lock before running the given block.
-   * Used to coordinate access to the output folder between concurrent Mill processes.
-   */
-  def withOutLock[T](
-      noBuildLock: Boolean,
-      noWaitForBuildLock: Boolean,
-      out: os.Path,
-      daemonDir: os.Path,
-      millActiveCommandMessage: String,
-      streams: SystemStreams,
-      outLock: Lock,
-      setIdle: Boolean => Unit
-  )(t: => T): T = {
-    if (noBuildLock) t
-    else {
-      val launcherRunsDir = daemonDir / DaemonFiles.millLauncherFiles
-
-      def readActiveInfo(): (command: String, pid: Option[Long]) =
-        try os.list(launcherRunsDir).filter(os.isFile(_)).sortBy(_.last).lastOption match {
-            case Some(activeFile) =>
-              val json = ujson.read(os.read(activeFile)).obj
-              val command = json.get("command").map(_.str).getOrElse("<unknown>")
-              val pid = json.get("pid").map(_.num.toLong)
-              (command, pid)
-            case None => ("<unknown>", None)
-          }
-        catch { case NonFatal(_) => ("<unknown>", None) }
-
-      def activeTaskPrefix(command: String, pidOpt: Option[Long]) =
-        s"Another Mill process with PID ${pidOpt.fold("<unknown>")(_.toString)} is running '$command',"
-
-      setIdle(true)
-      Using.resource {
-        val tryLocked = outLock.tryLock()
-        if (tryLocked.isLocked) tryLocked
-        else if (noWaitForBuildLock) {
-          val (command, pidOpt) = readActiveInfo()
-          throw new Exception(s"${activeTaskPrefix(command, pidOpt)} failing")
-        } else {
-          val (command, pidOpt) = readActiveInfo()
-          val consoleLogPath = out / DaemonFiles.millConsoleTail
-          streams.err.println(
-            s"${activeTaskPrefix(command, pidOpt)} waiting for it to be done... " +
-              s"(tail -F ${consoleLogPath.relativeTo(mill.api.BuildCtx.workspaceRoot)} to see its progress)"
-          )
-          outLock.lock()
-        }
-      } { _ =>
-        setIdle(false)
-        if (Thread.interrupted()) throw new InterruptedException()
-        val pid = ProcessHandle.current().pid()
-        val activeFile = daemonDir / os.RelPath(DaemonFiles.perLauncherFilePath(s"pid-$pid"))
-        val commandJson = ujson.write(ujson.Str(millActiveCommandMessage))
-        val json = s"""{"command":$commandJson,"pid":$pid}"""
-        os.makeDir.all(launcherRunsDir)
-        os.write.over(activeFile, json)
-        try t
-        finally os.remove.all(activeFile)
-      }
-    }
-  }
 }

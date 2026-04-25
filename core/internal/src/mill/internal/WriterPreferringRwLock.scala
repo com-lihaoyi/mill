@@ -27,7 +27,14 @@ import mill.constants.DaemonFiles
  *    open-coded versions of this dance.
  *  - Downgrade is supported via [[mill.api.daemon.internal.LauncherLocking.Lease.downgradeToRead]].
  */
-private[mill] final class WriterPreferringRwLock(label: String) {
+private[mill] final class WriterPreferringRwLock(
+    @scala.annotation.unused label: String,
+    displayLabel: String = ""
+) {
+  // If callers don't customize the display label (e.g. test fixtures), fall
+  // back to the structural label used as the underlying map key.
+  private val effectiveDisplayLabel: String =
+    if (displayLabel.nonEmpty) displayLabel else label
   private val monitor = new Object
   private var readerCount = 0
   private var writerActive = false
@@ -52,7 +59,12 @@ private[mill] final class WriterPreferringRwLock(label: String) {
     case Some(h) =>
       s"Another Mill command in the current daemon is running '${h.command}' with PID ${h.pid}"
     case None =>
-      s"Another Mill command in the current daemon is using '$label'"
+      s"Another Mill command in the current daemon is using '$effectiveDisplayLabel'"
+  }
+
+  private def blockedSuffix(kind: LockKind): String = kind match {
+    case LockKind.Read => s" (blocked on reading from $effectiveDisplayLabel)"
+    case LockKind.Write => s" (blocked on writing to $effectiveDisplayLabel)"
   }
 
   def acquire(
@@ -78,7 +90,7 @@ private[mill] final class WriterPreferringRwLock(label: String) {
         // --no-wait failures surface up to the user, so include the contested
         // resource label in addition to the blocking launcher's identity.
         throw new Exception(
-          s"${waitingMessage(currentBlocker())} (resource: '$label') and --no-wait was set, failing"
+          s"${waitingMessage(currentBlocker())}${blockedSuffix(kind)} and --no-wait was set, failing"
         )
       } else {
         if (isWrite) waitingWriters += 1
@@ -88,16 +100,16 @@ private[mill] final class WriterPreferringRwLock(label: String) {
 
     leaseOpt.getOrElse {
       val blocker = monitor.synchronized(currentBlocker())
-      // Resource label is appended at the end of the line so substring
-      // matchers like `ConcurrencyTests.blockedBy`, which look for the
-      // command-and-PID prefix, still match while resource-aware checks
-      // (e.g. `BspServerTests.sharedOutDirAllowsConcurrentCliAndBspWork`,
-      // which classifies waits as benign by inspecting the resource path)
-      // can still find the contested resource on the same line.
+      // The "blocked on reading/writing to <label>" suffix is appended at the
+      // end of the line so substring matchers like `ConcurrencyTests.blockedBy`
+      // (which check the command-and-PID prefix) still match, while resource-
+      // aware checks (e.g. `BspServerTests.sharedOutDirAllowsConcurrentCliAndBspWork`,
+      // which inspects the contested resource label to classify waits as
+      // benign) can still find it on the same line.
       waitingErr.println(
         s"${waitingMessage(blocker)}, waiting for it to be done... " +
-          s"(tail -F out/${DaemonFiles.millConsoleTail} to see its progress) " +
-          s"(resource: '$label')"
+          s"(tail -F out/${DaemonFiles.millConsoleTail} to see its progress)" +
+          blockedSuffix(kind)
       )
 
       // Phase 2: wait until acquirable, then reserve.

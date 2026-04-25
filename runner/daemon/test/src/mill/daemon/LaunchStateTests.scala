@@ -59,7 +59,7 @@ object LaunchStateTests extends TestSuite {
             metaBuildReadLease = Some(() => closed += "lease")
           )
         )
-        .withFinalFrame(RunnerLauncherState.FinalFrame(0, finalEvaluator, Nil, Nil))
+        .withFinalFrame(RunnerLauncherState.FinalFrame(0, finalEvaluator, Nil, Nil, Nil))
         .withCloseable(() => closed += "manager")
 
       assert(state.allEvaluators == Seq(finalEvaluator, metaEvaluator))
@@ -97,7 +97,7 @@ object LaunchStateTests extends TestSuite {
         .withMetaBuildFrame(
           RunnerLauncherState.MetaBuildFrame.failed(1, new StubEvaluator(() => ()), Nil, Nil)
         )
-        .withFinalFrame(RunnerLauncherState.FinalFrame(0, finalEvaluator, Nil, Nil))
+        .withFinalFrame(RunnerLauncherState.FinalFrame(0, finalEvaluator, Nil, Nil, Nil))
 
       assert(state.finalModuleWatchedAt(0).contains(Nil))
       assert(state.finalModuleWatchedAt(1).isEmpty)

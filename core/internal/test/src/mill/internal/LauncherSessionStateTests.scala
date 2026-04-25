@@ -10,16 +10,6 @@ import java.util.concurrent.{CountDownLatch, TimeUnit}
 
 object LauncherSessionStateTests extends TestSuite {
   val tests: Tests = Tests {
-    test("artifact-locks-are-shared-per-path") {
-      val state = new LauncherSessionState
-      val lockA0 = state.artifactLockFor("/tmp/mill/out/mill-console-tail")
-      val lockA1 = state.artifactLockFor("/tmp/mill/out/mill-console-tail")
-      val lockB = state.artifactLockFor("/tmp/mill/out/mill-profile.json")
-
-      assert(lockA0 eq lockA1)
-      assert(!(lockA0 eq lockB))
-    }
-
     test("meta-build-locks-are-independent-per-depth") {
       val state = new LauncherSessionState
       val blocker = new LauncherLockingImpl(

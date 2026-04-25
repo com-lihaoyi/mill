@@ -74,7 +74,9 @@ class MillBuildBootstrap(
     runArtifacts: LauncherOutFiles,
     sharedState: AtomicReference[RunnerSharedState],
     reporter: EvaluatorApi => Int => Option[CompileProblemReporter],
-    enableTicker: Boolean
+    enableTicker: Boolean,
+    disableFinalTaskShortCircuit: Boolean,
+    priorBootstrap: Option[BspPriorBootstrap]
 ) { outer =>
   import MillBuildBootstrap.*
 
@@ -335,7 +337,8 @@ class MillBuildBootstrap(
     def watchedParentInputsChanged(): Boolean =
       outerModuleWatched.exists(w => !Watching.haveNotChanged(w))
 
-    def reusable(frameOpt: Option[RunnerSharedState.Frame]): Result[Option[RunnerSharedState.Frame]] =
+    def reusable(frameOpt: Option[RunnerSharedState.Frame])
+        : Result[Option[RunnerSharedState.Frame]] =
       frameOpt match {
         case None => Result.Success(None)
         case Some(_) if watchedParentInputsChanged() => Result.Success(None)
@@ -344,11 +347,15 @@ class MillBuildBootstrap(
             case None => Result.Success(None)
             case Some(previousMetadata) =>
               evaluator
-                .probeSelectiveMetadata(taskSelector, SelectMode.Separated, previousMetadata) match {
-                  case Result.Success((true, _)) => Result.Success(Some(frame))
-                  case Result.Success(_) => Result.Success(None)
-                  case _: Result.Failure => Result.Success(None)
-                }
+                .probeSelectiveMetadata(
+                  taskSelector,
+                  SelectMode.Separated,
+                  previousMetadata
+                ) match {
+                case Result.Success((true, _)) => Result.Success(Some(frame))
+                case Result.Success(_) => Result.Success(None)
+                case _: Result.Failure => Result.Success(None)
+              }
           }
       }
 
@@ -363,8 +370,8 @@ class MillBuildBootstrap(
       evalWatched = sharedFrame.evalWatched,
       sharedFrame = sharedFrame,
       metaBuildReadLease = Some(lease),
-          spanningInvalidationTree = Option.when(classLoaderChanged)(spanningInvalidationTree).flatten
-        )
+      spanningInvalidationTree = Option.when(classLoaderChanged)(spanningInvalidationTree).flatten
+    )
 
     def readSelectiveMetadataFile(): Option[String] = {
       val metadataFile = os.Path(evaluator.outPathJava) / OutFiles.millSelectiveExecution
@@ -510,6 +517,15 @@ class MillBuildBootstrap(
    * Handles the final evaluation of the user-provided tasks. Since there are
    * no further levels to evaluate, we do not need to save a `scriptImportGraph`,
    * classloader, or runClasspath.
+   *
+   * Short-circuit: if the previous launcher's final frame at this depth has
+   * all watches still unchanged (file inputs, env vars, etc.) AND its tasks
+   * matched what we are about to evaluate, skip the actual task evaluation
+   * and reuse prev's watches. This avoids the cost of re-running tasks like
+   * `resolve _` (used by BSP requests to populate evaluators) when nothing
+   * has changed since the previous successful evaluation. The bypass is
+   * gated on `disableFinalTaskShortCircuit` so the watch loop can force a
+   * re-run on user input (Enter pressed) even when no watched file changed.
    */
   def processFinalTasks(
       nestedState: RunnerLauncherState,
@@ -518,6 +534,38 @@ class MillBuildBootstrap(
       depth: Int
   ): RunnerLauncherState = {
     val evaluator = evaluator0.withIsFinalDepth(true)
+
+    val shortCircuitSource: Option[(Seq[Watchable], Seq[Watchable])] =
+      if (disableFinalTaskShortCircuit) None
+      else
+        prevCommandState.finalFrame
+          .filter(f =>
+            f.depth == depth && f.tasksAndParams == tasksAndParams
+          )
+          .map(f => (f.evalWatched, f.moduleWatched))
+          .orElse(
+            priorBootstrap
+              .filter(p => p.finalDepth == depth && p.tasksAndParams == tasksAndParams)
+              .map(p => (p.evalWatched, p.moduleWatched))
+          )
+          .filter { case (ev, mw) =>
+            ev.forall(Watching.haveNotChanged) && mw.forall(Watching.haveNotChanged)
+          }
+
+    shortCircuitSource match {
+      case Some((evalWatched, moduleWatched)) =>
+        return nestedState.withFinalFrame(
+          RunnerLauncherState.FinalFrame(
+            depth = depth,
+            evaluator = evaluator,
+            evalWatched = evalWatched,
+            moduleWatched = moduleWatched,
+            tasksAndParams = tasksAndParams
+          )
+        )
+      case None => ()
+    }
+
     val (evaled, evalWatched, moduleWatched) = evaluateWithWatches(
       buildFileApi = buildFileApi,
       evaluator = evaluator,
@@ -527,7 +575,7 @@ class MillBuildBootstrap(
     )
 
     val withFinal = nestedState.withFinalFrame(
-      RunnerLauncherState.FinalFrame(depth, evaluator, evalWatched, moduleWatched)
+      RunnerLauncherState.FinalFrame(depth, evaluator, evalWatched, moduleWatched, tasksAndParams)
     )
     // Final-depth moduleWatched is intentionally NOT published into
     // [[sharedState]]. Different launchers select different module subsets

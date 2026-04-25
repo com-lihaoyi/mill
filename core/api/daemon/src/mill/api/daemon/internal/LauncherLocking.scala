@@ -11,7 +11,17 @@ import java.nio.file.Path
  */
 private[mill] trait LauncherLocking extends AutoCloseable {
   def metaBuildLock(depth: Int, kind: LauncherLocking.LockKind): LauncherLocking.Lease
-  def taskLock(path: Path, kind: LauncherLocking.LockKind): LauncherLocking.Lease
+
+  /**
+   * Acquire a per-task lock keyed by `path` (the task's dest dir).
+   * `displayLabel` is the human-readable name used in waiting messages
+   * (e.g. the task segments string `foo.bar`).
+   */
+  def taskLock(
+      path: Path,
+      displayLabel: String,
+      kind: LauncherLocking.LockKind
+  ): LauncherLocking.Lease
 
   /**
    * Lock guarding the daemon-wide bootstrap module install. Held only for
@@ -59,7 +69,7 @@ private[mill] object LauncherLocking {
       override def close(): Unit = ()
     }
     override def metaBuildLock(depth: Int, kind: LockKind): Lease = NoopLease
-    override def taskLock(path: Path, kind: LockKind): Lease = NoopLease
+    override def taskLock(path: Path, displayLabel: String, kind: LockKind): Lease = NoopLease
     override def bootstrapLock(kind: LockKind): Lease = NoopLease
     override def close(): Unit = ()
   }

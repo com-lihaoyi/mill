@@ -189,7 +189,7 @@ trait GroupExecution {
   def offline: Boolean
   def useFileLocks: Boolean
   def workspaceLocking: LauncherLocking
-  def retainTerminalReadLock(lease: LauncherLocking.Lease): Unit
+  def retainTerminalReadLock(task: Task[?], lease: LauncherLocking.Lease): Unit
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
     CodeSigUtils.constructorHashSignatures(codeSignatures)
 
@@ -280,10 +280,12 @@ trait GroupExecution {
           serializedPaths = serializedPaths
         )
 
-        // Retained leases stay alive until the outermost executeTasks finishes so downstream
-        // tasks see a stable dest dir. Applies at every depth: at meta-build depths the
-        // lease protects the per-task dest under out/mill-build from concurrent writers,
-        // at the final depth it protects the per-task dest under out/.
+        // Retained leases stay alive until every in-run downstream consumer of
+        // this terminal has finished, then are released by Execution's per-
+        // task downstream tracker. This frees the per-task lock for concurrent
+        // launchers as soon as it's safe (rather than holding it for the
+        // entire outer run). Tasks with no in-run downstream see their lease
+        // released immediately on completion.
         val retainedLeases = java.util.Collections.newSetFromMap(
           new java.util.IdentityHashMap[LauncherLocking.Lease, java.lang.Boolean]
         )
@@ -293,7 +295,7 @@ trait GroupExecution {
         ): Unit =
           if (shouldRetain) {
             lease.downgradeToRead()
-            retainTerminalReadLock(lease)
+            retainTerminalReadLock(labelled, lease)
             retainedLeases.add(lease)
           } else {
             lease.close()
@@ -302,6 +304,7 @@ trait GroupExecution {
         def acquireTaskWriteLock(): LauncherLocking.Lease =
           workspaceLocking.taskLock(
             GroupExecution.taskLockPath(labelled, outPath, externalOutPath).toNIO,
+            labelled.ctx.segments.render,
             LauncherLocking.LockKind.Write
           )
 
@@ -358,6 +361,7 @@ trait GroupExecution {
           val readLease =
             workspaceLocking.taskLock(
               GroupExecution.taskLockPath(labelled, outPath, externalOutPath).toNIO,
+              labelled.ctx.segments.render,
               LauncherLocking.LockKind.Read
             )
 

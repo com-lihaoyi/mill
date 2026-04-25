@@ -10,11 +10,7 @@ import java.io.PrintWriter
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, Executors, ThreadFactory}
 import scala.concurrent.{CancellationException, Future}
-import mill.api.daemon.internal.bsp.{
-  BspBootstrapBridge,
-  BspServerHandle,
-  BspServerResult
-}
+import mill.api.daemon.internal.bsp.{BspBootstrapBridge, BspServerHandle, BspServerResult}
 
 object BspWorkerImpl {
 

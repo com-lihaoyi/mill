@@ -45,9 +45,17 @@ private[mill] final class LauncherOutFilesImpl(
   // `publishLiveArtifacts`. The remaining entries are the post-run artifacts
   // published by `publishArtifacts` once evaluation finishes.
   private val publishedArtifacts = Seq(
-    PublishedArtifact(out / DaemonFiles.millConsoleTail, os.Path(consoleTail), copyFallback = false),
+    PublishedArtifact(
+      out / DaemonFiles.millConsoleTail,
+      os.Path(consoleTail),
+      copyFallback = false
+    ),
     PublishedArtifact(out / OutFiles.millProfile, os.Path(profile), copyFallback = true),
-    PublishedArtifact(out / OutFiles.millChromeProfile, os.Path(chromeProfile), copyFallback = true),
+    PublishedArtifact(
+      out / OutFiles.millChromeProfile,
+      os.Path(chromeProfile),
+      copyFallback = true
+    ),
     PublishedArtifact(
       out / OutFiles.millDependencyTree,
       os.Path(dependencyTree),
@@ -62,7 +70,7 @@ private[mill] final class LauncherOutFilesImpl(
 
   os.makeDir.all(runDir)
   writeLauncherRunFile()
-  cleanup(out, daemonDir, launcherLocks)
+  cleanup(out, daemonDir)
 
   override def publishLiveArtifacts(): Unit =
     if (!closed.get()) publishLatest(publishedArtifacts.head, launcherLocks)
@@ -74,7 +82,7 @@ private[mill] final class LauncherOutFilesImpl(
     if (closed.compareAndSet(false, true)) {
       try mill.api.BuildCtx.withFilesystemCheckerDisabled(os.remove(launcherRunFile))
       catch { case _: Throwable => }
-      cleanup(out, daemonDir, launcherLocks)
+      cleanup(out, daemonDir)
     }
 
   private def writeLauncherRunFile(): Unit = {
@@ -106,8 +114,10 @@ private[mill] object LauncherOutFilesImpl {
     val name = p.last
     val dash = name.indexOf('-')
     if (dash < 0) (0L, 0L)
-    else (name.substring(0, dash).toLongOption.getOrElse(0L),
-          name.substring(dash + 1).toLongOption.getOrElse(0L))
+    else (
+      name.substring(0, dash).toLongOption.getOrElse(0L),
+      name.substring(dash + 1).toLongOption.getOrElse(0L)
+    )
   }
 
   /**
@@ -126,7 +136,9 @@ private[mill] object LauncherOutFilesImpl {
         val pidOpt =
           try ujson.read(os.read(file)).obj.get("pid").map(_.num.toLong)
           catch { case _: Throwable => None }
-        pidOpt.flatMap(pid => java.lang.ProcessHandle.of(pid).toScala.filter(_.isAlive).map(_ => runId))
+        pidOpt.flatMap(pid =>
+          java.lang.ProcessHandle.of(pid).toScala.filter(_.isAlive).map(_ => runId)
+        )
       }
       .toSet
   }
@@ -139,12 +151,13 @@ private[mill] object LauncherOutFilesImpl {
    * may exceed the cap until those launchers exit).
    *
    * Then sweep any `out/mill-*` symlink whose target no longer resolves.
+   *
+   * No locking: the per-link operations are atomic on their own (symlink
+   * publish uses `Files.move(..., ATOMIC_MOVE)`; cleanup uses an ordinary
+   * `os.remove`). Concurrent runs racing on the same link are last-writer-
+   * wins, which is the desired semantic for "newest run's artifact is shown."
    */
-  private def cleanup(
-      out: os.Path,
-      daemonDir: os.Path,
-      launcherLocks: LauncherSessionState
-  ): Unit = {
+  private def cleanup(out: os.Path, daemonDir: os.Path): Unit = {
     try {
       val runRootDir = out / LauncherSessionState.runRootDirName
       if (os.exists(runRootDir)) {
@@ -166,29 +179,19 @@ private[mill] object LauncherOutFilesImpl {
 
       wellKnownArtifactLinks.foreach { rel =>
         val link = out / rel
-        withArtifactLock(link, launcherLocks) {
-          if (os.isLink(link) && !os.exists(link, followLinks = true)) {
-            try os.remove(link)
-            catch { case _: Throwable => }
-          }
+        if (os.isLink(link) && !os.exists(link, followLinks = true)) {
+          try os.remove(link)
+          catch { case _: Throwable => }
         }
       }
     } catch { case _: Throwable => }
   }
 
-  private def withArtifactLock[T](
-      link: os.Path,
-      launcherLocks: LauncherSessionState
-  )(body: => T): T = {
-    val normalizedAbsolutePath = link.toNIO.toAbsolutePath.normalize.toString
-    launcherLocks.artifactLockFor(normalizedAbsolutePath).synchronized {
-      body
-    }
-  }
-
   /**
    * Atomic-move a symlink at `link` to point at `target`. Uses a sibling tmp
-   * file and `ATOMIC_MOVE` so readers never observe an in-progress state.
+   * file (named with `nanoTime` + a per-session counter so concurrent
+   * launchers can't clash) and `ATOMIC_MOVE` so readers never observe an
+   * in-progress state.
    */
   private def updateSymlink(
       link: os.Path,
@@ -243,17 +246,15 @@ private[mill] object LauncherOutFilesImpl {
       artifact: PublishedArtifact,
       launcherLocks: LauncherSessionState
   ): Unit = {
-    withArtifactLock(artifact.link, launcherLocks) {
-      if (os.exists(artifact.target))
-        try updateSymlink(artifact.link, artifact.target, launcherLocks)
-        catch {
-          case e: Throwable =>
-            mill.api.Debug(
-              s"Failed to publish ${artifact.link.last} as a symlink: ${e.getClass.getSimpleName}: ${e.getMessage}"
-            )
-            if (artifact.copyFallback) replaceWithCopy(artifact.link, artifact.target, launcherLocks)
-        }
-    }
+    if (os.exists(artifact.target))
+      try updateSymlink(artifact.link, artifact.target, launcherLocks)
+      catch {
+        case e: Throwable =>
+          mill.api.Debug(
+            s"Failed to publish ${artifact.link.last} as a symlink: ${e.getClass.getSimpleName}: ${e.getMessage}"
+          )
+          if (artifact.copyFallback) replaceWithCopy(artifact.link, artifact.target, launcherLocks)
+      }
   }
 
   /**
