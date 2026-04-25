@@ -46,21 +46,6 @@ case class Execution(
 
   // Track nesting depth of executeTasks calls to only show final status on outermost call
   private val executionNestingDepth = new AtomicInteger(0)
-  // Per-task retained read leases. A task's leases are released as soon as
-  // every in-run downstream consumer of that task has finished, freeing up
-  // the per-task lock for concurrent launchers without waiting for our
-  // entire run to complete. Leases for tasks with no in-run downstream are
-  // released immediately on completion.
-  private val retainedLeasesByTask =
-    new ConcurrentHashMap[Task[?], java.util.concurrent.ConcurrentLinkedQueue[
-      LauncherLocking.Lease
-    ]]()
-  // As a backstop: any lease retained for a task that hasn't been registered
-  // with downstream tracking ends up here and is drained when the outermost
-  // executeTasks call returns. This covers e.g. evaluateBuildOverrideOnly's
-  // build-override leases which aren't part of the main task graph.
-  private val orphanedRetainedLeases =
-    new java.util.concurrent.ConcurrentLinkedQueue[LauncherLocking.Lease]()
 
   // Lazily computed worker dependency graph, cached for the duration of the execution. It's
   // ok to take a snapshot of the cache, since the workerCache entries we may want to remove
@@ -144,30 +129,49 @@ case class Execution(
 
   def withIsFinalDepth(newIsFinalDepth: Boolean) = this.copy(isFinalDepth = newIsFinalDepth)
 
+  // The trait method retainTerminalReadLock is no longer used; lease
+  // retention is plumbed per-execute0 via the LeaseTracker passed into
+  // executeGroupCached. The trait implementation routes to a no-op so
+  // that anyone still calling it (defensively) doesn't crash, but the
+  // expected pathway is via the tracker.
   override def retainTerminalReadLock(
       task: Task[?],
       lease: LauncherLocking.Lease
   ): Unit = {
-    val q = retainedLeasesByTask.get(task)
-    if (q != null) q.add(lease)
-    else orphanedRetainedLeases.add(lease)
+    // Should never be called; per-execute0 leaseTracker.retain is the
+    // intended path. Close the lease defensively to avoid leaks.
+    try lease.close()
+    catch { case _: Throwable => () }
   }
 
   /**
-   * Initialize per-task downstream tracking for this run. Called once per
-   * `execute0` after the dependency graph has been computed. The returned
-   * function `onCompleted(terminal)` should be called when each terminal's
-   * group has finished; it decrements the pending-downstream count for
-   * `terminal`'s deps and releases their retained leases when the count
-   * reaches zero. The function also releases `terminal`'s own leases if
-   * `terminal` has no in-run downstream.
+   * Build a fresh per-execute0 lease tracker. Each `execute0` call creates
+   * its own tracker so nested calls (e.g. a Task.Command using
+   * `getEvaluator().executeApi(...)` to evaluate a sub-task graph) cannot
+   * stomp on each other's per-task queues. Each tracker owns:
+   *
+   *   - retainedLeasesByTask: queue of leases retained for each terminal,
+   *     released as soon as every in-run downstream consumer has finished
+   *   - pendingDownstreamCount: per-terminal countdown; release the
+   *     terminal's leases when its count hits zero
+   *   - orphanedLeases: leases retained for tasks not in this run's graph
+   *     (e.g. build-override leases via [[evaluateBuildOverrideOnly]]),
+   *     drained when the tracker is closed
+   *
+   * `onCompleted(terminal)` is called when each terminal's group finishes;
+   * it decrements the pending-downstream count for `terminal`'s deps and
+   * releases their retained leases when the count reaches zero. It also
+   * releases `terminal`'s own leases if `terminal` has no in-run downstream
+   * (count was already zero at construction).
    */
-  private def initDownstreamTracking(
+  private def newDownstreamTracker(
       indexToTerminal: Array[Task[?]],
       interGroupDeps: Map[Task[?], Seq[Task[?]]]
-  ): Task[?] => Unit = {
-    // Build per-terminal downstream counts. A terminal `t`'s downstream count
-    // is the number of distinct terminals in this run that depend on `t`.
+  ): Execution.LeaseTracker = {
+    val retainedLeasesByTask =
+      new ConcurrentHashMap[Task[?], java.util.concurrent.ConcurrentLinkedQueue[
+        LauncherLocking.Lease
+      ]]()
     val pendingCount = new ConcurrentHashMap[Task[?], AtomicInteger]()
     for (t <- indexToTerminal) {
       pendingCount.put(t, new AtomicInteger(0))
@@ -181,6 +185,9 @@ case class Execution(
       if (c != null) c.incrementAndGet()
     }
 
+    val orphanedLeases =
+      new java.util.concurrent.ConcurrentLinkedQueue[LauncherLocking.Lease]()
+
     def releaseLeasesFor(task: Task[?]): Unit = {
       val q = retainedLeasesByTask.remove(task)
       if (q != null) {
@@ -193,16 +200,36 @@ case class Execution(
       }
     }
 
-    (terminal: Task[?]) => {
-      // Decrement counts for our deps; release theirs if hit zero.
-      for (dep <- interGroupDeps.getOrElse(terminal, Nil)) {
-        val c = pendingCount.get(dep)
-        if (c != null && c.decrementAndGet() == 0) releaseLeasesFor(dep)
+    new Execution.LeaseTracker {
+      override def retain(task: Task[?], lease: LauncherLocking.Lease): Unit = {
+        val q = retainedLeasesByTask.get(task)
+        if (q != null) q.add(lease)
+        else orphanedLeases.add(lease)
       }
-      // If our own count is already zero (i.e. nothing in this run depends on
-      // us), release our own leases now too.
-      val ownCount = pendingCount.get(terminal)
-      if (ownCount != null && ownCount.get() == 0) releaseLeasesFor(terminal)
+
+      override def onCompleted(terminal: Task[?]): Unit = {
+        // Decrement counts for our deps; release theirs if hit zero.
+        for (dep <- interGroupDeps.getOrElse(terminal, Nil)) {
+          val c = pendingCount.get(dep)
+          if (c != null && c.decrementAndGet() == 0) releaseLeasesFor(dep)
+        }
+        // If our own count is already zero (i.e. nothing in this run depends
+        // on us), release our own leases now too.
+        val ownCount = pendingCount.get(terminal)
+        if (ownCount != null && ownCount.get() == 0) releaseLeasesFor(terminal)
+      }
+
+      override def drain(): Unit = {
+        import scala.jdk.CollectionConverters.*
+        val leftover = retainedLeasesByTask.values().asScala
+          .flatMap(q => Iterator.continually(q.poll()).takeWhile(_ != null))
+        val orphans = Iterator.continually(orphanedLeases.poll()).takeWhile(_ != null)
+        (leftover.iterator ++ orphans).foreach { lease =>
+          try lease.close()
+          catch { case _: Throwable => () }
+        }
+        retainedLeasesByTask.clear()
+      }
     }
   }
 
@@ -224,23 +251,7 @@ case class Execution(
       PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
         execute0(goals, logger, reporter, testReporter, serialCommandExec)
       }
-    } finally {
-      if (executionNestingDepth.decrementAndGet() == 0) {
-        // Per-task downstream tracking should have already released most
-        // leases; drain anything still around as a safety net (e.g. orphaned
-        // build-override leases or leases retained for a terminal whose
-        // downstream count never reached zero because of an early failure).
-        import scala.jdk.CollectionConverters.*
-        val leftover = retainedLeasesByTask.values().asScala
-          .flatMap(q => Iterator.continually(q.poll()).takeWhile(_ != null))
-        val orphans = Iterator.continually(orphanedRetainedLeases.poll()).takeWhile(_ != null)
-        (leftover.iterator ++ orphans).foreach { lease =>
-          try lease.close()
-          catch { case _: Throwable => () }
-        }
-        retainedLeasesByTask.clear()
-      }
-    }
+    } finally executionNestingDepth.decrementAndGet()
   }
 
   private def execute0(
@@ -289,6 +300,11 @@ case class Execution(
       val uncached = new ConcurrentHashMap[Task[?], Unit]()
       val changedValueHash = new ConcurrentHashMap[Task[?], Unit]()
       val prefixes = new ConcurrentHashMap[Task[?], Seq[String]]()
+      // The tracker is constructed below (`tracker`) and drained at the end
+      // of this block, so any leases retained by terminals whose downstream
+      // count never reached zero (e.g. due to early failure) and any
+      // orphaned leases (e.g. evaluateBuildOverrideOnly's) are released
+      // before this execute0 returns.
 
       val futures = mutable.Map.empty[Task[?], Future[Option[GroupExecution.Results]]]
 
@@ -315,10 +331,15 @@ case class Execution(
           downstreamEdges.getOrElse(t, Set())
         )
 
-      // Initialize per-task downstream tracking so a terminal's retained read
-      // lease can be released as soon as every in-run consumer of it has
-      // finished, instead of waiting until executeTasks returns.
-      val onTerminalCompleted = initDownstreamTracking(indexToTerminal, interGroupDeps)
+      // Per-execute0 lease tracker: each call (including nested calls via
+      // getEvaluator().executeApi) gets its own, so overlapping task IDs
+      // across nested executions never collide on a shared per-task queue.
+      // The tracker is captured by lexical scope in the future bodies and
+      // passed explicitly into executeGroupCached so GroupExecution's lease
+      // retention routes back to THIS execute0's tracker.
+      val tracker = newDownstreamTracker(indexToTerminal, interGroupDeps)
+      def onTerminalCompleted(t: Task[?]): Unit = tracker.onCompleted(t)
+      try {
 
       def evaluateTerminals(
           terminals: Seq[Task[?]],
@@ -412,7 +433,8 @@ case class Execution(
                       allTransitiveClassMethods = allTransitiveClassMethods,
                       executionContext = forkExecutionContext,
                       exclusive = exclusive,
-                      upstreamPathRefs = upstreamPathRefs
+                      upstreamPathRefs = upstreamPathRefs,
+                      leaseTracker = tracker
                     )
 
                     // Count new failures - if there are upstream failures, tasks should be skipped, not failed
@@ -541,6 +563,8 @@ case class Execution(
         results.map { case (k, v) => (k, v.map(_._1)) },
         prefixes.asScala.toMap
       )
+
+      } finally tracker.drain()
     }
   }
 
@@ -550,6 +574,17 @@ case class Execution(
 }
 
 object Execution {
+
+  /**
+   * Per-execute0-call lease retention sink. Threading: `retain` and
+   * `onCompleted` are called from many futures in parallel; `drain` is
+   * called from the execute0 thread after all futures have completed.
+   */
+  trait LeaseTracker {
+    def retain(task: Task[?], lease: LauncherLocking.Lease): Unit
+    def onCompleted(terminal: Task[?]): Unit
+    def drain(): Unit
+  }
 
   /**
    * Format a failed count as a string to be used in status messages.

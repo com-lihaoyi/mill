@@ -231,7 +231,11 @@ trait GroupExecution {
       allTransitiveClassMethods: Map[Class[?], Map[String, Method]],
       executionContext: mill.api.TaskCtx.Fork.Api,
       exclusive: Boolean,
-      upstreamPathRefs: Seq[PathRef]
+      upstreamPathRefs: Seq[PathRef],
+      // Per-execute0 lease tracker. Captured by execute0 and threaded
+      // through here so retention routes to the calling execute0's tracker
+      // even when nested executions overlap on the same task.
+      leaseTracker: Execution.LeaseTracker
   ): GroupExecution.Results = {
 
     val inputsHash = {
@@ -295,7 +299,7 @@ trait GroupExecution {
         ): Unit =
           if (shouldRetain) {
             lease.downgradeToRead()
-            retainTerminalReadLock(labelled, lease)
+            leaseTracker.retain(labelled, lease)
             retainedLeases.add(lease)
           } else {
             lease.close()

@@ -22,7 +22,7 @@ private[mill] final class LauncherLockingImpl(
     noBuildLock: Boolean,
     noWaitForBuildLock: Boolean,
     launcherLocks: LauncherSessionState,
-    runId: String
+    val runId: String
 ) extends LauncherLocking {
   private val holder = HolderInfo(launcherPid, activeCommandMessage)
   private val closed = new AtomicBoolean(false)

@@ -19,6 +19,13 @@ import java.util.concurrent.atomic.AtomicLong
 private[mill] final class LauncherSessionState {
   private val metaBuildLocks = new ConcurrentHashMap[Int, WriterPreferringRwLock]()
   private val taskLocks = new ConcurrentHashMap[String, WriterPreferringRwLock]()
+  // Per-link intra-process monitors used by LauncherOutFilesImpl to serialize
+  // its own cleanup-vs-publish on the same out/mill-* symlink. These are
+  // separate from the cross-process out/ file lock (held via
+  // SharedOutLockManager) — they prevent two threads of the same daemon from
+  // racing on a single link's test-then-act sequence even while the daemon
+  // holds the file lock against external processes.
+  private val artifactLocks = new ConcurrentHashMap[String, AnyRef]()
   private val bootstrapLockInstance =
     new WriterPreferringRwLock(label = "bootstrap-module", displayLabel = "bootstrap-module")
   private val runIdCounter = new AtomicLong(0L)
@@ -38,6 +45,9 @@ private[mill] final class LauncherSessionState {
       normalizedAbsolutePath,
       p => new WriterPreferringRwLock(label = p, displayLabel = displayLabel)
     )
+
+  def artifactLockFor(normalizedAbsolutePath: String): AnyRef =
+    artifactLocks.computeIfAbsent(normalizedAbsolutePath, _ => new Object)
 
   def bootstrapLock: WriterPreferringRwLock = bootstrapLockInstance
 

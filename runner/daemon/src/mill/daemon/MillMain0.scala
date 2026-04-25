@@ -271,10 +271,39 @@ object MillMain0 {
                           // same purpose for its own iterations.
                           priorBootstrap: Option[BspPriorBootstrap] = None
                       ): RunnerLauncherState = {
-                        val sessionOpt: Option[(LauncherLockingImpl, LauncherOutFilesImpl)] =
+                        // Brief lease wrapper used by LauncherOutFilesImpl for
+                        // its setup, publish, and close-time mutations. When
+                        // called from inside withLocking the daemon already
+                        // holds a lease (refcounting makes this near-free);
+                        // when called from outFiles.close() running after the
+                        // launcher's main lease has been released — e.g. from
+                        // RunnerLauncherState.close() invoked by Watching or
+                        // Using.resource — this re-acquires briefly so the
+                        // close-time cleanup still runs under the cross-process
+                        // file lock.
+                        def withFileLockHeld(body: => Unit): Unit = {
+                          val lease = sharedOutLockManager.lease(
+                            activeCommandMessage = millActiveCommandMessage,
+                            launcherPid = launcherPid,
+                            noBuildLock = config.noBuildLock.value,
+                            // Best-effort: never block close-time cleanup on
+                            // an external holder if --no-wait was requested.
+                            noWaitForBuildLock = config.noWaitForBuildLock.value,
+                            waitingErr = streams.err
+                          )
+                          try body
+                          finally lease.foreach(_.release())
+                        }
+
+                        // Per-launcher locking lives outside withLocking — it
+                        // only mutates in-memory daemon state, no out/ writes.
+                        // outFiles construction and lifecycle are deferred
+                        // into withLocking so all out/ mutations happen under
+                        // the cross-process lock.
+                        val launcherLockingOpt: Option[LauncherLockingImpl] =
                           Option.when(serverToClientOpt.nonEmpty) {
                             val runId = launcherLocks.nextRunId()
-                            val locking = new LauncherLockingImpl(
+                            new LauncherLockingImpl(
                               activeCommandMessage = millActiveCommandMessage,
                               launcherPid = launcherPid,
                               waitingErr = streams.err,
@@ -283,24 +312,12 @@ object MillMain0 {
                               launcherLocks = launcherLocks,
                               runId = runId
                             )
-                            val outFiles = new LauncherOutFilesImpl(
-                              out = out,
-                              daemonDir = daemonDir,
-                              activeCommandMessage = millActiveCommandMessage,
-                              launcherPid = launcherPid,
-                              launcherLocks = launcherLocks,
-                              runId = runId
-                            )
-                            (locking, outFiles)
                           }
 
-                        val (workspaceLocking, runArtifacts): (LauncherLocking, LauncherOutFiles) =
-                          sessionOpt match {
-                            case Some((l, o)) => (l, o)
-                            case None => (LauncherLocking.Noop, LauncherOutFiles.Noop)
-                          }
+                        val workspaceLocking: LauncherLocking =
+                          launcherLockingOpt.getOrElse(LauncherLocking.Noop)
 
-                        def withLocking[T](block: => T): T = {
+                        def withLocking[T](block: LauncherOutFiles => T): T = {
                           // Take a lease against the shared cross-process out/
                           // file lock for the duration of this evaluation. In
                           // the daemon, multiple concurrent launchers share one
@@ -323,127 +340,153 @@ object MillMain0 {
                           )
                           setIdle(false)
 
-                          try sessionOpt match {
-                              case Some((locking, outFiles)) =>
-                                try block
-                                catch {
-                                  case e: Throwable =>
-                                    try locking.close()
-                                    catch { case _: Throwable => }
-                                    try outFiles.close()
-                                    catch { case _: Throwable => }
-                                    throw e
-                                }
-                              case None => block
+                          try {
+                            // Construct outFiles INSIDE the locked region so
+                            // its constructor's mutations of out/ (run-dir
+                            // creation, launcher-file write, dangling-symlink
+                            // sweep) are covered by the cross-process file
+                            // lock. close() also re-acquires (via
+                            // withFileLockHeld) so external close-time cleanup
+                            // is covered.
+                            val outFiles: LauncherOutFiles = launcherLockingOpt match {
+                              case Some(locking) =>
+                                new LauncherOutFilesImpl(
+                                  out = out,
+                                  daemonDir = daemonDir,
+                                  activeCommandMessage = millActiveCommandMessage,
+                                  launcherPid = launcherPid,
+                                  launcherLocks = launcherLocks,
+                                  runId = locking.runId,
+                                  withFileLockHeld = withFileLockHeld
+                                )
+                              case None => LauncherOutFiles.Noop
                             }
-                          finally outLockLease.foreach(_.release())
+                            try block(outFiles)
+                            catch {
+                              case e: Throwable =>
+                                launcherLockingOpt.foreach(l =>
+                                  try l.close()
+                                  catch { case _: Throwable => }
+                                )
+                                try outFiles.close()
+                                catch { case _: Throwable => }
+                                throw e
+                            }
+                          } finally outLockLease.foreach(_.release())
                         }
 
-                        val evaluated = withLocking {
-                          def proceed(logger: Logger): RunnerLauncherState = {
-                            // Enter key pressed, removing mill-selective-execution.json to
-                            // ensure all tasks re-run even though no inputs may have changed
-                            //
-                            // Do this by removing the file rather than disabling selective execution,
-                            // because we still want to generate the selective execution metadata json
-                            // for subsequent runs that may use it
-                            if (skipSelectiveExecution)
-                              os.remove(out / OutFiles.millSelectiveExecution)
-                            // Point the top-level `out/mill-console-tail` symlink at
-                            // this run's live log so concurrent launchers waiting on
-                            // locks (and humans tailing the log) see current progress.
-                            // The other artifact symlinks are published only after
-                            // evaluation completes, to avoid advertising broken
-                            // symlinks to not-yet-written files mid-run.
-                            runArtifacts.publishLiveArtifacts()
-                            try mill.api.SystemStreamsUtils.withStreams(logger.streams) {
-                                mill.api.FilesystemCheckerEnabled.withValue(
-                                  !config.noFilesystemChecker.value
-                                ) {
-                                  tailManager.withOutErr(logger.streams.out, logger.streams.err) {
-                                    new MillBuildBootstrap(
-                                      topLevelProjectRoot = BuildCtx.workspaceRoot,
-                                      output = out,
-                                      // In BSP server, we want to evaluate as many tasks as possible,
-                                      // in order to give as many results as available in BSP responses
-                                      keepGoing = bspMode || config.keepGoing.value,
-                                      imports = config.imports,
-                                      env = env ++ extraEnv,
-                                      ec = ec,
-                                      tasksAndParams = tasksAndParams,
-                                      prevCommandState =
-                                        prevState.getOrElse(RunnerLauncherState.empty),
-                                      logger = logger,
-                                      requestedMetaLevel =
-                                        config.metaLevel.orElse(metaLevelOverride),
-                                      allowPositionalCommandArgs = config.allowPositional.value,
-                                      systemExit = systemExit,
-                                      streams0 = streams,
-                                      selectiveExecution = config.watch.value,
-                                      offline = config.offline.value,
-                                      useFileLocks = config.useFileLocks.value,
-                                      workspaceLocking = workspaceLocking,
-                                      runArtifacts = runArtifacts,
-                                      sharedState = sharedState,
-                                      reporter = reporter,
-                                      enableTicker = enableTicker,
-                                      // Force a full re-run when the user
-                                      // pressed Enter in --watch mode (the
-                                      // selective-execution metadata file has
-                                      // been removed above to invalidate the
-                                      // task-level cache; here we also disable
-                                      // the bootstrap-level final-task short
-                                      // circuit so file-watches alone cannot
-                                      // suppress the requested re-run).
-                                      disableFinalTaskShortCircuit = skipSelectiveExecution,
-                                      priorBootstrap = priorBootstrap
-                                    ).evaluate()
+                        val (evaluated, outFilesOpt): (RunnerLauncherState, Option[LauncherOutFiles]) =
+                          withLocking { runArtifacts =>
+                            def proceed(logger: Logger): RunnerLauncherState = {
+                              // Enter key pressed, removing mill-selective-execution.json to
+                              // ensure all tasks re-run even though no inputs may have changed
+                              //
+                              // Do this by removing the file rather than disabling selective execution,
+                              // because we still want to generate the selective execution metadata json
+                              // for subsequent runs that may use it
+                              if (skipSelectiveExecution)
+                                os.remove(out / OutFiles.millSelectiveExecution)
+                              // Point the top-level `out/mill-console-tail` symlink at
+                              // this run's live log so concurrent launchers waiting on
+                              // locks (and humans tailing the log) see current progress.
+                              // The other artifact symlinks are published only after
+                              // evaluation completes, to avoid advertising broken
+                              // symlinks to not-yet-written files mid-run.
+                              runArtifacts.publishLiveArtifacts()
+                              try mill.api.SystemStreamsUtils.withStreams(logger.streams) {
+                                  mill.api.FilesystemCheckerEnabled.withValue(
+                                    !config.noFilesystemChecker.value
+                                  ) {
+                                    tailManager.withOutErr(
+                                      logger.streams.out,
+                                      logger.streams.err
+                                    ) {
+                                      new MillBuildBootstrap(
+                                        topLevelProjectRoot = BuildCtx.workspaceRoot,
+                                        output = out,
+                                        // In BSP server, we want to evaluate as many tasks as possible,
+                                        // in order to give as many results as available in BSP responses
+                                        keepGoing = bspMode || config.keepGoing.value,
+                                        imports = config.imports,
+                                        env = env ++ extraEnv,
+                                        ec = ec,
+                                        tasksAndParams = tasksAndParams,
+                                        prevCommandState =
+                                          prevState.getOrElse(RunnerLauncherState.empty),
+                                        logger = logger,
+                                        requestedMetaLevel =
+                                          config.metaLevel.orElse(metaLevelOverride),
+                                        allowPositionalCommandArgs =
+                                          config.allowPositional.value,
+                                        systemExit = systemExit,
+                                        streams0 = streams,
+                                        selectiveExecution = config.watch.value,
+                                        offline = config.offline.value,
+                                        useFileLocks = config.useFileLocks.value,
+                                        workspaceLocking = workspaceLocking,
+                                        runArtifacts = runArtifacts,
+                                        sharedState = sharedState,
+                                        reporter = reporter,
+                                        enableTicker = enableTicker,
+                                        disableFinalTaskShortCircuit = skipSelectiveExecution,
+                                        priorBootstrap = priorBootstrap
+                                      ).evaluate()
+                                    }
                                   }
                                 }
-                              }
-                            finally runArtifacts.publishArtifacts()
+                              finally runArtifacts.publishArtifacts()
+                            }
+
+                            val state = loggerOpt match {
+                              case Some(logger) => proceed(logger)
+                              case None =>
+                                val loggerResource =
+                                  if (useBspRequestLogger)
+                                    getBspLogger(
+                                      streams = streams,
+                                      config = config,
+                                      chromeProfilePath = runArtifacts match {
+                                        case LauncherOutFiles.Noop =>
+                                          out / OutFiles.millChromeProfile
+                                        case _ => os.Path(runArtifacts.chromeProfile)
+                                      },
+                                      consoleLogPathOpt = Some(runArtifacts match {
+                                        case LauncherOutFiles.Noop =>
+                                          out / DaemonFiles.millConsoleTail
+                                        case _ => os.Path(runArtifacts.consoleTail)
+                                      })
+                                    )
+                                  else
+                                    getLogger(
+                                      streams = streams,
+                                      config = config,
+                                      enableTicker = enableTicker,
+                                      colored = colored,
+                                      colors = colors,
+                                      out = out,
+                                      runArtifacts = runArtifacts,
+                                      serverToClientOpt = serverToClientOpt
+                                    )
+                                Using.resource(loggerResource) { logger =>
+                                  proceed(logger)
+                                }
+                            }
+                            val outFilesOpt = runArtifacts match {
+                              case LauncherOutFiles.Noop => None
+                              case other => Some(other)
+                            }
+                            (state, outFilesOpt)
                           }
 
-                          loggerOpt match {
-                            case Some(logger) => proceed(logger)
-                            case None =>
-                              val loggerResource =
-                                if (useBspRequestLogger)
-                                  getBspLogger(
-                                    streams = streams,
-                                    config = config,
-                                    chromeProfilePath = runArtifacts match {
-                                      case LauncherOutFiles.Noop => out / OutFiles.millChromeProfile
-                                      case _ => os.Path(runArtifacts.chromeProfile)
-                                    },
-                                    consoleLogPathOpt = Some(runArtifacts match {
-                                      case LauncherOutFiles.Noop =>
-                                        out / DaemonFiles.millConsoleTail
-                                      case _ => os.Path(runArtifacts.consoleTail)
-                                    })
-                                  )
-                                else
-                                  getLogger(
-                                    streams = streams,
-                                    config = config,
-                                    enableTicker = enableTicker,
-                                    colored = colored,
-                                    colors = colors,
-                                    out = out,
-                                    runArtifacts = runArtifacts,
-                                    serverToClientOpt = serverToClientOpt
-                                  )
-                              Using.resource(loggerResource) { logger =>
-                                proceed(logger)
-                              }
-                          }
-                        }
-
-                        sessionOpt match {
-                          case Some((locking, outFiles)) =>
-                            evaluated.withCloseable(locking).withCloseable(outFiles)
-                          case None => evaluated
-                        }
+                        // Attach session-scoped closeables (per-launcher
+                        // intra-process locks and outFiles) to the returned
+                        // state. outFiles.close() will reacquire the file lock
+                        // briefly via withFileLockHeld so its close-time
+                        // cleanup runs under the cross-process lock even
+                        // though it executes outside the withLocking block.
+                        val withLockingClose = launcherLockingOpt
+                          .fold(evaluated)(evaluated.withCloseable(_))
+                        outFilesOpt.fold(withLockingClose)(withLockingClose.withCloseable(_))
                       }
 
                       if (config.tabComplete.value) {

@@ -69,10 +69,32 @@ private abstract class MillBuildServer(
 
   /**
    * Executor for BSP request handling. Each request runs concurrently in its
-   * own thread; the bootstrap (meta-build read leases) and per-task locks are
-   * held independently per request via Mill's existing locking machinery, so
-   * concurrent BSP requests compose safely both with each other and with
-   * concurrent CLI launchers.
+   * own thread.
+   *
+   * Why removing the previous serialization barrier is safe under the
+   * fresh-bootstrap-per-request design:
+   *   1. Each request goes through `bootstrapBridge.runBootstrap`, which calls
+   *      `runMillBootstrap`. That returns a request-local `RunnerLauncherState`
+   *      with its own freshly-instantiated `EvaluatorImpl` (and its own
+   *      `Execution` with its own per-execute0 lease tracker, nesting depth,
+   *      mismatch reasons, profile logger).
+   *   2. `BspEvaluators` is constructed from those request-local evaluators,
+   *      so `extractInputPaths`'s `ev.executeApi(inputTasks)` call operates on
+   *      a per-request evaluator instance. No mutable evaluator state is
+   *      shared across concurrent requests.
+   *   3. The shared resources `executeApi` reaches — `RunnerSharedState` frames,
+   *      meta-build classloader, `SharedWorkerCache`, per-task locks via
+   *      `LauncherLocking` — already have their own concurrency control
+   *      (atomic publish, refcounted file lock, writer-preferring rwlock,
+   *      `ConcurrentHashMap.compute`) and are designed for concurrent
+   *      multi-launcher access — concurrent CLI commands already exercise
+   *      these.
+   *   4. The watcher thread also runs its own bootstrap with its own evaluator;
+   *      it composes with request bootstraps via the same shared-resource
+   *      concurrency control.
+   *
+   * The historical `bootstrapRunLock` was therefore covering a hazard that no
+   * longer exists in this design.
    */
   private val bspRequestExecutor: ExecutorService = {
     val counter = new AtomicInteger(0)
