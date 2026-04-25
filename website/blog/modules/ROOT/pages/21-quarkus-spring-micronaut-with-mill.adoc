@@ -224,7 +224,7 @@ A Spring Boot build follows a familiar structure: compile sources, produce a JAR
 
 - *BOM-based dependency management:* Spring Boot already organises most dependency versions behind its https://repo1.maven.org/maven2/org/springframework/boot/spring-boot-dependencies/[platform BOM], and Mill injects that BOM directly via `SpringBootModule`. That keeps the user's configuration small while still matching the versions Spring expects.
 
-- *Optional AOT:* Spring Boot's AOT support is an extra build stage rather than the centre of the build. Mill reflects that structure directly: a normal JVM build can stay normal, while an optimised build can opt into AOT through `SpringBootOptimisedBuildModule`.
+- *Optional AOT:* https://docs.spring.io/spring-boot/gradle-plugin/aot.html[Spring Boot's AOT support] is an extra build stage rather than the centre of the build. Mill produces an optimised build via the `SpringBootOptimisedBuildModule` which delegates the AOT step to https://github.com/spring-projects/spring-boot/blob/main/core/spring-boot/src/main/java/org/springframework/boot/SpringApplicationAotProcessor.java[Spring's SpringApplicationAotProcessor].
 
 - *Runtime-oriented model:* The application primarily runs from the JVM classpath, with AOT acting as an optimisation rather than a requirement.
 
@@ -294,7 +294,7 @@ Micronaut makes AOT a more explicit part of the build process.
 
 - *Compile-time dependency injection:* Annotation processing generates code ahead of time, reducing runtime reflection.
 
-- *External AOT CLI:* The build must resolve and run Micronaut’s AOT tool explicitly.
+- *External AOT CLI:* The build must resolve and run https://micronaut-projects.github.io/micronaut-aot/latest/guide/configurationreference.html[Micronaut’s AOT tool explicitly].
 
 - *Native-first workflow:* AOT output feeds directly into GraalVM native image generation.
 
