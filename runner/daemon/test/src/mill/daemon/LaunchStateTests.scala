@@ -49,6 +49,11 @@ object LaunchStateTests extends TestSuite {
       val metaEvaluator = new StubEvaluator(() => closed += "meta")
       val finalEvaluator = new StubEvaluator(() => closed += "final")
 
+      val testSession = new LauncherSession {
+        override def workspaceLocking = mill.api.daemon.internal.LauncherLocking.Noop
+        override def runArtifacts = mill.api.daemon.internal.LauncherOutFiles.Noop
+        override def close(): Unit = closed += "manager"
+      }
       val state = RunnerLauncherState.empty
         .withMetaBuildFrame(
           RunnerLauncherState.MetaBuildFrame(
@@ -60,7 +65,7 @@ object LaunchStateTests extends TestSuite {
           )
         )
         .withFinalFrame(RunnerLauncherState.FinalFrame(0, finalEvaluator, Nil, Nil, Nil))
-        .withCloseable(() => closed += "manager")
+        .withSession(testSession)
 
       assert(state.allEvaluators == Seq(finalEvaluator, metaEvaluator))
       assert(closed.isEmpty)
@@ -68,7 +73,7 @@ object LaunchStateTests extends TestSuite {
       state.close()
 
       // Expected order: evaluators (final, then meta-build from shallowest to deepest),
-      // then meta-build read leases in the same order, then closeables.
+      // then meta-build read leases in the same order, then the session.
       assert(closed.toSeq == Seq("final", "meta", "lease", "manager"))
     }
 

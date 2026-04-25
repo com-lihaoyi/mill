@@ -29,8 +29,8 @@ import upickle.{ReadWriter, macroRW}
  *   Tracked here so `--watch` can still surface the build file even when
  *   bootstrap fails. The actual bootstrap module lives on [[RunnerSharedState]],
  *   since it is deterministic in the workspace and cheap to share across launchers.
- * - [[closeables]] — additional per-launcher resources (e.g. the workspace
- *   lock manager) closed when the state is closed.
+ * - [[session]] — the per-launcher [[LauncherSession]] (locking handle and
+ *   per-run out-files handle), closed when the state is closed.
  *
  * If evaluation fails before reaching the requested depth, [[errorOpt]] is set
  * and [[finalFrame]] is [[None]].
@@ -44,7 +44,7 @@ case class RunnerLauncherState(
     bootstrapEvalWatched: Seq[Watchable] = Nil,
     metaBuildFrames: List[RunnerLauncherState.MetaBuildFrame] = Nil,
     finalFrame: Option[RunnerLauncherState.FinalFrame] = None,
-    closeables: Seq[AutoCloseable] = Nil
+    session: LauncherSession = LauncherSession.Noop
 ) extends Watching.Result
     with AutoCloseable {
   import RunnerLauncherState.*
@@ -60,8 +60,8 @@ case class RunnerLauncherState(
 
   def withError(err: String): RunnerLauncherState = copy(errorOpt = Some(err))
 
-  def withCloseable(closeable: AutoCloseable): RunnerLauncherState =
-    copy(closeables = closeable +: closeables)
+  def withSession(s: LauncherSession): RunnerLauncherState =
+    copy(session = s)
 
   /** Total depths already processed in this launch: meta-builds + final frame. */
   def processedDepths: Int = metaBuildFrames.size + finalFrame.size
@@ -109,9 +109,8 @@ case class RunnerLauncherState(
    * Order: evaluators first (so any evaluator-owned resources are flushed
    * before their meta-build classloader could be replaced), then meta-build
    * read leases (releasing them unblocks concurrent writers that may
-   * eventually close the previously-published classloader), then external
-   * closeables such as the workspace lock manager and per-run artifact
-   * files.
+   * eventually close the previously-published classloader), then the
+   * [[LauncherSession]] (workspace lock manager + per-run artifact files).
    *
    * Workers live in the process-level [[mill.daemon.SharedWorkerCache]] and
    * are NOT torn down here.
@@ -120,7 +119,7 @@ case class RunnerLauncherState(
     closeAll(
       allEvaluators.distinct ++
         metaBuildFrames.flatMap(_.metaBuildReadLease) ++
-        closeables
+        Seq(session)
     )
   }
 

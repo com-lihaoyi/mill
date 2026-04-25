@@ -23,17 +23,12 @@ import mill.internal.{
 import mill.server.Server
 import mill.util.BuildInfo
 import mill.api
-import mill.api.daemon.internal.bsp.BspServerResult
-import mill.api.daemon.internal.NonFatal
 
 import java.io.{InputStream, PrintStream, PrintWriter, StringWriter}
 import java.lang.reflect.InvocationTargetException
 import java.util.concurrent.{ThreadPoolExecutor, TimeUnit}
-import sun.misc.Signal
 import scala.jdk.CollectionConverters.*
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
-import scala.util.{Failure, Success, Using}
+import scala.util.Using
 
 object MillMain0 {
   def handleMillException(err: PrintStream): PartialFunction[Throwable, Boolean] = {
@@ -295,14 +290,15 @@ object MillMain0 {
                           finally lease.foreach(_.release())
                         }
 
-                        // Per-launcher locking lives outside withLocking — it
-                        // only mutates in-memory daemon state, no out/ writes.
-                        // outFiles construction and lifecycle are deferred
-                        // into withLocking so all out/ mutations happen under
-                        // the cross-process lock.
+                        // In daemon mode we build a real per-launcher session
+                        // (locking + out-files); in no-daemon mode we use the
+                        // Noop session uniformly so no Option-juggling later.
+                        // Locking is constructed up-front because it only
+                        // mutates in-memory daemon state; out-files are built
+                        // inside withLocking so their setup runs under the
+                        // cross-process file lock.
                         val launcherLockingOpt: Option[LauncherLockingImpl] =
                           Option.when(serverToClientOpt.nonEmpty) {
-                            val runId = launcherLocks.nextRunId()
                             new LauncherLockingImpl(
                               activeCommandMessage = millActiveCommandMessage,
                               launcherPid = launcherPid,
@@ -310,14 +306,14 @@ object MillMain0 {
                               noBuildLock = config.noBuildLock.value,
                               noWaitForBuildLock = config.noWaitForBuildLock.value,
                               launcherLocks = launcherLocks,
-                              runId = runId
+                              runId = launcherLocks.nextRunId()
                             )
                           }
 
                         val workspaceLocking: LauncherLocking =
                           launcherLockingOpt.getOrElse(LauncherLocking.Noop)
 
-                        def withLocking[T](block: LauncherOutFiles => T): T = {
+                        def withLocking[T](block: LauncherSession => T): T = {
                           // Take a lease against the shared cross-process out/
                           // file lock for the duration of this evaluation. In
                           // the daemon, multiple concurrent launchers share one
@@ -341,152 +337,144 @@ object MillMain0 {
                           setIdle(false)
 
                           try {
-                            // Construct outFiles INSIDE the locked region so
-                            // its constructor's mutations of out/ (run-dir
-                            // creation, launcher-file write, dangling-symlink
-                            // sweep) are covered by the cross-process file
-                            // lock. close() also re-acquires (via
-                            // withFileLockHeld) so external close-time cleanup
-                            // is covered.
-                            val outFiles: LauncherOutFiles = launcherLockingOpt match {
+                            // Build the per-launcher session INSIDE the locked
+                            // region so out-files setup (run-dir creation,
+                            // launcher-file write, dangling-symlink sweep) is
+                            // covered by the cross-process file lock.
+                            // session.close() (run later via RunnerLauncherState
+                            // teardown) also re-acquires the file lock briefly
+                            // via withFileLockHeld so close-time cleanup is
+                            // covered.
+                            val session: LauncherSession = launcherLockingOpt match {
                               case Some(locking) =>
-                                new LauncherOutFilesImpl(
-                                  out = out,
-                                  daemonDir = daemonDir,
-                                  activeCommandMessage = millActiveCommandMessage,
-                                  launcherPid = launcherPid,
-                                  launcherLocks = launcherLocks,
-                                  runId = locking.runId,
-                                  withFileLockHeld = withFileLockHeld
+                                new LauncherSession.Daemon(
+                                  workspaceLocking = locking,
+                                  runArtifacts = new LauncherOutFilesImpl(
+                                    out = out,
+                                    daemonDir = daemonDir,
+                                    activeCommandMessage = millActiveCommandMessage,
+                                    launcherPid = launcherPid,
+                                    launcherLocks = launcherLocks,
+                                    runId = locking.runId,
+                                    withFileLockHeld = withFileLockHeld
+                                  )
                                 )
-                              case None => LauncherOutFiles.Noop
+                              case None => LauncherSession.Noop
                             }
-                            try block(outFiles)
+                            try block(session)
                             catch {
                               case e: Throwable =>
-                                launcherLockingOpt.foreach(l =>
-                                  try l.close()
-                                  catch { case _: Throwable => }
-                                )
-                                try outFiles.close()
+                                try session.close()
                                 catch { case _: Throwable => }
                                 throw e
                             }
                           } finally outLockLease.foreach(_.release())
                         }
 
-                        val (evaluated, outFilesOpt): (RunnerLauncherState, Option[LauncherOutFiles]) =
-                          withLocking { runArtifacts =>
-                            def proceed(logger: Logger): RunnerLauncherState = {
-                              // Enter key pressed, removing mill-selective-execution.json to
-                              // ensure all tasks re-run even though no inputs may have changed
-                              //
-                              // Do this by removing the file rather than disabling selective execution,
-                              // because we still want to generate the selective execution metadata json
-                              // for subsequent runs that may use it
-                              if (skipSelectiveExecution)
-                                os.remove(out / OutFiles.millSelectiveExecution)
-                              // Point the top-level `out/mill-console-tail` symlink at
-                              // this run's live log so concurrent launchers waiting on
-                              // locks (and humans tailing the log) see current progress.
-                              // The other artifact symlinks are published only after
-                              // evaluation completes, to avoid advertising broken
-                              // symlinks to not-yet-written files mid-run.
-                              runArtifacts.publishLiveArtifacts()
-                              try mill.api.SystemStreamsUtils.withStreams(logger.streams) {
-                                  mill.api.FilesystemCheckerEnabled.withValue(
-                                    !config.noFilesystemChecker.value
+                        withLocking { session =>
+                          val runArtifacts = session.runArtifacts
+                          def proceed(logger: Logger): RunnerLauncherState = {
+                            // Enter key pressed, removing mill-selective-execution.json to
+                            // ensure all tasks re-run even though no inputs may have changed
+                            //
+                            // Do this by removing the file rather than disabling selective execution,
+                            // because we still want to generate the selective execution metadata json
+                            // for subsequent runs that may use it
+                            if (skipSelectiveExecution)
+                              os.remove(out / OutFiles.millSelectiveExecution)
+                            // Point the top-level `out/mill-console-tail` symlink at
+                            // this run's live log so concurrent launchers waiting on
+                            // locks (and humans tailing the log) see current progress.
+                            // The other artifact symlinks are published only after
+                            // evaluation completes, to avoid advertising broken
+                            // symlinks to not-yet-written files mid-run.
+                            runArtifacts.publishLiveArtifacts()
+                            try mill.api.SystemStreamsUtils.withStreams(logger.streams) {
+                                mill.api.FilesystemCheckerEnabled.withValue(
+                                  !config.noFilesystemChecker.value
+                                ) {
+                                  tailManager.withOutErr(
+                                    logger.streams.out,
+                                    logger.streams.err
                                   ) {
-                                    tailManager.withOutErr(
-                                      logger.streams.out,
-                                      logger.streams.err
-                                    ) {
-                                      new MillBuildBootstrap(
-                                        topLevelProjectRoot = BuildCtx.workspaceRoot,
-                                        output = out,
-                                        // In BSP server, we want to evaluate as many tasks as possible,
-                                        // in order to give as many results as available in BSP responses
-                                        keepGoing = bspMode || config.keepGoing.value,
-                                        imports = config.imports,
-                                        env = env ++ extraEnv,
-                                        ec = ec,
-                                        tasksAndParams = tasksAndParams,
-                                        prevCommandState =
-                                          prevState.getOrElse(RunnerLauncherState.empty),
-                                        logger = logger,
-                                        requestedMetaLevel =
-                                          config.metaLevel.orElse(metaLevelOverride),
-                                        allowPositionalCommandArgs =
-                                          config.allowPositional.value,
-                                        systemExit = systemExit,
-                                        streams0 = streams,
-                                        selectiveExecution = config.watch.value,
-                                        offline = config.offline.value,
-                                        useFileLocks = config.useFileLocks.value,
-                                        workspaceLocking = workspaceLocking,
-                                        runArtifacts = runArtifacts,
-                                        sharedState = sharedState,
-                                        reporter = reporter,
-                                        enableTicker = enableTicker,
-                                        disableFinalTaskShortCircuit = skipSelectiveExecution,
-                                        priorBootstrap = priorBootstrap
-                                      ).evaluate()
-                                    }
+                                    new MillBuildBootstrap(
+                                      topLevelProjectRoot = BuildCtx.workspaceRoot,
+                                      output = out,
+                                      // In BSP server, we want to evaluate as many tasks as possible,
+                                      // in order to give as many results as available in BSP responses
+                                      keepGoing = bspMode || config.keepGoing.value,
+                                      imports = config.imports,
+                                      env = env ++ extraEnv,
+                                      ec = ec,
+                                      tasksAndParams = tasksAndParams,
+                                      prevCommandState =
+                                        prevState.getOrElse(RunnerLauncherState.empty),
+                                      logger = logger,
+                                      requestedMetaLevel =
+                                        config.metaLevel.orElse(metaLevelOverride),
+                                      allowPositionalCommandArgs =
+                                        config.allowPositional.value,
+                                      systemExit = systemExit,
+                                      streams0 = streams,
+                                      selectiveExecution = config.watch.value,
+                                      offline = config.offline.value,
+                                      useFileLocks = config.useFileLocks.value,
+                                      workspaceLocking = workspaceLocking,
+                                      runArtifacts = runArtifacts,
+                                      sharedState = sharedState,
+                                      reporter = reporter,
+                                      enableTicker = enableTicker,
+                                      disableFinalTaskShortCircuit = skipSelectiveExecution,
+                                      priorBootstrap = priorBootstrap
+                                    ).evaluate()
                                   }
                                 }
-                              finally runArtifacts.publishArtifacts()
-                            }
-
-                            val state = loggerOpt match {
-                              case Some(logger) => proceed(logger)
-                              case None =>
-                                val loggerResource =
-                                  if (useBspRequestLogger)
-                                    getBspLogger(
-                                      streams = streams,
-                                      config = config,
-                                      chromeProfilePath = runArtifacts match {
-                                        case LauncherOutFiles.Noop =>
-                                          out / OutFiles.millChromeProfile
-                                        case _ => os.Path(runArtifacts.chromeProfile)
-                                      },
-                                      consoleLogPathOpt = Some(runArtifacts match {
-                                        case LauncherOutFiles.Noop =>
-                                          out / DaemonFiles.millConsoleTail
-                                        case _ => os.Path(runArtifacts.consoleTail)
-                                      })
-                                    )
-                                  else
-                                    getLogger(
-                                      streams = streams,
-                                      config = config,
-                                      enableTicker = enableTicker,
-                                      colored = colored,
-                                      colors = colors,
-                                      out = out,
-                                      runArtifacts = runArtifacts,
-                                      serverToClientOpt = serverToClientOpt
-                                    )
-                                Using.resource(loggerResource) { logger =>
-                                  proceed(logger)
-                                }
-                            }
-                            val outFilesOpt = runArtifacts match {
-                              case LauncherOutFiles.Noop => None
-                              case other => Some(other)
-                            }
-                            (state, outFilesOpt)
+                              }
+                            finally runArtifacts.publishArtifacts()
                           }
 
-                        // Attach session-scoped closeables (per-launcher
-                        // intra-process locks and outFiles) to the returned
-                        // state. outFiles.close() will reacquire the file lock
-                        // briefly via withFileLockHeld so its close-time
-                        // cleanup runs under the cross-process lock even
-                        // though it executes outside the withLocking block.
-                        val withLockingClose = launcherLockingOpt
-                          .fold(evaluated)(evaluated.withCloseable(_))
-                        outFilesOpt.fold(withLockingClose)(withLockingClose.withCloseable(_))
+                          val state = loggerOpt match {
+                            case Some(logger) => proceed(logger)
+                            case None =>
+                              val loggerResource =
+                                if (useBspRequestLogger)
+                                  getBspLogger(
+                                    streams = streams,
+                                    config = config,
+                                    chromeProfilePath = runArtifacts match {
+                                      case LauncherOutFiles.Noop =>
+                                        out / OutFiles.millChromeProfile
+                                      case _ => os.Path(runArtifacts.chromeProfile)
+                                    },
+                                    consoleLogPathOpt = Some(runArtifacts match {
+                                      case LauncherOutFiles.Noop =>
+                                        out / DaemonFiles.millConsoleTail
+                                      case _ => os.Path(runArtifacts.consoleTail)
+                                    })
+                                  )
+                                else
+                                  getLogger(
+                                    streams = streams,
+                                    config = config,
+                                    enableTicker = enableTicker,
+                                    colored = colored,
+                                    colors = colors,
+                                    out = out,
+                                    runArtifacts = runArtifacts,
+                                    serverToClientOpt = serverToClientOpt
+                                  )
+                              Using.resource(loggerResource) { logger =>
+                                proceed(logger)
+                              }
+                          }
+                          // Attach the per-launcher session (locking + out-files)
+                          // as the state's single closeable. session.close()
+                          // re-acquires the file lock briefly via
+                          // withFileLockHeld so close-time cleanup runs under
+                          // the cross-process lock even though it executes
+                          // outside this withLocking block.
+                          state.withSession(session)
+                        }
                       }
 
                       if (config.tabComplete.value) {
@@ -502,127 +490,45 @@ object MillMain0 {
                           )
                         )(_ => true)
                       } else if (bspMode) {
-                        // Can happen if a concurrent BSP server starts and shuts us down.
-                        // We log in the console what happened just in case, so that users know why we exit.
-                        // This is also used in the tests.
-                        Signal.handle(
-                          new Signal("TERM"),
-                          _ => SystemStreams.originalErr.println("Received SIGTERM, exiting")
-                        )
-
                         Using.resource(getBspLogger(
                           streams = streams,
                           config = config,
                           chromeProfilePath =
                             out / os.RelPath("mill-bsp") / OutFiles.millChromeProfile
                         )) { bspLogger =>
-                          // Each BSP request (and the worker-side watcher loop)
-                          // calls into this bridge to obtain fresh evaluators
-                          // for one bootstrap's lifetime. `Using.resource` tears
-                          // down the resulting RunnerLauncherState — meta-build
-                          // read leases, retained per-task read leases,
-                          // evaluators — before the bridge call returns. No
-                          // shared mutable evaluator cache survives across
-                          // bridge calls; concurrent CLI launchers and concurrent
-                          // BSP requests each get their own RunnerLauncherState
-                          // and share the cached meta-build classloader via
-                          // RunnerSharedState, serializing at lock granularity
-                          // via processRunClasspath's read-first speculation.
-                          // Promise-backed so `bridgeReporter` blocks until the BuildClient is
-                          // wired in. Without this, an early watcher iteration that fires
-                          // between startBspServer returning and the .set call would silently
-                          // drop diagnostics from the very first compile after build/initialize.
-                          val bridgeBuildClientPromise =
-                            scala.concurrent.Promise[IdeWorkerSupport.BspBuildClient]()
-                          val bridgeReporter
-                              : EvaluatorApi => Int => Option[CompileProblemReporter] =
-                            ev => {
-                              val client = scala.concurrent.Await.result(
-                                bridgeBuildClientPromise.future,
-                                scala.concurrent.duration.Duration.Inf
+                          BspMode.run(
+                            streams = streams,
+                            runMillBootstrap = (
+                                skipSel,
+                                prev,
+                                tasks,
+                                strm,
+                                msg,
+                                reporter,
+                                useBspLogger,
+                                priorBoot
+                            ) =>
+                              runMillBootstrap(
+                                skipSelectiveExecution = skipSel,
+                                prevState = prev,
+                                tasksAndParams = tasks,
+                                streams = strm,
+                                millActiveCommandMessage = msg,
+                                reporter = reporter,
+                                useBspRequestLogger = useBspLogger,
+                                priorBootstrap = priorBoot
+                              ),
+                            startBspServer = bridge =>
+                              startBspServer(
+                                streams0,
+                                bspLogger,
+                                launcherPid = launcherPid,
+                                noWaitForBspLock = config.noWaitForBspLock.value,
+                                killOther = !config.bspNoKillOther.value,
+                                bspWatch = config.bspWatch,
+                                bootstrapBridge = bridge
                               )
-                              IdeWorkerSupport.bspReporterPool(
-                                workspaceDir = BuildCtx.workspaceRoot,
-                                evaluators = Seq(ev),
-                                buildClient = client
-                              )
-                            }
-
-                          // Cross-request snapshot of the most recent
-                          // bootstrap's final-task watches/selector. Used by
-                          // MillBuildBootstrap.processFinalTasks to short-
-                          // circuit (skip running `resolve _`) when nothing
-                          // has changed. Holds *data only* — never any
-                          // meta-build read leases — so that concurrent CLI
-                          // commands needing a meta-build write are never
-                          // blocked by an idle BSP server.
-                          val bspPrevStateCache = new BspPrevStateCache
-                          val bootstrapBridge =
-                            new mill.api.daemon.internal.bsp.BspBootstrapBridge {
-                              override def runBootstrap[T](
-                                  activeCommandMessage: String,
-                                  body: mill.api.daemon.internal.bsp.BspBootstrapBridge.Body[T]
-                              ): T = Using.resource(
-                                runMillBootstrap(
-                                  skipSelectiveExecution = false,
-                                  prevState = None,
-                                  priorBootstrap = bspPrevStateCache.get(),
-                                  tasksAndParams = Seq("resolve", "_"),
-                                  streams = streams,
-                                  millActiveCommandMessage = activeCommandMessage,
-                                  reporter = bridgeReporter,
-                                  useBspRequestLogger = true
-                                )
-                              ) { runnerState =>
-                                BspPriorBootstrap.from(runnerState)
-                                  .foreach(bspPrevStateCache.set)
-                                body.apply(
-                                  mill.api.daemon.internal.bsp.BspBootstrapBridge.BootstrapState(
-                                    runnerState.allEvaluators.asJava,
-                                    runnerState.watched.asJava,
-                                    runnerState.errorOpt
-                                  )
-                                )
-                              }
-                            }
-
-                          val (bspServerHandle, buildClient) = startBspServer(
-                            streams0,
-                            bspLogger,
-                            launcherPid = launcherPid,
-                            noWaitForBspLock = config.noWaitForBspLock.value,
-                            killOther = !config.bspNoKillOther.value,
-                            bspWatch = config.bspWatch,
-                            bootstrapBridge = bootstrapBridge
                           )
-                          bridgeBuildClientPromise.success(buildClient)
-
-                          val shutdownResult =
-                            try Success(Await.result(
-                                bspServerHandle.shutdownFuture,
-                                Duration.Inf
-                              ))
-                            catch { case NonFatal(ex) => Failure(ex) }
-
-                          val errored = shutdownResult match {
-                            case Failure(ex) =>
-                              streams.err.println("BSP server threw an exception, exiting")
-                              ex.printStackTrace(streams.err)
-                              true
-                            case Success(BspServerResult.Shutdown) =>
-                              streams.err.println("BSP shutdown asked by client, exiting")
-                              // should make the lsp4j-managed BSP server exit
-                              streams.in.close()
-                              false
-                            case Success(BspServerResult.ReloadWorkspace) =>
-                              streams.err.println("BSP reload asked by client, exiting")
-                              streams.in.close()
-                              false
-                          }
-
-                          bspServerHandle.close()
-                          streams.err.println("Exiting BSP runner loop")
-                          !errored
                         }
                       } else if (
                         config.leftoverArgs.value == Seq("mill.idea.GenIdea/idea") ||

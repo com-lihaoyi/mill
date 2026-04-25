@@ -189,7 +189,6 @@ trait GroupExecution {
   def offline: Boolean
   def useFileLocks: Boolean
   def workspaceLocking: LauncherLocking
-  def retainTerminalReadLock(task: Task[?], lease: LauncherLocking.Lease): Unit
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
     CodeSigUtils.constructorHashSignatures(codeSignatures)
 
