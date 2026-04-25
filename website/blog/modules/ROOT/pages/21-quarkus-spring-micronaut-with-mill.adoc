@@ -33,7 +33,7 @@ object test:
 
 Compared to Maven:
 
-The Maven configuration below, was created with the help of https://start.spring.io/[start.spring.io]
+The Maven configuration below was created with the help of https://start.spring.io/[start.spring.io]
 
 .pom.xml
 [source,xml]
