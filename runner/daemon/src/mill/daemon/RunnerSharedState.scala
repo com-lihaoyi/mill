@@ -1,9 +1,13 @@
 package mill.daemon
 
-import mill.api.MillURLClassLoader
+import mill.api.{MillURLClassLoader, Val}
 import mill.api.daemon.Watchable
-import mill.api.daemon.internal.{PathRefApi, internal}
+import mill.api.daemon.internal.{PathRefApi, TaskApi, internal}
 import mill.api.internal.RootModule
+import mill.exec.GroupExecution
+
+import java.util.concurrent.atomic.AtomicReference
+import scala.collection.mutable
 
 /**
  * Daemon-wide state shared across concurrent launchers, held in an
@@ -35,10 +39,16 @@ import mill.api.internal.RootModule
  * root build file name and whether we had to synthesize the lightweight
  * script-only bootstrap. Populated only on successful bootstrap; on failure the
  * slots stay empty so the next launcher retries.
+ *
+ * [[workerCaches]] holds the daemon-shared mutable worker maps, keyed by the
+ * evaluator depth that owns them. Keeping them here removes the last global
+ * mutable worker-cache singleton while still letting concurrent launchers reuse
+ * expensive workers inside one daemon.
  */
 @internal
 case class RunnerSharedState(
     frames: Map[Int, RunnerSharedState.Frame] = Map.empty,
+    workerCaches: Map[Int, RunnerSharedState.WorkerCacheSlot] = Map.empty,
     bootstrapModule: Option[RootModule] = None,
     bootstrapBuildFile: Option[String] = None,
     bootstrapUsesDummy: Option[Boolean] = None
@@ -53,6 +63,9 @@ case class RunnerSharedState(
 
   def withFrame(depth: Int, frame: Frame): RunnerSharedState =
     copy(frames = frames.updated(depth, frame))
+
+  def withWorkerCache(depth: Int, workerCache: WorkerCacheSlot): RunnerSharedState =
+    copy(workerCaches = workerCaches.updated(depth, workerCache))
 
   def withBootstrap(module: RootModule, buildFile: String, usesDummy: Boolean): RunnerSharedState =
     copy(
@@ -82,9 +95,61 @@ object RunnerSharedState {
       compileOutputOpt: Option[PathRefApi] = None,
       codeSignatures: Map[String, Int] = Map.empty,
       buildOverrideFiles: Map[java.nio.file.Path, String] = Map.empty,
-      workerCacheSummary: Map[String, RunnerLauncherState.Frame.WorkerInfo] = Map.empty,
       selectiveMetadata: Option[String] = None
   ) {
     def hasReusable: Boolean = classLoaderOpt.nonEmpty
   }
+
+  final case class WorkerCacheSlot(
+      classLoaderIdentityHash: Int,
+      workers: mutable.Map[String, (Int, Val, TaskApi[?])]
+  )
+
+  /**
+   * Resolve the daemon-shared worker cache for one evaluator depth. The
+   * selected cache is per-daemon rather than process-global, and is replaced
+   * when the classloader identity at that depth changes.
+   */
+  def sharedWorkerCache(
+      sharedState: AtomicReference[RunnerSharedState],
+      depth: Int,
+      classLoaderIdentityHash: Int
+  ): mutable.Map[String, (Int, Val, TaskApi[?])] = {
+    var stale: Option[WorkerCacheSlot] = None
+    var slot: WorkerCacheSlot = null
+
+    while (slot == null) {
+      val current = sharedState.get()
+      current.workerCaches.get(depth) match {
+        case Some(existing) if existing.classLoaderIdentityHash == classLoaderIdentityHash =>
+          slot = existing
+        case existingOpt =>
+          val next = WorkerCacheSlot(
+            classLoaderIdentityHash = classLoaderIdentityHash,
+            workers = mutable.Map.empty[String, (Int, Val, TaskApi[?])]
+          )
+          if (sharedState.compareAndSet(current, current.withWorkerCache(depth, next))) {
+            stale = existingOpt
+            slot = next
+          }
+      }
+    }
+
+    stale.foreach(closeWorkerCache)
+    slot.workers
+  }
+
+  private def closeWorkerCache(slot: WorkerCacheSlot): Unit =
+    slot.workers.synchronized {
+      val deps = GroupExecution.workerDependencies(slot.workers.toMap)
+      val topoIndex = deps.iterator.map(_._1).zipWithIndex.toMap
+      GroupExecution.closeWorkersInReverseTopologicalOrder(
+        topoIndex.keys,
+        slot.workers,
+        topoIndex,
+        closeable =>
+          try closeable.close()
+          catch { case _: Throwable => () }
+      )
+    }
 }

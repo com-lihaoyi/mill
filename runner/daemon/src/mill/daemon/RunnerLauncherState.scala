@@ -112,8 +112,8 @@ case class RunnerLauncherState(
    * eventually close the previously-published classloader), then the
    * [[LauncherSession]] (workspace lock manager + per-run artifact files).
    *
-   * Workers live in the process-level [[mill.daemon.SharedWorkerCache]] and
-   * are NOT torn down here.
+   * Workers live in daemon-shared state ([[RunnerSharedState.sharedWorkerCache]])
+   * and are NOT torn down here.
    */
   override def close(): Unit = {
     closeAll(
@@ -167,7 +167,7 @@ object RunnerLauncherState {
       spanningInvalidationTree: Option[String] = None
   ) {
     def logged: Frame.Logged = Frame.build(
-      sharedFrame.workerCacheSummary,
+      Frame.summarizeWorkerCache(evaluator.workerCache),
       evalWatched,
       sharedFrame.moduleWatched.getOrElse(Nil),
       sharedFrame.classLoaderOpt.map(_.identity),

@@ -6,7 +6,6 @@ import mill.constants.OutFiles
 
 import java.nio.file.StandardCopyOption
 import java.util.concurrent.atomic.AtomicBoolean
-import scala.jdk.OptionConverters.RichOptional
 
 /**
  * One run's concrete [[LauncherOutFiles]] handle: per-run scratch directory at
@@ -52,8 +51,6 @@ private[mill] final class LauncherOutFilesImpl(
   // cross-process out/ file lock when waiting for it. Daemon-specific
   // tracking dirs were eliminated so a single source of truth covers both
   // intra-daemon cleanup and cross-process holder identification.
-  private val launcherRunFile =
-    out / os.RelPath(DaemonFiles.perLauncherFilePath(runId))
   private val closed = new AtomicBoolean(false)
 
   // Head is the live console-tail symlink, published mid-run by
@@ -101,20 +98,12 @@ private[mill] final class LauncherOutFilesImpl(
 
   override def close(): Unit =
     if (closed.compareAndSet(false, true)) withFileLockHeld {
-      try mill.api.BuildCtx.withFilesystemCheckerDisabled(os.remove(launcherRunFile))
-      catch { case _: Throwable => }
+      LauncherRecordStore.remove(out, runId)
       cleanup(out, launcherLocks)
     }
 
-  private def writeLauncherRunFile(): Unit = {
-    val commandJson = ujson.write(ujson.Str(activeCommandMessage))
-    val json = s"""{"pid":$launcherPid,"command":$commandJson}"""
-    try mill.api.BuildCtx.withFilesystemCheckerDisabled {
-        os.makeDir.all(launcherRunFile / os.up)
-        os.write.over(launcherRunFile, json)
-      }
-    catch { case _: Throwable => }
-  }
+  private def writeLauncherRunFile(): Unit =
+    LauncherRecordStore.write(out, runId, launcherPid, activeCommandMessage)
 }
 
 private[mill] object LauncherOutFilesImpl {
@@ -142,34 +131,6 @@ private[mill] object LauncherOutFilesImpl {
   }
 
   /**
-   * Single pass over `mill-launcher-files/`: returns the set of run-ids whose
-   * launcher process is still alive, and as a side effect removes records
-   * whose PID is no longer alive (records left behind by abruptly-killed
-   * processes from prior runs of any daemon — the workspace-level dir has no
-   * single owner, so we GC by liveness here).
-   */
-  private def sweepAndCollectActiveRunIds(out: os.Path): Set[String] = {
-    val dir = out / os.RelPath(DaemonFiles.millLauncherFiles)
-    if (!os.exists(dir)) Set.empty
-    else {
-      val active = Set.newBuilder[String]
-      os.list(dir).filter(os.isFile(_)).foreach { file =>
-        val pidOpt =
-          try ujson.read(os.read(file)).obj.get("pid").map(_.num.toLong)
-          catch { case _: Throwable => None }
-        val aliveOpt = pidOpt.flatMap(pid =>
-          java.lang.ProcessHandle.of(pid).toScala.filter(_.isAlive)
-        )
-        if (aliveOpt.isDefined) active += file.baseName
-        else
-          try os.remove(file, checkExists = false)
-          catch { case _: Throwable => () }
-      }
-      active.result()
-    }
-  }
-
-  /**
    * Cap the total number of retained run dirs at [[maxRetainedRuns]] when we
    * can: never delete a currently-active run dir, and prefer to evict the
    * oldest inactive ones first. If actives alone exceed the cap, all inactive
@@ -190,7 +151,7 @@ private[mill] object LauncherOutFilesImpl {
       launcherLocks: LauncherSessionState
   ): Unit = {
     try {
-      val active = sweepAndCollectActiveRunIds(out)
+      val active = LauncherRecordStore.sweepActive(out).iterator.map(_.runId).toSet
       val runRootDir = out / LauncherSessionState.runRootDirName
       if (os.exists(runRootDir)) {
         // Sort inactives oldest-first by parsing the leading millis prefix of

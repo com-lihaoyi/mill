@@ -10,6 +10,7 @@ import java.nio.file.Path
  * acquiring the shallower depth's lock during the same run.
  */
 private[mill] trait LauncherLocking extends AutoCloseable {
+
   /**
    * Acquire a meta-build lock keyed by `depth`. The bootstrap module install
    * (see [[mill.daemon.MillBuildBootstrap.makeBootstrapState]]) reuses this
@@ -35,6 +36,39 @@ private[mill] object LauncherLocking {
     case Read, Write
   }
 
+  enum ReadThenWrite[+T] {
+    case Complete(value: T)
+    case Escalate
+  }
+
+  /**
+   * Mutable handle over one acquired lease used by
+   * [[withReadThenWrite]]. Callers may either:
+   *
+   * - inspect the held lease via [[lease]]
+   * - keep it past the helper by calling [[retain]]
+   * - downgrade a write lease and keep the resulting read lease by calling
+   *   [[downgradeAndRetain]]
+   *
+   * If neither retain method is called, the helper closes the lease on the
+   * success path and on exceptions.
+   */
+  final class LeaseScope private[LauncherLocking] (val lease: Lease) {
+    private var retained = false
+
+    def retain(): Lease = {
+      retained = true
+      lease
+    }
+
+    def downgradeAndRetain(): Lease = {
+      lease.downgradeToRead()
+      retain()
+    }
+
+    private[LauncherLocking] def isRetained: Boolean = retained
+  }
+
   /**
    * Identifies the launcher that acquired a lease, used to compose waiting
    * messages shown to other launchers that block on the same lock.
@@ -57,6 +91,63 @@ private[mill] object LauncherLocking {
    */
   trait Lease extends AutoCloseable {
     def downgradeToRead(): Unit = ()
+  }
+
+  /**
+   * Canonical "probe under read, release, then re-check under write" helper.
+   *
+   * `readBody` runs under a read lease and either completes the operation or
+   * requests escalation to write. If it returns [[ReadThenWrite.Complete]],
+   * the read lease is retained only if the body called [[LeaseScope.retain]];
+   * otherwise it is closed automatically. If it returns
+   * [[ReadThenWrite.Escalate]], the read lease must not be retained; it is
+   * closed before acquiring the write lease.
+   *
+   * `writeBody` runs under a fresh write lease and may likewise retain it
+   * (usually after downgrading to read) by calling
+   * [[LeaseScope.retain]]/[[LeaseScope.downgradeAndRetain]].
+   */
+  def withReadThenWrite[T](
+      acquireRead: => Lease,
+      acquireWrite: => Lease
+  )(
+      readBody: LeaseScope => ReadThenWrite[T]
+  )(
+      writeBody: LeaseScope => T
+  ): T = {
+    val readScope = new LeaseScope(acquireRead)
+    var readClosed = false
+    try {
+      readBody(readScope) match {
+        case ReadThenWrite.Complete(value) =>
+          if (!readScope.isRetained) {
+            readScope.lease.close()
+            readClosed = true
+          }
+          value
+        case ReadThenWrite.Escalate =>
+          if (readScope.isRetained)
+            throw new IllegalStateException(
+              "Cannot retain a read lease and then escalate to write"
+            )
+          readScope.lease.close()
+          readClosed = true
+          val writeScope = new LeaseScope(acquireWrite)
+          try {
+            val value = writeBody(writeScope)
+            if (!writeScope.isRetained) writeScope.lease.close()
+            value
+          } catch {
+            case t: Throwable =>
+              if (!writeScope.isRetained) writeScope.lease.close()
+              throw t
+          }
+      }
+    } catch {
+      case t: Throwable =>
+        if (!readClosed && !readScope.isRetained) readScope.lease.close()
+        throw t
+    }
   }
 
   /**

@@ -239,10 +239,11 @@ class MillBuildBootstrap(
       .map(_.identity)
       .getOrElse(0)
 
-    // Use the process-level shared worker cache. Workers are thread-safe and
-    // can be shared across concurrent commands. SharedWorkerCache.forDepth
-    // handles classloader changes automatically (closes stale workers).
-    val workerCache = SharedWorkerCache.forDepth(depth, millClassloaderIdentityHash0)
+    // Resolve the daemon-shared worker cache for this evaluator depth. The
+    // cache lives on RunnerSharedState rather than a process-global singleton,
+    // and is replaced automatically when the owning classloader changes.
+    val workerCache =
+      RunnerSharedState.sharedWorkerCache(sharedState, depth, millClassloaderIdentityHash0)
 
     makeEvaluator0(
       projectRoot = topLevelProjectRoot,
@@ -377,21 +378,13 @@ class MillBuildBootstrap(
       Option.when(os.exists(metadataFile))(os.read(metadataFile))
     }
 
-    // Helpers that end the function in a single line, so the outer match
-    // stays flat. Each closes the lease then returns the appropriate
-    // RunnerLauncherState (error / cache hit / reuse / publish-fresh /
-    // publish-failed-frame).
-    def errorClosingLease(lease: LauncherLocking.Lease, f: Result.Failure): RunnerLauncherState = {
-      lease.close()
+    def errorState(f: Result.Failure): RunnerLauncherState =
       nestedState.withError(mill.internal.Util.formatError(f, logger.prompt.errorColor))
-    }
 
     def reuseFrame(
-        lease: LauncherLocking.Lease,
         frame: RunnerSharedState.Frame,
-        downgradeFromWrite: Boolean
+        lease: LauncherLocking.Lease
     ): RunnerLauncherState = {
-      if (downgradeFromWrite) lease.downgradeToRead()
       nestedState.withMetaBuildFrame(launcherFrame(frame, lease, classLoaderChanged = false))
     }
 
@@ -402,7 +395,6 @@ class MillBuildBootstrap(
       ).flatten.distinct.foreach(_.close())
 
     def publishFailedFrame(
-        writeLease: LauncherLocking.Lease,
         f: Result.Failure,
         evalWatches: Seq[Watchable],
         moduleWatches: Seq[Watchable]
@@ -413,7 +405,6 @@ class MillBuildBootstrap(
       )
       val previous = sharedState.getAndUpdate(_.withFrame(depth, failedShared))
       closePriorAndPreviousClassloaders(previous)
-      writeLease.close()
       nestedState
         .withMetaBuildFrame(
           RunnerLauncherState.MetaBuildFrame.failed(
@@ -427,7 +418,7 @@ class MillBuildBootstrap(
     }
 
     def publishFreshFrame(
-        writeLease: LauncherLocking.Lease,
+        retainedLease: LauncherLocking.Lease,
         runClasspath: Seq[PathRefApi],
         compileClasses: PathRefApi,
         codeSignatures: Map[String, Int],
@@ -466,23 +457,20 @@ class MillBuildBootstrap(
         compileOutputOpt = Some(compileClasses),
         codeSignatures = codeSignatures,
         buildOverrideFiles = buildOverrideFiles,
-        workerCacheSummary =
-          RunnerLauncherState.Frame.summarizeWorkerCache(evaluator.workerCache),
         selectiveMetadata =
           Option.when(collectSelectiveMetadata)(readSelectiveMetadataFile()).flatten
       )
       val previous = sharedState.getAndUpdate(_.withFrame(depth, fresh))
       closePriorAndPreviousClassloaders(previous)
-      writeLease.downgradeToRead()
       nestedState.withMetaBuildFrame(launcherFrame(
         fresh,
-        writeLease,
+        retainedLease,
         classLoaderChanged = true,
         spanningInvalidationTree = Some(spanningInvalidationTree)
       ))
     }
 
-    def evaluateAndPublish(writeLease: LauncherLocking.Lease): RunnerLauncherState = {
+    def evaluateAndPublish(scope: LauncherLocking.LeaseScope): RunnerLauncherState = {
       val metadataFile = os.Path(evaluator.outPathJava) / OutFiles.millSelectiveExecution
       if (collectSelectiveMetadata && os.exists(metadataFile)) os.remove(metadataFile)
       evaluateWithWatches(
@@ -493,7 +481,7 @@ class MillBuildBootstrap(
         reporter = reporter(evaluator)
       ) match {
         case (f: Result.Failure, evalWatches, moduleWatches) =>
-          publishFailedFrame(writeLease, f, evalWatches, moduleWatches)
+          publishFailedFrame(f, evalWatches, moduleWatches)
         case (
               Result.Success(Seq(Tuple5(
                 runClasspath: Seq[PathRefApi],
@@ -506,7 +494,7 @@ class MillBuildBootstrap(
               moduleWatches
             ) =>
           publishFreshFrame(
-            writeLease,
+            scope.downgradeAndRetain(),
             runClasspath,
             compileClasses,
             codeSignatures,
@@ -519,26 +507,27 @@ class MillBuildBootstrap(
       }
     }
 
-    // closeOnThrow guards each lease against a throw from `reusable` itself
-    // (e.g. evaluator.probeSelectiveMetadata or Watching.haveNotChanged
-    // throwing); without it, a leaked lease would block every concurrent
-    // meta-build write at this depth until daemon shutdown.
-    closeOnThrow(readLease) {
-      reusable(sharedState.get().frameAt(depth))
-    } match {
-      case f: Result.Failure => errorClosingLease(readLease, f)
-      case Result.Success(Some(frame)) => reuseFrame(readLease, frame, downgradeFromWrite = false)
-      case Result.Success(None) =>
-        readLease.close()
-        val writeLease = workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Write)
-        closeOnThrow(writeLease) {
-          reusable(sharedState.get().frameAt(depth)) match {
-            case f: Result.Failure => errorClosingLease(writeLease, f)
-            case Result.Success(Some(frame)) =>
-              reuseFrame(writeLease, frame, downgradeFromWrite = true)
-            case Result.Success(None) => evaluateAndPublish(writeLease)
-          }
-        }
+    LauncherLocking.withReadThenWrite(
+      acquireRead = readLease,
+      acquireWrite = workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Write)
+    ) { scope =>
+      reusable(sharedState.get().frameAt(depth)) match {
+        case f: Result.Failure =>
+          LauncherLocking.ReadThenWrite.Complete(errorState(f))
+        case Result.Success(Some(frame)) =>
+          LauncherLocking.ReadThenWrite.Complete(reuseFrame(frame, scope.retain()))
+        case Result.Success(None) =>
+          LauncherLocking.ReadThenWrite.Escalate
+      }
+    } { scope =>
+      reusable(sharedState.get().frameAt(depth)) match {
+        case f: Result.Failure =>
+          errorState(f)
+        case Result.Success(Some(frame)) =>
+          reuseFrame(frame, scope.downgradeAndRetain())
+        case Result.Success(None) =>
+          evaluateAndPublish(scope)
+      }
     }
   }
 

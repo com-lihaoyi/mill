@@ -283,42 +283,17 @@ trait GroupExecution {
           serializedPaths = serializedPaths
         )
 
-        // Retained leases stay alive until every in-run downstream consumer of
-        // this terminal has finished, then are released by Execution's per-
-        // task downstream tracker. This frees the per-task lock for concurrent
-        // launchers as soon as it's safe (rather than holding it for the
-        // entire outer run). Tasks with no in-run downstream see their lease
-        // released immediately on completion.
-        val retainedLeases = java.util.Collections.newSetFromMap(
-          new java.util.IdentityHashMap[LauncherLocking.Lease, java.lang.Boolean]
-        )
-        def retainOrClose(
-            lease: LauncherLocking.Lease,
-            shouldRetain: Boolean
-        ): Unit =
-          if (shouldRetain) {
-            lease.downgradeToRead()
-            leaseTracker.retain(labelled, lease)
-            retainedLeases.add(lease)
-          } else {
-            lease.close()
-          }
-
-        def acquireTaskWriteLock(): LauncherLocking.Lease =
+        def acquireTaskLock(kind: LauncherLocking.LockKind): LauncherLocking.Lease =
           workspaceLocking.taskLock(
             GroupExecution.taskLockPath(labelled, outPath, externalOutPath).toNIO,
             labelled.ctx.segments.render,
-            LauncherLocking.LockKind.Write
+            kind
           )
 
         def withTaskWriteLock[T](t: LauncherLocking.Lease => T): T = {
-          val lease = acquireTaskWriteLock()
+          val lease = acquireTaskLock(LauncherLocking.LockKind.Write)
           try t(lease)
-          catch {
-            case e: Throwable =>
-              if (!retainedLeases.contains(lease)) lease.close()
-              throw e
-          }
+          finally lease.close()
         }
 
         // Helper to evaluate the task with full caching support
@@ -361,100 +336,88 @@ trait GroupExecution {
             )
           }
 
-          val readLease =
-            workspaceLocking.taskLock(
-              GroupExecution.taskLockPath(labelled, outPath, externalOutPath).toNIO,
-              labelled.ctx.segments.render,
-              LauncherLocking.LockKind.Read
-            )
-
-          val readLockedResult =
-            try loadCachedOrWorker(
-                loadCachedJson(logger, inputsHash, labelled, paths),
-                closeStaleWorker = false
-              )
-            catch {
-              case e: Throwable =>
-                readLease.close()
-                throw e
+          LauncherLocking.withReadThenWrite(
+            acquireRead = acquireTaskLock(LauncherLocking.LockKind.Read),
+            acquireWrite = acquireTaskLock(LauncherLocking.LockKind.Write)
+          ) { scope =>
+            loadCachedOrWorker(
+              loadCachedJson(logger, inputsHash, labelled, paths),
+              closeStaleWorker = false
+            ) match {
+              case Some(res) =>
+                leaseTracker.retain(labelled, scope.retain())
+                LauncherLocking.ReadThenWrite.Complete(res)
+              case None =>
+                LauncherLocking.ReadThenWrite.Escalate
             }
-
-          readLockedResult match {
-            case Some(res) =>
-              retainOrClose(readLease, shouldRetain = true)
-              res
-
-            case None =>
-              retainOrClose(readLease, shouldRetain = false)
-              withTaskWriteLock { writeLease =>
-                // Re-read under the write lock: a sibling writer may have populated
-                // the cache while we were waiting for the lock.
-                val cached = loadCachedJson(logger, inputsHash, labelled, paths)
-                loadCachedOrWorker(cached, closeStaleWorker = true) match {
-                  case Some(res) =>
-                    retainOrClose(writeLease, shouldRetain = true)
-                    res
-                  case None =>
-                    if (!labelled.persistent && os.exists(paths.dest)) {
-                      logger.debug(s"Deleting task dest dir ${paths.dest.relativeTo(workspace)}")
-                      os.remove.all(paths.dest)
-                    }
-
-                    val (newResults, newEvaluated) =
-                      executeGroup(
-                        group = group,
-                        results = results,
-                        inputsHash = inputsHash,
-                        paths = Some(paths),
-                        taskLabelOpt = Some(terminal.toString),
-                        counterMsg = countMsg,
-                        reporter = zincProblemReporter,
-                        testReporter = testReporter,
-                        logger = logger,
-                        executionContext = executionContext,
-                        exclusive = exclusive,
-                        deps = deps,
-                        upstreamPathRefs = upstreamPathRefs,
-                        terminal = labelled
-                      )
-
-                    val (valueHash, serializedPaths, success) = newResults(labelled) match {
-                      case ExecResult.Success((v, _)) =>
-                        val valueHash = getValueHash(v, terminal, inputsHash)
-                        val serializedPaths =
-                          handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
-                        (valueHash, serializedPaths, true)
-
-                      case _ =>
-                        os.remove.all(paths.meta)
-                        (0, Nil, false)
-                    }
-
-                    retainOrClose(writeLease, shouldRetain = success)
-
-                    GroupExecution.Results(
-                      newResults = newResults,
-                      newEvaluated = newEvaluated.toSeq,
-                      cached =
-                        if (
-                          labelled.isInstanceOf[Task.Input[?]] ||
-                          labelled.isInstanceOf[Task.Uncached[?]]
-                        ) null
-                        else false,
-                      inputsHash = inputsHash,
-                      previousInputsHash = cached.map(_._1).getOrElse(-1),
-                      valueHashChanged = !cached.map(_._3).contains(valueHash),
-                      serializedPaths = serializedPaths
-                    )
+          } { scope =>
+            // Re-read under the write lock: a sibling writer may have populated
+            // the cache while we were waiting for the lock.
+            val cached = loadCachedJson(logger, inputsHash, labelled, paths)
+            loadCachedOrWorker(cached, closeStaleWorker = true) match {
+              case Some(res) =>
+                leaseTracker.retain(labelled, scope.downgradeAndRetain())
+                res
+              case None =>
+                if (!labelled.persistent && os.exists(paths.dest)) {
+                  logger.debug(s"Deleting task dest dir ${paths.dest.relativeTo(workspace)}")
+                  os.remove.all(paths.dest)
                 }
-              }
+
+                val (newResults, newEvaluated) =
+                  executeGroup(
+                    group = group,
+                    results = results,
+                    inputsHash = inputsHash,
+                    paths = Some(paths),
+                    taskLabelOpt = Some(terminal.toString),
+                    counterMsg = countMsg,
+                    reporter = zincProblemReporter,
+                    testReporter = testReporter,
+                    logger = logger,
+                    executionContext = executionContext,
+                    exclusive = exclusive,
+                    deps = deps,
+                    upstreamPathRefs = upstreamPathRefs,
+                    terminal = labelled
+                  )
+
+                val (valueHash, serializedPaths, success) = newResults(labelled) match {
+                  case ExecResult.Success((v, _)) =>
+                    val valueHash = getValueHash(v, terminal, inputsHash)
+                    val serializedPaths =
+                      handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
+                    (valueHash, serializedPaths, true)
+
+                  case _ =>
+                    os.remove.all(paths.meta)
+                    (0, Nil, false)
+                }
+
+                if (success) leaseTracker.retain(labelled, scope.downgradeAndRetain())
+
+                GroupExecution.Results(
+                  newResults = newResults,
+                  newEvaluated = newEvaluated.toSeq,
+                  cached =
+                    if (
+                      labelled.isInstanceOf[Task.Input[?]] ||
+                      labelled.isInstanceOf[Task.Uncached[?]]
+                    ) null
+                    else false,
+                  inputsHash = inputsHash,
+                  previousInputsHash = cached.map(_._1).getOrElse(-1),
+                  valueHashChanged = !cached.map(_._3).contains(valueHash),
+                  serializedPaths = serializedPaths
+                )
+            }
           }
         }
 
         // Helper to evaluate build override only (no task evaluation)
         def evaluateBuildOverrideOnly(located: Located[Appendable[BufferedValue]])
             : GroupExecution.Results = {
-          withTaskWriteLock { writeLease =>
+          withTaskWriteLock { _ =>
             val (execRes, serializedPaths) =
               if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {
                 val msg =
@@ -480,7 +443,6 @@ trait GroupExecution {
                   case Left(e) => buildOverrideDeserializationError(e, located)
                 }
               }
-            retainOrClose(writeLease, shouldRetain = execRes.asSuccess.nonEmpty)
             cachedResult(execRes, serializedPaths)
           }
         }

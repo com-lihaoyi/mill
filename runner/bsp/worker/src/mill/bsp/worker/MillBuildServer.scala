@@ -83,7 +83,7 @@ private abstract class MillBuildServer(
    *      a per-request evaluator instance. No mutable evaluator state is
    *      shared across concurrent requests.
    *   3. The shared resources `executeApi` reaches — `RunnerSharedState` frames,
-   *      meta-build classloader, `SharedWorkerCache`, per-task locks via
+   *      meta-build classloader, daemon-shared worker caches, per-task locks via
    *      `LauncherLocking` — already have their own concurrency control
    *      (atomic publish, refcounted file lock, writer-preferring rwlock,
    *      `ConcurrentHashMap.compute`) and are designed for concurrent
@@ -107,6 +107,31 @@ private abstract class MillBuildServer(
   }
 
   def initialized = sessionInfo != null
+
+  private def withBootstrappedEvaluators[T](
+      activeCommandMessage: String
+  )(
+      onUnavailable: BspBootstrapBridge.BootstrapState => T
+  )(
+      body: (BspEvaluators, BspBootstrapBridge.BootstrapState) => T
+  ): T =
+    bootstrapBridge.runBootstrap(
+      activeCommandMessage,
+      new BspBootstrapBridge.Body[T] {
+        override def apply(state: BspBootstrapBridge.BootstrapState): T =
+          if (state.errorOpt.isDefined && state.evaluators.isEmpty) onUnavailable(state)
+          else {
+            val bspEvaluators = new BspEvaluators(
+              topLevelProjectRoot,
+              state.evaluators.asScala.toSeq,
+              s => baseLogger.debug(s()),
+              state.watched.asScala.toSeq,
+              state.errorOpt
+            )
+            body(bspEvaluators, state)
+          }
+      }
+    )
 
   private var bspLock: Lock = scala.compiletime.uninitialized
   private var bspLockLease: mill.client.lock.Locked = scala.compiletime.uninitialized
@@ -302,38 +327,25 @@ private abstract class MillBuildServer(
             // command that needs to acquire a meta-build/task write lease
             // (e.g. when build.mill changed and the command needs to refresh
             // the meta-build classloader), starving it.
-            val watchedSeq = bootstrapBridge.runBootstrap(
-              "BSP:watch",
-              new BspBootstrapBridge.Body[Seq[Watchable]] {
-                override def apply(state: BspBootstrapBridge.BootstrapState): Seq[Watchable] =
-                  if (state.errorOpt.isDefined && state.evaluators.isEmpty) {
-                    state.watched.asScala.toSeq
-                  } else {
-                    val bspEvaluators = new BspEvaluators(
-                      topLevelProjectRoot,
-                      state.evaluators.asScala.toSeq,
-                      s => baseLogger.debug(s()),
-                      state.watched.asScala.toSeq,
-                      state.errorOpt
+            val watchedSeq =
+              withBootstrappedEvaluators("BSP:watch")(state => state.watched.asScala.toSeq) {
+                (bspEvaluators, state) =>
+                  val current = bspEvaluators.targetSnapshots
+                  // Re-read `client` each iteration: `onConnectWithClient`
+                  // may run after `startWatcherThread`, so capturing once at
+                  // thread start would silently leave `client0` null forever
+                  // and never deliver `buildTargetDidChange`.
+                  val currentClient = client
+                  if (seenAnyBootstrap && currentClient != null)
+                    ChangeNotifier.notifyChanges(
+                      currentClient,
+                      prevTargetSnapshots,
+                      current
                     )
-                    val current = bspEvaluators.targetSnapshots
-                    // Re-read `client` each iteration: `onConnectWithClient`
-                    // may run after `startWatcherThread`, so capturing once at
-                    // thread start would silently leave `client0` null forever
-                    // and never deliver `buildTargetDidChange`.
-                    val currentClient = client
-                    if (seenAnyBootstrap && currentClient != null)
-                      ChangeNotifier.notifyChanges(
-                        currentClient,
-                        prevTargetSnapshots,
-                        current
-                      )
-                    prevTargetSnapshots = current
-                    seenAnyBootstrap = true
-                    state.watched.asScala.toSeq
-                  }
+                  prevTargetSnapshots = current
+                  seenAnyBootstrap = true
+                  state.watched.asScala.toSeq
               }
-            )
 
             // Poll without holding leases. WatchSig.haveNotChanged on a
             // filesystem-style watch is pure I/O, but Task.Input watches can
@@ -561,28 +573,17 @@ private abstract class MillBuildServer(
       return
     }
     try {
-      bootstrapBridge.runBootstrap(
-        s"BSP:$prefix",
-        new BspBootstrapBridge.Body[Unit] {
-          override def apply(state: BspBootstrapBridge.BootstrapState): Unit =
-            if (future.isCancelled()) {
-              logger.info(s"$prefix was cancelled")
-            } else if (state.errorOpt.isDefined && state.evaluators.isEmpty) {
-              val error = state.errorOpt.get
-              logger.error(error)
-              future.completeExceptionally(new IllegalStateException(error))
-            } else {
-              val bspEvaluators = new BspEvaluators(
-                topLevelProjectRoot,
-                state.evaluators.asScala.toSeq,
-                s => baseLogger.debug(s()),
-                state.watched.asScala.toSeq,
-                state.errorOpt
-              )
-              executeWithTiming(prefix, logger, future)(block(bspEvaluators, logger))
-            }
+      withBootstrappedEvaluators(s"BSP:$prefix") { state =>
+        val error = state.errorOpt.get
+        logger.error(error)
+        future.completeExceptionally(new IllegalStateException(error))
+      } { (bspEvaluators, _) =>
+        if (future.isCancelled()) {
+          logger.info(s"$prefix was cancelled")
+        } else {
+          executeWithTiming(prefix, logger, future)(block(bspEvaluators, logger))
         }
-      )
+      }
     } catch {
       case t: Throwable =>
         logger.error(s"Could not process request: $t")

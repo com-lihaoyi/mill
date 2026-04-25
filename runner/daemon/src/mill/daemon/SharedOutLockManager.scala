@@ -1,8 +1,8 @@
 package mill.daemon
 
-import mill.api.daemon.internal.NonFatal
 import mill.client.lock.{Lock, Locked}
 import mill.constants.DaemonFiles
+import mill.internal.LauncherRecordStore
 
 import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicBoolean
@@ -149,29 +149,15 @@ private[mill] object SharedOutLockManager {
   /**
    * Compose the prefix string used in waiting / no-wait messages when the
    * cross-process file lock is held by an external Mill process. Reads the
-   * workspace-level `out/mill-launcher-files/` records (written by every
-   * launcher) to identify the most recently-started external launcher.
+   * workspace-level launcher records to identify the most recently-started
+   * external launcher.
    */
   def activeOtherProcessPrefix(out: os.Path): String = {
-    val (command, pidOpt) = readMostRecentLauncherInfo(out)
+    val recordOpt = LauncherRecordStore.mostRecentActive(out)
+    val command = recordOpt.map(_.command).getOrElse("")
+    val pidOpt = recordOpt.map(_.pid)
     val cmdSuffix = if (command.isEmpty) "" else s" running '$command',"
     s"Another Mill process with PID ${pidOpt.fold("<unknown>")(_.toString)} is" +
       (if (cmdSuffix.isEmpty) " using out/," else cmdSuffix)
-  }
-
-  private def readMostRecentLauncherInfo(out: os.Path): (String, Option[Long]) = {
-    val dir = out / DaemonFiles.millLauncherFiles
-    if (!os.exists(dir)) ("", None)
-    else
-      try {
-        os.list(dir).filter(os.isFile(_)).sortBy(_.last).lastOption match {
-          case Some(file) =>
-            val json = ujson.read(os.read(file)).obj
-            val command = json.get("command").map(_.str).getOrElse("")
-            val pid = json.get("pid").map(_.num.toLong)
-            (command, pid)
-          case None => ("", None)
-        }
-      } catch { case NonFatal(_) => ("", None) }
   }
 }
