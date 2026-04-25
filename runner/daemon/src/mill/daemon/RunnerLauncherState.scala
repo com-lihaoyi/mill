@@ -74,6 +74,9 @@ case class RunnerLauncherState(
     metaBuildFrameAt(depth).flatMap(_.sharedFrame.moduleWatched)
       .orElse(finalFrame.collect { case frame if frame.depth == depth => frame.moduleWatched })
 
+  def finalModuleWatchedAt(depth: Int): Option[Seq[Watchable]] =
+    finalFrame.collect { case frame if frame.depth == depth => frame.moduleWatched }
+
   /** All watches this launcher accumulated — drives `--watch` re-runs. */
   def watched: Seq[Watchable] =
     metaBuildFrames.flatMap(f => f.evalWatched ++ f.sharedFrame.moduleWatched.getOrElse(Nil)) ++

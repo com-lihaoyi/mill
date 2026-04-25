@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicLong
 private[mill] final class LauncherSessionState {
   private val metaBuildLocks = new ConcurrentHashMap[Int, WriterPreferringRwLock]()
   private val taskLocks = new ConcurrentHashMap[String, WriterPreferringRwLock]()
+  private val artifactLocks = new ConcurrentHashMap[String, AnyRef]()
   private val bootstrapLockInstance = new WriterPreferringRwLock("bootstrap-module")
   private val runIdCounter = new AtomicLong(0L)
   private val tmpNameCounter = new AtomicLong(0L)
@@ -28,6 +29,9 @@ private[mill] final class LauncherSessionState {
 
   def taskLockFor(normalizedAbsolutePath: String): WriterPreferringRwLock =
     taskLocks.computeIfAbsent(normalizedAbsolutePath, p => new WriterPreferringRwLock(p))
+
+  def artifactLockFor(normalizedAbsolutePath: String): AnyRef =
+    artifactLocks.computeIfAbsent(normalizedAbsolutePath, _ => new Object)
 
   def bootstrapLock: WriterPreferringRwLock = bootstrapLockInstance
 

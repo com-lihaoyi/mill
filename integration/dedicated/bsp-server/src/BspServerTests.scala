@@ -590,17 +590,20 @@ object BspServerTests extends UtestIntegrationTestSuite {
         val delayedResult = delayedCompileFuture.get(30, TimeUnit.SECONDS)
         assert(delayedResult.getStatusCode == b.StatusCode.OK)
 
+        def resolvesIntoRunDir(rel: os.RelPath): Boolean = {
+          val link = workspacePath / "out" / rel
+          val runRoot = workspacePath / "out" / "mill-run"
+          os.isLink(link) &&
+          os.exists(link, followLinks = true) &&
+          os.Path(link.toNIO.toRealPath()).toString.startsWith(runRoot.toString + "/")
+        }
+
         assertEventually {
-          os.isLink(workspacePath / "out" / mill.constants.DaemonFiles.millConsoleTail) &&
-          os.exists(workspacePath / "out" / mill.constants.DaemonFiles.millConsoleTail, followLinks = true) &&
-          os.isLink(workspacePath / "out" / OutFiles.millProfile) &&
-          os.exists(workspacePath / "out" / OutFiles.millProfile, followLinks = true) &&
-          os.isLink(workspacePath / "out" / OutFiles.millChromeProfile) &&
-          os.exists(workspacePath / "out" / OutFiles.millChromeProfile, followLinks = true) &&
-          os.isLink(workspacePath / "out" / OutFiles.millDependencyTree) &&
-          os.exists(workspacePath / "out" / OutFiles.millDependencyTree, followLinks = true) &&
-          os.isLink(workspacePath / "out" / OutFiles.millInvalidationTree) &&
-          os.exists(workspacePath / "out" / OutFiles.millInvalidationTree, followLinks = true)
+          resolvesIntoRunDir(os.RelPath(mill.constants.DaemonFiles.millConsoleTail)) &&
+          resolvesIntoRunDir(os.RelPath(OutFiles.millProfile)) &&
+          resolvesIntoRunDir(os.RelPath(OutFiles.millChromeProfile)) &&
+          resolvesIntoRunDir(os.RelPath(OutFiles.millDependencyTree)) &&
+          resolvesIntoRunDir(os.RelPath(OutFiles.millInvalidationTree))
         }
       }
     }

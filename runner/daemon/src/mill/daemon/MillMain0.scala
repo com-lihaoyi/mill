@@ -259,7 +259,8 @@ object MillMain0 {
                           reporter: EvaluatorApi => Int => Option[CompileProblemReporter] =
                             _ => _ => None,
                           extraEnv: Seq[(String, String)] = Nil,
-                          metaLevelOverride: Option[Int] = None
+                          metaLevelOverride: Option[Int] = None,
+                          useBspRequestLogger: Boolean = false
                       ): RunnerLauncherState = {
                         val sessionOpt: Option[(LauncherLockingImpl, LauncherOutFilesImpl)] =
                           Option.when(serverToClientOpt.nonEmpty) {
@@ -377,16 +378,32 @@ object MillMain0 {
                           loggerOpt match {
                             case Some(logger) => proceed(logger)
                             case None =>
-                              Using.resource(getLogger(
-                                streams = streams,
-                                config = config,
-                                enableTicker = enableTicker,
-                                colored = colored,
-                                colors = colors,
-                                out = out,
-                                runArtifacts = runArtifacts,
-                                serverToClientOpt = serverToClientOpt
-                              )) { logger =>
+                              val loggerResource =
+                                if (useBspRequestLogger)
+                                  getBspLogger(
+                                    streams = streams,
+                                    config = config,
+                                    chromeProfilePath = runArtifacts match {
+                                      case LauncherOutFiles.Noop => out / OutFiles.millChromeProfile
+                                      case _ => os.Path(runArtifacts.chromeProfile)
+                                    },
+                                    consoleLogPathOpt = Some(runArtifacts match {
+                                      case LauncherOutFiles.Noop => out / DaemonFiles.millConsoleTail
+                                      case _ => os.Path(runArtifacts.consoleTail)
+                                    })
+                                  )
+                                else
+                                  getLogger(
+                                    streams = streams,
+                                    config = config,
+                                    enableTicker = enableTicker,
+                                    colored = colored,
+                                    colors = colors,
+                                    out = out,
+                                    runArtifacts = runArtifacts,
+                                    serverToClientOpt = serverToClientOpt
+                                  )
+                              Using.resource(loggerResource) { logger =>
                                 proceed(logger)
                               }
                           }
@@ -420,98 +437,105 @@ object MillMain0 {
                           _ => SystemStreams.originalErr.println("Received SIGTERM, exiting")
                         )
 
-                        val bspLogger = getBspLogger(streams, config)
+                        Using.resource(getBspLogger(
+                          streams = streams,
+                          config = config,
+                          chromeProfilePath =
+                            out / os.RelPath("mill-bsp") / OutFiles.millChromeProfile
+                        )) { bspLogger =>
+                          // Each BSP request (and the worker-side watcher loop)
+                          // calls into this bridge to obtain fresh evaluators
+                          // for one bootstrap's lifetime. `Using.resource` tears
+                          // down the resulting RunnerLauncherState — meta-build
+                          // read leases, retained per-task read leases,
+                          // evaluators — before the bridge call returns. No
+                          // shared mutable evaluator cache survives across
+                          // bridge calls; concurrent CLI launchers and concurrent
+                          // BSP requests each get their own RunnerLauncherState
+                          // and share the cached meta-build classloader via
+                          // RunnerSharedState, serializing at lock granularity
+                          // via processRunClasspath's read-first speculation.
+                          // Promise-backed so `bridgeReporter` blocks until the BuildClient is
+                          // wired in. Without this, an early watcher iteration that fires
+                          // between startBspServer returning and the .set call would silently
+                          // drop diagnostics from the very first compile after build/initialize.
+                          val bridgeBuildClientPromise =
+                            scala.concurrent.Promise[IdeWorkerSupport.BspBuildClient]()
+                          val bridgeReporter: EvaluatorApi => Int => Option[CompileProblemReporter] =
+                            ev => {
+                              val client = scala.concurrent.Await.result(
+                                bridgeBuildClientPromise.future,
+                                scala.concurrent.duration.Duration.Inf
+                              )
+                              IdeWorkerSupport.bspReporterPool(
+                                workspaceDir = BuildCtx.workspaceRoot,
+                                evaluators = Seq(ev),
+                                buildClient = client
+                              )
+                            }
 
-                        // Each BSP request (and the worker-side watcher loop)
-                        // calls into this bridge to obtain fresh evaluators
-                        // for one bootstrap's lifetime. `Using.resource` tears
-                        // down the resulting RunnerLauncherState — meta-build
-                        // read leases, retained per-task read leases,
-                        // evaluators — before the bridge call returns. No
-                        // shared mutable evaluator cache survives across
-                        // bridge calls; concurrent CLI launchers and concurrent
-                        // BSP requests each get their own RunnerLauncherState
-                        // and share the cached meta-build classloader via
-                        // RunnerSharedState, serializing at lock granularity
-                        // via processRunClasspath's read-first speculation.
-                        // Promise-backed so `bridgeReporter` blocks until the BuildClient is
-                        // wired in. Without this, an early watcher iteration that fires
-                        // between startBspServer returning and the .set call would silently
-                        // drop diagnostics from the very first compile after build/initialize.
-                        val bridgeBuildClientPromise =
-                          scala.concurrent.Promise[IdeWorkerSupport.BspBuildClient]()
-                        val bridgeReporter: EvaluatorApi => Int => Option[CompileProblemReporter] =
-                          ev => {
-                            val client = scala.concurrent.Await.result(
-                              bridgeBuildClientPromise.future,
-                              scala.concurrent.duration.Duration.Inf
-                            )
-                            IdeWorkerSupport.bspReporterPool(
-                              workspaceDir = BuildCtx.workspaceRoot,
-                              evaluators = Seq(ev),
-                              buildClient = client
-                            )
+                          val bootstrapBridge = new mill.api.daemon.internal.bsp.BspBootstrapBridge {
+                            override def runBootstrap[T](
+                                activeCommandMessage: String,
+                                body: mill.api.daemon.internal.bsp.BspBootstrapBridge.Body[T]
+                            ): T = Using.resource(
+                              runMillBootstrap(
+                                skipSelectiveExecution = false,
+                                prevState = None,
+                                tasksAndParams = Seq("resolve", "_"),
+                                streams = streams,
+                                millActiveCommandMessage = activeCommandMessage,
+                                reporter = bridgeReporter,
+                                useBspRequestLogger = true
+                              )
+                            ) { runnerState =>
+                              body.apply(
+                                mill.api.daemon.internal.bsp.BspBootstrapBridge.BootstrapState(
+                                  runnerState.allEvaluators.asJava,
+                                  runnerState.watched.asJava,
+                                  runnerState.errorOpt
+                                )
+                              )
+                            }
                           }
 
-                        val bootstrapBridge = new mill.api.daemon.internal.bsp.BspBootstrapBridge {
-                          override def runBootstrap[T](
-                              activeCommandMessage: String,
-                              body: mill.api.daemon.internal.bsp.BspBootstrapBridge.Body[T]
-                          ): T = Using.resource(
-                            runMillBootstrap(
-                              skipSelectiveExecution = false,
-                              prevState = None,
-                              tasksAndParams = Seq("resolve", "_"),
-                              streams = bspLogger.streams,
-                              millActiveCommandMessage = activeCommandMessage,
-                              loggerOpt = Some(bspLogger),
-                              reporter = bridgeReporter
-                            )
-                          ) { runnerState =>
-                            for (err <- runnerState.errorOpt) bspLogger.streams.err.println(err)
-                            body.apply(
-                              runnerState.allEvaluators.asJava,
-                              runnerState.watched.asJava
-                            )
+                          val (bspServerHandle, buildClient) = startBspServer(
+                            streams0,
+                            bspLogger,
+                            noWaitForBspLock = config.noWaitForBspLock.value,
+                            killOther = !config.bspNoKillOther.value,
+                            bspWatch = config.bspWatch,
+                            bootstrapBridge = bootstrapBridge
+                          )
+                          bridgeBuildClientPromise.success(buildClient)
+
+                          val shutdownResult =
+                            try Success(Await.result(
+                              bspServerHandle.shutdownFuture,
+                              Duration.Inf
+                            ))
+                            catch { case NonFatal(ex) => Failure(ex) }
+
+                          val errored = shutdownResult match {
+                            case Failure(ex) =>
+                              streams.err.println("BSP server threw an exception, exiting")
+                              ex.printStackTrace(streams.err)
+                              true
+                            case Success(BspServerResult.Shutdown) =>
+                              streams.err.println("BSP shutdown asked by client, exiting")
+                              // should make the lsp4j-managed BSP server exit
+                              streams.in.close()
+                              false
+                            case Success(BspServerResult.ReloadWorkspace) =>
+                              streams.err.println("BSP reload asked by client, exiting")
+                              streams.in.close()
+                              false
                           }
+
+                          bspServerHandle.close()
+                          streams.err.println("Exiting BSP runner loop")
+                          !errored
                         }
-
-                        val (bspServerHandle, buildClient) = startBspServer(
-                          streams0,
-                          bspLogger,
-                          noWaitForBspLock = config.noWaitForBspLock.value,
-                          killOther = !config.bspNoKillOther.value,
-                          bspWatch = config.bspWatch,
-                          bootstrapBridge = bootstrapBridge
-                        )
-                        bridgeBuildClientPromise.success(buildClient)
-
-                        val shutdownResult =
-                          try Success(Await.result(
-                            bspServerHandle.shutdownFuture,
-                            Duration.Inf
-                          ))
-                          catch { case NonFatal(ex) => Failure(ex) }
-
-                        val errored = shutdownResult match {
-                          case Failure(ex) =>
-                            streams.err.println("BSP server threw an exception, exiting")
-                            ex.printStackTrace(streams.err)
-                            true
-                          case Success(BspServerResult.Shutdown) =>
-                            streams.err.println("BSP shutdown asked by client, exiting")
-                            // should make the lsp4j-managed BSP server exit
-                            streams.in.close()
-                            false
-                          case Success(BspServerResult.ReloadWorkspace) =>
-                            streams.err.println("BSP reload asked by client, exiting")
-                            streams.in.close()
-                            false
-                        }
-
-                        bspServerHandle.close()
-                        streams.err.println("Exiting BSP runner loop")
-                        !errored
                       } else if (
                         config.leftoverArgs.value == Seq("mill.idea.GenIdea/idea") ||
                         config.leftoverArgs.value == Seq("mill.idea.GenIdea/") ||
@@ -737,16 +761,35 @@ object MillMain0 {
 
   def getBspLogger(
       streams: SystemStreams,
-      config: MillCliConfig
-  ): Logger = {
-    val outFolder = BuildCtx.workspaceRoot / os.RelPath(OutFiles.outFor(OutFolderMode.BSP))
-    val chromeProfileLogger = new JsonArrayLogger.ChromeProfile(
-      outFolder / OutFiles.millChromeProfile
-    )
+      config: MillCliConfig,
+      chromeProfilePath: os.Path,
+      consoleLogPathOpt: Option[os.Path] = None
+  ): Logger & AutoCloseable = {
+    val consoleLogStreamOpt = consoleLogPathOpt.map(new RotatingConsoleLogOutputStream(_))
+    val loggerStreams = consoleLogStreamOpt match {
+      case Some(consoleLogStream) =>
+        new SystemStreams(
+          new MultiStream(streams.out, consoleLogStream),
+          new MultiStream(streams.err, consoleLogStream),
+          streams.in
+        )
+      case None => streams
+    }
+    val chromeProfileLogger = new JsonArrayLogger.ChromeProfile(chromeProfilePath)
     new PrefixLogger(
-      new BspLogger(streams, Seq("bsp"), debugEnabled = config.debugLog.value, chromeProfileLogger),
+      new BspLogger(
+        loggerStreams,
+        Seq("bsp"),
+        debugEnabled = config.debugLog.value,
+        chromeProfileLogger
+      ),
       Nil
-    )
+    ) with AutoCloseable {
+      override def close(): Unit = {
+        chromeProfileLogger.close()
+        consoleLogStreamOpt.foreach(_.close())
+      }
+    }
   }
 
   /**

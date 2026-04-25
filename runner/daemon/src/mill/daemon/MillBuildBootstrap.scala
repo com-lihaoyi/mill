@@ -324,8 +324,12 @@ class MillBuildBootstrap(
     val collectSelectiveMetadata = tasksAndParams.nonEmpty
 
     def outerModuleWatched: Seq[Watchable] =
-      sharedState.get().moduleWatchedAt(depth - 1)
-        .orElse(prevCommandState.moduleWatchedAt(depth - 1))
+      // Final-depth module watches are launcher-local, so keep the previous
+      // watch-loop iteration's value as a fallback there. Meta-build depths
+      // publish their latest watch snapshot into sharedState even on failure,
+      // so sharedState remains the canonical source for parent invalidation.
+      prevCommandState.finalModuleWatchedAt(depth - 1)
+        .orElse(sharedState.get().moduleWatchedAt(depth - 1))
         .getOrElse(Nil)
 
     def watchedParentInputsChanged(): Boolean =
@@ -409,6 +413,16 @@ class MillBuildBootstrap(
                 reporter = reporter(evaluator)
               ) match {
                 case (f: Result.Failure, evalWatches, moduleWatches) =>
+                  val failedShared = RunnerSharedState.Frame(
+                    evalWatched = evalWatches,
+                    moduleWatched = Some(moduleWatches)
+                  )
+                  val previous = sharedState.getAndUpdate(_.withFrame(depth, failedShared))
+                  Seq(
+                    prevCommandState.metaBuildFrameAt(depth)
+                      .flatMap(_.sharedFrame.classLoaderOpt),
+                    previous.frames.get(depth).flatMap(_.classLoaderOpt)
+                  ).flatten.distinct.foreach(_.close())
                   writeLease.close()
                   nestedState
                     .withMetaBuildFrame(
@@ -417,7 +431,7 @@ class MillBuildBootstrap(
                         evaluator,
                         evalWatches,
                         moduleWatches
-                      )
+                      ).copy(sharedFrame = failedShared)
                     )
                     .withError(mill.internal.Util.formatError(f, logger.prompt.errorColor))
 

@@ -186,32 +186,33 @@ private abstract class MillBuildServer(
             val watchedSeq = bootstrapBridge.runBootstrap(
               "BSP:watch",
               new BspBootstrapBridge.Body[Seq[Watchable]] {
-                override def apply(
-                    evaluators: java.util.List[EvaluatorApi],
-                    watched: java.util.List[Watchable]
-                ): Seq[Watchable] = {
-                  val bspEvaluators = new BspEvaluators(
-                    topLevelProjectRoot,
-                    evaluators.asScala.toSeq,
-                    s => baseLogger.debug(s()),
-                    watched.asScala.toSeq
-                  )
-                  val current = bspEvaluators.targetSnapshots
-                  // Re-read `client` each iteration: `onConnectWithClient`
-                  // may run after `startWatcherThread`, so capturing once at
-                  // thread start would silently leave `client0` null forever
-                  // and never deliver `buildTargetDidChange`.
-                  val currentClient = client
-                  if (seenAnyBootstrap && currentClient != null)
-                    ChangeNotifier.notifyChanges(
-                      currentClient,
-                      prevTargetSnapshots,
-                      current
+                override def apply(state: BspBootstrapBridge.BootstrapState): Seq[Watchable] =
+                  if (state.errorOpt.isDefined && state.evaluators.isEmpty) {
+                    state.watched.asScala.toSeq
+                  } else {
+                    val bspEvaluators = new BspEvaluators(
+                      topLevelProjectRoot,
+                      state.evaluators.asScala.toSeq,
+                      s => baseLogger.debug(s()),
+                      state.watched.asScala.toSeq,
+                      state.errorOpt
                     )
-                  prevTargetSnapshots = current
-                  seenAnyBootstrap = true
-                  watched.asScala.toSeq
-                }
+                    val current = bspEvaluators.targetSnapshots
+                    // Re-read `client` each iteration: `onConnectWithClient`
+                    // may run after `startWatcherThread`, so capturing once at
+                    // thread start would silently leave `client0` null forever
+                    // and never deliver `buildTargetDidChange`.
+                    val currentClient = client
+                    if (seenAnyBootstrap && currentClient != null)
+                      ChangeNotifier.notifyChanges(
+                        currentClient,
+                        prevTargetSnapshots,
+                        current
+                      )
+                    prevTargetSnapshots = current
+                    seenAnyBootstrap = true
+                    state.watched.asScala.toSeq
+                  }
               }
             )
 
@@ -369,7 +370,7 @@ private abstract class MillBuildServer(
       requestName: String,
       logger: Logger,
       future: CompletableFuture[?],
-      run: (Seq[EvaluatorApi], Seq[Watchable]) => Unit,
+      run: BspBootstrapBridge.BootstrapState => Unit,
       failFuture: Throwable => Unit
   )
 
@@ -425,11 +426,12 @@ private abstract class MillBuildServer(
       bootstrapBridge.runBootstrap(
         s"BSP:${req.requestName}",
         new BspBootstrapBridge.Body[Unit] {
-          override def apply(
-              evaluators: java.util.List[EvaluatorApi],
-              watched: java.util.List[Watchable]
-          ): Unit =
-            req.run(evaluators.asScala.toSeq, watched.asScala.toSeq)
+          override def apply(state: BspBootstrapBridge.BootstrapState): Unit =
+            if (state.errorOpt.isDefined && state.evaluators.isEmpty) {
+              val error = state.errorOpt.get
+              req.logger.error(error)
+              req.failFuture(new IllegalStateException(error))
+            } else req.run(state)
         }
       )
     } catch {
@@ -473,7 +475,7 @@ private abstract class MillBuildServer(
         requestName = prefix,
         logger = logger,
         future = future,
-        run = (evaluators, watched) => {
+        run = bootstrapState => {
           // The cancel check is also done in `runQueuedRequest` before the
           // bootstrap, but a request might be cancelled between bootstrap
           // start and body invocation; preserve that behavior here too.
@@ -482,9 +484,10 @@ private abstract class MillBuildServer(
           } else {
             val bspEvaluators = new BspEvaluators(
               topLevelProjectRoot,
-              evaluators,
+              bootstrapState.evaluators.asScala.toSeq,
               s => baseLogger.debug(s()),
-              watched
+              bootstrapState.watched.asScala.toSeq,
+              bootstrapState.errorOpt
             )
             executeWithTiming(prefix, logger, future)(block(bspEvaluators, logger))
           }

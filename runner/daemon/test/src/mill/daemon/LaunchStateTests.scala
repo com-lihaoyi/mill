@@ -91,6 +91,18 @@ object LaunchStateTests extends TestSuite {
       assert(state.processedDepths == 2)
     }
 
+    test("finalModuleWatchedAt only reads the launcher-local final frame") {
+      val finalEvaluator = new StubEvaluator(() => ())
+      val state = RunnerLauncherState.empty
+        .withMetaBuildFrame(
+          RunnerLauncherState.MetaBuildFrame.failed(1, new StubEvaluator(() => ()), Nil, Nil)
+        )
+        .withFinalFrame(RunnerLauncherState.FinalFrame(0, finalEvaluator, Nil, Nil))
+
+      assert(state.finalModuleWatchedAt(0).contains(Nil))
+      assert(state.finalModuleWatchedAt(1).isEmpty)
+    }
+
     test("RunnerSharedState frameAt and moduleWatchedAt round-trip") {
       val frame = RunnerSharedState.Frame(moduleWatched = Some(Nil))
       val state = RunnerSharedState.empty.withFrame(0, frame)

@@ -35,16 +35,22 @@ trait BspBootstrapBridge {
 }
 
 object BspBootstrapBridge {
+  final case class BootstrapState(
+      evaluators: java.util.List[EvaluatorApi],
+      watched: java.util.List[Watchable],
+      errorOpt: Option[String]
+  )
 
   /**
    * Java-functional-interface form of the body: receives evaluators and the
-   * watched inputs accumulated during this bootstrap. Defined as a SAM trait
-   * (not Scala FunctionN) so the BSP-worker classloader can implement it
+   * watched inputs accumulated during this bootstrap, together with any
+   * bootstrap failure that occurred while preparing them. Defined as a SAM
+   * trait (not Scala FunctionN) so the BSP-worker classloader can implement it
    * without depending on Scala's standard-library function classes resolved
    * against the daemon's classloader.
    */
   @FunctionalInterface
   trait Body[T] {
-    def apply(evaluators: java.util.List[EvaluatorApi], watched: java.util.List[Watchable]): T
+    def apply(state: BootstrapState): T
   }
 }

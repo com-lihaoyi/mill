@@ -62,7 +62,7 @@ private[mill] final class LauncherOutFilesImpl(
 
   os.makeDir.all(runDir)
   writeLauncherRunFile()
-  cleanup(out, daemonDir)
+  cleanup(out, daemonDir, launcherLocks)
 
   override def publishLiveArtifacts(): Unit =
     if (!closed.get()) publishLatest(publishedArtifacts.head, launcherLocks)
@@ -74,7 +74,7 @@ private[mill] final class LauncherOutFilesImpl(
     if (closed.compareAndSet(false, true)) {
       try mill.api.BuildCtx.withFilesystemCheckerDisabled(os.remove(launcherRunFile))
       catch { case _: Throwable => }
-      cleanup(out, daemonDir)
+      cleanup(out, daemonDir, launcherLocks)
     }
 
   private def writeLauncherRunFile(): Unit = {
@@ -140,7 +140,11 @@ private[mill] object LauncherOutFilesImpl {
    *
    * Then sweep any `out/mill-*` symlink whose target no longer resolves.
    */
-  private def cleanup(out: os.Path, daemonDir: os.Path): Unit = {
+  private def cleanup(
+      out: os.Path,
+      daemonDir: os.Path,
+      launcherLocks: LauncherSessionState
+  ): Unit = {
     try {
       val runRootDir = out / LauncherSessionState.runRootDirName
       if (os.exists(runRootDir)) {
@@ -160,23 +164,26 @@ private[mill] object LauncherOutFilesImpl {
         )
       }
 
-      // Sweep dangling well-known symlinks (point at a target that no longer
-      // resolves, e.g. because the target's run dir was just GC'd above). The
-      // isLink + exists + remove chain is technically racy against another
-      // launcher that's mid-publish for the same artifact: between our checks
-      // and our delete, that launcher could atomic-move a fresh symlink into
-      // place and we'd delete a freshly-valid link. We accept the rare case
-      // — the next publish or cleanup will restore it — rather than serialize
-      // publishes against cleanups, which would defeat the concurrent-
-      // launcher design.
       wellKnownArtifactLinks.foreach { rel =>
         val link = out / rel
-        if (os.isLink(link) && !os.exists(link, followLinks = true)) {
-          try os.remove(link)
-          catch { case _: Throwable => }
+        withArtifactLock(link, launcherLocks) {
+          if (os.isLink(link) && !os.exists(link, followLinks = true)) {
+            try os.remove(link)
+            catch { case _: Throwable => }
+          }
         }
       }
     } catch { case _: Throwable => }
+  }
+
+  private def withArtifactLock[T](
+      link: os.Path,
+      launcherLocks: LauncherSessionState
+  )(body: => T): T = {
+    val normalizedAbsolutePath = link.toNIO.toAbsolutePath.normalize.toString
+    launcherLocks.artifactLockFor(normalizedAbsolutePath).synchronized {
+      body
+    }
   }
 
   /**
@@ -236,15 +243,17 @@ private[mill] object LauncherOutFilesImpl {
       artifact: PublishedArtifact,
       launcherLocks: LauncherSessionState
   ): Unit = {
-    if (os.exists(artifact.target))
-      try updateSymlink(artifact.link, artifact.target, launcherLocks)
-      catch {
-        case e: Throwable =>
-          mill.api.Debug(
-            s"Failed to publish ${artifact.link.last} as a symlink: ${e.getClass.getSimpleName}: ${e.getMessage}"
-          )
-          if (artifact.copyFallback) replaceWithCopy(artifact.link, artifact.target, launcherLocks)
-      }
+    withArtifactLock(artifact.link, launcherLocks) {
+      if (os.exists(artifact.target))
+        try updateSymlink(artifact.link, artifact.target, launcherLocks)
+        catch {
+          case e: Throwable =>
+            mill.api.Debug(
+              s"Failed to publish ${artifact.link.last} as a symlink: ${e.getClass.getSimpleName}: ${e.getMessage}"
+            )
+            if (artifact.copyFallback) replaceWithCopy(artifact.link, artifact.target, launcherLocks)
+        }
+    }
   }
 
   /**

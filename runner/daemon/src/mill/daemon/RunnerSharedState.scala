@@ -68,6 +68,11 @@ object RunnerSharedState {
   /**
    * One depth's shared state: the published reusable meta-build payload (if any)
    * and the most recent moduleWatched snapshot recorded at that depth.
+   *
+   * `moduleWatched` is published even when evaluation at this depth failed to
+   * produce a reusable classloader. That "watch-only" frame ensures later
+   * launchers invalidate deeper cached frames against the latest parent-watch
+   * set rather than an older successful build's stale watches.
    */
   case class Frame(
       evalWatched: Seq[Watchable] = Nil,
