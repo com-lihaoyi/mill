@@ -2,7 +2,7 @@ package mill.daemon
 
 import mill.api.{MillURLClassLoader, Val}
 import mill.api.daemon.Watchable
-import mill.api.daemon.internal.{PathRefApi, TaskApi, internal}
+import mill.api.daemon.internal.{PathRefApi, TaskApi}
 import mill.api.internal.RootModule
 import mill.exec.GroupExecution
 
@@ -49,18 +49,16 @@ object RunnerSharedState {
       usesDummy: Boolean
   )
 
-  sealed trait Frame {
+  enum Frame {
     def evalWatched: Seq[Watchable]
     def moduleWatched: Seq[Watchable]
-  }
 
-  object Frame {
-    case class Failed(
+    case Failed(
         evalWatched: Seq[Watchable] = Nil,
         moduleWatched: Seq[Watchable] = Nil
-    ) extends Frame
+    )
 
-    case class Reusable(
+    case Reusable(
         evalWatched: Seq[Watchable],
         moduleWatched: Seq[Watchable],
         classLoader: MillURLClassLoader,
@@ -69,7 +67,7 @@ object RunnerSharedState {
         codeSignatures: Map[String, Int],
         buildOverrideFiles: Map[java.nio.file.Path, String],
         selectiveMetadata: Option[String]
-    ) extends Frame
+    )
   }
 
   case class WorkerCacheSlot(

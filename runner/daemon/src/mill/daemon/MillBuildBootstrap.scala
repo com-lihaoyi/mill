@@ -417,7 +417,7 @@ class MillBuildBootstrap(
             Seq("java.", "javax.", "scala.", "mill.api.daemon", "sbt.testing.")
         )
       }
-      val fresh = RunnerSharedState.Frame.Reusable(
+      val fresh: SharedFrame = RunnerSharedState.Frame.Reusable(
         evalWatched = evalWatches,
         moduleWatched = moduleWatches,
         classLoader = createClassLoader(),

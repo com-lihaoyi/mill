@@ -27,12 +27,10 @@ object BspWorkerImpl {
       noWaitForBspLock: Boolean,
       killOther: Boolean,
       bspWatch: Boolean,
-      bootstrapBridge: String => (
-          Seq[EvaluatorApi],
-          Seq[Watchable],
-          Option[String],
-          AutoCloseable
-      )
+      bootstrapBridge: [T] => (
+          String,
+          (Seq[EvaluatorApi], Seq[Watchable], Option[String]) => T
+      ) => T
   ): mill.api.Result[(BspServerHandle, BuildClient)] = {
 
     try {

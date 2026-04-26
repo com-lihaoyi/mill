@@ -94,7 +94,7 @@ private object IdeWorkerSupport {
       classOf[Boolean],
       classOf[Boolean],
       classOf[Boolean],
-      classOf[scala.Function1[?, ?]]
+      classOf[scala.Function2[?, ?, ?]]
     )
 
     val bspEvaluatorsClass = classLoader.loadClass("mill.bsp.worker.BspEvaluators")

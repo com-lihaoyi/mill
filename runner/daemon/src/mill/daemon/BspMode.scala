@@ -10,19 +10,16 @@ import sun.misc.Signal
 import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Using}
 
 private[daemon] object BspMode {
   type RunBootstrap =
     (String, Option[RunnerLauncherState], SystemStreams, Boolean) => RunnerLauncherState
 
-  // The bridge returns the bootstrap attempt's evaluators, watched set, errorOpt,
-  // and an AutoCloseable that releases the underlying RunnerLauncherState. The
-  // caller (MillBuildServer) owns the closeable and decides whether to release it
-  // immediately (broken attempt) or retain it across requests (successful attempt
-  // serving as fallback during a future broken attempt).
-  type BootstrapBridge =
-    String => (Seq[EvaluatorApi], Seq[Watchable], Option[String], AutoCloseable)
+  type BootstrapBridge = [T] => (
+      String,
+      (Seq[EvaluatorApi], Seq[Watchable], Option[String]) => T
+  ) => T
 
   def run(
       streams: SystemStreams,
@@ -36,12 +33,15 @@ private[daemon] object BspMode {
 
     val bspPrevState = new AtomicReference[Option[RunnerLauncherState]](None)
 
-    val bootstrapBridge: BootstrapBridge = activeCommandMessage => {
-      val newState = runMillBootstrap(activeCommandMessage, bspPrevState.get(), streams, true)
-      if (newState.errorOpt.isEmpty && newState.finalFrame.isDefined)
-        bspPrevState.set(Some(newState))
-      (newState.allEvaluators, newState.watched, newState.errorOpt, newState)
-    }
+    val bootstrapBridge: BootstrapBridge = [T] =>
+      (activeCommandMessage, body) =>
+        Using.resource(
+          runMillBootstrap(activeCommandMessage, bspPrevState.get(), streams, true)
+        ) { runnerState =>
+          if (runnerState.errorOpt.isEmpty && runnerState.finalFrame.isDefined)
+            bspPrevState.set(Some(runnerState))
+          body(runnerState.allEvaluators, runnerState.watched, runnerState.errorOpt)
+        }
 
     val (bspServerHandle, _) = startBspServer(bootstrapBridge)
 
