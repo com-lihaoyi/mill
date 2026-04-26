@@ -7,7 +7,7 @@ import mill.internal.LauncherRecordStore
 import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicBoolean
 
-private[mill] class SharedOutLockManager(
+class SharedOutLockManager(
     fileLock: Lock,
     out: os.Path
 ) extends AutoCloseable {
