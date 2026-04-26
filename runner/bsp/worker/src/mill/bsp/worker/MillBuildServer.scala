@@ -92,7 +92,12 @@ private abstract class MillBuildServer(
         targetId,
         displayName,
         taskId,
-        compilationOriginId = None
+        // Match the user-build path (`Utils.getBspLoggedReporterPool("", …)`),
+        // which threads an empty-string originId through `Option(originId)` to
+        // `Some("")`. Using `None` here would omit the `originId` field from
+        // emitted `PublishDiagnosticsParams`/`CompileReport` JSON, which the
+        // BSP diagnostics snapshot tests assert is present (even when empty).
+        compilationOriginId = Some("")
       ))
     }
   }

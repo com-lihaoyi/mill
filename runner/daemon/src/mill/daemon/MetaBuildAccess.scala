@@ -33,6 +33,16 @@ private[daemon] class MetaBuildAccess(
   def snapshot(): RunnerSharedState = ref.get()
 
   /**
+   * Atomically replace the daemon-wide user-level (depth = 0) `moduleWatched`.
+   * Bypasses the meta-build lock because this field is not coupled to any
+   * classloader/worker lifetime — the next launcher's depth-1 reusable check
+   * just reads it as a "did the outer inputs change since last run" signal.
+   */
+  def publishUserFinalModuleWatched(moduleWatched: Seq[mill.api.daemon.Watchable]): Unit = {
+    val _ = ref.updateAndGet(_.withUserFinalModuleWatched(moduleWatched))
+  }
+
+  /**
    * Read-then-write meta-build lock dance at `depth`.
    *
    * `probe` runs under a read lock; if it returns [[LockUpgrade.Decision.Complete]]

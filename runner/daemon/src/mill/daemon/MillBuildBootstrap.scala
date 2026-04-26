@@ -118,12 +118,15 @@ class MillBuildBootstrap(
 
       // If an earlier frame errored out, just propagate the error to this frame.
       if (nestedState.errorOpt.isDefined) nestedState
-      else if (depth == 0 && (requestedDepth > nestedDepths || requestedDepth < 0)) {
+      else if (nestedState.finalFrame.isDefined) {
+        // Final tasks already ran at a deeper level due to `--meta-level` or `@nonBootstrapped`.
+        // The deeper level validated the requested depth, so skip the depth==0 range check
+        // here — `metaFrames` does not grow when we just propagate, so the check would fire
+        // spuriously for valid `--meta-level N` requests satisfied below.
+        nestedState
+      } else if (depth == 0 && (requestedDepth > nestedDepths || requestedDepth < 0)) {
         // User has requested a frame depth that does not exist.
         nestedState.withError(invalidLevelMsg(requestedMetaLevel, nestedDepths))
-      } else if (nestedState.finalFrame.isDefined) {
-        // Final tasks already ran at a deeper level due to `--meta-level` or `@nonBootstrapped`.
-        nestedState
       } else {
         val rootModuleRes = nestedState.metaFrames.headOption match {
           case None =>
@@ -324,7 +327,7 @@ class MillBuildBootstrap(
           Result.Success(ReuseProbe(frameOpt, None))
         case Some(_) if watchedParentInputsChanged() => Result.Success(ReuseProbe(frameOpt, None))
         case Some(frame) =>
-          frame.reusable.flatMap(_.selectiveMetadata) match {
+          frame.reusable.flatMap(_.selectiveMetadata.get()) match {
             case None => Result.Success(ReuseProbe(frameOpt, None))
             case Some(previousMetadata) =>
               evaluator
@@ -454,8 +457,9 @@ class MillBuildBootstrap(
           compileOutput = compileClasses,
           codeSignatures = codeSignatures,
           buildOverrideFiles = buildOverrideFiles,
-          selectiveMetadata =
+          selectiveMetadata = new java.util.concurrent.atomic.AtomicReference(
             Option.when(collectSelectiveMetadata)(readSelectiveMetadataFile()).flatten
+          )
         ))
       )
       val displaced = writeScope.update(_.withFrame(depth, fresh)).reusableFrameAt(depth)
@@ -612,6 +616,44 @@ class MillBuildBootstrap(
       selectiveExecution = selectiveExecution,
       reporter = reporter(evaluator)
     )
+
+    // Publish the user-level (depth == 0) moduleWatched daemon-wide so the
+    // *next* launcher's depth-1 reusable check sees these watches as the
+    // "outer" inputs and recreates the meta-build classloader when they
+    // change (e.g. `BuildCtx.watchValue` over `os.list(...)` after the
+    // listed directory was modified). Without this, only meta-build frames
+    // (depth >= 1) survive across launchers, and the user-level watches
+    // would be lost.
+    if (depth == 0) {
+      metaBuild.publishUserFinalModuleWatched(moduleWatched)
+
+      // If the user-level evaluation modified meta-build inputs (e.g. spotless
+      // reformatting `build.mill`), refresh each enclosing meta-build frame's
+      // in-memory `selectiveMetadata` to reflect the post-evaluation file
+      // state. Otherwise the next launcher's `probeSelectiveReuse` would
+      // compare current files against pre-evaluation metadata and force a
+      // classloader rebuild that wipes cached workers.
+      nestedState.metaFrames.foreach { metaFrame =>
+        metaFrame.sharedFrame.reusable.foreach { reusable =>
+          val previous = reusable.selectiveMetadata.get()
+          previous.foreach { prev =>
+            metaFrame.evaluator.probeSelectiveReuse(
+              Seq("millBuildRootModuleResult"),
+              SelectMode.Separated,
+              prev
+            ) match {
+              case Result.Success(decision) =>
+                reusable.selectiveMetadata.set(Some(decision.nextMetadata))
+                val metadataFile =
+                  os.Path(metaFrame.evaluator.outPathJava) / OutFiles.millSelectiveExecution
+                try os.write.over(metadataFile, decision.nextMetadata)
+                catch { case _: Throwable => () }
+              case _: Result.Failure => ()
+            }
+          }
+        }
+      }
+    }
 
     val failed = evaled.isInstanceOf[Result.Failure]
     val withFinal = nestedState.withFinalFrame(

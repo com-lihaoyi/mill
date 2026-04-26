@@ -94,7 +94,9 @@ private object IdeWorkerSupport {
       classOf[Boolean],
       classOf[Boolean],
       classOf[Boolean],
-      classOf[scala.Function2[?, ?, ?]]
+      // `BspMode.BootstrapBridge` is a polymorphic function `[T] => (a, b, c) => T`
+      // with three value parameters, which erases to `scala.Function3` (not Function2).
+      classOf[scala.Function3[?, ?, ?, ?]]
     )
 
     val bspEvaluatorsClass = classLoader.loadClass("mill.bsp.worker.BspEvaluators")
