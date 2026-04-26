@@ -317,13 +317,13 @@ case class Execution(
                         leaseTracker = tracker
                       )
 
-                    // Count new failures - if there are upstream failures, tasks should be skipped, not failed
+                      // Count new failures - if there are upstream failures, tasks should be skipped, not failed
                       val newFailures = res.newResults.values.count(r => r.asFailing.isDefined)
 
                       rootFailedCount.addAndGet(newFailures)
                       completedCount.incrementAndGet()
 
-                    // Always show completed count in header after task finishes
+                      // Always show completed count in header after task finishes
                       logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix())
 
                       if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
@@ -349,14 +349,14 @@ case class Execution(
                     }
                   }
                 } catch {
-                // Let StopWithResponse propagate - it's a controlled shutdown signal
-                case e: mill.api.daemon.StopWithResponse[?] => throw e
-                // Wrapping the fatal error in a non-fatal exception, so it would be caught by Scala's Future
-                // infrastructure, rather than silently terminating the future and leaving downstream Awaits hanging.
+                  // Let StopWithResponse propagate - it's a controlled shutdown signal
+                  case e: mill.api.daemon.StopWithResponse[?] => throw e
+                  // Wrapping the fatal error in a non-fatal exception, so it would be caught by Scala's Future
+                  // infrastructure, rather than silently terminating the future and leaving downstream Awaits hanging.
                   case e: Throwable if !mill.api.daemon.internal.NonFatal(e) =>
                     val nonFatal = new Exception(s"fatal exception occurred: $e", e)
-                  // Set the stack trace of the non-fatal exception to the original exception's stack trace
-                  // as it actually indicates the location of the error.
+                    // Set the stack trace of the non-fatal exception to the original exception's stack trace
+                    // as it actually indicates the location of the error.
                     nonFatal.setStackTrace(e.getStackTrace)
                     throw nonFatal
                 } finally {
@@ -367,7 +367,7 @@ case class Execution(
           }
 
           // Make sure we wait for all tasks from this batch to finish before starting the next
-        // one, so we don't mix up exclusive and non-exclusive tasks running at the same time
+          // one, so we don't mix up exclusive and non-exclusive tasks running at the same time
           terminals.map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
         }
 
@@ -376,8 +376,8 @@ case class Execution(
           case _ => !serialCommandExec
         }
 
-      // Run all non-command tasks according to the threads
-      // given but run the commands in linear order
+        // Run all non-command tasks according to the threads
+        // given but run the commands in linear order
         val nonExclusiveResults = evaluateTerminals(nonExclusiveTasks, exclusive = false)
 
         val exclusiveResults = evaluateTerminals(leafExclusiveCommands, exclusive = true)
@@ -447,7 +447,6 @@ case class Execution(
 }
 
 object Execution {
-
 
   /**
    * Tracks per-task read leases on the workspace lock and releases them once

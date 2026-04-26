@@ -15,7 +15,7 @@ import upickle.{ReadWriter, macroRW}
  * active evaluators, retained meta-build read leases, final-task watches,
  * and the launcher session/artifact handles.
  */
-@internal
+
 case class RunnerLauncherState(
     errorOpt: Option[String] = None,
     buildFile: Option[String] = None,
@@ -83,7 +83,6 @@ case class RunnerLauncherState(
 object RunnerLauncherState {
   def empty: RunnerLauncherState = RunnerLauncherState()
 
-  @internal
   case class MetaBuildFrame(
       depth: Int,
       evaluator: EvaluatorApi,
@@ -138,7 +137,6 @@ object RunnerLauncherState {
       )
   }
 
-  @internal
   case class FinalFrame(
       depth: Int,
       evaluator: EvaluatorApi,
