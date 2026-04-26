@@ -43,13 +43,13 @@ trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
   def loadFrames(
       tester: IntegrationTester,
       n: Int
-  ): IndexedSeq[(RunnerLauncherState.Frame.Logged, os.Path)] = {
+  ): IndexedSeq[(RunnerLauncherState.Logged, os.Path)] = {
     for (depth <- Range(0, n))
       yield {
         val path =
           tester.workspacePath / "out" / Seq.fill(depth)(millBuild) / millRunnerState
-        if (os.exists(path)) upickle.read[RunnerLauncherState.Frame.Logged](os.read(path)) -> path
-        else RunnerLauncherState.Frame.Logged(Map(), Seq(), Seq(), None, Seq(), 0) -> path
+        if (os.exists(path)) upickle.read[RunnerLauncherState.Logged](os.read(path)) -> path
+        else RunnerLauncherState.Logged(Map(), Seq(), Seq(), None, Seq(), 0) -> path
       }
   }
 
