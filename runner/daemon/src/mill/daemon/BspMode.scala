@@ -36,17 +36,12 @@ private[daemon] object BspMode {
     val bootstrapBridge: BootstrapBridge = [T] =>
       (activeCommandMessage, body) =>
         Using.resource(
-          runMillBootstrap(
-            activeCommandMessage,
-            bspPrevState.get(),
-            streams,
-            true
-          )
+          runMillBootstrap(activeCommandMessage, bspPrevState.get(), streams, true)
         ) { runnerState =>
           if (runnerState.errorOpt.isEmpty && runnerState.finalFrame.isDefined)
             bspPrevState.set(Some(runnerState))
           body(runnerState.allEvaluators, runnerState.watched, runnerState.errorOpt)
-      }
+        }
 
     val (bspServerHandle, _) = startBspServer(bootstrapBridge)
 

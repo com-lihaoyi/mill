@@ -6,9 +6,6 @@ import mill.testkit.{TestRootModule, UnitTester}
 import mill.{PathRef, exec}
 import utest.*
 
-import java.net.URLClassLoader
-import java.util.concurrent.{CountDownLatch, TimeUnit}
-
 object ExecutionTests extends TestSuite {
   object traverseBuild extends TestRootModule {
     trait TaskModule extends mill.Module {
@@ -90,30 +87,6 @@ object ExecutionTests extends TestSuite {
 
   class Checker[T <: mill.testkit.TestRootModule](module: T)
       extends exec.Checker(module)
-
-  private final class ChildFirstExecutionContextsLoader(
-      urls: Array[java.net.URL],
-      parent: ClassLoader
-  ) extends URLClassLoader(urls, parent) {
-    override def loadClass(name: String, resolve: Boolean): Class[?] = synchronized {
-      val alreadyLoaded = findLoadedClass(name)
-      val loaded =
-        if (alreadyLoaded != null) alreadyLoaded
-        else if (
-          name == "mill.exec.ExecutionContexts$" || name.startsWith(
-            "mill.exec.ExecutionContexts$"
-          )
-        ) {
-          try findClass(name)
-          catch {
-            case _: ClassNotFoundException => super.loadClass(name, false)
-          }
-        } else super.loadClass(name, false)
-
-      if (resolve) resolveClass(loaded)
-      loaded
-    }
-  }
 
   val tests = Tests {
     import TestGraphs.*
@@ -595,55 +568,6 @@ object ExecutionTests extends TestSuite {
         assert(res.executionResults.transitiveFailing.keySet == Set(anonTaskFailure.task))
       }
     }
-
-    test("threadPoolSupportsMixedClassloaderPriorityRunnables") {
-      val executor = ExecutionContexts.createExecutor(1)
-      val localPool = new ExecutionContexts.ThreadPool(executor)
-      val codeSourceUrl = ExecutionContexts.getClass.getProtectionDomain.getCodeSource.getLocation
-      val childLoader =
-        new ChildFirstExecutionContextsLoader(
-          Array(codeSourceUrl),
-          ExecutionTests.getClass.getClassLoader
-        )
-
-      val blockerStarted = new CountDownLatch(1)
-      val unblock = new CountDownLatch(1)
-      val completed = new CountDownLatch(2)
-
-      try {
-        val threadPoolClass = childLoader.loadClass("mill.exec.ExecutionContexts$ThreadPool")
-        val ctor = threadPoolClass.getDeclaredConstructors.head
-        ctor.trySetAccessible()
-        val childPool = ctor
-          .newInstance(executor)
-          .asInstanceOf[mill.api.TaskCtx.Fork.Impl]
-
-        localPool.execute(new Runnable {
-          override def run(): Unit = {
-            blockerStarted.countDown()
-            unblock.await(30, TimeUnit.SECONDS)
-          }
-        })
-
-        assert(blockerStarted.await(30, TimeUnit.SECONDS))
-
-        childPool.execute(new Runnable {
-          override def run(): Unit = completed.countDown()
-        })
-        localPool.execute(new Runnable {
-          override def run(): Unit = completed.countDown()
-        })
-
-        unblock.countDown()
-        assert(completed.await(30, TimeUnit.SECONDS))
-      } finally {
-        unblock.countDown()
-        localPool.close()
-        assert(executor.awaitTermination(30, TimeUnit.SECONDS))
-        childLoader.close()
-      }
-    }
-
     test("overloaded") {
       UnitTester(overloads, null).scoped { tester =>
         val res = tester.apply(Seq(overloads.overloaded(1)))

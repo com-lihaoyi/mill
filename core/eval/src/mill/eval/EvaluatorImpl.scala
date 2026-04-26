@@ -319,6 +319,7 @@ final class EvaluatorImpl(
       selectiveExecution: Boolean = false
   ): Evaluator.Result[T] = {
     val selectiveExecutionEnabled = selectiveExecution && !tasks.exists(_.isExclusiveCommand)
+
     val (selectedTasks, selectiveResults, maybeNewMetadata) =
       if (!selectiveExecutionEnabled) (tasks, Map.empty, None)
       else {

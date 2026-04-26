@@ -45,7 +45,7 @@ case class Execution(
 ) extends GroupExecution with AutoCloseable {
 
   // Track nesting depth of executeTasks calls to only show final status on outermost call
-  private val executionNestingDepth = new AtomicInteger(0)
+  val executionNestingDepth = new AtomicInteger(0)
 
   // Lazily computed worker dependency graph, cached for the duration of the execution. It's
   // ok to take a snapshot of the cache, since the workerCache entries we may want to remove
@@ -126,70 +126,6 @@ case class Execution(
 
   def withIsFinalDepth(newIsFinalDepth: Boolean) = this.copy(isFinalDepth = newIsFinalDepth)
 
-  private def newDownstreamTracker(
-      indexToTerminal: Array[Task[?]],
-      interGroupDeps: Map[Task[?], Seq[Task[?]]]
-  ): Execution.LeaseTracker = {
-    val retainedLeasesByTask =
-      new ConcurrentHashMap[Task[?], java.util.concurrent.ConcurrentLinkedQueue[
-        LauncherLocking.Lease
-      ]]()
-    val pendingCount = new ConcurrentHashMap[Task[?], AtomicInteger]()
-    for (t <- indexToTerminal) {
-      pendingCount.put(t, new AtomicInteger(0))
-      retainedLeasesByTask.put(
-        t,
-        new java.util.concurrent.ConcurrentLinkedQueue[LauncherLocking.Lease]()
-      )
-    }
-    for ((_, deps) <- interGroupDeps; dep <- deps) {
-      val c = pendingCount.get(dep)
-      if (c != null) c.incrementAndGet()
-    }
-
-    def releaseLeasesFor(task: Task[?]): Unit = {
-      val q = retainedLeasesByTask.remove(task)
-      if (q != null) {
-        var lease = q.poll()
-        while (lease != null) {
-          try lease.close()
-          catch { case _: Throwable => () }
-          lease = q.poll()
-        }
-      }
-    }
-
-    new Execution.LeaseTracker {
-      override def retain(task: Task[?], lease: LauncherLocking.Lease): Unit = {
-        val q = retainedLeasesByTask.get(task)
-        if (q != null) q.add(lease)
-        else
-          try lease.close()
-          catch { case _: Throwable => () }
-      }
-
-      override def onCompleted(terminal: Task[?]): Unit = {
-        for (dep <- interGroupDeps.getOrElse(terminal, Nil)) {
-          val c = pendingCount.get(dep)
-          if (c != null && c.decrementAndGet() == 0) releaseLeasesFor(dep)
-        }
-        val ownCount = pendingCount.get(terminal)
-        if (ownCount != null && ownCount.get() == 0) releaseLeasesFor(terminal)
-      }
-
-      override def drain(): Unit = {
-        import scala.jdk.CollectionConverters.*
-        retainedLeasesByTask.values().asScala
-          .flatMap(q => Iterator.continually(q.poll()).takeWhile(_ != null))
-          .foreach { lease =>
-            try lease.close()
-            catch { case _: Throwable => () }
-          }
-        retainedLeasesByTask.clear()
-      }
-    }
-  }
-
   /**
    * @param goals The tasks that need to be evaluated
    * @param reporter A function that will accept a module id and provide a listener for build problems in that module
@@ -208,7 +144,9 @@ case class Execution(
       PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
         execute0(goals, logger, reporter, testReporter, serialCommandExec)
       }
-    } finally executionNestingDepth.decrementAndGet()
+    } finally {
+      executionNestingDepth.decrementAndGet()
+    }
   }
 
   private def execute0(
@@ -283,7 +221,7 @@ case class Execution(
           downstreamEdges.getOrElse(t, Set())
         )
 
-      val tracker = newDownstreamTracker(indexToTerminal, interGroupDeps)
+      val tracker = new Execution.LeaseTracker(indexToTerminal, interGroupDeps)
       def onTerminalCompleted(t: Task[?]): Unit = tracker.onCompleted(t)
       try {
 
@@ -379,13 +317,13 @@ case class Execution(
                         leaseTracker = tracker
                       )
 
+                    // Count new failures - if there are upstream failures, tasks should be skipped, not failed
                       val newFailures = res.newResults.values.count(r => r.asFailing.isDefined)
 
-                      // Count new failures: tasks with upstream failures should be skipped, not failed.
                       rootFailedCount.addAndGet(newFailures)
                       completedCount.incrementAndGet()
 
-                      // Always show the completed count in the header after a task finishes.
+                    // Always show completed count in header after task finishes
                       logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix())
 
                       if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
@@ -411,14 +349,14 @@ case class Execution(
                     }
                   }
                 } catch {
-                  case e: mill.api.daemon.StopWithResponse[?] =>
-                    // Let StopWithResponse propagate: it is a controlled shutdown signal.
-                    throw e
+                // Let StopWithResponse propagate - it's a controlled shutdown signal
+                case e: mill.api.daemon.StopWithResponse[?] => throw e
+                // Wrapping the fatal error in a non-fatal exception, so it would be caught by Scala's Future
+                // infrastructure, rather than silently terminating the future and leaving downstream Awaits hanging.
                   case e: Throwable if !mill.api.daemon.internal.NonFatal(e) =>
-                    // Wrap fatal errors so Scala's Future machinery reports them instead of
-                    // silently terminating the future and leaving downstream Awaits hanging.
                     val nonFatal = new Exception(s"fatal exception occurred: $e", e)
-                    // Preserve the original stack trace, since that points at the real failure.
+                  // Set the stack trace of the non-fatal exception to the original exception's stack trace
+                  // as it actually indicates the location of the error.
                     nonFatal.setStackTrace(e.getStackTrace)
                     throw nonFatal
                 } finally {
@@ -429,17 +367,17 @@ case class Execution(
           }
 
           // Make sure we wait for all tasks from this batch to finish before starting the next
-          // one, so we don't mix up exclusive and non-exclusive tasks running at the same time.
+        // one, so we don't mix up exclusive and non-exclusive tasks running at the same time
           terminals.map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
         }
 
-        // Run all non-command tasks according to the configured thread count,
-        // but run exclusive commands in linear order.
         val (nonExclusiveTasks, leafExclusiveCommands) = indexToTerminal.partition {
           case t: Task.Named[_] => !downstreamOfExclusive.contains(t)
           case _ => !serialCommandExec
         }
 
+      // Run all non-command tasks according to the threads
+      // given but run the commands in linear order
         val nonExclusiveResults = evaluateTerminals(nonExclusiveTasks, exclusive = false)
 
         val exclusiveResults = evaluateTerminals(leafExclusiveCommands, exclusive = true)
@@ -511,10 +449,61 @@ case class Execution(
 
 object Execution {
 
-  trait LeaseTracker {
-    def retain(task: Task[?], lease: LauncherLocking.Lease): Unit
-    def onCompleted(terminal: Task[?]): Unit
-    def drain(): Unit
+
+  /**
+   * Tracks per-task read leases on the workspace lock and releases them once
+   * every downstream task that depends on the holder has completed.
+   */
+  final class LeaseTracker(
+      indexToTerminal: Array[Task[?]],
+      interGroupDeps: Map[Task[?], Seq[Task[?]]]
+  ) {
+    final class State {
+      val pending = new AtomicInteger(0)
+      val leases = new java.util.concurrent.ConcurrentLinkedQueue[LauncherLocking.Lease]()
+    }
+
+    val states = new ConcurrentHashMap[Task[?], State]()
+    for (t <- indexToTerminal) states.put(t, new State)
+    for ((_, deps) <- interGroupDeps; dep <- deps) {
+      val s = states.get(dep)
+      if (s != null) s.pending.incrementAndGet()
+    }
+
+    def closeQuietly(lease: LauncherLocking.Lease): Unit =
+      try lease.close()
+      catch { case _: Throwable => () }
+
+    def releaseLeasesFor(task: Task[?]): Unit = {
+      val s = states.remove(task)
+      if (s != null) {
+        var lease = s.leases.poll()
+        while (lease != null) {
+          closeQuietly(lease)
+          lease = s.leases.poll()
+        }
+      }
+    }
+
+    def retain(task: Task[?], lease: LauncherLocking.Lease): Unit = {
+      val s = states.get(task)
+      if (s != null) s.leases.add(lease)
+      else closeQuietly(lease)
+    }
+
+    def onCompleted(terminal: Task[?]): Unit = {
+      for (dep <- interGroupDeps.getOrElse(terminal, Nil)) {
+        val s = states.get(dep)
+        if (s != null && s.pending.decrementAndGet() == 0) releaseLeasesFor(dep)
+      }
+      val own = states.get(terminal)
+      if (own != null && own.pending.get() == 0) releaseLeasesFor(terminal)
+    }
+
+    def drain(): Unit = {
+      import scala.jdk.CollectionConverters.*
+      states.keys().asScala.toList.foreach(releaseLeasesFor)
+    }
   }
 
   /**

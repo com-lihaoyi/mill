@@ -56,7 +56,7 @@ trait EvaluatorApi extends AutoCloseable {
   private[mill] def withIsFinalDepth(isFinalDepth: Boolean): EvaluatorApi = this
 }
 object EvaluatorApi {
-  final case class SelectiveReuseDecision(reusable: Boolean, nextMetadata: String)
+  private[mill] final case class SelectiveReuseDecision(reusable: Boolean, nextMetadata: String)
 
   trait Result[T] {
     def watchable: Seq[Watchable]

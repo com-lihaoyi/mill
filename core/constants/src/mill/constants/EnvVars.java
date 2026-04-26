@@ -34,7 +34,7 @@ public class EnvVars {
   public static final String MILL_BSP_OUTPUT_DIR = "MILL_BSP_OUTPUT_DIR";
 
   /**
-   * If set to "1", Mill will re-use the regular out/ folder instead of
+   * If set to "1", Mill will re-use the regular @{Link OutFiles#out} folder instead of
    * using a separate one for BSP output.
    */
   public static final String MILL_NO_SEPARATE_BSP_OUTPUT_DIR = "MILL_NO_SEPARATE_BSP_OUTPUT_DIR";
