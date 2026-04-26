@@ -6,7 +6,6 @@ import mill.api.daemon.internal.{PathRefApi, TaskApi}
 import mill.api.internal.RootModule
 import mill.exec.GroupExecution
 
-import java.util.concurrent.atomic.AtomicReference
 import scala.collection.mutable
 
 /**
@@ -103,17 +102,20 @@ object RunnerSharedState {
    * If the slot is missing or its identity has changed, atomically install a
    * fresh empty slot and close the displaced one.
    *
-   * Uses an explicit CAS loop rather than `updateAndGet` so we can reliably
-   * identify the displaced slot: under contention, two callers seeing the same
-   * pre-state could otherwise both think they installed the winning slot.
+   * Goes through the lock-free CAS path on [[MetaBuildAccess]] rather than
+   * grabbing a meta-build lock, because workers are installed lazily during
+   * task evaluation (after the meta-build read lock has been retained as a
+   * read lease) and need their own atomicity. Under contention, two callers
+   * seeing the same pre-state could otherwise both think they installed the
+   * winning slot.
    */
   @scala.annotation.tailrec
   def sharedWorkerCache(
-      sharedState: AtomicReference[RunnerSharedState],
+      metaBuild: MetaBuildAccess,
       depth: Int,
       classLoaderIdentityHash: Int
   ): mutable.Map[String, (Int, Val, TaskApi[?])] = {
-    val current = sharedState.get()
+    val current = metaBuild.snapshot()
     current.workerCaches.get(depth) match {
       case Some(existing) if existing.classLoaderIdentityHash == classLoaderIdentityHash =>
         existing.workers
@@ -122,10 +124,10 @@ object RunnerSharedState {
           classLoaderIdentityHash,
           mutable.Map.empty[String, (Int, Val, TaskApi[?])]
         )
-        if (sharedState.compareAndSet(current, current.withWorkerCache(depth, fresh))) {
+        if (metaBuild.compareAndSet(current, current.withWorkerCache(depth, fresh))) {
           other.foreach(_.close())
           fresh.workers
-        } else sharedWorkerCache(sharedState, depth, classLoaderIdentityHash)
+        } else sharedWorkerCache(metaBuild, depth, classLoaderIdentityHash)
     }
   }
 }

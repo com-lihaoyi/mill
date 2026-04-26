@@ -383,9 +383,11 @@ object MillMain0 {
                                       selectiveExecution = config.watch.value,
                                       offline = config.offline.value,
                                       useFileLocks = config.useFileLocks.value,
-                                      workspaceLocking = session.workspaceLocking,
                                       runArtifacts = runArtifacts,
-                                      sharedState = sharedState,
+                                      metaBuild = new MetaBuildAccess(
+                                        ref = sharedState,
+                                        workspaceLocking = session.workspaceLocking
+                                      ),
                                       reporter = reporter,
                                       enableTicker = enableTicker,
                                       skipSelectiveExecution = skipSelectiveExecution
