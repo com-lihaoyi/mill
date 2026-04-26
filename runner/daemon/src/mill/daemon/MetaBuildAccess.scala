@@ -1,0 +1,92 @@
+package mill.daemon
+
+import mill.api.daemon.internal.LauncherLocking
+import mill.internal.LockUpgrade
+
+import java.util.concurrent.atomic.AtomicReference
+
+/**
+ * Combines the daemon-shared [[RunnerSharedState]] with the meta-build
+ * read/write lock so callers cannot read or update the shared state without
+ * going through the lock.
+ *
+ *   - [[withMetaBuild]] runs the read-then-write bootstrap dance for one
+ *     meta-build level: take a read lock, run `probe`; if it returns
+ *     [[LockUpgrade.Decision.Escalate]], upgrade to a write lock and run
+ *     `evaluate`. Both bodies receive a snapshot of the shared state and a
+ *     [[LockUpgrade.Scope]] they can use to retain the lease as a read lease.
+ *     The write body additionally receives an `update` callback that
+ *     atomically mutates the state, returning the displaced previous state
+ *     for resource cleanup.
+ *
+ *   - [[snapshot]] is a lock-free read used in places where consistency
+ *     under concurrent updates is not required (e.g. reading immutable
+ *     bootstrap fields after a higher-level read lock has already been
+ *     taken). Each call site documents why it is safe.
+ *
+ *   - [[compareAndSet]] is a lock-free CAS used by the worker-cache
+ *     installer, which intentionally runs without holding a meta-build lock
+ *     because workers are shared across launchers at all depths and need
+ *     their own atomicity.
+ */
+private[daemon] class MetaBuildAccess(
+    private val ref: AtomicReference[RunnerSharedState],
+    val workspaceLocking: LauncherLocking
+) {
+
+  /** Lock-free read. See class doc for when to use. */
+  def snapshot(): RunnerSharedState = ref.get()
+
+  /** Lock-free CAS for the worker-cache installer. See class doc. */
+  private[daemon] def compareAndSet(
+      expected: RunnerSharedState,
+      updated: RunnerSharedState
+  ): Boolean = ref.compareAndSet(expected, updated)
+
+  /**
+   * Read-then-write meta-build lock dance at `depth`.
+   *
+   * `probe` runs under a read lock; if it returns [[LockUpgrade.Decision.Complete]]
+   * the read lease may be retained via the supplied scope. If it returns
+   * [[LockUpgrade.Decision.Escalate]] the read lock is released, a write
+   * lock is acquired, and `evaluate` runs with a [[MetaBuildAccess.WriteScope]]
+   * which exposes both the lock scope and an `update` callback for atomic
+   * state mutation.
+   */
+  def withMetaBuild[T](depth: Int)(
+      probe: (RunnerSharedState, LockUpgrade.Scope) => LockUpgrade.Decision[T]
+  )(
+      evaluate: MetaBuildAccess.WriteScope => T
+  ): T = {
+    LockUpgrade.readThenWrite(
+      acquireRead = workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Read),
+      acquireWrite = workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Write)
+    )(scope => probe(ref.get(), scope)) { scope =>
+      evaluate(new MetaBuildAccess.WriteScope(ref, scope))
+    }
+  }
+}
+
+private[daemon] object MetaBuildAccess {
+
+  /**
+   * Held during the write phase of [[MetaBuildAccess.withMetaBuild]]. All
+   * shared-state mutations during the bootstrap of a meta-build level go
+   * through this scope so they happen under the meta-build write lock.
+   */
+  class WriteScope private[MetaBuildAccess] (
+      private val ref: AtomicReference[RunnerSharedState],
+      val scope: LockUpgrade.Scope
+  ) {
+    /** Current shared state under the held write lock. */
+    def snapshot(): RunnerSharedState = ref.get()
+
+    /**
+     * Atomically replace the shared state with `f(current)`. Returns the
+     * previous (now-displaced) state so the caller can reclaim resources
+     * (e.g. close displaced classloaders).
+     */
+    def update(f: RunnerSharedState => RunnerSharedState): RunnerSharedState =
+      ref.getAndUpdate(f.apply)
+  }
+}
