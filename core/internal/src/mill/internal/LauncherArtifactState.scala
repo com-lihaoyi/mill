@@ -3,7 +3,7 @@ package mill.internal
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 
-private[mill] final class LauncherArtifactState {
+private[mill] class LauncherArtifactState {
   private val artifactLocks = new ConcurrentHashMap[String, AnyRef]()
   private val runIdCounter = new AtomicLong(0L)
   private val tmpNameCounter = new AtomicLong(0L)

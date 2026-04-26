@@ -22,7 +22,7 @@ import mill.eval.SelectiveExecutionImpl.transitiveNamedSelective
  * As well as [[evaluate]] which does all of these phases one after another
  */
 
-final class EvaluatorImpl(
+class EvaluatorImpl(
     val allowPositionalCommandArgs: Boolean,
     val selectiveExecution: Boolean,
     private val execution: Execution,

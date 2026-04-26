@@ -5,17 +5,6 @@ import mill.api.daemon.internal.LauncherLocking
 /**
  * Helpers for the common "check under a read lock, then optionally re-run under
  * a write lock" pattern.
- *
- * [[readThenWrite]] acquires a read lease first so callers can cheaply observe
- * shared state and either:
- *
- *  - return a completed result while optionally retaining that read lease, or
- *  - escalate to a write lease (via [[LauncherLocking.Lease.upgradeToWrite]])
- *    to perform the mutating path.
- *
- * The read-to-write transition is seamless: the same lease is upgraded in
- * place, so the resource is never observably unlocked between the two phases.
- * Other launchers cannot interleave a write between the read and write bodies.
  */
 object LockUpgrade {
   enum Decision[+T] {
@@ -23,7 +12,7 @@ object LockUpgrade {
     case Escalate
   }
 
-  final class Scope private[LockUpgrade] (val lease: LauncherLocking.Lease) {
+  class Scope private[LockUpgrade] (val lease: LauncherLocking.Lease) {
     private var retained = false
 
     def retain(): LauncherLocking.Lease = {
@@ -43,31 +32,37 @@ object LockUpgrade {
   }
 
   def readThenWrite[T](
-      acquireRead: => LauncherLocking.Lease
+      acquireRead: => LauncherLocking.Lease,
+      acquireWrite: => LauncherLocking.Lease
   )(
       readBody: Scope => Decision[T]
   )(
       writeBody: Scope => T
   ): T = {
     val readScope = new Scope(acquireRead)
+    var readClosed = false
+
     try {
       readBody(readScope) match {
         case Decision.Complete(value) =>
           readScope.closeIfUnretained()
+          readClosed = true
           value
         case Decision.Escalate =>
           if (readScope.isRetained)
             throw new IllegalStateException(
               "Cannot retain a read lease and then escalate to write"
             )
-          readScope.lease.upgradeToWrite()
-          val writeScope = new Scope(readScope.lease)
+          readScope.lease.close()
+          readClosed = true
+
+          val writeScope = new Scope(acquireWrite)
           try writeBody(writeScope)
           finally writeScope.closeIfUnretained()
       }
     } catch {
       case t: Throwable =>
-        readScope.closeIfUnretained()
+        if (!readClosed) readScope.closeIfUnretained()
         throw t
     }
   }

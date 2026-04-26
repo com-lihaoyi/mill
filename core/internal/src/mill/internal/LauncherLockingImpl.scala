@@ -6,7 +6,7 @@ import mill.internal.CrossThreadRwLock.HolderInfo
 import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicBoolean
 
-private[mill] final class LauncherLockingImpl(
+private[mill] class LauncherLockingImpl(
     activeCommandMessage: String,
     launcherPid: Long,
     waitingErr: PrintStream,
@@ -78,7 +78,7 @@ private[mill] final class LauncherLockingImpl(
       )
     }
 
-  private final class LeaseWrapper(
+  private class LeaseWrapper(
       underlying: LauncherLocking.Lease
   ) extends LauncherLocking.Lease {
     private val closed = new AtomicBoolean(false)

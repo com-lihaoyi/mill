@@ -11,7 +11,7 @@ private[daemon] object LauncherSession {
   def standalone(fileLockLease: SharedOutLockManager.Lease, out: os.Path): LauncherSession =
     new Active(fileLockLease, LauncherLocking.Noop, LauncherOutFiles.noop(out.toNIO))
 
-  final class Active(
+  class Active(
       fileLockLease: SharedOutLockManager.Lease,
       val workspaceLocking: LauncherLocking,
       val runArtifacts: LauncherOutFiles

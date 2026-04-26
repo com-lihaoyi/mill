@@ -5,7 +5,7 @@ import mill.constants.DaemonFiles
 import scala.jdk.OptionConverters.RichOptional
 
 private[mill] object LauncherRecordStore {
-  final case class Record(runId: String, pid: Long, command: String)
+  case class Record(runId: String, pid: Long, command: String)
 
   def path(out: os.Path, runId: String): os.Path =
     out / os.RelPath(DaemonFiles.perLauncherFilePath(runId))

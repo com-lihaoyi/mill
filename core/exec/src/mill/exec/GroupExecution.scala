@@ -349,7 +349,8 @@ trait GroupExecution {
             CacheProbe(cached, loadCachedOrWorker(cached, closeStaleWorker))
 
           LockUpgrade.readThenWrite(
-            acquireRead = acquireTaskLock(LauncherLocking.LockKind.Read)
+            acquireRead = acquireTaskLock(LauncherLocking.LockKind.Read),
+            acquireWrite = acquireTaskLock(LauncherLocking.LockKind.Write)
           ) { scope =>
             val probe = cacheProbe(
               loadCachedJson(logger, inputsHash, labelled, paths),

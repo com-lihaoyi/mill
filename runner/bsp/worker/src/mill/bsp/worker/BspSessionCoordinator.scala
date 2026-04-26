@@ -7,7 +7,7 @@ import mill.constants.OutFiles.OutFiles
 
 import java.util.concurrent.{ConcurrentHashMap, Semaphore}
 
-private[worker] final class BspSessionCoordinator(
+private[worker] class BspSessionCoordinator(
     out: os.Path,
     sessionProcessPid: Long,
     noWaitForBspLock: Boolean,
@@ -161,13 +161,13 @@ private[worker] final class BspSessionCoordinator(
 }
 
 private object BspSessionCoordinator {
-  private final case class ActiveSession(
+  private case class ActiveSession(
       ownerToken: AnyRef,
       processPid: Long,
       shutdown: () => Unit
   )
 
-  private final class ProcessLock(private val semaphore: Semaphore) {
+  private class ProcessLock(private val semaphore: Semaphore) {
     def lock(): ProcessLockLease = {
       semaphore.acquire()
       new ProcessLockLease(semaphore)
@@ -177,7 +177,7 @@ private object BspSessionCoordinator {
       else null
   }
 
-  private final class ProcessLockLease(private val semaphore: Semaphore) extends AutoCloseable {
+  private class ProcessLockLease(private val semaphore: Semaphore) extends AutoCloseable {
     private var released = false
 
     override def close(): Unit = synchronized {
@@ -188,7 +188,7 @@ private object BspSessionCoordinator {
     }
   }
 
-  private final class SessionLease(
+  private class SessionLease(
       lockId: String,
       activeBspFile: os.Path,
       fileLock: Lock,

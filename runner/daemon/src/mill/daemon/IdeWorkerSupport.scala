@@ -9,7 +9,7 @@ import mill.javalib.api.JvmWorkerUtil
 import mill.util.{BuildInfo, Jvm}
 
 private object IdeWorkerSupport {
-  final case class BspBuildClient private[daemon] (private[daemon] val value: AnyRef)
+  case class BspBuildClient private[daemon] (private[daemon] val value: AnyRef)
 
   private val organization = Organization("com.lihaoyi")
 

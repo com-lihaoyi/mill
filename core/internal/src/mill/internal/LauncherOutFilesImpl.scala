@@ -7,7 +7,7 @@ import mill.constants.OutFiles
 import java.nio.file.StandardCopyOption
 import java.util.concurrent.atomic.AtomicBoolean
 
-private[mill] final class LauncherOutFilesImpl(
+private[mill] class LauncherOutFilesImpl(
     out: os.Path,
     activeCommandMessage: String,
     launcherPid: Long,

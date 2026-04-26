@@ -130,7 +130,7 @@ class BspEvaluators(
 }
 
 object BspEvaluators {
-  private final case class Snapshot(
+  private case class Snapshot(
       modulesIdList: Seq[(BuildTargetIdentifier, (BspModuleApi, EvaluatorApi))],
       modulesById: Map[BuildTargetIdentifier, (BspModuleApi, EvaluatorApi)],
       targetSnapshots: Seq[ChangeNotifier.TargetSnapshot],

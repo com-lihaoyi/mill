@@ -44,7 +44,7 @@ case class RunnerSharedState(
 object RunnerSharedState {
   def empty: RunnerSharedState = RunnerSharedState()
 
-  final case class BootstrapCache(
+  case class BootstrapCache(
       module: RootModule,
       buildFile: String,
       usesDummy: Boolean
@@ -56,12 +56,12 @@ object RunnerSharedState {
   }
 
   object Frame {
-    final case class Failed(
+    case class Failed(
         evalWatched: Seq[Watchable] = Nil,
         moduleWatched: Seq[Watchable] = Nil
     ) extends Frame
 
-    final case class Reusable(
+    case class Reusable(
         evalWatched: Seq[Watchable],
         moduleWatched: Seq[Watchable],
         classLoader: MillURLClassLoader,
@@ -73,7 +73,7 @@ object RunnerSharedState {
     ) extends Frame
   }
 
-  final case class WorkerCacheSlot(
+  case class WorkerCacheSlot(
       classLoaderIdentityHash: Int,
       workers: mutable.Map[String, (Int, Val, TaskApi[?])]
   )
