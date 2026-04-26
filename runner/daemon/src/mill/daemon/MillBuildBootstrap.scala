@@ -99,7 +99,8 @@ class MillBuildBootstrap(
       runnerLauncherState
     } catch {
       case t: Throwable =>
-        try runnerLauncherState.close() catch { case _: Throwable => () }
+        try runnerLauncherState.close()
+        catch { case _: Throwable => () }
         throw t
     }
   }
@@ -165,7 +166,8 @@ class MillBuildBootstrap(
               }
             } catch {
               case t: Throwable =>
-                try evaluator.close() catch { case _: Throwable => () }
+                try evaluator.close()
+                catch { case _: Throwable => () }
                 throw t
             }
         }
@@ -377,7 +379,9 @@ class MillBuildBootstrap(
           topoIndex.keys,
           reusable.workers,
           topoIndex,
-          c => try c.close() catch { case _: Throwable => () }
+          c =>
+            try c.close()
+            catch { case _: Throwable => () }
         )
       }
       Seq(
