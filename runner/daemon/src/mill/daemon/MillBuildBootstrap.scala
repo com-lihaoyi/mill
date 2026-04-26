@@ -564,8 +564,20 @@ class MillBuildBootstrap(
   ): RunnerLauncherState = {
     val evaluator = evaluator0.withIsFinalDepth(true)
 
+    // Don't short-circuit if any nested meta-build was rebuilt this iteration:
+    // the underlying build code may have changed in ways file-stat watches alone
+    // can't detect (e.g. `build.mill.yaml` edits that change `sources`). A
+    // freshly-published shared frame is a different instance than the one the
+    // previous launcher pinned, so an `eq` mismatch signals a meta-build rebuild.
+    def metaBuildRebuilt: Boolean = nestedState.metaFrames.exists { current =>
+      prevCommandState.metaFrameAt(current.depth) match {
+        case Some(prev) => prev.sharedFrame ne current.sharedFrame
+        case None => true
+      }
+    }
+
     val shortCircuitSource: Option[(Seq[Watchable], Seq[Watchable])] =
-      if (skipSelectiveExecution) None
+      if (skipSelectiveExecution || metaBuildRebuilt) None
       else
         prevCommandState.finalFrame
           // Don't short-circuit if the previous run failed: same inputs would
