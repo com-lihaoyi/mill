@@ -71,28 +71,94 @@ private abstract class MillBuildServer(
 
   def initialized = sessionInfo != null
 
+  // ==========================================================================
+  // Serving State
+  // ==========================================================================
+
+  /**
+   * Holds the most recent successful bootstrap (`serving`), retained across BSP
+   * requests so we can keep answering queries from the last good evaluators
+   * even when the current build is broken. `watched` and `errorOpt` always
+   * come from the latest bootstrap *attempt* (good or broken), so the watcher
+   * loop can still detect when a broken build gets fixed.
+   */
+  private case class Retained(evaluators: Seq[EvaluatorApi], closeable: AutoCloseable)
+  private case class BspServingState(
+      serving: Option[Retained],
+      watched: Seq[Watchable],
+      errorOpt: Option[String]
+  )
+  private object BspServingState {
+    val empty: BspServingState = BspServingState(None, Nil, None)
+  }
+
+  private val bootstrapLock = new AnyRef
+  @volatile private var servingState: BspServingState = BspServingState.empty
+
+  private def closeQuietly(c: AutoCloseable): Unit =
+    try c.close()
+    catch { case _: Throwable => () }
+
+  /**
+   * Drives one bootstrap attempt under a session-wide lock and updates
+   * [[servingState]]. On success the latest attempt becomes the new retained
+   * serving state and the previously-retained one is closed; on failure the
+   * previous serving state is preserved and the broken attempt's resources are
+   * released. `watched` and `errorOpt` always reflect the latest attempt, so
+   * callers can drive change detection off the current build.
+   *
+   * `inspectAttempt` runs while the lock is held, with the latest attempt's
+   * evaluators/watched/errorOpt — it is the only safe place to read those
+   * evaluators (broken-attempt evaluators are closed before the lock is
+   * released). The returned [[BspServingState]] should be used for everything
+   * else.
+   */
+  private def refresh[T](activeCommandMessage: String)(
+      inspectAttempt: (Seq[EvaluatorApi], Seq[Watchable], Option[String]) => T
+  ): (BspServingState, T) = bootstrapLock.synchronized {
+    val (evaluators, watched, errorOpt, closeable) = bootstrapBridge(activeCommandMessage)
+    val isGood = errorOpt.isEmpty && evaluators.nonEmpty
+    val extra = inspectAttempt(evaluators, watched, errorOpt)
+
+    val next =
+      if (isGood) {
+        val supersededGood = servingState.serving
+        val ns = BspServingState(Some(Retained(evaluators, closeable)), watched, None)
+        // Incremental reuse can return the same RunnerLauncherState as last time;
+        // skip closing in that case so we don't pull the rug out from under it.
+        supersededGood.foreach { r =>
+          if (!(r.closeable eq closeable)) closeQuietly(r.closeable)
+        }
+        ns
+      } else {
+        closeQuietly(closeable)
+        BspServingState(servingState.serving, watched, errorOpt)
+      }
+    servingState = next
+    (next, extra)
+  }
+
   private def withBootstrappedEvaluators[T](
       activeCommandMessage: String
   )(
       onUnavailable: (Seq[EvaluatorApi], Seq[Watchable], Option[String]) => T
   )(
       body: (BspEvaluators, Seq[EvaluatorApi], Seq[Watchable], Option[String]) => T
-  ): T =
-    bootstrapBridge[T](
-      activeCommandMessage,
-      (evaluators, watched, errorOpt) =>
-        if (errorOpt.isDefined && evaluators.isEmpty)
-          onUnavailable(evaluators, watched, errorOpt)
-        else {
-          val bspEvaluators = new BspEvaluators(
-            topLevelProjectRoot,
-            evaluators,
-            s => baseLogger.debug(s()),
-            watched
-          )
-          body(bspEvaluators, evaluators, watched, errorOpt)
-        }
-    )
+  ): T = {
+    val (state, _) = refresh(activeCommandMessage)((_, _, _) => ())
+    state.serving match {
+      case Some(retained) =>
+        val bspEvaluators = new BspEvaluators(
+          topLevelProjectRoot,
+          retained.evaluators,
+          s => baseLogger.debug(s()),
+          state.watched
+        )
+        body(bspEvaluators, retained.evaluators, state.watched, state.errorOpt)
+      case None =>
+        onUnavailable(Seq.empty, state.watched, state.errorOpt)
+    }
+  }
 
   private val sessionCoordinator = new BspSessionCoordinator(
     out = out,

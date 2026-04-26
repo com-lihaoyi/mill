@@ -38,15 +38,19 @@ object MillDaemonMain0 {
   }
 
   def main(args0: Array[String]): Unit = {
+    // Set by an integration test
     if (System.getenv("MILL_DAEMON_CRASH") == "true")
       sys.error("Mill daemon early crash requested")
 
     val args =
       Args(getClass.getName, args0).fold(err => throw IllegalArgumentException(err), identity)
 
+    // temporarily disabling FFM use by coursier, which has issues with the way
+    // Mill manages class loaders, throwing things like
+    // UnsatisfiedLinkError: Native Library C:\Windows\System32\ole32.dll already loaded in another classloader
     if (Properties.isWin) sys.props("coursier.windows.disable-ffm") = "true"
 
-    coursier.Resolve.proxySetup()
+    coursier.Resolve.proxySetup() // Take into account proxy-related Java properties
 
     mill.api.SystemStreamsUtils.withTopLevelSystemStreamProxy {
       Server.overrideSigIntHandling()
@@ -107,6 +111,7 @@ class MillDaemonMain0(
       serverToClient: mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient],
       millRepositories: Seq[String]
   ): Boolean = {
+    // Create runner that sends subprocess requests to the launcher via RPC
     val launcherRunner: mill.api.daemon.LauncherSubprocess.Runner =
       config =>
         serverToClient(mill.launcher.DaemonRpc.ServerToClient.RunSubprocess(config)).exitCode
@@ -131,6 +136,7 @@ class MillDaemonMain0(
         millRepositories = millRepositories
       )
     catch {
+      // Let InterruptedException propagate without printing (used by deferredStopServer for shutdown)
       case e: InterruptedException => throw e
       case e if MillMain0.handleMillException(streams.err).isDefinedAt(e) =>
         MillMain0.handleMillException(streams.err)(e)
