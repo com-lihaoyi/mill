@@ -16,7 +16,6 @@ import scala.collection.mutable
  * evaluation: watches, classloaders, code signatures, classpaths, and worker
  * caches that are safe to share between launchers.
  */
-@internal
 case class RunnerSharedState(
     frames: Map[Int, RunnerSharedState.Frame] = Map.empty,
     workerCaches: Map[Int, RunnerSharedState.WorkerCacheSlot] = Map.empty,
