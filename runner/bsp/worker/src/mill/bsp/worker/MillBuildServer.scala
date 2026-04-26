@@ -3,17 +3,14 @@ package mill.bsp.worker
 import ch.epfl.scala.bsp4j.*
 import mill.api.*
 import mill.bsp.worker.Utils.groupList
-import mill.client.lock.Lock
 import mill.api.internal.WatchSig
 import mill.internal.PrefixLogger
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
 
 import java.util.concurrent.{
   CompletableFuture,
-  ConcurrentHashMap,
   Executors,
   ExecutorService,
-  Semaphore,
   ThreadFactory,
   TimeUnit
 }
@@ -24,7 +21,6 @@ import scala.util.{Failure, Success}
 import mill.api.daemon.internal.NonFatal
 import mill.api.daemon.internal.bsp.{BspBootstrapBridge, BspModuleApi, BspServerResult}
 import mill.api.daemon.internal.*
-import mill.constants.OutFiles.OutFiles
 
 /**
  * Mill's BSP server implementation.
@@ -64,12 +60,13 @@ private abstract class MillBuildServer(
 
   private val bspRequestExecutor: ExecutorService = {
     val counter = new AtomicInteger(0)
+    val threadCount = math.max(1, Runtime.getRuntime.availableProcessors())
     val threadFactory: ThreadFactory = (r: Runnable) => {
       val t = new Thread(r, s"mill-bsp-request-${counter.incrementAndGet()}")
       t.setDaemon(true)
       t
     }
-    Executors.newCachedThreadPool(threadFactory)
+    Executors.newFixedThreadPool(threadCount, threadFactory)
   }
 
   def initialized = sessionInfo != null
@@ -91,159 +88,31 @@ private abstract class MillBuildServer(
               topLevelProjectRoot,
               state.evaluators.asScala.toSeq,
               s => baseLogger.debug(s()),
-              state.watched.asScala.toSeq,
-              state.errorOpt
+              state.watched.asScala.toSeq
             )
             body(bspEvaluators, state)
           }
       }
     )
 
-  private var bspLock: Lock = scala.compiletime.uninitialized
-  private var bspLockLease: mill.client.lock.Locked = scala.compiletime.uninitialized
-  private var bspProcessLockLease: MillBuildServer.ProcessLockLease =
-    scala.compiletime.uninitialized
-  private var activeBspFile: os.Path = scala.compiletime.uninitialized
-  private var activeBspLockId: String = scala.compiletime.uninitialized
-
-  private def initLock(bspLockId: String): Unit = {
-    assert(bspLock == null)
-    assert(bspLockLease == null)
-    assert(bspProcessLockLease == null)
-    val processLock = MillBuildServer.processLockFor(bspLockId)
-    val fileLock = Lock.file((out / OutFiles.millBspLock(bspLockId)).toString)
-    val activeBspFile0 = out / OutFiles.millActiveBsp(bspLockId)
-
-    def readActiveInfo(): Option[Long] =
-      try {
-        val json = os.read(activeBspFile0)
-        val pidPattern = """"pid"\s*:\s*([0-9]+)""".r
-        pidPattern.findFirstMatchIn(json).flatMap(m => m.group(1).toLongOption)
-      } catch {
-        case NonFatal(_) => None
-      }
-
-    def waitForFileLock(): mill.client.lock.TryLocked = {
-      while (true) {
-        val tryLocked = fileLock.tryLock()
-        if (tryLocked.isLocked) return tryLocked
-        Thread.sleep(10L)
-      }
-      throw new IllegalStateException("unreachable")
-    }
-
-    def terminateOther(pidOpt: Option[Long]): Unit =
-      pidOpt match {
-        case Some(pid) if pid == sessionProcessPid =>
-          baseLogger.warn(
-            s"Active BSP process PID $pid matches the current launcher; waiting for the existing session to stop"
-          )
-        case Some(pid) =>
-          val handleOpt = ProcessHandle.of(pid)
-          if (handleOpt.isPresent) {
-            val handle = handleOpt.get()
-            if (handle.isAlive()) {
-              if (handle.destroy())
-                baseLogger.info(s"Sent SIGTERM to process $pid")
-              else
-                baseLogger.warn(s"Could not send SIGTERM to process $pid")
-              var i = 200
-              while (i > 0 && handle.isAlive()) {
-                Thread.sleep(10L)
-                i -= 1
-              }
-              if (handle.isAlive())
-                if (handle.destroyForcibly())
-                  baseLogger.info(s"Sent SIGKILL to process $pid")
-                else
-                  baseLogger.warn(s"Could not send SIGKILL to process $pid")
-            } else
-              baseLogger.info(s"Other Mill process with PID $pid exited")
-          } else
-            baseLogger.info(s"Other Mill process with PID $pid exited")
-        case None =>
-          baseLogger.warn(
-            s"PID of other Mill process not found in $activeBspFile0, could not terminate it"
-          )
-      }
-
-    def stopOtherLocalSession(): Boolean =
-      MillBuildServer.shutdownActiveSession(bspLockId, this)
-
-    var processLease: MillBuildServer.ProcessLockLease = null
-    var fileLease: mill.client.lock.TryLocked = null
-    var initialized = false
-    try {
-      processLease = processLock.tryLock()
-      if (processLease == null) {
-        if (noWaitForBspLock)
-          throw new Exception("Another Mill BSP process is running, failing")
-
-        val pidOpt = readActiveInfo()
-        if (killOther) {
-          if (stopOtherLocalSession())
-            baseLogger.info(s"Asked the active BSP session for '$bspLockId' to shut down")
-          else terminateOther(pidOpt)
-        } else
-          baseLogger.info(
-            s"Another Mill BSP server is running with PID ${pidOpt.fold("<unknown>")(_.toString)} waiting for it to be done..."
-          )
-
-        processLease = processLock.lock()
-      }
-
-      fileLease = fileLock.tryLock()
-      if (!fileLease.isLocked) {
-        if (noWaitForBspLock)
-          throw new Exception("Another Mill BSP process is running, failing")
-
-        val pidOpt = readActiveInfo()
-        if (killOther) terminateOther(pidOpt)
-        else
-          baseLogger.info(
-            s"Another Mill BSP server is running with PID ${pidOpt.fold("<unknown>")(_.toString)} waiting for it to be done..."
-          )
-
-        fileLease = waitForFileLock()
-      }
-
-      bspProcessLockLease = processLease
-      bspLock = fileLock
-      bspLockLease = fileLease
-      activeBspFile = activeBspFile0
-      activeBspLockId = bspLockId
-
-      val daemonPid = ProcessHandle.current().pid()
-      val json = s"""{"pid":$sessionProcessPid,"serverPid":$daemonPid}"""
-      os.write.over(activeBspFile0, json)
-      MillBuildServer.registerActiveSession(
-        bspLockId,
-        MillBuildServer.ActiveSession(this, sessionProcessPid, () => close())
-      )
-      initialized = true
-    } finally {
-      if (!initialized) {
-        if (fileLease != null)
-          try fileLease.close()
-          catch { case _: Throwable => () }
-        try fileLock.close()
-        catch { case _: Throwable => () }
-        if (processLease != null)
-          try processLease.close()
-          catch { case _: Throwable => () }
-      }
-    }
-  }
+  private val sessionCoordinator = new BspSessionCoordinator(
+    out = out,
+    sessionProcessPid = sessionProcessPid,
+    noWaitForBspLock = noWaitForBspLock,
+    killOther = killOther,
+    logger = baseLogger,
+    stopOwner = () => close()
+  )
 
   protected def doneInitializingBuild(): Unit = {
     assert(initialized, "Expected Mill BSP server to be initialized")
-    if (bspLock == null) {
+    if (!sessionCoordinator.isInitialized) {
       val bspLockId = sessionInfo.clientDisplayName
         // just in case
         .replace(" ", "_")
         .replace("/", "_")
         .replace("\\", "_")
-      initLock(bspLockId)
+      sessionCoordinator.initialize(bspLockId)
       if (bspWatch) startWatcherThread()
     } else
       baseLogger.warn("Mill BSP server initialized more than once")
@@ -319,35 +188,8 @@ private abstract class MillBuildServer(
 
   def close(): Unit = {
     stopped = true
-    if (activeBspLockId != null)
-      MillBuildServer.unregisterActiveSession(activeBspLockId, this)
-    if (activeBspFile != null)
-      try {
-        val currentPid =
-          if (os.exists(activeBspFile)) {
-            val json = os.read(activeBspFile)
-            val pidPattern = """"pid"\s*:\s*([0-9]+)""".r
-            pidPattern.findFirstMatchIn(json).flatMap(m => m.group(1).toLongOption)
-          } else None
-        if (currentPid.contains(sessionProcessPid))
-          os.remove(activeBspFile, checkExists = false)
-      } catch {
-        case NonFatal(_) => ()
-      }
-    if (bspLockLease != null)
-      try bspLockLease.close()
-      catch { case _: Throwable => () }
-    if (bspLock != null)
-      try bspLock.close()
-      catch { case _: Throwable => () }
-    if (bspProcessLockLease != null)
-      try bspProcessLockLease.close()
-      catch { case _: Throwable => () }
-    bspLockLease = null
-    bspLock = null
-    bspProcessLockLease = null
-    activeBspFile = null
-    activeBspLockId = null
+    try sessionCoordinator.close()
+    catch { case _: Throwable => () }
     shutdownPromise.trySuccess(BspServerResult.Shutdown)
     if (watcherThread != null) watcherThread.interrupt()
     bspRequestExecutor.shutdown()
@@ -615,56 +457,6 @@ private abstract class MillBuildServer(
 }
 
 private object MillBuildServer {
-  private final case class ActiveSession(
-      owner: MillBuildServer,
-      processPid: Long,
-      shutdown: () => Unit
-  )
-
-  private final class ProcessLock(private val semaphore: Semaphore) {
-    def lock(): ProcessLockLease = {
-      semaphore.acquire()
-      new ProcessLockLease(semaphore)
-    }
-    def tryLock(): ProcessLockLease =
-      if (semaphore.tryAcquire()) new ProcessLockLease(semaphore)
-      else null
-  }
-
-  private final class ProcessLockLease(private val semaphore: Semaphore) extends AutoCloseable {
-    private var released = false
-
-    override def close(): Unit = synchronized {
-      if (!released) {
-        released = true
-        semaphore.release()
-      }
-    }
-  }
-
-  private val processLocks = new ConcurrentHashMap[String, ProcessLock]()
-  private val activeSessions = new ConcurrentHashMap[String, ActiveSession]()
-
-  private def processLockFor(lockId: String): ProcessLock =
-    processLocks.computeIfAbsent(lockId, _ => new ProcessLock(new Semaphore(1, true)))
-
-  private def registerActiveSession(lockId: String, session: ActiveSession): Unit =
-    activeSessions.put(lockId, session)
-
-  private def shutdownActiveSession(lockId: String, owner: MillBuildServer): Boolean = {
-    val session = activeSessions.get(lockId)
-    if (session != null && session.owner.ne(owner)) {
-      session.shutdown()
-      true
-    } else false
-  }
-
-  private def unregisterActiveSession(lockId: String, owner: MillBuildServer): Unit = {
-    val session = activeSessions.get(lockId)
-    if (session != null && session.owner.eq(owner))
-      activeSessions.remove(lockId, session)
-  }
-
   def enclosingRequestName(using enclosing: sourcecode.Enclosing): String = {
     var name0 = enclosing.value.split(" ") match {
       case Array(elem) => elem

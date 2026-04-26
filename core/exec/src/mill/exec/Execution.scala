@@ -86,10 +86,7 @@ case class Execution(
       spanningInvalidationTree: Option[String]
   ) = this(
     baseLogger = baseLogger,
-    profileLogger = new JsonArrayLogger.Profile(runArtifacts match {
-      case LauncherOutFiles.Noop => os.Path(outPath) / "mill-profile.json"
-      case _ => os.Path(runArtifacts.profile)
-    }),
+    profileLogger = new JsonArrayLogger.Profile(os.Path(runArtifacts.profile)),
     workspace = os.Path(workspace),
     outPath = os.Path(outPath),
     externalOutPath = os.Path(externalOutPath),

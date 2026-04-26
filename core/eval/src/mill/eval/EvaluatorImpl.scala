@@ -1,6 +1,6 @@
 package mill.eval
 
-import mill.api.daemon.internal.{CompileProblemReporter, TestReporter}
+import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi, TestReporter}
 import mill.constants.OutFiles.OutFiles
 import mill.api.{PathRef, *}
 import mill.api.internal.{ResolveChecker, Resolved, RootModule0}
@@ -178,20 +178,22 @@ final class EvaluatorImpl(
     }
   }
 
-  override private[mill] def probeSelectiveMetadata(
+  override private[mill] def probeSelectiveReuse(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
-      previousMetadata: Any,
+      previousMetadata: String,
       allowPositionalCommandArgs: Boolean = false
-  ): mill.api.Result[(Boolean, Any)] = {
+  ): mill.api.Result[EvaluatorApi.SelectiveReuseDecision] = {
     resolveTasks(scriptArgs, selectMode, allowPositionalCommandArgs).map { tasks =>
-      val oldMetadata =
-        upickle.read[SelectiveExecution.Metadata](previousMetadata.asInstanceOf[String])
+      val oldMetadata = upickle.read[SelectiveExecution.Metadata](previousMetadata)
       val transitiveNamed = transitiveNamedSelective(tasks)
       val computed = SelectiveExecutionImpl.Metadata.compute0(this, transitiveNamed)
       val (_, downstream) =
         selective.computeDownstream(transitiveNamed, oldMetadata, computed.metadata)
-      (downstream.isEmpty, upickle.write(computed.metadata))
+      EvaluatorApi.SelectiveReuseDecision(
+        reusable = downstream.isEmpty,
+        nextMetadata = upickle.write(computed.metadata)
+      )
     }
   }
 

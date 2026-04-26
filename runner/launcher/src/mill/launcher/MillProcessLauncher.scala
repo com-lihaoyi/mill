@@ -4,6 +4,7 @@ import io.github.alexarchambault.nativeterm.NativeTerminal
 import mill.api.internal.OneOrMore
 import mill.client.ClientUtil
 import mill.constants.*
+import mill.internal.OutputDirectoryLayout
 
 import java.io.File
 import java.util.UUID
@@ -11,43 +12,20 @@ import scala.jdk.CollectionConverters._
 
 object MillProcessLauncher {
 
-  def regularOutDir(env: Map[String, String]): String =
-    env.getOrElse(EnvVars.MILL_OUTPUT_DIR, OutFiles.OutFiles.defaultOut)
-
-  private def separateBspOutputDirFromHeader(workDir: os.Path): Boolean =
-    mill.internal.Util.readBooleanFromBuildHeader(
-      workDir,
-      ConfigConstants.millSeparateBspOutputDir,
-      CodeGenConstants.rootBuildFileNames.asScala.toSeq
-    )
+  def regularOutDir(env: Map[String, String]): String = OutputDirectoryLayout.regularOutDir(env)
 
   def bspOutOverride(workDir: os.Path, env: Map[String, String]): Option[String] =
-    env.get(EnvVars.MILL_BSP_OUTPUT_DIR).orElse {
-      Option.unless(env.get(EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR).contains("1")) {
-        Option.when(separateBspOutputDirFromHeader(workDir))(OutFiles.OutFiles.defaultBspOut)
-      }.flatten
-    }
+    OutputDirectoryLayout.bspOutOverride(workDir, env)
 
   def outDir(outMode: OutFolderMode, workDir: os.Path, env: Map[String, String]): String =
-    outMode match {
-      case OutFolderMode.REGULAR => regularOutDir(env)
-      case OutFolderMode.BSP => bspOutOverride(workDir, env).getOrElse(regularOutDir(env))
-    }
+    OutputDirectoryLayout.outDir(outMode, workDir, env)
 
   def effectiveEnvForOutMode(
       outMode: OutFolderMode,
       workDir: os.Path,
       env: Map[String, String]
   ): Map[String, String] =
-    outMode match {
-      case OutFolderMode.REGULAR => env
-      case OutFolderMode.BSP =>
-        bspOutOverride(workDir, env) match {
-          case Some(dir) if !env.contains(EnvVars.MILL_BSP_OUTPUT_DIR) =>
-            env + (EnvVars.MILL_BSP_OUTPUT_DIR -> dir)
-          case _ => env
-        }
-    }
+    OutputDirectoryLayout.effectiveEnvForOutMode(outMode, workDir, env)
 
   def launchMillNoDaemon(
       args: Seq[String],

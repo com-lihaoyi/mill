@@ -1,39 +1,29 @@
 package mill.daemon
 
 import mill.api.daemon.internal.bsp.{BspBootstrapBridge, BspServerHandle, BspServerResult}
-import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi, NonFatal}
+import mill.api.daemon.internal.NonFatal
 import mill.api.SystemStreams
 import sun.misc.Signal
 
 import java.util.concurrent.atomic.AtomicReference
-import scala.concurrent.{Await, Promise}
+import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Using}
 
 private[daemon] object BspMode {
+  type RunBootstrap =
+    (String, Option[RunnerLauncherState], SystemStreams, Boolean) => RunnerLauncherState
 
   def run(
       streams: SystemStreams,
-      runMillBootstrap: (
-      ) => RunnerLauncherState,
+      runMillBootstrap: RunBootstrap,
       startBspServer: BspBootstrapBridge => (BspServerHandle, IdeWorkerSupport.BspBuildClient)
   ): Boolean = {
     Signal.handle(
       new Signal("TERM"),
       _ => SystemStreams.originalErr.println("Received SIGTERM, exiting")
     )
-
-    val bridgeBuildClientPromise = Promise[IdeWorkerSupport.BspBuildClient]()
-    val bridgeReporter: EvaluatorApi => Int => Option[CompileProblemReporter] =
-      ev => {
-        val client = Await.result(bridgeBuildClientPromise.future, Duration.Inf)
-        IdeWorkerSupport.bspReporterPool(
-          workspaceDir = mill.api.BuildCtx.workspaceRoot,
-          evaluators = Seq(ev),
-          buildClient = client
-        )
-      }
 
     val bspPrevState = new AtomicReference[Option[RunnerLauncherState]](None)
 
@@ -43,6 +33,10 @@ private[daemon] object BspMode {
           body: BspBootstrapBridge.Body[T]
       ): T = Using.resource(
         runMillBootstrap(
+          activeCommandMessage,
+          bspPrevState.get(),
+          streams,
+          true
         )
       ) { runnerState =>
         if (runnerState.errorOpt.isEmpty && runnerState.finalFrame.isDefined)
@@ -57,8 +51,7 @@ private[daemon] object BspMode {
       }
     }
 
-    val (bspServerHandle, buildClient) = startBspServer(bootstrapBridge)
-    bridgeBuildClientPromise.success(buildClient)
+    val (bspServerHandle, _) = startBspServer(bootstrapBridge)
 
     val shutdownResult =
       try Success(Await.result(bspServerHandle.shutdownFuture, Duration.Inf))

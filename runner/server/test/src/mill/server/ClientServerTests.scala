@@ -44,10 +44,6 @@ trait ClientServerTestsBase extends TestSuite {
         testLogEvenWhenServerIdWrong
       ) {
 
-    override def outLock = mill.client.lock.Lock.memory()
-
-    override def outFolder = os.temp.dir()
-
     override def serverLog0(s: String) = {
       println(s)
       super.serverLog0(s)

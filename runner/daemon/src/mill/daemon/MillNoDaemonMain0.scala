@@ -4,6 +4,7 @@ import mill.constants.{DaemonFiles, Util}
 import mill.constants.OutFiles.OutFiles
 import mill.daemon.MillMain0.handleMillException
 import mill.api.BuildCtx
+import mill.internal.{LauncherArtifactState, LauncherLockRegistry, OutputDirectoryLayout}
 import mill.launcher.DaemonRpc
 import mill.server.Server
 
@@ -18,19 +19,19 @@ object MillNoDaemonMain0 {
       io.github.alexarchambault.windowsansi.WindowsAnsi.setup()
 
     if (Properties.isWin)
-      // temporarily disabling FFM use by coursier, which has issues with the way
-      // Mill manages class loaders, throwing things like
-      // UnsatisfiedLinkError: Native Library C:\Windows\System32\ole32.dll already loaded in another classloader
       sys.props("coursier.windows.disable-ffm") = "true"
 
-    // Take into account proxy-related Java properties
     coursier.Resolve.proxySetup()
 
     val args = MillDaemonMain0.Args(getClass.getName, args0)
       .fold(err => throw IllegalArgumentException(err), identity)
 
     val processId = Server.computeProcessId()
-    val out = os.Path(OutFiles.outFor(args.outMode), BuildCtx.workspaceRoot)
+    val env = System.getenv().asScala.toMap
+    val out = os.Path(
+      OutputDirectoryLayout.outDir(args.outMode, BuildCtx.workspaceRoot, env),
+      BuildCtx.workspaceRoot
+    )
     Server.watchProcessIdFile(
       out / OutFiles.millNoDaemon / s"pid-$processId" / DaemonFiles.processId,
       processId,
@@ -44,7 +45,6 @@ object MillNoDaemonMain0 {
     val outLock = MillMain0.outFileLock(out)
     val sharedOutLockManager = new SharedOutLockManager(outLock, out)
 
-    // Create runner that executes subprocesses locally with inherited I/O
     val launcherRunner: mill.api.daemon.LauncherSubprocess.Runner =
       config =>
         DaemonRpc
@@ -55,10 +55,11 @@ object MillNoDaemonMain0 {
       try MillMain0.main0(
           args = args.rest.toArray,
           sharedState = new java.util.concurrent.atomic.AtomicReference(RunnerSharedState.empty),
-          launcherLocks = new mill.internal.LauncherSessionState,
+          lockRegistry = new LauncherLockRegistry,
+          artifactState = new LauncherArtifactState,
           mainInteractive = mill.constants.Util.hasConsole(),
           streams0 = initialSystemStreams,
-          env = System.getenv().asScala.toMap,
+          env = env,
           launcherPid = processId,
           setIdle = _ => (),
           userSpecifiedProperties0 = Map(),
@@ -77,5 +78,4 @@ object MillNoDaemonMain0 {
 
     System.exit(if (result) 0 else 1)
   }
-
 }

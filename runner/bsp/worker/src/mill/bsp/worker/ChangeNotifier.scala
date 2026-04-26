@@ -2,8 +2,6 @@ package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.{BuildClient, BuildTargetIdentifier}
-import mill.api.daemon.internal.bsp.BspBuildTarget
-
 import scala.jdk.CollectionConverters.*
 
 /**
@@ -13,14 +11,10 @@ import scala.jdk.CollectionConverters.*
 private[worker] object ChangeNotifier {
   case class TargetSnapshot(
       id: BuildTargetIdentifier,
-      buildTarget: BspBuildTarget,
-      dependencyUris: Seq[String],
-      classLoader: ClassLoader
+      targetDigest: Int
   ) {
     def differsFrom(other: TargetSnapshot): Boolean =
-      buildTarget != other.buildTarget ||
-        dependencyUris != other.dependencyUris ||
-        (classLoader ne other.classLoader)
+      targetDigest != other.targetDigest
   }
 
   /**

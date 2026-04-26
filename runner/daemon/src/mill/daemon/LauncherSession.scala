@@ -1,7 +1,6 @@
 package mill.daemon
 
 import mill.api.daemon.internal.{LauncherLocking, LauncherOutFiles}
-import mill.internal.{LauncherLockingImpl, LauncherOutFilesImpl}
 
 private[daemon] trait LauncherSession extends AutoCloseable {
   def workspaceLocking: LauncherLocking
@@ -9,21 +8,20 @@ private[daemon] trait LauncherSession extends AutoCloseable {
 }
 
 private[daemon] object LauncherSession {
+  def standalone(fileLockLease: SharedOutLockManager.Lease, out: os.Path): LauncherSession =
+    new Active(fileLockLease, LauncherLocking.Noop, LauncherOutFiles.noop(out.toNIO))
 
-  object Noop extends LauncherSession {
-    val workspaceLocking: LauncherLocking = LauncherLocking.Noop
-    val runArtifacts: LauncherOutFiles = LauncherOutFiles.Noop
-    override def close(): Unit = ()
-  }
-
-  final class Daemon(
-      val workspaceLocking: LauncherLockingImpl,
-      val runArtifacts: LauncherOutFilesImpl
+  final class Active(
+      fileLockLease: SharedOutLockManager.Lease,
+      val workspaceLocking: LauncherLocking,
+      val runArtifacts: LauncherOutFiles
   ) extends LauncherSession {
     override def close(): Unit = {
       try workspaceLocking.close()
       catch { case _: Throwable => () }
       try runArtifacts.close()
+      catch { case _: Throwable => () }
+      try fileLockLease.close()
       catch { case _: Throwable => () }
     }
   }

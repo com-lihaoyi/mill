@@ -27,9 +27,6 @@ abstract class MillDaemonServer(
       bufferSize = 4 * 1024
     )) {
 
-  def outLock: mill.client.lock.Lock
-  def outFolder: os.Path
-
   private val lastConfig = new AtomicReference[Option[DaemonConfig]](None)
 
   override def connectionHandlerThreadName(socket: Socket): String =
@@ -236,45 +233,35 @@ object MillDaemonServer {
 
     private def bufferedAvailable: Int = buffer.length - pos
 
-    private def pollOnce(): Int =
-      try {
-        val result = serverToClient(DaemonRpc.ServerToClient.PollStdin())
-        buffer = result.bytes
-        pos = 0
-        buffer.length
-      } catch {
-        case _: Throwable => -1
-      }
+    private def refill(blocking: Boolean): Boolean = {
+      if (bufferedAvailable > 0) return true
 
-    private def waitForBytes(): Boolean = {
+      def poll(): Array[Byte] =
+        try serverToClient(DaemonRpc.ServerToClient.PollStdin()).bytes
+        catch { case _: Throwable => null }
+
       while (bufferedAvailable == 0) {
-        pollOnce() match {
-          case -1 => return false
-          case 0 =>
-            try Thread.sleep(20L)
-            catch {
-              case _: InterruptedException =>
-                Thread.currentThread().interrupt()
-                return false
-            }
-          case _ => // buffer filled
+        val bytes = poll()
+        if (bytes == null) return false
+        buffer = bytes
+        pos = 0
+        if (buffer.nonEmpty) return true
+        if (!blocking) return false
+        try Thread.sleep(20L)
+        catch {
+          case _: InterruptedException =>
+            Thread.currentThread().interrupt()
+            return false
         }
       }
       true
     }
 
-    override def available(): Int = {
-      if (bufferedAvailable > 0) bufferedAvailable
-      else {
-        val result = serverToClient(DaemonRpc.ServerToClient.PollStdin())
-        buffer = result.bytes
-        pos = 0
-        buffer.length
-      }
-    }
+    override def available(): Int =
+      if (refill(blocking = false)) bufferedAvailable else 0
 
     override def read(): Int = {
-      if (!waitForBytes()) -1
+      if (!refill(blocking = true)) -1
       else {
         val b = buffer(pos) & 0xff
         pos += 1
@@ -284,9 +271,8 @@ object MillDaemonServer {
 
     override def read(b: Array[Byte], off: Int, len: Int): Int = {
       if (len == 0) return 0
-      if (!waitForBytes()) return -1
-      val avail = bufferedAvailable
-      val toRead = math.min(len, avail)
+      if (!refill(blocking = true)) return -1
+      val toRead = math.min(len, bufferedAvailable)
       System.arraycopy(buffer, pos, b, off, toRead)
       pos += toRead
       toRead

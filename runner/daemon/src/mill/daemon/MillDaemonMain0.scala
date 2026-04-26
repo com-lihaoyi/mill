@@ -3,11 +3,11 @@ package mill.daemon
 import mill.api.{BuildCtx, SystemStreams}
 import mill.client.lock.Locks
 import mill.constants.OutFolderMode
-import mill.constants.OutFiles.OutFiles
-import mill.internal.LauncherSessionState
+import mill.internal.{LauncherArtifactState, LauncherLockRegistry, OutputDirectoryLayout}
 import mill.server.Server
 
 import scala.concurrent.duration.*
+import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Properties, Success, Try}
 
 object MillDaemonMain0 {
@@ -38,19 +38,15 @@ object MillDaemonMain0 {
   }
 
   def main(args0: Array[String]): Unit = {
-    // Set by an integration test
     if (System.getenv("MILL_DAEMON_CRASH") == "true")
       sys.error("Mill daemon early crash requested")
 
     val args =
       Args(getClass.getName, args0).fold(err => throw IllegalArgumentException(err), identity)
 
-    // temporarily disabling FFM use by coursier, which has issues with the way
-    // Mill manages class loaders, throwing things like
-    // UnsatisfiedLinkError: Native Library C:\Windows\System32\ole32.dll already loaded in another classloader
     if (Properties.isWin) sys.props("coursier.windows.disable-ffm") = "true"
 
-    coursier.Resolve.proxySetup() // Take into account proxy-related Java properties
+    coursier.Resolve.proxySetup()
 
     mill.api.SystemStreamsUtils.withTopLevelSystemStreamProxy {
       Server.overrideSigIntHandling()
@@ -77,11 +73,11 @@ class MillDaemonMain0(
     outMode: OutFolderMode
 ) extends mill.server.MillDaemonServer(daemonDir, acceptTimeout, locks) {
 
-  val outFolder: os.Path = os.Path(OutFiles.outFor(outMode), BuildCtx.workspaceRoot)
-
-  val outLock = MillMain0.outFileLock(outFolder)
-
-  private val sharedOutLockManager = new SharedOutLockManager(outLock, outFolder)
+  private val processEnv = System.getenv().asScala.toMap
+  private val outFolder =
+    os.Path(OutputDirectoryLayout.outDir(outMode, BuildCtx.workspaceRoot, processEnv), BuildCtx.workspaceRoot)
+  private val sharedOutLockManager =
+    new SharedOutLockManager(MillMain0.outFileLock(outFolder), outFolder)
   Runtime.getRuntime.addShutdownHook(new Thread(() =>
     try sharedOutLockManager.close()
     catch { case _: Throwable => () }
@@ -92,7 +88,8 @@ class MillDaemonMain0(
       RunnerSharedState.empty
     )
 
-  private val launcherLocks = new LauncherSessionState
+  private val lockRegistry = new LauncherLockRegistry
+  private val artifactState = new LauncherArtifactState
 
   def main0(
       args: Array[String],
@@ -107,7 +104,6 @@ class MillDaemonMain0(
       serverToClient: mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient],
       millRepositories: Seq[String]
   ): Boolean = {
-    // Create runner that sends subprocess requests to the launcher via RPC
     val launcherRunner: mill.api.daemon.LauncherSubprocess.Runner =
       config =>
         serverToClient(mill.launcher.DaemonRpc.ServerToClient.RunSubprocess(config)).exitCode
@@ -115,7 +111,8 @@ class MillDaemonMain0(
     try MillMain0.main0(
         args = args,
         sharedState = sharedState,
-        launcherLocks = launcherLocks,
+        lockRegistry = lockRegistry,
+        artifactState = artifactState,
         mainInteractive = mainInteractive,
         streams0 = streams,
         env = env,
@@ -131,7 +128,6 @@ class MillDaemonMain0(
         millRepositories = millRepositories
       )
     catch {
-      // Let InterruptedException propagate without printing (used by deferredStopServer for shutdown)
       case e: InterruptedException => throw e
       case e if MillMain0.handleMillException(streams.err).isDefinedAt(e) =>
         MillMain0.handleMillException(streams.err)(e)

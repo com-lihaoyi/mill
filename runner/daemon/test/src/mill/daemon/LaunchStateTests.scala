@@ -48,10 +48,14 @@ object LaunchStateTests extends TestSuite {
       val closed = mutable.Buffer.empty[String]
       val metaEvaluator = new StubEvaluator(() => closed += "meta")
       val finalEvaluator = new StubEvaluator(() => closed += "final")
+      val retainedLease = new mill.api.daemon.internal.LauncherLocking.Lease {
+        override def close(): Unit = closed += "lease"
+      }
 
       val testSession = new LauncherSession {
         override def workspaceLocking = mill.api.daemon.internal.LauncherLocking.Noop
-        override def runArtifacts = mill.api.daemon.internal.LauncherOutFiles.Noop
+        override def runArtifacts =
+          mill.api.daemon.internal.LauncherOutFiles.noop(java.nio.file.Path.of("out"))
         override def close(): Unit = closed += "manager"
       }
       val state = RunnerLauncherState.empty
@@ -60,8 +64,10 @@ object LaunchStateTests extends TestSuite {
             depth = 1,
             evaluator = metaEvaluator,
             evalWatched = Nil,
-            sharedFrame = RunnerSharedState.Frame(moduleWatched = Some(Nil)),
-            metaBuildReadLease = Some(() => closed += "lease")
+            moduleWatched = Nil,
+            classLoaderOpt = None,
+            runClasspath = Nil,
+            metaBuildReadLease = Some(retainedLease)
           )
         )
         .withFinalFrame(RunnerLauncherState.FinalFrame(0, finalEvaluator, Nil, Nil, Nil))
@@ -107,11 +113,12 @@ object LaunchStateTests extends TestSuite {
     }
 
     test("RunnerSharedState frameAt and moduleWatchedAt round-trip") {
-      val frame = RunnerSharedState.Frame(moduleWatched = Some(Nil))
+      val frame = RunnerSharedState.Frame.Failed(moduleWatched = Nil)
       val state = RunnerSharedState.empty.withFrame(0, frame)
       assert(state.moduleWatchedAt(0).contains(Nil))
       assert(state.moduleWatchedAt(1).isEmpty)
-      assert(state.frameAt(0).isEmpty) // hasReusable is false because no classloader
+      assert(state.frameAt(0).contains(frame))
+      assert(state.reusableFrameAt(0).isEmpty)
     }
   }
 }

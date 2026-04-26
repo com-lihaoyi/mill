@@ -61,13 +61,13 @@ final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
   ): mill.api.Result[List[Task.Named[?]]] = {
     delegate.resolveTasks(scriptArgs, selectMode, allowPositionalCommandArgs, resolveToModuleTasks)
   }
-  override private[mill] def probeSelectiveMetadata(
+  override private[mill] def probeSelectiveReuse(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
-      previousMetadata: Any,
+      previousMetadata: String,
       allowPositionalCommandArgs: Boolean
-  ): mill.api.Result[(Boolean, Any)] =
-    delegate.probeSelectiveMetadata(
+  ): mill.api.Result[EvaluatorApi.SelectiveReuseDecision] =
+    delegate.probeSelectiveReuse(
       scriptArgs,
       selectMode,
       previousMetadata,

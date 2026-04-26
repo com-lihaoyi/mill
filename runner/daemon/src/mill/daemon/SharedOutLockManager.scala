@@ -11,27 +11,22 @@ private[mill] final class SharedOutLockManager(
     fileLock: Lock,
     out: os.Path
 ) extends AutoCloseable {
-  import SharedOutLockManager.*
-
   private val monitor = new Object
-  private var count = 0
+  private var refCount = 0
   private var heldLease: Locked = null
   private var acquiring = false
   private var closed = false
 
   def lease(
-      activeCommandMessage: String,
-      launcherPid: Long,
       noBuildLock: Boolean,
       noWaitForBuildLock: Boolean,
       waitingErr: PrintStream
-  ): Option[Locked] = {
-    val _ = (activeCommandMessage, launcherPid)
-    if (noBuildLock) return None
+  ): SharedOutLockManager.Lease = {
+    if (noBuildLock) return SharedOutLockManager.Lease.Noop
 
     val mustAcquire = monitor.synchronized {
       if (closed) throw new IllegalStateException("SharedOutLockManager is closed")
-      count += 1
+      refCount += 1
       while (acquiring) monitor.wait()
       if (heldLease != null) false
       else {
@@ -41,28 +36,26 @@ private[mill] final class SharedOutLockManager(
     }
 
     if (mustAcquire) {
-      val locked: Locked =
+      val locked =
         try {
           val tryLocked = fileLock.tryLock()
           if (tryLocked.isLocked) tryLocked
           else {
             if (noWaitForBuildLock)
               throw new Exception(
-                s"${activeOtherProcessPrefix(out)} and " +
-                  "--no-wait-for-build-lock was set, failing"
+                s"${SharedOutLockManager.activeOtherProcessPrefix(out)} and --no-wait-for-build-lock was set, failing"
               )
             val consoleLogPath = out / DaemonFiles.millConsoleTail
             waitingErr.println(
-              s"${activeOtherProcessPrefix(out)} waiting for it to be done... " +
-                s"(tail -F ${consoleLogPath.relativeTo(mill.api.BuildCtx.workspaceRoot)} " +
-                s"to see its progress)"
+              s"${SharedOutLockManager.activeOtherProcessPrefix(out)} waiting for it to be done... " +
+                s"(tail -F ${consoleLogPath.relativeTo(mill.api.BuildCtx.workspaceRoot)} to see its progress)"
             )
             fileLock.lock()
           }
         } catch {
           case t: Throwable =>
             monitor.synchronized {
-              count -= 1
+              refCount -= 1
               acquiring = false
               monitor.notifyAll()
             }
@@ -76,26 +69,25 @@ private[mill] final class SharedOutLockManager(
       }
     }
 
-    Some(makeLease())
-  }
+    new SharedOutLockManager.Lease {
+      private val released = new AtomicBoolean(false)
 
-  private def makeLease(): Locked = new Locked {
-    private val released = new AtomicBoolean(false)
-    override def release(): Unit =
-      if (released.compareAndSet(false, true)) {
-        val toRelease: Locked | Null = monitor.synchronized {
-          count -= 1
-          if (count == 0 && heldLease != null) {
-            val l = heldLease
-            heldLease = null
-            l
-          } else null
+      override def close(): Unit =
+        if (released.compareAndSet(false, true)) {
+          val toRelease = monitor.synchronized {
+            refCount -= 1
+            if (refCount == 0 && heldLease != null) {
+              val lease = heldLease
+              heldLease = null
+              lease
+            } else null
+          }
+          if (toRelease != null) {
+            try toRelease.release()
+            catch { case _: Throwable => () }
+          }
         }
-        if (toRelease != null) {
-          try toRelease.release()
-          catch { case _: Throwable => () }
-        }
-      }
+    }
   }
 
   override def close(): Unit = monitor.synchronized {
@@ -109,6 +101,12 @@ private[mill] final class SharedOutLockManager(
 }
 
 private[mill] object SharedOutLockManager {
+  sealed trait Lease extends AutoCloseable
+  object Lease {
+    object Noop extends Lease {
+      override def close(): Unit = ()
+    }
+  }
 
   def activeOtherProcessPrefix(out: os.Path): String = {
     val recordOpt = LauncherRecordStore.mostRecentActive(out)

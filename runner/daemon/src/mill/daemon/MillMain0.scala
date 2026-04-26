@@ -3,10 +3,10 @@ package mill.daemon
 import mill.api.daemon.internal.bsp.BspServerHandle
 import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
 import mill.api.{Logger, MillException, Result, SystemStreams}
-import mill.api.daemon.internal.{LauncherOutFiles, LauncherLocking}
+import mill.api.daemon.internal.LauncherOutFiles
 import mill.bsp.BSP
 import mill.client.lock.Lock
-import mill.constants.{DaemonFiles, OutFolderMode}
+import mill.constants.OutFolderMode
 import mill.constants.OutFiles.OutFiles
 import mill.api.BuildCtx
 import mill.internal.{
@@ -17,8 +17,11 @@ import mill.internal.{
   PrefixLogger,
   PromptLogger,
   BspLogger,
+  LauncherArtifactState,
   LauncherLockingImpl,
-  LauncherOutFilesImpl
+  LauncherLockRegistry,
+  LauncherOutFilesImpl,
+  OutputDirectoryLayout
 }
 import mill.server.Server
 import mill.util.BuildInfo
@@ -53,12 +56,15 @@ object MillMain0 {
 
   private def withStreams[T](
       bspMode: Boolean,
+      env: Map[String, String],
       streams: SystemStreams
   )(thunk: SystemStreams => T): T =
     if (bspMode) {
       // In BSP mode, don't let anything other than the BSP server write to stdout and read from stdin
 
-      val outDir = BuildCtx.workspaceRoot / os.RelPath(OutFiles.outFor(OutFolderMode.BSP))
+      val outDir = BuildCtx.workspaceRoot / os.RelPath(
+        OutputDirectoryLayout.outDir(OutFolderMode.BSP, BuildCtx.workspaceRoot, env)
+      )
       val outFileStream = os.write.outputStream(
         outDir / os.RelPath(OutFiles.bspOutLog),
         createFolders = true
@@ -89,7 +95,8 @@ object MillMain0 {
   def main0(
       args: Array[String],
       sharedState: java.util.concurrent.atomic.AtomicReference[RunnerSharedState],
-      launcherLocks: mill.internal.LauncherSessionState,
+      lockRegistry: LauncherLockRegistry,
+      artifactState: LauncherArtifactState,
       mainInteractive: Boolean,
       streams0: SystemStreams,
       env: Map[String, String],
@@ -115,7 +122,7 @@ object MillMain0 {
           // This is especially helpful if anything unexpectedly goes wrong
           // early on, when developing on Mill or debugging things for example.
           val bspMode = parserResult.toOption.exists(_.bsp.value)
-          withStreams(bspMode, streams0) { streams =>
+          withStreams(bspMode, env, streams0) { streams =>
             parserResult match {
               // Cannot parse args
               case f: Result.Failure =>
@@ -236,7 +243,10 @@ object MillMain0 {
                       if (threadCount == 1) None
                       else Some(mill.exec.ExecutionContexts.createExecutor(threadCount))
 
-                    val out = os.Path(OutFiles.outFor(outMode), BuildCtx.workspaceRoot)
+                    val out = os.Path(
+                      OutputDirectoryLayout.outDir(outMode, BuildCtx.workspaceRoot, env),
+                      BuildCtx.workspaceRoot
+                    )
                     Using.resources(new TailManager(daemonDir), createEc()) { (tailManager, ec) =>
                       def runMillBootstrap(
                           skipSelectiveExecution: Boolean,
@@ -251,74 +261,87 @@ object MillMain0 {
                           metaLevelOverride: Option[Int] = None,
                           useBspRequestLogger: Boolean = false
                       ): RunnerLauncherState = {
-                        def withFileLockHeld(body: => Unit): Unit = {
-                          val lease = sharedOutLockManager.lease(
-                            activeCommandMessage = millActiveCommandMessage,
-                            launcherPid = launcherPid,
-                            noBuildLock = config.noBuildLock.value,
-                            noWaitForBuildLock = config.noWaitForBuildLock.value,
-                            waitingErr = streams.err
-                          )
-                          try body
-                          finally lease.foreach(_.release())
-                        }
-
-                        val launcherLockingOpt: Option[LauncherLockingImpl] =
-                          Option.when(serverToClientOpt.nonEmpty) {
-                            new LauncherLockingImpl(
-                              activeCommandMessage = millActiveCommandMessage,
-                              launcherPid = launcherPid,
-                              waitingErr = streams.err,
+                        def acquireOutFileLease(
+                            markIdleWhileWaiting: Boolean
+                        ): SharedOutLockManager.Lease = {
+                          if (markIdleWhileWaiting) setIdle(true)
+                          try {
+                            sharedOutLockManager.lease(
                               noBuildLock = config.noBuildLock.value,
                               noWaitForBuildLock = config.noWaitForBuildLock.value,
-                              launcherLocks = launcherLocks,
-                              runId = launcherLocks.nextRunId()
+                              waitingErr = streams.err
                             )
+                          } finally {
+                            if (markIdleWhileWaiting) setIdle(false)
                           }
-
-                        val workspaceLocking: LauncherLocking =
-                          launcherLockingOpt.getOrElse(LauncherLocking.Noop)
-
-                        def withLocking[T](block: LauncherSession => T): T = {
-                          setIdle(true)
-                          val outLockLease = sharedOutLockManager.lease(
-                            activeCommandMessage = millActiveCommandMessage,
-                            launcherPid = launcherPid,
-                            noBuildLock = config.noBuildLock.value,
-                            noWaitForBuildLock = config.noWaitForBuildLock.value,
-                            waitingErr = streams.err
-                          )
-                          setIdle(false)
-
-                          try {
-                            val session: LauncherSession = launcherLockingOpt match {
-                              case Some(locking) =>
-                                new LauncherSession.Daemon(
-                                  workspaceLocking = locking,
-                                  runArtifacts = new LauncherOutFilesImpl(
-                                    out = out,
-                                    activeCommandMessage = millActiveCommandMessage,
-                                    launcherPid = launcherPid,
-                                    launcherLocks = launcherLocks,
-                                    runId = locking.runId,
-                                    withFileLockHeld = withFileLockHeld
-                                  )
-                                )
-                              case None => LauncherSession.Noop
-                            }
-                            try block(session)
-                            catch {
-                              case e: Throwable =>
-                                try session.close()
-                                catch { case _: Throwable => }
-                                throw e
-                            }
-                          } finally outLockLease.foreach(_.release())
                         }
 
-                        withLocking { session =>
+                        def createLauncherSession(): LauncherSession = {
+                          val fileLockLease = acquireOutFileLease(markIdleWhileWaiting = true)
+                          try {
+                            if (serverToClientOpt.nonEmpty) {
+                              val runId = artifactState.nextRunId()
+                              new LauncherSession.Active(
+                                fileLockLease = fileLockLease,
+                                workspaceLocking = new LauncherLockingImpl(
+                                  activeCommandMessage = millActiveCommandMessage,
+                                  launcherPid = launcherPid,
+                                  waitingErr = streams.err,
+                                  noBuildLock = config.noBuildLock.value,
+                                  noWaitForBuildLock = config.noWaitForBuildLock.value,
+                                  lockRegistry = lockRegistry,
+                                  runId = runId
+                                ),
+                                runArtifacts = new LauncherOutFilesImpl(
+                                  out = out,
+                                  activeCommandMessage = millActiveCommandMessage,
+                                  launcherPid = launcherPid,
+                                  artifactState = artifactState,
+                                  runId = runId
+                                )
+                              )
+                            } else LauncherSession.standalone(fileLockLease, out)
+                          } catch {
+                            case e: Throwable =>
+                              try fileLockLease.close()
+                              catch { case _: Throwable => () }
+                              throw e
+                          }
+                        }
+
+                        def withSessionLogger[T](
+                            runArtifacts: LauncherOutFiles
+                        )(
+                            body: Logger => T
+                        ): T =
+                          loggerOpt match {
+                            case Some(logger) => body(logger)
+                            case None =>
+                              val loggerResource =
+                                if (useBspRequestLogger)
+                                  getBspLogger(
+                                    streams = streams,
+                                    config = config,
+                                    chromeProfilePath = os.Path(runArtifacts.chromeProfile),
+                                    consoleLogPathOpt = Some(os.Path(runArtifacts.consoleTail))
+                                  )
+                                else
+                                  getLogger(
+                                    streams = streams,
+                                    config = config,
+                                    enableTicker = enableTicker,
+                                    colored = colored,
+                                    colors = colors,
+                                    runArtifacts = runArtifacts,
+                                    serverToClientOpt = serverToClientOpt
+                                  )
+                              Using.resource(loggerResource)(body)
+                          }
+
+                        val session = createLauncherSession()
+                        try {
                           val runArtifacts = session.runArtifacts
-                          def proceed(logger: Logger): RunnerLauncherState = {
+                          val state = withSessionLogger(runArtifacts) { logger =>
                             if (skipSelectiveExecution)
                               os.remove(out / OutFiles.millSelectiveExecution)
                             runArtifacts.publishLiveArtifacts()
@@ -350,7 +373,7 @@ object MillMain0 {
                                       selectiveExecution = config.watch.value,
                                       offline = config.offline.value,
                                       useFileLocks = config.useFileLocks.value,
-                                      workspaceLocking = workspaceLocking,
+                                      workspaceLocking = session.workspaceLocking,
                                       runArtifacts = runArtifacts,
                                       sharedState = sharedState,
                                       reporter = reporter,
@@ -362,42 +385,12 @@ object MillMain0 {
                               }
                             finally runArtifacts.publishArtifacts()
                           }
-
-                          val state = loggerOpt match {
-                            case Some(logger) => proceed(logger)
-                            case None =>
-                              val loggerResource =
-                                if (useBspRequestLogger)
-                                  getBspLogger(
-                                    streams = streams,
-                                    config = config,
-                                    chromeProfilePath = runArtifacts match {
-                                      case LauncherOutFiles.Noop =>
-                                        out / OutFiles.millChromeProfile
-                                      case _ => os.Path(runArtifacts.chromeProfile)
-                                    },
-                                    consoleLogPathOpt = Some(runArtifacts match {
-                                      case LauncherOutFiles.Noop =>
-                                        out / DaemonFiles.millConsoleTail
-                                      case _ => os.Path(runArtifacts.consoleTail)
-                                    })
-                                  )
-                                else
-                                  getLogger(
-                                    streams = streams,
-                                    config = config,
-                                    enableTicker = enableTicker,
-                                    colored = colored,
-                                    colors = colors,
-                                    out = out,
-                                    runArtifacts = runArtifacts,
-                                    serverToClientOpt = serverToClientOpt
-                                  )
-                              Using.resource(loggerResource) { logger =>
-                                proceed(logger)
-                              }
-                          }
                           state.withSession(session)
+                        } catch {
+                          case e: Throwable =>
+                            try session.close()
+                            catch { case _: Throwable => () }
+                            throw e
                         }
                       }
 
@@ -422,22 +415,13 @@ object MillMain0 {
                         )) { bspLogger =>
                           BspMode.run(
                             streams = streams,
-                            runMillBootstrap = (
-                                skipSel,
-                                prev,
-                                tasks,
-                                strm,
-                                msg,
-                                reporter,
-                                useBspLogger
-                            ) =>
+                            runMillBootstrap = (msg, prev, strm, useBspLogger) =>
                               runMillBootstrap(
-                                skipSelectiveExecution = skipSel,
+                                skipSelectiveExecution = false,
                                 prevState = prev,
-                                tasksAndParams = tasks,
+                                tasksAndParams = Seq("resolve", "_"),
                                 streams = strm,
                                 millActiveCommandMessage = msg,
-                                reporter = reporter,
                                 useBspRequestLogger = useBspLogger
                               ),
                             startBspServer = bridge =>
@@ -448,7 +432,8 @@ object MillMain0 {
                                 noWaitForBspLock = config.noWaitForBspLock.value,
                                 killOther = !config.bspNoKillOther.value,
                                 bspWatch = config.bspWatch,
-                                bootstrapBridge = bridge
+                                bootstrapBridge = bridge,
+                                env = env
                               )
                           )
                         }
@@ -549,12 +534,15 @@ object MillMain0 {
       noWaitForBspLock: Boolean,
       killOther: Boolean,
       bspWatch: Boolean,
-      bootstrapBridge: mill.api.daemon.internal.bsp.BspBootstrapBridge
+      bootstrapBridge: mill.api.daemon.internal.bsp.BspBootstrapBridge,
+      env: Map[String, String]
   ): (BspServerHandle, IdeWorkerSupport.BspBuildClient) = {
     bspLogger.info("Trying to load BSP server...")
 
     val wsRoot = BuildCtx.workspaceRoot
-    val outFolder = wsRoot / os.RelPath(OutFiles.outFor(OutFolderMode.BSP))
+    val outFolder = wsRoot / os.RelPath(
+      OutputDirectoryLayout.outDir(OutFolderMode.BSP, wsRoot, env)
+    )
     val logDir = outFolder / "mill-bsp"
     os.makeDir.all(logDir)
 
@@ -605,7 +593,6 @@ object MillMain0 {
       enableTicker: Boolean,
       colored: Boolean,
       colors: Colors,
-      out: os.Path,
       runArtifacts: LauncherOutFiles,
       serverToClientOpt: Option[mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient]]
   ): Logger & AutoCloseable = {
@@ -622,10 +609,7 @@ object MillMain0 {
       // Fallback
       .getOrElse("mill")
 
-    val consoleLogPath: os.Path = runArtifacts match {
-      case LauncherOutFiles.Noop => out / DaemonFiles.millConsoleTail
-      case _ => os.Path(runArtifacts.consoleTail)
-    }
+    val consoleLogPath = os.Path(runArtifacts.consoleTail)
     val consoleLogStream = new RotatingConsoleLogOutputStream(consoleLogPath)
 
     val teeStreams = new SystemStreams(
@@ -661,10 +645,7 @@ object MillMain0 {
       titleText = (cmdTitle +: config.leftoverArgs.value).mkString(" "),
       terminalDimsCallback = terminalDimsCallback,
       currentTimeMillis = () => System.currentTimeMillis(),
-      chromeProfileLogger = new JsonArrayLogger.ChromeProfile(runArtifacts match {
-        case LauncherOutFiles.Noop => out / OutFiles.millChromeProfile
-        case _ => os.Path(runArtifacts.chromeProfile)
-      })
+      chromeProfileLogger = new JsonArrayLogger.ChromeProfile(os.Path(runArtifacts.chromeProfile))
     )
     new PrefixLogger(promptLogger, Nil) with AutoCloseable {
       override def close(): Unit = {

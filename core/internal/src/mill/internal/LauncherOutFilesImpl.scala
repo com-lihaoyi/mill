@@ -11,13 +11,12 @@ private[mill] final class LauncherOutFilesImpl(
     out: os.Path,
     activeCommandMessage: String,
     launcherPid: Long,
-    launcherLocks: LauncherSessionState,
-    override val runId: String,
-    withFileLockHeld: (=> Unit) => Unit
+    artifactState: LauncherArtifactState,
+    override val runId: String
 ) extends LauncherOutFiles {
   import LauncherOutFilesImpl.*
 
-  private val runDir = out / LauncherSessionState.runRootDirName / runId
+  private val runDir = out / LauncherArtifactState.runRootDirName / runId
   override val consoleTail: java.nio.file.Path = (runDir / "mill-console-tail").toNIO
   override val profile: java.nio.file.Path = (runDir / OutFiles.millProfile).toNIO
   override val chromeProfile: java.nio.file.Path = (runDir / OutFiles.millChromeProfile).toNIO
@@ -49,26 +48,20 @@ private[mill] final class LauncherOutFilesImpl(
     )
   )
 
-  withFileLockHeld {
-    os.makeDir.all(runDir)
-    writeLauncherRunFile()
-    cleanup(out, launcherLocks)
-  }
+  os.makeDir.all(runDir)
+  writeLauncherRunFile()
+  cleanup(out, artifactState)
 
   override def publishLiveArtifacts(): Unit =
-    if (!closed.get()) withFileLockHeld {
-      publishLatest(publishedArtifacts.head, launcherLocks)
-    }
+    if (!closed.get()) publishLatest(publishedArtifacts.head, artifactState)
 
   override def publishArtifacts(): Unit =
-    if (!closed.get()) withFileLockHeld {
-      publishedArtifacts.foreach(publishLatest(_, launcherLocks))
-    }
+    if (!closed.get()) publishedArtifacts.foreach(publishLatest(_, artifactState))
 
   override def close(): Unit =
-    if (closed.compareAndSet(false, true)) withFileLockHeld {
+    if (closed.compareAndSet(false, true)) {
       LauncherRecordStore.remove(out, runId)
-      cleanup(out, launcherLocks)
+      cleanup(out, artifactState)
     }
 
   private def writeLauncherRunFile(): Unit =
@@ -99,11 +92,11 @@ private[mill] object LauncherOutFilesImpl {
 
   private def cleanup(
       out: os.Path,
-      launcherLocks: LauncherSessionState
+      artifactState: LauncherArtifactState
   ): Unit = {
     try {
       val active = LauncherRecordStore.sweepActive(out).iterator.map(_.runId).toSet
-      val runRootDir = out / LauncherSessionState.runRootDirName
+      val runRootDir = out / LauncherArtifactState.runRootDirName
       if (os.exists(runRootDir)) {
         val runDirs = os.list(runRootDir).filter(os.isDir(_))
         val eligible = runDirs.filterNot(d => active.contains(d.last)).sortBy(runDirSortKey)
@@ -113,93 +106,89 @@ private[mill] object LauncherOutFilesImpl {
         )
         eligible.take(toRemoveCount).foreach(d =>
           try os.remove.all(d)
-          catch { case _: Throwable => }
+          catch { case _: Throwable => () }
         )
       }
 
       wellKnownArtifactLinks.foreach { rel =>
         val link = out / rel
-        withArtifactLock(link, launcherLocks) {
+        withArtifactLock(link, artifactState) {
           if (os.isLink(link) && !os.exists(link, followLinks = true)) {
             try os.remove(link)
-            catch { case _: Throwable => }
+            catch { case _: Throwable => () }
           }
         }
       }
-    } catch { case _: Throwable => }
+    } catch { case _: Throwable => () }
   }
 
   private def withArtifactLock[T](
       link: os.Path,
-      launcherLocks: LauncherSessionState
+      artifactState: LauncherArtifactState
   )(body: => T): T = {
     val key = link.toNIO.toAbsolutePath.normalize.toString
-    launcherLocks.artifactLockFor(key).synchronized(body)
+    artifactState.artifactLockFor(key).synchronized(body)
+  }
+
+  private def replaceAtomically(
+      link: os.Path,
+      tempName: String
+  )(writeTemp: os.Path => Unit): Unit = {
+    os.makeDir.all(link / os.up)
+    val tmp = link / os.up / tempName
+    try {
+      try os.remove.all(tmp)
+      catch { case _: Throwable => () }
+      writeTemp(tmp)
+      java.nio.file.Files.move(
+        tmp.toNIO,
+        link.toNIO,
+        StandardCopyOption.REPLACE_EXISTING,
+        StandardCopyOption.ATOMIC_MOVE
+      )
+    } finally {
+      try os.remove.all(tmp)
+      catch { case _: Throwable => () }
+    }
   }
 
   private def updateSymlink(
       link: os.Path,
       target: os.Path,
-      launcherLocks: LauncherSessionState
+      artifactState: LauncherArtifactState
   ): Unit = {
-    os.makeDir.all(link / os.up)
     val rel = relativizeTarget(link, target)
-    val tmp =
-      link / os.up / s".${link.last}.tmp-${System.nanoTime()}-${launcherLocks.nextTmpSuffix()}"
-    try {
-      try os.remove.all(tmp)
-      catch { case _: Throwable => }
-      os.symlink(tmp, rel)
-      java.nio.file.Files.move(
-        tmp.toNIO,
-        link.toNIO,
-        StandardCopyOption.REPLACE_EXISTING,
-        StandardCopyOption.ATOMIC_MOVE
-      )
-    } finally {
-      try os.remove.all(tmp)
-      catch { case _: Throwable => }
-    }
+    replaceAtomically(
+      link,
+      s".${link.last}.tmp-${System.nanoTime()}-${artifactState.nextTmpSuffix()}"
+    )(tmp => os.symlink(tmp, rel))
   }
 
   private def replaceWithCopy(
       link: os.Path,
       target: os.Path,
-      launcherLocks: LauncherSessionState
+      artifactState: LauncherArtifactState
   ): Unit = {
-    os.makeDir.all(link / os.up)
-    val tmp =
-      link / os.up / s".${link.last}.copy-${System.nanoTime()}-${launcherLocks.nextTmpSuffix()}"
-    try {
-      try os.remove.all(tmp)
-      catch { case _: Throwable => }
-      os.copy.over(target, tmp, createFolders = true)
-      java.nio.file.Files.move(
-        tmp.toNIO,
-        link.toNIO,
-        StandardCopyOption.REPLACE_EXISTING,
-        StandardCopyOption.ATOMIC_MOVE
-      )
-    } finally {
-      try os.remove.all(tmp)
-      catch { case _: Throwable => }
-    }
+    replaceAtomically(
+      link,
+      s".${link.last}.copy-${System.nanoTime()}-${artifactState.nextTmpSuffix()}"
+    )(tmp => os.copy.over(target, tmp, createFolders = true))
   }
 
   private def publishLatest(
       artifact: PublishedArtifact,
-      launcherLocks: LauncherSessionState
+      artifactState: LauncherArtifactState
   ): Unit = {
-    withArtifactLock(artifact.link, launcherLocks) {
+    withArtifactLock(artifact.link, artifactState) {
       if (os.exists(artifact.target))
-        try updateSymlink(artifact.link, artifact.target, launcherLocks)
+        try updateSymlink(artifact.link, artifact.target, artifactState)
         catch {
           case e: Throwable =>
             mill.api.Debug(
               s"Failed to publish ${artifact.link.last} as a symlink: ${e.getClass.getSimpleName}: ${e.getMessage}"
             )
             if (artifact.copyFallback)
-              replaceWithCopy(artifact.link, artifact.target, launcherLocks)
+              replaceWithCopy(artifact.link, artifact.target, artifactState)
         }
     }
   }

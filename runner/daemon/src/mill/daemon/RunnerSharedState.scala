@@ -13,17 +13,17 @@ import scala.collection.mutable
 case class RunnerSharedState(
     frames: Map[Int, RunnerSharedState.Frame] = Map.empty,
     workerCaches: Map[Int, RunnerSharedState.WorkerCacheSlot] = Map.empty,
-    bootstrapModule: Option[RootModule] = None,
-    bootstrapBuildFile: Option[String] = None,
-    bootstrapUsesDummy: Option[Boolean] = None
+    bootstrap: Option[RunnerSharedState.BootstrapCache] = None
 ) {
   import RunnerSharedState.*
 
-  def frameAt(depth: Int): Option[Frame] =
-    frames.get(depth).filter(_.hasReusable)
+  def frameAt(depth: Int): Option[Frame] = frames.get(depth)
+
+  def reusableFrameAt(depth: Int): Option[Frame.Reusable] =
+    frameAt(depth).collect { case frame: Frame.Reusable => frame }
 
   def moduleWatchedAt(depth: Int): Option[Seq[Watchable]] =
-    frames.get(depth).flatMap(_.moduleWatched)
+    frames.get(depth).map(_.moduleWatched)
 
   def withFrame(depth: Int, frame: Frame): RunnerSharedState =
     copy(frames = frames.updated(depth, frame))
@@ -31,28 +31,39 @@ case class RunnerSharedState(
   def withWorkerCache(depth: Int, workerCache: WorkerCacheSlot): RunnerSharedState =
     copy(workerCaches = workerCaches.updated(depth, workerCache))
 
-  def withBootstrap(module: RootModule, buildFile: String, usesDummy: Boolean): RunnerSharedState =
-    copy(
-      bootstrapModule = Some(module),
-      bootstrapBuildFile = Some(buildFile),
-      bootstrapUsesDummy = Some(usesDummy)
-    )
+  def withBootstrap(cache: BootstrapCache): RunnerSharedState = copy(bootstrap = Some(cache))
 }
 
 object RunnerSharedState {
   def empty: RunnerSharedState = RunnerSharedState()
 
-  case class Frame(
-      evalWatched: Seq[Watchable] = Nil,
-      moduleWatched: Option[Seq[Watchable]] = None,
-      classLoaderOpt: Option[MillURLClassLoader] = None,
-      runClasspath: Seq[PathRefApi] = Nil,
-      compileOutputOpt: Option[PathRefApi] = None,
-      codeSignatures: Map[String, Int] = Map.empty,
-      buildOverrideFiles: Map[java.nio.file.Path, String] = Map.empty,
-      selectiveMetadata: Option[String] = None
-  ) {
-    def hasReusable: Boolean = classLoaderOpt.nonEmpty
+  final case class BootstrapCache(
+      module: RootModule,
+      buildFile: String,
+      usesDummy: Boolean
+  )
+
+  sealed trait Frame {
+    def evalWatched: Seq[Watchable]
+    def moduleWatched: Seq[Watchable]
+  }
+
+  object Frame {
+    final case class Failed(
+        evalWatched: Seq[Watchable] = Nil,
+        moduleWatched: Seq[Watchable] = Nil
+    ) extends Frame
+
+    final case class Reusable(
+        evalWatched: Seq[Watchable],
+        moduleWatched: Seq[Watchable],
+        classLoader: MillURLClassLoader,
+        runClasspath: Seq[PathRefApi],
+        compileOutput: PathRefApi,
+        codeSignatures: Map[String, Int],
+        buildOverrideFiles: Map[java.nio.file.Path, String],
+        selectiveMetadata: Option[String]
+    ) extends Frame
   }
 
   final case class WorkerCacheSlot(

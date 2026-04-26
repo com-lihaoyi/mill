@@ -12,7 +12,7 @@ private[mill] final class LauncherLockingImpl(
     waitingErr: PrintStream,
     noBuildLock: Boolean,
     noWaitForBuildLock: Boolean,
-    launcherLocks: LauncherSessionState,
+    lockRegistry: LauncherLockRegistry,
     val runId: String
 ) extends LauncherLocking {
   private val holder = HolderInfo(launcherPid, activeCommandMessage)
@@ -28,7 +28,7 @@ private[mill] final class LauncherLockingImpl(
   ): LauncherLocking.Lease = {
     ensureOpen()
     if (noBuildLock) LauncherLocking.Noop.metaBuildLock(depth, kind)
-    else acquireManagedLease(launcherLocks.metaBuildLockFor(depth).acquire(
+    else acquireManagedLease(lockRegistry.metaBuildLockFor(depth).acquire(
       kind,
       waitingErr,
       noWaitForBuildLock,
@@ -45,7 +45,7 @@ private[mill] final class LauncherLockingImpl(
     if (noBuildLock) LauncherLocking.Noop.taskLock(path, displayLabel, kind)
     else {
       val normalized = path.toAbsolutePath.normalize().toString
-      val lock = launcherLocks.taskLockFor(normalized, displayLabel)
+      val lock = lockRegistry.taskLockFor(normalized, displayLabel)
       acquireManagedLease(lock.acquire(kind, waitingErr, noWaitForBuildLock, holder))
     }
   }
@@ -63,7 +63,7 @@ private[mill] final class LauncherLockingImpl(
     }
     if (!accepted) {
       try underlying.close()
-      catch { case _: Throwable => }
+      catch { case _: Throwable => () }
       throw new IllegalStateException(s"Lock session $runId is closed")
     }
     lease
@@ -74,7 +74,7 @@ private[mill] final class LauncherLockingImpl(
       val leases = activeLeases.synchronized(activeLeases.toSeq)
       leases.foreach(lease =>
         try lease.close()
-        catch { case _: Throwable => }
+        catch { case _: Throwable => () }
       )
     }
 

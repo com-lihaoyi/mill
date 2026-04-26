@@ -5,7 +5,7 @@ import mill.api.*
 import mill.api.daemon.internal.LauncherLocking
 import mill.api.daemon.internal.NonFatal
 import mill.api.internal.{Appendable, Cached, Located}
-import mill.internal.{CodeSigUtils, FileLogger, MultiLogger}
+import mill.internal.{CodeSigUtils, FileLogger, LockUpgrade, MultiLogger}
 
 import java.lang.reflect.Method
 import java.util.concurrent.ThreadPoolExecutor
@@ -295,6 +295,11 @@ trait GroupExecution {
 
         // Helper to evaluate the task with full caching support
         def evaluateTaskWithCaching(): GroupExecution.Results = {
+          case class CacheProbe(
+              cached: Option[(Int, Option[(Val, Seq[PathRef])], Int)],
+              reusableResultOpt: Option[GroupExecution.Results]
+          )
+
           def loadCachedOrWorker(
               cached: Option[(Int, Option[(Val, Seq[PathRef])], Int)],
               closeStaleWorker: Boolean
@@ -333,23 +338,38 @@ trait GroupExecution {
             )
           }
 
-          LauncherLocking.withReadThenWrite(
+          var readProbeOpt = Option.empty[CacheProbe]
+
+          def cacheProbe(
+              cached: Option[(Int, Option[(Val, Seq[PathRef])], Int)],
+              closeStaleWorker: Boolean
+          ): CacheProbe =
+            CacheProbe(cached, loadCachedOrWorker(cached, closeStaleWorker))
+
+          LockUpgrade.readThenWrite(
             acquireRead = acquireTaskLock(LauncherLocking.LockKind.Read),
             acquireWrite = acquireTaskLock(LauncherLocking.LockKind.Write)
           ) { scope =>
-            loadCachedOrWorker(
+            val probe = cacheProbe(
               loadCachedJson(logger, inputsHash, labelled, paths),
               closeStaleWorker = false
-            ) match {
+            )
+            readProbeOpt = Some(probe)
+            probe.reusableResultOpt match {
               case Some(res) =>
                 leaseTracker.retain(labelled, scope.retain())
-                LauncherLocking.ReadThenWrite.Complete(res)
+                LockUpgrade.Decision.Complete(res)
               case None =>
-                LauncherLocking.ReadThenWrite.Escalate
+                LockUpgrade.Decision.Escalate
             }
           } { scope =>
             val cached = loadCachedJson(logger, inputsHash, labelled, paths)
-            loadCachedOrWorker(cached, closeStaleWorker = true) match {
+            val reusableResultOpt = readProbeOpt
+              .filter(_.cached == cached)
+              .flatMap(_.reusableResultOpt)
+              .orElse(loadCachedOrWorker(cached, closeStaleWorker = true))
+
+            reusableResultOpt match {
               case Some(res) =>
                 leaseTracker.retain(labelled, scope.downgradeAndRetain())
                 res

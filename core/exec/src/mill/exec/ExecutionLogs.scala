@@ -1,24 +1,21 @@
 package mill.exec
 
 import mill.api.daemon.internal.LauncherOutFiles
-import mill.constants.OutFiles.OutFiles
 import mill.api.Task
 import mill.internal.{InvalidationForest, SpanningForest}
 
 import java.util.concurrent.ConcurrentHashMap
+import scala.annotation.unused
 import scala.jdk.CollectionConverters.EnumerationHasAsScala
 
 private object ExecutionLogs {
   def logDependencyTree(
       interGroupDeps: Map[Task[?], Seq[Task[?]]],
       indexToTerminal: Array[Task[?]],
-      outPath: os.Path,
+      @unused outPath: os.Path,
       runArtifacts: LauncherOutFiles
   ): Unit = {
-    val dependencyTreePath = runArtifacts match {
-      case LauncherOutFiles.Noop => outPath / "mill-dependency-tree.json"
-      case _ => os.Path(runArtifacts.dependencyTree)
-    }
+    val dependencyTreePath = os.Path(runArtifacts.dependencyTree)
     val ( /*vertexToIndex*/ _, edgeIndices) =
       SpanningForest.graphMapToIndices(indexToTerminal, interGroupDeps)
 
@@ -31,7 +28,7 @@ private object ExecutionLogs {
   }
   def logInvalidationTree(
       interGroupDeps: Map[Task[?], Seq[Task[?]]],
-      outPath: os.Path,
+      @unused outPath: os.Path,
       runArtifacts: LauncherOutFiles,
       uncached: ConcurrentHashMap[Task[?], Unit],
       changedValueHash: ConcurrentHashMap[Task[?], Unit],
@@ -40,10 +37,7 @@ private object ExecutionLogs {
       // Per-task invalidation reasons (e.g., version mismatch reasons)
       taskInvalidationReasons: Map[String, String] = Map.empty
   ): Unit = {
-    val invalidationTreePath = runArtifacts match {
-      case LauncherOutFiles.Noop => outPath / "mill-invalidation-tree.json"
-      case _ => os.Path(runArtifacts.invalidationTree)
-    }
+    val invalidationTreePath = os.Path(runArtifacts.invalidationTree)
     val changedTasks = changedValueHash.keys().asScala.toSet
     val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
     val filteredReverseInterGroupDeps = reverseInterGroupDeps.view.filterKeys(changedTasks).toMap

@@ -2,6 +2,7 @@ package mill.daemon
 
 import mill.api.Val
 import mill.api.JsonFormatters.*
+import mill.api.MillURLClassLoader
 import mill.api.daemon.internal.{EvaluatorApi, internal, PathRefApi, TaskApi}
 import mill.api.daemon.Watchable
 import mill.api.daemon.internal.LauncherLocking
@@ -14,7 +15,7 @@ case class RunnerLauncherState(
     bootstrapEvalWatched: Seq[Watchable] = Nil,
     metaBuildFrames: List[RunnerLauncherState.MetaBuildFrame] = Nil,
     finalFrame: Option[RunnerLauncherState.FinalFrame] = None,
-    session: LauncherSession = LauncherSession.Noop
+    sessionOpt: Option[LauncherSession] = None
 ) extends Watching.Result
     with AutoCloseable {
   import RunnerLauncherState.*
@@ -31,19 +32,19 @@ case class RunnerLauncherState(
   def withError(err: String): RunnerLauncherState = copy(errorOpt = Some(err))
 
   def withSession(s: LauncherSession): RunnerLauncherState =
-    copy(session = s)
+    copy(sessionOpt = Some(s))
 
   def processedDepths: Int = metaBuildFrames.size + finalFrame.size
 
   def moduleWatchedAt(depth: Int): Option[Seq[Watchable]] =
-    metaBuildFrameAt(depth).flatMap(_.sharedFrame.moduleWatched)
+    metaBuildFrameAt(depth).map(_.moduleWatched)
       .orElse(finalFrame.collect { case frame if frame.depth == depth => frame.moduleWatched })
 
   def finalModuleWatchedAt(depth: Int): Option[Seq[Watchable]] =
     finalFrame.collect { case frame if frame.depth == depth => frame.moduleWatched }
 
   def watched: Seq[Watchable] =
-    metaBuildFrames.flatMap(f => f.evalWatched ++ f.sharedFrame.moduleWatched.getOrElse(Nil)) ++
+    metaBuildFrames.flatMap(f => f.evalWatched ++ f.moduleWatched) ++
       finalFrame.toSeq.flatMap(f => f.evalWatched ++ f.moduleWatched) ++
       bootstrapEvalWatched
 
@@ -54,7 +55,7 @@ case class RunnerLauncherState(
     closeAll(
       allEvaluators.distinct ++
         metaBuildFrames.flatMap(_.metaBuildReadLease) ++
-        Seq(session)
+        sessionOpt.toSeq
     )
   }
 
@@ -80,20 +81,39 @@ object RunnerLauncherState {
       depth: Int,
       evaluator: EvaluatorApi,
       evalWatched: Seq[Watchable],
-      sharedFrame: RunnerSharedState.Frame,
+      moduleWatched: Seq[Watchable],
+      classLoaderOpt: Option[MillURLClassLoader],
+      runClasspath: Seq[PathRefApi],
       metaBuildReadLease: Option[LauncherLocking.Lease] = None,
       spanningInvalidationTree: Option[String] = None
   ) {
     def logged: Frame.Logged = Frame.build(
       Frame.summarizeWorkerCache(evaluator.workerCache),
       evalWatched,
-      sharedFrame.moduleWatched.getOrElse(Nil),
-      sharedFrame.classLoaderOpt.map(_.identity),
-      sharedFrame.runClasspath
+      moduleWatched,
+      classLoaderOpt.map(_.identity),
+      runClasspath
     )
   }
 
   object MetaBuildFrame {
+    def reusable(
+        depth: Int,
+        evaluator: EvaluatorApi,
+        sharedFrame: RunnerSharedState.Frame.Reusable,
+        lease: LauncherLocking.Lease,
+        spanningInvalidationTree: Option[String]
+    ): MetaBuildFrame =
+      MetaBuildFrame(
+        depth = depth,
+        evaluator = evaluator,
+        evalWatched = sharedFrame.evalWatched,
+        moduleWatched = sharedFrame.moduleWatched,
+        classLoaderOpt = Some(sharedFrame.classLoader),
+        runClasspath = sharedFrame.runClasspath,
+        metaBuildReadLease = Some(lease),
+        spanningInvalidationTree = spanningInvalidationTree
+      )
 
     def failed(
         depth: Int,
@@ -105,7 +125,9 @@ object RunnerLauncherState {
         depth = depth,
         evaluator = evaluator,
         evalWatched = evalWatched,
-        sharedFrame = RunnerSharedState.Frame(moduleWatched = Some(moduleWatched))
+        moduleWatched = moduleWatched,
+        classLoaderOpt = None,
+        runClasspath = Nil
       )
   }
 
