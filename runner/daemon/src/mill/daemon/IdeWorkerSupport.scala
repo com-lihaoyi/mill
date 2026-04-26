@@ -3,7 +3,7 @@ package mill.daemon
 import coursier.core.Repository
 import coursier.{Dependency, Module, ModuleName, Organization, VersionConstraint}
 import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
-import mill.api.daemon.internal.bsp.BspServerHandle
+import mill.api.daemon.internal.bsp.{BspBootstrapBridge, BspServerHandle}
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.javalib.api.JvmWorkerUtil
 import mill.util.{BuildInfo, Jvm}
@@ -94,9 +94,7 @@ private object IdeWorkerSupport {
       classOf[Boolean],
       classOf[Boolean],
       classOf[Boolean],
-      // `BspMode.BootstrapBridge` is a polymorphic function `[T] => (a, b, c) => T`
-      // with three value parameters, which erases to `scala.Function3` (not Function2).
-      classOf[scala.Function3[?, ?, ?, ?]]
+      classOf[BspBootstrapBridge]
     )
 
     val bspEvaluatorsClass = classLoader.loadClass("mill.bsp.worker.BspEvaluators")
@@ -141,7 +139,7 @@ private object IdeWorkerSupport {
       noWaitForBspLock: Boolean,
       killOther: Boolean,
       bspWatch: Boolean,
-      bootstrapBridge: BspMode.BootstrapBridge
+      bootstrapBridge: BspBootstrapBridge
   ): (BspServerHandle, BspBuildClient) = {
     val handles = bspHandles
     val result = mill.api.daemon.ClassLoader.withContextClassLoader(handles.classLoader) {

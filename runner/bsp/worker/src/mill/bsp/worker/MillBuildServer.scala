@@ -14,7 +14,7 @@ import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success}
 import mill.api.daemon.internal.NonFatal
 import mill.api.daemon.Watchable
-import mill.api.daemon.internal.bsp.{BspModuleApi, BspServerResult}
+import mill.api.daemon.internal.bsp.{BspBootstrapBridge, BspModuleApi, BspServerResult}
 import mill.api.daemon.internal.*
 
 /**
@@ -36,11 +36,7 @@ private abstract class MillBuildServer(
     noWaitForBspLock: Boolean,
     killOther: Boolean,
     bspWatch: Boolean,
-    bootstrapBridge: [T] => (
-        String,
-        Int => Option[CompileProblemReporter],
-        (Seq[EvaluatorApi], Seq[Watchable], Option[String]) => T
-    ) => T
+    bootstrapBridge: BspBootstrapBridge
 ) extends EndpointsApi with AutoCloseable {
 
   import MillBuildServer.*
@@ -109,7 +105,7 @@ private abstract class MillBuildServer(
   )(
       body: (BspEvaluators, Seq[EvaluatorApi], Seq[Watchable], Option[String]) => T
   ): T =
-    bootstrapBridge[T](
+    bootstrapBridge.apply[T](
       activeCommandMessage,
       depth => metaBuildReporterFor(depth),
       (evaluators, watched, errorOpt) =>

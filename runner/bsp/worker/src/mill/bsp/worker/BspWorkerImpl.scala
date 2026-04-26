@@ -10,9 +10,7 @@ import java.io.PrintWriter
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, Executors, ThreadFactory}
 import scala.concurrent.{CancellationException, Future}
-import mill.api.daemon.Watchable
-import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
-import mill.api.daemon.internal.bsp.{BspServerHandle, BspServerResult}
+import mill.api.daemon.internal.bsp.{BspBootstrapBridge, BspServerHandle, BspServerResult}
 
 object BspWorkerImpl {
 
@@ -27,11 +25,7 @@ object BspWorkerImpl {
       noWaitForBspLock: Boolean,
       killOther: Boolean,
       bspWatch: Boolean,
-      bootstrapBridge: [T] => (
-          String,
-          Int => Option[CompileProblemReporter],
-          (Seq[EvaluatorApi], Seq[Watchable], Option[String]) => T
-      ) => T
+      bootstrapBridge: BspBootstrapBridge
   ): mill.api.Result[(BspServerHandle, BuildClient)] = {
 
     try {

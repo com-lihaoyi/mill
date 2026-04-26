@@ -1,6 +1,6 @@
 package mill.daemon
 
-import mill.api.daemon.internal.bsp.BspServerHandle
+import mill.api.daemon.internal.bsp.{BspBootstrapBridge, BspServerHandle}
 import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.api.daemon.internal.{LauncherLocking, LauncherOutFiles}
@@ -455,9 +455,17 @@ object MillMain0 {
                           // `BuildClient`) and is invoked during each meta-build compile so
                           // build diagnostics for `build.mill` and `mill-build/build.mill`
                           // reach the BSP client like normal-target diagnostics do.
-                          val bootstrapBridge: BspMode.BootstrapBridge =
-                            [T] =>
-                              (activeCommandMessage, metaReporter, body) =>
+                          val bootstrapBridge: BspBootstrapBridge =
+                            new BspBootstrapBridge {
+                              def apply[T](
+                                  activeCommandMessage: String,
+                                  metaReporter: Int => Option[CompileProblemReporter],
+                                  body: (
+                                      Seq[EvaluatorApi],
+                                      Seq[mill.api.daemon.Watchable],
+                                      Option[String]
+                                  ) => T
+                              ): T =
                                 Using.resource(
                                   runMillBootstrap(
                                     skipSelectiveExecution = false,
@@ -474,7 +482,8 @@ object MillMain0 {
                                     runnerState.watched,
                                     runnerState.errorOpt
                                   )
-                              }
+                                }
+                            }
 
                           val (bspServerHandle, _) = startBspServer(
                             streams0,
@@ -628,7 +637,7 @@ object MillMain0 {
       noWaitForBspLock: Boolean,
       killOther: Boolean,
       bspWatch: Boolean,
-      bootstrapBridge: BspMode.BootstrapBridge,
+      bootstrapBridge: BspBootstrapBridge,
       env: Map[String, String]
   ): (BspServerHandle, IdeWorkerSupport.BspBuildClient) = {
     bspLogger.info("Trying to load BSP server...")
