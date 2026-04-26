@@ -259,6 +259,11 @@ object MillMain0 {
                           loggerOpt: Option[Logger] = None,
                           reporter: EvaluatorApi => Int => Option[CompileProblemReporter] =
                             _ => _ => None,
+                          // Reporter for meta-build (build.mill / mill-build/build.mill)
+                          // compilation, keyed by depth. Used by BSP so meta-build
+                          // diagnostics reach the BSP client.
+                          metaBuildReporter: Int => Option[CompileProblemReporter] =
+                            _ => None,
                           extraEnv: Seq[(String, String)] = Nil,
                           metaLevelOverride: Option[Int] = None,
                           useBspRequestLogger: Boolean = false
@@ -389,6 +394,7 @@ object MillMain0 {
                                         workspaceLocking = session.workspaceLocking
                                       ),
                                       reporter = reporter,
+                                      metaBuildReporter = metaBuildReporter,
                                       enableTicker = enableTicker,
                                       skipSelectiveExecution = skipSelectiveExecution
                                     ).evaluate()
@@ -427,13 +433,14 @@ object MillMain0 {
                         )) { bspLogger =>
                           BspMode.run(
                             streams = streams,
-                            runMillBootstrap = (msg, prev, strm, useBspLogger) =>
+                            runMillBootstrap = (msg, prev, strm, useBspLogger, metaReporter) =>
                               runMillBootstrap(
                                 skipSelectiveExecution = false,
                                 prevState = prev,
                                 tasksAndParams = Seq("resolve", "_"),
                                 streams = strm,
                                 millActiveCommandMessage = msg,
+                                metaBuildReporter = metaReporter,
                                 useBspRequestLogger = useBspLogger
                               ),
                             startBspServer = bridge =>

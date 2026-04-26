@@ -38,6 +38,7 @@ private abstract class MillBuildServer(
     bspWatch: Boolean,
     bootstrapBridge: [T] => (
         String,
+        Int => Option[CompileProblemReporter],
         (Seq[EvaluatorApi], Seq[Watchable], Option[String]) => T
     ) => T
 ) extends EndpointsApi with AutoCloseable {
@@ -69,6 +70,33 @@ private abstract class MillBuildServer(
 
   def initialized = sessionInfo != null
 
+  /**
+   * Build a meta-build reporter for the BSP client. Each meta-build depth maps
+   * to a synthetic BSP target whose URI is `<workspaceRoot>/mill-build/...`,
+   * matching the IDs surfaced by [[BspEvaluators]] for `MillBuildRootModule`s.
+   * Returns None when no client is connected (yet) or the depth is the user's
+   * top-level build (depth 0 user code lives outside any meta-build target).
+   */
+  private def metaBuildReporterFor(depth: Int): Option[CompileProblemReporter] = {
+    val currentClient = client
+    if (currentClient == null) None
+    else {
+      val targetUri =
+        Utils.sanitizeUri(topLevelProjectRoot.toNIO) +
+          (Seq.fill(depth)("/mill-build")).mkString
+      val targetId = new BuildTargetIdentifier(targetUri)
+      val displayName = "mill-build" + (if (depth > 1) s" (level $depth)" else "")
+      val taskId = new TaskId(s"mill-build-$depth")
+      Some(new BspCompileProblemReporter(
+        currentClient,
+        targetId,
+        displayName,
+        taskId,
+        compilationOriginId = None
+      ))
+    }
+  }
+
   private def withBootstrappedEvaluators[T](
       activeCommandMessage: String
   )(
@@ -78,6 +106,7 @@ private abstract class MillBuildServer(
   ): T =
     bootstrapBridge[T](
       activeCommandMessage,
+      depth => metaBuildReporterFor(depth),
       (evaluators, watched, errorOpt) =>
         if (errorOpt.isDefined && evaluators.isEmpty)
           onUnavailable(evaluators, watched, errorOpt)

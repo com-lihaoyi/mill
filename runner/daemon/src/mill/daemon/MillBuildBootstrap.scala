@@ -65,6 +65,11 @@ class MillBuildBootstrap(
     runArtifacts: LauncherOutFiles,
     metaBuild: MetaBuildAccess,
     reporter: EvaluatorApi => Int => Option[CompileProblemReporter],
+    // Reporter for the meta-build (`build.mill`/`mill-build/build.mill`)
+    // compile, keyed by depth. Distinct from `reporter` (which is keyed by
+    // module hashCode) because at meta-build time we don't have a stable
+    // module-hashCode mapping yet.
+    metaBuildReporter: Int => Option[CompileProblemReporter] = _ => None,
     enableTicker: Boolean,
     skipSelectiveExecution: Boolean
 ) { outer =>
@@ -101,7 +106,7 @@ class MillBuildBootstrap(
 
       val nestedState =
         if (containsBuildFile(currentRoot)) evaluateRec(depth + 1)
-        else makeBootstrapState(currentRoot, depth)
+        else makeBootstrapState(currentRoot)
 
       val nestedDepths = nestedState.metaFrames.size + nestedState.finalFrame.size
       val requestedDepth = computeRequestedDepth(requestedMetaLevel, depth, nestedDepths)
@@ -117,13 +122,7 @@ class MillBuildBootstrap(
       } else {
         val rootModuleRes = nestedState.metaFrames.headOption match {
           case None =>
-            // Safe lock-free read: the bootstrap entry was just published
-            // under the meta-build write lock by `makeBootstrapState`, and
-            // the current launcher holds a read lease on that depth (via
-            // nestedState) for the rest of this evaluation.
-            Result.Success(
-              BuildFileApi.Bootstrap(metaBuild.snapshot().bootstrap.get.module)
-            )
+            Result.Success(BuildFileApi.Bootstrap(nestedState.bootstrapModuleOpt.get))
           case Some(nestedFrame) =>
             getRootModule(nestedFrame.classLoaderOpt.get)
         }
@@ -165,37 +164,20 @@ class MillBuildBootstrap(
       }
     }
 
-  private def makeBootstrapState(currentRoot: os.Path, depth: Int): RunnerLauncherState = {
+  private def makeBootstrapState(currentRoot: os.Path): RunnerLauncherState = {
     val (useDummy, foundRootBuildFileName) = findRootBuildFiles(topLevelProjectRoot)
     val bootstrapEvalWatched =
       Watchable.Path.from(PathRef(topLevelProjectRoot / foundRootBuildFileName))
-
-    def alreadyCached(state: RunnerSharedState): Boolean = state.bootstrap.exists(cache =>
-      cache.buildFile == foundRootBuildFileName && cache.usesDummy == useDummy
-    )
-    val error = metaBuild.withMetaBuild(depth) { (state, _) =>
-      if (alreadyCached(state)) LockUpgrade.Decision.Complete(None)
-      else LockUpgrade.Decision.Escalate
-    } { writeScope =>
-      if (alreadyCached(writeScope.snapshot())) None
-      else
-        makeBootstrapModule(currentRoot, foundRootBuildFileName, useDummy) match {
-          case Result.Success(bootstrapModule) =>
-            writeScope.update(_.withBootstrap(
-              RunnerSharedState.BootstrapCache(
-                bootstrapModule,
-                foundRootBuildFileName,
-                useDummy
-              )
-            ))
-            None
-          case f: Result.Failure => Some(Util.formatError(f, logger.prompt.errorColor))
-        }
-    }
+    val (bootstrapModuleOpt, error) =
+      makeBootstrapModule(currentRoot, foundRootBuildFileName, useDummy) match {
+        case Result.Success(bootstrapModule) => (Some(bootstrapModule), None)
+        case f: Result.Failure => (None, Some(Util.formatError(f, logger.prompt.errorColor)))
+      }
 
     RunnerLauncherState(
       errorOpt = error,
       buildFile = Some(foundRootBuildFileName),
+      bootstrapModuleOpt = bootstrapModuleOpt,
       buildFileWatch = Some(bootstrapEvalWatched)
     )
   }
@@ -459,12 +441,22 @@ class MillBuildBootstrap(
     def evaluateAndPublish(writeScope: MetaBuildAccess.WriteScope): RunnerLauncherState = {
       val metadataFile = os.Path(evaluator.outPathJava) / OutFiles.millSelectiveExecution
       if (collectSelectiveMetadata && os.exists(metadataFile)) os.remove(metadataFile)
+      // For meta-build compile, prefer the depth-keyed `metaBuildReporter` so
+      // diagnostics are attached to the meta-build BSP target. Fall back to
+      // the module-hashCode-keyed `reporter` if no meta-build reporter
+      // exists (CLI mode or non-BSP runs).
+      val metaReporter = metaBuildReporter(depth)
+      val combinedReporter: Int => Option[CompileProblemReporter] =
+        metaReporter match {
+          case Some(_) => _ => metaReporter
+          case None => reporter(evaluator)
+        }
       evaluateWithWatches(
         buildFileApi,
         evaluator,
         taskSelector,
         selectiveExecution = collectSelectiveMetadata,
-        reporter = reporter(evaluator)
+        reporter = combinedReporter
       ) match {
         case (f: Result.Failure, evalWatches, moduleWatches) =>
           publishFailedFrame(writeScope, f, evalWatches, moduleWatches)

@@ -93,11 +93,14 @@ object BspServerReloadTests extends UtestIntegrationTestSuite {
         def eventData(event: b.BuildTargetEvent): (String, b.BuildTargetEventKind) =
           (event.getTarget.getUri.split("/").last, event.getKind)
 
+        // `lib` is not in this set: its bspBuildTarget snapshot (displayName,
+        // baseDirectory, tags, languageIds, capabilities, plus its
+        // dependencyUris) is unchanged across the build.mill edit, so the
+        // ChangeNotifier correctly does not fire a CHANGED event for it.
         val expectedChanges = Set(
           "thing" -> b.BuildTargetEventKind.DELETED,
           "app" -> b.BuildTargetEventKind.DELETED,
           "my-app" -> b.BuildTargetEventKind.CREATED,
-          "lib" -> b.BuildTargetEventKind.CHANGED,
           "mill-build" -> b.BuildTargetEventKind.CHANGED
         )
         val changes = didChangeParams.getChanges().asScala.map(eventData).toSet

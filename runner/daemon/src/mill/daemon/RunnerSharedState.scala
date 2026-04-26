@@ -3,7 +3,6 @@ package mill.daemon
 import mill.api.{MillURLClassLoader, Val}
 import mill.api.daemon.Watchable
 import mill.api.daemon.internal.{PathRefApi, TaskApi}
-import mill.api.internal.RootModule
 import mill.exec.GroupExecution
 
 import scala.collection.mutable
@@ -19,8 +18,7 @@ import scala.collection.mutable
  */
 case class RunnerSharedState(
     frames: Map[Int, RunnerSharedState.Frame] = Map.empty,
-    workerCaches: Map[Int, RunnerSharedState.WorkerCacheSlot] = Map.empty,
-    bootstrap: Option[RunnerSharedState.BootstrapCache] = None
+    workerCaches: Map[Int, RunnerSharedState.WorkerCacheSlot] = Map.empty
 ) {
   import RunnerSharedState.*
 
@@ -37,19 +35,10 @@ case class RunnerSharedState(
 
   def withWorkerCache(depth: Int, slot: WorkerCacheSlot): RunnerSharedState =
     copy(workerCaches = workerCaches.updated(depth, slot))
-
-  def withBootstrap(cache: BootstrapCache): RunnerSharedState =
-    copy(bootstrap = Some(cache))
 }
 
 object RunnerSharedState {
   val empty: RunnerSharedState = RunnerSharedState()
-
-  case class BootstrapCache(
-      module: RootModule,
-      buildFile: String,
-      usesDummy: Boolean
-  )
 
   /**
    * One shared bootstrap-frame entry. `reusable` is set iff the bootstrap at

@@ -6,6 +6,7 @@ import mill.api.MillURLClassLoader
 import mill.api.daemon.internal.{EvaluatorApi, PathRefApi, TaskApi}
 import mill.api.daemon.Watchable
 import mill.api.daemon.internal.LauncherLocking
+import mill.api.internal.RootModule
 import upickle.{ReadWriter, macroRW}
 
 /**
@@ -18,6 +19,7 @@ import upickle.{ReadWriter, macroRW}
 case class RunnerLauncherState(
     errorOpt: Option[String] = None,
     buildFile: Option[String] = None,
+    bootstrapModuleOpt: Option[RootModule] = None,
     /**
      * Watch on the top-level `build.mill` file used to bootstrap. Kept as a
      * top-level field rather than as part of any meta frame because it is the

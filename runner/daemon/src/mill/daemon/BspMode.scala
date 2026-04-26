@@ -1,7 +1,7 @@
 package mill.daemon
 
 import mill.api.daemon.Watchable
-import mill.api.daemon.internal.EvaluatorApi
+import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
 import mill.api.daemon.internal.bsp.{BspServerHandle, BspServerResult}
 import mill.api.daemon.internal.NonFatal
 import mill.api.SystemStreams
@@ -13,10 +13,17 @@ import scala.util.{Failure, Success, Using}
 
 private[daemon] object BspMode {
   type RunBootstrap =
-    (String, Option[RunnerLauncherState], SystemStreams, Boolean) => RunnerLauncherState
+    (
+        String,
+        Option[RunnerLauncherState],
+        SystemStreams,
+        Boolean,
+        Int => Option[CompileProblemReporter]
+    ) => RunnerLauncherState
 
   type BootstrapBridge = [T] => (
       String,
+      Int => Option[CompileProblemReporter],
       (Seq[EvaluatorApi], Seq[Watchable], Option[String]) => T
   ) => T
 
@@ -36,10 +43,15 @@ private[daemon] object BspMode {
     // one thread's `Using.resource` while another still references them).
     // The daemon-wide RunnerSharedState already caches reusable meta-build
     // frames across requests under proper locking.
+    //
+    // The `metaBuildReporter` is supplied by the BSP worker (which owns the
+    // `BuildClient`) and is invoked during each meta-build compile so build
+    // diagnostics for `build.mill` and `mill-build/build.mill` reach the BSP
+    // client like normal-target diagnostics do.
     val bootstrapBridge: BootstrapBridge = [T] =>
-      (activeCommandMessage, body) =>
+      (activeCommandMessage, metaBuildReporter, body) =>
         Using.resource(
-          runMillBootstrap(activeCommandMessage, None, streams, true)
+          runMillBootstrap(activeCommandMessage, None, streams, true, metaBuildReporter)
         ) { runnerState =>
           body(runnerState.allEvaluators, runnerState.watched, runnerState.errorOpt)
       }
