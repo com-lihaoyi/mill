@@ -101,7 +101,7 @@ This section explains the performance argument for Mill: even when framework sup
 
 To make this more concrete, a few ad-hoc measurements were executed on a minimal Spring Boot project generated from https://start.spring.io/[start.spring.io]. The project was intentionally simple, with a single Java source file.
 
-Wall-clock times were collected over five runs per tool, and the reported values represent the average of those runs, for both clean builds (`clean` + build) and incremental builds (source modification without cleaning).
+Wall-clock times were collected over ten runs per tool, and the reported values represent the average of those runs, for both clean builds (`clean` + build) and incremental builds (source modification without cleaning).
 
 The compile commands used were:
 
@@ -123,36 +123,36 @@ For the Gradle native-image measurement, the https://graalvm.github.io/native-bu
 4+^| *Build Performance*
 
 | Clean Compile
-| 0.61s
-| 1.49s
-| 0.62s
+| 0.35s ±   0.05s
+| 1.47s ±   0.02s
+| 0.45s ±   0.03s
 
 | Incremental Compile
-| 0.08s
-| 1.44s
-| 0.44s
+| 0.09s ±   0.02s
+| 1.48s ±   0.03s
+| 0.44s ±   0.02s
 
 | Test Compile (Clean)
-| 0.30s
-| 1.52s
-| 0.59s
+| 0.22s ±   0.04s
+| 1.51s ±   0.03s
+| 0.49s ±   0.03s
 
 | Test Compile (Incremental)
-| 0.11s
-| 1.23s
-| 0.55s
+| 0.12s ±   0.02s
+| 1.17s ±   0.03s
+| 0.45s ±   0.11s
 
 | Test Execution
-| 2.00s
-| 2.67s
-| 2.97s
+| 1.74s ±   0.07s
+| 2.50s ±   0.02s
+| 2.69s ±   0.07s
 
 4+^| *Native Image Build*
 
 | Native Image Build
-| 59.81s
-| 74.00s
-| 72.78s
+| 51.79s ±   1.17s
+| 69.51s ±   0.51s
+| 68.01s ±   1.00s
 |===
 
 This is not meant to be a rigorous benchmark, but rather a small sanity check on a starter project. What it does illustrate is that Mill can strongly eliminate the fixed overhead the other build systems include, and that shows up most clearly in the incremental (edit-compile-test) workflows.
