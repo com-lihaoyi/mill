@@ -3,21 +3,21 @@ package mill.internal
 import java.util.concurrent.ConcurrentHashMap
 
 private[mill] final class LauncherLockRegistry {
-  private val metaBuildLocks = new ConcurrentHashMap[Int, WriterPreferringRwLock]()
-  private val taskLocks = new ConcurrentHashMap[String, WriterPreferringRwLock]()
+  private val metaBuildLocks = new ConcurrentHashMap[Int, CrossThreadRwLock]()
+  private val taskLocks = new ConcurrentHashMap[String, CrossThreadRwLock]()
 
-  def metaBuildLockFor(depth: Int): WriterPreferringRwLock =
+  def metaBuildLockFor(depth: Int): CrossThreadRwLock =
     metaBuildLocks.computeIfAbsent(
       depth,
-      d => new WriterPreferringRwLock(label = s"meta-build-$d")
+      d => new CrossThreadRwLock(label = s"meta-build-$d")
     )
 
   def taskLockFor(
       normalizedAbsolutePath: String,
       displayLabel: String
-  ): WriterPreferringRwLock =
+  ): CrossThreadRwLock =
     taskLocks.computeIfAbsent(
       normalizedAbsolutePath,
-      p => new WriterPreferringRwLock(label = p, displayLabel = displayLabel)
+      p => new CrossThreadRwLock(label = p, displayLabel = displayLabel)
     )
 }

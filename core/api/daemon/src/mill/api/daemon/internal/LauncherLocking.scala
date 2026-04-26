@@ -27,6 +27,8 @@ private[mill] object LauncherLocking {
 
   trait Lease extends AutoCloseable {
     def downgradeToRead(): Unit = ()
+
+    def upgradeToWrite(): Unit = ()
   }
 
   object Noop extends LauncherLocking {

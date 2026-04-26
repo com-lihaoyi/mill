@@ -1,7 +1,7 @@
 package mill.internal
 
 import mill.api.daemon.internal.LauncherLocking
-import mill.internal.WriterPreferringRwLock.HolderInfo
+import mill.internal.CrossThreadRwLock.HolderInfo
 
 import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicBoolean

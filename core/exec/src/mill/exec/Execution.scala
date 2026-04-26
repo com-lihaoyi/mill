@@ -382,20 +382,20 @@ case class Execution(
 
         val exclusiveResults = evaluateTerminals(leafExclusiveCommands, exclusive = true)
 
-        val isOutermostExecution = executionNestingDepth.get() == 1
-        val hasFailures = rootFailedCount.get() > 0
-        val showFinalStatus = isOutermostExecution && (hasFailures || isFinalDepth)
         // Set final header showing SUCCESS/FAILED status:
         // - FAILED: show for any outermost execution with failures
         // - SUCCESS: only show for the final requested depth
+        val isOutermostExecution = executionNestingDepth.get() == 1
+        val hasFailures = rootFailedCount.get() > 0
+        val showFinalStatus = isOutermostExecution && (hasFailures || isFinalDepth)
         logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(completed = showFinalStatus))
 
         logger.prompt.clearPromptStatuses()
 
         val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
 
+        // Convert versionMismatchReasons to Map[String, String] for invalidation-tree logging.
         val taskInvalidationReasons = {
-          // Convert versionMismatchReasons to Map[String, String] for invalidation-tree logging.
           import scala.jdk.CollectionConverters.ConcurrentMapHasAsScala
           versionMismatchReasons.asScala.collect {
             case (t: Task.Named[?], reason) => t.ctx.segments.render -> reason
@@ -437,7 +437,6 @@ case class Execution(
           results.map { case (k, v) => (k, v.map(_._1)) },
           prefixes.asScala.toMap
         )
-
       } finally tracker.drain()
     }
   }
@@ -454,11 +453,11 @@ object Execution {
    * Tracks per-task read leases on the workspace lock and releases them once
    * every downstream task that depends on the holder has completed.
    */
-  final class LeaseTracker(
+  class LeaseTracker(
       indexToTerminal: Array[Task[?]],
       interGroupDeps: Map[Task[?], Seq[Task[?]]]
   ) {
-    final class State {
+    class State {
       val pending = new AtomicInteger(0)
       val leases = new java.util.concurrent.ConcurrentLinkedQueue[LauncherLocking.Lease]()
     }

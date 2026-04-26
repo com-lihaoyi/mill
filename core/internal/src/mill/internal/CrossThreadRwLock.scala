@@ -3,15 +3,15 @@ package mill.internal
 import mill.api.daemon.internal.LauncherLocking.{Lease, LockKind}
 import mill.constants.DaemonFiles
 
-private[mill] object WriterPreferringRwLock {
+private[mill] object CrossThreadRwLock {
   final case class HolderInfo(pid: Long, command: String)
 }
 
-private[mill] final class WriterPreferringRwLock(
+private[mill] final class CrossThreadRwLock(
     @scala.annotation.unused label: String,
     displayLabel: String = ""
 ) {
-  import WriterPreferringRwLock.HolderInfo
+  import CrossThreadRwLock.HolderInfo
 
   private val effectiveDisplayLabel: String =
     if (displayLabel.nonEmpty) displayLabel else label
@@ -108,6 +108,33 @@ private[mill] final class WriterPreferringRwLock(
         readMode = true
         monitor.notifyAll()
       }
+    }
+
+    override def upgradeToWrite(): Unit = monitor.synchronized {
+      if (closed || !readMode) return
+
+      // Step out of the reader pool and queue as a waiting writer in one
+      // atomic step, so the lock is never observably released and new readers
+      // are blocked by writer preference (canAcquireRead requires
+      // waitingWriters == 0) while we wait.
+      readerCount -= 1
+      waitingWriters += 1
+      monitor.notifyAll()
+
+      try {
+        while (writerActive || readerCount > 0) monitor.wait()
+      } catch {
+        case t: Throwable =>
+          // Restore reader status on interruption so the lease remains valid.
+          waitingWriters -= 1
+          readerCount += 1
+          monitor.notifyAll()
+          throw t
+      }
+
+      waitingWriters -= 1
+      writerActive = true
+      readMode = false
     }
 
     override def close(): Unit = monitor.synchronized {

@@ -166,8 +166,7 @@ class MillBuildBootstrap(
       cache.buildFile == foundRootBuildFileName && cache.usesDummy == useDummy
     )
     val error = LockUpgrade.readThenWrite(
-      acquireRead = workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Read),
-      acquireWrite = workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Write)
+      acquireRead = workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Read)
     ) { _ =>
       if (alreadyCached(sharedState.get())) LockUpgrade.Decision.Complete(None)
       else LockUpgrade.Decision.Escalate
@@ -480,8 +479,7 @@ class MillBuildBootstrap(
 
     var readProbeOpt = Option.empty[ReuseProbe]
     LockUpgrade.readThenWrite(
-      acquireRead = workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Read),
-      acquireWrite = workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Write)
+      acquireRead = workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Read)
     ) { scope =>
       reusable(sharedState.get().reusableFrameAt(depth)) match {
         case f: Result.Failure =>
