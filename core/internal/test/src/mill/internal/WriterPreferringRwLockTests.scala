@@ -1,7 +1,8 @@
 package mill.internal
 
 import mill.api.daemon.internal.LauncherLocking
-import mill.api.daemon.internal.LauncherLocking.{HolderInfo, LockKind}
+import mill.api.daemon.internal.LauncherLocking.LockKind
+import mill.internal.WriterPreferringRwLock.HolderInfo
 import utest.*
 
 import java.io.{ByteArrayOutputStream, PrintStream}

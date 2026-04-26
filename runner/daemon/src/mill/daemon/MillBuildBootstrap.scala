@@ -35,6 +35,16 @@ import scala.collection.mutable.Buffer
  * and compiling builds/meta-builds and classloading their [[RootModule]]s so we
  * can evaluate the requested tasks on the [[RootModule]] representing the user's
  * `build.mill` file.
+ *
+ * When Mill is run in daemon mode or with `--watch`, bootstrap state is cached
+ * in-memory across evaluations. The daemon-wide reusable bootstrap metadata lives in
+ * [[RunnerSharedState]], while each launcher keeps its own evaluators and retained
+ * read leases in [[RunnerLauncherState]].
+ *
+ * When a subsequent evaluation happens, each meta-level attempts to re-use its
+ * corresponding cached frame to avoid unnecessary classloader recreation,
+ * worker churn, or re-evaluation. This should remain transparent to users
+ * while improving performance.
  */
 class MillBuildBootstrap(
     topLevelProjectRoot: os.Path,
@@ -92,10 +102,13 @@ class MillBuildBootstrap(
       val nestedDepths = nestedState.processedDepths
       val requestedDepth = computeRequestedDepth(requestedMetaLevel, depth, nestedDepths)
 
+      // If an earlier frame errored out, just propagate the error to this frame.
       if (nestedState.errorOpt.isDefined) nestedState
       else if (depth == 0 && (requestedDepth > nestedDepths || requestedDepth < 0)) {
+        // User has requested a frame depth that does not exist.
         nestedState.withError(invalidLevelMsg(requestedMetaLevel, nestedDepths))
       } else if (nestedState.finalFrame.isDefined) {
+        // Final tasks already ran at a deeper level due to `--meta-level` or `@nonBootstrapped`.
         nestedState
       } else {
         val rootModuleRes = nestedState.metaBuildFrames.headOption match {
@@ -115,6 +128,8 @@ class MillBuildBootstrap(
             val evaluator = makeEvaluator(nestedState, buildFileApi.rootModule, depth)
             closeOnThrow(evaluator) {
               val shouldShortCircuit =
+                // When there is an explicit `--meta-level`, use that and ignore any
+                // `@nonBootstrapped` annotations.
                 if (requestedMetaLevel.nonEmpty) Result.Success(false)
                 else
                   evaluator.areAllNonBootstrapped(
@@ -128,6 +143,9 @@ class MillBuildBootstrap(
                   processFinalTasks(nestedState, buildFileApi, evaluator, depth)
 
                 case _ =>
+                  // For both Success(false) and Failure, proceed with normal evaluation.
+                  // If areAllNonBootstrapped failed (e.g. the task does not exist), the
+                  // actual evaluation will also fail, but moduleWatched will still be captured.
                   if (depth > requestedDepth) {
                     processRunClasspath(nestedState, buildFileApi, evaluator, depth)
                   } else if (depth == requestedDepth) {
@@ -198,6 +216,7 @@ class MillBuildBootstrap(
 
     val millClassloaderIdentityHash0 = nestedSharedFrame.map(_.classLoader.identity).getOrElse(0)
 
+    // sharedWorkerCache drops and replaces the cache when the classloader identity changes.
     val workerCache =
       RunnerSharedState.sharedWorkerCache(sharedState, depth, millClassloaderIdentityHash0)
 
@@ -281,6 +300,8 @@ class MillBuildBootstrap(
     type SharedFrame = RunnerSharedState.Frame.Reusable
     case class ReuseProbe(frameOpt: Option[SharedFrame], reusableFrameOpt: Option[SharedFrame])
 
+    // Module watching is one level offset: the watches produced by depth - 1 determine
+    // whether the classloader published at this depth is still safe to reuse.
     def outerModuleWatched: Seq[Watchable] =
       prevCommandState.finalModuleWatchedAt(depth - 1)
         .orElse(sharedState.get().moduleWatchedAt(depth - 1))
@@ -334,6 +355,8 @@ class MillBuildBootstrap(
       )
 
     def closePriorAndPreviousClassloaders(previousShared: RunnerSharedState): Unit =
+      // Make sure we close old classloaders every time we publish a replacement, to avoid
+      // leaking classloaders and workers that may depend on them.
       Seq(
         prevCommandState.metaBuildFrameAt(depth).flatMap(_.classLoaderOpt),
         previousShared.reusableFrameAt(depth).map(_.classLoader)
@@ -374,6 +397,9 @@ class MillBuildBootstrap(
     ): RunnerLauncherState = {
       def createClassLoader() = {
         val rootModuleInfoDir = recOut(output, depth) / "rootModuleInfo.dest"
+        // Write root module info as a classpath resource so BuildFileCls can
+        // read it from the classloader without needing mutable global state.
+        // This classloader will be used at depth - 1 to load the root module.
         os.write.over(
           rootModuleInfoDir / "mill" / "rootModuleInfo.json",
           ujson.Obj(

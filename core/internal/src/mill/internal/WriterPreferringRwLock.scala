@@ -1,12 +1,18 @@
 package mill.internal
 
-import mill.api.daemon.internal.LauncherLocking.{HolderInfo, Lease, LockKind}
+import mill.api.daemon.internal.LauncherLocking.{Lease, LockKind}
 import mill.constants.DaemonFiles
+
+private[mill] object WriterPreferringRwLock {
+  final case class HolderInfo(pid: Long, command: String)
+}
 
 private[mill] final class WriterPreferringRwLock(
     @scala.annotation.unused label: String,
     displayLabel: String = ""
 ) {
+  import WriterPreferringRwLock.HolderInfo
+
   private val effectiveDisplayLabel: String =
     if (displayLabel.nonEmpty) displayLabel else label
   private val monitor = new Object

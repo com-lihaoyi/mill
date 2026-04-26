@@ -1,6 +1,8 @@
 package mill.daemon
 
-import mill.api.daemon.internal.bsp.{BspBootstrapBridge, BspServerHandle, BspServerResult}
+import mill.api.daemon.Watchable
+import mill.api.daemon.internal.EvaluatorApi
+import mill.api.daemon.internal.bsp.{BspServerHandle, BspServerResult}
 import mill.api.daemon.internal.NonFatal
 import mill.api.SystemStreams
 import sun.misc.Signal
@@ -8,17 +10,21 @@ import sun.misc.Signal
 import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Using}
 
 private[daemon] object BspMode {
   type RunBootstrap =
     (String, Option[RunnerLauncherState], SystemStreams, Boolean) => RunnerLauncherState
 
+  type BootstrapBridge = [T] => (
+      String,
+      (Seq[EvaluatorApi], Seq[Watchable], Option[String]) => T
+  ) => T
+
   def run(
       streams: SystemStreams,
       runMillBootstrap: RunBootstrap,
-      startBspServer: BspBootstrapBridge => (BspServerHandle, IdeWorkerSupport.BspBuildClient)
+      startBspServer: BootstrapBridge => (BspServerHandle, IdeWorkerSupport.BspBuildClient)
   ): Boolean = {
     Signal.handle(
       new Signal("TERM"),
@@ -27,29 +33,20 @@ private[daemon] object BspMode {
 
     val bspPrevState = new AtomicReference[Option[RunnerLauncherState]](None)
 
-    val bootstrapBridge = new BspBootstrapBridge {
-      override def runBootstrap[T](
-          activeCommandMessage: String,
-          body: BspBootstrapBridge.Body[T]
-      ): T = Using.resource(
-        runMillBootstrap(
-          activeCommandMessage,
-          bspPrevState.get(),
-          streams,
-          true
-        )
-      ) { runnerState =>
-        if (runnerState.errorOpt.isEmpty && runnerState.finalFrame.isDefined)
-          bspPrevState.set(Some(runnerState))
-        body.apply(
-          BspBootstrapBridge.BootstrapState(
-            runnerState.allEvaluators.asJava,
-            runnerState.watched.asJava,
-            runnerState.errorOpt
+    val bootstrapBridge: BootstrapBridge = [T] =>
+      (activeCommandMessage, body) =>
+        Using.resource(
+          runMillBootstrap(
+            activeCommandMessage,
+            bspPrevState.get(),
+            streams,
+            true
           )
-        )
+        ) { runnerState =>
+          if (runnerState.errorOpt.isEmpty && runnerState.finalFrame.isDefined)
+            bspPrevState.set(Some(runnerState))
+          body(runnerState.allEvaluators, runnerState.watched, runnerState.errorOpt)
       }
-    }
 
     val (bspServerHandle, _) = startBspServer(bootstrapBridge)
 

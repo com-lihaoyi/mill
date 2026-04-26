@@ -50,6 +50,8 @@ object MillMain0 {
   }
 
   /**
+   * Process-level lock used to coordinate access to the output folder between
+   * concurrent Mill processes.
    */
   def outFileLock(out: os.Path): Lock =
     Lock.file((out / OutFiles.millOutLock).toString)
@@ -342,6 +344,12 @@ object MillMain0 {
                         try {
                           val runArtifacts = session.runArtifacts
                           val state = withSessionLogger(runArtifacts) { logger =>
+                            // Enter key pressed: remove mill-selective-execution.json to
+                            // ensure all tasks re-run even if no inputs changed.
+                            //
+                            // Do this by removing the file rather than disabling selective
+                            // execution entirely, because we still want to regenerate the
+                            // metadata for subsequent runs.
                             if (skipSelectiveExecution)
                               os.remove(out / OutFiles.millSelectiveExecution)
                             runArtifacts.publishLiveArtifacts()
@@ -356,6 +364,8 @@ object MillMain0 {
                                     new MillBuildBootstrap(
                                       topLevelProjectRoot = BuildCtx.workspaceRoot,
                                       output = out,
+                                      // In BSP server mode, evaluate as many tasks as possible
+                                      // so BSP responses can expose as much information as available.
                                       keepGoing = bspMode || config.keepGoing.value,
                                       imports = config.imports,
                                       env = env ++ extraEnv,
@@ -534,7 +544,7 @@ object MillMain0 {
       noWaitForBspLock: Boolean,
       killOther: Boolean,
       bspWatch: Boolean,
-      bootstrapBridge: mill.api.daemon.internal.bsp.BspBootstrapBridge,
+      bootstrapBridge: BspMode.BootstrapBridge,
       env: Map[String, String]
   ): (BspServerHandle, IdeWorkerSupport.BspBuildClient) = {
     bspLogger.info("Trying to load BSP server...")

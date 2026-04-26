@@ -40,7 +40,9 @@ object ExecutionContexts {
 
     override def compareTo(other: QueuedRunnable): Int =
       priority.compareTo(other.priority) match {
-        case 0 => submissionIndex.compareTo(other.submissionIndex)
+        case 0 =>
+          // Comparable needs a total ordering, so break ties using submission order.
+          submissionIndex.compareTo(other.submissionIndex)
         case n => n
       }
   }

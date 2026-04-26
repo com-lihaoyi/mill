@@ -35,6 +35,8 @@ public class OutFiles {
     public final String defaultOut = "out";
 
     /**
+     * Default hard-coded value for the Mill `out/` folder path in BSP server mode.
+     * To get the effective out dir, use {@link #outFor}.
      */
     public final String defaultBspOut = ".bsp/out";
 
@@ -193,6 +195,7 @@ public class OutFiles {
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
   public static final String millOutLock = OutFiles.millOutLock;
+  /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
   public static final String millActive = "mill-active.json";
   /** @deprecated Use millActive instead */

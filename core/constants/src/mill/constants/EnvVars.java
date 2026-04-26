@@ -29,10 +29,13 @@ public class EnvVars {
 
   /**
    * Output directory where Mill workers' state and Mill tasks output should be
+   * written to in BSP server mode.
    */
   public static final String MILL_BSP_OUTPUT_DIR = "MILL_BSP_OUTPUT_DIR";
 
   /**
+   * If set to "1", Mill will re-use the regular out/ folder instead of
+   * using a separate one for BSP output.
    */
   public static final String MILL_NO_SEPARATE_BSP_OUTPUT_DIR = "MILL_NO_SEPARATE_BSP_OUTPUT_DIR";
 

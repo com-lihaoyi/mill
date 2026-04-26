@@ -223,6 +223,11 @@ object MillDaemonServer {
 
   /**
    * An InputStream that polls the client for stdin data via RPC.
+   * Used to support "Enter to re-run" in watch mode when running in daemon mode.
+   *
+   * `lookForEnterKey` calls `available()` before `read()`, so `available()` keeps
+   * the non-blocking polling path and `read()` falls back to blocking polls when
+   * it actually needs data.
    */
   class RpcStdinInputStream(
       serverToClient: mill.rpc.MillRpcChannel[DaemonRpc.ServerToClient]

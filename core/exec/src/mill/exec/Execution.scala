@@ -295,6 +295,11 @@ case class Execution(
             ec.fold(ExecutionContexts.RunNow)(new ExecutionContexts.ThreadPool(_))
           implicit val taskExecutionContext =
             if (exclusive) ExecutionContexts.RunNow else forkExecutionContext
+          // We walk the task graph in topological order and schedule the futures
+          // to run asynchronously. During this walk, we store the scheduled futures
+          // in a dictionary. When scheduling each future, we are guaranteed that the
+          // necessary upstream futures will have already been scheduled and stored,
+          // due to the topological order of traversal.
           for (terminal <- terminals) {
             val deps = interGroupDeps(terminal)
 
@@ -376,9 +381,11 @@ case class Execution(
 
                       val newFailures = res.newResults.values.count(r => r.asFailing.isDefined)
 
+                      // Count new failures: tasks with upstream failures should be skipped, not failed.
                       rootFailedCount.addAndGet(newFailures)
                       completedCount.incrementAndGet()
 
+                      // Always show the completed count in the header after a task finishes.
                       logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix())
 
                       if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
@@ -404,9 +411,14 @@ case class Execution(
                     }
                   }
                 } catch {
-                  case e: mill.api.daemon.StopWithResponse[?] => throw e
+                  case e: mill.api.daemon.StopWithResponse[?] =>
+                    // Let StopWithResponse propagate: it is a controlled shutdown signal.
+                    throw e
                   case e: Throwable if !mill.api.daemon.internal.NonFatal(e) =>
+                    // Wrap fatal errors so Scala's Future machinery reports them instead of
+                    // silently terminating the future and leaving downstream Awaits hanging.
                     val nonFatal = new Exception(s"fatal exception occurred: $e", e)
+                    // Preserve the original stack trace, since that points at the real failure.
                     nonFatal.setStackTrace(e.getStackTrace)
                     throw nonFatal
                 } finally {
@@ -416,9 +428,13 @@ case class Execution(
             }
           }
 
+          // Make sure we wait for all tasks from this batch to finish before starting the next
+          // one, so we don't mix up exclusive and non-exclusive tasks running at the same time.
           terminals.map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
         }
 
+        // Run all non-command tasks according to the configured thread count,
+        // but run exclusive commands in linear order.
         val (nonExclusiveTasks, leafExclusiveCommands) = indexToTerminal.partition {
           case t: Task.Named[_] => !downstreamOfExclusive.contains(t)
           case _ => !serialCommandExec
@@ -431,6 +447,9 @@ case class Execution(
         val isOutermostExecution = executionNestingDepth.get() == 1
         val hasFailures = rootFailedCount.get() > 0
         val showFinalStatus = isOutermostExecution && (hasFailures || isFinalDepth)
+        // Set final header showing SUCCESS/FAILED status:
+        // - FAILED: show for any outermost execution with failures
+        // - SUCCESS: only show for the final requested depth
         logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(completed = showFinalStatus))
 
         logger.prompt.clearPromptStatuses()
@@ -438,6 +457,7 @@ case class Execution(
         val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
 
         val taskInvalidationReasons = {
+          // Convert versionMismatchReasons to Map[String, String] for invalidation-tree logging.
           import scala.jdk.CollectionConverters.ConcurrentMapHasAsScala
           versionMismatchReasons.asScala.collect {
             case (t: Task.Named[?], reason) => t.ctx.segments.render -> reason

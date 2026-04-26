@@ -13,7 +13,8 @@ import scala.concurrent.Promise
 import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success}
 import mill.api.daemon.internal.NonFatal
-import mill.api.daemon.internal.bsp.{BspBootstrapBridge, BspModuleApi, BspServerResult}
+import mill.api.daemon.Watchable
+import mill.api.daemon.internal.bsp.{BspModuleApi, BspServerResult}
 import mill.api.daemon.internal.*
 
 /**
@@ -35,7 +36,10 @@ private abstract class MillBuildServer(
     noWaitForBspLock: Boolean,
     killOther: Boolean,
     bspWatch: Boolean,
-    bootstrapBridge: BspBootstrapBridge
+    bootstrapBridge: [T] => (
+        String,
+        (Seq[EvaluatorApi], Seq[Watchable], Option[String]) => T
+    ) => T
 ) extends EndpointsApi with AutoCloseable {
 
   import MillBuildServer.*
@@ -68,25 +72,24 @@ private abstract class MillBuildServer(
   private def withBootstrappedEvaluators[T](
       activeCommandMessage: String
   )(
-      onUnavailable: BspBootstrapBridge.BootstrapState => T
+      onUnavailable: (Seq[EvaluatorApi], Seq[Watchable], Option[String]) => T
   )(
-      body: (BspEvaluators, BspBootstrapBridge.BootstrapState) => T
+      body: (BspEvaluators, Seq[EvaluatorApi], Seq[Watchable], Option[String]) => T
   ): T =
-    bootstrapBridge.runBootstrap(
+    bootstrapBridge[T](
       activeCommandMessage,
-      new BspBootstrapBridge.Body[T] {
-        override def apply(state: BspBootstrapBridge.BootstrapState): T =
-          if (state.errorOpt.isDefined && state.evaluators.isEmpty) onUnavailable(state)
-          else {
-            val bspEvaluators = new BspEvaluators(
-              topLevelProjectRoot,
-              state.evaluators.asScala.toSeq,
-              s => baseLogger.debug(s()),
-              state.watched.asScala.toSeq
-            )
-            body(bspEvaluators, state)
-          }
-      }
+      (evaluators, watched, errorOpt) =>
+        if (errorOpt.isDefined && evaluators.isEmpty)
+          onUnavailable(evaluators, watched, errorOpt)
+        else {
+          val bspEvaluators = new BspEvaluators(
+            topLevelProjectRoot,
+            evaluators,
+            s => baseLogger.debug(s()),
+            watched
+          )
+          body(bspEvaluators, evaluators, watched, errorOpt)
+        }
     )
 
   private val sessionCoordinator = new BspSessionCoordinator(
@@ -129,8 +132,8 @@ private abstract class MillBuildServer(
         ) {
           try {
             val watchedSeq =
-              withBootstrappedEvaluators("BSP:watch")(state => state.watched.asScala.toSeq) {
-                (bspEvaluators, state) =>
+              withBootstrappedEvaluators("BSP:watch")((_, watched, _) => watched) {
+                (bspEvaluators, _, watched, _) =>
                   val current = bspEvaluators.targetSnapshots
                   val currentClient = client
                   if (seenAnyBootstrap && currentClient != null)
@@ -141,7 +144,7 @@ private abstract class MillBuildServer(
                     )
                   prevTargetSnapshots = current
                   seenAnyBootstrap = true
-                  state.watched.asScala.toSeq
+                  watched
               }
 
             def stillUnchanged(): Boolean =
@@ -307,11 +310,11 @@ private abstract class MillBuildServer(
       return
     }
     try {
-      withBootstrappedEvaluators(s"BSP:$prefix") { state =>
-        val error = state.errorOpt.get
+      withBootstrappedEvaluators(s"BSP:$prefix") { (_, _, errorOpt) =>
+        val error = errorOpt.get
         logger.error(error)
         future.completeExceptionally(new IllegalStateException(error))
-      } { (bspEvaluators, _) =>
+      } { (bspEvaluators, _, _, _) =>
         if (future.isCancelled()) {
           logger.info(s"$prefix was cancelled")
         } else {

@@ -8,6 +8,13 @@ import mill.api.daemon.Watchable
 import mill.api.daemon.internal.LauncherLocking
 import upickle.{ReadWriter, macroRW}
 
+/**
+ * Per-launcher view of the current bootstrap/evaluation run.
+ *
+ * This keeps the launcher-owned resources that cannot be shared daemon-wide:
+ * active evaluators, retained meta-build read leases, final-task watches,
+ * and the launcher session/artifact handles.
+ */
 @internal
 case class RunnerLauncherState(
     errorOpt: Option[String] = None,
@@ -154,6 +161,10 @@ object RunnerLauncherState {
       }.toMap
     }
 
+    /**
+     * Simplified representation of frame data, written to disk for
+     * debugging and testing purposes.
+     */
     case class Logged(
         workerCache: Map[String, WorkerInfo],
         evalWatched: Seq[os.Path],

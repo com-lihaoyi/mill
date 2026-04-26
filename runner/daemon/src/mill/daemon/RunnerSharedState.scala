@@ -9,6 +9,13 @@ import mill.exec.GroupExecution
 import java.util.concurrent.atomic.AtomicReference
 import scala.collection.mutable
 
+/**
+ * Daemon-wide bootstrap cache shared across concurrent launcher runs.
+ *
+ * Each stored frame represents reusable metadata from one level of `build.mill`
+ * evaluation: watches, classloaders, code signatures, classpaths, and worker
+ * caches that are safe to share between launchers.
+ */
 @internal
 case class RunnerSharedState(
     frames: Map[Int, RunnerSharedState.Frame] = Map.empty,

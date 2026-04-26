@@ -309,6 +309,8 @@ trait GroupExecution {
               logger = logger,
               inputsHash = inputsHash,
               labelled = labelled,
+              // `cached.isEmpty` means the worker metadata file was removed by the user,
+              // so recompute the worker.
               forceDiscard = cached.isEmpty,
               deps = deps,
               paths = Some(paths),
@@ -405,6 +407,10 @@ trait GroupExecution {
                     (valueHash, serializedPaths, true)
 
                   case _ =>
+                    // Wipe out any cached meta.json file that exists, so
+                    // a following run won't look at the cached metadata file and
+                    // assume it's associated with the possibly-borked state of the
+                    // destPath after an evaluation failure.
                     os.remove.all(paths.meta)
                     (0, Nil, false)
                 }

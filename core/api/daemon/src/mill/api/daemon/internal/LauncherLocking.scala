@@ -2,6 +2,13 @@ package mill.api.daemon.internal
 
 import java.nio.file.Path
 
+/**
+ * Locking APIs to let us safely run multiple concurrent launchers at the same time
+ *
+ * [[metaBuildLock]] ensures that only one launcher can be bootstrapping the meta-build,
+ * but once the meta-build is done multiple launchers can run concurrently and only lock
+ * on the individual tasks they need to run or use.
+ */
 private[mill] trait LauncherLocking extends AutoCloseable {
 
   def metaBuildLock(depth: Int, kind: LauncherLocking.LockKind): LauncherLocking.Lease
@@ -17,8 +24,6 @@ private[mill] object LauncherLocking {
   enum LockKind {
     case Read, Write
   }
-
-  final case class HolderInfo(pid: Long, command: String)
 
   trait Lease extends AutoCloseable {
     def downgradeToRead(): Unit = ()

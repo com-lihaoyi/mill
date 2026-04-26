@@ -22,6 +22,8 @@ private[worker] object ChangeNotifier {
    * appropriate change notifications to the client.
    *
    * @param client The BSP client to notify
+   * @param previousTargets Previous build target snapshots
+   * @param newTargets Current build target snapshots
    */
   def notifyChanges(
       client: BuildClient,
