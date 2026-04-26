@@ -3,7 +3,6 @@ package mill.daemon
 import mill.api.{MillURLClassLoader, Val}
 import mill.api.daemon.Watchable
 import mill.api.daemon.internal.{PathRefApi, TaskApi}
-import mill.exec.GroupExecution
 
 import scala.collection.mutable
 
@@ -13,12 +12,13 @@ import scala.collection.mutable
  * Each stored frame represents reusable metadata from one level of `build.mill`
  * evaluation: watches, classloaders, code signatures, classpaths, and worker
  * caches that are safe to share between launchers. A frame whose bootstrap
- * succeeded carries a [[RunnerSharedState.Frame.Reusable]] payload; a failed
- * frame still publishes its watches so callers can use them to invalidate.
+ * succeeded carries a [[RunnerSharedState.Frame.Reusable]] payload (which now
+ * also owns the per-classloader worker cache, so worker lifetime tracks
+ * classloader lifetime); a failed frame still publishes its watches so callers
+ * can use them to invalidate.
  */
 case class RunnerSharedState(
-    frames: Map[Int, RunnerSharedState.Frame] = Map.empty,
-    workerCaches: Map[Int, RunnerSharedState.WorkerCacheSlot] = Map.empty
+    frames: Map[Int, RunnerSharedState.Frame] = Map.empty
 ) {
   import RunnerSharedState.*
 
@@ -32,9 +32,6 @@ case class RunnerSharedState(
 
   def withFrame(depth: Int, frame: Frame): RunnerSharedState =
     copy(frames = frames.updated(depth, frame))
-
-  def withWorkerCache(depth: Int, slot: WorkerCacheSlot): RunnerSharedState =
-    copy(workerCaches = workerCaches.updated(depth, slot))
 }
 
 object RunnerSharedState {
@@ -58,65 +55,13 @@ object RunnerSharedState {
         compileOutput: PathRefApi,
         codeSignatures: Map[String, Int],
         buildOverrideFiles: Map[java.nio.file.Path, String],
-        selectiveMetadata: Option[String]
-    )
-  }
-
-  case class WorkerCacheSlot(
-      classLoaderIdentityHash: Int,
-      workers: mutable.Map[String, (Int, Val, TaskApi[?])]
-  ) extends AutoCloseable {
-    // Don't synchronize the whole body: closeWorkersInReverseTopologicalOrder
-    // already locks `workers` for the per-name remove, then runs each
-    // closeable's close() outside the lock. Holding `workers.synchronized`
-    // across user close() calls would risk deadlock if a worker close
-    // synchronizes back on this map.
-    override def close(): Unit = {
-      val snapshot = workers.synchronized(workers.toMap)
-      val deps = GroupExecution.workerDependencies(snapshot)
-      val topoIndex = deps.iterator.map(_._1).zipWithIndex.toMap
-      GroupExecution.closeWorkersInReverseTopologicalOrder(
-        topoIndex.keys,
-        workers,
-        topoIndex,
-        c =>
-          try c.close()
-          catch { case _: Throwable => () }
-      )
-    }
-  }
-
-  /**
-   * Return the worker cache for `depth` matching the given classloader identity.
-   * If the slot is missing or its identity has changed, atomically install a
-   * fresh empty slot and close the displaced one.
-   *
-   * Goes through the lock-free CAS path on [[MetaBuildAccess]] rather than
-   * grabbing a meta-build lock, because workers are installed lazily during
-   * task evaluation (after the meta-build read lock has been retained as a
-   * read lease) and need their own atomicity. Under contention, two callers
-   * seeing the same pre-state could otherwise both think they installed the
-   * winning slot.
-   */
-  @scala.annotation.tailrec
-  def sharedWorkerCache(
-      metaBuild: MetaBuildAccess,
-      depth: Int,
-      classLoaderIdentityHash: Int
-  ): mutable.Map[String, (Int, Val, TaskApi[?])] = {
-    val current = metaBuild.snapshot()
-    current.workerCaches.get(depth) match {
-      case Some(existing) if existing.classLoaderIdentityHash == classLoaderIdentityHash =>
-        existing.workers
-      case other =>
-        val fresh = WorkerCacheSlot(
-          classLoaderIdentityHash,
+        selectiveMetadata: Option[String],
+        // Workers loaded from this classloader and shared across launchers using
+        // this frame. Lifetime tracks classloader lifetime: when this frame is
+        // displaced, [[closeWorkers]] is called as part of disposing the
+        // classloader, ensuring no stale workers outlive their classloader.
+        workers: mutable.Map[String, (Int, Val, TaskApi[?])] =
           mutable.Map.empty[String, (Int, Val, TaskApi[?])]
-        )
-        if (metaBuild.compareAndSet(current, current.withWorkerCache(depth, fresh))) {
-          other.foreach(_.close())
-          fresh.workers
-        } else sharedWorkerCache(metaBuild, depth, classLoaderIdentityHash)
-    }
+    )
   }
 }

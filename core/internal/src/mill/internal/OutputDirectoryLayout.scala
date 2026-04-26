@@ -42,4 +42,16 @@ private[mill] object OutputDirectoryLayout {
       case OutFolderMode.REGULAR => regularOutDir(env)
       case OutFolderMode.BSP => bspOutOverride(workDir, env).getOrElse(regularOutDir(env))
     }
+
+  /**
+   * One-shot resolver for callers (subprocess launchers) that need all three
+   * pieces of out-mode-resolved state at once. Returns the env mutated with
+   * `MILL_BSP_OUTPUT_DIR` if applicable, the active out dir, and the regular
+   * (non-BSP) out dir.
+   */
+  case class Resolved(effectiveEnv: Map[String, String], outDir: String, regularOutDir: String)
+  def resolve(outMode: OutFolderMode, workDir: os.Path, env: Map[String, String]): Resolved = {
+    val eff = effectiveEnvForOutMode(outMode, workDir, env)
+    Resolved(eff, outDir(outMode, workDir, eff), regularOutDir(eff))
+  }
 }

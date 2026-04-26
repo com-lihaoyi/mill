@@ -12,20 +12,8 @@ import scala.jdk.CollectionConverters._
 
 object MillProcessLauncher {
 
-  def regularOutDir(env: Map[String, String]): String = OutputDirectoryLayout.regularOutDir(env)
-
-  def bspOutOverride(workDir: os.Path, env: Map[String, String]): Option[String] =
-    OutputDirectoryLayout.bspOutOverride(workDir, env)
-
-  def outDir(outMode: OutFolderMode, workDir: os.Path, env: Map[String, String]): String =
+  private def outDir(outMode: OutFolderMode, workDir: os.Path, env: Map[String, String]): String =
     OutputDirectoryLayout.outDir(outMode, workDir, env)
-
-  def effectiveEnvForOutMode(
-      outMode: OutFolderMode,
-      workDir: os.Path,
-      env: Map[String, String]
-  ): Map[String, String] =
-    OutputDirectoryLayout.effectiveEnvForOutMode(outMode, workDir, env)
 
   def launchMillNoDaemon(
       args: Seq[String],
@@ -217,7 +205,7 @@ object MillProcessLauncher {
       CoursierClient.resolveJavaHome(
         jvmVersion,
         jvmIndexVersion,
-        regularOutDir(env),
+        OutputDirectoryLayout.regularOutDir(env),
         millRepositories
       )
     }

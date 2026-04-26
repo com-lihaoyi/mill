@@ -22,6 +22,6 @@ private[mill] class LauncherLockRegistry {
   ): CrossThreadRwLock =
     taskLocks.computeIfAbsent(
       normalizedAbsolutePath,
-      p => new CrossThreadRwLock(label = p, displayLabel = displayLabel)
+      _ => new CrossThreadRwLock(label = displayLabel)
     )
 }

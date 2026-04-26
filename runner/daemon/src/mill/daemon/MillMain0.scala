@@ -3,7 +3,7 @@ package mill.daemon
 import mill.api.daemon.internal.bsp.BspServerHandle
 import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
 import mill.api.{Logger, MillException, Result, SystemStreams}
-import mill.api.daemon.internal.LauncherOutFiles
+import mill.api.daemon.internal.{LauncherLocking, LauncherOutFiles}
 import mill.bsp.BSP
 import mill.client.lock.Lock
 import mill.constants.OutFolderMode
@@ -283,31 +283,34 @@ object MillMain0 {
                           }
                         }
 
-                        def createLauncherSession(): LauncherSession = {
+                        def createLauncherResources()
+                            : (LauncherLocking, LauncherOutFiles, AutoCloseable) = {
                           val fileLockLease = acquireOutFileLease(markIdleWhileWaiting = true)
                           try {
                             if (serverToClientOpt.nonEmpty) {
                               val runId = artifactState.nextRunId()
-                              new LauncherSession.Active(
-                                fileLockLease = fileLockLease,
-                                workspaceLocking = new LauncherLockingImpl(
-                                  activeCommandMessage = millActiveCommandMessage,
-                                  launcherPid = launcherPid,
-                                  waitingErr = streams.err,
-                                  noBuildLock = config.noBuildLock.value,
-                                  noWaitForBuildLock = config.noWaitForBuildLock.value,
-                                  lockRegistry = lockRegistry,
-                                  runId = runId
-                                ),
-                                runArtifacts = new LauncherOutFilesImpl(
-                                  out = out,
-                                  activeCommandMessage = millActiveCommandMessage,
-                                  launcherPid = launcherPid,
-                                  artifactState = artifactState,
-                                  runId = runId
-                                )
+                              val locking = new LauncherLockingImpl(
+                                activeCommandMessage = millActiveCommandMessage,
+                                launcherPid = launcherPid,
+                                waitingErr = streams.err,
+                                noBuildLock = config.noBuildLock.value,
+                                noWaitForBuildLock = config.noWaitForBuildLock.value,
+                                lockRegistry = lockRegistry,
+                                runId = runId
                               )
-                            } else LauncherSession.standalone(fileLockLease, out)
+                              val artifacts = new LauncherOutFilesImpl(
+                                out = out,
+                                activeCommandMessage = millActiveCommandMessage,
+                                launcherPid = launcherPid,
+                                artifactState = artifactState,
+                                runId = runId
+                              )
+                              (locking, artifacts, fileLockLease)
+                            } else (
+                              LauncherLocking.Noop,
+                              LauncherOutFiles.noop(out.toNIO),
+                              fileLockLease
+                            )
                           } catch {
                             case e: Throwable =>
                               try fileLockLease.close()
@@ -345,9 +348,9 @@ object MillMain0 {
                               Using.resource(loggerResource)(body)
                           }
 
-                        val session = createLauncherSession()
+                        val (workspaceLocking, runArtifacts, fileLockLease) =
+                          createLauncherResources()
                         try {
-                          val runArtifacts = session.runArtifacts
                           val state = withSessionLogger(runArtifacts) { logger =>
                             // Enter key pressed: remove mill-selective-execution.json to
                             // ensure all tasks re-run even if no inputs changed.
@@ -391,7 +394,7 @@ object MillMain0 {
                                       runArtifacts = runArtifacts,
                                       metaBuild = new MetaBuildAccess(
                                         ref = sharedState,
-                                        workspaceLocking = session.workspaceLocking
+                                        workspaceLocking = workspaceLocking
                                       ),
                                       reporter = reporter,
                                       metaBuildReporter = metaBuildReporter,
@@ -403,10 +406,14 @@ object MillMain0 {
                               }
                             finally runArtifacts.publishArtifacts()
                           }
-                          state.withSession(session)
+                          state.withResources(workspaceLocking, runArtifacts, fileLockLease)
                         } catch {
                           case e: Throwable =>
-                            try session.close()
+                            try workspaceLocking.close()
+                            catch { case _: Throwable => () }
+                            try runArtifacts.close()
+                            catch { case _: Throwable => () }
+                            try fileLockLease.close()
                             catch { case _: Throwable => () }
                             throw e
                         }
@@ -431,30 +438,86 @@ object MillMain0 {
                           chromeProfilePath =
                             out / os.RelPath("mill-bsp") / OutFiles.millChromeProfile
                         )) { bspLogger =>
-                          BspMode.run(
-                            streams = streams,
-                            runMillBootstrap = (msg, prev, strm, useBspLogger, metaReporter) =>
-                              runMillBootstrap(
-                                skipSelectiveExecution = false,
-                                prevState = prev,
-                                tasksAndParams = Seq("resolve", "_"),
-                                streams = strm,
-                                millActiveCommandMessage = msg,
-                                metaBuildReporter = metaReporter,
-                                useBspRequestLogger = useBspLogger
-                              ),
-                            startBspServer = bridge =>
-                              startBspServer(
-                                streams0,
-                                bspLogger,
-                                launcherPid = launcherPid,
-                                noWaitForBspLock = config.noWaitForBspLock.value,
-                                killOther = !config.bspNoKillOther.value,
-                                bspWatch = config.bspWatch,
-                                bootstrapBridge = bridge,
-                                env = env
-                              )
+                          sun.misc.Signal.handle(
+                            new sun.misc.Signal("TERM"),
+                            _ => SystemStreams.originalErr.println("Received SIGTERM, exiting")
                           )
+
+                          // Each BSP request bootstraps fresh evaluators with no shared
+                          // `prevState`: BSP requests run concurrently on the
+                          // bspRequestExecutor, and a shared `RunnerLauncherState` would be
+                          // unsafe (its evaluators could be closed by one thread's
+                          // `Using.resource` while another still references them). The
+                          // daemon-wide RunnerSharedState already caches reusable meta-build
+                          // frames across requests under proper locking.
+                          //
+                          // The `metaReporter` is supplied by the BSP worker (which owns the
+                          // `BuildClient`) and is invoked during each meta-build compile so
+                          // build diagnostics for `build.mill` and `mill-build/build.mill`
+                          // reach the BSP client like normal-target diagnostics do.
+                          val bootstrapBridge: BspMode.BootstrapBridge =
+                            [T] =>
+                              (activeCommandMessage, metaReporter, body) =>
+                                Using.resource(
+                                  runMillBootstrap(
+                                    skipSelectiveExecution = false,
+                                    prevState = None,
+                                    tasksAndParams = Seq("resolve", "_"),
+                                    streams = streams,
+                                    millActiveCommandMessage = activeCommandMessage,
+                                    metaBuildReporter = metaReporter,
+                                    useBspRequestLogger = true
+                                  )
+                                ) { runnerState =>
+                                  body(
+                                    runnerState.allEvaluators,
+                                    runnerState.watched,
+                                    runnerState.errorOpt
+                                  )
+                              }
+
+                          val (bspServerHandle, _) = startBspServer(
+                            streams0,
+                            bspLogger,
+                            launcherPid = launcherPid,
+                            noWaitForBspLock = config.noWaitForBspLock.value,
+                            killOther = !config.bspNoKillOther.value,
+                            bspWatch = config.bspWatch,
+                            bootstrapBridge = bootstrapBridge,
+                            env = env
+                          )
+
+                          val shutdownResult =
+                            try scala.util.Success(scala.concurrent.Await.result(
+                                bspServerHandle.shutdownFuture,
+                                scala.concurrent.duration.Duration.Inf
+                              ))
+                            catch {
+                              case mill.api.daemon.internal.NonFatal(ex) =>
+                                scala.util.Failure(ex)
+                            }
+
+                          val errored = shutdownResult match {
+                            case scala.util.Failure(ex) =>
+                              streams.err.println("BSP server threw an exception, exiting")
+                              ex.printStackTrace(streams.err)
+                              true
+                            case scala.util.Success(
+                                  mill.api.daemon.internal.bsp.BspServerResult.Shutdown
+                                ) =>
+                              streams.err.println("BSP shutdown asked by client, exiting")
+                              streams.in.close()
+                              false
+                            case scala.util.Success(
+                                  mill.api.daemon.internal.bsp.BspServerResult.ReloadWorkspace
+                                ) =>
+                              streams.err.println("BSP reload asked by client, exiting")
+                              streams.in.close()
+                              false
+                          }
+                          bspServerHandle.close()
+                          streams.err.println("Exiting BSP runner loop")
+                          !errored
                         }
                       } else if (
                         config.leftoverArgs.value == Seq("mill.idea.GenIdea/idea") ||

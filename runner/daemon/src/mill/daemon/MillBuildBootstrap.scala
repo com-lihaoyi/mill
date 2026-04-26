@@ -84,7 +84,7 @@ class MillBuildBootstrap(
 
   def evaluate(): RunnerLauncherState = CliImports.withValue(imports) {
     val runnerLauncherState = evaluateRec(0)
-    closeOnThrow(runnerLauncherState) {
+    try {
       def write(depth: Int, logged: RunnerLauncherState.Logged): Unit =
         os.write.over(
           recOut(output, depth) / millRunnerState,
@@ -97,6 +97,10 @@ class MillBuildBootstrap(
         write(frame.depth, RunnerLauncherState.Logged.fromFinalFrame(frame))
 
       runnerLauncherState
+    } catch {
+      case t: Throwable =>
+        try runnerLauncherState.close() catch { case _: Throwable => () }
+        throw t
     }
   }
 
@@ -133,7 +137,7 @@ class MillBuildBootstrap(
 
           case Result.Success(buildFileApi) =>
             val evaluator = makeEvaluator(nestedState, buildFileApi.rootModule, depth)
-            closeOnThrow(evaluator) {
+            try {
               val shouldShortCircuit =
                 // When there is an explicit `--meta-level`, use that and ignore any
                 // `@nonBootstrapped` annotations.
@@ -159,6 +163,10 @@ class MillBuildBootstrap(
                     processFinalTasks(nestedState, buildFileApi, evaluator, depth)
                   } else ??? // should be handled by outer conditional
               }
+            } catch {
+              case t: Throwable =>
+                try evaluator.close() catch { case _: Throwable => () }
+                throw t
             }
         }
       }
@@ -205,9 +213,15 @@ class MillBuildBootstrap(
 
     val millClassloaderIdentityHash0 = nestedSharedFrame.map(_.classLoader.identity).getOrElse(0)
 
-    // sharedWorkerCache drops and replaces the cache when the classloader identity changes.
-    val workerCache =
-      RunnerSharedState.sharedWorkerCache(metaBuild, depth, millClassloaderIdentityHash0)
+    // Workers are owned by the nested shared frame (lifetime tracks the
+    // classloader's lifetime). When there is no nested shared frame (deepest
+    // bootstrap level), use a fresh per-launcher worker map: bootstrap-level
+    // workers are loaded from the per-launcher bootstrap module classloader
+    // and are not safe to share across launchers anyway.
+    val workerCache: collection.mutable.Map[String, (Int, Val, TaskApi[?])] =
+      nestedSharedFrame
+        .map(_.workers)
+        .getOrElse(collection.mutable.Map.empty[String, (Int, Val, TaskApi[?])])
 
     makeEvaluator0(
       projectRoot = topLevelProjectRoot,
@@ -349,13 +363,28 @@ class MillBuildBootstrap(
 
     def closePriorAndPreviousClassloaders(
         displacedReusable: Option[RunnerSharedState.Frame.Reusable]
-    ): Unit =
-      // Make sure we close old classloaders every time we publish a replacement, to avoid
-      // leaking classloaders and workers that may depend on them.
+    ): Unit = {
+      // Close any workers that lived on the displaced frame (their classloader is going
+      // away). Done in reverse-topological order so dependent workers close before
+      // their dependencies. Skip the prevCommandState classloader: when the displacing
+      // write succeeded, the prevCommandState's read lease must already have been
+      // released, and the displaced frame's classloader IS that classloader.
+      displacedReusable.foreach { reusable =>
+        val snapshot = reusable.workers.synchronized(reusable.workers.toMap)
+        val deps = mill.exec.GroupExecution.workerDependencies(snapshot)
+        val topoIndex = deps.iterator.map(_._1).zipWithIndex.toMap
+        mill.exec.GroupExecution.closeWorkersInReverseTopologicalOrder(
+          topoIndex.keys,
+          reusable.workers,
+          topoIndex,
+          c => try c.close() catch { case _: Throwable => () }
+        )
+      }
       Seq(
         prevCommandState.metaFrameAt(depth).flatMap(_.classLoaderOpt),
         displacedReusable.map(_.classLoader)
       ).flatten.distinct.foreach(_.close())
+    }
 
     def publishFailedFrame(
         writeScope: MetaBuildAccess.WriteScope,
@@ -589,15 +618,6 @@ class MillBuildBootstrap(
 }
 
 object MillBuildBootstrap {
-
-  private def closeOnThrow[R <: AutoCloseable, A](resource: R)(body: => A): A =
-    try body
-    catch {
-      case e: Throwable =>
-        try resource.close()
-        catch { case _: Throwable => }
-        throw e
-    }
 
   // Keep this outside of `case class MillBuildBootstrap` because otherwise the lambdas
   // tend to capture the entire enclosing instance, causing memory leaks

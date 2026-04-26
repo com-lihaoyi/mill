@@ -39,9 +39,10 @@ object MillLauncherMain {
 
     val outMode = if (bspMode) OutFolderMode.BSP else OutFolderMode.REGULAR
     if (env.contains("MILL_TEST_EXIT_AFTER_BSP_CHECK")) return 0
-    val effectiveEnv = MillProcessLauncher.effectiveEnvForOutMode(outMode, workDir, env)
-    val outDir = MillProcessLauncher.outDir(outMode, workDir, effectiveEnv)
-    val regularOutDir = MillProcessLauncher.regularOutDir(effectiveEnv)
+    val resolved = mill.internal.OutputDirectoryLayout.resolve(outMode, workDir, env)
+    val effectiveEnv = resolved.effectiveEnv
+    val outDir = resolved.outDir
+    val regularOutDir = resolved.regularOutDir
     val logFile = os.Path(outDir, workDir) / "mill-launcher/log"
     val formatter =
       DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of("UTC"))

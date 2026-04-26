@@ -3,7 +3,7 @@ package mill.daemon
 import mill.api.Val
 import mill.api.JsonFormatters.*
 import mill.api.MillURLClassLoader
-import mill.api.daemon.internal.{EvaluatorApi, PathRefApi, TaskApi}
+import mill.api.daemon.internal.{EvaluatorApi, LauncherOutFiles, PathRefApi, TaskApi}
 import mill.api.daemon.Watchable
 import mill.api.daemon.internal.LauncherLocking
 import mill.api.internal.RootModule
@@ -30,7 +30,14 @@ case class RunnerLauncherState(
     /** Meta-build frames in deepest-first order (innermost first). */
     metaFrames: List[RunnerLauncherState.MetaFrame] = Nil,
     finalFrame: Option[RunnerLauncherState.FinalFrame] = None,
-    sessionOpt: Option[LauncherSession] = None
+    /**
+     * Per-launcher resources to release at state close: meta-build/task locks,
+     * out-file artifact publisher, and file-lock lease on the out folder.
+     * Closed in declaration order: locking → artifacts → file lock.
+     */
+    workspaceLocking: Option[LauncherLocking] = None,
+    runArtifacts: Option[LauncherOutFiles] = None,
+    fileLockLease: Option[AutoCloseable] = None
 ) extends Watching.Result with AutoCloseable {
   import RunnerLauncherState.*
 
@@ -39,7 +46,16 @@ case class RunnerLauncherState(
   def withFinalFrame(frame: FinalFrame): RunnerLauncherState =
     copy(finalFrame = Some(frame))
   def withError(err: String): RunnerLauncherState = copy(errorOpt = Some(err))
-  def withSession(s: LauncherSession): RunnerLauncherState = copy(sessionOpt = Some(s))
+  def withResources(
+      locking: LauncherLocking,
+      artifacts: LauncherOutFiles,
+      fileLock: AutoCloseable
+  ): RunnerLauncherState =
+    copy(
+      workspaceLocking = Some(locking),
+      runArtifacts = Some(artifacts),
+      fileLockLease = Some(fileLock)
+    )
 
   def metaFrameAt(depth: Int): Option[MetaFrame] = metaFrames.find(_.depth == depth)
 
@@ -60,7 +76,10 @@ case class RunnerLauncherState(
 
   override def close(): Unit = {
     val leases = metaFrames.flatMap(_.readLease)
-    closeAll(allEvaluators.distinct ++ leases ++ sessionOpt.toSeq)
+    closeAll(
+      allEvaluators.distinct ++ leases ++
+        workspaceLocking.toSeq ++ runArtifacts.toSeq ++ fileLockLease.toSeq
+    )
   }
 
   private def closeAll(resources: Iterable[AutoCloseable]): Unit = {

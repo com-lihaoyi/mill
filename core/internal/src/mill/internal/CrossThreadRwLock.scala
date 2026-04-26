@@ -5,16 +5,13 @@ import mill.constants.DaemonFiles
 
 /**
  * A version of [[java.util.concurrent.locks.ReadWriteLock]] that can be acquired
- * and released on separate threads.
+ * and released on separate threads. `label` is the human-readable name used in
+ * waiting/blocking messages; uniqueness across locks is the registry's
+ * responsibility (e.g. [[LauncherLockRegistry]]'s map key), not the lock's.
  */
-class CrossThreadRwLock(
-    @scala.annotation.unused label: String,
-    displayLabel: String = ""
-) {
+class CrossThreadRwLock(label: String) {
   import CrossThreadRwLock.HolderInfo
 
-  private val effectiveDisplayLabel: String =
-    if (displayLabel.nonEmpty) displayLabel else label
   private val monitor = new Object
   private var readerCount = 0
   private var writerActive = false
@@ -33,12 +30,12 @@ class CrossThreadRwLock(
     case Some(h) =>
       s"Another Mill command in the current daemon is running '${h.command}' with PID ${h.pid}"
     case None =>
-      s"Another Mill command in the current daemon is using '$effectiveDisplayLabel'"
+      s"Another Mill command in the current daemon is using '$label'"
   }
 
   private def blockedSuffix(kind: LockKind): String = kind match {
-    case LockKind.Read => s" (blocked on reading from $effectiveDisplayLabel)"
-    case LockKind.Write => s" (blocked on writing to $effectiveDisplayLabel)"
+    case LockKind.Read => s" (blocked on reading from $label)"
+    case LockKind.Write => s" (blocked on writing to $label)"
   }
 
   def acquire(

@@ -23,11 +23,6 @@ import java.util.concurrent.atomic.AtomicReference
  *     under concurrent updates is not required (e.g. reading immutable
  *     bootstrap fields after a higher-level read lock has already been
  *     taken). Each call site documents why it is safe.
- *
- *   - [[compareAndSet]] is a lock-free CAS used by the worker-cache
- *     installer, which intentionally runs without holding a meta-build lock
- *     because workers are shared across launchers at all depths and need
- *     their own atomicity.
  */
 private[daemon] class MetaBuildAccess(
     private val ref: AtomicReference[RunnerSharedState],
@@ -36,12 +31,6 @@ private[daemon] class MetaBuildAccess(
 
   /** Lock-free read. See class doc for when to use. */
   def snapshot(): RunnerSharedState = ref.get()
-
-  /** Lock-free CAS for the worker-cache installer. See class doc. */
-  private[daemon] def compareAndSet(
-      expected: RunnerSharedState,
-      updated: RunnerSharedState
-  ): Boolean = ref.compareAndSet(expected, updated)
 
   /**
    * Read-then-write meta-build lock dance at `depth`.
