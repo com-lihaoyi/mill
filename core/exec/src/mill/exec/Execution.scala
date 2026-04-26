@@ -86,7 +86,13 @@ case class Execution(
       spanningInvalidationTree: Option[String]
   ) = this(
     baseLogger = baseLogger,
-    profileLogger = new JsonArrayLogger.Profile(os.Path(runArtifacts.profile)),
+    // Only depth=0 (the user build) publishes through `runArtifacts`, so meta-build
+    // levels must write to their own per-depth `outPath / mill-profile.json` to avoid
+    // multiple Executions racing on the same file and producing a corrupted profile.
+    profileLogger = new JsonArrayLogger.Profile(
+      if (depth == 0) os.Path(runArtifacts.profile)
+      else os.Path(outPath) / mill.constants.OutFiles.millProfile
+    ),
     workspace = os.Path(workspace),
     outPath = os.Path(outPath),
     externalOutPath = os.Path(externalOutPath),
