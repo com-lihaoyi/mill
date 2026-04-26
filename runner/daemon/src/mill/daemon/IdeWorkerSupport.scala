@@ -9,7 +9,7 @@ import mill.javalib.api.JvmWorkerUtil
 import mill.util.{BuildInfo, Jvm}
 
 private object IdeWorkerSupport {
-  case class BspBuildClient private[daemon] (private[daemon] val value: AnyRef)
+  final case class BspBuildClient private[daemon] (private[daemon] val value: AnyRef)
 
   private val organization = Organization("com.lihaoyi")
 
@@ -94,7 +94,7 @@ private object IdeWorkerSupport {
       classOf[Boolean],
       classOf[Boolean],
       classOf[Boolean],
-      classOf[scala.Function2[?, ?, ?]]
+      classOf[scala.Function1[?, ?]]
     )
 
     val bspEvaluatorsClass = classLoader.loadClass("mill.bsp.worker.BspEvaluators")

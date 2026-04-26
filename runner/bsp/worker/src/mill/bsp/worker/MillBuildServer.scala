@@ -36,10 +36,12 @@ private abstract class MillBuildServer(
     noWaitForBspLock: Boolean,
     killOther: Boolean,
     bspWatch: Boolean,
-    bootstrapBridge: [T] => (
-        String,
-        (Seq[EvaluatorApi], Seq[Watchable], Option[String]) => T
-    ) => T
+    bootstrapBridge: String => (
+        Seq[EvaluatorApi],
+        Seq[Watchable],
+        Option[String],
+        AutoCloseable
+    )
 ) extends EndpointsApi with AutoCloseable {
 
   import MillBuildServer.*
