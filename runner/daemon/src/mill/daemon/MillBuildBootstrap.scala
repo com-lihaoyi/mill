@@ -84,7 +84,10 @@ class MillBuildBootstrap(
           upickle.write(logged, indent = 4),
           createFolders = true
         )
-      for (frame <- runnerLauncherState.frames) write(frame.depth, frame.logged)
+      for (frame <- runnerLauncherState.metaFrames)
+        write(frame.depth, RunnerLauncherState.Logged.fromMetaFrame(frame))
+      for (frame <- runnerLauncherState.finalFrame)
+        write(frame.depth, RunnerLauncherState.Logged.fromFinalFrame(frame))
 
       runnerLauncherState
     }
@@ -98,7 +101,7 @@ class MillBuildBootstrap(
         if (containsBuildFile(currentRoot)) evaluateRec(depth + 1)
         else makeBootstrapState(currentRoot, depth)
 
-      val nestedDepths = nestedState.processedDepths
+      val nestedDepths = nestedState.metaFrames.size + nestedState.finalFrame.size
       val requestedDepth = computeRequestedDepth(requestedMetaLevel, depth, nestedDepths)
 
       // If an earlier frame errored out, just propagate the error to this frame.
@@ -110,9 +113,7 @@ class MillBuildBootstrap(
         // Final tasks already ran at a deeper level due to `--meta-level` or `@nonBootstrapped`.
         nestedState
       } else {
-        // At this point nestedState only contains Meta frames — Final frames
-        // would have triggered the early-return above.
-        val rootModuleRes = nestedState.frames.headOption match {
+        val rootModuleRes = nestedState.metaFrames.headOption match {
           case None =>
             Result.Success(
               BuildFileApi.Bootstrap(sharedState.get().bootstrap.get.module)
@@ -177,15 +178,13 @@ class MillBuildBootstrap(
       else
         makeBootstrapModule(currentRoot, foundRootBuildFileName, useDummy) match {
           case Result.Success(bootstrapModule) =>
-            sharedState.updateAndGet(
-              _.withBootstrap(
-                RunnerSharedState.BootstrapCache(
-                  bootstrapModule,
-                  foundRootBuildFileName,
-                  useDummy
-                )
+            sharedState.updateAndGet(_.withBootstrap(
+              RunnerSharedState.BootstrapCache(
+                bootstrapModule,
+                foundRootBuildFileName,
+                useDummy
               )
-            )
+            ))
             None
           case f: Result.Failure => Some(Util.formatError(f, logger.prompt.errorColor))
         }
@@ -194,7 +193,7 @@ class MillBuildBootstrap(
     RunnerLauncherState(
       errorOpt = error,
       buildFile = Some(foundRootBuildFileName),
-      bootstrapEvalWatched = Some(bootstrapEvalWatched)
+      buildFileWatch = Some(bootstrapEvalWatched)
     )
   }
 
@@ -207,9 +206,9 @@ class MillBuildBootstrap(
     val staticBuildOverrides0 = tryReadParent(currentRoot, "build.mill.yaml")
       .orElse(tryReadParent(currentRoot, "build.mill"))
 
-    // At this point nestedState only contains Meta frames; the most recent is
-    // the just-published nested level we want to read shared metadata for.
-    val nestedMetaBuildFrame = nestedState.frames.headOption
+    // The most recent meta-build frame is the just-published nested level we
+    // want to read shared metadata for.
+    val nestedMetaBuildFrame = nestedState.metaFrames.headOption
     val nestedSharedFrame = nestedMetaBuildFrame.flatMap(frame =>
       sharedState.get().reusableFrameAt(frame.depth)
     )
@@ -240,10 +239,7 @@ class MillBuildBootstrap(
       runArtifacts = runArtifacts,
       workerCache = workerCache,
       codeSignatures = nestedSharedFrame.map(_.codeSignatures).getOrElse(Map.empty),
-      spanningInvalidationTree = nestedMetaBuildFrame.flatMap(_.role match {
-        case m: RunnerLauncherState.Role.Meta => m.spanningInvalidationTree
-        case _ => None
-      }),
+      spanningInvalidationTree = nestedMetaBuildFrame.flatMap(_.spanningInvalidationTree),
       rootModule = rootModule,
       // Use the current frame's runClasspath (includes mvnDeps and Mill jars) but filter out
       // compile.dest and generatedScriptSources.dest since build code changes are handled
@@ -303,7 +299,7 @@ class MillBuildBootstrap(
   ): RunnerLauncherState = {
     val taskSelector = Seq("millBuildRootModuleResult")
     val collectSelectiveMetadata = tasksAndParams.nonEmpty
-    type SharedFrame = RunnerSharedState.Frame.Reusable
+    type SharedFrame = RunnerSharedState.Frame
     case class ReuseProbe(frameOpt: Option[SharedFrame], reusableFrameOpt: Option[SharedFrame])
 
     // Module watching is one level offset: the watches produced by depth - 1 determine
@@ -319,9 +315,11 @@ class MillBuildBootstrap(
     def reusable(frameOpt: Option[SharedFrame]): Result[ReuseProbe] =
       frameOpt match {
         case None => Result.Success(ReuseProbe(None, None))
+        case Some(frame) if frame.reusable.isEmpty =>
+          Result.Success(ReuseProbe(frameOpt, None))
         case Some(_) if watchedParentInputsChanged() => Result.Success(ReuseProbe(frameOpt, None))
         case Some(frame) =>
-          frame.selectiveMetadata match {
+          frame.reusable.flatMap(_.selectiveMetadata) match {
             case None => Result.Success(ReuseProbe(frameOpt, None))
             case Some(previousMetadata) =>
               evaluator
@@ -347,25 +345,27 @@ class MillBuildBootstrap(
       nestedState.withError(mill.internal.Util.formatError(f, logger.prompt.errorColor))
 
     def reuseFrame(
-        frame: SharedFrame,
+        sharedFrame: RunnerSharedState.Frame,
         lease: LauncherLocking.Lease
     ): RunnerLauncherState =
-      nestedState.withFrame(
-        RunnerLauncherState.metaFrame(
-          depth,
-          evaluator,
-          frame,
-          lease,
+      nestedState.withMetaFrame(
+        RunnerLauncherState.MetaFrame(
+          depth = depth,
+          evaluator = evaluator,
+          sharedFrame = sharedFrame,
+          readLease = Some(lease),
           spanningInvalidationTree = None
         )
       )
 
-    def closePriorAndPreviousClassloaders(previousShared: RunnerSharedState): Unit =
+    def closePriorAndPreviousClassloaders(
+        displacedReusable: Option[RunnerSharedState.Frame.Reusable]
+    ): Unit =
       // Make sure we close old classloaders every time we publish a replacement, to avoid
       // leaking classloaders and workers that may depend on them.
       Seq(
-        prevCommandState.frameAt(depth).flatMap(_.classLoaderOpt),
-        previousShared.reusableFrameAt(depth).map(_.classLoader)
+        prevCommandState.metaFrameAt(depth).flatMap(_.classLoaderOpt),
+        displacedReusable.map(_.classLoader)
       ).flatten.distinct.foreach(_.close())
 
     def publishFailedFrame(
@@ -373,19 +373,18 @@ class MillBuildBootstrap(
         evalWatches: Seq[Watchable],
         moduleWatches: Seq[Watchable]
     ): RunnerLauncherState = {
-      val failedShared = RunnerSharedState.Frame.Failed(
-        evalWatched = evalWatches,
-        moduleWatched = moduleWatches
-      )
-      val previous = sharedState.getAndUpdate(_.withFrame(depth, failedShared))
-      closePriorAndPreviousClassloaders(previous)
+      val failedShared = RunnerSharedState.Frame(evalWatches, moduleWatches, None)
+      val displaced =
+        sharedState.getAndUpdate(_.withFrame(depth, failedShared)).reusableFrameAt(depth)
+      closePriorAndPreviousClassloaders(displaced)
       nestedState
-        .withFrame(
-          RunnerLauncherState.failedMetaFrame(
-            depth,
-            evaluator,
-            evalWatches,
-            moduleWatches
+        .withMetaFrame(
+          RunnerLauncherState.MetaFrame(
+            depth = depth,
+            evaluator = evaluator,
+            sharedFrame = failedShared,
+            readLease = None,
+            spanningInvalidationTree = None
           )
         )
         .withError(mill.internal.Util.formatError(f, logger.prompt.errorColor))
@@ -423,25 +422,28 @@ class MillBuildBootstrap(
             Seq("java.", "javax.", "scala.", "mill.api.daemon", "sbt.testing.")
         )
       }
-      val fresh: SharedFrame = RunnerSharedState.Frame.Reusable(
+      val fresh = RunnerSharedState.Frame(
         evalWatched = evalWatches,
         moduleWatched = moduleWatches,
-        classLoader = createClassLoader(),
-        runClasspath = runClasspath,
-        compileOutput = compileClasses,
-        codeSignatures = codeSignatures,
-        buildOverrideFiles = buildOverrideFiles,
-        selectiveMetadata =
-          Option.when(collectSelectiveMetadata)(readSelectiveMetadataFile()).flatten
+        reusable = Some(RunnerSharedState.Frame.Reusable(
+          classLoader = createClassLoader(),
+          runClasspath = runClasspath,
+          compileOutput = compileClasses,
+          codeSignatures = codeSignatures,
+          buildOverrideFiles = buildOverrideFiles,
+          selectiveMetadata =
+            Option.when(collectSelectiveMetadata)(readSelectiveMetadataFile()).flatten
+        ))
       )
-      val previous = sharedState.getAndUpdate(_.withFrame(depth, fresh))
-      closePriorAndPreviousClassloaders(previous)
-      nestedState.withFrame(
-        RunnerLauncherState.metaFrame(
-          depth,
-          evaluator,
-          fresh,
-          retainedLease,
+      val displaced =
+        sharedState.getAndUpdate(_.withFrame(depth, fresh)).reusableFrameAt(depth)
+      closePriorAndPreviousClassloaders(displaced)
+      nestedState.withMetaFrame(
+        RunnerLauncherState.MetaFrame(
+          depth = depth,
+          evaluator = evaluator,
+          sharedFrame = fresh,
+          readLease = Some(retainedLease),
           spanningInvalidationTree = Some(spanningInvalidationTree)
         )
       )
@@ -489,7 +491,7 @@ class MillBuildBootstrap(
       acquireRead = workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Read),
       acquireWrite = workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Write)
     ) { scope =>
-      reusable(sharedState.get().reusableFrameAt(depth)) match {
+      reusable(sharedState.get().frameAt(depth)) match {
         case f: Result.Failure =>
           LockUpgrade.Decision.Complete(errorState(f))
         case Result.Success(probe) =>
@@ -501,7 +503,7 @@ class MillBuildBootstrap(
           }
       }
     } { scope =>
-      val currentFrame = sharedState.get().reusableFrameAt(depth)
+      val currentFrame = sharedState.get().frameAt(depth)
       val reuseResult = readProbeOpt.filter(_.frameOpt == currentFrame) match {
         case Some(probe) => Result.Success(probe)
         case None => reusable(currentFrame)
@@ -536,12 +538,7 @@ class MillBuildBootstrap(
       if (skipSelectiveExecution) None
       else
         prevCommandState.finalFrame
-          .filter(f =>
-            f.depth == depth && (f.role match {
-              case RunnerLauncherState.Role.Final(prevTasks) => prevTasks == tasksAndParams
-              case _ => false
-            })
-          )
+          .filter(f => f.depth == depth && f.tasksAndParams == tasksAndParams)
           .map(f => (f.evalWatched, f.moduleWatched))
           .filter { case (ev, mw) =>
             ev.forall(Watching.haveNotChanged) && mw.forall(Watching.haveNotChanged)
@@ -549,13 +546,13 @@ class MillBuildBootstrap(
 
     shortCircuitSource match {
       case Some((evalWatched, moduleWatched)) =>
-        return nestedState.withFrame(
-          RunnerLauncherState.LauncherFrame(
+        return nestedState.withFinalFrame(
+          RunnerLauncherState.FinalFrame(
             depth = depth,
             evaluator = evaluator,
             evalWatched = evalWatched,
             moduleWatched = moduleWatched,
-            role = RunnerLauncherState.Role.Final(tasksAndParams)
+            tasksAndParams = tasksAndParams
           )
         )
       case None => ()
@@ -569,13 +566,13 @@ class MillBuildBootstrap(
       reporter = reporter(evaluator)
     )
 
-    val withFinal = nestedState.withFrame(
-      RunnerLauncherState.LauncherFrame(
+    val withFinal = nestedState.withFinalFrame(
+      RunnerLauncherState.FinalFrame(
         depth = depth,
         evaluator = evaluator,
         evalWatched = evalWatched,
         moduleWatched = moduleWatched,
-        role = RunnerLauncherState.Role.Final(tasksAndParams)
+        tasksAndParams = tasksAndParams
       )
     )
     evaled match {

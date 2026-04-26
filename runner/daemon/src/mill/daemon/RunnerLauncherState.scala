@@ -11,52 +11,53 @@ import upickle.{ReadWriter, macroRW}
 /**
  * Per-launcher view of the current bootstrap/evaluation run.
  *
- * This keeps the launcher-owned resources that cannot be shared daemon-wide:
- * active evaluators, retained meta-build read leases, final-task watches,
- * and the launcher session/artifact handles.
+ * Holds launcher-owned resources that cannot be shared daemon-wide: active
+ * evaluators, retained meta-build read leases that pin the shared frames the
+ * launcher is using, the user-task evaluation, and the launcher session.
  */
 case class RunnerLauncherState(
     errorOpt: Option[String] = None,
     buildFile: Option[String] = None,
-    bootstrapEvalWatched: Option[Watchable] = None,
-    frames: List[RunnerLauncherState.LauncherFrame] = Nil,
+    /**
+     * Watch on the top-level `build.mill` file used to bootstrap. Kept as a
+     * top-level field rather than as part of any meta frame because it is the
+     * "we should restart at all" boundary watch — distinct from any meta-build
+     * evaluator's own watches.
+     */
+    buildFileWatch: Option[Watchable] = None,
+    /** Meta-build frames in deepest-first order (innermost first). */
+    metaFrames: List[RunnerLauncherState.MetaFrame] = Nil,
+    finalFrame: Option[RunnerLauncherState.FinalFrame] = None,
     sessionOpt: Option[LauncherSession] = None
-) extends Watching.Result
-    with AutoCloseable {
+) extends Watching.Result with AutoCloseable {
   import RunnerLauncherState.*
 
-  def withFrame(frame: LauncherFrame): RunnerLauncherState =
-    copy(frames = frame +: frames)
-
-  def frameAt(depth: Int): Option[LauncherFrame] = frames.find(_.depth == depth)
-
-  def finalFrame: Option[LauncherFrame] = frames.collectFirst {
-    case f if f.role.isInstanceOf[Role.Final] => f
-  }
-
+  def withMetaFrame(frame: MetaFrame): RunnerLauncherState =
+    copy(metaFrames = frame +: metaFrames)
+  def withFinalFrame(frame: FinalFrame): RunnerLauncherState =
+    copy(finalFrame = Some(frame))
   def withError(err: String): RunnerLauncherState = copy(errorOpt = Some(err))
+  def withSession(s: LauncherSession): RunnerLauncherState = copy(sessionOpt = Some(s))
 
-  def withSession(s: LauncherSession): RunnerLauncherState =
-    copy(sessionOpt = Some(s))
-
-  def processedDepths: Int = frames.size
+  def metaFrameAt(depth: Int): Option[MetaFrame] = metaFrames.find(_.depth == depth)
 
   def moduleWatchedAt(depth: Int): Option[Seq[Watchable]] =
-    frameAt(depth).map(_.moduleWatched)
+    metaFrameAt(depth).map(_.moduleWatched)
+      .orElse(finalFrame.collect { case f if f.depth == depth => f.moduleWatched })
 
   def finalModuleWatchedAt(depth: Int): Option[Seq[Watchable]] =
     finalFrame.collect { case f if f.depth == depth => f.moduleWatched }
 
   def watched: Seq[Watchable] =
-    frames.flatMap(f => f.evalWatched ++ f.moduleWatched) ++ bootstrapEvalWatched.toSeq
+    metaFrames.flatMap(f => f.evalWatched ++ f.moduleWatched) ++
+      finalFrame.toList.flatMap(f => f.evalWatched ++ f.moduleWatched) ++
+      buildFileWatch.toSeq
 
-  def allEvaluators: Seq[EvaluatorApi] = frames.map(_.evaluator)
+  def allEvaluators: Seq[EvaluatorApi] =
+    finalFrame.toList.map(_.evaluator) ++ metaFrames.map(_.evaluator)
 
   override def close(): Unit = {
-    val leases = frames.flatMap(_.role match {
-      case m: Role.Meta => m.readLease
-      case _ => None
-    })
+    val leases = metaFrames.flatMap(_.readLease)
     closeAll(allEvaluators.distinct ++ leases ++ sessionOpt.toSeq)
   }
 
@@ -75,25 +76,48 @@ case class RunnerLauncherState(
 }
 
 object RunnerLauncherState {
-  def empty: RunnerLauncherState = RunnerLauncherState()
+  val empty: RunnerLauncherState = RunnerLauncherState()
 
-  case class WorkerInfo(identityHashCode: Int, inputHash: Int)
-  implicit val workerInfoRw: ReadWriter[WorkerInfo] = macroRW
-
-  def summarizeWorkerCache(
-      workerCache: collection.Map[String, (Int, Val, TaskApi[?])]
-  ): Map[String, WorkerInfo] = workerCache.synchronized {
-    workerCache.iterator.map { case (k, (i, v, _)) =>
-      (k, WorkerInfo(System.identityHashCode(v), i))
-    }.toMap
+  /**
+   * One meta-build level of an in-progress launcher evaluation. Holds a direct
+   * reference to the [[RunnerSharedState.Frame]] instance the launcher pinned
+   * with [[readLease]] (no read lease and a failed shared frame on a failed
+   * bootstrap), so its classloader/runClasspath are read off [[sharedFrame]]
+   * without duplication.
+   */
+  case class MetaFrame(
+      depth: Int,
+      evaluator: EvaluatorApi,
+      sharedFrame: RunnerSharedState.Frame,
+      readLease: Option[LauncherLocking.Lease],
+      spanningInvalidationTree: Option[String]
+  ) {
+    def evalWatched: Seq[Watchable] = sharedFrame.evalWatched
+    def moduleWatched: Seq[Watchable] = sharedFrame.moduleWatched
+    def classLoaderOpt: Option[MillURLClassLoader] = sharedFrame.reusable.map(_.classLoader)
+    def runClasspath: Seq[PathRefApi] =
+      sharedFrame.reusable.fold(Seq.empty[PathRefApi])(_.runClasspath)
   }
 
   /**
-   * Simplified representation of frame data, written to disk for
-   * debugging and testing purposes.
+   * The user-task evaluation frame. Carries the task selectors that were run
+   * so the next launcher invocation can short-circuit a re-run when the
+   * inputs are unchanged.
+   */
+  case class FinalFrame(
+      depth: Int,
+      evaluator: EvaluatorApi,
+      evalWatched: Seq[Watchable],
+      moduleWatched: Seq[Watchable],
+      tasksAndParams: Seq[String]
+  )
+
+  /**
+   * Simplified representation of frame data, written to disk for debugging
+   * and testing purposes (see `out/.../mill-runner-state.json`).
    */
   case class Logged(
-      workerCache: Map[String, WorkerInfo],
+      workerCache: Map[String, Logged.WorkerInfo],
       evalWatched: Seq[os.Path],
       moduleWatched: Seq[os.Path],
       classLoaderIdentity: Option[Int],
@@ -102,112 +126,37 @@ object RunnerLauncherState {
   )
   implicit val loggedRw: ReadWriter[Logged] = macroRW
 
-  private[daemon] def buildLogged(
-      workerCache: Map[String, WorkerInfo],
-      evalWatched: Seq[Watchable],
-      moduleWatched: Seq[Watchable],
-      classLoaderIdentity: Option[Int],
-      runClasspath: Seq[PathRefApi]
-  ): Logged = {
-    def paths(ws: Seq[Watchable]) =
+  object Logged {
+    case class WorkerInfo(identityHashCode: Int, inputHash: Int)
+    implicit val workerInfoRw: ReadWriter[WorkerInfo] = macroRW
+
+    private def summarizeWorkerCache(
+        workerCache: collection.Map[String, (Int, Val, TaskApi[?])]
+    ): Map[String, WorkerInfo] = workerCache.synchronized {
+      workerCache.iterator.map { case (k, (i, v, _)) =>
+        (k, WorkerInfo(System.identityHashCode(v), i))
+      }.toMap
+    }
+
+    private def paths(ws: Seq[Watchable]): Seq[os.Path] =
       ws.collect { case Watchable.Path(p, _, _) => os.Path(p) }.distinct
-    Logged(
-      workerCache,
-      paths(evalWatched),
-      paths(moduleWatched),
-      classLoaderIdentity,
-      runClasspath.map(p => os.Path(p.javaPath) -> p.sig),
-      runClasspath.hashCode()
+
+    def fromMetaFrame(f: MetaFrame): Logged = Logged(
+      workerCache = summarizeWorkerCache(f.evaluator.workerCache),
+      evalWatched = paths(f.evalWatched),
+      moduleWatched = paths(f.moduleWatched),
+      classLoaderIdentity = f.classLoaderOpt.map(_.identity),
+      runClasspath = f.runClasspath.map(p => os.Path(p.javaPath) -> p.sig),
+      runClasspathHash = f.runClasspath.hashCode()
+    )
+
+    def fromFinalFrame(f: FinalFrame): Logged = Logged(
+      workerCache = Map.empty,
+      evalWatched = paths(f.evalWatched),
+      moduleWatched = paths(f.moduleWatched),
+      classLoaderIdentity = None,
+      runClasspath = Nil,
+      runClasspathHash = Seq.empty[PathRefApi].hashCode()
     )
   }
-
-  enum Role {
-    case Meta(
-        classLoaderOpt: Option[MillURLClassLoader],
-        runClasspath: Seq[PathRefApi],
-        readLease: Option[LauncherLocking.Lease],
-        spanningInvalidationTree: Option[String]
-    )
-    case Final(tasksAndParams: Seq[String])
-  }
-
-  /**
-   * One level of an in-progress launcher evaluation.
-   *
-   * For meta-build levels, [[Role.Meta]] carries the classloader/classpath the
-   * launcher published, the read lease that keeps the shared frame stable, and
-   * the spanning invalidation tree captured during a fresh evaluation. For the
-   * user-task evaluation, [[Role.Final]] carries the task selectors that were
-   * run, used to short-circuit a re-run when nothing has changed.
-   */
-  case class LauncherFrame(
-      depth: Int,
-      evaluator: EvaluatorApi,
-      evalWatched: Seq[Watchable],
-      moduleWatched: Seq[Watchable],
-      role: Role
-  ) {
-    def classLoaderOpt: Option[MillURLClassLoader] = role match {
-      case m: Role.Meta => m.classLoaderOpt
-      case _: Role.Final => None
-    }
-
-    def runClasspath: Seq[PathRefApi] = role match {
-      case m: Role.Meta => m.runClasspath
-      case _: Role.Final => Nil
-    }
-
-    def logged: Logged = {
-      val workerCache = role match {
-        case _: Role.Meta => summarizeWorkerCache(evaluator.workerCache)
-        case _: Role.Final => Map.empty[String, WorkerInfo]
-      }
-      buildLogged(
-        workerCache,
-        evalWatched,
-        moduleWatched,
-        classLoaderOpt.map(_.identity),
-        runClasspath
-      )
-    }
-  }
-
-  def metaFrame(
-      depth: Int,
-      evaluator: EvaluatorApi,
-      sharedFrame: RunnerSharedState.Frame.Reusable,
-      lease: LauncherLocking.Lease,
-      spanningInvalidationTree: Option[String]
-  ): LauncherFrame =
-    LauncherFrame(
-      depth = depth,
-      evaluator = evaluator,
-      evalWatched = sharedFrame.evalWatched,
-      moduleWatched = sharedFrame.moduleWatched,
-      role = Role.Meta(
-        classLoaderOpt = Some(sharedFrame.classLoader),
-        runClasspath = sharedFrame.runClasspath,
-        readLease = Some(lease),
-        spanningInvalidationTree = spanningInvalidationTree
-      )
-    )
-
-  def failedMetaFrame(
-      depth: Int,
-      evaluator: EvaluatorApi,
-      evalWatched: Seq[Watchable],
-      moduleWatched: Seq[Watchable]
-  ): LauncherFrame =
-    LauncherFrame(
-      depth = depth,
-      evaluator = evaluator,
-      evalWatched = evalWatched,
-      moduleWatched = moduleWatched,
-      role = Role.Meta(
-        classLoaderOpt = None,
-        runClasspath = Nil,
-        readLease = None,
-        spanningInvalidationTree = None
-      )
-    )
 }
