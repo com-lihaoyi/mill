@@ -184,16 +184,21 @@ class EvaluatorImpl(
       previousMetadata: String,
       allowPositionalCommandArgs: Boolean = false
   ): mill.api.Result[EvaluatorApi.SelectiveReuseDecision] = {
-    resolveTasks(scriptArgs, selectMode, allowPositionalCommandArgs).map { tasks =>
-      val oldMetadata = upickle.read[SelectiveExecution.Metadata](previousMetadata)
-      val transitiveNamed = transitiveNamedSelective(tasks)
-      val computed = SelectiveExecutionImpl.Metadata.compute0(this, transitiveNamed)
-      val (_, downstream) =
-        selective.computeDownstream(transitiveNamed, oldMetadata, computed.metadata)
-      EvaluatorApi.SelectiveReuseDecision(
-        reusable = downstream.isEmpty,
-        nextMetadata = upickle.write(computed.metadata)
-      )
+    resolveTasks(scriptArgs, selectMode, allowPositionalCommandArgs).flatMap { tasks =>
+      // upickle.read can throw on malformed metadata (e.g. from a different
+      // Mill version). Convert that into a Result.Failure so callers fall
+      // back to a full re-evaluation rather than crashing the bootstrap.
+      mill.api.ExecResult.catchWrapException {
+        val oldMetadata = upickle.read[SelectiveExecution.Metadata](previousMetadata)
+        val transitiveNamed = transitiveNamedSelective(tasks)
+        val computed = SelectiveExecutionImpl.Metadata.compute0(this, transitiveNamed)
+        val (_, downstream) =
+          selective.computeDownstream(transitiveNamed, oldMetadata, computed.metadata)
+        EvaluatorApi.SelectiveReuseDecision(
+          reusable = downstream.isEmpty,
+          nextMetadata = upickle.write(computed.metadata)
+        )
+      }
     }
   }
 

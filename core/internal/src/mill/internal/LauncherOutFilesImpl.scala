@@ -48,8 +48,12 @@ private[mill] class LauncherOutFilesImpl(
     )
   )
 
-  os.makeDir.all(runDir)
+  // Write the launcher record before creating the run directory: a
+  // concurrent launcher's `cleanup` walks `mill-run/` and treats any dir
+  // whose runId is missing from the active record set as eligible for
+  // deletion, so the record must be visible before the dir exists.
   writeLauncherRunFile()
+  os.makeDir.all(runDir)
   cleanup(out, artifactState)
 
   override def publishLiveArtifacts(): Unit =
@@ -80,13 +84,15 @@ private[mill] object LauncherOutFilesImpl {
     os.RelPath(OutFiles.millInvalidationTree)
   )
 
+  // Names are `<millis>-<pid>-<counter>`; sort primarily by millis, then by the
+  // trailing counter so that within a single millisecond we still keep newest.
+  // Older single-segment formats fall back to (0, 0).
   private def runDirSortKey(p: os.Path): (Long, Long) = {
-    val name = p.last
-    val dash = name.indexOf('-')
-    if (dash < 0) (0L, 0L)
+    val parts = p.last.split('-')
+    if (parts.isEmpty) (0L, 0L)
     else (
-      name.substring(0, dash).toLongOption.getOrElse(0L),
-      name.substring(dash + 1).toLongOption.getOrElse(0L)
+      parts.head.toLongOption.getOrElse(0L),
+      parts.last.toLongOption.getOrElse(0L)
     )
   }
 

@@ -27,7 +27,14 @@ class SharedOutLockManager(
     val mustAcquire = monitor.synchronized {
       if (closed) throw new IllegalStateException("SharedOutLockManager is closed")
       refCount += 1
-      while (acquiring) monitor.wait()
+      while (acquiring && !closed) monitor.wait()
+      // Recheck closed: a concurrent close() can happen while we wait, in
+      // which case we must not proceed to fileLock.tryLock() on a manager
+      // whose held lease has already been released.
+      if (closed) {
+        refCount -= 1
+        throw new IllegalStateException("SharedOutLockManager is closed")
+      }
       if (heldLease != null) false
       else {
         acquiring = true
@@ -97,6 +104,7 @@ class SharedOutLockManager(
       catch { case _: Throwable => () }
       heldLease = null
     }
+    monitor.notifyAll()
   }
 }
 

@@ -78,12 +78,15 @@ private[mill] object LauncherRecordStore {
     }
   }
 
+  // RunIds are `<millis>-<pid>-<counter>`; sort by millis then trailing
+  // counter so most-recent comes last. Older single-segment formats fall
+  // back to (0, 0).
   private def runIdSortKey(runId: String): (Long, Long) = {
-    val dash = runId.indexOf('-')
-    if (dash < 0) (0L, 0L)
+    val parts = runId.split('-')
+    if (parts.isEmpty) (0L, 0L)
     else (
-      runId.substring(0, dash).toLongOption.getOrElse(0L),
-      runId.substring(dash + 1).toLongOption.getOrElse(0L)
+      parts.head.toLongOption.getOrElse(0L),
+      parts.last.toLongOption.getOrElse(0L)
     )
   }
 }

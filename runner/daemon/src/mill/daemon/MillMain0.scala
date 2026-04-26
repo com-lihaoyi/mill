@@ -461,11 +461,17 @@ object MillMain0 {
                             "BSP:initialize"
                           )
                         ) { runnerState =>
-                          IdeWorkerSupport.runIdeaGeneration(
-                            runnerState.allEvaluators
-                          )
+                          runnerState.errorOpt match {
+                            case Some(err) =>
+                              streams.err.println(err)
+                              false
+                            case None =>
+                              IdeWorkerSupport.runIdeaGeneration(
+                                runnerState.allEvaluators
+                              )
+                              true
+                          }
                         }
-                        true
                       } else if (
                         config.leftoverArgs.value == Seq("mill.eclipse.GenEclipse/eclipse") ||
                         config.leftoverArgs.value == Seq("mill.eclipse.GenEclipse/") ||
@@ -480,10 +486,16 @@ object MillMain0 {
                             "BSP:initialize"
                           )
                         ) { runnerState =>
-                          new mill.eclipse.GenEclipseImpl(runnerState.allEvaluators)
-                            .run()
+                          runnerState.errorOpt match {
+                            case Some(err) =>
+                              streams.err.println(err)
+                              false
+                            case None =>
+                              new mill.eclipse.GenEclipseImpl(runnerState.allEvaluators)
+                                .run()
+                              true
+                          }
                         }
-                        true
                       } else {
                         val (watchSuccess, watchState) = Watching.watchLoop(
                           ringBell = config.ringBell.value,
