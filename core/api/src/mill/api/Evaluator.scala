@@ -165,7 +165,7 @@ object Evaluator {
    * @param selectedTasks The tasks that actually were selected to be run during this evaluation
    * @param executionResults Detailed information on the results of executing each task
    */
-  case class Result[T](
+  final case class Result[T](
       watchable: Seq[Watchable],
       values: mill.api.Result[Seq[T]],
       selectedTasks: Seq[Task[?]],

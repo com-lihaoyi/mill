@@ -4,7 +4,7 @@ import mill.api.*
 import mill.api.daemon.internal.*
 import mill.api.internal.*
 
-class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
+final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
   private[mill] override def scriptModuleInit: Any = delegate.scriptModuleInit
   private def delegate = delegate0()
   override def allowPositionalCommandArgs = delegate.allowPositionalCommandArgs
