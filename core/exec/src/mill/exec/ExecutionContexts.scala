@@ -13,6 +13,15 @@ import mill.api.daemon.internal.NonFatal
 object ExecutionContexts {
 
   /**
+   * Process-wide counter for [[ThreadPool.PriorityRunnable.priorityRunnableIndex]].
+   * Indexed once per submitted runnable; only needs to be unique within a
+   * single shared `PriorityBlockingQueue`, but using a global counter keeps
+   * the comparison contract trivial when multiple `ThreadPool` wrappers
+   * share the same underlying executor.
+   */
+  private val priorityRunnableCount = new java.util.concurrent.atomic.AtomicLong()
+
+  /**
    * Execution context that runs code immediately when scheduled, without
    * spawning a separate thread or thread-pool. Used to turn parallel-async
    * Future code into nice single-threaded code without needing to rewrite it
@@ -76,8 +85,6 @@ object ExecutionContexts {
     def reportFailure(t: Throwable): Unit = {}
     def close(): Unit = executor.shutdown()
 
-    val priorityRunnableCount = java.util.concurrent.atomic.AtomicLong()
-
     /**
      * Subclass of [[java.lang.Runnable]] that assigns a priority to execute it
      *
@@ -88,7 +95,14 @@ object ExecutionContexts {
     class PriorityRunnable(val priority: Int, run0: () => Unit) extends Runnable
         with Comparable[PriorityRunnable] {
       def run() = run0()
-      val priorityRunnableIndex: Long = priorityRunnableCount.getAndIncrement()
+      // Use a process-wide counter rather than per-`ThreadPool` instance, because
+      // multiple `ThreadPool` wrappers may share the same underlying `executor`
+      // (and thus the same `PriorityBlockingQueue`) when concurrent launchers or
+      // BSP requests reuse the launcher's `ec`. A per-instance counter would let
+      // PriorityRunnables from different wrappers collide on
+      // `priorityRunnableIndex`, which the `compareTo` assertion below would
+      // catch and propagate as an evaluation failure.
+      val priorityRunnableIndex: Long = ExecutionContexts.priorityRunnableCount.getAndIncrement()
       override def compareTo(o: PriorityRunnable): Int = priority.compareTo(o.priority) match {
         case 0 =>
           // `Comparable` wants a *total* ordering, so we need to use `priorityRunnableIndex`
