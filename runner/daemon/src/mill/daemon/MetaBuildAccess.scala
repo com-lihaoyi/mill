@@ -78,6 +78,7 @@ private[daemon] object MetaBuildAccess {
       private val ref: AtomicReference[RunnerSharedState],
       val scope: LockUpgrade.Scope
   ) {
+
     /** Current shared state under the held write lock. */
     def snapshot(): RunnerSharedState = ref.get()
 

@@ -35,7 +35,8 @@ object MillProcessLauncher {
       useFileLocks: Boolean,
       workDir: os.Path,
       effectiveEnv: Map[String, String],
-      millRepositories: Seq[String]
+      millRepositories: Seq[String],
+      streamsOpt: Option[mill.api.daemon.SystemStreams] = None
   ): Int = {
     val sig = f"${UUID.randomUUID().hashCode}%08x"
     val processDir = os.Path(outDir(outMode, workDir, effectiveEnv), workDir) /
@@ -52,7 +53,33 @@ object MillProcessLauncher {
       args
 
     var interrupted = false
-    val proc = configureRunMillProcess(cmd, processDir, workDir = workDir, env = effectiveEnv)
+    // Pipe the subprocess's streams into `streamsOpt` (used by in-memory test
+    // runners) so output gets captured into the test's chunking buffers.
+    // Otherwise, default to `os.Inherit` so output flows to the launcher's
+    // own stdout/stderr.
+    val (stdoutDest, stderrDest, stdinDest): (
+        os.ProcessOutput,
+        os.ProcessOutput,
+        os.ProcessInput
+    ) =
+      streamsOpt match {
+        case None => (os.Inherit, os.Inherit, os.Inherit)
+        case Some(s) =>
+          (
+            os.ProcessOutput.Readlines(line => s.out.println(line)),
+            os.ProcessOutput.Readlines(line => s.err.println(line)),
+            os.Inherit
+          )
+      }
+    val proc = configureRunMillProcess(
+      cmd,
+      processDir,
+      stdin = stdinDest,
+      stdout = stdoutDest,
+      stderr = stderrDest,
+      workDir = workDir,
+      env = effectiveEnv
+    )
     try {
       proc.waitFor()
       proc.exitCode()

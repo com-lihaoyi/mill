@@ -70,7 +70,8 @@ object MillLauncherMain {
           useFileLocks,
           workDir,
           effectiveEnv,
-          millRepositories
+          millRepositories,
+          streamsOpt = streamsOpt
         )
       } else { // start in client-server mode
         val jvmOpts = MillProcessLauncher.computeJvmOpts(workDir, effectiveEnv)
