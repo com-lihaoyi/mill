@@ -223,7 +223,6 @@ object MillDaemonServer {
 
   /**
    * An InputStream that polls the client for stdin data via RPC.
-   *
    */
   class RpcStdinInputStream(
       serverToClient: mill.rpc.MillRpcChannel[DaemonRpc.ServerToClient]

@@ -75,7 +75,10 @@ class MillDaemonMain0(
 
   private val processEnv = System.getenv().asScala.toMap
   private val outFolder =
-    os.Path(OutputDirectoryLayout.outDir(outMode, BuildCtx.workspaceRoot, processEnv), BuildCtx.workspaceRoot)
+    os.Path(
+      OutputDirectoryLayout.outDir(outMode, BuildCtx.workspaceRoot, processEnv),
+      BuildCtx.workspaceRoot
+    )
   private val sharedOutLockManager =
     new SharedOutLockManager(MillMain0.outFileLock(outFolder), outFolder)
   Runtime.getRuntime.addShutdownHook(new Thread(() =>

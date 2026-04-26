@@ -7,13 +7,7 @@ import mill.api.internal.WatchSig
 import mill.internal.PrefixLogger
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
 
-import java.util.concurrent.{
-  CompletableFuture,
-  Executors,
-  ExecutorService,
-  ThreadFactory,
-  TimeUnit
-}
+import java.util.concurrent.{CompletableFuture, Executors, ExecutorService, ThreadFactory, TimeUnit}
 import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.Promise
 import scala.jdk.CollectionConverters.*
@@ -119,7 +113,6 @@ private abstract class MillBuildServer(
   }
 
   /**
-   *
    */
   @volatile private var watcherThread: Thread = null
   private val watcherPollIntervalMs: Long = 500L
@@ -184,7 +177,6 @@ private abstract class MillBuildServer(
       }
     }
   }
-
 
   def close(): Unit = {
     stopped = true

@@ -86,7 +86,6 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ProblemFilter.exclude[Problem]("mill.api.internal.RootModule$Info*"),
     ProblemFilter.exclude[Problem]("mill.api.internal.RootModule#Info*"),
     ProblemFilter.exclude[Problem]("mill.api.daemon.internal.bsp.BspServerHandle.*")
-
   )
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions

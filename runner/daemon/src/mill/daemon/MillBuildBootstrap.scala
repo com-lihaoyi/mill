@@ -35,8 +35,6 @@ import scala.collection.mutable.Buffer
  * and compiling builds/meta-builds and classloading their [[RootModule]]s so we
  * can evaluate the requested tasks on the [[RootModule]] representing the user's
  * `build.mill` file.
- *
- *
  */
 class MillBuildBootstrap(
     topLevelProjectRoot: os.Path,

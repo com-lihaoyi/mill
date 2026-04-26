@@ -22,7 +22,10 @@ private[mill] object LauncherRecordStore {
   }
 
   def remove(out: os.Path, runId: String): Unit =
-    try mill.api.BuildCtx.withFilesystemCheckerDisabled(os.remove(path(out, runId), checkExists = false))
+    try mill.api.BuildCtx.withFilesystemCheckerDisabled(os.remove(
+        path(out, runId),
+        checkExists = false
+      ))
     catch { case _: Throwable => () }
 
   def sweepActive(out: os.Path): Seq[Record] = {
