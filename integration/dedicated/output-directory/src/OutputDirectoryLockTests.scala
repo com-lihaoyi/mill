@@ -39,9 +39,6 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
     pid.get
   }
 
-  private def combinedText(launcher: mill.testkit.IntegrationTester.SpawnedProcess): String =
-    launcher.out.text() + "\n" + launcher.err.text()
-
   def tests: Tests = Tests {
     test("taskLocks") - integrationTest { tester =>
       import tester.*

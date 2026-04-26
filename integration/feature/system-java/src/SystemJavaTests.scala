@@ -11,7 +11,7 @@ object SystemJavaTests extends UtestIntegrationTestSuite {
       val defaultVersion = tester.eval("printJavaVersion")
       assert(defaultVersion.out.contains("21.0.10"))
 
-      val defaultHome = tester.eval("printJavaHome")
+      tester.eval("printJavaHome")
       tester.modifyFile(
         tester.workspacePath / "build.mill",
         s => "//| mill-jvm-version: system\n" + s
