@@ -7,7 +7,6 @@ import mill.api.daemon.internal.NonFatal
 import mill.api.SystemStreams
 import sun.misc.Signal
 
-import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Using}
@@ -31,15 +30,17 @@ private[daemon] object BspMode {
       _ => SystemStreams.originalErr.println("Received SIGTERM, exiting")
     )
 
-    val bspPrevState = new AtomicReference[Option[RunnerLauncherState]](None)
-
+    // Each BSP request bootstraps fresh evaluators with no shared `prevState`:
+    // BSP requests run concurrently on `bspRequestExecutor`, and a shared
+    // `RunnerLauncherState` would be unsafe (its evaluators could be closed by
+    // one thread's `Using.resource` while another still references them).
+    // The daemon-wide RunnerSharedState already caches reusable meta-build
+    // frames across requests under proper locking.
     val bootstrapBridge: BootstrapBridge = [T] =>
       (activeCommandMessage, body) =>
         Using.resource(
-          runMillBootstrap(activeCommandMessage, bspPrevState.get(), streams, true)
+          runMillBootstrap(activeCommandMessage, None, streams, true)
         ) { runnerState =>
-          if (runnerState.errorOpt.isEmpty && runnerState.finalFrame.isDefined)
-            bspPrevState.set(Some(runnerState))
           body(runnerState.allEvaluators, runnerState.watched, runnerState.errorOpt)
       }
 

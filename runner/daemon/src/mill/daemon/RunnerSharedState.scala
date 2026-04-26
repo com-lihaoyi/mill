@@ -78,8 +78,14 @@ object RunnerSharedState {
       classLoaderIdentityHash: Int,
       workers: mutable.Map[String, (Int, Val, TaskApi[?])]
   ) extends AutoCloseable {
-    override def close(): Unit = workers.synchronized {
-      val deps = GroupExecution.workerDependencies(workers.toMap)
+    // Don't synchronize the whole body: closeWorkersInReverseTopologicalOrder
+    // already locks `workers` for the per-name remove, then runs each
+    // closeable's close() outside the lock. Holding `workers.synchronized`
+    // across user close() calls would risk deadlock if a worker close
+    // synchronizes back on this map.
+    override def close(): Unit = {
+      val snapshot = workers.synchronized(workers.toMap)
+      val deps = GroupExecution.workerDependencies(snapshot)
       val topoIndex = deps.iterator.map(_._1).zipWithIndex.toMap
       GroupExecution.closeWorkersInReverseTopologicalOrder(
         topoIndex.keys,
@@ -96,30 +102,30 @@ object RunnerSharedState {
    * Return the worker cache for `depth` matching the given classloader identity.
    * If the slot is missing or its identity has changed, atomically install a
    * fresh empty slot and close the displaced one.
+   *
+   * Uses an explicit CAS loop rather than `updateAndGet` so we can reliably
+   * identify the displaced slot: under contention, two callers seeing the same
+   * pre-state could otherwise both think they installed the winning slot.
    */
+  @scala.annotation.tailrec
   def sharedWorkerCache(
       sharedState: AtomicReference[RunnerSharedState],
       depth: Int,
       classLoaderIdentityHash: Int
   ): mutable.Map[String, (Int, Val, TaskApi[?])] = {
-    val before = sharedState.get()
-    val after = sharedState.updateAndGet { current =>
-      current.workerCaches.get(depth) match {
-        case Some(existing) if existing.classLoaderIdentityHash == classLoaderIdentityHash =>
-          current
-        case _ =>
-          current.withWorkerCache(
-            depth,
-            WorkerCacheSlot(
-              classLoaderIdentityHash,
-              mutable.Map.empty[String, (Int, Val, TaskApi[?])]
-            )
-          )
-      }
+    val current = sharedState.get()
+    current.workerCaches.get(depth) match {
+      case Some(existing) if existing.classLoaderIdentityHash == classLoaderIdentityHash =>
+        existing.workers
+      case other =>
+        val fresh = WorkerCacheSlot(
+          classLoaderIdentityHash,
+          mutable.Map.empty[String, (Int, Val, TaskApi[?])]
+        )
+        if (sharedState.compareAndSet(current, current.withWorkerCache(depth, fresh))) {
+          other.foreach(_.close())
+          fresh.workers
+        } else sharedWorkerCache(sharedState, depth, classLoaderIdentityHash)
     }
-    val newSlot = after.workerCaches(depth)
-    val oldSlot = before.workerCaches.get(depth)
-    if (oldSlot.exists(_ ne newSlot)) oldSlot.foreach(_.close())
-    newSlot.workers
   }
 }

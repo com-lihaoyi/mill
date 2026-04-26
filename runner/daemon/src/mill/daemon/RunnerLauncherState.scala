@@ -102,14 +102,16 @@ object RunnerLauncherState {
   /**
    * The user-task evaluation frame. Carries the task selectors that were run
    * so the next launcher invocation can short-circuit a re-run when the
-   * inputs are unchanged.
+   * inputs are unchanged. `failed` is set when the prior evaluation produced
+   * an error, in which case we must not short-circuit a successful return.
    */
   case class FinalFrame(
       depth: Int,
       evaluator: EvaluatorApi,
       evalWatched: Seq[Watchable],
       moduleWatched: Seq[Watchable],
-      tasksAndParams: Seq[String]
+      tasksAndParams: Seq[String],
+      failed: Boolean
   )
 
   /**

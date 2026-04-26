@@ -538,7 +538,11 @@ class MillBuildBootstrap(
       if (skipSelectiveExecution) None
       else
         prevCommandState.finalFrame
-          .filter(f => f.depth == depth && f.tasksAndParams == tasksAndParams)
+          // Don't short-circuit if the previous run failed: same inputs would
+          // otherwise silently report success.
+          .filter(f =>
+            f.depth == depth && f.tasksAndParams == tasksAndParams && !f.failed
+          )
           .map(f => (f.evalWatched, f.moduleWatched))
           .filter { case (ev, mw) =>
             ev.forall(Watching.haveNotChanged) && mw.forall(Watching.haveNotChanged)
@@ -552,7 +556,8 @@ class MillBuildBootstrap(
             evaluator = evaluator,
             evalWatched = evalWatched,
             moduleWatched = moduleWatched,
-            tasksAndParams = tasksAndParams
+            tasksAndParams = tasksAndParams,
+            failed = false
           )
         )
       case None => ()
@@ -566,13 +571,15 @@ class MillBuildBootstrap(
       reporter = reporter(evaluator)
     )
 
+    val failed = evaled.isInstanceOf[Result.Failure]
     val withFinal = nestedState.withFinalFrame(
       RunnerLauncherState.FinalFrame(
         depth = depth,
         evaluator = evaluator,
         evalWatched = evalWatched,
         moduleWatched = moduleWatched,
-        tasksAndParams = tasksAndParams
+        tasksAndParams = tasksAndParams,
+        failed = failed
       )
     )
     evaled match {
