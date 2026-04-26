@@ -106,8 +106,8 @@ object MillProcessLauncher {
       cmd: Seq[String],
       daemonDir: os.Path,
       stdin: os.ProcessInput = os.Inherit,
-      stdout: os.ProcessOutput = os.Inherit,
-      stderr: os.ProcessOutput = os.Inherit,
+      stdout: os.ProcessOutput,
+      stderr: os.ProcessOutput,
       workDir: os.Path,
       env: Map[String, String]
   ): os.SubProcess = {
