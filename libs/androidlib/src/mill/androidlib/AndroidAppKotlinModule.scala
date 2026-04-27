@@ -204,7 +204,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
       PathRef(cliArgsFile)
 
     }
-    
+
     // TODO previews must be source controlled to be used as a base
     // for subsequent runs
     /**
