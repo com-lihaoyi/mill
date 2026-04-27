@@ -516,7 +516,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
         Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
     }
     override def kotlinUseEmbeddableCompiler: T[Boolean] =
-      Task.Anon { outer.kotlinUseEmbeddableCompiler() }
+      Task { outer.kotlinUseEmbeddableCompiler() }
     override def kotlincUseBtApi: Task.Simple[Boolean] = Task { outer.kotlincUseBtApi() }
   }
 
@@ -538,7 +538,7 @@ object KotlinModule {
         Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
     }
     override def kotlinUseEmbeddableCompiler: T[Boolean] =
-      Task.Anon { outer.kotlinUseEmbeddableCompiler() }
+      Task { outer.kotlinUseEmbeddableCompiler() }
     override def kotlincUseBtApi: Task.Simple[Boolean] = Task { outer.kotlincUseBtApi() }
   }
   private[mill] def addJvmVariantAttributes: ResolutionParams => ResolutionParams = { params =>
