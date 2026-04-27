@@ -6,7 +6,7 @@ import mill.client.lock.Locks
 import mill.launcher.DaemonRpc
 import mill.api.daemon.StopWithResponse
 import mill.client.ServerLauncher.DaemonConfig
-import mill.rpc.MillRpcWireTransport
+import mill.rpc.{MillRpcServerToClient, MillRpcWireTransport, RpcConsole}
 import mill.server.Server.ConnectionData
 
 import java.io.*
@@ -57,9 +57,13 @@ abstract class MillDaemonServer(
     )
     MillDaemonServer.DaemonServerData(
       shutdownRequest = AtomicReference[MillDaemonServer.ShutdownRequest](null),
-      rpcTransport = transport
+      rpcTransport = transport,
+      runningCommand = AtomicReference[Option[String]](None)
     )
   }
+
+  override def runningCommandFor(data: MillDaemonServer.DaemonServerData): Option[String] =
+    data.runningCommand.get()
 
   override def handleConnection(
       connectionData: ConnectionData,
@@ -116,19 +120,27 @@ abstract class MillDaemonServer(
         // This allows the watch mode to detect Enter key presses.
         val rpcStdin = new MillDaemonServer.RpcStdinInputStream(serverToClient)
 
-        val result = main0(
-          args = init.args.toArray,
-          mainInteractive = init.interactive,
-          streams = new SystemStreams(stdout, stderr, rpcStdin),
-          env = init.env,
-          launcherPid = init.clientPid,
-          setIdle = setIdleInner(_),
-          userSpecifiedProperties = init.userSpecifiedProperties,
-          initialSystemProperties = connectionData.initialSystemProperties,
-          stopServer = deferredStopServer,
-          serverToClient = serverToClient,
-          millRepositories = init.millRepositories
-        )
+        // Record the active command so concurrent launchers can be informed
+        // about who caused a daemon shutdown if this connection gets killed.
+        // Start with the raw args; `main0` will refine it to the user-visible
+        // task fragment (e.g. drop `--ticker false`) once it parses the CLI.
+        data.runningCommand.set(Some(init.args.mkString(" ")))
+        val result =
+          try main0(
+              args = init.args.toArray,
+              mainInteractive = init.interactive,
+              streams = new SystemStreams(stdout, stderr, rpcStdin),
+              env = init.env,
+              launcherPid = init.clientPid,
+              setIdle = setIdleInner(_),
+              setRunningCommand = cmd => data.runningCommand.set(cmd),
+              userSpecifiedProperties = init.userSpecifiedProperties,
+              initialSystemProperties = connectionData.initialSystemProperties,
+              stopServer = deferredStopServer,
+              serverToClient = serverToClient,
+              millRepositories = init.millRepositories
+            )
+          finally data.runningCommand.set(None)
 
         commandExitCode = if (result) 0 else 1
         DaemonRpc.RunCommandResult(commandExitCode)
@@ -158,7 +170,8 @@ abstract class MillDaemonServer(
   override def endConnection(
       connectionData: ConnectionData,
       data: Option[MillDaemonServer.DaemonServerData],
-      result: Option[Int]
+      result: Option[Int],
+      externalShutdownReason: Option[String]
   ): Unit = {
     // If this connection is being closed externally (e.g., another client was interrupted),
     // and there was no controlled shutdown, try to send a response so the client can retry.
@@ -168,11 +181,26 @@ abstract class MillDaemonServer(
       exitCode <- result
       if d.shutdownRequest.get() == null // Only send if not a controlled shutdown
     } {
+      // Surface a friendly explanation to the client via stderr before closing the
+      // connection, so the launcher can log "daemon was killed by launcher running …"
+      // instead of crashing with "Worker wire broken".
+      externalShutdownReason.foreach { reason =>
+        try {
+          val msg: MillRpcServerToClient[DaemonRpc.ServerToClient] =
+            MillRpcServerToClient.Stderr(RpcConsole.Message.Print(reason + "\n"))
+          d.rpcTransport.writeSerialized(msg)
+          val flush: MillRpcServerToClient[DaemonRpc.ServerToClient] =
+            MillRpcServerToClient.Stderr(RpcConsole.Message.Flush)
+          d.rpcTransport.writeSerialized(flush)
+        } catch {
+          case _: Exception => // Ignore errors, connection might already be broken
+        }
+      }
       try {
-        import mill.rpc.MillRpcServerToClient
-        val response = MillRpcServerToClient.Response(
-          Right(DaemonRpc.RunCommandResult(exitCode))
-        )
+        val response: MillRpcServerToClient[DaemonRpc.RunCommandResult] =
+          MillRpcServerToClient.Response(
+            Right(DaemonRpc.RunCommandResult(exitCode))
+          )
         d.rpcTransport.writeSerialized(response)
       } catch {
         case _: Exception => // Ignore errors, connection might already be broken
@@ -201,6 +229,7 @@ abstract class MillDaemonServer(
       env: Map[String, String],
       launcherPid: Long,
       setIdle: Boolean => Unit,
+      setRunningCommand: Option[String] => Unit,
       userSpecifiedProperties: Map[String, String],
       initialSystemProperties: Map[String, String],
       stopServer: Server.StopServer,
@@ -218,7 +247,10 @@ object MillDaemonServer {
       // Pending shutdown request, or null if none. Set when deferredStopServer is called.
       shutdownRequest: AtomicReference[ShutdownRequest],
       // Store the RPC transport for synchronized writes (heartbeats + RPC messages)
-      rpcTransport: MillRpcWireTransport
+      rpcTransport: MillRpcWireTransport,
+      // The Mill command currently being executed by this connection, if any.
+      // Other connections inspect this to explain why the daemon shut down.
+      runningCommand: AtomicReference[Option[String]]
   )
 
   /**

@@ -62,6 +62,7 @@ trait ClientServerTestsBase extends TestSuite {
         env: Map[String, String],
         launcherPid: Long,
         setIdle: Boolean => Unit,
+        setRunningCommand: Option[String] => Unit,
         systemProperties: Map[String, String],
         initialSystemProperties: Map[String, String],
         stopServer: Server.StopServer,

@@ -62,6 +62,7 @@ object MillNoDaemonMain0 {
           env = env,
           launcherPid = processId,
           setIdle = _ => (),
+          setRunningCommand = _ => (),
           userSpecifiedProperties0 = Map(),
           initialSystemProperties = sys.props.toMap,
           systemExit = ( /*reason*/ _, exitCode) => sys.exit(exitCode),

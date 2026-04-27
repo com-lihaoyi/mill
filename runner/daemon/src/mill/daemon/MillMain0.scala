@@ -104,6 +104,7 @@ object MillMain0 {
       env: Map[String, String],
       launcherPid: Long,
       setIdle: Boolean => Unit,
+      setRunningCommand: Option[String] => Unit,
       userSpecifiedProperties0: Map[String, String],
       initialSystemProperties: Map[String, String],
       systemExit: Server.StopServer,
@@ -593,12 +594,14 @@ object MillMain0 {
                                 prevState: Option[RunnerLauncherState]
                             ) => {
                               adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
+                              val activeCommandMessage = config.leftoverArgs.value.mkString(" ")
+                              setRunningCommand(Some(activeCommandMessage))
                               runMillBootstrap(
                                 skipSelectiveExecution = skipSelectiveExecution,
                                 prevState = prevState,
                                 tasksAndParams = config.leftoverArgs.value,
                                 streams = streams,
-                                millActiveCommandMessage = config.leftoverArgs.value.mkString(" ")
+                                millActiveCommandMessage = activeCommandMessage
                               )
                             }
                         )

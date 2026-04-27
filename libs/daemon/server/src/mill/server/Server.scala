@@ -55,7 +55,8 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
   def endConnection(
       connectionData: ConnectionData,
       data: Option[Prepared],
-      result: Option[Handled]
+      result: Option[Handled],
+      externalShutdownReason: Option[String]
   ): Unit
 
   def systemExit(exitCode: Handled): Nothing
@@ -67,6 +68,13 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
     s"ConnectionHandler(${getClass.getName}, ${socket.getInetAddress}:${socket.getPort})"
 
   def checkIfClientAlive(connectionData: ConnectionData, data: Prepared): Boolean
+
+  /**
+   * Optional human-readable description of what this connection is currently
+   * doing, surfaced to other clients when this connection causes a daemon
+   * shutdown (e.g. by being killed mid-execution). Default: no info.
+   */
+  def runningCommandFor(data: Prepared): Option[String] = None
 
   def run(): Option[Handled] = {
     serverLog(s"running server in $daemonDir")
@@ -193,9 +201,13 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
     // - Server shutdown via closeServer
     // - Connection tracker closing other connections
     val endConnectionCalled = new java.util.concurrent.atomic.AtomicBoolean(false)
-    def safeEndConnection(data: Option[Prepared], result: Option[Handled]): Unit = {
+    def safeEndConnection(
+        data: Option[Prepared],
+        result: Option[Handled],
+        externalShutdownReason: Option[String] = None
+    ): Unit = {
       if (endConnectionCalled.compareAndSet(false, true)) {
-        endConnection(connectionData, data, result)
+        endConnection(connectionData, data, result, externalShutdownReason)
       }
     }
 
@@ -206,7 +218,7 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       )
 
       // Notify all other connected clients before shutting down, so they can retry
-      connectionTracker.closeOtherConnections(clientSocket)
+      connectionTracker.closeOtherConnections(clientSocket, Some(reason))
       safeEndConnection(data, Some(exitCode))
       closeServer0(Some(exitCode))
     }
@@ -216,7 +228,7 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
     // Register this connection with the tracker, providing a callback to close it
     connectionTracker.increment(
       clientSocket,
-      () => safeEndConnection(Some(data), Some(exitCodeServerTerminated))
+      reason => safeEndConnection(Some(data), Some(exitCodeServerTerminated), reason)
     )
 
     // We cannot use Socket#{isConnected, isClosed, isBound} because none of these
@@ -270,8 +282,13 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
 
       if (!idle) {
         serverLog("client interrupted while server was executing command")
+        val reason = runningCommandFor(data) match {
+          case Some(cmd) =>
+            s"daemon was shut down because launcher running '$cmd' was interrupted"
+          case None => "daemon was shut down because another launcher was interrupted mid-execution"
+        }
         // Close all other connected clients with exitCodeServerTerminated so they can retry
-        connectionTracker.closeOtherConnections(clientSocket)
+        connectionTracker.closeOtherConnections(clientSocket, Some(reason))
         safeEndConnection(Some(data), None) // Gracefully close the current client connection
         closeServer0(None) // Shut down the server
       }
@@ -291,27 +308,28 @@ object Server {
       serverSocket: ServerSocket
   ) {
     private var inactiveTimestampOpt: Option[Long] = None
-    private var connections = Map.empty[Socket, () => Unit]
+    private var connections = Map.empty[Socket, Option[String] => Unit]
 
     def wrap(block: => Unit): Unit = synchronized {
       if (!serverSocket.isClosed) block
     }
 
-    def closeOtherConnections(currentSocket: Socket): Unit = synchronized {
-      val others = connections.filterKeys(_ != currentSocket)
-      serverLog(s"closing ${others.size} other connection(s)")
-      others.foreach { case (sock, closeCallback) =>
-        try {
-          closeCallback()
-          serverLog(s"closed connection ${sock.toString}")
-        } catch {
-          case NonFatal(e) =>
-            serverLog(s"error closing connection ${sock.toString}: $e")
+    def closeOtherConnections(currentSocket: Socket, reason: Option[String]): Unit =
+      synchronized {
+        val others = connections.filterKeys(_ != currentSocket)
+        serverLog(s"closing ${others.size} other connection(s)")
+        others.foreach { case (sock, closeCallback) =>
+          try {
+            closeCallback(reason)
+            serverLog(s"closed connection ${sock.toString}")
+          } catch {
+            case NonFatal(e) =>
+              serverLog(s"error closing connection ${sock.toString}: $e")
+          }
         }
       }
-    }
 
-    def increment(socket: Socket, closeCallback: () => Unit): Unit = wrap {
+    def increment(socket: Socket, closeCallback: Option[String] => Unit): Unit = wrap {
       connections += (socket -> closeCallback)
       serverLog(s"${connections.size} active connections")
       inactiveTimestampOpt = None

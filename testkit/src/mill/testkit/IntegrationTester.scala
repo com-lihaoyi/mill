@@ -81,26 +81,23 @@ object IntegrationTester {
          |""".stripMargin
     }
 
-    /**
-     * Asserts that the given lines appear as exact consecutive lines in the combined
-     * stdout/stderr output. Normalizes backslashes to forward slashes for cross-platform compatibility.
-     */
-    def assertContainsLines(expectedLines: String*): Unit = {
-      val combined = geny.ByteData.Chunks(result.chunks.map {
-        case Left(b) => b
-        case Right(b) => b
-      }).text()
-      val combinedNormalized = fansi.Str(combined, errorMode = fansi.ErrorMode.Strip)
-        .plainText
-        .replace('\\', '/')
-      val actualLines = combinedNormalized.linesIterator.toVector
+    private def chunks: Seq[Either[geny.Bytes, geny.Bytes]] = result.chunks
 
-      val found = actualLines.sliding(expectedLines.size).exists(_ == expectedLines)
-      assert(
-        found,
-        s"Expected consecutive lines not found:\n${expectedLines.mkString("\n")}\n\nActual output:\n${actualLines.mkString("\n")}"
-      )
-    }
+    /**
+     * Returns true iff the given lines appear as exact consecutive lines in
+     * the combined stdout/stderr output. Normalizes backslashes to forward
+     * slashes for cross-platform compatibility.
+     */
+    def containsLines(expectedLines: String*): Boolean =
+      IntegrationTester.containsConsecutiveLines(chunks, expectedLines)
+
+    /**
+     * Asserts that the given lines appear as exact consecutive lines in the
+     * combined stdout/stderr output. Normalizes backslashes to forward slashes
+     * for cross-platform compatibility.
+     */
+    def assertContainsLines(expectedLines: String*): Unit =
+      IntegrationTester.assertConsecutiveLines(chunks, expectedLines)
   }
 
   /**
@@ -124,6 +121,57 @@ object IntegrationTester {
     }
 
     def clear(): Unit = chunks.synchronized { chunks.clear() }
+
+    private def chunksSnapshot: Seq[Either[geny.Bytes, geny.Bytes]] =
+      chunks.synchronized(chunks.toSeq)
+
+    /**
+     * Returns true iff the given lines appear as exact consecutive lines in
+     * the combined stdout/stderr output. Normalizes backslashes to forward
+     * slashes for cross-platform compatibility.
+     */
+    def containsLines(expectedLines: String*): Boolean =
+      IntegrationTester.containsConsecutiveLines(chunksSnapshot, expectedLines)
+
+    /**
+     * Asserts that the given lines appear as exact consecutive lines in the
+     * combined stdout/stderr output. Normalizes backslashes to forward slashes
+     * for cross-platform compatibility.
+     */
+    def assertContainsLines(expectedLines: String*): Unit =
+      IntegrationTester.assertConsecutiveLines(chunksSnapshot, expectedLines)
+  }
+
+  private def normalizedLines(chunks: Seq[Either[geny.Bytes, geny.Bytes]]): Vector[String] = {
+    val combined = geny.ByteData.Chunks(chunks.map {
+      case Left(b) => b
+      case Right(b) => b
+    }).text()
+    fansi.Str(combined, errorMode = fansi.ErrorMode.Strip)
+      .plainText
+      .replace('\\', '/')
+      .linesIterator
+      .toVector
+  }
+
+  private def containsConsecutiveLines(
+      chunks: Seq[Either[geny.Bytes, geny.Bytes]],
+      expectedLines: Seq[String]
+  ): Boolean = {
+    val actualLines = normalizedLines(chunks)
+    actualLines.sliding(expectedLines.size).exists(_ == expectedLines)
+  }
+
+  private def assertConsecutiveLines(
+      chunks: Seq[Either[geny.Bytes, geny.Bytes]],
+      expectedLines: Seq[String]
+  ): Unit = {
+    val actualLines = normalizedLines(chunks)
+    val found = actualLines.sliding(expectedLines.size).exists(_ == expectedLines)
+    assert(
+      found,
+      s"Expected consecutive lines not found:\n${expectedLines.mkString("\n")}\n\nActual output:\n${actualLines.mkString("\n")}"
+    )
   }
 
   /** An [[Impl.eval]] that is prepared for execution but haven't been executed yet. Run it with [[run]]. */

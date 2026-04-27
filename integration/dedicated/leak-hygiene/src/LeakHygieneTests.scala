@@ -229,7 +229,10 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
             List(
-              ("mill.daemon.MillBuildBootstrap#processRunClasspath publishFreshFrame createClassLoader", 1),
+              (
+                "mill.daemon.MillBuildBootstrap#processRunClasspath publishFreshFrame createClassLoader",
+                1
+              ),
               ("mill.javalib.JvmWorkerModule#internalWorkerClassLoader", 3)
             )
           )
