@@ -88,8 +88,12 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ProblemFilter.exclude[Problem]("mill.api.daemon.internal.bsp.BspServerHandle.*"),
     // Incorrect return type, no choice but to change the signature
     ProblemFilter.exclude[Problem]("mill.kotlinlib.KotlinModule.kotlinUseEmbeddableCompiler"),
-    ProblemFilter.exclude[Problem]("mill.kotlinlib.KotlinModule#KotlinTests0.kotlinUseEmbeddableCompiler"),
-    ProblemFilter.exclude[Problem]("mill.kotlinlib.KotlinModule#KotlinTests.kotlinUseEmbeddableCompiler")
+    ProblemFilter.exclude[Problem](
+      "mill.kotlinlib.KotlinModule#KotlinTests0.kotlinUseEmbeddableCompiler"
+    ),
+    ProblemFilter.exclude[Problem](
+      "mill.kotlinlib.KotlinModule#KotlinTests.kotlinUseEmbeddableCompiler"
+    )
   )
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
