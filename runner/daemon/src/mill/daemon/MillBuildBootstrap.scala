@@ -220,13 +220,15 @@ class MillBuildBootstrap(
 
     // Workers are owned by the nested shared frame (lifetime tracks the
     // classloader's lifetime). When there is no nested shared frame (deepest
-    // bootstrap level), use a fresh per-launcher worker map: bootstrap-level
-    // workers are loaded from the per-launcher bootstrap module classloader
-    // and are not safe to share across launchers anyway.
+    // bootstrap level, e.g. a project without `mill-build/`), fall back to the
+    // daemon-wide `bootstrapWorkers` map so workers loaded via the daemon's
+    // main classloader (notably this level's own `internalWorkerClassLoader`)
+    // are reused across launchers instead of being re-created — and leaked —
+    // on every re-evaluation of the deepest level.
     val workerCache: collection.mutable.Map[String, (Int, Val, TaskApi[?])] =
       nestedSharedFrame
         .map(_.workers)
-        .getOrElse(collection.mutable.Map.empty[String, (Int, Val, TaskApi[?])])
+        .getOrElse(metaBuild.snapshot().bootstrapWorkers)
 
     makeEvaluator0(
       projectRoot = topLevelProjectRoot,

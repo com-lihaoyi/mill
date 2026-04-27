@@ -29,7 +29,22 @@ case class RunnerSharedState(
      * depth-0 final-frame `moduleWatched` would otherwise have nowhere to live
      * across launcher invocations.
      */
-    userFinalModuleWatched: Option[Seq[Watchable]] = None
+    userFinalModuleWatched: Option[Seq[Watchable]] = None,
+    /**
+     * Daemon-wide worker cache for the deepest meta-build level (whose nested
+     * level has no own classloader, e.g. a project without `mill-build/`).
+     * Workers at this level are loaded via the daemon's main classloader, so
+     * their class types and input hashes are stable across launchers — sharing
+     * avoids re-creating them (and re-creating their `internalWorkerClassLoader`)
+     * on every launcher that re-evaluates the deepest level. Lifetime is the
+     * daemon JVM's; entries are only removed when their inputs change and Mill
+     * itself displaces them via `loadUpToDateWorker`.
+     *
+     * Reference is stable across `copy(...)` since case-class copy preserves
+     * untouched fields, so all snapshots of the state share the same map.
+     */
+    bootstrapWorkers: mutable.Map[String, (Int, Val, TaskApi[?])] =
+      mutable.Map.empty[String, (Int, Val, TaskApi[?])]
 ) {
   import RunnerSharedState.*
 
