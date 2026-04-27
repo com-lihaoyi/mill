@@ -302,7 +302,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   override def androidPackagedDeps: T[Seq[PathRef]] =
     super.androidPackagedDeps() ++ Seq(androidProcessedResources())
 
-  override def androidMergeableManifests: Task[Seq[PathRef]] = Task {
+  override def androidMergeableManifests: Task.Simple[Seq[PathRef]] = Task {
     val debugManifest = Seq(androidDebugManifestLocation()).filter(pr => os.exists(pr.path))
     super.androidMergeableManifests() ++ debugManifest
   }
@@ -968,7 +968,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
   // uses the d8 tool to generate the dex file, when minification is disabled
   private def androidD8Dex
-      : Task[(outPath: PathRef, dexCliArgs: Seq[String], appCompiledFiles: Seq[PathRef])] = Task {
+      : Task.Simple[(outPath: PathRef, dexCliArgs: Seq[String], appCompiledFiles: Seq[PathRef])] = Task {
 
     val outPath = Task.dest / "dex-output"
     os.makeDir.all(outPath)
@@ -1083,7 +1083,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       PathRef(destManifest)
     }
 
-    private def androidxTestManifests: Task[Seq[PathRef]] = Task {
+    private def androidxTestManifests: Task.Simple[Seq[PathRef]] = Task {
       androidUnpackRunArchives().flatMap {
         unpackedArchive =>
           unpackedArchive.manifest.map(_.path)
@@ -1095,7 +1095,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       }.map(PathRef(_))
     }
 
-    override def androidMergeableManifests: Task[Seq[PathRef]] = Task {
+    override def androidMergeableManifests: Task.Simple[Seq[PathRef]] = Task {
       Seq(outer.androidDebugManifestLocation()).filter(pr =>
         os.exists(pr.path)
       ) ++ androidxTestManifests()

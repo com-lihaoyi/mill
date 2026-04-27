@@ -163,7 +163,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
       PathRef(Task.dest / "results.json")
     }
 
-    private def screenshotResults: Task[PathRef] = Task {
+    private def screenshotResults: Task.Simple[PathRef] = Task {
       val dir = Task.dest / "generated-screenshots"
       os.makeDir(dir)
       PathRef(dir)
@@ -205,7 +205,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
 
     }
 
-    private def resourceApkPath: Task[PathRef] = Task {
+    private def resourceApkPath: Task.Simple[PathRef] = Task {
       PathRef(outer.androidLinkedResources().path / "apk/res.apk")
     }
 
@@ -284,7 +284,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
       )
     }
 
-    private def diffImageDirPath: Task[PathRef] = Task {
+    private def diffImageDirPath: Task.Simple[PathRef] = Task {
       val diffImageDir = Task.dest / "diff-images"
       PathRef(diffImageDir)
     }
