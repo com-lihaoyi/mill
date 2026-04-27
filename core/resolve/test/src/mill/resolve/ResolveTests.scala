@@ -1,7 +1,6 @@
 package mill.resolve
 
-import mill.api.Result
-import mill.api.Discover
+import mill.api.{DefaultTaskModule, Discover, Result}
 import mill.api.TestGraphs.*
 import mill.testkit.TestRootModule
 import mill.{Cross, Module, Task}
@@ -125,6 +124,29 @@ object ResolveTests extends TestSuite {
       def myTask = Task { crossValue }
     }
 
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  object defaultTaskModule extends TestRootModule {
+    object simple extends DefaultTaskModule {
+      def defaultTask() = "task"
+      def task = Task { "task" }
+    }
+
+    object invalid extends DefaultTaskModule {
+      def defaultTask() = "taskWithTypo"
+      def task = Task { "task" }
+    }
+
+    object blank extends DefaultTaskModule {
+      def defaultTask() = " "
+      def task = Task { "task" }
+    }
+
+    object `null` extends DefaultTaskModule {
+      def defaultTask() = null
+      def task = Task { "task" }
+    }
     lazy val millDiscover = Discover[this.type]
   }
 
@@ -608,11 +630,52 @@ object ResolveTests extends TestSuite {
         Set("myCross.b.myTask")
       )
 
+      test("crossDefaultCompat") - check(
+        "myCross[].myTask",
+        Result.Success(Set(_.myCross("a").myTask)),
+        Set("myCross.a.myTask")
+      )
+
       // Test wildcard across cross values
       test("crossWildcard") - check(
         "myCross._.myTask",
         Result.Success(Set(_.myCross("a").myTask, _.myCross("b").myTask)),
         Set("myCross.a.myTask", "myCross.b.myTask")
+      )
+    }
+
+    test("defaultTasks") {
+      val check = Checker(defaultTaskModule)
+      test("defaultTask.simple.task") - check(
+        "simple.task",
+        Result.Success(Set(_.simple.task)),
+        Set("simple.task")
+      )
+      test("defaultTask.simple") - check(
+        "simple",
+        Result.Success(Set(_.simple.task)),
+        Set("simple")
+      )
+      test("defaultTask.invalid") - check(
+        "invalid",
+        Result.Failure(error =
+          "Cannot resolve default task 'taskWithTypo' of module 'invalid'. Check that the task name is spelled correctly."
+        ),
+        Set("invalid")
+      )
+      test("defaultTask.blank") - check(
+        "blank",
+        Result.Failure(error =
+          "Cannot resolve default task ' ' of module 'blank'. The task name must not be empty or blank."
+        ),
+        Set("blank")
+      )
+      test("defaultTask.null") - check(
+        "null",
+        Result.Failure(error =
+          "Cannot resolve default task 'null' of module 'null'. The task name must not be null."
+        ),
+        Set("null")
       )
     }
 

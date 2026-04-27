@@ -196,7 +196,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
         ),
         screenshots = androidDiscoveredPreviews().screenshotConfigs,
         namespace = androidApplicationNamespace,
-        resourceApkPath = resourceApkPath().path.toString(),
+        resourceApkPath = androidLinkedResources().apk.path.toString(),
         resultsFilePath = resultsFilePath.toString()
       )
       os.write(cliArgsFile, upickle.write(cliArgs))
@@ -204,11 +204,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
       PathRef(cliArgsFile)
 
     }
-
-    private def resourceApkPath: Task.Simple[PathRef] = Task {
-      PathRef(outer.androidLinkedResources().path / "apk/res.apk")
-    }
-
+    
     // TODO previews must be source controlled to be used as a base
     // for subsequent runs
     /**

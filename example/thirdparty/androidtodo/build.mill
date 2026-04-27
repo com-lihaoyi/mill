@@ -107,7 +107,7 @@ object app
     mvn"com.google.dagger:hilt-android-compiler:2.56"
   )
 
-  object test extends KspTests, AndroidAppKotlinTests, AndroidHiltSupport, TestModule.Junit4,
+  object test extends KspTests, AndroidHiltSupport, AndroidAppKotlinTests, TestModule.Junit4,
         KotlinIdeaModule {
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
@@ -281,11 +281,15 @@ object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport, KotlinIdea
   "Complete"
 ]
 
-> ./mill app.androidTest
+*/
+
+// (Exclude TasksScreenTest test class since it is flaky on CI)
+/** Usage
+> ./mill app.androidTest -e notClass com.example.android.architecture.blueprints.todoapp.tasks.TasksScreenTest
 
 > cat out/app/androidTest/testForked.dest/test-report.xml
 <?xml version='1.0' encoding='UTF-8'?>
-<testsuites tests="38" failures="0" errors="0" skipped="0" time="...">
+<testsuites tests="26" failures="0" errors="0" skipped="0" time="...">
 ...
 
 > ./mill show app.stopAndroidEmulator

@@ -6,13 +6,11 @@ import xsbti.compile.{IncToolOptions, JavaCompiler as XJavaCompiler, Output}
 
 import java.io.{OutputStream, PrintWriter, Writer}
 import java.net.URI
-import java.nio.charset.Charset
 import java.nio.file.{Files, Path, Paths}
 import javax.annotation.processing.{Completion, Filer, Messager, Processor, ProcessingEnvironment}
 import javax.lang.model.SourceVersion
 import javax.lang.model.element.{AnnotationMirror, Element, ExecutableElement, TypeElement}
 import javax.lang.model.util.{Elements, Types}
-import javax.tools.DiagnosticListener
 import javax.tools.JavaFileObject.Kind
 import javax.tools.{
   FileObject,
@@ -20,8 +18,7 @@ import javax.tools.{
   ForwardingJavaFileManager,
   ForwardingJavaFileObject,
   JavaFileManager,
-  JavaFileObject,
-  StandardJavaFileManager
+  JavaFileObject
 }
 import scala.jdk.CollectionConverters.*
 import xsbti.PathBasedFile
@@ -97,30 +94,21 @@ private[mill] final class IncrementalTrackingJavaCompiler(compiler: javax.tools.
         (new DirectToJarFileManager(outputJar, standardFileManager), cleanedOptions.toSeq)
       case None =>
         Option(output.getSingleOutputAsPath.orElse(null: Path)).foreach(Files.createDirectories(_))
-        val baseFileManager =
-          if (cleanedOptions.contains("-XDuseOptimizedZip=false"))
-            fileManagerWithoutOptimizedZips(diagnostics)
-          else standardFileManager
         val outputOption = sbt.internal.inc.CompilerArguments.outputOption(output)
-        (baseFileManager, outputOption ++ cleanedOptions)
+        (standardFileManager, outputOption ++ cleanedOptions)
     }
 
     val jfiles = sources.toList.map(TrackingVirtualJavaFileObject(_))
-    val customizedFileManager = {
-      val maybeClassFileManager = incToolOptions.classFileManager()
-      if (incToolOptions.useCustomizedFileManager && maybeClassFileManager.isPresent)
-        new TrackingFileManager(
-          fileManager,
-          Some(maybeClassFileManager.get),
-          IncrementalAnnotationProcessing.currentTracker
-        )
-      else
-        new TrackingFileManager(
-          new SameFileFixFileManager(fileManager),
-          None,
-          IncrementalAnnotationProcessing.currentTracker
-        )
-    }
+    val maybeClassFileManager =
+      Option.when(
+        incToolOptions.useCustomizedFileManager && incToolOptions.classFileManager().isPresent
+      )(incToolOptions.classFileManager().get)
+    val customizedFileManager =
+      new TrackingFileManager(
+        new SameFileFixFileManager(fileManager),
+        maybeClassFileManager,
+        IncrementalAnnotationProcessing.currentTracker
+      )
 
     val task =
       compiler.getTask(
@@ -165,32 +153,6 @@ private[mill] final class IncrementalTrackingJavaCompiler(compiler: javax.tools.
       .parsePathOption(javacOptions, "-processorpath", "--processor-path")
       .map(_.map(os.Path(_, os.pwd)))
       .getOrElse(classpath)
-  }
-
-  private def fileManagerWithoutOptimizedZips(
-      diagnostics: sbt.internal.inc.javac.DiagnosticsReporter
-  ): StandardJavaFileManager = {
-    val classLoader = compiler.getClass.getClassLoader
-    val contextClass = Class.forName("com.sun.tools.javac.util.Context", true, classLoader)
-    val optionsClass = Class.forName("com.sun.tools.javac.util.Options", true, classLoader)
-    val javacFileManagerClass =
-      Class.forName("com.sun.tools.javac.file.JavacFileManager", true, classLoader)
-
-    val `Options.instance` = optionsClass.getMethod("instance", contextClass)
-    val `context.put` = contextClass.getMethod("put", classOf[Class[?]], classOf[Object])
-    val `options.put` = optionsClass.getMethod("put", classOf[String], classOf[String])
-    val `new JavacFileManager` =
-      javacFileManagerClass.getConstructor(contextClass, classOf[Boolean], classOf[Charset])
-
-    val context = contextClass.getDeclaredConstructor().newInstance().asInstanceOf[AnyRef]
-    `context.put`.invoke(context, classOf[java.util.Locale], null)
-    `context.put`.invoke(context, classOf[DiagnosticListener[?]], diagnostics)
-    val options = `Options.instance`.invoke(null, context)
-    `options.put`.invoke(options, "useOptimizedZip", "false")
-
-    `new JavacFileManager`
-      .newInstance(context, Boolean.box(true), null)
-      .asInstanceOf[StandardJavaFileManager]
   }
 }
 
@@ -243,7 +205,7 @@ private final class TrackingFileManager(
 }
 
 private object TrackingFileManager {
-  def unwrap(fileObject: FileObject): AnyRef =
+  def unwrap(fileObject: FileObject): FileObject =
     fileObject match {
       case tracked: TrackingOutputObject => tracked.delegate
       case other => other
