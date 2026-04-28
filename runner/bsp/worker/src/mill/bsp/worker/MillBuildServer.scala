@@ -132,7 +132,8 @@ private abstract class MillBuildServer(
   @volatile private var watcherThread: Thread = null
   private val watcherPollIntervalMs: Long = 500L
 
-  private def startWatcherThread(initialTargetSnapshots: Seq[ChangeNotifier.TargetSnapshot]): Unit = {
+  private def startWatcherThread(initialTargetSnapshots: Seq[ChangeNotifier.TargetSnapshot])
+      : Unit = {
     val watchLogger = new PrefixLogger(baseLogger, Seq("watch"))
     watcherThread = mill.api.daemon.StartThread("mill-bsp-watcher", daemon = true) {
       var prevTargetSnapshots = initialTargetSnapshots
