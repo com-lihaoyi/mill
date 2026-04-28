@@ -257,9 +257,8 @@ object MillDaemonServer {
    * An InputStream that polls the client for stdin data via RPC.
    * Used to support "Enter to re-run" in watch mode when running in daemon mode.
    *
-   * `lookForEnterKey` calls `available()` before `read()`, so `available()` keeps
-   * the non-blocking polling path and `read()` falls back to blocking polls when
-   * it actually needs data.
+   * Note: This is designed for use with `lookForEnterKey` which calls `available()`
+   * first, then `read()`. The polling only happens in `available()`.
    */
   class RpcStdinInputStream(
       serverToClient: mill.rpc.MillRpcChannel[DaemonRpc.ServerToClient]
@@ -269,35 +268,23 @@ object MillDaemonServer {
 
     private def bufferedAvailable: Int = buffer.length - pos
 
-    private def refill(blocking: Boolean): Boolean = {
-      if (bufferedAvailable > 0) return true
-
-      def poll(): Array[Byte] =
-        try serverToClient(DaemonRpc.ServerToClient.PollStdin()).bytes
-        catch { case _: Throwable => null }
-
-      while (bufferedAvailable == 0) {
-        val bytes = poll()
-        if (bytes == null) return false
-        buffer = bytes
+    override def available(): Int = {
+      if (bufferedAvailable > 0) {
+        bufferedAvailable
+      } else {
+        // Poll the client for available stdin data.
+        // Don't catch exceptions - let them propagate so the RPC loop exits
+        // cleanly when the client disconnects.
+        val result = serverToClient(DaemonRpc.ServerToClient.PollStdin())
+        buffer = result.bytes
         pos = 0
-        if (buffer.nonEmpty) return true
-        if (!blocking) return false
-        try Thread.sleep(20L)
-        catch {
-          case _: InterruptedException =>
-            Thread.currentThread().interrupt()
-            return false
-        }
+        buffer.length
       }
-      true
     }
 
-    override def available(): Int =
-      if (refill(blocking = false)) bufferedAvailable else 0
-
     override def read(): Int = {
-      if (!refill(blocking = true)) -1
+      // Only read from buffer; caller should check available() first
+      if (bufferedAvailable == 0) -1
       else {
         val b = buffer(pos) & 0xff
         pos += 1
@@ -307,8 +294,10 @@ object MillDaemonServer {
 
     override def read(b: Array[Byte], off: Int, len: Int): Int = {
       if (len == 0) return 0
-      if (!refill(blocking = true)) return -1
-      val toRead = math.min(len, bufferedAvailable)
+      // Only read from buffer; caller should check available() first
+      val avail = bufferedAvailable
+      if (avail == 0) return -1
+      val toRead = math.min(len, avail)
       System.arraycopy(buffer, pos, b, off, toRead)
       pos += toRead
       toRead
