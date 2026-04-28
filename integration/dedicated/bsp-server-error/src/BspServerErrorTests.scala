@@ -22,40 +22,12 @@ object BspServerErrorTests extends UtestIntegrationTestSuite {
         env = Map("MILL_EXECUTABLE_PATH" -> tester.millExecutable.toString)
       )
 
-      val firstServerStderr = new ByteArrayOutputStream
-      val firstServerProc = startBspServer(
-        workspacePath,
-        millTestSuiteEnv,
-        bspLog = Some((bytes, len) => firstServerStderr.write(bytes, 0, len))
-      )
-
-      // wait for server instance to be ready to ensure the first BSP server started well
-      bspBuildServer(
-        firstServerProc.stdout.wrapped,
-        firstServerProc.stdin.wrapped,
-        workspacePath
-      )
-
-      assert(firstServerProc.isAlive())
-
       val stderr = new ByteArrayOutputStream
       withBspServer(
         workspacePath,
         millTestSuiteEnv,
         bspLog = Some((bytes, len) => stderr.write(bytes, 0, len))
       ) { (buildServer, initRes) =>
-
-        firstServerProc.waitFor(5000L)
-        assert(!firstServerProc.isAlive())
-
-        val firstServerStderrStr = new String(firstServerStderr.toByteArray)
-        assert(firstServerStderrStr.contains("BSP shutdown asked by client, exiting"))
-
-        val currentStderrStr = new String(stderr.toByteArray)
-        assert(currentStderrStr.contains(
-          "Asked the active BSP session for 'Mill_Integration' to shut down"
-        ))
-
         assert(initRes.getCapabilities.getInverseSourcesProvider == true)
 
         val file = workspacePath / "hello-scala/src/Hello.scala"

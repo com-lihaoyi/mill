@@ -31,10 +31,6 @@ private abstract class MillBuildServer(
     protected val canReload: Boolean,
     protected val onShutdown: () => Unit,
     protected val baseLogger: Logger,
-    out: os.Path,
-    sessionProcessPid: Long,
-    noWaitForBspLock: Boolean,
-    killOther: Boolean,
     bspWatch: Boolean,
     bootstrapBridge: BspBootstrapBridge
 ) extends EndpointsApi with AutoCloseable {
@@ -65,6 +61,8 @@ private abstract class MillBuildServer(
   }
 
   def initialized = sessionInfo != null
+
+  private val bootstrapMutex = new Object
 
   /**
    * Build a meta-build reporter for the BSP client. Each meta-build depth maps
@@ -105,55 +103,43 @@ private abstract class MillBuildServer(
   )(
       body: (BspEvaluators, Seq[EvaluatorApi], Seq[Watchable], Option[String]) => T
   ): T =
-    bootstrapBridge.apply[T](
-      activeCommandMessage,
-      depth => metaBuildReporterFor(depth),
-      (evaluators, watched, errorOpt) =>
-        if (errorOpt.isDefined && evaluators.isEmpty)
-          onUnavailable(evaluators, watched, errorOpt)
-        else {
-          val bspEvaluators = new BspEvaluators(
-            topLevelProjectRoot,
-            evaluators,
-            s => baseLogger.debug(s())
-          )
-          body(bspEvaluators, evaluators, watched, errorOpt)
-        }
-    )
+    bootstrapMutex.synchronized {
+      bootstrapBridge.apply[T](
+        activeCommandMessage,
+        depth => metaBuildReporterFor(depth),
+        (evaluators, watched, errorOpt) =>
+          if (errorOpt.isDefined && evaluators.isEmpty) {
+            if (watcherThreadNeedsStart) startWatcherThreadIfNeeded(Seq.empty)
+            onUnavailable(evaluators, watched, errorOpt)
+          } else {
+            val bspEvaluators = new BspEvaluators(
+              topLevelProjectRoot,
+              evaluators,
+              s => baseLogger.debug(s())
+            )
+            if (watcherThreadNeedsStart)
+              startWatcherThreadIfNeeded(bspEvaluators.targetSnapshots)
+            body(bspEvaluators, evaluators, watched, errorOpt)
+          }
+      )
+    }
 
-  private val sessionCoordinator = new BspSessionCoordinator(
-    out = out,
-    sessionProcessPid = sessionProcessPid,
-    noWaitForBspLock = noWaitForBspLock,
-    killOther = killOther,
-    logger = baseLogger,
-    stopOwner = () => close()
-  )
+  private var buildInitialized = false
 
-  protected def doneInitializingBuild(): Unit = {
+  protected def doneInitializingBuild(): Unit = synchronized {
     assert(initialized, "Expected Mill BSP server to be initialized")
-    if (!sessionCoordinator.isInitialized) {
-      val bspLockId = sessionInfo.clientDisplayName
-        // just in case
-        .replace(" ", "_")
-        .replace("/", "_")
-        .replace("\\", "_")
-      sessionCoordinator.initialize(bspLockId)
-      if (bspWatch) startWatcherThread()
-    } else
+    if (!buildInitialized) buildInitialized = true
+    else
       baseLogger.warn("Mill BSP server initialized more than once")
   }
 
-  /**
-   */
   @volatile private var watcherThread: Thread = null
   private val watcherPollIntervalMs: Long = 500L
 
-  private def startWatcherThread(): Unit = {
+  private def startWatcherThread(initialTargetSnapshots: Seq[ChangeNotifier.TargetSnapshot]): Unit = {
     val watchLogger = new PrefixLogger(baseLogger, Seq("watch"))
     watcherThread = mill.api.daemon.StartThread("mill-bsp-watcher", daemon = true) {
-      var prevTargetSnapshots = Seq.empty[ChangeNotifier.TargetSnapshot]
-      var seenAnyBootstrap = false
+      var prevTargetSnapshots = initialTargetSnapshots
       try while (
           !stopped &&
           !shutdownPromise.isCompleted &&
@@ -165,14 +151,13 @@ private abstract class MillBuildServer(
                 (bspEvaluators, _, watched, _) =>
                   val current = bspEvaluators.targetSnapshots
                   val currentClient = client
-                  if (seenAnyBootstrap && currentClient != null)
+                  if (currentClient != null)
                     ChangeNotifier.notifyChanges(
                       currentClient,
                       prevTargetSnapshots,
                       current
                     )
                   prevTargetSnapshots = current
-                  seenAnyBootstrap = true
                   watched
               }
 
@@ -210,10 +195,19 @@ private abstract class MillBuildServer(
     }
   }
 
+  private def watcherThreadNeedsStart: Boolean = synchronized {
+    bspWatch && buildInitialized && watcherThread == null && !stopped
+  }
+
+  private def startWatcherThreadIfNeeded(
+      initialTargetSnapshots: Seq[ChangeNotifier.TargetSnapshot]
+  ): Unit = synchronized {
+    if (bspWatch && buildInitialized && watcherThread == null && !stopped)
+      startWatcherThread(initialTargetSnapshots)
+  }
+
   def close(): Unit = {
     stopped = true
-    try sessionCoordinator.close()
-    catch { case _: Throwable => () }
     shutdownPromise.trySuccess(BspServerResult.Shutdown)
     if (watcherThread != null) watcherThread.interrupt()
     bspRequestExecutor.shutdown()

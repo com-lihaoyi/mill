@@ -160,13 +160,7 @@ object MillMain0 {
 
               case Result.Success(config) if config.noDaemonEnabled > 1 =>
                 streams.err.println(
-                  "Only one of -i/--interactive, --no-daemon or --no-server may be given"
-                )
-                false
-
-              case Result.Success(config) if config.bsp.value && config.noDaemonEnabled > 0 =>
-                streams.err.println(
-                  "BSP mode runs via the Mill daemon; do not combine --bsp with -i/--interactive, --no-daemon or --no-server"
+                  "Only one of -i/--interactive, --no-daemon, --no-server or --bsp may be given"
                 )
                 false
 
@@ -445,10 +439,8 @@ object MillMain0 {
                           )
 
                           // Each BSP request bootstraps fresh evaluators with no shared
-                          // `prevState`: BSP requests run concurrently on the
-                          // bspRequestExecutor, and a shared `RunnerLauncherState` would be
-                          // unsafe (its evaluators could be closed by one thread's
-                          // `Using.resource` while another still references them). The
+                          // `prevState`: the BSP worker serializes bootstrap/request handling,
+                          // and each `RunnerLauncherState` is closed after its request. The
                           // daemon-wide RunnerSharedState already caches reusable meta-build
                           // frames across requests under proper locking.
                           //
@@ -489,9 +481,6 @@ object MillMain0 {
                           val bspServerHandle = startBspServer(
                             streams0,
                             bspLogger,
-                            launcherPid = launcherPid,
-                            noWaitForBspLock = config.noWaitForBspLock.value,
-                            killOther = !config.bspNoKillOther.value,
                             bspWatch = config.bspWatch,
                             bootstrapBridge = bootstrapBridge,
                             env = env
@@ -636,9 +625,6 @@ object MillMain0 {
   def startBspServer(
       bspStreams: SystemStreams,
       bspLogger: Logger,
-      launcherPid: Long,
-      noWaitForBspLock: Boolean,
-      killOther: Boolean,
       bspWatch: Boolean,
       bootstrapBridge: BspBootstrapBridge,
       env: Map[String, String]
@@ -659,10 +645,6 @@ object MillMain0 {
         logDir = logDir,
         canReload = true,
         baseLogger = bspLogger,
-        out = outFolder,
-        sessionProcessPid = launcherPid,
-        noWaitForBspLock = noWaitForBspLock,
-        killOther = killOther,
         bspWatch = bspWatch,
         bootstrapBridge = bootstrapBridge
       )

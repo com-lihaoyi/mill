@@ -21,10 +21,6 @@ object BspWorkerImpl {
       logDir: os.Path,
       canReload: Boolean,
       baseLogger: Logger,
-      out: os.Path,
-      sessionProcessPid: Long,
-      noWaitForBspLock: Boolean,
-      killOther: Boolean,
       bspWatch: Boolean,
       bootstrapBridge: BspBootstrapBridge
   ): mill.api.Result[BspServerHandle] = {
@@ -44,10 +40,6 @@ object BspWorkerImpl {
             executor.shutdown()
           },
           baseLogger = baseLogger,
-          out = out,
-          sessionProcessPid = sessionProcessPid,
-          noWaitForBspLock = noWaitForBspLock,
-          killOther = killOther,
           bspWatch = bspWatch,
           bootstrapBridge = bootstrapBridge
         ) with EndpointsJvm

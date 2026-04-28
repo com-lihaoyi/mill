@@ -35,7 +35,9 @@ object MillLauncherMain {
     val bspMode = bspServerMode || parsedConfig.exists(_.bspInstall.value)
     val useFileLocks = parsedConfig.exists(_.useFileLocks.value)
 
-    val runNoDaemon = parsedConfig.exists(c => c.noDaemonEnabled > 0 || c.bspInstall.value)
+    // BSP owns the launcher stdio for its JSON-RPC connection, so it must run
+    // in the foreground process rather than through the daemon RPC stdin proxy.
+    val runNoDaemon = parsedConfig.exists(_.noDaemonEnabled > 0) || bspMode
 
     val outMode = if (bspMode) OutFolderMode.BSP else OutFolderMode.REGULAR
     if (env.contains("MILL_TEST_EXIT_AFTER_BSP_CHECK")) return 0

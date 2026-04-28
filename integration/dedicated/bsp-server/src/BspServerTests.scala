@@ -410,7 +410,6 @@ object BspServerTests extends UtestIntegrationTestSuite {
       }
 
       assert(os.exists(workspacePath / "out"))
-      assert(os.exists(workspacePath / "out" / OutFiles.millDaemon / "processId"))
       assert(!os.exists(workspacePath / ".bsp/out"))
     }
 
@@ -544,8 +543,6 @@ object BspServerTests extends UtestIntegrationTestSuite {
       }
 
       assert(os.exists(workspacePath / ".bsp/out"))
-      assert(os.exists(workspacePath / ".bsp/out" / OutFiles.millDaemon / "processId"))
-      assert(!os.exists(workspacePath / "out" / OutFiles.millDaemon / "processId"))
     }
 
     test("sharedOutDirAllowsConcurrentCliAndBspWork") - integrationTest { tester =>

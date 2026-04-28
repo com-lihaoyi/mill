@@ -83,10 +83,6 @@ private object IdeWorkerSupport {
       classOf[os.Path],
       java.lang.Boolean.TYPE,
       classOf[Logger],
-      classOf[os.Path],
-      java.lang.Long.TYPE,
-      classOf[Boolean],
-      classOf[Boolean],
       classOf[Boolean],
       classOf[BspBootstrapBridge]
     )
@@ -100,10 +96,6 @@ private object IdeWorkerSupport {
       logDir: os.Path,
       canReload: Boolean,
       baseLogger: Logger,
-      out: os.Path,
-      sessionProcessPid: Long,
-      noWaitForBspLock: Boolean,
-      killOther: Boolean,
       bspWatch: Boolean,
       bootstrapBridge: BspBootstrapBridge
   ): BspServerHandle = {
@@ -116,10 +108,6 @@ private object IdeWorkerSupport {
         logDir,
         java.lang.Boolean.valueOf(canReload),
         baseLogger,
-        out,
-        java.lang.Long.valueOf(sessionProcessPid),
-        noWaitForBspLock,
-        killOther,
         java.lang.Boolean.valueOf(bspWatch),
         bootstrapBridge
       )).asInstanceOf[Result[Any]]
