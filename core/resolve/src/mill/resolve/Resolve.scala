@@ -15,6 +15,11 @@ import mill.api.{
 import mill.api.internal.ParseArgs
 
 object Resolve {
+  private[mill] object ScriptModuleQuery {
+    val AllPrecompiledModules = "\u0000mill.resolve.allPrecompiledModules"
+    val DirectPrecompiledModules = "\u0000mill.resolve.directPrecompiledModules"
+  }
+
   object Segments extends Resolve[Segments] {
     def handleResolved(
         rootModule: RootModule0,
@@ -407,7 +412,7 @@ trait Resolve[T] {
         case Seq(head, rest*) => (head, None, rest)
       }
 
-      def handleResolved(
+      def handleResolvedScriptModule(
           resolved: Result[ExternalModule],
           segments: Seq[String],
           remaining: Seq[String]
@@ -425,8 +430,16 @@ trait Resolve[T] {
         )
       }
 
+      def handleResolvedScriptModules(
+          resolved: Seq[Result[ExternalModule]],
+          segments: Seq[String],
+          remaining: Seq[String]
+      ): Result[Seq[T]] =
+        Result.sequence(resolved.map(handleResolvedScriptModule(_, segments, remaining)))
+          .map(_.flatten)
+
       scriptModuleResolver(first) match {
-        case Seq(resolved) => handleResolved(resolved, selector.toSeq, remaining)
+        case Seq(resolved) => handleResolvedScriptModule(resolved, selector.toSeq, remaining)
         case Nil =>
           // For pre-compiled modules referenced by normal package paths (e.g., "foo.bar.task"),
           // try progressive splits: resolve "foo" as a directory-based module, then resolve
@@ -439,24 +452,36 @@ trait Resolve[T] {
               else 0
             val effectiveSegments = segments.drop(startIdx)
 
-            // Cap the number of prefix splits we try, to avoid excessive disk I/O
-            // in deeply nested module paths. We only need to try as many splits as
-            // there are actual directory levels, and in practice precompiled modules
-            // are rarely more than a few levels deep.
-            val maxSplits = math.min(effectiveSegments.length - 1, 10)
-            val result = (1 to maxSplits).view.flatMap { i =>
-              val modulePath = effectiveSegments.take(i).mkString("/")
-              val taskSegments = effectiveSegments.drop(i)
-              scriptModuleResolver(modulePath) match {
-                case Seq(resolved) => Some((resolved, taskSegments))
-                case Nil => None
-              }
-            }.headOption
+            effectiveSegments match {
+              case wildcard +: taskSegments if wildcard == "__" || wildcard == "_" =>
+                val query =
+                  if (wildcard == "__") Resolve.ScriptModuleQuery.AllPrecompiledModules
+                  else Resolve.ScriptModuleQuery.DirectPrecompiledModules
+                scriptModuleResolver(query) match {
+                  case Nil => fallback
+                  case resolved => handleResolvedScriptModules(resolved, taskSegments, remaining)
+                }
 
-            result match {
-              case Some((resolved, taskSegments)) =>
-                handleResolved(resolved, taskSegments, remaining)
-              case None => fallback
+              case _ =>
+                // Cap the number of prefix splits we try, to avoid excessive disk I/O
+                // in deeply nested module paths. We only need to try as many splits as
+                // there are actual directory levels, and in practice precompiled modules
+                // are rarely more than a few levels deep.
+                val maxSplits = math.min(effectiveSegments.length - 1, 10)
+                val result = (1 to maxSplits).view.flatMap { i =>
+                  val modulePath = effectiveSegments.take(i).mkString("/")
+                  val taskSegments = effectiveSegments.drop(i)
+                  scriptModuleResolver(modulePath) match {
+                    case Seq(resolved) => Some((resolved, taskSegments))
+                    case Nil => None
+                  }
+                }.headOption
+
+                result match {
+                  case Some((resolved, taskSegments)) =>
+                    handleResolvedScriptModule(resolved, taskSegments, remaining)
+                  case None => fallback
+                }
             }
           } else fallback
       }

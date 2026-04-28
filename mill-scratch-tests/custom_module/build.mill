@@ -1,0 +1,20 @@
+package build
+import mill.*, scalalib.*, publish.*
+
+object `package` extends ScalaModule with PublishModule {
+  def scalaVersion = "3.8.2"
+  def publishVersion = "0.1.0"
+  def artifactName = "custom-module"
+  def pomSettings = PomSettings(
+    description = "Custom precompiled Mill module",
+    organization = "com.rkophs",
+    url = "https://github.com/rkophs/custom-module",
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("rkophs", "custom-module"),
+    developers = Seq(Developer("rkophs", "Ryan Kophs", "https://github.com/rkophs"))
+  )
+  def mvnDeps = Seq(
+    mvn"com.lihaoyi:mill-libs-javalib_3:1.1.5-25-21a88e",
+    mvn"com.lihaoyi:mill-core-api_3:1.1.5-25-21a88e"
+  )
+}
