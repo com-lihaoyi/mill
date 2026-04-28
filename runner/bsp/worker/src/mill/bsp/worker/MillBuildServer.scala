@@ -62,8 +62,6 @@ private abstract class MillBuildServer(
 
   def initialized = sessionInfo != null
 
-  private val bootstrapMutex = new Object
-
   /**
    * Build a meta-build reporter for the BSP client. Each meta-build depth maps
    * to a synthetic BSP target whose URI is `<workspaceRoot>/mill-build/...`,
@@ -103,26 +101,24 @@ private abstract class MillBuildServer(
   )(
       body: (BspEvaluators, Seq[EvaluatorApi], Seq[Watchable], Option[String]) => T
   ): T =
-    bootstrapMutex.synchronized {
-      bootstrapBridge.apply[T](
-        activeCommandMessage,
-        depth => metaBuildReporterFor(depth),
-        (evaluators, watched, errorOpt) =>
-          if (errorOpt.isDefined && evaluators.isEmpty) {
-            if (watcherThreadNeedsStart) startWatcherThreadIfNeeded(Seq.empty)
-            onUnavailable(evaluators, watched, errorOpt)
-          } else {
-            val bspEvaluators = new BspEvaluators(
-              topLevelProjectRoot,
-              evaluators,
-              s => baseLogger.debug(s())
-            )
-            if (watcherThreadNeedsStart)
-              startWatcherThreadIfNeeded(bspEvaluators.targetSnapshots)
-            body(bspEvaluators, evaluators, watched, errorOpt)
-          }
-      )
-    }
+    bootstrapBridge.apply[T](
+      activeCommandMessage,
+      depth => metaBuildReporterFor(depth),
+      (evaluators, watched, errorOpt) =>
+        if (errorOpt.isDefined && evaluators.isEmpty) {
+          if (watcherThreadNeedsStart) startWatcherThreadIfNeeded(Seq.empty)
+          onUnavailable(evaluators, watched, errorOpt)
+        } else {
+          val bspEvaluators = new BspEvaluators(
+            topLevelProjectRoot,
+            evaluators,
+            s => baseLogger.debug(s())
+          )
+          if (watcherThreadNeedsStart)
+            startWatcherThreadIfNeeded(bspEvaluators.targetSnapshots)
+          body(bspEvaluators, evaluators, watched, errorOpt)
+        }
+    )
 
   private var buildInitialized = false
 

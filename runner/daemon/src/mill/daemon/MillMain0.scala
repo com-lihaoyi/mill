@@ -439,10 +439,9 @@ object MillMain0 {
                           )
 
                           // Each BSP request bootstraps fresh evaluators with no shared
-                          // `prevState`: the BSP worker serializes bootstrap/request handling,
-                          // and each `RunnerLauncherState` is closed after its request. The
-                          // daemon-wide RunnerSharedState already caches reusable meta-build
-                          // frames across requests under proper locking.
+                          // `prevState`: shared meta-build frames are protected by
+                          // meta-build locks, task evaluation uses normal task locks, and each
+                          // `RunnerLauncherState` is closed after its request.
                           //
                           // The `metaReporter` is supplied by the BSP worker (which owns the
                           // `BuildClient`) and is invoked during each meta-build compile so
