@@ -412,7 +412,7 @@ trait Resolve[T] {
         case Seq(head, rest*) => (head, None, rest)
       }
 
-      def handleResolvedScriptModule(
+      def handleResolved(
           resolved: Result[ExternalModule],
           segments: Seq[String],
           remaining: Seq[String]
@@ -430,16 +430,8 @@ trait Resolve[T] {
         )
       }
 
-      def handleResolvedScriptModules(
-          resolved: Seq[Result[ExternalModule]],
-          segments: Seq[String],
-          remaining: Seq[String]
-      ): Result[Seq[T]] =
-        Result.sequence(resolved.map(handleResolvedScriptModule(_, segments, remaining)))
-          .map(_.flatten)
-
       scriptModuleResolver(first) match {
-        case Seq(resolved) => handleResolvedScriptModule(resolved, selector.toSeq, remaining)
+        case Seq(resolved) => handleResolved(resolved, selector.toSeq, remaining)
         case Nil =>
           // For pre-compiled modules referenced by normal package paths (e.g., "foo.bar.task"),
           // try progressive splits: resolve "foo" as a directory-based module, then resolve
@@ -459,7 +451,9 @@ trait Resolve[T] {
                   else Resolve.ScriptModuleQuery.DirectPrecompiledModules
                 scriptModuleResolver(query) match {
                   case Nil => fallback
-                  case resolved => handleResolvedScriptModules(resolved, taskSegments, remaining)
+                  case resolved =>
+                    Result.sequence(resolved.map(handleResolved(_, taskSegments, remaining)))
+                      .map(_.flatten)
                 }
 
               case _ =>
@@ -479,7 +473,7 @@ trait Resolve[T] {
 
                 result match {
                   case Some((resolved, taskSegments)) =>
-                    handleResolvedScriptModule(resolved, taskSegments, remaining)
+                    handleResolved(resolved, taskSegments, remaining)
                   case None => fallback
                 }
             }

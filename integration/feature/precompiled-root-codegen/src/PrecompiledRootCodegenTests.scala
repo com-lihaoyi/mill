@@ -8,11 +8,13 @@ object PrecompiledRootCodegenTests extends UtestIntegrationTestSuite {
     test("recursiveWildcardFindsPrecompiledYamlModules") - integrationTest { tester =>
       import tester.*
 
-      val res1 = eval(("resolve", "foo._"))
-      assert(res1.isSuccess)
+      assert(eval(("resolve", "foo._")).isSuccess)
+      assert(eval(("_.compile")).isSuccess)
+      assert(eval(("__.compile")).isSuccess)
 
-      val res2 = eval(("__.compile"))
-      assert(res2.isSuccess)
+      val generatedScriptSources = workspacePath / "out/mill-build/generatedScriptSources.dest"
+      assert(!os.exists(generatedScriptSources / "wrapped"))
+      assert(!os.exists(generatedScriptSources / "support"))
     }
   }
 }
