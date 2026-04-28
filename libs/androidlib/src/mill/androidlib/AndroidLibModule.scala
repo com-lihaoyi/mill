@@ -8,7 +8,7 @@ import mill.util.Jvm
 import scala.xml.*
 
 @mill.api.experimental
-trait AndroidLibModule extends AndroidModule with PublishModule {
+trait AndroidLibModule extends AndroidModule with PublishModule { outer =>
 
   /**
    * The package name of the module. Used in the generated AndroidManifest.xml
@@ -149,7 +149,7 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
 
   trait AndroidLibTests extends JavaTests {
 
-    override def sources: T[Seq[PathRef]] = Task.Sources("src/test/java")
+    override def sources: T[Seq[PathRef]] = Task.Sources(outer.moduleDir / "src/test/java")
 
   }
 }

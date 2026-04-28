@@ -104,6 +104,20 @@ object app extends AndroidAppModule {
 
 /** Usage
 
+> ./mill show lib.test
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "com.example.SumUnitTest.sum_isCorrect",
+      "selector": "com.example.SumUnitTest.sum_isCorrect",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
+
+
 > ./mill lib.publishM2Local
 Publish sumlib-java-0.0.1 to /home/.../.m2/repository/...
 
