@@ -64,8 +64,8 @@ object BuildFileDiscovery {
       rootBuildFileNames.asScala.toSeq
     )
 
-    val nestedBuildFileNames0 = nestedBuildFileNames.asScala.toList
-    if (allowNestedBuildMillFiles) nestedBuildFileNames0 ++ rootBuildFileNames.asScala.toList
-    else nestedBuildFileNames0
+    val packageBuildFileNames = nestedBuildFileNames.asScala.toSeq
+    if (allowNestedBuildMillFiles) packageBuildFileNames ++ rootBuildFileNames.asScala.toSeq
+    else packageBuildFileNames
   }
 }

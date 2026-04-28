@@ -444,17 +444,12 @@ trait Resolve[T] {
               else 0
             val effectiveSegments = segments.drop(startIdx)
 
-            effectiveSegments match {
+            val resolvedScriptModules = effectiveSegments match {
               case wildcard +: taskSegments if wildcard == "__" || wildcard == "_" =>
                 val query =
                   if (wildcard == "__") Resolve.ScriptModuleQuery.AllPrecompiledModules
                   else Resolve.ScriptModuleQuery.DirectPrecompiledModules
-                scriptModuleResolver(query) match {
-                  case Nil => fallback
-                  case resolved =>
-                    Result.sequence(resolved.map(handleResolved(_, taskSegments, remaining)))
-                      .map(_.flatten)
-                }
+                scriptModuleResolver(query).map((_, taskSegments))
 
               case _ =>
                 // Cap the number of prefix splits we try, to avoid excessive disk I/O
@@ -462,20 +457,22 @@ trait Resolve[T] {
                 // there are actual directory levels, and in practice precompiled modules
                 // are rarely more than a few levels deep.
                 val maxSplits = math.min(effectiveSegments.length - 1, 10)
-                val result = (1 to maxSplits).view.flatMap { i =>
+                (1 to maxSplits).view.flatMap { i =>
                   val modulePath = effectiveSegments.take(i).mkString("/")
                   val taskSegments = effectiveSegments.drop(i)
                   scriptModuleResolver(modulePath) match {
                     case Seq(resolved) => Some((resolved, taskSegments))
                     case Nil => None
                   }
-                }.headOption
+                }.headOption.toSeq
+            }
 
-                result match {
-                  case Some((resolved, taskSegments)) =>
-                    handleResolved(resolved, taskSegments, remaining)
-                  case None => fallback
-                }
+            resolvedScriptModules match {
+              case Nil => fallback
+              case resolved =>
+                Result.sequence(resolved.map { case (module, taskSegments) =>
+                  handleResolved(module, taskSegments, remaining)
+                }).map(_.flatten)
             }
           } else fallback
       }

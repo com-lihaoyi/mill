@@ -305,17 +305,20 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
 
   private def discoverPrecompiledYamlModules(all: Boolean): Seq[os.Path] = {
     val workspaceDir = mill.api.BuildCtx.workspaceRoot
+    def selected(path: os.Path) =
+      all ||
+        (path.last == "package.mill.yaml" && path.relativeTo(workspaceDir).segments.length == 2)
+
     mill.internal.BuildFileDiscovery
       .walkNestedBuildFiles(
         workspaceDir,
         os.Path(mill.constants.OutFiles.OutFiles.out, workspaceDir)
       )
-      .filter(path => path.last.endsWith(".mill.yaml"))
-      .filter(mill.internal.Util.isPrecompiledYamlModule)
-      .filter { path =>
-        val rel = path.relativeTo(workspaceDir)
-        all || (path.last == "package.mill.yaml" && rel.segments.length == 2)
-      }
+      .filter(path =>
+        path.last.endsWith(".mill.yaml") &&
+          selected(path) &&
+          mill.internal.Util.isPrecompiledYamlModule(path)
+      )
       .sortBy(_.toString)
   }
 
