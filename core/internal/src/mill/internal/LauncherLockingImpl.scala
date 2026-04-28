@@ -43,8 +43,15 @@ private[mill] class LauncherLockingImpl(
       kind: LauncherLocking.LockKind
   ): LauncherLocking.Lease = {
     ensureOpen()
-    if (noBuildLock) LauncherLocking.Noop.taskLock(path, displayLabel, kind)
-    else {
+    // If this launcher already holds `exclusiveLock(Write)` no other launcher
+    // can be running, so per-task serialization is unnecessary. Returning Noop
+    // also avoids self-deadlock when nested `evaluator.execute(...)` from
+    // inside an exclusive command tries to escalate a taskLock that the outer
+    // evaluation has already retained as Read; `CrossThreadRwLock` is not
+    // reentrant so a same-thread Read→Write upgrade would block forever.
+    if (noBuildLock || exclusiveWriteCount.get() > 0) {
+      LauncherLocking.Noop.taskLock(path, displayLabel, kind)
+    } else {
       val normalized = path.toAbsolutePath.normalize().toString
       val lock = lockRegistry.taskLockFor(normalized, displayLabel)
       acquireManagedLease(lock.acquire(kind, waitingErr, noWaitForBuildLock, holder))

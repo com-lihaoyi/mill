@@ -47,16 +47,6 @@ case class Execution(
   // Track nesting depth of executeTasks calls to only show final status on outermost call
   private val executionNestingDepth = new AtomicInteger(0)
 
-  // Lazily computed worker dependency graph, cached for the duration of the execution. It's
-  // ok to take a snapshot of the cache, since the workerCache entries we may want to remove
-  // must be from previous evaluation runs and wouldn't be added as part of this evaluation
-  lazy val (workerDeps, reverseDeps, workerTopoIndex) = {
-    val cacheSnapshot = workerCache.synchronized { workerCache.toMap }
-    val deps = GroupExecution.workerDependencies(cacheSnapshot)
-    val topoIndex = deps.iterator.map(_._1).zipWithIndex.toMap
-    (deps, SpanningForest.reverseEdges(deps), topoIndex)
-  }
-
   // this (shorter) constructor is used from [[mill.daemon.MillBuildBootstrap]] via reflection
   def this(
       baseLogger: Logger,

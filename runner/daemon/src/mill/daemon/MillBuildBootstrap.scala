@@ -410,7 +410,6 @@ class MillBuildBootstrap(
 
     def publishFreshFrame(
         writeScope: MetaBuildAccess.WriteScope,
-        retainedLease: LauncherLocking.Lease,
         runClasspath: Seq[PathRefApi],
         compileClasses: PathRefApi,
         codeSignatures: Map[String, Int],
@@ -457,6 +456,12 @@ class MillBuildBootstrap(
       )
       val displaced = writeScope.update(_.withFrame(depth, fresh)).reusableFrameAt(depth)
       closeDisplacedClassloader(displaced)
+      // Downgrade only after the state swap and displaced-classloader close
+      // are complete. Otherwise another launcher could acquire a meta-build
+      // read lock, observe the old frame via `ref.get()`, retain it, and then
+      // have its classloader closed out from under it by the publishing
+      // launcher.
+      val retainedLease = writeScope.scope.downgradeAndRetain()
       nestedState.withMetaFrame(
         RunnerLauncherState.MetaFrame(
           depth = depth,
@@ -503,7 +508,6 @@ class MillBuildBootstrap(
             ) =>
           publishFreshFrame(
             writeScope,
-            writeScope.scope.downgradeAndRetain(),
             runClasspath,
             compileClasses,
             codeSignatures,

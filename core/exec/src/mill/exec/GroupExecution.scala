@@ -47,13 +47,6 @@ trait GroupExecution {
    */
   def workerCache: mutable.Map[String, (Int, Val, TaskApi[?])]
 
-  /**
-   * Lazily computed worker dependency graph and its reverse, for efficient worker closure ordering.
-   */
-  def workerDeps: Seq[(TaskApi[?], Seq[TaskApi[?]])]
-  def reverseDeps: Map[TaskApi[?], Seq[TaskApi[?]]]
-  def workerTopoIndex: Map[TaskApi[?], Int]
-
   def env: Map[String, String]
   def failFast: Boolean
   def ec: Option[ThreadPoolExecutor]
@@ -780,15 +773,28 @@ trait GroupExecution {
           Some(upToDate)
 
         case (_, Val(_: AutoCloseable), _) if closeStaleWorker =>
-          // Close this worker and all workers that depend on it
+          // Close this worker and all workers that depend on it. Recompute the
+          // reverse-dependency graph from the *current* `workerCache` under
+          // its lock instead of relying on the per-Execution `reverseDeps`
+          // snapshot — when `workerCache` is shared across concurrent
+          // launchers, another launcher may have added a dependent worker
+          // since this Execution's snapshot was taken, and the stale snapshot
+          // would leave that newer dependent in the cache pointing at the
+          // closed upstream.
+          val (currentReverseDeps, currentTopoIndex) = workerCache.synchronized {
+            val cacheSnapshot = workerCache.toMap
+            val deps = GroupExecution.workerDependencies(cacheSnapshot)
+            val topoIndex = deps.iterator.map(_._1).zipWithIndex.toMap
+            (SpanningForest.reverseEdges(deps), topoIndex)
+          }
           val allToClose =
             SpanningForest.breadthFirst(Seq(labelled: TaskApi[?]))(n =>
-              reverseDeps.getOrElse(n, Nil)
+              currentReverseDeps.getOrElse(n, Nil)
             )
           GroupExecution.closeWorkersInReverseTopologicalOrder(
             allToClose,
             workerCache,
-            workerTopoIndex,
+            currentTopoIndex,
             closeable =>
               try GroupExecution.wrap(
                   workspace,
