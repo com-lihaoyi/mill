@@ -12,7 +12,7 @@ private[mill] class LauncherOutFilesImpl(
     activeCommandMessage: String,
     launcherPid: Long,
     artifactState: LauncherArtifactState,
-    override val runId: String
+    private val runId: String
 ) extends LauncherOutFiles {
   import LauncherOutFilesImpl.*
 

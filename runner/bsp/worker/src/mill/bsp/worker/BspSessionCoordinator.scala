@@ -34,18 +34,9 @@ private[worker] class BspSessionCoordinator(
   }
 
   private def acquire(lockId: String): SessionLease = {
-    val processLock = processLockFor(lockId)
+    val slot = slotFor(lockId)
     val fileLock = Lock.file((out / OutFiles.millBspLock(lockId)).toString)
     val activeBspFile = out / OutFiles.millActiveBsp(lockId)
-
-    def readActiveInfo(): Option[Long] =
-      try {
-        val json = os.read(activeBspFile)
-        val pidPattern = """"pid"\s*:\s*([0-9]+)""".r
-        pidPattern.findFirstMatchIn(json).flatMap(m => m.group(1).toLongOption)
-      } catch {
-        case NonFatal(_) => None
-      }
 
     def terminateOther(pidOpt: Option[Long]): Unit =
       pidOpt match {
@@ -81,18 +72,18 @@ private[worker] class BspSessionCoordinator(
       }
 
     def stopOtherLocalSession(): Boolean =
-      shutdownActiveSession(lockId, ownerToken)
+      slot.shutdownActiveSession(ownerToken)
 
     var processLease: ProcessLockLease = null
     var fileLease: Locked = null
     var acquiredLease: SessionLease = null
     try {
-      processLease = processLock.tryLock()
+      processLease = slot.tryLock()
       if (processLease == null) {
         if (noWaitForBspLock)
           throw new Exception("Another Mill BSP process is running, failing")
 
-        val pidOpt = readActiveInfo()
+        val pidOpt = readActivePid(activeBspFile)
         if (killOther) {
           if (stopOtherLocalSession())
             logger.info(s"Asked the active BSP session for '$lockId' to shut down")
@@ -102,7 +93,7 @@ private[worker] class BspSessionCoordinator(
             s"Another Mill BSP server is running with PID ${pidOpt.fold("<unknown>")(_.toString)} waiting for it to be done..."
           )
 
-        processLease = processLock.lock()
+        processLease = slot.lock()
       }
 
       val tryLocked = fileLock.tryLock()
@@ -112,7 +103,7 @@ private[worker] class BspSessionCoordinator(
           if (noWaitForBspLock)
             throw new Exception("Another Mill BSP process is running, failing")
 
-          val pidOpt = readActiveInfo()
+          val pidOpt = readActivePid(activeBspFile)
           if (killOther) terminateOther(pidOpt)
           else
             logger.info(
@@ -122,12 +113,11 @@ private[worker] class BspSessionCoordinator(
           fileLock.lock()
         }
 
-      val daemonPid = ProcessHandle.current().pid()
-      os.write.over(activeBspFile, s"""{"pid":$sessionProcessPid,"serverPid":$daemonPid}""")
-      registerActiveSession(lockId, ActiveSession(ownerToken, sessionProcessPid, stopOwner))
+      os.write.over(activeBspFile, s"""{"pid":$sessionProcessPid}""")
+      slot.registerActiveSession(ActiveSession(ownerToken, stopOwner))
 
       acquiredLease = new SessionLease(
-        lockId = lockId,
+        slot = slot,
         activeBspFile = activeBspFile,
         fileLock = fileLock,
         fileLease = fileLease,
@@ -154,18 +144,37 @@ private[worker] class BspSessionCoordinator(
 private object BspSessionCoordinator {
   private case class ActiveSession(
       ownerToken: AnyRef,
-      processPid: Long,
       shutdown: () => Unit
   )
 
-  private class ProcessLock(private val semaphore: Semaphore) {
+  private class Slot {
+    private val semaphore = new Semaphore(1, true)
+    private var activeSession: ActiveSession = null
+
     def lock(): ProcessLockLease = {
       semaphore.acquire()
       new ProcessLockLease(semaphore)
     }
+
     def tryLock(): ProcessLockLease =
       if (semaphore.tryAcquire()) new ProcessLockLease(semaphore)
       else null
+
+    def registerActiveSession(session: ActiveSession): Unit = synchronized {
+      activeSession = session
+    }
+
+    def shutdownActiveSession(ownerToken: AnyRef): Boolean = synchronized {
+      if (activeSession != null && activeSession.ownerToken.ne(ownerToken)) {
+        activeSession.shutdown()
+        true
+      } else false
+    }
+
+    def unregisterActiveSession(ownerToken: AnyRef): Unit = synchronized {
+      if (activeSession != null && activeSession.ownerToken.eq(ownerToken))
+        activeSession = null
+    }
   }
 
   private class ProcessLockLease(private val semaphore: Semaphore) extends AutoCloseable {
@@ -180,7 +189,7 @@ private object BspSessionCoordinator {
   }
 
   private class SessionLease(
-      lockId: String,
+      slot: Slot,
       activeBspFile: os.Path,
       fileLock: Lock,
       fileLease: Locked,
@@ -193,14 +202,9 @@ private object BspSessionCoordinator {
     override def close(): Unit = synchronized {
       if (!closed) {
         closed = true
-        unregisterActiveSession(lockId, ownerToken)
+        slot.unregisterActiveSession(ownerToken)
         try {
-          val currentPid =
-            if (os.exists(activeBspFile)) {
-              val json = os.read(activeBspFile)
-              val pidPattern = """"pid"\s*:\s*([0-9]+)""".r
-              pidPattern.findFirstMatchIn(json).flatMap(m => m.group(1).toLongOption)
-            } else None
+          val currentPid = readActivePid(activeBspFile)
           if (currentPid.contains(sessionProcessPid))
             os.remove(activeBspFile, checkExists = false)
         } catch {
@@ -216,26 +220,17 @@ private object BspSessionCoordinator {
     }
   }
 
-  private val processLocks = new ConcurrentHashMap[String, ProcessLock]()
-  private val activeSessions = new ConcurrentHashMap[String, ActiveSession]()
+  private val slots = new ConcurrentHashMap[String, Slot]()
 
-  private def processLockFor(lockId: String): ProcessLock =
-    processLocks.computeIfAbsent(lockId, _ => new ProcessLock(new Semaphore(1, true)))
+  private def slotFor(lockId: String): Slot =
+    slots.computeIfAbsent(lockId, _ => new Slot)
 
-  private def registerActiveSession(lockId: String, session: ActiveSession): Unit =
-    activeSessions.put(lockId, session)
-
-  private def shutdownActiveSession(lockId: String, ownerToken: AnyRef): Boolean = {
-    val session = activeSessions.get(lockId)
-    if (session != null && session.ownerToken.ne(ownerToken)) {
-      session.shutdown()
-      true
-    } else false
-  }
-
-  private def unregisterActiveSession(lockId: String, ownerToken: AnyRef): Unit = {
-    val session = activeSessions.get(lockId)
-    if (session != null && session.ownerToken.eq(ownerToken))
-      activeSessions.remove(lockId, session)
-  }
+  private def readActivePid(activeBspFile: os.Path): Option[Long] =
+    try {
+      val json = os.read(activeBspFile)
+      val pidPattern = """"pid"\s*:\s*([0-9]+)""".r
+      pidPattern.findFirstMatchIn(json).flatMap(m => m.group(1).toLongOption)
+    } catch {
+      case NonFatal(_) => None
+    }
 }

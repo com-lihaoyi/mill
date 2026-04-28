@@ -281,18 +281,13 @@ trait GroupExecution {
 
         def acquireTaskLock(kind: LauncherLocking.LockKind): LauncherLocking.Lease =
           workspaceLocking.taskLock(
-            GroupExecution.taskLockPath(labelled, outPath, externalOutPath).toNIO,
+            paths.dest.toNIO,
             labelled.ctx.segments.render,
             kind
           )
 
         // Helper to evaluate the task with full caching support
         def evaluateTaskWithCaching(): GroupExecution.Results = {
-          case class CacheProbe(
-              cached: Option[(Int, Option[(Val, Seq[PathRef])], Int)],
-              reusableResultOpt: Option[GroupExecution.Results]
-          )
-
           def loadCachedOrWorker(
               cached: Option[(Int, Option[(Val, Seq[PathRef])], Int)],
               closeStaleWorker: Boolean
@@ -333,24 +328,14 @@ trait GroupExecution {
             )
           }
 
-          var readProbeOpt = Option.empty[CacheProbe]
-
-          def cacheProbe(
-              cached: Option[(Int, Option[(Val, Seq[PathRef])], Int)],
-              closeStaleWorker: Boolean
-          ): CacheProbe =
-            CacheProbe(cached, loadCachedOrWorker(cached, closeStaleWorker))
-
           LockUpgrade.readThenWrite(
             acquireRead = acquireTaskLock(LauncherLocking.LockKind.Read),
             acquireWrite = acquireTaskLock(LauncherLocking.LockKind.Write)
           ) { scope =>
-            val probe = cacheProbe(
+            loadCachedOrWorker(
               loadCachedJson(logger, inputsHash, labelled, paths),
               closeStaleWorker = false
-            )
-            readProbeOpt = Some(probe)
-            probe.reusableResultOpt match {
+            ) match {
               case Some(res) =>
                 leaseTracker.retain(labelled, scope.retain())
                 LockUpgrade.Decision.Complete(res)
@@ -359,10 +344,7 @@ trait GroupExecution {
             }
           } { scope =>
             val cached = loadCachedJson(logger, inputsHash, labelled, paths)
-            val reusableResultOpt = readProbeOpt
-              .filter(_.cached == cached)
-              .flatMap(_.reusableResultOpt)
-              .orElse(loadCachedOrWorker(cached, closeStaleWorker = true))
+            val reusableResultOpt = loadCachedOrWorker(cached, closeStaleWorker = true)
 
             reusableResultOpt match {
               case Some(res) =>
@@ -834,15 +816,6 @@ trait GroupExecution {
 }
 
 object GroupExecution {
-  def taskLockPath(
-      named: Task.Named[?],
-      outPath: os.Path,
-      externalOutPath: os.Path
-  ): os.Path = {
-    val out = if (!named.ctx.external) outPath else externalOutPath
-    ExecutionPaths.resolve(out, named.ctx.segments).dest
-  }
-
   class DestCreator(paths: Option[ExecutionPaths]) {
     var usedDest = Option.empty[os.Path]
 

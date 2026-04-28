@@ -65,7 +65,7 @@ case class RunnerSharedState(
 }
 
 object RunnerSharedState {
-  val empty: RunnerSharedState = RunnerSharedState()
+  def empty: RunnerSharedState = RunnerSharedState()
 
   /**
    * One shared bootstrap-frame entry. `reusable` is set iff the bootstrap at

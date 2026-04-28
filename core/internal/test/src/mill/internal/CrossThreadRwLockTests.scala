@@ -213,6 +213,60 @@ object CrossThreadRwLockTests extends TestSuite {
       writerThread.join(3000)
     }
 
+    test("lock-upgrade-closes-retained-read-lease-on-read-exception") {
+      val waitingErr = new PrintStream(new ByteArrayOutputStream())
+      val lock = new CrossThreadRwLock("read-retain-exception")
+
+      assertThrows(classOf[RuntimeException]) {
+        LockUpgrade.readThenWrite(
+          acquireRead = lock.acquire(LockKind.Read, waitingErr, noWait = false, testHolder),
+          acquireWrite = lock.acquire(LockKind.Write, waitingErr, noWait = false, testHolder)
+        ) { scope =>
+          scope.retain()
+          throw new RuntimeException("boom")
+        }(_ => ())
+      }
+
+      val writer = lock.acquire(LockKind.Write, waitingErr, noWait = true, testHolder)
+      writer.close()
+    }
+
+    test("lock-upgrade-closes-retained-read-lease-on-invalid-escalation") {
+      val waitingErr = new PrintStream(new ByteArrayOutputStream())
+      val lock = new CrossThreadRwLock("read-retain-escalate")
+
+      assertThrows(classOf[IllegalStateException]) {
+        LockUpgrade.readThenWrite(
+          acquireRead = lock.acquire(LockKind.Read, waitingErr, noWait = false, testHolder),
+          acquireWrite = lock.acquire(LockKind.Write, waitingErr, noWait = false, testHolder)
+        ) { scope =>
+          scope.retain()
+          LockUpgrade.Decision.Escalate
+        }(_ => ())
+      }
+
+      val writer = lock.acquire(LockKind.Write, waitingErr, noWait = true, testHolder)
+      writer.close()
+    }
+
+    test("lock-upgrade-closes-downgraded-write-lease-on-write-exception") {
+      val waitingErr = new PrintStream(new ByteArrayOutputStream())
+      val lock = new CrossThreadRwLock("write-downgrade-exception")
+
+      assertThrows(classOf[RuntimeException]) {
+        LockUpgrade.readThenWrite(
+          acquireRead = lock.acquire(LockKind.Read, waitingErr, noWait = false, testHolder),
+          acquireWrite = lock.acquire(LockKind.Write, waitingErr, noWait = false, testHolder)
+        )(_ => LockUpgrade.Decision.Escalate) { scope =>
+          scope.downgradeAndRetain()
+          throw new RuntimeException("boom")
+        }
+      }
+
+      val writer = lock.acquire(LockKind.Write, waitingErr, noWait = true, testHolder)
+      writer.close()
+    }
+
     test("waiting-message-names-the-current-holder") {
       val waitingBytes = new ByteArrayOutputStream()
       val waitingErr = new PrintStream(waitingBytes)
@@ -337,5 +391,14 @@ object CrossThreadRwLockTests extends TestSuite {
     val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5)
     while (!predicate && System.nanoTime() < deadline) Thread.sleep(10)
     if (!predicate) throw new java.lang.AssertionError("predicate did not become true")
+  }
+
+  private def assertThrows[T <: Throwable](clazz: Class[T])(body: => Unit): T = {
+    try {
+      body
+      throw new java.lang.AssertionError(s"expected ${clazz.getName}")
+    } catch {
+      case t if clazz.isInstance(t) => clazz.cast(t)
+    }
   }
 }

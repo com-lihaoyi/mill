@@ -204,14 +204,10 @@ class MillBuildBootstrap(
     val staticBuildOverrides0 = tryReadParent(currentRoot, "build.mill.yaml")
       .orElse(tryReadParent(currentRoot, "build.mill"))
 
-    // The most recent meta-build frame is the just-published nested level we
-    // want to read shared metadata for. Lock-free snapshot is safe here: the
-    // nested frame was published under its own write lock and the current
-    // launcher holds a read lease pinning it via `nestedState.metaFrames`.
+    // The most recent meta-build frame is the just-published nested level,
+    // pinned by this launcher through its retained read lease.
     val nestedMetaBuildFrame = nestedState.metaFrames.headOption
-    val nestedSharedFrame = nestedMetaBuildFrame.flatMap(frame =>
-      metaBuild.snapshot().reusableFrameAt(frame.depth)
-    )
+    val nestedSharedFrame = nestedMetaBuildFrame.flatMap(_.sharedFrame.reusable)
 
     val staticBuildOverrideFiles =
       staticBuildOverrides0.toSeq ++ nestedSharedFrame.fold(Map.empty)(_.buildOverrideFiles)
@@ -368,14 +364,12 @@ class MillBuildBootstrap(
         )
       )
 
-    def closePriorAndPreviousClassloaders(
+    def closeDisplacedClassloader(
         displacedReusable: Option[RunnerSharedState.Frame.Reusable]
     ): Unit = {
       // Close any workers that lived on the displaced frame (their classloader is going
       // away). Done in reverse-topological order so dependent workers close before
-      // their dependencies. Skip the prevCommandState classloader: when the displacing
-      // write succeeded, the prevCommandState's read lease must already have been
-      // released, and the displaced frame's classloader IS that classloader.
+      // their dependencies.
       displacedReusable.foreach { reusable =>
         val snapshot = reusable.workers.synchronized(reusable.workers.toMap)
         val deps = mill.exec.GroupExecution.workerDependencies(snapshot)
@@ -388,11 +382,8 @@ class MillBuildBootstrap(
             try c.close()
             catch { case _: Throwable => () }
         )
+        reusable.classLoader.close()
       }
-      Seq(
-        prevCommandState.metaFrameAt(depth).flatMap(_.classLoaderOpt),
-        displacedReusable.map(_.classLoader)
-      ).flatten.distinct.foreach(_.close())
     }
 
     def publishFailedFrame(
@@ -403,7 +394,7 @@ class MillBuildBootstrap(
     ): RunnerLauncherState = {
       val failedShared = RunnerSharedState.Frame(evalWatches, moduleWatches, None)
       val displaced = writeScope.update(_.withFrame(depth, failedShared)).reusableFrameAt(depth)
-      closePriorAndPreviousClassloaders(displaced)
+      closeDisplacedClassloader(displaced)
       nestedState
         .withMetaFrame(
           RunnerLauncherState.MetaFrame(
@@ -465,7 +456,7 @@ class MillBuildBootstrap(
         ))
       )
       val displaced = writeScope.update(_.withFrame(depth, fresh)).reusableFrameAt(depth)
-      closePriorAndPreviousClassloaders(displaced)
+      closeDisplacedClassloader(displaced)
       nestedState.withMetaFrame(
         RunnerLauncherState.MetaFrame(
           depth = depth,

@@ -28,6 +28,9 @@ object LockUpgrade {
     private[LockUpgrade] def closeIfUnretained(): Unit =
       if (!retained) lease.close()
 
+    private[LockUpgrade] def closeAlways(): Unit =
+      lease.close()
+
     private[LockUpgrade] def isRetained: Boolean = retained
   }
 
@@ -53,16 +56,23 @@ object LockUpgrade {
             throw new IllegalStateException(
               "Cannot retain a read lease and then escalate to write"
             )
-          readScope.lease.close()
+          readScope.closeAlways()
           readClosed = true
 
           val writeScope = new Scope(acquireWrite)
-          try writeBody(writeScope)
-          finally writeScope.closeIfUnretained()
+          try {
+            val value = writeBody(writeScope)
+            writeScope.closeIfUnretained()
+            value
+          } catch {
+            case t: Throwable =>
+              writeScope.closeAlways()
+              throw t
+          }
       }
     } catch {
       case t: Throwable =>
-        if (!readClosed) readScope.closeIfUnretained()
+        if (!readClosed) readScope.closeAlways()
         throw t
     }
   }

@@ -314,20 +314,22 @@ object Server {
       if (!serverSocket.isClosed) block
     }
 
-    def closeOtherConnections(currentSocket: Socket, reason: Option[String]): Unit =
-      synchronized {
-        val others = connections.filterKeys(_ != currentSocket)
-        serverLog(s"closing ${others.size} other connection(s)")
-        others.foreach { case (sock, closeCallback) =>
-          try {
-            closeCallback(reason)
-            serverLog(s"closed connection ${sock.toString}")
-          } catch {
-            case NonFatal(e) =>
-              serverLog(s"error closing connection ${sock.toString}: $e")
-          }
+    def closeOtherConnections(currentSocket: Socket, reason: Option[String]): Unit = {
+      val others = synchronized {
+        val snapshot = connections.iterator.filter(_._1 != currentSocket).toVector
+        serverLog(s"closing ${snapshot.size} other connection(s)")
+        snapshot
+      }
+      others.foreach { case (sock, closeCallback) =>
+        try {
+          closeCallback(reason)
+          serverLog(s"closed connection ${sock.toString}")
+        } catch {
+          case NonFatal(e) =>
+            serverLog(s"error closing connection ${sock.toString}: $e")
         }
       }
+    }
 
     def increment(socket: Socket, closeCallback: Option[String] => Unit): Unit = wrap {
       connections += (socket -> closeCallback)
