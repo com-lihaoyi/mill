@@ -1,10 +1,10 @@
 package millbuild
 
 import mill.*
-import mill.api.Discover
+import mill.api.{Discover, PrecompiledModule}
 
-class SimpleJavaModule(val scriptConfig: mill.api.PrecompiledModule.Config)
+class SimpleJavaModule(val scriptConfig: PrecompiledModule.Config)
     extends mill.javalib.JavaModule
-    with mill.api.PrecompiledModule {
+    with PrecompiledModule {
   override lazy val millDiscover = Discover[this.type]
 }

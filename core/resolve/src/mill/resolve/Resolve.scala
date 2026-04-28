@@ -452,12 +452,7 @@ trait Resolve[T] {
                 scriptModuleResolver(query).map((_, taskSegments))
 
               case _ =>
-                // Cap the number of prefix splits we try, to avoid excessive disk I/O
-                // in deeply nested module paths. We only need to try as many splits as
-                // there are actual directory levels, and in practice precompiled modules
-                // are rarely more than a few levels deep.
-                val maxSplits = math.min(effectiveSegments.length - 1, 10)
-                (1 to maxSplits).view.flatMap { i =>
+                (1 until effectiveSegments.length).view.flatMap { i =>
                   val modulePath = effectiveSegments.take(i).mkString("/")
                   val taskSegments = effectiveSegments.drop(i)
                   scriptModuleResolver(modulePath) match {
