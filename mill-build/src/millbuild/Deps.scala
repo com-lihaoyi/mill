@@ -55,7 +55,7 @@ object Deps {
   }
 
   object Scalanative_0_5 {
-    val scalanativeVersion = "0.5.10"
+    val scalanativeVersion = "0.5.11"
     // Workaround for https://github.com/com-lihaoyi/mill/issues/6780:
     // prefer Scala 2.13 published toolchain artifacts.
     val scalanativeTools = mvn"org.scala-native:tools_2.13:${scalanativeVersion}"
