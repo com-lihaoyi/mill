@@ -1,0 +1,4 @@
+extends: mill.javalib.JavaModule
+
+mvnDeps:
+  - "org.immutables:value:2.10.1"
