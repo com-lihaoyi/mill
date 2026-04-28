@@ -454,7 +454,13 @@ object Execution {
 
   /**
    * Tracks per-task read leases on the workspace lock and releases them once
-   * every downstream task that depends on the holder has completed.
+   * every transitive downstream task that depends on the holder has completed.
+   *
+   * The transitive part matters because a direct downstream can forward
+   * PathRefs or other data from an upstream output to its own downstreams.
+   * Releasing the upstream read lease when only the direct downstream completes
+   * would let a concurrent launcher overwrite that output while a later
+   * transitive downstream may still read it.
    */
   class LeaseTracker(
       indexToTerminal: Array[Task[?]],
@@ -466,10 +472,34 @@ object Execution {
     }
 
     val states = new ConcurrentHashMap[Task[?], State]()
+
+    private val terminalSet = indexToTerminal.toSet
+    private val directUpstreams: Map[Task[?], Seq[Task[?]]] =
+      interGroupDeps.view
+        .mapValues(_.filter(terminalSet.contains))
+        .toMap
+
+    private val directDownstreams: Map[Task[?], Seq[Task[?]]] =
+      SpanningForest.reverseEdges(directUpstreams)
+
+    private val transitiveUpstreams: Map[Task[?], Seq[Task[?]]] =
+      indexToTerminal.iterator.map { terminal =>
+        terminal -> SpanningForest.breadthFirst(directUpstreams.getOrElse(terminal, Nil)) { t =>
+          directUpstreams.getOrElse(t, Nil)
+        }
+      }.toMap
+
+    private val transitiveDownstreams: Map[Task[?], Seq[Task[?]]] =
+      indexToTerminal.iterator.map { terminal =>
+        terminal -> SpanningForest.breadthFirst(directDownstreams.getOrElse(terminal, Nil)) { t =>
+          directDownstreams.getOrElse(t, Nil)
+        }
+      }.toMap
+
     for (t <- indexToTerminal) states.put(t, new State)
-    for ((_, deps) <- interGroupDeps; dep <- deps) {
-      val s = states.get(dep)
-      if (s != null) s.pending.incrementAndGet()
+    for (t <- indexToTerminal) {
+      val s = states.get(t)
+      if (s != null) s.pending.set(transitiveDownstreams.getOrElse(t, Nil).size)
     }
 
     def closeQuietly(lease: LauncherLocking.Lease): Unit =
@@ -494,7 +524,7 @@ object Execution {
     }
 
     def onCompleted(terminal: Task[?]): Unit = {
-      for (dep <- interGroupDeps.getOrElse(terminal, Nil)) {
+      for (dep <- transitiveUpstreams.getOrElse(terminal, Nil)) {
         val s = states.get(dep)
         if (s != null && s.pending.decrementAndGet() == 0) releaseLeasesFor(dep)
       }

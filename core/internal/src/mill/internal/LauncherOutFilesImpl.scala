@@ -48,10 +48,11 @@ private[mill] class LauncherOutFilesImpl(
     )
   )
 
-  // Write the launcher record before creating the run directory: a
-  // concurrent launcher's `cleanup` walks `mill-run/` and treats any dir
-  // whose runId is missing from the active record set as eligible for
-  // deletion, so the record must be visible before the dir exists.
+  // Write the launcher record before creating the run directory. Both live
+  // under `mill-run/`: `<runId>.json` records active launchers, while
+  // `<runId>/` stores run artifacts. A concurrent cleanup treats any run
+  // directory whose runId is missing from the active record set as eligible
+  // for deletion, so the record must be visible before the directory exists.
   writeLauncherRunFile()
   os.makeDir.all(runDir)
   cleanup(out, artifactState)
@@ -106,10 +107,7 @@ private[mill] object LauncherOutFilesImpl {
       if (os.exists(runRootDir)) {
         val runDirs = os.list(runRootDir).filter(os.isDir(_))
         val eligible = runDirs.filterNot(d => active.contains(d.last)).sortBy(runDirSortKey)
-        val toRemoveCount = math.min(
-          math.max(0, runDirs.size - maxRetainedRuns),
-          eligible.size
-        )
+        val toRemoveCount = math.max(0, eligible.size - maxRetainedRuns)
         eligible.take(toRemoveCount).foreach(d =>
           try os.remove.all(d)
           catch { case _: Throwable => () }

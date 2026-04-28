@@ -2,12 +2,26 @@ package mill.exec
 
 import mill.api.Task
 import mill.api.Task.Simple
+import mill.api.daemon.internal.LauncherLocking
 import mill.api.TestGraphs
 import utest.*
 
+import java.util.concurrent.atomic.AtomicBoolean
 import scala.collection.mutable
 
 object PlanTests extends TestSuite {
+  object transitiveLeaseChain extends mill.testkit.TestRootModule {
+    def a = Task { 1 }
+    def b = Task { a() + 1 }
+    def c = Task { b() + 1 }
+    lazy val millDiscover = mill.api.Discover[this.type]
+  }
+
+  private class TestLease extends LauncherLocking.Lease {
+    val closed = new AtomicBoolean(false)
+    override def close(): Unit = closed.set(true)
+  }
+
   def checkTopological(tasks: Seq[Task[?]]) = {
     val seen = mutable.Set.empty[Task[?]]
     for (t <- tasks.reverseIterator) {
@@ -171,6 +185,36 @@ object PlanTests extends TestSuite {
         val groupCount = countGroups(task2)
         assert(groupCount == 3)
       }
+    }
+    test("leaseTrackerRetainsUntilTransitiveDownstreamsComplete") {
+      import transitiveLeaseChain.*
+
+      val tracker = new Execution.LeaseTracker(
+        Array(a, b, c),
+        Map(
+          a -> Nil,
+          b -> Seq(a),
+          c -> Seq(b)
+        )
+      )
+
+      val aLease = new TestLease
+      val bLease = new TestLease
+      val cLease = new TestLease
+
+      tracker.retain(a, aLease)
+      tracker.retain(b, bLease)
+      tracker.retain(c, cLease)
+
+      tracker.onCompleted(b)
+      assert(!aLease.closed.get())
+      assert(!bLease.closed.get())
+      assert(!cLease.closed.get())
+
+      tracker.onCompleted(c)
+      assert(aLease.closed.get())
+      assert(bLease.closed.get())
+      assert(cLease.closed.get())
     }
 
   }

@@ -1,5 +1,7 @@
 package mill.internal
 
+import mill.constants.DaemonFiles
+
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 
@@ -23,5 +25,5 @@ private[mill] class LauncherArtifactState {
 }
 
 private[mill] object LauncherArtifactState {
-  val runRootDirName = "mill-run"
+  val runRootDirName = DaemonFiles.millRun
 }

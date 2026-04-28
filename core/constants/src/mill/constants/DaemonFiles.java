@@ -76,9 +76,13 @@ public class DaemonFiles {
    */
   public static final String millConsoleTail = "mill-console-tail";
 
-  public static final String millLauncherFiles = "mill-launcher-files";
+  public static final String millRun = "mill-run";
+
+  /** @deprecated Use millRun instead. */
+  @Deprecated
+  public static final String millLauncherFiles = millRun;
 
   public static String perLauncherFilePath(String runId) {
-    return millLauncherFiles + "/" + runId + ".json";
+    return millRun + "/" + runId + ".json";
   }
 }

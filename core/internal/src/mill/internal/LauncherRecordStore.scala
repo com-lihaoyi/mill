@@ -31,19 +31,27 @@ private[mill] object LauncherRecordStore {
   def sweepActive(out: os.Path): Seq[Record] = scanActive(out, removeStale = true)
 
   def mostRecentActive(out: os.Path): Option[Record] =
-    scanActive(out, removeStale = false).lastOption
+    scanActive(out, removeStale = false, keepUnreadable = false).lastOption
 
-  private def scanActive(out: os.Path, removeStale: Boolean): Seq[Record] = {
-    val dir = out / os.RelPath(DaemonFiles.millLauncherFiles)
+  private def scanActive(
+      out: os.Path,
+      removeStale: Boolean,
+      keepUnreadable: Boolean = true
+  ): Seq[Record] = {
+    val dir = out / os.RelPath(DaemonFiles.millRun)
     if (!os.exists(dir)) Nil
     else
       os.list(dir)
         .filter(os.isFile(_))
-        .flatMap(readActiveRecord(_, removeStale))
+        .flatMap(readActiveRecord(_, removeStale, keepUnreadable))
         .sortBy(record => runIdSortKey(record.runId))
   }
 
-  private def readActiveRecord(file: os.Path, removeStale: Boolean): Option[Record] = {
+  private def readActiveRecord(
+      file: os.Path,
+      removeStale: Boolean,
+      keepUnreadable: Boolean
+  ): Option[Record] = {
     val recordOpt =
       try {
         val json = ujson.read(os.read(file)).obj
@@ -55,10 +63,13 @@ private[mill] object LauncherRecordStore {
           command = json.get("command").map(_.str).getOrElse("")
         )
       } catch {
+        case _: Throwable if keepUnreadable => Some(Record(file.baseName, -1L, ""))
         case _: Throwable => None
       }
 
     recordOpt match {
+      case Some(record) if record.pid == -1L && keepUnreadable =>
+        Some(record)
       case Some(record) if java.lang.ProcessHandle.of(record.pid).toScala.exists(_.isAlive) =>
         Some(record)
       case _ =>
