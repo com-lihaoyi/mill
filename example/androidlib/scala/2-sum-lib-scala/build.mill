@@ -8,7 +8,7 @@ object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = "35.0.0"
 }
 
-object lib extends AndroidLibScalaModule, PublishModule {
+object lib extends AndroidScalaModule, AndroidLibModule {
   def scalaVersion = "3.3.4"
   def artifactName = "sumlib-scala"
   def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
@@ -26,7 +26,7 @@ object lib extends AndroidLibScalaModule, PublishModule {
     developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 
-  object test extends AndroidLibScalaTests {
+  object test extends AndroidScalaTestModule {
     def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
     def testFramework = "utest.runner.Framework"
   }
