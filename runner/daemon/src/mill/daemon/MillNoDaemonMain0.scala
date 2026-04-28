@@ -50,8 +50,17 @@ object MillNoDaemonMain0 {
           .defaultRunSubprocessWithStreams(None)(DaemonRpc.ServerToClient.RunSubprocess(config))
           .exitCode
 
-    val (result, _) =
-      try MillMain0.main0(
+    // Track worker caches so we can close them before exiting
+    val workerCaches = new java.util.concurrent.ConcurrentLinkedQueue[MillDaemonMain0.WorkerCache]()
+
+    def closeWorkersAndExit(code: Int): Nothing = {
+      MillDaemonMain0.closeWorkerCaches(workerCaches)
+      sys.exit(code)
+    }
+
+    val exitCode = MillDaemonMain0.currentDaemonWorkerCaches.withValue(Some(workerCaches)) {
+      try {
+        val (res, _) = MillMain0.main0(
           args = args.rest.toArray,
           stateCache = RunnerState.empty,
           mainInteractive = mill.constants.Util.hasConsole(),
@@ -60,16 +69,22 @@ object MillNoDaemonMain0 {
           setIdle = _ => (),
           userSpecifiedProperties0 = Map(),
           initialSystemProperties = sys.props.toMap,
-          systemExit = ( /*reason*/ _, exitCode) => sys.exit(exitCode),
+          systemExit = ( /*reason*/ _, code) => closeWorkersAndExit(code),
           daemonDir = args.daemonDir,
           outLock = outLock,
           launcherSubprocessRunner = launcherRunner,
           serverToClientOpt = None,
           millRepositories = Seq.empty
         )
-      catch handleMillException(initialSystemStreams.err, ())
+        if (res) 0 else 1
+      } catch {
+        case other => handleMillException(initialSystemStreams.err, 1)(other)._2
+      }
+    }
 
-    System.exit(if (result) 0 else 1)
+    // Close workers before normal exit
+    MillDaemonMain0.closeWorkerCaches(workerCaches)
+    System.exit(exitCode)
   }
 
 }
