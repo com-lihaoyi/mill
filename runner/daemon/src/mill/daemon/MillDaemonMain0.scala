@@ -3,7 +3,7 @@ package mill.daemon
 import mill.api.{BuildCtx, SystemStreams}
 import mill.client.lock.Locks
 import mill.constants.OutFolderMode
-import mill.internal.{LauncherArtifactState, LauncherLockRegistry, OutputDirectoryLayout}
+import mill.internal.{LauncherLockRegistry, LauncherOutFilesState, OutputDirectoryLayout}
 import mill.server.Server
 
 import scala.concurrent.duration.*
@@ -96,7 +96,7 @@ class MillDaemonMain0(
     )
 
   private val lockRegistry = new LauncherLockRegistry
-  private val artifactState = new LauncherArtifactState
+  private val outFilesState = new LauncherOutFilesState
 
   def main0(
       args: Array[String],
@@ -121,7 +121,7 @@ class MillDaemonMain0(
         args = args,
         sharedState = sharedState,
         lockRegistry = lockRegistry,
-        artifactState = artifactState,
+        outFilesState = outFilesState,
         mainInteractive = mainInteractive,
         streams0 = streams,
         env = env,

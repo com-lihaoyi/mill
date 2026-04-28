@@ -287,8 +287,9 @@ object CrossThreadRwLockTests extends TestSuite {
       assertEventually(waitingBytes.size() > 0)
       val msg = waitingBytes.toString
       assert(msg.contains("'blockerTask'"))
+      assert(msg.contains("task 'holder-naming'"))
       assert(msg.contains("PID 9876"))
-      assert(msg.contains("waiting for it to be done..."))
+      assert(msg.contains("waiting for it (tail -F out/mill-console-tail to see its progress)"))
 
       firstLease.close()
       assert(secondAcquired.await(5, TimeUnit.SECONDS))
@@ -346,6 +347,7 @@ object CrossThreadRwLockTests extends TestSuite {
           case e: Exception => e
         }
       assert(ex.getMessage.contains("'blockerCmd'"))
+      assert(ex.getMessage.contains("task 'no-wait'"))
       assert(ex.getMessage.contains("PID 7777"))
       assert(ex.getMessage.contains("--no-wait"))
 
@@ -376,6 +378,7 @@ object CrossThreadRwLockTests extends TestSuite {
       assertEventually(waitingBytes.size() > 0)
       val msg = waitingBytes.toString
       assert(msg.contains("'stillHoldingCmd'"))
+      assert(msg.contains("task 'stale-last-holder'"))
       assert(msg.contains("PID 1111"))
       assert(!msg.contains("'alreadyReleasedCmd'"))
       assert(!msg.contains("PID 2222"))

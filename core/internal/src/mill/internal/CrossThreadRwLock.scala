@@ -28,14 +28,9 @@ class CrossThreadRwLock(label: String) {
 
   private def waitingMessage(blocker: Option[HolderInfo]): String = blocker match {
     case Some(h) =>
-      s"Another Mill command in the current daemon is running '${h.command}' with PID ${h.pid}"
+      s"Another Mill command in the current daemon is running '${h.command}' task '$label' with PID ${h.pid}"
     case None =>
-      s"Another Mill command in the current daemon is using '$label'"
-  }
-
-  private def blockedSuffix(kind: LockKind): String = kind match {
-    case LockKind.Read => s" (blocked on reading from $label)"
-    case LockKind.Write => s" (blocked on writing to $label)"
+      s"Another Mill command in the current daemon is using task '$label'"
   }
 
   def acquire(
@@ -55,7 +50,7 @@ class CrossThreadRwLock(label: String) {
         Some(lease)
       } else if (noWait) {
         throw new Exception(
-          s"${waitingMessage(currentBlocker())}${blockedSuffix(kind)} and --no-wait was set, failing"
+          s"${waitingMessage(currentBlocker())} and --no-wait was set, failing"
         )
       } else {
         if (isWrite) waitingWriters += 1
@@ -66,9 +61,8 @@ class CrossThreadRwLock(label: String) {
     leaseOpt.getOrElse {
       val blocker = monitor.synchronized(currentBlocker())
       waitingErr.println(
-        s"${waitingMessage(blocker)}, waiting for it to be done... " +
-          s"(tail -F out/${DaemonFiles.millConsoleTail} to see its progress)" +
-          blockedSuffix(kind)
+        s"${waitingMessage(blocker)}, waiting for it " +
+          s"(tail -F out/${DaemonFiles.millConsoleTail} to see its progress)"
       )
 
       monitor.synchronized {

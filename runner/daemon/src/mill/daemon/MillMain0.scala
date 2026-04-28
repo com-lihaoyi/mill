@@ -17,10 +17,10 @@ import mill.internal.{
   PrefixLogger,
   PromptLogger,
   BspLogger,
-  LauncherArtifactState,
   LauncherLockingImpl,
   LauncherLockRegistry,
   LauncherOutFilesImpl,
+  LauncherOutFilesState,
   OutputDirectoryLayout
 }
 import mill.server.Server
@@ -98,7 +98,7 @@ object MillMain0 {
       args: Array[String],
       sharedState: java.util.concurrent.atomic.AtomicReference[RunnerSharedState],
       lockRegistry: LauncherLockRegistry,
-      artifactState: LauncherArtifactState,
+      outFilesState: LauncherOutFilesState,
       mainInteractive: Boolean,
       streams0: SystemStreams,
       env: Map[String, String],
@@ -289,7 +289,7 @@ object MillMain0 {
                           val fileLockLease = acquireOutFileLease(markIdleWhileWaiting = true)
                           try {
                             if (serverToClientOpt.nonEmpty) {
-                              val runId = artifactState.nextRunId()
+                              val runId = outFilesState.nextRunId()
                               val locking = new LauncherLockingImpl(
                                 activeCommandMessage = millActiveCommandMessage,
                                 launcherPid = launcherPid,
@@ -303,7 +303,7 @@ object MillMain0 {
                                 out = out,
                                 activeCommandMessage = millActiveCommandMessage,
                                 launcherPid = launcherPid,
-                                artifactState = artifactState,
+                                outFilesState = outFilesState,
                                 runId = runId
                               )
                               (locking, artifacts, fileLockLease)

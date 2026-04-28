@@ -4,7 +4,7 @@ import mill.constants.{DaemonFiles, Util}
 import mill.constants.OutFiles.OutFiles
 import mill.daemon.MillMain0.handleMillException
 import mill.api.BuildCtx
-import mill.internal.{LauncherArtifactState, LauncherLockRegistry, OutputDirectoryLayout}
+import mill.internal.{LauncherLockRegistry, LauncherOutFilesState, OutputDirectoryLayout}
 import mill.launcher.DaemonRpc
 import mill.server.Server
 
@@ -56,7 +56,7 @@ object MillNoDaemonMain0 {
           args = args.rest.toArray,
           sharedState = new java.util.concurrent.atomic.AtomicReference(RunnerSharedState.empty),
           lockRegistry = new LauncherLockRegistry,
-          artifactState = new LauncherArtifactState,
+          outFilesState = new LauncherOutFilesState,
           mainInteractive = mill.constants.Util.hasConsole(),
           streams0 = initialSystemStreams,
           env = env,

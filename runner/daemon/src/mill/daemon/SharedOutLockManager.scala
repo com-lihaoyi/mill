@@ -2,7 +2,7 @@ package mill.daemon
 
 import mill.client.lock.{Lock, Locked}
 import mill.constants.DaemonFiles
-import mill.internal.LauncherRecordStore
+import mill.internal.LauncherOutFilesRecordStore
 
 import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicBoolean
@@ -117,7 +117,7 @@ private[mill] object SharedOutLockManager {
   }
 
   def activeOtherProcessPrefix(out: os.Path): String = {
-    val recordOpt = LauncherRecordStore.mostRecentActive(out)
+    val recordOpt = LauncherOutFilesRecordStore.mostRecentActive(out)
     val command = recordOpt.map(_.command).getOrElse("")
     val pidOpt = recordOpt.map(_.pid)
     val cmdSuffix = if (command.isEmpty) "" else s" running '$command',"

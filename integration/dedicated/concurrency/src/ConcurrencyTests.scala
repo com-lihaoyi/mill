@@ -17,11 +17,14 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
   private def blockedBy(
       launcher: mill.testkit.IntegrationTester.SpawnedProcess,
       command: String,
-      pid: Long
+      pid: Long,
+      taskName: String
   ): Boolean =
-    combinedText(launcher).contains(
-      s"Another Mill command in the current daemon is running '$command' with PID $pid, waiting for it to be done..."
-    )
+    launcher.containsLines(blockedLine(command, pid, taskName))
+
+  private def blockedLine(command: String, pid: Long, taskName: String): String =
+    s"Another Mill command in the current daemon is running '$command' task '$taskName' with PID $pid, waiting for it " +
+      s"(tail -F out/${DaemonFiles.millConsoleTail} to see its progress)"
 
   private def activeLauncherPid(tester: IntegrationTester.Impl, command: String): Option[Long] = {
     val millRun =
@@ -50,9 +53,6 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
     pid.get
   }
 
-  private def combinedText(launcher: mill.testkit.IntegrationTester.SpawnedProcess): String =
-    launcher.out.text() + "\n" + launcher.err.text()
-
   private def release(waitFile: os.Path): Unit =
     if (os.exists(waitFile)) os.remove(waitFile)
 
@@ -65,13 +65,13 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       os.write.over(gate, "")
 
       val launcher1 = spawn(("runSameTask"))
-      assertEventually(combinedText(launcher1).contains(enteredMarker("same-task")))
+      assertEventually(launcher1.containsLines(enteredMarker("same-task")))
       val blockerPid = awaitActiveLauncherPid(tester, "runSameTask")
 
       val launcher2 = spawn(("runSameTask"))
-      assertEventually(blockedBy(launcher2, "runSameTask", blockerPid))
+      assertEventually(blockedBy(launcher2, "runSameTask", blockerPid, "sameTask"))
       assert(launcher2.process.isAlive())
-      assert(!combinedText(launcher2).contains("same-task-value"))
+      assert(!launcher2.containsLines("same-task-value"))
 
       release(gate)
       launcher1.process.waitFor()
@@ -79,8 +79,8 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
 
       assert(launcher1.process.exitCode() == 0)
       assert(launcher2.process.exitCode() == 0)
-      assert(launcher1.out.text().contains("same-task-value"))
-      assert(launcher2.out.text().contains("same-task-value"))
+      launcher1.assertContainsLines("same-task-value")
+      launcher2.assertContainsLines("same-task-value")
     }
 
     test("downstream-holds-upstream-write-lock-while-computing") - integrationTest { tester =>
@@ -91,13 +91,13 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       os.write.over(gate, "")
 
       val launcher1 = spawn(("runLeft"))
-      assertEventually(combinedText(launcher1).contains(enteredMarker("shared")))
+      assertEventually(launcher1.containsLines(enteredMarker("shared")))
       val blockerPid = awaitActiveLauncherPid(tester, "runLeft")
 
       val launcher2 = spawn(("runShared"))
-      assertEventually(blockedBy(launcher2, "runLeft", blockerPid))
+      assertEventually(blockedBy(launcher2, "runLeft", blockerPid, "shared"))
       assert(launcher2.process.isAlive())
-      assert(!combinedText(launcher2).contains("shared-value"))
+      assert(!launcher2.containsLines("shared-value"))
 
       release(gate)
       launcher1.process.waitFor()
@@ -105,8 +105,8 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
 
       assert(launcher1.process.exitCode() == 0)
       assert(launcher2.process.exitCode() == 0)
-      assert(launcher1.out.text().contains("shared-value-left"))
-      assert(launcher2.out.text().contains("shared-value"))
+      launcher1.assertContainsLines("shared-value-left")
+      launcher2.assertContainsLines("shared-value")
     }
 
     test("different-downstreams-can-share-upstream-read-lock") - integrationTest { tester =>
@@ -121,26 +121,27 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       os.write.over(rightGate, "")
 
       val launcher1 = spawn(("runLeft"))
-      assertEventually(combinedText(launcher1).contains(enteredMarker("left")))
+      assertEventually(launcher1.containsLines(enteredMarker("left")))
+      val blockerPid = awaitActiveLauncherPid(tester, "runLeft")
 
       val launcher2 = spawn(("runRight"))
-      assertEventually(combinedText(launcher2).contains(enteredMarker("right")))
-      assert(!combinedText(launcher2).contains("Another Mill command in the current daemon"))
+      assertEventually(launcher2.containsLines(enteredMarker("right")))
+      assert(!blockedBy(launcher2, "runLeft", blockerPid, "shared"))
 
       release(rightGate)
       launcher2.process.waitFor()
 
       assert(launcher1.process.isAlive())
       assert(launcher2.process.exitCode() == 0)
-      assert(launcher2.out.text().contains("shared-value-right"))
-      assert(!combinedText(launcher2).contains("Another Mill command in the current daemon"))
+      launcher2.assertContainsLines("shared-value-right")
+      assert(!blockedBy(launcher2, "runLeft", blockerPid, "shared"))
 
       release(leftGate)
       launcher1.process.waitFor()
 
       assert(launcher1.process.exitCode() == 0)
-      assert(launcher1.out.text().contains("shared-value-left"))
-      assert(!combinedText(launcher1).contains("Another Mill command in the current daemon"))
+      launcher1.assertContainsLines("shared-value-left")
+      assert(!blockedBy(launcher1, "runRight", blockerPid, "shared"))
     }
 
     test("meta-build-write-update-blocked-by-active-meta-build-read") - integrationTest { tester =>
@@ -151,7 +152,7 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       os.write.over(gate, "")
 
       val launcher1 = spawn(("runHoldMetaBuildRead"))
-      assertEventually(combinedText(launcher1).contains(enteredMarker("meta-build-read")))
+      assertEventually(launcher1.containsLines(enteredMarker("meta-build-read")))
       val blockerPid = awaitActiveLauncherPid(tester, "runHoldMetaBuildRead")
 
       modifyFile(
@@ -160,9 +161,14 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       )
 
       val launcher2 = spawn(("runShared"))
-      assertEventually(blockedBy(launcher2, "runHoldMetaBuildRead", blockerPid))
+      assertEventually(blockedBy(
+        launcher2,
+        "runHoldMetaBuildRead",
+        blockerPid,
+        "meta-build-1"
+      ))
       assert(launcher2.process.isAlive())
-      assert(!combinedText(launcher2).contains("shared-value"))
+      assert(!launcher2.containsLines("shared-value"))
 
       release(gate)
       launcher1.process.waitFor()
@@ -170,8 +176,8 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
 
       assert(launcher1.process.exitCode() == 0)
       assert(launcher2.process.exitCode() == 0)
-      assert(launcher1.out.text().contains("fast-value-0"))
-      assert(launcher2.out.text().contains("shared-value"))
+      launcher1.assertContainsLines("fast-value-0")
+      launcher2.assertContainsLines("shared-value")
     }
 
     test("stale-shared-worker-is-not-closed-under-read-lock") - integrationTest { tester =>
@@ -187,12 +193,12 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       os.write.over(gate, "")
 
       val launcher1 = spawn(("runUseWorker"))
-      assertEventually(combinedText(launcher1).contains(enteredMarker("worker-use")))
+      assertEventually(launcher1.containsLines(enteredMarker("worker-use")))
       val blockerPid = awaitActiveLauncherPid(tester, "runUseWorker")
 
       os.write.over(versionFile, "1")
       val launcher2 = spawn(("runUseWorker"))
-      assertEventually(blockedBy(launcher2, "runUseWorker", blockerPid))
+      assertEventually(blockedBy(launcher2, "runUseWorker", blockerPid, "workerVersion"))
       assert(launcher2.process.isAlive())
       assert(!os.exists(closeMarker))
 
@@ -205,8 +211,8 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
 
       assert(launcher1.process.exitCode() == 0)
       assert(launcher2.process.exitCode() == 0)
-      assert(launcher1.out.text().contains("worker-value-0"))
-      assert(launcher2.out.text().contains("worker-value-1"))
+      launcher1.assertContainsLines("worker-value-0")
+      launcher2.assertContainsLines("worker-value-1")
     }
   }
 }

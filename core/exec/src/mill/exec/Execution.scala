@@ -227,7 +227,6 @@ case class Execution(
         )
 
       val tracker = new Execution.LeaseTracker(indexToTerminal, interGroupDeps)
-      def onTerminalCompleted(t: Task[?]): Unit = tracker.onCompleted(t)
       try {
 
         def evaluateTerminals(
@@ -258,7 +257,7 @@ case class Execution(
                 .map(t => (t, failure))
                 .toMap
 
-              onTerminalCompleted(terminal)
+              tracker.onCompleted(terminal)
               futures(terminal) = Future.successful(
                 Some(GroupExecution.Results(
                   newResults = taskResults,
@@ -365,7 +364,7 @@ case class Execution(
                     nonFatal.setStackTrace(e.getStackTrace)
                     throw nonFatal
                 } finally {
-                  onTerminalCompleted(terminal)
+                  tracker.onCompleted(terminal)
                 }
               }
             }
@@ -388,8 +387,8 @@ case class Execution(
         val exclusiveResults = evaluateTerminals(leafExclusiveCommands, exclusive = true)
 
         // Set final header showing SUCCESS/FAILED status:
-        // - FAILED: show for any outermost execution with failures
-        // - SUCCESS: only show for the final requested depth
+        // - FAILED: show for any outermost execution with failures (meta-build failures terminate bootstrapping)
+        // - SUCCESS: only show for the final requested depth (depth 0 normally, or --meta-level if specified)
         val isOutermostExecution = executionNestingDepth.get() == 1
         val hasFailures = rootFailedCount.get() > 0
         val showFinalStatus = isOutermostExecution && (hasFailures || isFinalDepth)

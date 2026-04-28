@@ -4,7 +4,7 @@ import mill.constants.DaemonFiles
 
 import scala.jdk.OptionConverters.RichOptional
 
-private[mill] object LauncherRecordStore {
+private[mill] object LauncherOutFilesRecordStore {
   case class Record(runId: String, pid: Long, command: String)
 
   def path(out: os.Path, runId: String): os.Path =
