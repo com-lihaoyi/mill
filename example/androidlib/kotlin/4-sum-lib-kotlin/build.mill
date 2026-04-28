@@ -107,6 +107,20 @@ object app extends AndroidAppKotlinModule {
 
 /** Usage
 
+> ./mill show lib.test
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "com.example.SumLibUnitTest.kotlin_dir_text_size_is_correct",
+      "selector": "com.example.SumLibUnitTest.kotlin_dir_text_size_is_correct",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
+
+
 > ./mill lib.publishM2Local
 Publish sumlib-kotlin-0.0.1 to /home/.../.m2/repository/...
 
