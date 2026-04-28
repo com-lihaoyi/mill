@@ -4,7 +4,7 @@ import mill.api.daemon.internal.LauncherLocking
 import mill.internal.CrossThreadRwLock.HolderInfo
 
 import java.io.PrintStream
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 
 private[mill] class LauncherLockingImpl(
     activeCommandMessage: String,
@@ -18,6 +18,7 @@ private[mill] class LauncherLockingImpl(
   private val holder = HolderInfo(launcherPid, activeCommandMessage)
   private val closed = new AtomicBoolean(false)
   private val activeLeases = scala.collection.mutable.Set.empty[LeaseWrapper]
+  private val exclusiveWriteCount = new AtomicInteger(0)
 
   private def ensureOpen(): Unit =
     if (closed.get()) throw new IllegalStateException(s"Lock session $runId is closed")
@@ -47,6 +48,38 @@ private[mill] class LauncherLockingImpl(
       val normalized = path.toAbsolutePath.normalize().toString
       val lock = lockRegistry.taskLockFor(normalized, displayLabel)
       acquireManagedLease(lock.acquire(kind, waitingErr, noWaitForBuildLock, holder))
+    }
+  }
+
+  override def exclusiveLock(kind: LauncherLocking.LockKind): LauncherLocking.Lease = {
+    ensureOpen()
+    // Reentry: if this launcher already holds a Write lease on `exclusiveLock`,
+    // any further acquisition (Read or Write) is a no-op — the outer Write
+    // already covers all nested work, and re-acquiring would self-deadlock
+    // since `CrossThreadRwLock` is not reentrant.
+    if (noBuildLock || exclusiveWriteCount.get() > 0) LauncherLocking.Noop.exclusiveLock(kind)
+    else {
+      val underlying =
+        lockRegistry.exclusiveLock.acquire(kind, waitingErr, noWaitForBuildLock, holder)
+      val tracked =
+        if (kind != LauncherLocking.LockKind.Write) underlying
+        else {
+          exclusiveWriteCount.incrementAndGet()
+          new LauncherLocking.Lease {
+            private val released = new AtomicBoolean(false)
+            private def releaseWriteCount(): Unit =
+              if (released.compareAndSet(false, true)) exclusiveWriteCount.decrementAndGet()
+            override def downgradeToRead(): Unit = {
+              underlying.downgradeToRead()
+              releaseWriteCount()
+            }
+            override def close(): Unit = {
+              try underlying.close()
+              finally releaseWriteCount()
+            }
+          }
+        }
+      acquireManagedLease(tracked)
     }
   }
 

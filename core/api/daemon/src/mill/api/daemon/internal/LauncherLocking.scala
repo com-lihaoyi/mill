@@ -8,6 +8,11 @@ import java.nio.file.Path
  * [[metaBuildLock]] ensures that only one launcher can be bootstrapping the meta-build,
  * but once the meta-build is done multiple launchers can run concurrently and only lock
  * on the individual tasks they need to run or use.
+ *
+ * [[exclusiveLock]] sits above [[metaBuildLock]] and [[taskLock]] in the lock-acquisition
+ * order. Normal task batches take it as [[LockKind.Read]] so they can run concurrently;
+ * exclusive command batches (`Task.Command(exclusive = true)` such as `clean`) take it
+ * as [[LockKind.Write]] so they run alone, with no other launcher's tasks executing.
  */
 private[mill] trait LauncherLocking extends AutoCloseable {
 
@@ -18,6 +23,8 @@ private[mill] trait LauncherLocking extends AutoCloseable {
       displayLabel: String,
       kind: LauncherLocking.LockKind
   ): LauncherLocking.Lease
+
+  def exclusiveLock(kind: LauncherLocking.LockKind): LauncherLocking.Lease
 }
 
 private[mill] object LauncherLocking {
@@ -35,6 +42,7 @@ private[mill] object LauncherLocking {
     }
     override def metaBuildLock(depth: Int, kind: LockKind): Lease = NoopLease
     override def taskLock(path: Path, displayLabel: String, kind: LockKind): Lease = NoopLease
+    override def exclusiveLock(kind: LockKind): Lease = NoopLease
     override def close(): Unit = ()
   }
 }

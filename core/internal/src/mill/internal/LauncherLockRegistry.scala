@@ -10,6 +10,12 @@ private[mill] class LauncherLockRegistry {
   private val metaBuildLocks = new ConcurrentHashMap[Int, CrossThreadRwLock]()
   private val taskLocks = new ConcurrentHashMap[String, CrossThreadRwLock]()
 
+  // Single daemon-wide lock guarding "exclusive" command execution. Read leases are
+  // taken by every normal task batch so they share freely; write leases are taken
+  // by exclusive command batches (`Task.Command(exclusive = true)`, e.g. `clean`)
+  // so they run alone across all launchers.
+  val exclusiveLock: CrossThreadRwLock = new CrossThreadRwLock(label = "exclusive")
+
   def metaBuildLockFor(depth: Int): CrossThreadRwLock =
     metaBuildLocks.computeIfAbsent(
       depth,

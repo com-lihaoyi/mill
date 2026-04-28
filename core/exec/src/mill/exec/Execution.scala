@@ -380,11 +380,40 @@ case class Execution(
           case _ => !serialCommandExec
         }
 
-        // Run all non-command tasks according to the threads
-        // given but run the commands in linear order
-        val nonExclusiveResults = evaluateTerminals(nonExclusiveTasks, exclusive = false)
+        // The non-exclusive batch holds a single Read lease on `exclusiveLock` so other
+        // launchers' batches can overlap (Reads coexist freely). The exclusive batch
+        // takes a per-task Write lease so `Task.Command(exclusive = true)` commands
+        // (`clean`, `shutdown`, `show`, `resolve`, etc.) run alone across all launchers.
+        //
+        // Splitting the `exclusive = true` annotation into truly-exclusive
+        // (workspace-destructive: `clean`, `shutdown`, `init`) vs nominally-exclusive
+        // (read-only inspection: `show`, `resolve`, `version`, ...) so the latter can
+        // share via Read leases is left as a follow-up.
+        //
+        // Reentry (nested execution from inside a Write-holding command via `Evaluator`)
+        // is handled inside `LauncherLocking.exclusiveLock` itself: if this launcher
+        // already holds Write, the call returns a no-op lease.
+        def withExclusiveLease[A](kind: LauncherLocking.LockKind)(body: => A): A = {
+          val lease = workspaceLocking.exclusiveLock(kind)
+          try body
+          finally lease.close()
+        }
 
-        val exclusiveResults = evaluateTerminals(leafExclusiveCommands, exclusive = true)
+        val nonExclusiveResults =
+          if (nonExclusiveTasks.isEmpty) Seq.empty[(Task[?], Option[GroupExecution.Results])]
+          else withExclusiveLease(LauncherLocking.LockKind.Read) {
+            evaluateTerminals(nonExclusiveTasks, exclusive = false)
+          }
+
+        // Run exclusive terminals one-by-one under a per-task Write lease. The exclusive
+        // batch already runs serially via `ExecutionContexts.RunNow`, so per-task lease
+        // acquisition here adds no concurrency cost.
+        val exclusiveResults: Seq[(Task[?], Option[GroupExecution.Results])] =
+          leafExclusiveCommands.flatMap { terminal =>
+            withExclusiveLease(LauncherLocking.LockKind.Write) {
+              evaluateTerminals(Seq(terminal), exclusive = true)
+            }
+          }
 
         // Set final header showing SUCCESS/FAILED status:
         // - FAILED: show for any outermost execution with failures (meta-build failures terminate bootstrapping)
