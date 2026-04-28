@@ -115,8 +115,7 @@ private abstract class MillBuildServer(
           val bspEvaluators = new BspEvaluators(
             topLevelProjectRoot,
             evaluators,
-            s => baseLogger.debug(s()),
-            watched
+            s => baseLogger.debug(s())
           )
           body(bspEvaluators, evaluators, watched, errorOpt)
         }

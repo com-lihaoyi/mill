@@ -28,15 +28,7 @@ private[mill] object LauncherRecordStore {
       ))
     catch { case _: Throwable => () }
 
-  def sweepActive(out: os.Path): Seq[Record] = {
-    val dir = out / os.RelPath(DaemonFiles.millLauncherFiles)
-    if (!os.exists(dir)) Nil
-    else
-      os.list(dir)
-        .filter(os.isFile(_))
-        .flatMap(readActiveRecord(_, removeStale = true))
-        .sortBy(record => runIdSortKey(record.runId))
-  }
+  def sweepActive(out: os.Path): Seq[Record] = scanActive(out, removeStale = true)
 
   def mostRecentActive(out: os.Path): Option[Record] =
     scanActive(out, removeStale = false).lastOption

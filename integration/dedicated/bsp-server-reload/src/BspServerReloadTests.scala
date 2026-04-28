@@ -93,10 +93,7 @@ object BspServerReloadTests extends UtestIntegrationTestSuite {
         def eventData(event: b.BuildTargetEvent): (String, b.BuildTargetEventKind) =
           (event.getTarget.getUri.split("/").last, event.getKind)
 
-        // `lib` is not in this set: its bspBuildTarget snapshot (displayName,
-        // baseDirectory, tags, languageIds, capabilities, plus its
-        // dependencyUris) is unchanged across the build.mill edit, so the
-        // ChangeNotifier correctly does not fire a CHANGED event for it.
+        // `lib`'s target snapshot is unchanged across the build.mill edit.
         val expectedChanges = Set(
           "thing" -> b.BuildTargetEventKind.DELETED,
           "app" -> b.BuildTargetEventKind.DELETED,

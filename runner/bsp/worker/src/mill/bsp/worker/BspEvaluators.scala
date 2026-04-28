@@ -11,7 +11,6 @@ import mill.api.daemon.internal.{
   TaskApi
 }
 import mill.api.daemon.internal.bsp.BspJavaModuleApi
-import mill.api.daemon.Watchable
 
 /**
  * Manages BSP module discovery and lookup for a Mill build.
@@ -20,8 +19,7 @@ import mill.api.daemon.Watchable
 class BspEvaluators(
     workspaceDir: os.Path,
     val evaluators: Seq[EvaluatorApi],
-    debug: (() => String) => Unit,
-    val watched: Seq[Watchable]
+    debug: (() => String) => Unit
 ) {
   import BspEvaluators.*
 

@@ -486,7 +486,7 @@ object MillMain0 {
                                 }
                             }
 
-                          val (bspServerHandle, _) = startBspServer(
+                          val bspServerHandle = startBspServer(
                             streams0,
                             bspLogger,
                             launcherPid = launcherPid,
@@ -642,7 +642,7 @@ object MillMain0 {
       bspWatch: Boolean,
       bootstrapBridge: BspBootstrapBridge,
       env: Map[String, String]
-  ): (BspServerHandle, IdeWorkerSupport.BspBuildClient) = {
+  ): BspServerHandle = {
     bspLogger.info("Trying to load BSP server...")
 
     val wsRoot = BuildCtx.workspaceRoot

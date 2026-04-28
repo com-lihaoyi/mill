@@ -57,7 +57,6 @@ trait GroupExecution {
   def env: Map[String, String]
   def failFast: Boolean
   def ec: Option[ThreadPoolExecutor]
-  def isFinalDepth: Boolean
   def codeSignatures: Map[String, Int]
   def systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing
   def exclusiveSystemStreams: SystemStreams
@@ -287,12 +286,6 @@ trait GroupExecution {
             kind
           )
 
-        def withTaskWriteLock[T](t: LauncherLocking.Lease => T): T = {
-          val lease = acquireTaskLock(LauncherLocking.LockKind.Write)
-          try t(lease)
-          finally lease.close()
-        }
-
         // Helper to evaluate the task with full caching support
         def evaluateTaskWithCaching(): GroupExecution.Results = {
           case class CacheProbe(
@@ -438,7 +431,8 @@ trait GroupExecution {
         // Helper to evaluate build override only (no task evaluation)
         def evaluateBuildOverrideOnly(located: Located[Appendable[BufferedValue]])
             : GroupExecution.Results = {
-          withTaskWriteLock { _ =>
+          val lease = acquireTaskLock(LauncherLocking.LockKind.Write)
+          try {
             val (execRes, serializedPaths) =
               if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {
                 val msg =
@@ -465,7 +459,7 @@ trait GroupExecution {
                 }
               }
             cachedResult(execRes, serializedPaths)
-          }
+          } finally lease.close()
         }
 
         // Three-way conditional:

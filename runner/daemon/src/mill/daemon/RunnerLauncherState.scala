@@ -59,10 +59,6 @@ case class RunnerLauncherState(
 
   def metaFrameAt(depth: Int): Option[MetaFrame] = metaFrames.find(_.depth == depth)
 
-  def moduleWatchedAt(depth: Int): Option[Seq[Watchable]] =
-    metaFrameAt(depth).map(_.moduleWatched)
-      .orElse(finalFrame.collect { case f if f.depth == depth => f.moduleWatched })
-
   def finalModuleWatchedAt(depth: Int): Option[Seq[Watchable]] =
     finalFrame.collect { case f if f.depth == depth => f.moduleWatched }
 
@@ -77,7 +73,7 @@ case class RunnerLauncherState(
   override def close(): Unit = {
     val leases = metaFrames.flatMap(_.readLease)
     closeAll(
-      allEvaluators.distinct ++ leases ++
+      allEvaluators ++ leases ++
         workspaceLocking.toSeq ++ runArtifacts.toSeq ++ fileLockLease.toSeq
     )
   }

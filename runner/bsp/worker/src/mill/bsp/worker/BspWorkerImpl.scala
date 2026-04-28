@@ -9,7 +9,8 @@ import org.eclipse.lsp4j.jsonrpc.Launcher
 import java.io.PrintWriter
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, Executors, ThreadFactory}
-import scala.concurrent.{CancellationException, Future}
+import scala.concurrent.CancellationException
+import scala.concurrent.Future
 import mill.api.daemon.internal.bsp.{BspBootstrapBridge, BspServerHandle, BspServerResult}
 
 object BspWorkerImpl {
@@ -26,7 +27,7 @@ object BspWorkerImpl {
       killOther: Boolean,
       bspWatch: Boolean,
       bootstrapBridge: BspBootstrapBridge
-  ): mill.api.Result[(BspServerHandle, BuildClient)] = {
+  ): mill.api.Result[BspServerHandle] = {
 
     try {
       val executor = createJsonrpcExecutor()
@@ -90,7 +91,7 @@ object BspWorkerImpl {
         executor.shutdown()
       }
 
-      Result.Success((bspServerHandle, client))
+      Result.Success(bspServerHandle)
     } catch {
       case _: CancellationException =>
         Result.Failure("The mill server was shut down.")

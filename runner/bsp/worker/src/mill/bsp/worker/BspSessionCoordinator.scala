@@ -47,15 +47,6 @@ private[worker] class BspSessionCoordinator(
         case NonFatal(_) => None
       }
 
-    def waitForFileLock(): Locked = {
-      while (true) {
-        val tryLocked = fileLock.tryLock()
-        if (tryLocked.isLocked) return tryLocked
-        Thread.sleep(10L)
-      }
-      throw new IllegalStateException("unreachable")
-    }
-
     def terminateOther(pidOpt: Option[Long]): Unit =
       pidOpt match {
         case Some(pid) if pid == sessionProcessPid =>
@@ -128,7 +119,7 @@ private[worker] class BspSessionCoordinator(
               s"Another Mill BSP server is running with PID ${pidOpt.fold("<unknown>")(_.toString)} waiting for it to be done..."
             )
 
-          waitForFileLock()
+          fileLock.lock()
         }
 
       val daemonPid = ProcessHandle.current().pid()

@@ -45,7 +45,7 @@ case class Execution(
 ) extends GroupExecution with AutoCloseable {
 
   // Track nesting depth of executeTasks calls to only show final status on outermost call
-  val executionNestingDepth = new AtomicInteger(0)
+  private val executionNestingDepth = new AtomicInteger(0)
 
   // Lazily computed worker dependency graph, cached for the duration of the execution. It's
   // ok to take a snapshot of the cache, since the workerCache entries we may want to remove
@@ -187,7 +187,6 @@ case class Execution(
       ExecutionLogs.logDependencyTree(
         interGroupDeps,
         indexToTerminal,
-        outPath,
         runArtifacts
       )
       // Prepare a lookup tables up front of all the method names that each class owns,
@@ -410,7 +409,6 @@ case class Execution(
 
         ExecutionLogs.logInvalidationTree(
           interGroupDeps = interGroupDeps,
-          outPath = outPath,
           runArtifacts = runArtifacts,
           uncached = uncached,
           changedValueHash = changedValueHash,

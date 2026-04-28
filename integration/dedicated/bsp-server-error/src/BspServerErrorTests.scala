@@ -45,10 +45,7 @@ object BspServerErrorTests extends UtestIntegrationTestSuite {
         bspLog = Some((bytes, len) => stderr.write(bytes, 0, len))
       ) { (buildServer, initRes) =>
 
-        val firstServerDeadline = System.nanoTime() + 5000L * 1000000L
-        while (firstServerProc.isAlive() && System.nanoTime() < firstServerDeadline) {
-          Thread.sleep(50L)
-        }
+        firstServerProc.waitFor(5000L)
         assert(!firstServerProc.isAlive())
 
         val firstServerStderrStr = new String(firstServerStderr.toByteArray)

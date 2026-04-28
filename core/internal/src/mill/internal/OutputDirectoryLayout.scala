@@ -22,7 +22,7 @@ private[mill] object OutputDirectoryLayout {
       }.flatten
     }
 
-  def effectiveEnvForOutMode(
+  private def effectiveEnvForOutMode(
       outMode: OutFolderMode,
       workDir: os.Path,
       env: Map[String, String]

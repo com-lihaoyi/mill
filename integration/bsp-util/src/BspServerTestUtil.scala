@@ -284,22 +284,9 @@ object BspServerTestUtil {
   }
 
   private def waitForProcessExit(proc: os.SubProcess, timeoutMillis: Long): Unit = {
-    val waitIntervalMillis = 50L
-    val deadlineNanos = System.nanoTime() + timeoutMillis * 1000000L
-
-    while (proc.isAlive() && System.nanoTime() < deadlineNanos) {
-      Thread.sleep(waitIntervalMillis)
-    }
-
-    if (proc.isAlive()) {
+    if (!proc.waitFor(timeoutMillis)) {
       proc.destroy(recursive = false)
-
-      val shutdownDeadlineNanos = System.nanoTime() + 5000L * 1000000L
-      while (proc.isAlive() && System.nanoTime() < shutdownDeadlineNanos) {
-        Thread.sleep(waitIntervalMillis)
-      }
-
-      if (proc.isAlive()) {
+      if (!proc.waitFor(5000L)) {
         throw new RuntimeException("BSP server did not exit within the expected timeout")
       }
     }

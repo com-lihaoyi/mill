@@ -5,14 +5,12 @@ import mill.api.Task
 import mill.internal.{InvalidationForest, SpanningForest}
 
 import java.util.concurrent.ConcurrentHashMap
-import scala.annotation.unused
 import scala.jdk.CollectionConverters.EnumerationHasAsScala
 
 private object ExecutionLogs {
   def logDependencyTree(
       interGroupDeps: Map[Task[?], Seq[Task[?]]],
       indexToTerminal: Array[Task[?]],
-      @unused outPath: os.Path,
       runArtifacts: LauncherOutFiles
   ): Unit = {
     val dependencyTreePath = os.Path(runArtifacts.dependencyTree)
@@ -28,7 +26,6 @@ private object ExecutionLogs {
   }
   def logInvalidationTree(
       interGroupDeps: Map[Task[?], Seq[Task[?]]],
-      @unused outPath: os.Path,
       runArtifacts: LauncherOutFiles,
       uncached: ConcurrentHashMap[Task[?], Unit],
       changedValueHash: ConcurrentHashMap[Task[?], Unit],
