@@ -39,6 +39,9 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
     pid.get
   }
 
+  private def blockedLine(command: String, pid: Long, taskName: String): String =
+    s"Another Mill command in the current daemon is running '$command' task '$taskName' with PID $pid"
+
   def tests: Tests = Tests {
     test("taskLocks") - integrationTest { tester =>
       import tester.*
@@ -69,7 +72,11 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
         )
         assert(
           noWaitRes.err.contains(
-            s"Another Mill command in the current daemon is running 'blockWhileExists --path $signalFile1' with PID $blockerPid"
+            blockedLine(
+              s"blockWhileExists --path $signalFile1",
+              blockerPid,
+              "blockWhileExists"
+            )
           )
         )
 
@@ -80,7 +87,11 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
           spawnedWaitingRes.process.isAlive() &&
           !os.exists(signalFile2) &&
           stderrText.contains(
-            s"Another Mill command in the current daemon is running 'blockWhileExists --path $signalFile1' with PID $blockerPid, waiting for it to be done..."
+            blockedLine(
+              s"blockWhileExists --path $signalFile1",
+              blockerPid,
+              "blockWhileExists"
+            ) + ", waiting for it "
           ) &&
           stderrText.contains("tail -F out/mill-console-tail")
         }
