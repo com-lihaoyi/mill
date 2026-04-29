@@ -13,7 +13,6 @@ import mill.bsp.worker.Utils.{
   outputPaths,
   sanitizeUri
 }
-import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
 
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters.*
@@ -32,7 +31,7 @@ import mill.api.daemon.internal.*
  * This trait is mixed into MillBuildServer to separate the API endpoints
  * from the server infrastructure code.
  */
-trait MillBspEndpoints extends BuildServer with EndpointsApi {
+trait MillBspEndpoints extends BuildServer with MillTestBuildServer with EndpointsApi {
 
   // ==========================================================================
   // Abstract members provided by MillBuildServer
@@ -577,7 +576,6 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
   // Test Endpoints
   // ==========================================================================
 
-  @JsonRequest("millTest/loggingTest")
   def loggingTest(): CompletableFuture[Object] = {
     handlerEvaluators() { (state, logger) =>
       val tasksEvs = state.bspModulesIdList
