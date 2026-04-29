@@ -410,6 +410,7 @@ trait GroupExecution {
             : GroupExecution.Results = {
           val lease = acquireTaskLock(LauncherLocking.LockKind.Write)
           leaseTracker.onTaskLockPhaseComplete(labelled)
+          var retained = false
           try {
             val (execRes, serializedPaths) =
               if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {
@@ -436,8 +437,18 @@ trait GroupExecution {
                   case Left(e) => buildOverrideDeserializationError(e, located)
                 }
               }
+            // Match the normal task path: downgrade Write to Read and retain
+            // until transitive downstreams complete, so peers can't overwrite
+            // paths.meta while a downstream might still consume the result.
+            execRes match {
+              case ExecResult.Success(_) =>
+                lease.downgradeToRead()
+                leaseTracker.retain(labelled, lease)
+                retained = true
+              case _ =>
+            }
             cachedResult(execRes, serializedPaths)
-          } finally lease.close()
+          } finally if (!retained) lease.close()
         }
 
         // Three-way conditional:

@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import scala.collection.mutable
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 object PlanTests extends TestSuite {
   object transitiveLeaseChain extends mill.testkit.TestRootModule {
@@ -27,6 +28,14 @@ object PlanTests extends TestSuite {
     def extra = Task { up() + 1 }
     def down = Task { up() + 1 }
     def side = Task { 2 }
+    lazy val millDiscover = mill.api.Discover[this.type]
+  }
+
+  object anonGoal extends mill.testkit.TestRootModule {
+    def x = Task { 1 }
+    val y = Task.Anon { x() + 1 }
+    def alpha = Task { y() + 1 }
+    def beta = Task { x() + 1 }
     lazy val millDiscover = mill.api.Discover[this.type]
   }
 
@@ -355,6 +364,72 @@ object PlanTests extends TestSuite {
 
       assert(largerPlan.taskLockPhaseOrder(shared) == Seq(upTask, downTask))
       assert(smallerPlan.taskLockPhaseOrder(shared) == Seq(upTask, downTask))
+    }
+
+    test("onCompletedFiresEvenWhenUpstreamFutureFails") {
+      // Mirrors the wire-up in `evaluateTerminals`: each task's future is
+      // chained via `Future.sequence(deps).map { body }.andThen { onCompleted }`.
+      // When `b`'s body throws, `c`'s `Future.sequence([b])` fails and the
+      // .map body never runs — but the `andThen` cleanup must still fire
+      // for both `b` and `c` so `a`'s retained Read lease is released
+      // before drain. This is the orphan-lease bug the andThen fixes.
+      import transitiveLeaseChain.*
+      import scala.concurrent.ExecutionContext.Implicits.global
+
+      val tracker = new Execution.LeaseTracker(
+        Array(a, b, c),
+        Map(a -> Nil, b -> Seq(a), c -> Seq(b))
+      )
+      val aLease = new TestLease
+      tracker.retain(a, aLease)
+
+      val aFuture: Future[Option[Unit]] =
+        Future.successful(Some(())).andThen { case _ => tracker.onCompleted(a) }
+
+      val bFuture: Future[Option[Unit]] =
+        aFuture.map(_ => throw new RuntimeException("boom"))
+          .andThen { case _ => tracker.onCompleted(b) }
+
+      val cFuture: Future[Option[Unit]] =
+        Future.sequence(Seq(bFuture)).map(_ => Some(()))
+          .andThen { case _ => tracker.onCompleted(c) }
+
+      val settled = Future.sequence(
+        Seq(aFuture, bFuture, cFuture).map(_.transform(r => Success(r)))
+      )
+      Await.result(settled, 5.seconds)
+
+      // Both b's and c's onCompleted must have fired, decrementing a.pending
+      // from 2 → 0 and releasing the retained Read lease.
+      assert(aLease.closed.get())
+    }
+
+    test("planAnonymousGoalDoesNotShiftSharedNamedHeights") {
+      // alpha and beta are siblings: alpha goes through anon y to reach x,
+      // beta reaches x directly. Without the cut-point split, anon y as a
+      // goal in plan A would push alpha's height to 2 while beta stayed at 1
+      // — flipping the {alpha, beta} order between plans. With the fix, both
+      // sit at height 1 in either plan and the lex tiebreak `alpha < beta`
+      // wins consistently.
+      import anonGoal.*
+
+      def trackerFor(goals: Task[?]*): Execution.LeaseTracker = {
+        val plan = PlanImpl.plan(goals.toSeq)
+        val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
+        new Execution.LeaseTracker(
+          plan.sortedGroups.keys().toArray,
+          interGroupDeps,
+          n => n.ctx.segments.render
+        )
+      }
+
+      val shared = Set[Task[?]](alpha, beta, x)
+      val a = trackerFor(alpha, beta, y)
+      val b = trackerFor(alpha, beta)
+      val aOrder = a.taskLockPhaseOrder(shared)
+      val bOrder = b.taskLockPhaseOrder(shared)
+      assert(aOrder == bOrder)
+      assert(aOrder == Seq[Task[?]](x, alpha, beta))
     }
 
     test("leaseTrackerLockPhaseOrderIgnoresAnonymousIntermediaryGrouping") {

@@ -9,6 +9,7 @@ import java.util.concurrent.{ConcurrentHashMap, ThreadPoolExecutor}
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable
 import scala.concurrent.*
+import scala.util.{Failure, Success}
 
 /**
  * Core logic of evaluating tasks, without any user-facing helper methods
@@ -270,7 +271,7 @@ case class Execution(
             } else {
               val lockPhaseFuture =
                 lockPhasePrerequisites.getOrElse(terminal, Future.successful(()))
-              futures(terminal) = Future.sequence(deps.map(futures)).zip(lockPhaseFuture).map {
+              val raw = Future.sequence(deps.map(futures)).zip(lockPhaseFuture).map {
                 case (upstreamValues, _) =>
                   try {
                     val countMsg = mill.api.internal.Util.leftPad(
@@ -361,16 +362,32 @@ case class Execution(
                       val nonFatal = new Exception(s"fatal exception occurred: $e", e)
                       nonFatal.setStackTrace(e.getStackTrace)
                       throw nonFatal
-                  } finally {
-                    tracker.onCompleted(terminal)
                   }
               }
+              // andThen on the outer future so onCompleted fires whether the
+              // .map body ran (success / non-fatal failure inside body) or
+              // was skipped because Future.sequence(deps) failed earlier in
+              // the chain. Without this, an upstream re-thrown exception
+              // would skip every transitive downstream's pending decrement
+              // and leak retained Read leases until tracker.drain().
+              futures(terminal) = raw.andThen { case _ => tracker.onCompleted(terminal) }
             }
           }
 
-          // Make sure we wait for all tasks from this batch to finish before starting the next
-          // one, so we don't mix up exclusive and non-exclusive tasks running at the same time
-          terminals1.map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
+          // Wait for every future in the batch to settle before returning so
+          // tracker.drain() (in the outer finally) can never run while a
+          // task body is mid-`retain` or mid-`onCompleted`. Plain
+          // Future.sequence is fail-fast and would let drain race with
+          // still-running siblings; transforming each future to Try makes
+          // the outer sequence wait for genuine completion of all tasks,
+          // and we re-throw the first failure afterwards.
+          val settled = Future.sequence(
+            terminals1.map(t => futures(t).transform(r => Success(t -> r)))
+          )
+          Await.result(settled, duration.Duration.Inf).map {
+            case (t, Success(v)) => (t, v)
+            case (_, Failure(e)) => throw e
+          }
         }
 
         val (nonExclusiveTasks, leafExclusiveCommands) = indexToTerminal.partition {
@@ -522,11 +539,6 @@ object Execution {
     // Plan-invariant for shared named tasks: every launcher containing T sees
     // the same heights and tiebreaks, so overlapping locks are acquired in the
     // same order everywhere and the cross-launcher AB/BA cycle is unreachable.
-    // Caveat: a Task.Anon passed as a goal becomes an `important` cut point in
-    // `groupAroundImportantTasks`, which can alter `interGroupDeps` for shared
-    // downstream named tasks and break invariance. CLI-driven goals are always
-    // named, so this only affects programmatic `executeTasks` callers passing
-    // anonymous tasks as goals concurrently with a peer launcher that doesn't.
     private val canonicalHeights: Map[Task[?], Int] = {
       val memo = mutable.Map.empty[Task[?], Int]
       def rec(t: Task[?]): Int = memo.getOrElseUpdate(
@@ -642,9 +654,21 @@ object Execution {
       val groupSet = group.toSet
       out.addOne(
         terminal -> groupSet
-          .flatMap(
-            _.inputs.collect { case f if !groupSet.contains(f) => sortedGroups.lookupValue(f) }
-          )
+          .flatMap(_.inputs.collect {
+            // Anonymous tasks may belong to multiple groups (they are walked
+            // through, not cut at, when grouping; see PlanImpl.plan). For an
+            // input escaping this group to be a deterministic upstream key,
+            // it must be a Named cut point — `MultiBiMap.lookupValue` on a
+            // duplicated anon would be last-writer-wins. If a non-Named ever
+            // escapes here, grouping is wrong and we must fail loudly rather
+            // than silently wire the dep to an arbitrary group.
+            case f: Task.Named[?] if !groupSet.contains(f) => f
+            case f if !groupSet.contains(f) =>
+              throw new AssertionError(
+                s"Non-Named external dependency $f escaping group of $terminal; " +
+                  s"groupAroundImportantTasks must cut at every named task."
+              )
+          })
           .toVector
           .sortBy(_.toString)
       )
