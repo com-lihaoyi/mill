@@ -69,8 +69,7 @@ class MillBuildBootstrap(
     // module hashCode) because at meta-build time we don't have a stable
     // module-hashCode mapping yet.
     metaBuildReporter: Int => Option[CompileProblemReporter] = _ => None,
-    enableTicker: Boolean,
-    skipSelectiveExecution: Boolean
+    enableTicker: Boolean
 ) { outer =>
   // The workspace locking is owned by the metaBuild access (alongside the
   // shared state) but Execution still consumes the LauncherLocking directly
@@ -560,47 +559,6 @@ class MillBuildBootstrap(
       depth: Int
   ): RunnerLauncherState = {
     val evaluator = evaluator0.withIsFinalDepth(true)
-
-    // Don't short-circuit if any nested meta-build was rebuilt this iteration:
-    // the underlying build code may have changed in ways file-stat watches alone
-    // can't detect (e.g. `build.mill.yaml` edits that change `sources`). A
-    // freshly-published shared frame is a different instance than the one the
-    // previous launcher pinned, so an `eq` mismatch signals a meta-build rebuild.
-    def metaBuildRebuilt: Boolean = nestedState.metaFrames.exists { current =>
-      prevCommandState.metaFrameAt(current.depth) match {
-        case Some(prev) => prev.sharedFrame ne current.sharedFrame
-        case None => true
-      }
-    }
-
-    val shortCircuitSource: Option[(Seq[Watchable], Seq[Watchable])] =
-      if (skipSelectiveExecution || metaBuildRebuilt) None
-      else
-        prevCommandState.finalFrame
-          // Don't short-circuit if the previous run failed: same inputs would
-          // otherwise silently report success.
-          .filter(f =>
-            f.depth == depth && f.tasksAndParams == tasksAndParams && !f.failed
-          )
-          .map(f => (f.evalWatched, f.moduleWatched))
-          .filter { case (ev, mw) =>
-            ev.forall(Watching.haveNotChanged) && mw.forall(Watching.haveNotChanged)
-          }
-
-    shortCircuitSource match {
-      case Some((evalWatched, moduleWatched)) =>
-        return nestedState.withFinalFrame(
-          RunnerLauncherState.FinalFrame(
-            depth = depth,
-            evaluator = evaluator,
-            evalWatched = evalWatched,
-            moduleWatched = moduleWatched,
-            tasksAndParams = tasksAndParams,
-            failed = false
-          )
-        )
-      case None => ()
-    }
 
     val (evaled, evalWatched, moduleWatched) = evaluateWithWatches(
       buildFileApi = buildFileApi,

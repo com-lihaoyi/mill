@@ -419,8 +419,7 @@ object MillMain0 {
                                       ),
                                       reporter = reporter,
                                       metaBuildReporter = metaBuildReporter,
-                                      enableTicker = enableTicker,
-                                      skipSelectiveExecution = skipSelectiveExecution
+                                      enableTicker = enableTicker
                                     ).evaluate()
                                   }
                                 }
