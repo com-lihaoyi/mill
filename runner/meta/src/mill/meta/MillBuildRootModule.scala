@@ -33,7 +33,7 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
       // If we are using the bootstrap module in the root of the project, do not look for
       // build files in the parent folder, since that would be outside the project entirely
       if (rootModuleInfo.projectRoot == rootModuleInfo.topLevelProjectRoot) Nil
-      else DiscoveredBuildFiles
+      else mill.internal.BuildFileDiscovery
         .walkBuildFiles(rootModuleInfo.projectRoot / os.up, rootModuleInfo.output)
         .sorted // Ensure ordering is deterministic
     }

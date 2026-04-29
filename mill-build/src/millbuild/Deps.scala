@@ -55,7 +55,7 @@ object Deps {
   }
 
   object Scalanative_0_5 {
-    val scalanativeVersion = "0.5.10"
+    val scalanativeVersion = "0.5.11"
     // Workaround for https://github.com/com-lihaoyi/mill/issues/6780:
     // prefer Scala 2.13 published toolchain artifacts.
     val scalanativeTools = mvn"org.scala-native:tools_2.13:${scalanativeVersion}"
@@ -347,7 +347,7 @@ object Deps {
   object TestDeps {
     // tests framework (test)
     val scalaCheck = mvn"org.scalacheck::scalacheck:1.19.0"
-    val scalaTest = mvn"org.scalatest::scalatest:3.2.19"
+    val scalaTest = mvn"org.scalatest::scalatest:3.2.20"
     val utest = mvn"com.lihaoyi::utest:0.10.0-RC1"
     val zioTest = mvn"dev.zio::zio-test:2.1.14"
   }

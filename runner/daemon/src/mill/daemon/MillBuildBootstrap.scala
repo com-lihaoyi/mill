@@ -16,9 +16,8 @@ import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
 import mill.internal.{LockUpgrade, PrefixLogger, Util}
 import mill.meta.{BootstrapRootModule, MillBuildRootModule}
-import mill.api.daemon.internal.CliImports
-import mill.api.daemon.internal.{LauncherOutFiles, LauncherLocking}
-import mill.meta.DiscoveredBuildFiles.findRootBuildFiles
+import mill.api.daemon.internal.{CliImports, LauncherLocking, LauncherOutFiles}
+import mill.internal.BuildFileDiscovery.findRootBuildFiles
 import mill.server.Server
 import mill.util.BuildInfo
 import os.Path
