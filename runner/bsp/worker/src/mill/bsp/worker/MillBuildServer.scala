@@ -5,7 +5,6 @@ import mill.api.*
 import mill.bsp.worker.Utils.groupList
 import mill.api.internal.WatchSig
 import mill.internal.PrefixLogger
-import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
 
 import java.util.concurrent.{CompletableFuture, Executors, ExecutorService, ThreadFactory, TimeUnit}
 import java.util.concurrent.atomic.AtomicInteger
@@ -420,9 +419,6 @@ private abstract class MillBuildServer(
   // Internal Helpers
   // ==========================================================================
 
-  protected def evaluatorErrorOpt(result: EvaluatorApi.Result[Any]): Option[String] =
-    result.values.toEither.left.toOption
-
   protected def evaluate(
       evaluator: EvaluatorApi,
       requestDescription: String,
@@ -430,7 +426,8 @@ private abstract class MillBuildServer(
       logger: Logger,
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter = TestReporter.DummyTestReporter,
-      errorOpt: EvaluatorApi.Result[Any] => Option[String] = evaluatorErrorOpt
+      errorOpt: EvaluatorApi.Result[Any] => Option[String] =
+        _.values.toEither.left.toOption
   ): ExecutionResultsApi = {
     val goalCount = goals.length
     logger.info(s"Evaluating $goalCount ${if (goalCount > 1) "tasks" else "task"}")
@@ -452,37 +449,6 @@ private abstract class MillBuildServer(
     result.executionResults
   }
 
-  // ==========================================================================
-  // Test Endpoints
-  // ==========================================================================
-
-  @JsonRequest("millTest/loggingTest")
-  def loggingTest(): CompletableFuture[Object] = {
-    handlerEvaluators() { (state, logger) =>
-      val tasksEvs = state.bspModulesIdList
-        .collectFirst {
-          case (_, (m: JavaModuleApi, ev)) =>
-            Seq(((m, m.bspJavaModule().bspLoggingTest), ev))
-        }
-        .getOrElse {
-          sys.error("No BSP build target available")
-        }
-
-      tasksEvs
-        .groupMap(_._2)(_._1)
-        .map { case (ev, ts) =>
-          evaluate(
-            ev,
-            s"Checking logging for ${ts.map(_._1.bspDisplayName).mkString(", ")}",
-            ts.map(_._2),
-            logger,
-            reporter = Utils.getBspLoggedReporterPool("", state.bspIdByModule, client)
-          )
-        }
-        .toSeq
-      null
-    }
-  }
 }
 
 private object MillBuildServer {

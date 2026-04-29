@@ -85,18 +85,6 @@ private[mill] object LauncherOutFilesImpl {
     os.RelPath(OutFiles.millInvalidationTree)
   )
 
-  // Names are `<millis>-<pid>-<counter>`; sort primarily by millis, then by the
-  // trailing counter so that within a single millisecond we still keep newest.
-  // Older single-segment formats fall back to (0, 0).
-  private def runDirSortKey(p: os.Path): (Long, Long) = {
-    val parts = p.last.split('-')
-    if (parts.isEmpty) (0L, 0L)
-    else (
-      parts.head.toLongOption.getOrElse(0L),
-      parts.last.toLongOption.getOrElse(0L)
-    )
-  }
-
   private def cleanup(
       out: os.Path,
       outFilesState: LauncherOutFilesState
@@ -106,7 +94,8 @@ private[mill] object LauncherOutFilesImpl {
       val runRootDir = out / LauncherOutFilesState.runRootDirName
       if (os.exists(runRootDir)) {
         val runDirs = os.list(runRootDir).filter(os.isDir(_))
-        val eligible = runDirs.filterNot(d => active.contains(d.last)).sortBy(runDirSortKey)
+        val eligible = runDirs.filterNot(d => active.contains(d.last))
+          .sortBy(d => LauncherOutFilesRecordStore.runIdSortKey(d.last))
         val toRemoveCount = math.max(0, eligible.size - maxRetainedRuns)
         eligible.take(toRemoveCount).foreach(d =>
           try os.remove.all(d)

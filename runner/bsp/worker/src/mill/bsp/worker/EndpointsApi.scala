@@ -72,9 +72,8 @@ trait EndpointsApi {
       logger: Logger,
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter = TestReporter.DummyTestReporter,
-      errorOpt: EvaluatorApi.Result[Any] => Option[String] = evaluatorErrorOpt
+      errorOpt: EvaluatorApi.Result[Any] => Option[String] =
+        _.values.toEither.left.toOption
   ): ExecutionResultsApi
-
-  protected def evaluatorErrorOpt(result: EvaluatorApi.Result[Any]): Option[String]
 
 }

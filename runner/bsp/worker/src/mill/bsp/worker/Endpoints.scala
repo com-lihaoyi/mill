@@ -13,6 +13,7 @@ import mill.bsp.worker.Utils.{
   outputPaths,
   sanitizeUri
 }
+import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
 
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters.*
@@ -344,7 +345,7 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
             getReporter,
             TestReporter.DummyTestReporter,
             errorOpt = { result =>
-              val baseErrorOpt = evaluatorErrorOpt(result)
+              val baseErrorOpt = result.values.toEither.left.toOption
               def hasCompilationErrors =
                 reporters.asScala.valuesIterator.flatMap(_.iterator).exists(_.hasErrors)
               if (baseErrorOpt.isEmpty || hasCompilationErrors)
@@ -569,6 +570,38 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
       val cleanedPaths = cleanResult.results.head.get.value.asInstanceOf[Seq[java.nio.file.Path]]
       while (cleanedPaths.exists(p => os.exists(os.Path(p)))) Thread.sleep(10)
       Right(s"${module.bspBuildTarget.displayName} cleaned \n")
+    }
+  }
+
+  // ==========================================================================
+  // Test Endpoints
+  // ==========================================================================
+
+  @JsonRequest("millTest/loggingTest")
+  def loggingTest(): CompletableFuture[Object] = {
+    handlerEvaluators() { (state, logger) =>
+      val tasksEvs = state.bspModulesIdList
+        .collectFirst {
+          case (_, (m: JavaModuleApi, ev)) =>
+            Seq(((m, m.bspJavaModule().bspLoggingTest), ev))
+        }
+        .getOrElse {
+          sys.error("No BSP build target available")
+        }
+
+      tasksEvs
+        .groupMap(_._2)(_._1)
+        .map { case (ev, ts) =>
+          evaluate(
+            ev,
+            s"Checking logging for ${ts.map(_._1.bspDisplayName).mkString(", ")}",
+            ts.map(_._2),
+            logger,
+            reporter = Utils.getBspLoggedReporterPool("", state.bspIdByModule, client)
+          )
+        }
+        .toSeq
+      null
     }
   }
 

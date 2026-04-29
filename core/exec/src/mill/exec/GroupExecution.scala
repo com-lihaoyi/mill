@@ -405,50 +405,52 @@ trait GroupExecution {
           }
         }
 
-        // Helper to evaluate build override only (no task evaluation)
+        // Helper to evaluate build override only (no task evaluation).
+        // Always escalates to Write; the read phase is a no-op formality so
+        // we share the same lock dance as evaluateTaskWithCaching.
         def evaluateBuildOverrideOnly(located: Located[Appendable[BufferedValue]])
-            : GroupExecution.Results = {
-          val lease = acquireTaskLock(LauncherLocking.LockKind.Write)
-          leaseTracker.onTaskLockPhaseComplete(labelled)
-          var retained = false
-          try {
-            val (execRes, serializedPaths) =
-              if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {
-                val msg =
-                  s"Build header config conflicts with task defined in ${os.Path(labelled.ctx.fileName).relativeTo(workspace)}:${labelled.ctx.lineNum}"
-                (
-                  ExecResult.Failure(
-                    msg,
-                    Some(Result.Failure(msg, path = located.path.toNIO, index = located.index))
-                  ),
-                  Nil
-                )
-              } else {
-                evaluateBuildOverride(located, labelled) match {
-                  case Right(yamlValue) =>
-                    val (data, serializedPaths) = PathRef.withSerializedPaths { yamlValue }
-                    writeCacheJson(
-                      paths.meta,
-                      upickle.core.BufferedValue.transform(located.value.value, ujson.Value),
-                      data.##,
-                      inputsHash + located.value.value.##
-                    )
-                    (ExecResult.Success(Val(data), data.##), serializedPaths)
-                  case Left(e) => buildOverrideDeserializationError(e, located)
-                }
+            : GroupExecution.Results = LockUpgrade.readThenWrite(
+          acquireRead = acquireTaskLock(LauncherLocking.LockKind.Read),
+          acquireWrite = {
+            val lease = acquireTaskLock(LauncherLocking.LockKind.Write)
+            leaseTracker.onTaskLockPhaseComplete(labelled)
+            lease
+          }
+        )(_ => LockUpgrade.Decision.Escalate) { scope =>
+          val (execRes, serializedPaths) =
+            if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {
+              val msg =
+                s"Build header config conflicts with task defined in ${os.Path(labelled.ctx.fileName).relativeTo(workspace)}:${labelled.ctx.lineNum}"
+              (
+                ExecResult.Failure(
+                  msg,
+                  Some(Result.Failure(msg, path = located.path.toNIO, index = located.index))
+                ),
+                Nil
+              )
+            } else {
+              evaluateBuildOverride(located, labelled) match {
+                case Right(yamlValue) =>
+                  val (data, serializedPaths) = PathRef.withSerializedPaths { yamlValue }
+                  writeCacheJson(
+                    paths.meta,
+                    upickle.core.BufferedValue.transform(located.value.value, ujson.Value),
+                    data.##,
+                    inputsHash + located.value.value.##
+                  )
+                  (ExecResult.Success(Val(data), data.##), serializedPaths)
+                case Left(e) => buildOverrideDeserializationError(e, located)
               }
-            // Match the normal task path: downgrade Write to Read and retain
-            // until transitive downstreams complete, so peers can't overwrite
-            // paths.meta while a downstream might still consume the result.
-            execRes match {
-              case ExecResult.Success(_) =>
-                lease.downgradeToRead()
-                leaseTracker.retain(labelled, lease)
-                retained = true
-              case _ =>
             }
-            cachedResult(execRes, serializedPaths)
-          } finally if (!retained) lease.close()
+          // Match the normal task path: downgrade Write to Read and retain
+          // until transitive downstreams complete, so peers can't overwrite
+          // paths.meta while a downstream might still consume the result.
+          execRes match {
+            case ExecResult.Success(_) =>
+              leaseTracker.retain(labelled, scope.downgradeAndRetain())
+            case _ =>
+          }
+          cachedResult(execRes, serializedPaths)
         }
 
         // Three-way conditional:
