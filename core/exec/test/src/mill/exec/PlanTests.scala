@@ -4,16 +4,29 @@ import mill.api.Task
 import mill.api.Task.Simple
 import mill.api.daemon.internal.LauncherLocking
 import mill.api.TestGraphs
+import mill.internal.{LauncherLockRegistry, LauncherLockingImpl, LockUpgrade}
 import utest.*
 
+import java.io.{ByteArrayOutputStream, PrintStream}
+import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 import scala.collection.mutable
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 object PlanTests extends TestSuite {
   object transitiveLeaseChain extends mill.testkit.TestRootModule {
     def a = Task { 1 }
     def b = Task { a() + 1 }
     def c = Task { b() + 1 }
+    lazy val millDiscover = mill.api.Discover[this.type]
+  }
+
+  object lockPhaseOrdering extends mill.testkit.TestRootModule {
+    def up = Task { 1 }
+    def extra = Task { up() + 1 }
+    def down = Task { up() + 1 }
+    def side = Task { 2 }
     lazy val millDiscover = mill.api.Discover[this.type]
   }
 
@@ -215,6 +228,293 @@ object PlanTests extends TestSuite {
       assert(aLease.closed.get())
       assert(bLease.closed.get())
       assert(cLease.closed.get())
+    }
+
+    test("leaseTrackerOrdersLockPhaseByHeightThenLockKey") {
+      import lockPhaseOrdering.*
+
+      val upTask = up
+      val downTask = down
+      val sideTask = side
+      // down depends on up so down has height 1, up and side have height 0.
+      // Within height 0, up and side tiebreak by lock key. Keys chosen so that
+      // side's key sorts before up's, giving order: side, up, down.
+      val keys = Map[Task[?], String](
+        downTask -> "9-down",
+        sideTask -> "1-side",
+        upTask -> "5-up"
+      )
+      val tracker = new Execution.LeaseTracker(
+        Array(upTask, downTask, sideTask),
+        Map(
+          upTask -> Nil,
+          downTask -> Seq(upTask),
+          sideTask -> Nil
+        ),
+        labelled => keys(labelled)
+      )
+      val batch = Set[Task[?]](upTask, downTask, sideTask)
+
+      val prereqs = tracker.taskLockPhasePrerequisites(batch)
+
+      assert(tracker.taskLockPhaseOrder(batch) == Seq(sideTask, upTask, downTask))
+      assert(!prereqs.contains(sideTask))
+      assert(prereqs.contains(upTask))
+      assert(prereqs.contains(downTask))
+      assert(!prereqs(upTask).isCompleted)
+      assert(!prereqs(downTask).isCompleted)
+
+      tracker.onTaskLockPhaseComplete(sideTask)
+      assert(prereqs(upTask).isCompleted)
+      assert(!prereqs(downTask).isCompleted)
+
+      tracker.onTaskLockPhaseComplete(upTask)
+      assert(prereqs(downTask).isCompleted)
+    }
+
+    test("leaseTrackerFiltersLockPhaseOrderingToCurrentBatch") {
+      import lockPhaseOrdering.*
+
+      val upTask = up
+      val downTask = down
+      val sideTask = side
+      val keys = Map[Task[?], String](
+        downTask -> "9-down",
+        sideTask -> "1-side",
+        upTask -> "5-up"
+      )
+      val tracker = new Execution.LeaseTracker(
+        Array(upTask, downTask, sideTask),
+        Map(
+          upTask -> Nil,
+          downTask -> Seq(upTask),
+          sideTask -> Nil
+        ),
+        labelled => keys(labelled)
+      )
+
+      val batchWithoutSide = Set[Task[?]](upTask, downTask)
+      val prereqs = tracker.taskLockPhasePrerequisites(batchWithoutSide)
+
+      assert(tracker.taskLockPhaseOrder(batchWithoutSide) == Seq(upTask, downTask))
+      assert(!prereqs.contains(upTask))
+      assert(prereqs.contains(downTask))
+    }
+
+    test("leaseTrackerCompletionReleasesLockPhaseOrdering") {
+      import lockPhaseOrdering.*
+
+      val upTask = up
+      val sideTask = side
+      val keys = Map[Task[?], String](
+        sideTask -> "1-side",
+        upTask -> "5-up"
+      )
+      val tracker = new Execution.LeaseTracker(
+        Array(upTask, sideTask),
+        Map(
+          upTask -> Nil,
+          sideTask -> Nil
+        ),
+        labelled => keys(labelled)
+      )
+      val batch = Set[Task[?]](upTask, sideTask)
+      val upPrereq = tracker.taskLockPhasePrerequisites(batch)(upTask)
+
+      assert(!upPrereq.isCompleted)
+      tracker.onCompleted(sideTask)
+      assert(upPrereq.isCompleted)
+    }
+
+    test("leaseTrackerLockPhaseOrderAgreesAcrossLaunchersOnSharedTasks") {
+      // Two launchers planning different goal subsets that share two named
+      // tasks. The intrinsic namedUpstreamHeight depends only on each task's
+      // own input chain, so the two launchers must agree on the lock-phase
+      // order of the shared pair regardless of which other tasks are in their
+      // respective plans. Under the old plan-relative depth this could differ.
+      import lockPhaseOrdering.*
+
+      val upTask = up
+      val extraTask = extra
+      val downTask = down
+      val keys = Map[Task[?], String](
+        downTask -> "1-down",
+        extraTask -> "2-extra",
+        upTask -> "3-up"
+      )
+      val largerPlan = new Execution.LeaseTracker(
+        Array(upTask, extraTask, downTask),
+        Map(
+          upTask -> Nil,
+          extraTask -> Seq(upTask),
+          downTask -> Seq(upTask)
+        ),
+        labelled => keys(labelled)
+      )
+      val smallerPlan = new Execution.LeaseTracker(
+        Array(upTask, downTask),
+        Map(
+          upTask -> Nil,
+          downTask -> Seq(upTask)
+        ),
+        labelled => keys(labelled)
+      )
+      val shared = Set[Task[?]](upTask, downTask)
+
+      // up has height 0, down has height 1 in BOTH plans (computed from
+      // task definitions, not plan grouping).
+      assert(largerPlan.taskLockPhaseOrder(shared) == Seq(upTask, downTask))
+      assert(smallerPlan.taskLockPhaseOrder(shared) == Seq(upTask, downTask))
+    }
+
+    test("leaseTrackerLockPhaseOrderIgnoresAnonymousIntermediaryGrouping") {
+      // multiTerminalGroup has an anonymous Task.Anon shared by named `left`
+      // and `right`. Under old plan-relative depth, whichever named task got
+      // grouped with `task` (a function of topo order, which depends on
+      // goals) had different depth than the other. Under namedUpstreamHeight,
+      // both left and right have height 0 because their first named ancestor
+      // walk through the anonymous intermediary terminates with no named
+      // tasks. Two launchers with different goal sets must produce the same
+      // order on the shared pair.
+      import TestGraphs.multiTerminalGroup.*
+
+      val keys = Map[Task[?], String](
+        left -> "1-left",
+        right -> "2-right"
+      )
+      val planA = new Execution.LeaseTracker(
+        Array[Task[?]](left, right),
+        Map[Task[?], Seq[Task[?]]](left -> Nil, right -> Nil),
+        labelled => keys(labelled)
+      )
+      val planB = new Execution.LeaseTracker(
+        Array[Task[?]](right, left),
+        Map[Task[?], Seq[Task[?]]](right -> Nil, left -> Nil),
+        labelled => keys(labelled)
+      )
+      val shared = Set[Task[?]](left, right)
+
+      assert(planA.taskLockPhaseOrder(shared) == Seq(left, right))
+      assert(planB.taskLockPhaseOrder(shared) == Seq(left, right))
+    }
+
+    test("leaseTrackerLockPhaseGatePreventsOppositeOrderDeadlockWithRealLocks") {
+      import lockPhaseOrdering.*
+
+      val alphaTask = up
+      val betaTask = side
+      val aGoal = down
+      val bGoal = extra
+      val workspace = os.temp.dir(prefix = "mill-lock-phase-test")
+      val alphaPath = workspace / "alpha.dest"
+      val betaPath = workspace / "beta.dest"
+      val registry = new LauncherLockRegistry
+      val executor = Executors.newFixedThreadPool(8)
+      implicit val ec: ExecutionContext = ExecutionContext.fromExecutorService(executor)
+
+      // Records each launcher's lock-acquisition order so we can assert the
+      // gate actually serialized them in the canonical order, not just that
+      // the run didn't deadlock.
+      val acquisitionLog = new java.util.concurrent.ConcurrentLinkedQueue[(String, String)]()
+
+      def locking(command: String, pid: Long) = new LauncherLockingImpl(
+        activeCommandMessage = command,
+        launcherPid = pid,
+        waitingErr = new PrintStream(new ByteArrayOutputStream()),
+        noBuildLock = false,
+        noWaitForBuildLock = false,
+        lockRegistry = registry,
+        runId = command
+      )
+
+      val lockingA = locking("launcher-a", 101)
+      val lockingB = locking("launcher-b", 102)
+
+      def lockKey(task: Task.Named[?]): String =
+        if (task == alphaTask) alphaPath.toNIO.toAbsolutePath.normalize().toString
+        else if (task == betaTask) betaPath.toNIO.toAbsolutePath.normalize().toString
+        else (workspace / s"${task.ctx.segments.render}.dest").toNIO.toAbsolutePath
+          .normalize()
+          .toString
+
+      val trackerA = new Execution.LeaseTracker(
+        Array(alphaTask, betaTask, aGoal),
+        Map(
+          alphaTask -> Nil,
+          betaTask -> Nil,
+          aGoal -> Seq(alphaTask, betaTask)
+        ),
+        lockKey
+      )
+      val trackerB = new Execution.LeaseTracker(
+        Array(alphaTask, betaTask, bGoal),
+        Map(
+          alphaTask -> Nil,
+          betaTask -> Nil,
+          bGoal -> Seq(alphaTask, betaTask)
+        ),
+        lockKey
+      )
+      val batch = Set[Task[?]](alphaTask, betaTask)
+      val prereqsA = trackerA.taskLockPhasePrerequisites(batch)
+      val prereqsB = trackerB.taskLockPhasePrerequisites(batch)
+
+      def runCacheMiss(
+          launcher: String,
+          taskLabel: String,
+          locking: LauncherLockingImpl,
+          tracker: Execution.LeaseTracker,
+          task: Task.Named[?],
+          path: os.Path,
+          prereqs: Map[Task[?], Future[Unit]]
+      ): Future[Unit] = Future {
+        Await.result(prereqs.getOrElse(task, Future.successful(())), 5.seconds)
+        try {
+          LockUpgrade.readThenWrite(
+            acquireRead =
+              locking.taskLock(path.toNIO, task.toString, LauncherLocking.LockKind.Read),
+            acquireWrite = {
+              val lease =
+                locking.taskLock(path.toNIO, task.toString, LauncherLocking.LockKind.Write)
+              acquisitionLog.add((launcher, taskLabel))
+              tracker.onTaskLockPhaseComplete(task)
+              lease
+            }
+          )(_ => LockUpgrade.Decision.Escalate) { scope =>
+            tracker.retain(task, scope.downgradeAndRetain())
+          }
+        } finally tracker.onCompleted(task)
+      }
+
+      try {
+        // Schedule each launcher's two cache-miss escalations in opposite
+        // order: A starts on alpha, B starts on beta. Without the gate this is
+        // the classic AB/BA cycle (A holds Read alpha + waits Write beta, B
+        // holds Read beta + waits Write alpha).
+        val aAlpha = runCacheMiss("A", "alpha", lockingA, trackerA, alphaTask, alphaPath, prereqsA)
+        val bBeta = runCacheMiss("B", "beta", lockingB, trackerB, betaTask, betaPath, prereqsB)
+        val aBeta = runCacheMiss("A", "beta", lockingA, trackerA, betaTask, betaPath, prereqsA)
+        val bAlpha = runCacheMiss("B", "alpha", lockingB, trackerB, alphaTask, alphaPath, prereqsB)
+
+        val aDone = Future.sequence(Seq(aAlpha, aBeta)).map(_ => trackerA.onCompleted(aGoal))
+        val bDone = Future.sequence(Seq(bBeta, bAlpha)).map(_ => trackerB.onCompleted(bGoal))
+
+        val _ = Await.result(Future.sequence(Seq(aDone, bDone)), 10.seconds)
+
+        // Gate must serialize each launcher's acquisitions in canonical order
+        // (alpha < beta by lock path), regardless of which Future was scheduled
+        // first.
+        import scala.jdk.CollectionConverters.*
+        val perLauncher = acquisitionLog.asScala.toSeq.groupMap(_._1)(_._2)
+        assert(perLauncher("A") == Seq("alpha", "beta"))
+        assert(perLauncher("B") == Seq("alpha", "beta"))
+      } finally {
+        lockingA.close()
+        lockingB.close()
+        executor.shutdown()
+        executor.awaitTermination(5, java.util.concurrent.TimeUnit.SECONDS)
+        os.remove.all(workspace)
+      }
     }
 
   }

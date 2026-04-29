@@ -323,7 +323,11 @@ trait GroupExecution {
 
           LockUpgrade.readThenWrite(
             acquireRead = acquireTaskLock(LauncherLocking.LockKind.Read),
-            acquireWrite = acquireTaskLock(LauncherLocking.LockKind.Write)
+            acquireWrite = {
+              val lease = acquireTaskLock(LauncherLocking.LockKind.Write)
+              leaseTracker.onTaskLockPhaseComplete(labelled)
+              lease
+            }
           ) { scope =>
             loadCachedOrWorker(
               loadCachedJson(logger, inputsHash, labelled, paths),
@@ -331,6 +335,7 @@ trait GroupExecution {
             ) match {
               case Some(res) =>
                 leaseTracker.retain(labelled, scope.retain())
+                leaseTracker.onTaskLockPhaseComplete(labelled)
                 LockUpgrade.Decision.Complete(res)
               case None =>
                 LockUpgrade.Decision.Escalate
@@ -407,6 +412,7 @@ trait GroupExecution {
         def evaluateBuildOverrideOnly(located: Located[Appendable[BufferedValue]])
             : GroupExecution.Results = {
           val lease = acquireTaskLock(LauncherLocking.LockKind.Write)
+          leaseTracker.onTaskLockPhaseComplete(labelled)
           try {
             val (execRes, serializedPaths) =
               if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {

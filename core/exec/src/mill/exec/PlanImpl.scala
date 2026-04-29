@@ -88,6 +88,47 @@ object PlanImpl {
   }
 
   /**
+   * Returns the named tasks reachable from `t` by walking through anonymous
+   * tasks (Task.Anon, Task.Mapped, Task.Sequence, ...) until the first named
+   * task is found on each path. Cuts at the first named task: does not
+   * recurse into its named upstream chain. Uses a local visited set to handle
+   * shared anonymous subgraphs without duplicate work.
+   */
+  def immediateNamedUpstreams(t: Task[?]): Seq[Task.Named[?]] = {
+    val out = collection.mutable.LinkedHashSet.empty[Task.Named[?]]
+    val seen = collection.mutable.HashSet.empty[Task[?]]
+    def rec(node: Task[?]): Unit = {
+      if (seen.add(node)) {
+        node.inputs.foreach {
+          case n: Task.Named[?] => out += n
+          case other => rec(other)
+        }
+      }
+    }
+    rec(t)
+    out.toSeq
+  }
+
+  /**
+   * Height of a named task in its intrinsic upstream graph: 0 if it has no
+   * named upstreams, else 1 + max height of its immediate named upstreams.
+   * Computed from `t.inputs` walked through anonymous tasks, so it depends
+   * only on the task's own definition. This is the property the cross-launcher
+   * lock-order gate relies on: two launchers planning different goal subsets
+   * compute identical heights for shared named tasks.
+   */
+  def namedUpstreamHeight(
+      t: Task.Named[?],
+      memo: collection.mutable.Map[Task.Named[?], Int]
+  ): Int = memo.getOrElseUpdate(
+    t, {
+      val parents = immediateNamedUpstreams(t)
+      if (parents.isEmpty) 0
+      else 1 + parents.iterator.map(namedUpstreamHeight(_, memo)).max
+    }
+  )
+
+  /**
    * Takes the given tasks, finds all the targets they transitively depend
    * on, and sort them topologically. Fails if there are dependency cycles
    */

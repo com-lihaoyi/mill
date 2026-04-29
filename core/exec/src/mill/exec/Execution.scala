@@ -216,23 +216,34 @@ case class Execution(
           downstreamEdges.getOrElse(t, Set())
         )
 
-      val tracker = new Execution.LeaseTracker(indexToTerminal, interGroupDeps)
+      val tracker = new Execution.LeaseTracker(
+        indexToTerminal,
+        interGroupDeps,
+        labelled => {
+          val out = if (!labelled.ctx.external) outPath else externalOutPath
+          ExecutionPaths.resolve(out, labelled.ctx.segments).dest.toNIO.toAbsolutePath
+            .normalize()
+            .toString
+        }
+      )
       try {
 
         def evaluateTerminals(
             terminals: Seq[Task[?]],
             exclusive: Boolean
         ) = {
+          // Spawn futures in the canonical order also used by the lock-phase
+          // chain. Single ordering for both purposes: a future's
+          // lockPhaseFuture always points at an already-spawned upstream's
+          // promise, and the order is a valid topological order so each
+          // terminal's deps are already in `futures` when the loop hits it.
+          val terminals1 = tracker.canonicalOrder(terminals)
+          val lockPhasePrerequisites = tracker.taskLockPhasePrerequisites(terminals1.toSet)
           val forkExecutionContext =
             ec.fold(ExecutionContexts.RunNow)(new ExecutionContexts.ThreadPool(_))
           implicit val taskExecutionContext =
             if (exclusive) ExecutionContexts.RunNow else forkExecutionContext
-          // We walk the task graph in topological order and schedule the futures
-          // to run asynchronously. During this walk, we store the scheduled futures
-          // in a dictionary. When scheduling each future, we are guaranteed that the
-          // necessary upstream futures will have already been scheduled and stored,
-          // due to the topological order of traversal.
-          for (terminal <- terminals) {
+          for (terminal <- terminals1) {
             val deps = interGroupDeps(terminal)
 
             val group = plan.sortedGroups.lookupKey(terminal)
@@ -260,7 +271,10 @@ case class Execution(
                 ))
               )
             } else {
-              futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
+              val lockPhaseFuture =
+                lockPhasePrerequisites.getOrElse(terminal, Future.successful(()))
+              futures(terminal) = Future.sequence(deps.map(futures)).zip(lockPhaseFuture).map {
+                case (upstreamValues, _) =>
                 try {
                   val countMsg = mill.api.internal.Util.leftPad(
                     count.getAndIncrement().toString,
@@ -362,7 +376,7 @@ case class Execution(
 
           // Make sure we wait for all tasks from this batch to finish before starting the next
           // one, so we don't mix up exclusive and non-exclusive tasks running at the same time
-          terminals.map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
+          terminals1.map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
         }
 
         val (nonExclusiveTasks, leafExclusiveCommands) = indexToTerminal.partition {
@@ -483,7 +497,8 @@ object Execution {
    */
   class LeaseTracker(
       indexToTerminal: Array[Task[?]],
-      interGroupDeps: Map[Task[?], Seq[Task[?]]]
+      interGroupDeps: Map[Task[?], Seq[Task[?]]],
+      taskLockKey: Task.Named[?] => String = _.toString
   ) {
     class State {
       val pending = new AtomicInteger(0)
@@ -515,6 +530,48 @@ object Execution {
         }
       }.toMap
 
+    // Single canonical ordering used both for `evaluateTerminals` future-
+    // spawning and the lock-phase prerequisite chain. Sort key:
+    //   height: walks the task's intrinsic input chain through anonymous
+    //     intermediaries; intrinsic to the task definition.
+    //   tiebreak: taskLockKey for named (the absolute dest path that
+    //     LauncherLockRegistry keys on) or t.toString for unnamed.
+    // Both components are identical across launchers for shared tasks, so
+    // overlapping locks are acquired in the same order in every launcher
+    // and the cross-launcher AB/BA cycle is unreachable. The order is
+    // topologically valid because every task strictly exceeds the height
+    // of its named ancestors, so iterating in this order satisfies
+    // `Future.sequence(deps.map(futures))` for `evaluateTerminals`.
+    private val canonicalHeight = {
+      val memo = mutable.Map.empty[Task[?], Int]
+      def rec(t: Task[?]): Int = memo.getOrElseUpdate(
+        t, {
+          val ancestors = PlanImpl.immediateNamedUpstreams(t)
+          if (ancestors.isEmpty) 0
+          else 1 + ancestors.iterator.map(rec).max
+        }
+      )
+      rec
+    }
+
+    def canonicalOrder(tasks: Iterable[Task[?]]): Seq[Task[?]] =
+      tasks.toSeq.sortBy { t =>
+        val tiebreak = t match {
+          case n: Task.Named[?] => taskLockKey(n)
+          case _ => t.toString
+        }
+        (canonicalHeight(t), tiebreak)
+      }
+
+    private val orderedTaskLockPhases: Seq[Task[?]] =
+      canonicalOrder(indexToTerminal.iterator.collect { case n: Task.Named[?] => n: Task[?] }.toSeq)
+
+    private val taskLockPhasePromises: Map[Task[?], Promise[Unit]] =
+      orderedTaskLockPhases.iterator.map(_ -> Promise[Unit]()).toMap
+
+    def taskLockPhaseOrder(batchTerminals: Set[Task[?]]): Seq[Task[?]] =
+      orderedTaskLockPhases.filter(batchTerminals)
+
     for (t <- indexToTerminal) states.put(t, new State)
     for (t <- indexToTerminal) {
       val s = states.get(t)
@@ -542,7 +599,23 @@ object Execution {
       else closeQuietly(lease)
     }
 
+    def taskLockPhasePrerequisites(
+        batchTerminals: Set[Task[?]]
+    ): Map[Task[?], Future[Unit]] =
+      taskLockPhaseOrder(batchTerminals)
+        .sliding(2)
+        .collect { case Seq(prev, next) =>
+          next -> taskLockPhasePromises(prev).future
+        }
+        .toMap
+
+    def onTaskLockPhaseComplete(task: Task[?]): Unit =
+      taskLockPhasePromises.get(task).foreach(_.trySuccess(()))
+
     def onCompleted(terminal: Task[?]): Unit = {
+      // If evaluation failed or was skipped before task-lock acquisition, do
+      // not leave later tasks in this launcher's lock phase waiting forever.
+      onTaskLockPhaseComplete(terminal)
       for (dep <- transitiveUpstreams.getOrElse(terminal, Nil)) {
         val s = states.get(dep)
         if (s != null && s.pending.decrementAndGet() == 0) releaseLeasesFor(dep)
@@ -553,6 +626,7 @@ object Execution {
 
     def drain(): Unit = {
       import scala.jdk.CollectionConverters.*
+      taskLockPhasePromises.values.foreach(_.trySuccess(()))
       states.keys().asScala.toList.foreach(releaseLeasesFor)
     }
   }
