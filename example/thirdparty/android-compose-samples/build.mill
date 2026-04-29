@@ -83,7 +83,7 @@ object JetLagged extends mill.api.Module {
     )
 
     def androidEnableCompose = true
-    override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task { true }
+    override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task.Anon { true }
 
     def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 
@@ -101,7 +101,7 @@ object JetLagged extends mill.api.Module {
       override def androidEnableCompose = true
 
       // TODO consider defaulting this to the parent app value
-      override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task {
+      override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task.Anon {
         true
       }
 
@@ -193,7 +193,7 @@ object JetNews extends mill.api.Module {
     )
 
     def androidEnableCompose = true
-    override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task { true }
+    override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task.Anon { true }
 
     def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 
@@ -212,7 +212,7 @@ object JetNews extends mill.api.Module {
       override def androidEnableCompose = true
 
       // TODO consider defaulting this to the parent app value
-      override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task {
+      override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task.Anon {
         true
       }
 
@@ -263,7 +263,7 @@ object Jetchat extends mill.api.Module {
 
     override def androidDataBindingCompilerVersion = "8.13.0"
 
-    override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task {
+    override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task.Anon {
       true
     }
 
@@ -307,7 +307,7 @@ object Jetchat extends mill.api.Module {
       override def androidEnableCompose = true
 
       // TODO consider defaulting this to the parent app value
-      override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task {
+      override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task.Anon {
         true
       }
 

@@ -3,6 +3,7 @@ package mill.androidlib
 import mill.api.*
 import mill.api.JsonFormatters.pathReadWrite
 import mill.client.lock.{Lock, TryLocked}
+import mill.T
 import os.CommandResult
 import upickle.ReadWriter
 
@@ -32,7 +33,7 @@ trait AndroidSdkManagerModule extends ExternalModule {
 
   def androidSdkManagerLockFile: os.Path = androidMillHomeDir() / ".sdkmanager.lock"
 
-  def androidSdkManagerWorkerMaxWaitAttempts: Task[Int] = Task {
+  def androidSdkManagerWorkerMaxWaitAttempts: T[Int] = Task {
     25
   }
 

@@ -302,7 +302,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   override def androidPackagedDeps: T[Seq[PathRef]] =
     super.androidPackagedDeps() ++ Seq(androidProcessedResources())
 
-  override def androidMergeableManifests: Task[Seq[PathRef]] = Task {
+  override def androidMergeableManifests: T[Seq[PathRef]] = Task {
     val debugManifest = Seq(androidDebugManifestLocation()).filter(pr => os.exists(pr.path))
     super.androidMergeableManifests() ++ debugManifest
   }
@@ -981,47 +981,48 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
   // uses the d8 tool to generate the dex file, when minification is disabled
   private def androidD8Dex
-      : Task[(outPath: PathRef, dexCliArgs: Seq[String], appCompiledFiles: Seq[PathRef])] = Task {
+      : Task[(outPath: PathRef, dexCliArgs: Seq[String], appCompiledFiles: Seq[PathRef])] =
+    Task.Anon {
 
-    val outPath = Task.dest / "dex-output"
-    os.makeDir.all(outPath)
+      val outPath = Task.dest / "dex-output"
+      os.makeDir.all(outPath)
 
-    val appCompiledPathRefs = androidPackagedCompiledClasses() ++ androidPackagedClassfiles()
+      val appCompiledPathRefs = androidPackagedCompiledClasses() ++ androidPackagedClassfiles()
 
-    val appCompiledFiles = appCompiledPathRefs.map(_.path.toString())
+      val appCompiledFiles = appCompiledPathRefs.map(_.path.toString())
 
-    val libsJarPathRefs = androidPackagedDeps()
-      .filter(_ != androidSdkModule().androidJarPath())
+      val libsJarPathRefs = androidPackagedDeps()
+        .filter(_ != androidSdkModule().androidJarPath())
 
-    val libsJarFiles = libsJarPathRefs.map(_.path.toString())
+      val libsJarFiles = libsJarPathRefs.map(_.path.toString())
 
-    val filenamesFile = Task.dest / "all-files.txt"
-    os.write.over(filenamesFile, (appCompiledFiles ++ libsJarFiles).mkString("\n"))
+      val filenamesFile = Task.dest / "all-files.txt"
+      os.write.over(filenamesFile, (appCompiledFiles ++ libsJarFiles).mkString("\n"))
 
-    val proguardFile = androidProguard().path
+      val proguardFile = androidProguard().path
 
-    val d8Args = Seq(
-      androidSdkModule().d8Exe().path.toString,
-      if (androidIsDebug()) "--debug" else "--release",
-      // TODO explore --incremental flag for incremental builds
-      "--output",
-      outPath.toString(),
-      "--lib",
-      androidSdkModule().androidJarPath().path.toString(),
-      "--min-api",
-      androidMinSdk().toString,
-      "--main-dex-rules",
-      proguardFile.toString()
-    ) :+ s"@$filenamesFile"
+      val d8Args = Seq(
+        androidSdkModule().d8Exe().path.toString,
+        if (androidIsDebug()) "--debug" else "--release",
+        // TODO explore --incremental flag for incremental builds
+        "--output",
+        outPath.toString(),
+        "--lib",
+        androidSdkModule().androidJarPath().path.toString(),
+        "--min-api",
+        androidMinSdk().toString,
+        "--main-dex-rules",
+        proguardFile.toString()
+      ) :+ s"@$filenamesFile"
 
-    Task.log.info(s"Running d8 with the command: ${d8Args.mkString(" ")}")
+      Task.log.info(s"Running d8 with the command: ${d8Args.mkString(" ")}")
 
-    (
-      outPath = PathRef(outPath),
-      dexCliArgs = d8Args,
-      appCompiledFiles = appCompiledPathRefs ++ libsJarPathRefs
-    )
-  }
+      (
+        outPath = PathRef(outPath),
+        dexCliArgs = d8Args,
+        appCompiledFiles = appCompiledPathRefs ++ libsJarPathRefs
+      )
+    }
 
   trait AndroidAppTests extends AndroidTestModule, AndroidAppModule {
     override def androidApplicationId: String = s"${outer.androidApplicationId}.test"
@@ -1096,7 +1097,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       PathRef(destManifest)
     }
 
-    private def androidxTestManifests: Task[Seq[PathRef]] = Task {
+    private def androidxTestManifests: T[Seq[PathRef]] = Task {
       androidUnpackRunArchives().flatMap {
         unpackedArchive =>
           unpackedArchive.manifest.map(_.path)
@@ -1108,7 +1109,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       }.map(PathRef(_))
     }
 
-    override def androidMergeableManifests: Task[Seq[PathRef]] = Task {
+    override def androidMergeableManifests: T[Seq[PathRef]] = Task {
       Seq(outer.androidDebugManifestLocation()).filter(pr =>
         os.exists(pr.path)
       ) ++ androidxTestManifests()
