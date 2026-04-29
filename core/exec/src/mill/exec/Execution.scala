@@ -370,40 +370,41 @@ case class Execution(
           case _ => !serialCommandExec
         }
 
-        // The non-exclusive batch holds a single Read lease on `exclusiveLock` so other
-        // launchers' batches can overlap (Reads coexist freely). The exclusive batch
-        // takes a per-task Write lease so `Task.Command(exclusive = true)` commands
-        // (`clean`, `shutdown`, `show`, `resolve`, etc.) run alone across all launchers.
-        //
-        // Splitting the `exclusive = true` annotation into truly-exclusive
-        // (workspace-destructive: `clean`, `shutdown`, `init`) vs nominally-exclusive
-        // (read-only inspection: `show`, `resolve`, `version`, ...) so the latter can
-        // share via Read leases is left as a follow-up.
-        //
-        // Reentry (nested execution from inside a Write-holding command via `Evaluator`)
-        // is handled inside `LauncherLocking.exclusiveLock` itself: if this launcher
-        // already holds Write, the call returns a no-op lease.
         def withExclusiveLease[A](kind: LauncherLocking.LockKind)(body: => A): A = {
           val lease = workspaceLocking.exclusiveLock(kind)
           try body
           finally lease.close()
         }
 
-        val nonExclusiveResults =
-          if (nonExclusiveTasks.isEmpty) Seq.empty[(Task[?], Option[GroupExecution.Results])]
-          else withExclusiveLease(LauncherLocking.LockKind.Read) {
-            evaluateTerminals(nonExclusiveTasks, exclusive = false)
-          }
+        // Invocations containing an exclusive command take `exclusiveLock.Write`
+        // for the whole batch (not just the exclusive phase). Splitting Read for
+        // the upstream phase and Write for the exclusive phase deadlocks against
+        // peers holding `exclusiveLock.Read` and waiting on a `taskLock.Write`
+        // that this launcher's `LeaseTracker` retains; draining the tracker
+        // first opens a window where a peer can rewrite `out/<X>/dest` before
+        // we acquire Write, breaking the exclusive command's upstream PathRefs.
+        val haveExclusive = leafExclusiveCommands.nonEmpty
+        val outerKind =
+          if (haveExclusive) LauncherLocking.LockKind.Write
+          else LauncherLocking.LockKind.Read
 
-        // Run exclusive terminals one-by-one under a per-task Write lease. The exclusive
-        // batch already runs serially via `ExecutionContexts.RunNow`, so per-task lease
-        // acquisition here adds no concurrency cost.
-        val exclusiveResults: Seq[(Task[?], Option[GroupExecution.Results])] =
-          leafExclusiveCommands.flatMap { terminal =>
-            withExclusiveLease(LauncherLocking.LockKind.Write) {
+        val empty = Seq.empty[(Task[?], Option[GroupExecution.Results])]
+        val phaseResults: (
+            Seq[(Task[?], Option[GroupExecution.Results])],
+            Seq[(Task[?], Option[GroupExecution.Results])]
+        ) =
+          if (nonExclusiveTasks.isEmpty && !haveExclusive) (empty, empty)
+          else withExclusiveLease(outerKind) {
+            val ne =
+              if (nonExclusiveTasks.isEmpty) empty
+              else evaluateTerminals(nonExclusiveTasks, exclusive = false).toSeq
+            val ex = leafExclusiveCommands.flatMap { terminal =>
               evaluateTerminals(Seq(terminal), exclusive = true)
-            }
+            }.toSeq
+            (ne, ex)
           }
+        val nonExclusiveResults = phaseResults._1
+        val exclusiveResults = phaseResults._2
 
         // Set final header showing SUCCESS/FAILED status:
         // - FAILED: show for any outermost execution with failures (meta-build failures terminate bootstrapping)

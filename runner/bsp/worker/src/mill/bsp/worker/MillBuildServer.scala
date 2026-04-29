@@ -208,9 +208,23 @@ private abstract class MillBuildServer(
     shutdownPromise.trySuccess(BspServerResult.Shutdown)
     if (watcherThread != null) watcherThread.interrupt()
     bspRequestExecutor.shutdown()
+    // In-flight bootstraps (especially Zinc) often ignore interrupts and keep
+    // holding daemon-wide leases until they return; wait long enough for
+    // typical work to finish before falling through to `shutdownNow()`.
+    val gracefulSeconds = 15L
+    val forcedSeconds = 30L
     try {
-      if (!bspRequestExecutor.awaitTermination(2, TimeUnit.SECONDS))
+      if (!bspRequestExecutor.awaitTermination(gracefulSeconds, TimeUnit.SECONDS)) {
+        baseLogger.warn(
+          s"BSP request threads did not finish within ${gracefulSeconds}s; interrupting"
+        )
         bspRequestExecutor.shutdownNow()
+        if (!bspRequestExecutor.awaitTermination(forcedSeconds, TimeUnit.SECONDS))
+          baseLogger.warn(
+            s"BSP request threads still running after a further ${forcedSeconds}s; " +
+              "their leases will be released when they eventually return"
+          )
+      }
     } catch {
       case _: InterruptedException =>
         bspRequestExecutor.shutdownNow()

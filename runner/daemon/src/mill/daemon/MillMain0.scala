@@ -244,6 +244,14 @@ object MillMain0 {
                       OutputDirectoryLayout.outDir(outMode, BuildCtx.workspaceRoot, env),
                       BuildCtx.workspaceRoot
                     )
+                    // Concurrent BSP requests share one connection's `setIdle`
+                    // flag; coordinate via a counter so the flag flips only on
+                    // aggregate 0↔N transitions, not last-writer-wins.
+                    val activeRequests = new java.util.concurrent.atomic.AtomicInteger(0)
+                    def beginActive(): Unit =
+                      if (activeRequests.getAndIncrement() == 0) setIdle(false)
+                    def endActive(): Unit =
+                      if (activeRequests.decrementAndGet() == 0) setIdle(true)
                     Using.resources(new TailManager(daemonDir), createEc()) { (tailManager, ec) =>
                       def runMillBootstrap(
                           skipSelectiveExecution: Boolean,
@@ -266,16 +274,23 @@ object MillMain0 {
                         def acquireOutFileLease(
                             markIdleWhileWaiting: Boolean
                         ): SharedOutLockManager.Lease = {
-                          if (markIdleWhileWaiting) setIdle(true)
-                          try {
-                            sharedOutLockManager.lease(
-                              noBuildLock = config.noBuildLock.value,
-                              noWaitForBuildLock = config.noWaitForBuildLock.value,
-                              waitingErr = streams.err
-                            )
-                          } finally {
-                            if (markIdleWhileWaiting) setIdle(false)
-                          }
+                          val underlying = sharedOutLockManager.lease(
+                            noBuildLock = config.noBuildLock.value,
+                            noWaitForBuildLock = config.noWaitForBuildLock.value,
+                            waitingErr = streams.err
+                          )
+                          if (markIdleWhileWaiting) {
+                            beginActive()
+                            new SharedOutLockManager.Lease {
+                              private val released =
+                                new java.util.concurrent.atomic.AtomicBoolean(false)
+                              override def close(): Unit =
+                                if (released.compareAndSet(false, true)) {
+                                  try underlying.close()
+                                  finally endActive()
+                                }
+                            }
+                          } else underlying
                         }
 
                         def createLauncherResources()

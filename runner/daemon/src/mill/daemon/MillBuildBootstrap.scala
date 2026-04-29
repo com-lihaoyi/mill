@@ -455,11 +455,8 @@ class MillBuildBootstrap(
       )
       val displaced = writeScope.update(_.withFrame(depth, fresh)).reusableFrameAt(depth)
       closeDisplacedClassloader(displaced)
-      // Downgrade only after the state swap and displaced-classloader close
-      // are complete. Otherwise another launcher could acquire a meta-build
-      // read lock, observe the old frame via `ref.get()`, retain it, and then
-      // have its classloader closed out from under it by the publishing
-      // launcher.
+      // Downgrade only after the displaced classloader has been closed, so
+      // teardown of the old classloader/workers stays exclusive at this depth.
       val retainedLease = writeScope.scope.downgradeAndRetain()
       nestedState.withMetaFrame(
         RunnerLauncherState.MetaFrame(
@@ -642,8 +639,25 @@ class MillBuildBootstrap(
                 reusable.selectiveMetadata.set(Some(decision.nextMetadata))
                 val metadataFile =
                   os.Path(metaFrame.evaluator.outPathJava) / OutFiles.millSelectiveExecution
-                try os.write.over(metadataFile, decision.nextMetadata)
-                catch { case _: Throwable => () }
+                // Atomic write: runs under the meta-build Read lease, so
+                // concurrent launchers can race here; a torn file would
+                // mis-trigger a meta-build rebuild on the next read.
+                try {
+                  val tmp = metadataFile / os.up /
+                    s".${metadataFile.last}.tmp-${System.nanoTime()}-${ProcessHandle.current().pid()}"
+                  try {
+                    os.write.over(tmp, decision.nextMetadata, createFolders = true)
+                    java.nio.file.Files.move(
+                      tmp.toNIO,
+                      metadataFile.toNIO,
+                      java.nio.file.StandardCopyOption.REPLACE_EXISTING,
+                      java.nio.file.StandardCopyOption.ATOMIC_MOVE
+                    )
+                  } finally {
+                    try os.remove.all(tmp)
+                    catch { case _: Throwable => () }
+                  }
+                } catch { case _: Throwable => () }
               case _: Result.Failure => ()
             }
           }
