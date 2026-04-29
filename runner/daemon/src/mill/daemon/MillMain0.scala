@@ -56,6 +56,12 @@ object MillMain0 {
   def outFileLock(out: os.Path): Lock =
     Lock.file((out / OutFiles.millOutLock).toString)
 
+  private[daemon] def useInProcessLauncherResources(
+      hasDaemonClient: Boolean,
+      bspMode: Boolean
+  ): Boolean =
+    hasDaemonClient || bspMode
+
   private def withStreams[T](
       bspMode: Boolean,
       env: Map[String, String],
@@ -297,7 +303,12 @@ object MillMain0 {
                             : (LauncherLocking, LauncherOutFiles, AutoCloseable) = {
                           val fileLockLease = acquireOutFileLease(markIdleWhileWaiting = true)
                           try {
-                            if (serverToClientOpt.nonEmpty) {
+                            if (
+                              useInProcessLauncherResources(
+                                hasDaemonClient = serverToClientOpt.nonEmpty,
+                                bspMode = bspMode
+                              )
+                            ) {
                               val runId = outFilesState.nextRunId()
                               val locking = new LauncherLockingImpl(
                                 activeCommandMessage = millActiveCommandMessage,

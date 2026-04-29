@@ -68,13 +68,19 @@ object ExecutionContexts {
       val submitterPwd = os.dynamicPwdFunction.value
       val submitterChecker = os.checker.value
       val submitterStreams = new mill.api.SystemStreams(Console.out, Console.err, System.in)
+      val submitterModuleWatched = mill.api.BuildCtx.watchedValues0.value
+      val submitterEvalWatched = mill.api.BuildCtx.evalWatchedValues0.value
       executor.execute(new PriorityRunnable(
         0,
         () =>
           os.checker.withValue(submitterChecker) {
             os.dynamicPwdFunction.withValue(() => submitterPwd()) {
               mill.api.SystemStreamsUtils.withStreams(submitterStreams) {
-                runnable.run()
+                mill.api.BuildCtx.watchedValues0.withValue(submitterModuleWatched) {
+                  mill.api.BuildCtx.evalWatchedValues0.withValue(submitterEvalWatched) {
+                    runnable.run()
+                  }
+                }
               }
             }
           }
@@ -139,6 +145,8 @@ object ExecutionContexts {
         dest
       }
       val submitterChecker = os.checker.value
+      val submitterModuleWatched = mill.api.BuildCtx.watchedValues0.value
+      val submitterEvalWatched = mill.api.BuildCtx.evalWatchedValues0.value
       val promise = concurrent.Promise[T]
       val runnable = new PriorityRunnable(
         priority = priority,
@@ -147,7 +155,11 @@ object ExecutionContexts {
             os.checker.withValue(submitterChecker) {
               os.dynamicPwdFunction.withValue(() => makeDest()) {
                 mill.api.SystemStreamsUtils.withStreams(logger.streams) {
-                  t(logger)
+                  mill.api.BuildCtx.watchedValues0.withValue(submitterModuleWatched) {
+                    mill.api.BuildCtx.evalWatchedValues0.withValue(submitterEvalWatched) {
+                      t(logger)
+                    }
+                  }
                 }
               }
             }

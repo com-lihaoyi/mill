@@ -843,23 +843,24 @@ object MillBuildBootstrap {
       reporter: Int => Option[CompileProblemReporter]
   ): (Result[Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
     import buildFileApi.*
-    evalWatchedValues.clear()
-    val evalTaskResult = evaluator.evaluate(
-      tasksAndParams,
-      SelectMode.Separated,
-      reporter = reporter,
-      selectiveExecution = selectiveExecution
-    )
+    val (evalTaskResult, evalWatched) = withEvalWatchedValues {
+      evaluator.evaluate(
+        tasksAndParams,
+        SelectMode.Separated,
+        reporter = reporter,
+        selectiveExecution = selectiveExecution
+      )
+    }
 
     evalTaskResult match {
       case f: Result.Failure =>
-        (f, evalWatchedValues.toSeq, moduleWatchedValues)
+        (f, evalWatched, moduleWatchedValues)
       case Result.Success(res: EvaluatorApi.Result[Any]) =>
         res.values match {
           case f: Result.Failure =>
-            (f, res.watchable ++ evalWatchedValues, moduleWatchedValues)
+            (f, res.watchable ++ evalWatched, moduleWatchedValues)
           case Result.Success(results) =>
-            (Result.Success(results), res.watchable ++ evalWatchedValues, moduleWatchedValues)
+            (Result.Success(results), res.watchable ++ evalWatched, moduleWatchedValues)
         }
     }
   }
