@@ -122,9 +122,10 @@ trait KspModule extends KotlinModule { outer =>
     sources()
   }
 
-  override def kotlinUseEmbeddableCompiler: T[Boolean] = kspModuleMode match {
-    case KspModuleMode.Ksp1 => Task { true }
-    case KspModuleMode.Ksp2Cli | KspModuleMode.Ksp2 => Task { super.kotlinUseEmbeddableCompiler() }
+  override def kotlinUseEmbeddableCompiler: Task[Boolean] = kspModuleMode match {
+    case KspModuleMode.Ksp1 => Task.Anon { true }
+    case KspModuleMode.Ksp2Cli | KspModuleMode.Ksp2 =>
+      Task.Anon { super.kotlinUseEmbeddableCompiler() }
   }
 
   /**

@@ -120,7 +120,9 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
    *
    * See also https://discuss.kotlinlang.org/t/kotlin-compiler-embeddable-vs-kotlin-compiler/3196
    */
-  def kotlinUseEmbeddableCompiler: T[Boolean] = Task { false }
+  // TODO: Keeping this as `Task.Anon` since changing the return type from `Task` would cause binary incompatibility.
+  // If/when binary compatibility can be broken, consider switching this to `Task` that returns`T`
+  def kotlinUseEmbeddableCompiler: Task[Boolean] = Task.Anon { false }
 
   /**
    * The Ivy/Coursier dependencies resembling the Kotlin compiler.
@@ -515,8 +517,8 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
         Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
     }
-    override def kotlinUseEmbeddableCompiler: T[Boolean] =
-      Task { outer.kotlinUseEmbeddableCompiler() }
+    override def kotlinUseEmbeddableCompiler: Task[Boolean] =
+      Task.Anon { outer.kotlinUseEmbeddableCompiler() }
     override def kotlincUseBtApi: T[Boolean] = Task { outer.kotlincUseBtApi() }
   }
 
@@ -537,9 +539,9 @@ object KotlinModule {
       outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
         Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
     }
-    override def kotlinUseEmbeddableCompiler: T[Boolean] =
-      Task { outer.kotlinUseEmbeddableCompiler() }
-    override def kotlincUseBtApi: T[Boolean] = Task { outer.kotlincUseBtApi() }
+    override def kotlinUseEmbeddableCompiler: Task[Boolean] =
+      Task.Anon { outer.kotlinUseEmbeddableCompiler() }
+    override def kotlincUseBtApi: Task.Simple[Boolean] = Task { outer.kotlincUseBtApi() }
   }
   private[mill] def addJvmVariantAttributes: ResolutionParams => ResolutionParams = { params =>
     params.addVariantAttributes(

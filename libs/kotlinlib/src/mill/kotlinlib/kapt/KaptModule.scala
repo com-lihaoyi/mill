@@ -65,7 +65,7 @@ trait KaptModule extends KotlinModule { outer =>
   def kaptCorrectErrorTypes: T[Boolean] = Task { true }
   def kaptMapDiagnosticLocations: T[Boolean] = Task { true }
 
-  override def kotlinUseEmbeddableCompiler: T[Boolean] = Task { true }
+  override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task.Anon { true }
 
   override def kotlincPluginMvnDeps: T[Seq[Dep]] = Task {
     super.kotlincPluginMvnDeps() ++ kaptPluginMvnDeps()
