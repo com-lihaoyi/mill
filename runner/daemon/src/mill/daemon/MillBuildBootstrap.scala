@@ -17,7 +17,7 @@ import mill.api.internal.RootModule
 import mill.internal.PrefixLogger
 import mill.meta.{BootstrapRootModule, MillBuildRootModule}
 import mill.api.daemon.internal.CliImports
-import mill.meta.DiscoveredBuildFiles.findRootBuildFiles
+import mill.internal.BuildFileDiscovery.findRootBuildFiles
 import mill.server.Server
 import mill.util.BuildInfo
 import os.Path
