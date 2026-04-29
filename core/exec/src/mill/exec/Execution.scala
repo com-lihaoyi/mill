@@ -272,98 +272,98 @@ case class Execution(
                 lockPhasePrerequisites.getOrElse(terminal, Future.successful(()))
               futures(terminal) = Future.sequence(deps.map(futures)).zip(lockPhaseFuture).map {
                 case (upstreamValues, _) =>
-                try {
-                  val countMsg = mill.api.internal.Util.leftPad(
-                    count.getAndIncrement().toString,
-                    terminals.length.toString.length,
-                    '0'
-                  )
+                  try {
+                    val countMsg = mill.api.internal.Util.leftPad(
+                      count.getAndIncrement().toString,
+                      terminals.length.toString.length,
+                      '0'
+                    )
 
-                  val contextLogger = new PrefixLogger(
-                    logger0 = logger,
-                    key0 = Seq(countMsg),
-                    keySuffix = keySuffix,
-                    message = terminal.toString,
-                    noPrefix = exclusive
-                  )
+                    val contextLogger = new PrefixLogger(
+                      logger0 = logger,
+                      key0 = Seq(countMsg),
+                      keySuffix = keySuffix,
+                      message = terminal.toString,
+                      noPrefix = exclusive
+                    )
 
-                  if (enableTicker) prefixes.put(terminal, contextLogger.logKey)
-                  contextLogger.withPromptLine {
-                    logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix())
-
-                    if (failed.get()) None
-                    else {
-                      val upstreamResults = upstreamValues
-                        .iterator
-                        .flatMap(_.iterator.flatMap(_.newResults))
-                        .toMap
-
-                      val upstreamPathRefs = upstreamValues
-                        .iterator
-                        .flatMap(_.iterator.flatMap(_.serializedPaths))
-                        .toSeq
-
-                      val startTime = System.nanoTime() / 1000
-
-                      val res = executeGroupCached(
-                        terminal = terminal,
-                        group = plan.sortedGroups.lookupKey(terminal).toSeq,
-                        results = upstreamResults,
-                        countMsg = countMsg,
-                        zincProblemReporter = reporter,
-                        testReporter = testReporter,
-                        logger = contextLogger,
-                        deps = deps,
-                        classToTransitiveClasses = classToTransitiveClasses,
-                        allTransitiveClassMethods = allTransitiveClassMethods,
-                        executionContext = forkExecutionContext,
-                        exclusive = exclusive,
-                        upstreamPathRefs = upstreamPathRefs,
-                        leaseTracker = tracker
-                      )
-
-                      // Skipped (upstream-failed) tasks are not counted as new failures.
-                      val newFailures = res.newResults.values.count(r => r.asFailing.isDefined)
-
-                      rootFailedCount.addAndGet(newFailures)
-                      completedCount.incrementAndGet()
-
+                    if (enableTicker) prefixes.put(terminal, contextLogger.logKey)
+                    contextLogger.withPromptLine {
                       logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix())
 
-                      if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
-                        failed.set(true)
+                      if (failed.get()) None
+                      else {
+                        val upstreamResults = upstreamValues
+                          .iterator
+                          .flatMap(_.iterator.flatMap(_.newResults))
+                          .toMap
 
-                      val endTime = System.nanoTime() / 1000
-                      val duration = endTime - startTime
+                        val upstreamPathRefs = upstreamValues
+                          .iterator
+                          .flatMap(_.iterator.flatMap(_.serializedPaths))
+                          .toSeq
 
-                      if (!res.cached) uncached.put(terminal, ())
-                      if (res.valueHashChanged) changedValueHash.put(terminal, ())
+                        val startTime = System.nanoTime() / 1000
 
-                      profileLogger.log(
-                        terminal.toString,
-                        duration,
-                        res.cached,
-                        res.valueHashChanged,
-                        deps.map(_.toString),
-                        res.inputsHash,
-                        res.previousInputsHash
-                      )
+                        val res = executeGroupCached(
+                          terminal = terminal,
+                          group = plan.sortedGroups.lookupKey(terminal).toSeq,
+                          results = upstreamResults,
+                          countMsg = countMsg,
+                          zincProblemReporter = reporter,
+                          testReporter = testReporter,
+                          logger = contextLogger,
+                          deps = deps,
+                          classToTransitiveClasses = classToTransitiveClasses,
+                          allTransitiveClassMethods = allTransitiveClassMethods,
+                          executionContext = forkExecutionContext,
+                          exclusive = exclusive,
+                          upstreamPathRefs = upstreamPathRefs,
+                          leaseTracker = tracker
+                        )
 
-                      Some(res)
+                        // Skipped (upstream-failed) tasks are not counted as new failures.
+                        val newFailures = res.newResults.values.count(r => r.asFailing.isDefined)
+
+                        rootFailedCount.addAndGet(newFailures)
+                        completedCount.incrementAndGet()
+
+                        logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix())
+
+                        if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
+                          failed.set(true)
+
+                        val endTime = System.nanoTime() / 1000
+                        val duration = endTime - startTime
+
+                        if (!res.cached) uncached.put(terminal, ())
+                        if (res.valueHashChanged) changedValueHash.put(terminal, ())
+
+                        profileLogger.log(
+                          terminal.toString,
+                          duration,
+                          res.cached,
+                          res.valueHashChanged,
+                          deps.map(_.toString),
+                          res.inputsHash,
+                          res.previousInputsHash
+                        )
+
+                        Some(res)
+                      }
                     }
+                  } catch {
+                    // Controlled shutdown signal; let it propagate.
+                    case e: mill.api.daemon.StopWithResponse[?] => throw e
+                    // Wrap fatal so the Future infrastructure catches it; otherwise
+                    // downstream Awaits hang on a silently-terminated future.
+                    case e: Throwable if !mill.api.daemon.internal.NonFatal(e) =>
+                      val nonFatal = new Exception(s"fatal exception occurred: $e", e)
+                      nonFatal.setStackTrace(e.getStackTrace)
+                      throw nonFatal
+                  } finally {
+                    tracker.onCompleted(terminal)
                   }
-                } catch {
-                  // Controlled shutdown signal; let it propagate.
-                  case e: mill.api.daemon.StopWithResponse[?] => throw e
-                  // Wrap fatal so the Future infrastructure catches it; otherwise
-                  // downstream Awaits hang on a silently-terminated future.
-                  case e: Throwable if !mill.api.daemon.internal.NonFatal(e) =>
-                    val nonFatal = new Exception(s"fatal exception occurred: $e", e)
-                    nonFatal.setStackTrace(e.getStackTrace)
-                    throw nonFatal
-                } finally {
-                  tracker.onCompleted(terminal)
-                }
               }
             }
           }
@@ -519,9 +519,14 @@ object Execution {
         }
       }.toMap
 
-    // Plan-invariant for shared tasks: every launcher containing T sees the
-    // same heights and tiebreaks, so overlapping locks are acquired in the
+    // Plan-invariant for shared named tasks: every launcher containing T sees
+    // the same heights and tiebreaks, so overlapping locks are acquired in the
     // same order everywhere and the cross-launcher AB/BA cycle is unreachable.
+    // Caveat: a Task.Anon passed as a goal becomes an `important` cut point in
+    // `groupAroundImportantTasks`, which can alter `interGroupDeps` for shared
+    // downstream named tasks and break invariance. CLI-driven goals are always
+    // named, so this only affects programmatic `executeTasks` callers passing
+    // anonymous tasks as goals concurrently with a peer launcher that doesn't.
     private val canonicalHeights: Map[Task[?], Int] = {
       val memo = mutable.Map.empty[Task[?], Int]
       def rec(t: Task[?]): Int = memo.getOrElseUpdate(
