@@ -532,26 +532,32 @@ object Execution {
 
     // Single canonical ordering used both for `evaluateTerminals` future-
     // spawning and the lock-phase prerequisite chain. Sort key:
-    //   height: walks the task's intrinsic input chain through anonymous
-    //     intermediaries; intrinsic to the task definition.
+    //   height: longest path in the directUpstreams graph (= filtered
+    //     interGroupDeps), so every task strictly exceeds the height of
+    //     its in-plan upstreams. Plan-invariant for shared tasks because
+    //     interGroupDeps depends only on each task's intrinsic input
+    //     chain through anonymous intermediaries (anon tasks are always
+    //     in groupSet of every named task that reaches them, so they are
+    //     never an external input contributing to interGroupDeps).
     //   tiebreak: taskLockKey for named (the absolute dest path that
     //     LauncherLockRegistry keys on) or t.toString for unnamed.
     // Both components are identical across launchers for shared tasks, so
     // overlapping locks are acquired in the same order in every launcher
-    // and the cross-launcher AB/BA cycle is unreachable. The order is
-    // topologically valid because every task strictly exceeds the height
-    // of its named ancestors, so iterating in this order satisfies
-    // `Future.sequence(deps.map(futures))` for `evaluateTerminals`.
-    private val canonicalHeight = {
+    // and the cross-launcher AB/BA cycle is unreachable. Iterating in this
+    // order is also a valid topological order over directUpstreams, so
+    // `Future.sequence(deps.map(futures))` in `evaluateTerminals` finds
+    // every dep already in `futures`.
+    private val canonicalHeights: Map[Task[?], Int] = {
       val memo = mutable.Map.empty[Task[?], Int]
       def rec(t: Task[?]): Int = memo.getOrElseUpdate(
         t, {
-          val ancestors = PlanImpl.immediateNamedUpstreams(t)
-          if (ancestors.isEmpty) 0
-          else 1 + ancestors.iterator.map(rec).max
+          val parents = directUpstreams.getOrElse(t, Nil)
+          if (parents.isEmpty) 0
+          else 1 + parents.iterator.map(rec).max
         }
       )
-      rec
+      indexToTerminal.foreach(rec)
+      memo.toMap
     }
 
     def canonicalOrder(tasks: Iterable[Task[?]]): Seq[Task[?]] =
@@ -560,7 +566,7 @@ object Execution {
           case n: Task.Named[?] => taskLockKey(n)
           case _ => t.toString
         }
-        (canonicalHeight(t), tiebreak)
+        (canonicalHeights.getOrElse(t, 0), tiebreak)
       }
 
     private val orderedTaskLockPhases: Seq[Task[?]] =
