@@ -273,24 +273,24 @@ object MillMain0 {
                       ): RunnerLauncherState = {
                         def acquireOutFileLease(
                             markIdleWhileWaiting: Boolean
-                        ): SharedOutLockManager.Lease = {
+                        ): AutoCloseable = {
                           val underlying = sharedOutLockManager.lease(
                             noBuildLock = config.noBuildLock.value,
                             noWaitForBuildLock = config.noWaitForBuildLock.value,
                             waitingErr = streams.err
                           )
-                          if (markIdleWhileWaiting) {
+                          if (!markIdleWhileWaiting) underlying
+                          else {
                             beginActive()
-                            new SharedOutLockManager.Lease {
-                              private val released =
-                                new java.util.concurrent.atomic.AtomicBoolean(false)
+                            val released = new java.util.concurrent.atomic.AtomicBoolean(false)
+                            new AutoCloseable {
                               override def close(): Unit =
                                 if (released.compareAndSet(false, true)) {
                                   try underlying.close()
                                   finally endActive()
                                 }
                             }
-                          } else underlying
+                          }
                         }
 
                         def createLauncherResources()
