@@ -290,8 +290,7 @@ trait GroupExecution {
               logger = logger,
               inputsHash = inputsHash,
               labelled = labelled,
-              // `cached.isEmpty` means the worker metadata file was removed by the user,
-              // so recompute the worker.
+              // Missing metadata file means user wiped it; force worker recompute.
               forceDiscard = cached.isEmpty,
               deps = deps,
               paths = Some(paths),
@@ -380,10 +379,8 @@ trait GroupExecution {
                     (valueHash, serializedPaths, true)
 
                   case _ =>
-                    // Wipe out any cached meta.json file that exists, so
-                    // a following run won't look at the cached metadata file and
-                    // assume it's associated with the possibly-borked state of the
-                    // destPath after an evaluation failure.
+                    // Stale meta.json paired with a borked destPath would be
+                    // mistaken for a clean cache on the next run.
                     os.remove.all(paths.meta)
                     (0, Nil, false)
                 }
@@ -779,14 +776,10 @@ trait GroupExecution {
           Some(upToDate)
 
         case (_, Val(_: AutoCloseable), _) if closeStaleWorker =>
-          // Close this worker and all workers that depend on it. Recompute the
-          // reverse-dependency graph from the *current* `workerCache` under
-          // its lock instead of relying on the per-Execution `reverseDeps`
-          // snapshot — when `workerCache` is shared across concurrent
-          // launchers, another launcher may have added a dependent worker
-          // since this Execution's snapshot was taken, and the stale snapshot
-          // would leave that newer dependent in the cache pointing at the
-          // closed upstream.
+          // Recompute reverse-deps from current `workerCache` under lock: a
+          // peer launcher may have added a dependent worker since this
+          // Execution's snapshot was taken; a stale snapshot would leave that
+          // dependent pointing at the closed upstream.
           val (currentReverseDeps, currentTopoIndex) = workerCache.synchronized {
             val cacheSnapshot = workerCache.toMap
             val deps = GroupExecution.workerDependencies(cacheSnapshot)

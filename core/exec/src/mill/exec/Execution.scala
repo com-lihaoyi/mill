@@ -232,11 +232,8 @@ case class Execution(
             terminals: Seq[Task[?]],
             exclusive: Boolean
         ) = {
-          // Spawn futures in the canonical order also used by the lock-phase
-          // chain. Single ordering for both purposes: a future's
-          // lockPhaseFuture always points at an already-spawned upstream's
-          // promise, and the order is a valid topological order so each
-          // terminal's deps are already in `futures` when the loop hits it.
+          // Same canonical order as the lock-phase chain so each future's
+          // lockPhaseFuture points at an already-spawned upstream's promise.
           val terminals1 = tracker.canonicalOrder(terminals)
           val lockPhasePrerequisites = tracker.taskLockPhasePrerequisites(terminals1.toSet)
           val forkExecutionContext =
@@ -325,13 +322,12 @@ case class Execution(
                         leaseTracker = tracker
                       )
 
-                      // Count new failures - if there are upstream failures, tasks should be skipped, not failed
+                      // Skipped (upstream-failed) tasks are not counted as new failures.
                       val newFailures = res.newResults.values.count(r => r.asFailing.isDefined)
 
                       rootFailedCount.addAndGet(newFailures)
                       completedCount.incrementAndGet()
 
-                      // Always show completed count in header after task finishes
                       logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix())
 
                       if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
@@ -357,14 +353,12 @@ case class Execution(
                     }
                   }
                 } catch {
-                  // Let StopWithResponse propagate - it's a controlled shutdown signal
+                  // Controlled shutdown signal; let it propagate.
                   case e: mill.api.daemon.StopWithResponse[?] => throw e
-                  // Wrapping the fatal error in a non-fatal exception, so it would be caught by Scala's Future
-                  // infrastructure, rather than silently terminating the future and leaving downstream Awaits hanging.
+                  // Wrap fatal so the Future infrastructure catches it; otherwise
+                  // downstream Awaits hang on a silently-terminated future.
                   case e: Throwable if !mill.api.daemon.internal.NonFatal(e) =>
                     val nonFatal = new Exception(s"fatal exception occurred: $e", e)
-                    // Set the stack trace of the non-fatal exception to the original exception's stack trace
-                    // as it actually indicates the location of the error.
                     nonFatal.setStackTrace(e.getStackTrace)
                     throw nonFatal
                 } finally {
@@ -390,13 +384,10 @@ case class Execution(
           finally lease.close()
         }
 
-        // Invocations containing an exclusive command take `exclusiveLock.Write`
-        // for the whole batch (not just the exclusive phase). Splitting Read for
-        // the upstream phase and Write for the exclusive phase deadlocks against
-        // peers holding `exclusiveLock.Read` and waiting on a `taskLock.Write`
-        // that this launcher's `LeaseTracker` retains; draining the tracker
-        // first opens a window where a peer can rewrite `out/<X>/dest` before
-        // we acquire Write, breaking the exclusive command's upstream PathRefs.
+        // Whole-batch Write rather than splitting Read/Write across phases:
+        // splitting deadlocks against peers waiting on `taskLock.Write` that
+        // our retained `LeaseTracker` reads block, and draining the tracker
+        // first lets a peer rewrite an upstream `dest` before we acquire Write.
         val haveExclusive = leafExclusiveCommands.nonEmpty
         val outerKind =
           if (haveExclusive) LauncherLocking.LockKind.Write
@@ -420,9 +411,8 @@ case class Execution(
         val nonExclusiveResults = phaseResults._1
         val exclusiveResults = phaseResults._2
 
-        // Set final header showing SUCCESS/FAILED status:
-        // - FAILED: show for any outermost execution with failures (meta-build failures terminate bootstrapping)
-        // - SUCCESS: only show for the final requested depth (depth 0 normally, or --meta-level if specified)
+        // FAILED on any outermost failure (meta-build failure aborts bootstrap);
+        // SUCCESS only at the final requested depth.
         val isOutermostExecution = executionNestingDepth.get() == 1
         val hasFailures = rootFailedCount.get() > 0
         val showFinalStatus = isOutermostExecution && (hasFailures || isFinalDepth)
@@ -432,7 +422,6 @@ case class Execution(
 
         val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
 
-        // Convert versionMismatchReasons to Map[String, String] for invalidation-tree logging.
         val taskInvalidationReasons = {
           import scala.jdk.CollectionConverters.ConcurrentMapHasAsScala
           versionMismatchReasons.asScala.collect {
@@ -530,23 +519,9 @@ object Execution {
         }
       }.toMap
 
-    // Single canonical ordering used both for `evaluateTerminals` future-
-    // spawning and the lock-phase prerequisite chain. Sort key:
-    //   height: longest path in the directUpstreams graph (= filtered
-    //     interGroupDeps), so every task strictly exceeds the height of
-    //     its in-plan upstreams. Plan-invariant for shared tasks because
-    //     interGroupDeps depends only on each task's intrinsic input
-    //     chain through anonymous intermediaries (anon tasks are always
-    //     in groupSet of every named task that reaches them, so they are
-    //     never an external input contributing to interGroupDeps).
-    //   tiebreak: taskLockKey for named (the absolute dest path that
-    //     LauncherLockRegistry keys on) or t.toString for unnamed.
-    // Both components are identical across launchers for shared tasks, so
-    // overlapping locks are acquired in the same order in every launcher
-    // and the cross-launcher AB/BA cycle is unreachable. Iterating in this
-    // order is also a valid topological order over directUpstreams, so
-    // `Future.sequence(deps.map(futures))` in `evaluateTerminals` finds
-    // every dep already in `futures`.
+    // Plan-invariant for shared tasks: every launcher containing T sees the
+    // same heights and tiebreaks, so overlapping locks are acquired in the
+    // same order everywhere and the cross-launcher AB/BA cycle is unreachable.
     private val canonicalHeights: Map[Task[?], Int] = {
       val memo = mutable.Map.empty[Task[?], Int]
       def rec(t: Task[?]): Int = memo.getOrElseUpdate(
@@ -619,8 +594,7 @@ object Execution {
       taskLockPhasePromises.get(task).foreach(_.trySuccess(()))
 
     def onCompleted(terminal: Task[?]): Unit = {
-      // If evaluation failed or was skipped before task-lock acquisition, do
-      // not leave later tasks in this launcher's lock phase waiting forever.
+      // Unblock the lock-phase chain even if evaluation failed before lock acquisition.
       onTaskLockPhaseComplete(terminal)
       for (dep <- transitiveUpstreams.getOrElse(terminal, Nil)) {
         val s = states.get(dep)

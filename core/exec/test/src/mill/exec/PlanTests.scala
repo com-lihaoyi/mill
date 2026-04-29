@@ -236,9 +236,6 @@ object PlanTests extends TestSuite {
       val upTask = up
       val downTask = down
       val sideTask = side
-      // down depends on up so down has height 1, up and side have height 0.
-      // Within height 0, up and side tiebreak by lock key. Keys chosen so that
-      // side's key sorts before up's, giving order: side, up, down.
       val keys = Map[Task[?], String](
         downTask -> "9-down",
         sideTask -> "1-side",
@@ -327,11 +324,6 @@ object PlanTests extends TestSuite {
     }
 
     test("leaseTrackerLockPhaseOrderAgreesAcrossLaunchersOnSharedTasks") {
-      // Two launchers planning different goal subsets that share two named
-      // tasks. The intrinsic namedUpstreamHeight depends only on each task's
-      // own input chain, so the two launchers must agree on the lock-phase
-      // order of the shared pair regardless of which other tasks are in their
-      // respective plans. Under the old plan-relative depth this could differ.
       import lockPhaseOrdering.*
 
       val upTask = up
@@ -361,21 +353,13 @@ object PlanTests extends TestSuite {
       )
       val shared = Set[Task[?]](upTask, downTask)
 
-      // up has height 0, down has height 1 in BOTH plans (computed from
-      // task definitions, not plan grouping).
       assert(largerPlan.taskLockPhaseOrder(shared) == Seq(upTask, downTask))
       assert(smallerPlan.taskLockPhaseOrder(shared) == Seq(upTask, downTask))
     }
 
     test("leaseTrackerLockPhaseOrderIgnoresAnonymousIntermediaryGrouping") {
-      // multiTerminalGroup has an anonymous Task.Anon shared by named `left`
-      // and `right`. Under old plan-relative depth, whichever named task got
-      // grouped with `task` (a function of topo order, which depends on
-      // goals) had different depth than the other. Under namedUpstreamHeight,
-      // both left and right have height 0 because their first named ancestor
-      // walk through the anonymous intermediary terminates with no named
-      // tasks. Two launchers with different goal sets must produce the same
-      // order on the shared pair.
+      // Two named tasks sharing an anonymous Task.Anon must order identically
+      // in both launchers regardless of goal-iteration-driven group absorption.
       import TestGraphs.multiTerminalGroup.*
 
       val keys = Map[Task[?], String](
@@ -412,9 +396,6 @@ object PlanTests extends TestSuite {
       val executor = Executors.newFixedThreadPool(8)
       implicit val ec: ExecutionContext = ExecutionContext.fromExecutorService(executor)
 
-      // Records each launcher's lock-acquisition order so we can assert the
-      // gate actually serialized them in the canonical order, not just that
-      // the run didn't deadlock.
       val acquisitionLog = new java.util.concurrent.ConcurrentLinkedQueue[(String, String)]()
 
       def locking(command: String, pid: Long) = new LauncherLockingImpl(
@@ -487,10 +468,8 @@ object PlanTests extends TestSuite {
       }
 
       try {
-        // Schedule each launcher's two cache-miss escalations in opposite
-        // order: A starts on alpha, B starts on beta. Without the gate this is
-        // the classic AB/BA cycle (A holds Read alpha + waits Write beta, B
-        // holds Read beta + waits Write alpha).
+        // Each launcher schedules its escalations in opposite order: without
+        // the gate this is the classic AB/BA cycle.
         val aAlpha = runCacheMiss("A", "alpha", lockingA, trackerA, alphaTask, alphaPath, prereqsA)
         val bBeta = runCacheMiss("B", "beta", lockingB, trackerB, betaTask, betaPath, prereqsB)
         val aBeta = runCacheMiss("A", "beta", lockingA, trackerA, betaTask, betaPath, prereqsA)
@@ -501,9 +480,6 @@ object PlanTests extends TestSuite {
 
         val _ = Await.result(Future.sequence(Seq(aDone, bDone)), 10.seconds)
 
-        // Gate must serialize each launcher's acquisitions in canonical order
-        // (alpha < beta by lock path), regardless of which Future was scheduled
-        // first.
         import scala.jdk.CollectionConverters.*
         val perLauncher = acquisitionLog.asScala.toSeq.groupMap(_._1)(_._2)
         assert(perLauncher("A") == Seq("alpha", "beta"))
