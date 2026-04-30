@@ -36,9 +36,17 @@ private object ExecutionLogs {
   ): Unit = {
     val invalidationTreePath = os.Path(runArtifacts.invalidationTree)
     val changedTasks = changedValueHash.keys().asScala.toSet
-    val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
-    val filteredReverseInterGroupDeps = reverseInterGroupDeps.view.filterKeys(changedTasks).toMap
-    val downstreamSources = filteredReverseInterGroupDeps.filter(_._2.nonEmpty).keySet
+    val downstreamSources =
+      if (changedTasks.isEmpty) Set.empty[Task[?]]
+      else {
+        val builder = Set.newBuilder[Task[?]]
+        for {
+          deps <- interGroupDeps.valuesIterator
+          dep <- deps
+          if changedTasks.contains(dep)
+        } builder += dep
+        builder.result()
+      }
 
     // Root invalidated tasks: uncached tasks that either cause downstream invalidations
     // or are non-input tasks (e.g. invalidated due to codesig change)

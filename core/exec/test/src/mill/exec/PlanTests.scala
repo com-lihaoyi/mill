@@ -228,6 +228,11 @@ object PlanTests extends TestSuite {
       tracker.retain(b, bLease)
       tracker.retain(c, cLease)
 
+      tracker.onCompleted(a)
+      assert(!aLease.closed.get())
+      assert(!bLease.closed.get())
+      assert(!cLease.closed.get())
+
       tracker.onCompleted(b)
       assert(!aLease.closed.get())
       assert(!bLease.closed.get())
@@ -399,8 +404,8 @@ object PlanTests extends TestSuite {
       )
       Await.result(settled, 5.seconds)
 
-      // Both b's and c's onCompleted must have fired, decrementing a.pending
-      // from 2 → 0 and releasing the retained Read lease.
+      // Both b's and c's onCompleted must have fired, recursively draining
+      // b's subtree and then releasing a's retained Read lease.
       assert(aLease.closed.get())
     }
 

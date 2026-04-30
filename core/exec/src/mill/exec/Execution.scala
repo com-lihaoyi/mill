@@ -7,8 +7,7 @@ import mill.internal.{
   CodeSigUtils,
   JsonArrayLogger,
   PrefixLogger,
-  PromptWaitReporter,
-  SpanningForest
+  PromptWaitReporter
 }
 
 import java.util.concurrent.{ConcurrentHashMap, ThreadPoolExecutor}
@@ -223,15 +222,33 @@ case class Execution(
           downstreamEdges.getOrElse(t, Set())
         )
 
+      val outPathLockKeyPrefix = outPath.toNIO.toAbsolutePath.normalize().toString
+      val externalOutPathLockKeyPrefix = externalOutPath.toNIO.toAbsolutePath.normalize().toString
+      def taskLockKey(labelled: Task.Named[?]): String = {
+        val prefix =
+          if (!labelled.ctx.external) outPathLockKeyPrefix else externalOutPathLockKeyPrefix
+        val parts = labelled.ctx.segments.parts
+        if (parts.isEmpty) prefix
+        else {
+          val sanitized = parts.iterator.map(p => ExecutionPaths.sanitizePathSegment(p).toString)
+          val builder = new StringBuilder(prefix)
+          builder.append('/')
+          var last = sanitized.next()
+          while (sanitized.hasNext) {
+            builder.append(last)
+            builder.append('/')
+            last = sanitized.next()
+          }
+          builder.append(last)
+          builder.append(".dest")
+          builder.toString
+        }
+      }
+
       val tracker = new Execution.LeaseTracker(
         indexToTerminal,
         interGroupDeps,
-        labelled => {
-          val out = if (!labelled.ctx.external) outPath else externalOutPath
-          ExecutionPaths.resolve(out, labelled.ctx.segments).dest.toNIO.toAbsolutePath
-            .normalize()
-            .toString
-        }
+        taskLockKey
       )
 
       def evaluateTerminals(
@@ -509,6 +526,7 @@ object Execution {
   ) {
     class State {
       val pending = new AtomicInteger(0)
+      val completed = new AtomicBoolean(false)
       val leases = new java.util.concurrent.ConcurrentLinkedQueue[LauncherLocking.Lease]()
     }
 
@@ -521,21 +539,10 @@ object Execution {
         .toMap
 
     private val directDownstreams: Map[Task[?], Seq[Task[?]]] =
-      SpanningForest.reverseEdges(directUpstreams)
-
-    private val transitiveUpstreams: Map[Task[?], Seq[Task[?]]] =
-      indexToTerminal.iterator.map { terminal =>
-        terminal -> SpanningForest.breadthFirst(directUpstreams.getOrElse(terminal, Nil)) { t =>
-          directUpstreams.getOrElse(t, Nil)
-        }
-      }.toMap
-
-    private val transitiveDownstreams: Map[Task[?], Seq[Task[?]]] =
-      indexToTerminal.iterator.map { terminal =>
-        terminal -> SpanningForest.breadthFirst(directDownstreams.getOrElse(terminal, Nil)) { t =>
-          directDownstreams.getOrElse(t, Nil)
-        }
-      }.toMap
+      directUpstreams.iterator
+        .flatMap { case (downstream, upstreams) => upstreams.iterator.map(_ -> downstream) }
+        .toVector
+        .groupMap(_._1)(_._2)
 
     // Heights and tiebreaks are plan-invariant for shared named tasks,
     // so all launchers acquire overlapping locks in the same order and
@@ -553,13 +560,26 @@ object Execution {
       memo.toMap
     }
 
-    def canonicalOrder(tasks: Iterable[Task[?]]): Seq[Task[?]] =
-      tasks.toSeq.sortBy { t =>
+    private val canonicalSortKeys: Map[Task[?], (Int, String)] =
+      indexToTerminal.iterator.map { t =>
         val tiebreak = t match {
           case n: Task.Named[?] => taskLockKey(n)
           case _ => t.toString
         }
-        (canonicalHeights.getOrElse(t, 0), tiebreak)
+        t -> (canonicalHeights.getOrElse(t, 0), tiebreak)
+      }.toMap
+
+    def canonicalOrder(tasks: Iterable[Task[?]]): Seq[Task[?]] =
+      tasks.toSeq.sortBy { t =>
+        canonicalSortKeys.getOrElse(
+          t, {
+            val tiebreak = t match {
+              case n: Task.Named[?] => taskLockKey(n)
+              case _ => t.toString
+            }
+            (canonicalHeights.getOrElse(t, 0), tiebreak)
+          }
+        )
       }
 
     private val orderedTaskLockPhases: Seq[Task[?]] =
@@ -574,7 +594,7 @@ object Execution {
     for (t <- indexToTerminal) states.put(t, new State)
     for (t <- indexToTerminal) {
       val s = states.get(t)
-      if (s != null) s.pending.set(transitiveDownstreams.getOrElse(t, Nil).size)
+      if (s != null) s.pending.set(directDownstreams.getOrElse(t, Nil).size)
     }
 
     def closeQuietly(lease: LauncherLocking.Lease): Unit =
@@ -588,6 +608,28 @@ object Execution {
         while (lease != null) {
           closeQuietly(lease)
           lease = s.leases.poll()
+        }
+      }
+    }
+
+    def releaseIfDrained(start: Task[?]): Unit = {
+      val queue = mutable.Queue(start)
+      while (queue.nonEmpty) {
+        val task = queue.dequeue()
+        val s = states.get(task)
+        if (s != null && s.completed.get() && s.pending.get() == 0 && states.remove(task, s)) {
+          var lease = s.leases.poll()
+          while (lease != null) {
+            closeQuietly(lease)
+            lease = s.leases.poll()
+          }
+          for (upstream <- directUpstreams.getOrElse(task, Nil)) {
+            val upstreamState = states.get(upstream)
+            if (upstreamState != null) {
+              upstreamState.pending.decrementAndGet()
+              queue.enqueue(upstream)
+            }
+          }
         }
       }
     }
@@ -614,12 +656,11 @@ object Execution {
     def onCompleted(terminal: Task[?]): Unit = {
       // Unblock the lock-phase chain even if evaluation failed before lock acquisition.
       onTaskLockPhaseComplete(terminal)
-      for (dep <- transitiveUpstreams.getOrElse(terminal, Nil)) {
-        val s = states.get(dep)
-        if (s != null && s.pending.decrementAndGet() == 0) releaseLeasesFor(dep)
-      }
       val own = states.get(terminal)
-      if (own != null && own.pending.get() == 0) releaseLeasesFor(terminal)
+      if (own != null) {
+        own.completed.set(true)
+        releaseIfDrained(terminal)
+      }
     }
 
     def drain(): Unit = {
