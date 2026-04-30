@@ -234,168 +234,168 @@ case class Execution(
         }
       )
 
-        // Hoisted out of the surrounding try-block so future tweaks don't
-        // re-indent the whole body and balloon the diff.
-        def evaluateTerminals(
-            terminals: Seq[Task[?]],
-            exclusive: Boolean
-        ) = {
-          // Same canonical order as the lock-phase chain so each future's
-          // lockPhaseFuture points at an already-spawned upstream's promise.
-          val terminals1 = tracker.canonicalOrder(terminals)
-          val lockPhasePrerequisites = tracker.taskLockPhasePrerequisites(terminals1.toSet)
-          val forkExecutionContext =
-            ec.fold(ExecutionContexts.RunNow)(new ExecutionContexts.ThreadPool(_))
-          implicit val taskExecutionContext =
-            if (exclusive) ExecutionContexts.RunNow else forkExecutionContext
-          for (terminal <- terminals1) {
-            val deps = interGroupDeps(terminal)
+      // Hoisted out of the surrounding try-block so future tweaks don't
+      // re-indent the whole body and balloon the diff.
+      def evaluateTerminals(
+          terminals: Seq[Task[?]],
+          exclusive: Boolean
+      ) = {
+        // Same canonical order as the lock-phase chain so each future's
+        // lockPhaseFuture points at an already-spawned upstream's promise.
+        val terminals1 = tracker.canonicalOrder(terminals)
+        val lockPhasePrerequisites = tracker.taskLockPhasePrerequisites(terminals1.toSet)
+        val forkExecutionContext =
+          ec.fold(ExecutionContexts.RunNow)(new ExecutionContexts.ThreadPool(_))
+        implicit val taskExecutionContext =
+          if (exclusive) ExecutionContexts.RunNow else forkExecutionContext
+        for (terminal <- terminals1) {
+          val deps = interGroupDeps(terminal)
 
-            val group = plan.sortedGroups.lookupKey(terminal)
-            val exclusiveDeps = deps.filter(d => d.isExclusiveCommand)
+          val group = plan.sortedGroups.lookupKey(terminal)
+          val exclusiveDeps = deps.filter(d => d.isExclusiveCommand)
 
-            if (terminal.asCommand.isEmpty && downstreamOfExclusive.contains(terminal)) {
-              val failure = ExecResult.Failure(
-                s"Non-Command task ${terminal} cannot depend on exclusive command " +
-                  exclusiveDeps.mkString(", ")
-              )
-              val taskResults: Map[Task[?], ExecResult.Failing[Nothing]] = group
-                .map(t => (t, failure))
-                .toMap
+          if (terminal.asCommand.isEmpty && downstreamOfExclusive.contains(terminal)) {
+            val failure = ExecResult.Failure(
+              s"Non-Command task ${terminal} cannot depend on exclusive command " +
+                exclusiveDeps.mkString(", ")
+            )
+            val taskResults: Map[Task[?], ExecResult.Failing[Nothing]] = group
+              .map(t => (t, failure))
+              .toMap
 
-              tracker.onCompleted(terminal)
-              futures(terminal) = Future.successful(
-                Some(GroupExecution.Results(
-                  newResults = taskResults,
-                  newEvaluated = group.toSeq,
-                  cached = false,
-                  inputsHash = -1,
-                  previousInputsHash = -1,
-                  valueHashChanged = false,
-                  serializedPaths = Nil
-                ))
-              )
-            } else {
-              val lockPhaseFuture =
-                lockPhasePrerequisites.getOrElse(terminal, Future.successful(()))
-              val raw = Future.sequence(deps.map(futures)).zip(lockPhaseFuture).map {
-                case (upstreamValues, _) =>
-                  try {
-                    val countMsg = mill.api.internal.Util.leftPad(
-                      count.getAndIncrement().toString,
-                      terminals.length.toString.length,
-                      '0'
-                    )
+            tracker.onCompleted(terminal)
+            futures(terminal) = Future.successful(
+              Some(GroupExecution.Results(
+                newResults = taskResults,
+                newEvaluated = group.toSeq,
+                cached = false,
+                inputsHash = -1,
+                previousInputsHash = -1,
+                valueHashChanged = false,
+                serializedPaths = Nil
+              ))
+            )
+          } else {
+            val lockPhaseFuture =
+              lockPhasePrerequisites.getOrElse(terminal, Future.successful(()))
+            val raw = Future.sequence(deps.map(futures)).zip(lockPhaseFuture).map {
+              case (upstreamValues, _) =>
+                try {
+                  val countMsg = mill.api.internal.Util.leftPad(
+                    count.getAndIncrement().toString,
+                    terminals.length.toString.length,
+                    '0'
+                  )
 
-                    val contextLogger = new PrefixLogger(
-                      logger0 = logger,
-                      key0 = Seq(countMsg),
-                      keySuffix = keySuffix,
-                      message = terminal.toString,
-                      noPrefix = exclusive
-                    )
+                  val contextLogger = new PrefixLogger(
+                    logger0 = logger,
+                    key0 = Seq(countMsg),
+                    keySuffix = keySuffix,
+                    message = terminal.toString,
+                    noPrefix = exclusive
+                  )
 
-                    if (enableTicker) prefixes.put(terminal, contextLogger.logKey)
-                    contextLogger.withPromptLine {
+                  if (enableTicker) prefixes.put(terminal, contextLogger.logKey)
+                  contextLogger.withPromptLine {
+                    logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix())
+
+                    if (failed.get()) None
+                    else {
+                      val upstreamResults = upstreamValues
+                        .iterator
+                        .flatMap(_.iterator.flatMap(_.newResults))
+                        .toMap
+
+                      val upstreamPathRefs = upstreamValues
+                        .iterator
+                        .flatMap(_.iterator.flatMap(_.serializedPaths))
+                        .toSeq
+
+                      val startTime = System.nanoTime() / 1000
+
+                      val res = executeGroupCached(
+                        terminal = terminal,
+                        group = plan.sortedGroups.lookupKey(terminal).toSeq,
+                        results = upstreamResults,
+                        countMsg = countMsg,
+                        zincProblemReporter = reporter,
+                        testReporter = testReporter,
+                        logger = contextLogger,
+                        deps = deps,
+                        classToTransitiveClasses = classToTransitiveClasses,
+                        allTransitiveClassMethods = allTransitiveClassMethods,
+                        executionContext = forkExecutionContext,
+                        exclusive = exclusive,
+                        upstreamPathRefs = upstreamPathRefs,
+                        leaseTracker = tracker
+                      )
+
+                      // Skipped (upstream-failed) tasks are not counted as new failures.
+                      val newFailures = res.newResults.values.count(r => r.asFailing.isDefined)
+
+                      rootFailedCount.addAndGet(newFailures)
+                      completedCount.incrementAndGet()
+
                       logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix())
 
-                      if (failed.get()) None
-                      else {
-                        val upstreamResults = upstreamValues
-                          .iterator
-                          .flatMap(_.iterator.flatMap(_.newResults))
-                          .toMap
+                      if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
+                        failed.set(true)
 
-                        val upstreamPathRefs = upstreamValues
-                          .iterator
-                          .flatMap(_.iterator.flatMap(_.serializedPaths))
-                          .toSeq
+                      val endTime = System.nanoTime() / 1000
+                      val duration = endTime - startTime
 
-                        val startTime = System.nanoTime() / 1000
+                      if (!res.cached) uncached.put(terminal, ())
+                      if (res.valueHashChanged) changedValueHash.put(terminal, ())
 
-                        val res = executeGroupCached(
-                          terminal = terminal,
-                          group = plan.sortedGroups.lookupKey(terminal).toSeq,
-                          results = upstreamResults,
-                          countMsg = countMsg,
-                          zincProblemReporter = reporter,
-                          testReporter = testReporter,
-                          logger = contextLogger,
-                          deps = deps,
-                          classToTransitiveClasses = classToTransitiveClasses,
-                          allTransitiveClassMethods = allTransitiveClassMethods,
-                          executionContext = forkExecutionContext,
-                          exclusive = exclusive,
-                          upstreamPathRefs = upstreamPathRefs,
-                          leaseTracker = tracker
-                        )
+                      profileLogger.log(
+                        terminal.toString,
+                        duration,
+                        res.cached,
+                        res.valueHashChanged,
+                        deps.map(_.toString),
+                        res.inputsHash,
+                        res.previousInputsHash
+                      )
 
-                        // Skipped (upstream-failed) tasks are not counted as new failures.
-                        val newFailures = res.newResults.values.count(r => r.asFailing.isDefined)
-
-                        rootFailedCount.addAndGet(newFailures)
-                        completedCount.incrementAndGet()
-
-                        logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix())
-
-                        if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
-                          failed.set(true)
-
-                        val endTime = System.nanoTime() / 1000
-                        val duration = endTime - startTime
-
-                        if (!res.cached) uncached.put(terminal, ())
-                        if (res.valueHashChanged) changedValueHash.put(terminal, ())
-
-                        profileLogger.log(
-                          terminal.toString,
-                          duration,
-                          res.cached,
-                          res.valueHashChanged,
-                          deps.map(_.toString),
-                          res.inputsHash,
-                          res.previousInputsHash
-                        )
-
-                        Some(res)
-                      }
+                      Some(res)
                     }
-                  } catch {
-                    // Controlled shutdown signal; let it propagate.
-                    case e: mill.api.daemon.StopWithResponse[?] => throw e
-                    // Wrap fatal so the Future infrastructure catches it; otherwise
-                    // downstream Awaits hang on a silently-terminated future.
-                    case e: Throwable if !mill.api.daemon.internal.NonFatal(e) =>
-                      val nonFatal = new Exception(s"fatal exception occurred: $e", e)
-                      nonFatal.setStackTrace(e.getStackTrace)
-                      throw nonFatal
                   }
-              }
-              // andThen on the outer future so onCompleted fires whether the
-              // .map body ran (success / non-fatal failure inside body) or
-              // was skipped because Future.sequence(deps) failed earlier in
-              // the chain. Without this, an upstream re-thrown exception
-              // would skip every transitive downstream's pending decrement
-              // and leak retained Read leases until tracker.drain().
-              futures(terminal) = raw.andThen { case _ => tracker.onCompleted(terminal) }
+                } catch {
+                  // Controlled shutdown signal; let it propagate.
+                  case e: mill.api.daemon.StopWithResponse[?] => throw e
+                  // Wrap fatal so the Future infrastructure catches it; otherwise
+                  // downstream Awaits hang on a silently-terminated future.
+                  case e: Throwable if !mill.api.daemon.internal.NonFatal(e) =>
+                    val nonFatal = new Exception(s"fatal exception occurred: $e", e)
+                    nonFatal.setStackTrace(e.getStackTrace)
+                    throw nonFatal
+                }
             }
-          }
-
-          // Wait for every future in the batch to settle before returning so
-          // tracker.drain() (in the outer finally) can never run while a
-          // task body is mid-`retain` or mid-`onCompleted`. Plain
-          // Future.sequence is fail-fast and would let drain race with
-          // still-running siblings; transforming each future to Try makes
-          // the outer sequence wait for genuine completion of all tasks,
-          // and we re-throw the first failure afterwards.
-          val settled = Future.sequence(
-            terminals1.map(t => futures(t).transform(r => Success(t -> r)))
-          )
-          Await.result(settled, duration.Duration.Inf).map {
-            case (t, Success(v)) => (t, v)
-            case (_, Failure(e)) => throw e
+            // andThen on the outer future so onCompleted fires whether the
+            // .map body ran (success / non-fatal failure inside body) or
+            // was skipped because Future.sequence(deps) failed earlier in
+            // the chain. Without this, an upstream re-thrown exception
+            // would skip every transitive downstream's pending decrement
+            // and leak retained Read leases until tracker.drain().
+            futures(terminal) = raw.andThen { case _ => tracker.onCompleted(terminal) }
           }
         }
+
+        // Wait for every future in the batch to settle before returning so
+        // tracker.drain() (in the outer finally) can never run while a
+        // task body is mid-`retain` or mid-`onCompleted`. Plain
+        // Future.sequence is fail-fast and would let drain race with
+        // still-running siblings; transforming each future to Try makes
+        // the outer sequence wait for genuine completion of all tasks,
+        // and we re-throw the first failure afterwards.
+        val settled = Future.sequence(
+          terminals1.map(t => futures(t).transform(r => Success(t -> r)))
+        )
+        Await.result(settled, duration.Duration.Inf).map {
+          case (t, Success(v)) => (t, v)
+          case (_, Failure(e)) => throw e
+        }
+      }
 
       try {
         val (nonExclusiveTasks, leafExclusiveCommands) = indexToTerminal.partition {
