@@ -1,0 +1,8 @@
+= Android Library Publishing
+:page-aliases: android_publishing.adoc
+
+If you have an Android library that you want to publish to a repository like Maven Central, you can follow the steps outlined in this page to build and publish your library using Mill.
+
+== Example Android Library Publishing Workflow
+
+include::partial$example/androidlib/kotlin/4-sum-lib-kotlin.adoc[]

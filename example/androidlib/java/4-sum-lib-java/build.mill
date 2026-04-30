@@ -1,12 +1,6 @@
-// This section sets up a basic Android project using Mill.
-// We utilize `AndroidAppModule`, `AndroidSdkModule` and `AndroidLibModule` and `PublishModule` to streamline the process of
-// building an Android application with minimal configuration that uses our custom library that we locally publish.
-//
-// By extending `AndroidAppModule`, we inherit all Android-related tasks such as
-// resource generation, APK building, DEX conversion, and APK signing.
-// Additionally, `AndroidSdkModule` is embedded, making SDK management seamless.
-// Also `AndroidLibModule` has all the nescesarry tasks to build an Android library AAR.
-// And by using `PublishModule` we can publish our library locally.
+// This section demonstrates how to set up an Android library module written in Java for publishing.
+// We utilize `AndroidLibModule`, which extends `PublishModule` to enable seamless
+// library (AAR artifact) building and local publishing with minimal configuration.
 
 //// SNIPPET:BUILD
 package build
