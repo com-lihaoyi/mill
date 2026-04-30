@@ -267,9 +267,7 @@ object MillMain0 {
                           loggerOpt: Option[Logger] = None,
                           reporter: EvaluatorApi => Int => Option[CompileProblemReporter] =
                             _ => _ => None,
-                          // Reporter for meta-build (build.mill / mill-build/build.mill)
-                          // compilation, keyed by depth. Used by BSP so meta-build
-                          // diagnostics reach the BSP client.
+                          // Depth-keyed meta-build compile reporter (BSP-only).
                           metaBuildReporter: Int => Option[CompileProblemReporter] =
                             _ => None,
                           extraEnv: Seq[(String, String)] = Nil,
@@ -468,15 +466,10 @@ object MillMain0 {
                             _ => SystemStreams.originalErr.println("Received SIGTERM, exiting")
                           )
 
-                          // Each BSP request bootstraps fresh evaluators with no shared
-                          // `prevState`: shared meta-build frames are protected by
-                          // meta-build locks, task evaluation uses normal task locks, and each
-                          // `RunnerLauncherState` is closed after its request.
-                          //
-                          // The `metaReporter` is supplied by the BSP worker (which owns the
-                          // `BuildClient`) and is invoked during each meta-build compile so
-                          // build diagnostics for `build.mill` and `mill-build/build.mill`
-                          // reach the BSP client like normal-target diagnostics do.
+                          // Each BSP request bootstraps a fresh `RunnerLauncherState`;
+                          // meta-build frames are shared via `RunnerSharedState` under
+                          // the meta-build locks. `metaReporter` lets the BSP worker
+                          // route meta-build compile diagnostics to its `BuildClient`.
                           val bootstrapBridge: BspBootstrapBridge =
                             new BspBootstrapBridge {
                               def apply[T](

@@ -122,19 +122,10 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       launcher1.assertContainsLines("same-task-value")
       launcher2.assertContainsLines("same-task-value")
 
-      // Launcher 1 acquired every lock first; nothing to wait on.
       assertContention(launcher1, Set.empty)
-      // Launcher 2 must contend on exactly the inner `sameTask` lock —
-      // the only deterministically-held lock while launcher 1 is parked.
-      // (The outer `runSameTask` Command lock would race: launcher 1
-      // releases it as soon as its body returns, often before launcher 2
-      // escalates that one. The `sameTask` Read held by the not-yet-
-      // completed downstream is what makes the wait deterministic.) Any
-      // other lock — notably any meta-build escalation — fails the test.
-      // Launcher 1 holds Write on sameTask (computing, parked at gate);
-      // launcher 2's read-then-write probe blocks on the *Read*
-      // acquisition. After launcher 1 releases, launcher 2 takes Read
-      // and finds the freshly-published cache → no Write escalation.
+      // Only `sameTask` is deterministically held while launcher 1 is
+      // parked; the outer `runSameTask` Command lock often races free
+      // before launcher 2 escalates.
       assertContention(launcher2, Set(blockedLine("runSameTask", blockerPid, "sameTask", "read")))
     }
 
@@ -163,11 +154,7 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       launcher1.assertContainsLines("shared-value-left")
       launcher2.assertContainsLines("shared-value")
 
-      // Launcher 1 acquired every lock first.
       assertContention(launcher1, Set.empty)
-      // Launcher 2 must contend on exactly the per-task `shared` lock and
-      // nothing else (no spurious meta-build escalation).
-      // Same Read-blocked-by-Write pattern as the previous test.
       assertContention(launcher2, Set(blockedLine("runLeft", blockerPid, "shared", "read")))
     }
 
@@ -205,9 +192,7 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       launcher1.assertContainsLines("shared-value-left")
       assert(!blockedBy(launcher1, "runRight", blockerPid, "shared"))
 
-      // Both launchers run disjoint downstream paths over a cached
-      // `shared` Read; nothing should contend on anything (no per-task
-      // contention, no meta-build escalation).
+      // Disjoint downstreams over a cached `shared` Read: zero contention.
       assertContention(launcher1, Set.empty)
       assertContention(launcher2, Set.empty)
     }
@@ -247,11 +232,7 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       launcher1.assertContainsLines("fast-value-0")
       launcher2.assertContainsLines("shared-value")
 
-      // Launcher 1 acquired everything first.
       assertContention(launcher1, Set.empty)
-      // Launcher 2 must contend on exactly the depth-1 meta-build lock
-      // (`mill-build/build.mill`) — the build.mill edit forces a real
-      // meta-build rebuild — and nothing else.
       assertContention(
         launcher2,
         Set(blockedLine("runHoldMetaBuildRead", blockerPid, "mill-build/build.mill", "write"))
@@ -275,12 +256,8 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
         val launcher1 = spawn(("runHoldMetaBuildRead"))
         awaitEntered(tester, "meta-build-read")
 
-        // Launcher 2: a different Task.Command on the same project. The
-        // build is unchanged, so the meta-build is fully reusable; launcher 2
-        // should only need Read leases on meta-build depths, which must
-        // coexist with launcher 1's retained Reads. With the bug, launcher 2
-        // escalates to Write on a meta-build lock and blocks behind
-        // launcher 1's retained Read.
+        // Build unchanged — launcher 2 should coexist on Read leases
+        // with launcher 1's retained Reads, no Write escalation.
         val launcher2 = spawn(("runFast"))
         assertEventually(!launcher2.process.isAlive())
 
@@ -293,9 +270,7 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
         assert(launcher1.process.exitCode() == 0)
         launcher1.assertContainsLines("fast-value-0")
 
-        // Both launchers must run with no contention at all: meta-build is
-        // fully reusable and the per-task work is disjoint (or cached). Any
-        // wait — meta-build or per-task — fails the test.
+        // Zero contention expected: any wait — meta-build or per-task — fails.
         assertContention(launcher1, Set.empty)
         assertContention(launcher2, Set.empty)
       }
@@ -312,18 +287,13 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       val gate = waitFile(tester, "exclusive-wait")
       os.write.over(gate, "")
 
-      // Launcher 1 holds `exclusiveLock(Write)` for its whole batch
-      // (because `runExclusive` is a Task.Command with `exclusive = true`),
-      // and parks inside the task body.
+      // Launcher 1 holds `exclusiveLock(Write)` and parks.
       val launcher1 = spawn(("runExclusive"))
       awaitEntered(tester, "exclusive")
       val blockerPid = awaitActiveLauncherPid(tester, "runExclusive")
 
-      // Launcher 2 runs a non-exclusive task. Its batch needs
-      // `exclusiveLock(Read)`, which cannot coexist with launcher 1's
-      // `exclusiveLock(Write)` — so launcher 2 blocks on `exclusive`,
-      // even though `runFast` has no other dependency or lock conflict
-      // with `runExclusive`.
+      // Launcher 2's `exclusiveLock(Read)` blocks on launcher 1's Write
+      // even though `runFast` is otherwise unrelated to `runExclusive`.
       val launcher2 = spawn(("runFast"))
       assertEventually(blockedBy(launcher2, "runExclusive", blockerPid, "exclusive"))
       assert(launcher2.process.isAlive())
@@ -338,13 +308,9 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       launcher1.assertContainsLines("exclusive-value")
       launcher2.assertContainsLines("fast-value-0")
 
-      // Launcher 1 acquired everything first.
       assertContention(launcher1, Set.empty)
-      // Launcher 2 must contend on exactly the `exclusive` lock and
-      // nothing else. The message must use the same "blocked taking ..."
-      // shape as per-task waits, confirming the exclusive-lock wait is
-      // routed through the same WaitReporter / prompt pipeline as
-      // per-task waits.
+      // Same `blocked taking ...` shape as per-task waits — confirms
+      // exclusive-lock waits go through the same WaitReporter pipeline.
       assertContention(
         launcher2,
         Set(blockedLine("runExclusive", blockerPid, "exclusive", "read"))
@@ -369,13 +335,9 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
 
       os.write.over(versionFile, "1")
       val launcher2 = spawn(("runUseWorker"))
-      // The version-file change means launcher 2's `testWorker` needs to
-      // be recreated; launcher 1 holds the per-task Read lease on
-      // `testWorker` while parked at the gate, so launcher 2's Write
-      // request blocks. (`workerVersion` is a Task.Input and now bypasses
-      // the per-task lock entirely — its computation is deterministic
-      // from filesystem inputs and serializing has no value, so the
-      // contention shifted to the actual stateful task.)
+      // Version change forces `testWorker` recreation; launcher 1's
+      // retained Read on `testWorker` blocks launcher 2's Write.
+      // (`workerVersion` is Task.Input, so it bypasses the per-task lock.)
       assertEventually(blockedBy(launcher2, "runUseWorker", blockerPid, "testWorker"))
       assert(launcher2.process.isAlive())
       assert(!os.exists(closeMarker))
@@ -392,10 +354,7 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       launcher1.assertContainsLines("worker-value-0")
       launcher2.assertContainsLines("worker-value-1")
 
-      // Launcher 1 acquired everything first.
       assertContention(launcher1, Set.empty)
-      // Launcher 2 contends on exactly `testWorker` (the Worker that
-      // depends on the changed `workerVersion`) and nothing else.
       assertContention(
         launcher2,
         Set(blockedLine("runUseWorker", blockerPid, "testWorker", "write"))
