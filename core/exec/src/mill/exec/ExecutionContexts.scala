@@ -147,10 +147,9 @@ object ExecutionContexts {
       threadCount,
       60 * 1000,
       TimeUnit.SECONDS,
-      // Use a `Deque` rather than a normal `Queue`, with the various `poll`/`take`
-      // operations reversed, providing elements in a LIFO order. This ensures that
-      // child `fork.async` tasks always take priority over parent tasks, avoiding
-      // large numbers of blocked parent tasks from piling up
+      // Use a priority queue so child `fork.async` tasks can run ahead of
+      // lower-priority parent tasks, avoiding large numbers of blocked parent
+      // tasks from piling up.
       new PriorityBlockingQueue[Runnable](),
       runnable => {
         val threadIndex = threadCounter.incrementAndGet()
