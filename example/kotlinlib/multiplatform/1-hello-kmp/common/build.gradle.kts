@@ -22,6 +22,11 @@ kotlin {
                 api(compose.material)
             }
         }
+        named("commonTest") {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
         named("androidMain") {
             dependencies {
                 api("androidx.activity:activity-compose:1.7.2")
@@ -29,9 +34,18 @@ kotlin {
                 api("androidx.core:core-ktx:1.10.1")
             }
         }
+        named("androidUnitTest") {
+            dependencies {
+                implementation(kotlin("test-junit"))
+            }
+        }
         named("desktopMain") {
         }
+        named("desktopTest") {
+        }
         named("wasmJsMain") {
+        }
+        named("wasmJsTest") {
         }
     }
 }
