@@ -233,8 +233,9 @@ case class Execution(
             .toString
         }
       )
-      try {
 
+        // Hoisted out of the surrounding try-block so future tweaks don't
+        // re-indent the whole body and balloon the diff.
         def evaluateTerminals(
             terminals: Seq[Task[?]],
             exclusive: Boolean
@@ -396,6 +397,7 @@ case class Execution(
           }
         }
 
+      try {
         val (nonExclusiveTasks, leafExclusiveCommands) = indexToTerminal.partition {
           case t: Task.Named[_] => !downstreamOfExclusive.contains(t)
           case _ => !serialCommandExec
