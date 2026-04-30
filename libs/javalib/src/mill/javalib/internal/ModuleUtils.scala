@@ -21,14 +21,15 @@ object ModuleUtils {
   def recursive[T](name: String, start: T, deps: T => Seq[T]): Seq[T] = {
 
     @tailrec def rec(
-        seenModules: List[T],
+        seenModules: Set[T],
+        result: List[T],
         toAnalyze: List[(List[T], List[T])]
     ): List[T] = {
       toAnalyze match {
-        case Nil => seenModules
+        case Nil => result
         case traces :: rest =>
           traces match {
-            case (_, Nil) => rec(seenModules, rest)
+            case (_, Nil) => rec(seenModules, result, rest)
             case (trace, cand :: remaining) =>
               if (trace.contains(cand)) {
                 // cycle!
@@ -38,9 +39,10 @@ object ModuleUtils {
                 println(msg)
                 throw new mill.api.MillException(msg)
               }
+              val alreadySeen = seenModules.contains(cand)
               rec(
-                if (seenModules.contains(cand)) seenModules
-                else { seenModules ++ Seq(cand) },
+                if (alreadySeen) seenModules else seenModules + cand,
+                if (alreadySeen) result else cand :: result,
                 toAnalyze = ((cand :: trace, deps(cand).toList)) :: (trace, remaining) :: rest
               )
           }
@@ -48,8 +50,9 @@ object ModuleUtils {
     }
 
     rec(
-      seenModules = List(),
+      seenModules = Set.empty,
+      result = Nil,
       toAnalyze = List((List(start), deps(start).toList))
-    ).reverse
+    )
   }
 }
