@@ -6,72 +6,11 @@ import os.Path
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.Comparator
 import java.util.concurrent.{PriorityBlockingQueue, ThreadFactory, ThreadPoolExecutor, TimeUnit}
 import mill.api.Logger
-import mill.api.daemon.internal.NonFatal
+import mill.api.daemon.internal.{NonFatal, PriorityRunnable}
 
 object ExecutionContexts {
-
-  /**
-   * Classloader-local counter for [[ThreadPool.PriorityRunnable.priorityRunnableIndex]].
-   * Indexed once per submitted runnable; the queue comparator also uses the
-   * runnable's classloader identity so BSP build reloads can safely submit
-   * runnables from a fresh Mill classloader into an existing daemon executor.
-   */
-  private val priorityRunnableCount = new java.util.concurrent.atomic.AtomicLong()
-
-  private final case class PriorityRunnableOrderingKey(
-      priority: Int,
-      priorityRunnableIndex: Long,
-      classLoaderIdentity: Int,
-      runnableIdentity: Int
-  )
-
-  private def classLoaderIdentity(clazz: Class[?]): Int =
-    System.identityHashCode(clazz.getClassLoader)
-
-  private def priorityRunnableOrderingKey(runnable: Runnable): PriorityRunnableOrderingKey = {
-    val clazz = runnable.getClass
-    val classLoaderId = classLoaderIdentity(clazz)
-    val runnableId = System.identityHashCode(runnable)
-
-    try {
-      val priorityMethod = clazz.getMethod("priority")
-      val priorityRunnableIndexMethod = clazz.getMethod("priorityRunnableIndex")
-      PriorityRunnableOrderingKey(
-        priorityMethod.invoke(runnable).asInstanceOf[Int],
-        priorityRunnableIndexMethod.invoke(runnable).asInstanceOf[Long],
-        classLoaderId,
-        runnableId
-      )
-    } catch {
-      case scala.util.control.NonFatal(_) =>
-        PriorityRunnableOrderingKey(0, Long.MaxValue, classLoaderId, runnableId)
-    }
-  }
-
-  private val priorityRunnableOrdering: Comparator[Runnable] =
-    (left: Runnable, right: Runnable) => {
-      if (left eq right) 0
-      else {
-        val leftKey = priorityRunnableOrderingKey(left)
-        val rightKey = priorityRunnableOrderingKey(right)
-        val priorityComparison = leftKey.priority.compareTo(rightKey.priority)
-        if (priorityComparison != 0) priorityComparison
-        else {
-          val indexComparison =
-            leftKey.priorityRunnableIndex.compareTo(rightKey.priorityRunnableIndex)
-          if (indexComparison != 0) indexComparison
-          else {
-            val loaderComparison =
-              leftKey.classLoaderIdentity.compareTo(rightKey.classLoaderIdentity)
-            if (loaderComparison != 0) loaderComparison
-            else leftKey.runnableIdentity.compareTo(rightKey.runnableIdentity)
-          }
-        }
-      }
-    }
 
   /**
    * Execution context that runs code immediately when scheduled, without
@@ -148,21 +87,6 @@ object ExecutionContexts {
     def close(): Unit = executor.shutdown()
 
     /**
-     * Subclass of [[java.lang.Runnable]] that assigns a priority to execute it
-     *
-     * Priority 0 is the default priority of all Mill task, priorities <0 can be used to
-     * prioritize this runnable over most other tasks, while priorities >0 can be used to
-     * de-prioritize it.
-     */
-    class PriorityRunnable(val priority: Int, run0: () => Unit) extends Runnable {
-      def run() = run0()
-      // Classloader-local counter; the queue comparator adds a classloader
-      // tie-breaker for BSP reloads where multiple Mill classloaders can share
-      // one daemon-level `PriorityBlockingQueue`.
-      val priorityRunnableIndex: Long = ExecutionContexts.priorityRunnableCount.getAndIncrement()
-    }
-
-    /**
      * A variant of `scala.concurrent.Future{...}` that sets the `pwd` to a different
      * folder [[dest]] and duplicates the logging streams to [[dest]].log while evaluating
      * [[t]], to avoid conflict with other tasks that may be running concurrently
@@ -227,7 +151,7 @@ object ExecutionContexts {
       // operations reversed, providing elements in a LIFO order. This ensures that
       // child `fork.async` tasks always take priority over parent tasks, avoiding
       // large numbers of blocked parent tasks from piling up
-      new PriorityBlockingQueue[Runnable](11, priorityRunnableOrdering),
+      new PriorityBlockingQueue[Runnable](),
       runnable => {
         val threadIndex = threadCounter.incrementAndGet()
         val t = new Thread(
