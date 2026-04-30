@@ -86,6 +86,12 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ProblemFilter.exclude[Problem]("mill.api.internal.RootModule$Info*"),
     ProblemFilter.exclude[Problem]("mill.api.internal.RootModule#Info*"),
     ProblemFilter.exclude[Problem]("mill.api.daemon.internal.bsp.BspServerHandle.*"),
+    // `BuildFileApi` is `mill.api.daemon.internal` (not part of the
+    // user-facing API). Concurrency support replaced the mutable
+    // `evalWatchedValues` buffer with an isolated-buffer scope helper
+    // (`withEvalWatchedValues`); both old and new methods are internal.
+    ProblemFilter.exclude[Problem]("mill.api.daemon.internal.BuildFileApi.*"),
+    ProblemFilter.exclude[Problem]("mill.api.daemon.internal.BuildFileApi#Bootstrap.*"),
     // Incorrect return type, no choice but to change the signature
     ProblemFilter.exclude[Problem]("mill.kotlinlib.KotlinModule.kotlinUseEmbeddableCompiler"),
     ProblemFilter.exclude[Problem](
