@@ -8,11 +8,26 @@ object `package` extends mill.Module {
   private def workspace = mill.api.BuildCtx.workspaceRoot
 
   private def gate(name: String) = workspace / s"$name-wait"
+  private def enteredMarker(name: String) = workspace / s"$name-entered"
 
+  /**
+   * Two-phase deterministic gate for concurrency tests:
+   *
+   *   1. Touch `<name>-entered` so the test runner can detect (via file
+   *      existence) the exact moment this task body has begun. Atomic from
+   *      the test runner's perspective — no buffered-output race.
+   *   2. Spin until `<name>-wait` is removed so the test runner controls
+   *      exactly when the task is allowed to proceed.
+   *
+   * If the test never created `<name>-wait` before spawning, the loop never
+   * enters and the task continues immediately — used by tests that want
+   * deterministic entry detection without parking.
+   */
   private def waitFor(name: String): Unit = {
-    println(s"entered-$name")
     mill.api.BuildCtx.withFilesystemCheckerDisabled {
-      while (os.exists(gate(name))) Thread.sleep(100L)
+      os.write.over(enteredMarker(name), "")
+      println(s"entered-$name")
+      while (os.exists(gate(name))) Thread.sleep(50L)
     }
   }
 
