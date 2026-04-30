@@ -384,6 +384,23 @@ class MillBuildBootstrap(
       }
     }
 
+    def pruneFramesAbove(
+        writeScope: MetaBuildAccess.WriteScope,
+        maxDepth: Int
+    ): Unit = {
+      // Only drop the map entries; do NOT explicitly close the displaced
+      // classloaders/workers here. The canonical meta-build lock order is
+      // deepest-first, so acquiring `metaBuildLock(d+1, Write)` while
+      // holding `metaBuildLock(d, Write)` (as we do during this publish)
+      // can deadlock against a concurrent launcher that recurses deeper.
+      // Dropping the entry is enough to prevent future launchers from
+      // reusing the orphaned frame; once the launchers that still pin its
+      // classloader (via `RunnerLauncherState.metaFrames`) complete, the
+      // classloader becomes GC-eligible. Daemon shutdown closes any
+      // remaining live frames via the normal teardown path.
+      writeScope.update(_.withoutFramesAbove(maxDepth)._1)
+    }
+
     def publishFailedFrame(
         writeScope: MetaBuildAccess.WriteScope,
         f: Result.Failure,
@@ -393,6 +410,7 @@ class MillBuildBootstrap(
       val failedShared = RunnerSharedState.Frame(evalWatches, moduleWatches, None)
       val displaced = writeScope.update(_.withFrame(depth, failedShared)).reusableFrameAt(depth)
       closeDisplacedClassloader(displaced)
+      if (isDeepestLevel) pruneFramesAbove(writeScope, depth)
       nestedState
         .withMetaFrame(
           RunnerLauncherState.MetaFrame(
@@ -405,6 +423,14 @@ class MillBuildBootstrap(
         )
         .withError(mill.internal.Util.formatError(f, logger.prompt.errorColor))
     }
+
+    // True when the recursive bootstrap stopped here (no nested meta-frames),
+    // i.e. this is the deepest meta-build level visited this run. We use it
+    // to prune `RunnerSharedState.frames` entries at strictly greater depths,
+    // which become unreachable after e.g. a `mill-build/build.mill` deletion
+    // and would otherwise leak classloaders/workers for the daemon's
+    // lifetime.
+    val isDeepestLevel = nestedState.metaFrames.isEmpty
 
     def publishFreshFrame(
         writeScope: MetaBuildAccess.WriteScope,
@@ -454,6 +480,7 @@ class MillBuildBootstrap(
       )
       val displaced = writeScope.update(_.withFrame(depth, fresh)).reusableFrameAt(depth)
       closeDisplacedClassloader(displaced)
+      if (isDeepestLevel) pruneFramesAbove(writeScope, depth)
       // Downgrade only after the displaced classloader has been closed, so
       // teardown of the old classloader/workers stays exclusive at this depth.
       val retainedLease = writeScope.scope.downgradeAndRetain()
@@ -593,7 +620,16 @@ class MillBuildBootstrap(
               SelectMode.Separated,
               prev
             ) match {
-              case Result.Success(decision) =>
+              // Only advance the metadata when the meta-build is actually
+              // reusable: in that case the in-memory classloader matches the
+              // post-evaluation file state and the next launcher can safely
+              // skip the rebuild. If `decision.reusable` is false, the
+              // classloader was built from the pre-edit code, so we must
+              // leave the metadata untouched — otherwise a subsequent
+              // launcher's `probeSelectiveReuse` would compare current files
+              // to post-edit metadata, return `reusable=true`, and reuse the
+              // stale classloader.
+              case Result.Success(decision) if decision.reusable =>
                 reusable.selectiveMetadata.set(Some(decision.nextMetadata))
                 val metadataFile =
                   os.Path(metaFrame.evaluator.outPathJava) / OutFiles.millSelectiveExecution
@@ -616,7 +652,7 @@ class MillBuildBootstrap(
                     catch { case _: Throwable => () }
                   }
                 } catch { case _: Throwable => () }
-              case _: Result.Failure => ()
+              case _ => ()
             }
           }
         }

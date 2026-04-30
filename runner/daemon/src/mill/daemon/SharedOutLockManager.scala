@@ -1,5 +1,6 @@
 package mill.daemon
 
+import mill.api.MillException
 import mill.client.lock.{Lock, Locked}
 import mill.constants.DaemonFiles
 import mill.internal.LauncherOutFilesRecordStore
@@ -27,7 +28,15 @@ class SharedOutLockManager(
     val mustAcquire = monitor.synchronized {
       if (closed) throw new IllegalStateException("SharedOutLockManager is closed")
       refCount += 1
-      while (acquiring && !closed) monitor.wait()
+      try while (acquiring && !closed) monitor.wait()
+      catch {
+        case t: Throwable =>
+          // If the wait is interrupted (or otherwise aborts), the prior
+          // refCount increment must be rolled back; otherwise the held lease
+          // can never be released because refCount never returns to 0.
+          refCount -= 1
+          throw t
+      }
       // Recheck closed: a concurrent close() can happen while we wait, in
       // which case we must not proceed to fileLock.tryLock() on a manager
       // whose held lease has already been released.
@@ -49,7 +58,10 @@ class SharedOutLockManager(
           if (tryLocked.isLocked) tryLocked
           else {
             if (noWaitForBuildLock)
-              throw new Exception(
+              // Surface as MillException so the launcher renders a clean
+              // user-facing message instead of a stack trace; this is an
+              // expected condition under --no-wait-for-build-lock.
+              throw new MillException(
                 s"${SharedOutLockManager.activeOtherProcessPrefix(out)} and --no-wait-for-build-lock was set, failing"
               )
             val consoleLogPath = out / DaemonFiles.millConsoleTail
@@ -69,10 +81,26 @@ class SharedOutLockManager(
             throw t
         }
 
-      monitor.synchronized {
-        heldLease = locked
-        acquiring = false
-        monitor.notifyAll()
+      val releaseDueToClose = monitor.synchronized {
+        if (closed) {
+          // close() ran while we were blocked acquiring the OS lock. Release
+          // it now and back out the refCount; the caller sees an
+          // IllegalStateException and no leased lock survives the manager.
+          refCount -= 1
+          acquiring = false
+          monitor.notifyAll()
+          true
+        } else {
+          heldLease = locked
+          acquiring = false
+          monitor.notifyAll()
+          false
+        }
+      }
+      if (releaseDueToClose) {
+        try locked.release()
+        catch { case _: Throwable => () }
+        throw new IllegalStateException("SharedOutLockManager is closed")
       }
     }
 

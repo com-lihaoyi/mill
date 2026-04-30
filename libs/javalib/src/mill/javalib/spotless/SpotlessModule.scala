@@ -1,7 +1,7 @@
 package mill.javalib.spotless
 
 import mainargs.Flag
-import mill.constants.OutFiles.OutFiles.{out, bspOut}
+import mill.constants.OutFiles.OutFiles.{out, bspOut, defaultBspOut}
 import mill.api.*
 import mill.api.internal.RootModule0
 import mill.javalib.{CoursierModule, Dep, OfflineSupportModule}
@@ -77,7 +77,12 @@ trait SpotlessModule extends CoursierModule, OfflineSupportModule {
    * @see [[https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String) Path matcher pattern]]
    */
   def spotlessExcludes: Task[Seq[String]] = this match
-    case _: RootModule0 => Task { Seq(s"glob:$out", s"glob:$bspOut") }
+    // Include `defaultBspOut` (`.bsp/out`) explicitly because `bspOut` only
+    // reflects the `MILL_BSP_OUTPUT_DIR` env var; the `mill-separate-bsp-output-dir`
+    // build header is parsed at runtime and doesn't set the env var, so the
+    // header-only path would otherwise be missed.
+    case _: RootModule0 =>
+      Task { Seq(s"glob:$out", s"glob:$bspOut", s"glob:$defaultBspOut").distinct }
     case _ => Task { Seq.empty[String] }
 
   private def spotlessWorkerClasspath = Task {

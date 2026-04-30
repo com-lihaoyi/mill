@@ -60,6 +60,18 @@ case class RunnerSharedState(
   def withFrame(depth: Int, frame: Frame): RunnerSharedState =
     copy(frames = frames.updated(depth, frame))
 
+  /**
+   * Drop frames at depths greater than `maxDepth`. Used after a launcher
+   * recursion completes to evict frames left over from a previous run that
+   * went deeper (e.g. when `mill-build/build.mill` was deleted between runs);
+   * without this, classloaders/workers at those depths are never displaced
+   * and leak for the daemon's lifetime.
+   */
+  def withoutFramesAbove(maxDepth: Int): (RunnerSharedState, Map[Int, Frame]) = {
+    val (kept, dropped) = frames.partition(_._1 <= maxDepth)
+    (copy(frames = kept), dropped)
+  }
+
   def withUserFinalModuleWatched(moduleWatched: Seq[Watchable]): RunnerSharedState =
     copy(userFinalModuleWatched = Some(moduleWatched))
 }

@@ -424,8 +424,21 @@ object MillMain0 {
                                   }
                                 }
                               }
+                            // Publish once inside the logger scope so live
+                            // symlinks point at the in-progress run; after
+                            // the logger closes (writing the trailing `]`
+                            // for any JSON-array log) we republish below so
+                            // the copy fallback for `mill-profile.json` /
+                            // `mill-chrome-profile.json` snapshots a
+                            // fully-closed file rather than truncating it.
                             finally runArtifacts.publishArtifacts()
                           }
+                          // Logger is now closed; republish so JSON-array
+                          // files have their trailing `]` reflected in the
+                          // copy fallback (POSIX symlink users see the
+                          // already-completed file via the symlink and are
+                          // unaffected by this second call).
+                          runArtifacts.publishArtifacts()
                           state.withResources(workspaceLocking, runArtifacts, fileLockLease)
                         } catch {
                           case e: Throwable =>
@@ -846,6 +859,19 @@ object MillMain0 {
     }
   }
 
+  /**
+   * Best-effort reset of `System.getProperties` to the daemon's initial
+   * properties plus the launcher's user-specified `-D` overrides.
+   *
+   * Concurrency caveat: `System.getProperties` is process-global, so this
+   * method is inherently racy when multiple launchers run in the same daemon.
+   * Launcher A's call here can clobber launcher B's `-D` overrides mid-run,
+   * and any task code that mutates `sys.props` from one launcher will be
+   * visible to the others. There is no fix at this layer — the JVM has no
+   * per-thread/per-evaluation system-property scope. Build authors who need
+   * isolated configuration should pass values through task inputs/env vars
+   * rather than via `-D` system properties.
+   */
   def adjustJvmProperties(
       userSpecifiedProperties: Map[String, String],
       initialSystemProperties: Map[String, String]

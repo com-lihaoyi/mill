@@ -46,7 +46,13 @@ object ExecutionContexts {
   class ThreadPool(executor: ThreadPoolExecutor) extends mill.api.TaskCtx.Fork.Impl {
     def await[T](t: Future[T]): T = blocking { Await.result(t, Duration.Inf) }
 
-    def updateThreadCount(delta: Int): Unit = synchronized {
+    // Synchronize on the underlying `executor`, not `this`: when concurrent
+    // BSP requests or launchers share one daemon-level executor, each
+    // `Execution.evaluateTerminals` call wraps it in a fresh `ThreadPool`,
+    // so locking on `this` would not serialise the read-modify-write of
+    // core/max pool sizes and could violate ThreadPoolExecutor's
+    // `max >= core` invariant.
+    def updateThreadCount(delta: Int): Unit = executor.synchronized {
       if (delta > 0) {
         executor.setMaximumPoolSize(executor.getMaximumPoolSize + delta)
         executor.setCorePoolSize(executor.getCorePoolSize + delta)

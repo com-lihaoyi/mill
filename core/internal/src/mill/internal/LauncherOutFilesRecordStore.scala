@@ -5,14 +5,19 @@ import mill.constants.DaemonFiles
 import scala.jdk.OptionConverters.RichOptional
 
 private[mill] object LauncherOutFilesRecordStore {
-  case class Record(runId: String, pid: Long, command: String)
+  case class Record(runId: String, pid: Long, command: String, startMillis: Option[Long])
 
   def path(out: os.Path, runId: String): os.Path =
     out / os.RelPath(DaemonFiles.perLauncherFilePath(runId))
 
+  private def processStartMillis(pid: Long): Option[Long] =
+    java.lang.ProcessHandle.of(pid).toScala
+      .flatMap(_.info().startInstant().toScala.map(_.toEpochMilli))
+
   def write(out: os.Path, runId: String, pid: Long, command: String): Unit = {
     val commandJson = ujson.write(ujson.Str(command))
-    val json = s"""{"pid":$pid,"command":$commandJson}"""
+    val startMillisJson = processStartMillis(pid).fold("null")(_.toString)
+    val json = s"""{"pid":$pid,"command":$commandJson,"startMillis":$startMillisJson}"""
     val file = path(out, runId)
     try mill.api.BuildCtx.withFilesystemCheckerDisabled {
         os.makeDir.all(file / os.up)
@@ -72,17 +77,34 @@ private[mill] object LauncherOutFilesRecordStore {
         } yield Record(
           runId = file.baseName,
           pid = pid,
-          command = json.get("command").map(_.str).getOrElse("")
+          command = json.get("command").map(_.str).getOrElse(""),
+          startMillis = json.get("startMillis").flatMap {
+            case ujson.Null => None
+            case v => v.numOpt.map(_.toLong)
+          }
         )
       } catch {
-        case _: Throwable if keepUnreadable => Some(Record(file.baseName, -1L, ""))
+        case _: Throwable if keepUnreadable => Some(Record(file.baseName, -1L, "", None))
         case _: Throwable => None
+      }
+
+    def liveProcess(record: Record): Boolean =
+      java.lang.ProcessHandle.of(record.pid).toScala.exists { ph =>
+        if (!ph.isAlive) false
+        else record.startMillis match {
+          // No recorded start time (legacy file) — fall back to PID-only check.
+          case None => true
+          // Verify the start time matches; otherwise the PID has been recycled
+          // by a different process and the record is stale.
+          case Some(recorded) =>
+            ph.info().startInstant().toScala.map(_.toEpochMilli).contains(recorded)
+        }
       }
 
     recordOpt match {
       case Some(record) if record.pid == -1L && keepUnreadable =>
         Some(record)
-      case Some(record) if java.lang.ProcessHandle.of(record.pid).toScala.exists(_.isAlive) =>
+      case Some(record) if liveProcess(record) =>
         Some(record)
       case _ =>
         if (removeStale) {

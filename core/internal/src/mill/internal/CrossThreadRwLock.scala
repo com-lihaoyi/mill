@@ -1,5 +1,6 @@
 package mill.internal
 
+import mill.api.MillException
 import mill.api.daemon.internal.LauncherLocking.{Lease, LockKind}
 import mill.constants.DaemonFiles
 
@@ -49,7 +50,10 @@ class CrossThreadRwLock(label: String) {
         holders.put(lease, acquirer)
         Some(lease)
       } else if (noWait) {
-        throw new Exception(
+        // Surface as MillException so MillMain0.handleMillException renders a
+        // clean user-facing message instead of a stack trace; this is an
+        // expected condition when --no-wait collides with another launcher.
+        throw new MillException(
           s"${waitingMessage(currentBlocker())} and --no-wait was set, failing"
         )
       } else {
