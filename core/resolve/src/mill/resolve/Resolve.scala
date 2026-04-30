@@ -15,6 +15,11 @@ import mill.api.{
 import mill.api.internal.ParseArgs
 
 object Resolve {
+  private[mill] object ScriptModuleQuery {
+    val AllPrecompiledModules = "\u0000mill.resolve.allPrecompiledModules"
+    val DirectPrecompiledModules = "\u0000mill.resolve.directPrecompiledModules"
+  }
+
   object Segments extends Resolve[Segments] {
     def handleResolved(
         rootModule: RootModule0,
@@ -439,24 +444,30 @@ trait Resolve[T] {
               else 0
             val effectiveSegments = segments.drop(startIdx)
 
-            // Cap the number of prefix splits we try, to avoid excessive disk I/O
-            // in deeply nested module paths. We only need to try as many splits as
-            // there are actual directory levels, and in practice precompiled modules
-            // are rarely more than a few levels deep.
-            val maxSplits = math.min(effectiveSegments.length - 1, 10)
-            val result = (1 to maxSplits).view.flatMap { i =>
-              val modulePath = effectiveSegments.take(i).mkString("/")
-              val taskSegments = effectiveSegments.drop(i)
-              scriptModuleResolver(modulePath) match {
-                case Seq(resolved) => Some((resolved, taskSegments))
-                case Nil => None
-              }
-            }.headOption
+            val resolvedScriptModules = effectiveSegments match {
+              case wildcard +: taskSegments if wildcard == "__" || wildcard == "_" =>
+                val query =
+                  if (wildcard == "__") Resolve.ScriptModuleQuery.AllPrecompiledModules
+                  else Resolve.ScriptModuleQuery.DirectPrecompiledModules
+                scriptModuleResolver(query).map((_, taskSegments))
 
-            result match {
-              case Some((resolved, taskSegments)) =>
-                handleResolved(resolved, taskSegments, remaining)
-              case None => fallback
+              case _ =>
+                (1 until effectiveSegments.length).view.flatMap { i =>
+                  val modulePath = effectiveSegments.take(i).mkString("/")
+                  val taskSegments = effectiveSegments.drop(i)
+                  scriptModuleResolver(modulePath) match {
+                    case Seq(resolved) => Some((resolved, taskSegments))
+                    case Nil => None
+                  }
+                }.headOption.toSeq
+            }
+
+            resolvedScriptModules match {
+              case Nil => fallback
+              case resolved =>
+                Result.sequence(resolved.map { case (module, taskSegments) =>
+                  handleResolved(module, taskSegments, remaining)
+                }).map(_.flatten)
             }
           } else fallback
       }
