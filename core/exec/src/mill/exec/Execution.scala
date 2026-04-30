@@ -692,24 +692,28 @@ object Execution {
   def findInterGroupDeps(sortedGroups: MultiBiMap[Task[?], Task[?]])
       : Map[Task[?], Seq[Task[?]]] = {
     val out = Map.newBuilder[Task[?], Seq[Task[?]]]
+    val terminalOrder = sortedGroups.keys().zipWithIndex.toMap
     for ((terminal, group) <- sortedGroups) {
       val groupSet = group.toSet
+      val deps = mutable.LinkedHashSet.empty[Task[?]]
+      for {
+        task <- group
+        input <- task.inputs
+        if !groupSet.contains(input)
+      } input match {
+        // Anonymous tasks aren't deterministic group cut-points
+        // (see PlanImpl.plan), so a non-Named upstream escaping here
+        // means grouping is wrong; fail loudly rather than wire the
+        // dep to an arbitrary group.
+        case f: Task.Named[?] => deps += f
+        case f =>
+          throw new AssertionError(
+            s"Non-Named external dependency $f escaping group of $terminal; " +
+              s"groupAroundImportantTasks must cut at every named task."
+          )
+      }
       out.addOne(
-        terminal -> groupSet
-          .flatMap(_.inputs.collect {
-            // Anonymous tasks aren't deterministic group cut-points
-            // (see PlanImpl.plan), so a non-Named upstream escaping here
-            // means grouping is wrong; fail loudly rather than wire the
-            // dep to an arbitrary group.
-            case f: Task.Named[?] if !groupSet.contains(f) => f
-            case f if !groupSet.contains(f) =>
-              throw new AssertionError(
-                s"Non-Named external dependency $f escaping group of $terminal; " +
-                  s"groupAroundImportantTasks must cut at every named task."
-              )
-          })
-          .toVector
-          .sortBy(_.toString)
+        terminal -> deps.toVector.sortBy(t => terminalOrder.getOrElse(t, Int.MaxValue))
       )
     }
     out.result()

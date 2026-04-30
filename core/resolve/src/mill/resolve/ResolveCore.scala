@@ -155,7 +155,8 @@ private object ResolveCore {
 
         (head, current) match {
           // Handle super task resolution specially since it may consume tail for disambiguation
-          case (Segment.Label(s"$baseTaskName.super"), m: Resolved.Module) =>
+          case (Segment.Label(label), m: Resolved.Module) if label.endsWith(".super") =>
+            val baseTaskName = label.stripSuffix(".super")
             val taskExists = Reflect
               .reflect(
                 m.cls,
