@@ -134,7 +134,13 @@ object ServerLauncher {
             )
             announced = true
             lastProgressMillis = now
-          case _ => () // No active peers (or no state file): just wait briefly for JVM exit.
+          case _ if announced =>
+            // Drain finished but the daemon JVM hasn't released `daemonLock`
+            // yet (or has wedged in shutdown). Keep the user informed so a
+            // long stall isn't a silent hang.
+            System.err.println("[mill] Waiting for old daemon to fully shut down...")
+            lastProgressMillis = now
+          case _ => () // First iteration with no active peers; just poll briefly for JVM exit.
         }
       }
       Thread.sleep(pollMillis)

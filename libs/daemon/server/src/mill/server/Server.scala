@@ -430,23 +430,6 @@ object Server {
       }
     }
 
-    def closeAllConnections(reason: Option[String]): Unit = {
-      val all = synchronized {
-        val snapshot = connections.iterator.toVector
-        serverLog(s"closing all ${snapshot.size} connection(s)")
-        snapshot
-      }
-      all.foreach { case (sock, closeCallback) =>
-        try {
-          closeCallback(reason)
-          serverLog(s"closed connection ${sock.toString}")
-        } catch {
-          case NonFatal(e) =>
-            serverLog(s"error closing connection ${sock.toString}: $e")
-        }
-      }
-    }
-
     /** Register a new connection. Rejected (returns false) once the listen socket has been closed. */
     def increment(socket: Socket, closeCallback: Option[String] => Unit): Boolean = {
       val accepted = synchronized {
