@@ -60,8 +60,10 @@ private[daemon] class MetaBuildAccess(
     LockUpgrade.readThenWrite(
       acquireRead =
         workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Read, waitReporter),
-      acquireWrite =
-        workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Write, waitReporter)
+      tryAcquireWrite = () => workspaceLocking.tryMetaBuildWriteLock(depth),
+      awaitStateChange =
+        timeoutMs => workspaceLocking.awaitMetaBuildStateChange(depth, timeoutMs),
+      waitReporter = waitReporter
     )(scope => probe(ref.get(), scope)) { scope =>
       evaluate(new MetaBuildAccess.WriteScope(ref, scope))
     }

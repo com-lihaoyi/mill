@@ -300,6 +300,32 @@ trait GroupExecution {
               taskWaitReporter
             )
 
+        // Non-blocking, non-queued Write try and bounded await — feed
+        // `LockUpgrade.readThenWrite`'s retryable loop. Same input-task
+        // skip semantics as `acquireTaskLock`.
+        def tryWriteTaskLock(): Either[String, LauncherLocking.Lease] = {
+          val result =
+            if (labelled.isInputTask)
+              LauncherLocking.Noop.tryTaskWriteLock(
+                paths.dest.toNIO,
+                labelled.ctx.segments.render
+              )
+            else
+              workspaceLocking.tryTaskWriteLock(
+                paths.dest.toNIO,
+                labelled.ctx.segments.render
+              )
+          result.foreach(_ => leaseTracker.onTaskLockPhaseComplete(labelled))
+          result
+        }
+        def awaitTaskLockChange(timeoutMs: Long): Unit =
+          if (!labelled.isInputTask)
+            workspaceLocking.awaitTaskStateChange(
+              paths.dest.toNIO,
+              labelled.ctx.segments.render,
+              timeoutMs
+            )
+
         // Helper to evaluate the task with full caching support
         def evaluateTaskWithCaching(): GroupExecution.Results = {
           def loadCachedOrWorker(
@@ -343,11 +369,9 @@ trait GroupExecution {
 
           LockUpgrade.readThenWrite(
             acquireRead = acquireTaskLock(LauncherLocking.LockKind.Read),
-            acquireWrite = {
-              val lease = acquireTaskLock(LauncherLocking.LockKind.Write)
-              leaseTracker.onTaskLockPhaseComplete(labelled)
-              lease
-            }
+            tryAcquireWrite = () => tryWriteTaskLock(),
+            awaitStateChange = awaitTaskLockChange,
+            waitReporter = taskWaitReporter
           ) { scope =>
             loadCachedOrWorker(
               loadCachedJson(logger, inputsHash, labelled, paths),
@@ -432,11 +456,9 @@ trait GroupExecution {
         def evaluateBuildOverrideOnly(located: Located[Appendable[BufferedValue]])
             : GroupExecution.Results = LockUpgrade.readThenWrite(
           acquireRead = acquireTaskLock(LauncherLocking.LockKind.Read),
-          acquireWrite = {
-            val lease = acquireTaskLock(LauncherLocking.LockKind.Write)
-            leaseTracker.onTaskLockPhaseComplete(labelled)
-            lease
-          }
+          tryAcquireWrite = () => tryWriteTaskLock(),
+          awaitStateChange = awaitTaskLockChange,
+          waitReporter = taskWaitReporter
         )(_ => LockUpgrade.Decision.Escalate) { scope =>
           val (execRes, serializedPaths) =
             if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {

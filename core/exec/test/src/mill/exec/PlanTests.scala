@@ -533,18 +533,17 @@ object PlanTests extends TestSuite {
                 LauncherLocking.LockKind.Read,
                 LauncherLocking.WaitReporter.Noop
               ),
-            acquireWrite = {
-              val lease =
-                locking.taskLock(
-                  path.toNIO,
-                  task.toString,
-                  LauncherLocking.LockKind.Write,
-                  LauncherLocking.WaitReporter.Noop
-                )
-              acquisitionLog.add((launcher, taskLabel))
-              tracker.onTaskLockPhaseComplete(task)
+            tryAcquireWrite = () => {
+              val lease = locking.tryTaskWriteLock(path.toNIO, task.toString)
+              lease.foreach { _ =>
+                acquisitionLog.add((launcher, taskLabel))
+                tracker.onTaskLockPhaseComplete(task)
+              }
               lease
-            }
+            },
+            awaitStateChange =
+              timeoutMs => locking.awaitTaskStateChange(path.toNIO, task.toString, timeoutMs),
+            waitReporter = LauncherLocking.WaitReporter.Noop
           )(_ => LockUpgrade.Decision.Escalate) { scope =>
             tracker.retain(task, scope.downgradeAndRetain())
           }

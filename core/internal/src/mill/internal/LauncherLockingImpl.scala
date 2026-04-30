@@ -37,6 +37,17 @@ private[mill] class LauncherLockingImpl(
     ))
   }
 
+  override def tryMetaBuildWriteLock(depth: Int): Either[String, LauncherLocking.Lease] = {
+    ensureOpen()
+    if (noBuildLock) LauncherLocking.Noop.tryMetaBuildWriteLock(depth)
+    else lockRegistry.metaBuildLockFor(depth).tryAcquireWrite(holder).map(acquireManagedLease)
+  }
+
+  override def awaitMetaBuildStateChange(depth: Int, timeoutMs: Long): Unit = {
+    ensureOpen()
+    if (!noBuildLock) lockRegistry.metaBuildLockFor(depth).awaitStateChange(timeoutMs)
+  }
+
   override def taskLock(
       path: java.nio.file.Path,
       displayLabel: String,
@@ -56,6 +67,33 @@ private[mill] class LauncherLockingImpl(
       val normalized = path.toAbsolutePath.normalize().toString
       val lock = lockRegistry.taskLockFor(normalized, displayLabel)
       acquireManagedLease(lock.acquire(kind, waitReporter, noWaitForBuildLock, holder))
+    }
+  }
+
+  override def tryTaskWriteLock(
+      path: java.nio.file.Path,
+      displayLabel: String
+  ): Either[String, LauncherLocking.Lease] = {
+    ensureOpen()
+    if (noBuildLock || exclusiveWriteCount.get() > 0)
+      LauncherLocking.Noop.tryTaskWriteLock(path, displayLabel)
+    else {
+      val normalized = path.toAbsolutePath.normalize().toString
+      lockRegistry.taskLockFor(normalized, displayLabel)
+        .tryAcquireWrite(holder)
+        .map(acquireManagedLease)
+    }
+  }
+
+  override def awaitTaskStateChange(
+      path: java.nio.file.Path,
+      displayLabel: String,
+      timeoutMs: Long
+  ): Unit = {
+    ensureOpen()
+    if (!noBuildLock && exclusiveWriteCount.get() == 0) {
+      val normalized = path.toAbsolutePath.normalize().toString
+      lockRegistry.taskLockFor(normalized, displayLabel).awaitStateChange(timeoutMs)
     }
   }
 

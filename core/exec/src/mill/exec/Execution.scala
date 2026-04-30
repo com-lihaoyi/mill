@@ -3,7 +3,13 @@ package mill.exec
 import mill.api.daemon.internal.*
 import mill.api.daemon.internal.{LauncherLocking, LauncherOutFiles}
 import mill.api.*
-import mill.internal.{CodeSigUtils, JsonArrayLogger, PrefixLogger, PromptWaitReporter, SpanningForest}
+import mill.internal.{
+  CodeSigUtils,
+  JsonArrayLogger,
+  PrefixLogger,
+  PromptWaitReporter,
+  SpanningForest
+}
 
 import java.util.concurrent.{ConcurrentHashMap, ThreadPoolExecutor}
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}

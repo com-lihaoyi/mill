@@ -29,7 +29,8 @@ class CrossThreadRwLock(label: String) {
   private def waitingMessage(blocker: Option[HolderInfo], kind: LockKind): String = {
     val kindStr = kind match { case LockKind.Read => "read"; case LockKind.Write => "write" }
     blocker match {
-      case Some(h) => s"blocked taking $kindStr lock on '$label' held by PID ${h.pid} (${h.command})"
+      case Some(h) =>
+        s"blocked taking $kindStr lock on '$label' held by PID ${h.pid} (${h.command})"
       case None => s"blocked taking $kindStr lock on '$label'"
     }
   }
@@ -92,6 +93,43 @@ class CrossThreadRwLock(label: String) {
         catch { case _: Throwable => () }
       }
     }
+  }
+
+  /**
+   * Non-blocking, non-queued Write attempt. Returns [[Right]] with a
+   * Lease if Write is immediately available (no active writer, no
+   * readers); [[Left]] with a human-readable description of the current
+   * blocker otherwise.
+   *
+   * Crucially: a failed try does NOT increment [[waitingWriters]], so the
+   * caller's subsequent Read attempts won't be blocked by writer-priority
+   * (`canAcquireRead = !writerActive && waitingWriters == 0`). This is
+   * what makes the retryable read-then-write pattern in
+   * [[LockUpgrade.readThenWrite]] work: a launcher can fail to grab Write,
+   * fall back to Read, and re-probe shared state without poisoning its
+   * own next Read attempt.
+   */
+  def tryAcquireWrite(acquirer: HolderInfo): Either[String, Lease] = monitor.synchronized {
+    if (canAcquireWrite) {
+      writerActive = true
+      val lease = newLease(initiallyWrite = true)
+      holders.put(lease, acquirer)
+      Right(lease)
+    } else Left(waitingMessage(currentBlocker(), LockKind.Write))
+  }
+
+  /**
+   * Block on the lock's monitor for up to `timeoutMs`, returning when any
+   * lock state change occurs (close/downgrade `notifyAll`s) or the
+   * timeout fires. Used by [[LockUpgrade.readThenWrite]]'s retry loop to
+   * sleep efficiently between try-Write attempts: the lock already
+   * notifies on every state change, so the retry wakes exactly when a
+   * re-probe might newly succeed. The timeout is defensive against
+   * missed notifications and against waiting on locks held by
+   * blocking-acquire (non-polled) writers that yield to nobody.
+   */
+  def awaitStateChange(timeoutMs: Long): Unit = monitor.synchronized {
+    monitor.wait(timeoutMs)
   }
 
   private def newLease(initiallyWrite: Boolean): Lease = new Lease { self =>

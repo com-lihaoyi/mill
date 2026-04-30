@@ -21,6 +21,26 @@ private[mill] trait LauncherLocking extends AutoCloseable {
   ): LauncherLocking.Lease
 
   /**
+   * Non-blocking, non-queued Write attempt on the meta-build lock at
+   * `depth`. Returns [[scala.None]] if Write is not immediately
+   * available; the caller can then back off, re-probe under Read, and
+   * decide whether Write is still needed. Failed tries do NOT register
+   * as queued writers, so the caller's subsequent Read attempts are not
+   * blocked by writer-priority — this is what makes the retryable
+   * read-then-write pattern in [[mill.internal.LockUpgrade.readThenWrite]]
+   * work without poisoning the caller's own re-probe.
+   */
+  def tryMetaBuildWriteLock(depth: Int): Either[String, LauncherLocking.Lease]
+
+  /**
+   * Block on the meta-build lock at `depth` for up to `timeoutMs`,
+   * returning on the first lock state change (close/downgrade) or
+   * timeout. Used by the retryable read-then-write loop to sleep
+   * efficiently between try-Write attempts.
+   */
+  def awaitMetaBuildStateChange(depth: Int, timeoutMs: Long): Unit
+
+  /**
    * Per-task-`dest` lock. Read-then-Write upgrade on cache miss; Read lease is
    * retained via `Execution.LeaseTracker` until all transitive downstream
    * terminals complete, so concurrent launchers cannot overwrite outputs that
@@ -32,6 +52,17 @@ private[mill] trait LauncherLocking extends AutoCloseable {
       kind: LauncherLocking.LockKind,
       waitReporter: LauncherLocking.WaitReporter
   ): LauncherLocking.Lease
+
+  /** Non-blocking, non-queued Write counterpart of [[taskLock]].
+    * See [[tryMetaBuildWriteLock]] for semantics. */
+  def tryTaskWriteLock(
+      path: Path,
+      displayLabel: String
+  ): Either[String, LauncherLocking.Lease]
+
+  /** Bounded await on per-task lock state changes; counterpart of
+    * [[awaitMetaBuildStateChange]]. */
+  def awaitTaskStateChange(path: Path, displayLabel: String, timeoutMs: Long): Unit
 
   /**
    * Daemon-wide lock taken by each task batch. Normal batches take Read so
@@ -94,12 +125,17 @@ private[mill] object LauncherLocking {
         kind: LockKind,
         waitReporter: WaitReporter
     ): Lease = NoopLease
+    override def tryMetaBuildWriteLock(depth: Int): Either[String, Lease] = Right(NoopLease)
+    override def awaitMetaBuildStateChange(depth: Int, timeoutMs: Long): Unit = ()
     override def taskLock(
         path: Path,
         displayLabel: String,
         kind: LockKind,
         waitReporter: WaitReporter
     ): Lease = NoopLease
+    override def tryTaskWriteLock(path: Path, displayLabel: String): Either[String, Lease] =
+      Right(NoopLease)
+    override def awaitTaskStateChange(path: Path, displayLabel: String, timeoutMs: Long): Unit = ()
     override def exclusiveLock(kind: LockKind, waitReporter: WaitReporter): Lease = NoopLease
     override def close(): Unit = ()
   }

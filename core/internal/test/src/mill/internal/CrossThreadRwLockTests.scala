@@ -18,12 +18,22 @@ object CrossThreadRwLockTests extends TestSuite {
       val waitingErr = new PrintStream(waitingBytes)
       val lock = new CrossThreadRwLock("concurrent-reads")
 
-      val first = lock.acquire(LockKind.Read, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, testHolder)
+      val first = lock.acquire(
+        LockKind.Read,
+        mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+        noWait = false,
+        testHolder
+      )
       val secondAcquired = new CountDownLatch(1)
       val secondLeaseRef = new AtomicReference[LauncherLocking.Lease]()
 
       val secondThread = new Thread(() => {
-        secondLeaseRef.set(lock.acquire(LockKind.Read, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, testHolder))
+        secondLeaseRef.set(lock.acquire(
+          LockKind.Read,
+          mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+          noWait = false,
+          testHolder
+        ))
         secondAcquired.countDown()
       })
       secondThread.start()
@@ -41,12 +51,22 @@ object CrossThreadRwLockTests extends TestSuite {
       val waitingErr = new PrintStream(waitingBytes)
       val lock = new CrossThreadRwLock("write-exclusion")
 
-      val first = lock.acquire(LockKind.Write, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, testHolder)
+      val first = lock.acquire(
+        LockKind.Write,
+        mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+        noWait = false,
+        testHolder
+      )
       val secondAcquired = new CountDownLatch(1)
       val secondLeaseRef = new AtomicReference[LauncherLocking.Lease]()
 
       val secondThread = new Thread(() => {
-        secondLeaseRef.set(lock.acquire(LockKind.Write, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, testHolder))
+        secondLeaseRef.set(lock.acquire(
+          LockKind.Write,
+          mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+          noWait = false,
+          testHolder
+        ))
         secondAcquired.countDown()
       })
       secondThread.start()
@@ -66,7 +86,12 @@ object CrossThreadRwLockTests extends TestSuite {
       val waitingErr = new PrintStream(waitingBytes)
       val lock = new CrossThreadRwLock("reader-writer-fairness")
 
-      val firstReader = lock.acquire(LockKind.Read, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, testHolder)
+      val firstReader = lock.acquire(
+        LockKind.Read,
+        mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+        noWait = false,
+        testHolder
+      )
       val writerAcquired = new CountDownLatch(1)
       val releaseWriter = new CountDownLatch(1)
       val secondReaderAcquired = new CountDownLatch(1)
@@ -74,7 +99,12 @@ object CrossThreadRwLockTests extends TestSuite {
       val secondReaderLeaseRef = new AtomicReference[LauncherLocking.Lease]()
 
       val writerThread = new Thread(() => {
-        writerLeaseRef.set(lock.acquire(LockKind.Write, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, testHolder))
+        writerLeaseRef.set(lock.acquire(
+          LockKind.Write,
+          mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+          noWait = false,
+          testHolder
+        ))
         writerAcquired.countDown()
         releaseWriter.await(5, TimeUnit.SECONDS)
         writerLeaseRef.get().close()
@@ -114,7 +144,12 @@ object CrossThreadRwLockTests extends TestSuite {
       val acquiredLease = new AtomicReference[LauncherLocking.Lease]()
       val writerReady = new CountDownLatch(1)
       val writerThread = new Thread(() => {
-        acquiredLease.set(lock.acquire(LockKind.Write, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, testHolder))
+        acquiredLease.set(lock.acquire(
+          LockKind.Write,
+          mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+          noWait = false,
+          testHolder
+        ))
         writerReady.countDown()
       })
       writerThread.start()
@@ -153,7 +188,12 @@ object CrossThreadRwLockTests extends TestSuite {
       val acquiredLease = new AtomicReference[LauncherLocking.Lease]()
       val readerReady = new CountDownLatch(1)
       val readerThread = new Thread(() => {
-        acquiredLease.set(lock.acquire(LockKind.Read, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, testHolder))
+        acquiredLease.set(lock.acquire(
+          LockKind.Read,
+          mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+          noWait = false,
+          testHolder
+        ))
         readerReady.countDown()
       })
       readerThread.start()
@@ -162,7 +202,12 @@ object CrossThreadRwLockTests extends TestSuite {
       val writerAcquired = new CountDownLatch(1)
       val writerLeaseRef = new AtomicReference[LauncherLocking.Lease]()
       val writerThread = new Thread(() => {
-        writerLeaseRef.set(lock.acquire(LockKind.Write, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, testHolder))
+        writerLeaseRef.set(lock.acquire(
+          LockKind.Write,
+          mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+          noWait = false,
+          testHolder
+        ))
         writerAcquired.countDown()
       })
       writerThread.start()
@@ -186,7 +231,12 @@ object CrossThreadRwLockTests extends TestSuite {
 
       val leaseRef = new AtomicReference[LauncherLocking.Lease]()
       val acquireThread = new Thread(() => {
-        val l = lock.acquire(LockKind.Write, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, testHolder)
+        val l = lock.acquire(
+          LockKind.Write,
+          mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+          noWait = false,
+          testHolder
+        )
         l.downgradeToRead()
         leaseRef.set(l)
       })
@@ -196,7 +246,12 @@ object CrossThreadRwLockTests extends TestSuite {
       val writerAcquired = new CountDownLatch(1)
       val writerLeaseRef = new AtomicReference[LauncherLocking.Lease]()
       val writerThread = new Thread(() => {
-        writerLeaseRef.set(lock.acquire(LockKind.Write, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, testHolder))
+        writerLeaseRef.set(lock.acquire(
+          LockKind.Write,
+          mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+          noWait = false,
+          testHolder
+        ))
         writerAcquired.countDown()
       })
       writerThread.start()
@@ -219,15 +274,27 @@ object CrossThreadRwLockTests extends TestSuite {
 
       assertThrows(classOf[RuntimeException]) {
         LockUpgrade.readThenWrite(
-          acquireRead = lock.acquire(LockKind.Read, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, testHolder),
-          acquireWrite = lock.acquire(LockKind.Write, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, testHolder)
+          acquireRead = lock.acquire(
+            LockKind.Read,
+            mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+            noWait = false,
+            testHolder
+          ),
+          tryAcquireWrite = () => lock.tryAcquireWrite(testHolder),
+          awaitStateChange = lock.awaitStateChange,
+          waitReporter = mill.api.daemon.internal.LauncherLocking.WaitReporter.Noop
         ) { scope =>
           scope.retain()
           throw new RuntimeException("boom")
         }(_ => ())
       }
 
-      val writer = lock.acquire(LockKind.Write, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = true, testHolder)
+      val writer = lock.acquire(
+        LockKind.Write,
+        mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+        noWait = true,
+        testHolder
+      )
       writer.close()
     }
 
@@ -237,15 +304,27 @@ object CrossThreadRwLockTests extends TestSuite {
 
       assertThrows(classOf[IllegalStateException]) {
         LockUpgrade.readThenWrite(
-          acquireRead = lock.acquire(LockKind.Read, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, testHolder),
-          acquireWrite = lock.acquire(LockKind.Write, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, testHolder)
+          acquireRead = lock.acquire(
+            LockKind.Read,
+            mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+            noWait = false,
+            testHolder
+          ),
+          tryAcquireWrite = () => lock.tryAcquireWrite(testHolder),
+          awaitStateChange = lock.awaitStateChange,
+          waitReporter = mill.api.daemon.internal.LauncherLocking.WaitReporter.Noop
         ) { scope =>
           scope.retain()
           LockUpgrade.Decision.Escalate
         }(_ => ())
       }
 
-      val writer = lock.acquire(LockKind.Write, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = true, testHolder)
+      val writer = lock.acquire(
+        LockKind.Write,
+        mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+        noWait = true,
+        testHolder
+      )
       writer.close()
     }
 
@@ -255,15 +334,27 @@ object CrossThreadRwLockTests extends TestSuite {
 
       assertThrows(classOf[RuntimeException]) {
         LockUpgrade.readThenWrite(
-          acquireRead = lock.acquire(LockKind.Read, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, testHolder),
-          acquireWrite = lock.acquire(LockKind.Write, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, testHolder)
+          acquireRead = lock.acquire(
+            LockKind.Read,
+            mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+            noWait = false,
+            testHolder
+          ),
+          tryAcquireWrite = () => lock.tryAcquireWrite(testHolder),
+          awaitStateChange = lock.awaitStateChange,
+          waitReporter = mill.api.daemon.internal.LauncherLocking.WaitReporter.Noop
         )(_ => LockUpgrade.Decision.Escalate) { scope =>
           scope.downgradeAndRetain()
           throw new RuntimeException("boom")
         }
       }
 
-      val writer = lock.acquire(LockKind.Write, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = true, testHolder)
+      val writer = lock.acquire(
+        LockKind.Write,
+        mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+        noWait = true,
+        testHolder
+      )
       writer.close()
     }
 
@@ -273,23 +364,33 @@ object CrossThreadRwLockTests extends TestSuite {
       val lock = new CrossThreadRwLock("holder-naming")
 
       val blocker = HolderInfo(pid = 9876, command = "blockerTask")
-      val firstLease = lock.acquire(LockKind.Write, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, blocker)
+      val firstLease = lock.acquire(
+        LockKind.Write,
+        mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+        noWait = false,
+        blocker
+      )
 
       val secondAcquired = new CountDownLatch(1)
       val secondLeaseRef = new AtomicReference[LauncherLocking.Lease]()
       val waiter = HolderInfo(pid = 5555, command = "waiterTask")
       val secondThread = new Thread(() => {
-        secondLeaseRef.set(lock.acquire(LockKind.Write, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, waiter))
+        secondLeaseRef.set(lock.acquire(
+          LockKind.Write,
+          mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+          noWait = false,
+          waiter
+        ))
         secondAcquired.countDown()
       })
       secondThread.start()
 
       assertEventually(waitingBytes.size() > 0)
       val msg = waitingBytes.toString
-      assert(msg.contains("'blockerTask'"))
-      assert(msg.contains("task 'holder-naming'"))
+      assert(msg.contains("(blockerTask)"))
+      assert(msg.contains("'holder-naming'"))
       assert(msg.contains("PID 9876"))
-      assert(msg.contains("waiting for it (tail -F out/mill-console-tail to see its progress)"))
+      assert(msg.contains("blocked taking write lock"))
 
       firstLease.close()
       assert(secondAcquired.await(5, TimeUnit.SECONDS))
@@ -301,12 +402,22 @@ object CrossThreadRwLockTests extends TestSuite {
       val waitingErr = new PrintStream(new ByteArrayOutputStream())
       val lock = new CrossThreadRwLock("writer-starvation")
 
-      val firstReader = lock.acquire(LockKind.Read, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, testHolder)
+      val firstReader = lock.acquire(
+        LockKind.Read,
+        mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+        noWait = false,
+        testHolder
+      )
 
       val writerAcquired = new CountDownLatch(1)
       val writerLeaseRef = new AtomicReference[LauncherLocking.Lease]()
       val writerThread = new Thread(() => {
-        writerLeaseRef.set(lock.acquire(LockKind.Write, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, testHolder))
+        writerLeaseRef.set(lock.acquire(
+          LockKind.Write,
+          mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+          noWait = false,
+          testHolder
+        ))
         writerAcquired.countDown()
       })
       writerThread.start()
@@ -315,7 +426,12 @@ object CrossThreadRwLockTests extends TestSuite {
 
       val readerThreads = (1 to 20).map(_ => {
         val t = new Thread(() => {
-          val r = lock.acquire(LockKind.Read, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, testHolder)
+          val r = lock.acquire(
+            LockKind.Read,
+            mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+            noWait = false,
+            testHolder
+          )
           Thread.sleep(10)
           r.close()
         })
@@ -336,18 +452,28 @@ object CrossThreadRwLockTests extends TestSuite {
       val waitingErr = new PrintStream(new ByteArrayOutputStream())
       val lock = new CrossThreadRwLock("no-wait")
       val blocker = HolderInfo(pid = 7777, command = "blockerCmd")
-      val first = lock.acquire(LockKind.Write, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, blocker)
+      val first = lock.acquire(
+        LockKind.Write,
+        mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+        noWait = false,
+        blocker
+      )
 
       val waiter = HolderInfo(pid = 1111, command = "waiterCmd")
       val ex =
         try {
-          lock.acquire(LockKind.Write, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = true, waiter)
+          lock.acquire(
+            LockKind.Write,
+            mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+            noWait = true,
+            waiter
+          )
           throw new java.lang.AssertionError("expected no-wait acquisition to fail")
         } catch {
           case e: Exception => e
         }
-      assert(ex.getMessage.contains("'blockerCmd'"))
-      assert(ex.getMessage.contains("task 'no-wait'"))
+      assert(ex.getMessage.contains("(blockerCmd)"))
+      assert(ex.getMessage.contains("'no-wait'"))
       assert(ex.getMessage.contains("PID 7777"))
       assert(ex.getMessage.contains("--no-wait"))
 
@@ -363,24 +489,39 @@ object CrossThreadRwLockTests extends TestSuite {
       val alreadyReleased = HolderInfo(pid = 2222, command = "alreadyReleasedCmd")
       val waiter = HolderInfo(pid = 3333, command = "waiterCmd")
 
-      val firstReader = lock.acquire(LockKind.Read, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, stillHolding)
-      val secondReader = lock.acquire(LockKind.Read, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, alreadyReleased)
+      val firstReader = lock.acquire(
+        LockKind.Read,
+        mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+        noWait = false,
+        stillHolding
+      )
+      val secondReader = lock.acquire(
+        LockKind.Read,
+        mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+        noWait = false,
+        alreadyReleased
+      )
       secondReader.close()
 
       val writerAcquired = new CountDownLatch(1)
       val writerLeaseRef = new AtomicReference[LauncherLocking.Lease]()
       val writerThread = new Thread(() => {
-        writerLeaseRef.set(lock.acquire(LockKind.Write, mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr), noWait = false, waiter))
+        writerLeaseRef.set(lock.acquire(
+          LockKind.Write,
+          mill.api.daemon.internal.LauncherLocking.WaitReporter.stderr(waitingErr),
+          noWait = false,
+          waiter
+        ))
         writerAcquired.countDown()
       })
       writerThread.start()
 
       assertEventually(waitingBytes.size() > 0)
       val msg = waitingBytes.toString
-      assert(msg.contains("'stillHoldingCmd'"))
-      assert(msg.contains("task 'stale-last-holder'"))
+      assert(msg.contains("(stillHoldingCmd)"))
+      assert(msg.contains("'stale-last-holder'"))
       assert(msg.contains("PID 1111"))
-      assert(!msg.contains("'alreadyReleasedCmd'"))
+      assert(!msg.contains("(alreadyReleasedCmd)"))
       assert(!msg.contains("PID 2222"))
 
       firstReader.close()
