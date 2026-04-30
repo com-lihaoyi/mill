@@ -229,11 +229,10 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
             List(
-              (
-                "mill.daemon.MillBuildBootstrap#processRunClasspath publishFreshFrame createClassLoader",
-                1
-              ),
-              ("mill.javalib.JvmWorkerModule#internalWorkerClassLoader", 2)
+              ("mill.daemon.MillBuildBootstrap#processRunClasspath publishFreshFrame createClassLoader", 1),
+              ("mill.javalib.JvmWorkerModule#internalWorkerClassLoader", 2),
+              ("mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader", 1),
+              ("mill.kotlinlib.KotlinWorkerManager", 1)
             )
           )
           checkThreads(tester)(
@@ -247,6 +246,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
               "MillServerActionRunner",
               "MillServerTimeoutThread",
               "Process ID Checker Thread",
+              "Timer",
               "chrome-profile-metrics-thread",
               "main",
               "prompt-logger-stream-pumper-thread"
