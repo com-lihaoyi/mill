@@ -6,6 +6,7 @@ import os.Path
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.Comparator
 import java.util.concurrent.{PriorityBlockingQueue, ThreadFactory, ThreadPoolExecutor, TimeUnit}
 import mill.api.Logger
 import mill.api.daemon.internal.NonFatal
@@ -13,13 +14,64 @@ import mill.api.daemon.internal.NonFatal
 object ExecutionContexts {
 
   /**
-   * Process-wide counter for [[ThreadPool.PriorityRunnable.priorityRunnableIndex]].
-   * Indexed once per submitted runnable; only needs to be unique within a
-   * single shared `PriorityBlockingQueue`, but using a global counter keeps
-   * the comparison contract trivial when multiple `ThreadPool` wrappers
-   * share the same underlying executor.
+   * Classloader-local counter for [[ThreadPool.PriorityRunnable.priorityRunnableIndex]].
+   * Indexed once per submitted runnable; the queue comparator also uses the
+   * runnable's classloader identity so BSP build reloads can safely submit
+   * runnables from a fresh Mill classloader into an existing daemon executor.
    */
   private val priorityRunnableCount = new java.util.concurrent.atomic.AtomicLong()
+
+  private final case class PriorityRunnableOrderingKey(
+      priority: Int,
+      priorityRunnableIndex: Long,
+      classLoaderIdentity: Int,
+      runnableIdentity: Int
+  )
+
+  private def classLoaderIdentity(clazz: Class[?]): Int =
+    System.identityHashCode(clazz.getClassLoader)
+
+  private def priorityRunnableOrderingKey(runnable: Runnable): PriorityRunnableOrderingKey = {
+    val clazz = runnable.getClass
+    val classLoaderId = classLoaderIdentity(clazz)
+    val runnableId = System.identityHashCode(runnable)
+
+    try {
+      val priorityMethod = clazz.getMethod("priority")
+      val priorityRunnableIndexMethod = clazz.getMethod("priorityRunnableIndex")
+      PriorityRunnableOrderingKey(
+        priorityMethod.invoke(runnable).asInstanceOf[Int],
+        priorityRunnableIndexMethod.invoke(runnable).asInstanceOf[Long],
+        classLoaderId,
+        runnableId
+      )
+    } catch {
+      case scala.util.control.NonFatal(_) =>
+        PriorityRunnableOrderingKey(0, Long.MaxValue, classLoaderId, runnableId)
+    }
+  }
+
+  private val priorityRunnableOrdering: Comparator[Runnable] =
+    (left: Runnable, right: Runnable) => {
+      if (left eq right) 0
+      else {
+        val leftKey = priorityRunnableOrderingKey(left)
+        val rightKey = priorityRunnableOrderingKey(right)
+        val priorityComparison = leftKey.priority.compareTo(rightKey.priority)
+        if (priorityComparison != 0) priorityComparison
+        else {
+          val indexComparison =
+            leftKey.priorityRunnableIndex.compareTo(rightKey.priorityRunnableIndex)
+          if (indexComparison != 0) indexComparison
+          else {
+            val loaderComparison =
+              leftKey.classLoaderIdentity.compareTo(rightKey.classLoaderIdentity)
+            if (loaderComparison != 0) loaderComparison
+            else leftKey.runnableIdentity.compareTo(rightKey.runnableIdentity)
+          }
+        }
+      }
+    }
 
   /**
    * Execution context that runs code immediately when scheduled, without
@@ -102,24 +154,12 @@ object ExecutionContexts {
      * prioritize this runnable over most other tasks, while priorities >0 can be used to
      * de-prioritize it.
      */
-    class PriorityRunnable(val priority: Int, run0: () => Unit) extends Runnable
-        with Comparable[PriorityRunnable] {
+    class PriorityRunnable(val priority: Int, run0: () => Unit) extends Runnable {
       def run() = run0()
-      // Process-wide counter so PriorityRunnables from different
-      // `ThreadPool` wrappers sharing one `PriorityBlockingQueue` get
-      // unique indices (a per-instance counter would collide and trip
-      // the `compareTo` assertion below).
+      // Classloader-local counter; the queue comparator adds a classloader
+      // tie-breaker for BSP reloads where multiple Mill classloaders can share
+      // one daemon-level `PriorityBlockingQueue`.
       val priorityRunnableIndex: Long = ExecutionContexts.priorityRunnableCount.getAndIncrement()
-      override def compareTo(o: PriorityRunnable): Int = priority.compareTo(o.priority) match {
-        case 0 =>
-          // `Comparable` wants a *total* ordering, so we need to use `priorityRunnableIndex`
-          // to break ties between instances with the same priority. This index is assigned
-          // when a task is submitted, so it should more or less follow insertion order,
-          // and is a `Long` which should be big enough never to overflow
-          assert(this == o || this.priorityRunnableIndex != o.priorityRunnableIndex)
-          this.priorityRunnableIndex.compareTo(o.priorityRunnableIndex)
-        case n => n
-      }
     }
 
     /**
@@ -187,7 +227,7 @@ object ExecutionContexts {
       // operations reversed, providing elements in a LIFO order. This ensures that
       // child `fork.async` tasks always take priority over parent tasks, avoiding
       // large numbers of blocked parent tasks from piling up
-      new PriorityBlockingQueue[Runnable](),
+      new PriorityBlockingQueue[Runnable](11, priorityRunnableOrdering),
       runnable => {
         val threadIndex = threadCounter.incrementAndGet()
         val t = new Thread(
