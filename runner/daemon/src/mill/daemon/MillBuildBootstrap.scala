@@ -109,7 +109,20 @@ class MillBuildBootstrap(
 
       val nestedState =
         if (containsBuildFile(currentRoot)) evaluateRec(depth + 1)
-        else makeBootstrapState(currentRoot)
+        else {
+          // Recursion bottoms out here, so depths > `depth` are unreachable
+          // for this run. If a previous run went deeper (e.g.
+          // `mill-build/build.mill` was deleted between runs), evict its
+          // stale frames now under the depth=`depth` meta-build write lock
+          // so they don't leak. Done here (not just in `processRunClasspath`)
+          // so projects without `mill-build/` and early-error paths
+          // (e.g. invalid `--meta-level`, missing root build file) also get
+          // the cleanup.
+          metaBuild.withMetaBuild(depth)((_, _) => LockUpgrade.Decision.Escalate) { writeScope =>
+            writeScope.update(_.withoutFramesAbove(depth)._1)
+          }
+          makeBootstrapState(currentRoot)
+        }
 
       val nestedDepths = nestedState.metaFrames.size + nestedState.finalFrame.size
       val requestedDepth = computeRequestedDepth(requestedMetaLevel, depth, nestedDepths)
@@ -163,11 +176,23 @@ class MillBuildBootstrap(
                     processRunClasspath(nestedState, buildFileApi, evaluator, depth)
                   } else if (depth == requestedDepth) {
                     processFinalTasks(nestedState, buildFileApi, evaluator, depth)
-                  } else ??? // should be handled by outer conditional
+                  } else sys.error(
+                    s"unreachable: depth=$depth < requestedDepth=$requestedDepth handled by outer conditional"
+                  )
               }
             } catch {
               case t: Throwable =>
+                // Close both this depth's evaluator AND any evaluators from
+                // deeper levels that already returned a partial nestedState.
+                // Without this, intermediate-depth evaluators leak when an
+                // outer level throws after deeper recursion succeeded.
+                // `nestedState.close()` also drains any retained meta-build
+                // read leases as a backstop; per-launcher session close drains
+                // them again, so double-close is safe (leases are
+                // AtomicBoolean-guarded).
                 try evaluator.close()
+                catch { case _: Throwable => () }
+                try nestedState.close()
                 catch { case _: Throwable => () }
                 throw t
             }
@@ -396,8 +421,9 @@ class MillBuildBootstrap(
       // Dropping the entry is enough to prevent future launchers from
       // reusing the orphaned frame; once the launchers that still pin its
       // classloader (via `RunnerLauncherState.metaFrames`) complete, the
-      // classloader becomes GC-eligible. Daemon shutdown closes any
-      // remaining live frames via the normal teardown path.
+      // classloader becomes GC-eligible. `RunnerSharedStateOps.closeAll`
+      // (called from the daemon's shutdown / `run()` finally block) closes
+      // any frames still alive at daemon teardown.
       writeScope.update(_.withoutFramesAbove(maxDepth)._1)
     }
 

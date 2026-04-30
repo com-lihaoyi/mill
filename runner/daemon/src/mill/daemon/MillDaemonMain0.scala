@@ -85,10 +85,6 @@ class MillDaemonMain0(
     )
   private val sharedOutLockManager =
     new SharedOutLockManager(MillMain0.outFileLock(outFolder), outFolder)
-  Runtime.getRuntime.addShutdownHook(new Thread(() =>
-    try sharedOutLockManager.close()
-    catch { case _: Throwable => () }
-  ))
 
   private val sharedState =
     new java.util.concurrent.atomic.AtomicReference[RunnerSharedState](
@@ -97,6 +93,23 @@ class MillDaemonMain0(
 
   private val lockRegistry = new LauncherLockRegistry
   private val outFilesState = new LauncherOutFilesState
+
+  // Best-effort cleanup. Must be runnable from both the JVM shutdown hook
+  // (kill -9 / OOM / Ctrl-C of the daemon process itself) AND the normal
+  // teardown path (`run()` exits, e.g. embedded in a test). The
+  // `AtomicBoolean` guard prevents double-close if both paths fire.
+  private val shutdownDone = new java.util.concurrent.atomic.AtomicBoolean(false)
+  private def shutdownDaemon(): Unit = if (shutdownDone.compareAndSet(false, true)) {
+    try RunnerSharedStateOps.closeAll(sharedState.get())
+    catch { case _: Throwable => () }
+    try sharedOutLockManager.close()
+    catch { case _: Throwable => () }
+  }
+  Runtime.getRuntime.addShutdownHook(new Thread(() => shutdownDaemon()))
+
+  override def run(): Option[Int] =
+    try super.run()
+    finally shutdownDaemon()
 
   def main0(
       args: Array[String],

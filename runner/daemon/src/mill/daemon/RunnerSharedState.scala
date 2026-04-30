@@ -76,6 +76,39 @@ case class RunnerSharedState(
     copy(userFinalModuleWatched = Some(moduleWatched))
 }
 
+object RunnerSharedStateOps {
+  /**
+   * Close every classloader/worker still pinned by `state.frames`. Idempotent
+   * on per-frame errors (each close is guarded). Intended for daemon teardown
+   * (both the JVM shutdown hook and the regular embedded `close()` path).
+   *
+   * Does NOT touch `bootstrapWorkers`: those workers live on the daemon's main
+   * classloader, which the JVM owns; closing them here would race with any
+   * in-flight launcher that still holds a reference. Daemon teardown waits for
+   * launcher sessions to drain via `LauncherLockingImpl.close()` first.
+   */
+  def closeAll(state: RunnerSharedState): Unit = {
+    state.frames.values.foreach { frame =>
+      frame.reusable.foreach { reusable =>
+        val snapshot = reusable.workers.synchronized(reusable.workers.toMap)
+        val deps = mill.exec.GroupExecution.workerDependencies(snapshot)
+        val topoIndex = deps.iterator.map(_._1).zipWithIndex.toMap
+        try mill.exec.GroupExecution.closeWorkersInReverseTopologicalOrder(
+            topoIndex.keys,
+            reusable.workers,
+            topoIndex,
+            c =>
+              try c.close()
+              catch { case _: Throwable => () }
+          )
+        catch { case _: Throwable => () }
+        try reusable.classLoader.close()
+        catch { case _: Throwable => () }
+      }
+    }
+  }
+}
+
 object RunnerSharedState {
   def empty: RunnerSharedState = RunnerSharedState()
 
