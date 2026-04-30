@@ -28,8 +28,10 @@ import java.util.concurrent.atomic.AtomicLong
  */
 object PromptWaitReporter {
 
-  /** Counter for synthetic-line keys so concurrent waits in one session
-    * don't collide on the same prompt row. */
+  /**
+   * Counter for synthetic-line keys so concurrent waits in one session
+   * don't collide on the same prompt row.
+   */
   private val syntheticCounter = new AtomicLong()
 
   def fromLogger(logger: Logger, fallback: PrintStream): WaitReporter =

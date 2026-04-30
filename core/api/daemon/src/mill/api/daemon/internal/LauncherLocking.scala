@@ -53,15 +53,19 @@ private[mill] trait LauncherLocking extends AutoCloseable {
       waitReporter: LauncherLocking.WaitReporter
   ): LauncherLocking.Lease
 
-  /** Non-blocking, non-queued Write counterpart of [[taskLock]].
-    * See [[tryMetaBuildWriteLock]] for semantics. */
+  /**
+   * Non-blocking, non-queued Write counterpart of [[taskLock]].
+   * See [[tryMetaBuildWriteLock]] for semantics.
+   */
   def tryTaskWriteLock(
       path: Path,
       displayLabel: String
   ): Either[String, LauncherLocking.Lease]
 
-  /** Bounded await on per-task lock state changes; counterpart of
-    * [[awaitMetaBuildStateChange]]. */
+  /**
+   * Bounded await on per-task lock state changes; counterpart of
+   * [[awaitMetaBuildStateChange]].
+   */
   def awaitTaskStateChange(path: Path, displayLabel: String, timeoutMs: Long): Unit
 
   /**
