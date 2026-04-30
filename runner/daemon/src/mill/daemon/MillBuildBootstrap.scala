@@ -602,9 +602,19 @@ class MillBuildBootstrap(
               evalWatches,
               moduleWatches
             ) =>
+          // Even when the meta-build's compiled output is bit-identical to
+          // the previous frame, we cannot reuse the existing classloader if
+          // the outer (one-level-up) `moduleWatched` has changed. The user's
+          // `package build` is a Scala singleton (`MODULE$`) cached in that
+          // classloader, so any `BuildCtx.watchValue(...)` results captured
+          // during its initialization are frozen until the classloader is
+          // recreated. See `9-dynamic-cross-modules` for a concrete case.
+          val outerInputsChanged = watchedParentInputsChanged()
           writeScope.snapshot().frameAt(depth).flatMap { frame =>
             frame.reusable.collect {
-              case reusable if classloaderOutputUnchanged(reusable, runClasspath, compileClasses) =>
+              case reusable
+                  if !outerInputsChanged &&
+                    classloaderOutputUnchanged(reusable, runClasspath, compileClasses) =>
                 publishUpdatedFrameWithExistingClassloader(
                   writeScope,
                   frame,
