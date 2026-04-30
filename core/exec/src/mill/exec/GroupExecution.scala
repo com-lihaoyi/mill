@@ -5,7 +5,7 @@ import mill.api.*
 import mill.api.daemon.internal.LauncherLocking
 import mill.api.daemon.internal.NonFatal
 import mill.api.internal.{Appendable, Cached, Located}
-import mill.internal.{CodeSigUtils, FileLogger, LockUpgrade, MultiLogger}
+import mill.internal.{CodeSigUtils, FileLogger, LockUpgrade, MultiLogger, PromptWaitReporter}
 
 import java.lang.reflect.Method
 import java.util.concurrent.ThreadPoolExecutor
@@ -272,12 +272,33 @@ trait GroupExecution {
           serializedPaths = serializedPaths
         )
 
+        // Wait status surfaces in this task's prompt-detail line so the
+        // user sees "blocked: ..." attached to the task's own prompt row,
+        // not as a stderr line that scrolls past the multi-line prompt.
+        val taskWaitReporter =
+          PromptWaitReporter.fromLogger(logger, logger.streams.err)
+        // Input tasks (Task.Input/Source/Sources) re-evaluate every run
+        // with deterministic outputs computed from filesystem/env inputs.
+        // Their `dest/` content is not read by downstream tasks (downstream
+        // consumes the in-memory Val), and any concurrent `dest/meta.json`
+        // write produces identical bytes across launchers — so per-task
+        // lock contention serves no purpose. Skip the lock entirely so two
+        // launchers can run input tasks concurrently without serializing.
         def acquireTaskLock(kind: LauncherLocking.LockKind): LauncherLocking.Lease =
-          workspaceLocking.taskLock(
-            paths.dest.toNIO,
-            labelled.ctx.segments.render,
-            kind
-          )
+          if (labelled.isInputTask)
+            LauncherLocking.Noop.taskLock(
+              paths.dest.toNIO,
+              labelled.ctx.segments.render,
+              kind,
+              taskWaitReporter
+            )
+          else
+            workspaceLocking.taskLock(
+              paths.dest.toNIO,
+              labelled.ctx.segments.render,
+              kind,
+              taskWaitReporter
+            )
 
         // Helper to evaluate the task with full caching support
         def evaluateTaskWithCaching(): GroupExecution.Results = {

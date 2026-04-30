@@ -313,7 +313,6 @@ object MillMain0 {
                               val locking = new LauncherLockingImpl(
                                 activeCommandMessage = millActiveCommandMessage,
                                 launcherPid = launcherPid,
-                                waitingErr = streams.err,
                                 noBuildLock = config.noBuildLock.value,
                                 noWaitForBuildLock = config.noWaitForBuildLock.value,
                                 lockRegistry = lockRegistry,

@@ -3,7 +3,7 @@ package mill.exec
 import mill.api.daemon.internal.*
 import mill.api.daemon.internal.{LauncherLocking, LauncherOutFiles}
 import mill.api.*
-import mill.internal.{CodeSigUtils, JsonArrayLogger, PrefixLogger, SpanningForest}
+import mill.internal.{CodeSigUtils, JsonArrayLogger, PrefixLogger, PromptWaitReporter, SpanningForest}
 
 import java.util.concurrent.{ConcurrentHashMap, ThreadPoolExecutor}
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
@@ -395,8 +395,13 @@ case class Execution(
           case _ => !serialCommandExec
         }
 
+        // Wait status surfaces in the batch logger's prompt-detail line —
+        // the user sees "blocked: ..." attached to the active batch row
+        // instead of a stderr line that scrolls past the multi-line prompt.
+        val batchWaitReporter =
+          PromptWaitReporter.fromLogger(logger, baseLogger.streams.err)
         def withExclusiveLease[A](kind: LauncherLocking.LockKind)(body: => A): A = {
-          val lease = workspaceLocking.exclusiveLock(kind)
+          val lease = workspaceLocking.exclusiveLock(kind, batchWaitReporter)
           try body
           finally lease.close()
         }

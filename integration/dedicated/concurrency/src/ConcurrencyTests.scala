@@ -27,22 +27,22 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       pid: Long,
       taskName: String
   ): Boolean =
-    launcher.containsLines(blockedLine(command, pid, taskName))
+    launcher.containsLines(blockedLine(command, pid, taskName, "write")) ||
+      launcher.containsLines(blockedLine(command, pid, taskName, "read"))
 
-  private def blockedLine(command: String, pid: Long, taskName: String): String =
-    s"Another Mill command in the current daemon is running '$command' task '$taskName' with PID $pid, waiting for it " +
-      s"(tail -F out/${DaemonFiles.millConsoleTail} to see its progress)"
+  private def blockedLine(command: String, pid: Long, taskName: String, kind: String): String =
+    s"blocked taking $kind lock on '$taskName' held by PID $pid ($command)"
 
   /**
-   * Exact set of "Another Mill command in the current daemon is running ..."
-   * lines this launcher emitted. One entry per distinct line, deduped — order
-   * is not significant because waits in different threads can interleave.
+   * Exact set of "blocked taking ... lock ..." lines this launcher emitted.
+   * One entry per distinct line, deduped — order is not significant because
+   * waits in different threads can interleave.
    */
   private def contentionMessages(
       launcher: mill.testkit.IntegrationTester.SpawnedProcess
   ): Set[String] =
     launcher.err.text().linesIterator
-      .filter(_.contains("Another Mill command in the current daemon is running"))
+      .filter(_.startsWith("blocked taking "))
       .toSet
 
   /**
@@ -131,7 +131,11 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       // escalates that one. The `sameTask` Read held by the not-yet-
       // completed downstream is what makes the wait deterministic.) Any
       // other lock — notably any meta-build escalation — fails the test.
-      assertContention(launcher2, Set(blockedLine("runSameTask", blockerPid, "sameTask")))
+      // Launcher 1 holds Write on sameTask (computing, parked at gate);
+      // launcher 2's read-then-write probe blocks on the *Read*
+      // acquisition. After launcher 1 releases, launcher 2 takes Read
+      // and finds the freshly-published cache → no Write escalation.
+      assertContention(launcher2, Set(blockedLine("runSameTask", blockerPid, "sameTask", "read")))
     }
 
     test("downstream-holds-upstream-write-lock-while-computing") - integrationTest { tester =>
@@ -163,7 +167,8 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       assertContention(launcher1, Set.empty)
       // Launcher 2 must contend on exactly the per-task `shared` lock and
       // nothing else (no spurious meta-build escalation).
-      assertContention(launcher2, Set(blockedLine("runLeft", blockerPid, "shared")))
+      // Same Read-blocked-by-Write pattern as the previous test.
+      assertContention(launcher2, Set(blockedLine("runLeft", blockerPid, "shared", "read")))
     }
 
     test("different-downstreams-can-share-upstream-read-lock") - integrationTest { tester =>
@@ -228,7 +233,7 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
         launcher2,
         "runHoldMetaBuildRead",
         blockerPid,
-        "meta-build-1"
+        "mill-build/build.mill"
       ))
       assert(launcher2.process.isAlive())
       assert(!launcher2.containsLines("shared-value"))
@@ -244,11 +249,12 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
 
       // Launcher 1 acquired everything first.
       assertContention(launcher1, Set.empty)
-      // Launcher 2 must contend on exactly meta-build-1 (the build.mill
-      // edit forces a real meta-build rebuild) and nothing else.
+      // Launcher 2 must contend on exactly the depth-1 meta-build lock
+      // (`mill-build/build.mill`) — the build.mill edit forces a real
+      // meta-build rebuild — and nothing else.
       assertContention(
         launcher2,
-        Set(blockedLine("runHoldMetaBuildRead", blockerPid, "meta-build-1"))
+        Set(blockedLine("runHoldMetaBuildRead", blockerPid, "mill-build/build.mill", "write"))
       )
     }
 
@@ -294,6 +300,57 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
         assertContention(launcher2, Set.empty)
       }
 
+    test("exclusive-task-blocks-everything") - integrationTest { tester =>
+      import tester.*
+      assert(tester.daemonMode)
+
+      // Warm meta-build classloader so both launchers see it as reusable —
+      // isolates the assertion to the `exclusive` lock contention rather
+      // than mixing in a meta-build wait.
+      eval(("runFast"), check = true)
+
+      val gate = waitFile(tester, "exclusive-wait")
+      os.write.over(gate, "")
+
+      // Launcher 1 holds `exclusiveLock(Write)` for its whole batch
+      // (because `runExclusive` is a Task.Command with `exclusive = true`),
+      // and parks inside the task body.
+      val launcher1 = spawn(("runExclusive"))
+      awaitEntered(tester, "exclusive")
+      val blockerPid = awaitActiveLauncherPid(tester, "runExclusive")
+
+      // Launcher 2 runs a non-exclusive task. Its batch needs
+      // `exclusiveLock(Read)`, which cannot coexist with launcher 1's
+      // `exclusiveLock(Write)` — so launcher 2 blocks on `exclusive`,
+      // even though `runFast` has no other dependency or lock conflict
+      // with `runExclusive`.
+      val launcher2 = spawn(("runFast"))
+      assertEventually(blockedBy(launcher2, "runExclusive", blockerPid, "exclusive"))
+      assert(launcher2.process.isAlive())
+      assert(!launcher2.containsLines("fast-value-0"))
+
+      release(gate)
+      launcher1.process.waitFor()
+      launcher2.process.waitFor()
+
+      assert(launcher1.process.exitCode() == 0)
+      assert(launcher2.process.exitCode() == 0)
+      launcher1.assertContainsLines("exclusive-value")
+      launcher2.assertContainsLines("fast-value-0")
+
+      // Launcher 1 acquired everything first.
+      assertContention(launcher1, Set.empty)
+      // Launcher 2 must contend on exactly the `exclusive` lock and
+      // nothing else. The message must use the same "blocked taking ..."
+      // shape as per-task waits, confirming the exclusive-lock wait is
+      // routed through the same WaitReporter / prompt pipeline as
+      // per-task waits.
+      assertContention(
+        launcher2,
+        Set(blockedLine("runExclusive", blockerPid, "exclusive", "read"))
+      )
+    }
+
     test("stale-shared-worker-is-not-closed-under-read-lock") - integrationTest { tester =>
       import tester.*
       assert(tester.daemonMode)
@@ -312,7 +369,14 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
 
       os.write.over(versionFile, "1")
       val launcher2 = spawn(("runUseWorker"))
-      assertEventually(blockedBy(launcher2, "runUseWorker", blockerPid, "workerVersion"))
+      // The version-file change means launcher 2's `testWorker` needs to
+      // be recreated; launcher 1 holds the per-task Read lease on
+      // `testWorker` while parked at the gate, so launcher 2's Write
+      // request blocks. (`workerVersion` is a Task.Input and now bypasses
+      // the per-task lock entirely — its computation is deterministic
+      // from filesystem inputs and serializing has no value, so the
+      // contention shifted to the actual stateful task.)
+      assertEventually(blockedBy(launcher2, "runUseWorker", blockerPid, "testWorker"))
       assert(launcher2.process.isAlive())
       assert(!os.exists(closeMarker))
 
@@ -330,11 +394,11 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
 
       // Launcher 1 acquired everything first.
       assertContention(launcher1, Set.empty)
-      // Launcher 2 must contend on exactly `workerVersion` (the version
-      // file changed so the input task needs Write) and nothing else.
+      // Launcher 2 contends on exactly `testWorker` (the Worker that
+      // depends on the changed `workerVersion`) and nothing else.
       assertContention(
         launcher2,
-        Set(blockedLine("runUseWorker", blockerPid, "workerVersion"))
+        Set(blockedLine("runUseWorker", blockerPid, "testWorker", "write"))
       )
     }
   }

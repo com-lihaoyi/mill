@@ -1,15 +1,14 @@
 package mill.internal
 
 import mill.api.daemon.internal.LauncherLocking
+import mill.api.daemon.internal.LauncherLocking.WaitReporter
 import mill.internal.CrossThreadRwLock.HolderInfo
 
-import java.io.PrintStream
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 
 private[mill] class LauncherLockingImpl(
     activeCommandMessage: String,
     launcherPid: Long,
-    waitingErr: PrintStream,
     noBuildLock: Boolean,
     noWaitForBuildLock: Boolean,
     lockRegistry: LauncherLockRegistry,
@@ -25,13 +24,14 @@ private[mill] class LauncherLockingImpl(
 
   override def metaBuildLock(
       depth: Int,
-      kind: LauncherLocking.LockKind
+      kind: LauncherLocking.LockKind,
+      waitReporter: WaitReporter
   ): LauncherLocking.Lease = {
     ensureOpen()
-    if (noBuildLock) LauncherLocking.Noop.metaBuildLock(depth, kind)
+    if (noBuildLock) LauncherLocking.Noop.metaBuildLock(depth, kind, waitReporter)
     else acquireManagedLease(lockRegistry.metaBuildLockFor(depth).acquire(
       kind,
-      waitingErr,
+      waitReporter,
       noWaitForBuildLock,
       holder
     ))
@@ -40,7 +40,8 @@ private[mill] class LauncherLockingImpl(
   override def taskLock(
       path: java.nio.file.Path,
       displayLabel: String,
-      kind: LauncherLocking.LockKind
+      kind: LauncherLocking.LockKind,
+      waitReporter: WaitReporter
   ): LauncherLocking.Lease = {
     ensureOpen()
     // If this launcher already holds `exclusiveLock(Write)` no other launcher
@@ -50,24 +51,28 @@ private[mill] class LauncherLockingImpl(
     // evaluation has already retained as Read; `CrossThreadRwLock` is not
     // reentrant so a same-thread Read→Write upgrade would block forever.
     if (noBuildLock || exclusiveWriteCount.get() > 0) {
-      LauncherLocking.Noop.taskLock(path, displayLabel, kind)
+      LauncherLocking.Noop.taskLock(path, displayLabel, kind, waitReporter)
     } else {
       val normalized = path.toAbsolutePath.normalize().toString
       val lock = lockRegistry.taskLockFor(normalized, displayLabel)
-      acquireManagedLease(lock.acquire(kind, waitingErr, noWaitForBuildLock, holder))
+      acquireManagedLease(lock.acquire(kind, waitReporter, noWaitForBuildLock, holder))
     }
   }
 
-  override def exclusiveLock(kind: LauncherLocking.LockKind): LauncherLocking.Lease = {
+  override def exclusiveLock(
+      kind: LauncherLocking.LockKind,
+      waitReporter: WaitReporter
+  ): LauncherLocking.Lease = {
     ensureOpen()
     // Reentry: if this launcher already holds a Write lease on `exclusiveLock`,
     // any further acquisition (Read or Write) is a no-op — the outer Write
     // already covers all nested work, and re-acquiring would self-deadlock
     // since `CrossThreadRwLock` is not reentrant.
-    if (noBuildLock || exclusiveWriteCount.get() > 0) LauncherLocking.Noop.exclusiveLock(kind)
+    if (noBuildLock || exclusiveWriteCount.get() > 0)
+      LauncherLocking.Noop.exclusiveLock(kind, waitReporter)
     else {
       val underlying =
-        lockRegistry.exclusiveLock.acquire(kind, waitingErr, noWaitForBuildLock, holder)
+        lockRegistry.exclusiveLock.acquire(kind, waitReporter, noWaitForBuildLock, holder)
       val tracked =
         if (kind != LauncherLocking.LockKind.Write) underlying
         else {

@@ -52,14 +52,16 @@ private[daemon] class MetaBuildAccess(
    * which exposes both the lock scope and an `update` callback for atomic
    * state mutation.
    */
-  def withMetaBuild[T](depth: Int)(
+  def withMetaBuild[T](depth: Int, waitReporter: LauncherLocking.WaitReporter)(
       probe: (RunnerSharedState, LockUpgrade.Scope) => LockUpgrade.Decision[T]
   )(
       evaluate: MetaBuildAccess.WriteScope => T
   ): T = {
     LockUpgrade.readThenWrite(
-      acquireRead = workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Read),
-      acquireWrite = workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Write)
+      acquireRead =
+        workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Read, waitReporter),
+      acquireWrite =
+        workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Write, waitReporter)
     )(scope => probe(ref.get(), scope)) { scope =>
       evaluate(new MetaBuildAccess.WriteScope(ref, scope))
     }

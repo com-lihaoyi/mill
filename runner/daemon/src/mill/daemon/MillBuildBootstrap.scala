@@ -14,7 +14,7 @@ import mill.constants.OutFiles.OutFiles.{millBuild, millRunnerState}
 import mill.constants.OutFiles.OutFiles
 import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
-import mill.internal.{LockUpgrade, PrefixLogger, Util}
+import mill.internal.{LockUpgrade, PrefixLogger, PromptWaitReporter, Util}
 import mill.meta.{BootstrapRootModule, MillBuildRootModule}
 import mill.api.daemon.internal.{CliImports, LauncherLocking, LauncherOutFiles}
 import mill.internal.BuildFileDiscovery.findRootBuildFiles
@@ -75,6 +75,10 @@ class MillBuildBootstrap(
   // shared state) but Execution still consumes the LauncherLocking directly
   // for per-task locks.
   private val workspaceLocking: LauncherLocking = metaBuild.workspaceLocking
+  // Surfaces lock-wait status into the multi-line prompt's per-line detail
+  // suffix (instead of scrolling stderr lines that collide with the prompt
+  // repaint cycle). Falls back to stderr when the prompt isn't live.
+  private val waitReporter = PromptWaitReporter.fromLogger(logger, streams0.err)
   import MillBuildBootstrap.*
 
   val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(output)
@@ -124,7 +128,7 @@ class MillBuildBootstrap(
           // launchers in their own final-task phase — which retain Read
           // leases on every meta-build depth for the duration of their
           // run — don't block each other on this no-op probe.
-          metaBuild.withMetaBuild(depth) { (state, _) =>
+          metaBuild.withMetaBuild(depth, waitReporter) { (state, _) =>
             if (state.frames.keysIterator.exists(_ > depth))
               LockUpgrade.Decision.Escalate
             else LockUpgrade.Decision.Complete(())
@@ -186,9 +190,14 @@ class MillBuildBootstrap(
                     processRunClasspath(nestedState, buildFileApi, evaluator, depth)
                   } else if (depth == requestedDepth) {
                     processFinalTasks(nestedState, buildFileApi, evaluator, depth)
-                  } else sys.error(
-                    s"unreachable: depth=$depth < requestedDepth=$requestedDepth handled by outer conditional"
-                  )
+                  } else {
+                    // depth < requestedDepth means the user asked for a meta-level
+                    // beyond what the project actually has (e.g. `--meta-level 2`
+                    // on a project with no `mill-build/`). Propagate without
+                    // dispatching here so the depth==0 range check produces the
+                    // friendly `invalidLevelMsg` error instead of a stack trace.
+                    nestedState
+                  }
               }
             } catch {
               case t: Throwable =>
@@ -579,7 +588,7 @@ class MillBuildBootstrap(
     }
 
     var readProbeOpt = Option.empty[ReuseProbe]
-    metaBuild.withMetaBuild(depth) { (state, scope) =>
+    metaBuild.withMetaBuild(depth, waitReporter) { (state, scope) =>
       reusable(state.frameAt(depth)) match {
         case f: Result.Failure =>
           LockUpgrade.Decision.Complete(errorState(f))

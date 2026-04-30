@@ -476,7 +476,6 @@ object PlanTests extends TestSuite {
       def locking(command: String, pid: Long) = new LauncherLockingImpl(
         activeCommandMessage = command,
         launcherPid = pid,
-        waitingErr = new PrintStream(new ByteArrayOutputStream()),
         noBuildLock = false,
         noWaitForBuildLock = false,
         lockRegistry = registry,
@@ -528,10 +527,20 @@ object PlanTests extends TestSuite {
         try {
           LockUpgrade.readThenWrite(
             acquireRead =
-              locking.taskLock(path.toNIO, task.toString, LauncherLocking.LockKind.Read),
+              locking.taskLock(
+                path.toNIO,
+                task.toString,
+                LauncherLocking.LockKind.Read,
+                LauncherLocking.WaitReporter.Noop
+              ),
             acquireWrite = {
               val lease =
-                locking.taskLock(path.toNIO, task.toString, LauncherLocking.LockKind.Write)
+                locking.taskLock(
+                  path.toNIO,
+                  task.toString,
+                  LauncherLocking.LockKind.Write,
+                  LauncherLocking.WaitReporter.Noop
+                )
               acquisitionLog.add((launcher, taskLabel))
               tracker.onTaskLockPhaseComplete(task)
               lease
