@@ -77,6 +77,7 @@ case class RunnerSharedState(
 }
 
 object RunnerSharedStateOps {
+
   /**
    * Close every classloader/worker still pinned by `state.frames`. Idempotent
    * on per-frame errors (each close is guarded). Intended for daemon teardown
