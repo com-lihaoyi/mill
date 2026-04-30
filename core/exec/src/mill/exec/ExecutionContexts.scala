@@ -46,12 +46,10 @@ object ExecutionContexts {
   class ThreadPool(executor: ThreadPoolExecutor) extends mill.api.TaskCtx.Fork.Impl {
     def await[T](t: Future[T]): T = blocking { Await.result(t, Duration.Inf) }
 
-    // Synchronize on the underlying `executor`, not `this`: when concurrent
-    // BSP requests or launchers share one daemon-level executor, each
-    // `Execution.evaluateTerminals` call wraps it in a fresh `ThreadPool`,
-    // so locking on `this` would not serialise the read-modify-write of
-    // core/max pool sizes and could violate ThreadPoolExecutor's
-    // `max >= core` invariant.
+    // Synchronize on the underlying `executor`: concurrent launchers
+    // share one daemon-level executor across multiple `ThreadPool`
+    // wrappers, so locking on `this` wouldn't serialise the
+    // read-modify-write of core/max pool sizes.
     def updateThreadCount(delta: Int): Unit = executor.synchronized {
       if (delta > 0) {
         executor.setMaximumPoolSize(executor.getMaximumPoolSize + delta)
@@ -107,13 +105,10 @@ object ExecutionContexts {
     class PriorityRunnable(val priority: Int, run0: () => Unit) extends Runnable
         with Comparable[PriorityRunnable] {
       def run() = run0()
-      // Use a process-wide counter rather than per-`ThreadPool` instance, because
-      // multiple `ThreadPool` wrappers may share the same underlying `executor`
-      // (and thus the same `PriorityBlockingQueue`) when concurrent launchers or
-      // BSP requests reuse the launcher's `ec`. A per-instance counter would let
-      // PriorityRunnables from different wrappers collide on
-      // `priorityRunnableIndex`, which the `compareTo` assertion below would
-      // catch and propagate as an evaluation failure.
+      // Process-wide counter so PriorityRunnables from different
+      // `ThreadPool` wrappers sharing one `PriorityBlockingQueue` get
+      // unique indices (a per-instance counter would collide and trip
+      // the `compareTo` assertion below).
       val priorityRunnableIndex: Long = ExecutionContexts.priorityRunnableCount.getAndIncrement()
       override def compareTo(o: PriorityRunnable): Int = priority.compareTo(o.priority) match {
         case 0 =>

@@ -31,15 +31,13 @@ class SharedOutLockManager(
       try while (acquiring && !closed) monitor.wait()
       catch {
         case t: Throwable =>
-          // If the wait is interrupted (or otherwise aborts), the prior
-          // refCount increment must be rolled back; otherwise the held lease
-          // can never be released because refCount never returns to 0.
+          // Roll back the refCount increment on interrupt; otherwise
+          // refCount never returns to 0 and the held lease leaks.
           refCount -= 1
           throw t
       }
-      // Recheck closed: a concurrent close() can happen while we wait, in
-      // which case we must not proceed to fileLock.tryLock() on a manager
-      // whose held lease has already been released.
+      // Recheck after wait: close() may have run, in which case we
+      // must not proceed to fileLock.tryLock() on a closed manager.
       if (closed) {
         refCount -= 1
         throw new IllegalStateException("SharedOutLockManager is closed")
@@ -83,8 +81,8 @@ class SharedOutLockManager(
 
       val releaseDueToClose = monitor.synchronized {
         if (closed) {
-          // close() ran while we were blocked acquiring the OS lock. Release
-          // it now and back out the refCount; the caller sees an
+          // close() ran while we were in fileLock.lock(); release it
+          // now and back out the refCount. The caller sees an
           // IllegalStateException and no leased lock survives the manager.
           refCount -= 1
           acquiring = false

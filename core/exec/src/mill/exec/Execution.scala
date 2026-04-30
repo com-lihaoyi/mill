@@ -234,8 +234,6 @@ case class Execution(
         }
       )
 
-      // Hoisted out of the surrounding try-block so future tweaks don't
-      // re-indent the whole body and balloon the diff.
       def evaluateTerminals(
           terminals: Seq[Task[?]],
           exclusive: Boolean
@@ -371,23 +369,16 @@ case class Execution(
                     throw nonFatal
                 }
             }
-            // andThen on the outer future so onCompleted fires whether the
-            // .map body ran (success / non-fatal failure inside body) or
-            // was skipped because Future.sequence(deps) failed earlier in
-            // the chain. Without this, an upstream re-thrown exception
-            // would skip every transitive downstream's pending decrement
-            // and leak retained Read leases until tracker.drain().
+            // andThen so onCompleted fires even when an upstream throw
+            // skips the .map body; otherwise transitive downstream
+            // pending counts and Read leases leak until tracker.drain().
             futures(terminal) = raw.andThen { case _ => tracker.onCompleted(terminal) }
           }
         }
 
-        // Wait for every future in the batch to settle before returning so
-        // tracker.drain() (in the outer finally) can never run while a
-        // task body is mid-`retain` or mid-`onCompleted`. Plain
-        // Future.sequence is fail-fast and would let drain race with
-        // still-running siblings; transforming each future to Try makes
-        // the outer sequence wait for genuine completion of all tasks,
-        // and we re-throw the first failure afterwards.
+        // Wait for every future to settle (Try-wrapped, not fail-fast)
+        // so the outer `tracker.drain()` finally can't race a sibling
+        // still mid-`retain`/`onCompleted`; first failure rethrown after.
         val settled = Future.sequence(
           terminals1.map(t => futures(t).transform(r => Success(t -> r)))
         )
@@ -403,9 +394,6 @@ case class Execution(
           case _ => !serialCommandExec
         }
 
-        // Wait status surfaces in the batch logger's prompt-detail line —
-        // the user sees "blocked: ..." attached to the active batch row
-        // instead of a stderr line that scrolls past the multi-line prompt.
         val batchWaitReporter =
           PromptWaitReporter.fromLogger(logger, baseLogger.streams.err)
         def withExclusiveLease[A](kind: LauncherLocking.LockKind)(body: => A): A = {
@@ -415,9 +403,9 @@ case class Execution(
         }
 
         // Whole-batch Write rather than splitting Read/Write across phases:
-        // splitting deadlocks against peers waiting on `taskLock.Write` that
-        // our retained `LeaseTracker` reads block, and draining the tracker
-        // first lets a peer rewrite an upstream `dest` before we acquire Write.
+        // splitting would let a peer rewrite an upstream `dest` between
+        // our Read-drain and Write-acquire, and would deadlock peers on
+        // `taskLock.Write` that our retained `LeaseTracker` Reads block.
         val haveExclusive = leafExclusiveCommands.nonEmpty
         val outerKind =
           if (haveExclusive) LauncherLocking.LockKind.Write
@@ -549,9 +537,9 @@ object Execution {
         }
       }.toMap
 
-    // Plan-invariant for shared named tasks: every launcher containing T sees
-    // the same heights and tiebreaks, so overlapping locks are acquired in the
-    // same order everywhere and the cross-launcher AB/BA cycle is unreachable.
+    // Heights and tiebreaks are plan-invariant for shared named tasks,
+    // so all launchers acquire overlapping locks in the same order and
+    // the cross-launcher AB/BA cycle is unreachable.
     private val canonicalHeights: Map[Task[?], Int] = {
       val memo = mutable.Map.empty[Task[?], Int]
       def rec(t: Task[?]): Int = memo.getOrElseUpdate(
@@ -668,13 +656,10 @@ object Execution {
       out.addOne(
         terminal -> groupSet
           .flatMap(_.inputs.collect {
-            // Anonymous tasks may belong to multiple groups (they are walked
-            // through, not cut at, when grouping; see PlanImpl.plan). For an
-            // input escaping this group to be a deterministic upstream key,
-            // it must be a Named cut point — `MultiBiMap.lookupValue` on a
-            // duplicated anon would be last-writer-wins. If a non-Named ever
-            // escapes here, grouping is wrong and we must fail loudly rather
-            // than silently wire the dep to an arbitrary group.
+            // Anonymous tasks aren't deterministic group cut-points
+            // (see PlanImpl.plan), so a non-Named upstream escaping here
+            // means grouping is wrong; fail loudly rather than wire the
+            // dep to an arbitrary group.
             case f: Task.Named[?] if !groupSet.contains(f) => f
             case f if !groupSet.contains(f) =>
               throw new AssertionError(

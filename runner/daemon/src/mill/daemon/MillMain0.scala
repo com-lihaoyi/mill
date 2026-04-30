@@ -250,9 +250,8 @@ object MillMain0 {
                       OutputDirectoryLayout.outDir(outMode, BuildCtx.workspaceRoot, env),
                       BuildCtx.workspaceRoot
                     )
-                    // Concurrent BSP requests share one connection's `setIdle`
-                    // flag; coordinate via a counter so the flag flips only on
-                    // aggregate 0↔N transitions, not last-writer-wins.
+                    // Refcount the shared `setIdle` flag so it flips only
+                    // on aggregate 0↔N transitions across concurrent BSP requests.
                     val activeRequests = new java.util.concurrent.atomic.AtomicInteger(0)
                     def beginActive(): Unit =
                       if (activeRequests.getAndIncrement() == 0) setIdle(false)
@@ -423,20 +422,11 @@ object MillMain0 {
                                   }
                                 }
                               }
-                            // Publish once inside the logger scope so live
-                            // symlinks point at the in-progress run; after
-                            // the logger closes (writing the trailing `]`
-                            // for any JSON-array log) we republish below so
-                            // the copy fallback for `mill-profile.json` /
-                            // `mill-chrome-profile.json` snapshots a
-                            // fully-closed file rather than truncating it.
+                            // Publish in-progress, then republish after
+                            // logger close so the Windows copy fallback
+                            // for JSON-array logs sees the trailing `]`.
                             finally runArtifacts.publishArtifacts()
                           }
-                          // Logger is now closed; republish so JSON-array
-                          // files have their trailing `]` reflected in the
-                          // copy fallback (POSIX symlink users see the
-                          // already-completed file via the symlink and are
-                          // unaffected by this second call).
                           runArtifacts.publishArtifacts()
                           state.withResources(workspaceLocking, runArtifacts, fileLockLease)
                         } catch {

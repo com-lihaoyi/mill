@@ -37,20 +37,14 @@ object BuildCtx {
   def withFilesystemCheckerDisabled[T](block: => T): T =
     os.checker.withValue(os.Checker.Nop) { block }
 
-  // Module-init watches accumulate while the build classloader is being
-  // constructed. This happens once per meta-build frame under the meta-build
-  // write lock, so a single shared default buffer is fine for that phase.
-  // After module init, post-load `BuildCtx.watch` calls (rare) thread their
-  // writes through whatever buffer is currently bound by the running scope.
+  // Module-init watches: populated by `<clinit>` of the build classloader
+  // (serialized by the JVM), so a shared default buffer is safe.
   private val moduleWatchedDefault: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
 
-  // Eval watches are populated *every evaluation* (e.g. `Task.Input` reading
-  // `os.list(...)` via `BuildCtx.evalWatch`). To prevent concurrent
-  // evaluations from clobbering each other's watches, the writer always
-  // resolves the currently-bound buffer via the DynamicVariable. The runner
-  // installs a fresh buffer per evaluation; threads dispatched through
-  // `ExecutionContexts.ThreadPool` inherit the binding via the executor's
-  // capture/rebind step.
+  // Eval watches: populated per evaluation via `BuildCtx.evalWatch`.
+  // The DynamicVariable + `ExecutionContexts.ThreadPool` capture/rebind
+  // give each evaluation an isolated buffer so concurrent launchers
+  // don't clobber each other's watches.
   private[mill] val watchedValues0: DynamicVariable[mutable.Buffer[Watchable]] =
     new DynamicVariable(moduleWatchedDefault)
   private[mill] val evalWatchedValues0: DynamicVariable[mutable.Buffer[Watchable]] =

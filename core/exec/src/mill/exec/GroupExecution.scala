@@ -272,18 +272,12 @@ trait GroupExecution {
           serializedPaths = serializedPaths
         )
 
-        // Wait status surfaces in this task's prompt-detail line so the
-        // user sees "blocked: ..." attached to the task's own prompt row,
-        // not as a stderr line that scrolls past the multi-line prompt.
         val taskWaitReporter =
           PromptWaitReporter.fromLogger(logger, logger.streams.err)
-        // Input tasks (Task.Input/Source/Sources) re-evaluate every run
-        // with deterministic outputs computed from filesystem/env inputs.
-        // Their `dest/` content is not read by downstream tasks (downstream
-        // consumes the in-memory Val), and any concurrent `dest/meta.json`
-        // write produces identical bytes across launchers — so per-task
-        // lock contention serves no purpose. Skip the lock entirely so two
-        // launchers can run input tasks concurrently without serializing.
+        // Input tasks (Task.Input/Source/Sources) are deterministic from
+        // filesystem/env, downstream consumes the in-memory Val (not
+        // `dest/`), and concurrent `dest/meta.json` writes are byte-identical
+        // — so per-task locking is unnecessary and just serializes peers.
         def acquireTaskLock(kind: LauncherLocking.LockKind): LauncherLocking.Lease =
           if (labelled.isInputTask)
             LauncherLocking.Noop.taskLock(
@@ -300,9 +294,8 @@ trait GroupExecution {
               taskWaitReporter
             )
 
-        // Non-blocking, non-queued Write try and bounded await — feed
-        // `LockUpgrade.readThenWrite`'s retryable loop. Same input-task
-        // skip semantics as `acquireTaskLock`.
+        // Try-Write + bounded await for `LockUpgrade.readThenWrite`'s
+        // retryable loop; mirrors `acquireTaskLock`'s input-task skip.
         def tryWriteTaskLock(): Either[String, LauncherLocking.Lease] = {
           val result =
             if (labelled.isInputTask)
@@ -485,9 +478,8 @@ trait GroupExecution {
                 case Left(e) => buildOverrideDeserializationError(e, located)
               }
             }
-          // Match the normal task path: downgrade Write to Read and retain
-          // until transitive downstreams complete, so peers can't overwrite
-          // paths.meta while a downstream might still consume the result.
+          // Downgrade-and-retain matches `evaluateTaskWithCaching` so
+          // peers can't overwrite `paths.meta` mid-downstream-read.
           execRes match {
             case ExecResult.Success(_) =>
               leaseTracker.retain(labelled, scope.downgradeAndRetain())
@@ -832,10 +824,9 @@ trait GroupExecution {
           Some(upToDate)
 
         case (_, Val(_: AutoCloseable), _) if closeStaleWorker =>
-          // Recompute reverse-deps from current `workerCache` under lock: a
-          // peer launcher may have added a dependent worker since this
-          // Execution's snapshot was taken; a stale snapshot would leave that
-          // dependent pointing at the closed upstream.
+          // Recompute reverse-deps under lock: a peer-added dependent
+          // would otherwise be missed and end up pointing at a closed
+          // upstream.
           val (currentReverseDeps, currentTopoIndex) = workerCache.synchronized {
             val cacheSnapshot = workerCache.toMap
             val deps = GroupExecution.workerDependencies(cacheSnapshot)

@@ -71,11 +71,8 @@ object LockUpgrade {
   )(
       writeBody: Scope => T
   ): T = {
-    // Single wait token that survives across retry iterations; opened on
-    // the first failed try-Write and closed when we exit (Read fast-path
-    // Completed, or Write succeeded). Closed-then-reopened on each failed
-    // try would flicker the prompt-detail line; one open/close keeps the
-    // wait status stable for the duration of the contention.
+    // One wait token across all retries: re-opening per failed try
+    // would flicker the prompt-detail line.
     var waitToken: AutoCloseable = null
     def closeWaitToken(): Unit = if (waitToken != null) {
       try waitToken.close()

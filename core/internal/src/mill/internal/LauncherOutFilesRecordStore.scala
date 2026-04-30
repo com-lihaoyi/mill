@@ -92,10 +92,10 @@ private[mill] object LauncherOutFilesRecordStore {
       java.lang.ProcessHandle.of(record.pid).toScala.exists { ph =>
         if (!ph.isAlive) false
         else record.startMillis match {
-          // No recorded start time (legacy file) — fall back to PID-only check.
+          // Legacy record without start time — PID-only check.
           case None => true
-          // Verify the start time matches; otherwise the PID has been recycled
-          // by a different process and the record is stale.
+          // Defeat PID reuse: a recycled PID with a different start
+          // time means the original record is stale.
           case Some(recorded) =>
             ph.info().startInstant().toScala.map(_.toEpochMilli).contains(recorded)
         }

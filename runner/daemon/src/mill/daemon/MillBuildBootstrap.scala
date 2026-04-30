@@ -114,20 +114,9 @@ class MillBuildBootstrap(
       val nestedState =
         if (containsBuildFile(currentRoot)) evaluateRec(depth + 1)
         else {
-          // Recursion bottoms out here, so depths > `depth` are unreachable
-          // for this run. If a previous run went deeper (e.g.
-          // `mill-build/build.mill` was deleted between runs), evict its
-          // stale frames so future launchers don't reuse them. Done here
-          // (not just in `processRunClasspath`) so projects without
-          // `mill-build/` and early-error paths (invalid `--meta-level`,
-          // missing root build file) also get the cleanup.
-          //
-          // Critically: only escalate to Write if there's actually
-          // something to prune. The hot path (no nested mill-build, no
-          // stale frames from prior runs) MUST stay on Read so concurrent
-          // launchers in their own final-task phase — which retain Read
-          // leases on every meta-build depth for the duration of their
-          // run — don't block each other on this no-op probe.
+          // Evict stale frames left over from a previous deeper run (e.g.
+          // `mill-build/build.mill` was deleted). Skip Write escalation
+          // when there's nothing to prune so the common case stays on Read.
           metaBuild.withMetaBuild(depth, waitReporter) { (state, _) =>
             if (state.frames.keysIterator.exists(_ > depth))
               LockUpgrade.Decision.Escalate
@@ -191,24 +180,16 @@ class MillBuildBootstrap(
                   } else if (depth == requestedDepth) {
                     processFinalTasks(nestedState, buildFileApi, evaluator, depth)
                   } else {
-                    // depth < requestedDepth means the user asked for a meta-level
-                    // beyond what the project actually has (e.g. `--meta-level 2`
-                    // on a project with no `mill-build/`). Propagate without
-                    // dispatching here so the depth==0 range check produces the
-                    // friendly `invalidLevelMsg` error instead of a stack trace.
+                    // Out-of-range meta-level: propagate so the depth==0
+                    // range check produces `invalidLevelMsg` instead of crashing.
                     nestedState
                   }
               }
             } catch {
               case t: Throwable =>
-                // Close both this depth's evaluator AND any evaluators from
-                // deeper levels that already returned a partial nestedState.
-                // Without this, intermediate-depth evaluators leak when an
-                // outer level throws after deeper recursion succeeded.
-                // `nestedState.close()` also drains any retained meta-build
-                // read leases as a backstop; per-launcher session close drains
-                // them again, so double-close is safe (leases are
-                // AtomicBoolean-guarded).
+                // Close deeper-level evaluators that already returned a
+                // partial `nestedState`; otherwise they leak when an outer
+                // level throws after the deeper recursion succeeded.
                 try evaluator.close()
                 catch { case _: Throwable => () }
                 try nestedState.close()
@@ -256,13 +237,10 @@ class MillBuildBootstrap(
 
     val millClassloaderIdentityHash0 = nestedSharedFrame.map(_.classLoader.identity).getOrElse(0)
 
-    // Workers are owned by the nested shared frame (lifetime tracks the
-    // classloader's lifetime). When there is no nested shared frame (deepest
-    // bootstrap level, e.g. a project without `mill-build/`), fall back to the
-    // daemon-wide `bootstrapWorkers` map so workers loaded via the daemon's
-    // main classloader (notably this level's own `internalWorkerClassLoader`)
-    // are reused across launchers instead of being re-created — and leaked —
-    // on every re-evaluation of the deepest level.
+    // Worker lifetime tracks the classloader that loaded them. The
+    // deepest level has no nested classloader, so its workers go into
+    // the daemon-wide `bootstrapWorkers` map (loaded by the main
+    // classloader, stable across launchers).
     val workerCache: collection.mutable.Map[String, (Int, Val, TaskApi[?])] =
       nestedSharedFrame
         .map(_.workers)
@@ -432,26 +410,16 @@ class MillBuildBootstrap(
         writeScope: MetaBuildAccess.WriteScope,
         maxDepth: Int
     ): Unit = {
-      // Only drop the map entries; do NOT explicitly close the displaced
-      // classloaders/workers here. The canonical meta-build lock order is
-      // deepest-first, so acquiring `metaBuildLock(d+1, Write)` while
-      // holding `metaBuildLock(d, Write)` (as we do during this publish)
-      // can deadlock against a concurrent launcher that recurses deeper.
-      // Dropping the entry is enough to prevent future launchers from
-      // reusing the orphaned frame; once the launchers that still pin its
-      // classloader (via `RunnerLauncherState.metaFrames`) complete, the
-      // classloader becomes GC-eligible. `RunnerSharedStateOps.closeAll`
-      // (called from the daemon's shutdown / `run()` finally block) closes
-      // any frames still alive at daemon teardown.
+      // Drop the map entries only. Acquiring deeper depth-write locks
+      // here would invert the deepest-first lock order and deadlock; the
+      // displaced classloaders become GC-eligible once their pinning
+      // launchers complete (and `RunnerSharedStateOps.closeAll` closes
+      // any survivors at daemon teardown).
       writeScope.update(_.withoutFramesAbove(maxDepth)._1)
     }
 
-    // True when the recursive bootstrap stopped here (no nested meta-frames),
-    // i.e. this is the deepest meta-build level visited this run. We use it
-    // to prune `RunnerSharedState.frames` entries at strictly greater depths,
-    // which become unreachable after e.g. a `mill-build/build.mill` deletion
-    // and would otherwise leak classloaders/workers for the daemon's
-    // lifetime.
+    // True at the deepest meta-build level visited this run; gates the
+    // pruning of orphaned `RunnerSharedState.frames` at greater depths.
     val isDeepestLevel = nestedState.metaFrames.isEmpty
 
     def publishFailedFrame(
@@ -650,12 +618,10 @@ class MillBuildBootstrap(
     if (depth == 0) {
       metaBuild.publishUserFinalModuleWatched(moduleWatched)
 
-      // If the user-level evaluation modified meta-build inputs (e.g. spotless
-      // reformatting `build.mill`), refresh each enclosing meta-build frame's
-      // in-memory `selectiveMetadata` to reflect the post-evaluation file
-      // state. Otherwise the next launcher's `probeSelectiveReuse` would
-      // compare current files against pre-evaluation metadata and force a
-      // classloader rebuild that wipes cached workers.
+      // If user-level evaluation mutated meta-build inputs (e.g. spotless
+      // reformatting `build.mill`), refresh each enclosing meta-build
+      // frame's `selectiveMetadata` so the next launcher doesn't trigger
+      // a spurious meta-build rebuild.
       nestedState.metaFrames.foreach { metaFrame =>
         metaFrame.sharedFrame.reusable.foreach { reusable =>
           val previous = reusable.selectiveMetadata.get()
@@ -665,15 +631,9 @@ class MillBuildBootstrap(
               SelectMode.Separated,
               prev
             ) match {
-              // Only advance the metadata when the meta-build is actually
-              // reusable: in that case the in-memory classloader matches the
-              // post-evaluation file state and the next launcher can safely
-              // skip the rebuild. If `decision.reusable` is false, the
-              // classloader was built from the pre-edit code, so we must
-              // leave the metadata untouched — otherwise a subsequent
-              // launcher's `probeSelectiveReuse` would compare current files
-              // to post-edit metadata, return `reusable=true`, and reuse the
-              // stale classloader.
+              // Only advance metadata when reusable: otherwise the
+              // in-memory classloader is from pre-edit code and a stale
+              // metadata advance would trick the next launcher into reusing it.
               case Result.Success(decision) if decision.reusable =>
                 reusable.selectiveMetadata.set(Some(decision.nextMetadata))
                 val metadataFile =

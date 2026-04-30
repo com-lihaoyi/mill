@@ -55,12 +55,10 @@ private[mill] class LauncherLockingImpl(
       waitReporter: WaitReporter
   ): LauncherLocking.Lease = {
     ensureOpen()
-    // If this launcher already holds `exclusiveLock(Write)` no other launcher
-    // can be running, so per-task serialization is unnecessary. Returning Noop
-    // also avoids self-deadlock when nested `evaluator.execute(...)` from
-    // inside an exclusive command tries to escalate a taskLock that the outer
-    // evaluation has already retained as Read; `CrossThreadRwLock` is not
-    // reentrant so a same-thread Read→Write upgrade would block forever.
+    // While `exclusiveLock(Write)` is held, no peer can run, so per-task
+    // locking is unnecessary; Noop also avoids self-deadlock if a nested
+    // exclusive command's evaluator tries to escalate a taskLock the outer
+    // evaluation already holds as Read (`CrossThreadRwLock` is not reentrant).
     if (noBuildLock || exclusiveWriteCount.get() > 0) {
       LauncherLocking.Noop.taskLock(path, displayLabel, kind, waitReporter)
     } else {
@@ -102,10 +100,8 @@ private[mill] class LauncherLockingImpl(
       waitReporter: WaitReporter
   ): LauncherLocking.Lease = {
     ensureOpen()
-    // Reentry: if this launcher already holds a Write lease on `exclusiveLock`,
-    // any further acquisition (Read or Write) is a no-op — the outer Write
-    // already covers all nested work, and re-acquiring would self-deadlock
-    // since `CrossThreadRwLock` is not reentrant.
+    // Reentry: outer `exclusiveLock(Write)` covers all nested work and
+    // a same-thread re-acquire would self-deadlock (lock isn't reentrant).
     if (noBuildLock || exclusiveWriteCount.get() > 0)
       LauncherLocking.Noop.exclusiveLock(kind, waitReporter)
     else {

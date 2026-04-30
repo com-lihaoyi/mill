@@ -41,13 +41,11 @@ object PromptWaitReporter {
       val baseKey = logger.logKey
       (msg: String) => {
         if (baseKey.nonEmpty) {
-          // Existing prompt-line for this logger — overwrite its detail.
           prompt.setPromptDetail(baseKey, msg)
           () => prompt.setPromptDetail(baseKey, "")
         } else {
-          // No existing prompt-line (session logger). Synthesise one so
-          // the wait actually appears in the prompt rather than being
-          // silently swallowed.
+          // Session logger has no prompt-line — synthesise one or the
+          // wait detail has nothing to attach to.
           val syntheticKey = Seq("wait-" + syntheticCounter.incrementAndGet())
           prompt.setPromptLine(syntheticKey, "", msg)
           () => prompt.removePromptLine(syntheticKey, msg)

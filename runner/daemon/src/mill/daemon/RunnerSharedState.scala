@@ -131,17 +131,14 @@ object RunnerSharedState {
         compileOutput: PathRefApi,
         codeSignatures: Map[String, Int],
         buildOverrideFiles: Map[java.nio.file.Path, String],
-        // Mutable so launchers can refresh it after a finalTasks evaluation
-        // that mutated meta-build inputs (e.g. spotless reformatting build.mill):
-        // without an in-place update, the next launcher's `probeSelectiveReuse`
-        // would compare current files against stale metadata and rebuild the
-        // meta-build classloader, wiping cached workers.
+        // Mutable so a finalTasks evaluation that mutates meta-build
+        // inputs (e.g. spotless reformat) can refresh in place; without
+        // this the next launcher would force a meta-build rebuild and
+        // wipe cached workers.
         selectiveMetadata: AtomicReference[Option[String]] =
           new AtomicReference[Option[String]](None),
-        // Workers loaded from this classloader and shared across launchers using
-        // this frame. Lifetime tracks classloader lifetime: when this frame is
-        // displaced, [[closeWorkers]] is called as part of disposing the
-        // classloader, ensuring no stale workers outlive their classloader.
+        // Workers loaded from this classloader; closed alongside the
+        // classloader on frame displacement.
         workers: mutable.Map[String, (Int, Val, TaskApi[?])] =
           mutable.Map.empty[String, (Int, Val, TaskApi[?])]
     )
