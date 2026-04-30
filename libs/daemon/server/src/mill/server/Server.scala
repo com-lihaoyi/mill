@@ -115,6 +115,9 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
     serverLog("server file locked")
     val serverSocket = new ServerSocket(0, 0, InetAddress.getByName(null))
     val exitCodeVar = new AtomicReference[Option[Handled]](None)
+    val draining = new AtomicReference[Boolean](false)
+    val stateFile = daemonDir / DaemonFiles.daemonState
+
     def closeServer(exitCodeOpt: Option[Handled]) = {
       // Don't System.exit immediately, but instead store the exit code for later and close the
       // `serverSocket` so the methods return normally with a single exit point
@@ -122,18 +125,67 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       serverSocket.close()
     }
 
+    // Forward declaration so connectionTracker's `onChange` can publish state
+    // updates with the current `draining` flag and active count.
+    lazy val connectionTracker: Server.ConnectionTracker = new Server.ConnectionTracker(
+      serverLog,
+      acceptTimeoutMillisOpt,
+      serverSocket,
+      onChange = () =>
+        Server.writeDaemonState(
+          stateFile,
+          Server.DaemonState(
+            pid = processId,
+            activeConnections = connectionTracker.activeCount,
+            acceptingConnections = !draining.get() && !serverSocket.isClosed
+          )
+        )
+    )
+
+    // Initial state publish so a launcher polling immediately on startup sees a real file.
+    Server.writeDaemonState(
+      stateFile,
+      Server.DaemonState(
+        pid = processId,
+        activeConnections = 0,
+        acceptingConnections = true
+      )
+    )
+
+    // Reason captured by the watcher thread when it triggers a drain; read by
+    // the main thread after the accept loop exits so we can log/forward it.
+    val drainReason = new AtomicReference[String]("")
+
     Server.watchProcessIdFile(
       daemonDir / DaemonFiles.processId,
       processId,
       running = () => !serverSocket.isClosed,
       exit = msg => {
+        // Don't perform the drain here — this runs in a daemon thread that
+        // gets killed when the main thread System.exit's. Instead just flag
+        // `draining` and close the listen socket; the main thread (in
+        // `runLocked`'s finally) handles the actual drain wait synchronously.
         serverLog(s"watchProcessIdFile: $msg")
-        closeServer(None)
+        if (draining.compareAndSet(false, true)) {
+          drainReason.set(msg)
+          serverLog("entering drain mode; refusing new connections")
+          // Republish state so polling launchers see acceptingConnections=false
+          // before they try to connect.
+          Server.writeDaemonState(
+            stateFile,
+            Server.DaemonState(
+              pid = processId,
+              activeConnections = connectionTracker.activeCount,
+              acceptingConnections = false
+            )
+          )
+        }
+        // Closing the listen socket triggers SocketException in accept() and
+        // the main thread falls into the drain step in runLocked's finally.
+        try serverSocket.close()
+        catch { case NonFatal(_) => () }
       }
     )
-
-    val connectionTracker =
-      new Server.ConnectionTracker(serverLog, acceptTimeoutMillisOpt, serverSocket)
 
     try {
       os.write.over(socketPortFile, serverSocket.getLocalPort.toString)
@@ -160,7 +212,13 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
           // complete, to allow other client connections to be processed in parallel
           StartThread(s"HandleRunThread-${sock.toString}") {
             try {
-              runSocketHandler(sock, initialSystemProperties, closeServer(_), connectionTracker)
+              runSocketHandler(
+                sock,
+                initialSystemProperties,
+                closeServer(_),
+                connectionTracker,
+                draining
+              )
             } catch {
               case e: Throwable =>
                 serverLog(s"${sock.toString} error: $e\n${e.getStackTrace.mkString("\n")}")
@@ -171,7 +229,36 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
           }
         }
       }
-    } finally closeServer(None)
+    } finally {
+      // If we exited the accept loop because the watcher signaled a drain,
+      // wait synchronously for in-flight connections to finish (or force-close
+      // them after the deadline) before letting the main thread return — once
+      // it returns, `MillDaemonMain0` calls `System.exit`, which would kill
+      // running command handlers mid-execution.
+      if (draining.get()) {
+        val msg = Option(drainReason.get()).filter(_.nonEmpty).getOrElse("daemon-restart")
+        val deadline = System.nanoTime() + Server.drainTimeoutMillis * 1_000_000L
+        val drained = connectionTracker.waitUntilEmpty(deadline)
+        if (!drained) {
+          serverLog(
+            s"drain timeout (${Server.drainTimeoutMillis}ms) exceeded with " +
+              s"${connectionTracker.activeCount} connection(s) remaining; force-closing"
+          )
+          connectionTracker.closeAllConnections(Some(
+            s"daemon was shut down because another launcher requested a daemon restart: $msg"
+          ))
+          // Brief grace period for the closed connections' end-of-stream
+          // responses to flush before the JVM exits.
+          val flushDeadline = System.nanoTime() + 2_000_000_000L
+          connectionTracker.waitUntilEmpty(flushDeadline)
+        } else {
+          serverLog("drain complete; all connections finished")
+        }
+      }
+      closeServer(None)
+      try os.remove(stateFile, checkExists = false)
+      catch { case NonFatal(_) => () }
+    }
 
     exitCodeVar.get()
   }
@@ -180,7 +267,8 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       clientSocket: Socket,
       initialSystemProperties: Map[String, String],
       closeServer0: Option[Handled] => Unit,
-      connectionTracker: Server.ConnectionTracker
+      connectionTracker: Server.ConnectionTracker,
+      draining: AtomicReference[Boolean]
   ): Unit = {
     val connectionData = ConnectionData(
       clientSocket.toString,
@@ -225,11 +313,19 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
 
     val data = prepareConnection(connectionData, closeServer(_, _, None))
 
-    // Register this connection with the tracker, providing a callback to close it
-    connectionTracker.increment(
+    // Register this connection with the tracker, providing a callback to close it.
+    // If the daemon has already started draining the socket may be closed before
+    // we get here; in that case, surface the retry exit code immediately so the
+    // launcher's retry loop reconnects to the new daemon.
+    val accepted = connectionTracker.increment(
       clientSocket,
       reason => safeEndConnection(Some(data), Some(exitCodeServerTerminated), reason)
     )
+    if (!accepted) {
+      val reason = "daemon is shutting down for restart; retry on the new daemon"
+      safeEndConnection(Some(data), Some(exitCodeServerTerminated), Some(reason))
+      return
+    }
 
     // We cannot use Socket#{isConnected, isClosed, isBound} because none of these
     // detect client-side connection closing, so instead we send a no-op heartbeat
@@ -284,7 +380,11 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       // gone away when it regularly polls. `interrupt` has lots of weird side effects
       // runThread.interrupt()
 
-      if (!idle) {
+      // Cross-launcher shutdown only fires when the *client* died mid-command.
+      // Skip it during graceful drain — there the listen socket was closed by
+      // the watcher thread, not by an interrupted client, and the
+      // drain coordinator is responsible for closing peer connections.
+      if (!idle && !draining.get()) {
         serverLog("client interrupted while server was executing command")
         val reason = runningCommandFor(data) match {
           case Some(cmd) =>
@@ -305,17 +405,38 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
 object Server {
   // Wrapper object to encapsulate `activeConnections` and `inactiveTimestampOpt`,
   // ensuring they get incremented and decremented together across multiple threads
-  // and never get out of sync
+  // and never get out of sync.
+  //
+  // `increment` is gated on the listen socket still being open (we don't want
+  // brand-new connections after the daemon has started shutting down), but
+  // `decrement` and `closeOtherConnections` MUST keep working after shutdown
+  // begins so the drain loop can observe the active count reaching zero.
   case class ConnectionTracker(
       serverLog: String => Unit,
       acceptTimeoutMillisOpt: Option[Long],
-      serverSocket: ServerSocket
+      serverSocket: ServerSocket,
+      onChange: () => Unit = () => ()
   ) {
     private var inactiveTimestampOpt: Option[Long] = None
     private var connections = Map.empty[Socket, Option[String] => Unit]
 
-    def wrap(block: => Unit): Unit = synchronized {
-      if (!serverSocket.isClosed) block
+    private def notifyChange(): Unit = {
+      synchronized(notifyAll())
+      try onChange()
+      catch { case NonFatal(_) => }
+    }
+
+    def activeCount: Int = synchronized(connections.size)
+
+    def waitUntilEmpty(deadlineNanos: Long): Boolean = synchronized {
+      while (connections.nonEmpty) {
+        val remaining = deadlineNanos - System.nanoTime()
+        if (remaining <= 0) return false
+        // wait takes millis; round up so we never sleep past the deadline.
+        val millis = math.max(1L, remaining / 1_000_000L)
+        wait(millis)
+      }
+      true
     }
 
     def closeOtherConnections(currentSocket: Socket, reason: Option[String]): Unit = {
@@ -335,19 +456,49 @@ object Server {
       }
     }
 
-    def increment(socket: Socket, closeCallback: Option[String] => Unit): Unit = wrap {
-      connections += (socket -> closeCallback)
-      serverLog(s"${connections.size} active connections")
-      inactiveTimestampOpt = None
+    def closeAllConnections(reason: Option[String]): Unit = {
+      val all = synchronized {
+        val snapshot = connections.iterator.toVector
+        serverLog(s"closing all ${snapshot.size} connection(s)")
+        snapshot
+      }
+      all.foreach { case (sock, closeCallback) =>
+        try {
+          closeCallback(reason)
+          serverLog(s"closed connection ${sock.toString}")
+        } catch {
+          case NonFatal(e) =>
+            serverLog(s"error closing connection ${sock.toString}: $e")
+        }
+      }
     }
 
-    def decrement(socket: Socket): Unit = wrap {
-      connections -= socket
-      serverLog(s"${connections.size} active connections")
-      if (connections.isEmpty) inactiveTimestampOpt = Some(System.currentTimeMillis())
+    /** Register a new connection. Rejected (returns false) once the listen socket has been closed. */
+    def increment(socket: Socket, closeCallback: Option[String] => Unit): Boolean = {
+      val accepted = synchronized {
+        if (serverSocket.isClosed) false
+        else {
+          connections += (socket -> closeCallback)
+          serverLog(s"${connections.size} active connections")
+          inactiveTimestampOpt = None
+          true
+        }
+      }
+      if (accepted) notifyChange()
+      accepted
     }
 
-    def closeIfTimedOut(): Unit = wrap {
+    def decrement(socket: Socket): Unit = {
+      synchronized {
+        connections -= socket
+        serverLog(s"${connections.size} active connections")
+        if (connections.isEmpty) inactiveTimestampOpt = Some(System.currentTimeMillis())
+      }
+      notifyChange()
+    }
+
+    def closeIfTimedOut(): Unit = synchronized {
+      if (serverSocket.isClosed) return
       for {
         acceptTimeoutMillis <- acceptTimeoutMillisOpt
         inactiveTimestamp <- inactiveTimestampOpt
@@ -358,6 +509,52 @@ object Server {
       }
     }
   }
+
+  /** Atomic snapshot the daemon publishes so launchers can poll without an RPC round-trip. */
+  case class DaemonState(
+      pid: Long,
+      activeConnections: Int,
+      acceptingConnections: Boolean
+  ) derives upickle.ReadWriter
+
+  /**
+   * Atomically write the daemon state JSON via tmp+rename so polling launchers
+   * never read a half-written file. Skips the write if the daemon directory
+   * has been deleted (e.g. by `rm -rf out/`); we never recreate it, since
+   * doing so would defeat tests/users that expect daemon shutdown when the
+   * `out/` folder disappears.
+   */
+  def writeDaemonState(stateFile: os.Path, state: DaemonState): Unit = {
+    if (!os.exists(stateFile / os.up)) return
+    val tmp = stateFile / os.up / s".${stateFile.last}.tmp"
+    try {
+      os.write.over(tmp, upickle.default.write(state, indent = 2), createFolders = false)
+      os.move.over(tmp, stateFile, replaceExisting = true)
+    } catch {
+      case NonFatal(_) =>
+        try os.remove(tmp, checkExists = false)
+        catch { case NonFatal(_) => () }
+    }
+  }
+
+  /** Read+parse the daemon state file; returns None if missing or unparseable. */
+  def readDaemonState(stateFile: os.Path): Option[DaemonState] =
+    try
+      if (os.exists(stateFile)) Some(upickle.default.read[DaemonState](os.read(stateFile)))
+      else None
+    catch { case NonFatal(_) => None }
+
+  /**
+   * Drain timeout for graceful daemon-restart handover. The daemon waits at
+   * most this long for in-flight connections to complete before forcibly
+   * exiting; the launcher's poll loop uses the same value as a ceiling. Set
+   * via `MILL_DAEMON_DRAIN_TIMEOUT_MS`; defaults to 60s.
+   */
+  val drainTimeoutMillis: Long =
+    Option(System.getenv("MILL_DAEMON_DRAIN_TIMEOUT_MS"))
+      .flatMap(s => Try(s.toLong).toOption)
+      .filter(_ > 0)
+      .getOrElse(60_000L)
 
   /**
    * @param daemonDir directory used for exchanging pre-TCP data with a client

@@ -14,6 +14,15 @@ public class DaemonFiles {
    */
   public static final String daemonLaunchFingerprint = "daemonLaunchFingerprint.json";
 
+  /**
+   * JSON file the daemon updates atomically with its current state
+   * ({@code pid}, {@code activeConnections}, {@code acceptingConnections}).
+   * A launcher with a mismatched fingerprint polls this file and waits for
+   * {@code activeConnections == 0} before triggering a restart, so peers
+   * already mid-execution can finish gracefully.
+   */
+  public static final String daemonState = "daemonState.json";
+
   public static final String sandbox = "sandbox";
 
   /**
