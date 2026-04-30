@@ -367,6 +367,26 @@ class MillBuildBootstrap(
       Option.when(os.exists(metadataFile))(os.read(metadataFile))
     }
 
+    def collectedSelectiveMetadata: Option[String] =
+      Option.when(collectSelectiveMetadata)(readSelectiveMetadataFile()).flatten
+
+    def pathRefSignature(pathRef: PathRefApi): (os.Path, Int) =
+      os.Path(pathRef.javaPath) -> pathRef.sig
+
+    def classloaderOutputSignature(
+        runClasspath: Seq[PathRefApi],
+        compileClasses: PathRefApi
+    ): (Seq[(os.Path, Int)], (os.Path, Int)) =
+      (runClasspath.map(pathRefSignature), pathRefSignature(compileClasses))
+
+    def classloaderOutputUnchanged(
+        reusable: RunnerSharedState.Frame.Reusable,
+        runClasspath: Seq[PathRefApi],
+        compileClasses: PathRefApi
+    ): Boolean =
+      classloaderOutputSignature(reusable.runClasspath, reusable.compileOutput) ==
+        classloaderOutputSignature(runClasspath, compileClasses)
+
     def errorState(f: Result.Failure): RunnerLauncherState =
       nestedState.withError(mill.internal.Util.formatError(f, logger.prompt.errorColor))
 
@@ -487,7 +507,7 @@ class MillBuildBootstrap(
           codeSignatures = codeSignatures,
           buildOverrideFiles = buildOverrideFiles,
           selectiveMetadata = new java.util.concurrent.atomic.AtomicReference(
-            Option.when(collectSelectiveMetadata)(readSelectiveMetadataFile()).flatten
+            collectedSelectiveMetadata
           )
         ))
       )
@@ -504,6 +524,47 @@ class MillBuildBootstrap(
           sharedFrame = fresh,
           readLease = Some(retainedLease),
           spanningInvalidationTree = Some(spanningInvalidationTree)
+        )
+      )
+    }
+
+    def publishUpdatedFrameWithExistingClassloader(
+        writeScope: MetaBuildAccess.WriteScope,
+        previousFrame: RunnerSharedState.Frame,
+        previousReusable: RunnerSharedState.Frame.Reusable,
+        runClasspath: Seq[PathRefApi],
+        compileClasses: PathRefApi,
+        codeSignatures: Map[String, Int],
+        buildOverrideFiles: Map[java.nio.file.Path, String],
+        evalWatches: Seq[Watchable],
+        moduleWatches: Seq[Watchable]
+    ): RunnerLauncherState = {
+      if (collectSelectiveMetadata) {
+        previousReusable.selectiveMetadata.set(collectedSelectiveMetadata)
+      }
+
+      val updatedReusable = previousReusable.copy(
+        runClasspath = runClasspath,
+        compileOutput = compileClasses,
+        codeSignatures = codeSignatures,
+        buildOverrideFiles = buildOverrideFiles
+      )
+      val updatedFrame = previousFrame.copy(
+        evalWatched = evalWatches,
+        moduleWatched = moduleWatches,
+        reusable = Some(updatedReusable)
+      )
+
+      writeScope.update(_.withFrame(depth, updatedFrame))
+      if (isDeepestLevel) pruneFramesAbove(writeScope, depth)
+      val retainedLease = writeScope.scope.downgradeAndRetain()
+      nestedState.withMetaFrame(
+        RunnerLauncherState.MetaFrame(
+          depth = depth,
+          evaluator = evaluator,
+          sharedFrame = updatedFrame,
+          readLease = Some(retainedLease),
+          spanningInvalidationTree = None
         )
       )
     }
@@ -541,16 +602,33 @@ class MillBuildBootstrap(
               evalWatches,
               moduleWatches
             ) =>
-          publishFreshFrame(
-            writeScope,
-            runClasspath,
-            compileClasses,
-            codeSignatures,
-            buildOverrideFiles,
-            spanningInvalidationTree,
-            evalWatches,
-            moduleWatches
-          )
+          writeScope.snapshot().frameAt(depth).flatMap { frame =>
+            frame.reusable.collect {
+              case reusable if classloaderOutputUnchanged(reusable, runClasspath, compileClasses) =>
+                publishUpdatedFrameWithExistingClassloader(
+                  writeScope,
+                  frame,
+                  reusable,
+                  runClasspath,
+                  compileClasses,
+                  codeSignatures,
+                  buildOverrideFiles,
+                  evalWatches,
+                  moduleWatches
+                )
+            }
+          }.getOrElse {
+            publishFreshFrame(
+              writeScope,
+              runClasspath,
+              compileClasses,
+              codeSignatures,
+              buildOverrideFiles,
+              spanningInvalidationTree,
+              evalWatches,
+              moduleWatches
+            )
+          }
         case unknown => sys.error(unknown.toString())
       }
     }
