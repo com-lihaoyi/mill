@@ -113,12 +113,22 @@ class MillBuildBootstrap(
           // Recursion bottoms out here, so depths > `depth` are unreachable
           // for this run. If a previous run went deeper (e.g.
           // `mill-build/build.mill` was deleted between runs), evict its
-          // stale frames now under the depth=`depth` meta-build write lock
-          // so they don't leak. Done here (not just in `processRunClasspath`)
-          // so projects without `mill-build/` and early-error paths
-          // (e.g. invalid `--meta-level`, missing root build file) also get
-          // the cleanup.
-          metaBuild.withMetaBuild(depth)((_, _) => LockUpgrade.Decision.Escalate) { writeScope =>
+          // stale frames so future launchers don't reuse them. Done here
+          // (not just in `processRunClasspath`) so projects without
+          // `mill-build/` and early-error paths (invalid `--meta-level`,
+          // missing root build file) also get the cleanup.
+          //
+          // Critically: only escalate to Write if there's actually
+          // something to prune. The hot path (no nested mill-build, no
+          // stale frames from prior runs) MUST stay on Read so concurrent
+          // launchers in their own final-task phase — which retain Read
+          // leases on every meta-build depth for the duration of their
+          // run — don't block each other on this no-op probe.
+          metaBuild.withMetaBuild(depth) { (state, _) =>
+            if (state.frames.keysIterator.exists(_ > depth))
+              LockUpgrade.Decision.Escalate
+            else LockUpgrade.Decision.Complete(())
+          } { writeScope =>
             writeScope.update(_.withoutFramesAbove(depth)._1)
           }
           makeBootstrapState(currentRoot)

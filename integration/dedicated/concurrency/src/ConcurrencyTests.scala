@@ -180,6 +180,49 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       launcher2.assertContainsLines("shared-value")
     }
 
+    test("concurrent-launchers-do-not-block-on-meta-build-when-not-rebuilding") -
+      integrationTest { tester =>
+        import tester.*
+        assert(tester.daemonMode)
+
+        // Warm meta-build classloader so subsequent launchers find it
+        // reusable and only need Read leases.
+        eval(("runFast"), check = true)
+
+        val metaGate = waitFile(tester, "meta-build-read-wait")
+        os.write.over(metaGate, "")
+
+        // Launcher 1: enters final-tasks phase, retains meta-build Read
+        // leases at every depth, then parks at the metaGate.
+        val launcher1 = spawn(("runHoldMetaBuildRead"))
+        assertEventually(launcher1.containsLines(enteredMarker("meta-build-read")))
+        val blockerPid = awaitActiveLauncherPid(tester, "runHoldMetaBuildRead")
+
+        // Launcher 2: a different Task.Command on the same project. The
+        // build is unchanged, so the meta-build is fully reusable; launcher 2
+        // should only need Read leases on meta-build depths, which must
+        // coexist with launcher 1's retained Reads. With the bug, launcher 2
+        // escalates to Write on a meta-build lock and blocks behind
+        // launcher 1's retained Read.
+        val launcher2 = spawn(("runFast"))
+        assertEventually(!launcher2.process.isAlive())
+
+        // Regression assertion: launcher 2 must not have logged any
+        // "waiting for ... task 'meta-build-N'" message at any depth.
+        assert(!blockedBy(launcher2, "runHoldMetaBuildRead", blockerPid, "meta-build-0"))
+        assert(!blockedBy(launcher2, "runHoldMetaBuildRead", blockerPid, "meta-build-1"))
+        assert(!blockedBy(launcher2, "runHoldMetaBuildRead", blockerPid, "meta-build-2"))
+
+        assert(launcher2.process.exitCode() == 0)
+        launcher2.assertContainsLines("fast-value-0")
+
+        release(metaGate)
+        launcher1.process.waitFor()
+
+        assert(launcher1.process.exitCode() == 0)
+        launcher1.assertContainsLines("fast-value-0")
+      }
+
     test("stale-shared-worker-is-not-closed-under-read-lock") - integrationTest { tester =>
       import tester.*
       assert(tester.daemonMode)

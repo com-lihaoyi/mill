@@ -63,6 +63,15 @@ object `package` extends mill.Module {
     s"fast-value-$fastSuffix"
   }
 
+  // Always-runs command wrapper around `fast()`. Used by tests that need a
+  // launcher to exercise the meta-build + task locks without parking in a
+  // task body, so the assertion is "launcher exits promptly" rather than
+  // "launcher prints an entered-X marker" (which would never happen for a
+  // cached underlying task).
+  def runFast() = Task.Command {
+    println(fast())
+  }
+
   def workerVersion = Task.Input {
     mill.api.BuildCtx.withFilesystemCheckerDisabled {
       os.read(workspace / "worker-version")
