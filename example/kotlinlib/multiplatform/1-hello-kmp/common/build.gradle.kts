@@ -1,3 +1,4 @@
+@file:Suppress("DEPRECATION")
 plugins {
     id("com.android.library")
     kotlin("multiplatform")
@@ -8,6 +9,10 @@ plugins {
 kotlin {
     androidTarget()
     jvm("desktop")
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+    }
 
     sourceSets {
         named("commonMain") {
@@ -25,6 +30,8 @@ kotlin {
             }
         }
         named("desktopMain") {
+        }
+        named("wasmJsMain") {
         }
     }
 }
