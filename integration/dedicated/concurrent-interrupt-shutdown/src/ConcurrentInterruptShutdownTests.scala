@@ -9,8 +9,9 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
   implicit val retryMax: RetryMax = RetryMax((if (sys.env.contains("CI")) 120000 else 15000).millis)
   implicit val retryInterval: RetryInterval = RetryInterval(50.millis)
 
-  private def blockedLine(command: String, taskName: String): String =
-    s"Another Mill command in the current daemon is running '$command' task '$taskName' with PID "
+  private def blockedBy(command: String, taskName: String, stderrText: String): Boolean =
+    stderrText.contains(s"blocked taking read lock on '$taskName' held by PID ") &&
+      stderrText.contains(s"($command)")
 
   val tests: Tests = Tests {
     test("interrupt-blocked") - integrationTest { tester =>
@@ -23,8 +24,10 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
       // so launcher2 blocks until launcher1 releases it.
       val launcher2 = spawn(("waitForExists", "--fileName", "file2.txt"))
 
-      assertEventually(launcher2.err.text().contains(
-        blockedLine("waitForExists --fileName file1.txt", "waitForExists")
+      assertEventually(blockedBy(
+        "waitForExists --fileName file1.txt",
+        "waitForExists",
+        launcher2.err.text()
       ))
       launcher2.process.destroy(recursive = false)
       assertEventually(!launcher2.process.isAlive())
@@ -43,8 +46,10 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
       os.write(workspacePath / "file2.txt", "Hello cow")
       val launcher2 = spawn(("waitForExists", "--fileName", "file2.txt"))
 
-      assertEventually(launcher2.err.text().contains(
-        blockedLine("waitForExists --fileName file1.txt", "waitForExists")
+      assertEventually(blockedBy(
+        "waitForExists --fileName file1.txt",
+        "waitForExists",
+        launcher2.err.text()
       ))
       launcher1.process.destroy(recursive = false)
       assertEventually(!launcher1.process.isAlive())

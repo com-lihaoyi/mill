@@ -40,7 +40,7 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
   }
 
   private def blockedLine(command: String, pid: Long, taskName: String): String =
-    s"Another Mill command in the current daemon is running '$command' task '$taskName' with PID $pid"
+    s"blocked taking read lock on '$taskName' held by PID $pid ($command)"
 
   def tests: Tests = Tests {
     test("taskLocks") - integrationTest { tester =>
@@ -91,9 +91,8 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
               s"blockWhileExists --path $signalFile1",
               blockerPid,
               "blockWhileExists"
-            ) + ", waiting for it "
-          ) &&
-          stderrText.contains("tail -F out/mill-console-tail")
+            )
+          )
         }
 
         os.remove(signalFile1)
