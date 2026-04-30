@@ -9,7 +9,7 @@ import mill.util.Jvm
 import scala.xml.*
 
 @mill.api.experimental
-trait AndroidLibModule extends AndroidModule with PublishModule { outer =>
+trait AndroidLibModule extends AndroidModule with PublishModule {
 
   /**
    * The package name of the module. Used in the generated AndroidManifest.xml
@@ -147,6 +147,4 @@ trait AndroidLibModule extends AndroidModule with PublishModule { outer =>
 
     PathRef(aarFile)
   }
-
-  trait AndroidLibTests extends AndroidTestModule {}
 }
