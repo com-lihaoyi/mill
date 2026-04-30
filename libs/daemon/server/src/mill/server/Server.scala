@@ -152,10 +152,6 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       )
     )
 
-    // Reason captured by the watcher thread when it triggers a drain; read by
-    // the main thread after the accept loop exits so we can log/forward it.
-    val drainReason = new AtomicReference[String]("")
-
     Server.watchProcessIdFile(
       daemonDir / DaemonFiles.processId,
       processId,
@@ -167,7 +163,6 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
         // `runLocked`'s finally) handles the actual drain wait synchronously.
         serverLog(s"watchProcessIdFile: $msg")
         if (draining.compareAndSet(false, true)) {
-          drainReason.set(msg)
           serverLog("entering drain mode; refusing new connections")
           // Republish state so polling launchers see acceptingConnections=false
           // before they try to connect.
@@ -231,29 +226,14 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       }
     } finally {
       // If we exited the accept loop because the watcher signaled a drain,
-      // wait synchronously for in-flight connections to finish (or force-close
-      // them after the deadline) before letting the main thread return — once
-      // it returns, `MillDaemonMain0` calls `System.exit`, which would kill
-      // running command handlers mid-execution.
+      // wait synchronously for in-flight connections to finish before letting
+      // the main thread return — once it returns, `MillDaemonMain0` calls
+      // `System.exit`, which would kill running command handlers mid-execution.
+      // Wait indefinitely: peer launchers should be allowed to run their
+      // commands to completion no matter how long they take.
       if (draining.get()) {
-        val msg = Option(drainReason.get()).filter(_.nonEmpty).getOrElse("daemon-restart")
-        val deadline = System.nanoTime() + Server.drainTimeoutMillis * 1_000_000L
-        val drained = connectionTracker.waitUntilEmpty(deadline)
-        if (!drained) {
-          serverLog(
-            s"drain timeout (${Server.drainTimeoutMillis}ms) exceeded with " +
-              s"${connectionTracker.activeCount} connection(s) remaining; force-closing"
-          )
-          connectionTracker.closeAllConnections(Some(
-            s"daemon was shut down because another launcher requested a daemon restart: $msg"
-          ))
-          // Brief grace period for the closed connections' end-of-stream
-          // responses to flush before the JVM exits.
-          val flushDeadline = System.nanoTime() + 2_000_000_000L
-          connectionTracker.waitUntilEmpty(flushDeadline)
-        } else {
-          serverLog("drain complete; all connections finished")
-        }
+        connectionTracker.waitUntilEmpty()
+        serverLog("drain complete; all connections finished")
       }
       closeServer(None)
       try os.remove(stateFile, checkExists = false)
@@ -428,15 +408,9 @@ object Server {
 
     def activeCount: Int = synchronized(connections.size)
 
-    def waitUntilEmpty(deadlineNanos: Long): Boolean = synchronized {
-      while (connections.nonEmpty) {
-        val remaining = deadlineNanos - System.nanoTime()
-        if (remaining <= 0) return false
-        // wait takes millis; round up so we never sleep past the deadline.
-        val millis = math.max(1L, remaining / 1_000_000L)
-        wait(millis)
-      }
-      true
+    /** Block indefinitely until `connections` is empty. */
+    def waitUntilEmpty(): Unit = synchronized {
+      while (connections.nonEmpty) wait()
     }
 
     def closeOtherConnections(currentSocket: Socket, reason: Option[String]): Unit = {
@@ -544,17 +518,6 @@ object Server {
       else None
     catch { case NonFatal(_) => None }
 
-  /**
-   * Drain timeout for graceful daemon-restart handover. The daemon waits at
-   * most this long for in-flight connections to complete before forcibly
-   * exiting; the launcher's poll loop uses the same value as a ceiling. Set
-   * via `MILL_DAEMON_DRAIN_TIMEOUT_MS`; defaults to 60s.
-   */
-  val drainTimeoutMillis: Long =
-    Option(System.getenv("MILL_DAEMON_DRAIN_TIMEOUT_MS"))
-      .flatMap(s => Try(s.toLong).toOption)
-      .filter(_ > 0)
-      .getOrElse(60_000L)
 
   /**
    * @param daemonDir directory used for exchanging pre-TCP data with a client

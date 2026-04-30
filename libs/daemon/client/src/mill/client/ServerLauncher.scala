@@ -87,8 +87,9 @@ object ServerLauncher {
    */
 
   /**
-   * Snapshot the daemon publishes so launchers can poll without an RPC round-trip.
-   * Mirror of `mill.server.Server.DaemonState`; we duplicate it here so that
+   * Snapshot the daemon publishes so launchers can show user-visible progress
+   * while waiting for an in-flight peer to finish. Mirror of
+   * `mill.server.Server.DaemonState`; we duplicate it here so that
    * `libs/daemon/client` doesn't depend on `libs/daemon/server`.
    */
   case class DaemonState(
@@ -96,21 +97,6 @@ object ServerLauncher {
       activeConnections: Int,
       acceptingConnections: Boolean
   ) derives upickle.ReadWriter
-
-  /**
-   * Drain timeout for graceful daemon-restart handover. Kept in sync with the
-   * server-side default (mirrored rather than imported to keep the client
-   * module standalone). Set via `MILL_DAEMON_DRAIN_TIMEOUT_MS`; defaults to 60s.
-   */
-  val drainTimeoutMillis: Long = {
-    val env = System.getenv("MILL_DAEMON_DRAIN_TIMEOUT_MS")
-    if (env == null) 60_000L
-    else
-      try {
-        val v = env.toLong
-        if (v > 0) v else 60_000L
-      } catch { case _: Exception => 60_000L }
-  }
 
   private def readDaemonState(daemonDir: os.Path): Option[DaemonState] = {
     val stateFile = daemonDir / DaemonFiles.daemonState
@@ -121,49 +107,38 @@ object ServerLauncher {
   }
 
   /**
-   * Poll the daemon's published state file, returning when either the daemon
-   * has gone idle (`activeConnections == 0`), its process has died, or the
-   * deadline is reached. The launcher uses this on a config mismatch so that
-   * peer launchers already attached to the running daemon can finish their
-   * work before we tear it down.
+   * Block until `daemonLock` is free, meaning the old daemon has fully
+   * exited. The daemon-side drain handles waiting for in-flight peer
+   * connections to finish before the JVM exits, so this just waits for that
+   * shutdown to complete. While we wait, we read `daemonState.json` and emit
+   * stderr progress so the user can see why their command is blocked.
    */
-  def waitForDaemonIdle(
-      daemonDir: os.Path,
-      deadlineMillis: Long,
-      log: String => Unit
+  private def waitForOldDaemonToExit(
+      daemonLock: mill.client.lock.Lock,
+      daemonDir: os.Path
   ): Unit = {
     val pollMillis = 200L
-    var loggedActive: Option[Int] = None
-    while (System.currentTimeMillis() < deadlineMillis) {
-      readDaemonState(daemonDir) match {
-        case Some(state) =>
-          if (state.activeConnections <= 0) {
-            log("Daemon is idle; proceeding with restart.")
-            return
-          }
-          val handle = ProcessHandle.of(state.pid)
-          if (!handle.isPresent || !handle.get().isAlive) {
-            log(s"Daemon process pid=${state.pid} is no longer alive; proceeding with restart.")
-            return
-          }
-          if (!loggedActive.contains(state.activeConnections)) {
-            log(
-              s"Waiting for ${state.activeConnections} active connection(s) on the running " +
-                s"daemon (pid=${state.pid}, accepting=${state.acceptingConnections}) to finish..."
+    val progressIntervalMillis = 5_000L
+    var lastProgressMillis = 0L
+    var announced = false
+    while (!daemonLock.probe()) {
+      val now = System.currentTimeMillis()
+      val shouldEmit = !announced || now - lastProgressMillis >= progressIntervalMillis
+      if (shouldEmit) {
+        readDaemonState(daemonDir) match {
+          case Some(state) if state.activeConnections > 0 =>
+            val verb = if (announced) "Still waiting" else "Waiting"
+            System.err.println(
+              s"[mill] $verb for ${state.activeConnections} command(s) on the running daemon " +
+                s"(pid=${state.pid}) to finish before restarting it for a new Mill version..."
             )
-            loggedActive = Some(state.activeConnections)
-          }
-          Thread.sleep(pollMillis)
-        case None =>
-          // No state file yet — older daemon without drain support, or
-          // state hasn't been written yet. Don't block forever; treat as
-          // "drain not observable" and let the caller fall through to the
-          // force-restart path once the deadline elapses.
-          log("Daemon has not published a state file; falling back to force-restart path.")
-          return
+            announced = true
+            lastProgressMillis = now
+          case _ => () // No active peers (or no state file): just wait briefly for JVM exit.
+        }
       }
+      Thread.sleep(pollMillis)
     }
-    log(s"Drain deadline (${drainTimeoutMillis}ms) reached while waiting for daemon to idle.")
   }
 
   def launchOrConnectToServer(
@@ -177,9 +152,14 @@ object ServerLauncher {
       config: DaemonConfig
   ): Launched = {
     log(s"Acquiring the launcher lock: ${locks.launcherLock}")
-    var locked: mill.client.lock.Locked = locks.launcherLock.lock()
+    val locked = locks.launcherLock.lock()
     try {
-      // Check if existing daemon has matching config, terminate if mismatched
+      // Check if existing daemon has matching config; if not, request a
+      // graceful restart. We hold `launcherLock` across the entire restart so
+      // no third launcher can come in mid-handover; peers already attached to
+      // the running daemon don't need this lock and run to completion under
+      // the daemon's drain (which also writes a `RunCommandResult(101)`
+      // response so their launchers retry instead of crashing on EOF).
       val processIdFile = daemonDir / DaemonFiles.processId
       val configFile = daemonDir / DaemonFiles.daemonLaunchFingerprint
       if (os.exists(processIdFile)) {
@@ -193,60 +173,10 @@ object ServerLauncher {
           val mismatchReasons = stored.checkMismatchAgainst(config)
           if (mismatchReasons.nonEmpty) {
             mismatchReasons.foreach(reason => log(reason))
-            // Graceful handover: drop our launcherLock so other launchers
-            // (including peers already attached to the running daemon) can
-            // operate, poll the daemon's published state file until either
-            // its active connection count reaches zero or its process is
-            // gone, then reacquire launcherLock and re-check before
-            // triggering the actual restart. This avoids killing in-flight
-            // peers; the deadline is the safety valve for stuck daemons.
-            log(s"Mismatched daemon config detected, will request graceful restart: $stored -> $config")
-            try locked.close()
-            catch { case _: Exception => () }
-
-            val deadlineMillis = System.currentTimeMillis() + drainTimeoutMillis
-            waitForDaemonIdle(daemonDir, deadlineMillis, log)
-
-            log(s"Re-acquiring the launcher lock: ${locks.launcherLock}")
-            locked = locks.launcherLock.lock()
-
-            // Re-check under the lock: another launcher may have already
-            // restarted the daemon while we waited. If the fingerprint now
-            // matches our config, or processId is already gone, fall
-            // through to the normal connect path without killing anything.
-            val stillNeedsRestart =
-              os.exists(processIdFile) && {
-                val freshConfig: Option[DaemonConfig] =
-                  if (!os.exists(configFile)) None
-                  else
-                    try Some(upickle.default.read[DaemonConfig](os.read(configFile)))
-                    catch { case _: Exception => None }
-                freshConfig.exists(_.checkMismatchAgainst(config).nonEmpty)
-              }
-            if (stillNeedsRestart) {
-              if (System.currentTimeMillis() >= deadlineMillis) {
-                log(
-                  s"Drain deadline (${drainTimeoutMillis}ms) elapsed; force-restarting daemon. " +
-                    "In-flight commands on the old daemon will be aborted with a retry signal."
-                )
-              }
-              log(s"Terminating old daemon due to config mismatch: $stored -> $config")
-              // Terminate the old daemon by removing the processId file.
-              // Drain on the daemon side guarantees in-flight peers get a
-              // RunCommandResult(ServerExitPleaseRetry) before exit, so
-              // their launchers retry rather than crashing on EOF.
-              os.remove(processIdFile, checkExists = false)
-              // Wait for daemon to die by polling the daemon lock; cap at
-              // the drain timeout (we may have used some/all of it above)
-              // plus a small grace period for the JVM to exit.
-              val killDeadline = System.currentTimeMillis() + drainTimeoutMillis + 5000
-              while (!locks.daemonLock.probe() && System.currentTimeMillis() < killDeadline) {
-                Thread.sleep(100)
-              }
-              log("Old daemon terminated")
-            } else {
-              log("Daemon already restarted/reconfigured during drain wait; proceeding.")
-            }
+            log(s"Terminating old daemon due to config mismatch: $stored -> $config")
+            os.remove(processIdFile, checkExists = false)
+            waitForOldDaemonToExit(locks.daemonLock, daemonDir)
+            log("Old daemon terminated")
           }
         }
       }
