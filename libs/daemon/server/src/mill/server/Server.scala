@@ -270,8 +270,12 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
             e.printStackTrace(new PrintWriter(sw))
             serverLog(s"connection handler for $clientSocket error: $sw")
         } finally {
-          done = true
+          // Publish `idle` before `done`: the watcher thread exits its
+          // liveness loop as soon as it observes `done`, and treats
+          // `idle == false` as a client interruption that should kill the
+          // daemon and all other active clients.
           idle = true
+          done = true
         }
       }
 

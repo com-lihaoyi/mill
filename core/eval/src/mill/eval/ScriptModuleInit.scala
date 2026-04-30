@@ -131,7 +131,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
   // Nested config key validation is shared with PrecompiledModuleRef —
   // see PrecompiledModuleRef.findNestedConfigMismatch
 
-  def resolveModuleDep(eval: Evaluator, s: String): Result[Option[mill.Module]] = {
+  def resolveModuleDep(eval: Evaluator, s: String): Result[Option[mill.api.Module]] = {
     eval.resolveModulesOrTasks(Seq(s), SelectMode.Multi).map(_.collectFirst { case Left(m) => m })
   }
 
