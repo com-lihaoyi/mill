@@ -401,6 +401,14 @@ class MillBuildBootstrap(
       writeScope.update(_.withoutFramesAbove(maxDepth)._1)
     }
 
+    // True when the recursive bootstrap stopped here (no nested meta-frames),
+    // i.e. this is the deepest meta-build level visited this run. We use it
+    // to prune `RunnerSharedState.frames` entries at strictly greater depths,
+    // which become unreachable after e.g. a `mill-build/build.mill` deletion
+    // and would otherwise leak classloaders/workers for the daemon's
+    // lifetime.
+    val isDeepestLevel = nestedState.metaFrames.isEmpty
+
     def publishFailedFrame(
         writeScope: MetaBuildAccess.WriteScope,
         f: Result.Failure,
@@ -423,14 +431,6 @@ class MillBuildBootstrap(
         )
         .withError(mill.internal.Util.formatError(f, logger.prompt.errorColor))
     }
-
-    // True when the recursive bootstrap stopped here (no nested meta-frames),
-    // i.e. this is the deepest meta-build level visited this run. We use it
-    // to prune `RunnerSharedState.frames` entries at strictly greater depths,
-    // which become unreachable after e.g. a `mill-build/build.mill` deletion
-    // and would otherwise leak classloaders/workers for the daemon's
-    // lifetime.
-    val isDeepestLevel = nestedState.metaFrames.isEmpty
 
     def publishFreshFrame(
         writeScope: MetaBuildAccess.WriteScope,

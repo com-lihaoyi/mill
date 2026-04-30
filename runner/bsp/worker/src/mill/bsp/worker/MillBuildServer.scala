@@ -40,6 +40,7 @@ private abstract class MillBuildServer(
   // Session State
   // ==========================================================================
 
+  // Mutable variables representing the lifecycle stages:
   @volatile protected var client: BuildClient = scala.compiletime.uninitialized
   @volatile protected var sessionInfo: MillBspEndpoints.SessionInfo =
     scala.compiletime.uninitialized

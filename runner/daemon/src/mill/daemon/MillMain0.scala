@@ -471,6 +471,9 @@ object MillMain0 {
                           chromeProfilePath =
                             out / os.RelPath("mill-bsp") / OutFiles.millChromeProfile
                         )) { bspLogger =>
+                          // Can happen if a concurrent BSP server starts and shuts us down.
+                          // We log in the console what happened just in case, so that users know why we exit.
+                          // This is also used in the tests.
                           sun.misc.Signal.handle(
                             new sun.misc.Signal("TERM"),
                             _ => SystemStreams.originalErr.println("Received SIGTERM, exiting")
@@ -734,6 +737,7 @@ object MillMain0 {
       // Fallback
       .getOrElse("mill")
 
+    // Console log file for monitoring progress when another process is waiting
     val consoleLogPath = os.Path(runArtifacts.consoleTail)
     val consoleLogStream = new RotatingConsoleLogOutputStream(consoleLogPath)
 

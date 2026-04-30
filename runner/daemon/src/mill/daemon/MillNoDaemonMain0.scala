@@ -19,8 +19,12 @@ object MillNoDaemonMain0 {
       io.github.alexarchambault.windowsansi.WindowsAnsi.setup()
 
     if (Properties.isWin)
+      // temporarily disabling FFM use by coursier, which has issues with the way
+      // Mill manages class loaders, throwing things like
+      // UnsatisfiedLinkError: Native Library C:\Windows\System32\ole32.dll already loaded in another classloader
       sys.props("coursier.windows.disable-ffm") = "true"
 
+    // Take into account proxy-related Java properties
     coursier.Resolve.proxySetup()
 
     val args = MillDaemonMain0.Args(getClass.getName, args0)
@@ -45,6 +49,7 @@ object MillNoDaemonMain0 {
     val outLock = MillMain0.outFileLock(out)
     val sharedOutLockManager = new SharedOutLockManager(outLock, out)
 
+    // Create runner that executes subprocesses locally with inherited I/O
     val launcherRunner: mill.api.daemon.LauncherSubprocess.Runner =
       config =>
         DaemonRpc
