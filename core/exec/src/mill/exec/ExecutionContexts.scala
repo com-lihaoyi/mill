@@ -36,18 +36,28 @@ object ExecutionContexts {
     val classLoaderId = classLoaderIdentity(clazz)
     val runnableId = System.identityHashCode(runnable)
 
-    try {
-      val priorityMethod = clazz.getMethod("priority")
-      val priorityRunnableIndexMethod = clazz.getMethod("priorityRunnableIndex")
-      PriorityRunnableOrderingKey(
-        priorityMethod.invoke(runnable).asInstanceOf[Int],
-        priorityRunnableIndexMethod.invoke(runnable).asInstanceOf[Long],
-        classLoaderId,
-        runnableId
-      )
-    } catch {
-      case scala.util.control.NonFatal(_) =>
-        PriorityRunnableOrderingKey(0, Long.MaxValue, classLoaderId, runnableId)
+    runnable match {
+      case priorityRunnable: ThreadPool#PriorityRunnable =>
+        PriorityRunnableOrderingKey(
+          priorityRunnable.priority,
+          priorityRunnable.priorityRunnableIndex,
+          classLoaderId,
+          runnableId
+        )
+      case _ =>
+        try {
+          val priorityMethod = clazz.getMethod("priority")
+          val priorityRunnableIndexMethod = clazz.getMethod("priorityRunnableIndex")
+          PriorityRunnableOrderingKey(
+            priorityMethod.invoke(runnable).asInstanceOf[Int],
+            priorityRunnableIndexMethod.invoke(runnable).asInstanceOf[Long],
+            classLoaderId,
+            runnableId
+          )
+        } catch {
+          case scala.util.control.NonFatal(_) =>
+            PriorityRunnableOrderingKey(0, Long.MaxValue, classLoaderId, runnableId)
+        }
     }
   }
 
