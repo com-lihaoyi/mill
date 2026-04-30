@@ -406,7 +406,8 @@ final class EvaluatorImpl(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
       reporter: Int => Option[CompileProblemReporter] = _ => None,
-      selectiveExecution: Boolean = false
+      selectiveExecution: Boolean = false,
+      serialCommandExec: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]] = {
     val promptLineLogger = new PrefixLogger(
       logger0 = baseLogger,
@@ -421,6 +422,7 @@ final class EvaluatorImpl(
       yield execute(
         tasks.asInstanceOf[Seq[Task[Any]]],
         reporter = reporter,
+        serialCommandExec = serialCommandExec,
         selectiveExecution = selectiveExecution
       )
   }
