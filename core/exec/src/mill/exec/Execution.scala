@@ -230,16 +230,13 @@ case class Execution(
         val parts = labelled.ctx.segments.parts
         if (parts.isEmpty) prefix
         else {
-          val sanitized = parts.iterator.map(p => ExecutionPaths.sanitizePathSegment(p).toString)
           val builder = new StringBuilder(prefix)
-          builder.append('/')
-          var last = sanitized.next()
-          while (sanitized.hasNext) {
-            builder.append(last)
+          var i = 0
+          while (i < parts.length) {
             builder.append('/')
-            last = sanitized.next()
+            Execution.appendTaskLockKeySegment(builder, parts(i))
+            i += 1
           }
-          builder.append(last)
           builder.append(".dest")
           builder.toString
         }
@@ -687,6 +684,12 @@ object Execution {
       case (true, 0) => ", " + successColor("SUCCESS")
       case (true, _) => ", " + errorColor(s"$failures FAILED")
     }
+  }
+
+  private def appendTaskLockKeySegment(builder: StringBuilder, segment: String): Unit = {
+    builder.append(segment.length)
+    builder.append(':')
+    builder.append(segment)
   }
 
   def findInterGroupDeps(sortedGroups: MultiBiMap[Task[?], Task[?]])
