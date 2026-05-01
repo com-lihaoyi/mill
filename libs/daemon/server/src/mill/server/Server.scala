@@ -501,7 +501,6 @@ object Server {
       else None
     catch { case NonFatal(_) => None }
 
-
   /**
    * @param daemonDir directory used for exchanging pre-TCP data with a client
    * @param acceptTimeout shuts down after this timeout if no clients are connected
