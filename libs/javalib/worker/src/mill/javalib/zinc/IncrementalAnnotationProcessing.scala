@@ -129,7 +129,11 @@ private[mill] object IncrementalAnnotationProcessing {
       incrementalCompilation: Boolean,
       log: Logger.Actions
   ): Mode = {
-    if (!incrementalCompilation || javacOptions.contains("-proc:none")) Mode.None
+    if (
+      !incrementalCompilation || javacOptions.contains("-proc:none") || !sources.exists(
+        _.ext == "java"
+      )
+    ) Mode.None
     else {
       val processorPath = parsePathOption(javacOptions, "-processorpath", "--processor-path")
         .map(_.map(os.Path(_, os.pwd)))
@@ -710,14 +714,17 @@ private[mill] object IncrementalAnnotationProcessing {
   }
 
   object SourceAnnotationIndex {
-    def fromSources(sources: Seq[os.Path]): Option[SourceAnnotationIndex] =
+    def fromSources(sources: Seq[os.Path]): Option[SourceAnnotationIndex] = {
+      val javaSources = sources.filter(_.ext == "java")
+
       Option(ToolProvider.getSystemJavaCompiler).flatMap { compiler =>
         def standardFileManager: StandardJavaFileManager =
           compiler.getStandardFileManager(null, null, null)
 
         scala.util.Try {
           Using.resource(standardFileManager) { fileManager =>
-            val javaFiles = fileManager.getJavaFileObjectsFromPaths(sources.map(_.toNIO).asJava)
+            val javaFiles =
+              fileManager.getJavaFileObjectsFromPaths(javaSources.map(_.toNIO).asJava)
             val task = compiler
               .getTask(null, fileManager, null, Nil.asJava, null, javaFiles)
               .asInstanceOf[JavacTask]
@@ -733,6 +740,7 @@ private[mill] object IncrementalAnnotationProcessing {
           }
         }.toOption
       }
+    }
 
     private def addAnnotationsFromUnit(
         unit: CompilationUnitTree,
