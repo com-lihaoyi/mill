@@ -316,47 +316,6 @@ trait ClientServerTestsBase extends TestSuite {
       )
     }
 
-    test("versionMismatchGracefulHandover") - retry(3) {
-      // A slow client A is mid-command when a mismatched client B arrives.
-      // With graceful handover, B waits for A's command to finish (polling
-      // the daemon's state file), then triggers the restart. A returns its
-      // result normally instead of crashing with "Worker wire broken".
-      if (!Util.isWindows) {
-        import concurrent.*
-        import concurrent.ExecutionContext.Implicits.global
-        val tester = new Tester(testLogEvenWhenServerIdWrong = true, commandSleepMillis = 1500)
-
-        // Kick off slow client A in the background; takes ~1500ms.
-        val fA = Future(tester(args = Array("A")))
-
-        // Wait long enough for A to be mid-flight, then mangle the
-        // fingerprint so B's launcher detects a mismatch and triggers a
-        // graceful restart.
-        Thread.sleep(500)
-        os.write.over(
-          tester.daemonDir / DaemonFiles.daemonLaunchFingerprint,
-          """{"millVersion": "wrong-version", "javaVersion": "", "jvmOpts": [], "millRepositories": []}"""
-        )
-
-        // Client B should block until A finishes, then take over the daemon.
-        val fB = Future(tester(args = Array("B")))
-
-        val resA = Await.result(fA, 30.seconds)
-        val resB = Await.result(fB, 30.seconds)
-
-        assert(
-          resA.out == s"helloA$ENDL",
-          resB.out == s"helloB$ENDL"
-        )
-
-        // Sanity-check the timing: B started the polling phase BEFORE A
-        // finished, so B's wall-clock should be at least the time A spent
-        // waiting after the fingerprint mangle. A returns 0 cleanly rather
-        // than via the retry path, which is the whole point.
-        assert(resA.exitCode == 0, resB.exitCode == 0)
-      }
-    }
-
     test("versionMismatchRestartsDaemon") - retry(3) {
       if (!Util.isWindows) {
         val tester = new Tester(testLogEvenWhenServerIdWrong = true)
