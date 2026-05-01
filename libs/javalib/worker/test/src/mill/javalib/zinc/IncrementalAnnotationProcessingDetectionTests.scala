@@ -170,6 +170,80 @@ object IncrementalAnnotationProcessingDetectionTests extends TestSuite {
       } finally os.remove.all(workDir)
     }
 
+    test("detectIgnoresInactiveServiceProvidersOnCompileClasspathWithScalaSources") {
+      val workDir = os.temp.dir()
+      try {
+        val unrelatedProcessor = compileProcessor(
+          workDir,
+          ProcessorSpec(
+            className = "example.UnrelatedProcessor",
+            supportedAnnotationTypes = Seq("unrelated.Other"),
+            metadataKind = None
+          )
+        )
+        val javaSrc = source(
+          workDir,
+          "src/example/Plain.java",
+          """package example;
+            |
+            |class Plain {}
+            |""".stripMargin
+        )
+        val scalaSrc = source(
+          workDir,
+          "src/example/PlainScala.scala",
+          """package example
+            |
+            |class PlainScala
+            |""".stripMargin
+        )
+
+        val mode = IncrementalAnnotationProcessing.detect(
+          javacOptions = Nil,
+          compileClasspath = Seq(unrelatedProcessor),
+          sources = Seq(javaSrc, scalaSrc),
+          workDir = workDir,
+          incrementalCompilation = true,
+          log = Logger.Actions.noOp
+        )
+
+        assert(mode == IncrementalAnnotationProcessing.Mode.None)
+      } finally os.remove.all(workDir)
+    }
+
+    test("detectIgnoresServiceProvidersWithoutJavaSources") {
+      val workDir = os.temp.dir()
+      try {
+        val processor = compileProcessor(
+          workDir,
+          ProcessorSpec(
+            className = "example.Processor",
+            supportedAnnotationTypes = Seq("*"),
+            metadataKind = None
+          )
+        )
+        val scalaSrc = source(
+          workDir,
+          "src/example/PlainScala.scala",
+          """package example
+            |
+            |class PlainScala
+            |""".stripMargin
+        )
+
+        val mode = IncrementalAnnotationProcessing.detect(
+          javacOptions = Nil,
+          compileClasspath = Seq(processor),
+          sources = Seq(scalaSrc),
+          workDir = workDir,
+          incrementalCompilation = true,
+          log = Logger.Actions.noOp
+        )
+
+        assert(mode == IncrementalAnnotationProcessing.Mode.None)
+      } finally os.remove.all(workDir)
+    }
+
     test("trackingProcessorWrappingIsDisabledWithoutTracker") {
       val workDir = os.temp.dir()
       try {
