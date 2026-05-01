@@ -212,7 +212,7 @@ trait GroupExecution {
   def executeGroupCached(
       terminal: Task[?],
       group: Seq[Task[?]],
-      results: Map[Task[?], ExecResult[(Val, Int)]],
+      results: collection.Map[Task[?], ExecResult[(Val, Int)]],
       countMsg: String,
       zincProblemReporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
@@ -222,7 +222,7 @@ trait GroupExecution {
       allTransitiveClassMethods: Map[Class[?], Map[String, Method]],
       executionContext: mill.api.TaskCtx.Fork.Api,
       exclusive: Boolean,
-      upstreamPathRefs: Seq[PathRef],
+      upstreamPathRefs: collection.Seq[PathRef],
       leaseTracker: Execution.LeaseTracker
   ): GroupExecution.Results = {
 
@@ -230,7 +230,7 @@ trait GroupExecution {
       // The order of tasks within a is unstable, so use `unorderedHash` to
       // make sure we get a stable hash out of it
       val externalInputsHash = MurmurHash3.unorderedHash(
-        group.flatMap(_.inputs).filter(!group.contains(_))
+        group.iterator.flatMap(_.inputs).filterNot(group.contains)
           .flatMap(results(_).asSuccess.map(_.value._2))
       )
       val sideHashes = MurmurHash3.unorderedHash(group.iterator.map(_.sideHash))
@@ -565,7 +565,7 @@ trait GroupExecution {
 
   private def executeGroup(
       group: Seq[Task[?]],
-      results: Map[Task[?], ExecResult[(Val, Int)]],
+      results: collection.Map[Task[?], ExecResult[(Val, Int)]],
       inputsHash: Int,
       paths: Option[ExecutionPaths],
       taskLabelOpt: Option[String],
@@ -576,7 +576,7 @@ trait GroupExecution {
       executionContext: mill.api.TaskCtx.Fork.Api,
       exclusive: Boolean,
       deps: Seq[Task[?]],
-      upstreamPathRefs: Seq[PathRef],
+      upstreamPathRefs: collection.Seq[PathRef],
       terminal: Task[?]
   ): (Map[Task[?], ExecResult[(Val, Int)]], mutable.Buffer[Task[?]]) = {
     val newEvaluated = mutable.Buffer.empty[Task[?]]
@@ -753,7 +753,18 @@ trait GroupExecution {
         }
     } yield {
       // Check for version/classloader mismatch - treat as cache miss if they differ
-      def checkMatch[T](cachedValue: T, currentValue: T, reasonName: String): Boolean = {
+      def checkStringMatch(
+          cachedValue: String,
+          currentValue: String,
+          reasonName: String
+      ): Boolean = {
+        val matches = cachedValue == currentValue
+        if (!matches) {
+          versionMismatchReasons.putIfAbsent(labelled, s"$reasonName:$cachedValue->$currentValue")
+        }
+        matches
+      }
+      def checkIntMatch(cachedValue: Int, currentValue: Int, reasonName: String): Boolean = {
         val matches = cachedValue == currentValue
         if (!matches) {
           versionMismatchReasons.putIfAbsent(labelled, s"$reasonName:$cachedValue->$currentValue")
@@ -764,11 +775,11 @@ trait GroupExecution {
       val currentMillVersion = mill.constants.BuildInfo.millVersion
       val currentJvmVersion = sys.props("java.version")
       val millVersionMatches =
-        checkMatch(cached.millVersion, currentMillVersion, "mill-version-changed")
+        checkStringMatch(cached.millVersion, currentMillVersion, "mill-version-changed")
       val jvmVersionMatches =
-        checkMatch(cached.millJvmVersion, currentJvmVersion, "mill-jvm-version-changed")
+        checkStringMatch(cached.millJvmVersion, currentJvmVersion, "mill-jvm-version-changed")
       val classLoaderMatches =
-        checkMatch(cached.classLoaderSigHash, classLoaderSigHash, "classpath-changed")
+        checkIntMatch(cached.classLoaderSigHash, classLoaderSigHash, "classpath-changed")
 
       (
         cached.inputsHash,
@@ -806,7 +817,7 @@ trait GroupExecution {
       forceDiscard: Boolean,
       deps: Seq[Task[?]],
       paths: Option[ExecutionPaths],
-      upstreamPathRefs: Seq[PathRef],
+      upstreamPathRefs: collection.Seq[PathRef],
       exclusive: Boolean,
       closeStaleWorker: Boolean,
       multiLogger: Logger,
@@ -923,7 +934,7 @@ object GroupExecution {
       deps: Seq[Task[?]],
       outPath: os.Path,
       paths: Option[ExecutionPaths],
-      upstreamPathRefs: Seq[PathRef],
+      upstreamPathRefs: collection.Seq[PathRef],
       exclusive: Boolean,
       multiLogger: Logger,
       logger: Logger,

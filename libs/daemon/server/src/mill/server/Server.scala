@@ -115,7 +115,6 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
     serverLog("server file locked")
     val serverSocket = new ServerSocket(0, 0, InetAddress.getByName(null))
     val exitCodeVar = new AtomicReference[Option[Handled]](None)
-    val draining = new AtomicReference[Boolean](false)
     val stateFile = daemonDir / DaemonFiles.daemonState
 
     def closeServer(exitCodeOpt: Option[Handled]) = {
@@ -125,8 +124,6 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       serverSocket.close()
     }
 
-    // Forward declaration so connectionTracker's `onChange` can publish state
-    // updates with the current `draining` flag and active count.
     lazy val connectionTracker: Server.ConnectionTracker = new Server.ConnectionTracker(
       serverLog,
       acceptTimeoutMillisOpt,
@@ -137,7 +134,7 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
           Server.DaemonState(
             pid = processId,
             activeConnections = connectionTracker.activeCount,
-            acceptingConnections = !draining.get() && !serverSocket.isClosed
+            acceptingConnections = !serverSocket.isClosed
           )
         )
     )
@@ -157,28 +154,8 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       processId,
       running = () => !serverSocket.isClosed,
       exit = msg => {
-        // Don't perform the drain here — this runs in a daemon thread that
-        // gets killed when the main thread System.exit's. Instead just flag
-        // `draining` and close the listen socket; the main thread (in
-        // `runLocked`'s finally) handles the actual drain wait synchronously.
         serverLog(s"watchProcessIdFile: $msg")
-        if (draining.compareAndSet(false, true)) {
-          serverLog("entering drain mode; refusing new connections")
-          // Republish state so polling launchers see acceptingConnections=false
-          // before they try to connect.
-          Server.writeDaemonState(
-            stateFile,
-            Server.DaemonState(
-              pid = processId,
-              activeConnections = connectionTracker.activeCount,
-              acceptingConnections = false
-            )
-          )
-        }
-        // Closing the listen socket triggers SocketException in accept() and
-        // the main thread falls into the drain step in runLocked's finally.
-        try serverSocket.close()
-        catch { case NonFatal(_) => () }
+        closeServer(None)
       }
     )
 
@@ -211,8 +188,7 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
                 sock,
                 initialSystemProperties,
                 closeServer(_),
-                connectionTracker,
-                draining
+                connectionTracker
               )
             } catch {
               case e: Throwable =>
@@ -225,16 +201,6 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
         }
       }
     } finally {
-      // If we exited the accept loop because the watcher signaled a drain,
-      // wait synchronously for in-flight connections to finish before letting
-      // the main thread return — once it returns, `MillDaemonMain0` calls
-      // `System.exit`, which would kill running command handlers mid-execution.
-      // Wait indefinitely: peer launchers should be allowed to run their
-      // commands to completion no matter how long they take.
-      if (draining.get()) {
-        connectionTracker.waitUntilEmpty()
-        serverLog("drain complete; all connections finished")
-      }
       closeServer(None)
       try os.remove(stateFile, checkExists = false)
       catch { case NonFatal(_) => () }
@@ -247,8 +213,7 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       clientSocket: Socket,
       initialSystemProperties: Map[String, String],
       closeServer0: Option[Handled] => Unit,
-      connectionTracker: Server.ConnectionTracker,
-      draining: AtomicReference[Boolean]
+      connectionTracker: Server.ConnectionTracker
   ): Unit = {
     val connectionData = ConnectionData(
       clientSocket.toString,
@@ -294,9 +259,9 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
     val data = prepareConnection(connectionData, closeServer(_, _, None))
 
     // Register this connection with the tracker, providing a callback to close it.
-    // If the daemon has already started draining the socket may be closed before
-    // we get here; in that case, surface the retry exit code immediately so the
-    // launcher's retry loop reconnects to the new daemon.
+    // If the daemon has already started shutting down the socket may be closed
+    // before we get here; in that case, surface the retry exit code immediately
+    // so the launcher's retry loop reconnects to the new daemon.
     val accepted = connectionTracker.increment(
       clientSocket,
       reason => safeEndConnection(Some(data), Some(exitCodeServerTerminated), reason)
@@ -360,11 +325,8 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       // gone away when it regularly polls. `interrupt` has lots of weird side effects
       // runThread.interrupt()
 
-      // Cross-launcher shutdown only fires when the *client* died mid-command.
-      // Skip it during graceful drain — there the listen socket was closed by
-      // the watcher thread, not by an interrupted client, and the
-      // drain coordinator is responsible for closing peer connections.
-      if (!idle && !draining.get()) {
+      // Cross-launcher shutdown fires when the *client* died mid-command.
+      if (!idle) {
         serverLog("client interrupted while server was executing command")
         val reason = runningCommandFor(data) match {
           case Some(cmd) =>
@@ -388,9 +350,7 @@ object Server {
   // and never get out of sync.
   //
   // `increment` is gated on the listen socket still being open (we don't want
-  // brand-new connections after the daemon has started shutting down), but
-  // `decrement` and `closeOtherConnections` MUST keep working after shutdown
-  // begins so the drain loop can observe the active count reaching zero.
+  // brand-new connections after the daemon has started shutting down).
   case class ConnectionTracker(
       serverLog: String => Unit,
       acceptTimeoutMillisOpt: Option[Long],
@@ -407,11 +367,6 @@ object Server {
     }
 
     def activeCount: Int = synchronized(connections.size)
-
-    /** Block indefinitely until `connections` is empty. */
-    def waitUntilEmpty(): Unit = synchronized {
-      while (connections.nonEmpty) wait()
-    }
 
     def closeOtherConnections(currentSocket: Socket, reason: Option[String]): Unit = {
       val others = synchronized {

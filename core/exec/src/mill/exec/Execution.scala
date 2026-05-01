@@ -258,7 +258,7 @@ case class Execution(
         for (terminal <- terminals1) {
           val deps = interGroupDeps(terminal)
 
-          val group = plan.sortedGroups.lookupKey(terminal)
+          val group = plan.sortedGroups.lookupKey(terminal).toSeq
           val exclusiveDeps = deps.filter(d => d.isExclusiveCommand)
 
           if (terminal.asCommand.isEmpty && downstreamOfExclusive.contains(terminal)) {
@@ -308,21 +308,21 @@ case class Execution(
 
                     if (failed.get()) None
                     else {
-                      val upstreamResults = upstreamValues
-                        .iterator
-                        .flatMap(_.iterator.flatMap(_.newResults))
-                        .toMap
-
-                      val upstreamPathRefs = upstreamValues
-                        .iterator
-                        .flatMap(_.iterator.flatMap(_.serializedPaths))
-                        .toSeq
+                      val upstreamResults =
+                        mutable.HashMap.empty[Task[?], ExecResult[(Val, Int)]]
+                      val upstreamPathRefs = mutable.ArrayBuffer.empty[PathRef]
+                      upstreamValues.foreach {
+                        case Some(results) =>
+                          upstreamResults.addAll(results.newResults)
+                          upstreamPathRefs.addAll(results.serializedPaths)
+                        case None =>
+                      }
 
                       val startTime = System.nanoTime() / 1000
 
                       val res = executeGroupCached(
                         terminal = terminal,
-                        group = plan.sortedGroups.lookupKey(terminal).toSeq,
+                        group = group,
                         results = upstreamResults,
                         countMsg = countMsg,
                         zincProblemReporter = reporter,
@@ -470,13 +470,20 @@ case class Execution(
             finishedOptsMap(t) match {
               case None => (t, ExecResult.Skipped)
               case Some(res) =>
-                Tuple2(
-                  t,
-                  (Seq(t) ++ plan.sortedGroups.lookupKey(t))
-                    .flatMap { t0 => res.newResults.get(t0) }
-                    .sortBy(!_.isInstanceOf[ExecResult.Failing[?]])
-                    .head
-                )
+                var first: ExecResult[(Val, Int)] = null
+                var failing: ExecResult[(Val, Int)] = null
+                def observe(result: ExecResult[(Val, Int)]): Unit = {
+                  if (first == null) first = result
+                  if (failing == null && result.asFailing.isDefined) failing = result
+                }
+                res.newResults.get(t).foreach(observe)
+                val group = plan.sortedGroups.lookupKey(t)
+                group.foreach(t0 => res.newResults.get(t0).foreach(observe))
+
+                if (first == null) {
+                  throw new NoSuchElementException(s"No result found for $t")
+                }
+                Tuple2(t, if (failing == null) first else failing)
 
             }
           }

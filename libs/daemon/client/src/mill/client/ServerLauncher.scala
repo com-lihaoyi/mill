@@ -86,64 +86,11 @@ object ServerLauncher {
    *               the old daemon is terminated before starting a new one.
    */
 
-  /**
-   * Snapshot the daemon publishes so launchers can show user-visible progress
-   * while waiting for an in-flight peer to finish. Mirror of
-   * `mill.server.Server.DaemonState`; we duplicate it here so that
-   * `libs/daemon/client` doesn't depend on `libs/daemon/server`.
-   */
-  case class DaemonState(
-      pid: Long,
-      activeConnections: Int,
-      acceptingConnections: Boolean
-  ) derives upickle.ReadWriter
-
-  private def readDaemonState(daemonDir: os.Path): Option[DaemonState] = {
-    val stateFile = daemonDir / DaemonFiles.daemonState
-    try
-      if (os.exists(stateFile)) Some(upickle.default.read[DaemonState](os.read(stateFile)))
-      else None
-    catch { case _: Exception => None }
-  }
-
-  /**
-   * Block until `daemonLock` is free, meaning the old daemon has fully
-   * exited. The daemon-side drain handles waiting for in-flight peer
-   * connections to finish before the JVM exits, so this just waits for that
-   * shutdown to complete. While we wait, we read `daemonState.json` and emit
-   * stderr progress so the user can see why their command is blocked.
-   */
-  private def waitForOldDaemonToExit(
-      daemonLock: mill.client.lock.Lock,
-      daemonDir: os.Path
-  ): Unit = {
-    val pollMillis = 200L
-    val progressIntervalMillis = 5_000L
-    var lastProgressMillis = 0L
-    var announced = false
-    while (!daemonLock.probe()) {
-      val now = System.currentTimeMillis()
-      val shouldEmit = !announced || now - lastProgressMillis >= progressIntervalMillis
-      if (shouldEmit) {
-        readDaemonState(daemonDir) match {
-          case Some(state) if state.activeConnections > 0 =>
-            val verb = if (announced) "Still waiting" else "Waiting"
-            System.err.println(
-              s"[mill] $verb for ${state.activeConnections} command(s) on the running daemon " +
-                s"(pid=${state.pid}) to finish before restarting it for a new Mill version..."
-            )
-            announced = true
-            lastProgressMillis = now
-          case _ if announced =>
-            // Drain finished but the daemon JVM hasn't released `daemonLock`
-            // yet (or has wedged in shutdown). Keep the user informed so a
-            // long stall isn't a silent hang.
-            System.err.println("[mill] Waiting for old daemon to fully shut down...")
-            lastProgressMillis = now
-          case _ => () // First iteration with no active peers; just poll briefly for JVM exit.
-        }
-      }
-      Thread.sleep(pollMillis)
+  /** Block until `daemonLock` is free, meaning the old daemon has fully exited. */
+  private def waitForOldDaemonToExit(daemonLock: mill.client.lock.Lock): Unit = {
+    val deadline = System.currentTimeMillis() + 5000
+    while (!daemonLock.probe() && System.currentTimeMillis() < deadline) {
+      Thread.sleep(100)
     }
   }
 
@@ -160,12 +107,10 @@ object ServerLauncher {
     log(s"Acquiring the launcher lock: ${locks.launcherLock}")
     val locked = locks.launcherLock.lock()
     try {
-      // Check if existing daemon has matching config; if not, request a
-      // graceful restart. We hold `launcherLock` across the entire restart so
-      // no third launcher can come in mid-handover; peers already attached to
-      // the running daemon don't need this lock and run to completion under
-      // the daemon's drain (which also writes a `RunCommandResult(101)`
-      // response so their launchers retry instead of crashing on EOF).
+      // Check if existing daemon has matching config; if not, kill it.
+      // Killing the old daemon mid-execution interrupts any peer launcher's
+      // command, but those are running against an incompatible Mill version
+      // and would have to be restarted anyway.
       val processIdFile = daemonDir / DaemonFiles.processId
       val configFile = daemonDir / DaemonFiles.daemonLaunchFingerprint
       if (os.exists(processIdFile)) {
@@ -181,7 +126,7 @@ object ServerLauncher {
             mismatchReasons.foreach(reason => log(reason))
             log(s"Terminating old daemon due to config mismatch: $stored -> $config")
             os.remove(processIdFile, checkExists = false)
-            waitForOldDaemonToExit(locks.daemonLock, daemonDir)
+            waitForOldDaemonToExit(locks.daemonLock)
             log("Old daemon terminated")
           }
         }
