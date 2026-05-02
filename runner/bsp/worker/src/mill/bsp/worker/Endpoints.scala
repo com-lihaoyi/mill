@@ -182,9 +182,9 @@ trait MillBspEndpoints extends BuildServer with MillTestBuildServer with Endpoin
 
   override def workspaceReload(): CompletableFuture[Object] =
     handlerRaw { _ =>
-      // Instead stop and restart the command
-      // BSP.install(evaluator)
-      completeSessionResult(BspServerResult.ReloadWorkspace)
+      // Each BSP request already bootstraps a fresh runner state via the
+      // bootstrap bridge in MillMain0, so an explicit reload is a no-op:
+      // the next request will re-evaluate the build automatically.
       ().asInstanceOf[Object]
     }
 
