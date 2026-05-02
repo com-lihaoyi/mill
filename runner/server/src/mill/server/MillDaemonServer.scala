@@ -282,22 +282,28 @@ object MillDaemonServer {
       }
     }
 
-    override def read(): Int = {
-      // Only read from buffer; caller should check available() first
-      if (bufferedAvailable == 0) -1
-      else {
-        val b = buffer(pos) & 0xff
-        pos += 1
-        b
+    /**
+     * Block by polling `available()` until the launcher side returns bytes.
+     * `available()` does an RPC roundtrip and lets disconnect exceptions propagate,
+     * which is how this stream signals EOF (the lsp4j BSP listener depends on this
+     * blocking behavior — it reads directly without checking `available()` first).
+     */
+    private def blockUntilBuffered(): Unit =
+      while (bufferedAvailable == 0) {
+        if (available() == 0) Thread.sleep(10)
       }
+
+    override def read(): Int = {
+      blockUntilBuffered()
+      val b = buffer(pos) & 0xff
+      pos += 1
+      b
     }
 
     override def read(b: Array[Byte], off: Int, len: Int): Int = {
       if (len == 0) return 0
-      // Only read from buffer; caller should check available() first
-      val avail = bufferedAvailable
-      if (avail == 0) return -1
-      val toRead = math.min(len, avail)
+      blockUntilBuffered()
+      val toRead = math.min(len, bufferedAvailable)
       System.arraycopy(buffer, pos, b, off, toRead)
       pos += toRead
       toRead
