@@ -10,8 +10,7 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
   implicit val retryInterval: RetryInterval = RetryInterval(50.millis)
 
   private def blockedBy(command: String, taskName: String, stderrText: String): Boolean =
-    stderrText.contains(s"blocked taking read lock on '$taskName' held by PID ") &&
-      stderrText.contains(s"($command)")
+    stderrText.contains(s"blocked on read lock '$taskName' command '$command' PID ")
 
   val tests: Tests = Tests {
     test("interrupt-blocked") - integrationTest { tester =>

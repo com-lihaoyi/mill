@@ -30,8 +30,8 @@ class CrossThreadRwLock(label: String) {
     val kindStr = kind match { case LockKind.Read => "read"; case LockKind.Write => "write" }
     blocker match {
       case Some(h) =>
-        s"blocked taking $kindStr lock on '$label' held by PID ${h.pid} (${h.command})"
-      case None => s"blocked taking $kindStr lock on '$label'"
+        s"blocked on $kindStr lock '$label' command '${h.command}' PID ${h.pid}"
+      case None => s"blocked on $kindStr lock '$label'"
     }
   }
 

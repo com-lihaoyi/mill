@@ -31,10 +31,10 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       launcher.containsLines(blockedLine(command, pid, taskName, "read"))
 
   private def blockedLine(command: String, pid: Long, taskName: String, kind: String): String =
-    s"blocked taking $kind lock on '$taskName' held by PID $pid ($command)"
+    s"blocked on $kind lock '$taskName' command '$command' PID $pid"
 
   /**
-   * Exact set of "blocked taking ... lock ..." lines this launcher emitted.
+   * Exact set of "blocked on ... lock ..." lines this launcher emitted.
    * One entry per distinct line, deduped — order is not significant because
    * waits in different threads can interleave.
    */
@@ -42,7 +42,7 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       launcher: mill.testkit.IntegrationTester.SpawnedProcess
   ): Set[String] =
     launcher.err.text().linesIterator
-      .filter(_.startsWith("blocked taking "))
+      .filter(_.startsWith("blocked on "))
       .toSet
 
   /**
@@ -309,7 +309,7 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       launcher2.assertContainsLines("fast-value-0")
 
       assertContention(launcher1, Set.empty)
-      // Same `blocked taking ...` shape as per-task waits — confirms
+      // Same `blocked on ...` shape as per-task waits — confirms
       // exclusive-lock waits go through the same WaitReporter pipeline.
       assertContention(
         launcher2,

@@ -387,10 +387,10 @@ object CrossThreadRwLockTests extends TestSuite {
 
       assertEventually(waitingBytes.size() > 0)
       val msg = waitingBytes.toString
-      assert(msg.contains("(blockerTask)"))
+      assert(msg.contains("command 'blockerTask'"))
       assert(msg.contains("'holder-naming'"))
       assert(msg.contains("PID 9876"))
-      assert(msg.contains("blocked taking write lock"))
+      assert(msg.contains("blocked on write lock"))
 
       firstLease.close()
       assert(secondAcquired.await(5, TimeUnit.SECONDS))

@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicLong
  *   - When the supplied logger already has an active prompt-line (e.g. a
  *     per-task `PrefixLogger` set up via [[Logger.withPromptLine]]), wait
  *     status is rendered as the *detail suffix* of that existing line so
- *     the user sees "task-name | blocked taking ..." attached to the
+ *     the user sees "task-name | blocked on ..." attached to the
  *     row that's already in their multi-line prompt.
  *   - When there's no preexisting prompt-line for this logger's key (e.g.
  *     the launcher session logger during meta-build / exclusive-lock
