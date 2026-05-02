@@ -129,9 +129,8 @@ private[mill] object IncrementalAnnotationProcessing {
       log: Logger.Actions
   ): Mode = {
     val javaSources = sources.filter(_.ext == "java")
-    if (
-      !incrementalCompilation || javacOptions.contains("-proc:none") || javaSources.isEmpty
-    ) Mode.None
+    if (!incrementalCompilation || javacOptions.contains("-proc:none") || javaSources.isEmpty)
+      Mode.None
     else {
       val processorPath = parsePathOption(javacOptions, "-processorpath", "--processor-path")
         .map(_.map(os.Path(_, os.pwd)))
