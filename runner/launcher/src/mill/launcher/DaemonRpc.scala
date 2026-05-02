@@ -53,8 +53,14 @@ object DaemonRpc {
 
   case class SubprocessResult(exitCode: Int) derives ReadWriter
 
-  /** Result of polling for stdin data. Contains available bytes (empty if none). */
-  case class StdinResult(bytes: Array[Byte]) derives ReadWriter
+  /**
+   * Result of polling for stdin data. `bytes` carries any bytes available right
+   * now (possibly empty when nothing's queued); `eof = true` means the client's
+   * stdin has been closed and no more bytes will ever arrive — the daemon-side
+   * stdin proxy must translate this to `read() == -1` so consumers like lsp4j
+   * see a clean end-of-stream rather than spinning forever.
+   */
+  case class StdinResult(bytes: Array[Byte], eof: Boolean = false) derives ReadWriter
 
   /** Result of getting terminal dimensions. None means dimension is unknown. */
   case class TerminalDimsResult(width: Option[Int], height: Option[Int]) derives ReadWriter
@@ -130,12 +136,13 @@ object DaemonRpc {
         val bytesRead = System.in.read(buffer)
         if (bytesRead == toRead) StdinResult(buffer)
         else if (bytesRead > 0) StdinResult(java.util.Arrays.copyOf(buffer, bytesRead))
+        else if (bytesRead < 0) StdinResult(Array.empty, eof = true)
         else StdinResult(Array.empty)
       } else {
         StdinResult(Array.empty)
       }
     } catch {
-      case _: Exception => StdinResult(Array.empty)
+      case _: Exception => StdinResult(Array.empty, eof = true)
     }
   }
 

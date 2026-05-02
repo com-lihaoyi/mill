@@ -265,48 +265,65 @@ object MillDaemonServer {
   ) extends InputStream {
     private var buffer: Array[Byte] = Array.empty
     private var pos: Int = 0
+    private var eof: Boolean = false
 
     private def bufferedAvailable: Int = buffer.length - pos
 
-    override def available(): Int = {
-      if (bufferedAvailable > 0) {
-        bufferedAvailable
-      } else {
-        // Poll the client for available stdin data.
+    /** Refill `buffer` from the launcher; returns false once the launcher reports EOF. */
+    private def pollOnce(): Boolean = {
+      if (eof) false
+      else {
         // Don't catch exceptions - let them propagate so the RPC loop exits
         // cleanly when the client disconnects.
         val result = serverToClient(DaemonRpc.ServerToClient.PollStdin())
         buffer = result.bytes
         pos = 0
-        buffer.length
+        if (result.eof) {
+          eof = true
+          false
+        } else true
       }
     }
 
+    override def available(): Int = {
+      if (bufferedAvailable > 0) bufferedAvailable
+      else if (eof) 0
+      else { pollOnce(); bufferedAvailable }
+    }
+
     /**
-     * Block by polling `available()` until the launcher side returns bytes.
-     * `available()` does an RPC roundtrip and lets disconnect exceptions propagate,
-     * which is how this stream signals EOF (the lsp4j BSP listener depends on this
-     * blocking behavior — it reads directly without checking `available()` first).
+     * Block by polling the launcher until bytes arrive or EOF is signalled.
+     * Returns true if data is now buffered, false on EOF. lsp4j (BSP) reads this
+     * stream directly without checking `available()` and depends on real
+     * blocking semantics; the existing watch-mode `lookForEnterKey` gates on
+     * `available()` first so its non-blocking shape is preserved.
      */
-    private def blockUntilBuffered(): Unit =
-      while (bufferedAvailable == 0) {
-        if (available() == 0) Thread.sleep(10)
+    private def blockUntilBuffered(): Boolean = {
+      while (bufferedAvailable == 0 && !eof) {
+        pollOnce()
+        if (bufferedAvailable == 0 && !eof) Thread.sleep(10)
       }
+      bufferedAvailable > 0
+    }
 
     override def read(): Int = {
-      blockUntilBuffered()
-      val b = buffer(pos) & 0xff
-      pos += 1
-      b
+      if (!blockUntilBuffered()) -1
+      else {
+        val b = buffer(pos) & 0xff
+        pos += 1
+        b
+      }
     }
 
     override def read(b: Array[Byte], off: Int, len: Int): Int = {
       if (len == 0) return 0
-      blockUntilBuffered()
-      val toRead = math.min(len, bufferedAvailable)
-      System.arraycopy(buffer, pos, b, off, toRead)
-      pos += toRead
-      toRead
+      if (!blockUntilBuffered()) -1
+      else {
+        val toRead = math.min(len, bufferedAvailable)
+        System.arraycopy(buffer, pos, b, off, toRead)
+        pos += toRead
+        toRead
+      }
     }
   }
 }
