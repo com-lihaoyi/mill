@@ -136,7 +136,7 @@ object IncrementalAnnotationProcessingDetectionTests extends TestSuite {
       } finally os.remove.all(workDir)
     }
 
-    test("detectDisablesForRelevantProcessorWithoutMetadata") {
+    test("detectDoesNotDisableForRelevantProcessorWithoutMetadata") {
       val workDir = os.temp.dir()
       try {
         val relevantProcessor = compileProcessor(
@@ -166,7 +166,7 @@ object IncrementalAnnotationProcessingDetectionTests extends TestSuite {
           log = Logger.Actions.noOp
         )
 
-        assert(mode == IncrementalAnnotationProcessing.Mode.Disabled)
+        assert(mode == IncrementalAnnotationProcessing.Mode.None)
       } finally os.remove.all(workDir)
     }
 

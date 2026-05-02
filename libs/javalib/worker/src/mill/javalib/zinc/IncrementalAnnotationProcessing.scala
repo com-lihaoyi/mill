@@ -45,7 +45,6 @@ private[mill] object IncrementalAnnotationProcessing {
 
   enum Mode {
     case None
-    case Disabled
     case Enabled(plan: CompilePlan)
   }
 
@@ -149,7 +148,7 @@ private[mill] object IncrementalAnnotationProcessing {
         val kinds =
           resolveTrackingModes(activeProcessors.toSet, metadata, processorPath, compileClasspath)
         kinds match {
-          case None => Mode.Disabled
+          case None => Mode.None
           case Some(activeKinds) =>
             val trackingMode =
               if (activeKinds.exists(_ == TrackingMode.Aggregating)) TrackingMode.Aggregating
