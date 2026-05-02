@@ -128,10 +128,9 @@ private[mill] object IncrementalAnnotationProcessing {
       incrementalCompilation: Boolean,
       log: Logger.Actions
   ): Mode = {
+    val javaSources = sources.filter(_.ext == "java")
     if (
-      !incrementalCompilation || javacOptions.contains("-proc:none") || !sources.exists(
-        _.ext == "java"
-      )
+      !incrementalCompilation || javacOptions.contains("-proc:none") || javaSources.isEmpty
     ) Mode.None
     else {
       val processorPath = parsePathOption(javacOptions, "-processorpath", "--processor-path")
@@ -154,10 +153,12 @@ private[mill] object IncrementalAnnotationProcessing {
               if (activeKinds.exists(_ == TrackingMode.Aggregating)) TrackingMode.Aggregating
               else TrackingMode.Isolating
 
-            val sourceStamps = snapshotSources(sources)
+            val sourceStamps = snapshotSources(javaSources)
             val classesDir = workDir / "classes"
             val previous = decodeSnapshot(readSnapshot(snapshotPath(workDir)), workDir, classesDir)
-            val previousStamps = previous.sourceStamps
+            val previousStamps = previous.sourceStamps.filter { case (path, _) =>
+              path.ext == "java"
+            }
             val changedSources = changedSourcesSince(previousStamps, sourceStamps)
             val staleProducts = staleProductsFor(previous.products, previousStamps, sourceStamps)
             val removedSources = previousStamps.keySet -- sourceStamps.keySet
@@ -180,7 +181,7 @@ private[mill] object IncrementalAnnotationProcessing {
                 lookupData = Option.when(!requiresFullRecompile) {
                   lookupData(staleProducts, changedSources, removedSources, sourceStamps.keySet)
                 },
-                tracker = new CompileTracker(trackingMode, sources.toSet, classesDir)
+                tracker = new CompileTracker(trackingMode, javaSources.toSet, classesDir)
               )
             )
         }
