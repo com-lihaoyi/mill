@@ -45,7 +45,6 @@ private[mill] object IncrementalAnnotationProcessing {
 
   enum Mode {
     case None
-    case Disabled
     case Enabled(plan: CompilePlan)
   }
 
@@ -129,7 +128,9 @@ private[mill] object IncrementalAnnotationProcessing {
       incrementalCompilation: Boolean,
       log: Logger.Actions
   ): Mode = {
-    if (!incrementalCompilation || javacOptions.contains("-proc:none")) Mode.None
+    val javaSources = sources.filter(_.ext == "java")
+    if (!incrementalCompilation || javacOptions.contains("-proc:none") || javaSources.isEmpty)
+      Mode.None
     else {
       val processorPath = parsePathOption(javacOptions, "-processorpath", "--processor-path")
         .map(_.map(os.Path(_, os.pwd)))
@@ -145,16 +146,18 @@ private[mill] object IncrementalAnnotationProcessing {
         val kinds =
           resolveTrackingModes(activeProcessors.toSet, metadata, processorPath, compileClasspath)
         kinds match {
-          case None => Mode.Disabled
+          case None => Mode.None
           case Some(activeKinds) =>
             val trackingMode =
               if (activeKinds.exists(_ == TrackingMode.Aggregating)) TrackingMode.Aggregating
               else TrackingMode.Isolating
 
-            val sourceStamps = snapshotSources(sources)
+            val sourceStamps = snapshotSources(javaSources)
             val classesDir = workDir / "classes"
             val previous = decodeSnapshot(readSnapshot(snapshotPath(workDir)), workDir, classesDir)
-            val previousStamps = previous.sourceStamps
+            val previousStamps = previous.sourceStamps.filter { case (path, _) =>
+              path.ext == "java"
+            }
             val changedSources = changedSourcesSince(previousStamps, sourceStamps)
             val staleProducts = staleProductsFor(previous.products, previousStamps, sourceStamps)
             val removedSources = previousStamps.keySet -- sourceStamps.keySet
@@ -177,7 +180,7 @@ private[mill] object IncrementalAnnotationProcessing {
                 lookupData = Option.when(!requiresFullRecompile) {
                   lookupData(staleProducts, changedSources, removedSources, sourceStamps.keySet)
                 },
-                tracker = new CompileTracker(trackingMode, sources.toSet, classesDir)
+                tracker = new CompileTracker(trackingMode, javaSources.toSet, classesDir)
               )
             )
         }
@@ -710,14 +713,17 @@ private[mill] object IncrementalAnnotationProcessing {
   }
 
   object SourceAnnotationIndex {
-    def fromSources(sources: Seq[os.Path]): Option[SourceAnnotationIndex] =
+    def fromSources(sources: Seq[os.Path]): Option[SourceAnnotationIndex] = {
+      val javaSources = sources.filter(_.ext == "java")
+
       Option(ToolProvider.getSystemJavaCompiler).flatMap { compiler =>
         def standardFileManager: StandardJavaFileManager =
           compiler.getStandardFileManager(null, null, null)
 
         scala.util.Try {
           Using.resource(standardFileManager) { fileManager =>
-            val javaFiles = fileManager.getJavaFileObjectsFromPaths(sources.map(_.toNIO).asJava)
+            val javaFiles =
+              fileManager.getJavaFileObjectsFromPaths(javaSources.map(_.toNIO).asJava)
             val task = compiler
               .getTask(null, fileManager, null, Nil.asJava, null, javaFiles)
               .asInstanceOf[JavacTask]
@@ -733,6 +739,7 @@ private[mill] object IncrementalAnnotationProcessing {
           }
         }.toOption
       }
+    }
 
     private def addAnnotationsFromUnit(
         unit: CompilationUnitTree,

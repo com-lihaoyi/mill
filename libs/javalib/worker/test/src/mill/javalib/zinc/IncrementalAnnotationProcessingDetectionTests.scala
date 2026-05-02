@@ -90,6 +90,11 @@ object IncrementalAnnotationProcessingDetectionTests extends TestSuite {
     path
   }
 
+  private def sourceStamp(path: os.Path): IncrementalAnnotationProcessing.SourceStamp = {
+    val stat = os.stat(path)
+    IncrementalAnnotationProcessing.SourceStamp(stat.mtime.toMillis, stat.size)
+  }
+
   val tests: Tests = Tests {
     test("detectIgnoresInactiveServiceProviders") {
       val workDir = os.temp.dir()
@@ -136,7 +141,7 @@ object IncrementalAnnotationProcessingDetectionTests extends TestSuite {
       } finally os.remove.all(workDir)
     }
 
-    test("detectDisablesForRelevantProcessorWithoutMetadata") {
+    test("detectDoesNotDisableForRelevantProcessorWithoutMetadata") {
       val workDir = os.temp.dir()
       try {
         val relevantProcessor = compileProcessor(
@@ -166,7 +171,145 @@ object IncrementalAnnotationProcessingDetectionTests extends TestSuite {
           log = Logger.Actions.noOp
         )
 
-        assert(mode == IncrementalAnnotationProcessing.Mode.Disabled)
+        assert(mode == IncrementalAnnotationProcessing.Mode.None)
+      } finally os.remove.all(workDir)
+    }
+
+    test("detectIgnoresInactiveServiceProvidersOnCompileClasspathWithScalaSources") {
+      val workDir = os.temp.dir()
+      try {
+        val unrelatedProcessor = compileProcessor(
+          workDir,
+          ProcessorSpec(
+            className = "example.UnrelatedProcessor",
+            supportedAnnotationTypes = Seq("unrelated.Other"),
+            metadataKind = None
+          )
+        )
+        val javaSrc = source(
+          workDir,
+          "src/example/Plain.java",
+          """package example;
+            |
+            |class Plain {}
+            |""".stripMargin
+        )
+        val scalaSrc = source(
+          workDir,
+          "src/example/PlainScala.scala",
+          """package example
+            |
+            |class PlainScala
+            |""".stripMargin
+        )
+
+        val mode = IncrementalAnnotationProcessing.detect(
+          javacOptions = Nil,
+          compileClasspath = Seq(unrelatedProcessor),
+          sources = Seq(javaSrc, scalaSrc),
+          workDir = workDir,
+          incrementalCompilation = true,
+          log = Logger.Actions.noOp
+        )
+
+        assert(mode == IncrementalAnnotationProcessing.Mode.None)
+      } finally os.remove.all(workDir)
+    }
+
+    test("detectDoesNotRequireFullRecompileWhenOnlyScalaSourceChanges") {
+      val workDir = os.temp.dir()
+      try {
+        val aggregatingProcessor = compileProcessor(
+          workDir,
+          ProcessorSpec(
+            className = "example.AggregatingProcessor",
+            supportedAnnotationTypes = Seq("*"),
+            metadataKind = Some("aggregating")
+          )
+        )
+        val javaSrc = source(
+          workDir,
+          "src/example/Plain.java",
+          """package example;
+            |
+            |class Plain {}
+            |""".stripMargin
+        )
+        val scalaSrc = source(
+          workDir,
+          "src/example/PlainScala.scala",
+          """package example
+            |
+            |class PlainScala
+            |""".stripMargin
+        )
+        val classesDir = workDir / "classes"
+        val unknownProduct = classesDir / os.RelPath("META-INF/services/example.Service")
+        writeSource(unknownProduct, "example.ServiceImpl\n")
+
+        IncrementalAnnotationProcessing.writeSnapshot(
+          IncrementalAnnotationProcessing.snapshotPath(workDir),
+          IncrementalAnnotationProcessing.Snapshot(
+            sourceStamps = Map(
+              javaSrc.relativeTo(workDir).toString -> sourceStamp(javaSrc),
+              scalaSrc.relativeTo(workDir).toString ->
+                IncrementalAnnotationProcessing.SourceStamp(0L, 0L)
+            ),
+            products = Map(
+              unknownProduct.relativeTo(classesDir).toString ->
+                IncrementalAnnotationProcessing.PersistedOwnership.Unknown
+            )
+          )
+        )
+
+        val mode = IncrementalAnnotationProcessing.detect(
+          javacOptions = Nil,
+          compileClasspath = Seq(aggregatingProcessor),
+          sources = Seq(javaSrc, scalaSrc),
+          workDir = workDir,
+          incrementalCompilation = true,
+          log = Logger.Actions.noOp
+        )
+
+        mode match {
+          case IncrementalAnnotationProcessing.Mode.Enabled(plan) =>
+            assert(!plan.requiresFullRecompile)
+            assert(plan.staleProducts.isEmpty)
+          case _ => assert(false)
+        }
+      } finally os.remove.all(workDir)
+    }
+
+    test("detectIgnoresServiceProvidersWithoutJavaSources") {
+      val workDir = os.temp.dir()
+      try {
+        val processor = compileProcessor(
+          workDir,
+          ProcessorSpec(
+            className = "example.Processor",
+            supportedAnnotationTypes = Seq("*"),
+            metadataKind = None
+          )
+        )
+        val scalaSrc = source(
+          workDir,
+          "src/example/PlainScala.scala",
+          """package example
+            |
+            |class PlainScala
+            |""".stripMargin
+        )
+
+        val mode = IncrementalAnnotationProcessing.detect(
+          javacOptions = Nil,
+          compileClasspath = Seq(processor),
+          sources = Seq(scalaSrc),
+          workDir = workDir,
+          incrementalCompilation = true,
+          log = Logger.Actions.noOp
+        )
+
+        assert(mode == IncrementalAnnotationProcessing.Mode.None)
       } finally os.remove.all(workDir)
     }
 
