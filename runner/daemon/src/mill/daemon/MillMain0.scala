@@ -166,7 +166,7 @@ object MillMain0 {
 
               case Result.Success(config) if config.noDaemonEnabled > 1 =>
                 streams.err.println(
-                  "Only one of -i/--interactive, --no-daemon, --no-server or --bsp may be given"
+                  "Only one of -i/--interactive, --no-daemon or --no-server may be given"
                 )
                 false
 
