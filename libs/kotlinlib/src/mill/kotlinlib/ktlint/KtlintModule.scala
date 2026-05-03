@@ -18,7 +18,7 @@ trait KtlintModule extends JavaModule {
   /**
    * Runs [[https://pinterest.github.io/ktlint/latest/install/integrations/ Ktlint]]
    */
-  def ktlint(@mainargs.arg ktlintArgs: KtlintArgs): Command[Unit] = Task.Command {
+  def ktlint(@mainargs.arg ktlintArgs: KtlintArgs): Command[Unit] = Task.Command(exclusive = true) {
     KtlintModule.ktlintAction(
       ktlintArgs,
       sources(),
@@ -71,7 +71,7 @@ object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskMod
   def reformatAll(
       @arg(positional = true) sources: Tasks[Seq[PathRef]] =
         Tasks.resolveMainDefault("__.sources")
-  ): Command[Unit] = Task.Command {
+  ): Command[Unit] = Task.Command(exclusive = true) {
     ktlintAction(
       KtlintArgs(format = true, check = true),
       Task.sequence(sources.value)().flatten,

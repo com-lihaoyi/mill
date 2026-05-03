@@ -85,6 +85,15 @@ object ServerLauncher {
    * @param config Configuration to check against the running daemon. If any values mismatch,
    *               the old daemon is terminated before starting a new one.
    */
+
+  /** Block until `daemonLock` is free, meaning the old daemon has fully exited. */
+  private def waitForOldDaemonToExit(daemonLock: mill.client.lock.Lock): Unit = {
+    val deadline = System.currentTimeMillis() + 5000
+    while (!daemonLock.probe() && System.currentTimeMillis() < deadline) {
+      Thread.sleep(100)
+    }
+  }
+
   def launchOrConnectToServer(
       locks: Locks,
       daemonDir: os.Path,
@@ -98,7 +107,10 @@ object ServerLauncher {
     log(s"Acquiring the launcher lock: ${locks.launcherLock}")
     val locked = locks.launcherLock.lock()
     try {
-      // Check if existing daemon has matching config, terminate if mismatched
+      // Check if existing daemon has matching config; if not, kill it.
+      // Killing the old daemon mid-execution interrupts any peer launcher's
+      // command, but those are running against an incompatible Mill version
+      // and would have to be restarted anyway.
       val processIdFile = daemonDir / DaemonFiles.processId
       val configFile = daemonDir / DaemonFiles.daemonLaunchFingerprint
       if (os.exists(processIdFile)) {
@@ -113,13 +125,8 @@ object ServerLauncher {
           if (mismatchReasons.nonEmpty) {
             mismatchReasons.foreach(reason => log(reason))
             log(s"Terminating old daemon due to config mismatch: $stored -> $config")
-            // Terminate the old daemon by removing the processId file
             os.remove(processIdFile, checkExists = false)
-            // Wait for daemon to die by polling the daemon lock (up to 5 seconds)
-            val deadline = System.currentTimeMillis() + 5000
-            while (!locks.daemonLock.probe() && System.currentTimeMillis() < deadline) {
-              Thread.sleep(100)
-            }
+            waitForOldDaemonToExit(locks.daemonLock)
             log("Old daemon terminated")
           }
         }

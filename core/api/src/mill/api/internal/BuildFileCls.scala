@@ -17,5 +17,8 @@ class BuildFileCls(classLoader: ClassLoader)
   }
 
   def moduleWatchedValues = BuildCtx.watchedValues.toSeq
-  def evalWatchedValues = BuildCtx.evalWatchedValues
+  def withEvalWatchedValues[T](body: => T): (T, Seq[mill.api.daemon.Watchable]) = {
+    val (result, buf) = BuildCtx.withEvalWatchedValues(body)
+    (result, buf.toSeq)
+  }
 }

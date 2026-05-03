@@ -141,6 +141,8 @@ class UnitTester(
     getEvaluator = () => evaluator,
     offline = offline,
     useFileLocks = false,
+    workspaceLocking = mill.api.daemon.internal.LauncherLocking.Noop,
+    runArtifacts = mill.api.daemon.internal.LauncherOutFiles.noop(outPath.toNIO),
     enableTicker = false,
     staticBuildOverrideFiles = Map(),
     depth = 0,

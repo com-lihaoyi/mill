@@ -34,13 +34,32 @@ class BspLogger(
     }
     override def enableTicker = true
 
+    // Surface only the lock-wait subset of prompt-line/detail updates into
+    // BSP-server stderr — `PromptWaitReporter` routes its "blocked on …"
+    // messages through the prompt API even though BSP has no live prompt UI,
+    // and without this hook BSP-side lock waits would be invisible to users
+    // and tests. Other prompt-line activity (e.g. "resolve foo.bar" status
+    // emitted by EvaluatorImpl) is just running-status decoration that would
+    // be log spam in BSP, so we leave it as a chrome-profile trace only.
+    private def isLockWait(message: String): Boolean = message.startsWith("blocked on ")
+
+    private def emitPromptLine(key: Seq[String], message: String): Unit =
+      if (isLockWait(message))
+        unprefixedStreams.err.write((Logger.formatPrefix(key) + message + "\n").getBytes)
+
     override private[mill] def setPromptLine(
         key: Seq[String],
         keySuffix: String,
         message: String
     ): Unit = {
-      if (message != "") beginChromeProfileEntry(message)
+      if (message != "") {
+        beginChromeProfileEntry(message)
+        emitPromptLine(key, message)
+      }
     }
+
+    override private[mill] def setPromptDetail(key: Seq[String], message: String): Unit =
+      emitPromptLine(key, message)
 
     override private[mill] def removePromptLine(key: Seq[String], message: String): Unit = {
       if (message != "") endChromeProfileEntry()

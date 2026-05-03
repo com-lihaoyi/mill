@@ -21,17 +21,17 @@ object ModuleUtils {
   def recursive[T](name: String, start: T, deps: T => Seq[T]): Seq[T] = {
 
     @tailrec def rec(
-        seenModules: Set[T],
-        result: List[T],
-        toAnalyze: List[(List[T], List[T])]
-    ): List[T] = {
+        seenModules: Vector[T],
+        seenSet: Set[T],
+        toAnalyze: List[(List[T], Set[T], List[T])]
+    ): Vector[T] = {
       toAnalyze match {
-        case Nil => result
+        case Nil => seenModules
         case traces :: rest =>
           traces match {
-            case (_, Nil) => rec(seenModules, result, rest)
-            case (trace, cand :: remaining) =>
-              if (trace.contains(cand)) {
+            case (_, _, Nil) => rec(seenModules, seenSet, rest)
+            case (trace, traceSet, cand :: remaining) =>
+              if (traceSet.contains(cand)) {
                 // cycle!
                 val rendered =
                   (cand :: (cand :: trace.takeWhile(_ != cand)).reverse).mkString(" -> ")
@@ -39,20 +39,23 @@ object ModuleUtils {
                 println(msg)
                 throw new mill.api.MillException(msg)
               }
-              val alreadySeen = seenModules.contains(cand)
+              val seen = seenSet.contains(cand)
               rec(
-                if (alreadySeen) seenModules else seenModules + cand,
-                if (alreadySeen) result else cand :: result,
-                toAnalyze = ((cand :: trace, deps(cand).toList)) :: (trace, remaining) :: rest
+                if (seen) seenModules else seenModules :+ cand,
+                if (seen) seenSet else seenSet + cand,
+                toAnalyze =
+                  ((cand :: trace, traceSet + cand, deps(cand).toList)) ::
+                    (trace, traceSet, remaining) ::
+                    rest
               )
           }
       }
     }
 
     rec(
-      seenModules = Set.empty,
-      result = Nil,
-      toAnalyze = List((List(start), deps(start).toList))
-    )
+      seenModules = Vector.empty,
+      seenSet = Set.empty,
+      toAnalyze = List((List(start), Set(start), deps(start).toList))
+    ).reverse
   }
 }

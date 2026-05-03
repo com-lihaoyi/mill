@@ -1,0 +1,174 @@
+package mill.internal
+
+import mill.api.daemon.internal.LauncherLocking
+import mill.api.daemon.internal.LauncherLocking.WaitReporter
+import mill.internal.CrossThreadRwLock.HolderInfo
+
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
+
+private[mill] class LauncherLockingImpl(
+    activeCommandMessage: String,
+    launcherPid: Long,
+    noBuildLock: Boolean,
+    noWaitForBuildLock: Boolean,
+    lockRegistry: LauncherLockRegistry,
+    val runId: String
+) extends LauncherLocking {
+  private val holder = HolderInfo(launcherPid, activeCommandMessage)
+  private val closed = new AtomicBoolean(false)
+  private val activeLeases = scala.collection.mutable.Set.empty[LeaseWrapper]
+  private val exclusiveWriteCount = new AtomicInteger(0)
+
+  private def ensureOpen(): Unit =
+    if (closed.get()) throw new IllegalStateException(s"Lock session $runId is closed")
+
+  override def metaBuildLock(
+      depth: Int,
+      kind: LauncherLocking.LockKind,
+      waitReporter: WaitReporter
+  ): LauncherLocking.Lease = {
+    ensureOpen()
+    if (noBuildLock) LauncherLocking.Noop.metaBuildLock(depth, kind, waitReporter)
+    else acquireManagedLease(lockRegistry.metaBuildLockFor(depth).acquire(
+      kind,
+      waitReporter,
+      noWaitForBuildLock,
+      holder
+    ))
+  }
+
+  override def tryMetaBuildWriteLock(depth: Int): Either[String, LauncherLocking.Lease] = {
+    ensureOpen()
+    if (noBuildLock) LauncherLocking.Noop.tryMetaBuildWriteLock(depth)
+    else lockRegistry.metaBuildLockFor(depth).tryAcquireWrite(holder).map(acquireManagedLease)
+  }
+
+  override def awaitMetaBuildStateChange(depth: Int, timeoutMs: Long): Unit = {
+    ensureOpen()
+    if (!noBuildLock) lockRegistry.metaBuildLockFor(depth).awaitStateChange(timeoutMs)
+  }
+
+  override def taskLock(
+      path: java.nio.file.Path,
+      displayLabel: String,
+      kind: LauncherLocking.LockKind,
+      waitReporter: WaitReporter
+  ): LauncherLocking.Lease = {
+    ensureOpen()
+    // While `exclusiveLock(Write)` is held, no peer can run, so per-task
+    // locking is unnecessary; Noop also avoids self-deadlock if a nested
+    // exclusive command's evaluator tries to escalate a taskLock the outer
+    // evaluation already holds as Read (`CrossThreadRwLock` is not reentrant).
+    if (noBuildLock || exclusiveWriteCount.get() > 0) {
+      LauncherLocking.Noop.taskLock(path, displayLabel, kind, waitReporter)
+    } else {
+      val normalized = path.toAbsolutePath.normalize().toString
+      val lock = lockRegistry.taskLockFor(normalized, displayLabel)
+      acquireManagedLease(lock.acquire(kind, waitReporter, noWaitForBuildLock, holder))
+    }
+  }
+
+  override def tryTaskWriteLock(
+      path: java.nio.file.Path,
+      displayLabel: String
+  ): Either[String, LauncherLocking.Lease] = {
+    ensureOpen()
+    if (noBuildLock || exclusiveWriteCount.get() > 0)
+      LauncherLocking.Noop.tryTaskWriteLock(path, displayLabel)
+    else {
+      val normalized = path.toAbsolutePath.normalize().toString
+      lockRegistry.taskLockFor(normalized, displayLabel)
+        .tryAcquireWrite(holder)
+        .map(acquireManagedLease)
+    }
+  }
+
+  override def awaitTaskStateChange(
+      path: java.nio.file.Path,
+      displayLabel: String,
+      timeoutMs: Long
+  ): Unit = {
+    ensureOpen()
+    if (!noBuildLock && exclusiveWriteCount.get() == 0) {
+      val normalized = path.toAbsolutePath.normalize().toString
+      lockRegistry.taskLockFor(normalized, displayLabel).awaitStateChange(timeoutMs)
+    }
+  }
+
+  override def exclusiveLock(
+      kind: LauncherLocking.LockKind,
+      waitReporter: WaitReporter
+  ): LauncherLocking.Lease = {
+    ensureOpen()
+    // Reentry: outer `exclusiveLock(Write)` covers all nested work and
+    // a same-thread re-acquire would self-deadlock (lock isn't reentrant).
+    if (noBuildLock || exclusiveWriteCount.get() > 0)
+      LauncherLocking.Noop.exclusiveLock(kind, waitReporter)
+    else {
+      val underlying =
+        lockRegistry.exclusiveLock.acquire(kind, waitReporter, noWaitForBuildLock, holder)
+      val tracked =
+        if (kind != LauncherLocking.LockKind.Write) underlying
+        else {
+          exclusiveWriteCount.incrementAndGet()
+          new LauncherLocking.Lease {
+            private val released = new AtomicBoolean(false)
+            private def releaseWriteCount(): Unit =
+              if (released.compareAndSet(false, true)) exclusiveWriteCount.decrementAndGet()
+            override def downgradeToRead(): Unit = {
+              underlying.downgradeToRead()
+              releaseWriteCount()
+            }
+            override def close(): Unit = {
+              try underlying.close()
+              finally releaseWriteCount()
+            }
+          }
+        }
+      acquireManagedLease(tracked)
+    }
+  }
+
+  private def acquireManagedLease(
+      underlying: LauncherLocking.Lease
+  ): LauncherLocking.Lease = {
+    val lease = new LeaseWrapper(underlying)
+    val accepted = activeLeases.synchronized {
+      if (closed.get()) false
+      else {
+        activeLeases += lease
+        true
+      }
+    }
+    if (!accepted) {
+      try underlying.close()
+      catch { case _: Throwable => () }
+      throw new IllegalStateException(s"Lock session $runId is closed")
+    }
+    lease
+  }
+
+  override def close(): Unit =
+    if (closed.compareAndSet(false, true)) {
+      val leases = activeLeases.synchronized(activeLeases.toSeq)
+      leases.foreach(lease =>
+        try lease.close()
+        catch { case _: Throwable => () }
+      )
+    }
+
+  private class LeaseWrapper(
+      underlying: LauncherLocking.Lease
+  ) extends LauncherLocking.Lease {
+    private val closed = new AtomicBoolean(false)
+
+    override def downgradeToRead(): Unit =
+      if (!closed.get()) underlying.downgradeToRead()
+
+    override def close(): Unit =
+      if (closed.compareAndSet(false, true)) {
+        underlying.close()
+        activeLeases.synchronized(activeLeases -= this)
+      }
+  }
+}

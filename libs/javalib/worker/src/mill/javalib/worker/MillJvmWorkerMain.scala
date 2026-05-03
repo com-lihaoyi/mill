@@ -93,7 +93,8 @@ object MillJvmWorkerMain {
     override def endConnection(
         connectionData: ConnectionData,
         data: Option[JvmWorkerServerData],
-        result: Option[Unit]
+        result: Option[Unit],
+        externalShutdownReason: Option[String]
     ): Unit = {
       // Close the transport to release resources
       data.foreach { d =>
