@@ -5,6 +5,7 @@ import mill.api.{PathRef, Task}
 import mill.javalib.*
 import mill.javalib.publish.{PackagingType, PublishInfo}
 import mill.util.Jvm
+
 import scala.xml.*
 
 @mill.api.experimental
@@ -145,11 +146,5 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
     )
 
     PathRef(aarFile)
-  }
-
-  trait AndroidLibTests extends JavaTests {
-
-    override def sources: T[Seq[PathRef]] = Task.Sources("src/test/java")
-
   }
 }

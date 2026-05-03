@@ -1,12 +1,6 @@
-// This section sets up a basic Android project using Mill.
-// We utilize `AndroidAppModule`, `AndroidSdkModule` and `AndroidLibModule` and `PublishModule` to streamline the process of
-// building an Android application with minimal configuration that uses our custom library that we locally publish.
-//
-// By extending `AndroidAppModule`, we inherit all Android-related tasks such as
-// resource generation, APK building, DEX conversion, and APK signing.
-// Additionally, `AndroidSdkModule` is embedded, making SDK management seamless.
-// Also `AndroidLibModule` has all the nescesarry tasks to build an Android library AAR.
-// And by using `PublishModule` we can publish our library locally.
+// This section demonstrates how to set up an Android library module written in Java for publishing.
+// We utilize `AndroidLibModule`, which extends `PublishModule` to enable seamless
+// library (AAR artifact) building and local publishing with minimal configuration.
 
 //// SNIPPET:BUILD
 package build
@@ -22,8 +16,9 @@ object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = "35.0.0"
 }
 
-object lib extends AndroidLibModule, PublishModule {
+object lib extends AndroidLibModule {
 
+  def artifactName = "sumlib-java"
   def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
   def androidCompileSdk = 35
@@ -32,7 +27,7 @@ object lib extends AndroidLibModule, PublishModule {
 
   def publishVersion = "0.0.1"
   def pomSettings = PomSettings(
-    description = "sumlib",
+    description = "sumlib-java",
     organization = "com.example.sumlib",
     url = "https://github.com/lihaoyi/example",
     licenses = Seq(License.MIT),
@@ -40,17 +35,7 @@ object lib extends AndroidLibModule, PublishModule {
     developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 
-  /**
-   * Configuration for ReleaseKey
-   * WARNING: Replace these default values with secure and private credentials before using in production.
-   * Never use these defaults in a production environment as they are not secure.
-   * This is just for testing purposes.
-   */
-  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
-  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
-  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
-
-  object test extends AndroidLibTests, TestModule.Junit4 {
+  object test extends AndroidTestModule, TestModule.Junit4 {
     def mvnDeps = Seq(mvn"junit:junit:4.13.2")
   }
 
@@ -71,7 +56,7 @@ object app extends AndroidAppModule {
     )
   }
 
-  def mvnDeps = Seq(mvn"com.example.sumlib:lib:0.0.1")
+  def mvnDeps = Seq(mvn"com.example.sumlib:sumlib-java:0.0.1")
 
   object test extends AndroidAppTests, TestModule.Junit4 {
     def junit4Version = "4.13.2"
@@ -113,20 +98,34 @@ object app extends AndroidAppModule {
 
 /** Usage
 
+> ./mill show lib.test
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "com.example.SumUnitTest.sum_isCorrect",
+      "selector": "com.example.SumUnitTest.sum_isCorrect",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
+
+
 > ./mill lib.publishM2Local
-Publish ... to /home/.../.m2/repository/...
+Publish sumlib-java-0.0.1 to /home/.../.m2/repository/...
 
 > ./mill show lib.publishArtifacts
 {
   "meta": {
     "group": "com.example.sumlib",
-    "id": "lib",
+    "id": "sumlib-java",
     "version": "0.0.1"
   },
   "payload": [
     [
       ".../out/lib/androidAar.dest/library.aar",
-      "lib-0.0.1.aar"
+      "sumlib-java-0.0.1.aar"
     ],
 ...
 
