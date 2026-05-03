@@ -415,37 +415,6 @@ This produces:
 
 Quarkus effectively owns the build at this stage, and the build tool must adapt to its expectations.
 
-== Key Differences from a Build Tool Perspective
-
-|===
-|Aspect | Spring Boot | Micronaut | Quarkus
-
-|Build model
-|Traditional
-|AOT-enhanced
-|Model-driven
-
-|AOT
-|Optional
-|Explicit
-|Implicit
-
-|Dependency model
-|Flat
-|Mostly flat
-|Split
-
-|Execution
-|JVM
-|JVM + AOT
-|Custom bootstrap
-
-|Integration complexity
-|Low
-|Medium
-|High
-|===
-
 == Conclusion
 
 Spring Boot, Micronaut and Quarkus represent three different approaches to building Java applications.
