@@ -3,6 +3,7 @@ package mill.eval
 import mill.api.daemon.SelectMode
 import mill.api.internal.Located
 import mill.api.{Evaluator, ExternalModule, PrecompiledModule, Result, ScriptModule}
+import mill.resolve.Resolve
 import scala.annotation.unused
 
 // Cache instantiated script modules on a per-evaluation basis. This allows us to ensure
@@ -302,17 +303,45 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
     }
   }
 
+  private def discoverPrecompiledYamlModules(all: Boolean): Seq[os.Path] = {
+    val workspaceDir = mill.api.BuildCtx.workspaceRoot
+    def selected(path: os.Path) =
+      all ||
+        (path.last == "package.mill.yaml" && path.relativeTo(workspaceDir).segments.length == 2)
+
+    mill.internal.BuildFileDiscovery
+      .walkNestedBuildFiles(
+        workspaceDir,
+        os.Path(mill.constants.OutFiles.OutFiles.out, workspaceDir)
+      )
+      .filter(path =>
+        path.last.endsWith(".mill.yaml") &&
+          selected(path) &&
+          mill.internal.Util.isPrecompiledYamlModule(path)
+      )
+      .sortBy(_.toString)
+  }
+
   /**
    * Entry point for the script module resolver. First tries file-based resolution
    * (for script modules), then tries directory-based resolution (for pre-compiled modules).
    */
   def apply(scriptFileString: String, eval: Evaluator) = {
     mill.api.BuildCtx.withFilesystemCheckerDisabled {
-      resolveScriptModule(scriptFileString, eval).toSeq match {
-        case resolved if resolved.nonEmpty => resolved
+      scriptFileString match {
+        case Resolve.ScriptModuleQuery.AllPrecompiledModules =>
+          discoverPrecompiledYamlModules(all = true)
+            .flatMap(path => resolveScriptModule(path.toString, eval))
+        case Resolve.ScriptModuleQuery.DirectPrecompiledModules =>
+          discoverPrecompiledYamlModules(all = false)
+            .flatMap(path => resolveScriptModule(path.toString, eval))
         case _ =>
-          // Try resolving as a directory path for pre-compiled modules
-          resolvePrecompiledModule(scriptFileString, eval).toSeq
+          resolveScriptModule(scriptFileString, eval).toSeq match {
+            case resolved if resolved.nonEmpty => resolved
+            case _ =>
+              // Try resolving as a directory path for pre-compiled modules
+              resolvePrecompiledModule(scriptFileString, eval).toSeq
+          }
       }
     }
   }

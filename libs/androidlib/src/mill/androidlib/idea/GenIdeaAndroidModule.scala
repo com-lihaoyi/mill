@@ -22,7 +22,7 @@ trait GenIdeaAndroidModule extends mill.javalib.idea.GenIdeaModule {
   override private[mill] def moduleGeneratedSources = Task {
     val superSources = super.moduleGeneratedSources()
     val rSourcesDirs =
-      Seq(javaModuleRef().androidLinkedResources().path / "generatedSources").map(PathRef(_))
+      Seq(javaModuleRef().androidLinkedResources().generatedSourcesDir)
 
     superSources ++ rSourcesDirs
   }
