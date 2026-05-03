@@ -16,6 +16,30 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 === main branch
 
+[#1-1-6]
+=== 1.1.6
+:version: 1.1.6
+:milestone-name: 1.1.6
+:milestone: 145
+:prev-version: 1.1.6
+_2026-05-03_
+
+_Changes since {prev-version}:_
+
+* Experimental support for Pre-compiled Declarative modules, which let users define `.mill.yaml`
+  files that do not require codegen, speeding up project initialization {link-pr}/6978[#6978]
+* Gradle incremental annotation processing metadata support, to make Java annotation processors
+  update as necessary during incremental compilation {link-pr}/6999[#6999]
+* Escape colon when naming BSP modules to avoid issues on Windows {link-pr}/7001[#7001]
+* Support for building Android projects with Scala {link-pr}/6958[#6958]
+* Cache loading of `module-deps-config.json` {link-pr}/6970[#6970]
+* Fix sandbox initialization in test worker threads {link-pr}/6971[#6971]
+* Optimize PromptLogger#logPrefixedLine for high-volume line output {link-pr}/6966[#6966]
+* Remove `MillMiscInfo.scala` files from generated `package.mill` files {link-pr}/6983[#6983]
+* Move `BuildFileCls` and `RootModule.Info` out of codegen to instead be instantiated reflectively {link-pr}/6985[#6985]
+* Create `android-sources.jar` to improve IDE highlighting in Android projects {link-pr}/6957[#6957]
+
+
 [#1-1-5]
 === 1.1.5
 :version: 1.1.5
