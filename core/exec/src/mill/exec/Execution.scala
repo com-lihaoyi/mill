@@ -386,8 +386,8 @@ case class Execution(
 
         // Whole-batch Write rather than splitting Read/Write across phases:
         // splitting would let a peer rewrite an upstream `dest` between
-        // our Read-drain and Write-acquire, and would deadlock peers on
-        // `taskLock.Write` that our retained `LeaseTracker` Reads block.
+        // our Read-drain and Write-acquire, racing our retained-Read
+        // invariants and corrupting downstream consumers.
         val haveExclusive = leafExclusiveCommands.nonEmpty
         val outerKind =
           if (haveExclusive) LauncherLocking.LockKind.Write
@@ -495,59 +495,41 @@ object Execution {
       indexToTerminal: Array[Task[?]],
       interGroupDeps: Map[Task[?], Seq[Task[?]]]
   ) {
-    class State {
-      val pending = new AtomicInteger(0)
+    class State(initialPending: Int) {
+      val pending = new AtomicInteger(initialPending)
       val completed = new AtomicBoolean(false)
       val leases = new java.util.concurrent.ConcurrentLinkedQueue[LauncherLocking.Lease]()
     }
 
     val states = new ConcurrentHashMap[Task[?], State]()
 
-    private val terminalSet = indexToTerminal.toSet
-    private val directUpstreams: Map[Task[?], Seq[Task[?]]] =
-      interGroupDeps.view
-        .mapValues(_.filter(terminalSet.contains))
-        .toMap
-
-    private val directDownstreams: Map[Task[?], Seq[Task[?]]] =
-      directUpstreams.iterator
-        .flatMap { case (downstream, upstreams) => upstreams.iterator.map(_ -> downstream) }
-        .toVector
-        .groupMap(_._1)(_._2)
-
-    for (t <- indexToTerminal) states.put(t, new State)
-    for (t <- indexToTerminal) {
-      val s = states.get(t)
-      if (s != null) s.pending.set(directDownstreams.getOrElse(t, Nil).size)
+    locally {
+      val pendingCounts = mutable.Map.empty[Task[?], Int].withDefaultValue(0)
+      for ((_, upstreams) <- interGroupDeps; up <- upstreams)
+        pendingCounts(up) = pendingCounts(up) + 1
+      for (t <- indexToTerminal) states.put(t, new State(pendingCounts.getOrElse(t, 0)))
     }
 
-    def closeQuietly(lease: LauncherLocking.Lease): Unit =
+    private def closeQuietly(lease: LauncherLocking.Lease): Unit =
       try lease.close()
       catch { case _: Throwable => () }
 
-    def releaseLeasesFor(task: Task[?]): Unit = {
-      val s = states.remove(task)
-      if (s != null) {
-        var lease = s.leases.poll()
-        while (lease != null) {
-          closeQuietly(lease)
-          lease = s.leases.poll()
-        }
+    private def drainLeases(s: State): Unit = {
+      var lease = s.leases.poll()
+      while (lease != null) {
+        closeQuietly(lease)
+        lease = s.leases.poll()
       }
     }
 
-    def releaseIfDrained(start: Task[?]): Unit = {
+    private def releaseIfDrained(start: Task[?]): Unit = {
       val queue = mutable.Queue(start)
       while (queue.nonEmpty) {
         val task = queue.dequeue()
         val s = states.get(task)
         if (s != null && s.completed.get() && s.pending.get() == 0 && states.remove(task, s)) {
-          var lease = s.leases.poll()
-          while (lease != null) {
-            closeQuietly(lease)
-            lease = s.leases.poll()
-          }
-          for (upstream <- directUpstreams.getOrElse(task, Nil)) {
+          drainLeases(s)
+          for (upstream <- interGroupDeps.getOrElse(task, Nil)) {
             val upstreamState = states.get(upstream)
             if (upstreamState != null) {
               upstreamState.pending.decrementAndGet()
@@ -574,7 +556,10 @@ object Execution {
 
     def drain(): Unit = {
       import scala.jdk.CollectionConverters.*
-      states.keys().asScala.toList.foreach(releaseLeasesFor)
+      states.keys().asScala.toList.foreach { task =>
+        val s = states.remove(task)
+        if (s != null) drainLeases(s)
+      }
     }
   }
 

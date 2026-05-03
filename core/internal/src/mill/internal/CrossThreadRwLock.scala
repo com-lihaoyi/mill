@@ -102,7 +102,7 @@ class CrossThreadRwLock(label: String) {
    * blocker otherwise.
    *
    * Crucially: a failed try does NOT increment [[waitingWriters]], so the
-   * caller's subsequent Read attempts won't be blocked by writer-priority
+   * caller's subsequent Read attempts won't trip writer-priority
    * (`canAcquireRead = !writerActive && waitingWriters == 0`). This is
    * what makes the retryable read-then-write pattern in
    * [[LockUpgrade.readThenWrite]] work: a launcher can fail to grab Write,
@@ -124,9 +124,8 @@ class CrossThreadRwLock(label: String) {
    * timeout fires. Used by [[LockUpgrade.readThenWrite]]'s retry loop to
    * sleep efficiently between try-Write attempts: the lock already
    * notifies on every state change, so the retry wakes exactly when a
-   * re-probe might newly succeed. The timeout is defensive against
-   * missed notifications and against waiting on locks held by
-   * blocking-acquire (non-polled) writers that yield to nobody.
+   * re-probe might newly succeed. The timeout bounds the worst-case
+   * sleep and protects against missed notifications.
    */
   def awaitStateChange(timeoutMs: Long): Unit = monitor.synchronized {
     monitor.wait(timeoutMs)

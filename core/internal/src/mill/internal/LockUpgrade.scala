@@ -41,24 +41,25 @@ object LockUpgrade {
    *  2. If [[Decision.Escalate]], release Read and try Write
    *     non-blocking (`tryAcquireWrite`). If that succeeds, run
    *     `writeBody` under the Write lease and return.
-   *  3. If `tryAcquireWrite` returns [[scala.None]] (lock contended),
+   *  3. If `tryAcquireWrite` returns [[scala.Left]] (lock contended),
    *     `awaitStateChange` for a bounded interval, then loop back to
    *     step 1.
    *
-   * The non-blocking try-Write avoids the deadlock where launcher B
-   * queues for Write behind launcher A, and A — after publishing —
-   * downgrades to a long-held Read that B's queued Write would
-   * otherwise block on indefinitely. By re-probing under Read on every
-   * retry, B sees A's published frame and Completes via the read path
-   * instead of needing Write at all. The bounded `awaitStateChange`
-   * (rather than busy polling) keeps the retry cheap: the lock
-   * `notifyAll`s on every close/downgrade, so retries fire exactly
+   * Non-blocking try-Write turns long bounded waits into fast cache-hit
+   * re-probes: when launcher A is publishing under Write and B wants to
+   * compute the same task, B's blocking-Write would wait for A's
+   * publish AND for A's downgraded Read (retained for A's downstreams).
+   * With try-Write + retry, B fails its Write attempt, then re-acquires
+   * Read (which shares with A's Read), and `readBody` sees the
+   * just-published cache and returns [[Decision.Complete]] — no Write
+   * needed. The bounded `awaitStateChange` keeps the retry cheap: the
+   * lock `notifyAll`s on every close/downgrade, so retries fire exactly
    * when a re-probe might newly succeed.
    *
    * `tryAcquireWrite` MUST NOT register the caller as a queued writer
    * (i.e., must not increment any waiter counter that gates Read
-   * acquisition); otherwise the caller's own next Read attempt would be
-   * blocked by writer-priority and the deadlock would re-emerge.
+   * acquisition); otherwise the caller's own next Read attempt would
+   * trip writer-priority and the retry loop would stall.
    */
   def readThenWrite[T](
       acquireRead: => LauncherLocking.Lease,
