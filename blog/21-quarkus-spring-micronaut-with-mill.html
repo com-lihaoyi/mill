@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Spring Boot, Micronaut and Quarkus with Mill :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/blog/21-quarkus-spring-micronaut-with-mill.html">
+    <link rel="prev" href="index.html">
+    <link rel="next" href="20-making-scala-scripting-actually-good.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
+  <style>
+  /* auto-hyphenation is super ugly */
+  *{
+    hyphens: manual !important;
+  }
+
+  /* Reduce font size from 17px to something reasonable */
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
+  }
+  .version-warning-banner {
+    background: #fff3cd;
+    border-bottom: 1px solid #f5c06a;
+    color: #6d3f00;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    padding: 0.6rem 1rem;
+    text-align: center;
+  }
+  .version-warning-banner a {
+    color: #6d3f00;
+    font-weight: 600;
+    text-decoration: underline;
+  }
+  </style>
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+
+    const warningTemplate = document.getElementById('version-warning-banner-template');
+    const articleDoc = document.querySelector('article.doc');
+    if (warningTemplate && articleDoc && warningTemplate.content.firstElementChild) {
+      articleDoc.prepend(warningTemplate.content.firstElementChild.cloneNode(true));
+    }
+  });
+  </script>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs">
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="blog" data-version="">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="index.html"><em>The Mill Build Engineering Blog</em></a>
+  </li>
+
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="21-quarkus-spring-micronaut-with-mill.html">Spring Boot, Micronaut and Quarkus with Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="20-making-scala-scripting-actually-good.html">Making Scala Scripting Actually Good with Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="19-scripting-on-the-jvm.html">Scripting on the JVM with Java, Scala, and Kotlin</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="18-how-to-publish-to-maven-central-easily-with-mill.html">How To Publish to Maven Central Easily with Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="17-simpler-jvm-mill-110.html">Simpler JVM Project Setup with Mill 1.1.0</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="16-zero-setup.html">Zero-Setup Java Build Tooling via Mill Bootstrap Scripts</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="15-android-build-flow.html">Mill as an Alternative Android Build Tool</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="14-bash-zsh-completion.html">Writing Your Own Simple Tab-Completions for Bash and Zsh</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="13-mill-build-tool-v1-0-0.html">Mill Build Tool v1.0.0 Release Highlights</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="12-direct-style-build-tool.html">Mill as a Direct Style Build Tool</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="11-jvm-test-parallelism.html">Strategies for Efficiently Parallelizing JVM Test Suites</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="10-bytecode-callgraph-analysis.html">Invalidating build caches using JVM bytecode callgraph analysis</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="9-mill-faster-assembly-jars.html">Fast Incremental JVM Assembly Jar Creation with Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="8-what-is-a-build-tool.html">What does a Build Tool do?</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="7-graal-native-executables.html">How to Compile Java into Native Binaries with Mill and Graal</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="6-garbage-collector-perf.html">Understanding JVM Garbage Collector Performance</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="5-executable-jars.html">How JVM Executable Assembly Jars Work</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="4-flaky-tests.html">How To Manage Flaky Tests in your CI Workflows</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="3-selective-testing.html">Faster CI with Selective Testing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="2-monorepo-build-tool.html">Why Use a Monorepo Build Tool?</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="1-java-compile.html">How Fast Does Java Compile?</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">The Mill Build Engineering Blog</span>
+    <span class="version"></span>
+  </div>
+  <ul class="components">
+    <li class="component">
+      <div class="title"><a href="../mill/index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mill/main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../mill/index.html">1.1.5</a>
+        </li>
+        <li class="version">
+          <a href="../mill/1.0.x/index.html">1.0.6</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.12.x/index.html">0.12.17</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.11.x/index.html">0.11.13</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component is-current">
+      <div class="title"><a href="index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
+<button class="nav-toggle"></button>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Spring Boot, Micronaut and Quarkus with Mill</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p><em>Vasilis Nicolaou, May 2026</em></p>
+</div>
+<div class="paragraph">
+<p>In this post, we explore how the Mill build tool supports these frameworks, providing a faster and smoother developer experience than traditional build tools like Maven and Gradle.</p>
+</div>
+<div class="paragraph">
+<p>Spring Boot, Micronaut and Quarkus each expect different things from a build tool. Spring Boot layers AOT and native support on top of a conventional JVM build, Micronaut adds an explicit AOT pipeline and Quarkus takes over much more of packaging and dependency modelling.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_why_mill"><a class="anchor" href="#_why_mill"></a>Why Mill?</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill keeps build configuration compact and explicit, while still allowing framework-specific behaviour where needed.</p>
+</div>
+<div class="paragraph">
+<p>For example, a small Spring Boot project in Mill can be expressed directly in YAML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [spring.boot.SpringBootModule, MavenModule]
+springBootPlatformVersion: 3.5.7
+
+mvnDeps:
+- org.springframework.boot:spring-boot-starter-web
+
+object test:
+  extends: [SpringBootTestsModule, MavenTests, TestModule.Junit5]
+  mvnDeps:
+  - org.springframework.boot:spring-boot-starter-test</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Compared to Maven:</p>
+</div>
+<div class="paragraph">
+<p>The Maven configuration below was created with the help of <a href="https://start.spring.io/">start.spring.io</a></p>
+</div>
+<div class="listingblock">
+<div class="title">pom.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
+  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+  &lt;parent&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;
+    &lt;version&gt;4.0.5&lt;/version&gt;
+    &lt;relativePath/&gt;
+  &lt;/parent&gt;
+  &lt;groupId&gt;com.example&lt;/groupId&gt;
+  &lt;artifactId&gt;demo&lt;/artifactId&gt;
+  &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;
+  &lt;name/&gt;
+  &lt;description/&gt;
+  &lt;url/&gt;
+  &lt;licenses&gt;
+    &lt;license/&gt;
+  &lt;/licenses&gt;
+  &lt;developers&gt;
+    &lt;developer/&gt;
+  &lt;/developers&gt;
+  &lt;scm&gt;
+    &lt;connection/&gt;
+    &lt;developerConnection/&gt;
+    &lt;tag/&gt;
+    &lt;url/&gt;
+  &lt;/scm&gt;
+  &lt;properties&gt;
+    &lt;java.version&gt;17&lt;/java.version&gt;
+  &lt;/properties&gt;
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+      &lt;artifactId&gt;spring-boot-starter&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+      &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+      &lt;scope&gt;test&lt;/scope&gt;
+    &lt;/dependency&gt;
+  &lt;/dependencies&gt;
+
+  &lt;build&gt;
+    &lt;plugins&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+      &lt;/plugin&gt;
+    &lt;/plugins&gt;
+  &lt;/build&gt;
+&lt;/project&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The Mill version directly expresses what the project needs, while the Maven version requires additional structure and plugin configuration.</p>
+</div>
+<div class="sect2">
+<h3 id="_build_performance"><a class="anchor" href="#_build_performance"></a>Build Performance</h3>
+<div class="paragraph">
+<p>This section explains the performance argument for Mill: even when framework support becomes more sophisticated, the day-to-day edit-build-test loop still benefits from Mill&#8217;s daemon, caching and parallel execution.</p>
+</div>
+<div class="paragraph">
+<p>To make this more concrete, a few ad-hoc measurements were executed on a minimal Spring Boot project generated from <a href="https://start.spring.io/">start.spring.io</a>. The project was intentionally simple, with a single Java source file.</p>
+</div>
+<div class="paragraph">
+<p>Wall-clock times were collected over ten runs per tool, and the reported values represent the average of those runs, for both clean builds (<code>clean</code> + build) and incremental builds (source modification without cleaning).</p>
+</div>
+<div class="paragraph">
+<p>The compile commands used were:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Mill:
+<code>./mill compile</code>, <code>./mill test.compile</code>, <code>./mill native.nativeImage</code></p>
+</li>
+<li>
+<p>Maven:
+<code>./mvnw compile</code>, <code>./mvnw test-compile</code>, <code>./mvnw -Pnative native:compile</code></p>
+</li>
+<li>
+<p>Gradle:
+<code>./gradlew classes</code>, <code>./gradlew testClasses</code>, <code>./gradlew nativeCompile</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For the Gradle native-image measurement, the <a href="https://graalvm.github.io/native-build-tools/latest/end-to-end-gradle-guide.html">GraalVM Native Build Tools Gradle plugin</a> was used.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Benchmark</th>
+<th class="tableblock halign-center valign-top">Mill</th>
+<th class="tableblock halign-center valign-top">Maven</th>
+<th class="tableblock halign-center valign-top">Gradle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-center valign-top" colspan="4"><p class="tableblock"><strong>Build Performance</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Clean Compile</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">0.35s ±   0.05s</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">1.47s ±   0.02s</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">0.45s ±   0.03s</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Incremental Compile</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">0.09s ±   0.02s</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">1.48s ±   0.03s</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">0.44s ±   0.02s</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Test Compile (Clean)</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">0.22s ±   0.04s</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">1.51s ±   0.03s</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">0.49s ±   0.03s</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Test Compile (Incremental)</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">0.12s ±   0.02s</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">1.17s ±   0.03s</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">0.45s ±   0.11s</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Test Execution</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">1.74s ±   0.07s</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">2.50s ±   0.02s</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">2.69s ±   0.07s</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top" colspan="4"><p class="tableblock"><strong>Native Image Build</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Native Image Build</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">51.79s ±   1.17s</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">69.51s ±   0.51s</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">68.01s ±   1.00s</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>This is not meant to be a rigorous benchmark, but rather a small sanity check on a starter project. What it does illustrate is that Mill can strongly eliminate the fixed overhead the other build systems include, and that shows up most clearly in the incremental (edit-compile-test) workflows.</p>
+</div>
+<div class="paragraph">
+<p>At the same time, these measurements come from a project with a single source file, so the relative results will likely scale differently for larger codebases. The exact numbers will also vary depending on machine, JDK setup and filesystem state.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_what_build_tools_need_to_support"><a class="anchor" href="#_what_build_tools_need_to_support"></a>What Build Tools Need to Support</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Supporting modern Java frameworks is more than adding dependencies and constructing classpaths. A polished developer experience depends on how the build tool handles:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Dependency resolution</p>
+</li>
+<li>
+<p>Build-time vs runtime behaviour</p>
+</li>
+<li>
+<p>Code generation and Ahead Of Time (AOT) processing</p>
+</li>
+<li>
+<p>Native image integration</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The rest of this article walks through these concerns for each framework and shows how Mill supports them.</p>
+</div>
+<div class="sect2">
+<h3 id="_high_level_comparison"><a class="anchor" href="#_high_level_comparison"></a>High-Level Comparison</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Framework</th>
+<th class="tableblock halign-left valign-top">Build-Time Behavior</th>
+<th class="tableblock halign-left valign-top">Native Support</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Spring Boot</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Optional AOT layered on top of JVM build</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supported via AOT + GraalVM</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Micronaut</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Optional AOT layered on top of JVM build</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supported via AOT + GraalVM</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Quarkus</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Build-time augmentation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Built-in bootstrapping</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_spring_boot_support_in_mill"><a class="anchor" href="#_spring_boot_support_in_mill"></a>Spring Boot Support in Mill</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Spring Boot is the most widely used Java framework. According to <a href="https://lp.jetbrains.com/the-state-of-java-2025/">JetBrains State of Java 2025</a>, Spring is used by a majority of Java developers (~65%), making it the most common starting point for Java applications.</p>
+</div>
+<div class="paragraph">
+<p>A Spring Boot application can be built, run and tested using standard JVM classpaths. AOT and native support are layered on top as additional steps rather than replacing the core build.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [spring.boot.SpringBootModule, MavenModule]
+springBootPlatformVersion: 3.5.7
+artifactName: spring-boot-native-demo
+
+mvnDeps:
+- org.springframework.boot:spring-boot-starter-web
+
+object prod:
+  extends: [SpringBootOptimisedBuildModule, MavenModule]
+
+object native:
+  extends: [MavenModule, NativeSpringBootBuildModule]
+  jvmVersion: graalvm-community:23.0.1
+  nativeImageOptions: !append
+  - -H:+UnlockExperimentalVMOptions
+
+object test:
+  extends: [SpringBootTestsModule, MavenTests, TestModule.Junit5]
+  mvnDeps:
+  - org.springframework.boot:spring-boot-starter-test</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_key_observations"><a class="anchor" href="#_key_observations"></a>Key Observations</h3>
+<div class="paragraph">
+<p>A Spring Boot build follows a familiar structure: compile sources, produce a JAR, optionally run AOT, then optionally build a native image.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>BOM-based dependency management:</strong> Spring Boot already organises most dependency versions behind its <a href="https://repo1.maven.org/maven2/org/springframework/boot/spring-boot-dependencies/">platform BOM</a>, and Mill injects that BOM directly via <code>SpringBootModule</code>. That keeps the user&#8217;s configuration small while still matching the versions Spring expects.</p>
+</li>
+<li>
+<p><strong>Optional AOT:</strong> <a href="https://docs.spring.io/spring-boot/gradle-plugin/aot.html">Spring Boot&#8217;s AOT support</a> is an extra build stage rather than the centre of the build. Mill produces an optimised build via the <code>SpringBootOptimisedBuildModule</code> which delegates the AOT step to <a href="https://github.com/spring-projects/spring-boot/blob/main/core/spring-boot/src/main/java/org/springframework/boot/SpringApplicationAotProcessor.java">Spring&#8217;s SpringApplicationAotProcessor</a>.</p>
+</li>
+<li>
+<p><strong>Runtime-oriented model:</strong> The application primarily runs from the JVM classpath, with AOT acting as an optimisation rather than a requirement.</p>
+</li>
+<li>
+<p><strong>Multi-stage native builds:</strong> Native images require first compiling the app, then generating AOT outputs and finally invoking GraalVM.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<center>
+<svg width="282px" height="398px"
+ viewBox="0.00 0.00 281.74 397.60" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 393.6)">
+<title>SpringBoot</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-393.6 277.74,-393.6 277.74,4 -4,4"/>
+<!-- Sources -->
+<g id="node1" class="node">
+<title>Sources</title>
+<polygon fill="none" stroke="black" points="127.19,-389.5 66.55,-389.5 66.55,-364.9 127.19,-364.9 127.19,-389.5"/>
+<text text-anchor="middle" x="96.87" y="-373" font-family="Times,serif" font-size="14.00">Sources</text>
+</g>
+<!-- Compile -->
+<g id="node2" class="node">
+<title>Compile</title>
+<polygon fill="none" stroke="black" points="169.09,-328.7 104.65,-328.7 104.65,-304.1 169.09,-304.1 169.09,-328.7"/>
+<text text-anchor="middle" x="136.87" y="-312.2" font-family="Times,serif" font-size="14.00">Compile</text>
+</g>
+<!-- Sources&#45;&gt;Compile -->
+<g id="edge1" class="edge">
+<title>Sources&#45;&gt;Compile</title>
+<path fill="none" stroke="black" d="M104.58,-364.86C109.95,-356.97 117.25,-346.25 123.54,-336.99"/>
+<polygon fill="black" stroke="black" points="126.45,-338.94 129.18,-328.7 120.66,-335 126.45,-338.94"/>
+</g>
+<!-- JAR -->
+<g id="node4" class="node">
+<title>JAR</title>
+<polygon fill="none" stroke="black" points="114.26,-267.9 73.48,-267.9 73.48,-243.3 114.26,-243.3 114.26,-267.9"/>
+<text text-anchor="middle" x="93.87" y="-251.4" font-family="Times,serif" font-size="14.00">JAR</text>
+</g>
+<!-- Compile&#45;&gt;JAR -->
+<g id="edge3" class="edge">
+<title>Compile&#45;&gt;JAR</title>
+<path fill="none" stroke="black" d="M128.58,-304.06C122.81,-296.17 114.97,-285.45 108.2,-276.19"/>
+<polygon fill="black" stroke="black" points="110.86,-273.91 102.14,-267.9 105.21,-278.04 110.86,-273.91"/>
+</g>
+<!-- Run classpath -->
+<g id="node5" class="node">
+<title>Run classpath</title>
+<polygon fill="none" stroke="black" points="227.02,-267.9 132.72,-267.9 132.72,-243.3 227.02,-243.3 227.02,-267.9"/>
+<text text-anchor="middle" x="179.87" y="-251.4" font-family="Times,serif" font-size="14.00">Run classpath</text>
+</g>
+<!-- Compile&#45;&gt;Run classpath -->
+<g id="edge4" class="edge">
+<title>Compile&#45;&gt;Run classpath</title>
+<path fill="none" stroke="black" d="M145.16,-304.06C150.93,-296.17 158.77,-285.45 165.55,-276.19"/>
+<polygon fill="black" stroke="black" points="168.53,-278.04 171.61,-267.9 162.88,-273.91 168.53,-278.04"/>
+</g>
+<!-- Libraries -->
+<g id="node3" class="node">
+<title>Libraries</title>
+<polygon fill="none" stroke="black" points="210.9,-389.5 144.84,-389.5 144.84,-364.9 210.9,-364.9 210.9,-389.5"/>
+<text text-anchor="middle" x="177.87" y="-373" font-family="Times,serif" font-size="14.00">Libraries</text>
+</g>
+<!-- Libraries&#45;&gt;Compile -->
+<g id="edge2" class="edge">
+<title>Libraries&#45;&gt;Compile</title>
+<path fill="none" stroke="black" d="M169.97,-364.86C164.46,-356.97 156.99,-346.25 150.53,-336.99"/>
+<polygon fill="black" stroke="black" points="153.34,-334.9 144.75,-328.7 147.6,-338.91 153.34,-334.9"/>
+</g>
+<!-- AOT (SpringBootModule) -->
+<g id="node6" class="node">
+<title>AOT (SpringBootModule)</title>
+<polygon fill="none" stroke="black" points="219.57,-207.1 54.17,-207.1 54.17,-182.5 219.57,-182.5 219.57,-207.1"/>
+<text text-anchor="middle" x="136.87" y="-190.6" font-family="Times,serif" font-size="14.00">AOT (SpringBootModule)</text>
+</g>
+<!-- JAR&#45;&gt;AOT (SpringBootModule) -->
+<g id="edge5" class="edge">
+<title>JAR&#45;&gt;AOT (SpringBootModule)</title>
+<path fill="none" stroke="black" d="M102.16,-243.26C107.93,-235.37 115.77,-224.65 122.55,-215.39"/>
+<polygon fill="black" stroke="black" points="125.53,-217.24 128.61,-207.1 119.88,-213.11 125.53,-217.24"/>
+</g>
+<!-- Run classpath&#45;&gt;AOT (SpringBootModule) -->
+<g id="edge6" class="edge">
+<title>Run classpath&#45;&gt;AOT (SpringBootModule)</title>
+<path fill="none" stroke="black" d="M171.58,-243.26C165.81,-235.37 157.97,-224.65 151.2,-215.39"/>
+<polygon fill="black" stroke="black" points="153.86,-213.11 145.14,-207.1 148.21,-217.24 153.86,-213.11"/>
+</g>
+<!-- Optimised JAR -->
+<g id="node7" class="node">
+<title>Optimised JAR</title>
+<polygon fill="none" stroke="black" points="188.09,-146.3 85.65,-146.3 85.65,-121.7 188.09,-121.7 188.09,-146.3"/>
+<text text-anchor="middle" x="136.87" y="-129.8" font-family="Times,serif" font-size="14.00">Optimised JAR</text>
+</g>
+<!-- AOT (SpringBootModule)&#45;&gt;Optimised JAR -->
+<g id="edge7" class="edge">
+<title>AOT (SpringBootModule)&#45;&gt;Optimised JAR</title>
+<path fill="none" stroke="black" d="M136.87,-182.46C136.87,-175.06 136.87,-165.16 136.87,-156.32"/>
+<polygon fill="black" stroke="black" points="140.37,-156.3 136.87,-146.3 133.37,-156.3 140.37,-156.3"/>
+</g>
+<!-- GraalVM Native Build (NativeImageModule) -->
+<g id="node8" class="node">
+<title>GraalVM Native Build (NativeImageModule)</title>
+<polygon fill="none" stroke="black" points="273.61,-85.5 0.13,-85.5 0.13,-60.9 273.61,-60.9 273.61,-85.5"/>
+<text text-anchor="middle" x="136.87" y="-69" font-family="Times,serif" font-size="14.00">GraalVM Native Build (NativeImageModule)</text>
+</g>
+<!-- Optimised JAR&#45;&gt;GraalVM Native Build (NativeImageModule) -->
+<g id="edge8" class="edge">
+<title>Optimised JAR&#45;&gt;GraalVM Native Build (NativeImageModule)</title>
+<path fill="none" stroke="black" d="M136.87,-121.66C136.87,-114.26 136.87,-104.36 136.87,-95.52"/>
+<polygon fill="black" stroke="black" points="140.37,-95.5 136.87,-85.5 133.37,-95.5 140.37,-95.5"/>
+</g>
+<!-- native binary -->
+<g id="node9" class="node">
+<title>native binary</title>
+<polygon fill="none" stroke="black" points="181.85,-24.7 91.89,-24.7 91.89,-0.1 181.85,-0.1 181.85,-24.7"/>
+<text text-anchor="middle" x="136.87" y="-8.2" font-family="Times,serif" font-size="14.00">native binary</text>
+</g>
+<!-- GraalVM Native Build (NativeImageModule)&#45;&gt;native binary -->
+<g id="edge9" class="edge">
+<title>GraalVM Native Build (NativeImageModule)&#45;&gt;native binary</title>
+<path fill="none" stroke="black" d="M136.87,-60.86C136.87,-53.46 136.87,-43.56 136.87,-34.72"/>
+<polygon fill="black" stroke="black" points="140.37,-34.7 136.87,-24.7 133.37,-34.7 140.37,-34.7"/>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_micronaut_support_in_mill"><a class="anchor" href="#_micronaut_support_in_mill"></a>Micronaut Support in Mill</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Micronaut is similar to Spring Boot at a high level, but moves more work into build-time through its AOT pipeline.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [MavenModule, mill.javalib.micronaut.MicronautNativeAotModule]
+micronautPackage: hello.world
+bomMvnDeps:
+- io.micronaut.platform:micronaut-platform:4.10.3
+
+mvnDeps:
+- io.micronaut:micronaut-http-client
+- io.micronaut.serde:micronaut-serde-jackson
+
+jvmVersion: graalvm-community:21.0.2
+finalMainClass: hello.world.Application
+
+annotationProcessorsMvnDeps:
+- io.micronaut:micronaut-http-validation
+- io.micronaut.serde:micronaut-serde-processor
+
+annotationProcessorsJavacOptions: !append
+- -Amicronaut.processing.incremental=true
+- -Amicronaut.processing.annotations=hello.world.*
+
+javacOptions: !append
+- -parameters
+
+compileMvnDeps:
+- io.micronaut:micronaut-http-client
+
+runMvnDeps:
+- io.micronaut:micronaut-http-server-netty
+- ch.qos.logback:logback-classic</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Unlike Spring Boot, Micronaut’s AOT tooling is an external CLI that must be resolved and invoked by the build tool.</p>
+</div>
+<div class="sect2">
+<h3 id="_key_observations_2"><a class="anchor" href="#_key_observations_2"></a>Key Observations</h3>
+<div class="paragraph">
+<p>Micronaut makes AOT a more explicit part of the build process.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Compile-time dependency injection:</strong> Annotation processing generates code ahead of time, reducing runtime reflection.</p>
+</li>
+<li>
+<p><strong>External AOT CLI:</strong> The build must resolve and run <a href="https://micronaut-projects.github.io/micronaut-aot/latest/guide/configurationreference.html">Micronaut’s AOT tool explicitly</a>.</p>
+</li>
+<li>
+<p><strong>Native-first workflow:</strong> AOT output feeds directly into GraalVM native image generation.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<center>
+<svg width="366px" height="398px"
+ viewBox="0.00 0.00 366.30 397.60" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 393.6)">
+<title>MicronautNative</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-393.6 362.3,-393.6 362.3,4 -4,4"/>
+<!-- Sources -->
+<g id="node1" class="node">
+<title>Sources</title>
+<polygon fill="none" stroke="black" points="91.13,-389.5 30.5,-389.5 30.5,-364.9 91.13,-364.9 91.13,-389.5"/>
+<text text-anchor="middle" x="60.81" y="-373" font-family="Times,serif" font-size="14.00">Sources</text>
+</g>
+<!-- Compile -->
+<g id="node2" class="node">
+<title>Compile</title>
+<polygon fill="none" stroke="black" points="133.04,-328.7 68.59,-328.7 68.59,-304.1 133.04,-304.1 133.04,-328.7"/>
+<text text-anchor="middle" x="100.81" y="-312.2" font-family="Times,serif" font-size="14.00">Compile</text>
+</g>
+<!-- Sources&#45;&gt;Compile -->
+<g id="edge1" class="edge">
+<title>Sources&#45;&gt;Compile</title>
+<path fill="none" stroke="black" d="M68.53,-364.86C73.89,-356.97 81.19,-346.25 87.49,-336.99"/>
+<polygon fill="black" stroke="black" points="90.4,-338.94 93.13,-328.7 84.61,-335 90.4,-338.94"/>
+</g>
+<!-- JAR -->
+<g id="node4" class="node">
+<title>JAR</title>
+<polygon fill="none" stroke="black" points="78.2,-267.9 37.43,-267.9 37.43,-243.3 78.2,-243.3 78.2,-267.9"/>
+<text text-anchor="middle" x="57.81" y="-251.4" font-family="Times,serif" font-size="14.00">JAR</text>
+</g>
+<!-- Compile&#45;&gt;JAR -->
+<g id="edge3" class="edge">
+<title>Compile&#45;&gt;JAR</title>
+<path fill="none" stroke="black" d="M92.52,-304.06C86.75,-296.17 78.91,-285.45 72.14,-276.19"/>
+<polygon fill="black" stroke="black" points="74.81,-273.91 66.08,-267.9 69.16,-278.04 74.81,-273.91"/>
+</g>
+<!-- Run classpath -->
+<g id="node5" class="node">
+<title>Run classpath</title>
+<polygon fill="none" stroke="black" points="190.97,-267.9 96.66,-267.9 96.66,-243.3 190.97,-243.3 190.97,-267.9"/>
+<text text-anchor="middle" x="143.81" y="-251.4" font-family="Times,serif" font-size="14.00">Run classpath</text>
+</g>
+<!-- Compile&#45;&gt;Run classpath -->
+<g id="edge4" class="edge">
+<title>Compile&#45;&gt;Run classpath</title>
+<path fill="none" stroke="black" d="M109.11,-304.06C114.88,-296.17 122.72,-285.45 129.49,-276.19"/>
+<polygon fill="black" stroke="black" points="132.47,-278.04 135.55,-267.9 126.82,-273.91 132.47,-278.04"/>
+</g>
+<!-- Libraries -->
+<g id="node3" class="node">
+<title>Libraries</title>
+<polygon fill="none" stroke="black" points="174.85,-389.5 108.78,-389.5 108.78,-364.9 174.85,-364.9 174.85,-389.5"/>
+<text text-anchor="middle" x="141.81" y="-373" font-family="Times,serif" font-size="14.00">Libraries</text>
+</g>
+<!-- Libraries&#45;&gt;Compile -->
+<g id="edge2" class="edge">
+<title>Libraries&#45;&gt;Compile</title>
+<path fill="none" stroke="black" d="M133.91,-364.86C128.41,-356.97 120.93,-346.25 114.47,-336.99"/>
+<polygon fill="black" stroke="black" points="117.29,-334.9 108.7,-328.7 111.54,-338.91 117.29,-334.9"/>
+</g>
+<!-- AOT (MicronautNativeAotModule) -->
+<g id="node6" class="node">
+<title>AOT (MicronautNativeAotModule)</title>
+<polygon fill="none" stroke="black" points="252.58,-207.1 35.05,-207.1 35.05,-182.5 252.58,-182.5 252.58,-207.1"/>
+<text text-anchor="middle" x="143.81" y="-190.6" font-family="Times,serif" font-size="14.00">AOT (MicronautNativeAotModule)</text>
+</g>
+<!-- JAR&#45;&gt;AOT (MicronautNativeAotModule) -->
+<g id="edge5" class="edge">
+<title>JAR&#45;&gt;AOT (MicronautNativeAotModule)</title>
+<path fill="none" stroke="black" d="M74.4,-243.26C87.01,-234.64 104.57,-222.63 118.87,-212.85"/>
+<polygon fill="black" stroke="black" points="121,-215.64 127.28,-207.1 117.05,-209.86 121,-215.64"/>
+</g>
+<!-- Run classpath&#45;&gt;AOT (MicronautNativeAotModule) -->
+<g id="edge6" class="edge">
+<title>Run classpath&#45;&gt;AOT (MicronautNativeAotModule)</title>
+<path fill="none" stroke="black" d="M143.81,-243.26C143.81,-235.86 143.81,-225.96 143.81,-217.12"/>
+<polygon fill="black" stroke="black" points="147.31,-217.1 143.81,-207.1 140.31,-217.1 147.31,-217.1"/>
+</g>
+<!-- Native Image Options -->
+<g id="node8" class="node">
+<title>Native Image Options</title>
+<polygon fill="none" stroke="black" points="139.45,-146.3 0.18,-146.3 0.18,-121.7 139.45,-121.7 139.45,-146.3"/>
+<text text-anchor="middle" x="69.81" y="-129.8" font-family="Times,serif" font-size="14.00">Native Image Options</text>
+</g>
+<!-- AOT (MicronautNativeAotModule)&#45;&gt;Native Image Options -->
+<g id="edge8" class="edge">
+<title>AOT (MicronautNativeAotModule)&#45;&gt;Native Image Options</title>
+<path fill="none" stroke="black" d="M129.55,-182.46C118.9,-174 104.15,-162.29 91.98,-152.61"/>
+<polygon fill="black" stroke="black" points="94.05,-149.78 84.04,-146.3 89.69,-155.26 94.05,-149.78"/>
+</g>
+<!-- Optimised Classes -->
+<g id="node9" class="node">
+<title>Optimised Classes</title>
+<polygon fill="none" stroke="black" points="277.63,-146.3 158,-146.3 158,-121.7 277.63,-121.7 277.63,-146.3"/>
+<text text-anchor="middle" x="217.81" y="-129.8" font-family="Times,serif" font-size="14.00">Optimised Classes</text>
+</g>
+<!-- AOT (MicronautNativeAotModule)&#45;&gt;Optimised Classes -->
+<g id="edge9" class="edge">
+<title>AOT (MicronautNativeAotModule)&#45;&gt;Optimised Classes</title>
+<path fill="none" stroke="black" d="M158.08,-182.46C168.73,-174 183.48,-162.29 195.65,-152.61"/>
+<polygon fill="black" stroke="black" points="197.94,-155.26 203.59,-146.3 193.58,-149.78 197.94,-155.26"/>
+</g>
+<!-- Micronaut AOT Config -->
+<g id="node7" class="node">
+<title>Micronaut AOT Config</title>
+<polygon fill="none" stroke="black" points="358.28,-267.9 209.35,-267.9 209.35,-243.3 358.28,-243.3 358.28,-267.9"/>
+<text text-anchor="middle" x="283.81" y="-251.4" font-family="Times,serif" font-size="14.00">Micronaut AOT Config</text>
+</g>
+<!-- Micronaut AOT Config&#45;&gt;AOT (MicronautNativeAotModule) -->
+<g id="edge7" class="edge">
+<title>Micronaut AOT Config&#45;&gt;AOT (MicronautNativeAotModule)</title>
+<path fill="none" stroke="black" d="M256.82,-243.26C235.03,-234.11 204.17,-221.15 180.2,-211.08"/>
+<polygon fill="black" stroke="black" points="181.3,-207.75 170.73,-207.1 178.59,-214.2 181.3,-207.75"/>
+</g>
+<!-- GraalVM Native Build (NativeImageModule) -->
+<g id="node10" class="node">
+<title>GraalVM Native Build (NativeImageModule)</title>
+<polygon fill="none" stroke="black" points="280.56,-85.5 7.07,-85.5 7.07,-60.9 280.56,-60.9 280.56,-85.5"/>
+<text text-anchor="middle" x="143.81" y="-69" font-family="Times,serif" font-size="14.00">GraalVM Native Build (NativeImageModule)</text>
+</g>
+<!-- Native Image Options&#45;&gt;GraalVM Native Build (NativeImageModule) -->
+<g id="edge10" class="edge">
+<title>Native Image Options&#45;&gt;GraalVM Native Build (NativeImageModule)</title>
+<path fill="none" stroke="black" d="M84.08,-121.66C94.73,-113.2 109.48,-101.49 121.65,-91.81"/>
+<polygon fill="black" stroke="black" points="123.94,-94.46 129.59,-85.5 119.58,-88.98 123.94,-94.46"/>
+</g>
+<!-- Optimised Classes&#45;&gt;GraalVM Native Build (NativeImageModule) -->
+<g id="edge11" class="edge">
+<title>Optimised Classes&#45;&gt;GraalVM Native Build (NativeImageModule)</title>
+<path fill="none" stroke="black" d="M203.55,-121.66C192.9,-113.2 178.15,-101.49 165.98,-91.81"/>
+<polygon fill="black" stroke="black" points="168.05,-88.98 158.04,-85.5 163.69,-94.46 168.05,-88.98"/>
+</g>
+<!-- native binary -->
+<g id="node11" class="node">
+<title>native binary</title>
+<polygon fill="none" stroke="black" points="188.79,-24.7 98.84,-24.7 98.84,-0.1 188.79,-0.1 188.79,-24.7"/>
+<text text-anchor="middle" x="143.81" y="-8.2" font-family="Times,serif" font-size="14.00">native binary</text>
+</g>
+<!-- GraalVM Native Build (NativeImageModule)&#45;&gt;native binary -->
+<g id="edge12" class="edge">
+<title>GraalVM Native Build (NativeImageModule)&#45;&gt;native binary</title>
+<path fill="none" stroke="black" d="M143.81,-60.86C143.81,-53.46 143.81,-43.56 143.81,-34.72"/>
+<polygon fill="black" stroke="black" points="147.31,-34.7 143.81,-24.7 140.31,-34.7 147.31,-34.7"/>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+<div class="paragraph">
+<p>Micronaut fits naturally into Mill’s model, but requires explicit handling of the AOT toolchain.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_quarkus_support_in_mill"><a class="anchor" href="#_quarkus_support_in_mill"></a>Quarkus Support in Mill</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Quarkus is fundamentally different from both Spring Boot and Micronaut.</p>
+</div>
+<div class="paragraph">
+<p>Instead of layering build steps on top of a JVM model, Quarkus requires the build tool to construct a full application model, which it then uses to perform build-time augmentation and packaging.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.javalib.quarkus.QuarkusModule, MavenModule]
+jvmVersion: graalvm-community:23.0.1
+quarkusPlatformVersion: 3.31.3
+artifactGroupId: com.lihaoyi.example
+artifactId: 6-quarkus-getting-started
+artifactVersion: 0.0.1-SNAPSHOT
+
+mvnDeps:
+  - io.quarkus:quarkus-arc
+  - io.quarkus:quarkus-rest
+
+object test:
+  extends: [ MavenTests, QuarkusJunit ]
+  mvnDeps:
+    - io.rest-assured:rest-assured
+
+object `native-test`:
+  extends: [MavenTests, QuarkusJunit, QuarkusNativeTest]
+  moduleDeps: !append
+    - test</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_key_observations_3"><a class="anchor" href="#_key_observations_3"></a>Key Observations</h3>
+<div class="paragraph">
+<p>Quarkus requires deeper integration with the build tool.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Build-time augmentation:</strong> Quarkus performs transformations during build time, not just at runtime.</p>
+</li>
+<li>
+<p><strong>Application model:</strong> The build tool must construct a model describing sources, dependencies and metadata before Quarkus can run.</p>
+</li>
+<li>
+<p><strong>Split dependencies:</strong> Runtime and deployment dependencies are treated differently and must be resolved separately.</p>
+</li>
+<li>
+<p><strong>Framework-controlled packaging:</strong> Quarkus Bootstrap takes over the build process once the application model is provided.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<center>
+<svg width="421px" height="337px"
+ viewBox="0.00 0.00 420.96 336.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 332.8)">
+<title>Quarkus</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-332.8 416.96,-332.8 416.96,4 -4,4"/>
+<!-- Sources -->
+<g id="node1" class="node">
+<title>Sources</title>
+<polygon fill="none" stroke="black" points="60.48,-207.1 -0.16,-207.1 -0.16,-182.5 60.48,-182.5 60.48,-207.1"/>
+<text text-anchor="middle" x="30.16" y="-190.6" font-family="Times,serif" font-size="14.00">Sources</text>
+</g>
+<!-- Application Model -->
+<g id="node2" class="node">
+<title>Application Model</title>
+<polygon fill="none" stroke="black" points="240.31,-146.3 118.01,-146.3 118.01,-121.7 240.31,-121.7 240.31,-146.3"/>
+<text text-anchor="middle" x="179.16" y="-129.8" font-family="Times,serif" font-size="14.00">Application Model</text>
+</g>
+<!-- Sources&#45;&gt;Application Model -->
+<g id="edge1" class="edge">
+<title>Sources&#45;&gt;Application Model</title>
+<path fill="none" stroke="black" d="M58.89,-182.46C82.28,-173.23 115.51,-160.12 141.11,-150.01"/>
+<polygon fill="black" stroke="black" points="142.5,-153.23 150.52,-146.3 139.93,-146.72 142.5,-153.23"/>
+</g>
+<!-- Quarkus Bootstrap -->
+<g id="node8" class="node">
+<title>Quarkus Bootstrap</title>
+<polygon fill="none" stroke="black" points="240.02,-85.5 118.29,-85.5 118.29,-60.9 240.02,-60.9 240.02,-85.5"/>
+<text text-anchor="middle" x="179.16" y="-69" font-family="Times,serif" font-size="14.00">Quarkus Bootstrap</text>
+</g>
+<!-- Application Model&#45;&gt;Quarkus Bootstrap -->
+<g id="edge9" class="edge">
+<title>Application Model&#45;&gt;Quarkus Bootstrap</title>
+<path fill="none" stroke="black" d="M179.16,-121.66C179.16,-114.26 179.16,-104.36 179.16,-95.52"/>
+<polygon fill="black" stroke="black" points="182.66,-95.5 179.16,-85.5 175.66,-95.5 182.66,-95.5"/>
+</g>
+<!-- Libraries -->
+<g id="node3" class="node">
+<title>Libraries</title>
+<polygon fill="none" stroke="black" points="268.19,-328.7 202.13,-328.7 202.13,-304.1 268.19,-304.1 268.19,-328.7"/>
+<text text-anchor="middle" x="235.16" y="-312.2" font-family="Times,serif" font-size="14.00">Libraries</text>
+</g>
+<!-- Quarkus Dependencies -->
+<g id="node4" class="node">
+<title>Quarkus Dependencies</title>
+<polygon fill="none" stroke="black" points="308.1,-267.9 162.22,-267.9 162.22,-243.3 308.1,-243.3 308.1,-267.9"/>
+<text text-anchor="middle" x="235.16" y="-251.4" font-family="Times,serif" font-size="14.00">Quarkus Dependencies</text>
+</g>
+<!-- Libraries&#45;&gt;Quarkus Dependencies -->
+<g id="edge2" class="edge">
+<title>Libraries&#45;&gt;Quarkus Dependencies</title>
+<path fill="none" stroke="black" d="M235.16,-304.06C235.16,-296.66 235.16,-286.76 235.16,-277.92"/>
+<polygon fill="black" stroke="black" points="238.66,-277.9 235.16,-267.9 231.66,-277.9 238.66,-277.9"/>
+</g>
+<!-- Compile Libs -->
+<g id="node5" class="node">
+<title>Compile Libs</title>
+<polygon fill="none" stroke="black" points="170.27,-207.1 78.05,-207.1 78.05,-182.5 170.27,-182.5 170.27,-207.1"/>
+<text text-anchor="middle" x="124.16" y="-190.6" font-family="Times,serif" font-size="14.00">Compile Libs</text>
+</g>
+<!-- Quarkus Dependencies&#45;&gt;Compile Libs -->
+<g id="edge3" class="edge">
+<title>Quarkus Dependencies&#45;&gt;Compile Libs</title>
+<path fill="none" stroke="black" d="M213.76,-243.26C196.94,-234.36 173.31,-221.84 154.54,-211.89"/>
+<polygon fill="black" stroke="black" points="155.97,-208.69 145.49,-207.1 152.69,-214.88 155.97,-208.69"/>
+</g>
+<!-- Runtime Libs -->
+<g id="node6" class="node">
+<title>Runtime Libs</title>
+<polygon fill="none" stroke="black" points="281.27,-207.1 189.05,-207.1 189.05,-182.5 281.27,-182.5 281.27,-207.1"/>
+<text text-anchor="middle" x="235.16" y="-190.6" font-family="Times,serif" font-size="14.00">Runtime Libs</text>
+</g>
+<!-- Quarkus Dependencies&#45;&gt;Runtime Libs -->
+<g id="edge4" class="edge">
+<title>Quarkus Dependencies&#45;&gt;Runtime Libs</title>
+<path fill="none" stroke="black" d="M235.16,-243.26C235.16,-235.86 235.16,-225.96 235.16,-217.12"/>
+<polygon fill="black" stroke="black" points="238.66,-217.1 235.16,-207.1 231.66,-217.1 238.66,-217.1"/>
+</g>
+<!-- Deployment Libs -->
+<g id="node7" class="node">
+<title>Deployment Libs</title>
+<polygon fill="none" stroke="black" points="412.75,-207.1 299.56,-207.1 299.56,-182.5 412.75,-182.5 412.75,-207.1"/>
+<text text-anchor="middle" x="356.16" y="-190.6" font-family="Times,serif" font-size="14.00">Deployment Libs</text>
+</g>
+<!-- Quarkus Dependencies&#45;&gt;Deployment Libs -->
+<g id="edge5" class="edge">
+<title>Quarkus Dependencies&#45;&gt;Deployment Libs</title>
+<path fill="none" stroke="black" d="M258.49,-243.26C277.07,-234.23 303.29,-221.49 323.88,-211.49"/>
+<polygon fill="black" stroke="black" points="325.44,-214.62 332.9,-207.1 322.38,-208.33 325.44,-214.62"/>
+</g>
+<!-- Compile Libs&#45;&gt;Application Model -->
+<g id="edge6" class="edge">
+<title>Compile Libs&#45;&gt;Application Model</title>
+<path fill="none" stroke="black" d="M134.76,-182.46C142.37,-174.33 152.8,-163.18 161.63,-153.73"/>
+<polygon fill="black" stroke="black" points="164.31,-156 168.59,-146.3 159.2,-151.21 164.31,-156"/>
+</g>
+<!-- Runtime Libs&#45;&gt;Application Model -->
+<g id="edge7" class="edge">
+<title>Runtime Libs&#45;&gt;Application Model</title>
+<path fill="none" stroke="black" d="M224.36,-182.46C216.61,-174.33 206,-163.18 197,-153.73"/>
+<polygon fill="black" stroke="black" points="199.35,-151.13 189.92,-146.3 194.28,-155.96 199.35,-151.13"/>
+</g>
+<!-- Deployment Libs&#45;&gt;Application Model -->
+<g id="edge8" class="edge">
+<title>Deployment Libs&#45;&gt;Application Model</title>
+<path fill="none" stroke="black" d="M322.03,-182.46C293.75,-173.07 253.37,-159.65 222.75,-149.48"/>
+<polygon fill="black" stroke="black" points="223.77,-146.13 213.18,-146.3 221.57,-152.78 223.77,-146.13"/>
+</g>
+<!-- Runnable Jar -->
+<g id="node9" class="node">
+<title>Runnable Jar</title>
+<polygon fill="none" stroke="black" points="173.14,-24.7 83.18,-24.7 83.18,-0.1 173.14,-0.1 173.14,-24.7"/>
+<text text-anchor="middle" x="128.16" y="-8.2" font-family="Times,serif" font-size="14.00">Runnable Jar</text>
+</g>
+<!-- Quarkus Bootstrap&#45;&gt;Runnable Jar -->
+<g id="edge10" class="edge">
+<title>Quarkus Bootstrap&#45;&gt;Runnable Jar</title>
+<path fill="none" stroke="black" d="M169.33,-60.86C162.34,-52.81 152.79,-41.8 144.65,-32.42"/>
+<polygon fill="black" stroke="black" points="147.16,-29.96 137.96,-24.7 141.87,-34.55 147.16,-29.96"/>
+</g>
+<!-- Native App -->
+<g id="node10" class="node">
+<title>Native App</title>
+<polygon fill="none" stroke="black" points="271.58,-24.7 190.73,-24.7 190.73,-0.1 271.58,-0.1 271.58,-24.7"/>
+<text text-anchor="middle" x="231.16" y="-8.2" font-family="Times,serif" font-size="14.00">Native App</text>
+</g>
+<!-- Quarkus Bootstrap&#45;&gt;Native App -->
+<g id="edge11" class="edge">
+<title>Quarkus Bootstrap&#45;&gt;Native App</title>
+<path fill="none" stroke="black" d="M189.18,-60.86C196.31,-52.81 206.04,-41.8 214.34,-32.42"/>
+<polygon fill="black" stroke="black" points="217.16,-34.51 221.16,-24.7 211.92,-29.87 217.16,-34.51"/>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_dependency_classification"><a class="anchor" href="#_dependency_classification"></a>Dependency Classification</h3>
+<div class="paragraph">
+<p>Quarkus requires explicit classification of dependencies.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Runtime dependencies:</strong> Libraries used by the application at runtime.</p>
+</li>
+<li>
+<p><strong>Deployment dependencies:</strong> Additional artifacts required during build-time augmentation.</p>
+</li>
+<li>
+<p><strong>Extension detection:</strong> Dependencies containing Quarkus descriptors in <code>META-INF</code> must be identified and handled differently.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This requires inspecting JAR contents and dynamically expanding dependencies based on detected extensions.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_build_execution"><a class="anchor" href="#_build_execution"></a>Build Execution</h3>
+<div class="paragraph">
+<p>Once the application model is constructed, Quarkus takes over:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val augmentAction = quarkusBootstrap.bootstrap().createAugmentor()
+val app = augmentAction.createProductionApplication()</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This produces:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>quarkus-run.jar</p>
+</li>
+<li>
+<p>Optional native binary</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Quarkus effectively owns the build at this stage, and the build tool must adapt to its expectations.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_conclusion"><a class="anchor" href="#_conclusion"></a>Conclusion</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Spring Boot, Micronaut and Quarkus represent three different approaches to building Java applications.</p>
+</div>
+<div class="paragraph">
+<p>Spring Boot extends the traditional JVM model, Micronaut moves more work into build-time and Quarkus redefines the build process entirely around its application model.</p>
+</div>
+<div class="paragraph">
+<p>Mill supports all three by adapting to each framework’s expectations while keeping configuration simple and builds fast.</p>
+</div>
+<div class="paragraph">
+<p>If you use Spring Boot, Micronaut or Quarkus and want a simpler and faster developer experience than Maven or Gradle can provide, check out:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="../mill/javalib/spring-boot.html" class="xref page">Spring Boot projects in Mill</a></p>
+</li>
+<li>
+<p><a href="../mill/javalib/spring-boot.html#_spring_boot_with_aot_processing_and_native_image_support" class="xref page">Spring Boot with AOT and native image support</a></p>
+</li>
+<li>
+<p><a href="../mill/javalib/web-examples.html#_micronaut_native_graalvm" class="xref page">Micronaut native example</a></p>
+</li>
+<li>
+<p><a href="../mill/javalib/web-examples.html#_quarkus_example" class="xref page">Quarkus example</a></p>
+</li>
+<li>
+<p><a href="../mill/javalib/web-examples.html#_quarkus_todomvc_example" class="xref page">Quarkus TodoMVC example</a></p>
+</li>
+<li>
+<p><a href="../mill/comparisons/performance.html" class="xref page">Mill build performance</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="index.html"><em>The Mill Build Engineering Blog</em></a></span>
+  <span class="next"><a href="20-making-scala-scripting-actually-good.html">Making Scala Scripting Actually Good with Mill</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
+<script async src="../_/js/vendor/highlight.js"></script>
+<script src="../_/js/vendor/lunr.js"></script>
+<script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
+<script async src="../search-index.js"></script>
+  </body>
+</html>
