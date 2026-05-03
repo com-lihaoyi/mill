@@ -394,10 +394,7 @@ case class Execution(
           else LauncherLocking.LockKind.Read
 
         val empty = Seq.empty[(Task[?], Option[GroupExecution.Results])]
-        val phaseResults: (
-            Seq[(Task[?], Option[GroupExecution.Results])],
-            Seq[(Task[?], Option[GroupExecution.Results])]
-        ) =
+        val (nonExclusiveResults, exclusiveResults) =
           if (nonExclusiveTasks.isEmpty && !haveExclusive) (empty, empty)
           else withExclusiveLease(outerKind) {
             val ne =
@@ -408,8 +405,6 @@ case class Execution(
             }.toSeq
             (ne, ex)
           }
-        val nonExclusiveResults = phaseResults._1
-        val exclusiveResults = phaseResults._2
 
         // FAILED on any outermost failure (meta-build failure aborts bootstrap);
         // SUCCESS only at the final requested depth.
@@ -463,7 +458,7 @@ case class Execution(
 
         val results: Map[Task[?], ExecResult[(Val, Int)]] = results0.toMap
 
-        import scala.collection.JavaConverters.*
+        import scala.jdk.CollectionConverters.*
         Execution.Results(
           goals.toIndexedSeq.map(results(_).map(_._1)),
           finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated)).toSeq,

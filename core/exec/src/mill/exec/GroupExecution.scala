@@ -440,9 +440,9 @@ trait GroupExecution {
           }
         }
 
-        // Helper to evaluate build override only (no task evaluation).
-        // Always escalates to Write; the read phase is a no-op formality so
-        // we share the same lock dance as evaluateTaskWithCaching.
+        // Always escalates to Write — build overrides have no cache to hit on
+        // re-probe, so the read phase is a formality kept for symmetry with
+        // evaluateTaskWithCaching's lock dance.
         def evaluateBuildOverrideOnly(located: Located[Appendable[BufferedValue]])
             : GroupExecution.Results = LockUpgrade.readThenWrite(
           acquireRead = acquireTaskLock(LauncherLocking.LockKind.Read),
@@ -748,18 +748,7 @@ trait GroupExecution {
         }
     } yield {
       // Check for version/classloader mismatch - treat as cache miss if they differ
-      def checkStringMatch(
-          cachedValue: String,
-          currentValue: String,
-          reasonName: String
-      ): Boolean = {
-        val matches = cachedValue == currentValue
-        if (!matches) {
-          versionMismatchReasons.putIfAbsent(labelled, s"$reasonName:$cachedValue->$currentValue")
-        }
-        matches
-      }
-      def checkIntMatch(cachedValue: Int, currentValue: Int, reasonName: String): Boolean = {
+      def checkMatch[T](cachedValue: T, currentValue: T, reasonName: String): Boolean = {
         val matches = cachedValue == currentValue
         if (!matches) {
           versionMismatchReasons.putIfAbsent(labelled, s"$reasonName:$cachedValue->$currentValue")
@@ -770,11 +759,11 @@ trait GroupExecution {
       val currentMillVersion = mill.constants.BuildInfo.millVersion
       val currentJvmVersion = sys.props("java.version")
       val millVersionMatches =
-        checkStringMatch(cached.millVersion, currentMillVersion, "mill-version-changed")
+        checkMatch(cached.millVersion, currentMillVersion, "mill-version-changed")
       val jvmVersionMatches =
-        checkStringMatch(cached.millJvmVersion, currentJvmVersion, "mill-jvm-version-changed")
+        checkMatch(cached.millJvmVersion, currentJvmVersion, "mill-jvm-version-changed")
       val classLoaderMatches =
-        checkIntMatch(cached.classLoaderSigHash, classLoaderSigHash, "classpath-changed")
+        checkMatch(cached.classLoaderSigHash, classLoaderSigHash, "classpath-changed")
 
       (
         cached.inputsHash,
