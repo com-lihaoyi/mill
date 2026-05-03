@@ -485,7 +485,10 @@ object MillMain0 {
                                   runMillBootstrap(
                                     skipSelectiveExecution = false,
                                     prevState = None,
-                                    tasksAndParams = Seq("resolve", "_"),
+                                    // Empty tasks: bootstrap-only mode. We just need
+                                    // the evaluators and module watches; running tasks
+                                    // (e.g. `resolve _`) would only produce log spam.
+                                    tasksAndParams = Seq.empty,
                                     streams = streams,
                                     millActiveCommandMessage = activeCommandMessage,
                                     metaBuildReporter = metaReporter,
@@ -549,7 +552,8 @@ object MillMain0 {
                           runMillBootstrap(
                             false,
                             None,
-                            Seq("resolve", "_"),
+                            // Bootstrap-only: GenIdea only consumes the evaluators.
+                            Seq.empty,
                             streams,
                             "BSP:initialize"
                           )
@@ -574,7 +578,8 @@ object MillMain0 {
                           runMillBootstrap(
                             false,
                             None,
-                            Seq("resolve", "_"),
+                            // Bootstrap-only: GenEclipse only consumes the evaluators.
+                            Seq.empty,
                             streams,
                             "BSP:initialize"
                           )

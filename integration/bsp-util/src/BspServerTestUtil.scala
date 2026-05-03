@@ -258,7 +258,10 @@ object BspServerTestUtil {
       // to MillNoDaemonMain/MillBspMain, the launcher subprocess will have a
       // child JVM whose command line includes that main class.
       val separateBspOutDir =
-        mill.internal.OutputDirectoryLayout.bspOutOverride(workspacePath, millTestSuiteEnv).isDefined
+        mill.internal.OutputDirectoryLayout.bspOutOverride(
+          workspacePath,
+          millTestSuiteEnv
+        ).isDefined
       if (!separateBspOutDir) {
         val launcherHandle = proc.wrapped.toHandle
         val noDaemonChild = launcherHandle.descendants().iterator.asScala.find { ph =>

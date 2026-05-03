@@ -160,6 +160,9 @@ class MillBuildBootstrap(
                 // When there is an explicit `--meta-level`, use that and ignore any
                 // `@nonBootstrapped` annotations.
                 if (requestedMetaLevel.nonEmpty) Result.Success(false)
+                // Bootstrap-only mode (BSP/IDE/Eclipse): no user task to inspect,
+                // and `areAllNonBootstrapped` would fail on empty selectors anyway.
+                else if (tasksAndParams.isEmpty) Result.Success(false)
                 else
                   evaluator.areAllNonBootstrapped(
                     tasksAndParams,
@@ -322,7 +325,11 @@ class MillBuildBootstrap(
       depth: Int
   ): RunnerLauncherState = {
     val taskSelector = Seq("millBuildRootModuleResult")
-    val collectSelectiveMetadata = tasksAndParams.nonEmpty
+    // Always track selective metadata for the meta-build so subsequent
+    // bootstraps (including BSP/IDE/Eclipse bootstrap-only requests, where
+    // `tasksAndParams.isEmpty`) can reuse the meta-build classloader via a
+    // read-only probe instead of escalating to a write lock.
+    val collectSelectiveMetadata = true
     type SharedFrame = RunnerSharedState.Frame
     case class ReuseProbe(frameOpt: Option[SharedFrame], reusableFrameOpt: Option[SharedFrame])
 
@@ -688,13 +695,21 @@ class MillBuildBootstrap(
   ): RunnerLauncherState = {
     val evaluator = evaluator0.withIsFinalDepth(true)
 
-    val (evaled, evalWatched, moduleWatched) = evaluateWithWatches(
-      buildFileApi = buildFileApi,
-      evaluator = evaluator,
-      tasksAndParams = tasksAndParams,
-      selectiveExecution = selectiveExecution,
-      reporter = reporter(evaluator)
-    )
+    val (evaled, evalWatched, moduleWatched) =
+      // Bootstrap-only mode (BSP/IDE/Eclipse): skip running any user task.
+      // Avoids the spammy `resolve _` invocation that callers previously
+      // used purely to force module instantiation. Module-init watches
+      // populate lazily via subsequent BSP requests.
+      if (tasksAndParams.isEmpty)
+        bootstrapInstantiateOnly(buildFileApi)
+      else
+        evaluateWithWatches(
+          buildFileApi = buildFileApi,
+          evaluator = evaluator,
+          tasksAndParams = tasksAndParams,
+          selectiveExecution = selectiveExecution,
+          reporter = reporter(evaluator)
+        )
 
     // Publish the user-level (depth == 0) moduleWatched daemon-wide so the
     // *next* launcher's depth-1 reusable check sees these watches as the
@@ -951,6 +966,18 @@ object MillBuildBootstrap {
         }
     }
   }
+
+  /**
+   * Bootstrap-only mode: skip user-task evaluation entirely. Used by
+   * BSP/IDE/Eclipse, which need the evaluators but no task output. Module
+   * `<clinit>` watches accumulate in `BuildCtx.watchedValues` lazily as
+   * subsequent BSP requests instantiate the modules they touch, so we don't
+   * need to eagerly walk the module tree here.
+   */
+  def bootstrapInstantiateOnly(
+      buildFileApi: BuildFileApi
+  ): (Result[Seq[Any]], Seq[Watchable], Seq[Watchable]) =
+    (Result.Success(Nil), Nil, buildFileApi.moduleWatchedValues)
 
   def getRootModule(runClassLoader: URLClassLoader)
       : Result[BuildFileApi] = {
