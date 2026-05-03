@@ -298,21 +298,17 @@ trait GroupExecution {
 
         // Try-Write + bounded await for `LockUpgrade.readThenWrite`'s
         // retryable loop; mirrors `acquireTaskLock`'s input-task skip.
-        def tryWriteTaskLock(): Either[String, LauncherLocking.Lease] = {
-          val result =
-            if (labelled.isInputTask)
-              LauncherLocking.Noop.tryTaskWriteLock(
-                paths.dest.toNIO,
-                labelled.ctx.segments.render
-              )
-            else
-              workspaceLocking.tryTaskWriteLock(
-                paths.dest.toNIO,
-                labelled.ctx.segments.render
-              )
-          result.foreach(_ => leaseTracker.onTaskLockPhaseComplete(labelled))
-          result
-        }
+        def tryWriteTaskLock(): Either[String, LauncherLocking.Lease] =
+          if (labelled.isInputTask)
+            LauncherLocking.Noop.tryTaskWriteLock(
+              paths.dest.toNIO,
+              labelled.ctx.segments.render
+            )
+          else
+            workspaceLocking.tryTaskWriteLock(
+              paths.dest.toNIO,
+              labelled.ctx.segments.render
+            )
         def awaitTaskLockChange(timeoutMs: Long): Unit =
           if (!labelled.isInputTask)
             workspaceLocking.awaitTaskStateChange(
@@ -374,7 +370,6 @@ trait GroupExecution {
             ) match {
               case Some(res) =>
                 leaseTracker.retain(labelled, scope.retain())
-                leaseTracker.onTaskLockPhaseComplete(labelled)
                 LockUpgrade.Decision.Complete(res)
               case None =>
                 LockUpgrade.Decision.Escalate

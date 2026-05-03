@@ -217,45 +217,20 @@ case class Execution(
           downstreamEdges.getOrElse(t, Set())
         )
 
-      val outPathLockKeyPrefix = outPath.toNIO.toAbsolutePath.normalize().toString
-      val externalOutPathLockKeyPrefix = externalOutPath.toNIO.toAbsolutePath.normalize().toString
-      def taskLockKey(labelled: Task.Named[?]): String = {
-        val prefix =
-          if (!labelled.ctx.external) outPathLockKeyPrefix else externalOutPathLockKeyPrefix
-        val parts = labelled.ctx.segments.parts
-        if (parts.isEmpty) prefix
-        else {
-          val builder = new StringBuilder(prefix)
-          var i = 0
-          while (i < parts.length) {
-            builder.append('/')
-            Execution.appendTaskLockKeySegment(builder, parts(i))
-            i += 1
-          }
-          builder.append(".dest")
-          builder.toString
-        }
-      }
-
       val tracker = new Execution.LeaseTracker(
         indexToTerminal,
-        interGroupDeps,
-        taskLockKey
+        interGroupDeps
       )
 
       def evaluateTerminals(
           terminals: Seq[Task[?]],
           exclusive: Boolean
       ) = {
-        // Same canonical order as the lock-phase chain so each future's
-        // lockPhaseFuture points at an already-spawned upstream's promise.
-        val terminals1 = tracker.canonicalOrder(terminals)
-        val lockPhasePrerequisites = tracker.taskLockPhasePrerequisites(terminals1.toSet)
         val forkExecutionContext =
           ec.fold(ExecutionContexts.RunNow)(new ExecutionContexts.ThreadPool(_))
         implicit val taskExecutionContext =
           if (exclusive) ExecutionContexts.RunNow else forkExecutionContext
-        for (terminal <- terminals1) {
+        for (terminal <- terminals) {
           val deps = interGroupDeps(terminal)
 
           val group = plan.sortedGroups.lookupKey(terminal).toSeq
@@ -283,10 +258,8 @@ case class Execution(
               ))
             )
           } else {
-            val lockPhaseFuture =
-              lockPhasePrerequisites.getOrElse(terminal, Future.successful(()))
-            val raw = Future.sequence(deps.map(futures)).zip(lockPhaseFuture).map {
-              case (upstreamValues, _) =>
+            val raw = Future.sequence(deps.map(futures)).map {
+              upstreamValues =>
                 try {
                   val countMsg = mill.api.internal.Util.leftPad(
                     count.getAndIncrement().toString,
@@ -389,7 +362,7 @@ case class Execution(
         // so the outer `tracker.drain()` finally can't race a sibling
         // still mid-`retain`/`onCompleted`; first failure rethrown after.
         val settled = Future.sequence(
-          terminals1.map(t => futures(t).transform(r => Success(t -> r)))
+          terminals.map(t => futures(t).transform(r => Success(t -> r)))
         )
         Await.result(settled, duration.Duration.Inf).map {
           case (t, Success(v)) => (t, v)
@@ -520,8 +493,7 @@ object Execution {
    */
   class LeaseTracker(
       indexToTerminal: Array[Task[?]],
-      interGroupDeps: Map[Task[?], Seq[Task[?]]],
-      taskLockKey: Task.Named[?] => String = _.toString
+      interGroupDeps: Map[Task[?], Seq[Task[?]]]
   ) {
     class State {
       val pending = new AtomicInteger(0)
@@ -542,53 +514,6 @@ object Execution {
         .flatMap { case (downstream, upstreams) => upstreams.iterator.map(_ -> downstream) }
         .toVector
         .groupMap(_._1)(_._2)
-
-    // Heights and tiebreaks are plan-invariant for shared named tasks,
-    // so all launchers acquire overlapping locks in the same order and
-    // the cross-launcher AB/BA cycle is unreachable.
-    private val canonicalHeights: Map[Task[?], Int] = {
-      val memo = mutable.Map.empty[Task[?], Int]
-      def rec(t: Task[?]): Int = memo.getOrElseUpdate(
-        t, {
-          val parents = directUpstreams.getOrElse(t, Nil)
-          if (parents.isEmpty) 0
-          else 1 + parents.iterator.map(rec).max
-        }
-      )
-      indexToTerminal.foreach(rec)
-      memo.toMap
-    }
-
-    private val canonicalSortKeys: Map[Task[?], (Int, String)] =
-      indexToTerminal.iterator.map { t =>
-        val tiebreak = t match {
-          case n: Task.Named[?] => taskLockKey(n)
-          case _ => t.toString
-        }
-        t -> (canonicalHeights.getOrElse(t, 0), tiebreak)
-      }.toMap
-
-    def canonicalOrder(tasks: Iterable[Task[?]]): Seq[Task[?]] =
-      tasks.toSeq.sortBy { t =>
-        canonicalSortKeys.getOrElse(
-          t, {
-            val tiebreak = t match {
-              case n: Task.Named[?] => taskLockKey(n)
-              case _ => t.toString
-            }
-            (canonicalHeights.getOrElse(t, 0), tiebreak)
-          }
-        )
-      }
-
-    private val orderedTaskLockPhases: Seq[Task[?]] =
-      canonicalOrder(indexToTerminal.iterator.collect { case n: Task.Named[?] => n: Task[?] }.toSeq)
-
-    private val taskLockPhasePromises: Map[Task[?], Promise[Unit]] =
-      orderedTaskLockPhases.iterator.map(_ -> Promise[Unit]()).toMap
-
-    def taskLockPhaseOrder(batchTerminals: Set[Task[?]]): Seq[Task[?]] =
-      orderedTaskLockPhases.filter(batchTerminals)
 
     for (t <- indexToTerminal) states.put(t, new State)
     for (t <- indexToTerminal) {
@@ -639,22 +564,7 @@ object Execution {
       else closeQuietly(lease)
     }
 
-    def taskLockPhasePrerequisites(
-        batchTerminals: Set[Task[?]]
-    ): Map[Task[?], Future[Unit]] =
-      taskLockPhaseOrder(batchTerminals)
-        .sliding(2)
-        .collect { case Seq(prev, next) =>
-          next -> taskLockPhasePromises(prev).future
-        }
-        .toMap
-
-    def onTaskLockPhaseComplete(task: Task[?]): Unit =
-      taskLockPhasePromises.get(task).foreach(_.trySuccess(()))
-
     def onCompleted(terminal: Task[?]): Unit = {
-      // Unblock the lock-phase chain even if evaluation failed before lock acquisition.
-      onTaskLockPhaseComplete(terminal)
       val own = states.get(terminal)
       if (own != null) {
         own.completed.set(true)
@@ -664,7 +574,6 @@ object Execution {
 
     def drain(): Unit = {
       import scala.jdk.CollectionConverters.*
-      taskLockPhasePromises.values.foreach(_.trySuccess(()))
       states.keys().asScala.toList.foreach(releaseLeasesFor)
     }
   }
@@ -686,12 +595,6 @@ object Execution {
       case (true, 0) => ", " + successColor("SUCCESS")
       case (true, _) => ", " + errorColor(s"$failures FAILED")
     }
-  }
-
-  private def appendTaskLockKeySegment(builder: StringBuilder, segment: String): Unit = {
-    builder.append(segment.length)
-    builder.append(':')
-    builder.append(segment)
   }
 
   def findInterGroupDeps(sortedGroups: MultiBiMap[Task[?], Task[?]])
