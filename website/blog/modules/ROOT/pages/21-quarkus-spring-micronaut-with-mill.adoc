@@ -1,7 +1,7 @@
 = Spring Boot, Micronaut and Quarkus with Mill
 // tag::header[]
 :author: Vasilis Nicolaou
-:revdate: April 2026
+:revdate: May 2026
 
 _{author}, {revdate}_
 
