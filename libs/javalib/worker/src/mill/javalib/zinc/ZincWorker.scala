@@ -349,17 +349,6 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       )
 
     val effectiveIncrementalCompilation = incrementalAnnotationProcessing match {
-      case IncrementalAnnotationProcessing.Mode.Disabled =>
-        processConfig.log.warn(
-          s"""Disabling zinc incremental compilation because annotation processors do not declare supported
-             |incremental metadata.
-             |Mill only reads incremental annotation processor metadata from the active processor path
-             |and the compile classpath.
-             |To enable incremental annotation processing, use processors that publish
-             |`META-INF/gradle/incremental.annotation.processors`, or add a patched jar/directory or
-             |compile-time classpath entry with that metadata.""".stripMargin
-        )
-        false
       case IncrementalAnnotationProcessing.Mode.Enabled(plan) if plan.requiresFullRecompile =>
         false
       case _ => incrementalCompilation
@@ -379,7 +368,6 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       case IncrementalAnnotationProcessing.Mode.None =>
         IncrementalAnnotationProcessing.previousExtraProducts(workDir).foreach(os.remove.all(_))
         os.remove.all(IncrementalAnnotationProcessing.snapshotPath(workDir))
-      case IncrementalAnnotationProcessing.Mode.Disabled =>
     }
 
     if (localConfig.logDebugEnabled) {

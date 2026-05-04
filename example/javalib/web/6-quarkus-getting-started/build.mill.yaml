@@ -1,0 +1,20 @@
+extends: [mill.javalib.quarkus.QuarkusModule, MavenModule]
+jvmVersion: graalvm-community:23.0.1
+quarkusPlatformVersion: 3.31.3
+artifactGroupId: com.lihaoyi.example
+artifactId: 6-quarkus-getting-started
+artifactVersion: 0.0.1-SNAPSHOT
+
+mvnDeps:
+  - io.quarkus:quarkus-arc
+  - io.quarkus:quarkus-rest
+
+object test:
+  extends: [ MavenTests, QuarkusJunit ]
+  mvnDeps:
+    - io.rest-assured:rest-assured
+
+object `native-test`:
+  extends: [MavenTests, QuarkusJunit, QuarkusNativeTest]
+  moduleDeps: !append
+    - test
