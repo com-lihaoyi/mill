@@ -780,7 +780,7 @@ official <a href="https://github.com/android/compose-samples">compose samples</a
 <h2 id="_android_mill_setup_for_building_jetlagged_and_jetnews"><a class="anchor" href="#_android_mill_setup_for_building_jetlagged_and_jetnews"></a>Android Mill Setup for building JetLagged and JetNews</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-3-d45744/mill-dist-1.1.6-example-thirdparty-android-compose-samples.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/thirdparty/android-compose-samples">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-4-b91b8b/mill-dist-1.1.6-example-thirdparty-android-compose-samples.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/thirdparty/android-compose-samples">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*, androidlib.*, kotlinlib.*
 
@@ -872,7 +872,7 @@ object JetLagged extends mill.api.Module {
     )
 
     def androidEnableCompose = true
-    override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task { true }
+    override def kotlinUseEmbeddableCompiler: T[Boolean] = Task { true }
 
     def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 
@@ -890,7 +890,7 @@ object JetLagged extends mill.api.Module {
       override def androidEnableCompose = true
 
       // TODO consider defaulting this to the parent app value
-      override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task {
+      override def kotlinUseEmbeddableCompiler: T[Boolean] = Task {
         true
       }
 
@@ -982,7 +982,7 @@ object JetNews extends mill.api.Module {
     )
 
     def androidEnableCompose = true
-    override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task { true }
+    override def kotlinUseEmbeddableCompiler: T[Boolean] = Task { true }
 
     def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 
@@ -1001,7 +1001,7 @@ object JetNews extends mill.api.Module {
       override def androidEnableCompose = true
 
       // TODO consider defaulting this to the parent app value
-      override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task {
+      override def kotlinUseEmbeddableCompiler: T[Boolean] = Task {
         true
       }
 
@@ -1052,7 +1052,7 @@ object Jetchat extends mill.api.Module {
 
     override def androidDataBindingCompilerVersion = "8.13.0"
 
-    override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task {
+    override def kotlinUseEmbeddableCompiler: T[Boolean] = Task {
       true
     }
 
@@ -1096,7 +1096,7 @@ object Jetchat extends mill.api.Module {
       override def androidEnableCompose = true
 
       // TODO consider defaulting this to the parent app value
-      override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task {
+      override def kotlinUseEmbeddableCompiler: T[Boolean] = Task {
         true
       }
 

@@ -828,6 +828,10 @@ keep the build reproducible even when run on different machines.</p>
 e.g. to configure how much memory to give it</p>
 </li>
 <li>
+<p><a href="#_mill_separate_bsp_output_dir">mill-separate-bsp-output-dir</a>: makes BSP use a dedicated output directory
+instead of sharing the regular <code>out/</code> directory and daemon/task caches with CLI builds.</p>
+</li>
+<li>
 <p><code>mvnDeps</code> and <code>repositories</code>: these allow you to define dependencies for usage
 in your <code>build.mill</code>, and are described in more detail in the
 <a href="../extending/import-mvn-plugins.html" class="xref page">Import Libraries and Plugins</a> page.
@@ -904,7 +908,7 @@ version used for any JVMs spawned by Mill to <code>run</code> or <code>test</cod
 YAML key:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-3-d45744/mill-dist-1.1.6-example-cli-header-3-jvm-version-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/cli/header/3-jvm-version-yaml/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-4-b91b8b/mill-dist-1.1.6-example-cli-header-3-jvm-version-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/cli/header/3-jvm-version-yaml/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-jvm-version: temurin:17.0.6
 
@@ -967,7 +971,7 @@ in Mill&#8217;s jvm index version) or an older JVM index.</p>
 </ul>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-3-d45744/mill-dist-1.1.6-example-cli-header-4-jvm-index-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/cli/header/4-jvm-index-version">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-4-b91b8b/mill-dist-1.1.6-example-cli-header-4-jvm-index-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/cli/header/4-jvm-index-version">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-index-version: 0.0.4-88-f9ba3d
 //| mill-jvm-version: temurin:17
@@ -1042,6 +1046,43 @@ Maven Central repository. For configuring repositories on individual modules, se
 </div>
 </div>
 <div class="sect1">
+<h2 id="_mill_separate_bsp_output_dir"><a class="anchor" href="#_mill_separate_bsp_output_dir"></a>mill-separate-bsp-output-dir</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, BSP sessions share the regular <code>out/</code> directory and Mill daemon with
+CLI builds. This lets IDE-triggered builds reuse the same task caches and
+concurrency-aware output locking as normal <code>./mill &#8230;&#8203;</code> commands.</p>
+</div>
+<div class="paragraph">
+<p>If you want BSP to use its own dedicated output directory instead, set
+<code>mill-separate-bsp-output-dir: true</code> in the root build header.</p>
+</div>
+<div class="paragraph">
+<p><em>build.mill</em></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-separate-bsp-output-dir: true</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or in <code>build.mill.yaml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-separate-bsp-output-dir: true</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This makes BSP use the conventional dedicated <code>.bsp/out/</code> directory. If you need
+a custom dedicated BSP output path, set the <code>MILL_BSP_OUTPUT_DIR</code> environment
+variable instead. If you need to force BSP back to the shared <code>out/</code> directory
+even when the build header requests a dedicated one, set
+<code>MILL_NO_SEPARATE_BSP_OUTPUT_DIR=1</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_mill_jvm_opts"><a class="anchor" href="#_mill_jvm_opts"></a>mill-jvm-opts</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -1093,7 +1134,7 @@ you can also override other tasks such as <code>scalacOptions</code> which in th
 is used to turn on fatal warnings for unused private methods:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-3-d45744/mill-dist-1.1.6-example-cli-header-1-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/cli/header/1-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-4-b91b8b/mill-dist-1.1.6-example-cli-header-1-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/cli/header/1-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| scalacOptions: ["-Wunused:privates", "-Xfatal-warnings"]
 
@@ -1117,7 +1158,7 @@ For simple projects defined with a <code>build.mill.yaml</code> file, meta-build
 is put in the <code>mill-build:</code> key of the <code>build.mill.yaml</code> file:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-3-d45744/mill-dist-1.1.6-example-cli-header-2-tasks-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/cli/header/2-tasks-yaml/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-4-b91b8b/mill-dist-1.1.6-example-cli-header-2-tasks-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/cli/header/2-tasks-yaml/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-build:
   scalacOptions: ["-verbose"]</code></pre>
