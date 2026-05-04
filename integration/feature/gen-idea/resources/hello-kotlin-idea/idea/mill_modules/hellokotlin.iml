@@ -1,0 +1,29 @@
+<module type="JAVA_MODULE" version="4">
+    <component name="NewModuleRootManager">
+        <output url="file://$MODULE_DIR$/../../out/HelloKotlin/internalGenIdea/ideaCompileOutput.dest/classes"/>
+        <exclude-output/>
+        <content url="file://$MODULE_DIR$/../../HelloKotlin">
+            <sourceFolder url="file://$MODULE_DIR$/../../HelloKotlin/src" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../HelloKotlin/resources" type="java-resource"/>
+        </content>
+        <orderEntry type="inheritedJdk"/>
+        <orderEntry type="sourceFolder" forTests="false"/>
+        <orderEntry type="library" name="annotations-13.0.jar" level="project"/>
+        <orderEntry type="library" name="kotlin-stdlib-<version>.jar" level="project"/>
+    </component>
+    <component name="FacetManager">
+        <facet type="kotlin-language" name="Kotlin">
+            <configuration version="5" useProjectSettings="false">
+                <compilerSettings>
+                    <option name="additionalArguments" value="-no-stdlib -module-name HelloKotlin -language-version 2.1 -api-version 2.1"/>
+                </compilerSettings>
+                <compilerArguments>
+                    <stringArguments>
+                        <stringArg name="apiVersion" arg="2.1"/>
+                        <stringArg name="languageVersion" arg="2.1"/>
+                    </stringArguments>
+                </compilerArguments>
+            </configuration>
+        </facet>
+    </component>
+</module>
