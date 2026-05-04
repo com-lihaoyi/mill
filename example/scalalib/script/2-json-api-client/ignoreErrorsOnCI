@@ -1,1 +1,71 @@
-Seems to hit rate limits on the API calls it makes :(
+Work around issue on Github:
+
+
+11301] example.scalalib.script.2-json-api-client.testForked 1s mill.testkit.UtestExampleTestSuite
+11301] Preparing integration test in /home/runner/work/mill/mill/out/integration/sharedOutFolder.dest/SNAPSHOT/shared-1/out
+11301] Re-using out folder
+11301]
+11301] Running (in-memory):
+11301] /home/runner/work/mill/mill/out/integration/sharedOutFolder.dest/SNAPSHOT/shared-1/out> mill --ticker false JsonApiClient.scala --start-article singapore --depth 2 (in-memory)
+11301] --- Expected output ----------
+11301] ...
+11301]   "Calling code",
+11301]   "+65",
+11301]   "British Empire",
+11301]   "1st Parliament of Singapore",
+11301] ...
+11301] )
+11301] ------------------------------
+11301] compiling 1 Scala source to out/JsonApiClient.scala/compile0.dest/classes ...
+11301] [warn] there was 1 deprecation warning; re-run with -deprecation for details
+11301] [warn] one warning found
+11301] done compiling
+11301] upickle.core.TraceVisitor$TraceException: $
+11301] Caused by: requests.RequestFailedException: Request to https://en.wikipedia.org/w/api.php failed with status code 429
+11301] You are making too many requests to the API.
+11301] Please follow the best practices at <https://www.mediawiki.org/wiki/Wikimedia_APIs/Rate_limits>.
+11301] If you are unsure how to get the access you need, contact <bot-traffic@wikimedia.org>.
+11301] 	at requests.Requester$$anon$2.readBytesThrough(Requester.scala:507)
+11301] 	at ujson.ReadableLowPri$$anon$2.transform(Readable.scala:38)
+11301] 	at ujson.Readable$.transform(Readable.scala:15)
+11301] 	at ujson.Readable$.transform(Readable.scala:14)
+11301] 	at upickle.core.BufferedValue$.maybeSortKeysTransform(BufferedValue.scala:76)
+11301] 	at ujson.package$.transform(package.scala:8)
+11301] 	at ujson.package$.read$$anonfun$1(package.scala:19)
+11301] 	at upickle.core.TraceVisitor$.withTrace(TraceVisitor.scala:21)
+11301] 	at ujson.package$.read(package.scala:19)
+11301] 	at JsonApiClient$package$.fetchLinks(JsonApiClient.scala:14)
+11301] 	at JsonApiClient$package$.main$$anonfun$2$$anonfun$1(JsonApiClient.scala:24)
+11301] 	at scala.collection.StrictOptimizedIterableOps.strictOptimizedFlatMap(StrictOptimizedIterableOps.scala:121)
+11301] 	at scala.collection.StrictOptimizedIterableOps.strictOptimizedFlatMap$(StrictOptimizedIterableOps.scala:30)
+11301] 	at scala.collection.immutable.HashSet.strictOptimizedFlatMap(HashSet.scala:37)
+11301] 	at scala.collection.StrictOptimizedIterableOps.flatMap(StrictOptimizedIterableOps.scala:109)
+11301] 	at scala.collection.StrictOptimizedIterableOps.flatMap$(StrictOptimizedIterableOps.scala:30)
+11301] 	at scala.collection.immutable.HashSet.flatMap(HashSet.scala:37)
+11301] 	at JsonApiClient$package$.main$$anonfun$2(JsonApiClient.scala:24)
+11301] 	at scala.runtime.java8.JFunction1$mcVI$sp.apply(JFunction1$mcVI$sp.scala:20)
+11301] 	at scala.collection.immutable.Range.foreach(Range.scala:256)
+11301] 	at JsonApiClient$package$.main(JsonApiClient.scala:23)
+11301] 	at MillScriptMain_JsonApiClient_scala$.$anonfun$1(JsonApiClient.scala:32)
+11301] 	at mainargs.Invoker$.$anonfun$2(Invoker.scala:77)
+11301] 	at mainargs.Result.flatMap(Result.scala:13)
+11301] 	at mainargs.Result.flatMap$(Result.scala:7)
+11301] 	at mainargs.Result$Success.flatMap(Result.scala:23)
+11301] 	at mainargs.Invoker$.invoke0(Invoker.scala:77)
+11301] 	at mainargs.Invoker$.invoke(Invoker.scala:86)
+11301] 	at mainargs.Invoker$.invokeLocal$1(Invoker.scala:106)
+11301] 	at mainargs.Invoker$.groupArgs$1$$anonfun$2(Invoker.scala:121)
+11301] 	at mainargs.Result.flatMap(Result.scala:13)
+11301] 	at mainargs.Result.flatMap$(Result.scala:7)
+11301] 	at mainargs.Result$Success.flatMap(Result.scala:23)
+11301] 	at mainargs.Invoker$.groupArgs$1(Invoker.scala:121)
+11301] 	at mainargs.Invoker$.runMains(Invoker.scala:126)
+11301] 	at mainargs.ParserForMethods.runRaw0(Parser.scala:291)
+11301] 	at mainargs.ParserForMethods.runEither(Parser.scala:179)
+11301] 	at mainargs.ParserForMethods.runOrExit(Parser.scala:73)
+11301] 	at MillScriptMain_JsonApiClient_scala$.main(JsonApiClient.scala:32)
+11301] 	at MillScriptMain_JsonApiClient_scala.main(JsonApiClient.scala)
+11301]
+11301] [error] JsonApiClient.scala:run Subprocess failed
+11301] Failure:
+11301] /home/runner/work/mill/mill/out/integration/sharedOutFolder.
