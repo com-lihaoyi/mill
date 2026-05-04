@@ -145,10 +145,9 @@ private[mill] class LauncherLockingImpl(
     ensureOpen()
     val ref = heldExclusive.get()
     if (noBuildLock || ref == null || ref.underlying == null) return body
-    // Drop the underlying lock state and free the slot so a nested
-    // `exclusiveLock` can acquire its own. The lease wrapper still
-    // references `ref`, so when we restore underlying below, the wrapper's
-    // eventual close() releases the right thing.
+    // Free the slot so a nested `exclusiveLock` can acquire its own; restore
+    // `ref.underlying` below so the original lease's `close()` releases the
+    // re-acquired lock.
     val savedKind = ref.kind
     val savedWasWrite = savedKind == LauncherLocking.LockKind.Write
     val u = ref.underlying
