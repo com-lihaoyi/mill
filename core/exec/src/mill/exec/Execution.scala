@@ -388,9 +388,13 @@ case class Execution(
         // splitting would let a peer rewrite an upstream `dest` between
         // our Read-drain and Write-acquire, racing our retained-Read
         // invariants and corrupting downstream consumers.
+        // Only `globalExclusive` commands need the daemon-wide Write lock;
+        // plain `exclusive` commands still serialize within this batch but
+        // can overlap with other launchers' tasks.
         val haveExclusive = leafExclusiveCommands.nonEmpty
+        val haveGlobalExclusive = leafExclusiveCommands.exists(_.isGlobalExclusiveCommand)
         val outerKind =
-          if (haveExclusive) LauncherLocking.LockKind.Write
+          if (haveGlobalExclusive) LauncherLocking.LockKind.Write
           else LauncherLocking.LockKind.Read
 
         val empty = Seq.empty[(Task[?], Option[GroupExecution.Results])]

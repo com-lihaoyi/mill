@@ -62,7 +62,11 @@ sealed abstract class Task[T] extends Task.Ops[T] with Applyable[Task, T] with T
   private[mill] def asCommand: Option[Task.Command[T]] = None
   private[mill] def asWorker: Option[Task.Worker[T]] = None
   private[mill] def isExclusiveCommand: Boolean = this match {
-    case c: Task.Command[_] if c.exclusive => true
+    case c: Task.Command[_] if c.exclusive || c.globalExclusive => true
+    case _ => false
+  }
+  private[mill] def isGlobalExclusiveCommand: Boolean = this match {
+    case c: Task.Command[_] if c.globalExclusive => true
     case _ => false
   }
 }
@@ -253,7 +257,14 @@ object Task {
     ${
       Macros.commandImpl[T](
         't
-      )('w, 'ctx, exclusive = '{ false }, persistent = '{ false }, '{ null })
+      )(
+        'w,
+        'ctx,
+        exclusive = '{ false },
+        globalExclusive = '{ false },
+        persistent = '{ false },
+        '{ null }
+      )
     }
 
   /**
@@ -262,7 +273,16 @@ object Task {
    *                  terminal logging prefixes that are applied to normal tasks.
    *                  These are normally used for "top level" commands which are
    *                  run directly to perform some action or display some output
-   *                  to the user.
+   *                  to the user. Exclusive commands do NOT take the daemon-wide
+   *                  workspace lock, so concurrent launchers may still run their
+   *                  own non-conflicting tasks while an exclusive command runs.
+   * @param globalExclusive Like `exclusive`, but additionally takes the
+   *                        daemon-wide workspace Write lock so that no other
+   *                        launcher can be running tasks concurrently. Reserved
+   *                        for commands like `clean`, `init`, or formatters
+   *                        that mutate `out/` or workspace source files in ways
+   *                        that would race with concurrent launchers. Implies
+   *                        `exclusive`.
    * @param persistent If true the `Task.dest` directory is not cleaned between
    *                   runs.
    */
@@ -270,16 +290,19 @@ object Task {
       @unused t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       exclusive: Boolean = false,
       persistent: Boolean = false,
-      @com.lihaoyi.unroll selectiveInputs: Seq[Task[?]] = null
+      @com.lihaoyi.unroll selectiveInputs: Seq[Task[?]] = null,
+      @com.lihaoyi.unroll globalExclusive: Boolean = false
   ): CommandFactory =
     new CommandFactory(
       exclusive = exclusive,
+      globalExclusive = globalExclusive,
       persistent = persistent,
       selectiveInputs = selectiveInputs
     )
 
   class CommandFactory private[mill] (
       val exclusive: Boolean,
+      val globalExclusive: Boolean,
       val persistent: Boolean,
       val selectiveInputs: Seq[Task[?]]
   ) {
@@ -290,7 +313,14 @@ object Task {
       ${
         Macros.commandImpl[T](
           't
-        )('w, 'ctx, '{ this.exclusive }, '{ this.persistent }, '{ this.selectiveInputs })
+        )(
+          'w,
+          'ctx,
+          '{ this.exclusive },
+          '{ this.globalExclusive },
+          '{ this.persistent },
+          '{ this.selectiveInputs }
+        )
       }
   }
 
@@ -529,6 +559,7 @@ object Task {
       val writer: Writer[?],
       val isPrivate: Option[Boolean],
       val exclusive: Boolean,
+      val globalExclusive: Boolean,
       override val persistent: Boolean,
       @com.lihaoyi.unroll override val selectiveInputs0: Seq[Task[?]] =
         null
@@ -778,6 +809,7 @@ object Task {
         w: Expr[Writer[T]],
         ctx: Expr[mill.api.ModuleCtx],
         exclusive: Expr[Boolean],
+        globalExclusive: Expr[Boolean],
         persistent: Expr[Boolean],
         selectiveInputs: Expr[Seq[Task[?]]]
     ): Expr[Command[T]] = {
@@ -792,6 +824,7 @@ object Task {
               $w,
               ${ taskIsPrivate() },
               exclusive = $exclusive,
+              globalExclusive = $globalExclusive,
               persistent = $persistent,
               selectiveInputs0 = $selectiveInputs
             )

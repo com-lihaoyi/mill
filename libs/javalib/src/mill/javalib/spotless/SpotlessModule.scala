@@ -36,7 +36,7 @@ trait SpotlessModule extends CoursierModule, OfflineSupportModule {
       from: String = "HEAD",
       @mainargs.arg(positional = true)
       to: Option[String]
-  ): Task.Command[Unit] = Task.Command(exclusive = true) {
+  ): Task.Command[Unit] = Task.Command(globalExclusive = true) {
     spotlessWorker().ratchet(check.value, staged.value, from, to)
   }
 
@@ -45,7 +45,7 @@ trait SpotlessModule extends CoursierModule, OfflineSupportModule {
    * specification in [[spotlessFormats]].
    * @param check If set, the command fails on format errors. Otherwise, formatting is fixed.
    */
-  def spotless(check: Flag): Task.Command[Unit] = Task.Command(exclusive = true) {
+  def spotless(check: Flag): Task.Command[Unit] = Task.Command(globalExclusive = true) {
     spotlessWorker().format(check.value)
   }
 

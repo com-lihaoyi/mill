@@ -70,9 +70,12 @@ private[mill] trait LauncherLocking extends AutoCloseable {
 
   /**
    * Daemon-wide lock taken by each task batch. Normal batches take Read so
-   * they overlap; `Task.Command(exclusive = true)` batches take Write so they
-   * run alone. Tasks that mutate in-tree sources (e.g. `build.mill`) MUST be
-   * declared `exclusive = true` — there is no per-source lock.
+   * they overlap; `Task.Command(globalExclusive = true)` batches take Write so
+   * they run alone. Tasks that mutate in-tree sources (e.g. `build.mill`) or
+   * `out/` wholesale MUST be declared `globalExclusive = true` — there is no
+   * per-source lock. `Task.Command(exclusive = true)` (without `globalExclusive`)
+   * still serializes within a single launcher's batch, but does not take this
+   * daemon-wide Write lock.
    */
   def exclusiveLock(
       kind: LauncherLocking.LockKind,
