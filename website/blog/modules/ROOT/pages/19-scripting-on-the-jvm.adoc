@@ -1,7 +1,7 @@
 = Scripting on the JVM with Java, Scala, and Kotlin
 // tag::header[]
 :author: Li Haoyi
-:revdate: 12 February 2025
+:revdate: 12 February 2026
 
 _{author}, {revdate}_
 
