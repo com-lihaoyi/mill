@@ -4,7 +4,7 @@ import mill.api.daemon.internal.LauncherLocking
 import mill.api.daemon.internal.LauncherLocking.WaitReporter
 import mill.internal.CrossThreadRwLock.HolderInfo
 
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger, AtomicReference}
 
 private[mill] class LauncherLockingImpl(
     activeCommandMessage: String,
@@ -18,6 +18,19 @@ private[mill] class LauncherLockingImpl(
   private val closed = new AtomicBoolean(false)
   private val activeLeases = scala.collection.mutable.Set.empty[LeaseWrapper]
   private val exclusiveWriteCount = new AtomicInteger(0)
+
+  /**
+   * Single-slot tracker for the launcher's currently-held [[exclusiveLock]]
+   * lease. CAS on [[heldExclusive]] catches reentrant acquisition (the
+   * underlying [[CrossThreadRwLock]] is not reentrant); the mutable
+   * `underlying` slot lets [[withReleasedExclusive]] swap the underlying
+   * lock state out and back in around a nested evaluation while keeping the
+   * original lease wrapper valid.
+   */
+  private class ExclusiveHolder(val kind: LauncherLocking.LockKind) {
+    @volatile var underlying: LauncherLocking.Lease = null
+  }
+  private val heldExclusive = new AtomicReference[ExclusiveHolder](null)
 
   private def ensureOpen(): Unit =
     if (closed.get()) throw new IllegalStateException(s"Lock session $runId is closed")
@@ -55,10 +68,8 @@ private[mill] class LauncherLockingImpl(
       waitReporter: WaitReporter
   ): LauncherLocking.Lease = {
     ensureOpen()
-    // While `exclusiveLock(Write)` is held, no peer can run, so per-task
-    // locking is unnecessary; Noop also avoids self-deadlock if a nested
-    // exclusive command's evaluator tries to escalate a taskLock the outer
-    // evaluation already holds as Read (`CrossThreadRwLock` is not reentrant).
+    // While `exclusiveLock(Write)` is held by this launcher, no peer can run,
+    // so per-task locking is unnecessary.
     if (noBuildLock || exclusiveWriteCount.get() > 0) {
       LauncherLocking.Noop.taskLock(path, displayLabel, kind, waitReporter)
     } else {
@@ -100,32 +111,56 @@ private[mill] class LauncherLockingImpl(
       waitReporter: WaitReporter
   ): LauncherLocking.Lease = {
     ensureOpen()
-    // Reentry: outer `exclusiveLock(Write)` covers all nested work and
-    // a same-thread re-acquire would self-deadlock (lock isn't reentrant).
-    if (noBuildLock || exclusiveWriteCount.get() > 0)
-      LauncherLocking.Noop.exclusiveLock(kind, waitReporter)
-    else {
-      val underlying =
+    if (noBuildLock) return LauncherLocking.Noop.exclusiveLock(kind, waitReporter)
+    val ref = new ExclusiveHolder(kind)
+    if (!heldExclusive.compareAndSet(null, ref))
+      throw new IllegalStateException(
+        s"Reentrant exclusiveLock acquisition (runId=$runId); use " +
+          "`withReleasedExclusive` to suspend the outer lease around a nested " +
+          "re-acquire — the underlying CrossThreadRwLock is not reentrant."
+      )
+    try ref.underlying =
         lockRegistry.exclusiveLock.acquire(kind, waitReporter, noWaitForBuildLock, holder)
-      val tracked =
-        if (kind != LauncherLocking.LockKind.Write) underlying
-        else {
-          exclusiveWriteCount.incrementAndGet()
-          new LauncherLocking.Lease {
-            private val released = new AtomicBoolean(false)
-            private def releaseWriteCount(): Unit =
-              if (released.compareAndSet(false, true)) exclusiveWriteCount.decrementAndGet()
-            override def downgradeToRead(): Unit = {
-              underlying.downgradeToRead()
-              releaseWriteCount()
-            }
-            override def close(): Unit = {
-              try underlying.close()
-              finally releaseWriteCount()
-            }
-          }
+    catch {
+      case t: Throwable =>
+        heldExclusive.compareAndSet(ref, null)
+        throw t
+    }
+    val isWrite = kind == LauncherLocking.LockKind.Write
+    if (isWrite) exclusiveWriteCount.incrementAndGet()
+    acquireManagedLease(new LauncherLocking.Lease {
+      private val released = new AtomicBoolean(false)
+      override def close(): Unit =
+        if (released.compareAndSet(false, true)) {
+          if (isWrite) exclusiveWriteCount.decrementAndGet()
+          val u = ref.underlying
+          ref.underlying = null
+          heldExclusive.compareAndSet(ref, null)
+          if (u != null) u.close()
         }
-      acquireManagedLease(tracked)
+    })
+  }
+
+  override def withReleasedExclusive[T](waitReporter: WaitReporter)(body: => T): T = {
+    ensureOpen()
+    val ref = heldExclusive.get()
+    if (noBuildLock || ref == null || ref.underlying == null) return body
+    // Free the slot so a nested `exclusiveLock` can acquire its own; restore
+    // `ref.underlying` below so the original lease's `close()` releases the
+    // re-acquired lock.
+    val savedKind = ref.kind
+    val savedWasWrite = savedKind == LauncherLocking.LockKind.Write
+    val u = ref.underlying
+    ref.underlying = null
+    heldExclusive.set(null)
+    if (savedWasWrite) exclusiveWriteCount.decrementAndGet()
+    u.close()
+    try body
+    finally {
+      ref.underlying =
+        lockRegistry.exclusiveLock.acquire(savedKind, waitReporter, noWaitForBuildLock, holder)
+      heldExclusive.set(ref)
+      if (savedWasWrite) exclusiveWriteCount.incrementAndGet()
     }
   }
 

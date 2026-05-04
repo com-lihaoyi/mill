@@ -31,7 +31,7 @@ trait InitModule extends Module {
       @mainargs.arg(positional = true, short = 'e') exampleId: Option[ExampleId],
       @arg(name = "show-all") showAll: Flag = Flag()
   ): Command[Seq[String]] =
-    Task.Command {
+    Task.Command(globalExclusive = true) {
       usingExamples { examples =>
         exampleId match {
           case None =>

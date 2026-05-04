@@ -26,7 +26,7 @@ trait PalantirFormatModule extends JavaModule with PalantirFormatBaseModule {
   def palantirformat(
       check: mainargs.Flag = mainargs.Flag(value = false),
       sources: mainargs.Leftover[String]
-  ): Command[Unit] = Task.Command(exclusive = true) {
+  ): Command[Unit] = Task.Command(globalExclusive = true) {
 
     val _sources =
       if (sources.value.isEmpty) this.sources()
@@ -58,7 +58,7 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
       check: mainargs.Flag = mainargs.Flag(value = false),
       @mainargs.arg(positional = true) sources: Tasks[Seq[PathRef]] =
         Tasks.resolveMainDefault("__.sources")
-  ): Command[Unit] = Task.Command(exclusive = true) {
+  ): Command[Unit] = Task.Command(globalExclusive = true) {
 
     val _sources = Task.sequence(sources.value)().iterator.flatten
 

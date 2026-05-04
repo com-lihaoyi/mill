@@ -32,12 +32,13 @@ def runGatedSources() = Task.Command {
   ()
 }
 
-// Exclusive variant: takes the workspace-level write lock for the duration
-// of its body. Used in concurrency tests where we need a CLI invocation that
-// reliably blocks any concurrent BSP request at the launcher-batch granularity
-// (e.g. BSP's `workspaceBuildTargets`, which doesn't itself depend on
-// `gated.sources` so wouldn't park on the per-task gate).
-def runGatedExclusive() = Task.Command(exclusive = true) {
+// Globally-exclusive variant: takes the workspace-level write lock for the
+// duration of its body. Used in concurrency tests where we need a CLI
+// invocation that reliably blocks any concurrent BSP request at the
+// launcher-batch granularity (e.g. BSP's `workspaceBuildTargets`, which
+// doesn't itself depend on `gated.sources` so wouldn't park on the per-task
+// gate).
+def runGatedExclusive() = Task.Command(globalExclusive = true) {
   mill.api.BuildCtx.withFilesystemCheckerDisabled {
     val gateFile = mill.api.BuildCtx.workspaceRoot / "gated-exclusive-wait"
     val enteredFile = mill.api.BuildCtx.workspaceRoot / "gated-exclusive-entered"
