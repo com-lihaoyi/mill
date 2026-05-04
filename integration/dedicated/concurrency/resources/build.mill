@@ -87,12 +87,12 @@ object `package` extends mill.Module {
     println(fast())
   }
 
-  // Exclusive command — takes `exclusiveLock(Write)`, so no other batch
-  // (exclusive or non-exclusive) can run concurrently in the same daemon
-  // until this one completes. Used by `exclusive-task-blocks-everything`
+  // Globally-exclusive command — takes `exclusiveLock(Write)`, so no other
+  // batch (exclusive or non-exclusive) can run concurrently in the same
+  // daemon until this one completes. Used by `exclusive-task-blocks-everything`
   // to assert: (a) a concurrent normal task is blocked on `exclusive`,
   // (b) the wait integrates with the prompt the same way per-task waits do.
-  def runExclusive() = Task.Command(exclusive = true) {
+  def runExclusive() = Task.Command(globalExclusive = true) {
     waitFor("exclusive")
     println("exclusive-value")
   }
