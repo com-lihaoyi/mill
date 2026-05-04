@@ -11,7 +11,6 @@ import mill.api.daemon.internal.{
   TaskApi
 }
 import mill.api.daemon.internal.bsp.BspJavaModuleApi
-import mill.api.daemon.Watchable
 
 /**
  * Manages BSP module discovery and lookup for a Mill build.
@@ -20,9 +19,10 @@ import mill.api.daemon.Watchable
 class BspEvaluators(
     workspaceDir: os.Path,
     val evaluators: Seq[EvaluatorApi],
-    debug: (() => String) => Unit,
-    val watched: Seq[Watchable]
+    debug: (() => String) => Unit
 ) {
+  import BspEvaluators.*
+
   private lazy val disabledBspModules: Set[ModuleApi] =
     Utils.computeDisabledBspModules(evaluators)
 
@@ -63,11 +63,11 @@ class BspEvaluators(
       .map(_.subRelativeTo(workspaceDir))
   }
 
-  val nonScriptSources = extractInputPaths(_.bspBuildTargetSources)
-  val nonScriptResources = extractInputPaths(_.bspBuildTargetResources)
-  val bspScriptIgnore: Seq[String] = MillBuildRootModuleApi.bspScriptIgnore(evaluators)
+  lazy val nonScriptSources: Seq[os.SubPath] = extractInputPaths(_.bspBuildTargetSources)
+  lazy val nonScriptResources: Seq[os.SubPath] = extractInputPaths(_.bspBuildTargetResources)
+  lazy val bspScriptIgnore: Seq[String] = MillBuildRootModuleApi.bspScriptIgnore(evaluators)
 
-  lazy val bspModulesIdList: Seq[(BuildTargetIdentifier, (BspModuleApi, EvaluatorApi))] = {
+  private lazy val snapshot: Snapshot = {
     val scriptModules = evaluators.headOption
       .map(eval =>
         ScriptModuleDiscovery.discover(
@@ -80,19 +80,42 @@ class BspEvaluators(
       )
       .getOrElse(Seq.empty)
 
-    bspModulesIdList0 ++ scriptModules
+    val modulesIdList = bspModulesIdList0 ++ scriptModules
+    val modulesById = modulesIdList.toMap
+    debug(() => s"BspModules: ${modulesById.view.mapValues(_._1.bspDisplayName).toMap}")
+    val bspIdByModule = modulesById.view.mapValues(_._1).map(_.swap).toMap
+    val targetSnapshots = modulesIdList.map { case (id, (module, _)) =>
+      val dependencyUris = module match {
+        case jm: JavaModuleApi =>
+          (jm.recursiveModuleDeps ++ jm.compileModuleDepsChecked)
+            .distinct
+            .collect { case bm: BspModuleApi => bm }
+            .flatMap(bm => bspIdByModule.get(bm).map(_.getUri))
+            .sorted
+        case _ => Nil
+      }
+
+      ChangeNotifier.TargetSnapshot(
+        id = id,
+        targetDigest = (module.bspBuildTarget, dependencyUris).##
+      )
+    }
+    Snapshot(modulesIdList, modulesById, targetSnapshots, bspIdByModule)
   }
 
-  lazy val bspModulesById: Map[BuildTargetIdentifier, (BspModuleApi, EvaluatorApi)] = {
-    val map = bspModulesIdList.toMap
-    debug(() => s"BspModules: ${map.view.mapValues(_._1.bspDisplayName).toMap}")
-    map
-  }
+  lazy val bspModulesIdList: Seq[(BuildTargetIdentifier, (BspModuleApi, EvaluatorApi))] =
+    snapshot.modulesIdList
+
+  lazy val bspModulesById: Map[BuildTargetIdentifier, (BspModuleApi, EvaluatorApi)] =
+    snapshot.modulesById
+
+  lazy val targetSnapshots: Seq[ChangeNotifier.TargetSnapshot] =
+    snapshot.targetSnapshots
 
   lazy val rootModules: Seq[BaseModuleApi] = evaluators.map(_.rootModule)
 
   lazy val bspIdByModule: Map[BspModuleApi, BuildTargetIdentifier] =
-    bspModulesById.view.mapValues(_._1).map(_.swap).toMap
+    snapshot.bspIdByModule
   lazy val syntheticRootBspBuildTarget: Option[SyntheticRootBspBuildTargetData] =
     Some(SyntheticRootBspBuildTargetData.make(workspaceDir))
 
@@ -102,4 +125,13 @@ class BspEvaluators(
     val syntheticIds = syntheticRootBspBuildTarget.map(_.id).toSet
     input.asScala.filterNot(syntheticIds.contains).toList.asJava
   }
+}
+
+object BspEvaluators {
+  private case class Snapshot(
+      modulesIdList: Seq[(BuildTargetIdentifier, (BspModuleApi, EvaluatorApi))],
+      modulesById: Map[BuildTargetIdentifier, (BspModuleApi, EvaluatorApi)],
+      targetSnapshots: Seq[ChangeNotifier.TargetSnapshot],
+      bspIdByModule: Map[BspModuleApi, BuildTargetIdentifier]
+  )
 }

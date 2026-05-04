@@ -1,0 +1,47 @@
+package build
+
+import mill.*
+import mill.scalalib.*
+
+// Single-module Scala project whose `sources` task parks on a workspace-relative
+// gate file. Both CLI `compile` and BSP `buildTargetCompile`
+// (which routes through `semanticDbDataDetailed`) depend on `sources`, so the
+// gate gives us deterministic contention on the same per-task lock from either
+// direction. Tests assert the fine-grained "blocked on … lock 'sources' …"
+// message surfaces in whichever side is waiting.
+object gated extends ScalaModule {
+  def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+
+  private def gateFile = mill.api.BuildCtx.workspaceRoot / "gated-sources-wait"
+  private def enteredFile = mill.api.BuildCtx.workspaceRoot / "gated-sources-entered"
+
+  override def sources = Task {
+    val res = super.sources()
+    mill.api.BuildCtx.withFilesystemCheckerDisabled {
+      os.write.over(enteredFile, "")
+      while (os.exists(gateFile)) Thread.sleep(50L)
+    }
+    res
+  }
+}
+
+// CLI-side wrapper for the gated `sources` task; spawning this command parks
+// the daemon on `gated.sources` while a concurrent BSP request arrives.
+def runGatedSources() = Task.Command {
+  gated.sources()
+  ()
+}
+
+// Exclusive variant: takes the workspace-level write lock for the duration
+// of its body. Used in concurrency tests where we need a CLI invocation that
+// reliably blocks any concurrent BSP request at the launcher-batch granularity
+// (e.g. BSP's `workspaceBuildTargets`, which doesn't itself depend on
+// `gated.sources` so wouldn't park on the per-task gate).
+def runGatedExclusive() = Task.Command(exclusive = true) {
+  mill.api.BuildCtx.withFilesystemCheckerDisabled {
+    val gateFile = mill.api.BuildCtx.workspaceRoot / "gated-exclusive-wait"
+    val enteredFile = mill.api.BuildCtx.workspaceRoot / "gated-exclusive-entered"
+    os.write.over(enteredFile, "")
+    while (os.exists(gateFile)) Thread.sleep(50L)
+  }
+}

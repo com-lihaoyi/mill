@@ -31,7 +31,7 @@ import mill.api.daemon.internal.*
  * This trait is mixed into MillBuildServer to separate the API endpoints
  * from the server infrastructure code.
  */
-trait MillBspEndpoints extends BuildServer with EndpointsApi {
+trait MillBspEndpoints extends BuildServer with MillTestBuildServer with EndpointsApi {
 
   // ==========================================================================
   // Abstract members provided by MillBuildServer
@@ -125,7 +125,7 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
     val logger = createLogger()
     logger.info("Entered onBuildExit")
     SemanticDbJavaModuleApi.resetContext()
-    sessionResult.trySuccess(BspServerResult.Shutdown)
+    completeSessionResult(BspServerResult.Shutdown)
     onShutdown()
   }
 
@@ -182,9 +182,9 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
 
   override def workspaceReload(): CompletableFuture[Object] =
     handlerRaw { _ =>
-      // Instead stop and restart the command
-      // BSP.install(evaluator)
-      sessionResult.trySuccess(BspServerResult.ReloadWorkspace)
+      // Each BSP request already bootstraps a fresh runner state via the
+      // bootstrap bridge in MillMain0, so an explicit reload is a no-op:
+      // the next request will re-evaluate the build automatically.
       ().asInstanceOf[Object]
     }
 
@@ -344,7 +344,7 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
             getReporter,
             TestReporter.DummyTestReporter,
             errorOpt = { result =>
-              val baseErrorOpt = evaluatorErrorOpt(result)
+              val baseErrorOpt = result.values.toEither.left.toOption
               def hasCompilationErrors =
                 reporters.asScala.valuesIterator.flatMap(_.iterator).exists(_.hasErrors)
               if (baseErrorOpt.isEmpty || hasCompilationErrors)
@@ -569,6 +569,37 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
       val cleanedPaths = cleanResult.results.head.get.value.asInstanceOf[Seq[java.nio.file.Path]]
       while (cleanedPaths.exists(p => os.exists(os.Path(p)))) Thread.sleep(10)
       Right(s"${module.bspBuildTarget.displayName} cleaned \n")
+    }
+  }
+
+  // ==========================================================================
+  // Test Endpoints
+  // ==========================================================================
+
+  def loggingTest(): CompletableFuture[Object] = {
+    handlerEvaluators() { (state, logger) =>
+      val tasksEvs = state.bspModulesIdList
+        .collectFirst {
+          case (_, (m: JavaModuleApi, ev)) =>
+            Seq(((m, m.bspJavaModule().bspLoggingTest), ev))
+        }
+        .getOrElse {
+          sys.error("No BSP build target available")
+        }
+
+      tasksEvs
+        .groupMap(_._2)(_._1)
+        .map { case (ev, ts) =>
+          evaluate(
+            ev,
+            s"Checking logging for ${ts.map(_._1.bspDisplayName).mkString(", ")}",
+            ts.map(_._2),
+            logger,
+            reporter = Utils.getBspLoggedReporterPool("", state.bspIdByModule, client)
+          )
+        }
+        .toSeq
+      null
     }
   }
 

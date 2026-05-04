@@ -1,6 +1,6 @@
 package mill.eval
 
-import mill.api.daemon.internal.{CompileProblemReporter, TestReporter}
+import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi, TestReporter}
 import mill.constants.OutFiles.OutFiles
 import mill.api.{PathRef, *}
 import mill.api.internal.{ResolveChecker, Resolved, RootModule0}
@@ -9,6 +9,7 @@ import mill.exec.{Execution, PlanImpl}
 import mill.internal.PrefixLogger
 import mill.resolve.Resolve
 import mill.api.internal.ParseArgs
+import mill.eval.SelectiveExecutionImpl.transitiveNamedSelective
 
 /**
  * [[EvaluatorImpl]] is the primary API through which a user interacts with the Mill
@@ -50,6 +51,7 @@ final class EvaluatorImpl(
   def env = execution.env
   def effectiveThreadCount = execution.effectiveThreadCount
   override def offline: Boolean = execution.offline
+  override def isFinalDepth: Boolean = execution.isFinalDepth
   override def useFileLocks: Boolean = execution.useFileLocks
   override def spanningInvalidationTree: Option[String] = execution.spanningInvalidationTree
   override def classLoaderSigHash: Int = execution.classLoaderSigHash
@@ -173,6 +175,30 @@ final class EvaluatorImpl(
         )
 
       case f: Result.Failure => f // Pass through failure
+    }
+  }
+
+  override private[mill] def probeSelectiveReuse(
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      previousMetadata: String,
+      allowPositionalCommandArgs: Boolean = false
+  ): mill.api.Result[EvaluatorApi.SelectiveReuseDecision] = {
+    resolveTasks(scriptArgs, selectMode, allowPositionalCommandArgs).flatMap { tasks =>
+      // upickle.read can throw on malformed metadata (e.g. from a different
+      // Mill version). Convert that into a Result.Failure so callers fall
+      // back to a full re-evaluation rather than crashing the bootstrap.
+      mill.api.ExecResult.catchWrapException {
+        val oldMetadata = upickle.read[SelectiveExecution.Metadata](previousMetadata)
+        val transitiveNamed = transitiveNamedSelective(tasks)
+        val computed = SelectiveExecutionImpl.Metadata.compute0(this, transitiveNamed)
+        val (_, downstream) =
+          selective.computeDownstream(transitiveNamed, oldMetadata, computed.metadata)
+        EvaluatorApi.SelectiveReuseDecision(
+          reusable = downstream.isEmpty,
+          nextMetadata = upickle.write(computed.metadata)
+        )
+      }
     }
   }
 

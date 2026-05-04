@@ -3,51 +3,16 @@ bsp] BSP server started
 1-buildInitialize] Entered buildInitialize
 1-buildInitialize] Got client semanticdbVersion: * Enabling SemanticDB support.
 1-buildInitialize] buildInitialize took * msec
-bsp-init-mill-build/build.mill-*] compiling * Scala source to * ...
-bsp-init-mill-build/build.mill-*] done compiling
-bsp-init-build.mill-*] compiling * Scala source to * ...
-bsp-init-build.mill-*] [warn] build.mill:107:18
-bsp-init-build.mill-*]   def theThing = thing
-bsp-init-build.mill-*]                  ^^^^^
-bsp-init-build.mill-*] method thing in object diag is deprecated since 0.0.1: deprecated
-bsp-init-build.mill-*] 
-bsp-init-build.mill-*] [warn] one warning found
-bsp-init-build.mill-*] done compiling
-bsp-init] BSP disabled for target file:///workspace/skipped
-bsp-init] app
-bsp-init] delayed
-bsp-init] dependsOnSkipped
-bsp-init] diag
-bsp-init] errored
-bsp-init] hello-java
-bsp-init] hello-kotlin
-bsp-init] hello-scala
-bsp-init] lib
-bsp-init] scripts
-bsp-init] selective
-bsp-init] skipped
-bsp-init] sourcesNeedCompile
-bsp-init] clean
-bsp-init] init
-bsp-init] inspect
-bsp-init] java
-bsp-init] javac
-bsp-init] javap
-bsp-init] jfr
-bsp-init] jps
-bsp-init] jstack
-bsp-init] path
-bsp-init] plan
-bsp-init] resolve
-bsp-init] show
-bsp-init] showNamed
-bsp-init] shutdown
-bsp-init] updateMillScripts
-bsp-init] version
-bsp-init] visualize
-bsp-init] visualizePlan
+bsp-mill-build/build.mill-*] compiling * Scala source to * ...
+bsp-mill-build/build.mill-*] done compiling
+bsp-build.mill-*] compiling * Scala source to * ...
+bsp-build.mill-*] [warn] build.mill:107:18
+bsp-build.mill-*]   def theThing = thing
+bsp-build.mill-*]                  ^^^^^
+bsp-build.mill-*] method thing in object diag is deprecated since 0.0.1: deprecated
+bsp-build.mill-*] [warn] one warning found
+bsp-build.mill-*] done compiling
 2-workspaceBuildTargets] Entered workspaceBuildTargets
-bsp-init] BSP disabled for target file:///workspace/skipped
 2-workspaceBuildTargets] Evaluating * tasks
 2-workspaceBuildTargets] Done
 2-workspaceBuildTargets] [error] Request 'workspaceBuildTargets' failed for file:///workspace/dependsOnSkipped: java.util.NoSuchElementException: key not found: skipped

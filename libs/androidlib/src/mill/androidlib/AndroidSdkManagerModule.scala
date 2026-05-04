@@ -32,7 +32,7 @@ trait AndroidSdkManagerModule extends ExternalModule {
 
   def androidSdkManagerLockFile: os.Path = androidMillHomeDir() / ".sdkmanager.lock"
 
-  def androidSdkManagerWorkerMaxWaitAttempts: Task[Int] = Task {
+  def androidSdkManagerWorkerMaxWaitAttempts: Task.Simple[Int] = Task {
     25
   }
 

@@ -37,8 +37,32 @@ object BuildCtx {
   def withFilesystemCheckerDisabled[T](block: => T): T =
     os.checker.withValue(os.Checker.Nop) { block }
 
-  protected[mill] val watchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
-  protected[mill] val evalWatchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
+  // Module-init watches: populated by `<clinit>` of the build classloader
+  // (serialized by the JVM), so a shared default buffer is safe.
+  private val moduleWatchedDefault: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
+
+  // Eval watches: populated per evaluation via `BuildCtx.evalWatch`.
+  // The DynamicVariable + `ExecutionContexts.ThreadPool` capture/rebind
+  // give each evaluation an isolated buffer so concurrent launchers
+  // don't clobber each other's watches.
+  private[mill] val watchedValues0: DynamicVariable[mutable.Buffer[Watchable]] =
+    new DynamicVariable(moduleWatchedDefault)
+  private[mill] val evalWatchedValues0: DynamicVariable[mutable.Buffer[Watchable]] =
+    new DynamicVariable(mutable.Buffer.empty[Watchable])
+
+  protected[mill] def watchedValues: mutable.Buffer[Watchable] = watchedValues0.value
+  protected[mill] def evalWatchedValues: mutable.Buffer[Watchable] = evalWatchedValues0.value
+
+  /**
+   * Run `body` with a fresh per-evaluation `evalWatchedValues` buffer; returns
+   * the buffer alongside the body result so the caller can collect the
+   * accumulated watches without racing other evaluations.
+   */
+  private[mill] def withEvalWatchedValues[T](body: => T): (T, mutable.Buffer[Watchable]) = {
+    val buf = mutable.Buffer.empty[Watchable]
+    val result = evalWatchedValues0.withValue(buf)(body)
+    (result, buf)
+  }
 
   /**
    * Register a compute value as watched during module initialization, so Mill knows
@@ -52,23 +76,23 @@ object BuildCtx {
         v.hashCode(),
         fn.value + ":" + ln.value
       )
-      watchedValues.append(watchable)
+      watchedValues0.value.append(watchable)
       v
     }
   }
 
   def watch(p: os.Path): os.Path = withFilesystemCheckerDisabled {
     val watchable = Watchable.Path.from(PathRef(p))
-    watchedValues.append(watchable)
+    watchedValues0.value.append(watchable)
     p
   }
   def evalWatch(p: os.Path): os.Path = withFilesystemCheckerDisabled {
     val watchable = Watchable.Path.from(PathRef(p))
-    evalWatchedValues.append(watchable)
+    evalWatchedValues0.value.append(watchable)
     p
   }
 
-  def watch0(w: Watchable): Unit = watchedValues.append(w)
+  def watch0(w: Watchable): Unit = watchedValues0.value.append(w)
 
-  def evalWatch0(w: Watchable): Unit = evalWatchedValues.append(w)
+  def evalWatch0(w: Watchable): Unit = evalWatchedValues0.value.append(w)
 }

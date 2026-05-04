@@ -253,6 +253,30 @@ object BspServerTestUtil {
         client
       )
 
+      // BSP must route through the regular MillDaemonMain by default so that
+      // build state is shared with CLI invocations. If the launcher falls back
+      // to MillNoDaemonMain/MillBspMain, the launcher subprocess will have a
+      // child JVM whose command line includes that main class.
+      val separateBspOutDir =
+        mill.internal.OutputDirectoryLayout.bspOutOverride(
+          workspacePath,
+          millTestSuiteEnv
+        ).isDefined
+      if (!separateBspOutDir) {
+        val launcherHandle = proc.wrapped.toHandle
+        val noDaemonChild = launcherHandle.descendants().iterator.asScala.find { ph =>
+          val cmd = ph.info().commandLine().orElse("")
+          cmd.contains("mill.daemon.MillNoDaemonMain") ||
+          cmd.contains("mill.daemon.MillBspMain")
+        }
+        noDaemonChild.foreach { ph =>
+          throw new AssertionError(
+            s"Expected BSP to run via MillDaemonMain, but launcher PID ${launcherHandle.pid()} " +
+              s"spawned a no-daemon child PID ${ph.pid()}: ${ph.info().commandLine().orElse("?")}"
+          )
+        }
+      }
+
       val value =
         try f(buildServer, initRes)
         finally {
@@ -267,16 +291,27 @@ object BspServerTestUtil {
       value
     } finally {
       try {
-        proc.stdin.close()
-        proc.stdout.close()
+        try proc.stdin.close()
+        catch { case _: java.io.IOException => () }
+        try proc.stdout.close()
+        catch { case _: java.io.IOException => () }
 
-        proc.join(30000L)
+        waitForProcessExit(proc, 30000L)
       } finally {
         if (!success && isCI) {
           System.err.println(" == BSP server output ==")
           System.err.write(stderr.toByteArray)
           System.err.println(" == end of BSP server output ==")
         }
+      }
+    }
+  }
+
+  private def waitForProcessExit(proc: os.SubProcess, timeoutMillis: Long): Unit = {
+    if (!proc.waitFor(timeoutMillis)) {
+      proc.destroy(recursive = false)
+      if (!proc.waitFor(5000L)) {
+        throw new RuntimeException("BSP server did not exit within the expected timeout")
       }
     }
   }

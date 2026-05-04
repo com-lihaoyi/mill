@@ -197,35 +197,55 @@ object PathRef {
       storeSerializedPaths(p)
       p.toString()
     },
-    {
-      case s"$prefix:$valid0:$hex:$pathString" if prefix == "ref" || prefix == "qref" =>
+    { s =>
+      serializedPathRefParts(s) match {
+        case Some((prefix, valid0, hex, pathString)) =>
 
-        val path = os.Path(pathString)
-        val quick = prefix match {
-          case "qref" => true
-          case "ref" => false
-        }
-        val validOrig = valid0 match {
-          case "v0" => Revalidate.Never
-          case "v1" => Revalidate.Once
-          case "vn" => Revalidate.Always
-        }
-        // Parsing to a long and casting to an int is the only way to make
-        // round-trip handling of negative numbers work =(
-        val sig = java.lang.Long.parseLong(hex, 16).toInt
-        val pr = PathRef(path, quick, sig, revalidate = validOrig)
-        validatedPaths.value.revalidateIfNeededOrThrow(pr)
-        storeSerializedPaths(pr)
-        pr
-      case s =>
-        val path = s match {
-          case s"//$rest" => os.Path(rest, BuildCtx.workspaceRoot)
-          case _ => os.Path(s, currentOverrideModulePath.value)
-        }
+          val path = os.Path(pathString)
+          val quick = prefix == "qref"
+          val validOrig = valid0 match {
+            case "v0" => Revalidate.Never
+            case "v1" => Revalidate.Once
+            case "vn" => Revalidate.Always
+          }
+          // Parsing to a long and casting to an int is the only way to make
+          // round-trip handling of negative numbers work =(
+          val sig = java.lang.Long.parseLong(hex, 16).toInt
+          val pr = PathRef(path, quick, sig, revalidate = validOrig)
+          validatedPaths.value.revalidateIfNeededOrThrow(pr)
+          storeSerializedPaths(pr)
+          pr
+        case None =>
+          val path =
+            if (s.startsWith("//")) os.Path(s.substring(2), BuildCtx.workspaceRoot)
+            else os.Path(s, currentOverrideModulePath.value)
 
-        mill.api.BuildCtx.withFilesystemCheckerDisabled(PathRef(path))
+          mill.api.BuildCtx.withFilesystemCheckerDisabled(PathRef(path))
+      }
     }
   )
+
+  private def serializedPathRefParts(s: String): Option[(String, String, String, String)] = {
+    val firstColon = s.indexOf(':')
+    if (firstColon < 0) None
+    else {
+      val prefix = s.substring(0, firstColon)
+      if (prefix != "ref" && prefix != "qref") None
+      else {
+        val secondColon = s.indexOf(':', firstColon + 1)
+        val thirdColon = if (secondColon < 0) -1 else s.indexOf(':', secondColon + 1)
+        if (secondColon < 0 || thirdColon < 0) None
+        else {
+          Some((
+            prefix,
+            s.substring(firstColon + 1, secondColon),
+            s.substring(secondColon + 1, thirdColon),
+            s.substring(thirdColon + 1)
+          ))
+        }
+      }
+    }
+  }
   private[mill] val currentOverrideModulePath = DynamicVariable[os.Path](null)
 
   // scalafix:off; we want to hide the unapply method

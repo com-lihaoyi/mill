@@ -10,9 +10,13 @@ object PlanImpl {
     val goalSet = goals.toSet
     val topoSorted = PlanImpl.topoSorted(transitive)
 
+    // Anonymous goals are group terminals (so the user gets a result) but are
+    // *not* cut points: traversing through them keeps `interGroupDeps` a
+    // function of the named graph alone, so heights for shared named tasks
+    // agree across launchers regardless of which anon tasks any peer launcher
+    // happens to pass as goals.
     val sortedGroups: MultiBiMap[Task[?], Task[?]] =
-      PlanImpl.groupAroundImportantTasks(topoSorted) {
-        // important: all named tasks and those explicitly requested
+      PlanImpl.groupAroundImportantTasks(topoSorted, _.isInstanceOf[Task.Named[?]]) {
         case t: Task.Named[Any] => t
         case t if goalSet.contains(t) => t
       }
@@ -30,7 +34,26 @@ object PlanImpl {
   def groupAroundImportantTasks[T](topoSortedTasks: TopoSorted)(important: PartialFunction[
     Task[?],
     T
-  ]): MultiBiMap[T, Task[?]] = {
+  ]): MultiBiMap[T, Task[?]] =
+    groupAroundImportantTasks(topoSortedTasks, important.isDefinedAt)(important)
+
+  /**
+   * `cutPoint` decides where group traversal stops; `important` decides which
+   * tasks become group terminals in the outer iteration. They differ when an
+   * anonymous task can be a goal (group terminal) without acting as a cut
+   * point for other groups walking through it.
+   *
+   * Consequence for anonymous goals: an anon `y` reachable from a named
+   * group's terminal walks into both groups, so its body is evaluated once
+   * per containing group. This matches Mill's existing anon-shared-across-
+   * groups model (see `multiTerminalGroup`) and assumes anonymous tasks are
+   * pure. If side effects are placed in a `Task.Anon` and that task is also
+   * passed as a goal, it will run twice per launcher.
+   */
+  def groupAroundImportantTasks[T](
+      topoSortedTasks: TopoSorted,
+      cutPoint: Task[?] => Boolean
+  )(important: PartialFunction[Task[?], T]): MultiBiMap[T, Task[?]] = {
 
     val output = new MultiBiMap.Mutable[T, Task[?]]()
     val topoSortedIndices = topoSortedTasks.values.zipWithIndex.toMap
@@ -41,7 +64,7 @@ object PlanImpl {
 
         def rec(t: Task[?]): Unit = {
           if (transitiveTasks.contains(t)) () // do nothing
-          else if (important.isDefinedAt(t) && t != task) () // do nothing
+          else if (cutPoint(t) && t != task) () // do nothing
           else {
             transitiveTasks.put(t, topoSortedIndices(t))
             t.inputs.foreach(rec)
