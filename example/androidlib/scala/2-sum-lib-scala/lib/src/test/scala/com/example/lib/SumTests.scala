@@ -1,12 +1,10 @@
 package com.example.lib
 
-import utest.*
+import org.scalatest.funsuite.AnyFunSuite
 
-object SumTests extends TestSuite {
-  val tests = Tests {
-    test("add") {
-      assert(Sum.add(2, 2) == 4)
-      assert(Sum.add(7, 3) == 10)
-    }
+class SumTests extends AnyFunSuite {
+  test("add") {
+    assert(Sum.add(2, 2) == 4)
+    assert(Sum.add(7, 3) == 10)
   }
 }
