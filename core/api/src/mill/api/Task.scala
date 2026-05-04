@@ -559,10 +559,9 @@ object Task {
       val writer: Writer[?],
       val isPrivate: Option[Boolean],
       val exclusive: Boolean,
-      val globalExclusive: Boolean,
       override val persistent: Boolean,
-      @com.lihaoyi.unroll override val selectiveInputs0: Seq[Task[?]] =
-        null
+      @com.lihaoyi.unroll override val selectiveInputs0: Seq[Task[?]] = null,
+      @com.lihaoyi.unroll val globalExclusive: Boolean = false
   ) extends Task.Named[T] {
     override def asCommand: Some[Command[T]] = Some(this)
     // FIXME: deprecated return type: Change to Option
