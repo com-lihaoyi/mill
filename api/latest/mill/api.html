@@ -1416,7 +1416,7 @@
             <div class="cover">
              <div class="doc">
               <p>An API that allows you to resolve, plan, and execute Mill tasks.</p>
-              <p><a href="api/Evaluator.html">Evaluator</a> can be taken as a parameter to <a href="api/Task$$Command.html">Task.Command</a>s marked as <code>exclusive = true</code>, providing those commands with the ability to inspect the build and dynamically decide what to evaluate. Many builtin commands like <code>show</code>, <code>plan</code>, <code>path</code>, etc. are implemented in this way</p>
+              <p><a href="api/Evaluator.html">Evaluator</a> can be taken as a parameter to <a href="api/Task$$Command.html">Task.Command</a>s marked as <code>exclusive = true</code> (or <code>globalExclusive = true</code>), providing those commands with the ability to inspect the build and dynamically decide what to evaluate. Many builtin commands like <code>show</code>, <code>plan</code>, <code>path</code>, etc. are implemented in this way</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -4768,6 +4768,7 @@
 </span></code></pre>
                <div class="buttons"></div>
               </div>
+              <p>Mutating commands like <code>clean</code> should additionally use <code>globalExclusive = true</code> to take the daemon-wide workspace Write lock.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">

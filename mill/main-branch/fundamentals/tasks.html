@@ -882,7 +882,7 @@ making use of the most common <code>Task.Source</code>, <code>Task</code>, and <
 to define a simple build graph with some input source files and intermediate build steps:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-6-7cfef1/mill-dist-1.1.6-example-fundamentals-tasks-1-task-graph.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/tasks/1-task-graph">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-7-15943a/mill-dist-1.1.6-example-fundamentals-tasks-1-task-graph.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/tasks/1-task-graph">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
@@ -1318,7 +1318,7 @@ skipped is due to <a href="../large/selective-execution.html" class="xref page">
 <div class="sect2">
 <h3 id="_sources"><a class="anchor" href="#_sources"></a>Sources</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-6-7cfef1/mill-dist-1.1.6-example-fundamentals-tasks-2-primary-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/tasks/2-primary-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-7-15943a/mill-dist-1.1.6-example-fundamentals-tasks-2-primary-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/tasks/2-primary-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1903,6 +1903,62 @@ dependency has failed.</p>
 Tasks are, and their returned metadata stored at the same <code>out/run.json</code>
 path for consumption by external tools.</p>
 </div>
+<div class="sect3">
+<h4 id="_exclusive_commands"><a class="anchor" href="#_exclusive_commands"></a>Exclusive Commands</h4>
+<div class="paragraph">
+<p>Commands declared with <code>exclusive = true</code> run serially at the end of an
+evaluation, after all parallel tasks have completed, with no other tasks
+running alongside them and without the per-task logging prefixes that are
+applied to normal tasks. Exclusive commands are useful for "top-level"
+commands that print output directly to the user (so the output is not
+interleaved with parallel task logs) or for commands that take an
+<code>Evaluator</code> parameter — such commands must be <code>exclusive</code>.</p>
+</div>
+<div class="paragraph">
+<p><code>exclusive</code> commands do <strong>not</strong> take the daemon-wide workspace lock, so
+concurrent Mill launchers can still run their own non-conflicting tasks
+alongside an exclusive command.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def printDepTree(evaluator: mill.api.Evaluator, tasks: String*) =
+  Task.Command(exclusive = true) {
+    evaluator.plan(evaluator.resolveTasks(tasks, mill.api.SelectMode.Multi).get)
+      .sortedGroups
+      .keys()
+      .foreach(println)
+  }</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_globally_exclusive_commands"><a class="anchor" href="#_globally_exclusive_commands"></a>Globally-Exclusive Commands</h4>
+<div class="paragraph">
+<p>Commands declared with <code>globalExclusive = true</code> behave like <code>exclusive</code>
+commands, but additionally take the daemon-wide workspace Write lock for
+the duration of their evaluation. While a globally-exclusive command runs,
+no other Mill launcher in the same daemon can run any task — concurrent
+launchers block until the globally-exclusive command completes.</p>
+</div>
+<div class="paragraph">
+<p><code>globalExclusive</code> is reserved for commands that mutate workspace files in
+ways that would race with concurrent launchers, e.g. <code>clean</code>, <code>init</code>, code
+formatters that rewrite source files, etc. For example, a command that
+regenerates a checked-in source file should be <code>globalExclusive</code> so a
+concurrent launcher&#8217;s <code>compile</code> cannot read the file mid-rewrite:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def regenerateVersionFile() = Task.Command(globalExclusive = true) {
+  val path = mill.api.BuildCtx.workspaceRoot / "src" / "Version.java"
+  os.write.over(
+    path,
+    s"""public class Version { public static final String value = "1.0"; }"""
+  )
+}</code></pre>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -1912,7 +1968,7 @@ path for consumption by external tools.</p>
 <div class="sect2">
 <h3 id="_inputs"><a class="anchor" href="#_inputs"></a>Inputs</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-6-7cfef1/mill-dist-1.1.6-example-fundamentals-tasks-4-inputs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/tasks/4-inputs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-7-15943a/mill-dist-1.1.6-example-fundamentals-tasks-4-inputs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/tasks/4-inputs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -2094,7 +2150,7 @@ incrementing it each time the task is evaluated. Note that like normal cached
 tasks, persistent tasks only re-evaluate when their inputs change:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-6-7cfef1/mill-dist-1.1.6-example-fundamentals-tasks-5-persistent-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/tasks/5-persistent-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-7-15943a/mill-dist-1.1.6-example-fundamentals-tasks-5-persistent-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/tasks/5-persistent-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -2246,7 +2302,7 @@ that like normal cached tasks, the task using the worker only re-evaluates
 when its inputs change:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-6-7cfef1/mill-dist-1.1.6-example-fundamentals-tasks-6-workers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/tasks/6-workers">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-7-15943a/mill-dist-1.1.6-example-fundamentals-tasks-6-workers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/tasks/6-workers">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -2662,7 +2718,7 @@ not runnable from the command-line, but can be used to share common code you
 find yourself repeating in <code>Task</code>s and <code>Command</code>s.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-6-7cfef1/mill-dist-1.1.6-example-fundamentals-tasks-3-anonymous-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/tasks/3-anonymous-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-7-15943a/mill-dist-1.1.6-example-fundamentals-tasks-3-anonymous-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/tasks/3-anonymous-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
