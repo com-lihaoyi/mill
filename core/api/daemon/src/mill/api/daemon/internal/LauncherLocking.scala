@@ -81,6 +81,18 @@ private[mill] trait LauncherLocking extends AutoCloseable {
       kind: LauncherLocking.LockKind,
       waitReporter: LauncherLocking.WaitReporter
   ): LauncherLocking.Lease
+
+  /**
+   * Run `body` with the launcher's currently-held [[exclusiveLock]] lease (if
+   * any) temporarily released, re-acquiring at the original kind on return so
+   * the original lease's `close()` still works. Lets a nested
+   * [[mill.exec.Execution.executeTasks]] (e.g. an `exclusive` evaluator
+   * command's body invoking `Evaluator.execute`) take its own [[exclusiveLock]]
+   * without deadlocking on the non-reentrant underlying lock. Peer launchers
+   * may race in during the released window — acceptable because the nested
+   * batch takes whatever cross-launcher exclusion its inner tasks require.
+   */
+  def withReleasedExclusive[T](waitReporter: LauncherLocking.WaitReporter)(body: => T): T
 }
 
 private[mill] object LauncherLocking {
@@ -144,6 +156,7 @@ private[mill] object LauncherLocking {
       Right(NoopLease)
     override def awaitTaskStateChange(path: Path, displayLabel: String, timeoutMs: Long): Unit = ()
     override def exclusiveLock(kind: LockKind, waitReporter: WaitReporter): Lease = NoopLease
+    override def withReleasedExclusive[T](waitReporter: WaitReporter)(body: => T): T = body
     override def close(): Unit = ()
   }
 }

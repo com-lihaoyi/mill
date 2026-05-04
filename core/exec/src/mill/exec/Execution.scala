@@ -397,18 +397,30 @@ case class Execution(
           if (haveGlobalExclusive) LauncherLocking.LockKind.Write
           else LauncherLocking.LockKind.Read
 
+        // Suspend any outer-batch exclusive lease this launcher already
+        // holds so a nested call (e.g. from `show`'s body invoking
+        // `Evaluator.execute`) can take its own without self-deadlocking on
+        // the non-reentrant underlying lock. No-op when nothing is held.
         val empty = Seq.empty[(Task[?], Option[GroupExecution.Results])]
+
+        def runBatch(): (
+            Seq[(Task[?], Option[GroupExecution.Results])],
+            Seq[(Task[?], Option[GroupExecution.Results])]
+        ) = {
+          val ne =
+            if (nonExclusiveTasks.isEmpty) empty
+            else evaluateTerminals(nonExclusiveTasks, exclusive = false).toSeq
+          val ex = leafExclusiveCommands.flatMap { terminal =>
+            evaluateTerminals(Seq(terminal), exclusive = true)
+          }.toSeq
+          (ne, ex)
+        }
+
         val (nonExclusiveResults, exclusiveResults) =
           if (nonExclusiveTasks.isEmpty && !haveExclusive) (empty, empty)
-          else withExclusiveLease(outerKind) {
-            val ne =
-              if (nonExclusiveTasks.isEmpty) empty
-              else evaluateTerminals(nonExclusiveTasks, exclusive = false).toSeq
-            val ex = leafExclusiveCommands.flatMap { terminal =>
-              evaluateTerminals(Seq(terminal), exclusive = true)
-            }.toSeq
-            (ne, ex)
-          }
+          else workspaceLocking.withReleasedExclusive(batchWaitReporter)(
+            withExclusiveLease(outerKind)(runBatch())
+          )
 
         // FAILED on any outermost failure (meta-build failure aborts bootstrap);
         // SUCCESS only at the final requested depth.
