@@ -11,21 +11,12 @@ object HelloKotlinTests extends TestSuite {
 
   // Older Kotlin versions don't support running on JDK 25+ (their JdkVersion enum
   // can't parse "25.0.2"), so filter them out when running tests on JDK 25+.
-  val jdkMajor = Runtime.version().feature()
-  val allKotlinVersions =
-    Seq("1.9.24", "2.0.20", "2.1.20", "2.3.0", Versions.kotlinVersion).distinct
+  import scala.math.Ordering.Implicits.seqOrdering
+  def supportsCurrentJdk(v: String) = Runtime.version().feature() < 25 ||
+    v.split("[.-]").take(3).flatMap(_.toIntOption).toSeq >= Seq(2, 2, 20)
   val crossMatrix = for {
-    kotlinVersion <- allKotlinVersions.filter { v =>
-      if (jdkMajor < 25) true
-      else {
-        val parts = v.split("[.-]").take(3).toSeq.flatMap(_.toIntOption.toList)
-        parts match {
-          case Seq(maj, min, patch) =>
-            maj > 2 || (maj == 2 && (min > 2 || (min == 2 && patch >= 20)))
-          case _ => true
-        }
-      }
-    }
+    kotlinVersion <- Seq("1.9.24", "2.0.20", "2.1.20", "2.3.0", Versions.kotlinVersion).distinct
+    if supportsCurrentJdk(kotlinVersion)
     embeddable <- Seq(false, true)
   } yield (kotlinVersion, embeddable)
 

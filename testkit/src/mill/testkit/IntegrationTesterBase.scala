@@ -21,10 +21,11 @@ trait IntegrationTesterBase {
     }
 
     // JDK 23+ emits warnings on first call to deprecated `sun.misc.Unsafe`
-    // methods (e.g. `objectFieldOffset`, used by Scala's `LazyVals`). The
-    // warnings are emitted to stderr and break golden-text test assertions,
-    // so silence them in spawned Mill subprocesses. `JDK_JAVA_OPTIONS` is
-    // applied automatically by the JVM and propagates to nested forks.
+    // methods (e.g. `objectFieldOffset`, used by Scala's `LazyVals`). Those
+    // warnings are stderr noise that breaks golden-text test assertions, so
+    // silence them in spawned Mill subprocesses (and any nested forks) via
+    // `JDK_JAVA_OPTIONS`. The JVM also prints a `Picked up JDK_JAVA_OPTIONS:`
+    // NOTE line, which test framework `normalize` helpers must filter.
     val jdk23PlusOpts =
       if (Runtime.version().feature() >= 23)
         Map(

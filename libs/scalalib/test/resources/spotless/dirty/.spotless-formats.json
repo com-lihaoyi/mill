@@ -19,7 +19,7 @@
         "steps": [
           {
             "$type": "GoogleJavaFormat",
-        "version": "1.35.0"
+            "version": "1.35.0"
           }
         ]
       }
@@ -41,7 +41,7 @@
         "steps": [
           {
             "$type": "GoogleJavaFormat",
-        "version": "1.35.0"
+            "version": "1.35.0"
           }
         ]
       },

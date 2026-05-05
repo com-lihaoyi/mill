@@ -317,7 +317,6 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // classpath
     innerCompilerArgs ++= Seq("-libraries", librariesCp.iterator.mkString(File.pathSeparator))
     innerCompilerArgs ++= Seq("-main", if (callMain) "call" else "noCall")
-    // -meta-info is a legacy-JS-backend flag, rejected by Kotlin 2.0+ IR backend
     if (moduleKind != ModuleKind.NoModule) {
       innerCompilerArgs ++= Seq(
         "-module-kind",
