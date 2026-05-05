@@ -60,19 +60,13 @@ object LockUpgrade {
    * (i.e., must not increment any waiter counter that gates Read
    * acquisition); otherwise the caller's own next Read attempt would
    * trip writer-priority and the retry loop would stall.
-   *
-   * `syntheticPrefix` is forwarded to `waitReporter.reportWait` so a session-
-   * level wait (no preexisting prompt line to attach to) can fabricate one
-   * with a meaningful prefix instead of a `wait-N` placeholder.
    */
   def readThenWrite[T](
       acquireRead: => LauncherLocking.Lease,
-      tryAcquireWrite: () => Either[String, LauncherLocking.Lease],
+      tryAcquireWrite: () => Either[LauncherLocking.Contention, LauncherLocking.Lease],
       awaitStateChange: Long => Unit,
       waitReporter: LauncherLocking.WaitReporter,
-      lockLabel: String,
-      awaitTimeoutMs: Long = 1000L,
-      syntheticPrefix: Seq[String] = Nil
+      awaitTimeoutMs: Long = 1000L
   )(
       readBody: Scope => Decision[T]
   )(
@@ -129,9 +123,9 @@ object LockUpgrade {
                     writeScope.closeAlways()
                     throw t
                 }
-              case Left(blockMsg) =>
+              case Left(c) =>
                 if (waitToken == null)
-                  waitToken = waitReporter.reportWait(blockMsg, lockLabel, syntheticPrefix)
+                  waitToken = waitReporter.reportWait(c.message, c.label, c.syntheticPrefix)
                 awaitStateChange(awaitTimeoutMs)
                 loop()
             }

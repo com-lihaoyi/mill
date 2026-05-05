@@ -173,7 +173,7 @@ private[mill] object LauncherLocking {
         kind: LockKind,
         waitReporter: WaitReporter
     ): Lease = NoopLease
-    override def tryTaskWriteLock(path: Path, displayLabel: String): Either[String, Lease] =
+    override def tryTaskWriteLock(path: Path, displayLabel: String): Either[Contention, Lease] =
       Right(NoopLease)
     override def awaitTaskStateChange(path: Path, displayLabel: String, timeoutMs: Long): Unit = ()
     override def exclusiveLock(kind: LockKind, waitReporter: WaitReporter): Lease = NoopLease

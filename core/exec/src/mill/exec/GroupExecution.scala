@@ -362,8 +362,7 @@ trait GroupExecution {
             acquireRead = acquireTaskLock(LauncherLocking.LockKind.Read),
             tryAcquireWrite = () => tryWriteTaskLock(),
             awaitStateChange = awaitTaskLockChange,
-            waitReporter = taskWaitReporter,
-            lockLabel = labelled.ctx.segments.render
+            waitReporter = taskWaitReporter
           ) { scope =>
             loadCachedOrWorker(
               loadCachedJson(logger, inputsHash, labelled, paths),
