@@ -795,6 +795,18 @@ class GenIdeaImpl(
     val outputUrl = relUrl(compileOutputPath)
 
     <module type="JAVA_MODULE" version={"" + ideaConfigVersion}>
+      {
+      if (facets.isEmpty) NodeSeq.Empty
+      else {
+        <component name="FacetManager">
+          {
+          for (facet <- facets) yield <facet type={facet.`type`} name={facet.name}>
+            {ideaConfigElementTemplate(facet.config)}
+          </facet>
+        }
+        </component>
+      }
+    }
       <component name="NewModuleRootManager">
         {
       if (isTest) <output-test url={outputUrl} />
@@ -853,18 +865,6 @@ class GenIdeaImpl(
         }
     }
       </component>
-      {
-      if (facets.isEmpty) NodeSeq.Empty
-      else {
-        <component name="FacetManager">
-            {
-          for (facet <- facets) yield <facet type={facet.`type`} name={facet.name}>
-              {ideaConfigElementTemplate(facet.config)}
-            </facet>
-        }
-          </component>
-      }
-    }
     </module>
   }
 
