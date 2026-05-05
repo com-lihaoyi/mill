@@ -470,7 +470,7 @@ object `package` extends mill.Module {
     val replacePath = newSourceDir.relativeTo(baseDir).toString()
     //      println(s"Cleaning relative path '${pathToRemove}' ...")
     import org.htmlcleaner.*
-    val cleaner = new HtmlCleaner()
+    val cleaner = HtmlCleaner()
     var changed = false
     os.walk(dir).foreach { file =>
       if (os.isFile(file) && file.ext == "html") {
@@ -493,7 +493,7 @@ object `package` extends mill.Module {
         }
         if (changed) {
           println(s"Writing '${file}' ...")
-          val newHtml = new SimpleHtmlSerializer(cleaner.getProperties()).getAsString(node)
+          val newHtml = SimpleHtmlSerializer(cleaner.getProperties()).getAsString(node)
           os.write.over(file, newHtml)
         }
       }
@@ -592,7 +592,7 @@ object `package` extends mill.Module {
     // This is flaky due to rate limits so ignore it for now
 
     // if (brokenRemoteLinks().nonEmpty){
-    //   throw new Exception("Broken Remote Links: " + upickle.write(brokenRemoteLinks(), indent = 2))
+    //   throw Exception("Broken Remote Links: " + upickle.write(brokenRemoteLinks(), indent = 2))
     // }
   }
 

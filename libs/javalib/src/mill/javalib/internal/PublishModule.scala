@@ -34,7 +34,7 @@ private[mill] object PublishModule {
       pgpWorker: PgpWorkerApi
   ): Option[String] =
     pgpImportSecretIfProvided(env, pgpWorker).map(_.fold(
-      err => throw new IllegalArgumentException(err),
+      err => throw IllegalArgumentException(err),
       identity
     ))
 
@@ -130,11 +130,11 @@ private[mill] object PublishModule {
 
     /** Creates an instance if the passphrase is not empty. */
     def apply(keyId: String, passphrase: Option[String]): GpgKey =
-      new GpgKey(keyId = keyId, passphrase = passphrase.filter(_.nonEmpty))
+      GpgKey(keyId = keyId, passphrase = passphrase.filter(_.nonEmpty))
 
     /** Creates an instance if the passphrase is not empty. */
     def apply(keyId: String, passphrase: String): GpgKey =
-      new GpgKey(keyId = keyId, passphrase = if (passphrase.isEmpty) None else Some(passphrase))
+      GpgKey(keyId = keyId, passphrase = if (passphrase.isEmpty) None else Some(passphrase))
 
     /**
      * @param maybeKeyId      will be [[None]] if the PGP key was not provided in the environment.
@@ -157,7 +157,7 @@ private[mill] object PublishModule {
         maybePassphrase: Option[String]
     ): Option[GpgKey] =
       createFromEnvVars(maybeKeyId, maybePassphrase)
-        .map(_.fold(err => throw new IllegalArgumentException(err), identity))
+        .map(_.fold(err => throw IllegalArgumentException(err), identity))
 
     def gpgArgsForPassphrase(passphrase: Option[String]): Seq[PossiblySecret[String]] =
       passphrase.iterator.flatMap(p => Iterator("--passphrase", Secret(p))).toSeq

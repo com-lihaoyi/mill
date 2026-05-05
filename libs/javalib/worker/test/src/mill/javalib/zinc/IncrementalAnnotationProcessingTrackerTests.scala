@@ -92,7 +92,7 @@ object IncrementalAnnotationProcessingTrackerTests extends TestSuite {
       try {
         val source = workDir / "generated/example/MapperImpl.java"
         val delegate = fileObject(source, JavaFileObject.Kind.SOURCE)
-        val wrapped = new DelegateFileObject(delegate)
+        val wrapped = DelegateFileObject(delegate)
 
         assert(
           IncrementalAnnotationProcessing.fileObjectPath(wrapped).contains(

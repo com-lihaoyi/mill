@@ -50,10 +50,10 @@ private abstract class MillBuildServer(
   private val requestCount = new AtomicInteger
 
   private val bspRequestExecutor: ExecutorService = {
-    val counter = new AtomicInteger(0)
+    val counter = AtomicInteger(0)
     val threadCount = math.max(1, Runtime.getRuntime.availableProcessors())
     val threadFactory: ThreadFactory = (r: Runnable) => {
-      val t = new Thread(r, s"mill-bsp-request-${counter.incrementAndGet()}")
+      val t = Thread(r, s"mill-bsp-request-${counter.incrementAndGet()}")
       t.setDaemon(true)
       t
     }
@@ -76,9 +76,9 @@ private abstract class MillBuildServer(
       val targetUri =
         Utils.sanitizeUri(topLevelProjectRoot.toNIO) +
           (Seq.fill(depth)("/mill-build")).mkString
-      val targetId = new BuildTargetIdentifier(targetUri)
+      val targetId = BuildTargetIdentifier(targetUri)
       val displayName = "mill-build" + (if (depth > 1) s" (level $depth)" else "")
-      val taskId = new TaskId(s"mill-build-$depth")
+      val taskId = TaskId(s"mill-build-$depth")
       Some(new BspCompileProblemReporter(
         currentClient,
         targetId,
@@ -281,11 +281,11 @@ private abstract class MillBuildServer(
         def logError(id: BuildTargetIdentifier, errorMsg: String): Unit = {
           val msg = s"Request '$prefix' failed for ${id.getUri}: ${errorMsg}"
           logger.error(msg)
-          client.onBuildLogMessage(new LogMessageParams(MessageType.ERROR, msg))
+          client.onBuildLogMessage(LogMessageParams(MessageType.ERROR, msg))
         }
 
         resultsById.flatMap { case (id, m, values) =>
-          try Seq(block(new TaskContext(id, m, values, ev, state), logger))
+          try Seq(block(TaskContext(id, m, values, ev, state), logger))
           catch {
             case NonFatal(e) =>
               logError(id, e.toString)
@@ -316,7 +316,7 @@ private abstract class MillBuildServer(
     if (checkInitialized && !initialized) {
       val msg = s"Can not respond to $prefix request before receiving the `initialize` request."
       logger.error(msg)
-      future.completeExceptionally(new Exception(msg))
+      future.completeExceptionally(Exception(msg))
     } else if (stopped) {
       future.completeExceptionally(new java.util.concurrent.CancellationException(
         s"BSP server is shutting down; rejecting request $prefix"
@@ -347,7 +347,7 @@ private abstract class MillBuildServer(
       withBootstrappedEvaluators(s"BSP:$prefix") { (_, _, errorOpt) =>
         val error = errorOpt.get
         logger.error(error)
-        future.completeExceptionally(new IllegalStateException(error))
+        future.completeExceptionally(IllegalStateException(error))
       } { (bspEvaluators, _, _, _) =>
         if (future.isCancelled()) {
           logger.info(s"$prefix was cancelled")
@@ -403,7 +403,7 @@ private abstract class MillBuildServer(
     new BspLogger(
       client,
       requestCount0,
-      new PrefixLogger(
+      PrefixLogger(
         new ProxyLogger(baseLogger) {
           override def logKey: Seq[String] = {
             val logKey0 = super.logKey
@@ -445,7 +445,7 @@ private abstract class MillBuildServer(
       case Some(error) =>
         logger.warn(error)
         logger.info("Failed")
-        client.onBuildLogMessage(new LogMessageParams(MessageType.WARNING, error))
+        client.onBuildLogMessage(LogMessageParams(MessageType.WARNING, error))
     }
     result.executionResults
   }

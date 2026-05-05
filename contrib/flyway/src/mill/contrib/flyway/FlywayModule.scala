@@ -373,7 +373,7 @@ trait FlywayModule extends JavaModule {
       .orNull
 
   private def toMigrateOutput(raw: AnyRef): MigrateOutput = {
-    val out = new MigrateOutput()
+    val out = MigrateOutput()
     out.category = readStringField(raw, "category")
     out.version = readStringField(raw, "version")
     out.description = readStringField(raw, "description")
@@ -387,7 +387,7 @@ trait FlywayModule extends JavaModule {
   }
 
   private def toMigrateResult(raw: AnyRef): MigrateResult = {
-    val result = new MigrateResult()
+    val result = MigrateResult()
     result.initialSchemaVersion = readStringField(raw, "initialSchemaVersion")
     result.targetSchemaVersion = readStringField(raw, "targetSchemaVersion")
     result.schemaName = readStringField(raw, "schemaName")
@@ -408,7 +408,7 @@ trait FlywayModule extends JavaModule {
 
   private def toCleanResult(raw: AnyRef): CleanResult = {
     val result =
-      new CleanResult(readStringField(raw, "flywayVersion"), readStringField(raw, "database"))
+      CleanResult(readStringField(raw, "flywayVersion"), readStringField(raw, "database"))
     fillOperationResultBase(raw, result)
     result.schemasCleaned =
       new java.util.ArrayList[String](readStringSeqField(raw, "schemasCleaned").asJava)
@@ -419,7 +419,7 @@ trait FlywayModule extends JavaModule {
 
   private def toBaselineResult(raw: AnyRef): BaselineResult = {
     val result =
-      new BaselineResult(readStringField(raw, "flywayVersion"), readStringField(raw, "database"))
+      BaselineResult(readStringField(raw, "flywayVersion"), readStringField(raw, "database"))
     fillOperationResultBase(raw, result)
     result.successfullyBaselined = readBooleanField(raw, "successfullyBaselined")
     result.baselineVersion = readStringField(raw, "baselineVersion")

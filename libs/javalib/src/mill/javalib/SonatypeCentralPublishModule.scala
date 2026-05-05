@@ -62,7 +62,7 @@ trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport,
     val maybeKeyId = internal.PublishModule.pgpImportSecretIfProvidedOrThrow(Task.env, pgpWorker())
 
     def makeGpgArgs() =
-      sonatypeCentralGpgArgsForKey()(maybeKeyId.getOrElse(throw new IllegalArgumentException(
+      sonatypeCentralGpgArgsForKey()(maybeKeyId.getOrElse(throw IllegalArgumentException(
         s"Publishing to Sonatype Central requires a PGP key. Please set the " +
           s"'${internal.PublishModule.EnvVarPgpSecretBase64}' and '${internal.PublishModule.EnvVarPgpPassphrase}' " +
           s"(if needed) environment variables."
@@ -229,7 +229,7 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
     val (snapshots, releases) = publishArtifacts.partition(_.meta.isSnapshot)
 
     bundleName.filter(_ => snapshots.nonEmpty).foreach { bundleName =>
-      throw new IllegalArgumentException(
+      throw IllegalArgumentException(
         s"Publishing SNAPSHOT versions when bundle name ($bundleName) is specified is not supported.\n\n" +
           s"SNAPSHOT versions: ${pprint.apply(snapshots)}"
       )
@@ -272,7 +272,7 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
     )
 
     if (exitCode != 0) {
-      throw new RuntimeException(s"initGpgKeys failed with exit code $exitCode.")
+      throw RuntimeException(s"initGpgKeys failed with exit code $exitCode.")
     }
   }
 

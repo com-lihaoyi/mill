@@ -26,5 +26,5 @@ private[mill] class PriorityRunnable(val priority: Int, run0: () => Unit)
 }
 
 private object PriorityRunnable {
-  private val priorityRunnableCount = new AtomicLong()
+  private val priorityRunnableCount = AtomicLong()
 }

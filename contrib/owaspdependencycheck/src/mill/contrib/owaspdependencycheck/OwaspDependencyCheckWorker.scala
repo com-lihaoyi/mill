@@ -17,7 +17,7 @@ trait OwaspDependencyCheckWorker extends CoursierModule, OfflineSupportModule {
   }
 
   def worker: Worker[DependencyCheckInstance] = Task.Worker {
-    new DependencyCheckInstance(dependencyCheckClasspath().map(_.path))
+    DependencyCheckInstance(dependencyCheckClasspath().map(_.path))
   }
 
   private[owaspdependencycheck] class DependencyCheckInstance(

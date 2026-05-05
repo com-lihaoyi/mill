@@ -109,7 +109,7 @@ class PromptLogger(
   def error(s: String): Unit = streams.err.println(s)
 
   object prompt extends Logger.Prompt {
-    val logLockObject = new Object()
+    val logLockObject = Object()
     def logLock[T](block: => T): T = logLockObject.synchronized {
       block
     }
@@ -242,7 +242,7 @@ class PromptLogger(
               var i = 0
               while (i < s.length && s(i) != EscByte) i += 1
               if (i == s.length) s
-              else fansi.Str(new String(s, "UTF-8"), fansi.ErrorMode.Strip).render.getBytes("UTF-8")
+              else fansi.Str(String(s, "UTF-8"), fansi.ErrorMode.Strip).render.getBytes("UTF-8")
             }
 
             if (!seenBefore) {
@@ -402,8 +402,8 @@ object PromptLogger {
     // stream, and also need to know when *both* streams are quiescent so that we can
     // print the prompt at the bottom
     val pipe = PipeStreams()
-    val proxyOut = new ProxyStream.Output(pipe.output, ProxyStream.OUT)
-    val proxyErr = new ProxyStream.Output(pipe.output, ProxyStream.ERR)
+    val proxyOut = ProxyStream.Output(pipe.output, ProxyStream.OUT)
+    val proxyErr = ProxyStream.Output(pipe.output, ProxyStream.ERR)
     val proxySystemStreams = SystemStreams(
       PrintStream(proxyOut),
       PrintStream(proxyErr),

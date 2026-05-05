@@ -621,7 +621,7 @@ object ModuleTests extends TestSuite {
 
     test("crossLabelSyntax") {
       test("single") {
-        val check = new Checker(singleCross)
+        val check = Checker(singleCross)
         // foo.bar.qux resolves to foo.bar[qux]
         test("pos1") - check(
           "cross.210.suffix",
@@ -646,7 +646,7 @@ object ModuleTests extends TestSuite {
         )
       }
       test("double") {
-        val check = new Checker(doubleCross)
+        val check = Checker(doubleCross)
         // foo.bar.qux.baz resolves to foo.bar[qux,baz] for Cross.Module2
         test("pos1") - check(
           "cross.210.jvm.suffix",
@@ -671,7 +671,7 @@ object ModuleTests extends TestSuite {
         )
       }
       test("nested") {
-        val check = new Checker(nestedCrosses)
+        val check = Checker(nestedCrosses)
         // Nested crosses: foo.bar.qux.cross2.baz resolves to foo.bar[qux].cross2[baz]
         test("pos1") - check(
           "cross.210.cross2.js.suffix",
@@ -685,7 +685,7 @@ object ModuleTests extends TestSuite {
         )
       }
       test("underscoreToDot") {
-        val check = new Checker(versionedCross)
+        val check = Checker(versionedCross)
         // foo.bar.qux_baz resolves to foo.bar[qux.baz]
         test("pos1") - check(
           "cross.2_12_21.suffix",
@@ -704,7 +704,7 @@ object ModuleTests extends TestSuite {
         )
       }
       test("underscoreToDotDouble") {
-        val check = new Checker(versionedDoubleCross)
+        val check = Checker(versionedDoubleCross)
         // foo.bar.qux_baz.platform resolves to foo.bar[qux.baz,platform]
         test("pos1") - check(
           "cross.2_12_21.jvm.suffix",

@@ -22,12 +22,12 @@ object ScalaTabsErrorFormattingTests extends TestSuite {
 
   val tests: Tests = Tests {
     test("scalaTabsErrorRange") {
-      val errBuffer = new ByteArrayOutputStream()
+      val errBuffer = ByteArrayOutputStream()
       UnitTester(
         TabsScala,
         sourceRoot = resourcePath,
-        outStream = new PrintStream(new ByteArrayOutputStream()),
-        errStream = new PrintStream(errBuffer, true)
+        outStream = PrintStream(ByteArrayOutputStream()),
+        errStream = PrintStream(errBuffer, true)
       ).scoped { eval =>
         val Left(ExecResult.Failure(msg = "Compilation failed")) =
           eval.apply(TabsScala.core.compile).runtimeChecked

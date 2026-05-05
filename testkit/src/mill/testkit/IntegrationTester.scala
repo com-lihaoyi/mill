@@ -334,7 +334,7 @@ object IntegrationTester {
         timeoutGracePeriod = timeoutGracePeriod
       ).spawn()
 
-      new IntegrationTester.SpawnedProcess(process, chunks)
+      IntegrationTester.SpawnedProcess(process, chunks)
     }
 
     /**

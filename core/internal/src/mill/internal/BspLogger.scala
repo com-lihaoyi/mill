@@ -12,7 +12,7 @@ class BspLogger(
 
   override def redirectOutToErr: Boolean = false
 
-  private val threadNumberer = new ThreadNumberer()
+  private val threadNumberer = ThreadNumberer()
 
   val prompt = new Logger.Prompt.NoOp {
     override def logPrefixedLine(

@@ -81,7 +81,7 @@ class UnitTester(
   } else {
     sourceRoot match {
       case Some(sourceRoot) =>
-        throw new IllegalArgumentException(
+        throw IllegalArgumentException(
           s"Cannot provide sourceRoot=$sourceRoot when resetSourcePath=false"
         )
       case None => // ok
@@ -96,7 +96,7 @@ class UnitTester(
         errorColor = mill.internal.Colors.Default.error,
         successColor = mill.internal.Colors.Default.success,
         highlightColor = mill.internal.Colors.Default.highlight,
-        systemStreams0 = new SystemStreams(out = outStream, err = errStream, in = inStream),
+        systemStreams0 = SystemStreams(out = outStream, err = errStream, in = inStream),
         debugEnabled = debugEnabled,
         titleText = "",
         terminalDimsCallback = () => None,
@@ -137,7 +137,7 @@ class UnitTester(
     codeSignatures = Map(),
     systemExit = (reason, exitCode) =>
       throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
-    exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
+    exclusiveSystemStreams = SystemStreams(outStream, errStream, inStream),
     getEvaluator = () => evaluator,
     offline = offline,
     useFileLocks = false,
@@ -209,7 +209,7 @@ class UnitTester(
 
     val cleaned = res.results.map {
       case ExecResult.Exception(ex, _) =>
-        ExecResult.Exception(ex, new OuterStack(Nil))
+        ExecResult.Exception(ex, OuterStack(Nil))
       case x => x.map(_.value)
     }
 

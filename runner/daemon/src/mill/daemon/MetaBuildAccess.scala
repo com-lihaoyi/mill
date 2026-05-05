@@ -65,7 +65,7 @@ private[daemon] class MetaBuildAccess(
         timeoutMs => workspaceLocking.awaitMetaBuildStateChange(depth, timeoutMs),
       waitReporter = waitReporter
     )(scope => probe(ref.get(), scope)) { scope =>
-      evaluate(new MetaBuildAccess.WriteScope(ref, scope))
+      evaluate(MetaBuildAccess.WriteScope(ref, scope))
     }
   }
 }

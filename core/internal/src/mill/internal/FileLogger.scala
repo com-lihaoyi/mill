@@ -1,6 +1,6 @@
 package mill.internal
 
-import mill.api.Logger
+import mill.api.{Logger, SystemStreams}
 import mill.api.BuildCtx
 import java.io.{OutputStream, PrintStream}
 import java.nio.file.{Files, StandardOpenOption}
@@ -42,7 +42,7 @@ class FileLogger(
     })
   }
 
-  val streams = SystemStreams(fileStream, fileStream, mill.api.DummyInputStream)
+  val streams = new SystemStreams(fileStream, fileStream, mill.api.DummyInputStream)
   def info(s: String): Unit = streams.out.println(s)
   def warn(s: String): Unit = streams.out.println(s)
   def error(s: String): Unit = streams.out.println(s)

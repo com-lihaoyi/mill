@@ -421,7 +421,7 @@ object RunModule {
           )
 
           // Keep legacy semantics: non-zero exit is treated as task failure.
-          if (exitCode != 0) throw new RuntimeException("Subprocess failed")
+          if (exitCode != 0) throw RuntimeException("Subprocess failed")
         }
       }
     }

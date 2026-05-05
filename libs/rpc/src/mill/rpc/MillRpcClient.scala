@@ -58,7 +58,7 @@ object MillRpcClient {
 
               case None => s" Connection ${wireTransport.name}"
             }
-            throw new IllegalStateException(
+            throw IllegalStateException(
               s"Mill daemon terminated unexpectedly.$logDirMsg"
             )
           case Some(MillRpcServerToClient.Ask(dataJson)) =>
@@ -77,7 +77,7 @@ object MillRpcClient {
 
       responseReceived match {
         case Some(value) => value
-        case None => throw new IllegalStateException("this should never happen")
+        case None => throw IllegalStateException("this should never happen")
       }
     }
 

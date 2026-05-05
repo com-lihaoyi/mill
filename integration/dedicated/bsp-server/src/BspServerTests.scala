@@ -103,7 +103,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         compareWithGsonSnapshot(
           buildServer
-            .buildTargetWrappedSources(new WrappedSourcesParams(targetIds))
+            .buildTargetWrappedSources(WrappedSourcesParams(targetIds))
             .get(),
           snapshotsPath / "build-targets-wrapped-sources.json",
           normalizedLocalValues = normalizedLocalValues

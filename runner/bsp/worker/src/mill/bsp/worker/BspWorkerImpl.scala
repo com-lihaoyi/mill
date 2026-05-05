@@ -52,7 +52,7 @@ object BspWorkerImpl {
         .setInput(streams.in)
         .setLocalService(millServer)
         .setRemoteInterface(classOf[BuildClient])
-        .traceMessages(new PrintWriter((logDir / "trace.log").toIO))
+        .traceMessages(PrintWriter((logDir / "trace.log").toIO))
         .setExecutorService(executor)
         .create()
 

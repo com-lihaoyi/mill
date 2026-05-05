@@ -555,7 +555,7 @@ object ErrorTests extends TestSuite {
     }
     test("crossModuleUnderscoreDotConflict") {
       test("single") {
-        val check = new Checker(CrossModuleUnderscoreDotConflict)
+        val check = Checker(CrossModuleUnderscoreDotConflict)
         test - check.checkSeq0(
           Seq("myCross[foo_bar].task"),
           isShortError(_, "would be ambiguous"),
@@ -563,7 +563,7 @@ object ErrorTests extends TestSuite {
         )
       }
       test("double") {
-        val check = new Checker(CrossModuleUnderscoreDotConflictDouble)
+        val check = Checker(CrossModuleUnderscoreDotConflictDouble)
         test - check.checkSeq0(
           Seq("myCross[2_12,jvm].task"),
           isShortError(_, "would be ambiguous"),
@@ -572,7 +572,7 @@ object ErrorTests extends TestSuite {
       }
     }
     test("crossModuleCollisions") {
-      val check = new Checker(CrossModuleCollisions)
+      val check = Checker(CrossModuleCollisions)
       // Cross values (Seq("a", "b"), Seq("c")) and (Seq("a"), Seq("b", "c"))
       // produce the same cross segments [a,b,c], which is a collision
       test - check.checkSeq0(

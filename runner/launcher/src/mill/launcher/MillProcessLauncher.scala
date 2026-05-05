@@ -258,7 +258,7 @@ object MillProcessLauncher {
       stderr = if (inheritError) os.Inherit else os.Pipe,
       check = false
     )
-    if (result.exitCode != 0) throw new Exception("tput failed")
+    if (result.exitCode != 0) throw Exception("tput failed")
     result.out.trim().toInt
   }
 
@@ -316,7 +316,7 @@ object MillProcessLauncher {
       os.Path(getClass.getProtectionDomain.getCodeSource.getLocation.toURI).toString
     } catch {
       case e: java.net.URISyntaxException =>
-        throw new RuntimeException("Failed to determine Mill client executable path", e)
+        throw RuntimeException("Failed to determine Mill client executable path", e)
     }
   }
 }

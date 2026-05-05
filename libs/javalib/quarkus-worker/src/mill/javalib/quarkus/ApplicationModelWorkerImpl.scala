@@ -61,7 +61,7 @@ class ApplicationModelWorkerImpl extends ApplicationModelWorker {
     val applicationModel = ApplicationModelSerializer
       .deserialize(applicationModelFile.toNIO)
 
-    val properties = new Properties()
+    val properties = Properties()
     Using(os.read.inputStream(buildProperties))(properties.load)
 
     val quarkusBootstrap = QuarkusBootstrap.builder()
@@ -171,7 +171,7 @@ class ApplicationModelWorkerImpl extends ApplicationModelWorker {
       .setArtifactId(appModel.artifactId)
       .setVersion(appModel.version)
 
-    val platformImport = new PlatformImportsImpl()
+    val platformImport = PlatformImportsImpl()
 
     val boms: Seq[ArtifactCoords] = appModel.boms.map { bom =>
       val parts = bom.split(":") // todo make a bom model in the AppModel
@@ -199,7 +199,7 @@ class ApplicationModelWorkerImpl extends ApplicationModelWorker {
       appModel.nativeImage
     )
 
-    val modelBuilder = new ApplicationModelBuilder()
+    val modelBuilder = ApplicationModelBuilder()
       .setAppArtifact(resolvedDependencyBuilder)
       .setPlatformImports(platformImport)
       .addDependencies(dependencies.asJava)
@@ -307,7 +307,7 @@ class ApplicationModelWorkerImpl extends ApplicationModelWorker {
   }
 
   private def readDescriptior(path: java.nio.file.Path): Properties = {
-    val rtProps = new Properties()
+    val rtProps = Properties()
 
     Using.resource(Files.newBufferedReader(path))(br => rtProps.load(br))
 

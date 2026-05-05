@@ -330,15 +330,15 @@ object ExecutionTests extends TestSuite {
 
       object build extends TestRootModule {
         def input = Task.Input { x }
-        def workerA = Task.Worker { new WorkerA(input()) }
+        def workerA = Task.Worker { WorkerA(input()) }
         // workerB depends directly on workerA
-        def workerB = Task.Worker { new WorkerB(workerA()) }
+        def workerB = Task.Worker { WorkerB(workerA()) }
         // workerC depends directly on workerB (and transitively on workerA)
-        def workerC = Task.Worker { new WorkerC(workerB()) }
+        def workerC = Task.Worker { WorkerC(workerB()) }
         // taskUsingA is a regular task that uses workerA
         def taskUsingA = Task { workerA().n * 2 }
         // workerD depends on workerA INDIRECTLY through taskUsingA (not a direct worker dep)
-        def workerD = Task.Worker { new WorkerD(taskUsingA()) }
+        def workerD = Task.Worker { WorkerD(taskUsingA()) }
         lazy val millDiscover = Discover[this.type]
       }
 

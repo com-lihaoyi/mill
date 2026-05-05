@@ -63,7 +63,7 @@ object JarManifest {
   def apply(
       main: Map[String, String] = Map.empty,
       groups: Map[String, Map[String, String]] = Map.empty
-  ): JarManifest = new JarManifest(main, groups)
+  ): JarManifest = JarManifest(main, groups)
 
   private given Root_JarManifest: Mirrors.Root[JarManifest] = Mirrors.autoRoot[JarManifest]
 

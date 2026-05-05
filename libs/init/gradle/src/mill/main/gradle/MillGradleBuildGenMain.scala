@@ -77,7 +77,7 @@ object MillGradleBuildGenMain {
       else buildGen.withBaseModule(packages, "MavenModule" -> "MavenTests")
         .fold((None, packages))((base, pkgs) => (Some(base), pkgs))
     val millJvmOpts = {
-      val properties = new Properties()
+      val properties = Properties()
       val file = gradleWorkspace / "gradle/wrapper/gradle-wrapper.properties"
       if (os.isFile(file)) Using.resource(os.read.inputStream(file))(properties.load)
       val prop = properties.getProperty("org.gradle.jvmargs")

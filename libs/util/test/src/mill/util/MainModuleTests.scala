@@ -406,13 +406,13 @@ object MainModuleTests extends TestSuite {
       test("resolve") {
         // Verify that `show resolve` sends the plain text task listing to stderr,
         // and only the JSON array goes to stdout
-        val outStream = new ByteArrayOutputStream()
-        val errStream = new ByteArrayOutputStream()
+        val outStream = ByteArrayOutputStream()
+        val errStream = ByteArrayOutputStream()
         UnitTester(
           mainModule,
           null,
-          outStream = new PrintStream(outStream, true),
-          errStream = new PrintStream(errStream, true)
+          outStream = PrintStream(outStream, true),
+          errStream = PrintStream(errStream, true)
         ).scoped { evaluator =>
 
           val results =

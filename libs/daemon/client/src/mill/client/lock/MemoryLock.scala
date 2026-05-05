@@ -3,13 +3,13 @@ package mill.client.lock
 import java.util.concurrent.locks.ReentrantLock
 
 class MemoryLock extends Lock {
-  private val innerLock = new ReentrantLock()
+  private val innerLock = ReentrantLock()
 
   override def probe(): Boolean = !innerLock.isLocked
 
   override def lock(): Locked = {
     innerLock.lock()
-    new MemoryLocked(innerLock)
+    MemoryLocked(innerLock)
   }
 
   override def tryLock(): TryLocked = {

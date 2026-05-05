@@ -302,9 +302,9 @@ class MillBuildBootstrap(
   ) = {
     mill.api.ExecResult.catchWrapException {
       given rootModuleInfo: RootModule.Info =
-        new RootModule.Info(currentRoot, output, topLevelProjectRoot)
-      if (useDummy) new BootstrapRootModule.Instance()
-      else new MillBuildRootModule.BootstrapModule(currentRoot / foundRootBuildFileName)
+        RootModule.Info(currentRoot, output, topLevelProjectRoot)
+      if (useDummy) BootstrapRootModule.Instance()
+      else MillBuildRootModule.BootstrapModule(currentRoot / foundRootBuildFileName)
     }
   }
 

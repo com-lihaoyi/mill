@@ -311,7 +311,7 @@ object BspServerTestUtil {
     if (!proc.waitFor(timeoutMillis)) {
       proc.destroy(recursive = false)
       if (!proc.waitFor(5000L)) {
-        throw new RuntimeException("BSP server did not exit within the expected timeout")
+        throw RuntimeException("BSP server did not exit within the expected timeout")
       }
     }
   }

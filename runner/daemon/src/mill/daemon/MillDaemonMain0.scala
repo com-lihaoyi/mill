@@ -84,7 +84,7 @@ class MillDaemonMain0(
       BuildCtx.workspaceRoot
     )
   private val sharedOutLockManager =
-    new SharedOutLockManager(MillMain0.outFileLock(outFolder), outFolder)
+    SharedOutLockManager(MillMain0.outFileLock(outFolder), outFolder)
 
   private val sharedState =
     new java.util.concurrent.atomic.AtomicReference[RunnerSharedState](
@@ -105,7 +105,7 @@ class MillDaemonMain0(
     try sharedOutLockManager.close()
     catch { case _: Throwable => () }
   }
-  Runtime.getRuntime.addShutdownHook(new Thread(() => shutdownDaemon()))
+  Runtime.getRuntime.addShutdownHook(Thread(() => shutdownDaemon()))
 
   override def run(): Option[Int] =
     try super.run()

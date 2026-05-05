@@ -438,7 +438,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       Optional.empty()
     )
     val incOptions0 = IncOptions.of().withAuxiliaryClassFiles(
-      auxiliaryClassFileExtensions.map(new AuxiliaryClassFileExtension(_)).toArray
+      auxiliaryClassFileExtensions.map(AuxiliaryClassFileExtension(_)).toArray
     ).withExternalHooks(externalHooks)
     // Exclude `-color:*` from Zinc's MiniSetup equivalence check. The option
     // is injected per-client below based on TTY state, so without this,
@@ -604,7 +604,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
     // Use a double-lock here because we need mutex both between threads within this
     // process, as well as between different processes since sometimes we are initializing
     // the compiler bridge inside a separate `ZincWorkerMain` subprocess
-    val doubleLock = new DoubleLock(
+    val doubleLock = DoubleLock(
       memoryLock,
       Lock.forDirectory(
         (compilerBridgeProvider.workspace / "compiler-bridge-locks" / scalaVersion).toString,

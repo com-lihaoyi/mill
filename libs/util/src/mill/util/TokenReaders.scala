@@ -5,7 +5,7 @@ import mill.api.*
 import mill.api.internal.SimpleTaskTokenReader
 private[mill] class EvaluatorTokenReader[T]() extends mainargs.TokensReader.Constant[Evaluator] {
   def read(): Either[String, Evaluator] = Right(
-    new EvaluatorProxy(() => Evaluator.currentEvaluator)
+    EvaluatorProxy(() => Evaluator.currentEvaluator)
   )
 }
 
