@@ -39,28 +39,37 @@ private[mill] class LauncherLockRegistry {
 private[mill] object LauncherLockRegistry {
 
   private val makeMetaBuildLock: java.util.function.Function[Int, CrossThreadRwLock] =
-    (depth: Int) => {
-      val label = metaBuildLabel(depth)
+    (depth: Int) =>
       new CrossThreadRwLock(
-        label = label,
+        label = metaBuildLabel(depth),
         showLabelInMessage = false,
-        syntheticPrefix = Seq(label)
+        syntheticPrefix = metaBuildPromptPrefix(depth)
       )
-    }
 
   /**
-   * Mirror the meta-build prompt-line prefix used by `MillBuildBootstrap`'s
-   * `bootLogPrefix`, so wait messages reference the build file by the same
-   * name the user already sees in the multi-line prompt:
-   *   - depth 0: `build.mill`         (the user-level project)
+   * Build-file path relative to the project root, used as the lock's
+   * human-readable label in `--no-wait` errors and BSP wait messages:
+   *   - depth 0: `build.mill`               (the user-level project)
    *   - depth 1: `mill-build/build.mill`
    *   - depth N: `mill-build/.../mill-build/build.mill` (N segments)
    *
    * The exact build-file name (`build.mill` vs `build.mill.yaml`) varies
    * per project but is fixed for one daemon — using the canonical
-   * `build.mill` here keeps the lock label readable without needing to
-   * thread the actual filename through the lock registry.
+   * `build.mill` here keeps the label readable without needing to thread
+   * the actual filename through the lock registry.
    */
   def metaBuildLabel(depth: Int): String =
     (Seq.fill(depth)(OutFiles.millBuild) :+ "build.mill").mkString("/")
+
+  /**
+   * Mirror `MillBuildBootstrap.bootLogPrefix(depth)` exactly so a synthetic
+   * wait line at this depth reuses the same prompt-line prefix the active
+   * launcher's tasks at the same depth are already showing:
+   *   - depth 0: `Nil`                     (user-level tasks have no prefix)
+   *   - depth 1: `Seq("build.mill")`
+   *   - depth 2: `Seq("mill-build/build.mill")` (one fewer mill-build segment than [[metaBuildLabel]])
+   */
+  def metaBuildPromptPrefix(depth: Int): Seq[String] =
+    if (depth == 0) Nil
+    else Seq((Seq.fill(depth - 1)(OutFiles.millBuild) :+ "build.mill").mkString("/"))
 }
