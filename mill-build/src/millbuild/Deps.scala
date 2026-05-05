@@ -275,7 +275,7 @@ object Deps {
   val sbt_api = mvn"org.scala-sbt:sbt:1.10.10"
   val mimaCore_api = mvn"com.typesafe::mima-core:1.1.4"
   val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:3.0.1"
-  val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.2.0"
+  val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.3.1"
   // JGit 6.x series, used by spotlessLibExtra, works on Java 11
   // subsequent releases require Java 17+
   val jgit = mvn"org.eclipse.jgit:org.eclipse.jgit:6.10.1.202505221210-r"
@@ -303,7 +303,7 @@ object Deps {
     val owaspDependencyCheckCli_runtime = mvn"org.owasp:dependency-check-cli:12.2.1"
     val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.90.0"
     val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.15.0"
-    val proguard_runtime = mvn"com.guardsquare:proguard-base:7.7.0"
+    val proguard_runtime = mvn"com.guardsquare:proguard-base:7.9.1"
     val revApi_runtime = mvn"org.revapi:revapi-standalone:0.12.0"
     val sbtTestInterface = mvn"com.github.sbt:junit-interface:0.13.2"
 

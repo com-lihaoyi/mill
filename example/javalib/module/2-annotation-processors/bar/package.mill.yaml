@@ -1,5 +1,5 @@
 extends: JavaModule
 
 # Explicit annotation processor configuration
-compileMvnDeps: [org.projectlombok:lombok:1.18.40]
-annotationProcessorsMvnDeps: [org.projectlombok:lombok:1.18.40]
+compileMvnDeps: [org.projectlombok:lombok:1.18.46]
+annotationProcessorsMvnDeps: [org.projectlombok:lombok:1.18.46]

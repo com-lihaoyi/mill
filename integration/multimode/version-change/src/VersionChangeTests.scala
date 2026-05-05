@@ -18,7 +18,7 @@ object VersionChangeTests extends UtestIntegrationTestSuite {
         os.read.lines(tester.workspacePath / "out/mill-invalidation-tree.json"),
         Seq(
           "{",
-          "  \"mill-jvm-version-changed:21.0.10->19.0.2\": {",
+          "  \"mill-jvm-version-changed:25.0.2->19.0.2\": {",
           "    \"javaVersion\": {}",
           "  }",
           "}"

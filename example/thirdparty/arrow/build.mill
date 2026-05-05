@@ -157,7 +157,7 @@ object `package` extends Module {
           else Task { CompilationResult(Task.dest, PathRef(Task.dest)) }
 
         override def testForked(args: String*): Command[(msg: String, results: Seq[TestResult])] =
-          if (modulesWithTestingEnabled(multiplatformRoot)) super.testForked(args: _*)
+          if (modulesWithTestingEnabled(multiplatformRoot)) super.testForked(args*)
           else Task.Command { ("", Seq.empty[TestResult]) }
 
         override def sources: T[Seq[PathRef]] = Task.Sources(
@@ -203,7 +203,7 @@ object `package` extends Module {
         else Task { CompilationResult(Task.dest, PathRef(Task.dest)) }
 
       override def testForked(args: String*): Command[(msg: String, results: Seq[TestResult])] =
-        if (modulesWithTestingEnabled(jvmRoot)) super.testForked(args: _*)
+        if (modulesWithTestingEnabled(jvmRoot)) super.testForked(args*)
         else Task.Command { ("", Seq.empty[TestResult]) }
     }
   }

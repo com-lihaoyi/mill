@@ -241,7 +241,7 @@ depManagement:
 - org.liquibase:liquibase-core:4.31.1
 - ch.qos.logback:logback-classic:1.5.18
 - ch.qos.logback:logback-core:1.5.18
-- org.projectlombok:lombok:1.18.40
+- org.projectlombok:lombok:1.18.46
 - org.mariadb.jdbc:mariadb-java-client:3.5.6
 - io.micrometer:micrometer-registry-stackdriver:1.15.4;exclude=javax.annotation:javax.annotation-api
 - com.microsoft.sqlserver:mssql-jdbc:12.10.1.jre11

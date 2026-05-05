@@ -228,7 +228,7 @@ trait DistModule extends RunModule {
  * For integration/example tests, use `dist.raw` which provides the unminified assembly.
  */
 object `package` extends MillJavaModule with Proguard with DistModule {
-  def proguardVersion = "7.8.2"
+  def proguardVersion = "7.9.1"
 
   def moduleDeps = Seq(build.runner.launcher)
 
