@@ -69,6 +69,15 @@ object SemanticdbProcessor {
           for {
             fun <- updateTree(t.function)
           } yield t.withFunction(fun)
+        case t: AnnotationTree =>
+          for {
+            args <- updateTrees(t.arguments)
+          } yield t.withArguments(args)
+        case t: AssignTree =>
+          for {
+            lhs <- updateTree(t.lhs)
+            rhs <- updateTree(t.rhs)
+          } yield t.withLhs(lhs).withRhs(rhs)
       }
 
     val docs = TextDocuments.parseFrom(os.read.bytes(orig))
