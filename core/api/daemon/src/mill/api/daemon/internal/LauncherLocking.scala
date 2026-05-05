@@ -165,7 +165,7 @@ private[mill] object LauncherLocking {
         kind: LockKind,
         waitReporter: WaitReporter
     ): Lease = NoopLease
-    override def tryMetaBuildWriteLock(depth: Int): Either[String, Lease] = Right(NoopLease)
+    override def tryMetaBuildWriteLock(depth: Int): Either[Contention, Lease] = Right(NoopLease)
     override def awaitMetaBuildStateChange(depth: Int, timeoutMs: Long): Unit = ()
     override def taskLock(
         path: Path,
