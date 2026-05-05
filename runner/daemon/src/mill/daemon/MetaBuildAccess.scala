@@ -57,6 +57,7 @@ private[daemon] class MetaBuildAccess(
   )(
       evaluate: MetaBuildAccess.WriteScope => T
   ): T = {
+    val label = LauncherLockRegistry.metaBuildLabel(depth)
     LockUpgrade.readThenWrite(
       acquireRead =
         workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Read, waitReporter),
@@ -64,7 +65,8 @@ private[daemon] class MetaBuildAccess(
       awaitStateChange =
         timeoutMs => workspaceLocking.awaitMetaBuildStateChange(depth, timeoutMs),
       waitReporter = waitReporter,
-      syntheticPrefix = Seq(LauncherLockRegistry.metaBuildLabel(depth))
+      lockLabel = label,
+      syntheticPrefix = Seq(label)
     )(scope => probe(ref.get(), scope)) { scope =>
       evaluate(new MetaBuildAccess.WriteScope(ref, scope))
     }

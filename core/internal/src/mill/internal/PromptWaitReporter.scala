@@ -39,40 +39,25 @@ object PromptWaitReporter {
     else {
       val prompt = logger.prompt
       val baseKey = logger.logKey
-      (msg: String, syntheticPrefix: Seq[String]) => {
+      (msg: String, label: String, syntheticPrefix: Seq[String]) => {
+        // The label can be omitted from the message when some surrounding
+        // prompt context (the existing line's prefix or a synthetic-line
+        // prefix) already names the lock; otherwise inject it.
+        val prefixCarriesLabel = baseKey.nonEmpty || syntheticPrefix.nonEmpty
+        val displayMsg =
+          if (prefixCarriesLabel && !prompt.waitMessageNeedsLabel) msg
+          else WaitReporter.ensureLabel(msg, label)
         if (baseKey.nonEmpty) {
-          prompt.setPromptDetail(baseKey, msg)
+          prompt.setPromptDetail(baseKey, displayMsg)
           () => prompt.setPromptDetail(baseKey, "")
         } else {
-          // Session logger has no prompt-line — synthesise one or the
-          // wait detail has nothing to attach to.
           val syntheticKey =
             if (syntheticPrefix.nonEmpty) syntheticPrefix
             else Seq("wait-" + syntheticCounter.incrementAndGet())
-          prompt.setPromptLine(syntheticKey, "", msg)
-          () => prompt.removePromptLine(syntheticKey, msg)
+          prompt.setPromptLine(syntheticKey, "", displayMsg)
+          () => prompt.removePromptLine(syntheticKey, displayMsg)
         }
       }
     }
 
-  /**
-   * BSP-side wait reporter: BSP has no live prompt UI, so route every wait to
-   * stderr as a single line that names the lock label even when the lock is
-   * configured to suppress it for prompt usage. The prompt-line task-name
-   * prefix that ordinarily makes the label redundant doesn't exist here.
-   */
-  def stderrWithLabel(stream: PrintStream, label: String): WaitReporter =
-    (msg: String, _: Seq[String]) => {
-      stream.println(injectLabel(msg, label))
-      () => ()
-    }
-
-  private val lockMsgWithoutLabel =
-    raw"^(blocked on (?:read|write) lock)( command .*| ?$$)".r
-
-  private def injectLabel(msg: String, label: String): String =
-    lockMsgWithoutLabel.findFirstMatchIn(msg) match {
-      case Some(m) => s"${m.group(1)} '$label'${m.group(2)}"
-      case None => msg
-    }
 }

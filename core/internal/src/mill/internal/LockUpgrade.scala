@@ -70,6 +70,7 @@ object LockUpgrade {
       tryAcquireWrite: () => Either[String, LauncherLocking.Lease],
       awaitStateChange: Long => Unit,
       waitReporter: LauncherLocking.WaitReporter,
+      lockLabel: String,
       awaitTimeoutMs: Long = 1000L,
       syntheticPrefix: Seq[String] = Nil
   )(
@@ -130,7 +131,7 @@ object LockUpgrade {
                 }
               case Left(blockMsg) =>
                 if (waitToken == null)
-                  waitToken = waitReporter.reportWait(blockMsg, syntheticPrefix)
+                  waitToken = waitReporter.reportWait(blockMsg, lockLabel, syntheticPrefix)
                 awaitStateChange(awaitTimeoutMs)
                 loop()
             }

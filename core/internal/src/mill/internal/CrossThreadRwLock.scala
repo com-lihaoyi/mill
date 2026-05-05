@@ -1,7 +1,7 @@
 package mill.internal
 
 import mill.api.MillException
-import mill.api.daemon.internal.LauncherLocking.{Lease, LockKind, WaitReporter}
+import mill.api.daemon.internal.LauncherLocking.{Contention, Lease, LockKind, WaitReporter}
 
 /**
  * A version of [[java.util.concurrent.locks.ReadWriteLock]] that can be acquired
@@ -71,7 +71,7 @@ class CrossThreadRwLock(
     leaseOpt.getOrElse {
       val blocker = monitor.synchronized(currentBlocker())
       val waitToken =
-        waitReporter.reportWait(waitingMessage(blocker, kind), syntheticPrefix)
+        waitReporter.reportWait(waitingMessage(blocker, kind), label, syntheticPrefix)
 
       try {
         monitor.synchronized {
@@ -115,13 +115,17 @@ class CrossThreadRwLock(
    * fall back to Read, and re-probe shared state without poisoning its
    * own next Read attempt.
    */
-  def tryAcquireWrite(acquirer: HolderInfo): Either[String, Lease] = monitor.synchronized {
+  def tryAcquireWrite(acquirer: HolderInfo): Either[Contention, Lease] = monitor.synchronized {
     if (canAcquireWrite) {
       writerActive = true
       val lease = newLease(initiallyWrite = true)
       holders.put(lease, acquirer)
       Right(lease)
-    } else Left(waitingMessage(currentBlocker(), LockKind.Write))
+    } else Left(Contention(
+      waitingMessage(currentBlocker(), LockKind.Write),
+      label,
+      syntheticPrefix
+    ))
   }
 
   /**

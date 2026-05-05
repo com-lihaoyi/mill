@@ -362,7 +362,8 @@ trait GroupExecution {
             acquireRead = acquireTaskLock(LauncherLocking.LockKind.Read),
             tryAcquireWrite = () => tryWriteTaskLock(),
             awaitStateChange = awaitTaskLockChange,
-            waitReporter = taskWaitReporter
+            waitReporter = taskWaitReporter,
+            lockLabel = labelled.ctx.segments.render
           ) { scope =>
             loadCachedOrWorker(
               loadCachedJson(logger, inputsHash, labelled, paths),
@@ -448,7 +449,8 @@ trait GroupExecution {
           acquireRead = acquireTaskLock(LauncherLocking.LockKind.Read),
           tryAcquireWrite = () => tryWriteTaskLock(),
           awaitStateChange = awaitTaskLockChange,
-          waitReporter = taskWaitReporter
+          waitReporter = taskWaitReporter,
+          lockLabel = labelled.ctx.segments.render
         )(_ => LockUpgrade.Decision.Escalate) { scope =>
           val (execRes, serializedPaths) =
             if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {

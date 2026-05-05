@@ -40,7 +40,7 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
   }
 
   private def blockedLine(command: String, pid: Long, taskName: String): String =
-    s"blocked on read lock command '$command' PID $pid"
+    s"blocked on read lock '$taskName' command '$command' PID $pid"
 
   def tests: Tests = Tests {
     test("taskLocks") - integrationTest { tester =>

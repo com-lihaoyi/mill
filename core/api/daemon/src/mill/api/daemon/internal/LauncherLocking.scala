@@ -30,7 +30,7 @@ private[mill] trait LauncherLocking extends AutoCloseable {
    * read-then-write pattern in [[mill.internal.LockUpgrade.readThenWrite]]
    * work without poisoning the caller's own re-probe.
    */
-  def tryMetaBuildWriteLock(depth: Int): Either[String, LauncherLocking.Lease]
+  def tryMetaBuildWriteLock(depth: Int): Either[LauncherLocking.Contention, LauncherLocking.Lease]
 
   /**
    * Block on the meta-build lock at `depth` for up to `timeoutMs`,
@@ -60,7 +60,7 @@ private[mill] trait LauncherLocking extends AutoCloseable {
   def tryTaskWriteLock(
       path: Path,
       displayLabel: String
-  ): Either[String, LauncherLocking.Lease]
+  ): Either[LauncherLocking.Contention, LauncherLocking.Lease]
 
   /**
    * Bounded await on per-task lock state changes; counterpart of
@@ -105,6 +105,14 @@ private[mill] object LauncherLocking {
   }
 
   /**
+   * Description of why a non-blocking Write attempt failed: the
+   * human-readable wait message, the lock's bare label, and the
+   * synthetic prompt-line prefix the lock would like its `WaitReporter`
+   * to use when no preexisting prompt-line is available.
+   */
+  case class Contention(message: String, label: String, syntheticPrefix: Seq[String])
+
+  /**
    * Surface a "blocked on lock" status to the user when a lock acquisition has
    * to wait. Implementations should display the message in a way that doesn't
    * disturb the active console UI (e.g. via the multi-line prompt's detail
@@ -114,14 +122,18 @@ private[mill] object LauncherLocking {
    * `reportWait` — each call replaces the previous wait status.
    */
   trait WaitReporter {
-    def reportWait(message: String, syntheticPrefix: Seq[String] = Nil): AutoCloseable
+    def reportWait(
+        message: String,
+        label: String,
+        syntheticPrefix: Seq[String] = Nil
+    ): AutoCloseable
   }
 
   object WaitReporter {
     private val NoopToken: AutoCloseable = () => ()
 
     /** Discards wait events. Useful for tests and noBuildLock. */
-    val Noop: WaitReporter = (_: String, _: Seq[String]) => NoopToken
+    val Noop: WaitReporter = (_: String, _: String, _: Seq[String]) => NoopToken
 
     /**
      * Prints the wait message once on `reportWait` and does nothing on close.
@@ -129,10 +141,19 @@ private[mill] object LauncherLocking {
      * the user's terminal history. Used when no live prompt is available
      * (early bootstrap, no-daemon, BSP, `--ticker false`, etc.).
      */
-    def stderr(stream: PrintStream): WaitReporter = (msg: String, _: Seq[String]) => {
-      stream.println(msg)
-      NoopToken
-    }
+    def stderr(stream: PrintStream): WaitReporter =
+      (msg: String, label: String, _: Seq[String]) => {
+        stream.println(ensureLabel(msg, label))
+        NoopToken
+      }
+
+    /** Inject `'$label'` into `message` if not already present. */
+    def ensureLabel(message: String, label: String): String =
+      if (label.isEmpty || message.contains(s"'$label'")) message
+      else message.replaceFirst(
+        raw"^blocked on (read|write) lock",
+        s"blocked on $$1 lock '$label'"
+      )
   }
 
   object Noop extends LauncherLocking {
