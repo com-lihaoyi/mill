@@ -11,7 +11,7 @@ object HelloKotlinTests extends TestSuite {
 
   // Older Kotlin versions don't support running on JDK 25+ (their JdkVersion enum
   // can't parse "25.0.2"), so filter them out when running tests on JDK 25+.
-  import scala.math.Ordering.Implicits.seqOrdering
+  import scala.math.Ordering.Implicits.{seqOrdering, infixOrderingOps}
   def supportsCurrentJdk(v: String) = Runtime.version().feature() < 25 ||
     v.split("[.-]").take(3).flatMap(_.toIntOption).toSeq >= Seq(2, 2, 20)
   val crossMatrix = for {
