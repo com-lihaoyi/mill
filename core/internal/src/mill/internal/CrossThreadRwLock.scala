@@ -59,9 +59,11 @@ class CrossThreadRwLock(
         // Surface as MillException so MillMain0.handleMillException renders a
         // clean user-facing message instead of a stack trace; this is an
         // expected condition when --no-wait collides with another launcher.
-        throw new MillException(
-          s"${waitingMessage(currentBlocker(), kind)} and --no-wait was set, failing"
-        )
+        // Force the label into the message: this exception bubbles up
+        // standalone, with no surrounding prompt-line prefix to identify
+        // the lock.
+        val msg = WaitReporter.ensureLabel(waitingMessage(currentBlocker(), kind), label)
+        throw new MillException(s"$msg and --no-wait was set, failing")
       } else {
         if (isWrite) waitingWriters += 1
         None

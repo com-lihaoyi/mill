@@ -123,9 +123,9 @@ object LockUpgrade {
                     writeScope.closeAlways()
                     throw t
                 }
-              case Left(c) =>
+              case Left(LauncherLocking.Contention(message, label, syntheticPrefix)) =>
                 if (waitToken == null)
-                  waitToken = waitReporter.reportWait(c.message, c.label, c.syntheticPrefix)
+                  waitToken = waitReporter.reportWait(message, label, syntheticPrefix)
                 awaitStateChange(awaitTimeoutMs)
                 loop()
             }
