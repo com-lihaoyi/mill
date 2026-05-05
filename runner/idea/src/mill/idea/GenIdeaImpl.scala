@@ -189,7 +189,7 @@ class GenIdeaImpl(
         .partition(_.asWholeFile.isDefined)
 
     // whole file
-    val ideaWholeConfigFiles: Seq[(os.SubPath, Elem)] =
+    val ideaWholeConfigFiles: Seq[(os.SubPath, Node)] =
       wholeFileConfigs.flatMap(_.asWholeFile).map { wf =>
         os.sub / os.SubPath(wf._1) -> ideaConfigElementTemplate(wf._2)
       }
@@ -611,8 +611,7 @@ class GenIdeaImpl(
     (Seq.fill(r.ups)("..") ++ r.segments).mkString("/")
   }
 
-  def ideaConfigElementTemplate(element: Element): Elem = {
-
+  def ideaConfigElementTemplate(element: Element): Node = {
     val example = <config/>
 
     val attribute1: MetaData =
@@ -629,7 +628,10 @@ class GenIdeaImpl(
       attributes1 = attribute1,
       example.scope,
       minimizeEmpty = true,
-      child = element.childs.map(ideaConfigElementTemplate)*
+      child = (element.childs ++ element.childsOrText).map {
+        case e: Element => ideaConfigElementTemplate(e)
+        case s: String => scala.xml.Text(s)
+      }*
     )
   }
 
