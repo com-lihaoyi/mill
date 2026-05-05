@@ -24,7 +24,7 @@ object qux extends TypeScriptModule {
 // The path to generated coverage data can be retrieved with `mill _.test.coverageFiles`,
 // The path to generated html file can be retrieved with `mill _.test.htmlReport`.
 
-// To use custom configuations for test suites, you can simply include matching test suite config file in your project root.
+// To use custom configurations for test suites, you can simply include matching test suite config file in your project root.
 
 // For custom configurations:
 
@@ -54,7 +54,7 @@ object qux extends TypeScriptModule {
 // ----
 //// SNIPPET:END
 
-// As always for most use cases you will never need to define a custom test configurtion file.
+// As always for most use cases you will never need to define a custom test configuration file.
 
 /** Usage
 

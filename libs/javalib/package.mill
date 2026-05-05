@@ -34,9 +34,12 @@ object `package` extends MillStableScalaModule {
   def runMvnDeps = Seq(Deps.sonatypeCentralClient)
 
   def testMvnDeps = super.testMvnDeps() ++ Seq(Deps.TestDeps.scalaCheck)
+  def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit.internal)
   def localTestExtraModules =
     super.localTestExtraModules ++ Seq(
       worker,
+      `maven-worker`,
+      `pgp-worker`,
       `classgraph-worker`,
       `jarjarabrams-worker`,
       `spotless-worker`,
@@ -56,13 +59,13 @@ object `package` extends MillStableScalaModule {
     )
 
   object backgroundwrapper extends MillPublishJavaModule with MillJavaModule {
-    def mvnDeps = Seq(Deps.sbtTestInterface)
+    def mvnDeps = Seq(Deps.sbtTestInterface_api)
     def jvmId = "11"
   }
 
-  object api extends MillStableScalaModule with BuildInfo {
+  object api extends MillStableScalaModule with BuildInfo with MillJava11ScalaModule {
 
-    def moduleDeps = Seq(build.core.api, build.libs.rpc, build.libs.util)
+    def moduleDeps = Seq(build.core.api.java11, build.libs.rpc, build.libs.util.java11)
     def buildInfoPackageName = "mill.javalib.api"
     def buildInfoObjectName = "Versions"
 
@@ -76,12 +79,12 @@ object `package` extends MillStableScalaModule {
       ),
       BuildInfo.Value(
         "semanticDBVersion",
-        Deps.semanticDBscala.version,
+        Deps.semanticDBscala_runtime.version,
         "SemanticDB version."
       ),
       BuildInfo.Value(
         "semanticDbJavaVersion",
-        Deps.semanticDbJava.version,
+        Deps.semanticDbJava_runtime.version,
         "Java SemanticDB plugin version."
       ),
       BuildInfo.Value(
@@ -91,7 +94,7 @@ object `package` extends MillStableScalaModule {
       ),
       BuildInfo.Value("millCompilerBridgeScalaVersions", build.bridgeScalaVersions.mkString(",")),
       BuildInfo.Value("millCompilerBridgeVersion", build.bridgeVersion),
-      BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
+      BuildInfo.Value("millVersion", "SNAPSHOT", "Mill version."),
       BuildInfo.Value(
         "sbtTestInterface",
         Dep.unparse(Deps.RuntimeDeps.sbtTestInterface).get,
@@ -99,37 +102,59 @@ object `package` extends MillStableScalaModule {
       ),
       BuildInfo.Value(
         "jupiterInterface",
-        Dep.unparse(Deps.RuntimeDeps.jupiterInterface).get,
+        Dep.unparse(Deps.RuntimeDeps.jupiterInterface_runtime).get,
         "Dependency to jupiter-interface"
       ),
-      BuildInfo.Value("errorProneVersion", Deps.RuntimeDeps.errorProneCore.version),
+      BuildInfo.Value(
+        "jupiterInterface6",
+        Dep.unparse(Deps.RuntimeDeps.jupiterInterface6_runtime).get,
+        "Dependency to jupiter-interface for JUnit 6 (requires Java 17+)"
+      ),
+      BuildInfo.Value("errorProneVersion", Deps.RuntimeDeps.errorProneCore_runtime.version),
       BuildInfo.Value("coursierJvmIndexVersion", Deps.coursierJvmIndexVersion),
-      BuildInfo.Value("palantirFormatVersion", Deps.RuntimeDeps.palantirFormat.version),
+      BuildInfo.Value("palantirFormatVersion", Deps.RuntimeDeps.palantirFormat_runtime.version),
       BuildInfo.Value(
         "revApiVersion",
-        Deps.RuntimeDeps.revApi.version,
+        Deps.RuntimeDeps.revApi_runtime.version,
         "Version of revApi"
       ),
-      BuildInfo.Value("springBuildToolsVersion", Deps.springBootTools.version),
+      BuildInfo.Value("springBuildToolsVersion", Deps.springBootTools_runtime.version),
       BuildInfo.Value(
-        "millSpringBootWorkerDep", {
-          val dep = `spring-boot-worker`.artifactMetadata()
-          s"${dep.group}:${dep.id}:${dep.version}"
-        },
-        "The dependency containing the worker implementation to be loaded at runtime."
+        "millSpringBootWorkerDep",
+        s"${`spring-boot-worker`.pomSettings().organization}:${`spring-boot-worker`.artifactId()}",
+        "The dependency prefix (group:id) for the worker implementation to be loaded at runtime."
       ),
-      BuildInfo.Value("pmdVersion", Deps.RuntimeDeps.pmdDist.version),
+      BuildInfo.Value(
+        "millQuarkusWorkerDep",
+        s"${`quarkus-worker`.pomSettings().organization}:${`quarkus-worker`.artifactId()}",
+        "The dependency prefix (group:id) for the worker implementation to be loaded at runtime."
+      ),
+      BuildInfo.Value("pmdVersion", Deps.RuntimeDeps.pmdDist_runtime.version),
       BuildInfo.Value("comLihaoyiSourcecodeVersion", Deps.sourcecode.version)
     )
   }
 
   object worker extends MillPublishScalaModule with BuildInfo with MillJava11ScalaModule {
     def moduleDeps = Seq(api, build.libs.javalib.testrunner)
-    def mvnDeps = Seq(Deps.zinc, Deps.log4j2Core)
+    def mvnDeps = Seq(
+      Deps.zinc,
+      Deps.log4j2Core,
+      Deps.javaparser,
+      Deps.fansi
+    )
     def buildInfoPackageName = "mill.javalib.worker"
     def buildInfoObjectName = "Versions"
     def buildInfoMembers = Seq(
       BuildInfo.Value("zinc", Deps.zinc.version, "Version of Zinc.")
+    )
+  }
+
+  object `pgp-worker` extends MillPublishScalaModule with MillJava11ScalaModule {
+    def moduleDeps = Seq(api)
+    def mvnDeps = Seq(
+      Deps.bouncyCastleProv,
+      Deps.bouncyCastlePgp,
+      Deps.requests
     )
   }
 
@@ -147,7 +172,41 @@ object `package` extends MillStableScalaModule {
     def moduleDeps = Seq(api)
     def compileMvnDeps = Seq(
       // we just bind against the API, will be loaded at Mill runtime by the module
-      Deps.springBootTools
+      Deps.springBootTools_api
+    )
+  }
+
+  object `quarkus-worker` extends MillPublishScalaModule {
+    def moduleDeps = Seq(api)
+
+    def compileMvnDeps = Seq(
+      Deps.quarkusAppModel_api,
+      Deps.quarkusBootstrapCore_api,
+      Deps.quarkusCoreDeployment_api
+    )
+  }
+
+  object `graalvm-reachability-worker` extends MillPublishScalaModule, BuildInfo {
+    def moduleDeps = Seq(api)
+    def mvnDeps = Seq(
+      Deps.graalVMReachabilityMetadataBuildTool,
+      Deps.openJson
+    )
+
+    def compileMvnDeps = Seq(
+      Deps.requests
+    )
+
+    def buildInfoPackageName = "mill.javalib.graalvm"
+
+    def buildInfoObjectName = "Versions"
+
+    def buildInfoMembers = Seq(
+      BuildInfo.Value(
+        "graalVmReachabilityMetadata",
+        Deps.graalVmReachabilityMetadataVersion,
+        "Version of graalvm-reachability-metadata."
+      )
     )
   }
 

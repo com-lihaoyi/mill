@@ -3,8 +3,6 @@ package mill.api.internal
 import mill.api.daemon.internal.{RootModuleApi, internal}
 import mill.api.Discover
 
-import scala.annotation.compileTimeOnly
-
 /**
  * Used to mark a module in your `build.mill` as a top-level module, so it's
  * tasks can be run directly e.g. via `mill run` rather than
@@ -34,26 +32,32 @@ object RootModule {
       val projectRoot: os.Path,
       val output: os.Path,
       val topLevelProjectRoot: os.Path
-  ) {
-
-    def this(
-        projectRoot0: String,
-        output0: String,
-        topLevelProjectRoot0: String
-    ) = this(
-      os.Path(projectRoot0),
-      os.Path(output0),
-      os.Path(topLevelProjectRoot0)
-    )
-
-    implicit val millMiscInfo: Info = this
-  }
+  )
 
   object Info {
-    // Dummy `RootModule.Info` available in implicit scope but never actually used.
-    // as it is provided by the codegen. Defined for IDEs to think that one is available
-    // and not show errors in build.mill/package.mill even though they can't see the codegen
-    @compileTimeOnly("RootModule can only be instantiated in a build.mill or package.mill file")
-    implicit def dummyInfo: Info = sys.error("implicit RootModule.Info must be provided")
+    // Each run classloader has its own copy of this object (since mill.api.internal
+    // is not in the shared prefixes), so this lazy val is effectively per-classloader.
+    // The resource is written by MillBuildBootstrap before the classloader is created.
+    private lazy val cached: Info = {
+      val stream = classOf[Info].getClassLoader.getResourceAsStream("mill/rootModuleInfo.json")
+      if (stream != null) {
+        val json = ujson.read(stream)
+        stream.close()
+        new Info(
+          os.Path(json("projectRoot").str),
+          os.Path(json("output").str),
+          os.Path(json("topLevelProjectRoot").str)
+        )
+      } else {
+        // Dummy build fallback: read from environment variables
+        val wsRoot = sys.env.get(mill.constants.EnvVars.MILL_WORKSPACE_ROOT)
+          .fold(os.pwd)(os.Path(_))
+        val output = sys.env.get(mill.constants.EnvVars.MILL_OUTPUT_DIR)
+          .fold(wsRoot / "out")(os.Path(_))
+        new Info(wsRoot, output, wsRoot)
+      }
+    }
+
+    implicit def info: Info = cached
   }
 }

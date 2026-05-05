@@ -3,8 +3,8 @@
 //| ]
 
 package build
-import mill._, mill.scalalib._
-import scala.meta._
+import mill._, mill.scalalib.*
+import scala.meta.*
 
 def graphDependencies: T[String] = Task {
   val program: String = """object Main extends App { print("Hello!") }"""

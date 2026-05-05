@@ -15,7 +15,7 @@ trait TypeScriptModule extends Module { outer =>
 
   def moduleDeps: Seq[TypeScriptModule] = Nil
 
-  // recursively retrieve dependecies of all module dependencies
+  // recursively retrieve dependencies of all module dependencies
   def recModuleDeps: Seq[TypeScriptModule] = {
     @tailrec
     def recModuleDeps_(

@@ -8,7 +8,9 @@ import mill.api.daemon.internal.internal
 
 trait BspModule extends mill.api.Module with BspModuleApi {
 
-  private[mill] def bspDisplayName0: String = this.moduleSegments.render
+  // Sanitize `:` because although it is fine for Mill, IntelliJ writes this string as the
+  // name of the `.iml` file on disk that ends up exploding on windows since `:` is reserved
+  private[mill] def bspDisplayName0: String = this.moduleSegments.render.replace(':', '-')
 
   private[mill] def bspDisplayName: String = bspDisplayName0 match {
     case "" => "root-module"

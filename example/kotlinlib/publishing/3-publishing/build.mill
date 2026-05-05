@@ -1,0 +1,26 @@
+//// SNIPPET:BUILD
+package build
+import mill.*, kotlinlib.*, publish.*
+
+object foo extends KotlinModule, PublishModule {
+
+  def kotlinVersion = "1.9.24"
+
+  def publishVersion = "0.0.1"
+
+  def pomSettings = PomSettings(
+    description = "Hello",
+    organization = "com.lihaoyi",
+    url = "https://github.com/lihaoyi/example",
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("lihaoyi", "example"),
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
+  )
+}
+
+/** Usage
+
+> ./mill foo.publishLocal
+Publishing com.lihaoyi:foo:0.0.1 to ivy repo...
+
+*/

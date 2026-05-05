@@ -26,12 +26,7 @@ public class OutFiles {
      */
     private final String envBspOutOrNull = System.getenv(EnvVars.MILL_BSP_OUTPUT_DIR);
 
-    /** @see EnvVars#MILL_NO_SEPARATE_BSP_OUTPUT_DIR */
-    public final boolean mergeBspOut =
-        // explicit request
-        "1".equals(System.getenv(EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR))
-            // user specified MILL_OUTPUT_DIR but not MILL_BSP_OUTPUT_DIR
-            || (envOutOrNull != null && envBspOutOrNull == null);
+    public final boolean mergeBspOut = envBspOutOrNull == null;
 
     /**
      * Default hard-coded value for the Mill `out/` folder path.
@@ -43,7 +38,7 @@ public class OutFiles {
      * Default hard-coded value for the Mill `out/` folder path in BSP server mode.
      * To get the effective out dir, use {@link #outFor}.
      */
-    public final String defaultBspOut = ".bsp/mill-bsp-out";
+    public final String defaultBspOut = ".bsp/out";
 
     /**
      * Effective path of the Mill `out/` folder.
@@ -55,8 +50,7 @@ public class OutFiles {
      * Effective path of the Mill `out/` folder when Mill is running in BSP mode.
      * You should favor using {@link #outFor} instead.
      */
-    public final String bspOut =
-        mergeBspOut ? out : envBspOutOrNull != null ? envBspOutOrNull : defaultBspOut;
+    public final String bspOut = envBspOutOrNull != null ? envBspOutOrNull : out;
 
     /**
      * Path of the Mill {@link #out} folder.
@@ -73,6 +67,16 @@ public class OutFiles {
           throw new IllegalArgumentException("Unknown out folder mode: " + outMode);
       }
     }
+
+    /**
+     * Location of the BSP server output logfile, relative to [[bspOut]].
+     */
+    public final String bspOutLog = "mill-bsp/out.log";
+
+    /**
+     * Location of the BSP server error output logfile, relative to [[bspOut]].
+     */
+    public final String bspErrLog = "mill-bsp/err.log";
 
     /**
      * Path of the Mill "meta-build", used to compile the `build.sc` file so we can
@@ -118,9 +122,24 @@ public class OutFiles {
     public final String millOutLock = "mill-out-lock";
 
     /**
-     * Any active Mill command that is currently run, for debugging purposes
+     * Lock file used for exclusively running the Mill BSP server for that lock id.
      */
-    public final String millActiveCommand = "mill-active-command";
+    public final String millBspLock(String lockId) {
+      return "mill-bsp-" + lockId + "-lock";
+    }
+
+    /**
+     * JSON file containing info about the active Mill process (command and process directory)
+     */
+    public final String millActive = "mill-active.json";
+
+    /**
+     * JSON file containing info about the active Mill BSP process for that lock id
+     * (process directory and PID).
+     */
+    public final String millActiveBsp(String lockId) {
+      return "mill-active-bsp-" + lockId + ".json";
+    }
 
     /**
      * File used to store metadata related to selective execution, mostly
@@ -167,6 +186,7 @@ public class OutFiles {
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
   public static final String millRunnerState = OutFiles.millRunnerState;
+
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
   public static final String millDaemon = OutFiles.millDaemon;
@@ -178,7 +198,10 @@ public class OutFiles {
   public static final String millOutLock = OutFiles.millOutLock;
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
-  public static final String millActiveCommand = OutFiles.millActiveCommand;
+  public static final String millActive = "mill-active.json";
+  /** @deprecated Use millActive instead */
+  @Deprecated
+  public static final String millActiveCommand = millActive;
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
   public static final String millSelectiveExecution = OutFiles.millSelectiveExecution;

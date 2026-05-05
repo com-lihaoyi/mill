@@ -17,6 +17,7 @@ lowered.hnir
 node_modules/
 *.bak
 mill-assembly.jar
+mill-proguard.jar
 mill-native
 *.mill.orig
 *.mill.rej

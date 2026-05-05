@@ -1,12 +1,12 @@
 package build.contrib
 
-import scala.util.chaining._
+import scala.util.chaining.*
 import coursier.maven.MavenRepository
-import mill._
+import mill.*
 import mill.util.Tasks
-import mill.scalalib._
+import mill.scalalib.*
 import mill.javalib.api.JvmWorkerUtil
-import mill.scalalib.publish._
+import mill.scalalib.publish.*
 import mill.util.Jvm
 import mill.api.SelectMode
 import mill.contrib.buildinfo.BuildInfo
@@ -44,20 +44,22 @@ object `package` extends mill.Module {
     // pure Java implementation
     def artifactSuffix: T[String] = ""
     def scalaLibraryMvnDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
-    def mvnDeps = Seq(Deps.sbtTestInterface)
-    def compileMvnDeps = Seq(Deps.testng_lowerBound)
-    def runMvnDeps = Seq(Deps.testng)
+    def mvnDeps = Seq(Deps.sbtTestInterface_api)
+    def compileMvnDeps = Seq(Deps.testng_api)
+    def runMvnDeps = Seq(Deps.testng_runtime)
     def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.libs.javalib)
     def docJar: T[PathRef] = super[JavaModule].docJar
     def compileModuleDeps = super.moduleDeps ++ Seq(build.libs.javalib)
   }
 
   object twirllib extends ContribModule {
+    def jvmVersion = "17"
     def compileModuleDeps = Seq(build.libs.javalib)
     def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.libs.scalalib)
   }
 
   object playlib extends ContribModule {
+    def jvmVersion = "17"
     def moduleDeps = Seq(twirllib, playlib.api)
     def compileModuleDeps = Seq(build.libs.scalalib)
 
@@ -104,6 +106,7 @@ object `package` extends mill.Module {
   }
 
   object scoverage extends ContribModule {
+    override def jvmVersion = "17"
     object api extends MillPublishJavaModule
 
     def moduleDeps = Seq(scoverage.api)
@@ -187,6 +190,7 @@ object `package` extends mill.Module {
 
   object docker extends ContribModule {
     def compileModuleDeps = Seq(build.libs.javalib)
+    def mvnDeps = Seq(Deps.jibCore)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.javalib)
   }
 
@@ -236,5 +240,17 @@ object `package` extends mill.Module {
   object sbom extends ContribModule {
     def compileModuleDeps = Seq(build.libs.scalalib)
     def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.libs.scalalib)
+  }
+
+  object owaspdependencycheck extends ContribModule, BuildInfo {
+    def compileModuleDeps = Seq(build.libs.javalib)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
+    override def buildInfoPackageName: String = "mill.contrib.owaspdependencycheck"
+    override def buildInfoMembers: T[Seq[BuildInfo.Value]] = Seq(
+      BuildInfo.Value(
+        "owaspDependencyCheckVersion",
+        Deps.RuntimeDeps.owaspDependencyCheckCli_runtime.version
+      )
+    )
   }
 }

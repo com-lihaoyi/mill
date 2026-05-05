@@ -8,8 +8,7 @@ package kotlinlib
 
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
-import mill.api.Result
-import mill.api.ModuleRef
+import mill.api.{BuildCtx, ModuleRef, Result}
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.JvmWorkerApi as PublicJvmWorkerApi
@@ -121,7 +120,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
    *
    * See also https://discuss.kotlinlang.org/t/kotlin-compiler-embeddable-vs-kotlin-compiler/3196
    */
-  def kotlinUseEmbeddableCompiler: Task[Boolean] = Task { false }
+  def kotlinUseEmbeddableCompiler: T[Boolean] = Task { false }
 
   /**
    * The Ivy/Coursier dependencies resembling the Kotlin compiler.
@@ -138,7 +137,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       if (useEmbeddable) mvn"org.jetbrains.kotlin:kotlin-compiler-embeddable:${kv}"
       else mvn"org.jetbrains.kotlin:kotlin-compiler:${kv}"
 
-    val btApiDeps = when(kotlincUseBtApi())(
+    val btApiDeps = when(kotlincUseBtApi() && useEmbeddable)(
       mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kv",
       mvn"org.jetbrains.kotlin:kotlin-build-tools-impl:$kv"
     )
@@ -178,7 +177,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
   /**
    * Compiles all the sources to JVM class files.
    */
-  override def compile: T[CompilationResult] = Task {
+  override def compile: T[CompilationResult] = Task(persistent = true) {
     kotlinCompileTask()()
   }
 
@@ -313,7 +312,8 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       val isJava = javaSourceFiles.nonEmpty
       val isMixed = isKotlin && isJava
 
-      val compileCp = compileClasspath().map(_.path).filter(os.exists)
+      val compileCp = compileClasspath().filter(ref => os.exists(ref.path))
+      val compileCpPaths = compileCp.map(_.path)
       val updateCompileOutput = upstreamCompileOutput()
 
       def compileJava: Result[CompilationResult] = {
@@ -337,7 +337,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       if (isMixed || isKotlin) {
         val extra = if (isJava) s"and reading ${javaSourceFiles.size} Java sources " else ""
         ctx.log.info(
-          s"Compiling ${kotlinSourceFiles.size} Kotlin sources ${extra}to ${classes} ..."
+          s"Compiling ${kotlinSourceFiles.size} Kotlin sources ${extra}to ${classes.relativeTo(BuildCtx.workspaceRoot)} ..."
         )
 
         val compilerArgs: Seq[String] = Seq(
@@ -347,9 +347,9 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
           // TODO if there is penalty for activating it in the compiler, put it behind configuration flag
           Seq("-Xmulti-platform"),
           // classpath
-          when(compileCp.iterator.nonEmpty)(
+          when(compileCpPaths.iterator.nonEmpty)(
             "-classpath",
-            compileCp.iterator.mkString(File.pathSeparator)
+            compileCpPaths.iterator.mkString(File.pathSeparator)
           ),
           when(kotlinExplicitApi())(
             "-Xexplicit-api=strict"
@@ -358,18 +358,28 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
           extraKotlinArgs
         ).flatten
 
+        val useBtApi =
+          kotlincUseBtApi() && kotlinUseEmbeddableCompiler()
+
+        if (kotlincUseBtApi() && !kotlinUseEmbeddableCompiler()) {
+          ctx.log.warn(
+            "Kotlin Build Tools API requires kotlinUseEmbeddableCompiler=true; " +
+              "falling back to CLI compiler backend."
+          )
+        }
+
         val workerResult =
           KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
             _.compile(
               target = KotlinWorkerTarget.Jvm,
-              useBtApi = kotlincUseBtApi(),
+              useBtApi = useBtApi,
               args = compilerArgs,
               sources = kotlinSourceFiles ++ javaSourceFiles
             )
           }
 
         val analysisFile = dest / "kotlin.analysis.dummy"
-        os.write(target = analysisFile, data = "", createFolders = true)
+        os.write.over(target = analysisFile, data = "", createFolders = true)
 
         workerResult match {
           case Result.Success(_) =>
@@ -396,16 +406,28 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
 
   /**
    * Enable use of new Kotlin Build API (Beta).
-   * Enabled by default for Kotlin 2.1+ for JVM.
+   * Enabled by default for Kotlin 2.3+ when using the embeddable compiler.
    */
   def kotlincUseBtApi: T[Boolean] = Task {
+    kotlinUseEmbeddableCompiler() &&
     Version.parse(kotlinVersion())
-      .isNewerThan(Version.parse("2.1.0"))(using Version.IgnoreQualifierOrdering)
+      .isAtLeast(Version.parse("2.3.0"))(using Version.IgnoreQualifierOrdering)
+  }
+
+  /**
+   * Module name options for the Kotlin compiler.
+   * For JVM, this is `-module-name`. For JS, this is overridden to be empty
+   * (JS uses `-Xir-module-name` set separately in the compile task).
+   */
+  protected def kotlinModuleNameOption: T[Seq[String]] = Task {
+    // Use artifactName if available, otherwise fall back to "main" for root modules
+    val moduleName = Option(artifactName()).filter(_.nonEmpty).getOrElse("main")
+    Seq("-module-name", moduleName)
   }
 
   /**
    * Mandatory command-line options to pass to the Kotlin compiler
-   * that shouldn't be removed by overriding `scalacOptions`
+   * that shouldn't be removed by overriding [[kotlincOptions]].
    */
   protected def mandatoryKotlincOptions: T[Seq[String]] = Task {
     val languageVersion = kotlinLanguageVersion()
@@ -413,6 +435,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     val plugins = kotlincPluginJars().map(_.path)
 
     Seq("-no-stdlib") ++
+      kotlinModuleNameOption() ++
       when(!languageVersion.isBlank)("-language-version", languageVersion) ++
       when(!kotlinkotlinApiVersion.isBlank)("-api-version", kotlinkotlinApiVersion) ++
       plugins.map(p => s"-Xplugin=$p")
@@ -420,7 +443,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
 
   /**
    * Aggregation of all the options passed to the Kotlin compiler.
-   * In most cases, instead of overriding this Target you want to override `kotlincOptions` instead.
+   * In most cases, instead of overriding this Target you want to override [[kotlincOptions]] instead.
    */
   def allKotlincOptions: T[Seq[String]] = Task {
     mandatoryKotlincOptions() ++ kotlincOptions()
@@ -430,7 +453,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       worker: InternalJvmWorkerApi,
       upstreamCompileOutput: Seq[CompilationResult],
       javaSourceFiles: Seq[os.Path],
-      compileCp: Seq[os.Path],
+      compileCp: Seq[PathRef],
       javaHome: Option[os.Path],
       javacOptions: Seq[String],
       compileProblemReporter: Option[CompileProblemReporter],
@@ -492,8 +515,8 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
         Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
     }
-    override def kotlinUseEmbeddableCompiler: Task[Boolean] =
-      Task.Anon { outer.kotlinUseEmbeddableCompiler() }
+    override def kotlinUseEmbeddableCompiler: T[Boolean] =
+      Task { outer.kotlinUseEmbeddableCompiler() }
     override def kotlincUseBtApi: Task.Simple[Boolean] = Task { outer.kotlincUseBtApi() }
   }
 
@@ -514,8 +537,8 @@ object KotlinModule {
       outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
         Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
     }
-    override def kotlinUseEmbeddableCompiler: Task[Boolean] =
-      Task.Anon { outer.kotlinUseEmbeddableCompiler() }
+    override def kotlinUseEmbeddableCompiler: T[Boolean] =
+      Task { outer.kotlinUseEmbeddableCompiler() }
     override def kotlincUseBtApi: Task.Simple[Boolean] = Task { outer.kotlincUseBtApi() }
   }
   private[mill] def addJvmVariantAttributes: ResolutionParams => ResolutionParams = { params =>

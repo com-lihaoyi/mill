@@ -8,7 +8,7 @@ import mill.constants.DaemonFiles
 import mill.javalib.api.internal.*
 import mill.javalib.api.JvmWorkerArgs
 import mill.javalib.zinc.{ZincApi, ZincWorker}
-import mill.util.{Jvm, RefCountedCache}
+import mill.util.{CachedFactoryBase, Jvm}
 import sbt.internal.util.ConsoleOut
 
 import java.nio.file.FileSystemException
@@ -18,7 +18,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
   import args.*
 
   /** The local Zinc instance which is used when we do not want to override Java home or runtime options. */
-  private val zincLocalWorker = ZincWorker(jobs = jobs)
+  private val zincLocalWorker = ZincWorker(jobs = jobs, useFileLocks = useFileLocks)
 
   override def apply(
       op: ZincOp,
@@ -55,7 +55,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
     close0() // make sure this is invoked last as it closes the classloader that we need for other `.close` calls
   }
 
-  private val subprocessCache: RefCountedCache[
+  private val subprocessCache: CachedFactoryBase[
     SubprocessZincApi.Key,
     SubprocessZincApi.Key,
     SubprocessZincApi.Initialize,
@@ -74,14 +74,21 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
       }
     }
 
-    new RefCountedCache[
+    new CachedFactoryBase[
       SubprocessZincApi.Key,
       SubprocessZincApi.Key,
       SubprocessZincApi.Initialize,
       SubprocessZincApi.Value
-    ](
-      convertKey = identity,
-      setup = (key, _, init) => {
+    ] {
+      def keyToInternalKey(key: SubprocessZincApi.Key): SubprocessZincApi.Key = key
+      def maxCacheSize: Int = args.jobs
+      def shareValues: Boolean = true
+
+      def setup(
+          key: SubprocessZincApi.Key,
+          internalKey: SubprocessZincApi.Key,
+          init: SubprocessZincApi.Initialize
+      ): SubprocessZincApi.Value = {
         val workerDir = init.taskDest / "zinc-worker" / key.hashCode.toString
         val daemonDir = workerDir / "daemon"
 
@@ -89,29 +96,31 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         os.write.over(workerDir / "java-home", key.javaHome.map(_.toString).getOrElse("<default>"))
         os.write.over(workerDir / "java-runtime-options", key.runtimeOptions.mkString("\n"))
 
-        val mainClass = "mill.javalib.zinc.ZincWorkerMain"
-        val fileLocks = Locks.files(daemonDir.toString)
+        val mainClass = "mill.javalib.worker.MillJvmWorkerMain"
+        val baseLocks = Locks.forDirectory(daemonDir.toString, useFileLocks)
         val locks = {
           Locks(
             // File locks are non-reentrant, so we need to lock on the memory lock first.
             //
             // We can get multiple lock acquisitions when we compile several modules in parallel,
-            DoubleLock(memLockFor(daemonDir), fileLocks.launcherLock),
+            DoubleLock(memLockFor(daemonDir), baseLocks.launcherLock),
             // We never take the daemon lock, just check if it's already taken
-            fileLocks.daemonLock
+            baseLocks.daemonLock
           )
         }
 
+        val suppressArgs = Jvm.getJvmSuppressionArgs(key.javaHome)
+
         val launched = ServerLauncher.launchOrConnectToServer(
           locks,
-          daemonDir.toNIO,
+          daemonDir,
           10 * 1000,
           () => {
             val process = Jvm.spawnProcess(
               mainClass = mainClass,
-              mainArgs = Seq(daemonDir.toString, jobs.toString),
+              mainArgs = Seq(daemonDir.toString, jobs.toString, useFileLocks.toString),
               javaHome = key.javaHome,
-              jvmArgs = key.runtimeOptions,
+              jvmArgs = key.runtimeOptions ++ suppressArgs,
               classPath = classPath
             )
             LaunchedServer.OsProcess(process.wrapped.toHandle)
@@ -128,12 +137,18 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
                  |""".stripMargin
             ),
           _ => (),
-          false // openSocket
+          false, // openSocket
+          config = ServerLauncher.DaemonConfig.empty
         )
 
         SubprocessZincApi.Value(launched.port, daemonDir, launched.launchedServer, locks)
-      },
-      closeValue = value => {
+      }
+
+      def teardown(
+          key: SubprocessZincApi.Key,
+          internalKey: SubprocessZincApi.Key,
+          value: SubprocessZincApi.Value
+      ): Unit = {
         os.remove(value.daemonDir / DaemonFiles.processId)
         while (value.launchedServer.isAlive) Thread.sleep(1)
 
@@ -154,7 +169,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
           while (!tryRemoving()) Thread.sleep(10)
         }
       }
-    )
+    }
   }
 
   /** Gives you API for the [[zincLocalWorker]] instance. */

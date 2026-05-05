@@ -41,12 +41,13 @@ import scala.math.Ordering.Implicits.*
   def discoverTests(
       cl: ClassLoader,
       framework: Framework,
-      classpath: Seq[os.Path]
+      classpath: Seq[os.Path],
+      discoveredTestClasses: Option[Seq[(String, Int)]]
   ): Seq[ClassWithFingerprint] = {
 
     val fingerprints = framework.fingerprints()
 
-    val testClasses = classpath
+    def foundTestClasses = classpath
       // Don't blow up if there are no classfiles representing
       // the tests to run Instead just don't run anything
       .filter(os.exists(_))
@@ -83,7 +84,16 @@ import scala.math.Ordering.Implicits.*
       // https://stackoverflow.com/a/17468590
       .filter { case (c, _) => !c.isMemberClass && !c.isAnonymousClass }
 
-    testClasses
+    discoveredTestClasses match {
+      case Some(discoveredTestClasses0) =>
+        discoveredTestClasses0.map {
+          case (clsName, fingerprintIdx) =>
+            val cls = cl.loadClass(clsName)
+            (cls, fingerprints(fingerprintIdx))
+        }
+      case None =>
+        foundTestClasses
+    }
   }
 
   def matchFingerprints(
@@ -116,11 +126,12 @@ import scala.math.Ordering.Implicits.*
       args: Seq[String],
       classFilter: Class[?] => Boolean,
       cl: ClassLoader,
-      testClassfilePath: Seq[Path]
+      testClassfilePath: Seq[Path],
+      discoveredTestClasses: Option[Seq[(String, Int)]]
   ): (Runner, Array[Array[Task]]) = {
 
     val runner = framework.runner(args.toArray, Array[String](), cl)
-    val testClasses = discoverTests(cl, framework, testClassfilePath)
+    val testClasses = discoverTests(cl, framework, testClassfilePath, discoveredTestClasses)
 
     val tasks = runner.tasks(
       for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter(cls))
@@ -271,12 +282,14 @@ import scala.math.Ordering.Implicits.*
       classFilter: Class[?] => Boolean,
       cl: ClassLoader,
       testReporter: TestReporter,
+      discoveredTestClasses: Option[Seq[(String, Int)]],
       resultPathOpt: Option[os.Path] = None
   ): (String, Seq[TestResult]) = {
 
     val framework = frameworkInstances(cl)
 
-    val (runner, tasksArr) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
+    val (runner, tasksArr) =
+      getTestTasks(framework, args, classFilter, cl, testClassfilePath, discoveredTestClasses)
 
     val (doneMessage, results) =
       runTasks(tasksArr.view.map(_.toSeq).toSeq, testReporter, runner, resultPathOpt)
@@ -360,14 +373,15 @@ import scala.math.Ordering.Implicits.*
       claimFolder: os.Path,
       cl: ClassLoader,
       testReporter: TestReporter,
-      resultPath: os.Path
+      resultPath: os.Path,
+      discoveredTestClasses: Option[Seq[(String, Int)]]
   ): (String, Seq[TestResult]) = {
 
     val framework = frameworkInstances(cl)
 
     val runner = framework.runner(args.toArray, Array[String](), cl)
 
-    val testClasses = discoverTests(cl, framework, testClassfilePath)
+    val testClasses = discoverTests(cl, framework, testClassfilePath, discoveredTestClasses)
 
     val (doneMessage, results) = runTasksFromQueue(
       startingTestClass,
@@ -387,11 +401,12 @@ import scala.math.Ordering.Implicits.*
       testClassfilePath: Seq[Path],
       args: Seq[String],
       classFilter: Class[?] => Boolean,
-      cl: ClassLoader
+      cl: ClassLoader,
+      discoveredTestClasses: Option[Seq[(String, Int)]]
   ): Array[String] = {
     val framework = frameworkInstances(cl)
     val ( /*runner*/ _, tasksArr) =
-      getTestTasks(framework, args, classFilter, cl, testClassfilePath)
+      getTestTasks(framework, args, classFilter, cl, testClassfilePath, discoveredTestClasses)
     tasksArr.flatten.map(_.taskDef()).filter(_ != null).map(_.fullyQualifiedName())
   }
 

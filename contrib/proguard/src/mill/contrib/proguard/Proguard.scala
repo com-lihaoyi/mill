@@ -4,7 +4,7 @@ import mill.{T, Task}
 import mill.api.{PathRef}
 import mill.constants.Util
 import mill.util.Jvm
-import mill.scalalib.{DepSyntax, ScalaModule}
+import mill.scalalib.{DepSyntax, JavaModule}
 import os.{Path, Shellable}
 
 /**
@@ -15,7 +15,7 @@ import os.{Path, Shellable}
  *
  * Sensible defaults are provided, so no members require overriding.
  */
-trait Proguard extends ScalaModule {
+trait Proguard extends JavaModule {
 
   /**
    * The version of proguard to download from Maven.
@@ -47,8 +47,15 @@ trait Proguard extends ScalaModule {
    * Defaults to the `java.home` system property.
    * Keep in sync with [[java9RtJar]]-
    */
-  def finalJavaHome: T[PathRef] =
-    javaHome().getOrElse(PathRef(Path(sys.props("java.home")), quick = true))
+  def finalJavaHome: T[PathRef] = Task {
+    javaHome().getOrElse {
+      // java.home may point to a Coursier-managed JDK inside the workspace (common on CI).
+      // That path isn't in the sandbox allow-list, so disable the checker for this PathRef.
+      mill.api.BuildCtx.withFilesystemCheckerDisabled {
+        PathRef(Path(sys.props("java.home")), quick = true)
+      }
+    }
+  }
 
   /** Specifies the input jar to proguard. Defaults to the output of the `assembly` task. */
   def inJar: T[PathRef] = Task { assembly() }
@@ -67,12 +74,14 @@ trait Proguard extends ScalaModule {
    * Defaults the jars under `javaHome`.
    */
   def libraryJars: T[Seq[PathRef]] = Task {
-    val javaJars =
+    // finalJavaHome may point to a Coursier-managed JDK inside the workspace,
+    // so listing and wrapping its jars also needs the checker disabled.
+    mill.api.BuildCtx.withFilesystemCheckerDisabled {
       os.list(
         finalJavaHome().path / "lib",
         sort = false
       ).filter(_.ext == "jar").toSeq.map(PathRef(_))
-    javaJars
+    }
   }
 
   /**

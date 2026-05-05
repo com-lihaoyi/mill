@@ -12,5 +12,5 @@ object InitMavenModule extends ExternalModule with BuildGenModule {
     Dep.millProjectModule("mill-libs-init-maven")
   )
 
-  def buildGenMainClass: T[String] = "mill.main.maven.MavenBuildGenMain"
+  def buildGenMainClass: T[String] = "mill.main.maven.MillMavenBuildGenMain"
 }

@@ -1,0 +1,36 @@
+package build.`multi-module`.server
+
+import mill.*
+import mill.javalib.*
+import mill.javalib.publish.*
+import millbuild.*
+
+object `package` extends ProjectBaseModule {
+
+  def depManagement = Seq(
+    mvn"javax.servlet:servlet-api:2.5",
+    mvn"javax.servlet.jsp:jsp-api:2.2",
+    mvn"junit:junit-dep:4.10",
+    mvn"org.hamcrest:hamcrest-core:1.2.1",
+    mvn"org.hamcrest:hamcrest-library:1.2.1",
+    mvn"org.mockito:mockito-core:1.8.5"
+  )
+
+  def artifactName = "server"
+
+  def pomParentProject = Some(
+    Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT")
+  )
+
+  def pomSettings = PomSettings(
+    "Logic.",
+    "",
+    "",
+    Seq(),
+    VersionControl(None, None, None, None),
+    Seq()
+  )
+
+  object test extends ProjectBaseTests {}
+
+}

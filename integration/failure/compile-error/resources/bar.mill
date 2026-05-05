@@ -2,7 +2,7 @@ package build
 // Make sure this
 /* gives the correct */
 // line numbers
-import scala._
+import scala.*
 
 def myScalaVersion = "2.13.16"
 // when there

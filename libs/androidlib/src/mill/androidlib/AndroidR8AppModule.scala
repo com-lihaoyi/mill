@@ -58,7 +58,7 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
     )
   }
 
-  def androidLibraryProguardConfigs: Task[Seq[PathRef]] = Task {
+  def androidLibraryProguardConfigs: Task.Simple[Seq[PathRef]] = Task {
     androidUnpackRunArchives()
       // TODO need also collect rules from other modules,
       // but Android lib module doesn't yet exist
@@ -82,8 +82,11 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
    * Useful for dependencies that are provided in devices and compile only module deps
    * such as for avoiding to package main sources in the androidTest apk.
    */
-  def androidR8CompileOnlyClasspath: T[Seq[PathRef]] =
-    androidResolvedCompileMvnDeps() ++ androidTransitiveCompileOnlyClasspath() ++ androidTransitiveModuleRClasspath()
+  def androidR8CompileOnlyClasspath: T[Seq[PathRef]] = Task {
+    val cp =
+      androidResolvedCompileMvnDeps() ++ androidTransitiveCompileOnlyClasspath() ++ androidTransitiveModuleRClasspath()
+    cp.filter(_.path.ext == "jar")
+  }
 
   /**
    * Creates a file of [[androidR8CompileOnlyClasspath]] for CLI compatibility reasons (e.g. windows arg limit)
@@ -143,6 +146,10 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
     Seq.empty[String]
   }
 
+  def androidR8ExtraRules: T[Seq[String]] = Task {
+    Seq.empty[String]
+  }
+
   def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
     AndroidBuildTypeSettings()
   }
@@ -185,20 +192,37 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
     val minifyDir = androidR8Build(Task.Anon("--classfile"))()
     val cli = minifyDir.dexCliArgs
     os.call(cli)
+
+    // expecting a zip file here after case-insensitive
+    // fix in [[https://github.com/com-lihaoyi/mill/issues/6651]]
     val jarDest = Task.dest / s"${moduleSegments.render}.jar"
-    val zipFiles = os.walk(minifyDir.outPath.path).map(p =>
-      os.zip.ZipSource.fromPathTuple(p -> p.subRelativeTo(minifyDir.outPath.path))
-    )
-    os.zip.apply(jarDest, zipFiles)
+    os.copy(minifyDir.outPath.path, jarDest)
     PathRef(jarDest)
   }
 
   private def androidR8Build(buildType: Task[String])
       : Task[(outPath: PathRef, dexCliArgs: Seq[String], appCompiledFiles: Seq[PathRef])] =
     Task.Anon {
-      val destDir = Task.dest / "minify"
+
+      // because we create class files,
+      // we don't want them to be exploded in
+      // a minify directory to avoid collisions
+      // in case insensitive file systems.
+      // See [[https://github.com/com-lihaoyi/mill/issues/6651]]
+      // A minify directory with dex files is fine, as R8 outputs them
+      // with indexing (classes1.dex ... classesN.dex)
+
+      val (isDestDir, destinationName) = if (buildType() == "--classfile")
+        false -> "minify.zip"
+      else
+        true -> "minify"
+
+      val destDir = Task.dest / destinationName
+
+      if (isDestDir)
+        os.makeDir.all(destDir)
+
       val diagnosticsDir = Task.dest / "diagnostics"
-      os.makeDir.all(destDir)
       os.makeDir.all(diagnosticsDir)
 
       val outputPath = destDir
@@ -213,14 +237,14 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
       val baselineOutOpt = diagnosticsDir / "baseline-profile-rewritten.txt"
 
       // Extra ProGuard rules
-      val extraRules =
+      val extraRules = androidR8ExtraRules() ++
         Seq(
           // Instruct R8 to print seeds and usage.
           s"-printseeds $seedsOut",
           s"-printusage $usageOut"
         ) ++
-          (if (androidBuildSettings().isMinifyEnabled) then androidGeneratedMinifyKeepRules()
-           else Seq())
+        (if (androidBuildSettings().isMinifyEnabled) then androidGeneratedMinifyKeepRules()
+         else Seq())
       // Create an extra ProGuard config file
       val extraRulesFile = Task.dest / "extra-rules.pro"
       val extraRulesContent = extraRules.mkString("\n")
@@ -303,19 +327,21 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
           "--pg-conf",
           androidProguard().path.toString,
           "--pg-conf",
+          androidKnownProguardRulesFile().path.toString,
+          "--pg-conf",
           extraRulesFile.toString
         ) ++ androidCommonProguardFiles().flatMap(pgf => Seq("--pg-conf", pgf.path.toString))
 
       r8ArgsBuilder ++= pgArgs
 
-      val compileOnlyClasspath = androidR8CompileOnlyClasspath()
+      val compileOnlyClasspathFileOpt = androidR8CompileOnlyClasspathFile()
 
-      r8ArgsBuilder ++= compileOnlyClasspath.filter(_.path.ext == "jar").flatMap(compiledMvnDeps =>
-        Seq(
+      compileOnlyClasspathFileOpt.foreach { cpFile =>
+        r8ArgsBuilder ++= Seq(
           "--classpath",
-          compiledMvnDeps.path.toString
+          s"@${cpFile.path.toString}"
         )
-      )
+      }
 
       r8ArgsBuilder ++= androidR8Args()
 

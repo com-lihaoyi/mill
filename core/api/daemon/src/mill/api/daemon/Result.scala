@@ -1,6 +1,7 @@
 package mill.api.daemon
 
 import scala.collection.Factory
+import com.lihaoyi.unroll
 
 /**
  * Represents a computation that either succeeds with a value [[T]] or
@@ -57,7 +58,18 @@ object Result {
     def map[V](f: Nothing => V): Result[Nothing] = this
 
     def flatMap[V](f: Nothing => Result[V]): Result[Nothing] = this
-    def get = sys.error(error)
+    def get = {
+      val nl = System.lineSeparator()
+      sys.error(
+        error + nl +
+          exception
+            .map { ex =>
+              ex.clsName + ": " + ex.msg + nl +
+                ex.stack.map("  " + _ + nl).mkString
+            }
+            .mkString
+      )
+    }
     def toOption: Option[Nothing] = None
     def toEither: Either[String, Nothing] = Left(error)
     def errorOpt: Option[String] = Some(error)
@@ -65,6 +77,91 @@ object Result {
 
   object Failure {
     case class ExceptionInfo(clsName: String, msg: String, stack: Seq[StackTraceElement])
+
+    // We have 2 fromException overrides (+ the deprecated one) not to remove the default value
+    // of the deprecated one, which would break bin compat. Once the deprecated override can be
+    // removed, the two here can be merged with a default value for the outerStack argument.
+
+    /**
+     * Creates a Failure from an exception, handling cause chains properly.
+     * If the exception is a Result.Exception with an existing failure, that failure is preserved.
+     *
+     * @param ex the exception to convert
+     * @param outerStack optional outer stack frames to drop from stack traces
+     */
+    def fromException(
+        ex: Throwable,
+        outerStack: Array[StackTraceElement],
+        cutExtra: Int
+    ): Failure =
+      fromException0(ex, outerStack, cutExtra)
+
+    /**
+     * Creates a Failure from an exception, handling cause chains properly.
+     * If the exception is a Result.Exception with an existing failure, that failure is preserved.
+     *
+     * @param ex the exception to convert
+     */
+    def fromException(
+        ex: Throwable
+    ): Failure =
+      fromException0(ex, Array.empty, cutExtra = 0)
+
+    private def fromException0(
+        ex: Throwable,
+        outerStack: Array[StackTraceElement],
+        cutExtra: Int
+    ): Failure = {
+      // If this is a Result.Exception with an existing failure, preserve it
+      ex match {
+        case re: Result.Exception if re.failure.isDefined => return re.failure.get
+        case _ =>
+      }
+
+      def cutOuterStack(stack: Array[StackTraceElement]): Seq[StackTraceElement] = {
+        val sharedLength = stack.reverseIterator.zip(outerStack.reverseIterator)
+          .takeWhile((a, b) => a == b)
+          .length
+        val toCut =
+          if (sharedLength == outerStack.length) sharedLength + cutExtra
+          else sharedLength
+        stack.dropRight(toCut).toSeq
+      }
+
+      var current = List(ex)
+      while (current.head.getCause != null) current = current.head.getCause :: current
+
+      val exceptionInfos = current.reverse.map {
+        case r: Result.SerializedException =>
+          r.info
+        case e =>
+          val (clsName, msg) = e.toString.split(": ", 2) match {
+            case Array(clsName, msg) => (clsName, msg)
+            case _ => (e.getClass.getName, e.getMessage)
+          }
+          ExceptionInfo(clsName, msg, cutOuterStack(e.getStackTrace))
+      }
+      Failure("", exception = exceptionInfos)
+    }
+
+    @deprecated("Use the override accepting the outer stack as a Throwable", "Mill after 1.1.2")
+    def fromException(ex: Throwable, outerStackLength: Int = 0): Failure = {
+      // If this is a Result.Exception with an existing failure, preserve it
+      ex match {
+        case re: Result.Exception if re.failure.isDefined => return re.failure.get
+        case _ =>
+      }
+
+      var current = List(ex)
+      while (current.head.getCause != null) current = current.head.getCause :: current
+
+      val exceptionInfos = current.reverse.map { e =>
+        val elements = e.getStackTrace.dropRight(outerStackLength)
+        ExceptionInfo(e.getClass.getName, e.getMessage, elements.toSeq)
+      }
+      Failure("", exception = exceptionInfos)
+    }
+
     def split(f: Failure) = Iterator
       .unfold(Option(f))(_.map(t => t.copy(next = None) -> t.next))
       // Sometimes multiple code paths result in exactly the same failure,
@@ -112,5 +209,61 @@ object Result {
     sequence[B, Seq](collection.iterator.map(_.flatMap(f)).toSeq).map(factory.fromSpecific)
   }
 
-  final class Exception(val error: String) extends java.lang.Exception(error)
+  /**
+   * Exception used to short circuit a task evaluation with a pretty error string
+   * or a [[Failure]] object containing metadata for pretty error reporting
+   */
+  final class Exception(val error: String, @unroll val failure: Option[Failure] = None)
+      extends java.lang.Exception(error)
+
+  /**
+   * An exception that has its original class and metadata replaced by a [[Failure.ExceptionInfo]]
+   * data structure. Used to sanitize exceptions when propagating them across classloader
+   * boundaries, since some of the exceptions in a cause-chain may be instances of no-longer-valid
+   * classes after a classloader is closed
+   */
+  final class SerializedException(val info: Result.Failure.ExceptionInfo, cause: Throwable)
+      extends Throwable(info.msg, cause) {
+    setStackTrace(info.stack.toArray)
+  }
+
+  object SerializedException {
+    private[mill] def from(causeChain: Seq[Failure.ExceptionInfo]): SerializedException = {
+      if (causeChain.isEmpty) sys.error("causeChain must be non-empty")
+      var current: SerializedException = null
+      for (info <- causeChain.reverseIterator) current = new SerializedException(info, current)
+      current
+    }
+
+    private[mill] def partialFrom(throwable: Throwable, classLoader: ClassLoader): Throwable = {
+      val seen = new java.util.IdentityHashMap[Throwable, Throwable]()
+
+      def transform(current: Throwable): Throwable = {
+        val existing = seen.get(current)
+        if (existing != null) return existing
+
+        val cause0 = current.getCause
+        val transformedCause = if (cause0 == null) null else transform(cause0)
+
+        val result =
+          if ((current.getClass.getClassLoader ne classLoader) && (transformedCause eq cause0)) {
+            current
+          } else {
+            new SerializedException(
+              Result.Failure.ExceptionInfo(
+                current.getClass.getName,
+                current.getMessage,
+                current.getStackTrace.toSeq
+              ),
+              transformedCause
+            )
+          }
+
+        seen.put(current, result)
+        result
+      }
+
+      transform(throwable)
+    }
+  }
 }

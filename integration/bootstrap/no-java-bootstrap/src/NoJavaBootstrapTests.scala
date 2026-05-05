@@ -5,7 +5,7 @@ import coursier.cache.FileCache
 import coursier.jvm.{JvmCache, JvmChannel, JvmIndex}
 import mill.testkit.UtestIntegrationTestSuite
 
-import utest._
+import utest.*
 
 object NoJavaBootstrapTests extends UtestIntegrationTestSuite {
   // Don't propagate `JAVA_HOME` to this test suite, because we want to exercise
@@ -27,7 +27,7 @@ object NoJavaBootstrapTests extends UtestIntegrationTestSuite {
     )
     val jvmCache = JvmCache().withIndex(index)
 
-    val entry = cache.logger.use(jvmCache.entries(mill.client.BuildInfo.defaultJvmId))
+    val entry = cache.logger.use(jvmCache.entries(mill.constants.BuildInfo.defaultJvmVersion))
       .unsafeRun()(using cache.ec)
       .left.map(err => sys.error(err))
       .merge
@@ -38,7 +38,7 @@ object NoJavaBootstrapTests extends UtestIntegrationTestSuite {
 
   val tests: Tests = Tests {
     test - integrationTest { tester =>
-      import tester._
+      import tester.*
       os.remove(tester.workspacePath / ".mill-jvm-version")
       // The Mill server process should use the default Mill Java version,
       // even without the `.mill-jvm-version` present

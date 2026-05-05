@@ -53,10 +53,16 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
       case v @ ("0.4.0" | "0.4.1") =>
         Result.Failure(s"Scala Native $v is not supported. Please update to 0.4.2+")
       case version =>
+        // Workaround for https://github.com/com-lihaoyi/mill/issues/6780:
+        // Scala Native `tools_3` 0.5.10 can crash during linking when
+        // `SourceLevelDebuggingConfig` is enabled.
+        //
+        // Using the Scala 2.13 published toolchain artifacts avoids the issue and is
+        // compatible with Mill's Scala 3 runtime (Scala 3 uses the 2.13 standard library).
         Result.Success(
           Seq(
-            mvn"org.scala-native::tools:$version",
-            mvn"org.scala-native::test-runner:$version"
+            mvn"org.scala-native:tools_2.13:$version",
+            mvn"org.scala-native:test-runner_2.13:$version"
           )
         )
 
@@ -409,7 +415,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
     Some((
       ScalaBuildTarget.dataKind,
       ScalaBuildTarget(
-        scalaOrganization = scalaOrganization(),
+        scalaOrganization = JvmWorkerUtil.scalaOrganization(scalaVersion()),
         scalaVersion = scalaVersion(),
         scalaBinaryVersion = JvmWorkerUtil.scalaBinaryVersion(scalaVersion()),
         ScalaPlatform.Native,
@@ -501,6 +507,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
       Seq(compile().classes.path),
       args(),
       Task.testReporter,
+      aheadOfTimeDiscoveredTestClassesIfNeeded(),
       cls => TestRunnerUtils.globFilter(globSelectors())(cls.getName)
     )
     val res = TestModule.handleResults(doneMsg, results, Task.ctx(), testReportXml())

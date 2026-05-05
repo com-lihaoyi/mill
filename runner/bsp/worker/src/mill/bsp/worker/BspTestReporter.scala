@@ -132,5 +132,3 @@ private class BspTestReporter(
   }
 
 }
-
-case class TestException(stackTrace: String, message: String, exClass: String)

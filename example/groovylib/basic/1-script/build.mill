@@ -1,0 +1,32 @@
+//// SNIPPET:FILE
+/** See Also: Foo.groovy */
+//// SNIPPET:END
+
+//// SNIPPET:CMD
+/** Usage
+> ./mill Foo.groovy bar
+Compiling 1 Groovy sources to...
+Hello bar
+*/
+//// SNIPPET:END
+//// SNIPPET:MORE
+
+/** Usage
+> ./mill Foo.groovy:run bar
+Hello bar
+*/
+
+//// SNIPPET:END
+
+//// SNIPPET:RESOLVE
+/** Usage
+
+> ./mill resolve Foo.groovy:_
+Foo.groovy:run
+Foo.groovy:runMain
+Foo.groovy:compile
+Foo.groovy:assembly
+...
+
+*/
+//// SNIPPET:END

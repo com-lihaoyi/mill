@@ -32,7 +32,7 @@ import coursier.core.{Classifier, Dependency, Module, Project, Repository, Artif
 import coursier.ivy.IvyRepository
 import coursier.maven.MavenRepository
 import coursier.util.{EitherT, Monad}
-import utest._
+import utest.*
 
 object MetadataLoaderFactoryTests extends TestSuite {
 
@@ -47,7 +47,7 @@ object MetadataLoaderFactoryTests extends TestSuite {
       val Right(ivyRepo) = IvyRepository.parse(
         "https://dl.bintray.com/sbt/sbt-plugin-releases/" + coursier.ivy.Pattern.default.string,
         dropInfoAttributes = true
-      ): @unchecked
+      ).runtimeChecked
       assertMatch(MetadataLoaderFactory(ivyRepo)) { case None => }
     }
     test("otherRepository") {

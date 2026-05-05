@@ -1,7 +1,7 @@
 package mill.scalanativelib.api
 
-import mill.api.JsonFormatters._
-import upickle._
+import mill.api.JsonFormatters.*
+import upickle.*
 
 sealed abstract class LTO(val value: String)
 object LTO {

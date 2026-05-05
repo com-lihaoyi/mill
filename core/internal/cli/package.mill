@@ -1,6 +1,6 @@
 package build.core.internal.cli
 
-import mill._
+import mill.*
 import millbuild.*
 
 /**

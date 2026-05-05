@@ -14,23 +14,23 @@ object JavaHomeTests extends TestSuite {
   object JavaJdk11DoesntCompile extends TestRootModule {
 
     object javamodule extends JavaModule {
-      def jvmId = "temurin:11.0.25"
+      def jvmVersion = "temurin:11.0.25"
     }
     object scalamodule extends ScalaModule {
-      def jvmId = "temurin:11.0.25"
-      def scalaVersion = "2.13.14"
+      def jvmVersion = "temurin:11.0.25"
+      def scalaVersion = "2.13.18"
     }
     lazy val millDiscover = Discover[this.type]
   }
 
   object JavaJdk17Compiles extends TestRootModule {
     object javamodule extends JavaModule {
-      def jvmId = "temurin:17.0.13"
+      def jvmVersion = "temurin:17.0.13"
     }
     object scalamodule extends ScalaModule {
-      def jvmId = "temurin:17.0.13"
+      def jvmVersion = "temurin:17.0.13"
 
-      def scalaVersion = "2.13.14"
+      def scalaVersion = "2.13.18"
     }
     lazy val millDiscover = Discover[this.type]
   }
@@ -55,13 +55,13 @@ object JavaHomeTests extends TestSuite {
 
       def testSuccess(module: TestRootModule, task: Task[?]): Unit = {
         captureOutput(module, task) { (result, _) =>
-          val Right(_) = result: @unchecked
+          val Right(_) = result.runtimeChecked
         }
       }
 
       def testFailure(module: TestRootModule, task: Task[?], errors: String*): Unit = {
         captureOutput(module, task) { (result, stderr) =>
-          val Left(failing) = result: @unchecked
+          val Left(failing) = result.runtimeChecked
           failing match {
             case _: ExecResult.Failure[?]
                 // javadoc fails with a process error code 1

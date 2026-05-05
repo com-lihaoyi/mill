@@ -1,7 +1,7 @@
 package mill.javalib.dependency.versions
 
-import fastparse._
-import fastparse.NoWhitespace._
+import fastparse.*
+import fastparse.NoWhitespace.*
 
 private[dependency] object VersionParser {
 

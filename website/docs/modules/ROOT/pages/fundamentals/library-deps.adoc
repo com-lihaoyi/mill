@@ -133,7 +133,7 @@ artifact is coming from using the `--whatDependsOn` argument:
 
 [source,txt]
 ----
-❯ ./mill -i dev.run ~/Documents/scala-workspace/com-lihaoyi/mill  main.showMvnDepsTree --whatDependsOn com.github.plokhotnyuk.jsoniter-scala:jsoniter-scala-core_2.13
+❯ ./mill dev.run ~/Documents/scala-workspace/com-lihaoyi/mill  main.showMvnDepsTree --whatDependsOn com.github.plokhotnyuk.jsoniter-scala:jsoniter-scala-core_2.13
 [33/33] main.showMvnDepsTree
 └─ com.github.plokhotnyuk.jsoniter-scala:jsoniter-scala-core_2.13:2.13.5
    ├─ io.get-coursier:coursier_2.13:2.1.0-RC1

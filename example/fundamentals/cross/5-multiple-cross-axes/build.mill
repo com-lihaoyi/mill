@@ -24,46 +24,46 @@ def bar = Task { s"hello ${foo("2.10", "jvm").suffix()}" }
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
 //
 //   subgraph cluster_6 {
-//     label="foo[2.12,native]"
+//     label="foo.2_12.native"
 //     style=dashed
-//     "foo[2.12,native].suffix"
+//     "foo.2_12.native.suffix"
 //   }
 //
 //   subgraph cluster_3 {
-//     label="foo[2.10,js]"
+//     label="foo.2_10.js"
 //     style=dashed
-//     "foo[2.10,js].suffix"
+//     "foo.2_10.js.suffix"
 //   }
 //   subgraph cluster_4 {
-//     label="foo[2.11,js]"
+//     label="foo.2_11.js"
 //     style=dashed
-//     "foo[2.11,js].suffix" -> "foo[2.10,js].suffix" [style=invis]
+//     "foo.2_11.js.suffix" -> "foo.2_10.js.suffix" [style=invis]
 //   }
 //   subgraph cluster_5 {
-//     label="foo[2.12,js]"
+//     label="foo.2_12.js"
 //     style=dashed
-//     "foo[2.12,js].suffix" -> "foo[2.11,js].suffix" [style=invis]
+//     "foo.2_12.js.suffix" -> "foo.2_11.js.suffix" [style=invis]
 //   }
 //
 //   subgraph cluster_0 {
 //
-//     label="foo[2.10,jvm]"
+//     label="foo.2_10.jvm"
 //     style=dashed
-//     "foo[2.10,jvm].suffix"
+//     "foo.2_10.jvm.suffix"
 //
 //   }
 //   subgraph cluster_1 {
-//     label="foo[2.11,jvm]"
+//     label="foo.2_11.jvm"
 //     style=dashed
-//     "foo[2.11,jvm].suffix" -> "foo[2.10,jvm].suffix" [style=invis]
+//     "foo.2_11.jvm.suffix" -> "foo.2_10.jvm.suffix" [style=invis]
 //   }
 //   subgraph cluster_2 {
-//     label="foo[2.12,jvm]"
+//     label="foo.2_12.jvm"
 //     style=dashed
-//     "foo[2.12,jvm].suffix" -> "foo[2.11,jvm].suffix" [style=invis]
+//     "foo.2_12.jvm.suffix" -> "foo.2_11.jvm.suffix" [style=invis]
 //   }
 //
-//   "foo[2.10,jvm].suffix" -> bar
+//   "foo.2_10.jvm.suffix" -> bar
 // }
 // ....
 //
@@ -78,18 +78,18 @@ def bar = Task { s"hello ${foo("2.10", "jvm").suffix()}" }
 
 /** Usage
 
-> ./mill show foo[2.10,jvm].suffix
+> ./mill show foo.2_10.jvm.suffix
 "_2.10_jvm"
 
-> ./mill showNamed foo[__].suffix
+> ./mill showNamed foo.__.suffix
 {
-  "foo[2.10,jvm].suffix": "_2.10_jvm",
-  "foo[2.10,js].suffix": "_2.10_js",
-  "foo[2.11,jvm].suffix": "_2.11_jvm",
-  "foo[2.11,js].suffix": "_2.11_js",
-  "foo[2.12,jvm].suffix": "_2.12_jvm",
-  "foo[2.12,js].suffix": "_2.12_js",
-  "foo[2.12,native].suffix": "_2.12_native"
+  "foo.2_10.jvm.suffix": "_2.10_jvm",
+  "foo.2_10.js.suffix": "_2.10_js",
+  "foo.2_11.jvm.suffix": "_2.11_jvm",
+  "foo.2_11.js.suffix": "_2.11_js",
+  "foo.2_12.jvm.suffix": "_2.12_jvm",
+  "foo.2_12.js.suffix": "_2.12_js",
+  "foo.2_12.native.suffix": "_2.12_native"
 }
 
 */

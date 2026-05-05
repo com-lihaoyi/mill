@@ -1,7 +1,7 @@
 package foo
 
 import org.apache.spark.sql.{SparkSession, Dataset, DataFrame}
-import org.apache.spark.sql.functions._
+import org.apache.spark.sql.functions.*
 
 object Foo {
 
@@ -30,7 +30,7 @@ object Foo {
         "transactions.csv not provided as argument and not found in resources"
       ))
 
-    import spark.implicits._
+    import spark.implicits.*
 
     val df = spark.read
       .option("header", "true")

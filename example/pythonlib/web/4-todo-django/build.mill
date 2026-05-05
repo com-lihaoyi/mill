@@ -24,7 +24,7 @@ object todo extends PythonModule {
 // This Mill Build File simplifies `dependency management`, `database migrations`, and `testing workflows`.
 
 // Running these commands will `test` and `run` the `Django Todo App`.
-// The app is ready to serve at `http://localhost:5003`.
+// The app is ready to serve at `http://localhost:8000`.
 
 /** Usage
 
@@ -51,9 +51,9 @@ test_toggle_todo_view (main.tests.TodoAppTests...) ... ok
 ...Ran 8 tests...
 ...OK...
 
-> ./mill todo.runBackground runserver 5003
+> ./mill todo.runBackground runserver ${PORT:-8000}
 
-> curl http://localhost:5003
+> curl http://localhost:${PORT:-8000}
 ...What needs to be done...
 
 > ./mill clean todo.runBackground

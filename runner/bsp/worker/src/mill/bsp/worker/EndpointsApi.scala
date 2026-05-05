@@ -1,0 +1,79 @@
+package mill.bsp.worker
+
+import ch.epfl.scala.bsp4j.{BuildClient, BuildTargetIdentifier}
+import mill.api.daemon.Logger
+import mill.api.daemon.internal.{
+  CompileProblemReporter,
+  EvaluatorApi,
+  ExecutionResultsApi,
+  TaskApi,
+  TestReporter
+}
+import mill.api.daemon.internal.bsp.{BspModuleApi, BspServerResult}
+
+import java.util.concurrent.CompletableFuture
+
+/**
+ * Context passed to handler blocks for each target being processed.
+ * Callers can access only the fields they need.
+ */
+class TaskContext[W](
+    val id: BuildTargetIdentifier,
+    val module: BspModuleApi,
+    val value: W,
+    val evaluator: EvaluatorApi,
+    val state: BspEvaluators
+)
+
+trait EndpointsApi {
+
+  protected def topLevelProjectRoot: os.Path
+  protected def bspVersion: String
+  protected def serverVersion: String
+  protected def serverName: String
+  protected def canReload: Boolean
+  protected def onShutdown: () => Unit
+  protected def baseLogger: Logger
+
+  protected def client: BuildClient
+  protected def sessionInfo: MillBspEndpoints.SessionInfo
+  protected def sessionInfo_=(info: MillBspEndpoints.SessionInfo): Unit
+
+  protected def doneInitializingBuild(): Unit
+  protected def completeSessionResult(result: BspServerResult): Unit
+
+  protected def handlerRaw[V](block: Logger => V)(using
+      name: sourcecode.Name,
+      enclosing: sourcecode.Enclosing
+  ): CompletableFuture[V]
+
+  protected def handlerEvaluators[V](
+      checkInitialized: Boolean = true
+  )(block: (BspEvaluators, Logger) => V)(using
+      name: sourcecode.Name,
+      enclosing: sourcecode.Enclosing
+  ): CompletableFuture[V]
+
+  protected def handlerTasks[T, V, W](
+      targetIds: BspEvaluators => collection.Seq[BuildTargetIdentifier],
+      tasks: PartialFunction[BspModuleApi, TaskApi[W]],
+      requestDescription: String,
+      originId: String
+  )(block: (TaskContext[W], Logger) => T)(
+      agg: (java.util.List[T], BspEvaluators, Logger) => V
+  )(using name: sourcecode.Name, enclosing: sourcecode.Enclosing): CompletableFuture[V]
+
+  protected def createLogger()(using enclosing: sourcecode.Enclosing): Logger
+
+  protected def evaluate(
+      evaluator: EvaluatorApi,
+      requestDescription: String,
+      goals: Seq[TaskApi[?]],
+      logger: Logger,
+      reporter: Int => Option[CompileProblemReporter],
+      testReporter: TestReporter = TestReporter.DummyTestReporter,
+      errorOpt: EvaluatorApi.Result[Any] => Option[String] =
+        _.values.toEither.left.toOption
+  ): ExecutionResultsApi
+
+}

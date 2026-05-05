@@ -1,11 +1,11 @@
 package mill.scalajslib
 
 import mill.javalib.api.JvmWorkerUtil
-import utest._
+import utest.*
 
 object ScalatestTests extends TestSuite {
-  import CompileLinkTests._
-  import UtestTests._
+  import CompileLinkTests.*
+  import UtestTests.*
   def tests: Tests = Tests {
 
     test("scalatest") {

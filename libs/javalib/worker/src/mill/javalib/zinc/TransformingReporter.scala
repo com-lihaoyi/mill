@@ -30,13 +30,14 @@ private object TransformingReporter {
       mapper: xsbti.Position => xsbti.Position,
       workspaceRoot: os.Path
   ): xsbti.Problem = {
-    val pos0 = problem0.position()
+    val unMappedPos = problem0.position()
     val related0 = problem0.diagnosticRelatedInformation()
     val actions0 = problem0.actions()
-    val pos = mapper(pos0)
+    val pos = mapper(unMappedPos)
     val related = transformRelateds(related0, mapper)
     val actions = transformActions(actions0, mapper)
-    val rendered = dottyStyleMessage(color, problem0, pos, workspaceRoot)
+    val rendered =
+      dottyStyleMessage(color, problem0, pos = pos, unMappedPos = unMappedPos, workspaceRoot)
     InterfaceUtil.problem(
       cat = problem0.category(),
       pos = pos,
@@ -61,6 +62,7 @@ private object TransformingReporter {
       color: Boolean,
       problem0: xsbti.Problem,
       pos: xsbti.Position,
+      unMappedPos: xsbti.Position,
       workspaceRoot: os.Path
   ): String = {
 
@@ -80,7 +82,8 @@ private object TransformingReporter {
     InterfaceUtil.jo2o(pos.sourcePath()) match {
       case None => message
       case Some(path) =>
-        val absPath = os.Path(path)
+        // Assume relative paths are relative to the current workspaceRoot
+        val absPath = os.Path(path, workspaceRoot)
         // Render paths within the current workspaceRoot as relative paths to cut down on verbosity
         val displayPath =
           if absPath.startsWith(workspaceRoot) then absPath.subRelativeTo(workspaceRoot).toString
@@ -88,7 +91,6 @@ private object TransformingReporter {
 
         val line = intValue(pos.line(), -1)
         val pointer0 = intValue(pos.pointer(), -1)
-        val colNum = pointer0 + 1
 
         val space = pos.pointerSpace().orElse("")
         val endCol = intValue(pos.endColumn(), pointer0 + 1)
@@ -100,24 +102,62 @@ private object TransformingReporter {
           .flatMap(_.linesIterator)
           .toSeq
 
-        // Just grab the first line from the dotty error code snippet, because dotty defaults to
-        // rendering entire expressions which can be arbitrarily large and spammy in the terminal
-        val lineContent = mill.api.internal.Util.scrapeColoredLineContent(
+        // Scrape the relevant line from the dotty error code snippet, because dotty defaults to
+        // rendering entire expressions which can be arbitrarily large and spammy in the terminal.
+        val scraped = mill.api.internal.Util.scrapeColoredLineContent(
           renderedLines,
+          // Use the unmapped line to scrape the corresponding line from the error message,
+          // since the raw compiler error would not have gone through line mapping
+          intValue(unMappedPos.line(), -1),
           pos.lineContent()
-        ) match {
-          case "" =>
-            // Some errors like Java `unclosed string literal` errors don't provide any
-            // message at all to `rendered` for us to scrape the line content, so instead
-            // try to scrape it ourselves from the filesystem
-            try os.read.lines(absPath).apply(line - 1)
-            catch { case _: Exception => "" }
-          case s => s
-        }
+        )
 
+        // Some errors like Java `unclosed string literal` errors don't provide any
+        // message at all to `rendered` for us to scrape the line content, and others
+        // like `cannot find symbol` have incorrect line `.lineContent()`s, so for
+        // all Java errors just scrape the line from the filesystem
+        val isJavaFile = absPath.ext == "java"
+        val lineContent0 = if (scraped == "" || isJavaFile) {
+          try os.read.lines(absPath).apply(line - 1)
+          catch { case _: Exception => "" }
+        } else scraped
+
+        // Apply syntax highlighting to Java source code lines
+        val lineContent =
+          if (color && isJavaFile && lineContent0.nonEmpty) {
+            HighlightJava.highlightJavaCode(
+              lineContent0,
+              literalColor = fansi.Color.Green,
+              keywordColor = fansi.Color.Yellow,
+              commentColor = fansi.Color.Blue,
+              definitionColor = fansi.Color.Cyan
+            ).render
+          } else lineContent0
+
+        val plainLineContent0 = fansi.Str(lineContent0).plainText
+        val plainLineLength = fansi.Str(lineContent).length
+
+        val rawColNum =
+          if (!isJavaFile || pointer0 < 0 || plainLineContent0.isEmpty) pointer0 + 1
+          else visualToSourceColumn(plainLineContent0, pointer0 + 1)
+        val colNum =
+          if (isJavaFile && rawColNum <= 0 && plainLineContent0.nonEmpty) 1
+          else rawColNum
+
+        val displayPointer0 = colNum - 1
+        val pointerPrefix =
+          if (displayPointer0 > 0 && plainLineContent0.nonEmpty)
+            plainLineContent0
+              .take(math.min(displayPointer0, plainLineContent0.length))
+              .map {
+                case '\t' => '\t'
+                case _ => ' '
+              }
+          else ""
         val pointerLength =
-          if (space.nonEmpty && pointer0 >= 0 && endCol >= 0)
-            math.max(1, math.min(endCol - pointer0, lineContent.length - space.length))
+          if (space.nonEmpty && displayPointer0 >= 0 && endCol >= 0)
+            math.max(1, math.min(endCol - displayPointer0, plainLineLength - space.length))
+          else if (space.nonEmpty) math.max(1, plainLineLength - space.length)
           else 1
 
         mill.constants.Util.formatError(
@@ -127,8 +167,30 @@ private object TransformingReporter {
           lineContent,
           message,
           pointerLength,
+          pointerPrefix,
           shade
         )
+    }
+  }
+
+  /**
+   * Java diagnostics report columns with tabs expanded to 8 spaces, but our source
+   * lines keep tabs as one char. Convert from visual columns to source-code columns
+   * so pointer location and width match the rendered line.
+   */
+  private def visualToSourceColumn(line: String, visualCol: Int): Int = {
+    if (visualCol <= 1) 1
+    else {
+      var visual = 1
+      var code = 1
+      val iter = line.iterator
+      while (iter.hasNext && visual < visualCol) {
+        val char = iter.next()
+        if (char == '\t') visual += 8 - ((visual - 1) % 8)
+        else visual += 1
+        code += 1
+      }
+      code
     }
   }
 

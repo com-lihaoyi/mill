@@ -14,7 +14,7 @@ import mill.api.BuildCtx
 
 trait ScalafmtModule extends JavaModule {
 
-  def reformat(): Command[Unit] = Task.Command {
+  def reformat(): Command[Unit] = Task.Command(globalExclusive = true) {
     ScalafmtWorkerModule
       .worker()
       .reformat(
@@ -76,11 +76,11 @@ trait ScalafmtModule extends JavaModule {
 }
 
 object ScalafmtModule extends ExternalModule with ScalafmtModule with DefaultTaskModule {
-  override def defaultTask(): String = "reformatAll"
+  override def defaultTask(): String = "scalafmt"
 
   def reformatAll(@arg(positional = true) sources: Tasks[Seq[PathRef]] =
     Tasks.resolveMainDefault("__.sources")) =
-    Task.Command {
+    Task.Command(globalExclusive = true) {
       val files = Task.sequence(sources.value)().flatMap(filesToFormat)
       ScalafmtWorkerModule
         .worker()
@@ -126,7 +126,7 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with DefaultTas
    *
    * Note that this runs the scalafmt CLI on the JVM, rather than a native launcher of the CLI.
    */
-  def scalafmt(args: String*): Command[Unit] = Task.Command {
+  def scalafmt(args: String*): Command[Unit] = Task.Command(globalExclusive = true) {
     Jvm.callProcess(
       scalafmtMainClass,
       args,

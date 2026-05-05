@@ -1,4 +1,0 @@
-extends: [mill.scalalib.ScalaModule, mill.scalalib.NativeImageModule]
-scalaVersion: 3.7.3
-jvmId: "graalvm-community:24"
-nativeImageOptions: ["--no-fallback"]

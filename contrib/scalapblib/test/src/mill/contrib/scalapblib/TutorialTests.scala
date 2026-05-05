@@ -72,6 +72,14 @@ object TutorialTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
+  object TutorialWithResolvedProtoc extends TutorialBase {
+    object core extends TutorialModule {
+      override def scalaPBProtocPath: T[Option[String]] =
+        Task { Some(scalaPBResolveProtoc().path.toString) }
+    }
+    lazy val millDiscover = Discover[this.type]
+  }
+
   object TutorialWithJavaGen extends TutorialBase {
     object core extends TutorialModule {
       override def scalaPBGenerators = Seq(Generator.JavaGen)
@@ -114,7 +122,7 @@ object TutorialTests extends TestSuite {
     UnitTester(module, resourcePath).scoped { eval =>
       if (Util.isWindows) "Skipped test on Windows"
       else {
-        val Right(result) = eval.apply(module.core.compileScalaPB): @unchecked
+        val Right(result) = eval.apply(module.core.compileScalaPB).runtimeChecked
 
         val outPath = protobufOutPath(eval)
         val outputFiles = os.walk(result.value.path).filter(os.isFile)
@@ -129,7 +137,7 @@ object TutorialTests extends TestSuite {
         )
 
         // don't recompile if nothing changed
-        val Right(result2) = eval.apply(module.core.compileScalaPB): @unchecked
+        val Right(result2) = eval.apply(module.core.compileScalaPB).runtimeChecked
         assert(result2.evalCount == 0)
       }
     }
@@ -139,7 +147,7 @@ object TutorialTests extends TestSuite {
     test("scalapbVersion") {
 
       test("fromBuild") - UnitTester(Tutorial, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(Tutorial.core.scalaPBVersion): @unchecked
+        val Right(result) = eval.apply(Tutorial.core.scalaPBVersion).runtimeChecked
 
         assert(
           result.value == testScalaPbVersion,
@@ -163,7 +171,7 @@ object TutorialTests extends TestSuite {
         if (Util.isWindows) "Skipped test on Windows"
         else {
           val Right(result) =
-            eval.apply(TutorialWithSpecificSources.core.compileScalaPB): @unchecked
+            eval.apply(TutorialWithSpecificSources.core.compileScalaPB).runtimeChecked
 
           val outPath = protobufOutPath(eval)
 
@@ -185,7 +193,7 @@ object TutorialTests extends TestSuite {
           )
 
           // don't recompile if nothing changed
-          val Right(result2) = eval.apply(Tutorial.core.compileScalaPB): @unchecked
+          val Right(result2) = eval.apply(Tutorial.core.compileScalaPB).runtimeChecked
 
           assert(result2.evalCount == 0)
         }
@@ -247,6 +255,60 @@ object TutorialTests extends TestSuite {
           case _ => assert(false)
         }
       }
+    }
+
+    test("scalaPBResolveProtoc") {
+      test("extractsVersionFromScalaPB") - UnitTester(Tutorial, resourcePath).scoped { eval =>
+        val Right(result) = eval.apply(Tutorial.core.scalaPBProtocVersion).runtimeChecked
+        // ScalaPB 0.11.7 ships with protoc 3.x
+        assert(result.value.startsWith("3."))
+        assert(result.evalCount > 0)
+      }
+
+      test("resolvesExecutableBinary") - UnitTester(Tutorial, resourcePath).scoped { eval =>
+        if (Util.isWindows) "Skipped test on Windows"
+        else {
+          val Right(result) = eval.apply(Tutorial.core.scalaPBResolveProtoc).runtimeChecked
+          val protocPath = result.value.path
+          assert(os.exists(protocPath))
+          assert(os.perms(protocPath).toString.contains("x"))
+          assert(result.evalCount > 0)
+        }
+      }
+
+      test("protocPathUsesResolvedBinary") - UnitTester(
+        TutorialWithResolvedProtoc,
+        resourcePath
+      ).scoped { eval =>
+        if (Util.isWindows) "Skipped test on Windows"
+        else {
+          val Right(protocPath) =
+            eval.apply(TutorialWithResolvedProtoc.core.scalaPBProtocPath).runtimeChecked
+          assert(protocPath.value.isDefined)
+          val path = os.Path(protocPath.value.get)
+          assert(os.exists(path))
+        }
+      }
+
+      test("protocFlagReachesCompileOptions") - UnitTester(
+        TutorialWithResolvedProtoc,
+        resourcePath
+      ).scoped {
+        eval =>
+          if (Util.isWindows) "Skipped test on Windows"
+          else {
+            val Right(protocResult) =
+              eval.apply(TutorialWithResolvedProtoc.core.scalaPBResolveProtoc).runtimeChecked
+            val Right(optsResult) =
+              eval.apply(TutorialWithResolvedProtoc.core.scalaPBCompileOptions).runtimeChecked
+            assert(optsResult.value.contains(s"--protoc=${protocResult.value.path}"))
+          }
+      }
+
+      test("compilesWithResolvedProtoc") - testCompilation(
+        TutorialWithResolvedProtoc,
+        compiledScalaSourcefiles
+      )
     }
   }
 }

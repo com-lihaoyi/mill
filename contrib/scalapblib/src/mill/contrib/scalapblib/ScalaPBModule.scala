@@ -77,7 +77,75 @@ trait ScalaPBModule extends ScalaModule {
   def scalaPBAdditionalArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
   /**
-   * A [[Option]] option which determines the protoc compiler to use. If `None`, a java embedded protoc will be used, if set to `Some` path, the given binary is used.
+   * The protoc compiler version to resolve. Defaults to the version that the
+   * configured ScalaPB release was built against, extracted reflectively from
+   * `scalapb.compiler.Version.protobufVersion`. Can be overridden to pin a
+   * specific protoc version.
+   */
+  def scalaPBProtocVersion: T[String] = Task {
+    val pbcClasspath = scalaPBClasspath().map(_.path).toVector
+    mill.util.Jvm.withClassLoader(pbcClasspath, null) { cl =>
+      try {
+        val versionClass = cl.loadClass("scalapb.compiler.Version$")
+        val module = versionClass.getField("MODULE$").get(null)
+        versionClass.getMethod("protobufVersion").invoke(module).asInstanceOf[String]
+      } catch {
+        case e: (ClassNotFoundException | NoSuchMethodException | NoSuchFieldException) =>
+          throw new Exception(
+            s"Could not extract protobufVersion from ScalaPB ${scalaPBVersion()}. " +
+              "Override scalaPBProtocVersion to set it explicitly.",
+            e
+          )
+      }
+    }
+  }
+
+  /**
+   * Resolves a platform-specific `protoc` binary via Coursier.
+   *
+   * This avoids the embedded Java protoc that ScalaPB bundles, which is prone to
+   * race conditions when multiple modules compile in parallel (each tries to
+   * download/extract the same binary concurrently).
+   *
+   * By resolving protoc as a Mill task, the binary is downloaded once and cached.
+   */
+  def scalaPBResolveProtoc: T[PathRef] = Task {
+    val osStr = System.getProperty("os.name").toLowerCase match {
+      case os if os.contains("linux") => "linux"
+      case os if os.contains("mac") => "osx"
+      case os if os.contains("windows") => "windows"
+      case os => throw new Exception(s"Unsupported OS for protoc: $os")
+    }
+    val archStr = System.getProperty("os.arch") match {
+      case "amd64" | "x86_64" => "x86_64"
+      case "aarch64" => "aarch_64"
+      case other => throw new Exception(s"Unsupported arch for protoc: $other")
+    }
+    val classifier = s"$osStr-$archStr"
+    val files = defaultResolver().classpath(
+      Seq(
+        mvn"com.google.protobuf:protoc:${scalaPBProtocVersion()};classifier=$classifier;type=exe"
+      ),
+      artifactTypes = Some(Set(coursier.Type("exe")))
+    )
+    val protoc = files.headOption.getOrElse(
+      throw new Exception(
+        s"Failed to resolve protoc binary for classifier=$classifier, version=${scalaPBProtocVersion()}"
+      )
+    ).path
+    val dest = Task.dest / "protoc"
+    os.copy(protoc, dest, replaceExisting = true)
+    if (!scala.util.Properties.isWin) {
+      os.perms.set(dest, os.PermSet.fromString("rwxr-xr-x"))
+    }
+    PathRef(dest)
+  }
+
+  /**
+   * Path to the protoc compiler. Defaults to `None`, which uses ScalaPB's
+   * embedded Java protoc. Override to `Some(scalaPBResolveProtoc().path.toString)` to
+   * use a platform-specific native binary resolved via Coursier, or to
+   * `Some("/path/to/protoc")` for a custom binary.
    */
   def scalaPBProtocPath: T[Option[String]] = Task { None }
 

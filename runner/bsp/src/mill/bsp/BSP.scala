@@ -43,10 +43,6 @@ object BSP {
         argv = Seq(
           millPath,
           "--bsp",
-          "--ticker",
-          "false",
-          "--color",
-          "false",
           "--jobs",
           s"${jobs}"
         ) ++ (if (debug) Seq("--debug") else Seq()),

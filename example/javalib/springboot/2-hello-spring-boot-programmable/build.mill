@@ -1,0 +1,34 @@
+//| mill-jvm-version: 17
+
+// Spring boot projects can also be built using Mill's programmable `build.mill` syntax,
+// as shown below:
+
+package build
+import mill.*, javalib.*
+import spring.boot.SpringBootModule
+
+object `package` extends SpringBootModule {
+  def springBootPlatformVersion = "3.2.5"
+  def mvnDeps = Seq(
+    mvn"org.springframework.boot:spring-boot-starter-web",
+    mvn"org.springframework.boot:spring-boot-starter-actuator"
+  )
+
+  object test extends SpringBootTestsModule, TestModule.Junit5 {
+    def mvnDeps = Seq(mvn"org.springframework.boot:spring-boot-starter-test")
+  }
+}
+
+/** Usage
+
+> ./mill test
+...com.example.HelloSpringBootTest#shouldReturnDefaultMessage() finished...
+
+> ./mill runBackground
+
+> curl http://localhost:${PORT:-8080}
+...<h1>Hello, World!</h1>...
+
+> ./mill clean runBackground
+
+*/

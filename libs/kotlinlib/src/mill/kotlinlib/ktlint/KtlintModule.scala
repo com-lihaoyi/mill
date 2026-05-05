@@ -1,10 +1,10 @@
 package mill.kotlinlib.ktlint
 
 import mainargs.arg
-import mill._
-import mill.api.{PathRef}
+import mill.*
+import mill.api.PathRef
 import mill.api.{Discover, ExternalModule}
-import mill.javalib.JavaModule
+import mill.javalib.{JavaModule, Lib}
 import mill.kotlinlib.{DepSyntax, KotlinModule}
 import mill.util.Tasks
 import mill.util.Jvm
@@ -18,7 +18,9 @@ trait KtlintModule extends JavaModule {
   /**
    * Runs [[https://pinterest.github.io/ktlint/latest/install/integrations/ Ktlint]]
    */
-  def ktlint(@mainargs.arg ktlintArgs: KtlintArgs): Command[Unit] = Task.Command {
+  def ktlint(@mainargs.arg ktlintArgs: KtlintArgs): Command[Unit] = Task.Command(globalExclusive =
+    true
+  ) {
     KtlintModule.ktlintAction(
       ktlintArgs,
       sources(),
@@ -71,7 +73,7 @@ object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskMod
   def reformatAll(
       @arg(positional = true) sources: Tasks[Seq[PathRef]] =
         Tasks.resolveMainDefault("__.sources")
-  ): Command[Unit] = Task.Command {
+  ): Command[Unit] = Task.Command(globalExclusive = true) {
     ktlintAction(
       KtlintArgs(format = true, check = true),
       Task.sequence(sources.value)().flatten,
@@ -99,15 +101,30 @@ object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskMod
 
   private def ktlintAction(
       ktlintArgs: KtlintArgs,
-      filesToFormat: Seq[PathRef],
+      pathsToFormat: Seq[PathRef],
       config: Option[PathRef],
       options: Seq[String],
       classPath: Seq[PathRef]
-  )(using ctx: mill.api.TaskCtx): Unit = {
+  )(using ctx: mill.api.TaskCtx): Seq[os.Path] = {
+    val sourceFiles = Lib.findSourceFiles(pathsToFormat, Seq("kt", "kts"))
+      // skip formatting single-file projects since Palantir Format messes up the header block
+      .filterNot(p => p.ext == "kt" && os.read(p).startsWith("//|"))
+    if (sourceFiles.isEmpty) {
+      // no files found
+      if (pathsToFormat.isEmpty) Task.fail("No paths selected.")
+      else {
+        // Nothing to do here, which is ok for a freshly set up project.
+        // Please note that ktlint tends to default to format the current working
+        // dir when no source paths are given, which is not what we want.
+        ctx.log.info(s"No kotlin sources found.")
+        return Seq()
+      }
+    }
+
     if (ktlintArgs.check) {
-      ctx.log.info("checking format in kotlin sources ...")
+      ctx.log.info(s"Checking format in ${sourceFiles.size} kotlin sources ...")
     } else {
-      ctx.log.info("formatting kotlin sources ...")
+      ctx.log.info(s"Formatting ${sourceFiles.size} kotlin sources ...")
     }
 
     val configArgument = config match {
@@ -120,11 +137,7 @@ object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskMod
     args ++= options
     args ++= configArgument
     args ++= formatArgument
-    args ++= filesToFormat.map(_.path)
-      // skip formatting single-file projects since Palantir Format messes up the header block
-      .filter(f => os.exists(f) && (f.ext == "kt" || f.ext == "kts"))
-      .filter(!os.read(_).startsWith("//|"))
-      .map(_.toString())
+    args ++= sourceFiles.map(_.toString())
 
     val exitCode = BuildCtx.withFilesystemCheckerDisabled {
       Jvm.callProcess(
@@ -141,10 +154,12 @@ object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskMod
     if (exitCode == 0) {} // do nothing
     else {
       if (ktlintArgs.check) {
-        throw RuntimeException(s"ktlint exited abnormally with exit code = $exitCode")
+        throw new RuntimeException(s"Ktlint exited abnormally with exit code = $exitCode")
       } else {
-        ctx.log.error(s"ktlint exited abnormally with exit code = $exitCode")
+        ctx.log.error(s"Ktlint exited abnormally with exit code = $exitCode")
       }
     }
+
+    sourceFiles
   }
 }

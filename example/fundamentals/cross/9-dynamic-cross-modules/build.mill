@@ -22,28 +22,28 @@ trait FolderModule extends ScalaModule, Cross.Module[String] {
 
 /** Usage
 
-> ./mill resolve modules[_]
-modules[bar]
-modules[foo]
-modules[qux]
+> ./mill resolve modules._
+modules.bar
+modules.foo
+modules.qux
 
-> ./mill modules[bar].run
+> ./mill modules.bar.run
 Hello World Bar
 
-> ./mill modules[new].run
-error: Cannot resolve modules[new]...
+> ./mill modules.new.run
+error: Cannot resolve modules.new...
 
 > cp -r modules/bar modules/new
 
 > sed -i.bak 's/Bar/New/g' modules/new/src/Example.scala
 
-> ./mill resolve modules[_]
-modules[bar]
-modules[foo]
-modules[qux]
-modules[new]
+> ./mill resolve modules._
+modules.bar
+modules.foo
+modules.qux
+modules.new
 
-> ./mill modules[new].run
+> ./mill modules.new.run
 Hello World New
 
 */

@@ -1,0 +1,40 @@
+package build.`multi-module`
+
+import mill.*
+import mill.javalib.*
+import mill.javalib.publish.*
+
+object `package` extends JavaModule, BomModule, PublishModule {
+
+  def depManagement = Seq(
+    mvn"javax.servlet:servlet-api:2.5",
+    mvn"javax.servlet.jsp:jsp-api:2.2",
+    mvn"junit:junit-dep:4.10",
+    mvn"org.hamcrest:hamcrest-core:1.2.1",
+    mvn"org.hamcrest:hamcrest-library:1.2.1",
+    mvn"org.mockito:mockito-core:1.8.5"
+  )
+
+  def sources = Nil
+
+  def resources = Nil
+
+  def pomPackagingType = "pom"
+
+  def pomSettings = PomSettings(
+    "Sample multi module Maven project with a working, deployable site.",
+    "com.example.maven-samples",
+    "http://www.example.com",
+    Seq(),
+    VersionControl(
+      Some("http://github.com/gabrielf/maven-samples"),
+      Some("scm:git:git@github.com:gabrielf/maven-samples.git"),
+      Some("scm:git:git@github.com:gabrielf/maven-samples.git"),
+      Some("HEAD")
+    ),
+    Seq()
+  )
+
+  def publishVersion = "1.0-SNAPSHOT"
+
+}

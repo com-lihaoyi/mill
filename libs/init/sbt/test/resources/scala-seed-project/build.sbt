@@ -1,4 +1,4 @@
-import Dependencies._
+import Dependencies.*
 
 ThisBuild / scalaVersion := "2.13.12"
 ThisBuild / version := "0.1.0-SNAPSHOT"

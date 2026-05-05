@@ -2,9 +2,10 @@ package mill.contrib.sbom.upload
 
 import java.util.Base64
 import java.nio.charset.StandardCharsets
-import mill._
+import mill.*
 import mill.contrib.sbom.CycloneDXModule
 import upickle.default.{ReadWriter, macroRW}
+import scala.annotation.unused
 
 object DependencyTrackModule {
   case class Payload(project: String, bom: String)
@@ -12,7 +13,7 @@ object DependencyTrackModule {
   implicit val depTrackPayload: ReadWriter[Payload] = macroRW
 }
 trait DependencyTrackModule extends CycloneDXModule {
-  import DependencyTrackModule._
+  import DependencyTrackModule.*
 
   def depTrackUrl: T[String]
   def depTrackProjectID: T[String]
@@ -34,7 +35,7 @@ trait DependencyTrackModule extends CycloneDXModule {
       )
     )
     val body = upickle.default.stream[Payload](payload)
-    val bodyBytes = requests.RequestBlob.ByteSourceRequestBlob(body)(identity)
+    val bodyBytes = requests.RequestBlob.ByteSourceRequestBlob(body)(using identity)
     val r = requests.put(
       s"$url/api/v1/bom",
       headers = Map(
@@ -46,6 +47,6 @@ trait DependencyTrackModule extends CycloneDXModule {
     assert(r.is2xx)
   }
 
-  def myCmdC(test: String) = Task.Command { println("hi above"); 34 }
+  def myCmdC(@unused test: String) = Task.Command { println("hi above"); 34 }
 
 }

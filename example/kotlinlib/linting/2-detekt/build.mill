@@ -1,0 +1,16 @@
+// This example shows how to use the https://github.com/detekt/detekt[Detekt]
+// static code analyzer for linting a `KotlinModule`, by mixing in the trait
+// `DetektModule` and calling the `detekt` task:
+
+/** See Also: build.mill.yaml */
+/** See Also: src/example/Foo.kt */
+
+/** Usage
+
+> ./mill detekt
+error: ...Foo.kt:5:5: Function main is nested too deeply. [NestedBlockDepth]
+
+> ./mill detekt --check false
+...Foo.kt:5:5: Function main is nested too deeply. [NestedBlockDepth]
+
+*/

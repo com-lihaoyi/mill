@@ -5,7 +5,7 @@ import mill.*, javascriptlib.*
 object foo extends TypeScriptModule, TsLintModule
 
 // Mill supports code auto formatting via `eslint` https://eslint.org and `prettier` https://prettier.io/docs/en.
-// You can reformat your projects code by providing a configuration for your preferred formtter then running
+// You can reformat your projects code by providing a configuration for your preferred formatter then running
 // `mill _.reformatAll` to reformat your code. You can also check for formatting errors by running
 // `mill _.checkFormatAll`.
 

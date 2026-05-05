@@ -1,14 +1,28 @@
 package mill.api.internal
 
+import java.util.concurrent.ConcurrentHashMap
 import scala.collection.immutable.VectorMap
-import scala.collection.mutable
 import scala.util.DynamicVariable
 import scala.quoted.*
 
 trait Cacher extends mill.moduledefs.Cacher {
-  private lazy val cacherLazyMap = mutable.Map.empty[sourcecode.Enclosing, Any]
+  // Lock-free, first-writer-wins cache of `Task` definitions per enclosing
+  // source position. We deliberately do NOT hold a monitor across the
+  // user-supplied body `t`: the body routinely calls `cachedTask` on other
+  // modules, so holding `this.synchronized` across it caused AB-BA deadlocks
+  // when multiple threads (e.g. concurrent BSP requests) traversed the
+  // module graph from different starting points. See the discussion around
+  // the BSP `resolve _` removal for the failure mode.
+  //
+  // Two threads racing on the same key both compute `t` (cheap pure `Task`
+  // construction); `putIfAbsent` ensures the *first* writer's value is the
+  // one returned to every subsequent reader, including this thread, so the
+  // observed value is stable and never reassigned. Losers' transient
+  // duplicates become unreachable immediately.
+  private lazy val cacherLazyMap =
+    new ConcurrentHashMap[sourcecode.Enclosing, AnyRef]()
 
-  protected def cachedTask[T](t: => T)(using c: sourcecode.Enclosing): T = synchronized {
+  protected def cachedTask[T](t: => T)(using c: sourcecode.Enclosing): T = {
     if (Cacher.taskEvaluationStack.value.contains((c, this))) {
       sys.error(
         "Circular task dependency detected:\n" +
@@ -25,9 +39,20 @@ trait Cacher extends mill.moduledefs.Cacher {
       )
     }
 
-    Cacher.taskEvaluationStack.withValue(Cacher.taskEvaluationStack.value ++ Seq((c, this) -> ())) {
-      cacherLazyMap.getOrElseUpdate(c, t).asInstanceOf[T]
-    }
+    val cached = cacherLazyMap.get(c)
+    if (cached != null) cached.asInstanceOf[T]
+    else
+      Cacher.taskEvaluationStack.withValue(
+        Cacher.taskEvaluationStack.value ++ Seq((c, this) -> ())
+      ) {
+        val computed = t.asInstanceOf[AnyRef]
+        // First-writer-wins: only the first successful insert is observable
+        // afterwards. If another thread beat us, return their value so the
+        // cache is the single source of truth and the value seen by callers
+        // never changes once set.
+        val existing = cacherLazyMap.putIfAbsent(c, computed)
+        (if (existing == null) computed else existing).asInstanceOf[T]
+      }
   }
 }
 
@@ -59,26 +84,11 @@ private[mill] object Cacher {
   def impl0[T: Type](using Quotes)(t: Expr[T]): Expr[T] = withMacroOwner { owner =>
     import quotes.reflect.*
 
-    val CacherSym = TypeRepr.of[Cacher].typeSymbol
+    val enclosingCtx = Expr.summon[sourcecode.Enclosing].getOrElse(
+      report.errorAndAbort("Cannot find enclosing context", Position.ofMacroExpansion)
+    )
 
-    val ownerIsCacherClass =
-      owner.owner.isClassDef &&
-        owner.owner.typeRef.baseClasses.contains(CacherSym)
-
-    val errorMessage = "Task{} members must be defs defined in a Module class/trait/object body"
-    if (ownerIsCacherClass && owner.flags.is(Flags.Method)) {
-      val enclosingCtx = Expr.summon[sourcecode.Enclosing].getOrElse(
-        report.errorAndAbort("Cannot find enclosing context", Position.ofMacroExpansion)
-      )
-
-      val thisSel = This(owner.owner).asExprOf[Cacher]
-      '{ $thisSel.cachedTask[T](${ t })(using $enclosingCtx) }
-    } else if (
-      sys.env.contains(mill.constants.EnvVars.MILL_ENABLE_STATIC_CHECKS) ||
-      sys.props.contains(mill.constants.EnvVars.MILL_ENABLE_STATIC_CHECKS)
-    ) {
-      report.errorAndAbort(errorMessage, Position.ofMacroExpansion)
-      // Use a runtime exception to prevent false error highlighting in IntelliJ
-    } else '{ throw Exception(${ Expr(errorMessage) }) }
+    val thisSel = This(owner.owner).asExprOf[Cacher]
+    '{ $thisSel.cachedTask[T](${ t })(using $enclosingCtx) }
   }
 }

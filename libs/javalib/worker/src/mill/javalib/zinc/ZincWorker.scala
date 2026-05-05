@@ -27,8 +27,11 @@ import java.net.URLClassLoader
 import java.util.Optional
 import scala.collection.mutable
 
-/** @param jobs number of parallel jobs */
-class ZincWorker(jobs: Int) extends AutoCloseable { self =>
+/**
+ * @param jobs number of parallel jobs
+ * @param useFileLocks use file-based locking instead of PID-based locking
+ */
+class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable { self =>
   private val incrementalCompiler = new sbt.internal.inc.IncrementalCompilerImpl()
   private val compilerBridgeLocks: mutable.Map[String, MemoryLock] = mutable.Map.empty
 
@@ -36,36 +39,41 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
     sharedLoader = getClass.getClassLoader,
     sharedPrefixes = Seq("xsbti")
   ) {
-    override def extraRelease(cl: ClassLoader): Unit = {
-      for {
-        cls <- {
-          try Some(cl.loadClass("scala.tools.nsc.classpath.FileBasedCache$"))
-          catch {
-            case _: ClassNotFoundException => None
+    override def extraRelease(cl: ClassLoader): Unit =
+      try {
+        for {
+          cls <- {
+            try Some(cl.loadClass("scala.tools.nsc.classpath.FileBasedCache$"))
+            catch {
+              case _: ClassNotFoundException => None
+            }
           }
-        }
-        moduleField <- {
-          try Some(cls.getField("MODULE$"))
-          catch {
-            case _: NoSuchFieldException => None
+          moduleField <- {
+            try Some(cls.getField("MODULE$"))
+            catch {
+              case _: NoSuchFieldException => None
+            }
           }
-        }
-        module = moduleField.get(null)
-        timerField <- {
-          try Some(cls.getDeclaredField("scala$tools$nsc$classpath$FileBasedCache$$timer"))
-          catch {
-            case _: NoSuchFieldException => None
+          module = moduleField.get(null)
+          timerField <- {
+            try Some(cls.getDeclaredField("scala$tools$nsc$classpath$FileBasedCache$$timer"))
+            catch {
+              case _: NoSuchFieldException => None
+            }
           }
+          _ = timerField.setAccessible(true)
+          timerOpt0 = timerField.get(module)
+          getOrElseMethod <- timerOpt0.getClass.getMethods.find(_.getName == "getOrElse")
+          timer <-
+            Option(getOrElseMethod.invoke(timerOpt0, null).asInstanceOf[java.util.Timer])
+        } {
+          timer.cancel()
         }
-        _ = timerField.setAccessible(true)
-        timerOpt0 = timerField.get(module)
-        getOrElseMethod <- timerOpt0.getClass.getMethods.find(_.getName == "getOrElse")
-        timer <-
-          Option(getOrElseMethod.invoke(timerOpt0, null).asInstanceOf[java.util.Timer])
-      } {
-        timer.cancel()
+      } catch {
+        // Some JDK/classloader combinations can throw linkage errors while reflecting
+        // over the Scala compiler internals. Timer cleanup is best-effort.
+        case _: LinkageError => ()
       }
-    }
   }
 
   private val scalaCompilerCache =
@@ -166,8 +174,8 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       op: ZincOp.CompileJava,
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
-      ctx: ZincWorker.LocalConfig,
-      deps: ZincWorker.ProcessConfig
+      localConfig: ZincWorker.LocalConfig,
+      processConfig: ZincWorker.ProcessConfig
   ): Result[CompilationResult] = {
     val cacheKey = JavaCompilerCacheKey(op.javacOptions)
     javaOnlyCompilerCache.withValue(cacheKey) { compilers =>
@@ -182,8 +190,8 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
         reportCachedProblems = reportCachedProblems,
         incrementalCompilation = op.incrementalCompilation,
         auxiliaryClassFileExtensions = Seq.empty,
-        ctx = ctx,
-        deps = deps,
+        localConfig = localConfig,
+        processConfig = processConfig,
         workDir = op.workDir
       )
     }
@@ -193,8 +201,8 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       op: ZincOp.CompileMixed,
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
-      ctx: ZincWorker.LocalConfig,
-      deps: ZincWorker.ProcessConfig
+      localConfig: ZincWorker.LocalConfig,
+      processConfig: ZincWorker.ProcessConfig
   ): Result[CompilationResult] = {
     withScalaCompilers(
       scalaVersion = op.scalaVersion,
@@ -203,7 +211,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       scalacPluginClasspath = op.scalacPluginClasspath,
       compilerBridgeOpt = op.compilerBridgeOpt,
       javacOptions = op.javacOptions,
-      deps.compilerBridgeProvider
+      processConfig.compilerBridgeProvider
     ) { compilers =>
       compileInternal(
         upstreamCompileOutput = op.upstreamCompileOutput,
@@ -216,8 +224,8 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
         reportCachedProblems = reportCachedProblems,
         incrementalCompilation = op.incrementalCompilation,
         auxiliaryClassFileExtensions = op.auxiliaryClassFileExtensions,
-        ctx = ctx,
-        deps = deps,
+        localConfig = localConfig,
+        processConfig = processConfig,
         workDir = op.workDir
       )
     }
@@ -225,7 +233,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
 
   def scaladocJar(
       op: ZincOp.ScaladocJar,
-      compilerBridgeProvider: ZincCompilerBridgeProvider
+      processConfig: ZincWorker.ProcessConfig
   ): Boolean = {
     withScalaCompilers(
       scalaVersion = op.scalaVersion,
@@ -234,11 +242,15 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       scalacPluginClasspath = op.scalacPluginClasspath,
       compilerBridgeOpt = op.compilerBridgeOpt,
       javacOptions = Nil,
-      compilerBridgeProvider = compilerBridgeProvider
+      compilerBridgeProvider = processConfig.compilerBridgeProvider
     ) { compilers =>
       // Not sure why dotty scaladoc is flaky, but add retries to workaround it
       // https://github.com/com-lihaoyi/mill/issues/4556
-      mill.util.Retry(count = 2) {
+      mill.util.Retry(
+        count = 2,
+        failWithFirstError = true,
+        logger = msg => processConfig.log.debug(msg)
+      ) {
         if (
           JvmWorkerUtil.isDotty(op.scalaVersion) || JvmWorkerUtil.isScala3Milestone(op.scalaVersion)
         ) {
@@ -309,7 +321,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
   private def compileInternal(
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Seq[os.Path],
-      compileClasspath: Seq[os.Path],
+      compileClasspath: Seq[PathRef],
       javacOptions: Seq[String],
       scalacOptions: Seq[String],
       compilers: Compilers,
@@ -318,22 +330,53 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String],
       zincCache: os.SubPath = os.sub / "zinc",
-      ctx: ZincWorker.LocalConfig,
-      deps: ZincWorker.ProcessConfig,
+      localConfig: ZincWorker.LocalConfig,
+      processConfig: ZincWorker.ProcessConfig,
       workDir: os.Path
   ): Result[CompilationResult] = {
 
     os.makeDir.all(workDir)
+    val compileClasspathPaths = compileClasspath.map(_.path)
+
+    val incrementalAnnotationProcessing =
+      IncrementalAnnotationProcessing.detect(
+        javacOptions = javacOptions,
+        compileClasspath = compileClasspathPaths,
+        sources = sources,
+        workDir = workDir,
+        incrementalCompilation = incrementalCompilation,
+        log = processConfig.log
+      )
+
+    val effectiveIncrementalCompilation = incrementalAnnotationProcessing match {
+      case IncrementalAnnotationProcessing.Mode.Enabled(plan) if plan.requiresFullRecompile =>
+        false
+      case _ => incrementalCompilation
+    }
 
     val classesDir = workDir / "classes"
+    if (!effectiveIncrementalCompilation) {
+      // Non-incremental compiles need a clean output directory; otherwise stale classes from
+      // deleted sources remain visible on the classpath and can mask compilation failures.
+      os.remove.all(classesDir)
+      os.remove.all(IncrementalAnnotationProcessing.snapshotPath(workDir))
+    } else incrementalAnnotationProcessing match {
+      case IncrementalAnnotationProcessing.Mode.Enabled(plan) =>
+        IncrementalAnnotationProcessing.prepareBeforeCompile(
+          staleProducts = plan.staleProducts
+        )
+      case IncrementalAnnotationProcessing.Mode.None =>
+        IncrementalAnnotationProcessing.previousExtraProducts(workDir).foreach(os.remove.all(_))
+        os.remove.all(IncrementalAnnotationProcessing.snapshotPath(workDir))
+    }
 
-    if (ctx.logDebugEnabled) {
-      deps.log.debug(
+    if (localConfig.logDebugEnabled) {
+      processConfig.log.debug(
         s"""Compiling:
            |  javacOptions: ${javacOptions.map("'" + _ + "'").mkString(" ")}
            |  scalacOptions: ${scalacOptions.map("'" + _ + "'").mkString(" ")}
            |  sources: ${sources.map("'" + _ + "'").mkString(" ")}
-           |  classpath: ${compileClasspath.map("'" + _ + "'").mkString(" ")}
+           |  classpath: ${compileClasspathPaths.map("'" + _ + "'").mkString(" ")}
            |  output: $classesDir"""
           .stripMargin
       )
@@ -343,11 +386,12 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
 
     val consoleAppender = SbtLoggerUtils.ConciseLevelConsoleAppender(
       name = "ZincLogAppender",
-      consoleOut = deps.consoleOut,
-      ansiCodesSupported0 = ctx.logPromptColored
+      log = s => processConfig.log.info(s),
+      ansiCodesSupported0 = localConfig.logPromptColored
     )
     val loggerId = Thread.currentThread().getId.toString
-    val zincLogLevel = if (ctx.logDebugEnabled) sbt.util.Level.Debug else sbt.util.Level.Info
+    val zincLogLevel =
+      if (localConfig.logDebugEnabled) sbt.util.Level.Debug else sbt.util.Level.Info
     val logger = SbtLoggerUtils.createLogger(loggerId, consoleAppender, zincLogLevel)
 
     val maxErrors = reporter.map(_.maxErrors).getOrElse(CompileProblemReporter.defaultMaxErrors)
@@ -371,16 +415,37 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
 
     // Fix jdk classes marked as binary dependencies, see https://github.com/com-lihaoyi/mill/pull/1904
     val converter = MappedFileConverter.empty
-    val classpath = (compileClasspath.iterator ++ Some(classesDir))
+    val classpath = (compileClasspathPaths.iterator ++ Some(classesDir))
       .map(path => converter.toVirtualFile(path.toNIO))
       .toArray
     val virtualSources = sources.iterator
       .map(path => converter.toVirtualFile(path.toNIO))
       .toArray
 
-    val incOptions = IncOptions.of().withAuxiliaryClassFiles(
-      auxiliaryClassFileExtensions.map(AuxiliaryClassFileExtension(_)).toArray
+    val externalHooks = new DefaultExternalHooks(
+      Optional.of(
+        MillExternalLookup(
+          classpathHashes = ZincWorker.classpathFileHashes(
+            compileClasspath = compileClasspath,
+            classesDir = classesDir
+          ),
+          incrementalAnnotationProcessing match {
+            case IncrementalAnnotationProcessing.Mode.Enabled(plan) => plan.lookupData
+            case _ => None
+          }
+        )
+      ),
+      Optional.empty()
     )
+    val incOptions0 = IncOptions.of().withAuxiliaryClassFiles(
+      auxiliaryClassFileExtensions.map(new AuxiliaryClassFileExtension(_)).toArray
+    ).withExternalHooks(externalHooks)
+    // Exclude `-color:*` from Zinc's MiniSetup equivalence check. The option
+    // is injected per-client below based on TTY state, so without this,
+    // alternating TTY and non-TTY clients against the same daemon would
+    // invalidate the stored analysis and cold-rebuild the whole module on
+    // every edit. See https://github.com/com-lihaoyi/mill/issues/7015
+    val incOptions = incOptions0.withIgnoredScalacOptions(Array("-color:.*"))
     val compileProgress = reporter.map { reporter =>
       new CompileProgress {
         override def advance(
@@ -396,7 +461,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
     }
 
     val addColorNeverOption = Option.when(
-      !ctx.logPromptColored &&
+      !localConfig.logPromptColored &&
         compilers.scalac().scalaInstance().version().startsWith("3.") &&
         // might be too broad
         !scalacOptions.exists(_.startsWith("-color:"))
@@ -406,17 +471,28 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
 
     val finalScalacOptions = addColorNeverOption.toSeq ++ scalacOptions
 
-    val (originalSourcesMap, posMapperOpt) = PositionMapper.create(virtualSources)
+    val millSources = virtualSources.filter(_.name.endsWith(".mill"))
+    val (originalSourcesMap, posMapperOpt) =
+      if (millSources.isEmpty) (Map.empty[os.Path, os.Path], None)
+      else PositionMapper.create(millSources)
 
     val newReporter = reporter match {
       case None =>
         new ManagedLoggedReporter(maxErrors, logger) with RecordingReporter
-          with TransformingReporter(ctx.logPromptColored, posMapperOpt.orNull, ctx.workspaceRoot) {}
+          with TransformingReporter(
+            localConfig.logPromptColored,
+            posMapperOpt.orNull,
+            localConfig.workspaceRoot
+          ) {}
       case Some(forwarder) =>
         new ManagedLoggedReporter(maxErrors, logger)
           with ForwardingReporter(forwarder)
           with RecordingReporter
-          with TransformingReporter(ctx.logPromptColored, posMapperOpt.orNull, ctx.workspaceRoot) {}
+          with TransformingReporter(
+            localConfig.logPromptColored,
+            posMapperOpt.orNull,
+            localConfig.workspaceRoot
+          ) {}
     }
 
     val inputs = incrementalCompiler.inputs(
@@ -441,7 +517,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
         earlyAnalysisStore = None,
         extra = Array()
       ),
-      pr = if (incrementalCompilation) {
+      pr = if (effectiveIncrementalCompilation) {
         val prev = store.get()
         PreviousResult.of(prev.map(_.getAnalysis), prev.map(_.getMiniSetup))
       } else {
@@ -455,7 +531,12 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
     val scalaColorProp = "scala.color"
     val previousScalaColor = sys.props(scalaColorProp)
     try {
-      sys.props(scalaColorProp) = if (ctx.logPromptColored) "true" else "false"
+      sys.props(scalaColorProp) = if (localConfig.logPromptColored) "true" else "false"
+      incrementalAnnotationProcessing match {
+        case IncrementalAnnotationProcessing.Mode.Enabled(plan) =>
+          IncrementalAnnotationProcessing.installTracker(plan.tracker)
+        case _ =>
+      }
 
       val newResult = incrementalCompiler.compile(in = inputs, logger = logger)
 
@@ -463,11 +544,30 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
 
       store.set(AnalysisContents.create(newResult.analysis(), newResult.setup()))
 
+      incrementalAnnotationProcessing match {
+        case IncrementalAnnotationProcessing.Mode.Enabled(plan) =>
+          IncrementalAnnotationProcessing.persist(
+            workDir = workDir,
+            classesDir = classesDir,
+            analysis = newResult.analysis().asInstanceOf[Analysis],
+            auxiliaryClassFileExtensions = auxiliaryClassFileExtensions,
+            sourceStamps = plan.sourceStamps,
+            tracker = plan.tracker
+          )
+        case _ =>
+      }
+
       Result.Success(CompilationResult(workDir / zincCache, PathRef(classesDir)))
     } catch {
       case e: CompileFailed =>
+        incrementalAnnotationProcessing match {
+          case IncrementalAnnotationProcessing.Mode.Enabled(plan) =>
+            plan.tracker.cleanupFailedCompile()
+          case _ =>
+        }
         Result.Failure(e.toString)
     } finally {
+      IncrementalAnnotationProcessing.clearTracker()
       for (rep <- reporter) {
         for (f <- sources) {
           rep.fileVisited(f.toNIO)
@@ -504,10 +604,11 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
     // Use a double-lock here because we need mutex both between threads within this
     // process, as well as between different processes since sometimes we are initializing
     // the compiler bridge inside a separate `ZincWorkerMain` subprocess
-    val doubleLock = DoubleLock(
+    val doubleLock = new DoubleLock(
       memoryLock,
-      FileLock(
-        (compilerBridgeProvider.workspace / "compiler-bridge-locks" / scalaVersion).toString
+      Lock.forDirectory(
+        (compilerBridgeProvider.workspace / "compiler-bridge-locks" / scalaVersion).toString,
+        useFileLocks
       )
     )
     try {
@@ -543,32 +644,48 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       op: ZincOp,
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
-      ctx: ZincWorker.LocalConfig,
-      deps: ZincWorker.ProcessConfig
+      localConfig: ZincWorker.LocalConfig,
+      processConfig: ZincWorker.ProcessConfig
   ): op.Response = {
     op match {
       case msg: ZincOp.CompileJava =>
-        compileJava(msg, reporter, reportCachedProblems, ctx, deps).asInstanceOf[op.Response]
+        compileJava(
+          msg,
+          reporter,
+          reportCachedProblems,
+          localConfig,
+          processConfig
+        ).asInstanceOf[op.Response]
 
       case msg: ZincOp.CompileMixed =>
-        compileMixed(msg, reporter, reportCachedProblems, ctx, deps).asInstanceOf[op.Response]
+        compileMixed(
+          msg,
+          reporter,
+          reportCachedProblems,
+          localConfig,
+          processConfig
+        ).asInstanceOf[op.Response]
 
       case msg: ZincOp.ScaladocJar =>
-        scaladocJar(msg, deps.compilerBridgeProvider).asInstanceOf[op.Response]
+        scaladocJar(msg, processConfig).asInstanceOf[op.Response]
 
       case msg: ZincOp.DiscoverTests =>
-        mill.javalib.testrunner.DiscoverTestsMain(msg).asInstanceOf[op.Response]
+        mill.javalib.testrunner.DiscoverTests(msg).asInstanceOf[op.Response]
+
+      case msg: ZincOp.DiscoverTestsZinc =>
+        TestDiscovery(msg).asInstanceOf[op.Response]
 
       case msg: ZincOp.GetTestTasks =>
-        mill.javalib.testrunner.GetTestTasksMain(msg).asInstanceOf[op.Response]
+        mill.javalib.testrunner.GetTestTasks(msg).asInstanceOf[op.Response]
 
       case msg: ZincOp.DiscoverJunit5Tests =>
-        mill.javalib.testrunner.DiscoverJunit5TestsMain(msg).asInstanceOf[op.Response]
+        mill.javalib.testrunner.DiscoverJunit5Tests(msg).asInstanceOf[op.Response]
     }
   }
 }
 
 object ZincWorker {
+  private val DirectoryFileHash = 42
 
   /**
    * Dependencies of the invocation.
@@ -606,7 +723,7 @@ object ZincWorker {
   private case class JavaCompilerCacheKey(javacOptions: Seq[String])
 
   private def getLocalOrCreateJavaTools(): JavaTools = {
-    val compiler = javac.JavaCompiler.local.getOrElse(javac.JavaCompiler.fork())
+    val compiler = IncrementalTrackingJavaCompiler.local.getOrElse(javac.JavaCompiler.fork())
     val docs = javac.Javadoc.local.getOrElse(javac.Javadoc.fork())
     javac.JavaTools(compiler, docs)
   }
@@ -622,4 +739,20 @@ object ZincWorker {
       // No need to utilize more than 8 cores to serialize a small file
       parallelism = math.min(Runtime.getRuntime.availableProcessors(), 8)
     )
+
+  private[zinc] def classpathFileHashes(
+      compileClasspath: Seq[PathRef],
+      classesDir: os.Path
+  ): Array[FileHash] = {
+    val pathHashes = compileClasspath.iterator.map(ref => ref.path -> ref.sig).toMap
+
+    (compileClasspath.iterator.map(_.path) ++ Iterator.single(classesDir))
+      .map { path =>
+        val hash =
+          if (os.isDir(path)) DirectoryFileHash
+          else pathHashes.getOrElse(path, PathRef(path, quick = true).sig)
+        FileHash.of(path.toNIO, hash)
+      }
+      .toArray
+  }
 }

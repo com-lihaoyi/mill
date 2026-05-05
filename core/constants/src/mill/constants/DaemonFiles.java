@@ -8,6 +8,21 @@ public class DaemonFiles {
   /** Daemon process id is stored in this file, if you delete it the daemon will die. */
   public static final String processId = "processId";
 
+  /**
+   * JSON file containing daemon launch configuration (mill version, java version, JVM opts).
+   * Used to detect when the daemon needs to restart due to configuration changes.
+   */
+  public static final String daemonLaunchFingerprint = "daemonLaunchFingerprint.json";
+
+  /**
+   * JSON file the daemon updates atomically with its current state
+   * ({@code pid}, {@code activeConnections}, {@code acceptingConnections}).
+   * A launcher with a mismatched fingerprint polls this file and waits for
+   * {@code activeConnections == 0} before triggering a restart, so peers
+   * already mid-execution can finish gracefully.
+   */
+  public static final String daemonState = "daemonState.json";
+
   public static final String sandbox = "sandbox";
 
   /**
@@ -64,4 +79,19 @@ public class DaemonFiles {
    * Terminal information that we need to propagate from client to server
    */
   public static final String terminfo = "terminfo";
+
+  /**
+   * Console log file containing output from the running Mill command
+   */
+  public static final String millConsoleTail = "mill-console-tail";
+
+  public static final String millRun = "mill-run";
+
+  /** @deprecated Use millRun instead. */
+  @Deprecated
+  public static final String millLauncherFiles = millRun;
+
+  public static String perLauncherFilePath(String runId) {
+    return millRun + "/" + runId + ".json";
+  }
 }

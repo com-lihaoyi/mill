@@ -1,10 +1,8 @@
 package mill.rpc
 
-import mill.api.daemon.Logger
+import mill.api.daemon.{Logger, Result, StopWithResponse}
 import pprint.TPrint
 import upickle.{Reader, Writer}
-
-import scala.util.control.NonFatal
 
 /** Default implementation for the [[MillRpcServer]]. */
 trait MillRpcServer[
@@ -59,6 +57,8 @@ trait MillRpcServer[
         case None => continue = false
         case Some(MillRpcClientToServer.Ask(message)) =>
           continue = onAsk()(() => onClientMessage(message))
+        case Some(MillRpcClientToServer.Response(_)) =>
+          logLocal("Ignoring unexpected response from client.")
       }
     }
   }
@@ -69,8 +69,12 @@ trait MillRpcServer[
     val result =
       try Right(run())
       catch {
+        case e: StopWithResponse[Response @unchecked] =>
+          // Send the response, then stop the RPC loop
+          sendToClient(MillRpcServerToClient.Response(Right(e.response)))
+          return false
         case _: InterruptedException => return false
-        case NonFatal(e) => Left(RpcThrowable(e))
+        case e => Left(RpcThrowable.fromThrowable(e))
       }
 
     sendToClient(MillRpcServerToClient.Response(result))
@@ -94,7 +98,7 @@ trait MillRpcServer[
 
         case MillRpcClientToServer.Response(data) =>
           data match {
-            case Left(err) => throw err
+            case Left(err) => throw Result.SerializedException.from(err.exceptions)
             case Right(response) => responseReceived = Some(response)
           }
       }
@@ -107,12 +111,22 @@ trait MillRpcServer[
     wireTransport.readAndTryToParse(logLocal)
 
   private def sendToClient[A: Writer](message: MillRpcServerToClient[A]): Unit =
-    wireTransport.writeSerialized(message, logLocal)
+    wireTransport.writeSerialized(message)
 
   /** Logs a message locally in the RPC server. */
   private def logLocal(message: String): Unit = {
     writeToLocalLog(s"[$serverName] $message")
   }
+
+  // Serializes Ask+waitForResponse so concurrent server-side callers (e.g. the
+  // task thread issuing RunSubprocess and the PromptLogger thread issuing
+  // GetTerminalDims) cannot race to consume each other's Response off the wire.
+  // `MillRpcClientToServer.Response` has no correlation ID, so without this
+  // lock the two readers can swap responses and trigger upickle parse errors
+  // that bubble up as spurious task failures.
+  // Reentrant: `waitForResponse` may dispatch a nested Ask back to a handler
+  // that itself calls `serverToClient`, on the same thread.
+  private val serverToClientLock = new Object
 
   private def createServerToClientChannel(): MillRpcChannel[ServerToClient] = {
     (msg: ServerToClient) =>
@@ -120,8 +134,9 @@ trait MillRpcServer[
         "Client to server channel should have been initialized"
       ))
 
-      sendToClient(MillRpcServerToClient.Ask(msg))
-      waitForResponse[msg.Response](clientToServer)
-
+      serverToClientLock.synchronized {
+        sendToClient(MillRpcServerToClient.Ask(msg))
+        waitForResponse[msg.Response](clientToServer)
+      }
   }
 }

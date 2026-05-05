@@ -1,5 +1,5 @@
 val sharedSettings = Seq(
-  crossScalaVersions := Seq("2.12.20", "2.13.14", "3.7.1"),
+  crossScalaVersions := Seq("2.12.21", "2.13.18", "3.7.1"),
   scalacOptions := {
     CrossVersion.partialVersion(scalaVersion.value) match {
       case Some((2, 12)) => Seq(

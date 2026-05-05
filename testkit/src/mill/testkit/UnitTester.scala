@@ -1,13 +1,14 @@
 package mill.testkit
 
 import mill.Task
-import mill.api.{BuildCtx, DummyInputStream, ExecResult, Result, Val}
+import mill.api.{BuildCtx, DummyInputStream, EnvMap, ExecResult, Result, SystemStreams, Val}
 import mill.api.ExecResult.OuterStack
 import mill.constants.OutFiles.OutFiles.millChromeProfile
 import mill.constants.OutFiles.OutFiles.millProfile
 import mill.api.Evaluator
 import mill.api.SelectMode
 import mill.internal.JsonArrayLogger
+import mill.launcher.DaemonRpc
 
 import java.io.InputStream
 import java.io.PrintStream
@@ -69,7 +70,9 @@ class UnitTester(
   val outPath: os.Path = module.moduleDir / "out"
 
   if (resetSourcePath) {
-    os.remove.all(module.moduleDir)
+    mill.util.Retry() { // Retry because this is flaky on windows due to file locking
+      os.remove.all(module.moduleDir)
+    }
     os.makeDir.all(module.moduleDir)
 
     for (sourceFileRoot <- sourceRoot) {
@@ -78,7 +81,7 @@ class UnitTester(
   } else {
     sourceRoot match {
       case Some(sourceRoot) =>
-        throw IllegalArgumentException(
+        throw new IllegalArgumentException(
           s"Cannot provide sourceRoot=$sourceRoot when resetSourcePath=false"
         )
       case None => // ok
@@ -91,10 +94,12 @@ class UnitTester(
         infoColor = mill.internal.Colors.Default.info,
         warnColor = mill.internal.Colors.Default.warn,
         errorColor = mill.internal.Colors.Default.error,
-        systemStreams0 = SystemStreams(out = outStream, err = errStream, in = inStream),
+        successColor = mill.internal.Colors.Default.success,
+        highlightColor = mill.internal.Colors.Default.highlight,
+        systemStreams0 = new SystemStreams(out = outStream, err = errStream, in = inStream),
         debugEnabled = debugEnabled,
         titleText = "",
-        terminfoPath = os.temp(),
+        terminalDimsCallback = () => None,
         currentTimeMillis = () => System.currentTimeMillis(),
         chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile)
       ) {
@@ -117,7 +122,7 @@ class UnitTester(
     else Some(mill.exec.ExecutionContexts.createExecutor(effectiveThreadCount))
 
   val execution = new mill.exec.Execution(
-    baseLogger = logger,
+    baseLogger = new mill.internal.PrefixLogger(logger, Nil),
     profileLogger = new mill.internal.JsonArrayLogger.Profile(outPath / millProfile),
     workspace = module.moduleDir,
     outPath = outPath,
@@ -126,17 +131,23 @@ class UnitTester(
     classLoaderSigHash = 0,
     classLoaderIdentityHash = 0,
     workerCache = collection.mutable.Map.empty,
-    env = env,
+    env = EnvMap.asEnvMap(env),
     failFast = failFast,
     ec = ec,
     codeSignatures = Map(),
     systemExit = (reason, exitCode) =>
       throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
-    exclusiveSystemStreams = SystemStreams(outStream, errStream, inStream),
+    exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
     getEvaluator = () => evaluator,
     offline = offline,
+    useFileLocks = false,
+    workspaceLocking = mill.api.daemon.internal.LauncherLocking.Noop,
+    runArtifacts = mill.api.daemon.internal.LauncherOutFiles.noop(outPath.toNIO),
     enableTicker = false,
-    staticBuildOverrideFiles = Map()
+    staticBuildOverrideFiles = Map(),
+    depth = 0,
+    isFinalDepth = true,
+    spanningInvalidationTree = None
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(
@@ -168,7 +179,7 @@ class UnitTester(
       tasks: Seq[Task[?]]
   ): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
 
-    val evaluated = evaluator.execute(tasks).executionResults
+    val evaluated = evaluator.execute(tasks.asInstanceOf[Seq[Task[Any]]]).executionResults
 
     if (evaluated.transitiveFailing.nonEmpty) Left(evaluated.transitiveFailing.values.head)
     else {
@@ -197,7 +208,8 @@ class UnitTester(
     val res = evaluator.execute(Seq(task)).executionResults
 
     val cleaned = res.results.map {
-      case ExecResult.Exception(ex, _) => ExecResult.Exception(ex, OuterStack(Nil))
+      case ExecResult.Exception(ex, _) =>
+        ExecResult.Exception(ex, new OuterStack(Nil))
       case x => x.map(_.value)
     }
 
@@ -208,7 +220,7 @@ class UnitTester(
 
   def check(tasks: Seq[Task[?]], expected: Seq[Task[?]]): Unit = {
 
-    val evaluated = evaluator.execute(tasks).executionResults
+    val evaluated = evaluator.execute(tasks.asInstanceOf[Seq[Task[Any]]]).executionResults
       .uncached
       .flatMap(_.asSimple)
       .filter(module.moduleInternal.simpleTasks.contains)
@@ -223,13 +235,19 @@ class UnitTester(
   def scoped[T](tester: UnitTester => T): T = {
     try {
       BuildCtx.workspaceRoot0.withValue(module.moduleDir) {
-        tester(this)
+        mill.api.daemon.LauncherSubprocess.withValue(config =>
+          DaemonRpc
+            .defaultRunSubprocessWithStreams(None)(DaemonRpc.ServerToClient.RunSubprocess(config))
+            .exitCode
+        ) {
+          tester(this)
+        }
       }
     } finally close()
   }
 
   def closeWithoutCheckingLeaks(): Unit = {
-    for (case (_, Val(obsolete: AutoCloseable)) <- evaluator.workerCache.values) {
+    for (case (_, Val(obsolete: AutoCloseable), _) <- evaluator.workerCache.values) {
       obsolete.close()
     }
     evaluator.close()

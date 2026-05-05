@@ -4,7 +4,7 @@ import ch.epfl.scala.bsp4j.{BuildTargetIdentifier, SourceItem, SourceItemKind, S
 import mill.bsp.worker.Utils.{makeBuildTarget, sanitizeUri}
 import mill.api.daemon.internal.bsp.BspModuleApi.Tag
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import ch.epfl.scala.bsp4j.BuildTarget
 import mill.api.daemon.internal.bsp.BspBuildTarget
 
@@ -15,7 +15,7 @@ import mill.api.daemon.internal.bsp.BspBuildTarget
  * will be created
  */
 class SyntheticRootBspBuildTargetData(topLevelProjectRoot: os.Path) {
-  val id: BuildTargetIdentifier = BuildTargetIdentifier(
+  val id: BuildTargetIdentifier = new BuildTargetIdentifier(
     Utils.sanitizeUri((topLevelProjectRoot / "mill-synthetic-root-target").toNIO)
   )
 
@@ -32,12 +32,12 @@ class SyntheticRootBspBuildTargetData(topLevelProjectRoot: os.Path) {
 
   val target: BuildTarget = makeBuildTarget(id, Seq.empty, bt, None)
   private val sourcePath = topLevelProjectRoot / "src"
-  def synthSources = SourcesItem(
+  def synthSources = new SourcesItem(
     id,
-    Seq(SourceItem(sanitizeUri(sourcePath.toNIO), SourceItemKind.DIRECTORY, false)).asJava
+    Seq(new SourceItem(sanitizeUri(sourcePath.toNIO), SourceItemKind.DIRECTORY, false)).asJava
   ) // intellijBSP does not create contentRootData for module with only outputPaths (this is probably a bug)
 }
 object SyntheticRootBspBuildTargetData {
-  def makeIfNeeded(workspaceDir: os.Path): Option[SyntheticRootBspBuildTargetData] =
-    Some(SyntheticRootBspBuildTargetData(workspaceDir))
+  def make(workspaceDir: os.Path): SyntheticRootBspBuildTargetData =
+    new SyntheticRootBspBuildTargetData(workspaceDir)
 }

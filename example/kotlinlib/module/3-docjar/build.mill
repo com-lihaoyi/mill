@@ -1,0 +1,24 @@
+// overriddention you can use the `docJar` task on the module you'd
+// like to create the documentation for, configured via `dokkaOptions`:
+
+//// SNIPPET:BUILD
+
+/** See Also: build.mill.yaml */
+
+/** Usage
+
+> ./mill show docJar
+...
+...Generation completed successfully...
+
+> unzip -p out/docJar.dest/out.jar root/foo/index.html
+...
+...My Awesome Docs for class Foo...
+...
+...My Awesome Docs for class Bar...
+
+*/
+
+//// SNIPPET:END
+
+//// SNIPPET:SCALA3

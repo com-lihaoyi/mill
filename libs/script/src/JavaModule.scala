@@ -24,8 +24,6 @@ object JavaModule {
       with mill.javalib.NativeImageModule {
     private[mill] def isScript: Boolean = true
 
-    override def moduleDeps = scriptConfig.moduleDeps.map(_.asInstanceOf[mill.javalib.JavaModule])
-
     /** Scripts default to having no source folders */
     override def sources = Task.Sources()
 
@@ -41,5 +39,12 @@ object JavaModule {
     def scriptSource = Task.Source(scriptConfig.scriptFile)
 
     override def allSources = Seq(scriptSource())
+
+    /**
+     * Scripts tend to have weird characters in their `moduleSegments`, make sure we
+     * remove them from the final artifactName otherwise downstream tools may get confused
+     * (e.g. kotlin build-tool-api hates artifact names with `/` and `:`)
+     */
+    override def artifactName = super.artifactName().replaceAll(" |/|\\|:|;|@|=|,", "-")
   }
 }

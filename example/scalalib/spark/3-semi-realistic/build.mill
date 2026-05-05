@@ -21,7 +21,7 @@ object `package` extends ScalaModule {
 
 }
 
-// This examples demonstrates a semi realistic example calculating summary statics
+// This example demonstrates a semi realistic example calculating summary statistics
 // from a transactions.csv passed in as argument, defaulting to resources if not present.
 
 /** Usage

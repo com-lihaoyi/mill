@@ -29,7 +29,7 @@ object ScalaMixedProjectSemanticDbTests extends TestSuite {
       test("fromScratch") - UnitTester(SemanticWorld, sourceRoot = resourcePath).scoped { eval =>
         {
           println("first - expected full compile")
-          val Right(result) = eval.apply(SemanticWorld.core.semanticDbData): @unchecked
+          val Right(result) = eval.apply(SemanticWorld.core.semanticDbData).runtimeChecked
 
           val dataPath = eval.outPath / "core/semanticDbDataDetailed.dest/data"
           val outputFiles =
@@ -47,7 +47,7 @@ object ScalaMixedProjectSemanticDbTests extends TestSuite {
         {
           println("second - expected no compile")
           // don't recompile if nothing changed
-          val Right(result2) = eval.apply(SemanticWorld.core.semanticDbData): @unchecked
+          val Right(result2) = eval.apply(SemanticWorld.core.semanticDbData).runtimeChecked
           assert(result2.evalCount == 0)
         }
       }

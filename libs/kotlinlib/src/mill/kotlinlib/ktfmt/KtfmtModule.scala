@@ -1,6 +1,6 @@
 package mill.kotlinlib.ktfmt
 
-import mill._
+import mill.*
 import mill.api.{PathRef}
 import mill.api.{Discover, ExternalModule}
 import mill.kotlinlib.{DepSyntax, KotlinModule, Versions}
@@ -51,7 +51,7 @@ trait KtfmtModule extends KtfmtBaseModule {
       @mainargs.arg ktfmtArgs: KtfmtArgs,
       @mainargs.arg(positional = true) sources: Tasks[Seq[PathRef]] =
         Tasks.resolveMainDefault("__.sources")
-  ): Command[Unit] = Task.Command {
+  ): Command[Unit] = Task.Command(globalExclusive = true) {
     val _sources: Seq[PathRef] = if (sources.value.isEmpty) {
       this.sources()
     } else Task.sequence(sources.value)().flatten
@@ -82,7 +82,7 @@ object KtfmtModule extends ExternalModule with KtfmtBaseModule with DefaultTaskM
       @mainargs.arg ktfmtArgs: KtfmtArgs,
       @mainargs.arg(positional = true) sources: Tasks[Seq[PathRef]] =
         Tasks.resolveMainDefault("__.sources")
-  ): Command[Unit] = Task.Command {
+  ): Command[Unit] = Task.Command(globalExclusive = true) {
     val _sources = Task.sequence(sources.value)().iterator.flatten
     ktfmtAction(
       ktfmtArgs.style,

@@ -31,18 +31,21 @@ final case class Segments private (value: Seq[Segment]) {
   def head: Segment = value.head
 
   def render: String = {
-    def renderCross(cross: Segment.Cross): String = "[" + cross.value.mkString(",") + "]"
-    def renderValue(valueList: List[Segment]) = valueList match {
+    // Replace `.`, `/`, and `:` with `_` since they have special meaning in Mill selectors
+    def renderCross(cross: Segment.Cross): Seq[String] =
+      cross.value.map(_.replace('.', '_').replace('/', '_').replace(':', '_'))
+
+    def renderValue(valueList: List[Segment]): String = valueList match {
       case Nil => ""
       case head :: rest =>
-        val headSegment = head match
-          case Segment.Label(s) => s
+        val headSegments = head match
+          case Segment.Label(s) => Seq(s)
           case c: Segment.Cross => renderCross(c)
-        val stringSegments = rest.map {
-          case Segment.Label(s) => "." + s
+        val restSegments = rest.flatMap {
+          case Segment.Label(s) => Seq(s)
           case c: Segment.Cross => renderCross(c)
         }
-        headSegment + stringSegments.mkString
+        (headSegments ++ restSegments).mkString(".")
     }
 
     value.toList match {
@@ -53,6 +56,15 @@ final case class Segments private (value: Seq[Segment]) {
       case valueList => renderValue(valueList)
     }
   }
+
+  /**
+   * Renders segments using bracket syntax for cross modules (e.g., `foo[2.12.20]`).
+   * Used for tab completion when the user has started typing with bracket syntax.
+   */
+  def renderBracketSyntax: String = value.map {
+    case Segment.Label(s) => "." + s
+    case Segment.Cross(vs) => "[" + vs.mkString(",") + "]"
+  }.mkString.drop(1)
   override lazy val hashCode: Int = value.hashCode()
 }
 

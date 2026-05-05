@@ -5,6 +5,8 @@ import utest.*
 
 object MillVersionFrontmatterTests extends TestSuite {
   private val millVersion = "1.0.0-RC1"
+  private val defaultMillVersion =
+    sys.env.getOrElse("MILL_EXPECTED_DEFAULT_VERSION", "SNAPSHOT")
 
   val tests: Tests = Tests {
     def doTest(
@@ -23,7 +25,11 @@ object MillVersionFrontmatterTests extends TestSuite {
       val res = os.call(
         cmd,
         cwd = wd,
-        env = Map("MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" -> "1"),
+        env = Map(
+          "MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" -> "1",
+          // Remove DEFAULT_MILL_VERSION to avoid it leaking from the parent process
+          "DEFAULT_MILL_VERSION" -> null
+        ),
         stderr = os.Pipe,
         check = false
       )
@@ -39,7 +45,7 @@ object MillVersionFrontmatterTests extends TestSuite {
       }
     }
 
-    test("noFrontmatter") - doTest("", expectedVersion = None)
+    test("noFrontmatter") - doTest("", expectedVersion = Some(defaultMillVersion))
 
     test("onFirstLine") - doTest(s"""//| mill-version: $millVersion""")
 
@@ -72,7 +78,11 @@ object MillVersionFrontmatterTests extends TestSuite {
     test("withCommentAfterTheBuildHeader") - doTest(s"""//| mill-version: $millVersion # comment""")
 
     test("yaml") - {
-      test("noFrontmatter") - doTest("", expectedVersion = None, buildFile = "build.mill.yaml")
+      test("noFrontmatter") - doTest(
+        "",
+        expectedVersion = Some(defaultMillVersion),
+        buildFile = "build.mill.yaml"
+      )
 
       test("onFirstLine") - doTest(
         s"""mill-version: $millVersion""",

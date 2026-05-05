@@ -1,0 +1,36 @@
+/** See Also: build.mill.yaml */
+/** See Also: test/package.mill.yaml */
+
+// This example is a more complete example using Micronaut, adapted from
+// https://github.com/sdelamo/todomvc. On top of the `MicronautModule` and
+// annotation processing demonstrated by the previous example, this example
+// shows how a "full stack" web application using Micronaut looks like:
+//
+// * Thymeleaf for HTML templating
+// * Webjars for Javascript and CSS
+// * HTMX for interactivity
+// * Database interactions using JDBC and H2
+// * Controllers, Repositories, Entities, Forms
+// * A more detailed test suite
+//
+// Again, the example `MicronautModule` is by no means complete, but it demonstrates
+// how Mill can be integrated with Micronaut's annotation processors and configuration,
+// and can be extended to cover additional functionality in future
+
+/** Usage
+
+> ./mill test
+...example.micronaut.LearnJsonTest...
+...example.micronaut.TodoTest...
+...example.micronaut.TodoItemMapperTest...
+...example.micronaut.TodoItemControllerTest...
+...example.micronaut.HtmxWebJarsTest...
+
+> ./mill runBackground
+
+> curl http://localhost:${PORT:-8080}
+ ...<h1>todos</h1>...
+
+> ./mill clean runBackground
+
+*/

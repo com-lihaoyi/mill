@@ -91,15 +91,15 @@ object OverrideTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
   val tests = Tests {
-    import utest._
+    import utest.*
 
     test("overrideSuperTask") {
       // Make sure you can override tasks, call their supers, and have the
       // overridden task be allocated a spot within the overridden/ folder of
       // the main publicly-available task
-      import canOverrideSuper._
+      import canOverrideSuper.*
 
-      val checker = Checker(canOverrideSuper)
+      val checker = new Checker(canOverrideSuper)
       checker(foo, Seq("base", "object"), Seq(foo), extraEvaled = -1)
 
       val public = os.read(checker.execution.outPath / "foo.json")
@@ -117,9 +117,9 @@ object OverrideTests extends TestSuite {
       // Make sure you can override commands, call their supers, and have the
       // overridden command be allocated a spot within the super/ folder of
       // the main publicly-available command
-      import canOverrideSuper._
+      import canOverrideSuper.*
 
-      val checker = Checker(canOverrideSuper)
+      val checker = new Checker(canOverrideSuper)
       val runCmd = cmd(1)
       checker(
         runCmd,
@@ -144,9 +144,9 @@ object OverrideTests extends TestSuite {
       // Make sure you can override commands, call their supers, and have the
       // overridden command be allocated a spot within the super/ folder of
       // the main publicly-available command
-      import StackableOverrides._
+      import StackableOverrides.*
 
-      val checker = Checker(StackableOverrides)
+      val checker = new Checker(StackableOverrides)
       checker(
         m.f,
         6,
@@ -168,7 +168,7 @@ object OverrideTests extends TestSuite {
       // When the supers have the same name, qualify them until they are distinct
       import StackableOverrides2._
 
-      val checker = Checker(StackableOverrides2)
+      val checker = new Checker(StackableOverrides2)
       checker(
         m.f,
         6,
@@ -190,7 +190,7 @@ object OverrideTests extends TestSuite {
       // When the supers have the same name, qualify them until they are distinct
       import StackableOverrides3._
 
-      val checker = Checker(StackableOverrides3)
+      val checker = new Checker(StackableOverrides3)
       checker(
         m.f,
         6,
@@ -211,9 +211,9 @@ object OverrideTests extends TestSuite {
     test("optionalOverride") {
       // Make sure that when a task is overriden, it always gets put in the same place on
       // disk regardless of whether or not the override is part of the current evaluation
-      import OptionalOverride._
+      import OptionalOverride.*
 
-      val checker = Checker(OptionalOverride)
+      val checker = new Checker(OptionalOverride)
       test {
         checker(m.f, 11, Seq(m.f), extraEvaled = -1)
         assert(
@@ -232,8 +232,8 @@ object OverrideTests extends TestSuite {
     test("privateTasksInMixedTraits") {
       // Make sure we can have private cached tasks in different trait with the same name,
       // and caching still works when these traits are mixed together
-      import PrivateTasksInMixedTraits._
-      val checker = Checker(PrivateTasksInMixedTraits)
+      import PrivateTasksInMixedTraits.*
+      val checker = new Checker(PrivateTasksInMixedTraits)
       checker(
         mod.bar,
         "foo-m1",

@@ -1,10 +1,10 @@
 package mill.scalajslib
 
 import mill.api.Discover
-import mill.scalajslib.api._
+import mill.scalajslib.api.*
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
-import utest._
+import utest.*
 
 object TopLevelExportsTests extends TestSuite {
   object TopLevelExportsModule extends TestRootModule with ScalaJSModule {
@@ -26,7 +26,7 @@ object TopLevelExportsTests extends TestSuite {
       UnitTester(TopLevelExportsModule, millSourcePath).scoped { evaluator =>
         println(evaluator(TopLevelExportsModule.sources))
         val Right(result) =
-          evaluator(TopLevelExportsModule.fastLinkJS): @unchecked
+          evaluator(TopLevelExportsModule.fastLinkJS).runtimeChecked
         val publicModules = result.value.publicModules.toSeq
         assert(publicModules.length == 2)
         val b = publicModules(0)

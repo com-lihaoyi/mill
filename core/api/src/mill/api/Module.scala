@@ -45,8 +45,9 @@ trait Module extends Module.BaseClass with ModuleCtx.Wrapper with ModuleApi {
   private[mill] val moduleLinearized: Seq[Class[?]] =
     OverrideMapping.computeLinearization(this.getClass)
 
-  private[mill] def moduleDynamicBuildOverrides: Map[String, internal.Located[BufferedValue]] =
-    Map()
+  private[mill] def moduleDynamicBuildOverrides
+      : Map[String, internal.Located[internal.Appendable[BufferedValue]]] =
+    Option(moduleCtx.enclosingModule).map(_.moduleDynamicBuildOverrides).getOrElse(Map())
 }
 
 object Module {
@@ -85,7 +86,7 @@ object Module {
         (cls, noParams, inner) =>
           Reflect.getMethods(cls, noParams, inner, scala.reflect.NameTransformer.decode)
       )
-        .map(_.invoke(outer).asInstanceOf[T])
+        .map { case (m, _) => m.invoke(outer).asInstanceOf[T] }
         .toSeq
     }
 
@@ -103,4 +104,16 @@ object Module {
         .toSeq
     }
   }
+}
+
+/**
+ * Trait providing config-based module dependency defaults.
+ * Extended by both [[PrecompiledModule]] (which populates from YAML config)
+ * and `JavaModule` (which reads these to provide its `moduleDeps` defaults).
+ */
+private[mill] trait ConfigModuleDepsModule {
+  private[mill] def configModuleDeps: Map[String, Seq[mill.api.Module]] = Map.empty
+  private[mill] def configCompileModuleDeps: Map[String, Seq[mill.api.Module]] = Map.empty
+  private[mill] def configRunModuleDeps: Map[String, Seq[mill.api.Module]] = Map.empty
+  private[mill] def configBomModuleDeps: Map[String, Seq[mill.api.Module]] = Map.empty
 }

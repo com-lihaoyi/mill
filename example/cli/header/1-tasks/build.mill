@@ -12,7 +12,7 @@ private def foo = 1
 
 /** Usage
 
-> ./mill version
+> ./mill resolve _
 error: ...unused private member
 ...No warnings can be incurred under -Werror
 */

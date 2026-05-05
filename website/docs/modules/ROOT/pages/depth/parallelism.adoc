@@ -45,7 +45,7 @@ image::basic/ChromeTracing.png[ChromeTracing.png]
 
 The chrome profile is great for finding bottlenecks in your parallel builds, since you
 can usually see if there's a task taking a long time before downstream tasks can begin.
-These "long poll" tasks are usually good targets for optimization: e.g. a long `compile`
+These "long pole" tasks are usually good targets for optimization: e.g. a long `compile`
 task may be improved by breaking down its module into smaller modules that can `compile`
 independently and in parallel.
 

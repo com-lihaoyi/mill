@@ -1,10 +1,10 @@
 package mill.rpc
 
-import mill.api.daemon.Logger
+import mill.api.daemon.{Logger, Result}
+import mill.api.daemon.internal.NonFatal
+import mill.constants.EnvVars
 import pprint.TPrint
 import upickle.{Reader, Writer}
-
-import scala.util.Try
 
 /** Connects and communicates with [[MillRpcServer]]. */
 trait MillRpcClient[
@@ -34,11 +34,11 @@ object MillRpcClient {
     def logDebug(msg: String): Unit = log.debug(s"[RPC:${wireTransport.name}] $msg")
 
     def handleServerLog(msg: RpcLogger.Message): Unit = msg match {
-      case RpcLogger.Message.Error(msg) => log.error(s"[RPC-SERVER:${wireTransport.name}] $msg")
-      case RpcLogger.Message.Warn(msg) => log.warn(s"[RPC-SERVER:${wireTransport.name}] $msg")
-      case RpcLogger.Message.Info(msg) => log.info(s"[RPC-SERVER:${wireTransport.name}] $msg")
-      case RpcLogger.Message.Debug(msg) => log.debug(s"[RPC-SERVER:${wireTransport.name}] $msg")
-      case RpcLogger.Message.Ticker(msg) => log.ticker(s"[RPC-SERVER:${wireTransport.name}] $msg")
+      case RpcLogger.Message.Error(msg) => log.error(msg)
+      case RpcLogger.Message.Warn(msg) => log.warn(msg)
+      case RpcLogger.Message.Info(msg) => log.info(msg)
+      case RpcLogger.Message.Debug(msg) => log.debug(msg)
+      case RpcLogger.Message.Ticker(msg) => log.ticker(msg)
     }
 
     def awaitForResponse[A: Reader]: A = {
@@ -50,15 +50,23 @@ object MillRpcClient {
         // we try to parse into `MillRpcServerToClient[A]` we will get an error if it's an `Ask`.
         wireTransport.readAndTryToParse[MillRpcServerToClient[ujson.Value]](logDebug) match {
           case None =>
-            throw IllegalStateException(
-              s"RPC wire has broken (${wireTransport.name}). The server probably crashed."
+            val logDirMsg = wireTransport.logDir match {
+              case Some(dir) =>
+                val workspaceRoot =
+                  sys.env.get(EnvVars.MILL_WORKSPACE_ROOT).fold(os.pwd)(os.Path(_, os.pwd))
+                s" Check logs in: ${dir.relativeTo(workspaceRoot)}"
+
+              case None => s" Connection ${wireTransport.name}"
+            }
+            throw new IllegalStateException(
+              s"Mill daemon terminated unexpectedly.$logDirMsg"
             )
           case Some(MillRpcServerToClient.Ask(dataJson)) =>
             val data = upickle.read[ServerToClient](dataJson)
             handleServerMessage(data)
           case Some(MillRpcServerToClient.Response(either)) =>
             either match {
-              case Left(err) => throw err
+              case Left(err) => throw Result.SerializedException.from(err.exceptions)
               case Right(responseJson) => responseReceived = Some(upickle.read[A](responseJson))
             }
           case Some(MillRpcServerToClient.Log(msg)) => handleServerLog(msg)
@@ -69,21 +77,21 @@ object MillRpcClient {
 
       responseReceived match {
         case Some(value) => value
-        case None => throw IllegalStateException("this should never happen")
+        case None => throw new IllegalStateException("this should never happen")
       }
     }
 
     def handleServerMessage(msg: ServerToClient): Unit = {
-      val response =
-        Try(currentServerMessageHandler(msg)).toEither.left.map(RpcThrowable.apply)
-      wireTransport.writeSerialized(MillRpcClientToServer.Response(response), logDebug)
+      val response = NonFatal.Try(currentServerMessageHandler(msg))
+        .toEither.left.map(RpcThrowable.fromThrowable)
+      wireTransport.writeSerialized(MillRpcClientToServer.Response(response))
     }
 
-    wireTransport.writeSerialized(initialize, logDebug)
+    wireTransport.writeSerialized(initialize)
 
     new MillRpcClient[ClientToServer, ServerToClient] {
       override def apply(msg: ClientToServer): msg.Response = {
-        wireTransport.writeSerialized(MillRpcClientToServer.Ask(msg), logDebug)
+        wireTransport.writeSerialized(MillRpcClientToServer.Ask(msg))
         awaitForResponse[msg.Response](using msg.responseRw)
       }
 

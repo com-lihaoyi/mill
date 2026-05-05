@@ -1,7 +1,6 @@
 package mill.api
 
 import mill.api.*
-import mill.api.daemon.*
 import mill.api.daemon.internal.*
 import mill.api.internal.*
 
@@ -19,7 +18,11 @@ final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
   override def env = delegate.env
   override def effectiveThreadCount = delegate.effectiveThreadCount
   override def offline: Boolean = delegate.offline
+  override def isFinalDepth: Boolean = delegate.isFinalDepth
+  override def useFileLocks: Boolean = delegate.useFileLocks
   override def staticBuildOverrides = delegate.staticBuildOverrides
+  override def spanningInvalidationTree: Option[String] = delegate.spanningInvalidationTree
+  override def classLoaderSigHash: Int = delegate.classLoaderSigHash
   def withBaseLogger(newBaseLogger: Logger): Evaluator = delegate.withBaseLogger(newBaseLogger)
 
   def resolveSegments(
@@ -58,6 +61,19 @@ final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
   ): mill.api.Result[List[Task.Named[?]]] = {
     delegate.resolveTasks(scriptArgs, selectMode, allowPositionalCommandArgs, resolveToModuleTasks)
   }
+  override private[mill] def probeSelectiveReuse(
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      previousMetadata: String,
+      allowPositionalCommandArgs: Boolean
+  ): mill.api.Result[EvaluatorApi.SelectiveReuseDecision] =
+    delegate.probeSelectiveReuse(
+      scriptArgs,
+      selectMode,
+      previousMetadata,
+      allowPositionalCommandArgs
+    )
+
   def resolveModulesOrTasks(
       scriptArgs: Seq[String],
       selectMode: SelectMode,

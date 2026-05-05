@@ -22,21 +22,27 @@ class PromptLogger(
     infoColor: fansi.Attrs,
     warnColor: fansi.Attrs,
     errorColor: fansi.Attrs,
+    successColor: fansi.Attrs,
+    highlightColor: fansi.Attrs,
     systemStreams0: SystemStreams,
     debugEnabled: Boolean,
     titleText: String,
-    terminfoPath: os.Path,
+    terminalDimsCallback: () => Option[(Option[Int], Option[Int])],
     currentTimeMillis: () => Long,
     autoUpdate: Boolean = true,
     val chromeProfileLogger: JsonArrayLogger.ChromeProfile
-) extends Logger with AutoCloseable {
+) extends Logger.Upstream with AutoCloseable {
   prompt.beginChromeProfileEntry("mill " + titleText)
   override def toString: String = s"PromptLogger(${literalize(titleText)})"
   import PromptLogger.*
 
-  private var termDimensions: (Option[Int], Option[Int]) = (None, None)
+  override def logKey: Seq[String] = Nil
+  override def redirectOutToErr: Boolean = false
+  override def unprefixedStreams: SystemStreams = streams
 
-  readTerminalDims(terminfoPath).foreach(termDimensions = _)
+  @volatile private var termDimensions: (Option[Int], Option[Int]) = (None, None)
+
+  terminalDimsCallback().foreach(termDimensions = _)
 
   def isInteractive() = termDimensions._1.nonEmpty
 
@@ -45,7 +51,7 @@ class PromptLogger(
         currentTimeMillis(),
         () => termDimensions,
         currentTimeMillis,
-        infoColor
+        highlightColor
       )
 
   private object streamManager extends StreamManager(
@@ -75,7 +81,7 @@ class PromptLogger(
           case _: InterruptedException => /*do nothing*/
         }
 
-        readTerminalDims(terminfoPath).foreach(termDimensions = _)
+        terminalDimsCallback().foreach(termDimensions = _)
 
         val now = System.currentTimeMillis()
         if (
@@ -103,7 +109,10 @@ class PromptLogger(
   def error(s: String): Unit = streams.err.println(s)
 
   object prompt extends Logger.Prompt {
-
+    val logLockObject = new Object()
+    def logLock[T](block: => T): T = logLockObject.synchronized {
+      block
+    }
     def beginChromeProfileEntry(text: String): Unit = {
       logBeginChromeProfileEntry(text, System.nanoTime())
     }
@@ -164,8 +173,10 @@ class PromptLogger(
     ): Unit = {
       val logStream = if (logToOut) streams.out else streams.err
       if (enableTicker) {
+        // Split the log message into lines outside the synchronized block since
+        // splitPreserveEOL is a pure function with no shared-state dependencies
+        val lines0 = Util.splitPreserveEOL(logMsg.toByteArray)
         val (lines, seenBefore, res) = PromptLogger.this.synchronized {
-          val lines0 = Util.splitPreserveEOL(logMsg.toByteArray)
           val seenBefore = reportedIdentifiers(key)
           val res =
             if (reportedIdentifiers(key) && lines0.isEmpty) None
@@ -206,7 +217,7 @@ class PromptLogger(
         // Synchronize this whole block on the stream manager output pipe to avoid
         // interleaving with other writes to the streams.
         logStream.synchronized {
-          for ((keySuffix, message) <- res) {
+          for ((_, message) <- res) {
             val longPrefix = Logger.formatPrefix0(key) + spaceNonEmpty(message)
             val prefix = Logger.formatPrefix0(key)
 
@@ -223,6 +234,17 @@ class PromptLogger(
               incompleteLine = line.lastOption.exists(last => last != '\n' && last != '\r')
             }
 
+            // Strip non-color ansi codes so things like line clearing or cursor
+            // movement don't mess up Mill's log formatting in the terminal.
+            // Fast path: skip the expensive fansi parse when no ESC byte is present.
+            def stripAnsi(s: Array[Byte]): Array[Byte] = {
+              val EscByte = 27.toByte
+              var i = 0
+              while (i < s.length && s(i) != EscByte) i += 1
+              if (i == s.length) s
+              else fansi.Str(new String(s, "UTF-8"), fansi.ErrorMode.Strip).render.getBytes("UTF-8")
+            }
+
             if (!seenBefore) {
               lines match {
                 case Seq(firstLine, restLines*) =>
@@ -230,36 +252,46 @@ class PromptLogger(
                     longPrefix.length + 1 + firstLine.length <
                       termDimensions._1.getOrElse(defaultTermWidth)
 
-                  if (combineMessageAndLog) printPrefixed(infoColor(longPrefix), firstLine)
+                  if (combineMessageAndLog)
+                    printPrefixed(infoColor(longPrefix), stripAnsi(firstLine))
                   else {
                     logStream.print(infoColor(longPrefix))
                     logStream.print('\n')
-                    printPrefixed(infoColor(prefix), firstLine)
+                    printPrefixed(infoColor(prefix), stripAnsi(firstLine))
                   }
-                  restLines.foreach(printPrefixed(infoColor(prefix), _))
+
+                  restLines.foreach(l => printPrefixed(infoColor(prefix), stripAnsi(l)))
 
                 case Seq() =>
                   logStream.print(infoColor(longPrefix))
                   logStream.print("\n")
                   logStream.flush()
               }
-            } else lines.foreach(printPrefixed(infoColor(prefix), _))
+            } else lines.foreach(l => printPrefixed(infoColor(prefix), stripAnsi(l)))
           }
         }
       } else logStream.synchronized { logMsg.writeTo(logStream) }
-
-      streamManager.awaitPumperEmpty()
     }
 
     override def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit =
       PromptLogger.this.synchronized {
         if (message != "") beginChromeProfileEntry(message)
-        promptLineState.setCurrent(key, Some(Logger.formatPrefix0(key) + spaceNonEmpty(message)))
+        promptLineState.setCurrent(
+          key,
+          Some(fansi.Str(
+            Logger.formatPrefix0(key) ++ spaceNonEmpty(this.highlightColor(message).toString)
+          ))
+        )
         seenIdentifiers(key) = (keySuffix, message)
       }
 
-    override def withPromptPaused[T](t: => T): T =
+    override def withPromptPaused[T](t: => T): T = {
+      // Drain the pipe before pausing so any pending output (e.g. exclusive task
+      // header written via logPrefixedLine) reaches the terminal before the task
+      // starts writing directly to exclusiveSystemStreams (which bypasses the pipe).
+      streamManager.awaitPumperEmpty()
       runningState.withPromptPaused0(true, t)
+    }
 
     override def withPromptUnpaused[T](t: => T): T =
       runningState.withPromptPaused0(false, t)
@@ -270,6 +302,8 @@ class PromptLogger(
     def infoColor(s: String): String = PromptLogger.this.infoColor(s).render
     def warnColor(s: String): String = PromptLogger.this.warnColor(s).render
     def errorColor(s: String): String = PromptLogger.this.errorColor(s).render
+    def successColor(s: String): String = PromptLogger.this.successColor(s).render
+    override def highlightColor(s: String): String = PromptLogger.this.highlightColor(s).render
     def colored: Boolean = PromptLogger.this.colored
   }
   def ticker(s: String): Unit = ()
@@ -376,7 +410,7 @@ object PromptLogger {
       systemStreams0.in
     )
 
-    def awaitPumperEmpty(): Unit = { while (pipe.input.available() != 0) Thread.sleep(2) }
+    def awaitPumperEmpty(): Unit = pipe.awaitInputEmpty()
 
     @volatile var lastPromptHeight = 0
 
@@ -481,11 +515,11 @@ object PromptLogger {
    * "smoothly" even as the underlying statuses may be rapidly changed during evaluation.
    */
   private class PromptLineState(
-      titleText: String,
+      titleText: fansi.Str,
       startTimeMillis: Long,
       consoleDims: () => (Option[Int], Option[Int]),
       currentTimeMillis: () => Long,
-      infoColor: fansi.Attrs
+      highlightColor: fansi.Attrs
   ) {
     private val statuses = collection.mutable.SortedMap
       .empty[Seq[String], Status](using PromptLoggerUtil.seqStringOrdering)
@@ -520,14 +554,15 @@ object PromptLogger {
         now,
         startTimeMillis,
         if (headerPrefix.isEmpty) "" else s"$headerPrefix]",
-        titleText,
+        if (ending) titleText else highlightColor(titleText),
         statuses.toSeq.map { case (k, v) => (k.mkString("-"), v) },
-        interactive = interactive,
-        infoColor = infoColor
+        interactive = interactive
       )
 
       val oldPromptBytes = currentPromptBytes
-      currentPromptBytes = renderPromptWrapped(currentPromptLines, interactive).getBytes
+      currentPromptBytes =
+        renderPromptWrapped(currentPromptLines.map(_.toString), interactive).getBytes
+
       !java.util.Arrays.equals(oldPromptBytes, currentPromptBytes)
     }
 
@@ -538,7 +573,7 @@ object PromptLogger {
       statuses.updateWith(key)(_.map(se => se.copy(next = se.next.map(_.copy(detail = detail)))))
     }
 
-    def setCurrent(key: Seq[String], sOpt: Option[String]): Option[Status] = {
+    def setCurrent(key: Seq[String], sOpt: Option[fansi.Str]): Option[Status] = {
 
       val now = currentTimeMillis()
       def stillTransitioning(status: Status) = {

@@ -33,7 +33,7 @@ import scala.collection.mutable
  *  the Mill Modules are aggregated as much as possible for generating Eclipse JDT Projects!
  */
 class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
-  import GenEclipseImpl._
+  import GenEclipseImpl.*
 
   /** Used to have distinct log messages for this generator */
   private def log(message: String): Unit = println(s"[Eclipse JDT Project generator] $message")

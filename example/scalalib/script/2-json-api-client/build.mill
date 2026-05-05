@@ -1,8 +1,7 @@
 // === JSON API Client
 //// SNIPPET:CRAWLER
 // Below is another web crawler, but instead of crawling Wikipedia's HTML pages using JSoup,
-// it uses Mill's bundled Scala libraries to write a
-// crawls wikipedia's JSON API and saves the crawl results to a file:
+// it uses Mill's bundled Scala libraries to crawl wikipedia's JSON API and saves the results to a file:
 
 /** See Also: JsonApiClient.scala */
 

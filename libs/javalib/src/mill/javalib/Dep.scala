@@ -61,6 +61,9 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   def name = dep.module.name.value
   def version = dep.versionConstraint.asString
 
+  /** A compact string representation of this dependency. */
+  def formatted: String = Dep.unparse(this).getOrElse(toString())
+
   /**
    * If scalaVersion is a Dotty version, replace the cross-version suffix
    * by the Scala 2.x version that the Dotty version is retro-compatible with,
@@ -139,9 +142,9 @@ object Dep {
   @unused private implicit val depFormat: RW[Dependency] = mill.javalib.JsonFormatters.depFormat
 
   def unparse(dep: Dep): Option[String] = {
-    val org = dep.dep.module.organization.value
-    val mod = dep.dep.module.name.value
-    val ver = dep.dep.version
+    val org = dep.organization
+    val mod = dep.name
+    val ver = dep.version
 
     val classifierAttr = dep.dep.attributes.classifier.value match {
       case "" => ""
@@ -217,6 +220,33 @@ object Dep {
     Dep.parse(dep)
   }
 
+  /**
+   * In the presence of an non-empty `platformSuffix`, validate all given `deps` and return the warning, if any.
+   * @param platformSuffix The platformSuffix, may also be empty (`""`).
+   * @param deps The dependencies to analyze
+   * @return An empty `Seq` when there are no warning, otherwise s `Seq[String]` with all validation warnings.
+   */
+  private[mill] def validatePlatformDeps(platformSuffix: String, deps: Seq[Dep]): Seq[String] = {
+    val nonPlatformDeps = deps
+      .filter(dep => !dep.cross.platformed)
+      .filter(dep => !dep.name.endsWith(platformSuffix))
+    if (platformSuffix.isEmpty || nonPlatformDeps.isEmpty) Seq()
+    else {
+      val msg =
+        s"Detected ${nonPlatformDeps.size} (out of ${deps.size}) non-platform dependencies. This is often an error due to a missing second colon (:) before the version."
+      val details = nonPlatformDeps.map { dep =>
+        s"Found ${dep.formatted}, did you mean ${
+            dep.copy(cross = dep.cross match {
+              case c: CrossVersion.Constant => CrossVersion.Constant(c.value, true)
+              case _: CrossVersion.Binary => CrossVersion.Binary(true)
+              case _: CrossVersion.Full => CrossVersion.Full(true)
+            })
+              .formatted
+          } ?"
+      }
+      msg +: details
+    }
+  }
 }
 
 /**

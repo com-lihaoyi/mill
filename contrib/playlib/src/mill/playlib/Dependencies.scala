@@ -1,7 +1,7 @@
 package mill.playlib
 
 import mill.Task
-import mill.scalalib._
+import mill.scalalib.*
 
 private[playlib] trait Dependencies extends ScalaModule with Version {
   def core = Task { component("play")() }

@@ -1,6 +1,6 @@
 package mill.pythonlib
 
-import mill._
+import mill.*
 
 /**
  * Code coverage via Python's [coverage](https://coverage.readthedocs.io/)

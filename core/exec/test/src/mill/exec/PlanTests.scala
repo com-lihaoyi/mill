@@ -2,12 +2,29 @@ package mill.exec
 
 import mill.api.Task
 import mill.api.Task.Simple
+import mill.api.daemon.internal.LauncherLocking
 import mill.api.TestGraphs
 import utest.*
 
+import java.util.concurrent.atomic.AtomicBoolean
 import scala.collection.mutable
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.{Await, Future}
+import scala.util.Success
 
 object PlanTests extends TestSuite {
+  object transitiveLeaseChain extends mill.testkit.TestRootModule {
+    def a = Task { 1 }
+    def b = Task { a() + 1 }
+    def c = Task { b() + 1 }
+    lazy val millDiscover = mill.api.Discover[this.type]
+  }
+
+  private class TestLease extends LauncherLocking.Lease {
+    val closed = new AtomicBoolean(false)
+    override def close(): Unit = closed.set(true)
+  }
+
   def checkTopological(tasks: Seq[Task[?]]) = {
     val seen = mutable.Set.empty[Task[?]]
     for (t <- tasks.reverseIterator) {
@@ -20,7 +37,7 @@ object PlanTests extends TestSuite {
 
   val tests = Tests {
 
-    import TestGraphs._
+    import TestGraphs.*
 
     test("topoSortedTransitiveTasks") {
       def check(tasks: Seq[Task[?]], expected: Seq[Task[?]]) = {
@@ -143,7 +160,7 @@ object PlanTests extends TestSuite {
       }
 
       test("separateGroups") {
-        import separateGroups._
+        import separateGroups.*
         val groupCount = countGroups(right, left)
         assert(groupCount == 2)
       }
@@ -152,14 +169,14 @@ object PlanTests extends TestSuite {
         // Make sure the following graph ends up as a single group, since although
         // `right` depends on `left`, both of them depend on the un-cached `task`
         // which would force them both to re-compute every time `task` changes
-        import triangleTask._
+        import triangleTask.*
         val groupCount = countGroups(right, left)
         assert(groupCount == 2)
       }
 
       test("multiTerminalGroup") {
         // Make sure the following graph ends up as two groups
-        import multiTerminalGroup._
+        import multiTerminalGroup.*
         val groupCount = countGroups(right, left)
         assert(groupCount == 2)
       }
@@ -167,10 +184,83 @@ object PlanTests extends TestSuite {
       test("multiTerminalBoundary") {
         // Make sure the following graph ends up as three groups: one for
         // each cached task, and one for the downstream task we are running
-        import multiTerminalBoundary._
+        import multiTerminalBoundary.*
         val groupCount = countGroups(task2)
         assert(groupCount == 3)
       }
+    }
+    test("leaseTrackerRetainsUntilTransitiveDownstreamsComplete") {
+      import transitiveLeaseChain.*
+
+      val tracker = new Execution.LeaseTracker(
+        Array(a, b, c),
+        Map(
+          a -> Nil,
+          b -> Seq(a),
+          c -> Seq(b)
+        )
+      )
+
+      val aLease = new TestLease
+      val bLease = new TestLease
+      val cLease = new TestLease
+
+      tracker.retain(a, aLease)
+      tracker.retain(b, bLease)
+      tracker.retain(c, cLease)
+
+      tracker.onCompleted(a)
+      assert(!aLease.closed.get())
+      assert(!bLease.closed.get())
+      assert(!cLease.closed.get())
+
+      tracker.onCompleted(b)
+      assert(!aLease.closed.get())
+      assert(!bLease.closed.get())
+      assert(!cLease.closed.get())
+
+      tracker.onCompleted(c)
+      assert(aLease.closed.get())
+      assert(bLease.closed.get())
+      assert(cLease.closed.get())
+    }
+
+    test("onCompletedFiresEvenWhenUpstreamFutureFails") {
+      // Mirrors the wire-up in `evaluateTerminals`: each task's future is
+      // chained via `Future.sequence(deps).map { body }.andThen { onCompleted }`.
+      // When `b`'s body throws, `c`'s `Future.sequence([b])` fails and the
+      // .map body never runs — but the `andThen` cleanup must still fire
+      // for both `b` and `c` so `a`'s retained Read lease is released
+      // before drain. This is the orphan-lease bug the andThen fixes.
+      import transitiveLeaseChain.*
+      import scala.concurrent.ExecutionContext.Implicits.global
+
+      val tracker = new Execution.LeaseTracker(
+        Array(a, b, c),
+        Map(a -> Nil, b -> Seq(a), c -> Seq(b))
+      )
+      val aLease = new TestLease
+      tracker.retain(a, aLease)
+
+      val aFuture: Future[Option[Unit]] =
+        Future.successful(Some(())).andThen { case _ => tracker.onCompleted(a) }
+
+      val bFuture: Future[Option[Unit]] =
+        aFuture.map(_ => throw new RuntimeException("boom"))
+          .andThen { case _ => tracker.onCompleted(b) }
+
+      val cFuture: Future[Option[Unit]] =
+        Future.sequence(Seq(bFuture)).map(_ => Some(()))
+          .andThen { case _ => tracker.onCompleted(c) }
+
+      val settled = Future.sequence(
+        Seq(aFuture, bFuture, cFuture).map(_.transform(r => Success(r)))
+      )
+      Await.result(settled, 5.seconds)
+
+      // Both b's and c's onCompleted must have fired, recursively draining
+      // b's subtree and then releasing a's retained Read lease.
+      assert(aLease.closed.get())
     }
 
   }

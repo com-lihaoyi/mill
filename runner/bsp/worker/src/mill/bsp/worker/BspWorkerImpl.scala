@@ -2,18 +2,16 @@ package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.BuildClient
 import mill.bsp.BuildInfo
-import mill.api.daemon.internal.EvaluatorApi
 import mill.bsp.Constants
 import mill.api.{Logger, Result, SystemStreams}
-import mill.client.lock.Lock
-import mill.api.daemon.Watchable
 import org.eclipse.lsp4j.jsonrpc.Launcher
 
 import java.io.PrintWriter
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, Executors, ThreadFactory}
-import scala.concurrent.{CancellationException, Future, Promise}
-import mill.api.daemon.internal.bsp.{BspServerHandle, BspServerResult}
+import scala.concurrent.CancellationException
+import scala.concurrent.Future
+import mill.api.daemon.internal.bsp.{BspBootstrapBridge, BspServerHandle, BspServerResult}
 
 object BspWorkerImpl {
 
@@ -22,15 +20,15 @@ object BspWorkerImpl {
       streams: SystemStreams,
       logDir: os.Path,
       canReload: Boolean,
-      outLock: Lock,
       baseLogger: Logger,
-      out: os.Path
-  ): mill.api.Result[(BspServerHandle, BuildClient)] = {
+      bspWatch: Boolean,
+      bootstrapBridge: BspBootstrapBridge
+  ): mill.api.Result[BspServerHandle] = {
 
     try {
       val executor = createJsonrpcExecutor()
       lazy val millServer
-          : MillBuildServer & MillJvmBuildServer & MillJavaBuildServer & MillScalaBuildServer =
+          : MillBuildServer & EndpointsJvm & EndpointsJava & EndpointsScala =
         new MillBuildServer(
           topLevelProjectRoot = topLevelBuildRoot,
           bspVersion = Constants.bspProtocolVersion,
@@ -41,10 +39,13 @@ object BspWorkerImpl {
             listening.cancel(true)
             executor.shutdown()
           },
-          outLock = outLock,
           baseLogger = baseLogger,
-          out = out
-        ) with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer
+          bspWatch = bspWatch,
+          bootstrapBridge = bootstrapBridge
+        ) with EndpointsJvm
+          with EndpointsJava
+          with EndpointsScala
+          with MillBspEndpoints
 
       lazy val launcher = new Launcher.Builder[BuildClient]()
         .setOutput(streams.out)
@@ -60,25 +61,13 @@ object BspWorkerImpl {
       millServer.onConnectWithClient(client)
 
       val bspServerHandle = new BspServerHandle {
-        override def startSession(
-            evaluators: Seq[EvaluatorApi],
-            errored: Boolean,
-            watched: Seq[Watchable]
-        ): Future[BspServerResult] = {
-          // FIXME We might be losing some shutdown requests here
-          val sessionResultPromise = Promise[BspServerResult]()
-          millServer.sessionResult = sessionResultPromise
-          millServer.updateEvaluator(evaluators, errored = errored, watched = watched)
-          sessionResultPromise.future
-        }
-
-        override def resetSession(): Unit = {
-          millServer.resetEvaluator()
-        }
+        override def shutdownFuture: Future[BspServerResult] =
+          millServer.shutdownPromise.future
 
         override def close(): Unit = {
           streams.err.println("Stopping server via handle...")
           listening.cancel(true)
+          millServer.close()
         }
       }
 
@@ -86,12 +75,15 @@ object BspWorkerImpl {
         try listening.get()
         catch {
           case _: CancellationException => // normal exit
+          case t: Throwable =>
+            streams.err.println(s"BSP listener exited with error: $t")
         }
+        millServer.shutdownPromise.trySuccess(BspServerResult.Shutdown)
         streams.err.println("Shutting down executor")
         executor.shutdown()
       }
 
-      Result.Success((bspServerHandle, client))
+      Result.Success(bspServerHandle)
     } catch {
       case _: CancellationException =>
         Result.Failure("The mill server was shut down.")

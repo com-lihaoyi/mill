@@ -53,11 +53,9 @@ import mill.api.BuildCtx
 trait KoverModule extends KotlinModule { outer =>
 
   /**
-   * Reads the Kover version from system environment variable `KOVER_VERSION` or defaults to a hardcoded version.
+   * The version of Kover to use for coverage reporting.
    */
-  def koverVersion: T[String] = Task.Input {
-    Task.env.getOrElse("KOVER_VERSION", Versions.koverVersion)
-  }
+  def koverVersion: T[String] = Task { Versions.koverVersion }
 
   def koverBinaryReport: T[PathRef] = Task(persistent = true) {
     PathRef(koverDataDir().path / "kover-report.ic")

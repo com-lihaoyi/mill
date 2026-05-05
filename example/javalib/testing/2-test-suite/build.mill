@@ -1,0 +1,34 @@
+//// SNIPPET:BUILD1
+// This build defines a single module with a test suite, configured to use
+// "JUnit" as the testing framework, along with Mockito.
+
+/** See Also: foo/package.mill.yaml */
+/** See Also: foo/test/package.mill.yaml */
+/** See Also: foo/src/foo/Foo.java */
+/** See Also: foo/test/src/foo/FooTests.java */
+
+// Test suites are themselves ``JavaModule``s, nested within the enclosing module,
+//// SNIPPET:BUILD2
+
+/** See Also: bar/package.mill.yaml */
+/** See Also: bar/test/package.mill.yaml */
+
+//// SNIPPET:RUNSINGLE
+// e.g. the https://github.com/sbt/junit-interface[Junit4 test interface]
+// used in this example lets you pass in a selector to decide which individual test to run via:
+
+/** Usage
+
+> ./mill foo.test 'foo.FooMoreTests.*'
+...foo.FooMoreTests...hello ...
+Test run finished: 0 failed, 0 ignored, 3 total...
+
+> ./mill bar.test 'bar.BarTests.hello*'
+...bar.BarTests...hello ...
+Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total...
+
+*/
+
+// Note the trailing `*` that is necessary for the per-test selector to match.
+
+//// SNIPPET:END

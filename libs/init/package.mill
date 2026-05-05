@@ -1,15 +1,30 @@
 package build.libs.init
 
-import mill._
+import mill.*
 import mill.api.{BuildCtx, Cross}
 import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib.Assembly.Rule
 import mill.scalalib.ScalaModule
-import mill.util.Jvm
 import millbuild.*
 
 object `package` extends MillPublishScalaModule {
 
+  def initSelectiveInputs = Seq(
+    build.libs.init.sources,
+    build.libs.init.maven.sources,
+    build.libs.init.gradle.sources,
+    build.libs.init.gradle.api.sources,
+    build.libs.init.gradle.exportplugin.sources,
+    build.libs.init.sbt.sources,
+    build.libs.init.sbt.api(Deps.scalaVersion).sources,
+    build.libs.init.sbt.exportplugin.sources,
+    build.libs.init.buildgen.sources,
+    build.libs.init.buildgen.api(Deps.scalaVersion).sources
+  )
+
+  override object test extends MillScalaTests {
+    override def selectiveInputs = Seq(sources, this.resources) ++ initSelectiveInputs
+  }
   def moduleDeps = Seq(build.libs.scalalib)
 
   override def resources = Task {
@@ -17,10 +32,14 @@ object `package` extends MillPublishScalaModule {
   }
 
   def exampleList: T[PathRef] = Task {
+    // Use SNAPSHOT placeholder in URLs - will be replaced with actual version during jar processing
+    val snapshotUrlPrefix = s"${build.millDownloadPrefix()}/SNAPSHOT"
+    val snapshotArtifactPrefix = s"${build.dist.artifactName()}-SNAPSHOT"
     val data: Seq[(os.SubPath, String)] =
-      build.dist.examplePaths().zip(build.dist.exampleArtifactNames()).map { case (path, str) =>
-        val downloadUrl =
-          s"${build.millDownloadUrlCurrent()}/$str.zip"
+      build.dist.examplePaths().map { path =>
+        val example = path.subRelativeTo(BuildCtx.workspaceRoot)
+        val artifactName = s"$snapshotArtifactPrefix-${example.segments.mkString("-")}"
+        val downloadUrl = s"$snapshotUrlPrefix/$artifactName.zip"
         val subPath = path.subRelativeTo(BuildCtx.workspaceRoot / "example")
         (subPath, downloadUrl)
       }
@@ -68,21 +87,44 @@ object `package` extends MillPublishScalaModule {
     PathRef(Task.dest)
   }
 
-  object buildgen extends MillPublishScalaModule {
-    def moduleDeps =
-      Seq(api(Deps.scalaVersionJava11), build.libs.init, build.core.internal, build.libs.util)
+  object buildgen extends MillPublishScalaModule with BuildInfo {
+    def moduleDeps = Seq(api(Deps.scalaVersion), build.core.internal, build.libs.init)
+    def mvnDeps = Seq(Deps.pprint)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
+    def buildInfoPackageName = "mill.main.buildgen"
+    def buildInfoMembers = Seq(BuildInfo.Value("millVersion", "SNAPSHOT"))
 
-    object api extends Cross[ApiModule](Deps.sbtScalaVersion212, Deps.scalaVersionJava11)
+    object api extends Cross[ApiModule](
+          Deps.sbtScalaVersion212,
+          Deps.scalaVersionJava11,
+          Deps.scalaVersion
+        )
     trait ApiModule extends MillPublishCrossScalaModule {
-      def mvnDeps = Seq(Deps.upickle)
-      def jvmId = "11"
+      def mvnDeps = Seq(Deps.osLib, Deps.upickle)
+      def jvmId = if (crossScalaVersion == Deps.scalaVersion) "" else "11"
+      def crossFullScalaVersion = true
     }
   }
-  object gradle extends MillPublishScalaModule with BuildInfo {
-    def moduleDeps = Seq(api, buildgen)
-    def mvnDeps = Seq(Deps.gradleApi)
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib, buildgen.test)
+
+  trait MainModule extends MillPublishScalaModule {
+    def moduleDeps = Seq(buildgen)
+    def mvnDeps = Seq(Deps.mainargs)
+    def testModuleDeps = super.testModuleDeps ++ Seq(buildgen.test)
+    def prependShellScript = ""
+    def testForkEnv = super.testForkEnv() ++ Map(
+      "MILL_UNSTABLE_VERSION" -> "1",
+      "TEST_MAIN_ASSEMBLY" -> assembly().path.toString
+    )
+
+    override object test extends MillScalaTests {
+      override def selectiveInputs = Seq(sources, this.resources) ++ initSelectiveInputs
+    }
+  }
+
+  object gradle extends MainModule with BuildInfo {
+    def moduleDeps = super.moduleDeps ++ Seq(api)
+    def mvnDeps = super.mvnDeps() ++ Seq(Deps.gradleApi_api)
+    def testModuleDeps = super.testModuleDeps ++ Seq(buildgen.test)
     def buildInfoPackageName = "mill.main.gradle"
     def buildInfoMembers = Seq(
       BuildInfo.Value("exportpluginAssemblyResource", "/exportplugin-assembly.jar")
@@ -91,7 +133,9 @@ object `package` extends MillPublishScalaModule {
       os.copy(exportplugin.assembly().path, Task.dest / "exportplugin-assembly.jar")
       PathRef(Task.dest)
     }
-    def resources = Task { super.resources() ++ Seq(exportpluginAssemblyResource()) }
+    def resources = Task {
+      super.resources() ++ Seq(exportpluginAssemblyResource())
+    }
 
     object api extends MillPublishJavaModule {
       def jvmId = "11"
@@ -100,14 +144,13 @@ object `package` extends MillPublishScalaModule {
     object exportplugin extends ScalaModule {
       def jvmId = "11"
       def scalaVersion = Deps.scalaVersionJava11
-      def mvnDeps = Seq(Deps.osLib)
       def moduleDeps = Seq(api, buildgen.api(Deps.scalaVersionJava11))
-      def compileMvnDeps = Seq(Deps.gradleApi)
+      def compileMvnDeps = Seq(Deps.gradleApi_api)
     }
   }
-  object maven extends MillPublishScalaModule {
-    def moduleDeps = Seq(buildgen)
-    override def mvnDeps = Seq(
+
+  object maven extends MainModule {
+    override def mvnDeps = super.mvnDeps() ++ Seq(
       Deps.MavenInit.mavenEmbedder,
       Deps.MavenInit.mavenResolverConnectorBasic,
       Deps.MavenInit.mavenResolverSupplier,
@@ -115,34 +158,37 @@ object `package` extends MillPublishScalaModule {
       Deps.MavenInit.mavenResolverTransportHttp,
       Deps.MavenInit.mavenResolverTransportWagon
     )
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib, buildgen.test)
+    def testModuleDeps = super.testModuleDeps ++ Seq(buildgen.test)
   }
 
-  object sbt extends MillPublishScalaModule with BuildInfo {
-    def moduleDeps = Seq(api(Deps.scalaVersionJava11), buildgen)
+  object sbt extends MainModule with BuildInfo {
+    def moduleDeps = super.moduleDeps ++ Seq(api(Deps.scalaVersion))
     def sbtPluginJarResource = Task {
       os.copy(exportplugin.assembly().path, Task.dest / "exportplugin-assembly.jar")
       PathRef(Task.dest)
     }
-    def resources = Task { super.resources() ++ Seq(sbtPluginJarResource()) }
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib, buildgen.test)
+    def resources = Task {
+      super.resources() ++ Seq(sbtPluginJarResource())
+    }
+    def testModuleDeps = super.testModuleDeps ++ Seq(buildgen.test)
     def buildInfoPackageName = "mill.main.sbt"
     def buildInfoMembers = Seq(
       BuildInfo.Value("exportpluginAssemblyResource", "/exportplugin-assembly.jar"),
-      BuildInfo.Value("sbtVersion", Deps.sbt.version)
+      BuildInfo.Value("sbtVersion", Deps.sbt_api.version),
+      BuildInfo.Value("millScalafixDep", "com.goyeau::mill-scalafix_mill1:0.6.0"),
+      BuildInfo.Value("millMimaDep", "com.github.lolgab::mill-mima_mill1:0.2.1")
     )
 
-    object api extends Cross[ApiModule](Deps.sbtScalaVersion212, Deps.scalaVersionJava11)
+    object api extends Cross[ApiModule](Deps.sbtScalaVersion212, Deps.scalaVersion)
     trait ApiModule extends MillPublishCrossScalaModule {
       def moduleDeps = Seq(buildgen.api())
-      def jvmId = "11"
     }
+
     object exportplugin extends ScalaModule {
       def jvmId = "11"
       def scalaVersion = Deps.sbtScalaVersion212
-      def mvnDeps = Seq(Deps.osLib)
       def moduleDeps = Seq(api(Deps.sbtScalaVersion212))
-      def compileMvnDeps = Seq(Deps.sbt)
+      def compileMvnDeps = Seq(Deps.sbt_api, Deps.mimaCore_api)
       def assemblyRules = Seq(Rule.ExcludePattern("scala\\.*"))
     }
   }

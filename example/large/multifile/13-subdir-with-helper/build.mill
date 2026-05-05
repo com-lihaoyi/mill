@@ -1,0 +1,7 @@
+//| mill-allow-nested-build-mill: true
+// build.mill
+package build
+
+import mill.*, scalalib.*
+
+trait BarModule extends build.deps.foo.FooModule

@@ -12,7 +12,7 @@ object foo extends PythonModule {
 
 }
 // Using `Mill`, we can easily manage dependencies, run `Django tests`, and `launch the server`.
-// With just a few commands, the app is ready to serve at `http://localhost:5002`.
+// With just a few commands, the app is ready to serve at `http://localhost:8000`.
 
 /** Usage
 
@@ -26,9 +26,9 @@ Ran 1 test...
 OK
 ...
 
-> ./mill foo.runBackground runserver 5002
+> ./mill foo.runBackground runserver ${PORT:-8000}
 
-> curl http://localhost:5002
+> curl http://localhost:${PORT:-8000}
 ...<h1>Hello, Mill!</h1>...
 
 > ./mill clean foo.runBackground

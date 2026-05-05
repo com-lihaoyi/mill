@@ -16,7 +16,7 @@ This creates a Scala module which compiles `.proto` files in the `protobuf` fold
 //| mvnDeps: ["com.lihaoyi::mill-contrib-scalapblib:$MILL_VERSION"]
 package build
 
-import contrib.scalapblib._
+import contrib.scalapblib.*
 
 object example extends ScalaPBModule {
   def scalaVersion = "2.12.6"
@@ -47,7 +47,7 @@ If you'd like to configure the https://scalapb.github.io/docs/scalapbc#passing-g
 //| mvnDeps: ["com.lihaoyi::mill-contrib-scalapblib:$MILL_VERSION"]
 package build
 
-import contrib.scalapblib._
+import contrib.scalapblib.*
 
 object example extends ScalaPBModule {
   def scalaVersion = "2.12.6"
@@ -64,7 +64,7 @@ If you'd like to pass additional arguments to the ScalaPB compiler directly, you
 //| mvnDeps: ["com.lihaoyi::mill-contrib-scalapblib:$MILL_VERSION"]
 package build
 
-import contrib.scalapblib._
+import contrib.scalapblib.*
 
 object example extends ScalaPBModule {
   def scalaVersion = "2.12.6"
@@ -82,7 +82,7 @@ If you rely on any `.proto` files from your dependencies that requires case clas
 //| mvnDeps: ["com.lihaoyi::mill-contrib-scalapblib:$MILL_VERSION"]
 package build
 
-import contrib.scalapblib._
+import contrib.scalapblib.*
 
 object example extends ScalaPBModule {
   def scalaVersion = "2.12.6"

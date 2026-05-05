@@ -9,7 +9,7 @@ import java.io.{IOException, InputStream, OutputStream}
  * somewhat cleaned up as a single object rather than two loose objects you have
  * to connect together.
  */
-class PipeStreams(val bufferSize: Int = 1024) { pipe =>
+class PipeStreams(val bufferSize: Int = 64 * 1024) { pipe =>
 
   private var closedByWriter = false
   @volatile private var closedByReader = false
@@ -99,7 +99,10 @@ class PipeStreams(val bufferSize: Int = 1024) { pipe =>
       val ret = buffer(out) & 0xff
       out += 1
       if (out >= buffer.length) out = 0
-      if (in == out) in = -1 /* now empty */
+      if (in == out) {
+        in = -1 /* now empty */
+        notifyAll()
+      }
 
       ret
     }
@@ -127,7 +130,10 @@ class PipeStreams(val bufferSize: Int = 1024) { pipe =>
         rlen += available
         len -= available
         if (out >= buffer.length) out = 0
-        if (in == out) in = -1 /* now empty */
+        if (in == out) {
+          in = -1 /* now empty */
+          notifyAll()
+        }
 
       }
       rlen
@@ -138,6 +144,12 @@ class PipeStreams(val bufferSize: Int = 1024) { pipe =>
       else if (in == out) buffer.length
       else if (in > out) in - out
       else in + buffer.length - out
+    }
+
+    def awaitEmpty(): Unit = synchronized {
+      while (in >= 0)
+        try wait(100)
+        catch { case _: InterruptedException => () }
     }
 
     override def close(): Unit = {
@@ -173,4 +185,6 @@ class PipeStreams(val bufferSize: Int = 1024) { pipe =>
     override def flush(): Unit = ()
     override def close(): Unit = Input.receivedLast()
   }
+
+  def awaitInputEmpty(): Unit = Input.awaitEmpty()
 }

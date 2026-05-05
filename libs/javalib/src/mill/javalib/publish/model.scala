@@ -2,7 +2,7 @@ package mill.javalib.publish
 
 import mill.javalib.Dep
 import upickle.ReadWriter as RW
-import JsonFormatters._
+import JsonFormatters.*
 case class Artifact(group: String, id: String, version: String) derives RW {
   require(
     !group.contains("/") &&
@@ -12,6 +12,8 @@ case class Artifact(group: String, id: String, version: String) derives RW {
   )
 
   def isSnapshot: Boolean = version.endsWith("-SNAPSHOT")
+
+  override def toString(): String = s"$group:$id:$version"
 }
 
 object Artifact {

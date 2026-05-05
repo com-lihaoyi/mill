@@ -7,6 +7,16 @@ import mill.scalalib.*
 import millbuild.*
 
 object `package` extends MillStableScalaModule with BuildInfo {
+  def kotlinSelectiveInputs = Seq(
+    sources,
+    api.sources,
+    ksp2.sources,
+    `ksp2-api`.sources,
+    worker.sources
+  )
+  override object test extends MillScalaTests {
+    override def selectiveInputs = Seq(sources, resources) ++ kotlinSelectiveInputs
+  }
 
   def moduleDeps = Seq(build.libs.javalib, build.libs.javalib.testrunner, api, `ksp2-api`)
   def localTestExtraModules =
@@ -16,30 +26,30 @@ object `package` extends MillStableScalaModule with BuildInfo {
   def buildInfoObjectName = "Versions"
   def buildInfoMembers = Seq(
     BuildInfo.Value("kotlinVersion", Deps.kotlinVersion, "Version of Kotlin"),
-    BuildInfo.Value("koverVersion", Deps.RuntimeDeps.koverVersion, "Version of Kover."),
-    BuildInfo.Value("ktfmtVersion", Deps.RuntimeDeps.ktfmt.version, "Version of Ktfmt."),
-    BuildInfo.Value("ktlintVersion", Deps.RuntimeDeps.ktlint.version, "Version of ktlint."),
+    BuildInfo.Value("koverVersion", Deps.RuntimeDeps.koverVersion_runtime, "Version of Kover."),
+    BuildInfo.Value("ktfmtVersion", Deps.RuntimeDeps.ktfmt_runtime.version, "Version of Ktfmt."),
+    BuildInfo.Value("ktlintVersion", Deps.RuntimeDeps.ktlint_runtime.version, "Version of ktlint."),
     BuildInfo.Value(
       "detektVersion",
-      Deps.RuntimeDeps.detektCli.version,
+      Deps.RuntimeDeps.detektCli_runtime.version,
       "Version of Detekt."
     ),
-    BuildInfo.Value("dokkaVersion", Deps.RuntimeDeps.dokkaVersion, "Version of Dokka."),
+    BuildInfo.Value("dokkaVersion", Deps.RuntimeDeps.dokkaVersion_runtime, "Version of Dokka."),
     BuildInfo.Value(
       "kotlinxHtmlJvmDep",
-      Dep.unparse(Deps.RuntimeDeps.kotlinxHtmlJvm).get,
+      Dep.unparse(Deps.RuntimeDeps.kotlinxHtmlJvm_runtime).get,
       "kotlinx-html-jvm dependency (used for Dokka)"
     ),
     BuildInfo.Value(
       "freemarkerDep",
-      Dep.unparse(Deps.RuntimeDeps.freemarker).get,
+      Dep.unparse(Deps.RuntimeDeps.freemarker_runtime).get,
       "freemarker dependency (used for Dokka)"
     )
   )
 
   // shared between kotlinlib and kotlinlib.worker
-  object api extends MillPublishScalaModule with MillJava11ScalaModule {
-    def moduleDeps = Seq(build.libs.javalib.testrunner, build.core.api)
+  object api extends MillPublishScalaModule {
+    def moduleDeps = Seq(build.libs.javalib.testrunner, build.core.api.java11)
 
     override def compileMvnDeps: T[Seq[Dep]] = Seq(
       Deps.osLib
@@ -55,7 +65,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
       super.mandatoryMvnDeps() ++ Seq(
         Deps.osLib,
         Deps.kotlinCompiler,
-        Deps.kotlinBuildToolsApi
+        Deps.kotlinBuildToolsApi_api
       )
   }
 

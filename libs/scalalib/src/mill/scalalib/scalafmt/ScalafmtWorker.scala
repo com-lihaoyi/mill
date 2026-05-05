@@ -2,7 +2,7 @@ package mill.scalalib.scalafmt
 
 import mill.*
 import mill.api.{Discover, ExternalModule, PathRef, TaskCtx}
-import mill.scalalib._
+import mill.scalalib.*
 
 import scala.collection.mutable
 import mill.api.Result
@@ -10,7 +10,7 @@ import mill.api.Result
 object ScalafmtWorkerModule extends ExternalModule with JavaModule {
 
   /**
-   * Classpath for running Palantir Java Format.
+   * Classpath for running Scalafmt
    */
   def scalafmtClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
@@ -28,8 +28,13 @@ object ScalafmtWorkerModule extends ExternalModule with JavaModule {
 }
 
 private[scalafmt] class ScalafmtWorker(cl: ClassLoader) extends AutoCloseable {
+  private val lock = new Object
   private val reformatted: mutable.Map[os.Path, Int] = mutable.Map.empty
   private var configSig: Int = 0
+
+  val scalafmt = cl.loadClass("org.scalafmt.interfaces.Scalafmt")
+    .getMethod("create", classOf[java.lang.ClassLoader])
+    .invoke(null, cl)
 
   def reformat(input: Seq[PathRef], scalafmtConfig: PathRef)(using ctx: TaskCtx): Unit = {
     reformatAction(input, scalafmtConfig, dryRun = false)
@@ -57,7 +62,7 @@ private[scalafmt] class ScalafmtWorker(cl: ClassLoader) extends AutoCloseable {
       input: Seq[PathRef],
       scalafmtConfig: PathRef,
       dryRun: Boolean
-  )(using ctx: TaskCtx): Seq[PathRef] = {
+  )(using ctx: TaskCtx): Seq[PathRef] = lock.synchronized {
 
     // only consider files that have changed since last reformat
     val toConsider =
@@ -71,10 +76,6 @@ private[scalafmt] class ScalafmtWorker(cl: ClassLoader) extends AutoCloseable {
       } else {
         ctx.log.info(s"Formatting ${toConsider.size} Scala sources")
       }
-
-      val scalafmt = cl.loadClass("org.scalafmt.interfaces.Scalafmt")
-        .getMethod("create", classOf[java.lang.ClassLoader])
-        .invoke(null, cl)
 
       val configPath = scalafmtConfig.path.toNIO
 
@@ -116,7 +117,14 @@ private[scalafmt] class ScalafmtWorker(cl: ClassLoader) extends AutoCloseable {
     }
   }
 
-  override def close(): Unit = {
+  override def close(): Unit = lock.synchronized {
+    scalafmt
+      .getClass
+      .getMethods
+      .filter(_.getName == "clear")
+      .head
+      .invoke(scalafmt)
+
     reformatted.clear()
     configSig = 0
   }

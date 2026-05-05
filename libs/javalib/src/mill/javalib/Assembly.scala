@@ -10,7 +10,7 @@ import java.nio.file.StandardOpenOption
 import java.util.Collections
 import java.util.jar.JarFile
 import java.util.regex.Pattern
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Using
 
 case class Assembly(pathRef: PathRef, entries: Int)

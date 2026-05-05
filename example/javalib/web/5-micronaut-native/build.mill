@@ -1,0 +1,18 @@
+// This example demonstrates how to configure mill for a simple micronaut native project.
+// It uses Micronaut AOT to optimize the application for the native image generation.
+
+/** See Also: build.mill.yaml */
+
+/** Usage
+
+> ./mill show nativeImage
+...out/nativeImage.dest/native-executable...
+
+> ./mill show nativeRunBackground
+
+> curl http://localhost:${PORT:-9870}
+{"_links":{"self":[{"href":"/","templated":false}]},"_embedded":{"errors":[{"message":"Page Not Found"}]},"message":"Not Found"}
+
+> ./mill clean nativeRunBackground
+
+*/

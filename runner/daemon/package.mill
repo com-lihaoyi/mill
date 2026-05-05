@@ -23,18 +23,25 @@ object `package` extends MillPublishScalaModule {
     Deps.upickle,
     Deps.pprint,
     Deps.fansi,
-    Deps.scalaCompiler(scalaVersion())
+    Deps.scalaCompiler_WoCompilerInterface(scalaVersion()),
+    Deps.scalaCompilerInterface
   )
 
   def moduleDeps = Seq(
     build.runner.eclipse,
-    build.runner.idea,
     build.runner.bsp,
-    build.runner.bsp.worker,
     build.core.eval,
     build.runner.server,
     build.runner.launcher,
-    build.runner.meta,
+    build.runner.meta
+  )
+
+  def runModuleDeps = Seq(
+    // We don't use these, but they need to be on the classpath so we can access their classes
+    // and external modules at runtime even in the absence of a build.mill file or meta-build
+    build.libs.init,
+    build.libs.tabcomplete,
     build.libs.script
   )
+
 }

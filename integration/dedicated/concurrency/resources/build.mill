@@ -1,0 +1,126 @@
+package build
+
+import mill.*
+
+object `package` extends mill.Module {
+  val fastSuffix = 0
+
+  private def workspace = mill.api.BuildCtx.workspaceRoot
+
+  private def gate(name: String) = workspace / s"$name-wait"
+  private def enteredMarker(name: String) = workspace / s"$name-entered"
+
+  /**
+   * Two-phase deterministic gate for concurrency tests:
+   *
+   *   1. Touch `<name>-entered` so the test runner can detect (via file
+   *      existence) the exact moment this task body has begun. Atomic from
+   *      the test runner's perspective — no buffered-output race.
+   *   2. Spin until `<name>-wait` is removed so the test runner controls
+   *      exactly when the task is allowed to proceed.
+   *
+   * If the test never created `<name>-wait` before spawning, the loop never
+   * enters and the task continues immediately — used by tests that want
+   * deterministic entry detection without parking.
+   */
+  private def waitFor(name: String): Unit = {
+    mill.api.BuildCtx.withFilesystemCheckerDisabled {
+      os.write.over(enteredMarker(name), "")
+      println(s"entered-$name")
+      while (os.exists(gate(name))) Thread.sleep(50L)
+    }
+  }
+
+  def sameTask = Task {
+    waitFor("same-task")
+    "same-task-value"
+  }
+
+  def runSameTask() = Task.Command {
+    println(sameTask())
+  }
+
+  def shared = Task {
+    waitFor("shared")
+    "shared-value"
+  }
+
+  def runShared() = Task.Command {
+    println(shared())
+  }
+
+  def left = Task {
+    val value = shared()
+    waitFor("left")
+    value + "-left"
+  }
+
+  def runLeft() = Task.Command {
+    println(left())
+  }
+
+  def right = Task {
+    val value = shared()
+    waitFor("right")
+    value + "-right"
+  }
+
+  def runRight() = Task.Command {
+    println(right())
+  }
+
+  def runHoldMetaBuildRead() = Task.Command {
+    println(fast())
+    waitFor("meta-build-read")
+  }
+
+  def fast = Task {
+    s"fast-value-$fastSuffix"
+  }
+
+  // Always-runs command wrapper around `fast()`. Used by tests that need a
+  // launcher to exercise the meta-build + task locks without parking in a
+  // task body, so the assertion is "launcher exits promptly" rather than
+  // "launcher prints an entered-X marker" (which would never happen for a
+  // cached underlying task).
+  def runFast() = Task.Command {
+    println(fast())
+  }
+
+  // Globally-exclusive command — takes `exclusiveLock(Write)`, so no other
+  // batch (exclusive or non-exclusive) can run concurrently in the same
+  // daemon until this one completes. Used by `exclusive-task-blocks-everything`
+  // to assert: (a) a concurrent normal task is blocked on `exclusive`,
+  // (b) the wait integrates with the prompt the same way per-task waits do.
+  def runExclusive() = Task.Command(globalExclusive = true) {
+    waitFor("exclusive")
+    println("exclusive-value")
+  }
+
+  def workerVersion = Task.Input {
+    mill.api.BuildCtx.withFilesystemCheckerDisabled {
+      os.read(workspace / "worker-version")
+    }
+  }
+
+  class TestWorker(version: String) extends AutoCloseable {
+    def value = version
+    override def close(): Unit =
+      mill.api.BuildCtx.withFilesystemCheckerDisabled {
+        os.write.over(workspace / s"worker-closed-$version", "")
+      }
+  }
+
+  def testWorker = Task.Worker {
+    new TestWorker(workerVersion())
+  }
+
+  def runWorkerValue() = Task.Command {
+    println(s"worker-value-${testWorker().value}")
+  }
+
+  def runUseWorker() = Task.Command {
+    println(s"worker-value-${testWorker().value}")
+    waitFor("worker-use")
+  }
+}

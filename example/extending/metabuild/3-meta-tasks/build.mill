@@ -1,0 +1,44 @@
+// As an example of running a task on the meta-build, you can run the `inspect`,
+// `visualizePlan` or `runClasspath` commands to see what tasks the meta-build runs to compile your
+// `build.mill` files and get them ready to use
+
+package build
+import mill.*
+
+/** Usage
+
+>  ./mill --meta-level 1 inspect millBuildRootModuleResult
+millBuildRootModuleResult(MillBuildRootModule.scala:...)
+Inputs:
+    runClasspath
+    compile
+    codeSignatures
+    parseBuildFiles
+
+> ./mill --meta-level 1 visualizePlan millBuildRootModuleResult
+[
+  ".../out/mill-build/visualizePlan.dest/out.dot",
+  ".../out/mill-build/visualizePlan.dest/out.json",
+  ".../out/mill-build/visualizePlan.dest/out.png",
+  ".../out/mill-build/visualizePlan.dest/out.svg",
+  ".../out/mill-build/visualizePlan.dest/out.txt"
+]
+
+> ./mill --meta-level 1 show runClasspath
+[
+  ".../mill-libs_3-....jar",
+  ".../scala-library-....jar",
+  ...
+]
+
+*/
+
+//
+// * `--meta-level 1` selects the first meta-build. Without any customization, this is
+//    the only built-in meta-build.
+// * `--meta-level -1` selects the highest, or bootstrap meta-build.
+//
+// In general, running tasks with `--meta-level 1` can be a good way to debug issues related
+// to your `build.mill` files. If your `//| mvnDeps` isn't working as you expect, or something
+// is compiling but behaving strangely, you can use `--meta-level 1` to explore the build
+// pipeline used to compile your `build.mill` files figure out where things may be going wrong.

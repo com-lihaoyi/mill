@@ -4,7 +4,7 @@
 
 package mill.kotlinlib.kover
 
-import mill._
+import mill.*
 import mill.api.Result
 import mill.api.{PathRef}
 import mill.kotlinlib.{Dep, DepSyntax, Versions}
