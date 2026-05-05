@@ -2,7 +2,7 @@
 import mill.*, androidlib.*, kotlinlib.*
 
 object Versions {
-  val kotlinVersion = "2.1.20"
+  val kotlinVersion = "2.2.20"
 
   val androidCompileSdk = 33
   val androidMinSdk = 21

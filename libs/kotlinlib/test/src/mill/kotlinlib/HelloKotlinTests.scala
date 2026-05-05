@@ -9,8 +9,23 @@ import utest.*
 
 object HelloKotlinTests extends TestSuite {
 
+  // Older Kotlin versions don't support running on JDK 25+ (their JdkVersion enum
+  // can't parse "25.0.2"), so filter them out when running tests on JDK 25+.
+  val jdkMajor = Runtime.version().feature()
+  val allKotlinVersions =
+    Seq("1.9.24", "2.0.20", "2.1.20", "2.3.0", Versions.kotlinVersion).distinct
   val crossMatrix = for {
-    kotlinVersion <- Seq("1.9.24", "2.0.20", "2.1.20", "2.3.0", Versions.kotlinVersion).distinct
+    kotlinVersion <- allKotlinVersions.filter { v =>
+      if (jdkMajor < 25) true
+      else {
+        val parts = v.split("[.-]").take(3).toSeq.flatMap(_.toIntOption.toList)
+        parts match {
+          case Seq(maj, min, patch) =>
+            maj > 2 || (maj == 2 && (min > 2 || (min == 2 && patch >= 20)))
+          case _ => true
+        }
+      }
+    }
     embeddable <- Seq(false, true)
   } yield (kotlinVersion, embeddable)
 

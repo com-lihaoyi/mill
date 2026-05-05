@@ -20,8 +20,21 @@ trait IntegrationTesterBase {
       case Some(p) => s"$javaHomeBin${System.getProperty("path.separator")}${p}"
     }
 
-    if (!propagateJavaHome) Map.empty
-    else Map("JAVA_HOME" -> sys.props("java.home"), "PATH" -> newPath)
+    // JDK 23+ emits warnings on first call to deprecated `sun.misc.Unsafe`
+    // methods (e.g. `objectFieldOffset`, used by Scala's `LazyVals`). The
+    // warnings are emitted to stderr and break golden-text test assertions,
+    // so silence them in spawned Mill subprocesses. `JDK_JAVA_OPTIONS` is
+    // applied automatically by the JVM and propagates to nested forks.
+    val jdk23PlusOpts =
+      if (Runtime.version().feature() >= 23)
+        Map(
+          "JDK_JAVA_OPTIONS" ->
+            "--sun-misc-unsafe-memory-access=allow --enable-native-access=ALL-UNNAMED"
+        )
+      else Map.empty[String, String]
+
+    if (!propagateJavaHome) jdk23PlusOpts
+    else Map("JAVA_HOME" -> sys.props("java.home"), "PATH" -> newPath) ++ jdk23PlusOpts
   }
 
   private lazy val useSharedOutputDir: Boolean =

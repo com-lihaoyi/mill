@@ -19,7 +19,7 @@ object MillGradleBuildGenMain {
   @mainargs.main(doc = "Generates Mill build files that are derived from a Gradle build.")
   def init(
       @mainargs.arg(doc = "Coursier ID for the JVM to run Gradle")
-      gradleJvmId: String = "system",
+      gradleJvmId: String = "zulu:21",
       @mainargs.arg(doc = "merge package.mill files in to the root build.mill file")
       merge: mainargs.Flag,
       @mainargs.arg(doc = "disable generating meta-build files")

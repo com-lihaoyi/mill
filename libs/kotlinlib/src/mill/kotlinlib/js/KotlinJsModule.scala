@@ -67,6 +67,11 @@ trait KotlinJsModule extends KotlinModule { outer =>
     Lib.findSourceFiles(allSources(), Seq("kt")).map(PathRef(_))
   }
 
+  // -no-stdlib is a JVM-only flag and is rejected by the Kotlin/JS compiler.
+  override protected def mandatoryKotlincOptions: T[Seq[String]] = Task {
+    super.mandatoryKotlincOptions().filterNot(_ == "-no-stdlib")
+  }
+
   override def mandatoryMvnDeps: T[Seq[Dep]] =
     Seq(mvn"org.jetbrains.kotlin:kotlin-stdlib-js:${kotlinVersion()}")
 
@@ -312,7 +317,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // classpath
     innerCompilerArgs ++= Seq("-libraries", librariesCp.iterator.mkString(File.pathSeparator))
     innerCompilerArgs ++= Seq("-main", if (callMain) "call" else "noCall")
-    innerCompilerArgs += "-meta-info"
+    // -meta-info is a legacy-JS-backend flag, rejected by Kotlin 2.0+ IR backend
     if (moduleKind != ModuleKind.NoModule) {
       innerCompilerArgs ++= Seq(
         "-module-kind",

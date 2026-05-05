@@ -27,5 +27,9 @@ object FullRunLogsUtils {
     .replaceAll("===+", "<dashes>")
     .linesIterator
     .toList
+    // JDK 23+ prints a "Picked up JDK_JAVA_OPTIONS" NOTE on every Java startup
+    // when that env var is set (which we use to silence sun.misc.Unsafe
+    // deprecation warnings from Scala's LazyVals). Strip that NOTE here.
+    .filterNot(_.contains("Picked up JDK_JAVA_OPTIONS:"))
 
 }

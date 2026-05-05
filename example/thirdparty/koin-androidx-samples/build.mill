@@ -9,7 +9,7 @@ object androidSdkModule0 extends AndroidSdkModule {
 object examples extends mill.api.Module {
   object `androidx-samples` extends AndroidAppKotlinModule, AndroidR8AppModule {
 
-    def kotlinVersion = "2.0.20"
+    def kotlinVersion = "2.2.20"
 
     def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 

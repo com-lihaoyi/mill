@@ -10,7 +10,7 @@ import utest.{TestSuite, Tests, test}
 object KotlinJsNodeRunTests extends TestSuite {
 
   private val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "kotlin-js"
-  private val kotlinVersion = "1.9.25"
+  private val kotlinVersion = "2.2.20"
   private val expectedSuccessOutput = "Hello, world"
 
   object module extends TestRootModule {

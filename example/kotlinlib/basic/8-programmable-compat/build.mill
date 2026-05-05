@@ -10,7 +10,7 @@ import mill.*, kotlinlib.*
 
 object foo extends KotlinModule, KotlinMavenModule {
 
-  def kotlinVersion = "1.9.24"
+  def kotlinVersion = "2.2.20"
 
   object test extends KotlinMavenTests, TestModule.Junit5 {
     def mvnDeps = Seq(mvn"io.kotest:kotest-runner-junit5:5.9.1")
