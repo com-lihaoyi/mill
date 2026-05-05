@@ -39,16 +39,23 @@ object PromptWaitReporter {
     else {
       val prompt = logger.prompt
       val baseKey = logger.logKey
-      (msg: String) => {
+      (msg: String, label: String, syntheticPrefix: Seq[String]) => {
+        // Avoid duplicating the label when the surrounding prefix already shows it.
+        val prefixCarriesLabel = baseKey.nonEmpty || syntheticPrefix.nonEmpty
+        val displayMsg =
+          if (prefixCarriesLabel && !prompt.waitMessageNeedsLabel) msg
+          else WaitReporter.ensureLabel(msg, label)
         if (baseKey.nonEmpty) {
-          prompt.setPromptDetail(baseKey, msg)
+          prompt.setPromptDetail(baseKey, displayMsg)
           () => prompt.setPromptDetail(baseKey, "")
         } else {
           // Session logger has no prompt-line — synthesise one or the
           // wait detail has nothing to attach to.
-          val syntheticKey = Seq("wait-" + syntheticCounter.incrementAndGet())
-          prompt.setPromptLine(syntheticKey, "", msg)
-          () => prompt.removePromptLine(syntheticKey, msg)
+          val syntheticKey =
+            if (syntheticPrefix.nonEmpty) syntheticPrefix
+            else Seq("wait-" + syntheticCounter.incrementAndGet())
+          prompt.setPromptLine(syntheticKey, "", displayMsg)
+          () => prompt.removePromptLine(syntheticKey, displayMsg)
         }
       }
     }

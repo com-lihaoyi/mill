@@ -63,7 +63,7 @@ object LockUpgrade {
    */
   def readThenWrite[T](
       acquireRead: => LauncherLocking.Lease,
-      tryAcquireWrite: () => Either[String, LauncherLocking.Lease],
+      tryAcquireWrite: () => Either[LauncherLocking.Contention, LauncherLocking.Lease],
       awaitStateChange: Long => Unit,
       waitReporter: LauncherLocking.WaitReporter,
       awaitTimeoutMs: Long = 1000L
@@ -123,8 +123,9 @@ object LockUpgrade {
                     writeScope.closeAlways()
                     throw t
                 }
-              case Left(blockMsg) =>
-                if (waitToken == null) waitToken = waitReporter.reportWait(blockMsg)
+              case Left(LauncherLocking.Contention(message, label, syntheticPrefix)) =>
+                if (waitToken == null)
+                  waitToken = waitReporter.reportWait(message, label, syntheticPrefix)
                 awaitStateChange(awaitTimeoutMs)
                 loop()
             }

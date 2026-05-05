@@ -30,7 +30,7 @@ private[mill] trait LauncherLocking extends AutoCloseable {
    * read-then-write pattern in [[mill.internal.LockUpgrade.readThenWrite]]
    * work without poisoning the caller's own re-probe.
    */
-  def tryMetaBuildWriteLock(depth: Int): Either[String, LauncherLocking.Lease]
+  def tryMetaBuildWriteLock(depth: Int): Either[LauncherLocking.Contention, LauncherLocking.Lease]
 
   /**
    * Block on the meta-build lock at `depth` for up to `timeoutMs`,
@@ -60,7 +60,7 @@ private[mill] trait LauncherLocking extends AutoCloseable {
   def tryTaskWriteLock(
       path: Path,
       displayLabel: String
-  ): Either[String, LauncherLocking.Lease]
+  ): Either[LauncherLocking.Contention, LauncherLocking.Lease]
 
   /**
    * Bounded await on per-task lock state changes; counterpart of
@@ -104,6 +104,9 @@ private[mill] object LauncherLocking {
     def downgradeToRead(): Unit = ()
   }
 
+  /** Failure carrier for [[WaitReporter.reportWait]] arguments. */
+  case class Contention(message: String, label: String, syntheticPrefix: Seq[String])
+
   /**
    * Surface a "blocked on lock" status to the user when a lock acquisition has
    * to wait. Implementations should display the message in a way that doesn't
@@ -114,14 +117,18 @@ private[mill] object LauncherLocking {
    * `reportWait` — each call replaces the previous wait status.
    */
   trait WaitReporter {
-    def reportWait(message: String): AutoCloseable
+    def reportWait(
+        message: String,
+        label: String,
+        syntheticPrefix: Seq[String] = Nil
+    ): AutoCloseable
   }
 
   object WaitReporter {
     private val NoopToken: AutoCloseable = () => ()
 
     /** Discards wait events. Useful for tests and noBuildLock. */
-    val Noop: WaitReporter = (_: String) => NoopToken
+    val Noop: WaitReporter = (_: String, _: String, _: Seq[String]) => NoopToken
 
     /**
      * Prints the wait message once on `reportWait` and does nothing on close.
@@ -129,10 +136,19 @@ private[mill] object LauncherLocking {
      * the user's terminal history. Used when no live prompt is available
      * (early bootstrap, no-daemon, BSP, `--ticker false`, etc.).
      */
-    def stderr(stream: PrintStream): WaitReporter = (msg: String) => {
-      stream.println(msg)
-      NoopToken
-    }
+    def stderr(stream: PrintStream): WaitReporter =
+      (msg: String, label: String, _: Seq[String]) => {
+        stream.println(ensureLabel(msg, label))
+        NoopToken
+      }
+
+    /** Inject `'$label'` into `message` if not already present. */
+    def ensureLabel(message: String, label: String): String =
+      if (label.isEmpty || message.contains(s"'$label'")) message
+      else message.replaceFirst(
+        raw"^blocked on (read|write) lock",
+        s"blocked on $$1 lock '$label'"
+      )
   }
 
   object Noop extends LauncherLocking {
@@ -144,7 +160,7 @@ private[mill] object LauncherLocking {
         kind: LockKind,
         waitReporter: WaitReporter
     ): Lease = NoopLease
-    override def tryMetaBuildWriteLock(depth: Int): Either[String, Lease] = Right(NoopLease)
+    override def tryMetaBuildWriteLock(depth: Int): Either[Contention, Lease] = Right(NoopLease)
     override def awaitMetaBuildStateChange(depth: Int, timeoutMs: Long): Unit = ()
     override def taskLock(
         path: Path,
@@ -152,7 +168,7 @@ private[mill] object LauncherLocking {
         kind: LockKind,
         waitReporter: WaitReporter
     ): Lease = NoopLease
-    override def tryTaskWriteLock(path: Path, displayLabel: String): Either[String, Lease] =
+    override def tryTaskWriteLock(path: Path, displayLabel: String): Either[Contention, Lease] =
       Right(NoopLease)
     override def awaitTaskStateChange(path: Path, displayLabel: String, timeoutMs: Long): Unit = ()
     override def exclusiveLock(kind: LockKind, waitReporter: WaitReporter): Lease = NoopLease

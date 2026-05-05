@@ -298,7 +298,7 @@ trait GroupExecution {
 
         // Try-Write + bounded await for `LockUpgrade.readThenWrite`'s
         // retryable loop; mirrors `acquireTaskLock`'s input-task skip.
-        def tryWriteTaskLock(): Either[String, LauncherLocking.Lease] =
+        def tryWriteTaskLock(): Either[LauncherLocking.Contention, LauncherLocking.Lease] =
           if (labelled.isInputTask)
             LauncherLocking.Noop.tryTaskWriteLock(
               paths.dest.toNIO,

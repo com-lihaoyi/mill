@@ -50,7 +50,8 @@ private[mill] class LauncherLockingImpl(
     ))
   }
 
-  override def tryMetaBuildWriteLock(depth: Int): Either[String, LauncherLocking.Lease] = {
+  override def tryMetaBuildWriteLock(depth: Int)
+      : Either[LauncherLocking.Contention, LauncherLocking.Lease] = {
     ensureOpen()
     if (noBuildLock) LauncherLocking.Noop.tryMetaBuildWriteLock(depth)
     else lockRegistry.metaBuildLockFor(depth).tryAcquireWrite(holder).map(acquireManagedLease)
@@ -82,7 +83,7 @@ private[mill] class LauncherLockingImpl(
   override def tryTaskWriteLock(
       path: java.nio.file.Path,
       displayLabel: String
-  ): Either[String, LauncherLocking.Lease] = {
+  ): Either[LauncherLocking.Contention, LauncherLocking.Lease] = {
     ensureOpen()
     if (noBuildLock || exclusiveWriteCount.get() > 0)
       LauncherLocking.Noop.tryTaskWriteLock(path, displayLabel)

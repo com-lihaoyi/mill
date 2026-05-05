@@ -1,7 +1,7 @@
 package mill.internal
 
 import mill.api.MillException
-import mill.api.daemon.internal.LauncherLocking.{Lease, LockKind, WaitReporter}
+import mill.api.daemon.internal.LauncherLocking.{Contention, Lease, LockKind, WaitReporter}
 
 /**
  * A version of [[java.util.concurrent.locks.ReadWriteLock]] that can be acquired
@@ -9,7 +9,11 @@ import mill.api.daemon.internal.LauncherLocking.{Lease, LockKind, WaitReporter}
  * waiting/blocking messages; uniqueness across locks is the registry's
  * responsibility (e.g. [[LauncherLockRegistry]]'s map key), not the lock's.
  */
-class CrossThreadRwLock(label: String) {
+class CrossThreadRwLock(
+    label: String,
+    showLabelInMessage: Boolean = true,
+    syntheticPrefix: Seq[String] = Nil
+) {
   import CrossThreadRwLock.HolderInfo
 
   private val monitor = new Object
@@ -28,10 +32,11 @@ class CrossThreadRwLock(label: String) {
 
   private def waitingMessage(blocker: Option[HolderInfo], kind: LockKind): String = {
     val kindStr = kind match { case LockKind.Read => "read"; case LockKind.Write => "write" }
+    val labelToken = if (showLabelInMessage) s" '$label'" else ""
     blocker match {
       case Some(h) =>
-        s"blocked on $kindStr lock '$label' command '${h.command}' PID ${h.pid}"
-      case None => s"blocked on $kindStr lock '$label'"
+        s"blocked on $kindStr lock$labelToken PID ${h.pid} '${h.command}'"
+      case None => s"blocked on $kindStr lock$labelToken"
     }
   }
 
@@ -54,9 +59,9 @@ class CrossThreadRwLock(label: String) {
         // Surface as MillException so MillMain0.handleMillException renders a
         // clean user-facing message instead of a stack trace; this is an
         // expected condition when --no-wait collides with another launcher.
-        throw new MillException(
-          s"${waitingMessage(currentBlocker(), kind)} and --no-wait was set, failing"
-        )
+        // Force the label inline — error has no prompt context.
+        val msg = WaitReporter.ensureLabel(waitingMessage(currentBlocker(), kind), label)
+        throw new MillException(s"$msg and --no-wait was set, failing")
       } else {
         if (isWrite) waitingWriters += 1
         None
@@ -65,7 +70,8 @@ class CrossThreadRwLock(label: String) {
 
     leaseOpt.getOrElse {
       val blocker = monitor.synchronized(currentBlocker())
-      val waitToken = waitReporter.reportWait(waitingMessage(blocker, kind))
+      val waitToken =
+        waitReporter.reportWait(waitingMessage(blocker, kind), label, syntheticPrefix)
 
       try {
         monitor.synchronized {
@@ -109,13 +115,17 @@ class CrossThreadRwLock(label: String) {
    * fall back to Read, and re-probe shared state without poisoning its
    * own next Read attempt.
    */
-  def tryAcquireWrite(acquirer: HolderInfo): Either[String, Lease] = monitor.synchronized {
+  def tryAcquireWrite(acquirer: HolderInfo): Either[Contention, Lease] = monitor.synchronized {
     if (canAcquireWrite) {
       writerActive = true
       val lease = newLease(initiallyWrite = true)
       holders.put(lease, acquirer)
       Right(lease)
-    } else Left(waitingMessage(currentBlocker(), LockKind.Write))
+    } else Left(Contention(
+      waitingMessage(currentBlocker(), LockKind.Write),
+      label,
+      syntheticPrefix
+    ))
   }
 
   /**
