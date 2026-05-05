@@ -9,9 +9,13 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
   implicit val retryMax: RetryMax = RetryMax((if (sys.env.contains("CI")) 120000 else 15000).millis)
   implicit val retryInterval: RetryInterval = RetryInterval(50.millis)
 
-  private def blockedBy(command: String, taskName: String, stderrText: String): Boolean =
-    stderrText.contains(s"blocked on read lock '$taskName' PID ") &&
-      stderrText.contains(s"'$command'")
+  private def blockedBy(
+      command: String,
+      taskName: String,
+      pid: Long,
+      stderrText: String
+  ): Boolean =
+    stderrText.contains(s"blocked on read lock '$taskName' PID $pid '$command'")
 
   val tests: Tests = Tests {
     test("interrupt-blocked") - integrationTest { tester =>
@@ -27,6 +31,7 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
       assertEventually(blockedBy(
         "waitForExists --fileName file1.txt",
         "waitForExists",
+        launcher1.process.pid(),
         launcher2.err.text()
       ))
       launcher2.process.destroy(recursive = false)
@@ -49,6 +54,7 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
       assertEventually(blockedBy(
         "waitForExists --fileName file1.txt",
         "waitForExists",
+        launcher1.process.pid(),
         launcher2.err.text()
       ))
       launcher1.process.destroy(recursive = false)
