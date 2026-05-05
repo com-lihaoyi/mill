@@ -8,17 +8,6 @@ import mill.api.daemon.internal.LauncherLocking.{Lease, LockKind, WaitReporter}
  * and released on separate threads. `label` is the human-readable name used in
  * waiting/blocking messages; uniqueness across locks is the registry's
  * responsibility (e.g. [[LauncherLockRegistry]]'s map key), not the lock's.
- *
- * `showLabelInMessage` keeps the `'$label'` token in the "blocked on …" string
- * for locks whose identity isn't already obvious from the surrounding prompt
- * context (e.g. the daemon-wide `exclusive` lock); set it `false` for per-task
- * and per-meta-build locks whose label would just duplicate the prompt-line
- * prefix the user is already seeing.
- *
- * `syntheticPrefix` is forwarded to [[LauncherLocking.WaitReporter.reportWait]]
- * so a wait that has to fabricate its own prompt line (no preexisting line to
- * attach to) can use a meaningful prefix like `mill-build/build.mill` instead
- * of an opaque `wait-N`.
  */
 class CrossThreadRwLock(
     label: String,

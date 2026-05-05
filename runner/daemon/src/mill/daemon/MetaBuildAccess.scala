@@ -1,8 +1,7 @@
 package mill.daemon
 
 import mill.api.daemon.internal.LauncherLocking
-import mill.constants.OutFiles
-import mill.internal.LockUpgrade
+import mill.internal.{LauncherLockRegistry, LockUpgrade}
 
 import java.util.concurrent.atomic.AtomicReference
 
@@ -58,11 +57,6 @@ private[daemon] class MetaBuildAccess(
   )(
       evaluate: MetaBuildAccess.WriteScope => T
   ): T = {
-    // Mirror [[mill.internal.LauncherLockRegistry.makeMetaBuildLock]] and
-    // `MillBuildBootstrap.bootLogPrefix` so the synthetic prompt-line key here
-    // matches the prefix the user already sees for the same meta-build depth.
-    val syntheticPrefix =
-      Seq((Seq.fill(depth)(OutFiles.millBuild) :+ "build.mill").mkString("/"))
     LockUpgrade.readThenWrite(
       acquireRead =
         workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Read, waitReporter),
@@ -70,7 +64,7 @@ private[daemon] class MetaBuildAccess(
       awaitStateChange =
         timeoutMs => workspaceLocking.awaitMetaBuildStateChange(depth, timeoutMs),
       waitReporter = waitReporter,
-      syntheticPrefix = syntheticPrefix
+      syntheticPrefix = Seq(LauncherLockRegistry.metaBuildLabel(depth))
     )(scope => probe(ref.get(), scope)) { scope =>
       evaluate(new MetaBuildAccess.WriteScope(ref, scope))
     }

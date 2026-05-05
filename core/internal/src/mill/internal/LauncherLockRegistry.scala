@@ -16,8 +16,7 @@ private[mill] class LauncherLockRegistry {
   // are taken by every normal task batch (and by plain `exclusive` commands) so they share
   // freely; write leases are taken by globally-exclusive command batches
   // (`Task.Command(globalExclusive = true)`, e.g. `clean`) so they run alone across all
-  // launchers. `'exclusive'` is kept in wait messages because this lock applies to any
-  // task, so the surrounding prompt context can't identify it on its own.
+  // launchers.
   val exclusiveLock: CrossThreadRwLock =
     new CrossThreadRwLock(label = "exclusive", showLabelInMessage = true)
 
@@ -27,8 +26,6 @@ private[mill] class LauncherLockRegistry {
       LauncherLockRegistry.makeMetaBuildLock
     )
 
-  // The display label is the task name, which is already shown as the prompt-line
-  // prefix immediately above the wait detail; suppressing it avoids duplication.
   def taskLockFor(
       normalizedAbsolutePath: String,
       displayLabel: String
@@ -40,6 +37,16 @@ private[mill] class LauncherLockRegistry {
 }
 
 private[mill] object LauncherLockRegistry {
+
+  private val makeMetaBuildLock: java.util.function.Function[Int, CrossThreadRwLock] =
+    (depth: Int) => {
+      val label = metaBuildLabel(depth)
+      new CrossThreadRwLock(
+        label = label,
+        showLabelInMessage = false,
+        syntheticPrefix = Seq(label)
+      )
+    }
 
   /**
    * Mirror the meta-build prompt-line prefix used by `MillBuildBootstrap`'s
@@ -54,16 +61,6 @@ private[mill] object LauncherLockRegistry {
    * `build.mill` here keeps the lock label readable without needing to
    * thread the actual filename through the lock registry.
    */
-  // The label is promoted to the synthetic prompt-line prefix, so it would only
-  // duplicate if also embedded in the wait message itself.
-  private val makeMetaBuildLock: java.util.function.Function[Int, CrossThreadRwLock] =
-    (depth: Int) => {
-      val label =
-        (Seq.fill(depth)(OutFiles.millBuild) :+ "build.mill").mkString("/")
-      new CrossThreadRwLock(
-        label = label,
-        showLabelInMessage = false,
-        syntheticPrefix = Seq(label)
-      )
-    }
+  def metaBuildLabel(depth: Int): String =
+    (Seq.fill(depth)(OutFiles.millBuild) :+ "build.mill").mkString("/")
 }

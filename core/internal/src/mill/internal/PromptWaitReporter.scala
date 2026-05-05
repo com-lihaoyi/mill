@@ -45,10 +45,7 @@ object PromptWaitReporter {
           () => prompt.setPromptDetail(baseKey, "")
         } else {
           // Session logger has no prompt-line — synthesise one or the
-          // wait detail has nothing to attach to. Prefer a lock-supplied
-          // prefix (e.g. `mill-build/build.mill`) over an opaque `wait-N`
-          // so the user can read what they're blocked on without the
-          // message also having to repeat the lock identity.
+          // wait detail has nothing to attach to.
           val syntheticKey =
             if (syntheticPrefix.nonEmpty) syntheticPrefix
             else Seq("wait-" + syntheticCounter.incrementAndGet())
@@ -56,5 +53,26 @@ object PromptWaitReporter {
           () => prompt.removePromptLine(syntheticKey, msg)
         }
       }
+    }
+
+  /**
+   * BSP-side wait reporter: BSP has no live prompt UI, so route every wait to
+   * stderr as a single line that names the lock label even when the lock is
+   * configured to suppress it for prompt usage. The prompt-line task-name
+   * prefix that ordinarily makes the label redundant doesn't exist here.
+   */
+  def stderrWithLabel(stream: PrintStream, label: String): WaitReporter =
+    (msg: String, _: Seq[String]) => {
+      stream.println(injectLabel(msg, label))
+      () => ()
+    }
+
+  private val lockMsgWithoutLabel =
+    raw"^(blocked on (?:read|write) lock)( command .*| ?$$)".r
+
+  private def injectLabel(msg: String, label: String): String =
+    lockMsgWithoutLabel.findFirstMatchIn(msg) match {
+      case Some(m) => s"${m.group(1)} '$label'${m.group(2)}"
+      case None => msg
     }
 }

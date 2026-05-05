@@ -112,11 +112,6 @@ private[mill] object LauncherLocking {
    *
    * Implementations may also respond to holder changes by re-calling
    * `reportWait` — each call replaces the previous wait status.
-   *
-   * `syntheticPrefix`, when nonempty, supplies a stable prompt-line key for
-   * implementations that synthesise a fresh prompt line for the wait (i.e.
-   * when the caller's logger has no preexisting prompt line). It is ignored
-   * when the wait can be attached as a detail to an existing line.
    */
   trait WaitReporter {
     def reportWait(message: String, syntheticPrefix: Seq[String] = Nil): AutoCloseable
