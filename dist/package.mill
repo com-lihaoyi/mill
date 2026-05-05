@@ -32,6 +32,12 @@ trait DistModule extends RunModule {
     // is called (e.g. by Scala's `LazyVals$`). The flags below silence those
     // warnings, but older JDKs reject them, so detect the JDK major version at
     // launch time and only pass the flags when supported.
+    //
+    // TODO: After the next rebootstrap, replace this inlined script with
+    //   Jvm.launcherUniversalScript(
+    //     mc, Seq("$0"), Seq("%~dpnx0"), Nil,
+    //     suppressJdk23PlusUnsafeWarnings = true
+    //   )
     Jvm.universalScript(
       shellCommands =
         s"""if [ -z "$$JAVA_HOME" ] ; then

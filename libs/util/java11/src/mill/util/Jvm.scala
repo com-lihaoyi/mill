@@ -530,8 +530,38 @@ object Jvm {
       jvmArgs: os.Shellable,
       shebang: Boolean = false,
       shellJvmArgs: os.Shellable = Nil,
-      cmdJvmArgs: os.Shellable = Nil
+      cmdJvmArgs: os.Shellable = Nil,
+      @unroll suppressJdk23PlusUnsafeWarnings: Boolean = false
   ): String = {
+
+    // JDK 23+ emits stderr warnings the first time `sun.misc.Unsafe.objectFieldOffset`
+    // is called (e.g. by Scala's `LazyVals$`). The flags below silence those
+    // warnings, but older JDKs reject them, so detect the JDK major version at
+    // launch time and only apply the flags when supported. Once the bootstrap
+    // Mill is rebootstrapped onto a build that ships this overload, the inline
+    // copy in `dist/package.mill`'s `launcherScript` can be replaced by passing
+    // `suppressJdk23PlusUnsafeWarnings = true`.
+    val (shellRuntimeOpts, shellJdk23Var) =
+      if (!suppressJdk23PlusUnsafeWarnings) ("", "")
+      else (
+        """JAVA_VER_MAJOR="$("$JAVACMD" -version 2>&1 | awk -F'"' '/version/ {print $2; exit}' | awk -F. '{print ($1=="1"?$2:$1)}')"
+          |MILL_JDK23_OPTS=""
+          |case "$JAVA_VER_MAJOR" in ''|*[!0-9]*) ;; *) [ "$JAVA_VER_MAJOR" -ge 23 ] && MILL_JDK23_OPTS="--sun-misc-unsafe-memory-access=allow --enable-native-access=ALL-UNNAMED" ;; esac
+          |""".stripMargin,
+        " $MILL_JDK23_OPTS"
+      )
+    val (cmdRuntimeOpts, cmdJdk23Var) =
+      if (!suppressJdk23PlusUnsafeWarnings) ("", "")
+      else (
+        """for /f "tokens=3" %%g in ('"!JAVACMD!" -version 2^>^&1 ^| findstr /i "version"') do set "JAVA_VER_RAW=%%~g"
+          |set "JAVA_VER_RAW=!JAVA_VER_RAW:"=!"
+          |for /f "tokens=1 delims=." %%g in ("!JAVA_VER_RAW!") do set "JAVA_VER_MAJOR=%%g"
+          |if "!JAVA_VER_MAJOR!"=="1" for /f "tokens=2 delims=." %%g in ("!JAVA_VER_RAW!") do set "JAVA_VER_MAJOR=%%g"
+          |set MILL_JDK23_OPTS=
+          |if not "!JAVA_VER_MAJOR!"=="" if !JAVA_VER_MAJOR! GEQ 23 set "MILL_JDK23_OPTS=--sun-misc-unsafe-memory-access=allow --enable-native-access=ALL-UNNAMED"
+          |""".stripMargin,
+        " !MILL_JDK23_OPTS!"
+      )
 
     universalScript(
       shellCommands = {
@@ -544,7 +574,7 @@ object Jvm {
            |  JAVACMD="$$JAVA_HOME/bin/java"
            |fi
            |
-           |exec "$$JAVACMD" $jvmArgsStr $$JAVA_OPTS -cp "$classpathStr" '$mainClass' "$$@"
+           |${shellRuntimeOpts}exec "$$JAVACMD"$shellJdk23Var $jvmArgsStr $$JAVA_OPTS -cp "$classpathStr" '$mainClass' "$$@"
            |""".stripMargin
       },
       cmdCommands = {
@@ -554,7 +584,7 @@ object Jvm {
            |set "JAVACMD=java.exe"
            |if not "%JAVA_HOME%"=="" set "JAVACMD=%JAVA_HOME%\\bin\\java.exe"
            |
-           |"%JAVACMD%" $jvmArgsStr %JAVA_OPTS% -cp "$classpathStr" "$mainClass" %*
+           |${cmdRuntimeOpts}"!JAVACMD!"$cmdJdk23Var $jvmArgsStr %JAVA_OPTS% -cp "$classpathStr" "$mainClass" %*
            |
            |endlocal
            |""".stripMargin
