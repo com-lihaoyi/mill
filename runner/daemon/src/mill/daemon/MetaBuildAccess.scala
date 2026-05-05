@@ -1,7 +1,7 @@
 package mill.daemon
 
 import mill.api.daemon.internal.LauncherLocking
-import mill.internal.{LauncherLockRegistry, LockUpgrade}
+import mill.internal.LockUpgrade
 
 import java.util.concurrent.atomic.AtomicReference
 
@@ -57,16 +57,13 @@ private[daemon] class MetaBuildAccess(
   )(
       evaluate: MetaBuildAccess.WriteScope => T
   ): T = {
-    val label = LauncherLockRegistry.metaBuildLabel(depth)
     LockUpgrade.readThenWrite(
       acquireRead =
         workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Read, waitReporter),
       tryAcquireWrite = () => workspaceLocking.tryMetaBuildWriteLock(depth),
       awaitStateChange =
         timeoutMs => workspaceLocking.awaitMetaBuildStateChange(depth, timeoutMs),
-      waitReporter = waitReporter,
-      lockLabel = label,
-      syntheticPrefix = Seq(label)
+      waitReporter = waitReporter
     )(scope => probe(ref.get(), scope)) { scope =>
       evaluate(new MetaBuildAccess.WriteScope(ref, scope))
     }

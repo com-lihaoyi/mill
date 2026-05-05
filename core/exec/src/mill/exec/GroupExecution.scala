@@ -298,7 +298,7 @@ trait GroupExecution {
 
         // Try-Write + bounded await for `LockUpgrade.readThenWrite`'s
         // retryable loop; mirrors `acquireTaskLock`'s input-task skip.
-        def tryWriteTaskLock(): Either[String, LauncherLocking.Lease] =
+        def tryWriteTaskLock(): Either[LauncherLocking.Contention, LauncherLocking.Lease] =
           if (labelled.isInputTask)
             LauncherLocking.Noop.tryTaskWriteLock(
               paths.dest.toNIO,
@@ -448,8 +448,7 @@ trait GroupExecution {
           acquireRead = acquireTaskLock(LauncherLocking.LockKind.Read),
           tryAcquireWrite = () => tryWriteTaskLock(),
           awaitStateChange = awaitTaskLockChange,
-          waitReporter = taskWaitReporter,
-          lockLabel = labelled.ctx.segments.render
+          waitReporter = taskWaitReporter
         )(_ => LockUpgrade.Decision.Escalate) { scope =>
           val (execRes, serializedPaths) =
             if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {
