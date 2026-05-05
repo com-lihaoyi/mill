@@ -31,7 +31,7 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
       assertEventually(blockedBy(
         "waitForExists --fileName file1.txt",
         "waitForExists",
-        launcher1.process.pid(),
+        launcher1.process.wrapped.pid(),
         launcher2.err.text()
       ))
       launcher2.process.destroy(recursive = false)
@@ -54,7 +54,7 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
       assertEventually(blockedBy(
         "waitForExists --fileName file1.txt",
         "waitForExists",
-        launcher1.process.pid(),
+        launcher1.process.wrapped.pid(),
         launcher2.err.text()
       ))
       launcher1.process.destroy(recursive = false)

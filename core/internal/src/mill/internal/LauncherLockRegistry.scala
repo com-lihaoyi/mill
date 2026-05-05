@@ -18,7 +18,11 @@ private[mill] class LauncherLockRegistry {
   // (`Task.Command(globalExclusive = true)`, e.g. `clean`) so they run alone across all
   // launchers.
   val exclusiveLock: CrossThreadRwLock =
-    new CrossThreadRwLock(label = "exclusive", showLabelInMessage = true)
+    new CrossThreadRwLock(
+      label = "exclusive",
+      showLabelInMessage = true,
+      syntheticPrefix = Seq("exclusive-lock")
+    )
 
   def metaBuildLockFor(depth: Int): CrossThreadRwLock =
     metaBuildLocks.computeIfAbsent(

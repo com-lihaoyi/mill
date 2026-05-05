@@ -218,7 +218,7 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
         launcher2,
         "runHoldMetaBuildRead",
         blockerPid,
-        "mill-build/build.mill"
+        "build.mill"
       ))
       assert(launcher2.process.isAlive())
       assert(!launcher2.containsLines("shared-value"))
@@ -235,7 +235,7 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       assertContention(launcher1, Set.empty)
       assertContention(
         launcher2,
-        Set(blockedLine("runHoldMetaBuildRead", blockerPid, "mill-build/build.mill", "write"))
+        Set(blockedLine("runHoldMetaBuildRead", blockerPid, "build.mill", "write"))
       )
     }
 
