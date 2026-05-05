@@ -387,9 +387,8 @@ object CrossThreadRwLockTests extends TestSuite {
 
       assertEventually(waitingBytes.size() > 0)
       val msg = waitingBytes.toString
-      assert(msg.contains("command 'blockerTask'"))
+      assert(msg.contains("PID 9876 'blockerTask'"))
       assert(msg.contains("'holder-naming'"))
-      assert(msg.contains("PID 9876"))
       assert(msg.contains("blocked on write lock"))
 
       firstLease.close()
@@ -472,9 +471,8 @@ object CrossThreadRwLockTests extends TestSuite {
         } catch {
           case e: Exception => e
         }
-      assert(ex.getMessage.contains("command 'blockerCmd'"))
+      assert(ex.getMessage.contains("PID 7777 'blockerCmd'"))
       assert(ex.getMessage.contains("'no-wait'"))
-      assert(ex.getMessage.contains("PID 7777"))
       assert(ex.getMessage.contains("--no-wait"))
 
       first.close()

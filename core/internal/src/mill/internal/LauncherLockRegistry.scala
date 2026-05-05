@@ -39,35 +39,33 @@ private[mill] class LauncherLockRegistry {
 private[mill] object LauncherLockRegistry {
 
   private val makeMetaBuildLock: java.util.function.Function[Int, CrossThreadRwLock] =
-    (depth: Int) =>
+    (depth: Int) => {
+      val prefix = metaBuildPromptPrefix(depth)
       new CrossThreadRwLock(
-        label = metaBuildLabel(depth),
+        label = prefix.headOption.getOrElse(""),
         showLabelInMessage = false,
-        syntheticPrefix = metaBuildPromptPrefix(depth)
+        syntheticPrefix = prefix
       )
+    }
 
   /**
-   * Build-file path relative to the project root, used as the lock's
-   * human-readable label in `--no-wait` errors and BSP wait messages:
-   *   - depth 0: `build.mill`               (the user-level project)
-   *   - depth 1: `mill-build/build.mill`
-   *   - depth N: `mill-build/.../mill-build/build.mill` (N segments)
+   * Mirror `MillBuildBootstrap.bootLogPrefix(depth)` so wait messages and
+   * synthetic prompt lines reference each meta-build by the same name the
+   * user already sees in the multi-line prompt:
+   *   - depth 0: `Nil`                            (user-level project, no prefix)
+   *   - depth 1: `Seq("build.mill")`
+   *   - depth 2: `Seq("mill-build/build.mill")`
+   *   - depth N: one element with `(N-1)` `mill-build` segments + `build.mill`
+   *
+   * Used for both the lock's `syntheticPrefix` (prompt-line key) and as
+   * the source of its bare `label` (via `headOption`). The `Nil` case
+   * yields an empty label, which `WaitReporter.ensureLabel` short-circuits
+   * cleanly — depth 0 has no `mill-build/` chain to identify it anyway.
    *
    * The exact build-file name (`build.mill` vs `build.mill.yaml`) varies
    * per project but is fixed for one daemon — using the canonical
    * `build.mill` here keeps the label readable without needing to thread
    * the actual filename through the lock registry.
-   */
-  def metaBuildLabel(depth: Int): String =
-    (Seq.fill(depth)(OutFiles.millBuild) :+ "build.mill").mkString("/")
-
-  /**
-   * Mirror `MillBuildBootstrap.bootLogPrefix(depth)` exactly so a synthetic
-   * wait line at this depth reuses the same prompt-line prefix the active
-   * launcher's tasks at the same depth are already showing:
-   *   - depth 0: `Nil`                     (user-level tasks have no prefix)
-   *   - depth 1: `Seq("build.mill")`
-   *   - depth 2: `Seq("mill-build/build.mill")` (one fewer mill-build segment than [[metaBuildLabel]])
    */
   def metaBuildPromptPrefix(depth: Int): Seq[String] =
     if (depth == 0) Nil

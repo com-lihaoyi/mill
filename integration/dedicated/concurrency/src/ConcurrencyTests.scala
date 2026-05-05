@@ -31,7 +31,7 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       launcher.containsLines(blockedLine(command, pid, taskName, "read"))
 
   private def blockedLine(command: String, pid: Long, taskName: String, kind: String): String =
-    s"blocked on $kind lock '$taskName' command '$command' PID $pid"
+    s"blocked on $kind lock '$taskName' PID $pid '$command'"
 
   /**
    * Exact set of "blocked on ... lock ..." lines this launcher emitted.

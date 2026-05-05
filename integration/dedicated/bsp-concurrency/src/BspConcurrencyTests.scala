@@ -18,9 +18,9 @@ import scala.jdk.CollectionConverters.*
  * shared output directory. They assert on the *fine-grained* lock messages
  * that surface to whichever side is waiting:
  *
- *   - CLI side: "blocked on <kind> lock '<task>' command 'BSP:<endpoint>' PID <bspPid>"
+ *   - CLI side: "blocked on <kind> lock '<task>' PID <bspPid> 'BSP:<endpoint>'"
  *     appears in the launcher's stderr when BSP holds a task lock.
- *   - BSP side: the same shape with `command '<cliCommand>' PID <cliPid>`
+ *   - BSP side: the same shape with `PID <cliPid> '<cliCommand>'`
  *     appears in the daemon-side BSP server stderr when CLI holds a task lock.
  *
  * The tests rely on `gated.compile` parking on a workspace-relative gate file
@@ -128,9 +128,8 @@ object BspConcurrencyTests extends UtestIntegrationTestSuite {
           cliLauncherOpt = Some(cliLauncher)
           assertEventually {
             val errText = cliLauncher.err.text()
-            (errText.contains("blocked on read lock 'gated.sources' command 'BSP:") ||
-              errText.contains("blocked on write lock 'gated.sources' command 'BSP:")) &&
-            errText.contains(s"PID $bspPid")
+            (errText.contains(s"blocked on read lock 'gated.sources' PID $bspPid 'BSP:") ||
+            errText.contains(s"blocked on write lock 'gated.sources' PID $bspPid 'BSP:"))
           }
           assert(cliLauncher.process.isAlive())
 
@@ -185,11 +184,8 @@ object BspConcurrencyTests extends UtestIntegrationTestSuite {
 
           assertEventually {
             val text = bspStderr.toString
-            (text.contains("blocked on read lock 'exclusive' command 'runGatedExclusive'") ||
-              text.contains(
-                "blocked on write lock 'exclusive' command 'runGatedExclusive'"
-              )) &&
-            text.contains(s"PID $cliPid")
+            text.contains(s"blocked on read lock 'exclusive' PID $cliPid 'runGatedExclusive'") ||
+            text.contains(s"blocked on write lock 'exclusive' PID $cliPid 'runGatedExclusive'")
           }
           // The BSP RPC future must not have resolved yet — still parked on the lock.
           assert(!workspaceTargetsFuture.isDone)
