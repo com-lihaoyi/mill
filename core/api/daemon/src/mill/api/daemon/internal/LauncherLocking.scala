@@ -112,16 +112,21 @@ private[mill] object LauncherLocking {
    *
    * Implementations may also respond to holder changes by re-calling
    * `reportWait` — each call replaces the previous wait status.
+   *
+   * `syntheticPrefix`, when nonempty, supplies a stable prompt-line key for
+   * implementations that synthesise a fresh prompt line for the wait (i.e.
+   * when the caller's logger has no preexisting prompt line). It is ignored
+   * when the wait can be attached as a detail to an existing line.
    */
   trait WaitReporter {
-    def reportWait(message: String): AutoCloseable
+    def reportWait(message: String, syntheticPrefix: Seq[String] = Nil): AutoCloseable
   }
 
   object WaitReporter {
     private val NoopToken: AutoCloseable = () => ()
 
     /** Discards wait events. Useful for tests and noBuildLock. */
-    val Noop: WaitReporter = (_: String) => NoopToken
+    val Noop: WaitReporter = (_: String, _: Seq[String]) => NoopToken
 
     /**
      * Prints the wait message once on `reportWait` and does nothing on close.
@@ -129,7 +134,7 @@ private[mill] object LauncherLocking {
      * the user's terminal history. Used when no live prompt is available
      * (early bootstrap, no-daemon, BSP, `--ticker false`, etc.).
      */
-    def stderr(stream: PrintStream): WaitReporter = (msg: String) => {
+    def stderr(stream: PrintStream): WaitReporter = (msg: String, _: Seq[String]) => {
       stream.println(msg)
       NoopToken
     }

@@ -39,14 +39,19 @@ object PromptWaitReporter {
     else {
       val prompt = logger.prompt
       val baseKey = logger.logKey
-      (msg: String) => {
+      (msg: String, syntheticPrefix: Seq[String]) => {
         if (baseKey.nonEmpty) {
           prompt.setPromptDetail(baseKey, msg)
           () => prompt.setPromptDetail(baseKey, "")
         } else {
           // Session logger has no prompt-line — synthesise one or the
-          // wait detail has nothing to attach to.
-          val syntheticKey = Seq("wait-" + syntheticCounter.incrementAndGet())
+          // wait detail has nothing to attach to. Prefer a lock-supplied
+          // prefix (e.g. `mill-build/build.mill`) over an opaque `wait-N`
+          // so the user can read what they're blocked on without the
+          // message also having to repeat the lock identity.
+          val syntheticKey =
+            if (syntheticPrefix.nonEmpty) syntheticPrefix
+            else Seq("wait-" + syntheticCounter.incrementAndGet())
           prompt.setPromptLine(syntheticKey, "", msg)
           () => prompt.removePromptLine(syntheticKey, msg)
         }

@@ -128,8 +128,8 @@ object BspConcurrencyTests extends UtestIntegrationTestSuite {
           cliLauncherOpt = Some(cliLauncher)
           assertEventually {
             val errText = cliLauncher.err.text()
-            (errText.contains("blocked on read lock 'gated.sources' command 'BSP:") ||
-              errText.contains("blocked on write lock 'gated.sources' command 'BSP:")) &&
+            (errText.contains("blocked on read lock command 'BSP:") ||
+              errText.contains("blocked on write lock command 'BSP:")) &&
             errText.contains(s"PID $bspPid")
           }
           assert(cliLauncher.process.isAlive())

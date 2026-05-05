@@ -8,8 +8,23 @@ import mill.api.daemon.internal.LauncherLocking.{Lease, LockKind, WaitReporter}
  * and released on separate threads. `label` is the human-readable name used in
  * waiting/blocking messages; uniqueness across locks is the registry's
  * responsibility (e.g. [[LauncherLockRegistry]]'s map key), not the lock's.
+ *
+ * `showLabelInMessage` keeps the `'$label'` token in the "blocked on …" string
+ * for locks whose identity isn't already obvious from the surrounding prompt
+ * context (e.g. the daemon-wide `exclusive` lock); set it `false` for per-task
+ * and per-meta-build locks whose label would just duplicate the prompt-line
+ * prefix the user is already seeing.
+ *
+ * `syntheticPrefix` is forwarded to [[LauncherLocking.WaitReporter.reportWait]]
+ * so a wait that has to fabricate its own prompt line (no preexisting line to
+ * attach to) can use a meaningful prefix like `mill-build/build.mill` instead
+ * of an opaque `wait-N`.
  */
-class CrossThreadRwLock(label: String) {
+class CrossThreadRwLock(
+    label: String,
+    showLabelInMessage: Boolean = true,
+    syntheticPrefix: Seq[String] = Nil
+) {
   import CrossThreadRwLock.HolderInfo
 
   private val monitor = new Object
@@ -28,10 +43,11 @@ class CrossThreadRwLock(label: String) {
 
   private def waitingMessage(blocker: Option[HolderInfo], kind: LockKind): String = {
     val kindStr = kind match { case LockKind.Read => "read"; case LockKind.Write => "write" }
+    val labelToken = if (showLabelInMessage) s" '$label'" else ""
     blocker match {
       case Some(h) =>
-        s"blocked on $kindStr lock '$label' command '${h.command}' PID ${h.pid}"
-      case None => s"blocked on $kindStr lock '$label'"
+        s"blocked on $kindStr lock$labelToken command '${h.command}' PID ${h.pid}"
+      case None => s"blocked on $kindStr lock$labelToken"
     }
   }
 
@@ -65,7 +81,8 @@ class CrossThreadRwLock(label: String) {
 
     leaseOpt.getOrElse {
       val blocker = monitor.synchronized(currentBlocker())
-      val waitToken = waitReporter.reportWait(waitingMessage(blocker, kind))
+      val waitToken =
+        waitReporter.reportWait(waitingMessage(blocker, kind), syntheticPrefix)
 
       try {
         monitor.synchronized {

@@ -16,8 +16,10 @@ private[mill] class LauncherLockRegistry {
   // are taken by every normal task batch (and by plain `exclusive` commands) so they share
   // freely; write leases are taken by globally-exclusive command batches
   // (`Task.Command(globalExclusive = true)`, e.g. `clean`) so they run alone across all
-  // launchers.
-  val exclusiveLock: CrossThreadRwLock = new CrossThreadRwLock(label = "exclusive")
+  // launchers. `'exclusive'` is kept in wait messages because this lock applies to any
+  // task, so the surrounding prompt context can't identify it on its own.
+  val exclusiveLock: CrossThreadRwLock =
+    new CrossThreadRwLock(label = "exclusive", showLabelInMessage = true)
 
   def metaBuildLockFor(depth: Int): CrossThreadRwLock =
     metaBuildLocks.computeIfAbsent(
@@ -25,13 +27,15 @@ private[mill] class LauncherLockRegistry {
       LauncherLockRegistry.makeMetaBuildLock
     )
 
+  // The display label is the task name, which is already shown as the prompt-line
+  // prefix immediately above the wait detail; suppressing it avoids duplication.
   def taskLockFor(
       normalizedAbsolutePath: String,
       displayLabel: String
   ): CrossThreadRwLock =
     taskLocks.computeIfAbsent(
       normalizedAbsolutePath,
-      _ => new CrossThreadRwLock(label = displayLabel)
+      _ => new CrossThreadRwLock(label = displayLabel, showLabelInMessage = false)
     )
 }
 
@@ -50,10 +54,16 @@ private[mill] object LauncherLockRegistry {
    * `build.mill` here keeps the lock label readable without needing to
    * thread the actual filename through the lock registry.
    */
+  // The label is promoted to the synthetic prompt-line prefix, so it would only
+  // duplicate if also embedded in the wait message itself.
   private val makeMetaBuildLock: java.util.function.Function[Int, CrossThreadRwLock] =
     (depth: Int) => {
       val label =
         (Seq.fill(depth)(OutFiles.millBuild) :+ "build.mill").mkString("/")
-      new CrossThreadRwLock(label = label)
+      new CrossThreadRwLock(
+        label = label,
+        showLabelInMessage = false,
+        syntheticPrefix = Seq(label)
+      )
     }
 }
