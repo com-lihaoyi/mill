@@ -27,7 +27,42 @@ trait DistModule extends RunModule {
 
   /** The shell script to prepend to create a self-executing jar */
   def launcherScript: T[String] = Task {
-    Jvm.launcherUniversalScript(mainClass().get, Seq("$0"), Seq("%~dpnx0"), Nil)
+    val mc = mainClass().get
+    // JDK 23+ emits stderr warnings the first time `sun.misc.Unsafe.objectFieldOffset`
+    // is called (e.g. by Scala's `LazyVals$`). The flags below silence those
+    // warnings, but older JDKs reject them, so detect the JDK major version at
+    // launch time and only pass the flags when supported.
+    Jvm.universalScript(
+      shellCommands =
+        s"""if [ -z "$$JAVA_HOME" ] ; then
+           |  JAVACMD="java"
+           |else
+           |  JAVACMD="$$JAVA_HOME/bin/java"
+           |fi
+           |
+           |JAVA_VER_MAJOR="$$("$$JAVACMD" -version 2>&1 | awk -F'"' '/version/ {print $$2; exit}' | awk -F. '{print ($$1=="1"?$$2:$$1)}')"
+           |MILL_JDK23_OPTS=""
+           |case "$$JAVA_VER_MAJOR" in ''|*[!0-9]*) ;; *) [ "$$JAVA_VER_MAJOR" -ge 23 ] && MILL_JDK23_OPTS="--sun-misc-unsafe-memory-access=allow --enable-native-access=ALL-UNNAMED" ;; esac
+           |
+           |exec "$$JAVACMD" $$MILL_JDK23_OPTS $$JAVA_OPTS -cp "$$0" '$mc' "$$@"
+           |""".stripMargin,
+      cmdCommands =
+        s"""setlocal EnableDelayedExpansion
+           |set "JAVACMD=java.exe"
+           |if not "%JAVA_HOME%"=="" set "JAVACMD=%JAVA_HOME%\\bin\\java.exe"
+           |
+           |for /f "tokens=3" %%g in ('"!JAVACMD!" -version 2^>^&1 ^| findstr /i "version"') do set "JAVA_VER_RAW=%%~g"
+           |set "JAVA_VER_RAW=!JAVA_VER_RAW:"=!"
+           |for /f "tokens=1 delims=." %%g in ("!JAVA_VER_RAW!") do set "JAVA_VER_MAJOR=%%g"
+           |if "!JAVA_VER_MAJOR!"=="1" for /f "tokens=2 delims=." %%g in ("!JAVA_VER_RAW!") do set "JAVA_VER_MAJOR=%%g"
+           |set MILL_JDK23_OPTS=
+           |if not "!JAVA_VER_MAJOR!"=="" if !JAVA_VER_MAJOR! GEQ 23 set "MILL_JDK23_OPTS=--sun-misc-unsafe-memory-access=allow --enable-native-access=ALL-UNNAMED"
+           |
+           |"!JAVACMD!" !MILL_JDK23_OPTS! %JAVA_OPTS% -cp "%~dpnx0" "$mc" %*
+           |
+           |endlocal
+           |""".stripMargin
+    )
   }
 
   /** Combines launcherScript + assemblyJar into a self-executing jar */

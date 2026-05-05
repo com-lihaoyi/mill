@@ -222,11 +222,41 @@ object Jvm {
     if (cwd != null) os.makeDir.all(cwd)
 
     Vector(javaExe(javaHome)) ++
+      jdk23PlusUnsafeOpts(javaHome) ++
       jvmArgs.value ++
       Option.when(cp.nonEmpty)(Vector("-cp", cp.mkString(java.io.File.pathSeparator)))
         .getOrElse(Vector.empty) ++
       Vector(mainClass) ++
       mainArgs.value
+  }
+
+  // Suppress JDK 23+ first-call warnings for deprecated `sun.misc.Unsafe`
+  // methods (notably `objectFieldOffset`, used by Scala's `LazyVals`). Only
+  // emitted when the target JVM is JDK 23+; older JDKs reject the flags.
+  private val jdk23PlusFlags =
+    Vector("--sun-misc-unsafe-memory-access=allow", "--enable-native-access=ALL-UNNAMED")
+
+  private val jdkMajorCache = new java.util.concurrent.ConcurrentHashMap[os.Path, Option[Int]]
+
+  private def jdk23PlusUnsafeOpts(javaHome: Option[os.Path]): Vector[String] = {
+    val major = javaHome match {
+      case None => Some(Runtime.version().feature())
+      case Some(home) =>
+        jdkMajorCache.computeIfAbsent(
+          home,
+          _ =>
+            try {
+              val out = os.proc(home / "bin" / "java", "-version").call(
+                check = false,
+                stderr = os.Pipe,
+                mergeErrIntoOut = true
+              ).out.text()
+              """version "(?:1\.)?(\d+)""".r.unanchored.findFirstMatchIn(out)
+                .flatMap(_.group(1).toIntOption)
+            } catch { case _: Throwable => None }
+        )
+    }
+    if (major.exists(_ >= 23)) jdk23PlusFlags else Vector.empty
   }
 
   /**
