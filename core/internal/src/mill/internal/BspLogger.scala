@@ -35,7 +35,7 @@ class BspLogger(
     override def enableTicker = true
 
     // BSP stderr lines aren't prefixed with the lock-owning task's name, so
-    // PromptWaitReporter must keep the label in the wait message.
+    // `PromptWaitReporter` must keep the label in the wait message.
     override def waitMessageNeedsLabel = true
 
     // Surface only the lock-wait subset of prompt-line/detail updates into

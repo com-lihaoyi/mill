@@ -105,10 +105,9 @@ private[mill] object LauncherLocking {
   }
 
   /**
-   * Description of why a non-blocking Write attempt failed: the
-   * human-readable wait message, the lock's bare label, and the
-   * synthetic prompt-line prefix the lock would like its `WaitReporter`
-   * to use when no preexisting prompt-line is available.
+   * Why a non-blocking Write attempt failed. Carries the values
+   * [[WaitReporter.reportWait]] needs so callers don't have to thread
+   * `label` and `syntheticPrefix` through alongside the lock.
    */
   case class Contention(message: String, label: String, syntheticPrefix: Seq[String])
 

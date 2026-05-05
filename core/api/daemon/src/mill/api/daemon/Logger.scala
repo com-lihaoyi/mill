@@ -203,9 +203,9 @@ object Logger {
     private[mill] def enableTicker: Boolean
 
     /**
-     * True for sinks where the lock label can't be inferred from the
-     * surrounding prompt-line prefix (e.g. BSP, where wait messages are
-     * emitted to stderr without that prefix).
+     * True for sinks (e.g. `BspLogger`) whose surrounding prompt-line
+     * prefix doesn't reliably name the lock, so the wait message must
+     * carry the label itself.
      */
     private[mill] def waitMessageNeedsLabel: Boolean = false
 
