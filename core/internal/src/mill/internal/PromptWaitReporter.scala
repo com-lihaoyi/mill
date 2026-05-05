@@ -40,9 +40,7 @@ object PromptWaitReporter {
       val prompt = logger.prompt
       val baseKey = logger.logKey
       (msg: String, label: String, syntheticPrefix: Seq[String]) => {
-        // The label can be omitted from the message when some surrounding
-        // prompt context (the existing line's prefix or a synthetic-line
-        // prefix) already names the lock; otherwise inject it.
+        // Avoid duplicating the label when the surrounding prefix already shows it.
         val prefixCarriesLabel = baseKey.nonEmpty || syntheticPrefix.nonEmpty
         val displayMsg =
           if (prefixCarriesLabel && !prompt.waitMessageNeedsLabel) msg
@@ -51,6 +49,8 @@ object PromptWaitReporter {
           prompt.setPromptDetail(baseKey, displayMsg)
           () => prompt.setPromptDetail(baseKey, "")
         } else {
+          // Session logger has no prompt-line — synthesise one or the
+          // wait detail has nothing to attach to.
           val syntheticKey =
             if (syntheticPrefix.nonEmpty) syntheticPrefix
             else Seq("wait-" + syntheticCounter.incrementAndGet())

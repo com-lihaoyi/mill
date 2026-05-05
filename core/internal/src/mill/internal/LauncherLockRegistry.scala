@@ -49,18 +49,13 @@ private[mill] object LauncherLockRegistry {
     }
 
   /**
-   * Mirror `MillBuildBootstrap.bootLogPrefix(depth)` so wait messages and
-   * synthetic prompt lines reference each meta-build by the same name the
+   * Mirrors `MillBuildBootstrap.bootLogPrefix(depth)` so wait messages and
+   * synthetic prompt-line keys reference each meta-build by the name the
    * user already sees in the multi-line prompt:
-   *   - depth 0: `Nil`                            (user-level project, no prefix)
+   *   - depth 0: `Nil`                         (user-level project, no prefix)
    *   - depth 1: `Seq("build.mill")`
    *   - depth 2: `Seq("mill-build/build.mill")`
-   *   - depth N: one element with `(N-1)` `mill-build` segments + `build.mill`
-   *
-   * Used for both the lock's `syntheticPrefix` (prompt-line key) and as
-   * the source of its bare `label` (via `headOption`). The `Nil` case
-   * yields an empty label, which `WaitReporter.ensureLabel` short-circuits
-   * cleanly — depth 0 has no `mill-build/` chain to identify it anyway.
+   *   - depth N: `(N-1)` `mill-build` segments + `build.mill`
    *
    * The exact build-file name (`build.mill` vs `build.mill.yaml`) varies
    * per project but is fixed for one daemon — using the canonical

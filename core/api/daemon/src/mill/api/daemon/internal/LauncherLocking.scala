@@ -104,11 +104,7 @@ private[mill] object LauncherLocking {
     def downgradeToRead(): Unit = ()
   }
 
-  /**
-   * Why a non-blocking Write attempt failed. Carries the values
-   * [[WaitReporter.reportWait]] needs so callers don't have to thread
-   * `label` and `syntheticPrefix` through alongside the lock.
-   */
+  /** Failure carrier for [[WaitReporter.reportWait]] arguments. */
   case class Contention(message: String, label: String, syntheticPrefix: Seq[String])
 
   /**
