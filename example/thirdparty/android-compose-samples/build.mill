@@ -1,3 +1,4 @@
+//| mill-jvm-version: zulu:21
 import mill.*, androidlib.*, kotlinlib.*
 
 object Versions {

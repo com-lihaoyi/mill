@@ -1,3 +1,4 @@
+//| mill-jvm-version: zulu:21
 import mill.*, androidlib.*, kotlinlib.*
 
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
