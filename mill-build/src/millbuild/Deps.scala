@@ -233,8 +233,8 @@ object Deps {
   val requests = mvn"com.lihaoyi::requests:0.9.3"
   val logback = mvn"ch.qos.logback:logback-classic:1.5.32"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
-  val kotlinVersion = "2.2.20"
-  val kspVersion = "2.0.4"
+  val kotlinVersion = "2.1.20"
+  val kspVersion = "2.0.1"
   val kotlinBuildToolsApiVersion_api = "2.3.0"
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
   val kotlinBuildToolsApi_api =
