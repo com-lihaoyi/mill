@@ -16,6 +16,9 @@ object `package` extends mill.Module {
    * API documentation generated with ScalaDoc.
    */
   object apidocs extends UnidocModule {
+    // Scala 3.8.2 scaladoc trips on Java 25's restrictions on `sun.misc.Unsafe`
+    // (used by `LazyVals$`); pin the worker JVM to 21 until upstream catches up.
+    def jvmVersion = "temurin:21"
     def dummy = Task { PathRef(Task.dest) }
     def unidocDocumentTitle = Task { "Mill" }
 
