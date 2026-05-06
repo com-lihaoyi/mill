@@ -49,13 +49,13 @@ case class PrefixLogger(
       LineBufferingOutputStream(logMsg => prompt.logPrefixedLine(logKey, logMsg, logToOut))
     )
   }
-  val streams = SystemStreams(
+  val streams = new SystemStreams(
     out = prefixPrintStream(!redirectOutToErr),
     err = prefixPrintStream(false),
     logger0.unprefixedStreams.in
   )
 
-  override val unprefixedStreams = SystemStreams(
+  override val unprefixedStreams = new SystemStreams(
     if (redirectOutToErr) logger0.unprefixedStreams.err else logger0.unprefixedStreams.out,
     logger0.unprefixedStreams.err,
     logger0.unprefixedStreams.in
