@@ -122,7 +122,7 @@ node3 -> node2;
               <dd class="body-medium">
                <div>
                 <div>
-                 <p><a href="PlanImpl$.html#topoSorted-fffffbfb">PlanImpl.topoSorted</a></p>
+                 <p><a href="PlanImpl$.html#topoSorted-fffff74e">PlanImpl.topoSorted</a></p>
                 </div>
                </div>
               </dd>
@@ -144,6 +144,36 @@ node3 -> node2;
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="PlanImpl$.html#groupAroundImportantTasks-ffffff56" t="n" class="documentableName ">groupAroundImportantTasks</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">topoSortedTasks</span>: <a href="../api/TopoSorted.html" t="t">TopoSorted</a>, <span t="k"></span><span data-unresolved-link="" t="n">cutPoint</span>: <a href="../api/Task.html" t="t">Task</a>[<span t="k">_</span>] <span t="k">=&gt;</span> <span data-unresolved-link="" t="t">Boolean</span>)(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">important</span>: <span data-unresolved-link="" t="t">PartialFunction</span>[<a href="../api/Task.html" t="t">Task</a>[<span t="k">_</span>], <span data-unresolved-link="" t="t">T</span>]): <span t="t">MultiBiMap</span>[<span data-unresolved-link="" t="t">T</span>, <a href="../api/Task.html" t="t">Task</a>[<span t="k">_</span>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/core/exec/src/mill/exec/PlanImpl.scala" target="_blank">PlanImpl.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="groupAroundImportantTasks-fffffbbd">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="PlanImpl$.html#groupAroundImportantTasks-fffffbbd" t="n" class="documentableName ">groupAroundImportantTasks</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">topoSortedTasks</span>: <a href="../api/TopoSorted.html" t="t">TopoSorted</a>, <span t="k"></span><span data-unresolved-link="" t="n">cutPoint</span>: <a href="../api/Task.html" t="t">Task</a>[<span t="k">_</span>] <span t="k">=&gt;</span> <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">effectiveInputs</span>: <a href="../api/Task.html" t="t">Task</a>[<span t="k">_</span>] <span t="k">=&gt;</span> <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/Task.html" t="t">Task</a>[<span t="k">_</span>]])(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">important</span>: <span data-unresolved-link="" t="t">PartialFunction</span>[<a href="../api/Task.html" t="t">Task</a>[<span t="k">_</span>], <span data-unresolved-link="" t="t">T</span>]): <span t="t">MultiBiMap</span>[<span data-unresolved-link="" t="t">T</span>, <a href="../api/Task.html" t="t">Task</a>[<span t="k">_</span>]]
            </div>
           </div>
          </div>
@@ -204,6 +234,41 @@ node3 -> node2;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="plan-fffff6e9">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="PlanImpl$.html#plan-fffff6e9" t="n" class="documentableName ">plan</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">goals</span>: <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/Task.html" t="t">Task</a>[<span t="k">_</span>]], <span t="k"></span><span data-unresolved-link="" t="n">effectiveInputs</span>: <a href="../api/Task.html" t="t">Task</a>[<span t="k">_</span>] <span t="k">=&gt;</span> <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/Task.html" t="t">Task</a>[<span t="k">_</span>]]): <a href="../api/Plan.html" t="t">Plan</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p><code>effectiveInputs</code> lets the caller override which inputs are walked when building the plan. This is used to skip dependencies of tasks whose value is supplied entirely by a non-<code>!append</code> YAML config override, since the task body is never run and pulling its dependencies into the build graph would execute unrelated code (see issue #7083).</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p><code>effectiveInputs</code> lets the caller override which inputs are walked when building the plan. This is used to skip dependencies of tasks whose value is supplied entirely by a non-<code>!append</code> YAML config override, since the task body is never run and pulling its dependencies into the build graph would execute unrelated code (see issue #7083).</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/core/exec/src/mill/exec/PlanImpl.scala" target="_blank">PlanImpl.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="topoSorted-fffffbfb">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -225,6 +290,36 @@ node3 -> node2;
              <div class="doc">
               <p>Takes the given tasks, finds all the targets they transitively depend on, and sort them topologically. Fails if there are dependency cycles</p>
              </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/core/exec/src/mill/exec/PlanImpl.scala" target="_blank">PlanImpl.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="topoSorted-fffff74e">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="PlanImpl$.html#topoSorted-fffff74e" t="n" class="documentableName ">topoSorted</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">transitiveTasks</span>: <span data-unresolved-link="" t="t">IndexedSeq</span>[<a href="../api/Task.html" t="t">Task</a>[<span t="k">_</span>]], <span t="k"></span><span data-unresolved-link="" t="n">effectiveInputs</span>: <a href="../api/Task.html" t="t">Task</a>[<span t="k">_</span>] <span t="k">=&gt;</span> <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/Task.html" t="t">Task</a>[<span t="k">_</span>]]): <a href="../api/TopoSorted.html" t="t">TopoSorted</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
@@ -339,6 +434,79 @@ node3 -> node2;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="transitiveTasks-b1c">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="PlanImpl$.html#transitiveTasks-b1c" t="n" class="documentableName ">transitiveTasks</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">sourceTasks</span>: <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/Task.html" t="t">Task</a>[<span t="k">_</span>]], <span t="k"></span><span data-unresolved-link="" t="n">effectiveInputs</span>: <a href="../api/Task.html" t="t">Task</a>[<span t="k">_</span>] <span t="k">=&gt;</span> <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/Task.html" t="t">Task</a>[<span t="k">_</span>]]): <span data-unresolved-link="" t="t">IndexedSeq</span>[<a href="../api/Task.html" t="t">Task</a>[<span t="k">_</span>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/core/exec/src/mill/exec/PlanImpl.scala" target="_blank">PlanImpl.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </section>
+      <section id="Concrete-fields">
+       <div class="documentableList expand">
+        <div class="documentableList-expander">
+         <button class="icon-button show-content expand"></button>
+         <h4 class="groupHeader h200">Concrete fields</h4>
+        </div>
+        <div class="documentableElement" id="defaultInputs-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">val </span></span><a href="PlanImpl$.html#defaultInputs-0" t="n" class="documentableName ">defaultInputs</a>: <a href="../api/Task.html" t="t">Task</a>[<span t="k">_</span>] <span t="k">=&gt;</span> <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/Task.html" t="t">Task</a>[<span t="k">_</span>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Default <code>effectiveInputs</code> function that just returns the task's declared inputs.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Default <code>effectiveInputs</code> function that just returns the task's declared inputs.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/core/exec/src/mill/exec/PlanImpl.scala" target="_blank">PlanImpl.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
        </div>
       </section>
      </div>
@@ -346,4 +514,4 @@ node3 -> node2;
    </div>
   </div>
  </div>
-</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Attributes</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Value-members">Value members</a><ul><li><a href="#Concrete-methods">Concrete methods</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
+</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Attributes</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Value-members">Value members</a><ul><li><a href="#Concrete-methods">Concrete methods</a></li><li><a href="#Concrete-fields">Concrete fields</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
