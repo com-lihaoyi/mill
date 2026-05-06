@@ -130,11 +130,11 @@ private[mill] object PublishModule {
 
     /** Creates an instance if the passphrase is not empty. */
     def apply(keyId: String, passphrase: Option[String]): GpgKey =
-      GpgKey(keyId = keyId, passphrase = passphrase.filter(_.nonEmpty))
+      new GpgKey(keyId = keyId, passphrase = passphrase.filter(_.nonEmpty))
 
     /** Creates an instance if the passphrase is not empty. */
     def apply(keyId: String, passphrase: String): GpgKey =
-      GpgKey(keyId = keyId, passphrase = if (passphrase.isEmpty) None else Some(passphrase))
+      new GpgKey(keyId = keyId, passphrase = if (passphrase.isEmpty) None else Some(passphrase))
 
     /**
      * @param maybeKeyId      will be [[None]] if the PGP key was not provided in the environment.

@@ -27,18 +27,18 @@ object JvmModel {
     }
 
     object MethodDef extends Table[(JType.Cls, MethodSig), MethodDef] {
-      def create: ((JType.Cls, MethodSig)) => MethodDef = (MethodDef(_, _)).tupled
+      def create: ((JType.Cls, MethodSig)) => MethodDef = (new MethodDef(_, _)).tupled
       def apply(cls: JType.Cls, method: MethodSig): MethodDef = get((cls, method))
     }
 
     object MethodSig extends Table[(Boolean, String, Desc), MethodSig] {
-      def create: ((Boolean, String, Desc)) => MethodSig = (MethodSig(_, _, _)).tupled
+      def create: ((Boolean, String, Desc)) => MethodSig = (new MethodSig(_, _, _)).tupled
       def apply(static: Boolean, name: String, desc: Desc): MethodSig = get((static, name, desc))
     }
 
     object MethodCall extends Table[(JType.Cls, InvokeType, String, Desc), MethodCall] {
       def create: ((JType.Cls, InvokeType, String, Desc)) => MethodCall =
-        (MethodCall(_, _, _, _)).tupled
+        (new MethodCall(_, _, _, _)).tupled
       def apply(cls: JType.Cls, invokeType: InvokeType, name: String, desc: Desc): MethodCall =
         get((cls, invokeType, name, desc))
     }

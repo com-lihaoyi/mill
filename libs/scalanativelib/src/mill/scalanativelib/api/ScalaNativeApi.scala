@@ -59,7 +59,7 @@ object NativeLogLevel {
 class NativeConfig(val config: Object)
 object NativeConfig {
   def apply(config: Object): NativeConfig =
-    NativeConfig(config)
+    new NativeConfig(config)
 }
 
 sealed trait BuildTarget

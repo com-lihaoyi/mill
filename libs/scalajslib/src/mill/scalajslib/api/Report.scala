@@ -33,7 +33,7 @@ object Report {
         sourceMapName: Option[String],
         moduleKind: ModuleKind
     ): Module =
-      Module(
+      new Module(
         moduleID = moduleID,
         jsFileName = jsFileName,
         sourceMapName = sourceMapName,
@@ -45,7 +45,7 @@ object Report {
       Mirrors.autoRoot[Module]
   }
   def apply(publicModules: Iterable[Report.Module], dest: mill.PathRef): Report =
-    Report(publicModules = publicModules, dest = dest)
+    new Report(publicModules = publicModules, dest = dest)
   implicit val rw: RW[Report] = macroRW[Report]
 
   private given Root_Module: Mirrors.Root[Report] =

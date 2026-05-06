@@ -75,14 +75,14 @@ object JsEnvConfig {
       Mirrors.autoRoot[Capabilities]
 
     def apply(capabilities: Capabilities): Selenium =
-      Selenium(capabilities = capabilities)
+      new Selenium(capabilities = capabilities)
 
     sealed trait Capabilities
     class ChromeOptions private (val headless: Boolean) extends Capabilities {
       def withHeadless(value: Boolean): Unit = copy(headless = value)
       private def copy(
           headless: Boolean
-      ): ChromeOptions = ChromeOptions(
+      ): ChromeOptions = new ChromeOptions(
         headless = headless
       )
     }
@@ -90,13 +90,13 @@ object JsEnvConfig {
       implicit def rw: RW[ChromeOptions] = macroRW
 
       def apply(headless: Boolean): ChromeOptions =
-        ChromeOptions(headless = headless)
+        new ChromeOptions(headless = headless)
     }
     class FirefoxOptions private (val headless: Boolean) extends Capabilities {
       def withHeadless(value: Boolean): Unit = copy(headless = value)
       private def copy(
           headless: Boolean
-      ): FirefoxOptions = FirefoxOptions(
+      ): FirefoxOptions = new FirefoxOptions(
         headless = headless
       )
     }
@@ -104,9 +104,9 @@ object JsEnvConfig {
       implicit def rw: RW[FirefoxOptions] = macroRW
 
       def apply(): FirefoxOptions =
-        FirefoxOptions(headless = false)
+        new FirefoxOptions(headless = false)
       def apply(headless: Boolean): FirefoxOptions =
-        FirefoxOptions(headless = headless)
+        new FirefoxOptions(headless = headless)
     }
 
     class SafariOptions private () extends Capabilities
@@ -114,7 +114,7 @@ object JsEnvConfig {
       implicit def rw: RW[SafariOptions] = macroRW
 
       def apply(): SafariOptions =
-        SafariOptions()
+        new SafariOptions()
     }
   }
 
@@ -126,7 +126,7 @@ object JsEnvConfig {
       Mirrors.autoRoot[Capabilities]
 
     def apply(capabilities: Capabilities): Playwright =
-      Playwright(capabilities = capabilities)
+      new Playwright(capabilities = capabilities)
 
     sealed trait Capabilities
 
