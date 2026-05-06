@@ -2,6 +2,7 @@ package mill.kotlinlib
 
 import mill.api.daemon.internal.idea.{Element, JavaFacet}
 import mill.api.{Task, TaskCtx, experimental}
+import mill.scalalib.internal.IdeUtils
 
 private lazy val FriendPathsPattern = "^-Xfriend-paths=(.+)$".r
 
@@ -72,7 +73,7 @@ trait KotlinIdeaModule extends KotlinModule {
                     childs = kotlinFriendModules.map(friend =>
                       Element(
                         "friend",
-                        childsOrText = Seq(friend.moduleSegments.render.toLowerCase())
+                        childsOrText = Seq(IdeUtils.moduleName(friend.moduleSegments))
                       )
                     )
                   )

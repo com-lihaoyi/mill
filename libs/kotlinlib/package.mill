@@ -18,7 +18,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
     override def selectiveInputs = Seq(sources, resources) ++ kotlinSelectiveInputs
   }
 
-  def moduleDeps = Seq(build.libs.javalib, build.libs.javalib.testrunner, api, `ksp2-api`)
+  def moduleDeps = Seq(build.libs.javalib, build.libs.scalalib, build.libs.javalib.testrunner, api, `ksp2-api`)
   def localTestExtraModules =
     super.localTestExtraModules ++ Seq(worker)
 

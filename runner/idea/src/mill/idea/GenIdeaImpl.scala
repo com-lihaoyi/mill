@@ -20,6 +20,7 @@ import mill.api.daemon.internal.{
   TestModuleApi
 }
 import mill.api.daemon.internal.idea.{Element, IdeaConfigFile, JavaFacet, ResolvedModule}
+import mill.scalalib.internal.IdeUtils
 import mill.util.BuildInfo
 import org.eclipse.jgit.ignore.{FastIgnoreRule, IgnoreNode}
 import os.SubPath
@@ -406,7 +407,7 @@ class GenIdeaImpl(
       Tuple2(
         os.sub / "modules.xml",
         allModulesXmlTemplate(
-          (modules.map { case (segments = segments) => moduleName(segments) } ++
+          (modules.map { case (segments = segments) => IdeUtils.moduleName(segments) } ++
             scriptFiles.map(scriptModuleName)).sorted
         )
       ),
@@ -517,7 +518,7 @@ class GenIdeaImpl(
           .from(recursive.map((_, None)) ++
             provided.map((_, Some("PROVIDED"))))
           .filter(!_._1.skipIdea)
-          .map { case (v, s) => ScopedOrd(moduleName(moduleLabels(v)), s) }
+          .map { case (v, s) => ScopedOrd(IdeUtils.moduleName(moduleLabels(v)), s) }
           .iterator
           .toSeq
           .distinct
@@ -547,7 +548,7 @@ class GenIdeaImpl(
       )
 
       val moduleFile = Tuple2(
-        os.sub / "mill_modules" / s"${moduleName(resolvedModule.segments)}.iml",
+        os.sub / "mill_modules" / s"${IdeUtils.moduleName(resolvedModule.segments)}.iml",
         moduleXml
       )
 
@@ -874,7 +875,7 @@ class GenIdeaImpl(
       settings: Map[(Seq[os.Path], Seq[String]), Vector[JavaModuleApi]]
   ) = {
     def modulesString(mods: Seq[ModuleApi]) =
-      mods.map(m => moduleName(m.moduleSegments)).mkString(",")
+      mods.map(m => IdeUtils.moduleName(m.moduleSegments)).mkString(",")
 
     val orderedSettings = settings.toSeq.map {
       case ((plugins, params), mods) => ((plugins, params), modulesString(mods))
@@ -922,23 +923,6 @@ class GenIdeaImpl(
 }
 
 object GenIdeaImpl {
-
-  /**
-   * Create the module name (to be used by Idea) for the module based on it segments.
-   *
-   * @see [[Module.moduleSegments]]
-   */
-  def moduleName(p: Segments): String =
-    p.value
-      .foldLeft(new StringBuilder()) {
-        case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
-        case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
-        case (sb, Segment.Label(s)) => sb.append(".").append(s)
-        case (sb, Segment.Cross(s)) => sb.append("-").append(s.mkString("-"))
-      }
-      .mkString
-      .toLowerCase()
-
   def allJars(classloader: ClassLoader): Seq[URL] = {
     allClassloaders(classloader)
       .collect { case t: java.net.URLClassLoader => t.getURLs }

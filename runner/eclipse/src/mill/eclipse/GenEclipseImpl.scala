@@ -11,6 +11,7 @@ import mill.api.daemon.internal.{
   TaskApi,
   TestModuleApi
 }
+import mill.scalalib.internal.IdeUtils
 
 import java.nio.file.{Files, Path, Paths}
 import scala.collection.mutable
@@ -165,7 +166,7 @@ class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
 
     for ((path, value) <- resolvedJavaModules) {
       val projectModule = value.resolvedModule
-      val projectName = moduleName(projectModule.segments, path)
+      val projectName = IdeUtils.moduleName(projectModule.segments, path)
       val isMainTestModule = isTestModule(projectModule.module)
 
       // By default source folders are inside the Eclipse JDT Project and therefore we create a
@@ -412,30 +413,6 @@ object GenEclipseImpl {
     }
 
     Library(dependencyPath, sourcesJarPath, javadocJarPath)
-  }
-
-  /**
-   *  Create the module name (to be used by Eclipse) for the module based on it segments. If the
-   *  segments yield no result, use the Mill Module folder name.
-   *
-   *  @see [[Module.moduleSegments]]
-   */
-  private def moduleName(segments: Segments, path: Path): String = {
-    val name = segments.value
-      .foldLeft(new StringBuilder()) {
-        case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
-        case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
-        case (sb, Segment.Label(s)) => sb.append(".").append(s)
-        case (sb, Segment.Cross(s)) => sb.append("-").append(s.mkString("-"))
-      }
-      .mkString
-      .toLowerCase()
-
-    // If for whatever reason no name could be created based on the module segments, create a
-    // generic one from the Mill Module folder name. Users can rename the project inside the
-    // Eclipse IDE if they like.
-    if (name.isBlank) path.getFileName.toString
-    else name
   }
 
   /**
