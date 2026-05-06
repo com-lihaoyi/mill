@@ -96,7 +96,7 @@ class UnitTester(
         errorColor = mill.internal.Colors.Default.error,
         successColor = mill.internal.Colors.Default.success,
         highlightColor = mill.internal.Colors.Default.highlight,
-        systemStreams0 = SystemStreams(out = outStream, err = errStream, in = inStream),
+        systemStreams0 = new SystemStreams(out = outStream, err = errStream, in = inStream),
         debugEnabled = debugEnabled,
         titleText = "",
         terminalDimsCallback = () => None,
