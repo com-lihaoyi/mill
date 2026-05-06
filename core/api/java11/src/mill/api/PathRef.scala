@@ -98,7 +98,7 @@ object PathRef {
   }
 
   def apply(path: os.Path, quick: Boolean, sig: Int, revalidate: Revalidate): PathRef =
-    PathRef(path, quick, sig, revalidate)
+    new PathRef(path, quick, sig, revalidate)
 
   /**
    * Create a [[PathRef]] by recursively digesting the content of a given `path`.
