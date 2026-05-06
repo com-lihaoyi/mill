@@ -99,7 +99,13 @@ object KotlinJsNodeRunTests extends TestSuite {
     test("split - no module") {
       testEval().scoped { eval =>
 
-        val Left(_) = eval.apply(module.foo(true, "no").run()).runtimeChecked
+        // Kotlin 2.2.20 only warns ("No module type is selected for the
+        // executable, but multiple .js files found in the output folder")
+        // instead of failing for this combination.
+        val command = module.foo(true, "no").run()
+        val Right(_) = eval.apply(command).runtimeChecked
+
+        assertLogContains(eval, command, expectedSuccessOutput)
       }
     }
 
