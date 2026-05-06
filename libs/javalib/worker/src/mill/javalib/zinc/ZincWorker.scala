@@ -251,6 +251,10 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
         failWithFirstError = true,
         logger = msg => processConfig.log.debug(msg)
       ) {
+        // Make retries idempotent: scaladoc rejects `-d` if the dir is missing,
+        // and a failed first attempt can leave it in a state the second
+        // rejects, masking the real error from the first run.
+        os.makeDir.all(op.workDir)
         if (
           JvmWorkerUtil.isDotty(op.scalaVersion) || JvmWorkerUtil.isScala3Milestone(op.scalaVersion)
         ) {
