@@ -281,10 +281,10 @@ object Deps {
   val jgit = mvn"org.eclipse.jgit:org.eclipse.jgit:6.10.1.202505221210-r"
 
   object RuntimeDeps {
-    val dokkaVersion_runtime = "2.0.0"
+    val dokkaVersion_runtime = "2.2.0"
     val koverVersion_runtime = "0.8.3"
 
-    val detektCli_runtime = mvn"io.gitlab.arturbosch.detekt:detekt-cli:1.23.7"
+    val detektCli_runtime = mvn"io.gitlab.arturbosch.detekt:detekt-cli:1.23.8"
     val dokkaAnalysisDescriptors_runtime =
       mvn"org.jetbrains.dokka:analysis-kotlin-descriptors:$dokkaVersion_runtime"
     val dokkaBase_runtime = mvn"org.jetbrains.dokka:dokka-base:$dokkaVersion_runtime"

@@ -4,4 +4,4 @@ kotlinVersion: 2.2.20
 mvnDeps: [org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3]
 
 # Specify the Kotlin compiler plugins
-kotlincPluginMvnDeps: [org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:1.9.24]
+kotlincPluginMvnDeps: [org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:2.2.20]
