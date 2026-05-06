@@ -540,8 +540,10 @@ object Jvm {
     // for JDK 23+; older JDKs reject the flags so the detection is required.
     // (`dist/package.mill`'s `launcherScript` inlines the same logic until
     // the bootstrap Mill is rebootstrapped onto a build shipping this param.)
-    val (shellJdk23Detect, shellJdk23Inject) = jdk23PlusUnsafeShellSnippet(suppressJdk23PlusUnsafeWarnings)
-    val (cmdJdk23Detect, cmdJdk23Inject) = jdk23PlusUnsafeCmdSnippet(suppressJdk23PlusUnsafeWarnings)
+    val (shellJdk23Detect, shellJdk23Inject) =
+      jdk23PlusUnsafeShellSnippet(suppressJdk23PlusUnsafeWarnings)
+    val (cmdJdk23Detect, cmdJdk23Inject) =
+      jdk23PlusUnsafeCmdSnippet(suppressJdk23PlusUnsafeWarnings)
 
     universalScript(
       shellCommands = {
