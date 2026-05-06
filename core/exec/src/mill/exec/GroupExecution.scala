@@ -208,6 +208,25 @@ trait GroupExecution {
 
   val invalidateAllHashes = classLoaderSigHash + javaHomeHash
 
+  /**
+   * Returns the inputs Mill should walk for `task`. A `Task.Named` whose value
+   * is supplied entirely by a non-`!append` YAML config override returns `Nil`,
+   * because that override short-circuits the task body in
+   * [[executeGroupCached]] and pulling its declared dependencies into the
+   * build graph would execute unrelated code (issue #7083).
+   */
+  private[mill] def effectiveInputs(task: Task[?]): Seq[Task[?]] = task match {
+    case named: Task.Named[?] =>
+      val segs = named.ctx.segments.render
+      val dynamicBuildOverride = named.ctx.enclosingModule.moduleDynamicBuildOverrides
+      val overrideOpt = staticBuildOverrides.get(segs).orElse(dynamicBuildOverride.get(segs))
+      overrideOpt match {
+        case Some(located) if !located.value.append => Nil
+        case _ => named.inputs
+      }
+    case _ => task.inputs
+  }
+
   // those result which are inputs but not contained in this terminal group
   def executeGroupCached(
       terminal: Task[?],
@@ -230,7 +249,7 @@ trait GroupExecution {
       // The order of tasks within a is unstable, so use `unorderedHash` to
       // make sure we get a stable hash out of it
       val externalInputsHash = MurmurHash3.unorderedHash(
-        group.iterator.flatMap(_.inputs).filterNot(group.contains)
+        group.iterator.flatMap(effectiveInputs).filterNot(group.contains)
           .flatMap(results(_).asSuccess.map(_.value._2))
       )
       val sideHashes = MurmurHash3.unorderedHash(group.iterator.map(_.sideHash))
