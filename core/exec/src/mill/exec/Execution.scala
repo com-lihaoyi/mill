@@ -172,8 +172,8 @@ case class Execution(
       classToTransitiveClasses,
       allTransitiveClassMethods
     ) = planningLogger.withPromptLine {
-      val plan = PlanImpl.plan(goals)
-      val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
+      val plan = PlanImpl.plan(goals, effectiveInputs)
+      val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups, effectiveInputs)
       val indexToTerminal = plan.sortedGroups.keys().toArray
       ExecutionLogs.logDependencyTree(
         interGroupDeps,
@@ -207,9 +207,10 @@ case class Execution(
         s"$completedMsg$keySuffix$extraKeySuffix${Execution.formatFailedCount(rootFailedCount.get(), completed, logger.prompt.errorColor, logger.prompt.successColor)}"
       }
 
-      val tasksTransitive = PlanImpl.transitiveTasks(Seq.from(indexToTerminal)).toSet
+      val tasksTransitive =
+        PlanImpl.transitiveTasks(Seq.from(indexToTerminal), effectiveInputs).toSet
       val downstreamEdges: Map[Task[?], Set[Task[?]]] =
-        tasksTransitive.flatMap(t => t.inputs.map(_ -> t)).groupMap(_._1)(_._2)
+        tasksTransitive.flatMap(t => effectiveInputs(t).map(_ -> t)).groupMap(_._1)(_._2)
 
       val allExclusiveCommands = tasksTransitive.filter(_.isExclusiveCommand)
       val downstreamOfExclusive =
@@ -593,8 +594,10 @@ object Execution {
     }
   }
 
-  def findInterGroupDeps(sortedGroups: MultiBiMap[Task[?], Task[?]])
-      : Map[Task[?], Seq[Task[?]]] = {
+  def findInterGroupDeps(
+      sortedGroups: MultiBiMap[Task[?], Task[?]],
+      effectiveInputs: Task[?] => Seq[Task[?]] = _.inputs
+  ): Map[Task[?], Seq[Task[?]]] = {
     val out = Map.newBuilder[Task[?], Seq[Task[?]]]
     val terminalOrder = sortedGroups.keys().zipWithIndex.toMap
     for ((terminal, group) <- sortedGroups) {
@@ -602,7 +605,7 @@ object Execution {
       val deps = mutable.LinkedHashSet.empty[Task[?]]
       for {
         task <- group
-        input <- task.inputs
+        input <- effectiveInputs(task)
         if !groupSet.contains(input)
       } input match {
         // Anonymous tasks aren't deterministic group cut-points
