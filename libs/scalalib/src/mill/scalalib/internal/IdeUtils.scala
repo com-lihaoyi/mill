@@ -6,6 +6,7 @@ import mill.api.*
 import java.nio.file.Path
 
 object IdeUtils {
+
   /**
    * Create the module name (to be used by an IDE) for the module based on its segments.
    *

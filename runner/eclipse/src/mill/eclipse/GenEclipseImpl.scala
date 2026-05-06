@@ -1,7 +1,6 @@
 package mill.eclipse
 
 import mill.api.daemon.internal.eclipse.ResolvedModule
-import mill.api.daemon.{Segment, Segments}
 import mill.api.daemon.internal.{
   EvaluatorApi,
   JavaModuleApi,
