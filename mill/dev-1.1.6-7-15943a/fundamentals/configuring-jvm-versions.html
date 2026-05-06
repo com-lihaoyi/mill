@@ -762,7 +762,7 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>By default, Mill uses the same JVM that it itself is running on to compile/test/run
-Java/Scala/Kotlin modules, defaulting to <code>zulu:21</code> unless you have
+Java/Scala/Kotlin modules, defaulting to <code>zulu:25</code> unless you have
 specified some other <code>mill-jvm-version</code> explicitly in your <a href="../cli/build-header.html" class="xref page">Build Header Config</a>, or
 configured a <code>def jvmVersion</code> on individual modules. Mill manages these JVMs automatically for
 you, downloading and caching them on demand, so you generally never need to worry about
@@ -774,7 +774,7 @@ installing a JVM globally when working with a Mill project.</p>
 <h2 id="_using_mills_built_in_jvm"><a class="anchor" href="#_using_mills_built_in_jvm"></a>Using Mill&#8217;s Built-in JVM</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill comes with a managed JVM (default <code>zulu:21</code>) that it
+<p>Mill comes with a managed JVM (default <code>zulu:25</code>) that it
 uses for itself that also acts as the default JVM
 for any modules you define. You can use this JVM yourself via the builtin command
 <code>./mill java</code>, <code>javac</code>, <code>javap</code>, <code>jps</code>, <code>jstack</code>, etc.:</p>

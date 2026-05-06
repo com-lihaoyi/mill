@@ -768,22 +768,27 @@
 <div class="paragraph">
 <p>This example also showcases the support for Robolectric tests which are configured to run on the JVM and not on an Android device, allowing for faster test execution and easier debugging.</p>
 </div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-16-d1e57e/mill-dist-1.1.6-example-thirdparty-koin-androidx-samples.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/thirdparty/koin-androidx-samples">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: zulu:21
+
+import mill.*, androidlib.*, kotlinlib.*</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>Create and configure an Android SDK module to manage Android SDK paths and tools.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-14-4cf459/mill-dist-1.1.6-example-thirdparty-koin-androidx-samples.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/thirdparty/koin-androidx-samples">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*, androidlib.*, kotlinlib.*
-
-object androidSdkModule0 extends AndroidSdkModule {
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = "35.0.0"
 }
 
 object examples extends mill.api.Module {
   object `androidx-samples` extends AndroidAppKotlinModule, AndroidR8AppModule {
 
-    def kotlinVersion = "2.0.20"
+    def kotlinVersion = "2.2.20"
 
     def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 
