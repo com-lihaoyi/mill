@@ -44,12 +44,12 @@ object IncrementalAnnotationProcessingTests extends TestSuite {
 
     object lombok extends JavaModule {
       def mvnDeps = Seq(
-        mvn"org.projectlombok:lombok:1.18.38",
+        mvn"org.projectlombok:lombok:1.18.46",
         mvn"org.slf4j:slf4j-api:2.0.17"
       )
 
       override def annotationProcessorsMvnDeps: T[Seq[Dep]] = Task {
-        Seq(mvn"org.projectlombok:lombok:1.18.38")
+        Seq(mvn"org.projectlombok:lombok:1.18.46")
       }
     }
 

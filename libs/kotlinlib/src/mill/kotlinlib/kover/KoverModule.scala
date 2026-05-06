@@ -33,7 +33,7 @@ import mill.api.BuildCtx
  * import mill.kotlinlib.kover.KoverModule
  *
  * object foo extends KotlinModule with KoverModule {
- *   def kotlinVersion = "2.0.20"
+ *   def kotlinVersion = "2.2.20"
  *
  *   object test extends KotlinTests with KoverTests
  * }

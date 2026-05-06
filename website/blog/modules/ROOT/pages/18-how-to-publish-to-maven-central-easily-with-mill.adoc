@@ -256,7 +256,7 @@ written in:
 ```java
 > ./mill --import com.lihaoyi:example:0.0.1 jshell
 jshell> bar.Bar.main(null)
-Hello Published: 21.0.10
+Hello Published: 25.0.2
 ```
 
 

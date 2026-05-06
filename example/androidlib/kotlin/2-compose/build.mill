@@ -1,3 +1,4 @@
+//| mill-jvm-version: zulu:21
 // This section sets up a basic Jetpack Compose project using Mill.
 // We utilize `AndroidAppKotlinModule` and `AndroidSdkModule` to streamline the process of
 // building an Android application with minimal configuration.
@@ -22,7 +23,7 @@ object androidSdkModule0 extends AndroidSdkModule {
 // Actual android application
 object app extends AndroidAppKotlinModule {
 
-  def kotlinVersion = "2.0.21"
+  def kotlinVersion = "2.2.20"
   def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidCompileSdk = 35
   def androidMinSdk = 26

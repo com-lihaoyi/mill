@@ -202,6 +202,9 @@ object Logger {
 
     private[mill] def enableTicker: Boolean
 
+    /** True for sinks (e.g. `BspLogger`) whose prompt-line prefix doesn't name the lock. */
+    private[mill] def waitMessageNeedsLabel: Boolean = false
+
     def infoColor(s: String): String
     def warnColor(s: String): String
     def errorColor(s: String): String

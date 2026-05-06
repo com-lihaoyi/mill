@@ -222,12 +222,12 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "<digits>] [error] broken/src/Foo.java:1:1",
           "<digits>] ?",
           "<digits>] ^",
-          "<digits>] class, interface, enum, or record expected",
+          "<digits>] class, interface, annotation type, enum, record, method or field expected",
           "<digits>] ",
           "<digits>] [error] broken/src/Foo.java:1:1",
           "<digits>] ?",
           "<digits>] ^",
-          "<digits>] class, interface, enum, or record expected",
+          "<digits>] class, interface, annotation type, enum, record, method or field expected",
           "<digits>] ",
           ".../..., 2 FAILED] mill {brokenN,brokenN}.compile",
           "<digits>] [error] brokenN.compile javac returned non-zero exit code",
@@ -242,7 +242,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "[error] broken/src/Foo.java:1:1",
           "?",
           "^",
-          "class, interface, enum, or record expected",
+          "class, interface, annotation type, enum, record, method or field expected",
           ""
         )
       )
@@ -253,7 +253,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "[error] broken/src/Foo.java:1:1",
           "?",
           "^",
-          "class, interface, enum, or record expected",
+          "class, interface, annotation type, enum, record, method or field expected",
           ""
         )
       )

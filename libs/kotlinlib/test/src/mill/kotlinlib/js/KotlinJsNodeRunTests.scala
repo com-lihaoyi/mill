@@ -10,7 +10,7 @@ import utest.{TestSuite, Tests, test}
 object KotlinJsNodeRunTests extends TestSuite {
 
   private val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "kotlin-js"
-  private val kotlinVersion = "1.9.25"
+  private val kotlinVersion = "2.2.20"
   private val expectedSuccessOutput = "Hello, world"
 
   object module extends TestRootModule {
@@ -99,7 +99,13 @@ object KotlinJsNodeRunTests extends TestSuite {
     test("split - no module") {
       testEval().scoped { eval =>
 
-        val Left(_) = eval.apply(module.foo(true, "no").run()).runtimeChecked
+        // Kotlin 2.2.20 only warns ("No module type is selected for the
+        // executable, but multiple .js files found in the output folder")
+        // instead of failing for this combination.
+        val command = module.foo(true, "no").run()
+        val Right(_) = eval.apply(command).runtimeChecked
+
+        assertLogContains(eval, command, expectedSuccessOutput)
       }
     }
 

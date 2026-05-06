@@ -187,6 +187,18 @@ object MillProcessLauncher {
 
   def isWin: Boolean = System.getProperty("os.name", "").startsWith("Windows")
 
+  /** Major version of the daemon JVM, parsed from `mill-jvm-version` (e.g. `zulu:25` → 25). */
+  def resolvedJvmMajor(workDir: os.Path): Option[Int] = {
+    val jvmVersion = loadMillConfig(ConfigConstants.millJvmVersion, workDir)
+      .headOption
+      .getOrElse(BuildInfo.defaultJvmVersion)
+    if (jvmVersion == null || jvmVersion == "system") None
+    else jvmVersion.split(":").lastOption.flatMap(_.split('.').headOption).flatMap(s =>
+      try Some(s.toInt)
+      catch { case _: NumberFormatException => None }
+    )
+  }
+
   def javaHome(
       env: Map[String, String],
       workDir: os.Path,
@@ -243,10 +255,21 @@ object MillProcessLauncher {
       "-Dsun.stderr.encoding=UTF-8"
     )
 
+    // Suppress JDK 23+ warnings emitted by transitive dependencies (Scala's
+    // LazyVals via sun.misc.Unsafe, swoval's NativeLoader via System.loadLibrary)
+    // so they don't leak into stderr-sensitive tooling like BSP or golden-text
+    // tests. Gated on the resolved daemon JVM's major version because the
+    // flags are unrecognized (and rejected) by older JDKs.
+    val jdk23PlusOpts =
+      if (resolvedJvmMajor(workDir).exists(_ >= 23))
+        Seq("--sun-misc-unsafe-memory-access=allow", "--enable-native-access=ALL-UNNAMED")
+      else Nil
+
     Seq(javaExe(env, workDir, millRepositories)) ++
       millProps ++
       serverTimeoutOpt ++
       encodingOpts ++
+      jdk23PlusOpts ++
       loadMillConfig(ConfigConstants.millJvmOpts, workDir) ++
       Seq("-cp", runnerClasspath.mkString(File.pathSeparator))
   }

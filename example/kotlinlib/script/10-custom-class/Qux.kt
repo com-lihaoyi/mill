@@ -1,5 +1,5 @@
 //| extends: millbuild.LineCountKotlinModule
-//| kotlinVersion: 2.0.20
+//| kotlinVersion: 2.2.20
 package qux
 
 fun getLineCount(): String =

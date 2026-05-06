@@ -1136,6 +1136,44 @@ $ ./mill app.squeryGenerate
 ----
 
 
+== Strict Deps
+
+`mill-strict-deps` implements the idea from
+https://blog.bazel.build/2017/06/28/sjd-unused_deps.html[Bazel's Strict Java Deps and unused_deps]
+for Mill JVM modules. It compares declared direct internal module dependencies
+against class usage recorded in Zinc analysis, then reports unused direct module
+dependencies and transitive module dependencies that should be declared directly.
+
+Project home: https://github.com/nguyenyou/mill-strict-deps
+
+.`build.mill`
+[source,scala]
+----
+//| mvnDeps:
+//|   - io.github.nguyenyou::mill-strict-deps::0.1.0
+
+import mill.*
+import mill.scalalib.*
+import io.github.nguyenyou.millstrictdeps.StrictDepsModule
+
+object app extends ScalaModule with StrictDepsModule {
+  def scalaVersion = "3.8.3"
+  def moduleDeps = Seq(core)
+}
+----
+
+[source,console]
+----
+> ./mill app.strictDepsReport
+> ./mill app.strictDepsJsonReport
+> ./mill app.strictDepsFixPlan
+> ./mill app.strictDepsCheck
+----
+
+`strictDepsCheck` fails when a module has unused direct module dependencies or
+uses transitive module dependencies without declaring them directly.
+
+
 == Universal Packager
 
 Support universal archive packaging for Java application with Mill, ported from sbt-native-packager.

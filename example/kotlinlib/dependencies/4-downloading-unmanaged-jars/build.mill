@@ -4,7 +4,7 @@ import mill.*, kotlinlib.*
 
 object `package` extends KotlinModule {
 
-  def kotlinVersion = "1.9.24"
+  def kotlinVersion = "2.2.20"
 
   def unmanagedClasspath = Task {
     if (Task.offline) Task.fail("Cannot download classpath when in offline-mode") // <1>

@@ -31,7 +31,7 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       launcher.containsLines(blockedLine(command, pid, taskName, "read"))
 
   private def blockedLine(command: String, pid: Long, taskName: String, kind: String): String =
-    s"blocked on $kind lock '$taskName' command '$command' PID $pid"
+    s"blocked on $kind lock '$taskName' PID $pid '$command'"
 
   /**
    * Exact set of "blocked on ... lock ..." lines this launcher emitted.
@@ -218,7 +218,7 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
         launcher2,
         "runHoldMetaBuildRead",
         blockerPid,
-        "mill-build/build.mill"
+        "build.mill"
       ))
       assert(launcher2.process.isAlive())
       assert(!launcher2.containsLines("shared-value"))
@@ -235,7 +235,7 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       assertContention(launcher1, Set.empty)
       assertContention(
         launcher2,
-        Set(blockedLine("runHoldMetaBuildRead", blockerPid, "mill-build/build.mill", "write"))
+        Set(blockedLine("runHoldMetaBuildRead", blockerPid, "build.mill", "write"))
       )
     }
 

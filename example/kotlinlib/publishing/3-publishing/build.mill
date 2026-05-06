@@ -4,7 +4,7 @@ import mill.*, kotlinlib.*, publish.*
 
 object foo extends KotlinModule, PublishModule {
 
-  def kotlinVersion = "1.9.24"
+  def kotlinVersion = "2.2.20"
 
   def publishVersion = "0.0.1"
 
