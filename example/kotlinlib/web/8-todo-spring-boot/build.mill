@@ -2,7 +2,7 @@ package build
 import mill.*, kotlinlib.*
 
 object `package` extends KotlinModule {
-  def kotlinVersion = "1.9.24"
+  def kotlinVersion = "2.2.20"
 
   def mainClass = Some("com.example.TodomvcApplicationKt")
   def mvnDeps = Seq(

@@ -1,3 +1,4 @@
+//| mill-jvm-version: zulu:21
 // This section demonstrates how to set up an Android library module written in Kotlin for publishing.
 // In addition to AndroidKotlinModule, we utilize `AndroidLibModule`, which extends `PublishModule` to enable seamless
 // library building (AAR artifact) and local publishing with minimal configuration.
@@ -21,7 +22,7 @@ object lib extends AndroidKotlinModule, AndroidLibModule {
   def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
   def androidCompileSdk = 35
-  def kotlinVersion = "2.0.20"
+  def kotlinVersion = "2.2.20"
 
   def androidLibPackage = "com.example"
 
@@ -43,7 +44,7 @@ object lib extends AndroidKotlinModule, AndroidLibModule {
 
 object app extends AndroidAppKotlinModule {
 
-  def kotlinVersion = "2.0.20"
+  def kotlinVersion = "2.2.20"
   def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
   def androidCompileSdk = 35

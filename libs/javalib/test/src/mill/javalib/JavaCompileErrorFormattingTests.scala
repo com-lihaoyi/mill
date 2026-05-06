@@ -141,16 +141,10 @@ object JavaCompileErrorFormattingTests extends TestSuite {
         checkLines("java-parse-toplevel"),
         List(
           "compiling 1 Java source to out/core/compile.dest/classes ...",
-          "[error] core/src/Foo.java:3:1",
-          "int x = 1;",
-          "^",
-          "unnamed classes are a preview feature and are disabled by default.",
-          "  (use --enable-preview to enable unnamed classes)",
-          "",
           "[error] core/src/Foo.java:1:1",
           "package javaParseToplevel;",
           "^",
-          "unnamed class should not have package declaration",
+          "compact source file should not have package declaration",
           "",
           "[error] core.compile task failed"
         )

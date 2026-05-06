@@ -1,4 +1,7 @@
 extends: JavaModule
 
-# Auto-discovery of annotation processors via compileMvnDeps
-compileMvnDeps: [org.projectlombok:lombok:1.18.34]
+# Auto-discovery of annotation processors via compileMvnDeps. JDK 23+ requires
+# `-proc:full` to enable implicit annotation processing (it warns/disabled by
+# default), so pass that flag through.
+compileMvnDeps: [org.projectlombok:lombok:1.18.46]
+javacOptions: [-proc:full]

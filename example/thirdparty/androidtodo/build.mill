@@ -5,7 +5,7 @@ import kotlinlib.ksp.KspModule
 import hilt.AndroidHiltSupport
 
 object Versions {
-  val kotlinVersion = "2.2.0"
+  val kotlinVersion = "2.2.20"
 
   val kspVersion = "2.0.2"
   val kspJvmTarget = "17"

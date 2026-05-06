@@ -19,7 +19,7 @@ object MillGradleBuildGenMain {
   @mainargs.main(doc = "Generates Mill build files that are derived from a Gradle build.")
   def init(
       @mainargs.arg(doc = "Coursier ID for the JVM to run Gradle")
-      gradleJvmId: String = "system",
+      gradleJvmId: String = "zulu:21",
       @mainargs.arg(doc = "merge package.mill files in to the root build.mill file")
       merge: mainargs.Flag,
       @mainargs.arg(doc = "disable generating meta-build files")
@@ -65,7 +65,7 @@ object MillGradleBuildGenMain {
           connection =>
             val model = connection.model(classOf[BuildModel])
               .addArguments("--init-script", initScript.toString)
-              .setJavaHome(Jvm.resolveJavaHome(gradleJvmId).get.toIO)
+              .setJavaHome(macosJdkBundleHome(Jvm.resolveJavaHome(gradleJvmId).get).toIO)
               .setStandardOutput(System.out).get
             upickle.default.read[Seq[PackageSpec]](model.asJson)
         }
@@ -92,6 +92,20 @@ object MillGradleBuildGenMain {
       millJvmOpts = millJvmOpts
     )
   }
+
+  /**
+   * Coursier extracts a macOS Zulu/JDK archive whose top level contains both a
+   * Linux-style `bin/` layout and a macOS bundle layout `*.jdk/Contents/Home`.
+   * Coursier returns the outer directory, but Gradle's daemon canonicalises
+   * `JAVA_HOME` to `Contents/Home` and refuses to reuse a daemon when the two
+   * differ. Pre-resolve to the bundle's `Contents/Home` when present.
+   */
+  private def macosJdkBundleHome(javaHome: os.Path): os.Path =
+    if (!scala.util.Properties.isMac) javaHome
+    else os.list(javaHome)
+      .find(p => p.last.endsWith(".jdk") && os.exists(p / "Contents" / "Home" / "bin" / "java"))
+      .map(_ / "Contents" / "Home")
+      .getOrElse(javaHome)
 
   private def normalizeBuild(packages: Seq[PackageSpec]) = {
     val moduleLookup = packages.flatMap(_.modulesBySegments).toMap

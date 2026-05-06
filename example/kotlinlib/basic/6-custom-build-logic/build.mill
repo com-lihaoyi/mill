@@ -4,7 +4,7 @@ import mill.*, kotlinlib.*
 
 object foo extends KotlinModule {
 
-  def kotlinVersion = "1.9.24"
+  def kotlinVersion = "2.2.20"
 
   def mainClass = Some("foo.FooKt")
 

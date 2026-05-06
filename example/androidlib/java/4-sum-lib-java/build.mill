@@ -1,3 +1,4 @@
+//| mill-jvm-version: zulu:21
 // This section demonstrates how to set up an Android library module written in Java for publishing.
 // We utilize `AndroidLibModule`, which extends `PublishModule` to enable seamless
 // library (AAR artifact) building and local publishing with minimal configuration.
