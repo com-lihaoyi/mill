@@ -94,9 +94,9 @@ object ExecutionContexts {
     def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(using
         ctx: mill.api.TaskCtx
     ): Future[T] = {
-      val logger = new MultiLogger(
-        new PrefixLogger(ctx.log, Seq(key), ctx.log.keySuffix, message),
-        new FileLogger(dest / os.up / s"${dest.last}.log", false),
+      val logger = MultiLogger(
+        PrefixLogger(ctx.log, Seq(key), ctx.log.keySuffix, message),
+        FileLogger(dest / os.up / s"${dest.last}.log", false),
         ctx.log.streams.in
       )
 
@@ -142,7 +142,7 @@ object ExecutionContexts {
   def createExecutor(threadCount: Int): ThreadPoolExecutor = {
     val executorIndex = executorCounter.incrementAndGet()
     val threadCounter = new AtomicInteger
-    new ThreadPoolExecutor(
+    ThreadPoolExecutor(
       threadCount,
       threadCount,
       60 * 1000,
@@ -150,10 +150,10 @@ object ExecutionContexts {
       // Use a priority queue so child `fork.async` tasks can run ahead of
       // lower-priority parent tasks, avoiding large numbers of blocked parent
       // tasks from piling up.
-      new PriorityBlockingQueue[Runnable](),
+      PriorityBlockingQueue[Runnable](),
       runnable => {
         val threadIndex = threadCounter.incrementAndGet()
-        val t = new Thread(
+        val t = Thread(
           runnable,
           s"execution-contexts-threadpool-$executorIndex-thread-$threadIndex"
         )

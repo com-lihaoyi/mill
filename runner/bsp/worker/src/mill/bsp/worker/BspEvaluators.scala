@@ -43,7 +43,7 @@ class BspEvaluators(
       disabled = disabledBspModules.contains(bspModule)
       _ = if (disabled) eval.baseLogger.info(s"BSP disabled for target $uri")
       if !disabled
-    } yield (new BuildTargetIdentifier(uri), (bspModule, eval))
+    } yield (BuildTargetIdentifier(uri), (bspModule, eval))
 
   /**
    * Extract paths from input task results by traversing task graphs to find Task.Input roots,

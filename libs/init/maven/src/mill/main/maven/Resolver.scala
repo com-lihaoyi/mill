@@ -25,14 +25,14 @@ class Resolver(
   private var repositories = remotes
 
   override def resolveModel(groupId: String, artifactId: String, version: String): ModelSource = {
-    val artifact = new DefaultArtifact(groupId, artifactId, "", "pom", version)
-    val request = new ArtifactRequest(artifact, repositories.asJava, context)
+    val artifact = DefaultArtifact(groupId, artifactId, "", "pom", version)
+    val request = ArtifactRequest(artifact, repositories.asJava, context)
     try {
       val result = system.resolveArtifact(session, request)
-      new FileModelSource(result.getArtifact.getFile)
+      FileModelSource(result.getArtifact.getFile)
     } catch {
       case e: ArtifactResolutionException =>
-        throw new UnresolvableModelException(e.getMessage, groupId, artifactId, version, e)
+        throw UnresolvableModelException(e.getMessage, groupId, artifactId, version, e)
     }
   }
 
@@ -54,5 +54,5 @@ class Resolver(
   }
 
   override def newCopy(): ModelResolver =
-    new Resolver(system, session, repositories, context)
+    Resolver(system, session, repositories, context)
 }

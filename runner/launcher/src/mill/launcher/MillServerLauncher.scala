@@ -66,10 +66,10 @@ class MillServerLauncher(
   ): Int = {
     val stdout = streamsOpt.map(_.out).getOrElse(System.out)
     val stderr = streamsOpt.map(_.err).getOrElse(System.err)
-    val exitCode = new AtomicInteger(-1)
+    val exitCode = AtomicInteger(-1)
     try {
-      val socketIn = new BufferedReader(new InputStreamReader(socket.getInputStream))
-      val socketOut = new PrintStream(socket.getOutputStream, true)
+      val socketIn = BufferedReader(InputStreamReader(socket.getInputStream))
+      val socketOut = PrintStream(socket.getOutputStream, true)
 
       val init = DaemonRpc.Initialize(
         interactive = Util.hasConsole(),
@@ -83,8 +83,8 @@ class MillServerLauncher(
         millRepositories = millRepositories
       )
 
-      val stdoutPs = new PrintStream(stdout, true)
-      val stderrPs = new PrintStream(stderr, true)
+      val stdoutPs = PrintStream(stdout, true)
+      val stderrPs = PrintStream(stderr, true)
 
       val stdoutHandler: RpcConsole.Message => Unit = {
         case RpcConsole.Message.Print(s) => stdoutPs.print(s)
@@ -116,7 +116,7 @@ class MillServerLauncher(
         commandThread.start()
         log(s"Force failure for testing in ${forceFailureForTestingMillisDelay}ms: $daemonDir")
         Thread.sleep(forceFailureForTestingMillisDelay)
-        throw new RuntimeException(s"Force failure for testing: $daemonDir")
+        throw RuntimeException(s"Force failure for testing: $daemonDir")
       }
 
       val result = client(DaemonRpc.ClientToServer.RunCommand())
@@ -127,7 +127,7 @@ class MillServerLauncher(
       case e: RuntimeException if e.getMessage.startsWith("Force failure for testing:") =>
         throw e // Re-throw test exceptions
       case e: Exception =>
-        e.printStackTrace(new PrintStream(stderr))
+        e.printStackTrace(PrintStream(stderr))
         if (exitCode.get() < 0) exitCode.set(1)
         exitCode.get()
     }

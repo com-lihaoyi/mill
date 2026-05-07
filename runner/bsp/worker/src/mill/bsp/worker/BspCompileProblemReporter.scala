@@ -32,8 +32,8 @@ private class BspCompileProblemReporter(
 ) extends CompileProblemReporter {
   // Concurrent BSP requests can target the same compile, so all mutable state
   // here is thread-safe.
-  private val errors = new AtomicInteger(0)
-  private val warnings = new AtomicInteger(0)
+  private val errors = AtomicInteger(0)
+  private val warnings = AtomicInteger(0)
 
   // no need of a limit here, there's no console not to flood in BSP mode
   override def maxErrors: Int = Int.MaxValue
@@ -65,7 +65,7 @@ private class BspCompileProblemReporter(
       // are sent at least once, even when there are none
       map.computeIfAbsent(
         textDocument,
-        _ => new Details(new java.util.ArrayList, new java.util.HashSet, true)
+        _ => Details(new java.util.ArrayList, new java.util.HashSet, true)
       )
     def add(textDocument: TextDocumentIdentifier, diagnostic: Diagnostic): Boolean =
       details(textDocument).add(diagnostic)
@@ -97,14 +97,14 @@ private class BspCompileProblemReporter(
           case mill.api.daemon.internal.Warn => MessageType.WARNING
           case mill.api.daemon.internal.Info => MessageType.INFO
         }
-        val msgParam = new LogMessageParams(messagesType, problem.message).tap { it =>
+        val msgParam = LogMessageParams(messagesType, problem.message).tap { it =>
           it.setTask(taskId)
         }
         client.onBuildLogMessage(msgParam)
 
       case Some(f) =>
         val diagnostic = toDiagnostic(problem)
-        val textDocument = new TextDocumentIdentifier(
+        val textDocument = TextDocumentIdentifier(
           // The extra step invoking `toPath` results in a nicer URI starting with `file:///`
           f.toPath.toUri.toString
         )
@@ -170,7 +170,7 @@ private class BspCompileProblemReporter(
 
   override def fileVisited(file: java.nio.file.Path): Unit = {
     val uri = file.toUri.toString
-    val textDocument = new TextDocumentIdentifier(uri)
+    val textDocument = TextDocumentIdentifier(uri)
     val (diagnostics0, hasNewDiagnostics) = diagnostics.getAll(textDocument)
     if (hasNewDiagnostics)
       sendBuildPublishDiagnostics(textDocument, diagnostics0, reset = true)
@@ -181,9 +181,9 @@ private class BspCompileProblemReporter(
   }
 
   override def start(): Unit = {
-    val taskStartParams = new TaskStartParams(taskId).tap { it =>
+    val taskStartParams = TaskStartParams(taskId).tap { it =>
       it.setEventTime(System.currentTimeMillis())
-      it.setData(new CompileTask(targetId))
+      it.setData(CompileTask(targetId))
       it.setDataKind(TaskStartDataKind.COMPILE_TASK)
       it.setMessage(s"Compiling ${targetDisplayName}")
     }
@@ -191,9 +191,9 @@ private class BspCompileProblemReporter(
   }
 
   override def notifyProgress(progress: Long, total: Long): Unit = {
-    val params = new TaskProgressParams(taskId).tap { it =>
+    val params = TaskProgressParams(taskId).tap { it =>
       it.setEventTime(System.currentTimeMillis())
-      it.setData(new CompileTask(targetId))
+      it.setData(CompileTask(targetId))
       it.setDataKind("compile-progress")
       it.setMessage(s"Compiling ${targetDisplayName} (${progress * 100 / total}%)")
       // Not a percentage, but the # of units done,
@@ -208,12 +208,12 @@ private class BspCompileProblemReporter(
     val errorCount = errors.get()
     val warningCount = warnings.get()
     val taskFinishParams =
-      new TaskFinishParams(taskId, if (errorCount > 0) StatusCode.ERROR else StatusCode.OK).tap {
+      TaskFinishParams(taskId, if (errorCount > 0) StatusCode.ERROR else StatusCode.OK).tap {
         it =>
           it.setEventTime(System.currentTimeMillis())
           it.setMessage(s"Compiled ${targetDisplayName}")
           it.setDataKind(TaskFinishDataKind.COMPILE_REPORT)
-          val compileReport = new CompileReport(targetId, errorCount, warningCount).tap { it =>
+          val compileReport = CompileReport(targetId, errorCount, warningCount).tap { it =>
             compilationOriginId.foreach(id => it.setOriginId(id))
           }
           it.setData(compileReport)

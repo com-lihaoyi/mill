@@ -24,7 +24,7 @@ class FileToStreamTailer(file: os.Path, stream: PrintStream, intervalMsec: Int)
           // allocating a NoSuchFileException on every poll while the file is missing.
           if (reader == null) {
             if (os.exists(file)) {
-              try reader = new BufferedReader(new InputStreamReader(os.read.inputStream(file)))
+              try reader = BufferedReader(InputStreamReader(os.read.inputStream(file)))
               catch {
                 case _: java.io.IOException =>
                   // file vanished between the exists check and open

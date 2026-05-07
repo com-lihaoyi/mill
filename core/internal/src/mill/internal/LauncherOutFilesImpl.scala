@@ -22,7 +22,7 @@ private[mill] class LauncherOutFilesImpl(
   override val chromeProfile: java.nio.file.Path = (runDir / OutFiles.millChromeProfile).toNIO
   override val dependencyTree: java.nio.file.Path = (runDir / OutFiles.millDependencyTree).toNIO
   override val invalidationTree: java.nio.file.Path = (runDir / OutFiles.millInvalidationTree).toNIO
-  private val closed = new AtomicBoolean(false)
+  private val closed = AtomicBoolean(false)
 
   private val publishedOutFiles = Seq(
     PublishedOutFile(

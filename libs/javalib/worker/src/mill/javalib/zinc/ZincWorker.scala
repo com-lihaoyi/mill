@@ -251,6 +251,10 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
         failWithFirstError = true,
         logger = msg => processConfig.log.debug(msg)
       ) {
+        // Make retries idempotent: scaladoc rejects `-d` if the dir is missing,
+        // and a failed first attempt can leave it in a state the second
+        // rejects, masking the real error from the first run.
+        os.makeDir.all(op.workDir)
         if (
           JvmWorkerUtil.isDotty(op.scalaVersion) || JvmWorkerUtil.isScala3Milestone(op.scalaVersion)
         ) {
@@ -438,7 +442,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       Optional.empty()
     )
     val incOptions0 = IncOptions.of().withAuxiliaryClassFiles(
-      auxiliaryClassFileExtensions.map(new AuxiliaryClassFileExtension(_)).toArray
+      auxiliaryClassFileExtensions.map(AuxiliaryClassFileExtension(_)).toArray
     ).withExternalHooks(externalHooks)
     // Exclude `-color:*` from Zinc's MiniSetup equivalence check. The option
     // is injected per-client below based on TTY state, so without this,
@@ -604,7 +608,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
     // Use a double-lock here because we need mutex both between threads within this
     // process, as well as between different processes since sometimes we are initializing
     // the compiler bridge inside a separate `ZincWorkerMain` subprocess
-    val doubleLock = new DoubleLock(
+    val doubleLock = DoubleLock(
       memoryLock,
       Lock.forDirectory(
         (compilerBridgeProvider.workspace / "compiler-bridge-locks" / scalaVersion).toString,

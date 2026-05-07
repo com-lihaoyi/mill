@@ -113,7 +113,7 @@ object DiscoveredBuildFiles {
       throw Result.Exception(joinedFailure.error, Some(joinedFailure))
     }
 
-    new DiscoveredBuildFiles(seenScripts.toMap)
+    DiscoveredBuildFiles(seenScripts.toMap)
   }
 
   def fileImportToSegments(base: os.Path, s: os.Path): Seq[String] = {

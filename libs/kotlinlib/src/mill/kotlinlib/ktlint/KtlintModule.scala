@@ -154,7 +154,7 @@ object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskMod
     if (exitCode == 0) {} // do nothing
     else {
       if (ktlintArgs.check) {
-        throw new RuntimeException(s"Ktlint exited abnormally with exit code = $exitCode")
+        throw RuntimeException(s"Ktlint exited abnormally with exit code = $exitCode")
       } else {
         ctx.log.error(s"Ktlint exited abnormally with exit code = $exitCode")
       }

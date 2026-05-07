@@ -8,7 +8,7 @@ import com.google.gson.Gson
 case class Greeting(message: String, version: Int)
 
 object MainActivity {
-  private val gson = new Gson()
+  private val gson = Gson()
 
   def parseMessage(json: String): String = {
     val g = gson.fromJson(json, classOf[Greeting])
@@ -25,7 +25,7 @@ class MainActivity extends Activity {
     val message = MainActivity.parseMessage(json)
 
     // Create a new TextView
-    val textView = new TextView(this)
+    val textView = TextView(this)
     textView.setText(message)
 
     setContentView(textView)

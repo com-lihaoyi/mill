@@ -33,7 +33,7 @@ class DoubleDetMatrix(aa: Float, ab: Float, ba: Float, bb: Float)
 
 class LinkedList {
   def push(i: Int): Unit = {
-    val n = new Inner(i, head)
+    val n = Inner(i, head)
     head = n
   }
 

@@ -206,7 +206,7 @@ trait JavaModule
         case Right(bomDep) => bomDep
       }
     else
-      throw new Exception(
+      throw Exception(
         "Found Bill of Material (BOM) dependencies with invalid parameters:" + System.lineSeparator() +
           malformed.map("- " + _.dep + System.lineSeparator()).mkString +
           "Only organization, name, and version are accepted."
@@ -273,7 +273,7 @@ trait JavaModule
     if (errors.isEmpty)
       keyValuesOrErrors.collect { case Right(kv) => kv }
     else
-      throw new Exception(
+      throw Exception(
         "Found dependency management entries with invalid values. Only organization, name, version, type, classifier, exclusions, and optionality can be specified" + System.lineSeparator() +
           errors.map("- " + _ + System.lineSeparator()).mkString
       )
@@ -1859,14 +1859,14 @@ trait BomModule extends JavaModule {
   abstract override def compile: T[CompilationResult] = Task {
     val sources = allSourceFiles()
     if (sources.nonEmpty)
-      throw new Exception("A BomModule cannot have sources")
+      throw Exception("A BomModule cannot have sources")
     CompilationResult(Task.dest / "zinc", PathRef(Task.dest / "classes"))
   }
 
   abstract override def resources: T[Seq[PathRef]] = Task {
     val value = super.resources()
     if (value.nonEmpty)
-      throw new Exception("A BomModule cannot have resources")
+      throw Exception("A BomModule cannot have resources")
     Seq.empty[PathRef]
   }
 

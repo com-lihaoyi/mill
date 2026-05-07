@@ -29,13 +29,13 @@ def fatalTaskSerializedEx = Task[String] {
       "foo.ThingException",
       "This is a thing exception",
       Seq(
-        new StackTraceElement("Foo", "thing", "Foos.scala", 45),
-        new StackTraceElement("Foo$", "thing$$anon$491", "Foos.scala", 48),
-        new StackTraceElement("Foo$", "thing$$anon$490", "Foos.scala", 51),
-        new StackTraceElement("Foo$", "thing$$anon$489", "Foos.scala", 54),
-        new StackTraceElement("Foo$", "thing$$anon$488", "Foos.scala", 57),
-        new StackTraceElement("Foo$", "thing$$anon$487", "Foos.scala", 60),
-        new StackTraceElement("Foo$", "thing$$anon$486", "Foos.scala", 63)
+        StackTraceElement("Foo", "thing", "Foos.scala", 45),
+        StackTraceElement("Foo$", "thing$$anon$491", "Foos.scala", 48),
+        StackTraceElement("Foo$", "thing$$anon$490", "Foos.scala", 51),
+        StackTraceElement("Foo$", "thing$$anon$489", "Foos.scala", 54),
+        StackTraceElement("Foo$", "thing$$anon$488", "Foos.scala", 57),
+        StackTraceElement("Foo$", "thing$$anon$487", "Foos.scala", 60),
+        StackTraceElement("Foo$", "thing$$anon$486", "Foos.scala", 63)
       )
     ),
     null
@@ -48,13 +48,13 @@ def fatalTaskNoSharedStackTrace = Task[String] {
     override def toString: String =
       "foo.ThingException: This is a thing exception"
     setStackTrace(Array(
-      new StackTraceElement("Foo", "thing", "Foos.scala", 45),
-      new StackTraceElement("Foo$", "thing$$anon$491", "Foos.scala", 48),
-      new StackTraceElement("Foo$", "thing$$anon$490", "Foos.scala", 51),
-      new StackTraceElement("Foo$", "thing$$anon$489", "Foos.scala", 54),
-      new StackTraceElement("Foo$", "thing$$anon$488", "Foos.scala", 57),
-      new StackTraceElement("Foo$", "thing$$anon$487", "Foos.scala", 60),
-      new StackTraceElement("Foo$", "thing$$anon$486", "Foos.scala", 63)
+      StackTraceElement("Foo", "thing", "Foos.scala", 45),
+      StackTraceElement("Foo$", "thing$$anon$491", "Foos.scala", 48),
+      StackTraceElement("Foo$", "thing$$anon$490", "Foos.scala", 51),
+      StackTraceElement("Foo$", "thing$$anon$489", "Foos.scala", 54),
+      StackTraceElement("Foo$", "thing$$anon$488", "Foos.scala", 57),
+      StackTraceElement("Foo$", "thing$$anon$487", "Foos.scala", 60),
+      StackTraceElement("Foo$", "thing$$anon$486", "Foos.scala", 63)
     ))
   }
 }

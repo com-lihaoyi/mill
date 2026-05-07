@@ -405,7 +405,7 @@ trait Resolve[T] {
       scriptModuleResolver: String => Seq[Result[mill.api.ExternalModule]]
   ): Result[List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
-    val cache = new ResolveCore.Cache()
+    val cache = ResolveCore.Cache()
     def handleScriptModule(args: Seq[String], fallback: => Result[Seq[T]]): Result[Seq[T]] = {
       val (first, selector, remaining) = args match {
         case Seq(s"$prefix:$suffix", rest*) => (prefix, Some(suffix), rest)
@@ -520,7 +520,7 @@ trait Resolve[T] {
       allowPositionalCommandArgs: Boolean,
       resolveToModuleTasks: Boolean
   ): Result[Seq[T]] = {
-    val cache = new ResolveCore.Cache()
+    val cache = ResolveCore.Cache()
     resolveNonEmptyAndHandle2(
       rootModule,
       rootModulePrefix: String,

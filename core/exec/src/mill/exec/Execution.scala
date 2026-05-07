@@ -42,11 +42,11 @@ case class Execution(
     // JSON string to avoid classloader issues when crossing classloader boundaries
     spanningInvalidationTree: Option[String],
     // Tracks tasks invalidated due to version/classloader mismatch
-    versionMismatchReasons: ConcurrentHashMap[Task[?], String] = new ConcurrentHashMap()
+    versionMismatchReasons: ConcurrentHashMap[Task[?], String] = ConcurrentHashMap()
 ) extends GroupExecution with AutoCloseable {
 
   // Track nesting depth of executeTasks calls to only show final status on outermost call
-  private val executionNestingDepth = new AtomicInteger(0)
+  private val executionNestingDepth = AtomicInteger(0)
 
   // this (shorter) constructor is used from [[mill.daemon.MillBuildBootstrap]] via reflection
   def this(
@@ -156,11 +156,11 @@ case class Execution(
       serialCommandExec: Boolean
   ): Execution.Results = {
     os.makeDir.all(outPath)
-    val failed = new AtomicBoolean(false)
-    val count = new AtomicInteger(1)
-    val completedCount = new AtomicInteger(0)
-    val rootFailedCount = new AtomicInteger(0) // Track only root failures
-    val planningLogger = new PrefixLogger(
+    val failed = AtomicBoolean(false)
+    val count = AtomicInteger(1)
+    val completedCount = AtomicInteger(0)
+    val rootFailedCount = AtomicInteger(0) // Track only root failures
+    val planningLogger = PrefixLogger(
       logger0 = baseLogger,
       key0 = Seq("planning"),
       message = "planning"
@@ -172,8 +172,8 @@ case class Execution(
       classToTransitiveClasses,
       allTransitiveClassMethods
     ) = planningLogger.withPromptLine {
-      val plan = PlanImpl.plan(goals)
-      val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
+      val plan = PlanImpl.plan(goals, effectiveInputs)
+      val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups, effectiveInputs)
       val indexToTerminal = plan.sortedGroups.keys().toArray
       ExecutionLogs.logDependencyTree(
         interGroupDeps,
@@ -207,9 +207,10 @@ case class Execution(
         s"$completedMsg$keySuffix$extraKeySuffix${Execution.formatFailedCount(rootFailedCount.get(), completed, logger.prompt.errorColor, logger.prompt.successColor)}"
       }
 
-      val tasksTransitive = PlanImpl.transitiveTasks(Seq.from(indexToTerminal)).toSet
+      val tasksTransitive =
+        PlanImpl.transitiveTasks(Seq.from(indexToTerminal), effectiveInputs).toSet
       val downstreamEdges: Map[Task[?], Set[Task[?]]] =
-        tasksTransitive.flatMap(t => t.inputs.map(_ -> t)).groupMap(_._1)(_._2)
+        tasksTransitive.flatMap(t => effectiveInputs(t).map(_ -> t)).groupMap(_._1)(_._2)
 
       val allExclusiveCommands = tasksTransitive.filter(_.isExclusiveCommand)
       val downstreamOfExclusive =
@@ -227,7 +228,7 @@ case class Execution(
           exclusive: Boolean
       ) = {
         val forkExecutionContext =
-          ec.fold(ExecutionContexts.RunNow)(new ExecutionContexts.ThreadPool(_))
+          ec.fold(ExecutionContexts.RunNow)(ExecutionContexts.ThreadPool(_))
         implicit val taskExecutionContext =
           if (exclusive) ExecutionContexts.RunNow else forkExecutionContext
         for (terminal <- terminals) {
@@ -267,7 +268,7 @@ case class Execution(
                     '0'
                   )
 
-                  val contextLogger = new PrefixLogger(
+                  val contextLogger = PrefixLogger(
                     logger0 = logger,
                     key0 = Seq(countMsg),
                     keySuffix = keySuffix,
@@ -346,7 +347,7 @@ case class Execution(
                   // Wrap fatal so the Future infrastructure catches it; otherwise
                   // downstream Awaits hang on a silently-terminated future.
                   case e: Throwable if !mill.api.daemon.internal.NonFatal(e) =>
-                    val nonFatal = new Exception(s"fatal exception occurred: $e", e)
+                    val nonFatal = Exception(s"fatal exception occurred: $e", e)
                     nonFatal.setStackTrace(e.getStackTrace)
                     throw nonFatal
                 }
@@ -507,8 +508,8 @@ object Execution {
       interGroupDeps: Map[Task[?], Seq[Task[?]]]
   ) {
     class State(initialPending: Int) {
-      val pending = new AtomicInteger(initialPending)
-      val completed = new AtomicBoolean(false)
+      val pending = AtomicInteger(initialPending)
+      val completed = AtomicBoolean(false)
       val leases = new java.util.concurrent.ConcurrentLinkedQueue[LauncherLocking.Lease]()
     }
 
@@ -518,7 +519,7 @@ object Execution {
       val pendingCounts = mutable.Map.empty[Task[?], Int].withDefaultValue(0)
       for ((_, upstreams) <- interGroupDeps; up <- upstreams)
         pendingCounts(up) = pendingCounts(up) + 1
-      for (t <- indexToTerminal) states.put(t, new State(pendingCounts.getOrElse(t, 0)))
+      for (t <- indexToTerminal) states.put(t, State(pendingCounts.getOrElse(t, 0)))
     }
 
     private def closeQuietly(lease: LauncherLocking.Lease): Unit =
@@ -593,8 +594,10 @@ object Execution {
     }
   }
 
-  def findInterGroupDeps(sortedGroups: MultiBiMap[Task[?], Task[?]])
-      : Map[Task[?], Seq[Task[?]]] = {
+  def findInterGroupDeps(
+      sortedGroups: MultiBiMap[Task[?], Task[?]],
+      effectiveInputs: Task[?] => Seq[Task[?]] = _.inputs
+  ): Map[Task[?], Seq[Task[?]]] = {
     val out = Map.newBuilder[Task[?], Seq[Task[?]]]
     val terminalOrder = sortedGroups.keys().zipWithIndex.toMap
     for ((terminal, group) <- sortedGroups) {
@@ -602,7 +605,7 @@ object Execution {
       val deps = mutable.LinkedHashSet.empty[Task[?]]
       for {
         task <- group
-        input <- task.inputs
+        input <- effectiveInputs(task)
         if !groupSet.contains(input)
       } input match {
         // Anonymous tasks aren't deterministic group cut-points

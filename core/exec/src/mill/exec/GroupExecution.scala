@@ -208,6 +208,25 @@ trait GroupExecution {
 
   val invalidateAllHashes = classLoaderSigHash + javaHomeHash
 
+  /**
+   * Returns the inputs Mill should walk for `task`. A `Task.Named` whose value
+   * is supplied entirely by a non-`!append` YAML config override returns `Nil`,
+   * because that override short-circuits the task body in
+   * [[executeGroupCached]] and pulling its declared dependencies into the
+   * build graph would execute unrelated code (issue #7083).
+   */
+  private[mill] def effectiveInputs(task: Task[?]): Seq[Task[?]] = task match {
+    case named: Task.Named[?] =>
+      val segs = named.ctx.segments.render
+      val dynamicBuildOverride = named.ctx.enclosingModule.moduleDynamicBuildOverrides
+      val overrideOpt = staticBuildOverrides.get(segs).orElse(dynamicBuildOverride.get(segs))
+      overrideOpt match {
+        case Some(located) if !located.value.append => Nil
+        case _ => named.inputs
+      }
+    case _ => task.inputs
+  }
+
   // those result which are inputs but not contained in this terminal group
   def executeGroupCached(
       terminal: Task[?],
@@ -230,7 +249,7 @@ trait GroupExecution {
       // The order of tasks within a is unstable, so use `unorderedHash` to
       // make sure we get a stable hash out of it
       val externalInputsHash = MurmurHash3.unorderedHash(
-        group.iterator.flatMap(_.inputs).filterNot(group.contains)
+        group.iterator.flatMap(effectiveInputs).filterNot(group.contains)
           .flatMap(results(_).asSuccess.map(_.value._2))
       )
       val sideHashes = MurmurHash3.unorderedHash(group.iterator.map(_.sideHash))
@@ -337,7 +356,7 @@ trait GroupExecution {
               closeStaleWorker = closeStaleWorker,
               multiLogger = multiLogger,
               counterMsg = countMsg,
-              destCreator = new GroupExecution.DestCreator(Some(paths)),
+              destCreator = GroupExecution.DestCreator(Some(paths)),
               terminal = terminal
             )
 
@@ -580,7 +599,7 @@ trait GroupExecution {
     val nonEvaluatedTasks = group.toIndexedSeq.filterNot(results.contains)
     val (multiLogger, fileLoggerOpt) = resolveLogger(paths.map(_.log), logger)
 
-    val destCreator = new GroupExecution.DestCreator(paths)
+    val destCreator = GroupExecution.DestCreator(paths)
 
     for (task <- nonEvaluatedTasks) {
       newEvaluated.append(task)
@@ -632,7 +651,7 @@ trait GroupExecution {
               case NonFatal(e) =>
                 ExecResult.Exception(
                   e,
-                  new OuterStack(new Exception().getStackTrace.toIndexedSeq.drop(1), cutExtra = 1)
+                  OuterStack(Exception().getStackTrace.toIndexedSeq.drop(1), cutExtra = 1)
                 )
               case e: Throwable => throw e
             }
@@ -725,8 +744,8 @@ trait GroupExecution {
     logPath match {
       case None => (logger, None)
       case Some(path) =>
-        val fileLogger = new FileLogger(path)
-        val multiLogger = new MultiLogger(
+        val fileLogger = FileLogger(path)
+        val multiLogger = MultiLogger(
           logger,
           fileLogger,
           logger.streams.in
@@ -875,7 +894,7 @@ object GroupExecution {
           usedDest = Some(dest.dest)
           dest.dest
 
-        case None => throw new Exception("No `dest` folder available here")
+        case None => throw Exception("No `dest` folder available here")
       }
     }
   }
@@ -943,7 +962,7 @@ object GroupExecution {
     val isCommand = terminal.isInstanceOf[Task.Command[?]]
     val isInput = terminal.isInstanceOf[Task.Input[?]]
     val executionChecker =
-      new ExecutionChecker(workspace, isCommand, isInput, terminal, validReadDests, validWriteDests)
+      ExecutionChecker(workspace, isCommand, isInput, terminal, validReadDests, validWriteDests)
     val (streams, destFunc) =
       if (exclusive) (exclusiveSystemStreams, () => workspace)
       else (multiLogger.streams, () => destCreator.makeDest())
@@ -971,7 +990,7 @@ object GroupExecution {
                 // For exclusive tasks, we print the task name once and then we disable the
                 // prompt/ticker so the output of the exclusive task can "clean" while still
                 // being identifiable
-                logger.prompt.logPrefixedLine(Seq(counterMsg), new ByteArrayOutputStream(), false)
+                logger.prompt.logPrefixedLine(Seq(counterMsg), ByteArrayOutputStream(), false)
                 logger.prompt.withPromptPaused {
                   t
                 }

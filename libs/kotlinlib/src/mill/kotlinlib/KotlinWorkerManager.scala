@@ -18,7 +18,7 @@ class KotlinWorkerManager()(using ctx: TaskCtx)
 
 object KotlinWorkerManager extends ExternalModule {
   def kotlinWorker: Worker[KotlinWorkerManager] = Task.Worker {
-    new KotlinWorkerManager()
+    KotlinWorkerManager()
   }
 
   def get(toolsClassLoader: ClassLoader)(using ctx: TaskCtx): KotlinWorker = {

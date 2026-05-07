@@ -15,7 +15,7 @@ object IdeUtils {
    */
   def moduleName(p: Segments, path: Path = null): String = {
     val name = p.value
-      .foldLeft(new StringBuilder()) {
+      .foldLeft(StringBuilder()) {
         case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
         case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
         case (sb, Segment.Label(s)) => sb.append(".").append(s)

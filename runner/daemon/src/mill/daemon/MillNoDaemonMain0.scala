@@ -47,7 +47,7 @@ object MillNoDaemonMain0 {
     )
 
     val outLock = MillMain0.outFileLock(out)
-    val sharedOutLockManager = new SharedOutLockManager(outLock, out)
+    val sharedOutLockManager = SharedOutLockManager(outLock, out)
 
     // Create runner that executes subprocesses locally with inherited I/O
     val launcherRunner: mill.api.daemon.LauncherSubprocess.Runner =

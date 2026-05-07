@@ -195,7 +195,7 @@ object CachedFactoryTests extends TestSuite {
       object cache extends Cache(maxCacheSize = 4)
 
       val numThreads = 4
-      val barrier = new CyclicBarrier(numThreads)
+      val barrier = CyclicBarrier(numThreads)
       val resourcesUsed = new CopyOnWriteArrayList[Int]()
       val resourcesReleasedDuringUse = new CopyOnWriteArrayList[Int]()
 

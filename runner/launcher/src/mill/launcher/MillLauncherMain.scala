@@ -99,8 +99,8 @@ object MillLauncherMain {
         stderr.println(e.getMessage)
         1
       case e =>
-        val sw = new StringWriter()
-        e.printStackTrace(new PrintWriter(sw))
+        val sw = StringWriter()
+        e.printStackTrace(PrintWriter(sw))
         log(sw.toString)
         stderr.println(sw.toString)
         stderr.println(s"Mill launcher failed. See ${logFile.relativeTo(workDir)} for details.")
