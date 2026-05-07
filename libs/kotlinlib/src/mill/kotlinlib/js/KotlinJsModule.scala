@@ -203,7 +203,6 @@ trait KotlinJsModule extends KotlinModule { outer =>
           kotlinVersion = kotlinVersion(),
           destinationRoot = Task.dest,
           artifactId = artifactId(),
-          explicitApi = kotlinExplicitApi(),
           extraKotlinArgs = allKotlincOptions() ++ extraKotlinArgs,
           worker = kotlinWorker,
           useBtApi = kotlincUseBtApi()
@@ -234,7 +233,6 @@ trait KotlinJsModule extends KotlinModule { outer =>
           kotlinVersion = kotlinVersion(),
           destinationRoot = Task.dest,
           artifactId = artifactId(),
-          explicitApi = kotlinExplicitApi(),
           extraKotlinArgs = allKotlincOptions(),
           worker = kotlinWorker,
           useBtApi = kotlincUseBtApi()
@@ -279,7 +277,6 @@ trait KotlinJsModule extends KotlinModule { outer =>
       kotlinVersion: String,
       destinationRoot: os.Path,
       artifactId: String,
-      explicitApi: Boolean,
       extraKotlinArgs: Seq[String],
       worker: KotlinWorker,
       useBtApi: Boolean
@@ -387,9 +384,6 @@ trait KotlinJsModule extends KotlinModule { outer =>
       case Some(x) => Seq("-target", x)
       case None => Seq.empty
     })
-    if (explicitApi) {
-      innerCompilerArgs ++= Seq("-Xexplicit-api=strict")
-    }
 
     val compilerArgs: Seq[String] = Seq(
       innerCompilerArgs.result(),

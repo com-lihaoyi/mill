@@ -7,6 +7,8 @@ import mill.scalalib.TestModule
 object HelloKotlin extends KotlinModule with KotlinIdeaModule {
   def kotlinVersion = "2.1.20"
 
+  def kotlinExplicitApi = true
+
   object test extends KotlinTests with KotlinIdeaModule with TestModule.Junit5
 }
 

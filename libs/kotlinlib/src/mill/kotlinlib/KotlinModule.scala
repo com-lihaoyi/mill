@@ -351,9 +351,6 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
             "-classpath",
             compileCpPaths.iterator.mkString(File.pathSeparator)
           ),
-          when(kotlinExplicitApi())(
-            "-Xexplicit-api=strict"
-          ),
           allKotlincOptions(),
           extraKotlinArgs
         ).flatten
@@ -453,7 +450,8 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       when(!languageVersion.isBlank)("-language-version", languageVersion) ++
       when(!kotlinkotlinApiVersion.isBlank)("-api-version", kotlinkotlinApiVersion) ++
       plugins.map(p => s"-Xplugin=$p") ++
-      friendPathsOption
+      friendPathsOption ++
+      when(kotlinExplicitApi())("-Xexplicit-api=strict")
   }
 
   /**

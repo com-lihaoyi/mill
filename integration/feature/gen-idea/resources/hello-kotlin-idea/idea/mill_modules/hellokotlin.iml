@@ -15,7 +15,7 @@
         <facet type="kotlin-language" name="Kotlin">
             <configuration version="5" useProjectSettings="false">
                 <compilerSettings>
-                    <option name="additionalArguments" value="-no-stdlib -module-name HelloKotlin -language-version 2.1 -api-version 2.1"/>
+                    <option name="additionalArguments" value="-no-stdlib -module-name HelloKotlin -language-version 2.1 -api-version 2.1 -Xexplicit-api=strict"/>
                 </compilerSettings>
                 <compilerArguments>
                     <stringArguments>

@@ -2,6 +2,6 @@ internal fun greeting(): String {
     return "Hello from Kotlin!"
 }
 
-fun main() {
+public fun main() {
     println(greeting())
 }
