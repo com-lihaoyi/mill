@@ -7,7 +7,7 @@ object FailingZioSpec extends ZIOSpec[String] {
 
   override val bootstrap: ZLayer[Any, Any, String] = ZLayer.scoped {
     ZIO.acquireRelease {
-      ZIO.fail(RuntimeException("Layer initialization failed"))
+      ZIO.fail(new RuntimeException("Layer initialization failed"))
     } { _ => ZIO.unit }
   }
 

@@ -36,7 +36,7 @@ object IncrementalAnnotationProcessingDetectionTests extends TestSuite {
            |            try {
            |                java.nio.file.Files.writeString(java.nio.file.Path.of(marker), "$simpleName");
            |            } catch (java.io.IOException e) {
-           |                throw RuntimeException(e);
+           |                throw new RuntimeException(e);
            |            }
            |        }
            |    }

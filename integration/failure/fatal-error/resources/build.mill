@@ -44,7 +44,7 @@ def fatalTaskSerializedEx = Task[String] {
 
 def fatalTaskNoSharedStackTrace = Task[String] {
   // similar to https://github.com/scala-js/scala-js/blob/1cb4eec698fb2de71d981e658c034ee2cdca04fb/test-common/src/main/scala/org/scalajs/testing/common/Serializer.scala#L203-L207
-  throw Throwable("foo.ThingException") {
+  throw new Throwable("foo.ThingException") {
     override def toString: String =
       "foo.ThingException: This is a thing exception"
     setStackTrace(Array(
