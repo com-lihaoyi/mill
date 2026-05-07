@@ -13,7 +13,11 @@ class BuildFileCls(classLoader: ClassLoader)
         case _: ClassNotFoundException =>
           classLoader.loadClass("mill.util.internal.DummyModule$")
       }
-    cls.getField("MODULE$").get(null).asInstanceOf[mill.api.daemon.internal.RootModuleApi]
+    val instance = cls.getField("MODULE$").get(null)
+    // Publish the root module so user-facing code (e.g. plugins) can access it
+    // via `BuildCtx.rootModule` without having to thread an `Evaluator` through.
+    BuildCtx.rootModule0 = instance.asInstanceOf[mill.api.daemon.internal.BaseModuleApi]
+    instance.asInstanceOf[mill.api.daemon.internal.RootModuleApi]
   }
 
   def moduleWatchedValues = BuildCtx.watchedValues.toSeq
