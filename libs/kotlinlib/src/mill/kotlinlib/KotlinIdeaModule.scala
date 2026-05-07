@@ -32,17 +32,11 @@ trait KotlinIdeaModule extends KotlinModule {
       }
 
       if (kotlinFriendModules.nonEmpty) {
-        val redirectedFriendPaths = Task.traverse(kotlinFriendModules)({
-          case friend: KotlinModule => Task.Anon {
-              Some(friend.genIdeaInternalExt().ideaCompileOutput().path)
-            }
-          case friend => Task.Anon {
-              Task.ctx().log.warn(
-                s"Friend module ${friend.moduleSegments.render} is not a KotlinIdeaModule, cannot redirect friend paths for it"
-              )
-              None
-            }
-        })().flatten
+        val redirectedFriendPaths = Task.traverse(kotlinFriendModules)(friend =>
+          Task.Anon {
+            friend.genIdeaInternalExt().ideaCompileOutput().path
+          }
+        )()
 
         if (redirectedFriendPaths.nonEmpty) {
           options += redirectedFriendPaths.map(path =>
