@@ -16,7 +16,7 @@ object PipeStreamsTests extends TestSuite {
 
       pipe.output.write(data)
 
-      val out = Array[Byte](7)
+      val out = new Array[Byte](7)
       pipe.input.read(out)
       out ==> data
     }
