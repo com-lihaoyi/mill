@@ -522,7 +522,7 @@ private[mill] object IncrementalAnnotationProcessing {
       classpath: Seq[os.Path]
   ): Option[TrackingMode] = {
     val urls = classpath.iterator.map(_.toIO.toURI.toURL).toArray
-    Using.resource(new java.net.URLClassLoader(urls, getClass.getClassLoader)) { loader =>
+    Using.resource(new java.net.URLClassLoader(urls, ClassLoader.getPlatformClassLoader)) { loader =>
       scala.util
         .Try {
           val cls = loader.loadClass(processorClassName)
@@ -543,7 +543,7 @@ private[mill] object IncrementalAnnotationProcessing {
       annotationIndex: SourceAnnotationIndex
   ): Boolean = {
     val urls = classpath.iterator.map(_.toIO.toURI.toURL).toArray
-    Using.resource(new java.net.URLClassLoader(urls, getClass.getClassLoader)) { loader =>
+    Using.resource(new java.net.URLClassLoader(urls, ClassLoader.getPlatformClassLoader)) { loader =>
       scala.util
         .Try {
           val cls = loader.loadClass(processorClassName)

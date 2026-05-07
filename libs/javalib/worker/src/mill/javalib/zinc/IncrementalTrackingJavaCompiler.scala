@@ -52,7 +52,7 @@ private[mill] object IncrementalTrackingJavaCompiler {
       if (names.isEmpty) None
       else {
         val urls = processorPath.iterator.map(_.toIO.toURI.toURL).toArray
-        val loader = new java.net.URLClassLoader(urls, getClass.getClassLoader)
+        val loader = new java.net.URLClassLoader(urls, ClassLoader.getPlatformClassLoader)
         val processors = names.map { name =>
           val delegate =
             loader.loadClass(name).getDeclaredConstructor().newInstance().asInstanceOf[Processor]
