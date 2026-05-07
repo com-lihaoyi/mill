@@ -233,7 +233,7 @@ object Task {
       persistent: Boolean = false
   ): UncachedFactory =
     // Magnet pattern for the second param list in Task.Uncached(persistent = true) { ... }
-    new UncachedFactory(persistent)
+    UncachedFactory(persistent)
 
   class UncachedFactory private[mill] (val persistent: Boolean) {
     inline def apply[T](inline t: Result[T])(using
@@ -384,7 +384,7 @@ object Task {
       @unused t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       persistent: Boolean = false,
       @com.lihaoyi.unroll selectiveInputs: Seq[Task[?]] = null
-  ): ApplyFactory = new ApplyFactory(persistent, selectiveInputs)
+  ): ApplyFactory = ApplyFactory(persistent, selectiveInputs)
 
   class ApplyFactory private[mill] (
       val persistent: Boolean,
@@ -425,10 +425,10 @@ object Task {
   }
 
   abstract class Ops[T] { this: Task[T] =>
-    def map[V](f: T => V): Task[V] = new Task.Mapped(this, f)
+    def map[V](f: T => V): Task[V] = Task.Mapped(this, f)
     def filter(f: T => Boolean): Task[T] = this
     def withFilter(f: T => Boolean): Task[T] = this
-    def zip[V](other: Task[V]): Task[(T, V)] = new Task.Zipped(this, other)
+    def zip[V](other: Task[V]): Task[(T, V)] = Task.Zipped(this, other)
 
   }
 
@@ -463,7 +463,7 @@ object Task {
 
     def label: String = ctx.segments.value.last match {
       case Segment.Label(v) => v
-      case Segment.Cross(_) => throw new IllegalArgumentException(
+      case Segment.Cross(_) => throw IllegalArgumentException(
           "Task.Named only support a ctx with a Label segment, but found a Cross."
         )
     }

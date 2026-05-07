@@ -25,7 +25,7 @@ private trait EndpointsJvm extends JvmBuildServer with EndpointsApi {
       : CompletableFuture[JvmRunEnvironmentResult] = {
     jvmRunEnvironmentFor(
       params.getTargets.asScala,
-      new JvmRunEnvironmentResult(_),
+      JvmRunEnvironmentResult(_),
       params.getOriginId
     )
   }
@@ -34,7 +34,7 @@ private trait EndpointsJvm extends JvmBuildServer with EndpointsApi {
       : CompletableFuture[JvmTestEnvironmentResult] = {
     jvmTestEnvironmentFor(
       params.getTargets.asScala,
-      new JvmTestEnvironmentResult(_),
+      JvmTestEnvironmentResult(_),
       params.getOriginId
     )
   }
@@ -105,7 +105,7 @@ private trait EndpointsJvm extends JvmBuildServer with EndpointsApi {
       )
 
       val classes = ctx.value.mainClass.toList ++ ctx.value.localMainClasses
-      item.setMainClasses(classes.map(new JvmMainClass(_, Nil.asJava)).asJava)
+      item.setMainClasses(classes.map(JvmMainClass(_, Nil.asJava)).asJava)
       item
     } { (values, _, _) =>
       agg(values)
@@ -123,8 +123,8 @@ private trait EndpointsJvm extends JvmBuildServer with EndpointsApi {
       requestDescription = "Getting JVM compile class path of {}",
       originId = ""
     ) { (ctx, _) =>
-      new JvmCompileClasspathItem(ctx.id, ctx.value(ctx.evaluator).asJava)
+      JvmCompileClasspathItem(ctx.id, ctx.value(ctx.evaluator).asJava)
     } { (values, _, _) =>
-      new JvmCompileClasspathResult(values)
+      JvmCompileClasspathResult(values)
     }
 }

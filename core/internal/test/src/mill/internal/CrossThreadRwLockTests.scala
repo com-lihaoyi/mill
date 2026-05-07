@@ -14,9 +14,9 @@ object CrossThreadRwLockTests extends TestSuite {
 
   val tests: Tests = Tests {
     test("allows-concurrent-reads") {
-      val waitingBytes = new ByteArrayOutputStream()
-      val waitingErr = new PrintStream(waitingBytes)
-      val lock = new CrossThreadRwLock("concurrent-reads")
+      val waitingBytes = ByteArrayOutputStream()
+      val waitingErr = PrintStream(waitingBytes)
+      val lock = CrossThreadRwLock("concurrent-reads")
 
       val first = lock.acquire(
         LockKind.Read,
@@ -24,7 +24,7 @@ object CrossThreadRwLockTests extends TestSuite {
         noWait = false,
         testHolder
       )
-      val secondAcquired = new CountDownLatch(1)
+      val secondAcquired = CountDownLatch(1)
       val secondLeaseRef = new AtomicReference[LauncherLocking.Lease]()
 
       val secondThread = new Thread(() => {
@@ -47,9 +47,9 @@ object CrossThreadRwLockTests extends TestSuite {
     }
 
     test("enforces-write-exclusion") {
-      val waitingBytes = new ByteArrayOutputStream()
-      val waitingErr = new PrintStream(waitingBytes)
-      val lock = new CrossThreadRwLock("write-exclusion")
+      val waitingBytes = ByteArrayOutputStream()
+      val waitingErr = PrintStream(waitingBytes)
+      val lock = CrossThreadRwLock("write-exclusion")
 
       val first = lock.acquire(
         LockKind.Write,
@@ -57,7 +57,7 @@ object CrossThreadRwLockTests extends TestSuite {
         noWait = false,
         testHolder
       )
-      val secondAcquired = new CountDownLatch(1)
+      val secondAcquired = CountDownLatch(1)
       val secondLeaseRef = new AtomicReference[LauncherLocking.Lease]()
 
       val secondThread = new Thread(() => {
@@ -82,9 +82,9 @@ object CrossThreadRwLockTests extends TestSuite {
     }
 
     test("enforces-read-write-exclusion-and-writer-priority") {
-      val waitingBytes = new ByteArrayOutputStream()
-      val waitingErr = new PrintStream(waitingBytes)
-      val lock = new CrossThreadRwLock("reader-writer-fairness")
+      val waitingBytes = ByteArrayOutputStream()
+      val waitingErr = PrintStream(waitingBytes)
+      val lock = CrossThreadRwLock("reader-writer-fairness")
 
       val firstReader = lock.acquire(
         LockKind.Read,
@@ -92,9 +92,9 @@ object CrossThreadRwLockTests extends TestSuite {
         noWait = false,
         testHolder
       )
-      val writerAcquired = new CountDownLatch(1)
-      val releaseWriter = new CountDownLatch(1)
-      val secondReaderAcquired = new CountDownLatch(1)
+      val writerAcquired = CountDownLatch(1)
+      val releaseWriter = CountDownLatch(1)
+      val secondReaderAcquired = CountDownLatch(1)
       val writerLeaseRef = new AtomicReference[LauncherLocking.Lease]()
       val secondReaderLeaseRef = new AtomicReference[LauncherLocking.Lease]()
 
@@ -138,11 +138,11 @@ object CrossThreadRwLockTests extends TestSuite {
     }
 
     test("write-lease-can-be-closed-on-a-different-thread") {
-      val waitingErr = new PrintStream(new ByteArrayOutputStream())
-      val lock = new CrossThreadRwLock("cross-thread-write-close")
+      val waitingErr = PrintStream(ByteArrayOutputStream())
+      val lock = CrossThreadRwLock("cross-thread-write-close")
 
       val acquiredLease = new AtomicReference[LauncherLocking.Lease]()
-      val writerReady = new CountDownLatch(1)
+      val writerReady = CountDownLatch(1)
       val writerThread = new Thread(() => {
         acquiredLease.set(lock.acquire(
           LockKind.Write,
@@ -155,7 +155,7 @@ object CrossThreadRwLockTests extends TestSuite {
       writerThread.start()
       assert(writerReady.await(5, TimeUnit.SECONDS))
 
-      val secondWriterAcquired = new CountDownLatch(1)
+      val secondWriterAcquired = CountDownLatch(1)
       val secondWriterLeaseRef = new AtomicReference[LauncherLocking.Lease]()
       val secondWriterThread = new Thread(() => {
         secondWriterLeaseRef.set(lock.acquire(
@@ -170,7 +170,7 @@ object CrossThreadRwLockTests extends TestSuite {
 
       assert(!secondWriterAcquired.await(100, TimeUnit.MILLISECONDS))
 
-      val closingThread = new Thread(() => acquiredLease.get().close())
+      val closingThread = Thread(() => acquiredLease.get().close())
       closingThread.start()
       closingThread.join(3000)
 
@@ -182,11 +182,11 @@ object CrossThreadRwLockTests extends TestSuite {
     }
 
     test("read-lease-can-be-closed-on-a-different-thread") {
-      val waitingErr = new PrintStream(new ByteArrayOutputStream())
-      val lock = new CrossThreadRwLock("cross-thread-read-close")
+      val waitingErr = PrintStream(ByteArrayOutputStream())
+      val lock = CrossThreadRwLock("cross-thread-read-close")
 
       val acquiredLease = new AtomicReference[LauncherLocking.Lease]()
-      val readerReady = new CountDownLatch(1)
+      val readerReady = CountDownLatch(1)
       val readerThread = new Thread(() => {
         acquiredLease.set(lock.acquire(
           LockKind.Read,
@@ -199,7 +199,7 @@ object CrossThreadRwLockTests extends TestSuite {
       readerThread.start()
       assert(readerReady.await(5, TimeUnit.SECONDS))
 
-      val writerAcquired = new CountDownLatch(1)
+      val writerAcquired = CountDownLatch(1)
       val writerLeaseRef = new AtomicReference[LauncherLocking.Lease]()
       val writerThread = new Thread(() => {
         writerLeaseRef.set(lock.acquire(
@@ -214,7 +214,7 @@ object CrossThreadRwLockTests extends TestSuite {
 
       assert(!writerAcquired.await(100, TimeUnit.MILLISECONDS))
 
-      val closingThread = new Thread(() => acquiredLease.get().close())
+      val closingThread = Thread(() => acquiredLease.get().close())
       closingThread.start()
       closingThread.join(3000)
 
@@ -226,8 +226,8 @@ object CrossThreadRwLockTests extends TestSuite {
     }
 
     test("downgraded-lease-can-be-closed-on-a-different-thread") {
-      val waitingErr = new PrintStream(new ByteArrayOutputStream())
-      val lock = new CrossThreadRwLock("downgrade-cross-thread-close")
+      val waitingErr = PrintStream(ByteArrayOutputStream())
+      val lock = CrossThreadRwLock("downgrade-cross-thread-close")
 
       val leaseRef = new AtomicReference[LauncherLocking.Lease]()
       val acquireThread = new Thread(() => {
@@ -243,7 +243,7 @@ object CrossThreadRwLockTests extends TestSuite {
       acquireThread.start()
       acquireThread.join(3000)
 
-      val writerAcquired = new CountDownLatch(1)
+      val writerAcquired = CountDownLatch(1)
       val writerLeaseRef = new AtomicReference[LauncherLocking.Lease]()
       val writerThread = new Thread(() => {
         writerLeaseRef.set(lock.acquire(
@@ -258,7 +258,7 @@ object CrossThreadRwLockTests extends TestSuite {
 
       assert(!writerAcquired.await(100, TimeUnit.MILLISECONDS))
 
-      val closingThread = new Thread(() => leaseRef.get().close())
+      val closingThread = Thread(() => leaseRef.get().close())
       closingThread.start()
       closingThread.join(3000)
 
@@ -269,8 +269,8 @@ object CrossThreadRwLockTests extends TestSuite {
     }
 
     test("lock-upgrade-closes-retained-read-lease-on-read-exception") {
-      val waitingErr = new PrintStream(new ByteArrayOutputStream())
-      val lock = new CrossThreadRwLock("read-retain-exception")
+      val waitingErr = PrintStream(ByteArrayOutputStream())
+      val lock = CrossThreadRwLock("read-retain-exception")
 
       assertThrows(classOf[RuntimeException]) {
         LockUpgrade.readThenWrite(
@@ -285,7 +285,7 @@ object CrossThreadRwLockTests extends TestSuite {
           waitReporter = mill.api.daemon.internal.LauncherLocking.WaitReporter.Noop
         ) { scope =>
           scope.retain()
-          throw new RuntimeException("boom")
+          throw RuntimeException("boom")
         }(_ => ())
       }
 
@@ -299,8 +299,8 @@ object CrossThreadRwLockTests extends TestSuite {
     }
 
     test("lock-upgrade-closes-retained-read-lease-on-invalid-escalation") {
-      val waitingErr = new PrintStream(new ByteArrayOutputStream())
-      val lock = new CrossThreadRwLock("read-retain-escalate")
+      val waitingErr = PrintStream(ByteArrayOutputStream())
+      val lock = CrossThreadRwLock("read-retain-escalate")
 
       assertThrows(classOf[IllegalStateException]) {
         LockUpgrade.readThenWrite(
@@ -329,8 +329,8 @@ object CrossThreadRwLockTests extends TestSuite {
     }
 
     test("lock-upgrade-closes-downgraded-write-lease-on-write-exception") {
-      val waitingErr = new PrintStream(new ByteArrayOutputStream())
-      val lock = new CrossThreadRwLock("write-downgrade-exception")
+      val waitingErr = PrintStream(ByteArrayOutputStream())
+      val lock = CrossThreadRwLock("write-downgrade-exception")
 
       assertThrows(classOf[RuntimeException]) {
         LockUpgrade.readThenWrite(
@@ -345,7 +345,7 @@ object CrossThreadRwLockTests extends TestSuite {
           waitReporter = mill.api.daemon.internal.LauncherLocking.WaitReporter.Noop
         )(_ => LockUpgrade.Decision.Escalate) { scope =>
           scope.downgradeAndRetain()
-          throw new RuntimeException("boom")
+          throw RuntimeException("boom")
         }
       }
 
@@ -359,9 +359,9 @@ object CrossThreadRwLockTests extends TestSuite {
     }
 
     test("waiting-message-names-the-current-holder") {
-      val waitingBytes = new ByteArrayOutputStream()
-      val waitingErr = new PrintStream(waitingBytes)
-      val lock = new CrossThreadRwLock("holder-naming")
+      val waitingBytes = ByteArrayOutputStream()
+      val waitingErr = PrintStream(waitingBytes)
+      val lock = CrossThreadRwLock("holder-naming")
 
       val blocker = HolderInfo(pid = 9876, command = "blockerTask")
       val firstLease = lock.acquire(
@@ -371,7 +371,7 @@ object CrossThreadRwLockTests extends TestSuite {
         blocker
       )
 
-      val secondAcquired = new CountDownLatch(1)
+      val secondAcquired = CountDownLatch(1)
       val secondLeaseRef = new AtomicReference[LauncherLocking.Lease]()
       val waiter = HolderInfo(pid = 5555, command = "waiterTask")
       val secondThread = new Thread(() => {
@@ -396,8 +396,8 @@ object CrossThreadRwLockTests extends TestSuite {
     }
 
     test("writer-is-not-starved-by-steady-reader-stream") {
-      val waitingErr = new PrintStream(new ByteArrayOutputStream())
-      val lock = new CrossThreadRwLock("writer-starvation")
+      val waitingErr = PrintStream(ByteArrayOutputStream())
+      val lock = CrossThreadRwLock("writer-starvation")
 
       val firstReader = lock.acquire(
         LockKind.Read,
@@ -406,7 +406,7 @@ object CrossThreadRwLockTests extends TestSuite {
         testHolder
       )
 
-      val writerAcquired = new CountDownLatch(1)
+      val writerAcquired = CountDownLatch(1)
       val writerLeaseRef = new AtomicReference[LauncherLocking.Lease]()
       val writerThread = new Thread(() => {
         writerLeaseRef.set(lock.acquire(
@@ -446,8 +446,8 @@ object CrossThreadRwLockTests extends TestSuite {
     }
 
     test("no-wait-fails-with-holder-info-in-message") {
-      val waitingErr = new PrintStream(new ByteArrayOutputStream())
-      val lock = new CrossThreadRwLock("no-wait")
+      val waitingErr = PrintStream(ByteArrayOutputStream())
+      val lock = CrossThreadRwLock("no-wait")
       val blocker = HolderInfo(pid = 7777, command = "blockerCmd")
       val first = lock.acquire(
         LockKind.Write,
@@ -477,9 +477,9 @@ object CrossThreadRwLockTests extends TestSuite {
     }
 
     test("waiting-message-names-a-still-holding-reader-not-a-released-one") {
-      val waitingBytes = new ByteArrayOutputStream()
-      val waitingErr = new PrintStream(waitingBytes)
-      val lock = new CrossThreadRwLock("stale-last-holder")
+      val waitingBytes = ByteArrayOutputStream()
+      val waitingErr = PrintStream(waitingBytes)
+      val lock = CrossThreadRwLock("stale-last-holder")
 
       val stillHolding = HolderInfo(pid = 1111, command = "stillHoldingCmd")
       val alreadyReleased = HolderInfo(pid = 2222, command = "alreadyReleasedCmd")
@@ -499,7 +499,7 @@ object CrossThreadRwLockTests extends TestSuite {
       )
       secondReader.close()
 
-      val writerAcquired = new CountDownLatch(1)
+      val writerAcquired = CountDownLatch(1)
       val writerLeaseRef = new AtomicReference[LauncherLocking.Lease]()
       val writerThread = new Thread(() => {
         writerLeaseRef.set(lock.acquire(

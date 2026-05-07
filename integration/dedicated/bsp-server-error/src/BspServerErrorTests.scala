@@ -46,7 +46,7 @@ object BspServerErrorTests extends UtestIntegrationTestSuite {
             }
           catch {
             case _: ExecutionException =>
-              Left(new String(stderr.toByteArray))
+              Left(String(stderr.toByteArray))
           }
 
         assert(res.isLeft)
@@ -63,7 +63,7 @@ object BspServerErrorTests extends UtestIntegrationTestSuite {
           .getTargets
           .asScala
           .find { target =>
-            os.Path(Paths.get(new URI(target.getBaseDirectory))) == workspacePath / "hello-scala"
+            os.Path(Paths.get(URI(target.getBaseDirectory))) == workspacePath / "hello-scala"
           }
           .getOrElse {
             sys.error("hello-scala not found in build targets")
@@ -86,7 +86,7 @@ object BspServerErrorTests extends UtestIntegrationTestSuite {
         assert(resourcesRes.isRight)
         assert(resourcesRes.forall(_.getItems.isEmpty))
 
-        val logs = new String(stderr.toByteArray)
+        val logs = String(stderr.toByteArray)
         assert(logs.contains("[error] hello-scala.resources task failed"))
 
         ()

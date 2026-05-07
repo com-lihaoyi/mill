@@ -16,7 +16,7 @@ object Debug {
       showFieldNames: Boolean = true
   )(implicit line: sourcecode.Line, fileName: sourcecode.FileName): T = {
 
-    val baos = new ByteArrayOutputStream()
+    val baos = ByteArrayOutputStream()
     pprint.logTo(
       x,
       tag,
@@ -25,7 +25,7 @@ object Debug {
       indent,
       escapeUnicode,
       showFieldNames,
-      new PrintStream(baos)
+      PrintStream(baos)
     )
     mill.constants.DebugLog.println(baos.toString)
     x.value

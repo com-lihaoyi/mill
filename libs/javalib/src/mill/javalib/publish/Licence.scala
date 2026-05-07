@@ -436,7 +436,7 @@ object License {
 
   case class Data(licenses: List[License])
 
-  val json = new String(Files.readAllBytes(Paths.get("data.json")))
+  val json = String(Files.readAllBytes(Paths.get("data.json")))
 
   val licences = decode[Data](json).right.get.licenses
 

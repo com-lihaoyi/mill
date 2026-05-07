@@ -15,9 +15,9 @@ private[mill] class LauncherLockingImpl(
     val runId: String
 ) extends LauncherLocking {
   private val holder = HolderInfo(launcherPid, activeCommandMessage)
-  private val closed = new AtomicBoolean(false)
+  private val closed = AtomicBoolean(false)
   private val activeLeases = scala.collection.mutable.Set.empty[LeaseWrapper]
-  private val exclusiveWriteCount = new AtomicInteger(0)
+  private val exclusiveWriteCount = AtomicInteger(0)
 
   /**
    * Single-slot tracker for the launcher's currently-held [[exclusiveLock]]
@@ -33,7 +33,7 @@ private[mill] class LauncherLockingImpl(
   private val heldExclusive = new AtomicReference[ExclusiveHolder](null)
 
   private def ensureOpen(): Unit =
-    if (closed.get()) throw new IllegalStateException(s"Lock session $runId is closed")
+    if (closed.get()) throw IllegalStateException(s"Lock session $runId is closed")
 
   override def metaBuildLock(
       depth: Int,
@@ -113,7 +113,7 @@ private[mill] class LauncherLockingImpl(
   ): LauncherLocking.Lease = {
     ensureOpen()
     if (noBuildLock) return LauncherLocking.Noop.exclusiveLock(kind, waitReporter)
-    val ref = new ExclusiveHolder(kind)
+    val ref = ExclusiveHolder(kind)
     if (!heldExclusive.compareAndSet(null, ref))
       throw new IllegalStateException(
         s"Reentrant exclusiveLock acquisition (runId=$runId); use " +
@@ -130,7 +130,7 @@ private[mill] class LauncherLockingImpl(
     val isWrite = kind == LauncherLocking.LockKind.Write
     if (isWrite) exclusiveWriteCount.incrementAndGet()
     acquireManagedLease(new LauncherLocking.Lease {
-      private val released = new AtomicBoolean(false)
+      private val released = AtomicBoolean(false)
       override def close(): Unit =
         if (released.compareAndSet(false, true)) {
           if (isWrite) exclusiveWriteCount.decrementAndGet()
@@ -168,7 +168,7 @@ private[mill] class LauncherLockingImpl(
   private def acquireManagedLease(
       underlying: LauncherLocking.Lease
   ): LauncherLocking.Lease = {
-    val lease = new LeaseWrapper(underlying)
+    val lease = LeaseWrapper(underlying)
     val accepted = activeLeases.synchronized {
       if (closed.get()) false
       else {
@@ -179,7 +179,7 @@ private[mill] class LauncherLockingImpl(
     if (!accepted) {
       try underlying.close()
       catch { case _: Throwable => () }
-      throw new IllegalStateException(s"Lock session $runId is closed")
+      throw IllegalStateException(s"Lock session $runId is closed")
     }
     lease
   }
@@ -196,7 +196,7 @@ private[mill] class LauncherLockingImpl(
   private class LeaseWrapper(
       underlying: LauncherLocking.Lease
   ) extends LauncherLocking.Lease {
-    private val closed = new AtomicBoolean(false)
+    private val closed = AtomicBoolean(false)
 
     override def downgradeToRead(): Unit =
       if (!closed.get()) underlying.downgradeToRead()

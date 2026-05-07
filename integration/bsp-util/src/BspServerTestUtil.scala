@@ -49,7 +49,7 @@ object BspServerTestUtil {
     def onRunPrintStdout(params: b.PrintParams): Unit = ()
   }
 
-  val gson: Gson = new GsonBuilder().setPrettyPrinting().create()
+  val gson: Gson = GsonBuilder().setPrettyPrinting().create()
   def compareWithGsonSnapshot[T: ClassTag](
       value: T,
       snapshotPath: os.Path,
@@ -127,7 +127,7 @@ object BspServerTestUtil {
     new ThreadFactory {
       val counter = new AtomicInteger
       def newThread(runnable: Runnable): Thread = {
-        val t = new Thread(runnable, s"mill-bsp-integration-${counter.incrementAndGet()}")
+        val t = Thread(runnable, s"mill-bsp-integration-${counter.incrementAndGet()}")
         t.setDaemon(true)
         t
       }
@@ -311,7 +311,7 @@ object BspServerTestUtil {
     if (!proc.waitFor(timeoutMillis)) {
       proc.destroy(recursive = false)
       if (!proc.waitFor(5000L)) {
-        throw new RuntimeException("BSP server did not exit within the expected timeout")
+        throw RuntimeException("BSP server did not exit within the expected timeout")
       }
     }
   }

@@ -121,7 +121,7 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
           ctx.log.error(
             "palantirformat aborted due to format error(s) (or invalid plugin settings/palantirformat options)"
           )
-          throw new RuntimeException(s"palantirformat exit($exitCode)")
+          throw RuntimeException(s"palantirformat exit($exitCode)")
         }
     }
 

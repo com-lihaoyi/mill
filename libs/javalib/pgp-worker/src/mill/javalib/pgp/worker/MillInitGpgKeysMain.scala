@@ -30,7 +30,7 @@ object MillInitGpgKeysMain {
     System.out.flush()
     val passphrase = System.console() match {
       case null => scala.io.StdIn.readLine()
-      case console => new String(console.readPassword())
+      case console => String(console.readPassword())
     }
 
     if (passphrase == null || passphrase.isEmpty) {
@@ -38,7 +38,7 @@ object MillInitGpgKeysMain {
     }
 
     val userId = s"$name <$email>"
-    val generated: PgpKeyMaterial = new PgpSignerWorker().generateKeyPair(
+    val generated: PgpKeyMaterial = PgpSignerWorker().generateKeyPair(
       userId = userId,
       passphrase = Option(passphrase).filter(_.nonEmpty)
     )

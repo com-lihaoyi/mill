@@ -180,7 +180,7 @@ private[mill] object IncrementalAnnotationProcessing {
                 lookupData = Option.when(!requiresFullRecompile) {
                   lookupData(staleProducts, changedSources, removedSources, sourceStamps.keySet)
                 },
-                tracker = new CompileTracker(trackingMode, javaSources.toSet, classesDir)
+                tracker = CompileTracker(trackingMode, javaSources.toSet, classesDir)
               )
             )
         }
@@ -346,7 +346,7 @@ private[mill] object IncrementalAnnotationProcessing {
           Option(jar.getJarEntry(relPath.toString))
             .map { entry =>
               Using.resource(jar.getInputStream(entry)) { in =>
-                parseEntries(new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8))
+                parseEntries(String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8))
               }
             }
             .getOrElse(Nil)

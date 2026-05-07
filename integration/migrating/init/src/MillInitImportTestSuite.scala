@@ -72,7 +72,7 @@ trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
         def evalTask(task: String): String = {
           val result = eval(("show", s"__.$task"))
           if (!result.isSuccess && !expectedFailureTasks.contains(task)) {
-            throw new Exception(s"Command failed: show __.$task\n${result.debugString}")
+            throw Exception(s"Command failed: show __.$task\n${result.debugString}")
           }
           result.out
         }

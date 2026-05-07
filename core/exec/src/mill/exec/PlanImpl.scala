@@ -38,7 +38,7 @@ object PlanImpl {
         case t if goalSet.contains(t) => t
       }
 
-    new Plan(sortedGroups)
+    Plan(sortedGroups)
   }
 
   /**
@@ -160,6 +160,6 @@ object PlanImpl {
 
     val sortedClusters = mill.internal.Tarjans(numberedEdges)
     assert(sortedClusters.count(_.length > 1) == 0, sortedClusters.filter(_.length > 1))
-    new TopoSorted(sortedClusters.map(_(0)).map(indexed))
+    TopoSorted(sortedClusters.map(_(0)).map(indexed))
   }
 }

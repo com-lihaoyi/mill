@@ -21,12 +21,12 @@ object ScalaCompileErrorFormattingTests extends TestSuite {
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "compile-error-formatting-scala"
 
   private def checkLines(caseName: String): Seq[String] = {
-    val errBuffer = new ByteArrayOutputStream()
+    val errBuffer = ByteArrayOutputStream()
     UnitTester(
       ScalaCompileErrorFormatting,
       sourceRoot = resourcePath / caseName,
-      outStream = new PrintStream(errBuffer, true),
-      errStream = new PrintStream(errBuffer, true)
+      outStream = PrintStream(errBuffer, true),
+      errStream = PrintStream(errBuffer, true)
     ).scoped { eval =>
       val Left(ExecResult.Failure(msg = "Compilation failed")) =
         eval.apply(ScalaCompileErrorFormatting.core.compile).runtimeChecked

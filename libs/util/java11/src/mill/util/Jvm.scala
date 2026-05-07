@@ -179,8 +179,8 @@ object Jvm {
       .map(_.toString())
       .orElse(sys.props.get("java.home"))
       .map(h =>
-        if (isWin) new File(h, s"bin\\${toolName}.exe")
-        else new File(h, s"bin/${toolName}")
+        if (isWin) File(h, s"bin\\${toolName}.exe")
+        else File(h, s"bin/${toolName}")
       )
       .filter(f => f.exists())
       .fold(toolName)(_.getAbsolutePath())
@@ -448,8 +448,8 @@ object Jvm {
     val seen = mutable.Set.empty[os.RelPath]
     val _ = seen.add(os.sub / "META-INF/MANIFEST.MF")
 
-    val jarStream = new JarOutputStream(
-      new BufferedOutputStream(Files.newOutputStream(jar.toNIO)),
+    val jarStream = JarOutputStream(
+      BufferedOutputStream(Files.newOutputStream(jar.toNIO)),
       manifest.build
     )
 
@@ -458,7 +458,7 @@ object Jvm {
 
       if (includeDirs) {
         val _ = seen.add(os.sub / "META-INF")
-        val entry = new JarEntry("META-INF/")
+        val entry = JarEntry("META-INF/")
         entry.setTime(curTime)
         jarStream.putNextEntry(entry)
         jarStream.closeEntry()
@@ -474,7 +474,7 @@ object Jvm {
       } {
         val _ = seen.add(mapping)
         val name = mapping.toString() + (if (os.isDir(file)) "/" else "")
-        val entry = new JarEntry(name)
+        val entry = JarEntry(name)
         entry.setTime(mTime(file))
         jarStream.putNextEntry(entry)
         if (os.isFile(file)) jarStream.write(os.read.bytes(file))
@@ -635,7 +635,7 @@ object Jvm {
       // Apply Mill's default logger first, then the user customizer, so that
       // overrides in coursierCacheCustomizer (e.g. a custom logger) take precedence.
       .pipe { cache =>
-        ctx.fold(cache)(c => cache.withLogger(new CoursierTickerResolutionLogger(c)))
+        ctx.fold(cache)(c => cache.withLogger(CoursierTickerResolutionLogger(c)))
       }
       .pipe { cache =>
         coursierCacheCustomizer.fold(cache)(c => c.apply(cache))

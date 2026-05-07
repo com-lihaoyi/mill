@@ -67,7 +67,7 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
         }
 
       case (otherPackagingType, otherModuleType) =>
-        throw new IllegalArgumentException(
+        throw IllegalArgumentException(
           s"Packaging type $otherPackagingType not supported with $otherModuleType"
         )
     }
@@ -104,7 +104,7 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
     ).call()
 
     if (compileResult.exitCode != 0) {
-      throw new RuntimeException(
+      throw RuntimeException(
         s"aapt2 failed to compile resources with error code ${compileResult.exitCode}"
       )
     }
@@ -122,7 +122,7 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
     ).call(cwd = compiledRes)
 
     if (linkResult.exitCode != 0) {
-      throw new RuntimeException(
+      throw RuntimeException(
         s"aapt2 failed to link resources with error code ${linkResult.exitCode}"
       )
     }

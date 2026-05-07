@@ -158,7 +158,7 @@ object ResolveTests extends TestSuite {
 
   val tests = Tests {
     test("single") {
-      val check = new Checker(singleton)
+      val check = Checker(singleton)
       test("pos") - check("single", Result.Success(Set(_.single)), Set("single"))
       test("wildcard") - check("_", Result.Success(Set(_.single)), Set("single"))
       test("neg1") - check("sngle", Result.Failure("Cannot resolve sngle. Did you mean single?"))
@@ -189,7 +189,7 @@ object ResolveTests extends TestSuite {
       )
     }
     test("backtickIdentifiers") {
-      val check = new Checker(bactickIdentifiers)
+      val check = Checker(bactickIdentifiers)
       test("pos1") - check("up-task", Result.Success(Set(_.`up-task`)), Set("up-task"))
       test("pos2") - check(
         "a-down-task",
@@ -241,7 +241,7 @@ object ResolveTests extends TestSuite {
       }
     }
     test("nested") {
-      val check = new Checker(nestedModule)
+      val check = Checker(nestedModule)
       test("pos1") - check("single", Result.Success(Set(_.single)), Set("single"))
       test("pos2") - check(
         "nested.single",
@@ -352,7 +352,7 @@ object ResolveTests extends TestSuite {
       )
     }
     test("doubleNested") {
-      val check = new Checker(doubleNestedModule)
+      val check = Checker(doubleNestedModule)
       test("pos1") - check("single", Result.Success(Set(_.single)), Set("single"))
       test("pos2") - check(
         "nested.single",
@@ -391,7 +391,7 @@ object ResolveTests extends TestSuite {
     test("superTask") {
       test("singleOverride") {
         // Test resolving super task with single override
-        val check = new Checker(superTaskModule)
+        val check = Checker(superTaskModule)
 
         // The super task should be resolvable via foo.super.BaseModuleTrait
         // Segments.render uses "." to join segments
@@ -417,7 +417,7 @@ object ResolveTests extends TestSuite {
 
       test("nestedModuleOverride") {
         // Test resolving super task in nested module
-        val check = new Checker(nestedSuperTaskModule)
+        val check = Checker(nestedSuperTaskModule)
 
         test("resolveNestedSuper") - check.checkSeq0(
           Seq("nested.bar.super.Inner"),
@@ -431,7 +431,7 @@ object ResolveTests extends TestSuite {
 
       test("multiLevelOverride") {
         // Test resolving super tasks with multiple levels of overrides
-        val check = new Checker(multiLevelSuperTask)
+        val check = Checker(multiLevelSuperTask)
 
         // Should resolve to TraitA's version
         test("resolveTraitA") - check.checkSeq0(
@@ -465,7 +465,7 @@ object ResolveTests extends TestSuite {
 
       test("noSuperTask") {
         // Test that resolving super on a non-overridden task fails
-        val check = new Checker(singleton)
+        val check = Checker(singleton)
         test("failsOnNonOverriddenTask") - check(
           "single.super",
           Result.Failure(
@@ -476,7 +476,7 @@ object ResolveTests extends TestSuite {
     }
 
     test("rename") {
-      val check = new Checker(renameModule)
+      val check = Checker(renameModule)
 
       test("normalTaskStillWorks") - check(
         "normalTask",
@@ -521,7 +521,7 @@ object ResolveTests extends TestSuite {
     }
 
     test("privateMethods") {
-      val check = new Checker(privateMethodsModule)
+      val check = Checker(privateMethodsModule)
 
       // Simple public task depending on private task works
       test("pubDependsOnPriv") - check(
@@ -580,7 +580,7 @@ object ResolveTests extends TestSuite {
     }
 
     test("keywordModules") {
-      val check = new Checker(keywordModule)
+      val check = Checker(keywordModule)
 
       // Test that modules named with Scala keywords can be resolved
       test("for") - check(
@@ -615,7 +615,7 @@ object ResolveTests extends TestSuite {
     }
 
     test("crossModules") {
-      val check = new Checker(crossModule)
+      val check = Checker(crossModule)
 
       // Test cross modules can be resolved
       test("crossA") - check(

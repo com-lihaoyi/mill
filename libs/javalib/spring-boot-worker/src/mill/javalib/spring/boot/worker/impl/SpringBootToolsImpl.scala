@@ -42,12 +42,12 @@ class SpringBootToolsImpl() extends SpringBootTools {
       libs: Seq[Path],
       launchScript: Option[String]
   )(using ctx: TaskCtx): Unit = {
-    val repack = new Repackager(base.toIO)
+    val repack = Repackager(base.toIO)
     repack.setMainClass(mainClass)
 
     val libraries: Libraries = { libCallback =>
       libs.foreach { lib =>
-        libCallback.library(new Library(lib.toIO, LibraryScope.RUNTIME))
+        libCallback.library(Library(lib.toIO, LibraryScope.RUNTIME))
       }
     }
 

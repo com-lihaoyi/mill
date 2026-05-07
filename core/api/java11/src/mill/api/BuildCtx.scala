@@ -46,9 +46,9 @@ object BuildCtx {
   // give each evaluation an isolated buffer so concurrent launchers
   // don't clobber each other's watches.
   private[mill] val watchedValues0: DynamicVariable[mutable.Buffer[Watchable]] =
-    new DynamicVariable(moduleWatchedDefault)
+    DynamicVariable(moduleWatchedDefault)
   private[mill] val evalWatchedValues0: DynamicVariable[mutable.Buffer[Watchable]] =
-    new DynamicVariable(mutable.Buffer.empty[Watchable])
+    DynamicVariable(mutable.Buffer.empty[Watchable])
 
   protected[mill] def watchedValues: mutable.Buffer[Watchable] = watchedValues0.value
   protected[mill] def evalWatchedValues: mutable.Buffer[Watchable] = evalWatchedValues0.value

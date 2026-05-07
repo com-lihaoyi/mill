@@ -38,7 +38,7 @@ final class EvaluatorImpl(
       allowPositionalCommandArgs,
       selectiveExecution,
       execution,
-      new ScriptModuleInit()
+      ScriptModuleInit()
     )
   override val staticBuildOverrides = execution.staticBuildOverrides
 
@@ -56,7 +56,7 @@ final class EvaluatorImpl(
   override def spanningInvalidationTree: Option[String] = execution.spanningInvalidationTree
   override def classLoaderSigHash: Int = execution.classLoaderSigHash
 
-  def withBaseLogger(newBaseLogger: Logger): Evaluator = new EvaluatorImpl(
+  def withBaseLogger(newBaseLogger: Logger): Evaluator = EvaluatorImpl(
     allowPositionalCommandArgs,
     selectiveExecution,
     execution.withBaseLogger(newBaseLogger),
@@ -434,7 +434,7 @@ final class EvaluatorImpl(
       reporter: Int => Option[CompileProblemReporter] = _ => None,
       selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]] = {
-    val promptLineLogger = new PrefixLogger(
+    val promptLineLogger = PrefixLogger(
       logger0 = baseLogger,
       key0 = Seq("resolve"),
       message = "resolve " + scriptArgs.mkString(" ")

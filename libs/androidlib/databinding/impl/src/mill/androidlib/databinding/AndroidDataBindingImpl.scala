@@ -37,10 +37,10 @@ class AndroidDataBindingImpl extends AndroidDataBindingWorker {
     val layoutInfoInputArgs = new LayoutInfoInput.Args(
       /* outOfDate */ Collections.emptyList(),
       /* removed */ Collections.emptyList(),
-      /* infoFolder */ new File(args.layoutInfoDir),
-      /* dependencyClassesFolders */ args.dependencyClassInfoDirs.map(new File(_)).toList.asJava,
-      /* artifactFolder */ new File(args.classInfoDir),
-      /* logFolder */ new File(args.logFolder),
+      /* infoFolder */ File(args.layoutInfoDir),
+      /* dependencyClassesFolders */ args.dependencyClassInfoDirs.map(File(_)).toList.asJava,
+      /* artifactFolder */ File(args.classInfoDir),
+      /* logFolder */ File(args.logFolder),
       /* packageName */ args.applicationPackageName,
       /* incremental */ false,
       /* v1ArtifactsFolder */ null,
@@ -50,12 +50,12 @@ class AndroidDataBindingImpl extends AndroidDataBindingWorker {
     )
 
     os.makeDir.all(os.Path(args.outputDir))
-    val fileWriter = new DataBindingBuilder().createJavaFileWriter(os.Path(args.outputDir).toIO)
+    val fileWriter = DataBindingBuilder().createJavaFileWriter(os.Path(args.outputDir).toIO)
 
     val getRPackage: kotlin.jvm.functions.Function2[String, String, String] = null
 
-    new BaseDataBinder(
-      new LayoutInfoInput(layoutInfoInputArgs),
+    BaseDataBinder(
+      LayoutInfoInput(layoutInfoInputArgs),
       getRPackage
     ).generateAll(fileWriter)
 

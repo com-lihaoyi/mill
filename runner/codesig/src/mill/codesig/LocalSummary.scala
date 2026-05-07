@@ -64,9 +64,9 @@ object LocalSummary {
     def processOneClass(bytes: Array[Byte]): (JCls, ClassInfo) = {
       // Parse into ClassNode; replay into MyClassVisitor for call graph
       // extraction, and reuse the same ClassNode for the Analyzer pass.
-      val classNode = new ClassNode()
-      new ClassReader(bytes).accept(classNode, 0)
-      val v = new MyClassVisitor()
+      val classNode = ClassNode()
+      ClassReader(bytes).accept(classNode, 0)
+      val v = MyClassVisitor()
       classNode.accept(v)
 
       val cls = v.clsType
@@ -135,7 +135,7 @@ object LocalSummary {
         if (tp == null) BasicValue.UNINITIALIZED_VALUE
         else if (
           tp.getSort == org.objectweb.asm.Type.ARRAY || tp.getSort == org.objectweb.asm.Type.OBJECT
-        ) new BasicValue(tp)
+        ) BasicValue(tp)
         else super.newValue(tp)
 
       override def merge(a: BasicValue, b: BasicValue): BasicValue =
@@ -283,7 +283,7 @@ object LocalSummary {
         signature: String,
         exceptions: Array[String]
     ): MethodVisitor = {
-      new MyMethodVisitor(clsType, this, name, descriptor, access)
+      MyMethodVisitor(clsType, this, name, descriptor, access)
     }
 
     override def visitEnd(): Unit = {}

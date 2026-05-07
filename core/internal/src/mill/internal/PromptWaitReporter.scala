@@ -32,7 +32,7 @@ object PromptWaitReporter {
    * Counter for synthetic-line keys so concurrent waits in one session
    * don't collide on the same prompt row.
    */
-  private val syntheticCounter = new AtomicLong()
+  private val syntheticCounter = AtomicLong()
 
   def fromLogger(logger: Logger, fallback: PrintStream): WaitReporter =
     if (!logger.prompt.enableTicker) WaitReporter.stderr(fallback)

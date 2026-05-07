@@ -51,8 +51,8 @@ abstract class MillDaemonServer(
     serverLog(s"prepareConnection ${connectionData.socketName}")
     val transport = MillRpcWireTransport(
       name = s"DaemonRpcServer-${connectionData.socketName}",
-      serverToClient = new BufferedReader(new InputStreamReader(connectionData.clientToServer)),
-      clientToServer = new PrintStream(connectionData.serverToClient, true),
+      serverToClient = BufferedReader(InputStreamReader(connectionData.clientToServer)),
+      clientToServer = PrintStream(connectionData.serverToClient, true),
       writeSynchronizer = new Object
     )
     MillDaemonServer.DaemonServerData(
@@ -82,7 +82,7 @@ abstract class MillDaemonServer(
         s"deferredStopServer: storing shutdown request (reason=$reason, exitCode=$exitCode)"
       )
       data.shutdownRequest.set(MillDaemonServer.ShutdownRequest(reason, exitCode))
-      throw new StopWithResponse(DaemonRpc.RunCommandResult(exitCode))
+      throw StopWithResponse(DaemonRpc.RunCommandResult(exitCode))
     }
 
     // Track the exit code from normal command completion.
@@ -118,7 +118,7 @@ abstract class MillDaemonServer(
 
         // Create an InputStream that polls the client for stdin data via RPC.
         // This allows the watch mode to detect Enter key presses.
-        val rpcStdin = new MillDaemonServer.RpcStdinInputStream(serverToClient)
+        val rpcStdin = MillDaemonServer.RpcStdinInputStream(serverToClient)
 
         // Record the active command so concurrent launchers can be informed
         // about who caused a daemon shutdown if this connection gets killed.

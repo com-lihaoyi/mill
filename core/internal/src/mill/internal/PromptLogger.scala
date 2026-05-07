@@ -109,7 +109,7 @@ class PromptLogger(
   def error(s: String): Unit = streams.err.println(s)
 
   object prompt extends Logger.Prompt {
-    val logLockObject = new Object()
+    val logLockObject = Object()
     def logLock[T](block: => T): T = logLockObject.synchronized {
       block
     }
@@ -137,7 +137,7 @@ class PromptLogger(
       )
     }
 
-    val threadNumberer = new ThreadNumberer()
+    val threadNumberer = ThreadNumberer()
     override def setPromptHeaderPrefix(s: String): Unit = PromptLogger.this.synchronized {
       promptLineState.setHeaderPrefix(s)
     }
@@ -199,7 +199,7 @@ class PromptLogger(
             // color. This ensures that any trailing colors in the original `bufferString` do not
             // get ignored since they would affect zero characters.
             val extendedString = fansi.Str.apply(
-              new String(continuationColoredLine) + "x",
+              String(continuationColoredLine) + "x",
               fansi.ErrorMode.Sanitize
             )
 
@@ -242,7 +242,7 @@ class PromptLogger(
               var i = 0
               while (i < s.length && s(i) != EscByte) i += 1
               if (i == s.length) s
-              else fansi.Str(new String(s, "UTF-8"), fansi.ErrorMode.Strip).render.getBytes("UTF-8")
+              else fansi.Str(String(s, "UTF-8"), fansi.ErrorMode.Strip).render.getBytes("UTF-8")
             }
 
             if (!seenBefore) {
@@ -401,12 +401,12 @@ object PromptLogger {
     // `ProxyStream`, as we need to preserve the ordering of writes to each individual
     // stream, and also need to know when *both* streams are quiescent so that we can
     // print the prompt at the bottom
-    val pipe = new PipeStreams()
-    val proxyOut = new ProxyStream.Output(pipe.output, ProxyStream.OUT)
-    val proxyErr = new ProxyStream.Output(pipe.output, ProxyStream.ERR)
-    val proxySystemStreams = new SystemStreams(
-      new PrintStream(proxyOut),
-      new PrintStream(proxyErr),
+    val pipe = PipeStreams()
+    val proxyOut = ProxyStream.Output(pipe.output, ProxyStream.OUT)
+    val proxyErr = ProxyStream.Output(pipe.output, ProxyStream.ERR)
+    val proxySystemStreams = SystemStreams(
+      PrintStream(proxyOut),
+      PrintStream(proxyErr),
       systemStreams0.in
     )
 
@@ -418,7 +418,7 @@ object PromptLogger {
       if (!paused()) {
         val currentPrompt = getCurrentPrompt()
         systemStreams0.err.write(currentPrompt)
-        if (interactive()) lastPromptHeight = new String(currentPrompt).linesIterator.size
+        if (interactive()) lastPromptHeight = String(currentPrompt).linesIterator.size
         else lastPromptHeight = 0
       } else lastPromptHeight = 0
 
@@ -492,7 +492,7 @@ object PromptLogger {
       }
     }
 
-    val pumperThread = new Thread(pumper, "prompt-logger-stream-pumper-thread")
+    val pumperThread = Thread(pumper, "prompt-logger-stream-pumper-thread")
     pumperThread.start()
 
     def close(): Unit = {

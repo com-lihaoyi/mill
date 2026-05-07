@@ -73,7 +73,7 @@ object PathRef {
         case Revalidate.Once | Revalidate.Always =>
           val changedSig = PathRef.apply(pathRef.path, pathRef.quick).sig
           if (pathRef.sig != changedSig) {
-            throw new PathRefValidationException(pathRef)
+            throw PathRefValidationException(pathRef)
           }
           val _ = map.put(mapKey(pathRef), pathRef)
       }
@@ -82,10 +82,10 @@ object PathRef {
   }
 
   private[mill] val validatedPaths: DynamicVariable[ValidatedPaths] =
-    new DynamicVariable[ValidatedPaths](new ValidatedPaths())
+    DynamicVariable[ValidatedPaths](ValidatedPaths())
 
   private[mill] val serializedPaths: DynamicVariable[List[PathRef]] =
-    new DynamicVariable(null)
+    DynamicVariable(null)
 
   class PathRefValidationException(val pathRef: PathRef)
       extends RuntimeException(s"Invalid path signature detected: ${pathRef}")
@@ -118,7 +118,7 @@ object PathRef {
     val sig = {
       val isPosix = path.wrapped.getFileSystem.supportedFileAttributeViews().contains("posix")
       val digest = MessageDigest.getInstance("MD5")
-      val digestOut = new DigestOutputStream(DummyOutputStream, digest)
+      val digestOut = DigestOutputStream(DummyOutputStream, digest)
 
       def updateWithInt(value: Int): Unit = {
         digest.update((value >>> 24).toByte)
@@ -171,7 +171,7 @@ object PathRef {
       java.util.Arrays.hashCode(digest.digest())
     }
 
-    new PathRef(path, quick, sig, revalidate)
+    PathRef(path, quick, sig, revalidate)
   }
 
   private[mill] def withSerializedPaths[T](block: => T): (T, Seq[PathRef]) = {
