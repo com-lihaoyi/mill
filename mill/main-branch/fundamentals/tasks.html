@@ -889,7 +889,7 @@ making use of the most common <code>Task.Source</code>, <code>Task</code>, and <
 to define a simple build graph with some input source files and intermediate build steps:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-17-01656f/mill-dist-1.1.6-example-fundamentals-tasks-1-task-graph.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/tasks/1-task-graph">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-18-356343/mill-dist-1.1.6-example-fundamentals-tasks-1-task-graph.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/tasks/1-task-graph">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
@@ -1325,7 +1325,7 @@ skipped is due to <a href="../large/selective-execution.html" class="xref page">
 <div class="sect2">
 <h3 id="_sources"><a class="anchor" href="#_sources"></a>Sources</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-17-01656f/mill-dist-1.1.6-example-fundamentals-tasks-2-primary-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/tasks/2-primary-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-18-356343/mill-dist-1.1.6-example-fundamentals-tasks-2-primary-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/tasks/2-primary-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1975,7 +1975,7 @@ concurrent launcher&#8217;s <code>compile</code> cannot read the file mid-rewrit
 <div class="sect2">
 <h3 id="_inputs"><a class="anchor" href="#_inputs"></a>Inputs</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-17-01656f/mill-dist-1.1.6-example-fundamentals-tasks-4-inputs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/tasks/4-inputs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-18-356343/mill-dist-1.1.6-example-fundamentals-tasks-4-inputs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/tasks/4-inputs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -2157,7 +2157,7 @@ incrementing it each time the task is evaluated. Note that like normal cached
 tasks, persistent tasks only re-evaluate when their inputs change:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-17-01656f/mill-dist-1.1.6-example-fundamentals-tasks-5-persistent-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/tasks/5-persistent-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-18-356343/mill-dist-1.1.6-example-fundamentals-tasks-5-persistent-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/tasks/5-persistent-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -2248,8 +2248,8 @@ def compressedData = Task(persistent = true) {
 }
 
 def compressBytes(input: Array[Byte]) = {
-  val bos = new ByteArrayOutputStream(input.length)
-  val gzip = new GZIPOutputStream(bos)
+  val bos = ByteArrayOutputStream(input.length)
+  val gzip = GZIPOutputStream(bos)
   gzip.write(input)
   gzip.close()
   bos.toByteArray
@@ -2309,7 +2309,7 @@ that like normal cached tasks, the task using the worker only re-evaluates
 when its inputs change:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-17-01656f/mill-dist-1.1.6-example-fundamentals-tasks-6-workers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/tasks/6-workers">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-18-356343/mill-dist-1.1.6-example-fundamentals-tasks-6-workers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/tasks/6-workers">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -2396,7 +2396,7 @@ import java.util.zip.GZIPOutputStream
 
 def data = Task.Source("data")
 
-def compressWorker = Task.Worker { new CompressWorker(Task.dest) }
+def compressWorker = Task.Worker { CompressWorker(Task.dest) }
 
 def compressedData = Task {
   println("Evaluating compressedData")
@@ -2436,8 +2436,8 @@ class CompressWorker(dest: os.Path) {
 }
 
 def compressBytes(input: Array[Byte]) = {
-  val bos = new ByteArrayOutputStream(input.length)
-  val gzip = new GZIPOutputStream(bos)
+  val bos = ByteArrayOutputStream(input.length)
+  val gzip = GZIPOutputStream(bos)
   gzip.write(input)
   gzip.close()
   bos.toByteArray
@@ -2528,7 +2528,7 @@ class MyWorker() extends AutoCloseable {
   override def close() = { /* cleanup and free resources */ }
 }
 
-def myWorker = Task.Worker { new MyWorker() }</code></pre>
+def myWorker = Task.Worker { MyWorker() }</code></pre>
 </div>
 </div>
 </div>
@@ -2569,13 +2569,13 @@ import java.lang.AutoCloseable
 import mill.util.CachedFactory
 import java.io.ByteArrayOutputStream
 
-def cachedCompressWorker = Task.Worker { new CachedCompressWorker(Task.dest) }
+def cachedCompressWorker = Task.Worker { CachedCompressWorker(Task.dest) }
 class CachedCompressWorker(dest: os.Path) <i class="conum" data-value="1"></i><b>(1)</b>
     extends CachedFactory[Unit, ByteArrayOutputStream] {
 
   def setup(key: Unit): ByteArrayOutputStream = { <i class="conum" data-value="2"></i><b>(2)</b>
     println("setup ByteArrayOutputStream")
-    new ByteArrayOutputStream()
+    ByteArrayOutputStream()
   }
 
   def maxCacheSize = 2 <i class="conum" data-value="3"></i><b>(3)</b>
@@ -2602,7 +2602,7 @@ class CachedCompressWorker(dest: os.Path) <i class="conum" data-value="1"></i><b
 def compressBytes2(bos: ByteArrayOutputStream, input: Array[Byte]) = {
   bos.reset()
   Thread.sleep(1000) // Simulate a slow operation
-  val gzip = new GZIPOutputStream(bos)
+  val gzip = GZIPOutputStream(bos)
   gzip.write(input)
   gzip.close()
   bos.toByteArray
@@ -2725,7 +2725,7 @@ not runnable from the command-line, but can be used to share common code you
 find yourself repeating in <code>Task</code>s and <code>Command</code>s.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-17-01656f/mill-dist-1.1.6-example-fundamentals-tasks-3-anonymous-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/tasks/3-anonymous-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-18-356343/mill-dist-1.1.6-example-fundamentals-tasks-3-anonymous-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/tasks/3-anonymous-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
