@@ -83,6 +83,21 @@ object IncrementalAnnotationProcessingTests extends TestSuite {
       }
     }
 
+    object classloaderIsolationProcessor extends JavaModule
+
+    object classloaderIsolation extends JavaModule {
+      def moduleDeps = Seq(classloaderIsolationProcessor)
+
+      override def javacOptions: T[Seq[String]] = Task {
+        super.javacOptions() ++ Seq(
+          "-processorpath",
+          classloaderIsolationProcessor.compile().classes.path.toString,
+          "-processor",
+          "example.ClassloaderProbeProcessor"
+        )
+      }
+    }
+
     lazy val millDiscover = Discover[this.type]
   }
 
@@ -402,6 +417,41 @@ object IncrementalAnnotationProcessingTests extends TestSuite {
       assert(!os.exists(generatedComponent))
       assert(os.exists(helperClass))
       assert(os.stat(helperClass).ctime == helperStatBefore.ctime)
+    }
+
+    test("classloaderIsolation") - testEval().scoped { eval =>
+      val probeFile =
+        eval.outPath / "classloaderIsolation/compile.dest/classes/META-INF/probe/result.txt"
+
+      val Right(first) = eval(Modules.classloaderIsolation.compile).runtimeChecked
+      assert(first.evalCount > 0, os.exists(probeFile))
+
+      // Mill's tracking processor classloader is only created on incremental
+      // recompiles, so trigger a second compile by modifying the source.
+      os.write.over(
+        Modules.classloaderIsolation.moduleDir / "src/example/Probed.java",
+        """package example;
+          |
+          |@Probe
+          |public class Probed {
+          |    public static String value() {
+          |        return "probed-changed";
+          |    }
+          |}
+          |""".stripMargin
+      )
+
+      val Right(second) = eval(Modules.classloaderIsolation.compile).runtimeChecked
+      assert(second.evalCount > 0, os.exists(probeFile))
+
+      // The processor's classloader chain must contain exactly the processor's own
+      // compile output and nothing else. Any extra entries (e.g. Mill / Zinc worker
+      // jars from MillURLClassLoader) indicate a classloader-isolation regression.
+      val urls = os.read(probeFile).linesIterator.filter(_.nonEmpty).toSet
+      val expectedUrl =
+        (eval.outPath / "classloaderIsolationProcessor/compile.dest/classes")
+          .toIO.toURI.toURL.toString
+      assert(urls == Set(expectedUrl))
     }
 
     test("dynamic") - testEval().scoped { eval =>
