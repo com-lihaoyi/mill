@@ -190,6 +190,42 @@ node3 -> node2;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="rootModule-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="BuildCtx$.html#rootModule-0" t="n" class="documentableName ">rootModule</a>: <a href="daemon/internal/BaseModuleApi.html" t="t">BaseModuleApi</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The root <span data-unresolved-link="" title="Problem linking mill.api.RootModule: Couldn't resolve a member for the given link query">mill.api.RootModule</span> of the current Mill build. Accessing this from user-facing code such as <code>Task.Command</code>s gives plugins a convenient way to walk the module tree without having to thread an <a href="Evaluator.html">Evaluator</a> through their APIs.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>The root <span data-unresolved-link="" title="Problem linking mill.api.RootModule: Couldn't resolve a member for the given link query">mill.api.RootModule</span> of the current Mill build. Accessing this from user-facing code such as <code>Task.Command</code>s gives plugins a convenient way to walk the module tree without having to thread an <a href="Evaluator.html">Evaluator</a> through their APIs.</p>
+              <p>This is set once when the build is initialized and may be <code>null</code> before then. Cast to <code>mill.api.Module</code> (or <code>mill.api.internal.RootModule0</code>) to traverse the module tree, e.g. via <code>millInternal.modules</code>.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/core/api/java11/src/mill/api/BuildCtx.scala" target="_blank">BuildCtx.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="watch-fffff120">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>

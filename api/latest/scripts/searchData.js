@@ -824,6 +824,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/api/BuildCtx$.html#evalWatch-fffff120","e":false,"i":"","n":"evalWatch","t":"evalWatch(p: Path): Path","d":"mill.api.BuildCtx","k":"def","x":""},
 {"l":"mill/api/BuildCtx$.html#evalWatch0-fffffa91","e":false,"i":"","n":"evalWatch0","t":"evalWatch0(w: Watchable): Unit","d":"mill.api.BuildCtx","k":"def","x":""},
 {"l":"mill/api/BuildCtx$.html#millRepositories-0","e":false,"i":"","n":"millRepositories","t":"millRepositories: Seq[String]","d":"mill.api.BuildCtx","k":"def","x":""},
+{"l":"mill/api/BuildCtx$.html#rootModule-0","e":false,"i":"","n":"rootModule","t":"rootModule: BaseModuleApi","d":"mill.api.BuildCtx","k":"def","x":""},
 {"l":"mill/api/BuildCtx$.html#watch-fffff120","e":false,"i":"","n":"watch","t":"watch(p: Path): Path","d":"mill.api.BuildCtx","k":"def","x":""},
 {"l":"mill/api/BuildCtx$.html#watch0-fffffa91","e":false,"i":"","n":"watch0","t":"watch0(w: Watchable): Unit","d":"mill.api.BuildCtx","k":"def","x":""},
 {"l":"mill/api/BuildCtx$.html#watchValue-fffff33f","e":false,"i":"","n":"watchValue","t":"watchValue[T](v0: => T)(using fn: FileName, ln: Line): T","d":"mill.api.BuildCtx","k":"def","x":""},
