@@ -522,18 +522,19 @@ private[mill] object IncrementalAnnotationProcessing {
       classpath: Seq[os.Path]
   ): Option[TrackingMode] = {
     val urls = classpath.iterator.map(_.toIO.toURI.toURL).toArray
-    Using.resource(new java.net.URLClassLoader(urls, ClassLoader.getPlatformClassLoader)) { loader =>
-      scala.util
-        .Try {
-          val cls = loader.loadClass(processorClassName)
-          val processor = cls.getDeclaredConstructor().newInstance().asInstanceOf[Processor]
-          val options = processor.getSupportedOptions.asScala
-          if (options.contains(DynamicAggregatingOption)) TrackingMode.Aggregating
-          else if (options.contains(DynamicIsolatingOption)) TrackingMode.Isolating
-          else null
-        }
-        .toOption
-        .filter(_ != null)
+    Using.resource(new java.net.URLClassLoader(urls, ClassLoader.getPlatformClassLoader)) {
+      loader =>
+        scala.util
+          .Try {
+            val cls = loader.loadClass(processorClassName)
+            val processor = cls.getDeclaredConstructor().newInstance().asInstanceOf[Processor]
+            val options = processor.getSupportedOptions.asScala
+            if (options.contains(DynamicAggregatingOption)) TrackingMode.Aggregating
+            else if (options.contains(DynamicIsolatingOption)) TrackingMode.Isolating
+            else null
+          }
+          .toOption
+          .filter(_ != null)
     }
   }
 
@@ -543,15 +544,16 @@ private[mill] object IncrementalAnnotationProcessing {
       annotationIndex: SourceAnnotationIndex
   ): Boolean = {
     val urls = classpath.iterator.map(_.toIO.toURI.toURL).toArray
-    Using.resource(new java.net.URLClassLoader(urls, ClassLoader.getPlatformClassLoader)) { loader =>
-      scala.util
-        .Try {
-          val cls = loader.loadClass(processorClassName)
-          val processor = cls.getDeclaredConstructor().newInstance().asInstanceOf[Processor]
-          val supported = processor.getSupportedAnnotationTypes.asScala.toSet
-          supported.isEmpty || supported.exists(annotationIndex.matches)
-        }
-        .getOrElse(true)
+    Using.resource(new java.net.URLClassLoader(urls, ClassLoader.getPlatformClassLoader)) {
+      loader =>
+        scala.util
+          .Try {
+            val cls = loader.loadClass(processorClassName)
+            val processor = cls.getDeclaredConstructor().newInstance().asInstanceOf[Processor]
+            val supported = processor.getSupportedAnnotationTypes.asScala.toSet
+            supported.isEmpty || supported.exists(annotationIndex.matches)
+          }
+          .getOrElse(true)
     }
   }
 
