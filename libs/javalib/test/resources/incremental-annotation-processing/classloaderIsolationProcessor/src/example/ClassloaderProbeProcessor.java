@@ -2,6 +2,8 @@ package example;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -19,15 +21,16 @@ public class ClassloaderProbeProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         if (roundEnv.processingOver()) return false;
 
-        ClassLoader cl = getClass().getClassLoader();
-        ClassLoader parent = cl.getParent();
         StringBuilder sb = new StringBuilder();
-        sb.append("self=").append(cl.getClass().getName()).append('\n');
-        sb.append("parent=").append(parent == null ? "<bootstrap>" : parent.getClass().getName())
-            .append('\n');
-        sb.append("parent-is-platform=")
-            .append(parent == ClassLoader.getPlatformClassLoader())
-            .append('\n');
+        ClassLoader cur = getClass().getClassLoader();
+        while (cur != null) {
+            if (cur instanceof URLClassLoader) {
+                for (URL url : ((URLClassLoader) cur).getURLs()) {
+                    sb.append(url).append('\n');
+                }
+            }
+            cur = cur.getParent();
+        }
 
         try {
             FileObject file = processingEnv.getFiler().createResource(

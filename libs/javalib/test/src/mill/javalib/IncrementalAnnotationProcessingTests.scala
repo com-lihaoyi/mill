@@ -444,11 +444,14 @@ object IncrementalAnnotationProcessingTests extends TestSuite {
       val Right(second) = eval(Modules.classloaderIsolation.compile).runtimeChecked
       assert(second.evalCount > 0, os.exists(probeFile))
 
-      // Annotation processors should be loaded into a URLClassLoader whose parent is
-      // the JDK platform classloader, so they cannot see Zinc / Mill worker / Scala
-      // stdlib classes from the enclosing worker classpath.
-      val content = os.read(probeFile)
-      assert(content.contains("parent-is-platform=true"))
+      // The processor's classloader chain must contain exactly the processor's own
+      // compile output and nothing else. Any extra entries (e.g. Mill / Zinc worker
+      // jars from MillURLClassLoader) indicate a classloader-isolation regression.
+      val urls = os.read(probeFile).linesIterator.filter(_.nonEmpty).toSet
+      val expectedUrl =
+        (eval.outPath / "classloaderIsolationProcessor/compile.dest/classes")
+          .toIO.toURI.toURL.toString
+      assert(urls == Set(expectedUrl))
     }
 
     test("dynamic") - testEval().scoped { eval =>
