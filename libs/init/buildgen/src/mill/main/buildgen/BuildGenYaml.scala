@@ -221,6 +221,11 @@ object BuildGenYaml extends BuildGen {
       lines += renderYamlExtends(effectiveSupertypes)
     }
 
+    renderYamlStringValue(
+      "springBootPlatformVersion",
+      springBootPlatformVersion
+    ).foreach(lines += _)
+
     // BomModule cannot have sources - set empty sources/resources when BomModule is used
     val isBomModule = effectiveSupertypes.contains("BomModule")
 
@@ -313,6 +318,7 @@ object BuildGenYaml extends BuildGen {
     "ScalaJSModule" -> "mill.scalajslib.ScalaJSModule",
     "ScalaNativeModule" -> "mill.scalanativelib.ScalaNativeModule",
     "ErrorProneModule" -> "mill.javalib.errorprone.ErrorProneModule",
+    "SpringBootModule" -> "spring.boot.SpringBootModule",
     "ProjectBaseModule" -> "millbuild.ProjectBaseModule"
   )
 

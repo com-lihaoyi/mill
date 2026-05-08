@@ -81,21 +81,75 @@ object MillMavenBuildGenMain {
           def moduleDeps(scope: String) = mavenModuleDeps.collect {
             case dep if dep.getScope == scope => moduleDepLookup(dep)
           }
-          val (bomMvnDeps, depManagement, bomModuleDeps) =
-            Option(model.getDependencyManagement).fold((Nil, Nil, Nil)) { dm =>
-              val (bomDeps, deps) = dm.getDependencies.asScala.toSeq.partition(isBom)
-              val (bomMvnDeps, bomModuleDeps) = bomDeps.partitionMap(toMvnOrModuleDep)
-              val depManagement = deps.collect {
-                case dep if !moduleDepLookup.isDefinedAt(dep) => toMvnDep(dep)
-              }
-              (bomMvnDeps, depManagement, bomModuleDeps)
+          def collectDependencyManagement(dm: DependencyManagement) = {
+            val (bomDeps, deps) = dm.getDependencies.asScala.toSeq.partition(isBom)
+            val (bomMvnDeps, bomModuleDeps) = bomDeps.partitionMap(toMvnOrModuleDep)
+            val depManagement = deps.collect {
+              case dep if !moduleDepLookup.isDefinedAt(dep) => toMvnDep(dep)
             }
+            (bomMvnDeps, depManagement, bomModuleDeps)
+          }
+
+          val (effectiveBomMvnDeps, effectiveDepManagement, effectiveBomModuleDeps) =
+            Option(model.getDependencyManagement).fold((Nil, Nil, Nil)) { dm =>
+              collectDependencyManagement(dm)
+            }
+
+          val isSpringParentProject = isSpringBootProject(model)
+          val springBootVersion = detectSpringBootVersion(model)
+
+          // Collect declared dependencies with versions in raw model to detect inherited versions from other POMs
+          // (e.g. spring-boot-dependencies) in Spring parent projects so that they can be omitted in generated output.
+          val rawDeclaredDepsWithVersionByScope: Set[(String, String, String)] =
+            result.getRawModel.getDependencies.asScala
+              .filter(dep => !moduleDepLookup.isDefinedAt(dep))
+              .collect {
+                case dep if nonEmpty(dep.getVersion).nonEmpty =>
+                  (
+                    dep.getGroupId,
+                    dep.getArtifactId,
+                    Option(dep.getScope).filter(_.nonEmpty).getOrElse("compile")
+                  )
+              }
+              .toSet
+
+          def normalizedScopedMvnDeps(scope: String): Seq[MvnDep] = {
+            val deps = mvnDeps(scope)
+            if (isSpringParentProject)
+              dropInheritedVersionsForSpringParentProject(
+                deps,
+                scope,
+                rawDeclaredDepsWithVersionByScope
+              )
+            else deps
+          }
+
+          val (rawBomMvnDeps, rawDepManagement, rawBomModuleDeps) =
+            Option(result.getRawModel.getDependencyManagement).fold((Nil, Nil, Nil)) { dm =>
+              collectDependencyManagement(dm)
+            }
+
+          def selectedDependencyManagement(): (Seq[MvnDep], Seq[MvnDep], Seq[ModuleDep]) =
+            if (isSpringParentProject) {
+              // Only keep explicitly declared dependencyManagement entries,
+              // otherwise the effective model pulls in a very large inherited set from spring-boot-dependencies BOM.
+              (
+                rawBomMvnDeps.filterNot(isSpringBootDependenciesBom),
+                rawDepManagement,
+                rawBomModuleDeps
+              )
+            } else {
+              (effectiveBomMvnDeps, effectiveDepManagement, effectiveBomModuleDeps)
+            }
+
+          val (bomMvnDeps, depManagement, bomModuleDeps) = selectedDependencyManagement()
+
           mainModule = mainModule.copy(
             imports = "mill.javalib.*" +: mainModule.imports,
             supertypes = "MavenModule" +: mainModule.supertypes,
-            mvnDeps = mvnDeps("compile"),
-            compileMvnDeps = mvnDeps("provided"),
-            runMvnDeps = mvnDeps("runtime"),
+            mvnDeps = normalizedScopedMvnDeps("compile"),
+            compileMvnDeps = normalizedScopedMvnDeps("provided"),
+            runMvnDeps = normalizedScopedMvnDeps("runtime"),
             bomMvnDeps = bomMvnDeps,
             depManagement = depManagement,
             javacOptions = plugins.javacOptions,
@@ -105,8 +159,11 @@ object MillMavenBuildGenMain {
             bomModuleDeps = bomModuleDeps,
             artifactName = Option(model.getArtifactId)
           ).withErrorProneModule(plugins.errorProneMvnDeps)
+          if (isSpringParentProject) {
+            mainModule = mainModule.withSpringBootModule(springBootVersion)
+          }
           if (os.exists(moduleDir / "src/test")) {
-            val testMvnDeps = mvnDeps("test")
+            val testMvnDeps = normalizedScopedMvnDeps("test")
             val testMixin = ModuleSpec.testModuleMixin(testMvnDeps)
             val testModuleDeps = mavenModuleDeps.collect {
               case dep if dep.getScope == "test" =>
@@ -128,6 +185,9 @@ object MillMavenBuildGenMain {
               testSandboxWorkingDir = Some(false),
               testFramework = Option.when(testMixin.isEmpty)("")
             )
+            if (isSpringParentProject) {
+              testModule = testModule.withSpringBootTestsModule()
+            }
             if (testMixin.contains("TestModule.Junit5")) {
               testModule.mvnDeps.base.collectFirst {
                 case dep if dep.organization == "org.junit.jupiter" && dep.version.nonEmpty =>
@@ -186,6 +246,54 @@ object MillMavenBuildGenMain {
   }
 
   private def isBom(dep: Dependency) = dep.getScope == "import" && dep.getType == "pom"
+
+  private val SpringBootGroupId = "org.springframework.boot"
+  private val SpringBootParentArtifactId = "spring-boot-starter-parent"
+  private val SpringBootDependenciesArtifactId = "spring-boot-dependencies"
+
+  private def isSpringBootParent(parent: Parent): Boolean =
+    parent.getGroupId == SpringBootGroupId && parent.getArtifactId == SpringBootParentArtifactId
+
+  private def isSpringBootDependenciesBom(dep: MvnDep): Boolean =
+    dep.organization == SpringBootGroupId && dep.name == SpringBootDependenciesArtifactId
+
+  /**
+   * Detect if the project is a Spring Boot project by checking if it inherits from spring-boot-starter-parent.
+   */
+  private def isSpringBootProject(model: Model): Boolean =
+    Option(model.getParent).exists(isSpringBootParent)
+
+  private def nonEmpty(value: String): Option[String] = Option(value).filter(_.nonEmpty)
+
+  /**
+   * Strip inherited versions in Spring parent projects when they were not explicitly declared
+   * in the raw pom for a given (organization, artifact, scope).
+   */
+  private def dropInheritedVersionsForSpringParentProject(
+      deps: Seq[MvnDep],
+      scope: String,
+      rawDeclaredDepsWithVersionByScope: Set[(String, String, String)]
+  ): Seq[MvnDep] = {
+    deps.map { dep =>
+      val key = (dep.organization, dep.name, scope)
+      // If the version wasn't explicitly declared in raw pom.xml, it is inherited
+      // (typically via spring-boot-dependencies) and should be omitted in generated output.
+      if (
+        dep.version.nonEmpty &&
+        // Keep this narrowly scoped to Spring ecosystem dependencies only.
+        dep.organization.startsWith("org.springframework") &&
+        !rawDeclaredDepsWithVersionByScope.contains(key)
+      ) dep.copy(version = "")
+      else dep
+    }
+  }
+
+  /** Detect Spring Boot platform version from spring-boot-starter-parent. */
+  private def detectSpringBootVersion(model: Model): Option[String] = {
+    Option(model.getParent)
+      .filter(isSpringBootParent)
+      .flatMap(parent => nonEmpty(parent.getVersion))
+  }
 
   private def toMvnDep(dep: Dependency) = {
     import dep.*
