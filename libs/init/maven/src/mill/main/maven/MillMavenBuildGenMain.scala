@@ -81,37 +81,16 @@ object MillMavenBuildGenMain {
           def moduleDeps(scope: String) = mavenModuleDeps.collect {
             case dep if dep.getScope == scope => moduleDepLookup(dep)
           }
-          def collectDependencyManagement(dm: DependencyManagement) = {
-            val (bomDeps, deps) = dm.getDependencies.asScala.toSeq.partition(isBom)
-            val (bomMvnDeps, bomModuleDeps) = bomDeps.partitionMap(toMvnOrModuleDep)
-            val depManagement = deps.collect {
-              case dep if !moduleDepLookup.isDefinedAt(dep) => toMvnDep(dep)
-            }
-            (bomMvnDeps, depManagement, bomModuleDeps)
-          }
-
           val (effectiveBomMvnDeps, effectiveDepManagement, effectiveBomModuleDeps) =
             Option(model.getDependencyManagement).fold((Nil, Nil, Nil)) { dm =>
-              collectDependencyManagement(dm)
+              collectDependencyManagement(dm, toMvnOrModuleDep, moduleDepLookup)
             }
 
           val isSpringParentProject = isSpringBootProject(model)
           val springBootVersion = detectSpringBootVersion(model)
 
-          // Collect declared dependencies with versions in raw model to detect inherited versions from other POMs
-          // (e.g. spring-boot-dependencies) in Spring parent projects so that they can be omitted in generated output.
-          val rawDeclaredDepsWithVersionByScope: Set[(String, String, String)] =
-            result.getRawModel.getDependencies.asScala
-              .filter(dep => !moduleDepLookup.isDefinedAt(dep))
-              .collect {
-                case dep if nonEmpty(dep.getVersion).nonEmpty =>
-                  (
-                    dep.getGroupId,
-                    dep.getArtifactId,
-                    Option(dep.getScope).filter(_.nonEmpty).getOrElse("compile")
-                  )
-              }
-              .toSet
+          val rawDeclaredDepsWithVersionByScope =
+            collectRawDeclaredDepsWithVersionByScope(result.getRawModel, moduleDepLookup)
 
           def normalizedScopedMvnDeps(scope: String): Seq[MvnDep] = {
             val deps = mvnDeps(scope)
@@ -126,23 +105,14 @@ object MillMavenBuildGenMain {
 
           val (rawBomMvnDeps, rawDepManagement, rawBomModuleDeps) =
             Option(result.getRawModel.getDependencyManagement).fold((Nil, Nil, Nil)) { dm =>
-              collectDependencyManagement(dm)
+              collectDependencyManagement(dm, toMvnOrModuleDep, moduleDepLookup)
             }
 
-          def selectedDependencyManagement(): (Seq[MvnDep], Seq[MvnDep], Seq[ModuleDep]) =
-            if (isSpringParentProject) {
-              // Only keep explicitly declared dependencyManagement entries,
-              // otherwise the effective model pulls in a very large inherited set from spring-boot-dependencies BOM.
-              (
-                rawBomMvnDeps.filterNot(isSpringBootDependenciesBom),
-                rawDepManagement,
-                rawBomModuleDeps
-              )
-            } else {
-              (effectiveBomMvnDeps, effectiveDepManagement, effectiveBomModuleDeps)
-            }
-
-          val (bomMvnDeps, depManagement, bomModuleDeps) = selectedDependencyManagement()
+          val (bomMvnDeps, depManagement, bomModuleDeps) = selectDependencyManagement(
+            isSpringParentProject = isSpringParentProject,
+            effective = (effectiveBomMvnDeps, effectiveDepManagement, effectiveBomModuleDeps),
+            raw = (rawBomMvnDeps, rawDepManagement, rawBomModuleDeps)
+          )
 
           mainModule = mainModule.copy(
             imports = "mill.javalib.*" +: mainModule.imports,
@@ -264,6 +234,46 @@ object MillMavenBuildGenMain {
     Option(model.getParent).exists(isSpringBootParent)
 
   private def nonEmpty(value: String): Option[String] = Option(value).filter(_.nonEmpty)
+
+  private def collectDependencyManagement(
+      dm: DependencyManagement,
+      toMvnOrModuleDep: Dependency => Either[MvnDep, ModuleDep],
+      moduleDepLookup: PartialFunction[Dependency, ModuleDep]
+  ): (Seq[MvnDep], Seq[MvnDep], Seq[ModuleDep]) = {
+    val (bomDeps, deps) = dm.getDependencies.asScala.toSeq.partition(isBom)
+    val (bomMvnDeps, bomModuleDeps) = bomDeps.partitionMap(toMvnOrModuleDep)
+    val depManagement = deps.collect {
+      case dep if !moduleDepLookup.isDefinedAt(dep) => toMvnDep(dep)
+    }
+    (bomMvnDeps, depManagement, bomModuleDeps)
+  }
+
+  private def collectRawDeclaredDepsWithVersionByScope(
+      rawModel: Model,
+      moduleDepLookup: PartialFunction[Dependency, ModuleDep]
+  ): Set[(String, String, String)] =
+    rawModel.getDependencies.asScala
+      .filter(dep => !moduleDepLookup.isDefinedAt(dep))
+      .collect {
+        case dep if nonEmpty(dep.getVersion).nonEmpty =>
+          (
+            dep.getGroupId,
+            dep.getArtifactId,
+            Option(dep.getScope).filter(_.nonEmpty).getOrElse("compile")
+          )
+      }
+      .toSet
+
+  private def selectDependencyManagement(
+      isSpringParentProject: Boolean,
+      effective: (Seq[MvnDep], Seq[MvnDep], Seq[ModuleDep]),
+      raw: (Seq[MvnDep], Seq[MvnDep], Seq[ModuleDep])
+  ): (Seq[MvnDep], Seq[MvnDep], Seq[ModuleDep]) =
+    if (isSpringParentProject) {
+      // Only keep explicitly declared dependencyManagement entries,
+      // otherwise the effective model pulls in a very large inherited set from spring-boot-dependencies BOM.
+      (raw._1.filterNot(isSpringBootDependenciesBom), raw._2, raw._3)
+    } else effective
 
   /**
    * Strip inherited versions in Spring parent projects when they were not explicitly declared
