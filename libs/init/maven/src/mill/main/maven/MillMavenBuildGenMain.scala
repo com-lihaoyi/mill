@@ -95,7 +95,7 @@ object MillMavenBuildGenMain {
           def normalizedScopedMvnDeps(scope: String): Seq[MvnDep] = {
             val deps = mvnDeps(scope)
             if (isSpringParentProject)
-              dropInheritedVersionsForSpringParentProject(
+              dropInheritedVersions(
                 deps,
                 scope,
                 rawDeclaredDepsWithVersionByScope
@@ -276,10 +276,10 @@ object MillMavenBuildGenMain {
     } else effective
 
   /**
-   * Strip inherited versions in Spring parent projects when they were not explicitly declared
-   * in the raw pom for a given (organization, artifact, scope).
+   * Strip inherited versions when they were not explicitly declared
+   * in the raw pom to avoid generating build files with versions that are not actually declared in the pom.xml.
    */
-  private def dropInheritedVersionsForSpringParentProject(
+  private def dropInheritedVersions(
       deps: Seq[MvnDep],
       scope: String,
       rawDeclaredDepsWithVersionByScope: Set[(String, String, String)]
@@ -287,11 +287,9 @@ object MillMavenBuildGenMain {
     deps.map { dep =>
       val key = (dep.organization, dep.name, scope)
       // If the version wasn't explicitly declared in raw pom.xml, it is inherited
-      // (typically via spring-boot-dependencies) and should be omitted in generated output.
+      // (e.g. spring-boot-dependencies) and should be omitted in generated output.
       if (
         dep.version.nonEmpty &&
-        // Keep this narrowly scoped to Spring ecosystem dependencies only.
-        dep.organization.startsWith("org.springframework") &&
         !rawDeclaredDepsWithVersionByScope.contains(key)
       ) dep.copy(version = "")
       else dep
