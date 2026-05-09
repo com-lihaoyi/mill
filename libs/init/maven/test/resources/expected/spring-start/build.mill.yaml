@@ -1,14 +1,11 @@
 mill-version: SNAPSHOT
 mill-jvm-version: system
 extends: [spring.boot.SpringBootModule, MavenModule, PublishModule]
-springBootPlatformVersion: 3.5.6
+springBootPlatformVersion: 4.0.6
 mvnDeps:
-- org.springframework.boot:spring-boot-starter-data-jdbc
-runMvnDeps:
-- com.h2database:h2:2.3.232
+- org.springframework.boot:spring-boot-starter
 artifactName: demo
 pomSettings:
-  description: Demo project for Spring Boot
   organization: com.example
   versionControl: 
   developers:
@@ -19,7 +16,5 @@ object test:
   extends: [SpringBootTestsModule, MavenTests, TestModule.Junit5]
   mvnDeps:
   - org.springframework.boot:spring-boot-starter-test
-  runMvnDeps:
-  - com.h2database:h2:2.3.232
   testParallelism: false
   testSandboxWorkingDir: false

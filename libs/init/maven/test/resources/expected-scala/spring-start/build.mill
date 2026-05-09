@@ -9,20 +9,18 @@ import mill.javalib.spring.boot.*
 
 object `package` extends SpringBootModule, MavenModule, PublishModule {
 
-  def springBootPlatformVersion = "3.5.6"
+  def springBootPlatformVersion = "4.0.6"
 
-  def mvnDeps = Seq(mvn"org.springframework.boot:spring-boot-starter-data-jdbc")
-
-  def runMvnDeps = Seq(mvn"com.h2database:h2:2.3.232")
+  def mvnDeps = Seq(mvn"org.springframework.boot:spring-boot-starter")
 
   def artifactName = "demo"
 
   def pomParentProject = Some(
-    Artifact("org.springframework.boot", "spring-boot-starter-parent", "3.5.6")
+    Artifact("org.springframework.boot", "spring-boot-starter-parent", "4.0.6")
   )
 
   def pomSettings = PomSettings(
-    "Demo project for Spring Boot",
+    "",
     "com.example",
     "",
     Seq(License("", "", "", false, false, "")),
@@ -35,8 +33,6 @@ object `package` extends SpringBootModule, MavenModule, PublishModule {
   object test extends SpringBootTestsModule, MavenTests, TestModule.Junit5 {
 
     def mvnDeps = Seq(mvn"org.springframework.boot:spring-boot-starter-test")
-
-    def runMvnDeps = Seq(mvn"com.h2database:h2:2.3.232")
 
     def forkWorkingDir = moduleDir
 
