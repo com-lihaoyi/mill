@@ -404,6 +404,11 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
    */
   def kotlinFriendModules: Seq[KotlinModule] = Seq.empty[KotlinModule]
 
+  require(
+    kotlinFriendModules.toSet.subsetOf(moduleDeps.toSet),
+    "All kotlinFriendModules must also be declared in moduleDeps"
+  )
+
   /**
    * Additional Kotlin compiler options to be used by [[compile]].
    */
