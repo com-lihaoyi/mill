@@ -18,7 +18,9 @@ trait KtlintModule extends JavaModule {
   /**
    * Runs [[https://pinterest.github.io/ktlint/latest/install/integrations/ Ktlint]]
    */
-  def ktlint(@mainargs.arg ktlintArgs: KtlintArgs): Command[Unit] = Task.Command {
+  def ktlint(@mainargs.arg ktlintArgs: KtlintArgs): Command[Unit] = Task.Command(globalExclusive =
+    true
+  ) {
     KtlintModule.ktlintAction(
       ktlintArgs,
       sources(),
@@ -71,7 +73,7 @@ object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskMod
   def reformatAll(
       @arg(positional = true) sources: Tasks[Seq[PathRef]] =
         Tasks.resolveMainDefault("__.sources")
-  ): Command[Unit] = Task.Command {
+  ): Command[Unit] = Task.Command(globalExclusive = true) {
     ktlintAction(
       KtlintArgs(format = true, check = true),
       Task.sequence(sources.value)().flatten,
@@ -152,7 +154,7 @@ object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskMod
     if (exitCode == 0) {} // do nothing
     else {
       if (ktlintArgs.check) {
-        throw new RuntimeException(s"Ktlint exited abnormally with exit code = $exitCode")
+        throw RuntimeException(s"Ktlint exited abnormally with exit code = $exitCode")
       } else {
         ctx.log.error(s"Ktlint exited abnormally with exit code = $exitCode")
       }

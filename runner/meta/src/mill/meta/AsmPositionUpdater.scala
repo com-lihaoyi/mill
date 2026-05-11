@@ -28,7 +28,7 @@ object AsmPositionUpdater {
         exceptions: Array[String]
     ): asm.MethodVisitor = {
       val main = super.visitMethod(access, name, descriptor, signature, exceptions)
-      new LineNumberTableMethodVisitor(lineNumberOffset, main)
+      LineNumberTableMethodVisitor(lineNumberOffset, main)
 
     }
   }
@@ -36,7 +36,7 @@ object AsmPositionUpdater {
   def postProcess(lineNumberOffset: Int, clsInputStream: InputStream): Array[Byte] = {
     val reader = new asm.ClassReader(clsInputStream)
     val writer = new asm.ClassWriter(reader, 0)
-    val checker = new LineNumberTableClassVisitor(lineNumberOffset, writer)
+    val checker = LineNumberTableClassVisitor(lineNumberOffset, writer)
     reader.accept(checker, 0)
     writer.toByteArray
   }

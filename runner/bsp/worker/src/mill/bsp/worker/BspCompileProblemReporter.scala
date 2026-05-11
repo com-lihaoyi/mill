@@ -4,7 +4,8 @@ import ch.epfl.scala.bsp4j.*
 import ch.epfl.scala.{bsp4j => bsp}
 import mill.api.daemon.internal.{CompileProblemReporter, Problem}
 
-import scala.collection.mutable
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
 import scala.util.chaining.scalaUtilChainingOps
 
 /**
@@ -29,49 +30,53 @@ private class BspCompileProblemReporter(
     taskId: TaskId,
     compilationOriginId: Option[String]
 ) extends CompileProblemReporter {
-  private var errors = 0
-  private var warnings = 0
+  // Concurrent BSP requests can target the same compile, so all mutable state
+  // here is thread-safe.
+  private val errors = AtomicInteger(0)
+  private val warnings = AtomicInteger(0)
 
   // no need of a limit here, there's no console not to flood in BSP mode
   override def maxErrors: Int = Int.MaxValue
 
-  def hasErrors: Boolean = errors > 0
+  def hasErrors: Boolean = errors.get() > 0
 
   object diagnostics {
     private class Details(
         val list: java.util.List[Diagnostic],
-        val set: mutable.HashSet[Diagnostic],
-        var hasNewDiagnostics: Boolean
+        val set: java.util.HashSet[Diagnostic],
+        @volatile var hasNewDiagnostics: Boolean
     ) {
-      def add(diagnostic: Diagnostic): Boolean =
+      def add(diagnostic: Diagnostic): Boolean = synchronized {
         set.add(diagnostic) && {
           list.add(diagnostic)
           hasNewDiagnostics = true
           true
         }
+      }
+      def consumeIfNew(): (java.util.List[Diagnostic], Boolean) = synchronized {
+        val had = hasNewDiagnostics
+        hasNewDiagnostics = false
+        (new java.util.ArrayList[Diagnostic](list), had)
+      }
     }
-    private val map = mutable.Map.empty[TextDocumentIdentifier, Details]
+    private val map = new ConcurrentHashMap[TextDocumentIdentifier, Details]()
     private def details(textDocument: TextDocumentIdentifier): Details =
       // setting hasNewDiagnostics to true when starting, so that diagnostics
       // are sent at least once, even when there are none
-      map.getOrElseUpdate(
+      map.computeIfAbsent(
         textDocument,
-        new Details(new java.util.ArrayList, new mutable.HashSet, true)
+        _ => Details(new java.util.ArrayList, new java.util.HashSet, true)
       )
     def add(textDocument: TextDocumentIdentifier, diagnostic: Diagnostic): Boolean =
       details(textDocument).add(diagnostic)
 
-    def getAll(textDocument: TextDocumentIdentifier): (java.util.List[Diagnostic], Boolean) = {
-      val details0 = details(textDocument)
-      val hasNewDiagnostics = details0.hasNewDiagnostics
-      details0.hasNewDiagnostics = false
-      (details0.list, hasNewDiagnostics)
-    }
+    def getAll(textDocument: TextDocumentIdentifier): (java.util.List[Diagnostic], Boolean) =
+      details(textDocument).consumeIfNew()
   }
 
   override def logError(problem: Problem): Unit = {
     reportProblem(problem)
-    errors += 1
+    errors.incrementAndGet()
   }
 
   override def logInfo(problem: Problem): Unit = {
@@ -92,14 +97,14 @@ private class BspCompileProblemReporter(
           case mill.api.daemon.internal.Warn => MessageType.WARNING
           case mill.api.daemon.internal.Info => MessageType.INFO
         }
-        val msgParam = new LogMessageParams(messagesType, problem.message).tap { it =>
+        val msgParam = LogMessageParams(messagesType, problem.message).tap { it =>
           it.setTask(taskId)
         }
         client.onBuildLogMessage(msgParam)
 
       case Some(f) =>
         val diagnostic = toDiagnostic(problem)
-        val textDocument = new TextDocumentIdentifier(
+        val textDocument = TextDocumentIdentifier(
           // The extra step invoking `toPath` results in a nicer URI starting with `file:///`
           f.toPath.toUri.toString
         )
@@ -160,12 +165,12 @@ private class BspCompileProblemReporter(
 
   override def logWarning(problem: Problem): Unit = {
     reportProblem(problem)
-    warnings += 1
+    warnings.incrementAndGet()
   }
 
   override def fileVisited(file: java.nio.file.Path): Unit = {
     val uri = file.toUri.toString
-    val textDocument = new TextDocumentIdentifier(uri)
+    val textDocument = TextDocumentIdentifier(uri)
     val (diagnostics0, hasNewDiagnostics) = diagnostics.getAll(textDocument)
     if (hasNewDiagnostics)
       sendBuildPublishDiagnostics(textDocument, diagnostics0, reset = true)
@@ -176,9 +181,9 @@ private class BspCompileProblemReporter(
   }
 
   override def start(): Unit = {
-    val taskStartParams = new TaskStartParams(taskId).tap { it =>
+    val taskStartParams = TaskStartParams(taskId).tap { it =>
       it.setEventTime(System.currentTimeMillis())
-      it.setData(new CompileTask(targetId))
+      it.setData(CompileTask(targetId))
       it.setDataKind(TaskStartDataKind.COMPILE_TASK)
       it.setMessage(s"Compiling ${targetDisplayName}")
     }
@@ -186,9 +191,9 @@ private class BspCompileProblemReporter(
   }
 
   override def notifyProgress(progress: Long, total: Long): Unit = {
-    val params = new TaskProgressParams(taskId).tap { it =>
+    val params = TaskProgressParams(taskId).tap { it =>
       it.setEventTime(System.currentTimeMillis())
-      it.setData(new CompileTask(targetId))
+      it.setData(CompileTask(targetId))
       it.setDataKind("compile-progress")
       it.setMessage(s"Compiling ${targetDisplayName} (${progress * 100 / total}%)")
       // Not a percentage, but the # of units done,
@@ -200,15 +205,18 @@ private class BspCompileProblemReporter(
   }
 
   override def finish(): Unit = {
+    val errorCount = errors.get()
+    val warningCount = warnings.get()
     val taskFinishParams =
-      new TaskFinishParams(taskId, if (errors > 0) StatusCode.ERROR else StatusCode.OK).tap { it =>
-        it.setEventTime(System.currentTimeMillis())
-        it.setMessage(s"Compiled ${targetDisplayName}")
-        it.setDataKind(TaskFinishDataKind.COMPILE_REPORT)
-        val compileReport = new CompileReport(targetId, errors, warnings).tap { it =>
-          compilationOriginId.foreach(id => it.setOriginId(id))
-        }
-        it.setData(compileReport)
+      TaskFinishParams(taskId, if (errorCount > 0) StatusCode.ERROR else StatusCode.OK).tap {
+        it =>
+          it.setEventTime(System.currentTimeMillis())
+          it.setMessage(s"Compiled ${targetDisplayName}")
+          it.setDataKind(TaskFinishDataKind.COMPILE_REPORT)
+          val compileReport = CompileReport(targetId, errorCount, warningCount).tap { it =>
+            compilationOriginId.foreach(id => it.setOriginId(id))
+          }
+          it.setData(compileReport)
       }
     client.onBuildTaskFinish(taskFinishParams)
   }

@@ -183,13 +183,13 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "(R)<digits>] (X)[(R)error(X)] exception",
           "(R)java.lang.Exception(X): boom",
           "  (R)build_.package_.exceptionHelper(X)((R)build.mill(X):(R)6(X))",
-          "  (R)build_.package_.exception$$anonfun$1(X)((R)build.mill(X):(R)8(X))",
+          "  (R)build_.package_.$anonfun$1(X)((R)build.mill(X):(R)8(X))",
           "  (R)mill.api.Task$Named.evaluate(X)((R)Task.scala(X):(R)<digits>(X))",
           "  (R)mill.api.Task$Named.evaluate$(X)((R)Task.scala(X):(R)<digits>(X))",
           "  (R)mill.api.Task$Command.evaluate(X)((R)Task.scala(X):(R)<digits>(X))",
           "(R)java.lang.RuntimeException(X): bang",
           "  (R)build_.package_.exceptionHelper(X)((R)build.mill(X):(R)6(X))",
-          "  (R)build_.package_.exception$$anonfun$1(X)((R)build.mill(X):(R)8(X))",
+          "  (R)build_.package_.$anonfun$1(X)((R)build.mill(X):(R)8(X))",
           "  (R)mill.api.Task$Named.evaluate(X)((R)Task.scala(X):(R)<digits>(X))",
           "  (R)mill.api.Task$Named.evaluate$(X)((R)Task.scala(X):(R)<digits>(X))",
           "  (R)mill.api.Task$Command.evaluate(X)((R)Task.scala(X):(R)<digits>(X))"
@@ -222,12 +222,12 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "<digits>] [error] broken/src/Foo.java:1:1",
           "<digits>] ?",
           "<digits>] ^",
-          "<digits>] class, interface, enum, or record expected",
+          "<digits>] class, interface, annotation type, enum, record, method or field expected",
           "<digits>] ",
           "<digits>] [error] broken/src/Foo.java:1:1",
           "<digits>] ?",
           "<digits>] ^",
-          "<digits>] class, interface, enum, or record expected",
+          "<digits>] class, interface, annotation type, enum, record, method or field expected",
           "<digits>] ",
           ".../..., 2 FAILED] mill {brokenN,brokenN}.compile",
           "<digits>] [error] brokenN.compile javac returned non-zero exit code",
@@ -242,7 +242,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "[error] broken/src/Foo.java:1:1",
           "?",
           "^",
-          "class, interface, enum, or record expected",
+          "class, interface, annotation type, enum, record, method or field expected",
           ""
         )
       )
@@ -253,7 +253,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "[error] broken/src/Foo.java:1:1",
           "?",
           "^",
-          "class, interface, enum, or record expected",
+          "class, interface, annotation type, enum, record, method or field expected",
           ""
         )
       )

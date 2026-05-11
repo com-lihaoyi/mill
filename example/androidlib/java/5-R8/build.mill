@@ -1,3 +1,4 @@
+//| mill-jvm-version: zulu:21
 // R8 is a code shrinker and obfuscator for Android applications. Is designed to optimize the size of the APK
 // while maintaining the functionality of the app.
 // When using R8, you can configure the rules for code shrinking and obfuscation in a ProGuard configuration file.

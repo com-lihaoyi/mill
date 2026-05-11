@@ -14,6 +14,15 @@ public class DaemonFiles {
    */
   public static final String daemonLaunchFingerprint = "daemonLaunchFingerprint.json";
 
+  /**
+   * JSON file the daemon updates atomically with its current state
+   * ({@code pid}, {@code activeConnections}, {@code acceptingConnections}).
+   * A launcher with a mismatched fingerprint polls this file and waits for
+   * {@code activeConnections == 0} before triggering a restart, so peers
+   * already mid-execution can finish gracefully.
+   */
+  public static final String daemonState = "daemonState.json";
+
   public static final String sandbox = "sandbox";
 
   /**
@@ -75,4 +84,14 @@ public class DaemonFiles {
    * Console log file containing output from the running Mill command
    */
   public static final String millConsoleTail = "mill-console-tail";
+
+  public static final String millRun = "mill-run";
+
+  /** @deprecated Use millRun instead. */
+  @Deprecated
+  public static final String millLauncherFiles = millRun;
+
+  public static String perLauncherFilePath(String runId) {
+    return millRun + "/" + runId + ".json";
+  }
 }

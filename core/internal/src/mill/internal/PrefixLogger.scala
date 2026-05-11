@@ -45,8 +45,8 @@ case class PrefixLogger(
     s"PrefixLogger($logger0, $key0)"
 
   def prefixPrintStream(logToOut: Boolean) = {
-    new PrintStream(
-      new LineBufferingOutputStream(logMsg => prompt.logPrefixedLine(logKey, logMsg, logToOut))
+    PrintStream(
+      LineBufferingOutputStream(logMsg => prompt.logPrefixedLine(logKey, logMsg, logToOut))
     )
   }
   val streams = new SystemStreams(

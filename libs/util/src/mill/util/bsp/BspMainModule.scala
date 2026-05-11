@@ -27,7 +27,7 @@ private[mill] object BspMainModule extends ExternalModule {
       private[mill] def bspClean(
           evaluator: EvaluatorApi,
           tasks: String*
-      ): TaskApi[Seq[java.nio.file.Path]] = Task.Command {
+      ): TaskApi[Seq[java.nio.file.Path]] = Task.Command(globalExclusive = true) {
         mainModule.cleanTask(evaluator.asInstanceOf[Evaluator], tasks*)().map(_.path.toNIO)
       }
 

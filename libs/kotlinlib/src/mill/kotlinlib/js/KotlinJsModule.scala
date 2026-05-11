@@ -67,6 +67,11 @@ trait KotlinJsModule extends KotlinModule { outer =>
     Lib.findSourceFiles(allSources(), Seq("kt")).map(PathRef(_))
   }
 
+  // -no-stdlib is a JVM-only flag and is rejected by the Kotlin/JS compiler.
+  override protected def mandatoryKotlincOptions: T[Seq[String]] = Task {
+    super.mandatoryKotlincOptions().filterNot(_ == "-no-stdlib")
+  }
+
   override def mandatoryMvnDeps: T[Seq[Dep]] =
     Seq(mvn"org.jetbrains.kotlin:kotlin-stdlib-js:${kotlinVersion()}")
 
@@ -312,7 +317,6 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // classpath
     innerCompilerArgs ++= Seq("-libraries", librariesCp.iterator.mkString(File.pathSeparator))
     innerCompilerArgs ++= Seq("-main", if (callMain) "call" else "noCall")
-    innerCompilerArgs += "-meta-info"
     if (moduleKind != ModuleKind.NoModule) {
       innerCompilerArgs ++= Seq(
         "-module-kind",
@@ -447,7 +451,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     } else if (path.ext == "jar") {
       try {
         // TODO cache these lookups. May be a big performance penalty.
-        val zipFile = new ZipFile(path.toIO)
+        val zipFile = ZipFile(path.toIO)
         zipFile.stream()
           .anyMatch(entry => entry.getName.endsWith(".meta.js") || entry.getName.endsWith(".kjsm"))
       } catch {
@@ -547,7 +551,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     ): Task[(msg: String, results: Seq[TestResult])] = Task.Anon {
       val runTarget = kotlinJsRunTarget()
       if (runTarget.isEmpty) {
-        throw new IllegalStateException(
+        throw IllegalStateException(
           "Cannot run Kotlin/JS tests, because run target is not specified."
         )
       }
@@ -617,7 +621,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     private def parseTestResults(path: os.Path): Seq[TestResult] = {
       if (!os.exists(path)) {
-        throw new FileNotFoundException(s"Test results file $path wasn't found")
+        throw FileNotFoundException(s"Test results file $path wasn't found")
       }
       val xml = XML.loadFile(path.toIO)
       (xml \ "testcase")
@@ -673,14 +677,14 @@ trait KotlinJsModule extends KotlinModule { outer =>
         // drop closing ), then after split drop position on the line
         val locationElements = location.dropRight(1).split(":").dropRight(1)
         if (locationElements.length >= 2) {
-          new StackTraceElement(
+          StackTraceElement(
             declaringClass,
             method,
             locationElements(locationElements.length - 2),
             locationElements.last.toInt
           )
         } else {
-          new StackTraceElement(declaringClass, method, "<unknown>", 0)
+          StackTraceElement(declaringClass, method, "<unknown>", 0)
         }
       }
     }

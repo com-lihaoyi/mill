@@ -65,7 +65,7 @@ trait OwaspDependencyCheckModule extends Module, OfflineSupportModule {
         val exitCode = owaspDependencyCheckWorker().worker().runScan(arguments)
         val result = DependencyCheckResult(os.list(Task.dest).map(PathRef(_)), exitCode)
         if (owaspDependencyCheckFailTask && !result.success) {
-          throw new Exception(s"Dependency Check failed with status code $exitCode")
+          throw Exception(s"Dependency Check failed with status code $exitCode")
         }
         result
       } else {

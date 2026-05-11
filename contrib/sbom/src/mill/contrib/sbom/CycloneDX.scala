@@ -68,7 +68,7 @@ object CycloneDX {
     val md = MessageDigest.getInstance("SHA-256")
     val fileContent = os.read.bytes(f)
     val digest = md.digest(fileContent)
-    String.format("%0" + (digest.length << 1) + "x", new BigInteger(1, digest))
+    String.format("%0" + (digest.length << 1) + "x", BigInteger(1, digest))
   }
 
   case class SbomHeader(serialNumber: UUID, timestamp: Instant)

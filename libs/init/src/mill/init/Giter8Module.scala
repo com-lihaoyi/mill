@@ -14,7 +14,7 @@ object Giter8Module extends ExternalModule with Giter8Module {
 
 trait Giter8Module extends CoursierModule {
 
-  def init(args: String*): Task.Command[Unit] = Task.Command {
+  def init(args: String*): Task.Command[Unit] = Task.Command(globalExclusive = true) {
     Task.log.info("Creating a new project...")
 
     val giter8Dependencies =

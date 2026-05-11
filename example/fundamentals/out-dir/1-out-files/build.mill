@@ -168,10 +168,6 @@ out/mill-runner-state.json
 // Long-lived metadata about the Mill bootstrap process that persists between runs:
 // workers, watched files, classpaths, and related data.
 //
-// === `mill-active.json`
-// A JSON file containing info about the active Mill process (command and process directory),
-// used for debugging. It is present while a command is running and removed afterward.
-//
 // === `mill-selective-execution.json`
 // Metadata related to selective execution (input hashes and method signatures) used to decide
 // what tasks need to run after code or input changes.

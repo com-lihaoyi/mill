@@ -6,16 +6,16 @@ class Word(s: String) extends Phrase
 class Pair(lhs: Phrase, rhs: Phrase) extends Phrase
 
 object Parser {
-  def prefix[$: P] = P("hello" | "goodbye").!.map(new Word(_))
+  def prefix[$: P] = P("hello" | "goodbye").!.map(Word(_))
 
-  def suffix[$: P] = P("world" | "seattle").!.map(new Word(_))
+  def suffix[$: P] = P("world" | "seattle").!.map(Word(_))
 
   def ws[$: P] = P(" ".rep(1))
 
   def parened[$: P] = P("(" ~ parser ~ ")")
 
   def parser[$: P]: P[Phrase] = P((parened | prefix) ~ ws ~ (parened | suffix)).map {
-    case (lhs, rhs) => new Pair(lhs, rhs)
+    case (lhs, rhs) => Pair(lhs, rhs)
   }
 }
 

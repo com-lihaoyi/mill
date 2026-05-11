@@ -31,19 +31,19 @@ object Deps {
   val testScala33Version = "3.3.7"
 
   object Scalajs_1 {
-    val scalaJsVersion = "1.20.2"
+    val scalaJsVersion = "1.21.0"
     val scalajsEnvJsdomNodejs =
       mvn"org.scala-js::scalajs-env-jsdom-nodejs:1.1.1".withDottyCompat(scalaVersion)
     val scalajsEnvExoegoJsdomNodejs =
       mvn"net.exoego::scalajs-env-jsdom-nodejs:2.1.0".withDottyCompat(scalaVersion)
-    val scalajsEnvNodejs = mvn"org.scala-js::scalajs-env-nodejs:1.4.0".withDottyCompat(scalaVersion)
+    val scalajsEnvNodejs = mvn"org.scala-js::scalajs-env-nodejs:1.5.0".withDottyCompat(scalaVersion)
     val scalajsEnvPhantomjs =
       mvn"org.scala-js::scalajs-env-phantomjs:1.0.0".withDottyCompat(scalaVersion)
     val scalajsEnvSelenium =
       mvn"org.scala-js::scalajs-env-selenium:1.1.1".withDottyCompat(scalaVersion)
     val scalajsEnvPlaywright =
       mvn"io.github.thijsbroersen::scala-js-env-playwright:0.2.3"
-    val scalajsJsEnvs = mvn"org.scala-js::scalajs-js-envs:1.4.0".withDottyCompat(scalaVersion)
+    val scalajsJsEnvs = mvn"org.scala-js::scalajs-js-envs:1.5.0".withDottyCompat(scalaVersion)
     val scalajsSbtTestAdapter =
       mvn"org.scala-js::scalajs-sbt-test-adapter:${scalaJsVersion}".withDottyCompat(scalaVersion)
     val scalajsLinker =
@@ -206,7 +206,7 @@ object Deps {
   val scalaCliBsp = mvn"org.virtuslab.scala-cli:scala-cli-bsp:1.8.0"
   val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.4.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala_runtime = mvn"org.scalameta:::semanticdb-scalac:4.14.7"
+  val semanticDBscala_runtime = mvn"org.scalameta:::semanticdb-scalac:4.16.1"
   val semanticDbJava_runtime = mvn"com.sourcegraph:semanticdb-java:0.11.1"
   val semanticDbShared =
     mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala_runtime.version}"
@@ -275,21 +275,21 @@ object Deps {
   val sbt_api = mvn"org.scala-sbt:sbt:1.10.10"
   val mimaCore_api = mvn"com.typesafe::mima-core:1.1.4"
   val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:3.0.1"
-  val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.2.0"
+  val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.3.1"
   // JGit 6.x series, used by spotlessLibExtra, works on Java 11
   // subsequent releases require Java 17+
   val jgit = mvn"org.eclipse.jgit:org.eclipse.jgit:6.10.1.202505221210-r"
 
   object RuntimeDeps {
-    val dokkaVersion_runtime = "2.0.0"
+    val dokkaVersion_runtime = "2.2.0"
     val koverVersion_runtime = "0.8.3"
 
-    val detektCli_runtime = mvn"io.gitlab.arturbosch.detekt:detekt-cli:1.23.7"
+    val detektCli_runtime = mvn"io.gitlab.arturbosch.detekt:detekt-cli:1.23.8"
     val dokkaAnalysisDescriptors_runtime =
       mvn"org.jetbrains.dokka:analysis-kotlin-descriptors:$dokkaVersion_runtime"
     val dokkaBase_runtime = mvn"org.jetbrains.dokka:dokka-base:$dokkaVersion_runtime"
     val dokkaCli_runtime = mvn"org.jetbrains.dokka:dokka-cli:$dokkaVersion_runtime"
-    val errorProneCore_runtime = mvn"com.google.errorprone:error_prone_core:2.31.0"
+    val errorProneCore_runtime = mvn"com.google.errorprone:error_prone_core:2.49.0"
     val freemarker_runtime = mvn"org.freemarker:freemarker:2.3.34"
     val jupiterInterface_runtime = mvn"com.github.sbt.junit:jupiter-interface:0.13.3"
     val jupiterInterface6_runtime = mvn"com.github.sbt.junit:jupiter-interface:0.17.0"
@@ -301,9 +301,9 @@ object Deps {
     val ktfmt_runtime = mvn"com.facebook:ktfmt:0.58"
     val ktlint_runtime = mvn"com.pinterest.ktlint:ktlint-core:0.49.1"
     val owaspDependencyCheckCli_runtime = mvn"org.owasp:dependency-check-cli:12.2.1"
-    val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.74.0"
+    val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.90.0"
     val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.15.0"
-    val proguard_runtime = mvn"com.guardsquare:proguard-base:7.7.0"
+    val proguard_runtime = mvn"com.guardsquare:proguard-base:7.9.1"
     val revApi_runtime = mvn"org.revapi:revapi-standalone:0.12.0"
     val sbtTestInterface = mvn"com.github.sbt:junit-interface:0.13.2"
 

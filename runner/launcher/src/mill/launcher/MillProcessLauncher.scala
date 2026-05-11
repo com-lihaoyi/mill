@@ -4,12 +4,16 @@ import io.github.alexarchambault.nativeterm.NativeTerminal
 import mill.api.internal.OneOrMore
 import mill.client.ClientUtil
 import mill.constants.*
+import mill.internal.OutputDirectoryLayout
 
 import java.io.File
 import java.util.UUID
 import scala.jdk.CollectionConverters._
 
 object MillProcessLauncher {
+
+  private def outDir(outMode: OutFolderMode, workDir: os.Path, env: Map[String, String]): String =
+    OutputDirectoryLayout.outDir(outMode, workDir, env)
 
   def launchMillNoDaemon(
       args: Seq[String],
@@ -18,25 +22,52 @@ object MillProcessLauncher {
       mainClass: String,
       useFileLocks: Boolean,
       workDir: os.Path,
-      env: Map[String, String],
-      millRepositories: Seq[String]
+      effectiveEnv: Map[String, String],
+      millRepositories: Seq[String],
+      streamsOpt: Option[mill.api.daemon.SystemStreams] = None
   ): Int = {
     val sig = f"${UUID.randomUUID().hashCode}%08x"
-    val processDir =
-      os.Path(OutFiles.OutFiles.outFor(outMode), workDir) / OutFiles.OutFiles.millNoDaemon / sig
+    val processDir = os.Path(outDir(outMode, workDir, effectiveEnv), workDir) /
+      OutFiles.OutFiles.millNoDaemon / sig
 
     prepareMillRunFolder(processDir)
 
     val userPropsSeq = ClientUtil.getUserSetProperties().map { case (k, v) => s"-D$k=$v" }.toSeq
 
-    val cmd = millLaunchJvmCommand(runnerClasspath, outMode, workDir, millRepositories) ++
+    val cmd = millLaunchJvmCommand(runnerClasspath, effectiveEnv, workDir, millRepositories) ++
       userPropsSeq ++
       Seq(mainClass, processDir.toString, outMode.asString, useFileLocks.toString) ++
       loadMillConfig(ConfigConstants.millOpts, workDir) ++
       args
 
     var interrupted = false
-    val proc = configureRunMillProcess(cmd, processDir, workDir = workDir, env = env)
+    // Pipe the subprocess's streams into `streamsOpt` (used by in-memory test
+    // runners) so output gets captured into the test's chunking buffers.
+    // Otherwise, default to `os.Inherit` so output flows to the launcher's
+    // own stdout/stderr.
+    val (stdoutDest, stderrDest, stdinDest): (
+        os.ProcessOutput,
+        os.ProcessOutput,
+        os.ProcessInput
+    ) =
+      streamsOpt match {
+        case None => (os.Inherit, os.Inherit, os.Inherit)
+        case Some(s) =>
+          (
+            os.ProcessOutput.Readlines(line => s.out.println(line)),
+            os.ProcessOutput.Readlines(line => s.err.println(line)),
+            os.Inherit
+          )
+      }
+    val proc = configureRunMillProcess(
+      cmd,
+      processDir,
+      stdin = stdinDest,
+      stdout = stdoutDest,
+      stderr = stderrDest,
+      workDir = workDir,
+      env = effectiveEnv
+    )
     try {
       proc.waitFor()
       proc.exitCode()
@@ -55,10 +86,10 @@ object MillProcessLauncher {
       runnerClasspath: Seq[os.Path],
       useFileLocks: Boolean,
       workDir: os.Path,
-      env: Map[String, String],
+      effectiveEnv: Map[String, String],
       millRepositories: Seq[String]
   ): os.SubProcess = {
-    val cmd = millLaunchJvmCommand(runnerClasspath, outMode, workDir, millRepositories) ++
+    val cmd = millLaunchJvmCommand(runnerClasspath, effectiveEnv, workDir, millRepositories) ++
       Seq("mill.daemon.MillDaemonMain", daemonDir.toString, outMode.asString, useFileLocks.toString)
 
     configureRunMillProcess(
@@ -67,7 +98,7 @@ object MillProcessLauncher {
       stdout = daemonDir / DaemonFiles.stdout,
       stderr = daemonDir / DaemonFiles.stderr,
       workDir = workDir,
-      env = env
+      env = effectiveEnv
     )
   }
 
@@ -75,8 +106,8 @@ object MillProcessLauncher {
       cmd: Seq[String],
       daemonDir: os.Path,
       stdin: os.ProcessInput = os.Inherit,
-      stdout: os.ProcessOutput = os.Inherit,
-      stderr: os.ProcessOutput = os.Inherit,
+      stdout: os.ProcessOutput,
+      stderr: os.ProcessOutput,
       workDir: os.Path,
       env: Map[String, String]
   ): os.SubProcess = {
@@ -156,8 +187,20 @@ object MillProcessLauncher {
 
   def isWin: Boolean = System.getProperty("os.name", "").startsWith("Windows")
 
+  /** Major version of the daemon JVM, parsed from `mill-jvm-version` (e.g. `zulu:25` → 25). */
+  def resolvedJvmMajor(workDir: os.Path): Option[Int] = {
+    val jvmVersion = loadMillConfig(ConfigConstants.millJvmVersion, workDir)
+      .headOption
+      .getOrElse(BuildInfo.defaultJvmVersion)
+    if (jvmVersion == null || jvmVersion == "system") None
+    else jvmVersion.split(":").lastOption.flatMap(_.split('.').headOption).flatMap(s =>
+      try Some(s.toInt)
+      catch { case _: NumberFormatException => None }
+    )
+  }
+
   def javaHome(
-      outMode: OutFolderMode,
+      env: Map[String, String],
       workDir: os.Path,
       millRepositories: Seq[String]
   ): Option[os.Path] = {
@@ -171,16 +214,21 @@ object MillProcessLauncher {
     // (javaExe returns "java" when javaHome is None, using PATH lookup)
     if (jvmVersion == "system") None
     else Option.when(jvmVersion != null) {
-      CoursierClient.resolveJavaHome(jvmVersion, jvmIndexVersion, outMode, millRepositories)
+      CoursierClient.resolveJavaHome(
+        jvmVersion,
+        jvmIndexVersion,
+        OutputDirectoryLayout.regularOutDir(env),
+        millRepositories
+      )
     }
   }
 
   def javaExe(
-      outMode: OutFolderMode,
+      env: Map[String, String],
       workDir: os.Path,
       millRepositories: Seq[String]
   ): String = {
-    javaHome(outMode, workDir, millRepositories) match {
+    javaHome(env, workDir, millRepositories) match {
       case None => "java"
       case Some(home) =>
         val exeName = if (isWin) "java.exe" else "java"
@@ -190,7 +238,7 @@ object MillProcessLauncher {
 
   def millLaunchJvmCommand(
       runnerClasspath: Seq[os.Path],
-      outMode: OutFolderMode,
+      env: Map[String, String],
       workDir: os.Path,
       millRepositories: Seq[String]
   ): Seq[String] = {
@@ -207,10 +255,21 @@ object MillProcessLauncher {
       "-Dsun.stderr.encoding=UTF-8"
     )
 
-    Seq(javaExe(outMode, workDir, millRepositories)) ++
+    // Suppress JDK 23+ warnings emitted by transitive dependencies (Scala's
+    // LazyVals via sun.misc.Unsafe, swoval's NativeLoader via System.loadLibrary)
+    // so they don't leak into stderr-sensitive tooling like BSP or golden-text
+    // tests. Gated on the resolved daemon JVM's major version because the
+    // flags are unrecognized (and rejected) by older JDKs.
+    val jdk23PlusOpts =
+      if (resolvedJvmMajor(workDir).exists(_ >= 23))
+        Seq("--sun-misc-unsafe-memory-access=allow", "--enable-native-access=ALL-UNNAMED")
+      else Nil
+
+    Seq(javaExe(env, workDir, millRepositories)) ++
       millProps ++
       serverTimeoutOpt ++
       encodingOpts ++
+      jdk23PlusOpts ++
       loadMillConfig(ConfigConstants.millJvmOpts, workDir) ++
       Seq("-cp", runnerClasspath.mkString(File.pathSeparator))
   }
@@ -222,7 +281,7 @@ object MillProcessLauncher {
       stderr = if (inheritError) os.Inherit else os.Pipe,
       check = false
     )
-    if (result.exitCode != 0) throw new Exception("tput failed")
+    if (result.exitCode != 0) throw Exception("tput failed")
     result.out.trim().toInt
   }
 
@@ -280,7 +339,7 @@ object MillProcessLauncher {
       os.Path(getClass.getProtectionDomain.getCodeSource.getLocation.toURI).toString
     } catch {
       case e: java.net.URISyntaxException =>
-        throw new RuntimeException("Failed to determine Mill client executable path", e)
+        throw RuntimeException("Failed to determine Mill client executable path", e)
     }
   }
 }

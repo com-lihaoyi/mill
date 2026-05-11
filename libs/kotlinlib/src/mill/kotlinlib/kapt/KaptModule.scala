@@ -65,7 +65,7 @@ trait KaptModule extends KotlinModule { outer =>
   def kaptCorrectErrorTypes: T[Boolean] = Task { true }
   def kaptMapDiagnosticLocations: T[Boolean] = Task { true }
 
-  override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task { true }
+  override def kotlinUseEmbeddableCompiler: T[Boolean] = Task { true }
 
   override def kotlincPluginMvnDeps: T[Seq[Dep]] = Task {
     super.kotlincPluginMvnDeps() ++ kaptPluginMvnDeps()
@@ -150,7 +150,7 @@ trait KaptModule extends KotlinModule { outer =>
         )
       } match {
         case Result.Success(_) =>
-        case f: Result.Failure => throw new Result.Exception(f.error, Some(f))
+        case f: Result.Failure => throw Result.Exception(f.error, Some(f))
       }
 
       GeneratedKaptSources(

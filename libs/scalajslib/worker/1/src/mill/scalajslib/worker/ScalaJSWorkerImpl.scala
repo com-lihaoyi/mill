@@ -107,7 +107,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
         irFiles0
       } else {
         if (!minorIsGreaterThanOrEqual(16)) {
-          throw new Exception("scalaJSImportMap is not supported with Scala.js < 1.16.")
+          throw Exception("scalaJSImportMap is not supported with Scala.js < 1.16.")
         }
         val remapFunction = (rawImport: String) => {
           importMap
@@ -125,9 +125,9 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
           val jsFileName = "out.js"
           val mustBeFolder = dest match {
             case Left(folder) => folder
-            case Right(_) => throw new Exception("dest must be a Folder when forceOutJs is true")
+            case Right(_) => throw Exception("dest must be a Folder when forceOutJs is true")
           }
-          val jsFile = new File(mustBeFolder, jsFileName).toPath()
+          val jsFile = File(mustBeFolder, jsFileName).toPath()
           var linkerOutput = sjs.LinkerOutput(PathOutputFile(jsFile))
             .withJSFileURI(java.net.URI.create(jsFile.getFileName.toString))
           val sourceMapNameOpt = Option.when(config.sourceMap)(s"${jsFile.getFileName}.map")
@@ -187,8 +187,8 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
             )
 
             for ((std, dest, name, checkAvailable) <- sources) {
-              val t = new Thread(
-                new InputPumper(() => std, () => dest, checkAvailable),
+              val t = Thread(
+                InputPumper(() => std, () => dest, checkAvailable),
                 name
               )
               t.setDaemon(true)
@@ -208,7 +208,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
     val logger = createLogger()
     val tconfig = TestAdapter.Config().withLogger(logger)
 
-    val adapter = new TestAdapter(env, inputs, tconfig)
+    val adapter = TestAdapter(env, inputs, tconfig)
 
     (
       () => adapter.close(),
@@ -216,7 +216,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
         .loadFrameworks(List(List(frameworkName)))
         .flatten
         .headOption
-        .getOrElse(throw new RuntimeException(
+        .getOrElse(throw RuntimeException(
           """|Test framework class was not found. Please check that:
              |- the correct Scala.js dependency of the framework is used (like mvn"group::artifact::version", instead of mvn"group::artifact:version" for JVM Scala. Note the extra : before the version.)
              |- there are no typos in the framework class name.

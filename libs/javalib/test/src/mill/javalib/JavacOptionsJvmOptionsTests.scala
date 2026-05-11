@@ -34,8 +34,8 @@ object JavacOptionsJvmOptionsTests extends TestSuite {
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-java"
 
   private def runTaskWithOutput(task: Task[?], module: TestRootModule): String = {
-    val errStream = new ByteArrayOutputStream()
-    UnitTester(module, resourcePath, errStream = new PrintStream(errStream, true)).scoped { eval =>
+    val errStream = ByteArrayOutputStream()
+    UnitTester(module, resourcePath, errStream = PrintStream(errStream, true)).scoped { eval =>
       val result = eval.apply(task).runtimeChecked
       assert(result.isRight)
     }

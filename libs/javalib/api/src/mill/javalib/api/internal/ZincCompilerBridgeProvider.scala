@@ -69,7 +69,7 @@ object ZincCompilerBridgeProvider {
   ): Unit = {
     if (scalaVersion == "2.12.0") {
       // The Scala 2.10.0 compiler fails on compiling the compiler bridge
-      throw new IllegalArgumentException(
+      throw IllegalArgumentException(
         "The current version of Zinc is incompatible with Scala 2.12.0.\n" +
           "Use Scala 2.12.1 or greater (2.12.12 is recommended)."
       )
@@ -106,7 +106,7 @@ object ZincCompilerBridgeProvider {
         val javacExe: String =
           sys.props
             .get("java.home")
-            .map(h => new File(h, if (isWin) "bin\\javac.exe" else "bin/javac"))
+            .map(h => File(h, if (isWin) "bin\\javac.exe" else "bin/javac"))
             .filter(f => f.exists())
             .fold("javac")(_.getAbsolutePath())
 
@@ -120,7 +120,7 @@ object ZincCompilerBridgeProvider {
           .getMethod("process", classOf[Array[String]])
           .invoke(null, argsArray ++ Array("-nowarn"))
       } else {
-        throw new IllegalArgumentException("Currently not implemented case.")
+        throw IllegalArgumentException("Currently not implemented case.")
       }
     } finally classloader.close()
   }

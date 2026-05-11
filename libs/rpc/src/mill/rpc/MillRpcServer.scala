@@ -86,7 +86,7 @@ trait MillRpcServer[
 
     while (responseReceived.isEmpty) {
       val clientToServerMsg = readAndTryToParse[MillRpcClientToServer[R]]().getOrElse(
-        throw new InterruptedException(
+        throw InterruptedException(
           s"Transport wire broken while waiting for response to request."
         )
       )
@@ -118,14 +118,25 @@ trait MillRpcServer[
     writeToLocalLog(s"[$serverName] $message")
   }
 
+  // Serializes Ask+waitForResponse so concurrent server-side callers (e.g. the
+  // task thread issuing RunSubprocess and the PromptLogger thread issuing
+  // GetTerminalDims) cannot race to consume each other's Response off the wire.
+  // `MillRpcClientToServer.Response` has no correlation ID, so without this
+  // lock the two readers can swap responses and trigger upickle parse errors
+  // that bubble up as spurious task failures.
+  // Reentrant: `waitForResponse` may dispatch a nested Ask back to a handler
+  // that itself calls `serverToClient`, on the same thread.
+  private val serverToClientLock = new Object
+
   private def createServerToClientChannel(): MillRpcChannel[ServerToClient] = {
     (msg: ServerToClient) =>
-      val clientToServer = initializedOnClientMessage.getOrElse(throw new IllegalStateException(
+      val clientToServer = initializedOnClientMessage.getOrElse(throw IllegalStateException(
         "Client to server channel should have been initialized"
       ))
 
-      sendToClient(MillRpcServerToClient.Ask(msg))
-      waitForResponse[msg.Response](clientToServer)
-
+      serverToClientLock.synchronized {
+        sendToClient(MillRpcServerToClient.Ask(msg))
+        waitForResponse[msg.Response](clientToServer)
+      }
   }
 }

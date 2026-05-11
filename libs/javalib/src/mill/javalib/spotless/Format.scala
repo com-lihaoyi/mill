@@ -40,7 +40,7 @@ object Format {
   /**
    * Default [[Format]] for files with `.java` extension.
    */
-  def defaultJava = ext("java")(PalantirJavaFormat())
+  def defaultJava = ext("java")(GoogleJavaFormat(version = "1.35.0"))
 
   /**
    * Default [[Format]] for files with `.kt`, `.kts` extensions.

@@ -14,7 +14,7 @@ trait MyModule extends KotlinModule, PublishModule {
     developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 
-  def kotlinVersion = "1.9.24"
+  def kotlinVersion = "2.2.20"
 
   def mvnDeps = Seq(mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0")
 

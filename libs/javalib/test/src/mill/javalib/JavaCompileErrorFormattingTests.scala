@@ -21,12 +21,12 @@ object JavaCompileErrorFormattingTests extends TestSuite {
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "compile-error-formatting-java"
 
   private def checkLines(caseName: String): Seq[String] = {
-    val errBuffer = new ByteArrayOutputStream()
+    val errBuffer = ByteArrayOutputStream()
     UnitTester(
       JavaCompileErrorFormatting,
       sourceRoot = resourcePath / caseName,
-      outStream = new PrintStream(errBuffer, true),
-      errStream = new PrintStream(errBuffer, true)
+      outStream = PrintStream(errBuffer, true),
+      errStream = PrintStream(errBuffer, true)
     ).scoped { eval =>
       val res = eval.apply(JavaCompileErrorFormatting.core.compile).runtimeChecked
       assert(res.isLeft)
@@ -141,16 +141,10 @@ object JavaCompileErrorFormattingTests extends TestSuite {
         checkLines("java-parse-toplevel"),
         List(
           "compiling 1 Java source to out/core/compile.dest/classes ...",
-          "[error] core/src/Foo.java:3:1",
-          "int x = 1;",
-          "^",
-          "unnamed classes are a preview feature and are disabled by default.",
-          "  (use --enable-preview to enable unnamed classes)",
-          "",
           "[error] core/src/Foo.java:1:1",
           "package javaParseToplevel;",
           "^",
-          "unnamed class should not have package declaration",
+          "compact source file should not have package declaration",
           "",
           "[error] core.compile task failed"
         )

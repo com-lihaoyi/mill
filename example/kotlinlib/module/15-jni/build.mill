@@ -5,7 +5,7 @@ object `package` extends KotlinModule {
 
   def mainClass = Some("foo.HelloWorldKt")
 
-  def kotlinVersion = "1.9.24"
+  def kotlinVersion = "2.2.20"
 
   // Additional source folder to put C sources
   def nativeSources = Task.Sources("native-src")

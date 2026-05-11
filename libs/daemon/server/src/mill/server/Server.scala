@@ -1,10 +1,9 @@
 package mill.server
 
-import mill.api.daemon.{StartThread, SystemStreams}
+import mill.api.daemon.StartThread
 import mill.api.daemon.internal.NonFatal
 import mill.client.lock.{Lock, Locks}
 import mill.constants.{DaemonFiles, SocketUtil}
-import mill.constants.OutFiles.OutFiles
 import mill.server.Server.ConnectionData
 import sun.misc.{Signal, SignalHandler}
 
@@ -15,7 +14,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.duration.FiniteDuration
-import scala.util.{Try, Using}
+import scala.util.Try
 
 /**
  * Implementation of a server that binds to a random port, informs a client of the port,
@@ -56,7 +55,8 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
   def endConnection(
       connectionData: ConnectionData,
       data: Option[Prepared],
-      result: Option[Handled]
+      result: Option[Handled],
+      externalShutdownReason: Option[String]
   ): Unit
 
   def systemExit(exitCode: Handled): Nothing
@@ -68,6 +68,13 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
     s"ConnectionHandler(${getClass.getName}, ${socket.getInetAddress}:${socket.getPort})"
 
   def checkIfClientAlive(connectionData: ConnectionData, data: Prepared): Boolean
+
+  /**
+   * Optional human-readable description of what this connection is currently
+   * doing, surfaced to other clients when this connection causes a daemon
+   * shutdown (e.g. by being killed mid-execution). Default: no info.
+   */
+  def runningCommandFor(data: Prepared): Option[String] = None
 
   def run(): Option[Handled] = {
     serverLog(s"running server in $daemonDir")
@@ -106,14 +113,41 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       socketPortFile: os.Path
   ): Option[Handled] = {
     serverLog("server file locked")
-    val serverSocket = new ServerSocket(0, 0, InetAddress.getByName(null))
-    val exitCodeVar = new AtomicReference[Option[Handled]](None)
+    val serverSocket = ServerSocket(0, 0, InetAddress.getByName(null))
+    val exitCodeVar = AtomicReference[Option[Handled]](None)
+    val stateFile = daemonDir / DaemonFiles.daemonState
+
     def closeServer(exitCodeOpt: Option[Handled]) = {
       // Don't System.exit immediately, but instead store the exit code for later and close the
       // `serverSocket` so the methods return normally with a single exit point
       exitCodeVar.compareAndSet(None, exitCodeOpt)
       serverSocket.close()
     }
+
+    lazy val connectionTracker: Server.ConnectionTracker = new Server.ConnectionTracker(
+      serverLog,
+      acceptTimeoutMillisOpt,
+      serverSocket,
+      onChange = () =>
+        Server.writeDaemonState(
+          stateFile,
+          Server.DaemonState(
+            pid = processId,
+            activeConnections = connectionTracker.activeCount,
+            acceptingConnections = !serverSocket.isClosed
+          )
+        )
+    )
+
+    // Initial state publish so a launcher polling immediately on startup sees a real file.
+    Server.writeDaemonState(
+      stateFile,
+      Server.DaemonState(
+        pid = processId,
+        activeConnections = 0,
+        acceptingConnections = true
+      )
+    )
 
     Server.watchProcessIdFile(
       daemonDir / DaemonFiles.processId,
@@ -124,9 +158,6 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
         closeServer(None)
       }
     )
-
-    val connectionTracker =
-      new Server.ConnectionTracker(serverLog, acceptTimeoutMillisOpt, serverSocket)
 
     try {
       os.write.over(socketPortFile, serverSocket.getLocalPort.toString)
@@ -153,7 +184,12 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
           // complete, to allow other client connections to be processed in parallel
           StartThread(s"HandleRunThread-${sock.toString}") {
             try {
-              runSocketHandler(sock, initialSystemProperties, closeServer(_), connectionTracker)
+              runSocketHandler(
+                sock,
+                initialSystemProperties,
+                closeServer(_),
+                connectionTracker
+              )
             } catch {
               case e: Throwable =>
                 serverLog(s"${sock.toString} error: $e\n${e.getStackTrace.mkString("\n")}")
@@ -164,7 +200,11 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
           }
         }
       }
-    } finally closeServer(None)
+    } finally {
+      closeServer(None)
+      try os.remove(stateFile, checkExists = false)
+      catch { case NonFatal(_) => () }
+    }
 
     exitCodeVar.get()
   }
@@ -194,9 +234,13 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
     // - Server shutdown via closeServer
     // - Connection tracker closing other connections
     val endConnectionCalled = new java.util.concurrent.atomic.AtomicBoolean(false)
-    def safeEndConnection(data: Option[Prepared], result: Option[Handled]): Unit = {
+    def safeEndConnection(
+        data: Option[Prepared],
+        result: Option[Handled],
+        externalShutdownReason: Option[String] = None
+    ): Unit = {
       if (endConnectionCalled.compareAndSet(false, true)) {
-        endConnection(connectionData, data, result)
+        endConnection(connectionData, data, result, externalShutdownReason)
       }
     }
 
@@ -207,18 +251,26 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       )
 
       // Notify all other connected clients before shutting down, so they can retry
-      connectionTracker.closeOtherConnections(clientSocket)
+      connectionTracker.closeOtherConnections(clientSocket, Some(reason))
       safeEndConnection(data, Some(exitCode))
       closeServer0(Some(exitCode))
     }
 
     val data = prepareConnection(connectionData, closeServer(_, _, None))
 
-    // Register this connection with the tracker, providing a callback to close it
-    connectionTracker.increment(
+    // Register this connection with the tracker, providing a callback to close it.
+    // If the daemon has already started shutting down the socket may be closed
+    // before we get here; in that case, surface the retry exit code immediately
+    // so the launcher's retry loop reconnects to the new daemon.
+    val accepted = connectionTracker.increment(
       clientSocket,
-      () => safeEndConnection(Some(data), Some(exitCodeServerTerminated))
+      reason => safeEndConnection(Some(data), Some(exitCodeServerTerminated), reason)
     )
+    if (!accepted) {
+      val reason = "daemon is shutting down for restart; retry on the new daemon"
+      safeEndConnection(Some(data), Some(exitCodeServerTerminated), Some(reason))
+      return
+    }
 
     // We cannot use Socket#{isConnected, isClosed, isBound} because none of these
     // detect client-side connection closing, so instead we send a no-op heartbeat
@@ -255,12 +307,16 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
         } catch {
           case e: SocketException if SocketUtil.clientHasClosedConnection(e) => // do nothing
           case e: Throwable =>
-            val sw = new StringWriter()
-            e.printStackTrace(new PrintWriter(sw))
+            val sw = StringWriter()
+            e.printStackTrace(PrintWriter(sw))
             serverLog(s"connection handler for $clientSocket error: $sw")
         } finally {
-          done = true
+          // Publish `idle` before `done`: the watcher thread exits its
+          // liveness loop as soon as it observes `done`, and treats
+          // `idle == false` as a client interruption that should kill the
+          // daemon and all other active clients.
           idle = true
+          done = true
         }
       }
 
@@ -269,10 +325,16 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       // gone away when it regularly polls. `interrupt` has lots of weird side effects
       // runThread.interrupt()
 
+      // Cross-launcher shutdown fires when the *client* died mid-command.
       if (!idle) {
         serverLog("client interrupted while server was executing command")
+        val reason = runningCommandFor(data) match {
+          case Some(cmd) =>
+            s"daemon was shut down because launcher running '$cmd' was interrupted"
+          case None => "daemon was shut down because another launcher was interrupted mid-execution"
+        }
         // Close all other connected clients with exitCodeServerTerminated so they can retry
-        connectionTracker.closeOtherConnections(clientSocket)
+        connectionTracker.closeOtherConnections(clientSocket, Some(reason))
         safeEndConnection(Some(data), None) // Gracefully close the current client connection
         closeServer0(None) // Shut down the server
       }
@@ -285,25 +347,36 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
 object Server {
   // Wrapper object to encapsulate `activeConnections` and `inactiveTimestampOpt`,
   // ensuring they get incremented and decremented together across multiple threads
-  // and never get out of sync
+  // and never get out of sync.
+  //
+  // `increment` is gated on the listen socket still being open (we don't want
+  // brand-new connections after the daemon has started shutting down).
   case class ConnectionTracker(
       serverLog: String => Unit,
       acceptTimeoutMillisOpt: Option[Long],
-      serverSocket: ServerSocket
+      serverSocket: ServerSocket,
+      onChange: () => Unit = () => ()
   ) {
     private var inactiveTimestampOpt: Option[Long] = None
-    private var connections = Map.empty[Socket, () => Unit]
+    private var connections = Map.empty[Socket, Option[String] => Unit]
 
-    def wrap(block: => Unit): Unit = synchronized {
-      if (!serverSocket.isClosed) block
+    private def notifyChange(): Unit = {
+      synchronized(notifyAll())
+      try onChange()
+      catch { case NonFatal(_) => }
     }
 
-    def closeOtherConnections(currentSocket: Socket): Unit = synchronized {
-      val others = connections.filterKeys(_ != currentSocket)
-      serverLog(s"closing ${others.size} other connection(s)")
+    def activeCount: Int = synchronized(connections.size)
+
+    def closeOtherConnections(currentSocket: Socket, reason: Option[String]): Unit = {
+      val others = synchronized {
+        val snapshot = connections.iterator.filter(_._1 != currentSocket).toVector
+        serverLog(s"closing ${snapshot.size} other connection(s)")
+        snapshot
+      }
       others.foreach { case (sock, closeCallback) =>
         try {
-          closeCallback()
+          closeCallback(reason)
           serverLog(s"closed connection ${sock.toString}")
         } catch {
           case NonFatal(e) =>
@@ -312,19 +385,32 @@ object Server {
       }
     }
 
-    def increment(socket: Socket, closeCallback: () => Unit): Unit = wrap {
-      connections += (socket -> closeCallback)
-      serverLog(s"${connections.size} active connections")
-      inactiveTimestampOpt = None
+    /** Register a new connection. Rejected (returns false) once the listen socket has been closed. */
+    def increment(socket: Socket, closeCallback: Option[String] => Unit): Boolean = {
+      val accepted = synchronized {
+        if (serverSocket.isClosed) false
+        else {
+          connections += (socket -> closeCallback)
+          serverLog(s"${connections.size} active connections")
+          inactiveTimestampOpt = None
+          true
+        }
+      }
+      if (accepted) notifyChange()
+      accepted
     }
 
-    def decrement(socket: Socket): Unit = wrap {
-      connections -= socket
-      serverLog(s"${connections.size} active connections")
-      if (connections.isEmpty) inactiveTimestampOpt = Some(System.currentTimeMillis())
+    def decrement(socket: Socket): Unit = {
+      synchronized {
+        connections -= socket
+        serverLog(s"${connections.size} active connections")
+        if (connections.isEmpty) inactiveTimestampOpt = Some(System.currentTimeMillis())
+      }
+      notifyChange()
     }
 
-    def closeIfTimedOut(): Unit = wrap {
+    def closeIfTimedOut(): Unit = synchronized {
+      if (serverSocket.isClosed) return
       for {
         acceptTimeoutMillis <- acceptTimeoutMillisOpt
         inactiveTimestamp <- inactiveTimestampOpt
@@ -335,6 +421,40 @@ object Server {
       }
     }
   }
+
+  /** Atomic snapshot the daemon publishes so launchers can poll without an RPC round-trip. */
+  case class DaemonState(
+      pid: Long,
+      activeConnections: Int,
+      acceptingConnections: Boolean
+  ) derives upickle.ReadWriter
+
+  /**
+   * Atomically write the daemon state JSON via tmp+rename so polling launchers
+   * never read a half-written file. Skips the write if the daemon directory
+   * has been deleted (e.g. by `rm -rf out/`); we never recreate it, since
+   * doing so would defeat tests/users that expect daemon shutdown when the
+   * `out/` folder disappears.
+   */
+  def writeDaemonState(stateFile: os.Path, state: DaemonState): Unit = {
+    if (!os.exists(stateFile / os.up)) return
+    val tmp = stateFile / os.up / s".${stateFile.last}.tmp"
+    try {
+      os.write.over(tmp, upickle.default.write(state, indent = 2), createFolders = false)
+      os.move.over(tmp, stateFile, replaceExisting = true)
+    } catch {
+      case NonFatal(_) =>
+        try os.remove(tmp, checkExists = false)
+        catch { case NonFatal(_) => () }
+    }
+  }
+
+  /** Read+parse the daemon state file; returns None if missing or unparseable. */
+  def readDaemonState(stateFile: os.Path): Option[DaemonState] =
+    try
+      if (os.exists(stateFile)) Some(upickle.default.read[DaemonState](os.read(stateFile)))
+      else None
+    catch { case NonFatal(_) => None }
 
   /**
    * @param daemonDir directory used for exchanging pre-TCP data with a client
@@ -377,7 +497,7 @@ object Server {
   /// can detect when the Mill client goes away, which is necessary to handle
   /// the case when a Mill client that did *not* spawn the server gets `CTRL-C`ed
   def overrideSigIntHandling(handler: SignalHandler = _ => ()): Unit = {
-    Signal.handle(new Signal("INT"), handler)
+    Signal.handle(Signal("INT"), handler)
   }
 
   def computeProcessId(): Long = ProcessHandle.current().pid()
@@ -454,68 +574,4 @@ object Server {
       serverToClient: BufferedOutputStream,
       initialSystemProperties: Map[String, String]
   )
-
-  /**
-   * Acquires the output folder lock before running the given block.
-   * Used to coordinate access to the output folder between concurrent Mill processes.
-   */
-  def withOutLock[T](
-      noBuildLock: Boolean,
-      noWaitForBuildLock: Boolean,
-      out: os.Path,
-      daemonDir: os.Path,
-      millActiveCommandMessage: String,
-      streams: SystemStreams,
-      outLock: Lock,
-      setIdle: Boolean => Unit
-  )(t: => T): T = {
-    if (noBuildLock) t
-    else {
-      def readActiveInfo(): (command: String, processDir: Option[os.Path], pid: Option[Long]) = {
-        try {
-          val json = os.read(out / OutFiles.millActive)
-          // Simple JSON parsing for {"command":"...","processDir":"..."}
-          val commandPattern = """"command"\s*:\s*"([^"]*)"""".r
-          val processDirPattern = """"processDir"\s*:\s*"([^"]*)"""".r
-          val pidPattern = """"pid"\s*:\s*([0-9]+)""".r
-          val command = commandPattern.findFirstMatchIn(json).map(_.group(1)).getOrElse("<unknown>")
-          val processDir = processDirPattern.findFirstMatchIn(json).map(m => os.Path(m.group(1)))
-          val pid = pidPattern.findFirstMatchIn(json).flatMap(m => m.group(1).toLongOption)
-          (command, processDir, pid)
-        } catch {
-          case NonFatal(_) => ("<unknown>", None, None)
-        }
-      }
-
-      def activeTaskPrefix(command: String, pidOpt: Option[Long]) =
-        s"Another Mill process with PID ${pidOpt.fold("<unknown>")(_.toString)} is running '$command',"
-
-      setIdle(true)
-      Using.resource {
-        val tryLocked = outLock.tryLock()
-        if (tryLocked.isLocked) tryLocked
-        else if (noWaitForBuildLock) {
-          val (command, _, pidOpt) = readActiveInfo()
-          throw new Exception(s"${activeTaskPrefix(command, pidOpt)} failing")
-        } else {
-          val (command, _, pidOpt) = readActiveInfo()
-          val consoleLogPath = out / DaemonFiles.millConsoleTail
-          streams.err.println(
-            s"${activeTaskPrefix(command, pidOpt)} waiting for it to be done... " +
-              s"(tail -F ${consoleLogPath.relativeTo(mill.api.BuildCtx.workspaceRoot)} to see its progress)"
-          )
-          outLock.lock()
-        }
-      } { _ =>
-        setIdle(false)
-        if (Thread.interrupted()) throw new InterruptedException()
-        val pid = ProcessHandle.current().pid()
-        val json =
-          s"""{"command":"$millActiveCommandMessage","processDir":"$daemonDir","pid":$pid}"""
-        os.write.over(out / OutFiles.millActive, json)
-        try t
-        finally os.remove.all(out / OutFiles.millActive)
-      }
-    }
-  }
 }

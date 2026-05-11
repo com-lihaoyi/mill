@@ -29,7 +29,7 @@ class FileLogger(
       folderCreated = true
       Files.newOutputStream(file.toNIO, options*)
     }
-    new PrintStream(new OutputStream {
+    PrintStream(new OutputStream {
       override def write(b: Int): Unit = inner.write(b)
 
       override def write(b: Array[Byte]): Unit = inner.write(b)

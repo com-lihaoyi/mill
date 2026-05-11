@@ -1,4 +1,4 @@
-//| mvnDeps: [org.springframework.boot:spring-boot-starter-web:3.2.0]
+//| mvnDeps: [org.springframework.boot:spring-boot-starter-web:3.5.6]
 package example;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -8,6 +8,7 @@ public class ConfigConstants {
   public static final String millJvmOpts = "mill-jvm-opts";
   public static final String millOpts = "mill-opts";
   public static final String millAllowNestedBuildMill = "mill-allow-nested-build-mill";
+  public static final String millSeparateBspOutputDir = "mill-separate-bsp-output-dir";
   public static final String millRepositories = "mill-repositories";
 
   public static String[] all() {
@@ -19,6 +20,7 @@ public class ConfigConstants {
       millJvmOpts,
       millOpts,
       millAllowNestedBuildMill,
+      millSeparateBspOutputDir,
       millRepositories
     };
   }

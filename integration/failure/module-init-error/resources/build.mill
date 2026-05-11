@@ -7,7 +7,7 @@ def rootCommand(s: String) = Task.Command { println(s"Running rootCommand $s") }
 object foo extends Module {
   def fooTask = Task { println(s"Running fooTask"); 123 }
   def fooCommand(s: String) = Task.Command { println(s"Running fooCommand $s") }
-  throw new Exception("Foo Boom")
+  throw Exception("Foo Boom")
 }
 
 object bar extends Module {
@@ -17,6 +17,6 @@ object bar extends Module {
   object qux extends Module {
     def quxTask = Task { println(s"Running quxTask"); "xyz" }
     def quxCommand(s: String) = Task.Command { println(s"Running quxCommand $s") }
-    throw new Exception("Qux Boom")
+    throw Exception("Qux Boom")
   }
 }

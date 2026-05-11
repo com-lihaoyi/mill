@@ -4,6 +4,7 @@ import mill.constants.{DaemonFiles, Util}
 import mill.constants.OutFiles.OutFiles
 import mill.daemon.MillMain0.handleMillException
 import mill.api.BuildCtx
+import mill.internal.{LauncherLockRegistry, LauncherOutFilesState, OutputDirectoryLayout}
 import mill.launcher.DaemonRpc
 import mill.server.Server
 
@@ -30,7 +31,11 @@ object MillNoDaemonMain0 {
       .fold(err => throw IllegalArgumentException(err), identity)
 
     val processId = Server.computeProcessId()
-    val out = os.Path(OutFiles.outFor(args.outMode), BuildCtx.workspaceRoot)
+    val env = System.getenv().asScala.toMap
+    val out = os.Path(
+      OutputDirectoryLayout.outDir(args.outMode, BuildCtx.workspaceRoot, env),
+      BuildCtx.workspaceRoot
+    )
     Server.watchProcessIdFile(
       out / OutFiles.millNoDaemon / s"pid-$processId" / DaemonFiles.processId,
       processId,
@@ -41,7 +46,8 @@ object MillNoDaemonMain0 {
       }
     )
 
-    val outLock = MillMain0.doubleLock(out)
+    val outLock = MillMain0.outFileLock(out)
+    val sharedOutLockManager = SharedOutLockManager(outLock, out)
 
     // Create runner that executes subprocesses locally with inherited I/O
     val launcherRunner: mill.api.daemon.LauncherSubprocess.Runner =
@@ -50,26 +56,32 @@ object MillNoDaemonMain0 {
           .defaultRunSubprocessWithStreams(None)(DaemonRpc.ServerToClient.RunSubprocess(config))
           .exitCode
 
-    val (result, _) =
+    val result =
       try MillMain0.main0(
           args = args.rest.toArray,
-          stateCache = RunnerState.empty,
+          sharedState = new java.util.concurrent.atomic.AtomicReference(RunnerSharedState.empty),
+          lockRegistry = new LauncherLockRegistry,
+          outFilesState = new LauncherOutFilesState,
           mainInteractive = mill.constants.Util.hasConsole(),
           streams0 = initialSystemStreams,
-          env = System.getenv().asScala.toMap,
+          env = env,
+          launcherPid = processId,
           setIdle = _ => (),
+          setRunningCommand = _ => (),
           userSpecifiedProperties0 = Map(),
           initialSystemProperties = sys.props.toMap,
           systemExit = ( /*reason*/ _, exitCode) => sys.exit(exitCode),
           daemonDir = args.daemonDir,
-          outLock = outLock,
+          sharedOutLockManager = sharedOutLockManager,
           launcherSubprocessRunner = launcherRunner,
           serverToClientOpt = None,
           millRepositories = Seq.empty
         )
-      catch handleMillException(initialSystemStreams.err, ())
+      catch handleMillException(initialSystemStreams.err)
+      finally
+        try sharedOutLockManager.close()
+        catch { case _: Throwable => () }
 
     System.exit(if (result) 0 else 1)
   }
-
 }

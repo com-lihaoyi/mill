@@ -65,11 +65,14 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
     test - integrationTest { tester =>
       if (daemonMode) {
         checkClassloaders(tester)(
-          Map(
-            "mill.javalib.JvmWorkerModule#internalWorkerClassLoader" -> 1,
-            "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-            "mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader" -> 1
-          ).toSeq.sorted
+          List(
+            (
+              "mill.daemon.MillBuildBootstrap#processRunClasspath publishFreshFrame createClassLoader",
+              1
+            ),
+            ("mill.javalib.JvmWorkerModule#internalWorkerClassLoader", 1),
+            ("mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader", 1)
+          )
         )
         checkThreads(tester)(
           List(
@@ -77,6 +80,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "FileToStreamTailerThread",
             "HandleRunThread",
             "JsonArrayLogger mill-chrome-profile.json",
+            "JsonArrayLogger mill-profile.json",
             "JsonArrayLogger mill-profile.json",
             "MillServerActionRunner",
             "MillServerTimeoutThread",
@@ -92,12 +96,15 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           tester.eval(("show", "clean"))
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
-            Map(
-              "mill.kotlinlib.KotlinWorkerManager" -> 1,
-              "mill.javalib.JvmWorkerModule#internalWorkerClassLoader" -> 2,
-              "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-              "mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader" -> 2
-            ).toSeq.sorted
+            List(
+              (
+                "mill.daemon.MillBuildBootstrap#processRunClasspath publishFreshFrame createClassLoader",
+                1
+              ),
+              ("mill.javalib.JvmWorkerModule#internalWorkerClassLoader", 2),
+              ("mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader", 2),
+              ("mill.kotlinlib.KotlinWorkerManager", 1)
+            )
           )
           checkThreads(tester)(
             List(
@@ -105,6 +112,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
               "FileToStreamTailerThread",
               "HandleRunThread",
               "JsonArrayLogger mill-chrome-profile.json",
+              "JsonArrayLogger mill-profile.json",
               "JsonArrayLogger mill-profile.json",
               "MillServerActionRunner",
               "MillServerTimeoutThread",
@@ -122,12 +130,15 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         for (_ <- Range(0, 2)) {
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
-            Map(
-              "mill.kotlinlib.KotlinWorkerManager" -> 1,
-              "mill.javalib.JvmWorkerModule#internalWorkerClassLoader" -> 2,
-              "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-              "mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader" -> 2
-            ).toSeq.sorted
+            List(
+              (
+                "mill.daemon.MillBuildBootstrap#processRunClasspath publishFreshFrame createClassLoader",
+                1
+              ),
+              ("mill.javalib.JvmWorkerModule#internalWorkerClassLoader", 2),
+              ("mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader", 2),
+              ("mill.kotlinlib.KotlinWorkerManager", 1)
+            )
           )
           checkThreads(tester)(
             List(
@@ -135,6 +146,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
               "FileToStreamTailerThread",
               "HandleRunThread",
               "JsonArrayLogger mill-chrome-profile.json",
+              "JsonArrayLogger mill-profile.json",
               "JsonArrayLogger mill-profile.json",
               "MillServerActionRunner",
               "MillServerTimeoutThread",
@@ -152,7 +164,10 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         tester.eval(("shutdown"), check = true)
         checkClassloaders(tester)(
           List(
-            ("mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl", 1),
+            (
+              "mill.daemon.MillBuildBootstrap#processRunClasspath publishFreshFrame createClassLoader",
+              1
+            ),
             ("mill.javalib.JvmWorkerModule#internalWorkerClassLoader", 1)
           )
         )
@@ -162,6 +177,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "FileToStreamTailerThread",
             "HandleRunThread",
             "JsonArrayLogger mill-chrome-profile.json",
+            "JsonArrayLogger mill-profile.json",
             "JsonArrayLogger mill-profile.json",
             "MillServerActionRunner",
             "MillServerTimeoutThread",
@@ -178,7 +194,10 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
             List(
-              ("mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl", 1),
+              (
+                "mill.daemon.MillBuildBootstrap#processRunClasspath publishFreshFrame createClassLoader",
+                1
+              ),
               ("mill.javalib.JvmWorkerModule#internalWorkerClassLoader", 2),
               ("mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader", 1),
               ("mill.kotlinlib.KotlinWorkerManager", 1)
@@ -190,6 +209,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
               "FileToStreamTailerThread",
               "HandleRunThread",
               "JsonArrayLogger mill-chrome-profile.json",
+              "JsonArrayLogger mill-profile.json",
               "JsonArrayLogger mill-profile.json",
               "MillServerActionRunner",
               "MillServerTimeoutThread",
@@ -209,7 +229,10 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
             List(
-              ("mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl", 1),
+              (
+                "mill.daemon.MillBuildBootstrap#processRunClasspath publishFreshFrame createClassLoader",
+                1
+              ),
               ("mill.javalib.JvmWorkerModule#internalWorkerClassLoader", 2),
               ("mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader", 1),
               ("mill.kotlinlib.KotlinWorkerManager", 1)
@@ -221,6 +244,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
               "FileToStreamTailerThread",
               "HandleRunThread",
               "JsonArrayLogger mill-chrome-profile.json",
+              "JsonArrayLogger mill-profile.json",
               "JsonArrayLogger mill-profile.json",
               "MillServerActionRunner",
               "MillServerTimeoutThread",
@@ -242,7 +266,10 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
             List(
-              ("mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl", 1),
+              (
+                "mill.daemon.MillBuildBootstrap#processRunClasspath publishFreshFrame createClassLoader",
+                1
+              ),
               ("mill.javalib.JvmWorkerModule#internalWorkerClassLoader", 2),
               ("mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader", 1),
               ("mill.kotlinlib.KotlinWorkerManager", 1)
@@ -254,6 +281,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
               "FileToStreamTailerThread",
               "HandleRunThread",
               "JsonArrayLogger mill-chrome-profile.json",
+              "JsonArrayLogger mill-profile.json",
               "JsonArrayLogger mill-profile.json",
               "MillServerActionRunner",
               "MillServerTimeoutThread",
@@ -272,7 +300,10 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         checkClassloaders(tester)(
           List(
             ("leaked classloader", 1),
-            ("mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl", 1),
+            (
+              "mill.daemon.MillBuildBootstrap#processRunClasspath publishFreshFrame createClassLoader",
+              1
+            ),
             ("mill.javalib.JvmWorkerModule#internalWorkerClassLoader", 2),
             ("mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader", 1),
             ("mill.kotlinlib.KotlinWorkerManager", 1)
@@ -284,6 +315,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "FileToStreamTailerThread",
             "HandleRunThread",
             "JsonArrayLogger mill-chrome-profile.json",
+            "JsonArrayLogger mill-profile.json",
             "JsonArrayLogger mill-profile.json",
             "MillServerActionRunner",
             "MillServerTimeoutThread",

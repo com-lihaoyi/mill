@@ -31,7 +31,7 @@ import mill.api.daemon.internal.*
  * This trait is mixed into MillBuildServer to separate the API endpoints
  * from the server infrastructure code.
  */
-trait MillBspEndpoints extends BuildServer with EndpointsApi {
+trait MillBspEndpoints extends BuildServer with MillTestBuildServer with EndpointsApi {
 
   // ==========================================================================
   // Abstract members provided by MillBuildServer
@@ -58,8 +58,8 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
 
       capabilities.setBuildTargetChangedProvider(true)
       capabilities.setCanReload(canReload)
-      capabilities.setCompileProvider(new CompileProvider(supportedLangs))
-      capabilities.setDebugProvider(new DebugProvider(Seq().asJava))
+      capabilities.setCompileProvider(CompileProvider(supportedLangs))
+      capabilities.setDebugProvider(DebugProvider(Seq().asJava))
       capabilities.setDependencyModulesProvider(true)
       capabilities.setDependencySourcesProvider(true)
       capabilities.setInverseSourcesProvider(true)
@@ -68,8 +68,8 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
       capabilities.setJvmTestEnvironmentProvider(true)
       capabilities.setOutputPathsProvider(true)
       capabilities.setResourcesProvider(true)
-      capabilities.setRunProvider(new RunProvider(supportedLangs))
-      capabilities.setTestProvider(new TestProvider(supportedLangs))
+      capabilities.setRunProvider(RunProvider(supportedLangs))
+      capabilities.setTestProvider(TestProvider(supportedLangs))
 
       def readVersion(json: JsonObject, name: String): Option[String] =
         if (json.has(name)) {
@@ -104,7 +104,7 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
         clientWantsSemanticDb = clientWantsSemanticDb,
         enableJvmCompileClasspathProvider = enableJvmCompileClasspathProvider
       )
-      val res = new InitializeBuildResult(serverName, serverVersion, bspVersion, capabilities)
+      val res = InitializeBuildResult(serverName, serverVersion, bspVersion, capabilities)
       doneInitializingBuild()
       res
     }
@@ -125,7 +125,7 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
     val logger = createLogger()
     logger.info("Entered onBuildExit")
     SemanticDbJavaModuleApi.resetContext()
-    sessionResult.trySuccess(BspServerResult.Shutdown)
+    completeSessionResult(BspServerResult.Shutdown)
     onShutdown()
   }
 
@@ -182,9 +182,9 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
 
   override def workspaceReload(): CompletableFuture[Object] =
     handlerRaw { _ =>
-      // Instead stop and restart the command
-      // BSP.install(evaluator)
-      sessionResult.trySuccess(BspServerResult.ReloadWorkspace)
+      // Each BSP request already bootstraps a fresh runner state via the
+      // bootstrap bridge in MillMain0, so an explicit reload is a no-op:
+      // the next request will re-evaluate the build automatically.
       ().asInstanceOf[Object]
     }
 
@@ -248,7 +248,7 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
         }
         .flatten
 
-      new InverseSourcesResult(ids.asJava)
+      InverseSourcesResult(ids.asJava)
     }
   }
 
@@ -262,10 +262,10 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
       originId = ""
     ) { (ctx, _) =>
       val cp = (ctx.value.resolvedDepsSources ++ ctx.value.unmanagedClasspath).map(sanitizeUri)
-      new DependencySourcesItem(ctx.id, cp.asJava)
+      DependencySourcesItem(ctx.id, cp.asJava)
 
     } { (values, _, _) =>
-      new DependencySourcesResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
+      DependencySourcesResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
     }
 
   override def buildTargetDependencyModules(params: DependencyModulesParams)
@@ -278,16 +278,16 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
     ) { (ctx, _) =>
       val deps = ctx.value.mvnDeps.collect {
         case (org, repr, version) if org != "mill-internal" =>
-          new DependencyModule(repr, version)
+          DependencyModule(repr, version)
       }
 
       val unmanaged = ctx.value.unmanagedClasspath.map { dep =>
-        new DependencyModule(s"unmanaged-${dep.getFileName}", "")
+        DependencyModule(s"unmanaged-${dep.getFileName}", "")
       }
-      new DependencyModulesItem(ctx.id, (deps ++ unmanaged).asJava)
+      DependencyModulesItem(ctx.id, (deps ++ unmanaged).asJava)
 
     } { (values, _, _) =>
-      new DependencyModulesResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
+      DependencyModulesResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
     }
 
   override def buildTargetResources(p: ResourcesParams): CompletableFuture[ResourcesResult] =
@@ -299,10 +299,10 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
     ) { (ctx, _) =>
       val resourcesUrls =
         ctx.value.map(os.Path(_)).filter(os.exists).map(p => sanitizeUri(p.toNIO))
-      new ResourcesItem(ctx.id, resourcesUrls.asJava)
+      ResourcesItem(ctx.id, resourcesUrls.asJava)
 
     } { (values, _, _) =>
-      new ResourcesResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
+      ResourcesResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
     }
 
   // ==========================================================================
@@ -344,7 +344,7 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
             getReporter,
             TestReporter.DummyTestReporter,
             errorOpt = { result =>
-              val baseErrorOpt = evaluatorErrorOpt(result)
+              val baseErrorOpt = result.values.toEither.left.toOption
               def hasCompilationErrors =
                 reporters.asScala.valuesIterator.flatMap(_.iterator).exists(_.hasErrors)
               if (baseErrorOpt.isEmpty || hasCompilationErrors)
@@ -358,7 +358,7 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
           )
         }
         .toSeq
-      val compileResult = new CompileResult(Utils.getStatusCode(result))
+      val compileResult = CompileResult(Utils.getStatusCode(result))
       compileResult.setOriginId(p.getOriginId)
       compileResult // TODO: See in what form IntelliJ expects data about products of compilation in order to set data field
     }
@@ -384,10 +384,10 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
           topLevelProjectRoot
         )
 
-        new OutputPathsItem(target, items.asJava)
+        OutputPathsItem(target, items.asJava)
       }
 
-      new OutputPathsResult((items ++ synthOutpaths).sortBy(_.getTarget.getUri).asJava)
+      OutputPathsResult((items ++ synthOutpaths).sortBy(_.getTarget.getUri).asJava)
     }
 
   override def buildTargetRun(runParams: RunParams): CompletableFuture[RunResult] =
@@ -406,8 +406,8 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
         Utils.getBspLoggedReporterPool(runParams.getOriginId, state.bspIdByModule, client)
       )
       val response = runResult.transitiveResultsApi(runTask) match {
-        case r if r.asSuccess.isDefined => new RunResult(StatusCode.OK)
-        case _ => new RunResult(StatusCode.ERROR)
+        case r if r.asSuccess.isDefined => RunResult(StatusCode.OK)
+        case _ => RunResult(StatusCode.ERROR)
       }
       Option(runParams.getOriginId).foreach(response.setOriginId)
 
@@ -429,11 +429,11 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
           state.bspModulesById(targetId) match {
             case (testModule: TestModuleApi, ev) =>
               val testTask = testModule.testLocal(argsMap(targetId.getUri)*)
-              val taskId = new TaskId(testTask.hashCode().toString)
+              val taskId = TaskId(testTask.hashCode().toString)
 
               notifyTestStart(targetId, taskId)
 
-              val testReporter = new BspTestReporter(client, targetId, taskId)
+              val testReporter = BspTestReporter(client, targetId, taskId)
               val results = evaluate(
                 ev,
                 s"Running tests for ${testModule.bspDisplayName}",
@@ -461,7 +461,7 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
           }
         }
 
-      val testResult = new TestResult(overallStatusCode)
+      val testResult = TestResult(overallStatusCode)
       Option(testParams.getOriginId).foreach(testResult.setOriginId)
       testResult
     }
@@ -478,14 +478,14 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
       val allCleaned = results.forall(_.isRight)
       val message = results.map(_.merge).mkString
 
-      new CleanCacheResult(allCleaned).tap(_.setMessage(message))
+      CleanCacheResult(allCleaned).tap(_.setMessage(message))
     }
 
   override def debugSessionStart(debugParams: DebugSessionParams)
       : CompletableFuture[DebugSessionAddress] =
     handlerEvaluators() { (state, _) =>
       debugParams.setTargets(state.filterNonSynthetic(debugParams.getTargets))
-      throw new NotImplementedError("debugSessionStart endpoint is not implemented")
+      throw NotImplementedError("debugSessionStart endpoint is not implemented")
     }
 
   override def onRunReadStdin(params: ReadParams): Unit = {
@@ -514,11 +514,11 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
 
   /** Sends a task start notification for a test target */
   private def notifyTestStart(targetId: BuildTargetIdentifier, taskId: TaskId): Unit = {
-    val params = new TaskStartParams(taskId)
+    val params = TaskStartParams(taskId)
     params.setEventTime(System.currentTimeMillis())
     params.setMessage(s"Testing target: $targetId")
     params.setDataKind(TaskStartDataKind.TEST_TASK)
-    params.setData(new TestTask(targetId))
+    params.setData(TestTask(targetId))
     client.onBuildTaskStart(params)
   }
 
@@ -529,7 +529,7 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
       displayName: Option[String],
       testReport: TestReport
   ): Unit = {
-    val params = new TaskFinishParams(taskId, statusCode)
+    val params = TaskFinishParams(taskId, statusCode)
     params.setEventTime(System.currentTimeMillis())
     params.setMessage(s"Finished testing target${displayName.getOrElse("")}")
     params.setDataKind(TaskFinishDataKind.TEST_REPORT)
@@ -569,6 +569,37 @@ trait MillBspEndpoints extends BuildServer with EndpointsApi {
       val cleanedPaths = cleanResult.results.head.get.value.asInstanceOf[Seq[java.nio.file.Path]]
       while (cleanedPaths.exists(p => os.exists(os.Path(p)))) Thread.sleep(10)
       Right(s"${module.bspBuildTarget.displayName} cleaned \n")
+    }
+  }
+
+  // ==========================================================================
+  // Test Endpoints
+  // ==========================================================================
+
+  def loggingTest(): CompletableFuture[Object] = {
+    handlerEvaluators() { (state, logger) =>
+      val tasksEvs = state.bspModulesIdList
+        .collectFirst {
+          case (_, (m: JavaModuleApi, ev)) =>
+            Seq(((m, m.bspJavaModule().bspLoggingTest), ev))
+        }
+        .getOrElse {
+          sys.error("No BSP build target available")
+        }
+
+      tasksEvs
+        .groupMap(_._2)(_._1)
+        .map { case (ev, ts) =>
+          evaluate(
+            ev,
+            s"Checking logging for ${ts.map(_._1.bspDisplayName).mkString(", ")}",
+            ts.map(_._2),
+            logger,
+            reporter = Utils.getBspLoggedReporterPool("", state.bspIdByModule, client)
+          )
+        }
+        .toSeq
+      null
     }
   }
 

@@ -2,19 +2,32 @@ package build
 import mill.*, scalalib.*
 
 object foo extends ScalaModule {
+  // Spark + bundled Hadoop call `Subject.getSubject(AccessControlContext)`,
+  // which throws `UnsupportedOperationException` on JDK 24+, and JDK 24+
+  // refuses to start with `-Djava.security.manager=allow`. Pin this example
+  // to JDK 21 until Spark/Hadoop catch up.
+  def jvmId = "zulu:21"
   def scalaVersion = "2.12.20"
   def mvnDeps = Seq(
     mvn"org.apache.spark::spark-core:3.5.4",
     mvn"org.apache.spark::spark-sql:3.5.4"
   )
 
-  def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+  def forkArgs = Seq(
+    "--add-opens",
+    "java.base/sun.nio.ch=ALL-UNNAMED",
+    "--enable-native-access=ALL-UNNAMED"
+  )
 
   object test extends ScalaTests {
     def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
     def testFramework = "utest.runner.Framework"
 
-    def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+    def forkArgs = Seq(
+      "--add-opens",
+      "java.base/sun.nio.ch=ALL-UNNAMED",
+      "--enable-native-access=ALL-UNNAMED"
+    )
   }
 
 }

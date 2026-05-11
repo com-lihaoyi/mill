@@ -1,3 +1,4 @@
+//| mill-jvm-version: zulu:21
 // This Example provides the basic setup for building Android App Bundle using Mill Build Tool.
 
 // By extending `AndroidAppBundle`, we inherit all Android Bundle tasks such as

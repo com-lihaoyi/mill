@@ -538,7 +538,7 @@ trait AndroidModule extends JavaModule { outer =>
   def androidManifestMergerModuleRef: ModuleRef[AndroidManifestMerger] =
     ModuleRef(AndroidManifestMerger)
 
-  def androidMergeableManifests: Task[Seq[PathRef]] = Task {
+  def androidMergeableManifests: Task.Simple[Seq[PathRef]] = Task {
     androidUnpackRunArchives().flatMap(_.manifest) ++ androidDirectModuleDepsManifests()
   }
 

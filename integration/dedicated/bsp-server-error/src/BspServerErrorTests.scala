@@ -22,37 +22,12 @@ object BspServerErrorTests extends UtestIntegrationTestSuite {
         env = Map("MILL_EXECUTABLE_PATH" -> tester.millExecutable.toString)
       )
 
-      val firstServerStderr = new ByteArrayOutputStream
-      val firstServerProc = startBspServer(
-        workspacePath,
-        millTestSuiteEnv,
-        bspLog = Some((bytes, len) => firstServerStderr.write(bytes, 0, len))
-      )
-
-      // wait for server instance to be ready to ensure the first BSP server started well
-      bspBuildServer(
-        firstServerProc.stdout.wrapped,
-        firstServerProc.stdin.wrapped,
-        workspacePath
-      )
-
-      assert(firstServerProc.isAlive())
-
       val stderr = new ByteArrayOutputStream
       withBspServer(
         workspacePath,
         millTestSuiteEnv,
         bspLog = Some((bytes, len) => stderr.write(bytes, 0, len))
       ) { (buildServer, initRes) =>
-
-        assert(!firstServerProc.isAlive())
-
-        val firstServerStderrStr = new String(firstServerStderr.toByteArray)
-        assert(firstServerStderrStr.contains("Received SIGTERM, exiting"))
-
-        val currentStderrStr = new String(stderr.toByteArray)
-        assert(currentStderrStr.contains("Sent SIGTERM to process"))
-
         assert(initRes.getCapabilities.getInverseSourcesProvider == true)
 
         val file = workspacePath / "hello-scala/src/Hello.scala"
@@ -71,7 +46,7 @@ object BspServerErrorTests extends UtestIntegrationTestSuite {
             }
           catch {
             case _: ExecutionException =>
-              Left(new String(stderr.toByteArray))
+              Left(String(stderr.toByteArray))
           }
 
         assert(res.isLeft)
@@ -88,7 +63,7 @@ object BspServerErrorTests extends UtestIntegrationTestSuite {
           .getTargets
           .asScala
           .find { target =>
-            os.Path(Paths.get(new URI(target.getBaseDirectory))) == workspacePath / "hello-scala"
+            os.Path(Paths.get(URI(target.getBaseDirectory))) == workspacePath / "hello-scala"
           }
           .getOrElse {
             sys.error("hello-scala not found in build targets")
@@ -111,7 +86,7 @@ object BspServerErrorTests extends UtestIntegrationTestSuite {
         assert(resourcesRes.isRight)
         assert(resourcesRes.forall(_.getItems.isEmpty))
 
-        val logs = new String(stderr.toByteArray)
+        val logs = String(stderr.toByteArray)
         assert(logs.contains("[error] hello-scala.resources task failed"))
 
         ()
