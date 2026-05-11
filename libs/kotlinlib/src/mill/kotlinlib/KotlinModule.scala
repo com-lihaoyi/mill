@@ -404,11 +404,6 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
    */
   def kotlinFriendModules: Seq[KotlinModule] = Seq.empty[KotlinModule]
 
-  require(
-    kotlinFriendModules.toSet.subsetOf(moduleDeps.toSet),
-    "All kotlinFriendModules must also be declared in moduleDeps"
-  )
-
   /**
    * Additional Kotlin compiler options to be used by [[compile]].
    */
@@ -443,6 +438,12 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     val languageVersion = kotlinLanguageVersion()
     val kotlinkotlinApiVersion = kotlinApiVersion()
     val plugins = kotlincPluginJars().map(_.path)
+
+    require(
+      kotlinFriendModules.toSet.subsetOf(moduleDeps.toSet),
+      "All kotlinFriendModules must also be declared in moduleDeps"
+    )
+
     val friendPathsOption = if (kotlinFriendModules.isEmpty) {
       Seq.empty[String]
     } else {
