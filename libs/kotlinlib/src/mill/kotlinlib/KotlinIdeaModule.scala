@@ -64,16 +64,16 @@ trait KotlinIdeaModule extends KotlinModule {
                 "version" -> "5",
                 "useProjectSettings" -> "false"
               ),
-              childs = Seq(
+              childsOrText = Seq(
                 if (friendElements.nonEmpty) {
                   Element(
                     "additionalVisibleModuleNames",
-                    childs = friendElements
+                    childsOrText = friendElements
                   )
                 } else null,
                 Element(
                   "compilerSettings",
-                  childs = Seq(
+                  childsOrText = Seq(
                     Element(
                       "option",
                       attributes = Map(
@@ -85,10 +85,10 @@ trait KotlinIdeaModule extends KotlinModule {
                 ),
                 Element(
                   "compilerArguments",
-                  childs = Seq(
+                  childsOrText = Seq(
                     Element(
                       "stringArguments",
-                      childs =
+                      childsOrText =
                         Seq(
                           stringArgElement("apiVersion", kotlinApiVersion()),
                           stringArgElement("languageVersion", kotlinLanguageVersion())
