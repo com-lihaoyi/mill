@@ -1,6 +1,7 @@
 package mill.api
 import collection.mutable
 import mill.api.daemon.Watchable
+import mill.api.daemon.internal.BaseModuleApi
 import mill.constants.EnvVars
 import scala.util.DynamicVariable
 
@@ -22,6 +23,19 @@ object BuildCtx {
 
   private[mill] val workspaceRoot0: scala.util.DynamicVariable[os.Path] =
     DynamicVariable(sys.env.get(EnvVars.MILL_WORKSPACE_ROOT).fold(os.pwd)(os.Path(_, os.pwd)))
+
+  /**
+   * The root [[mill.api.RootModule]] of the current Mill build. Accessing this from
+   * user-facing code such as `Task.Command`s gives plugins a convenient way to walk
+   * the module tree without having to thread an [[Evaluator]] through their APIs.
+   *
+   * This is set once when the build is initialized and may be `null` before then.
+   * Cast to `mill.api.Module` (or `mill.api.internal.RootModule0`) to traverse the
+   * module tree, e.g. via `millInternal.modules`.
+   */
+  def rootModule: BaseModuleApi = rootModule0
+
+  @volatile private[mill] var rootModule0: BaseModuleApi = null
 
   /**
    * Global repositories configured via `mill-repositories` in the build file header or

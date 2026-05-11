@@ -2,7 +2,7 @@ package mill.javalib.internal
 
 import mill.api.daemon.internal.internal
 
-import scala.annotation.tailrec
+import scala.collection.mutable
 
 @internal
 object ModuleUtils {
@@ -12,7 +12,7 @@ object ModuleUtils {
    * The result contains `start` and all its transitive dependencies provided by `deps`,
    * but does not contain duplicates.
    * If it detects a cycle, it throws an exception with a meaningful message containing the cycle trace.
-   * @param name The nane is used in the exception message only
+   * @param name The name is used in the exception message only
    * @param start the start element
    * @param deps A function provided the direct dependencies
    * @throws mill.api.MillException if there were cycles in the dependencies
@@ -20,42 +20,33 @@ object ModuleUtils {
   // FIXME: Remove or consolidate with copy in JvmWorkerImpl
   def recursive[T](name: String, start: T, deps: T => Seq[T]): Seq[T] = {
 
-    @tailrec def rec(
-        seenModules: Vector[T],
-        seenSet: Set[T],
-        toAnalyze: List[(List[T], Set[T], List[T])]
-    ): Vector[T] = {
-      toAnalyze match {
-        case Nil => seenModules
-        case traces :: rest =>
-          traces match {
-            case (_, _, Nil) => rec(seenModules, seenSet, rest)
-            case (trace, traceSet, cand :: remaining) =>
-              if (traceSet.contains(cand)) {
-                // cycle!
-                val rendered =
-                  (cand :: (cand :: trace.takeWhile(_ != cand)).reverse).mkString(" -> ")
-                val msg = s"${name}: cycle detected: ${rendered}"
-                println(msg)
-                throw new mill.api.MillException(msg)
-              }
-              val seen = seenSet.contains(cand)
-              rec(
-                if (seen) seenModules else seenModules :+ cand,
-                if (seen) seenSet else seenSet + cand,
-                toAnalyze =
-                  ((cand :: trace, traceSet + cand, deps(cand).toList)) ::
-                    (trace, traceSet, remaining) ::
-                    rest
-              )
-          }
+    val result = mutable.ArrayBuffer[T]()
+
+    /**
+     * Prevents visiting the same node twice when it is reachable via
+     * multiple paths (deduplication).
+     */
+    val fullySeen = mutable.Set[T]()
+
+    def dfs(node: T, path: List[T], pathSet: Set[T]): Unit = {
+      deps(node).foreach { child =>
+        if (pathSet.contains(child)) {
+          // cycle!
+          val segment = path.takeWhile(_ != child)
+          val rendered = (child :: (child :: segment).reverse).mkString(" -> ")
+          val msg = s"${name}: cycle detected: ${rendered}"
+          println(msg)
+          throw new mill.api.MillException(msg)
+        }
+        if (!fullySeen.contains(child)) {
+          fullySeen += child
+          result += child
+          dfs(child, child :: path, pathSet + child)
+        }
       }
     }
 
-    rec(
-      seenModules = Vector.empty,
-      seenSet = Set.empty,
-      toAnalyze = List((List(start), Set(start), deps(start).toList))
-    ).reverse
+    dfs(start, List(start), Set(start))
+    result.toSeq.reverse
   }
 }
