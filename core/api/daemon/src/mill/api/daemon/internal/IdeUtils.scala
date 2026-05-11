@@ -3,8 +3,6 @@ package mill.api.daemon.internal
 import mill.api.daemon.{Segment, Segments}
 import mill.api.*
 
-import java.nio.file.Path
-
 object IdeUtils {
 
   /**
@@ -13,21 +11,13 @@ object IdeUtils {
    * @param path If the  segments yield no result, use the Mill Module folder name from this path.
    * @see [[Module.moduleSegments]]
    */
-  def moduleName(p: Segments, path: Path = null): String = {
-    val name = p.value
-      .foldLeft(StringBuilder()) {
-        case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
-        case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
-        case (sb, Segment.Label(s)) => sb.append(".").append(s)
-        case (sb, Segment.Cross(s)) => sb.append("-").append(s.mkString("-"))
-      }
-      .mkString
-      .toLowerCase()
-
-    // If for whatever reason no name could be created based on the module segments, create a
-    // generic one from the Mill Module folder name. Users can rename the project inside the
-    // IDE if they like.
-    if (name.isBlank && path != null) path.getFileName.toString
-    else name
-  }
+  def moduleName(p: Segments): Option[String] = Some(p.value
+    .foldLeft(StringBuilder()) {
+      case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
+      case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
+      case (sb, Segment.Label(s)) => sb.append(".").append(s)
+      case (sb, Segment.Cross(s)) => sb.append("-").append(s.mkString("-"))
+    }
+    .mkString
+    .toLowerCase()).filterNot(_.isBlank)
 }

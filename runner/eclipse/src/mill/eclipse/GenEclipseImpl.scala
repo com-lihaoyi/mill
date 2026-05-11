@@ -165,7 +165,8 @@ class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
 
     for ((path, value) <- resolvedJavaModules) {
       val projectModule = value.resolvedModule
-      val projectName = IdeUtils.moduleName(projectModule.segments, path)
+      val projectName =
+        IdeUtils.moduleName(projectModule.segments).getOrElse(path.getFileName.toString)
       val isMainTestModule = isTestModule(projectModule.module)
 
       // By default source folders are inside the Eclipse JDT Project and therefore we create a

@@ -407,7 +407,9 @@ class GenIdeaImpl(
       Tuple2(
         os.sub / "modules.xml",
         allModulesXmlTemplate(
-          (modules.map { case (segments = segments) => IdeUtils.moduleName(segments) } ++
+          (modules.map { case (segments = segments) =>
+            IdeUtils.moduleName(segments).getOrElse("")
+          } ++
             scriptFiles.map(scriptModuleName)).sorted
         )
       ),
@@ -518,7 +520,7 @@ class GenIdeaImpl(
           .from(recursive.map((_, None)) ++
             provided.map((_, Some("PROVIDED"))))
           .filter(!_._1.skipIdea)
-          .map { case (v, s) => ScopedOrd(IdeUtils.moduleName(moduleLabels(v)), s) }
+          .map { case (v, s) => ScopedOrd(IdeUtils.moduleName(moduleLabels(v)).getOrElse(""), s) }
           .iterator
           .toSeq
           .distinct
@@ -548,7 +550,7 @@ class GenIdeaImpl(
       )
 
       val moduleFile = Tuple2(
-        os.sub / "mill_modules" / s"${IdeUtils.moduleName(resolvedModule.segments)}.iml",
+        os.sub / "mill_modules" / s"${IdeUtils.moduleName(resolvedModule.segments).getOrElse("")}.iml",
         moduleXml
       )
 
@@ -875,7 +877,7 @@ class GenIdeaImpl(
       settings: Map[(Seq[os.Path], Seq[String]), Vector[JavaModuleApi]]
   ) = {
     def modulesString(mods: Seq[ModuleApi]) =
-      mods.map(m => IdeUtils.moduleName(m.moduleSegments)).mkString(",")
+      mods.map(m => IdeUtils.moduleName(m.moduleSegments).getOrElse("")).mkString(",")
 
     val orderedSettings = settings.toSeq.map {
       case ((plugins, params), mods) => ((plugins, params), modulesString(mods))

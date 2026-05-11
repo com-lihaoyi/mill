@@ -48,6 +48,10 @@ trait KotlinIdeaModule extends KotlinModule {
       options.mkString(" ")
     }
 
+    lazy val friendElements = kotlinFriendModules
+      .flatMap(friend => IdeUtils.moduleName(friend.moduleSegments))
+      .map(friendName => Element("friend", childsOrText = Seq(friendName)))
+
     val facets = ideaConfigVersion match {
       case 4 => {
         Seq(
@@ -61,15 +65,10 @@ trait KotlinIdeaModule extends KotlinModule {
                 "useProjectSettings" -> "false"
               ),
               childs = Seq(
-                if (kotlinFriendModules.nonEmpty) {
+                if (friendElements.nonEmpty) {
                   Element(
                     "additionalVisibleModuleNames",
-                    childs = kotlinFriendModules.map(friend =>
-                      Element(
-                        "friend",
-                        childsOrText = Seq(IdeUtils.moduleName(friend.moduleSegments))
-                      )
-                    )
+                    childs = friendElements
                   )
                 } else null,
                 Element(
