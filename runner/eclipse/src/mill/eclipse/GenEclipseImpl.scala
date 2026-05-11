@@ -8,9 +8,9 @@ import mill.api.daemon.internal.{
   ModuleApi,
   ScalaModuleApi,
   TaskApi,
-  TestModuleApi
+  TestModuleApi,
+  IdeUtils
 }
-import mill.scalalib.internal.IdeUtils
 
 import java.nio.file.{Files, Path, Paths}
 import scala.collection.mutable

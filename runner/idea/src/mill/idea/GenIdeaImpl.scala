@@ -10,6 +10,7 @@ import coursier.maven.Pom
 import mill.api.*
 import mill.api.daemon.internal.{
   EvaluatorApi,
+  IdeUtils,
   JavaModuleApi,
   MillBuildRootModuleApi,
   ModuleApi,
@@ -20,7 +21,6 @@ import mill.api.daemon.internal.{
   TestModuleApi
 }
 import mill.api.daemon.internal.idea.{Element, IdeaConfigFile, JavaFacet, ResolvedModule}
-import mill.scalalib.internal.IdeUtils
 import mill.util.BuildInfo
 import org.eclipse.jgit.ignore.{FastIgnoreRule, IgnoreNode}
 import os.SubPath

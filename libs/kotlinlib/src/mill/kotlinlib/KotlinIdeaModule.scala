@@ -2,7 +2,7 @@ package mill.kotlinlib
 
 import mill.api.daemon.internal.idea.{Element, JavaFacet}
 import mill.api.{Task, TaskCtx, experimental}
-import mill.scalalib.internal.IdeUtils
+import mill.api.daemon.internal.IdeUtils
 
 private lazy val FriendPathsPattern = "^-Xfriend-paths=(.+)$".r
 

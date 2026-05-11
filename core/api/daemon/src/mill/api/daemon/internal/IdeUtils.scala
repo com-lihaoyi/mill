@@ -1,6 +1,6 @@
-package mill.scalalib.internal
+package mill.api.daemon.internal
 
-import mill.api.daemon.Segments
+import mill.api.daemon.{Segment, Segments}
 import mill.api.*
 
 import java.nio.file.Path
