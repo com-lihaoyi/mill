@@ -99,7 +99,11 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ),
     ProblemFilter.exclude[Problem](
       "mill.kotlinlib.KotlinModule#KotlinTests.kotlinUseEmbeddableCompiler"
-    )
+    ),
+    // new method with default impl
+    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.kotlinlib.KotlinModule#KotlinTests.mill$kotlinlib$KotlinModule$KotlinTests$$super$kotlinFriendModules"),
+    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.kotlinlib.KotlinModule#KotlinTests0.mill$kotlinlib$KotlinModule$KotlinTests0$$super$kotlinFriendModules")
+
   )
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
