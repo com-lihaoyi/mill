@@ -1,7 +1,7 @@
 package mill.kotlinlib
 
 import mill.api.daemon.internal.idea.{Element, JavaFacet}
-import mill.api.{Task, TaskCtx, experimental}
+import mill.api.{BuildCtx, Task, TaskCtx, experimental}
 import mill.api.daemon.internal.IdeUtils
 
 private lazy val FriendPathsPattern = "^-Xfriend-paths=(.+)$".r
@@ -31,24 +31,19 @@ trait KotlinIdeaModule extends KotlinModule {
         case _ => false
       }
 
-      if (kotlinFriendModules.nonEmpty) {
-        val redirectedFriendPaths = Task.traverse(kotlinFriendModules)(friend =>
-          Task.Anon {
-            friend.genIdeaInternalExt().ideaCompileOutput().path
-          }
+      if (kotlinFriendModulesChecked.nonEmpty) {
+        val redirectedFriendPaths = Task.traverse(kotlinFriendModulesChecked)(friend =>
+          Task.Anon { friend.genIdeaInternalExt().ideaCompileOutput().path }
         )()
-
-        if (redirectedFriendPaths.nonEmpty) {
-          options += redirectedFriendPaths.map(path =>
-            "$MODULE_DIR$/../../" + (path.relativeTo(Task.ctx().workspace)).toString
-          ).mkString("-Xfriend-paths=", ",", "")
-        }
+        options += redirectedFriendPaths
+          .map(path => "$MODULE_DIR$/../../" + (path.relativeTo(BuildCtx.workspaceRoot)).toString)
+          .mkString("-Xfriend-paths=", ",", "")
       }
 
       options.mkString(" ")
     }
 
-    lazy val friendElements = kotlinFriendModules
+    lazy val friendElements = kotlinFriendModulesChecked
       .flatMap(friend => IdeUtils.moduleName(friend.moduleSegments))
       .map(friendName => Element("friend", childsOrText = Seq(friendName)))
 

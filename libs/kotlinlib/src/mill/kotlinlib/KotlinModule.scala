@@ -401,8 +401,22 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
    *
    * Drives `-Xfriend-modules` for Kotlin/JS and `-Xfriend-paths` elsewhere.
    * See [`friendPaths`](https://kotlinlang.org/api/kotlin-gradle-plugin/kotlin-gradle-plugin-api/org.jetbrains.kotlin.gradle.tasks/-base-kotlin-compile/friend-paths.html) for the Gradle equivalent.
+   *
+   * When consuming, use [[kotlinFriendModulesChecked]] instead, which is checked for consistency and cached.
    */
   def kotlinFriendModules: Seq[KotlinModule] = Seq.empty[KotlinModule]
+
+  /**
+   * Same as [[kotlinFriendModules]], but checked for consistency.
+   * Prefer using this over [[kotlinFriendModules]].
+   */
+  private[kotlinlib] lazy val kotlinFriendModulesChecked: Seq[KotlinModule] = {
+    require(
+      kotlinFriendModules.toSet.subsetOf(moduleDepsChecked.toSet),
+      "All kotlinFriendModules must also be declared in moduleDeps"
+    )
+    kotlinFriendModules.distinct
+  }
 
   /**
    * Additional Kotlin compiler options to be used by [[compile]].
@@ -439,15 +453,10 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     val kotlinkotlinApiVersion = kotlinApiVersion()
     val plugins = kotlincPluginJars().map(_.path)
 
-    require(
-      kotlinFriendModules.toSet.subsetOf(moduleDeps.toSet),
-      "All kotlinFriendModules must also be declared in moduleDeps"
-    )
-
-    val friendPathsOption = if (kotlinFriendModules.isEmpty) {
+    val friendPathsOption = if (kotlinFriendModulesChecked.isEmpty) {
       Seq.empty[String]
     } else {
-      val compilations = Task.traverse(kotlinFriendModules) { friend => friend.compile }()
+      val compilations = Task.traverse(kotlinFriendModulesChecked) { friend => friend.compile }()
       Seq(compilations.map(_.classes.path.toString).mkString("-Xfriend-paths=", ",", ""))
     }
 
