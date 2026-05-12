@@ -4,7 +4,6 @@ import scala.util.{Success, Try}
 import scala.xml.{Elem, MetaData, Node, NodeSeq, Null, UnprefixedAttribute}
 import scala.collection.mutable
 import java.net.URL
-
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
 import mill.api.*
@@ -24,6 +23,8 @@ import mill.api.daemon.internal.idea.{Element, IdeaConfigFile, JavaFacet, Resolv
 import mill.util.BuildInfo
 import org.eclipse.jgit.ignore.{FastIgnoreRule, IgnoreNode}
 import os.SubPath
+
+import scala.annotation.nowarn
 import scala.jdk.CollectionConverters.*
 
 class GenIdeaImpl(
@@ -631,7 +632,7 @@ class GenIdeaImpl(
       attributes1 = attribute1,
       example.scope,
       minimizeEmpty = true,
-      child = (element.childs ++ element.childsOrText).map {
+      child = ((element.childs: @nowarn("cat=deprecation")) ++ element.childsOrText).map {
         case e: Element => ideaConfigElementTemplate(e)
         case s: String => scala.xml.Text(s)
       }*

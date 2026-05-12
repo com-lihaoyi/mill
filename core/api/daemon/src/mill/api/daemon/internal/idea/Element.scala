@@ -7,7 +7,7 @@ import com.lihaoyi.unroll
  *
  * @param name The XML element name
  * @param attributes The optional XML element attributes
- * @param childs The optional XML child elements.
+ * @param childs Deprecated. The optional XML child elements.
  * @param childsOrText The optional XML child elements or text content.
  */
 final case class Element(
