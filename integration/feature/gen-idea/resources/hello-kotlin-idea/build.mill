@@ -1,0 +1,20 @@
+package build
+
+import mill.*
+import mill.kotlinlib.{KotlinModule, KotlinIdeaModule}
+import mill.scalalib.TestModule
+
+object HelloKotlin extends KotlinModule with KotlinIdeaModule {
+  def kotlinVersion = "2.1.20"
+
+  def kotlinExplicitApi = true
+
+  object test extends KotlinTests with KotlinIdeaModule with TestModule.Junit5
+}
+
+object DepKotlin extends KotlinModule with KotlinIdeaModule {
+  def kotlinVersion = "2.1.20"
+  def moduleDeps = Seq(HelloKotlin)
+
+  override def kotlinFriendModules: Seq[KotlinModule] = Seq(HelloKotlin)
+}

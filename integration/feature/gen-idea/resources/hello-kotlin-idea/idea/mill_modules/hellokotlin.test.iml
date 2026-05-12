@@ -1,0 +1,42 @@
+<module type="JAVA_MODULE" version="4">
+    <component name="NewModuleRootManager">
+        <output-test url="file://$MODULE_DIR$/../../out/HelloKotlin/test/internalGenIdea/ideaCompileOutput.dest/classes"/>
+        <exclude-output/>
+        <content url="file://$MODULE_DIR$/../../HelloKotlin/test">
+            <sourceFolder url="file://$MODULE_DIR$/../../HelloKotlin/test/src" isTestSource="true"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../HelloKotlin/test/resources" type="java-test-resource"/>
+        </content>
+        <orderEntry type="inheritedJdk"/>
+        <orderEntry type="sourceFolder" forTests="false"/>
+        <orderEntry type="library" name="annotations-13.0.jar" level="project"/>
+        <orderEntry type="library" name="apiguardian-api-<version>.jar" level="project"/>
+        <orderEntry type="library" name="junit-jupiter-api-<version>.jar" level="project"/>
+        <orderEntry type="library" name="junit-jupiter-engine-<version>.jar" level="project"/>
+        <orderEntry type="library" name="junit-platform-commons-<version>.jar" level="project"/>
+        <orderEntry type="library" name="junit-platform-engine-<version>.jar" level="project"/>
+        <orderEntry type="library" name="junit-platform-launcher-<version>.jar" level="project"/>
+        <orderEntry type="library" name="jupiter-interface-<version>.jar" level="project"/>
+        <orderEntry type="library" name="kotlin-stdlib-<version>.jar" level="project"/>
+        <orderEntry type="library" name="opentest4j-<version>.jar" level="project"/>
+        <orderEntry type="library" name="test-interface-1.0.jar" level="project"/>
+        <orderEntry type="module" module-name="hellokotlin" exported=""/>
+    </component>
+    <component name="FacetManager">
+        <facet type="kotlin-language" name="Kotlin">
+            <configuration version="5" useProjectSettings="false">
+                <additionalVisibleModuleNames>
+                    <friend>hellokotlin</friend>
+                </additionalVisibleModuleNames>
+                <compilerSettings>
+                    <option name="additionalArguments" value="-no-stdlib -module-name HelloKotlin-test -language-version 2.1 -api-version 2.1 -Xfriend-paths=$MODULE_DIR$/../../out/HelloKotlin/internalGenIdea/ideaCompileOutput.dest/classes"/>
+                </compilerSettings>
+                <compilerArguments>
+                    <stringArguments>
+                        <stringArg name="apiVersion" arg="2.1"/>
+                        <stringArg name="languageVersion" arg="2.1"/>
+                    </stringArguments>
+                </compilerArguments>
+            </configuration>
+        </facet>
+    </component>
+</module>

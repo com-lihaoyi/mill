@@ -67,6 +67,17 @@ trait KotlinJsModule extends KotlinModule { outer =>
     Lib.findSourceFiles(allSources(), Seq("kt")).map(PathRef(_))
   }
 
+  override protected def mandatoryKotlincOptions: T[Seq[String]] = Task {
+    super.mandatoryKotlincOptions().flatMap {
+      // -no-stdlib is a JVM-only flag and is rejected by the Kotlin/JS compiler.
+      case "-no-stdlib" => None
+      // -Xfriend-paths is called -Xfriend-modules in the Kotlin/JS compiler
+      case option if option.startsWith("-Xfriend-paths=") =>
+        Some(option.replace("-Xfriend-paths=", "-Xfriend-modules="))
+      case other => Some(other)
+    }
+  }
+
   override def mandatoryMvnDeps: T[Seq[Dep]] =
     Seq(mvn"org.jetbrains.kotlin:kotlin-stdlib-js:${kotlinVersion()}")
 
@@ -198,7 +209,6 @@ trait KotlinJsModule extends KotlinModule { outer =>
           kotlinVersion = kotlinVersion(),
           destinationRoot = Task.dest,
           artifactId = artifactId(),
-          explicitApi = kotlinExplicitApi(),
           extraKotlinArgs = allKotlincOptions() ++ extraKotlinArgs,
           worker = kotlinWorker,
           useBtApi = kotlincUseBtApi()
@@ -229,7 +239,6 @@ trait KotlinJsModule extends KotlinModule { outer =>
           kotlinVersion = kotlinVersion(),
           destinationRoot = Task.dest,
           artifactId = artifactId(),
-          explicitApi = kotlinExplicitApi(),
           extraKotlinArgs = allKotlincOptions(),
           worker = kotlinWorker,
           useBtApi = kotlincUseBtApi()
@@ -274,7 +283,6 @@ trait KotlinJsModule extends KotlinModule { outer =>
       kotlinVersion: String,
       destinationRoot: os.Path,
       artifactId: String,
-      explicitApi: Boolean,
       extraKotlinArgs: Seq[String],
       worker: KotlinWorker,
       useBtApi: Boolean
@@ -383,9 +391,6 @@ trait KotlinJsModule extends KotlinModule { outer =>
       case Some(x) => Seq("-target", x)
       case None => Seq.empty
     })
-    if (explicitApi) {
-      innerCompilerArgs ++= Seq("-Xexplicit-api=strict")
-    }
 
     val compilerArgs: Seq[String] = Seq(
       innerCompilerArgs.result(),

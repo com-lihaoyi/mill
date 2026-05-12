@@ -84,7 +84,15 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ProblemFilter.exclude[Problem]("mill.util.internal.DummyBuildFile*"),
     ProblemFilter.exclude[Problem]("mill.util.internal.DummyMiscInfo*"),
     ProblemFilter.exclude[Problem]("mill.api.internal.RootModule$Info*"),
-    ProblemFilter.exclude[Problem]("mill.api.internal.RootModule#Info*")
+    ProblemFilter.exclude[Problem]("mill.api.internal.RootModule#Info*"),
+    ProblemFilter.exclude[Problem]("mill.api.daemon.internal.bsp.BspServerHandle.*"),
+    // new method with default impl
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.kotlinlib.KotlinModule#KotlinTests.mill$kotlinlib$KotlinModule$KotlinTests$$super$kotlinFriendModules"
+    ),
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.kotlinlib.KotlinModule#KotlinTests0.mill$kotlinlib$KotlinModule$KotlinTests0$$super$kotlinFriendModules"
+    )
   )
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
