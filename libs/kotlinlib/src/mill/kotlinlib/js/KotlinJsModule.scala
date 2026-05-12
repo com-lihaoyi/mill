@@ -67,9 +67,15 @@ trait KotlinJsModule extends KotlinModule { outer =>
     Lib.findSourceFiles(allSources(), Seq("kt")).map(PathRef(_))
   }
 
-  // -no-stdlib is a JVM-only flag and is rejected by the Kotlin/JS compiler.
   override protected def mandatoryKotlincOptions: T[Seq[String]] = Task {
-    super.mandatoryKotlincOptions().filterNot(_ == "-no-stdlib")
+    super.mandatoryKotlincOptions().flatMap {
+      // -no-stdlib is a JVM-only flag and is rejected by the Kotlin/JS compiler.
+      case "-no-stdlib" => None
+      // -Xfriend-paths is called -Xfriend-modules in the Kotlin/JS compiler
+      case option if option.startsWith("-Xfriend-paths=") =>
+        Some(option.replace("-Xfriend-paths=", "-Xfriend-modules="))
+      case other => Some(other)
+    }
   }
 
   override def mandatoryMvnDeps: T[Seq[Dep]] =
