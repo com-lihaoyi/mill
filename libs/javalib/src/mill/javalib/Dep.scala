@@ -238,7 +238,7 @@ object Dep {
   }
 
   /**
-   * In the presence of an non-empty `platformSuffix`, validate all given `deps` and return the warning, if any.
+   * In the presence of a non-empty `platformSuffix`, validate all given `deps` and return the warning, if any.
    * @param platformSuffix The platformSuffix, may also be empty (`""`).
    * @param deps The dependencies to analyze
    * @return An empty `Seq` when there are no warning, otherwise s `Seq[String]` with all validation warnings.
