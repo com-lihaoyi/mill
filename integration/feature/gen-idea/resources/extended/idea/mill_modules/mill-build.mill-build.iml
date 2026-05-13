@@ -16,7 +16,6 @@
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>
         <orderEntry type="library" name="scala-SDK-<version>" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="aircompressor-0.27.jar" level="project"/>
         <orderEntry type="library" name="asm-<version>.jar" level="project"/>
         <orderEntry type="library" name="asm-analysis-<version>.jar" level="project"/>
         <orderEntry type="library" name="asm-tree-<version>.jar" level="project"/>
@@ -126,10 +125,11 @@
         <orderEntry type="library" name="upickle-implicits_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="upickle_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="versions_2.13-0.5.1.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="versions_2.13-0.5.3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="windows-ansi-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="windows-jni-utils-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="xbean-reflect-3.7.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="xz-1.10.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="zstd-jni-1.5.7-4.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="xz-1.11.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="zstd-jni-1.5.7-6.jar" level="project"/>
     </component>
 </module>
