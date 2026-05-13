@@ -8,7 +8,7 @@ import mill.api.internal.RootModule0
  *
  * Implementors should make sure, the final override of [[millDiscover]] happens in the final object.
  * {{{
- *    override protected def millDiscover: Discover = Discover[this.type]
+ *    override def millDiscover: Discover = Discover[this.type]
  * }}}
  */
 abstract class ExternalModule(using
