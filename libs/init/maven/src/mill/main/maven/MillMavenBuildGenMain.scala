@@ -89,20 +89,6 @@ object MillMavenBuildGenMain {
           val isSpringParentProject = isSpringBootProject(model)
           val springBootVersion = detectSpringBootVersion(model)
 
-          val rawDeclaredDepsWithVersionByScope =
-            collectRawDeclaredDepsWithVersionByScope(result.getRawModel, moduleDepLookup)
-
-          def normalizedScopedMvnDeps(scope: String): Seq[MvnDep] = {
-            val deps = mvnDeps(scope)
-            if (isSpringParentProject)
-              dropInheritedVersions(
-                deps,
-                scope,
-                rawDeclaredDepsWithVersionByScope
-              )
-            else deps
-          }
-
           val (rawBomMvnDeps, rawDepManagement, rawBomModuleDeps) =
             Option(result.getRawModel.getDependencyManagement).fold((Nil, Nil, Nil)) { dm =>
               collectDependencyManagement(dm, toMvnOrModuleDep, moduleDepLookup)
@@ -117,9 +103,9 @@ object MillMavenBuildGenMain {
           mainModule = mainModule.copy(
             imports = "mill.javalib.*" +: mainModule.imports,
             supertypes = "MavenModule" +: mainModule.supertypes,
-            mvnDeps = normalizedScopedMvnDeps("compile"),
-            compileMvnDeps = normalizedScopedMvnDeps("provided"),
-            runMvnDeps = normalizedScopedMvnDeps("runtime"),
+            mvnDeps = mvnDeps("compile"),
+            compileMvnDeps = mvnDeps("provided"),
+            runMvnDeps = mvnDeps("runtime"),
             bomMvnDeps = bomMvnDeps,
             depManagement = depManagement,
             javacOptions = plugins.javacOptions,
@@ -133,7 +119,7 @@ object MillMavenBuildGenMain {
             mainModule = mainModule.withSpringBootModule(springBootVersion)
           }
           if (os.exists(moduleDir / "src/test")) {
-            val testMvnDeps = normalizedScopedMvnDeps("test")
+            val testMvnDeps = mvnDeps("test")
             val testMixin = ModuleSpec.testModuleMixin(testMvnDeps)
             val testModuleDeps = mavenModuleDeps.collect {
               case dep if dep.getScope == "test" =>
@@ -248,53 +234,15 @@ object MillMavenBuildGenMain {
     (bomMvnDeps, depManagement, bomModuleDeps)
   }
 
-  private def collectRawDeclaredDepsWithVersionByScope(
-      rawModel: Model,
-      moduleDepLookup: PartialFunction[Dependency, ModuleDep]
-  ): Set[(String, String, String)] =
-    rawModel.getDependencies.asScala
-      .filter(dep => !moduleDepLookup.isDefinedAt(dep))
-      .collect {
-        case dep if nonEmpty(dep.getVersion).nonEmpty =>
-          (
-            dep.getGroupId,
-            dep.getArtifactId,
-            Option(dep.getScope).filter(_.nonEmpty).getOrElse("compile")
-          )
-      }
-      .toSet
-
   private def selectDependencyManagement(
       isSpringParentProject: Boolean,
       effective: (Seq[MvnDep], Seq[MvnDep], Seq[ModuleDep]),
       raw: (Seq[MvnDep], Seq[MvnDep], Seq[ModuleDep])
   ): (Seq[MvnDep], Seq[MvnDep], Seq[ModuleDep]) =
     if (isSpringParentProject) {
-      // Only keep explicitly declared dependencyManagement entries,
-      // otherwise the effective model pulls in a very large inherited set from spring-boot-dependencies BOM.
+      // Effective model pulls in a very large inherited set from spring-boot-dependencies BOM.
       (raw._1.filterNot(isSpringBootDependenciesBom), raw._2, raw._3)
     } else effective
-
-  /**
-   * Strip inherited versions when they were not explicitly declared
-   * in the raw pom to avoid generating build files with versions that are not actually declared in the pom.xml.
-   */
-  private def dropInheritedVersions(
-      deps: Seq[MvnDep],
-      scope: String,
-      rawDeclaredDepsWithVersionByScope: Set[(String, String, String)]
-  ): Seq[MvnDep] = {
-    deps.map { dep =>
-      val key = (dep.organization, dep.name, scope)
-      // If the version wasn't explicitly declared in raw pom.xml, it is inherited
-      // (e.g. spring-boot-dependencies) and should be omitted in generated output.
-      if (
-        dep.version.nonEmpty &&
-        !rawDeclaredDepsWithVersionByScope.contains(key)
-      ) dep.copy(version = "")
-      else dep
-    }
-  }
 
   /** Detect Spring Boot platform version from spring-boot-starter-parent. */
   private def detectSpringBootVersion(model: Model): Option[String] = {

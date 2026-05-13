@@ -11,7 +11,7 @@ object `package` extends SpringBootModule, MavenModule, PublishModule {
 
   def springBootPlatformVersion = "4.0.6"
 
-  def mvnDeps = Seq(mvn"org.springframework.boot:spring-boot-starter")
+  def mvnDeps = Seq(mvn"org.springframework.boot:spring-boot-starter:4.0.6")
 
   def artifactName = "demo"
 
@@ -32,7 +32,8 @@ object `package` extends SpringBootModule, MavenModule, PublishModule {
 
   object test extends SpringBootTestsModule, MavenTests, TestModule.Junit5 {
 
-    def mvnDeps = Seq(mvn"org.springframework.boot:spring-boot-starter-test")
+    def mvnDeps =
+      Seq(mvn"org.springframework.boot:spring-boot-starter-test:4.0.6")
 
     def forkWorkingDir = moduleDir
 
