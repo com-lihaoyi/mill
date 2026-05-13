@@ -27,9 +27,12 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   def configure(attributes: coursier.Attributes): Dep = copy(dep = dep.withAttributes(attributes))
   def forceVersion(): Dep = copy(force = true)
   def exclude(exclusions: (String, String)*): Dep = copy(
-    dep = dep.withExclusions(
-      dep.exclusions() ++
-        exclusions.map { case (k, v) => (coursier.Organization(k), coursier.ModuleName(v)) }
+    dep = dep.withMinimizedExclusions(
+      dep.minimizedExclusions.join(
+        MinimizedExclusions(
+          exclusions.map { case (k, v) => (coursier.Organization(k), coursier.ModuleName(v)) }.toSet
+        )
+      )
     )
   )
   def excludeOrg(organizations: String*): Dep = exclude(organizations.map(_ -> "*")*)
@@ -157,7 +160,9 @@ object Dep {
     }
 
     val excludeAttr =
-      dep.dep.exclusions().toSeq.sorted.map(e => s";exclude=${e._1.value}:${e._2.value}").mkString
+      dep.dep.minimizedExclusions.toSeq().sorted.map(e =>
+        s";exclude=${e._1.value}:${e._2.value}"
+      ).mkString
 
     val attrs = classifierAttr + typeAttr + excludeAttr
 
