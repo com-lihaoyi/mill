@@ -104,8 +104,8 @@ trait ClientServerTestsBase extends TestSuite {
         args: Array[String] = Array(),
         forceFailureForTestingMillisDelay: Int = -1
     ) = {
-      val out = new ByteArrayOutputStream()
-      val err = new ByteArrayOutputStream()
+      val out = ByteArrayOutputStream()
+      val err = ByteArrayOutputStream()
       val initServerFactory: (os.Path, Locks) => LaunchedServer = (daemonDir, locks) => {
         nextServerId += 1
         // Use a negative process ID to indicate we're not a real process.
@@ -124,8 +124,8 @@ trait ClientServerTestsBase extends TestSuite {
       val result = new MillServerLauncher(
         streamsOpt = Some(
           SystemStreams(
-            new PrintStream(out, true),
-            new PrintStream(err, true),
+            PrintStream(out, true),
+            PrintStream(err, true),
             System.in
           )
         ),
@@ -192,7 +192,7 @@ trait ClientServerTestsBase extends TestSuite {
     test("hello") - {
       // Continue logging when out folder is deleted so we can see the logs
       // and ensure the correct code path is taken as the server exits
-      val tester = new Tester(testLogEvenWhenServerIdWrong = true)
+      val tester = Tester(testLogEvenWhenServerIdWrong = true)
       val res1 = tester(args = Array("world"))
 
       assert(
@@ -232,7 +232,7 @@ trait ClientServerTestsBase extends TestSuite {
       }
     }
     test("dontLogWhenOutFolderDeleted") - retry(3) {
-      val tester = new Tester(testLogEvenWhenServerIdWrong = false)
+      val tester = Tester(testLogEvenWhenServerIdWrong = false)
       val res1 = tester(args = Array("world"))
 
       assert(
@@ -252,7 +252,7 @@ trait ClientServerTestsBase extends TestSuite {
     }
 
     test("concurrency") {
-      val tester = new Tester(testLogEvenWhenServerIdWrong = false)
+      val tester = Tester(testLogEvenWhenServerIdWrong = false)
       // Make sure concurrently running client commands results in multiple processes
       // being spawned, running in different folders
       import concurrent.*
@@ -279,7 +279,7 @@ trait ClientServerTestsBase extends TestSuite {
     test("clientLockReleasedOnFailure") {
       // Use commandSleepMillis > forceFailureForTestingMillisDelay to ensure
       // the server is still processing when the client fails
-      val tester = new Tester(testLogEvenWhenServerIdWrong = false, commandSleepMillis = 500)
+      val tester = Tester(testLogEvenWhenServerIdWrong = false, commandSleepMillis = 500)
       // When the client gets interrupted via Ctrl-C, we exit the server immediately. This
       // is because Mill ends up executing arbitrary JVM code, and there is no generic way
       // to interrupt such an execution. The two options are to leave the server running
@@ -308,7 +308,7 @@ trait ClientServerTestsBase extends TestSuite {
       // Make sure that when the command at 3000ms takes longer than the server
       // timeout at 1000ms, the command still finishes running and the server doesn't
       // shut down half way through
-      val tester = new Tester(testLogEvenWhenServerIdWrong = true, commandSleepMillis = 3000)
+      val tester = Tester(testLogEvenWhenServerIdWrong = true, commandSleepMillis = 3000)
       val res1 = tester(args = Array("world"))
       assert(
         res1.out == s"helloworld$ENDL",
@@ -318,7 +318,7 @@ trait ClientServerTestsBase extends TestSuite {
 
     test("versionMismatchRestartsDaemon") - retry(3) {
       if (!Util.isWindows) {
-        val tester = new Tester(testLogEvenWhenServerIdWrong = true)
+        val tester = Tester(testLogEvenWhenServerIdWrong = true)
 
         // First client spawns server pid:-1
         val res1 = tester(args = Array("world"))
@@ -354,7 +354,7 @@ trait ClientServerTestsBase extends TestSuite {
     }
 
     test("envVars") - retry(3) {
-      val tester = new Tester(testLogEvenWhenServerIdWrong = false)
+      val tester = Tester(testLogEvenWhenServerIdWrong = false)
       // Make sure the simple "have the client start a server and
       // exchange one message" workflow works from end to end.
 

@@ -112,7 +112,7 @@ object `package` extends mill.Module {
   }
 
   def testWorker = Task.Worker {
-    new TestWorker(workerVersion())
+    TestWorker(workerVersion())
   }
 
   def runWorkerValue() = Task.Command {

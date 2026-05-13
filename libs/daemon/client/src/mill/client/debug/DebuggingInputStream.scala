@@ -13,7 +13,7 @@ class DebuggingInputStream(
 ) extends InputStream {
 
   private val debugOutput: OutputStream =
-    new FileOutputStream(workingDir.resolve(name.replaceAll("\\W", "_")).toFile)
+    FileOutputStream(workingDir.resolve(name.replaceAll("\\W", "_")).toFile)
 
   override def read(): Int = {
     val b = in.read()
@@ -31,7 +31,7 @@ class DebuggingInputStream(
     if (bytesRead != -1) {
       if (writeSeparateOps)
         debugOutput.write(
-          s"${LocalDateTime.now} readArray(off=$off, len=$len, bytesRead=$bytesRead): ${new String(b, off, bytesRead)}\n".getBytes
+          s"${LocalDateTime.now} readArray(off=$off, len=$len, bytesRead=$bytesRead): ${String(b, off, bytesRead)}\n".getBytes
         )
       else
         debugOutput.write(b, off, bytesRead)

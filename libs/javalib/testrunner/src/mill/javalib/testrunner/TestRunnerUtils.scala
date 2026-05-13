@@ -25,7 +25,7 @@ import scala.math.Ordering.Implicits.*
     if (os.isDir(base)) {
       os.walk.stream(base).filter(_.ext == "class").map(_.relativeTo(base).toString)
     } else {
-      val zip = new ZipInputStream(Files.newInputStream(base.toNIO))
+      val zip = ZipInputStream(Files.newInputStream(base.toNIO))
       geny.Generator.selfClosing(
         (
           Iterator.continually(zip.getNextEntry)
@@ -135,7 +135,7 @@ import scala.math.Ordering.Implicits.*
 
     val tasks = runner.tasks(
       for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter(cls))
-        yield new TaskDef(
+        yield TaskDef(
           cls.getName.stripSuffix("$"),
           fingerprint,
           false,
@@ -159,7 +159,7 @@ import scala.math.Ordering.Implicits.*
       events: ConcurrentLinkedQueue[Event],
       systemOut: PrintStream
   ): Boolean = {
-    val taskStatus = new AtomicBoolean(true)
+    val taskStatus = AtomicBoolean(true)
     val taskQueue = tasks.to(mutable.Queue)
     while (taskQueue.nonEmpty) {
       val next =
@@ -252,7 +252,7 @@ import scala.math.Ordering.Implicits.*
     // Capture this value outside of the task event handler so it
     // isn't affected by a test framework's stream redirects
     val systemOut = System.out
-    val events = new ConcurrentLinkedQueue[Event]()
+    val events = ConcurrentLinkedQueue[Event]()
 
     var successCounter = 0L
     var failureCounter = 0L
@@ -309,7 +309,7 @@ import scala.math.Ordering.Implicits.*
     // Capture this value outside of the task event handler so it
     // isn't affected by a test framework's stream redirects
     val systemOut = System.out
-    val events = new ConcurrentLinkedQueue[Event]()
+    val events = ConcurrentLinkedQueue[Event]()
     val globSelectorCache = testClasses.view
       .map { case (cls, fingerprint) => cls.getName.stripSuffix("$") -> (cls, fingerprint) }
       .toMap
@@ -324,7 +324,7 @@ import scala.math.Ordering.Implicits.*
         .get(testClassName)
         .map { case (cls, fingerprint) =>
           val clsName = cls.getName.stripSuffix("$")
-          new TaskDef(clsName, fingerprint, false, Array(new SuiteSelector))
+          TaskDef(clsName, fingerprint, false, Array(new SuiteSelector))
         }
 
       val tasks = runner.tasks(taskDefs.toArray)

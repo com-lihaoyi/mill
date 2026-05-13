@@ -21,12 +21,12 @@ object JavaCompileErrorFormattingTests extends TestSuite {
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "compile-error-formatting-java"
 
   private def checkLines(caseName: String): Seq[String] = {
-    val errBuffer = new ByteArrayOutputStream()
+    val errBuffer = ByteArrayOutputStream()
     UnitTester(
       JavaCompileErrorFormatting,
       sourceRoot = resourcePath / caseName,
-      outStream = new PrintStream(errBuffer, true),
-      errStream = new PrintStream(errBuffer, true)
+      outStream = PrintStream(errBuffer, true),
+      errStream = PrintStream(errBuffer, true)
     ).scoped { eval =>
       val res = eval.apply(JavaCompileErrorFormatting.core.compile).runtimeChecked
       assert(res.isLeft)

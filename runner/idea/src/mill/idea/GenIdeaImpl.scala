@@ -4,12 +4,12 @@ import scala.util.{Success, Try}
 import scala.xml.{Elem, MetaData, Node, NodeSeq, Null, UnprefixedAttribute}
 import scala.collection.mutable
 import java.net.URL
-
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
 import mill.api.*
 import mill.api.daemon.internal.{
   EvaluatorApi,
+  IdeUtils,
   JavaModuleApi,
   MillBuildRootModuleApi,
   ModuleApi,
@@ -23,6 +23,8 @@ import mill.api.daemon.internal.idea.{Element, IdeaConfigFile, JavaFacet, Resolv
 import mill.util.BuildInfo
 import org.eclipse.jgit.ignore.{FastIgnoreRule, IgnoreNode}
 import os.SubPath
+
+import scala.annotation.nowarn
 import scala.jdk.CollectionConverters.*
 
 class GenIdeaImpl(
@@ -189,7 +191,7 @@ class GenIdeaImpl(
         .partition(_.asWholeFile.isDefined)
 
     // whole file
-    val ideaWholeConfigFiles: Seq[(os.SubPath, Elem)] =
+    val ideaWholeConfigFiles: Seq[(os.SubPath, Node)] =
       wholeFileConfigs.flatMap(_.asWholeFile).map { wf =>
         os.sub / os.SubPath(wf._1) -> ideaConfigElementTemplate(wf._2)
       }
@@ -296,7 +298,7 @@ class GenIdeaImpl(
      */
     def sbtLibraryNameFromPom(pomPath: os.Path): String = {
       val pom = xmlParseDom(os.read(pomPath)).flatMap(Pom.project)
-        .getOrElse(throw new RuntimeException(s"Could not parse pom file: ${pomPath}"))
+        .getOrElse(throw RuntimeException(s"Could not parse pom file: ${pomPath}"))
 
       val artifactId = pom.module.name.value
       val scalaArtifactRegex = ".*_[23]\\.[0-9]{1,2}".r
@@ -342,9 +344,9 @@ class GenIdeaImpl(
     // Create IgnoreNode from bspScriptIgnore patterns
     val ignoreRules = bspScriptIgnore
       .filter(l => !l.startsWith("#"))
-      .map(pattern => (pattern, new FastIgnoreRule(pattern)))
+      .map(pattern => (pattern, FastIgnoreRule(pattern)))
 
-    val ignoreNode = new IgnoreNode(ignoreRules.map(_._2).asJava)
+    val ignoreNode = IgnoreNode(ignoreRules.map(_._2).asJava)
 
     // Extract directory prefixes from negation patterns (patterns starting with !)
     // These directories need to be walked even if they're ignored, because they contain
@@ -406,7 +408,9 @@ class GenIdeaImpl(
       Tuple2(
         os.sub / "modules.xml",
         allModulesXmlTemplate(
-          (modules.map { case (segments = segments) => moduleName(segments) } ++
+          (modules.map { case (segments = segments) =>
+            IdeUtils.moduleName(segments).getOrElse("")
+          } ++
             scriptFiles.map(scriptModuleName)).sorted
         )
       ),
@@ -517,7 +521,7 @@ class GenIdeaImpl(
           .from(recursive.map((_, None)) ++
             provided.map((_, Some("PROVIDED"))))
           .filter(!_._1.skipIdea)
-          .map { case (v, s) => ScopedOrd(moduleName(moduleLabels(v)), s) }
+          .map { case (v, s) => ScopedOrd(IdeUtils.moduleName(moduleLabels(v)).getOrElse(""), s) }
           .iterator
           .toSeq
           .distinct
@@ -547,7 +551,7 @@ class GenIdeaImpl(
       )
 
       val moduleFile = Tuple2(
-        os.sub / "mill_modules" / s"${moduleName(resolvedModule.segments)}.iml",
+        os.sub / "mill_modules" / s"${IdeUtils.moduleName(resolvedModule.segments).getOrElse("")}.iml",
         moduleXml
       )
 
@@ -611,8 +615,7 @@ class GenIdeaImpl(
     (Seq.fill(r.ups)("..") ++ r.segments).mkString("/")
   }
 
-  def ideaConfigElementTemplate(element: Element): Elem = {
-
+  def ideaConfigElementTemplate(element: Element): Node = {
     val example = <config/>
 
     val attribute1: MetaData =
@@ -620,7 +623,7 @@ class GenIdeaImpl(
       else
         element.attributes.toSeq.reverse.foldLeft(Null.asInstanceOf[MetaData]) {
           case (prevAttr, (k, v)) =>
-            new UnprefixedAttribute(k, v, prevAttr)
+            UnprefixedAttribute(k, v, prevAttr)
         }
 
     new Elem(
@@ -629,7 +632,10 @@ class GenIdeaImpl(
       attributes1 = attribute1,
       example.scope,
       minimizeEmpty = true,
-      child = element.childs.map(ideaConfigElementTemplate)*
+      child = ((element.childs: @nowarn("cat=deprecation")) ++ element.childsOrText).map {
+        case e: Element => ideaConfigElementTemplate(e)
+        case s: String => scala.xml.Text(s)
+      }*
     )
   }
 
@@ -872,7 +878,7 @@ class GenIdeaImpl(
       settings: Map[(Seq[os.Path], Seq[String]), Vector[JavaModuleApi]]
   ) = {
     def modulesString(mods: Seq[ModuleApi]) =
-      mods.map(m => moduleName(m.moduleSegments)).mkString(",")
+      mods.map(m => IdeUtils.moduleName(m.moduleSegments).getOrElse("")).mkString(",")
 
     val orderedSettings = settings.toSeq.map {
       case ((plugins, params), mods) => ((plugins, params), modulesString(mods))
@@ -920,23 +926,6 @@ class GenIdeaImpl(
 }
 
 object GenIdeaImpl {
-
-  /**
-   * Create the module name (to be used by Idea) for the module based on it segments.
-   *
-   * @see [[Module.moduleSegments]]
-   */
-  def moduleName(p: Segments): String =
-    p.value
-      .foldLeft(new StringBuilder()) {
-        case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
-        case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
-        case (sb, Segment.Label(s)) => sb.append(".").append(s)
-        case (sb, Segment.Cross(s)) => sb.append("-").append(s.mkString("-"))
-      }
-      .mkString
-      .toLowerCase()
-
   def allJars(classloader: ClassLoader): Seq[URL] = {
     allClassloaders(classloader)
       .collect { case t: java.net.URLClassLoader => t.getURLs }

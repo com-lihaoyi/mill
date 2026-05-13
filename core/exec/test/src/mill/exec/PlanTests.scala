@@ -21,7 +21,7 @@ object PlanTests extends TestSuite {
   }
 
   private class TestLease extends LauncherLocking.Lease {
-    val closed = new AtomicBoolean(false)
+    val closed = AtomicBoolean(false)
     override def close(): Unit = closed.set(true)
   }
 
@@ -246,7 +246,7 @@ object PlanTests extends TestSuite {
         Future.successful(Some(())).andThen { case _ => tracker.onCompleted(a) }
 
       val bFuture: Future[Option[Unit]] =
-        aFuture.map(_ => throw new RuntimeException("boom"))
+        aFuture.map(_ => throw RuntimeException("boom"))
           .andThen { case _ => tracker.onCompleted(b) }
 
       val cFuture: Future[Option[Unit]] =

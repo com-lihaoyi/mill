@@ -88,7 +88,7 @@ object ApplicationModelWorker {
         runJar: Option[os.Path],
         nativePath: Option[os.Path]
     ): QuarkusApp =
-      new QuarkusApp(PathRef(buildOutput), runJar.map(PathRef(_)), nativePath.map(PathRef(_)))
+      QuarkusApp(PathRef(buildOutput), runJar.map(PathRef(_)), nativePath.map(PathRef(_)))
 
   }
 }

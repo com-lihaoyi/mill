@@ -189,9 +189,9 @@ object Util {
           import scala.jdk.CollectionConverters.*
 
           val settings = LoadSettings.builder().build()
-          val reader = new StreamReader(settings, headerData)
-          val parser = new ParserImpl(settings, reader)
-          val composer = new Composer(settings, parser)
+          val reader = StreamReader(settings, headerData)
+          val parser = ParserImpl(settings, reader)
+          val composer = Composer(settings, parser)
 
           def rec[J](node: Node, v: upickle.core.Visitor[_, J]): J = {
             val index = node.getStartMark.map(_.getIndex.intValue()).orElse(0)

@@ -302,9 +302,9 @@ class MillBuildBootstrap(
   ) = {
     mill.api.ExecResult.catchWrapException {
       given rootModuleInfo: RootModule.Info =
-        new RootModule.Info(currentRoot, output, topLevelProjectRoot)
-      if (useDummy) new BootstrapRootModule.Instance()
-      else new MillBuildRootModule.BootstrapModule(currentRoot / foundRootBuildFileName)
+        RootModule.Info(currentRoot, output, topLevelProjectRoot)
+      if (useDummy) BootstrapRootModule.Instance()
+      else MillBuildRootModule.BootstrapModule(currentRoot / foundRootBuildFileName)
     }
   }
 
@@ -827,7 +827,7 @@ object MillBuildBootstrap {
       )
 
     val outPath = recOut(output, depth)
-    val baseLogger = new PrefixLogger(logger, bootLogPrefix)
+    val baseLogger = PrefixLogger(logger, bootLogPrefix)
     val cl = rootModule.getClass.getClassLoader
     val evalImplCls = cl.loadClass("mill.eval.EvaluatorImpl")
     val execCls = cl.loadClass("mill.exec.Execution")

@@ -98,7 +98,7 @@ object Watching {
         } finally {
           prevState.foreach(_.close())
         }
-        throw new IllegalStateException("unreachable")
+        throw IllegalStateException("unreachable")
     }
   }
 

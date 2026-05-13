@@ -84,7 +84,7 @@ object LockUpgrade {
     try {
       @scala.annotation.tailrec
       def loop(): T = {
-        val readScope = new Scope(acquireRead)
+        val readScope = Scope(acquireRead)
         var readClosed = false
         val readDecision: Decision[T] =
           try {
@@ -113,7 +113,7 @@ object LockUpgrade {
           case Decision.Escalate =>
             tryAcquireWrite() match {
               case Right(writeLease) =>
-                val writeScope = new Scope(writeLease)
+                val writeScope = Scope(writeLease)
                 try {
                   val value = writeBody(writeScope)
                   writeScope.closeIfUnretained()

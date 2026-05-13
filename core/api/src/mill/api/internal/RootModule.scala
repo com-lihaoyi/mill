@@ -54,7 +54,7 @@ object RootModule {
           .fold(os.pwd)(os.Path(_))
         val output = sys.env.get(mill.constants.EnvVars.MILL_OUTPUT_DIR)
           .fold(wsRoot / "out")(os.Path(_))
-        new Info(wsRoot, output, wsRoot)
+        Info(wsRoot, output, wsRoot)
       }
     }
 

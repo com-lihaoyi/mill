@@ -44,7 +44,7 @@ object MillMain0 {
       false
     case e =>
       val str = new StringWriter
-      e.printStackTrace(new PrintWriter(str))
+      e.printStackTrace(PrintWriter(str))
       err.println(str)
       throw e
   }
@@ -83,9 +83,9 @@ object MillMain0 {
       )
 
       try {
-        val streams0 = new SystemStreams(
-          out = new MultiStream(streams.err, outFileStream),
-          err = new MultiStream(streams.err, errFileStream),
+        val streams0 = SystemStreams(
+          out = MultiStream(streams.err, outFileStream),
+          err = MultiStream(streams.err, errFileStream),
           in = InputStream.nullInputStream()
         )
         mill.api.SystemStreamsUtils.withStreams(streams0) {
@@ -257,7 +257,7 @@ object MillMain0 {
                       if (activeRequests.getAndIncrement() == 0) setIdle(false)
                     def endActive(): Unit =
                       if (activeRequests.decrementAndGet() == 0) setIdle(true)
-                    Using.resources(new TailManager(daemonDir), createEc()) { (tailManager, ec) =>
+                    Using.resources(TailManager(daemonDir), createEc()) { (tailManager, ec) =>
                       def runMillBootstrap(
                           skipSelectiveExecution: Boolean,
                           prevState: Option[RunnerLauncherState],
@@ -386,7 +386,7 @@ object MillMain0 {
                                     logger.streams.out,
                                     logger.streams.err
                                   ) {
-                                    new MillBuildBootstrap(
+                                    MillBuildBootstrap(
                                       topLevelProjectRoot = BuildCtx.workspaceRoot,
                                       output = out,
                                       // In BSP server mode, evaluate as many tasks as possible
@@ -726,11 +726,11 @@ object MillMain0 {
 
     // Console log file for monitoring progress when another process is waiting
     val consoleLogPath = os.Path(runArtifacts.consoleTail)
-    val consoleLogStream = new RotatingConsoleLogOutputStream(consoleLogPath)
+    val consoleLogStream = RotatingConsoleLogOutputStream(consoleLogPath)
 
     val teeStreams = new SystemStreams(
-      new MultiStream(streams.out, consoleLogStream),
-      new MultiStream(streams.err, consoleLogStream),
+      MultiStream(streams.out, consoleLogStream),
+      MultiStream(streams.err, consoleLogStream),
       streams.in
     )
 
@@ -777,12 +777,12 @@ object MillMain0 {
       chromeProfilePath: os.Path,
       consoleLogPathOpt: Option[os.Path] = None
   ): Logger & AutoCloseable = {
-    val consoleLogStreamOpt = consoleLogPathOpt.map(new RotatingConsoleLogOutputStream(_))
+    val consoleLogStreamOpt = consoleLogPathOpt.map(RotatingConsoleLogOutputStream(_))
     val loggerStreams = consoleLogStreamOpt match {
       case Some(consoleLogStream) =>
         new SystemStreams(
-          new MultiStream(streams.out, consoleLogStream),
-          new MultiStream(streams.err, consoleLogStream),
+          MultiStream(streams.out, consoleLogStream),
+          MultiStream(streams.err, consoleLogStream),
           streams.in
         )
       case None => streams

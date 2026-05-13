@@ -69,8 +69,8 @@ object ServerLauncher {
       sendInitData: OutputStream => Unit,
       runClientLogic: (BufferedInputStream, BufferedOutputStream) => A
   ): A = {
-    val socketInputStream = new BufferedInputStream(connection.getInputStream)
-    val socketOutputStream = new BufferedOutputStream(connection.getOutputStream)
+    val socketInputStream = BufferedInputStream(connection.getInputStream)
+    val socketOutputStream = BufferedOutputStream(connection.getOutputStream)
     sendInitData(socketOutputStream)
     socketOutputStream.flush()
     val result = runClientLogic(socketInputStream, socketOutputStream)
@@ -169,7 +169,7 @@ object ServerLauncher {
     log("Read server port")
     val socket = Option.when(openSocket) {
       log(s"Connecting: $port")
-      new Socket(InetAddress.getLoopbackAddress, port)
+      Socket(InetAddress.getLoopbackAddress, port)
     }
 
     Launched(port, socket, server)
@@ -238,7 +238,7 @@ object ServerLauncher {
                 Some(ServerLaunchResult.Success(launchedServer))
             }
           } catch {
-            case e: Exception => throw new RuntimeException(e)
+            case e: Exception => throw RuntimeException(e)
           }
         } else {
           log("The daemon lock is not available, there is already a server running.")
@@ -253,7 +253,7 @@ object ServerLauncher {
               if (pid >= 0) {
                 LaunchedServer.OsProcess(
                   ProcessHandle.of(pid).orElseThrow(() =>
-                    new IllegalStateException(s"No process found for PID $pid")
+                    IllegalStateException(s"No process found for PID $pid")
                   )
                 )
               } else LaunchedServer.TestStub // PID < 0 is only used in tests

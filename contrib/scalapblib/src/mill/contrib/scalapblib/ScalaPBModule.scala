@@ -114,12 +114,12 @@ trait ScalaPBModule extends ScalaModule {
       case os if os.contains("linux") => "linux"
       case os if os.contains("mac") => "osx"
       case os if os.contains("windows") => "windows"
-      case os => throw new Exception(s"Unsupported OS for protoc: $os")
+      case os => throw Exception(s"Unsupported OS for protoc: $os")
     }
     val archStr = System.getProperty("os.arch") match {
       case "amd64" | "x86_64" => "x86_64"
       case "aarch64" => "aarch_64"
-      case other => throw new Exception(s"Unsupported arch for protoc: $other")
+      case other => throw Exception(s"Unsupported arch for protoc: $other")
     }
     val classifier = s"$osStr-$archStr"
     val files = defaultResolver().classpath(
@@ -205,7 +205,7 @@ trait ScalaPBModule extends ScalaModule {
     val cp = scalaPBProtoClasspath()
     val dest = Task.dest
     cp.iterator.foreach { ref =>
-      Using(new ZipInputStream(ref.path.getInputStream)) { zip =>
+      Using(ZipInputStream(ref.path.getInputStream)) { zip =>
         while ({
           Option(zip.getNextEntry) match {
             case None => false

@@ -6,8 +6,8 @@ import scala.quoted.*
 
 case class Opt[+T](self: Option[T]) extends Applicative.Applyable[Opt, T]
 object Opt {
-  def none: Opt[Nothing] = new Opt(None)
-  def some[T](t: T): Opt[T] = new Opt(Some(t))
+  def none: Opt[Nothing] = Opt(None)
+  def some[T](t: T): Opt[T] = Opt(Some(t))
   val injectedCtx = "helloooo"
 
   def ctx()(using c: String): String = c
@@ -15,7 +15,7 @@ object Opt {
 
   def traverseCtx[I, R](xs: Seq[Opt[I]])(f: (Seq[I], String) => Applicative.Id[R])
       : Opt[R] = {
-    new Opt(
+    Opt(
       if (xs.exists(_.self.isEmpty)) None
       else Some(f(xs.map(_.self.get).toVector, Opt.injectedCtx))
     )

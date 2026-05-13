@@ -33,7 +33,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       .flatten
       .map(toPackage)
       .toSeq
-    new BuildModel.Impl(upickle.default.write(exportedBuild))
+    BuildModel.Impl(upickle.default.write(exportedBuild))
   }
 
   private def toPackage(project0: Project): PackageSpec = {

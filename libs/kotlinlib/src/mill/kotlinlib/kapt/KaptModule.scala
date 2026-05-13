@@ -115,15 +115,14 @@ trait KaptModule extends KotlinModule { outer =>
           .map(_.path.toString)
           .map(path => s"plugin:org.jetbrains.kotlin.kapt3:apclasspath=$path")
 
+      // TODO: move compiler options to a dedicated function (or task) called from allKotlincOptions
+      //  to make it possible to observe all effective options and potentially override in subtypes
       val compilerArgs = Seq(
         Seq("-d", phaseClassesOutput.toString()),
         Seq("-Xmulti-platform"),
         when(compileCp.nonEmpty)(
           "-classpath",
           compileCp.mkString(File.pathSeparator)
-        ),
-        when(kotlinExplicitApi())(
-          "-Xexplicit-api=strict"
         ),
         allKotlincOptions(),
         apClasspathOpts.flatMap(opt => Seq("-P", opt))
@@ -150,7 +149,7 @@ trait KaptModule extends KotlinModule { outer =>
         )
       } match {
         case Result.Success(_) =>
-        case f: Result.Failure => throw new Result.Exception(f.error, Some(f))
+        case f: Result.Failure => throw Result.Exception(f.error, Some(f))
       }
 
       GeneratedKaptSources(

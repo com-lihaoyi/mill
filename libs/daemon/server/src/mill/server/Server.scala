@@ -113,8 +113,8 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       socketPortFile: os.Path
   ): Option[Handled] = {
     serverLog("server file locked")
-    val serverSocket = new ServerSocket(0, 0, InetAddress.getByName(null))
-    val exitCodeVar = new AtomicReference[Option[Handled]](None)
+    val serverSocket = ServerSocket(0, 0, InetAddress.getByName(null))
+    val exitCodeVar = AtomicReference[Option[Handled]](None)
     val stateFile = daemonDir / DaemonFiles.daemonState
 
     def closeServer(exitCodeOpt: Option[Handled]) = {
@@ -307,8 +307,8 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
         } catch {
           case e: SocketException if SocketUtil.clientHasClosedConnection(e) => // do nothing
           case e: Throwable =>
-            val sw = new StringWriter()
-            e.printStackTrace(new PrintWriter(sw))
+            val sw = StringWriter()
+            e.printStackTrace(PrintWriter(sw))
             serverLog(s"connection handler for $clientSocket error: $sw")
         } finally {
           // Publish `idle` before `done`: the watcher thread exits its
@@ -497,7 +497,7 @@ object Server {
   /// can detect when the Mill client goes away, which is necessary to handle
   /// the case when a Mill client that did *not* spawn the server gets `CTRL-C`ed
   def overrideSigIntHandling(handler: SignalHandler = _ => ()): Unit = {
-    Signal.handle(new Signal("INT"), handler)
+    Signal.handle(Signal("INT"), handler)
   }
 
   def computeProcessId(): Long = ProcessHandle.current().pid()

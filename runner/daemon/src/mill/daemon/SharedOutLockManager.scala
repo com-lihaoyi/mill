@@ -26,7 +26,7 @@ class SharedOutLockManager(
     if (noBuildLock) return SharedOutLockManager.Lease.Noop
 
     val mustAcquire = monitor.synchronized {
-      if (closed) throw new IllegalStateException("SharedOutLockManager is closed")
+      if (closed) throw IllegalStateException("SharedOutLockManager is closed")
       refCount += 1
       try while (acquiring && !closed) monitor.wait()
       catch {
@@ -40,7 +40,7 @@ class SharedOutLockManager(
       // must not proceed to fileLock.tryLock() on a closed manager.
       if (closed) {
         refCount -= 1
-        throw new IllegalStateException("SharedOutLockManager is closed")
+        throw IllegalStateException("SharedOutLockManager is closed")
       }
       if (heldLease != null) false
       else {
@@ -98,12 +98,12 @@ class SharedOutLockManager(
       if (releaseDueToClose) {
         try locked.release()
         catch { case _: Throwable => () }
-        throw new IllegalStateException("SharedOutLockManager is closed")
+        throw IllegalStateException("SharedOutLockManager is closed")
       }
     }
 
     new SharedOutLockManager.Lease {
-      private val released = new AtomicBoolean(false)
+      private val released = AtomicBoolean(false)
 
       override def close(): Unit =
         if (released.compareAndSet(false, true)) {
