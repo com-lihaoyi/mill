@@ -4,7 +4,9 @@ import upickle.{macroRW, ReadWriter as RW}
 import mill.api.CrossVersion.*
 import mill.api.CrossVersion
 import coursier.core.{Configuration, Dependency, MinimizedExclusions}
-import mill.javalib.api.{Versions, JvmWorkerUtil}
+import coursier.version.VersionConstraint
+import mill.javalib.api.{JvmWorkerUtil, Versions}
+
 import scala.annotation.unused
 
 /**
@@ -215,7 +217,7 @@ object Dep {
     apply(
       coursier.Dependency(
         coursier.Module(coursier.Organization(org), coursier.ModuleName(name)),
-        version
+        VersionConstraint(version)
       ),
       cross,
       force
