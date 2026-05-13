@@ -1796,7 +1796,7 @@
               <p>A module defined outside of the <code>build.mill</code> file, and is instead provided builtin by some Mill library or plugin</p>
               <p>Implementors should make sure, the final override of <a href="api/ExternalModule.html#millDiscover-0">millDiscover</a> happens in the final object.</p>
               <div class="snippet mono-small-block">
-               <pre><code class="language-"><span line-number="1" class=""><span class="tooltip-container"></span><span class="hideable">  </span>override protected def millDiscover: Discover = Discover[this.type]
+               <pre><code class="language-"><span line-number="1" class=""><span class="tooltip-container"></span><span class="hideable">  </span>override def millDiscover: Discover = Discover[this.type]
 </span></code></pre>
                <div class="buttons"></div>
               </div>
