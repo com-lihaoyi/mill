@@ -26,6 +26,7 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   }
   def configure(attributes: coursier.Attributes): Dep = copy(dep = dep.withAttributes(attributes))
   def forceVersion(): Dep = copy(force = true)
+  def forceVersion(force: Boolean): Dep = copy(force = force)
   def exclude(exclusions: (String, String)*): Dep = copy(
     dep = dep.withMinimizedExclusions(
       dep.minimizedExclusions.join(
