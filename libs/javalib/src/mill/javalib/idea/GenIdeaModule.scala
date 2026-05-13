@@ -106,6 +106,7 @@ trait GenIdeaModule extends mill.api.Module with GenIdeaInternalApi {
     )
   }
 
+  // TODO: Change to Task.Simple[os.Path], since we don't care about the content hash
   private[mill] override def ideaCompileOutput: Task.Simple[PathRef] = Task(persistent = true) {
     PathRef(Task.dest / "classes")
   }

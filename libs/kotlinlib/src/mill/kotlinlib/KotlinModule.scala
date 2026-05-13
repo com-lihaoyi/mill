@@ -351,9 +351,6 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
             "-classpath",
             compileCpPaths.iterator.mkString(File.pathSeparator)
           ),
-          when(kotlinExplicitApi())(
-            "-Xexplicit-api=strict"
-          ),
           allKotlincOptions(),
           extraKotlinArgs
         ).flatten
@@ -400,6 +397,28 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     }
 
   /**
+   * Modules whose internal declarations are visible to this module.
+   *
+   * Drives `-Xfriend-modules` for Kotlin/JS and `-Xfriend-paths` elsewhere.
+   * See [`friendPaths`](https://kotlinlang.org/api/kotlin-gradle-plugin/kotlin-gradle-plugin-api/org.jetbrains.kotlin.gradle.tasks/-base-kotlin-compile/friend-paths.html) for the Gradle equivalent.
+   *
+   * When consuming, use [[kotlinFriendModulesChecked]] instead, which is checked for consistency and cached.
+   */
+  def kotlinFriendModules: Seq[KotlinModule] = Seq.empty[KotlinModule]
+
+  /**
+   * Same as [[kotlinFriendModules]], but checked for consistency.
+   * Prefer using this over [[kotlinFriendModules]].
+   */
+  private[kotlinlib] lazy val kotlinFriendModulesChecked: Seq[KotlinModule] = {
+    require(
+      kotlinFriendModules.toSet.subsetOf(moduleDepsChecked.toSet),
+      "All kotlinFriendModules must also be declared in moduleDeps"
+    )
+    kotlinFriendModules.distinct
+  }
+
+  /**
    * Additional Kotlin compiler options to be used by [[compile]].
    */
   def kotlincOptions: T[Seq[String]] = Task { Seq.empty[String] }
@@ -434,11 +453,20 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     val kotlinkotlinApiVersion = kotlinApiVersion()
     val plugins = kotlincPluginJars().map(_.path)
 
+    val friendPathsOption = if (kotlinFriendModulesChecked.isEmpty) {
+      Seq.empty[String]
+    } else {
+      val compilations = Task.traverse(kotlinFriendModulesChecked) { friend => friend.compile }()
+      Seq(compilations.map(_.classes.path.toString).mkString("-Xfriend-paths=", ",", ""))
+    }
+
     Seq("-no-stdlib") ++
       kotlinModuleNameOption() ++
       when(!languageVersion.isBlank)("-language-version", languageVersion) ++
       when(!kotlinkotlinApiVersion.isBlank)("-api-version", kotlinkotlinApiVersion) ++
-      plugins.map(p => s"-Xplugin=$p")
+      plugins.map(p => s"-Xplugin=$p") ++
+      friendPathsOption ++
+      when(kotlinExplicitApi())("-Xexplicit-api=strict")
   }
 
   /**
@@ -510,10 +538,10 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
     override def kotlincPluginMvnDeps: T[Seq[Dep]] =
       Task { outer.kotlincPluginMvnDeps() }
-      // TODO: make Xfriend-path an explicit setting
+    override def kotlinFriendModules: Seq[KotlinModule] =
+      super.kotlinFriendModules ++ Seq(outer)
     override def kotlincOptions: T[Seq[String]] = Task {
-      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
-        Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
+      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources"))
     }
     override def kotlinUseEmbeddableCompiler: T[Boolean] =
       Task { outer.kotlinUseEmbeddableCompiler() }
@@ -532,10 +560,10 @@ object KotlinModule {
     override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
     override def kotlincPluginMvnDeps: T[Seq[Dep]] =
       Task { outer.kotlincPluginMvnDeps() }
-    // TODO: make Xfriend-path an explicit setting
+    override def kotlinFriendModules: Seq[KotlinModule] =
+      super.kotlinFriendModules ++ Seq(outer)
     override def kotlincOptions: T[Seq[String]] = Task {
-      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
-        Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
+      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources"))
     }
     override def kotlinUseEmbeddableCompiler: T[Boolean] =
       Task { outer.kotlinUseEmbeddableCompiler() }

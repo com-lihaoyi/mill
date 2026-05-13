@@ -1,0 +1,10 @@
+<component name="libraryTable">
+    <library name="scala-collection-compat_3-<version>.jar">
+        <CLASSES>
+            <root url="jar://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/<version>/scala-collection-compat_3-<version>.jar!/"/>
+        </CLASSES>
+        <SOURCES>
+            <root url="jar://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/<version>/scala-collection-compat_3-<version>.jar!/"/>
+        </SOURCES>
+    </library>
+</component>

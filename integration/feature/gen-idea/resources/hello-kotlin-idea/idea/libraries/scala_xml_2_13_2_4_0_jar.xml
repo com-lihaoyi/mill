@@ -1,0 +1,10 @@
+<component name="libraryTable">
+    <library name="scala-xml_2.13-2.4.0.jar">
+        <CLASSES>
+            <root url="jar://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/<version>/scala-xml_2.13-<version>.jar!/"/>
+        </CLASSES>
+        <SOURCES>
+            <root url="jar://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/<version>/scala-xml_2.13-<version>.jar!/"/>
+        </SOURCES>
+    </library>
+</component>
