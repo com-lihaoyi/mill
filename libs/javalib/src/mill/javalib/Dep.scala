@@ -118,11 +118,14 @@ object Dep {
     val parts = signature.split(';')
     val module = parts.head
     var exclusions = Seq.empty[(String, String)]
+    var force = false
     val attributes = parts.tail.foldLeft(coursier.Attributes()) { (as, s) =>
       s.split('=') match {
         case Array("classifier", v) => as.withClassifier(coursier.Classifier(v))
         case Array("type", v) => as.withType(coursier.Type(v))
         case Array("exclude", s"${org}:${name}") => exclusions ++= Seq((org, name)); as
+        case Array("force") | Array("force", "true" | "yes") => force = true; as
+        case Array("force", "false" | "no") => force = false; as
         case Array(_, _) => throw Exception(s"Unrecognized attribute: [$s]")
         case _ => throw Exception(s"Unable to parse attribute specifier: [$s]")
       }
@@ -139,6 +142,7 @@ object Dep {
       case Array(a, "", "", b, "", c) => Dep(a, b, c, cross = Full(platformed = true))
       case _ => throw Exception(s"Unable to parse signature: [$signature]")
     })
+      .forceVersion(force)
       .exclude(exclusions.sorted*)
       .configure(attributes = attributes)
   }
@@ -160,12 +164,17 @@ object Dep {
       case s => s";type=$s"
     }
 
+    val forceAttr = dep.force match {
+      case false => ""
+      case true => ";force"
+    }
+
     val excludeAttr =
       dep.dep.minimizedExclusions.toSeq().sorted.map(e =>
         s";exclude=${e._1.value}:${e._2.value}"
       ).mkString
 
-    val attrs = classifierAttr + typeAttr + excludeAttr
+    val attrs = classifierAttr + typeAttr + forceAttr + excludeAttr
 
     val prospective = dep.cross match {
       case CrossVersion.Constant("", false) => Some(s"$org:$mod:$ver$attrs")
