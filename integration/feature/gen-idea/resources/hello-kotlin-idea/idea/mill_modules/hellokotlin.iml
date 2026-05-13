@@ -1,16 +1,4 @@
 <module type="JAVA_MODULE" version="4">
-    <component name="NewModuleRootManager">
-        <output url="file://$MODULE_DIR$/../../out/HelloKotlin/internalGenIdea/ideaCompileOutput.dest/classes"/>
-        <exclude-output/>
-        <content url="file://$MODULE_DIR$/../../HelloKotlin">
-            <sourceFolder url="file://$MODULE_DIR$/../../HelloKotlin/src" isTestSource="false"/>
-            <sourceFolder url="file://$MODULE_DIR$/../../HelloKotlin/resources" type="java-resource"/>
-        </content>
-        <orderEntry type="inheritedJdk"/>
-        <orderEntry type="sourceFolder" forTests="false"/>
-        <orderEntry type="library" name="annotations-13.0.jar" level="project"/>
-        <orderEntry type="library" name="kotlin-stdlib-<version>.jar" level="project"/>
-    </component>
     <component name="FacetManager">
         <facet type="kotlin-language" name="Kotlin">
             <configuration version="5" useProjectSettings="false">
@@ -25,5 +13,17 @@
                 </compilerArguments>
             </configuration>
         </facet>
+    </component>
+    <component name="NewModuleRootManager">
+        <output url="file://$MODULE_DIR$/../../out/HelloKotlin/internalGenIdea/ideaCompileOutput.dest/classes"/>
+        <exclude-output/>
+        <content url="file://$MODULE_DIR$/../../HelloKotlin">
+            <sourceFolder url="file://$MODULE_DIR$/../../HelloKotlin/src" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../HelloKotlin/resources" type="java-resource"/>
+        </content>
+        <orderEntry type="inheritedJdk"/>
+        <orderEntry type="sourceFolder" forTests="false"/>
+        <orderEntry type="library" name="annotations-13.0.jar" level="project"/>
+        <orderEntry type="library" name="kotlin-stdlib-<version>.jar" level="project"/>
     </component>
 </module>
