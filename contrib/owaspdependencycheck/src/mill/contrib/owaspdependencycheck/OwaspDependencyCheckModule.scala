@@ -52,8 +52,11 @@ trait OwaspDependencyCheckModule extends Module, OfflineSupportModule {
    *
    * @return
    */
-  final def owaspDependencyCheck(): Task.Command[DependencyCheckResult] =
-    Task.Command(exclusive = true) {
+  final def owaspDependencyCheck(): Task.Command[DependencyCheckResult] = {
+    // globalExclusive, because the OWASP Dependency check isn't thread save at two level:
+    // At the JVM level, it has global variables and isn't intended to run concurrently.
+    // At process level: It has a cache database, that cannot be access by mulitple processes
+    Task.Command(globalExclusive = true) {
       val args = owaspDependencyCheckConfigArgs()
       val files = owaspDependencyCheckFiles()
       if (files.nonEmpty) {
@@ -73,4 +76,5 @@ trait OwaspDependencyCheckModule extends Module, OfflineSupportModule {
         DependencyCheckResult(Seq.empty, 0)
       }
     }
+  }
 }
