@@ -41,10 +41,6 @@ Foo running on Java 11.0.21
 // You can also pass JVM-level options to the worker subprocess spawned for modules
 // with a custom `jvmVersion`, by prefixing `javacOptions` entries with `-J`.
 // These options are applied to the `MillJvmWorkerMain` process that runs compilation.
-//
-// Note: only takes effect when `jvmVersion >= 17` (or unset). For older JDKs Mill
-// runs the worker in its own daemon JVM rather than spawning a subprocess, so `-J`
-// options have nowhere to apply.
 
 /** See Also: jvmopts/package.mill.yaml */
 

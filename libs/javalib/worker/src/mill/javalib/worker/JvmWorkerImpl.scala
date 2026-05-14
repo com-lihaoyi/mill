@@ -29,49 +29,39 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
   )(using ctx: InternalJvmWorkerApi.Ctx): op.Response = {
     val log = ctx.log
 
-    // Worker bytecode is Java 17; user JDKs older than that can't host it. Keep the
-    // worker in Mill's daemon JVM, fork javac/javadoc to the user's binaries, and
-    // pass `-release N` so scalac/scaladoc constrain their API surface to the same
-    // Java version (otherwise they'd see the daemon JVM's stdlib).
+    // Worker bytecode is Java 17, so for user JDKs older than 17 we host the worker
+    // subprocess on Mill's daemon JVM and have it fork `javac`/`javadoc` to the
+    // user's binaries. `-release N` is also injected into scalac options so symbols
+    // resolve against the user's JDK, not the worker JVM's, stdlib.
     val forkJavaRelease: Option[Int] = javaHome.flatMap { home =>
       val major = Jvm.getJavaMajorVersion(Some(home))
-      if (major > 0 && major < 17) Some(major) else None
+      Option.when(major > 0 && major < 17)(major)
     }
+
+    val workerJavaHome = if (forkJavaRelease.isDefined) None else javaHome
 
     val zincCtx = ZincWorker.LocalConfig(
       dest = ctx.dest,
       logDebugEnabled = log.debugEnabled,
       logPromptColored = log.prompt.colored,
       workspaceRoot = mill.api.BuildCtx.workspaceRoot,
-      forkJavaHome = forkJavaRelease.flatMap(_ => javaHome)
+      forkJavaHome = if (forkJavaRelease.isDefined) javaHome else None
     )
 
     val zincApi =
-      if (forkJavaRelease.isDefined) {
-        // Java < 17 can't host the worker; runtime options that would normally apply
-        // to the worker subprocess have to be dropped here (warn if any were set).
-        if (javaRuntimeOptions.nonEmpty)
-          log.warn(
-            s"javaRuntimeOptions are not applied when targeting Java ${forkJavaRelease.get}" +
-              s" (worker stays in Mill's JVM): ${javaRuntimeOptions.mkString(" ")}"
-          )
+      if (workerJavaHome.isEmpty && javaRuntimeOptions.isEmpty && forkJavaRelease.isEmpty)
         localZincApi(zincCtx, log)
-      } else if (javaRuntimeOptions.isEmpty && javaHome.isEmpty)
-        localZincApi(zincCtx, log)
-      else SubprocessZincApi(
-        javaHome,
-        javaRuntimeOptions,
-        zincCtx,
-        log,
-        subprocessCache,
-        compilerBridge
-      )
+      else
+        SubprocessZincApi(
+          workerJavaHome,
+          javaRuntimeOptions,
+          zincCtx,
+          log,
+          subprocessCache,
+          compilerBridge
+        )
 
-    val effectiveOp = forkJavaRelease match {
-      case Some(release) => JvmWorkerImpl.withScalaRelease(op, release)
-      case None => op
-    }
-
+    val effectiveOp = forkJavaRelease.fold(op)(JvmWorkerImpl.withScalaRelease(op, _))
     zincApi.apply(
       effectiveOp.asInstanceOf[op.type],
       reporter = reporter,
@@ -224,12 +214,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
 
 private[mill] object JvmWorkerImpl {
 
-  /**
-   * Prepends `-release <major>` to scalac options on the given op if the user
-   * hasn't already specified a release/target. Used when the worker stays in
-   * Mill's JVM but the target Java version is older, so scalac would otherwise
-   * resolve symbols against the daemon JVM's stdlib instead of the user's.
-   */
+  /** Prepends `-release <major>` to scalac options unless the user already set one. */
   private def withScalaRelease(op: ZincOp, release: Int): ZincOp = op match {
     case m: ZincOp.CompileMixed =>
       m.copy(scalacOptions = injectRelease(m.scalacOptions, release))
