@@ -322,8 +322,11 @@ trait JavaModule
   /**
    * Options to pass to the java compiler.
    *
-   * When a custom `jvmVersion` is set, this can also be used to pass runtime flags
-   * to the JVM daemon running the compiler, e.g. `-J-Xss8m` to set its stack size
+   * When a custom `jvmVersion` is set to Java 17 or newer, this can also be used to
+   * pass runtime flags to the worker subprocess JVM running the compiler, e.g.
+   * `-J-Xss8m` to set its stack size. For `jvmVersion` < 17 the worker stays in
+   * Mill's daemon JVM (the worker bytecode itself is Java 17), so `-J` options have
+   * nowhere to apply and are ignored.
    */
   override def javacOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
@@ -331,7 +334,7 @@ trait JavaModule
    * JVM options passed to the Java compiler worker process.
    *
    * Prefer this over `javacOptions` for JVM flags such as `-D`, `--add-opens`, and
-   * `-X` options.
+   * `-X` options. Only applied when `jvmVersion` >= 17 (or unset); see [[javacOptions]].
    */
   def jvmOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
