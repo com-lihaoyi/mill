@@ -134,7 +134,12 @@ object `package` extends MillStableScalaModule {
     )
   }
 
-  object worker extends MillPublishScalaModule with BuildInfo with MillJava11ScalaModule {
+  // Not a `MillJava11ScalaModule` because Zinc 2.0.0-M17 requires Scala 3.8.2 (TASTy
+  // 28.8), incompatible with the Java 11 / Scala 3.7 plugin-compat toolchain. Users
+  // targeting Java < 17 are handled by forking javac in [[JvmWorkerImpl]] rather than
+  // subprocessing the whole worker.
+  object worker extends MillPublishScalaModule with BuildInfo {
+    override def jvmId = Task { "17" }
     def moduleDeps = Seq(api, build.libs.javalib.testrunner)
     def mvnDeps = Seq(
       Deps.zinc,

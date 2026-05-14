@@ -118,7 +118,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
           explicitActual = None
         )
         val compilers = incrementalCompiler.compilers(
-          javaTools = getLocalOrCreateJavaTools(),
+          javaTools = getLocalOrCreateJavaTools(key.forkJavaHome),
           scalac = ZincUtil.scalaCompiler(scalaInstance, compiledCompilerBridge.toIO)
         )
         ScalaCompilerCached(classLoader, compilers)
@@ -160,7 +160,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
         classpathOptions // this is used for javac too
       )
 
-      val javaTools = getLocalOrCreateJavaTools()
+      val javaTools = getLocalOrCreateJavaTools(key.forkJavaHome)
       val compilers = incrementalCompiler.compilers(javaTools, scalac)
       compilers
     }
@@ -177,7 +177,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       localConfig: ZincWorker.LocalConfig,
       processConfig: ZincWorker.ProcessConfig
   ): Result[CompilationResult] = {
-    val cacheKey = JavaCompilerCacheKey(op.javacOptions)
+    val cacheKey = JavaCompilerCacheKey(op.javacOptions, localConfig.forkJavaHome)
     javaOnlyCompilerCache.withValue(cacheKey) { compilers =>
       compileInternal(
         upstreamCompileOutput = op.upstreamCompileOutput,
@@ -211,6 +211,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       scalacPluginClasspath = op.scalacPluginClasspath,
       compilerBridgeOpt = op.compilerBridgeOpt,
       javacOptions = op.javacOptions,
+      forkJavaHome = localConfig.forkJavaHome,
       processConfig.compilerBridgeProvider
     ) { compilers =>
       compileInternal(
@@ -242,6 +243,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       scalacPluginClasspath = op.scalacPluginClasspath,
       compilerBridgeOpt = op.compilerBridgeOpt,
       javacOptions = Nil,
+      forkJavaHome = None,
       compilerBridgeProvider = processConfig.compilerBridgeProvider
     ) { compilers =>
       // Not sure why dotty scaladoc is flaky, but add retries to workaround it
@@ -307,6 +309,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       scalacPluginClasspath: Seq[PathRef],
       compilerBridgeOpt: Option[PathRef],
       javacOptions: Seq[String],
+      forkJavaHome: Option[os.Path],
       compilerBridgeProvider: ZincCompilerBridgeProvider
   )(f: Compilers => T) = {
     val cacheKey = ScalaCompilerCacheKey(
@@ -315,7 +318,8 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       scalacPluginClasspath,
       compilerBridgeOpt,
       scalaOrganization,
-      javacOptions
+      javacOptions,
+      forkJavaHome
     )
     scalaCompilerCache.withValue(cacheKey, compilerBridgeProvider) { cached =>
       f(cached.compilers)
@@ -708,7 +712,9 @@ object ZincWorker {
       dest: os.Path,
       logDebugEnabled: Boolean,
       logPromptColored: Boolean,
-      workspaceRoot: os.Path
+      workspaceRoot: os.Path,
+      /** If set, forks `javac`/`javadoc` to this JDK instead of using the in-process tool API. */
+      forkJavaHome: Option[os.Path] = None
   ) derives upickle.ReadWriter
 
   private case class ScalaCompilerCacheKey(
@@ -717,18 +723,25 @@ object ZincWorker {
       scalacPluginClasspath: Seq[PathRef],
       compilerBridgeOpt: Option[PathRef],
       scalaOrganization: String,
-      javacOptions: Seq[String]
+      javacOptions: Seq[String],
+      forkJavaHome: Option[os.Path]
   ) {
     val combinedCompilerClasspath: Seq[PathRef] = compilerClasspath ++ scalacPluginClasspath
   }
 
   private case class ScalaCompilerCached(classLoader: URLClassLoader, compilers: Compilers)
 
-  private case class JavaCompilerCacheKey(javacOptions: Seq[String])
+  private case class JavaCompilerCacheKey(javacOptions: Seq[String], forkJavaHome: Option[os.Path])
 
-  private def getLocalOrCreateJavaTools(): JavaTools = {
-    val compiler = IncrementalTrackingJavaCompiler.local.getOrElse(javac.JavaCompiler.fork())
-    val docs = javac.Javadoc.local.getOrElse(javac.Javadoc.fork())
+  private def getLocalOrCreateJavaTools(forkJavaHome: Option[os.Path]): JavaTools = {
+    val (compiler, docs) = forkJavaHome match {
+      case Some(home) =>
+        (javac.JavaCompiler.fork(Some(home.toNIO)), javac.Javadoc.fork(Some(home.toNIO)))
+      case None =>
+        val c = IncrementalTrackingJavaCompiler.local.getOrElse(javac.JavaCompiler.fork())
+        val d = javac.Javadoc.local.getOrElse(javac.Javadoc.fork())
+        (c, d)
+    }
     javac.JavaTools(compiler, docs)
   }
 

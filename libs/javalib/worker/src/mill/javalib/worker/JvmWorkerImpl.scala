@@ -28,15 +28,25 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
       reportCachedProblems: Boolean
   )(using ctx: InternalJvmWorkerApi.Ctx): op.Response = {
     val log = ctx.log
+
+    // Worker bytecode is Java 17; user JDKs older than that can't host it. Keep the
+    // worker in Mill's daemon JVM and only fork javac/javadoc to the user's binaries.
+    val forkJavacToOlderJdk = javaHome.exists { home =>
+      val major = Jvm.getJavaMajorVersion(Some(home))
+      major > 0 && major < 17
+    }
+
     val zincCtx = ZincWorker.LocalConfig(
       dest = ctx.dest,
       logDebugEnabled = log.debugEnabled,
       logPromptColored = log.prompt.colored,
-      workspaceRoot = mill.api.BuildCtx.workspaceRoot
+      workspaceRoot = mill.api.BuildCtx.workspaceRoot,
+      forkJavaHome = if (forkJavacToOlderJdk) javaHome else None
     )
 
     val zincApi =
-      if (javaRuntimeOptions.isEmpty && javaHome.isEmpty) localZincApi(zincCtx, log)
+      if (javaRuntimeOptions.isEmpty && (javaHome.isEmpty || forkJavacToOlderJdk))
+        localZincApi(zincCtx, log)
       else SubprocessZincApi(
         javaHome,
         javaRuntimeOptions,
