@@ -566,6 +566,25 @@ object Task {
     override def asCommand: Some[Command[T]] = Some(this)
     // FIXME: deprecated return type: Change to Option
     override def writerOpt: Some[Writer[?]] = Some(writer)
+
+    /**
+     * Change the "exclusive" flag of this command
+     *
+     * Changing it to true ensures this command doesn't run concurrently with other commands.
+     */
+    def makeExclusive(value: Boolean)(implicit ctx: ModuleCtx): Command[T] =
+      if (exclusive == value) this
+      else
+        new Command[T](
+          inputs,
+          evaluate0,
+          ctx,
+          writer,
+          isPrivate,
+          exclusive = value,
+          persistent,
+          selectiveInputs0
+        )
   }
   class Worker[T](
       val inputs: Seq[Task[Any]],
