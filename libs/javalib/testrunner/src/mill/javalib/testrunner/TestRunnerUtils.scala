@@ -54,23 +54,37 @@ import scala.math.Ordering.Implicits.*
       .flatMap { base =>
         Seq.from[ClassWithFingerprint](
           listClassFiles(base).map { path =>
-            val cls = cl.loadClass(path.stripSuffix(".class").replace('/', '.'))
-            val publicConstructorCount =
-              cls.getConstructors.count(c => Modifier.isPublic(c.getModifiers))
+            try {
+              val cls = cl.loadClass(path.stripSuffix(".class").replace('/', '.'))
+              val publicConstructorCount =
+                cls.getConstructors.count(c => Modifier.isPublic(c.getModifiers))
 
-            if (framework.name() == "Jupiter") {
-              // sbt-jupiter-interface ignores fingerprinting since JUnit5 has its own resolving mechanism
-              Some((cls, fingerprints.head))
-            } else if (
-              Modifier.isAbstract(cls.getModifiers) || cls.isInterface || publicConstructorCount > 1
-            ) {
-              None
-            } else {
-              (cls.getName.endsWith("$"), publicConstructorCount == 0) match {
-                case (true, true) => matchFingerprints(cl, cls, fingerprints, isModule = true)
-                case (false, false) => matchFingerprints(cl, cls, fingerprints, isModule = false)
-                case _ => None
+              if (framework.name() == "Jupiter") {
+                // sbt-jupiter-interface ignores fingerprinting since JUnit5 has its own resolving mechanism
+                Some((cls, fingerprints.head))
+              } else if (
+                Modifier.isAbstract(
+                  cls.getModifiers
+                ) || cls.isInterface || publicConstructorCount > 1
+              ) {
+                None
+              } else {
+                (cls.getName.endsWith("$"), publicConstructorCount == 0) match {
+                  case (true, true) => matchFingerprints(cl, cls, fingerprints, isModule = true)
+                  case (false, false) => matchFingerprints(cl, cls, fingerprints, isModule = false)
+                  case _ => None
+                }
               }
+            } catch {
+              // Scala 3 inline methods can generate synthetic type references in method
+              // signatures that don't have corresponding class files. When the JVM tries
+              // to reflect on these methods, it throws NoClassDefFoundError. We gracefully
+              // skip these classes as they are not valid test classes.
+              case e: (NoClassDefFoundError | LinkageError) =>
+                System.err.println(
+                  s"Skipping class during test discovery: ${path.stripSuffix(".class").replace('/', '.')} (${e.getClass.getSimpleName}: ${e.getMessage})"
+                )
+                None
             }
           }
             .toSeq
@@ -102,23 +116,33 @@ import scala.math.Ordering.Implicits.*
       fingerprints: Array[Fingerprint],
       isModule: Boolean
   ): Option[ClassWithFingerprint] = {
-    fingerprints.find {
-      case f: SubclassFingerprint =>
-        f.isModule == isModule &&
-        cl.loadClass(f.superclassName()).isAssignableFrom(cls)
+    try {
+      fingerprints.find {
+        case f: SubclassFingerprint =>
+          f.isModule == isModule &&
+          cl.loadClass(f.superclassName()).isAssignableFrom(cls)
 
-      case f: AnnotatedFingerprint =>
-        val annotationCls = cl.loadClass(f.annotationName()).asInstanceOf[Class[Annotation]]
-        f.isModule == isModule &&
-        (
-          cls.isAnnotationPresent(annotationCls) ||
-            cls.getDeclaredMethods.exists(_.isAnnotationPresent(annotationCls)) ||
-            cls.getMethods.exists(m =>
-              m.isAnnotationPresent(annotationCls) && Modifier.isPublic(m.getModifiers())
-            )
+        case f: AnnotatedFingerprint =>
+          val annotationCls = cl.loadClass(f.annotationName()).asInstanceOf[Class[Annotation]]
+          f.isModule == isModule &&
+          (
+            cls.isAnnotationPresent(annotationCls) ||
+              cls.getDeclaredMethods.exists(_.isAnnotationPresent(annotationCls)) ||
+              cls.getMethods.exists(m =>
+                m.isAnnotationPresent(annotationCls) && Modifier.isPublic(m.getModifiers())
+              )
+          )
+
+      }.map { f => (cls, f) }
+    } catch {
+      // Reflection operations like getDeclaredMethods/getMethods can fail when classes
+      // reference synthetic types (e.g. from Scala 3 inline methods) that lack class files.
+      case e: (NoClassDefFoundError | LinkageError) =>
+        System.err.println(
+          s"Skipping class during fingerprint matching: ${cls.getName} (${e.getClass.getSimpleName}: ${e.getMessage})"
         )
-
-    }.map { f => (cls, f) }
+        None
+    }
   }
 
   def getTestTasks(
