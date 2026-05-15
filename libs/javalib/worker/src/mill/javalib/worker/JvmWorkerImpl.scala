@@ -38,6 +38,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
       Option.when(major > 0 && major < 17)(major)
     }
 
+    // For Java < 17, host the worker subprocess in Mill's daemon JVM (which is
+    // Java 17+ by definition) rather than the user's older JVM.
     val workerJavaHome = if (forkJavaRelease.isDefined) None else javaHome
 
     val zincCtx = ZincWorker.LocalConfig(
@@ -49,17 +51,15 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
     )
 
     val zincApi =
-      if (workerJavaHome.isEmpty && javaRuntimeOptions.isEmpty && forkJavaRelease.isEmpty)
-        localZincApi(zincCtx, log)
-      else
-        SubprocessZincApi(
-          workerJavaHome,
-          javaRuntimeOptions,
-          zincCtx,
-          log,
-          subprocessCache,
-          compilerBridge
-        )
+      if (javaHome.isEmpty && javaRuntimeOptions.isEmpty) localZincApi(zincCtx, log)
+      else SubprocessZincApi(
+        workerJavaHome,
+        javaRuntimeOptions,
+        zincCtx,
+        log,
+        subprocessCache,
+        compilerBridge
+      )
 
     val effectiveOp = forkJavaRelease.fold(op)(JvmWorkerImpl.withScalaRelease(op, _))
     zincApi.apply(
