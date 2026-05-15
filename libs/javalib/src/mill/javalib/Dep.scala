@@ -4,7 +4,9 @@ import upickle.{macroRW, ReadWriter as RW}
 import mill.api.CrossVersion.*
 import mill.api.CrossVersion
 import coursier.core.{Configuration, Dependency, MinimizedExclusions}
-import mill.javalib.api.{Versions, JvmWorkerUtil}
+import coursier.version.VersionConstraint
+import mill.javalib.api.{JvmWorkerUtil, Versions}
+
 import scala.annotation.unused
 
 /**
@@ -26,10 +28,14 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   }
   def configure(attributes: coursier.Attributes): Dep = copy(dep = dep.withAttributes(attributes))
   def forceVersion(): Dep = copy(force = true)
+  def forceVersion(force: Boolean): Dep = copy(force = force)
   def exclude(exclusions: (String, String)*): Dep = copy(
-    dep = dep.withExclusions(
-      dep.exclusions() ++
-        exclusions.map { case (k, v) => (coursier.Organization(k), coursier.ModuleName(v)) }
+    dep = dep.withMinimizedExclusions(
+      dep.minimizedExclusions.join(
+        MinimizedExclusions(
+          exclusions.map { case (k, v) => (coursier.Organization(k), coursier.ModuleName(v)) }.toSet
+        )
+      )
     )
   )
   def excludeOrg(organizations: String*): Dep = exclude(organizations.map(_ -> "*")*)
@@ -114,11 +120,14 @@ object Dep {
     val parts = signature.split(';')
     val module = parts.head
     var exclusions = Seq.empty[(String, String)]
+    var force = false
     val attributes = parts.tail.foldLeft(coursier.Attributes()) { (as, s) =>
       s.split('=') match {
         case Array("classifier", v) => as.withClassifier(coursier.Classifier(v))
         case Array("type", v) => as.withType(coursier.Type(v))
         case Array("exclude", s"${org}:${name}") => exclusions ++= Seq((org, name)); as
+        case Array("force") | Array("force", "true" | "yes") => force = true; as
+        case Array("force", "false" | "no") => force = false; as
         case Array(_, _) => throw Exception(s"Unrecognized attribute: [$s]")
         case _ => throw Exception(s"Unable to parse attribute specifier: [$s]")
       }
@@ -135,6 +144,7 @@ object Dep {
       case Array(a, "", "", b, "", c) => Dep(a, b, c, cross = Full(platformed = true))
       case _ => throw Exception(s"Unable to parse signature: [$signature]")
     })
+      .forceVersion(force)
       .exclude(exclusions.sorted*)
       .configure(attributes = attributes)
   }
@@ -156,10 +166,17 @@ object Dep {
       case s => s";type=$s"
     }
 
-    val excludeAttr =
-      dep.dep.exclusions().toSeq.sorted.map(e => s";exclude=${e._1.value}:${e._2.value}").mkString
+    val forceAttr = dep.force match {
+      case false => ""
+      case true => ";force"
+    }
 
-    val attrs = classifierAttr + typeAttr + excludeAttr
+    val excludeAttr =
+      dep.dep.minimizedExclusions.toSeq().sorted.map(e =>
+        s";exclude=${e._1.value}:${e._2.value}"
+      ).mkString
+
+    val attrs = classifierAttr + typeAttr + forceAttr + excludeAttr
 
     val prospective = dep.cross match {
       case CrossVersion.Constant("", false) => Some(s"$org:$mod:$ver$attrs")
@@ -200,7 +217,7 @@ object Dep {
     apply(
       coursier.Dependency(
         coursier.Module(coursier.Organization(org), coursier.ModuleName(name)),
-        version
+        VersionConstraint(version)
       ),
       cross,
       force
@@ -221,7 +238,7 @@ object Dep {
   }
 
   /**
-   * In the presence of an non-empty `platformSuffix`, validate all given `deps` and return the warning, if any.
+   * In the presence of a non-empty `platformSuffix`, validate all given `deps` and return the warning, if any.
    * @param platformSuffix The platformSuffix, may also be empty (`""`).
    * @param deps The dependencies to analyze
    * @return An empty `Seq` when there are no warning, otherwise s `Seq[String]` with all validation warnings.

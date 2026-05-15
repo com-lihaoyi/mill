@@ -88,5 +88,28 @@ class DepTests extends TestSuite {
         msg
       }
     }
+
+    test("parse-unparse") {
+      def check(dep: String, test: Dep => Boolean = _ => true, normalized: String = null): Unit = {
+        val parsed = Dep.parse(dep)
+        assert(test(parsed))
+        val unparsed = Dep.unparse(parsed)
+        assert(unparsed.isDefined)
+        if (normalized == null) assert(Some(dep) == unparsed)
+        else assert(Some(normalized) == unparsed)
+      }
+      test("simple") { check("com.example:example-core:1.2.3") }
+      test("force") {
+        check("com.example:example-core:1.2.3;force")
+        check(
+          "com.example:example-core:1.2.3;force=true",
+          normalized = "com.example:example-core:1.2.3;force"
+        )
+        check(
+          "com.example:example-core:1.2.3;force=false",
+          normalized = "com.example:example-core:1.2.3"
+        )
+      }
+    }
   }
 }

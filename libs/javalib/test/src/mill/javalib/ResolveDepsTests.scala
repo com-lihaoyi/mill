@@ -95,7 +95,7 @@ object ResolveDepsTests extends TestSuite {
     object forceVersion extends JavaModule {
       def mvnDeps = Seq(
         mvn"org.apache.lucene:lucene-analyzers-common:4.6.1",
-        mvn"org.apache.lucene:lucene-core:4.6.0".forceVersion()
+        mvn"org.apache.lucene:lucene-core:4.6.0;force"
       )
 
       object dependee extends JavaModule {
