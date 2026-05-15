@@ -77,6 +77,19 @@ object TestRunnerTestUtils {
       override def testParallelism = enableParallelism
       override def zioTestVersion: T[String] = sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)
     }
+
+    object queueDrift extends ScalaTests {
+      override def testFramework = "mill.scalalib.QueueDriftFramework"
+      override def mvnDeps = Task {
+        super.mvnDeps() ++ Seq(
+          mvn"org.scala-sbt:test-interface:${sys.props.getOrElse("TEST_TEST_INTERFACE_VERSION", ???)}"
+        )
+      }
+      override def testForkGrouping = Task {
+        Seq(Seq("mill.scalalib.QueueDriftStart", "mill.scalalib.QueueDriftFiller"))
+      }
+      override def testParallelism = false
+    }
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "testrunner"

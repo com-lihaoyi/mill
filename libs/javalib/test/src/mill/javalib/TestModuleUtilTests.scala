@@ -295,6 +295,40 @@ object TestModuleUtilTests extends TestSuite {
     }
 
     // format: on
+    test("testSubprocessCount") {
+      assert(
+        TestModuleUtil.testSubprocessCount(
+          testParallelism = false,
+          filteredClassCount = 2,
+          jobs = 8,
+          numTests = 2
+        ) == 1
+      )
+      assert(
+        TestModuleUtil.testSubprocessCount(
+          testParallelism = true,
+          filteredClassCount = 2,
+          jobs = 8,
+          numTests = 2
+        ) == 2
+      )
+      assert(
+        TestModuleUtil.testSubprocessCount(
+          testParallelism = true,
+          filteredClassCount = 1,
+          jobs = 8,
+          numTests = 1
+        ) == 1
+      )
+      assert(
+        TestModuleUtil.testSubprocessCount(
+          testParallelism = true,
+          filteredClassCount = 0,
+          jobs = 8,
+          numTests = 0
+        ) == 1
+      )
+    }
     test("collapseTestClassNames") {
       val res = TestModuleUtil.collapseTestClassNames(
         Seq(

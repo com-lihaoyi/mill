@@ -190,9 +190,14 @@ final class TestModuleUtil(
     testClassQueueFolder
   }
 
-  def jobsProcessLength(numTests: Int) = {
-    val cappedJobs = Math.max(Math.min(Task.ctx().jobs, numTests), 1)
-    (cappedJobs, cappedJobs.toString.length)
+  def jobsProcessLength(filteredClassCount: Int, numTests: Int) = {
+    val processCount = TestModuleUtil.testSubprocessCount(
+      testParallelism = testParallelism,
+      filteredClassCount = filteredClassCount,
+      jobs = Task.ctx().jobs,
+      numTests = numTests
+    )
+    (processCount, processCount.toString.length)
   }
 
   def runTestQueueScheduler(
@@ -204,19 +209,20 @@ final class TestModuleUtil(
     val groupFolderData: Seq[(Path, Path, Int)] = prepareTestGroups(filteredClassLists)
 
     val outputs = {
-      // We got "--jobs" threads, and "groupLength" test groups, so we will spawn at most jobs * groupLength runners here
-      // In most case, this is more than necessary, and runner creation is expensive,
-      // but we have a check for non-empty test-classes folder before really spawning a new runner, so in practice the overhead is low
+      // In parallel mode, we spawn up to "--jobs" runners per group. This is more than
+      // necessary in most cases, but the non-empty test-classes check keeps overhead low.
+      // In non-parallel mode, each group uses a single shared folder, so only spawn one
+      // runner per group.
       val subprocessFutures = for {
         ((groupFolder, testClassQueueFolder, numTests), groupIndex) <-
           groupFolderData.zipWithIndex.toVector
-        (jobs, maxProcessLength) = jobsProcessLength(numTests)
+        (processCount, maxProcessLength) = jobsProcessLength(filteredClassCount, numTests)
         paddedGroupIndex = Util.leftPad(
           groupIndex.toString,
           groupFolderData.length.toString.length,
           '0'
         )
-        processIndex <- 0 until Math.max(Math.min(jobs, numTests), 1)
+        processIndex <- 0 until processCount
       } yield runTestFuture(
         filteredClassCount,
         groupFolderData,
@@ -370,6 +376,16 @@ final class TestModuleUtil(
 }
 
 private[mill] object TestModuleUtil {
+
+  private[mill] def testSubprocessCount(
+      testParallelism: Boolean,
+      filteredClassCount: Int,
+      jobs: Int,
+      numTests: Int
+  ): Int = {
+    if (testParallelism && filteredClassCount != 1) Math.max(Math.min(jobs, numTests), 1)
+    else 1
+  }
 
   def loadArgsAndProps(
       useArgsFile: Boolean,
