@@ -344,7 +344,10 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
   ): Result[CompilationResult] = {
 
     os.makeDir.all(workDir)
-    val compileClasspathPaths = compileClasspath.map(_.path)
+    // Forked `javac` warns on missing classpath entries (e.g. an unused
+    // `compile-resources` directory) and `-Werror` would escalate that to a
+    // compile failure; the in-process JDK tool API silently tolerates them.
+    val compileClasspathPaths = compileClasspath.iterator.map(_.path).filter(os.exists).toSeq
 
     val incrementalAnnotationProcessing =
       IncrementalAnnotationProcessing.detect(
