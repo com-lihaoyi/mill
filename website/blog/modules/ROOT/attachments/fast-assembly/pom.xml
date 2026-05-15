@@ -10,7 +10,7 @@
 
     <properties>
         <scala.version>2.12.19</scala.version>
-        <spark.version>3.5.4</spark.version>
+        <spark.version>3.5.7</spark.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
