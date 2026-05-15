@@ -101,10 +101,14 @@ class DepTests extends TestSuite {
       test("simple") { check("com.example:example-core:1.2.3") }
       test("force") {
         check("com.example:example-core:1.2.3;force")
-        check("com.example:example-core:1.2.3;force=true",
-          normalized = "com.example:example-core:1.2.3;force")
-        check("com.example:example-core:1.2.3;force=false",
-          normalized = "com.example:example-core:1.2.3")
+        check(
+          "com.example:example-core:1.2.3;force=true",
+          normalized = "com.example:example-core:1.2.3;force"
+        )
+        check(
+          "com.example:example-core:1.2.3;force=false",
+          normalized = "com.example:example-core:1.2.3"
+        )
       }
     }
   }
