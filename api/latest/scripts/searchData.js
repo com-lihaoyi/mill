@@ -3723,6 +3723,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/javalib/Dep.html#excludeName-fffffdfd","e":false,"i":"","n":"excludeName","t":"excludeName(names: String*): Dep","d":"mill.javalib.Dep","k":"def","x":""},
 {"l":"mill/javalib/Dep.html#excludeOrg-fffffdfd","e":false,"i":"","n":"excludeOrg","t":"excludeOrg(organizations: String*): Dep","d":"mill.javalib.Dep","k":"def","x":""},
 {"l":"mill/javalib/Dep.html#forceVersion-9d2","e":false,"i":"","n":"forceVersion","t":"forceVersion(): Dep","d":"mill.javalib.Dep","k":"def","x":""},
+{"l":"mill/javalib/Dep.html#forceVersion-fffff132","e":false,"i":"","n":"forceVersion","t":"forceVersion(force: Boolean): Dep","d":"mill.javalib.Dep","k":"def","x":""},
 {"l":"mill/javalib/Dep.html#formatted-0","e":false,"i":"","n":"formatted","t":"formatted: String","d":"mill.javalib.Dep","k":"def","x":""},
 {"l":"mill/javalib/Dep.html#name-0","e":false,"i":"","n":"name","t":"name: String","d":"mill.javalib.Dep","k":"def","x":""},
 {"l":"mill/javalib/Dep.html#optional-fffff132","e":false,"i":"","n":"optional","t":"optional(optional: Boolean = ...): Dep","d":"mill.javalib.Dep","k":"def","x":""},
