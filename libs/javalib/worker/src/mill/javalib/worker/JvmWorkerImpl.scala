@@ -28,17 +28,32 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
       reportCachedProblems: Boolean
   )(using ctx: InternalJvmWorkerApi.Ctx): op.Response = {
     val log = ctx.log
+
+    // Worker bytecode is Java 17, so for user JDKs older than 17 we host the worker
+    // subprocess on Mill's daemon JVM and have it fork `javac`/`javadoc` to the
+    // user's binaries. `-release N` is also injected into scalac options so symbols
+    // resolve against the user's JDK, not the worker JVM's, stdlib.
+    val forkJavaRelease: Option[Int] = javaHome.flatMap { home =>
+      val major = Jvm.getJavaMajorVersion(Some(home))
+      Option.when(major > 0 && major < 17)(major)
+    }
+
+    // For Java < 17, host the worker subprocess in Mill's daemon JVM (which is
+    // Java 17+ by definition) rather than the user's older JVM.
+    val workerJavaHome = if (forkJavaRelease.isDefined) None else javaHome
+
     val zincCtx = ZincWorker.LocalConfig(
       dest = ctx.dest,
       logDebugEnabled = log.debugEnabled,
       logPromptColored = log.prompt.colored,
-      workspaceRoot = mill.api.BuildCtx.workspaceRoot
+      workspaceRoot = mill.api.BuildCtx.workspaceRoot,
+      forkJavaHome = if (forkJavaRelease.isDefined) javaHome else None
     )
 
     val zincApi =
-      if (javaRuntimeOptions.isEmpty && javaHome.isEmpty) localZincApi(zincCtx, log)
+      if (javaHome.isEmpty && javaRuntimeOptions.isEmpty) localZincApi(zincCtx, log)
       else SubprocessZincApi(
-        javaHome,
+        workerJavaHome,
         javaRuntimeOptions,
         zincCtx,
         log,
@@ -46,7 +61,12 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         compilerBridge
       )
 
-    zincApi.apply(op, reporter = reporter, reportCachedProblems = reportCachedProblems)
+    val effectiveOp = forkJavaRelease.fold(op)(JvmWorkerImpl.withScalaRelease(op, _))
+    zincApi.apply(
+      effectiveOp.asInstanceOf[op.type],
+      reporter = reporter,
+      reportCachedProblems = reportCachedProblems
+    )
   }
 
   override def close(): Unit = {
@@ -189,5 +209,26 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         zincLocalWorker.apply(op, reporter, reportCachedProblems, ctx, deps)
       }
     }
+  }
+}
+
+private[mill] object JvmWorkerImpl {
+
+  /** Prepends `-release <major>` to scalac options unless the user already set one. */
+  private def withScalaRelease(op: ZincOp, release: Int): ZincOp = op match {
+    case m: ZincOp.CompileMixed =>
+      m.copy(scalacOptions = injectRelease(m.scalacOptions, release))
+    case s: ZincOp.ScaladocJar =>
+      s.copy(args = injectRelease(s.args, release))
+    case other => other
+  }
+
+  private def injectRelease(opts: Seq[String], release: Int): Seq[String] = {
+    val alreadySet = opts.exists(o =>
+      o == "-release" || o == "--release" ||
+        o.startsWith("-release:") || o.startsWith("--release=") ||
+        o.startsWith("-Xrelease") || o.startsWith("-target:") || o == "-target"
+    )
+    if (alreadySet) opts else Seq("-release", release.toString) ++ opts
   }
 }
