@@ -1,0 +1,17 @@
+mill-version: SNAPSHOT
+mill-jvm-version: system
+extends: [spring.boot.SpringBootModule, MavenModule]
+springBootPlatformVersion: 4.0.6
+mvnDeps:
+- org.springframework.boot:spring-boot-starter
+javacOptions: [-source, 17, -target, 17, -encoding, UTF-8, -parameters]
+
+object test:
+  extends: [SpringBootTestsModule, MavenTests, TestModule.Junit5]
+  mvnDeps:
+  - org.springframework.boot:spring-boot-starter-test
+  runMvnDeps:
+  - org.junit.platform:junit-platform-launcher
+  javacOptions: [-source, 17, -target, 17, -encoding, UTF-8, -parameters]
+  testParallelism: false
+  testSandboxWorkingDir: false

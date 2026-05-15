@@ -12,6 +12,7 @@ case class ModuleSpec(
     crossKeys: Seq[String] = Nil,
     alias: Option[String] = None,
     moduleDir: Value[String] = Value(),
+    springBootPlatformVersion: Value[String] = Value(),
     repositories: Values[String] = Nil,
     forkArgs: Values[Opt] = Values(),
     forkWorkingDir: Value[String] = Value(),
@@ -90,6 +91,18 @@ case class ModuleSpec(
         javacOptions = javacOptions0
       )
     }
+  }
+
+  def withSpringBootModule(springBootVersion: Value[String]): ModuleSpec =
+    copy(
+      imports = "mill.javalib.spring.boot.*" +: imports,
+      supertypes = "SpringBootModule" +: supertypes,
+      springBootPlatformVersion = springBootVersion
+    )
+
+  def withSpringBootTestsModule(): ModuleSpec = {
+    val requiredSupertypes = Seq("SpringBootTestsModule", "MavenTests")
+    copy(supertypes = requiredSupertypes ++ supertypes.filterNot(requiredSupertypes.contains))
   }
 
   def withJmhModule(jmhCoreVersion: Value[String]): ModuleSpec = copy(
@@ -276,7 +289,8 @@ object ModuleSpec {
       mvnDeps.iterator.map(dep => dep.organization -> dep.name).collectFirst {
         case ("org.testng", _) => "TestModule.TestNg"
         case ("junit", _) => "TestModule.Junit4"
-        case ("org.junit.jupiter", _) => "TestModule.Junit5"
+        case ("org.junit.jupiter", _) | ("org.springframework.boot", "spring-boot-starter-test") =>
+          "TestModule.Junit5"
         case ("com.lihaoyi", "utest") => "TestModule.Utest"
         case ("org.typelevel", "weaver-cats") => "TestModule.Weaver"
         case ("dev.zio", "zio-test" | "zio-test-sbt") => "TestModule.ZioTest"

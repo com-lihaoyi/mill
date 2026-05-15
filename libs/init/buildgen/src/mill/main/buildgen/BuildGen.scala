@@ -49,6 +49,8 @@ trait BuildGen {
           case seq => hierarchy.head +: seq
         },
         repositories = parentValues(a.repositories, b.repositories),
+        springBootPlatformVersion =
+          parentValue(a.springBootPlatformVersion, b.springBootPlatformVersion),
         forkArgs = parentValues(a.forkArgs, b.forkArgs),
         forkWorkingDir = parentValue(a.forkWorkingDir, b.forkWorkingDir),
         mandatoryMvnDeps = parentValues(a.mandatoryMvnDeps, b.mandatoryMvnDeps),
@@ -119,6 +121,8 @@ trait BuildGen {
     def extendModule(a: ModuleSpec, parent: ModuleSpec): ModuleSpec = a.copy(
       supertypes = (parent.name +: a.supertypes).diff(parent.supertypes),
       repositories = extendValues(a.repositories, parent.repositories),
+      springBootPlatformVersion =
+        extendValue(a.springBootPlatformVersion, parent.springBootPlatformVersion),
       forkArgs = extendValues(a.forkArgs, parent.forkArgs),
       forkWorkingDir = extendValue(a.forkWorkingDir, parent.forkWorkingDir),
       mandatoryMvnDeps = extendValues(a.mandatoryMvnDeps, parent.mandatoryMvnDeps),

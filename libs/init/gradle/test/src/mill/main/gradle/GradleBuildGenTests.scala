@@ -47,6 +47,13 @@ trait GradleBuildGenTests extends TestSuite {
         ))
       }
     }
+    test("spring-start") {
+      assert(checker.check(
+        sourceRel = "spring-start",
+        expectedRel = os.sub / expectedDir / "spring-start",
+        initArgs = Seq("--gradle-jvm-id", "17") ++ extraArgs
+      ))
+    }
   }
 }
 

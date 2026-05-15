@@ -39,6 +39,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
   private def toPackage(project0: Project): PackageSpec = {
     import project0.*
     val moduleDir = os.Path(getProjectDir)
+    val isSpringBoot = isSpringBootProject(project0)
     var mainModule = ModuleSpec(
       name = moduleDir.last,
       repositories = getRepositories.asScala.toSeq.collect(toRepositoryUrlString).distinct
@@ -91,6 +92,10 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         runModuleDeps = moduleDeps("runtimeOnly"),
         bomModuleDeps = mainBomDeps.collect(toModuleDep)
       ).withErrorProneModule(mvnDeps("errorprone"))
+      if (isSpringBoot) {
+        val pluginVersion = detectPluginVersion(project0, SpringBootPluginId)
+        mainModule = mainModule.withSpringBootModule(pluginVersion)
+      }
 
       if (os.exists(moduleDir / "src/test")) {
         val testMixin = ModuleSpec.testModuleMixin(configs.find(_.getName == "testRuntimeClasspath")
@@ -124,6 +129,9 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
           testSandboxWorkingDir = Some(false),
           testFramework = Option.when(testMixin.isEmpty)("")
         ).withErrorProneModule(mainModule.errorProneDeps.base)
+        if (isSpringBoot) {
+          testModule = testModule.withSpringBootTestsModule()
+        }
         if (testMixin.contains("TestModule.Junit5")) {
           testModule.mvnDeps.base.collectFirst {
             case dep if dep.organization == "org.junit.jupiter" && dep.version.nonEmpty =>
@@ -175,6 +183,22 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
 
   private val platform = objectFactory.named(classOf[Category], Category.REGULAR_PLATFORM)
   private val enforcedPlatform = objectFactory.named(classOf[Category], Category.ENFORCED_PLATFORM)
+  private val SpringBootPluginId = "org.springframework.boot"
+
+  private def isSpringBootProject(project: Project): Boolean =
+    project.getPluginManager.hasPlugin(SpringBootPluginId)
+
+  /**
+   * Tries to detect the version of the given plugin
+   * by looking at the implementation version of the plugin class's package.
+   */
+  private def detectPluginVersion(project: Project, pluginId: String): Option[String] = {
+    Option(project.getPlugins.findPlugin(pluginId))
+      .flatMap(plugin => Option(plugin.getClass.getPackage))
+      .flatMap(pkg => Option(pkg.getImplementationVersion))
+      .filter(_.nonEmpty)
+  }
+
   private def isBom(dep: Dependency | DependencyConstraint) = dep match {
     case dep: ModuleDependency =>
       val category = dep.getAttributes.getAttribute(Category.CATEGORY_ATTRIBUTE)
