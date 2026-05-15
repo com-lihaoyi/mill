@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Import Libraries and Plugins :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/extending/import-mvn-plugins.html">
-    <link rel="prev" href="../large/multi-language-builds.html">
+    <link rel="prev" href="../large/pre-compiled-modules.html">
     <link rel="next" href="contrib-plugins.html">
     <meta name="generator" content="Antora 3.1.12">
     <link rel="stylesheet" href="../../_/css/site.css">
@@ -395,6 +395,10 @@
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../large/pre-compiled-modules.html">Pre-Compiled Modules</a>
+  </li>
 </ul>
   </li>
 
@@ -422,6 +426,10 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/owaspdependencycheck.html">Dependency Check</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -532,6 +540,10 @@
 
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/scala.html">Android Scala Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -685,7 +697,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.5</span>
+    <span class="version">1.1.6</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -695,7 +707,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.5</a>
+          <a href="../index.html">1.1.6</a>
         </li>
         <li class="version">
           <a href="../dev-1.1.6-29-55543e/index.html">dev-1.1.6-29-55543e</a>
@@ -759,7 +771,7 @@ into your build, so you can use it at build-time to safely generate escaped HTML
 in your resource path for your application to use.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.5/mill-dist-1.1.5-example-extending-imports-1-mvn-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.5/example/extending/imports/1-mvn-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6/mill-dist-1.1.6-example-extending-imports-1-mvn-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/extending/imports/1-mvn-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: 17
 //| mvnDeps:
@@ -838,7 +850,7 @@ a HTML generation library that does the string concatenation/construction intern
 and also escapes the input strings on your behalf:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.5/mill-dist-1.1.5-example-extending-imports-2-mvn-deps-scala.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.5/example/extending/imports/2-mvn-deps-scala">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6/mill-dist-1.1.6-example-extending-imports-2-mvn-deps-scala.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/extending/imports/2-mvn-deps-scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["com.lihaoyi::scalatags:0.13.1"]
 
@@ -995,7 +1007,7 @@ configuring on <a href="meta-build.html" class="xref page">The Mill Meta-Build</
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="../large/multi-language-builds.html">Multi-Language Builds</a></span>
+  <span class="prev"><a href="../large/pre-compiled-modules.html">Pre-Compiled Modules</a></span>
   <span class="next"><a href="contrib-plugins.html">Contrib Plugins</a></span>
 </nav>
 </article>

@@ -395,6 +395,10 @@
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../large/pre-compiled-modules.html">Pre-Compiled Modules</a>
+  </li>
 </ul>
   </li>
 
@@ -422,6 +426,10 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/owaspdependencycheck.html">Dependency Check</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -532,6 +540,10 @@
 
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="scala.html">Android Scala Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -685,7 +697,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.5</span>
+    <span class="version">1.1.6</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -695,7 +707,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.5</a>
+          <a href="../index.html">1.1.6</a>
         </li>
         <li class="version">
           <a href="../dev-1.1.6-29-55543e/index.html">dev-1.1.6-29-55543e</a>
@@ -749,7 +761,7 @@ that utilizes Hilt for dependency injection, based on the official
 <h2 id="_android_mill_setup_for_building_the_todo_app"><a class="anchor" href="#_android_mill_setup_for_building_the_todo_app"></a>Android Mill Setup for building the TODO App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.5/mill-dist-1.1.5-example-thirdparty-androidtodo.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.5/example/thirdparty/androidtodo">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6/mill-dist-1.1.6-example-thirdparty-androidtodo.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/thirdparty/androidtodo">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -870,7 +882,7 @@ object Versions {
     mvn"com.google.dagger:hilt-android-compiler:2.56"
   )
 
-  object test extends KspTests, AndroidAppKotlinTests, AndroidHiltSupport, TestModule.Junit4,
+  object test extends KspTests, AndroidHiltSupport, AndroidAppKotlinTests, TestModule.Junit4,
         KotlinIdeaModule {
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
@@ -1034,7 +1046,7 @@ object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport, KotlinIdea
 &gt; ./mill show app.androidInstall
 ...All files should be loaded. Notifying the device...
 
-&gt; ./mill show app.androidRun --activity com.example.android.architecture.blueprints.todoapp.TodoActivity
+&gt; ./mill show app.androidRun
 [
   "Starting: Intent { cmp=com.example.android.architecture.blueprints.main/com.example.android.architecture.blueprints.todoapp.TodoActivity }",
   "Status: ok",
@@ -1043,13 +1055,19 @@ object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport, KotlinIdea
   "TotalTime: ...",
   "WaitTime: ...",
   "Complete"
-]
-
-&gt; ./mill app.androidTest
+]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>(Exclude TasksScreenTest test class since it is flaky on CI)</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill app.androidTest -e notClass com.example.android.architecture.blueprints.todoapp.tasks.TasksScreenTest
 
 &gt; cat out/app/androidTest/testForked.dest/test-report.xml
 &lt;?xml version='1.0' encoding='UTF-8'?&gt;
-&lt;testsuites tests="38" failures="0" errors="0" skipped="0" time="..."&gt;
+&lt;testsuites tests="26" failures="0" errors="0" skipped="0" time="..."&gt;
 ...
 
 &gt; ./mill show app.stopAndroidEmulator

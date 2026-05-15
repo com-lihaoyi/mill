@@ -395,6 +395,10 @@
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../large/pre-compiled-modules.html">Pre-Compiled Modules</a>
+  </li>
 </ul>
   </li>
 
@@ -422,6 +426,10 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/owaspdependencycheck.html">Dependency Check</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -532,6 +540,10 @@
 
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="scala.html">Android Scala Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -685,7 +697,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.5</span>
+    <span class="version">1.1.6</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -695,7 +707,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.5</a>
+          <a href="../index.html">1.1.6</a>
         </li>
         <li class="version">
           <a href="../dev-1.1.6-29-55543e/index.html">dev-1.1.6-29-55543e</a>
@@ -761,7 +773,7 @@ official <a href="https://github.com/android/compose-samples">compose samples</a
 <h2 id="_android_mill_setup_for_building_jetlagged_and_jetnews"><a class="anchor" href="#_android_mill_setup_for_building_jetlagged_and_jetnews"></a>Android Mill Setup for building JetLagged and JetNews</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.5/mill-dist-1.1.5-example-thirdparty-android-compose-samples.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.5/example/thirdparty/android-compose-samples">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6/mill-dist-1.1.6-example-thirdparty-android-compose-samples.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/thirdparty/android-compose-samples">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*, androidlib.*, kotlinlib.*
 
@@ -1118,7 +1130,7 @@ The following example is for building, testing and running JetNews.</p>
 &gt; ./mill show JetNews.app.androidInstall
 ...All files should be loaded. Notifying the device...
 
-&gt; ./mill show JetNews.app.androidRun --activity com.example.jetnews.ui.MainActivity
+&gt; ./mill show JetNews.app.androidRun
 [
   "Starting: Intent { cmp=com.example.jetnews/.ui.MainActivity }",
   "Status: ok",
