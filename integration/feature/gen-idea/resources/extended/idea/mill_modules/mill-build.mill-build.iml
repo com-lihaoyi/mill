@@ -16,9 +16,9 @@
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>
         <orderEntry type="library" name="scala-SDK-<version>" level="project"/>
-        <orderEntry type="library" name="asm-<version>.jar" level="project"/>
-        <orderEntry type="library" name="asm-analysis-<version>.jar" level="project"/>
-        <orderEntry type="library" name="asm-tree-<version>.jar" level="project"/>
+        <orderEntry type="library" name="asm-9.10.jar" level="project"/>
+        <orderEntry type="library" name="asm-analysis-9.10.jar" level="project"/>
+        <orderEntry type="library" name="asm-tree-9.10.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="cache-util-COURSIER_VERSION.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="commons-codec-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="commons-compress-<version>.jar" level="project"/>
