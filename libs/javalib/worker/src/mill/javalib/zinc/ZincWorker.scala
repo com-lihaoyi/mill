@@ -2,6 +2,8 @@ package mill.javalib.zinc
 
 import mill.api.JsonFormatters.*
 import mill.api.PathRef
+import mill.api.daemon.ClassLoaderCache
+import mill.api.daemon.internal.PathRefApi
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.api.daemon.{Logger, Result}
 import mill.client.lock.*
@@ -31,50 +33,13 @@ import scala.collection.mutable
  * @param jobs number of parallel jobs
  * @param useFileLocks use file-based locking instead of PID-based locking
  */
-class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable { self =>
+class ZincWorker(
+    jobs: Int,
+    useFileLocks: Boolean = false,
+    classLoaderCache: ClassLoaderCache = ZincWorker.localClassLoaderCache()
+) extends AutoCloseable { self =>
   private val incrementalCompiler = new sbt.internal.inc.IncrementalCompilerImpl()
   private val compilerBridgeLocks: mutable.Map[String, MemoryLock] = mutable.Map.empty
-
-  private val classloaderCache = new RefCountedClassLoaderCache(
-    sharedLoader = getClass.getClassLoader,
-    sharedPrefixes = Seq("xsbti")
-  ) {
-    override def extraRelease(cl: ClassLoader): Unit =
-      try {
-        for {
-          cls <- {
-            try Some(cl.loadClass("scala.tools.nsc.classpath.FileBasedCache$"))
-            catch {
-              case _: ClassNotFoundException => None
-            }
-          }
-          moduleField <- {
-            try Some(cls.getField("MODULE$"))
-            catch {
-              case _: NoSuchFieldException => None
-            }
-          }
-          module = moduleField.get(null)
-          timerField <- {
-            try Some(cls.getDeclaredField("scala$tools$nsc$classpath$FileBasedCache$$timer"))
-            catch {
-              case _: NoSuchFieldException => None
-            }
-          }
-          _ = timerField.setAccessible(true)
-          timerOpt0 = timerField.get(module)
-          getOrElseMethod <- timerOpt0.getClass.getMethods.find(_.getName == "getOrElse")
-          timer <-
-            Option(getOrElseMethod.invoke(timerOpt0, null).asInstanceOf[java.util.Timer])
-        } {
-          timer.cancel()
-        }
-      } catch {
-        // Some JDK/classloader combinations can throw linkage errors while reflecting
-        // over the Scala compiler internals. Timer cleanup is best-effort.
-        case _: LinkageError => ()
-      }
-  }
 
   private val scalaCompilerCache =
     new CachedFactoryWithInitData[
@@ -100,7 +65,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
             compilerBridgeProvider
           )
         }
-        val classLoader = classloaderCache.get(key.combinedCompilerClasspath)
+        val classLoader = classLoaderCache.get(key.combinedCompilerClasspath)
         val scalaInstance = new inc.ScalaInstance(
           version = key.scalaVersion,
           loader = classLoader,
@@ -125,7 +90,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       }
 
       override def teardown(key: ScalaCompilerCacheKey, value: ScalaCompilerCached): Unit = {
-        classloaderCache.release(key.combinedCompilerClasspath)
+        classLoaderCache.release(key.combinedCompilerClasspath)
       }
     }
 
@@ -299,7 +264,6 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
   def close(): Unit = {
     scalaCompilerCache.close()
     javaOnlyCompilerCache.close()
-    classloaderCache.close()
   }
 
   private def withScalaCompilers[T](
@@ -697,6 +661,57 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
 
 object ZincWorker {
   private val DirectoryFileHash = 42
+
+  def localClassLoaderCache(): ClassLoaderCache = new ClassLoaderCache {
+    private val underlying = new RefCountedClassLoaderCache(
+      sharedLoader = this.getClass.getClassLoader,
+      sharedPrefixes = Seq("xsbti")
+    ) {
+      override def extraRelease(cl: ClassLoader): Unit =
+        try {
+          for {
+            cls <- {
+              try Some(cl.loadClass("scala.tools.nsc.classpath.FileBasedCache$"))
+              catch {
+                case _: ClassNotFoundException => None
+              }
+            }
+            moduleField <- {
+              try Some(cls.getField("MODULE$"))
+              catch {
+                case _: NoSuchFieldException => None
+              }
+            }
+            module = moduleField.get(null)
+            timerField <- {
+              try Some(cls.getDeclaredField("scala$tools$nsc$classpath$FileBasedCache$$timer"))
+              catch {
+                case _: NoSuchFieldException => None
+              }
+            }
+            _ = timerField.setAccessible(true)
+            timerOpt0 = timerField.get(module)
+            getOrElseMethod <- timerOpt0.getClass.getMethods.find(_.getName == "getOrElse")
+            timer <-
+              Option(getOrElseMethod.invoke(timerOpt0, null).asInstanceOf[java.util.Timer])
+          } {
+            timer.cancel()
+          }
+        } catch {
+          // Some JDK/classloader combinations can throw linkage errors while reflecting
+          // over the Scala compiler internals. Timer cleanup is best-effort.
+          case _: LinkageError => ()
+        }
+    }
+
+    override def get(classPath: Seq[PathRefApi]): URLClassLoader =
+      underlying.get(classPath.map(_.asInstanceOf[PathRef]))
+
+    override def release(classPath: Seq[PathRefApi]): Unit = {
+      val _ = underlying.release(classPath.map(_.asInstanceOf[PathRef]))
+      ()
+    }
+  }
 
   /**
    * Dependencies of the invocation.

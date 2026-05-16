@@ -18,7 +18,11 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
   import args.*
 
   /** The local Zinc instance which is used when we do not want to override Java home or runtime options. */
-  private val zincLocalWorker = ZincWorker(jobs = jobs, useFileLocks = useFileLocks)
+  private val zincLocalWorker = ZincWorker(
+    jobs = jobs,
+    useFileLocks = useFileLocks,
+    classLoaderCache = sharedClassLoaderCache
+  )
 
   override def apply(
       op: ZincOp,
