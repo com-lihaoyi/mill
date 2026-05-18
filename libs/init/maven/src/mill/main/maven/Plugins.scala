@@ -76,7 +76,7 @@ class Plugins(model: Model) {
           name <- value(dom, "artifactId")
           version = value(dom, "version").getOrElse("")
           classifier = value(dom, "classifier")
-          excludes = children(dom, "exclusions").flatMap { dom =>
+          excludes = children(dom, "exclusions").flatMap(children(_, "exclusion")).flatMap { dom =>
             for {
               groupId <- value(dom, "groupId")
               artifactId <- value(dom, "artifactId")

@@ -1,0 +1,17 @@
+/** Usage
+
+> git init .
+> git remote add -f origin https://github.com/quarkusio/quarkus-quickstarts.git
+> git checkout e1e97bb3fdc333b85ddf53fa354b0d9e2915053b
+
+> ./mill init
+
+> rm kafka-avro-schema-quickstart/package.mill.yaml grpc-plain-text-quickstart/package.mill.yaml grpc-tls-quickstart/package.mill.yaml # skip subprojects with quarkus codegen. Not yet implemented in mill.
+
+> ./mill __.compile
+
+> ./mill show hibernate-orm-jakarta-data-quickstart.test.testOnly "*Test"
+
+> ./mill show getting-started.test.testOnly "*Test"
+
+*/
