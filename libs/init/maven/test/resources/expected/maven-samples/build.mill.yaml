@@ -4,4 +4,8 @@ extends: PublishModule
 pomSettings:
   description: Just a pom that makes it easy to build both projects at the same time.
   organization: com.example.maven-samples
+  url: ""
+  licenses: []
+  versionControl: ""
+  developers: []
 publishVersion: 1.0-SNAPSHOT

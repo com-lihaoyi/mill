@@ -13,3 +13,8 @@ depManagement:
 artifactName: webapp
 pomSettings:
   description: Webapp.
+  organization: ""
+  url: ""
+  licenses: []
+  versionControl: ""
+  developers: []

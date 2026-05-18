@@ -9,8 +9,12 @@ errorProneDeps:
 errorProneJavacEnableOptions: [-XDshould-stop=ifError=FLOW]
 artifactName: maven-3-9-11
 pomSettings:
+  description: ""
   organization: com.mycompany.app
-  url: http://www.example.com
+  url: "http://www.example.com"
+  licenses: []
+  versionControl: ""
+  developers: []
 publishVersion: 1.0-SNAPSHOT
 
 object test:

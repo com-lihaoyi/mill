@@ -6,8 +6,10 @@ artifactName: single-module-project
 pomSettings:
   description: "Sample single module Maven project with a working, deployable site."
   organization: com.example.maven-samples
-  url: http://www.example.com
-  versionControl: http://github.com/gabrielf/maven-samples
+  url: "http://www.example.com"
+  licenses: []
+  versionControl: "http://github.com/gabrielf/maven-samples"
+  developers: []
 
 object test:
   extends: ProjectBaseTests
