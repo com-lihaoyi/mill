@@ -78,6 +78,7 @@ case class MillCliConfig(
     )
     color: Option[Boolean] = None,
     @arg(
+      short = 'L',
       doc =
         """Select a meta-level to run the given tasks. Level 0 is the main project in `build.mill`,
            level 1 the first meta-build in `mill-build/build.mill`, etc.
