@@ -291,6 +291,10 @@ object BuildGenYaml extends BuildGen {
       errorProneJavacEnableOptions
     ).foreach(lines += _)
 
+    // Annotation Processors
+    renderYamlMvnDepsList("annotationProcessorsMvnDeps", annotationProcessorsMvnDeps).foreach(lines += _)
+    renderYamlStringListValues("annotationProcessorsJavacOptions", annotationProcessorsJavacOptions).foreach(lines += _)
+
     // Publishing
     renderYamlStringValue("artifactName", artifactName).foreach(lines += _)
     // Always render pomSettings if the module has it (YAML will override any inherited value)

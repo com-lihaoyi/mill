@@ -111,6 +111,7 @@ object MillMavenBuildGenMain {
             bomMvnDeps = bomMvnDeps,
             depManagement = depManagement,
             javacOptions = plugins.javacOptions,
+            annotationProcessorsMvnDeps = plugins.annotationProcessorsMvnDeps,
             moduleDeps = moduleDeps("compile"),
             compileModuleDeps = moduleDeps("provided"),
             runModuleDeps = moduleDeps("runtime"),

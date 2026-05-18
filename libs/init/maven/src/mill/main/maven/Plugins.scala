@@ -19,21 +19,13 @@ class Plugins(model: Model) {
     .filter(child(_, "compilerArgs").exists(
       values(_, "arg").exists(_.startsWith("-Xplugin:ErrorProne"))
     ))
-    .flatMap(child(_, "annotationProcessorPaths"))
-    .fold(Nil)(children(_, "path"))
-    .flatMap { dom =>
-      for {
-        organization <- value(dom, "groupId")
-        name <- value(dom, "artifactId")
-        version = value(dom, "version").getOrElse("")
-        excludes = children(dom, "exclusions").flatMap { dom =>
-          for {
-            groupId <- value(dom, "groupId")
-            artifactId <- value(dom, "artifactId")
-          } yield (groupId, artifactId)
-        }
-      } yield MvnDep(organization, name, version, excludes = excludes)
-    }
+    .fold(Nil)(annotationProcessorPaths)
+
+  def annotationProcessorsMvnDeps: Seq[MvnDep] = plugin("maven-compiler-plugin").flatMap(config)
+    .filterNot(child(_, "compilerArgs").exists(
+      values(_, "arg").exists(_.startsWith("-Xplugin:ErrorProne"))
+    ))
+    .fold(Nil)(annotationProcessorPaths)
 
   def skipDeploy: Boolean = plugin("maven-deploy-plugin").flatMap(config)
     .flatMap(value(_, "skip")).fold(false)(_.toBoolean)
@@ -74,4 +66,23 @@ class Plugins(model: Model) {
 
   private def values(dom: Xpp3Dom, name: String): Seq[String] =
     dom.getChildren(name).toSeq.map(_.getValue)
+
+  private def annotationProcessorPaths(dom: Xpp3Dom): Seq[MvnDep] = {
+    child(dom, "annotationProcessorPaths")
+      .fold(Nil)(children(_, "path"))
+      .flatMap { dom =>
+        for {
+          organization <- value(dom, "groupId")
+          name <- value(dom, "artifactId")
+          version = value(dom, "version").getOrElse("")
+          classifier = value(dom, "classifier")
+          excludes = children(dom, "exclusions").flatMap { dom =>
+            for {
+              groupId <- value(dom, "groupId")
+              artifactId <- value(dom, "artifactId")
+            } yield (groupId, artifactId)
+          }
+        } yield MvnDep(organization, name, version, classifier = classifier, excludes = excludes)
+      }
+  }
 }

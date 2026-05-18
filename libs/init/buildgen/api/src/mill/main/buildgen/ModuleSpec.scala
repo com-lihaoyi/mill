@@ -41,6 +41,8 @@ case class ModuleSpec(
     errorProneDeps: Values[MvnDep] = Values(),
     errorProneOptions: Values[String] = Values(),
     errorProneJavacEnableOptions: Values[Opt] = Values(),
+    annotationProcessorsMvnDeps: Values[MvnDep] = Values(),
+    annotationProcessorsJavacOptions: Values[Opt] = Values(),
     jmhCoreVersion: Value[String] = Value(),
     scalaVersion: Value[String] = Value(),
     scalacOptions: Values[Opt] = Values(),
