@@ -57,13 +57,9 @@ trait GradleBuildGenTests extends TestSuite {
   }
 }
 
-object GradleBuildGenTests extends GradleBuildGenTests {
-  def expectedDir: os.SubPath = "expected"
-}
-
 object GradleBuildGenYamlTests extends GradleBuildGenTests {
   def expectedDir: os.SubPath = "expected"
-  override def extraArgs = Seq("--declarative", "true")
+  // No extra args, ensure default is declarative (YAML)
 }
 
 object GradleBuildGenScalaTests extends GradleBuildGenTests {

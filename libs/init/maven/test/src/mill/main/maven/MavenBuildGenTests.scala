@@ -52,13 +52,9 @@ trait MavenBuildGenTests extends TestSuite {
   }
 }
 
-object MavenBuildGenTests extends MavenBuildGenTests {
-  override def expectedDir: os.SubPath = "expected"
-}
-
 object MavenBuildGenYamlTests extends MavenBuildGenTests {
   override def expectedDir: os.SubPath = "expected"
-  override def extraArgs = Seq("--declarative", "true")
+  // No extra args, ensure default is declarative (YAML)
 }
 
 object MavenBuildGenScalaTests extends MavenBuildGenTests {
