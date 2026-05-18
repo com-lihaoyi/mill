@@ -105,11 +105,11 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         var testModule = ModuleSpec(
           name = "test",
           supertypes = "MavenTests" +: testMixin.toSeq,
-          forkArgs = task[Test]("test").fold(Nil) { task =>
+          forkArgs = Values(task[Test]("test").fold(Nil) { task =>
             task.getSystemProperties.asScala.map {
               case (k, v) => Opt(s"-D$k=$v")
             }.toSeq ++ Opt.groups(task.getJvmArgs.asScala.toSeq)
-          },
+          }, appendSuper = true),
           forkWorkingDir = Some("moduleDir"),
           mvnDeps = mvnDeps("testImplementation"),
           compileMvnDeps = mvnDeps("testCompileOnly"),

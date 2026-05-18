@@ -135,7 +135,7 @@ object MillMavenBuildGenMain {
             var testModule = ModuleSpec(
               name = "test",
               supertypes = "MavenTests" +: testMixin.toSeq,
-              forkArgs = plugins.testForkArgs,
+              forkArgs = Values(plugins.testForkArgs, appendSuper = true),
               forkWorkingDir = Some("moduleDir"),
               mvnDeps = testMvnDeps,
               compileMvnDeps = mainModule.compileMvnDeps,
