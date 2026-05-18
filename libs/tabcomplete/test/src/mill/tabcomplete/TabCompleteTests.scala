@@ -311,11 +311,12 @@ object TabCompleteTests extends TestSuite {
           evalComplete("1", "./mill", "-"),
           Set(
             "-i  Alias for now `--no-daemon`. No longer needed for interactive commands since Mill 1.1.0",
-            "-b  Ring the bell once if the run completes successfully, twice if it fails.",
             "-k  Continue build, even after build failures.",
             "-w  Watch and re-run the given tasks when their inputs change.",
             "-D  <k=v> Define (or overwrite) a system property.",
             "-d  Show debug output on STDOUT",
+            "-L  <int> Select a meta-level to run the given tasks. Level 0 is the main project in `build.mill`, level 1 the first meta-build in `mill-build/build.mill`, etc. If negative, -1 means the deepest meta-build (bootstrap build), -2 the second deepest meta-build, etc.",
+            "-b  Ring the bell once if the run completes successfully, twice if it fails.",
             "-v  Show mill version information and exit.",
             "-j  <str> The number of parallel threads. It can be an integer e.g. `5` meaning 5 threads, an expression e.g. `0.5C` meaning half as many threads as available cores, or `C-2` meaning 2 threads less than the number of cores. `1` disables parallelism and `0` (the default) uses 1 thread per core."
           )
