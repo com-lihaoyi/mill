@@ -14,8 +14,6 @@ case class ModuleSpec(
     moduleDir: Value[String] = Value(),
     springBootPlatformVersion: Value[String] = Value(),
     quarkusPlatformVersion: Value[String] = Value(),
-    quarkusArtifactGroupId: Value[String] = Value(),
-    quarkusArtifactId: Value[String] = Value(),
     repositories: Values[String] = Nil,
     forkArgs: Values[Opt] = Values(),
     forkWorkingDir: Value[String] = Value(),
@@ -108,17 +106,11 @@ case class ModuleSpec(
     copy(supertypes = requiredSupertypes ++ supertypes.filterNot(requiredSupertypes.contains))
   }
 
-  def withQuarkusModule(
-      quarkusVersion: Value[String],
-      groupId: Value[String],
-      artifactId: Value[String]
-  ): ModuleSpec = {
+  def withQuarkusModule(quarkusVersion: Value[String]): ModuleSpec = {
     copy(
       imports = "mill.javalib.quarkus.*" +: imports,
       supertypes = "QuarkusModule" +: supertypes,
-      quarkusPlatformVersion = quarkusVersion,
-      quarkusArtifactGroupId = groupId,
-      quarkusArtifactId = artifactId,
+      quarkusPlatformVersion = quarkusVersion
     )
   }
 

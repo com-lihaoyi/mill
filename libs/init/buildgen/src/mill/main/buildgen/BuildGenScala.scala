@@ -156,8 +156,6 @@ object BuildGenScala extends BuildGen {
     lines += renderDefValue("moduleDir", moduleDir, identity[String])
     lines += renderDefValue("springBootPlatformVersion", springBootPlatformVersion, encodeString)
     lines += renderDefValue("quarkusPlatformVersion", quarkusPlatformVersion, encodeString)
-    lines += renderDefValue("artifactGroupId", quarkusArtifactGroupId, encodeString)
-    lines += renderDefValue("artifactId", quarkusArtifactId, encodeString)
     lines += renderDefValues("moduleDeps", moduleDeps, encodeModuleDep, isTask = false)
     lines += renderDefValues(
       "compileModuleDeps",
