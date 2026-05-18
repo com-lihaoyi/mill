@@ -14,7 +14,10 @@ import scala.util.Using
 
 object MillGradleBuildGenMain {
 
-  def main(args: Array[String]): Unit = mainargs.Parser(this).runOrExit(args.toSeq)
+  def main(args: Array[String]): Unit = {
+    mainargs.Parser(this).runOrExit(args.toSeq)
+    System.exit(0)
+  }
 
   @mainargs.main(doc = "Generates Mill build files that are derived from a Gradle build.")
   def init(
