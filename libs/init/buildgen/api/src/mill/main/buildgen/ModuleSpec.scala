@@ -13,6 +13,9 @@ case class ModuleSpec(
     alias: Option[String] = None,
     moduleDir: Value[String] = Value(),
     springBootPlatformVersion: Value[String] = Value(),
+    quarkusPlatformVersion: Value[String] = Value(),
+    quarkusArtifactGroupId: Value[String] = Value(),
+    quarkusArtifactId: Value[String] = Value(),
     repositories: Values[String] = Nil,
     forkArgs: Values[Opt] = Values(),
     forkWorkingDir: Value[String] = Value(),
@@ -103,6 +106,20 @@ case class ModuleSpec(
   def withSpringBootTestsModule(): ModuleSpec = {
     val requiredSupertypes = Seq("SpringBootTestsModule", "MavenTests")
     copy(supertypes = requiredSupertypes ++ supertypes.filterNot(requiredSupertypes.contains))
+  }
+
+  def withQuarkusModule(
+      quarkusVersion: Value[String],
+      groupId: Value[String],
+      artifactId: Value[String]
+  ): ModuleSpec = {
+    copy(
+      imports = "mill.javalib.quarkus.*" +: imports,
+      supertypes = "QuarkusModule" +: supertypes,
+      quarkusPlatformVersion = quarkusVersion,
+      quarkusArtifactGroupId = groupId,
+      quarkusArtifactId = artifactId,
+    )
   }
 
   def withJmhModule(jmhCoreVersion: Value[String]): ModuleSpec = copy(
@@ -271,6 +288,7 @@ object ModuleSpec {
   def testModuleMixin(mvnDeps: Seq[MvnDep]): Option[String] = {
     // Prioritize frameworks that integrate with other frameworks.
     mvnDeps.iterator.map(dep => dep.organization -> dep.name).collectFirst {
+      case ("io.quarkus", "quarkus-junit") => "QuarkusJunit"
       case ("org.scalatest" | "org.scalatestplus", _) => "TestModule.ScalaTest"
       case ("org.specs2", _) => "TestModule.Spec2"
       // https://scalameta.org/munit/docs/integrations/external-integrations.html

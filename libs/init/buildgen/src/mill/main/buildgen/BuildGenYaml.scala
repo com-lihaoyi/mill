@@ -99,6 +99,16 @@ object BuildGenYaml extends BuildGen {
     springBootPlatformVersion.base.foreach(v =>
       lines += s"""def springBootPlatformVersion = "$v""""
     )
+    quarkusPlatformVersion.base.foreach(v =>
+      lines += s"""def quarkusPlatformVersion = "$v""""
+    )
+    quarkusArtifactGroupId.base.foreach(v =>
+      lines += s"""def artifactGroupId = "$v""""
+    )
+    quarkusArtifactId.base.foreach(v =>
+      lines += s"""def artifactId = "$v""""
+    )
+
     renderScalaOptValues("def scalacOptions", scalacOptions).foreach(lines += _)
     renderScalaMvnDepValues("def scalacPluginMvnDeps", scalacPluginMvnDeps).foreach(lines += _)
     testParallelism.base.foreach(v => lines += s"def testParallelism = $v")
@@ -228,6 +238,14 @@ object BuildGenYaml extends BuildGen {
       "springBootPlatformVersion",
       springBootPlatformVersion
     ).foreach(lines += _)
+    renderYamlStringValue(
+      "quarkusPlatformVersion",
+      quarkusPlatformVersion
+    ).foreach(lines += _)
+    renderYamlStringValue(
+      "artifactGroupId",
+      quarkusArtifactGroupId
+    ).foreach(lines += _)
 
     // BomModule cannot have sources - set empty sources/resources when BomModule is used
     val isBomModule = effectiveSupertypes.contains("BomModule")
@@ -322,6 +340,7 @@ object BuildGenYaml extends BuildGen {
     "ScalaNativeModule" -> "mill.scalanativelib.ScalaNativeModule",
     "ErrorProneModule" -> "mill.javalib.errorprone.ErrorProneModule",
     "SpringBootModule" -> "spring.boot.SpringBootModule",
+    "QuarkusModule" -> "quarkus.QuarkusModule",
     "ProjectBaseModule" -> "millbuild.ProjectBaseModule"
   )
 

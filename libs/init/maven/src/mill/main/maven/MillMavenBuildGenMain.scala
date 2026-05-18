@@ -89,6 +89,8 @@ object MillMavenBuildGenMain {
           val isSpringParentProject = isSpringBootProject(model)
           val springBootVersion = detectSpringBootVersion(model)
 
+          val quarkusBomDepOpt = detectQuarkusBomDep(model)
+
           val (rawBomMvnDeps, rawDepManagement, rawBomModuleDeps) =
             Option(result.getRawModel.getDependencyManagement).fold((Nil, Nil, Nil)) { dm =>
               collectDependencyManagement(dm, toMvnOrModuleDep, moduleDepLookup)
@@ -117,6 +119,13 @@ object MillMavenBuildGenMain {
           ).withErrorProneModule(plugins.errorProneMvnDeps)
           if (isSpringParentProject) {
             mainModule = mainModule.withSpringBootModule(springBootVersion)
+          }
+          quarkusBomDepOpt.foreach { bomDep =>
+              mainModule = mainModule.withQuarkusModule(
+                quarkusVersion = nonEmpty(bomDep.getVersion),
+                groupId = nonEmpty(bomDep.getGroupId),
+                artifactId = nonEmpty(bomDep.getArtifactId)
+              )
           }
           if (os.exists(moduleDir / "src/test")) {
             val testMvnDeps = mvnDeps("test")
@@ -249,6 +258,24 @@ object MillMavenBuildGenMain {
     Option(model.getParent)
       .filter(isSpringBootParent)
       .flatMap(parent => nonEmpty(parent.getVersion))
+  }
+
+  private val QuarkusGroupId = "io.quarkus"
+  private val QuarkusPlatformGroupId = "io.quarkus.platform"
+  private val QuarkusBomArtifactId = "quarkus-bom"
+  private val QuarkusUniverseBomArtifactId = "quarkus-universe-bom"
+
+  private def isQuarkusBom(dep: Dependency): Boolean = {
+    isBom(dep) &&
+    (dep.getGroupId == QuarkusGroupId || dep.getGroupId == QuarkusPlatformGroupId) &&
+      (dep.getArtifactId == QuarkusBomArtifactId || dep.getArtifactId == QuarkusUniverseBomArtifactId)
+  }
+
+  /** Detect Quarkus platform BOM dependency from quarkus-bom. */
+  private def detectQuarkusBomDep(model: Model): Option[Dependency] = {
+    Option(model.getDependencyManagement).toSeq
+      .flatMap(_.getDependencies.asScala)
+      .find(dep => isQuarkusBom(dep))
   }
 
   private def toMvnDep(dep: Dependency) = {
