@@ -78,3 +78,19 @@ This will make the `owaspDependencyCheck` fail if any vulnerability with a CVSS 
 If you do not want to fail the task, for example to use the result in a downstream task,
 then set `owaspDependencyCheckFailTask = false`.
 
+== Override the Dependency Check Version
+To override the version used, use your own Owasp Dependency Check worker:
+
+[source,scala]
+----
+import mill.contrib.owaspdependencycheck.{OwaspDependencyCheckWorker,OwaspDependencyCheckModule}
+object MyBuildsOwaspDependencyCheckWorker extends OwaspDependencyCheckWorker {
+  // A version from https://github.com/dependency-check/DependencyCheck
+  override def dependencyCheckVersion: T[String] = "<version>"
+}
+// Then override the worker:
+object myModule extends OwaspDependencyCheckModule {
+  override def owaspDependencyCheckWorker: mill.api.ModuleRef[OwaspDependencyCheckWorker] =
+    mill.api.ModuleRef(MyBuildsOwaspDependencyCheckWorker)
+}
+----
