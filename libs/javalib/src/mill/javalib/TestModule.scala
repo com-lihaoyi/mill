@@ -212,6 +212,22 @@ trait TestModule
   def testParallelism: T[Boolean] = Task { true }
 
   /**
+   * Whether Mill should pass each fork group's full selected `TaskDef` batch to
+   * `Runner.tasks` inside one forked test JVM.
+   *
+   * Some sbt-testing frameworks use `Runner.tasks` to wire relationships between related
+   * `TaskDef`s. For example, Weaver's `GlobalResource` setup is connected to suites from
+   * the full `TaskDef` batch. Set this to true for such frameworks.
+   *
+   * Setting this to true disables intra-group queue parallelism: all classes in a
+   * `testForkGrouping` group run in one subprocess. Separate fork groups can still run
+   * independently.
+   *
+   * See also: https://github.com/com-lihaoyi/mill/issues/7113
+   */
+  def testBatchFrameworkTasks: T[Boolean] = Task { false }
+
+  /**
    * Discovers and runs the module's tests in a subprocess, reporting the
    * results to the console.
    * Arguments before "--" will be used as wildcard selector to select
@@ -335,7 +351,8 @@ trait TestModule
         testLogLevel(),
         propagateEnv(),
         jvmWorker().internalWorker(),
-        discoveredClassesOpt = aheadOfTimeDiscoveredTestClassesIfNeeded()
+        discoveredClassesOpt = aheadOfTimeDiscoveredTestClassesIfNeeded(),
+        testBatchFrameworkTasks = testBatchFrameworkTasks()
       )
       testModuleUtil.runTests()
     }
