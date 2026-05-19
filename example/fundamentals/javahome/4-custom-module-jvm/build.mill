@@ -1,5 +1,3 @@
-// :link-jvm-indices: https://github.com/coursier/jvm-index/blob/master/indices/linux-arm64.json
-//
 // Configuring custom JVMs is done by setting the `jvmVersion`
 // of any `JavaModule`, `ScalaModule`, or `KotlinModule`. This can be done
 // declaratively via `package.mill.yaml` files:

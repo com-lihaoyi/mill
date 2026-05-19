@@ -1,3 +1,4 @@
+//| mill-jvm-version: zulu:21
 import mill.*, androidlib.*, kotlinlib.*
 
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
@@ -8,7 +9,7 @@ object androidSdkModule0 extends AndroidSdkModule {
 object examples extends mill.api.Module {
   object `androidx-samples` extends AndroidAppKotlinModule, AndroidR8AppModule {
 
-    def kotlinVersion = "2.0.20"
+    def kotlinVersion = "2.2.20"
 
     def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 

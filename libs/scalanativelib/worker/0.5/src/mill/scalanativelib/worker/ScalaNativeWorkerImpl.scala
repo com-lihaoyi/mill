@@ -143,7 +143,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
       .withEnvVars(envVars)
       .withLogger(logger(logLevel))
 
-    val adapter = new TestAdapter(config)
+    val adapter = TestAdapter(config)
 
     (
       () => adapter.close(),
@@ -151,7 +151,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
         .loadFrameworks(List(List(frameworkName)))
         .flatten
         .headOption
-        .getOrElse(throw new RuntimeException("Failed to get framework"))
+        .getOrElse(throw RuntimeException("Failed to get framework"))
     )
   }
 }

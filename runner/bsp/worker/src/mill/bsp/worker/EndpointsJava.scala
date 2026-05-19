@@ -39,6 +39,6 @@ private trait EndpointsJava extends JavaBuildServer with EndpointsApi {
       )
 
     } { (values, _, _) =>
-      new JavacOptionsResult(values)
+      JavacOptionsResult(values)
     }
 }

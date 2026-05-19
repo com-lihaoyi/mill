@@ -116,7 +116,7 @@ object SpotlessTests extends TestSuite {
 
     test("ratchet") - retry(3) {
       object module extends singleModule
-      val logStream = new ByteArrayOutputStream()
+      val logStream = ByteArrayOutputStream()
       val errStream = PrintStream(logStream, true)
       UnitTester(module, resources / "ratchet", errStream = errStream).scoped { eval =>
         import module.moduleDir

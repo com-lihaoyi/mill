@@ -22,9 +22,9 @@ abstract class Lock extends AutoCloseable {
 }
 
 object Lock {
-  def file(path: String): Lock = new FileLock(path)
-  def memory(): Lock = new MemoryLock()
+  def file(path: String): Lock = FileLock(path)
+  def memory(): Lock = MemoryLock()
   def forDirectory(daemonDir: String, useFileLocks: Boolean): Lock =
-    if (useFileLocks) new FileLock(daemonDir)
-    else new PidLock(daemonDir)
+    if (useFileLocks) FileLock(daemonDir)
+    else PidLock(daemonDir)
 }

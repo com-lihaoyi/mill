@@ -141,7 +141,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
       s"Generating Java stubs for ${groovySourceFiles.size} Groovy sources to $stubDir ..."
     )
 
-    val compileCp = compileClasspath().map(_.path).filter(os.exists)
+    val compileCp = compileClasspath().iterator.map(_.path).filter(os.exists).toSeq
     val config = GroovyCompilerConfiguration(
       enablePreview = groovyCompileEnablePreview(),
       targetBytecode = groovyCompileTargetBytecode(),
@@ -174,7 +174,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
 
       val isGroovy = groovySourceFiles.nonEmpty
       val isJava = javaSourceFiles.nonEmpty
-      val compileCp = compileClasspath().map(_.path).filter(os.exists)
+      val compileCp = compileClasspath().iterator.map(_.path).filter(os.exists).toSeq
       val updateCompileOutput = upstreamCompileOutput()
 
       sealed trait CompilationStrategy
@@ -204,7 +204,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
           worker = jvmWorkerRef().internalWorker(),
           upstreamCompileOutput = updateCompileOutput,
           javaSourceFiles = javaSourceFiles,
-          compileCp = compileCp :+ compileGeneratedGroovyStubs(),
+          compileCp = (compileCp :+ compileGeneratedGroovyStubs()).map(PathRef(_, quick = true)),
           javaHome = javaHome().map(_.path),
           javacOptions = javacOptions(),
           compileProblemReporter = ctx.reporter(hashCode),
@@ -251,7 +251,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
       worker: InternalJvmWorkerApi,
       upstreamCompileOutput: Seq[CompilationResult],
       javaSourceFiles: Seq[os.Path],
-      compileCp: Seq[os.Path],
+      compileCp: Seq[PathRef],
       javaHome: Option[os.Path],
       javacOptions: Seq[String],
       compileProblemReporter: Option[CompileProblemReporter],

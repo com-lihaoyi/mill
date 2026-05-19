@@ -70,9 +70,9 @@ trait CheckstyleModule extends JavaModule {
       Task.log.error(
         s"checkstyle exit($exitCode); please check command arguments, plugin settings or try with another version"
       )
-      throw new UnsupportedOperationException(s"checkstyle exit($exitCode)")
+      throw UnsupportedOperationException(s"checkstyle exit($exitCode)")
     } else if (check) {
-      throw new RuntimeException(s"checkstyle found $exitCode violation(s)")
+      throw RuntimeException(s"checkstyle found $exitCode violation(s)")
     } else {
       Task.log.error(s"checkstyle found $exitCode violation(s)")
     }

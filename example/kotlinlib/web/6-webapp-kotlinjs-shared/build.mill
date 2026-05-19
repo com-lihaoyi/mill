@@ -8,7 +8,7 @@ package build
 import mill.*, kotlinlib.*, kotlinlib.js.*
 
 trait AppKotlinModule extends KotlinModule {
-  def kotlinVersion = "1.9.25"
+  def kotlinVersion = "2.2.20"
 }
 
 trait AppKotlinJsModule extends AppKotlinModule, KotlinJsModule

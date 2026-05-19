@@ -90,7 +90,7 @@ private[mill] object ScalaJSConfig {
       if (minorIsGreaterThanOrEqual(sjsVersion, 17))
         config = config.withExperimentalUseWebAssembly(true)
       else
-        throw new Exception("Emitting wasm is not supported with Scala.js < 1.17")
+        throw Exception("Emitting wasm is not supported with Scala.js < 1.17")
 
     config
   }

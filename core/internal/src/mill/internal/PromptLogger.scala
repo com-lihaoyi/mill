@@ -109,7 +109,7 @@ class PromptLogger(
   def error(s: String): Unit = streams.err.println(s)
 
   object prompt extends Logger.Prompt {
-    val logLockObject = new Object()
+    val logLockObject = Object()
     def logLock[T](block: => T): T = logLockObject.synchronized {
       block
     }
@@ -137,7 +137,7 @@ class PromptLogger(
       )
     }
 
-    val threadNumberer = new ThreadNumberer()
+    val threadNumberer = ThreadNumberer()
     override def setPromptHeaderPrefix(s: String): Unit = PromptLogger.this.synchronized {
       promptLineState.setHeaderPrefix(s)
     }
@@ -173,8 +173,10 @@ class PromptLogger(
     ): Unit = {
       val logStream = if (logToOut) streams.out else streams.err
       if (enableTicker) {
+        // Split the log message into lines outside the synchronized block since
+        // splitPreserveEOL is a pure function with no shared-state dependencies
+        val lines0 = Util.splitPreserveEOL(logMsg.toByteArray)
         val (lines, seenBefore, res) = PromptLogger.this.synchronized {
-          val lines0 = Util.splitPreserveEOL(logMsg.toByteArray)
           val seenBefore = reportedIdentifiers(key)
           val res =
             if (reportedIdentifiers(key) && lines0.isEmpty) None
@@ -197,7 +199,7 @@ class PromptLogger(
             // color. This ensures that any trailing colors in the original `bufferString` do not
             // get ignored since they would affect zero characters.
             val extendedString = fansi.Str.apply(
-              new String(continuationColoredLine) + "x",
+              String(continuationColoredLine) + "x",
               fansi.ErrorMode.Sanitize
             )
 
@@ -233,9 +235,15 @@ class PromptLogger(
             }
 
             // Strip non-color ansi codes so things like line clearing or cursor
-            // movement don't mess up Mill's log formatting in the terminal
-            def stripAnsi(s: Array[Byte]) =
-              fansi.Str(new String(s, "UTF-8"), fansi.ErrorMode.Strip).render.getBytes("UTF-8")
+            // movement don't mess up Mill's log formatting in the terminal.
+            // Fast path: skip the expensive fansi parse when no ESC byte is present.
+            def stripAnsi(s: Array[Byte]): Array[Byte] = {
+              val EscByte = 27.toByte
+              var i = 0
+              while (i < s.length && s(i) != EscByte) i += 1
+              if (i == s.length) s
+              else fansi.Str(String(s, "UTF-8"), fansi.ErrorMode.Strip).render.getBytes("UTF-8")
+            }
 
             if (!seenBefore) {
               lines match {
@@ -263,8 +271,6 @@ class PromptLogger(
           }
         }
       } else logStream.synchronized { logMsg.writeTo(logStream) }
-
-      streamManager.awaitPumperEmpty()
     }
 
     override def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit =
@@ -279,8 +285,13 @@ class PromptLogger(
         seenIdentifiers(key) = (keySuffix, message)
       }
 
-    override def withPromptPaused[T](t: => T): T =
+    override def withPromptPaused[T](t: => T): T = {
+      // Drain the pipe before pausing so any pending output (e.g. exclusive task
+      // header written via logPrefixedLine) reaches the terminal before the task
+      // starts writing directly to exclusiveSystemStreams (which bypasses the pipe).
+      streamManager.awaitPumperEmpty()
       runningState.withPromptPaused0(true, t)
+    }
 
     override def withPromptUnpaused[T](t: => T): T =
       runningState.withPromptPaused0(false, t)
@@ -390,16 +401,16 @@ object PromptLogger {
     // `ProxyStream`, as we need to preserve the ordering of writes to each individual
     // stream, and also need to know when *both* streams are quiescent so that we can
     // print the prompt at the bottom
-    val pipe = new PipeStreams()
-    val proxyOut = new ProxyStream.Output(pipe.output, ProxyStream.OUT)
-    val proxyErr = new ProxyStream.Output(pipe.output, ProxyStream.ERR)
-    val proxySystemStreams = new SystemStreams(
-      new PrintStream(proxyOut),
-      new PrintStream(proxyErr),
+    val pipe = PipeStreams()
+    val proxyOut = ProxyStream.Output(pipe.output, ProxyStream.OUT)
+    val proxyErr = ProxyStream.Output(pipe.output, ProxyStream.ERR)
+    val proxySystemStreams = SystemStreams(
+      PrintStream(proxyOut),
+      PrintStream(proxyErr),
       systemStreams0.in
     )
 
-    def awaitPumperEmpty(): Unit = { while (pipe.input.available() != 0) Thread.sleep(2) }
+    def awaitPumperEmpty(): Unit = pipe.awaitInputEmpty()
 
     @volatile var lastPromptHeight = 0
 
@@ -407,7 +418,7 @@ object PromptLogger {
       if (!paused()) {
         val currentPrompt = getCurrentPrompt()
         systemStreams0.err.write(currentPrompt)
-        if (interactive()) lastPromptHeight = new String(currentPrompt).linesIterator.size
+        if (interactive()) lastPromptHeight = String(currentPrompt).linesIterator.size
         else lastPromptHeight = 0
       } else lastPromptHeight = 0
 
@@ -481,7 +492,7 @@ object PromptLogger {
       }
     }
 
-    val pumperThread = new Thread(pumper, "prompt-logger-stream-pumper-thread")
+    val pumperThread = Thread(pumper, "prompt-logger-stream-pumper-thread")
     pumperThread.start()
 
     def close(): Unit = {

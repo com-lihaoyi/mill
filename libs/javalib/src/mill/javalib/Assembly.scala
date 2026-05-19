@@ -50,7 +50,7 @@ object Assembly {
       override def productElement(n: Int): Any = n match {
         case 0 => pattern
         case 1 => separator
-        case _ => throw new IndexOutOfBoundsException(n.toString)
+        case _ => throw IndexOutOfBoundsException(n.toString)
       }
       override def canEqual(that: Any): Boolean = that.isInstanceOf[AppendPattern]
       override def hashCode(): Int = scala.runtime.ScalaRunTime._hashCode(this)
@@ -118,7 +118,7 @@ object Assembly {
   ): (Generator[(String, UnopenedInputStream)], ResourceCloser) = {
 
     val pathsWithResources = inputPaths.filter(os.exists).map { path =>
-      if (os.isFile(path)) path -> Some(new JarFile(path.toIO))
+      if (os.isFile(path)) path -> Some(JarFile(path.toIO))
       else path -> None
     }
 
@@ -205,10 +205,10 @@ object Assembly {
               case entry: AppendEntry =>
                 val separated = entry.inputStreams
                   .flatMap(inputStream =>
-                    Seq(new ByteArrayInputStream(entry.separator.getBytes), inputStream())
+                    Seq(ByteArrayInputStream(entry.separator.getBytes), inputStream())
                   )
                 val cleaned = if (os.exists(path)) separated else separated.drop(1)
-                Using.resource(new SequenceInputStream(Collections.enumeration(cleaned.asJava))) {
+                Using.resource(SequenceInputStream(Collections.enumeration(cleaned.asJava))) {
                   concatenated =>
                     addedEntryCount += 1
                     writeEntry(path, concatenated, append = true)

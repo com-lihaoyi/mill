@@ -1,0 +1,6 @@
+= Pre-Compiled Modules
+
+
+
+include::partial$example/large/precompiled/10-precompiled-modules.adoc[]
+

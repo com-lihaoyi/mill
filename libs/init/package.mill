@@ -118,6 +118,11 @@ object `package` extends MillPublishScalaModule {
 
     override object test extends MillScalaTests {
       override def selectiveInputs = Seq(sources, this.resources) ++ initSelectiveInputs
+      // Each init test spawns an external build tool (gradle, mvn, sbt) which
+      // writes to global ~/.gradle / ~/.m2 / ~/.sbt / ~/.coursier caches and
+      // downloads tool distributions; running tests in parallel races on
+      // those shared resources.
+      def testParallelism = false
     }
   }
 

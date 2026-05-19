@@ -163,7 +163,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
       PathRef(Task.dest / "results.json")
     }
 
-    private def screenshotResults: Task[PathRef] = Task {
+    private def screenshotResults: Task.Simple[PathRef] = Task {
       val dir = Task.dest / "generated-screenshots"
       os.makeDir(dir)
       PathRef(dir)
@@ -196,17 +196,13 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
         ),
         screenshots = androidDiscoveredPreviews().screenshotConfigs,
         namespace = androidApplicationNamespace,
-        resourceApkPath = resourceApkPath().path.toString(),
+        resourceApkPath = androidLinkedResources().apk.path.toString(),
         resultsFilePath = resultsFilePath.toString()
       )
       os.write(cliArgsFile, upickle.write(cliArgs))
 
       PathRef(cliArgsFile)
 
-    }
-
-    private def resourceApkPath: Task[PathRef] = Task {
-      PathRef(outer.androidLinkedResources().path / "apk/res.apk")
     }
 
     // TODO previews must be source controlled to be used as a base
@@ -284,7 +280,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
       )
     }
 
-    private def diffImageDirPath: Task[PathRef] = Task {
+    private def diffImageDirPath: Task.Simple[PathRef] = Task {
       val diffImageDir = Task.dest / "diff-images"
       PathRef(diffImageDir)
     }

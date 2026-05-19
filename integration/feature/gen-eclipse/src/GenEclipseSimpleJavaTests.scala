@@ -10,7 +10,7 @@ object GenEclipseSimpleJavaTests extends UtestIntegrationTestSuite {
   override def workspaceSourcePath: Path = super.workspaceSourcePath / "simple-java-project"
 
   def tests: Tests = Tests {
-    test("Simple Java, Junit4 project") - integrationTest { tester =>
+    test("simpleJava") - integrationTest { tester =>
       import tester.*
 
       val ret = eval("mill.eclipse/", check = true)

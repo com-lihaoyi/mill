@@ -69,8 +69,8 @@ object ServerLauncher {
       sendInitData: OutputStream => Unit,
       runClientLogic: (BufferedInputStream, BufferedOutputStream) => A
   ): A = {
-    val socketInputStream = new BufferedInputStream(connection.getInputStream)
-    val socketOutputStream = new BufferedOutputStream(connection.getOutputStream)
+    val socketInputStream = BufferedInputStream(connection.getInputStream)
+    val socketOutputStream = BufferedOutputStream(connection.getOutputStream)
     sendInitData(socketOutputStream)
     socketOutputStream.flush()
     val result = runClientLogic(socketInputStream, socketOutputStream)
@@ -85,6 +85,15 @@ object ServerLauncher {
    * @param config Configuration to check against the running daemon. If any values mismatch,
    *               the old daemon is terminated before starting a new one.
    */
+
+  /** Block until `daemonLock` is free, meaning the old daemon has fully exited. */
+  private def waitForOldDaemonToExit(daemonLock: mill.client.lock.Lock): Unit = {
+    val deadline = System.currentTimeMillis() + 5000
+    while (!daemonLock.probe() && System.currentTimeMillis() < deadline) {
+      Thread.sleep(100)
+    }
+  }
+
   def launchOrConnectToServer(
       locks: Locks,
       daemonDir: os.Path,
@@ -98,7 +107,10 @@ object ServerLauncher {
     log(s"Acquiring the launcher lock: ${locks.launcherLock}")
     val locked = locks.launcherLock.lock()
     try {
-      // Check if existing daemon has matching config, terminate if mismatched
+      // Check if existing daemon has matching config; if not, kill it.
+      // Killing the old daemon mid-execution interrupts any peer launcher's
+      // command, but those are running against an incompatible Mill version
+      // and would have to be restarted anyway.
       val processIdFile = daemonDir / DaemonFiles.processId
       val configFile = daemonDir / DaemonFiles.daemonLaunchFingerprint
       if (os.exists(processIdFile)) {
@@ -113,13 +125,8 @@ object ServerLauncher {
           if (mismatchReasons.nonEmpty) {
             mismatchReasons.foreach(reason => log(reason))
             log(s"Terminating old daemon due to config mismatch: $stored -> $config")
-            // Terminate the old daemon by removing the processId file
             os.remove(processIdFile, checkExists = false)
-            // Wait for daemon to die by polling the daemon lock (up to 5 seconds)
-            val deadline = System.currentTimeMillis() + 5000
-            while (!locks.daemonLock.probe() && System.currentTimeMillis() < deadline) {
-              Thread.sleep(100)
-            }
+            waitForOldDaemonToExit(locks.daemonLock)
             log("Old daemon terminated")
           }
         }
@@ -162,7 +169,7 @@ object ServerLauncher {
     log("Read server port")
     val socket = Option.when(openSocket) {
       log(s"Connecting: $port")
-      new Socket(InetAddress.getLoopbackAddress, port)
+      Socket(InetAddress.getLoopbackAddress, port)
     }
 
     Launched(port, socket, server)
@@ -231,7 +238,7 @@ object ServerLauncher {
                 Some(ServerLaunchResult.Success(launchedServer))
             }
           } catch {
-            case e: Exception => throw new RuntimeException(e)
+            case e: Exception => throw RuntimeException(e)
           }
         } else {
           log("The daemon lock is not available, there is already a server running.")
@@ -246,7 +253,7 @@ object ServerLauncher {
               if (pid >= 0) {
                 LaunchedServer.OsProcess(
                   ProcessHandle.of(pid).orElseThrow(() =>
-                    new IllegalStateException(s"No process found for PID $pid")
+                    IllegalStateException(s"No process found for PID $pid")
                   )
                 )
               } else LaunchedServer.TestStub // PID < 0 is only used in tests

@@ -56,5 +56,5 @@ class ConsoleLog(val level: ConsoleLog.Level.Level) extends Log {
  * Log Creator for the Command-Line console.
  */
 class ConsoleLogCreator(val level: ConsoleLog.Level.Level) extends LogCreator {
-  override def createLogger(clazz: Class[?]): Log = new ConsoleLog(level)
+  override def createLogger(clazz: Class[?]): Log = ConsoleLog(level)
 }

@@ -74,7 +74,7 @@ object foo extends ScalaModule {
 // This is necessary so that Mill can ensure the necessary files are in place
 // before the test begins running, and so `-w`/`--watch` knows it needs to re-run
 // the tests if those files changed. Thus your tests cannot just read project files
-// direct off disk via `new FileInputStream("foo/resources/test-file-a.txt")`.
+// direct off disk via `FileInputStream("foo/resources/test-file-a.txt")`.
 //
 // Mill runs test processes in a xref:depth/sandboxing.adoc[sandbox/ folder], rather
 // than in your project root folder, to enforce this.

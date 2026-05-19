@@ -1,7 +1,7 @@
 package mill.init
 
 import mill.constants.CodeGenConstants.{nestedBuildFileNames, rootBuildFileNames}
-import mill.constants.OutFiles.OutFiles.{bspOut, millBuild, out}
+import mill.constants.OutFiles.OutFiles.{bspOut, defaultBspOut, millBuild, out}
 
 object Util {
 
@@ -12,7 +12,12 @@ object Util {
       |""".stripMargin
 
   def buildFiles(workspace: os.Path): Seq[os.Path] = {
-    val skip = Seq(bspOut, millBuild, out).map(s => workspace / os.RelPath(s))
+    // Include `defaultBspOut` (`.bsp/out`) explicitly because `bspOut` only
+    // reflects the `MILL_BSP_OUTPUT_DIR` env var; the `mill-separate-bsp-output-dir`
+    // build header is parsed at runtime and doesn't set the env var, so the
+    // header-only path would otherwise be walked into.
+    val skip = Seq(bspOut, defaultBspOut, millBuild, out)
+      .distinct.map(s => workspace / os.RelPath(s))
     os.walk.stream(workspace, skip = skip.contains).filter(path =>
       os.isFile(path) &&
         (nestedBuildFileNames.contains(path.last) || rootBuildFileNames.contains(path.last))

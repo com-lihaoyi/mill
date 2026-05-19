@@ -1,3 +1,5 @@
+// :link-jvm-indices: https://github.com/coursier/jvm-index/blob/master/indices/linux-arm64.json
+//
 // Mill's JVM can be configured via the
 // xref:cli/build-header.adoc#_mill_jvm_version[mill-jvm-version] key in your
 // declarative `build.mill.yaml` file:

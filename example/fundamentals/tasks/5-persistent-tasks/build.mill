@@ -94,8 +94,8 @@ def compressedData = Task(persistent = true) {
 }
 
 def compressBytes(input: Array[Byte]) = {
-  val bos = new ByteArrayOutputStream(input.length)
-  val gzip = new GZIPOutputStream(bos)
+  val bos = ByteArrayOutputStream(input.length)
+  val gzip = GZIPOutputStream(bos)
   gzip.write(input)
   gzip.close()
   bos.toByteArray

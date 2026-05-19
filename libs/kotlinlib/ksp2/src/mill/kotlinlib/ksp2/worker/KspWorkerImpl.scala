@@ -54,12 +54,12 @@ class KspWorkerImpl extends KspWorker {
     val processorProviders: List[SymbolProcessorProvider] =
       processorProvidersSearch.asInstanceOf[List[SymbolProcessorProvider]]
 
-    val logger = new KspGradleLogger(gradleLogLevel)
+    val logger = KspGradleLogger(gradleLogLevel)
 
-    val exitCode = new KotlinSymbolProcessing(config, processorProviders.asJava, logger).execute()
+    val exitCode = KotlinSymbolProcessing(config, processorProviders.asJava, logger).execute()
 
     if (exitCode.getCode != 0) {
-      throw new Exception(s"KSP failed with exit code ${exitCode.getCode} ($exitCode)")
+      throw Exception(s"KSP failed with exit code ${exitCode.getCode} ($exitCode)")
     }
   }
 

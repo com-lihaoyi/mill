@@ -9,11 +9,11 @@ import utest.*
 
 object MixedHelloWorldTests extends TestSuite {
 
-  val kotlinVersions = if (scala.util.Properties.isJavaAtLeast(9)) {
-    Seq("1.9.24", "2.0.20")
-  } else {
-    Seq("1.0.0", "1.9.24", "2.0.20")
-  }
+  // Older Kotlin versions don't support running on JDK 25+; bump to 2.2.20 there.
+  val kotlinVersions =
+    if (Runtime.version().feature() >= 25) Seq(Versions.kotlinVersion)
+    else if (scala.util.Properties.isJavaAtLeast(9)) Seq("1.9.24", "2.0.20")
+    else Seq("1.0.0", "1.9.24", "2.0.20")
 
   object MixedHelloWorldKotlin extends TestRootModule {
     trait MainCross extends KotlinModule with Cross.Module[String] {
