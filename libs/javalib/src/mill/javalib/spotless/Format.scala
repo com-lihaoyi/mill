@@ -293,7 +293,7 @@ object Format {
         def write0[V](out: Visitor[?, V], v: RelPathRef) =
           summon[ReadWriter[PathRef]].write0(out, v.ref)
         def mapNonNullsFunction(t: String) =
-          if t.startsWith("ref:") then RelPathRef(upickle.read[PathRef](t))
+          if t.startsWith("ref:") then RelPathRef(upickle.read[PathRef](ujson.Str(t)))
           else t
       }
   }

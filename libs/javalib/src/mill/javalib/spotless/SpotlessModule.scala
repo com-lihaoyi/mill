@@ -60,13 +60,19 @@ trait SpotlessModule extends CoursierModule, OfflineSupportModule {
    *  - resolve any [[Format.RelPathRef relative references]]
    *  - relativize a file path for applying path matchers
    */
+  private def spotlessFormatsJson = Task.Input {
+    val file = moduleDir / ".spotless-formats.json"
+    if os.exists(file) then Some(PathRef(file))
+    else None
+  }
+
   def spotlessFormats: Task[Seq[Format]] = Task {
     BuildCtx.withFilesystemCheckerDisabled {
       import Format.*
       RelPathRef.withDynamicRoot(moduleDir) {
-        val file = moduleDir / ".spotless-formats.json"
-        if os.exists(file) then upickle.read[Seq[Format]](file.toNIO)
-        else Seq(defaultJava, defaultKotlin, defaultScala)
+        spotlessFormatsJson() match
+          case Some(ref) => upickle.read[Seq[Format]](ref.path.toNIO)
+          case None => Seq(defaultJava, defaultKotlin, defaultScala)
       }
     }
   }
