@@ -62,7 +62,8 @@ node27 [id=node27, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../../
 node28 [id=node28, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../../AssemblyModule.html\" t=\"n\">AssemblyModule</a></span>", class="trait vertex"];
 node29 [id=node29, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../../../util/JdkCommandsModule.html\" t=\"n\">JdkCommandsModule</a></span>", class="trait vertex"];
 node30 [id=node30, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../../../api/daemon/internal/JavaModuleApi.html\" t=\"n\">JavaModuleApi</a></span>", class="trait vertex"];
-node31 [id=node31, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../../NativeImageModule.html\" t=\"n\">NativeImageModule</a></span>", class="trait vertex"];
+node31 [id=node31, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../../repackage/RepackageModule.html\" t=\"n\">RepackageModule</a></span>", class="trait vertex"];
+node32 [id=node32, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../../NativeImageModule.html\" t=\"n\">NativeImageModule</a></span>", class="trait vertex"];
 
 
  node0 -> node1;
@@ -140,10 +141,13 @@ node9 -> node30;
 node30 -> node2;
 node30 -> node12;
 node30 -> node24;
-node0 -> node31;
+node8 -> node31;
 node31 -> node1;
-node31 -> node13;
-node31 -> node25;
+node31 -> node10;
+node0 -> node32;
+node32 -> node1;
+node32 -> node13;
+node32 -> node25;
 
 }
 </script>
@@ -162,6 +166,9 @@ node31 -> node25;
      </div>
      <div>
       trait <a href="SpringBootModule.html" t="n">SpringBootModule</a>
+     </div>
+     <div>
+      trait <a href="../../repackage/RepackageModule.html" t="n">RepackageModule</a>
      </div>
      <div>
       trait <a href="../../JavaModule.html" t="n">JavaModule</a>
@@ -554,6 +561,9 @@ node31 -> node25;
                  trait <a href="SpringBootModule.html" t="n">SpringBootModule</a>
                 </div>
                 <div>
+                 trait <a href="../../repackage/RepackageModule.html" t="n">RepackageModule</a>
+                </div>
+                <div>
                  trait <a href="../../JavaModule.html" t="n">JavaModule</a>
                 </div>
                 <div>
@@ -686,6 +696,9 @@ node31 -> node25;
                <div class="mono-small-block supertypes">
                 <div>
                  trait <a href="SpringBootModule.html" t="n">SpringBootModule</a>
+                </div>
+                <div>
+                 trait <a href="../../repackage/RepackageModule.html" t="n">RepackageModule</a>
                 </div>
                 <div>
                  trait <a href="../../JavaModule.html" t="n">JavaModule</a>
@@ -832,6 +845,9 @@ node31 -> node25;
                 </div>
                 <div>
                  trait <a href="SpringBootModule.html" t="n">SpringBootModule</a>
+                </div>
+                <div>
+                 trait <a href="../../repackage/RepackageModule.html" t="n">RepackageModule</a>
                 </div>
                 <div>
                  trait <a href="../../JavaModule.html" t="n">JavaModule</a>
@@ -5997,6 +6013,242 @@ node31 -> node25;
               </dt>
               <dd class="body-medium">
                <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/JavaModule.scala" target="_blank">JavaModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="repackageBaseJar-0" data-f-inherited="RepackageModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SpringBootModule$NativeSpringBootBuildModule.html#repackageBaseJar-0" t="n" class="documentableName ">repackageBaseJar</a>: <a href="../../../api/Task$$Simple.html" t="t">Simple</a>[<a href="../../../api/PathRef.html" t="t">PathRef</a>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="../../repackage/RepackageModule.html#repackageBaseJar-0">RepackageModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/repackage/RepackageModule.scala" target="_blank">RepackageModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="repackageMainClass-0" data-f-inherited="RepackageModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SpringBootModule$NativeSpringBootBuildModule.html#repackageMainClass-0" t="n" class="documentableName ">repackageMainClass</a>: <a href="../../../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">String</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The Class holding the Application entrypoint. This uses the <a href="../../RunModule.html#mainClass-0">RunModule.mainClass</a> (if defined) or falls back to auto-detection of a <code>SpringBootApplication</code> class.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>The Class holding the Application entrypoint. This uses the <a href="../../RunModule.html#mainClass-0">RunModule.mainClass</a> (if defined) or falls back to auto-detection of a <code>SpringBootApplication</code> class.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="../../repackage/RepackageModule.html#repackageMainClass-0">RepackageModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/repackage/RepackageModule.scala" target="_blank">RepackageModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="repackagePrependScript-0" data-f-inherited="RepackageModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SpringBootModule$NativeSpringBootBuildModule.html#repackagePrependScript-0" t="n" class="documentableName ">repackagePrependScript</a>: <a href="../../../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">String</span>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>A script prepended to the resulting <a href="../../repackage/RepackageModule.html#repackagedJar-0">repackagedJar</a> to make it executable. This uses the same prepend script as Mill <a href="../../JavaModule.html">JavaModule</a> does, so it supports most Linux/Unix shells (probably not <code>fish</code>) as well as Windows cmd shell (the file needs a <code>.bat</code> or <code>.cmd</code> extension). Set it to <span data-unresolved-link="">None</span> if you don't want an executable JAR.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>A script prepended to the resulting <a href="../../repackage/RepackageModule.html#repackagedJar-0">repackagedJar</a> to make it executable. This uses the same prepend script as Mill <a href="../../JavaModule.html">JavaModule</a> does, so it supports most Linux/Unix shells (probably not <code>fish</code>) as well as Windows cmd shell (the file needs a <code>.bat</code> or <code>.cmd</code> extension). Set it to <span data-unresolved-link="">None</span> if you don't want an executable JAR.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="../../repackage/RepackageModule.html#repackagePrependScript-0">RepackageModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/repackage/RepackageModule.scala" target="_blank">RepackageModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="repackageUpstreamLocalJars-0" data-f-inherited="RepackageModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SpringBootModule$NativeSpringBootBuildModule.html#repackageUpstreamLocalJars-0" t="n" class="documentableName ">repackageUpstreamLocalJars</a>: <a href="../../../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../../api/PathRef.html" t="t">PathRef</a>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The upstream Module dependencies as JARs, to be embedded in the <a href="../../repackage/RepackageModule.html#repackagedJar-0">repackagedJar</a>.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>The upstream Module dependencies as JARs, to be embedded in the <a href="../../repackage/RepackageModule.html#repackagedJar-0">repackagedJar</a>.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="../../repackage/RepackageModule.html#repackageUpstreamLocalJars-0">RepackageModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/repackage/RepackageModule.scala" target="_blank">RepackageModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="repackageUpstreamMvnJars-0" data-f-inherited="RepackageModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SpringBootModule$NativeSpringBootBuildModule.html#repackageUpstreamMvnJars-0" t="n" class="documentableName ">repackageUpstreamMvnJars</a>: <a href="../../../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../../api/PathRef.html" t="t">PathRef</a>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The upstream Maven dependencies as JARs, to be embedded in the <a href="../../repackage/RepackageModule.html#repackagedJar-0">repackagedJar</a>.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>The upstream Maven dependencies as JARs, to be embedded in the <a href="../../repackage/RepackageModule.html#repackagedJar-0">repackagedJar</a>.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="../../repackage/RepackageModule.html#repackageUpstreamMvnJars-0">RepackageModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/repackage/RepackageModule.scala" target="_blank">RepackageModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="repackagedJar-0" data-f-inherited="RepackageModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SpringBootModule$NativeSpringBootBuildModule.html#repackagedJar-0" t="n" class="documentableName ">repackagedJar</a>: <a href="../../../api/Task$$Simple.html" t="t">Simple</a>[<a href="../../../api/PathRef.html" t="t">PathRef</a>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="../../repackage/RepackageModule.html#repackagedJar-0">RepackageModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/repackage/RepackageModule.scala" target="_blank">RepackageModule.scala</a>
               </dd>
              </dl>
             </div>

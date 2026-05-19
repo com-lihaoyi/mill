@@ -53,7 +53,7 @@
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="boot/SpringBootModule.html" t="n" class="documentableName ">SpringBootModule</a><span t="k"> extends </span><a href="../JavaModule.html" t="t">JavaModule</a></span><span class="signature-long"></span>
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="boot/SpringBootModule.html" t="n" class="documentableName ">SpringBootModule</a><span t="k"> extends </span><a href="../JavaModule.html" t="t">JavaModule</a><span t="k">, </span></span><span class="signature-long"><a href="../repackage/RepackageModule.html" t="t">RepackageModule</a></span>
            </div>
           </div>
          </div>
@@ -68,6 +68,7 @@
             <div class="cover">
              <div class="doc">
               <p>A module that can be used to configure Spring Boot projects and provides functionality for AOT processing and native GraalVM builds.</p>
+              <p>In addition this module also extends <span data-unresolved-link="" title="Problem linking RepackageModule: Couldn't resolve a member for the given link query">RepackageModule</span> to provide the ready-to-use <a href="boot/SpringBootModule.html#repackagedJar-0">repackagedJar</a> task.</p>
               <p>For compatibility with initializr projects (<a href="https://start.spring.io/">https://start.spring.io/</a>), mix this module with the <a href="../MavenModule.html">MavenModule</a>.</p>
              </div>
              <h2 class="h200">Attributes</h2>
@@ -83,6 +84,9 @@
               </dt>
               <dd class="body-medium">
                <div class="mono-small-block supertypes">
+                <div>
+                 trait <a href="../repackage/RepackageModule.html" t="n">RepackageModule</a>
+                </div>
                 <div>
                  trait <a href="../JavaModule.html" t="n">JavaModule</a>
                 </div>
