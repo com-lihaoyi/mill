@@ -1,5 +1,5 @@
 extends: ksp.KspModule
-kotlinVersion: 2.2.0
+kotlinVersion: 2.2.20
 kspVersion: 2.0.2
 kspJvmTarget: "17"
 mainClass: com.example.dagger.MainKt

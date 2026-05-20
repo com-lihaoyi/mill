@@ -63,7 +63,7 @@ object `endless-tunnel` extends mill.api.Module {
 > ./mill show endless-tunnel.app.androidInstall
 ...All files should be loaded. Notifying the device...
 
-> ./mill show endless-tunnel.app.androidRun --activity android.app.NativeActivity
+> ./mill show endless-tunnel.app.androidRun
 [
   "Starting: Intent { cmp=com.google.sample.tunnel/android.app.NativeActivity }",
   "Status: ok",

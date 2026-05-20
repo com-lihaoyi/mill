@@ -20,8 +20,8 @@ object Hello {
 
   object TestNil extends TestList[Nothing] {
     def isEmpty = true
-    def head = throw new Exception()
-    override def tail: Nothing = throw new Exception()
+    def head = throw Exception()
+    override def tail: Nothing = throw Exception()
   }
 
   class TestCons[B](val head: B, val tl: TestList[B]) extends TestList[B] {
@@ -32,8 +32,8 @@ object Hello {
   def simpleLinkedListForeach(): Array[Int] = {
     val holder = Array(1)
 
-    new TestCons(1, new TestCons(2, new TestCons(3, TestNil))).foreach(x => holder(0) += x)
-    new TestCons(1L, new TestCons(2L, new TestCons(3L, TestNil))).foreach(x => holder(0) += x.toInt)
+    TestCons(1, TestCons(2, TestCons(3, TestNil))).foreach(x => holder(0) += x)
+    TestCons(1L, TestCons(2L, TestCons(3L, TestNil))).foreach(x => holder(0) += x.toInt)
     holder
   }
 }

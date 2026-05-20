@@ -94,7 +94,7 @@ trait TaskTests extends TestSuite {
     }
 
     def reevalTrigger = Task.Input {
-      new Object().hashCode()
+      Object().hashCode()
     }
     def staticWorkerDownstreamReeval = Task {
       val w = staticWorker()

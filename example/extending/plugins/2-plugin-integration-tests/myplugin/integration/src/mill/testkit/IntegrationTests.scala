@@ -10,7 +10,7 @@ object IntegrationTests extends TestSuite {
 
     test("integration") {
       val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
-      val tester = new IntegrationTester(
+      val tester = IntegrationTester(
         daemonMode = true,
         workspaceSourcePath = resourceFolder / "integration-test-project",
         millExecutable = os.Path(sys.env("MILL_EXECUTABLE_PATH"))

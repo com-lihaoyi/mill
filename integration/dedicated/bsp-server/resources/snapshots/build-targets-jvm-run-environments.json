@@ -11,10 +11,10 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/<version>/protobuf-java-<version>.jar",
         "file:///workspace/lib/compile-resources",
         "file:///workspace/lib/resources",
-        "file:///workspace/.bsp/out/lib/compile.dest/classes",
+        "file:///workspace/out/lib/compile.dest/classes",
         "file:///workspace/app/compile-resources",
         "file:///workspace/app/resources",
-        "file:///workspace/.bsp/out/app/compile.dest/classes"
+        "file:///workspace/out/app/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
@@ -41,13 +41,13 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/<version>/protobuf-java-<version>.jar",
         "file:///workspace/lib/compile-resources",
         "file:///workspace/lib/resources",
-        "file:///workspace/.bsp/out/lib/compile.dest/classes",
+        "file:///workspace/out/lib/compile.dest/classes",
         "file:///workspace/app/compile-resources",
         "file:///workspace/app/resources",
-        "file:///workspace/.bsp/out/app/compile.dest/classes",
+        "file:///workspace/out/app/compile.dest/classes",
         "file:///workspace/app/test/compile-resources",
         "file:///workspace/app/test/resources",
-        "file:///workspace/.bsp/out/app/test/compile.dest/classes"
+        "file:///workspace/out/app/test/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
@@ -66,7 +66,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
         "file:///workspace/delayed/compile-resources",
         "file:///workspace/delayed/resources",
-        "file:///workspace/.bsp/out/delayed/compile.super/mill/scalalib/ScalaModule.dest/classes"
+        "file:///workspace/out/delayed/compile.super/mill/scalalib/ScalaModule.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
@@ -84,7 +84,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
         "file:///workspace/diag/compile-resources",
         "file:///workspace/diag/resources",
-        "file:///workspace/.bsp/out/diag/compile.dest/classes"
+        "file:///workspace/out/diag/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
@@ -101,7 +101,7 @@
       "classpath": [
         "file:///workspace/hello-java/compile-resources",
         "file:///workspace/hello-java/resources",
-        "file:///workspace/.bsp/out/hello-java/compile.dest/classes"
+        "file:///workspace/out/hello-java/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
@@ -122,10 +122,10 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/<version>/hamcrest-core-<version>.jar",
         "file:///workspace/hello-java/compile-resources",
         "file:///workspace/hello-java/resources",
-        "file:///workspace/.bsp/out/hello-java/compile.dest/classes",
+        "file:///workspace/out/hello-java/compile.dest/classes",
         "file:///workspace/hello-java/test/compile-resources",
         "file:///workspace/hello-java/test/resources",
-        "file:///workspace/.bsp/out/hello-java/test/compile.dest/classes"
+        "file:///workspace/out/hello-java/test/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
@@ -150,7 +150,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/jetbrains/annotations/<annotations-version>/annotations-<annotations-version>.jar",
         "file:///workspace/hello-kotlin/compile-resources",
         "file:///workspace/hello-kotlin/resources",
-        "file:///workspace/.bsp/out/hello-kotlin/compile.dest/classes"
+        "file:///workspace/out/hello-kotlin/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
@@ -168,7 +168,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
         "file:///workspace/hello-scala/compile-resources",
         "file:///workspace/hello-scala/resources",
-        "file:///workspace/.bsp/out/hello-scala/compile.dest/classes"
+        "file:///workspace/out/hello-scala/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
@@ -195,10 +195,10 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/<scala-version>/scala-reflect-<scala-version>.jar",
         "file:///workspace/hello-scala/compile-resources",
         "file:///workspace/hello-scala/resources",
-        "file:///workspace/.bsp/out/hello-scala/compile.dest/classes",
+        "file:///workspace/out/hello-scala/compile.dest/classes",
         "file:///workspace/hello-scala/test/compile-resources",
         "file:///workspace/hello-scala/test/resources",
-        "file:///workspace/.bsp/out/hello-scala/test/compile.dest/classes"
+        "file:///workspace/out/hello-scala/test/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
@@ -222,7 +222,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/<version>/slf4j-api-<version>.jar",
         "file:///workspace/lib/compile-resources",
         "file:///workspace/lib/resources",
-        "file:///workspace/.bsp/out/lib/compile.dest/classes"
+        "file:///workspace/out/lib/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
@@ -239,7 +239,7 @@
       "classpath": [
         "file:///workspace/scripts/compile-resources",
         "file:///workspace/scripts/resources",
-        "file:///workspace/.bsp/out/scripts/compile.dest/classes"
+        "file:///workspace/out/scripts/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
@@ -271,7 +271,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-implicits_3/<version>/upickle-implicits_3-<version>.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/<version>/scala-collection-compat_3-<version>.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/<version>/upickle-core_3-<version>.jar",
-        "file:///workspace/.bsp/out/scripts/folder1/script.scala/compile.dest/classes"
+        "file:///workspace/out/scripts/folder1/script.scala/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
@@ -298,7 +298,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/unbescape/unbescape/<version>/unbescape-<version>.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/<version>/slf4j-api-<version>.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/javassist/javassist/<version>/javassist-<version>.jar",
-        "file:///workspace/.bsp/out/scripts/folder2/Foo.java/compile.dest/classes"
+        "file:///workspace/out/scripts/folder2/Foo.java/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
@@ -336,9 +336,9 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/<version>/slf4j-api-<version>.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/<version>/hamcrest-core-<version>.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/javassist/javassist/<version>/javassist-<version>.jar",
-        "file:///workspace/.bsp/out/scripts/folder2/Foo.java/compile.dest/classes",
+        "file:///workspace/out/scripts/folder2/Foo.java/compile.dest/classes",
         "file:///workspace/scripts/folder2/FooTest.java/resources",
-        "file:///workspace/.bsp/out/scripts/folder2/FooTest.java/compile.dest/classes"
+        "file:///workspace/out/scripts/folder2/FooTest.java/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
@@ -361,7 +361,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/unbescape/unbescape/<version>/unbescape-<version>.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/<version>/slf4j-api-<version>.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/javassist/javassist/<version>/javassist-<version>.jar",
-        "file:///workspace/.bsp/out/scripts/foldershared/Foo.java/compile.dest/classes"
+        "file:///workspace/out/scripts/foldershared/Foo.java/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
@@ -398,7 +398,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-implicits_3/<version>/upickle-implicits_3-<version>.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/<version>/scala-collection-compat_3-<version>.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/<version>/upickle-core_3-<version>.jar",
-        "file:///workspace/.bsp/out/scripts/foldershared/script.scala/compile.dest/classes"
+        "file:///workspace/out/scripts/foldershared/script.scala/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
@@ -418,7 +418,7 @@
         "uri": "file:///workspace/scripts/ignored-folder-2/negated-not-ignored.java"
       },
       "classpath": [
-        "file:///workspace/.bsp/out/scripts/ignored-folder-2/negated-not-ignored.java/compile.dest/classes"
+        "file:///workspace/out/scripts/ignored-folder-2/negated-not-ignored.java/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
@@ -436,7 +436,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
         "file:///workspace/sourcesNeedCompile/compile-resources",
         "file:///workspace/sourcesNeedCompile/resources",
-        "file:///workspace/.bsp/out/sourcesNeedCompile/compile.dest/classes"
+        "file:///workspace/out/sourcesNeedCompile/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",

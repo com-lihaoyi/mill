@@ -1,7 +1,6 @@
 package mill.resolve
 
-import mill.api.Result
-import mill.api.Discover
+import mill.api.{DefaultTaskModule, Discover, Result}
 import mill.api.TestGraphs.*
 import mill.testkit.TestRootModule
 import mill.{Cross, Module, Task}
@@ -128,6 +127,29 @@ object ResolveTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
+  object defaultTaskModule extends TestRootModule {
+    object simple extends DefaultTaskModule {
+      def defaultTask() = "task"
+      def task = Task { "task" }
+    }
+
+    object invalid extends DefaultTaskModule {
+      def defaultTask() = "taskWithTypo"
+      def task = Task { "task" }
+    }
+
+    object blank extends DefaultTaskModule {
+      def defaultTask() = " "
+      def task = Task { "task" }
+    }
+
+    object `null` extends DefaultTaskModule {
+      def defaultTask() = null
+      def task = Task { "task" }
+    }
+    lazy val millDiscover = Discover[this.type]
+  }
+
   def isShortError(x: Result[?], s: String) =
     x.errorOpt.exists(_.contains(s)) &&
       // Make sure the stack traces are truncated and short-ish, and do not
@@ -136,7 +158,7 @@ object ResolveTests extends TestSuite {
 
   val tests = Tests {
     test("single") {
-      val check = new Checker(singleton)
+      val check = Checker(singleton)
       test("pos") - check("single", Result.Success(Set(_.single)), Set("single"))
       test("wildcard") - check("_", Result.Success(Set(_.single)), Set("single"))
       test("neg1") - check("sngle", Result.Failure("Cannot resolve sngle. Did you mean single?"))
@@ -167,7 +189,7 @@ object ResolveTests extends TestSuite {
       )
     }
     test("backtickIdentifiers") {
-      val check = new Checker(bactickIdentifiers)
+      val check = Checker(bactickIdentifiers)
       test("pos1") - check("up-task", Result.Success(Set(_.`up-task`)), Set("up-task"))
       test("pos2") - check(
         "a-down-task",
@@ -219,7 +241,7 @@ object ResolveTests extends TestSuite {
       }
     }
     test("nested") {
-      val check = new Checker(nestedModule)
+      val check = Checker(nestedModule)
       test("pos1") - check("single", Result.Success(Set(_.single)), Set("single"))
       test("pos2") - check(
         "nested.single",
@@ -330,7 +352,7 @@ object ResolveTests extends TestSuite {
       )
     }
     test("doubleNested") {
-      val check = new Checker(doubleNestedModule)
+      val check = Checker(doubleNestedModule)
       test("pos1") - check("single", Result.Success(Set(_.single)), Set("single"))
       test("pos2") - check(
         "nested.single",
@@ -369,7 +391,7 @@ object ResolveTests extends TestSuite {
     test("superTask") {
       test("singleOverride") {
         // Test resolving super task with single override
-        val check = new Checker(superTaskModule)
+        val check = Checker(superTaskModule)
 
         // The super task should be resolvable via foo.super.BaseModuleTrait
         // Segments.render uses "." to join segments
@@ -395,7 +417,7 @@ object ResolveTests extends TestSuite {
 
       test("nestedModuleOverride") {
         // Test resolving super task in nested module
-        val check = new Checker(nestedSuperTaskModule)
+        val check = Checker(nestedSuperTaskModule)
 
         test("resolveNestedSuper") - check.checkSeq0(
           Seq("nested.bar.super.Inner"),
@@ -409,7 +431,7 @@ object ResolveTests extends TestSuite {
 
       test("multiLevelOverride") {
         // Test resolving super tasks with multiple levels of overrides
-        val check = new Checker(multiLevelSuperTask)
+        val check = Checker(multiLevelSuperTask)
 
         // Should resolve to TraitA's version
         test("resolveTraitA") - check.checkSeq0(
@@ -443,7 +465,7 @@ object ResolveTests extends TestSuite {
 
       test("noSuperTask") {
         // Test that resolving super on a non-overridden task fails
-        val check = new Checker(singleton)
+        val check = Checker(singleton)
         test("failsOnNonOverriddenTask") - check(
           "single.super",
           Result.Failure(
@@ -454,7 +476,7 @@ object ResolveTests extends TestSuite {
     }
 
     test("rename") {
-      val check = new Checker(renameModule)
+      val check = Checker(renameModule)
 
       test("normalTaskStillWorks") - check(
         "normalTask",
@@ -499,7 +521,7 @@ object ResolveTests extends TestSuite {
     }
 
     test("privateMethods") {
-      val check = new Checker(privateMethodsModule)
+      val check = Checker(privateMethodsModule)
 
       // Simple public task depending on private task works
       test("pubDependsOnPriv") - check(
@@ -558,7 +580,7 @@ object ResolveTests extends TestSuite {
     }
 
     test("keywordModules") {
-      val check = new Checker(keywordModule)
+      val check = Checker(keywordModule)
 
       // Test that modules named with Scala keywords can be resolved
       test("for") - check(
@@ -593,7 +615,7 @@ object ResolveTests extends TestSuite {
     }
 
     test("crossModules") {
-      val check = new Checker(crossModule)
+      val check = Checker(crossModule)
 
       // Test cross modules can be resolved
       test("crossA") - check(
@@ -608,11 +630,52 @@ object ResolveTests extends TestSuite {
         Set("myCross.b.myTask")
       )
 
+      test("crossDefaultCompat") - check(
+        "myCross[].myTask",
+        Result.Success(Set(_.myCross("a").myTask)),
+        Set("myCross.a.myTask")
+      )
+
       // Test wildcard across cross values
       test("crossWildcard") - check(
         "myCross._.myTask",
         Result.Success(Set(_.myCross("a").myTask, _.myCross("b").myTask)),
         Set("myCross.a.myTask", "myCross.b.myTask")
+      )
+    }
+
+    test("defaultTasks") {
+      val check = Checker(defaultTaskModule)
+      test("defaultTask.simple.task") - check(
+        "simple.task",
+        Result.Success(Set(_.simple.task)),
+        Set("simple.task")
+      )
+      test("defaultTask.simple") - check(
+        "simple",
+        Result.Success(Set(_.simple.task)),
+        Set("simple")
+      )
+      test("defaultTask.invalid") - check(
+        "invalid",
+        Result.Failure(error =
+          "Cannot resolve default task 'taskWithTypo' of module 'invalid'. Check that the task name is spelled correctly."
+        ),
+        Set("invalid")
+      )
+      test("defaultTask.blank") - check(
+        "blank",
+        Result.Failure(error =
+          "Cannot resolve default task ' ' of module 'blank'. The task name must not be empty or blank."
+        ),
+        Set("blank")
+      )
+      test("defaultTask.null") - check(
+        "null",
+        Result.Failure(error =
+          "Cannot resolve default task 'null' of module 'null'. The task name must not be null."
+        ),
+        Set("null")
       )
     }
 

@@ -28,7 +28,23 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
   private case class LinkerInput(
       dest: Either[File, sjs.OutputDirectory],
       config: sjs.StandardConfig
-  )
+  ) {
+    // sjs.StandardConfig is a `final class` with reference equality, so the
+    // auto-generated case-class equals would never match across fastLinkJS
+    // invocations (each invocation builds a fresh StandardConfig via
+    // ScalaJSConfig.config(...)). That made the ScalaJSLinker CachedFactory
+    // miss every time, discarding the optimizer/emitter incremental state.
+    // Use StandardConfig.fingerprint for a structural comparison instead.
+    // The fingerprint is cached so CachedFactory lookups (hashCode + equals
+    // on each candidate) don't rebuild the string repeatedly.
+    private lazy val configFingerprint: String = sjs.StandardConfig.fingerprint(config)
+    override def equals(other: Any): Boolean = other match {
+      case that: LinkerInput =>
+        dest == that.dest && configFingerprint == that.configFingerprint
+      case _ => false
+    }
+    override def hashCode(): Int = (dest, configFingerprint).hashCode
+  }
   private def minorIsGreaterThanOrEqual(number: Int) = ScalaJSVersions.current match {
     case s"1.$n.$_" if n.toIntOption.exists(_ < number) => false
     case _ => true
@@ -91,7 +107,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
         irFiles0
       } else {
         if (!minorIsGreaterThanOrEqual(16)) {
-          throw new Exception("scalaJSImportMap is not supported with Scala.js < 1.16.")
+          throw Exception("scalaJSImportMap is not supported with Scala.js < 1.16.")
         }
         val remapFunction = (rawImport: String) => {
           importMap
@@ -109,9 +125,9 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
           val jsFileName = "out.js"
           val mustBeFolder = dest match {
             case Left(folder) => folder
-            case Right(_) => throw new Exception("dest must be a Folder when forceOutJs is true")
+            case Right(_) => throw Exception("dest must be a Folder when forceOutJs is true")
           }
-          val jsFile = new File(mustBeFolder, jsFileName).toPath()
+          val jsFile = File(mustBeFolder, jsFileName).toPath()
           var linkerOutput = sjs.LinkerOutput(PathOutputFile(jsFile))
             .withJSFileURI(java.net.URI.create(jsFile.getFileName.toString))
           val sourceMapNameOpt = Option.when(config.sourceMap)(s"${jsFile.getFileName}.map")
@@ -171,8 +187,8 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
             )
 
             for ((std, dest, name, checkAvailable) <- sources) {
-              val t = new Thread(
-                new InputPumper(() => std, () => dest, checkAvailable),
+              val t = Thread(
+                InputPumper(() => std, () => dest, checkAvailable),
                 name
               )
               t.setDaemon(true)
@@ -192,7 +208,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
     val logger = createLogger()
     val tconfig = TestAdapter.Config().withLogger(logger)
 
-    val adapter = new TestAdapter(env, inputs, tconfig)
+    val adapter = TestAdapter(env, inputs, tconfig)
 
     (
       () => adapter.close(),
@@ -200,7 +216,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
         .loadFrameworks(List(List(frameworkName)))
         .flatten
         .headOption
-        .getOrElse(throw new RuntimeException(
+        .getOrElse(throw RuntimeException(
           """|Test framework class was not found. Please check that:
              |- the correct Scala.js dependency of the framework is used (like mvn"group::artifact::version", instead of mvn"group::artifact:version" for JVM Scala. Note the extra : before the version.)
              |- there are no typos in the framework class name.

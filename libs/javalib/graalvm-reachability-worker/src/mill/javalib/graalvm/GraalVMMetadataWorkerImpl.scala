@@ -34,7 +34,7 @@ class GraalVMMetadataWorkerImpl extends GraalVMMetadataWorker {
   }
 
   override def findConfigurations(metadataQuery: MetadataQuery): Set[MetadataResult] = {
-    val repository: FileSystemRepository = new FileSystemRepository(metadataQuery.rootPath.toNIO)
+    val repository: FileSystemRepository = FileSystemRepository(metadataQuery.rootPath.toNIO)
     val queryBuilder: Consumer[Query] = (q: Query) => {
       q.forArtifacts(metadataQuery.deps.toSeq*)
       if (metadataQuery.useLatestConfigWhenVersionIsUntested) {

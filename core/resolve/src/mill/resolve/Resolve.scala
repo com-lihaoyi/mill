@@ -15,6 +15,11 @@ import mill.api.{
 import mill.api.internal.ParseArgs
 
 object Resolve {
+  private[mill] object ScriptModuleQuery {
+    val AllPrecompiledModules = "\u0000mill.resolve.allPrecompiledModules"
+    val DirectPrecompiledModules = "\u0000mill.resolve.directPrecompiledModules"
+  }
+
   object Segments extends Resolve[Segments] {
     def handleResolved(
         rootModule: RootModule0,
@@ -140,19 +145,31 @@ object Resolve {
           cache
         ).flatMap {
           case value: DefaultTaskModule =>
+            val defaultTaskName = value.defaultTask()
             val directChildrenOrErr = ResolveCore.resolveDirectChildren(
               rootModule,
               r.rootModulePrefix,
               value.getClass,
-              Some(value.defaultTask()),
+              Some(defaultTaskName),
               value.moduleSegments,
               cache = cache
             )
 
             directChildrenOrErr.flatMap(directChildren =>
-              directChildren.head match {
-                case r: Resolved.NamedTask => instantiateNamedTask(r, value, cache).map(Some(_))
-                case r: Resolved.Command =>
+              directChildren.headOption match {
+                case None =>
+                  val msg =
+                    s"Cannot resolve default task '${defaultTaskName}' of module '${value.moduleSegments.render}'. "
+                  val issue = defaultTaskName match {
+                    case null => "The task name must not be null."
+                    case s if s.isBlank => "The task name must not be empty or blank."
+                    case _ => s"Check that the task name is spelled correctly."
+                  }
+                  Result.Failure(msg + issue)
+
+                case Some(r: Resolved.NamedTask) =>
+                  instantiateNamedTask(r, value, cache).map(Some(_))
+                case Some(r: Resolved.Command) =>
                   instantiateCommand(
                     rootModule,
                     r,
@@ -388,7 +405,7 @@ trait Resolve[T] {
       scriptModuleResolver: String => Seq[Result[mill.api.ExternalModule]]
   ): Result[List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
-    val cache = new ResolveCore.Cache()
+    val cache = ResolveCore.Cache()
     def handleScriptModule(args: Seq[String], fallback: => Result[Seq[T]]): Result[Seq[T]] = {
       val (first, selector, remaining) = args match {
         case Seq(s"$prefix:$suffix", rest*) => (prefix, Some(suffix), rest)
@@ -415,7 +432,44 @@ trait Resolve[T] {
 
       scriptModuleResolver(first) match {
         case Seq(resolved) => handleResolved(resolved, selector.toSeq, remaining)
-        case Nil => fallback
+        case Nil =>
+          // For pre-compiled modules referenced by normal package paths (e.g., "foo.bar.task"),
+          // try progressive splits: resolve "foo" as a directory-based module, then resolve
+          // "bar.task" as segments on that module. Also handles "build.foo.bar.task" by
+          // stripping the "build" prefix.
+          if (selector.isEmpty) {
+            val segments = first.split("\\.").toSeq
+            val startIdx =
+              if (segments.headOption.contains(mill.constants.CodeGenConstants.rootModuleAlias)) 1
+              else 0
+            val effectiveSegments = segments.drop(startIdx)
+
+            val resolvedScriptModules = effectiveSegments match {
+              case wildcard +: taskSegments if wildcard == "__" || wildcard == "_" =>
+                val query =
+                  if (wildcard == "__") Resolve.ScriptModuleQuery.AllPrecompiledModules
+                  else Resolve.ScriptModuleQuery.DirectPrecompiledModules
+                scriptModuleResolver(query).map((_, taskSegments))
+
+              case _ =>
+                (1 until effectiveSegments.length).view.flatMap { i =>
+                  val modulePath = effectiveSegments.take(i).mkString("/")
+                  val taskSegments = effectiveSegments.drop(i)
+                  scriptModuleResolver(modulePath) match {
+                    case Seq(resolved) => Some((resolved, taskSegments))
+                    case Nil => None
+                  }
+                }.headOption.toSeq
+            }
+
+            resolvedScriptModules match {
+              case Nil => fallback
+              case resolved =>
+                Result.sequence(resolved.map { case (module, taskSegments) =>
+                  handleResolved(module, taskSegments, remaining)
+                }).map(_.flatten)
+            }
+          } else fallback
       }
     }
     val resolvedGroups = ParseArgs.separate(scriptArgs).map { group =>
@@ -466,7 +520,7 @@ trait Resolve[T] {
       allowPositionalCommandArgs: Boolean,
       resolveToModuleTasks: Boolean
   ): Result[Seq[T]] = {
-    val cache = new ResolveCore.Cache()
+    val cache = ResolveCore.Cache()
     resolveNonEmptyAndHandle2(
       rootModule,
       rootModulePrefix: String,

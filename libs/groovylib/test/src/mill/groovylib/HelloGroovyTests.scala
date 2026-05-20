@@ -216,7 +216,7 @@ object HelloGroovyTests extends TestSuite {
       }
 
       def getBytecodeVersion(classFilePath: os.Path): BytecodeVersion = {
-        val classReader = new ClassReader(new FileInputStream(classFilePath.toIO))
+        val classReader = ClassReader(FileInputStream(classFilePath.toIO))
         val buffer = classReader.b
 
         // see https://en.wikipedia.org/wiki/Java_class_file#General_layout

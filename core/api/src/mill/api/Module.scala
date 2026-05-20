@@ -47,7 +47,7 @@ trait Module extends Module.BaseClass with ModuleCtx.Wrapper with ModuleApi {
 
   private[mill] def moduleDynamicBuildOverrides
       : Map[String, internal.Located[internal.Appendable[BufferedValue]]] =
-    Map()
+    Option(moduleCtx.enclosingModule).map(_.moduleDynamicBuildOverrides).getOrElse(Map())
 }
 
 object Module {
@@ -104,4 +104,16 @@ object Module {
         .toSeq
     }
   }
+}
+
+/**
+ * Trait providing config-based module dependency defaults.
+ * Extended by both [[PrecompiledModule]] (which populates from YAML config)
+ * and `JavaModule` (which reads these to provide its `moduleDeps` defaults).
+ */
+private[mill] trait ConfigModuleDepsModule {
+  private[mill] def configModuleDeps: Map[String, Seq[mill.api.Module]] = Map.empty
+  private[mill] def configCompileModuleDeps: Map[String, Seq[mill.api.Module]] = Map.empty
+  private[mill] def configRunModuleDeps: Map[String, Seq[mill.api.Module]] = Map.empty
+  private[mill] def configBomModuleDeps: Map[String, Seq[mill.api.Module]] = Map.empty
 }

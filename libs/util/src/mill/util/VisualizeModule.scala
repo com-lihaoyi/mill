@@ -154,7 +154,7 @@ object VisualizeModule extends ExternalModule {
   @nowarn("msg=.*Workers should implement AutoCloseable.*")
   private[mill] def worker: Worker[VizWorker] = mill.api.Task.Worker {
     val in =
-      new LinkedBlockingQueue[(
+      LinkedBlockingQueue[(
           scala.Seq[Task.Named[?]],
           scala.Seq[Task.Named[?]],
           MultiBiMap[Task.Named[?], Task[?]],
@@ -185,11 +185,11 @@ object VisualizeModule extends ExternalModule {
             )
             val exited = spawned.waitFor()
             if (!exited) {
-              throw new RuntimeException("visualize worker process did not exit cleanly")
+              throw RuntimeException("visualize worker process did not exit cleanly")
             }
             val exitCode = spawned.exitCode()
             if (exitCode != 0) {
-              throw new RuntimeException(s"visualize worker process exited with code $exitCode")
+              throw RuntimeException(s"visualize worker process exited with code $exitCode")
             }
             BuildCtx.withFilesystemCheckerDisabled {
               os.list(dest).sorted.map(PathRef(_))

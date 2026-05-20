@@ -140,11 +140,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
         upstreamCompileOutput = upstreamSemanticDbDatas().map(_.compilationResult),
         sources = allSourceFiles().map(_.path),
         compileClasspath =
-          (compileClasspathTask(
-            CompileFor.SemanticDb
-          )() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(
-            _.path
-          ),
+          compileClasspathTask(CompileFor.SemanticDb)() ++ resolvedSemanticDbJavaPluginMvnDeps(),
         javacOptions = javacCompilerOptions,
         incrementalCompilation = zincIncrementalCompilation(),
         workDir = Task.dest

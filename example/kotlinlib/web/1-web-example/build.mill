@@ -6,7 +6,7 @@
 /** Usage
 > ./mill runBackground
 
-> curl -d 'helloworld' localhost:${PORT:-8080}/reverse-string
+> curl -H 'Content-Type: text/plain' -d 'helloworld' localhost:${PORT:-8080}/reverse-string
 dlrowolleh
 
 > ./mill clean runBackground # shut down webserver

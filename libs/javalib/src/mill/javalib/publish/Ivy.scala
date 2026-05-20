@@ -79,7 +79,7 @@ object Ivy {
         </dependencies>
       </ivy-module>
 
-    val pp = new PrettyPrinter(120, 4)
+    val pp = PrettyPrinter(120, 4)
     head + pp.format(xml).replaceAll("&gt;", ">")
   }
 

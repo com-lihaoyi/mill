@@ -120,7 +120,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
    *
    * See also https://discuss.kotlinlang.org/t/kotlin-compiler-embeddable-vs-kotlin-compiler/3196
    */
-  def kotlinUseEmbeddableCompiler: Task[Boolean] = Task { false }
+  def kotlinUseEmbeddableCompiler: T[Boolean] = Task { false }
 
   /**
    * The Ivy/Coursier dependencies resembling the Kotlin compiler.
@@ -312,7 +312,8 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       val isJava = javaSourceFiles.nonEmpty
       val isMixed = isKotlin && isJava
 
-      val compileCp = compileClasspath().map(_.path).filter(os.exists)
+      val compileCp = compileClasspath().filter(ref => os.exists(ref.path))
+      val compileCpPaths = compileCp.map(_.path)
       val updateCompileOutput = upstreamCompileOutput()
 
       def compileJava: Result[CompilationResult] = {
@@ -346,12 +347,9 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
           // TODO if there is penalty for activating it in the compiler, put it behind configuration flag
           Seq("-Xmulti-platform"),
           // classpath
-          when(compileCp.iterator.nonEmpty)(
+          when(compileCpPaths.iterator.nonEmpty)(
             "-classpath",
-            compileCp.iterator.mkString(File.pathSeparator)
-          ),
-          when(kotlinExplicitApi())(
-            "-Xexplicit-api=strict"
+            compileCpPaths.iterator.mkString(File.pathSeparator)
           ),
           allKotlincOptions(),
           extraKotlinArgs
@@ -399,6 +397,28 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     }
 
   /**
+   * Modules whose internal declarations are visible to this module.
+   *
+   * Drives `-Xfriend-modules` for Kotlin/JS and `-Xfriend-paths` elsewhere.
+   * See [`friendPaths`](https://kotlinlang.org/api/kotlin-gradle-plugin/kotlin-gradle-plugin-api/org.jetbrains.kotlin.gradle.tasks/-base-kotlin-compile/friend-paths.html) for the Gradle equivalent.
+   *
+   * When consuming, use [[kotlinFriendModulesChecked]] instead, which is checked for consistency and cached.
+   */
+  def kotlinFriendModules: Seq[KotlinModule] = Seq.empty[KotlinModule]
+
+  /**
+   * Same as [[kotlinFriendModules]], but checked for consistency.
+   * Prefer using this over [[kotlinFriendModules]].
+   */
+  private[kotlinlib] lazy val kotlinFriendModulesChecked: Seq[KotlinModule] = {
+    require(
+      kotlinFriendModules.toSet.subsetOf(moduleDepsChecked.toSet),
+      "All kotlinFriendModules must also be declared in moduleDeps"
+    )
+    kotlinFriendModules.distinct
+  }
+
+  /**
    * Additional Kotlin compiler options to be used by [[compile]].
    */
   def kotlincOptions: T[Seq[String]] = Task { Seq.empty[String] }
@@ -433,11 +453,20 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     val kotlinkotlinApiVersion = kotlinApiVersion()
     val plugins = kotlincPluginJars().map(_.path)
 
+    val friendPathsOption = if (kotlinFriendModulesChecked.isEmpty) {
+      Seq.empty[String]
+    } else {
+      val compilations = Task.traverse(kotlinFriendModulesChecked) { friend => friend.compile }()
+      Seq(compilations.map(_.classes.path.toString).mkString("-Xfriend-paths=", ",", ""))
+    }
+
     Seq("-no-stdlib") ++
       kotlinModuleNameOption() ++
       when(!languageVersion.isBlank)("-language-version", languageVersion) ++
       when(!kotlinkotlinApiVersion.isBlank)("-api-version", kotlinkotlinApiVersion) ++
-      plugins.map(p => s"-Xplugin=$p")
+      plugins.map(p => s"-Xplugin=$p") ++
+      friendPathsOption ++
+      when(kotlinExplicitApi())("-Xexplicit-api=strict")
   }
 
   /**
@@ -452,7 +481,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       worker: InternalJvmWorkerApi,
       upstreamCompileOutput: Seq[CompilationResult],
       javaSourceFiles: Seq[os.Path],
-      compileCp: Seq[os.Path],
+      compileCp: Seq[PathRef],
       javaHome: Option[os.Path],
       javacOptions: Seq[String],
       compileProblemReporter: Option[CompileProblemReporter],
@@ -509,13 +538,13 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
     override def kotlincPluginMvnDeps: T[Seq[Dep]] =
       Task { outer.kotlincPluginMvnDeps() }
-      // TODO: make Xfriend-path an explicit setting
+    override def kotlinFriendModules: Seq[KotlinModule] =
+      super.kotlinFriendModules ++ Seq(outer)
     override def kotlincOptions: T[Seq[String]] = Task {
-      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
-        Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
+      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources"))
     }
-    override def kotlinUseEmbeddableCompiler: Task[Boolean] =
-      Task.Anon { outer.kotlinUseEmbeddableCompiler() }
+    override def kotlinUseEmbeddableCompiler: T[Boolean] =
+      Task { outer.kotlinUseEmbeddableCompiler() }
     override def kotlincUseBtApi: Task.Simple[Boolean] = Task { outer.kotlincUseBtApi() }
   }
 
@@ -531,13 +560,13 @@ object KotlinModule {
     override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
     override def kotlincPluginMvnDeps: T[Seq[Dep]] =
       Task { outer.kotlincPluginMvnDeps() }
-    // TODO: make Xfriend-path an explicit setting
+    override def kotlinFriendModules: Seq[KotlinModule] =
+      super.kotlinFriendModules ++ Seq(outer)
     override def kotlincOptions: T[Seq[String]] = Task {
-      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
-        Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
+      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources"))
     }
-    override def kotlinUseEmbeddableCompiler: Task[Boolean] =
-      Task.Anon { outer.kotlinUseEmbeddableCompiler() }
+    override def kotlinUseEmbeddableCompiler: T[Boolean] =
+      Task { outer.kotlinUseEmbeddableCompiler() }
     override def kotlincUseBtApi: Task.Simple[Boolean] = Task { outer.kotlincUseBtApi() }
   }
   private[mill] def addJvmVariantAttributes: ResolutionParams => ResolutionParams = { params =>

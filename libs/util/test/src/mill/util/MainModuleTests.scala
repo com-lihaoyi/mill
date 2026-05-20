@@ -166,7 +166,7 @@ object MainModuleTests extends TestSuite {
 
     trait Cleanable extends Module {
       def theWorker = Task.Worker {
-        new TestWorker("shared", workers)
+        TestWorker("shared", workers)
       }
     }
 
@@ -175,7 +175,7 @@ object MainModuleTests extends TestSuite {
     }
     object bar extends Cleanable {
       override def theWorker = Task.Worker {
-        new TestWorker("bar", workers)
+        TestWorker("bar", workers)
       }
     }
     object bazz extends Cross[Bazz]("1", "2", "3")
@@ -288,13 +288,13 @@ object MainModuleTests extends TestSuite {
       }
 
       test("single") {
-        val outStream = new ByteArrayOutputStream()
-        val errStream = new ByteArrayOutputStream()
+        val outStream = ByteArrayOutputStream()
+        val errStream = ByteArrayOutputStream()
         UnitTester(
           mainModule,
           null,
-          outStream = new PrintStream(outStream, true),
-          errStream = new PrintStream(errStream, true)
+          outStream = PrintStream(outStream, true),
+          errStream = PrintStream(errStream, true)
         ).scoped { evaluator =>
 
           val results =
@@ -321,13 +321,13 @@ object MainModuleTests extends TestSuite {
         }
       }
       test("multi") {
-        val outStream = new ByteArrayOutputStream()
-        val errStream = new ByteArrayOutputStream()
+        val outStream = ByteArrayOutputStream()
+        val errStream = ByteArrayOutputStream()
         UnitTester(
           mainModule,
           null,
-          outStream = new PrintStream(outStream, true),
-          errStream = new PrintStream(errStream, true)
+          outStream = PrintStream(outStream, true),
+          errStream = PrintStream(errStream, true)
         ).scoped { evaluator =>
 
           val results =
@@ -368,8 +368,8 @@ object MainModuleTests extends TestSuite {
         UnitTester(
           mainModule,
           null,
-          outStream = new PrintStream(OutputStream.nullOutputStream(), true),
-          errStream = new PrintStream(OutputStream.nullOutputStream(), true)
+          outStream = PrintStream(OutputStream.nullOutputStream(), true),
+          errStream = PrintStream(OutputStream.nullOutputStream(), true)
         ).scoped { evaluator =>
 
           val Left(ExecResult.Failure(msg = failureMsg)) =
@@ -391,8 +391,8 @@ object MainModuleTests extends TestSuite {
         UnitTester(
           mainModule,
           null,
-          outStream = new PrintStream(OutputStream.nullOutputStream(), true),
-          errStream = new PrintStream(OutputStream.nullOutputStream(), true)
+          outStream = PrintStream(OutputStream.nullOutputStream(), true),
+          errStream = PrintStream(OutputStream.nullOutputStream(), true)
         ).scoped { evaluator =>
 
           val Right(result) = evaluator.apply("show", "helloWorker").runtimeChecked
@@ -400,6 +400,42 @@ object MainModuleTests extends TestSuite {
           assert(res("toString").str == "theHelloWorker")
           assert(res("worker").str == "helloWorker")
           assert(res("inputsHash").numOpt.isDefined)
+        }
+      }
+
+      test("resolve") {
+        // Verify that `show resolve` sends the plain text task listing to stderr,
+        // and only the JSON array goes to stdout
+        val outStream = ByteArrayOutputStream()
+        val errStream = ByteArrayOutputStream()
+        UnitTester(
+          mainModule,
+          null,
+          outStream = PrintStream(outStream, true),
+          errStream = PrintStream(errStream, true)
+        ).scoped { evaluator =>
+
+          val results =
+            evaluator.evaluator.execute(Seq(mainModule.show(
+              evaluator.evaluator,
+              "resolve",
+              "_"
+            ))).executionResults
+
+          assert(results.transitiveFailing.size == 0)
+
+          // stdout should contain only the JSON array of resolved task names
+          val shown = ujson.read(outStream.toByteArray)
+          assert(shown.isInstanceOf[ujson.Arr])
+          val taskNames = shown.arr.map(_.str).toSet
+          assert(taskNames.contains("hello"))
+          assert(taskNames.contains("hello2"))
+          assert(taskNames.contains("helloCommand"))
+
+          // The plain text listing from `resolve` should go to stderr, not stdout
+          checkErrStream(errStream) { strippedErr =>
+            assert(strippedErr.contains("hello"))
+          }
         }
       }
     }
@@ -599,7 +635,7 @@ object MainModuleTests extends TestSuite {
     test("cleanWorker") {
       test("all") {
         val workers = new mutable.HashSet[TestWorker]
-        val workerModule = new WorkerModule(workers)
+        val workerModule = WorkerModule(workers)
         UnitTester(workerModule, null).scoped { ev =>
 
           val r1 = ev.evaluator.execute(Seq(workerModule.all)).executionResults
@@ -614,7 +650,7 @@ object MainModuleTests extends TestSuite {
 
       test("single-task") {
         val workers = new mutable.HashSet[TestWorker]
-        val workerModule = new WorkerModule(workers)
+        val workerModule = WorkerModule(workers)
         UnitTester(workerModule, null).scoped { ev =>
 
           val r1 = ev.evaluator.execute(Seq(workerModule.all)).executionResults
@@ -646,7 +682,7 @@ object MainModuleTests extends TestSuite {
 
       test("single-task via rm") {
         val workers = new mutable.HashSet[TestWorker]
-        val workerModule = new WorkerModule(workers)
+        val workerModule = WorkerModule(workers)
         UnitTester(workerModule, null).scoped { ev =>
 
           ev.evaluator.execute(Seq(workerModule.foo.theWorker)).executionResults
@@ -695,7 +731,7 @@ object MainModuleTests extends TestSuite {
       }
       test("single-module") {
         val workers = new mutable.HashSet[TestWorker]
-        val workerModule = new WorkerModule(workers)
+        val workerModule = WorkerModule(workers)
         UnitTester(workerModule, null).scoped { ev =>
 
           val r1 = ev.evaluator.execute(Seq(workerModule.all)).executionResults

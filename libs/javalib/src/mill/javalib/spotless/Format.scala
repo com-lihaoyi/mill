@@ -40,7 +40,7 @@ object Format {
   /**
    * Default [[Format]] for files with `.java` extension.
    */
-  def defaultJava = ext("java")(PalantirJavaFormat())
+  def defaultJava = ext("java")(GoogleJavaFormat(version = "1.35.0"))
 
   /**
    * Default [[Format]] for files with `.kt`, `.kts` extensions.
@@ -293,7 +293,7 @@ object Format {
         def write0[V](out: Visitor[?, V], v: RelPathRef) =
           summon[ReadWriter[PathRef]].write0(out, v.ref)
         def mapNonNullsFunction(t: String) =
-          if t.startsWith("ref:") then RelPathRef(upickle.read[PathRef](t))
+          if t.startsWith("ref:") then RelPathRef(upickle.read[PathRef](ujson.Str(t)))
           else t
       }
   }

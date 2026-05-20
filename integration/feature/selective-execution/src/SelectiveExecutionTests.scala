@@ -9,7 +9,7 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
   implicit val retryMax: RetryMax = RetryMax(120.seconds)
   implicit val retryInterval: RetryInterval = RetryInterval(1.seconds)
   val tests: Tests = Tests {
-    test("default-command") - integrationTest { tester =>
+    test("defaultCommand") - integrationTest { tester =>
       import tester.*
 
       eval(("selective.prepare", "bar"), check = true)
@@ -28,7 +28,7 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
     }
 
     test("failures") {
-      test("missing-prepare") - integrationTest { tester =>
+      test("missingPrepare") - integrationTest { tester =>
         import tester.*
 
         os.remove.all(workspacePath)
@@ -41,7 +41,7 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
         assert(cached.err.contains("`selective.run` can only be run after `selective.prepare`"))
       }
     }
-    test("renamed-tasks") - integrationTest { tester =>
+    test("renamedTasks") - integrationTest { tester =>
       import tester.*
       eval(("selective.prepare", "{foo,bar}._"), check = true)
 
@@ -77,7 +77,7 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       )
     }
 
-    test("mill-version-change-triggers-full-rerun") - integrationTest { tester =>
+    test("millVersion") - integrationTest { tester =>
       import tester.*
 
       // Prepare selective execution with multiple tasks
@@ -131,7 +131,7 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       )
     }
 
-    test("mill-jvm-version-change-triggers-full-rerun") - integrationTest { tester =>
+    test("millJvm") - integrationTest { tester =>
       import tester.*
 
       // Prepare selective execution with multiple tasks
@@ -184,7 +184,7 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       )
     }
 
-    test("classpath-change-triggers-full-rerun") - integrationTest { tester =>
+    test("classpath") - integrationTest { tester =>
       import tester.*
 
       // Prepare selective execution with multiple tasks

@@ -20,13 +20,19 @@ class FileToStreamTailer(file: os.Path, stream: PrintStream, intervalMsec: Int)
       while (keepReading || doFlush) {
         doFlush = false
         try {
-          // Init reader, if not already done
+          // Init reader, if not already done. Check existence first to avoid
+          // allocating a NoSuchFileException on every poll while the file is missing.
           if (reader == null) {
-            try reader = new BufferedReader(new InputStreamReader(os.read.inputStream(file)))
-            catch {
-              case _: java.io.IOException =>
-                // nothing to ignore if file is initially missing
-                ignoreHead = false
+            if (os.exists(file)) {
+              try reader = BufferedReader(InputStreamReader(os.read.inputStream(file)))
+              catch {
+                case _: java.io.IOException =>
+                  // file vanished between the exists check and open
+                  ignoreHead = false
+              }
+            } else {
+              // nothing to ignore if file is initially missing
+              ignoreHead = false
             }
           }
           if (reader != null) { // read lines

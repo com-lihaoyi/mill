@@ -37,15 +37,15 @@ object TabCompleteTests extends TestSuite {
   }
   override def tests: Tests = Tests {
 
-    val outStream = new ByteArrayOutputStream()
-    val errStream = new ByteArrayOutputStream()
+    val outStream = ByteArrayOutputStream()
+    val errStream = ByteArrayOutputStream()
 
     def evalComplete(s: String*) = {
       UnitTester(
         mainModule,
         null,
-        outStream = new PrintStream(outStream),
-        errStream = new PrintStream(errStream)
+        outStream = PrintStream(outStream),
+        errStream = PrintStream(errStream)
       ).scoped { tester =>
         os.write(tester.evaluator.workspace / "file1.txt", "")
         os.write(tester.evaluator.workspace / "file2.txt", "")
@@ -311,11 +311,12 @@ object TabCompleteTests extends TestSuite {
           evalComplete("1", "./mill", "-"),
           Set(
             "-i  Alias for now `--no-daemon`. No longer needed for interactive commands since Mill 1.1.0",
-            "-b  Ring the bell once if the run completes successfully, twice if it fails.",
             "-k  Continue build, even after build failures.",
             "-w  Watch and re-run the given tasks when their inputs change.",
             "-D  <k=v> Define (or overwrite) a system property.",
             "-d  Show debug output on STDOUT",
+            "-L  <int> Select a meta-level to run the given tasks. Level 0 is the main project in `build.mill`, level 1 the first meta-build in `mill-build/build.mill`, etc. If negative, -1 means the deepest meta-build (bootstrap build), -2 the second deepest meta-build, etc.",
+            "-b  Ring the bell once if the run completes successfully, twice if it fails.",
             "-v  Show mill version information and exit.",
             "-j  <str> The number of parallel threads. It can be an integer e.g. `5` meaning 5 threads, an expression e.g. `0.5C` meaning half as many threads as available cores, or `C-2` meaning 2 threads less than the number of cores. `1` disables parallelism and `0` (the default) uses 1 thread per core."
           )
@@ -362,7 +363,6 @@ object TabCompleteTests extends TestSuite {
             "--import                  <str> Additional ivy dependencies to load into mill, e.g. plugins.",
             "--bsp-install             Create mill-bsp.json with Mill details under .bsp/",
             "--allow-positional        Allows command args to be passed positionally without `--arg` by default",
-            "--bsp-no-kill-other       If the BSP lock is hold by another process, wait for it to release the lock",
             "--meta-level              <int> Select a meta-level to run the given tasks. Level 0 is the main project in `build.mill`, level 1 the first meta-build in `mill-build/build.mill`, etc. If negative, -1 means the deepest meta-build (bootstrap build), -2 the second deepest meta-build, etc.",
             "--bsp                     Enable BSP server mode. Typically used by a BSP client when starting the Mill BSP server.",
             "--help-advanced           Print a internal or advanced command flags not intended for common usage",
@@ -381,7 +381,6 @@ object TabCompleteTests extends TestSuite {
             "--color                   <bool> Toggle colored output; by default enabled only if the console is interactive or FORCE_COLOR environment variable is set, and NO_COLOR is not set",
             "--no-daemon               Run without a long-lived background daemon.",
             "--no-wait-for-build-lock  Do not wait for an exclusive lock on the Mill output directory to evaluate tasks / commands.",
-            "--no-wait-for-bsp-lock    Do not wait for an exclusive BSP server lock to run BSP server, just exit with an error if the BSP server lock is hold by another process",
             "--version                 Show mill version information and exit.",
             "--task                    <str> The name or a query of the tasks(s) you want to build."
           )

@@ -126,22 +126,39 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
 
         val spawned = spawn(("-j1", "--watch", "{foo.fooCommand,bar.barCommand}"))
 
+        case class FailureCase(
+            error: String,
+            outputLine: String,
+            boom: String
+        )
+        val fooFailure =
+          FailureCase("sys.error(\"boom foo\")", "Computing fooCommand", "boom foo")
+        val barFailure =
+          FailureCase("sys.error(\"boom bar\")", "Computing barCommand", "boom bar")
+
         assertEventually { spawned.err.text().contains("boom") }
+        val firstFailure =
+          if (spawned.err.text().contains(fooFailure.boom)) fooFailure
+          else {
+            assert(spawned.err.text().contains(barFailure.boom))
+            barFailure
+          }
+        val remainingFailure = if (firstFailure == fooFailure) barFailure else fooFailure
 
         spawned.clear()
-        modifyFile(workspacePath / "build.mill", _.replace("sys.error(\"boom foo\")", ""))
+        modifyFile(workspacePath / "build.mill", _.replace(firstFailure.error, ""))
 
         assertEventually {
-          spawned.out.text().contains("Computing fooCommand") &&
-          // Make sure `bar` re-runs here and blows up again, even though we didn't modify the
-          // task, so the user is aware there is still a remaining failure after fixing foo
-          spawned.err.text().contains("boom bar")
+          spawned.out.text().contains(firstFailure.outputLine) &&
+          // Make sure the still-broken task re-runs here and blows up again, even though we
+          // didn't modify that task, so the user is aware there is still a remaining failure.
+          spawned.err.text().contains(remainingFailure.boom)
         }
 
         spawned.clear()
-        modifyFile(workspacePath / "build.mill", _.replace("sys.error(\"boom bar\")", ""))
+        modifyFile(workspacePath / "build.mill", _.replace(remainingFailure.error, ""))
 
-        assertEventually { spawned.out.text().contains("Computing barCommand") }
+        assertEventually { spawned.out.text().contains(remainingFailure.outputLine) }
       }
     }
   }

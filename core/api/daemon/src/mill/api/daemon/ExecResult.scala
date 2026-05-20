@@ -28,7 +28,7 @@ object ExecResult {
       case e: Throwable =>
         Exception(
           e,
-          new OuterStack(new java.lang.Exception().getStackTrace.toIndexedSeq.drop(1), cutExtra = 1)
+          OuterStack(new java.lang.Exception().getStackTrace.toIndexedSeq.drop(1), cutExtra = 1)
         )
     }
   }
@@ -71,7 +71,7 @@ object ExecResult {
 
     override def asFailing: Option[ExecResult.Failing[T]] = Some(this)
     def throwException: Nothing = this match {
-      case f: ExecResult.Failure[?] => throw new Result.Exception(f.msg, f.failure)
+      case f: ExecResult.Failure[?] => throw Result.Exception(f.msg, f.failure)
       case f: ExecResult.Exception => throw f.throwable
     }
   }
@@ -132,7 +132,7 @@ object ExecResult {
 
   @deprecated("use `exceptionToFailure` instead")
   def makeResultException(e: Throwable, base: java.lang.Exception): Left[String, Nothing] = {
-    val outerStack = new ExecResult.OuterStack(base.getStackTrace)
+    val outerStack = ExecResult.OuterStack(base.getStackTrace)
     Left(ExecResult.Exception(e, outerStack).toString)
   }
 }

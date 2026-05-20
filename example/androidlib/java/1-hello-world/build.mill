@@ -1,3 +1,4 @@
+//| mill-jvm-version: zulu:21
 // This section sets up a basic Android project using Mill.
 // We utilize `AndroidAppModule` and `AndroidSdkModule` to streamline the process of
 // building an Android application with minimal configuration.
@@ -129,9 +130,19 @@ object app extends AndroidAppModule {
 > ./mill show app.adbDevices
 ...emulator-...device...
 
+*/
+
+// To install the APK on the emulator:
+/** Usage
+
 > ./mill show app.androidInstall
 ...All files should be loaded. Notifying the device...
 
+*/
+
+// You can also use the `run` command which combines the installation and launching of the app in one step. It will automatically trigger the `androidInstall` task and then launch the main activity of the app on the emulator.
+/** Usage
+> ./mill show app.run
 */
 
 // The android tests (existing typically in androidTest directory, aka instrumented tests)

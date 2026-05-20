@@ -116,7 +116,7 @@ object SpotlessTests extends TestSuite {
 
     test("ratchet") - retry(3) {
       object module extends singleModule
-      val logStream = new ByteArrayOutputStream()
+      val logStream = ByteArrayOutputStream()
       val errStream = PrintStream(logStream, true)
       UnitTester(module, resources / "ratchet", errStream = errStream).scoped { eval =>
         import module.moduleDir
@@ -128,7 +128,7 @@ object SpotlessTests extends TestSuite {
         val legacyRef0 = PathRef(legacy)
 
         call("git", "init", "-b", "ratchet")
-        call("git", "config", "set", "--local", "commit.gpgsign", "false")
+        call("git", "config", "--local", "commit.gpgsign", "false")
         call("git", "add", ".gitignore", legacy)
         call("git", "commit", "-m", "0") // minimum 1 commit required
 

@@ -245,7 +245,7 @@ object SonatypeHelpers {
   private def sha1 = MessageDigest.getInstance("sha1")
 
   private def hexArray(arr: Array[Byte]) =
-    String.format("%0" + (arr.length << 1) + "x", new BigInteger(1, arr))
+    String.format("%0" + (arr.length << 1) + "x", BigInteger(1, arr))
 
   private def signWithGpg(
       file: os.Path,
@@ -265,7 +265,7 @@ object SonatypeHelpers {
     val zipFile =
       (wd / s"$fileNameWithoutExtension.zip")
     val fileOutputStream = java.nio.file.Files.newOutputStream(zipFile.toNIO)
-    val jarOutputStream = new JarOutputStream(fileOutputStream)
+    val jarOutputStream = JarOutputStream(fileOutputStream)
     try {
       func(jarOutputStream)
     } finally {
@@ -279,7 +279,7 @@ object SonatypeHelpers {
       jarOutputStream: JarOutputStream
   ): Unit = {
     files.foreach { case (filename, fileAsBytes) =>
-      val zipEntry = new ZipEntry(filename.toString)
+      val zipEntry = ZipEntry(filename.toString)
       jarOutputStream.putNextEntry(zipEntry)
       jarOutputStream.write(fileAsBytes)
       jarOutputStream.closeEntry()

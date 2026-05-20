@@ -3,6 +3,7 @@ package contrib.docker
 
 import com.google.cloud.tools.jib.api.*
 import com.google.cloud.tools.jib.api.buildplan.{ImageFormat, Port}
+import com.google.cloud.tools.jib.frontend.CredentialRetrieverFactory
 
 import scala.jdk.CollectionConverters.*
 import scala.jdk.OptionConverters.*
@@ -23,12 +24,11 @@ object JibBuild {
   ): JavaContainerBuilder = {
 
     val javaBuilder = sourceImage match {
-      case JibImage.RegistryImage(qualifiedName, credentialsEnvironment) =>
-        val image = com.google.cloud.tools.jib.api.RegistryImage.named(
-          ImageReference.parse(qualifiedName)
-        )
-        credentialsEnvironment.foreach { case (username, password) =>
-          image.addCredentialRetriever(retrieveEnvCredentials(username, password))
+      case JibImage.RegistryImage(qualifiedName, credentials) =>
+        val reference = ImageReference.parse(qualifiedName)
+        val image = com.google.cloud.tools.jib.api.RegistryImage.named(reference)
+        credentials.foreach { config =>
+          image.addCredentialRetriever(configuredCredentialRetriever(reference, config, logger))
         }
         JavaContainerBuilder.from(image)
       case JibImage.DockerDaemonImage(qualifiedName, _) =>
@@ -110,12 +110,11 @@ object JibBuild {
     val containerizer = targetImage match {
       case JibImage.DockerDaemonImage(qualifiedName, _) =>
         Containerizer.to(DockerDaemonImage.named(qualifiedName))
-      case JibImage.RegistryImage(qualifiedName, credentialsEnvironment) =>
-        val image = com.google.cloud.tools.jib.api.RegistryImage.named(
-          ImageReference.parse(qualifiedName)
-        )
-        credentialsEnvironment.foreach { case (username, password) =>
-          image.addCredentialRetriever(retrieveEnvCredentials(username, password))
+      case JibImage.RegistryImage(qualifiedName, credentials) =>
+        val reference = ImageReference.parse(qualifiedName)
+        val image = com.google.cloud.tools.jib.api.RegistryImage.named(reference)
+        credentials.foreach { config =>
+          image.addCredentialRetriever(configuredCredentialRetriever(reference, config, logger))
         }
         Containerizer.to(image)
       case JibImage.TargetTarFile(qualifiedName, filename) =>
@@ -135,19 +134,31 @@ object JibBuild {
   private def isSnapshotDependency(pathRef: mill.api.PathRef): Boolean =
     pathRef.path.last.endsWith("-SNAPSHOT.jar")
 
-  private def retrieveEnvCredentials(
-      usernameEnv: String,
-      passwordEnv: String
-  ): CredentialRetriever =
-    new CredentialRetriever {
-      def retrieve(): java.util.Optional[Credential] = {
-        val option = for {
-          username <- sys.env.get(usernameEnv)
-          password <- sys.env.get(passwordEnv)
-        } yield Credential.from(username, password)
-        option.asJava
+  private def configuredCredentialRetriever(
+      reference: ImageReference,
+      config: JibCredentialConfig,
+      logger: mill.api.Logger
+  ): CredentialRetriever = config match {
+    case JibCredentialConfig.EnvironmentVariables(usernameEnv, passwordEnv) =>
+      new CredentialRetriever {
+        def retrieve(): java.util.Optional[Credential] = {
+          val option = for {
+            username <- sys.env.get(usernameEnv)
+            password <- sys.env.get(passwordEnv)
+          } yield Credential.from(username, password)
+          option.asJava
+        }
       }
-    }
+    case JibCredentialConfig.DockerConfig(path) =>
+      val factory = CredentialRetrieverFactory.forImage(reference, JibLogging.eventLogger(logger))
+      factory.dockerConfig(path.toNIO)
+    case JibCredentialConfig.DockerCredentialHelper(helper) =>
+      val factory = CredentialRetrieverFactory.forImage(reference, JibLogging.eventLogger(logger))
+      factory.dockerCredentialHelper(helper)
+    case JibCredentialConfig.GoogleADC() =>
+      val factory = CredentialRetrieverFactory.forImage(reference, JibLogging.eventLogger(logger))
+      factory.googleApplicationDefaultCredentials()
+  }
 
   private def setMainClass(
       mainClass: Option[String],

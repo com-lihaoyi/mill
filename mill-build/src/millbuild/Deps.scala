@@ -31,19 +31,19 @@ object Deps {
   val testScala33Version = "3.3.7"
 
   object Scalajs_1 {
-    val scalaJsVersion = "1.20.2"
+    val scalaJsVersion = "1.21.0"
     val scalajsEnvJsdomNodejs =
       mvn"org.scala-js::scalajs-env-jsdom-nodejs:1.1.1".withDottyCompat(scalaVersion)
     val scalajsEnvExoegoJsdomNodejs =
       mvn"net.exoego::scalajs-env-jsdom-nodejs:2.1.0".withDottyCompat(scalaVersion)
-    val scalajsEnvNodejs = mvn"org.scala-js::scalajs-env-nodejs:1.4.0".withDottyCompat(scalaVersion)
+    val scalajsEnvNodejs = mvn"org.scala-js::scalajs-env-nodejs:1.5.0".withDottyCompat(scalaVersion)
     val scalajsEnvPhantomjs =
       mvn"org.scala-js::scalajs-env-phantomjs:1.0.0".withDottyCompat(scalaVersion)
     val scalajsEnvSelenium =
       mvn"org.scala-js::scalajs-env-selenium:1.1.1".withDottyCompat(scalaVersion)
     val scalajsEnvPlaywright =
       mvn"io.github.thijsbroersen::scala-js-env-playwright:0.2.3"
-    val scalajsJsEnvs = mvn"org.scala-js::scalajs-js-envs:1.4.0".withDottyCompat(scalaVersion)
+    val scalajsJsEnvs = mvn"org.scala-js::scalajs-js-envs:1.5.0".withDottyCompat(scalaVersion)
     val scalajsSbtTestAdapter =
       mvn"org.scala-js::scalajs-sbt-test-adapter:${scalaJsVersion}".withDottyCompat(scalaVersion)
     val scalajsLinker =
@@ -55,7 +55,7 @@ object Deps {
   }
 
   object Scalanative_0_5 {
-    val scalanativeVersion = "0.5.10"
+    val scalanativeVersion = "0.5.11"
     // Workaround for https://github.com/com-lihaoyi/mill/issues/6780:
     // prefer Scala 2.13 published toolchain artifacts.
     val scalanativeTools = mvn"org.scala-native:tools_2.13:${scalanativeVersion}"
@@ -95,14 +95,23 @@ object Deps {
   val play =
     Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
-  val acyclic = mvn"com.lihaoyi:::acyclic:0.3.20"
+  val acyclic = mvn"com.lihaoyi:::acyclic:0.3.21"
   val ammoniteVersion = "3.0.4"
-  val asmAnalysis = mvn"org.ow2.asm:asm-analysis:9.9.1"
-  val asmTree = mvn"org.ow2.asm:asm-tree:9.9.1"
+  val asmAnalysis = mvn"org.ow2.asm:asm-analysis:9.10"
+  val asmTree = mvn"org.ow2.asm:asm-tree:9.10"
+
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
+  val bouncyCastleVersion = "1.84"
+  val keytoolDeps = Seq(
+    mvn"org.bouncycastle:bcpkix-jdk18on:${bouncyCastleVersion}",
+    mvn"org.bouncycastle:bcprov-jdk18on:${bouncyCastleVersion}",
+    mvn"org.bouncycastle:bcutil-jdk18on:${bouncyCastleVersion}"
+  )
+  val bouncyCastleProv = mvn"org.bouncycastle:bcprov-jdk18on:${bouncyCastleVersion}"
+  val bouncyCastlePgp = mvn"org.bouncycastle:bcpg-jdk18on:${bouncyCastleVersion}"
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.184"
-  val coursierVersion = "2.1.25-M24"
+  val coursierVersion = "2.1.25-M25"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierArchiveCache =
     mvn"io.get-coursier::coursier-archive-cache:$coursierVersion".withDottyCompat(scalaVersion)
@@ -197,14 +206,14 @@ object Deps {
   val scalaCliBsp = mvn"org.virtuslab.scala-cli:scala-cli-bsp:1.8.0"
   val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.4.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala_runtime = mvn"org.scalameta:::semanticdb-scalac:4.14.7"
+  val semanticDBscala_runtime = mvn"org.scalameta:::semanticdb-scalac:4.16.1"
   val semanticDbJava_runtime = mvn"com.sourcegraph:semanticdb-java:0.11.1"
   val semanticDbShared =
     mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala_runtime.version}"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.4"
 
   val springBootTools_api = mvn"org.springframework.boot:spring-boot-loader-tools:3.3.0"
-  val springBootTools_runtime = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.5"
+  val springBootTools_runtime = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.13"
   val quarkusAppModel_api = mvn"io.quarkus:quarkus-bootstrap-app-model:3.31.1"
   val quarkusBootstrapCore_api = mvn"io.quarkus:quarkus-bootstrap-core:3.31.1"
   val quarkusCoreDeployment_api = mvn"io.quarkus:quarkus-core-deployment:3.31.1"
@@ -213,7 +222,7 @@ object Deps {
   // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
   // lacks support for FFM on Mac ARM. That should be fixed soon, see oracle/graal#8113.
   val nativeTerminal = mvn"io.github.alexarchambault.native-terminal:native-terminal-no-ffm:0.0.9.1"
-  val zinc = mvn"org.scala-sbt::zinc:2.0.0-M14"
+  val zinc = mvn"org.scala-sbt::zinc:2.0.0-M18"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = mvn"ch.epfl.scala:bsp4j:2.2.0-M2"
   // https://github.com/google/gson/releases/tag/gson-parent-2.13.2
@@ -266,21 +275,21 @@ object Deps {
   val sbt_api = mvn"org.scala-sbt:sbt:1.10.10"
   val mimaCore_api = mvn"com.typesafe::mima-core:1.1.4"
   val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:3.0.1"
-  val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.2.0"
+  val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.3.1"
   // JGit 6.x series, used by spotlessLibExtra, works on Java 11
   // subsequent releases require Java 17+
   val jgit = mvn"org.eclipse.jgit:org.eclipse.jgit:6.10.1.202505221210-r"
 
   object RuntimeDeps {
-    val dokkaVersion_runtime = "2.0.0"
+    val dokkaVersion_runtime = "2.2.0"
     val koverVersion_runtime = "0.8.3"
 
-    val detektCli_runtime = mvn"io.gitlab.arturbosch.detekt:detekt-cli:1.23.7"
+    val detektCli_runtime = mvn"io.gitlab.arturbosch.detekt:detekt-cli:1.23.8"
     val dokkaAnalysisDescriptors_runtime =
       mvn"org.jetbrains.dokka:analysis-kotlin-descriptors:$dokkaVersion_runtime"
     val dokkaBase_runtime = mvn"org.jetbrains.dokka:dokka-base:$dokkaVersion_runtime"
     val dokkaCli_runtime = mvn"org.jetbrains.dokka:dokka-cli:$dokkaVersion_runtime"
-    val errorProneCore_runtime = mvn"com.google.errorprone:error_prone_core:2.31.0"
+    val errorProneCore_runtime = mvn"com.google.errorprone:error_prone_core:2.49.0"
     val freemarker_runtime = mvn"org.freemarker:freemarker:2.3.34"
     val jupiterInterface_runtime = mvn"com.github.sbt.junit:jupiter-interface:0.13.3"
     val jupiterInterface6_runtime = mvn"com.github.sbt.junit:jupiter-interface:0.17.0"
@@ -291,11 +300,12 @@ object Deps {
     val koverJvmAgent_runtime = mvn"org.jetbrains.kotlinx:kover-jvm-agent:$koverVersion_runtime"
     val ktfmt_runtime = mvn"com.facebook:ktfmt:0.58"
     val ktlint_runtime = mvn"com.pinterest.ktlint:ktlint-core:0.49.1"
-    val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.74.0"
-    val proguard_runtime = mvn"com.guardsquare:proguard-base:7.7.0"
+    val owaspDependencyCheckCli_runtime = mvn"org.owasp:dependency-check-cli:12.2.2"
+    val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.90.0"
+    val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.15.0"
+    val proguard_runtime = mvn"com.guardsquare:proguard-base:7.9.1"
     val revApi_runtime = mvn"org.revapi:revapi-standalone:0.12.0"
     val sbtTestInterface = mvn"com.github.sbt:junit-interface:0.13.2"
-    val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.15.0"
 
     def updateable = Seq(
       detektCli_runtime,
@@ -313,11 +323,12 @@ object Deps {
       koverJvmAgent_runtime,
       ktfmt_runtime,
       ktlint_runtime,
+      owaspDependencyCheckCli_runtime,
       palantirFormat_runtime,
+      pmdDist_runtime,
       proguard_runtime,
       revApi_runtime,
-      sbtTestInterface,
-      pmdDist_runtime
+      sbtTestInterface
     )
   }
 
@@ -328,7 +339,7 @@ object Deps {
     Deps.gson,
     mvn"com.google.protobuf:protobuf-java:4.33.5",
     mvn"com.google.guava:guava:33.4.0-jre",
-    mvn"org.yaml:snakeyaml:2.5",
+    mvn"org.yaml:snakeyaml:2.6",
     mvn"org.apache.commons:commons-compress:1.28.0"
   )
 
@@ -336,7 +347,7 @@ object Deps {
   object TestDeps {
     // tests framework (test)
     val scalaCheck = mvn"org.scalacheck::scalacheck:1.19.0"
-    val scalaTest = mvn"org.scalatest::scalatest:3.2.19"
+    val scalaTest = mvn"org.scalatest::scalatest:3.2.20"
     val utest = mvn"com.lihaoyi::utest:0.10.0-RC1"
     val zioTest = mvn"dev.zio::zio-test:2.1.14"
   }
@@ -375,12 +386,5 @@ object Deps {
     )
 
   }
-  val keytoolDeps = Seq(
-    mvn"org.bouncycastle:bcpkix-jdk18on:1.83",
-    mvn"org.bouncycastle:bcprov-jdk18on:1.83",
-    mvn"org.bouncycastle:bcutil-jdk18on:1.83"
-  )
-  val bouncyCastleProv = mvn"org.bouncycastle:bcprov-jdk18on:1.83"
-  val bouncyCastlePgp = mvn"org.bouncycastle:bcpg-jdk18on:1.83"
 
 }

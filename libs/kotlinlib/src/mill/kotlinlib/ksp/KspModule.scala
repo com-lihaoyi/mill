@@ -122,7 +122,7 @@ trait KspModule extends KotlinModule { outer =>
     sources()
   }
 
-  override def kotlinUseEmbeddableCompiler: Task[Boolean] = kspModuleMode match {
+  override def kotlinUseEmbeddableCompiler: T[Boolean] = kspModuleMode match {
     case KspModuleMode.Ksp1 => Task { true }
     case KspModuleMode.Ksp2Cli | KspModuleMode.Ksp2 => Task { super.kotlinUseEmbeddableCompiler() }
   }
@@ -152,7 +152,7 @@ trait KspModule extends KotlinModule { outer =>
    */
   def ksp1KotlincOptions: T[Seq[String]] = Task {
     if (!kspLanguageVersion().startsWith("1.")) {
-      throw new RuntimeException("KSP needs a compatible language version <= 1.9 to be set!")
+      throw RuntimeException("KSP needs a compatible language version <= 1.9 to be set!")
     }
     kotlincOptions() ++ Seq(
       "-Xallow-unstable-dependencies",

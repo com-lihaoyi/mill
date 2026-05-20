@@ -6,6 +6,7 @@ import coursier.params.ResolutionParams
 import mill.T
 import mill.androidlib.manifestmerger.AndroidManifestMerger
 import mill.androidlib.bsp.BspAndroidModule
+import mill.androidlib.idea.GenIdeaAndroidModule
 import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.api.{ModuleRef, PathRef, Task}
 import mill.javalib.*
@@ -22,24 +23,8 @@ trait AndroidModule extends JavaModule { outer =>
   }
 
   private[mill] override lazy val genIdeaInternalExt = {
-    ModuleRef(new mill.androidlib.idea.GenIdeaModule.Wrap(this) {}.internalGenIdea)
+    ModuleRef(new GenIdeaAndroidModule.Wrap(this) {}.internalGenIdea)
   }
-
-  // https://cs.android.com/android-studio/platform/tools/base/+/mirror-goog-studio-main:build-system/gradle-core/src/main/java/com/android/build/gradle/internal/tasks/D8BundleMainDexListTask.kt;l=210-223;drc=66ab6bccb85ce3ed7b371535929a69f494d807f0
-  val mainDexPlatformRules = Seq(
-    "-keep public class * extends android.app.Instrumentation {\n" +
-      "  <init>(); \n" +
-      "  void onCreate(...);\n" +
-      "  android.app.Application newApplication(...);\n" +
-      "  void callApplicationOnCreate(android.app.Application);\n" +
-      "}",
-    "-keep public class * extends android.app.Application { " +
-      "  <init>();\n" +
-      "  void attachBaseContext(android.content.Context);\n" +
-      "}",
-    "-keep public class * extends android.app.backup.BackupAgent { <init>(); }",
-    "-keep public class * extends android.test.InstrumentationTestCase { <init>(); }"
-  )
 
   /**
    * Adds "aar" to the handled artifact types.
@@ -553,7 +538,7 @@ trait AndroidModule extends JavaModule { outer =>
   def androidManifestMergerModuleRef: ModuleRef[AndroidManifestMerger] =
     ModuleRef(AndroidManifestMerger)
 
-  def androidMergeableManifests: Task[Seq[PathRef]] = Task {
+  def androidMergeableManifests: Task.Simple[Seq[PathRef]] = Task {
     androidUnpackRunArchives().flatMap(_.manifest) ++ androidDirectModuleDepsManifests()
   }
 
@@ -599,7 +584,7 @@ trait AndroidModule extends JavaModule { outer =>
     // But we also need to have R.java classes for libraries. The process below is quite hacky and inefficient, because:
     // * it will generate R.java for the library even library has no resources declared
     // * R.java will have not only resource ID from this library, but from other libraries as well. They should be stripped.
-    val rClassDir = androidLinkedResources().path / "generatedSources/java"
+    val rClassDir = androidLinkedResources().generatedSourcesDir.path
     val rSources = os.walk(rClassDir).filter(p => os.isFile(p) && p.ext == "java")
     val mainRClassPath = rSources
       .find(_.last == "R.java")
@@ -811,7 +796,8 @@ trait AndroidModule extends JavaModule { outer =>
    * For more information see [[https://developer.android.com/tools/aapt2#link]]
    * @return a directory which contains the apk, proguard and generated R sources.
    */
-  def androidLinkedResources: T[PathRef] = Task {
+  def androidLinkedResources: T[AndroidLinkedResources] = Task {
+
     val compiledLibResDir = androidCompiledLibResources().path
     val moduleResDirs = (androidCompiledModuleResources() ++ androidTransitiveCompiledResources())
       .map(_.path)
@@ -832,10 +818,7 @@ trait AndroidModule extends JavaModule { outer =>
     os.makeDir(apkDir)
 
     val resApkFile = apkDir / "res.apk"
-
-    val mainDexRulesProFile = proguard / "main-dex-rules.pro"
-
-    val aapt2Link = Seq(androidSdkModule().aapt2Exe().path.toString(), "link")
+    val proguardRulesFile = proguard / "proguard-rules.pro"
 
     val linkArgs = Seq(
       "-I",
@@ -854,9 +837,8 @@ trait AndroidModule extends JavaModule { outer =>
       androidVersionCode().toString,
       "--version-name",
       androidVersionName(),
-      "--proguard-main-dex",
-      mainDexRulesProFile.toString,
-      "--proguard-conditional-keep-rules"
+      "--proguard",
+      proguardRulesFile.toString
     ) ++ androidAaptOptions() ++ Seq(
       "-o",
       resApkFile.toString,
@@ -866,11 +848,17 @@ trait AndroidModule extends JavaModule { outer =>
       transitiveMergedAssetsDir.toString
     )
 
+    val aapt2Link = Seq(androidSdkModule().aapt2Exe().path.toString(), "link")
+
     Task.log.info((aapt2Link ++ linkArgs).mkString(" "))
 
     os.call(aapt2Link ++ linkArgs)
 
-    PathRef(Task.dest)
+    AndroidLinkedResources(
+      apk = PathRef(resApkFile),
+      generatedSourcesDir = PathRef(javaRClassDir),
+      proguardRulesFile = PathRef(proguardRulesFile)
+    )
   }
 
   /**
@@ -901,7 +889,7 @@ trait AndroidModule extends JavaModule { outer =>
         ZincOp.CompileJava(
           upstreamCompileOutput = upstreamCompileOutput(),
           sources = sources.map(_.path),
-          compileClasspath = androidTransitiveLibRClasspath().map(_.path),
+          compileClasspath = androidTransitiveLibRClasspath(),
           javacOptions = jOpts.compiler,
           incrementalCompilation = zincIncrementalCompilation(),
           workDir = Task.dest
@@ -991,7 +979,7 @@ trait AndroidModule extends JavaModule { outer =>
       Map(
         "android_custom_package" -> outer.androidNamespace,
         "android_merged_manifest" -> outer.androidMergedManifest().path.toString,
-        "android_resource_apk" -> (outer.androidLinkedResources().path / "apk" / "res.apk").toString,
+        "android_resource_apk" -> outer.androidLinkedResources().apk.path.toString,
         "android_merged_assets" -> outer.androidTransitiveMergedAssets().path.toString
       )
     }
@@ -1033,3 +1021,9 @@ trait AndroidModule extends JavaModule { outer =>
   }
 
 }
+
+case class AndroidLinkedResources(
+    apk: PathRef,
+    generatedSourcesDir: PathRef,
+    proguardRulesFile: PathRef
+) derives upickle.default.ReadWriter

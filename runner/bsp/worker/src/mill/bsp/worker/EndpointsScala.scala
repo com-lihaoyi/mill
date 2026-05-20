@@ -53,7 +53,7 @@ private trait EndpointsScala extends ScalaBuildServer with ScalaScriptBuildServe
       )
 
     } { (values, _, _) =>
-      new ScalacOptionsResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
+      ScalacOptionsResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
     }
 
   override def buildTargetScalaMainClasses(p: ScalaMainClassesParams)
@@ -68,14 +68,14 @@ private trait EndpointsScala extends ScalaBuildServer with ScalaScriptBuildServe
       val mainClasses = ctx.value.classes
       // val mainMain = m.mainClass().orElse(if(mainClasses.size == 1) mainClasses.headOption else None)
       val items = mainClasses.map { mc =>
-        val scalaMc = new ScalaMainClass(mc, Seq().asJava, ctx.value.forkArgs.asJava)
+        val scalaMc = ScalaMainClass(mc, Seq().asJava, ctx.value.forkArgs.asJava)
         scalaMc.setEnvironmentVariables(ctx.value.forkEnv.map(e => s"${e._1}=${e._2}").toSeq.asJava)
         scalaMc
       }
-      new ScalaMainClassesItem(ctx.id, items.asJava)
+      ScalaMainClassesItem(ctx.id, items.asJava)
 
     } { (values, _, _) =>
-      new ScalaMainClassesResult(values)
+      ScalaMainClassesResult(values)
     }
 
   override def buildTargetScalaTestClasses(p: ScalaTestClassesParams)
@@ -89,11 +89,11 @@ private trait EndpointsScala extends ScalaBuildServer with ScalaScriptBuildServe
       originId = p.getOriginId
     ) { (ctx, _) =>
       val (frameworkName, classes) = ctx.value
-      val item = new ScalaTestClassesItem(ctx.id, classes.asJava)
+      val item = ScalaTestClassesItem(ctx.id, classes.asJava)
       item.setFramework(frameworkName)
       item
     } { (values, _, _) =>
-      new ScalaTestClassesResult(values)
+      ScalaTestClassesResult(values)
     }
 
   private val userCodeStartMarker = "//SOURCECODE_ORIGINAL_CODE_START_MARKER\n"
@@ -124,9 +124,9 @@ private trait EndpointsScala extends ScalaBuildServer with ScalaScriptBuildServe
             Nil
           }
       }
-      new WrappedSourcesItem(ctx.id, items.asJava)
+      WrappedSourcesItem(ctx.id, items.asJava)
     } { (items, _, _) =>
-      new WrappedSourcesResult(items)
+      WrappedSourcesResult(items)
     }
 
 }

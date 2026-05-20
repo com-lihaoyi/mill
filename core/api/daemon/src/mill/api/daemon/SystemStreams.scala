@@ -25,8 +25,8 @@ object SystemStreams {
    * That means that the logs may appear out of order, jumbling your logs and screwing up
    * your terminal
    */
-  val original = new SystemStreams(System.out, System.err, System.in)
-  val current = new DynamicVariable(original)
+  val original = SystemStreams(System.out, System.err, System.in)
+  val current = DynamicVariable(original)
 
   /**
    * Used to check whether the system streams are all "original", i,e. they

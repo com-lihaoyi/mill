@@ -16,10 +16,10 @@ object InitSbtAirstreamTests extends InitTestSuite(
       eval("_.mimaReportBinaryIssues").isSuccess
     )
     test("issues") {
-      test("requires support for jsEnv") - assert(
+      test("jsEnv") - assert(
         !eval(("_.test.testOnly", "com.raquo.airstream.web.WebStorageVarSpec")).isSuccess
       )
-      test("scalafmtConfig file does not specify the scalafmt version to use") - assert(
+      test("scalafmt") - assert(
         !eval("_.checkFormat").isSuccess
       )
     }

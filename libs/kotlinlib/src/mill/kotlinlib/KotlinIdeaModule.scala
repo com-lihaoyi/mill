@@ -1,7 +1,10 @@
 package mill.kotlinlib
 
-import mill.api.{Task, experimental}
 import mill.api.daemon.internal.idea.{Element, JavaFacet}
+import mill.api.{BuildCtx, Task, TaskCtx, experimental}
+import mill.api.daemon.internal.IdeUtils
+
+private lazy val FriendPathsPattern = "^-Xfriend-paths=(.+)$".r
 
 /**
  * Adds a JavaFacet to the generated .iml file with the Kotlin compiler options.
@@ -20,6 +23,30 @@ trait KotlinIdeaModule extends KotlinModule {
         )
       )
 
+    lazy val redirectedCompilerOptions = {
+      val options = scala.collection.mutable.Buffer.empty[String]
+
+      options ++= allKotlincOptions().filterNot {
+        case FriendPathsPattern(_) => true
+        case _ => false
+      }
+
+      if (kotlinFriendModulesChecked.nonEmpty) {
+        val redirectedFriendPaths = Task.traverse(kotlinFriendModulesChecked)(friend =>
+          Task.Anon { friend.genIdeaInternalExt().ideaCompileOutput().path }
+        )()
+        options += redirectedFriendPaths
+          .map(path => "$MODULE_DIR$/../../" + (path.relativeTo(BuildCtx.workspaceRoot)).toString)
+          .mkString("-Xfriend-paths=", ",", "")
+      }
+
+      options.mkString(" ")
+    }
+
+    lazy val friendElements = kotlinFriendModulesChecked
+      .flatMap(friend => IdeUtils.moduleName(friend.moduleSegments))
+      .map(friendName => Element("friend", childsOrText = Seq(friendName)))
+
     val facets = ideaConfigVersion match {
       case 4 => {
         Seq(
@@ -29,27 +56,34 @@ trait KotlinIdeaModule extends KotlinModule {
             Element(
               "configuration",
               attributes = Map(
-                "version" -> "5"
+                "version" -> "5",
+                "useProjectSettings" -> "false"
               ),
-              childs = Seq(
+              childsOrText = Seq(
+                if (friendElements.nonEmpty) {
+                  Element(
+                    "additionalVisibleModuleNames",
+                    childsOrText = friendElements
+                  )
+                } else null,
                 Element(
                   "compilerSettings",
-                  childs = Seq(
+                  childsOrText = Seq(
                     Element(
                       "option",
                       attributes = Map(
                         "name" -> "additionalArguments",
-                        "value" -> allKotlincOptions().mkString(" ")
+                        "value" -> redirectedCompilerOptions
                       )
                     )
                   )
                 ),
                 Element(
                   "compilerArguments",
-                  childs = Seq(
+                  childsOrText = Seq(
                     Element(
                       "stringArguments",
-                      childs =
+                      childsOrText =
                         Seq(
                           stringArgElement("apiVersion", kotlinApiVersion()),
                           stringArgElement("languageVersion", kotlinLanguageVersion())
@@ -59,7 +93,7 @@ trait KotlinIdeaModule extends KotlinModule {
                     )
                   )
                 )
-              )
+              ).filterNot(_ == null)
             )
           )
         )

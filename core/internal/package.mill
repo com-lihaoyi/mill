@@ -9,6 +9,7 @@ import millbuild.*
  */
 object `package` extends MillPublishScalaModule {
   def moduleDeps = Seq(
+    build.core.api,
     build.core.api.daemon,
     build.core.constants,
     build.core.internal.cli,

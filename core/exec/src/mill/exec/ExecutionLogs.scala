@@ -1,6 +1,6 @@
 package mill.exec
 
-import mill.constants.OutFiles.OutFiles
+import mill.api.daemon.internal.LauncherOutFiles
 import mill.api.Task
 import mill.internal.{InvalidationForest, SpanningForest}
 
@@ -11,13 +11,14 @@ private object ExecutionLogs {
   def logDependencyTree(
       interGroupDeps: Map[Task[?], Seq[Task[?]]],
       indexToTerminal: Array[Task[?]],
-      outPath: os.Path
+      runArtifacts: LauncherOutFiles
   ): Unit = {
+    val dependencyTreePath = os.Path(runArtifacts.dependencyTree)
     val ( /*vertexToIndex*/ _, edgeIndices) =
       SpanningForest.graphMapToIndices(indexToTerminal, interGroupDeps)
 
     SpanningForest.writeJsonFile(
-      outPath / OutFiles.millDependencyTree,
+      dependencyTreePath,
       edgeIndices,
       indexToTerminal.indices.toSet,
       indexToTerminal(_).toString
@@ -25,7 +26,7 @@ private object ExecutionLogs {
   }
   def logInvalidationTree(
       interGroupDeps: Map[Task[?], Seq[Task[?]]],
-      outPath: os.Path,
+      runArtifacts: LauncherOutFiles,
       uncached: ConcurrentHashMap[Task[?], Unit],
       changedValueHash: ConcurrentHashMap[Task[?], Unit],
       // JSON string to avoid classloader issues when crossing classloader boundaries
@@ -33,10 +34,19 @@ private object ExecutionLogs {
       // Per-task invalidation reasons (e.g., version mismatch reasons)
       taskInvalidationReasons: Map[String, String] = Map.empty
   ): Unit = {
+    val invalidationTreePath = os.Path(runArtifacts.invalidationTree)
     val changedTasks = changedValueHash.keys().asScala.toSet
-    val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
-    val filteredReverseInterGroupDeps = reverseInterGroupDeps.view.filterKeys(changedTasks).toMap
-    val downstreamSources = filteredReverseInterGroupDeps.filter(_._2.nonEmpty).keySet
+    val downstreamSources =
+      if (changedTasks.isEmpty) Set.empty[Task[?]]
+      else {
+        val builder = Set.newBuilder[Task[?]]
+        for {
+          deps <- interGroupDeps.valuesIterator
+          dep <- deps
+          if changedTasks.contains(dep)
+        } builder += dep
+        builder.result()
+      }
 
     // Root invalidated tasks: uncached tasks that either cause downstream invalidations
     // or are non-input tasks (e.g. invalidated due to codesig change)
@@ -51,6 +61,9 @@ private object ExecutionLogs {
       taskInvalidationReasons = taskInvalidationReasons
     )
 
-    os.write.over(outPath / OutFiles.millInvalidationTree, finalTree.render(indent = 2))
+    os.write.over(
+      invalidationTreePath,
+      finalTree.render(indent = 2)
+    )
   }
 }

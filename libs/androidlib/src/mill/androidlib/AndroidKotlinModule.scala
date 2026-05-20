@@ -17,6 +17,11 @@ import mill.util.Jvm
 // https://kotlinlang.org/docs/compose-compiler-options.html possible options
 trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
 
+  private def kotlinSources = Task.Sources("src/main/kotlin")
+
+  override def sources: T[Seq[PathRef]] =
+    super[AndroidModule].sources() ++ kotlinSources()
+
   /**
    * Enable Jetpack Compose support in the module. Default is `false`.
    */
@@ -40,7 +45,7 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
 
   def androidDataBindingCompilerVersion: T[String] = Task {
     isBindingEnabled match {
-      case true => throw new Exception(
+      case true => throw Exception(
           "androidDataBindingCompilerVersion must be set (e.g. \"8.13.0\") when view or data binding is enabled."
         )
       case false => ""
