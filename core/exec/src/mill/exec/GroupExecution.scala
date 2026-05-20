@@ -246,10 +246,11 @@ trait GroupExecution {
   ): GroupExecution.Results = {
 
     val inputsHash = {
+      val groupSet = group.toSet
       // The order of tasks within a is unstable, so use `unorderedHash` to
       // make sure we get a stable hash out of it
       val externalInputsHash = MurmurHash3.unorderedHash(
-        group.iterator.flatMap(effectiveInputs).filterNot(group.contains)
+        group.iterator.flatMap(effectiveInputs).filterNot(groupSet.contains)
           .flatMap(results(_).asSuccess.map(_.value._2))
       )
       val sideHashes = MurmurHash3.unorderedHash(group.iterator.map(_.sideHash))
