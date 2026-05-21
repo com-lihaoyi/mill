@@ -1,0 +1,10 @@
+package build
+
+import mill.*
+import mill.kotlinlib.*
+
+object app extends KotlinModule {
+  def kotlinVersion = "2.3.0"
+
+  object test extends KotlinTests, TestModule.Junit5
+}
