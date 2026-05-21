@@ -340,7 +340,16 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
           s"Compiling ${kotlinSourceFiles.size} Kotlin sources ${extra}to ${classes.relativeTo(BuildCtx.workspaceRoot)} ..."
         )
 
-        val compilerArgs: Seq[String] = Seq(
+        val supportsCliOutputTracking =
+          Version.parse(kotlinVersion())
+            .isAtLeast(Version.parse("1.1.3"))(using Version.IgnoreQualifierOrdering)
+
+        val useBtApi =
+          kotlincUseBtApi() && kotlinUseEmbeddableCompiler()
+
+        val useCliOutputTracking = !useBtApi && supportsCliOutputTracking
+
+        val compilerArgs0: Seq[String] = Seq(
           // destdir
           Seq("-d", classes.toString()),
           // apply multi-platform support (expect/actual)
@@ -355,14 +364,25 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
           extraKotlinArgs
         ).flatten
 
-        val useBtApi =
-          kotlincUseBtApi() && kotlinUseEmbeddableCompiler()
-
         if (kotlincUseBtApi() && !kotlinUseEmbeddableCompiler()) {
           ctx.log.warn(
             "Kotlin Build Tools API requires kotlinUseEmbeddableCompiler=true; " +
               "falling back to CLI compiler backend."
           )
+        }
+
+        val compilerArgs =
+          if (useCliOutputTracking && !compilerArgs0.contains("-Xreport-output-files")) {
+            compilerArgs0 :+ "-Xreport-output-files"
+          } else {
+            compilerArgs0
+          }
+
+        if (!useBtApi && !useCliOutputTracking) {
+          // Older Kotlin CLI versions cannot report output mappings, so fall back to a
+          // clean classes directory to avoid stale class files from deleted sources.
+          os.remove.all(classes)
+          os.makeDir.all(classes)
         }
 
         val workerResult =

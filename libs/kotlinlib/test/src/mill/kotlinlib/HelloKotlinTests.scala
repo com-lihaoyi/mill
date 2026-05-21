@@ -264,5 +264,45 @@ object HelloKotlinTests extends TestSuite {
         os.remove(anotherFile)
       }
     }
+
+    test("deletedTestSourceRemovesClassFileWithCliCompiler") {
+      testEval().scoped { eval =>
+        val cliModule = HelloKotlin.main.crossModules.find(m =>
+          m.crossValue == "2.3.0" && !m.crossValue2
+        ).get
+
+        val srcDir = eval.evaluator.workspace / "main/test/src"
+        val extraFile = srcDir / "DeletedKotlinSourceTest.kt"
+        os.write(
+          extraFile,
+          """package hello.tests
+            |
+            |import org.junit.Test
+            |
+            |class DeletedKotlinSourceTest {
+            |    @Test fun deletedTestMustNotRun() = Unit
+            |}
+            |""".stripMargin,
+          createFolders = true
+        )
+
+        val Right(result1) = eval.apply(cliModule.test.compile).runtimeChecked
+        val deletedClass = result1.value.classes.path / "hello/tests/DeletedKotlinSourceTest.class"
+        assert(os.exists(deletedClass))
+
+        os.remove(extraFile)
+
+        val Right(result2) = eval.apply(cliModule.test.compile).runtimeChecked
+        val Right(discovered) = eval.apply(cliModule.test.discoveredTestClasses).runtimeChecked
+
+        assert(
+          result2.evalCount > 0,
+          !os.exists(deletedClass),
+          os.exists(result2.value.classes.path / "hello/tests/HelloTest.class"),
+          discovered.value.contains("hello.tests.HelloTest"),
+          !discovered.value.contains("hello.tests.DeletedKotlinSourceTest")
+        )
+      }
+    }
   }
 }
