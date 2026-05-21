@@ -2671,6 +2671,50 @@ node21 -> node0;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="testBatchFrameworkTasks-0" data-f-inherited="TestModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="TestModule$$ZioTest.html#testBatchFrameworkTasks-0" t="n" class="documentableName ">testBatchFrameworkTasks</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Boolean</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Whether Mill should pass each fork group's full selected <code>TaskDef</code> batch to <code>Runner.tasks</code> inside one forked test JVM.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Whether Mill should pass each fork group's full selected <code>TaskDef</code> batch to <code>Runner.tasks</code> inside one forked test JVM.</p>
+              <p>Some sbt-testing frameworks use <code>Runner.tasks</code> to wire relationships between related <code>TaskDef</code>s. For example, Weaver's <code>GlobalResource</code> setup is connected to suites from the full <code>TaskDef</code> batch. Set this to true for such frameworks.</p>
+              <p>Setting this to true disables intra-group queue parallelism: all classes in a <code>testForkGrouping</code> group run in one subprocess. Separate fork groups can still run independently.</p>
+              <p>See also: <a href="https://github.com/com-lihaoyi/mill/issues/7113">https://github.com/com-lihaoyi/mill/issues/7113</a></p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="TestModule.html#testBatchFrameworkTasks-0">TestModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/TestModule.scala" target="_blank">TestModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="testCached-0" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
