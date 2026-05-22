@@ -54,6 +54,13 @@ trait GradleBuildGenTests extends TestSuite {
         initArgs = Seq("--gradle-jvm-id", "17") ++ extraArgs
       ))
     }
+    test("quarkus-getting-started") {
+      assert(checker.check(
+        sourceRel = "quarkus-getting-started",
+        expectedRel = os.sub / expectedDir / "quarkus-getting-started",
+        initArgs = Seq("--gradle-jvm-id", "21") ++ extraArgs
+      ))
+    }
   }
 }
 
