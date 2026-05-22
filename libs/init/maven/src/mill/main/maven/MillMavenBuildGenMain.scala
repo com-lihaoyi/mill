@@ -261,11 +261,8 @@ object MillMavenBuildGenMain {
 
   private def detectQuarkusPluginVersion(model: Model): Option[String] = {
     model.getBuild.getPlugins.asScala.find(p =>
-      println(s"Checking plugin ${p.getGroupId}:${p.getArtifactId}:${p.getVersion} for Quarkus plugin") // Debug log
       p.getArtifactId == QuarkusPluginArtifactId
-    ).flatMap(p =>
-      print(s"Found Quarkus plugin with version ${p.getVersion}") // Debug log
-      nonEmpty(p.getVersion))
+    ).flatMap(p => nonEmpty(p.getVersion))
   }
 
   private def toMvnDep(dep: Dependency) = {
