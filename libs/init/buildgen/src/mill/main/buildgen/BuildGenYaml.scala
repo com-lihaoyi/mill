@@ -292,8 +292,14 @@ object BuildGenYaml extends BuildGen {
     ).foreach(lines += _)
 
     // Annotation Processors
-    renderYamlMvnDepsList("annotationProcessorsMvnDeps", annotationProcessorsMvnDeps).foreach(lines += _)
-    renderYamlStringListValues("annotationProcessorsJavacOptions", annotationProcessorsJavacOptions).foreach(lines += _)
+    renderYamlMvnDepsList(
+      "annotationProcessorsMvnDeps",
+      annotationProcessorsMvnDeps
+    ).foreach(lines += _)
+    renderYamlStringListValues(
+      "annotationProcessorsJavacOptions",
+      annotationProcessorsJavacOptions
+    ).foreach(lines += _)
 
     // Publishing
     renderYamlStringValue("artifactName", artifactName).foreach(lines += _)
@@ -435,7 +441,9 @@ object BuildGenYaml extends BuildGen {
       content += s"  licenses: ${licenseIds.mkString("[", ", ", "]")}"
       val vc = pom.versionControl
       // Filter out URLs that contain unresolved placeholders like ${scm.url}
-      val vcUrl = vc.browsableRepository.orElse(vc.connection).filterNot(containsPlaceholder).map(yamlEscapeString)
+      val vcUrl = vc.browsableRepository.orElse(
+        vc.connection
+      ).filterNot(containsPlaceholder).map(yamlEscapeString)
       content += s"  versionControl: ${vcUrl.getOrElse("\"\"")}"
       if (pom.developers.nonEmpty) {
         content += "  developers:"

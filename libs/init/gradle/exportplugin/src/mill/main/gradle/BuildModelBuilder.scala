@@ -120,11 +120,14 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         var testModule = ModuleSpec(
           name = "test",
           supertypes = "MavenTests" +: testMixin.toSeq,
-          forkArgs = Values(task[Test]("test").fold(Nil) { task =>
-            task.getSystemProperties.asScala.map {
-              case (k, v) => Opt(s"-D$k=$v")
-            }.toSeq ++ Opt.groups(task.getJvmArgs.asScala.toSeq)
-          }, appendSuper = true),
+          forkArgs = Values(
+            task[Test]("test").fold(Nil) { task =>
+              task.getSystemProperties.asScala.map {
+                case (k, v) => Opt(s"-D$k=$v")
+              }.toSeq ++ Opt.groups(task.getJvmArgs.asScala.toSeq)
+            },
+            appendSuper = true
+          ),
           forkWorkingDir = Some("moduleDir"),
           mvnDeps = mvnDeps("testImplementation"),
           compileMvnDeps = mvnDeps("testCompileOnly"),
@@ -217,7 +220,9 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       .flatMap(plugin => Option(plugin.getClass.getPackage))
       .flatMap(pkg => Option(pkg.getImplementationVersion))
       .filter(_.nonEmpty)
-    val buildScriptVersion = project.getBuildscript.getConfigurations.getByName("classpath").getResolvedConfiguration.getResolvedArtifacts.asScala
+    val buildScriptVersion = project.getBuildscript.getConfigurations.getByName(
+      "classpath"
+    ).getResolvedConfiguration.getResolvedArtifacts.asScala
       .find(artifact => artifact.getModuleVersion.getId.getGroup == pluginId)
       .map(_.getModuleVersion.getId.getVersion)
     pluginImplVersion.orElse(buildScriptVersion)

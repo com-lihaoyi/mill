@@ -203,8 +203,16 @@ object BuildGenScala extends BuildGen {
       errorProneJavacEnableOptions,
       encodeOpt
     )
-    lines += renderDefValues("annotationProcessorsMvnDeps", annotationProcessorsMvnDeps, encodeMvnDep)
-    lines += renderDefValues("annotationProcessorsJavacOptions", annotationProcessorsJavacOptions, encodeOpt)
+    lines += renderDefValues(
+      "annotationProcessorsMvnDeps",
+      annotationProcessorsMvnDeps,
+      encodeMvnDep
+    )
+    lines += renderDefValues(
+      "annotationProcessorsJavacOptions",
+      annotationProcessorsJavacOptions,
+      encodeOpt
+    )
     lines += renderDefValue("jmhCoreVersion", jmhCoreVersion, encodeString)
     lines += renderDefValue("scalafixConfig", scalafixConfig, encodeSome)
     lines += renderDefValues("scalafixIvyDeps", scalafixIvyDeps, encodeMvnDep)

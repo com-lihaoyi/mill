@@ -101,8 +101,10 @@ trait BuildGen {
         mimaExcludeAnnotations = parentValues(a.mimaExcludeAnnotations, b.mimaExcludeAnnotations),
         mimaReportSignatureProblems =
           parentValue(a.mimaReportSignatureProblems, b.mimaReportSignatureProblems),
-        annotationProcessorsMvnDeps = parentValues(a.annotationProcessorsMvnDeps, b.annotationProcessorsMvnDeps),
-        annotationProcessorsJavacOptions = parentValues(a.annotationProcessorsJavacOptions, b.annotationProcessorsJavacOptions)
+        annotationProcessorsMvnDeps =
+          parentValues(a.annotationProcessorsMvnDeps, b.annotationProcessorsMvnDeps),
+        annotationProcessorsJavacOptions =
+          parentValues(a.annotationProcessorsJavacOptions, b.annotationProcessorsJavacOptions)
       )
 
     def extendValue[A](a: Value[A], parent: Value[A]) = a.copy(
@@ -176,8 +178,10 @@ trait BuildGen {
         extendValues(a.mimaExcludeAnnotations, parent.mimaExcludeAnnotations),
       mimaReportSignatureProblems =
         extendValue(a.mimaReportSignatureProblems, parent.mimaReportSignatureProblems),
-      annotationProcessorsMvnDeps = extendValues(a.annotationProcessorsMvnDeps, parent.annotationProcessorsMvnDeps),
-      annotationProcessorsJavacOptions = extendValues(a.annotationProcessorsJavacOptions, parent.annotationProcessorsJavacOptions),
+      annotationProcessorsMvnDeps =
+        extendValues(a.annotationProcessorsMvnDeps, parent.annotationProcessorsMvnDeps),
+      annotationProcessorsJavacOptions =
+        extendValues(a.annotationProcessorsJavacOptions, parent.annotationProcessorsJavacOptions),
       sourcesFolders = extendValues(a.sourcesFolders, parent.sourcesFolders)
     )
 
