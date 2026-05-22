@@ -282,7 +282,7 @@ object ModuleSpec {
   def testModuleMixin(mvnDeps: Seq[MvnDep]): Option[String] = {
     // Prioritize frameworks that integrate with other frameworks.
     mvnDeps.iterator.map(dep => dep.organization -> dep.name).collectFirst {
-      case ("io.quarkus", "quarkus-junit") => "QuarkusJunit"
+      case ("io.quarkus", "quarkus-junit" | "quarkus-junit5") => "QuarkusJunit"
       case ("org.scalatest" | "org.scalatestplus", _) => "TestModule.ScalaTest"
       case ("org.specs2", _) => "TestModule.Spec2"
       // https://scalameta.org/munit/docs/integrations/external-integrations.html

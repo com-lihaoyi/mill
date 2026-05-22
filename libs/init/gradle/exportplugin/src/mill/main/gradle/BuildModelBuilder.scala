@@ -40,6 +40,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
     import project0.*
     val moduleDir = os.Path(getProjectDir)
     val isSpringBoot = isSpringBootProject(project0)
+    val isQuarkus = isQuarkusProject(project0)
     var mainModule = ModuleSpec(
       name = moduleDir.last,
       repositories = getRepositories.asScala.toSeq.collect(toRepositoryUrlString).distinct
@@ -77,6 +78,15 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         case T(t) => Some(t)
         case _ => None
       }
+      // Exclude BOM deps that will be added by Mill Modules
+      val effectiveBomDeps = {
+        val exclusions = Set.newBuilder[(String, String)]
+        if (isSpringBoot) exclusions += ("org.springframework.boot" -> "spring-boot-dependencies")
+        if (isQuarkus) exclusions += ("io.quarkus.platform" -> "quarkus-bom")
+        val exclusionSet = exclusions.result()
+
+        mainBomDeps.filterNot(dep => exclusionSet.contains((dep.getGroup, dep.getName)))
+      }
       val buildDir = os.Path(getLayout.getBuildDirectory.get().getAsFile)
       mainModule = mainModule.copy(
         imports = "mill.javalib.*" +: mainModule.imports,
@@ -84,7 +94,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         mvnDeps = mvnDeps("implementation", "api"),
         compileMvnDeps = mvnDeps("compileOnly", "compileOnlyApi"),
         runMvnDeps = mvnDeps("runtimeOnly"),
-        bomMvnDeps = mainBomDeps.collect(toMvnDep),
+        bomMvnDeps = effectiveBomDeps.collect(toMvnDep),
         depManagement = mainConstraints.collect(toMvnDep),
         javacOptions = task[JavaCompile]("compileJava").fold(Nil)(javacOptions),
         moduleDeps = moduleDeps("implementation", "api"),
