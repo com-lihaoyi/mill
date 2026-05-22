@@ -1,11 +1,20 @@
 mill-version: SNAPSHOT
 mill-jvm-version: system
-extends: [quarkus.QuarkusModule, MavenModule]
+extends: [quarkus.QuarkusModule, MavenModule, PublishModule]
 quarkusPlatformVersion: 3.31.3
 mvnDeps:
 - io.quarkus:quarkus-arc
 - io.quarkus:quarkus-rest
 javacOptions: [-source, 21, -target, 21]
+artifactName: quarkus-getting-started
+pomSettings:
+  description: ""
+  organization: com.lihaoyi.example
+  url: ""
+  licenses: []
+  versionControl: ""
+  developers: []
+publishVersion: 0.0.1-SNAPSHOT
 
 object test:
   extends: [MavenTests, QuarkusJunit]

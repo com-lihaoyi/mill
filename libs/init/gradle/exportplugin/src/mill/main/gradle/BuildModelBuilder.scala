@@ -110,6 +110,18 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       if (isQuarkus) {
         val pluginVersion = detectPluginVersion(project0, QuarkusPluginId)
         mainModule = mainModule.withQuarkusModule(pluginVersion)
+
+        // Add PublishModule and artifact/pom settings.
+        mainModule = mainModule.copy(
+          imports = "mill.javalib.publish.*" +: mainModule.imports,
+          supertypes = mainModule.supertypes :+ "PublishModule",
+          artifactName = Option(getName),
+          publishVersion = Option(getVersion).map(_.toString),
+          pomSettings = Some(PomSettings(
+            organization = getGroup.toString,
+            description = Option(getDescription).getOrElse("")
+          ))
+        )
       }
 
       if (os.exists(moduleDir / "src/test")) {

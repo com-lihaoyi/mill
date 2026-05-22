@@ -4,15 +4,29 @@ package build
 
 import mill.*
 import mill.javalib.*
+import mill.javalib.publish.*
 import mill.javalib.quarkus.*
 
-object `package` extends QuarkusModule, MavenModule {
+object `package` extends QuarkusModule, MavenModule, PublishModule {
 
   def quarkusPlatformVersion = "3.31.3"
 
   def mvnDeps = Seq(mvn"io.quarkus:quarkus-arc", mvn"io.quarkus:quarkus-rest")
 
   def javacOptions = Seq("-source", "21", "-target", "21")
+
+  def artifactName = "quarkus-getting-started"
+
+  def pomSettings = PomSettings(
+    "",
+    "com.lihaoyi.example",
+    "",
+    Seq(),
+    VersionControl(None, None, None, None),
+    Seq()
+  )
+
+  def publishVersion = "0.0.1-SNAPSHOT"
 
   object test extends MavenTests, QuarkusJunit {
 
