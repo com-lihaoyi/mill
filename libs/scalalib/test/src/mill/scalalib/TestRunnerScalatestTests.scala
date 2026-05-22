@@ -87,9 +87,8 @@ object TestRunnerScalatestTests extends TestSuite {
               "testargs"
             ),
             testrunnerGrouping.scalatest -> Set(
-              "group-1-mill.scalalib.ScalaTestSpec",
-              "mill.scalalib.OuterTests",
-              "mill.scalalib.ScalaTestSpec3",
+              "group-0-mill.scalalib.OuterTests",
+              "group-1-mill.scalalib.ScalaTestSpec2",
               "test-report.xml"
             ),
             testrunnerWorkStealing.scalatest -> Set("worker-0", "test-classes", "test-report.xml")
@@ -134,9 +133,8 @@ object TestRunnerScalatestTests extends TestSuite {
               "testargs"
             ),
             testrunnerGrouping.scalatest -> Set(
-              "group-1-mill.scalalib.ScalaTestSpec",
-              "mill.scalalib.OuterTests",
-              "mill.scalalib.ScalaTestSpec3",
+              "group-0-mill.scalalib.OuterTests",
+              "group-1-mill.scalalib.ScalaTestSpec2",
               "test-report.xml"
             ),
             testrunnerWorkStealing.scalatest -> Set("worker-0", "test-classes", "test-report.xml")
