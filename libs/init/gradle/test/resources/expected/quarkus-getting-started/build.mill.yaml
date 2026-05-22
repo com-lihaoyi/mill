@@ -1,0 +1,18 @@
+mill-version: SNAPSHOT
+mill-jvm-version: system
+extends: [quarkus.QuarkusModule, MavenModule]
+quarkusPlatformVersion: 3.31.3
+mvnDeps:
+- io.quarkus:quarkus-arc
+- io.quarkus:quarkus-rest
+javacOptions: [-source, 21, -target, 21]
+
+object test:
+  extends: [MavenTests, QuarkusJunit]
+  mvnDeps:
+  - io.quarkus:quarkus-junit5
+  - io.rest-assured:rest-assured
+  javacOptions: [-source, 21, -target, 21]
+  forkArgs: !append [-Djava.util.logging.manager=org.jboss.logmanager.LogManager, --add-opens=java.base/java.lang.invoke=ALL-UNNAMED, --add-opens=java.base/java.lang=ALL-UNNAMED, --add-exports=java.base/jdk.internal.module=ALL-UNNAMED]
+  testParallelism: false
+  testSandboxWorkingDir: false

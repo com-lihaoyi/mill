@@ -1,0 +1,39 @@
+//| mill-version: SNAPSHOT
+//| mill-jvm-version: system
+package build
+
+import mill.*
+import mill.javalib.*
+import mill.javalib.quarkus.*
+
+object `package` extends QuarkusModule, MavenModule {
+
+  def quarkusPlatformVersion = "3.31.3"
+
+  def mvnDeps = Seq(mvn"io.quarkus:quarkus-arc", mvn"io.quarkus:quarkus-rest")
+
+  def javacOptions = Seq("-source", "21", "-target", "21")
+
+  object test extends MavenTests, QuarkusJunit {
+
+    def mvnDeps =
+      Seq(mvn"io.quarkus:quarkus-junit5", mvn"io.rest-assured:rest-assured")
+
+    def javacOptions = Seq("-source", "21", "-target", "21")
+
+    def forkArgs = super.forkArgs() ++ Seq(
+      "-Djava.util.logging.manager=org.jboss.logmanager.LogManager",
+      "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+      "--add-opens=java.base/java.lang=ALL-UNNAMED",
+      "--add-exports=java.base/jdk.internal.module=ALL-UNNAMED"
+    )
+
+    def forkWorkingDir = moduleDir
+
+    def testParallelism = false
+
+    def testSandboxWorkingDir = false
+
+  }
+
+}
