@@ -13,7 +13,6 @@ case class ModuleSpec(
     alias: Option[String] = None,
     moduleDir: Value[String] = Value(),
     springBootPlatformVersion: Value[String] = Value(),
-    quarkusPlatformVersion: Value[String] = Value(),
     repositories: Values[String] = Nil,
     forkArgs: Values[Opt] = Values(),
     forkWorkingDir: Value[String] = Value(),
@@ -41,8 +40,6 @@ case class ModuleSpec(
     errorProneDeps: Values[MvnDep] = Values(),
     errorProneOptions: Values[String] = Values(),
     errorProneJavacEnableOptions: Values[Opt] = Values(),
-    annotationProcessorsMvnDeps: Values[MvnDep] = Values(),
-    annotationProcessorsJavacOptions: Values[Opt] = Values(),
     jmhCoreVersion: Value[String] = Value(),
     scalaVersion: Value[String] = Value(),
     scalacOptions: Values[Opt] = Values(),
@@ -67,7 +64,10 @@ case class ModuleSpec(
     mimaForwardIssueFilters: Values[(String, Seq[String])] = Values(),
     mimaExcludeAnnotations: Values[String] = Values(),
     mimaReportSignatureProblems: Value[Boolean] = Value(),
-    children: Seq[ModuleSpec] = Nil
+    children: Seq[ModuleSpec] = Nil,
+    annotationProcessorsMvnDeps: Values[MvnDep] = Values(),
+    annotationProcessorsJavacOptions: Values[Opt] = Values(),
+    quarkusPlatformVersion: Value[String] = Value()
 ) {
 
   def isBomModule: Boolean = supertypes.contains("BomModule")

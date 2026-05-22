@@ -60,8 +60,6 @@ trait BuildGen {
         bomMvnDeps = parentValues(a.bomMvnDeps, b.bomMvnDeps),
         depManagement = parentValues(a.depManagement, b.depManagement),
         javacOptions = parentValues(a.javacOptions, b.javacOptions),
-        annotationProcessorsMvnDeps = parentValues(a.annotationProcessorsMvnDeps, b.annotationProcessorsMvnDeps),
-        annotationProcessorsJavacOptions = parentValues(a.annotationProcessorsJavacOptions, b.annotationProcessorsJavacOptions),
         sourcesFolders = parentValues(a.sourcesFolders, b.sourcesFolders),
         sources = parentValues(a.sources, b.sources),
         resources = parentValues(a.resources, b.resources),
@@ -102,7 +100,9 @@ trait BuildGen {
           parentValues(a.mimaForwardIssueFilters, b.mimaForwardIssueFilters),
         mimaExcludeAnnotations = parentValues(a.mimaExcludeAnnotations, b.mimaExcludeAnnotations),
         mimaReportSignatureProblems =
-          parentValue(a.mimaReportSignatureProblems, b.mimaReportSignatureProblems)
+          parentValue(a.mimaReportSignatureProblems, b.mimaReportSignatureProblems),
+        annotationProcessorsMvnDeps = parentValues(a.annotationProcessorsMvnDeps, b.annotationProcessorsMvnDeps),
+        annotationProcessorsJavacOptions = parentValues(a.annotationProcessorsJavacOptions, b.annotationProcessorsJavacOptions)
       )
 
     def extendValue[A](a: Value[A], parent: Value[A]) = a.copy(
@@ -134,9 +134,6 @@ trait BuildGen {
       bomMvnDeps = extendValues(a.bomMvnDeps, parent.bomMvnDeps),
       depManagement = extendValues(a.depManagement, parent.depManagement),
       javacOptions = extendValues(a.javacOptions, parent.javacOptions),
-      annotationProcessorsMvnDeps = extendValues(a.annotationProcessorsMvnDeps, parent.annotationProcessorsMvnDeps),
-      annotationProcessorsJavacOptions = extendValues(a.annotationProcessorsJavacOptions, parent.annotationProcessorsJavacOptions),
-      sourcesFolders = extendValues(a.sourcesFolders, parent.sourcesFolders),
       sources = extendValues(a.sources, parent.sources),
       resources = extendValues(a.resources, parent.resources),
       artifactName = extendValue(a.artifactName, parent.artifactName),
@@ -178,7 +175,10 @@ trait BuildGen {
       mimaExcludeAnnotations =
         extendValues(a.mimaExcludeAnnotations, parent.mimaExcludeAnnotations),
       mimaReportSignatureProblems =
-        extendValue(a.mimaReportSignatureProblems, parent.mimaReportSignatureProblems)
+        extendValue(a.mimaReportSignatureProblems, parent.mimaReportSignatureProblems),
+      annotationProcessorsMvnDeps = extendValues(a.annotationProcessorsMvnDeps, parent.annotationProcessorsMvnDeps),
+      annotationProcessorsJavacOptions = extendValues(a.annotationProcessorsJavacOptions, parent.annotationProcessorsJavacOptions),
+      sourcesFolders = extendValues(a.sourcesFolders, parent.sourcesFolders)
     )
 
     val (baseHierarchy, testHierarchy) = baseTestHierarchy.unzip
