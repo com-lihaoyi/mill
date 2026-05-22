@@ -107,7 +107,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         mainModule = mainModule.withSpringBootModule(pluginVersion)
       }
 
-      if (isQuarkusProject(project0)) {
+      if (isQuarkus) {
         val pluginVersion = detectPluginVersion(project0, QuarkusPluginId)
         mainModule = mainModule.withQuarkusModule(pluginVersion)
       }
@@ -210,12 +210,17 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
   /**
    * Tries to detect the version of the given plugin
    * by looking at the implementation version of the plugin class's package.
+   * Fallbacks to looking for the plugin in the buildscript classpath.
    */
   private def detectPluginVersion(project: Project, pluginId: String): Option[String] = {
-    Option(project.getPlugins.findPlugin(pluginId))
+    val pluginImplVersion = Option(project.getPlugins.findPlugin(pluginId))
       .flatMap(plugin => Option(plugin.getClass.getPackage))
       .flatMap(pkg => Option(pkg.getImplementationVersion))
       .filter(_.nonEmpty)
+    val buildScriptVersion = project.getBuildscript.getConfigurations.getByName("classpath").getResolvedConfiguration.getResolvedArtifacts.asScala
+      .find(artifact => artifact.getModuleVersion.getId.getGroup == pluginId)
+      .map(_.getModuleVersion.getId.getVersion)
+    pluginImplVersion.orElse(buildScriptVersion)
   }
 
   private def isBom(dep: Dependency | DependencyConstraint) = dep match {
