@@ -97,6 +97,11 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         mainModule = mainModule.withSpringBootModule(pluginVersion)
       }
 
+      if (isQuarkusProject(project0)) {
+        val pluginVersion = detectPluginVersion(project0, QuarkusPluginId)
+        mainModule = mainModule.withQuarkusModule(pluginVersion)
+      }
+
       if (os.exists(moduleDir / "src/test")) {
         val testMixin = ModuleSpec.testModuleMixin(configs.find(_.getName == "testRuntimeClasspath")
           .fold(Nil)(_.getAllDependencies.asScala.toSeq.collect(toMvnDep)))
@@ -184,9 +189,13 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
   private val platform = objectFactory.named(classOf[Category], Category.REGULAR_PLATFORM)
   private val enforcedPlatform = objectFactory.named(classOf[Category], Category.ENFORCED_PLATFORM)
   private val SpringBootPluginId = "org.springframework.boot"
+  private val QuarkusPluginId = "io.quarkus"
 
   private def isSpringBootProject(project: Project): Boolean =
     project.getPluginManager.hasPlugin(SpringBootPluginId)
+
+  private def isQuarkusProject(project: Project): Boolean =
+    project.getPluginManager.hasPlugin(QuarkusPluginId)
 
   /**
    * Tries to detect the version of the given plugin
