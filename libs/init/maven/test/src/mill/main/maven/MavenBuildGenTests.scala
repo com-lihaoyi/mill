@@ -54,7 +54,7 @@ trait MavenBuildGenTests extends TestSuite {
 
 object MavenBuildGenYamlTests extends MavenBuildGenTests {
   override def expectedDir: os.SubPath = "expected"
-  // No extra args, ensure default is declarative (YAML)
+  // No extra args, equivalent to `--declarative true`
 }
 
 object MavenBuildGenScalaTests extends MavenBuildGenTests {
