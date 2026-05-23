@@ -78,6 +78,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         case _ => None
       }
       val buildDir = os.Path(getLayout.getBuildDirectory.get().getAsFile)
+      val mainJavaCompile = task[JavaCompile]("compileJava")
       mainModule = mainModule.copy(
         imports = "mill.javalib.*" +: mainModule.imports,
         supertypes = "MavenModule" +: mainModule.supertypes,
@@ -86,12 +87,19 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         runMvnDeps = mvnDeps("runtimeOnly"),
         bomMvnDeps = mainBomDeps.collect(toMvnDep),
         depManagement = mainConstraints.collect(toMvnDep),
-        javacOptions = task[JavaCompile]("compileJava").fold(Nil)(javacOptions),
+        javacOptions = mainJavaCompile.fold(Nil)(javacOptions),
         moduleDeps = moduleDeps("implementation", "api"),
         compileModuleDeps = moduleDeps("compileOnly", "compileOnlyApi"),
         runModuleDeps = moduleDeps("runtimeOnly"),
         bomModuleDeps = mainBomDeps.collect(toModuleDep)
-      ).withErrorProneModule(mvnDeps("errorprone"))
+      )
+      val hasErrorPronePlugin = getPluginManager.hasPlugin("net.ltgt.errorprone")
+      if (hasErrorPronePlugin) {
+        mainModule = mainModule.withErrorProneModule(
+          errorProneMvnDeps = mvnDeps("errorprone"),
+          errorProneOptions = mainJavaCompile.fold(Nil)(errorProneOptions)
+        )
+      }
       if (isSpringBoot) {
         val pluginVersion = detectPluginVersion(project0, SpringBootPluginId)
         mainModule = mainModule.withSpringBootModule(pluginVersion)
@@ -102,6 +110,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
           .fold(Nil)(_.getAllDependencies.asScala.toSeq.collect(toMvnDep)))
         val testBomDeps = testConfigs.flatMap(_.getDependencies.asScala).filter(isBom)
         val testConstraints = testConfigs.flatMap(_.getDependencyConstraints.asScala)
+        val testJavaCompile = task[JavaCompile]("compileTestJava")
         var testModule = ModuleSpec(
           name = "test",
           supertypes = "MavenTests" +: testMixin.toSeq,
@@ -116,7 +125,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
           runMvnDeps = mvnDeps("testRuntimeOnly"),
           bomMvnDeps = testBomDeps.collect(toMvnDep),
           depManagement = testConstraints.collect(toMvnDep),
-          javacOptions = task[JavaCompile]("compileTestJava").fold(Nil)(javacOptions),
+          javacOptions = testJavaCompile.fold(Nil)(javacOptions),
           moduleDeps = Values(
             moduleDeps("testImplementation")
               .diff(Seq(ModuleDep(moduleDir.subRelativeTo(workspace).segments))),
@@ -128,7 +137,13 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
           testParallelism = Some(false),
           testSandboxWorkingDir = Some(false),
           testFramework = Option.when(testMixin.isEmpty)("")
-        ).withErrorProneModule(mainModule.errorProneDeps.base)
+        )
+        if (hasErrorPronePlugin) {
+          testModule = testModule.withErrorProneModule(
+            errorProneMvnDeps = mainModule.errorProneDeps,
+            errorProneOptions = testJavaCompile.fold(Nil)(errorProneOptions)
+          )
+        }
         if (isSpringBoot) {
           testModule = testModule.withSpringBootTestsModule()
         }
@@ -253,8 +268,19 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       Option(task.getTargetCompatibility).map(Opt("-target", _))
     ).flatten)(n => Seq(Opt("--release", n.toString))) ++
       Option(task.getOptions.getEncoding).map(Opt("-encoding", _)) ++
-      Opt.groups(task.getOptions.getAllCompilerArgs.asScala.toSeq)
+      Opt.groups(
+        task.getOptions.getAllCompilerArgs.asScala.toSeq
+          .filterNot(arg => isManagedJavacOption(arg) || isErrorProneOption(arg))
+      )
   }
+
+  private def isErrorProneOption(arg: String): Boolean = arg.startsWith("-Xplugin:ErrorProne")
+
+  private def errorProneOptions(task: JavaCompile): Seq[String] =
+    task.getOptions.getAllCompilerArgs.asScala.toSeq
+      .collectFirst {
+        case arg if isErrorProneOption(arg) => arg.split("\\s+").toSeq.tail
+      }.getOrElse(Nil)
 
   private def toPomPackagingType(pom: MavenPom): Option[String] =
     Try(pom.getPackaging).filter(_ != "jar").toOption

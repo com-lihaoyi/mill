@@ -114,7 +114,8 @@ object MillMavenBuildGenMain {
             runModuleDeps = moduleDeps("runtime"),
             bomModuleDeps = bomModuleDeps,
             artifactName = Option(model.getArtifactId)
-          ).withErrorProneModule(plugins.errorProneMvnDeps)
+          )
+          mainModule = plugins.withErrorProneModule(mainModule).getOrElse(mainModule)
           if (isSpringParentProject) {
             mainModule = mainModule.withSpringBootModule(springBootVersion)
           }

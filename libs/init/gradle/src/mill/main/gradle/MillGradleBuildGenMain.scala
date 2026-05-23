@@ -81,7 +81,7 @@ object MillGradleBuildGenMain {
       val file = gradleWorkspace / "gradle/wrapper/gradle-wrapper.properties"
       if (os.isFile(file)) Using.resource(os.read.inputStream(file))(properties.load)
       val prop = properties.getProperty("org.gradle.jvmargs")
-      if (prop == null) Nil else prop.trim.split("\\s").toSeq
+      if (prop == null) Nil else prop.trim.split("\\s+").toSeq
     }
     buildGen.writeBuildFiles(
       baseDir = millWorkspace,
