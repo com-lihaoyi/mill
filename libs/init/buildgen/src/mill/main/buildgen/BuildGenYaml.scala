@@ -96,6 +96,14 @@ object BuildGenYaml extends BuildGen {
       "def errorProneJavacEnableOptions",
       errorProneJavacEnableOptions
     ).foreach(lines += _)
+    renderScalaMvnDepValues(
+      "def annotationProcessorsMvnDeps",
+      annotationProcessorsMvnDeps
+    ).foreach(lines += _)
+    renderScalaOptValues(
+      "def annotationProcessorsJavacOptions",
+      annotationProcessorsJavacOptions
+    ).foreach(lines += _)
     springBootPlatformVersion.base.foreach(v =>
       lines += s"""def springBootPlatformVersion = "$v""""
     )
