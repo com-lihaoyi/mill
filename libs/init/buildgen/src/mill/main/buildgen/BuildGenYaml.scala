@@ -482,6 +482,7 @@ object BuildGenYaml extends BuildGen {
     s.exists(yamlQuoteContains.contains) ||
     yamlQuoteStarts.contains(s.head) ||
     s.endsWith(" ") ||
+    containsPlaceholder(s) ||
     (inList && (s.contains("[") || s.contains("]")))
   }
 

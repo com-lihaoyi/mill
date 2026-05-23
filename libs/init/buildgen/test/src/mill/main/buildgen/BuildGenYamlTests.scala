@@ -10,6 +10,8 @@ object BuildGenYamlTests extends TestSuite {
       val specialStrings = Seq(
         // strings with commas
         "-Xlint:all,-this-escape,-serial",
+        // string with placeholder
+        "${maven.home}",
         // strings starting with special characters
         "{brace",
         "[bracket",
