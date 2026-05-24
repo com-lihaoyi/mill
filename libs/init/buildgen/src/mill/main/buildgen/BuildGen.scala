@@ -45,7 +45,7 @@ trait BuildGen {
         imports = (a.imports ++ b.imports).distinct.filter(!_.startsWith("millbuild.")),
         supertypes = a.supertypes.intersect(b.supertypes) match {
           case Nil => hierarchy.take(1)
-          case seq if hierarchy.contains(seq.head) => seq
+          case seq if seq.exists(hierarchy.contains) => seq
           case seq => hierarchy.head +: seq
         },
         repositories = parentValues(a.repositories, b.repositories),
