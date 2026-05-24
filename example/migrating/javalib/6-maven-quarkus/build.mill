@@ -10,8 +10,4 @@
 
 > ./mill __.compile # Just compile all modules. `quarkusRunJar` task fails for some
 
-> ./mill show getting-started.test.testOnly "*Test" # Basic example
-
-> ./mill show hibernate-orm-jakarta-data-quickstart.test.testOnly "*Test" # Example with annotation processing
-
 */
