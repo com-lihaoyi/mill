@@ -1,5 +1,4 @@
 package mill.kotlinlib.ktfmt
 
-import mill.api.ExternalModule
 
-object `package` extends ExternalModule.Alias(KtfmtModule)
+object `package` extends mill.api.ExternalModule.Alias(KtfmtModule)

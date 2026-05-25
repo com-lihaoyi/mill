@@ -148,7 +148,8 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
 
   override def enableDesugaring: T[Boolean] = Task {
     androidBuildSettings().enableDesugaring
-    
+  }
+
   def androidR8ExtraRules: T[Seq[String]] = Task {
     Seq.empty[String]
   }

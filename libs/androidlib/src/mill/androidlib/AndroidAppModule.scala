@@ -1001,19 +1001,19 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
       val proguardFile = androidProguard().path
 
-    val d8Args = Seq(
-      androidSdkModule().d8Exe().path.toString,
-      if (androidIsDebug()) "--debug" else "--release",
-      // TODO explore --incremental flag for incremental builds
-      "--output",
-      outPath.toString(),
-      "--lib",
-      androidSdkModule().androidJarPath().path.toString(),
-      "--min-api",
-      androidMinSdk().toString,
-      "--main-dex-rules",
-      proguardFile.toString()
-    ) ++ androidDexDesugaringArgs() :+ s"@$filenamesFile"
+      val d8Args = Seq(
+        androidSdkModule().d8Exe().path.toString,
+        if (androidIsDebug()) "--debug" else "--release",
+        // TODO explore --incremental flag for incremental builds
+        "--output",
+        outPath.toString(),
+        "--lib",
+        androidSdkModule().androidJarPath().path.toString(),
+        "--min-api",
+        androidMinSdk().toString,
+        "--main-dex-rules",
+        proguardFile.toString()
+      ) ++ androidDexDesugaringArgs() :+ s"@$filenamesFile"
 
       Task.log.info(s"Running d8 with the command: ${d8Args.mkString(" ")}")
 
