@@ -8,12 +8,8 @@ errorProneDeps:
 - com.google.errorprone:error_prone_core:2.28.0
 artifactName: maven-3-9-11
 pomSettings:
-  description: ""
   organization: com.mycompany.app
-  url: "http://www.example.com"
-  licenses: []
-  versionControl: ""
-  developers: []
+  url: http://www.example.com
 publishVersion: 1.0-SNAPSHOT
 
 object test:

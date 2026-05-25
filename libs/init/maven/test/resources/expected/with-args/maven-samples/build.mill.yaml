@@ -4,10 +4,6 @@ extends: PublishModule
 pomSettings:
   description: Just a pom that makes it easy to build both projects at the same time.
   organization: com.example.maven-samples
-  url: ""
-  licenses: []
-  versionControl: ""
-  developers: []
 publishVersion: 1.0-SNAPSHOT
 
 object multi-module:
@@ -24,10 +20,8 @@ object multi-module:
   pomSettings:
     description: "Sample multi module Maven project with a working, deployable site."
     organization: com.example.maven-samples
-    url: "http://www.example.com"
-    licenses: []
-    versionControl: "http://github.com/gabrielf/maven-samples"
-    developers: []
+    url: http://www.example.com
+    versionControl: http://github.com/gabrielf/maven-samples
   publishVersion: 1.0-SNAPSHOT
   
   object server:
@@ -43,11 +37,6 @@ object multi-module:
     artifactName: server
     pomSettings:
       description: Logic.
-      organization: ""
-      url: ""
-      licenses: []
-      versionControl: ""
-      developers: []
     publishVersion: 1.0-SNAPSHOT
     
     object test:
@@ -77,11 +66,6 @@ object multi-module:
     artifactName: webapp
     pomSettings:
       description: Webapp.
-      organization: ""
-      url: ""
-      licenses: []
-      versionControl: ""
-      developers: []
     publishVersion: 1.0-SNAPSHOT
 
 object single-module:
@@ -94,10 +78,8 @@ object single-module:
   pomSettings:
     description: "Sample single module Maven project with a working, deployable site."
     organization: com.example.maven-samples
-    url: "http://www.example.com"
-    licenses: []
-    versionControl: "http://github.com/gabrielf/maven-samples"
-    developers: []
+    url: http://www.example.com
+    versionControl: http://github.com/gabrielf/maven-samples
   publishVersion: 1.0-SNAPSHOT
   
   object test:

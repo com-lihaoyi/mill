@@ -8,12 +8,7 @@ mvnDeps:
 javacOptions: [-source, 21, -target, 21]
 artifactName: quarkus-getting-started
 pomSettings:
-  description: ""
   organization: com.lihaoyi.example
-  url: ""
-  licenses: []
-  versionControl: ""
-  developers: []
 publishVersion: 0.0.1-SNAPSHOT
 
 object test:

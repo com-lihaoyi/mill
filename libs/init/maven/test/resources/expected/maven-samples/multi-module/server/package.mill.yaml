@@ -9,11 +9,6 @@ depManagement:
 artifactName: server
 pomSettings:
   description: Logic.
-  organization: ""
-  url: ""
-  licenses: []
-  versionControl: ""
-  developers: []
 
 object test:
   extends: ProjectBaseTests

@@ -11,8 +11,6 @@ resources: []
 pomSettings:
   description: "Sample multi module Maven project with a working, deployable site."
   organization: com.example.maven-samples
-  url: "http://www.example.com"
-  licenses: []
-  versionControl: "http://github.com/gabrielf/maven-samples"
-  developers: []
+  url: http://www.example.com
+  versionControl: http://github.com/gabrielf/maven-samples
 publishVersion: 1.0-SNAPSHOT
