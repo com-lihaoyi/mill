@@ -34,7 +34,7 @@ private[mill] object IncrementalTrackingJavaCompiler {
   def local: Option[XJavaCompiler] =
     Option(
       javax.tools.ToolProvider.getSystemJavaCompiler
-    ).map(new IncrementalTrackingJavaCompiler(_))
+    ).map(IncrementalTrackingJavaCompiler(_))
 
   private[mill] def maybeLoadTrackingProcessors(
       javacOptions: Seq[String],
@@ -52,11 +52,11 @@ private[mill] object IncrementalTrackingJavaCompiler {
       if (names.isEmpty) None
       else {
         val urls = processorPath.iterator.map(_.toIO.toURI.toURL).toArray
-        val loader = new java.net.URLClassLoader(urls, getClass.getClassLoader)
+        val loader = new java.net.URLClassLoader(urls, ClassLoader.getPlatformClassLoader)
         val processors = names.map { name =>
           val delegate =
             loader.loadClass(name).getDeclaredConstructor().newInstance().asInstanceOf[Processor]
-          new TrackingProcessor(delegate)
+          TrackingProcessor(delegate)
         }
         Some(LoadedProcessors(loader, processors))
       }
@@ -78,7 +78,7 @@ private[mill] final class IncrementalTrackingJavaCompiler(compiler: javax.tools.
   ): Boolean = {
     val log: Logger = log0
     val logger = new sbt.internal.util.LoggerWriter(log)
-    val logWriter = new PrintWriter(logger)
+    val logWriter = PrintWriter(logger)
     val diagnostics = new sbt.internal.inc.javac.DiagnosticsReporter(reporter)
 
     val (invalidOptions, cleanedOptions) = options.partition(_.startsWith("-J"))
@@ -91,7 +91,7 @@ private[mill] final class IncrementalTrackingJavaCompiler(compiler: javax.tools.
 
     val (fileManager, javacOptions) = sbt.internal.inc.JarUtils.getOutputJar(output) match {
       case Some(outputJar) =>
-        (new DirectToJarFileManager(outputJar, standardFileManager), cleanedOptions.toSeq)
+        (DirectToJarFileManager(outputJar, standardFileManager), cleanedOptions.toSeq)
       case None =>
         Option(output.getSingleOutputAsPath.orElse(null: Path)).foreach(Files.createDirectories(_))
         val outputOption = sbt.internal.inc.CompilerArguments.outputOption(output)
@@ -105,7 +105,7 @@ private[mill] final class IncrementalTrackingJavaCompiler(compiler: javax.tools.
       )(incToolOptions.classFileManager().get)
     val customizedFileManager =
       new TrackingFileManager(
-        new SameFileFixFileManager(fileManager),
+        SameFileFixFileManager(fileManager),
         maybeClassFileManager,
         IncrementalAnnotationProcessing.currentTracker
       )
@@ -180,7 +180,7 @@ private object TrackingVirtualJavaFileObject {
   def uriFor(underlying: VirtualFile): URI =
     underlying match {
       case pathBased: PathBasedFile => pathBased.toPath.toUri
-      case _ => new URI("vf", "tmp", s"/${underlying.id}", null)
+      case _ => URI("vf", "tmp", s"/${underlying.id}", null)
     }
 }
 
@@ -196,7 +196,7 @@ private final class TrackingFileManager(
       sibling: FileObject
   ): JavaFileObject = {
     val output = super.getJavaFileForOutput(location, className, kind, sibling)
-    if (kind == Kind.CLASS) new TrackingJavaFileObject(output, sibling, classFileManager, tracker)
+    if (kind == Kind.CLASS) TrackingJavaFileObject(output, sibling, classFileManager, tracker)
     else output
   }
 
@@ -307,7 +307,7 @@ private final class TrackingProcessor(delegate: Processor) extends Processor {
     ).asInstanceOf[java.lang.Iterable[Completion]]
 
   override def init(processingEnv: ProcessingEnvironment): Unit =
-    delegate.init(new TrackingProcessingEnvironment(processingEnv))
+    delegate.init(TrackingProcessingEnvironment(processingEnv))
 
   override def process(
       annotations: java.util.Set[_ <: TypeElement],
@@ -318,7 +318,7 @@ private final class TrackingProcessor(delegate: Processor) extends Processor {
 
 private final class TrackingProcessingEnvironment(delegate: ProcessingEnvironment)
     extends ProcessingEnvironment {
-  private lazy val filer = new TrackingFiler(delegate)
+  private lazy val filer = TrackingFiler(delegate)
 
   override def getOptions(): java.util.Map[String, String] = delegate.getOptions
   override def getMessager(): Messager = delegate.getMessager
@@ -340,7 +340,7 @@ private final class TrackingFiler(delegate: ProcessingEnvironment) extends Filer
       originatingElements: Element*
   ): JavaFileObject = {
     val file = filer.createSourceFile(name, originatingElements*)
-    new TrackingFilerJavaFileObject(file, tracker, ownersFor(originatingElements))
+    TrackingFilerJavaFileObject(file, tracker, ownersFor(originatingElements))
   }
 
   override def createClassFile(
@@ -348,7 +348,7 @@ private final class TrackingFiler(delegate: ProcessingEnvironment) extends Filer
       originatingElements: Element*
   ): JavaFileObject = {
     val file = filer.createClassFile(name, originatingElements*)
-    new TrackingFilerJavaFileObject(file, tracker, ownersFor(originatingElements))
+    TrackingFilerJavaFileObject(file, tracker, ownersFor(originatingElements))
   }
 
   override def createResource(
@@ -358,7 +358,7 @@ private final class TrackingFiler(delegate: ProcessingEnvironment) extends Filer
       originatingElements: Element*
   ): FileObject = {
     val file = filer.createResource(location, pkg, relativeName, originatingElements*)
-    new TrackingFilerFileObject(file, tracker, ownersFor(originatingElements))
+    TrackingFilerFileObject(file, tracker, ownersFor(originatingElements))
   }
 
   override def getResource(

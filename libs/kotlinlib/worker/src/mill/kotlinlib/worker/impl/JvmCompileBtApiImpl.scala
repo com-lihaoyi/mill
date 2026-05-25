@@ -20,8 +20,8 @@ import scala.util.chaining.scalaUtilChainingOps
 class JvmCompileBtApiImpl() extends Compiler {
 
   private def formatThrowable(throwable: Throwable): String = {
-    val sw = new StringWriter()
-    throwable.printStackTrace(new PrintWriter(sw))
+    val sw = StringWriter()
+    throwable.printStackTrace(PrintWriter(sw))
     sw.toString()
   }
 

@@ -123,7 +123,7 @@ object MillSbtBuildGenMain {
       if (os.isFile(file)) os.read.lines(file)
         .map(_.trim)
         .filter(s => s.nonEmpty && !s.startsWith("#"))
-        .flatMap(_.split("\\s"))
+        .flatMap(_.split("\\s+"))
       else Nil
     }
     val metaMvnDeps =

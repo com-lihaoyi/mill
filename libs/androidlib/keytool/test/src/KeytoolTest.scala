@@ -94,10 +94,10 @@ def getKeytoolOutput(args: String*): String = {
 
 def removeFile(filename: String): Unit = {
   import java.io.File
-  val file = new File(filename)
+  val file = File(filename)
   if (file.exists()) {
     if (!file.delete()) {
-      throw new RuntimeException(s"Failed to delete file: $filename")
+      throw RuntimeException(s"Failed to delete file: $filename")
     }
   }
 }

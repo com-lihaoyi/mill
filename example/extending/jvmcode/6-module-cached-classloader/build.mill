@@ -37,7 +37,7 @@ object foo2 extends FooModule
 object foo3 extends FooModule
 
 def barWorker: Worker[BarWorker] = Task.Worker {
-  new BarWorker(bar.runClasspath().map(_.path).toSeq)
+  BarWorker(bar.runClasspath().map(_.path).toSeq)
 }
 
 class BarWorker(runClasspath: Seq[os.Path]) extends CachedFactory[Unit, URLClassLoader] {

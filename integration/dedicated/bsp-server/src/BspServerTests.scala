@@ -3,9 +3,13 @@ package mill.integration
 import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.nio.file.Paths
+import java.util.concurrent.TimeUnit
 import scala.build.bsp.WrappedSourcesParams
 import scala.collection.mutable
+import scala.concurrent.{Await, Promise}
+import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters.*
+import scala.util.Success
 import scala.util.chaining.given
 import ch.epfl.scala.bsp4j as b
 import mill.api.BuildInfo
@@ -99,7 +103,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         compareWithGsonSnapshot(
           buildServer
-            .buildTargetWrappedSources(new WrappedSourcesParams(targetIds))
+            .buildTargetWrappedSources(WrappedSourcesParams(targetIds))
             .get(),
           snapshotsPath / "build-targets-wrapped-sources.json",
           normalizedLocalValues = normalizedLocalValues
@@ -324,11 +328,11 @@ object BspServerTests extends UtestIntegrationTestSuite {
             .getItems
             .asScala
             .map { item =>
-              val shortId = os.Path(Paths.get(new URI(item.getTarget.getUri)))
+              val shortId = os.Path(Paths.get(URI(item.getTarget.getUri)))
                 .relativeTo(workspacePath)
                 .asSubPath
               val semDbs = findSemanticdbs(
-                os.Path(Paths.get(new URI(item.getClassDirectory)))
+                os.Path(Paths.get(URI(item.getClassDirectory)))
               )
               shortId -> semDbs
             }
@@ -362,11 +366,11 @@ object BspServerTests extends UtestIntegrationTestSuite {
             .getItems
             .asScala
             .map { item =>
-              val shortId = os.Path(Paths.get(new URI(item.getTarget.getUri)))
+              val shortId = os.Path(Paths.get(URI(item.getTarget.getUri)))
                 .relativeTo(workspacePath)
                 .asSubPath
               val semDbs = findSemanticdbs(
-                os.Path(Paths.get(new URI(item.getClassDirectory)))
+                os.Path(Paths.get(URI(item.getClassDirectory)))
               )
               shortId -> semDbs
             }
@@ -405,8 +409,8 @@ object BspServerTests extends UtestIntegrationTestSuite {
         }
       }
 
-      // Verify that no `out/` folder was created - all BSP operations should use .bsp/out/
-      assert(!os.exists(workspacePath / "out"))
+      assert(os.exists(workspacePath / "out"))
+      assert(!os.exists(workspacePath / ".bsp/out"))
     }
 
     test("logging") - integrationTest { tester =>
@@ -483,11 +487,22 @@ object BspServerTests extends UtestIntegrationTestSuite {
         ignoreLine = {
           // ignore watcher logs
           val watchGlob = TestRunnerUtils.matchesGlob("bsp-watch] *")
-          // ignoring compilation warnings that might go away in the future
-          val waitingGlob =
-            TestRunnerUtils.matchesGlob("*] Another Mill process with PID * is running *")
+          val bootstrapDisabledTargetPattern =
+            raw"""bsp(?:-[^]]+)?\] BSP disabled for target .*""".r
+          def isBootstrapResolveListingLine(s: String): Boolean = {
+            val splitIdx = s.indexOf("] ")
+            splitIdx >= 0 &&
+            s.startsWith("bsp") &&
+            !s.substring(splitIdx + 2).contains(" ")
+          }
+          val waitingGlob = TestRunnerUtils.matchesGlob(
+            "*Another Mill command in the current daemon is*waiting for it to be done*"
+          )
           s =>
-            watchGlob(s) || waitingGlob(s) ||
+            watchGlob(s) ||
+              bootstrapDisabledTargetPattern.matches(s) ||
+              isBootstrapResolveListingLine(s) ||
+              waitingGlob(s) ||
               // These can happen in different orders due to filesystem ordering, not stable to
               // assert against
               s.contains("Skipping script discovery") ||
@@ -505,6 +520,88 @@ object BspServerTests extends UtestIntegrationTestSuite {
         // no message for errored.compilation-error, compilation diagnostics are enough
       )
       assert(expectedMessages == messages0)
+    }
+
+    test("separateOutputDirViaBuildHeader") - integrationTest { tester =>
+      import tester.*
+
+      modifyFile(
+        workspacePath / "build.mill",
+        "//| mill-separate-bsp-output-dir: true\n" + _
+      )
+
+      eval(
+        ("--bsp-install", "--jobs", "1"),
+        stdout = os.Inherit,
+        stderr = os.Inherit,
+        check = true,
+        env = Map("MILL_EXECUTABLE_PATH" -> tester.millExecutable.toString)
+      )
+
+      withBspServer(workspacePath, millTestSuiteEnv) { (buildServer, _) =>
+        buildServer.workspaceBuildTargets().get()
+      }
+
+      assert(os.exists(workspacePath / ".bsp/out"))
+    }
+
+    test("sharedOutDirAllowsConcurrentCliAndBspWork") - integrationTest { tester =>
+      import tester.*
+
+      eval(
+        ("--bsp-install", "--jobs", "1"),
+        stdout = os.Inherit,
+        stderr = os.Inherit,
+        check = true,
+        env = Map("MILL_EXECUTABLE_PATH" -> tester.millExecutable.toString)
+      )
+
+      withBspServer(workspacePath, millTestSuiteEnv) { (buildServer, _) =>
+        val targets = buildServer.workspaceBuildTargets().get().getTargets.asScala
+        val delayed = targets.find(_.getDisplayName == "delayed").map(_.getId).get
+        val delayedCompileFuture =
+          buildServer.buildTargetCompile(new b.CompileParams(Seq(delayed).asJava))
+
+        Thread.sleep(1000L)
+
+        val cliResult = eval(("hello-java.compile"))
+        assert(cliResult.isSuccess)
+        val benignBlockerResources = Seq(
+          "JvmWorkerModule",
+          "CoursierConfigModule",
+          "InternalCoursierConfigModule",
+          "/coursierResolutionParams.dest",
+          "/coursierEnv.dest",
+          "/javaHome.dest",
+          "/scalaCompilerClasspath.dest",
+          "/zincLogDebug.dest",
+          "/useFileLocks.dest"
+        )
+        val unexpectedWaits = cliResult.err.linesIterator
+          .filter(_.contains("Another Mill command in the current daemon"))
+          .filterNot(line => benignBlockerResources.exists(line.contains))
+          .toVector
+        assert(unexpectedWaits.isEmpty)
+
+        val delayedResult = delayedCompileFuture.get(30, TimeUnit.SECONDS)
+        assert(delayedResult.getStatusCode == b.StatusCode.OK)
+
+        def resolvesIntoRunDir(rel: os.RelPath): Boolean = {
+          val link = workspacePath / "out" / rel
+          val runRoot = workspacePath / "out" / "mill-run"
+          os.isLink(link) &&
+          os.exists(link, followLinks = true) &&
+          os.Path(link.toNIO.toRealPath()).toString.startsWith(runRoot.toString + "/")
+        }
+
+        assertEventually {
+          resolvesIntoRunDir(os.RelPath(mill.constants.DaemonFiles.millConsoleTail)) &&
+          resolvesIntoRunDir(os.RelPath(OutFiles.millProfile)) &&
+          resolvesIntoRunDir(os.RelPath(OutFiles.millChromeProfile)) &&
+          resolvesIntoRunDir(os.RelPath(OutFiles.millDependencyTree)) &&
+          resolvesIntoRunDir(os.RelPath(OutFiles.millInvalidationTree))
+        }
+      }
     }
 
     test("ignoreDefault") - integrationTest { tester =>
@@ -549,6 +646,60 @@ object BspServerTests extends UtestIntegrationTestSuite {
       }
     }
 
+    test("reloadFromScriptOnlyWorkspace") - integrationTest { tester =>
+      import tester.*
+
+      val sourceWorkspacePath = BspServerTests.workspaceSourcePath
+
+      os.remove.all(workspacePath / "build.mill")
+      os.remove.all(workspacePath / "mill-build")
+      os.write.over(
+        workspacePath / "scripts/visible.scala",
+        """object visible
+          |""".stripMargin
+      )
+
+      eval(
+        ("--bsp-install", "--jobs", "1"),
+        stdout = os.Inherit,
+        stderr = os.Inherit,
+        check = true,
+        env = Map("MILL_EXECUTABLE_PATH" -> tester.millExecutable.toString)
+      )
+
+      val didChangePromise = Promise[b.DidChangeBuildTarget]()
+      val client = new DummyBuildClient {
+        override def onBuildTargetDidChange(params: b.DidChangeBuildTarget): Unit =
+          didChangePromise.tryComplete(Success(params))
+      }
+
+      def targetUri(path: os.Path): String =
+        path.toNIO.toUri.toASCIIString.stripSuffix("/")
+
+      withBspServer(workspacePath, millTestSuiteEnv, client = client) { (buildServer, _) =>
+        val initialTargetUris = buildServer.workspaceBuildTargets().get().getTargets.asScala
+          .map(_.getId.getUri)
+          .toSet
+
+        assert(
+          initialTargetUris.contains((workspacePath / "scripts/visible.scala").toURI.toASCIIString)
+        )
+        assert(!initialTargetUris.contains(targetUri(workspacePath / "app")))
+
+        os.copy.over(sourceWorkspacePath / "build.mill", workspacePath / "build.mill")
+        os.copy.into(sourceWorkspacePath / "mill-build", workspacePath)
+
+        Await.result(didChangePromise.future, 1.minute)
+
+        val reloadedTargetUris = buildServer.workspaceBuildTargets().get().getTargets.asScala
+          .map(_.getId.getUri)
+          .toSet
+
+        assert(reloadedTargetUris.contains(targetUri(workspacePath / "app")))
+        assert(reloadedTargetUris.contains(targetUri(workspacePath / "mill-build")))
+      }
+    }
+
     test("diagnostics") - integrationTest { tester =>
       import tester.*
       eval(
@@ -560,7 +711,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
       )
 
       def uriAsSubPath(strUri: String): os.SubPath =
-        os.Path(Paths.get(new URI(strUri))).relativeTo(workspacePath).asSubPath
+        os.Path(Paths.get(URI(strUri))).relativeTo(workspacePath).asSubPath
 
       val normalizedLocalValues = normalizeLocalValuesForTesting(workspacePath) ++
         scalaVersionNormalizedValues()

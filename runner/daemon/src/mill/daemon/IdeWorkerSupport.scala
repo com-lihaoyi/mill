@@ -2,16 +2,13 @@ package mill.daemon
 
 import coursier.core.Repository
 import coursier.{Dependency, Module, ModuleName, Organization, VersionConstraint}
-import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
-import mill.api.daemon.internal.bsp.BspServerHandle
+import mill.api.daemon.internal.EvaluatorApi
+import mill.api.daemon.internal.bsp.{BspBootstrapBridge, BspServerHandle}
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.javalib.api.JvmWorkerUtil
-import mill.client.lock.Lock
 import mill.util.{BuildInfo, Jvm}
 
 private object IdeWorkerSupport {
-  final case class BspBuildClient private[daemon] (private[daemon] val value: AnyRef)
-
   private val organization = Organization("com.lihaoyi")
 
   private val scalaBinaryVersion = JvmWorkerUtil.scalaBinaryVersion(BuildInfo.scalaVersion)
@@ -73,11 +70,7 @@ private object IdeWorkerSupport {
 
   private case class BspHandles(
       classLoader: ClassLoader,
-      startBspServer: java.lang.reflect.Method,
-      bspEvaluatorsCtor: java.lang.reflect.Constructor[?],
-      bspIdByModule: java.lang.reflect.Method,
-      reporterPoolFactory: java.lang.reflect.Method,
-      utilsModule: AnyRef
+      startBspServer: java.lang.reflect.Method
   )
   private lazy val bspHandles = {
     val classLoader = createClassLoader("mill-runner-bsp-worker")
@@ -89,43 +82,12 @@ private object IdeWorkerSupport {
       classOf[SystemStreams],
       classOf[os.Path],
       java.lang.Boolean.TYPE,
-      classOf[Lock],
       classOf[Logger],
-      classOf[os.Path],
-      classOf[os.Path],
       classOf[Boolean],
-      classOf[Boolean]
+      classOf[BspBootstrapBridge]
     )
 
-    val bspEvaluatorsClass = classLoader.loadClass("mill.bsp.worker.BspEvaluators")
-    val bspEvaluatorsCtor = bspEvaluatorsClass.getConstructor(
-      classOf[os.Path],
-      classOf[scala.collection.immutable.Seq[?]],
-      classOf[scala.Function1[?, ?]],
-      classOf[scala.collection.immutable.Seq[?]]
-    )
-    val bspIdByModule = bspEvaluatorsClass.getMethod("bspIdByModule")
-
-    val utilsModule = classLoader.loadClass("mill.bsp.worker.Utils$")
-      .getField("MODULE$")
-      .get(null)
-      .asInstanceOf[AnyRef]
-    val buildClientClass = classLoader.loadClass("ch.epfl.scala.bsp4j.BuildClient")
-    val reporterPoolFactory = utilsModule.getClass.getMethod(
-      "getBspLoggedReporterPool",
-      classOf[String],
-      classOf[scala.collection.immutable.Map[?, ?]],
-      buildClientClass
-    )
-
-    BspHandles(
-      classLoader,
-      startBspServer,
-      bspEvaluatorsCtor,
-      bspIdByModule,
-      reporterPoolFactory,
-      utilsModule
-    )
+    BspHandles(classLoader, startBspServer)
   }
 
   def startBspServer(
@@ -133,13 +95,10 @@ private object IdeWorkerSupport {
       streams: SystemStreams,
       logDir: os.Path,
       canReload: Boolean,
-      outLock: Lock,
       baseLogger: Logger,
-      out: os.Path,
-      daemonDir: os.Path,
-      noWaitForBspLock: Boolean,
-      killOther: Boolean
-  ): (BspServerHandle, BspBuildClient) = {
+      bspWatch: Boolean,
+      bootstrapBridge: BspBootstrapBridge
+  ): BspServerHandle = {
     val handles = bspHandles
     val result = mill.api.daemon.ClassLoader.withContextClassLoader(handles.classLoader) {
       unwrapInvocation(handles.startBspServer.invoke(
@@ -148,49 +107,18 @@ private object IdeWorkerSupport {
         streams,
         logDir,
         java.lang.Boolean.valueOf(canReload),
-        outLock,
         baseLogger,
-        out,
-        daemonDir,
-        noWaitForBspLock,
-        killOther
-      )).asInstanceOf[Result[(Any, Any)]]
+        java.lang.Boolean.valueOf(bspWatch),
+        bootstrapBridge
+      )).asInstanceOf[Result[Any]]
     }
 
     result match {
-      case Result.Success((handle: BspServerHandle, buildClient: AnyRef)) =>
-        (handle, BspBuildClient(buildClient))
+      case Result.Success(handle: BspServerHandle) => handle
       case Result.Success(_) =>
         throw new MillException("BSP worker returned an unexpected payload")
       case failure: Result.Failure =>
         throw new MillException(failure.error)
     }
-  }
-
-  def bspReporterPool(
-      workspaceDir: os.Path,
-      evaluators: Seq[EvaluatorApi],
-      buildClient: BspBuildClient
-  ): Int => Option[CompileProblemReporter] = {
-    val handles = bspHandles
-    val debug: (() => String) => Unit = _ => ()
-
-    val bspEvaluators = mill.api.daemon.ClassLoader.withContextClassLoader(handles.classLoader) {
-      handles.bspEvaluatorsCtor.newInstance(
-        workspaceDir,
-        evaluators,
-        debug,
-        Seq.empty[mill.api.daemon.Watchable]
-      )
-    }
-    val bspIdByModule = handles.bspIdByModule.invoke(bspEvaluators)
-    val rawPool = mill.api.daemon.ClassLoader.withContextClassLoader(handles.classLoader) {
-      unwrapInvocation(
-        handles.reporterPoolFactory
-          .invoke(handles.utilsModule, "", bspIdByModule, buildClient.value)
-          .asInstanceOf[Int => Option[?]]
-      )
-    }
-    (moduleHashCode: Int) => rawPool(moduleHashCode).map(_.asInstanceOf[CompileProblemReporter])
   }
 }

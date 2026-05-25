@@ -65,7 +65,7 @@ object ExampleTester {
       workspacePath: os.Path = os.pwd,
       useInMemory: Boolean = false
   ): os.Path = {
-    val tester = new ExampleTester(
+    val tester = ExampleTester(
       daemonMode,
       workspaceSourcePath,
       millExecutable,

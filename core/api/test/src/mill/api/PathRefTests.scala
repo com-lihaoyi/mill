@@ -97,6 +97,11 @@ object PathRefTests extends TestSuite {
         }
         val pr1 = upickle.read[PathRef](json)
         assert(pr == pr1)
+
+        val colonFile = tmpDir / "foo:bar.txt"
+        os.write(colonFile, "hello")
+        val colonPathRef = PathRef(colonFile, quick)
+        assert(upickle.read[PathRef](upickle.write(colonPathRef)) == colonPathRef)
       }
 
       test("qref") - check(quick = true)

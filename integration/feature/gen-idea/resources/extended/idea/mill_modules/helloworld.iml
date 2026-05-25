@@ -1,4 +1,13 @@
 <module type="JAVA_MODULE" version="4">
+    <component name="FacetManager">
+        <facet type="AspectJ" name="AspectJ">
+            <configuration>
+                <projectLibrary>
+                    <option name="name" value="/tmp"/>
+                </projectLibrary>
+            </configuration>
+        </facet>
+    </component>
     <component name="NewModuleRootManager">
         <output url="file://$MODULE_DIR$/../../out/HelloWorld/internalGenIdea/ideaCompileOutput.dest/classes"/>
         <exclude-output/>
@@ -13,14 +22,5 @@
         <orderEntry type="sourceFolder" forTests="false"/>
         <orderEntry type="library" name="scala-SDK-<version>" level="project"/>
         <orderEntry type="library" name="scala-library-<version>.jar" level="project"/>
-    </component>
-    <component name="FacetManager">
-        <facet type="AspectJ" name="AspectJ">
-            <configuration>
-                <projectLibrary>
-                    <option name="name" value="/tmp"/>
-                </projectLibrary>
-            </configuration>
-        </facet>
     </component>
 </module>

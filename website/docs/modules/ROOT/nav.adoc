@@ -104,6 +104,7 @@
 *** xref:android/java.adoc[]
 *** xref:android/kotlin.adoc[]
 *** xref:android/scala.adoc[]
+*** xref:android/publishing.adoc[]
 *** xref:android/android-linting.adoc[]
 *** xref:android/compose-samples.adoc[]
 *** xref:android/hilt-sample.adoc[]

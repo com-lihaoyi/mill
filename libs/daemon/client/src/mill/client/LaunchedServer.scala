@@ -4,7 +4,7 @@ enum LaunchedServer {
   def isAlive: Boolean = this match {
     case OsProcess(process) => process.isAlive
     case NewThread(thread, _) => thread.isAlive
-    case TestStub => throw new RuntimeException("not implemented, this should never happen")
+    case TestStub => throw RuntimeException("not implemented, this should never happen")
   }
 
   /** An operating system process was launched. */

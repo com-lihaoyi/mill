@@ -19,17 +19,17 @@ final class Locks(
 object Locks {
   @deprecated("Use forDirectory instead", "")
   def files(daemonDir: String): Locks = new Locks(
-    new FileLock(s"$daemonDir/${DaemonFiles.launcherLock}"),
-    new FileLock(s"$daemonDir/${DaemonFiles.daemonLock}")
+    FileLock(s"$daemonDir/${DaemonFiles.launcherLock}"),
+    FileLock(s"$daemonDir/${DaemonFiles.daemonLock}")
   )
 
   @deprecated("Use forDirectory instead", "")
   def pid(daemonDir: String): Locks = new Locks(
-    new PidLock(s"$daemonDir/${DaemonFiles.launcherLock}"),
-    new PidLock(s"$daemonDir/${DaemonFiles.daemonLock}")
+    PidLock(s"$daemonDir/${DaemonFiles.launcherLock}"),
+    PidLock(s"$daemonDir/${DaemonFiles.daemonLock}")
   )
 
-  def memory(): Locks = new Locks(new MemoryLock(), new MemoryLock())
+  def memory(): Locks = Locks(MemoryLock(), MemoryLock())
 
   def forDirectory(daemonDir: String, useFileLocks: Boolean): Locks =
     if (useFileLocks) files(daemonDir)

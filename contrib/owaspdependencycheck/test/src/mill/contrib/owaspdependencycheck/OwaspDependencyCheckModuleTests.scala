@@ -46,7 +46,7 @@ object TestModule extends TestRootModule {
     override def mvnDeps: T[Seq[Dep]] = Seq(mvn"ch.qos.logback:logback-classic:1.5.32")
     override def compile: T[mill.javalib.api.CompilationResult] = Task {
       super.compile()
-      throw new AssertionError("should not be invoked")
+      throw AssertionError("should not be invoked")
     }
 
     override def owaspDependencyCheckConfigArgs: T[Seq[String]] = Task {

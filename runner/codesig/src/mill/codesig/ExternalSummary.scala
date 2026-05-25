@@ -59,7 +59,7 @@ object ExternalSummary {
       def load(cls: JCls): Unit = methodsPerCls.getOrElse(cls, load0(cls))
 
       def load0(cls: JCls): Unit = {
-        val visitor = new MyClassVisitor()
+        val visitor = MyClassVisitor()
         val resourcePath =
           os.resource(using upstreamClassloader) / os.SubPath(cls.name.replace('.', '/') + ".class")
 
@@ -71,7 +71,7 @@ object ExternalSummary {
           catch { case _: os.ResourceNotFoundException => None }
 
         streamOpt.foreach { stream =>
-          new ClassReader(stream).accept(
+          ClassReader(stream).accept(
             visitor,
             ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG
           )

@@ -106,10 +106,10 @@ object Logger {
   object DummyLogger extends Logger {
     def colored = false
 
-    val streams = new SystemStreams(
-      new PrintStream(_ => ()),
-      new PrintStream(_ => ()),
-      new ByteArrayInputStream(Array())
+    val streams = SystemStreams(
+      PrintStream(_ => ()),
+      PrintStream(_ => ()),
+      ByteArrayInputStream(Array())
     )
 
     def info(s: String) = ()
@@ -201,6 +201,9 @@ object Logger {
     def debugEnabled: Boolean
 
     private[mill] def enableTicker: Boolean
+
+    /** True for sinks (e.g. `BspLogger`) whose prompt-line prefix doesn't name the lock. */
+    private[mill] def waitMessageNeedsLabel: Boolean = false
 
     def infoColor(s: String): String
     def warnColor(s: String): String

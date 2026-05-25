@@ -22,7 +22,7 @@ sealed trait MemOutputDirectory extends OutputDirectory {
 }
 
 object MemOutputDirectory {
-  def apply(): MemOutputDirectory = new Impl()
+  def apply(): MemOutputDirectory = Impl()
 
   private final class Impl extends OutputDirectoryImpl with MemOutputDirectory {
     private val _content: mutable.Map[String, Array[Byte]] = mutable.Map.empty
@@ -66,6 +66,6 @@ object MemOutputDirectory {
     }
 
     private def fileNotFound(name: String): Future[Nothing] =
-      Future.failed(new IOException(s"file $name does not exist"))
+      Future.failed(IOException(s"file $name does not exist"))
   }
 }

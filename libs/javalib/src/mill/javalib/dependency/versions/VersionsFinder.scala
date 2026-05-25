@@ -31,18 +31,18 @@ private[dependency] object VersionsFinder {
     val clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
 
     val resolvedDependencies = evaluator.execute {
-      val progress = new Progress(javaModules.size)
+      val progress = Progress(javaModules.size)
       javaModules.map(classpath(progress, ctx.offline, clock, coursierConfigModule))
     }.values.get
 
     evaluator.execute {
-      val progress = new Progress(resolvedDependencies.map(_._3.size).sum)
+      val progress = Progress(resolvedDependencies.map(_._3.size).sum)
       resolvedDependencies.map(resolveVersions(progress))
     }.values.get
   }
 
   class Progress(val count: Int) {
-    private val counter = new AtomicInteger(1)
+    private val counter = AtomicInteger(1)
     def next(): Int = counter.getAndIncrement()
   }
 

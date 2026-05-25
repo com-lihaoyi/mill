@@ -5,17 +5,17 @@ import sbt.internal.inc.ManagedLoggedReporter
 
 private trait ForwardingReporter(forwarder: CompileProblemReporter) extends ManagedLoggedReporter {
   override def logError(problem: xsbti.Problem): Unit = {
-    forwarder.logError(new ZincProblem(problem))
+    forwarder.logError(ZincProblem(problem))
     super.logError(problem)
   }
 
   override def logWarning(problem: xsbti.Problem): Unit = {
-    forwarder.logWarning(new ZincProblem(problem))
+    forwarder.logWarning(ZincProblem(problem))
     super.logWarning(problem)
   }
 
   override def logInfo(problem: xsbti.Problem): Unit = {
-    forwarder.logInfo(new ZincProblem(problem))
+    forwarder.logInfo(ZincProblem(problem))
     super.logInfo(problem)
   }
 

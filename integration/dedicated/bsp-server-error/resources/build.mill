@@ -17,6 +17,6 @@ object `hello-scala` extends ScalaModule {
     super.sources()
   }
   override def resources = Task {
-    throw new NoClassDefFoundError("thing")
+    throw NoClassDefFoundError("thing")
   }
 }

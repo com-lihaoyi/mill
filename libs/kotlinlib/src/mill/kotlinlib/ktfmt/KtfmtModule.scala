@@ -51,7 +51,7 @@ trait KtfmtModule extends KtfmtBaseModule {
       @mainargs.arg ktfmtArgs: KtfmtArgs,
       @mainargs.arg(positional = true) sources: Tasks[Seq[PathRef]] =
         Tasks.resolveMainDefault("__.sources")
-  ): Command[Unit] = Task.Command {
+  ): Command[Unit] = Task.Command(globalExclusive = true) {
     val _sources: Seq[PathRef] = if (sources.value.isEmpty) {
       this.sources()
     } else Task.sequence(sources.value)().flatten
@@ -82,7 +82,7 @@ object KtfmtModule extends ExternalModule with KtfmtBaseModule with DefaultTaskM
       @mainargs.arg ktfmtArgs: KtfmtArgs,
       @mainargs.arg(positional = true) sources: Tasks[Seq[PathRef]] =
         Tasks.resolveMainDefault("__.sources")
-  ): Command[Unit] = Task.Command {
+  ): Command[Unit] = Task.Command(globalExclusive = true) {
     val _sources = Task.sequence(sources.value)().iterator.flatten
     ktfmtAction(
       ktfmtArgs.style,
@@ -111,7 +111,7 @@ object KtfmtModule extends ExternalModule with KtfmtBaseModule with DefaultTaskM
       case "kotlin" => "--kotlinlang-style"
       case "google" => "--google-style"
       case "meta" => "--meta-style"
-      case _ => throw new IllegalArgumentException(s"Unknown style ktfmt style: $style")
+      case _ => throw IllegalArgumentException(s"Unknown style ktfmt style: $style")
     })
     if (!format) {
       args += "--dry-run"
@@ -134,7 +134,7 @@ object KtfmtModule extends ExternalModule with KtfmtBaseModule with DefaultTaskM
 
     if (exitCode == 0) {} // do nothing
     else {
-      throw new RuntimeException(s"ktfmt exited abnormally with exit code = $exitCode")
+      throw RuntimeException(s"ktfmt exited abnormally with exit code = $exitCode")
     }
   }
 }

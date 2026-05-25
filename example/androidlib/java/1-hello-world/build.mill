@@ -1,3 +1,4 @@
+//| mill-jvm-version: zulu:21
 // This section sets up a basic Android project using Mill.
 // We utilize `AndroidAppModule` and `AndroidSdkModule` to streamline the process of
 // building an Android application with minimal configuration.

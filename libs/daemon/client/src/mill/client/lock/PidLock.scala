@@ -23,7 +23,7 @@ class PidLock(path: String) extends Lock {
       if (result.isLocked) return result
       else Thread.sleep(1)
     }
-    throw new IllegalStateException("unreachable")
+    throw IllegalStateException("unreachable")
   }
 
   override def tryLock(): TryLocked = {
@@ -38,15 +38,15 @@ class PidLock(path: String) extends Lock {
           java.nio.file.StandardOpenOption.CREATE_NEW,
           java.nio.file.StandardOpenOption.WRITE
         )
-        new PidTryLocked(Some(lockPath), locked = true)
+        PidTryLocked(Some(lockPath), locked = true)
       } catch {
         case _: java.nio.file.FileAlreadyExistsException =>
           // Another process grabbed it - that's fine
-          new PidTryLocked(None, locked = false)
+          PidTryLocked(None, locked = false)
       }
     } else {
       // Lock is held by a living process
-      new PidTryLocked(None, locked = false)
+      PidTryLocked(None, locked = false)
     }
   }
 

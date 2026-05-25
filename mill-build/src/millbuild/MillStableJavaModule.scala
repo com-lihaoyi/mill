@@ -84,7 +84,29 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ProblemFilter.exclude[Problem]("mill.util.internal.DummyBuildFile*"),
     ProblemFilter.exclude[Problem]("mill.util.internal.DummyMiscInfo*"),
     ProblemFilter.exclude[Problem]("mill.api.internal.RootModule$Info*"),
-    ProblemFilter.exclude[Problem]("mill.api.internal.RootModule#Info*")
+    ProblemFilter.exclude[Problem]("mill.api.internal.RootModule#Info*"),
+    ProblemFilter.exclude[Problem]("mill.api.daemon.internal.bsp.BspServerHandle.*"),
+    // `BuildFileApi` is `mill.api.daemon.internal` (not part of the
+    // user-facing API). Concurrency support replaced the mutable
+    // `evalWatchedValues` buffer with an isolated-buffer scope helper
+    // (`withEvalWatchedValues`); both old and new methods are internal.
+    ProblemFilter.exclude[Problem]("mill.api.daemon.internal.BuildFileApi.*"),
+    ProblemFilter.exclude[Problem]("mill.api.daemon.internal.BuildFileApi#Bootstrap.*"),
+    // Incorrect return type, no choice but to change the signature
+    ProblemFilter.exclude[Problem]("mill.kotlinlib.KotlinModule.kotlinUseEmbeddableCompiler"),
+    ProblemFilter.exclude[Problem](
+      "mill.kotlinlib.KotlinModule#KotlinTests0.kotlinUseEmbeddableCompiler"
+    ),
+    ProblemFilter.exclude[Problem](
+      "mill.kotlinlib.KotlinModule#KotlinTests.kotlinUseEmbeddableCompiler"
+    ),
+    // new method with default impl
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.kotlinlib.KotlinModule#KotlinTests.mill$kotlinlib$KotlinModule$KotlinTests$$super$kotlinFriendModules"
+    ),
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.kotlinlib.KotlinModule#KotlinTests0.mill$kotlinlib$KotlinModule$KotlinTests0$$super$kotlinFriendModules"
+    )
   )
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions

@@ -20,7 +20,7 @@ object ScalaAssemblyTests extends TestSuite with ScalaAssemblyTestUtils {
             os.exists(result.value.path),
             result.evalCount > 0
           )
-          val jarFile = new JarFile(result.value.path.toIO)
+          val jarFile = JarFile(result.value.path.toIO)
           try {
             val entries = jarEntries(jarFile)
 

@@ -344,7 +344,7 @@ trait AndroidSdkModule extends Module {
     Task.env.get("ANDROID_HOME")
       .orElse(Task.env.get("ANDROID_SDK_ROOT")) match {
       case Some(x) => os.Path(x)
-      case _ => throw new IllegalStateException("Android SDK location not found. Define a valid" +
+      case _ => throw IllegalStateException("Android SDK location not found. Define a valid" +
           " SDK location with an ANDROID_HOME environment variable.")
     }
   }

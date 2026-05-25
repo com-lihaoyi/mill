@@ -78,6 +78,7 @@ case class MillCliConfig(
     )
     color: Option[Boolean] = None,
     @arg(
+      short = 'L',
       doc =
         """Select a meta-level to run the given tasks. Level 0 is the main project in `build.mill`,
            level 1 the first meta-build in `mill-build/build.mill`, etc.
@@ -105,18 +106,6 @@ case class MillCliConfig(
         """Automatically reload the build when its sources change when running the BSP server (defaults to true)."""
     )
     bspWatch: Boolean = true,
-    @arg(
-      hidden = true,
-      doc =
-        """Do not wait for an exclusive BSP server lock to run BSP server, just exit with an error if the BSP server lock is hold by another process"""
-    )
-    noWaitForBspLock: Flag = Flag(),
-    @arg(
-      hidden = true,
-      doc =
-        """If the BSP lock is hold by another process, wait for it to release the lock"""
-    )
-    bspNoKillOther: Flag = Flag(),
     @arg(
       hidden = true,
       doc =
@@ -178,8 +167,7 @@ case class MillCliConfig(
     Seq(
       interactive,
       noDaemon,
-      noServer,
-      bsp
+      noServer
     ).count(_.value)
 }
 

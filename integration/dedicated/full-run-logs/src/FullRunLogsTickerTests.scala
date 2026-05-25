@@ -35,7 +35,8 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
 
       val res =
         eval(("--ticker", "true", "--color=false", "run", "--text", "hello"), propagateEnv = false)
-      res.isSuccess ==> true
+      pprint.log(res)
+      assert(res.isSuccess == true)
 
       assertGoldenLiteral(
         normalize(res.out),

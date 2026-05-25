@@ -1,7 +1,8 @@
+//| mill-jvm-version: zulu:21
 import mill.*, androidlib.*, kotlinlib.*
 
 object Versions {
-  val kotlinVersion = "2.1.20"
+  val kotlinVersion = "2.2.20"
 
   val androidCompileSdk = 33
   val androidMinSdk = 21
@@ -83,7 +84,7 @@ object JetLagged extends mill.api.Module {
     )
 
     def androidEnableCompose = true
-    override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task { true }
+    override def kotlinUseEmbeddableCompiler: T[Boolean] = Task { true }
 
     def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 
@@ -101,7 +102,7 @@ object JetLagged extends mill.api.Module {
       override def androidEnableCompose = true
 
       // TODO consider defaulting this to the parent app value
-      override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task {
+      override def kotlinUseEmbeddableCompiler: T[Boolean] = Task {
         true
       }
 
@@ -193,7 +194,7 @@ object JetNews extends mill.api.Module {
     )
 
     def androidEnableCompose = true
-    override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task { true }
+    override def kotlinUseEmbeddableCompiler: T[Boolean] = Task { true }
 
     def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 
@@ -212,7 +213,7 @@ object JetNews extends mill.api.Module {
       override def androidEnableCompose = true
 
       // TODO consider defaulting this to the parent app value
-      override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task {
+      override def kotlinUseEmbeddableCompiler: T[Boolean] = Task {
         true
       }
 
@@ -263,7 +264,7 @@ object Jetchat extends mill.api.Module {
 
     override def androidDataBindingCompilerVersion = "8.13.0"
 
-    override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task {
+    override def kotlinUseEmbeddableCompiler: T[Boolean] = Task {
       true
     }
 
@@ -307,7 +308,7 @@ object Jetchat extends mill.api.Module {
       override def androidEnableCompose = true
 
       // TODO consider defaulting this to the parent app value
-      override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task {
+      override def kotlinUseEmbeddableCompiler: T[Boolean] = Task {
         true
       }
 

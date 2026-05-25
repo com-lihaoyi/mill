@@ -55,7 +55,7 @@ class GitlabPublisher(
         s"Code: ${response.statusCode}, message: ${response.text()}"
       }
       // Or just log? Fail later?
-      throw new RuntimeException(
+      throw RuntimeException(
         s"Failed to publish $artifact to Gitlab. Errors: \n${errors.mkString("\n")}"
       )
     }

@@ -8,6 +8,7 @@ import mill.internal.Colors
 import java.io.InputStream
 import java.nio.channels.ClosedChannelException
 import scala.annotation.tailrec
+import scala.util.control.NonFatal
 import scala.util.Using
 
 /**
@@ -39,7 +40,7 @@ object Watching {
    * @param ringBell whether to emit bells
    * @param watch if [[None]] just runs once and returns
    */
-  def watchLoop[T <: Result](
+  def watchLoop[T <: Result & AutoCloseable](
       ringBell: Boolean,
       watch: Option[WatchArgs],
       streams: SystemStreams,
@@ -71,26 +72,33 @@ object Watching {
         var prevState: Option[T] = None
         var skipSelectiveExecution = true // Always skip selective execution for first run
 
-        // Exits when the thread gets interrupted.
-        while (true) {
-          val result = evaluate(skipSelectiveExecution, prevState)
-          prevState = Some(result)
-          handleError(result.errorOpt)
+        try {
+          while (true) {
+            val previousState = prevState
+            previousState.foreach(_.close())
+            prevState = None
 
-          try {
-            watchArgs.setIdle(true)
-            skipSelectiveExecution = watchAndWait(
-              result.watched,
-              watchArgs,
-              () => Option.when(lookForEnterKey(streams.in))(()),
-              "  (Enter to re-run, Ctrl-C to exit)",
-              streams.err.println(_)
-            ).isDefined
-          } finally {
-            watchArgs.setIdle(false)
+            val result = evaluate(skipSelectiveExecution, previousState)
+            prevState = Some(result)
+            handleError(result.errorOpt)
+
+            try {
+              watchArgs.setIdle(true)
+              skipSelectiveExecution = watchAndWait(
+                result.watched,
+                watchArgs,
+                () => Option.when(lookForEnterKey(streams.in))(()),
+                "  (Enter to re-run, Ctrl-C to exit)",
+                streams.err.println(_)
+              ).isDefined
+            } finally {
+              watchArgs.setIdle(false)
+            }
           }
+        } finally {
+          prevState.foreach(_.close())
         }
-        throw new IllegalStateException("unreachable")
+        throw IllegalStateException("unreachable")
     }
   }
 
@@ -235,7 +243,18 @@ object Watching {
       )
     }
 
-    if (watchArgs.useNotify) doWatchFsNotify() else doWatchPolling()
+    if (watchArgs.useNotify) {
+      try doWatchFsNotify()
+      catch {
+        case NonFatal(e) =>
+          log(
+            watchArgs.colors.error(
+              s"Native file watcher failed (${e.getMessage}), falling back to polling."
+            ).toString()
+          )
+          doWatchPolling()
+      }
+    } else doWatchPolling()
   }
 
   /**

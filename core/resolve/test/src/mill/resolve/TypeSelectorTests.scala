@@ -80,7 +80,7 @@ object TypeSelectorTests extends TestSuite {
 
   val tests = Tests {
     test("typeSelector") {
-      val check = new Checker(TypedModules)
+      val check = Checker(TypedModules)
       test - check(
         "__",
         Result.Success(Set(
@@ -183,7 +183,7 @@ object TypeSelectorTests extends TestSuite {
       )
     }
     test("crossTypeSelector") {
-      val check = new Checker(TypedCrossModules)
+      val check = Checker(TypedCrossModules)
       test - check(
         "__",
         Result.Success(Set(
@@ -258,7 +258,7 @@ object TypeSelectorTests extends TestSuite {
         ))
       )
       test("innerTypeSelector") {
-        val check = new Checker(TypedInnerModules)
+        val check = Checker(TypedInnerModules)
         test - check(
           "__:TypeA._",
           Result.Success(Set(

@@ -46,7 +46,7 @@ object CodeGen {
       .map { p =>
         mill.internal.Util.parseHeaderData(p) match {
           case Result.Success(v) => p -> v
-          case f: Result.Failure => throw new Result.Exception(f.error, Some(f))
+          case f: Result.Failure => throw Result.Exception(f.error, Some(f))
         }
       }
       .toMap

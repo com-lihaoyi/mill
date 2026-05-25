@@ -1,0 +1,17 @@
+package build
+
+import mill.*
+import mill.scalalib.*
+
+object app extends ScalaModule {
+  def scalaVersion = "3.8.2"
+
+  object test extends ScalaTests {
+    def mvnDeps = Seq(mvn"org.scala-sbt:test-interface:1.0")
+    def testFramework = "com.example.BatchFramework"
+    def testBatchFrameworkTasks = true
+    override def forkEnv = {
+      super.forkEnv() ++ Map("MY_ENV" -> "MY_ENV_VALUE")
+    }
+  }
+}

@@ -28,7 +28,7 @@ trait OwaspDependencyCheckModule extends Module, OfflineSupportModule {
   /**
    * The worker is version specific. If another version is required it can be customized here.
    */
-  val owaspDependencyCheckWorker: ModuleRef[OwaspDependencyCheckWorker] =
+  def owaspDependencyCheckWorker: ModuleRef[OwaspDependencyCheckWorker] =
     ModuleRef(OwaspDependencyCheckWorker)
 
   /**
@@ -52,8 +52,11 @@ trait OwaspDependencyCheckModule extends Module, OfflineSupportModule {
    *
    * @return
    */
-  final def owaspDependencyCheck(): Task.Command[DependencyCheckResult] =
-    Task.Command(exclusive = true) {
+  final def owaspDependencyCheck(): Task.Command[DependencyCheckResult] = {
+    // globalExclusive, because the OWASP Dependency check isn't thread save at two level:
+    // At the JVM level, it has global variables and isn't intended to run concurrently.
+    // At process level: It has a cache database, that cannot be access by mulitple processes
+    Task.Command(globalExclusive = true) {
       val args = owaspDependencyCheckConfigArgs()
       val files = owaspDependencyCheckFiles()
       if (files.nonEmpty) {
@@ -65,7 +68,7 @@ trait OwaspDependencyCheckModule extends Module, OfflineSupportModule {
         val exitCode = owaspDependencyCheckWorker().worker().runScan(arguments)
         val result = DependencyCheckResult(os.list(Task.dest).map(PathRef(_)), exitCode)
         if (owaspDependencyCheckFailTask && !result.success) {
-          throw new Exception(s"Dependency Check failed with status code $exitCode")
+          throw Exception(s"Dependency Check failed with status code $exitCode")
         }
         result
       } else {
@@ -73,4 +76,5 @@ trait OwaspDependencyCheckModule extends Module, OfflineSupportModule {
         DependencyCheckResult(Seq.empty, 0)
       }
     }
+  }
 }

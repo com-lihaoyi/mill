@@ -1,3 +1,4 @@
+//| mill-jvm-version: zulu:21
 // Native libraries are libraries written in C/C++ that are compiled to Android code
 // and are used in the app. They are usually used for performance reasons or to use
 // libraries that are not available in Java/Kotlin.

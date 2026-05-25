@@ -18,5 +18,8 @@ import scala.annotation.StaticAnnotation
  *   BuildInfo.millVersion
  * }
  * }}}
+ *
+ * Mutating commands like `clean` should additionally use
+ * `globalExclusive = true` to take the daemon-wide workspace Write lock.
  */
 final class nonBootstrapped extends StaticAnnotation

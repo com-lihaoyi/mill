@@ -61,7 +61,10 @@ Mill's build headers can contain the following keys:
 4. xref:_mill_jvm_opts[]: flags to pass to Mill's background daemon JVM process,
    e.g. to configure how much memory to give it
 
-5. `mvnDeps` and `repositories`: these allow you to define dependencies for usage
+5. xref:_mill_separate_bsp_output_dir[]: makes BSP use a dedicated output directory
+   instead of sharing the regular `out/` directory and daemon/task caches with CLI builds.
+
+6. `mvnDeps` and `repositories`: these allow you to define dependencies for usage
    in your `build.mill`, and are described in more detail in the
    xref:extending/import-mvn-plugins.adoc[Import Libraries and Plugins] page.
    Other keys are allowed as well, and these are uniformly treated as overrides for
@@ -163,6 +166,34 @@ These repositories are used for:
 The configured repositories are prepended to (take precedence over) the default
 Maven Central repository. For configuring repositories on individual modules, see
 xref:javalib/dependencies.adoc#_repository_configuration[Repository Configuration].
+
+== mill-separate-bsp-output-dir
+
+By default, BSP sessions share the regular `out/` directory and Mill daemon with
+CLI builds. This lets IDE-triggered builds reuse the same task caches and
+concurrency-aware output locking as normal `./mill ...` commands.
+
+If you want BSP to use its own dedicated output directory instead, set
+`mill-separate-bsp-output-dir: true` in the root build header.
+
+_build.mill_
+[source,scala]
+----
+//| mill-separate-bsp-output-dir: true
+----
+
+Or in `build.mill.yaml`:
+
+[source,yaml]
+----
+mill-separate-bsp-output-dir: true
+----
+
+This makes BSP use the conventional dedicated `.bsp/out/` directory. If you need
+a custom dedicated BSP output path, set the `MILL_BSP_OUTPUT_DIR` environment
+variable instead. If you need to force BSP back to the shared `out/` directory
+even when the build header requests a dedicated one, set
+`MILL_NO_SEPARATE_BSP_OUTPUT_DIR=1`.
 
 == mill-jvm-opts
 
