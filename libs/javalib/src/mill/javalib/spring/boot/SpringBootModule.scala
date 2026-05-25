@@ -3,17 +3,21 @@ package mill.javalib.spring.boot
 import mainargs.Flag
 import mill.{T, Task}
 import mill.api.{ModuleRef, PathRef}
+import mill.javalib.repackage.RepackageModule
 import mill.javalib.{Dep, DepSyntax, JavaModule, NativeImageModule}
 
 /**
  * A module that can be used to configure Spring Boot projects and provides functionality
  * for AOT processing and native GraalVM builds.
  *
+ * In addition this module also extends [[RepackageModule]] to provide the ready-to-use
+ * [[repackagedJar]] task.
+ *
  * For compatibility with initializr projects ([[https://start.spring.io/]]),
  * mix this module with the [[MavenModule]].
  */
 @mill.api.experimental
-trait SpringBootModule extends JavaModule {
+trait SpringBootModule extends JavaModule, RepackageModule {
   outer =>
 
   /** Spring boot version as can be found in [[https://start.spring.io/]] */

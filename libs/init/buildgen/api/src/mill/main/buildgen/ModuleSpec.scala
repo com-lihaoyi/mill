@@ -77,21 +77,18 @@ case class ModuleSpec(
 
   def tree: Seq[ModuleSpec] = this +: children.flatMap(_.tree)
 
-  def withErrorProneModule(errorProneMvnDeps: Seq[MvnDep]): ModuleSpec = {
-    javacOptions.base.find(_.group.head.startsWith("-Xplugin:ErrorProne")).fold(this) { epOption =>
-      val epOptions = epOption.group.head.split("\\s").toSeq.tail
-      val (epJavacOptions, javacOptions0) = javacOptions.base
-        .diff(Seq(epOption, Opt("-XDcompilePolicy=simple")))
-        .partition(_.group.head.startsWith("-XD"))
-      this.copy(
-        imports = "mill.javalib.errorprone.ErrorProneModule" +: imports,
-        supertypes = supertypes :+ "ErrorProneModule",
-        errorProneDeps = errorProneMvnDeps,
-        errorProneOptions = epOptions,
-        errorProneJavacEnableOptions = epJavacOptions,
-        javacOptions = javacOptions0
-      )
-    }
+  def withErrorProneModule(
+      errorProneMvnDeps: Values[MvnDep] = Values(),
+      errorProneOptions: Values[String] = Values(),
+      errorProneJavacEnableOptions: Values[Opt] = Values()
+  ): ModuleSpec = {
+    this.copy(
+      imports = "mill.javalib.errorprone.ErrorProneModule" +: imports,
+      supertypes = supertypes :+ "ErrorProneModule",
+      errorProneDeps = errorProneMvnDeps,
+      errorProneOptions = errorProneOptions,
+      errorProneJavacEnableOptions = errorProneJavacEnableOptions
+    )
   }
 
   def withSpringBootModule(springBootVersion: Value[String]): ModuleSpec =
@@ -308,4 +305,6 @@ object ModuleSpec {
       }
     }
   }
+
+  def isManagedJavacOption(arg: String): Boolean = arg == "-XDcompilePolicy=simple"
 }

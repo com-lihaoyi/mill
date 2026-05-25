@@ -28,7 +28,7 @@ trait OwaspDependencyCheckModule extends Module, OfflineSupportModule {
   /**
    * The worker is version specific. If another version is required it can be customized here.
    */
-  val owaspDependencyCheckWorker: ModuleRef[OwaspDependencyCheckWorker] =
+  def owaspDependencyCheckWorker: ModuleRef[OwaspDependencyCheckWorker] =
     ModuleRef(OwaspDependencyCheckWorker)
 
   /**

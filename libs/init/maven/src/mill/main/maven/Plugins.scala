@@ -1,6 +1,7 @@
 package mill.main.maven
 
-import mill.main.buildgen.ModuleSpec.{MvnDep, Opt}
+import mill.main.buildgen.ModuleSpec
+import mill.main.buildgen.ModuleSpec.*
 import org.apache.maven.model.{ConfigurationContainer, Model}
 import org.codehaus.plexus.util.xml.Xpp3Dom
 
@@ -12,28 +13,49 @@ class Plugins(model: Model) {
     def opt(name: String, prefix: String = "-") = value(dom, name).map(Opt(prefix + name, _))
     opt("release", "--").fold(Seq(opt("source"), opt("target")).flatten)(Seq(_)) ++
       opt("encoding") ++
-      child(dom, "compilerArgs").fold(Nil)(dom => Opt.groups(values(dom, "arg")))
+      child(dom, "compilerArgs").fold(Nil)(dom =>
+        Opt.groups(
+          values(dom, "arg").filterNot(arg => isManagedJavacOption(arg) || isErrorProneOption(arg))
+        )
+      )
   }
 
-  def errorProneMvnDeps: Seq[MvnDep] = plugin("maven-compiler-plugin").flatMap(config)
-    .filter(child(_, "compilerArgs").exists(
-      values(_, "arg").exists(_.startsWith("-Xplugin:ErrorProne"))
-    ))
-    .flatMap(child(_, "annotationProcessorPaths"))
-    .fold(Nil)(children(_, "path"))
-    .flatMap { dom =>
-      for {
-        organization <- value(dom, "groupId")
-        name <- value(dom, "artifactId")
-        version = value(dom, "version").getOrElse("")
-        excludes = children(dom, "exclusions").flatMap { dom =>
+  private def isErrorProneOption(arg: String): Boolean = arg.startsWith("-Xplugin:ErrorProne")
+
+  def withErrorProneModule(spec: ModuleSpec): Option[ModuleSpec] =
+    for {
+      dom <- plugin("maven-compiler-plugin").flatMap(config)
+      epArg <- child(dom, "compilerArgs").flatMap(values(_, "arg").find(isErrorProneOption))
+      epArgs = epArg.split("\\s+").toSeq.tail
+      // https://errorprone.info/docs/flags#maven
+      epOptions = epArgs.collectFirst {
+        case arg if arg.head == '@' =>
+          os.read(os.Path(arg.tail)).split("\\s+").toSeq
+      }.getOrElse(epArgs)
+      epMvnDeps = child(dom, "annotationProcessorPaths").fold(Nil)(children(_, "path"))
+        .flatMap { dom =>
           for {
-            groupId <- value(dom, "groupId")
-            artifactId <- value(dom, "artifactId")
-          } yield (groupId, artifactId)
+            organization <- value(dom, "groupId")
+            name <- value(dom, "artifactId")
+            version = value(dom, "version").getOrElse("")
+            classifier = value(dom, "classifier")
+            _type = value(dom, "type")
+            excludes = children(dom, "exclusions").flatMap { dom =>
+              for {
+                groupId <- value(dom, "groupId")
+                artifactId <- value(dom, "artifactId")
+              } yield (groupId, artifactId)
+            }
+          } yield MvnDep(
+            organization = organization,
+            name = name,
+            version = version,
+            classifier = classifier,
+            `type` = _type,
+            excludes = excludes
+          )
         }
-      } yield MvnDep(organization, name, version, excludes = excludes)
-    }
+    } yield spec.withErrorProneModule(errorProneMvnDeps = epMvnDeps, errorProneOptions = epOptions)
 
   def skipDeploy: Boolean = plugin("maven-deploy-plugin").flatMap(config)
     .flatMap(value(_, "skip")).fold(false)(_.toBoolean)
