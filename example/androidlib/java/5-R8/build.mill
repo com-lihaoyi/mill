@@ -125,7 +125,6 @@ object app extends AndroidR8AppModule { // <2>
   ]
 }
 
-
 > ./mill show app.stopAndroidEmulator
 
 > ./mill show app.deleteAndroidVirtualDevice
