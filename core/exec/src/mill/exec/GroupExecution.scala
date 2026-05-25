@@ -296,46 +296,75 @@ trait GroupExecution {
 
         val taskWaitReporter =
           PromptWaitReporter.fromLogger(logger, logger.streams.err)
+        val taskLockPath = paths.dest.toNIO
+        val taskLockKey = taskLockPath.toAbsolutePath.normalize().toString
+
         // Input tasks (Task.Input/Source/Sources) are deterministic from
         // filesystem/env, downstream consumes the in-memory Val (not
         // `dest/`), and concurrent `dest/meta.json` writes are byte-identical
         // — so per-task locking is unnecessary and just serializes peers.
-        def acquireTaskLock(kind: LauncherLocking.LockKind): LauncherLocking.Lease =
+        def acquireTaskLock(kind: LauncherLocking.LockKind): LauncherLocking.Lease = {
+          def blockingAcquire(): LauncherLocking.Lease =
+            workspaceLocking.taskLock(
+              taskLockPath,
+              labelled.ctx.segments.render,
+              kind,
+              taskWaitReporter
+            )
+
           if (labelled.isInputTask)
             LauncherLocking.Noop.taskLock(
-              paths.dest.toNIO,
+              taskLockPath,
               labelled.ctx.segments.render,
               kind,
               taskWaitReporter
             )
-          else
-            workspaceLocking.taskLock(
-              paths.dest.toNIO,
-              labelled.ctx.segments.render,
-              kind,
-              taskWaitReporter
-            )
+          else {
+            val leaseEither = kind match {
+              case LauncherLocking.LockKind.Read =>
+                workspaceLocking.tryTaskReadLock(taskLockPath, labelled.ctx.segments.render)
+              case LauncherLocking.LockKind.Write =>
+                workspaceLocking.tryTaskWriteLock(taskLockPath, labelled.ctx.segments.render)
+            }
+            leaseEither match {
+              case Right(lease) => lease
+              case Left(_) =>
+                leaseTracker.releaseHigherThan(taskLockKey)
+                val lease = blockingAcquire()
+                try {
+                  leaseTracker.reacquireDropped(workspaceLocking, taskWaitReporter)
+                  lease
+                } catch {
+                  case t: Throwable =>
+                    lease.close()
+                    throw t
+                }
+            }
+          }
+        }
 
         // Try-Write + bounded await for `LockUpgrade.readThenWrite`'s
         // retryable loop; mirrors `acquireTaskLock`'s input-task skip.
         def tryWriteTaskLock(): Either[LauncherLocking.Contention, LauncherLocking.Lease] =
           if (labelled.isInputTask)
             LauncherLocking.Noop.tryTaskWriteLock(
-              paths.dest.toNIO,
+              taskLockPath,
               labelled.ctx.segments.render
             )
           else
             workspaceLocking.tryTaskWriteLock(
-              paths.dest.toNIO,
+              taskLockPath,
               labelled.ctx.segments.render
             )
         def awaitTaskLockChange(timeoutMs: Long): Unit =
-          if (!labelled.isInputTask)
+          if (!labelled.isInputTask) {
+            leaseTracker.releaseHigherThan(taskLockKey)
             workspaceLocking.awaitTaskStateChange(
-              paths.dest.toNIO,
+              taskLockPath,
               labelled.ctx.segments.render,
               timeoutMs
             )
+          }
 
         // Helper to evaluate the task with full caching support
         def evaluateTaskWithCaching(): GroupExecution.Results = {
@@ -382,14 +411,21 @@ trait GroupExecution {
             acquireRead = acquireTaskLock(LauncherLocking.LockKind.Read),
             tryAcquireWrite = () => tryWriteTaskLock(),
             awaitStateChange = awaitTaskLockChange,
-            waitReporter = taskWaitReporter
+            waitReporter = taskWaitReporter,
+            afterAcquire = () => leaseTracker.reacquireDropped(workspaceLocking, taskWaitReporter)
           ) { scope =>
             loadCachedOrWorker(
               loadCachedJson(logger, inputsHash, labelled, paths),
               closeStaleWorker = false
             ) match {
               case Some(res) =>
-                leaseTracker.retain(labelled, scope.retain())
+                leaseTracker.retain(
+                  labelled,
+                  taskLockPath,
+                  labelled.ctx.segments.render,
+                  scope.retain(),
+                  workspaceLocking.taskVersion(taskLockPath)
+                )
                 LockUpgrade.Decision.Complete(res)
               case None =>
                 LockUpgrade.Decision.Escalate
@@ -400,7 +436,13 @@ trait GroupExecution {
 
             reusableResultOpt match {
               case Some(res) =>
-                leaseTracker.retain(labelled, scope.downgradeAndRetain())
+                leaseTracker.retain(
+                  labelled,
+                  taskLockPath,
+                  labelled.ctx.segments.render,
+                  scope.downgradeAndRetain(),
+                  workspaceLocking.taskVersion(taskLockPath)
+                )
                 res
               case None =>
                 if (!labelled.persistent && os.exists(paths.dest)) {
@@ -408,7 +450,7 @@ trait GroupExecution {
                   os.remove.all(paths.dest)
                 }
 
-                val (newResults, newEvaluated) =
+                val (newResults, newEvaluated) = leaseTracker.withActiveConsumers(labelled) {
                   executeGroup(
                     group = group,
                     results = results,
@@ -425,6 +467,7 @@ trait GroupExecution {
                     upstreamPathRefs = upstreamPathRefs,
                     terminal = labelled
                   )
+                }
 
                 val (valueHash, serializedPaths, success) = newResults(labelled) match {
                   case ExecResult.Success((v, _)) =>
@@ -440,7 +483,16 @@ trait GroupExecution {
                     (0, Nil, false)
                 }
 
-                if (success) leaseTracker.retain(labelled, scope.downgradeAndRetain())
+                if (success) {
+                  val version = workspaceLocking.markTaskWritten(taskLockPath)
+                  leaseTracker.retain(
+                    labelled,
+                    taskLockPath,
+                    labelled.ctx.segments.render,
+                    scope.downgradeAndRetain(),
+                    version
+                  )
+                }
 
                 GroupExecution.Results(
                   newResults = newResults,
@@ -468,7 +520,8 @@ trait GroupExecution {
           acquireRead = acquireTaskLock(LauncherLocking.LockKind.Read),
           tryAcquireWrite = () => tryWriteTaskLock(),
           awaitStateChange = awaitTaskLockChange,
-          waitReporter = taskWaitReporter
+          waitReporter = taskWaitReporter,
+          afterAcquire = () => leaseTracker.reacquireDropped(workspaceLocking, taskWaitReporter)
         )(_ => LockUpgrade.Decision.Escalate) { scope =>
           val (execRes, serializedPaths) =
             if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {
@@ -499,7 +552,14 @@ trait GroupExecution {
           // peers can't overwrite `paths.meta` mid-downstream-read.
           execRes match {
             case ExecResult.Success(_) =>
-              leaseTracker.retain(labelled, scope.downgradeAndRetain())
+              val version = workspaceLocking.markTaskWritten(taskLockPath)
+              leaseTracker.retain(
+                labelled,
+                taskLockPath,
+                labelled.ctx.segments.render,
+                scope.downgradeAndRetain(),
+                version
+              )
             case _ =>
           }
           cachedResult(execRes, serializedPaths)
@@ -549,22 +609,24 @@ trait GroupExecution {
           case None => evaluateTaskWithCaching()
         }
       case _ =>
-        val (newResults, newEvaluated) = executeGroup(
-          group = group,
-          results = results,
-          inputsHash = inputsHash,
-          paths = None,
-          taskLabelOpt = None,
-          counterMsg = countMsg,
-          reporter = zincProblemReporter,
-          testReporter = testReporter,
-          logger = logger,
-          executionContext = executionContext,
-          exclusive = exclusive,
-          deps = deps,
-          upstreamPathRefs = upstreamPathRefs,
-          terminal = terminal
-        )
+        val (newResults, newEvaluated) = leaseTracker.withActiveConsumers(terminal) {
+          executeGroup(
+            group = group,
+            results = results,
+            inputsHash = inputsHash,
+            paths = None,
+            taskLabelOpt = None,
+            counterMsg = countMsg,
+            reporter = zincProblemReporter,
+            testReporter = testReporter,
+            logger = logger,
+            executionContext = executionContext,
+            exclusive = exclusive,
+            deps = deps,
+            upstreamPathRefs = upstreamPathRefs,
+            terminal = terminal
+          )
+        }
         GroupExecution.Results(
           newResults = newResults,
           newEvaluated = newEvaluated.toSeq,

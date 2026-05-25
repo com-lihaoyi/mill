@@ -129,6 +129,25 @@ class CrossThreadRwLock(
   }
 
   /**
+   * Non-blocking, non-queued Read attempt. Returns immediately with
+   * [[scala.Left]] when a writer is active or queued, matching normal
+   * reader acquisition's writer-priority policy without registering the
+   * caller as a waiter.
+   */
+  def tryAcquireRead(acquirer: HolderInfo): Either[Contention, Lease] = monitor.synchronized {
+    if (canAcquireRead) {
+      readerCount += 1
+      val lease = newLease(initiallyWrite = false)
+      holders.put(lease, acquirer)
+      Right(lease)
+    } else Left(Contention(
+      waitingMessage(currentBlocker(), LockKind.Read),
+      label,
+      syntheticPrefix
+    ))
+  }
+
+  /**
    * Block on the lock's monitor for up to `timeoutMs`, returning when any
    * lock state change occurs (close/downgrade `notifyAll`s) or the
    * timeout fires. Used by [[LockUpgrade.readThenWrite]]'s retry loop to

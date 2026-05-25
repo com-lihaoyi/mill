@@ -155,6 +155,25 @@ case class Execution(
       testReporter: TestReporter /* = TestReporter.DummyTestReporter*/,
       serialCommandExec: Boolean
   ): Execution.Results = {
+    while (true) {
+      try return execute0Once(goals, logger, reporter, testReporter, serialCommandExec)
+      catch {
+        case e: Execution.RetryDueToDroppedTaskLock =>
+          logger.debug(s"Retrying evaluation after concurrent rewrite of ${e.label}")
+      }
+    }
+    throw new AssertionError("unreachable")
+  }
+
+  private def execute0Once(
+      goals: Seq[Task[?]],
+      logger: Logger,
+      reporter: Int => Option[
+        CompileProblemReporter
+      ] /* = _ => Option.empty[CompileProblemReporter]*/,
+      testReporter: TestReporter /* = TestReporter.DummyTestReporter*/,
+      serialCommandExec: Boolean
+  ): Execution.Results = {
     os.makeDir.all(outPath)
     val failed = AtomicBoolean(false)
     val count = AtomicInteger(1)
@@ -492,6 +511,7 @@ case class Execution(
 }
 
 object Execution {
+  class RetryDueToDroppedTaskLock(val label: String) extends RuntimeException(label)
 
   /**
    * Tracks per-task read leases on the workspace lock and releases them once
@@ -507,13 +527,34 @@ object Execution {
       indexToTerminal: Array[Task[?]],
       interGroupDeps: Map[Task[?], Seq[Task[?]]]
   ) {
+    class Retained(
+        val path: java.nio.file.Path,
+        val label: String,
+        val key: String,
+        var lease: LauncherLocking.Lease,
+        var observedVersion: Long
+    ) {
+      var dropped: Boolean = false
+    }
+
     class State(initialPending: Int) {
       val pending = AtomicInteger(initialPending)
       val completed = AtomicBoolean(false)
-      val leases = new java.util.concurrent.ConcurrentLinkedQueue[LauncherLocking.Lease]()
+      val activeConsumers = AtomicInteger(0)
+      var retained: Retained = null
     }
 
     val states = new ConcurrentHashMap[Task[?], State]()
+    private val transitiveUpstreams: Map[Task[?], Seq[Task[?]]] = {
+      val memo = mutable.Map.empty[Task[?], Seq[Task[?]]]
+      def rec(task: Task[?]): Seq[Task[?]] = memo.getOrElseUpdate(
+        task, {
+          val direct = interGroupDeps.getOrElse(task, Nil)
+          (direct ++ direct.flatMap(rec)).distinct
+        }
+      )
+      indexToTerminal.iterator.map(t => t -> rec(t)).toMap
+    }
 
     locally {
       val pendingCounts = mutable.Map.empty[Task[?], Int].withDefaultValue(0)
@@ -526,11 +567,12 @@ object Execution {
       try lease.close()
       catch { case _: Throwable => () }
 
-    private def drainLeases(s: State): Unit = {
-      var lease = s.leases.poll()
-      while (lease != null) {
-        closeQuietly(lease)
-        lease = s.leases.poll()
+    private def drainLeases(s: State): Unit = s.synchronized {
+      val retained = s.retained
+      s.retained = null
+      if (retained != null && retained.lease != null) {
+        closeQuietly(retained.lease)
+        retained.lease = null
       }
     }
 
@@ -539,7 +581,13 @@ object Execution {
       while (queue.nonEmpty) {
         val task = queue.dequeue()
         val s = states.get(task)
-        if (s != null && s.completed.get() && s.pending.get() == 0 && states.remove(task, s)) {
+        if (
+          s != null &&
+          s.completed.get() &&
+          s.pending.get() == 0 &&
+          s.activeConsumers.get() == 0 &&
+          states.remove(task, s)
+        ) {
           drainLeases(s)
           for (upstream <- interGroupDeps.getOrElse(task, Nil)) {
             val upstreamState = states.get(upstream)
@@ -552,10 +600,96 @@ object Execution {
       }
     }
 
-    def retain(task: Task[?], lease: LauncherLocking.Lease): Unit = {
+    def retain(
+        task: Task[?],
+        path: java.nio.file.Path,
+        label: String,
+        lease: LauncherLocking.Lease,
+        observedVersion: Long
+    ): Unit = {
       val s = states.get(task)
-      if (s != null) s.leases.add(lease)
+      if (s != null) s.synchronized {
+        if (s.retained != null && s.retained.lease != null) closeQuietly(s.retained.lease)
+        s.retained = Retained(
+          path = path,
+          label = label,
+          key = path.toAbsolutePath.normalize().toString,
+          lease = lease,
+          observedVersion = observedVersion
+        )
+      }
       else closeQuietly(lease)
+    }
+
+    def retain(task: Task[?], lease: LauncherLocking.Lease): Unit =
+      retain(task, java.nio.file.Paths.get(task.toString), task.toString, lease, 0L)
+
+    def releaseHigherThan(key: String): Unit = {
+      import scala.jdk.CollectionConverters.*
+      for (s <- states.values().asScala) s.synchronized {
+        val retained = s.retained
+        if (
+          retained != null &&
+          retained.lease != null &&
+          retained.key > key &&
+          s.activeConsumers.get() == 0
+        ) {
+          closeQuietly(retained.lease)
+          retained.lease = null
+          retained.dropped = true
+        }
+      }
+    }
+
+    def reacquireDropped(
+        workspaceLocking: LauncherLocking,
+        waitReporter: LauncherLocking.WaitReporter
+    ): Unit = {
+      import scala.jdk.CollectionConverters.*
+      val dropped = states.values().asScala.toSeq.flatMap { s =>
+        s.synchronized {
+          val retained = s.retained
+          Option.when(retained != null && retained.dropped && retained.lease == null)(s -> retained)
+        }
+      }.sortBy(_._2.key)
+
+      for ((s, retained) <- dropped) {
+        val lease = workspaceLocking.taskLock(
+          retained.path,
+          retained.label,
+          LauncherLocking.LockKind.Read,
+          waitReporter
+        )
+        val currentVersion = workspaceLocking.taskVersion(retained.path)
+        if (currentVersion != retained.observedVersion) {
+          closeQuietly(lease)
+          throw RetryDueToDroppedTaskLock(retained.label)
+        }
+        s.synchronized {
+          if (s.retained eq retained) {
+            retained.lease = lease
+            retained.dropped = false
+          } else closeQuietly(lease)
+        }
+      }
+    }
+
+    def withActiveConsumers[T](terminal: Task[?])(body: => T): T = {
+      val upstreams = transitiveUpstreams.getOrElse(terminal, Nil)
+      upstreams.foreach { task =>
+        val s = states.get(task)
+        if (s != null) s.activeConsumers.incrementAndGet()
+      }
+      try body
+      finally {
+        upstreams.foreach { task =>
+          val s = states.get(task)
+          if (s != null) {
+            s.activeConsumers.decrementAndGet()
+            releaseIfDrained(task)
+          }
+        }
+      }
     }
 
     def onCompleted(terminal: Task[?]): Unit = {

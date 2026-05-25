@@ -3,6 +3,7 @@ package mill.internal
 import mill.constants.OutFiles
 
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * Maps of locks that are shared across launchers to allow them to coordinate work
@@ -11,6 +12,8 @@ import java.util.concurrent.ConcurrentHashMap
 private[mill] class LauncherLockRegistry {
   private val metaBuildLocks = new ConcurrentHashMap[Int, CrossThreadRwLock]()
   private val taskLocks = new ConcurrentHashMap[String, CrossThreadRwLock]()
+  private val taskVersions = new ConcurrentHashMap[String, java.lang.Long]()
+  private val taskWriteVersion = new AtomicLong(0L)
 
   // Single daemon-wide lock guarding "globally exclusive" command execution. Read leases
   // are taken by every normal task batch (and by plain `exclusive` commands) so they share
@@ -38,6 +41,15 @@ private[mill] class LauncherLockRegistry {
       normalizedAbsolutePath,
       _ => CrossThreadRwLock(label = displayLabel, showLabelInMessage = false)
     )
+
+  def taskVersion(normalizedAbsolutePath: String): Long =
+    Option(taskVersions.get(normalizedAbsolutePath)).fold(0L)(_.longValue())
+
+  def markTaskWritten(normalizedAbsolutePath: String): Long = {
+    val version = taskWriteVersion.incrementAndGet()
+    taskVersions.put(normalizedAbsolutePath, java.lang.Long.valueOf(version))
+    version
+  }
 }
 
 private[mill] object LauncherLockRegistry {
