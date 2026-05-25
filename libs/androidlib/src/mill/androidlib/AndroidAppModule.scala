@@ -23,6 +23,7 @@ import mill.javalib.testrunner.TestResult
 
 import scala.util.Properties.isWin
 import scala.util.matching.Regex
+import scala.util.control.NonFatal
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats
@@ -776,8 +777,11 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val adbPath = androidSdkModule().adbExe()
     val emulator = waitForDevice(adbPath, runningEmulator(), Task.log)
 
-    os.call(
-      (adbPath.path, "-s", emulator, "install", "-r", androidApk().path)
+    adbCallWithRetry(
+      adbPath,
+      emulator,
+      Seq("install", "-r", androidApk().path.toString),
+      Task.log
     )
 
     emulator
@@ -810,22 +814,23 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   private def androidRunWith(activity: Task[String]): Task[Vector[String]] = Task.Anon {
-    val emulator = runningEmulator()
+    val adbPath = androidSdkModule().adbExe()
+    val emulator = waitForDevice(adbPath, runningEmulator(), Task.log)
 
     Task.log.info(s"Starting activity ${activity()} on emulator $emulator")
 
-    os.call(
-      (
-        androidSdkModule().adbExe().path,
-        "-s",
-        emulator,
+    adbCallWithRetry(
+      adbPath,
+      emulator,
+      Seq(
         "shell",
         "am",
         "start",
         "-n",
         s"${androidApplicationId}/${activity()}",
         "-W"
-      )
+      ),
+      Task.log
     ).out.lines()
   }
 
@@ -935,6 +940,48 @@ trait AndroidAppModule extends AndroidModule { outer =>
       emulator
     else
       throw Exception("Device failed to boot")
+  }
+
+  private def adbCallWithRetry(
+      adbPath: PathRef,
+      emulator: String,
+      adbArgs: Seq[String],
+      logger: Logger,
+      maxAttempts: Int = 5
+  ): os.CommandResult = {
+    def isTransientAdbDeviceError(ex: Throwable): Boolean = {
+      val msg = Option(ex.getMessage).getOrElse("").toLowerCase
+      msg.contains("device offline") ||
+      msg.contains("device not found") ||
+      msg.contains("no devices/emulators found")
+    }
+
+    var attempt = 1
+    var lastError: Throwable | Null = null
+
+    while (attempt <= maxAttempts) {
+      try {
+        val callArgs: Seq[os.Shellable] =
+          Seq[os.Shellable](adbPath.path, "-s", emulator) ++
+            adbArgs.map(arg => arg: os.Shellable)
+        return os.call(callArgs)
+      } catch {
+        case e if NonFatal(e) && isTransientAdbDeviceError(e) && attempt < maxAttempts =>
+          lastError = e
+          logger.info(
+            s"ADB command failed with a transient device error (attempt $attempt/$maxAttempts). Retrying..."
+          )
+          Thread.sleep(2000)
+          waitForDevice(adbPath, emulator, logger)
+          attempt += 1
+        case e => throw e
+      }
+    }
+
+    throw new Exception(
+      s"ADB command failed after $maxAttempts attempts: ${adbArgs.mkString(" ")}",
+      lastError
+    )
   }
 
   /**
@@ -1148,16 +1195,13 @@ trait AndroidAppModule extends AndroidModule { outer =>
     def androidTestInstall(): Command[String] = Task.Command {
 
       val emulator = outer.androidInstallTask()
+      val adbPath = androidSdkModule().adbExe()
 
-      os.call(
-        (
-          androidSdkModule().adbExe().path,
-          "-s",
-          emulator,
-          "install",
-          "-t",
-          androidTestApk().path
-        )
+      adbCallWithRetry(
+        adbPath,
+        emulator,
+        Seq("install", "-t", androidTestApk().path.toString),
+        Task.log
       )
       emulator
     }
