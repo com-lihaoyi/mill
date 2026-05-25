@@ -369,9 +369,8 @@ object Jetchat extends mill.api.Module {
 [
   "Starting: Intent { cmp=com.example.jetnews/.ui.MainActivity }",
   "Status: ok",
-  "LaunchState: COLD",
+  "LaunchState: ...",
   "Activity: com.example.jetnews/.ui.MainActivity",
-  "TotalTime: ...",
   "WaitTime: ...",
   "Complete"
 ]
