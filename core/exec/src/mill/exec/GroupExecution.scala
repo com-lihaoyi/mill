@@ -299,6 +299,21 @@ trait GroupExecution {
         val taskLockPath = paths.dest.toNIO
         val taskLockKey = taskLockPath.toAbsolutePath.normalize().toString
 
+        // Any successful task-lock acquisition must validate reads that were
+        // dropped during an earlier contended wait before evaluation continues.
+        def reacquireDroppedReads(): Unit =
+          leaseTracker.reacquireDropped(workspaceLocking, taskWaitReporter)
+
+        def validateDroppedReads(lease: LauncherLocking.Lease): LauncherLocking.Lease =
+          try {
+            reacquireDroppedReads()
+            lease
+          } catch {
+            case t: Throwable =>
+              lease.close()
+              throw t
+          }
+
         // Input tasks (Task.Input/Source/Sources) are deterministic from
         // filesystem/env, downstream consumes the in-memory Val (not
         // `dest/`), and concurrent `dest/meta.json` writes are byte-identical
@@ -327,18 +342,10 @@ trait GroupExecution {
                 workspaceLocking.tryTaskWriteLock(taskLockPath, labelled.ctx.segments.render)
             }
             leaseEither match {
-              case Right(lease) => lease
+              case Right(lease) => validateDroppedReads(lease)
               case Left(_) =>
                 leaseTracker.releaseHigherThan(taskLockKey)
-                val lease = blockingAcquire()
-                try {
-                  leaseTracker.reacquireDropped(workspaceLocking, taskWaitReporter)
-                  lease
-                } catch {
-                  case t: Throwable =>
-                    lease.close()
-                    throw t
-                }
+                validateDroppedReads(blockingAcquire())
             }
           }
         }
@@ -412,7 +419,7 @@ trait GroupExecution {
             tryAcquireWrite = () => tryWriteTaskLock(),
             awaitStateChange = awaitTaskLockChange,
             waitReporter = taskWaitReporter,
-            afterAcquire = () => leaseTracker.reacquireDropped(workspaceLocking, taskWaitReporter)
+            afterAcquire = reacquireDroppedReads
           ) { scope =>
             loadCachedOrWorker(
               loadCachedJson(logger, inputsHash, labelled, paths),
@@ -521,7 +528,7 @@ trait GroupExecution {
           tryAcquireWrite = () => tryWriteTaskLock(),
           awaitStateChange = awaitTaskLockChange,
           waitReporter = taskWaitReporter,
-          afterAcquire = () => leaseTracker.reacquireDropped(workspaceLocking, taskWaitReporter)
+          afterAcquire = reacquireDroppedReads
         )(_ => LockUpgrade.Decision.Escalate) { scope =>
           val (execRes, serializedPaths) =
             if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {
