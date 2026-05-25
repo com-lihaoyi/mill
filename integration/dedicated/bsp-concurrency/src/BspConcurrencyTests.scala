@@ -46,7 +46,10 @@ object BspConcurrencyTests extends UtestIntegrationTestSuite {
   private def orderedEventsFile(tester: IntegrationTester.Impl): os.Path =
     tester.workspacePath / "ordered-events.log"
 
-  private def targetByDisplayName(targets: b.WorkspaceBuildTargetsResult, name: String): b.BuildTargetIdentifier =
+  private def targetByDisplayName(
+      targets: b.WorkspaceBuildTargetsResult,
+      name: String
+  ): b.BuildTargetIdentifier =
     targets.getTargets.asScala
       .find(_.getDisplayName == name).map(_.getId).getOrElse(
         throw new java.lang.AssertionError(
