@@ -420,21 +420,26 @@ object BuildGenYaml extends BuildGen {
   private def renderYamlPomSettings(value: Value[PomSettings]): Seq[String] = {
     value.base.flatMap { pom =>
       val content = Seq.newBuilder[String]
-      content += s"  description: ${yamlEscapeString(pom.description)}"
-      content += s"  organization: ${yamlEscapeString(pom.organization)}"
-      content += s"  url: ${yamlEscapeString(pom.url)}"
-      val licenseIds = pom.licenses.flatMap { l =>
-        if (l.id.nonEmpty) Some(l.id)
-        else if (l.name.nonEmpty) Some(l.name)
-        else None
-      }.map(yamlEscapeStringInList)
-      content += s"  licenses: ${licenseIds.mkString("[", ", ", "]")}"
+      if (pom.description.nonEmpty)
+        content += s"  description: ${yamlEscapeString(pom.description)}"
+      if (pom.organization.nonEmpty) content += s"  organization: ${pom.organization}"
+      if (pom.url.nonEmpty && !containsPlaceholder(pom.url)) content += s"  url: ${pom.url}"
+      if (pom.licenses.nonEmpty) {
+        val licenseIds = pom.licenses.flatMap { l =>
+          if (l.id.nonEmpty) Some(l.id)
+          else if (l.name.nonEmpty) Some(l.name)
+          else None
+        }.map(yamlEscapeStringInList)
+        if (licenseIds.nonEmpty) {
+          content += s"  licenses: ${licenseIds.mkString("[", ", ", "]")}"
+        }
+      }
       val vc = pom.versionControl
       // Filter out URLs that contain unresolved placeholders like ${scm.url}
-      val vcUrl = vc.browsableRepository.orElse(
-        vc.connection
-      ).filterNot(containsPlaceholder).map(yamlEscapeString)
-      content += s"  versionControl: ${vcUrl.getOrElse("\"\"")}"
+      val vcUrl = vc.browsableRepository.orElse(vc.connection).filterNot(containsPlaceholder)
+      vcUrl.foreach { url =>
+        content += s"  versionControl: $url"
+      }
       if (pom.developers.nonEmpty) {
         content += "  developers:"
         for (dev <- pom.developers) {
@@ -444,8 +449,6 @@ object BuildGenYaml extends BuildGen {
           dev.organization.foreach(o => parts += s"organization: ${yamlEscapeString(o)}")
           content += s"  - {${parts.result().mkString(", ")}}"
         }
-      } else {
-        content += "  developers: []"
       }
       val contentLines = content.result()
       // Only output pomSettings if there's actual content
