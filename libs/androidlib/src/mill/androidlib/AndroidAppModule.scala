@@ -773,10 +773,11 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   def androidInstallTask: Task[String] = Task.Anon {
-    val emulator = runningEmulator()
+    val adbPath = androidSdkModule().adbExe()
+    val emulator = waitForDevice(adbPath, runningEmulator(), Task.log)
 
     os.call(
-      (androidSdkModule().adbExe().path, "-s", emulator, "install", "-r", androidApk().path)
+      (adbPath.path, "-s", emulator, "install", "-r", androidApk().path)
     )
 
     emulator
