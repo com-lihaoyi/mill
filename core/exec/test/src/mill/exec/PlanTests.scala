@@ -28,6 +28,7 @@ object PlanTests extends TestSuite {
 
   private class TestLocking extends LauncherLocking {
     val versions = mutable.Map.empty[String, Long].withDefaultValue(0L)
+    val contendedReads = mutable.Set.empty[String]
 
     private def key(path: Path) = path.toAbsolutePath.normalize().toString
 
@@ -61,7 +62,10 @@ object PlanTests extends TestSuite {
     override def tryTaskReadLock(
         path: Path,
         displayLabel: String
-    ): Either[LauncherLocking.Contention, LauncherLocking.Lease] = Right(new TestLease)
+    ): Either[LauncherLocking.Contention, LauncherLocking.Lease] =
+      if (contendedReads(key(path)))
+        Left(LauncherLocking.Contention("blocked", displayLabel, Nil))
+      else Right(new TestLease)
 
     override def tryTaskWriteLock(
         path: Path,
@@ -262,9 +266,9 @@ object PlanTests extends TestSuite {
       val bLease = new TestLease
       val cLease = new TestLease
 
-      tracker.retain(a, aLease)
-      tracker.retain(b, bLease)
-      tracker.retain(c, cLease)
+      tracker.retain(a, Paths.get("/tmp/mill-lock-test/a"), "a", aLease, 0L)
+      tracker.retain(b, Paths.get("/tmp/mill-lock-test/b"), "b", bLease, 0L)
+      tracker.retain(c, Paths.get("/tmp/mill-lock-test/c"), "c", cLease, 0L)
 
       tracker.onCompleted(a)
       assert(!aLease.closed.get())
@@ -297,7 +301,7 @@ object PlanTests extends TestSuite {
         Map(a -> Nil, b -> Seq(a), c -> Seq(b))
       )
       val aLease = new TestLease
-      tracker.retain(a, aLease)
+      tracker.retain(a, Paths.get("/tmp/mill-lock-test/a"), "a", aLease, 0L)
 
       val aFuture: Future[Option[Unit]] =
         Future.successful(Some(())).andThen { case _ => tracker.onCompleted(a) }
@@ -348,6 +352,34 @@ object PlanTests extends TestSuite {
         } catch {
           case e: Execution.RetryDueToDroppedTaskLock => e
         }
+      assert(retry.label == "b")
+      tracker.drain()
+    }
+
+    test("leaseTrackerNonBlockingReacquireRetriesOnContention") {
+      import transitiveLeaseChain.*
+
+      val tracker = new Execution.LeaseTracker(
+        Array(a, b, c),
+        Map(a -> Nil, b -> Seq(a), c -> Seq(b))
+      )
+      val locking = new TestLocking
+      val aPath = Paths.get("/tmp/mill-lock-test/a")
+      val bPath = Paths.get("/tmp/mill-lock-test/b")
+      val bLease = new TestLease
+
+      tracker.retain(b, bPath, "b", bLease, 0L)
+      tracker.releaseHigherThan(aPath.toAbsolutePath.normalize().toString)
+
+      locking.contendedReads.add(bPath.toAbsolutePath.normalize().toString)
+      val retry =
+        try {
+          tracker.reacquireDropped(locking, LauncherLocking.WaitReporter.Noop, block = false)
+          throw new java.lang.AssertionError("expected retry")
+        } catch {
+          case e: Execution.RetryDueToDroppedTaskLock => e
+        }
+
       assert(retry.label == "b")
       tracker.drain()
     }

@@ -621,9 +621,6 @@ object Execution {
       else closeQuietly(lease)
     }
 
-    def retain(task: Task[?], lease: LauncherLocking.Lease): Unit =
-      retain(task, java.nio.file.Paths.get(task.toString), task.toString, lease, 0L)
-
     def releaseHigherThan(key: String): Unit = {
       import scala.jdk.CollectionConverters.*
       for (s <- states.values().asScala) s.synchronized {
@@ -643,7 +640,8 @@ object Execution {
 
     def reacquireDropped(
         workspaceLocking: LauncherLocking,
-        waitReporter: LauncherLocking.WaitReporter
+        waitReporter: LauncherLocking.WaitReporter,
+        block: Boolean = true
     ): Unit = {
       import scala.jdk.CollectionConverters.*
       val dropped = states.values().asScala.toSeq.flatMap { s =>
@@ -654,19 +652,27 @@ object Execution {
       }.sortBy(_._2.key)
 
       for ((s, retained) <- dropped) {
-        val lease = workspaceLocking.taskLock(
-          retained.path,
-          retained.label,
-          LauncherLocking.LockKind.Read,
-          waitReporter
-        )
+        val lease =
+          if (block) {
+            workspaceLocking.taskLock(
+              retained.path,
+              retained.label,
+              LauncherLocking.LockKind.Read,
+              waitReporter
+            )
+          } else {
+            workspaceLocking.tryTaskReadLock(retained.path, retained.label) match {
+              case Right(lease) => lease
+              case Left(_) => throw RetryDueToDroppedTaskLock(retained.label)
+            }
+          }
         val currentVersion = workspaceLocking.taskVersion(retained.path)
         if (currentVersion != retained.observedVersion) {
           closeQuietly(lease)
           throw RetryDueToDroppedTaskLock(retained.label)
         }
         s.synchronized {
-          if (s.retained eq retained) {
+          if ((s.retained eq retained) && retained.dropped && retained.lease == null) {
             retained.lease = lease
             retained.dropped = false
           } else closeQuietly(lease)

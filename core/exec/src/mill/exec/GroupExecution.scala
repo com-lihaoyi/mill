@@ -304,6 +304,11 @@ trait GroupExecution {
         def reacquireDroppedReads(): Unit =
           leaseTracker.reacquireDropped(workspaceLocking, taskWaitReporter)
 
+        // The write-upgrade callback runs while holding this task's Write lock,
+        // so it must not block on another task lock and recreate circular wait.
+        def tryReacquireDroppedReads(): Unit =
+          leaseTracker.reacquireDropped(workspaceLocking, taskWaitReporter, block = false)
+
         def validateDroppedReads(lease: LauncherLocking.Lease): LauncherLocking.Lease =
           try {
             reacquireDroppedReads()
@@ -419,7 +424,7 @@ trait GroupExecution {
             tryAcquireWrite = () => tryWriteTaskLock(),
             awaitStateChange = awaitTaskLockChange,
             waitReporter = taskWaitReporter,
-            afterAcquire = reacquireDroppedReads
+            afterAcquire = tryReacquireDroppedReads
           ) { scope =>
             loadCachedOrWorker(
               loadCachedJson(logger, inputsHash, labelled, paths),
@@ -528,7 +533,7 @@ trait GroupExecution {
           tryAcquireWrite = () => tryWriteTaskLock(),
           awaitStateChange = awaitTaskLockChange,
           waitReporter = taskWaitReporter,
-          afterAcquire = reacquireDroppedReads
+          afterAcquire = tryReacquireDroppedReads
         )(_ => LockUpgrade.Decision.Escalate) { scope =>
           val (execRes, serializedPaths) =
             if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {
