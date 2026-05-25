@@ -6,6 +6,7 @@ import mill.api.daemon.internal.LauncherLocking
 import mill.api.TestGraphs
 import utest.*
 
+import java.nio.file.{Path, Paths}
 import java.util.concurrent.atomic.AtomicBoolean
 import scala.collection.mutable
 import scala.concurrent.duration.DurationInt
@@ -23,6 +24,66 @@ object PlanTests extends TestSuite {
   private class TestLease extends LauncherLocking.Lease {
     val closed = AtomicBoolean(false)
     override def close(): Unit = closed.set(true)
+  }
+
+  private class TestLocking extends LauncherLocking {
+    val versions = mutable.Map.empty[String, Long].withDefaultValue(0L)
+    val contendedReads = mutable.Set.empty[String]
+
+    private def key(path: Path) = path.toAbsolutePath.normalize().toString
+
+    override def taskLock(
+        path: Path,
+        displayLabel: String,
+        kind: LauncherLocking.LockKind,
+        waitReporter: LauncherLocking.WaitReporter
+    ): LauncherLocking.Lease = new TestLease
+
+    override def taskVersion(path: Path): Long = versions(key(path))
+
+    override def markTaskWritten(path: Path): Long = {
+      val next = versions.valuesIterator.maxOption.getOrElse(0L) + 1L
+      versions(key(path)) = next
+      next
+    }
+
+    override def metaBuildLock(
+        depth: Int,
+        kind: LauncherLocking.LockKind,
+        waitReporter: LauncherLocking.WaitReporter
+    ): LauncherLocking.Lease = new TestLease
+
+    override def tryMetaBuildWriteLock(
+        depth: Int
+    ): Either[LauncherLocking.Contention, LauncherLocking.Lease] = Right(new TestLease)
+
+    override def awaitMetaBuildStateChange(depth: Int, timeoutMs: Long): Unit = ()
+
+    override def tryTaskReadLock(
+        path: Path,
+        displayLabel: String
+    ): Either[LauncherLocking.Contention, LauncherLocking.Lease] =
+      if (contendedReads(key(path)))
+        Left(LauncherLocking.Contention("blocked", displayLabel, Nil))
+      else Right(new TestLease)
+
+    override def tryTaskWriteLock(
+        path: Path,
+        displayLabel: String
+    ): Either[LauncherLocking.Contention, LauncherLocking.Lease] = Right(new TestLease)
+
+    override def awaitTaskStateChange(path: Path, displayLabel: String, timeoutMs: Long): Unit = ()
+
+    override def exclusiveLock(
+        kind: LauncherLocking.LockKind,
+        waitReporter: LauncherLocking.WaitReporter
+    ): LauncherLocking.Lease = new TestLease
+
+    override def withReleasedExclusive[T](
+        waitReporter: LauncherLocking.WaitReporter
+    )(body: => T): T = body
+
+    override def close(): Unit = ()
   }
 
   def checkTopological(tasks: Seq[Task[?]]) = {
@@ -205,9 +266,9 @@ object PlanTests extends TestSuite {
       val bLease = new TestLease
       val cLease = new TestLease
 
-      tracker.retain(a, aLease)
-      tracker.retain(b, bLease)
-      tracker.retain(c, cLease)
+      tracker.retain(a, Paths.get("/tmp/mill-lock-test/a"), "a", aLease, 0L)
+      tracker.retain(b, Paths.get("/tmp/mill-lock-test/b"), "b", bLease, 0L)
+      tracker.retain(c, Paths.get("/tmp/mill-lock-test/c"), "c", cLease, 0L)
 
       tracker.onCompleted(a)
       assert(!aLease.closed.get())
@@ -240,7 +301,7 @@ object PlanTests extends TestSuite {
         Map(a -> Nil, b -> Seq(a), c -> Seq(b))
       )
       val aLease = new TestLease
-      tracker.retain(a, aLease)
+      tracker.retain(a, Paths.get("/tmp/mill-lock-test/a"), "a", aLease, 0L)
 
       val aFuture: Future[Option[Unit]] =
         Future.successful(Some(())).andThen { case _ => tracker.onCompleted(a) }
@@ -261,6 +322,137 @@ object PlanTests extends TestSuite {
       // Both b's and c's onCompleted must have fired, recursively draining
       // b's subtree and then releasing a's retained Read lease.
       assert(aLease.closed.get())
+    }
+
+    test("leaseTrackerDropsInactiveHigherLocksAndRetriesOnVersionChange") {
+      import transitiveLeaseChain.*
+
+      val tracker = new Execution.LeaseTracker(
+        Array(a, b, c),
+        Map(a -> Nil, b -> Seq(a), c -> Seq(b))
+      )
+      val locking = new TestLocking
+      val aPath = Paths.get("/tmp/mill-lock-test/a")
+      val bPath = Paths.get("/tmp/mill-lock-test/b")
+      val aLease = new TestLease
+      val bLease = new TestLease
+
+      tracker.retain(a, aPath, "a", aLease, 0L)
+      tracker.retain(b, bPath, "b", bLease, 0L)
+      tracker.releaseHigherThan(aPath.toAbsolutePath.normalize().toString)
+
+      assert(!aLease.closed.get())
+      assert(bLease.closed.get())
+
+      locking.markTaskWritten(bPath)
+      val retry =
+        try {
+          tracker.reacquireDropped(locking, LauncherLocking.WaitReporter.Noop)
+          throw new java.lang.AssertionError("expected retry")
+        } catch {
+          case e: Execution.RetryDueToDroppedTaskLock => e
+        }
+      assert(retry.label == "b")
+      tracker.drain()
+    }
+
+    test("leaseTrackerNonBlockingReacquireRetriesOnContention") {
+      import transitiveLeaseChain.*
+
+      val tracker = new Execution.LeaseTracker(
+        Array(a, b, c),
+        Map(a -> Nil, b -> Seq(a), c -> Seq(b))
+      )
+      val locking = new TestLocking
+      val aPath = Paths.get("/tmp/mill-lock-test/a")
+      val bPath = Paths.get("/tmp/mill-lock-test/b")
+      val bLease = new TestLease
+
+      tracker.retain(b, bPath, "b", bLease, 0L)
+      tracker.releaseHigherThan(aPath.toAbsolutePath.normalize().toString)
+
+      locking.contendedReads.add(bPath.toAbsolutePath.normalize().toString)
+      val retry =
+        try {
+          tracker.reacquireDropped(locking, LauncherLocking.WaitReporter.Noop, block = false)
+          throw new java.lang.AssertionError("expected retry")
+        } catch {
+          case e: Execution.RetryDueToDroppedTaskLock => e
+        }
+
+      assert(retry.label == "b")
+      tracker.drain()
+    }
+
+    test("leaseTrackerDoesNotDropActivelyConsumedHigherLocks") {
+      import transitiveLeaseChain.*
+
+      val tracker = new Execution.LeaseTracker(
+        Array(a, b, c),
+        Map(a -> Nil, b -> Seq(a), c -> Seq(b))
+      )
+      val locking = new TestLocking
+      val aPath = Paths.get("/tmp/mill-lock-test/a")
+      val bPath = Paths.get("/tmp/mill-lock-test/b")
+      val bLease = new TestLease
+
+      tracker.retain(b, bPath, "b", bLease, 0L)
+      tracker.withActiveConsumers(
+        c,
+        () => tracker.reacquireDropped(locking, LauncherLocking.WaitReporter.Noop, block = true)
+      ) {
+        tracker.releaseHigherThan(aPath.toAbsolutePath.normalize().toString)
+        assert(!bLease.closed.get())
+      }
+      tracker.releaseHigherThan(aPath.toAbsolutePath.normalize().toString)
+      assert(bLease.closed.get())
+      tracker.drain()
+    }
+
+    // A read dropped before its downstream becomes an active consumer must be
+    // reacquired by `withActiveConsumers` before the body runs, not left
+    // released. Here the dropped upstream `b` was rewritten by a peer while
+    // dropped, so the reacquire must detect the version change and retry rather
+    // than let the consumer body read a stale/overwritten output.
+    test("withActiveConsumersReacquiresAndValidatesReadsDroppedBeforeActivation") {
+      import transitiveLeaseChain.*
+
+      val tracker = new Execution.LeaseTracker(
+        Array(a, b, c),
+        Map(a -> Nil, b -> Seq(a), c -> Seq(b))
+      )
+      val locking = new TestLocking
+      val aPath = Paths.get("/tmp/mill-lock-test/a")
+      val bPath = Paths.get("/tmp/mill-lock-test/b")
+      val bLease = new TestLease
+
+      tracker.retain(b, bPath, "b", bLease, 0L)
+      // Sibling future drops `b` (higher key than `a`) while no consumer is active.
+      tracker.releaseHigherThan(aPath.toAbsolutePath.normalize().toString)
+      assert(bLease.closed.get())
+
+      // Peer rewrites `b` while it is dropped.
+      locking.markTaskWritten(bPath)
+
+      var bodyRan = false
+      val retry =
+        try {
+          tracker.withActiveConsumers(
+            c,
+            () => tracker.reacquireDropped(locking, LauncherLocking.WaitReporter.Noop, block = true)
+          ) {
+            bodyRan = true
+          }
+          throw new java.lang.AssertionError("expected retry")
+        } catch {
+          case e: Execution.RetryDueToDroppedTaskLock => e
+        }
+
+      // The consumer body must not have run with `b` unprotected/stale.
+      assert(!bodyRan)
+      assert(retry.label == "b")
+      // The active-consumer count must be released even though reacquire threw.
+      tracker.drain()
     }
 
   }

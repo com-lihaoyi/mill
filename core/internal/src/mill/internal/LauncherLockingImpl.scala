@@ -80,6 +80,21 @@ private[mill] class LauncherLockingImpl(
     }
   }
 
+  override def tryTaskReadLock(
+      path: java.nio.file.Path,
+      displayLabel: String
+  ): Either[LauncherLocking.Contention, LauncherLocking.Lease] = {
+    ensureOpen()
+    if (noBuildLock || exclusiveWriteCount.get() > 0)
+      LauncherLocking.Noop.tryTaskReadLock(path, displayLabel)
+    else {
+      val normalized = path.toAbsolutePath.normalize().toString
+      lockRegistry.taskLockFor(normalized, displayLabel)
+        .tryAcquireRead(holder)
+        .map(acquireManagedLease)
+    }
+  }
+
   override def tryTaskWriteLock(
       path: java.nio.file.Path,
       displayLabel: String
@@ -106,6 +121,19 @@ private[mill] class LauncherLockingImpl(
       lockRegistry.taskLockFor(normalized, displayLabel).awaitStateChange(timeoutMs)
     }
   }
+
+  override def taskVersion(path: java.nio.file.Path): Long =
+    // While holding the daemon-wide exclusive Write lock, this launcher bypasses
+    // per-task locks entirely and no peer task writer can run, so dropped-read
+    // version validation is unnecessary.
+    if (noBuildLock || exclusiveWriteCount.get() > 0) 0L
+    else lockRegistry.taskVersion(path.toAbsolutePath.normalize().toString)
+
+  override def markTaskWritten(path: java.nio.file.Path): Long =
+    // Match taskVersion: under noBuildLock/global-exclusive execution, task
+    // locks are Noop and there is no peer writer to invalidate dropped reads.
+    if (noBuildLock || exclusiveWriteCount.get() > 0) 0L
+    else lockRegistry.markTaskWritten(path.toAbsolutePath.normalize().toString)
 
   override def exclusiveLock(
       kind: LauncherLocking.LockKind,
