@@ -391,17 +391,67 @@ object PlanTests extends TestSuite {
         Array(a, b, c),
         Map(a -> Nil, b -> Seq(a), c -> Seq(b))
       )
+      val locking = new TestLocking
       val aPath = Paths.get("/tmp/mill-lock-test/a")
       val bPath = Paths.get("/tmp/mill-lock-test/b")
       val bLease = new TestLease
 
       tracker.retain(b, bPath, "b", bLease, 0L)
-      tracker.withActiveConsumers(c) {
+      tracker.withActiveConsumers(
+        c,
+        () => tracker.reacquireDropped(locking, LauncherLocking.WaitReporter.Noop, block = true)
+      ) {
         tracker.releaseHigherThan(aPath.toAbsolutePath.normalize().toString)
         assert(!bLease.closed.get())
       }
       tracker.releaseHigherThan(aPath.toAbsolutePath.normalize().toString)
       assert(bLease.closed.get())
+      tracker.drain()
+    }
+
+    // A read dropped before its downstream becomes an active consumer must be
+    // reacquired by `withActiveConsumers` before the body runs, not left
+    // released. Here the dropped upstream `b` was rewritten by a peer while
+    // dropped, so the reacquire must detect the version change and retry rather
+    // than let the consumer body read a stale/overwritten output.
+    test("withActiveConsumersReacquiresAndValidatesReadsDroppedBeforeActivation") {
+      import transitiveLeaseChain.*
+
+      val tracker = new Execution.LeaseTracker(
+        Array(a, b, c),
+        Map(a -> Nil, b -> Seq(a), c -> Seq(b))
+      )
+      val locking = new TestLocking
+      val aPath = Paths.get("/tmp/mill-lock-test/a")
+      val bPath = Paths.get("/tmp/mill-lock-test/b")
+      val bLease = new TestLease
+
+      tracker.retain(b, bPath, "b", bLease, 0L)
+      // Sibling future drops `b` (higher key than `a`) while no consumer is active.
+      tracker.releaseHigherThan(aPath.toAbsolutePath.normalize().toString)
+      assert(bLease.closed.get())
+
+      // Peer rewrites `b` while it is dropped.
+      locking.markTaskWritten(bPath)
+
+      var bodyRan = false
+      val retry =
+        try {
+          tracker.withActiveConsumers(
+            c,
+            () => tracker.reacquireDropped(locking, LauncherLocking.WaitReporter.Noop, block = true)
+          ) {
+            bodyRan = true
+          }
+          throw new java.lang.AssertionError("expected retry")
+        } catch {
+          case e: Execution.RetryDueToDroppedTaskLock => e
+        }
+
+      // The consumer body must not have run with `b` unprotected/stale.
+      assert(!bodyRan)
+      assert(retry.label == "b")
+      // The active-consumer count must be released even though reacquire threw.
       tracker.drain()
     }
 

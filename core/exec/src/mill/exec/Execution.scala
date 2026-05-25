@@ -680,14 +680,32 @@ object Execution {
       }
     }
 
-    def withActiveConsumers[T](terminal: Task[?])(body: => T): T = {
+    /**
+     * Mark every transitive upstream of `terminal` as having an active consumer
+     * for the duration of `body`, so [[releaseHigherThan]] will not drop their
+     * retained reads while `body` may still read those outputs.
+     *
+     * Incrementing alone is not sufficient: a sibling future may already have
+     * dropped (or be concurrently dropping) one of those reads in the window
+     * before we incremented, and the increment never re-takes a lease that is
+     * already gone. So *after* marking the upstreams active — which blocks any
+     * further drops, since [[releaseHigherThan]] skips tasks whose
+     * `activeConsumers` is non-zero — we `reacquire()` to re-take and
+     * re-validate anything dropped beforehand, before `body` (user code or
+     * worker cleanup) can observe an unprotected upstream `dest/`. `reacquire`
+     * may throw [[RetryDueToDroppedTaskLock]] if an upstream was rewritten by a
+     * peer while it was dropped, forcing a from-scratch retry.
+     */
+    def withActiveConsumers[T](terminal: Task[?], reacquire: () => Unit)(body: => T): T = {
       val upstreams = transitiveUpstreams.getOrElse(terminal, Nil)
       upstreams.foreach { task =>
         val s = states.get(task)
         if (s != null) s.activeConsumers.incrementAndGet()
       }
-      try body
-      finally {
+      try {
+        reacquire()
+        body
+      } finally {
         upstreams.foreach { task =>
           val s = states.get(task)
           if (s != null) {

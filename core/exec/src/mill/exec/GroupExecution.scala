@@ -462,24 +462,28 @@ trait GroupExecution {
                   os.remove.all(paths.dest)
                 }
 
-                val (newResults, newEvaluated) = leaseTracker.withActiveConsumers(labelled) {
-                  executeGroup(
-                    group = group,
-                    results = results,
-                    inputsHash = inputsHash,
-                    paths = Some(paths),
-                    taskLabelOpt = Some(terminal.toString),
-                    counterMsg = countMsg,
-                    reporter = zincProblemReporter,
-                    testReporter = testReporter,
-                    logger = logger,
-                    executionContext = executionContext,
-                    exclusive = exclusive,
-                    deps = deps,
-                    upstreamPathRefs = upstreamPathRefs,
-                    terminal = labelled
-                  )
-                }
+                // Non-blocking reacquire: this runs while holding this task's
+                // Write lock, so it must not block on another task lock and
+                // recreate circular wait.
+                val (newResults, newEvaluated) =
+                  leaseTracker.withActiveConsumers(labelled, () => tryReacquireDroppedReads()) {
+                    executeGroup(
+                      group = group,
+                      results = results,
+                      inputsHash = inputsHash,
+                      paths = Some(paths),
+                      taskLabelOpt = Some(terminal.toString),
+                      counterMsg = countMsg,
+                      reporter = zincProblemReporter,
+                      testReporter = testReporter,
+                      logger = logger,
+                      executionContext = executionContext,
+                      exclusive = exclusive,
+                      deps = deps,
+                      upstreamPathRefs = upstreamPathRefs,
+                      terminal = labelled
+                    )
+                  }
 
                 val (valueHash, serializedPaths, success) = newResults(labelled) match {
                   case ExecResult.Success((v, _)) =>
@@ -621,7 +625,15 @@ trait GroupExecution {
           case None => evaluateTaskWithCaching()
         }
       case _ =>
-        val (newResults, newEvaluated) = leaseTracker.withActiveConsumers(terminal) {
+        // Non-Named terminals acquire no task lock of their own, so unlike the
+        // Named write path there is no circular-wait risk: we can block to
+        // reacquire any upstream read dropped by a sibling future before this
+        // group's body reads the corresponding `dest/`.
+        val taskWaitReporter = PromptWaitReporter.fromLogger(logger, logger.streams.err)
+        val (newResults, newEvaluated) = leaseTracker.withActiveConsumers(
+          terminal,
+          () => leaseTracker.reacquireDropped(workspaceLocking, taskWaitReporter, block = true)
+        ) {
           executeGroup(
             group = group,
             results = results,
