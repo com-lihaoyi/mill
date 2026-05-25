@@ -355,7 +355,7 @@ trait GroupExecution {
         }
 
         // Try-Write + bounded await for `LockUpgrade.readThenWrite`'s
-        // retryable loop; mirrors `acquireTaskLock`'s input-task skip.
+        // retryable loop; mirrors `acquireReadTaskLock`'s input-task skip.
         def tryWriteTaskLock(): Either[LauncherLocking.Contention, LauncherLocking.Lease] =
           if (labelled.isInputTask)
             LauncherLocking.Noop.tryTaskWriteLock(
@@ -443,7 +443,18 @@ trait GroupExecution {
             }
           } { scope =>
             val cached = loadCachedJson(logger, inputsHash, labelled, paths)
-            val reusableResultOpt = loadCachedOrWorker(cached, closeStaleWorker = true)
+            // Closing a stale worker here runs its user `close()` under
+            // `GroupExecution.wrap`, which permits reads of upstream `dest/`
+            // via `upstreamPathRefs`. Guard those reads with active-consumer
+            // protection — exactly as the `executeGroup` body below — so a
+            // sibling future cannot drop (and a peer cannot then rewrite) an
+            // upstream Read this cleanup may still touch. Non-blocking
+            // reacquire: this runs while holding this task's Write lock, so it
+            // must not block on another task lock and recreate circular wait.
+            val reusableResultOpt =
+              leaseTracker.withActiveConsumers(labelled, () => tryReacquireDroppedReads()) {
+                loadCachedOrWorker(cached, closeStaleWorker = true)
+              }
 
             reusableResultOpt match {
               case Some(res) =>
@@ -456,6 +467,17 @@ trait GroupExecution {
                 )
                 res
               case None =>
+                // Advance the output version before any destructive mutation
+                // below — not only on successful publish. Deleting `dest/` here,
+                // or a failed `executeGroup` that leaves `dest/` partially
+                // written and removes `meta` below, both change the on-disk
+                // output a peer may have cached. A peer that dropped a retained
+                // Read for this task must observe the version bump and retry
+                // from scratch, even when this recompute ultimately fails;
+                // otherwise its reacquired Read would validate against the
+                // unchanged version and silently consume a deleted/partial
+                // `dest/`.
+                val version = workspaceLocking.markTaskWritten(taskLockPath)
                 if (!labelled.persistent && os.exists(paths.dest)) {
                   logger.debug(s"Deleting task dest dir ${paths.dest.relativeTo(workspace)}")
                   os.remove.all(paths.dest)
@@ -499,7 +521,6 @@ trait GroupExecution {
                 }
 
                 if (success) {
-                  val version = workspaceLocking.markTaskWritten(taskLockPath)
                   leaseTracker.retain(
                     labelled,
                     taskLockPath,
