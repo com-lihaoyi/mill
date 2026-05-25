@@ -65,8 +65,6 @@ case class ModuleSpec(
     mimaExcludeAnnotations: Values[String] = Values(),
     mimaReportSignatureProblems: Value[Boolean] = Value(),
     children: Seq[ModuleSpec] = Nil,
-    annotationProcessorsMvnDeps: Values[MvnDep] = Values(),
-    annotationProcessorsJavacOptions: Values[Opt] = Values(),
     quarkusPlatformVersion: Value[String] = Value()
 ) {
 
