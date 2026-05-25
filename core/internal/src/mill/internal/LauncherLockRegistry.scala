@@ -46,6 +46,10 @@ private[mill] class LauncherLockRegistry {
     Option(taskVersions.get(normalizedAbsolutePath)).fold(0L)(_.longValue())
 
   def markTaskWritten(normalizedAbsolutePath: String): Long = {
+    // Bump even when a rewrite produces byte-identical files. Dropped-read
+    // validation is deliberately conservative: if another launcher had a
+    // chance to rewrite this output, restart rather than comparing directory
+    // contents while task locks are in flux.
     val version = taskWriteVersion.incrementAndGet()
     taskVersions.put(normalizedAbsolutePath, java.lang.Long.valueOf(version))
     version

@@ -546,13 +546,17 @@ object Execution {
 
     val states = new ConcurrentHashMap[Task[?], State]()
     private val transitiveUpstreams: Map[Task[?], Seq[Task[?]]] = {
-      val memo = mutable.Map.empty[Task[?], Seq[Task[?]]]
-      def rec(task: Task[?]): Seq[Task[?]] = memo.getOrElseUpdate(
-        task, {
-          val direct = interGroupDeps.getOrElse(task, Nil)
-          (direct ++ direct.flatMap(rec)).distinct
+      def rec(task: Task[?]): Seq[Task[?]] = {
+        val seen = mutable.LinkedHashSet.empty[Task[?]]
+        val stack = mutable.Stack.from(interGroupDeps.getOrElse(task, Nil).reverse)
+        while (stack.nonEmpty) {
+          val upstream = stack.pop()
+          if (seen.add(upstream)) {
+            stack.pushAll(interGroupDeps.getOrElse(upstream, Nil).reverse)
+          }
         }
-      )
+        seen.toSeq
+      }
       indexToTerminal.iterator.map(t => t -> rec(t)).toMap
     }
 
@@ -641,6 +645,12 @@ object Execution {
     def reacquireDropped(
         workspaceLocking: LauncherLocking,
         waitReporter: LauncherLocking.WaitReporter,
+        // `block = false` is mandatory while holding any task Write lease.
+        // Blocking Read reacquisition can wait for a peer writer, and allowing
+        // a writer to block on another task lock can recreate the exact
+        // cross-task wait cycle that ordered dropping is meant to avoid.
+        // Blocking reacquisition is only safe from read/cache-probe paths and
+        // non-Named groups, where this evaluation does not hold a task Write.
         block: Boolean = true
     ): Unit = {
       import scala.jdk.CollectionConverters.*

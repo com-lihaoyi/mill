@@ -301,11 +301,16 @@ trait GroupExecution {
 
         // Any successful task-lock acquisition must validate reads that were
         // dropped during an earlier contended wait before evaluation continues.
+        // This path may block, so only call it when we are not holding a task
+        // Write lease.
         def reacquireDroppedReads(): Unit =
           leaseTracker.reacquireDropped(workspaceLocking, taskWaitReporter)
 
-        // The write-upgrade callback runs while holding this task's Write lock,
-        // so it must not block on another task lock and recreate circular wait.
+        // The write-upgrade callback and Named write body run while holding
+        // this task's Write lock, so dropped reads must be reacquired only via
+        // non-blocking try-locks. A writer that performs a blocking task-lock
+        // acquire can wait on another writer while retaining its own Write
+        // lease, reintroducing the retained-read/write cycle this logic avoids.
         def tryReacquireDroppedReads(): Unit =
           leaseTracker.reacquireDropped(workspaceLocking, taskWaitReporter, block = false)
 
@@ -323,12 +328,12 @@ trait GroupExecution {
         // filesystem/env, downstream consumes the in-memory Val (not
         // `dest/`), and concurrent `dest/meta.json` writes are byte-identical
         // — so per-task locking is unnecessary and just serializes peers.
-        def acquireTaskLock(kind: LauncherLocking.LockKind): LauncherLocking.Lease = {
+        def acquireReadTaskLock(): LauncherLocking.Lease = {
           def blockingAcquire(): LauncherLocking.Lease =
             workspaceLocking.taskLock(
               taskLockPath,
               labelled.ctx.segments.render,
-              kind,
+              LauncherLocking.LockKind.Read,
               taskWaitReporter
             )
 
@@ -336,17 +341,11 @@ trait GroupExecution {
             LauncherLocking.Noop.taskLock(
               taskLockPath,
               labelled.ctx.segments.render,
-              kind,
+              LauncherLocking.LockKind.Read,
               taskWaitReporter
             )
           else {
-            val leaseEither = kind match {
-              case LauncherLocking.LockKind.Read =>
-                workspaceLocking.tryTaskReadLock(taskLockPath, labelled.ctx.segments.render)
-              case LauncherLocking.LockKind.Write =>
-                workspaceLocking.tryTaskWriteLock(taskLockPath, labelled.ctx.segments.render)
-            }
-            leaseEither match {
+            workspaceLocking.tryTaskReadLock(taskLockPath, labelled.ctx.segments.render) match {
               case Right(lease) => validateDroppedReads(lease)
               case Left(_) =>
                 leaseTracker.releaseHigherThan(taskLockKey)
@@ -420,7 +419,7 @@ trait GroupExecution {
           }
 
           LockUpgrade.readThenWrite(
-            acquireRead = acquireTaskLock(LauncherLocking.LockKind.Read),
+            acquireRead = acquireReadTaskLock(),
             tryAcquireWrite = () => tryWriteTaskLock(),
             awaitStateChange = awaitTaskLockChange,
             waitReporter = taskWaitReporter,
@@ -533,7 +532,7 @@ trait GroupExecution {
         // evaluateTaskWithCaching's lock dance.
         def evaluateBuildOverrideOnly(located: Located[Appendable[BufferedValue]])
             : GroupExecution.Results = LockUpgrade.readThenWrite(
-          acquireRead = acquireTaskLock(LauncherLocking.LockKind.Read),
+          acquireRead = acquireReadTaskLock(),
           tryAcquireWrite = () => tryWriteTaskLock(),
           awaitStateChange = awaitTaskLockChange,
           waitReporter = taskWaitReporter,

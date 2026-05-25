@@ -25,6 +25,44 @@ object gated extends ScalaModule {
   }
 }
 
+final class OrderedToken(val value: String)
+
+private def orderedEventsFile = mill.api.BuildCtx.workspaceRoot / "ordered-events.log"
+
+private def orderedShared(name: String): OrderedToken =
+  mill.api.BuildCtx.withFilesystemCheckerDisabled {
+    os.write.append(orderedEventsFile, s"$name\n", createFolders = true)
+    Thread.sleep(1000L)
+    OrderedToken(name)
+  }
+
+// These intentionally return a type without a cached JSON writer. Concurrent
+// requests therefore retain the successful Read lease but still need a later
+// Write lease when the other request asks for the same task, reproducing the
+// retained-read/write cycle that ordered dropping is meant to break.
+def orderedSharedA = Task { orderedShared("A") }
+def orderedSharedB = Task { orderedShared("B") }
+
+object orderedAb extends ScalaModule {
+  def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+
+  override def sources = Task {
+    orderedSharedA()
+    orderedSharedB()
+    super.sources()
+  }
+}
+
+object orderedBa extends ScalaModule {
+  def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+
+  override def sources = Task {
+    orderedSharedB()
+    orderedSharedA()
+    super.sources()
+  }
+}
+
 // CLI-side wrapper for the gated `sources` task; spawning this command parks
 // the daemon on `gated.sources` while a concurrent BSP request arrives.
 def runGatedSources() = Task.Command {
