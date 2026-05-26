@@ -1001,7 +1001,7 @@ object MillBuildBootstrap {
   def getRootModule(runClassLoader: URLClassLoader)
       : Result[BuildFileApi] = {
     // Instantiate BuildFileCls from the run classloader, passing the run classloader so it
-    // can find the root module (package_) or fall back to DummyModule. This must be done via
+    // can find the root module (package_) or fall back to PrecompiledDiscoveryRootModule. This must be done via
     // the run classloader so that os.checker, BuildCtx, etc. are the run classloader versions.
     // BuildFileCls reads project root info from a classpath resource (rootModuleInfo.properties).
     val buildFileCls = runClassLoader.loadClass("mill.api.internal.BuildFileCls")

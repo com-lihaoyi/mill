@@ -1,0 +1,3 @@
+extends: millbuild.SimpleJavaModule
+mill-experimental-precompiled-module: true
+moduleDeps: !append [foo]
