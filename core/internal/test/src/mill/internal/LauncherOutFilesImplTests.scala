@@ -12,12 +12,12 @@ object LauncherOutFilesImplTests extends TestSuite {
         val pid = ProcessHandle.current().pid()
 
         for (i <- 0 until 10) {
-          val runId = s"1000-$pid-$i"
+          val runId = s"run-${i}_2026-05-26_09-00-00_pid-$pid"
           LauncherOutFilesRecordStore.write(out, runId, pid, s"active-$i")
           os.makeDir.all(out / LauncherOutFilesState.runRootDirName / runId)
         }
 
-        val finishedRunId = s"2000-$pid-0"
+        val finishedRunId = s"run-0_2026-05-26_09-00-01_pid-$pid"
         val outFiles = new LauncherOutFilesImpl(
           out = out,
           activeCommandMessage = "finished",
@@ -26,8 +26,7 @@ object LauncherOutFilesImplTests extends TestSuite {
           runId = finishedRunId
         )
         val finishedRunDir = out / LauncherOutFilesState.runRootDirName / finishedRunId
-        os.write(os.Path(outFiles.profile), "[]", createFolders = true)
-        outFiles.publishArtifacts()
+        os.write.over(os.Path(outFiles.profile), "[]", createFolders = true)
         outFiles.close()
 
         assert(os.exists(finishedRunDir))
@@ -35,10 +34,51 @@ object LauncherOutFilesImplTests extends TestSuite {
       } finally os.remove.all(out)
     }
 
+    test("newRunPublishesFreshOutFilesAtStartup") {
+      val out = os.temp.dir(prefix = "mill-launcher-out-files")
+      try {
+        val outFilesState = new LauncherOutFilesState
+        val pid = ProcessHandle.current().pid()
+        val firstRun = new LauncherOutFilesImpl(
+          out = out,
+          activeCommandMessage = "first",
+          launcherPid = pid,
+          outFilesState = outFilesState,
+          runId = outFilesState.nextRunId()
+        )
+        os.write.over(os.Path(firstRun.profile), """{"old":true}""")
+        os.write.over(os.Path(firstRun.chromeProfile), """{"old":true}""")
+        os.write.over(os.Path(firstRun.dependencyTree), """{"old":true}""")
+        os.write.over(os.Path(firstRun.invalidationTree), """{"old":true}""")
+
+        assert(os.read(out / OutFiles.millProfile) == """{"old":true}""")
+        assert(os.read(out / OutFiles.millChromeProfile) == """{"old":true}""")
+
+        val secondRun = new LauncherOutFilesImpl(
+          out = out,
+          activeCommandMessage = "second",
+          launcherPid = pid,
+          outFilesState = outFilesState,
+          runId = outFilesState.nextRunId()
+        )
+
+        assert(os.read(out / OutFiles.millProfile) == "[]\n")
+        assert(os.read(out / OutFiles.millChromeProfile) == "[]\n")
+        assert(os.read(out / OutFiles.millDependencyTree) == "{}\n")
+        assert(os.read(out / OutFiles.millInvalidationTree) == "{}\n")
+
+        firstRun.close()
+        assert(os.read(out / OutFiles.millProfile) == "[]\n")
+        assert(os.read(out / OutFiles.millChromeProfile) == "[]\n")
+
+        secondRun.close()
+      } finally os.remove.all(out)
+    }
+
     test("malformedRecordsArePreservedAsActiveDuringSweep") {
       val out = os.temp.dir(prefix = "mill-launcher-records")
       try {
-        val runId = "1000-123-0"
+        val runId = "run-0_2026-05-26_09-00-00_pid-123"
         val record = LauncherOutFilesRecordStore.path(out, runId)
         os.write.over(record, "{", createFolders = true)
 
@@ -47,6 +87,26 @@ object LauncherOutFilesImplTests extends TestSuite {
         assert(active.exists(_.runId == runId))
         assert(os.exists(record))
       } finally os.remove.all(out)
+    }
+
+    test("mostRecentActiveUsesRecordCreationTime") {
+      val out = os.temp.dir(prefix = "mill-launcher-records")
+      try {
+        val pid = ProcessHandle.current().pid()
+        val older = "run-99_2026-05-26_09-00-01_pid-123"
+        val newer = "run-0_2026-05-26_09-00-00_pid-123"
+        LauncherOutFilesRecordStore.write(out, older, pid, "older")
+        Thread.sleep(2)
+        LauncherOutFilesRecordStore.write(out, newer, pid, "newer")
+
+        assert(LauncherOutFilesRecordStore.mostRecentActive(out).map(_.runId) == Some(newer))
+      } finally os.remove.all(out)
+    }
+
+    test("runIdsAreReadable") {
+      val runId = new LauncherOutFilesState().nextRunId()
+
+      assert(runId.matches(raw"run-\d+_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}_pid-\d+"))
     }
   }
 }
