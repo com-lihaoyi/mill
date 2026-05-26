@@ -15,4 +15,11 @@ class SimpleJavaModule(val scriptConfig: PrecompiledModule.Config)
     BuildCtx.rootModule.asInstanceOf[Module]
       .moduleInternal.modules.map(_.moduleSegments.render).toSeq
   }
+
+  // Uses the `PrecompiledModule.all` discovery API. Equivalent to the
+  // BuildCtx.rootModule walk in `listModules` but without the cast/filter
+  // boilerplate at the call site.
+  def listPrecompiledModules = Task {
+    PrecompiledModule.all.map(_.moduleSegments.render)
+  }
 }
