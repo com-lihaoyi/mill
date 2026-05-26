@@ -96,8 +96,9 @@ object LauncherOutFilesImplTests extends TestSuite {
         val older = "run-99_2026-05-26_09-00-01_pid-123"
         val newer = "run-0_2026-05-26_09-00-00_pid-123"
         LauncherOutFilesRecordStore.write(out, older, pid, "older")
-        Thread.sleep(2)
         LauncherOutFilesRecordStore.write(out, newer, pid, "newer")
+        overwriteCreatedMillis(out, older, createdMillis = 1000L)
+        overwriteCreatedMillis(out, newer, createdMillis = 2000L)
 
         assert(LauncherOutFilesRecordStore.mostRecentActive(out).map(_.runId) == Some(newer))
       } finally os.remove.all(out)
@@ -108,5 +109,12 @@ object LauncherOutFilesImplTests extends TestSuite {
 
       assert(runId.matches(raw"run-\d+_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}_pid-\d+"))
     }
+  }
+
+  private def overwriteCreatedMillis(out: os.Path, runId: String, createdMillis: Long): Unit = {
+    val recordPath = LauncherOutFilesRecordStore.path(out, runId)
+    val json = ujson.read(os.read(recordPath)).obj
+    json("createdMillis") = ujson.Num(createdMillis)
+    os.write.over(recordPath, ujson.write(json))
   }
 }
