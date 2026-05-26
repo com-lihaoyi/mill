@@ -49,5 +49,18 @@ object PrecompiledRootCodegenTests extends UtestIntegrationTestSuite {
       assert(rendered.contains("\"foo\""))
       assert(rendered.contains("\"bar\""))
     }
+
+    // `PrecompiledModule.all` should expose every top-level precompiled module
+    // as a flat sequence, sparing callers the `BuildCtx.rootModule.asInstanceOf[Module]
+    // .moduleInternal.modules.collect { case m: PrecompiledModule => m }` dance.
+    test("precompiledModuleAllExposesAllSiblings") - integrationTest { tester =>
+      import tester.*
+
+      val result = eval(("show", "foo.listPrecompiledModules"), stdout = os.Pipe)
+      assert(result.isSuccess)
+      val rendered = result.out
+      assert(rendered.contains("\"foo\""))
+      assert(rendered.contains("\"bar\""))
+    }
   }
 }
