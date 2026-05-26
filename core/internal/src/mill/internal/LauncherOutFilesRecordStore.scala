@@ -21,13 +21,11 @@ private[mill] object LauncherOutFilesRecordStore {
       .flatMap(_.info().startInstant().toScala.map(_.toEpochMilli))
 
   def write(out: os.Path, runId: String, pid: Long, command: String): Unit = {
+    val commandJson = ujson.write(ujson.Str(command))
+    val startMillisJson = processStartMillis(pid).fold("null")(_.toString)
     val createdMillis = System.currentTimeMillis()
-    val json = ujson.Obj(
-      "pid" -> pid,
-      "command" -> command,
-      "startMillis" -> processStartMillis(pid).fold[ujson.Value](ujson.Null)(ujson.Num(_)),
-      "createdMillis" -> createdMillis
-    ).render()
+    val json =
+      s"""{"pid":$pid,"command":$commandJson,"startMillis":$startMillisJson,"createdMillis":$createdMillis}"""
     val file = path(out, runId)
     try mill.api.BuildCtx.withFilesystemCheckerDisabled {
         os.makeDir.all(file / os.up)
