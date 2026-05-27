@@ -320,6 +320,8 @@ object Jvm {
       cwd: os.Path = null,
       propagateEnv: Boolean = true
   )(using ctx: TaskCtx): Int = {
+    val effectiveCwd = Option(cwd).getOrElse(os.pwd)
+    ensureProcessCwdAliases(effectiveCwd)
     val commandArgs = buildJvmCommand(
       mainClass,
       mainArgs,
@@ -327,7 +329,7 @@ object Jvm {
       jvmArgs,
       classPath,
       cpPassingJarPath,
-      cwd
+      effectiveCwd
     )
 
     ctx.log.debug(
@@ -337,7 +339,7 @@ object Jvm {
     runInteractiveCommand(
       cmd = commandArgs,
       env = env,
-      cwd = Option(cwd).getOrElse(os.pwd),
+      cwd = effectiveCwd,
       propagateEnv = propagateEnv
     )
   }
@@ -354,7 +356,11 @@ object Jvm {
     LauncherSubprocess.value(LauncherSubprocess.Config(
       cmd = cmd,
       env = env,
-      cwd = cwd.toString,
+      // Pass the absolute cwd: this string is consumed launcher-side by `os.Path(...)`, which
+      // requires an absolute path. In reproducible mode `cwd.toString` is relativized (e.g.
+      // `out/mill-workspace/out/run.dest`), so use the underlying absolute path to avoid the
+      // launcher throwing "Path must be absolute" (which it swallows into a silent exit code 1).
+      cwd = cwd.wrapped.toAbsolutePath.normalize().toString,
       propagateEnv = propagateEnv
     ))
   }

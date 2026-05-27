@@ -83,10 +83,18 @@ private object TransformingReporter {
       case None => message
       case Some(path) =>
         // Assume relative paths are relative to the current workspaceRoot
-        val absPath = os.Path(path, workspaceRoot)
+        // In reproducible-build mode the compiler sees sources via the `out/mill-workspace` alias
+        // symlink, so `path` traverses that alias (e.g.
+        // `<ws>/out/compile.dest/out/mill-workspace/src/foo/Foo.java`). Resolve the real on-disk
+        // location (following the symlinks) so diagnostics show the clean workspace-relative path
+        // (`src/foo/Foo.java`) rather than the alias-traversing one.
+        def real(p: os.Path): os.Path =
+          try os.Path(p.wrapped.toRealPath()) catch { case _: java.io.IOException => p }
+        val absPath = real(os.Path(path, workspaceRoot))
+        val realWorkspace = real(workspaceRoot)
         // Render paths within the current workspaceRoot as relative paths to cut down on verbosity
         val displayPath =
-          if absPath.startsWith(workspaceRoot) then absPath.subRelativeTo(workspaceRoot).toString
+          if absPath.startsWith(realWorkspace) then absPath.subRelativeTo(realWorkspace).toString
           else path
 
         val line = intValue(pos.line(), -1)

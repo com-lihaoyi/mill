@@ -115,8 +115,15 @@ object Util {
         // Offset column by 4 if line starts with "//| " to account for stripped YAML prefix (including space)
         val colNum = if (lineContent.startsWith("//| ")) colNum0 + 4 else colNum0
 
-        val workspaceRootNio = mill.api.BuildCtx.workspaceRoot.wrapped.toAbsolutePath.normalize()
-        val pathNio = path.toAbsolutePath.normalize()
+        val workspaceRoot = mill.api.BuildCtx.workspaceRoot
+        val workspaceRootNio = workspaceRoot.wrapped.toAbsolutePath.normalize()
+        // In reproducible mode the build-file path may be an aliased relative path like
+        // `out/mill-workspace/build.mill`; resolve it back through the workspace alias so error
+        // messages show the clean workspace-relative path (`build.mill`) rather than the path
+        // through the daemon-sandbox alias symlink.
+        val pathNio = mill.api.internal.PathAliasing
+          .resolveAliasedString(path.toString, workspace = workspaceRoot)
+          .wrapped.toAbsolutePath.normalize()
         val displayPath =
           try workspaceRootNio.relativize(pathNio).toString
           catch { case _: IllegalArgumentException => pathNio.toString }

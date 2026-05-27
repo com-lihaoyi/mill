@@ -53,29 +53,16 @@ object BuildFileDiscovery {
           )
         )
 
-      // Filter out build files discovered by following the `out/mill-workspace` and
-      // `out/mill-home` alias symlinks set up for reproducible builds; otherwise we
-      // would re-discover the same build files under their aliased paths.
-      val daemonSandboxWorkspace = output / "mill-daemon" / "sandbox" / "out" / "mill-workspace"
-      def isNoDaemonSandboxWorkspace(path: os.Path): Boolean = {
-        path.startsWith(output / "mill-no-daemon") &&
-        path.toString.replace('\\', '/').contains("/sandbox/out/mill-workspace")
-      }
-      def isAliasWorkspaceTree(path: os.Path): Boolean = {
-        val normalized = path.toString.replace('\\', '/')
-        normalized.contains("/out/mill-workspace/") || normalized.endsWith("/out/mill-workspace") ||
-        normalized.contains("/out/mill-home/") || normalized.endsWith("/out/mill-home")
-      }
-      (buildFiles ++ adjacentScripts)
-        .filterNot(p =>
-          p.startsWith(daemonSandboxWorkspace) || isNoDaemonSandboxWorkspace(
-            p
-          ) || (
-            (p.startsWith(output / "mill-daemon") || p.startsWith(output / "mill-no-daemon")) &&
-              isAliasWorkspaceTree(p)
-          )
-        )
-        .distinct
+      // In reproducible-build mode the daemon/no-daemon process runs in a sandbox and reaches the
+      // workspace via the `out/mill-workspace` alias symlink, so `os.list`/`os.walk` return build
+      // files under aliased paths (e.g. `out/mill-no-daemon/<n>/sandbox/out/mill-workspace/bar.mill`).
+      // Canonicalize every discovered path through the symlinks to its real on-disk location, then
+      // de-duplicate. This both keeps helper scripts (which are only ever reached via the alias) and
+      // collapses any file re-discovered under both its real and aliased paths.
+      def canonical(p: os.Path): os.Path =
+        try os.Path(p.wrapped.toRealPath())
+        catch { case _: java.io.IOException => p }
+      (buildFiles ++ adjacentScripts).map(canonical).distinct
     }
   }
 
