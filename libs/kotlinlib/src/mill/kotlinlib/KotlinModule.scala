@@ -317,8 +317,9 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       val updateCompileOutput = upstreamCompileOutput()
 
       def compileJava: Result[CompilationResult] = {
+        val classesDisplay = classes.relativeTo(BuildCtx.workspaceRoot)
         ctx.log.info(
-          s"Compiling ${javaSourceFiles.size} Java sources to ${classes} ..."
+          s"Compiling ${javaSourceFiles.size} Java sources to ${classesDisplay} ..."
         )
         // The compile step is lazy, but its dependencies are not!
         internalCompileJavaFiles(
@@ -342,14 +343,14 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
 
         val compilerArgs: Seq[String] = Seq(
           // destdir
-          Seq("-d", classes.toString()),
+          Seq("-d", classes.toIO.getAbsolutePath),
           // apply multi-platform support (expect/actual)
           // TODO if there is penalty for activating it in the compiler, put it behind configuration flag
           Seq("-Xmulti-platform"),
           // classpath
           when(compileCpPaths.iterator.nonEmpty)(
             "-classpath",
-            compileCpPaths.iterator.mkString(File.pathSeparator)
+            compileCpPaths.iterator.map(_.toIO.getAbsolutePath).mkString(File.pathSeparator)
           ),
           allKotlincOptions(),
           extraKotlinArgs
@@ -451,7 +452,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
   protected def mandatoryKotlincOptions: T[Seq[String]] = Task {
     val languageVersion = kotlinLanguageVersion()
     val kotlinkotlinApiVersion = kotlinApiVersion()
-    val plugins = kotlincPluginJars().map(_.path)
+    val plugins = kotlincPluginJars().map(_.path.toIO.getAbsolutePath)
 
     val friendPathsOption = if (kotlinFriendModulesChecked.isEmpty) {
       Seq.empty[String]

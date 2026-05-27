@@ -140,15 +140,17 @@ object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskMod
     args ++= sourceFiles.map(_.toString())
 
     val exitCode = BuildCtx.withFilesystemCheckerDisabled {
-      Jvm.callProcess(
-        mainClass = "com.pinterest.ktlint.Main",
-        classPath = classPath.map(_.path).toVector,
-        mainArgs = args.result(),
-        cwd = moduleDir,
-        stdin = os.Inherit,
-        stdout = os.Inherit,
-        check = false
-      ).exitCode
+      os.ProcessOps.spawnHook.withValue(_ => ()) {
+        Jvm.callProcess(
+          mainClass = "com.pinterest.ktlint.Main",
+          classPath = classPath.map(_.path).toVector,
+          mainArgs = args.result(),
+          cwd = moduleDir,
+          stdin = os.Inherit,
+          stdout = os.Inherit,
+          check = false
+        ).exitCode
+      }
     }
 
     if (exitCode == 0) {} // do nothing

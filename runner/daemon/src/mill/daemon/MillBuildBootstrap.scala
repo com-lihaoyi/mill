@@ -14,7 +14,7 @@ import mill.constants.OutFiles.OutFiles.{millBuild, millRunnerState}
 import mill.constants.OutFiles.OutFiles
 import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
-import mill.internal.{LockUpgrade, PrefixLogger, PromptWaitReporter, Util}
+import mill.internal.{LockUpgrade, MillPathSerializer, PrefixLogger, PromptWaitReporter, Util}
 import mill.meta.{BootstrapRootModule, MillBuildRootModule}
 import mill.api.daemon.internal.{CliImports, LauncherLocking, LauncherOutFiles}
 import mill.internal.BuildFileDiscovery.findRootBuildFiles
@@ -273,6 +273,12 @@ class MillBuildBootstrap(
       // by codesig analysis, not by classLoaderSigHash.
       millClassloaderSigHash = nestedSharedFrame match {
         case Some(frame) =>
+          def stablePathId(path: os.Path): String = {
+            if (path.startsWith(currentRoot)) s"<workspace>/${path.subRelativeTo(currentRoot)}"
+            else if (path.startsWith(os.home)) s"<home>/${path.subRelativeTo(os.home)}"
+            else path.toString
+          }
+
           val compileDestPath = os.Path(frame.compileOutput.javaPath)
           frame.runClasspath
             .filter { p =>
@@ -280,11 +286,17 @@ class MillBuildBootstrap(
               path != compileDestPath &&
               !path.toString.contains("generatedScriptSources.dest")
             }
-            .map(p => (os.Path(p.javaPath), p.sig))
+            .map(p => (stablePathId(os.Path(p.javaPath)), p.sig))
             .hashCode()
         case None =>
           millBootClasspathPathRefs
-            .map(p => (os.Path(p.javaPath), p.sig))
+            .map { p =>
+              val path = os.Path(p.javaPath)
+              val stable =
+                if (path.startsWith(os.home)) s"<home>/${path.subRelativeTo(os.home)}"
+                else path.toString
+              (stable, p.sig)
+            }
             .hashCode()
       },
       millClassloaderIdentityHash = millClassloaderIdentityHash0,

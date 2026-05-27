@@ -29,82 +29,100 @@ object MillLauncherMain {
   ): Int = {
     if (env.contains("MILL_TEST_EXIT_AFTER_BSP_CHECK")) return 0
 
-    val stderr = streamsOpt.map(_.err).getOrElse(System.err)
-    val parsedConfig = MillCliConfig.parse(args).toOption
+    // For reproducible builds the daemon configures the os-lib path relativizer so cached
+    // output is workspace-relative; the launcher itself keeps the default serializer so its
+    // own log/daemon-dir paths stay absolute.
+    os.Path.pathSerializer.withValue(os.Path.defaultPathSerializer) {
+      val stderr = streamsOpt.map(_.err).getOrElse(System.err)
+      val parsedConfig = MillCliConfig.parse(args).toOption
 
-    val bspServerMode = parsedConfig.exists(_.bsp.value)
-    val bspMode = bspServerMode || parsedConfig.exists(_.bspInstall.value)
-    val useFileLocks = parsedConfig.exists(_.useFileLocks.value)
-    val outMode = if (bspMode) OutFolderMode.BSP else OutFolderMode.REGULAR
+      val bspServerMode = parsedConfig.exists(_.bsp.value)
+      val bspMode = bspServerMode || parsedConfig.exists(_.bspInstall.value)
+      val useFileLocks = parsedConfig.exists(_.useFileLocks.value)
+      val outMode = if (bspMode) OutFolderMode.BSP else OutFolderMode.REGULAR
 
-    val resolved = mill.internal.OutputDirectoryLayout.resolve(outMode, workDir, env)
-    import resolved.{effectiveEnv, outDir, regularOutDir}
+      val resolved = mill.internal.OutputDirectoryLayout.resolve(outMode, workDir, env)
+      import resolved.{effectiveEnv, outDir, regularOutDir}
 
-    // BSP shares the regular MillDaemonMain by default so build state is reused
-    // across CLI and BSP. Opting into a separate BSP output dir (via the
-    // `mill-separate-bsp-output-dir: true` build header or `MILL_BSP_OUTPUT_DIR`)
-    // also opts back into the prior foreground `MillBspMain` JVM, which owns its
-    // own stdio for the lsp4j JSON-RPC connection.
-    val bspSeparateOutputDir =
-      bspMode && mill.internal.OutputDirectoryLayout.bspOutOverride(workDir, env).isDefined
-    val runNoDaemon =
-      parsedConfig.exists(_.noDaemonEnabled > 0) || bspSeparateOutputDir
+      // BSP shares the regular MillDaemonMain by default so build state is reused
+      // across CLI and BSP. Opting into a separate BSP output dir (via the
+      // `mill-separate-bsp-output-dir: true` build header or `MILL_BSP_OUTPUT_DIR`)
+      // also opts back into the prior foreground `MillBspMain` JVM, which owns its
+      // own stdio for the lsp4j JSON-RPC connection.
+      val bspSeparateOutputDir =
+        bspMode && mill.internal.OutputDirectoryLayout.bspOutOverride(workDir, env).isDefined
+      val runNoDaemon =
+        parsedConfig.exists(_.noDaemonEnabled > 0) || bspSeparateOutputDir
 
-    val logFile = os.Path(outDir, workDir) / "mill-launcher/log"
-    val formatter =
-      DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of("UTC"))
-    def log(s: String) =
-      os.write.append(logFile, s"${formatter.format(Instant.now())} $s\n", createFolders = true)
+      val logFile = os.Path(outDir, workDir) / "mill-launcher/log"
+      val formatter =
+        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of("UTC"))
+      def log(s: String) =
+        os.write.append(logFile, s"${formatter.format(Instant.now())} $s\n", createFolders = true)
 
-    if (bspServerMode) logBspInfoMessage(outDir, regularOutDir)
+      if (bspServerMode) logBspInfoMessage(outDir, regularOutDir)
 
-    coursier.Resolve.proxySetup()
+      coursier.Resolve.proxySetup()
 
-    try {
-      val millRepositories =
-        MillProcessLauncher.loadMillConfig(ConfigConstants.millRepositories, workDir)
-      val runnerClasspath = CoursierClient.resolveMillDaemon(regularOutDir, millRepositories)
-      val optsArgs = MillProcessLauncher.loadMillConfig(ConfigConstants.millOpts, workDir) ++ args
+      // Reproducible builds: tell the daemon where the workspace and home directories are,
+      // and configure the os-lib path relativizer so cached output paths are stored relative
+      // to the `out/mill-workspace` / `out/mill-home` aliases.
+      val workspaceAbs = workDir.wrapped.toAbsolutePath.normalize().toString
+      val homeAbs = os.home.wrapped.toAbsolutePath.normalize().toString
+      val scopedEnv = effectiveEnv ++
+        Map(EnvVars.MILL_WORKSPACE_ROOT -> workspaceAbs) ++
+        (if (env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).contains("")) Map.empty
+         else
+           Map(
+             EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> s"$workspaceAbs,out/mill-workspace;$homeAbs,out/mill-home"
+           ))
 
-      if (runNoDaemon)
-        MillProcessLauncher.launchMillNoDaemon(
-          optsArgs,
-          outMode,
-          runnerClasspath,
-          mainClass =
-            if (bspSeparateOutputDir) "mill.daemon.MillBspMain"
-            else "mill.daemon.MillNoDaemonMain",
-          useFileLocks,
-          workDir,
-          effectiveEnv,
-          millRepositories,
-          streamsOpt = streamsOpt
-        )
-      else
-        runViaDaemon(
-          optsArgs,
-          outMode,
-          outDir,
-          runnerClasspath,
-          useFileLocks,
-          workDir,
-          effectiveEnv,
-          millRepositories,
-          streamsOpt,
-          stderr,
-          log
-        )
-    } catch {
-      case e: MillException =>
-        stderr.println(e.getMessage)
-        1
-      case e =>
-        val sw = StringWriter()
-        e.printStackTrace(PrintWriter(sw))
-        log(sw.toString)
-        stderr.println(sw.toString)
-        stderr.println(s"Mill launcher failed. See ${logFile.relativeTo(workDir)} for details.")
-        1
+      try {
+        val millRepositories =
+          MillProcessLauncher.loadMillConfig(ConfigConstants.millRepositories, workDir)
+        val runnerClasspath = CoursierClient.resolveMillDaemon(regularOutDir, millRepositories)
+        val optsArgs = MillProcessLauncher.loadMillConfig(ConfigConstants.millOpts, workDir) ++ args
+
+        if (runNoDaemon)
+          MillProcessLauncher.launchMillNoDaemon(
+            optsArgs,
+            outMode,
+            runnerClasspath,
+            mainClass =
+              if (bspSeparateOutputDir) "mill.daemon.MillBspMain"
+              else "mill.daemon.MillNoDaemonMain",
+            useFileLocks,
+            workDir,
+            scopedEnv,
+            millRepositories,
+            streamsOpt = streamsOpt
+          )
+        else
+          runViaDaemon(
+            optsArgs,
+            outMode,
+            outDir,
+            runnerClasspath,
+            useFileLocks,
+            workDir,
+            scopedEnv,
+            millRepositories,
+            streamsOpt,
+            stderr,
+            log
+          )
+      } catch {
+        case e: MillException =>
+          stderr.println(e.getMessage)
+          1
+        case e =>
+          val sw = StringWriter()
+          e.printStackTrace(PrintWriter(sw))
+          log(sw.toString)
+          stderr.println(sw.toString)
+          stderr.println(s"Mill launcher failed. See ${logFile.relativeTo(workDir)} for details.")
+          1
+      }
     }
   }
 

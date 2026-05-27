@@ -139,7 +139,10 @@ object JavaCompileJarTests extends TestSuite {
       val expectedJarContents =
         """META-INF/MANIFEST.MF
           |META-INF/
+          |out/
           |test/
+          |out/mill-home/
+          |out/mill-workspace/
           |test/Bar.class
           |test/BarThree.class
           |test/BarTwo.class

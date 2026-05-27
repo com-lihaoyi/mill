@@ -18,7 +18,7 @@ import scala.util.Using
  */
 class GitRatchet(root: os.Path) extends AutoCloseable {
 
-  val repository = RepositoryBuilder().setFS(FS.DETECTED).findGitDir(root.toIO).build()
+  val repository = RepositoryBuilder().setFS(FS.DETECTED).findGitDir(root.wrapped.toFile).build()
 
   // HACK:
   // Forcibly load classes referenced in close to avoid: java.lang.NoClassDefFoundError.

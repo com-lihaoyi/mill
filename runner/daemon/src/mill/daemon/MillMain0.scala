@@ -54,7 +54,7 @@ object MillMain0 {
    * concurrent Mill processes.
    */
   def outFileLock(out: os.Path): Lock =
-    Lock.file((out / OutFiles.millOutLock).toString)
+    Lock.file((out / OutFiles.millOutLock).wrapped.toAbsolutePath.normalize().toString)
 
   private[daemon] def useInProcessLauncherResources(
       hasDaemonClient: Boolean,

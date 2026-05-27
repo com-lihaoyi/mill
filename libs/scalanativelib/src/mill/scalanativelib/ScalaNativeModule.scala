@@ -326,11 +326,11 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   }
 
   def nativeLinkOtherMain(mainClass: String) = Task.Anon {
-    val dest = Task.dest / s"nativeLink-${mainClass.hashCode}"
-    os.remove.all(dest)
+    val dest = Task.dest
+    os.remove.all(dest / "out")
     PathRef(os.Path(withScalaNativeBridge.apply().apply(_.nativeLink(
       nativeConfig(Some(mainClass))().config,
-      Task.dest.toIO
+      dest.toIO
     ))))
   }
 
@@ -377,7 +377,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
       Option(forkArgs).getOrElse(forkArgsDefault)
       val env = Option(forkEnv).getOrElse(forkEnvDefault)
       val propEnv = Option(propagateEnv).getOrElse(propagateEnvDefault: java.lang.Boolean)
-      val native = nativeExe.path.toString
+      val native = nativeExe.path.toIO.getAbsolutePath
 
       os.call(
         cmd = native +: mainArgs,

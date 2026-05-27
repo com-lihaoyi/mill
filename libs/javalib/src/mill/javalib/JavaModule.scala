@@ -995,7 +995,6 @@ trait JavaModule
     }
 
     val worker = jvmWorker().internalWorker()
-
     worker.apply(
       ZincOp.CompileJava(
         upstreamCompileOutput = upstreamCompileOutput(),
@@ -1358,6 +1357,7 @@ trait JavaModule
       Task.log.info("options: " + cmdArgs)
 
       val cmd = Seq(Jvm.jdkTool("javadoc", javaHome)) ++ cmdArgs
+      Jvm.ensureProcessCwdAliases(Task.dest)
       os.call(
         cmd = cmd,
         env = Map(),

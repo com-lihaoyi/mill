@@ -61,7 +61,10 @@ object MillDaemonMain0 {
       val exitCode = MillDaemonMain0(
         daemonDir = args.daemonDir,
         acceptTimeout = acceptTimeout,
-        Locks.forDirectory(args.daemonDir.toString, args.useFileLocks),
+        Locks.forDirectory(
+          args.daemonDir.wrapped.toAbsolutePath.normalize().toString,
+          args.useFileLocks
+        ),
         outMode = args.outMode
       ).run().getOrElse(0)
 

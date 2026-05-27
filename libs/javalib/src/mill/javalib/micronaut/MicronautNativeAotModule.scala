@@ -18,7 +18,9 @@ trait MicronautNativeAotModule extends MicronautAotModule, NativeImageModule {
   override def micronautAotConfigProperties: T[Map[String, String]] = Task {
     val nativeProperties = Map(
       "serviceloading.native.enabled" -> "true",
-      "graalvm.config.enabled" -> "true"
+      "graalvm.config.enabled" -> "true",
+      // Logback AOT transformation currently causes native-image initialization issues on newer GraalVMs.
+      "logback.xml.to.java.enabled" -> "false"
     )
     // Remove the JIT specific property
     val base = super.micronautAotConfigProperties() - "serviceloading.jit.enabled"
@@ -30,11 +32,12 @@ trait MicronautNativeAotModule extends MicronautAotModule, NativeImageModule {
   }
 
   override def nativeImageOptions: Task.Simple[Seq[String]] = Task {
-    val configurationsPath = micronautProcessAOT().path / "classes/META-INF"
+    val configurationsPath = micronautProcessAOT().path / "classes"
+    val configurationsPathAbs = configurationsPath.wrapped.toAbsolutePath.normalize().toString
     super.nativeImageOptions() ++ Seq(
       "--no-fallback",
       "--configurations-path",
-      configurationsPath.toString
+      configurationsPathAbs
     )
   }
 

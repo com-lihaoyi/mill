@@ -1,6 +1,7 @@
 package mill.api
 
 import mill.api.daemon.internal.Severity
+import mill.api.internal.PathAliasing
 import os.Path
 import upickle.{ReadWriter as RW, Reader, Writer}
 
@@ -25,7 +26,7 @@ trait JsonFormatters {
   implicit val pathReadWrite: RW[os.Path] = upickle.readwriter[String]
     .bimap[os.Path](
       _.toString,
-      os.Path(_)
+      s => PathAliasing.resolveAliasedString(os.Path.pathSerializer.value.deserialize(s).toString)
     )
 
   implicit val relPathRW: RW[os.RelPath] = upickle.readwriter[String]

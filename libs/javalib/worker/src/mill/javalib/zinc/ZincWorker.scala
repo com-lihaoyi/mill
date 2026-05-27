@@ -425,7 +425,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
     val store = fileAnalysisStore(workDir / zincCache)
 
     // Fix jdk classes marked as binary dependencies, see https://github.com/com-lihaoyi/mill/pull/1904
-    val converter = MappedFileConverter.empty
+    val converter = ZincWorker.reproducibleConverter
     val classpath = (compileClasspathPaths.iterator ++ Some(classesDir))
       .map(path => converter.toVirtualFile(path.toNIO))
       .toArray
@@ -699,6 +699,78 @@ object ZincWorker {
   private val DirectoryFileHash = 42
 
   /**
+   * Root used to relativize paths in the persisted Zinc analysis store for reproducible builds.
+   * When the os-lib path relativizer is configured (reproducible mode), all the paths Zinc sees
+   * are resolved relative to the daemon working directory via the `out/mill-workspace` /
+   * `out/mill-home` alias symlinks, so they all share the working-directory prefix and can be
+   * relativized against it. Returns `None` outside reproducible mode, preserving the prior
+   * (absolute-path) analysis store format.
+   */
+  private[zinc] def reproducibleRoot: Option[java.nio.file.Path] =
+    Option.when(sys.env.get(mill.constants.EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).exists(_.nonEmpty))(
+      java.nio.file.Paths.get("").toAbsolutePath.normalize()
+    )
+
+  /**
+   * The [[xsbti.FileConverter]] used to encode VirtualFile ids (sources, products, binaries) in
+   * the Zinc analysis. In reproducible mode it maps the daemon working directory to a `$${BASE}`
+   * placeholder so the ids are workspace-independent; otherwise it uses the prior machine-path
+   * encoding.
+   */
+  private[zinc] def reproducibleConverter: xsbti.FileConverter =
+    reproducibleRoot match {
+      case Some(root) => MappedFileConverter(Map("BASE" -> root), allowMachinePath = true)
+      case None => MappedFileConverter.empty
+    }
+
+  /**
+   * Wraps Zinc's machine-independent path mappers so they tolerate the mix of absolute and
+   * relative paths produced by the os-lib path relativizer in reproducible mode. Zinc's
+   * write mapper relativizes paths via `Path#relativize(root, p)`, which throws
+   * "'other' is a different type of Path" when `p` is already relative. We pass already-relative
+   * paths (which are themselves reproducible) through unchanged and only relativize absolute
+   * ones. The read mapper resolves against the root and is safe for both, so we reuse it as-is.
+   */
+  private[zinc] def relativePassthroughMappers(
+      base: xsbti.compile.analysis.ReadWriteMappers
+  ): xsbti.compile.analysis.ReadWriteMappers = {
+    import xsbti.VirtualFileRef
+    import xsbti.compile.MiniSetup
+    import xsbti.compile.analysis.{Stamp, WriteMapper}
+
+    val w = base.getWriteMapper
+
+    def absRef(ref: VirtualFileRef): Boolean =
+      try java.nio.file.Paths.get(ref.id()).isAbsolute
+      catch { case _: Throwable => false }
+
+    val guardedWrite: WriteMapper = new WriteMapper {
+      def mapSourceFile(f: VirtualFileRef): VirtualFileRef =
+        if (absRef(f)) w.mapSourceFile(f) else f
+      def mapBinaryFile(f: VirtualFileRef): VirtualFileRef =
+        if (absRef(f)) w.mapBinaryFile(f) else f
+      def mapProductFile(f: VirtualFileRef): VirtualFileRef =
+        if (absRef(f)) w.mapProductFile(f) else f
+      def mapOutputDir(p: java.nio.file.Path): java.nio.file.Path =
+        if (p.isAbsolute) w.mapOutputDir(p) else p
+      def mapSourceDir(p: java.nio.file.Path): java.nio.file.Path =
+        if (p.isAbsolute) w.mapSourceDir(p) else p
+      def mapClasspathEntry(p: java.nio.file.Path): java.nio.file.Path =
+        if (p.isAbsolute) w.mapClasspathEntry(p) else p
+      def mapJavacOption(o: String): String = w.mapJavacOption(o)
+      def mapScalacOption(o: String): String = w.mapScalacOption(o)
+      def mapBinaryStamp(f: VirtualFileRef, s: Stamp): Stamp = w.mapBinaryStamp(f, s)
+      def mapSourceStamp(f: VirtualFileRef, s: Stamp): Stamp = w.mapSourceStamp(f, s)
+      def mapProductStamp(f: VirtualFileRef, s: Stamp): Stamp = w.mapProductStamp(f, s)
+      // ConsistentAnalysisFormat maps the MiniSetup via the individual option/classpath
+      // mappers above rather than this method, so leaving it unmapped is safe.
+      def mapMiniSetup(s: MiniSetup): MiniSetup = s
+    }
+
+    new xsbti.compile.analysis.ReadWriteMappers(base.getReadMapper, guardedWrite)
+  }
+
+  /**
    * Dependencies of the invocation.
    *
    * Can come either from the local [[ZincWorker]] running in [[JvmWorkerImpl]] or from a zinc worker running
@@ -751,14 +823,24 @@ object ZincWorker {
   private def libraryJarNameGrep(compilerClasspath: Seq[PathRef], scalaVersion: String): PathRef =
     JvmWorkerUtil.grepJar(compilerClasspath, "scala-library", scalaVersion, sources = false)
 
-  private def fileAnalysisStore(path: os.Path): AnalysisStore =
+  private def fileAnalysisStore(path: os.Path): AnalysisStore = {
+    // In reproducible mode the absolute classpath/output `Path`s recorded in the persisted
+    // `MiniSetup` are relativized against the daemon working directory so the analysis store is
+    // workspace-independent. VirtualFile ids (sources/products/binaries) are relativized
+    // separately via the `MappedFileConverter`, see `ZincWorker.reproducibleConverter`.
+    val mappers = ZincWorker.reproducibleRoot match {
+      case Some(root) =>
+        ZincWorker.relativePassthroughMappers(ReadWriteMappers.getMachineIndependentMappers(root))
+      case None => ReadWriteMappers.getEmptyMappers
+    }
     ConsistentFileAnalysisStore.binary(
       file = path.toIO,
-      mappers = ReadWriteMappers.getEmptyMappers,
+      mappers = mappers,
       reproducible = true,
       // No need to utilize more than 8 cores to serialize a small file
       parallelism = math.min(Runtime.getRuntime.availableProcessors(), 8)
     )
+  }
 
   private[zinc] def classpathFileHashes(
       compileClasspath: Seq[PathRef],

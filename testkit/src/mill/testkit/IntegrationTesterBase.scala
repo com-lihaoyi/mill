@@ -69,18 +69,8 @@ trait IntegrationTesterBase {
       for (p <- os.list(workspacePath) if p.last != "out") os.remove.all(p)
     }
 
-    val outRelPathOpt = os.FilePath(out) match {
-      case relPath: os.RelPath if relPath.ups == 0 => Some(relPath)
-      case _ => None
-    }
-
     os.list(workspaceSourcePath)
-      .filter(
-        outRelPathOpt match {
-          case None => _ => true
-          case Some(outRelPath) => !_.endsWith(outRelPath)
-        }
-      )
+      .filterNot(_.last == out)
       .foreach(os.copy.into(_, workspacePath))
 
     // When build.mill.yaml exists and build.mill contains no Scala/Yaml chunks
@@ -125,3 +115,6 @@ trait IntegrationTesterBase {
     }
   }
 }
+private def useSharedOutputDir: Boolean =
+  sys.env.get("MILL_TEST_USE_IN_MEMORY").contains("1") &&
+    sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")
