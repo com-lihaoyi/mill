@@ -97,8 +97,9 @@ object Deps {
 
   val acyclic = mvn"com.lihaoyi:::acyclic:0.3.21"
   val ammoniteVersion = "3.0.4"
-  val asmAnalysis = mvn"org.ow2.asm:asm-analysis:9.10"
-  val asmTree = mvn"org.ow2.asm:asm-tree:9.10"
+  val asmVersion = "9.10.1"
+  val asmAnalysis = mvn"org.ow2.asm:asm-analysis:${asmVersion}"
+  val asmTree = mvn"org.ow2.asm:asm-tree:${asmVersion}"
 
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
   val bouncyCastleVersion = "1.84"
