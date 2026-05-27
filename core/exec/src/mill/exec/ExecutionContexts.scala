@@ -41,20 +41,22 @@ object ExecutionContexts {
     // share one daemon-level executor across multiple `ThreadPool`
     // wrappers, so locking on `this` wouldn't serialise the
     // read-modify-write of core/max pool sizes.
-    def updateThreadCount(delta: Int): Unit = executor.synchronized {
-      if (delta > 0) {
-        executor.setMaximumPoolSize(executor.getMaximumPoolSize + delta)
-        executor.setCorePoolSize(executor.getCorePoolSize + delta)
-      } else {
-        executor.setCorePoolSize(executor.getCorePoolSize + delta)
-        executor.setMaximumPoolSize(executor.getMaximumPoolSize + delta)
+    def enterBlocking(): Unit = executor.synchronized {
+      val newCorePoolSize = executor.getCorePoolSize + 1
+      if (newCorePoolSize > executor.getMaximumPoolSize) {
+        executor.setMaximumPoolSize(newCorePoolSize)
       }
+      executor.setCorePoolSize(newCorePoolSize)
+    }
+
+    def leaveBlocking(): Unit = executor.synchronized {
+      executor.setCorePoolSize(executor.getCorePoolSize - 1)
     }
 
     def blocking[T](t: => T): T = {
-      updateThreadCount(1)
+      enterBlocking()
       try t
-      finally updateThreadCount(-1)
+      finally leaveBlocking()
     }
 
     def execute(runnable: Runnable): Unit = {
@@ -145,7 +147,7 @@ object ExecutionContexts {
     ThreadPoolExecutor(
       threadCount,
       threadCount,
-      60 * 1000,
+      60,
       TimeUnit.SECONDS,
       // Use a priority queue so child `fork.async` tasks can run ahead of
       // lower-priority parent tasks, avoiding large numbers of blocked parent

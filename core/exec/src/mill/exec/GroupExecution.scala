@@ -296,46 +296,86 @@ trait GroupExecution {
 
         val taskWaitReporter =
           PromptWaitReporter.fromLogger(logger, logger.streams.err)
+        val taskLockPath = paths.dest.toNIO
+        val taskLockKey = taskLockPath.toAbsolutePath.normalize().toString
+
+        // Any successful task-lock acquisition must validate reads that were
+        // dropped during an earlier contended wait before evaluation continues.
+        // This path may block, so only call it when we are not holding a task
+        // Write lease.
+        def reacquireDroppedReads(): Unit =
+          leaseTracker.reacquireDropped(workspaceLocking, taskWaitReporter)
+
+        // The write-upgrade callback and Named write body run while holding
+        // this task's Write lock, so dropped reads must be reacquired only via
+        // non-blocking try-locks. A writer that performs a blocking task-lock
+        // acquire can wait on another writer while retaining its own Write
+        // lease, reintroducing the retained-read/write cycle this logic avoids.
+        def tryReacquireDroppedReads(): Unit =
+          leaseTracker.reacquireDropped(workspaceLocking, taskWaitReporter, block = false)
+
+        def validateDroppedReads(lease: LauncherLocking.Lease): LauncherLocking.Lease =
+          try {
+            reacquireDroppedReads()
+            lease
+          } catch {
+            case t: Throwable =>
+              lease.close()
+              throw t
+          }
+
         // Input tasks (Task.Input/Source/Sources) are deterministic from
         // filesystem/env, downstream consumes the in-memory Val (not
         // `dest/`), and concurrent `dest/meta.json` writes are byte-identical
         // — so per-task locking is unnecessary and just serializes peers.
-        def acquireTaskLock(kind: LauncherLocking.LockKind): LauncherLocking.Lease =
-          if (labelled.isInputTask)
-            LauncherLocking.Noop.taskLock(
-              paths.dest.toNIO,
-              labelled.ctx.segments.render,
-              kind,
-              taskWaitReporter
-            )
-          else
+        def acquireReadTaskLock(): LauncherLocking.Lease = {
+          def blockingAcquire(): LauncherLocking.Lease =
             workspaceLocking.taskLock(
-              paths.dest.toNIO,
+              taskLockPath,
               labelled.ctx.segments.render,
-              kind,
+              LauncherLocking.LockKind.Read,
               taskWaitReporter
             )
 
+          if (labelled.isInputTask)
+            LauncherLocking.Noop.taskLock(
+              taskLockPath,
+              labelled.ctx.segments.render,
+              LauncherLocking.LockKind.Read,
+              taskWaitReporter
+            )
+          else {
+            workspaceLocking.tryTaskReadLock(taskLockPath, labelled.ctx.segments.render) match {
+              case Right(lease) => validateDroppedReads(lease)
+              case Left(_) =>
+                leaseTracker.releaseHigherThan(taskLockKey)
+                validateDroppedReads(blockingAcquire())
+            }
+          }
+        }
+
         // Try-Write + bounded await for `LockUpgrade.readThenWrite`'s
-        // retryable loop; mirrors `acquireTaskLock`'s input-task skip.
+        // retryable loop; mirrors `acquireReadTaskLock`'s input-task skip.
         def tryWriteTaskLock(): Either[LauncherLocking.Contention, LauncherLocking.Lease] =
           if (labelled.isInputTask)
             LauncherLocking.Noop.tryTaskWriteLock(
-              paths.dest.toNIO,
+              taskLockPath,
               labelled.ctx.segments.render
             )
           else
             workspaceLocking.tryTaskWriteLock(
-              paths.dest.toNIO,
+              taskLockPath,
               labelled.ctx.segments.render
             )
         def awaitTaskLockChange(timeoutMs: Long): Unit =
-          if (!labelled.isInputTask)
+          if (!labelled.isInputTask) {
+            leaseTracker.releaseHigherThan(taskLockKey)
             workspaceLocking.awaitTaskStateChange(
-              paths.dest.toNIO,
+              taskLockPath,
               labelled.ctx.segments.render,
               timeoutMs
             )
+          }
 
         // Helper to evaluate the task with full caching support
         def evaluateTaskWithCaching(): GroupExecution.Results = {
@@ -379,52 +419,92 @@ trait GroupExecution {
           }
 
           LockUpgrade.readThenWrite(
-            acquireRead = acquireTaskLock(LauncherLocking.LockKind.Read),
+            acquireRead = acquireReadTaskLock(),
             tryAcquireWrite = () => tryWriteTaskLock(),
             awaitStateChange = awaitTaskLockChange,
-            waitReporter = taskWaitReporter
+            waitReporter = taskWaitReporter,
+            afterAcquire = tryReacquireDroppedReads
           ) { scope =>
             loadCachedOrWorker(
               loadCachedJson(logger, inputsHash, labelled, paths),
               closeStaleWorker = false
             ) match {
               case Some(res) =>
-                leaseTracker.retain(labelled, scope.retain())
+                leaseTracker.retain(
+                  labelled,
+                  taskLockPath,
+                  labelled.ctx.segments.render,
+                  scope.retain(),
+                  workspaceLocking.taskVersion(taskLockPath)
+                )
                 LockUpgrade.Decision.Complete(res)
               case None =>
                 LockUpgrade.Decision.Escalate
             }
           } { scope =>
             val cached = loadCachedJson(logger, inputsHash, labelled, paths)
-            val reusableResultOpt = loadCachedOrWorker(cached, closeStaleWorker = true)
+            // Closing a stale worker here runs its user `close()` under
+            // `GroupExecution.wrap`, which permits reads of upstream `dest/`
+            // via `upstreamPathRefs`. Guard those reads with active-consumer
+            // protection — exactly as the `executeGroup` body below — so a
+            // sibling future cannot drop (and a peer cannot then rewrite) an
+            // upstream Read this cleanup may still touch. Non-blocking
+            // reacquire: this runs while holding this task's Write lock, so it
+            // must not block on another task lock and recreate circular wait.
+            val reusableResultOpt =
+              leaseTracker.withActiveConsumers(labelled, () => tryReacquireDroppedReads()) {
+                loadCachedOrWorker(cached, closeStaleWorker = true)
+              }
 
             reusableResultOpt match {
               case Some(res) =>
-                leaseTracker.retain(labelled, scope.downgradeAndRetain())
+                leaseTracker.retain(
+                  labelled,
+                  taskLockPath,
+                  labelled.ctx.segments.render,
+                  scope.downgradeAndRetain(),
+                  workspaceLocking.taskVersion(taskLockPath)
+                )
                 res
               case None =>
+                // Advance the output version before any destructive mutation
+                // below — not only on successful publish. Deleting `dest/` here,
+                // or a failed `executeGroup` that leaves `dest/` partially
+                // written and removes `meta` below, both change the on-disk
+                // output a peer may have cached. A peer that dropped a retained
+                // Read for this task must observe the version bump and retry
+                // from scratch, even when this recompute ultimately fails;
+                // otherwise its reacquired Read would validate against the
+                // unchanged version and silently consume a deleted/partial
+                // `dest/`.
+                val version = workspaceLocking.markTaskWritten(taskLockPath)
                 if (!labelled.persistent && os.exists(paths.dest)) {
                   logger.debug(s"Deleting task dest dir ${paths.dest.relativeTo(workspace)}")
                   os.remove.all(paths.dest)
                 }
 
+                // Non-blocking reacquire: this runs while holding this task's
+                // Write lock, so it must not block on another task lock and
+                // recreate circular wait.
                 val (newResults, newEvaluated) =
-                  executeGroup(
-                    group = group,
-                    results = results,
-                    inputsHash = inputsHash,
-                    paths = Some(paths),
-                    taskLabelOpt = Some(terminal.toString),
-                    counterMsg = countMsg,
-                    reporter = zincProblemReporter,
-                    testReporter = testReporter,
-                    logger = logger,
-                    executionContext = executionContext,
-                    exclusive = exclusive,
-                    deps = deps,
-                    upstreamPathRefs = upstreamPathRefs,
-                    terminal = labelled
-                  )
+                  leaseTracker.withActiveConsumers(labelled, () => tryReacquireDroppedReads()) {
+                    executeGroup(
+                      group = group,
+                      results = results,
+                      inputsHash = inputsHash,
+                      paths = Some(paths),
+                      taskLabelOpt = Some(terminal.toString),
+                      counterMsg = countMsg,
+                      reporter = zincProblemReporter,
+                      testReporter = testReporter,
+                      logger = logger,
+                      executionContext = executionContext,
+                      exclusive = exclusive,
+                      deps = deps,
+                      upstreamPathRefs = upstreamPathRefs,
+                      terminal = labelled
+                    )
+                  }
 
                 val (valueHash, serializedPaths, success) = newResults(labelled) match {
                   case ExecResult.Success((v, _)) =>
@@ -440,7 +520,15 @@ trait GroupExecution {
                     (0, Nil, false)
                 }
 
-                if (success) leaseTracker.retain(labelled, scope.downgradeAndRetain())
+                if (success) {
+                  leaseTracker.retain(
+                    labelled,
+                    taskLockPath,
+                    labelled.ctx.segments.render,
+                    scope.downgradeAndRetain(),
+                    version
+                  )
+                }
 
                 GroupExecution.Results(
                   newResults = newResults,
@@ -465,10 +553,11 @@ trait GroupExecution {
         // evaluateTaskWithCaching's lock dance.
         def evaluateBuildOverrideOnly(located: Located[Appendable[BufferedValue]])
             : GroupExecution.Results = LockUpgrade.readThenWrite(
-          acquireRead = acquireTaskLock(LauncherLocking.LockKind.Read),
+          acquireRead = acquireReadTaskLock(),
           tryAcquireWrite = () => tryWriteTaskLock(),
           awaitStateChange = awaitTaskLockChange,
-          waitReporter = taskWaitReporter
+          waitReporter = taskWaitReporter,
+          afterAcquire = tryReacquireDroppedReads
         )(_ => LockUpgrade.Decision.Escalate) { scope =>
           val (execRes, serializedPaths) =
             if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {
@@ -499,7 +588,14 @@ trait GroupExecution {
           // peers can't overwrite `paths.meta` mid-downstream-read.
           execRes match {
             case ExecResult.Success(_) =>
-              leaseTracker.retain(labelled, scope.downgradeAndRetain())
+              val version = workspaceLocking.markTaskWritten(taskLockPath)
+              leaseTracker.retain(
+                labelled,
+                taskLockPath,
+                labelled.ctx.segments.render,
+                scope.downgradeAndRetain(),
+                version
+              )
             case _ =>
           }
           cachedResult(execRes, serializedPaths)
@@ -549,22 +645,32 @@ trait GroupExecution {
           case None => evaluateTaskWithCaching()
         }
       case _ =>
-        val (newResults, newEvaluated) = executeGroup(
-          group = group,
-          results = results,
-          inputsHash = inputsHash,
-          paths = None,
-          taskLabelOpt = None,
-          counterMsg = countMsg,
-          reporter = zincProblemReporter,
-          testReporter = testReporter,
-          logger = logger,
-          executionContext = executionContext,
-          exclusive = exclusive,
-          deps = deps,
-          upstreamPathRefs = upstreamPathRefs,
-          terminal = terminal
-        )
+        // Non-Named terminals acquire no task lock of their own, so unlike the
+        // Named write path there is no circular-wait risk: we can block to
+        // reacquire any upstream read dropped by a sibling future before this
+        // group's body reads the corresponding `dest/`.
+        val taskWaitReporter = PromptWaitReporter.fromLogger(logger, logger.streams.err)
+        val (newResults, newEvaluated) = leaseTracker.withActiveConsumers(
+          terminal,
+          () => leaseTracker.reacquireDropped(workspaceLocking, taskWaitReporter, block = true)
+        ) {
+          executeGroup(
+            group = group,
+            results = results,
+            inputsHash = inputsHash,
+            paths = None,
+            taskLabelOpt = None,
+            counterMsg = countMsg,
+            reporter = zincProblemReporter,
+            testReporter = testReporter,
+            logger = logger,
+            executionContext = executionContext,
+            exclusive = exclusive,
+            deps = deps,
+            upstreamPathRefs = upstreamPathRefs,
+            terminal = terminal
+          )
+        }
         GroupExecution.Results(
           newResults = newResults,
           newEvaluated = newEvaluated.toSeq,

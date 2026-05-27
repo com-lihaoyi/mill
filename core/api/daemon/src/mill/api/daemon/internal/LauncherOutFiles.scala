@@ -12,9 +12,6 @@ private[mill] trait LauncherOutFiles extends AutoCloseable {
   def dependencyTree: Path
   def invalidationTree: Path
 
-  def publishLiveArtifacts(): Unit
-
-  def publishArtifacts(): Unit
 }
 
 private[mill] object LauncherOutFiles {
@@ -24,8 +21,6 @@ private[mill] object LauncherOutFiles {
     override val chromeProfile: Path = out.resolve(OutFiles.millChromeProfile)
     override val dependencyTree: Path = out.resolve(OutFiles.millDependencyTree)
     override val invalidationTree: Path = out.resolve(OutFiles.millInvalidationTree)
-    override def publishLiveArtifacts(): Unit = ()
-    override def publishArtifacts(): Unit = ()
     override def close(): Unit = ()
   }
 }
