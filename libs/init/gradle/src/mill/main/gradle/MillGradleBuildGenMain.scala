@@ -8,6 +8,7 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import pprint.Util.literalize
 
+import java.io.File
 import java.util.Properties
 import java.util.concurrent.TimeUnit
 import scala.util.Using
@@ -39,6 +40,12 @@ object MillGradleBuildGenMain {
     val gradleWorkspace = os.Path.expandUser(projectDir, os.pwd)
     val millWorkspace = os.pwd
 
+    val gradleWrapperProperties = {
+      val file = gradleWorkspace / "gradle/wrapper/gradle-wrapper.properties"
+      val properties = new Properties()
+      if (os.isFile(file)) Using.resource(os.read.inputStream(file))(properties.load)
+      properties
+    }
     val exportPluginJar = Using.resource(
       getClass.getResourceAsStream(exportpluginAssemblyResource)
     )(os.temp(_, suffix = ".jar"))
@@ -60,6 +67,23 @@ object MillGradleBuildGenMain {
         conn
       case conn => conn
     }
+    if (gradleWrapperProperties.getProperty("distributionUrl") == null) {
+      // Fallback to system Gradle installation instead of the version corresponding to the
+      // Tooling API dependency.
+      System.getenv("GRADLE_HOME") match {
+        case null =>
+          os.proc("gradle", "--no-daemon", "--version").call().out.lines().collectFirst {
+            case s"Gradle ${gradleVersion}" =>
+              println(s"using Gradle version $gradleVersion")
+              gradleConnector.useGradleVersion(gradleVersion)
+          }.getOrElse {
+            sys.error(s"Failed to determine Gradle version. Please set GRADLE_HOME and retry.")
+          }
+        case gradleHome =>
+          println(s"using Gradle home $gradleHome")
+          gradleConnector.useInstallation(new File(gradleHome))
+      }
+    }
     var packages =
       try Using.resource(gradleConnector.forProjectDirectory(gradleWorkspace.toIO).connect) {
           connection =>
@@ -76,13 +100,9 @@ object MillGradleBuildGenMain {
       if (noMeta.value) (None, packages)
       else buildGen.withBaseModule(packages, "MavenModule" -> "MavenTests")
         .fold((None, packages))((base, pkgs) => (Some(base), pkgs))
-    val millJvmOpts = {
-      val properties = Properties()
-      val file = gradleWorkspace / "gradle/wrapper/gradle-wrapper.properties"
-      if (os.isFile(file)) Using.resource(os.read.inputStream(file))(properties.load)
-      val prop = properties.getProperty("org.gradle.jvmargs")
-      if (prop == null) Nil else prop.trim.split("\\s+").toSeq
-    }
+    val millJvmOpts = Option(
+      gradleWrapperProperties.getProperty("org.gradle.jvmargs")
+    ).fold(Nil)(_.trim.split("\\s+").toSeq)
     buildGen.writeBuildFiles(
       baseDir = millWorkspace,
       packages = packages0,
