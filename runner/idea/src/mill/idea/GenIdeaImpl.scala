@@ -39,26 +39,31 @@ class GenIdeaImpl(
   private val ideaDir: os.Path = workDir / ".idea"
   val ideaConfigVersion = 4
 
-  def run(): Unit = {
-    val pp = new scala.xml.PrettyPrinter(999, 4)
-    val jdkInfo = extractCurrentJdk(ideaDir / "misc.xml")
-      .getOrElse(("JDK_1_8", "1.8 (1)"))
+  def run(): Unit =
+    // Generated IDEA config files are consumed by IntelliJ, which needs real absolute filesystem
+    // paths. In reproducible-build mode `os.Path.toString` is relativized (to `out/mill-workspace`
+    // / `out/mill-home` alias paths) which IntelliJ cannot resolve and also causes library-file
+    // name collisions; scope the default (absolute) path serializer for the whole generation.
+    os.Path.pathSerializer.withValue(os.Path.defaultPathSerializer) {
+      val pp = new scala.xml.PrettyPrinter(999, 4)
+      val jdkInfo = extractCurrentJdk(ideaDir / "misc.xml")
+        .getOrElse(("JDK_1_8", "1.8 (1)"))
 
-    println("Analyzing modules ...")
-    val layout: Seq[(subPath: SubPath, xml: Node)] =
-      xmlFileLayout(evaluators, jdkInfo)
+      println("Analyzing modules ...")
+      val layout: Seq[(subPath: SubPath, xml: Node)] =
+        xmlFileLayout(evaluators, jdkInfo)
 
-    println("Cleaning obsolete IDEA project files ...")
-    os.remove.all(ideaDir / "libraries")
-    os.remove.all(ideaDir / "scala_compiler.xml")
-    os.remove.all(ideaDir / "mill_modules")
+      println("Cleaning obsolete IDEA project files ...")
+      os.remove.all(ideaDir / "libraries")
+      os.remove.all(ideaDir / "scala_compiler.xml")
+      os.remove.all(ideaDir / "mill_modules")
 
-    println(s"Writing ${layout.size} IDEA project files to ${ideaDir} ...")
-    for ((subPath = subPath, xml = xml) <- layout) {
-      println(s"Writing ${subPath} ...")
-      os.write.over(ideaDir / subPath, pp.format(xml), createFolders = true)
+      println(s"Writing ${layout.size} IDEA project files to ${ideaDir} ...")
+      for ((subPath = subPath, xml = xml) <- layout) {
+        println(s"Writing ${subPath} ...")
+        os.write.over(ideaDir / subPath, pp.format(xml), createFolders = true)
+      }
     }
-  }
 
   def extractCurrentJdk(ideaPath: os.Path): Option[(String, String)] = {
     import scala.xml.XML
@@ -182,6 +187,10 @@ class GenIdeaImpl(
 
     val allResolved: Seq[os.Path] =
       (resolvedModules.flatMap(_.scopedCpEntries).map(s => os.Path(s.path)) ++ buildDepsPaths)
+        // Canonicalize first: in reproducible-build mode the same jar can arrive via two different
+        // path forms (alias-traversing vs real), which `.distinct` would NOT collapse, producing
+        // spurious duplicate `<lib> (1).xml` library files via `pathShortLibNameDuplicate` below.
+        .map(realPath)
         .distinct
         .sorted
 
@@ -702,10 +711,20 @@ class GenIdeaImpl(
     "file://" + relForwardPath(path)
   }
 
-  private val projectDir = (workDir, "$PROJECT_DIR$/")
-  private val homeDir = (os.home, "$USER_HOME$/")
+  // Resolve a path to its real on-disk location, following symlinks. In reproducible-build mode
+  // paths reach `GenIdeaImpl` in an alias-traversing form (e.g. a coursier jar appears as
+  // `<workspace>/out/mill-daemon/sandbox/out/mill-home/.../jar` via the `out/mill-home` alias).
+  // Relativizing such a path against the project dir wrongly makes it look project-relative;
+  // resolving to the real path first yields the true coursier/home location so it relativizes
+  // correctly (e.g. to `$USER_HOME$/...`).
+  private def realPath(p: os.Path): os.Path =
+    try os.Path(p.wrapped.toRealPath()) catch { case _: java.io.IOException => p }
 
-  private def relForwardPath(path: os.Path): String = {
+  private val projectDir = (realPath(workDir), "$PROJECT_DIR$/")
+  private val homeDir = (realPath(os.home), "$USER_HOME$/")
+
+  private def relForwardPath(path0: os.Path): String = {
+    val path = realPath(path0)
 
     def forward(p: os.FilePath): String = p.toString().replace("""\""", "/")
 
