@@ -108,7 +108,10 @@ object TestModule {
       if (dir.isEmpty) dir else dir + "/"
     }
 
-    def getPathToTest: T[String] = Task { compile().path.toString + "/" + testDir }
+    // `.wrapped`, not the relativized `.toString`: this is passed to JS test runners (jest, mocha,
+    // ...) as a positional test-path pattern that they match against *absolute* on-disk test paths,
+    // so a reproducible-build relativized `../mill-workspace/...` form would match nothing.
+    def getPathToTest: T[String] = Task { compile().path.wrapped.toString + "/" + testDir }
   }
 
   trait IntegrationSuite extends TypeScriptModule {
