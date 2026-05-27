@@ -720,7 +720,8 @@ class GenIdeaImpl(
   // resolving to the real path first yields the true coursier/home location so it relativizes
   // correctly (e.g. to `$USER_HOME$/...`).
   private def realPath(p: os.Path): os.Path =
-    try os.Path(p.wrapped.toRealPath()) catch { case _: java.io.IOException => p }
+    try os.Path(p.wrapped.toRealPath())
+    catch { case _: java.io.IOException => p }
 
   private val projectDir = (realPath(workDir), "$PROJECT_DIR$/")
   private val homeDir = (realPath(os.home), "$USER_HOME$/")

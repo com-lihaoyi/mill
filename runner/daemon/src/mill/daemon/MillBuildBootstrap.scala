@@ -14,7 +14,7 @@ import mill.constants.OutFiles.OutFiles.{millBuild, millRunnerState}
 import mill.constants.OutFiles.OutFiles
 import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
-import mill.internal.{LockUpgrade, MillPathSerializer, PrefixLogger, PromptWaitReporter, Util}
+import mill.internal.{LockUpgrade, PrefixLogger, PromptWaitReporter, Util}
 import mill.meta.{BootstrapRootModule, MillBuildRootModule}
 import mill.api.daemon.internal.{CliImports, LauncherLocking, LauncherOutFiles}
 import mill.internal.BuildFileDiscovery.findRootBuildFiles
