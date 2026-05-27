@@ -3,8 +3,8 @@ package mill.api.internal
 import mill.api.BuildCtx
 
 object PathAliasing {
-  val workspaceAlias = "out/mill-workspace"
-  val homeAlias = "out/mill-home"
+  val workspaceAlias = "../mill-workspace"
+  val homeAlias = "../mill-home"
 
   private def normalize(raw: String): String = raw.replace('\\', '/')
 

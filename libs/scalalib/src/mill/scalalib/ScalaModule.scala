@@ -657,7 +657,10 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         scalaVersion = scalaVersion(),
         scalaBinaryVersion = scalaBinaryVersion(scalaVersion()),
         platform = ScalaPlatform.JVM,
-        jars = scalaCompilerClasspath().map(_.path.toURI.toString).iterator.toSeq,
+        // `.wrapped.toUri`, not `.toURI`: BSP clients need absolute `file://` URIs, but in
+        // reproducible-build mode `os.Path.toURI` relativizes (to `../mill-home/...`) and resolves
+        // wrongly against the daemon's sandbox cwd.
+        jars = scalaCompilerClasspath().map(_.path.wrapped.toUri.toString).iterator.toSeq,
         jvmBuildTarget = Some(bspJvmBuildTargetTask())
       )
     ))

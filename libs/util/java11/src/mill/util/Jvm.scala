@@ -52,19 +52,25 @@ object Jvm {
         .get(EnvVars.MILL_WORKSPACE_ROOT)
         .map(p => os.Path(p, os.pwd))
         .getOrElse(BuildCtx.workspaceRoot)
-      val out = cwd / "out"
-      val outNio = out.toNIO
+      // The `../mill-workspace` / `../mill-home` aliases live in `cwd`'s *parent*, so a subprocess
+      // that walks or archives its own working directory (`jar -c .`, `tar`, ...) never sees them.
+      val parent = cwd / os.up
+      val parentNio = parent.toNIO
       if (
-        Files.exists(outNio, java.nio.file.LinkOption.NOFOLLOW_LINKS) && !Files.isDirectory(
-          outNio,
+        Files.exists(parentNio, java.nio.file.LinkOption.NOFOLLOW_LINKS) && !Files.isDirectory(
+          parentNio,
           java.nio.file.LinkOption.NOFOLLOW_LINKS
         )
       ) {
-        // Some tasks intentionally place a file named `out` in cwd.
+        // The enclosing directory is not a directory; cannot host the aliases.
       } else {
-        os.makeDir.all(out)
-        ensureSymlink(out / "mill-workspace", workspace)
-        ensureSymlink(out / "mill-home", os.home)
+        // The aliases live in `cwd`'s parent (a sibling `out/` subfolder), which is outside the
+        // running task's `Task.dest`; exempt this infrastructure write from the filesystem checker.
+        BuildCtx.withFilesystemCheckerDisabled {
+          os.makeDir.all(parent)
+          ensureSymlink(parent / "mill-workspace", workspace)
+          ensureSymlink(parent / "mill-home", os.home)
+        }
       }
     }
   }

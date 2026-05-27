@@ -70,11 +70,11 @@ object GenIdeaUtils {
         "-Xplugin:/[a-zA-Z0-9._/-]+/out/",
         "-Xplugin:.../"
       )
-      // In reproducible-build mode scalac `-Xplugin` paths are workspace-relative
-      // (`out/mill-workspace/...` / `out/mill-home/...`); collapse the prefix up to the
+      // In reproducible-build mode scalac `-Xplugin` paths are relativized through the path
+      // aliases (`../mill-workspace/...` / `../mill-home/...`); collapse the prefix up to the
       // `com/lihaoyi/` marker just like the absolute forms above.
       .replaceAll(
-        "-Xplugin:out/mill-[a-zA-Z0-9._/-]+/com/lihaoyi/",
+        "-Xplugin:(?:out/|\\.\\./)mill-[a-zA-Z0-9._/-]+/com/lihaoyi/",
         "-Xplugin:.../com/lihaoyi/"
       )
       // Normalize varying local repo paths (e.g., dist/raw/localRepo.dest vs runner/.../publishLocalTestRepo.dest)

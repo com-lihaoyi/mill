@@ -1660,7 +1660,9 @@ trait JavaModule
   def sanitizeUri(uri: String): String =
     if (uri.endsWith("/")) sanitizeUri(uri.substring(0, uri.length - 1)) else uri
 
-  def sanitizeUri(uri: os.Path): String = sanitizeUri(uri.toURI.toString)
+  // `.wrapped.toUri`, not `.toURI`: BSP clients need absolute `file://` URIs, but in
+  // reproducible-build mode `os.Path.toURI` relativizes and resolves wrongly against the daemon cwd.
+  def sanitizeUri(uri: os.Path): String = sanitizeUri(uri.wrapped.toUri.toString)
 
   def sanitizeUri(uri: PathRef): String = sanitizeUri(uri.path)
 

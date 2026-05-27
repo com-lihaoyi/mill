@@ -36,8 +36,7 @@ object SbtLoggerUtils {
           def normalizeAliasedOutPath(path0: String): String = {
             val path = path0.replace('\\', '/')
             val aliasPrefixes = Seq(
-              "out/mill-daemon/sandbox/out/mill-workspace/",
-              "out/mill-workspace/"
+              "../mill-workspace/"
             )
 
             aliasPrefixes

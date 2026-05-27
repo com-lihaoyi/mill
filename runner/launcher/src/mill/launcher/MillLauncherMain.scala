@@ -74,7 +74,7 @@ object MillLauncherMain {
         (if (env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).contains("")) Map.empty
          else
            Map(
-             EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> s"$workspaceAbs,out/mill-workspace;$homeAbs,out/mill-home"
+             EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> s"$workspaceAbs,../mill-workspace;$homeAbs,../mill-home"
            ))
 
       try {

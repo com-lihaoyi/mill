@@ -419,7 +419,8 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
         scalaVersion = scalaVersion(),
         scalaBinaryVersion = JvmWorkerUtil.scalaBinaryVersion(scalaVersion()),
         ScalaPlatform.Native,
-        jars = scalaCompilerClasspath().map(_.path.toURI.toString).iterator.toSeq,
+        // `.wrapped.toUri`, not `.toURI`: BSP needs absolute URIs (see ScalaModule.bspBuildTargetData).
+        jars = scalaCompilerClasspath().map(_.path.wrapped.toUri.toString).iterator.toSeq,
         jvmBuildTarget = None
       )
     ))

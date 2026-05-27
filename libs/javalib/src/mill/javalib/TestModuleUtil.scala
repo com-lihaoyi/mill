@@ -164,7 +164,7 @@ final class TestModuleUtil(
       val homeAbs = os.home.wrapped.toAbsolutePath.normalize().toString
       val millForkEnv = Map(
         EnvVars.MILL_WORKSPACE_ROOT -> workspaceAbs,
-        EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> s"$workspaceAbs,out/mill-workspace;$homeAbs,out/mill-home"
+        EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> s"$workspaceAbs,../mill-workspace;$homeAbs,../mill-home"
       )
       Jvm.spawnProcess(
         mainClass = "mill.javalib.testrunner.entrypoint.MillTestRunnerMain",

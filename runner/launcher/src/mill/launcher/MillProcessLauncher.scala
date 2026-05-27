@@ -42,19 +42,21 @@ object MillProcessLauncher {
   private def relativizerEnv(workDir: os.Path): String = {
     val workspaceAbs = workDir.wrapped.toAbsolutePath.normalize().toString
     val homeAbs = os.home.wrapped.toAbsolutePath.normalize().toString
-    s"$workspaceAbs,out/mill-workspace;$homeAbs,out/mill-home"
+    s"$workspaceAbs,../mill-workspace;$homeAbs,../mill-home"
   }
 
-  private def ensureAliases(baseDir: os.Path, workspaceRoot: os.Path): Unit = {
-    val baseSuffix = baseDir.segments.toVector.takeRight(2)
-    if (baseSuffix == Seq("out", "mill-workspace") || baseSuffix == Seq("out", "mill-home")) return
-
-    val out = baseDir / "out"
-    val workspaceAlias = out / "mill-workspace"
-    val homeAlias = out / "mill-home"
-    os.makeDir.all(out)
-    ensureSymlink(workspaceAlias, workspaceRoot)
-    ensureSymlink(homeAlias, os.home)
+  /**
+   * Installs the `../mill-workspace` / `../mill-home` forwarder symlinks for a process whose
+   * working directory is `cwd`. A workspace-relativized path (`../mill-workspace/...`) is resolved
+   * by the process relative to its own `cwd`, so the alias must live in `cwd`'s *parent* directory
+   * (never inside `cwd` itself, which would otherwise be picked up by tools that walk/archive the
+   * working directory like `jar -c .`).
+   */
+  private def ensureAliases(cwd: os.Path, workspaceRoot: os.Path): Unit = {
+    val parent = cwd / os.up
+    os.makeDir.all(parent)
+    ensureSymlink(parent / "mill-workspace", workspaceRoot)
+    ensureSymlink(parent / "mill-home", os.home)
   }
 
   private def outDir(outMode: OutFolderMode, workDir: os.Path, env: Map[String, String]): String =
@@ -168,8 +170,10 @@ object MillProcessLauncher {
   ): os.SubProcess = {
     val sandbox = daemonDir / DaemonFiles.sandbox
     os.makeDir.all(sandbox)
+    // The launched Mill process runs with cwd = `sandbox`, so its relativized paths resolve via the
+    // alias in `sandbox`'s parent. Task subprocesses run with cwd = `<out>/.../<name>.dest` and get
+    // their own parent aliases created on-demand by the daemon-side spawn hook.
     ensureAliases(sandbox, workDir)
-    ensureAliases(workDir, workDir)
 
     // Always scope workspace/relativizer to this launched process workDir.
     // Inheriting parent values causes nested Mill runs to lock/use the parent's out folder.

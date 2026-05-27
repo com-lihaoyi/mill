@@ -48,7 +48,11 @@ final class EvaluatorImpl(
     val prevSpawnHook = os.ProcessOps.spawnHook.value
     os.ProcessOps.spawnHook.withValue { cwd =>
       prevSpawnHook(cwd)
-      MillPathSerializer.setupSymlinks(cwd, workspace)
+      // The `../mill-*` aliases are created in `cwd`'s parent (a sibling `out/` subfolder), which is
+      // outside the running task's `Task.dest`; exempt this infrastructure write from the checker.
+      mill.api.BuildCtx.withFilesystemCheckerDisabled {
+        MillPathSerializer.setupSymlinks(cwd, workspace)
+      }
     } {
       t
     }

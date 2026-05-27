@@ -262,7 +262,12 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
       val generatedSource = sourceroot / generatedSourceSubPath
       val generatedSourceLines = os.read.lines(generatedSource)
       val source = generatedSourceLines
-        .collectFirst { case s"//SOURCECODE_ORIGINAL_FILE_PATH=$rest" => os.Path(rest.trim) }
+        // The marker may be a reproducible-build relativized path (e.g. `../mill-workspace/build.mill`);
+        // resolve it through the alias rather than `os.Path`, which would reject a non-absolute path.
+        .collectFirst {
+          case s"//SOURCECODE_ORIGINAL_FILE_PATH=$rest" =>
+            mill.api.internal.PathAliasing.resolveAliasedString(rest.trim)
+        }
         .getOrElse {
           sys.error(s"Cannot get original source from generated source $generatedSource")
         }

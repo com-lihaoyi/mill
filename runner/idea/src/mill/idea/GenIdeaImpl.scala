@@ -498,7 +498,9 @@ class GenIdeaImpl(
 
       val sanizedDeps: Seq[ScopedOrd[String]] = {
         resolvedModule.scopedCpEntries
-          .map(s => (lib = pathToLibName(os.Path(s.path)), scope = s.scope))
+          // Canonicalize like `allResolved` (the `pathToLibName` keys) so an alias-traversing jar
+          // path resolves to the same key as its real on-disk form.
+          .map(s => (lib = pathToLibName(realPath(os.Path(s.path))), scope = s.scope))
           .groupBy(_.lib)
           .view
           .mapValues(_.map(_.scope))

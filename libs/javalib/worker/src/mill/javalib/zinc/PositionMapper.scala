@@ -51,7 +51,12 @@ object PositionMapper {
     }
 
     val map = buildSources0
-      .map { case (generated, original, _) => os.Path(generated) -> os.Path(original) }
+      // `original`/`generated` may be reproducible-build relativized paths (e.g.
+      // `../mill-workspace/build.mill`); resolve them through the alias rather than `os.Path`,
+      // which would reject a non-absolute path.
+      .map { case (generated, original, _) =>
+        PathAliasing.resolveAliasedString(generated) -> PathAliasing.resolveAliasedString(original)
+      }
       .toMap
 
     val lookupOpt = Option.when(buildSources0.nonEmpty) {

@@ -32,7 +32,15 @@ object Utils {
   def sanitizeUri(uri: String): String =
     if (uri.endsWith("/")) sanitizeUri(uri.substring(0, uri.length - 1)) else uri
 
-  def sanitizeUri(uri: java.nio.file.Path): String = sanitizeUri(uri.toUri.toString)
+  def sanitizeUri(uri: java.nio.file.Path): String = {
+    // In reproducible-build mode `os.Path.toNIO` yields a workspace-relativized path (e.g.
+    // `../mill-workspace/app`); resolve it back to an absolute path so BSP clients (IDEs) receive
+    // usable `file://` URIs rather than ones resolved against the daemon's sandbox cwd.
+    val absolute =
+      if (uri.isAbsolute) uri
+      else mill.api.internal.PathAliasing.resolveAliasedString(uri.toString).wrapped
+    sanitizeUri(absolute.toUri.toString)
+  }
 
   // define the function that spawns compilation reporter for each module based on the
   // module's hash code TODO: find something more reliable than the hash code

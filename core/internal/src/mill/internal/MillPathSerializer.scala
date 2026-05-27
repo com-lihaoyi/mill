@@ -18,8 +18,8 @@ object MillPathSerializer {
     if (nio.isAbsolute) path
     else {
       val raw = nio.toString.replace('\\', '/')
-      val workspaceAlias = "out/mill-workspace"
-      val homeAlias = "out/mill-home"
+      val workspaceAlias = "../mill-workspace"
+      val homeAlias = "../mill-home"
 
       def resolveFromAlias(base: os.Path, aliasIdx: Int, alias: String): os.Path = {
         val suffix = raw.substring(aliasIdx + alias.length).stripPrefix("/")
@@ -58,8 +58,8 @@ object MillPathSerializer {
           LinkOption.NOFOLLOW_LINKS
         )
       ) {
-        // Some tasks (e.g. Scala Native) intentionally materialize an executable at `Task.dest / "out"`.
-        // In that case we cannot create `out/mill-*` aliases under this working directory.
+        // Can't host the `../mill-*` alias if the enclosing directory is not actually a directory.
+        // Alias setup is best-effort and must not fail task execution.
       } else {
         os.makeDir.all(parent)
 
@@ -83,9 +83,16 @@ object MillPathSerializer {
     }
   }
 
-  def defaultMapping(workspace: os.Path): Seq[(os.Path, os.SubPath)] = Seq(
-    workspace -> os.sub / "out/mill-workspace",
-    os.home -> os.sub / "out/mill-home"
+  def defaultMapping(workspace: os.Path): Seq[(os.Path, os.RelPath)] = Seq(
+    // The alias is addressed as `../mill-workspace` / `../mill-home` (i.e. in the *parent* of the
+    // working directory) rather than `out/mill-workspace` *inside* it. This way a process that
+    // walks or archives its own `pwd` (`jar -c .`, `tar`, `cp -r .`, `os.walk`) never encounters
+    // the forwarder symlink, while a relativized path like `../mill-workspace/out/foo.dest/bar`
+    // still resolves to the right absolute location. Every working directory used by Mill (the
+    // daemon's `out/mill-daemon/sandbox`, each task's `out/.../<name>.dest`) lives under `out/`, so
+    // the alias always lands in a sibling `out/` subfolder and never escapes the workspace.
+    workspace -> (os.up / "mill-workspace"),
+    os.home -> (os.up / "mill-home")
   )
 }
 
