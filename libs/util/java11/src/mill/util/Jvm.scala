@@ -402,7 +402,14 @@ object Jvm {
     Option.when(javaMajorVersion >= 23)("--sun-misc-unsafe-memory-access=allow").toSeq ++
       // Silence another benign warning, this one raised by JLine and `com.swoval:file-tree-views`
       // which is transitively used by Zinc for faster filesystem operations
-      Option.when(javaMajorVersion >= 16)("--enable-native-access=ALL-UNNAMED").toSeq
+      Option.when(javaMajorVersion >= 16)("--enable-native-access=ALL-UNNAMED").toSeq ++
+      // In reproducible-build mode the Zinc output dir is passed as a workspace-relative path
+      // (resolved via the `out/mill-workspace` alias), which makes sbt.io print a noisy
+      // "Tried to extract the base path for relative glob ..." warning to stderr. The glob still
+      // resolves correctly, so opt into the implicit relative-glob conversion to silence it.
+      Option.when(
+        sys.env.get(mill.constants.EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).exists(_.nonEmpty)
+      )("-Dsbt.io.implicit.relative.glob.conversion=allow").toSeq
   }
 
   /**

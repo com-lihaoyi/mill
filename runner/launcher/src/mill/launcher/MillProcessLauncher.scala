@@ -327,11 +327,21 @@ object MillProcessLauncher {
         Seq("--sun-misc-unsafe-memory-access=allow", "--enable-native-access=ALL-UNNAMED")
       else Nil
 
+    // In reproducible-build mode the (in-process) Zinc output dir is passed as a workspace-relative
+    // path resolved via the `out/mill-workspace` alias; sbt.io otherwise prints a noisy
+    // "Tried to extract the base path for relative glob ..." warning to stderr that leaks into
+    // golden-text/output-sensitive tests. The glob still resolves correctly.
+    val sbtIoGlobOpt =
+      if (env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).exists(_.nonEmpty))
+        Seq("-Dsbt.io.implicit.relative.glob.conversion=allow")
+      else Nil
+
     Seq(javaExe(env, workDir, millRepositories)) ++
       millProps ++
       serverTimeoutOpt ++
       encodingOpts ++
       jdk23PlusOpts ++
+      sbtIoGlobOpt ++
       loadMillConfig(ConfigConstants.millJvmOpts, workDir) ++
       Seq("-cp", runnerClasspath.mkString(File.pathSeparator))
   }

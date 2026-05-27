@@ -738,9 +738,10 @@ object ZincWorker {
   ): xsbti.compile.analysis.ReadWriteMappers = {
     import xsbti.VirtualFileRef
     import xsbti.compile.MiniSetup
-    import xsbti.compile.analysis.{Stamp, WriteMapper}
+    import xsbti.compile.analysis.{ReadMapper, Stamp, WriteMapper}
 
     val w = base.getWriteMapper
+    val r = base.getReadMapper
 
     def absRef(ref: VirtualFileRef): Boolean =
       try java.nio.file.Paths.get(ref.id()).isAbsolute
@@ -769,7 +770,35 @@ object ZincWorker {
       def mapMiniSetup(s: MiniSetup): MiniSetup = s
     }
 
-    new xsbti.compile.analysis.ReadWriteMappers(base.getReadMapper, guardedWrite)
+    // The read mapper must be symmetric with the write mapper: the write mapper stores
+    // already-relative paths (the os-lib relativizer makes the paths Zinc sees relative) verbatim,
+    // so the read mapper must also pass relative paths through unchanged rather than resolving them
+    // against the root. Resolving on read (the default machine-independent read mapper) yields
+    // absolute paths that no longer match the stored/current relative ids, which makes the
+    // `ConsistentFileAnalysisStore` reject the store on load (returns empty) and defeats
+    // incremental compilation. Absolute paths (if any) are still resolved via the base read mapper.
+    val guardedRead: ReadMapper = new ReadMapper {
+      def mapSourceFile(f: VirtualFileRef): VirtualFileRef =
+        if (absRef(f)) r.mapSourceFile(f) else f
+      def mapBinaryFile(f: VirtualFileRef): VirtualFileRef =
+        if (absRef(f)) r.mapBinaryFile(f) else f
+      def mapProductFile(f: VirtualFileRef): VirtualFileRef =
+        if (absRef(f)) r.mapProductFile(f) else f
+      def mapOutputDir(p: java.nio.file.Path): java.nio.file.Path =
+        if (p.isAbsolute) r.mapOutputDir(p) else p
+      def mapSourceDir(p: java.nio.file.Path): java.nio.file.Path =
+        if (p.isAbsolute) r.mapSourceDir(p) else p
+      def mapClasspathEntry(p: java.nio.file.Path): java.nio.file.Path =
+        if (p.isAbsolute) r.mapClasspathEntry(p) else p
+      def mapJavacOption(o: String): String = r.mapJavacOption(o)
+      def mapScalacOption(o: String): String = r.mapScalacOption(o)
+      def mapBinaryStamp(f: VirtualFileRef, s: Stamp): Stamp = r.mapBinaryStamp(f, s)
+      def mapSourceStamp(f: VirtualFileRef, s: Stamp): Stamp = r.mapSourceStamp(f, s)
+      def mapProductStamp(f: VirtualFileRef, s: Stamp): Stamp = r.mapProductStamp(f, s)
+      def mapMiniSetup(s: MiniSetup): MiniSetup = s
+    }
+
+    new xsbti.compile.analysis.ReadWriteMappers(guardedRead, guardedWrite)
   }
 
   /**
