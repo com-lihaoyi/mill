@@ -396,7 +396,12 @@ trait GroupExecution {
           // Tasks with side effects (non-zero `sideHash`) are not reproducible from
           // cache, so skip loading their cached output and force a recompute.
           def loadCached(): Option[(Int, Option[(Val, Seq[PathRef])], Int)] =
-            Option.when(!hasSideEffects)(loadCachedJson(logger, inputsHash, labelled, paths)).flatten
+            Option.when(!hasSideEffects)(loadCachedJson(
+              logger,
+              inputsHash,
+              labelled,
+              paths
+            )).flatten
 
           def loadCachedOrWorker(
               cached: Option[(Int, Option[(Val, Seq[PathRef])], Int)],

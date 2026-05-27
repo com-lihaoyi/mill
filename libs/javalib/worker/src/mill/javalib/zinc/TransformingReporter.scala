@@ -89,7 +89,8 @@ private object TransformingReporter {
         // location (following the symlinks) so diagnostics show the clean workspace-relative path
         // (`src/foo/Foo.java`) rather than the alias-traversing one.
         def real(p: os.Path): os.Path =
-          try os.Path(p.wrapped.toRealPath()) catch { case _: java.io.IOException => p }
+          try os.Path(p.wrapped.toRealPath())
+          catch { case _: java.io.IOException => p }
         val absPath = real(os.Path(path, workspaceRoot))
         val realWorkspace = real(workspaceRoot)
         // Render paths within the current workspaceRoot as relative paths to cut down on verbosity

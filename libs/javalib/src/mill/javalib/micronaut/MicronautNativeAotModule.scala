@@ -38,7 +38,8 @@ trait MicronautNativeAotModule extends MicronautAotModule, NativeImageModule {
     val configurationsPathAbs =
       try configurationsPath.wrapped.toRealPath().toString
       catch {
-        case _: java.io.IOException => configurationsPath.wrapped.toAbsolutePath.normalize().toString
+        case _: java.io.IOException =>
+          configurationsPath.wrapped.toAbsolutePath.normalize().toString
       }
     super.nativeImageOptions() ++ Seq(
       "--no-fallback",

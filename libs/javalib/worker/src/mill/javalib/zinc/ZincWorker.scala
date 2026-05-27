@@ -707,7 +707,9 @@ object ZincWorker {
    * (absolute-path) analysis store format.
    */
   private[zinc] def reproducibleRoot: Option[java.nio.file.Path] =
-    Option.when(sys.env.get(mill.constants.EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).exists(_.nonEmpty))(
+    Option.when(
+      sys.env.get(mill.constants.EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).exists(_.nonEmpty)
+    )(
       java.nio.file.Paths.get("").toAbsolutePath.normalize()
     )
 

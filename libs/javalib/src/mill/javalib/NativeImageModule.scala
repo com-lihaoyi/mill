@@ -52,7 +52,9 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
       .+=(realAbs(toolPath))
       .++=(nativeImageOptions())
       .+=("-cp")
-      .+=(nativeImageClasspath().iterator.map(p => realAbs(p.path)).mkString(java.io.File.pathSeparator))
+      .+=(nativeImageClasspath().iterator.map(p => realAbs(p.path)).mkString(
+        java.io.File.pathSeparator
+      ))
       .+=(finalMainClass())
       .+=(java.nio.file.Paths.get(realAbs(dest), executeableName).toString)
       .result()
@@ -376,7 +378,9 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
         // (causing native-image failures). Use the real, absolute on-disk path.
         val jarPath =
           try file.path.wrapped.toRealPath().toString
-          catch { case _: java.io.IOException => file.path.wrapped.toAbsolutePath.normalize().toString }
+          catch {
+            case _: java.io.IOException => file.path.wrapped.toAbsolutePath.normalize().toString
+          }
         Seq("--exclude-config", s"\\Q$jarPath\\E", s"^/META-INF/native-image/.*")
       }
   }
