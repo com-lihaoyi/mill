@@ -695,7 +695,10 @@ object Jvm {
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
       config: CoursierConfig
   ) =
-    FileCache[Task](os.Path(config.cacheLocation).toIO)
+    // Use `.wrapped.toFile` instead of `.toIO`: on reproducible-2 the path
+    // serializer relativizes `toIO` to `..\mill-home\...`, which on Windows
+    // breaks Plexus's zip-slip prefix check inside ArchiveCache → JDK extract.
+    FileCache[Task](os.Path(config.cacheLocation).wrapped.toFile)
       .withCredentials(config.credentials)
       .withTtl(config.ttl)
       .withCachePolicies(config.cachePolicies)
@@ -923,9 +926,9 @@ object Jvm {
     val jvmCache = JvmCache()
       .withArchiveCache(
         ArchiveCache()
-          .withLocation(os.Path(config.archiveCacheLocation).toIO)
+          .withLocation(os.Path(config.archiveCacheLocation).wrapped.toFile)
           .withCache(coursierCache0)
-          .withShortPathDirectory(shortPathDirOpt.map(_.toIO))
+          .withShortPathDirectory(shortPathDirOpt.map(_.wrapped.toFile))
       )
       .withIndex(jvmIndex0(
         ctx,

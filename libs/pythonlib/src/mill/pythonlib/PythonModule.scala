@@ -147,7 +147,7 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
   // cache. This is slow. Look into sharing the cache between tasks.
   def runner: Task[PythonModule.Runner] = Task.Anon {
     new PythonModule.RunnerImpl(
-      command0 = pythonExe().path.toString,
+      command0 = PythonModule.realAbs(pythonExe().path),
       options = pythonOptions(),
       env0 = runnerEnvTask() ++ forkEnv(),
       workingDir0 = Task.dest
@@ -156,8 +156,9 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
 
   private def runnerEnvTask = Task.Anon {
     Map(
-      "PYTHONPATH" -> transitivePythonPath().map(_.path).mkString(java.io.File.pathSeparator),
-      "PYTHONPYCACHEPREFIX" -> (Task.dest / "cache").toString,
+      "PYTHONPATH" -> transitivePythonPath().map(p => PythonModule.realAbs(p.path))
+        .mkString(java.io.File.pathSeparator),
+      "PYTHONPYCACHEPREFIX" -> PythonModule.realAbs(Task.dest / "cache"),
       if (Task.log.prompt.colored) { "FORCE_COLOR" -> "1" }
       else { "NO_COLOR" -> "1" }
     )
@@ -172,7 +173,7 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
         // format: off
         "-m", "mypy",
         "--strict",
-        "--cache-dir", (Task.dest / "mypycache").toString,
+        "--cache-dir", PythonModule.realAbs(Task.dest / "mypycache"),
         sources().map(_.path)
         // format: on
       )
@@ -187,7 +188,7 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
   def run(args: mill.api.Args) = Task.Command {
     runner().run(
       args = (
-        mainScript().path,
+        PythonModule.realAbs(mainScript().path),
         args.value
       )
     )
@@ -210,8 +211,8 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
         env = runnerEnvTask(),
         mainArgs = backgroundPaths.toArgs ++ Seq(
           "<subprocess>",
-          pythonExe().path.toString,
-          mainScript().path.toString
+          PythonModule.realAbs(pythonExe().path),
+          PythonModule.realAbs(mainScript().path)
         ) ++ args.value,
         cwd = BuildCtx.workspaceRoot,
         stdin = "",
@@ -250,10 +251,10 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
         "-m", "pex",
         transitivePythonDeps().toSeq,
         transitivePythonPath().flatMap(pr =>
-          Seq("-D", pr.path.toString)
+          Seq("-D", PythonModule.realAbs(pr.path))
         ),
-        "--exe", mainScript().path,
-        "-o", pexFile,
+        "--exe", PythonModule.realAbs(mainScript().path),
+        "-o", PythonModule.realAbs(pexFile),
         bundleOptions()
         // format: on
       ),
@@ -269,6 +270,23 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
 }
 
 object PythonModule {
+  /**
+   * Absolute on-disk path string that bypasses the os-lib relativizer. On
+   * reproducible-2 `os.Path.toString` / `.toIO` return relativized
+   * `../mill-workspace/...` forms; when those leak into subprocess command
+   * lines, env vars (`PYTHONPATH`/`PYTHONPYCACHEPREFIX`), or args the child
+   * python tools resolve them against their own cwd, producing double-aliased
+   * paths (`out/foo/run.dest/../mill-workspace/out/foo/venv.dest/...`) that
+   * python's import machinery and pyspark's java-gateway then mishandle.
+   *
+   * We deliberately do NOT call `toRealPath` here: the venv `python3` is a
+   * symlink to the host interpreter, and following it would bypass the venv's
+   * site-packages (the interpreter discovers its site-packages from the path
+   * of the binary that invoked it, not the realpath).
+   */
+  def realAbs(p: os.Path): String =
+    p.wrapped.toAbsolutePath.normalize().toString
+
   trait Runner {
     def run(
         args: os.Shellable = Seq(),

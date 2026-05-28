@@ -167,8 +167,12 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     runTarget match {
       case Some(RunTarget.Node) =>
+        // Same rationale as the `outputArgs` paths in `kotlinJsCompile`: hand node a
+        // real absolute on-disk path rather than the relativized form that `.toIO`
+        // produces on reproducible-2 (which Node then resolves through the alias
+        // symlink chain into a path the OS may not stat under heavy nesting).
         val binaryPath = (binaryDir / s"$artifactId.${moduleKind.extension}")
-          .toIO.getAbsolutePath
+          .wrapped.toAbsolutePath.normalize().toString
         val processResult = os.call(
           cmd = Seq("node") ++ args.value ++ Seq(binaryPath),
           env = envArgs,
@@ -363,23 +367,31 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // TODO if there is penalty for activating it in the compiler, put it behind configuration flag
     innerCompilerArgs += "-Xmulti-platform"
     val outputArgs = outputMode match {
+      // Use `.wrapped.toAbsolutePath.normalize().toString` rather than
+      // `.toIO.getAbsolutePath`: on reproducible-2, `.toIO` returns a relativized
+      // (`../mill-workspace/...`) File, and `getAbsolutePath` resolves that lexically
+      // against the JVM cwd (`out/mill-daemon/sandbox`), yielding a path that goes
+      // through the workspace alias and then gets normalized into a path containing
+      // `out/mill-daemon/mill-workspace/`. That bad form propagates into the linked
+      // binary's PathRef (via `compileDestination` below) and multiplies further when
+      // later concatenated for the node command line — see #4642.
       case OutputMode.KlibFile =>
         Seq(
           "-Xir-produce-klib-file",
           "-ir-output-dir",
-          (destinationRoot / "libs").toIO.getAbsolutePath
+          (destinationRoot / "libs").wrapped.toAbsolutePath.normalize().toString
         )
       case OutputMode.KlibDir =>
         Seq(
           "-Xir-produce-klib-dir",
           "-ir-output-dir",
-          (destinationRoot / "classes").toIO.getAbsolutePath
+          (destinationRoot / "classes").wrapped.toAbsolutePath.normalize().toString
         )
       case OutputMode.Js =>
         Seq(
           "-Xir-produce-js",
           "-ir-output-dir",
-          (destinationRoot / "binaries").toIO.getAbsolutePath
+          (destinationRoot / "binaries").wrapped.toAbsolutePath.normalize().toString
         )
     }
 
@@ -562,8 +574,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
           // TODO this is valid only for the NodeJS target. Once browser support is
           //  added, need to have different argument handling
           "--require",
-          sourceMapSupportModule().path.toIO.getAbsolutePath,
-          mochaModule().path.toIO.getAbsolutePath,
+          sourceMapSupportModule().path.wrapped.toAbsolutePath.normalize().toString,
+          mochaModule().path.wrapped.toAbsolutePath.normalize().toString,
           "--timeout",
           testTimeout().toString,
           "--reporter",

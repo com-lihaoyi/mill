@@ -20,7 +20,13 @@ class Modeler(
   /** Returns the [[ModelBuildingResult]] for all projects in `workspace`. */
   def buildAll(): Seq[ModelBuildingResult] = {
     def recurse(dir: os.Path): Seq[ModelBuildingResult] = {
-      val result = build((dir / "pom.xml").toIO)
+      // Pass Maven an un-relativized absolute File. On reproducible-2 `.toIO`
+      // returns `../mill-workspace/pom.xml`; Maven stores that relative path
+      // verbatim, and `model.getProjectDirectory` then yields a relative File
+      // that callers convert via `os.Path(_)` (resolved against `os.pwd`)
+      // into a path that is no longer under `mvnWorkspace`, breaking
+      // `subRelativeTo` with "ups must be zero, but it is 1 in ../mill-workspace".
+      val result = build((dir / "pom.xml").wrapped.toAbsolutePath.normalize().toFile)
       val subResults = result.getEffectiveModel.getModules.asScala.flatMap(rel =>
         recurse(dir / os.RelPath(rel))
       ).toSeq
@@ -70,7 +76,10 @@ object Modeler {
   }
 
   def defaultLocalRepository: LocalRepository =
-    LocalRepository((os.home / ".m2/repository").toIO)
+    // Real absolute path, not the `../mill-home/...` relativized form `.toIO`
+    // would yield on reproducible-2 — Maven's repository layer treats it as a
+    // path string verbatim.
+    LocalRepository((os.home / ".m2/repository").wrapped.toAbsolutePath.normalize().toFile)
 
   def defaultRemoteRepositories: Seq[RemoteRepository] =
     Seq(
@@ -82,7 +91,10 @@ object Modeler {
     val props = Properties()
     System.getenv().forEach((k, v) => props.put(s"env.$k", v))
     System.getProperties.forEach((k, v) => props.put(k, v))
-    props.put("maven.multiModuleProjectDirectory", mvnWorkspace.toString)
+    props.put(
+      "maven.multiModuleProjectDirectory",
+      mvnWorkspace.wrapped.toAbsolutePath.normalize().toString
+    )
     props
   }
 }
