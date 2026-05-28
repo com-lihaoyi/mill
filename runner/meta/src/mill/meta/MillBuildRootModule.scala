@@ -255,10 +255,22 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
   )
 
   override def scalacOptions: T[Seq[String]] = Task {
+    // Pass `-sourceroot` using the relativizer alias for the workspace so the
+    // string is workspace-independent. Scalac stores source paths in TASTY
+    // relative to sourceroot; without this, two reproducible-mode runs in
+    // different workspaces produce byte-different `package_.class` /
+    // `package_.tasty` files (the difference is the absolute source path
+    // embedded by the compiler).
+    val sourceRoot = rootModuleInfo.topLevelProjectRoot.toString
     super.scalacOptions() ++
       // This warning comes up for package names with dashes in them like "package build.`foo-bar`",
       // but Mill generally handles these fine, so no need to warn the user
-      Seq("-deprecation", "-Wconf:msg=will be encoded on the classpath:silent")
+      Seq(
+        "-deprecation",
+        "-Wconf:msg=will be encoded on the classpath:silent",
+        "-sourceroot",
+        sourceRoot
+      )
   }
 
   /** Used in BSP IntelliJ, which can only work with directories */
