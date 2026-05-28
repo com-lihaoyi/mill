@@ -192,7 +192,7 @@ val dummyDeps: Seq[Dep] = Seq(
   Deps.acyclic,
   mvn"io.get-coursier.jvm.indices:index-darwin-arm64:${Deps.coursierJvmIndexVersion}",
   mvn"io.get-coursier.jvm.indices:index-linux-amd64:${Deps.coursierJvmIndexVersion}"
-) ++ Deps.transitiveDeps ++ Deps.RuntimeDeps.updateable
+) ++ Deps.RuntimeDeps.updateable
 
 implicit object DepSegment extends Cross.ToSegments[Dep]({ dep =>
       val depString = formatDep(dep)
@@ -201,15 +201,22 @@ implicit object DepSegment extends Cross.ToSegments[Dep]({ dep =>
       List(depString.replace(':', '_'))
     })
 
-/**
- * Dummy module(s) to let Dependency/showUpdates or Scala-Steward find
- * and bump dependency versions we use at runtime
- */
-object dummy extends Cross[DependencyFetchDummy](dummyDeps)
 trait DependencyFetchDummy extends ScalaModule with Cross.Module[Dep] {
   def scalaVersion = Deps.scala2Version
   def compileMvnDeps = Seq(crossValue)
 }
+
+/**
+ * Dummy module(s) to let Dependency/showUpdates or Scala-Steward find
+ * and bump dependency versions we use at runtime
+ */
+object dummyRuntime extends Cross[DependencyFetchDummy](dummyDeps)
+
+/**
+ * Dummy module(s) to let Dependency/showUpdates or Scala-Steward find
+ * and bump dependency versions we use at runtime
+ */
+object dummyTransitive extends Cross[DependencyFetchDummy](Deps.transitiveDeps)
 
 val androidDummyDeps: Seq[Dep] = Deps.AndroidDeps.updateable
 
