@@ -128,7 +128,15 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
         case (k, v)
             if k.last.endsWith(".mill.yaml") &&
               !mill.internal.Util.isPrecompiledYamlModule(k) =>
-          (k.toNIO, v)
+          // Use the absolute, normalized path so the cached value does not bake
+          // in the writing daemon's sandbox cwd (which differs from the reader's
+          // cwd across `--no-daemon` invocations). On reproducible-2 the raw
+          // `k.toNIO` can carry a `..../sandbox/../mill-workspace/...` prefix
+          // (or any cwd-derived alias resolution) that, when read back from
+          // the cache in a later process with a different sandbox, makes the
+          // path no longer relative to the workspace and breaks
+          // `staticBuildOverrides` segment computation.
+          (k.wrapped.toAbsolutePath.normalize(), v)
       },
       // Serialize to string to avoid classloader issues when crossing classloader boundaries
       spanningTree.render()
