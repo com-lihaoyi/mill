@@ -55,7 +55,7 @@ object Deps {
   }
 
   object Scalanative_0_5 {
-    val scalanativeVersion = "0.5.11"
+    val scalanativeVersion = "0.5.12"
     // Workaround for https://github.com/com-lihaoyi/mill/issues/6780:
     // prefer Scala 2.13 published toolchain artifacts.
     val scalanativeTools = mvn"org.scala-native:tools_2.13:${scalanativeVersion}"
@@ -97,8 +97,9 @@ object Deps {
 
   val acyclic = mvn"com.lihaoyi:::acyclic:0.3.21"
   val ammoniteVersion = "3.0.4"
-  val asmAnalysis = mvn"org.ow2.asm:asm-analysis:9.10"
-  val asmTree = mvn"org.ow2.asm:asm-tree:9.10"
+  val asmVersion = "9.10.1"
+  val asmAnalysis = mvn"org.ow2.asm:asm-analysis:${asmVersion}"
+  val asmTree = mvn"org.ow2.asm:asm-tree:${asmVersion}"
 
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
   val bouncyCastleVersion = "1.84"
@@ -160,7 +161,7 @@ object Deps {
   val jnaPlatform = mvn"net.java.dev.jna:jna-platform:${jnaVersion}"
 
   val junitInterface = mvn"com.github.sbt:junit-interface:0.13.3"
-  val commonsIo = mvn"commons-io:commons-io:2.21.0"
+  val commonsIo = mvn"commons-io:commons-io:2.22.0"
   val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.25.1"
   val osLibVersion = "0.11.9-M6"
   val osLib = mvn"com.lihaoyi::os-lib:$osLibVersion"
@@ -191,7 +192,7 @@ object Deps {
     .exclude("org.scala-sbt" -> "compiler-interface")
 
   def scalaCompilerInterface = mvn"org.scala-sbt:compiler-interface:${zinc.version}"
-  val scalafmtDynamic = mvn"org.scalameta::scalafmt-dynamic:3.10.3".withDottyCompat(scalaVersion)
+  val scalafmtDynamic = mvn"org.scalameta::scalafmt-dynamic:3.11.0".withDottyCompat(scalaVersion)
   def scalaReflect(scalaVersion: String) =
     if (JvmWorkerUtil.isScala3(scalaVersion))
       mvn"org.scala-lang:scala-reflect:${Deps.scala2Version}"
@@ -274,7 +275,7 @@ object Deps {
   val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.56"
 
   val sbt_api = mvn"org.scala-sbt:sbt:1.10.10"
-  val mimaCore_api = mvn"com.typesafe::mima-core:1.1.4"
+  val mimaCore_api = mvn"com.typesafe::mima-core:1.1.5"
   val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:3.0.1"
   val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.3.1"
   // JGit 6.x series, used by spotlessLibExtra, works on Java 11
@@ -303,7 +304,7 @@ object Deps {
     val ktlint_runtime = mvn"com.pinterest.ktlint:ktlint-core:0.49.1"
     val owaspDependencyCheckCli_runtime = mvn"org.owasp:dependency-check-cli:12.2.2"
     val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.90.0"
-    val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.15.0"
+    val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.24.0"
     val proguard_runtime = mvn"com.guardsquare:proguard-base:7.9.1"
     val revApi_runtime = mvn"org.revapi:revapi-standalone:0.12.0"
     val sbtTestInterface = mvn"com.github.sbt:junit-interface:0.13.2"

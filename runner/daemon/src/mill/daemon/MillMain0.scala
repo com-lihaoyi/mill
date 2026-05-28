@@ -544,12 +544,12 @@ object MillMain0 {
                       ) {
                         Using.resource(
                           runMillBootstrap(
-                            false,
-                            None,
+                            skipSelectiveExecution = false,
+                            prevState = None,
                             // Bootstrap-only: GenIdea only consumes the evaluators.
-                            Seq.empty,
-                            streams,
-                            "BSP:initialize"
+                            tasksAndParams = Seq.empty,
+                            streams = streams,
+                            millActiveCommandMessage = "mill.idea/"
                           )
                         ) { runnerState =>
                           runnerState.errorOpt match {
@@ -570,12 +570,12 @@ object MillMain0 {
                       ) {
                         Using.resource(
                           runMillBootstrap(
-                            false,
-                            None,
+                            skipSelectiveExecution = false,
+                            prevState = None,
                             // Bootstrap-only: GenEclipse only consumes the evaluators.
-                            Seq.empty,
-                            streams,
-                            "BSP:initialize"
+                            tasksAndParams = Seq.empty,
+                            streams = streams,
+                            millActiveCommandMessage = "mill.eclipse/"
                           )
                         ) { runnerState =>
                           runnerState.errorOpt match {

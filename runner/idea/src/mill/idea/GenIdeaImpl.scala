@@ -935,7 +935,9 @@ class GenIdeaImpl(
 
     <module type="JAVA_MODULE" version={"" + ideaConfigVersion}>
       <component name="NewModuleRootManager">
-        <output url="file://$MODULE_DIR$/../../out/script/{scriptPath.baseName}/compile.dest"/>
+        <output url={
+      s"file://$$MODULE_DIR$$/../../out/script/${scriptPath.baseName}/compile.dest"
+    }/>
         <exclude-output />
         <content url={relUrl}>
           <sourceFolder url={relUrl} isTestSource="false"/>
