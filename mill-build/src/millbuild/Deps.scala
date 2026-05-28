@@ -97,8 +97,9 @@ object Deps {
 
   val acyclic = mvn"com.lihaoyi:::acyclic:0.3.21"
   val ammoniteVersion = "3.0.4"
-  val asmAnalysis = mvn"org.ow2.asm:asm-analysis:9.10"
-  val asmTree = mvn"org.ow2.asm:asm-tree:9.10"
+  val asmVersion = "9.10.1"
+  val asmAnalysis = mvn"org.ow2.asm:asm-analysis:${asmVersion}"
+  val asmTree = mvn"org.ow2.asm:asm-tree:${asmVersion}"
 
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
   val bouncyCastleVersion = "1.84"
@@ -273,7 +274,7 @@ object Deps {
   val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.56"
 
   val sbt_api = mvn"org.scala-sbt:sbt:1.10.10"
-  val mimaCore_api = mvn"com.typesafe::mima-core:1.1.4"
+  val mimaCore_api = mvn"com.typesafe::mima-core:1.1.5"
   val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:3.0.1"
   val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.3.1"
   // JGit 6.x series, used by spotlessLibExtra, works on Java 11
