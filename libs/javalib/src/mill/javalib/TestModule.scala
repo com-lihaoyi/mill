@@ -318,7 +318,13 @@ trait TestModule
 
   override def allForkEnv: T[Map[String, String]] = Task {
     super.allForkEnv() ++ Map(
-      EnvVars.MILL_TEST_RESOURCE_DIR -> resources().iterator.map(_.path).mkString(";")
+      // Real absolute paths in the env var: test code typically does
+      // `os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))`, and on reproducible-2
+      // `_.path.toString` would return the relativized `../mill-workspace/...`
+      // form which the single-arg `os.Path` constructor rejects.
+      EnvVars.MILL_TEST_RESOURCE_DIR -> resources().iterator
+        .map(_.path.wrapped.toAbsolutePath.normalize().toString)
+        .mkString(";")
     )
   }
 

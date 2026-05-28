@@ -83,8 +83,13 @@ trait TsLintModule extends Module {
             )
           }
 
+        // Strip the absolute workspace prefix from eslint output to render
+        // paths as `foo/src/foo.ts`. On reproducible-2 `$cwd` would interpolate
+        // to the relativized `../mill-workspace` form, but eslint emits real
+        // absolute paths — match those.
+        val cwdAbs = cwd.wrapped.toAbsolutePath.normalize().toString
         val replacements = Seq(
-          s"$cwd/" -> "",
+          s"$cwdAbs/" -> "",
           "potentially fixable with the `--fix` option" ->
             s"potentially fixable with running ${moduleDir.last}.reformatAll"
         )

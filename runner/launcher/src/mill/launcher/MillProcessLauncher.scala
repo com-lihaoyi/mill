@@ -412,7 +412,11 @@ object MillProcessLauncher {
 
   def getExecutablePath: String = {
     try {
-      os.Path(getClass.getProtectionDomain.getCodeSource.getLocation.toURI).toString
+      // Real absolute path: test/plugin code consuming `MILL_EXECUTABLE_PATH`
+      // typically does `os.Path(sys.env(...))`, which rejects a relativized
+      // string. Bypass the os-lib serializer at this boundary.
+      os.Path(getClass.getProtectionDomain.getCodeSource.getLocation.toURI)
+        .wrapped.toAbsolutePath.normalize().toString
     } catch {
       case e: java.net.URISyntaxException =>
         throw RuntimeException("Failed to determine Mill client executable path", e)
