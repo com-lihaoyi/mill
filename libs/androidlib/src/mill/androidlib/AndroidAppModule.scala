@@ -540,35 +540,43 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     val formats = androidLintReportFormat()
 
+    // Use real absolute on-disk paths for everything handed to the lint
+    // subprocess: on reproducible-2 `.toString` / `mkString` over an `os.Path`
+    // returns the `../mill-workspace/...` alias form, but `os.call` here does
+    // not arrange the cwd-parent alias symlinks the way `Jvm.spawnProcess`
+    // does, and lint also writes to the baseline path — both reads and writes
+    // need real on-disk locations.
+    def abs(p: os.Path): String = p.wrapped.toAbsolutePath.normalize().toString
+
     // Generate the alternating flag and file os.Path strings
     val reportArg: Seq[String] = formats.flatMap { format =>
-      Seq(format.flag, (Task.dest / s"report.${format.extension}").toString)
+      Seq(format.flag, abs(Task.dest / s"report.${format.extension}"))
     }
 
     // Set os.Path to generated `.jar` files and/or `.class` files
     // TODO change to runClasspath once the runtime dependencies + source refs are fixed
-    val cp = compileClasspath().map(_.path).filter(os.exists).mkString(":")
+    val cp = compileClasspath().map(_.path).filter(os.exists).map(abs).mkString(":")
 
     // Set os.Path to the location of the project source codes
-    val src = sources().map(_.path).filter(os.exists).mkString(":")
+    val src = sources().map(_.path).filter(os.exists).map(abs).mkString(":")
 
     // Set os.Path to the location of the project resource code
-    val res = resources().map(_.path).filter(os.exists).mkString(":")
+    val res = resources().map(_.path).filter(os.exists).map(abs).mkString(":")
 
     // Prepare the lint configuration argument if the config os.Path is set
     val configArg = androidLintConfigPath().map(config =>
-      Seq("--config", config.path.toString)
+      Seq("--config", abs(config.path))
     ).getOrElse(Seq.empty)
 
     // Prepare the lint baseline argument if the baseline os.Path is set
     val baselineArg = androidLintBaselinePath().map(baseline =>
-      Seq("--baseline", baseline.path.toString)
+      Seq("--baseline", abs(baseline.path))
     ).getOrElse(Seq.empty)
 
     os.call(
       Seq(
-        androidSdkModule().lintExe().path.toString,
-        (moduleDir / "src/main").toString,
+        abs(androidSdkModule().lintExe().path),
+        abs(moduleDir / "src/main"),
         "--classpath",
         cp,
         "--sources",

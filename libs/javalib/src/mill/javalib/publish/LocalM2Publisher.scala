@@ -35,8 +35,13 @@ class LocalM2Publisher(m2Repo: os.Path) {
   )(using ctx: TaskCtx.Log): Seq[os.Path] = {
 
     val releaseDir = m2Repo / artifact.group.split("[.]") / artifact.id / artifact.version
+    // Display the real absolute on-disk location; on reproducible-2 the default
+    // `os.Path.toString` interpolation would relativize `~/.m2/...` to
+    // `../mill-home/.m2/...`, which is less helpful for the user and breaks
+    // example-test assertions that look for `/home/.../.m2/repository/...`.
+    val releaseDirDisplay = releaseDir.wrapped.toAbsolutePath.normalize().toString
     ctx.log.info(
-      s"Publish ${artifact.id}-${artifact.version} to $releaseDir. " +
+      s"Publish ${artifact.id}-${artifact.version} to $releaseDirDisplay. " +
         s"File list: [${contents.keys.toVector.sorted.mkString(", ")}]"
     )
     FileSetContents.writeTo(m2Repo, contents)

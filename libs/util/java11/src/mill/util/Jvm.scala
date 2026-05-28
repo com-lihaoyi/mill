@@ -274,10 +274,19 @@ object Jvm {
 
     if (cwd != null) os.makeDir.all(cwd)
 
+    // Use real absolute paths (not `.toString` / `.toIO`) for the `-cp` arg: on
+    // reproducible-2 those return the relativized `../mill-workspace/...` form,
+    // which is only resolvable if the alias symlink exists in the subprocess
+    // cwd's parent. That symlink may not be reliably present on Windows (where
+    // creating it without developer mode silently fails) or under nested
+    // native-daemon test setups, leading to "Could not find or load main class".
+    val cpStr = cp.iterator
+      .map(_.wrapped.toAbsolutePath.normalize().toString)
+      .mkString(java.io.File.pathSeparator)
     Vector(javaExe(javaHome)) ++
       jdk23PlusUnsafeOpts(javaHome) ++
       jvmArgs.value ++
-      Option.when(cp.nonEmpty)(Vector("-cp", cp.mkString(java.io.File.pathSeparator)))
+      Option.when(cp.nonEmpty)(Vector("-cp", cpStr))
         .getOrElse(Vector.empty) ++
       Vector(mainClass) ++
       mainArgs.value
