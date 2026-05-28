@@ -5281,6 +5281,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/scalalib/scalafmt/ScalafmtWorkerModule$.html#millDiscover-0","e":false,"i":"","n":"millDiscover","t":"millDiscover: Discover","d":"mill.scalalib.scalafmt.ScalafmtWorkerModule","k":"val","x":""},
 {"l":"mill/scalalib/scalafmt/ScalafmtWorkerModule$.html#scalafmtClassLoader-0","e":false,"i":"","n":"scalafmtClassLoader","t":"scalafmtClassLoader: Worker[URLClassLoader]","d":"mill.scalalib.scalafmt.ScalafmtWorkerModule","k":"def","x":""},
 {"l":"mill/scalalib/scalafmt/ScalafmtWorkerModule$.html#scalafmtClasspath-0","e":false,"i":"","n":"scalafmtClasspath","t":"scalafmtClasspath: Simple[Seq[PathRef]]","d":"mill.scalalib.scalafmt.ScalafmtWorkerModule","k":"def","x":""},
+{"l":"mill/scalalib/scalafmt/ScalafmtWorkerModule$.html#scalafmtWorkerClasspath-0","e":false,"i":"","n":"scalafmtWorkerClasspath","t":"scalafmtWorkerClasspath: Simple[Seq[PathRef]]","d":"mill.scalalib.scalafmt.ScalafmtWorkerModule","k":"def","x":""},
 {"l":"mill/scalalib/scalafmt/ScalafmtWorkerModule$.html#worker-0","e":false,"i":"","n":"worker","t":"worker: Worker[ScalafmtWorker]","d":"mill.scalalib.scalafmt.ScalafmtWorkerModule","k":"def","x":""},
 {"l":"mill/scalalib/Dependency$.html#","e":false,"i":"","n":"Dependency","t":"Dependency extends Alias","d":"mill.scalalib","k":"object","x":""},
 {"l":"mill/scalalib/MavenPublishModule$.html#","e":false,"i":"","n":"MavenPublishModule","t":"MavenPublishModule extends Alias","d":"mill.scalalib","k":"object","x":""},
