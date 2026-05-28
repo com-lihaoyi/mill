@@ -1,0 +1,16 @@
+package build
+
+import mill.*
+import kotlinlib.*
+
+trait BaseModule extends KotlinModule {
+  def kotlinVersion = "2.3.21"
+
+  override def kotlinUseEmbeddableCompiler: T[Boolean] = Task { true }
+}
+
+object model extends BaseModule
+
+object consumer extends BaseModule {
+  def moduleDeps = Seq(model)
+}
