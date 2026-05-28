@@ -313,7 +313,14 @@ trait KotlinJsModule extends KotlinModule { outer =>
 //        (allKotlinSourceFiles.map(_.path.toIO.getAbsolutePath), Seq())
 //    }
 
-    val includeArgs = irClasspath.map(p => s"-Xinclude=${p.path}").toSeq
+    // Real absolute on-disk paths in the kotlinc-js classpath / `-Xinclude` /
+    // source list. On reproducible-2 the `os.Path` -> String conversion (via
+    // shellable / `.toString`) relativizes paths to `../mill-workspace/...`,
+    // which kotlinc's klib loader resolves against its own cwd and silently
+    // can't find — manifesting as "unresolved reference 'AnnotationRetention'"
+    // when kotlin-stdlib-js.klib is missing from the effective classpath.
+    def absStr(p: os.Path): String = p.wrapped.toAbsolutePath.normalize().toString
+    val includeArgs = irClasspath.map(p => s"-Xinclude=${absStr(p.path)}").toSeq
     val inputFiles = irClasspath.fold(allKotlinSourceFiles.map(_.path))(_ => Seq())
 
     val librariesCp = librariesClasspath.map(_.path)
@@ -322,7 +329,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     val innerCompilerArgs = Seq.newBuilder[String]
     // classpath
-    innerCompilerArgs ++= Seq("-libraries", librariesCp.iterator.mkString(File.pathSeparator))
+    innerCompilerArgs ++= Seq("-libraries", librariesCp.iterator.map(absStr).mkString(File.pathSeparator))
     innerCompilerArgs ++= Seq("-main", if (callMain) "call" else "noCall")
     if (moduleKind != ModuleKind.NoModule) {
       innerCompilerArgs ++= Seq(

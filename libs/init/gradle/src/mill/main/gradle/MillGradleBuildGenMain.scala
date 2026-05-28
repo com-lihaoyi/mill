@@ -60,12 +60,22 @@ object MillGradleBuildGenMain {
         conn
       case conn => conn
     }
+    // Pass Gradle real absolute Files for the project directory and JDK home.
+    // On reproducible-2 `os.Path#toIO` returns the relativized
+    // `..\mill-workspace\...` / `..\mill-home\...` form, which Gradle then
+    // resolves against its own cwd — failing on Windows where the symlink
+    // alias cannot be created without developer mode (the cwd is also nested
+    // under the daemon sandbox, so the resolution doesn't reach a real path).
+    val gradleWorkspaceFile = gradleWorkspace.wrapped.toFile
+    val gradleJavaHomeFile = macosJdkBundleHome(
+      Jvm.resolveJavaHome(gradleJvmId).get
+    ).wrapped.toFile
     var packages =
-      try Using.resource(gradleConnector.forProjectDirectory(gradleWorkspace.toIO).connect) {
+      try Using.resource(gradleConnector.forProjectDirectory(gradleWorkspaceFile).connect) {
           connection =>
             val model = connection.model(classOf[BuildModel])
               .addArguments("--init-script", initScript.toString)
-              .setJavaHome(macosJdkBundleHome(Jvm.resolveJavaHome(gradleJvmId).get).toIO)
+              .setJavaHome(gradleJavaHomeFile)
               .setStandardOutput(System.out).get
             upickle.default.read[Seq[PackageSpec]](model.asJson)
         }

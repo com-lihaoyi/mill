@@ -179,7 +179,13 @@ object Util {
     val headerDataOpt = mill.api.BuildCtx.withFilesystemCheckerDisabled {
       if (!os.exists(scriptFile)) Result.Success("")
       else mill.api.ExecResult.catchWrapException {
-        mill.constants.Util.readBuildHeader(scriptFile.toNIO, scriptFile.last, true)
+        // Pass the Java-side helper `scriptFile.wrapped` (un-relativized NIO
+        // path) rather than `.toNIO` — on reproducible-2 the latter returns a
+        // `../mill-workspace/...` form that `readBuildHeader` (plain Java IO)
+        // can't open. This causes yaml header data to silently come back empty,
+        // so generated meta-build code drops user-set keys like `scalaVersion`
+        // and `show foo.bar.scalaVersion` fails with "configuration missing".
+        mill.constants.Util.readBuildHeader(scriptFile.wrapped, scriptFile.last, true)
           .replace("\r", "")
       }
     }
@@ -371,7 +377,7 @@ object Util {
       .map(name => projectRoot / name)
       .find(os.exists)
       .exists { buildFile =>
-        val headerData = mill.constants.Util.readBuildHeader(buildFile.toNIO, buildFile.last)
+        val headerData = mill.constants.Util.readBuildHeader(buildFile.wrapped, buildFile.last)
         parseBuildHeaderValue[Boolean](headerData, configKey, default = false)
       }
   }

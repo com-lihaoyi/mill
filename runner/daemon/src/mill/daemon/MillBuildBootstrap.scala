@@ -1017,7 +1017,10 @@ object MillBuildBootstrap {
   ): Option[(java.nio.file.Path, String)] = {
     val p = currentRoot / ".." / fileName
     Option.when(os.exists(p)) {
-      p.toNIO -> mill.constants.Util.readBuildHeader(p.toNIO, fileName)
+      // `p.wrapped` gives the un-relativized NIO path; on reproducible-2
+      // `.toNIO` would yield the `../mill-workspace/...` alias form that
+      // `readBuildHeader` (plain Java IO) cannot open from the daemon cwd.
+      p.wrapped -> mill.constants.Util.readBuildHeader(p.wrapped, fileName)
     }
   }
 

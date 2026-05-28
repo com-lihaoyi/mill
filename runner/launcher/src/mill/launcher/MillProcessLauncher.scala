@@ -217,7 +217,11 @@ object MillProcessLauncher {
         .find(os.exists(_))
         .map { buildFile =>
           val fileName = buildFile.last
-          val headerData = Util.readBuildHeader(buildFile.toNIO, fileName)
+          // Pass `buildFile.wrapped` (un-relativized NIO path) to the Java-side
+          // Util helper, which doesn't go through the os-lib path serializer
+          // and would otherwise see a relative `../mill-workspace/...` path it
+          // can't resolve from the launcher's cwd.
+          val headerData = Util.readBuildHeader(buildFile.wrapped, fileName)
           parseConfigFromHeader(headerData, key, env)
         }
         .getOrElse(Seq.empty)

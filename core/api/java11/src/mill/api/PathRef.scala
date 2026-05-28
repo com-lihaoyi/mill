@@ -141,7 +141,12 @@ object PathRef {
               if (quick) {
                 val value = (attrs.mtime, attrs.size).hashCode()
                 updateWithInt(value)
-              } else if (!os.isLink(path) && jnio.Files.isReadable(path.toNIO)) {
+              } else if (!os.isLink(path) && jnio.Files.isReadable(path.wrapped)) {
+                // `path.wrapped` (un-relativized NIO path) — `.toNIO` on
+                // reproducible-2 returns the `../mill-workspace/...` form, which
+                // `Files.isReadable` resolves against the caller's cwd and can
+                // silently return `false`, dropping the file's content from
+                // the PathRef sig and breaking change detection.
                 val is =
                   try Some(os.read.inputStream(path))
                   catch {
