@@ -327,11 +327,14 @@ trait ClientServerTestsBase extends TestSuite {
           res1.err == s"HELLOworld$ENDL"
         )
 
-        // Mangle the version file to simulate a version mismatch
+        // Mangle the version file to simulate a version mismatch. Must include
+        // every field of `DaemonConfig`, else `upickle` parse fails, the launcher
+        // catches the exception, treats the stored config as unreadable, and
+        // skips the mismatch-detection branch entirely.
         val fingerprintFile = res1.daemonDir / DaemonFiles.daemonLaunchFingerprint
         os.write.over(
           fingerprintFile,
-          """{"millVersion": "wrong-version", "javaVersion": "", "jvmOpts": [], "millRepositories": []}"""
+          """{"millVersion": "wrong-version", "javaVersion": "", "jvmOpts": [], "millRepositories": [], "pathRelativizerBase": ""}"""
         )
 
         // Second client should detect mismatch, terminate old server, and spawn new one (pid:-2)

@@ -116,11 +116,21 @@ trait DistModule extends RunModule {
 
   def executable = Task {
     val rawExecutable = executableRaw()
+    // Embed real absolute paths in the generated launcher script. On
+    // reproducible-2 `os.Path.toString` / `.toNIO` return the relativized
+    // `../mill-workspace/...` form, which is unusable from inside a launcher
+    // that may be invoked from any cwd (notably example/integration test
+    // sandboxes, where `../mill-workspace/out/dist/raw/executableRaw.dest/mill`
+    // does not exist).
+    val rawExecutableAbs =
+      rawExecutable.path.wrapped.toAbsolutePath.normalize().toString
+    val localRepoUri =
+      localRepo().path.wrapped.toUri.toASCIIString
     if (Properties.isWin) {
       val launcher = Task.dest / "mill.bat"
       val launcherContent =
         s"""@echo off
-           |set "NEW_COURSIER_REPOSITORIES=${localRepo().path.toNIO.toUri.toASCIIString}|ivy2Local|central"
+           |set "NEW_COURSIER_REPOSITORIES=$localRepoUri|ivy2Local|central"
            |if defined COURSIER_REPOSITORIES (
            |  set "NEW_COURSIER_REPOSITORIES=%NEW_COURSIER_REPOSITORIES%|%COURSIER_REPOSITORIES%"
            |) else (
@@ -128,7 +138,7 @@ trait DistModule extends RunModule {
            |)
            |set "COURSIER_REPOSITORIES=%NEW_COURSIER_REPOSITORIES%"
            |set NEW_COURSIER_REPOSITORIES=
-           |"${rawExecutable.path.toString.replace("\"", "\\\"")}" %*
+           |"${rawExecutableAbs.replace("\"", "\\\"")}" %*
            |if errorlevel 1 exit /b %errorlevel%
            |""".stripMargin
       os.write(launcher, launcherContent)
@@ -138,8 +148,8 @@ trait DistModule extends RunModule {
       val launcherContent =
         s"""#!/usr/bin/env bash
            |set -e
-           |export COURSIER_REPOSITORIES="${localRepo().path.toNIO.toUri.toASCIIString}|$${COURSIER_REPOSITORIES:-ivy2Local|central}"
-           |exec '${rawExecutable.path.toString.replace("'", "\\'")}' "$$@"
+           |export COURSIER_REPOSITORIES="$localRepoUri|$${COURSIER_REPOSITORIES:-ivy2Local|central}"
+           |exec '${rawExecutableAbs.replace("'", "\\'")}' "$$@"
            |""".stripMargin
       os.write(launcher, launcherContent)
       val perms = Files.getPosixFilePermissions(launcher.toNIO)
