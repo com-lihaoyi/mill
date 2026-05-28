@@ -60,13 +60,15 @@ fi
 echo "spark-submit is installed. Running the Spark application..."
 
 # Spark 4.x may be installed globally, but this example is built against Spark 3.x/Scala 2.12.
-# Fallback to running the assembled app directly when spark-submit major version is incompatible.
+# When the globally-installed spark-submit is the wrong major version, install Spark 3.x
+# locally and use that instead. (Falling back to bare `java -cp jar` doesn't work because
+# Spark/Hadoop calls `Subject.getSubject(AccessControlContext)`, which throws
+# `UnsupportedOperationException` on JDK 24+.)
 SPARK_VERSION_LINE="$(spark-submit --version 2>&1 | grep -E 'version [0-9]+\.[0-9]+' | head -1 || true)"
 SPARK_MAJOR="$(echo "$SPARK_VERSION_LINE" | sed -E 's/.*version ([0-9]+)\..*/\1/' || true)"
 if [ "$SPARK_MAJOR" != "3" ]; then
-  echo "spark-submit version is not Spark 3.x (detected: ${SPARK_VERSION_LINE:-unknown}); running app directly."
-  java --add-opens java.base/sun.nio.ch=ALL-UNNAMED -cp "$JAR_PATH" "$MAIN_CLASS" "$@"
-  exit $?
+  echo "spark-submit version is not Spark 3.x (detected: ${SPARK_VERSION_LINE:-unknown}); installing Spark 3 locally."
+  install_spark_manual
 fi
 
 # Run spark-submit, forwarding any additional arguments (e.g., resource path) to the application

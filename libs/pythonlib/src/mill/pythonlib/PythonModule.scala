@@ -161,7 +161,7 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
       "PYTHONPYCACHEPREFIX" -> PythonModule.realAbs(Task.dest / "cache"),
       if (Task.log.prompt.colored) { "FORCE_COLOR" -> "1" }
       else { "NO_COLOR" -> "1" }
-    )
+    ) ++ javaHome().map(jh => "JAVA_HOME" -> PythonModule.realAbs(jh.path))
   }
 
   /**

@@ -3,6 +3,10 @@ import mill.*, pythonlib.*
 
 object foo extends PythonModule {
 
+  // PySpark + bundled Hadoop call `Subject.getSubject(AccessControlContext)`,
+  // which throws `UnsupportedOperationException` on JDK 24+. Pin the JDK
+  // PySpark launches to JDK 21 (via `JAVA_HOME`) until Spark/Hadoop catch up.
+  def jvmId = "zulu:21"
   def mainScript = Task.Source("src/foo.py")
   def pythonDeps = Seq("pyspark==4.0.1")
 
