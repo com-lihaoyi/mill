@@ -393,15 +393,24 @@ trait GroupExecution {
 
         // Helper to evaluate the task with full caching support
         def evaluateTaskWithCaching(): GroupExecution.Results = {
-          // Tasks with side effects (non-zero `sideHash`) are not reproducible from
-          // cache, so skip loading their cached output and force a recompute.
+          // Always load the on-disk cache so we have the previously stored
+          // `valueHash` for `valueHashChanged` comparison, but for
+          // input/source tasks (and other side-effecting tasks) drop the
+          // cached value — they must re-evaluate every run (Task.Input reads
+          // filesystem/env state and the cached PathRef sigs are not
+          // revalidated, so reusing the cached value silently bypasses real
+          // changes). Earlier code bypassed `loadCachedJson` entirely for
+          // any side-effecting task; that left `valueHashChanged` always
+          // true (no prev valueHash to compare against), which on reproducible-2
+          // — where `Task.Input.sideHash = 31337` is stable — propagated into
+          // the invalidation tree as spurious `coursierEnv`/`useFileLocks`/
+          // `zincLogDebug` roots.
           def loadCached(): Option[(Int, Option[(Val, Seq[PathRef])], Int)] =
-            Option.when(!hasSideEffects)(loadCachedJson(
-              logger,
-              inputsHash,
-              labelled,
-              paths
-            )).flatten
+            loadCachedJson(logger, inputsHash, labelled, paths)
+              .map { case (prevInputsHash, valOpt, valueHash) =>
+                if (hasSideEffects) (prevInputsHash, None, valueHash)
+                else (prevInputsHash, valOpt, valueHash)
+              }
 
           def loadCachedOrWorker(
               cached: Option[(Int, Option[(Val, Seq[PathRef])], Int)],
@@ -899,7 +908,12 @@ trait GroupExecution {
   ): Option[(Int, Option[(Val, Seq[PathRef])], Int)] = {
     for {
       cached <-
-        try Some(upickle.read[Cached](paths.meta.toIO, trace = false))
+        // Use `.wrapped.toFile` (real absolute on-disk path) rather than `.toIO`.
+        // On reproducible-2 the os-lib serializer relativizes `.toIO` to a
+        // `../mill-workspace/...` form, which Java's file-reading APIs cannot
+        // resolve from the daemon's cwd, so every cache lookup silently fails
+        // with NoSuchFileException.
+        try Some(upickle.read[Cached](paths.meta.wrapped.toFile, trace = false))
         catch {
           case NonFatal(_) => None
         }
