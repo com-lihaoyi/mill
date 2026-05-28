@@ -1,10 +1,16 @@
 package mill.scalalib.scalafmt.worker
 
 import mill.scalalib.scalafmt.ScalafmtWorker
-import mill.api.daemon.*
-import mill.api.*
-import org.scalafmt.interfaces.*
+import mill.api.daemon.Result
+import mill.api.{PathRef, TaskCtx}
 import org.scalafmt.dynamic.coursier.CoursierDependencyDownloader
+import org.scalafmt.interfaces.{
+  RepositoryPackageDownloaderFactory,
+  RepositoryProperties,
+  Scalafmt,
+  ScalafmtReporter
+}
+
 import scala.collection.mutable
 
 private[scalafmt] class ScalafmtWorkerImpl() extends ScalafmtWorker {
@@ -21,10 +27,6 @@ private[scalafmt] class ScalafmtWorkerImpl() extends ScalafmtWorker {
           CoursierDependencyDownloader(Seq.empty)
       }
     )
-
-//  val scalafmt = cl.loadClass("org.scalafmt.interfaces.Scalafmt")
-//    .getMethod("create", classOf[java.lang.ClassLoader])
-//    .invoke(null, cl)
 
   override def reformat(input: Seq[PathRef], scalafmtConfig: PathRef)(using ctx: TaskCtx): Unit = {
     reformatAction(input, scalafmtConfig, dryRun = false)
