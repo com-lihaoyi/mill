@@ -161,7 +161,7 @@ object Deps {
   val jnaPlatform = mvn"net.java.dev.jna:jna-platform:${jnaVersion}"
 
   val junitInterface = mvn"com.github.sbt:junit-interface:0.13.3"
-  val commonsIo = mvn"commons-io:commons-io:2.21.0"
+  val commonsIo = mvn"commons-io:commons-io:2.22.0"
   val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.25.1"
   val osLib = mvn"com.lihaoyi::os-lib:0.11.8"
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:${osLib.version}"
