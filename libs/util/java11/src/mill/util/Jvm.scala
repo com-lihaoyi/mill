@@ -57,9 +57,7 @@ object Jvm {
     catch { case _: java.io.IOException => realAbs(p) }
 
   /** Same as [[realAbsResolved]] but returns an [[os.Path]] (falls back to the input on IO error). */
-  def realAbsResolvedPath(p: os.Path): os.Path =
-    try os.Path(p.wrapped.toRealPath())
-    catch { case _: java.io.IOException => p }
+  def realAbsResolvedPath(p: os.Path): os.Path = PathAliasing.canonicalize(p)
 
   /**
    * Runs a JVM subprocess with the given configuration and returns a

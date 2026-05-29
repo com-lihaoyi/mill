@@ -38,7 +38,7 @@ object `package` extends KotlinModule {
     def mvnDeps = Seq(
       mvn"io.kotest:kotest-runner-junit5:5.9.1"
     )
-    def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.wrapped.toString)
+    def forkEnv = Map("HELLO_WORLD_BINARY" -> Jvm.realAbs(nativeCompiled()))
   }
 }
 

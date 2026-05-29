@@ -106,7 +106,7 @@ trait GroupExecution {
     // (in reproducible mode) compare equal to their real on-disk form. Both sides of the
     // `startsWith`/`==` checks below must be canonicalized, else a workspace under a symlinked
     // prefix (e.g. macOS `/tmp` -> `/private/tmp`) would silently fail to match.
-    def canonical(p: os.Path): os.Path = if (os.exists(p)) os.Path(p.toNIO.toRealPath()) else p
+    def canonical(p: os.Path): os.Path = PathAliasing.canonicalize(p)
     val canonicalWorkspace = canonical(workspace)
     val canonicalRootBuildYaml =
       canonical(os.Path(rootModule.moduleDirJava) / os.up / "build.mill.yaml")
@@ -541,18 +541,28 @@ trait GroupExecution {
                     )
                   }
 
-                val (valueHash, serializedPaths, success) = newResults(labelled) match {
-                  case ExecResult.Success((v, _)) =>
-                    val (valueHash, serializedPaths) =
-                      handleTaskResult(v, paths.meta, inputsHash, labelled)
-                    (valueHash, serializedPaths, true)
+                val (valueHash, serializedPaths, success, finalResults) =
+                  newResults(labelled) match {
+                    case ExecResult.Success((v, _)) =>
+                      val (valueHash, serializedPaths) =
+                        handleTaskResult(v, paths.meta, inputsHash, labelled)
+                      // Reuse `handleTaskResult`'s hash (derived from the JSON it writes) as the
+                      // terminal's downstream value hash too — the `0` placeholder stored by
+                      // `executeGroup` is patched here — so cache and downstream consumers agree
+                      // on a single serialization rather than hashing the value twice.
+                      (
+                        valueHash,
+                        serializedPaths,
+                        true,
+                        newResults.updated(labelled, ExecResult.Success((v, valueHash)))
+                      )
 
-                  case _ =>
-                    // Stale meta.json paired with a borked destPath would be
-                    // mistaken for a clean cache on the next run.
-                    os.remove.all(paths.meta)
-                    (0, Nil, false)
-                }
+                    case _ =>
+                      // Stale meta.json paired with a borked destPath would be
+                      // mistaken for a clean cache on the next run.
+                      os.remove.all(paths.meta)
+                      (0, Nil, false, newResults)
+                  }
 
                 if (success) {
                   leaseTracker.retain(
@@ -565,7 +575,7 @@ trait GroupExecution {
                 }
 
                 GroupExecution.Results(
-                  newResults = newResults,
+                  newResults = finalResults,
                   newEvaluated = newEvaluated.toSeq,
                   cached =
                     if (
@@ -803,7 +813,16 @@ trait GroupExecution {
         }
       }
 
-      newResults(task) = for (v <- res) yield (v, getValueHash(v, task, inputsHash))
+      newResults(task) = for (v <- res) yield {
+        // A Named terminal's value hash is (re)computed from the serialized JSON by
+        // `handleTaskResult` in the caching path, which patches it back into the results map.
+        // Skip the redundant serialization here; non-terminal tasks (and non-Named terminals,
+        // whose results are consumed as-is) still need their hash computed now.
+        val hash =
+          if ((task eq terminal) && terminal.isInstanceOf[Task.Named[?]]) 0
+          else getValueHash(v, task, inputsHash)
+        (v, hash)
+      }
     }
 
     fileLoggerOpt.foreach(_.close())
@@ -833,8 +852,9 @@ trait GroupExecution {
 
   /**
    * Serialize and cache the terminal task's result, returning its `valueHash` and serialized
-   * paths. The `valueHash` is derived from the same JSON we write (so it matches
-   * [[getValueHash]]'s writer branch without serializing the value a second time).
+   * paths. The `valueHash` is derived from the same JSON we write, so the value is serialized
+   * once: the caller patches this hash back into the results map (where `executeGroup` left a
+   * placeholder for the terminal) instead of recomputing it via [[getValueHash]].
    */
   private def handleTaskResult(
       v: Val,
@@ -965,16 +985,23 @@ trait GroupExecution {
     else {
       // Hash the serialized JSON form when the task has a writer, so semantically-equal
       // values with different in-memory hashes (e.g. `Map` iteration order) compare equal.
-      // For the terminal task this serialization is shared with `handleTaskResult` (which
-      // hashes the same JSON it writes); this method is the fallback path for the other
-      // group tasks. Guard against a writer that throws — fall back to the in-memory hash
-      // rather than failing the whole group here.
+      // This is the hashing path for non-terminal tasks and non-Named terminals; the Named
+      // terminal instead reuses `handleTaskResult`'s hash of the JSON it writes. Guard against
+      // a writer that throws — fall back to the in-memory hash rather than failing the whole
+      // group, but warn since `v.##` is not reproducible and would defeat a shared cache.
       val base = task match {
         case named: Task.Named[_] if named.writerOpt.isDefined =>
           try upickle.writeJs(v.value)(using
               named.writerOpt.get.asInstanceOf[upickle.Writer[Any]]
             ).hashCode()
-          catch { case NonFatal(_) => v.## }
+          catch {
+            case NonFatal(e) =>
+              mill.api.daemon.SystemStreams.current.value.err.println(
+                s"Warning: failed to serialize $task for hashing ($e); " +
+                  "falling back to a non-reproducible in-memory hash."
+              )
+              v.##
+          }
         case _ => v.##
       }
       base + invalidateAllHashes

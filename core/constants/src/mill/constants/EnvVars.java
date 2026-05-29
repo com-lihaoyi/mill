@@ -51,7 +51,8 @@ public class EnvVars {
 
   /**
    * Used by OS-Lib to relativize and de-relativize path serialization across
-   * process / classloader boundaries.
+   * process / classloader boundaries. Set to the empty string to opt out, so a
+   * subprocess serializes paths in their absolute (non-relativized) form.
    */
   public static final String OS_LIB_PATH_RELATIVIZER_BASE = "OS_LIB_PATH_RELATIVIZER_BASE";
 

@@ -12,6 +12,17 @@ object PathAliasing {
   private def realAbs(p: os.Path): String = p.wrapped.toAbsolutePath.normalize().toString
 
   /**
+   * Resolve `p` to its real on-disk form (following symlinks), falling back to `p` unchanged when
+   * it does not exist or cannot be resolved. Use to canonicalize paths that may arrive via the
+   * `mill-workspace`/`mill-home` alias symlinks (or platform-level symlinks such as macOS
+   * `/tmp` -> `/private/tmp`) before comparing them with `==`/`startsWith`. Resolves against
+   * `.wrapped` (the real absolute path), never the relativized alias form.
+   */
+  def canonicalize(p: os.Path): os.Path =
+    try os.Path(p.wrapped.toRealPath())
+    catch { case _: java.io.IOException => p }
+
+  /**
    * The standard Mill (abs, alias) mappings: `workspace -> ../mill-workspace`, `home -> ../mill-home`.
    * Suitable for `os.Path.pathRemapSerializerNio` (after `.toNIO`-ing each side) and for
    * [[ensureProcessCwdAliases]]'s symlink installation.

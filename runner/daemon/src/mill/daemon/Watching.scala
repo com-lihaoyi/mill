@@ -185,8 +185,12 @@ object Watching {
         // Canonicalise so paths routed through the `mill-workspace` alias symlink and paths
         // through platform-level symlinks (e.g. `/tmp` -> `/private/tmp`) compare equal —
         // otherwise `recursiveWatches` rejects every subdir and `--watch` misses changes to
-        // `Task.Source`/`Task.Sources` files in subdirectories.
-        val canonical: os.Path => os.Path = Jvm.realAbsResolvedPath
+        // `Task.Source`/`Task.Sources` files in subdirectories. Memoized: the `filter`/`onEvent`
+        // callbacks fire per filesystem event, and each `realAbsResolvedPath` is a `toRealPath`
+        // syscall, so cache results rather than re-resolving the same path on every event.
+        val canonicalCache = new java.util.concurrent.ConcurrentHashMap[os.Path, os.Path]()
+        val canonical: os.Path => os.Path =
+          p => canonicalCache.computeIfAbsent(p, Jvm.realAbsResolvedPath(_))
 
         val canonicalFilterPaths = filterPaths.map(canonical)
         val canonicalWatchedPathsSet = watchedPathsSet.map(canonical)

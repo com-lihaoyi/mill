@@ -11,7 +11,6 @@ import mill.api.internal.PathAliasing
 import mill.resolve.Resolve
 import mill.api.internal.ParseArgs
 import mill.eval.SelectiveExecutionImpl.transitiveNamedSelective
-import scala.util.Try
 
 /**
  * [[EvaluatorImpl]] is the primary API through which a user interacts with the Mill
@@ -244,9 +243,8 @@ final class EvaluatorImpl(
       // under a symlinked prefix (e.g. macOS `/tmp` -> `/private/tmp`). Resolving only one side
       // would make the comparison silently fail. We compare the workspace-relative form so the
       // check is immune to a shared symlinked prefix.
-      def canonical(p: os.Path): os.Path =
-        Try(if (os.exists(p)) os.Path(p.toNIO.toRealPath()) else p).getOrElse(p)
-      val relFilePath = canonical(filePath).relativeTo(canonical(workspace))
+      val relFilePath =
+        PathAliasing.canonicalize(filePath).relativeTo(PathAliasing.canonicalize(workspace))
       val isRootBuildFile =
         relFilePath == os.sub / "build.mill.yaml" ||
           relFilePath == os.sub / "mill-build" / "build.mill"
