@@ -39,9 +39,8 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
     val dest = Task.dest
 
     val executeableName = "native-executable"
-    // `realAbsResolved`: `native-image` scans classpath JARs' on-disk paths for
-    // build-time-init directives in their `META-INF/native-image/...`; the alias form is
-    // not resolved for that scan.
+    // `realAbsResolved`: `native-image` scans classpath JARs' on-disk paths for build-time-init
+    // directives in their `META-INF/native-image/...`; the alias form is not resolved for that scan.
     val toolPath = nativeImageTool().path
     val command = Seq.newBuilder[String]
       .+=(realAbsResolved(toolPath))
@@ -119,10 +118,7 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
     val configurationDirectoriesArg = if (configurations.isEmpty) {
       Seq.empty[String]
     } else {
-      // Pass real, absolute on-disk paths to the `native-image` subprocess; in reproducible-build
-      // mode `os.Path.toString` is relativized to `out/mill-workspace/...` alias paths, which
-      // native-image cannot resolve as config directories.
-      // See the comment on `realAbsResolved` above — same scanning-by-on-disk-path issue.
+      // `realAbsResolved`: same as above — native-image scans by on-disk path, alias form fails.
       val configurationFileDirectoriesValue =
         configurations.map(c => realAbsResolved(c.metadataLocation)).mkString(",")
       Seq(s"-H:ConfigurationFileDirectories=$configurationFileDirectoriesValue")
@@ -364,10 +360,8 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
     nativeExcludedConfigJars()
       .distinct
       .flatMap { file =>
-        // The `\Q...\E` literal must match the (absolute) classpath jar path native-image sees;
-        // in reproducible-build mode `os.Path.toString` is relativized to an `out/mill-home/...`
-        // alias path that would never match, so the netty/etc. config exclusion silently no-ops
-        // (causing native-image failures). Use the symlink-resolved on-disk path.
+        // `realAbsResolved`: the `\Q...\E` literal must match the on-disk jar path native-image
+        // sees; the alias form would never match and silently skip the exclusion.
         Seq(
           "--exclude-config",
           s"\\Q${realAbsResolved(file.path)}\\E",
