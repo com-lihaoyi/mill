@@ -341,16 +341,26 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
           s"Compiling ${kotlinSourceFiles.size} Kotlin sources ${extra}to ${classes.relativeTo(BuildCtx.workspaceRoot)} ..."
         )
 
+        // Use `.wrapped.toAbsolutePath.normalize().toString` rather than
+        // `.toIO.getAbsolutePath`: on reproducible-2, `.toIO` returns a
+        // relativized (`../mill-workspace/...`) File, and `getAbsolutePath`
+        // resolves that lexically against the JVM cwd (`out/mill-daemon/sandbox`),
+        // yielding a path like `<cwd>/../mill-workspace/...` that kotlinc reads
+        // through the alias symlink instead of the canonical workspace path —
+        // breaking classpath resolution (e.g. `unresolved reference 'AtomicReference'`)
+        // and confusing the multi-platform expect/actual checker (because the
+        // same source file gets visited via two different absolute paths).
+        def absStr(p: os.Path): String = p.wrapped.toAbsolutePath.normalize().toString
         val compilerArgs: Seq[String] = Seq(
           // destdir
-          Seq("-d", classes.toIO.getAbsolutePath),
+          Seq("-d", absStr(classes)),
           // apply multi-platform support (expect/actual)
           // TODO if there is penalty for activating it in the compiler, put it behind configuration flag
           Seq("-Xmulti-platform"),
           // classpath
           when(compileCpPaths.iterator.nonEmpty)(
             "-classpath",
-            compileCpPaths.iterator.map(_.toIO.getAbsolutePath).mkString(File.pathSeparator)
+            compileCpPaths.iterator.map(absStr).mkString(File.pathSeparator)
           ),
           allKotlincOptions(),
           extraKotlinArgs
@@ -452,13 +462,17 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
   protected def mandatoryKotlincOptions: T[Seq[String]] = Task {
     val languageVersion = kotlinLanguageVersion()
     val kotlinkotlinApiVersion = kotlinApiVersion()
-    val plugins = kotlincPluginJars().map(_.path.toIO.getAbsolutePath)
+    // Same `.wrapped.toAbsolutePath.normalize()` rationale as `compilerArgs`
+    // above: hand kotlinc real on-disk absolute paths, not the alias-routed
+    // `.toIO.getAbsolutePath` form that reproducible-2's relativizer produces.
+    def absStr(p: os.Path): String = p.wrapped.toAbsolutePath.normalize().toString
+    val plugins = kotlincPluginJars().map(pr => absStr(pr.path))
 
     val friendPathsOption = if (kotlinFriendModulesChecked.isEmpty) {
       Seq.empty[String]
     } else {
       val compilations = Task.traverse(kotlinFriendModulesChecked) { friend => friend.compile }()
-      Seq(compilations.map(_.classes.path.toString).mkString("-Xfriend-paths=", ",", ""))
+      Seq(compilations.map(c => absStr(c.classes.path)).mkString("-Xfriend-paths=", ",", ""))
     }
 
     Seq("-no-stdlib") ++
