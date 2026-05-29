@@ -20,6 +20,7 @@ object ScalaMixedProjectSemanticDbTests extends TestSuite {
     test("semanticDbData") {
       def requiredSemanticDbFiles: Set[String] = Set(
         os.sub / "META-INF/semanticdb/core/src/Foo.scala.semanticdb",
+        os.sub / "META-INF/semanticdb/core/src/JFoo.java.semanticdb",
         os.sub / "foo/JFoo.class",
         os.sub / "foo/Foo.class",
         os.sub / "foo/Foo$.class"

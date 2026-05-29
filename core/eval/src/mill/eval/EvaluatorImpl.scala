@@ -239,13 +239,17 @@ final class EvaluatorImpl(
       }
 
       val filePath = os.Path(module.moduleCtx.fileName, workspace)
-      val resolvedFilePath =
-        Try(if (os.exists(filePath)) os.Path(filePath.toNIO.toRealPath()) else filePath).getOrElse(
-          filePath
-        )
+      // Canonicalize both the file and the workspace before comparing: in reproducible mode the
+      // file may arrive via a `mill-workspace` alias symlink, and the workspace itself may sit
+      // under a symlinked prefix (e.g. macOS `/tmp` -> `/private/tmp`). Resolving only one side
+      // would make the comparison silently fail. We compare the workspace-relative form so the
+      // check is immune to a shared symlinked prefix.
+      def canonical(p: os.Path): os.Path =
+        Try(if (os.exists(p)) os.Path(p.toNIO.toRealPath()) else p).getOrElse(p)
+      val relFilePath = canonical(filePath).relativeTo(canonical(workspace))
       val isRootBuildFile =
-        resolvedFilePath == workspace / "build.mill.yaml" ||
-          resolvedFilePath == workspace / "mill-build" / "build.mill"
+        relFilePath == os.sub / "build.mill.yaml" ||
+          relFilePath == os.sub / "mill-build" / "build.mill"
 
       val millKeys = mill.constants.ConfigConstants.all()
       val validKeys =

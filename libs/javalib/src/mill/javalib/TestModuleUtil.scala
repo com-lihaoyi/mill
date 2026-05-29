@@ -148,11 +148,12 @@ final class TestModuleUtil(
 
     val argsFile = baseFolder / "testargs"
     val sandbox = baseFolder / "sandbox"
+    // Serialize the test args with real-absolute paths: the test runner subprocess runs with
+    // cwd = sandbox and reads this file before any alias symlinks are in scope, so relativized
+    // `../mill-workspace/...` forms would not resolve.
     os.write.over(
       argsFile,
-      os.Path.pathSerializer.withValue(
-        TestModuleUtil.unmangledPathSerializer
-      )(upickle.write(testArgs)),
+      PathAliasing.withRawPathSerializer(upickle.write(testArgs)),
       createFolders = true
     )
 
@@ -445,15 +446,6 @@ final class TestModuleUtil(
 }
 
 private[mill] object TestModuleUtil {
-  val unmangledPathSerializer: os.Path.Serializer = new os.Path.Serializer {
-    def serializeString(p: os.Path): String = p.wrapped.toString
-    def serializeFile(p: os.Path): java.io.File = p.wrapped.toFile
-    def serializePath(p: os.Path): java.nio.file.Path = p.wrapped
-    def deserialize(s: String): java.nio.file.Path = java.nio.file.Paths.get(s)
-    def deserialize(s: java.io.File): java.nio.file.Path = java.nio.file.Paths.get(s.getPath)
-    def deserialize(s: java.nio.file.Path): java.nio.file.Path = s
-    def deserialize(s: java.net.URI): java.nio.file.Path = java.nio.file.Paths.get(s)
-  }
 
   private[mill] def testSubprocessCount(
       testParallelism: Boolean,

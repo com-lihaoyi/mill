@@ -26,7 +26,11 @@ trait JsonFormatters {
   implicit val pathReadWrite: RW[os.Path] = upickle.readwriter[String]
     .bimap[os.Path](
       _.toString,
-      s => PathAliasing.resolveAliasedString(os.Path.pathSerializer.value.deserialize(s).toString)
+      // Invert `_.toString` (which may be a `../mill-workspace` alias under the relativizing
+      // serializer) by resolving the raw string directly, the same way `PathRef` does. Going
+      // through the serializer's `deserialize` first would resolve the alias against the wrong
+      // cwd when the active deserializer isn't the relativizer.
+      s => PathAliasing.resolveAliasedString(s)
     )
 
   implicit val relPathRW: RW[os.RelPath] = upickle.readwriter[String]

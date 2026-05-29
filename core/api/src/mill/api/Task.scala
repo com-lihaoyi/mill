@@ -49,7 +49,9 @@ sealed abstract class Task[T] extends Task.Ops[T] with Applyable[Task, T] with T
 
   /**
    * Even if this task's inputs did not change, does it need to re-evaluate
-   * anyway?
+   * anyway? A non-zero `sideHash` marks the task as side-effecting (see
+   * [[Task.sideEffectingHash]]): the execution layer re-reads it every run rather
+   * than serving a cached value. The default `0` means the task is pure/cacheable.
    */
   def sideHash: Int = 0
 
@@ -72,6 +74,16 @@ sealed abstract class Task[T] extends Task.Ops[T] with Applyable[Task, T] with T
 }
 
 object Task {
+
+  /**
+   * Sentinel [[Task.sideHash]] for side-effecting tasks (e.g. [[Task.Input]]) that must be
+   * re-evaluated every run regardless of whether their inputs changed. The execution layer
+   * treats any non-zero `sideHash` as "side-effecting" (see `GroupExecution`): it drops the
+   * cached value to force re-reading the filesystem/env, while keeping a stable hash so the
+   * re-read result can still be compared for downstream invalidation. The specific value is
+   * arbitrary; it only needs to be a fixed non-zero constant.
+   */
+  private[mill] val sideEffectingHash: Int = 31337
 
   type rename = mill.api.rename
 
@@ -587,7 +599,7 @@ object Task {
       val isPrivate: Option[Boolean]
   ) extends Simple[T] {
     val inputs = Nil
-    override def sideHash: Int = 31337
+    override def sideHash: Int = Task.sideEffectingHash
     // FIXME: deprecated return type: Change to Option
     override def writerOpt: Some[Writer[?]] = Some(writer)
     override private[mill] def isInputTask: Boolean = true

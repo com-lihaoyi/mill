@@ -102,12 +102,18 @@ trait GroupExecution {
   }
 
   val staticBuildOverrides: Map[String, Located[Appendable[BufferedValue]]] = {
+    // Resolve symlinks so that paths arriving via the `mill-workspace`/`mill-home` alias symlinks
+    // (in reproducible mode) compare equal to their real on-disk form. Both sides of the
+    // `startsWith`/`==` checks below must be canonicalized, else a workspace under a symlinked
+    // prefix (e.g. macOS `/tmp` -> `/private/tmp`) would silently fail to match.
+    def canonical(p: os.Path): os.Path = if (os.exists(p)) os.Path(p.toNIO.toRealPath()) else p
+    val canonicalWorkspace = canonical(workspace)
+    val canonicalRootBuildYaml =
+      canonical(os.Path(rootModule.moduleDirJava) / os.up / "build.mill.yaml")
     staticBuildOverrideFiles
       .flatMap { case (path0, rawText) =>
-        // Resolve through any `mill-workspace`/`mill-home` alias symlinks so the path matches
-        // `workspace` (the real on-disk root) when we check `startsWith` below.
         val path = os.Path(path0, os.pwd)
-        val resolvedPath = if (os.exists(path)) os.Path(path.toNIO.toRealPath()) else path
+        val resolvedPath = canonical(path)
         val headerDataReader = mill.api.internal.HeaderData.headerDataReader(resolvedPath)
 
         def rec(
@@ -167,10 +173,10 @@ trait GroupExecution {
           true,
           -1
         )
-        if ((resolvedPath / "..").startsWith(workspace)) {
+        if ((resolvedPath / "..").startsWith(canonicalWorkspace)) {
           rec(
-            (resolvedPath / "..").subRelativeTo(workspace).segments,
-            if (resolvedPath == os.Path(rootModule.moduleDirJava) / "../build.mill.yaml") {
+            (resolvedPath / "..").subRelativeTo(canonicalWorkspace).segments,
+            if (resolvedPath == canonicalRootBuildYaml) {
               parsed0
                 .value0
                 .collectFirst { case (BufferedValue.Str("mill-build", _), v) => v }
@@ -248,6 +254,9 @@ trait GroupExecution {
       upstreamPathRefs: collection.Seq[PathRef],
       leaseTracker: Execution.LeaseTracker
   ): GroupExecution.Results = {
+    // Fold the group's `sideHash`es into a single order-independent (commutative sum) value for
+    // `inputsHash`, and note whether any task is side-effecting (non-zero `sideHash`, see
+    // `Task.sideEffectingHash`) so we can force it to re-read rather than serve a cached value.
     val (sideHashes, hasSideEffects) = group.iterator.foldLeft((0, false)) { case ((sum, has), t) =>
       val sideHash = t.sideHash
       (sum + sideHash, has || sideHash != 0)
@@ -534,9 +543,8 @@ trait GroupExecution {
 
                 val (valueHash, serializedPaths, success) = newResults(labelled) match {
                   case ExecResult.Success((v, _)) =>
-                    val valueHash = getValueHash(v, terminal, inputsHash)
-                    val serializedPaths =
-                      handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
+                    val (valueHash, serializedPaths) =
+                      handleTaskResult(v, paths.meta, inputsHash, labelled)
                     (valueHash, serializedPaths, true)
 
                   case _ =>
@@ -823,13 +831,17 @@ trait GroupExecution {
   // classloader/class is the same or different doesn't matter.
   def workerCacheHash(inputHash: Int): Int = inputHash + classLoaderIdentityHash
 
+  /**
+   * Serialize and cache the terminal task's result, returning its `valueHash` and serialized
+   * paths. The `valueHash` is derived from the same JSON we write (so it matches
+   * [[getValueHash]]'s writer branch without serializing the value a second time).
+   */
   private def handleTaskResult(
       v: Val,
-      hashCode: Int,
       metaPath: os.Path,
       inputsHash: Int,
       labelled: Task.Named[?]
-  ): Seq[PathRef] = {
+  ): (Int, Seq[PathRef]) = {
     for (w <- labelled.asWorker) workerCache.synchronized {
       workerCache.update(w.ctx.segments.render, (workerCacheHash(inputsHash), v, labelled))
     }
@@ -848,10 +860,13 @@ trait GroupExecution {
 
     terminalResult match {
       case Some((json, serializedPaths)) =>
-        writeCacheJson(metaPath, json, hashCode, inputsHash)
-        serializedPaths
+        val valueHash =
+          if (labelled.isInstanceOf[Task.Worker[?]]) inputsHash
+          else json.hashCode() + invalidateAllHashes
+        writeCacheJson(metaPath, json, valueHash, inputsHash)
+        (valueHash, serializedPaths)
       case _ =>
-        Nil
+        (getValueHash(v, labelled, inputsHash), Nil)
     }
   }
 
@@ -950,11 +965,16 @@ trait GroupExecution {
     else {
       // Hash the serialized JSON form when the task has a writer, so semantically-equal
       // values with different in-memory hashes (e.g. `Map` iteration order) compare equal.
+      // For the terminal task this serialization is shared with `handleTaskResult` (which
+      // hashes the same JSON it writes); this method is the fallback path for the other
+      // group tasks. Guard against a writer that throws — fall back to the in-memory hash
+      // rather than failing the whole group here.
       val base = task match {
         case named: Task.Named[_] if named.writerOpt.isDefined =>
-          upickle.writeJs(v.value)(using
-            named.writerOpt.get.asInstanceOf[upickle.Writer[Any]]
-          ).hashCode()
+          try upickle.writeJs(v.value)(using
+              named.writerOpt.get.asInstanceOf[upickle.Writer[Any]]
+            ).hashCode()
+          catch { case NonFatal(_) => v.## }
         case _ => v.##
       }
       base + invalidateAllHashes
@@ -1079,23 +1099,38 @@ object GroupExecution {
       suffix.foldLeft(resolvedPrefix)(_ / _)
     }
 
+    // The alias symlink directory names (`mill-workspace`/`mill-home`). A checked path only needs
+    // the expensive real-path resolution if it actually routes through one of these symlinks;
+    // otherwise its in-memory form is already the real on-disk path.
+    private val aliasLinkNames =
+      Set(PathAliasing.workspaceAlias, PathAliasing.homeAlias).map(_.split('/').last)
+
     private def checkAccess(
         kind: String,
         path: os.Path,
-        validDests: Set[os.Path],
+        rawValidDests: Seq[os.Path],
+        normalizedValidDests: Set[os.Path],
         suffix: String
     ): Unit = {
-      val normalized = normalizeForCheck(path)
-      val inWorkspace = normalized.startsWith(normalizedWorkspace)
-      val allowed = validDests.exists(normalized.startsWith)
-      if (inWorkspace && !allowed) {
-        val display =
-          if (normalized.startsWith(normalizedWorkspace))
-            normalized.relativeTo(normalizedWorkspace).toString
-          else normalized.toString
-        sys.error(
-          s"$kind $display not allowed during execution of `$terminal`.\n$suffix"
+      if (!path.segments.exists(aliasLinkNames)) {
+        // Fast path (no filesystem IO): the path does not traverse an alias symlink, so it is
+        // already real (sharing any symlinked prefix with `workspace`). Compare lexically against
+        // the un-resolved workspace/dests. This is the overwhelmingly common case.
+        if (path.startsWith(workspace) && !rawValidDests.exists(path.startsWith))
+          sys.error(
+            s"$kind ${path.relativeTo(workspace)} not allowed during execution of `$terminal`.\n$suffix"
+          )
+      } else {
+        // The path routes through a `mill-workspace`/`mill-home` alias symlink: resolve it (and
+        // the workspace/dests, done once at construction) to real form before comparing.
+        val normalized = normalizeForCheck(path)
+        if (
+          normalized.startsWith(normalizedWorkspace) &&
+          !normalizedValidDests.exists(normalized.startsWith)
         )
+          sys.error(
+            s"$kind ${normalized.relativeTo(normalizedWorkspace)} not allowed during execution of `$terminal`.\n$suffix"
+          )
       }
     }
 
@@ -1104,6 +1139,7 @@ object GroupExecution {
         checkAccess(
           "Reading from",
           p,
+          validReadDests,
           normalizedReadDests,
           "You can only read files referenced by `Task.Source` or `Task.Sources`, or within a `Task.Input"
         )
@@ -1115,6 +1151,7 @@ object GroupExecution {
         checkAccess(
           "Writing to",
           path,
+          validWriteDests,
           normalizedWriteDests,
           "Normal `Task`s can only write to files within their `Task.dest` folder, only `Task.Command`s can write to other arbitrary files."
         )
@@ -1179,7 +1216,7 @@ object GroupExecution {
                   // For exclusive tasks, we print the task name once and then we disable the
                   // prompt/ticker so the output of the exclusive task can "clean" while still
                   // being identifiable
-                  logger.prompt.logPrefixedLine(Seq(counterMsg), new ByteArrayOutputStream(), false)
+                  logger.prompt.logPrefixedLine(Seq(counterMsg), ByteArrayOutputStream(), false)
                   logger.prompt.withPromptPaused {
                     t
                   }
