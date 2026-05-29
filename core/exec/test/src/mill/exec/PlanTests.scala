@@ -387,8 +387,10 @@ object PlanTests extends TestSuite {
     // `hasDropped` gates the per-task read-lock fast path: it must read false
     // whenever no read is dropped, so the common no-op build skips the O(n)
     // `reacquireDropped` scan (and the `executionContext.blocking` pool churn)
-    // entirely. This pins the counter bookkeeping across drop, reacquire, a
-    // redundant reacquire, and drain.
+    // entirely. `reacquireDropped`/`hasDropped` are backed by the
+    // `droppedStates` work-list, so this also pins that membership in step with
+    // the `dropped` flag across multi-drop, reacquire, redundant reacquire, and
+    // drain.
     test("leaseTrackerHasDroppedTracksDropReacquireAndDrain") {
       import transitiveLeaseChain.*
 
@@ -399,17 +401,21 @@ object PlanTests extends TestSuite {
       val locking = new TestLocking
       val aPath = Paths.get("/tmp/mill-lock-test/a")
       val bPath = Paths.get("/tmp/mill-lock-test/b")
+      val cPath = Paths.get("/tmp/mill-lock-test/c")
       val aKey = aPath.toAbsolutePath.normalize().toString
 
       tracker.retain(a, aPath, "a", new TestLease, 0L)
       tracker.retain(b, bPath, "b", new TestLease, 0L)
+      tracker.retain(c, cPath, "c", new TestLease, 0L)
       assert(!tracker.hasDropped)
 
-      // Drop everything sorting after `a` (i.e. `b`): counter flips to true.
+      // Drop everything sorting after `a` (both `b` and `c`): the work-list now
+      // holds two entries that `reacquireDropped` must iterate, not the whole
+      // graph.
       tracker.releaseHigherThan(aKey)
       assert(tracker.hasDropped)
 
-      // Clean reacquire (no version change, no contention) clears the drop.
+      // Clean reacquire (no version change, no contention) clears every drop.
       tracker.reacquireDropped(locking, LauncherLocking.WaitReporter.Noop)
       assert(!tracker.hasDropped)
 
@@ -417,8 +423,9 @@ object PlanTests extends TestSuite {
       tracker.reacquireDropped(locking, LauncherLocking.WaitReporter.Noop)
       assert(!tracker.hasDropped)
 
-      // Draining a still-dropped retained must also release its counter slot,
-      // otherwise `hasDropped` would stay stuck true and disable the fast path.
+      // Draining a still-dropped retained must also remove its `droppedStates`
+      // entry, otherwise `hasDropped` would stay stuck true and disable the
+      // fast path.
       tracker.releaseHigherThan(aKey)
       assert(tracker.hasDropped)
       tracker.drain()

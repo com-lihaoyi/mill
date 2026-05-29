@@ -546,28 +546,33 @@ object Execution {
 
     val states = new ConcurrentHashMap[Task[?], State]()
 
-    // Number of retained reads currently in the `dropped` state (released
-    // before a contended wait, not yet reacquired). The common no-op/no-
-    // contention build never drops anything, so this stays 0 and lets
-    // `reacquireDropped`/`hasDropped` short-circuit instead of scanning every
-    // task's `State` on each task's read-lock fast path — which was O(n) per
-    // task, i.e. O(n^2) over the whole graph (#7132 follow-up).
-    private val droppedCount = new AtomicInteger(0)
+    // The exact set of `State`s whose retained read is currently `dropped`
+    // (released before a contended wait, not yet reacquired). A `State` holds
+    // at most one retained, so set membership tracks the `dropped` flag 1:1.
+    //
+    // This is both the `hasDropped` short-circuit and the work-list for
+    // `reacquireDropped`. The common no-op/no-contention build never drops
+    // anything, so the set stays empty and the per-task read-lock fast path
+    // does no scan at all. Under contention only a handful are dropped, so
+    // `reacquireDropped` iterates O(dropped) entries rather than re-scanning
+    // every task's `State` — which would otherwise be O(n) per contended wait,
+    // i.e. O(n^2) again over a heavily-contended graph (#7132 follow-up).
+    private val droppedStates = ConcurrentHashMap.newKeySet[State]()
 
     /** Whether any retained read is currently dropped and awaiting reacquire. */
-    def hasDropped: Boolean = droppedCount.get() != 0
+    def hasDropped: Boolean = !droppedStates.isEmpty
 
-    // Both helpers must be called while holding `retained`'s owning
-    // `State.synchronized`, so the `dropped` flag and the counter stay in step.
-    private def markDropped(retained: Retained): Unit =
+    // Both helpers must be called while holding `s`'s monitor, so `s.retained`'s
+    // `dropped` flag and the `droppedStates` membership stay in step.
+    private def markDropped(s: State, retained: Retained): Unit =
       if (!retained.dropped) {
         retained.dropped = true
-        droppedCount.incrementAndGet()
+        droppedStates.add(s)
       }
-    private def clearDropped(retained: Retained): Unit =
+    private def clearDropped(s: State, retained: Retained): Unit =
       if (retained.dropped) {
         retained.dropped = false
-        droppedCount.decrementAndGet()
+        droppedStates.remove(s)
       }
     private val transitiveUpstreams: Map[Task[?], Seq[Task[?]]] = {
       def rec(task: Task[?]): Seq[Task[?]] = {
@@ -599,10 +604,10 @@ object Execution {
       val retained = s.retained
       s.retained = null
       if (retained != null) {
-        // Discarding a still-dropped retained must release its counter slot,
-        // else `droppedCount` leaks upward and permanently defeats the
+        // Discarding a still-dropped retained must drop its `droppedStates`
+        // entry, else the stale `State` leaks and permanently defeats the
         // `hasDropped` short-circuit.
-        clearDropped(retained)
+        clearDropped(s, retained)
         if (retained.lease != null) {
           closeQuietly(retained.lease)
           retained.lease = null
@@ -644,7 +649,7 @@ object Execution {
       val s = states.get(task)
       if (s != null) s.synchronized {
         if (s.retained != null) {
-          clearDropped(s.retained)
+          clearDropped(s, s.retained)
           if (s.retained.lease != null) closeQuietly(s.retained.lease)
         }
         s.retained = Retained(
@@ -670,7 +675,7 @@ object Execution {
         ) {
           closeQuietly(retained.lease)
           retained.lease = null
-          markDropped(retained)
+          markDropped(s, retained)
         }
       }
     }
@@ -686,11 +691,14 @@ object Execution {
         // non-Named groups, where this evaluation does not hold a task Write.
         block: Boolean = true
     ): Unit = {
-      // Fast path: nothing was ever dropped (the common no-contention case),
-      // so skip the full O(n) scan of every task's `State`.
-      if (droppedCount.get() == 0) return
+      // Fast path: nothing is dropped (the common no-contention case), so skip
+      // straight out without allocating or scanning.
+      if (droppedStates.isEmpty) return
       import scala.jdk.CollectionConverters.*
-      val dropped = states.values().asScala.toSeq.flatMap { s =>
+      // Iterate only the dropped `State`s, not the whole graph. The snapshot may
+      // be stale (a peer may clear/re-drop concurrently), so re-validate each
+      // entry under its monitor below before acting on it.
+      val dropped = droppedStates.asScala.toSeq.flatMap { s =>
         s.synchronized {
           val retained = s.retained
           Option.when(retained != null && retained.dropped && retained.lease == null)(s -> retained)
@@ -720,7 +728,7 @@ object Execution {
         s.synchronized {
           if ((s.retained eq retained) && retained.dropped && retained.lease == null) {
             retained.lease = lease
-            clearDropped(retained)
+            clearDropped(s, retained)
           } else closeQuietly(lease)
         }
       }
