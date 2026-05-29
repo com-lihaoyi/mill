@@ -160,8 +160,8 @@ final class TestModuleUtil(
     os.makeDir.all(sandbox)
 
     val proc = BuildCtx.withFilesystemCheckerDisabled {
-      val workspaceAbs = BuildCtx.workspaceRoot.wrapped.toAbsolutePath.normalize().toString
-      val homeAbs = os.home.wrapped.toAbsolutePath.normalize().toString
+      val workspaceAbs = Jvm.realAbs(BuildCtx.workspaceRoot)
+      val homeAbs = Jvm.realAbs(os.home)
       val millForkEnv = Map(
         EnvVars.MILL_WORKSPACE_ROOT -> workspaceAbs,
         EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> s"$workspaceAbs,../mill-workspace;$homeAbs,../mill-home"

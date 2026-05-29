@@ -37,26 +37,21 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
     val dest = Task.dest
 
     val executeableName = "native-executable"
-    // `native-image` is a third-party tool run as a subprocess. In reproducible-build mode os.Path
-    // `.toString` is relativized to `out/mill-workspace` / `out/mill-home` alias paths; native-image
-    // resolves those for class-loading but NOT for scanning classpath jars' own
-    // `META-INF/native-image/**/native-image.properties` (e.g. logback/netty build-time-init
-    // directives), so the build fails. Pass real, absolute on-disk paths (matching non-reproducible
-    // builds) by following the alias symlinks via `.wrapped.toRealPath()`.
-    def realAbs(p: os.Path): String =
-      try p.wrapped.toRealPath().toString
-      catch { case _: java.io.IOException => p.wrapped.toAbsolutePath.normalize().toString }
-
+    // `native-image` scans classpath JARs' own `META-INF/native-image/**/native-image.properties`
+    // (logback/netty build-time-init directives) using the JAR's on-disk path; the
+    // `out/mill-workspace`/`out/mill-home` alias form is not resolved for that scan, so the
+    // build fails. Hand it the symlink-resolved canonical path via `Jvm.realAbsResolved`.
+    import mill.util.Jvm.realAbsResolved
     val toolPath = nativeImageTool().path
     val command = Seq.newBuilder[String]
-      .+=(realAbs(toolPath))
+      .+=(realAbsResolved(toolPath))
       .++=(nativeImageOptions())
       .+=("-cp")
-      .+=(nativeImageClasspath().iterator.map(p => realAbs(p.path)).mkString(
+      .+=(nativeImageClasspath().iterator.map(p => realAbsResolved(p.path)).mkString(
         java.io.File.pathSeparator
       ))
       .+=(finalMainClass())
-      .+=(java.nio.file.Paths.get(realAbs(dest), executeableName).toString)
+      .+=(java.nio.file.Paths.get(realAbsResolved(dest), executeableName).toString)
       .result()
 
     os.proc(command).call(cwd = dest, stdout = os.Inherit)
@@ -127,12 +122,9 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
       // Pass real, absolute on-disk paths to the `native-image` subprocess; in reproducible-build
       // mode `os.Path.toString` is relativized to `out/mill-workspace/...` alias paths, which
       // native-image cannot resolve as config directories.
+      // See the comment on `realAbsResolved` above — same scanning-by-on-disk-path issue.
       val configurationFileDirectoriesValue =
-        configurations.map { c =>
-          val p = c.metadataLocation
-          try p.wrapped.toRealPath().toString
-          catch { case _: java.io.IOException => p.wrapped.toAbsolutePath.normalize().toString }
-        }.mkString(",")
+        configurations.map(c => mill.util.Jvm.realAbsResolved(c.metadataLocation)).mkString(",")
       Seq(s"-H:ConfigurationFileDirectories=$configurationFileDirectoriesValue")
     }
     nativeExcludedConfig() ++ configurationDirectoriesArg ++ nativeIncludedResourcesImageOptions()
@@ -375,13 +367,12 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
         // The `\Q...\E` literal must match the (absolute) classpath jar path native-image sees;
         // in reproducible-build mode `os.Path.toString` is relativized to an `out/mill-home/...`
         // alias path that would never match, so the netty/etc. config exclusion silently no-ops
-        // (causing native-image failures). Use the real, absolute on-disk path.
-        val jarPath =
-          try file.path.wrapped.toRealPath().toString
-          catch {
-            case _: java.io.IOException => file.path.wrapped.toAbsolutePath.normalize().toString
-          }
-        Seq("--exclude-config", s"\\Q$jarPath\\E", s"^/META-INF/native-image/.*")
+        // (causing native-image failures). Use the symlink-resolved on-disk path.
+        Seq(
+          "--exclude-config",
+          s"\\Q${mill.util.Jvm.realAbsResolved(file.path)}\\E",
+          s"^/META-INF/native-image/.*"
+        )
       }
   }
 

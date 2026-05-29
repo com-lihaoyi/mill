@@ -40,19 +40,6 @@ private class BspCompileProblemReporter(
 
   def hasErrors: Boolean = errors.get() > 0
 
-  /**
-   * Resolve a compiler-reported source path to an absolute `file://` URI for BSP clients. In
-   * reproducible-build mode the path may be relativized (`../mill-workspace/...`) or traverse the
-   * `../mill-*` alias symlinks; `toRealPath` follows them to the real on-disk location so the URI
-   * does not end up resolved against the daemon's sandbox cwd.
-   */
-  private def documentUri(p: java.nio.file.Path): String =
-    try p.toRealPath().toUri.toString
-    catch {
-      case _: java.io.IOException =>
-        mill.api.internal.PathAliasing.resolveAliasedString(p.toString).wrapped.toUri.toString
-    }
-
   object diagnostics {
     private class Details(
         val list: java.util.List[Diagnostic],
@@ -117,7 +104,7 @@ private class BspCompileProblemReporter(
 
       case Some(f) =>
         val diagnostic = toDiagnostic(problem)
-        val textDocument = TextDocumentIdentifier(documentUri(f.toPath))
+        val textDocument = TextDocumentIdentifier(mill.api.internal.PathAliasing.resolveAliasedString(f.toString).wrapped.toUri.toString)
         if (diagnostics.add(textDocument, diagnostic)) {
           val diagnosticList = new java.util.LinkedList[Diagnostic]()
           diagnosticList.add(diagnostic)
@@ -179,7 +166,7 @@ private class BspCompileProblemReporter(
   }
 
   override def fileVisited(file: java.nio.file.Path): Unit = {
-    val uri = documentUri(file)
+    val uri = mill.api.internal.PathAliasing.resolveAliasedString(file.toString).wrapped.toUri.toString
     val textDocument = TextDocumentIdentifier(uri)
     val (diagnostics0, hasNewDiagnostics) = diagnostics.getAll(textDocument)
     if (hasNewDiagnostics)

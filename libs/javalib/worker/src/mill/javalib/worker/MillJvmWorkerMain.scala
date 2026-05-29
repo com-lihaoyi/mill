@@ -42,7 +42,7 @@ object MillJvmWorkerMain {
       extends Server[JvmWorkerServerData, Unit](Server.Args(
         daemonDir,
         acceptTimeout = None, // The worker kills the process when it needs to.
-        Locks.forDirectory(daemonDir.wrapped.toAbsolutePath.normalize().toString, useFileLocks),
+        Locks.forDirectory(mill.util.Jvm.realAbs(daemonDir), useFileLocks),
         bufferSize = 4 * 1024
       )) {
     private val className = summon[TPrint[JvmWorkerTcpServer]].render(using TPrintColors.Colors)

@@ -5,6 +5,7 @@ import mill.api.internal.OneOrMore
 import mill.client.ClientUtil
 import mill.constants.*
 import mill.internal.OutputDirectoryLayout
+import mill.util.Jvm
 
 import java.io.File
 import java.util.UUID
@@ -14,49 +15,10 @@ object MillProcessLauncher {
   private def linkExists(link: os.Path): Boolean =
     java.nio.file.Files.exists(link.toNIO, java.nio.file.LinkOption.NOFOLLOW_LINKS)
 
-  private def ensureSymlink(link: os.Path, dest: os.Path): Unit = {
-    val destAbs = dest.wrapped.toAbsolutePath.normalize()
-    val linkNio = link.toNIO
-    val linkOpts = java.nio.file.LinkOption.NOFOLLOW_LINKS
-
-    if (java.nio.file.Files.isSymbolicLink(linkNio)) {
-      val current = java.nio.file.Files.readSymbolicLink(linkNio)
-      if (current != destAbs) {
-        os.remove(link)
-        java.nio.file.Files.createSymbolicLink(linkNio, destAbs)
-      }
-    } else if (!java.nio.file.Files.exists(linkNio, linkOpts)) {
-      try java.nio.file.Files.createSymbolicLink(linkNio, destAbs)
-      catch {
-        case _: java.nio.file.FileAlreadyExistsException =>
-          // Another concurrent task/process may have created it between exists-check and symlink.
-          if (!linkExists(link)) throw new java.nio.file.FileAlreadyExistsException(link.toString)
-      }
-    } else {
-      // The alias path exists but is not a symlink; replace it so relative paths resolve correctly.
-      os.remove.all(link)
-      java.nio.file.Files.createSymbolicLink(linkNio, destAbs)
-    }
-  }
-
   private def relativizerEnv(workDir: os.Path): String = {
-    val workspaceAbs = workDir.wrapped.toAbsolutePath.normalize().toString
-    val homeAbs = os.home.wrapped.toAbsolutePath.normalize().toString
+    val workspaceAbs = Jvm.realAbs(workDir)
+    val homeAbs = Jvm.realAbs(os.home)
     s"$workspaceAbs,../mill-workspace;$homeAbs,../mill-home"
-  }
-
-  /**
-   * Installs the `../mill-workspace` / `../mill-home` forwarder symlinks for a process whose
-   * working directory is `cwd`. A workspace-relativized path (`../mill-workspace/...`) is resolved
-   * by the process relative to its own `cwd`, so the alias must live in `cwd`'s *parent* directory
-   * (never inside `cwd` itself, which would otherwise be picked up by tools that walk/archive the
-   * working directory like `jar -c .`).
-   */
-  private def ensureAliases(cwd: os.Path, workspaceRoot: os.Path): Unit = {
-    val parent = cwd / os.up
-    os.makeDir.all(parent)
-    ensureSymlink(parent / "mill-workspace", workspaceRoot)
-    ensureSymlink(parent / "mill-home", os.home)
   }
 
   private def outDir(outMode: OutFolderMode, workDir: os.Path, env: Map[String, String]): String =
@@ -85,7 +47,9 @@ object MillProcessLauncher {
       userPropsSeq ++
       Seq(
         mainClass,
-        processDir.wrapped.toAbsolutePath.normalize().toString,
+        // Daemon entry point reads `args[0]` with plain `java.nio.file.Paths.get(...)` and
+        // would resolve a `../mill-workspace/...` form against its own cwd. Pass absolute.
+        Jvm.realAbs(processDir),
         outMode.asString,
         useFileLocks.toString
       ) ++
@@ -144,7 +108,8 @@ object MillProcessLauncher {
     val cmd = millLaunchJvmCommand(runnerClasspath, effectiveEnv, workDir, millRepositories) ++
       Seq(
         "mill.daemon.MillDaemonMain",
-        daemonDir.wrapped.toAbsolutePath.normalize().toString,
+        // Same reason as the no-daemon variant above: pass the daemon-dir arg as a real abs path.
+        Jvm.realAbs(daemonDir),
         outMode.asString,
         useFileLocks.toString
       )
@@ -173,11 +138,11 @@ object MillProcessLauncher {
     // The launched Mill process runs with cwd = `sandbox`, so its relativized paths resolve via the
     // alias in `sandbox`'s parent. Task subprocesses run with cwd = `<out>/.../<name>.dest` and get
     // their own parent aliases created on-demand by the daemon-side spawn hook.
-    ensureAliases(sandbox, workDir)
+    Jvm.ensureProcessCwdAliases(sandbox, workDir)
 
     // Always scope workspace/relativizer to this launched process workDir.
     // Inheriting parent values causes nested Mill runs to lock/use the parent's out folder.
-    val workspaceRootEnv = workDir.wrapped.toAbsolutePath.normalize().toString
+    val workspaceRootEnv = Jvm.realAbs(workDir)
     val relativizerBaseEnv = relativizerEnv(workDir)
     val processEnv = env ++
       Map(EnvVars.MILL_WORKSPACE_ROOT -> workspaceRootEnv) ++
@@ -339,10 +304,9 @@ object MillProcessLauncher {
     // path resolved via the `out/mill-workspace` alias; sbt.io otherwise prints a noisy
     // "Tried to extract the base path for relative glob ..." warning to stderr that leaks into
     // golden-text/output-sensitive tests. The glob still resolves correctly.
-    val sbtIoGlobOpt =
-      if (env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).exists(_.nonEmpty))
-        Seq("-Dsbt.io.implicit.relative.glob.conversion=allow")
-      else Nil
+    val sbtIoGlobOpt = Option.when(
+      env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).exists(_.nonEmpty)
+    )("-Dsbt.io.implicit.relative.glob.conversion=allow")
 
     Seq(javaExe(env, workDir, millRepositories)) ++
       millProps ++
@@ -415,13 +379,13 @@ object MillProcessLauncher {
   }
 
   def getExecutablePath: String = {
-    try {
-      // Real absolute path: test/plugin code consuming `MILL_EXECUTABLE_PATH`
-      // typically does `os.Path(sys.env(...))`, which rejects a relativized
-      // string. Bypass the os-lib serializer at this boundary.
-      os.Path(getClass.getProtectionDomain.getCodeSource.getLocation.toURI)
-        .wrapped.toAbsolutePath.normalize().toString
-    } catch {
+    try
+      // Real absolute: code consuming `MILL_EXECUTABLE_PATH` typically does
+      // `os.Path(sys.env(...))`, which rejects a relativized string.
+      mill.util.Jvm.realAbs(
+        os.Path(getClass.getProtectionDomain.getCodeSource.getLocation.toURI)
+      )
+    catch {
       case e: java.net.URISyntaxException =>
         throw RuntimeException("Failed to determine Mill client executable path", e)
     }

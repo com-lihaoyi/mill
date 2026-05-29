@@ -45,9 +45,25 @@ object Jvm {
   def realAbsFile(p: os.Path): java.io.File = realAbsPath(p).toFile
   def realAbsFile(p: PathRef): java.io.File = realAbsFile(p.path)
 
-  private def ensureSymlink(link: os.Path, dest: os.Path): Unit = {
+  /**
+   * Like [[realAbs]] but also follows symlinks via `toRealPath`, falling back to
+   * lexical `realAbs` if the path doesn't exist on disk. Use when a subprocess
+   * walks the path-as-it-exists (e.g. native-image scanning JARs inside symlinked
+   * coursier-cache dirs) and lexical `../`-collapse would land on the wrong file.
+   */
+  def realAbsResolved(p: os.Path): String =
+    try p.wrapped.toRealPath().toString
+    catch { case _: java.io.IOException => realAbs(p) }
+
+  /**
+   * Create or update `link` to be a symlink pointing at `dest`. If `link` exists as a non-symlink,
+   * replace it. Best-effort: catches `FileSystemException` (e.g. read-only fs) and
+   * `FileAlreadyExistsException` (concurrent creation).
+   */
+  def ensureSymlink(link: os.Path, dest: os.Path): Unit = {
     val targetNio = link.toNIO
-    val destNio = dest.wrapped.toAbsolutePath.normalize()
+    val destNio = realAbsPath(dest)
+    val linkOpts = java.nio.file.LinkOption.NOFOLLOW_LINKS
     try {
       if (Files.isSymbolicLink(targetNio)) {
         val current = Files.readSymbolicLink(targetNio)
@@ -55,41 +71,42 @@ object Jvm {
           os.remove(link)
           Files.createSymbolicLink(targetNio, destNio)
         }
-      } else if (!Files.exists(targetNio, java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
+      } else if (Files.exists(targetNio, linkOpts)) {
+        os.remove.all(link)
+        Files.createSymbolicLink(targetNio, destNio)
+      } else {
         Files.createSymbolicLink(targetNio, destNio)
       }
     } catch {
+      case _: java.nio.file.FileAlreadyExistsException =>
+      // Another concurrent task/process created it between exists-check and symlink — accept it.
       case _: java.nio.file.FileSystemException =>
-      // best-effort alias setup
+      // Best-effort alias setup: read-only fs, no-symlink-support, etc.
     }
   }
 
-  def ensureProcessCwdAliases(cwd: os.Path): Unit = {
-    if (cwd != null) {
-      val workspace = sys.env
+  /**
+   * Install the `../mill-workspace` / `../mill-home` forwarder symlinks for a process whose cwd is
+   * `cwd`. The aliases live in `cwd`'s *parent*, never inside `cwd` itself, so that a tool which
+   * walks/archives its own working directory (`jar -c .`, `tar`, `os.walk`) does not see them.
+   */
+  def ensureProcessCwdAliases(
+      cwd: os.Path,
+      workspace: => os.Path = sys.env
         .get(EnvVars.MILL_WORKSPACE_ROOT)
         .map(p => os.Path(p, os.pwd))
         .getOrElse(BuildCtx.workspaceRoot)
-      // The `../mill-workspace` / `../mill-home` aliases live in `cwd`'s *parent*, so a subprocess
-      // that walks or archives its own working directory (`jar -c .`, `tar`, ...) never sees them.
-      val parent = cwd / os.up
-      val parentNio = parent.toNIO
-      if (
-        Files.exists(parentNio, java.nio.file.LinkOption.NOFOLLOW_LINKS) && !Files.isDirectory(
-          parentNio,
-          java.nio.file.LinkOption.NOFOLLOW_LINKS
-        )
-      ) {
-        // The enclosing directory is not a directory; cannot host the aliases.
-      } else {
-        // The aliases live in `cwd`'s parent (a sibling `out/` subfolder), which is outside the
-        // running task's `Task.dest`; exempt this infrastructure write from the filesystem checker.
-        BuildCtx.withFilesystemCheckerDisabled {
-          os.makeDir.all(parent)
-          ensureSymlink(parent / "mill-workspace", workspace)
-          ensureSymlink(parent / "mill-home", os.home)
-        }
-      }
+  ): Unit = {
+    if (cwd == null) return
+    val parent = cwd / os.up
+    val parentNio = parent.toNIO
+    val linkOpts = java.nio.file.LinkOption.NOFOLLOW_LINKS
+    // The enclosing dir is not actually a directory; cannot host the aliases (best-effort).
+    if (Files.exists(parentNio, linkOpts) && !Files.isDirectory(parentNio, linkOpts)) return
+    BuildCtx.withFilesystemCheckerDisabled {
+      os.makeDir.all(parent)
+      ensureSymlink(parent / "mill-workspace", workspace)
+      ensureSymlink(parent / "mill-home", os.home)
     }
   }
 

@@ -39,7 +39,7 @@ class LocalM2Publisher(m2Repo: os.Path) {
     // `os.Path.toString` interpolation would relativize `~/.m2/...` to
     // `../mill-home/.m2/...`, which is less helpful for the user and breaks
     // example-test assertions that look for `/home/.../.m2/repository/...`.
-    val releaseDirDisplay = releaseDir.wrapped.toAbsolutePath.normalize().toString
+    val releaseDirDisplay = mill.util.Jvm.realAbs(releaseDir)
     ctx.log.info(
       s"Publish ${artifact.id}-${artifact.version} to $releaseDirDisplay. " +
         s"File list: [${contents.keys.toVector.sorted.mkString(", ")}]"

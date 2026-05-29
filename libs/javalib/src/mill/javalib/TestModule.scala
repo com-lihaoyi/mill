@@ -323,7 +323,7 @@ trait TestModule
       // `_.path.toString` would return the relativized `../mill-workspace/...`
       // form which the single-arg `os.Path` constructor rejects.
       EnvVars.MILL_TEST_RESOURCE_DIR -> resources().iterator
-        .map(_.path.wrapped.toAbsolutePath.normalize().toString)
+        .map(mill.util.Jvm.realAbs)
         .mkString(";")
     )
   }

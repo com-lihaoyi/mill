@@ -10,7 +10,7 @@ import mill.api.{Discover, PathRef, Task}
 import mill.api.internal.RootModule
 import mill.scalalib.{Dep, DepSyntax, ScalaModule}
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
-import mill.util.{BuildInfo, MainRootModule}
+import mill.util.{BuildInfo, Jvm, MainRootModule}
 import mill.api.daemon.internal.MillScalaParser
 import mill.api.JsonFormatters.given
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
@@ -128,15 +128,11 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
         case (k, v)
             if k.last.endsWith(".mill.yaml") &&
               !mill.internal.Util.isPrecompiledYamlModule(k) =>
-          // Use the absolute, normalized path so the cached value does not bake
-          // in the writing daemon's sandbox cwd (which differs from the reader's
-          // cwd across `--no-daemon` invocations). On reproducible-2 the raw
-          // `k.toNIO` can carry a `..../sandbox/../mill-workspace/...` prefix
-          // (or any cwd-derived alias resolution) that, when read back from
-          // the cache in a later process with a different sandbox, makes the
-          // path no longer relative to the workspace and breaks
-          // `staticBuildOverrides` segment computation.
-          (k.wrapped.toAbsolutePath.normalize(), v)
+          // Real abs: this NIO Path is serialized into the meta-build cache and read
+          // back by later `--no-daemon` invocations with a different sandbox cwd.
+          // `k.toNIO` would otherwise bake in the writer's `.../sandbox/../mill-workspace/...`
+          // prefix and break `staticBuildOverrides` segment computation on read.
+          (Jvm.realAbsPath(k), v)
       },
       // Serialize to string to avoid classloader issues when crossing classloader boundaries
       spanningTree.render()
@@ -263,22 +259,14 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
   )
 
   override def scalacOptions: T[Seq[String]] = Task {
-    // Pass `-sourceroot` using the relativizer alias for the workspace so the
-    // string is workspace-independent. Scalac stores source paths in TASTY
-    // relative to sourceroot; without this, two reproducible-mode runs in
-    // different workspaces produce byte-different `package_.class` /
-    // `package_.tasty` files (the difference is the absolute source path
-    // embedded by the compiler).
-    val sourceRoot = rootModuleInfo.topLevelProjectRoot.toString
     super.scalacOptions() ++
       // This warning comes up for package names with dashes in them like "package build.`foo-bar`",
       // but Mill generally handles these fine, so no need to warn the user
-      Seq(
-        "-deprecation",
-        "-Wconf:msg=will be encoded on the classpath:silent",
-        "-sourceroot",
-        sourceRoot
-      )
+      Seq("-deprecation", "-Wconf:msg=will be encoded on the classpath:silent") ++
+      // `-sourceroot` so scalac stores TASTY source paths relative to it. The value uses
+      // the workspace's relativizer alias (`mill-workspace`) so two reproducible-mode runs
+      // in different workspace dirs emit byte-identical `package_.class`/`.tasty`.
+      Seq("-sourceroot", rootModuleInfo.topLevelProjectRoot.toString)
   }
 
   /** Used in BSP IntelliJ, which can only work with directories */

@@ -82,27 +82,22 @@ trait MicronautAotModule extends JavaModule {
   def micronautProcessAOT: T[PathRef] = Task {
     val dest = Task.dest
 
-    // The Micronaut AOT CLI is a third-party tool run as a subprocess; pass it real, absolute
-    // on-disk paths rather than the relativized `out/mill-workspace` / `out/mill-home` forms
-    // produced in reproducible-build mode (which it mishandles, silently producing no GraalVM
-    // config). `.wrapped.toRealPath()` follows the alias symlinks to the canonical location.
-    def realAbs(p: os.Path): String =
-      try p.wrapped.toRealPath().toString
-      catch { case _: java.io.IOException => p.wrapped.toAbsolutePath.normalize().toString }
-
+    // The Micronaut AOT CLI mishandles the `out/mill-workspace` alias form (silently produces
+    // no GraalVM config); pass symlink-resolved on-disk paths via `Jvm.realAbsResolved`.
+    import Jvm.realAbsResolved
     val args = Seq(
       "--classpath",
-      (runClasspath() ++ resolvedMicronautAotCli()).map(p => realAbs(p.path)).mkString(
-        java.io.File.pathSeparator
-      ),
+      (runClasspath() ++ resolvedMicronautAotCli())
+        .map(pr => realAbsResolved(pr.path))
+        .mkString(java.io.File.pathSeparator),
       "--package",
       micronautPackage(),
       "--runtime",
       aotRuntime(),
       "--config",
-      realAbs(micronautAotConfigFile().path),
+      realAbsResolved(micronautAotConfigFile().path),
       "--output",
-      realAbs(dest)
+      realAbsResolved(dest)
     )
 
     Jvm.callProcess(

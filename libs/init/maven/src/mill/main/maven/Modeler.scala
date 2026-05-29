@@ -1,5 +1,6 @@
 package mill.main.maven
 
+import mill.util.Jvm
 import org.apache.maven.model.building.*
 import org.apache.maven.model.resolution.ModelResolver
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils
@@ -26,7 +27,7 @@ class Modeler(
       // that callers convert via `os.Path(_)` (resolved against `os.pwd`)
       // into a path that is no longer under `mvnWorkspace`, breaking
       // `subRelativeTo` with "ups must be zero, but it is 1 in ../mill-workspace".
-      val result = build((dir / "pom.xml").wrapped.toAbsolutePath.normalize().toFile)
+      val result = build(Jvm.realAbsFile(dir / "pom.xml"))
       val subResults = result.getEffectiveModel.getModules.asScala.flatMap(rel =>
         recurse(dir / os.RelPath(rel))
       ).toSeq
@@ -79,7 +80,7 @@ object Modeler {
     // Real absolute path, not the `../mill-home/...` relativized form `.toIO`
     // would yield on reproducible-2 — Maven's repository layer treats it as a
     // path string verbatim.
-    LocalRepository((os.home / ".m2/repository").wrapped.toAbsolutePath.normalize().toFile)
+    LocalRepository(Jvm.realAbsFile(os.home / ".m2/repository"))
 
   def defaultRemoteRepositories: Seq[RemoteRepository] =
     Seq(
@@ -91,10 +92,7 @@ object Modeler {
     val props = Properties()
     System.getenv().forEach((k, v) => props.put(s"env.$k", v))
     System.getProperties.forEach((k, v) => props.put(k, v))
-    props.put(
-      "maven.multiModuleProjectDirectory",
-      mvnWorkspace.wrapped.toAbsolutePath.normalize().toString
-    )
+    props.put("maven.multiModuleProjectDirectory", Jvm.realAbs(mvnWorkspace))
     props
   }
 }

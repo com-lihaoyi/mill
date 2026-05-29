@@ -3,6 +3,7 @@ package mill.launcher
 import mill.api.daemon.MillException
 import mill.api.SystemStreams
 import mill.client.*
+import mill.util.Jvm
 import mill.constants.{ConfigConstants, EnvVars, OutFiles, OutFolderMode}
 import mill.internal.MillCliConfig
 
@@ -67,8 +68,8 @@ object MillLauncherMain {
       // Reproducible builds: tell the daemon where the workspace and home directories are,
       // and configure the os-lib path relativizer so cached output paths are stored relative
       // to the `out/mill-workspace` / `out/mill-home` aliases.
-      val workspaceAbs = workDir.wrapped.toAbsolutePath.normalize().toString
-      val homeAbs = os.home.wrapped.toAbsolutePath.normalize().toString
+      val workspaceAbs = Jvm.realAbs(workDir)
+      val homeAbs = Jvm.realAbs(os.home)
       val scopedEnv = effectiveEnv ++
         Map(EnvVars.MILL_WORKSPACE_ROOT -> workspaceAbs) ++
         (if (env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).contains("")) Map.empty

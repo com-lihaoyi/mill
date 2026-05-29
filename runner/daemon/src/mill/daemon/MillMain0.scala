@@ -24,7 +24,7 @@ import mill.internal.{
   OutputDirectoryLayout
 }
 import mill.server.Server
-import mill.util.BuildInfo
+import mill.util.{BuildInfo, Jvm}
 import mill.api
 
 import java.io.{InputStream, PrintStream, PrintWriter, StringWriter}
@@ -54,7 +54,8 @@ object MillMain0 {
    * concurrent Mill processes.
    */
   def outFileLock(out: os.Path): Lock =
-    Lock.file((out / OutFiles.millOutLock).wrapped.toAbsolutePath.normalize().toString)
+    // `Lock.file` opens a real file lock; the alias form would be resolved against the caller's cwd.
+    Lock.file(Jvm.realAbs(out / OutFiles.millOutLock))
 
   private[daemon] def useInProcessLauncherResources(
       hasDaemonClient: Boolean,

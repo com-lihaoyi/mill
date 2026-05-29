@@ -181,17 +181,10 @@ object Watching {
         }
         writeToWatchLog(s"[watched-paths:filtered] ${filterPaths.toSeq.sorted.mkString("\n")}")
 
-        // On reproducible-2, `os.list(workspaceRoot)` returns child paths whose wrapped form
-        // routes through the `mill-workspace` alias symlink (e.g.
-        // `<daemonDir>/mill-workspace/bar`) instead of the real workspace path
-        // (`<workspace>/bar`). The `WatchServiceWatcher.recursiveWatches` loop then asks the
-        // filter to decide whether to descend into those subdirectories, but the alias-rooted
-        // path does not textually `startsWith` any entry in `filterPaths`/`watchedPathsSet`, so
-        // every subdirectory is rejected and `inotify` is never installed on it. This silently
-        // breaks `--watch` for any task whose `Task.Source`/`Task.Sources` lives in a subdir
-        // (e.g. `bar/bar.txt`). Canonicalising via `toRealPath` collapses both the alias symlink
-        // and any platform-level symlinks (e.g. `/tmp` -> `/private/tmp` on macOS) so all
-        // comparisons see a consistent, fully-resolved path.
+        // Canonicalise via `toRealPath` so paths routed through the `mill-workspace` alias
+        // symlink and paths through platform-level symlinks (e.g. `/tmp` -> `/private/tmp`)
+        // compare equal — otherwise `recursiveWatches` rejects every subdir and `--watch`
+        // misses changes to `Task.Source`/`Task.Sources` files in subdirectories.
         def canonical(p: os.Path): os.Path =
           try os.Path(p.wrapped.toRealPath())
           catch { case NonFatal(_) => p }
