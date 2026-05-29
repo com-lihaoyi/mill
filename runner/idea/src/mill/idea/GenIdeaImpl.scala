@@ -40,11 +40,10 @@ class GenIdeaImpl(
   val ideaConfigVersion = 4
 
   def run(): Unit =
-    // Generated IDEA config files are consumed by IntelliJ, which needs real absolute filesystem
-    // paths. In reproducible-build mode `os.Path.toString` is relativized (to `out/mill-workspace`
-    // / `out/mill-home` alias paths) which IntelliJ cannot resolve and also causes library-file
-    // name collisions; scope the default (absolute) path serializer for the whole generation.
-    os.Path.pathSerializer.withValue(os.Path.defaultPathSerializer) {
+    // IntelliJ needs real absolute filesystem paths in the generated config files; the
+    // `out/mill-workspace`/`out/mill-home` alias forms cause IntelliJ load failures and
+    // library-file name collisions.
+    mill.api.internal.PathAliasing.withDefaultPathSerializer {
       val pp = new scala.xml.PrettyPrinter(999, 4)
       val jdkInfo = extractCurrentJdk(ideaDir / "misc.xml")
         .getOrElse(("JDK_1_8", "1.8 (1)"))

@@ -698,40 +698,25 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
 object ZincWorker {
   private val DirectoryFileHash = 42
 
-  /**
-   * Root used to relativize paths in the persisted Zinc analysis store for reproducible builds.
-   * When the os-lib path relativizer is configured (reproducible mode), all the paths Zinc sees
-   * are resolved relative to the daemon working directory via the `out/mill-workspace` /
-   * `out/mill-home` alias symlinks, so they all share the working-directory prefix and can be
-   * relativized against it. Returns `None` outside reproducible mode, preserving the prior
-   * (absolute-path) analysis store format.
-   */
+  /** Root for relativizing Zinc analysis-store paths in reproducible mode; `None` otherwise. */
   private[zinc] def reproducibleRoot: Option[java.nio.file.Path] =
-    Option.when(
-      sys.env.get(mill.constants.EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).exists(_.nonEmpty)
-    )(
+    Option.when(sys.env.get(mill.constants.EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).exists(_.nonEmpty))(
       java.nio.file.Paths.get("").toAbsolutePath.normalize()
     )
 
-  /**
-   * The [[xsbti.FileConverter]] used to encode VirtualFile ids (sources, products, binaries) in
-   * the Zinc analysis. In reproducible mode it maps the daemon working directory to a `$${BASE}`
-   * placeholder so the ids are workspace-independent; otherwise it uses the prior machine-path
-   * encoding.
-   */
+  /** Encodes Zinc VirtualFile ids with a `$${BASE}` placeholder in reproducible mode. */
   private[zinc] def reproducibleConverter: xsbti.FileConverter =
-    reproducibleRoot match {
-      case Some(root) => MappedFileConverter(Map("BASE" -> root), allowMachinePath = true)
-      case None => MappedFileConverter.empty
-    }
+    reproducibleRoot
+      .map(root => MappedFileConverter(Map("BASE" -> root), allowMachinePath = true))
+      .getOrElse(MappedFileConverter.empty)
 
   /**
-   * Wraps Zinc's machine-independent path mappers so they tolerate the mix of absolute and
-   * relative paths produced by the os-lib path relativizer in reproducible mode. Zinc's
-   * write mapper relativizes paths via `Path#relativize(root, p)`, which throws
-   * "'other' is a different type of Path" when `p` is already relative. We pass already-relative
-   * paths (which are themselves reproducible) through unchanged and only relativize absolute
-   * ones. The read mapper resolves against the root and is safe for both, so we reuse it as-is.
+   * Wraps Zinc's machine-independent path mappers to pass already-relative paths through
+   * unchanged. The default write mapper calls `Path#relativize(root, p)` which throws on
+   * relative input; the read mapper resolves them against the root, producing absolute ids
+   * that no longer match the stored relative ones and silently invalidating the analysis store.
+   * In reproducible mode the os-lib relativizer makes most paths Zinc sees already relative,
+   * so we need both halves to leave them alone and only forward absolute paths to the base.
    */
   private[zinc] def relativePassthroughMappers(
       base: xsbti.compile.analysis.ReadWriteMappers
@@ -740,62 +725,48 @@ object ZincWorker {
     import xsbti.compile.MiniSetup
     import xsbti.compile.analysis.{ReadMapper, Stamp, WriteMapper}
 
-    val w = base.getWriteMapper
-    val r = base.getReadMapper
-
     def absRef(ref: VirtualFileRef): Boolean =
       try java.nio.file.Paths.get(ref.id()).isAbsolute
       catch { case _: Throwable => false }
 
+    def guardRef(f: VirtualFileRef, fwd: VirtualFileRef => VirtualFileRef): VirtualFileRef =
+      if (absRef(f)) fwd(f) else f
+    def guardPath(p: java.nio.file.Path, fwd: java.nio.file.Path => java.nio.file.Path)
+        : java.nio.file.Path =
+      if (p.isAbsolute) fwd(p) else p
+
+    val w = base.getWriteMapper
+    val r = base.getReadMapper
+
     val guardedWrite: WriteMapper = new WriteMapper {
-      def mapSourceFile(f: VirtualFileRef): VirtualFileRef =
-        if (absRef(f)) w.mapSourceFile(f) else f
-      def mapBinaryFile(f: VirtualFileRef): VirtualFileRef =
-        if (absRef(f)) w.mapBinaryFile(f) else f
-      def mapProductFile(f: VirtualFileRef): VirtualFileRef =
-        if (absRef(f)) w.mapProductFile(f) else f
-      def mapOutputDir(p: java.nio.file.Path): java.nio.file.Path =
-        if (p.isAbsolute) w.mapOutputDir(p) else p
-      def mapSourceDir(p: java.nio.file.Path): java.nio.file.Path =
-        if (p.isAbsolute) w.mapSourceDir(p) else p
-      def mapClasspathEntry(p: java.nio.file.Path): java.nio.file.Path =
-        if (p.isAbsolute) w.mapClasspathEntry(p) else p
-      def mapJavacOption(o: String): String = w.mapJavacOption(o)
-      def mapScalacOption(o: String): String = w.mapScalacOption(o)
-      def mapBinaryStamp(f: VirtualFileRef, s: Stamp): Stamp = w.mapBinaryStamp(f, s)
-      def mapSourceStamp(f: VirtualFileRef, s: Stamp): Stamp = w.mapSourceStamp(f, s)
-      def mapProductStamp(f: VirtualFileRef, s: Stamp): Stamp = w.mapProductStamp(f, s)
-      // ConsistentAnalysisFormat maps the MiniSetup via the individual option/classpath
-      // mappers above rather than this method, so leaving it unmapped is safe.
-      def mapMiniSetup(s: MiniSetup): MiniSetup = s
+      def mapSourceFile(f: VirtualFileRef) = guardRef(f, w.mapSourceFile)
+      def mapBinaryFile(f: VirtualFileRef) = guardRef(f, w.mapBinaryFile)
+      def mapProductFile(f: VirtualFileRef) = guardRef(f, w.mapProductFile)
+      def mapOutputDir(p: java.nio.file.Path) = guardPath(p, w.mapOutputDir)
+      def mapSourceDir(p: java.nio.file.Path) = guardPath(p, w.mapSourceDir)
+      def mapClasspathEntry(p: java.nio.file.Path) = guardPath(p, w.mapClasspathEntry)
+      def mapJavacOption(o: String) = w.mapJavacOption(o)
+      def mapScalacOption(o: String) = w.mapScalacOption(o)
+      def mapBinaryStamp(f: VirtualFileRef, s: Stamp) = w.mapBinaryStamp(f, s)
+      def mapSourceStamp(f: VirtualFileRef, s: Stamp) = w.mapSourceStamp(f, s)
+      def mapProductStamp(f: VirtualFileRef, s: Stamp) = w.mapProductStamp(f, s)
+      // ConsistentAnalysisFormat maps MiniSetup through the option/classpath methods above.
+      def mapMiniSetup(s: MiniSetup) = s
     }
 
-    // The read mapper must be symmetric with the write mapper: the write mapper stores
-    // already-relative paths (the os-lib relativizer makes the paths Zinc sees relative) verbatim,
-    // so the read mapper must also pass relative paths through unchanged rather than resolving them
-    // against the root. Resolving on read (the default machine-independent read mapper) yields
-    // absolute paths that no longer match the stored/current relative ids, which makes the
-    // `ConsistentFileAnalysisStore` reject the store on load (returns empty) and defeats
-    // incremental compilation. Absolute paths (if any) are still resolved via the base read mapper.
     val guardedRead: ReadMapper = new ReadMapper {
-      def mapSourceFile(f: VirtualFileRef): VirtualFileRef =
-        if (absRef(f)) r.mapSourceFile(f) else f
-      def mapBinaryFile(f: VirtualFileRef): VirtualFileRef =
-        if (absRef(f)) r.mapBinaryFile(f) else f
-      def mapProductFile(f: VirtualFileRef): VirtualFileRef =
-        if (absRef(f)) r.mapProductFile(f) else f
-      def mapOutputDir(p: java.nio.file.Path): java.nio.file.Path =
-        if (p.isAbsolute) r.mapOutputDir(p) else p
-      def mapSourceDir(p: java.nio.file.Path): java.nio.file.Path =
-        if (p.isAbsolute) r.mapSourceDir(p) else p
-      def mapClasspathEntry(p: java.nio.file.Path): java.nio.file.Path =
-        if (p.isAbsolute) r.mapClasspathEntry(p) else p
-      def mapJavacOption(o: String): String = r.mapJavacOption(o)
-      def mapScalacOption(o: String): String = r.mapScalacOption(o)
-      def mapBinaryStamp(f: VirtualFileRef, s: Stamp): Stamp = r.mapBinaryStamp(f, s)
-      def mapSourceStamp(f: VirtualFileRef, s: Stamp): Stamp = r.mapSourceStamp(f, s)
-      def mapProductStamp(f: VirtualFileRef, s: Stamp): Stamp = r.mapProductStamp(f, s)
-      def mapMiniSetup(s: MiniSetup): MiniSetup = s
+      def mapSourceFile(f: VirtualFileRef) = guardRef(f, r.mapSourceFile)
+      def mapBinaryFile(f: VirtualFileRef) = guardRef(f, r.mapBinaryFile)
+      def mapProductFile(f: VirtualFileRef) = guardRef(f, r.mapProductFile)
+      def mapOutputDir(p: java.nio.file.Path) = guardPath(p, r.mapOutputDir)
+      def mapSourceDir(p: java.nio.file.Path) = guardPath(p, r.mapSourceDir)
+      def mapClasspathEntry(p: java.nio.file.Path) = guardPath(p, r.mapClasspathEntry)
+      def mapJavacOption(o: String) = r.mapJavacOption(o)
+      def mapScalacOption(o: String) = r.mapScalacOption(o)
+      def mapBinaryStamp(f: VirtualFileRef, s: Stamp) = r.mapBinaryStamp(f, s)
+      def mapSourceStamp(f: VirtualFileRef, s: Stamp) = r.mapSourceStamp(f, s)
+      def mapProductStamp(f: VirtualFileRef, s: Stamp) = r.mapProductStamp(f, s)
+      def mapMiniSetup(s: MiniSetup) = s
     }
 
     new xsbti.compile.analysis.ReadWriteMappers(guardedRead, guardedWrite)

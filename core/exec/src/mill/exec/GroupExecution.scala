@@ -386,23 +386,13 @@ trait GroupExecution {
 
         // Helper to evaluate the task with full caching support
         def evaluateTaskWithCaching(): GroupExecution.Results = {
-          // Always load the on-disk cache so we have the previously stored
-          // `valueHash` for `valueHashChanged` comparison, but for
-          // input/source tasks (and other side-effecting tasks) drop the
-          // cached value — they must re-evaluate every run (Task.Input reads
-          // filesystem/env state and the cached PathRef sigs are not
-          // revalidated, so reusing the cached value silently bypasses real
-          // changes). Earlier code bypassed `loadCachedJson` entirely for
-          // any side-effecting task; that left `valueHashChanged` always
-          // true (no prev valueHash to compare against), which in reproducible mode
-          // — where `Task.Input.sideHash = 31337` is stable — propagated into
-          // the invalidation tree as spurious `coursierEnv`/`useFileLocks`/
-          // `zincLogDebug` roots.
+          // For side-effecting tasks (Task.Input/Source/...), keep the previously stored
+          // `valueHash` for `valueHashChanged` comparison but drop the cached value so
+          // re-evaluation actually re-reads the filesystem/env state.
           def loadCached(): Option[(Int, Option[(Val, Seq[PathRef])], Int)] =
             loadCachedJson(logger, inputsHash, labelled, paths)
               .map { case (prevInputsHash, valOpt, valueHash) =>
-                if (hasSideEffects) (prevInputsHash, None, valueHash)
-                else (prevInputsHash, valOpt, valueHash)
+                (prevInputsHash, if (hasSideEffects) None else valOpt, valueHash)
               }
 
           def loadCachedOrWorker(
@@ -586,16 +576,12 @@ trait GroupExecution {
           afterAcquire = tryReacquireDroppedReads
         )(_ => LockUpgrade.Decision.Escalate) { scope =>
           val fileName = labelled.ctx.fileName
-          val isBuildMill = fileName.replace('\\', '/').endsWith("/mill-build/build.mill")
-          val displayPath =
-            scala.util.Try(os.Path(
-              fileName,
-              os.pwd
-            ).relativeTo(workspace).toString).getOrElse(fileName)
           val (execRes, serializedPaths) =
-            if (isBuildMill) {
+            if (fileName.replace('\\', '/').endsWith("/mill-build/build.mill")) {
+              val display = scala.util.Try(os.Path(fileName, os.pwd).relativeTo(workspace).toString)
+                .getOrElse(fileName)
               val msg =
-                s"Build header config conflicts with task defined in ${displayPath}:${labelled.ctx.lineNum}"
+                s"Build header config conflicts with task defined in $display:${labelled.ctx.lineNum}"
               (
                 ExecResult.Failure(
                   msg,
@@ -901,15 +887,10 @@ trait GroupExecution {
   ): Option[(Int, Option[(Val, Seq[PathRef])], Int)] = {
     for {
       cached <-
-        // Use `.wrapped.toFile` (real absolute on-disk path) rather than `.toIO`.
-        // On reproducible mode the os-lib serializer relativizes `.toIO` to a
-        // `../mill-workspace/...` form, which Java's file-reading APIs cannot
-        // resolve from the daemon's cwd, so every cache lookup silently fails
-        // with NoSuchFileException.
+        // `.wrapped.toFile`: upickle/Files needs a real on-disk path; `.toIO` would yield
+        // the relativized `../mill-workspace/...` alias form in reproducible mode.
         try Some(upickle.read[Cached](paths.meta.wrapped.toFile, trace = false))
-        catch {
-          case NonFatal(_) => None
-        }
+        catch { case NonFatal(_) => None }
     } yield {
       // Check for version/classloader mismatch - treat as cache miss if they differ
       def checkMatch[T](cachedValue: T, currentValue: T, reasonName: String): Boolean = {
@@ -957,15 +938,13 @@ trait GroupExecution {
   def getValueHash(v: Val, task: Task[?], inputsHash: Int): Int = {
     if (task.isInstanceOf[Task.Worker[?]]) inputsHash
     else {
+      // Hash the serialized JSON form when the task has a writer, so semantically-equal
+      // values with different in-memory hashes (e.g. `Map` iteration order) compare equal.
       val base = task match {
-        case named: Task.Named[_] =>
-          named.writerOpt match {
-            case Some(writer) =>
-              upickle
-                .writeJs(v.value)(using writer.asInstanceOf[upickle.Writer[Any]])
-                .hashCode()
-            case None => v.##
-          }
+        case named: Task.Named[_] if named.writerOpt.isDefined =>
+          upickle.writeJs(v.value)(using
+            named.writerOpt.get.asInstanceOf[upickle.Writer[Any]]
+          ).hashCode()
         case _ => v.##
       }
       base + invalidateAllHashes
@@ -1066,80 +1045,69 @@ object GroupExecution {
       validReadDests: Seq[os.Path],
       validWriteDests: Seq[os.Path]
   ) extends os.Checker {
+    // Normalize once at construction: paths arriving via alias symlinks (e.g.
+    // `<cwd>/../mill-workspace/...` in reproducible mode) compare equal to their
+    // real on-disk form after `normalizeForCheck`.
     private val normalizedWorkspace = normalizeForCheck(workspace)
-    private val normalizedReadDests = validReadDests.map(normalizeForCheck)
-    private val normalizedWriteDests = validWriteDests.map(normalizeForCheck)
+    private val normalizedReadDests = validReadDests.map(normalizeForCheck).toSet
+    private val normalizedWriteDests = validWriteDests.map(normalizeForCheck).toSet
 
     private def normalizeForCheck(path: os.Path): os.Path = {
+      // `toRealPath` requires the path to exist; resolve the longest existing prefix and
+      // re-attach the non-existing suffix so checks work for files about to be written.
       @tailrec
-      def firstExistingPrefix(
-          current: os.Path,
-          suffix: List[String]
-      ): Option[(os.Path, List[String])] =
-        if (os.exists(current)) Some((current, suffix))
+      def firstExistingPrefix(current: os.Path, suffix: List[String]): (os.Path, List[String]) =
+        if (os.exists(current)) (current, suffix)
         else {
           val parent = current / os.up
-          if (parent == current) None
+          if (parent == current) (current, suffix)
           else firstExistingPrefix(parent, current.last :: suffix)
         }
-
-      firstExistingPrefix(path, Nil) match {
-        case Some((existingPrefix, suffix)) =>
-          val resolvedPrefix = os.Path(existingPrefix.toNIO.toRealPath())
-          suffix.foldLeft(resolvedPrefix) { case (acc, segment) => acc / segment }
-        case None => path
-      }
+      val (prefix, suffix) = firstExistingPrefix(path, Nil)
+      val resolvedPrefix =
+        if (os.exists(prefix)) os.Path(prefix.toNIO.toRealPath()) else prefix
+      suffix.foldLeft(resolvedPrefix)(_ / _)
     }
 
-    private def startsWithAny(path: os.Path, prefixes: Seq[os.Path]): Boolean =
-      prefixes.exists(path.startsWith)
-
-    private def relativeForError(original: os.Path, normalized: os.Path): String = {
-      if (original.startsWith(workspace)) original.relativeTo(workspace).toString
-      else if (normalized.startsWith(normalizedWorkspace))
-        normalized.relativeTo(normalizedWorkspace).toString
-      else original.toString
+    private def checkAccess(
+        kind: String,
+        path: os.Path,
+        validDests: Set[os.Path],
+        suffix: String
+    ): Unit = {
+      val normalized = normalizeForCheck(path)
+      val inWorkspace = normalized.startsWith(normalizedWorkspace)
+      val allowed = validDests.exists(normalized.startsWith)
+      if (inWorkspace && !allowed) {
+        val display =
+          if (normalized.startsWith(normalizedWorkspace))
+            normalized.relativeTo(normalizedWorkspace).toString
+          else normalized.toString
+        sys.error(
+          s"$kind from $display not allowed during execution of `$terminal`.\n$suffix"
+        )
+      }
     }
 
     def onRead(path: os.ReadablePath): Unit = path match {
-      case path: os.Path =>
-        if (!isCommand && !isInput && mill.api.FilesystemCheckerEnabled.value) {
-          val normalizedPath = normalizeForCheck(path)
-          val inWorkspace =
-            path.startsWith(workspace) || normalizedPath.startsWith(normalizedWorkspace)
-          val allowed =
-            startsWithAny(
-              path,
-              validReadDests
-            ) || startsWithAny(normalizedPath, normalizedReadDests)
-          if (inWorkspace && !allowed) {
-            sys.error(
-              s"Reading from ${relativeForError(path, normalizedPath)} not allowed during execution of `$terminal`.\n" +
-                "You can only read files referenced by `Task.Source` or `Task.Sources`, or within a `Task.Input"
-            )
-          }
-        }
+      case p: os.Path if !isCommand && !isInput && mill.api.FilesystemCheckerEnabled.value =>
+        checkAccess(
+          "Reading",
+          p,
+          normalizedReadDests,
+          "You can only read files referenced by `Task.Source` or `Task.Sources`, or within a `Task.Input"
+        )
       case _ =>
     }
 
-    def onWrite(path: os.Path): Unit = {
-      if (!isCommand && mill.api.FilesystemCheckerEnabled.value) {
-        val normalizedPath = normalizeForCheck(path)
-        val inWorkspace =
-          path.startsWith(workspace) || normalizedPath.startsWith(normalizedWorkspace)
-        val allowed =
-          startsWithAny(path, validWriteDests) || startsWithAny(
-            normalizedPath,
-            normalizedWriteDests
-          )
-        if (inWorkspace && !allowed) {
-          sys.error(
-            s"Writing to ${relativeForError(path, normalizedPath)} not allowed during execution of `$terminal`.\n" +
-              "Normal `Task`s can only write to files within their `Task.dest` folder, only `Task.Command`s can write to other arbitrary files."
-          )
-        }
-      }
-    }
+    def onWrite(path: os.Path): Unit =
+      if (!isCommand && mill.api.FilesystemCheckerEnabled.value)
+        checkAccess(
+          "Writing",
+          path,
+          normalizedWriteDests,
+          "Normal `Task`s can only write to files within their `Task.dest` folder, only `Task.Command`s can write to other arbitrary files."
+        )
   }
 
   def wrap[T](

@@ -4,7 +4,7 @@ import mill.api.daemon.internal.{TestReporter, internal}
 
 @internal object MillTestRunnerMain0 {
   def main0(args: Array[String], classLoader: ClassLoader): Unit = {
-    os.Path.pathSerializer.withValue(os.Path.defaultPathSerializer) {
+    mill.api.internal.PathAliasing.withDefaultPathSerializer {
       try {
         val testArgs = upickle.read[TestArgs](os.read(os.Path(args(1))))
         testArgs.sysProps.foreach { case (k, v) => System.setProperty(k, v) }

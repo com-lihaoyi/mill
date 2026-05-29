@@ -584,12 +584,9 @@ object MillMain0 {
                               streams.err.println(err)
                               false
                             case None =>
-                              // Generated Eclipse config needs real absolute paths; in
-                              // reproducible-build mode `os.Path.toString` is relativized to
-                              // `out/mill-workspace` alias paths Eclipse cannot resolve.
-                              os.Path.pathSerializer.withValue(os.Path.defaultPathSerializer) {
-                                new mill.eclipse.GenEclipseImpl(runnerState.allEvaluators)
-                                  .run()
+                              // Eclipse needs real absolute paths; alias forms confuse it.
+                              mill.api.internal.PathAliasing.withDefaultPathSerializer {
+                                new mill.eclipse.GenEclipseImpl(runnerState.allEvaluators).run()
                               }
                               true
                           }

@@ -12,9 +12,6 @@ import java.util.UUID
 import scala.jdk.CollectionConverters._
 
 object MillProcessLauncher {
-  private def linkExists(link: os.Path): Boolean =
-    java.nio.file.Files.exists(link.toNIO, java.nio.file.LinkOption.NOFOLLOW_LINKS)
-
   private def relativizerEnv(workDir: os.Path): String = {
     val workspaceAbs = Jvm.realAbs(workDir)
     val homeAbs = Jvm.realAbs(os.home)
@@ -142,21 +139,19 @@ object MillProcessLauncher {
 
     // Always scope workspace/relativizer to this launched process workDir.
     // Inheriting parent values causes nested Mill runs to lock/use the parent's out folder.
-    val workspaceRootEnv = Jvm.realAbs(workDir)
-    val relativizerBaseEnv = relativizerEnv(workDir)
-    val processEnv = env ++
-      Map(EnvVars.MILL_WORKSPACE_ROOT -> workspaceRootEnv) ++
-      (if (env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).contains("")) Map.empty
-       else Map(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> relativizerBaseEnv)) ++
-      Map(EnvVars.MILL_ENABLE_STATIC_CHECKS -> "true") ++ (
-        if (env.contains(EnvVars.MILL_EXECUTABLE_PATH)) Map.empty
-        else Map(EnvVars.MILL_EXECUTABLE_PATH -> getExecutablePath)
-      ) ++ {
-        val jdkJavaOptions = env.getOrElse("JDK_JAVA_OPTIONS", "")
-        val javaOpts = env.getOrElse("JAVA_OPTS", "")
-        val opts = s"$jdkJavaOptions $javaOpts".trim
-        if (opts.nonEmpty) Map("JDK_JAVA_OPTIONS" -> opts) else Map.empty
-      }
+    val mergedJdkJavaOpts =
+      Seq(env.getOrElse("JDK_JAVA_OPTIONS", ""), env.getOrElse("JAVA_OPTS", "")).mkString(" ").trim
+    val processEnv = env ++ Seq(
+      Some(EnvVars.MILL_WORKSPACE_ROOT -> Jvm.realAbs(workDir)),
+      Some(EnvVars.MILL_ENABLE_STATIC_CHECKS -> "true"),
+      Option.unless(env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).contains(""))(
+        EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> relativizerEnv(workDir)
+      ),
+      Option.unless(env.contains(EnvVars.MILL_EXECUTABLE_PATH))(
+        EnvVars.MILL_EXECUTABLE_PATH -> getExecutablePath
+      ),
+      Option.when(mergedJdkJavaOpts.nonEmpty)("JDK_JAVA_OPTIONS" -> mergedJdkJavaOpts)
+    ).flatten
 
     // destroyOnExit = false to prevent the daemon from being killed when the Mill client exits.
     // The daemon is a long-lived background process that should survive client disconnections.

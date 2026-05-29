@@ -30,10 +30,9 @@ object MillLauncherMain {
   ): Int = {
     if (env.contains("MILL_TEST_EXIT_AFTER_BSP_CHECK")) return 0
 
-    // For reproducible builds the daemon configures the os-lib path relativizer so cached
-    // output is workspace-relative; the launcher itself keeps the default serializer so its
-    // own log/daemon-dir paths stay absolute.
-    os.Path.pathSerializer.withValue(os.Path.defaultPathSerializer) {
+    // The launcher's own log/daemon-dir paths stay absolute even when the daemon configures
+    // the os-lib relativizer for cached output.
+    mill.api.internal.PathAliasing.withDefaultPathSerializer {
       val stderr = streamsOpt.map(_.err).getOrElse(System.err)
       val parsedConfig = MillCliConfig.parse(args).toOption
 

@@ -99,6 +99,15 @@ object PathAliasing {
   }
 
   /**
+   * Scope `body` so the `os.Path` serializer is the default (env-driven) one — typically used to
+   * opt OUT of an in-process relativizing serializer that an outer caller installed, so paths
+   * within `body` serialize as absolute. Used by long-running processes (launcher, IDEA generator,
+   * test runner) whose own output should not be aliased even when their daemon parent's is.
+   */
+  def withDefaultPathSerializer[T](body: => T): T =
+    os.Path.pathSerializer.withValue(os.Path.defaultPathSerializer)(body)
+
+  /**
    * Install the `../mill-workspace` / `../mill-home` forwarder symlinks for a process whose cwd is
    * `cwd`. The aliases live in `cwd`'s *parent*, never inside `cwd` itself, so that a tool which
    * walks/archives its own working directory (`jar -c .`, `tar`, `os.walk`) does not see them.
