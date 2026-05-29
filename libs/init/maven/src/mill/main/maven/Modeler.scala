@@ -21,12 +21,8 @@ class Modeler(
   /** Returns the [[ModelBuildingResult]] for all projects in `workspace`. */
   def buildAll(): Seq[ModelBuildingResult] = {
     def recurse(dir: os.Path): Seq[ModelBuildingResult] = {
-      // Pass Maven an un-relativized absolute File. On reproducible mode `.toIO`
-      // returns `../mill-workspace/pom.xml`; Maven stores that relative path
-      // verbatim, and `model.getProjectDirectory` then yields a relative File
-      // that callers convert via `os.Path(_)` (resolved against `os.pwd`)
-      // into a path that is no longer under `mvnWorkspace`, breaking
-      // `subRelativeTo` with "ups must be zero, but it is 1 in ../mill-workspace".
+      // Pass Maven an un-relativized absolute File: it stores the path verbatim and later
+      // resolves it against its own cwd, so the alias form drifts out of `mvnWorkspace`.
       val result = build(Jvm.realAbsFile(dir / "pom.xml"))
       val subResults = result.getEffectiveModel.getModules.asScala.flatMap(rel =>
         recurse(dir / os.RelPath(rel))

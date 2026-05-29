@@ -4,6 +4,7 @@ import mill.api.daemon.internal.bsp.{BspBootstrapBridge, BspServerHandle}
 import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.api.daemon.internal.{LauncherLocking, LauncherOutFiles}
+import mill.api.internal.PathAliasing
 import mill.bsp.BSP
 import mill.client.lock.Lock
 import mill.constants.OutFolderMode
@@ -585,7 +586,7 @@ object MillMain0 {
                               false
                             case None =>
                               // Eclipse needs real absolute paths; alias forms confuse it.
-                              mill.api.internal.PathAliasing.withDefaultPathSerializer {
+                              PathAliasing.withDefaultPathSerializer {
                                 new mill.eclipse.GenEclipseImpl(runnerState.allEvaluators).run()
                               }
                               true

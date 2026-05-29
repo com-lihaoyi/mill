@@ -1,6 +1,7 @@
 package mill.pythonlib
 
 import mill.*
+import mill.util.Jvm
 
 /**
  * Basic tasks for preparing a python interpreter in a venv with required
@@ -120,11 +121,11 @@ trait PipModule extends Module {
 
     PipModule.InstallArgs(
       indexArgs ++
-        transitiveUnmanagedWheels().map(mill.util.Jvm.realAbs) ++
+        transitiveUnmanagedWheels().map(Jvm.realAbs) ++
         pythonToolDeps() ++
         transitivePythonDeps() ++
         transitivePythonRequirementFiles().flatMap(pr =>
-          Seq("-r", mill.util.Jvm.realAbs(pr))
+          Seq("-r", Jvm.realAbs(pr))
         ),
       transitiveUnmanagedWheels() ++ transitivePythonRequirementFiles()
     )

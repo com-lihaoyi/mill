@@ -53,12 +53,8 @@ object BuildFileDiscovery {
           )
         )
 
-      // In reproducible-build mode the daemon/no-daemon process runs in a sandbox and reaches the
-      // workspace via the `out/mill-workspace` alias symlink, so `os.list`/`os.walk` return build
-      // files under aliased paths (e.g. `out/mill-no-daemon/<n>/sandbox/out/mill-workspace/bar.mill`).
-      // Canonicalize every discovered path through the symlinks to its real on-disk location, then
-      // de-duplicate. This both keeps helper scripts (which are only ever reached via the alias) and
-      // collapses any file re-discovered under both its real and aliased paths.
+      // Canonicalize through the `mill-workspace` alias symlink so a build file discovered via
+      // both its real and aliased paths collapses to one entry under `.distinct`.
       def canonical(p: os.Path): os.Path =
         try os.Path(p.wrapped.toRealPath())
         catch { case _: java.io.IOException => p }

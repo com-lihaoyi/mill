@@ -7,6 +7,8 @@ import mill.*
 import mill.api.BuildCtx
 import mill.constants.{DaemonFiles, Util}
 import mill.javalib.graalvm.{GraalVMMetadataWorker, MetadataQuery, MetadataResult}
+import mill.util.Jvm
+import mill.util.Jvm.realAbsResolved
 
 import java.io.File
 import scala.util.Properties
@@ -37,11 +39,9 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
     val dest = Task.dest
 
     val executeableName = "native-executable"
-    // `native-image` scans classpath JARs' own `META-INF/native-image/**/native-image.properties`
-    // (logback/netty build-time-init directives) using the JAR's on-disk path; the
-    // `out/mill-workspace`/`out/mill-home` alias form is not resolved for that scan, so the
-    // build fails. Hand it the symlink-resolved canonical path via `Jvm.realAbsResolved`.
-    import mill.util.Jvm.realAbsResolved
+    // `realAbsResolved`: `native-image` scans classpath JARs' on-disk paths for
+    // build-time-init directives in their `META-INF/native-image/...`; the alias form is
+    // not resolved for that scan.
     val toolPath = nativeImageTool().path
     val command = Seq.newBuilder[String]
       .+=(realAbsResolved(toolPath))
@@ -82,7 +82,7 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
     val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
 
     BuildCtx.withFilesystemCheckerDisabled {
-      mill.util.Jvm.spawnProcess(
+      Jvm.spawnProcess(
         mainClass = "mill.javalib.backgroundwrapper.MillBackgroundWrapper",
         classPath = mill.javalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
         jvmArgs = Nil,
@@ -124,7 +124,7 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
       // native-image cannot resolve as config directories.
       // See the comment on `realAbsResolved` above — same scanning-by-on-disk-path issue.
       val configurationFileDirectoriesValue =
-        configurations.map(c => mill.util.Jvm.realAbsResolved(c.metadataLocation)).mkString(",")
+        configurations.map(c => realAbsResolved(c.metadataLocation)).mkString(",")
       Seq(s"-H:ConfigurationFileDirectories=$configurationFileDirectoriesValue")
     }
     nativeExcludedConfig() ++ configurationDirectoriesArg ++ nativeIncludedResourcesImageOptions()
@@ -191,7 +191,7 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
    */
   def nativeGraalVMReachabilityMetadataClassloader: Worker[ClassLoader & AutoCloseable] =
     Task.Worker {
-      mill.util.Jvm.createClassLoader(
+      Jvm.createClassLoader(
         classPath = nativeGraalVMReachabilityMetadataClasspath().map(_.path),
         parent = getClass.getClassLoader
       )
@@ -370,7 +370,7 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
         // (causing native-image failures). Use the symlink-resolved on-disk path.
         Seq(
           "--exclude-config",
-          s"\\Q${mill.util.Jvm.realAbsResolved(file.path)}\\E",
+          s"\\Q${realAbsResolved(file.path)}\\E",
           s"^/META-INF/native-image/.*"
         )
       }

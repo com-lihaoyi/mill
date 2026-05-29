@@ -4,6 +4,7 @@ import mill.api.SystemStreams
 import mill.api.daemon.Watchable
 import mill.api.BuildCtx
 import mill.internal.Colors
+import mill.util.Jvm
 
 import java.io.InputStream
 import java.nio.channels.ClosedChannelException
@@ -185,7 +186,7 @@ object Watching {
         // through platform-level symlinks (e.g. `/tmp` -> `/private/tmp`) compare equal —
         // otherwise `recursiveWatches` rejects every subdir and `--watch` misses changes to
         // `Task.Source`/`Task.Sources` files in subdirectories.
-        val canonical: os.Path => os.Path = mill.util.Jvm.realAbsResolvedPath
+        val canonical: os.Path => os.Path = Jvm.realAbsResolvedPath
 
         val canonicalFilterPaths = filterPaths.map(canonical)
         val canonicalWatchedPathsSet = watchedPathsSet.map(canonical)

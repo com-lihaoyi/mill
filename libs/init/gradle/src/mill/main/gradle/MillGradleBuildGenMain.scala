@@ -84,16 +84,10 @@ object MillGradleBuildGenMain {
           gradleConnector.useInstallation(new File(gradleHome))
       }
     }
-    // Pass Gradle real absolute Files for the project directory and JDK home.
-    // On reproducible mode `os.Path#toIO` returns the relativized
-    // `..\mill-workspace\...` / `..\mill-home\...` form, which Gradle then
-    // resolves against its own cwd — failing on Windows where the symlink
-    // alias cannot be created without developer mode (the cwd is also nested
-    // under the daemon sandbox, so the resolution doesn't reach a real path).
+    // Hand Gradle un-aliased absolute Files — the alias form fails on Windows where
+    // the symlink can't be created without developer mode.
     val gradleWorkspaceFile = gradleWorkspace.wrapped.toFile
-    val gradleJavaHomeFile = macosJdkBundleHome(
-      Jvm.resolveJavaHome(gradleJvmId).get
-    ).wrapped.toFile
+    val gradleJavaHomeFile = macosJdkBundleHome(Jvm.resolveJavaHome(gradleJvmId).get).wrapped.toFile
     var packages =
       try Using.resource(gradleConnector.forProjectDirectory(gradleWorkspaceFile).connect) {
           connection =>

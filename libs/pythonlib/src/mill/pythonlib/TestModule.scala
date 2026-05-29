@@ -5,6 +5,7 @@ import mill.Command
 import mill.DefaultTaskModule
 import mill.T
 import mill.api.BuildCtx
+import mill.util.Jvm
 
 trait TestModule extends DefaultTaskModule {
   import TestModule.TestResult
@@ -53,7 +54,7 @@ object TestModule {
   trait Unittest extends PythonModule with TestModule {
     protected def testTask(args: Task[Seq[String]]) = Task.Anon {
       val testArgs = if (args().isEmpty) {
-        Seq("discover") ++ sources().flatMap(pr => Seq("-s", mill.util.Jvm.realAbs(pr)))
+        Seq("discover") ++ sources().flatMap(pr => Seq("-s", Jvm.realAbs(pr)))
       } else {
         args()
       }
@@ -77,8 +78,8 @@ object TestModule {
         (
           // format: off
           "-m", "pytest",
-          "-o", s"cache_dir=${mill.util.Jvm.realAbs(Task.dest / "cache")}", "-v",
-          sources().map(pr => mill.util.Jvm.realAbs(pr)),
+          "-o", s"cache_dir=${Jvm.realAbs(Task.dest / "cache")}", "-v",
+          sources().map(pr => Jvm.realAbs(pr)),
           args()
           // format: in
         ),

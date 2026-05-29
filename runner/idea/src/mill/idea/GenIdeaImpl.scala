@@ -20,6 +20,7 @@ import mill.api.daemon.internal.{
   TestModuleApi
 }
 import mill.api.daemon.internal.idea.{Element, IdeaConfigFile, JavaFacet, ResolvedModule}
+import mill.api.internal.PathAliasing
 import mill.util.{BuildInfo, Jvm}
 import org.eclipse.jgit.ignore.{FastIgnoreRule, IgnoreNode}
 import os.SubPath
@@ -43,7 +44,7 @@ class GenIdeaImpl(
     // IntelliJ needs real absolute filesystem paths in the generated config files; the
     // `out/mill-workspace`/`out/mill-home` alias forms cause IntelliJ load failures and
     // library-file name collisions.
-    mill.api.internal.PathAliasing.withDefaultPathSerializer {
+    PathAliasing.withDefaultPathSerializer {
       val pp = new scala.xml.PrettyPrinter(999, 4)
       val jdkInfo = extractCurrentJdk(ideaDir / "misc.xml")
         .getOrElse(("JDK_1_8", "1.8 (1)"))

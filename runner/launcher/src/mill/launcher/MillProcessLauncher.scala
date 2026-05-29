@@ -1,7 +1,7 @@
 package mill.launcher
 
 import io.github.alexarchambault.nativeterm.NativeTerminal
-import mill.api.internal.OneOrMore
+import mill.api.internal.{OneOrMore, PathAliasing}
 import mill.client.ClientUtil
 import mill.constants.*
 import mill.internal.OutputDirectoryLayout
@@ -12,7 +12,7 @@ import java.util.UUID
 import scala.jdk.CollectionConverters._
 
 object MillProcessLauncher {
-  private def relativizerEnv(workDir: os.Path): String = {
+  def relativizerEnv(workDir: os.Path): String = {
     val workspaceAbs = Jvm.realAbs(workDir)
     val homeAbs = Jvm.realAbs(os.home)
     s"$workspaceAbs,../mill-workspace;$homeAbs,../mill-home"
@@ -135,7 +135,7 @@ object MillProcessLauncher {
     // The launched Mill process runs with cwd = `sandbox`, so its relativized paths resolve via the
     // alias in `sandbox`'s parent. Task subprocesses run with cwd = `<out>/.../<name>.dest` and get
     // their own parent aliases created on-demand by the daemon-side spawn hook.
-    mill.api.internal.PathAliasing.ensureProcessCwdAliases(sandbox, workDir)
+    PathAliasing.ensureProcessCwdAliases(sandbox, workDir)
 
     // Always scope workspace/relativizer to this launched process workDir.
     // Inheriting parent values causes nested Mill runs to lock/use the parent's out folder.
@@ -377,7 +377,7 @@ object MillProcessLauncher {
     try
       // Real absolute: code consuming `MILL_EXECUTABLE_PATH` typically does
       // `os.Path(sys.env(...))`, which rejects a relativized string.
-      mill.util.Jvm.realAbs(
+      Jvm.realAbs(
         os.Path(getClass.getProtectionDomain.getCodeSource.getLocation.toURI)
       )
     catch {

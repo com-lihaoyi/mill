@@ -2,10 +2,10 @@ package mill.javalib
 
 import mill.api.{BuildCtx, Discover, ExternalModule, ModuleRef, PathRef, Result, experimental}
 import mill.api.daemon.internal.SemanticDbJavaModuleApi
+import mill.api.internal.PathAliasing
 import mill.constants.CodeGenConstants
-import mill.util.BuildInfo
+import mill.util.{BuildInfo, Jvm, Version}
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil}
-import mill.util.Version
 import mill.{T, Task}
 
 import scala.jdk.CollectionConverters.*
@@ -266,7 +266,7 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
         // resolve it through the alias rather than `os.Path`, which would reject a non-absolute path.
         .collectFirst {
           case s"//SOURCECODE_ORIGINAL_FILE_PATH=$rest" =>
-            mill.api.internal.PathAliasing.resolveAliasedString(rest.trim)
+            PathAliasing.resolveAliasedString(rest.trim)
         }
         .getOrElse {
           sys.error(s"Cannot get original source from generated source $generatedSource")
@@ -274,7 +274,7 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
 
       val firstLineIdx = generatedSourceLines.indexWhere(_.startsWith(userCodeStartMarker)) + 1
 
-      val res = mill.util.Jvm.withClassLoader(
+      val res = Jvm.withClassLoader(
         workerClasspath,
         parent = getClass.getClassLoader
       ) { cl =>

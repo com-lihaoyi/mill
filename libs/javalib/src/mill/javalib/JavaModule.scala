@@ -19,6 +19,7 @@ import mill.api.{
   TaskCtx
 }
 import mill.api.daemon.internal.{EvaluatorApi, JavaModuleApi, internal}
+import mill.api.internal.PathAliasing
 import mill.api.daemon.internal.bsp.{
   BspBuildTarget,
   BspJavaModuleApi,
@@ -995,6 +996,7 @@ trait JavaModule
     }
 
     val worker = jvmWorker().internalWorker()
+
     worker.apply(
       ZincOp.CompileJava(
         upstreamCompileOutput = upstreamCompileOutput(),
@@ -1357,7 +1359,7 @@ trait JavaModule
       Task.log.info("options: " + cmdArgs)
 
       val cmd = Seq(Jvm.jdkTool("javadoc", javaHome)) ++ cmdArgs
-      mill.api.internal.PathAliasing.ensureProcessCwdAliases(Task.dest)
+      PathAliasing.ensureProcessCwdAliases(Task.dest)
       os.call(
         cmd = cmd,
         env = Map(),

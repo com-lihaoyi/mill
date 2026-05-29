@@ -2,6 +2,7 @@ package mill.launcher
 
 import mill.api.daemon.MillException
 import mill.api.SystemStreams
+import mill.api.internal.PathAliasing
 import mill.client.*
 import mill.util.Jvm
 import mill.constants.{ConfigConstants, EnvVars, OutFiles, OutFolderMode}
@@ -32,7 +33,7 @@ object MillLauncherMain {
 
     // The launcher's own log/daemon-dir paths stay absolute even when the daemon configures
     // the os-lib relativizer for cached output.
-    mill.api.internal.PathAliasing.withDefaultPathSerializer {
+    PathAliasing.withDefaultPathSerializer {
       val stderr = streamsOpt.map(_.err).getOrElse(System.err)
       val parsedConfig = MillCliConfig.parse(args).toOption
 
@@ -64,18 +65,15 @@ object MillLauncherMain {
 
       coursier.Resolve.proxySetup()
 
-      // Reproducible builds: tell the daemon where the workspace and home directories are,
-      // and configure the os-lib path relativizer so cached output paths are stored relative
-      // to the `out/mill-workspace` / `out/mill-home` aliases.
-      val workspaceAbs = Jvm.realAbs(workDir)
-      val homeAbs = Jvm.realAbs(os.home)
+      // Reproducible builds: tell the daemon where the workspace lives, and configure the os-lib
+      // path relativizer so cached output paths serialize via the `out/mill-workspace` /
+      // `out/mill-home` aliases. These env vars contribute to the daemon's restart fingerprint,
+      // so an existing daemon restarts when the user's workspace changes.
       val scopedEnv = effectiveEnv ++
-        Map(EnvVars.MILL_WORKSPACE_ROOT -> workspaceAbs) ++
-        (if (env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).contains("")) Map.empty
-         else
-           Map(
-             EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> s"$workspaceAbs,../mill-workspace;$homeAbs,../mill-home"
-           ))
+        Map(EnvVars.MILL_WORKSPACE_ROOT -> Jvm.realAbs(workDir)) ++
+        Option.unless(env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).contains(""))(
+          EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> MillProcessLauncher.relativizerEnv(workDir)
+        )
 
       try {
         val millRepositories =

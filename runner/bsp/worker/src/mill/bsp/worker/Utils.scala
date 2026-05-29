@@ -21,6 +21,7 @@ import mill.api.daemon.internal.{
   TaskApi
 }
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi, JvmBuildTarget}
+import mill.api.internal.PathAliasing
 import mill.internal.SpanningForest
 
 import scala.collection.mutable
@@ -38,7 +39,7 @@ object Utils {
     // usable `file://` URIs rather than ones resolved against the daemon's sandbox cwd.
     val absolute =
       if (uri.isAbsolute) uri
-      else mill.api.internal.PathAliasing.resolveAliasedString(uri.toString).wrapped
+      else PathAliasing.resolveAliasedString(uri.toString).wrapped
     sanitizeUri(absolute.toUri.toString)
   }
 

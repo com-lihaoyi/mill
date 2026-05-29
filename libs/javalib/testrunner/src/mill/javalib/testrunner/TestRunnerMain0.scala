@@ -1,10 +1,11 @@
 package mill.javalib.testrunner
 
 import mill.api.daemon.internal.{TestReporter, internal}
+import mill.api.internal.PathAliasing
 
 @internal object MillTestRunnerMain0 {
   def main0(args: Array[String], classLoader: ClassLoader): Unit = {
-    mill.api.internal.PathAliasing.withDefaultPathSerializer {
+    PathAliasing.withDefaultPathSerializer {
       try {
         val testArgs = upickle.read[TestArgs](os.read(os.Path(args(1))))
         testArgs.sysProps.foreach { case (k, v) => System.setProperty(k, v) }

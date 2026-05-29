@@ -8,6 +8,7 @@ import mill.javalib.worker.JvmWorkerRpcServer
 import mill.rpc.MillRpcWireTransport
 import mill.server.Server
 import mill.server.Server.ConnectionData
+import mill.util.Jvm
 import pprint.{TPrint, TPrintColors}
 
 import java.io.{BufferedReader, InputStreamReader, PrintStream}
@@ -42,7 +43,7 @@ object MillJvmWorkerMain {
       extends Server[JvmWorkerServerData, Unit](Server.Args(
         daemonDir,
         acceptTimeout = None, // The worker kills the process when it needs to.
-        Locks.forDirectory(mill.util.Jvm.realAbs(daemonDir), useFileLocks),
+        Locks.forDirectory(Jvm.realAbs(daemonDir), useFileLocks),
         bufferSize = 4 * 1024
       )) {
     private val className = summon[TPrint[JvmWorkerTcpServer]].render(using TPrintColors.Colors)
