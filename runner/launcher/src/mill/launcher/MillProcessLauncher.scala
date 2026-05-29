@@ -73,7 +73,8 @@ object MillProcessLauncher {
       stdout = stdoutDest,
       stderr = stderrDest,
       workDir = workDir,
-      env = effectiveEnv
+      env = effectiveEnv,
+      daemonJavaHome = configuredJavaHome(effectiveEnv, workDir, millRepositories)
     )
     try {
       proc.waitFor()
@@ -111,7 +112,8 @@ object MillProcessLauncher {
       stdout = daemonDir / DaemonFiles.stdout,
       stderr = daemonDir / DaemonFiles.stderr,
       workDir = workDir,
-      env = effectiveEnv
+      env = effectiveEnv,
+      daemonJavaHome = configuredJavaHome(effectiveEnv, workDir, millRepositories)
     )
   }
 
@@ -122,7 +124,8 @@ object MillProcessLauncher {
       stdout: os.ProcessOutput,
       stderr: os.ProcessOutput,
       workDir: os.Path,
-      env: Map[String, String]
+      env: Map[String, String],
+      daemonJavaHome: Option[os.Path]
   ): os.SubProcess = {
     val sandbox = daemonDir / DaemonFiles.sandbox
     os.makeDir.all(sandbox)
@@ -141,7 +144,12 @@ object MillProcessLauncher {
       Option.unless(env.contains(EnvVars.MILL_EXECUTABLE_PATH))(
         EnvVars.MILL_EXECUTABLE_PATH -> getExecutablePath
       ),
-      Option.when(mergedJdkJavaOpts.nonEmpty)("JDK_JAVA_OPTIONS" -> mergedJdkJavaOpts)
+      Option.when(mergedJdkJavaOpts.nonEmpty)("JDK_JAVA_OPTIONS" -> mergedJdkJavaOpts),
+      // Point JAVA_HOME at the JVM the daemon was actually launched with (its configured
+      // `mill-jvm-version`), so subprocesses the daemon spawns that resolve `$JAVA_HOME/bin/java`
+      // (e.g. the Android `lint` wrapper, Gradle-style tools) use that JVM rather than inheriting
+      // the launcher shell's JAVA_HOME. Only set when a version is explicitly configured.
+      daemonJavaHome.map(home => "JAVA_HOME" -> Jvm.realAbs(home))
     ).flatten
 
     // destroyOnExit = false to prevent the daemon from being killed when the Mill client exits.
@@ -243,6 +251,20 @@ object MillProcessLauncher {
       )
     }
   }
+
+  /**
+   * The daemon JVM home, but only when `mill-jvm-version` is *explicitly* configured (via a
+   * `.mill-jvm-version` file or build-header `mill-jvm-version`). Returns `None` for the implicit
+   * default or `system`, so we don't clobber the launcher shell's `JAVA_HOME` when the user
+   * hasn't asked for a specific JVM. Used to set the daemon process's `JAVA_HOME`.
+   */
+  def configuredJavaHome(
+      env: Map[String, String],
+      workDir: os.Path,
+      millRepositories: Seq[String]
+  ): Option[os.Path] =
+    if (loadMillConfig(ConfigConstants.millJvmVersion, workDir).headOption.isEmpty) None
+    else javaHome(env, workDir, millRepositories)
 
   def javaExe(
       env: Map[String, String],

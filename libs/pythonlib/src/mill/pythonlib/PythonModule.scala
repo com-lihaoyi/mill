@@ -278,6 +278,14 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
 
   trait PythonTests extends PythonModule {
     override def moduleDeps: Seq[PythonModule] = Seq(outer)
+
+    // Inherit the outer module's JDK selection so tests run on the same Java as the
+    // module under test (mirrors `JavaModule`'s nested test module). Without this,
+    // e.g. a PySpark module pinning `jvmId` would still launch tests on the default JDK.
+    override def jvmId: T[String] = outer.jvmId
+    override def jvmVersion: T[String] = outer.jvmVersion
+    override def jvmIndexVersion: T[String] = outer.jvmIndexVersion
+    override def javaHome: T[Option[PathRef]] = outer.javaHome
   }
 
 }
