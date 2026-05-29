@@ -305,7 +305,7 @@ object Deps {
     val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.74.0"
     val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.15.0"
     val proguard_runtime = mvn"com.guardsquare:proguard-base:7.7.0"
-    val revApi_runtime = mvn"org.revapi:revapi-standalone:0.12.0"
+    val revApi_runtime = mvn"org.revapi:revapi-standalone:0.12.1"
     val sbtTestInterface = mvn"com.github.sbt:junit-interface:0.13.2"
 
     def updateable = Seq(
