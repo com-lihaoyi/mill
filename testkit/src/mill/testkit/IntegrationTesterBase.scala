@@ -115,6 +115,3 @@ trait IntegrationTesterBase {
     }
   }
 }
-private def useSharedOutputDir: Boolean =
-  sys.env.get("MILL_TEST_USE_IN_MEMORY").contains("1") &&
-    sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")
