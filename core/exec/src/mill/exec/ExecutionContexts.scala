@@ -49,8 +49,16 @@ object ExecutionContexts {
       executor.setCorePoolSize(newCorePoolSize)
     }
 
+    // Scale both core AND max back down so the extra worker spun up for the
+    // `blocking{...}` span is reaped once idle, restoring the `--jobs`
+    // parallelism bound instead of leaving leftover threads draining the
+    // queue. Lower core first so the `core <= max` invariant always holds.
+    // The resulting thread churn no longer fragments the chrome profile,
+    // because [[mill.internal.ThreadNumberer]] now recycles profile lanes
+    // independently of physical thread identity.
     def leaveBlocking(): Unit = executor.synchronized {
       executor.setCorePoolSize(executor.getCorePoolSize - 1)
+      executor.setMaximumPoolSize(executor.getMaximumPoolSize - 1)
     }
 
     def blocking[T](t: => T): T = {
