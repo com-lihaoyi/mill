@@ -9,6 +9,7 @@ import mill.api.daemon.internal.internal
 import mill.api.JsonFormatters.given
 import mill.api.{ModuleRef, PathRef, Task}
 import mill.javalib.*
+import mill.util.Jvm
 import os.{Path, RelPath, zip}
 import os.RelPath.stringRelPathValidated
 import upickle.*
@@ -540,43 +541,24 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     val formats = androidLintReportFormat()
 
-    // Use real absolute on-disk paths for everything handed to the lint
-    // subprocess: on reproducible-2 `.toString` / `mkString` over an `os.Path`
-    // returns the `../mill-workspace/...` alias form, but `os.call` here does
-    // not arrange the cwd-parent alias symlinks the way `Jvm.spawnProcess`
-    // does, and lint also writes to the baseline path — both reads and writes
-    // need real on-disk locations.
-    def abs(p: os.Path): String = p.wrapped.toAbsolutePath.normalize().toString
-
-    // Generate the alternating flag and file os.Path strings
+    // `Jvm.realAbs`: hand the lint subprocess canonical on-disk paths. `os.call`
+    // here does not arrange the cwd-parent alias symlinks the way
+    // `Jvm.spawnProcess` does, and lint also writes to the baseline path — both
+    // reads and writes need un-aliased absolute locations.
     val reportArg: Seq[String] = formats.flatMap { format =>
-      Seq(format.flag, abs(Task.dest / s"report.${format.extension}"))
+      Seq(format.flag, Jvm.realAbs(Task.dest / s"report.${format.extension}"))
     }
-
-    // Set os.Path to generated `.jar` files and/or `.class` files
-    // TODO change to runClasspath once the runtime dependencies + source refs are fixed
-    val cp = compileClasspath().map(_.path).filter(os.exists).map(abs).mkString(":")
-
-    // Set os.Path to the location of the project source codes
-    val src = sources().map(_.path).filter(os.exists).map(abs).mkString(":")
-
-    // Set os.Path to the location of the project resource code
-    val res = resources().map(_.path).filter(os.exists).map(abs).mkString(":")
-
-    // Prepare the lint configuration argument if the config os.Path is set
-    val configArg = androidLintConfigPath().map(config =>
-      Seq("--config", abs(config.path))
-    ).getOrElse(Seq.empty)
-
-    // Prepare the lint baseline argument if the baseline os.Path is set
-    val baselineArg = androidLintBaselinePath().map(baseline =>
-      Seq("--baseline", abs(baseline.path))
-    ).getOrElse(Seq.empty)
+    val cp = compileClasspath().map(_.path).filter(os.exists).map(Jvm.realAbs).mkString(":")
+    val src = sources().map(_.path).filter(os.exists).map(Jvm.realAbs).mkString(":")
+    val res = resources().map(_.path).filter(os.exists).map(Jvm.realAbs).mkString(":")
+    val configArg = androidLintConfigPath().map(c => Seq("--config", Jvm.realAbs(c))).toSeq.flatten
+    val baselineArg =
+      androidLintBaselinePath().map(b => Seq("--baseline", Jvm.realAbs(b))).toSeq.flatten
 
     os.call(
       Seq(
-        abs(androidSdkModule().lintExe().path),
-        abs(moduleDir / "src/main"),
+        Jvm.realAbs(androidSdkModule().lintExe()),
+        Jvm.realAbs(moduleDir / "src/main"),
         "--classpath",
         cp,
         "--sources",

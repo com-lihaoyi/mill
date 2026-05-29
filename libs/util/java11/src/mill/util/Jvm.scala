@@ -27,6 +27,24 @@ import scala.util.chaining.scalaUtilChainingOps
  * launcher scripts, etc.
  */
 object Jvm {
+
+  /**
+   * Real on-disk absolute path string for `p`, bypassing any `os.Path` serializer
+   * that may be in scope. In reproducible mode `os.Path.toString` / `.toIO` /
+   * `.toNIO` return relativized `../mill-workspace/...` / `../mill-home/...`
+   * forms so cached values stay workspace-independent. That form is wrong to
+   * hand to external tools (kotlinc, lint, coursier, node, python) or to
+   * non-Mill Java APIs (`java.nio.file.Files`, `Paths.get`): they resolve the
+   * relative form against their own cwd and may walk the alias symlinks,
+   * producing double-routed paths or silently failing.
+   */
+  def realAbs(p: os.Path): String = realAbsPath(p).toString
+  def realAbs(p: PathRef): String = realAbs(p.path)
+  def realAbsPath(p: os.Path): java.nio.file.Path = p.wrapped.toAbsolutePath.normalize()
+  def realAbsPath(p: PathRef): java.nio.file.Path = realAbsPath(p.path)
+  def realAbsFile(p: os.Path): java.io.File = realAbsPath(p).toFile
+  def realAbsFile(p: PathRef): java.io.File = realAbsFile(p.path)
+
   private def ensureSymlink(link: os.Path, dest: os.Path): Unit = {
     val targetNio = link.toNIO
     val destNio = dest.wrapped.toAbsolutePath.normalize()

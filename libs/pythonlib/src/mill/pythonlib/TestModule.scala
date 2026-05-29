@@ -53,7 +53,7 @@ object TestModule {
   trait Unittest extends PythonModule with TestModule {
     protected def testTask(args: Task[Seq[String]]) = Task.Anon {
       val testArgs = if (args().isEmpty) {
-        Seq("discover") ++ sources().flatMap(pr => Seq("-s", PythonModule.realAbs(pr.path)))
+        Seq("discover") ++ sources().flatMap(pr => Seq("-s", mill.util.Jvm.realAbs(pr)))
       } else {
         args()
       }
@@ -77,8 +77,8 @@ object TestModule {
         (
           // format: off
           "-m", "pytest",
-          "-o", s"cache_dir=${PythonModule.realAbs(Task.dest / "cache")}", "-v",
-          sources().map(pr => PythonModule.realAbs(pr.path)),
+          "-o", s"cache_dir=${mill.util.Jvm.realAbs(Task.dest / "cache")}", "-v",
+          sources().map(pr => mill.util.Jvm.realAbs(pr)),
           args()
           // format: in
         ),

@@ -120,11 +120,11 @@ trait PipModule extends Module {
 
     PipModule.InstallArgs(
       indexArgs ++
-        transitiveUnmanagedWheels().map(pr => PythonModule.realAbs(pr.path)) ++
+        transitiveUnmanagedWheels().map(mill.util.Jvm.realAbs) ++
         pythonToolDeps() ++
         transitivePythonDeps() ++
         transitivePythonRequirementFiles().flatMap(pr =>
-          Seq("-r", PythonModule.realAbs(pr.path))
+          Seq("-r", mill.util.Jvm.realAbs(pr))
         ),
       transitiveUnmanagedWheels() ++ transitivePythonRequirementFiles()
     )

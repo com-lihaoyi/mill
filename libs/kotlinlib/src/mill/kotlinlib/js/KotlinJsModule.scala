@@ -167,12 +167,10 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     runTarget match {
       case Some(RunTarget.Node) =>
-        // Same rationale as the `outputArgs` paths in `kotlinJsCompile`: hand node a
-        // real absolute on-disk path rather than the relativized form that `.toIO`
-        // produces on reproducible-2 (which Node then resolves through the alias
-        // symlink chain into a path the OS may not stat under heavy nesting).
-        val binaryPath = (binaryDir / s"$artifactId.${moduleKind.extension}")
-          .wrapped.toAbsolutePath.normalize().toString
+        // `Jvm.realAbs`: hand node a canonical absolute path, not the alias-routed
+        // form `.toIO` produces in reproducible mode (which Node then resolves
+        // through the alias symlink chain into a path the OS may fail to stat).
+        val binaryPath = Jvm.realAbs(binaryDir / s"$artifactId.${moduleKind.extension}")
         val processResult = os.call(
           cmd = Seq("node") ++ args.value ++ Seq(binaryPath),
           env = envArgs,
@@ -313,14 +311,12 @@ trait KotlinJsModule extends KotlinModule { outer =>
 //        (allKotlinSourceFiles.map(_.path.toIO.getAbsolutePath), Seq())
 //    }
 
-    // Real absolute on-disk paths in the kotlinc-js classpath / `-Xinclude` /
-    // source list. On reproducible-2 the `os.Path` -> String conversion (via
-    // shellable / `.toString`) relativizes paths to `../mill-workspace/...`,
-    // which kotlinc's klib loader resolves against its own cwd and silently
-    // can't find — manifesting as "unresolved reference 'AnnotationRetention'"
-    // when kotlin-stdlib-js.klib is missing from the effective classpath.
-    def absStr(p: os.Path): String = p.wrapped.toAbsolutePath.normalize().toString
-    val includeArgs = irClasspath.map(p => s"-Xinclude=${absStr(p.path)}").toSeq
+    // `Jvm.realAbs`: in reproducible mode the default `os.Path` -> String
+    // conversion produces relativized `../mill-workspace/...` paths that
+    // kotlinc's klib loader resolves against its own cwd and can't find
+    // (manifests as "unresolved reference 'AnnotationRetention'" when
+    // kotlin-stdlib-js.klib is missing from the effective classpath).
+    val includeArgs = irClasspath.map(p => s"-Xinclude=${Jvm.realAbs(p.path)}").toSeq
     val inputFiles = irClasspath.fold(allKotlinSourceFiles.map(_.path))(_ => Seq())
 
     val librariesCp = librariesClasspath.map(_.path)
@@ -329,7 +325,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     val innerCompilerArgs = Seq.newBuilder[String]
     // classpath
-    innerCompilerArgs ++= Seq("-libraries", librariesCp.iterator.map(absStr).mkString(File.pathSeparator))
+    innerCompilerArgs ++= Seq("-libraries", librariesCp.iterator.map(Jvm.realAbs).mkString(File.pathSeparator))
     innerCompilerArgs ++= Seq("-main", if (callMain) "call" else "noCall")
     if (moduleKind != ModuleKind.NoModule) {
       innerCompilerArgs ++= Seq(
@@ -373,33 +369,16 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // apply multi-platform support (expect/actual)
     // TODO if there is penalty for activating it in the compiler, put it behind configuration flag
     innerCompilerArgs += "-Xmulti-platform"
+    // `Jvm.realAbs`: the `.toIO.getAbsolutePath` form propagates through the
+    // linked binary's PathRef into the node command line, where alias routing
+    // breaks under heavy nesting — see #4642.
     val outputArgs = outputMode match {
-      // Use `.wrapped.toAbsolutePath.normalize().toString` rather than
-      // `.toIO.getAbsolutePath`: on reproducible-2, `.toIO` returns a relativized
-      // (`../mill-workspace/...`) File, and `getAbsolutePath` resolves that lexically
-      // against the JVM cwd (`out/mill-daemon/sandbox`), yielding a path that goes
-      // through the workspace alias and then gets normalized into a path containing
-      // `out/mill-daemon/mill-workspace/`. That bad form propagates into the linked
-      // binary's PathRef (via `compileDestination` below) and multiplies further when
-      // later concatenated for the node command line — see #4642.
       case OutputMode.KlibFile =>
-        Seq(
-          "-Xir-produce-klib-file",
-          "-ir-output-dir",
-          (destinationRoot / "libs").wrapped.toAbsolutePath.normalize().toString
-        )
+        Seq("-Xir-produce-klib-file", "-ir-output-dir", Jvm.realAbs(destinationRoot / "libs"))
       case OutputMode.KlibDir =>
-        Seq(
-          "-Xir-produce-klib-dir",
-          "-ir-output-dir",
-          (destinationRoot / "classes").wrapped.toAbsolutePath.normalize().toString
-        )
+        Seq("-Xir-produce-klib-dir", "-ir-output-dir", Jvm.realAbs(destinationRoot / "classes"))
       case OutputMode.Js =>
-        Seq(
-          "-Xir-produce-js",
-          "-ir-output-dir",
-          (destinationRoot / "binaries").wrapped.toAbsolutePath.normalize().toString
-        )
+        Seq("-Xir-produce-js", "-ir-output-dir", Jvm.realAbs(destinationRoot / "binaries"))
     }
 
     innerCompilerArgs ++= outputArgs
@@ -581,8 +560,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
           // TODO this is valid only for the NodeJS target. Once browser support is
           //  added, need to have different argument handling
           "--require",
-          sourceMapSupportModule().path.wrapped.toAbsolutePath.normalize().toString,
-          mochaModule().path.wrapped.toAbsolutePath.normalize().toString,
+          Jvm.realAbs(sourceMapSupportModule().path),
+          Jvm.realAbs(mochaModule().path),
           "--timeout",
           testTimeout().toString,
           "--reporter",
