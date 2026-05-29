@@ -108,7 +108,11 @@ object PathAliasing {
    * `FileAlreadyExistsException` (concurrent creation).
    */
   def ensureSymlink(link: os.Path, dest: os.Path): Unit = {
-    val targetNio = link.toNIO
+    // `.wrapped` (real on-disk location), not `.toNIO`: the link *is* the alias, so its serialized
+    // form is the `../mill-workspace` alias path itself; handing that relative path to
+    // `createSymbolicLink` resolves against the wrong cwd and throws `NoSuchFileException` (a
+    // `FileSystemException`, silently swallowed below), so the alias never gets created.
+    val targetNio = link.wrapped
     val destNio = dest.wrapped.toAbsolutePath.normalize()
     val linkOpts = LinkOption.NOFOLLOW_LINKS
     try {
@@ -140,6 +144,35 @@ object PathAliasing {
    */
   def withDefaultPathSerializer[T](body: => T): T =
     os.Path.pathSerializer.withValue(os.Path.defaultPathSerializer)(body)
+
+  /**
+   * Serializer that always renders a path in its real on-disk absolute form (`p.wrapped`),
+   * regardless of any relativization configured via `OS_LIB_PATH_RELATIVIZER_BASE`. Unlike
+   * [[withDefaultPathSerializer]], this works even when the relativizing serializer *is* the
+   * process default (as in a daemon launched with the relativizer env var set).
+   */
+  private object RawPathSerializer extends os.Path.Serializer {
+    def serializeString(p: os.Path): String = p.wrapped.toString
+    def serializeFile(p: os.Path): java.io.File = p.wrapped.toFile
+    def serializePath(p: os.Path): java.nio.file.Path = p.wrapped
+    def deserialize(s: String): java.nio.file.Path = os.Path.defaultPathSerializer.deserialize(s)
+    def deserialize(s: java.io.File): java.nio.file.Path =
+      os.Path.defaultPathSerializer.deserialize(s)
+    def deserialize(s: java.nio.file.Path): java.nio.file.Path =
+      os.Path.defaultPathSerializer.deserialize(s)
+    def deserialize(s: java.net.URI): java.nio.file.Path =
+      os.Path.defaultPathSerializer.deserialize(s)
+  }
+
+  /**
+   * Scope `body` so every `os.Path` serializes to its real absolute on-disk form. Use narrowly,
+   * around an `os.proc(...).spawn`/`call`, when handing a `cwd` (and stdout/stderr redirects) to
+   * `ProcessBuilder`: os-lib turns `cwd` into `ProcessBuilder.directory()` via `cwd.toIO`, which the
+   * OS resolves on the real filesystem, so a relativized `../mill-workspace/...` form would not
+   * resolve. (`realAbs` can't be used here because the `cwd` is consumed by os-lib, not the caller.)
+   */
+  def withRawPathSerializer[T](body: => T): T =
+    os.Path.pathSerializer.withValue(RawPathSerializer)(body)
 
   /**
    * Run `body` with an `os.ProcessOps.spawnHook` installed that ensures every subprocess's

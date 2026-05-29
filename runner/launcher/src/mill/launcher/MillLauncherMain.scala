@@ -30,9 +30,14 @@ object MillLauncherMain {
   ): Int = {
     if (env.contains("MILL_TEST_EXIT_AFTER_BSP_CHECK")) return 0
 
-    // The launcher's own log/daemon-dir paths stay absolute even when the daemon configures
-    // the os-lib relativizer for cached output.
-    PathAliasing.withDefaultPathSerializer {
+    // The launcher does NOT relativize paths: it spawns the daemon/no-daemon processes and resolves
+    // their program/cwd/stdout-redirect paths against its *own* cwd before those processes exist, so
+    // it can't rely on the `../mill-workspace` symlinks (which live next to the spawned process's
+    // cwd). Forcing the raw (real-absolute) serializer here keeps every path the launcher hands to
+    // `ProcessBuilder` real, regardless of any `OS_LIB_PATH_RELATIVIZER_BASE` it inherited. The
+    // daemon, in contrast, *does* relativize and relies on the symlinks the launcher installs at its
+    // fixed cwd-parent.
+    PathAliasing.withRawPathSerializer {
       val stderr = streamsOpt.map(_.err).getOrElse(System.err)
       val parsedConfig = MillCliConfig.parse(args).toOption
 

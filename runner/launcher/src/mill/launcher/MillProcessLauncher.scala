@@ -154,6 +154,8 @@ object MillProcessLauncher {
 
     // destroyOnExit = false to prevent the daemon from being killed when the Mill client exits.
     // The daemon is a long-lived background process that should survive client disconnections.
+    // cwd/stdout/stderr serialize as real-absolute because the whole launcher runs under
+    // `withRawPathSerializer` (see `MillLauncherMain.main0`).
     os.proc(cmd).spawn(
       cwd = sandbox,
       env = processEnv,
@@ -275,6 +277,8 @@ object MillProcessLauncher {
       case None => "java"
       case Some(home) =>
         val exeName = if (isWin) "java.exe" else "java"
+        // Real-absolute because the launcher runs under `withRawPathSerializer` (see
+        // `MillLauncherMain.main0`); `ProcessBuilder` resolves the program against the OS cwd.
         (home / "bin" / exeName).toString
     }
   }
@@ -323,6 +327,8 @@ object MillProcessLauncher {
       jdk23PlusOpts ++
       sbtIoGlobOpt ++
       loadMillConfig(ConfigConstants.millJvmOpts, workDir) ++
+      // Real-absolute because the launcher runs under `withRawPathSerializer`; the freshly-spawned
+      // daemon JVM resolves `-cp` entries against its own cwd.
       Seq("-cp", runnerClasspath.mkString(File.pathSeparator))
   }
 
