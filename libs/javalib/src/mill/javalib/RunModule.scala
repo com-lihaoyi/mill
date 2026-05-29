@@ -15,7 +15,7 @@ import mill.javalib.classgraph.ClassgraphWorkerModule
 import mill.util.Jvm
 import mill.{Args, T}
 import os.{Path, ProcessOutput}
-import mill.constants.EnvVars
+import mill.api.internal.PathAliasing
 
 /**
  * Trait that provides the functionality around running JVM code: forked in subprocesses via [[run]],
@@ -46,12 +46,7 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
    * Includes [[forkEnv]] and the variables defined by Mill itself.
    */
   def allForkEnv: T[Map[String, String]] = Task {
-    val workspaceAbs = Jvm.realAbs(BuildCtx.workspaceRoot)
-    val homeAbs = Jvm.realAbs(os.home)
-    javaHomePathForkEnv() ++ forkEnv() ++ Map(
-      EnvVars.MILL_WORKSPACE_ROOT -> workspaceAbs,
-      EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> s"$workspaceAbs,../mill-workspace;$homeAbs,../mill-home"
-    )
+    javaHomePathForkEnv() ++ forkEnv() ++ PathAliasing.workspaceEnvVars()
   }
 
   def javaHomePathForkEnv: T[Map[String, String]] = Task {

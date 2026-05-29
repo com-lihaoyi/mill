@@ -4,7 +4,6 @@ import mill.api.daemon.MillException
 import mill.api.SystemStreams
 import mill.api.internal.PathAliasing
 import mill.client.*
-import mill.util.Jvm
 import mill.constants.{ConfigConstants, EnvVars, OutFiles, OutFolderMode}
 import mill.internal.MillCliConfig
 
@@ -69,11 +68,11 @@ object MillLauncherMain {
       // path relativizer so cached output paths serialize via the `out/mill-workspace` /
       // `out/mill-home` aliases. These env vars contribute to the daemon's restart fingerprint,
       // so an existing daemon restarts when the user's workspace changes.
+      val workspaceEnv = PathAliasing.workspaceEnvVars(workDir)
       val scopedEnv = effectiveEnv ++
-        Map(EnvVars.MILL_WORKSPACE_ROOT -> Jvm.realAbs(workDir)) ++
-        Option.unless(env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).contains(""))(
-          EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> MillProcessLauncher.relativizerEnv(workDir)
-        )
+        (if (env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).contains(""))
+           workspaceEnv - EnvVars.OS_LIB_PATH_RELATIVIZER_BASE
+         else workspaceEnv)
 
       try {
         val millRepositories =

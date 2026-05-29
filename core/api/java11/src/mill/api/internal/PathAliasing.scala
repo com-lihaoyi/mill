@@ -19,6 +19,22 @@ object PathAliasing {
     os.home -> (os.up / "mill-home")
   )
 
+  /**
+   * The env vars a Mill subprocess needs to participate in path relativization: the workspace
+   * root (so it can locate `out/`), and the os-lib relativizer base (so its serialized paths
+   * round-trip through the same aliases the daemon uses).
+   */
+  def workspaceEnvVars(workspace: os.Path = BuildCtx.workspaceRoot): Map[String, String] = {
+    def realAbs(p: os.Path) = p.wrapped.toAbsolutePath.normalize().toString
+    val workspaceAbs = realAbs(workspace)
+    val homeAbs = realAbs(os.home)
+    Map(
+      EnvVars.MILL_WORKSPACE_ROOT -> workspaceAbs,
+      EnvVars.OS_LIB_PATH_RELATIVIZER_BASE ->
+        s"$workspaceAbs,../mill-workspace;$homeAbs,../mill-home"
+    )
+  }
+
   private def normalize(raw: String): String = raw.replace('\\', '/')
 
   private def resolveFromAlias(

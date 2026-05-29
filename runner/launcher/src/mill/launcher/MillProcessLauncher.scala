@@ -12,12 +12,6 @@ import java.util.UUID
 import scala.jdk.CollectionConverters._
 
 object MillProcessLauncher {
-  def relativizerEnv(workDir: os.Path): String = {
-    val workspaceAbs = Jvm.realAbs(workDir)
-    val homeAbs = Jvm.realAbs(os.home)
-    s"$workspaceAbs,../mill-workspace;$homeAbs,../mill-home"
-  }
-
   private def outDir(outMode: OutFolderMode, workDir: os.Path, env: Map[String, String]): String =
     OutputDirectoryLayout.outDir(outMode, workDir, env)
 
@@ -141,11 +135,12 @@ object MillProcessLauncher {
     // Inheriting parent values causes nested Mill runs to lock/use the parent's out folder.
     val mergedJdkJavaOpts =
       Seq(env.getOrElse("JDK_JAVA_OPTIONS", ""), env.getOrElse("JAVA_OPTS", "")).mkString(" ").trim
-    val processEnv = env ++ Seq(
-      Some(EnvVars.MILL_WORKSPACE_ROOT -> Jvm.realAbs(workDir)),
+    val workspaceEnv = PathAliasing.workspaceEnvVars(workDir)
+    val processEnv = env ++ workspaceEnv ++ Seq(
       Some(EnvVars.MILL_ENABLE_STATIC_CHECKS -> "true"),
-      Option.unless(env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).contains(""))(
-        EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> relativizerEnv(workDir)
+      Option.when(env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).contains(""))(
+        // Caller explicitly opted out of relativization — propagate the empty sentinel.
+        EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> ""
       ),
       Option.unless(env.contains(EnvVars.MILL_EXECUTABLE_PATH))(
         EnvVars.MILL_EXECUTABLE_PATH -> getExecutablePath

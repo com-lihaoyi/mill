@@ -4,10 +4,9 @@ import mill.api.{PathRef, TaskCtx}
 import mill.api.Result
 import mill.api.daemon.internal.TestReporter
 import mill.util.Jvm
-import mill.api.internal.Util
+import mill.api.internal.{PathAliasing, Util}
 import mill.Task
 import sbt.testing.Status
-import mill.constants.EnvVars
 
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -160,17 +159,12 @@ final class TestModuleUtil(
     os.makeDir.all(sandbox)
 
     val proc = BuildCtx.withFilesystemCheckerDisabled {
-      val workspaceAbs = Jvm.realAbs(BuildCtx.workspaceRoot)
-      val homeAbs = Jvm.realAbs(os.home)
-      val millForkEnv = Map(
-        EnvVars.MILL_WORKSPACE_ROOT -> workspaceAbs,
-        EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> s"$workspaceAbs,../mill-workspace;$homeAbs,../mill-home"
-      )
       Jvm.spawnProcess(
         mainClass = "mill.javalib.testrunner.entrypoint.MillTestRunnerMain",
         classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
-        env = (if (propagateEnv) Task.env else Map()) ++ forkEnv ++ millForkEnv,
+        env =
+          (if (propagateEnv) Task.env else Map()) ++ forkEnv ++ PathAliasing.workspaceEnvVars(),
         mainArgs = Seq(testRunnerClasspathArg, argsFile.wrapped.toString),
         cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
         cpPassingJarPath = Option.when(useArgsFile)(
