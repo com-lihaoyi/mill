@@ -228,7 +228,7 @@ object Deps {
   // keep in sync with doc/antora/antory.yml
   val bsp4j = mvn"ch.epfl.scala:bsp4j:2.2.0-M2"
   // https://github.com/google/gson/releases/tag/gson-parent-2.13.2
-  val gson = mvn"com.google.code.gson:gson:2.13.2"
+  val gson = mvn"com.google.code.gson:gson:2.14.0"
   val fansi = mvn"com.lihaoyi::fansi:0.5.1"
   val javaparser = mvn"com.github.javaparser:javaparser-core:3.28.0"
   val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.16.0"
