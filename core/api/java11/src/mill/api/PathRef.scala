@@ -143,7 +143,7 @@ object PathRef {
                 updateWithInt(value)
               } else if (!os.isLink(path) && jnio.Files.isReadable(path.wrapped)) {
                 // `path.wrapped` (un-relativized NIO path) — `.toNIO` on
-                // reproducible-2 returns the `../mill-workspace/...` form, which
+                // reproducible mode returns the `../mill-workspace/...` form, which
                 // `Files.isReadable` resolves against the caller's cwd and can
                 // silently return `false`, dropping the file's content from
                 // the PathRef sig and breaking change detection.

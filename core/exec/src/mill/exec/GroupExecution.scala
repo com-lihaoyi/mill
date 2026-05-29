@@ -401,7 +401,7 @@ trait GroupExecution {
           // revalidated, so reusing the cached value silently bypasses real
           // changes). Earlier code bypassed `loadCachedJson` entirely for
           // any side-effecting task; that left `valueHashChanged` always
-          // true (no prev valueHash to compare against), which on reproducible-2
+          // true (no prev valueHash to compare against), which in reproducible mode
           // — where `Task.Input.sideHash = 31337` is stable — propagated into
           // the invalidation tree as spurious `coursierEnv`/`useFileLocks`/
           // `zincLogDebug` roots.
@@ -909,7 +909,7 @@ trait GroupExecution {
     for {
       cached <-
         // Use `.wrapped.toFile` (real absolute on-disk path) rather than `.toIO`.
-        // On reproducible-2 the os-lib serializer relativizes `.toIO` to a
+        // On reproducible mode the os-lib serializer relativizes `.toIO` to a
         // `../mill-workspace/...` form, which Java's file-reading APIs cannot
         // resolve from the daemon's cwd, so every cache lookup silently fails
         // with NoSuchFileException.

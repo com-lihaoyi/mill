@@ -21,7 +21,7 @@ class Modeler(
   /** Returns the [[ModelBuildingResult]] for all projects in `workspace`. */
   def buildAll(): Seq[ModelBuildingResult] = {
     def recurse(dir: os.Path): Seq[ModelBuildingResult] = {
-      // Pass Maven an un-relativized absolute File. On reproducible-2 `.toIO`
+      // Pass Maven an un-relativized absolute File. On reproducible mode `.toIO`
       // returns `../mill-workspace/pom.xml`; Maven stores that relative path
       // verbatim, and `model.getProjectDirectory` then yields a relative File
       // that callers convert via `os.Path(_)` (resolved against `os.pwd`)
@@ -78,7 +78,7 @@ object Modeler {
 
   def defaultLocalRepository: LocalRepository =
     // Real absolute path, not the `../mill-home/...` relativized form `.toIO`
-    // would yield on reproducible-2 — Maven's repository layer treats it as a
+    // would yield in reproducible mode — Maven's repository layer treats it as a
     // path string verbatim.
     LocalRepository(Jvm.realAbsFile(os.home / ".m2/repository"))
 

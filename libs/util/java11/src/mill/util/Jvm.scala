@@ -55,6 +55,11 @@ object Jvm {
     try p.wrapped.toRealPath().toString
     catch { case _: java.io.IOException => realAbs(p) }
 
+  /** Same as [[realAbsResolved]] but returns an [[os.Path]] (falls back to the input on IO error). */
+  def realAbsResolvedPath(p: os.Path): os.Path =
+    try os.Path(p.wrapped.toRealPath())
+    catch { case _: java.io.IOException => p }
+
   /**
    * Create or update `link` to be a symlink pointing at `dest`. If `link` exists as a non-symlink,
    * replace it. Best-effort: catches `FileSystemException` (e.g. read-only fs) and
@@ -310,7 +315,7 @@ object Jvm {
     if (cwd != null) os.makeDir.all(cwd)
 
     // Use real absolute paths (not `.toString` / `.toIO`) for the `-cp` arg: on
-    // reproducible-2 those return the relativized `../mill-workspace/...` form,
+    // reproducible mode those return the relativized `../mill-workspace/...` form,
     // which is only resolvable if the alias symlink exists in the subprocess
     // cwd's parent. That symlink may not be reliably present on Windows (where
     // creating it without developer mode silently fails) or under nested
@@ -739,7 +744,7 @@ object Jvm {
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
       config: CoursierConfig
   ) =
-    // Use `.wrapped.toFile` instead of `.toIO`: on reproducible-2 the path
+    // Use `.wrapped.toFile` instead of `.toIO`: in reproducible mode the path
     // serializer relativizes `toIO` to `..\mill-home\...`, which on Windows
     // breaks Plexus's zip-slip prefix check inside ArchiveCache → JDK extract.
     FileCache[Task](os.Path(config.cacheLocation).wrapped.toFile)

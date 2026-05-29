@@ -20,7 +20,7 @@ import mill.api.daemon.internal.{
   TestModuleApi
 }
 import mill.api.daemon.internal.idea.{Element, IdeaConfigFile, JavaFacet, ResolvedModule}
-import mill.util.BuildInfo
+import mill.util.{BuildInfo, Jvm}
 import org.eclipse.jgit.ignore.{FastIgnoreRule, IgnoreNode}
 import os.SubPath
 
@@ -713,15 +713,10 @@ class GenIdeaImpl(
     "file://" + relForwardPath(path)
   }
 
-  // Resolve a path to its real on-disk location, following symlinks. In reproducible-build mode
-  // paths reach `GenIdeaImpl` in an alias-traversing form (e.g. a coursier jar appears as
-  // `<workspace>/out/mill-daemon/sandbox/out/mill-home/.../jar` via the `out/mill-home` alias).
-  // Relativizing such a path against the project dir wrongly makes it look project-relative;
-  // resolving to the real path first yields the true coursier/home location so it relativizes
-  // correctly (e.g. to `$USER_HOME$/...`).
-  private def realPath(p: os.Path): os.Path =
-    try os.Path(p.wrapped.toRealPath())
-    catch { case _: java.io.IOException => p }
+  // Resolve through any `mill-workspace`/`mill-home` alias symlinks so `relForwardPath` /
+  // `pathToLibName` see the canonical jar location (otherwise an alias-traversing path looks
+  // project-relative when it's really a coursier-cache file under `$USER_HOME$`).
+  private val realPath: os.Path => os.Path = Jvm.realAbsResolvedPath
 
   private val projectDir = (realPath(workDir), "$PROJECT_DIR$/")
   private val homeDir = (realPath(os.home), "$USER_HOME$/")

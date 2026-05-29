@@ -180,7 +180,7 @@ object Util {
       if (!os.exists(scriptFile)) Result.Success("")
       else mill.api.ExecResult.catchWrapException {
         // Pass the Java-side helper `scriptFile.wrapped` (un-relativized NIO
-        // path) rather than `.toNIO` — on reproducible-2 the latter returns a
+        // path) rather than `.toNIO` — in reproducible mode the latter returns a
         // `../mill-workspace/...` form that `readBuildHeader` (plain Java IO)
         // can't open. This causes yaml header data to silently come back empty,
         // so generated meta-build code drops user-set keys like `scalaVersion`

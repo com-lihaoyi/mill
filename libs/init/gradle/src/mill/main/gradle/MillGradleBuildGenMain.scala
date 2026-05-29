@@ -85,7 +85,7 @@ object MillGradleBuildGenMain {
       }
     }
     // Pass Gradle real absolute Files for the project directory and JDK home.
-    // On reproducible-2 `os.Path#toIO` returns the relativized
+    // On reproducible mode `os.Path#toIO` returns the relativized
     // `..\mill-workspace\...` / `..\mill-home\...` form, which Gradle then
     // resolves against its own cwd — failing on Windows where the symlink
     // alias cannot be created without developer mode (the cwd is also nested

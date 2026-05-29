@@ -33,18 +33,11 @@ trait MicronautNativeAotModule extends MicronautAotModule, NativeImageModule {
 
   override def nativeImageOptions: Task.Simple[Seq[String]] = Task {
     val configurationsPath = micronautProcessAOT().path / "classes"
-    // Pass a real, absolute on-disk path; in reproducible-build mode `os.Path.toString` is
-    // relativized to an `out/mill-workspace/...` alias path that native-image cannot resolve.
-    val configurationsPathAbs =
-      try configurationsPath.wrapped.toRealPath().toString
-      catch {
-        case _: java.io.IOException =>
-          mill.util.Jvm.realAbs(configurationsPath)
-      }
+    // Symlink-resolved abs path: native-image cannot resolve the `out/mill-workspace` alias form.
     super.nativeImageOptions() ++ Seq(
       "--no-fallback",
       "--configurations-path",
-      configurationsPathAbs
+      mill.util.Jvm.realAbsResolved(configurationsPath)
     )
   }
 

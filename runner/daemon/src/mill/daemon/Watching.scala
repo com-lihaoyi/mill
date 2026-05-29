@@ -181,13 +181,11 @@ object Watching {
         }
         writeToWatchLog(s"[watched-paths:filtered] ${filterPaths.toSeq.sorted.mkString("\n")}")
 
-        // Canonicalise via `toRealPath` so paths routed through the `mill-workspace` alias
-        // symlink and paths through platform-level symlinks (e.g. `/tmp` -> `/private/tmp`)
-        // compare equal — otherwise `recursiveWatches` rejects every subdir and `--watch`
-        // misses changes to `Task.Source`/`Task.Sources` files in subdirectories.
-        def canonical(p: os.Path): os.Path =
-          try os.Path(p.wrapped.toRealPath())
-          catch { case NonFatal(_) => p }
+        // Canonicalise so paths routed through the `mill-workspace` alias symlink and paths
+        // through platform-level symlinks (e.g. `/tmp` -> `/private/tmp`) compare equal —
+        // otherwise `recursiveWatches` rejects every subdir and `--watch` misses changes to
+        // `Task.Source`/`Task.Sources` files in subdirectories.
+        val canonical: os.Path => os.Path = mill.util.Jvm.realAbsResolvedPath
 
         val canonicalFilterPaths = filterPaths.map(canonical)
         val canonicalWatchedPathsSet = watchedPathsSet.map(canonical)
