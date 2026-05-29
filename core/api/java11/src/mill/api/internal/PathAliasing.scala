@@ -108,6 +108,19 @@ object PathAliasing {
     os.Path.pathSerializer.withValue(os.Path.defaultPathSerializer)(body)
 
   /**
+   * Run `body` with an `os.ProcessOps.spawnHook` installed that ensures every subprocess's
+   * `cwd` has the `../mill-workspace`/`../mill-home` aliases. Chains onto any existing hook
+   * so installations from outer scopes (e.g. `EvaluatorImpl`) still run.
+   */
+  def withSpawnAliasHook[T](workspace: os.Path)(body: => T): T = {
+    val prev = os.ProcessOps.spawnHook.value
+    os.ProcessOps.spawnHook.withValue { cwd =>
+      prev(cwd)
+      ensureProcessCwdAliases(cwd, workspace)
+    }(body)
+  }
+
+  /**
    * Install the `../mill-workspace` / `../mill-home` forwarder symlinks for a process whose cwd is
    * `cwd`. The aliases live in `cwd`'s *parent*, never inside `cwd` itself, so that a tool which
    * walks/archives its own working directory (`jar -c .`, `tar`, `os.walk`) does not see them.

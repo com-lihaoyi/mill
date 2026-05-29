@@ -44,16 +44,6 @@ final class EvaluatorImpl(
   override val staticBuildOverrides = execution.staticBuildOverrides
   PathAliasing.ensureProcessCwdAliases(os.pwd, workspace)
 
-  private def withPathSerialization[T](t: => T): T = {
-    val prevSpawnHook = os.ProcessOps.spawnHook.value
-    os.ProcessOps.spawnHook.withValue { cwd =>
-      prevSpawnHook(cwd)
-      PathAliasing.ensureProcessCwdAliases(cwd, workspace)
-    } {
-      t
-    }
-  }
-
   def workspace = execution.workspace
   def baseLogger = execution.baseLogger
   def outPath = execution.outPath
@@ -336,7 +326,7 @@ final class EvaluatorImpl(
       logger: Logger = baseLogger,
       serialCommandExec: Boolean = false,
       selectiveExecution: Boolean = false
-  ): Evaluator.Result[T] = withPathSerialization {
+  ): Evaluator.Result[T] = PathAliasing.withSpawnAliasHook(workspace) {
     val selectiveExecutionEnabled = selectiveExecution && !tasks.exists(_.isExclusiveCommand)
 
     val (selectedTasks, selectiveResults, maybeNewMetadata) =

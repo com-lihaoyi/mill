@@ -1145,11 +1145,7 @@ object GroupExecution {
       if (exclusive) (exclusiveSystemStreams, () => workspace)
       else (multiLogger.streams, () => destCreator.makeDest())
 
-    val prevSpawnHook = os.ProcessOps.spawnHook.value
-    os.ProcessOps.spawnHook.withValue { cwd =>
-      prevSpawnHook(cwd)
-      PathAliasing.ensureProcessCwdAliases(cwd, workspace)
-    } {
+    PathAliasing.withSpawnAliasHook(workspace) {
       os.dynamicPwdFunction.withValue(destFunc) {
         os.checker.withValue(executionChecker) {
           mill.api.SystemStreamsUtils.withStreams(streams) {
