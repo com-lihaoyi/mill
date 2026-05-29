@@ -104,10 +104,10 @@ trait GroupExecution {
   val staticBuildOverrides: Map[String, Located[Appendable[BufferedValue]]] = {
     staticBuildOverrideFiles
       .flatMap { case (path0, rawText) =>
+        // Resolve through any `mill-workspace`/`mill-home` alias symlinks so the path matches
+        // `workspace` (the real on-disk root) when we check `startsWith` below.
         val path = os.Path(path0, os.pwd)
-        val resolvedPath =
-          if (os.exists(path)) os.Path(path.toNIO.toRealPath())
-          else path
+        val resolvedPath = if (os.exists(path)) os.Path(path.toNIO.toRealPath()) else path
         val headerDataReader = mill.api.internal.HeaderData.headerDataReader(resolvedPath)
 
         def rec(

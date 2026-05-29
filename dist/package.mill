@@ -116,16 +116,10 @@ trait DistModule extends RunModule {
 
   def executable = Task {
     val rawExecutable = executableRaw()
-    // Embed real absolute paths in the generated launcher script. On
-    // reproducible-2 `os.Path.toString` / `.toNIO` return the relativized
-    // `../mill-workspace/...` form, which is unusable from inside a launcher
-    // that may be invoked from any cwd (notably example/integration test
-    // sandboxes, where `../mill-workspace/out/dist/raw/executableRaw.dest/mill`
-    // does not exist).
-    val rawExecutableAbs =
-      rawExecutable.path.wrapped.toAbsolutePath.normalize().toString
-    val localRepoUri =
-      localRepo().path.wrapped.toUri.toASCIIString
+    // `wrapped`: launcher script may be invoked from any cwd, so embed real absolute paths
+    // rather than the relativized `../mill-workspace/...` alias form.
+    val rawExecutableAbs = rawExecutable.path.wrapped.toAbsolutePath.normalize().toString
+    val localRepoUri = localRepo().path.wrapped.toUri.toASCIIString
     if (Properties.isWin) {
       val launcher = Task.dest / "mill.bat"
       val launcherContent =
