@@ -28,9 +28,18 @@ object `package` extends MillStableScalaModule {
   def compileMvnDeps = Seq(Deps.sonatypeCentralClient)
   def runMvnDeps = Seq(Deps.sonatypeCentralClient)
   def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit.internal)
+  def localTestExtraModules =
+    super.localTestExtraModules ++ Seq(
+      `scalafmt-worker`
+    )
 
   def testForkEnv = {
     val locale = if (Properties.isMac) "en_US.UTF-8" else "C.utf8"
     super.testForkEnv() ++ Map("LC_ALL" -> locale)
+  }
+
+  object `scalafmt-worker` extends MillPublishScalaModule {
+    def moduleDeps = Seq(build.libs.scalalib)
+    def mvnDeps = Seq(Deps.scalafmtDynamic)
   }
 }

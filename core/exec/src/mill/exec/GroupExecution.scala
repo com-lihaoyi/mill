@@ -303,8 +303,18 @@ trait GroupExecution {
         // dropped during an earlier contended wait before evaluation continues.
         // This path may block, so only call it when we are not holding a task
         // Write lease.
+        // #7132: blocking task-lock waits run on the bounded execution pool;
+        // wrap them in `executionContext.blocking` so the pool spawns a
+        // compensating worker while parked, preventing pool starvation (the
+        // lock-holder's downstream tasks can still get a thread and release).
+        // Guard on `hasDropped`: with nothing dropped the reacquire is a no-op,
+        // and entering `blocking` here on every task's uncontended fast path
+        // would churn the pool size and balloon the thread count past `--jobs`.
         def reacquireDroppedReads(): Unit =
-          leaseTracker.reacquireDropped(workspaceLocking, taskWaitReporter)
+          if (leaseTracker.hasDropped)
+            executionContext.blocking {
+              leaseTracker.reacquireDropped(workspaceLocking, taskWaitReporter)
+            }
 
         // The write-upgrade callback and Named write body run while holding
         // this task's Write lock, so dropped reads must be reacquired only via
@@ -330,12 +340,14 @@ trait GroupExecution {
         // — so per-task locking is unnecessary and just serializes peers.
         def acquireReadTaskLock(): LauncherLocking.Lease = {
           def blockingAcquire(): LauncherLocking.Lease =
-            workspaceLocking.taskLock(
-              taskLockPath,
-              labelled.ctx.segments.render,
-              LauncherLocking.LockKind.Read,
-              taskWaitReporter
-            )
+            executionContext.blocking {
+              workspaceLocking.taskLock(
+                taskLockPath,
+                labelled.ctx.segments.render,
+                LauncherLocking.LockKind.Read,
+                taskWaitReporter
+              )
+            }
 
           if (labelled.isInputTask)
             LauncherLocking.Noop.taskLock(
@@ -370,11 +382,13 @@ trait GroupExecution {
         def awaitTaskLockChange(timeoutMs: Long): Unit =
           if (!labelled.isInputTask) {
             leaseTracker.releaseHigherThan(taskLockKey)
-            workspaceLocking.awaitTaskStateChange(
-              taskLockPath,
-              labelled.ctx.segments.render,
-              timeoutMs
-            )
+            executionContext.blocking {
+              workspaceLocking.awaitTaskStateChange(
+                taskLockPath,
+                labelled.ctx.segments.render,
+                timeoutMs
+              )
+            }
           }
 
         // Helper to evaluate the task with full caching support
