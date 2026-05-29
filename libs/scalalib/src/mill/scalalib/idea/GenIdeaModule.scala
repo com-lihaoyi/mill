@@ -10,7 +10,20 @@ trait GenIdeaModule extends mill.javalib.idea.GenIdeaModule {
 
   override def scalacPluginsMvnDeps = javaModuleRef().scalacPluginMvnDeps
 
-  override def allScalacOptions = javaModuleRef().allScalacOptions
+  override def allScalacOptions = Task.Anon {
+    // IntelliJ manages source roots itself, so strip any `-sourceroot <path>` pairs
+    // (e.g. the one `MillBuildRootModule` adds for reproducible TASTY output) before
+    // they leak into the generated `scala_compiler.xml` and depend on the workspace
+    // location (which would make the golden file non-portable).
+    val opts = javaModuleRef().allScalacOptions()
+    val buf = scala.collection.mutable.Buffer.empty[String]
+    var i = 0
+    while (i < opts.length) {
+      if (opts(i) == "-sourceroot" && i + 1 < opts.length) i += 2
+      else { buf += opts(i); i += 1 }
+    }
+    buf.toSeq
+  }
 
   override def scalaVersion = Task.Anon { Some(javaModuleRef().scalaVersion()) }
 

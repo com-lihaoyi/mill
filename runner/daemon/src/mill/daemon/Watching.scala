@@ -181,14 +181,34 @@ object Watching {
         }
         writeToWatchLog(s"[watched-paths:filtered] ${filterPaths.toSeq.sorted.mkString("\n")}")
 
+        // On reproducible-2, `os.list(workspaceRoot)` returns child paths whose wrapped form
+        // routes through the `mill-workspace` alias symlink (e.g.
+        // `<daemonDir>/mill-workspace/bar`) instead of the real workspace path
+        // (`<workspace>/bar`). The `WatchServiceWatcher.recursiveWatches` loop then asks the
+        // filter to decide whether to descend into those subdirectories, but the alias-rooted
+        // path does not textually `startsWith` any entry in `filterPaths`/`watchedPathsSet`, so
+        // every subdirectory is rejected and `inotify` is never installed on it. This silently
+        // breaks `--watch` for any task whose `Task.Source`/`Task.Sources` lives in a subdir
+        // (e.g. `bar/bar.txt`). Canonicalising via `toRealPath` collapses both the alias symlink
+        // and any platform-level symlinks (e.g. `/tmp` -> `/private/tmp` on macOS) so all
+        // comparisons see a consistent, fully-resolved path.
+        def canonical(p: os.Path): os.Path =
+          try os.Path(p.wrapped.toRealPath())
+          catch { case NonFatal(_) => p }
+
+        val canonicalFilterPaths = filterPaths.map(canonical)
+        val canonicalWatchedPathsSet = watchedPathsSet.map(canonical)
+
         Using.resource(os.watch.watch(
           // Just watch the root folder
           Seq(workspaceRoot),
           filter = path => {
+            val canonicalPath = canonical(path)
             val shouldBeWatched =
-              filterPaths.contains(path) || watchedPathsSet.exists(watchedPath =>
-                path.startsWith(watchedPath)
-              )
+              canonicalFilterPaths.contains(canonicalPath) ||
+                canonicalWatchedPathsSet.exists(watchedPath =>
+                  canonicalPath.startsWith(watchedPath)
+                )
             writeToWatchLog(s"[filter] (shouldBeWatched=$shouldBeWatched) $path")
             shouldBeWatched
           },
@@ -196,9 +216,12 @@ object Watching {
             // Make sure that the changed paths are actually the ones in our watch list and not some adjacent files in the
             // same folder
             val hasWatchedPath =
-              changedPaths.exists(p =>
-                watchedPathsSet.exists(watchedPath => p.startsWith(watchedPath))
-              )
+              changedPaths.exists { p =>
+                val canonicalPath = canonical(p)
+                canonicalWatchedPathsSet.exists(watchedPath =>
+                  canonicalPath.startsWith(watchedPath)
+                )
+              }
 
             // Do not log if the only thing that changed was the watch log file itself.
             //
