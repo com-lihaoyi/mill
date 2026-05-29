@@ -384,6 +384,47 @@ object PlanTests extends TestSuite {
       tracker.drain()
     }
 
+    // `hasDropped` gates the per-task read-lock fast path: it must read false
+    // whenever no read is dropped, so the common no-op build skips the O(n)
+    // `reacquireDropped` scan (and the `executionContext.blocking` pool churn)
+    // entirely. This pins the counter bookkeeping across drop, reacquire, a
+    // redundant reacquire, and drain.
+    test("leaseTrackerHasDroppedTracksDropReacquireAndDrain") {
+      import transitiveLeaseChain.*
+
+      val tracker = new Execution.LeaseTracker(
+        Array(a, b, c),
+        Map(a -> Nil, b -> Seq(a), c -> Seq(b))
+      )
+      val locking = new TestLocking
+      val aPath = Paths.get("/tmp/mill-lock-test/a")
+      val bPath = Paths.get("/tmp/mill-lock-test/b")
+      val aKey = aPath.toAbsolutePath.normalize().toString
+
+      tracker.retain(a, aPath, "a", new TestLease, 0L)
+      tracker.retain(b, bPath, "b", new TestLease, 0L)
+      assert(!tracker.hasDropped)
+
+      // Drop everything sorting after `a` (i.e. `b`): counter flips to true.
+      tracker.releaseHigherThan(aKey)
+      assert(tracker.hasDropped)
+
+      // Clean reacquire (no version change, no contention) clears the drop.
+      tracker.reacquireDropped(locking, LauncherLocking.WaitReporter.Noop)
+      assert(!tracker.hasDropped)
+
+      // With nothing dropped, a redundant reacquire is a no-op fast return.
+      tracker.reacquireDropped(locking, LauncherLocking.WaitReporter.Noop)
+      assert(!tracker.hasDropped)
+
+      // Draining a still-dropped retained must also release its counter slot,
+      // otherwise `hasDropped` would stay stuck true and disable the fast path.
+      tracker.releaseHigherThan(aKey)
+      assert(tracker.hasDropped)
+      tracker.drain()
+      assert(!tracker.hasDropped)
+    }
+
     test("leaseTrackerDoesNotDropActivelyConsumedHigherLocks") {
       import transitiveLeaseChain.*
 
