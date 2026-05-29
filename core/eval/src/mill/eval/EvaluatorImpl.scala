@@ -238,11 +238,8 @@ final class EvaluatorImpl(
       }
 
       val normalizedFileName = module.moduleCtx.fileName.replace('\\', '/')
-      val isRootBuildFile =
-        normalizedFileName == "mill-build/build.mill" ||
-          normalizedFileName.endsWith("/mill-build/build.mill") ||
-          normalizedFileName == "build.mill.yaml" ||
-          normalizedFileName.endsWith("/build.mill.yaml")
+      val isRootBuildFile = Seq("mill-build/build.mill", "build.mill.yaml")
+        .exists(name => normalizedFileName == name || normalizedFileName.endsWith(s"/$name"))
 
       val millKeys = mill.constants.ConfigConstants.all()
       val validKeys =
