@@ -545,6 +545,25 @@ object Execution {
     }
 
     val states = new ConcurrentHashMap[Task[?], State]()
+
+    // Index of the states with a dropped retained read, so `reacquireDropped`
+    // visits only those instead of scanning the whole graph. A `State` has at
+    // most one retained, so membership mirrors `Retained.dropped` exactly.
+    private val droppedStates = ConcurrentHashMap.newKeySet[State]()
+
+    def hasDropped: Boolean = !droppedStates.isEmpty
+
+    // Flip `Retained.dropped` and the index together; call under `s`'s monitor.
+    private def markDropped(s: State, retained: Retained): Unit =
+      if (!retained.dropped) {
+        retained.dropped = true
+        droppedStates.add(s)
+      }
+    private def clearDropped(s: State, retained: Retained): Unit =
+      if (retained.dropped) {
+        retained.dropped = false
+        droppedStates.remove(s)
+      }
     private val transitiveUpstreams: Map[Task[?], Seq[Task[?]]] = {
       def rec(task: Task[?]): Seq[Task[?]] = {
         val seen = mutable.LinkedHashSet.empty[Task[?]]
@@ -574,9 +593,12 @@ object Execution {
     private def drainLeases(s: State): Unit = s.synchronized {
       val retained = s.retained
       s.retained = null
-      if (retained != null && retained.lease != null) {
-        closeQuietly(retained.lease)
-        retained.lease = null
+      if (retained != null) {
+        clearDropped(s, retained) // drop the index entry before discarding it
+        if (retained.lease != null) {
+          closeQuietly(retained.lease)
+          retained.lease = null
+        }
       }
     }
 
@@ -613,7 +635,10 @@ object Execution {
     ): Unit = {
       val s = states.get(task)
       if (s != null) s.synchronized {
-        if (s.retained != null && s.retained.lease != null) closeQuietly(s.retained.lease)
+        if (s.retained != null) {
+          clearDropped(s, s.retained)
+          if (s.retained.lease != null) closeQuietly(s.retained.lease)
+        }
         s.retained = Retained(
           path = path,
           label = label,
@@ -637,7 +662,7 @@ object Execution {
         ) {
           closeQuietly(retained.lease)
           retained.lease = null
-          retained.dropped = true
+          markDropped(s, retained)
         }
       }
     }
@@ -653,8 +678,10 @@ object Execution {
         // non-Named groups, where this evaluation does not hold a task Write.
         block: Boolean = true
     ): Unit = {
+      if (!hasDropped) return // nothing dropped: skip the scan (the common case)
       import scala.jdk.CollectionConverters.*
-      val dropped = states.values().asScala.toSeq.flatMap { s =>
+      // Snapshot of the index; each entry is re-validated under its monitor below.
+      val dropped = droppedStates.asScala.toSeq.flatMap { s =>
         s.synchronized {
           val retained = s.retained
           Option.when(retained != null && retained.dropped && retained.lease == null)(s -> retained)
@@ -684,7 +711,7 @@ object Execution {
         s.synchronized {
           if ((s.retained eq retained) && retained.dropped && retained.lease == null) {
             retained.lease = lease
-            retained.dropped = false
+            clearDropped(s, retained)
           } else closeQuietly(lease)
         }
       }

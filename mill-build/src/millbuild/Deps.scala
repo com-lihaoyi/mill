@@ -162,7 +162,7 @@ object Deps {
 
   val junitInterface = mvn"com.github.sbt:junit-interface:0.13.3"
   val commonsIo = mvn"commons-io:commons-io:2.22.0"
-  val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.25.1"
+  val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.26.0"
   val osLib = mvn"com.lihaoyi::os-lib:0.11.8"
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:${osLib.version}"
   val pprint = mvn"com.lihaoyi::pprint:0.9.6"
@@ -207,7 +207,7 @@ object Deps {
   val scalaCliBsp = mvn"org.virtuslab.scala-cli:scala-cli-bsp:1.8.0"
   val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.4.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala_runtime = mvn"org.scalameta:::semanticdb-scalac:4.16.1"
+  val semanticDBscala_runtime = mvn"org.scalameta:::semanticdb-scalac:4.17.0"
   val semanticDbJava_runtime = mvn"com.sourcegraph:semanticdb-java:0.12.3"
   val semanticDbShared =
     mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala_runtime.version}"
@@ -305,7 +305,7 @@ object Deps {
     val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.90.0"
     val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.24.0"
     val proguard_runtime = mvn"com.guardsquare:proguard-base:7.9.1"
-    val revApi_runtime = mvn"org.revapi:revapi-standalone:0.12.0"
+    val revApi_runtime = mvn"org.revapi:revapi-standalone:0.12.1"
     val sbtTestInterface = mvn"com.github.sbt:junit-interface:0.13.2"
 
     def updateable = Seq(
