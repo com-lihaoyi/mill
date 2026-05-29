@@ -13,6 +13,7 @@ import coursier.util.Task
 import coursier.{Artifacts, Classifier, Dependency, Fetch, Repository, Resolution, Resolve, Type}
 import mill.api.*
 import mill.api.daemon.*
+import mill.api.internal.PathAliasing
 import mill.constants.EnvVars
 import java.io.{BufferedOutputStream, File}
 import java.nio.file.Files
@@ -60,60 +61,6 @@ object Jvm {
     try os.Path(p.wrapped.toRealPath())
     catch { case _: java.io.IOException => p }
 
-  /**
-   * Create or update `link` to be a symlink pointing at `dest`. If `link` exists as a non-symlink,
-   * replace it. Best-effort: catches `FileSystemException` (e.g. read-only fs) and
-   * `FileAlreadyExistsException` (concurrent creation).
-   */
-  def ensureSymlink(link: os.Path, dest: os.Path): Unit = {
-    val targetNio = link.toNIO
-    val destNio = realAbsPath(dest)
-    val linkOpts = java.nio.file.LinkOption.NOFOLLOW_LINKS
-    try {
-      if (Files.isSymbolicLink(targetNio)) {
-        val current = Files.readSymbolicLink(targetNio)
-        if (current != destNio) {
-          os.remove(link)
-          Files.createSymbolicLink(targetNio, destNio)
-        }
-      } else if (Files.exists(targetNio, linkOpts)) {
-        os.remove.all(link)
-        Files.createSymbolicLink(targetNio, destNio)
-      } else {
-        Files.createSymbolicLink(targetNio, destNio)
-      }
-    } catch {
-      case _: java.nio.file.FileAlreadyExistsException =>
-      // Another concurrent task/process created it between exists-check and symlink — accept it.
-      case _: java.nio.file.FileSystemException =>
-      // Best-effort alias setup: read-only fs, no-symlink-support, etc.
-    }
-  }
-
-  /**
-   * Install the `../mill-workspace` / `../mill-home` forwarder symlinks for a process whose cwd is
-   * `cwd`. The aliases live in `cwd`'s *parent*, never inside `cwd` itself, so that a tool which
-   * walks/archives its own working directory (`jar -c .`, `tar`, `os.walk`) does not see them.
-   */
-  def ensureProcessCwdAliases(
-      cwd: os.Path,
-      workspace: => os.Path = sys.env
-        .get(EnvVars.MILL_WORKSPACE_ROOT)
-        .map(p => os.Path(p, os.pwd))
-        .getOrElse(BuildCtx.workspaceRoot)
-  ): Unit = {
-    if (cwd == null) return
-    val parent = cwd / os.up
-    val parentNio = parent.toNIO
-    val linkOpts = java.nio.file.LinkOption.NOFOLLOW_LINKS
-    // The enclosing dir is not actually a directory; cannot host the aliases (best-effort).
-    if (Files.exists(parentNio, linkOpts) && !Files.isDirectory(parentNio, linkOpts)) return
-    BuildCtx.withFilesystemCheckerDisabled {
-      os.makeDir.all(parent)
-      ensureSymlink(parent / "mill-workspace", workspace)
-      ensureSymlink(parent / "mill-home", os.home)
-    }
-  }
 
   /**
    * Runs a JVM subprocess with the given configuration and returns a
@@ -164,7 +111,7 @@ object Jvm {
       check: Boolean = true
   )(using ctx: TaskCtx): os.CommandResult = {
     val effectiveCwd = Option(cwd).getOrElse(os.pwd)
-    ensureProcessCwdAliases(effectiveCwd)
+    PathAliasing.ensureProcessCwdAliases(effectiveCwd)
     val commandArgs = buildJvmCommand(
       mainClass,
       mainArgs,
@@ -239,7 +186,7 @@ object Jvm {
       destroyOnExit: Boolean = true
   ): os.SubProcess = {
     val effectiveCwd = Option(cwd).getOrElse(os.pwd)
-    ensureProcessCwdAliases(effectiveCwd)
+    PathAliasing.ensureProcessCwdAliases(effectiveCwd)
 
     val commandArgs = buildJvmCommand(
       mainClass,
@@ -376,7 +323,7 @@ object Jvm {
       propagateEnv: Boolean = true
   )(using ctx: TaskCtx): Int = {
     val effectiveCwd = Option(cwd).getOrElse(os.pwd)
-    ensureProcessCwdAliases(effectiveCwd)
+    PathAliasing.ensureProcessCwdAliases(effectiveCwd)
     val commandArgs = buildJvmCommand(
       mainClass,
       mainArgs,

@@ -7,7 +7,7 @@ import mill.api.internal.{ResolveChecker, Resolved, RootModule0}
 import mill.api.daemon.Watchable
 import mill.exec.{Execution, PlanImpl}
 import mill.internal.PrefixLogger
-import mill.internal.MillPathSerializer
+import mill.api.internal.PathAliasing
 import mill.resolve.Resolve
 import mill.api.internal.ParseArgs
 import mill.eval.SelectiveExecutionImpl.transitiveNamedSelective
@@ -42,17 +42,13 @@ final class EvaluatorImpl(
       ScriptModuleInit()
     )
   override val staticBuildOverrides = execution.staticBuildOverrides
-  MillPathSerializer.setupSymlinks(os.pwd, workspace)
+  PathAliasing.ensureProcessCwdAliases(os.pwd, workspace)
 
   private def withPathSerialization[T](t: => T): T = {
     val prevSpawnHook = os.ProcessOps.spawnHook.value
     os.ProcessOps.spawnHook.withValue { cwd =>
       prevSpawnHook(cwd)
-      // The `../mill-*` aliases are created in `cwd`'s parent (a sibling `out/` subfolder), which is
-      // outside the running task's `Task.dest`; exempt this infrastructure write from the checker.
-      mill.api.BuildCtx.withFilesystemCheckerDisabled {
-        MillPathSerializer.setupSymlinks(cwd, workspace)
-      }
+      PathAliasing.ensureProcessCwdAliases(cwd, workspace)
     } {
       t
     }

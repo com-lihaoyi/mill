@@ -4,15 +4,8 @@ import mill.api.ExecResult.{OuterStack, Success}
 import mill.api.*
 import mill.api.daemon.internal.LauncherLocking
 import mill.api.daemon.internal.NonFatal
-import mill.api.internal.{Appendable, Cached, Located}
-import mill.internal.{
-  CodeSigUtils,
-  FileLogger,
-  LockUpgrade,
-  MillPathSerializer,
-  MultiLogger,
-  PromptWaitReporter
-}
+import mill.api.internal.{Appendable, Cached, Located, PathAliasing}
+import mill.internal.{CodeSigUtils, FileLogger, LockUpgrade, MultiLogger, PromptWaitReporter}
 
 import java.lang.reflect.Method
 import java.util.concurrent.ThreadPoolExecutor
@@ -1187,9 +1180,7 @@ object GroupExecution {
     val prevSpawnHook = os.ProcessOps.spawnHook.value
     os.ProcessOps.spawnHook.withValue { cwd =>
       prevSpawnHook(cwd)
-      mill.api.BuildCtx.withFilesystemCheckerDisabled {
-        MillPathSerializer.setupSymlinks(cwd, workspace)
-      }
+      PathAliasing.ensureProcessCwdAliases(cwd, workspace)
     } {
       os.dynamicPwdFunction.withValue(destFunc) {
         os.checker.withValue(executionChecker) {

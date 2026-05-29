@@ -138,7 +138,7 @@ object MillProcessLauncher {
     // The launched Mill process runs with cwd = `sandbox`, so its relativized paths resolve via the
     // alias in `sandbox`'s parent. Task subprocesses run with cwd = `<out>/.../<name>.dest` and get
     // their own parent aliases created on-demand by the daemon-side spawn hook.
-    Jvm.ensureProcessCwdAliases(sandbox, workDir)
+    mill.api.internal.PathAliasing.ensureProcessCwdAliases(sandbox, workDir)
 
     // Always scope workspace/relativizer to this launched process workDir.
     // Inheriting parent values causes nested Mill runs to lock/use the parent's out folder.

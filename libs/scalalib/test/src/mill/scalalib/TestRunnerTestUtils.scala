@@ -117,7 +117,7 @@ object TestRunnerTestUtils {
         if (expectedFileListing.nonEmpty) {
           val dest = eval.outPath / m(mod).toString / "testOnly.dest"
           // Exclude `mill-workspace`/`mill-home` — these are alias symlinks
-          // created by `MillPathSerializer.setupSymlinks` in the parent of
+          // created by `PathAliasing.ensureProcessCwdAliases` in the parent of
           // every working directory (here the test subprocess runs in
           // `dest/sandbox`, so they land in `dest`). They are reproducible-
           // build infrastructure, not test artifacts.
