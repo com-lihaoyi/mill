@@ -46,7 +46,7 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
    * Includes [[forkEnv]] and the variables defined by Mill itself.
    */
   def allForkEnv: T[Map[String, String]] = Task {
-    javaHomePathForkEnv() ++ forkEnv() ++ PathAliasing.workspaceEnvVars()
+    javaHomePathForkEnv() ++ forkEnv() ++ PathAliasing.workspaceEnvVars(env = Task.env)
   }
 
   def javaHomePathForkEnv: T[Map[String, String]] = Task {

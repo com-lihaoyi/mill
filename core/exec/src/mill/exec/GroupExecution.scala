@@ -1094,7 +1094,7 @@ object GroupExecution {
             normalized.relativeTo(normalizedWorkspace).toString
           else normalized.toString
         sys.error(
-          s"$kind from $display not allowed during execution of `$terminal`.\n$suffix"
+          s"$kind $display not allowed during execution of `$terminal`.\n$suffix"
         )
       }
     }
@@ -1102,7 +1102,7 @@ object GroupExecution {
     def onRead(path: os.ReadablePath): Unit = path match {
       case p: os.Path if !isCommand && !isInput && mill.api.FilesystemCheckerEnabled.value =>
         checkAccess(
-          "Reading",
+          "Reading from",
           p,
           normalizedReadDests,
           "You can only read files referenced by `Task.Source` or `Task.Sources`, or within a `Task.Input"
@@ -1113,7 +1113,7 @@ object GroupExecution {
     def onWrite(path: os.Path): Unit =
       if (!isCommand && mill.api.FilesystemCheckerEnabled.value)
         checkAccess(
-          "Writing",
+          "Writing to",
           path,
           normalizedWriteDests,
           "Normal `Task`s can only write to files within their `Task.dest` folder, only `Task.Command`s can write to other arbitrary files."

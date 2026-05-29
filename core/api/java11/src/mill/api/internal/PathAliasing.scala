@@ -9,6 +9,8 @@ object PathAliasing {
   val workspaceAlias = "../mill-workspace"
   val homeAlias = "../mill-home"
 
+  private def realAbs(p: os.Path): String = p.wrapped.toAbsolutePath.normalize().toString
+
   /**
    * The standard Mill (abs, alias) mappings: `workspace -> ../mill-workspace`, `home -> ../mill-home`.
    * Suitable for `os.Path.pathRemapSerializerNio` (after `.toNIO`-ing each side) and for
@@ -25,14 +27,27 @@ object PathAliasing {
    * round-trip through the same aliases the daemon uses).
    */
   def workspaceEnvVars(workspace: os.Path = BuildCtx.workspaceRoot): Map[String, String] = {
-    def realAbs(p: os.Path) = p.wrapped.toAbsolutePath.normalize().toString
+    workspaceEnvVars(workspace, sys.env)
+  }
+
+  def workspaceEnvVars(env: Map[String, String]): Map[String, String] = {
+    workspaceEnvVars(BuildCtx.workspaceRoot, env)
+  }
+
+  def workspaceEnvVars(
+      workspace: os.Path,
+      env: Map[String, String]
+  ): Map[String, String] = {
     val workspaceAbs = realAbs(workspace)
     val homeAbs = realAbs(os.home)
-    Map(
+    val workspaceVars = Map(
       EnvVars.MILL_WORKSPACE_ROOT -> workspaceAbs,
       EnvVars.OS_LIB_PATH_RELATIVIZER_BASE ->
         s"$workspaceAbs,../mill-workspace;$homeAbs,../mill-home"
     )
+    if (env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).contains("")) workspaceVars -
+      EnvVars.OS_LIB_PATH_RELATIVIZER_BASE
+    else workspaceVars
   }
 
   private def normalize(raw: String): String = raw.replace('\\', '/')
@@ -56,21 +71,24 @@ object PathAliasing {
     if (nio.isAbsolute) os.Path(nio.toAbsolutePath.normalize())
     else {
       val raw = normalize(rawInput)
-      if (raw == workspaceAlias) workspace
-      else if (raw.startsWith(workspaceAlias + "/"))
-        workspace / os.RelPath(raw.stripPrefix(workspaceAlias + "/"))
-      else if (raw == homeAlias) os.home
-      else if (raw.startsWith(homeAlias + "/"))
-        os.home / os.RelPath(raw.stripPrefix(homeAlias + "/"))
-      else {
-        val workspaceIdx = raw.indexOf(workspaceAlias)
-        if (workspaceIdx >= 0) resolveFromAlias(workspace, raw, workspaceIdx, workspaceAlias)
+      def fromAlias(raw: String, alias: String, base: os.Path): Option[os.Path] = {
+        if (raw == alias) Some(base)
+        else if (raw.startsWith(alias + "/")) Some(base / os.RelPath(raw.drop(alias.length + 1)))
         else {
-          val homeIdx = raw.indexOf(homeAlias)
-          if (homeIdx >= 0) resolveFromAlias(os.home, raw, homeIdx, homeAlias)
-          else os.Path(raw, pwd)
+          val needle = s"/$alias"
+          val idx = raw.indexOf(needle)
+          if (idx >= 0) {
+            val suffix = raw.drop(idx + needle.length)
+            if (suffix.isEmpty || suffix.startsWith("/"))
+              Some(resolveFromAlias(base, raw, idx + 1, alias))
+            else None
+          } else None
         }
       }
+
+      fromAlias(raw, workspaceAlias, workspace)
+        .orElse(fromAlias(raw, homeAlias, os.home))
+        .getOrElse(os.Path(raw, pwd))
     }
   }
 

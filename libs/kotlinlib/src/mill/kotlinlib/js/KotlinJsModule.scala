@@ -322,7 +322,10 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     val innerCompilerArgs = Seq.newBuilder[String]
     // `Jvm.realAbs`: same kotlinc klib-loader reason as `includeArgs` above.
-    innerCompilerArgs ++= Seq("-libraries", librariesCp.iterator.map(Jvm.realAbs).mkString(File.pathSeparator))
+    innerCompilerArgs ++= Seq(
+      "-libraries",
+      librariesCp.iterator.map(Jvm.realAbs).mkString(File.pathSeparator)
+    )
     innerCompilerArgs ++= Seq("-main", if (callMain) "call" else "noCall")
     if (moduleKind != ModuleKind.NoModule) {
       innerCompilerArgs ++= Seq(

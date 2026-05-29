@@ -11,6 +11,7 @@ import mill.api.internal.PathAliasing
 import mill.resolve.Resolve
 import mill.api.internal.ParseArgs
 import mill.eval.SelectiveExecutionImpl.transitiveNamedSelective
+import scala.util.Try
 
 /**
  * [[EvaluatorImpl]] is the primary API through which a user interacts with the Mill
@@ -237,9 +238,14 @@ final class EvaluatorImpl(
         }
       }
 
-      val normalizedFileName = module.moduleCtx.fileName.replace('\\', '/')
-      val isRootBuildFile = Seq("mill-build/build.mill", "build.mill.yaml")
-        .exists(name => normalizedFileName == name || normalizedFileName.endsWith(s"/$name"))
+      val filePath = os.Path(module.moduleCtx.fileName, workspace)
+      val resolvedFilePath =
+        Try(if (os.exists(filePath)) os.Path(filePath.toNIO.toRealPath()) else filePath).getOrElse(
+          filePath
+        )
+      val isRootBuildFile =
+        resolvedFilePath == workspace / "build.mill.yaml" ||
+          resolvedFilePath == workspace / "mill-build" / "build.mill"
 
       val millKeys = mill.constants.ConfigConstants.all()
       val validKeys =

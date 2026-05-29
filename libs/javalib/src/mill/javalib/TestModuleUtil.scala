@@ -159,12 +159,12 @@ final class TestModuleUtil(
     os.makeDir.all(sandbox)
 
     val proc = BuildCtx.withFilesystemCheckerDisabled {
+      val inheritedEnv = if (propagateEnv) Task.env else Map.empty[String, String]
       Jvm.spawnProcess(
         mainClass = "mill.javalib.testrunner.entrypoint.MillTestRunnerMain",
         classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
-        env =
-          (if (propagateEnv) Task.env else Map()) ++ forkEnv ++ PathAliasing.workspaceEnvVars(),
+        env = inheritedEnv ++ forkEnv ++ PathAliasing.workspaceEnvVars(env = inheritedEnv),
         mainArgs = Seq(testRunnerClasspathArg, argsFile.wrapped.toString),
         cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
         cpPassingJarPath = Option.when(useArgsFile)(

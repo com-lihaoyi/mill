@@ -68,11 +68,8 @@ object MillLauncherMain {
       // path relativizer so cached output paths serialize via the `out/mill-workspace` /
       // `out/mill-home` aliases. These env vars contribute to the daemon's restart fingerprint,
       // so an existing daemon restarts when the user's workspace changes.
-      val workspaceEnv = PathAliasing.workspaceEnvVars(workDir)
-      val scopedEnv = effectiveEnv ++
-        (if (env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).contains(""))
-           workspaceEnv - EnvVars.OS_LIB_PATH_RELATIVIZER_BASE
-         else workspaceEnv)
+      val workspaceEnv = PathAliasing.workspaceEnvVars(workDir, effectiveEnv)
+      val scopedEnv = effectiveEnv ++ workspaceEnv
 
       try {
         val millRepositories =

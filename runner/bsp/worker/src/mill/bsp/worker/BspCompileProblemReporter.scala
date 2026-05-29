@@ -105,7 +105,9 @@ private class BspCompileProblemReporter(
 
       case Some(f) =>
         val diagnostic = toDiagnostic(problem)
-        val textDocument = TextDocumentIdentifier(PathAliasing.resolveAliasedString(f.toString).wrapped.toUri.toString)
+        val textDocument = TextDocumentIdentifier(
+          PathAliasing.resolveAliasedString(f.toString).wrapped.toUri.toString
+        )
         if (diagnostics.add(textDocument, diagnostic)) {
           val diagnosticList = new java.util.LinkedList[Diagnostic]()
           diagnosticList.add(diagnostic)
