@@ -311,11 +311,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
 //        (allKotlinSourceFiles.map(_.path.toIO.getAbsolutePath), Seq())
 //    }
 
-    // `Jvm.realAbs`: in reproducible mode the default `os.Path` -> String
-    // conversion produces relativized `../mill-workspace/...` paths that
-    // kotlinc's klib loader resolves against its own cwd and can't find
-    // (manifests as "unresolved reference 'AnnotationRetention'" when
-    // kotlin-stdlib-js.klib is missing from the effective classpath).
+    // `Jvm.realAbs`: kotlinc's klib loader resolves the alias form against its own internal cwd
+    // and can't find the klib (manifests as "unresolved reference 'AnnotationRetention'").
     val includeArgs = irClasspath.map(p => s"-Xinclude=${Jvm.realAbs(p.path)}").toSeq
     val inputFiles = irClasspath.fold(allKotlinSourceFiles.map(_.path))(_ => Seq())
 
@@ -324,7 +321,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       .filter(isKotlinJsLibrary)
 
     val innerCompilerArgs = Seq.newBuilder[String]
-    // classpath
+    // `Jvm.realAbs`: same kotlinc klib-loader reason as `includeArgs` above.
     innerCompilerArgs ++= Seq("-libraries", librariesCp.iterator.map(Jvm.realAbs).mkString(File.pathSeparator))
     innerCompilerArgs ++= Seq("-main", if (callMain) "call" else "noCall")
     if (moduleKind != ModuleKind.NoModule) {
@@ -369,9 +366,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // apply multi-platform support (expect/actual)
     // TODO if there is penalty for activating it in the compiler, put it behind configuration flag
     innerCompilerArgs += "-Xmulti-platform"
-    // `Jvm.realAbs`: the `.toIO.getAbsolutePath` form propagates through the
-    // linked binary's PathRef into the node command line, where alias routing
-    // breaks under heavy nesting — see #4642.
+    // `Jvm.realAbs` (each branch): output dir propagates into the linked binary's PathRef and
+    // ends up on a node command line where deep symlink chains break — see #4642.
     val outputArgs = outputMode match {
       case OutputMode.KlibFile =>
         Seq("-Xir-produce-klib-file", "-ir-output-dir", Jvm.realAbs(destinationRoot / "libs"))
@@ -560,6 +556,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
           // TODO this is valid only for the NodeJS target. Once browser support is
           //  added, need to have different argument handling
           "--require",
+          // `Jvm.realAbs`: same node-module-resolution reason as the `node` runner above.
           Jvm.realAbs(sourceMapSupportModule().path),
           Jvm.realAbs(mochaModule().path),
           "--timeout",

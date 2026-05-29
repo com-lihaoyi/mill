@@ -39,9 +39,9 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
     val dest = Task.dest
 
     val executeableName = "native-executable"
-    // `realAbsResolved`: `native-image` scans classpath JARs' on-disk paths for build-time-init
-    // directives in their `META-INF/native-image/...`; the alias form is not resolved for that scan.
     val toolPath = nativeImageTool().path
+    // `realAbsResolved` throughout: `native-image` scans classpath JARs' on-disk paths for
+    // build-time-init directives in their `META-INF/native-image/...`; alias form not resolved.
     val command = Seq.newBuilder[String]
       .+=(realAbsResolved(toolPath))
       .++=(nativeImageOptions())

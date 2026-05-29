@@ -35,10 +35,8 @@ class LocalM2Publisher(m2Repo: os.Path) {
   )(using ctx: TaskCtx.Log): Seq[os.Path] = {
 
     val releaseDir = m2Repo / artifact.group.split("[.]") / artifact.id / artifact.version
-    // Display the real absolute on-disk location; in reproducible mode the default
-    // `os.Path.toString` interpolation would relativize `~/.m2/...` to
-    // `../mill-home/.m2/...`, which is less helpful for the user and breaks
-    // example-test assertions that look for `/home/.../.m2/repository/...`.
+    // `Jvm.realAbs`: example tests assert on `/home/.../.m2/...` in the log; the alias form
+    // would log `../mill-home/.m2/...` and fail the assertion.
     val releaseDirDisplay = Jvm.realAbs(releaseDir)
     ctx.log.info(
       s"Publish ${artifact.id}-${artifact.version} to $releaseDirDisplay. " +

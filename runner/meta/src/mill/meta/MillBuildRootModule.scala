@@ -128,10 +128,8 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
         case (k, v)
             if k.last.endsWith(".mill.yaml") &&
               !mill.internal.Util.isPrecompiledYamlModule(k) =>
-          // Real abs: this NIO Path is serialized into the meta-build cache and read
-          // back by later `--no-daemon` invocations with a different sandbox cwd.
-          // `k.toNIO` would otherwise bake in the writer's `.../sandbox/../mill-workspace/...`
-          // prefix and break `staticBuildOverrides` segment computation on read.
+          // `Jvm.realAbsPath`: serialized into the meta-build cache and read back by later
+          // `--no-daemon` invocations whose sandbox cwd makes the alias resolve to nothing.
           (Jvm.realAbsPath(k), v)
       },
       // Serialize to string to avoid classloader issues when crossing classloader boundaries

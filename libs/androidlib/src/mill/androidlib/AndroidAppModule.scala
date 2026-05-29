@@ -541,10 +541,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     val formats = androidLintReportFormat()
 
-    // `Jvm.realAbs`: hand the lint subprocess canonical on-disk paths. `os.call`
-    // here does not arrange the cwd-parent alias symlinks the way
-    // `Jvm.spawnProcess` does, and lint also writes to the baseline path — both
-    // reads and writes need un-aliased absolute locations.
+    // `Jvm.realAbs`: lint records absolute source/classpath paths into its baseline XML
+    // and HTML reports, then compares them across runs from different cwds.
     val reportArg: Seq[String] = formats.flatMap { format =>
       Seq(format.flag, Jvm.realAbs(Task.dest / s"report.${format.extension}"))
     }

@@ -53,6 +53,8 @@ object TestModule {
   /** TestModule that uses Python's standard unittest module to run tests. */
   trait Unittest extends PythonModule with TestModule {
     protected def testTask(args: Task[Seq[String]]) = Task.Anon {
+      // `Jvm.realAbs`: workingDir is the workspace root (not Task.dest), so the spawnHook
+      // installs aliases at workspace/.., not where the source paths' relative form would resolve.
       val testArgs = if (args().isEmpty) {
         Seq("discover") ++ sources().flatMap(pr => Seq("-s", Jvm.realAbs(pr)))
       } else {
@@ -74,6 +76,8 @@ object TestModule {
     }
 
     protected def testTask(args: Task[Seq[String]]) = Task.Anon {
+      // `Jvm.realAbs`: workingDir is the workspace root (not Task.dest); source/cache paths
+      // need to be absolute since pytest also chdirs into test directories during collection.
       runner().run(
         (
           // format: off

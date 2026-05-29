@@ -119,6 +119,8 @@ trait PipModule extends Module {
         Seq("--index-url", head) ++ tail.flatMap(t => Seq("--extra-index-url", t))
     }
 
+    // `Jvm.realAbs`: pip stores wheel/requirement paths in the venv's installed-package
+    // metadata, then resolves them later from arbitrary cwds (re-install, freeze, etc.).
     PipModule.InstallArgs(
       indexArgs ++
         transitiveUnmanagedWheels().map(Jvm.realAbs) ++

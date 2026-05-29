@@ -341,10 +341,8 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
           s"Compiling ${kotlinSourceFiles.size} Kotlin sources ${extra}to ${classes.relativeTo(BuildCtx.workspaceRoot)} ..."
         )
 
-        // `Jvm.realAbs` rather than `.toIO.getAbsolutePath`: in reproducible
-        // mode the latter yields an alias-routed path that kotlinc visits via
-        // the `mill-workspace` symlink, confusing the multi-platform
-        // expect/actual checker (same source file via two absolute paths).
+        // `Jvm.realAbs`: alias-routed paths confuse kotlinc's multi-platform expect/actual
+        // checker, which sees the same source file via the symlink and via direct walk.
         val compilerArgs: Seq[String] = Seq(
           // destdir
           Seq("-d", Jvm.realAbs(classes)),
@@ -456,14 +454,14 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
   protected def mandatoryKotlincOptions: T[Seq[String]] = Task {
     val languageVersion = kotlinLanguageVersion()
     val kotlinkotlinApiVersion = kotlinApiVersion()
-    // Same `Jvm.realAbs` rationale as `compilerArgs`: hand kotlinc real on-disk
-    // absolute paths, not the alias-routed `.toIO.getAbsolutePath` form.
+    // `Jvm.realAbs`: same kotlinc expect/actual concern as `compilerArgs` above.
     val plugins = kotlincPluginJars().map(pr => Jvm.realAbs(pr.path))
 
     val friendPathsOption = if (kotlinFriendModulesChecked.isEmpty) {
       Seq.empty[String]
     } else {
       val compilations = Task.traverse(kotlinFriendModulesChecked) { friend => friend.compile }()
+      // `Jvm.realAbs`: friend-path classes are compared against kotlinc's walked source paths.
       Seq(compilations.map(c => Jvm.realAbs(c.classes.path)).mkString("-Xfriend-paths=", ",", ""))
     }
 

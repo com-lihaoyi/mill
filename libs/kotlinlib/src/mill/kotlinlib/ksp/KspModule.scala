@@ -469,6 +469,9 @@ trait KspModule extends KotlinModule { outer =>
       ""
     else
       s"-processor-options=${processorOptionsValue}"
+    // `Jvm.realAbs` throughout the args list below: KSP embeds these paths into its incremental
+    // cache and into the kotlinc compilation it drives — same expect/actual canonicalization
+    // concern as `KotlinModule`.
     val args = Seq(
       s"-module-name=${kspModuleName}",
       "-jvm-target",

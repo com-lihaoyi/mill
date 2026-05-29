@@ -61,10 +61,9 @@ trait AndroidNativeAppModule extends AndroidAppModule {
     val outDir = Task.dest // Mill provides a dest dir for this task
     os.makeDir.all(outDir) // ensure output dir exists
 
-    // `Jvm.realAbs`: hand CMake / Ninja canonical on-disk paths. CMake fans
-    // out into helper scripts (`Modules/...`) and the NDK toolchain file
-    // outside the cwd alias-parent setup, so the alias form fails to resolve
-    // ("CMAKE_C_COMPILER not set, after EnableLanguage").
+    // `Jvm.realAbs`: CMake fans out into helper scripts (`Modules/...`) and the NDK toolchain
+    // file in their own cwds, so our spawnHook-installed aliases on cwd's parent aren't reachable
+    // ("CMAKE_C_COMPILER not set, after EnableLanguage" without this).
     val ndkAbs = Jvm.realAbs(androidSdkModule().ndkPath())
 
     for (abi <- androidSupportedAbis()) {
@@ -74,6 +73,7 @@ trait AndroidNativeAppModule extends AndroidAppModule {
       os.makeDir.all(outDir / abi)
       os.makeDir.all(outCxx)
 
+      // `Jvm.realAbs` throughout: same CMake-fan-out reason as `ndkAbs` above.
       val cmakeArgs = Seq(
         Jvm.realAbs(androidSdkModule().cmakeExe()),
         s"-S ${Jvm.realAbs(androidNativeSource())}",
@@ -98,6 +98,7 @@ trait AndroidNativeAppModule extends AndroidAppModule {
 
       os.proc(cmakeArgs).call()
 
+      // `Jvm.realAbs`: Ninja fans out to compilers in their own cwds — same reason as cmakeArgs.
       val ninjaArgs = Seq(
         Jvm.realAbs(androidSdkModule().ninjaExe()),
         "-C",

@@ -73,9 +73,8 @@ object Modeler {
   }
 
   def defaultLocalRepository: LocalRepository =
-    // Real absolute path, not the `../mill-home/...` relativized form `.toIO`
-    // would yield in reproducible mode — Maven's repository layer treats it as a
-    // path string verbatim.
+    // `Jvm.realAbsFile`: Maven's repository layer stores this path string verbatim and resolves
+    // it later from arbitrary cwds.
     LocalRepository(Jvm.realAbsFile(os.home / ".m2/repository"))
 
   def defaultRemoteRepositories: Seq[RemoteRepository] =
@@ -88,6 +87,7 @@ object Modeler {
     val props = Properties()
     System.getenv().forEach((k, v) => props.put(s"env.$k", v))
     System.getProperties.forEach((k, v) => props.put(k, v))
+    // `Jvm.realAbs`: Maven reads this property and uses it for relative path resolution.
     props.put("maven.multiModuleProjectDirectory", Jvm.realAbs(mvnWorkspace))
     props
   }
