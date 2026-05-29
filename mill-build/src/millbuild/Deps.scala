@@ -162,7 +162,7 @@ object Deps {
 
   val junitInterface = mvn"com.github.sbt:junit-interface:0.13.3"
   val commonsIo = mvn"commons-io:commons-io:2.22.0"
-  val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.25.1"
+  val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.26.0"
   val osLib = mvn"com.lihaoyi::os-lib:0.11.8"
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:${osLib.version}"
   val pprint = mvn"com.lihaoyi::pprint:0.9.6"
