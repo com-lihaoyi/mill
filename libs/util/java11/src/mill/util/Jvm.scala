@@ -61,7 +61,6 @@ object Jvm {
     try os.Path(p.wrapped.toRealPath())
     catch { case _: java.io.IOException => p }
 
-
   /**
    * Runs a JVM subprocess with the given configuration and returns a
    * [[os.CommandResult]] with it's aggregated output and error streams.
@@ -403,7 +402,7 @@ object Jvm {
       // "Tried to extract the base path for relative glob ..." warning to stderr. The glob still
       // resolves correctly, so opt into the implicit relative-glob conversion to silence it.
       Option.when(
-        sys.env.get(mill.constants.EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).exists(_.nonEmpty)
+        sys.env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).exists(_.nonEmpty)
       )("-Dsbt.io.implicit.relative.glob.conversion=allow").toSeq
   }
 

@@ -5,6 +5,7 @@ import mill.api.PathRef
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.api.daemon.{Logger, Result}
 import mill.client.lock.*
+import mill.constants.EnvVars
 import mill.javalib.api.internal.*
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mill.javalib.api.internal.ZincCompilerBridgeProvider
@@ -700,7 +701,7 @@ object ZincWorker {
 
   /** Root for relativizing Zinc analysis-store paths in reproducible mode; `None` otherwise. */
   private[zinc] def reproducibleRoot: Option[java.nio.file.Path] =
-    Option.when(sys.env.get(mill.constants.EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).exists(_.nonEmpty))(
+    Option.when(sys.env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).exists(_.nonEmpty))(
       java.nio.file.Paths.get("").toAbsolutePath.normalize()
     )
 
