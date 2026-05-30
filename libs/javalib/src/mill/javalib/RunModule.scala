@@ -47,11 +47,16 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
   /**
    * Environment variables to pass to the forked JVM.
    *
-   * Includes [[forkEnv]] and the variables defined by Mill itself. Mill's path-relativization vars
-   * are not cached here; they are added to the process environment at fork time (see [[run]]).
+   * Includes [[forkEnv]] and the variables defined by Mill itself. `MILL_WORKSPACE_ROOT` is cached
+   * here (aliased to `../mill-workspace`, so `out/` stays reproducible) so `run`/`test` subprocesses
+   * — and BSP clients launching them — can locate the workspace. The os-lib path-relativizer var is
+   * *not* cached (its `abs,alias;…` value can't round-trip through aliasing losslessly); it is added
+   * to the process environment fresh at fork time instead (see [[run]]).
    */
   def allForkEnv: T[Map[String, String]] = Task {
-    javaHomePathForkEnv() ++ forkEnv()
+    val workspaceRoot = PathAliasing.workspaceEnvVars(env = Task.env)
+      .view.filterKeys(_ == mill.constants.EnvVars.MILL_WORKSPACE_ROOT).toMap
+    javaHomePathForkEnv() ++ forkEnv() ++ workspaceRoot
   }
 
   def javaHomePathForkEnv: T[Map[String, String]] = Task {

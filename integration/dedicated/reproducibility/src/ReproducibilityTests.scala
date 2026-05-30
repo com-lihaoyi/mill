@@ -83,7 +83,15 @@ object ReproducibilityTests extends UtestIntegrationTestSuite {
       finally s.close()
     }
     val proc = os
-      .proc(bazelRemoteBinary, "--dir", dataDir, "--max_size", "1", "--http_address", s"localhost:$port")
+      .proc(
+        bazelRemoteBinary,
+        "--dir",
+        dataDir,
+        "--max_size",
+        "1",
+        "--http_address",
+        s"localhost:$port"
+      )
       .spawn(stdout = os.Inherit, stderr = os.Inherit)
     val url = s"http://localhost:$port"
     try {
@@ -150,7 +158,9 @@ object ReproducibilityTests extends UtestIntegrationTestSuite {
       integrationTest { tester =>
         val res = tester.eval(cacheArgs ++ plus(appTasks), check = true)
         assert(res.isSuccess)
-        for (t <- compileTasks ++ Seq("javaApp.assembly", "scalaApp.assembly", "kotlinApp.assembly"))
+        for (
+          t <- compileTasks ++ Seq("javaApp.assembly", "scalaApp.assembly", "kotlinApp.assembly")
+        )
           assert(!evaluated(tester, t))
       }
     }

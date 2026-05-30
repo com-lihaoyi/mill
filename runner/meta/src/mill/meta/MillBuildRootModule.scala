@@ -312,7 +312,7 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
           javacOptions = jOpts.compiler,
           scalaVersion = scalaVersion(),
           scalaOrganization = JvmWorkerUtil.scalaOrganization(scalaVersion()),
-          scalacOptions = allScalacOptions(),
+          scalacOptions = allScalacOptions() ++ tastyReproducibilityScalacOptions(),
           compilerClasspath = scalaCompilerClasspath(),
           scalacPluginClasspath = scalacPluginClasspath(),
           compilerBridgeOpt = scalaCompilerBridge(),

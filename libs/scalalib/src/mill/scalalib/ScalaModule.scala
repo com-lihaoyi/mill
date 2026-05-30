@@ -215,11 +215,18 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    * In most cases, instead of overriding this task you want to override `scalacOptions` instead.
    */
   def allScalacOptions: T[Seq[String]] = Task {
-    // Record source paths relative to the workspace (the `../mill-workspace` alias) so Scala 3
-    // doesn't embed absolute paths in TASTY.
-    val sourceRoot =
-      Option.when(isDottyOrScala3(scalaVersion()))(s"-sourceroot:${BuildCtx.workspaceRoot}")
-    mandatoryScalacOptions() ++ enablePluginScalacOptions() ++ scalacOptions() ++ sourceRoot
+    mandatoryScalacOptions() ++ enablePluginScalacOptions() ++ scalacOptions()
+  }
+
+  /**
+   * The `-sourceroot` option that makes Scala 3 record workspace-relative source paths in TASTY, so
+   * the compiled `out/` is reproducible. Injected directly into the compiler invocation rather than
+   * [[allScalacOptions]], so the `../mill-workspace` alias path doesn't leak into the scalac options
+   * Mill reports to IDE/doc tooling (BSP, IntelliJ via `GenIdea`, scaladoc), where that alias is
+   * wrong or changes generated output.
+   */
+  private[mill] def tastyReproducibilityScalacOptions: T[Seq[String]] = Task {
+    Option.when(isDottyOrScala3(scalaVersion()))(s"-sourceroot:${BuildCtx.workspaceRoot}").toSeq
   }
 
   /**
@@ -354,7 +361,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         javacOptions = jOpts.compiler,
         scalaVersion = sv,
         scalaOrganization = scalaOrganization0(sv),
-        scalacOptions = allScalacOptions(),
+        scalacOptions = allScalacOptions() ++ tastyReproducibilityScalacOptions(),
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = scalacPluginClasspath(),
         compilerBridgeOpt = scalaCompilerBridge(),
