@@ -49,7 +49,7 @@ Branch coverage....: 100.00%
 
 > sed -i.bak 's/10.00/50.00/' build.mill.yaml
 
-> OS_LIB_PATH_RELATIVIZER_BASE= ./mill scoverage.validateCoverageMinimums
+> ./mill scoverage.validateCoverageMinimums
 error: ...Exception while validating coverage minimums. Coverage minimums violated:
 error: ...This project's statement coverage (40.00) did not meet the minimum desired by the project. (50.0)
 

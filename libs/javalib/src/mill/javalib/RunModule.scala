@@ -47,16 +47,14 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
   /**
    * Environment variables to pass to the forked JVM.
    *
-   * Includes [[forkEnv]] and the variables defined by Mill itself. `MILL_WORKSPACE_ROOT` is cached
-   * here (aliased to `../mill-workspace`, so `out/` stays reproducible) so `run`/`test` subprocesses
-   * — and BSP clients launching them — can locate the workspace. The os-lib path-relativizer var is
-   * *not* cached (its `abs,alias;…` value can't round-trip through aliasing losslessly); it is added
-   * to the process environment fresh at fork time instead (see [[run]]).
+   * Includes [[forkEnv]] and the variables defined by Mill itself, including the workspace-root and
+   * os-lib path-relativizer vars so `run`/`test` subprocesses — and third-party BSP clients
+   * (IntelliJ, VS Code) that launch the process themselves off this env — can locate the workspace
+   * and load relativized paths. Their absolute paths serialize to the `../mill-workspace`/
+   * `../mill-home` aliases, so `out/` stays reproducible.
    */
   def allForkEnv: T[Map[String, String]] = Task {
-    val workspaceRoot = PathAliasing.workspaceEnvVars(env = Task.env)
-      .view.filterKeys(_ == mill.constants.EnvVars.MILL_WORKSPACE_ROOT).toMap
-    javaHomePathForkEnv() ++ forkEnv() ++ workspaceRoot
+    javaHomePathForkEnv() ++ forkEnv() ++ PathAliasing.workspaceEnvVars()
   }
 
   def javaHomePathForkEnv: T[Map[String, String]] = Task {
@@ -403,7 +401,7 @@ object RunModule {
             mainClass = mainClass1,
             classPath = classPath,
             jvmArgs = jvmArgs,
-            env = (if (propEnv) ctx.env else PathAliasing.workspaceEnvVars(env = ctx.env)) ++ env,
+            env = (if (propEnv) ctx.env else Map()) ++ env,
             mainArgs = mainArgs,
             cwd = cwd,
             stdin = "",
@@ -419,7 +417,7 @@ object RunModule {
             mainClass = mainClass1,
             classPath = classPath,
             jvmArgs = jvmArgs,
-            env = (if (propEnv) ctx.env else PathAliasing.workspaceEnvVars(env = ctx.env)) ++ env,
+            env = (if (propEnv) ctx.env else Map()) ++ env,
             mainArgs = mainArgs,
             cwd = cwd,
             cpPassingJarPath = cpPassingJarPath,
