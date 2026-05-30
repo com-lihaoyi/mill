@@ -323,10 +323,14 @@ trait GroupExecution {
         // wrap them in `executionContext.blocking` so the pool spawns a
         // compensating worker while parked, preventing pool starvation (the
         // lock-holder's downstream tasks can still get a thread and release).
+        // Guard on `hasDropped`: with nothing dropped the reacquire is a no-op,
+        // and entering `blocking` here on every task's uncontended fast path
+        // would churn the pool size and balloon the thread count past `--jobs`.
         def reacquireDroppedReads(): Unit =
-          executionContext.blocking {
-            leaseTracker.reacquireDropped(workspaceLocking, taskWaitReporter)
-          }
+          if (leaseTracker.hasDropped)
+            executionContext.blocking {
+              leaseTracker.reacquireDropped(workspaceLocking, taskWaitReporter)
+            }
 
         // The write-upgrade callback and Named write body run while holding
         // this task's Write lock, so dropped reads must be reacquired only via
