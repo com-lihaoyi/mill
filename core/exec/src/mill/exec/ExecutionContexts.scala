@@ -27,7 +27,9 @@ object ExecutionContexts {
     def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(using
         ctx: mill.api.TaskCtx
     ): Future[T] =
-      Future.successful(t(ctx.log))
+      // A throwing body yields a failed Future, matching `ThreadPool.async`, so
+      // `fork.async` failure semantics don't differ between `--jobs=1` and `--jobs>1`.
+      Future.fromTry(NonFatal.Try(t(ctx.log)))
   }
 
   /**
