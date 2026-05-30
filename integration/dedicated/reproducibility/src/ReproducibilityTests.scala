@@ -25,6 +25,14 @@ object ReproducibilityTests extends UtestIntegrationTestSuite {
     }
   }
 
+  // The binary Zinc analysis file is gzip-compressed; decompress so we scan its actual content.
+  def gunzipIfNeeded(bytes: Array[Byte]): Array[Byte] =
+    if (bytes.length >= 2 && bytes(0) == 0x1f.toByte && bytes(1) == 0x8b.toByte) {
+      val in = new GZIPInputStream(new java.io.ByteArrayInputStream(bytes))
+      try in.readAllBytes()
+      finally in.close()
+    } else bytes
+
   val tests: Tests = Tests {
     test("diff") - {
       def run() = integrationTest { tester =>
@@ -46,32 +54,29 @@ object ReproducibilityTests extends UtestIntegrationTestSuite {
 
     test("inspection") - {
       def run() = integrationTest { tester =>
-        tester.eval(
-          ("--meta-level", "1", "runClasspath"),
-          env = Map("MILL_TEST_TEXT_ANALYSIS_STORE" -> "1"),
-          check = true
-        )
+        tester.eval(("--meta-level", "1", "runClasspath"), check = true)
+        tester.eval("javaApp.run", check = true)
+        tester.eval("javaApp.assembly", check = true)
+        tester.eval("scalaApp.run", check = true)
+        tester.eval("scalaApp.assembly", check = true)
+        tester.eval("kotlinApp.run", check = true)
+        tester.eval("kotlinApp.assembly", check = true)
         tester.workspacePath
       }
 
       val workspacePath = run()
-      val dest = workspacePath / "out/mill-build/compile.dest/zinc.txt"
-      val src = workspacePath / "out/mill-build/compile.dest/zinc"
-      os.write(dest, new GZIPInputStream(os.read.inputStream(src)))
       normalize(workspacePath)
-      for (p <- os.walk(workspacePath)) {
-        if (
-          (p.ext == "json" || p.ext == "txt")
-          && !p.segments.contains("enablePluginScalacOptions.super")
-          && !p.segments.contains("allScalacOptions.json")
-          && !p.segments.contains("scalacOptions.json")
-          && p.last != "coursierEnv.json"
-        ) {
-          val txt = os.read(p)
-          Predef.assert(!txt.contains(BuildCtx.workspaceRoot.toString), p)
-          Predef.assert(!txt.contains(os.home.toString), p)
-        }
+
+      val ws = BuildCtx.workspaceRoot.toString.getBytes("UTF-8")
+      val hm = os.home.toString.getBytes("UTF-8")
+      val leaks = collection.mutable.Buffer.empty[String]
+      for (p <- os.walk(workspacePath / "out", followLinks = false) if os.isFile(p)) {
+        val bytes = gunzipIfNeeded(os.read.bytes(p))
+        val sub = p.subRelativeTo(workspacePath)
+        if (bytes.containsSlice(ws)) leaks.append(s"[WS] $sub")
+        else if (bytes.containsSlice(hm)) leaks.append(s"[HM] $sub")
       }
+      Predef.assert(leaks.isEmpty, leaks.mkString("\n"))
     }
   }
 }

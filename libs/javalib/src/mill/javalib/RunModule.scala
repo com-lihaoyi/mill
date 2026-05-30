@@ -35,6 +35,10 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
    */
   def forkArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
+  // So the env tasks below don't leak absolute `PATH` entries into `out/`.
+  private given upickle.ReadWriter[Map[String, String]] =
+    mill.api.JsonFormatters.aliasedStringMapRW
+
   /**
    * Any environment variables you want to pass to the forked JVM.
    */
@@ -43,10 +47,11 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
   /**
    * Environment variables to pass to the forked JVM.
    *
-   * Includes [[forkEnv]] and the variables defined by Mill itself.
+   * Includes [[forkEnv]] and the variables defined by Mill itself. Mill's path-relativization vars
+   * are not cached here; they are added to the process environment at fork time (see [[run]]).
    */
   def allForkEnv: T[Map[String, String]] = Task {
-    javaHomePathForkEnv() ++ forkEnv() ++ PathAliasing.workspaceEnvVars(env = Task.env)
+    javaHomePathForkEnv() ++ forkEnv()
   }
 
   def javaHomePathForkEnv: T[Map[String, String]] = Task {
@@ -393,7 +398,7 @@ object RunModule {
             mainClass = mainClass1,
             classPath = classPath,
             jvmArgs = jvmArgs,
-            env = (if (propEnv) ctx.env else Map()) ++ env,
+            env = (if (propEnv) ctx.env else PathAliasing.workspaceEnvVars(env = ctx.env)) ++ env,
             mainArgs = mainArgs,
             cwd = cwd,
             stdin = "",
@@ -409,7 +414,7 @@ object RunModule {
             mainClass = mainClass1,
             classPath = classPath,
             jvmArgs = jvmArgs,
-            env = (if (propEnv) ctx.env else Map()) ++ env,
+            env = (if (propEnv) ctx.env else PathAliasing.workspaceEnvVars(env = ctx.env)) ++ env,
             mainArgs = mainArgs,
             cwd = cwd,
             cpPassingJarPath = cpPassingJarPath,

@@ -215,7 +215,11 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    * In most cases, instead of overriding this task you want to override `scalacOptions` instead.
    */
   def allScalacOptions: T[Seq[String]] = Task {
-    mandatoryScalacOptions() ++ enablePluginScalacOptions() ++ scalacOptions()
+    // Record source paths relative to the workspace (the `../mill-workspace` alias) so Scala 3
+    // doesn't embed absolute paths in TASTY.
+    val sourceRoot =
+      Option.when(isDottyOrScala3(scalaVersion()))(s"-sourceroot:${BuildCtx.workspaceRoot}")
+    mandatoryScalacOptions() ++ enablePluginScalacOptions() ++ scalacOptions() ++ sourceRoot
   }
 
   /**

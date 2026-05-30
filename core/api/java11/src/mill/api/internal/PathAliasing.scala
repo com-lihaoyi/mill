@@ -61,6 +61,23 @@ object PathAliasing {
     else workspaceVars
   }
 
+  private def stringAliasPairs: Seq[(String, String)] = Seq(
+    realAbs(BuildCtx.workspaceRoot) -> workspaceAlias,
+    realAbs(os.home) -> homeAlias
+  )
+
+  /**
+   * Replace absolute workspace/home prefixes in `s` with the `../mill-workspace`/`../mill-home`
+   * aliases, for path-bearing env var strings that bypass the `os.Path` relativizing serializer.
+   * Inverse of [[unaliasPathsInString]].
+   */
+  def aliasPathsInString(s: String): String =
+    stringAliasPairs.foldLeft(s) { case (acc, (abs, alias)) => acc.replace(abs, alias) }
+
+  /** Inverse of [[aliasPathsInString]]. */
+  def unaliasPathsInString(s: String): String =
+    stringAliasPairs.foldLeft(s) { case (acc, (abs, alias)) => acc.replace(alias, abs) }
+
   private def normalize(raw: String): String = raw.replace('\\', '/')
 
   private def resolveFromAlias(

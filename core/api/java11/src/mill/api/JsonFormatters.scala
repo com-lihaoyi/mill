@@ -33,6 +33,16 @@ trait JsonFormatters {
       s => PathAliasing.resolveAliasedString(s)
     )
 
+  /**
+   * [[PathAliasing.aliasPathsInString]] applied to a `Map[String, String]`'s values. A `val`, not a
+   * `given`, so a task opts in per-definition rather than aliasing every `Map[String, String]`.
+   */
+  val aliasedStringMapRW: RW[Map[String, String]] =
+    upickle.readwriter[Map[String, String]].bimap[Map[String, String]](
+      _.view.mapValues(PathAliasing.aliasPathsInString).toMap,
+      _.view.mapValues(PathAliasing.unaliasPathsInString).toMap
+    )
+
   implicit val relPathRW: RW[os.RelPath] = upickle.readwriter[String]
     .bimap[os.RelPath](_.toString, os.RelPath(_))
 
