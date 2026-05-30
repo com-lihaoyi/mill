@@ -1,0 +1,43 @@
+//| mill-remote-cache-location: ~/mill-remote-cache-folder
+
+// Mill can share task outputs between builds in different folders, or even on different
+// machines, via a _remote cache_. Outputs computed by one build are stored in the cache and
+// transparently re-used by any other build whose inputs are unchanged, so you never need to
+// compute the same thing twice across a fleet of developer machines or CI workers.
+//
+// The simplest cache backend is a plain local or shared (e.g. NFS) _directory_: point the
+// cache at a filesystem path and Mill reads and writes cache entries there directly, with no
+// server to run. We enable it from the xref:cli/build-header.adoc[build header] above, so it
+// applies to every command without passing `--remote-cache-location` on the command line.
+
+package build
+import mill.*, javalib.*
+
+object foo extends JavaModule
+
+/** Usage
+
+> ./mill foo.run
+Hello World!
+
+> ./mill clean foo.compile
+
+> ./mill foo.run
+Hello World!
+
+*/
+
+// `./mill clean foo.compile` removed the local `out/` entry for the compile, so the second
+// `./mill foo.run` could only skip recompiling by fetching the result from the shared cache
+// folder. `out/mill-profile.json` confirms it with `"cached": true` for `foo.compile`, rather
+// than a local recompute:
+
+/** Usage
+
+> cat out/mill-profile.json | jq '.[] | select(.label == "foo.compile").cached'
+true
+
+*/
+
+// Point any other checkout of the project at the same folder, local or on a shared mount, to
+// share results between them.
