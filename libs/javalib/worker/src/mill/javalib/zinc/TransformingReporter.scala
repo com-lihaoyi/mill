@@ -1,5 +1,7 @@
 package mill.javalib.zinc
 
+import mill.util.Jvm
+
 private trait TransformingReporter(
     color: Boolean,
     optPositionMapper: (xsbti.Position => xsbti.Position) | Null,
@@ -82,11 +84,16 @@ private object TransformingReporter {
     InterfaceUtil.jo2o(pos.sourcePath()) match {
       case None => message
       case Some(path) =>
-        // Assume relative paths are relative to the current workspaceRoot
-        val absPath = os.Path(path, workspaceRoot)
+        // Assume relative paths are relative to the current workspaceRoot. Resolve through any
+        // `mill-workspace` alias symlink (in reproducible-build mode the compiler sees sources via
+        // the alias, so `path` may traverse it) so diagnostics show the clean workspace-relative
+        // form rather than the alias-traversing one.
+        val real = Jvm.realAbsResolvedPath
+        val absPath = real(os.Path(path, workspaceRoot))
+        val realWorkspace = real(workspaceRoot)
         // Render paths within the current workspaceRoot as relative paths to cut down on verbosity
         val displayPath =
-          if absPath.startsWith(workspaceRoot) then absPath.subRelativeTo(workspaceRoot).toString
+          if absPath.startsWith(realWorkspace) then absPath.subRelativeTo(realWorkspace).toString
           else path
 
         val line = intValue(pos.line(), -1)

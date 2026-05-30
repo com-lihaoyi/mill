@@ -48,7 +48,14 @@ trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
       yield {
         val path =
           tester.workspacePath / "out" / Seq.fill(depth)(millBuild) / millRunnerState
-        if (os.exists(path)) upickle.read[RunnerLauncherState.Logged](os.read(path)) -> path
+        // The runner state serializes paths relativized against its own workspace (in
+        // reproducible-build mode, as `out/mill-workspace/...`). Deserialization resolves them via
+        // `BuildCtx.workspaceRoot`, which in this test process is NOT the build under test; scope it
+        // to the tested workspace so the watched paths resolve to absolute paths under it.
+        if (os.exists(path))
+          mill.api.BuildCtx.workspaceRoot0.withValue(tester.workspacePath) {
+            upickle.read[RunnerLauncherState.Logged](os.read(path))
+          } -> path
         else RunnerLauncherState.Logged(Map(), Seq(), Seq(), None, Seq(), 0) -> path
       }
   }

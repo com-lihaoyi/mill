@@ -7,6 +7,8 @@ import mill.*
 import mill.api.BuildCtx
 import mill.constants.{DaemonFiles, Util}
 import mill.javalib.graalvm.{GraalVMMetadataWorker, MetadataQuery, MetadataResult}
+import mill.util.Jvm
+import mill.util.Jvm.realAbsResolved
 
 import java.io.File
 import scala.util.Properties
@@ -37,13 +39,18 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
     val dest = Task.dest
 
     val executeableName = "native-executable"
+    val toolPath = nativeImageTool().path
+    // `realAbsResolved` throughout: `native-image` scans classpath JARs' on-disk paths for
+    // build-time-init directives in their `META-INF/native-image/...`; alias form not resolved.
     val command = Seq.newBuilder[String]
-      .+=(nativeImageTool().path.toString)
+      .+=(realAbsResolved(toolPath))
       .++=(nativeImageOptions())
       .+=("-cp")
-      .+=(nativeImageClasspath().iterator.map(_.path).mkString(java.io.File.pathSeparator))
+      .+=(nativeImageClasspath().iterator.map(p => realAbsResolved(p.path)).mkString(
+        java.io.File.pathSeparator
+      ))
       .+=(finalMainClass())
-      .+=((dest / executeableName).toString())
+      .+=(java.nio.file.Paths.get(realAbsResolved(dest), executeableName).toString)
       .result()
 
     os.proc(command).call(cwd = dest, stdout = os.Inherit)
@@ -74,7 +81,7 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
     val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
 
     BuildCtx.withFilesystemCheckerDisabled {
-      mill.util.Jvm.spawnProcess(
+      Jvm.spawnProcess(
         mainClass = "mill.javalib.backgroundwrapper.MillBackgroundWrapper",
         classPath = mill.javalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
         jvmArgs = Nil,
@@ -111,8 +118,9 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
     val configurationDirectoriesArg = if (configurations.isEmpty) {
       Seq.empty[String]
     } else {
+      // `realAbsResolved`: same as above — native-image scans by on-disk path, alias form fails.
       val configurationFileDirectoriesValue =
-        configurations.map(_.metadataLocation.toString).mkString(",")
+        configurations.map(c => realAbsResolved(c.metadataLocation)).mkString(",")
       Seq(s"-H:ConfigurationFileDirectories=$configurationFileDirectoriesValue")
     }
     nativeExcludedConfig() ++ configurationDirectoriesArg ++ nativeIncludedResourcesImageOptions()
@@ -179,7 +187,7 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
    */
   def nativeGraalVMReachabilityMetadataClassloader: Worker[ClassLoader & AutoCloseable] =
     Task.Worker {
-      mill.util.Jvm.createClassLoader(
+      Jvm.createClassLoader(
         classPath = nativeGraalVMReachabilityMetadataClasspath().map(_.path),
         parent = getClass.getClassLoader
       )
@@ -351,9 +359,15 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
   def nativeExcludedConfig: T[Seq[String]] = Task {
     nativeExcludedConfigJars()
       .distinct
-      .flatMap(file =>
-        Seq("--exclude-config", s"\\Q${file.path.toString}\\E", s"^/META-INF/native-image/.*")
-      )
+      .flatMap { file =>
+        // `realAbsResolved`: the `\Q...\E` literal must match the on-disk jar path native-image
+        // sees; the alias form would never match and silently skip the exclusion.
+        Seq(
+          "--exclude-config",
+          s"\\Q${realAbsResolved(file.path)}\\E",
+          s"^/META-INF/native-image/.*"
+        )
+      }
   }
 
   /**

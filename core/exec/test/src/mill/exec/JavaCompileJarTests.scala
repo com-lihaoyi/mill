@@ -137,6 +137,9 @@ object JavaCompileJarTests extends TestSuite {
         evaluator.outPath
       ).out.text()
       val expectedJarContents =
+        // The `../mill-*` forwarder aliases live outside each task's working directory, so they no
+        // longer leak into archives built from it (previously the jar contained spurious `out/`,
+        // `out/mill-home/`, `out/mill-workspace/` entries).
         """META-INF/MANIFEST.MF
           |META-INF/
           |test/

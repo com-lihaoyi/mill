@@ -115,8 +115,21 @@ object Util {
         // Offset column by 4 if line starts with "//| " to account for stripped YAML prefix (including space)
         val colNum = if (lineContent.startsWith("//| ")) colNum0 + 4 else colNum0
 
+        val workspaceRoot = mill.api.BuildCtx.workspaceRoot
+        val workspaceRootNio = workspaceRoot.wrapped.toAbsolutePath.normalize()
+        // In reproducible mode the build-file path may be an aliased relative path like
+        // `out/mill-workspace/build.mill`; resolve it back through the workspace alias so error
+        // messages show the clean workspace-relative path (`build.mill`) rather than the path
+        // through the daemon-sandbox alias symlink.
+        val pathNio = mill.api.internal.PathAliasing
+          .resolveAliasedString(path.toString, workspace = workspaceRoot)
+          .wrapped.toAbsolutePath.normalize()
+        val displayPath =
+          try workspaceRootNio.relativize(pathNio).toString
+          catch { case _: IllegalArgumentException => pathNio.toString }
+
         mill.constants.Util.formatError(
-          mill.api.BuildCtx.workspaceRoot.toNIO.relativize(path).toString,
+          displayPath,
           lineNum,
           colNum,
           lineContent,
@@ -166,7 +179,9 @@ object Util {
     val headerDataOpt = mill.api.BuildCtx.withFilesystemCheckerDisabled {
       if (!os.exists(scriptFile)) Result.Success("")
       else mill.api.ExecResult.catchWrapException {
-        mill.constants.Util.readBuildHeader(scriptFile.toNIO, scriptFile.last, true)
+        // `.wrapped` not `.toNIO`: the latter is the relativized alias form which
+        // the Java-side `readBuildHeader` cannot open from the daemon cwd.
+        mill.constants.Util.readBuildHeader(scriptFile.wrapped, scriptFile.last, true)
           .replace("\r", "")
       }
     }
@@ -358,7 +373,7 @@ object Util {
       .map(name => projectRoot / name)
       .find(os.exists)
       .exists { buildFile =>
-        val headerData = mill.constants.Util.readBuildHeader(buildFile.toNIO, buildFile.last)
+        val headerData = mill.constants.Util.readBuildHeader(buildFile.wrapped, buildFile.last)
         parseBuildHeaderValue[Boolean](headerData, configKey, default = false)
       }
   }

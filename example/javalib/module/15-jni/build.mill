@@ -8,16 +8,19 @@ object `package` extends JavaModule {
   // Additional source folder to put C sources
   def nativeSources = Task.Sources("native-src")
 
-  // Auto-generate JNI `.h` files from Java classes using Javac
+  // Auto-generate JNI `.h` files from Java classes using Javac. We pass `clang`/`javac` the
+  // real on-disk absolute paths via `Jvm.realAbs`, since these external tools do not understand
+  // the workspace-relative path aliases Mill uses when serializing for reproducible `out/` caches.
   def nativeHeaders = Task {
+    val destAbs = Jvm.realAbs(Task.dest)
     os.call(
       cmd = (
         Jvm.jdkTool("javac"),
         "-h",
-        Task.dest,
+        destAbs,
         "-d",
-        Task.dest.toString,
-        allSourceFiles().map(_.path)
+        destAbs,
+        allSourceFiles().map(Jvm.realAbs(_))
       )
     )
     PathRef(Task.dest)
@@ -26,30 +29,30 @@ object `package` extends JavaModule {
   // Compile C
   def nativeCompiled = Task {
     val cSourceFiles = nativeSources().map(_.path).flatMap(os.walk(_)).filter(_.ext == "c")
-    val output = "libhelloworld.so"
+    val outputPath = Task.dest / "libhelloworld.so"
     os.call(
       cmd = (
         "clang",
         "-shared",
         "-fPIC",
-        "-I" + nativeHeaders().path, //
+        "-I" + Jvm.realAbs(nativeHeaders()),
         "-I" + sys.props("java.home") + "/include/", // global JVM header files
         "-I" + sys.props("java.home") + "/include/darwin",
         "-I" + sys.props("java.home") + "/include/linux",
         "-o",
-        Task.dest / output,
-        cSourceFiles
+        Jvm.realAbs(outputPath),
+        cSourceFiles.map(Jvm.realAbs(_))
       ),
       stdout = os.Inherit
     )
 
-    PathRef(Task.dest / output)
+    PathRef(outputPath)
   }
 
-  def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
+  def forkEnv = Map("HELLO_WORLD_BINARY" -> Jvm.realAbs(nativeCompiled()))
 
   object test extends JavaTests, TestModule.Junit4 {
-    def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
+    def forkEnv = Map("HELLO_WORLD_BINARY" -> Jvm.realAbs(nativeCompiled()))
   }
 }
 

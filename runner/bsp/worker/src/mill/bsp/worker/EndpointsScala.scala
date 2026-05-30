@@ -112,9 +112,11 @@ private trait EndpointsScala extends ScalaBuildServer with ScalaScriptBuildServe
           val generatedContent = os.read(os.Path(generated))
           val idx = generatedContent.indexOf(userCodeStartMarker)
           if (idx >= 0) {
+            // `sanitizeUri`, not `.toUri`: resolve any reproducible-build relativized path back to
+            // an absolute `file://` URI rather than one resolved against the daemon's sandbox cwd.
             val item = new WrappedSourceItem(
-              original.toUri.toASCIIString,
-              generated.toUri.toASCIIString
+              sanitizeUri(original),
+              sanitizeUri(generated)
             )
             item.setTopWrapper(generatedContent.take(idx + userCodeStartMarker.length))
             item.setBottomWrapper("\n}")

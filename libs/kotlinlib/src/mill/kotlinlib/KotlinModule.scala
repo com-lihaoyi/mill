@@ -317,8 +317,9 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       val updateCompileOutput = upstreamCompileOutput()
 
       def compileJava: Result[CompilationResult] = {
+        val classesDisplay = classes.relativeTo(BuildCtx.workspaceRoot)
         ctx.log.info(
-          s"Compiling ${javaSourceFiles.size} Java sources to ${classes} ..."
+          s"Compiling ${javaSourceFiles.size} Java sources to ${classesDisplay} ..."
         )
         // The compile step is lazy, but its dependencies are not!
         internalCompileJavaFiles(
@@ -340,16 +341,18 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
           s"Compiling ${kotlinSourceFiles.size} Kotlin sources ${extra}to ${classes.relativeTo(BuildCtx.workspaceRoot)} ..."
         )
 
+        // `Jvm.realAbs`: alias-routed paths confuse kotlinc's multi-platform expect/actual
+        // checker, which sees the same source file via the symlink and via direct walk.
         val compilerArgs: Seq[String] = Seq(
           // destdir
-          Seq("-d", classes.toString()),
+          Seq("-d", Jvm.realAbs(classes)),
           // apply multi-platform support (expect/actual)
           // TODO if there is penalty for activating it in the compiler, put it behind configuration flag
           Seq("-Xmulti-platform"),
           // classpath
           when(compileCpPaths.iterator.nonEmpty)(
             "-classpath",
-            compileCpPaths.iterator.mkString(File.pathSeparator)
+            compileCpPaths.iterator.map(Jvm.realAbs).mkString(File.pathSeparator)
           ),
           allKotlincOptions(),
           extraKotlinArgs
@@ -451,13 +454,15 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
   protected def mandatoryKotlincOptions: T[Seq[String]] = Task {
     val languageVersion = kotlinLanguageVersion()
     val kotlinkotlinApiVersion = kotlinApiVersion()
-    val plugins = kotlincPluginJars().map(_.path)
+    // `Jvm.realAbs`: same kotlinc expect/actual concern as `compilerArgs` above.
+    val plugins = kotlincPluginJars().map(pr => Jvm.realAbs(pr.path))
 
     val friendPathsOption = if (kotlinFriendModulesChecked.isEmpty) {
       Seq.empty[String]
     } else {
       val compilations = Task.traverse(kotlinFriendModulesChecked) { friend => friend.compile }()
-      Seq(compilations.map(_.classes.path.toString).mkString("-Xfriend-paths=", ",", ""))
+      // `Jvm.realAbs`: friend-path classes are compared against kotlinc's walked source paths.
+      Seq(compilations.map(c => Jvm.realAbs(c.classes.path)).mkString("-Xfriend-paths=", ",", ""))
     }
 
     Seq("-no-stdlib") ++

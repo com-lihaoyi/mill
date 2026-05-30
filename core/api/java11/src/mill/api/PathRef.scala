@@ -1,6 +1,7 @@
 package mill.api
 
 import mill.api.daemon.DummyOutputStream
+import mill.api.internal.PathAliasing
 import mill.api.daemon.internal.PathRefApi
 import upickle.ReadWriter as RW
 
@@ -130,19 +131,20 @@ object PathRef {
       if (os.exists(path)) {
         for (
           (path, attrs) <-
-            os.walk.attrs(path, includeTarget = true, followLinks = true).sortBy(_._1.toString)
+            os.walk.attrs(path, includeTarget = true, followLinks = false).sortBy(_._1.toString)
         ) {
           val sub = path.subRelativeTo(basePath)
           digest.update(sub.toString().getBytes())
           if (!attrs.isDir) {
             try {
-              if (isPosix) {
-                updateWithInt(os.perms(path, followLinks = false).value)
-              }
+              if (isPosix) updateWithInt(os.perms(path, followLinks = false).value)
               if (quick) {
                 val value = (attrs.mtime, attrs.size).hashCode()
                 updateWithInt(value)
-              } else if (jnio.Files.isReadable(path.toNIO)) {
+              } else if (!os.isLink(path) && jnio.Files.isReadable(path.wrapped)) {
+                // `.wrapped`, not `.toNIO`: the latter is the relativized alias form which
+                // `Files.isReadable` resolves against the caller's cwd and can silently
+                // return `false`, dropping the file's content from the PathRef signature.
                 val is =
                   try Some(os.read.inputStream(path))
                   catch {
@@ -201,7 +203,7 @@ object PathRef {
       serializedPathRefParts(s) match {
         case Some((prefix, valid0, hex, pathString)) =>
 
-          val path = os.Path(pathString)
+          val path = PathAliasing.resolveAliasedString(pathString)
           val quick = prefix == "qref"
           val validOrig = valid0 match {
             case "v0" => Revalidate.Never

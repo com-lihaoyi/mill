@@ -7,6 +7,7 @@ import mill.api.internal.{ResolveChecker, Resolved, RootModule0}
 import mill.api.daemon.Watchable
 import mill.exec.{Execution, PlanImpl}
 import mill.internal.PrefixLogger
+import mill.api.internal.PathAliasing
 import mill.resolve.Resolve
 import mill.api.internal.ParseArgs
 import mill.eval.SelectiveExecutionImpl.transitiveNamedSelective
@@ -41,6 +42,7 @@ final class EvaluatorImpl(
       ScriptModuleInit()
     )
   override val staticBuildOverrides = execution.staticBuildOverrides
+  PathAliasing.ensureProcessCwdAliases(os.pwd, workspace)
 
   def workspace = execution.workspace
   def baseLogger = execution.baseLogger
@@ -235,10 +237,17 @@ final class EvaluatorImpl(
         }
       }
 
-      val filePath = os.Path(module.moduleCtx.fileName).relativeTo(workspace)
-
+      val filePath = os.Path(module.moduleCtx.fileName, workspace)
+      // Canonicalize both the file and the workspace before comparing: in reproducible mode the
+      // file may arrive via a `mill-workspace` alias symlink, and the workspace itself may sit
+      // under a symlinked prefix (e.g. macOS `/tmp` -> `/private/tmp`). Resolving only one side
+      // would make the comparison silently fail. We compare the workspace-relative form so the
+      // check is immune to a shared symlinked prefix.
+      val relFilePath =
+        PathAliasing.canonicalize(filePath).relativeTo(PathAliasing.canonicalize(workspace))
       val isRootBuildFile =
-        filePath == os.sub / "mill-build/build.mill" || filePath == os.sub / "build.mill.yaml"
+        relFilePath == os.sub / "build.mill.yaml" ||
+          relFilePath == os.sub / "mill-build" / "build.mill"
 
       val millKeys = mill.constants.ConfigConstants.all()
       val validKeys =
@@ -322,7 +331,7 @@ final class EvaluatorImpl(
       logger: Logger = baseLogger,
       serialCommandExec: Boolean = false,
       selectiveExecution: Boolean = false
-  ): Evaluator.Result[T] = {
+  ): Evaluator.Result[T] = PathAliasing.withSpawnAliasHook(workspace) {
     val selectiveExecutionEnabled = selectiveExecution && !tasks.exists(_.isExclusiveCommand)
 
     val (selectedTasks, selectiveResults, maybeNewMetadata) =

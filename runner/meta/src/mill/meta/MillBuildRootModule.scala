@@ -10,7 +10,7 @@ import mill.api.{Discover, PathRef, Task}
 import mill.api.internal.RootModule
 import mill.scalalib.{Dep, DepSyntax, ScalaModule}
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
-import mill.util.{BuildInfo, MainRootModule}
+import mill.util.{BuildInfo, Jvm, MainRootModule}
 import mill.api.daemon.internal.MillScalaParser
 import mill.api.JsonFormatters.given
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
@@ -128,7 +128,9 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
         case (k, v)
             if k.last.endsWith(".mill.yaml") &&
               !mill.internal.Util.isPrecompiledYamlModule(k) =>
-          (k.toNIO, v)
+          // `Jvm.realAbsPath`: serialized into the meta-build cache and read back by later
+          // `--no-daemon` invocations whose sandbox cwd makes the alias resolve to nothing.
+          (Jvm.realAbsPath(k), v)
       },
       // Serialize to string to avoid classloader issues when crossing classloader boundaries
       spanningTree.render()
@@ -258,7 +260,11 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
     super.scalacOptions() ++
       // This warning comes up for package names with dashes in them like "package build.`foo-bar`",
       // but Mill generally handles these fine, so no need to warn the user
-      Seq("-deprecation", "-Wconf:msg=will be encoded on the classpath:silent")
+      Seq("-deprecation", "-Wconf:msg=will be encoded on the classpath:silent") ++
+      // `-sourceroot` so scalac stores TASTY source paths relative to it. The value uses
+      // the workspace's relativizer alias (`mill-workspace`) so two reproducible-mode runs
+      // in different workspace dirs emit byte-identical `package_.class`/`.tasty`.
+      Seq("-sourceroot", rootModuleInfo.topLevelProjectRoot.toString)
   }
 
   /** Used in BSP IntelliJ, which can only work with directories */

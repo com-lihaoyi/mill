@@ -167,8 +167,10 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     runTarget match {
       case Some(RunTarget.Node) =>
-        val binaryPath = (binaryDir / s"$artifactId.${moduleKind.extension}")
-          .toIO.getAbsolutePath
+        // `Jvm.realAbs`: hand node a canonical absolute path, not the alias-routed
+        // form `.toIO` produces in reproducible mode (which Node then resolves
+        // through the alias symlink chain into a path the OS may fail to stat).
+        val binaryPath = Jvm.realAbs(binaryDir / s"$artifactId.${moduleKind.extension}")
         val processResult = os.call(
           cmd = Seq("node") ++ args.value ++ Seq(binaryPath),
           env = envArgs,
@@ -309,7 +311,9 @@ trait KotlinJsModule extends KotlinModule { outer =>
 //        (allKotlinSourceFiles.map(_.path.toIO.getAbsolutePath), Seq())
 //    }
 
-    val includeArgs = irClasspath.map(p => s"-Xinclude=${p.path}").toSeq
+    // `Jvm.realAbs`: kotlinc's klib loader resolves the alias form against its own internal cwd
+    // and can't find the klib (manifests as "unresolved reference 'AnnotationRetention'").
+    val includeArgs = irClasspath.map(p => s"-Xinclude=${Jvm.realAbs(p.path)}").toSeq
     val inputFiles = irClasspath.fold(allKotlinSourceFiles.map(_.path))(_ => Seq())
 
     val librariesCp = librariesClasspath.map(_.path)
@@ -317,8 +321,11 @@ trait KotlinJsModule extends KotlinModule { outer =>
       .filter(isKotlinJsLibrary)
 
     val innerCompilerArgs = Seq.newBuilder[String]
-    // classpath
-    innerCompilerArgs ++= Seq("-libraries", librariesCp.iterator.mkString(File.pathSeparator))
+    // `Jvm.realAbs`: same kotlinc klib-loader reason as `includeArgs` above.
+    innerCompilerArgs ++= Seq(
+      "-libraries",
+      librariesCp.iterator.map(Jvm.realAbs).mkString(File.pathSeparator)
+    )
     innerCompilerArgs ++= Seq("-main", if (callMain) "call" else "noCall")
     if (moduleKind != ModuleKind.NoModule) {
       innerCompilerArgs ++= Seq(
@@ -362,25 +369,15 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // apply multi-platform support (expect/actual)
     // TODO if there is penalty for activating it in the compiler, put it behind configuration flag
     innerCompilerArgs += "-Xmulti-platform"
+    // `Jvm.realAbs` (each branch): output dir propagates into the linked binary's PathRef and
+    // ends up on a node command line where deep symlink chains break — see #4642.
     val outputArgs = outputMode match {
       case OutputMode.KlibFile =>
-        Seq(
-          "-Xir-produce-klib-file",
-          "-ir-output-dir",
-          (destinationRoot / "libs").toIO.getAbsolutePath
-        )
+        Seq("-Xir-produce-klib-file", "-ir-output-dir", Jvm.realAbs(destinationRoot / "libs"))
       case OutputMode.KlibDir =>
-        Seq(
-          "-Xir-produce-klib-dir",
-          "-ir-output-dir",
-          (destinationRoot / "classes").toIO.getAbsolutePath
-        )
+        Seq("-Xir-produce-klib-dir", "-ir-output-dir", Jvm.realAbs(destinationRoot / "classes"))
       case OutputMode.Js =>
-        Seq(
-          "-Xir-produce-js",
-          "-ir-output-dir",
-          (destinationRoot / "binaries").toIO.getAbsolutePath
-        )
+        Seq("-Xir-produce-js", "-ir-output-dir", Jvm.realAbs(destinationRoot / "binaries"))
     }
 
     innerCompilerArgs ++= outputArgs
@@ -496,9 +493,10 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // TODO may be optimized if there is a single folder for all modules
     // but may be problematic if modules use different NPM packages versions
     private def nodeModulesDir = Task(persistent = true) {
+      val localNpmCache = Task.dest / "npm-cache"
       os.call(
         cmd = Seq("npm", "install", "mocha@10.2.0", "source-map-support@0.5.21"),
-        env = Task.env,
+        env = Task.env ++ Map("npm_config_cache" -> localNpmCache.toString),
         cwd = Task.dest,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -561,8 +559,9 @@ trait KotlinJsModule extends KotlinModule { outer =>
           // TODO this is valid only for the NodeJS target. Once browser support is
           //  added, need to have different argument handling
           "--require",
-          sourceMapSupportModule().path.toString(),
-          mochaModule().path.toString(),
+          // `Jvm.realAbs`: same node-module-resolution reason as the `node` runner above.
+          Jvm.realAbs(sourceMapSupportModule().path),
+          Jvm.realAbs(mochaModule().path),
           "--timeout",
           testTimeout().toString,
           "--reporter",

@@ -1,17 +1,17 @@
 package mill.launcher
 
 import io.github.alexarchambault.nativeterm.NativeTerminal
-import mill.api.internal.OneOrMore
+import mill.api.internal.{OneOrMore, PathAliasing}
 import mill.client.ClientUtil
 import mill.constants.*
 import mill.internal.OutputDirectoryLayout
+import mill.util.Jvm
 
 import java.io.File
 import java.util.UUID
 import scala.jdk.CollectionConverters._
 
 object MillProcessLauncher {
-
   private def outDir(outMode: OutFolderMode, workDir: os.Path, env: Map[String, String]): String =
     OutputDirectoryLayout.outDir(outMode, workDir, env)
 
@@ -36,7 +36,14 @@ object MillProcessLauncher {
 
     val cmd = millLaunchJvmCommand(runnerClasspath, effectiveEnv, workDir, millRepositories) ++
       userPropsSeq ++
-      Seq(mainClass, processDir.toString, outMode.asString, useFileLocks.toString) ++
+      Seq(
+        mainClass,
+        // Daemon entry point reads `args[0]` with plain `java.nio.file.Paths.get(...)` and
+        // would resolve a `../mill-workspace/...` form against its own cwd. Pass absolute.
+        Jvm.realAbs(processDir),
+        outMode.asString,
+        useFileLocks.toString
+      ) ++
       loadMillConfig(ConfigConstants.millOpts, workDir) ++
       args
 
@@ -66,7 +73,8 @@ object MillProcessLauncher {
       stdout = stdoutDest,
       stderr = stderrDest,
       workDir = workDir,
-      env = effectiveEnv
+      env = effectiveEnv,
+      daemonJavaHome = configuredJavaHome(effectiveEnv, workDir, millRepositories)
     )
     try {
       proc.waitFor()
@@ -90,7 +98,13 @@ object MillProcessLauncher {
       millRepositories: Seq[String]
   ): os.SubProcess = {
     val cmd = millLaunchJvmCommand(runnerClasspath, effectiveEnv, workDir, millRepositories) ++
-      Seq("mill.daemon.MillDaemonMain", daemonDir.toString, outMode.asString, useFileLocks.toString)
+      Seq(
+        "mill.daemon.MillDaemonMain",
+        // Same reason as the no-daemon variant above: pass the daemon-dir arg as a real abs path.
+        Jvm.realAbs(daemonDir),
+        outMode.asString,
+        useFileLocks.toString
+      )
 
     configureRunMillProcess(
       cmd,
@@ -98,7 +112,8 @@ object MillProcessLauncher {
       stdout = daemonDir / DaemonFiles.stdout,
       stderr = daemonDir / DaemonFiles.stderr,
       workDir = workDir,
-      env = effectiveEnv
+      env = effectiveEnv,
+      daemonJavaHome = configuredJavaHome(effectiveEnv, workDir, millRepositories)
     )
   }
 
@@ -109,26 +124,38 @@ object MillProcessLauncher {
       stdout: os.ProcessOutput,
       stderr: os.ProcessOutput,
       workDir: os.Path,
-      env: Map[String, String]
+      env: Map[String, String],
+      daemonJavaHome: Option[os.Path]
   ): os.SubProcess = {
     val sandbox = daemonDir / DaemonFiles.sandbox
     os.makeDir.all(sandbox)
+    // The launched Mill process runs with cwd = `sandbox`, so its relativized paths resolve via the
+    // alias in `sandbox`'s parent. Task subprocesses run with cwd = `<out>/.../<name>.dest` and get
+    // their own parent aliases created on-demand by the daemon-side spawn hook.
+    PathAliasing.ensureProcessCwdAliases(sandbox, workDir)
 
-    val processEnv = Map(
-      EnvVars.MILL_WORKSPACE_ROOT -> workDir.toString,
-      EnvVars.MILL_ENABLE_STATIC_CHECKS -> "true"
-    ) ++ (
-      if (env.contains(EnvVars.MILL_EXECUTABLE_PATH)) Map.empty
-      else Map(EnvVars.MILL_EXECUTABLE_PATH -> getExecutablePath)
-    ) ++ {
-      val jdkJavaOptions = env.getOrElse("JDK_JAVA_OPTIONS", "")
-      val javaOpts = env.getOrElse("JAVA_OPTS", "")
-      val opts = s"$jdkJavaOptions $javaOpts".trim
-      if (opts.nonEmpty) Map("JDK_JAVA_OPTIONS" -> opts) else Map.empty
-    }
+    // Always scope workspace/relativizer to this launched process workDir.
+    // Inheriting parent values causes nested Mill runs to lock/use the parent's out folder.
+    val mergedJdkJavaOpts =
+      Seq(env.getOrElse("JDK_JAVA_OPTIONS", ""), env.getOrElse("JAVA_OPTS", "")).mkString(" ").trim
+    val workspaceEnv = PathAliasing.workspaceEnvVars(workDir, env)
+    val processEnv = env ++ workspaceEnv ++ Seq(
+      Some(EnvVars.MILL_ENABLE_STATIC_CHECKS -> "true"),
+      Option.unless(env.contains(EnvVars.MILL_EXECUTABLE_PATH))(
+        EnvVars.MILL_EXECUTABLE_PATH -> getExecutablePath
+      ),
+      Option.when(mergedJdkJavaOpts.nonEmpty)("JDK_JAVA_OPTIONS" -> mergedJdkJavaOpts),
+      // Point JAVA_HOME at the JVM the daemon was actually launched with (its configured
+      // `mill-jvm-version`), so subprocesses the daemon spawns that resolve `$JAVA_HOME/bin/java`
+      // (e.g. the Android `lint` wrapper, Gradle-style tools) use that JVM rather than inheriting
+      // the launcher shell's JAVA_HOME. Only set when a version is explicitly configured.
+      daemonJavaHome.map(home => "JAVA_HOME" -> Jvm.realAbs(home))
+    ).flatten
 
     // destroyOnExit = false to prevent the daemon from being killed when the Mill client exits.
     // The daemon is a long-lived background process that should survive client disconnections.
+    // cwd/stdout/stderr serialize as real-absolute because the whole launcher runs under
+    // `withRawPathSerializer` (see `MillLauncherMain.main0`).
     os.proc(cmd).spawn(
       cwd = sandbox,
       env = processEnv,
@@ -151,7 +178,11 @@ object MillProcessLauncher {
         .find(os.exists(_))
         .map { buildFile =>
           val fileName = buildFile.last
-          val headerData = Util.readBuildHeader(buildFile.toNIO, fileName)
+          // Pass `buildFile.wrapped` (un-relativized NIO path) to the Java-side
+          // Util helper, which doesn't go through the os-lib path serializer
+          // and would otherwise see a relative `../mill-workspace/...` path it
+          // can't resolve from the launcher's cwd.
+          val headerData = Util.readBuildHeader(buildFile.wrapped, fileName)
           parseConfigFromHeader(headerData, key, env)
         }
         .getOrElse(Seq.empty)
@@ -223,6 +254,20 @@ object MillProcessLauncher {
     }
   }
 
+  /**
+   * The daemon JVM home, but only when `mill-jvm-version` is *explicitly* configured (via a
+   * `.mill-jvm-version` file or build-header `mill-jvm-version`). Returns `None` for the implicit
+   * default or `system`, so we don't clobber the launcher shell's `JAVA_HOME` when the user
+   * hasn't asked for a specific JVM. Used to set the daemon process's `JAVA_HOME`.
+   */
+  def configuredJavaHome(
+      env: Map[String, String],
+      workDir: os.Path,
+      millRepositories: Seq[String]
+  ): Option[os.Path] =
+    if (loadMillConfig(ConfigConstants.millJvmVersion, workDir).headOption.isEmpty) None
+    else javaHome(env, workDir, millRepositories)
+
   def javaExe(
       env: Map[String, String],
       workDir: os.Path,
@@ -232,6 +277,8 @@ object MillProcessLauncher {
       case None => "java"
       case Some(home) =>
         val exeName = if (isWin) "java.exe" else "java"
+        // Real-absolute because the launcher runs under `withRawPathSerializer` (see
+        // `MillLauncherMain.main0`); `ProcessBuilder` resolves the program against the OS cwd.
         (home / "bin" / exeName).toString
     }
   }
@@ -265,12 +312,23 @@ object MillProcessLauncher {
         Seq("--sun-misc-unsafe-memory-access=allow", "--enable-native-access=ALL-UNNAMED")
       else Nil
 
+    // In reproducible-build mode the (in-process) Zinc output dir is passed as a workspace-relative
+    // path resolved via the `out/mill-workspace` alias; sbt.io otherwise prints a noisy
+    // "Tried to extract the base path for relative glob ..." warning to stderr that leaks into
+    // golden-text/output-sensitive tests. The glob still resolves correctly.
+    val sbtIoGlobOpt = Option.when(
+      env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).exists(_.nonEmpty)
+    )("-Dsbt.io.implicit.relative.glob.conversion=allow")
+
     Seq(javaExe(env, workDir, millRepositories)) ++
       millProps ++
       serverTimeoutOpt ++
       encodingOpts ++
       jdk23PlusOpts ++
+      sbtIoGlobOpt ++
       loadMillConfig(ConfigConstants.millJvmOpts, workDir) ++
+      // Real-absolute because the launcher runs under `withRawPathSerializer`; the freshly-spawned
+      // daemon JVM resolves `-cp` entries against its own cwd.
       Seq("-cp", runnerClasspath.mkString(File.pathSeparator))
   }
 
@@ -335,9 +393,13 @@ object MillProcessLauncher {
   }
 
   def getExecutablePath: String = {
-    try {
-      os.Path(getClass.getProtectionDomain.getCodeSource.getLocation.toURI).toString
-    } catch {
+    try
+      // Real absolute: code consuming `MILL_EXECUTABLE_PATH` typically does
+      // `os.Path(sys.env(...))`, which rejects a relativized string.
+      Jvm.realAbs(
+        os.Path(getClass.getProtectionDomain.getCodeSource.getLocation.toURI)
+      )
+    catch {
       case e: java.net.URISyntaxException =>
         throw RuntimeException("Failed to determine Mill client executable path", e)
     }

@@ -4,7 +4,7 @@ import mill.api.{PathRef, TaskCtx}
 import mill.api.Result
 import mill.api.daemon.internal.TestReporter
 import mill.util.Jvm
-import mill.api.internal.Util
+import mill.api.internal.{PathAliasing, Util}
 import mill.Task
 import sbt.testing.Status
 
@@ -148,17 +148,25 @@ final class TestModuleUtil(
 
     val argsFile = baseFolder / "testargs"
     val sandbox = baseFolder / "sandbox"
-    os.write(argsFile, upickle.write(testArgs), createFolders = true)
+    // Serialize the test args with real-absolute paths: the test runner subprocess runs with
+    // cwd = sandbox and reads this file before any alias symlinks are in scope, so relativized
+    // `../mill-workspace/...` forms would not resolve.
+    os.write.over(
+      argsFile,
+      PathAliasing.withRawPathSerializer(upickle.write(testArgs)),
+      createFolders = true
+    )
 
     os.makeDir.all(sandbox)
 
     val proc = BuildCtx.withFilesystemCheckerDisabled {
+      val inheritedEnv = if (propagateEnv) Task.env else Map.empty[String, String]
       Jvm.spawnProcess(
         mainClass = "mill.javalib.testrunner.entrypoint.MillTestRunnerMain",
         classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
-        env = (if (propagateEnv) Task.env else Map()) ++ forkEnv,
-        mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
+        env = inheritedEnv ++ forkEnv ++ PathAliasing.workspaceEnvVars(env = inheritedEnv),
+        mainArgs = Seq(testRunnerClasspathArg, argsFile.wrapped.toString),
         cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
         cpPassingJarPath = Option.when(useArgsFile)(
           os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)

@@ -165,8 +165,14 @@ class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
 
     for ((path, value) <- resolvedJavaModules) {
       val projectModule = value.resolvedModule
+      // Resolve `path` through symlinks before taking its file name: in reproducible-build mode the
+      // module dir arrives in alias-traversing form (`.../out/mill-workspace`), whose last segment
+      // is the alias name rather than the real project folder.
+      val realFileName =
+        try path.toRealPath().getFileName.toString
+        catch { case _: java.io.IOException => path.getFileName.toString }
       val projectName =
-        IdeUtils.moduleName(projectModule.segments).getOrElse(path.getFileName.toString)
+        IdeUtils.moduleName(projectModule.segments).getOrElse(realFileName)
       val isMainTestModule = isTestModule(projectModule.module)
 
       // By default source folders are inside the Eclipse JDT Project and therefore we create a

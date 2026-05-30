@@ -4,6 +4,7 @@ import mill.api.daemon.internal.bsp.{BspBootstrapBridge, BspServerHandle}
 import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.api.daemon.internal.{LauncherLocking, LauncherOutFiles}
+import mill.api.internal.PathAliasing
 import mill.bsp.BSP
 import mill.client.lock.Lock
 import mill.constants.OutFolderMode
@@ -24,7 +25,7 @@ import mill.internal.{
   OutputDirectoryLayout
 }
 import mill.server.Server
-import mill.util.BuildInfo
+import mill.util.{BuildInfo, Jvm}
 import mill.api
 
 import java.io.{InputStream, PrintStream, PrintWriter, StringWriter}
@@ -54,7 +55,8 @@ object MillMain0 {
    * concurrent Mill processes.
    */
   def outFileLock(out: os.Path): Lock =
-    Lock.file((out / OutFiles.millOutLock).toString)
+    // `Lock.file` opens a real file lock; the alias form would be resolved against the caller's cwd.
+    Lock.file(Jvm.realAbs(out / OutFiles.millOutLock))
 
   private[daemon] def useInProcessLauncherResources(
       hasDaemonClient: Boolean,
@@ -583,8 +585,10 @@ object MillMain0 {
                               streams.err.println(err)
                               false
                             case None =>
-                              new mill.eclipse.GenEclipseImpl(runnerState.allEvaluators)
-                                .run()
+                              // Eclipse needs real absolute paths; alias forms confuse it.
+                              PathAliasing.withDefaultPathSerializer {
+                                new mill.eclipse.GenEclipseImpl(runnerState.allEvaluators).run()
+                              }
                               true
                           }
                         }
