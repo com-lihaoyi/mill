@@ -564,19 +564,20 @@ object Execution {
         retained.dropped = false
         droppedStates.remove(s)
       }
+    // `indexToTerminal` is in topological order, so each dep's transitive upstreams are
+    // already computed; union them in a single pass rather than running an independent
+    // DFS per terminal that re-walks shared ancestors (O(V*(V+E)) on deep/dense graphs).
     private val transitiveUpstreams: Map[Task[?], Seq[Task[?]]] = {
-      def rec(task: Task[?]): Seq[Task[?]] = {
+      val out = mutable.LinkedHashMap.empty[Task[?], Seq[Task[?]]]
+      for (task <- indexToTerminal) {
         val seen = mutable.LinkedHashSet.empty[Task[?]]
-        val stack = mutable.Stack.from(interGroupDeps.getOrElse(task, Nil).reverse)
-        while (stack.nonEmpty) {
-          val upstream = stack.pop()
-          if (seen.add(upstream)) {
-            stack.pushAll(interGroupDeps.getOrElse(upstream, Nil).reverse)
-          }
+        for (dep <- interGroupDeps.getOrElse(task, Nil)) {
+          seen += dep
+          out.get(dep).foreach(seen ++= _)
         }
-        seen.toSeq
+        out(task) = seen.toSeq
       }
-      indexToTerminal.iterator.map(t => t -> rec(t)).toMap
+      out.toMap
     }
 
     locally {
@@ -602,8 +603,9 @@ object Execution {
       }
     }
 
-    private def releaseIfDrained(start: Task[?]): Unit = {
-      val queue = mutable.Queue(start)
+    private def releaseIfDrained(start: Task[?]): Unit = releaseIfDrained(Seq(start))
+    private def releaseIfDrained(starts: IterableOnce[Task[?]]): Unit = {
+      val queue = mutable.Queue.from(starts)
       while (queue.nonEmpty) {
         val task = queue.dequeue()
         val s = states.get(task)
@@ -745,11 +747,12 @@ object Execution {
       } finally {
         upstreams.foreach { task =>
           val s = states.get(task)
-          if (s != null) {
-            s.activeConsumers.decrementAndGet()
-            releaseIfDrained(task)
-          }
+          if (s != null) s.activeConsumers.decrementAndGet()
         }
+        // One BFS over the whole upstream union: the `states.remove` CAS dedups work
+        // across seeds, so this is linear in the upstream subgraph rather than the
+        // O(upstreams) separate BFS traversals a per-upstream call would do.
+        releaseIfDrained(upstreams)
       }
     }
 

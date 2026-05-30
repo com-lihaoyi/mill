@@ -296,8 +296,12 @@ object SelectiveExecutionImpl {
         }
         .toMap
 
+      // Don't `.get` a failing `Task.Input`: that throws and aborts selective metadata
+      // computation, which runs unguarded from `--watch` / `selective.prepare`. Hash a
+      // stable representation of the failure and carry it as an `ExecResult.Failure`.
       val inputHashes = results.map {
-        case (task, execResultVal) => (task.ctx.segments.render, execResultVal.get.value.##)
+        case (task, Result.Success(v)) => (task.ctx.segments.render, v.value.##)
+        case (task, f: Result.Failure) => (task.ctx.segments.render, f.errorOpt.##)
       }
       SelectiveExecution.Metadata.Computed(
         new SelectiveExecution.Metadata(
@@ -310,7 +314,13 @@ object SelectiveExecutionImpl {
           millJvmVersion = sys.props("java.version"),
           classLoaderSigHash = evaluator.classLoaderSigHash
         ),
-        results.map { case (k, v) => (k, ExecResult.Success(v.get)) }
+        results.map { case (k, v) =>
+          val execRes: ExecResult[Val] = v match {
+            case Result.Success(value) => ExecResult.Success(value)
+            case f: Result.Failure => ExecResult.Failure(f.error, Some(f))
+          }
+          (k, execRes)
+        }
       )
     }
   }
