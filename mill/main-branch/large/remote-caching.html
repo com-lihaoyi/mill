@@ -3,10 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Scala Build Examples :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/scalalib/build-examples.html">
-    <link rel="prev" href="publishing.html">
-    <link rel="next" href="web-examples.html">
+    <title>Remote Caching :: The Mill Build Tool</title>
+    <link rel="prev" href="pre-compiled-modules.html">
+    <link rel="next" href="../extending/import-mvn-plugins.html">
     <meta name="generator" content="Antora 3.1.12">
     <link rel="stylesheet" href="../../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -209,51 +208,51 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="intro.html">Building Scala with Mill</a>
+    <a class="nav-link" href="../scalalib/intro.html">Building Scala with Mill</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="module-config.html">Scala Module Configuration</a>
+    <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="dependencies.html">Scala Library Dependencies</a>
+    <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="testing.html">Testing Scala Projects</a>
+    <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="linting.html">Linting Scala Projects</a>
+    <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="packaging.html">Packaging Scala Projects</a>
+    <a class="nav-link" href="../scalalib/packaging.html">Packaging Scala Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="publishing.html">Publishing Scala Projects</a>
-  </li>
-
-  <li class="nav-item is-current-page is-active" data-depth="2">
-    <a class="nav-link" href="build-examples.html">Scala Build Examples</a>
+    <a class="nav-link" href="../scalalib/publishing.html">Publishing Scala Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="web-examples.html">Scala Web Project Examples</a>
+    <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="native-examples.html">Scala Native Examples</a>
+    <a class="nav-link" href="../scalalib/web-examples.html">Scala Web Project Examples</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="spark.html">Spark Examples</a>
+    <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="script.html">Scala Single-File Scripts</a>
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/script.html">Scala Single-File Scripts</a>
   </li>
 </ul>
   </li>
@@ -391,27 +390,27 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
+    <a class="nav-link" href="large.html">Large Builds and Monorepos</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
+    <a class="nav-link" href="selective-execution.html">Selective Test Execution</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+    <a class="nav-link" href="multi-file-builds.html">Multi-File Builds</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+    <a class="nav-link" href="multi-language-builds.html">Multi-Language Builds</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../large/pre-compiled-modules.html">Pre-Compiled Modules</a>
+    <a class="nav-link" href="pre-compiled-modules.html">Pre-Compiled Modules</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../large/remote-caching.html">Remote Caching</a>
+  <li class="nav-item is-current-page is-active" data-depth="2">
+    <a class="nav-link" href="remote-caching.html">Remote Caching</a>
   </li>
 </ul>
   </li>
@@ -765,230 +764,264 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Scala Build Examples</h1>
-<div class="sect1">
-<h2 id="_example_builds_for_real_projects"><a class="anchor" href="#_example_builds_for_real_projects"></a>Example Builds for Real Projects</h2>
+<h1 class="page">Remote Caching</h1>
+<div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill comes bundled with example builds for real-world open-source projects,
-demonstrating how Mill can be used to build code outside of tiny example codebases:</p>
-</div>
-<div class="sect2">
-<h3 id="_acyclic"><a class="anchor" href="#_acyclic"></a>Acyclic</h3>
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-79-bc28b1/mill-dist-1.1.6-example-thirdparty-acyclic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/thirdparty/acyclic">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-
-import mill.*, scalalib.*, publish.*
-import mill.api.BuildCtx</code></pre>
-</div>
+<p>Mill can share task outputs between builds in different folders, or even on different
+machines, via a <em>remote cache</em>. Outputs computed by one build are stored in the cache and
+transparently re-used by any other build whose inputs are unchanged, so you never need to
+compute the same thing twice across a fleet of developer machines or CI workers.</p>
 </div>
 <div class="paragraph">
-<p>acyclic test suite assumes files are on disk at specific paths relative to <code>os.pwd</code>.
-To avoid changing the test code, we instead copy the necessary files into the <code>os.pwd</code>
-when preparing the resources for test suite execution</p>
+<p>The simplest cache backend is a plain local or shared (e.g. NFS) <em>directory</em>: point the
+cache at a filesystem path and Mill reads and writes cache entries there directly, with no
+server to run. We enable it from the <a href="../cli/build-header.html" class="xref page">build header</a> above, so it
+applies to every command without passing <code>--remote-cache-location</code> on the command line.</p>
 </div>
 <div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-79-bc28b1/mill-dist-1.1.6-example-large-remotecache-1-shared-folder.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/large/remotecache/1-shared-folder">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">BuildCtx.withFilesystemCheckerDisabled {
-  os.copy.over(
-    BuildCtx.watch(mill.api.BuildCtx.workspaceRoot / "acyclic"),
-    os.pwd / "acyclic",
-    createFolders = true
-  )
-}
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-remote-cache-location: ~/mill-remote-cache-folder
 
-object Deps {
-  def acyclic = mvn"com.lihaoyi:::acyclic:0.3.6"
-  def scalaCompiler(scalaVersion: String) = mvn"org.scala-lang:scala-compiler:$scalaVersion"
-  val utest = mvn"com.lihaoyi::utest:0.8.5"
-}
+package build
+import mill.*, javalib.*
 
-val crosses =
-  Range.inclusive(8, 20).map("2.12." + _) ++
-    Range.inclusive(0, 16).map("2.13." + _)
-
-object acyclic extends Cross[AcyclicModule](crosses)
-trait AcyclicModule extends CrossScalaModule, PublishModule {
-  def crossFullScalaVersion = true
-  def artifactName = "acyclic"
-  def publishVersion = "1.3.3.7"
-
-  def pomSettings = PomSettings(
-    description = artifactName(),
-    organization = "com.lihaoyi",
-    url = "https://github.com/com-lihaoyi/acyclic",
-    licenses = Seq(License.MIT),
-    versionControl = VersionControl.github(owner = "com-lihaoyi", repo = "acyclic"),
-    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
-  )
-
-  def compileMvnDeps = Seq(Deps.scalaCompiler(crossScalaVersion))
-
-  object test extends ScalaTests, TestModule.Utest {
-    def sources = Task.Sources("src", "resources")
-    def mvnDeps = Seq(Deps.utest, Deps.scalaCompiler(crossScalaVersion))
-  }
-}</code></pre>
+object foo extends JavaModule</code></pre>
 </div>
-</div>
-<div class="paragraph">
-<p>Acyclic is an example of a very small project that is a Scala compiler
-plugin. It is cross-built against all point versions of Scala from 2.11.12
-to 2.13.10, and has a dependency on the <code>org.scala-lang:scala-compiler</code></p>
-</div>
-<div class="paragraph">
-<p>Project home: <a href="https://github.com/com-lihaoyi/acyclic" class="bare">https://github.com/com-lihaoyi/acyclic</a></p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill acyclic.2_12_20.compile
-compiling 7 Scala sources...
-...
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
+Hello World!
 
-&gt; ./mill acyclic.2_13_16.test.testLocal # acyclic tests need testLocal due to classloader assumptions
-...</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_fansi"><a class="anchor" href="#_fansi"></a>Fansi</h3>
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-79-bc28b1/mill-dist-1.1.6-example-thirdparty-fansi.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/thirdparty/fansi">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+&gt; ./mill clean foo.compile
 
-import mill._, scalalib._, scalajslib._, scalanativelib._, publish.*
-import mill.util.VcsVersion
-import mill.javalib.api.JvmWorkerUtil.isScala3
-
-val dottyCommunityBuildVersion = sys.props.get("dottyVersion")
-
-val scalaVersions = Seq("2.12.20", "2.13.16", "3.3.6") ++ dottyCommunityBuildVersion
-
-trait FansiModule extends PublishModule with CrossScalaModule with PlatformScalaModule {
-  def artifactName = "fansi"
-
-  def publishVersion = "1.3.3.7"
-
-  def pomSettings = PomSettings(
-    description = artifactName(),
-    organization = "com.lihaoyi",
-    url = "https://github.com/com-lihaoyi/Fansi",
-    licenses = Seq(License.MIT),
-    versionControl = VersionControl.github(owner = "com-lihaoyi", repo = "fansi"),
-    developers = Seq(
-      Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi")
-    )
-  )
-
-  def mvnDeps = Seq(mvn"com.lihaoyi::sourcecode::0.4.0")
-}
-
-trait FansiTestModule extends ScalaModule with TestModule.Utest {
-  def mvnDeps = Seq(mvn"com.lihaoyi::utest::0.8.3")
-}
-
-object fansi extends Module {
-  object jvm extends Cross[JvmFansiModule](scalaVersions)
-  trait JvmFansiModule extends FansiModule with ScalaModule {
-    object test extends ScalaTests with FansiTestModule
-  }
-
-  object js extends Cross[JsFansiModule](scalaVersions)
-  trait JsFansiModule extends FansiModule with ScalaJSModule {
-    def scalaJSVersion = "1.20.2"
-    object test extends ScalaJSTests with FansiTestModule
-  }
-
-  object native extends Cross[NativeFansiModule](scalaVersions)
-  trait NativeFansiModule extends FansiModule with ScalaNativeModule {
-    def scalaNativeVersion = "0.5.8"
-    object test extends ScalaNativeTests with FansiTestModule
-  }
-}</code></pre>
+&gt; ./mill foo.run
+Hello World!</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Fansi is an example of a small library that is cross built against every
-minor version of Scala (including Scala 3.x) and every platform: JVM, JS,
-and Native.
-Both the library and the test suite are duplicated across all
-entries in the {version}x{platform} matrix, and you can select which one you
-want to compile, test, or publish</p>
-</div>
-<div class="paragraph">
-<p>Project home: <a href="https://github.com/com-lihaoyi/fansi" class="bare">https://github.com/com-lihaoyi/fansi</a></p>
+<p><code>./mill clean foo.compile</code> removed the local <code>out/</code> entry for the compile, so the second
+<code>./mill foo.run</code> could only skip recompiling by fetching the result from the shared cache
+folder. <code>out/mill-profile.json</code> confirms it with <code>"cached": true</code> for <code>foo.compile</code>, rather
+than a local recompute:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill resolve __.compile
-fansi.js.2_12_20.compile
-fansi.js.2_12_20.test.compile
-fansi.js.2_13_16.compile
-fansi.js.2_13_16.test.compile
-fansi.js.3_3_6.compile
-fansi.js.3_3_6.test.compile
-fansi.jvm.2_12_20.compile
-fansi.jvm.2_12_20.test.compile
-fansi.jvm.2_13_16.compile
-fansi.jvm.2_13_16.test.compile
-fansi.jvm.3_3_6.compile
-fansi.jvm.3_3_6.test.compile
-fansi.native.2_12_20.compile
-fansi.native.2_12_20.test.compile
-fansi.native.2_13_16.compile
-fansi.native.2_13_16.test.compile
-fansi.native.3_3_6.compile
-fansi.native.3_3_6.test.compile
-
-&gt; ./mill fansi.jvm.2_12_20.compile
-compiling 1 Scala source...
-...
-
-&gt; ./mill fansi.js.2_13_16.test
-Starting process: node
--------------------------------- Running Tests --------------------------------
-...
-
-&gt; ./mill fansi.native.3_3_6.publishLocal
-Publishing com.lihaoyi:fansi_native0.5_3:1.3.3.7 to ivy repo...
-...</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; cat out/mill-profile.json | jq '.[] | select(.label == "foo.compile").cached'
+true</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>Point any other checkout of the project at the same folder, local or on a shared mount, to
+share results between them.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_real_world_mill_builds"><a class="anchor" href="#_real_world_mill_builds"></a>Real World Mill Builds</h2>
+<h2 id="_a_bazel_remote_cache_server"><a class="anchor" href="#_a_bazel_remote_cache_server"></a>A Bazel-Remote Cache Server</h2>
 <div class="sectionbody">
-<div class="sect2">
-<h3 id="_ammonite"><a class="anchor" href="#_ammonite"></a>Ammonite</h3>
 <div class="paragraph">
-<p><a href="https://github.com/com-lihaoyi/Ammonite">Ammonite</a> is an ergonomic Scala REPL.</p>
+<p>To share a cache across a fleet of machines or CI workers you want a real cache <em>server</em>.
+Mill speaks the widely-supported <a href="https://github.com/bazelbuild/remote-apis">Bazel Remote
+Execution</a> HTTP cache protocol, so it works against off-the-shelf servers like
+<a href="https://github.com/buchgr/bazel-remote">bazel-remote</a> (as well as Buildbarn, EngFlow, and
+others). Point <code>mill-remote-cache-location</code> at the server&#8217;s base URL, here in the
+<a href="../cli/build-header.html" class="xref page">build header</a> so every command uses it.</p>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_scala_cli"><a class="anchor" href="#_scala_cli"></a>Scala-CLI</h3>
 <div class="paragraph">
-<p><a href="https://github.com/VirtusLab/scala-cli">Scala-CLI</a> is the primary CLI tool that
-runs when you enter <code>scala</code> in the terminal. It is able to compile, test, run,
-and package your Scala code in a variety of different ways</p>
+<p>Below we download the <code>bazel-remote</code> binary — the two `curl`s fetch the macOS/arm64 and
+Linux/x86-64 builds; see the <a href="https://github.com/buchgr/bazel-remote/releases">releases</a> page
+for other platforms — then run it serving an HTTP cache on a local port and build against it.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-79-bc28b1/mill-dist-1.1.6-example-large-remotecache-2-bazel-remote.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/large/remotecache/2-bazel-remote">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-remote-cache-location: http://localhost:8378
+
+package build
+import mill.*, javalib.*
+
+object foo extends JavaModule</code></pre>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_coursier"><a class="anchor" href="#_coursier"></a>Coursier</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -sL -o bazel-remote https://github.com/buchgr/bazel-remote/releases/download/v2.6.1/bazel-remote-2.6.1-darwin-arm64 &amp;&amp; chmod +x bazel-remote # mac
+
+&gt; curl -sL -o bazel-remote https://github.com/buchgr/bazel-remote/releases/download/v2.6.1/bazel-remote-2.6.1-linux-amd64 &amp;&amp; chmod +x bazel-remote # linux
+
+&gt; ./bazel-remote --dir bazel-remote-data --max_size 1 --http_address localhost:8378 &gt; bazel-remote.log 2&gt;&amp;1 &amp; echo $! &gt; bazel-remote.pid; sleep 3
+
+&gt; ./mill foo.run
+Hello World!
+
+&gt; ./mill clean foo.compile
+
+&gt; ./mill foo.run
+Hello World!
+
+&gt; kill $(cat bazel-remote.pid)</code></pre>
+</div>
+</div>
 <div class="paragraph">
-<p><a href="https://github.com/coursier/coursier">Coursier</a> is a fast JVM dependency resolver,
-used in many build tools to resolve and download third party dependencies</p>
+<p>After <code>./mill clean foo.compile</code>, the second <code>./mill foo.run</code> skipped recompiling and instead
+downloaded the compile output from <code>bazel-remote</code>, as <code>"cached": true</code> for <code>foo.compile</code> in
+<code>out/mill-profile.json</code> confirms:</p>
 </div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; cat out/mill-profile.json | jq '.[] | select(.label == "foo.compile").cached'
+true</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Because <code>bazel-remote</code> validates each uploaded <code>ActionResult</code> against the blobs it references,
+a successful hit also confirms Mill&#8217;s protocol implementation is correct on the wire. For
+authenticated servers, set the <code>MILL_REMOTE_CACHE_AUTHORIZATION</code> environment variable and Mill
+sends it as the <code>Authorization</code> header on every request.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_an_apache_httpd_cache_server"><a class="anchor" href="#_an_apache_httpd_cache_server"></a>An Apache httpd Cache Server</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill&#8217;s remote cache speaks the Bazel HTTP cache protocol, which per the
+<a href="https://bazel.build/remote/caching">Bazel docs</a> works against "any HTTP/1.1 server that
+supports PUT and GET" — not just purpose-built caches. So you can also back the cache with a
+general-purpose web server you may already run, such as <a href="https://httpd.apache.org">Apache
+httpd</a> with its <code>mod_dav</code> WebDAV module.</p>
+</div>
+<div class="paragraph">
+<p>The <code>httpd.conf</code> next to this build serves an <code>apache-data/</code> folder over WebDAV; we create
+that folder, start a stock Apache with the config, and point <code>mill-remote-cache-location</code> at
+it in the build header.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-79-bc28b1/mill-dist-1.1.6-example-large-remotecache-3-apache-httpd.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/large/remotecache/3-apache-httpd">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-remote-cache-location: http://localhost:8379
+
+package build
+import mill.*, javalib.*
+
+object foo extends JavaModule</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mkdir -p apache-data/ac apache-data/cas
+
+&gt; /usr/sbin/httpd -d "$(pwd)" -f httpd.conf -k start # mac
+
+&gt; apache2 -d "$(pwd)" -f httpd.conf -k start # linux
+
+&gt; ./mill foo.run
+Hello World!
+
+&gt; ./mill clean foo.compile
+
+&gt; ./mill foo.run
+Hello World!
+
+&gt; kill $(cat httpd.pid)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After <code>./mill clean foo.compile</code>, the second <code>./mill foo.run</code> fetched the compile output from
+Apache rather than recompiling, as <code>"cached": true</code> for <code>foo.compile</code> in
+<code>out/mill-profile.json</code> shows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; cat out/mill-profile.json | jq '.[] | select(.label == "foo.compile").cached'
+true</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The cache files Apache stored end up under <code>apache-data/ac/</code> and <code>apache-data/cas/</code>, the same
+on-the-wire layout as a dedicated Bazel remote cache.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configuration"><a class="anchor" href="#_configuration"></a>Configuration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Remote caching is controlled by three settings, set in your
+<a href="../cli/build-header.html#_mill_remote_cache_location" class="xref page">build header</a> so they apply to every
+build, or as command-line flags for a one-off run:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong><code>--remote-cache-location</code></strong> is the cache location: the base URL of a Bazel-remote-protocol
+HTTP cache, or a <code>file:</code> URL / path (a leading <code>~/</code> is resolved against your home directory)
+to a shared folder used as the cache with no server. This is the only setting needed to turn
+remote caching on.</p>
+</li>
+<li>
+<p><strong><code>--remote-cache-filter</code></strong> restricts caching to the tasks matching a task query, e.g.
+<code>__.compile</code>. When omitted, every cacheable task is eligible.</p>
+</li>
+<li>
+<p><strong><code>--remote-cache-salt</code></strong> adds an extra string to the cache key to partition the cache, e.g.
+to keep entries computed on different operating systems from being shared.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For caches that require authentication, set the <code>MILL_REMOTE_CACHE_AUTHORIZATION</code> environment
+variable; Mill sends its value as the <code>Authorization</code> header on every request, supporting
+bearer tokens, HTTP basic auth, and similar schemes.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_limitations"><a class="anchor" href="#_limitations"></a>Limitations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>As with every build tool&#8217;s remote cache (Bazel, Buck, Pants, &#8230;&#8203;), remote caching comes with
+trade-offs. None of these are unique to Mill:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Remote caching assumes all of a task&#8217;s inputs are tracked.</strong> It cannot detect a task that
+produces different output for the same <code>inputsHash</code> because of an un-tracked input, e.g. a
+task that shells out to a system tool whose version differs between machines. Use
+<code>--remote-cache-salt</code> to give such environments different cache keys, for example a
+different salt on macOS developer machines and on Linux CI.</p>
+</li>
+<li>
+<p><strong>Anyone with write access to the cache can run code on every reader.</strong> A task output uploaded
+by one machine, including compiled binaries and scripts, is downloaded and used on every
+other machine that reads from the cache, so all machines sharing a cache must be within the
+same trust boundary. A common safe topology is to grant write access only to trusted CI
+(e.g. main-branch builds) while letting developer laptops and PR builds read from it.</p>
+</li>
+<li>
+<p><strong>Not every task benefits from remote caching.</strong> Some tasks are faster to recompute locally
+than to fetch over the network, and Mill caches at a whole-task granularity, where each
+task&#8217;s output directory is a single cache entry. Use <code>--remote-cache-filter</code> to target the
+expensive, high-reuse tasks such as <code>__.compile</code> where caching pays off.</p>
+</li>
+<li>
+<p><strong>Persistent tasks are cached, but many task types are not.</strong> Persistent tasks like <code>compile</code>,
+whose <code>dest/</code> holds incremental-compiler state, do participate, since sharing compiled
+output is the primary use case; a remote miss leaves their local <code>dest/</code> intact so an
+incremental recompute can still re-use it. <code>Task.Input</code>, <code>Task.Command</code>, <code>Task.Worker</code>, and
+other non-cached task types are never sent to the remote cache.</p>
+</li>
+</ul>
 </div>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="publishing.html">Publishing Scala Projects</a></span>
-  <span class="next"><a href="web-examples.html">Scala Web Project Examples</a></span>
+  <span class="prev"><a href="pre-compiled-modules.html">Pre-Compiled Modules</a></span>
+  <span class="next"><a href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a></span>
 </nav>
 </article>
   </div>

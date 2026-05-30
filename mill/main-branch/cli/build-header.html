@@ -409,6 +409,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../large/pre-compiled-modules.html">Pre-Compiled Modules</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../large/remote-caching.html">Remote Caching</a>
+  </li>
 </ul>
   </li>
 
@@ -915,7 +919,7 @@ version used for any JVMs spawned by Mill to <code>run</code> or <code>test</cod
 YAML key:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-78-ad42d1/mill-dist-1.1.6-example-cli-header-3-jvm-version-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/cli/header/3-jvm-version-yaml/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-79-bc28b1/mill-dist-1.1.6-example-cli-header-3-jvm-version-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/cli/header/3-jvm-version-yaml/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-jvm-version: temurin:17.0.6
 
@@ -978,7 +982,7 @@ in Mill&#8217;s jvm index version) or an older JVM index.</p>
 </ul>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-78-ad42d1/mill-dist-1.1.6-example-cli-header-4-jvm-index-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/cli/header/4-jvm-index-version">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-79-bc28b1/mill-dist-1.1.6-example-cli-header-4-jvm-index-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/cli/header/4-jvm-index-version">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-index-version: 0.0.4-88-f9ba3d
 //| mill-jvm-version: temurin:17
@@ -1049,6 +1053,73 @@ dependencies by setting <code>mill-repositories</code> in the build header:</p>
 <p>The configured repositories are prepended to (take precedence over) the default
 Maven Central repository. For configuring repositories on individual modules, see
 <a href="../javalib/dependencies.html#_repository_configuration" class="xref page">Repository Configuration</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mill_remote_cache_location"><a class="anchor" href="#_mill_remote_cache_location"></a>mill-remote-cache-location</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can enable <a href="../large/remote-caching.html" class="xref page">remote caching</a> for a project from its build
+header, so it applies to every invocation without passing flags each time. Only
+<code>mill-remote-cache-location</code> is required to turn remote caching on:</p>
+</div>
+<div class="paragraph">
+<p><em>build.mill</em></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-remote-cache-location: https://my-cache.example.com</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>mill-remote-cache-location</code> is the cache location: either the base URL of a server speaking the
+Bazel-remote-protocol HTTP cache (such as
+<a href="https://github.com/buchgr/bazel-remote">bazel-remote</a>), or a <code>file:</code> URL / path to a local or
+shared (e.g. NFS) folder used as the cache with no server.</p>
+</div>
+<div class="paragraph">
+<p>Two further keys are optional:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>mill-remote-cache-filter</code> restricts caching to the tasks matching a task query, e.g.
+<code>__.compile</code>. When omitted, every cacheable task is eligible.</p>
+</li>
+<li>
+<p><code>mill-remote-cache-salt</code> adds an extra string to the cache key to partition the cache, e.g.
+to keep entries computed on different operating systems apart. When omitted, no salt is
+applied.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><em>build.mill</em></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-remote-cache-location: https://my-cache.example.com
+//| mill-remote-cache-filter: __.compile
+//| mill-remote-cache-salt: linux</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or in <code>build.mill.yaml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-remote-cache-location: https://my-cache.example.com
+mill-remote-cache-filter: __.compile
+mill-remote-cache-salt: linux</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>These keys correspond to the <code>--remote-cache-location</code>, <code>--remote-cache-filter</code>, and
+<code>--remote-cache-salt</code> <a href="flags.html" class="xref page">command-line flags</a>; an explicit flag on the command
+line overrides the build-header value (e.g. to disable the cache for a single run). See
+<a href="../large/remote-caching.html" class="xref page">Remote Caching</a> for the available backends and operational
+trade-offs.</p>
 </div>
 </div>
 </div>
@@ -1141,7 +1212,7 @@ you can also override other tasks such as <code>scalacOptions</code> which in th
 is used to turn on fatal warnings for unused private methods:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-78-ad42d1/mill-dist-1.1.6-example-cli-header-1-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/cli/header/1-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-79-bc28b1/mill-dist-1.1.6-example-cli-header-1-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/cli/header/1-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| scalacOptions: ["-Wunused:privates", "-Xfatal-warnings"]
 
@@ -1165,7 +1236,7 @@ For simple projects defined with a <code>build.mill.yaml</code> file, meta-build
 is put in the <code>mill-build:</code> key of the <code>build.mill.yaml</code> file:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-78-ad42d1/mill-dist-1.1.6-example-cli-header-2-tasks-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/cli/header/2-tasks-yaml/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-79-bc28b1/mill-dist-1.1.6-example-cli-header-2-tasks-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/cli/header/2-tasks-yaml/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-build:
   scalacOptions: ["-verbose"]</code></pre>
