@@ -192,11 +192,12 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
    */
   def resolveScriptModule(scriptFile0: String, eval: Evaluator): Option[Result[ExternalModule]] = {
     val scriptFile = os.Path(scriptFile0, mill.api.BuildCtx.workspaceRoot)
-    // Add a synthetic watch on `scriptFile`, representing the special handling
-    // of `staticBuildOverrides` which is read from the script file build header
-    mill.api.BuildCtx.evalWatch(scriptFile)
 
     Option.when(os.isFile(scriptFile)) {
+      // Add a synthetic watch on `scriptFile`, representing the special handling
+      // of `staticBuildOverrides` which is read from the script file build header.
+      mill.api.BuildCtx.evalWatch(scriptFile)
+
       // Check for recursive moduleDeps cycle
       if (resolvingScripts.contains(scriptFile)) {
         val relPath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
