@@ -167,6 +167,53 @@ The configured repositories are prepended to (take precedence over) the default
 Maven Central repository. For configuring repositories on individual modules, see
 xref:javalib/dependencies.adoc#_repository_configuration[Repository Configuration].
 
+== mill-remote-cache-location
+
+You can enable xref:large/remote-caching.adoc[remote caching] for a project from its build
+header, so it applies to every invocation without passing flags each time. Only
+`mill-remote-cache-location` is required to turn remote caching on:
+
+_build.mill_
+[source,scala]
+----
+//| mill-remote-cache-location: https://my-cache.example.com
+----
+
+`mill-remote-cache-location` is the cache location: either the base URL of a server speaking the
+Bazel-remote-protocol HTTP cache (such as
+https://github.com/buchgr/bazel-remote[bazel-remote]), or a `file:` URL / path to a local or
+shared (e.g. NFS) folder used as the cache with no server.
+
+Two further keys are optional:
+
+* `mill-remote-cache-filter` restricts caching to the tasks matching a task query, e.g.
+  `__.compile`. When omitted, every cacheable task is eligible.
+* `mill-remote-cache-salt` adds an extra string to the cache key to partition the cache, e.g.
+  to keep entries computed on different operating systems apart. When omitted, no salt is
+  applied.
+
+_build.mill_
+[source,scala]
+----
+//| mill-remote-cache-location: https://my-cache.example.com
+//| mill-remote-cache-filter: __.compile
+//| mill-remote-cache-salt: linux
+----
+
+Or in `build.mill.yaml`:
+[source,yaml]
+----
+mill-remote-cache-location: https://my-cache.example.com
+mill-remote-cache-filter: __.compile
+mill-remote-cache-salt: linux
+----
+
+These keys correspond to the `--remote-cache-location`, `--remote-cache-filter`, and
+`--remote-cache-salt` xref:cli/flags.adoc[command-line flags]; an explicit flag on the command
+line overrides the build-header value (e.g. to disable the cache for a single run). See
+xref:large/remote-caching.adoc[Remote Caching] for the available backends and operational
+trade-offs.
+
 == mill-separate-bsp-output-dir
 
 By default, BSP sessions share the regular `out/` directory and Mill daemon with

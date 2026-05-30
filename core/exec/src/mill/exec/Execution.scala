@@ -41,6 +41,11 @@ case class Execution(
     isFinalDepth: Boolean,
     // JSON string to avoid classloader issues when crossing classloader boundaries
     spanningInvalidationTree: Option[String],
+    // The filter is a raw string parsed into `Segments` lazily in `GroupExecution`, to avoid
+    // threading `Segments` across the reflective construction boundary.
+    remoteCacheLocation: Option[String] = None,
+    remoteCacheSalt: Option[String] = None,
+    remoteCacheFilter: Option[String] = None,
     // Tracks tasks invalidated due to version/classloader mismatch
     versionMismatchReasons: ConcurrentHashMap[Task[?], String] = ConcurrentHashMap()
 ) extends GroupExecution with AutoCloseable {
@@ -74,7 +79,10 @@ case class Execution(
       depth: Int,
       isFinalDepth: Boolean,
       // JSON string to avoid classloader issues when crossing classloader boundaries
-      spanningInvalidationTree: Option[String]
+      spanningInvalidationTree: Option[String],
+      remoteCacheLocation: Option[String],
+      remoteCacheSalt: Option[String],
+      remoteCacheFilter: Option[String]
   ) = this(
     baseLogger = baseLogger,
     // Only depth=0 (the user build) publishes through `runArtifacts`, so meta-build
@@ -106,7 +114,10 @@ case class Execution(
     enableTicker = enableTicker,
     depth = depth,
     isFinalDepth = isFinalDepth,
-    spanningInvalidationTree = spanningInvalidationTree
+    spanningInvalidationTree = spanningInvalidationTree,
+    remoteCacheLocation = remoteCacheLocation,
+    remoteCacheSalt = remoteCacheSalt,
+    remoteCacheFilter = remoteCacheFilter
   )
 
   def withBaseLogger(newBaseLogger: Logger) = {
