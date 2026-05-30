@@ -1,0 +1,24 @@
+package build
+import mill.*
+
+// Test fixtures. Tests read `out/mill-profile.json` to see whether each task was recomputed
+// (`"cached": false`) or served from a cache (`"cached": true`).
+
+def cachedTask = Task {
+  "cachedTask-value"
+}
+
+// Excluded by the `--remote-cache-filter` test, so always recomputed.
+def uncachedTask = Task {
+  "uncachedTask-value"
+}
+
+// Returns a PathRef under `Task.dest`, exercising the cache's bundling/restoring of `dest/` files.
+def cachedFile = Task {
+  os.write(Task.dest / "data.txt", "file-contents-12345")
+  PathRef(Task.dest / "data.txt")
+}
+
+def persistentTask = Task(persistent = true) {
+  "persistentTask-value"
+}

@@ -1,0 +1,60 @@
+= Remote Caching
+
+include::partial$example/large/remotecache/1-shared-folder.adoc[]
+
+== A Bazel-Remote Cache Server
+
+include::partial$example/large/remotecache/2-bazel-remote.adoc[]
+
+== An Apache httpd Cache Server
+
+include::partial$example/large/remotecache/3-apache-httpd.adoc[]
+
+== Configuration
+
+Remote caching is controlled by three settings, set in your
+xref:cli/build-header.adoc#_mill_remote_cache_location[build header] so they apply to every
+build, or as command-line flags for a one-off run:
+
+* *`--remote-cache-location`* is the cache location: the base URL of a Bazel-remote-protocol
+  HTTP cache, or a `file:` URL / path (a leading `~/` is resolved against your home directory)
+  to a shared folder used as the cache with no server. This is the only setting needed to turn
+  remote caching on.
+
+* *`--remote-cache-filter`* restricts caching to the tasks matching a task query, e.g.
+  `__.compile`. When omitted, every cacheable task is eligible.
+
+* *`--remote-cache-salt`* adds an extra string to the cache key to partition the cache, e.g.
+  to keep entries computed on different operating systems from being shared.
+
+For caches that require authentication, set the `MILL_REMOTE_CACHE_AUTHORIZATION` environment
+variable; Mill sends its value as the `Authorization` header on every request, supporting
+bearer tokens, HTTP basic auth, and similar schemes.
+
+== Limitations
+
+As with every build tool's remote cache (Bazel, Buck, Pants, ...), remote caching comes with
+trade-offs. None of these are unique to Mill:
+
+* *Remote caching assumes all of a task's inputs are tracked.* It cannot detect a task that
+  produces different output for the same `inputsHash` because of an un-tracked input, e.g. a
+  task that shells out to a system tool whose version differs between machines. Use
+  `--remote-cache-salt` to give such environments different cache keys, for example a
+  different salt on macOS developer machines and on Linux CI.
+
+* *Anyone with write access to the cache can run code on every reader.* A task output uploaded
+  by one machine, including compiled binaries and scripts, is downloaded and used on every
+  other machine that reads from the cache, so all machines sharing a cache must be within the
+  same trust boundary. A common safe topology is to grant write access only to trusted CI
+  (e.g. main-branch builds) while letting developer laptops and PR builds read from it.
+
+* *Not every task benefits from remote caching.* Some tasks are faster to recompute locally
+  than to fetch over the network, and Mill caches at a whole-task granularity, where each
+  task's output directory is a single cache entry. Use `--remote-cache-filter` to target the
+  expensive, high-reuse tasks such as `__.compile` where caching pays off.
+
+* *Persistent tasks are cached, but many task types are not.* Persistent tasks like `compile`,
+  whose `dest/` holds incremental-compiler state, do participate, since sharing compiled
+  output is the primary use case; a remote miss leaves their local `dest/` intact so an
+  incremental recompute can still re-use it. `Task.Input`, `Task.Command`, `Task.Worker`, and
+  other non-cached task types are never sent to the remote cache.

@@ -2,9 +2,10 @@ package mill.exec
 
 import mill.api.ExecResult.{OuterStack, Success}
 import mill.api.*
+import mill.api.daemon.Segment
 import mill.api.daemon.internal.LauncherLocking
 import mill.api.daemon.internal.NonFatal
-import mill.api.internal.{Appendable, Cached, Located, PathAliasing}
+import mill.api.internal.{Appendable, Cached, Located, ParseArgs, PathAliasing}
 import mill.internal.{CodeSigUtils, FileLogger, LockUpgrade, MultiLogger, PromptWaitReporter}
 
 import java.lang.reflect.Method
@@ -56,6 +57,39 @@ trait GroupExecution {
   def exclusiveSystemStreams: SystemStreams
   def getEvaluator: () => EvaluatorApi
   def staticBuildOverrideFiles: Map[java.nio.file.Path, String]
+
+  def remoteCacheLocation: Option[String]
+  def remoteCacheSalt: Option[String]
+  def remoteCacheFilter: Option[String]
+
+  // `None` means "cache every eligible task". Validated eagerly in `MillMain0`, so it parses here.
+  private lazy val remoteCacheFilterSegments: Option[Segments] =
+    remoteCacheFilter.flatMap(ParseArgs.extractSegments(_).toOption.map(_._2))
+
+  /** The cache location for `labelled`, or `None` if not a filter-matching [[Task.Computed]]. */
+  private def remoteCacheTarget(labelled: Task.Named[?]): Option[String] =
+    remoteCacheLocation.filter(_ =>
+      labelled.isInstanceOf[Task.Computed[?]] &&
+        remoteCacheFilterSegments.forall(checkPatternMatch(_, labelled.ctx.segments))
+    )
+
+  /** Matches `input` against a `--remote-cache-filter` `pattern` with task-selector wildcards. */
+  private def checkPatternMatch(pattern: Segments, input: Segments): Boolean = {
+    import Segment.{Cross, Label}
+    def rec(pattern: List[Segment], input: List[Segment]): Boolean =
+      (pattern, input) match {
+        case (Nil, Nil) => true
+        case (Label("__") :: pRest, iRest) => iRest.tails.exists(rec(pRest, _))
+        case (Label("_") :: pRest, _ :: iRest) => rec(pRest, iRest)
+        case (Label(a) :: pRest, Label(b) :: iRest) if a == b => rec(pRest, iRest)
+        case (Cross(as) :: pRest, Cross(bs) :: iRest) =>
+          as.length == bs.length &&
+          as.zip(bs).forall { case ("_", _) => true; case (a, b) => a == b } &&
+          rec(pRest, iRest)
+        case _ => false
+      }
+    rec(pattern.value.toList, input.value.toList)
+  }
 
   /** Evaluate a build override YAML value and deserialize it */
   private def evaluateBuildOverride(
@@ -213,10 +247,11 @@ trait GroupExecution {
     rec(upickle.core.BufferedValue.transform(json, ujson.Value))
   }
 
-  // the JVM running this code currently
-  val javaHomeHash = sys.props("java.home").hashCode
+  // Key off the JVM *version*, not its install *path*, so the remote-cache key (via `inputsHash`)
+  // stays machine-independent while still partitioning distinct JVM versions.
+  val javaVersionHash = sys.props("java.version").hashCode
 
-  val invalidateAllHashes = classLoaderSigHash + javaHomeHash
+  val invalidateAllHashes = classLoaderSigHash + javaVersionHash
 
   /**
    * Returns the inputs Mill should walk for `task`. A `Task.Named` whose value
@@ -481,7 +516,7 @@ trait GroupExecution {
                 LockUpgrade.Decision.Escalate
             }
           } { scope =>
-            val cached = loadCached()
+            val localCached = loadCached()
             // Closing a stale worker here runs its user `close()` under
             // `GroupExecution.wrap`, which permits reads of upstream `dest/`
             // via `upstreamPathRefs`. Guard those reads with active-consumer
@@ -490,19 +525,50 @@ trait GroupExecution {
             // upstream Read this cleanup may still touch. Non-blocking
             // reacquire: this runs while holding this task's Write lock, so it
             // must not block on another task lock and recreate circular wait.
-            val reusableResultOpt =
+            val localReusable =
               leaseTracker.withActiveConsumers(labelled, () => tryReacquireDroppedReads()) {
-                loadCachedOrWorker(cached, closeStaleWorker = true)
+                loadCachedOrWorker(localCached, closeStaleWorker = true)
               }
+
+            // Remote-cache fallback on a local miss. We hold the Write lock, so materializing
+            // `dest/`/`log`/`meta` is safe; a poisoned entry re-reads as a miss and is recomputed
+            // by the `None` branch below.
+            val remoteMaterialized =
+              localReusable.isEmpty && remoteCacheTarget(labelled).exists { location =>
+                BazelRemoteCache.load(
+                  paths,
+                  inputsHash,
+                  labelled.ctx.segments.render,
+                  location,
+                  remoteCacheSalt,
+                  workspace
+                )
+              }
+
+            // After a remote materialization, re-read the now-present `meta.json` and reuse
+            // the same `loadCachedOrWorker` path as a local hit instead of duplicating it.
+            val cached = if (remoteMaterialized) loadCached() else localCached
+            val reusableResultOpt =
+              if (remoteMaterialized) loadCachedOrWorker(cached, closeStaleWorker = false)
+              else localReusable
 
             reusableResultOpt match {
               case Some(res) =>
+                // A remote-cache materialization wrote `dest/`/`meta`/`log` under this Write
+                // lock, so — like a recompute — it must bump the task version, or a peer that
+                // dropped a retained Read would validate against the unchanged version and
+                // silently consume the freshly written output. A purely-local hit wrote
+                // nothing and keeps the current version. Compute this before
+                // `downgradeAndRetain` so the bump happens while we still hold the Write lock.
+                val version =
+                  if (remoteMaterialized) workspaceLocking.markTaskWritten(taskLockPath)
+                  else workspaceLocking.taskVersion(taskLockPath)
                 leaseTracker.retain(
                   labelled,
                   taskLockPath,
                   labelled.ctx.segments.render,
                   scope.downgradeAndRetain(),
-                  workspaceLocking.taskVersion(taskLockPath)
+                  version
                 )
                 res
               case None =>
@@ -550,6 +616,18 @@ trait GroupExecution {
                     case ExecResult.Success((v, _)) =>
                       val (valueHash, serializedPaths) =
                         handleTaskResult(v, paths.meta, inputsHash, labelled)
+                      // Push freshly-computed outputs to the remote cache for other machines.
+                      remoteCacheTarget(labelled).foreach { location =>
+                        BazelRemoteCache.store(
+                          paths,
+                          inputsHash,
+                          labelled.ctx.segments.render,
+                          location,
+                          remoteCacheSalt,
+                          serializedPaths,
+                          workspace
+                        )
+                      }
                       // Reuse `handleTaskResult`'s hash (derived from the JSON it writes) as the
                       // terminal's downstream value hash too — the `0` placeholder stored by
                       // `executeGroup` is patched here — so cache and downstream consumers agree

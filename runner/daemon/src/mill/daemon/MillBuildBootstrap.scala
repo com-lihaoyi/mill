@@ -61,6 +61,9 @@ class MillBuildBootstrap(
     selectiveExecution: Boolean,
     offline: Boolean,
     useFileLocks: Boolean,
+    remoteCacheLocation: Option[String],
+    remoteCacheSalt: Option[String],
+    remoteCacheFilter: Option[String],
     runArtifacts: LauncherOutFiles,
     metaBuild: MetaBuildAccess,
     reporter: EvaluatorApi => Int => Option[CompileProblemReporter],
@@ -262,6 +265,9 @@ class MillBuildBootstrap(
       selectiveExecution = selectiveExecution,
       offline = offline,
       useFileLocks = useFileLocks,
+      remoteCacheLocation = remoteCacheLocation,
+      remoteCacheSalt = remoteCacheSalt,
+      remoteCacheFilter = remoteCacheFilter,
       workspaceLocking = workspaceLocking,
       runArtifacts = runArtifacts,
       workerCache = workerCache,
@@ -808,6 +814,9 @@ object MillBuildBootstrap {
       selectiveExecution: Boolean,
       offline: Boolean,
       useFileLocks: Boolean,
+      remoteCacheLocation: Option[String],
+      remoteCacheSalt: Option[String],
+      remoteCacheFilter: Option[String],
       workspaceLocking: LauncherLocking,
       runArtifacts: LauncherOutFiles,
       workerCache: collection.mutable.Map[String, (Int, Val, TaskApi[?])],
@@ -866,7 +875,10 @@ object MillBuildBootstrap {
           enableTicker,
           depth,
           false, // isFinalDepth: set later via withIsFinalDepth when needed
-          spanningInvalidationTree
+          spanningInvalidationTree,
+          remoteCacheLocation,
+          remoteCacheSalt,
+          remoteCacheFilter
         )
       ).asInstanceOf[EvaluatorApi]
 

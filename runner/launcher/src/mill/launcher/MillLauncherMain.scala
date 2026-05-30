@@ -80,7 +80,18 @@ object MillLauncherMain {
         val millRepositories =
           MillProcessLauncher.loadMillConfig(ConfigConstants.millRepositories, workDir)
         val runnerClasspath = CoursierClient.resolveMillDaemon(regularOutDir, millRepositories)
-        val optsArgs = MillProcessLauncher.loadMillConfig(ConfigConstants.millOpts, workDir) ++ args
+        // Surface build-header `mill-remote-cache-*` keys as CLI flags, before the user's args
+        // so an explicit CLI flag still wins.
+        val remoteCacheArgs = Seq(
+          ConfigConstants.millRemoteCacheLocation -> "--remote-cache-location",
+          ConfigConstants.millRemoteCacheSalt -> "--remote-cache-salt",
+          ConfigConstants.millRemoteCacheFilter -> "--remote-cache-filter"
+        ).flatMap { case (key, flag) =>
+          MillProcessLauncher.loadMillConfig(key, workDir).flatMap(value => Seq(flag, value))
+        }
+        val optsArgs =
+          MillProcessLauncher.loadMillConfig(ConfigConstants.millOpts, workDir) ++
+            remoteCacheArgs ++ args
 
         if (runNoDaemon)
           MillProcessLauncher.launchMillNoDaemon(

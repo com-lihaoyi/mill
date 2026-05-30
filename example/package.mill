@@ -120,6 +120,7 @@ object `package` extends Module {
     object multifile extends Cross[ExampleCrossModule](build.listCross)
     object multilang extends Cross[ExampleCrossModule](build.listCross)
     object precompiled extends Cross[ExampleCrossModule](build.listCross)
+    object remotecache extends Cross[ExampleCrossModule](build.listCross)
   }
 
   object extending extends Module {

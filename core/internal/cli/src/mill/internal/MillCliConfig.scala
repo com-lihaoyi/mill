@@ -160,6 +160,26 @@ case class MillCliConfig(
     disablePrompt: Flag = Flag(),
     @arg(hidden = true, doc = "Unsupported, but kept for compatibility")
     enableTicker: Option[Boolean] = None,
+    @arg(
+      hidden = true,
+      name = "remote-cache-location",
+      doc =
+        "Remote cache location: a Bazel-remote-protocol HTTP cache URL, or a `file:` URL / path to a local or shared folder."
+    )
+    remoteCacheLocation: Option[String] = None,
+    @arg(
+      hidden = true,
+      name = "remote-cache-salt",
+      doc =
+        "Extra string mixed into the remote cache key, e.g. to keep Mac and Linux builds from sharing entries."
+    )
+    remoteCacheSalt: Option[String] = None,
+    @arg(
+      hidden = true,
+      name = "remote-cache-filter",
+      doc = "Task-selector pattern (e.g. `__.compile`) limiting which tasks use the remote cache."
+    )
+    remoteCacheFilter: Option[String] = None,
     @arg(hidden = true, doc = "Deprecated, use `--ticker false` instead")
     disableTicker: Flag
 ) {
