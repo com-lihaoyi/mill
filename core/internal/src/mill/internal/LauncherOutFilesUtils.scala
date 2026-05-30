@@ -4,7 +4,7 @@ import mill.constants.DaemonFiles
 
 import scala.jdk.OptionConverters.RichOptional
 
-private[mill] object LauncherOutFilesRecordStore {
+private[mill] object LauncherOutFilesUtils {
   case class Record(
       runId: String,
       pid: Long,
@@ -28,8 +28,24 @@ private[mill] object LauncherOutFilesRecordStore {
       s"""{"pid":$pid,"command":$commandJson,"startMillis":$startMillisJson,"createdMillis":$createdMillis}"""
     val file = path(out, runId)
     try mill.api.BuildCtx.withFilesystemCheckerDisabled {
-        os.makeDir.all(file / os.up)
-        os.write.over(file, json)
+        val dir = file / os.up
+        os.makeDir.all(dir)
+        // Publish the record atomically so concurrent scanners never observe a
+        // truncated or partially-written file: write to a temp file in the same
+        // directory, then atomically rename it over the target.
+        val tmp = dir / s".${file.last}.tmp-${System.nanoTime()}"
+        try {
+          os.write.over(tmp, json)
+          java.nio.file.Files.move(
+            tmp.toNIO,
+            file.toNIO,
+            java.nio.file.StandardCopyOption.REPLACE_EXISTING,
+            java.nio.file.StandardCopyOption.ATOMIC_MOVE
+          )
+        } finally {
+          try os.remove(tmp, checkExists = false)
+          catch { case _: Throwable => () }
+        }
       }
     catch { case _: Throwable => () }
   }

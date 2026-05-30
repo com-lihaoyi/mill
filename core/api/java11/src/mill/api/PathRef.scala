@@ -177,11 +177,18 @@ object PathRef {
   }
 
   private[mill] def withSerializedPaths[T](block: => T): (T, Seq[PathRef]) = {
+    // Save/restore the previous value rather than unconditionally nulling on
+    // exit. A nested `withSerializedPaths` (same thread) must not clobber the
+    // outer scope's accumulated list: nulling it in the inner `finally` would
+    // leave the outer capture `null`, silently dropping every path the outer
+    // scope serializes after the nested call returns. In the common
+    // non-nested case `prev` is `null`, so behavior is unchanged.
+    val prev = serializedPaths.value
     serializedPaths.value = Nil
     try {
       val res = block
       (res, serializedPaths.value)
-    } finally serializedPaths.value = null
+    } finally serializedPaths.value = prev
   }
   private def storeSerializedPaths(pr: PathRef) = {
     if (serializedPaths.value != null) {

@@ -47,12 +47,12 @@ private[mill] class LauncherOutFilesImpl(
 
   override def close(): Unit =
     if (closed.compareAndSet(false, true)) {
-      LauncherOutFilesRecordStore.remove(out, runId)
+      LauncherOutFilesUtils.remove(out, runId)
       cleanup(out, outFilesState)
     }
 
   private def writeLauncherRunFile(): Unit =
-    LauncherOutFilesRecordStore.write(out, runId, launcherPid, activeCommandMessage)
+    LauncherOutFilesUtils.write(out, runId, launcherPid, activeCommandMessage)
 
   private def initializeRunArtifacts(): Unit = {
     os.write.over(os.Path(consoleTail), "", createFolders = true)
@@ -83,7 +83,7 @@ private[mill] object LauncherOutFilesImpl {
       outFilesState: LauncherOutFilesState
   ): Unit = {
     try {
-      val active = LauncherOutFilesRecordStore.sweepActive(out).iterator.map(_.runId).toSet
+      val active = LauncherOutFilesUtils.sweepActive(out).iterator.map(_.runId).toSet
       val runRootDir = out / LauncherOutFilesState.runRootDirName
       if (os.exists(runRootDir)) {
         val runDirs = os.list(runRootDir).filter(os.isDir(_))

@@ -516,7 +516,14 @@ trait GroupExecution {
                 // otherwise its reacquired Read would validate against the
                 // unchanged version and silently consume a deleted/partial
                 // `dest/`.
-                val version = workspaceLocking.markTaskWritten(taskLockPath)
+                // Input/Source tasks use Noop task-locks and don't write a shared `dest/` that
+                // peer launchers cache-validate against, so they must not churn the global task
+                // version counter: bumping it spuriously invalidates downstream retained reads
+                // that were dropped, forcing needless from-scratch retries. Read the current
+                // (un-bumped) version for them instead.
+                val version =
+                  if (labelled.isInputTask) workspaceLocking.taskVersion(taskLockPath)
+                  else workspaceLocking.markTaskWritten(taskLockPath)
                 if (!labelled.persistent && os.exists(paths.dest)) {
                   logger.debug(s"Deleting task dest dir ${paths.dest.relativeTo(workspace)}")
                   os.remove.all(paths.dest)
@@ -1042,11 +1049,10 @@ trait GroupExecution {
           // Recompute reverse-deps under lock: a peer-added dependent
           // would otherwise be missed and end up pointing at a closed
           // upstream.
-          val (currentReverseDeps, currentTopoIndex) = workerCache.synchronized {
+          val (currentReverseDeps, currentWorkerDeps) = workerCache.synchronized {
             val cacheSnapshot = workerCache.toMap
-            val deps = GroupExecution.workerDependencies(cacheSnapshot)
-            val topoIndex = deps.iterator.map(_._1).zipWithIndex.toMap
-            (SpanningForest.reverseEdges(deps), topoIndex)
+            val workerDeps = GroupExecution.workerDependencies(cacheSnapshot)
+            (SpanningForest.reverseEdges(workerDeps), workerDeps)
           }
           val allToClose =
             SpanningForest.breadthFirst(Seq(labelled: TaskApi[?]))(n =>
@@ -1055,7 +1061,7 @@ trait GroupExecution {
           GroupExecution.closeWorkersInReverseTopologicalOrder(
             allToClose,
             workerCache,
-            currentTopoIndex,
+            currentWorkerDeps,
             closeable =>
               try GroupExecution.wrap(
                   workspace,
@@ -1283,10 +1289,30 @@ object GroupExecution {
   def closeWorkersInReverseTopologicalOrder(
       workersToClose: Iterable[TaskApi[?]],
       workerCache: mutable.Map[String, (Int, Val, TaskApi[?])],
-      topoIndex: Map[TaskApi[?], Int],
+      deps: Seq[(TaskApi[?], Seq[TaskApi[?]])],
       closeAction: AutoCloseable => Unit
   ): Unit = {
-    for (worker <- workersToClose.toSeq.sortBy(w => -topoIndex(w))) {
+    // Derive a real topological ordering from the worker dependency graph (edge: worker -> its
+    // direct worker inputs, as produced by `workerDependencies`) and close in REVERSE
+    // topological order, so each worker is closed before the upstream workers it may still use
+    // during its own `close()`. The previous implementation ordered by the caller-supplied
+    // `topoIndex`, which was built from `workerCache`'s HashMap iteration order rather than the
+    // dependency graph, and so closed workers in an arbitrary (non-reverse-topological) order.
+    val edges: Map[TaskApi[?], Seq[TaskApi[?]]] = deps.toMap
+    val order = mutable.LinkedHashMap.empty[TaskApi[?], Int]
+    val onStack = mutable.HashSet.empty[TaskApi[?]]
+    def visit(w: TaskApi[?]): Unit =
+      // `onStack.add` returns false on a back-edge, breaking any (unexpected) cycle defensively.
+      if (!order.contains(w) && onStack.add(w)) {
+        for (dep <- edges.getOrElse(w, Nil)) visit(dep)
+        // Post-order: a dependency is indexed before its dependents, so dependents get the
+        // higher indices and are closed first below.
+        order(w) = order.size
+        onStack.remove(w)
+      }
+    for ((w, _) <- deps) visit(w)
+
+    for (worker <- workersToClose.toSeq.sortBy(w => -order.getOrElse(w, -1))) {
       val name = worker.workerNameApi.get
       workerCache.synchronized(workerCache.remove(name)).foreach {
         case (_, Val(closeable: AutoCloseable), _) => closeAction(closeable)

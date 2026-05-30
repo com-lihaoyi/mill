@@ -1,6 +1,7 @@
 package mill.resolve
 
 import mill.api.{Discover, ModuleRef}
+import mill.api.{DynamicModule, Module as ApiModule, Segment}
 import mill.testkit.TestRootModule
 import mainargs.arg
 import mill.{Cross, Module, Task}
@@ -238,6 +239,28 @@ object ErrorTests extends TestSuite {
 
       lazy val millDiscover = Discover[this.type]
     }
+
+    // A `DynamicModule` exposing two distinct child instances that both report the same last
+    // segment `inner`. Name-based resolution de-duplicates them and resolves `parent.inner.task`,
+    // but `ResolveCore.instantiateModule` asks for the single child `inner`, gets two candidates,
+    // and must surface that as a clean `Result.Failure` ("Unable to resolve single child") rather
+    // than a thrown `sys.error`.
+    object ambiguousDynamic extends TestRootModule {
+      object parent extends DynamicModule {
+        private def mkInner: Inner = {
+          implicit val ctx: mill.api.ModuleCtx =
+            moduleCtx.withSegments(moduleSegments ++ Segment.Label("inner"))
+          new Inner {}
+        }
+        val innerA: Inner = mkInner
+        val innerB: Inner = mkInner
+        override def moduleDirectChildren: Seq[ApiModule] = Seq(innerA, innerB)
+        trait Inner extends Module {
+          def task = Task { 1 }
+        }
+      }
+      lazy val millDiscover = Discover[this.type]
+    }
   }
 
   def isShortError(x: Result[?], s: String) = {
@@ -257,6 +280,13 @@ object ErrorTests extends TestSuite {
   val tests = Tests {
     val errorGraphs = ErrorGraphs()
     import errorGraphs.*
+
+    // A label that resolves to two distinct children at instantiation time must come back as a
+    // clean `Result.Failure`, not a thrown `sys.error` that escapes resolution.
+    test("ambiguousDynamicChildIsFailureNotThrow") - Checker(ambiguousDynamic).checkSeq0(
+      Seq("parent.inner.task"),
+      isShortError(_, "Unable to resolve single child")
+    )
 
     test("moduleInitError") {
       test("simple") {

@@ -13,7 +13,7 @@ object LauncherOutFilesImplTests extends TestSuite {
 
         for (i <- 0 until 10) {
           val runId = s"run-${i}_2026-05-26_09-00-00_pid-$pid"
-          LauncherOutFilesRecordStore.write(out, runId, pid, s"active-$i")
+          LauncherOutFilesUtils.write(out, runId, pid, s"active-$i")
           os.makeDir.all(out / LauncherOutFilesState.runRootDirName / runId)
         }
 
@@ -79,10 +79,10 @@ object LauncherOutFilesImplTests extends TestSuite {
       val out = os.temp.dir(prefix = "mill-launcher-records")
       try {
         val runId = "run-0_2026-05-26_09-00-00_pid-123"
-        val record = LauncherOutFilesRecordStore.path(out, runId)
+        val record = LauncherOutFilesUtils.path(out, runId)
         os.write.over(record, "{", createFolders = true)
 
-        val active = LauncherOutFilesRecordStore.sweepActive(out)
+        val active = LauncherOutFilesUtils.sweepActive(out)
 
         assert(active.exists(_.runId == runId))
         assert(os.exists(record))
@@ -95,12 +95,12 @@ object LauncherOutFilesImplTests extends TestSuite {
         val pid = ProcessHandle.current().pid()
         val older = "run-99_2026-05-26_09-00-01_pid-123"
         val newer = "run-0_2026-05-26_09-00-00_pid-123"
-        LauncherOutFilesRecordStore.write(out, older, pid, "older")
-        LauncherOutFilesRecordStore.write(out, newer, pid, "newer")
+        LauncherOutFilesUtils.write(out, older, pid, "older")
+        LauncherOutFilesUtils.write(out, newer, pid, "newer")
         overwriteCreatedMillis(out, older, createdMillis = 1000L)
         overwriteCreatedMillis(out, newer, createdMillis = 2000L)
 
-        assert(LauncherOutFilesRecordStore.mostRecentActive(out).map(_.runId) == Some(newer))
+        assert(LauncherOutFilesUtils.mostRecentActive(out).map(_.runId) == Some(newer))
       } finally os.remove.all(out)
     }
 
@@ -112,7 +112,7 @@ object LauncherOutFilesImplTests extends TestSuite {
   }
 
   private def overwriteCreatedMillis(out: os.Path, runId: String, createdMillis: Long): Unit = {
-    val recordPath = LauncherOutFilesRecordStore.path(out, runId)
+    val recordPath = LauncherOutFilesUtils.path(out, runId)
     val json = ujson.read(os.read(recordPath)).obj
     json("createdMillis") = ujson.Num(createdMillis)
     os.write.over(recordPath, ujson.write(json))

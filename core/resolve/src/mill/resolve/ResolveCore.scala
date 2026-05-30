@@ -76,6 +76,11 @@ private object ResolveCore {
           java.lang.reflect.Method,
           String
       )]] =
+        collection.mutable.Map(),
+      // Memoizes the per-class set of reversed name-segment suffixes used for type-selector
+      // matching (see `classMatchesTypePred`). The class hierarchy is immutable, so this can
+      // be safely reused across all candidate classes and patterns within a single resolve.
+      classNameSegments: collection.mutable.Map[Class[?], Set[Seq[String]]] =
         collection.mutable.Map()
   ) {
     def decode(s: String): String = {
@@ -88,6 +93,20 @@ private object ResolveCore {
         Reflect.getMethods(cls, noParams, inner, decode)
       )
 
+    }
+
+    /**
+     * The set of all reversed name-segment suffixes of `cls` and its transitive parents
+     * (superclasses and interfaces). A type pattern matches `cls` iff its reversed segments
+     * are contained in this set. Computed once per class and cached.
+     */
+    def classNameSegmentSuffixes(cls: Class[?]): Set[Seq[String]] = {
+      classNameSegments.getOrElseUpdate(
+        cls,
+        resolveParents(cls).iterator.flatMap(c =>
+          ("_root_$" + c.getName).split("[.$]").toSeq.reverse.inits.filter(_.nonEmpty)
+        ).toSet
+      )
     }
   }
 
@@ -241,7 +260,7 @@ private object ResolveCore {
                 transitiveOrErr.map(transitive =>
                   (self ++ transitive).collect {
                     case r @ Resolved.Module(_, _, _, cls)
-                        if classMatchesTypePred(typePattern)(cls) =>
+                        if classMatchesTypePred(typePattern)(cls, cache) =>
                       r
                   }
                 )
@@ -258,7 +277,7 @@ private object ResolveCore {
                 ).map {
                   _.collect {
                     case r @ Resolved.Module(_, _, _, cls)
-                        if classMatchesTypePred(typePattern)(cls) => r
+                        if classMatchesTypePred(typePattern)(cls, cache) => r
                   }
                 }
 
@@ -357,7 +376,11 @@ private object ResolveCore {
           ).flatMap {
             case Seq((_, Some(f))) => f(current)
             case unknown =>
-              sys.error(
+              // Surface the failure through the `Result` channel rather than throwing a
+              // raw exception, so callers see a clean `Result.Failure`. This is reachable
+              // if the module tree changes shape between resolution and instantiation
+              // (e.g. a `DynamicModule` with state-dependent `moduleDirectChildren`).
+              mill.api.Result.Failure(
                 s"Unable to resolve single child " +
                   s"rootModule: ${rootModule}, segments: ${segments.render}," +
                   s"current: $current, s: ${s}, unknown: $unknown"
@@ -432,7 +455,13 @@ private object ResolveCore {
    * @param typePattern
    * @return
    */
-  private def classMatchesTypePred(typePattern: Seq[String])(cls: Class[?]): Boolean =
+  private def classMatchesTypePred(typePattern: Seq[String])(
+      cls: Class[?],
+      cache: Cache
+  ): Boolean = {
+    // Computed once per class (across all patterns and candidates) and cached, since the
+    // class hierarchy is immutable.
+    val classNames = cache.classNameSegmentSuffixes(cls)
     typePattern
       .forall { pat =>
         val negate = pat.startsWith("^") || pat.startsWith("!")
@@ -444,14 +473,10 @@ private object ResolveCore {
 
         val typeNames = clsPat.split("[.$]").toSeq.reverse
 
-        val parents = resolveParents(cls)
-        val classNames = parents.flatMap(c =>
-          ("_root_$" + c.getName).split("[.$]").toSeq.reverse.inits.toSeq.filter(_.nonEmpty)
-        )
-
         val isOfType = classNames.contains(typeNames)
         if (negate) !isOfType else isOfType
       }
+  }
 
   def resolveDirectChildren(
       rootModule: RootModule0,
@@ -682,6 +707,10 @@ private object ResolveCore {
   ): NotFound = {
     val possibleNexts = current match {
       case m: Resolved.Module =>
+        // Building the "did you mean ..." suggestions must never itself crash the
+        // resolution. Listing direct children can instantiate `Cross`/`DynamicModule`s,
+        // which may fail to initialize; in that case we degrade gracefully to offering
+        // no suggestions rather than replacing a clean NotFound with an internal error.
         resolveDirectChildren(
           rootModule,
           rootModulePrefix,
@@ -689,7 +718,10 @@ private object ResolveCore {
           None,
           current.taskSegments,
           cache = cache
-        ).toOption.get.map(_.taskSegments.value.last)
+        ) match {
+          case mill.api.Result.Success(children) => children.map(_.taskSegments.value.last)
+          case _: mill.api.Result.Failure => Nil
+        }
 
       case _ => Set[Segment]()
     }

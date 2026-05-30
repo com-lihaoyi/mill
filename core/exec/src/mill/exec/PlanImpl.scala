@@ -86,16 +86,23 @@ object PlanImpl {
 
         val transitiveTasks = collection.mutable.Map[Task[?], Int]()
 
-        def rec(t: Task[?]): Unit = {
+        // Iterative DFS (explicit stack) rather than recursion, so that a deep
+        // linear task chain does not overflow the stack here before the
+        // deliberately-iterative `Tarjans` is ever reached. Children are pushed
+        // in reverse so they are popped in their original `effectiveInputs`
+        // order, preserving the previous recursive traversal. The result is
+        // sorted by topological index afterwards, so this ordering only needs
+        // to remain consistent with the prior `rec` behavior.
+        val stack = collection.mutable.Stack[Task[?]](task)
+        while (stack.nonEmpty) {
+          val t = stack.pop()
           if (transitiveTasks.contains(t)) () // do nothing
           else if (cutPoint(t) && t != task) () // do nothing
           else {
             transitiveTasks.put(t, topoSortedIndices(t))
-            effectiveInputs(t).foreach(rec)
+            stack.pushAll(effectiveInputs(t).reverse)
           }
         }
-
-        rec(task)
         val out = transitiveTasks.toArray
         out.sortInPlaceBy(_._2)
         output.addAll(t, out.map(_._1))
@@ -129,15 +136,21 @@ object PlanImpl {
    */
   def transitiveNodes[T](sourceNodes: Seq[T])(inputsFor: T => Seq[T]): IndexedSeq[T] = {
     val transitiveNodes = collection.mutable.LinkedHashSet[T]()
-    def rec(t: T): Unit = {
-      if (transitiveNodes.contains(t)) {} // do nothing
-      else {
-        transitiveNodes.add(t)
-        inputsFor(t).foreach(rec)
+    // Iterative DFS (explicit stack) rather than recursion, so that a deep
+    // linear node chain does not overflow the stack here before the
+    // deliberately-iterative `Tarjans` is ever reached. The previous recursion
+    // produced a first-seen pre-order traversal into a `LinkedHashSet`, which
+    // downstream code relies on; pushing children in reverse and recording each
+    // node the first time it is popped reproduces that ordering exactly.
+    val stack = collection.mutable.Stack[T]()
+    stack.pushAll(sourceNodes.reverse)
+    while (stack.nonEmpty) {
+      val t = stack.pop()
+      if (transitiveNodes.add(t)) {
+        stack.pushAll(inputsFor(t).reverse)
       }
     }
 
-    sourceNodes.foreach(rec)
     transitiveNodes.toIndexedSeq
   }
 

@@ -75,15 +75,24 @@ object ExecutionContexts {
       val submitterStreams = new mill.api.SystemStreams(Console.out, Console.err, System.in)
       val submitterModuleWatched = mill.api.BuildCtx.watchedValues0.value
       val submitterEvalWatched = mill.api.BuildCtx.evalWatchedValues0.value
+      // `PathRef.validatedPaths` is a per-run thread-local seeded on the
+      // orchestrator thread in `Execution.executeTasks`. Like the other
+      // submitter-inherited values, it must be re-established on the pool
+      // worker, otherwise cached PathRefs deserialized on a worker thread
+      // consult a stale `ValidatedPaths` (Revalidate.Once degrades to
+      // once-per-daemon instead of once-per-run under `--jobs > 1`).
+      val submitterValidatedPaths = mill.api.PathRef.validatedPaths.value
       executor.execute(new PriorityRunnable(
         0,
         () =>
-          os.checker.withValue(submitterChecker) {
-            os.dynamicPwdFunction.withValue(() => submitterPwd()) {
-              mill.api.SystemStreamsUtils.withStreams(submitterStreams) {
-                mill.api.BuildCtx.watchedValues0.withValue(submitterModuleWatched) {
-                  mill.api.BuildCtx.evalWatchedValues0.withValue(submitterEvalWatched) {
-                    runnable.run()
+          mill.api.PathRef.validatedPaths.withValue(submitterValidatedPaths) {
+            os.checker.withValue(submitterChecker) {
+              os.dynamicPwdFunction.withValue(() => submitterPwd()) {
+                mill.api.SystemStreamsUtils.withStreams(submitterStreams) {
+                  mill.api.BuildCtx.watchedValues0.withValue(submitterModuleWatched) {
+                    mill.api.BuildCtx.evalWatchedValues0.withValue(submitterEvalWatched) {
+                      runnable.run()
+                    }
                   }
                 }
               }
@@ -122,17 +131,22 @@ object ExecutionContexts {
       val submitterChecker = os.checker.value
       val submitterModuleWatched = mill.api.BuildCtx.watchedValues0.value
       val submitterEvalWatched = mill.api.BuildCtx.evalWatchedValues0.value
+      // See `execute`: re-establish the per-run `PathRef.validatedPaths` on the
+      // pool worker so forked async tasks revalidate against this run's instance.
+      val submitterValidatedPaths = mill.api.PathRef.validatedPaths.value
       val promise = concurrent.Promise[T]
       val runnable = new PriorityRunnable(
         priority = priority,
         run0 = () => {
           val result = NonFatal.Try(logger.withPromptLine {
-            os.checker.withValue(submitterChecker) {
-              os.dynamicPwdFunction.withValue(() => makeDest()) {
-                mill.api.SystemStreamsUtils.withStreams(logger.streams) {
-                  mill.api.BuildCtx.watchedValues0.withValue(submitterModuleWatched) {
-                    mill.api.BuildCtx.evalWatchedValues0.withValue(submitterEvalWatched) {
-                      t(logger)
+            mill.api.PathRef.validatedPaths.withValue(submitterValidatedPaths) {
+              os.checker.withValue(submitterChecker) {
+                os.dynamicPwdFunction.withValue(() => makeDest()) {
+                  mill.api.SystemStreamsUtils.withStreams(logger.streams) {
+                    mill.api.BuildCtx.watchedValues0.withValue(submitterModuleWatched) {
+                      mill.api.BuildCtx.evalWatchedValues0.withValue(submitterEvalWatched) {
+                        t(logger)
+                      }
                     }
                   }
                 }

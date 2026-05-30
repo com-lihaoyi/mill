@@ -93,11 +93,10 @@ object RunnerSharedStateOps {
       frame.reusable.foreach { reusable =>
         val snapshot = reusable.workers.synchronized(reusable.workers.toMap)
         val deps = mill.exec.GroupExecution.workerDependencies(snapshot)
-        val topoIndex = deps.iterator.map(_._1).zipWithIndex.toMap
         try mill.exec.GroupExecution.closeWorkersInReverseTopologicalOrder(
-            topoIndex.keys,
+            deps.map(_._1),
             reusable.workers,
-            topoIndex,
+            deps,
             c =>
               try c.close()
               catch { case _: Throwable => () }

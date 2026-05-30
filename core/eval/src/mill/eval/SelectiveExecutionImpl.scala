@@ -16,24 +16,41 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       transitiveNamed: Seq[Task.Named[?]],
       codeSignatures: Map[String, Int]
   ): Map[String, Int] = {
-
     val (classToTransitiveClasses, allTransitiveClassMethods) =
       CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
+    computeHashCodeSignatures0(
+      transitiveNamed,
+      codeSignatures,
+      classToTransitiveClasses,
+      allTransitiveClassMethods
+    )
+  }
 
+  private def computeHashCodeSignatures0(
+      transitiveNamed: Seq[Task.Named[?]],
+      codeSignatures: Map[String, Int],
+      classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
+      allTransitiveClassMethods: Map[Class[?], Map[String, java.lang.reflect.Method]]
+  ): Map[String, Int] = {
     lazy val constructorHashSignatures = CodeSigUtils
       .constructorHashSignatures(codeSignatures)
 
     transitiveNamed
       .map { namedTask =>
-        namedTask.ctx.segments.render -> CodeSigUtils
-          .codeSigForTask(
+        // Combine the per-task code signatures with the same order-independent combiner the
+        // execution engine uses (`MurmurHash3.unorderedHash`, GroupExecution.scala), NOT a plain
+        // `.sum`. Addition is a weak combiner that two compensating signature deltas can cancel
+        // (e.g. one constructor hash +k while an accessor -k), masking a real code change so the
+        // task is wrongly skipped.
+        namedTask.ctx.segments.render -> scala.util.hashing.MurmurHash3.unorderedHash(
+          CodeSigUtils.codeSigForTask(
             namedTask = namedTask,
             classToTransitiveClasses = classToTransitiveClasses,
             allTransitiveClassMethods = allTransitiveClassMethods,
             codeSignatures = codeSignatures,
             constructorHashSignatures = constructorHashSignatures
           )
-          .sum
+        )
       }
       .toMap
   }
@@ -85,9 +102,24 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
         }
 
         val changedInputNames = diffMap(oldHashes.inputHashes, newHashes.inputHashes)
+        // Precompute the per-class method/hierarchy tables ONCE — they are a pure function of
+        // `transitiveNamed`, independent of the code signatures — and reuse them for both the old
+        // and new signature sets, instead of redoing the reflection inside each call.
+        val (classToTransitiveClasses, allTransitiveClassMethods) =
+          CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
         val changedCodeNames = diffMap(
-          computeHashCodeSignatures(transitiveNamed, oldHashes.codeSignatures),
-          computeHashCodeSignatures(transitiveNamed, newHashes.codeSignatures)
+          computeHashCodeSignatures0(
+            transitiveNamed,
+            oldHashes.codeSignatures,
+            classToTransitiveClasses,
+            allTransitiveClassMethods
+          ),
+          computeHashCodeSignatures0(
+            transitiveNamed,
+            newHashes.codeSignatures,
+            classToTransitiveClasses,
+            allTransitiveClassMethods
+          )
         )
         val changedBuildOverrides = diffMap(
           oldHashes.buildOverrideSignatures,
@@ -296,8 +328,29 @@ object SelectiveExecutionImpl {
         }
         .toMap
 
+      // Hash the serialized-JSON form of each input value (mirroring
+      // GroupExecution.getValueHash), NOT the in-memory `value.##`: the latter is
+      // unstable across JVMs/runs (Map iteration order, identity hashCodes), so it
+      // would spuriously flag unchanged inputs as changed and diverge from the disk
+      // cache. Fall back to the in-memory hash if serialization throws.
+      def inputValueHash(task: Task.Named[?], v: Val): Int =
+        task.writerOpt match {
+          case Some(w) =>
+            try upickle.writeJs(v.value)(using w.asInstanceOf[upickle.Writer[Any]]).hashCode()
+            catch { case scala.util.control.NonFatal(_) => v.## }
+          case None => v.##
+        }
+
       val inputHashes = results.map {
-        case (task, execResultVal) => (task.ctx.segments.render, execResultVal.get.value.##)
+        case (task, Result.Success(v)) => (task.ctx.segments.render, inputValueHash(task, v))
+        case (task, f: Result.Failure) =>
+          // Do NOT `.get` a failing input: that throws (sys.error) and aborts
+          // selective metadata computation, which runs unguarded from
+          // `execute(selectiveExecution = true)` / `selective.prepare` / `-w`.
+          // Hash a stable representation of the failure so a consistently-failing
+          // input stays stable and any success<->failure transition (or changed
+          // error) still invalidates its downstream cone.
+          (task.ctx.segments.render, ("__mill_input_failure__", f.errorOpt).##)
       }
       SelectiveExecution.Metadata.Computed(
         new SelectiveExecution.Metadata(
@@ -310,7 +363,13 @@ object SelectiveExecutionImpl {
           millJvmVersion = sys.props("java.version"),
           classLoaderSigHash = evaluator.classLoaderSigHash
         ),
-        results.map { case (k, v) => (k, ExecResult.Success(v.get)) }
+        results.map { case (k, v) =>
+          val execRes: ExecResult[Val] = v match {
+            case Result.Success(value) => ExecResult.Success(value)
+            case f: Result.Failure => ExecResult.Failure(f.error, Some(f))
+          }
+          (k, execRes)
+        }
       )
     }
   }

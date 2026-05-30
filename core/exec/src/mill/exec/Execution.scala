@@ -5,7 +5,7 @@ import mill.api.daemon.internal.{LauncherLocking, LauncherOutFiles}
 import mill.api.*
 import mill.internal.{CodeSigUtils, JsonArrayLogger, PrefixLogger, PromptWaitReporter}
 
-import java.util.concurrent.{ConcurrentHashMap, ThreadPoolExecutor}
+import java.util.concurrent.{ConcurrentHashMap, ConcurrentSkipListMap, ThreadPoolExecutor}
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable
 import scala.concurrent.*
@@ -551,6 +551,14 @@ object Execution {
     // most one retained, so membership mirrors `Retained.dropped` exactly.
     private val droppedStates = ConcurrentHashMap.newKeySet[State]()
 
+    // Ordered index (by retained read key) of the states that currently hold a *live* retained
+    // read lease, so `releaseHigherThan` visits only the states with a key strictly greater than
+    // its argument via `tailMap` instead of scanning the whole graph. This is the dual of
+    // `droppedStates`: membership mirrors `retained != null && retained.lease != null`. Each
+    // retained read key is the task's normalized `dest` path, unique per state. Maintained under
+    // each state's monitor at every lease transition (retain/drop/reacquire/drain).
+    private val liveRetained = new ConcurrentSkipListMap[String, State]()
+
     def hasDropped: Boolean = !droppedStates.isEmpty
 
     // Flip `Retained.dropped` and the index together; call under `s`'s monitor.
@@ -558,6 +566,9 @@ object Execution {
       if (!retained.dropped) {
         retained.dropped = true
         droppedStates.add(s)
+        // The lease was just dropped (set null); it is no longer "live". Only called from
+        // `releaseHigherThan`, the single place a retained lease transitions live -> dropped.
+        liveRetained.remove(retained.key, s)
       }
     private def clearDropped(s: State, retained: Retained): Unit =
       if (retained.dropped) {
@@ -595,6 +606,7 @@ object Execution {
       s.retained = null
       if (retained != null) {
         clearDropped(s, retained) // drop the index entry before discarding it
+        liveRetained.remove(retained.key, s) // and the live-lease index entry
         if (retained.lease != null) {
           closeQuietly(retained.lease)
           retained.lease = null
@@ -646,13 +658,22 @@ object Execution {
           lease = lease,
           observedVersion = observedVersion
         )
+        // Now holding a live lease -> index it for `releaseHigherThan` (key is unique per state,
+        // so this also overwrites any prior entry for this state from a replaced retained).
+        liveRetained.put(s.retained.key, s)
       }
       else closeQuietly(lease)
     }
 
     def releaseHigherThan(key: String): Unit = {
       import scala.jdk.CollectionConverters.*
-      for (s <- states.values().asScala) s.synchronized {
+      // Visit only states whose retained read key is strictly greater than `key`, via the ordered
+      // `liveRetained` index, instead of scanning every state (O(dropped) rather than O(V) per
+      // contended task-lock acquisition; the dual of `reacquireDropped`'s `droppedStates` scan).
+      // Snapshot the tail, then re-validate each state under its monitor — the index may be
+      // momentarily stale (a peer could drop/drain between snapshot and monitor acquisition).
+      val candidates = liveRetained.tailMap(key, false).values().asScala.toArray
+      for (s <- candidates) s.synchronized {
         val retained = s.retained
         if (
           retained != null &&
@@ -712,6 +733,7 @@ object Execution {
           if ((s.retained eq retained) && retained.dropped && retained.lease == null) {
             retained.lease = lease
             clearDropped(s, retained)
+            liveRetained.put(retained.key, s) // live again -> re-index for releaseHigherThan
           } else closeQuietly(lease)
         }
       }

@@ -63,10 +63,15 @@ object SpanningForest {
   ): Node = {
     // Prepare a mutable tree structure, pre-populated with the root nodes,
     // as well as a `nodeMapping` to let us easily take any node index and
-    // directly look up the node in the tree
+    // directly look up the node in the tree. We build the `LinkedHashMap`
+    // directly from the ordered `rootNodeIndices` (rather than laundering them
+    // through an unordered `mutable.Map`) so the emitted top-level child order
+    // follows the sorted root order deterministically, and reuse the same
+    // `Node` instances in `nodeMapping` for lookups.
     val rootNodeIndices = rootsOrdered.filter(importantVertices.contains)
-    val nodeMapping = rootNodeIndices.map((_, Node())).to(mutable.Map)
-    val spanningForest = Node(mutable.LinkedHashMap.from(nodeMapping))
+    val rootPairs = rootNodeIndices.map(i => i -> Node())
+    val spanningForest = Node(mutable.LinkedHashMap.from(rootPairs))
+    val nodeMapping = mutable.Map.from(rootPairs)
 
     // Do a breadth first search from the root nodes across the graph edges
     // to build up the spanning forest
