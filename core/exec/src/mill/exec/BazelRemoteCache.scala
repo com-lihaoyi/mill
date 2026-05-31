@@ -94,7 +94,10 @@ private[mill] object BazelRemoteCache {
   ): Boolean = mill.api.BuildCtx.withFilesystemCheckerDisabled {
     val backend = Backend.forLocation(location, workspace)
     try {
-      readAllBytes(backend.get(s"ac/${actionCacheKey(inputsHash, segmentsRender, salt)}")) match {
+      backend.get(s"ac/${actionCacheKey(inputsHash, segmentsRender, salt)}").map { is =>
+        try is.readAllBytes()
+        finally is.close()
+      } match {
         case None => false
         case Some(acBytes) =>
           Protobuf.decodeBlobDigestHash(acBytes) match {
@@ -230,12 +233,6 @@ private[mill] object BazelRemoteCache {
     p + PosixFilePermission.OWNER_EXECUTE +
       PosixFilePermission.GROUP_EXECUTE +
       PosixFilePermission.OTHERS_EXECUTE
-
-  private def readAllBytes(streamOpt: Option[InputStream]): Option[Array[Byte]] =
-    streamOpt.map { is =>
-      try is.readAllBytes()
-      finally is.close()
-    }
 
   private trait Backend {
     def get(key: String): Option[InputStream]
