@@ -533,16 +533,22 @@ trait GroupExecution {
             // Remote-cache fallback on a local miss. We hold the Write lock, so materializing
             // `dest/`/`log`/`meta` is safe; a poisoned entry re-reads as a miss and is recomputed
             // by the `None` branch below.
+            // #7132: the remote-cache HTTP load does blocking network IO (connect/request
+            // timeouts, streaming multi-MB blobs) on a worker of the bounded execution pool;
+            // wrap it in `executionContext.blocking` so the pool spawns a compensating worker
+            // while parked, preventing pool starvation. Stays a `Boolean` for `.exists`.
             val remoteMaterialized =
               localReusable.isEmpty && remoteCacheTarget(labelled).exists { location =>
-                BazelRemoteCache.load(
-                  paths,
-                  inputsHash,
-                  labelled.ctx.segments.render,
-                  location,
-                  remoteCacheSalt,
-                  workspace
-                )
+                executionContext.blocking {
+                  BazelRemoteCache.load(
+                    paths,
+                    inputsHash,
+                    labelled.ctx.segments.render,
+                    location,
+                    remoteCacheSalt,
+                    workspace
+                  )
+                }
               }
 
             // After a remote materialization, re-read the now-present `meta.json` and reuse
@@ -617,16 +623,21 @@ trait GroupExecution {
                       val (valueHash, serializedPaths) =
                         handleTaskResult(v, paths.meta, inputsHash, labelled)
                       // Push freshly-computed outputs to the remote cache for other machines.
+                      // #7132: the upload does blocking network IO on a worker of the bounded
+                      // execution pool; wrap it in `executionContext.blocking` so the pool spawns
+                      // a compensating worker while parked, preventing pool starvation.
                       remoteCacheTarget(labelled).foreach { location =>
-                        BazelRemoteCache.store(
-                          paths,
-                          inputsHash,
-                          labelled.ctx.segments.render,
-                          location,
-                          remoteCacheSalt,
-                          serializedPaths,
-                          workspace
-                        )
+                        executionContext.blocking {
+                          BazelRemoteCache.store(
+                            paths,
+                            inputsHash,
+                            labelled.ctx.segments.render,
+                            location,
+                            remoteCacheSalt,
+                            serializedPaths,
+                            workspace
+                          )
+                        }
                       }
                       // Reuse `handleTaskResult`'s hash (derived from the JSON it writes) as the
                       // terminal's downstream value hash too — the `0` placeholder stored by

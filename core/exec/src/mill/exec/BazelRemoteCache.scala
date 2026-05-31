@@ -61,7 +61,9 @@ private[mill] object BazelRemoteCache {
   ): Unit = mill.api.BuildCtx.withFilesystemCheckerDisabled {
     // Cache I/O is trusted framework I/O that legitimately writes outside the task's `dest/`.
     val backend = Backend.forLocation(location, workspace)
-    val blobFile = os.temp(prefix = "mill-remote-cache-", deleteOnExit = true)
+    // `deleteOnExit = false`: the `finally os.remove(blobFile)` below already removes it on every
+    // path; a per-blob JVM shutdown hook would otherwise leak in a long-lived daemon.
+    val blobFile = os.temp(prefix = "mill-remote-cache-", deleteOnExit = false)
     try {
       val digest = MessageDigest.getInstance("SHA-256")
       val out = new DigestOutputStream(os.write.outputStream(blobFile), digest)
@@ -105,8 +107,20 @@ private[mill] object BazelRemoteCache {
                   // Wipe stale `dest/` only on a hit; a miss keeps it so a persistent task reuses
                   // its state.
                   if (os.exists(paths.dest)) os.remove.all(paths.dest)
-                  try readBlob(paths, is)
-                  finally is.close()
+                  try {
+                    try readBlob(paths, is)
+                    finally is.close()
+                  } catch {
+                    case NonFatal(e) =>
+                      // A mid-stream download failure has left `dest/` partially unpacked. The
+                      // outer `catch` returns a miss (recompute), but the recompute path skips
+                      // re-deleting a *persistent* task's `dest/` — so empty it here to hand the
+                      // task body a clean dest. This discards a persistent task's prior
+                      // incremental state, which is acceptable since the hit above already wiped
+                      // it.
+                      if (os.exists(paths.dest)) os.remove.all(paths.dest)
+                      throw e
+                  }
                   true
               }
           }
@@ -271,6 +285,12 @@ private[mill] object BazelRemoteCache {
       val p = path(key)
       Option.when(os.exists(p))(os.read.inputStream(p))
     }
+    // A torn read of these entries (truncated CAS blob or AC protobuf) is already handled
+    // downstream: the CAS blob is written before the AC entry that references it, gzip's CRC32
+    // and `transferN`'s EOF check reject a partial blob, and a partial AC fails to decode — all of
+    // which surface as a cache miss and a clean recompute (never corruption), so a plain overwrite
+    // is sufficient. (An atomic temp+rename was tried but gave temp files restrictive `0600` perms,
+    // breaking cross-user reads on the shared-folder backend it was meant to help.)
     def putFile(key: String, file: os.Path): Boolean = {
       os.copy.over(file, path(key), createFolders = true)
       true

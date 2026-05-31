@@ -44,11 +44,10 @@ class DoubleLock(lock1: Lock, lock2: Lock) extends Lock {
 
   override def probe(): Boolean = {
     val tl = tryLock()
-    if (!tl.isLocked) true
-    else {
+    if (tl.isLocked) {
       tl.release()
-      false
-    }
+      true
+    } else false
   }
 
   override def close(): Unit = {
