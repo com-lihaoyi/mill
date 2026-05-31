@@ -41,24 +41,11 @@ object PlanImpl {
     Plan(sortedGroups)
   }
 
-  /**
-   * The `values` [[Agg]] is guaranteed to be topological sorted and cycle free.
-   * That's why the constructor is package private.
-   *
-   * @see [[PlanImpl.topoSorted]]
-   */
-
   def groupAroundImportantTasks[T](topoSortedTasks: TopoSorted)(important: PartialFunction[
     Task[?],
     T
   ]): MultiBiMap[T, Task[?]] =
     groupAroundImportantTasks(topoSortedTasks, important.isDefinedAt, defaultInputs)(important)
-
-  def groupAroundImportantTasks[T](
-      topoSortedTasks: TopoSorted,
-      cutPoint: Task[?] => Boolean
-  )(important: PartialFunction[Task[?], T]): MultiBiMap[T, Task[?]] =
-    groupAroundImportantTasks(topoSortedTasks, cutPoint, defaultInputs)(important)
 
   /**
    * `cutPoint` decides where group traversal stops; `important` decides which
