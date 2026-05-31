@@ -572,46 +572,46 @@ trait GroupExecution {
         // re-probe, so the read phase is a formality kept for symmetry with
         // evaluateTaskWithCaching's lock dance.
         def evaluateBuildOverrideOnly(located: Located[Appendable[BufferedValue]])
-            : GroupExecution.Results = taskLocks.readThenWrite(
-          _ => LockUpgrade.Decision.Escalate
-        ) { scope =>
-          val fileName = labelled.ctx.fileName
-          val (execRes, serializedPaths) =
-            if (fileName.replace('\\', '/').endsWith("/mill-build/build.mill")) {
-              val display = scala.util.Try(os.Path(fileName, os.pwd).relativeTo(workspace).toString)
-                .getOrElse(fileName)
-              val msg =
-                s"Build header config conflicts with task defined in $display:${labelled.ctx.lineNum}"
-              (
-                ExecResult.Failure(
-                  msg,
-                  Some(Result.Failure(msg, path = located.path.toNIO, index = located.index))
-                ),
-                Nil
-              )
-            } else {
-              evaluateBuildOverride(located, labelled) match {
-                case Right(yamlValue) =>
-                  val (data, serializedPaths) = PathRef.withSerializedPaths { yamlValue }
-                  cacheEntry.write(
-                    upickle.core.BufferedValue.transform(located.value.value, ujson.Value),
-                    data.##,
-                    inputsHash + located.value.value.##
-                  )
-                  (ExecResult.Success(Val(data), data.##), serializedPaths)
-                case Left(e) => buildOverrideDeserializationError(e, located)
+            : GroupExecution.Results =
+          taskLocks.readThenWrite(_ => LockUpgrade.Decision.Escalate) { scope =>
+            val fileName = labelled.ctx.fileName
+            val (execRes, serializedPaths) =
+              if (fileName.replace('\\', '/').endsWith("/mill-build/build.mill")) {
+                val display =
+                  scala.util.Try(os.Path(fileName, os.pwd).relativeTo(workspace).toString)
+                    .getOrElse(fileName)
+                val msg =
+                  s"Build header config conflicts with task defined in $display:${labelled.ctx.lineNum}"
+                (
+                  ExecResult.Failure(
+                    msg,
+                    Some(Result.Failure(msg, path = located.path.toNIO, index = located.index))
+                  ),
+                  Nil
+                )
+              } else {
+                evaluateBuildOverride(located, labelled) match {
+                  case Right(yamlValue) =>
+                    val (data, serializedPaths) = PathRef.withSerializedPaths { yamlValue }
+                    cacheEntry.write(
+                      upickle.core.BufferedValue.transform(located.value.value, ujson.Value),
+                      data.##,
+                      inputsHash + located.value.value.##
+                    )
+                    (ExecResult.Success(Val(data), data.##), serializedPaths)
+                  case Left(e) => buildOverrideDeserializationError(e, located)
+                }
               }
+            // Downgrade-and-retain matches `evaluateTaskWithCaching` so
+            // peers can't overwrite `paths.meta` mid-downstream-read.
+            execRes match {
+              case ExecResult.Success(_) =>
+                val version = taskLocks.markTaskWritten()
+                taskLocks.retainDowngraded(scope, version)
+              case _ =>
             }
-          // Downgrade-and-retain matches `evaluateTaskWithCaching` so
-          // peers can't overwrite `paths.meta` mid-downstream-read.
-          execRes match {
-            case ExecResult.Success(_) =>
-              val version = taskLocks.markTaskWritten()
-              taskLocks.retainDowngraded(scope, version)
-            case _ =>
+            cachedResult(execRes, serializedPaths)
           }
-          cachedResult(execRes, serializedPaths)
-        }
 
         buildOverrideOpt match {
           case Some(appendLocated) if appendLocated.value.append =>
