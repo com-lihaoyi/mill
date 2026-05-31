@@ -425,10 +425,7 @@ object Task {
 
     override def evaluate0: (Seq[Any], TaskCtx) => Result[T] =
       (_, _) => {
-        // `resolveAliasedString` so a `fileName` serialized via a `mill-workspace` alias
-        // resolves back to the real path, consistent with other `fileName` handling.
-        val relPath = mill.api.internal.PathAliasing.resolveAliasedString(ctx0.fileName)
-          .relativeTo(mill.api.BuildCtx.workspaceRoot)
+        val relPath = os.Path(ctx0.fileName).relativeTo(mill.api.BuildCtx.workspaceRoot)
         Result.Failure(s"configuration missing in $relPath")
       }
 

@@ -1,9 +1,5 @@
 //| mill-remote-cache-location: ~/mill-remote-cache-folder
 
-// Mill can share task outputs between builds in different folders, or even on different
-// machines, via a _remote cache_. Outputs computed by one build are stored in the cache and
-// transparently re-used by any other build whose inputs are unchanged, so you never need to
-// compute the same thing twice across a fleet of developer machines or CI workers.
 //
 // The simplest cache backend is a plain local or shared (e.g. NFS) _directory_: point the
 // cache at a filesystem path and Mill reads and writes cache entries there directly, with no

@@ -2,7 +2,6 @@ package mill.javalib
 
 import mill.api.{BuildCtx, Discover, ExternalModule, ModuleRef, PathRef, Result, experimental}
 import mill.api.daemon.internal.SemanticDbJavaModuleApi
-import mill.api.internal.PathAliasing
 import mill.constants.CodeGenConstants
 import mill.util.{BuildInfo, Jvm, Version}
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil}
@@ -264,11 +263,8 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
       val generatedSource = sourceroot / generatedSourceSubPath
       val generatedSourceLines = os.read.lines(generatedSource)
       val source = generatedSourceLines
-        // The marker may be a reproducible-build relativized path (e.g. `../mill-workspace/build.mill`);
-        // resolve it through the alias rather than `os.Path`, which would reject a non-absolute path.
         .collectFirst {
-          case s"//SOURCECODE_ORIGINAL_FILE_PATH=$rest" =>
-            PathAliasing.resolveAliasedString(rest.trim)
+          case s"//SOURCECODE_ORIGINAL_FILE_PATH=$rest" => os.Path(rest.trim)
         }
         .getOrElse {
           sys.error(s"Cannot get original source from generated source $generatedSource")

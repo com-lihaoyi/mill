@@ -71,6 +71,42 @@ object ReproducibilityTests extends UtestIntegrationTestSuite {
     }
   }
 
+  def cachedInProfile(profilePath: os.Path, task: String): Boolean = {
+    val profile = os.read(profilePath)
+    ujson.read(profile).arr.exists { e =>
+      e("label").str == task && e.obj.get("cached").flatMap(_.boolOpt).contains(true)
+    }
+  }
+
+  def metaBuildCached(tester: IntegrationTester, task: String): Boolean =
+    cachedInProfile(
+      tester.workspacePath / "out" / "mill-build" / mill.constants.OutFiles.millProfile,
+      task
+    )
+
+  def writeYamlJavaProject(workspacePath: os.Path): Unit = {
+    os.list(workspacePath).filter(_.last != "out").foreach(os.remove.all(_))
+    os.write(workspacePath / "build.mill.yaml", "", createFolders = true)
+    os.write(
+      workspacePath / "bar/package.mill.yaml",
+      """extends: JavaModule
+        |""".stripMargin,
+      createFolders = true
+    )
+    os.write(
+      workspacePath / "bar/src/bar/Bar.java",
+      """package bar;
+        |
+        |public class Bar {
+        |  public static String value() {
+        |    return "bar";
+        |  }
+        |}
+        |""".stripMargin,
+      createFolders = true
+    )
+  }
+
   /** The real `bazel-remote` binary, downloaded once and cached by the `bazelRemote` build task. */
   def bazelRemoteBinary: os.Path = os.Path(sys.env("MILL_TEST_BAZEL_REMOTE"))
 
@@ -162,6 +198,30 @@ object ReproducibilityTests extends UtestIntegrationTestSuite {
           t <- compileTasks ++ Seq("javaApp.assembly", "scalaApp.assembly", "kotlinApp.assembly")
         )
           assert(!evaluated(tester, t))
+      }
+    }
+
+    test("remoteCacheYamlBuildOverrides") - {
+      val cache = os.temp.dir(prefix = "mill-yaml-remote-cache")
+      val cacheArgs = Seq(
+        "--remote-cache-location",
+        cache.toString,
+        "--remote-cache-filter",
+        "millBuildRootModuleResult"
+      )
+
+      integrationTest { tester =>
+        writeYamlJavaProject(tester.workspacePath)
+        val res = tester.eval(cacheArgs ++ Seq("bar.compile"), check = true)
+        assert(res.isSuccess)
+        assert(evaluated(tester, "bar.compile"))
+      }
+
+      integrationTest { tester =>
+        writeYamlJavaProject(tester.workspacePath)
+        val res = tester.eval(cacheArgs ++ Seq("bar.compile"), check = true)
+        assert(res.isSuccess)
+        assert(metaBuildCached(tester, "millBuildRootModuleResult"))
       }
     }
   }

@@ -1,7 +1,5 @@
 package mill.javalib.zinc
 
-import mill.api.BuildCtx
-import mill.api.internal.PathAliasing
 import xsbti.VirtualFile
 
 import java.nio.charset.StandardCharsets
@@ -31,10 +29,7 @@ object PositionMapper {
     try vf.input().readAllBytes()
     catch {
       case _: java.io.IOException =>
-        os.read.bytes(PathAliasing.resolveAliasedString(
-          vf.id(),
-          workspace = BuildCtx.workspaceRoot
-        ))
+        os.read.bytes(os.Path(vf.id()))
     }
   }
 
@@ -51,11 +46,8 @@ object PositionMapper {
     }
 
     val map = buildSources0
-      // `original`/`generated` may be reproducible-build relativized paths (e.g.
-      // `../mill-workspace/build.mill`); resolve them through the alias rather than `os.Path`,
-      // which would reject a non-absolute path.
       .map { case (generated, original, _) =>
-        PathAliasing.resolveAliasedString(generated) -> PathAliasing.resolveAliasedString(original)
+        os.Path(generated) -> os.Path(original)
       }
       .toMap
 

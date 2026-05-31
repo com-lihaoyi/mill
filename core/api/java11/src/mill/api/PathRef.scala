@@ -1,7 +1,6 @@
 package mill.api
 
 import mill.api.daemon.DummyOutputStream
-import mill.api.internal.PathAliasing
 import mill.api.daemon.internal.PathRefApi
 import upickle.ReadWriter as RW
 
@@ -232,7 +231,7 @@ object PathRef {
       serializedPathRefParts(s) match {
         case Some((prefix, valid0, hex, pathString)) =>
 
-          val path = PathAliasing.resolveAliasedString(pathString)
+          val path = os.Path(pathString)
           val quick = prefix == "qref"
           val validOrig = valid0 match {
             case "v0" => Revalidate.Never

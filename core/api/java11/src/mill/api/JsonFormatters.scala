@@ -1,7 +1,6 @@
 package mill.api
 
 import mill.api.daemon.internal.Severity
-import mill.api.internal.PathAliasing
 import os.Path
 import upickle.{ReadWriter as RW, Reader, Writer}
 
@@ -23,15 +22,12 @@ trait JsonFormatters {
       Right(os.Path(strs.last, BuildCtx.workspaceRoot))
   }
 
-  implicit val pathReadWrite: RW[os.Path] = upickle.readwriter[String]
-    .bimap[os.Path](
+  implicit val pathReadWrite: RW[os.Path] = upickle.stringKeyRW(
+    upickle.readwriter[String].bimap[os.Path](
       _.toString,
-      // Invert `_.toString` (which may be a `../mill-workspace` alias under the relativizing
-      // serializer) by resolving the raw string directly, the same way `PathRef` does. Going
-      // through the serializer's `deserialize` first would resolve the alias against the wrong
-      // cwd when the active deserializer isn't the relativizer.
-      s => PathAliasing.resolveAliasedString(s)
+      os.Path(_)
     )
+  )
 
   implicit val relPathRW: RW[os.RelPath] = upickle.readwriter[String]
     .bimap[os.RelPath](_.toString, os.RelPath(_))

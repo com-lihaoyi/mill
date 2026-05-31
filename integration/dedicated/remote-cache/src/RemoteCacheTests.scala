@@ -15,8 +15,9 @@ import java.util.concurrent.Executors
  */
 object RemoteCacheTests extends UtestIntegrationTestSuite {
 
-  // Each block models a fresh checkout (empty `out/`), so opt out of the `fast` flavor's shared
-  // output dir — otherwise one block's local cache would satisfy a later one.
+  // Each `integrationTest` block gets its own temp `run-N` workspace, copies these test
+  // resources into it, and starts with no `out/` folder. Opt out of the `fast` flavor's shared
+  // output dir too, otherwise one block's local cache would satisfy a later one.
   override def allowSharedOutputDir: Boolean = false
 
   def withServer[T](f: String => T): T = {
@@ -57,13 +58,28 @@ object RemoteCacheTests extends UtestIntegrationTestSuite {
     finally server.stop(0)
   }
 
+  def profileCached(tester: mill.testkit.IntegrationTester, task: String): Option[Boolean] = {
+    val profile = os.read(tester.workspacePath / "out" / mill.constants.OutFiles.millProfile)
+    val entries = ujson.read(profile).arr.filter(_("label").str == task)
+    assert(entries.nonEmpty)
+    entries.last.obj.get("cached") match {
+      case Some(ujson.True) => Some(true)
+      case Some(ujson.False) => Some(false)
+      case Some(ujson.Null) | None => None
+      case other => sys.error(s"Unexpected cached value for $task: $other")
+    }
+  }
+
   // Whether `task` was recomputed (`"cached": false` in `mill-profile.json`) rather than served
   // from a cache, in the most recent invocation in `tester`'s workspace.
-  def evaluated(tester: mill.testkit.IntegrationTester, task: String): Boolean = {
-    val profile = os.read(tester.workspacePath / "out" / mill.constants.OutFiles.millProfile)
-    ujson.read(profile).arr.exists { e =>
-      e("label").str == task && e.obj.get("cached").flatMap(_.boolOpt).contains(false)
-    }
+  def evaluated(tester: mill.testkit.IntegrationTester, task: String): Boolean =
+    profileCached(tester, task).contains(false)
+
+  def assertProfileCached(
+      tester: mill.testkit.IntegrationTester,
+      expected: (String, Option[Boolean])*
+  ): Unit = {
+    for ((task, cached) <- expected) assert(profileCached(tester, task) == cached)
   }
 
   val tests: Tests = Tests {
@@ -130,6 +146,80 @@ object RemoteCacheTests extends UtestIntegrationTestSuite {
         val res = tester.eval(("--remote-cache-location", url, "persistentTask"))
         assert(res.isSuccess)
         assert(!evaluated(tester, "persistentTask")) // served from the remote cache
+      }
+    }
+
+    test("onlyCacheableTaskTypesParticipate") - withServer { url =>
+      def runGraph(tester: mill.testkit.IntegrationTester) = {
+        val res = tester.eval(("--remote-cache-location", url, "graphCommand"))
+        assert(res.isSuccess)
+        assert(res.out.contains("graphCommand:"))
+      }
+
+      integrationTest { tester =>
+        runGraph(tester)
+        assertProfileCached(
+          tester,
+          "graphStableCached" -> Some(false),
+          "graphInput" -> None,
+          "graphSource" -> None,
+          "graphCachedFromInput" -> Some(false),
+          "graphCachedFromSource" -> Some(false),
+          "graphPersistentFromInput" -> Some(false),
+          "graphWorker" -> Some(false),
+          "graphCachedFromWorker" -> Some(false),
+          "graphCommand" -> Some(false)
+        )
+      }
+
+      integrationTest { tester =>
+        runGraph(tester)
+        assertProfileCached(
+          tester,
+          "graphStableCached" -> Some(true),
+          "graphInput" -> None,
+          "graphSource" -> None,
+          "graphCachedFromInput" -> Some(true),
+          "graphCachedFromSource" -> Some(true),
+          "graphPersistentFromInput" -> Some(true),
+          "graphWorker" -> Some(false),
+          "graphCachedFromWorker" -> Some(true),
+          "graphCommand" -> Some(false)
+        )
+      }
+
+      integrationTest { tester =>
+        os.write.over(tester.workspacePath / "graph-input.txt", "changed")
+        runGraph(tester)
+        assertProfileCached(
+          tester,
+          "graphStableCached" -> Some(true),
+          "graphInput" -> None,
+          "graphSource" -> None,
+          "graphCachedFromInput" -> Some(false),
+          "graphCachedFromSource" -> Some(true),
+          "graphPersistentFromInput" -> Some(false),
+          "graphWorker" -> Some(false),
+          "graphCachedFromWorker" -> Some(false),
+          "graphCommand" -> Some(false)
+        )
+      }
+
+      integrationTest { tester =>
+        os.write.over(tester.workspacePath / "graph-source.txt", "changed-source")
+        runGraph(tester)
+        assertProfileCached(
+          tester,
+          "graphStableCached" -> Some(true),
+          "graphInput" -> None,
+          "graphSource" -> None,
+          "graphCachedFromInput" -> Some(true),
+          "graphCachedFromSource" -> Some(false),
+          "graphPersistentFromInput" -> Some(true),
+          "graphWorker" -> Some(false),
+          "graphCachedFromWorker" -> Some(true),
+          "graphCommand" -> Some(false)
+        )
       }
     }
 
