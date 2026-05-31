@@ -345,7 +345,7 @@ trait GroupExecution {
         ): GroupExecution.Results = GroupExecution.Results(
           newResults = Map(labelled -> execRes),
           newEvaluated = Nil,
-          cached = true,
+          cacheStatus = GroupExecution.CacheStatus.Hit,
           inputsHash = inputsHash,
           previousInputsHash = -1,
           valueHashChanged = false,
@@ -357,22 +357,20 @@ trait GroupExecution {
         val taskLockPath = paths.dest.toNIO
         val taskLockKey = taskLockPath.toAbsolutePath.normalize().toString
 
+        // #7132: waits and remote-cache I/O run on the bounded execution pool. Use
+        // `blocking` for paths that can park so the pool can spawn a compensating worker.
+        def blockingOnPool[T](t: => T): T = executionContext.blocking(t)
+        def blockingIfDroppedReads(t: => Unit): Unit =
+          if (leaseTracker.hasDropped) blockingOnPool(t)
+
         // Any successful task-lock acquisition must validate reads that were
         // dropped during an earlier contended wait before evaluation continues.
         // This path may block, so only call it when we are not holding a task
-        // Write lease.
-        // #7132: blocking task-lock waits run on the bounded execution pool;
-        // wrap them in `executionContext.blocking` so the pool spawns a
-        // compensating worker while parked, preventing pool starvation (the
-        // lock-holder's downstream tasks can still get a thread and release).
-        // Guard on `hasDropped`: with nothing dropped the reacquire is a no-op,
-        // and entering `blocking` here on every task's uncontended fast path
-        // would churn the pool size and balloon the thread count past `--jobs`.
+        // Write lease. Guard on `hasDropped` to avoid no-op fast-path pool churn.
         def reacquireDroppedReads(): Unit =
-          if (leaseTracker.hasDropped)
-            executionContext.blocking {
-              leaseTracker.reacquireDropped(workspaceLocking, taskWaitReporter)
-            }
+          blockingIfDroppedReads {
+            leaseTracker.reacquireDropped(workspaceLocking, taskWaitReporter)
+          }
 
         // The write-upgrade callback and Named write body run while holding
         // this task's Write lock, so dropped reads must be reacquired only via
@@ -398,7 +396,7 @@ trait GroupExecution {
         // — so per-task locking is unnecessary and just serializes peers.
         def acquireReadTaskLock(): LauncherLocking.Lease = {
           def blockingAcquire(): LauncherLocking.Lease =
-            executionContext.blocking {
+            blockingOnPool {
               workspaceLocking.taskLock(
                 taskLockPath,
                 labelled.ctx.segments.render,
@@ -440,7 +438,7 @@ trait GroupExecution {
         def awaitTaskLockChange(timeoutMs: Long): Unit =
           if (!labelled.isInputTask) {
             leaseTracker.releaseHigherThan(taskLockKey)
-            executionContext.blocking {
+            blockingOnPool {
               workspaceLocking.awaitTaskStateChange(
                 taskLockPath,
                 labelled.ctx.segments.render,
@@ -478,7 +476,7 @@ trait GroupExecution {
               closeStaleWorker = closeStaleWorker,
               multiLogger = multiLogger,
               counterMsg = countMsg,
-              destCreator = GroupExecution.DestCreator(Some(paths)),
+              destCreator = LazyDest.fromPaths(Some(paths)),
               terminal = terminal
             )
 
@@ -540,13 +538,9 @@ trait GroupExecution {
             // Remote-cache fallback on a local miss. We hold the Write lock, so materializing
             // `dest/`/`log`/`meta` is safe; a poisoned entry re-reads as a miss and is recomputed
             // by the `None` branch below.
-            // #7132: the remote-cache HTTP load does blocking network IO (connect/request
-            // timeouts, streaming multi-MB blobs) on a worker of the bounded execution pool;
-            // wrap it in `executionContext.blocking` so the pool spawns a compensating worker
-            // while parked, preventing pool starvation. Stays a `Boolean` for `.exists`.
             val remoteMaterialized =
               localReusable.isEmpty && remoteCacheTarget(labelled).exists { location =>
-                executionContext.blocking {
+                blockingOnPool {
                   BazelRemoteCache.load(
                     paths,
                     inputsHash,
@@ -630,11 +624,8 @@ trait GroupExecution {
                       val (valueHash, serializedPaths) =
                         handleTaskResult(v, paths.meta, inputsHash, labelled)
                       // Push freshly-computed outputs to the remote cache for other machines.
-                      // #7132: the upload does blocking network IO on a worker of the bounded
-                      // execution pool; wrap it in `executionContext.blocking` so the pool spawns
-                      // a compensating worker while parked, preventing pool starvation.
                       remoteCacheTarget(labelled).foreach { location =>
-                        executionContext.blocking {
+                        blockingOnPool {
                           BazelRemoteCache.store(
                             paths,
                             inputsHash,
@@ -677,12 +668,12 @@ trait GroupExecution {
                 GroupExecution.Results(
                   newResults = finalResults,
                   newEvaluated = newEvaluated.toSeq,
-                  cached =
+                  cacheStatus =
                     if (
                       labelled.isInstanceOf[Task.Input[?]] ||
                       labelled.isInstanceOf[Task.Uncached[?]]
-                    ) null
-                    else false,
+                    ) GroupExecution.CacheStatus.NotApplicable
+                    else GroupExecution.CacheStatus.Recomputed,
                   inputsHash = inputsHash,
                   previousInputsHash = cached.map(_._1).getOrElse(-1),
                   valueHashChanged = !cached.map(_._3).contains(valueHash),
@@ -821,7 +812,7 @@ trait GroupExecution {
         GroupExecution.Results(
           newResults = newResults,
           newEvaluated = newEvaluated.toSeq,
-          cached = null,
+          cacheStatus = GroupExecution.CacheStatus.NotApplicable,
           inputsHash = inputsHash,
           previousInputsHash = -1,
           valueHashChanged = false,
@@ -853,7 +844,7 @@ trait GroupExecution {
     val nonEvaluatedTasks = group.toIndexedSeq.filterNot(results.contains)
     val (multiLogger, fileLoggerOpt) = resolveLogger(paths.map(_.log), logger)
 
-    val destCreator = GroupExecution.DestCreator(paths)
+    val destCreator = LazyDest.fromPaths(paths)
 
     for (task <- nonEvaluatedTasks) {
       newEvaluated.append(task)
@@ -866,7 +857,7 @@ trait GroupExecution {
         else {
           val args = new mill.api.TaskCtx.Impl(
             args = taskInputValues.map(_.value).toIndexedSeq,
-            dest0 = () => destCreator.makeDest(),
+            dest0 = () => destCreator.get(),
             log = multiLogger,
             _env = env,
             reporter = reporter,
@@ -1120,7 +1111,7 @@ trait GroupExecution {
       closeStaleWorker: Boolean,
       multiLogger: Logger,
       counterMsg: String,
-      destCreator: GroupExecution.DestCreator,
+      destCreator: LazyDest,
       terminal: Task[?]
   ): Option[Val] = {
     labelled.asWorker
@@ -1179,21 +1170,6 @@ trait GroupExecution {
 }
 
 object GroupExecution {
-  class DestCreator(paths: Option[ExecutionPaths]) {
-    var usedDest = Option.empty[os.Path]
-
-    def makeDest() = this.synchronized {
-      paths match {
-        case Some(dest) =>
-          if (usedDest.isEmpty) os.makeDir.all(dest.dest)
-          usedDest = Some(dest.dest)
-          dest.dest
-
-        case None => throw Exception("No `dest` folder available here")
-      }
-    }
-  }
-
   class ExecutionChecker(
       workspace: os.Path,
       isCommand: Boolean,
@@ -1295,7 +1271,7 @@ object GroupExecution {
       logger: Logger,
       exclusiveSystemStreams: SystemStreams,
       counterMsg: String,
-      destCreator: DestCreator,
+      destCreator: LazyDest,
       evaluator: Evaluator,
       terminal: Task[?],
       classLoader: ClassLoader
@@ -1317,37 +1293,37 @@ object GroupExecution {
       ExecutionChecker(workspace, isCommand, isInput, terminal, validReadDests, validWriteDests)
     val (streams, destFunc) =
       if (exclusive) (exclusiveSystemStreams, () => workspace)
-      else (multiLogger.streams, () => destCreator.makeDest())
+      else (multiLogger.streams, () => destCreator.get())
 
     PathAliasing.withSpawnAliasHook(workspace) {
-      os.dynamicPwdFunction.withValue(destFunc) {
-        os.checker.withValue(executionChecker) {
-          mill.api.SystemStreamsUtils.withStreams(streams) {
-            val exposedEvaluator =
-              if (exclusive) evaluator.asInstanceOf[Evaluator]
-              else new EvaluatorProxy(() =>
-                sys.error(
-                  "No evaluator available here; Evaluator is only available in exclusive commands"
-                )
-              )
+      TaskThreadContext.capture(
+        pwd = destFunc,
+        checker = executionChecker,
+        streams = streams
+      ).bind {
+        val exposedEvaluator =
+          if (exclusive) evaluator.asInstanceOf[Evaluator]
+          else new EvaluatorProxy(() =>
+            sys.error(
+              "No evaluator available here; Evaluator is only available in exclusive commands"
+            )
+          )
 
-            Evaluator.withCurrentEvaluator(exposedEvaluator) {
-              // Ensure the class loader used to load user code
-              // is set as context class loader when running user code.
-              // This is useful if users rely on libraries that look
-              // for resources added by other libraries, by using
-              // using java.util.ServiceLoader for example.
-              mill.api.ClassLoader.withContextClassLoader(classLoader) {
-                if (!exclusive) t
-                else {
-                  // For exclusive tasks, we print the task name once and then we disable the
-                  // prompt/ticker so the output of the exclusive task can "clean" while still
-                  // being identifiable
-                  logger.prompt.logPrefixedLine(Seq(counterMsg), ByteArrayOutputStream(), false)
-                  logger.prompt.withPromptPaused {
-                    t
-                  }
-                }
+        Evaluator.withCurrentEvaluator(exposedEvaluator) {
+          // Ensure the class loader used to load user code
+          // is set as context class loader when running user code.
+          // This is useful if users rely on libraries that look
+          // for resources added by other libraries, by using
+          // using java.util.ServiceLoader for example.
+          mill.api.ClassLoader.withContextClassLoader(classLoader) {
+            if (!exclusive) t
+            else {
+              // For exclusive tasks, we print the task name once and then we disable the
+              // prompt/ticker so the output of the exclusive task can "clean" while still
+              // being identifiable
+              logger.prompt.logPrefixedLine(Seq(counterMsg), ByteArrayOutputStream(), false)
+              logger.prompt.withPromptPaused {
+                t
               }
             }
           }
@@ -1355,15 +1331,26 @@ object GroupExecution {
       }
     }
   }
+
   case class Results(
       newResults: Map[Task[?], ExecResult[(Val, Int)]],
       newEvaluated: Seq[Task[?]],
-      cached: java.lang.Boolean,
+      cacheStatus: CacheStatus,
       inputsHash: Int,
       previousInputsHash: Int,
       valueHashChanged: Boolean,
       serializedPaths: Seq[PathRef]
   )
+
+  enum CacheStatus {
+    case Hit, Recomputed, NotApplicable
+
+    def profileValue: java.lang.Boolean = this match {
+      case Hit => true
+      case Recomputed => false
+      case NotApplicable => null
+    }
+  }
 
   def workerDependencies(
       workerCache: Map[String, (Int, Val, TaskApi[?])]

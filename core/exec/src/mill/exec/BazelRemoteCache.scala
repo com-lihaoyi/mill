@@ -73,10 +73,10 @@ private[mill] object BazelRemoteCache {
 
       // Upload the blob before the AC entry that references it, so a reader never sees an AC
       // entry pointing at a missing blob.
-      if (backend.putFile(s"cas/$sha", blobFile))
-        backend.putBytes(
+      if (backend.put(s"cas/$sha", Backend.Body.File(blobFile)))
+        backend.put(
           s"ac/${actionCacheKey(inputsHash, segmentsRender, salt)}",
-          Protobuf.encodeActionResult(sha, os.size(blobFile))
+          Backend.Body.Bytes(Protobuf.encodeActionResult(sha, os.size(blobFile)))
         )
     } catch {
       case NonFatal(_) =>
@@ -94,13 +94,13 @@ private[mill] object BazelRemoteCache {
   ): Boolean = mill.api.BuildCtx.withFilesystemCheckerDisabled {
     val backend = Backend.forLocation(location, workspace)
     try {
-      backend.getBytes(s"ac/${actionCacheKey(inputsHash, segmentsRender, salt)}") match {
+      readAllBytes(backend.get(s"ac/${actionCacheKey(inputsHash, segmentsRender, salt)}")) match {
         case None => false
         case Some(acBytes) =>
           Protobuf.decodeBlobDigestHash(acBytes) match {
             case None => false
             case Some(sha) =>
-              backend.getStream(s"cas/$sha") match {
+              backend.get(s"cas/$sha") match {
                 // Blob evicted or not yet propagated: treat as a miss and recompute.
                 case None => false
                 case Some(is) =>
@@ -108,20 +108,19 @@ private[mill] object BazelRemoteCache {
                   // its state.
                   if (os.exists(paths.dest)) os.remove.all(paths.dest)
                   try {
-                    try readBlob(paths, is)
-                    finally is.close()
+                    readBlob(paths, is)
+                    true
                   } catch {
-                    case NonFatal(e) =>
+                    case NonFatal(_) =>
                       // A mid-stream download failure has left `dest/` partially unpacked. The
-                      // outer `catch` returns a miss (recompute), but the recompute path skips
+                      // recompute path skips
                       // re-deleting a *persistent* task's `dest/` — so empty it here to hand the
                       // task body a clean dest. This discards a persistent task's prior
                       // incremental state, which is acceptable since the hit above already wiped
                       // it.
                       if (os.exists(paths.dest)) os.remove.all(paths.dest)
-                      throw e
-                  }
-                  true
+                      false
+                  } finally is.close()
               }
           }
       }
@@ -232,14 +231,23 @@ private[mill] object BazelRemoteCache {
       PosixFilePermission.GROUP_EXECUTE +
       PosixFilePermission.OTHERS_EXECUTE
 
+  private def readAllBytes(streamOpt: Option[InputStream]): Option[Array[Byte]] =
+    streamOpt.map { is =>
+      try is.readAllBytes()
+      finally is.close()
+    }
+
   private trait Backend {
-    def getBytes(key: String): Option[Array[Byte]]
-    def getStream(key: String): Option[InputStream]
-    def putFile(key: String, file: os.Path): Boolean
-    def putBytes(key: String, bytes: Array[Byte]): Boolean
+    def get(key: String): Option[InputStream]
+    def put(key: String, body: Backend.Body): Boolean
   }
 
   private object Backend {
+    enum Body {
+      case File(file: os.Path)
+      case Bytes(bytes: Array[Byte])
+    }
+
     def forLocation(location: String, workspace: os.Path): Backend =
       if (location.startsWith("http://") || location.startsWith("https://"))
         new HttpBackend(location.stripSuffix("/"))
@@ -255,33 +263,27 @@ private[mill] object BazelRemoteCache {
       val b = HttpRequest.newBuilder(URI.create(s"$baseUrl/$key")).timeout(requestTimeout)
       authHeader.fold(b)(h => b.header("Authorization", h))
     }
-    def getBytes(key: String): Option[Array[Byte]] = {
-      val resp =
-        client.send(requestBuilder(key).GET().build(), HttpResponse.BodyHandlers.ofByteArray())
-      Option.when(resp.statusCode() == 200)(resp.body())
-    }
-    def getStream(key: String): Option[InputStream] = {
+    def get(key: String): Option[InputStream] = {
       val resp =
         client.send(requestBuilder(key).GET().build(), HttpResponse.BodyHandlers.ofInputStream())
       if (resp.statusCode() == 200) Some(resp.body())
       else { resp.body().close(); None }
     }
-    private def put(key: String, body: HttpRequest.BodyPublisher): Boolean =
-      client.send(requestBuilder(key).PUT(body).build(), HttpResponse.BodyHandlers.discarding())
-        .statusCode() / 100 == 2
-    def putFile(key: String, file: os.Path): Boolean =
-      put(key, HttpRequest.BodyPublishers.ofFile(file.wrapped))
-    def putBytes(key: String, bytes: Array[Byte]): Boolean =
-      put(key, HttpRequest.BodyPublishers.ofByteArray(bytes))
+    def put(key: String, body: Backend.Body): Boolean = {
+      val publisher = body match {
+        case Backend.Body.File(file) => HttpRequest.BodyPublishers.ofFile(file.wrapped)
+        case Backend.Body.Bytes(bytes) => HttpRequest.BodyPublishers.ofByteArray(bytes)
+      }
+      client.send(
+        requestBuilder(key).PUT(publisher).build(),
+        HttpResponse.BodyHandlers.discarding()
+      ).statusCode() / 100 == 2
+    }
   }
 
   private class FileBackend(dir: os.Path) extends Backend {
     private def path(key: String): os.Path = dir / os.SubPath(key)
-    def getBytes(key: String): Option[Array[Byte]] = {
-      val p = path(key)
-      Option.when(os.exists(p))(os.read.bytes(p))
-    }
-    def getStream(key: String): Option[InputStream] = {
+    def get(key: String): Option[InputStream] = {
       val p = path(key)
       Option.when(os.exists(p))(os.read.inputStream(p))
     }
@@ -291,12 +293,11 @@ private[mill] object BazelRemoteCache {
     // which surface as a cache miss and a clean recompute (never corruption), so a plain overwrite
     // is sufficient. (An atomic temp+rename was tried but gave temp files restrictive `0600` perms,
     // breaking cross-user reads on the shared-folder backend it was meant to help.)
-    def putFile(key: String, file: os.Path): Boolean = {
-      os.copy.over(file, path(key), createFolders = true)
-      true
-    }
-    def putBytes(key: String, bytes: Array[Byte]): Boolean = {
-      os.write.over(path(key), bytes, createFolders = true)
+    def put(key: String, body: Backend.Body): Boolean = {
+      body match {
+        case Backend.Body.File(file) => os.copy.over(file, path(key), createFolders = true)
+        case Backend.Body.Bytes(bytes) => os.write.over(path(key), bytes, createFolders = true)
+      }
       true
     }
   }
@@ -341,21 +342,12 @@ private[mill] object BazelRemoteCache {
     }
 
     def decodeBlobDigestHash(bytes: Array[Byte]): Option[String] =
-      firstMessage(bytes, ActionResultOutputFiles)
-        .flatMap(firstMessage(_, OutputFileDigest))
-        .flatMap(firstString(_, DigestHash))
+      firstLengthDelimited(bytes, ActionResultOutputFiles)
+        .flatMap(firstLengthDelimited(_, OutputFileDigest))
+        .flatMap(firstLengthDelimited(_, DigestHash))
+        .map(new String(_, "UTF-8"))
 
-    private def firstMessage(bytes: Array[Byte], field: Int): Option[Array[Byte]] =
-      fields(bytes).collectFirst { case (`field`, v) => v }
-
-    private def firstString(bytes: Array[Byte], field: Int): Option[String] =
-      firstMessage(bytes, field).map(new String(_, "UTF-8"))
-
-    // Collects only length-delimited fields (the only wire type the ActionResult subset we read
-    // uses); varint/fixed32/fixed64 fields are skipped, so every collected entry is by
-    // construction WireLengthDelim and the wire type need not be stored.
-    private def fields(bytes: Array[Byte]): List[(Int, Array[Byte])] = {
-      val out = List.newBuilder[(Int, Array[Byte])]
+    private def firstLengthDelimited(bytes: Array[Byte], targetField: Int): Option[Array[Byte]] = {
       var pos = 0
       var continue = true
       while (continue && pos < bytes.length) {
@@ -368,13 +360,14 @@ private[mill] object BazelRemoteCache {
           case WireLengthDelim =>
             val (len, p2) = readVarint(bytes, p1)
             val end = math.min(p2 + len.toInt, bytes.length)
-            out += ((field, bytes.slice(p2, end))); pos = end
+            if (field == targetField) return Some(bytes.slice(p2, end))
+            pos = end
           case 5 => pos = math.min(p1 + 4, bytes.length) // fixed32
           case 1 => pos = math.min(p1 + 8, bytes.length) // fixed64
           case _ => continue = false // groups (deprecated) or invalid
         }
       }
-      out.result()
+      None
     }
 
     private def concat(parts: Array[Byte]*): Array[Byte] = {

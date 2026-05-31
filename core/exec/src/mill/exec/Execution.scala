@@ -143,14 +143,13 @@ case class Execution(
       goals: Seq[Task[?]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = TestReporter.DummyTestReporter,
-      logger: Logger = baseLogger,
-      serialCommandExec: Boolean = false
+      logger: Logger = baseLogger
   ): Execution.Results = logger.prompt.withPromptUnpaused {
     os.makeDir.all(outPath)
     executionNestingDepth.incrementAndGet()
     try {
       PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
-        execute0(goals, logger, reporter, testReporter, serialCommandExec)
+        execute0(goals, logger, reporter, testReporter)
       }
     } finally {
       executionNestingDepth.decrementAndGet()
@@ -163,11 +162,10 @@ case class Execution(
       reporter: Int => Option[
         CompileProblemReporter
       ] /* = _ => Option.empty[CompileProblemReporter]*/,
-      testReporter: TestReporter /* = TestReporter.DummyTestReporter*/,
-      serialCommandExec: Boolean
+      testReporter: TestReporter /* = TestReporter.DummyTestReporter*/
   ): Execution.Results = {
     while (true) {
-      try return execute0Once(goals, logger, reporter, testReporter, serialCommandExec)
+      try return execute0Once(goals, logger, reporter, testReporter)
       catch {
         case e: Execution.RetryDueToDroppedTaskLock =>
           logger.debug(s"Retrying evaluation after concurrent rewrite of ${e.label}")
@@ -182,8 +180,7 @@ case class Execution(
       reporter: Int => Option[
         CompileProblemReporter
       ] /* = _ => Option.empty[CompileProblemReporter]*/,
-      testReporter: TestReporter /* = TestReporter.DummyTestReporter*/,
-      serialCommandExec: Boolean
+      testReporter: TestReporter /* = TestReporter.DummyTestReporter*/
   ): Execution.Results = {
     os.makeDir.all(outPath)
     val failed = AtomicBoolean(false)
@@ -280,7 +277,7 @@ case class Execution(
               Some(GroupExecution.Results(
                 newResults = taskResults,
                 newEvaluated = group.toSeq,
-                cached = false,
+                cacheStatus = GroupExecution.CacheStatus.Recomputed,
                 inputsHash = -1,
                 previousInputsHash = -1,
                 valueHashChanged = false,
@@ -354,13 +351,14 @@ case class Execution(
                       val endTime = System.nanoTime() / 1000
                       val duration = endTime - startTime
 
-                      if (!res.cached) uncached.put(terminal, ())
+                      if (res.cacheStatus == GroupExecution.CacheStatus.Recomputed)
+                        uncached.put(terminal, ())
                       if (res.valueHashChanged) changedValueHash.put(terminal, ())
 
                       profileLogger.log(
                         terminal.toString,
                         duration,
-                        res.cached,
+                        res.cacheStatus.profileValue,
                         res.valueHashChanged,
                         deps.map(_.toString),
                         res.inputsHash,
@@ -403,7 +401,7 @@ case class Execution(
       try {
         val (nonExclusiveTasks, leafExclusiveCommands) = indexToTerminal.partition {
           case t: Task.Named[_] => !downstreamOfExclusive.contains(t)
-          case _ => !serialCommandExec
+          case _ => true
         }
 
         val batchWaitReporter =

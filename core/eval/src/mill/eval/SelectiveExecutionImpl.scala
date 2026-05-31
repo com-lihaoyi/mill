@@ -53,12 +53,22 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       .toMap
   }
 
-  case class DownstreamResult(
+  sealed trait DownstreamResult {
+    def changedRootTasks: Set[Task[?]]
+    def downstreamTasks: Seq[Task[?]]
+    def globalInvalidationReason: Option[String]
+  }
+  case class GlobalInvalidation(reason: String, allTasks: Seq[Task[?]]) extends DownstreamResult {
+    def changedRootTasks: Set[Task[?]] = allTasks.toSet
+    def downstreamTasks: Seq[Task[?]] = allTasks
+    def globalInvalidationReason: Option[String] = Some(reason)
+  }
+  case class PerTaskInvalidation(
       changedRootTasks: Set[Task[?]],
-      downstreamTasks: Seq[Task[?]],
-      // Global invalidation reason for selective execution (e.g., "mill-version-changed:OLD->NEW")
-      globalInvalidationReason: Option[String] = None
-  )
+      downstreamTasks: Seq[Task[?]]
+  ) extends DownstreamResult {
+    def globalInvalidationReason: Option[String] = None
+  }
 
   def computeDownstream(
       transitiveNamed: Seq[Task.Named[?]],
@@ -75,19 +85,17 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       newHashes: SelectiveExecution.Metadata
   ): DownstreamResult = {
     val allTasks = transitiveNamed.map(t => t: Task[?])
-    def globalInvalidate(name: String, key: SelectiveExecution.Metadata => Any) = {
-      Option.when(key(oldHashes) != key(newHashes)) {
-        DownstreamResult(
-          allTasks.toSet,
-          allTasks,
-          globalInvalidationReason = Some(s"$name:${key(oldHashes)}->${key(newHashes)}")
-        )
-      }
+    def globalInvalidationReason(
+        name: String,
+        key: SelectiveExecution.Metadata => Any
+    ): Option[String] = Option.when(key(oldHashes) != key(newHashes)) {
+      s"$name:${key(oldHashes)}->${key(newHashes)}"
     }
 
-    globalInvalidate("mill-version-changed", _.millVersion)
-      .orElse(globalInvalidate("mill-jvm-version-changed", _.millJvmVersion))
-      .orElse(globalInvalidate("classpath-changed", _.classLoaderSigHash))
+    globalInvalidationReason("mill-version-changed", _.millVersion)
+      .orElse(globalInvalidationReason("mill-jvm-version-changed", _.millJvmVersion))
+      .orElse(globalInvalidationReason("classpath-changed", _.classLoaderSigHash))
+      .map(GlobalInvalidation(_, allTasks))
       .getOrElse {
         val namesToTasks = transitiveNamed.map(t => (t.ctx.segments.render -> t)).toMap
 
@@ -131,7 +139,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
         val downstreamEdgeMap =
           SpanningForest.reverseEdges(allNodes.map(t => (t, t.selectiveInputs)))
 
-        DownstreamResult(
+        PerTaskInvalidation(
           changedRootTasks,
           breadthFirst(changedRootTasks) { t =>
             downstreamEdgeMap.getOrElse(t.asInstanceOf[Task[Nothing]], Nil)
@@ -305,20 +313,11 @@ object SelectiveExecutionImpl {
 
       val results: Map[Task.Named[?], mill.api.Result[Val]] = transitiveNamed
         .collect { case task: Task.Input[_] =>
-          val ctx = new mill.api.TaskCtx.Impl(
-            args = Vector(),
-            dest0 = () => null,
-            log = evaluator.baseLogger,
-            _env = evaluator.env,
-            reporter = _ => None,
-            testReporter = TestReporter.DummyTestReporter,
-            workspace = evaluator.workspace,
-            _systemExitWithReason = (reason, exitCode) =>
-              throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
-            fork = null,
-            jobs = evaluator.effectiveThreadCount,
-            offline = evaluator.offline,
-            useFileLocks = evaluator.useFileLocks
+          val ctx = EvaluatorImpl.inputTaskCtx(
+            evaluator,
+            evaluator.baseLogger,
+            _ => None,
+            TestReporter.DummyTestReporter
           )
 
           task -> task.evaluate(ctx).map(Val(_))

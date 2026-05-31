@@ -9,7 +9,12 @@ object PathAliasing {
   val workspaceAlias = "../mill-workspace"
   val homeAlias = "../mill-home"
 
-  private def realAbs(p: os.Path): String = p.wrapped.toAbsolutePath.normalize().toString
+  def realAbsPath(p: os.Path): java.nio.file.Path = p.wrapped.toAbsolutePath.normalize()
+  def realAbs(p: os.Path): String = realAbsPath(p).toString
+
+  def realAbsResolved(p: os.Path): String =
+    try p.wrapped.toRealPath().toString
+    catch { case _: java.io.IOException => realAbs(p) }
 
   /**
    * Resolve `p` to its real on-disk form (following symlinks), falling back to `p` unchanged when
@@ -203,10 +208,7 @@ object PathAliasing {
    */
   def ensureProcessCwdAliases(
       cwd: os.Path,
-      workspace: => os.Path = sys.env
-        .get(EnvVars.MILL_WORKSPACE_ROOT)
-        .map(p => os.Path(p, os.pwd))
-        .getOrElse(BuildCtx.workspaceRoot)
+      workspace: => os.Path = BuildCtx.workspaceRoot
   ): Unit = {
     if (cwd == null) return
     val parent = cwd / os.up

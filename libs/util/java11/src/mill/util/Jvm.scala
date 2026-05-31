@@ -39,9 +39,9 @@ object Jvm {
    * relative form against their own cwd and may walk the alias symlinks,
    * producing double-routed paths or silently failing.
    */
-  def realAbs(p: os.Path): String = realAbsPath(p).toString
+  def realAbs(p: os.Path): String = PathAliasing.realAbs(p)
   def realAbs(p: PathRef): String = realAbs(p.path)
-  def realAbsPath(p: os.Path): java.nio.file.Path = p.wrapped.toAbsolutePath.normalize()
+  def realAbsPath(p: os.Path): java.nio.file.Path = PathAliasing.realAbsPath(p)
   def realAbsPath(p: PathRef): java.nio.file.Path = realAbsPath(p.path)
   def realAbsFile(p: os.Path): java.io.File = realAbsPath(p).toFile
   def realAbsFile(p: PathRef): java.io.File = realAbsFile(p.path)
@@ -52,9 +52,7 @@ object Jvm {
    * walks the path-as-it-exists (e.g. native-image scanning JARs inside symlinked
    * coursier-cache dirs) and lexical `../`-collapse would land on the wrong file.
    */
-  def realAbsResolved(p: os.Path): String =
-    try p.wrapped.toRealPath().toString
-    catch { case _: java.io.IOException => realAbs(p) }
+  def realAbsResolved(p: os.Path): String = PathAliasing.realAbsResolved(p)
 
   /** Same as [[realAbsResolved]] but returns an [[os.Path]] (falls back to the input on IO error). */
   def realAbsResolvedPath(p: os.Path): os.Path = PathAliasing.canonicalize(p)
