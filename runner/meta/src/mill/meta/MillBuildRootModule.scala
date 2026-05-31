@@ -10,7 +10,7 @@ import mill.api.{Discover, PathRef, Task}
 import mill.api.internal.RootModule
 import mill.scalalib.{Dep, DepSyntax, ScalaModule}
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
-import mill.util.{BuildInfo, Jvm, MainRootModule}
+import mill.util.{BuildInfo, MainRootModule}
 import mill.api.daemon.internal.MillScalaParser
 import mill.api.JsonFormatters.given
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
@@ -128,9 +128,7 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
         case (k, v)
             if k.last.endsWith(".mill.yaml") &&
               !mill.internal.Util.isPrecompiledYamlModule(k) =>
-          // `Jvm.realAbsPath`: serialized into the meta-build cache and read back by later
-          // `--no-daemon` invocations whose sandbox cwd makes the alias resolve to nothing.
-          (Jvm.realAbsPath(k), v)
+          k.toString -> v
       },
       // Serialize to string to avoid classloader issues when crossing classloader boundaries
       spanningTree.render()

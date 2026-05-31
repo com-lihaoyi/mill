@@ -2,7 +2,6 @@ package mill.javalib
 
 import mill.api.daemon.internal.UnresolvedPathApi
 import mill.api.{ExecutionPaths, Segment, Segments}
-import mill.api.internal.PathAliasing
 import upickle.{ReadWriter, macroRW}
 
 /**
@@ -16,7 +15,7 @@ sealed trait UnresolvedPath extends UnresolvedPathApi[os.Path] {
 }
 object UnresolvedPath {
   case class ResolvedPath private (path: String) extends UnresolvedPath {
-    override def resolve(outPath: os.Path): os.Path = PathAliasing.resolveAliasedString(path)
+    override def resolve(outPath: os.Path): os.Path = os.Path(path)
   }
   object ResolvedPath {
     def apply(path: os.Path): ResolvedPath = ResolvedPath(path.toString)

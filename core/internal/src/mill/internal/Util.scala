@@ -117,13 +117,7 @@ object Util {
 
         val workspaceRoot = mill.api.BuildCtx.workspaceRoot
         val workspaceRootNio = workspaceRoot.wrapped.toAbsolutePath.normalize()
-        // In reproducible mode the build-file path may be an aliased relative path like
-        // `out/mill-workspace/build.mill`; resolve it back through the workspace alias so error
-        // messages show the clean workspace-relative path (`build.mill`) rather than the path
-        // through the daemon-sandbox alias symlink.
-        val pathNio = mill.api.internal.PathAliasing
-          .resolveAliasedString(path.toString, workspace = workspaceRoot)
-          .wrapped.toAbsolutePath.normalize()
+        val pathNio = os.Path(path.toString).wrapped.toAbsolutePath.normalize()
         val displayPath =
           try workspaceRootNio.relativize(pathNio).toString
           catch { case _: IllegalArgumentException => pathNio.toString }

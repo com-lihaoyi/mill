@@ -22,3 +22,51 @@ def cachedFile = Task {
 def persistentTask = Task(persistent = true) {
   "persistentTask-value"
 }
+
+def graphStableCached = Task {
+  "stable"
+}
+
+def graphInput = Task.Input {
+  os.read(moduleDir / "graph-input.txt").trim
+}
+
+def graphSource = Task.Source("graph-source.txt")
+
+def graphCachedFromInput = Task {
+  s"cached:${graphStableCached()}:${graphInput()}"
+}
+
+def graphCachedFromSource = Task {
+  s"cached-source:${os.read(graphSource().path).trim}"
+}
+
+def graphPersistentFromInput = Task(persistent = true) {
+  os.write(Task.dest / "value.txt", graphInput())
+  s"persistent:${graphInput()}"
+}
+
+class GraphWorker extends AutoCloseable {
+  def value(input: String): String = s"worker:$input"
+  def close(): Unit = ()
+}
+
+def graphWorker = Task.Worker {
+  GraphWorker()
+}
+
+def graphCachedFromWorker = Task {
+  s"cached-worker:${graphWorker().value(graphInput())}"
+}
+
+def graphCommand() = Task.Command {
+  val result = Seq(
+    graphCachedFromInput(),
+    graphCachedFromSource(),
+    graphPersistentFromInput(),
+    graphCachedFromWorker(),
+    graphWorker().value(graphInput())
+  ).mkString("|")
+  println(s"graphCommand:$result")
+  result
+}

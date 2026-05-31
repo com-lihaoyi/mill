@@ -21,7 +21,6 @@ import mill.api.daemon.internal.{
   TaskApi
 }
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi, JvmBuildTarget}
-import mill.api.internal.PathAliasing
 import mill.internal.SpanningForest
 
 import scala.collection.mutable
@@ -34,13 +33,9 @@ object Utils {
     if (uri.endsWith("/")) sanitizeUri(uri.substring(0, uri.length - 1)) else uri
 
   def sanitizeUri(uri: java.nio.file.Path): String = {
-    // In reproducible-build mode `os.Path.toNIO` yields a workspace-relativized path (e.g.
-    // `../mill-workspace/app`); resolve it back to an absolute path so BSP clients (IDEs) receive
-    // usable `file://` URIs rather than ones resolved against the daemon's sandbox cwd.
-    val absolute =
-      if (uri.isAbsolute) uri
-      else PathAliasing.resolveAliasedString(uri.toString).wrapped
-    sanitizeUri(absolute.toUri.toString)
+    // `uri` may be a workspace-relativized path; deserialize it through os-lib, then turn it back
+    // into a real absolute URI for BSP clients.
+    sanitizeUri(mill.api.PathRef.realAbsPath(os.Path(uri)).toUri.toString)
   }
 
   // define the function that spawns compilation reporter for each module based on the

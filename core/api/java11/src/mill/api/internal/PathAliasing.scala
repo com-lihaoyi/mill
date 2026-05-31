@@ -35,45 +35,6 @@ object PathAliasing {
   def workspacePathRelativizerBase(workspace: os.Path = BuildCtx.workspaceRoot): String =
     s"${PathRef.realAbs(workspace)},../mill-workspace;${PathRef.realAbs(os.home)},../mill-home"
 
-  private def normalize(raw: String): String = raw.replace('\\', '/')
-
-  def resolveAliasedString(
-      rawInput: String,
-      workspace: os.Path = BuildCtx.workspaceRoot,
-      pwd: os.Path = os.pwd
-  ): os.Path = {
-    val nio = java.nio.file.Paths.get(rawInput)
-    if (nio.isAbsolute) os.Path(nio.toAbsolutePath.normalize())
-    else {
-      val raw = normalize(rawInput)
-      def fromAlias(raw: String, alias: String, base: os.Path): Option[os.Path] = {
-        // `base` plus the path suffix following the alias segment, with a leading separator
-        // stripped; an empty suffix resolves to `base` itself.
-        def resolve(suffix: String): os.Path = {
-          val rel = suffix.stripPrefix("/")
-          if (rel.isEmpty) base else base / os.RelPath(rel)
-        }
-        if (raw == alias) Some(base)
-        else if (raw.startsWith(alias + "/")) Some(resolve(raw.drop(alias.length)))
-        else None
-      }
-
-      fromAlias(raw, workspaceAlias, workspace)
-        .orElse(fromAlias(raw, homeAlias, os.home))
-        .getOrElse(os.Path(raw, pwd))
-    }
-  }
-
-  def resolveAliasedPath(
-      path: os.Path,
-      workspace: os.Path = BuildCtx.workspaceRoot,
-      pwd: os.Path = os.pwd
-  ): os.Path = {
-    val nio = path.wrapped
-    if (nio.isAbsolute) os.Path(nio.toAbsolutePath.normalize())
-    else resolveAliasedString(path.toString, workspace, pwd)
-  }
-
   /**
    * Create or update `link` to be a symlink pointing at `dest`. If `link` exists as a non-symlink,
    * replace it. Best-effort: catches `FileSystemException` (e.g. read-only fs) and

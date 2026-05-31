@@ -613,12 +613,15 @@ class MillBuildBootstrap(
                 runClasspath: Seq[PathRefApi],
                 compileClasses: PathRefApi,
                 codeSignatures: Map[String, Int],
-                buildOverrideFiles: Map[java.nio.file.Path, String],
+                buildOverrideFileStrings: Map[String, String],
                 spanningInvalidationTree: String
               ))),
               evalWatches,
               moduleWatches
             ) =>
+          val buildOverrideFiles =
+            buildOverrideFileStrings.map { case (path, text) => os.Path(path).wrapped -> text }
+
           // Even when the meta-build's compiled output is bit-identical to
           // the previous frame, we cannot reuse the existing classloader if
           // the outer (one-level-up) `moduleWatched` has changed. The user's

@@ -1,5 +1,11 @@
 = Remote Caching
 
+Mill can share task outputs between builds in different folders, or even on different
+machines, via a _remote cache_. Outputs computed by one build are stored in the cache and
+transparently re-used by any other build whose inputs are unchanged, so you never need to
+compute the same thing twice, whether across different worktrees or checkouts on the same
+machine or across a distributed fleet of developer machines or CI workers.
+
 include::partial$example/large/remotecache/1-shared-folder.adoc[]
 
 == A Bazel-Remote Cache Server
@@ -48,13 +54,25 @@ trade-offs. None of these are unique to Mill:
   same trust boundary. A common safe topology is to grant write access only to trusted CI
   (e.g. main-branch builds) while letting developer laptops and PR builds read from it.
 
-* *Not every task benefits from remote caching.* Some tasks are faster to recompute locally
-  than to fetch over the network, and Mill caches at a whole-task granularity, where each
-  task's output directory is a single cache entry. Use `--remote-cache-filter` to target the
-  expensive, high-reuse tasks such as `__.compile` where caching pays off.
+* *Not every cacheable task benefits from remote caching.* Some tasks are faster to
+  recompute locally than to fetch over the network, and Mill caches at a whole-task
+  granularity, where each task's output directory is a single cache entry. Use
+  `--remote-cache-filter` to target expensive, high-reuse tasks such as `__.compile`
+  where caching pays off.
 
-* *Persistent tasks are cached, but many task types are not.* Persistent tasks like `compile`,
-  whose `dest/` holds incremental-compiler state, do participate, since sharing compiled
-  output is the primary use case; a remote miss leaves their local `dest/` intact so an
-  incremental recompute can still re-use it. `Task.Input`, `Task.Command`, `Task.Worker`, and
-  other non-cached task types are never sent to the remote cache.
+* *Only declared output paths are restored from `Task.dest`.* For custom tasks, remote
+  caching restores files and directories under `Task.dest` that are returned as `PathRef`s
+  by the task. Incidental files written to `Task.dest` by a task returning a plain value,
+  such as a `String` or `Int`, are not portable through the remote cache even if the task's
+  value itself is served from cache. If downstream tasks or users need those files, make sure
+  the returned value contains the `PathRef`s pointing at them, e.g. as fields of a case class
+  or members of a tuple or named tuple.
+
+* *Only cacheable task types participate.* Normal cached tasks and persistent tasks,
+  including `compile` tasks whose `dest/` holds incremental-compiler state, can be
+  stored in and restored from the remote cache. A remote miss leaves a persistent
+  task's local `dest/` intact so an incremental recompute can still re-use it.
+  Side-effecting task types such as `Task.Input`, `Task.Command`, `Task.Worker`, and
+  other non-cached tasks are never sent to the remote cache. This means commands like
+  `run` or `testForked` may still execute even when their upstream `compile`, link, or
+  environment-setup tasks are remote-cache hits.

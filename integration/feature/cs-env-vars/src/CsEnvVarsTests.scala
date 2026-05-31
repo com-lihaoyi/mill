@@ -11,7 +11,11 @@ object CsEnvVarsTests extends UtestIntegrationTestSuite {
   // In reproducible-build mode the daemon prints classpath entries through the path relativizer
   // (e.g. cache jars as `../mill-home/...`); resolve them back to absolute paths for assertions.
   private def resolveCp(workspace: os.Path)(raw: String): os.Path =
-    PathAliasing.resolveAliasedString(raw, workspace = workspace)
+    os.Path.pathSerializer.withValue(os.Path.pathRemapSerializerNio(
+      PathAliasing.defaultMapping(workspace).map { case (from, to) =>
+        mill.api.PathRef.realAbsPath(from) -> java.nio.file.Paths.get(to.toString)
+      }
+    ))(os.Path(raw))
 
   val tests: Tests = Tests {
     test("cache") - integrationTest { tester =>
