@@ -20,7 +20,8 @@
       "workingDirectory": "/workspace",
       "environmentVariables": {
         "PATH": "...",
-        "MY_ENV_VAR": "my-value"
+        "MY_ENV_VAR": "my-value",
+        "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": [
         {
@@ -52,6 +53,7 @@
       "workingDirectory": "/workspace",
       "environmentVariables": {
         "PATH": "...",
+        "MILL_WORKSPACE_ROOT": "/workspace",
         "MILL_TEST_RESOURCE_DIR": "/workspace/app/test/resources"
       },
       "mainClasses": []
@@ -69,7 +71,8 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
-        "PATH": "..."
+        "PATH": "...",
+        "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": []
     },
@@ -86,7 +89,8 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
-        "PATH": "..."
+        "PATH": "...",
+        "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": []
     },
@@ -102,7 +106,8 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
-        "PATH": "..."
+        "PATH": "...",
+        "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": []
     },
@@ -126,6 +131,7 @@
       "workingDirectory": "/workspace",
       "environmentVariables": {
         "PATH": "...",
+        "MILL_WORKSPACE_ROOT": "/workspace",
         "MILL_TEST_RESOURCE_DIR": "/workspace/hello-java/test/resources"
       },
       "mainClasses": [
@@ -149,7 +155,8 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
-        "PATH": "..."
+        "PATH": "...",
+        "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": []
     },
@@ -166,7 +173,8 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
-        "PATH": "..."
+        "PATH": "...",
+        "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": [
         {
@@ -196,6 +204,7 @@
       "workingDirectory": "/workspace",
       "environmentVariables": {
         "PATH": "...",
+        "MILL_WORKSPACE_ROOT": "/workspace",
         "MILL_TEST_RESOURCE_DIR": "/workspace/hello-scala/test/resources"
       },
       "mainClasses": [
@@ -218,7 +227,8 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
-        "PATH": "..."
+        "PATH": "...",
+        "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": []
     },
@@ -234,7 +244,8 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
-        "PATH": "..."
+        "PATH": "...",
+        "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": []
     },
@@ -265,7 +276,8 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
-        "PATH": "..."
+        "PATH": "...",
+        "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": [
         {
@@ -291,7 +303,8 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
-        "PATH": "..."
+        "PATH": "...",
+        "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": [
         {
@@ -331,6 +344,7 @@
       "workingDirectory": "/workspace",
       "environmentVariables": {
         "PATH": "...",
+        "MILL_WORKSPACE_ROOT": "/workspace",
         "MILL_TEST_RESOURCE_DIR": "/workspace/scripts/folder2/FooTest.java/resources"
       },
       "mainClasses": []
@@ -352,7 +366,8 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
-        "PATH": "..."
+        "PATH": "...",
+        "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": [
         {
@@ -388,7 +403,8 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
-        "PATH": "..."
+        "PATH": "...",
+        "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": [
         {
@@ -407,7 +423,8 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
-        "PATH": "..."
+        "PATH": "...",
+        "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": []
     },
@@ -424,7 +441,8 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
-        "PATH": "..."
+        "PATH": "...",
+        "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": []
     }

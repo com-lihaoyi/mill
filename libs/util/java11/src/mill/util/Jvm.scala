@@ -29,35 +29,14 @@ import scala.util.chaining.scalaUtilChainingOps
  */
 object Jvm {
 
-  /**
-   * Real on-disk absolute path string for `p`, bypassing any `os.Path` serializer
-   * that may be in scope. In reproducible mode `os.Path.toString` / `.toIO` /
-   * `.toNIO` return relativized `../mill-workspace/...` / `../mill-home/...`
-   * forms so cached values stay workspace-independent. That form is wrong to
-   * hand to external tools (kotlinc, lint, coursier, node, python) or to
-   * non-Mill Java APIs (`java.nio.file.Files`, `Paths.get`): they resolve the
-   * relative form against their own cwd and may walk the alias symlinks,
-   * producing double-routed paths or silently failing.
-   */
-  def realAbs(p: os.Path): String = realAbsPath(p).toString
-  def realAbs(p: PathRef): String = realAbs(p.path)
-  def realAbsPath(p: os.Path): java.nio.file.Path = p.wrapped.toAbsolutePath.normalize()
-  def realAbsPath(p: PathRef): java.nio.file.Path = realAbsPath(p.path)
-  def realAbsFile(p: os.Path): java.io.File = realAbsPath(p).toFile
-  def realAbsFile(p: PathRef): java.io.File = realAbsFile(p.path)
-
-  /**
-   * Like [[realAbs]] but also follows symlinks via `toRealPath`, falling back to
-   * lexical `realAbs` if the path doesn't exist on disk. Use when a subprocess
-   * walks the path-as-it-exists (e.g. native-image scanning JARs inside symlinked
-   * coursier-cache dirs) and lexical `../`-collapse would land on the wrong file.
-   */
-  def realAbsResolved(p: os.Path): String =
-    try p.wrapped.toRealPath().toString
-    catch { case _: java.io.IOException => realAbs(p) }
-
-  /** Same as [[realAbsResolved]] but returns an [[os.Path]] (falls back to the input on IO error). */
-  def realAbsResolvedPath(p: os.Path): os.Path = PathAliasing.canonicalize(p)
+  def realAbs(p: os.Path): String = PathRef.realAbs(p)
+  def realAbs(p: PathRef): String = PathRef.realAbs(p)
+  def realAbsPath(p: os.Path): java.nio.file.Path = PathRef.realAbsPath(p)
+  def realAbsPath(p: PathRef): java.nio.file.Path = PathRef.realAbsPath(p)
+  def realAbsFile(p: os.Path): java.io.File = PathRef.realAbsFile(p)
+  def realAbsFile(p: PathRef): java.io.File = PathRef.realAbsFile(p)
+  def realAbsResolved(p: os.Path): String = PathRef.realAbsResolved(p)
+  def realAbsResolvedPath(p: os.Path): os.Path = PathRef.realAbsResolvedPath(p)
 
   /**
    * Runs a JVM subprocess with the given configuration and returns a

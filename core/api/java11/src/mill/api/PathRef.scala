@@ -55,6 +55,35 @@ object PathRef {
   implicit def shellable(p: PathRef): os.Shellable = p.path
 
   /**
+   * Real on-disk absolute path string for `p`, bypassing any `os.Path` serializer
+   * that may be in scope. In reproducible mode `os.Path.toString` / `.toIO` /
+   * `.toNIO` can return relativized `../mill-workspace/...` / `../mill-home/...`
+   * forms so cached values stay workspace-independent. That form is wrong to
+   * hand to external tools or to Java APIs that resolve relative paths against
+   * their own cwd.
+   */
+  def realAbs(p: os.Path): String = realAbsPath(p).toString
+  def realAbs(p: PathRef): String = realAbs(p.path)
+  def realAbsPath(p: os.Path): jnio.Path = p.wrapped.toAbsolutePath.normalize()
+  def realAbsPath(p: PathRef): jnio.Path = realAbsPath(p.path)
+  def realAbsFile(p: os.Path): java.io.File = realAbsPath(p).toFile
+  def realAbsFile(p: PathRef): java.io.File = realAbsFile(p.path)
+
+  /**
+   * Like [[realAbs]] but also follows symlinks via `toRealPath`, falling back to
+   * lexical [[realAbs]] if the path does not exist on disk. Use when a subprocess
+   * walks the path-as-it-exists and lexical `../` collapse would land on the wrong file.
+   */
+  def realAbsResolved(p: os.Path): String =
+    try p.wrapped.toRealPath().toString
+    catch { case _: java.io.IOException => realAbs(p) }
+
+  /** Same as [[realAbsResolved]] but returns an [[os.Path]] and falls back to `p` on IO errors. */
+  def realAbsResolvedPath(p: os.Path): os.Path =
+    try os.Path(p.wrapped.toRealPath())
+    catch { case _: java.io.IOException => p }
+
+  /**
    * This class maintains a cache of already validated paths.
    * It is thread-safe and meant to be shared between threads, e.g. in a ThreadLocal.
    */
