@@ -22,7 +22,8 @@
           "arguments": [],
           "jvmOptions": [],
           "environmentVariables": [
-            "PATH=..."
+            "PATH=...",
+            "MILL_WORKSPACE_ROOT\u003d/workspace"
           ]
         }
       ]
@@ -38,6 +39,7 @@
           "jvmOptions": [],
           "environmentVariables": [
             "PATH=...",
+            "MILL_WORKSPACE_ROOT\u003d/workspace",
             "MILL_TEST_RESOURCE_DIR\u003d/workspace/hello-scala/test/resources"
           ]
         }
@@ -53,7 +55,8 @@
           "arguments": [],
           "jvmOptions": [],
           "environmentVariables": [
-            "PATH=..."
+            "PATH=...",
+            "MILL_WORKSPACE_ROOT\u003d/workspace"
           ]
         }
       ]
@@ -68,7 +71,8 @@
           "arguments": [],
           "jvmOptions": [],
           "environmentVariables": [
-            "PATH=..."
+            "PATH=...",
+            "MILL_WORKSPACE_ROOT\u003d/workspace"
           ]
         }
       ]
