@@ -8,12 +8,19 @@ import coursier.core.Module
 import mill.constants.BuildInfo
 import upickle.default.*
 
+import java.io.File
 import scala.concurrent.ExecutionContext.Implicits.global
 import mill.api.JsonFormatters.*
 object CoursierClient {
 
   private def cacheDir(outDir: String): os.Path =
     os.Path(outDir, os.pwd) / "mill-daemon" / "cache"
+
+  private def fromPotentiallyRelativeSerializedPath(file: File): os.Path = {
+    val deserialized = os.Path.pathSerializer.value.deserialize(file.toPath)
+    if (deserialized.isAbsolute) os.Path(deserialized)
+    else os.Path(deserialized.toString, os.pwd)
+  }
 
   /**
    * Single-entry disk cache for expensive Coursier resolutions, as even when everything
@@ -94,7 +101,9 @@ object CoursierClient {
         }
       }
 
-      artifactsResultOrError.artifacts.map(_._2.toString).toSeq.map(os.Path(_))
+      artifactsResultOrError.artifacts.iterator.map(
+        _._2
+      ).map(fromPotentiallyRelativeSerializedPath).toSeq
     }
   }
 

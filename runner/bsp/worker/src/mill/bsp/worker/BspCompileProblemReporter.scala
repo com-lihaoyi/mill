@@ -3,6 +3,7 @@ package mill.bsp.worker
 import ch.epfl.scala.bsp4j.*
 import ch.epfl.scala.{bsp4j => bsp}
 import mill.api.daemon.internal.{CompileProblemReporter, Problem}
+import mill.api.internal.PathAliasing
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
@@ -105,8 +106,7 @@ private class BspCompileProblemReporter(
       case Some(f) =>
         val diagnostic = toDiagnostic(problem)
         val textDocument = TextDocumentIdentifier(
-          // The extra step invoking `toPath` results in a nicer URI starting with `file:///`
-          f.toPath.toUri.toString
+          PathAliasing.resolveAliasedString(f.toString).wrapped.toUri.toString
         )
         if (diagnostics.add(textDocument, diagnostic)) {
           val diagnosticList = new java.util.LinkedList[Diagnostic]()
@@ -169,7 +169,7 @@ private class BspCompileProblemReporter(
   }
 
   override def fileVisited(file: java.nio.file.Path): Unit = {
-    val uri = file.toUri.toString
+    val uri = PathAliasing.resolveAliasedString(file.toString).wrapped.toUri.toString
     val textDocument = TextDocumentIdentifier(uri)
     val (diagnostics0, hasNewDiagnostics) = diagnostics.getAll(textDocument)
     if (hasNewDiagnostics)

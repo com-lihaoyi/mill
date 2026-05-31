@@ -384,6 +384,46 @@ object PlanTests extends TestSuite {
       tracker.drain()
     }
 
+    // The `droppedStates` index must track the `dropped` flag exactly, so
+    // `hasDropped` reads false iff nothing is dropped. Exercises that across
+    // multi-drop, reacquire, a redundant reacquire, and drain.
+    test("leaseTrackerHasDroppedTracksDropReacquireAndDrain") {
+      import transitiveLeaseChain.*
+
+      val tracker = new Execution.LeaseTracker(
+        Array(a, b, c),
+        Map(a -> Nil, b -> Seq(a), c -> Seq(b))
+      )
+      val locking = new TestLocking
+      val aPath = Paths.get("/tmp/mill-lock-test/a")
+      val bPath = Paths.get("/tmp/mill-lock-test/b")
+      val cPath = Paths.get("/tmp/mill-lock-test/c")
+      val aKey = aPath.toAbsolutePath.normalize().toString
+
+      tracker.retain(a, aPath, "a", new TestLease, 0L)
+      tracker.retain(b, bPath, "b", new TestLease, 0L)
+      tracker.retain(c, cPath, "c", new TestLease, 0L)
+      assert(!tracker.hasDropped)
+
+      // Drop everything sorting after `a` (both `b` and `c`).
+      tracker.releaseHigherThan(aKey)
+      assert(tracker.hasDropped)
+
+      // Clean reacquire (no version change, no contention) clears every drop.
+      tracker.reacquireDropped(locking, LauncherLocking.WaitReporter.Noop)
+      assert(!tracker.hasDropped)
+
+      // Redundant reacquire is a no-op.
+      tracker.reacquireDropped(locking, LauncherLocking.WaitReporter.Noop)
+      assert(!tracker.hasDropped)
+
+      // Draining a still-dropped retained must also clear its index entry.
+      tracker.releaseHigherThan(aKey)
+      assert(tracker.hasDropped)
+      tracker.drain()
+      assert(!tracker.hasDropped)
+    }
+
     test("leaseTrackerDoesNotDropActivelyConsumedHigherLocks") {
       import transitiveLeaseChain.*
 

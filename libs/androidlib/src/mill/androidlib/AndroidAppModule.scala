@@ -9,6 +9,7 @@ import mill.api.daemon.internal.internal
 import mill.api.JsonFormatters.given
 import mill.api.{ModuleRef, PathRef, Task}
 import mill.javalib.*
+import mill.util.Jvm
 import os.{Path, RelPath, zip}
 import os.RelPath.stringRelPathValidated
 import upickle.*
@@ -540,35 +541,22 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     val formats = androidLintReportFormat()
 
-    // Generate the alternating flag and file os.Path strings
+    // `Jvm.realAbs`: lint records absolute source/classpath paths into its baseline XML
+    // and HTML reports, then compares them across runs from different cwds.
     val reportArg: Seq[String] = formats.flatMap { format =>
-      Seq(format.flag, (Task.dest / s"report.${format.extension}").toString)
+      Seq(format.flag, Jvm.realAbs(Task.dest / s"report.${format.extension}"))
     }
-
-    // Set os.Path to generated `.jar` files and/or `.class` files
-    // TODO change to runClasspath once the runtime dependencies + source refs are fixed
-    val cp = compileClasspath().map(_.path).filter(os.exists).mkString(":")
-
-    // Set os.Path to the location of the project source codes
-    val src = sources().map(_.path).filter(os.exists).mkString(":")
-
-    // Set os.Path to the location of the project resource code
-    val res = resources().map(_.path).filter(os.exists).mkString(":")
-
-    // Prepare the lint configuration argument if the config os.Path is set
-    val configArg = androidLintConfigPath().map(config =>
-      Seq("--config", config.path.toString)
-    ).getOrElse(Seq.empty)
-
-    // Prepare the lint baseline argument if the baseline os.Path is set
-    val baselineArg = androidLintBaselinePath().map(baseline =>
-      Seq("--baseline", baseline.path.toString)
-    ).getOrElse(Seq.empty)
+    val cp = compileClasspath().map(_.path).filter(os.exists).map(Jvm.realAbs).mkString(":")
+    val src = sources().map(_.path).filter(os.exists).map(Jvm.realAbs).mkString(":")
+    val res = resources().map(_.path).filter(os.exists).map(Jvm.realAbs).mkString(":")
+    val configArg = androidLintConfigPath().map(c => Seq("--config", Jvm.realAbs(c))).toSeq.flatten
+    val baselineArg =
+      androidLintBaselinePath().map(b => Seq("--baseline", Jvm.realAbs(b))).toSeq.flatten
 
     os.call(
       Seq(
-        androidSdkModule().lintExe().path.toString,
-        (moduleDir / "src/main").toString,
+        Jvm.realAbs(androidSdkModule().lintExe()),
+        Jvm.realAbs(moduleDir / "src/main"),
         "--classpath",
         cp,
         "--sources",

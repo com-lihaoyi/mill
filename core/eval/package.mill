@@ -10,5 +10,5 @@ import millbuild.*
  * codebases.
  */
 object `package` extends MillPublishScalaModule {
-  def moduleDeps = Seq(build.core.api, build.core.exec, build.core.resolve)
+  def moduleDeps = Seq(build.core.api, build.core.exec, build.core.resolve, build.core.internal)
 }

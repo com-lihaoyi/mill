@@ -154,17 +154,18 @@ object Deps {
     mvn"com.caoccao.javet:javet-macos:4.0.0"
   )
 
-  val jline = mvn"org.jline:jline:3.30.6"
+  val jline = mvn"org.jline:jline:3.30.13"
   val jnaVersion = "5.16.0"
 
   val jna = mvn"net.java.dev.jna:jna:${jnaVersion}"
   val jnaPlatform = mvn"net.java.dev.jna:jna-platform:${jnaVersion}"
 
   val junitInterface = mvn"com.github.sbt:junit-interface:0.13.3"
-  val commonsIo = mvn"commons-io:commons-io:2.21.0"
-  val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.25.1"
-  val osLib = mvn"com.lihaoyi::os-lib:0.11.8"
-  val osLibWatch = mvn"com.lihaoyi::os-lib-watch:${osLib.version}"
+  val commonsIo = mvn"commons-io:commons-io:2.22.0"
+  val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.26.0"
+  val osLibVersion = "0.11.9-M6"
+  val osLib = mvn"com.lihaoyi::os-lib:$osLibVersion"
+  val osLibWatch = mvn"com.lihaoyi::os-lib-watch:$osLibVersion"
   val pprint = mvn"com.lihaoyi::pprint:0.9.6"
   val mainargs = mvn"com.lihaoyi::mainargs:0.7.8"
   val millModuledefsVersion = "0.13.1"
@@ -191,7 +192,7 @@ object Deps {
     .exclude("org.scala-sbt" -> "compiler-interface")
 
   def scalaCompilerInterface = mvn"org.scala-sbt:compiler-interface:${zinc.version}"
-  val scalafmtDynamic = mvn"org.scalameta::scalafmt-dynamic:3.10.3".withDottyCompat(scalaVersion)
+  val scalafmtDynamic = mvn"org.scalameta::scalafmt-dynamic:3.11.1".withDottyCompat(scalaVersion)
   def scalaReflect(scalaVersion: String) =
     if (JvmWorkerUtil.isScala3(scalaVersion))
       mvn"org.scala-lang:scala-reflect:${Deps.scala2Version}"
@@ -207,8 +208,8 @@ object Deps {
   val scalaCliBsp = mvn"org.virtuslab.scala-cli:scala-cli-bsp:1.8.0"
   val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.4.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala_runtime = mvn"org.scalameta:::semanticdb-scalac:4.16.1"
-  val semanticDbJava_runtime = mvn"com.sourcegraph:semanticdb-java:0.11.1"
+  val semanticDBscala_runtime = mvn"org.scalameta:::semanticdb-scalac:4.17.0"
+  val semanticDbJava_runtime = mvn"com.sourcegraph:semanticdb-java:0.12.3"
   val semanticDbShared =
     mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala_runtime.version}"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.4"
@@ -227,12 +228,12 @@ object Deps {
   // keep in sync with doc/antora/antory.yml
   val bsp4j = mvn"ch.epfl.scala:bsp4j:2.2.0-M2"
   // https://github.com/google/gson/releases/tag/gson-parent-2.13.2
-  val gson = mvn"com.google.code.gson:gson:2.13.2"
+  val gson = mvn"com.google.code.gson:gson:2.14.0"
   val fansi = mvn"com.lihaoyi::fansi:0.5.1"
-  val javaparser = mvn"com.github.javaparser:javaparser-core:3.28.0"
+  val javaparser = mvn"com.github.javaparser:javaparser-core:3.28.1"
   val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.16.0"
   val requests = mvn"com.lihaoyi::requests:0.9.3"
-  val logback = mvn"ch.qos.logback:logback-classic:1.5.32"
+  val logback = mvn"ch.qos.logback:logback-classic:1.5.33"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
   val kotlinVersion = "2.1.20"
   val kspVersion = "2.0.1"
@@ -303,9 +304,9 @@ object Deps {
     val ktlint_runtime = mvn"com.pinterest.ktlint:ktlint-core:0.49.1"
     val owaspDependencyCheckCli_runtime = mvn"org.owasp:dependency-check-cli:12.2.2"
     val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.90.0"
-    val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.15.0"
+    val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.24.0"
     val proguard_runtime = mvn"com.guardsquare:proguard-base:7.9.1"
-    val revApi_runtime = mvn"org.revapi:revapi-standalone:0.12.0"
+    val revApi_runtime = mvn"org.revapi:revapi-standalone:0.12.1"
     val sbtTestInterface = mvn"com.github.sbt:junit-interface:0.13.2"
 
     def updateable = Seq(

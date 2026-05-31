@@ -1,5 +1,7 @@
 package mill.javalib.zinc
 
+import mill.api.BuildCtx
+import mill.api.internal.PathAliasing
 import xsbti.VirtualFile
 
 import java.nio.charset.StandardCharsets
@@ -25,10 +27,21 @@ object PositionMapper {
     }
   }
 
+  private def readVirtualFile(vf: VirtualFile): Array[Byte] = {
+    try vf.input().readAllBytes()
+    catch {
+      case _: java.io.IOException =>
+        os.read.bytes(PathAliasing.resolveAliasedString(
+          vf.id(),
+          workspace = BuildCtx.workspaceRoot
+        ))
+    }
+  }
+
   def create(sources: Array[VirtualFile])
       : (Map[os.Path, os.Path], Option[xsbti.Position => xsbti.Position]) = {
     val buildSources0 = sources.flatMap { vf =>
-      val str = String(vf.input().readAllBytes(), StandardCharsets.UTF_8)
+      val str = String(readVirtualFile(vf), StandardCharsets.UTF_8)
       val lines = str.linesWithSeparators.toVector
       lines
         .collectFirst { case s"//SOURCECODE_ORIGINAL_FILE_PATH=$rest" => rest.trim }
@@ -38,7 +51,12 @@ object PositionMapper {
     }
 
     val map = buildSources0
-      .map { case (generated, original, _) => os.Path(generated) -> os.Path(original) }
+      // `original`/`generated` may be reproducible-build relativized paths (e.g.
+      // `../mill-workspace/build.mill`); resolve them through the alias rather than `os.Path`,
+      // which would reject a non-absolute path.
+      .map { case (generated, original, _) =>
+        PathAliasing.resolveAliasedString(generated) -> PathAliasing.resolveAliasedString(original)
+      }
       .toMap
 
     val lookupOpt = Option.when(buildSources0.nonEmpty) {

@@ -4,6 +4,7 @@ import mill.api.daemon.internal.bsp.{BspBootstrapBridge, BspServerHandle}
 import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.api.daemon.internal.{LauncherLocking, LauncherOutFiles}
+import mill.api.internal.PathAliasing
 import mill.bsp.BSP
 import mill.client.lock.Lock
 import mill.constants.OutFolderMode
@@ -24,7 +25,7 @@ import mill.internal.{
   OutputDirectoryLayout
 }
 import mill.server.Server
-import mill.util.BuildInfo
+import mill.util.{BuildInfo, Jvm}
 import mill.api
 
 import java.io.{InputStream, PrintStream, PrintWriter, StringWriter}
@@ -54,7 +55,8 @@ object MillMain0 {
    * concurrent Mill processes.
    */
   def outFileLock(out: os.Path): Lock =
-    Lock.file((out / OutFiles.millOutLock).toString)
+    // `Lock.file` opens a real file lock; the alias form would be resolved against the caller's cwd.
+    Lock.file(Jvm.realAbs(out / OutFiles.millOutLock))
 
   private[daemon] def useInProcessLauncherResources(
       hasDaemonClient: Boolean,
@@ -185,6 +187,17 @@ object MillMain0 {
                 val maybeThreadCount =
                   parseThreadCount(config.threadCountRaw, Runtime.getRuntime.availableProcessors())
 
+                // Validate `--remote-cache-filter` eagerly here so a bad selector is a clean
+                // startup error, not an exception thrown mid-build from the execution pool.
+                val remoteCacheFilterError: Option[String] =
+                  config.remoteCacheFilter.flatMap { sel =>
+                    mill.api.internal.ParseArgs.extractSegments(sel) match {
+                      case _: mill.api.Result.Success[?] => None
+                      case f: mill.api.Result.Failure =>
+                        Some(s"Invalid --remote-cache-filter \"$sel\": ${f.error}")
+                    }
+                  }
+
                 // special BSP mode, in which we spawn a server and register the current evaluator when-ever we start to eval a dedicated command
                 val bspMode = config.bsp.value && config.leftoverArgs.value.isEmpty
                 val outMode = if (bspMode) OutFolderMode.BSP else OutFolderMode.REGULAR
@@ -235,6 +248,9 @@ object MillMain0 {
                     true
                   } else if (maybeThreadCount.errorOpt.isDefined) {
                     streams.err.println(maybeThreadCount.errorOpt.get)
+                    false
+                  } else if (remoteCacheFilterError.isDefined) {
+                    streams.err.println(remoteCacheFilterError.get)
                     false
                   } else {
                     val userSpecifiedProperties =
@@ -407,6 +423,9 @@ object MillMain0 {
                                     selectiveExecution = config.watch.value,
                                     offline = config.offline.value,
                                     useFileLocks = config.useFileLocks.value,
+                                    remoteCacheLocation = config.remoteCacheLocation,
+                                    remoteCacheSalt = config.remoteCacheSalt,
+                                    remoteCacheFilter = config.remoteCacheFilter,
                                     runArtifacts = runArtifacts,
                                     metaBuild = new MetaBuildAccess(
                                       ref = sharedState,
@@ -583,8 +602,10 @@ object MillMain0 {
                               streams.err.println(err)
                               false
                             case None =>
-                              new mill.eclipse.GenEclipseImpl(runnerState.allEvaluators)
-                                .run()
+                              // Eclipse needs real absolute paths; alias forms confuse it.
+                              PathAliasing.withDefaultPathSerializer {
+                                new mill.eclipse.GenEclipseImpl(runnerState.allEvaluators).run()
+                              }
                               true
                           }
                         }

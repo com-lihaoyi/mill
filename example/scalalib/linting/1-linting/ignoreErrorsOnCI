@@ -1,0 +1,17 @@
+Disabled on CI pending an upstream fix in the third-party mill-scalafix plugin.
+
+With Mill's `out/`-reproducibility path relativization active, the `mill-scalafix`
+plugin passes a relativized working directory to scalafix:
+
+  ScalafixModule.scala:105  .withWorkingDirectory(wd.toNIO)   // wd = BuildCtx.workspaceRoot
+
+`wd.toNIO` serializes to the relativized `../mill-workspace` form, but scalafix's
+`ScalafixArgumentsImpl.withWorkingDirectory` does `require(path.isAbsolute, ...)`
+(the message text "working directory must be relative" is misworded; the check is
+`isAbsolute`), so `__.fix` fails with:
+
+  java.lang.IllegalArgumentException: requirement failed: working directory must be relative: ../mill-workspace
+
+The fix is upstream: mill-scalafix should hand scalafix an absolute path
+(`wd.wrapped` / `realAbs(wd)`) rather than `wd.toNIO`. Tracking issue:
+https://github.com/joan38/mill-scalafix/issues

@@ -20,7 +20,8 @@ import mill.api.daemon.internal.{
   TestModuleApi
 }
 import mill.api.daemon.internal.idea.{Element, IdeaConfigFile, JavaFacet, ResolvedModule}
-import mill.util.BuildInfo
+import mill.api.internal.PathAliasing
+import mill.util.{BuildInfo, Jvm}
 import org.eclipse.jgit.ignore.{FastIgnoreRule, IgnoreNode}
 import os.SubPath
 
@@ -39,26 +40,30 @@ class GenIdeaImpl(
   private val ideaDir: os.Path = workDir / ".idea"
   val ideaConfigVersion = 4
 
-  def run(): Unit = {
-    val pp = new scala.xml.PrettyPrinter(999, 4)
-    val jdkInfo = extractCurrentJdk(ideaDir / "misc.xml")
-      .getOrElse(("JDK_1_8", "1.8 (1)"))
+  def run(): Unit =
+    // IntelliJ needs real absolute filesystem paths in the generated config files; the
+    // `out/mill-workspace`/`out/mill-home` alias forms cause IntelliJ load failures and
+    // library-file name collisions.
+    PathAliasing.withDefaultPathSerializer {
+      val pp = new scala.xml.PrettyPrinter(999, 4)
+      val jdkInfo = extractCurrentJdk(ideaDir / "misc.xml")
+        .getOrElse(("JDK_1_8", "1.8 (1)"))
 
-    println("Analyzing modules ...")
-    val layout: Seq[(subPath: SubPath, xml: Node)] =
-      xmlFileLayout(evaluators, jdkInfo)
+      println("Analyzing modules ...")
+      val layout: Seq[(subPath: SubPath, xml: Node)] =
+        xmlFileLayout(evaluators, jdkInfo)
 
-    println("Cleaning obsolete IDEA project files ...")
-    os.remove.all(ideaDir / "libraries")
-    os.remove.all(ideaDir / "scala_compiler.xml")
-    os.remove.all(ideaDir / "mill_modules")
+      println("Cleaning obsolete IDEA project files ...")
+      os.remove.all(ideaDir / "libraries")
+      os.remove.all(ideaDir / "scala_compiler.xml")
+      os.remove.all(ideaDir / "mill_modules")
 
-    println(s"Writing ${layout.size} IDEA project files to ${ideaDir} ...")
-    for ((subPath = subPath, xml = xml) <- layout) {
-      println(s"Writing ${subPath} ...")
-      os.write.over(ideaDir / subPath, pp.format(xml), createFolders = true)
+      println(s"Writing ${layout.size} IDEA project files to ${ideaDir} ...")
+      for ((subPath = subPath, xml = xml) <- layout) {
+        println(s"Writing ${subPath} ...")
+        os.write.over(ideaDir / subPath, pp.format(xml), createFolders = true)
+      }
     }
-  }
 
   def extractCurrentJdk(ideaPath: os.Path): Option[(String, String)] = {
     import scala.xml.XML
@@ -182,6 +187,10 @@ class GenIdeaImpl(
 
     val allResolved: Seq[os.Path] =
       (resolvedModules.flatMap(_.scopedCpEntries).map(s => os.Path(s.path)) ++ buildDepsPaths)
+        // Canonicalize first: in reproducible-build mode the same jar can arrive via two different
+        // path forms (alias-traversing vs real), which `.distinct` would NOT collapse, producing
+        // spurious duplicate `<lib> (1).xml` library files via `pathShortLibNameDuplicate` below.
+        .map(realPath)
         .distinct
         .sorted
 
@@ -489,7 +498,9 @@ class GenIdeaImpl(
 
       val sanizedDeps: Seq[ScopedOrd[String]] = {
         resolvedModule.scopedCpEntries
-          .map(s => (lib = pathToLibName(os.Path(s.path)), scope = s.scope))
+          // Canonicalize like `allResolved` (the `pathToLibName` keys) so an alias-traversing jar
+          // path resolves to the same key as its real on-disk form.
+          .map(s => (lib = pathToLibName(realPath(os.Path(s.path))), scope = s.scope))
           .groupBy(_.lib)
           .view
           .mapValues(_.map(_.scope))
@@ -702,10 +713,16 @@ class GenIdeaImpl(
     "file://" + relForwardPath(path)
   }
 
-  private val projectDir = (workDir, "$PROJECT_DIR$/")
-  private val homeDir = (os.home, "$USER_HOME$/")
+  // Resolve through any `mill-workspace`/`mill-home` alias symlinks so `relForwardPath` /
+  // `pathToLibName` see the canonical jar location (otherwise an alias-traversing path looks
+  // project-relative when it's really a coursier-cache file under `$USER_HOME$`).
+  private val realPath: os.Path => os.Path = Jvm.realAbsResolvedPath
 
-  private def relForwardPath(path: os.Path): String = {
+  private val projectDir = (realPath(workDir), "$PROJECT_DIR$/")
+  private val homeDir = (realPath(os.home), "$USER_HOME$/")
+
+  private def relForwardPath(path0: os.Path): String = {
+    val path = realPath(path0)
 
     def forward(p: os.FilePath): String = p.toString().replace("""\""", "/")
 
@@ -913,7 +930,9 @@ class GenIdeaImpl(
 
     <module type="JAVA_MODULE" version={"" + ideaConfigVersion}>
       <component name="NewModuleRootManager">
-        <output url="file://$MODULE_DIR$/../../out/script/{scriptPath.baseName}/compile.dest"/>
+        <output url={
+      s"file://$$MODULE_DIR$$/../../out/script/${scriptPath.baseName}/compile.dest"
+    }/>
         <exclude-output />
         <content url={relUrl}>
           <sourceFolder url={relUrl} isTestSource="false"/>

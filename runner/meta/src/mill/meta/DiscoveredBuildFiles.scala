@@ -51,7 +51,7 @@ object DiscoveredBuildFiles {
         val content = os.read(s)
         val fileName = s.relativeTo(topLevelProjectRoot).toString
         val buildHeaderError =
-          try Right(mill.constants.Util.readBuildHeader(s.toNIO, s.last))
+          try Right(mill.constants.Util.readBuildHeader(s.wrapped, s.last))
           catch { case e: RuntimeException => Left(e.getMessage) }
 
         if (s.last.endsWith(".yaml")) seenScripts(s) = os.read(s)

@@ -147,7 +147,9 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
   // cache. This is slow. Look into sharing the cache between tasks.
   def runner: Task[PythonModule.Runner] = Task.Anon {
     new PythonModule.RunnerImpl(
-      command0 = pythonExe().path.toString,
+      // `Jvm.realAbs`: passed verbatim to `Runtime.exec` as the executable path; OS-level
+      // exec does not honor our spawnHook-installed cwd aliases.
+      command0 = Jvm.realAbs(pythonExe()),
       options = pythonOptions(),
       env0 = runnerEnvTask() ++ forkEnv(),
       workingDir0 = Task.dest
@@ -156,11 +158,17 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
 
   private def runnerEnvTask = Task.Anon {
     Map(
-      "PYTHONPATH" -> transitivePythonPath().map(_.path).mkString(java.io.File.pathSeparator),
-      "PYTHONPYCACHEPREFIX" -> (Task.dest / "cache").toString,
+      // `Jvm.realAbs`: python's `sys.path` entries must be absolute — python `chdir`s during
+      // imports and resolves `sys.path` lazily, so relative paths drift.
+      "PYTHONPATH" -> transitivePythonPath().map(Jvm.realAbs)
+        .mkString(java.io.File.pathSeparator),
+      // `Jvm.realAbs`: python writes cache files at this prefix from any cwd it chdirs to.
+      "PYTHONPYCACHEPREFIX" -> Jvm.realAbs(Task.dest / "cache"),
       if (Task.log.prompt.colored) { "FORCE_COLOR" -> "1" }
       else { "NO_COLOR" -> "1" }
-    )
+      // `Jvm.realAbs`: pyspark resolves `$JAVA_HOME/bin/java` via `os.path.join` (string concat),
+      // then `subprocess.Popen` resolves it against pyspark's own cwd which may differ.
+    ) ++ javaHome().map(jh => "JAVA_HOME" -> Jvm.realAbs(jh))
   }
 
   /**
@@ -172,7 +180,8 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
         // format: off
         "-m", "mypy",
         "--strict",
-        "--cache-dir", (Task.dest / "mypycache").toString,
+        // `Jvm.realAbs`: mypy stores incremental cache entries keyed by absolute path.
+        "--cache-dir", Jvm.realAbs(Task.dest / "mypycache"),
         sources().map(_.path)
         // format: on
       )
@@ -187,7 +196,8 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
   def run(args: mill.api.Args) = Task.Command {
     runner().run(
       args = (
-        mainScript().path,
+        // `Jvm.realAbs`: python records `__file__` for the entry script and uses it across chdirs.
+        Jvm.realAbs(mainScript()),
         args.value
       )
     )
@@ -210,8 +220,10 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
         env = runnerEnvTask(),
         mainArgs = backgroundPaths.toArgs ++ Seq(
           "<subprocess>",
-          pythonExe().path.toString,
-          mainScript().path.toString
+          // `Jvm.realAbs`: the background wrapper relaunches these as a detached child whose cwd
+          // is independent of this task's sandbox, so the aliases set up here aren't reachable.
+          Jvm.realAbs(pythonExe()),
+          Jvm.realAbs(mainScript())
         ) ++ args.value,
         cwd = BuildCtx.workspaceRoot,
         stdin = "",
@@ -244,16 +256,18 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
   /** Bundles the project into a single PEX executable(bundle.pex). */
   def bundle = Task {
     val pexFile = Task.dest / "bundle.pex"
+    // `Jvm.realAbs` (all three): pex bakes these paths into the bundled `.pex` archive and
+    // reads them back when the bundle runs from arbitrary user cwds.
     runner().run(
       (
         // format: off
         "-m", "pex",
         transitivePythonDeps().toSeq,
         transitivePythonPath().flatMap(pr =>
-          Seq("-D", pr.path.toString)
+          Seq("-D", Jvm.realAbs(pr))
         ),
-        "--exe", mainScript().path,
-        "-o", pexFile,
+        "--exe", Jvm.realAbs(mainScript()),
+        "-o", Jvm.realAbs(pexFile),
         bundleOptions()
         // format: on
       ),
@@ -264,6 +278,14 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
 
   trait PythonTests extends PythonModule {
     override def moduleDeps: Seq[PythonModule] = Seq(outer)
+
+    // Inherit the outer module's JDK selection so tests run on the same Java as the
+    // module under test (mirrors `JavaModule`'s nested test module). Without this,
+    // e.g. a PySpark module pinning `jvmId` would still launch tests on the default JDK.
+    override def jvmId: T[String] = outer.jvmId
+    override def jvmVersion: T[String] = outer.jvmVersion
+    override def jvmIndexVersion: T[String] = outer.jvmIndexVersion
+    override def javaHome: T[Option[PathRef]] = outer.javaHome
   }
 
 }
