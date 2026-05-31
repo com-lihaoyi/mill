@@ -44,9 +44,9 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
   /**
    * Environment variables to pass to the forked JVM.
    *
-   * Includes [[forkEnv]] and the Java-home PATH override. Mill-internal workspace and os-lib
-   * path-relativizer vars are added at the fork callsite, so they do not become part of this
-   * cached task output.
+   * Includes [[forkEnv]] and the Java-home PATH override. The workspace root comes from the
+   * inherited environment, and the os-lib path-relativizer var is added at the fork callsite, so
+   * neither becomes part of this cached task output.
    */
   def allForkEnv: T[Map[String, String]] = Task {
     javaHomePathForkEnv() ++ forkEnv()
@@ -372,13 +372,10 @@ object RunModule {
       val env = Option(forkEnv).getOrElse(forkEnv0)
       val propEnv = Option(propagateEnv).getOrElse(propagateEnv0: java.lang.Boolean)
       val inheritedEnv = if (propEnv) ctx.env else Map.empty[String, String]
-      val forkOnlyEnv = Map(
+      val processEnv = inheritedEnv ++ env + (
         EnvVars.OS_LIB_PATH_RELATIVIZER_BASE ->
-          PathAliasing.workspaceEnvVars(BuildCtx.workspaceRoot)(
-            EnvVars.OS_LIB_PATH_RELATIVIZER_BASE
-          )
+          PathAliasing.workspacePathRelativizerBase()
       )
-      val processEnv = inheritedEnv ++ env ++ forkOnlyEnv
 
       val cpPassingJarPath =
         if useCpPassingJar1 then

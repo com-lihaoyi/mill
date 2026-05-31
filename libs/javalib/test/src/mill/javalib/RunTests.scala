@@ -1,7 +1,7 @@
 package mill.javalib
 
 import mill.*
-import mill.api.{Evaluator, ExecResult}
+import mill.api.ExecResult
 import mill.api.daemon.LauncherSubprocess
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
@@ -127,8 +127,7 @@ object RunTests extends TestSuite {
 
       test("runInjectsRelativizerAtForkCallsite") - UnitTester(
         HelloJavaWithMain,
-        resourcePath,
-        env = Evaluator.defaultEnv ++ PathAliasing.workspaceEnvVars(HelloJavaWithMain.moduleDir)
+        resourcePath
       ).scoped { eval =>
         var seen: Option[LauncherSubprocess.Config] = None
 
@@ -139,11 +138,9 @@ object RunTests extends TestSuite {
         }
 
         val config = seen.get
-        val expected = PathAliasing.workspaceEnvVars(HelloJavaWithMain.moduleDir)
         assert(
-          config.env(EnvVars.MILL_WORKSPACE_ROOT) == expected(EnvVars.MILL_WORKSPACE_ROOT),
           config.env(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE) ==
-            expected(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE)
+            PathAliasing.workspacePathRelativizerBase(HelloJavaWithMain.moduleDir)
         )
       }
 

@@ -39,13 +39,14 @@ object PathAliasing {
    */
   def workspaceEnvVars(workspace: os.Path = BuildCtx.workspaceRoot): Map[String, String] = {
     val workspaceAbs = realAbs(workspace)
-    val homeAbs = realAbs(os.home)
     Map(
       EnvVars.MILL_WORKSPACE_ROOT -> workspaceAbs,
-      EnvVars.OS_LIB_PATH_RELATIVIZER_BASE ->
-        s"$workspaceAbs,../mill-workspace;$homeAbs,../mill-home"
+      EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> workspacePathRelativizerBase(workspace)
     )
   }
+
+  def workspacePathRelativizerBase(workspace: os.Path = BuildCtx.workspaceRoot): String =
+    s"${realAbs(workspace)},../mill-workspace;${realAbs(os.home)},../mill-home"
 
   private def normalize(raw: String): String = raw.replace('\\', '/')
 
