@@ -229,12 +229,10 @@ out/mill-runner-state.json
 
 > cat out/mill-invalidation-tree.json
 {
-  "foo.sources": {
-    "foo.allSources": {
-      "foo.allSourceFiles": {
-        "foo.compile": {},
-        "foo.zincIncrementalCompilation": {}
-      }
+  "foo.allSources": {
+    "foo.allSourceFiles": {
+      "foo.compile": {},
+      "foo.zincIncrementalCompilation": {}
     }
   }
 }

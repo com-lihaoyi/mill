@@ -14,8 +14,19 @@ abstract class Lock extends AutoCloseable {
   def lock(): Locked
   def tryLock(): TryLocked
 
+  def tryLockOption(): Option[TryLocked] = {
+    val tl = tryLock()
+    if (tl.isLocked) Some(tl) else None
+  }
+
   /** Returns `true` if the lock is available for taking. */
-  def probe(): Boolean
+  def probe(): Boolean =
+    tryLockOption() match {
+      case Some(tl) =>
+        tl.release()
+        true
+      case None => false
+    }
 
   def delete(): Unit = ()
 }

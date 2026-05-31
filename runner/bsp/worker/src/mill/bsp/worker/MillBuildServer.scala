@@ -436,8 +436,7 @@ private abstract class MillBuildServer(
       goals,
       reporter,
       testReporter,
-      logger,
-      serialCommandExec = false
+      logger
     )
     errorOpt(result) match {
       case None =>

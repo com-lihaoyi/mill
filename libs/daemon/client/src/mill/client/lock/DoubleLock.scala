@@ -42,14 +42,6 @@ class DoubleLock(lock1: Lock, lock2: Lock) extends Lock {
     result
   }
 
-  override def probe(): Boolean = {
-    val tl = tryLock()
-    if (tl.isLocked) {
-      tl.release()
-      true
-    } else false
-  }
-
   override def close(): Unit = {
     // Unlock the locks in the opposite order in which we originally took them
     lock2.close()

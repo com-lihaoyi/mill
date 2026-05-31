@@ -35,14 +35,6 @@ class FileLock(path: String) extends Lock {
     )
   }
 
-  override def probe(): Boolean = {
-    val tl = tryLock()
-    if (tl.isLocked) {
-      tl.release()
-      true
-    } else false
-  }
-
   override def close(): Unit = {
     chan.close()
     raf.close()

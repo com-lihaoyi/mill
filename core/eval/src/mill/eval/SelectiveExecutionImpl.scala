@@ -305,20 +305,11 @@ object SelectiveExecutionImpl {
 
       val results: Map[Task.Named[?], mill.api.Result[Val]] = transitiveNamed
         .collect { case task: Task.Input[_] =>
-          val ctx = new mill.api.TaskCtx.Impl(
-            args = Vector(),
-            dest0 = () => null,
-            log = evaluator.baseLogger,
-            _env = evaluator.env,
-            reporter = _ => None,
-            testReporter = TestReporter.DummyTestReporter,
-            workspace = evaluator.workspace,
-            _systemExitWithReason = (reason, exitCode) =>
-              throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
-            fork = null,
-            jobs = evaluator.effectiveThreadCount,
-            offline = evaluator.offline,
-            useFileLocks = evaluator.useFileLocks
+          val ctx = EvaluatorImpl.inputTaskCtx(
+            evaluator,
+            evaluator.baseLogger,
+            _ => None,
+            TestReporter.DummyTestReporter
           )
 
           task -> task.evaluate(ctx).map(Val(_))

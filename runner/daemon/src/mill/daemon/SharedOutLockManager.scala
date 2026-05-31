@@ -52,9 +52,7 @@ class SharedOutLockManager(
     if (mustAcquire) {
       val locked =
         try {
-          val tryLocked = fileLock.tryLock()
-          if (tryLocked.isLocked) tryLocked
-          else {
+          fileLock.tryLockOption().getOrElse {
             if (noWaitForBuildLock)
               // Surface as MillException so the launcher renders a clean
               // user-facing message instead of a stack trace; this is an

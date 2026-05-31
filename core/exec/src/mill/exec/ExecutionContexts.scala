@@ -78,30 +78,10 @@ object ExecutionContexts {
     }
 
     def execute(runnable: Runnable): Unit = {
-      // By default, any child task inherits the pwd and system streams from the
-      // context which submitted it
-      val submitterPwd = os.dynamicPwdFunction.value
-      val submitterChecker = os.checker.value
-      val submitterSpawnHook = os.ProcessOps.spawnHook.value
-      val submitterStreams = new mill.api.SystemStreams(Console.out, Console.err, System.in)
-      val submitterModuleWatched = mill.api.BuildCtx.watchedValues0.value
-      val submitterEvalWatched = mill.api.BuildCtx.evalWatchedValues0.value
+      val submitterContext = TaskThreadContext.capture()
       executor.execute(new PriorityRunnable(
         0,
-        () =>
-          os.checker.withValue(submitterChecker) {
-            os.dynamicPwdFunction.withValue(() => submitterPwd()) {
-              os.ProcessOps.spawnHook.withValue(submitterSpawnHook) {
-                mill.api.SystemStreamsUtils.withStreams(submitterStreams) {
-                  mill.api.BuildCtx.watchedValues0.withValue(submitterModuleWatched) {
-                    mill.api.BuildCtx.evalWatchedValues0.withValue(submitterEvalWatched) {
-                      runnable.run()
-                    }
-                  }
-                }
-              }
-            }
-          }
+        () => submitterContext.bind(runnable.run())
       ))
 
     }
@@ -123,42 +103,17 @@ object ExecutionContexts {
         ctx.log.streams.in
       )
 
-      var destInitialized: Boolean = false
-      // Lock on a fresh per-`async`-call object rather than on `this`: a single
-      // `ThreadPool` is shared by all forked bodies in an evaluation, so locking
-      // on `this` would couple unrelated tasks' `makeDest` calls. Mirrors
-      // `GroupExecution.DestCreator.makeDest`, which locks its own instance.
-      val destLock = new Object()
-      def makeDest() = destLock.synchronized {
-        if (!destInitialized) {
-          os.makeDir.all(dest)
-          destInitialized = true
-        }
-
-        dest
-      }
-      val submitterChecker = os.checker.value
-      val submitterSpawnHook = os.ProcessOps.spawnHook.value
-      val submitterModuleWatched = mill.api.BuildCtx.watchedValues0.value
-      val submitterEvalWatched = mill.api.BuildCtx.evalWatchedValues0.value
+      val lazyDest = new LazyDest(() => dest)
+      val submitterContext = TaskThreadContext.capture(
+        pwd = () => lazyDest.get(),
+        streams = logger.streams
+      )
       val promise = concurrent.Promise[T]
       val runnable = new PriorityRunnable(
         priority = priority,
         run0 = () => {
           val result = NonFatal.Try(logger.withPromptLine {
-            os.checker.withValue(submitterChecker) {
-              os.dynamicPwdFunction.withValue(() => makeDest()) {
-                os.ProcessOps.spawnHook.withValue(submitterSpawnHook) {
-                  mill.api.SystemStreamsUtils.withStreams(logger.streams) {
-                    mill.api.BuildCtx.watchedValues0.withValue(submitterModuleWatched) {
-                      mill.api.BuildCtx.evalWatchedValues0.withValue(submitterEvalWatched) {
-                        t(logger)
-                      }
-                    }
-                  }
-                }
-              }
-            }
+            submitterContext.bind(t(logger))
           })
           promise.complete(result)
         }
