@@ -959,7 +959,7 @@ node37 -> node31;
             <div class="cover">
              <div class="doc">
               <p>Environment variables to pass to the forked JVM.</p>
-              <p>Includes <a href="../javalib/TestModule.html#forkEnv-0">forkEnv</a> and the variables defined by Mill itself, including the workspace-root and os-lib path-relativizer vars so <code>run</code>/<code>test</code> subprocesses — and third-party BSP clients (IntelliJ, VS Code) that launch the process themselves off this env — can locate the workspace and load relativized paths. Their absolute paths serialize to the <code>../mill-workspace</code>/ <code>../mill-home</code> aliases, so <code>out/</code> stays reproducible.</p>
+              <p>Includes <a href="../javalib/TestModule.html#forkEnv-0">forkEnv</a>, the Java-home PATH override, and the workspace root. The os-lib path-relativizer var is added at the fork callsite, so it does not become part of this cached task output.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
