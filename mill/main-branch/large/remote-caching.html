@@ -771,7 +771,8 @@
 <p>Mill can share task outputs between builds in different folders, or even on different
 machines, via a <em>remote cache</em>. Outputs computed by one build are stored in the cache and
 transparently re-used by any other build whose inputs are unchanged, so you never need to
-compute the same thing twice across a fleet of developer machines or CI workers.</p>
+compute the same thing twice, whether across different worktrees or checkouts on the same
+machine or across a distributed fleet of developer machines or CI workers.</p>
 </div>
 <div class="paragraph">
 <p>The simplest cache backend is a plain local or shared (e.g. NFS) <em>directory</em>: point the
@@ -780,7 +781,7 @@ server to run. We enable it from the <a href="../cli/build-header.html" class="x
 applies to every command without passing <code>--remote-cache-location</code> on the command line.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-86-e05726/mill-dist-1.1.6-example-large-remotecache-1-shared-folder.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/large/remotecache/1-shared-folder">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-87-50fc6f/mill-dist-1.1.6-example-large-remotecache-1-shared-folder.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/large/remotecache/1-shared-folder">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-remote-cache-location: ~/mill-remote-cache-folder
 
@@ -836,7 +837,7 @@ Linux/x86-64 builds; see the <a href="https://github.com/buchgr/bazel-remote/rel
 for other platforms — then run it serving an HTTP cache on a local port and build against it.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-86-e05726/mill-dist-1.1.6-example-large-remotecache-2-bazel-remote.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/large/remotecache/2-bazel-remote">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-87-50fc6f/mill-dist-1.1.6-example-large-remotecache-2-bazel-remote.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/large/remotecache/2-bazel-remote">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-remote-cache-location: http://localhost:8378
 
@@ -900,7 +901,7 @@ that folder, start a stock Apache with the config, and point <code>mill-remote-c
 it in the build header.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-86-e05726/mill-dist-1.1.6-example-large-remotecache-3-apache-httpd.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/large/remotecache/3-apache-httpd">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-87-50fc6f/mill-dist-1.1.6-example-large-remotecache-3-apache-httpd.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/large/remotecache/3-apache-httpd">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-remote-cache-location: http://localhost:8379
 
@@ -1003,17 +1004,30 @@ same trust boundary. A common safe topology is to grant write access only to tru
 (e.g. main-branch builds) while letting developer laptops and PR builds read from it.</p>
 </li>
 <li>
-<p><strong>Not every task benefits from remote caching.</strong> Some tasks are faster to recompute locally
-than to fetch over the network, and Mill caches at a whole-task granularity, where each
-task&#8217;s output directory is a single cache entry. Use <code>--remote-cache-filter</code> to target the
-expensive, high-reuse tasks such as <code>__.compile</code> where caching pays off.</p>
+<p><strong>Not every cacheable task benefits from remote caching.</strong> Some tasks are faster to
+recompute locally than to fetch over the network, and Mill caches at a whole-task
+granularity, where each task&#8217;s output directory is a single cache entry. Use
+<code>--remote-cache-filter</code> to target expensive, high-reuse tasks such as <code>__.compile</code>
+where caching pays off.</p>
 </li>
 <li>
-<p><strong>Persistent tasks are cached, but many task types are not.</strong> Persistent tasks like <code>compile</code>,
-whose <code>dest/</code> holds incremental-compiler state, do participate, since sharing compiled
-output is the primary use case; a remote miss leaves their local <code>dest/</code> intact so an
-incremental recompute can still re-use it. <code>Task.Input</code>, <code>Task.Command</code>, <code>Task.Worker</code>, and
-other non-cached task types are never sent to the remote cache.</p>
+<p><strong>Only declared output paths are restored from <code>Task.dest</code>.</strong> For custom tasks, remote
+caching restores files and directories under <code>Task.dest</code> that are returned as <code>PathRef`s
+by the task. Incidental files written to `Task.dest</code> by a task returning a plain value,
+such as a <code>String</code> or <code>Int</code>, are not portable through the remote cache even if the task&#8217;s
+value itself is served from cache. If downstream tasks or users need those files, make sure
+the returned value contains the `PathRef`s pointing at them, e.g. as fields of a case class
+or members of a tuple or named tuple.</p>
+</li>
+<li>
+<p><strong>Only cacheable task types participate.</strong> Normal cached tasks and persistent tasks,
+including <code>compile</code> tasks whose <code>dest/</code> holds incremental-compiler state, can be
+stored in and restored from the remote cache. A remote miss leaves a persistent
+task&#8217;s local <code>dest/</code> intact so an incremental recompute can still re-use it.
+Side-effecting task types such as <code>Task.Input</code>, <code>Task.Command</code>, <code>Task.Worker</code>, and
+other non-cached tasks are never sent to the remote cache. This means commands like
+<code>run</code> or <code>testForked</code> may still execute even when their upstream <code>compile</code>, link, or
+environment-setup tasks are remote-cache hits.</p>
 </li>
 </ul>
 </div>
