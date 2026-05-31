@@ -372,24 +372,18 @@ trait GroupExecution {
           leaseTracker = leaseTracker,
           executionContext = executionContext
         )
-        val cachePipeline = TaskCachePipeline(
-          paths = paths,
-          cacheEntry = cacheEntry,
-          labelled = labelled,
-          inputsHash = inputsHash,
-          hasSideEffects = hasSideEffects,
-          logger = logger,
-          versionMismatchReasons = versionMismatchReasons,
-          remoteLocation = remoteCacheTarget(labelled),
-          remoteCacheSalt = remoteCacheSalt,
-          workspace = workspace
-        )
+        val remoteLocation = remoteCacheTarget(labelled)
 
         // Helper to evaluate the task with full caching support
         def evaluateTaskWithCaching(): GroupExecution.Results = {
           // For side-effecting tasks (Task.Input/Source/...), keep the previously stored
           // `valueHash` for `valueHashChanged` comparison but drop the cached value so
           // re-evaluation actually re-reads the filesystem/env state.
+          def readLocal(): Option[TaskCacheEntry.Loaded] =
+            cacheEntry
+              .read(logger, inputsHash, labelled, versionMismatchReasons)
+              .map(cached => if (hasSideEffects) cached.copy(valueOpt = None) else cached)
+
           def loadCachedOrWorker(
               cached: Option[TaskCacheEntry.Loaded],
               closeStaleWorker: Boolean
@@ -431,7 +425,7 @@ trait GroupExecution {
 
           taskLocks.readThenWrite { scope =>
             loadCachedOrWorker(
-              cachePipeline.readLocal(),
+              readLocal(),
               closeStaleWorker = false
             ) match {
               case Some(res) =>
@@ -441,7 +435,7 @@ trait GroupExecution {
                 LockUpgrade.Decision.Escalate
             }
           } { scope =>
-            val localCached = cachePipeline.readLocal()
+            val localCached = readLocal()
             // Closing a stale worker here runs its user `close()` under
             // `GroupExecution.wrap`, which permits reads of upstream `dest/`
             // via `upstreamPathRefs`. Guard those reads with active-consumer
@@ -459,11 +453,22 @@ trait GroupExecution {
             // `dest/`/`log`/`meta` is safe; a poisoned entry re-reads as a miss and is recomputed
             // by the `None` branch below.
             val remoteMaterialized =
-              localReusable.isEmpty && cachePipeline.loadRemote(taskLocks)
+              localReusable.isEmpty && remoteLocation.exists { location =>
+                taskLocks.blockingOnPool {
+                  BazelRemoteCache.load(
+                    paths,
+                    inputsHash,
+                    labelled.ctx.segments.render,
+                    location,
+                    remoteCacheSalt,
+                    workspace
+                  )
+                }
+              }
 
             // After a remote materialization, re-read the now-present `meta.json` and reuse
             // the same `loadCachedOrWorker` path as a local hit instead of duplicating it.
-            val cached = if (remoteMaterialized) cachePipeline.readLocal() else localCached
+            val cached = if (remoteMaterialized) readLocal() else localCached
             val reusableResultOpt =
               if (remoteMaterialized) loadCachedOrWorker(cached, closeStaleWorker = false)
               else localReusable
@@ -527,7 +532,19 @@ trait GroupExecution {
                       val (valueHash, serializedPaths) =
                         handleTaskResult(v, cacheEntry, inputsHash, labelled)
                       // Push freshly-computed outputs to the remote cache for other machines.
-                      cachePipeline.storeRemote(serializedPaths, taskLocks)
+                      remoteLocation.foreach { location =>
+                        taskLocks.blockingOnPool {
+                          BazelRemoteCache.store(
+                            paths,
+                            inputsHash,
+                            labelled.ctx.segments.render,
+                            location,
+                            remoteCacheSalt,
+                            serializedPaths,
+                            workspace
+                          )
+                        }
+                      }
                       // Reuse `handleTaskResult`'s hash (derived from the JSON it writes) as the
                       // terminal's downstream value hash too — the `0` placeholder stored by
                       // `executeGroup` is patched here — so cache and downstream consumers agree

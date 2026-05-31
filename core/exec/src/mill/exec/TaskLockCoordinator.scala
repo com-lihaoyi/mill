@@ -19,15 +19,12 @@ private[exec] final class TaskLockCoordinator(
   // `blocking` for paths that can park so the pool can spawn a compensating worker.
   def blockingOnPool[T](t: => T): T = executionContext.blocking(t)
 
-  private def blockingIfDroppedReads(t: => Unit): Unit =
-    if (leaseTracker.hasDropped) blockingOnPool(t)
-
   // Any successful task-lock acquisition must validate reads that were
   // dropped during an earlier contended wait before evaluation continues.
   // This path may block, so only call it when we are not holding a task
   // Write lease. Guard on `hasDropped` to avoid no-op fast-path pool churn.
   private def reacquireDroppedReads(): Unit =
-    blockingIfDroppedReads {
+    if (leaseTracker.hasDropped) blockingOnPool {
       leaseTracker.reacquireDropped(workspaceLocking, waitReporter)
     }
 
