@@ -36,7 +36,7 @@ private[exec] final class TaskLockCoordinator(
   // non-blocking try-locks. A writer that performs a blocking task-lock
   // acquire can wait on another writer while retaining its own Write
   // lease, reintroducing the retained-read/write cycle this logic avoids.
-  def tryReacquireDroppedReads(): Unit =
+  private def tryReacquireDroppedReads(): Unit =
     leaseTracker.reacquireDropped(workspaceLocking, waitReporter, block = false)
 
   private def validateDroppedReads(lease: LauncherLocking.Lease): LauncherLocking.Lease =

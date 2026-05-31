@@ -259,6 +259,24 @@ trait GroupExecution {
     staticBuildOverrides.get(segs).orElse(dynamicBuildOverride.get(segs))
   }
 
+  private enum ValueSource {
+    case Computed
+    case Appended(located: Located[Appendable[BufferedValue]])
+    case Replaced(located: Located[Appendable[BufferedValue]])
+
+    def inputs(named: Task.Named[?]): Seq[Task[?]] = this match {
+      case Replaced(_) => Nil
+      case _ => named.inputs
+    }
+  }
+
+  private def valueSourceFor(named: Task.Named[?]): ValueSource =
+    buildOverrideFor(named) match {
+      case Some(located) if located.value.append => ValueSource.Appended(located)
+      case Some(located) => ValueSource.Replaced(located)
+      case None => ValueSource.Computed
+    }
+
   /**
    * Returns the inputs Mill should walk for `task`. A `Task.Named` whose value
    * is supplied entirely by a non-`!append` YAML config override returns `Nil`,
@@ -268,10 +286,7 @@ trait GroupExecution {
    */
   private[mill] def effectiveInputs(task: Task[?]): Seq[Task[?]] = task match {
     case named: Task.Named[?] =>
-      buildOverrideFor(named) match {
-        case Some(located) if !located.value.append => Nil
-        case _ => named.inputs
-      }
+      valueSourceFor(named).inputs(named)
     case _ => task.inputs
   }
 
@@ -331,7 +346,7 @@ trait GroupExecution {
         val out = if (!labelled.ctx.external) outPath else externalOutPath
         val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
         val cacheEntry = TaskCacheEntry(paths, classLoaderSigHash)
-        val buildOverrideOpt = buildOverrideFor(labelled)
+        val valueSource = valueSourceFor(labelled)
 
         // Helper to create a cached result (no evaluation occurred)
         def cachedResult(
@@ -357,25 +372,26 @@ trait GroupExecution {
           leaseTracker = leaseTracker,
           executionContext = executionContext
         )
+        val cachePipeline = TaskCachePipeline(
+          paths = paths,
+          cacheEntry = cacheEntry,
+          labelled = labelled,
+          inputsHash = inputsHash,
+          hasSideEffects = hasSideEffects,
+          logger = logger,
+          versionMismatchReasons = versionMismatchReasons,
+          remoteLocation = remoteCacheTarget(labelled),
+          remoteCacheSalt = remoteCacheSalt,
+          workspace = workspace
+        )
 
         // Helper to evaluate the task with full caching support
         def evaluateTaskWithCaching(): GroupExecution.Results = {
           // For side-effecting tasks (Task.Input/Source/...), keep the previously stored
           // `valueHash` for `valueHashChanged` comparison but drop the cached value so
           // re-evaluation actually re-reads the filesystem/env state.
-          def loadCached(): Option[(Int, Option[(Val, Seq[PathRef])], Int)] =
-            cacheEntry
-              .read(logger, inputsHash, labelled, versionMismatchReasons)
-              .map { cached =>
-                (
-                  cached.previousInputsHash,
-                  if (hasSideEffects) None else cached.valueOpt,
-                  cached.valueHash
-                )
-              }
-
           def loadCachedOrWorker(
-              cached: Option[(Int, Option[(Val, Seq[PathRef])], Int)],
+              cached: Option[TaskCacheEntry.Loaded],
               closeStaleWorker: Boolean
           ): Option[GroupExecution.Results] = {
             val (multiLogger, _) = resolveLogger(Some(paths.log), logger)
@@ -402,10 +418,10 @@ trait GroupExecution {
                 Nil
               )
             }.orElse(
-              cached.flatMap { case (_, valOpt, valueHash) =>
-                valOpt.map { case (v, serializedPaths) =>
+              cached.flatMap { local =>
+                local.valueOpt.map { case (v, serializedPaths) =>
                   cachedResult(
-                    ExecResult.Success((v, valueHash)),
+                    ExecResult.Success((v, local.valueHash)),
                     serializedPaths
                   )
                 }
@@ -415,7 +431,7 @@ trait GroupExecution {
 
           taskLocks.readThenWrite { scope =>
             loadCachedOrWorker(
-              loadCached(),
+              cachePipeline.readLocal(),
               closeStaleWorker = false
             ) match {
               case Some(res) =>
@@ -425,7 +441,7 @@ trait GroupExecution {
                 LockUpgrade.Decision.Escalate
             }
           } { scope =>
-            val localCached = loadCached()
+            val localCached = cachePipeline.readLocal()
             // Closing a stale worker here runs its user `close()` under
             // `GroupExecution.wrap`, which permits reads of upstream `dest/`
             // via `upstreamPathRefs`. Guard those reads with active-consumer
@@ -443,22 +459,11 @@ trait GroupExecution {
             // `dest/`/`log`/`meta` is safe; a poisoned entry re-reads as a miss and is recomputed
             // by the `None` branch below.
             val remoteMaterialized =
-              localReusable.isEmpty && remoteCacheTarget(labelled).exists { location =>
-                taskLocks.blockingOnPool {
-                  BazelRemoteCache.load(
-                    paths,
-                    inputsHash,
-                    labelled.ctx.segments.render,
-                    location,
-                    remoteCacheSalt,
-                    workspace
-                  )
-                }
-              }
+              localReusable.isEmpty && cachePipeline.loadRemote(taskLocks)
 
             // After a remote materialization, re-read the now-present `meta.json` and reuse
             // the same `loadCachedOrWorker` path as a local hit instead of duplicating it.
-            val cached = if (remoteMaterialized) loadCached() else localCached
+            val cached = if (remoteMaterialized) cachePipeline.readLocal() else localCached
             val reusableResultOpt =
               if (remoteMaterialized) loadCachedOrWorker(cached, closeStaleWorker = false)
               else localReusable
@@ -522,19 +527,7 @@ trait GroupExecution {
                       val (valueHash, serializedPaths) =
                         handleTaskResult(v, cacheEntry, inputsHash, labelled)
                       // Push freshly-computed outputs to the remote cache for other machines.
-                      remoteCacheTarget(labelled).foreach { location =>
-                        taskLocks.blockingOnPool {
-                          BazelRemoteCache.store(
-                            paths,
-                            inputsHash,
-                            labelled.ctx.segments.render,
-                            location,
-                            remoteCacheSalt,
-                            serializedPaths,
-                            workspace
-                          )
-                        }
-                      }
+                      cachePipeline.storeRemote(serializedPaths, taskLocks)
                       // Reuse `handleTaskResult`'s hash (derived from the JSON it writes) as the
                       // terminal's downstream value hash too — the `0` placeholder stored by
                       // `executeGroup` is patched here — so cache and downstream consumers agree
@@ -565,8 +558,8 @@ trait GroupExecution {
                     ) GroupExecution.CacheStatus.NotApplicable
                     else GroupExecution.CacheStatus.Recomputed,
                   inputsHash = inputsHash,
-                  previousInputsHash = cached.map(_._1).getOrElse(-1),
-                  valueHashChanged = !cached.map(_._3).contains(valueHash),
+                  previousInputsHash = cached.map(_.previousInputsHash).getOrElse(-1),
+                  valueHashChanged = !cached.map(_.valueHash).contains(valueHash),
                   serializedPaths = serializedPaths
                 )
             }
@@ -618,12 +611,8 @@ trait GroupExecution {
           cachedResult(execRes, serializedPaths)
         }
 
-        // Three-way conditional:
-        // 1. Build override only (!append): just evaluate YAML
-        // 2. Both (append): evaluate task with caching, evaluate YAML, merge
-        // 3. Task only (no override): evaluate task with caching
-        buildOverrideOpt match {
-          case Some(appendLocated) if appendLocated.value.append =>
+        valueSource match {
+          case ValueSource.Appended(appendLocated) =>
             val taskResults = evaluateTaskWithCaching()
 
             // Check if task evaluation failed - if so, propagate the failure
@@ -655,11 +644,9 @@ trait GroupExecution {
               case _ => taskResults
             }
 
-          // Build override only (no append)
-          case Some(appendLocated) => evaluateBuildOverrideOnly(appendLocated)
+          case ValueSource.Replaced(appendLocated) => evaluateBuildOverrideOnly(appendLocated)
 
-          // Task only (no build override)
-          case None => evaluateTaskWithCaching()
+          case ValueSource.Computed => evaluateTaskWithCaching()
         }
       case _ =>
         // Non-Named terminals acquire no task lock of their own, so unlike the

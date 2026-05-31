@@ -10,9 +10,9 @@ import java.util.concurrent.atomic.AtomicLong
  * evaluating the meta-build or individual tasks without conflicting with each other
  */
 private[mill] class LauncherLockRegistry {
-  private val metaBuildLocks = new ConcurrentHashMap[Int, CrossThreadRwLock]()
-  private val taskLocks = new ConcurrentHashMap[String, CrossThreadRwLock]()
-  private val taskVersions = new ConcurrentHashMap[String, java.lang.Long]()
+  import LauncherLockRegistry.{LockCell, LockKey}
+
+  private val locks = new ConcurrentHashMap[LockKey, LockCell]()
   private val taskWriteVersion = new AtomicLong(0L)
 
   // Single daemon-wide lock guarding "globally exclusive" command execution. Read leases
@@ -21,29 +21,38 @@ private[mill] class LauncherLockRegistry {
   // (`Task.Command(globalExclusive = true)`, e.g. `clean`) so they run alone across all
   // launchers.
   val exclusiveLock: CrossThreadRwLock =
-    new CrossThreadRwLock(
-      label = "exclusive",
-      showLabelInMessage = true,
-      syntheticPrefix = Seq("exclusive-lock")
+    lockFor(
+      LockKey.Exclusive,
+      new CrossThreadRwLock(
+        label = "exclusive",
+        showLabelInMessage = true,
+        syntheticPrefix = Seq("exclusive-lock")
+      )
     )
 
-  def metaBuildLockFor(depth: Int): CrossThreadRwLock =
-    metaBuildLocks.computeIfAbsent(
-      depth,
-      LauncherLockRegistry.makeMetaBuildLock
+  def metaBuildLockFor(depth: Int): CrossThreadRwLock = {
+    val prefix = LauncherLockRegistry.metaBuildPromptPrefix(depth)
+    lockFor(
+      LockKey.MetaBuild(depth),
+      new CrossThreadRwLock(
+        label = prefix.headOption.getOrElse(""),
+        showLabelInMessage = false,
+        syntheticPrefix = prefix
+      )
     )
+  }
 
   def taskLockFor(
       normalizedAbsolutePath: String,
       displayLabel: String
   ): CrossThreadRwLock =
-    taskLocks.computeIfAbsent(
-      normalizedAbsolutePath,
-      _ => CrossThreadRwLock(label = displayLabel, showLabelInMessage = false)
+    lockFor(
+      LockKey.Task(normalizedAbsolutePath),
+      CrossThreadRwLock(label = displayLabel, showLabelInMessage = false)
     )
 
   def taskVersion(normalizedAbsolutePath: String): Long =
-    Option(taskVersions.get(normalizedAbsolutePath)).fold(0L)(_.longValue())
+    Option(locks.get(LockKey.Task(normalizedAbsolutePath))).fold(0L)(_.version.get())
 
   def markTaskWritten(normalizedAbsolutePath: String): Long = {
     // Bump even when a rewrite produces byte-identical files. Dropped-read
@@ -51,22 +60,41 @@ private[mill] class LauncherLockRegistry {
     // chance to rewrite this output, restart rather than comparing directory
     // contents while task locks are in flux.
     val version = taskWriteVersion.incrementAndGet()
-    taskVersions.put(normalizedAbsolutePath, java.lang.Long.valueOf(version))
+    cellFor(LockKey.Task(normalizedAbsolutePath)).version.set(version)
     version
   }
+
+  private def lockFor(key: LockKey, makeLock: => CrossThreadRwLock): CrossThreadRwLock =
+    cellFor(key).lock(makeLock)
+
+  private def cellFor(key: LockKey): LockCell =
+    locks.computeIfAbsent(key, _ => LockCell())
 }
 
 private[mill] object LauncherLockRegistry {
+  sealed private trait LockKey
+  private object LockKey {
+    final case class MetaBuild(depth: Int) extends LockKey
+    final case class Task(normalizedAbsolutePath: String) extends LockKey
+    case object Exclusive extends LockKey
+  }
 
-  private val makeMetaBuildLock: java.util.function.Function[Int, CrossThreadRwLock] =
-    (depth: Int) => {
-      val prefix = metaBuildPromptPrefix(depth)
-      new CrossThreadRwLock(
-        label = prefix.headOption.getOrElse(""),
-        showLabelInMessage = false,
-        syntheticPrefix = prefix
-      )
+  private final class LockCell {
+    @volatile private var lock0: CrossThreadRwLock = null
+    val version: AtomicLong = new AtomicLong(0L)
+
+    def lock(makeLock: => CrossThreadRwLock): CrossThreadRwLock = {
+      val existing = lock0
+      if (existing != null) existing
+      else this.synchronized {
+        if (lock0 == null) lock0 = makeLock
+        lock0
+      }
     }
+  }
+  private object LockCell {
+    def apply(): LockCell = new LockCell
+  }
 
   /**
    * Mirrors `MillBuildBootstrap.bootLogPrefix(depth)` so wait messages and
