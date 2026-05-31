@@ -73,15 +73,7 @@ object PathAliasing {
         }
         if (raw == alias) Some(base)
         else if (raw.startsWith(alias + "/")) Some(resolve(raw.drop(alias.length)))
-        else {
-          val needle = s"/$alias"
-          val idx = raw.indexOf(needle)
-          if (idx >= 0) {
-            val suffix = raw.drop(idx + needle.length)
-            if (suffix.isEmpty || suffix.startsWith("/")) Some(resolve(suffix))
-            else None
-          } else None
-        }
+        else None
       }
 
       fromAlias(raw, workspaceAlias, workspace)

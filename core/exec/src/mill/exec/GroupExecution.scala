@@ -5,7 +5,7 @@ import mill.api.*
 import mill.api.daemon.Segment
 import mill.api.daemon.internal.LauncherLocking
 import mill.api.daemon.internal.NonFatal
-import mill.api.internal.{Appendable, Cached, Located, ParseArgs, PathAliasing}
+import mill.api.internal.{Appendable, Located, ParseArgs, PathAliasing}
 import mill.internal.{CodeSigUtils, FileLogger, LockUpgrade, MultiLogger, PromptWaitReporter}
 
 import java.lang.reflect.Method
@@ -39,7 +39,7 @@ trait GroupExecution {
 
   /**
    * Tracks tasks invalidated due to version/classloader mismatch, with the reason string.
-   * Populated by loadCachedJson, used by ExecutionLogs.logInvalidationTree.
+   * Populated by TaskCacheEntry reads, used by ExecutionLogs.logInvalidationTree.
    */
   def versionMismatchReasons: java.util.concurrent.ConcurrentHashMap[Task[?], String]
 
@@ -247,12 +247,6 @@ trait GroupExecution {
     rec(upickle.core.BufferedValue.transform(json, ujson.Value))
   }
 
-  // Key off the JVM *version*, not its install *path*, so the remote-cache key (via `inputsHash`)
-  // stays machine-independent while still partitioning distinct JVM versions.
-  val javaVersionHash = sys.props("java.version").hashCode
-
-  val invalidateAllHashes = classLoaderSigHash + javaVersionHash
-
   /**
    * The build-override entry for `named`, with static (YAML build-file) overrides taking
    * precedence over dynamic (module-level) ones. `moduleDynamicBuildOverrides` is bound to a
@@ -329,13 +323,14 @@ trait GroupExecution {
           .flatten
       )
 
-      externalInputsHash + sideHashes + scriptsHash + invalidateAllHashes
+      externalInputsHash + sideHashes + scriptsHash
     }
 
     terminal match {
       case labelled: Task.Named[_] =>
         val out = if (!labelled.ctx.external) outPath else externalOutPath
         val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
+        val cacheEntry = TaskCacheEntry(paths, classLoaderSigHash)
         val buildOverrideOpt = buildOverrideFor(labelled)
 
         // Helper to create a cached result (no evaluation occurred)
@@ -453,9 +448,14 @@ trait GroupExecution {
           // `valueHash` for `valueHashChanged` comparison but drop the cached value so
           // re-evaluation actually re-reads the filesystem/env state.
           def loadCached(): Option[(Int, Option[(Val, Seq[PathRef])], Int)] =
-            loadCachedJson(logger, inputsHash, labelled, paths)
-              .map { case (prevInputsHash, valOpt, valueHash) =>
-                (prevInputsHash, if (hasSideEffects) None else valOpt, valueHash)
+            cacheEntry
+              .read(logger, inputsHash, labelled, versionMismatchReasons)
+              .map { cached =>
+                (
+                  cached.previousInputsHash,
+                  if (hasSideEffects) None else cached.valueOpt,
+                  cached.valueHash
+                )
               }
 
           def loadCachedOrWorker(
@@ -622,7 +622,7 @@ trait GroupExecution {
                   newResults(labelled) match {
                     case ExecResult.Success((v, _)) =>
                       val (valueHash, serializedPaths) =
-                        handleTaskResult(v, paths.meta, inputsHash, labelled)
+                        handleTaskResult(v, cacheEntry, inputsHash, labelled)
                       // Push freshly-computed outputs to the remote cache for other machines.
                       remoteCacheTarget(labelled).foreach { location =>
                         blockingOnPool {
@@ -712,8 +712,7 @@ trait GroupExecution {
               evaluateBuildOverride(located, labelled) match {
                 case Right(yamlValue) =>
                   val (data, serializedPaths) = PathRef.withSerializedPaths { yamlValue }
-                  writeCacheJson(
-                    paths.meta,
+                  cacheEntry.write(
                     upickle.core.BufferedValue.transform(located.value.value, ujson.Value),
                     data.##,
                     inputsHash + located.value.value.##
@@ -949,7 +948,7 @@ trait GroupExecution {
    */
   private def handleTaskResult(
       v: Val,
-      metaPath: os.Path,
+      cacheEntry: TaskCacheEntry,
       inputsHash: Int,
       labelled: Task.Named[?]
   ): (Int, Seq[PathRef]) = {
@@ -973,30 +972,12 @@ trait GroupExecution {
       case Some((json, serializedPaths)) =>
         val valueHash =
           if (labelled.isInstanceOf[Task.Worker[?]]) inputsHash
-          else json.hashCode() + invalidateAllHashes
-        writeCacheJson(metaPath, json, valueHash, inputsHash)
+          else json.hashCode()
+        cacheEntry.write(json, valueHash, inputsHash)
         (valueHash, serializedPaths)
       case _ =>
         (getValueHash(v, labelled, inputsHash), Nil)
     }
-  }
-
-  def writeCacheJson(metaPath: os.Path, json: ujson.Value, hashCode: Int, inputsHash: Int) = {
-    os.write.over(
-      metaPath,
-      upickle.stream(
-        Cached(
-          json,
-          hashCode,
-          inputsHash,
-          millVersion = mill.constants.BuildInfo.millVersion,
-          millJvmVersion = sys.props("java.version"),
-          classLoaderSigHash = classLoaderSigHash
-        ),
-        indent = 4
-      ),
-      createFolders = true
-    )
   }
 
   def resolveLogger(
@@ -1015,61 +996,6 @@ trait GroupExecution {
         (multiLogger, Some(fileLogger))
     }
 
-  private def loadCachedJson(
-      logger: Logger,
-      inputsHash: Int,
-      labelled: Task.Named[?],
-      paths: ExecutionPaths
-  ): Option[(Int, Option[(Val, Seq[PathRef])], Int)] = {
-    for {
-      cached <-
-        // `.wrapped.toFile`: upickle/Files needs a real on-disk path; `.toIO` would yield
-        // the relativized `../mill-workspace/...` alias form in reproducible mode.
-        try Some(upickle.read[Cached](paths.meta.wrapped.toFile, trace = false))
-        catch { case NonFatal(_) => None }
-    } yield {
-      // Check for version/classloader mismatch - treat as cache miss if they differ
-      def checkMatch[T](cachedValue: T, currentValue: T, reasonName: String): Boolean = {
-        val matches = cachedValue == currentValue
-        if (!matches) {
-          versionMismatchReasons.putIfAbsent(labelled, s"$reasonName:$cachedValue->$currentValue")
-        }
-        matches
-      }
-
-      val currentMillVersion = mill.constants.BuildInfo.millVersion
-      val currentJvmVersion = sys.props("java.version")
-      val millVersionMatches =
-        checkMatch(cached.millVersion, currentMillVersion, "mill-version-changed")
-      val jvmVersionMatches =
-        checkMatch(cached.millJvmVersion, currentJvmVersion, "mill-jvm-version-changed")
-      val classLoaderMatches =
-        checkMatch(cached.classLoaderSigHash, classLoaderSigHash, "classpath-changed")
-
-      (
-        cached.inputsHash,
-        for {
-          _ <- Option.when(
-            cached.inputsHash == inputsHash && millVersionMatches && jvmVersionMatches && classLoaderMatches
-          )(())
-          reader <- labelled.readWriterOpt
-          (parsed, serializedPaths) <-
-            try Some(PathRef.withSerializedPaths(upickle.read(cached.value, trace = false)(using
-                reader
-              )))
-            catch {
-              case e: PathRef.PathRefValidationException =>
-                logger.debug(
-                  s"$labelled: re-evaluating; ${e.getMessage}"
-                )
-                None
-              case NonFatal(_) => None
-            }
-        } yield (Val(parsed), serializedPaths),
-        cached.valueHash
-      )
-    }
-  }
 
   def getValueHash(v: Val, task: Task[?], inputsHash: Int): Int = {
     if (task.isInstanceOf[Task.Worker[?]]) inputsHash
@@ -1095,7 +1021,7 @@ trait GroupExecution {
           }
         case _ => v.##
       }
-      base + invalidateAllHashes
+      base
     }
   }
 
