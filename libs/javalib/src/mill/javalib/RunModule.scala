@@ -372,16 +372,11 @@ object RunModule {
       val env = Option(forkEnv).getOrElse(forkEnv0)
       val propEnv = Option(propagateEnv).getOrElse(propagateEnv0: java.lang.Boolean)
       val inheritedEnv = if (propEnv) ctx.env else Map.empty[String, String]
-      val workspaceEnv = ctx.env.get(EnvVars.MILL_WORKSPACE_ROOT).iterator
-        .map(EnvVars.MILL_WORKSPACE_ROOT -> _)
-        .toMap
-      val workspaceRoot = workspaceEnv
-        .get(EnvVars.MILL_WORKSPACE_ROOT)
-        .map(os.Path(_, os.pwd))
-        .getOrElse(BuildCtx.workspaceRoot)
-      val forkOnlyEnv = workspaceEnv ++ Map(
+      val forkOnlyEnv = Map(
         EnvVars.OS_LIB_PATH_RELATIVIZER_BASE ->
-          PathAliasing.workspaceEnvVars(workspaceRoot)(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE)
+          PathAliasing.workspaceEnvVars(BuildCtx.workspaceRoot)(
+            EnvVars.OS_LIB_PATH_RELATIVIZER_BASE
+          )
       )
       val processEnv = inheritedEnv ++ env ++ forkOnlyEnv
 
