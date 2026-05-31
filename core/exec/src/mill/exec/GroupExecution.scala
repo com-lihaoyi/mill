@@ -140,7 +140,7 @@ trait GroupExecution {
     // (in reproducible mode) compare equal to their real on-disk form. Both sides of the
     // `startsWith`/`==` checks below must be canonicalized, else a workspace under a symlinked
     // prefix (e.g. macOS `/tmp` -> `/private/tmp`) would silently fail to match.
-    def canonical(p: os.Path): os.Path = PathAliasing.canonicalize(p)
+    def canonical(p: os.Path): os.Path = PathRef.realAbsResolvedPath(p)
     val canonicalWorkspace = canonical(workspace)
     val canonicalRootBuildYaml =
       canonical(os.Path(rootModule.moduleDirJava) / os.up / "build.mill.yaml")
@@ -259,24 +259,6 @@ trait GroupExecution {
     staticBuildOverrides.get(segs).orElse(dynamicBuildOverride.get(segs))
   }
 
-  private enum ValueSource {
-    case Computed
-    case Appended(located: Located[Appendable[BufferedValue]])
-    case Replaced(located: Located[Appendable[BufferedValue]])
-
-    def inputs(named: Task.Named[?]): Seq[Task[?]] = this match {
-      case Replaced(_) => Nil
-      case _ => named.inputs
-    }
-  }
-
-  private def valueSourceFor(named: Task.Named[?]): ValueSource =
-    buildOverrideFor(named) match {
-      case Some(located) if located.value.append => ValueSource.Appended(located)
-      case Some(located) => ValueSource.Replaced(located)
-      case None => ValueSource.Computed
-    }
-
   /**
    * Returns the inputs Mill should walk for `task`. A `Task.Named` whose value
    * is supplied entirely by a non-`!append` YAML config override returns `Nil`,
@@ -286,7 +268,10 @@ trait GroupExecution {
    */
   private[mill] def effectiveInputs(task: Task[?]): Seq[Task[?]] = task match {
     case named: Task.Named[?] =>
-      valueSourceFor(named).inputs(named)
+      buildOverrideFor(named) match {
+        case Some(located) if !located.value.append => Nil
+        case _ => named.inputs
+      }
     case _ => task.inputs
   }
 
@@ -346,7 +331,7 @@ trait GroupExecution {
         val out = if (!labelled.ctx.external) outPath else externalOutPath
         val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
         val cacheEntry = TaskCacheEntry(paths, classLoaderSigHash)
-        val valueSource = valueSourceFor(labelled)
+        val buildOverrideOpt = buildOverrideFor(labelled)
 
         // Helper to create a cached result (no evaluation occurred)
         def cachedResult(
@@ -628,8 +613,8 @@ trait GroupExecution {
           cachedResult(execRes, serializedPaths)
         }
 
-        valueSource match {
-          case ValueSource.Appended(appendLocated) =>
+        buildOverrideOpt match {
+          case Some(appendLocated) if appendLocated.value.append =>
             val taskResults = evaluateTaskWithCaching()
 
             // Check if task evaluation failed - if so, propagate the failure
@@ -661,9 +646,9 @@ trait GroupExecution {
               case _ => taskResults
             }
 
-          case ValueSource.Replaced(appendLocated) => evaluateBuildOverrideOnly(appendLocated)
+          case Some(appendLocated) => evaluateBuildOverrideOnly(appendLocated)
 
-          case ValueSource.Computed => evaluateTaskWithCaching()
+          case None => evaluateTaskWithCaching()
         }
       case _ =>
         // Non-Named terminals acquire no task lock of their own, so unlike the

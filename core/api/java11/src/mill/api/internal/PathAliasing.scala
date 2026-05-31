@@ -1,6 +1,6 @@
 package mill.api.internal
 
-import mill.api.BuildCtx
+import mill.api.{BuildCtx, PathRef}
 import mill.constants.EnvVars
 
 import java.nio.file.{Files, LinkOption}
@@ -8,24 +8,6 @@ import java.nio.file.{Files, LinkOption}
 object PathAliasing {
   val workspaceAlias = "../mill-workspace"
   val homeAlias = "../mill-home"
-
-  def realAbsPath(p: os.Path): java.nio.file.Path = p.wrapped.toAbsolutePath.normalize()
-  def realAbs(p: os.Path): String = realAbsPath(p).toString
-
-  def realAbsResolved(p: os.Path): String =
-    try p.wrapped.toRealPath().toString
-    catch { case _: java.io.IOException => realAbs(p) }
-
-  /**
-   * Resolve `p` to its real on-disk form (following symlinks), falling back to `p` unchanged when
-   * it does not exist or cannot be resolved. Use to canonicalize paths that may arrive via the
-   * `mill-workspace`/`mill-home` alias symlinks (or platform-level symlinks such as macOS
-   * `/tmp` -> `/private/tmp`) before comparing them with `==`/`startsWith`. Resolves against
-   * `.wrapped` (the real absolute path), never the relativized alias form.
-   */
-  def canonicalize(p: os.Path): os.Path =
-    try os.Path(p.wrapped.toRealPath())
-    catch { case _: java.io.IOException => p }
 
   /**
    * The standard Mill (abs, alias) mappings (`workspace -> ../mill-workspace`, `home -> ../mill-home`)
@@ -43,7 +25,7 @@ object PathAliasing {
    * round-trip through the same aliases the daemon uses).
    */
   def workspaceEnvVars(workspace: os.Path = BuildCtx.workspaceRoot): Map[String, String] = {
-    val workspaceAbs = realAbs(workspace)
+    val workspaceAbs = PathRef.realAbs(workspace)
     Map(
       EnvVars.MILL_WORKSPACE_ROOT -> workspaceAbs,
       EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> workspacePathRelativizerBase(workspace)
@@ -51,7 +33,7 @@ object PathAliasing {
   }
 
   def workspacePathRelativizerBase(workspace: os.Path = BuildCtx.workspaceRoot): String =
-    s"${realAbs(workspace)},../mill-workspace;${realAbs(os.home)},../mill-home"
+    s"${PathRef.realAbs(workspace)},../mill-workspace;${PathRef.realAbs(os.home)},../mill-home"
 
   private def normalize(raw: String): String = raw.replace('\\', '/')
 
