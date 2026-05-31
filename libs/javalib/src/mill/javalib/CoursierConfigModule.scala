@@ -75,10 +75,6 @@ trait CoursierConfigModule extends Module {
     private def readFrom(env: Map[String, String], props: Map[String, String]): EnvValues =
       EnvValues(env.get(entry.envName), props.get(entry.propName))
 
-  // `coursierEnv` derives from this, so a `COURSIER_REPOSITORIES` `file://` repo path doesn't leak.
-  private given upickle.ReadWriter[Map[String, String]] =
-    mill.api.JsonFormatters.aliasedStringMapRW
-
   /**
    * Environment variables and Java properties, and their values, used by coursier
    */

@@ -25,8 +25,6 @@
       "workingDirectory": "/workspace",
       "environmentVariables": {
         "PATH": "...",
-        "MILL_WORKSPACE_ROOT": "/workspace",
-        "OS_LIB_PATH_RELATIVIZER_BASE": "/workspace,/workspace;/user-home,/user-home",
         "MILL_TEST_RESOURCE_DIR": "/workspace/app/test/resources"
       },
       "mainClasses": [
@@ -61,8 +59,6 @@
       "workingDirectory": "/workspace",
       "environmentVariables": {
         "PATH": "...",
-        "MILL_WORKSPACE_ROOT": "/workspace",
-        "OS_LIB_PATH_RELATIVIZER_BASE": "/workspace,/workspace;/user-home,/user-home",
         "MILL_TEST_RESOURCE_DIR": "/workspace/hello-java/test/resources"
       },
       "mainClasses": [
@@ -98,8 +94,6 @@
       "workingDirectory": "/workspace",
       "environmentVariables": {
         "PATH": "...",
-        "MILL_WORKSPACE_ROOT": "/workspace",
-        "OS_LIB_PATH_RELATIVIZER_BASE": "/workspace,/workspace;/user-home,/user-home",
         "MILL_TEST_RESOURCE_DIR": "/workspace/hello-scala/test/resources"
       },
       "mainClasses": [
@@ -145,8 +139,6 @@
       "workingDirectory": "/workspace",
       "environmentVariables": {
         "PATH": "...",
-        "MILL_WORKSPACE_ROOT": "/workspace",
-        "OS_LIB_PATH_RELATIVIZER_BASE": "/workspace,/workspace;/user-home,/user-home",
         "MILL_TEST_RESOURCE_DIR": "/workspace/scripts/folder2/FooTest.java/resources"
       },
       "mainClasses": [

@@ -16,6 +16,7 @@ import mill.util.Jvm
 import mill.{Args, T}
 import os.{Path, ProcessOutput}
 import mill.api.internal.PathAliasing
+import mill.constants.EnvVars
 
 /**
  * Trait that provides the functionality around running JVM code: forked in subprocesses via [[run]],
@@ -35,10 +36,6 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
    */
   def forkArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
-  // So the env tasks below don't leak absolute `PATH` entries into `out/`.
-  private given upickle.ReadWriter[Map[String, String]] =
-    mill.api.JsonFormatters.aliasedStringMapRW
-
   /**
    * Any environment variables you want to pass to the forked JVM.
    */
@@ -47,14 +44,14 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
   /**
    * Environment variables to pass to the forked JVM.
    *
-   * Includes [[forkEnv]] and the variables defined by Mill itself, including the workspace-root and
-   * os-lib path-relativizer vars so `run`/`test` subprocesses — and third-party BSP clients
-   * (IntelliJ, VS Code) that launch the process themselves off this env — can locate the workspace
-   * and load relativized paths. Their absolute paths serialize to the `../mill-workspace`/
-   * `../mill-home` aliases, so `out/` stays reproducible.
+   * Includes [[forkEnv]], the Java-home PATH override, and the workspace root. The os-lib
+   * path-relativizer var is added at the fork callsite, so it does not become part of this cached
+   * task output.
    */
   def allForkEnv: T[Map[String, String]] = Task {
-    javaHomePathForkEnv() ++ forkEnv() ++ PathAliasing.workspaceEnvVars()
+    javaHomePathForkEnv() ++ forkEnv() ++ Map(
+      EnvVars.MILL_WORKSPACE_ROOT -> BuildCtx.workspaceRoot.toString
+    )
   }
 
   def javaHomePathForkEnv: T[Map[String, String]] = Task {
@@ -375,8 +372,13 @@ object RunModule {
         case None => useCpPassingJar0
       }
       val env = Option(forkEnv).getOrElse(forkEnv0)
-
       val propEnv = Option(propagateEnv).getOrElse(propagateEnv0: java.lang.Boolean)
+      val inheritedEnv = if (propEnv) ctx.env else Map.empty[String, String]
+      val processEnv = inheritedEnv ++ env + (
+        EnvVars.OS_LIB_PATH_RELATIVIZER_BASE ->
+          PathAliasing.workspacePathRelativizerBase()
+      )
+
       val cpPassingJarPath =
         if useCpPassingJar1 then
           Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false))
@@ -401,7 +403,7 @@ object RunModule {
             mainClass = mainClass1,
             classPath = classPath,
             jvmArgs = jvmArgs,
-            env = (if (propEnv) ctx.env else Map()) ++ env,
+            env = processEnv,
             mainArgs = mainArgs,
             cwd = cwd,
             stdin = "",
@@ -417,7 +419,7 @@ object RunModule {
             mainClass = mainClass1,
             classPath = classPath,
             jvmArgs = jvmArgs,
-            env = (if (propEnv) ctx.env else Map()) ++ env,
+            env = processEnv,
             mainArgs = mainArgs,
             cwd = cwd,
             cpPassingJarPath = cpPassingJarPath,
