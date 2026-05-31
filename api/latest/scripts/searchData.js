@@ -1282,7 +1282,6 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/client/lock/DoubleLock.html#","e":false,"i":"","n":"DoubleLock","t":"DoubleLock(lock1: Lock, lock2: Lock) extends Lock","d":"mill.client.lock","k":"class","x":""},
 {"l":"mill/client/lock/FileLock.html#","e":false,"i":"","n":"FileLock","t":"FileLock(path: String) extends Lock","d":"mill.client.lock","k":"class","x":""},
 {"l":"mill/client/lock/Lock.html#","e":false,"i":"","n":"Lock","t":"Lock extends AutoCloseable","d":"mill.client.lock","k":"class","x":""},
-{"l":"mill/client/lock/Lock.html#await-94c","e":false,"i":"","n":"await","t":"await(): Unit","d":"mill.client.lock.Lock","k":"def","x":""},
 {"l":"mill/client/lock/Lock.html#delete-94c","e":false,"i":"","n":"delete","t":"delete(): Unit","d":"mill.client.lock.Lock","k":"def","x":""},
 {"l":"mill/client/lock/Lock.html#lock-fffffabc","e":false,"i":"","n":"lock","t":"lock(): Locked","d":"mill.client.lock.Lock","k":"def","x":""},
 {"l":"mill/client/lock/Lock.html#probe-fffff760","e":false,"i":"","n":"probe","t":"probe(): Boolean","d":"mill.client.lock.Lock","k":"def","x":""},
