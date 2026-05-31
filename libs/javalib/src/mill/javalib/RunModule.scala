@@ -35,6 +35,10 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
    */
   def forkArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
+  // So the env tasks below don't leak absolute `PATH` entries into `out/`.
+  private given upickle.ReadWriter[Map[String, String]] =
+    mill.api.JsonFormatters.aliasedStringMapRW
+
   /**
    * Any environment variables you want to pass to the forked JVM.
    */
@@ -43,10 +47,14 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
   /**
    * Environment variables to pass to the forked JVM.
    *
-   * Includes [[forkEnv]] and the variables defined by Mill itself.
+   * Includes [[forkEnv]] and the variables defined by Mill itself, including the workspace-root and
+   * os-lib path-relativizer vars so `run`/`test` subprocesses — and third-party BSP clients
+   * (IntelliJ, VS Code) that launch the process themselves off this env — can locate the workspace
+   * and load relativized paths. Their absolute paths serialize to the `../mill-workspace`/
+   * `../mill-home` aliases, so `out/` stays reproducible.
    */
   def allForkEnv: T[Map[String, String]] = Task {
-    javaHomePathForkEnv() ++ forkEnv() ++ PathAliasing.workspaceEnvVars(env = Task.env)
+    javaHomePathForkEnv() ++ forkEnv() ++ PathAliasing.workspaceEnvVars()
   }
 
   def javaHomePathForkEnv: T[Map[String, String]] = Task {

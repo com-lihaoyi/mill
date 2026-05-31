@@ -97,6 +97,23 @@ trait JsonFormatters {
 }
 
 object JsonFormatters extends JsonFormatters {
+
+  /**
+   * [[PathAliasing.aliasPathsInString]] applied to a `Map[String, String]`'s values. Lives on the
+   * object (not the [[JsonFormatters]] trait) so a task opts in per-definition rather than aliasing
+   * every `Map[String, String]`, and so adding it doesn't break the trait's binary compatibility.
+   */
+  val aliasedStringMapRW: RW[Map[String, String]] = {
+    // Pass `null` values through untouched — e.g. a YAML `forkEnv` entry with a `null` value
+    // deserializes to a `null` here before it is later dropped, and the alias replacement would NPE.
+    def mapValues(f: String => String)(m: Map[String, String]): Map[String, String] =
+      m.view.mapValues(v => if (v == null) v else f(v)).toMap
+    upickle.readwriter[Map[String, String]].bimap[Map[String, String]](
+      mapValues(PathAliasing.aliasPathsInString),
+      mapValues(PathAliasing.unaliasPathsInString)
+    )
+  }
+
   object Default {
     val subPathRW: RW[os.SubPath] =
       upickle.readwriter[String].bimap[os.SubPath](_.toString, os.SubPath(_))

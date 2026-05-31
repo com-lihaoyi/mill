@@ -38,28 +38,31 @@ object PathAliasing {
    * round-trip through the same aliases the daemon uses).
    */
   def workspaceEnvVars(workspace: os.Path = BuildCtx.workspaceRoot): Map[String, String] = {
-    workspaceEnvVars(workspace, sys.env)
-  }
-
-  def workspaceEnvVars(env: Map[String, String]): Map[String, String] = {
-    workspaceEnvVars(BuildCtx.workspaceRoot, env)
-  }
-
-  def workspaceEnvVars(
-      workspace: os.Path,
-      env: Map[String, String]
-  ): Map[String, String] = {
     val workspaceAbs = realAbs(workspace)
     val homeAbs = realAbs(os.home)
-    val workspaceVars = Map(
+    Map(
       EnvVars.MILL_WORKSPACE_ROOT -> workspaceAbs,
       EnvVars.OS_LIB_PATH_RELATIVIZER_BASE ->
         s"$workspaceAbs,../mill-workspace;$homeAbs,../mill-home"
     )
-    if (env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).contains("")) workspaceVars -
-      EnvVars.OS_LIB_PATH_RELATIVIZER_BASE
-    else workspaceVars
   }
+
+  private def stringAliasPairs: Seq[(String, String)] = Seq(
+    realAbs(BuildCtx.workspaceRoot) -> workspaceAlias,
+    realAbs(os.home) -> homeAlias
+  )
+
+  /**
+   * Replace absolute workspace/home prefixes in `s` with the `../mill-workspace`/`../mill-home`
+   * aliases, for path-bearing env var strings that bypass the `os.Path` relativizing serializer.
+   * Inverse of [[unaliasPathsInString]].
+   */
+  def aliasPathsInString(s: String): String =
+    stringAliasPairs.foldLeft(s) { case (acc, (abs, alias)) => acc.replace(abs, alias) }
+
+  /** Inverse of [[aliasPathsInString]]. */
+  def unaliasPathsInString(s: String): String =
+    stringAliasPairs.foldLeft(s) { case (acc, (abs, alias)) => acc.replace(alias, abs) }
 
   private def normalize(raw: String): String = raw.replace('\\', '/')
 

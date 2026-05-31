@@ -316,6 +316,10 @@ trait TestModule
    */
   def testSandboxWorkingDir: T[Boolean] = true
 
+  // As `RunModule`, so the absolute `MILL_TEST_RESOURCE_DIR` added below doesn't leak into `out/`.
+  private given upickle.ReadWriter[Map[String, String]] =
+    mill.api.JsonFormatters.aliasedStringMapRW
+
   override def allForkEnv: T[Map[String, String]] = Task {
     super.allForkEnv() ++ Map(
       // `Jvm.realAbs`: test code does `os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))` — the

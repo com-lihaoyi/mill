@@ -165,7 +165,7 @@ final class TestModuleUtil(
         mainClass = "mill.javalib.testrunner.entrypoint.MillTestRunnerMain",
         classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
-        env = inheritedEnv ++ forkEnv ++ PathAliasing.workspaceEnvVars(env = inheritedEnv),
+        env = inheritedEnv ++ forkEnv,
         mainArgs = Seq(testRunnerClasspathArg, argsFile.wrapped.toString),
         cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
         cpPassingJarPath = Option.when(useArgsFile)(
