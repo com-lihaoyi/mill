@@ -57,7 +57,12 @@ class MillServerLauncher(
       log(s"runWithConnection exit code: $result")
       result
     } finally {
+      // `launched.close()` closes the socket; `locks.close()` frees the file
+      // channels/handles eagerly opened by `Locks.forDirectory`, which the lock
+      // `release()`s do not. Guard each so a failure in one still attempts the other.
       try launched.close()
+      catch { case _: Exception => }
+      try locks.close()
       catch { case _: Exception => }
     }
   }

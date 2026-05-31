@@ -237,8 +237,7 @@ case class Execution(
         s"$completedMsg$keySuffix$extraKeySuffix${Execution.formatFailedCount(rootFailedCount.get(), completed, logger.prompt.errorColor, logger.prompt.successColor)}"
       }
 
-      val tasksTransitive =
-        PlanImpl.transitiveTasks(Seq.from(indexToTerminal), effectiveInputs).toSet
+      val tasksTransitive = plan.transitive.toSet
       val downstreamEdges: Map[Task[?], Set[Task[?]]] =
         tasksTransitive.flatMap(t => effectiveInputs(t).map(_ -> t)).groupMap(_._1)(_._2)
 
@@ -829,7 +828,10 @@ object Execution {
           )
       }
       out.addOne(
-        terminal -> deps.toVector.sortBy(t => terminalOrder.getOrElse(t, Int.MaxValue))
+        // Every dep is a `Task.Named` (asserted above) and, under the sole caller, a
+        // grouping cut point, so it is always a `terminalOrder` key; index directly so a
+        // real grouping inconsistency throws loudly rather than sorting an unknown dep last.
+        terminal -> deps.toVector.sortBy(t => terminalOrder(t))
       )
     }
     out.result()

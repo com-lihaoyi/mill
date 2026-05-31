@@ -24,6 +24,14 @@ object ExecutionContexts {
     def close(): Unit = () // do nothing
 
     def blocking[T](t: => T): T = t
+    // Under `--jobs=1`, `Fork.async` routes here and runs the body inline on the
+    // parent thread, sharing the parent's `os.pwd` and system streams. Unlike
+    // `ThreadPool.async`, this does NOT relocate `os.pwd` into the `dest` sandbox
+    // folder, does NOT materialize `dest`, and does NOT write a per-future
+    // `dest.log` or add a terminal prompt line. The pwd-sandbox-in-`dest` +
+    // per-future `dest.log` contract documented on [[mill.api.TaskCtx.Fork.async]]
+    // is therefore not honored here; only the value of the body is surfaced
+    // through the returned `Future`.
     def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(using
         ctx: mill.api.TaskCtx
     ): Future[T] =
@@ -74,6 +82,7 @@ object ExecutionContexts {
       // context which submitted it
       val submitterPwd = os.dynamicPwdFunction.value
       val submitterChecker = os.checker.value
+      val submitterSpawnHook = os.ProcessOps.spawnHook.value
       val submitterStreams = new mill.api.SystemStreams(Console.out, Console.err, System.in)
       val submitterModuleWatched = mill.api.BuildCtx.watchedValues0.value
       val submitterEvalWatched = mill.api.BuildCtx.evalWatchedValues0.value
@@ -82,10 +91,12 @@ object ExecutionContexts {
         () =>
           os.checker.withValue(submitterChecker) {
             os.dynamicPwdFunction.withValue(() => submitterPwd()) {
-              mill.api.SystemStreamsUtils.withStreams(submitterStreams) {
-                mill.api.BuildCtx.watchedValues0.withValue(submitterModuleWatched) {
-                  mill.api.BuildCtx.evalWatchedValues0.withValue(submitterEvalWatched) {
-                    runnable.run()
+              os.ProcessOps.spawnHook.withValue(submitterSpawnHook) {
+                mill.api.SystemStreamsUtils.withStreams(submitterStreams) {
+                  mill.api.BuildCtx.watchedValues0.withValue(submitterModuleWatched) {
+                    mill.api.BuildCtx.evalWatchedValues0.withValue(submitterEvalWatched) {
+                      runnable.run()
+                    }
                   }
                 }
               }
@@ -113,7 +124,12 @@ object ExecutionContexts {
       )
 
       var destInitialized: Boolean = false
-      def makeDest() = synchronized {
+      // Lock on a fresh per-`async`-call object rather than on `this`: a single
+      // `ThreadPool` is shared by all forked bodies in an evaluation, so locking
+      // on `this` would couple unrelated tasks' `makeDest` calls. Mirrors
+      // `GroupExecution.DestCreator.makeDest`, which locks its own instance.
+      val destLock = new Object()
+      def makeDest() = destLock.synchronized {
         if (!destInitialized) {
           os.makeDir.all(dest)
           destInitialized = true
@@ -122,6 +138,7 @@ object ExecutionContexts {
         dest
       }
       val submitterChecker = os.checker.value
+      val submitterSpawnHook = os.ProcessOps.spawnHook.value
       val submitterModuleWatched = mill.api.BuildCtx.watchedValues0.value
       val submitterEvalWatched = mill.api.BuildCtx.evalWatchedValues0.value
       val promise = concurrent.Promise[T]
@@ -131,10 +148,12 @@ object ExecutionContexts {
           val result = NonFatal.Try(logger.withPromptLine {
             os.checker.withValue(submitterChecker) {
               os.dynamicPwdFunction.withValue(() => makeDest()) {
-                mill.api.SystemStreamsUtils.withStreams(logger.streams) {
-                  mill.api.BuildCtx.watchedValues0.withValue(submitterModuleWatched) {
-                    mill.api.BuildCtx.evalWatchedValues0.withValue(submitterEvalWatched) {
-                      t(logger)
+                os.ProcessOps.spawnHook.withValue(submitterSpawnHook) {
+                  mill.api.SystemStreamsUtils.withStreams(logger.streams) {
+                    mill.api.BuildCtx.watchedValues0.withValue(submitterModuleWatched) {
+                      mill.api.BuildCtx.evalWatchedValues0.withValue(submitterEvalWatched) {
+                        t(logger)
+                      }
                     }
                   }
                 }
