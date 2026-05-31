@@ -89,20 +89,20 @@ object RunTests extends TestSuite {
     }
 
     test("forkRun") {
-      test("allForkEnvDoesNotCacheMillWorkspaceEnv") - UnitTester(
+      test("allForkEnvCachesWorkspaceRootButNotRelativizerBase") - UnitTester(
         HelloJavaWithMain,
         resourcePath
       ).scoped { eval =>
         val Right(first) = eval.apply(HelloJavaWithMain.app.allForkEnv).runtimeChecked
         assert(
-          !first.value.contains(EnvVars.MILL_WORKSPACE_ROOT),
+          first.value(EnvVars.MILL_WORKSPACE_ROOT) == HelloJavaWithMain.moduleDir.toString,
           !first.value.contains(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE)
         )
 
         val Right(second) = eval.apply(HelloJavaWithMain.app.allForkEnv).runtimeChecked
         assert(
           second.evalCount == 0,
-          !second.value.contains(EnvVars.MILL_WORKSPACE_ROOT),
+          second.value(EnvVars.MILL_WORKSPACE_ROOT) == HelloJavaWithMain.moduleDir.toString,
           !second.value.contains(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE)
         )
       }
@@ -139,6 +139,7 @@ object RunTests extends TestSuite {
 
         val config = seen.get
         assert(
+          config.env(EnvVars.MILL_WORKSPACE_ROOT) == HelloJavaWithMain.moduleDir.toString,
           config.env(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE) ==
             PathAliasing.workspacePathRelativizerBase(HelloJavaWithMain.moduleDir)
         )

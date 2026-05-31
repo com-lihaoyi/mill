@@ -44,12 +44,14 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
   /**
    * Environment variables to pass to the forked JVM.
    *
-   * Includes [[forkEnv]] and the Java-home PATH override. The workspace root comes from the
-   * inherited environment, and the os-lib path-relativizer var is added at the fork callsite, so
-   * neither becomes part of this cached task output.
+   * Includes [[forkEnv]], the Java-home PATH override, and the workspace root. The os-lib
+   * path-relativizer var is added at the fork callsite, so it does not become part of this cached
+   * task output.
    */
   def allForkEnv: T[Map[String, String]] = Task {
-    javaHomePathForkEnv() ++ forkEnv()
+    javaHomePathForkEnv() ++ forkEnv() ++ Map(
+      EnvVars.MILL_WORKSPACE_ROOT -> BuildCtx.workspaceRoot.toString
+    )
   }
 
   def javaHomePathForkEnv: T[Map[String, String]] = Task {
