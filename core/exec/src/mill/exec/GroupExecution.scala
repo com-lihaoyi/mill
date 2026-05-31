@@ -996,7 +996,6 @@ trait GroupExecution {
         (multiLogger, Some(fileLogger))
     }
 
-
   def getValueHash(v: Val, task: Task[?], inputsHash: Int): Int = {
     if (task.isInstanceOf[Task.Worker[?]]) inputsHash
     else {
