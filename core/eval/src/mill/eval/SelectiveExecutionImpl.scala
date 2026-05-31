@@ -16,10 +16,25 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       transitiveNamed: Seq[Task.Named[?]],
       codeSignatures: Map[String, Int]
   ): Map[String, Int] = {
-
     val (classToTransitiveClasses, allTransitiveClassMethods) =
       CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
+    computeHashCodeSignatures0(
+      transitiveNamed,
+      classToTransitiveClasses,
+      allTransitiveClassMethods,
+      codeSignatures
+    )
+  }
 
+  // The method-name table (`classToTransitiveClasses`/`allTransitiveClassMethods`) is a
+  // reflective function of `transitiveNamed` alone, so callers that diff two `codeSignatures`
+  // maps over the same `transitiveNamed` precompute it once and reuse it across both calls.
+  private def computeHashCodeSignatures0(
+      transitiveNamed: Seq[Task.Named[?]],
+      classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
+      allTransitiveClassMethods: Map[Class[?], Map[String, java.lang.reflect.Method]],
+      codeSignatures: Map[String, Int]
+  ): Map[String, Int] = {
     lazy val constructorHashSignatures = CodeSigUtils
       .constructorHashSignatures(codeSignatures)
 
@@ -85,9 +100,23 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
         }
 
         val changedInputNames = diffMap(oldHashes.inputHashes, newHashes.inputHashes)
+        // Precompute the reflection-heavy method-name table once: it depends only on
+        // `transitiveNamed`, so reuse it for both the old and new `codeSignatures` diff.
+        val (classToTransitiveClasses, allTransitiveClassMethods) =
+          CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
         val changedCodeNames = diffMap(
-          computeHashCodeSignatures(transitiveNamed, oldHashes.codeSignatures),
-          computeHashCodeSignatures(transitiveNamed, newHashes.codeSignatures)
+          computeHashCodeSignatures0(
+            transitiveNamed,
+            classToTransitiveClasses,
+            allTransitiveClassMethods,
+            oldHashes.codeSignatures
+          ),
+          computeHashCodeSignatures0(
+            transitiveNamed,
+            classToTransitiveClasses,
+            allTransitiveClassMethods,
+            newHashes.codeSignatures
+          )
         )
         val changedBuildOverrides = diffMap(
           oldHashes.buildOverrideSignatures,

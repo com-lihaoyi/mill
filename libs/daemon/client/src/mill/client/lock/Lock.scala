@@ -13,7 +13,6 @@ trait TryLocked extends Locked {
 abstract class Lock extends AutoCloseable {
   def lock(): Locked
   def tryLock(): TryLocked
-  def await(): Unit = lock().release()
 
   /** Returns `true` if the lock is available for taking. */
   def probe(): Boolean
