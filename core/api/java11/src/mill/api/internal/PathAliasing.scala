@@ -23,9 +23,9 @@ object PathAliasing {
     catch { case _: java.io.IOException => p }
 
   /**
-   * The standard Mill (abs, alias) mappings: `workspace -> ../mill-workspace`, `home -> ../mill-home`.
-   * Suitable for `os.Path.pathRemapSerializerNio` (after `.toNIO`-ing each side) and for
-   * [[ensureProcessCwdAliases]]'s symlink installation.
+   * The standard Mill (abs, alias) mappings (`workspace -> ../mill-workspace`, `home -> ../mill-home`)
+   * used by [[ensureProcessCwdAliases]] to install the `../mill-workspace` / `../mill-home`
+   * forwarder symlinks.
    */
   def defaultMapping(workspace: os.Path): Seq[(os.Path, os.RelPath)] = Seq(
     workspace -> (os.up / "mill-workspace"),
@@ -66,16 +66,6 @@ object PathAliasing {
 
   private def normalize(raw: String): String = raw.replace('\\', '/')
 
-  private def resolveFromAlias(
-      base: os.Path,
-      raw: String,
-      aliasIdx: Int,
-      alias: String
-  ): os.Path = {
-    val suffix = raw.substring(aliasIdx + alias.length).stripPrefix("/")
-    if (suffix.isEmpty) base else base / os.RelPath(suffix)
-  }
-
   def resolveAliasedString(
       rawInput: String,
       workspace: os.Path = BuildCtx.workspaceRoot,
@@ -86,15 +76,20 @@ object PathAliasing {
     else {
       val raw = normalize(rawInput)
       def fromAlias(raw: String, alias: String, base: os.Path): Option[os.Path] = {
+        // `base` plus the path suffix following the alias segment, with a leading separator
+        // stripped; an empty suffix resolves to `base` itself.
+        def resolve(suffix: String): os.Path = {
+          val rel = suffix.stripPrefix("/")
+          if (rel.isEmpty) base else base / os.RelPath(rel)
+        }
         if (raw == alias) Some(base)
-        else if (raw.startsWith(alias + "/")) Some(base / os.RelPath(raw.drop(alias.length + 1)))
+        else if (raw.startsWith(alias + "/")) Some(resolve(raw.drop(alias.length)))
         else {
           val needle = s"/$alias"
           val idx = raw.indexOf(needle)
           if (idx >= 0) {
             val suffix = raw.drop(idx + needle.length)
-            if (suffix.isEmpty || suffix.startsWith("/"))
-              Some(resolveFromAlias(base, raw, idx + 1, alias))
+            if (suffix.isEmpty || suffix.startsWith("/")) Some(resolve(suffix))
             else None
           } else None
         }

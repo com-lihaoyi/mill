@@ -254,6 +254,18 @@ trait GroupExecution {
   val invalidateAllHashes = classLoaderSigHash + javaVersionHash
 
   /**
+   * The build-override entry for `named`, with static (YAML build-file) overrides taking
+   * precedence over dynamic (module-level) ones. `moduleDynamicBuildOverrides` is bound to a
+   * `val` so it is evaluated eagerly (it recomputes and can throw on a malformed header), which
+   * is what both call sites rely on.
+   */
+  private def buildOverrideFor(named: Task.Named[?]): Option[Located[Appendable[BufferedValue]]] = {
+    val segs = named.ctx.segments.render
+    val dynamicBuildOverride = named.ctx.enclosingModule.moduleDynamicBuildOverrides
+    staticBuildOverrides.get(segs).orElse(dynamicBuildOverride.get(segs))
+  }
+
+  /**
    * Returns the inputs Mill should walk for `task`. A `Task.Named` whose value
    * is supplied entirely by a non-`!append` YAML config override returns `Nil`,
    * because that override short-circuits the task body in
@@ -262,10 +274,7 @@ trait GroupExecution {
    */
   private[mill] def effectiveInputs(task: Task[?]): Seq[Task[?]] = task match {
     case named: Task.Named[?] =>
-      val segs = named.ctx.segments.render
-      val dynamicBuildOverride = named.ctx.enclosingModule.moduleDynamicBuildOverrides
-      val overrideOpt = staticBuildOverrides.get(segs).orElse(dynamicBuildOverride.get(segs))
-      overrideOpt match {
+      buildOverrideFor(named) match {
         case Some(located) if !located.value.append => Nil
         case _ => named.inputs
       }
@@ -327,9 +336,7 @@ trait GroupExecution {
       case labelled: Task.Named[_] =>
         val out = if (!labelled.ctx.external) outPath else externalOutPath
         val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
-        val dynamicBuildOverride = labelled.ctx.enclosingModule.moduleDynamicBuildOverrides
-        val buildOverrideOpt = staticBuildOverrides.get(labelled.ctx.segments.render)
-          .orElse(dynamicBuildOverride.get(labelled.ctx.segments.render))
+        val buildOverrideOpt = buildOverrideFor(labelled)
 
         // Helper to create a cached result (no evaluation occurred)
         def cachedResult(
@@ -457,7 +464,7 @@ trait GroupExecution {
               cached: Option[(Int, Option[(Val, Seq[PathRef])], Int)],
               closeStaleWorker: Boolean
           ): Option[GroupExecution.Results] = {
-            val (multiLogger, _) = resolveLogger(Some(paths).map(_.log), logger)
+            val (multiLogger, _) = resolveLogger(Some(paths.log), logger)
             val upToDateWorker = loadUpToDateWorker(
               logger = logger,
               inputsHash = inputsHash,

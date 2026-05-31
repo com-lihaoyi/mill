@@ -15,7 +15,6 @@ import scala.xml.Elem
 import scala.collection.mutable
 import mill.api.Logger
 
-import java.util.concurrent.ConcurrentHashMap
 import mill.api.BuildCtx
 import mill.javalib.api.internal.ZincOp
 import mill.javalib.testrunner.{TestArgs, TestResult, TestRunnerUtils}
@@ -200,7 +199,7 @@ final class TestModuleUtil(
     // test-classes folder is used to store the test classes for the children test runners to claim from
     val testClassQueueFolder = base / "test-classes"
     os.makeDir.all(testClassQueueFolder)
-    selectors2.zipWithIndex.foreach { case (s, _) =>
+    selectors2.foreach { s =>
       os.write.over(testClassQueueFolder / s, Array.empty[Byte])
     }
     testClassQueueFolder
@@ -230,7 +229,7 @@ final class TestModuleUtil(
       // In non-parallel mode, each group uses a single shared folder, so only spawn one
       // runner per group.
       val subprocessFutures = for {
-        ((group, testClassQueueFolder), _) <- groupFolderData.zipWithIndex.toVector
+        (group, testClassQueueFolder) <- groupFolderData.toVector
         groupFolder = group.folder
         numTests = group.testClasses.length
         (processCount, maxProcessLength) = jobsProcessLength(filteredClassCount, numTests)
@@ -360,7 +359,7 @@ final class TestModuleUtil(
       if (testParallelism && filteredClassCount != 1) groupFolder / workerLabel
       else groupFolder
 
-    val resultPath = processFolder / s"result.log"
+    val resultPath = processFolder / "result.log"
     os.write.over(resultPath, upickle.write((0L, 0L)), createFolders = true)
     val label =
       if (groupCount == 1) paddedProcessIndex
@@ -385,8 +384,6 @@ final class TestModuleUtil(
 
     processFolder -> fork {
       logger =>
-        val testClassTimeMap = new ConcurrentHashMap[String, Long]()
-
         val claimFolder = processFolder / "claim"
         os.makeDir.all(claimFolder)
 
@@ -412,7 +409,7 @@ final class TestModuleUtil(
           var seenLines = 0
           callTestRunnerSubprocess(
             processFolder,
-            processFolder / "result.log",
+            resultPath,
             Right((startingTestClass, testClassQueueFolder, claimFolder)),
             () => {
               val lines = os.read.lines(claimLog)
@@ -420,7 +417,6 @@ final class TestModuleUtil(
                 case s"CLAIM $currentTestClass $nanoTime0" =>
                   val nanoTime = nanoTime0.toLong
                   logger.prompt.logBeginChromeProfileEntry(currentTestClass, nanoTime)
-                  testClassTimeMap.putIfAbsent(currentTestClass, nanoTime)
                   currentTestClassNanoTime = Some(currentTestClass -> nanoTime)
                 case s"COMPLETED $nanoTime" =>
                   logger.prompt.logEndChromeProfileEntry(nanoTime.toLong)
