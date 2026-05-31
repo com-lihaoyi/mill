@@ -127,7 +127,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
           (changedInputNames ++ changedCodeNames ++ changedBuildOverrides ++ oldHashes.forceRunTasks)
             .flatMap(namesToTasks.get(_): Option[Task[?]])
 
-        val allNodes = breadthFirst(transitiveNamed.map(t => t: Task[?]))(_.selectiveInputs)
+        val allNodes = breadthFirst(allTasks)(_.selectiveInputs)
         val downstreamEdgeMap =
           SpanningForest.reverseEdges(allNodes.map(t => (t, t.selectiveInputs)))
 

@@ -493,7 +493,7 @@ object Task {
 
     def readWriterOpt: Option[upickle.ReadWriter[?]] = None
 
-    def writerOpt: Option[upickle.Writer[?]] = readWriterOpt.orElse(None)
+    def writerOpt: Option[upickle.Writer[?]] = readWriterOpt
   }
 
   class Computed[T](

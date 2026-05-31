@@ -346,13 +346,16 @@ private[mill] object BazelRemoteCache {
         .flatMap(firstString(_, DigestHash))
 
     private def firstMessage(bytes: Array[Byte], field: Int): Option[Array[Byte]] =
-      fields(bytes).collectFirst { case (`field`, WireLengthDelim, v) => v }
+      fields(bytes).collectFirst { case (`field`, v) => v }
 
     private def firstString(bytes: Array[Byte], field: Int): Option[String] =
       firstMessage(bytes, field).map(new String(_, "UTF-8"))
 
-    private def fields(bytes: Array[Byte]): List[(Int, Int, Array[Byte])] = {
-      val out = List.newBuilder[(Int, Int, Array[Byte])]
+    // Collects only length-delimited fields (the only wire type the ActionResult subset we read
+    // uses); varint/fixed32/fixed64 fields are skipped, so every collected entry is by
+    // construction WireLengthDelim and the wire type need not be stored.
+    private def fields(bytes: Array[Byte]): List[(Int, Array[Byte])] = {
+      val out = List.newBuilder[(Int, Array[Byte])]
       var pos = 0
       var continue = true
       while (continue && pos < bytes.length) {
@@ -365,7 +368,7 @@ private[mill] object BazelRemoteCache {
           case WireLengthDelim =>
             val (len, p2) = readVarint(bytes, p1)
             val end = math.min(p2 + len.toInt, bytes.length)
-            out += ((field, wire, bytes.slice(p2, end))); pos = end
+            out += ((field, bytes.slice(p2, end))); pos = end
           case 5 => pos = math.min(p1 + 4, bytes.length) // fixed32
           case 1 => pos = math.min(p1 + 8, bytes.length) // fixed64
           case _ => continue = false // groups (deprecated) or invalid

@@ -427,10 +427,6 @@ case class Execution(
           if (haveGlobalExclusive) LauncherLocking.LockKind.Write
           else LauncherLocking.LockKind.Read
 
-        // Suspend any outer-batch exclusive lease this launcher already
-        // holds so a nested call (e.g. from `show`'s body invoking
-        // `Evaluator.execute`) can take its own without self-deadlocking on
-        // the non-reentrant underlying lock. No-op when nothing is held.
         val empty = Seq.empty[(Task[?], Option[GroupExecution.Results])]
 
         def runBatch(): (
@@ -448,6 +444,10 @@ case class Execution(
 
         val (nonExclusiveResults, exclusiveResults) =
           if (nonExclusiveTasks.isEmpty && !haveExclusive) (empty, empty)
+          // Suspend any outer-batch exclusive lease this launcher already
+          // holds so a nested call (e.g. from `show`'s body invoking
+          // `Evaluator.execute`) can take its own without self-deadlocking on
+          // the non-reentrant underlying lock. No-op when nothing is held.
           else workspaceLocking.withReleasedExclusive(batchWaitReporter)(
             withExclusiveLease(outerKind)(runBatch())
           )
