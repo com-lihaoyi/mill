@@ -4,6 +4,7 @@ import coursier.Repository
 import mill.androidlib.AndroidSdkModule
 import mill.api.{Discover, ExternalModule, PathRef}
 import mill.javalib.{Dep, JvmWorkerModule}
+import mill.util.Jvm
 import mill.{T, Task}
 
 /**
@@ -49,7 +50,7 @@ trait AndroidHiltTransform extends ExternalModule with JvmWorkerModule {
     mill.util.Jvm.callProcess(
       mainClass = mainClass,
       classPath = toolsClasspath().map(_.path),
-      mainArgs = Seq(kotlinCompiledClassesDir.toString, transformedClasses.toString)
+      mainArgs = Seq(Jvm.realAbs(kotlinCompiledClassesDir), Jvm.realAbs(transformedClasses))
     )
 
     PathRef(transformedClasses)

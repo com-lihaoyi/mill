@@ -311,7 +311,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   override def androidMergedManifestArgs: Task[Seq[String]] = Task.Anon {
     Seq(
       "--main",
-      androidManifest().path.toString(),
+      Jvm.realAbs(androidManifest()),
       "--remove-tools-declarations",
       "--property",
       s"min_sdk_version=${androidMinSdk()}",
@@ -325,7 +325,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       s"package=${androidApplicationId}",
       "--manifest-placeholders",
       s"applicationId=${androidApplicationId}"
-    ) ++ androidMergeableManifests().flatMap(m => Seq("--libs", m.path.toString))
+    ) ++ androidMergeableManifests().flatMap(m => Seq("--libs", Jvm.realAbs(m)))
   }
 
   /**
@@ -361,7 +361,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       }
     }
 
-    val root: Elem = XML.loadFile(androidMergedManifest().path.toString)
+    val root: Elem = XML.loadFile(androidMergedManifest().path.toIO)
 
     val activities = root \ "application" \ "activity"
 
@@ -391,12 +391,12 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val alignedApk: os.Path = Task.dest / "app.aligned.apk"
 
     os.call((
-      androidSdkModule().zipalignExe().path,
+      Jvm.realAbs(androidSdkModule().zipalignExe()),
       "-f",
       "-p",
       "4",
-      androidUnsignedApk().path,
-      alignedApk
+      Jvm.realAbs(androidUnsignedApk()),
+      Jvm.realAbs(alignedApk)
     ))
 
     PathRef(alignedApk)
@@ -468,9 +468,9 @@ trait AndroidAppModule extends AndroidModule { outer =>
     else
       Seq(
         "--ks-pass",
-        s"file:${androidReleaseKeyStorePassFile().path}",
+        s"file:${Jvm.realAbs(androidReleaseKeyStorePassFile())}",
         "--key-pass",
-        s"file:${androidReleaseKeyPassFile().path}"
+        s"file:${Jvm.realAbs(androidReleaseKeyPassFile())}"
       )
   }
 
@@ -487,7 +487,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     Seq(
       "--ks",
-      androidKeystore().path.toString,
+      Jvm.realAbs(androidKeystore()),
       "--ks-key-alias",
       keyAlias
     ) ++ androidSignKeyPasswordParams()
@@ -509,12 +509,12 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val signedApk = Task.dest / "app.apk"
 
     val signArgs = Seq(
-      androidSdkModule().apksignerExe().path.toString,
+      Jvm.realAbs(androidSdkModule().apksignerExe()),
       "sign",
       "--in",
-      androidAlignedUnsignedApk().path.toString,
+      Jvm.realAbs(androidAlignedUnsignedApk()),
       "--out",
-      signedApk.toString
+      Jvm.realAbs(signedApk)
     ) ++ androidSignKeyDetails()
 
     Task.log.info(s"Calling apksigner with arguments: ${signArgs.mkString(" ")}")
@@ -627,7 +627,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val name = androidVirtualDevice().name
     val deviceId = androidVirtualDevice().deviceId
     val command = os.call((
-      androidSdkModule().avdmanagerExe().path,
+      Jvm.realAbs(androidSdkModule().avdmanagerExe()),
       "create",
       "avd",
       "--name",
@@ -650,7 +650,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
    */
   def deleteAndroidVirtualDevice: T[os.CommandResult] = Task {
     os.call((
-      androidSdkModule().avdmanagerExe().path,
+      Jvm.realAbs(androidSdkModule().avdmanagerExe()),
       "delete",
       "avd",
       "--name",
@@ -693,7 +693,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     )
 
     val command = Seq(
-      androidSdkModule().emulatorExe().path.toString()
+      Jvm.realAbs(androidSdkModule().emulatorExe())
     ) ++
       Option.when(!excludeDefaultArgs.value)(defaultArgs).toSeq.flatten ++ extraArgs ++ settings
 
@@ -720,7 +720,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   def adbDevices(): Command[String] = Task.Command {
-    os.call((androidSdkModule().adbExe().path, "devices", "-l")).out.text()
+    os.call((Jvm.realAbs(androidSdkModule().adbExe()), "devices", "-l")).out.text()
   }
 
   /**
@@ -729,7 +729,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def stopAndroidEmulator(): Command[String] = Task.Command {
     val emulator = runningEmulator()
     os.call(
-      (androidSdkModule().adbExe().path, "-s", emulator, "emu", "kill")
+      (Jvm.realAbs(androidSdkModule().adbExe()), "-s", emulator, "emu", "kill")
     )
     emulator
   }
@@ -764,7 +764,14 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val emulator = runningEmulator()
 
     os.call(
-      (androidSdkModule().adbExe().path, "-s", emulator, "install", "-r", androidApk().path)
+      (
+        Jvm.realAbs(androidSdkModule().adbExe()),
+        "-s",
+        emulator,
+        "install",
+        "-r",
+        Jvm.realAbs(androidApk())
+      )
     )
 
     emulator
@@ -803,7 +810,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     os.call(
       (
-        androidSdkModule().adbExe().path,
+        Jvm.realAbs(androidSdkModule().adbExe()),
         "-s",
         emulator,
         "shell",
@@ -842,7 +849,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     keytoolModuleRef().createKeystoreWithCertificate(
       Task.Anon(Seq(
         "--keystore",
-        outer.debugKeystoreFile().path.toString,
+        Jvm.realAbs(outer.debugKeystoreFile()),
         "--storepass",
         debugKeyStorePass,
         "--alias",
@@ -893,7 +900,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     def getBootflag: String = {
       val result = os.call(
         (
-          adbPath.path,
+          Jvm.realAbs(adbPath),
           "-s",
           emulator,
           "shell",
@@ -977,12 +984,12 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
       val appCompiledPathRefs = androidPackagedCompiledClasses() ++ androidPackagedClassfiles()
 
-      val appCompiledFiles = appCompiledPathRefs.map(_.path.toString())
+      val appCompiledFiles = appCompiledPathRefs.map(Jvm.realAbs)
 
       val libsJarPathRefs = androidPackagedDeps()
         .filter(_ != androidSdkModule().androidJarPath())
 
-      val libsJarFiles = libsJarPathRefs.map(_.path.toString())
+      val libsJarFiles = libsJarPathRefs.map(Jvm.realAbs)
 
       val filenamesFile = Task.dest / "all-files.txt"
       os.write.over(filenamesFile, (appCompiledFiles ++ libsJarFiles).mkString("\n"))
@@ -990,18 +997,18 @@ trait AndroidAppModule extends AndroidModule { outer =>
       val proguardFile = androidProguard().path
 
       val d8Args = Seq(
-        androidSdkModule().d8Exe().path.toString,
+        Jvm.realAbs(androidSdkModule().d8Exe()),
         if (androidIsDebug()) "--debug" else "--release",
         // TODO explore --incremental flag for incremental builds
         "--output",
-        outPath.toString(),
+        Jvm.realAbs(outPath),
         "--lib",
-        androidSdkModule().androidJarPath().path.toString(),
+        Jvm.realAbs(androidSdkModule().androidJarPath()),
         "--min-api",
         androidMinSdk().toString,
         "--main-dex-rules",
-        proguardFile.toString()
-      ) :+ s"@$filenamesFile"
+        Jvm.realAbs(proguardFile)
+      ) :+ s"@${Jvm.realAbs(filenamesFile)}"
 
       Task.log.info(s"Running d8 with the command: ${d8Args.mkString(" ")}")
 
@@ -1091,7 +1098,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
           unpackedArchive.manifest.map(_.path)
       }.filter {
         case manifest: os.Path =>
-          val manifestXML = XML.loadFile(manifest.toString)
+          val manifestXML = XML.loadFile(manifest.toIO)
           (manifestXML \\ "manifest")
             .map(_ \ "@package").map(_.text).exists(_.startsWith("androidx.test"))
       }.map(PathRef(_))
@@ -1111,7 +1118,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     override def androidMergedManifestArgs: Task[Seq[String]] = Task.Anon {
       Seq(
         "--main",
-        androidManifest().path.toString(),
+        Jvm.realAbs(androidManifest()),
         "--remove-tools-declarations",
         "--property",
         s"min_sdk_version=${androidMinSdk()}",
@@ -1123,7 +1130,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
         s"target_package=${outer.androidApplicationId}",
         "--property",
         s"version_name=${androidVersionName()}"
-      ) ++ androidMergeableManifests().flatMap(m => Seq("--libs", m.path.toString))
+      ) ++ androidMergeableManifests().flatMap(m => Seq("--libs", Jvm.realAbs(m)))
     }
 
     override def androidVirtualDevice: T[AndroidVirtualDevice] = outer.androidVirtualDevice()
@@ -1138,12 +1145,12 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
       os.call(
         (
-          androidSdkModule().adbExe().path,
+          Jvm.realAbs(androidSdkModule().adbExe()),
           "-s",
           emulator,
           "install",
           "-t",
-          androidTestApk().path
+          Jvm.realAbs(androidTestApk())
         )
       )
       emulator
@@ -1166,7 +1173,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
       val instrumentOutput = os.proc(
         Seq(
-          androidSdkModule().adbExe().path.toString,
+          Jvm.realAbs(androidSdkModule().adbExe()),
           "-s",
           device,
           "shell",

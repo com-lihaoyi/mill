@@ -5,6 +5,7 @@ import mill.api.{ModuleRef, PathRef, Task}
 import mill.kotlinlib.{Dep, DepSyntax}
 import mill.javalib.TestModule.Junit5
 import mill.javalib.{JavaModule, TestModule}
+import mill.util.Jvm
 import mill.*
 import mill.api.JsonFormatters.given
 import mill.androidlib.Versions
@@ -184,20 +185,20 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
       val resultsFilePath = androidScreenshotGeneratedResults().path
 
       val cliArgs = ComposeRenderer.Args(
-        fontsPath = androidSdkModule().fontsPath().toString,
-        layoutlibPath = layoutLibRuntimePath().path.toString(),
-        outputFolder = output.toString(),
-        metaDataFolder = metadataFolder.toString(),
-        classPath = compileClasspath().map(_.path.toString()),
+        fontsPath = Jvm.realAbs(androidSdkModule().fontsPath()),
+        layoutlibPath = Jvm.realAbs(layoutLibRuntimePath()),
+        outputFolder = Jvm.realAbs(output),
+        metaDataFolder = Jvm.realAbs(metadataFolder),
+        classPath = compileClasspath().map(Jvm.realAbs),
         projectClassPath = Seq(
-          compile().classes.path.toString(),
-          outer.compile().classes.path.toString(),
-          androidProcessedResources().path.toString
+          Jvm.realAbs(compile().classes),
+          Jvm.realAbs(outer.compile().classes),
+          Jvm.realAbs(androidProcessedResources())
         ),
         screenshots = androidDiscoveredPreviews().screenshotConfigs,
         namespace = androidApplicationNamespace,
-        resourceApkPath = androidLinkedResources().apk.path.toString(),
-        resultsFilePath = resultsFilePath.toString()
+        resourceApkPath = Jvm.realAbs(androidLinkedResources().apk),
+        resultsFilePath = Jvm.realAbs(resultsFilePath)
       )
       os.write(cliArgsFile, upickle.write(cliArgs))
 
@@ -221,7 +222,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
           "-Dlayoutlib.thread.profile.timeoutms=10000",
           "-Djava.security.manager=allow"
         ),
-        mainArgs = Seq(composePreviewArgs().path.toString()),
+        mainArgs = Seq(Jvm.realAbs(composePreviewArgs())),
         cwd = Task.dest,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -309,12 +310,14 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
      */
     private def testJvmArgs: T[Seq[String]] = Task {
       val params = Map(
-        "previews-discovered" -> androidDiscoveredPreviews().previewsDiscoveredJsonFile.path.toString(),
-        "referenceImageDirPath" -> screenshotResults().path.toString(),
-        "diffImageDirPath" -> diffImageDirPath().path.toString,
-        "renderResultsFilePath" -> androidScreenshotGeneratedResults().path.toString,
-        "renderTaskOutputDir" -> screenshotResults().path.toString(),
-        "resultsDirPath" -> androidScreenshotTestResultDir().path.toString(),
+        "previews-discovered" -> Jvm.realAbs(
+          androidDiscoveredPreviews().previewsDiscoveredJsonFile
+        ),
+        "referenceImageDirPath" -> Jvm.realAbs(screenshotResults()),
+        "diffImageDirPath" -> Jvm.realAbs(diffImageDirPath()),
+        "renderResultsFilePath" -> Jvm.realAbs(androidScreenshotGeneratedResults()),
+        "renderTaskOutputDir" -> Jvm.realAbs(screenshotResults()),
+        "resultsDirPath" -> Jvm.realAbs(androidScreenshotTestResultDir()),
         "threshold" -> androidScreenshotTestDiffThreshold.toString
       )
 

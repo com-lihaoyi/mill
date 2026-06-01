@@ -45,7 +45,7 @@ trait AndroidManifestMerger extends ExternalModule with JvmWorkerModule {
     val outFile = os.temp()
     Jvm.callProcess(
       mainClass = "com.android.manifmerger.Merger",
-      mainArgs = args() ++ Seq("--out", outFile.toString()),
+      mainArgs = args() ++ Seq("--out", Jvm.realAbs(outFile)),
       classPath = manifestMergerClasspath().map(_.path)
     )
     outFile

@@ -27,7 +27,7 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
   override def androidManifest: T[PathRef] = Task {
     val manifestFromSourcePath = moduleDir / "src/main/AndroidManifest.xml"
 
-    val manifestElem = XML.loadFile(manifestFromSourcePath.toString())
+    val manifestElem = XML.loadFile(manifestFromSourcePath.toIO)
     // add the application package
     val manifestWithPackage =
       manifestElem % Attribute(None, "package", Text(androidLibPackage), Null)
@@ -95,12 +95,12 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
     os.makeDir.all(compiledRes)
 
     val compileResult = os.proc(
-      androidSdkModule().aapt2Exe().path,
+      Jvm.realAbs(androidSdkModule().aapt2Exe()),
       "compile",
       "--dir",
-      androidResources(),
+      androidResources().map(Jvm.realAbs),
       "-o",
-      compiledRes.toString
+      Jvm.realAbs(compiledRes)
     ).call()
 
     if (compileResult.exitCode != 0) {
@@ -110,15 +110,15 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
     }
 
     val linkResult = os.proc(
-      androidSdkModule().aapt2Exe().path,
+      Jvm.realAbs(androidSdkModule().aapt2Exe()),
       "link",
       "--static-lib",
       "-o",
-      aarFile.toString,
+      Jvm.realAbs(aarFile),
       "-I",
-      androidSdkModule().androidJarPath().path.toString,
+      Jvm.realAbs(androidSdkModule().androidJarPath()),
       "--manifest",
-      androidMergedManifest().path.toString
+      Jvm.realAbs(androidMergedManifest())
     ).call(cwd = compiledRes)
 
     if (linkResult.exitCode != 0) {

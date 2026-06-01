@@ -3,6 +3,7 @@ package mill.androidlib
 import mill.*
 import mill.api.{PathRef, Task}
 import mill.javalib.*
+import mill.util.Jvm
 import os.zip.ZipSource
 
 /**
@@ -75,10 +76,10 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
     os.call((
       "java",
       "-jar",
-      androidSdkModule().bundleToolPath().path,
+      Jvm.realAbs(androidSdkModule().bundleToolPath()),
       "build-bundle",
-      s"--modules=$zipPath",
-      s"--output=$bundleFile"
+      s"--modules=${Jvm.realAbs(zipPath)}",
+      s"--output=${Jvm.realAbs(bundleFile)}"
     ))
 
     PathRef(bundleFile)
@@ -119,10 +120,10 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
       "-storepass",
       keystorePass,
       "-keystore",
-      keyPath,
+      Jvm.realAbs(keyPath),
       "-signedjar",
-      signedBundle,
-      androidUnsignedBundle().path,
+      Jvm.realAbs(signedBundle),
+      Jvm.realAbs(androidUnsignedBundle()),
       keyAlias
     ))
 

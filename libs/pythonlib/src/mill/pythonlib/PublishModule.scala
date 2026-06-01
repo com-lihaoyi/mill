@@ -2,6 +2,7 @@ package mill.pythonlib
 
 import mill.api.Result
 import mill.javalib.publish.License
+import mill.util.Jvm
 import mill.{Command, PathRef, T, Task}
 
 /**
@@ -161,7 +162,7 @@ trait PublishModule extends PythonModule {
 
     os.makeDir(buildDir)
     os.call(
-      ("tar", "xf", sdist().path, "-C", buildDir),
+      ("tar", "xf", Jvm.realAbs(sdist()), "-C", Jvm.realAbs(buildDir)),
       cwd = Task.dest
     )
     runner().run(
@@ -170,7 +171,7 @@ trait PublishModule extends PythonModule {
         "-m", "build",
         "--no-isolation", // we already do the isolation with mill
         "--wheel",
-        "--outdir", Task.dest / "dist"
+        "--outdir", Jvm.realAbs(Task.dest / "dist")
         // format: on
       ),
       workingDir = os.list(buildDir).head // sdist archive contains a directory
@@ -193,7 +194,7 @@ trait PublishModule extends PythonModule {
         // format: off
         "-m", "twine",
         "check",
-        publishArtifacts().map(_.path)
+        publishArtifacts().map(Jvm.realAbs)
         // format: on
       )
     )
@@ -231,7 +232,7 @@ trait PublishModule extends PythonModule {
         "-m", "twine",
         "upload",
         "--non-interactive",
-        publishArtifacts().map(_.path)
+        publishArtifacts().map(Jvm.realAbs)
         // format: on
       ),
       env = env

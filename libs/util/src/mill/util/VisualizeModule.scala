@@ -94,7 +94,7 @@ object VisualizeModule extends ExternalModule {
           mill.util.Jvm.callProcess(
             mainClass = "mill.graphviz.VisualizeWorkerMain",
             classPath = toolsClasspath.map(_.path).toVector,
-            mainArgs = Seq(payloadPath.toString, ctx.dest.toString),
+            mainArgs = Seq(mill.util.Jvm.realAbs(payloadPath), mill.util.Jvm.realAbs(ctx.dest)),
             stdin = os.Inherit,
             stdout = os.Inherit
           )(using ctx)
@@ -190,7 +190,7 @@ object VisualizeModule extends ExternalModule {
             val spawned = mill.util.Jvm.spawnProcess(
               mainClass = "mill.graphviz.VisualizeWorkerMain",
               classPath = workerToolsClasspath.map(_.path).toVector,
-              mainArgs = Seq(payloadPath.toString, dest.toString),
+              mainArgs = Seq(mill.util.Jvm.realAbs(payloadPath), mill.util.Jvm.realAbs(dest)),
               stdin = os.Inherit,
               stdout = os.Inherit,
               stderr = os.Inherit

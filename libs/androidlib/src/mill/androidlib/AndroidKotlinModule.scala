@@ -95,9 +95,9 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
     os.makeDir.all(layoutInfoOutputDir)
     val args = ProcessResourcesArgs(
       applicationPackageName = androidNamespace,
-      resInputDir = androidResources().head.path.toString,
-      resOutputDir = resOutputDir.toString,
-      layoutInfoOutputDir = layoutInfoOutputDir.toString,
+      resInputDir = Jvm.realAbs(androidResources().head),
+      resOutputDir = Jvm.realAbs(resOutputDir),
+      layoutInfoOutputDir = Jvm.realAbs(layoutInfoOutputDir),
       enableViewBinding = androidEnableViewBinding,
       enableDataBinding = androidEnableDataBinding
     )
@@ -116,10 +116,10 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
     os.makeDir.all(classInfoDir)
     val args = GenerateBindingSourcesArgs(
       applicationPackageName = androidNamespace,
-      layoutInfoDir = (androidProcessedLayoutXmls().path / "layout_info").toString,
-      classInfoDir = classInfoDir.toString,
-      outputDir = outputDir.toString,
-      logFolder = logDir.toString,
+      layoutInfoDir = Jvm.realAbs(androidProcessedLayoutXmls().path / "layout_info"),
+      classInfoDir = Jvm.realAbs(classInfoDir),
+      outputDir = Jvm.realAbs(outputDir),
+      logFolder = Jvm.realAbs(logDir),
       enableViewBinding = androidEnableViewBinding,
       enableDataBinding = androidEnableDataBinding
     )
@@ -142,7 +142,7 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
     case true => Task {
         val moduleResources = Seq(androidProcessedLayoutXmls().path / "resources")
 
-        val aapt2Compile = Seq(androidSdkModule().aapt2Exe().path.toString(), "compile")
+        val aapt2Compile = Seq(Jvm.realAbs(androidSdkModule().aapt2Exe()), "compile")
 
         for (libResDir <- moduleResources) {
           val segmentsSeq = libResDir.segments.toSeq
@@ -151,9 +151,9 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
           os.makeDir(dirDest)
           val aapt2Args = Seq(
             "--dir",
-            libResDir.toString,
+            Jvm.realAbs(libResDir),
             "-o",
-            dirDest.toString
+            Jvm.realAbs(dirDest)
           )
 
           os.call(aapt2Compile ++ aapt2Args)

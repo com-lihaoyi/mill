@@ -1,6 +1,7 @@
 package mill.pythonlib
 
 import mill.*
+import mill.api.internal.PathAliasing
 import mill.api.Result
 import mill.constants.DaemonFiles
 import mill.util.Jvm
@@ -312,10 +313,18 @@ object PythonModule {
         env: Map[String, String] = null,
         workingDir: os.Path = null
     )(using ctx: TaskCtx): Unit = {
+      val effectiveCwd = Option(workingDir).getOrElse(workingDir0)
+      PathAliasing.prepareSubprocessCwd(effectiveCwd, taskDest = Some(ctx.dest))
+      val effectiveEnv = Option(env).getOrElse(env0)
+      val commandArgs =
+        PathAliasing.withSubprocessPathSerializer(effectiveCwd, taskDest = Some(ctx.dest)) {
+          Seq(Option(command).getOrElse(command0)) ++ options ++ args.value
+        }
+
       os.call(
-        cmd = Seq(Option(command).getOrElse(command0)) ++ options ++ args.value,
-        env = Option(env).getOrElse(env0),
-        cwd = Option(workingDir).getOrElse(workingDir0),
+        cmd = commandArgs,
+        env = PathAliasing.subprocessEnv(effectiveEnv, effectiveCwd, taskDest = Some(ctx.dest)),
+        cwd = effectiveCwd,
         stdin = os.Inherit,
         stdout = os.Inherit,
         check = true

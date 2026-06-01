@@ -5,6 +5,7 @@ import mill.*
 import mill.api.{PathRef, Task}
 import mill.PathRef.jsonFormatter
 import mill.javalib.{Dep, JavaModule}
+import mill.util.Jvm
 import os.Path
 
 import scala.xml.*
@@ -97,7 +98,7 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
       val compiledMvnDepsFile = Task.dest / "compile-only-classpath.txt"
       os.write.over(
         compiledMvnDepsFile,
-        resolvedCompileMvnDeps.map(_.path.toString()).mkString("\n")
+        resolvedCompileMvnDeps.map(Jvm.realAbs).mkString("\n")
       )
       Some(PathRef(compiledMvnDepsFile))
     } else
@@ -240,8 +241,8 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
       val extraRules = androidR8ExtraRules() ++
         Seq(
           // Instruct R8 to print seeds and usage.
-          s"-printseeds $seedsOut",
-          s"-printusage $usageOut"
+          s"-printseeds ${Jvm.realAbs(seedsOut)}",
+          s"-printusage ${Jvm.realAbs(usageOut)}"
         ) ++
         (if (androidBuildSettings().isMinifyEnabled) then androidGeneratedMinifyKeepRules()
          else Seq())
@@ -259,13 +260,13 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
       val allClassFilesPathRefs =
         classpathClassFiles ++ appCompiledFiles ++ androidPackagedDeps()
 
-      val allClassFiles = allClassFilesPathRefs.map(_.path.toString)
+      val allClassFiles = allClassFilesPathRefs.map(Jvm.realAbs)
       val allClassFilesFile = Task.dest / "all-classes.txt"
       os.write.over(allClassFilesFile, allClassFiles.mkString("\n"))
 
       val r8ArgsBuilder = Seq.newBuilder[String]
 
-      r8ArgsBuilder += androidSdkModule().r8Exe().path.toString
+      r8ArgsBuilder += Jvm.realAbs(androidSdkModule().r8Exe())
 
       if (androidIsDebug())
         r8ArgsBuilder += "--debug"
@@ -274,11 +275,11 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
 
       r8ArgsBuilder ++= Seq(
         "--output",
-        outputPath.toString,
+        Jvm.realAbs(outputPath),
         "--pg-map-output",
-        mappingOut.toString,
+        Jvm.realAbs(mappingOut),
         "--pg-conf-output",
-        configOut.toString
+        Jvm.realAbs(configOut)
       )
 
       if (!androidBuildSettings().enableDesugaring) {
@@ -303,20 +304,20 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
 
       // Baseline profile rewriting arguments, if a baseline profile is provided.
       val baselineArgs = baselineProfile().map { bp =>
-        Seq("--art-profile", bp.path.toString, baselineOutOpt.toString)
+        Seq("--art-profile", Jvm.realAbs(bp), Jvm.realAbs(baselineOutOpt))
       }.getOrElse(Seq.empty)
 
       r8ArgsBuilder ++= baselineArgs
 
       // Library arguments: pass each bootclasspath and any additional library classes as --lib.
-      val libArgs = libraryClassesPaths().flatMap(ref => Seq("--lib", ref.path.toString))
+      val libArgs = libraryClassesPaths().flatMap(ref => Seq("--lib", Jvm.realAbs(ref)))
 
       r8ArgsBuilder ++= libArgs
 
       if (buildType() == "--classfile") {
         r8ArgsBuilder ++= Seq(
           "--lib",
-          androidR8JavaHome().path.toString
+          Jvm.realAbs(androidR8JavaHome())
         )
       }
 
@@ -325,12 +326,12 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
       val pgArgs =
         Seq(
           "--pg-conf",
-          androidProguard().path.toString,
+          Jvm.realAbs(androidProguard()),
           "--pg-conf",
-          androidKnownProguardRulesFile().path.toString,
+          Jvm.realAbs(androidKnownProguardRulesFile()),
           "--pg-conf",
-          extraRulesFile.toString
-        ) ++ androidCommonProguardFiles().flatMap(pgf => Seq("--pg-conf", pgf.path.toString))
+          Jvm.realAbs(extraRulesFile)
+        ) ++ androidCommonProguardFiles().flatMap(pgf => Seq("--pg-conf", Jvm.realAbs(pgf)))
 
       r8ArgsBuilder ++= pgArgs
 
@@ -339,13 +340,13 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
       compileOnlyClasspathFileOpt.foreach { cpFile =>
         r8ArgsBuilder ++= Seq(
           "--classpath",
-          s"@${cpFile.path.toString}"
+          s"@${Jvm.realAbs(cpFile)}"
         )
       }
 
       r8ArgsBuilder ++= androidR8Args()
 
-      r8ArgsBuilder += "@" + allClassFilesFile.toString
+      r8ArgsBuilder += "@" + Jvm.realAbs(allClassFilesFile)
 
       val r8Args = r8ArgsBuilder.result()
 

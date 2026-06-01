@@ -3,6 +3,7 @@ package mill.androidlib
 import mill.api.*
 import mill.api.JsonFormatters.pathReadWrite
 import mill.client.lock.{Lock, TryLocked}
+import mill.util.Jvm
 import os.CommandResult
 import upickle.ReadWriter
 
@@ -103,7 +104,7 @@ trait AndroidSdkManagerModule extends ExternalModule {
       Seq("echo", "y\n" * 10)
     os.proc(
       args
-    ).pipeTo(os.proc(sdkManagerExePath.toString, "--licenses")).call(stdout = os.Pipe)
+    ).pipeTo(os.proc(Jvm.realAbs(sdkManagerExePath), "--licenses")).call(stdout = os.Pipe)
   }
 
   // TODO: Replace hardcoded mapping with automated parsing
@@ -238,13 +239,13 @@ trait AndroidSdkManagerModule extends ExternalModule {
       if (isWin && !winExts.contains(path.ext)) {
         winExts.foreach { ext =>
           // try to find the tool with extension
-          val winPath = os.Path(s"${path.toString}.$ext")
+          val winPath = os.Path(s"${Jvm.realAbs(path)}.$ext")
           if (os.exists(winPath)) {
             boundary.break(PathRef(winPath).withRevalidateOnce)
           }
         }
       }
-      Task.fail(s"Tool at path ${path} does not exist")
+      Task.fail(s"Tool at path ${Jvm.realAbs(path)} does not exist")
     }
   }
 
@@ -401,7 +402,7 @@ trait AndroidSdkManagerModule extends ExternalModule {
   ): CommandResult = {
     os.call(
       cmd = Seq(
-        sdkmanagerExe.toString,
+        Jvm.realAbs(sdkmanagerExe),
         "--install"
       ) ++ packages,
       stdout = os.Inherit,
@@ -428,7 +429,7 @@ private class AndroidSdkManagerWorker(androidHome: os.Path, maxAttempts: Int)
   private val workerThread = Executors.newSingleThreadExecutor()
   private val androidSdkManagerLockFile = androidHome / ".sdkmanager.lock"
 
-  private val lock = Lock.file(androidSdkManagerLockFile.toString)
+  private val lock = Lock.file(Jvm.realAbs(androidSdkManagerLockFile))
 
   private def acquireLock(using ctx: mill.api.TaskCtx): TryLocked = {
     var attempts = 0

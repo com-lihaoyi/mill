@@ -112,13 +112,14 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
       ): SubprocessZincApi.Value = {
         val workerDir = init.taskDest / "zinc-worker" / key.hashCode.toString
         val daemonDir = workerDir / "daemon"
+        val daemonDirString = Jvm.realAbs(daemonDir)
 
         os.makeDir.all(daemonDir)
         os.write.over(workerDir / "java-home", key.javaHome.map(_.toString).getOrElse("<default>"))
         os.write.over(workerDir / "java-runtime-options", key.runtimeOptions.mkString("\n"))
 
         val mainClass = "mill.javalib.worker.MillJvmWorkerMain"
-        val baseLocks = Locks.forDirectory(daemonDir.toString, useFileLocks)
+        val baseLocks = Locks.forDirectory(daemonDirString, useFileLocks)
         val locks = {
           Locks(
             // File locks are non-reentrant, so we need to lock on the memory lock first.
@@ -140,7 +141,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
             () => {
               val process = Jvm.spawnProcess(
                 mainClass = mainClass,
-                mainArgs = Seq(daemonDir.toString, jobs.toString, useFileLocks.toString),
+                mainArgs = Seq(daemonDirString, jobs.toString, useFileLocks.toString),
                 javaHome = key.javaHome,
                 jvmArgs = key.runtimeOptions ++ suppressArgs,
                 classPath = classPath

@@ -12,6 +12,7 @@ import mill.api.{ModuleRef, PathRef, Task}
 import mill.javalib.*
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
+import mill.util.Jvm
 
 import scala.collection.immutable
 import scala.xml.*
@@ -58,7 +59,7 @@ trait AndroidModule extends JavaModule { outer =>
   def androidManifest: T[PathRef] = Task {
     val manifestFromSourcePath = androidManifestLocation().path
 
-    val original = XML.loadFile(manifestFromSourcePath.toString())
+    val original = XML.loadFile(manifestFromSourcePath.toIO)
 
     val manifestElem = Option(original.scope.getURI("android")) match {
       case Some(_) =>
@@ -171,7 +172,7 @@ trait AndroidModule extends JavaModule { outer =>
   def androidProviderProguardConfigRules: T[Seq[String]] = Task {
     val androidNs = "http://schemas.android.com/apk/res/android"
     val manifest = androidMergedManifest().path
-    val manifestXML = scala.xml.XML.loadFile(manifest.toString)
+    val manifestXML = scala.xml.XML.loadFile(manifest.toIO)
 
     val providerElements = (manifestXML \\ "application" \\ "provider")
 
@@ -545,7 +546,7 @@ trait AndroidModule extends JavaModule { outer =>
   def androidMergedManifestArgs: Task[Seq[String]] = Task.Anon {
     Seq(
       "--main",
-      androidManifest().path.toString(),
+      Jvm.realAbs(androidManifest()),
       "--remove-tools-declarations",
       "--property",
       s"min_sdk_version=${androidMinSdk()}",
@@ -555,7 +556,7 @@ trait AndroidModule extends JavaModule { outer =>
       s"version_code=${androidVersionCode()}",
       "--property",
       s"version_name=${androidVersionName()}"
-    ) ++ androidMergeableManifests().flatMap(m => Seq("--libs", m.path.toString()))
+    ) ++ androidMergeableManifests().flatMap(m => Seq("--libs", Jvm.realAbs(m)))
   }
 
   /**
@@ -739,7 +740,7 @@ trait AndroidModule extends JavaModule { outer =>
   def androidCompiledLibResources: T[PathRef] = Task {
     val libAndroidResources: Seq[os.Path] = androidLibraryResources().map(_.path)
 
-    val aapt2Compile = Seq(androidSdkModule().aapt2Exe().path.toString(), "compile")
+    val aapt2Compile = Seq(Jvm.realAbs(androidSdkModule().aapt2Exe()), "compile")
 
     for (libResDir <- libAndroidResources) {
       val segmentsSeq = libResDir.segments.toSeq
@@ -748,9 +749,9 @@ trait AndroidModule extends JavaModule { outer =>
       os.makeDir(dirDest)
       val aapt2Args = Seq(
         "--dir",
-        libResDir.toString,
+        Jvm.realAbs(libResDir),
         "-o",
-        dirDest.toString
+        Jvm.realAbs(dirDest)
       )
 
       os.call(aapt2Compile ++ aapt2Args)
@@ -770,7 +771,7 @@ trait AndroidModule extends JavaModule { outer =>
     val moduleResources: Seq[os.Path] =
       androidResources().map(_.path).filter(os.exists)
 
-    val aapt2Compile = Seq(androidSdkModule().aapt2Exe().path.toString(), "compile")
+    val aapt2Compile = Seq(Jvm.realAbs(androidSdkModule().aapt2Exe()), "compile")
 
     for (libResDir <- moduleResources) {
       val segmentsSeq = libResDir.segments.toSeq
@@ -779,9 +780,9 @@ trait AndroidModule extends JavaModule { outer =>
       os.makeDir(dirDest)
       val aapt2Args = Seq(
         "--dir",
-        libResDir.toString,
+        Jvm.realAbs(libResDir),
         "-o",
-        dirDest.toString
+        Jvm.realAbs(dirDest)
       )
 
       os.call(aapt2Compile ++ aapt2Args)
@@ -805,7 +806,7 @@ trait AndroidModule extends JavaModule { outer =>
     val filesToLink = os.walk(compiledLibResDir).filter(os.isFile(_)) ++
       moduleResDirs.flatMap(os.walk(_).filter(os.isFile(_)))
     val argFile = Task.dest / "to-link.txt"
-    os.write.over(argFile, filesToLink.map(_.toString()).mkString("\n"))
+    os.write.over(argFile, filesToLink.map(Jvm.realAbs).mkString("\n"))
 
     val transitiveMergedAssetsDir = androidTransitiveMergedAssets().path
 
@@ -822,13 +823,13 @@ trait AndroidModule extends JavaModule { outer =>
 
     val linkArgs = Seq(
       "-I",
-      androidSdkModule().androidJarPath().path.toString,
+      Jvm.realAbs(androidSdkModule().androidJarPath()),
       "--manifest",
-      androidMergedManifest().path.toString,
+      Jvm.realAbs(androidMergedManifest()),
       "--custom-package",
       androidNamespace,
       "--java",
-      javaRClassDir.toString,
+      Jvm.realAbs(javaRClassDir),
       "--min-sdk-version",
       androidMinSdk().toString,
       "--target-sdk-version",
@@ -838,17 +839,17 @@ trait AndroidModule extends JavaModule { outer =>
       "--version-name",
       androidVersionName(),
       "--proguard",
-      proguardRulesFile.toString
+      Jvm.realAbs(proguardRulesFile)
     ) ++ androidAaptOptions() ++ Seq(
       "-o",
-      resApkFile.toString,
+      Jvm.realAbs(resApkFile),
       "-R",
-      "@" + argFile.toString,
+      "@" + Jvm.realAbs(argFile),
       "-A",
-      transitiveMergedAssetsDir.toString
+      Jvm.realAbs(transitiveMergedAssetsDir)
     )
 
-    val aapt2Link = Seq(androidSdkModule().aapt2Exe().path.toString(), "link")
+    val aapt2Link = Seq(Jvm.realAbs(androidSdkModule().aapt2Exe()), "link")
 
     Task.log.info((aapt2Link ++ linkArgs).mkString(" "))
 
@@ -978,9 +979,9 @@ trait AndroidModule extends JavaModule { outer =>
     def androidTestConfigProperties: T[Map[String, String]] = Task {
       Map(
         "android_custom_package" -> outer.androidNamespace,
-        "android_merged_manifest" -> outer.androidMergedManifest().path.toString,
-        "android_resource_apk" -> outer.androidLinkedResources().apk.path.toString,
-        "android_merged_assets" -> outer.androidTransitiveMergedAssets().path.toString
+        "android_merged_manifest" -> Jvm.realAbs(outer.androidMergedManifest()),
+        "android_resource_apk" -> Jvm.realAbs(outer.androidLinkedResources().apk),
+        "android_merged_assets" -> Jvm.realAbs(outer.androidTransitiveMergedAssets())
       )
     }
 

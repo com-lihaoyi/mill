@@ -200,7 +200,7 @@ object Jvm {
    */
   def jdkTool(toolName: String, javaHome: Option[os.Path]): String = {
     javaHome
-      .map(_.toString())
+      .map(realAbs)
       .orElse(sys.props.get("java.home"))
       .map(h =>
         if (isWin) File(h, s"bin\\${toolName}.exe")
