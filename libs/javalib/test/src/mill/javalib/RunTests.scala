@@ -141,7 +141,9 @@ object RunTests extends TestSuite {
         assert(
           config.env(EnvVars.MILL_WORKSPACE_ROOT) == HelloJavaWithMain.moduleDir.toString,
           config.env(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE) ==
-            PathAliasing.workspacePathRelativizerBase(HelloJavaWithMain.moduleDir)
+            PathAliasing.workspaceRootPathRelativizerBase(HelloJavaWithMain.moduleDir),
+          os.isLink(HelloJavaWithMain.moduleDir / "out" / "mill-workspace"),
+          os.isLink(HelloJavaWithMain.moduleDir / "out" / "mill-home")
         )
       }
 

@@ -35,6 +35,26 @@ object PathAliasing {
   def workspacePathRelativizerBase(workspace: os.Path = BuildCtx.workspaceRoot): String =
     s"${PathRef.realAbs(workspace)},../mill-workspace;${PathRef.realAbs(os.home)},../mill-home"
 
+  def workspaceRootPathRelativizerBase(workspace: os.Path = BuildCtx.workspaceRoot): String =
+    s"${PathRef.realAbs(workspace)},out/mill-workspace;${PathRef.realAbs(os.home)},out/mill-home"
+
+  def pathRelativizerBaseForCwd(
+      cwd: os.Path,
+      workspace: os.Path = BuildCtx.workspaceRoot
+  ): String =
+    if (cwd != null && PathRef.realAbsPath(cwd) == PathRef.realAbsPath(workspace))
+      workspaceRootPathRelativizerBase(workspace)
+    else workspacePathRelativizerBase(workspace)
+
+  def workspaceEnvVarsForCwd(
+      cwd: os.Path,
+      workspace: os.Path = BuildCtx.workspaceRoot
+  ): Map[String, String] =
+    workspaceEnvVars(workspace).updated(
+      EnvVars.OS_LIB_PATH_RELATIVIZER_BASE,
+      pathRelativizerBaseForCwd(cwd, workspace)
+    )
+
   /**
    * Create or update `link` to be a symlink pointing at `dest`. If `link` exists as a non-symlink,
    * replace it. Best-effort: catches `FileSystemException` (e.g. read-only fs) and
@@ -42,9 +62,9 @@ object PathAliasing {
    */
   def ensureSymlink(link: os.Path, dest: os.Path): Unit = {
     // `.wrapped` (real on-disk location), not `.toNIO`: the link *is* the alias, so its serialized
-    // form is the `../mill-workspace` alias path itself; handing that relative path to
-    // `createSymbolicLink` resolves against the wrong cwd and throws `NoSuchFileException` (a
-    // `FileSystemException`, silently swallowed below), so the alias never gets created.
+    // form may itself be relative. Handing that relative path to `createSymbolicLink` resolves
+    // against the wrong cwd and throws `NoSuchFileException` (a `FileSystemException`, silently
+    // swallowed below), so the alias never gets created.
     val targetNio = link.wrapped
     val destNio = dest.wrapped.toAbsolutePath.normalize()
     val linkOpts = LinkOption.NOFOLLOW_LINKS
@@ -124,20 +144,26 @@ object PathAliasing {
    * Install the `../mill-workspace` / `../mill-home` forwarder symlinks for a process whose cwd is
    * `cwd`. The aliases live in `cwd`'s *parent*, never inside `cwd` itself, so that a tool which
    * walks/archives its own working directory (`jar -c .`, `tar`, `os.walk`) does not see them.
+   *
+   * The exception is a subprocess spawned directly at the workspace root. In that case, the
+   * path relativizer needs `out/mill-workspace` / `out/mill-home`, so put the forwarders there
+   * instead of outside the workspace.
    */
   def ensureProcessCwdAliases(
       cwd: os.Path,
       workspace: => os.Path = BuildCtx.workspaceRoot
   ): Unit = {
     if (cwd == null) return
-    val parent = cwd / os.up
+    val workspace0 = workspace
+    val workspaceRootCwd = PathRef.realAbsPath(cwd) == PathRef.realAbsPath(workspace0)
+    val parent = if (workspaceRootCwd) cwd / "out" else cwd / os.up
     val parentNio = parent.toNIO
     val linkOpts = LinkOption.NOFOLLOW_LINKS
     // The enclosing dir is not actually a directory; cannot host the aliases (best-effort).
     if (Files.exists(parentNio, linkOpts) && !Files.isDirectory(parentNio, linkOpts)) return
     BuildCtx.withFilesystemCheckerDisabled {
       os.makeDir.all(parent)
-      for ((target, alias) <- defaultMapping(workspace)) ensureSymlink(parent / alias.last, target)
+      for ((target, alias) <- defaultMapping(workspace0)) ensureSymlink(parent / alias.last, target)
     }
   }
 }

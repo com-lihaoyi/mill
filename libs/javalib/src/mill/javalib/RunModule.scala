@@ -15,7 +15,6 @@ import mill.javalib.classgraph.ClassgraphWorkerModule
 import mill.util.Jvm
 import mill.{Args, T}
 import os.{Path, ProcessOutput}
-import mill.api.internal.PathAliasing
 import mill.constants.EnvVars
 
 /**
@@ -373,11 +372,7 @@ object RunModule {
       }
       val env = Option(forkEnv).getOrElse(forkEnv0)
       val propEnv = Option(propagateEnv).getOrElse(propagateEnv0: java.lang.Boolean)
-      val inheritedEnv = if (propEnv) ctx.env else Map.empty[String, String]
-      val processEnv = inheritedEnv ++ env + (
-        EnvVars.OS_LIB_PATH_RELATIVIZER_BASE ->
-          PathAliasing.workspacePathRelativizerBase()
-      )
+      val processEnv = (if (propEnv) ctx.env else Map.empty[String, String]) ++ env
 
       val cpPassingJarPath =
         if useCpPassingJar1 then
