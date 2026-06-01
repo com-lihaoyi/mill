@@ -793,7 +793,7 @@ bootstrap script, included. You can also download the bootstrap script manually:
 <div class="listingblock">
 <div class="title">Mac/Linux</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-87-50fc6f/mill-dist-1.1.6-mill.sh -o mill
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-88-655739/mill-dist-1.1.6-mill.sh -o mill
 &gt; chmod +x mill
 &gt; ./mill version
 1.1.6</code></pre>
@@ -802,7 +802,7 @@ bootstrap script, included. You can also download the bootstrap script manually:
 <div class="listingblock">
 <div class="title">Windows</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-87-50fc6f/mill-dist-1.1.6-mill.bat -o mill.bat
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-88-655739/mill-dist-1.1.6-mill.bat -o mill.bat
 &gt; ./mill version
 1.1.6</code></pre>
 </div>
@@ -866,7 +866,7 @@ pick one most similar to what you are doing so you can hit the ground running.</
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sudo curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-87-50fc6f/mill-dist-1.1.6-mill.sh -o /usr/local/bin/mill
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sudo curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-88-655739/mill-dist-1.1.6-mill.sh -o /usr/local/bin/mill
 &gt; sudo chmod +x /usr/local/bin/mill</code></pre>
 </div>
 </div>
@@ -1382,14 +1382,23 @@ than if they were black-and-white:</p>
 <p>Mill caches its outputs locally in the <a href="../fundamentals/out-dir.html" class="xref page">out/ folder</a>. You
 can preserve this <code>out/</code> folder between CI workers, e.g. to allow a subsequent CI worker
 to use a previous worker&#8217;s cached results, or to perform initial compilation on one worker
-then share the compiled output with downstream workers.</p>
+then share the compiled output with downstream workers.
+Since <code>out/</code> may contain <code>mill-home</code> and <code>mill-workspace</code> symlinks to runner-local paths,
+delete those symlink entries before uploading it as an artifact.</p>
 </div>
 <div class="paragraph">
 <p>For example, for Github Actions you may configure <code>out/</code> folder uploading via</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">  - uses: actions/upload-artifact@v4
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">  - name: Remove out symlinks before artifact upload
+    shell: bash
+    run: |
+      if [ -d out ]; then
+        find out \( -name mill-home -o -name mill-workspace \) -type l -print -delete
+      fi
+
+  - uses: actions/upload-artifact@v4
     with:
       name: build-out
       path: out/</code></pre>
