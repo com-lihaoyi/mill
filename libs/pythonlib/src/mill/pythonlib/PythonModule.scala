@@ -324,7 +324,10 @@ object PythonModule {
   ) {
     def toEnv(cwd: os.Path): Map[String, String] =
       Map(
-        "PYTHONPATH" -> pythonPath.map(PathRef.toRelString(_, cwd)).mkString(java.io.File.pathSeparator),
+        "PYTHONPATH" -> pythonPath.map(PathRef.toRelString(
+          _,
+          cwd
+        )).mkString(java.io.File.pathSeparator),
         "PYTHONPYCACHEPREFIX" -> PathRef.toRelString(pythonPycachePrefix, cwd),
         if (forceColor) "FORCE_COLOR" -> "1" else "NO_COLOR" -> "1"
       ) ++ javaHome.map(jh => "JAVA_HOME" -> PathRef.toRelString(jh, cwd))

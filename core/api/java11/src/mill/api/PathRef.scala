@@ -106,10 +106,11 @@ object PathRef {
       )
 
     mappings
-      .collectFirst { case (root, alias) if path.startsWith(root) =>
-        val subPath = path.subRelativeTo(root)
-        if (subPath.segments.isEmpty) alias.toString
-        else (alias / subPath).toString
+      .collectFirst {
+        case (root, alias) if path.startsWith(root) =>
+          val subPath = path.subRelativeTo(root)
+          if (subPath.segments.isEmpty) alias.toString
+          else (alias / subPath).toString
       }
       .getOrElse(toAbsString(path))
   }

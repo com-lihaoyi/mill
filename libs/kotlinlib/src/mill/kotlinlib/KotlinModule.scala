@@ -462,7 +462,11 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       val compilations = Task.traverse(kotlinFriendModulesChecked) { friend => friend.compile }()
       // The in-process Kotlin compiler compares friend outputs against resolved classpath
       // entries; Arrow tests lose `internal` access when these are cwd-alias paths.
-      Seq(compilations.map(c => PathRef.toAbsString(c.classes.path)).mkString("-Xfriend-paths=", ",", ""))
+      Seq(compilations.map(c => PathRef.toAbsString(c.classes.path)).mkString(
+        "-Xfriend-paths=",
+        ",",
+        ""
+      ))
     }
 
     Seq("-no-stdlib") ++
