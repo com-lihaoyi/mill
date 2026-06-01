@@ -241,15 +241,17 @@ ${expectedSnippets.mkString("\n")}
         "BASH_ENV" -> os.temp("export PATH=\"/c/Program Files/Git/usr/bin:$PATH\"").toString()
       )
 
-    val res = os.call(
-      (bashExecutable, "-c", commandStr),
-      stdout = os.Pipe,
-      stderr = os.Inherit,
-      cwd = workspacePath,
-      mergeErrIntoOut = true,
-      env = millTestSuiteEnv ++ windowsPathEnv,
-      check = false
-    )
+    val res = mill.api.internal.PathAliasing.withRawPathSerializer {
+      os.call(
+        (bashExecutable, "-c", commandStr),
+        stdout = os.Pipe,
+        stderr = os.Inherit,
+        cwd = workspacePath,
+        mergeErrIntoOut = true,
+        env = millTestSuiteEnv ++ windowsPathEnv,
+        check = false
+      )
+    }
 
     IntegrationTester.EvalResult(res)
   }
