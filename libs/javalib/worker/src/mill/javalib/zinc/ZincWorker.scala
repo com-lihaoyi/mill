@@ -814,7 +814,14 @@ object ZincWorker {
   private def getLocalOrCreateJavaTools(forkJavaHome: Option[os.Path]): JavaTools = {
     val (compiler, docs) = forkJavaHome match {
       case Some(home) =>
-        (javac.JavaCompiler.fork(Some(home.toNIO)), javac.Javadoc.fork(Some(home.toNIO)))
+        // Zinc calls `toAbsolutePath` on this value before launching `javac`/`javadoc`.
+        // If we pass `home.toNIO`, Mill's reproducible path serializer can turn a JDK
+        // under `os.home` into `../mill-home/...`. Zinc then absolutizes that relative
+        // path against the long-lived worker JVM's `user.dir` (a task dest such as
+        // `compile.dest`), leaving `..` segments that Windows `CreateProcess` does not
+        // normalize while looking up the executable.
+        val realJavaHome = PathRef.realAbsPath(home)
+        (javac.JavaCompiler.fork(Some(realJavaHome)), javac.Javadoc.fork(Some(realJavaHome)))
       case None =>
         val c = IncrementalTrackingJavaCompiler.local.getOrElse(javac.JavaCompiler.fork())
         val d = javac.Javadoc.local.getOrElse(javac.Javadoc.fork())
