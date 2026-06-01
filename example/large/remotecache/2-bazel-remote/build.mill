@@ -1,0 +1,53 @@
+//| mill-remote-cache-location: http://localhost:8378
+
+// To share a cache across a fleet of machines or CI workers you want a real cache _server_.
+// Mill speaks the widely-supported https://github.com/bazelbuild/remote-apis[Bazel Remote
+// Execution] HTTP cache protocol, so it works against off-the-shelf servers like
+// https://github.com/buchgr/bazel-remote[bazel-remote] (as well as Buildbarn, EngFlow, and
+// others). Point `mill-remote-cache-location` at the server's base URL, here in the
+// xref:cli/build-header.adoc[build header] so every command uses it.
+//
+// Below we download the `bazel-remote` binary — the two `curl`s fetch the macOS/arm64 and
+// Linux/x86-64 builds; see the https://github.com/buchgr/bazel-remote/releases[releases] page
+// for other platforms — then run it serving an HTTP cache on a local port and build against it.
+
+package build
+import mill.*, javalib.*
+
+object foo extends JavaModule
+
+/** Usage
+
+> curl -sL -o bazel-remote https://github.com/buchgr/bazel-remote/releases/download/v2.6.1/bazel-remote-2.6.1-darwin-arm64 && chmod +x bazel-remote # mac
+
+> curl -sL -o bazel-remote https://github.com/buchgr/bazel-remote/releases/download/v2.6.1/bazel-remote-2.6.1-linux-amd64 && chmod +x bazel-remote # linux
+
+> ./bazel-remote --dir bazel-remote-data --max_size 1 --http_address localhost:8378 > bazel-remote.log 2>&1 & echo $! > bazel-remote.pid; sleep 3
+
+> ./mill foo.run
+Hello World!
+
+> ./mill clean foo.compile
+
+> ./mill foo.run
+Hello World!
+
+> kill $(cat bazel-remote.pid)
+
+*/
+
+// After `./mill clean foo.compile`, the second `./mill foo.run` skipped recompiling and instead
+// downloaded the compile output from `bazel-remote`, as `"cached": true` for `foo.compile` in
+// `out/mill-profile.json` confirms:
+
+/** Usage
+
+> cat out/mill-profile.json | jq '.[] | select(.label == "foo.compile").cached'
+true
+
+*/
+
+// Because `bazel-remote` validates each uploaded `ActionResult` against the blobs it references,
+// a successful hit also confirms Mill's protocol implementation is correct on the wire. For
+// authenticated servers, set the `MILL_REMOTE_CACHE_AUTHORIZATION` environment variable and Mill
+// sends it as the `Authorization` header on every request.

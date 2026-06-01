@@ -8,6 +8,7 @@ import mill.javalib.worker.JvmWorkerRpcServer
 import mill.rpc.MillRpcWireTransport
 import mill.server.Server
 import mill.server.Server.ConnectionData
+import mill.util.Jvm
 import pprint.{TPrint, TPrintColors}
 
 import java.io.{BufferedReader, InputStreamReader, PrintStream}
@@ -18,7 +19,8 @@ object MillJvmWorkerMain {
     args match {
       case Array(daemonDir, jobsStr, useFileLocksStr) =>
         val useFileLocks = useFileLocksStr == "true"
-        val server = JvmWorkerTcpServer(os.Path(daemonDir), jobsStr.toInt, useFileLocks)
+        val resolvedDaemonDir = os.Path(daemonDir)
+        val server = JvmWorkerTcpServer(resolvedDaemonDir, jobsStr.toInt, useFileLocks)
         server.run()
         // Make sure we explicitly exit, so that even if there are some leaked threads
         // hanging around the process properly terminates rather than hanging
@@ -41,7 +43,9 @@ object MillJvmWorkerMain {
       extends Server[JvmWorkerServerData, Unit](Server.Args(
         daemonDir,
         acceptTimeout = None, // The worker kills the process when it needs to.
-        Locks.forDirectory(daemonDir.toString, useFileLocks),
+        // `Jvm.realAbs`: file locks need a real on-disk path — opened directly via NIO without
+        // going through the os-lib alias resolver.
+        Locks.forDirectory(Jvm.realAbs(daemonDir), useFileLocks),
         bufferSize = 4 * 1024
       )) {
     private val className = summon[TPrint[JvmWorkerTcpServer]].render(using TPrintColors.Colors)

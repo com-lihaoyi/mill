@@ -1,12 +1,22 @@
 package mill.integration
 
 import coursier.cache.FileCache
+import mill.api.internal.PathAliasing
 import mill.testkit.UtestIntegrationTestSuite
 import utest.*
 
 import java.io.File
 
 object CsEnvVarsTests extends UtestIntegrationTestSuite {
+  // In reproducible-build mode the daemon prints classpath entries through the path relativizer
+  // (e.g. cache jars as `../mill-home/...`); resolve them back to absolute paths for assertions.
+  private def resolveCp(workspace: os.Path)(raw: String): os.Path =
+    os.Path.pathSerializer.withValue(os.Path.pathRemapSerializerNio(
+      PathAliasing.defaultMapping(workspace).map { case (from, to) =>
+        mill.api.PathRef.realAbsPath(from) -> java.nio.file.Paths.get(to.toString)
+      }
+    ))(os.Path(raw))
+
   val tests: Tests = Tests {
     test("cache") - integrationTest { tester =>
       import tester.*
@@ -21,7 +31,7 @@ object CsEnvVarsTests extends UtestIntegrationTestSuite {
         )
         assert(res.exitCode == 0)
 
-        val cp = res.out.split(File.pathSeparator).filter(_.nonEmpty).map(os.Path(_))
+        val cp = res.out.split(File.pathSeparator).filter(_.nonEmpty).map(resolveCp(workspacePath))
 
         val actualCache = cacheOpt.getOrElse(os.Path(FileCache().location))
         assert(cp.exists(p => p.startsWith(actualCache) && p.last.startsWith("slf4j-api-")))
@@ -48,7 +58,7 @@ object CsEnvVarsTests extends UtestIntegrationTestSuite {
         val cacheRoot = os.Path(FileCache().location)
         val cp = res.out.split(File.pathSeparator)
           .filter(_.nonEmpty)
-          .map(os.Path(_))
+          .map(resolveCp(workspacePath))
           .filter(_.startsWith(cacheRoot))
           .map(_.relativeTo(cacheRoot).asSubPath)
 

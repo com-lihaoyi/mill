@@ -24,10 +24,20 @@ object ExecutionContexts {
     def close(): Unit = () // do nothing
 
     def blocking[T](t: => T): T = t
+    // Under `--jobs=1`, `Fork.async` routes here and runs the body inline on the
+    // parent thread, sharing the parent's `os.pwd` and system streams. Unlike
+    // `ThreadPool.async`, this does NOT relocate `os.pwd` into the `dest` sandbox
+    // folder, does NOT materialize `dest`, and does NOT write a per-future
+    // `dest.log` or add a terminal prompt line. The pwd-sandbox-in-`dest` +
+    // per-future `dest.log` contract documented on [[mill.api.TaskCtx.Fork.async]]
+    // is therefore not honored here; only the value of the body is surfaced
+    // through the returned `Future`.
     def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(using
         ctx: mill.api.TaskCtx
     ): Future[T] =
-      Future.successful(t(ctx.log))
+      // A throwing body yields a failed Future, matching `ThreadPool.async`, so
+      // `fork.async` failure semantics don't differ between `--jobs=1` and `--jobs>1`.
+      Future.fromTry(NonFatal.Try(t(ctx.log)))
   }
 
   /**
@@ -68,27 +78,10 @@ object ExecutionContexts {
     }
 
     def execute(runnable: Runnable): Unit = {
-      // By default, any child task inherits the pwd and system streams from the
-      // context which submitted it
-      val submitterPwd = os.dynamicPwdFunction.value
-      val submitterChecker = os.checker.value
-      val submitterStreams = new mill.api.SystemStreams(Console.out, Console.err, System.in)
-      val submitterModuleWatched = mill.api.BuildCtx.watchedValues0.value
-      val submitterEvalWatched = mill.api.BuildCtx.evalWatchedValues0.value
+      val submitterContext = TaskThreadContext.capture()
       executor.execute(new PriorityRunnable(
         0,
-        () =>
-          os.checker.withValue(submitterChecker) {
-            os.dynamicPwdFunction.withValue(() => submitterPwd()) {
-              mill.api.SystemStreamsUtils.withStreams(submitterStreams) {
-                mill.api.BuildCtx.watchedValues0.withValue(submitterModuleWatched) {
-                  mill.api.BuildCtx.evalWatchedValues0.withValue(submitterEvalWatched) {
-                    runnable.run()
-                  }
-                }
-              }
-            }
-          }
+        () => submitterContext.bind(runnable.run())
       ))
 
     }
@@ -110,34 +103,17 @@ object ExecutionContexts {
         ctx.log.streams.in
       )
 
-      var destInitialized: Boolean = false
-      def makeDest() = synchronized {
-        if (!destInitialized) {
-          os.makeDir.all(dest)
-          destInitialized = true
-        }
-
-        dest
-      }
-      val submitterChecker = os.checker.value
-      val submitterModuleWatched = mill.api.BuildCtx.watchedValues0.value
-      val submitterEvalWatched = mill.api.BuildCtx.evalWatchedValues0.value
+      val lazyDest = new LazyDest(() => dest)
+      val submitterContext = TaskThreadContext.capture(
+        pwd = () => lazyDest.get(),
+        streams = logger.streams
+      )
       val promise = concurrent.Promise[T]
       val runnable = new PriorityRunnable(
         priority = priority,
         run0 = () => {
           val result = NonFatal.Try(logger.withPromptLine {
-            os.checker.withValue(submitterChecker) {
-              os.dynamicPwdFunction.withValue(() => makeDest()) {
-                mill.api.SystemStreamsUtils.withStreams(logger.streams) {
-                  mill.api.BuildCtx.watchedValues0.withValue(submitterModuleWatched) {
-                    mill.api.BuildCtx.evalWatchedValues0.withValue(submitterEvalWatched) {
-                      t(logger)
-                    }
-                  }
-                }
-              }
-            }
+            submitterContext.bind(t(logger))
           })
           promise.complete(result)
         }

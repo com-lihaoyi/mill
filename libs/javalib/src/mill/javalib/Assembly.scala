@@ -5,7 +5,7 @@ import mill.util.JarManifest
 import os.Generator
 
 import java.io.{ByteArrayInputStream, InputStream, SequenceInputStream}
-import java.nio.file.attribute.PosixFilePermission
+import java.nio.file.attribute.{BasicFileAttributeView, FileTime, PosixFilePermission}
 import java.nio.file.StandardOpenOption
 import java.util.Collections
 import java.util.jar.JarFile
@@ -31,6 +31,36 @@ object Assembly {
   )
 
   val defaultSeparator = ""
+
+  /**
+   * Fixed timestamp stamped onto every assembly jar entry so the jar is byte-for-byte reproducible.
+   * The JDK zip filesystem otherwise records the current wall-clock time on each entry. `2010-01-01`
+   * (UTC) is an arbitrary constant above the 1980 DOS-time floor.
+   */
+  val fixedEntryTime: FileTime = FileTime.fromMillis(1262304000000L)
+
+  /**
+   * Stamp every entry under the open jar filesystem `zipRoot` with [[fixedEntryTime]], making the
+   * jar byte-for-byte reproducible. The JDK zip filesystem otherwise records the current wall-clock
+   * time (modification, access, and creation, the latter two via an extended-timestamp extra field)
+   * on each entry and on the directories it lazily creates.
+   *
+   * Two quirks of the JDK zip filesystem dictate the approach:
+   *   - all three times must be pinned, not just the modification time, or the access/creation
+   *     times in the extended-timestamp extra field still vary between builds; and
+   *   - directory entries must be stamped last, since setting a directory's time corrupts the
+   *     filesystem's internal index and makes a subsequent `setTimes` on any entry throw.
+   */
+  def normalizeJarTimestamps(zipRoot: os.Path): Unit = {
+    def setTimes(p: os.Path): Unit =
+      java.nio.file.Files.getFileAttributeView(p.toNIO, classOf[BasicFileAttributeView])
+        .setTimes(fixedEntryTime, fixedEntryTime, fixedEntryTime)
+
+    val (dirs, files) = os.walk(zipRoot).partition(os.isDir(_))
+    files.foreach(setTimes)
+    // Deepest directories first; see the second quirk above.
+    dirs.sortBy(_.segmentCount).reverse.foreach(setTimes)
+  }
 
   sealed trait Rule extends Product with Serializable
   object Rule {
@@ -223,6 +253,9 @@ object Assembly {
       } finally {
         resourceCleaner()
       }
+
+      // Normalize entry timestamps so the jar is byte-for-byte reproducible.
+      Assembly.normalizeJarTimestamps(zipRoot)
     }
 
     // Prepend shell script and make it executable

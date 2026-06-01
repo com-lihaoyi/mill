@@ -15,6 +15,7 @@ import mill.javalib.classgraph.ClassgraphWorkerModule
 import mill.util.Jvm
 import mill.{Args, T}
 import os.{Path, ProcessOutput}
+import mill.api.internal.PathAliasing
 import mill.constants.EnvVars
 
 /**
@@ -43,7 +44,9 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
   /**
    * Environment variables to pass to the forked JVM.
    *
-   * Includes [[forkEnv]] and the variables defined by Mill itself.
+   * Includes [[forkEnv]], the Java-home PATH override, and the workspace root. The os-lib
+   * path-relativizer var is added at the fork callsite, so it does not become part of this cached
+   * task output.
    */
   def allForkEnv: T[Map[String, String]] = Task {
     javaHomePathForkEnv() ++ forkEnv() ++ Map(
@@ -369,8 +372,13 @@ object RunModule {
         case None => useCpPassingJar0
       }
       val env = Option(forkEnv).getOrElse(forkEnv0)
-
       val propEnv = Option(propagateEnv).getOrElse(propagateEnv0: java.lang.Boolean)
+      val inheritedEnv = if (propEnv) ctx.env else Map.empty[String, String]
+      val processEnv = inheritedEnv ++ env + (
+        EnvVars.OS_LIB_PATH_RELATIVIZER_BASE ->
+          PathAliasing.workspacePathRelativizerBase()
+      )
+
       val cpPassingJarPath =
         if useCpPassingJar1 then
           Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false))
@@ -395,7 +403,7 @@ object RunModule {
             mainClass = mainClass1,
             classPath = classPath,
             jvmArgs = jvmArgs,
-            env = (if (propEnv) ctx.env else Map()) ++ env,
+            env = processEnv,
             mainArgs = mainArgs,
             cwd = cwd,
             stdin = "",
@@ -411,7 +419,7 @@ object RunModule {
             mainClass = mainClass1,
             classPath = classPath,
             jvmArgs = jvmArgs,
-            env = (if (propEnv) ctx.env else Map()) ++ env,
+            env = processEnv,
             mainArgs = mainArgs,
             cwd = cwd,
             cpPassingJarPath = cpPassingJarPath,

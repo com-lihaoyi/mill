@@ -74,21 +74,21 @@ trait UnidocModule extends ScalaModule {
     ) ++
       unidocVersion().toSeq.flatMap(Seq("-doc-version", _)) ++
       unidocSourceUrl().toSeq.flatMap { url =>
-        val sourceLinksOption = if (onScala3) "-source-links" else "-doc-source-url"
-
-        if (local) Seq(
-          sourceLinksOption,
-          "file://€{FILE_PATH_EXT}"
-        )
-        else {
-          val workspaceRoot = BuildCtx.workspaceRoot
+        val workspaceRoot = BuildCtx.workspaceRoot
+        if (onScala3) {
+          // Scala 3 records source paths in TASTY relative to the compile-time `-sourceroot` (the
+          // workspace, for a reproducible `out/`); give scaladoc the same root so `€{FILE_PATH_EXT}`
+          // is the workspace-relative source path, then build the link from it: an absolute
+          // `file://` URL for local docs, or the remote base URL for a published site.
           Seq(
-            sourceLinksOption,
-            // Relative path to the workspace
-            if (onScala3) s"$workspaceRoot=$url€{FILE_PATH_EXT}" else s"$url€{FILE_PATH_EXT}",
-            "-sourcepath",
-            workspaceRoot.toString
+            s"-sourceroot:$workspaceRoot",
+            "-source-links",
+            if (local) s"file://$workspaceRoot€{FILE_PATH_EXT}" else s"$url€{FILE_PATH_EXT}"
           )
+        } else if (local) {
+          Seq("-doc-source-url", "file://€{FILE_PATH_EXT}")
+        } else {
+          Seq("-doc-source-url", s"$url€{FILE_PATH_EXT}", "-sourcepath", workspaceRoot.toString)
         }
       } ++ unidocOptions()
 

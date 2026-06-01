@@ -3,9 +3,8 @@ package mill.javalib
 import mill.api.{BuildCtx, Discover, ExternalModule, ModuleRef, PathRef, Result, experimental}
 import mill.api.daemon.internal.SemanticDbJavaModuleApi
 import mill.constants.CodeGenConstants
-import mill.util.BuildInfo
+import mill.util.{BuildInfo, Jvm, Version}
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil}
-import mill.util.Version
 import mill.{T, Task}
 
 import scala.jdk.CollectionConverters.*
@@ -105,7 +104,9 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     val resolvedJars = defaultResolver().classpath(
       semanticDbPluginMvnDeps().map(_.exclude("*" -> "*"))
     )
-    resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
+    // `Jvm.realAbs`: handed to scalac as a `-Xplugin:` path; the compiler resolves it against
+    // its own cwd, so the `out/mill-home` alias form would not be found.
+    resolvedJars.iterator.map(jar => s"-Xplugin:${Jvm.realAbs(jar.path)}").toSeq
   }
 
   protected def semanticDbPluginClasspath: T[Seq[PathRef]] = Task {
@@ -262,14 +263,16 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
       val generatedSource = sourceroot / generatedSourceSubPath
       val generatedSourceLines = os.read.lines(generatedSource)
       val source = generatedSourceLines
-        .collectFirst { case s"//SOURCECODE_ORIGINAL_FILE_PATH=$rest" => os.Path(rest.trim) }
+        .collectFirst {
+          case s"//SOURCECODE_ORIGINAL_FILE_PATH=$rest" => os.Path(rest.trim)
+        }
         .getOrElse {
           sys.error(s"Cannot get original source from generated source $generatedSource")
         }
 
       val firstLineIdx = generatedSourceLines.indexWhere(_.startsWith(userCodeStartMarker)) + 1
 
-      val res = mill.util.Jvm.withClassLoader(
+      val res = Jvm.withClassLoader(
         workerClasspath,
         parent = getClass.getClassLoader
       ) { cl =>

@@ -326,11 +326,11 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   }
 
   def nativeLinkOtherMain(mainClass: String) = Task.Anon {
-    val dest = Task.dest / s"nativeLink-${mainClass.hashCode}"
-    os.remove.all(dest)
+    val dest = Task.dest
+    os.remove.all(dest / "out")
     PathRef(os.Path(withScalaNativeBridge.apply().apply(_.nativeLink(
       nativeConfig(Some(mainClass))().config,
-      Task.dest.toIO
+      dest.toIO
     ))))
   }
 
@@ -377,7 +377,9 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
       Option(forkArgs).getOrElse(forkArgsDefault)
       val env = Option(forkEnv).getOrElse(forkEnvDefault)
       val propEnv = Option(propagateEnv).getOrElse(propagateEnvDefault: java.lang.Boolean)
-      val native = nativeExe.path.toString
+      // `Jvm.realAbs`: passed verbatim to `os.call` as the executable path; the alias form
+      // would be resolved against the subprocess's own cwd and fail to launch.
+      val native = mill.util.Jvm.realAbs(nativeExe.path)
 
       os.call(
         cmd = native +: mainArgs,
@@ -419,7 +421,8 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
         scalaVersion = scalaVersion(),
         scalaBinaryVersion = JvmWorkerUtil.scalaBinaryVersion(scalaVersion()),
         ScalaPlatform.Native,
-        jars = scalaCompilerClasspath().map(_.path.toURI.toString).iterator.toSeq,
+        // `.wrapped.toUri`, not `.toURI`: BSP needs absolute URIs (see ScalaModule.bspBuildTargetData).
+        jars = scalaCompilerClasspath().map(_.path.wrapped.toUri.toString).iterator.toSeq,
         jvmBuildTarget = None
       )
     ))

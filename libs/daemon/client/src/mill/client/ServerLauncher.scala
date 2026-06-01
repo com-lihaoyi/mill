@@ -20,7 +20,8 @@ object ServerLauncher {
       millVersion: String,
       javaVersion: String,
       jvmOpts: Seq[String],
-      millRepositories: Seq[String]
+      millRepositories: Seq[String],
+      pathRelativizerBase: String
   ) derives upickle.ReadWriter {
 
     /**
@@ -40,6 +41,9 @@ object ServerLauncher {
           } ++
           Option.when(millRepositories != other.millRepositories) {
             s"Mill repositories changed ($millRepositories -> ${other.millRepositories})"
+          } ++
+          Option.when(pathRelativizerBase != other.pathRelativizerBase) {
+            "Path relativizer base changed"
           }
 
       results.toSeq
@@ -48,7 +52,7 @@ object ServerLauncher {
   object DaemonConfig {
 
     /** Empty config for cases where config tracking is not needed (e.g., zinc workers) */
-    def empty: DaemonConfig = DaemonConfig("", "", Seq.empty, Seq.empty)
+    def empty: DaemonConfig = DaemonConfig("", "", Seq.empty, Seq.empty, "")
   }
 
   case class Launched(port: Int, socket: Option[Socket], launchedServer: LaunchedServer)

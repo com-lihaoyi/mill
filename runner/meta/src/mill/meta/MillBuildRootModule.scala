@@ -128,7 +128,7 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
         case (k, v)
             if k.last.endsWith(".mill.yaml") &&
               !mill.internal.Util.isPrecompiledYamlModule(k) =>
-          (k.toNIO, v)
+          k.toString -> v
       },
       // Serialize to string to avoid classloader issues when crossing classloader boundaries
       spanningTree.render()
@@ -258,7 +258,11 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
     super.scalacOptions() ++
       // This warning comes up for package names with dashes in them like "package build.`foo-bar`",
       // but Mill generally handles these fine, so no need to warn the user
-      Seq("-deprecation", "-Wconf:msg=will be encoded on the classpath:silent")
+      Seq("-deprecation", "-Wconf:msg=will be encoded on the classpath:silent") ++
+      // `-sourceroot` so scalac stores TASTY source paths relative to it. The value uses
+      // the workspace's relativizer alias (`mill-workspace`) so two reproducible-mode runs
+      // in different workspace dirs emit byte-identical `package_.class`/`.tasty`.
+      Seq("-sourceroot", rootModuleInfo.topLevelProjectRoot.toString)
   }
 
   /** Used in BSP IntelliJ, which can only work with directories */
@@ -306,7 +310,7 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
           javacOptions = jOpts.compiler,
           scalaVersion = scalaVersion(),
           scalaOrganization = JvmWorkerUtil.scalaOrganization(scalaVersion()),
-          scalacOptions = allScalacOptions(),
+          scalacOptions = allScalacOptions() ++ tastyReproducibilityScalacOptions(),
           compilerClasspath = scalaCompilerClasspath(),
           scalacPluginClasspath = scalacPluginClasspath(),
           compilerBridgeOpt = scalaCompilerBridge(),

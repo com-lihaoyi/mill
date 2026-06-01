@@ -19,6 +19,7 @@ import mill.api.{
   TaskCtx
 }
 import mill.api.daemon.internal.{EvaluatorApi, JavaModuleApi, internal}
+import mill.api.internal.PathAliasing
 import mill.api.daemon.internal.bsp.{
   BspBuildTarget,
   BspJavaModuleApi,
@@ -1358,6 +1359,7 @@ trait JavaModule
       Task.log.info("options: " + cmdArgs)
 
       val cmd = Seq(Jvm.jdkTool("javadoc", javaHome)) ++ cmdArgs
+      PathAliasing.ensureProcessCwdAliases(Task.dest)
       os.call(
         cmd = cmd,
         env = Map(),
@@ -1660,7 +1662,9 @@ trait JavaModule
   def sanitizeUri(uri: String): String =
     if (uri.endsWith("/")) sanitizeUri(uri.substring(0, uri.length - 1)) else uri
 
-  def sanitizeUri(uri: os.Path): String = sanitizeUri(uri.toURI.toString)
+  // `.wrapped.toUri`, not `.toURI`: BSP clients need absolute `file://` URIs, but in
+  // reproducible-build mode `os.Path.toURI` relativizes and resolves wrongly against the daemon cwd.
+  def sanitizeUri(uri: os.Path): String = sanitizeUri(uri.wrapped.toUri.toString)
 
   def sanitizeUri(uri: PathRef): String = sanitizeUri(uri.path)
 

@@ -5,6 +5,7 @@ import mill.client.lock.Locks
 import mill.constants.OutFolderMode
 import mill.internal.{LauncherLockRegistry, LauncherOutFilesState, OutputDirectoryLayout}
 import mill.server.Server
+import mill.util.Jvm
 
 import scala.concurrent.duration.*
 import scala.jdk.CollectionConverters.*
@@ -61,7 +62,8 @@ object MillDaemonMain0 {
       val exitCode = MillDaemonMain0(
         daemonDir = args.daemonDir,
         acceptTimeout = acceptTimeout,
-        Locks.forDirectory(args.daemonDir.toString, args.useFileLocks),
+        // `Locks.forDirectory` opens a real file lock; pass the canonical absolute path.
+        Locks.forDirectory(Jvm.realAbs(args.daemonDir), args.useFileLocks),
         outMode = args.outMode
       ).run().getOrElse(0)
 

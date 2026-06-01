@@ -431,10 +431,19 @@ Mill caches its outputs locally in the xref:fundamentals/out-dir.adoc[out/ folde
 can preserve this `out/` folder between CI workers, e.g. to allow a subsequent CI worker
 to use a previous worker's cached results, or to perform initial compilation on one worker
 then share the compiled output with downstream workers.
+Since `out/` may contain `mill-home` and `mill-workspace` symlinks to runner-local paths,
+delete those symlink entries before uploading it as an artifact.
 
 For example, for Github Actions you may configure `out/` folder uploading via
 
 ```yaml
+  - name: Remove out symlinks before artifact upload
+    shell: bash
+    run: |
+      if [ -d out ]; then
+        find out \( -name mill-home -o -name mill-workspace \) -type l -print -delete
+      fi
+
   - uses: actions/upload-artifact@v4
     with:
       name: build-out

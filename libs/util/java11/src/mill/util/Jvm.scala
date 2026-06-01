@@ -13,6 +13,8 @@ import coursier.util.Task
 import coursier.{Artifacts, Classifier, Dependency, Fetch, Repository, Resolution, Resolve, Type}
 import mill.api.*
 import mill.api.daemon.*
+import mill.api.internal.PathAliasing
+import mill.constants.EnvVars
 import java.io.{BufferedOutputStream, File}
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission
@@ -26,6 +28,15 @@ import scala.util.chaining.scalaUtilChainingOps
  * launcher scripts, etc.
  */
 object Jvm {
+
+  def realAbs(p: os.Path): String = PathRef.realAbs(p)
+  def realAbs(p: PathRef): String = PathRef.realAbs(p)
+  def realAbsPath(p: os.Path): java.nio.file.Path = PathRef.realAbsPath(p)
+  def realAbsPath(p: PathRef): java.nio.file.Path = PathRef.realAbsPath(p)
+  def realAbsFile(p: os.Path): java.io.File = PathRef.realAbsFile(p)
+  def realAbsFile(p: PathRef): java.io.File = PathRef.realAbsFile(p)
+  def realAbsResolved(p: os.Path): String = PathRef.realAbsResolved(p)
+  def realAbsResolvedPath(p: os.Path): os.Path = PathRef.realAbsResolvedPath(p)
 
   /**
    * Runs a JVM subprocess with the given configuration and returns a
@@ -75,6 +86,8 @@ object Jvm {
       destroyOnExit: Boolean = true,
       check: Boolean = true
   )(using ctx: TaskCtx): os.CommandResult = {
+    val effectiveCwd = Option(cwd).getOrElse(os.pwd)
+    PathAliasing.ensureProcessCwdAliases(effectiveCwd)
     val commandArgs = buildJvmCommand(
       mainClass,
       mainArgs,
@@ -82,7 +95,7 @@ object Jvm {
       jvmArgs,
       classPath,
       cpPassingJarPath,
-      cwd
+      effectiveCwd
     )
 
     ctx.log.debug(
@@ -90,7 +103,7 @@ object Jvm {
     )
 
     os.proc(commandArgs).call(
-      cwd = cwd,
+      cwd = effectiveCwd,
       env = env,
       propagateEnv = propagateEnv,
       stdin = stdin,
@@ -148,6 +161,9 @@ object Jvm {
       shutdownGracePeriod: Long = 100,
       destroyOnExit: Boolean = true
   ): os.SubProcess = {
+    val effectiveCwd = Option(cwd).getOrElse(os.pwd)
+    PathAliasing.ensureProcessCwdAliases(effectiveCwd)
+
     val commandArgs = buildJvmCommand(
       mainClass,
       mainArgs,
@@ -155,11 +171,11 @@ object Jvm {
       jvmArgs,
       classPath,
       cpPassingJarPath,
-      cwd
+      effectiveCwd
     )
 
     os.proc(commandArgs).spawn(
-      cwd = cwd,
+      cwd = effectiveCwd,
       env = env,
       stdin = stdin,
       stdout = stdout,
@@ -221,11 +237,13 @@ object Jvm {
 
     if (cwd != null) os.makeDir.all(cwd)
 
+    // `realAbs` for the `-cp` arg: the alias form needs the symlink in the subprocess's
+    // cwd's parent, which is unreliable on Windows / nested-native-daemon tests.
+    val cpStr = cp.iterator.map(realAbs).mkString(java.io.File.pathSeparator)
     Vector(javaExe(javaHome)) ++
       jdk23PlusUnsafeOpts(javaHome) ++
       jvmArgs.value ++
-      Option.when(cp.nonEmpty)(Vector("-cp", cp.mkString(java.io.File.pathSeparator)))
-        .getOrElse(Vector.empty) ++
+      Option.when(cp.nonEmpty)(Vector("-cp", cpStr)).getOrElse(Vector.empty) ++
       Vector(mainClass) ++
       mainArgs.value
   }
@@ -273,6 +291,8 @@ object Jvm {
       cwd: os.Path = null,
       propagateEnv: Boolean = true
   )(using ctx: TaskCtx): Int = {
+    val effectiveCwd = Option(cwd).getOrElse(os.pwd)
+    PathAliasing.ensureProcessCwdAliases(effectiveCwd)
     val commandArgs = buildJvmCommand(
       mainClass,
       mainArgs,
@@ -280,7 +300,7 @@ object Jvm {
       jvmArgs,
       classPath,
       cpPassingJarPath,
-      cwd
+      effectiveCwd
     )
 
     ctx.log.debug(
@@ -290,7 +310,7 @@ object Jvm {
     runInteractiveCommand(
       cmd = commandArgs,
       env = env,
-      cwd = Option(cwd).getOrElse(os.pwd),
+      cwd = effectiveCwd,
       propagateEnv = propagateEnv
     )
   }
@@ -307,7 +327,11 @@ object Jvm {
     LauncherSubprocess.value(LauncherSubprocess.Config(
       cmd = cmd,
       env = env,
-      cwd = cwd.toString,
+      // Pass the absolute cwd: this string is consumed launcher-side by `os.Path(...)`, which
+      // requires an absolute path. In reproducible mode `cwd.toString` is relativized (e.g.
+      // `out/mill-workspace/out/run.dest`), so use the underlying absolute path to avoid the
+      // launcher throwing "Path must be absolute" (which it swallows into a silent exit code 1).
+      cwd = cwd.wrapped.toAbsolutePath.normalize().toString,
       propagateEnv = propagateEnv
     ))
   }
@@ -349,7 +373,14 @@ object Jvm {
     Option.when(javaMajorVersion >= 23)("--sun-misc-unsafe-memory-access=allow").toSeq ++
       // Silence another benign warning, this one raised by JLine and `com.swoval:file-tree-views`
       // which is transitively used by Zinc for faster filesystem operations
-      Option.when(javaMajorVersion >= 16)("--enable-native-access=ALL-UNNAMED").toSeq
+      Option.when(javaMajorVersion >= 16)("--enable-native-access=ALL-UNNAMED").toSeq ++
+      // In reproducible-build mode the Zinc output dir is passed as a workspace-relative path
+      // (resolved via the `out/mill-workspace` alias), which makes sbt.io print a noisy
+      // "Tried to extract the base path for relative glob ..." warning to stderr. The glob still
+      // resolves correctly, so opt into the implicit relative-glob conversion to silence it.
+      Option.when(
+        sys.env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).exists(_.nonEmpty)
+      )("-Dsbt.io.implicit.relative.glob.conversion=allow").toSeq
   }
 
   /**
@@ -487,13 +518,14 @@ object Jvm {
   }
 
   def createClasspathPassingJar(jar: os.Path, classpath: Seq[os.Path]): Unit = {
+    val classPathManifestValue = classpath.iterator
+      .map(_.wrapped.toAbsolutePath.normalize().toUri.toURL.toExternalForm)
+      .mkString(" ")
     createJar(
       jar = jar,
       inputPaths = Seq(),
       manifest = JarManifest.MillDefault.add(
-        "Class-Path" -> classpath.iterator.map(_.toURL.toExternalForm()).mkString(
-          " "
-        )
+        "Class-Path" -> classPathManifestValue
       ),
       fileFilter = (_, _) => true
     )
@@ -628,7 +660,10 @@ object Jvm {
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
       config: CoursierConfig
   ) =
-    FileCache[Task](os.Path(config.cacheLocation).toIO)
+    // Use `.wrapped.toFile` instead of `.toIO`: in reproducible mode the path
+    // serializer relativizes `toIO` to `..\mill-home\...`, which on Windows
+    // breaks Plexus's zip-slip prefix check inside ArchiveCache → JDK extract.
+    FileCache[Task](os.Path(config.cacheLocation).wrapped.toFile)
       .withCredentials(config.credentials)
       .withTtl(config.ttl)
       .withCachePolicies(config.cachePolicies)
@@ -856,9 +891,9 @@ object Jvm {
     val jvmCache = JvmCache()
       .withArchiveCache(
         ArchiveCache()
-          .withLocation(os.Path(config.archiveCacheLocation).toIO)
+          .withLocation(os.Path(config.archiveCacheLocation).wrapped.toFile)
           .withCache(coursierCache0)
-          .withShortPathDirectory(shortPathDirOpt.map(_.toIO))
+          .withShortPathDirectory(shortPathDirOpt.map(_.wrapped.toFile))
       )
       .withIndex(jvmIndex0(
         ctx,

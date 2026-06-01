@@ -2,13 +2,15 @@ package mill.exec
 
 import mill.api.ExecResult.{OuterStack, Success}
 import mill.api.*
+import mill.api.daemon.Segment
 import mill.api.daemon.internal.LauncherLocking
 import mill.api.daemon.internal.NonFatal
-import mill.api.internal.{Appendable, Cached, Located}
+import mill.api.internal.{Appendable, Located, ParseArgs, PathAliasing}
 import mill.internal.{CodeSigUtils, FileLogger, LockUpgrade, MultiLogger, PromptWaitReporter}
 
 import java.lang.reflect.Method
 import java.util.concurrent.ThreadPoolExecutor
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.util.hashing.MurmurHash3
 import mill.api.daemon.internal.{
@@ -37,7 +39,7 @@ trait GroupExecution {
 
   /**
    * Tracks tasks invalidated due to version/classloader mismatch, with the reason string.
-   * Populated by loadCachedJson, used by ExecutionLogs.logInvalidationTree.
+   * Populated by TaskCacheEntry reads, used by ExecutionLogs.logInvalidationTree.
    */
   def versionMismatchReasons: java.util.concurrent.ConcurrentHashMap[Task[?], String]
 
@@ -55,6 +57,39 @@ trait GroupExecution {
   def exclusiveSystemStreams: SystemStreams
   def getEvaluator: () => EvaluatorApi
   def staticBuildOverrideFiles: Map[java.nio.file.Path, String]
+
+  def remoteCacheLocation: Option[String]
+  def remoteCacheSalt: Option[String]
+  def remoteCacheFilter: Option[String]
+
+  // `None` means "cache every eligible task". Validated eagerly in `MillMain0`, so it parses here.
+  private lazy val remoteCacheFilterSegments: Option[Segments] =
+    remoteCacheFilter.flatMap(ParseArgs.extractSegments(_).toOption.map(_._2))
+
+  /** The cache location for `labelled`, or `None` if not a filter-matching [[Task.Computed]]. */
+  private def remoteCacheTarget(labelled: Task.Named[?]): Option[String] =
+    remoteCacheLocation.filter(_ =>
+      labelled.isInstanceOf[Task.Computed[?]] &&
+        remoteCacheFilterSegments.forall(checkPatternMatch(_, labelled.ctx.segments))
+    )
+
+  /** Matches `input` against a `--remote-cache-filter` `pattern` with task-selector wildcards. */
+  private def checkPatternMatch(pattern: Segments, input: Segments): Boolean = {
+    import Segment.{Cross, Label}
+    def rec(pattern: List[Segment], input: List[Segment]): Boolean =
+      (pattern, input) match {
+        case (Nil, Nil) => true
+        case (Label("__") :: pRest, iRest) => iRest.tails.exists(rec(pRest, _))
+        case (Label("_") :: pRest, _ :: iRest) => rec(pRest, iRest)
+        case (Label(a) :: pRest, Label(b) :: iRest) if a == b => rec(pRest, iRest)
+        case (Cross(as) :: pRest, Cross(bs) :: iRest) =>
+          as.length == bs.length &&
+          as.zip(bs).forall { case ("_", _) => true; case (a, b) => a == b } &&
+          rec(pRest, iRest)
+        case _ => false
+      }
+    rec(pattern.value.toList, input.value.toList)
+  }
 
   /** Evaluate a build override YAML value and deserialize it */
   private def evaluateBuildOverride(
@@ -101,10 +136,19 @@ trait GroupExecution {
   }
 
   val staticBuildOverrides: Map[String, Located[Appendable[BufferedValue]]] = {
+    // Resolve symlinks so that paths arriving via the `mill-workspace`/`mill-home` alias symlinks
+    // (in reproducible mode) compare equal to their real on-disk form. Both sides of the
+    // `startsWith`/`==` checks below must be canonicalized, else a workspace under a symlinked
+    // prefix (e.g. macOS `/tmp` -> `/private/tmp`) would silently fail to match.
+    def canonical(p: os.Path): os.Path = PathRef.realAbsResolvedPath(p)
+    val canonicalWorkspace = canonical(workspace)
+    val canonicalRootBuildYaml =
+      canonical(os.Path(rootModule.moduleDirJava) / os.up / "build.mill.yaml")
     staticBuildOverrideFiles
       .flatMap { case (path0, rawText) =>
-        val path = os.Path(path0)
-        val headerDataReader = mill.api.internal.HeaderData.headerDataReader(path)
+        val path = os.Path(path0, os.pwd)
+        val resolvedPath = canonical(path)
+        val headerDataReader = mill.api.internal.HeaderData.headerDataReader(resolvedPath)
 
         def rec(
             segments: Seq[String],
@@ -138,7 +182,7 @@ trait GroupExecution {
               .map { case (k, v) =>
                 val (actualValue, append) = Appendable.unwrapAppendMarker(v)
                 (segments ++ Seq(k.value)).mkString(".") -> Located(
-                  path,
+                  resolvedPath,
                   k.index,
                   Appendable(actualValue, append)
                 )
@@ -163,10 +207,10 @@ trait GroupExecution {
           true,
           -1
         )
-        if ((path / "..").startsWith(workspace)) {
+        if ((resolvedPath / "..").startsWith(canonicalWorkspace)) {
           rec(
-            (path / "..").subRelativeTo(workspace).segments,
-            if (path == os.Path(rootModule.moduleDirJava) / "../build.mill.yaml") {
+            (resolvedPath / "..").subRelativeTo(canonicalWorkspace).segments,
+            if (resolvedPath == canonicalRootBuildYaml) {
               parsed0
                 .value0
                 .collectFirst { case (BufferedValue.Str("mill-build", _), v) => v }
@@ -203,10 +247,17 @@ trait GroupExecution {
     rec(upickle.core.BufferedValue.transform(json, ujson.Value))
   }
 
-  // the JVM running this code currently
-  val javaHomeHash = sys.props("java.home").hashCode
-
-  val invalidateAllHashes = classLoaderSigHash + javaHomeHash
+  /**
+   * The build-override entry for `named`, with static (YAML build-file) overrides taking
+   * precedence over dynamic (module-level) ones. `moduleDynamicBuildOverrides` is bound to a
+   * `val` so it is evaluated eagerly (it recomputes and can throw on a malformed header), which
+   * is what both call sites rely on.
+   */
+  private def buildOverrideFor(named: Task.Named[?]): Option[Located[Appendable[BufferedValue]]] = {
+    val segs = named.ctx.segments.render
+    val dynamicBuildOverride = named.ctx.enclosingModule.moduleDynamicBuildOverrides
+    staticBuildOverrides.get(segs).orElse(dynamicBuildOverride.get(segs))
+  }
 
   /**
    * Returns the inputs Mill should walk for `task`. A `Task.Named` whose value
@@ -217,10 +268,7 @@ trait GroupExecution {
    */
   private[mill] def effectiveInputs(task: Task[?]): Seq[Task[?]] = task match {
     case named: Task.Named[?] =>
-      val segs = named.ctx.segments.render
-      val dynamicBuildOverride = named.ctx.enclosingModule.moduleDynamicBuildOverrides
-      val overrideOpt = staticBuildOverrides.get(segs).orElse(dynamicBuildOverride.get(segs))
-      overrideOpt match {
+      buildOverrideFor(named) match {
         case Some(located) if !located.value.append => Nil
         case _ => named.inputs
       }
@@ -244,6 +292,13 @@ trait GroupExecution {
       upstreamPathRefs: collection.Seq[PathRef],
       leaseTracker: Execution.LeaseTracker
   ): GroupExecution.Results = {
+    // Fold the group's `sideHash`es into a single order-independent (commutative sum) value for
+    // `inputsHash`, and note whether any task is side-effecting (non-zero `sideHash`, see
+    // `Task.sideEffectingHash`) so we can force it to re-read rather than serve a cached value.
+    val (sideHashes, hasSideEffects) = group.iterator.foldLeft((0, false)) { case ((sum, has), t) =>
+      val sideHash = t.sideHash
+      (sum + sideHash, has || sideHash != 0)
+    }
 
     val inputsHash = {
       val groupSet = group.toSet
@@ -253,7 +308,6 @@ trait GroupExecution {
         group.iterator.flatMap(effectiveInputs).filterNot(groupSet.contains)
           .flatMap(results(_).asSuccess.map(_.value._2))
       )
-      val sideHashes = MurmurHash3.unorderedHash(group.iterator.map(_.sideHash))
       val scriptsHash = MurmurHash3.unorderedHash(
         group
           .iterator
@@ -269,16 +323,15 @@ trait GroupExecution {
           .flatten
       )
 
-      externalInputsHash + sideHashes + scriptsHash + invalidateAllHashes
+      externalInputsHash + sideHashes + scriptsHash
     }
 
     terminal match {
       case labelled: Task.Named[_] =>
         val out = if (!labelled.ctx.external) outPath else externalOutPath
         val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
-        val dynamicBuildOverride = labelled.ctx.enclosingModule.moduleDynamicBuildOverrides
-        val buildOverrideOpt = staticBuildOverrides.get(labelled.ctx.segments.render)
-          .orElse(dynamicBuildOverride.get(labelled.ctx.segments.render))
+        val cacheEntry = TaskCacheEntry(paths, classLoaderSigHash)
+        val buildOverrideOpt = buildOverrideFor(labelled)
 
         // Helper to create a cached result (no evaluation occurred)
         def cachedResult(
@@ -287,7 +340,7 @@ trait GroupExecution {
         ): GroupExecution.Results = GroupExecution.Results(
           newResults = Map(labelled -> execRes),
           newEvaluated = Nil,
-          cached = true,
+          cacheStatus = GroupExecution.CacheStatus.Hit,
           inputsHash = inputsHash,
           previousInputsHash = -1,
           valueHashChanged = false,
@@ -296,108 +349,31 @@ trait GroupExecution {
 
         val taskWaitReporter =
           PromptWaitReporter.fromLogger(logger, logger.streams.err)
-        val taskLockPath = paths.dest.toNIO
-        val taskLockKey = taskLockPath.toAbsolutePath.normalize().toString
-
-        // Any successful task-lock acquisition must validate reads that were
-        // dropped during an earlier contended wait before evaluation continues.
-        // This path may block, so only call it when we are not holding a task
-        // Write lease.
-        // #7132: blocking task-lock waits run on the bounded execution pool;
-        // wrap them in `executionContext.blocking` so the pool spawns a
-        // compensating worker while parked, preventing pool starvation (the
-        // lock-holder's downstream tasks can still get a thread and release).
-        // Guard on `hasDropped`: with nothing dropped the reacquire is a no-op,
-        // and entering `blocking` here on every task's uncontended fast path
-        // would churn the pool size and balloon the thread count past `--jobs`.
-        def reacquireDroppedReads(): Unit =
-          if (leaseTracker.hasDropped)
-            executionContext.blocking {
-              leaseTracker.reacquireDropped(workspaceLocking, taskWaitReporter)
-            }
-
-        // The write-upgrade callback and Named write body run while holding
-        // this task's Write lock, so dropped reads must be reacquired only via
-        // non-blocking try-locks. A writer that performs a blocking task-lock
-        // acquire can wait on another writer while retaining its own Write
-        // lease, reintroducing the retained-read/write cycle this logic avoids.
-        def tryReacquireDroppedReads(): Unit =
-          leaseTracker.reacquireDropped(workspaceLocking, taskWaitReporter, block = false)
-
-        def validateDroppedReads(lease: LauncherLocking.Lease): LauncherLocking.Lease =
-          try {
-            reacquireDroppedReads()
-            lease
-          } catch {
-            case t: Throwable =>
-              lease.close()
-              throw t
-          }
-
-        // Input tasks (Task.Input/Source/Sources) are deterministic from
-        // filesystem/env, downstream consumes the in-memory Val (not
-        // `dest/`), and concurrent `dest/meta.json` writes are byte-identical
-        // — so per-task locking is unnecessary and just serializes peers.
-        def acquireReadTaskLock(): LauncherLocking.Lease = {
-          def blockingAcquire(): LauncherLocking.Lease =
-            executionContext.blocking {
-              workspaceLocking.taskLock(
-                taskLockPath,
-                labelled.ctx.segments.render,
-                LauncherLocking.LockKind.Read,
-                taskWaitReporter
-              )
-            }
-
-          if (labelled.isInputTask)
-            LauncherLocking.Noop.taskLock(
-              taskLockPath,
-              labelled.ctx.segments.render,
-              LauncherLocking.LockKind.Read,
-              taskWaitReporter
-            )
-          else {
-            workspaceLocking.tryTaskReadLock(taskLockPath, labelled.ctx.segments.render) match {
-              case Right(lease) => validateDroppedReads(lease)
-              case Left(_) =>
-                leaseTracker.releaseHigherThan(taskLockKey)
-                validateDroppedReads(blockingAcquire())
-            }
-          }
-        }
-
-        // Try-Write + bounded await for `LockUpgrade.readThenWrite`'s
-        // retryable loop; mirrors `acquireReadTaskLock`'s input-task skip.
-        def tryWriteTaskLock(): Either[LauncherLocking.Contention, LauncherLocking.Lease] =
-          if (labelled.isInputTask)
-            LauncherLocking.Noop.tryTaskWriteLock(
-              taskLockPath,
-              labelled.ctx.segments.render
-            )
-          else
-            workspaceLocking.tryTaskWriteLock(
-              taskLockPath,
-              labelled.ctx.segments.render
-            )
-        def awaitTaskLockChange(timeoutMs: Long): Unit =
-          if (!labelled.isInputTask) {
-            leaseTracker.releaseHigherThan(taskLockKey)
-            executionContext.blocking {
-              workspaceLocking.awaitTaskStateChange(
-                taskLockPath,
-                labelled.ctx.segments.render,
-                timeoutMs
-              )
-            }
-          }
+        val taskLocks = TaskLockCoordinator(
+          labelled = labelled,
+          taskLockPath = paths.dest.toNIO,
+          workspaceLocking = workspaceLocking,
+          waitReporter = taskWaitReporter,
+          leaseTracker = leaseTracker,
+          executionContext = executionContext
+        )
+        val remoteLocation = remoteCacheTarget(labelled)
 
         // Helper to evaluate the task with full caching support
         def evaluateTaskWithCaching(): GroupExecution.Results = {
+          // For side-effecting tasks (Task.Input/Source/...), keep the previously stored
+          // `valueHash` for `valueHashChanged` comparison but drop the cached value so
+          // re-evaluation actually re-reads the filesystem/env state.
+          def readLocal(): Option[TaskCacheEntry.Loaded] =
+            cacheEntry
+              .read(logger, inputsHash, labelled, versionMismatchReasons)
+              .map(cached => if (hasSideEffects) cached.copy(valueOpt = None) else cached)
+
           def loadCachedOrWorker(
-              cached: Option[(Int, Option[(Val, Seq[PathRef])], Int)],
+              cached: Option[TaskCacheEntry.Loaded],
               closeStaleWorker: Boolean
           ): Option[GroupExecution.Results] = {
-            val (multiLogger, _) = resolveLogger(Some(paths).map(_.log), logger)
+            val (multiLogger, _) = resolveLogger(Some(paths.log), logger)
             val upToDateWorker = loadUpToDateWorker(
               logger = logger,
               inputsHash = inputsHash,
@@ -411,7 +387,7 @@ trait GroupExecution {
               closeStaleWorker = closeStaleWorker,
               multiLogger = multiLogger,
               counterMsg = countMsg,
-              destCreator = GroupExecution.DestCreator(Some(paths)),
+              destCreator = LazyDest.fromPaths(Some(paths)),
               terminal = terminal
             )
 
@@ -421,10 +397,10 @@ trait GroupExecution {
                 Nil
               )
             }.orElse(
-              cached.flatMap { case (_, valOpt, valueHash) =>
-                valOpt.map { case (v, serializedPaths) =>
+              cached.flatMap { local =>
+                local.valueOpt.map { case (v, serializedPaths) =>
                   cachedResult(
-                    ExecResult.Success((v, valueHash)),
+                    ExecResult.Success((v, local.valueHash)),
                     serializedPaths
                   )
                 }
@@ -432,31 +408,19 @@ trait GroupExecution {
             )
           }
 
-          LockUpgrade.readThenWrite(
-            acquireRead = acquireReadTaskLock(),
-            tryAcquireWrite = () => tryWriteTaskLock(),
-            awaitStateChange = awaitTaskLockChange,
-            waitReporter = taskWaitReporter,
-            afterAcquire = tryReacquireDroppedReads
-          ) { scope =>
+          taskLocks.readThenWrite { scope =>
             loadCachedOrWorker(
-              loadCachedJson(logger, inputsHash, labelled, paths),
+              readLocal(),
               closeStaleWorker = false
             ) match {
               case Some(res) =>
-                leaseTracker.retain(
-                  labelled,
-                  taskLockPath,
-                  labelled.ctx.segments.render,
-                  scope.retain(),
-                  workspaceLocking.taskVersion(taskLockPath)
-                )
+                taskLocks.retainRead(scope)
                 LockUpgrade.Decision.Complete(res)
               case None =>
                 LockUpgrade.Decision.Escalate
             }
           } { scope =>
-            val cached = loadCachedJson(logger, inputsHash, labelled, paths)
+            val localCached = readLocal()
             // Closing a stale worker here runs its user `close()` under
             // `GroupExecution.wrap`, which permits reads of upstream `dest/`
             // via `upstreamPathRefs`. Guard those reads with active-consumer
@@ -465,20 +429,47 @@ trait GroupExecution {
             // upstream Read this cleanup may still touch. Non-blocking
             // reacquire: this runs while holding this task's Write lock, so it
             // must not block on another task lock and recreate circular wait.
-            val reusableResultOpt =
-              leaseTracker.withActiveConsumers(labelled, () => tryReacquireDroppedReads()) {
-                loadCachedOrWorker(cached, closeStaleWorker = true)
+            val localReusable =
+              taskLocks.withActiveConsumers {
+                loadCachedOrWorker(localCached, closeStaleWorker = true)
               }
+
+            // Remote-cache fallback on a local miss. We hold the Write lock, so materializing
+            // `dest/`/`log`/`meta` is safe; a poisoned entry re-reads as a miss and is recomputed
+            // by the `None` branch below.
+            val remoteMaterialized =
+              localReusable.isEmpty && remoteLocation.exists { location =>
+                taskLocks.blockingOnPool {
+                  BazelRemoteCache.load(
+                    paths,
+                    inputsHash,
+                    labelled.ctx.segments.render,
+                    location,
+                    remoteCacheSalt,
+                    workspace
+                  )
+                }
+              }
+
+            // After a remote materialization, re-read the now-present `meta.json` and reuse
+            // the same `loadCachedOrWorker` path as a local hit instead of duplicating it.
+            val cached = if (remoteMaterialized) readLocal() else localCached
+            val reusableResultOpt =
+              if (remoteMaterialized) loadCachedOrWorker(cached, closeStaleWorker = false)
+              else localReusable
 
             reusableResultOpt match {
               case Some(res) =>
-                leaseTracker.retain(
-                  labelled,
-                  taskLockPath,
-                  labelled.ctx.segments.render,
-                  scope.downgradeAndRetain(),
-                  workspaceLocking.taskVersion(taskLockPath)
-                )
+                // A remote-cache materialization wrote `dest/`/`meta`/`log` under this Write
+                // lock, so — like a recompute — it must bump the task version, or a peer that
+                // dropped a retained Read would validate against the unchanged version and
+                // silently consume the freshly written output. A purely-local hit wrote
+                // nothing and keeps the current version. Compute this before
+                // `downgradeAndRetain` so the bump happens while we still hold the Write lock.
+                val version =
+                  if (remoteMaterialized) taskLocks.markTaskWritten()
+                  else taskLocks.currentVersion
+                taskLocks.retainDowngraded(scope, version)
                 res
               case None =>
                 // Advance the output version before any destructive mutation
@@ -491,7 +482,7 @@ trait GroupExecution {
                 // otherwise its reacquired Read would validate against the
                 // unchanged version and silently consume a deleted/partial
                 // `dest/`.
-                val version = workspaceLocking.markTaskWritten(taskLockPath)
+                val version = taskLocks.markTaskWritten()
                 if (!labelled.persistent && os.exists(paths.dest)) {
                   logger.debug(s"Deleting task dest dir ${paths.dest.relativeTo(workspace)}")
                   os.remove.all(paths.dest)
@@ -501,7 +492,7 @@ trait GroupExecution {
                 // Write lock, so it must not block on another task lock and
                 // recreate circular wait.
                 val (newResults, newEvaluated) =
-                  leaseTracker.withActiveConsumers(labelled, () => tryReacquireDroppedReads()) {
+                  taskLocks.withActiveConsumers {
                     executeGroup(
                       group = group,
                       results = results,
@@ -520,42 +511,57 @@ trait GroupExecution {
                     )
                   }
 
-                val (valueHash, serializedPaths, success) = newResults(labelled) match {
-                  case ExecResult.Success((v, _)) =>
-                    val valueHash = getValueHash(v, terminal, inputsHash)
-                    val serializedPaths =
-                      handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
-                    (valueHash, serializedPaths, true)
+                val (valueHash, serializedPaths, success, finalResults) =
+                  newResults(labelled) match {
+                    case ExecResult.Success((v, _)) =>
+                      val (valueHash, serializedPaths) =
+                        handleTaskResult(v, cacheEntry, inputsHash, labelled)
+                      // Push freshly-computed outputs to the remote cache for other machines.
+                      remoteLocation.foreach { location =>
+                        taskLocks.blockingOnPool {
+                          BazelRemoteCache.store(
+                            paths,
+                            inputsHash,
+                            labelled.ctx.segments.render,
+                            location,
+                            remoteCacheSalt,
+                            serializedPaths,
+                            workspace
+                          )
+                        }
+                      }
+                      // Reuse `handleTaskResult`'s hash (derived from the JSON it writes) as the
+                      // terminal's downstream value hash too — the `0` placeholder stored by
+                      // `executeGroup` is patched here — so cache and downstream consumers agree
+                      // on a single serialization rather than hashing the value twice.
+                      (
+                        valueHash,
+                        serializedPaths,
+                        true,
+                        newResults.updated(labelled, ExecResult.Success((v, valueHash)))
+                      )
 
-                  case _ =>
-                    // Stale meta.json paired with a borked destPath would be
-                    // mistaken for a clean cache on the next run.
-                    os.remove.all(paths.meta)
-                    (0, Nil, false)
-                }
+                    case _ =>
+                      // Stale meta.json paired with a borked destPath would be
+                      // mistaken for a clean cache on the next run.
+                      os.remove.all(paths.meta)
+                      (0, Nil, false, newResults)
+                  }
 
-                if (success) {
-                  leaseTracker.retain(
-                    labelled,
-                    taskLockPath,
-                    labelled.ctx.segments.render,
-                    scope.downgradeAndRetain(),
-                    version
-                  )
-                }
+                if (success) taskLocks.retainDowngraded(scope, version)
 
                 GroupExecution.Results(
-                  newResults = newResults,
+                  newResults = finalResults,
                   newEvaluated = newEvaluated.toSeq,
-                  cached =
+                  cacheStatus =
                     if (
                       labelled.isInstanceOf[Task.Input[?]] ||
                       labelled.isInstanceOf[Task.Uncached[?]]
-                    ) null
-                    else false,
+                    ) GroupExecution.CacheStatus.NotApplicable
+                    else GroupExecution.CacheStatus.Recomputed,
                   inputsHash = inputsHash,
-                  previousInputsHash = cached.map(_._1).getOrElse(-1),
-                  valueHashChanged = !cached.map(_._3).contains(valueHash),
+                  previousInputsHash = cached.map(_.previousInputsHash).getOrElse(-1),
+                  valueHashChanged = !cached.map(_.valueHash).contains(valueHash),
                   serializedPaths = serializedPaths
                 )
             }
@@ -566,59 +572,47 @@ trait GroupExecution {
         // re-probe, so the read phase is a formality kept for symmetry with
         // evaluateTaskWithCaching's lock dance.
         def evaluateBuildOverrideOnly(located: Located[Appendable[BufferedValue]])
-            : GroupExecution.Results = LockUpgrade.readThenWrite(
-          acquireRead = acquireReadTaskLock(),
-          tryAcquireWrite = () => tryWriteTaskLock(),
-          awaitStateChange = awaitTaskLockChange,
-          waitReporter = taskWaitReporter,
-          afterAcquire = tryReacquireDroppedReads
-        )(_ => LockUpgrade.Decision.Escalate) { scope =>
-          val (execRes, serializedPaths) =
-            if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {
-              val msg =
-                s"Build header config conflicts with task defined in ${os.Path(labelled.ctx.fileName).relativeTo(workspace)}:${labelled.ctx.lineNum}"
-              (
-                ExecResult.Failure(
-                  msg,
-                  Some(Result.Failure(msg, path = located.path.toNIO, index = located.index))
-                ),
-                Nil
-              )
-            } else {
-              evaluateBuildOverride(located, labelled) match {
-                case Right(yamlValue) =>
-                  val (data, serializedPaths) = PathRef.withSerializedPaths { yamlValue }
-                  writeCacheJson(
-                    paths.meta,
-                    upickle.core.BufferedValue.transform(located.value.value, ujson.Value),
-                    data.##,
-                    inputsHash + located.value.value.##
-                  )
-                  (ExecResult.Success(Val(data), data.##), serializedPaths)
-                case Left(e) => buildOverrideDeserializationError(e, located)
+            : GroupExecution.Results =
+          taskLocks.readThenWrite(_ => LockUpgrade.Decision.Escalate) { scope =>
+            val fileName = labelled.ctx.fileName
+            val (execRes, serializedPaths) =
+              if (fileName.replace('\\', '/').endsWith("/mill-build/build.mill")) {
+                val display =
+                  scala.util.Try(os.Path(fileName, os.pwd).relativeTo(workspace).toString)
+                    .getOrElse(fileName)
+                val msg =
+                  s"Build header config conflicts with task defined in $display:${labelled.ctx.lineNum}"
+                (
+                  ExecResult.Failure(
+                    msg,
+                    Some(Result.Failure(msg, path = located.path.toNIO, index = located.index))
+                  ),
+                  Nil
+                )
+              } else {
+                evaluateBuildOverride(located, labelled) match {
+                  case Right(yamlValue) =>
+                    val (data, serializedPaths) = PathRef.withSerializedPaths { yamlValue }
+                    cacheEntry.write(
+                      upickle.core.BufferedValue.transform(located.value.value, ujson.Value),
+                      data.##,
+                      inputsHash + located.value.value.##
+                    )
+                    (ExecResult.Success(Val(data), data.##), serializedPaths)
+                  case Left(e) => buildOverrideDeserializationError(e, located)
+                }
               }
+            // Downgrade-and-retain matches `evaluateTaskWithCaching` so
+            // peers can't overwrite `paths.meta` mid-downstream-read.
+            execRes match {
+              case ExecResult.Success(_) =>
+                val version = taskLocks.markTaskWritten()
+                taskLocks.retainDowngraded(scope, version)
+              case _ =>
             }
-          // Downgrade-and-retain matches `evaluateTaskWithCaching` so
-          // peers can't overwrite `paths.meta` mid-downstream-read.
-          execRes match {
-            case ExecResult.Success(_) =>
-              val version = workspaceLocking.markTaskWritten(taskLockPath)
-              leaseTracker.retain(
-                labelled,
-                taskLockPath,
-                labelled.ctx.segments.render,
-                scope.downgradeAndRetain(),
-                version
-              )
-            case _ =>
+            cachedResult(execRes, serializedPaths)
           }
-          cachedResult(execRes, serializedPaths)
-        }
 
-        // Three-way conditional:
-        // 1. Build override only (!append): just evaluate YAML
-        // 2. Both (append): evaluate task with caching, evaluate YAML, merge
-        // 3. Task only (no override): evaluate task with caching
         buildOverrideOpt match {
           case Some(appendLocated) if appendLocated.value.append =>
             val taskResults = evaluateTaskWithCaching()
@@ -652,10 +646,8 @@ trait GroupExecution {
               case _ => taskResults
             }
 
-          // Build override only (no append)
           case Some(appendLocated) => evaluateBuildOverrideOnly(appendLocated)
 
-          // Task only (no build override)
           case None => evaluateTaskWithCaching()
         }
       case _ =>
@@ -688,7 +680,7 @@ trait GroupExecution {
         GroupExecution.Results(
           newResults = newResults,
           newEvaluated = newEvaluated.toSeq,
-          cached = null,
+          cacheStatus = GroupExecution.CacheStatus.NotApplicable,
           inputsHash = inputsHash,
           previousInputsHash = -1,
           valueHashChanged = false,
@@ -720,7 +712,7 @@ trait GroupExecution {
     val nonEvaluatedTasks = group.toIndexedSeq.filterNot(results.contains)
     val (multiLogger, fileLoggerOpt) = resolveLogger(paths.map(_.log), logger)
 
-    val destCreator = GroupExecution.DestCreator(paths)
+    val destCreator = LazyDest.fromPaths(paths)
 
     for (task <- nonEvaluatedTasks) {
       newEvaluated.append(task)
@@ -733,7 +725,7 @@ trait GroupExecution {
         else {
           val args = new mill.api.TaskCtx.Impl(
             args = taskInputValues.map(_.value).toIndexedSeq,
-            dest0 = () => destCreator.makeDest(),
+            dest0 = () => destCreator.get(),
             log = multiLogger,
             _env = env,
             reporter = reporter,
@@ -780,7 +772,16 @@ trait GroupExecution {
         }
       }
 
-      newResults(task) = for (v <- res) yield (v, getValueHash(v, task, inputsHash))
+      newResults(task) = for (v <- res) yield {
+        // A Named terminal's value hash is (re)computed from the serialized JSON by
+        // `handleTaskResult` in the caching path, which patches it back into the results map.
+        // Skip the redundant serialization here; non-terminal tasks (and non-Named terminals,
+        // whose results are consumed as-is) still need their hash computed now.
+        val hash =
+          if ((task eq terminal) && terminal.isInstanceOf[Task.Named[?]]) 0
+          else getValueHash(v, task, inputsHash)
+        (v, hash)
+      }
     }
 
     fileLoggerOpt.foreach(_.close())
@@ -808,13 +809,18 @@ trait GroupExecution {
   // classloader/class is the same or different doesn't matter.
   def workerCacheHash(inputHash: Int): Int = inputHash + classLoaderIdentityHash
 
+  /**
+   * Serialize and cache the terminal task's result, returning its `valueHash` and serialized
+   * paths. The `valueHash` is derived from the same JSON we write, so the value is serialized
+   * once: the caller patches this hash back into the results map (where `executeGroup` left a
+   * placeholder for the terminal) instead of recomputing it via [[getValueHash]].
+   */
   private def handleTaskResult(
       v: Val,
-      hashCode: Int,
-      metaPath: os.Path,
+      cacheEntry: TaskCacheEntry,
       inputsHash: Int,
       labelled: Task.Named[?]
-  ): Seq[PathRef] = {
+  ): (Int, Seq[PathRef]) = {
     for (w <- labelled.asWorker) workerCache.synchronized {
       workerCache.update(w.ctx.segments.render, (workerCacheHash(inputsHash), v, labelled))
     }
@@ -833,29 +839,14 @@ trait GroupExecution {
 
     terminalResult match {
       case Some((json, serializedPaths)) =>
-        writeCacheJson(metaPath, json, hashCode, inputsHash)
-        serializedPaths
+        val valueHash =
+          if (labelled.isInstanceOf[Task.Worker[?]]) inputsHash
+          else json.hashCode()
+        cacheEntry.write(json, valueHash, inputsHash)
+        (valueHash, serializedPaths)
       case _ =>
-        Nil
+        (getValueHash(v, labelled, inputsHash), Nil)
     }
-  }
-
-  def writeCacheJson(metaPath: os.Path, json: ujson.Value, hashCode: Int, inputsHash: Int) = {
-    os.write.over(
-      metaPath,
-      upickle.stream(
-        Cached(
-          json,
-          hashCode,
-          inputsHash,
-          millVersion = mill.constants.BuildInfo.millVersion,
-          millJvmVersion = sys.props("java.version"),
-          classLoaderSigHash = classLoaderSigHash
-        ),
-        indent = 4
-      ),
-      createFolders = true
-    )
   }
 
   def resolveLogger(
@@ -874,64 +865,32 @@ trait GroupExecution {
         (multiLogger, Some(fileLogger))
     }
 
-  private def loadCachedJson(
-      logger: Logger,
-      inputsHash: Int,
-      labelled: Task.Named[?],
-      paths: ExecutionPaths
-  ): Option[(Int, Option[(Val, Seq[PathRef])], Int)] = {
-    for {
-      cached <-
-        try Some(upickle.read[Cached](paths.meta.toIO, trace = false))
-        catch {
-          case NonFatal(_) => None
-        }
-    } yield {
-      // Check for version/classloader mismatch - treat as cache miss if they differ
-      def checkMatch[T](cachedValue: T, currentValue: T, reasonName: String): Boolean = {
-        val matches = cachedValue == currentValue
-        if (!matches) {
-          versionMismatchReasons.putIfAbsent(labelled, s"$reasonName:$cachedValue->$currentValue")
-        }
-        matches
-      }
-
-      val currentMillVersion = mill.constants.BuildInfo.millVersion
-      val currentJvmVersion = sys.props("java.version")
-      val millVersionMatches =
-        checkMatch(cached.millVersion, currentMillVersion, "mill-version-changed")
-      val jvmVersionMatches =
-        checkMatch(cached.millJvmVersion, currentJvmVersion, "mill-jvm-version-changed")
-      val classLoaderMatches =
-        checkMatch(cached.classLoaderSigHash, classLoaderSigHash, "classpath-changed")
-
-      (
-        cached.inputsHash,
-        for {
-          _ <- Option.when(
-            cached.inputsHash == inputsHash && millVersionMatches && jvmVersionMatches && classLoaderMatches
-          )(())
-          reader <- labelled.readWriterOpt
-          (parsed, serializedPaths) <-
-            try Some(PathRef.withSerializedPaths(upickle.read(cached.value, trace = false)(using
-                reader
-              )))
-            catch {
-              case e: PathRef.PathRefValidationException =>
-                logger.debug(
-                  s"$labelled: re-evaluating; ${e.getMessage}"
-                )
-                None
-              case NonFatal(_) => None
-            }
-        } yield (Val(parsed), serializedPaths),
-        cached.valueHash
-      )
-    }
-  }
-
   def getValueHash(v: Val, task: Task[?], inputsHash: Int): Int = {
-    if (task.isInstanceOf[Task.Worker[?]]) inputsHash else v.## + invalidateAllHashes
+    if (task.isInstanceOf[Task.Worker[?]]) inputsHash
+    else {
+      // Hash the serialized JSON form when the task has a writer, so semantically-equal
+      // values with different in-memory hashes (e.g. `Map` iteration order) compare equal.
+      // This is the hashing path for non-terminal tasks and non-Named terminals; the Named
+      // terminal instead reuses `handleTaskResult`'s hash of the JSON it writes. Guard against
+      // a writer that throws — fall back to the in-memory hash rather than failing the whole
+      // group, but warn since `v.##` is not reproducible and would defeat a shared cache.
+      val base = task match {
+        case named: Task.Named[_] if named.writerOpt.isDefined =>
+          try upickle.writeJs(v.value)(using
+              named.writerOpt.get.asInstanceOf[upickle.Writer[Any]]
+            ).hashCode()
+          catch {
+            case NonFatal(e) =>
+              mill.api.daemon.SystemStreams.current.value.err.println(
+                s"Warning: failed to serialize $task for hashing ($e); " +
+                  "falling back to a non-reproducible in-memory hash."
+              )
+              v.##
+          }
+        case _ => v.##
+      }
+      base
+    }
   }
 
   private def loadUpToDateWorker(
@@ -946,7 +905,7 @@ trait GroupExecution {
       closeStaleWorker: Boolean,
       multiLogger: Logger,
       counterMsg: String,
-      destCreator: GroupExecution.DestCreator,
+      destCreator: LazyDest,
       terminal: Task[?]
   ): Option[Val] = {
     labelled.asWorker
@@ -1005,21 +964,6 @@ trait GroupExecution {
 }
 
 object GroupExecution {
-  class DestCreator(paths: Option[ExecutionPaths]) {
-    var usedDest = Option.empty[os.Path]
-
-    def makeDest() = this.synchronized {
-      paths match {
-        case Some(dest) =>
-          if (usedDest.isEmpty) os.makeDir.all(dest.dest)
-          usedDest = Some(dest.dest)
-          dest.dest
-
-        case None => throw Exception("No `dest` folder available here")
-      }
-    }
-  }
-
   class ExecutionChecker(
       workspace: os.Path,
       isCommand: Boolean,
@@ -1028,29 +972,86 @@ object GroupExecution {
       validReadDests: Seq[os.Path],
       validWriteDests: Seq[os.Path]
   ) extends os.Checker {
-    def onRead(path: os.ReadablePath): Unit = path match {
-      case path: os.Path =>
-        if (!isCommand && !isInput && mill.api.FilesystemCheckerEnabled.value) {
-          if (path.startsWith(workspace) && !validReadDests.exists(path.startsWith)) {
-            sys.error(
-              s"Reading from ${path.relativeTo(workspace)} not allowed during execution of `$terminal`.\n" +
-                "You can only read files referenced by `Task.Source` or `Task.Sources`, or within a `Task.Input"
-            )
-          }
+    // Normalize once at construction: paths arriving via alias symlinks (e.g.
+    // `<cwd>/../mill-workspace/...` in reproducible mode) compare equal to their
+    // real on-disk form after `normalizeForCheck`.
+    private val normalizedWorkspace = normalizeForCheck(workspace)
+    private val normalizedReadDests = validReadDests.map(normalizeForCheck).toSet
+    private val normalizedWriteDests = validWriteDests.map(normalizeForCheck).toSet
+
+    private def normalizeForCheck(path: os.Path): os.Path = {
+      // `toRealPath` requires the path to exist; resolve the longest existing prefix and
+      // re-attach the non-existing suffix so checks work for files about to be written.
+      @tailrec
+      def firstExistingPrefix(current: os.Path, suffix: List[String]): (os.Path, List[String]) =
+        if (os.exists(current)) (current, suffix)
+        else {
+          val parent = current / os.up
+          if (parent == current) (current, suffix)
+          else firstExistingPrefix(parent, current.last :: suffix)
         }
+      val (prefix, suffix) = firstExistingPrefix(path, Nil)
+      val resolvedPrefix =
+        if (os.exists(prefix)) os.Path(prefix.toNIO.toRealPath()) else prefix
+      suffix.foldLeft(resolvedPrefix)(_ / _)
+    }
+
+    // The alias symlink directory names (`mill-workspace`/`mill-home`). A checked path only needs
+    // the expensive real-path resolution if it actually routes through one of these symlinks;
+    // otherwise its in-memory form is already the real on-disk path.
+    private val aliasLinkNames =
+      Set(PathAliasing.workspaceAlias, PathAliasing.homeAlias).map(_.split('/').last)
+
+    private def checkAccess(
+        kind: String,
+        path: os.Path,
+        rawValidDests: Seq[os.Path],
+        normalizedValidDests: Set[os.Path],
+        suffix: String
+    ): Unit = {
+      if (!path.segments.exists(aliasLinkNames)) {
+        // Fast path (no filesystem IO): the path does not traverse an alias symlink, so it is
+        // already real (sharing any symlinked prefix with `workspace`). Compare lexically against
+        // the un-resolved workspace/dests. This is the overwhelmingly common case.
+        if (path.startsWith(workspace) && !rawValidDests.exists(path.startsWith))
+          sys.error(
+            s"$kind ${path.relativeTo(workspace)} not allowed during execution of `$terminal`.\n$suffix"
+          )
+      } else {
+        // The path routes through a `mill-workspace`/`mill-home` alias symlink: resolve it (and
+        // the workspace/dests, done once at construction) to real form before comparing.
+        val normalized = normalizeForCheck(path)
+        if (
+          normalized.startsWith(normalizedWorkspace) &&
+          !normalizedValidDests.exists(normalized.startsWith)
+        )
+          sys.error(
+            s"$kind ${normalized.relativeTo(normalizedWorkspace)} not allowed during execution of `$terminal`.\n$suffix"
+          )
+      }
+    }
+
+    def onRead(path: os.ReadablePath): Unit = path match {
+      case p: os.Path if !isCommand && !isInput && mill.api.FilesystemCheckerEnabled.value =>
+        checkAccess(
+          "Reading from",
+          p,
+          validReadDests,
+          normalizedReadDests,
+          "You can only read files referenced by `Task.Source` or `Task.Sources`, or within a `Task.Input"
+        )
       case _ =>
     }
 
-    def onWrite(path: os.Path): Unit = {
-      if (!isCommand && mill.api.FilesystemCheckerEnabled.value) {
-        if (path.startsWith(workspace) && !validWriteDests.exists(path.startsWith)) {
-          sys.error(
-            s"Writing to ${path.relativeTo(workspace)} not allowed during execution of `$terminal`.\n" +
-              "Normal `Task`s can only write to files within their `Task.dest` folder, only `Task.Command`s can write to other arbitrary files."
-          )
-        }
-      }
-    }
+    def onWrite(path: os.Path): Unit =
+      if (!isCommand && mill.api.FilesystemCheckerEnabled.value)
+        checkAccess(
+          "Writing to",
+          path,
+          validWriteDests,
+          normalizedWriteDests,
+          "Normal `Task`s can only write to files within their `Task.dest` folder, only `Task.Command`s can write to other arbitrary files."
+        )
   }
 
   def wrap[T](
@@ -1064,7 +1065,7 @@ object GroupExecution {
       logger: Logger,
       exclusiveSystemStreams: SystemStreams,
       counterMsg: String,
-      destCreator: DestCreator,
+      destCreator: LazyDest,
       evaluator: Evaluator,
       terminal: Task[?],
       classLoader: ClassLoader
@@ -1086,35 +1087,37 @@ object GroupExecution {
       ExecutionChecker(workspace, isCommand, isInput, terminal, validReadDests, validWriteDests)
     val (streams, destFunc) =
       if (exclusive) (exclusiveSystemStreams, () => workspace)
-      else (multiLogger.streams, () => destCreator.makeDest())
+      else (multiLogger.streams, () => destCreator.get())
 
-    os.dynamicPwdFunction.withValue(destFunc) {
-      os.checker.withValue(executionChecker) {
-        mill.api.SystemStreamsUtils.withStreams(streams) {
-          val exposedEvaluator =
-            if (exclusive) evaluator.asInstanceOf[Evaluator]
-            else new EvaluatorProxy(() =>
-              sys.error(
-                "No evaluator available here; Evaluator is only available in exclusive commands"
-              )
+    PathAliasing.withSpawnAliasHook(workspace) {
+      TaskThreadContext.capture(
+        pwd = destFunc,
+        checker = executionChecker,
+        streams = streams
+      ).bind {
+        val exposedEvaluator =
+          if (exclusive) evaluator.asInstanceOf[Evaluator]
+          else new EvaluatorProxy(() =>
+            sys.error(
+              "No evaluator available here; Evaluator is only available in exclusive commands"
             )
+          )
 
-          Evaluator.withCurrentEvaluator(exposedEvaluator) {
-            // Ensure the class loader used to load user code
-            // is set as context class loader when running user code.
-            // This is useful if users rely on libraries that look
-            // for resources added by other libraries, by using
-            // using java.util.ServiceLoader for example.
-            mill.api.ClassLoader.withContextClassLoader(classLoader) {
-              if (!exclusive) t
-              else {
-                // For exclusive tasks, we print the task name once and then we disable the
-                // prompt/ticker so the output of the exclusive task can "clean" while still
-                // being identifiable
-                logger.prompt.logPrefixedLine(Seq(counterMsg), ByteArrayOutputStream(), false)
-                logger.prompt.withPromptPaused {
-                  t
-                }
+        Evaluator.withCurrentEvaluator(exposedEvaluator) {
+          // Ensure the class loader used to load user code
+          // is set as context class loader when running user code.
+          // This is useful if users rely on libraries that look
+          // for resources added by other libraries, by using
+          // using java.util.ServiceLoader for example.
+          mill.api.ClassLoader.withContextClassLoader(classLoader) {
+            if (!exclusive) t
+            else {
+              // For exclusive tasks, we print the task name once and then we disable the
+              // prompt/ticker so the output of the exclusive task can "clean" while still
+              // being identifiable
+              logger.prompt.logPrefixedLine(Seq(counterMsg), ByteArrayOutputStream(), false)
+              logger.prompt.withPromptPaused {
+                t
               }
             }
           }
@@ -1122,15 +1125,26 @@ object GroupExecution {
       }
     }
   }
+
   case class Results(
       newResults: Map[Task[?], ExecResult[(Val, Int)]],
       newEvaluated: Seq[Task[?]],
-      cached: java.lang.Boolean,
+      cacheStatus: CacheStatus,
       inputsHash: Int,
       previousInputsHash: Int,
       valueHashChanged: Boolean,
       serializedPaths: Seq[PathRef]
   )
+
+  enum CacheStatus {
+    case Hit, Recomputed, NotApplicable
+
+    def profileValue: java.lang.Boolean = this match {
+      case Hit => true
+      case Recomputed => false
+      case NotApplicable => null
+    }
+  }
 
   def workerDependencies(
       workerCache: Map[String, (Int, Val, TaskApi[?])]

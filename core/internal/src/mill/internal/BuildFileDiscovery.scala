@@ -53,7 +53,12 @@ object BuildFileDiscovery {
           )
         )
 
-      (buildFiles ++ adjacentScripts).distinct
+      // Canonicalize through the `mill-workspace` alias symlink so a build file discovered via
+      // both its real and aliased paths collapses to one entry under `.distinct`.
+      def canonical(p: os.Path): os.Path =
+        try os.Path(p.wrapped.toRealPath())
+        catch { case _: java.io.IOException => p }
+      (buildFiles ++ adjacentScripts).map(canonical).distinct
     }
   }
 

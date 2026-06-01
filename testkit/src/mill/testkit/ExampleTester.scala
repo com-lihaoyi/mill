@@ -53,6 +53,8 @@ import utest.*
  * The following comments are recognized (see [[incorrectPlatform]]):
  * - 'mac/linux'        - Only run on Linux/Mac but not on Windows
  * - 'windows'          - Only run on Windows but not on Linux/Mac
+ * - 'mac'              - Only run on Mac
+ * - 'linux'            - Only run on Linux
  * - '--no-daemon'      - Only run in no-daemon test mode
  * - 'not --no-daemon'  - Only run in daemon test mode
  */
@@ -98,6 +100,8 @@ class ExampleTester(
   def commandFilter(commandComment: String): Boolean = commandComment match {
     case s"windows$_" => isWindows
     case s"mac/linux$_" => !isWindows
+    case s"mac$_" => scala.util.Properties.isMac
+    case s"linux$_" => !scala.util.Properties.isMac && !isWindows
     case s"--no-daemon$_" => !daemonMode
     case s"not --no-daemon$_" => daemonMode
     case _ => true

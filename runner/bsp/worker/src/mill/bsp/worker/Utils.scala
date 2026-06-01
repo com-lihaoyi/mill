@@ -32,7 +32,11 @@ object Utils {
   def sanitizeUri(uri: String): String =
     if (uri.endsWith("/")) sanitizeUri(uri.substring(0, uri.length - 1)) else uri
 
-  def sanitizeUri(uri: java.nio.file.Path): String = sanitizeUri(uri.toUri.toString)
+  def sanitizeUri(uri: java.nio.file.Path): String = {
+    // `uri` may be a workspace-relativized path; deserialize it through os-lib, then turn it back
+    // into a real absolute URI for BSP clients.
+    sanitizeUri(mill.api.PathRef.realAbsPath(os.Path(uri)).toUri.toString)
+  }
 
   // define the function that spawns compilation reporter for each module based on the
   // module's hash code TODO: find something more reliable than the hash code

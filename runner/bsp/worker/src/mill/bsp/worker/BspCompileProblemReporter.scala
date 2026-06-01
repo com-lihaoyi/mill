@@ -105,8 +105,7 @@ private class BspCompileProblemReporter(
       case Some(f) =>
         val diagnostic = toDiagnostic(problem)
         val textDocument = TextDocumentIdentifier(
-          // The extra step invoking `toPath` results in a nicer URI starting with `file:///`
-          f.toPath.toUri.toString
+          mill.api.PathRef.realAbsPath(os.Path(f)).toUri.toString
         )
         if (diagnostics.add(textDocument, diagnostic)) {
           val diagnosticList = new java.util.LinkedList[Diagnostic]()
@@ -169,7 +168,7 @@ private class BspCompileProblemReporter(
   }
 
   override def fileVisited(file: java.nio.file.Path): Unit = {
-    val uri = file.toUri.toString
+    val uri = mill.api.PathRef.realAbsPath(os.Path(file)).toUri.toString
     val textDocument = TextDocumentIdentifier(uri)
     val (diagnostics0, hasNewDiagnostics) = diagnostics.getAll(textDocument)
     if (hasNewDiagnostics)

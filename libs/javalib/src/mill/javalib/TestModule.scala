@@ -14,7 +14,7 @@ import mill.api.JsonFormatters.given
 import mill.constants.EnvVars
 import mill.javalib.api.internal.ZincOp
 import mill.javalib.testrunner.{Framework, TestArgs, TestResult, TestRunner, TestRunnerUtils}
-import mill.util.Version
+import mill.util.{Jvm, Version}
 
 import java.nio.file.Path
 
@@ -318,7 +318,11 @@ trait TestModule
 
   override def allForkEnv: T[Map[String, String]] = Task {
     super.allForkEnv() ++ Map(
-      EnvVars.MILL_TEST_RESOURCE_DIR -> resources().iterator.map(_.path).mkString(";")
+      // `Jvm.realAbs`: test code does `os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))` — the
+      // single-arg constructor rejects the relativized `../mill-workspace/...` form.
+      EnvVars.MILL_TEST_RESOURCE_DIR -> resources().iterator
+        .map(Jvm.realAbs)
+        .mkString(";")
     )
   }
 
@@ -387,7 +391,7 @@ trait TestModule
       classes: Seq[String]
   )] = Task.Anon {
     val (frameworkName, classFingerprint) =
-      mill.util.Jvm.withClassLoader(
+      Jvm.withClassLoader(
         classPath = runClasspath().map(_.path),
         sharedPrefixes = Seq("sbt.testing.", "mill.api.daemon.internal.TestReporter")
       ) { classLoader =>

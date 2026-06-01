@@ -54,6 +54,35 @@ object PathRef {
   implicit def shellable(p: PathRef): os.Shellable = p.path
 
   /**
+   * Real on-disk absolute path string for `p`, bypassing any `os.Path` serializer
+   * that may be in scope. In reproducible mode `os.Path.toString` / `.toIO` /
+   * `.toNIO` can return relativized `../mill-workspace/...` / `../mill-home/...`
+   * forms so cached values stay workspace-independent. That form is wrong to
+   * hand to external tools or to Java APIs that resolve relative paths against
+   * their own cwd.
+   */
+  def realAbs(p: os.Path): String = realAbsPath(p).toString
+  def realAbs(p: PathRef): String = realAbs(p.path)
+  def realAbsPath(p: os.Path): jnio.Path = p.wrapped.toAbsolutePath.normalize()
+  def realAbsPath(p: PathRef): jnio.Path = realAbsPath(p.path)
+  def realAbsFile(p: os.Path): java.io.File = realAbsPath(p).toFile
+  def realAbsFile(p: PathRef): java.io.File = realAbsFile(p.path)
+
+  /**
+   * Like [[realAbs]] but also follows symlinks via `toRealPath`, falling back to
+   * lexical [[realAbs]] if the path does not exist on disk. Use when a subprocess
+   * walks the path-as-it-exists and lexical `../` collapse would land on the wrong file.
+   */
+  def realAbsResolved(p: os.Path): String =
+    try p.wrapped.toRealPath().toString
+    catch { case _: java.io.IOException => realAbs(p) }
+
+  /** Same as [[realAbsResolved]] but returns an [[os.Path]] and falls back to `p` on IO errors. */
+  def realAbsResolvedPath(p: os.Path): os.Path =
+    try os.Path(p.wrapped.toRealPath())
+    catch { case _: java.io.IOException => p }
+
+  /**
    * This class maintains a cache of already validated paths.
    * It is thread-safe and meant to be shared between threads, e.g. in a ThreadLocal.
    */
@@ -130,19 +159,20 @@ object PathRef {
       if (os.exists(path)) {
         for (
           (path, attrs) <-
-            os.walk.attrs(path, includeTarget = true, followLinks = true).sortBy(_._1.toString)
+            os.walk.attrs(path, includeTarget = true, followLinks = false).sortBy(_._1.toString)
         ) {
           val sub = path.subRelativeTo(basePath)
           digest.update(sub.toString().getBytes())
           if (!attrs.isDir) {
             try {
-              if (isPosix) {
-                updateWithInt(os.perms(path, followLinks = false).value)
-              }
+              if (isPosix) updateWithInt(os.perms(path, followLinks = false).value)
               if (quick) {
                 val value = (attrs.mtime, attrs.size).hashCode()
                 updateWithInt(value)
-              } else if (jnio.Files.isReadable(path.toNIO)) {
+              } else if (!os.isLink(path) && jnio.Files.isReadable(path.wrapped)) {
+                // `.wrapped`, not `.toNIO`: the latter is the relativized alias form which
+                // `Files.isReadable` resolves against the caller's cwd and can silently
+                // return `false`, dropping the file's content from the PathRef signature.
                 val is =
                   try Some(os.read.inputStream(path))
                   catch {
