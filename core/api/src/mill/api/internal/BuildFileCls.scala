@@ -11,7 +11,7 @@ class BuildFileCls(classLoader: ClassLoader)
       try classLoader.loadClass(s"$globalPackagePrefix.${wrapperObjectName}$$")
       catch {
         case _: ClassNotFoundException =>
-          classLoader.loadClass("mill.util.internal.PrecompiledDiscoveryRootModule$")
+          classLoader.loadClass("mill.util.internal.DummyModule$")
       }
     val instance = cls.getField("MODULE$").get(null)
     // Publish the root module so user-facing code (e.g. plugins) can access it

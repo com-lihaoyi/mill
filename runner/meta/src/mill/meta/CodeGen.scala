@@ -4,6 +4,7 @@ import scala.jdk.CollectionConverters.CollectionHasAsScala
 import mill.constants.CodeGenConstants as CGConst
 import mill.api.Result
 import mill.api.internal.ModuleDepsResolver.{ModuleDepsEntry, ModuleDepsConfig}
+import mill.api.internal.PrecompiledModulesInfo
 import mill.internal.Util.backtickWrap
 import mill.api.internal.*
 import pprint.Util.literalize
@@ -28,6 +29,44 @@ object CodeGen {
     HeaderData.processRest(scriptPath, data)(
       onProperty = (locatedKey, v) => onProperty(locatedKey.value, v),
       onNestedObject = (_, name, nestedData) => onNestedObject(name, nestedData)
+    )
+  }
+
+  /**
+   * Per-kind deps map for a precompiled YAML, derived from its parsed `HeaderData`.
+   * Keys are the nested-module path (`""` for the top-level object, `"test"` for an
+   * `object test:` block, etc.). Values are the literal moduleDeps strings paired
+   * with their byte offset in the YAML for error reporting. Empty inner sequences
+   * are dropped so the maps shrink to only what's actually declared.
+   *
+   * Shared between the per-directory inline-alias codegen (which inlines these into
+   * generated `PrecompiledModuleRef.apply` calls) and the orphan-resource emitter
+   * (which serializes them to `mill/precompiled-modules.json` for the runtime root
+   * module to read).
+   */
+  private case class PrecompiledDepsByKind(
+      moduleDeps: Map[String, Seq[(String, Int)]],
+      compileModuleDeps: Map[String, Seq[(String, Int)]],
+      runModuleDeps: Map[String, Seq[(String, Int)]],
+      bomModuleDeps: Map[String, Seq[(String, Int)]]
+  )
+
+  private def precompiledDepsByKind(
+      scriptFile: os.Path,
+      headerData: HeaderData
+  ): PrecompiledDepsByKind = {
+    val allNestedDeps = HeaderData.collectAllNestedDeps(scriptFile, headerData, "")
+    def perKind(get: HeaderData.NestedModuleDeps => Seq[Located[String]])
+        : Map[String, Seq[(String, Int)]] =
+      allNestedDeps
+        .map(e => e.key -> get(e).map(d => (d.value, d.index)))
+        .filter(_._2.nonEmpty)
+        .toMap
+    PrecompiledDepsByKind(
+      moduleDeps = perKind(_.moduleDeps),
+      compileModuleDeps = perKind(_.compileModuleDeps),
+      runModuleDeps = perKind(_.runModuleDeps),
+      bomModuleDeps = perKind(_.bomModuleDeps)
     )
   }
 
@@ -183,35 +222,22 @@ object CodeGen {
                 val lhs = backtickWrap(c)
                 val extendsClass = extendsLocated.value
                 val relPath = scriptFile.relativeTo(projectRoot)
+                val deps = precompiledDepsByKind(scriptFile, headerData)
 
-                // Use the shared collectAllNestedDeps to gather deps from all nesting levels
-                val allNestedDeps =
-                  HeaderData.collectAllNestedDeps(scriptFile, headerData, "")
-
-                // Convert NestedModuleDeps entries into (kind, mapEntry) pairs for codegen
-                val depsEntries = allNestedDeps.flatMap { entry =>
-                  Seq(
-                    ("moduleDeps", entry.key, entry.moduleDeps),
-                    ("compileModuleDeps", entry.key, entry.compileModuleDeps),
-                    ("runModuleDeps", entry.key, entry.runModuleDeps),
-                    ("bomModuleDeps", entry.key, entry.bomModuleDeps)
-                  ).collect {
-                    case (kind, k, deps) if deps.nonEmpty =>
-                      val depsCode = deps.map(d =>
-                        s"""_root_.mill.api.internal.PrecompiledModuleRef.resolveModuleRef(this, ${literalize(
-                            d.value
-                          )}, ${literalize(relPath.toString)}, ${d.index})"""
-                      ).mkString(", ")
-                      (kind, s"""${literalize(k)} -> _root_.scala.Seq($depsCode)""")
-                  }
-                }
-
-                def mapCode(kind: String) = {
-                  val entries = depsEntries.filter(_._1 == kind).map(_._2)
-                  if (entries.isEmpty)
+                def mapCode(byKind: Map[String, Seq[(String, Int)]]): String = {
+                  if (byKind.isEmpty)
                     "_root_.scala.collection.immutable.Map.empty[String, Seq[_root_.mill.api.Module]]"
-                  else
+                  else {
+                    val entries = byKind.toSeq.map { case (k, refs) =>
+                      val depsCode = refs.map { case (ref, idx) =>
+                        s"""_root_.mill.api.internal.PrecompiledModuleRef.resolveModuleRef(this, ${literalize(
+                            ref
+                          )}, ${literalize(relPath.toString)}, $idx)"""
+                      }.mkString(", ")
+                      s"""${literalize(k)} -> _root_.scala.Seq($depsCode)"""
+                    }
                     s"_root_.scala.collection.immutable.Map[String, Seq[_root_.mill.api.Module]](${entries.mkString(", ")})"
+                  }
                 }
 
                 val abstractDef = s"def $lhs: $extendsClass // precompiled module reference"
@@ -219,11 +245,11 @@ object CodeGen {
                   s"""final lazy val $lhs: $extendsClass = _root_.mill.api.internal.PrecompiledModuleRef(this, ${literalize(
                       relPath.toString
                     )}, ${literalize(extendsClass)}, () => ${mapCode(
-                      "moduleDeps"
+                      deps.moduleDeps
                     )}, () => ${mapCode(
-                      "compileModuleDeps"
-                    )}, () => ${mapCode("runModuleDeps")}, () => ${mapCode(
-                      "bomModuleDeps"
+                      deps.compileModuleDeps
+                    )}, () => ${mapCode(deps.runModuleDeps)}, () => ${mapCode(
+                      deps.bomModuleDeps
                     )}).asInstanceOf[$extendsClass] // precompiled module reference"""
                 (abstractDef, valDef)
               }
@@ -410,6 +436,49 @@ object CodeGen {
     os.write.over(
       resourceFile,
       upickle.default.write(moduleDepsConfig.toMap, indent = 2),
+      createFolders = true
+    )
+
+    // "Orphan" precompiled YAMLs are those with no compiled ancestor whose
+    // generated `package_` would wire them up via `precompiledChildNames`.
+    // The runtime root module reads this resource and appends them as direct
+    // children so they show up under `resolve _` and `BuildCtx.rootModule`.
+    //
+    // The orphan rule: a precompiled YAML at `<dir>/<name>.mill.yaml` is orphan
+    // iff its grandparent directory contains no compiled build/package script,
+    // and its parent directory is not projectRoot itself (the root's own
+    // precompiled YAML is handled by the empty-root fallback in BuildFileCls,
+    // not as a child of anything).
+    val compiledScriptDirs: Set[os.Path] = scriptSources
+      .filter(p => allBuildFileNames.contains(p.last) && !precompiledModulePaths.contains(p))
+      .map(_ / os.up)
+      .toSet
+    val orphanPrecompileds: Seq[os.Path] = precompiledModulePaths.toSeq
+      .filter { p =>
+        val parentDir = p / os.up
+        parentDir != projectRoot && !compiledScriptDirs.contains(parentDir / os.up)
+      }
+      .sorted
+
+    val precompiledModuleEntries: Seq[PrecompiledModulesInfo.Entry] =
+      orphanPrecompileds.flatMap { yamlPath =>
+        val headerData = parsedYamlHeaderData(yamlPath)
+        headerData.`extends`.value.value.headOption.map { extendsLocated =>
+          val deps = precompiledDepsByKind(yamlPath, headerData)
+          PrecompiledModulesInfo.Entry(
+            relPath = yamlPath.relativeTo(projectRoot).toString,
+            extendsClass = extendsLocated.value,
+            moduleDeps = deps.moduleDeps,
+            compileModuleDeps = deps.compileModuleDeps,
+            runModuleDeps = deps.runModuleDeps,
+            bomModuleDeps = deps.bomModuleDeps
+          )
+        }
+      }
+
+    os.write.over(
+      resourceDest / "mill" / "precompiled-modules.json",
+      upickle.default.write(precompiledModuleEntries, indent = 2),
       createFolders = true
     )
 

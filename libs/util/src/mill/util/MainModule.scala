@@ -17,7 +17,119 @@ abstract class MainRootModule()(using
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
     millFile0: sourcecode.File
-) extends RootModule with MainModule
+) extends RootModule with MainModule with mill.api.DynamicModule {
+
+  /**
+   * Orphan precompiled YAML modules — i.e. those with no compiled ancestor whose
+   * codegen would have wired them as children — get appended to the root's
+   * direct children so they show up under `resolve _` and
+   * `BuildCtx.rootModule.moduleInternal.modules`.
+   *
+   * The list of orphans is computed by `CodeGen` from the bootstrap walker
+   * (`BuildFileDiscovery.walkBuildFiles`) and shipped as a classpath resource
+   * (`mill/precompiled-modules.json`). The runtime never re-walks the workspace
+   * — this is the single source of truth piped through.
+   *
+   * Cross-sibling `moduleDeps` references (e.g. `bar` depending on `foo`) are
+   * resolved by looking up the first segment in a name → entry map shared with
+   * `PrecompiledModuleRef.cache`, then walking remaining segments reflectively.
+   *
+   * Instantiated lazily so that any failure surfaces at the point of first
+   * traversal, not at root-module construction.
+   */
+  private lazy val orphanPrecompiledChildren: Seq[mill.api.Module] = {
+    val entries = mill.api.internal.PrecompiledModulesInfo.fromClasspath(
+      classOf[MainRootModule].getClassLoader
+    )
+    if (entries.isEmpty) Nil
+    else {
+      val workspaceRoot = mill.api.BuildCtx.workspaceRoot
+      // Map: top-level directory name (e.g. "foo" for "foo/package.mill.yaml")
+      // → the corresponding entry. Only depth-1 orphans are addressable by
+      // sibling-name refs in YAML moduleDeps. Deeper orphans appear in
+      // `moduleDirectChildren` (with full-path segments like `foo.bar`) but
+      // can't be the target of an unqualified sibling reference; the failure
+      // path falls into `resolveSibling`'s "no top-level precompiled sibling"
+      // error, which is the right diagnostic for that case.
+      val byFirstSegment: Map[String, mill.api.internal.PrecompiledModulesInfo.Entry] =
+        entries
+          .filter(e => os.SubPath(e.relPath).segments.size == 2)
+          .map(e => os.SubPath(e.relPath).segments.head -> e)
+          .toMap
+      val parent: mill.api.Module = this
+      def instantiate(entry: mill.api.internal.PrecompiledModulesInfo.Entry): mill.api.Module = {
+        val absPath = workspaceRoot / os.SubPath(entry.relPath)
+        def resolveSibling(ref: String, idx: Int): mill.api.Module = {
+          val parts = ref.split('.')
+          val first = parts.head
+          val siblingEntry = byFirstSegment.getOrElse(
+            first, {
+              val msg =
+                s"Cannot resolve precompiled moduleDep '$ref' in ${entry.relPath}: " +
+                  s"no top-level precompiled sibling '$first'"
+              throw new mill.api.daemon.Result.Exception(
+                msg,
+                Some(mill.api.daemon.Result.Failure(msg, absPath.toNIO, idx))
+              )
+            }
+          )
+          val constructing = mill.api.internal.PrecompiledModuleRef.constructing.get()
+          if (constructing.contains(siblingEntry.relPath)) {
+            val chain = constructing.toArray.map(_.toString).toSeq
+            val cycleDesc =
+              if (chain.size <= 1) s"precompiled module '$ref' depends on itself"
+              else s"circular moduleDeps: ${chain.mkString(" -> ")} -> ${siblingEntry.relPath}"
+            val msg = s"Circular moduleDeps detected: $cycleDesc"
+            throw new mill.api.daemon.Result.Exception(
+              msg,
+              Some(mill.api.daemon.Result.Failure(msg, absPath.toNIO, idx))
+            )
+          }
+          val rootSibling = instantiate(siblingEntry)
+          var current: Any = rootSibling
+          for (seg <- parts.tail) {
+            val cls = current.getClass
+            val method =
+              try cls.getMethod(seg)
+              catch {
+                case _: NoSuchMethodException =>
+                  val msg =
+                    s"Cannot resolve precompiled moduleDep '$ref' in ${entry.relPath}: " +
+                      s"no method '$seg' on ${cls.getName}"
+                  throw new mill.api.daemon.Result.Exception(
+                    msg,
+                    Some(mill.api.daemon.Result.Failure(msg, absPath.toNIO, idx))
+                  )
+              }
+            current = method.invoke(current)
+          }
+          current.asInstanceOf[mill.api.Module]
+        }
+        def depsMap(byKind: Map[String, Seq[(String, Int)]])
+            : Map[String, Seq[mill.api.Module]] =
+          byKind.collect {
+            case (k, refs) if refs.nonEmpty =>
+              k -> refs.map { case (ref, idx) => resolveSibling(ref, idx) }
+          }
+        mill.api.internal.PrecompiledModuleRef(
+          parent,
+          entry.relPath,
+          entry.extendsClass,
+          () => depsMap(entry.moduleDeps),
+          () => depsMap(entry.compileModuleDeps),
+          () => depsMap(entry.runModuleDeps),
+          () => depsMap(entry.bomModuleDeps)
+        )
+      }
+      mill.api.BuildCtx.withFilesystemCheckerDisabled {
+        entries.map(instantiate)
+      }
+    }
+  }
+
+  override def moduleDirectChildren: Seq[mill.api.Module] =
+    super.moduleDirectChildren ++ orphanPrecompiledChildren
+}
 
 /**
  * [[mill.api.Module]] containing all the default tasks that Mill provides: [[resolve]],
