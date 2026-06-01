@@ -115,21 +115,25 @@ class SubprocessZincApi(
                   workspaceRoot = ctx.workspaceRoot
                 )
 
-              val client = MillRpcClient.create[
-                JvmWorkerRpcServer.Initialize,
-                JvmWorkerRpcServer.Request,
-                JvmWorkerRpcServer.ServerToClient
-              ](init, wireTransport, makeClientLogger())(serverRpcToClientHandler(reporter))
+              val client = BuildCtx.withRawPathSerializer {
+                MillRpcClient.create[
+                  JvmWorkerRpcServer.Initialize,
+                  JvmWorkerRpcServer.Request,
+                  JvmWorkerRpcServer.ServerToClient
+                ](init, wireTransport, makeClientLogger())(serverRpcToClientHandler(reporter))
+              }
 
-              client.apply(JvmWorkerRpcServer.Request(
-                op,
-                reporter match {
-                  case None => ReporterMode.NoReporter
-                  case Some(r) => ReporterMode.Reporter(reportCachedProblems, r.maxErrors)
-                },
-                ctx,
-                compilerBridgeAcquire
-              )).asInstanceOf[op.Response]
+              BuildCtx.withRawPathSerializer {
+                client.apply(JvmWorkerRpcServer.Request(
+                  op,
+                  reporter match {
+                    case None => ReporterMode.NoReporter
+                    case Some(r) => ReporterMode.Reporter(reportCachedProblems, r.maxErrors)
+                  },
+                  ctx,
+                  compilerBridgeAcquire
+                )).asInstanceOf[op.Response]
+              }
             }
           )
         }.get

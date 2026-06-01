@@ -50,7 +50,7 @@ world
 // serialize through stable aliases such as `../mill-workspace` and `../mill-home`.
 // This keeps cached task JSON and logs independent of the absolute checkout
 // location, so they can be used across different folders, laptops, or CI machines
-// via xref:large/remotecache.adoc[remote caching]:
+// via xref:large/remote-caching.adoc[remote caching]:
 
 def pathSerialization = Task {
   val buildFile = BuildCtx.workspaceRoot / "build.mill"

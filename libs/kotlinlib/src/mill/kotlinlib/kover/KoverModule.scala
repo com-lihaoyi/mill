@@ -101,13 +101,13 @@ trait KoverModule extends KotlinModule { outer =>
      */
     override def forkArgs: T[Seq[String]] = Task {
       val argsFile = koverDataDir().path / "kover-agent.args"
-      val content = s"report.file=${koverBinaryReport().path}"
+      val content = s"report.file=${Jvm.realAbs(koverBinaryReport().path)}"
       BuildCtx.withFilesystemCheckerDisabled {
         os.write.over(argsFile, content)
       }
       super.forkArgs() ++
         Seq(
-          s"-javaagent:${koverAgentJar().path}=file:$argsFile"
+          s"-javaagent:${Jvm.realAbs(koverAgentJar().path)}=file:${Jvm.realAbs(argsFile)}"
         )
     }
   }

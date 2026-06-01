@@ -1,6 +1,6 @@
 //// SNIPPET:BUILD
 package build
-import mill.*, kotlinlib.*
+import mill.*, kotlinlib.*, util.Jvm
 
 object foo extends KotlinModule {
 
@@ -10,7 +10,7 @@ object foo extends KotlinModule {
     def otherFiles = Task.Source("other-files")
 
     def forkEnv = super.forkEnv() ++ Map(
-      "OTHER_FILES_DIR" -> otherFiles().path.toString
+      "OTHER_FILES_DIR" -> Jvm.realAbs(otherFiles().path)
     )
 
     def mvnDeps = Seq(

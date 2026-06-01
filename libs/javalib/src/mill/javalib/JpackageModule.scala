@@ -68,7 +68,7 @@ trait JpackageModule extends JavaModule {
       "--name",
       appName,
       "--input",
-      libs.toString(),
+      Jvm.realAbs(libs),
       "--main-jar",
       mainJarName,
       "--main-class",

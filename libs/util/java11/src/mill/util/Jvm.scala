@@ -181,10 +181,13 @@ object Jvm {
         effectiveCwd
       )
     }
+    val effectiveEnv =
+      if (propagateEnv) PathAliasing.subprocessBaseEnv(env)
+      else env
 
     os.proc(commandArgs).spawn(
       cwd = effectiveCwd,
-      env = env,
+      env = effectiveEnv,
       stdin = stdin,
       stdout = stdout,
       stderr = stderr,

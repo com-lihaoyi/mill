@@ -6,7 +6,7 @@ import mill.api.{BuildCtx, PathRef, Result}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.ReportType
 import mill.javalib.api.JvmWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
-import mill.util.BuildInfo
+import mill.util.{BuildInfo, Jvm}
 
 /**
  * Adds tasks to a [[mill.scalalib.ScalaModule]] to create test coverage reports.
@@ -192,13 +192,13 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
         val extras =
           if (isScala3()) {
             Seq(
-              s"-coverage-out:${data().path.toIO.getPath()}",
-              s"-sourceroot:${BuildCtx.workspaceRoot}"
+              s"-coverage-out:${Jvm.realAbs(data().path)}",
+              s"-sourceroot:${Jvm.realAbs(BuildCtx.workspaceRoot)}"
             )
           } else {
             Seq(
-              s"-P:scoverage:dataDir:${data().path.toIO.getPath()}",
-              s"-P:scoverage:sourceRoot:${BuildCtx.workspaceRoot}"
+              s"-P:scoverage:dataDir:${Jvm.realAbs(data().path)}",
+              s"-P:scoverage:sourceRoot:${Jvm.realAbs(BuildCtx.workspaceRoot)}"
             )
           }
 

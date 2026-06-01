@@ -14,6 +14,7 @@
 // compile the Remote APIs source code as part of our build:
 
 import mill.*
+import mill.util.Jvm
 
 def remoteApisZip = Task {
   println("downloading bazel-remote-apis sources...")
@@ -40,11 +41,22 @@ def bazel = Task {
 
 def compiledRemoteApis = Task {
   val javaBuildTarget = "build/bazel/remote/execution/v2:remote_execution_java_proto"
+  val bazelPath = Jvm.realAbs(bazel().path)
+  val bazelOutputUserRoot = Jvm.realAbs(Task.dest / "bazel-user-root")
   os.call(("unzip", remoteApisZip().path, "-d", Task.dest))
-  os.call((bazel().path, "build", javaBuildTarget), cwd = Task.dest / "remote-apis-2.2.0")
+  os.call(
+    (bazelPath, s"--output_user_root=$bazelOutputUserRoot", "build", javaBuildTarget),
+    cwd = Task.dest / "remote-apis-2.2.0"
+  )
 
   val queried = os.call(
-    (bazel().path, "cquery", javaBuildTarget, "--output=files"),
+    (
+      bazelPath,
+      s"--output_user_root=$bazelOutputUserRoot",
+      "cquery",
+      javaBuildTarget,
+      "--output=files"
+    ),
     cwd = Task.dest / "remote-apis-2.2.0"
   )
 
