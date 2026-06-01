@@ -445,10 +445,16 @@ object CodeGen {
     // children so they show up under `resolve _` and `BuildCtx.rootModule`.
     //
     // The orphan rule: a precompiled YAML at `<dir>/<name>.mill.yaml` is orphan
-    // iff its grandparent directory contains no compiled build/package script,
-    // and its parent directory is not projectRoot itself (the root's own
-    // precompiled YAML is handled by the empty-root fallback in BuildFileCls,
-    // not as a child of anything).
+    // iff its parent directory is a depth-1 subdirectory of projectRoot and
+    // projectRoot itself contains no compiled build/package script.
+    //
+    // We deliberately limit orphans to depth-1 because `ResolveCore` (see
+    // `core/resolve/src/mill/resolve/ResolveCore.scala:519`) materializes
+    // `DynamicModule` children using only `child.moduleSegments.last.value` —
+    // so a depth-2+ child's `moduleSegments` prefix is dropped on the resolve
+    // side, making the module addressable by the wrong name. Supporting deeper
+    // orphans requires synthesizing intermediate `DynamicModule` wrappers
+    // per missing segment; that's a follow-up.
     val compiledScriptDirs: Set[os.Path] = scriptSources
       .filter(p => allBuildFileNames.contains(p.last) && !precompiledModulePaths.contains(p))
       .map(_ / os.up)
@@ -456,7 +462,11 @@ object CodeGen {
     val orphanPrecompileds: Seq[os.Path] = precompiledModulePaths.toSeq
       .filter { p =>
         val parentDir = p / os.up
-        parentDir != projectRoot && !compiledScriptDirs.contains(parentDir / os.up)
+        // depth-1 only: parent is a direct subdirectory of projectRoot, and
+        // projectRoot has no compiled build/package script of its own.
+        parentDir != projectRoot &&
+        parentDir / os.up == projectRoot &&
+        !compiledScriptDirs.contains(projectRoot)
       }
       .sorted
 

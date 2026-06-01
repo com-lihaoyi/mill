@@ -45,12 +45,11 @@ abstract class MainRootModule()(using
     else {
       val workspaceRoot = mill.api.BuildCtx.workspaceRoot
       // Map: top-level directory name (e.g. "foo" for "foo/package.mill.yaml")
-      // → the corresponding entry. Only depth-1 orphans are addressable by
-      // sibling-name refs in YAML moduleDeps. Deeper orphans appear in
-      // `moduleDirectChildren` (with full-path segments like `foo.bar`) but
-      // can't be the target of an unqualified sibling reference; the failure
-      // path falls into `resolveSibling`'s "no top-level precompiled sibling"
-      // error, which is the right diagnostic for that case.
+      // → the corresponding entry. The orphan resource is guaranteed by
+      // CodeGen to contain only depth-1 entries (see comment on the orphan
+      // computation in CodeGen for why). We still apply the depth-1 filter
+      // defensively so that any future widening of the resource format can't
+      // silently corrupt the name → entry map.
       val byFirstSegment: Map[String, mill.api.internal.PrecompiledModulesInfo.Entry] =
         entries
           .filter(e => os.SubPath(e.relPath).segments.size == 2)
