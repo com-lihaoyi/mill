@@ -4,7 +4,7 @@ import mill.api.{PathRef, TaskCtx}
 import mill.api.Result
 import mill.api.daemon.internal.TestReporter
 import mill.util.Jvm
-import mill.api.internal.{PathAliasing, Util}
+import mill.api.internal.Util
 import mill.Task
 import sbt.testing.Status
 
@@ -147,12 +147,9 @@ final class TestModuleUtil(
 
     val argsFile = baseFolder / "testargs"
     val sandbox = baseFolder / "sandbox"
-    // Serialize the test args with real-absolute paths: the test runner subprocess runs with
-    // cwd = sandbox and reads this file before any alias symlinks are in scope, so relativized
-    // `../mill-workspace/...` forms would not resolve.
     os.write.over(
       argsFile,
-      PathAliasing.withRawPathSerializer(upickle.write(testArgs)),
+      upickle.write(testArgs),
       createFolders = true
     )
 

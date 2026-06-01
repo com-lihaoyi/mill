@@ -33,12 +33,7 @@ class KotlinWorkerImpl extends KotlinWorker {
 
     ctx.log.debug(s"Using compiler backend: ${compiler.getClass().getSimpleName()}")
 
-    val (exitCode, exitCodeName) =
-      // Kotlin compiler internals and incremental caches require absolute paths.
-      // Temporarily disable path relativization for this in-process compiler call.
-      mill.api.internal.PathAliasing.withRawPathSerializer {
-        compiler.compile(args, sources)
-      }
+    val (exitCode, exitCodeName) = compiler.compile(args, sources)
 
     if (exitCode != 0) {
       sys.error(s"Kotlin compiler failed with exit code ${exitCode} ($exitCodeName)")

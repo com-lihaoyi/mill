@@ -92,20 +92,12 @@ object PathAliasing {
   }
 
   /**
-   * Scope `body` so the `os.Path` serializer is the default (env-driven) one — typically used to
-   * opt OUT of an in-process relativizing serializer that an outer caller installed, so paths
-   * within `body` serialize as absolute. Used by long-running processes (launcher, IDEA generator,
-   * test runner) whose own output should not be aliased even when their daemon parent's is.
+   * Scope `body` so the `os.Path` serializer is the default (env-driven) one. Used by long-running
+   * in-process tools whose own output should not inherit an outer caller's custom serializer.
    */
   def withDefaultPathSerializer[T](body: => T): T =
     os.Path.pathSerializer.withValue(os.Path.defaultPathSerializer)(body)
 
-  /**
-   * Serializer that always renders a path in its real on-disk absolute form (`p.wrapped`),
-   * regardless of any relativization configured via `OS_LIB_PATH_RELATIVIZER_BASE`. Unlike
-   * [[withDefaultPathSerializer]], this works even when the relativizing serializer *is* the
-   * process default (as in a daemon launched with the relativizer env var set).
-   */
   private object RawPathSerializer extends os.Path.Serializer {
     def serializeString(p: os.Path): String = p.wrapped.toString
     def serializeFile(p: os.Path): java.io.File = p.wrapped.toFile
@@ -120,12 +112,8 @@ object PathAliasing {
   }
 
   /**
-   * Scope `body` so every `os.Path` serializes to its real absolute on-disk form. Use narrowly,
-   * around an `os.proc(...).spawn`/`call`, when handing a `cwd` (and stdout/stderr redirects) to
-   * `ProcessBuilder`: os-lib turns `cwd` into `ProcessBuilder.directory()` via `cwd.toIO`, which the
-   * OS resolves on the real filesystem, so a relativized `../mill-workspace/...` form would not
-   * resolve. (`PathRef.toAbsString` can't be used here because the `cwd` is consumed by
-   * os-lib, not the caller.)
+   * Scope `body` so os-lib's `ProcessBuilder` inputs (`cwd`, stdout/stderr redirects) use real
+   * on-disk paths. Keep this narrow: ordinary user-facing path strings should go through PathRef.
    */
   def withRawPathSerializer[T](body: => T): T =
     os.Path.pathSerializer.withValue(RawPathSerializer)(body)

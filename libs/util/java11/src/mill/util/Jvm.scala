@@ -230,9 +230,7 @@ object Jvm {
 
     if (cwd != null) os.makeDir.all(cwd)
 
-    // `toAbsString` for the `-cp` arg: the alias form needs the symlink in the subprocess's
-    // cwd's parent, which is unreliable on Windows / nested-native-daemon tests.
-    val cpStr = cp.iterator.map(PathRef.toAbsString).mkString(java.io.File.pathSeparator)
+    val cpStr = cp.iterator.map(PathRef.toRelString(_, cwd)).mkString(java.io.File.pathSeparator)
     Vector(javaExe(javaHome)) ++
       jdk23PlusUnsafeOpts(javaHome) ++
       jvmArgs.value ++

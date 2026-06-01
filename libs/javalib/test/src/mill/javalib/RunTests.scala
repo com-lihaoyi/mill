@@ -47,8 +47,8 @@ object RunTests extends TestSuite {
       override def moduleDeps = Seq(core)
       override def mainClass: T[Option[String]] = Some("hello.Main")
       override def forkEnv: T[Map[String, String]] = Task {
-        val workspace = PathRef.toSubprocessPathString(moduleDir, BuildCtx.workspaceRoot)
-        val home = PathRef.toSubprocessPathString(os.home, BuildCtx.workspaceRoot)
+        val workspace = PathRef.toRelString(moduleDir, BuildCtx.workspaceRoot)
+        val home = PathRef.toRelString(os.home, BuildCtx.workspaceRoot)
         Map("WORKSPACE_PATH" -> workspace, "HOME_PATH" -> home)
       }
     }

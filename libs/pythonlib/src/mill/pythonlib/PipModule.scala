@@ -1,7 +1,6 @@
 package mill.pythonlib
 
 import mill.*
-import mill.util.Jvm
 
 /**
  * Basic tasks for preparing a python interpreter in a venv with required

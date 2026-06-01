@@ -541,22 +541,25 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     val formats = androidLintReportFormat()
 
-    // `PathRef.toAbsString`: lint records absolute source/classpath paths into its baseline XML
-    // and HTML reports, then compares them across runs from different cwds.
     val reportArg: Seq[String] = formats.flatMap { format =>
-      Seq(format.flag, PathRef.toAbsString(Task.dest / s"report.${format.extension}"))
+      Seq(format.flag, (Task.dest / s"report.${format.extension}").toString)
     }
-    val cp = compileClasspath().map(_.path).filter(os.exists).map(PathRef.toAbsString).mkString(":")
-    val src = sources().map(_.path).filter(os.exists).map(PathRef.toAbsString).mkString(":")
-    val res = resources().map(_.path).filter(os.exists).map(PathRef.toAbsString).mkString(":")
-    val configArg = androidLintConfigPath().map(c => Seq("--config", PathRef.toAbsString(c))).toSeq.flatten
+    val cp = compileClasspath().map(_.path).filter(os.exists)
+      .mkString(":")
+    val src = sources().map(_.path).filter(os.exists)
+      .mkString(":")
+    val res = resources().map(_.path).filter(os.exists)
+      .mkString(":")
+    val configArg = androidLintConfigPath()
+      .map(c => Seq("--config", c.toString)).toSeq.flatten
     val baselineArg =
-      androidLintBaselinePath().map(b => Seq("--baseline", PathRef.toAbsString(b))).toSeq.flatten
+      androidLintBaselinePath()
+        .map(b => Seq("--baseline", b.toString)).toSeq.flatten
 
     os.call(
       Seq(
-        PathRef.toAbsString(androidSdkModule().lintExe()),
-        PathRef.toAbsString(moduleDir / "src/main"),
+        androidSdkModule().lintExe().toString,
+        (moduleDir / "src/main").toString,
         "--classpath",
         cp,
         "--sources",

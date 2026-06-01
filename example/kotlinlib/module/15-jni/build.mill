@@ -1,5 +1,6 @@
 package build
 import mill.*, kotlinlib.*, util.Jvm
+import mill.api.PathRef
 
 object `package` extends KotlinModule {
 
@@ -38,7 +39,7 @@ object `package` extends KotlinModule {
     def mvnDeps = Seq(
       mvn"io.kotest:kotest-runner-junit5:5.9.1"
     )
-    def forkEnv = Map("HELLO_WORLD_BINARY" -> Jvm.realAbs(nativeCompiled()))
+    def forkEnv = Map("HELLO_WORLD_BINARY" -> PathRef.toAbsString(nativeCompiled()))
   }
 }
 

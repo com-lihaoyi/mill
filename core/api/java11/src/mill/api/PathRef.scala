@@ -87,7 +87,7 @@ object PathRef {
    * Subprocesses at the workspace root use `out/mill-workspace` and `out/mill-home`; subprocesses
    * in task sandboxes use the historical `../mill-workspace` and `../mill-home` aliases.
    */
-  def toSubprocessPathString(
+  def toRelString(
       path: os.Path,
       subprocessCwd: os.Path,
       workspaceRoot: os.Path = BuildCtx.workspaceRoot

@@ -21,7 +21,7 @@ import mill.api.daemon.internal.{
 }
 import mill.api.daemon.internal.idea.{Element, IdeaConfigFile, JavaFacet, ResolvedModule}
 import mill.api.internal.PathAliasing
-import mill.util.{BuildInfo, Jvm}
+import mill.util.BuildInfo
 import org.eclipse.jgit.ignore.{FastIgnoreRule, IgnoreNode}
 import os.SubPath
 
