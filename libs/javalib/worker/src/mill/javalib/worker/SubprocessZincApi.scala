@@ -2,6 +2,7 @@ package mill.javalib.worker
 import mill.api.*
 import mill.api.daemon.*
 import mill.api.daemon.internal.CompileProblemReporter
+import mill.api.internal.PathAliasing
 import mill.client.lock.Locks
 import mill.client.{LaunchedServer, ServerLauncher}
 import mill.javalib.api.internal.*
@@ -109,27 +110,31 @@ class SubprocessZincApi(
                   logDir = Some(daemonDir)
                 )
 
-              val init =
-                JvmWorkerRpcServer.Initialize(
-                  compilerBridgeWorkspace = compilerBridgeWorkspace,
-                  workspaceRoot = ctx.workspaceRoot
-                )
+              // On Windows, Zinc resolves the forked javac.exe path against the compile dest;
+              // a ../mill-home alias is only valid relative to the daemon cwd, so it won't exist there.
+              PathAliasing.withRawPathSerializer {
+                val init =
+                  JvmWorkerRpcServer.Initialize(
+                    compilerBridgeWorkspace = compilerBridgeWorkspace,
+                    workspaceRoot = ctx.workspaceRoot
+                  )
 
-              val client = MillRpcClient.create[
-                JvmWorkerRpcServer.Initialize,
-                JvmWorkerRpcServer.Request,
-                JvmWorkerRpcServer.ServerToClient
-              ](init, wireTransport, makeClientLogger())(serverRpcToClientHandler(reporter))
+                val client = MillRpcClient.create[
+                  JvmWorkerRpcServer.Initialize,
+                  JvmWorkerRpcServer.Request,
+                  JvmWorkerRpcServer.ServerToClient
+                ](init, wireTransport, makeClientLogger())(serverRpcToClientHandler(reporter))
 
-              client.apply(JvmWorkerRpcServer.Request(
-                op,
-                reporter match {
-                  case None => ReporterMode.NoReporter
-                  case Some(r) => ReporterMode.Reporter(reportCachedProblems, r.maxErrors)
-                },
-                ctx,
-                compilerBridgeAcquire
-              )).asInstanceOf[op.Response]
+                client.apply(JvmWorkerRpcServer.Request(
+                  op,
+                  reporter match {
+                    case None => ReporterMode.NoReporter
+                    case Some(r) => ReporterMode.Reporter(reportCachedProblems, r.maxErrors)
+                  },
+                  ctx,
+                  compilerBridgeAcquire
+                )).asInstanceOf[op.Response]
+              }
             }
           )
         }.get
