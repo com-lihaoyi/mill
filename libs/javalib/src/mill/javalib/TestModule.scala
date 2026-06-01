@@ -318,10 +318,10 @@ trait TestModule
 
   override def allForkEnv: T[Map[String, String]] = Task {
     super.allForkEnv() ++ Map(
-      // `Jvm.realAbs`: test code does `os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))` — the
+      // `PathRef.toAbsString`: test code does `os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))` — the
       // single-arg constructor rejects the relativized `../mill-workspace/...` form.
       EnvVars.MILL_TEST_RESOURCE_DIR -> resources().iterator
-        .map(Jvm.realAbs)
+        .map(PathRef.toAbsString)
         .mkString(";")
     )
   }

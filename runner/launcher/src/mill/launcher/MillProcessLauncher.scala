@@ -1,11 +1,11 @@
 package mill.launcher
 
 import io.github.alexarchambault.nativeterm.NativeTerminal
+import mill.api.PathRef
 import mill.api.internal.{OneOrMore, PathAliasing}
 import mill.client.ClientUtil
 import mill.constants.*
 import mill.internal.OutputDirectoryLayout
-import mill.util.Jvm
 
 import java.io.File
 import java.util.UUID
@@ -40,7 +40,7 @@ object MillProcessLauncher {
         mainClass,
         // Daemon entry point reads `args[0]` with plain `java.nio.file.Paths.get(...)` and
         // would resolve a `../mill-workspace/...` form against its own cwd. Pass absolute.
-        Jvm.realAbs(processDir),
+        PathRef.toAbsString(processDir),
         outMode.asString,
         useFileLocks.toString
       ) ++
@@ -101,7 +101,7 @@ object MillProcessLauncher {
       Seq(
         "mill.daemon.MillDaemonMain",
         // Same reason as the no-daemon variant above: pass the daemon-dir arg as a real abs path.
-        Jvm.realAbs(daemonDir),
+        PathRef.toAbsString(daemonDir),
         outMode.asString,
         useFileLocks.toString
       )
@@ -149,7 +149,7 @@ object MillProcessLauncher {
       // `mill-jvm-version`), so subprocesses the daemon spawns that resolve `$JAVA_HOME/bin/java`
       // (e.g. the Android `lint` wrapper, Gradle-style tools) use that JVM rather than inheriting
       // the launcher shell's JAVA_HOME. Only set when a version is explicitly configured.
-      daemonJavaHome.map(home => "JAVA_HOME" -> Jvm.realAbs(home))
+      daemonJavaHome.map(home => "JAVA_HOME" -> PathRef.toAbsString(home))
     ).flatten
 
     // destroyOnExit = false to prevent the daemon from being killed when the Mill client exits.
@@ -399,7 +399,7 @@ object MillProcessLauncher {
     try
       // Real absolute: code consuming `MILL_EXECUTABLE_PATH` typically does
       // `os.Path(sys.env(...))`, which rejects a relativized string.
-      Jvm.realAbs(
+      PathRef.toAbsString(
         os.Path(getClass.getProtectionDomain.getCodeSource.getLocation.toURI)
       )
     catch {

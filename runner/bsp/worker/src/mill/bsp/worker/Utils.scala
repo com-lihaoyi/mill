@@ -35,7 +35,7 @@ object Utils {
   def sanitizeUri(uri: java.nio.file.Path): String = {
     // `uri` may be a workspace-relativized path; deserialize it through os-lib, then turn it back
     // into a real absolute URI for BSP clients.
-    sanitizeUri(mill.api.PathRef.realAbsPath(os.Path(uri)).toUri.toString)
+    sanitizeUri(mill.api.PathRef.toAbsNioPath(os.Path(uri)).toUri.toString)
   }
 
   // define the function that spawns compilation reporter for each module based on the

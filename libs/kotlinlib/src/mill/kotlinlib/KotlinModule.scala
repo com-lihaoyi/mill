@@ -341,18 +341,18 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
           s"Compiling ${kotlinSourceFiles.size} Kotlin sources ${extra}to ${classes.relativeTo(BuildCtx.workspaceRoot)} ..."
         )
 
-        // `Jvm.realAbs`: alias-routed paths confuse kotlinc's multi-platform expect/actual
+        // `PathRef.toAbsString`: alias-routed paths confuse kotlinc's multi-platform expect/actual
         // checker, which sees the same source file via the symlink and via direct walk.
         val compilerArgs: Seq[String] = Seq(
           // destdir
-          Seq("-d", Jvm.realAbs(classes)),
+          Seq("-d", PathRef.toAbsString(classes)),
           // apply multi-platform support (expect/actual)
           // TODO if there is penalty for activating it in the compiler, put it behind configuration flag
           Seq("-Xmulti-platform"),
           // classpath
           when(compileCpPaths.iterator.nonEmpty)(
             "-classpath",
-            compileCpPaths.iterator.map(Jvm.realAbs).mkString(File.pathSeparator)
+            compileCpPaths.iterator.map(PathRef.toAbsString).mkString(File.pathSeparator)
           ),
           allKotlincOptions(),
           extraKotlinArgs
@@ -454,15 +454,15 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
   protected def mandatoryKotlincOptions: T[Seq[String]] = Task {
     val languageVersion = kotlinLanguageVersion()
     val kotlinkotlinApiVersion = kotlinApiVersion()
-    // `Jvm.realAbs`: same kotlinc expect/actual concern as `compilerArgs` above.
-    val plugins = kotlincPluginJars().map(pr => Jvm.realAbs(pr.path))
+    // `PathRef.toAbsString`: same kotlinc expect/actual concern as `compilerArgs` above.
+    val plugins = kotlincPluginJars().map(pr => PathRef.toAbsString(pr.path))
 
     val friendPathsOption = if (kotlinFriendModulesChecked.isEmpty) {
       Seq.empty[String]
     } else {
       val compilations = Task.traverse(kotlinFriendModulesChecked) { friend => friend.compile }()
-      // `Jvm.realAbs`: friend-path classes are compared against kotlinc's walked source paths.
-      Seq(compilations.map(c => Jvm.realAbs(c.classes.path)).mkString("-Xfriend-paths=", ",", ""))
+      // `PathRef.toAbsString`: friend-path classes are compared against kotlinc's walked source paths.
+      Seq(compilations.map(c => PathRef.toAbsString(c.classes.path)).mkString("-Xfriend-paths=", ",", ""))
     }
 
     Seq("-no-stdlib") ++

@@ -2,6 +2,7 @@ package mill.javalib
 
 import mill.*
 import mill.api.ExecResult
+import mill.api.BuildCtx
 import mill.api.daemon.LauncherSubprocess
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
@@ -41,11 +42,14 @@ object RunTests extends TestSuite {
   }
 
   object HelloJavaWithLiteralForkEnv extends TestRootModule {
+    object core extends JavaModule
     object app extends JavaModule {
+      override def moduleDeps = Seq(core)
+      override def mainClass: T[Option[String]] = Some("hello.Main")
       override def forkEnv: T[Map[String, String]] = Task {
-        val workspace = moduleDir.wrapped.toAbsolutePath.normalize().toString
-        val home = os.home.wrapped.toAbsolutePath.normalize().toString
-        Map("UNCHANGED" -> s"$workspace,../mill-workspace;$home,../mill-home")
+        val workspace = PathRef.toSubprocessPathString(moduleDir, BuildCtx.workspaceRoot)
+        val home = PathRef.toSubprocessPathString(os.home, BuildCtx.workspaceRoot)
+        Map("WORKSPACE_PATH" -> workspace, "HOME_PATH" -> home)
       }
     }
 
@@ -107,21 +111,19 @@ object RunTests extends TestSuite {
         )
       }
 
-      test("allForkEnvDoesNotRewriteUserForkEnvValues") - UnitTester(
+      test("allForkEnvUsesExplicitForkEnvPathAliases") - UnitTester(
         HelloJavaWithLiteralForkEnv,
         resourcePath
       ).scoped { eval =>
-        val workspace = HelloJavaWithLiteralForkEnv.app.moduleDir.wrapped.toAbsolutePath.normalize()
-        val home = os.home.wrapped.toAbsolutePath.normalize()
-        val expected = s"$workspace,../mill-workspace;$home,../mill-home"
-
         val Right(first) = eval.apply(HelloJavaWithLiteralForkEnv.app.allForkEnv).runtimeChecked
         val Right(second) = eval.apply(HelloJavaWithLiteralForkEnv.app.allForkEnv).runtimeChecked
 
         assert(
-          first.value("UNCHANGED") == expected,
+          first.value("WORKSPACE_PATH") == "out/mill-workspace/app",
+          first.value("HOME_PATH") == "out/mill-home",
           second.evalCount == 0,
-          second.value("UNCHANGED") == expected
+          second.value("WORKSPACE_PATH") == "out/mill-workspace/app",
+          second.value("HOME_PATH") == "out/mill-home"
         )
       }
 
@@ -144,6 +146,25 @@ object RunTests extends TestSuite {
             PathAliasing.workspaceRootPathRelativizerBase(HelloJavaWithMain.moduleDir),
           os.isLink(HelloJavaWithMain.moduleDir / "out" / "mill-workspace"),
           os.isLink(HelloJavaWithMain.moduleDir / "out" / "mill-home")
+        )
+      }
+
+      test("runPreservesExplicitForkEnvPathAliases") - UnitTester(
+        HelloJavaWithLiteralForkEnv,
+        resourcePath
+      ).scoped { eval =>
+        var seen: Option[LauncherSubprocess.Config] = None
+
+        LauncherSubprocess.withValue(config => { seen = Some(config); 0 }) {
+          val Right(result) =
+            eval.apply(HelloJavaWithLiteralForkEnv.app.run(Task.Anon(Args("testArg"))))
+              .runtimeChecked
+          assert(result.evalCount > 0)
+        }
+
+        assert(
+          seen.get.env("WORKSPACE_PATH") == "out/mill-workspace/app",
+          seen.get.env("HOME_PATH") == "out/mill-home"
         )
       }
 

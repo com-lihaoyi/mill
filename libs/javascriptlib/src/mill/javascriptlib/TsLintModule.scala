@@ -1,8 +1,7 @@
 package mill.javascriptlib
 
 import mill.*
-import mill.api.Result
-import mill.util.Jvm
+import mill.api.{PathRef, Result}
 import scala.util.{Try, Success, Failure}
 import os.*
 import mill.api.BuildCtx
@@ -88,7 +87,7 @@ trait TsLintModule extends Module {
         // paths as `foo/src/foo.ts`. On reproducible mode `$cwd` would interpolate
         // to the relativized `../mill-workspace` form, but eslint emits real
         // absolute paths — match those.
-        val cwdAbs = Jvm.realAbs(cwd)
+        val cwdAbs = PathRef.toAbsString(cwd)
         val replacements = Seq(
           s"$cwdAbs/" -> "",
           "potentially fixable with the `--fix` option" ->

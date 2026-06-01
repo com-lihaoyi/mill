@@ -469,7 +469,7 @@ trait KspModule extends KotlinModule { outer =>
       ""
     else
       s"-processor-options=${processorOptionsValue}"
-    // `Jvm.realAbs` throughout the args list below: KSP embeds these paths into its incremental
+    // `PathRef.toAbsString` throughout the args list below: KSP embeds these paths into its incremental
     // cache and into the kotlinc compilation it drives — same expect/actual canonicalization
     // concern as `KotlinModule`.
     val args = Seq(
@@ -477,15 +477,15 @@ trait KspModule extends KotlinModule { outer =>
       "-jvm-target",
       kspJvmTarget(),
       s"-jdk-home=${System.getProperty("java.home")}",
-      s"-source-roots=${kspSources().map(Jvm.realAbs).mkString(File.pathSeparator)}",
-      s"-project-base-dir=${Jvm.realAbs(moduleDir)}",
-      s"-output-base-dir=${Jvm.realAbs(kspOutputDir)}",
-      s"-caches-dir=${Jvm.realAbs(kspCachesDir)}",
-      s"-libraries=${kspClasspath().map(Jvm.realAbs).mkString(File.pathSeparator)}",
-      s"-class-output-dir=${Jvm.realAbs(classes)}",
-      s"-kotlin-output-dir=${Jvm.realAbs(kotlin)}",
-      s"-java-output-dir=${Jvm.realAbs(java)}",
-      s"-resource-output-dir=${Jvm.realAbs(resources)}",
+      s"-source-roots=${kspSources().map(PathRef.toAbsString).mkString(File.pathSeparator)}",
+      s"-project-base-dir=${PathRef.toAbsString(moduleDir)}",
+      s"-output-base-dir=${PathRef.toAbsString(kspOutputDir)}",
+      s"-caches-dir=${PathRef.toAbsString(kspCachesDir)}",
+      s"-libraries=${kspClasspath().map(PathRef.toAbsString).mkString(File.pathSeparator)}",
+      s"-class-output-dir=${PathRef.toAbsString(classes)}",
+      s"-kotlin-output-dir=${PathRef.toAbsString(kotlin)}",
+      s"-java-output-dir=${PathRef.toAbsString(java)}",
+      s"-resource-output-dir=${PathRef.toAbsString(resources)}",
       s"-language-version=${kspLanguageVersion()}",
       s"-incremental=true",
       s"-incremental-log=true",

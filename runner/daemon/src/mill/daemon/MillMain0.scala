@@ -2,7 +2,7 @@ package mill.daemon
 
 import mill.api.daemon.internal.bsp.{BspBootstrapBridge, BspServerHandle}
 import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
-import mill.api.{Logger, MillException, Result, SystemStreams}
+import mill.api.{Logger, MillException, PathRef, Result, SystemStreams}
 import mill.api.daemon.internal.{LauncherLocking, LauncherOutFiles}
 import mill.api.internal.PathAliasing
 import mill.bsp.BSP
@@ -56,7 +56,7 @@ object MillMain0 {
    */
   def outFileLock(out: os.Path): Lock =
     // `Lock.file` opens a real file lock; the alias form would be resolved against the caller's cwd.
-    Lock.file(Jvm.realAbs(out / OutFiles.millOutLock))
+    Lock.file(PathRef.toAbsString(out / OutFiles.millOutLock))
 
   private[daemon] def useInProcessLauncherResources(
       hasDaemonClient: Boolean,

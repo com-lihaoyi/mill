@@ -29,27 +29,6 @@ import scala.util.chaining.scalaUtilChainingOps
  */
 object Jvm {
 
-  def realAbs(p: os.Path): String = PathRef.realAbs(p)
-  def realAbs(p: PathRef): String = PathRef.realAbs(p)
-  def realAbsPath(p: os.Path): java.nio.file.Path = PathRef.realAbsPath(p)
-  def realAbsPath(p: PathRef): java.nio.file.Path = PathRef.realAbsPath(p)
-  def realAbsFile(p: os.Path): java.io.File = PathRef.realAbsFile(p)
-  def realAbsFile(p: PathRef): java.io.File = PathRef.realAbsFile(p)
-  def realAbsResolved(p: os.Path): String = PathRef.realAbsResolved(p)
-  def realAbsResolvedPath(p: os.Path): os.Path = PathRef.realAbsResolvedPath(p)
-
-  private def subprocessEnvForCwd(
-      env: Map[String, String],
-      cwd: os.Path
-  ): Map[String, String] =
-    env ++ PathAliasing.workspaceEnvVarsForCwd(cwd)
-
-  private def prepareSubprocessCwd(cwd: os.Path): os.Path = {
-    val effectiveCwd = Option(cwd).getOrElse(os.pwd)
-    PathAliasing.ensureProcessCwdAliases(effectiveCwd)
-    effectiveCwd
-  }
-
   /**
    * Runs a JVM subprocess with the given configuration and returns a
    * [[os.CommandResult]] with it's aggregated output and error streams.
@@ -98,8 +77,9 @@ object Jvm {
       destroyOnExit: Boolean = true,
       check: Boolean = true
   )(using ctx: TaskCtx): os.CommandResult = {
-    val effectiveCwd = prepareSubprocessCwd(cwd)
-    val processEnv = subprocessEnvForCwd(env, effectiveCwd)
+    val effectiveCwd = Option(cwd).getOrElse(os.pwd)
+    PathAliasing.ensureProcessCwdAliases(effectiveCwd)
+    val processEnv = env ++ PathAliasing.workspaceEnvVarsForCwd(effectiveCwd)
     val commandArgs = buildJvmCommand(
       mainClass,
       mainArgs,
@@ -173,8 +153,9 @@ object Jvm {
       shutdownGracePeriod: Long = 100,
       destroyOnExit: Boolean = true
   ): os.SubProcess = {
-    val effectiveCwd = prepareSubprocessCwd(cwd)
-    val processEnv = subprocessEnvForCwd(env, effectiveCwd)
+    val effectiveCwd = Option(cwd).getOrElse(os.pwd)
+    PathAliasing.ensureProcessCwdAliases(effectiveCwd)
+    val processEnv = env ++ PathAliasing.workspaceEnvVarsForCwd(effectiveCwd)
 
     val commandArgs = buildJvmCommand(
       mainClass,
@@ -249,9 +230,9 @@ object Jvm {
 
     if (cwd != null) os.makeDir.all(cwd)
 
-    // `realAbs` for the `-cp` arg: the alias form needs the symlink in the subprocess's
+    // `toAbsString` for the `-cp` arg: the alias form needs the symlink in the subprocess's
     // cwd's parent, which is unreliable on Windows / nested-native-daemon tests.
-    val cpStr = cp.iterator.map(realAbs).mkString(java.io.File.pathSeparator)
+    val cpStr = cp.iterator.map(PathRef.toAbsString).mkString(java.io.File.pathSeparator)
     Vector(javaExe(javaHome)) ++
       jdk23PlusUnsafeOpts(javaHome) ++
       jvmArgs.value ++
@@ -303,7 +284,7 @@ object Jvm {
       cwd: os.Path = null,
       propagateEnv: Boolean = true
   )(using ctx: TaskCtx): Int = {
-    val effectiveCwd = prepareSubprocessCwd(cwd)
+    val effectiveCwd = Option(cwd).getOrElse(os.pwd)
     val commandArgs = buildJvmCommand(
       mainClass,
       mainArgs,
@@ -335,8 +316,9 @@ object Jvm {
       cwd: os.Path = os.pwd,
       propagateEnv: Boolean = true
   ): Int = {
-    val effectiveCwd = prepareSubprocessCwd(cwd)
-    val processEnv = subprocessEnvForCwd(env, effectiveCwd)
+    val effectiveCwd = Option(cwd).getOrElse(os.pwd)
+    PathAliasing.ensureProcessCwdAliases(effectiveCwd)
+    val processEnv = env ++ PathAliasing.workspaceEnvVarsForCwd(effectiveCwd)
     LauncherSubprocess.value(LauncherSubprocess.Config(
       cmd = cmd,
       env = processEnv,

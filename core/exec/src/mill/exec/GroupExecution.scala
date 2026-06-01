@@ -140,7 +140,7 @@ trait GroupExecution {
     // (in reproducible mode) compare equal to their real on-disk form. Both sides of the
     // `startsWith`/`==` checks below must be canonicalized, else a workspace under a symlinked
     // prefix (e.g. macOS `/tmp` -> `/private/tmp`) would silently fail to match.
-    def canonical(p: os.Path): os.Path = PathRef.realAbsResolvedPath(p)
+    def canonical(p: os.Path): os.Path = PathRef.toResolvedOsPath(p)
     val canonicalWorkspace = canonical(workspace)
     val canonicalRootBuildYaml =
       canonical(os.Path(rootModule.moduleDirJava) / os.up / "build.mill.yaml")

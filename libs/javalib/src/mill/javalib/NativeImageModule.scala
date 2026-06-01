@@ -8,7 +8,6 @@ import mill.api.BuildCtx
 import mill.constants.{DaemonFiles, Util}
 import mill.javalib.graalvm.{GraalVMMetadataWorker, MetadataQuery, MetadataResult}
 import mill.util.Jvm
-import mill.util.Jvm.realAbsResolved
 
 import java.io.File
 import scala.util.Properties
@@ -40,17 +39,17 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
 
     val executeableName = "native-executable"
     val toolPath = nativeImageTool().path
-    // `realAbsResolved` throughout: `native-image` scans classpath JARs' on-disk paths for
+    // `toResolvedPathString` throughout: `native-image` scans classpath JARs' on-disk paths for
     // build-time-init directives in their `META-INF/native-image/...`; alias form not resolved.
     val command = Seq.newBuilder[String]
-      .+=(realAbsResolved(toolPath))
+      .+=(PathRef.toResolvedPathString(toolPath))
       .++=(nativeImageOptions())
       .+=("-cp")
-      .+=(nativeImageClasspath().iterator.map(p => realAbsResolved(p.path)).mkString(
+      .+=(nativeImageClasspath().iterator.map(p => PathRef.toResolvedPathString(p.path)).mkString(
         java.io.File.pathSeparator
       ))
       .+=(finalMainClass())
-      .+=(java.nio.file.Paths.get(realAbsResolved(dest), executeableName).toString)
+      .+=(java.nio.file.Paths.get(PathRef.toResolvedPathString(dest), executeableName).toString)
       .result()
 
     os.proc(command).call(cwd = dest, stdout = os.Inherit)
@@ -118,9 +117,9 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
     val configurationDirectoriesArg = if (configurations.isEmpty) {
       Seq.empty[String]
     } else {
-      // `realAbsResolved`: same as above — native-image scans by on-disk path, alias form fails.
+      // `toResolvedPathString`: same as above — native-image scans by on-disk path, alias form fails.
       val configurationFileDirectoriesValue =
-        configurations.map(c => realAbsResolved(c.metadataLocation)).mkString(",")
+        configurations.map(c => PathRef.toResolvedPathString(c.metadataLocation)).mkString(",")
       Seq(s"-H:ConfigurationFileDirectories=$configurationFileDirectoriesValue")
     }
     nativeExcludedConfig() ++ configurationDirectoriesArg ++ nativeIncludedResourcesImageOptions()
@@ -360,11 +359,11 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
     nativeExcludedConfigJars()
       .distinct
       .flatMap { file =>
-        // `realAbsResolved`: the `\Q...\E` literal must match the on-disk jar path native-image
+        // `toResolvedPathString`: the `\Q...\E` literal must match the on-disk jar path native-image
         // sees; the alias form would never match and silently skip the exclusion.
         Seq(
           "--exclude-config",
-          s"\\Q${realAbsResolved(file.path)}\\E",
+          s"\\Q${PathRef.toResolvedPathString(file.path)}\\E",
           s"^/META-INF/native-image/.*"
         )
       }

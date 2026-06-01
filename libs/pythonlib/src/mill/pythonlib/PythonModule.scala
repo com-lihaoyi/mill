@@ -147,9 +147,9 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
   // cache. This is slow. Look into sharing the cache between tasks.
   def runner: Task[PythonModule.Runner] = Task.Anon {
     new PythonModule.RunnerImpl(
-      // `Jvm.realAbs`: passed verbatim to `Runtime.exec` as the executable path; OS-level
+      // `PathRef.toAbsString`: passed verbatim to `Runtime.exec` as the executable path; OS-level
       // exec does not honor our spawnHook-installed cwd aliases.
-      command0 = Jvm.realAbs(pythonExe()),
+      command0 = PathRef.toAbsString(pythonExe()),
       options = pythonOptions(),
       env0 = runnerEnvTask() ++ forkEnv(),
       workingDir0 = Task.dest
@@ -158,17 +158,17 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
 
   private def runnerEnvTask = Task.Anon {
     Map(
-      // `Jvm.realAbs`: python's `sys.path` entries must be absolute — python `chdir`s during
+      // `PathRef.toAbsString`: python's `sys.path` entries must be absolute — python `chdir`s during
       // imports and resolves `sys.path` lazily, so relative paths drift.
-      "PYTHONPATH" -> transitivePythonPath().map(Jvm.realAbs)
+      "PYTHONPATH" -> transitivePythonPath().map(PathRef.toAbsString)
         .mkString(java.io.File.pathSeparator),
-      // `Jvm.realAbs`: python writes cache files at this prefix from any cwd it chdirs to.
-      "PYTHONPYCACHEPREFIX" -> Jvm.realAbs(Task.dest / "cache"),
+      // `PathRef.toAbsString`: python writes cache files at this prefix from any cwd it chdirs to.
+      "PYTHONPYCACHEPREFIX" -> PathRef.toAbsString(Task.dest / "cache"),
       if (Task.log.prompt.colored) { "FORCE_COLOR" -> "1" }
       else { "NO_COLOR" -> "1" }
-      // `Jvm.realAbs`: pyspark resolves `$JAVA_HOME/bin/java` via `os.path.join` (string concat),
+      // `PathRef.toAbsString`: pyspark resolves `$JAVA_HOME/bin/java` via `os.path.join` (string concat),
       // then `subprocess.Popen` resolves it against pyspark's own cwd which may differ.
-    ) ++ javaHome().map(jh => "JAVA_HOME" -> Jvm.realAbs(jh))
+    ) ++ javaHome().map(jh => "JAVA_HOME" -> PathRef.toAbsString(jh))
   }
 
   /**
@@ -180,8 +180,8 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
         // format: off
         "-m", "mypy",
         "--strict",
-        // `Jvm.realAbs`: mypy stores incremental cache entries keyed by absolute path.
-        "--cache-dir", Jvm.realAbs(Task.dest / "mypycache"),
+        // `PathRef.toAbsString`: mypy stores incremental cache entries keyed by absolute path.
+        "--cache-dir", PathRef.toAbsString(Task.dest / "mypycache"),
         sources().map(_.path)
         // format: on
       )
@@ -196,8 +196,8 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
   def run(args: mill.api.Args) = Task.Command {
     runner().run(
       args = (
-        // `Jvm.realAbs`: python records `__file__` for the entry script and uses it across chdirs.
-        Jvm.realAbs(mainScript()),
+        // `PathRef.toAbsString`: python records `__file__` for the entry script and uses it across chdirs.
+        PathRef.toAbsString(mainScript()),
         args.value
       )
     )
@@ -220,10 +220,10 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
         env = runnerEnvTask(),
         mainArgs = backgroundPaths.toArgs ++ Seq(
           "<subprocess>",
-          // `Jvm.realAbs`: the background wrapper relaunches these as a detached child whose cwd
+          // `PathRef.toAbsString`: the background wrapper relaunches these as a detached child whose cwd
           // is independent of this task's sandbox, so the aliases set up here aren't reachable.
-          Jvm.realAbs(pythonExe()),
-          Jvm.realAbs(mainScript())
+          PathRef.toAbsString(pythonExe()),
+          PathRef.toAbsString(mainScript())
         ) ++ args.value,
         cwd = BuildCtx.workspaceRoot,
         stdin = "",
@@ -256,7 +256,7 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
   /** Bundles the project into a single PEX executable(bundle.pex). */
   def bundle = Task {
     val pexFile = Task.dest / "bundle.pex"
-    // `Jvm.realAbs` (all three): pex bakes these paths into the bundled `.pex` archive and
+    // `PathRef.toAbsString` (all three): pex bakes these paths into the bundled `.pex` archive and
     // reads them back when the bundle runs from arbitrary user cwds.
     runner().run(
       (
@@ -264,10 +264,10 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
         "-m", "pex",
         transitivePythonDeps().toSeq,
         transitivePythonPath().flatMap(pr =>
-          Seq("-D", Jvm.realAbs(pr))
+          Seq("-D", PathRef.toAbsString(pr))
         ),
-        "--exe", Jvm.realAbs(mainScript()),
-        "-o", Jvm.realAbs(pexFile),
+        "--exe", PathRef.toAbsString(mainScript()),
+        "-o", PathRef.toAbsString(pexFile),
         bundleOptions()
         // format: on
       ),

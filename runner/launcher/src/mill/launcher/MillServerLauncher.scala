@@ -1,12 +1,12 @@
 package mill.launcher
 
+import mill.api.PathRef
 import mill.api.daemon.SystemStreams
 import mill.client.{ClientUtil, LaunchedServer, ServerLauncher}
 import mill.constants.BuildInfo
 import mill.constants.EnvVars
 import mill.client.lock.Locks
 import mill.constants.Util
-import mill.util.Jvm
 import mill.rpc.RpcConsole
 
 import java.io.{BufferedReader, InputStreamReader, PrintStream}
@@ -29,7 +29,7 @@ class MillServerLauncher(
   def run(daemonDir: os.Path, javaHome: Option[os.Path], log: String => Unit): Int = {
     os.makeDir.all(daemonDir)
     // `Locks.forDirectory` opens a real file lock; pass it the on-disk path, not the alias.
-    val locks = Locks.forDirectory(Jvm.realAbs(daemonDir), useFileLocks)
+    val locks = Locks.forDirectory(PathRef.toAbsString(daemonDir), useFileLocks)
     log(s"launchOrConnectToServer: $locks")
 
     val config = ServerLauncher.DaemonConfig(

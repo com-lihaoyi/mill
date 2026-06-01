@@ -25,7 +25,7 @@ object PathAliasing {
    * round-trip through the same aliases the daemon uses).
    */
   def workspaceEnvVars(workspace: os.Path = BuildCtx.workspaceRoot): Map[String, String] = {
-    val workspaceAbs = PathRef.realAbs(workspace)
+    val workspaceAbs = PathRef.toAbsString(workspace)
     Map(
       EnvVars.MILL_WORKSPACE_ROOT -> workspaceAbs,
       EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> workspacePathRelativizerBase(workspace)
@@ -33,17 +33,19 @@ object PathAliasing {
   }
 
   def workspacePathRelativizerBase(workspace: os.Path = BuildCtx.workspaceRoot): String =
-    s"${PathRef.realAbs(workspace)},../mill-workspace;${PathRef.realAbs(os.home)},../mill-home"
+    s"${PathRef.toAbsString(workspace)},../mill-workspace;${PathRef.toAbsString(os.home)},../mill-home"
 
   def workspaceRootPathRelativizerBase(workspace: os.Path = BuildCtx.workspaceRoot): String =
-    s"${PathRef.realAbs(workspace)},out/mill-workspace;${PathRef.realAbs(os.home)},out/mill-home"
+    s"${PathRef.toAbsString(workspace)},out/mill-workspace;${PathRef.toAbsString(os.home)},out/mill-home"
+
+  private def isWorkspaceRootCwd(cwd: os.Path, workspace: os.Path): Boolean =
+    cwd != null && PathRef.toAbsNioPath(cwd) == PathRef.toAbsNioPath(workspace)
 
   def pathRelativizerBaseForCwd(
       cwd: os.Path,
       workspace: os.Path = BuildCtx.workspaceRoot
   ): String =
-    if (cwd != null && PathRef.realAbsPath(cwd) == PathRef.realAbsPath(workspace))
-      workspaceRootPathRelativizerBase(workspace)
+    if (isWorkspaceRootCwd(cwd, workspace)) workspaceRootPathRelativizerBase(workspace)
     else workspacePathRelativizerBase(workspace)
 
   def workspaceEnvVarsForCwd(
@@ -122,7 +124,8 @@ object PathAliasing {
    * around an `os.proc(...).spawn`/`call`, when handing a `cwd` (and stdout/stderr redirects) to
    * `ProcessBuilder`: os-lib turns `cwd` into `ProcessBuilder.directory()` via `cwd.toIO`, which the
    * OS resolves on the real filesystem, so a relativized `../mill-workspace/...` form would not
-   * resolve. (`realAbs` can't be used here because the `cwd` is consumed by os-lib, not the caller.)
+   * resolve. (`PathRef.toAbsString` can't be used here because the `cwd` is consumed by
+   * os-lib, not the caller.)
    */
   def withRawPathSerializer[T](body: => T): T =
     os.Path.pathSerializer.withValue(RawPathSerializer)(body)
@@ -155,8 +158,7 @@ object PathAliasing {
   ): Unit = {
     if (cwd == null) return
     val workspace0 = workspace
-    val workspaceRootCwd = PathRef.realAbsPath(cwd) == PathRef.realAbsPath(workspace0)
-    val parent = if (workspaceRootCwd) cwd / "out" else cwd / os.up
+    val parent = if (isWorkspaceRootCwd(cwd, workspace0)) cwd / "out" else cwd / os.up
     val parentNio = parent.toNIO
     val linkOpts = LinkOption.NOFOLLOW_LINKS
     // The enclosing dir is not actually a directory; cannot host the aliases (best-effort).

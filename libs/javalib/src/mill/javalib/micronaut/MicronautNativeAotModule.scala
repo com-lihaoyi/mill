@@ -2,7 +2,6 @@ package mill.javalib.micronaut
 
 import mill.api.{PathRef, experimental}
 import mill.javalib.NativeImageModule
-import mill.util.Jvm
 import mill.{T, Task}
 
 /**
@@ -37,8 +36,8 @@ trait MicronautNativeAotModule extends MicronautAotModule, NativeImageModule {
     super.nativeImageOptions() ++ Seq(
       "--no-fallback",
       "--configurations-path",
-      // `Jvm.realAbsResolved`: native-image scans this dir by on-disk path; alias form not resolved.
-      Jvm.realAbsResolved(configurationsPath)
+      // `PathRef.toResolvedPathString`: native-image scans this dir by on-disk path; alias form not resolved.
+      PathRef.toResolvedPathString(configurationsPath)
     )
   }
 

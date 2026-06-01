@@ -4,8 +4,7 @@ import mill.Task
 import mill.Command
 import mill.DefaultTaskModule
 import mill.T
-import mill.api.BuildCtx
-import mill.util.Jvm
+import mill.api.{BuildCtx, PathRef}
 
 trait TestModule extends DefaultTaskModule {
   import TestModule.TestResult
@@ -53,10 +52,10 @@ object TestModule {
   /** TestModule that uses Python's standard unittest module to run tests. */
   trait Unittest extends PythonModule with TestModule {
     protected def testTask(args: Task[Seq[String]]) = Task.Anon {
-      // `Jvm.realAbs`: workingDir is the workspace root (not Task.dest), so the spawnHook
+      // `PathRef.toAbsString`: workingDir is the workspace root (not Task.dest), so the spawnHook
       // installs aliases at workspace/.., not where the source paths' relative form would resolve.
       val testArgs = if (args().isEmpty) {
-        Seq("discover") ++ sources().flatMap(pr => Seq("-s", Jvm.realAbs(pr)))
+        Seq("discover") ++ sources().flatMap(pr => Seq("-s", PathRef.toAbsString(pr)))
       } else {
         args()
       }
@@ -76,14 +75,14 @@ object TestModule {
     }
 
     protected def testTask(args: Task[Seq[String]]) = Task.Anon {
-      // `Jvm.realAbs`: workingDir is the workspace root (not Task.dest); source/cache paths
+      // `PathRef.toAbsString`: workingDir is the workspace root (not Task.dest); source/cache paths
       // need to be absolute since pytest also chdirs into test directories during collection.
       runner().run(
         (
           // format: off
           "-m", "pytest",
-          "-o", s"cache_dir=${Jvm.realAbs(Task.dest / "cache")}", "-v",
-          sources().map(pr => Jvm.realAbs(pr)),
+          "-o", s"cache_dir=${PathRef.toAbsString(Task.dest / "cache")}", "-v",
+          sources().map(pr => PathRef.toAbsString(pr)),
           args()
           // format: in
         ),

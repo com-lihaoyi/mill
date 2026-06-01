@@ -372,7 +372,8 @@ object RunModule {
       }
       val env = Option(forkEnv).getOrElse(forkEnv0)
       val propEnv = Option(propagateEnv).getOrElse(propagateEnv0: java.lang.Boolean)
-      val processEnv = (if (propEnv) ctx.env else Map.empty[String, String]) ++ env
+      val inheritedEnv = if (propEnv) ctx.env else Map.empty[String, String]
+      val processEnv = inheritedEnv ++ env
 
       val cpPassingJarPath =
         if useCpPassingJar1 then

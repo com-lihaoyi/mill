@@ -1,7 +1,7 @@
 package mill.javalib.publish
 
-import mill.api.TaskCtx
-import mill.util.{FileSetContents, Jvm}
+import mill.api.{PathRef, TaskCtx}
+import mill.util.FileSetContents
 
 /**
  * Logic to publish modules to your `~/.m2` repository
@@ -35,9 +35,9 @@ class LocalM2Publisher(m2Repo: os.Path) {
   )(using ctx: TaskCtx.Log): Seq[os.Path] = {
 
     val releaseDir = m2Repo / artifact.group.split("[.]") / artifact.id / artifact.version
-    // `Jvm.realAbs`: example tests assert on `/home/.../.m2/...` in the log; the alias form
+    // `PathRef.toAbsString`: example tests assert on `/home/.../.m2/...` in the log; the alias form
     // would log `../mill-home/.m2/...` and fail the assertion.
-    val releaseDirDisplay = Jvm.realAbs(releaseDir)
+    val releaseDirDisplay = PathRef.toAbsString(releaseDir)
     ctx.log.info(
       s"Publish ${artifact.id}-${artifact.version} to $releaseDirDisplay. " +
         s"File list: [${contents.keys.toVector.sorted.mkString(", ")}]"

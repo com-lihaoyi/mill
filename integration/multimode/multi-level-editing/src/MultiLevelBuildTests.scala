@@ -62,7 +62,7 @@ trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
     os.Path.pathSerializer.withValue(
       os.Path.pathRemapSerializerNio(
         PathAliasing.defaultMapping(tester.workspacePath).map { case (from, to) =>
-          PathRef.realAbsPath(from) -> java.nio.file.Paths.get(to.toString)
+          PathRef.toAbsNioPath(from) -> java.nio.file.Paths.get(to.toString)
         }
       )
     )(body)

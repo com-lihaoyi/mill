@@ -61,26 +61,58 @@ object PathRef {
    * hand to external tools or to Java APIs that resolve relative paths against
    * their own cwd.
    */
-  def realAbs(p: os.Path): String = realAbsPath(p).toString
-  def realAbs(p: PathRef): String = realAbs(p.path)
-  def realAbsPath(p: os.Path): jnio.Path = p.wrapped.toAbsolutePath.normalize()
-  def realAbsPath(p: PathRef): jnio.Path = realAbsPath(p.path)
-  def realAbsFile(p: os.Path): java.io.File = realAbsPath(p).toFile
-  def realAbsFile(p: PathRef): java.io.File = realAbsFile(p.path)
+  def toAbsString(p: os.Path): String = toAbsNioPath(p).toString
+  def toAbsString(p: PathRef): String = toAbsString(p.path)
+  def toAbsNioPath(p: os.Path): jnio.Path = p.wrapped.toAbsolutePath.normalize()
+  def toAbsNioPath(p: PathRef): jnio.Path = toAbsNioPath(p.path)
+  def toAbsFile(p: os.Path): java.io.File = toAbsNioPath(p).toFile
+  def toAbsFile(p: PathRef): java.io.File = toAbsFile(p.path)
 
   /**
-   * Like [[realAbs]] but also follows symlinks via `toRealPath`, falling back to
-   * lexical [[realAbs]] if the path does not exist on disk. Use when a subprocess
+   * Like [[toAbsString]] but also follows symlinks via `toRealPath`, falling back to
+   * lexical [[toAbsString]] if the path does not exist on disk. Use when a subprocess
    * walks the path-as-it-exists and lexical `../` collapse would land on the wrong file.
    */
-  def realAbsResolved(p: os.Path): String =
+  def toResolvedPathString(p: os.Path): String =
     try p.wrapped.toRealPath().toString
-    catch { case _: java.io.IOException => realAbs(p) }
+    catch { case _: java.io.IOException => toAbsString(p) }
 
-  /** Same as [[realAbsResolved]] but returns an [[os.Path]] and falls back to `p` on IO errors. */
-  def realAbsResolvedPath(p: os.Path): os.Path =
+  /** Same as [[toResolvedPathString]] but returns an [[os.Path]] and falls back to `p` on IO errors. */
+  def toResolvedOsPath(p: os.Path): os.Path =
     try os.Path(p.wrapped.toRealPath())
     catch { case _: java.io.IOException => p }
+
+  /**
+   * Format `path` as a string for a Mill subprocess whose working directory is `subprocessCwd`.
+   * Subprocesses at the workspace root use `out/mill-workspace` and `out/mill-home`; subprocesses
+   * in task sandboxes use the historical `../mill-workspace` and `../mill-home` aliases.
+   */
+  def toSubprocessPathString(
+      path: os.Path,
+      subprocessCwd: os.Path,
+      workspaceRoot: os.Path = BuildCtx.workspaceRoot
+  ): String = {
+    val mappings =
+      if (
+        subprocessCwd != null &&
+        toAbsNioPath(subprocessCwd) == toAbsNioPath(workspaceRoot)
+      ) Seq(
+        workspaceRoot -> (os.rel / "out" / "mill-workspace"),
+        os.home -> (os.rel / "out" / "mill-home")
+      )
+      else Seq(
+        workspaceRoot -> (os.up / "mill-workspace"),
+        os.home -> (os.up / "mill-home")
+      )
+
+    mappings
+      .collectFirst { case (root, alias) if path.startsWith(root) =>
+        val subPath = path.subRelativeTo(root)
+        if (subPath.segments.isEmpty) alias.toString
+        else (alias / subPath).toString
+      }
+      .getOrElse(toAbsString(path))
+  }
 
   /**
    * This class maintains a cache of already validated paths.

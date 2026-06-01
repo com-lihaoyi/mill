@@ -1,11 +1,10 @@
 package mill.daemon
 
-import mill.api.{BuildCtx, SystemStreams}
+import mill.api.{BuildCtx, PathRef, SystemStreams}
 import mill.client.lock.Locks
 import mill.constants.OutFolderMode
 import mill.internal.{LauncherLockRegistry, LauncherOutFilesState, OutputDirectoryLayout}
 import mill.server.Server
-import mill.util.Jvm
 
 import scala.concurrent.duration.*
 import scala.jdk.CollectionConverters.*
@@ -63,7 +62,7 @@ object MillDaemonMain0 {
         daemonDir = args.daemonDir,
         acceptTimeout = acceptTimeout,
         // `Locks.forDirectory` opens a real file lock; pass the canonical absolute path.
-        Locks.forDirectory(Jvm.realAbs(args.daemonDir), args.useFileLocks),
+        Locks.forDirectory(PathRef.toAbsString(args.daemonDir), args.useFileLocks),
         outMode = args.outMode
       ).run().getOrElse(0)
 
