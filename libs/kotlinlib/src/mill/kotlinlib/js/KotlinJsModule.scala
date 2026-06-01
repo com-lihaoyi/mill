@@ -309,7 +309,9 @@ trait KotlinJsModule extends KotlinModule { outer =>
 //        (allKotlinSourceFiles.map(_.path.toIO.getAbsolutePath), Seq())
 //    }
 
-    val includeArgs = irClasspath.map(p => s"-Xinclude=${p.path}").toSeq
+    // Kotlin/JS KLIB loading does not resolve Mill's cwd aliases reliably; with alias paths,
+    // stdlib symbols like `kotlin.Int`/`kotlin.Unit` disappear in the Arrow example.
+    val includeArgs = irClasspath.map(p => s"-Xinclude=${PathRef.toAbsString(p.path)}").toSeq
     val inputFiles = irClasspath.fold(allKotlinSourceFiles.map(_.path))(_ => Seq())
 
     val librariesCp = librariesClasspath.map(_.path)
@@ -317,9 +319,10 @@ trait KotlinJsModule extends KotlinModule { outer =>
       .filter(isKotlinJsLibrary)
 
     val innerCompilerArgs = Seq.newBuilder[String]
+    // Same KLIB loader limitation as `includeArgs`.
     innerCompilerArgs ++= Seq(
       "-libraries",
-      librariesCp.iterator.mkString(File.pathSeparator)
+      librariesCp.iterator.map(PathRef.toAbsString).mkString(File.pathSeparator)
     )
     innerCompilerArgs ++= Seq("-main", if (callMain) "call" else "noCall")
     if (moduleKind != ModuleKind.NoModule) {

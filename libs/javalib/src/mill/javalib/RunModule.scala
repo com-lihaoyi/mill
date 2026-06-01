@@ -210,12 +210,13 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
   def runBackgroundTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
     Task.Anon {
       val dest = Task.dest
+      val cwd = forkWorkingDir()
       runner().run(
-        args = RunModule.BackgroundPaths(dest).toArgs ++ Seq(
+        args = RunModule.BackgroundPaths(dest).toArgs(cwd) ++ Seq(
           mainClass()
         ) ++ args().value,
         mainClass = "mill.javalib.backgroundwrapper.MillBackgroundWrapper",
-        workingDir = forkWorkingDir(),
+        workingDir = cwd,
         extraRunClasspath = jvmWorker().backgroundWrapperClasspath().map(_.path).toSeq,
         background = true,
         runBackgroundLogToConsole = runBackgroundLogToConsole
@@ -438,12 +439,12 @@ object RunModule {
     def lockPath: os.Path = destDir / "lock"
     def logPath: os.Path = destDir / "log"
 
-    def toArgs: Seq[String] =
+    def toArgs(cwd: os.Path): Seq[String] =
       Seq(
-        newestPidPath.toString,
-        currentlyRunningPidPath.toString,
-        lockPath.toString,
-        logPath.toString
+        PathRef.toRelString(newestPidPath, cwd),
+        PathRef.toRelString(currentlyRunningPidPath, cwd),
+        PathRef.toRelString(lockPath, cwd),
+        PathRef.toRelString(logPath, cwd)
       )
   }
 }

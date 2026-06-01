@@ -147,28 +147,21 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
   // cache. This is slow. Look into sharing the cache between tasks.
   def runner: Task[PythonModule.Runner] = Task.Anon {
     new PythonModule.RunnerImpl(
-      // `PathRef.toAbsString`: passed verbatim to `Runtime.exec` as the executable path; OS-level
-      // exec does not honor our spawnHook-installed cwd aliases.
-      command0 = PathRef.toAbsString(pythonExe()),
+      command0 = pythonExe().path,
       options = pythonOptions(),
-      env0 = runnerEnvTask() ++ forkEnv(),
+      env0 = runnerEnvTask(),
+      forkEnv0 = forkEnv(),
       workingDir0 = Task.dest
     )
   }
 
   private def runnerEnvTask = Task.Anon {
-    Map(
-      // `PathRef.toAbsString`: python's `sys.path` entries must be absolute — python `chdir`s during
-      // imports and resolves `sys.path` lazily, so relative paths drift.
-      "PYTHONPATH" -> transitivePythonPath().map(PathRef.toAbsString)
-        .mkString(java.io.File.pathSeparator),
-      // `PathRef.toAbsString`: python writes cache files at this prefix from any cwd it chdirs to.
-      "PYTHONPYCACHEPREFIX" -> PathRef.toAbsString(Task.dest / "cache"),
-      if (Task.log.prompt.colored) { "FORCE_COLOR" -> "1" }
-      else { "NO_COLOR" -> "1" }
-      // `PathRef.toAbsString`: pyspark resolves `$JAVA_HOME/bin/java` via `os.path.join` (string concat),
-      // then `subprocess.Popen` resolves it against pyspark's own cwd which may differ.
-    ) ++ javaHome().map(jh => "JAVA_HOME" -> PathRef.toAbsString(jh))
+    PythonModule.RunnerEnv(
+      pythonPath = transitivePythonPath().map(_.path),
+      pythonPycachePrefix = Task.dest / "cache",
+      forceColor = Task.log.prompt.colored,
+      javaHome = javaHome().map(_.path)
+    )
   }
 
   /**
@@ -180,11 +173,11 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
         // format: off
         "-m", "mypy",
         "--strict",
-        // `PathRef.toAbsString`: mypy stores incremental cache entries keyed by absolute path.
-        "--cache-dir", PathRef.toAbsString(Task.dest / "mypycache"),
+        "--cache-dir", PathRef.toRelString(Task.dest / "mypycache", Task.dest),
         sources().map(_.path)
         // format: on
-      )
+      ),
+      workingDir = Task.dest
     )
   }
 
@@ -196,10 +189,10 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
   def run(args: mill.api.Args) = Task.Command {
     runner().run(
       args = (
-        // `PathRef.toAbsString`: python records `__file__` for the entry script and uses it across chdirs.
-        PathRef.toAbsString(mainScript()),
+        PathRef.toRelString(mainScript().path, Task.dest),
         args.value
-      )
+      ),
+      workingDir = Task.dest
     )
   }
 
@@ -210,6 +203,7 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
    */
   def runBackground(args: mill.api.Args) = Task.Command(persistent = true) {
     val backgroundPaths = mill.javalib.RunModule.BackgroundPaths(Task.dest)
+    val cwd = BuildCtx.workspaceRoot
     val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
 
     BuildCtx.withFilesystemCheckerDisabled {
@@ -217,15 +211,13 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
         mainClass = "mill.javalib.backgroundwrapper.MillBackgroundWrapper",
         classPath = mill.javalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
         jvmArgs = Nil,
-        env = runnerEnvTask(),
-        mainArgs = backgroundPaths.toArgs ++ Seq(
+        env = runnerEnvTask().toEnv(cwd),
+        mainArgs = backgroundPaths.toArgs(cwd) ++ Seq(
           "<subprocess>",
-          // `PathRef.toAbsString`: the background wrapper relaunches these as a detached child whose cwd
-          // is independent of this task's sandbox, so the aliases set up here aren't reachable.
-          PathRef.toAbsString(pythonExe()),
-          PathRef.toAbsString(mainScript())
+          PathRef.toRelString(pythonExe().path, cwd),
+          PathRef.toRelString(mainScript().path, cwd)
         ) ++ args.value,
-        cwd = BuildCtx.workspaceRoot,
+        cwd = cwd,
         stdin = "",
         // Hack to forward the background subprocess output to the Mill server process
         // stdout/stderr files, so the output will get properly slurped up by the Mill server
@@ -256,18 +248,16 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
   /** Bundles the project into a single PEX executable(bundle.pex). */
   def bundle = Task {
     val pexFile = Task.dest / "bundle.pex"
-    // `PathRef.toAbsString` (all three): pex bakes these paths into the bundled `.pex` archive and
-    // reads them back when the bundle runs from arbitrary user cwds.
     runner().run(
       (
         // format: off
         "-m", "pex",
         transitivePythonDeps().toSeq,
         transitivePythonPath().flatMap(pr =>
-          Seq("-D", PathRef.toAbsString(pr))
+          Seq("-D", PathRef.toRelString(pr.path, Task.dest))
         ),
-        "--exe", PathRef.toAbsString(mainScript()),
-        "-o", PathRef.toAbsString(pexFile),
+        "--exe", PathRef.toRelString(mainScript().path, Task.dest),
+        "-o", PathRef.toRelString(pexFile, Task.dest),
         bundleOptions()
         // format: on
       ),
@@ -301,9 +291,10 @@ object PythonModule {
   }
 
   private class RunnerImpl(
-      command0: String,
+      command0: os.Path,
       options: Seq[String],
-      env0: Map[String, String],
+      env0: RunnerEnv,
+      forkEnv0: Map[String, String],
       workingDir0: os.Path
   ) extends Runner {
     def run(
@@ -312,14 +303,30 @@ object PythonModule {
         env: Map[String, String] = null,
         workingDir: os.Path = null
     )(using ctx: TaskCtx): Unit = {
+      val cwd = Option(workingDir).getOrElse(workingDir0)
       os.call(
-        cmd = Seq(Option(command).getOrElse(command0)) ++ options ++ args.value,
-        env = Option(env).getOrElse(env0),
-        cwd = Option(workingDir).getOrElse(workingDir0),
+        cmd = Seq(Option(command).getOrElse(PathRef.toRelString(command0, cwd))) ++
+          options ++ args.value,
+        env = Option(env).getOrElse(env0.toEnv(cwd) ++ forkEnv0),
+        cwd = cwd,
         stdin = os.Inherit,
         stdout = os.Inherit,
         check = true
       )
     }
+  }
+
+  private case class RunnerEnv(
+      pythonPath: Seq[os.Path],
+      pythonPycachePrefix: os.Path,
+      forceColor: Boolean,
+      javaHome: Option[os.Path]
+  ) {
+    def toEnv(cwd: os.Path): Map[String, String] =
+      Map(
+        "PYTHONPATH" -> pythonPath.map(PathRef.toRelString(_, cwd)).mkString(java.io.File.pathSeparator),
+        "PYTHONPYCACHEPREFIX" -> PathRef.toRelString(pythonPycachePrefix, cwd),
+        if (forceColor) "FORCE_COLOR" -> "1" else "NO_COLOR" -> "1"
+      ) ++ javaHome.map(jh => "JAVA_HOME" -> PathRef.toRelString(jh, cwd))
   }
 }

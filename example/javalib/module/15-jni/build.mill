@@ -9,19 +9,16 @@ object `package` extends JavaModule {
   // Additional source folder to put C sources
   def nativeSources = Task.Sources("native-src")
 
-  // Auto-generate JNI `.h` files from Java classes using Javac. We pass `clang`/`javac` the
-  // real on-disk absolute paths via `PathRef.toAbsString`, since these external tools do not understand
-  // the workspace-relative path aliases Mill uses when serializing for reproducible `out/` caches.
+  // Auto-generate JNI `.h` files from Java classes using Javac.
   def nativeHeaders = Task {
-    val destAbs = PathRef.toAbsString(Task.dest)
     os.call(
       cmd = (
         Jvm.jdkTool("javac"),
         "-h",
-        destAbs,
+        Task.dest,
         "-d",
-        destAbs,
-        allSourceFiles().map(PathRef.toAbsString(_))
+        Task.dest,
+        allSourceFiles()
       )
     )
     PathRef(Task.dest)
@@ -36,13 +33,13 @@ object `package` extends JavaModule {
         "clang",
         "-shared",
         "-fPIC",
-        "-I" + PathRef.toAbsString(nativeHeaders()),
+        "-I" + nativeHeaders().path,
         "-I" + sys.props("java.home") + "/include/", // global JVM header files
         "-I" + sys.props("java.home") + "/include/darwin",
         "-I" + sys.props("java.home") + "/include/linux",
         "-o",
-        PathRef.toAbsString(outputPath),
-        cSourceFiles.map(PathRef.toAbsString(_))
+        outputPath,
+        cSourceFiles
       ),
       stdout = os.Inherit
     )
@@ -50,10 +47,16 @@ object `package` extends JavaModule {
     PathRef(outputPath)
   }
 
-  def forkEnv = Map("HELLO_WORLD_BINARY" -> PathRef.toAbsString(nativeCompiled()))
+  def forkEnv = Map(
+    // `System.load` rejects relative paths: "UnsatisfiedLinkError" if filename is not absolute.
+    "HELLO_WORLD_BINARY" -> PathRef.toAbsString(nativeCompiled())
+  )
 
   object test extends JavaTests, TestModule.Junit4 {
-    def forkEnv = Map("HELLO_WORLD_BINARY" -> PathRef.toAbsString(nativeCompiled()))
+    def forkEnv = Map(
+      // `System.load` rejects relative paths: "UnsatisfiedLinkError" if filename is not absolute.
+      "HELLO_WORLD_BINARY" -> PathRef.toAbsString(nativeCompiled())
+    )
   }
 }
 

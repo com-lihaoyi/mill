@@ -2,7 +2,6 @@ package mill.androidlib
 
 import mill.T
 import mill.api.{PathRef, Task}
-import mill.util.Jvm
 
 @mill.api.experimental
 trait AndroidNativeAppModule extends AndroidAppModule {

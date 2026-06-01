@@ -36,7 +36,7 @@ trait MicronautNativeAotModule extends MicronautAotModule, NativeImageModule {
     super.nativeImageOptions() ++ Seq(
       "--no-fallback",
       "--configurations-path",
-      // `PathRef.toResolvedPathString`: native-image scans this dir by on-disk path; alias form not resolved.
+      // Built outside the `native-image` subprocess task; keep it cwd-independent.
       PathRef.toResolvedPathString(configurationsPath)
     )
   }

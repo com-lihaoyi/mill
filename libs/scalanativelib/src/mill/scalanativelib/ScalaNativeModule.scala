@@ -377,9 +377,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
       Option(forkArgs).getOrElse(forkArgsDefault)
       val env = Option(forkEnv).getOrElse(forkEnvDefault)
       val propEnv = Option(propagateEnv).getOrElse(propagateEnvDefault: java.lang.Boolean)
-      // `PathRef.toAbsString`: passed verbatim to `os.call` as the executable path; the alias form
-      // would be resolved against the subprocess's own cwd and fail to launch.
-      val native = PathRef.toAbsString(nativeExe.path)
+      val native = PathRef.toRelString(nativeExe.path, cwd)
 
       os.call(
         cmd = native +: mainArgs,

@@ -350,7 +350,9 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
           // classpath
           when(compileCpPaths.iterator.nonEmpty)(
             "-classpath",
-            compileCpPaths.iterator.mkString(File.pathSeparator)
+            // The in-process Kotlin compiler still resolves classpath entries outside Mill's
+            // subprocess cwd alias setup; Arrow loses upstream modules with alias paths.
+            compileCpPaths.iterator.map(PathRef.toAbsString).mkString(File.pathSeparator)
           ),
           allKotlincOptions(),
           extraKotlinArgs
@@ -458,7 +460,9 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       Seq.empty[String]
     } else {
       val compilations = Task.traverse(kotlinFriendModulesChecked) { friend => friend.compile }()
-      Seq(compilations.map(_.classes.path.toString).mkString("-Xfriend-paths=", ",", ""))
+      // The in-process Kotlin compiler compares friend outputs against resolved classpath
+      // entries; Arrow tests lose `internal` access when these are cwd-alias paths.
+      Seq(compilations.map(c => PathRef.toAbsString(c.classes.path)).mkString("-Xfriend-paths=", ",", ""))
     }
 
     Seq("-no-stdlib") ++

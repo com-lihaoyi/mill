@@ -82,21 +82,19 @@ trait MicronautAotModule extends JavaModule {
   def micronautProcessAOT: T[PathRef] = Task {
     val dest = Task.dest
 
-    // `toResolvedPathString` throughout: Micronaut AOT CLI mishandles the `out/mill-workspace` alias
-    // form and silently produces no GraalVM config.
     val args = Seq(
       "--classpath",
       (runClasspath() ++ resolvedMicronautAotCli())
-        .map(pr => PathRef.toResolvedPathString(pr.path))
+        .map(pr => PathRef.toRelString(pr.path, dest))
         .mkString(java.io.File.pathSeparator),
       "--package",
       micronautPackage(),
       "--runtime",
       aotRuntime(),
       "--config",
-      PathRef.toResolvedPathString(micronautAotConfigFile().path),
+      PathRef.toRelString(micronautAotConfigFile().path, dest),
       "--output",
-      PathRef.toResolvedPathString(dest)
+      PathRef.toRelString(dest, dest)
     )
 
     Jvm.callProcess(

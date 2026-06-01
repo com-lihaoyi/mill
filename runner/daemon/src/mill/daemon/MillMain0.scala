@@ -25,7 +25,7 @@ import mill.internal.{
   OutputDirectoryLayout
 }
 import mill.server.Server
-import mill.util.{BuildInfo, Jvm}
+import mill.util.BuildInfo
 import mill.api
 
 import java.io.{InputStream, PrintStream, PrintWriter, StringWriter}

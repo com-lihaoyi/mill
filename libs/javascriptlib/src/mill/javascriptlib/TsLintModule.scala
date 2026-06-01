@@ -72,11 +72,12 @@ trait TsLintModule extends Module {
         val cwd = BuildCtx.workspaceRoot
         os.symlink(cwd / "node_modules", npmInstallLint().path / "node_modules")
         val eslint = npmInstallLint().path / "node_modules/.bin/eslint"
+        val eslintCmd = PathRef.toRelString(eslint, cwd)
         val logPath = npmInstallLint().path / "eslint.log"
         val result =
           Try {
             os.call(
-              (eslint, "."),
+              (eslintCmd, "."),
               stdout = os.PathRedirect(logPath),
               stderr = os.PathRedirect(logPath),
               cwd = cwd
@@ -123,12 +124,13 @@ trait TsLintModule extends Module {
         val cwd = BuildCtx.workspaceRoot
         os.symlink(cwd / "node_modules", npmInstallLint().path / "node_modules")
         val eslint = npmInstallLint().path / "node_modules/.bin/eslint"
+        val eslintCmd = PathRef.toRelString(eslint, cwd)
         val logPath = npmInstallLint().path / "eslint.log"
 
         val result =
           Try {
             os.call(
-              (eslint, ".", "--fix"),
+              (eslintCmd, ".", "--fix"),
               stdout = os.PathRedirect(logPath),
               stderr = os.PathRedirect(logPath),
               cwd = cwd
@@ -154,6 +156,7 @@ trait TsLintModule extends Module {
       case Prettier =>
         val cwd = BuildCtx.workspaceRoot
         val prettier = npmInstallLint().path / "node_modules/.bin/prettier"
+        val prettierCmd = PathRef.toRelString(prettier, cwd)
         val logPath = npmInstallLint().path / "prettier.log"
         val defaultArgs = if (args.value.isEmpty) Seq("*/**/*.ts") else args.value
         val userPrettierIgnore = os.exists(cwd / ".prettierignore")
@@ -161,7 +164,7 @@ trait TsLintModule extends Module {
         val result =
           Try {
             os.call(
-              (prettier, "--check", defaultArgs), // todo: collect from command line?
+              (prettierCmd, "--check", defaultArgs), // todo: collect from command line?
               stdout = os.Inherit,
               stderr = os.PathRedirect(logPath),
               cwd = cwd
@@ -196,6 +199,7 @@ trait TsLintModule extends Module {
       case Prettier =>
         val cwd = BuildCtx.workspaceRoot
         val prettier = npmInstallLint().path / "node_modules/.bin/prettier"
+        val prettierCmd = PathRef.toRelString(prettier, cwd)
         val logPath = npmInstallLint().path / "prettier.log"
         val defaultArgs = if (args.value.isEmpty) Seq("*/**/*.ts") else args.value
         val userPrettierIgnore = os.exists(cwd / ".prettierignore")
@@ -203,7 +207,7 @@ trait TsLintModule extends Module {
         val result =
           Try {
             os.call(
-              (prettier, "--write", defaultArgs), // todo: collect from command line?
+              (prettierCmd, "--write", defaultArgs), // todo: collect from command line?
               stdout = os.Inherit,
               stderr = os.PathRedirect(logPath),
               cwd = cwd

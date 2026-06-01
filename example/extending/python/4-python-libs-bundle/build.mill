@@ -51,14 +51,9 @@ trait PythonModule extends Module {
   def run(args: mill.api.Args) = Task.Command {
     gatherScripts(Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps))
 
-    // Real absolute paths (avoid the `../mill-workspace/...` form in
-    // reproducible-build mode; python and pex resolve them against their own
-    // cwd, which fails when handed off across subprocesses).
-    def abs(p: os.Path): String = p.wrapped.toAbsolutePath.normalize().toString
-
     os.call(
-      (abs(pythonExe().path), abs(sources().path / mainFileName()), args.value),
-      env = Map("PYTHONPATH" -> abs(Task.dest)),
+      (pythonExe().path, sources().path / mainFileName(), args.value),
+      env = Map("PYTHONPATH" -> Task.dest.toString),
       stdout = os.Inherit
     )
   }
@@ -67,27 +62,21 @@ trait PythonModule extends Module {
   def bundle = Task {
     gatherScripts(Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps))
 
-    // Hand `pex` real absolute on-disk paths. `os.Path.toString` (and the
-    // implicit `os.Shellable` conversion) emits the workspace-relative
-    // `../mill-workspace/...` form in reproducible-build mode, which `pex`
-    // stores verbatim and then cannot find at run time.
-    def abs(p: os.Path): String = p.wrapped.toAbsolutePath.normalize().toString
-
     val pexFile = Task.dest / "bundle.pex"
     os.call(
       (
-        abs(pythonExe().path),
+        pythonExe().path,
         "-m",
         "pex",
         transitivePythonDeps(),
         "-D",
-        abs(Task.dest),
+        Task.dest,
         "-c",
-        abs(sources().path / mainFileName()),
+        sources().path / mainFileName(),
         "-o",
-        abs(pexFile)
+        pexFile
       ),
-      env = Map("PYTHONPATH" -> abs(Task.dest)),
+      env = Map("PYTHONPATH" -> Task.dest.toString),
       stdout = os.Inherit
     )
 

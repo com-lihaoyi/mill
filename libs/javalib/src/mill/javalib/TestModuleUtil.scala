@@ -157,13 +157,14 @@ final class TestModuleUtil(
 
     val proc = BuildCtx.withFilesystemCheckerDisabled {
       val inheritedEnv = if (propagateEnv) Task.env else Map.empty[String, String]
+      val cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir
       Jvm.spawnProcess(
         mainClass = "mill.javalib.testrunner.entrypoint.MillTestRunnerMain",
         classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
         env = inheritedEnv ++ forkEnv,
-        mainArgs = Seq(testRunnerClasspathArg, argsFile.wrapped.toString),
-        cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
+        mainArgs = Seq(testRunnerClasspathArg, PathRef.toRelString(argsFile, cwd)),
+        cwd = cwd,
         cpPassingJarPath = Option.when(useArgsFile)(
           os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
         ),

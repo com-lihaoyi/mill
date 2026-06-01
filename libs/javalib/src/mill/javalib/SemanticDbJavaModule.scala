@@ -104,9 +104,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     val resolvedJars = defaultResolver().classpath(
       semanticDbPluginMvnDeps().map(_.exclude("*" -> "*"))
     )
-    // `PathRef.toAbsString`: handed to scalac as a `-Xplugin:` path; the compiler resolves it against
-    // its own cwd, so the `out/mill-home` alias form would not be found.
-    resolvedJars.iterator.map(jar => s"-Xplugin:${PathRef.toAbsString(jar.path)}").toSeq
+    resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
 
   protected def semanticDbPluginClasspath: T[Seq[PathRef]] = Task {

@@ -113,6 +113,13 @@ object PathRef {
       }
       .getOrElse(toAbsString(path))
   }
+  def toRelString(
+      path: PathRef,
+      subprocessCwd: os.Path,
+      workspaceRoot: os.Path
+  ): String = toRelString(path.path, subprocessCwd, workspaceRoot)
+  def toRelString(path: PathRef, subprocessCwd: os.Path): String =
+    toRelString(path.path, subprocessCwd)
 
   /**
    * This class maintains a cache of already validated paths.

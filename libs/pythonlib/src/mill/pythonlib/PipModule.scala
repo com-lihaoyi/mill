@@ -1,6 +1,7 @@
 package mill.pythonlib
 
 import mill.*
+import mill.api.PathRef
 
 /**
  * Basic tasks for preparing a python interpreter in a venv with required
@@ -118,15 +119,14 @@ trait PipModule extends Module {
         Seq("--index-url", head) ++ tail.flatMap(t => Seq("--extra-index-url", t))
     }
 
-    // `PathRef.toAbsString`: pip stores wheel/requirement paths in the venv's installed-package
-    // metadata, then resolves them later from arbitrary cwds (re-install, freeze, etc.).
+    val cwd = Task.dest
     PipModule.InstallArgs(
       indexArgs ++
-        transitiveUnmanagedWheels().map(PathRef.toAbsString) ++
+        transitiveUnmanagedWheels().map(p => PathRef.toRelString(p, cwd)) ++
         pythonToolDeps() ++
         transitivePythonDeps() ++
         transitivePythonRequirementFiles().flatMap(pr =>
-          Seq("-r", PathRef.toAbsString(pr))
+          Seq("-r", PathRef.toRelString(pr, cwd))
         ),
       transitiveUnmanagedWheels() ++ transitivePythonRequirementFiles()
     )

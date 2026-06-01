@@ -9,7 +9,6 @@ import mill.api.daemon.internal.internal
 import mill.api.JsonFormatters.given
 import mill.api.{ModuleRef, PathRef, Task}
 import mill.javalib.*
-import mill.util.Jvm
 import os.{Path, RelPath, zip}
 import os.RelPath.stringRelPathValidated
 import upickle.*

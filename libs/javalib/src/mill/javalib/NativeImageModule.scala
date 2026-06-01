@@ -39,17 +39,15 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
 
     val executeableName = "native-executable"
     val toolPath = nativeImageTool().path
-    // `toResolvedPathString` throughout: `native-image` scans classpath JARs' on-disk paths for
-    // build-time-init directives in their `META-INF/native-image/...`; alias form not resolved.
     val command = Seq.newBuilder[String]
-      .+=(PathRef.toResolvedPathString(toolPath))
+      .+=(PathRef.toRelString(toolPath, dest))
       .++=(nativeImageOptions())
       .+=("-cp")
-      .+=(nativeImageClasspath().iterator.map(p => PathRef.toResolvedPathString(p.path)).mkString(
+      .+=(nativeImageClasspath().iterator.map(p => PathRef.toRelString(p.path, dest)).mkString(
         java.io.File.pathSeparator
       ))
       .+=(finalMainClass())
-      .+=(java.nio.file.Paths.get(PathRef.toResolvedPathString(dest), executeableName).toString)
+      .+=((dest / executeableName).toString)
       .result()
 
     os.proc(command).call(cwd = dest, stdout = os.Inherit)
@@ -77,6 +75,7 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
    */
   def nativeRunBackground(args: mill.api.Args) = Task.Command(persistent = true) {
     val backgroundPaths = mill.javalib.RunModule.BackgroundPaths(Task.dest)
+    val cwd = BuildCtx.workspaceRoot
     val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
 
     BuildCtx.withFilesystemCheckerDisabled {
@@ -84,11 +83,11 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
         mainClass = "mill.javalib.backgroundwrapper.MillBackgroundWrapper",
         classPath = mill.javalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
         jvmArgs = Nil,
-        mainArgs = backgroundPaths.toArgs ++ Seq(
+        mainArgs = backgroundPaths.toArgs(cwd) ++ Seq(
           "<subprocess>",
-          nativeImage().path.toString
+          PathRef.toRelString(nativeImage().path, cwd)
         ) ++ args.value,
-        cwd = BuildCtx.workspaceRoot,
+        cwd = cwd,
         stdin = "",
         // Hack to forward the background subprocess output to the Mill server process
         // stdout/stderr files, so the output will get properly slurped up by the Mill server
@@ -117,7 +116,8 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
     val configurationDirectoriesArg = if (configurations.isEmpty) {
       Seq.empty[String]
     } else {
-      // `toResolvedPathString`: same as above — native-image scans by on-disk path, alias form fails.
+      // This option is assembled before the `native-image` task cwd is known, and Graal documents
+      // it as an absolute-style config-dir argument (`-H:ConfigurationFileDirectories=/path/to/...`).
       val configurationFileDirectoriesValue =
         configurations.map(c => PathRef.toResolvedPathString(c.metadataLocation)).mkString(",")
       Seq(s"-H:ConfigurationFileDirectories=$configurationFileDirectoriesValue")
@@ -359,8 +359,8 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
     nativeExcludedConfigJars()
       .distinct
       .flatMap { file =>
-        // `toResolvedPathString`: the `\Q...\E` literal must match the on-disk jar path native-image
-        // sees; the alias form would never match and silently skip the exclusion.
+        // `--exclude-config` matches the jar path seen by Graal's classpath scanner, so resolve
+        // symlinks before embedding it in the regex literal.
         Seq(
           "--exclude-config",
           s"\\Q${PathRef.toResolvedPathString(file.path)}\\E",

@@ -49,12 +49,16 @@ object TestModule {
   // mill.javalib.testrunner.TestResults
   type TestResult = Unit
 
+  private def workspaceRelativePath(path: os.Path): String =
+    if (path.startsWith(BuildCtx.workspaceRoot)) path.relativeTo(BuildCtx.workspaceRoot).toString
+    else PathRef.toRelString(path, BuildCtx.workspaceRoot)
+
   /** TestModule that uses Python's standard unittest module to run tests. */
   trait Unittest extends PythonModule with TestModule {
     protected def testTask(args: Task[Seq[String]]) = Task.Anon {
       val testArgs = if (args().isEmpty) {
         Seq("discover") ++ sources().flatMap(pr =>
-          Seq("-s", PathRef.toRelString(pr.path, BuildCtx.workspaceRoot))
+          Seq("-s", workspaceRelativePath(pr.path))
         )
       } else {
         args()
@@ -79,8 +83,8 @@ object TestModule {
         (
           // format: off
           "-m", "pytest",
-          "-o", s"cache_dir=${PathRef.toRelString(Task.dest / "cache", BuildCtx.workspaceRoot)}", "-v",
-          sources().map(pr => PathRef.toRelString(pr.path, BuildCtx.workspaceRoot)),
+          "-o", s"cache_dir=${workspaceRelativePath(Task.dest / "cache")}", "-v",
+          sources().map(pr => workspaceRelativePath(pr.path)),
           args()
           // format: in
         ),
