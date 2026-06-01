@@ -260,11 +260,46 @@ trait DistModule extends RunModule {
   )
 }
 
+trait RawLauncherDistModule extends DistModule { this: MillJavaModule =>
+  private def writeExecutableScript(
+      dest: os.Path,
+      mainClass: String,
+      shellClassPath: Seq[String],
+      cmdClassPath: Seq[String],
+      jvmArgs: Seq[String] = Nil
+  ): Unit = {
+    val script = Jvm.launcherUniversalScript(mainClass, shellClassPath, cmdClassPath, jvmArgs)
+    val lineSep = if (!script.endsWith("\n")) "\n\r\n" else ""
+    os.write(dest, script + lineSep)
+    if (!scala.util.Properties.isWin) os.perms.set(dest, "rwxrwxrwx")
+  }
+
+  override def launcher: T[PathRef] = Task {
+    val filename = if (scala.util.Properties.isWin) "run.bat" else "run"
+    val dest = Task.dest / filename
+
+    val jvmArgs = testArgs() ++ forkArgs()
+    val classpathPaths = runClasspath().map(_.path)
+    val classpath = classpathPaths.map(_.wrapped.toAbsolutePath.normalize().toString)
+    val classpathJar = Task.dest / "classpath.jar"
+    Jvm.createClasspathPassingJar(classpathJar, classpathPaths)
+
+    writeExecutableScript(
+      dest,
+      mainClass().get,
+      classpath,
+      Seq(classpathJar.wrapped.toAbsolutePath.normalize().toString),
+      jvmArgs
+    )
+    PathRef(dest)
+  }
+}
+
 /**
  * The main dist module produces a ProGuard-minified assembly jar.
  * For integration/example tests, use `dist.raw` which provides the unminified assembly.
  */
-object `package` extends MillJavaModule with Proguard with DistModule {
+object `package` extends MillJavaModule with Proguard with RawLauncherDistModule {
   def proguardVersion = "7.9.1"
 
   def moduleDeps = Seq(build.runner.launcher)
@@ -305,39 +340,13 @@ object `package` extends MillJavaModule with Proguard with DistModule {
     "-keep class scala.xml.** { *; }"
   )
 
-  private def writeExecutableScript(
-      dest: os.Path,
-      mainClass: String,
-      shellClassPath: Seq[String],
-      cmdClassPath: Seq[String],
-      jvmArgs: Seq[String] = Nil
-  ): Unit = {
-    val script = Jvm.launcherUniversalScript(mainClass, shellClassPath, cmdClassPath, jvmArgs)
-    val lineSep = if (!script.endsWith("\n")) "\n\r\n" else ""
-    os.write(dest, script + lineSep)
-    if (!scala.util.Properties.isWin) os.perms.set(dest, "rwxrwxrwx")
-  }
-
   def assemblyJar = proguard()
-
-  def launcher = Task {
-    val filename = if (scala.util.Properties.isWin) "run.bat" else "run"
-    val dest = Task.dest / filename
-
-    val jvmArgs = testArgs() ++ forkArgs()
-    val classpath = runClasspath().map(_.path.toString)
-    val classpathJar = Task.dest / "classpath.jar"
-    Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
-
-    writeExecutableScript(dest, mainClass().get, classpath, Seq(classpathJar.toString()), jvmArgs)
-    PathRef(dest)
-  }
 
   /**
    * The raw (unminified) assembly module. Used for integration and example tests
    * where startup time matters less than build time.
    */
-  object raw extends MillJavaModule with DistModule {
+  object raw extends MillJavaModule with RawLauncherDistModule {
 
     def moduleDeps = Seq(build.runner.launcher)
 

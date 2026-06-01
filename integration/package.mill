@@ -18,6 +18,8 @@ import upickle.implicits.namedTuples.default.given
 import mill.api.BuildCtx
 
 object `package` extends mill.Module {
+  private def realAbs(p: os.Path): String = p.wrapped.toAbsolutePath.normalize().toString
+
   // We compile the test code once and then offer multiple modes to
   // test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
   // and pass `lib`'s compile output back to `test`.
@@ -183,7 +185,7 @@ object `package` extends mill.Module {
           Map(
             "MILL_INTEGRATION_DAEMON_MODE" -> (mode == "daemon").toString,
             "MILL_INTEGRATION_IS_PACKAGED_LAUNCHER" -> millIntegrationIsPackagedLauncher().toString,
-            "MILL_INTEGRATION_LAUNCHER" -> millIntegrationLauncher().path.toString
+            "MILL_INTEGRATION_LAUNCHER" -> realAbs(millIntegrationLauncher().path)
           ) ++
           (if (millIntegrationIsPackagedLauncher()) Map()
            else build.dist.raw.localTestOverridesEnv())
@@ -264,7 +266,7 @@ object `package` extends mill.Module {
       Task.Command(selectiveInputs = selectiveInputs) { proguard.daemon.testForked0(args*)() }
     override def forkEnv = Task {
       super.forkEnv() ++ Option.when(crossValue == "reproducibility")(
-        "MILL_TEST_BAZEL_REMOTE" -> bazelRemote().path.toString
+        "MILL_TEST_BAZEL_REMOTE" -> realAbs(bazelRemote().path)
       )
     }
   }
@@ -322,7 +324,7 @@ object `package` extends mill.Module {
         "LC_ALL" -> locale,
         "LANG" -> locale,
         // "UTEST_UPDATE_GOLDEN_TESTS" -> "1",
-        "MILL_PROJECT_ROOT" -> BuildCtx.workspaceRoot.toString,
+        "MILL_PROJECT_ROOT" -> realAbs(BuildCtx.workspaceRoot),
         "TEST_SCALA_2_13_VERSION" -> Deps.testScala213Version,
         "TEST_SCALA_JS_CURRENT_VERSION" -> Deps.Scalajs_1.scalaJsVersion,
         "TEST_KOTLIN_VERSION" -> Deps.kotlinCompiler.version

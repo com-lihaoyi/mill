@@ -51,6 +51,27 @@ object BuildCtx {
   def withFilesystemCheckerDisabled[T](block: => T): T =
     os.checker.withValue(os.Checker.Nop) { block }
 
+  /**
+   * Run `block` with `os.Path` serialization forced to real absolute filesystem paths. This is
+   * useful when handing paths to external tools that do not understand Mill's reproducible
+   * `../mill-workspace` / `../mill-home` aliases.
+   */
+  def withRawPathSerializer[T](block: => T): T =
+    os.Path.pathSerializer.withValue(RawPathSerializer)(block)
+
+  private object RawPathSerializer extends os.Path.Serializer {
+    def serializeString(p: os.Path): String = p.wrapped.toString
+    def serializeFile(p: os.Path): java.io.File = p.wrapped.toFile
+    def serializePath(p: os.Path): java.nio.file.Path = p.wrapped
+    def deserialize(s: String): java.nio.file.Path = os.Path.defaultPathSerializer.deserialize(s)
+    def deserialize(s: java.io.File): java.nio.file.Path =
+      os.Path.defaultPathSerializer.deserialize(s)
+    def deserialize(s: java.nio.file.Path): java.nio.file.Path =
+      os.Path.defaultPathSerializer.deserialize(s)
+    def deserialize(s: java.net.URI): java.nio.file.Path =
+      os.Path.defaultPathSerializer.deserialize(s)
+  }
+
   // Module-init watches: populated by `<clinit>` of the build classloader
   // (serialized by the JVM), so a shared default buffer is safe.
   private val moduleWatchedDefault: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]

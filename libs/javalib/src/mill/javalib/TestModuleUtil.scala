@@ -147,12 +147,13 @@ final class TestModuleUtil(
 
     val argsFile = baseFolder / "testargs"
     val sandbox = baseFolder / "sandbox"
-    // Serialize the test args with real-absolute paths: the test runner subprocess runs with
-    // cwd = sandbox and reads this file before any alias symlinks are in scope, so relativized
-    // `../mill-workspace/...` forms would not resolve.
+    val cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir
+    // Serialize the test args with the same cwd-scoped path scheme the subprocess receives.
     os.write.over(
       argsFile,
-      PathAliasing.withRawPathSerializer(upickle.write(testArgs)),
+      PathAliasing.withSubprocessPathSerializer(cwd, taskDest = Some(ctx.dest)) {
+        upickle.write(testArgs)
+      },
       createFolders = true
     )
 
@@ -164,9 +165,9 @@ final class TestModuleUtil(
         mainClass = "mill.javalib.testrunner.entrypoint.MillTestRunnerMain",
         classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
-        env = inheritedEnv ++ forkEnv,
+        env = PathAliasing.subprocessEnv(inheritedEnv ++ forkEnv, cwd, taskDest = Some(ctx.dest)),
         mainArgs = Seq(testRunnerClasspathArg, argsFile.wrapped.toString),
-        cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
+        cwd = cwd,
         cpPassingJarPath = Option.when(useArgsFile)(
           os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
         ),

@@ -332,7 +332,7 @@ final class EvaluatorImpl(
       logger: Logger = baseLogger,
       @unused serialCommandExec: Boolean = false,
       selectiveExecution: Boolean = false
-  ): Evaluator.Result[T] = PathAliasing.withSpawnAliasHook(workspace) {
+  ): Evaluator.Result[T] = PathAliasing.withSpawnAliasHook(workspace, outPath) {
     val selectiveExecutionEnabled = selectiveExecution && !tasks.exists(_.isExclusiveCommand)
 
     val (selectedTasks, selectiveResults, maybeNewMetadata) =

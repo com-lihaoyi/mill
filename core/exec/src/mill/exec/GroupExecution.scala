@@ -1089,7 +1089,7 @@ object GroupExecution {
       if (exclusive) (exclusiveSystemStreams, () => workspace)
       else (multiLogger.streams, () => destCreator.get())
 
-    PathAliasing.withSpawnAliasHook(workspace) {
+    PathAliasing.withSpawnAliasHook(workspace, outPath) {
       TaskThreadContext.capture(
         pwd = destFunc,
         checker = executionChecker,

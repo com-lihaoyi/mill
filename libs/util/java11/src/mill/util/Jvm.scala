@@ -87,16 +87,23 @@ object Jvm {
       check: Boolean = true
   )(using ctx: TaskCtx): os.CommandResult = {
     val effectiveCwd = Option(cwd).getOrElse(os.pwd)
-    PathAliasing.ensureProcessCwdAliases(effectiveCwd)
-    val commandArgs = buildJvmCommand(
-      mainClass,
-      mainArgs,
-      javaHome,
-      jvmArgs,
-      classPath,
-      cpPassingJarPath,
-      effectiveCwd
-    )
+    PathAliasing.prepareSubprocessCwd(effectiveCwd, taskDest = Some(ctx.dest))
+    val effectiveEnv =
+      PathAliasing.subprocessEnv(env, effectiveCwd, taskDest = Some(ctx.dest))
+    val commandArgs = PathAliasing.withSubprocessPathSerializer(
+      effectiveCwd,
+      taskDest = Some(ctx.dest)
+    ) {
+      buildJvmCommand(
+        mainClass,
+        mainArgs,
+        javaHome,
+        jvmArgs,
+        classPath,
+        cpPassingJarPath,
+        effectiveCwd
+      )
+    }
 
     ctx.log.debug(
       s"Running ${commandArgs.map(arg => "'" + arg.replace("'", "'\"'\"'") + "'").mkString(" ")}"
@@ -104,7 +111,7 @@ object Jvm {
 
     os.proc(commandArgs).call(
       cwd = effectiveCwd,
-      env = env,
+      env = effectiveEnv,
       propagateEnv = propagateEnv,
       stdin = stdin,
       stdout = stdout,
@@ -162,17 +169,18 @@ object Jvm {
       destroyOnExit: Boolean = true
   ): os.SubProcess = {
     val effectiveCwd = Option(cwd).getOrElse(os.pwd)
-    PathAliasing.ensureProcessCwdAliases(effectiveCwd)
 
-    val commandArgs = buildJvmCommand(
-      mainClass,
-      mainArgs,
-      javaHome,
-      jvmArgs,
-      classPath,
-      cpPassingJarPath,
-      effectiveCwd
-    )
+    val commandArgs = PathAliasing.withSubprocessPathSerializer(effectiveCwd) {
+      buildJvmCommand(
+        mainClass,
+        mainArgs,
+        javaHome,
+        jvmArgs,
+        classPath,
+        cpPassingJarPath,
+        effectiveCwd
+      )
+    }
 
     os.proc(commandArgs).spawn(
       cwd = effectiveCwd,
@@ -292,16 +300,23 @@ object Jvm {
       propagateEnv: Boolean = true
   )(using ctx: TaskCtx): Int = {
     val effectiveCwd = Option(cwd).getOrElse(os.pwd)
-    PathAliasing.ensureProcessCwdAliases(effectiveCwd)
-    val commandArgs = buildJvmCommand(
-      mainClass,
-      mainArgs,
-      javaHome,
-      jvmArgs,
-      classPath,
-      cpPassingJarPath,
-      effectiveCwd
-    )
+    PathAliasing.prepareSubprocessCwd(effectiveCwd, taskDest = Some(ctx.dest))
+    val effectiveEnv =
+      PathAliasing.subprocessEnv(env, effectiveCwd, taskDest = Some(ctx.dest))
+    val commandArgs = PathAliasing.withSubprocessPathSerializer(
+      effectiveCwd,
+      taskDest = Some(ctx.dest)
+    ) {
+      buildJvmCommand(
+        mainClass,
+        mainArgs,
+        javaHome,
+        jvmArgs,
+        classPath,
+        cpPassingJarPath,
+        effectiveCwd
+      )
+    }
 
     ctx.log.debug(
       s"Running interactive: ${commandArgs.map(arg => "'" + arg.replace("'", "'\"'\"'") + "'").mkString(" ")}"
@@ -309,7 +324,7 @@ object Jvm {
 
     runInteractiveCommand(
       cmd = commandArgs,
-      env = env,
+      env = effectiveEnv,
       cwd = effectiveCwd,
       propagateEnv = propagateEnv
     )

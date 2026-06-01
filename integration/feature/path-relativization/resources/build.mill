@@ -1,0 +1,17 @@
+package build
+
+import mill.*
+import mill.api.BuildCtx
+import mill.constants.EnvVars
+
+def workspaceCwdRelativizer() = Task.Command {
+  val result = os.call(
+    (
+      "bash",
+      "-c",
+      s"""printf 'relativizer: %s\ncwd: %s\n' "$$${EnvVars.OS_LIB_PATH_RELATIVIZER_BASE}" "$$(pwd -P)""""
+    ),
+    cwd = BuildCtx.workspaceRoot
+  ).out.text()
+  print(result.replace("relativizer: \n", "relativizer: <empty>\n"))
+}

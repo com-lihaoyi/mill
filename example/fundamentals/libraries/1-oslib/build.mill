@@ -8,6 +8,8 @@
 // interference between tasks:
 
 import mill.*
+import mill.api.BuildCtx
+import mill.constants.EnvVars
 
 def task1 = Task {
   os.write(os.pwd / "file.txt", "hello")
@@ -39,5 +41,136 @@ def command = Task {
 hello
 .../out/task2.dest/file.txt
 world
+
+*/
+
+// === Path Relativization
+//
+// Mill configures OS-Lib so paths under your workspace and home directory often
+// serialize through stable aliases such as `../mill-workspace` and `../mill-home`.
+// This keeps cached task JSON and logs independent of the absolute checkout
+// location, so they can be used across different folders, laptops, or CI machines
+// via xref:large/remotecache.adoc[remote caching]:
+
+def pathSerialization = Task {
+  val buildFile = BuildCtx.workspaceRoot / "build.mill"
+  println("serialized path: " + buildFile)
+  println("absolute path: " + PathRef.realAbs(buildFile))
+}
+
+/** Usage
+
+> ./mill pathSerialization
+serialized path: ../mill-workspace/build.mill
+absolute path: .../build.mill
+
+*/
+
+// Plain subprocesses spawned by user tasks do not inherit
+// `OS_LIB_PATH_RELATIVIZER_BASE`, so their own OS-Lib usage does not unexpectedly
+// serialize paths relative to Mill's aliases:
+
+def subprocessRelativizer = Task {
+  def readRelativizer(cwd: os.Path) =
+    os.call(
+      ("bash", "-c", s"printf %s \"$$${EnvVars.OS_LIB_PATH_RELATIVIZER_BASE}\""),
+      cwd = cwd
+    ).out.text()
+  def display(value: String) = if (value.isEmpty) "<empty>" else value
+
+  val nested = Task.dest / "nested"
+  os.makeDir.all(nested)
+
+  println("dest cwd: " + display(readRelativizer(Task.dest)))
+  println("nested dest cwd: " + display(readRelativizer(nested)))
+  println("workspace cwd: " + display(readRelativizer(BuildCtx.workspaceRoot)))
+}
+
+/** Usage
+
+> ./mill subprocessRelativizer # mac/linux
+dest cwd: <empty>
+nested dest cwd: <empty>
+workspace cwd: <empty>
+
+*/
+
+// Path arguments are serialized before OS-Lib starts the subprocess. Use the
+// default `path.toString` form only when the tool will resolve the path from a
+// cwd where Mill's aliases are valid. If a tool runs from a custom cwd, stores
+// the path in an output file, or resolves it later from another cwd, pass a real
+// absolute path instead:
+//
+// - use `PathRef.realAbs(path)` for individual path arguments
+// - use `BuildCtx.withRawPathSerializer { ... }` around code that builds many
+//   path arguments or a JSON/config file for the tool
+
+def subprocessArgs = Task {
+  val buildFile = BuildCtx.workspaceRoot / "build.mill"
+  val result = os.call(
+    (
+      "bash",
+      "-c",
+      "printf 'default arg: %s\nabsolute arg: %s\nraw serializer arg: %s\n' \"$1\" \"$2\" \"$3\"",
+      "bash",
+      buildFile.toString,
+      PathRef.realAbs(buildFile),
+      BuildCtx.withRawPathSerializer { buildFile.toString }
+    ),
+    cwd = Task.dest
+  )
+  print(result.out.text())
+}
+
+/** Usage
+
+> ./mill subprocessArgs # mac/linux
+default arg: ../mill-workspace/build.mill
+absolute arg: .../build.mill
+raw serializer arg: .../build.mill
+
+*/
+
+// For custom subprocess cwd values, either pass real absolute paths or compute
+// paths relative to the cwd you pass to `os.call`. Do not pass `path.toString`
+// and assume Mill's `../mill-workspace` alias will resolve correctly from that
+// cwd. For example, this subprocess runs from a nested folder, so the default
+// aliased path is missing while the two real-absolute forms still resolve:
+
+def subprocessCustomCwdArgs = Task {
+  val buildFile = BuildCtx.workspaceRoot / "build.mill"
+  val nested = Task.dest / "nested"
+  os.makeDir.all(nested)
+  val result = os.call(
+    (
+      "bash",
+      "-c",
+      """check() {
+        |  if [ -f "$2" ]; then
+        |    printf '%s: exists\n' "$1"
+        |  else
+        |    printf '%s: missing\n' "$1"
+        |  fi
+        |}
+        |check 'default arg' "$1"
+        |check 'absolute arg' "$2"
+        |check 'raw serializer arg' "$3"
+        |""".stripMargin,
+      "bash",
+      buildFile.toString,
+      PathRef.realAbs(buildFile),
+      BuildCtx.withRawPathSerializer { buildFile.toString }
+    ),
+    cwd = nested
+  )
+  print(result.out.text())
+}
+
+/** Usage
+
+> ./mill subprocessCustomCwdArgs # mac/linux
+default arg: missing
+absolute arg: exists
+raw serializer arg: exists
 
 */

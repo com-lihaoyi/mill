@@ -1,7 +1,7 @@
 package mill.launcher
 
 import mill.api.daemon.MillException
-import mill.api.SystemStreams
+import mill.api.{BuildCtx, SystemStreams}
 import mill.api.internal.PathAliasing
 import mill.client.*
 import mill.constants.{ConfigConstants, EnvVars, OutFiles, OutFolderMode}
@@ -37,7 +37,7 @@ object MillLauncherMain {
     // `ProcessBuilder` real, regardless of any `OS_LIB_PATH_RELATIVIZER_BASE` it inherited. The
     // daemon, in contrast, *does* relativize and relies on the symlinks the launcher installs at its
     // fixed cwd-parent.
-    PathAliasing.withRawPathSerializer {
+    BuildCtx.withRawPathSerializer {
       val stderr = streamsOpt.map(_.err).getOrElse(System.err)
       val parsedConfig = MillCliConfig.parse(args).toOption
 

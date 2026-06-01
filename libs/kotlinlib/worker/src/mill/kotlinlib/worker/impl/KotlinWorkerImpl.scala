@@ -6,7 +6,7 @@
 package mill.kotlinlib.worker.impl
 
 import mill.api.daemon.Result
-import mill.api.TaskCtx
+import mill.api.{BuildCtx, TaskCtx}
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 
 class KotlinWorkerImpl extends KotlinWorker {
@@ -36,7 +36,7 @@ class KotlinWorkerImpl extends KotlinWorker {
     val (exitCode, exitCodeName) =
       // Kotlin compiler internals and incremental caches require absolute paths.
       // Temporarily disable path relativization for this in-process compiler call.
-      mill.api.internal.PathAliasing.withRawPathSerializer {
+      BuildCtx.withRawPathSerializer {
         compiler.compile(args, sources)
       }
 

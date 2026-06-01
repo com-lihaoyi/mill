@@ -52,6 +52,17 @@ object RunTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
+  object HelloJavaWithDestForkCwd extends TestRootModule {
+    object core extends JavaModule
+    object app extends JavaModule {
+      override def moduleDeps = Seq(core)
+      override def mainClass: T[Option[String]] = Some("hello.Main")
+      override def forkWorkingDir: T[os.Path] = Task { Task.dest / "sub" / "dir" }
+    }
+
+    lazy val millDiscover = Discover[this.type]
+  }
+
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-java"
   val noMainResourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-java-no-main"
 
@@ -125,7 +136,7 @@ object RunTests extends TestSuite {
         )
       }
 
-      test("runInjectsRelativizerAtForkCallsite") - UnitTester(
+      test("runDisablesRelativizerOutsideTaskDest") - UnitTester(
         HelloJavaWithMain,
         resourcePath
       ).scoped { eval =>
@@ -140,8 +151,39 @@ object RunTests extends TestSuite {
         val config = seen.get
         assert(
           config.env(EnvVars.MILL_WORKSPACE_ROOT) == HelloJavaWithMain.moduleDir.toString,
-          config.env(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE) ==
-            PathAliasing.workspacePathRelativizerBase(HelloJavaWithMain.moduleDir)
+          config.env(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE) == ""
+        )
+      }
+
+      test("runRelativizerUsesAliasOutsideTaskDest") - UnitTester(
+        HelloJavaWithDestForkCwd,
+        resourcePath
+      ).scoped { eval =>
+        var seen: Option[LauncherSubprocess.Config] = None
+
+        LauncherSubprocess.withValue(config => { seen = Some(config); 0 }) {
+          val Right(result) =
+            eval.apply(HelloJavaWithDestForkCwd.app.run(Task.Anon(Args("testArg")))).runtimeChecked
+          assert(result.evalCount > 0)
+        }
+
+        val config = seen.get
+        val expected = PathAliasing
+          .subprocessPathContext(
+            os.Path(config.cwd),
+            HelloJavaWithDestForkCwd.moduleDir
+          )
+          .get
+          .pathRelativizerBase(HelloJavaWithDestForkCwd.moduleDir)
+
+        assert(
+          config.cwd.endsWith(
+            s"forkWorkingDir.dest${java.io.File.separator}sub${java.io.File.separator}dir"
+          ),
+          config.env(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE) == expected,
+          config.env(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).contains(
+            s"..${java.io.File.separator}..${java.io.File.separator}..${java.io.File.separator}mill-workspace"
+          )
         )
       }
 

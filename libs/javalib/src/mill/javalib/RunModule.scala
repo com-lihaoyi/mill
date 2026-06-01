@@ -50,12 +50,12 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
    */
   def allForkEnv: T[Map[String, String]] = Task {
     javaHomePathForkEnv() ++ forkEnv() ++ Map(
-      EnvVars.MILL_WORKSPACE_ROOT -> BuildCtx.workspaceRoot.toString
+      EnvVars.MILL_WORKSPACE_ROOT -> PathRef.realAbs(BuildCtx.workspaceRoot)
     )
   }
 
   def javaHomePathForkEnv: T[Map[String, String]] = Task {
-    val javaHomeBin = (javaHome().fold(os.Path(sys.props("java.home")))(_.path) / "bin").toString
+    val javaHomeBin = Jvm.realAbs(javaHome().fold(os.Path(sys.props("java.home")))(_.path) / "bin")
     val newPath = Task.env.find(_._1.equalsIgnoreCase("PATH")).map(_._2) match {
       case Some(p) => s"$javaHomeBin${java.io.File.pathSeparator}$p"
       case None => javaHomeBin
@@ -211,12 +211,19 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
   def runBackgroundTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
     Task.Anon {
       val dest = Task.dest
+      val workingDir = forkWorkingDir()
+      val backgroundArgs = PathAliasing.withSubprocessPathSerializer(
+        workingDir,
+        taskDest = Some(dest)
+      ) {
+        RunModule.BackgroundPaths(dest).toArgs
+      }
       runner().run(
-        args = RunModule.BackgroundPaths(dest).toArgs ++ Seq(
+        args = backgroundArgs ++ Seq(
           mainClass()
         ) ++ args().value,
         mainClass = "mill.javalib.backgroundwrapper.MillBackgroundWrapper",
-        workingDir = forkWorkingDir(),
+        workingDir = workingDir,
         extraRunClasspath = jvmWorker().backgroundWrapperClasspath().map(_.path).toSeq,
         background = true,
         runBackgroundLogToConsole = runBackgroundLogToConsole
@@ -374,9 +381,10 @@ object RunModule {
       val env = Option(forkEnv).getOrElse(forkEnv0)
       val propEnv = Option(propagateEnv).getOrElse(propagateEnv0: java.lang.Boolean)
       val inheritedEnv = if (propEnv) ctx.env else Map.empty[String, String]
-      val processEnv = inheritedEnv ++ env + (
-        EnvVars.OS_LIB_PATH_RELATIVIZER_BASE ->
-          PathAliasing.workspacePathRelativizerBase()
+      val processEnv = PathAliasing.subprocessEnv(
+        inheritedEnv ++ env,
+        cwd,
+        taskDest = Some(dest)
       )
 
       val cpPassingJarPath =

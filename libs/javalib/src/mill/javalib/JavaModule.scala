@@ -1322,18 +1322,23 @@ trait JavaModule
     if (files.nonEmpty) {
       val javaHome = this.javaHome().map(_.path)
 
-      val classPath = compileClasspath().iterator.map(_.path).filter(_.ext != "pom").toSeq
-      val cpOptions =
-        if (classPath.isEmpty) Seq()
-        else Seq(
-          "-classpath",
-          classPath.mkString(java.io.File.pathSeparator)
-        )
+      val options = PathAliasing.withSubprocessPathSerializer(
+        Task.dest,
+        taskDest = Some(Task.dest)
+      ) {
+        val classPath = compileClasspath().iterator.map(_.path).filter(_.ext != "pom").toSeq
+        val cpOptions =
+          if (classPath.isEmpty) Seq()
+          else Seq(
+            "-classpath",
+            classPath.mkString(java.io.File.pathSeparator)
+          )
 
-      val options = javadocOptions() ++
-        Seq("-d", javadocDir.toString) ++
-        cpOptions ++
-        files.map(_.toString)
+        javadocOptions() ++
+          Seq("-d", javadocDir.toString) ++
+          cpOptions ++
+          files.map(_.toString)
+      }
 
       val cmdArgs =
         if (docJarUseArgsFile()) {
@@ -1359,10 +1364,10 @@ trait JavaModule
       Task.log.info("options: " + cmdArgs)
 
       val cmd = Seq(Jvm.jdkTool("javadoc", javaHome)) ++ cmdArgs
-      PathAliasing.ensureProcessCwdAliases(Task.dest)
+      PathAliasing.prepareSubprocessCwd(Task.dest, taskDest = Some(Task.dest))
       os.call(
         cmd = cmd,
-        env = Map(),
+        env = PathAliasing.subprocessEnv(Map.empty, Task.dest, taskDest = Some(Task.dest)),
         cwd = Task.dest,
         stdin = os.Inherit,
         stdout = os.Inherit

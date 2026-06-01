@@ -124,7 +124,7 @@ object MillMain0 {
   ): Boolean = mill.api.daemon.MillRepositories.withValue(millRepositories) {
     mill.api.daemon.LauncherSubprocess.withValue(launcherSubprocessRunner) {
       mill.api.daemon.internal.MillScalaParser.current.withValue(MillScalaParserImpl) {
-        os.SubProcess.env.withValue(env) {
+        os.SubProcess.env.withValue(PathAliasing.subprocessBaseEnv(env)) {
           val parserResult = MillCliConfig.parse(args)
           // Detect when we're running in BSP mode as early as possible,
           // and ensure we don't log to the default stdout or use the default
