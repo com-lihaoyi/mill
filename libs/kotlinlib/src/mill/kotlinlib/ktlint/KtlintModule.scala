@@ -106,6 +106,7 @@ object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskMod
       options: Seq[String],
       classPath: Seq[PathRef]
   )(using ctx: mill.api.TaskCtx): Seq[os.Path] = {
+    val cwd = moduleDir
     val sourceFiles = Lib.findSourceFiles(pathsToFormat, Seq("kt", "kts"))
       // skip formatting single-file projects since Palantir Format messes up the header block
       .filterNot(p => p.ext == "kt" && os.read(p).startsWith("//|"))
@@ -128,7 +129,7 @@ object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskMod
     }
 
     val configArgument = config match {
-      case Some(path) => Seq("--editorconfig", path.path.toString())
+      case Some(path) => Seq("--editorconfig", PathRef.toRelString(path, cwd))
       case None => Seq.empty
     }
     val formatArgument = if (ktlintArgs.format) Seq("--format") else Seq.empty
@@ -137,7 +138,7 @@ object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskMod
     args ++= options
     args ++= configArgument
     args ++= formatArgument
-    args ++= sourceFiles.map(_.toString())
+    args ++= sourceFiles.map(PathRef.toRelString(_, cwd))
 
     val exitCode = BuildCtx.withFilesystemCheckerDisabled {
       os.ProcessOps.spawnHook.withValue(_ => ()) {
@@ -145,7 +146,7 @@ object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskMod
           mainClass = "com.pinterest.ktlint.Main",
           classPath = classPath.map(_.path).toVector,
           mainArgs = args.result(),
-          cwd = moduleDir,
+          cwd = cwd,
           stdin = os.Inherit,
           stdout = os.Inherit,
           check = false

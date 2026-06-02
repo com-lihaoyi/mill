@@ -1,7 +1,7 @@
 package mill.kotlinlib.detekt
 
 import mill.*
-import mill.api.{PathRef}
+import mill.api.PathRef
 import mill.kotlinlib.{DepSyntax, KotlinModule, Versions}
 import mill.util.Jvm
 import mill.api.BuildCtx
@@ -21,11 +21,12 @@ trait DetektModule extends KotlinModule {
   }
 
   private def detekt0() = Task.Anon {
+    val cwd = moduleDir
     val inputRoots = sources().iterator.map(_.path).filter(os.exists).toSeq
-    val inputs = if (inputRoots.nonEmpty) inputRoots.map(_.toString()).mkString(",")
-    else BuildCtx.workspaceRoot.toString()
+    val inputs = if (inputRoots.nonEmpty) inputRoots.map(PathRef.toRelString(_, cwd)).mkString(",")
+    else PathRef.toRelString(BuildCtx.workspaceRoot, cwd)
     val args = detektOptions() ++ Seq("-i", inputs) ++
-      Seq("-c", detektConfig().path.toString())
+      Seq("-c", PathRef.toRelString(detektConfig(), cwd))
 
     Task.log.info("running detekt ...")
     Task.log.debug(s"with $args")
@@ -35,7 +36,7 @@ trait DetektModule extends KotlinModule {
         mainClass = "io.gitlab.arturbosch.detekt.cli.Main",
         classPath = detektClasspath().map(_.path).toVector,
         mainArgs = args,
-        cwd = moduleDir, // allow passing relative paths for sources like src/a/b
+        cwd = cwd, // allow passing relative paths for sources like src/a/b
         stdin = os.Inherit,
         stdout = os.Inherit,
         check = false

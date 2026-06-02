@@ -167,8 +167,9 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     runTarget match {
       case Some(RunTarget.Node) =>
-        val binaryPath =
-          PathRef.toRelString(binaryDir / s"$artifactId.${moduleKind.extension}", workingDir)
+        // Node resolves the entrypoint relative to its process cwd; commands can run from the
+        // workspace root, where Mill's `out/mill-workspace` alias points back into the workspace.
+        val binaryPath = PathRef.toAbsString(binaryDir / s"$artifactId.${moduleKind.extension}")
         val processResult = os.call(
           cmd = Seq("node") ++ args.value ++ Seq(binaryPath),
           env = envArgs,
@@ -367,13 +368,15 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // apply multi-platform support (expect/actual)
     // TODO if there is penalty for activating it in the compiler, put it behind configuration flag
     innerCompilerArgs += "-Xmulti-platform"
+    // The Kotlin/JS linker reports success with cwd-alias output dirs but can leave the expected
+    // entrypoint missing from `linkBinary.dest/binaries`; pass real output dirs to the linker.
     val outputArgs = outputMode match {
       case OutputMode.KlibFile =>
-        Seq("-Xir-produce-klib-file", "-ir-output-dir", (destinationRoot / "libs").toString)
+        Seq("-Xir-produce-klib-file", "-ir-output-dir", PathRef.toAbsString(destinationRoot / "libs"))
       case OutputMode.KlibDir =>
-        Seq("-Xir-produce-klib-dir", "-ir-output-dir", (destinationRoot / "classes").toString)
+        Seq("-Xir-produce-klib-dir", "-ir-output-dir", PathRef.toAbsString(destinationRoot / "classes"))
       case OutputMode.Js =>
-        Seq("-Xir-produce-js", "-ir-output-dir", (destinationRoot / "binaries").toString)
+        Seq("-Xir-produce-js", "-ir-output-dir", PathRef.toAbsString(destinationRoot / "binaries"))
     }
 
     innerCompilerArgs ++= outputArgs
@@ -555,8 +558,9 @@ trait KotlinJsModule extends KotlinModule { outer =>
           // TODO this is valid only for the NodeJS target. Once browser support is
           //  added, need to have different argument handling
           "--require",
-          PathRef.toRelString(sourceMapSupportModule().path, Task.dest),
-          PathRef.toRelString(mochaModule().path, Task.dest),
+          // Mocha passes these to Node's module resolver; absolute files avoid cwd-sensitive aliases.
+          PathRef.toAbsString(sourceMapSupportModule().path),
+          PathRef.toAbsString(mochaModule().path),
           "--timeout",
           testTimeout().toString,
           "--reporter",

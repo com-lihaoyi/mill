@@ -104,6 +104,7 @@ object KtfmtModule extends ExternalModule with KtfmtBaseModule with DefaultTaskM
   )(using ctx: mill.api.TaskCtx): Unit = {
 
     ctx.log.info("running ktfmt ...")
+    val cwd = moduleDir
 
     val args = Seq.newBuilder[String]
     args ++= options
@@ -120,14 +121,14 @@ object KtfmtModule extends ExternalModule with KtfmtBaseModule with DefaultTaskM
       args += "--do-not-remove-unused-imports"
     }
     if (!format) args += "--set-exit-if-changed"
-    args ++= sources.iterator.map(_.path.toString())
+    args ++= sources.iterator.map(p => PathRef.toRelString(p, cwd))
 
     val exitCode = os.ProcessOps.spawnHook.withValue(_ => ()) {
       Jvm.callProcess(
         mainClass = "com.facebook.ktfmt.cli.Main",
         classPath = classPath.map(_.path).toVector,
         mainArgs = args.result(),
-        cwd = moduleDir, // allow passing relative paths for sources like src/a/b
+        cwd = cwd, // allow passing relative paths for sources like src/a/b
         stdin = os.Inherit,
         stdout = os.Inherit,
         check = false

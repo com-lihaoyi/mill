@@ -1,7 +1,7 @@
 package mill.javalib.checkstyle
 
 import mill.*
-import mill.api.{PathRef}
+import mill.api.PathRef
 import mill.javalib.{DepSyntax, JavaModule}
 import mill.util.Jvm
 import mill.api.BuildCtx
@@ -27,11 +27,12 @@ trait CheckstyleModule extends JavaModule {
   protected def checkstyle0(stdout: Boolean, leftover: mainargs.Leftover[String]) = Task.Anon {
 
     val output = checkstyleOutput().path
+    val cwd = moduleDir
     val args = checkstyleOptions() ++
-      Seq("-c", checkstyleConfig().path.toString()) ++
+      Seq("-c", PathRef.toRelString(checkstyleConfig(), cwd)) ++
       Seq("-f", checkstyleFormat()) ++
-      (if (stdout) Seq.empty else Seq("-o", output.toString())) ++
-      (if (leftover.value.nonEmpty) leftover.value else sources().map(_.path.toString()))
+      (if (stdout) Seq.empty else Seq("-o", PathRef.toRelString(output, cwd))) ++
+      (if (leftover.value.nonEmpty) leftover.value else sources().map(p => PathRef.toRelString(p, cwd)))
     val jvmArgs = checkstyleLanguage()
       .map(lang => s"-Duser.language=$lang")
       .toSeq
@@ -43,7 +44,7 @@ trait CheckstyleModule extends JavaModule {
       mainClass = "com.puppycrawl.tools.checkstyle.Main",
       classPath = checkstyleClasspath().map(_.path).toVector,
       mainArgs = args,
-      cwd = moduleDir, // allow passing relative paths for sources like src/a/b
+      cwd = cwd, // allow passing relative paths for sources like src/a/b
       stdin = os.Inherit,
       stdout = os.Inherit,
       check = false,

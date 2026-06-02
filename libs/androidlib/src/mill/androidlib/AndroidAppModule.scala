@@ -539,26 +539,27 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def androidLintRun(): Command[PathRef] = Task.Command {
 
     val formats = androidLintReportFormat()
+    val cwd = moduleDir
 
     val reportArg: Seq[String] = formats.flatMap { format =>
-      Seq(format.flag, (Task.dest / s"report.${format.extension}").toString)
+      Seq(format.flag, PathRef.toRelString(Task.dest / s"report.${format.extension}", cwd))
     }
     val cp = compileClasspath().map(_.path).filter(os.exists)
-      .mkString(":")
+      .map(PathRef.toRelString(_, cwd)).mkString(":")
     val src = sources().map(_.path).filter(os.exists)
-      .mkString(":")
+      .map(PathRef.toRelString(_, cwd)).mkString(":")
     val res = resources().map(_.path).filter(os.exists)
-      .mkString(":")
+      .map(PathRef.toRelString(_, cwd)).mkString(":")
     val configArg = androidLintConfigPath()
-      .map(c => Seq("--config", c.toString)).toSeq.flatten
+      .map(c => Seq("--config", PathRef.toRelString(c, cwd))).toSeq.flatten
     val baselineArg =
       androidLintBaselinePath()
-        .map(b => Seq("--baseline", b.toString)).toSeq.flatten
+        .map(b => Seq("--baseline", PathRef.toRelString(b, cwd))).toSeq.flatten
 
     os.call(
       Seq(
-        androidSdkModule().lintExe().toString,
-        (moduleDir / "src/main").toString,
+        PathRef.toRelString(androidSdkModule().lintExe(), cwd),
+        PathRef.toRelString(moduleDir / "src/main", cwd),
         "--classpath",
         cp,
         "--sources",
@@ -566,7 +567,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
         "--resources",
         res
       ) ++ configArg ++ baselineArg ++ reportArg ++ androidLintArgs(),
-      check = androidLintAbortOnError
+      check = androidLintAbortOnError,
+      cwd = cwd
     )
 
     PathRef(Task.dest)
@@ -628,8 +630,9 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def createAndroidVirtualDevice(): Command[String] = Task.Command(exclusive = true) {
     val name = androidVirtualDevice().name
     val deviceId = androidVirtualDevice().deviceId
+    val cwd = Task.dest
     val command = os.call((
-      androidSdkModule().avdmanagerExe().path,
+      PathRef.toRelString(androidSdkModule().avdmanagerExe(), cwd),
       "create",
       "avd",
       "--name",
@@ -639,7 +642,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       "--device",
       deviceId,
       "--force"
-    ))
+    ), cwd = cwd)
     if (command.exitCode != 0) {
       Task.log.error(s"Failed to create android virtual device: ${command.err.text()}")
       throw Exception(s"Failed to create android virtual device: ${command.exitCode}")

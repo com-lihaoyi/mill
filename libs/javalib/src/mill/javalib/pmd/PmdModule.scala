@@ -1,7 +1,7 @@
 package mill.javalib.pmd
 
 import mill.*
-import mill.api.{Discover, ExternalModule, TaskCtx}
+import mill.api.{Discover, ExternalModule, PathRef, TaskCtx}
 import mill.api.daemon.experimental
 import mill.javalib.api.Versions
 import mill.javalib.{CoursierModule, Dep, DepSyntax, OfflineSupportModule}
@@ -39,18 +39,19 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
     Task.Anon {
       val output = Task.dest / s"pmd-output.$format"
       os.makeDir.all(output / os.up)
+      val cwd = moduleDir
       val sourceRoots =
         if (leftover.value.nonEmpty) leftover.value.toSeq
-        else pmdSourceRoots().map(_.path.toString())
+        else pmdSourceRoots().map(p => PathRef.toRelString(p, cwd))
       val baseArgs = Seq(
         "-d",
         sourceRoots.mkString(","),
         "-R",
-        pmdRulesets().map(_.path.toString).mkString(","),
+        pmdRulesets().map(p => PathRef.toRelString(p, cwd)).mkString(","),
         "-f",
         format,
         "-r",
-        output.toString
+        PathRef.toRelString(output, cwd)
       )
 
       val args =
@@ -69,7 +70,7 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
         mainCls,
         classPath = pmdClasspath().map(_.path).toVector,
         mainArgs = args,
-        cwd = moduleDir,
+        cwd = cwd,
         stdin = os.Inherit,
         stdout = os.Inherit,
         check = false,

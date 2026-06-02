@@ -60,7 +60,8 @@ trait AndroidNativeAppModule extends AndroidAppModule {
     val outDir = Task.dest // Mill provides a dest dir for this task
     os.makeDir.all(outDir) // ensure output dir exists
 
-    val ndkPath = androidSdkModule().ndkPath().toString
+    val cwd = outDir
+    val ndkPath = PathRef.toRelString(androidSdkModule().ndkPath(), cwd)
 
     for (abi <- androidSupportedAbis()) {
 
@@ -70,8 +71,8 @@ trait AndroidNativeAppModule extends AndroidAppModule {
       os.makeDir.all(outCxx)
 
       val cmakeArgs = Seq(
-        androidSdkModule().cmakeExe().toString,
-        s"-S ${androidNativeSource().path}",
+        PathRef.toRelString(androidSdkModule().cmakeExe(), cwd),
+        s"-S ${PathRef.toRelString(androidNativeSource(), cwd)}",
         "-DCMAKE_SYSTEM_NAME=Android",
         "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
         s"-DCMAKE_SYSTEM_VERSION=${androidBuildToolsVersion()}",
@@ -80,27 +81,27 @@ trait AndroidNativeAppModule extends AndroidAppModule {
         s"-DCMAKE_ANDROID_ARCH_ABI=${abi}",
         s"-DANDROID_NDK=${ndkPath}",
         s"-DCMAKE_ANDROID_NDK=${ndkPath}",
-        s"-DCMAKE_TOOLCHAIN_FILE=${androidSdkModule().cmakeToolchainFilePath()}",
-        s"-DCMAKE_MAKE_PROGRAM=${androidSdkModule().ninjaExe()}",
-        s"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=$outFile",
-        s"-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$outFile",
+        s"-DCMAKE_TOOLCHAIN_FILE=${PathRef.toRelString(androidSdkModule().cmakeToolchainFilePath().path, cwd)}",
+        s"-DCMAKE_MAKE_PROGRAM=${PathRef.toRelString(androidSdkModule().ninjaExe(), cwd)}",
+        s"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=${PathRef.toRelString(outFile, cwd)}",
+        s"-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${PathRef.toRelString(outFile, cwd)}",
         "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
-        s"-B $outCxx/${abi}",
+        s"-B ${PathRef.toRelString(outCxx / abi, cwd)}",
         "-GNinja"
       ) ++ androidCMakeExtraArgs()
 
       Task.log.info(s"Calling CMake with arguments: ${cmakeArgs.mkString(" ")}")
 
-      os.proc(cmakeArgs).call()
+      os.proc(cmakeArgs).call(cwd = cwd)
 
       val ninjaArgs = Seq(
-        androidSdkModule().ninjaExe().toString,
+        PathRef.toRelString(androidSdkModule().ninjaExe(), cwd),
         "-C",
-        s"$outCxx/${abi}",
+        PathRef.toRelString(outCxx / abi, cwd),
         s"${androidNativeLibName()}.so"
       )
 
-      os.proc(ninjaArgs).call()
+      os.proc(ninjaArgs).call(cwd = cwd)
     }
 
     PathRef(outDir)

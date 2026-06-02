@@ -50,8 +50,7 @@ object TestModule {
   type TestResult = Unit
 
   private def workspaceRelativePath(path: os.Path): String =
-    if (path.startsWith(BuildCtx.workspaceRoot)) path.relativeTo(BuildCtx.workspaceRoot).toString
-    else PathRef.toRelString(path, BuildCtx.workspaceRoot)
+    PathRef.toRelString(path, BuildCtx.workspaceRoot)
 
   /** TestModule that uses Python's standard unittest module to run tests. */
   trait Unittest extends PythonModule with TestModule {

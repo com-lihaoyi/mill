@@ -5,7 +5,7 @@ import os.*
 
 import scala.annotation.tailrec
 import mill.javalib.publish.JsonFormatters.licenseFormat
-import mill.api.BuildCtx
+import mill.api.{BuildCtx, PathRef}
 
 trait TypeScriptModule extends Module { outer =>
   // custom module names
@@ -611,7 +611,8 @@ trait TypeScriptModule extends Module { outer =>
    * include .d.ts files
    */
   def bundleScriptBuilder: Task[String] = Task.Anon {
-    val bundle = (Task.dest / "bundle.js").toString
+    val cwd = Task.dest
+    val bundle = PathRef.toRelString(Task.dest / "bundle.js", cwd)
     val rps = resources().map { p => p.path }.filter(os.exists)
 
     def envName(input: String): String = {
@@ -628,8 +629,8 @@ trait TypeScriptModule extends Module { outer =>
          |  plugins: [
          |    ${rps.map { rp =>
           s"""    copyStaticFiles({
-             |      src: ${ujson.Str(rp.toString)},
-             |      dest: ${ujson.Str(Task.dest.toString + "/" + rp.last)},
+             |      src: ${ujson.Str(PathRef.toRelString(rp, cwd))},
+             |      dest: ${ujson.Str(PathRef.toRelString(Task.dest / rp.last, cwd))},
              |      dereference: true,
              |      preserveTimestamps: true,
              |      recursive: true,
