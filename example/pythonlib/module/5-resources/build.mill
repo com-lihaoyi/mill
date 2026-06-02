@@ -1,6 +1,5 @@
 package build
 import mill.*, pythonlib.*
-import mill.api.{BuildCtx, PathRef}
 
 object foo extends PythonModule {
   def mainScript = Task.Source("src/foo.py")
@@ -14,9 +13,7 @@ object foo extends PythonModule {
     def otherFiles = Task.Source("other-files")
 
     def forkEnv: T[Map[String, String]] =
-      super.forkEnv() ++ Map(
-        "OTHER_FILES_DIR" -> PathRef.toRelString(otherFiles(), BuildCtx.workspaceRoot)
-      )
+      super.forkEnv() ++ Map("OTHER_FILES_DIR" -> otherFiles().path.toString)
   }
 }
 

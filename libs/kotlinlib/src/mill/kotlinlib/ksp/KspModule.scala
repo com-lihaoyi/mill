@@ -367,15 +367,17 @@ trait KspModule extends KotlinModule { outer =>
       "-jvm-target",
       kspJvmTarget(),
       s"-jdk-home=${System.getProperty("java.home")}",
-      s"-source-roots=${kspSources().map(_.path).mkString(File.pathSeparator)}",
-      s"-project-base-dir=${moduleDir.toString}",
-      s"-output-base-dir=${kspOutputDir}",
-      s"-caches-dir=${kspCachesDir}",
-      s"-libraries=${kspClasspath().map(_.path).mkString(File.pathSeparator)}",
-      s"-class-output-dir=${classes}",
-      s"-kotlin-output-dir=${kotlin}",
-      s"-java-output-dir=${java}",
-      s"-resource-output-dir=${resources}",
+      // KSP incremental processing calls Kotlin File.relativeTo, which rejects mixed absolute
+      // and relative roots: https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.io/relative-to.html
+      s"-source-roots=${kspSources().map(PathRef.toAbsString).mkString(File.pathSeparator)}",
+      s"-project-base-dir=${PathRef.toAbsString(moduleDir)}",
+      s"-output-base-dir=${PathRef.toAbsString(kspOutputDir)}",
+      s"-caches-dir=${PathRef.toAbsString(kspCachesDir)}",
+      s"-libraries=${kspClasspath().map(PathRef.toAbsString).mkString(File.pathSeparator)}",
+      s"-class-output-dir=${PathRef.toAbsString(classes)}",
+      s"-kotlin-output-dir=${PathRef.toAbsString(kotlin)}",
+      s"-java-output-dir=${PathRef.toAbsString(java)}",
+      s"-resource-output-dir=${PathRef.toAbsString(resources)}",
       s"-language-version=${kspLanguageVersion()}",
       s"-incremental=true",
       s"-incremental-log=true",
@@ -474,8 +476,8 @@ trait KspModule extends KotlinModule { outer =>
       "-jvm-target",
       kspJvmTarget(),
       s"-jdk-home=${System.getProperty("java.home")}",
-      // KSP incremental processing calls `File.relativeTo(projectBaseDir)` internally; all
-      // participating paths must have the same absolute root.
+      // KSP incremental processing calls Kotlin File.relativeTo, which rejects mixed absolute
+      // and relative roots: https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.io/relative-to.html
       s"-source-roots=${kspSources().map(PathRef.toAbsString).mkString(File.pathSeparator)}",
       s"-project-base-dir=${PathRef.toAbsString(moduleDir)}",
       s"-output-base-dir=${PathRef.toAbsString(kspOutputDir)}",
