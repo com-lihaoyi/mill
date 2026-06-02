@@ -1,6 +1,7 @@
 package mill.pythonlib
 
 import mill.*
+import mill.api.{BuildCtx, PathRef}
 
 /**
  * Code coverage via Python's [coverage](https://coverage.readthedocs.io/)
@@ -49,28 +50,29 @@ trait CoverageModule extends PythonModule {
 
   private case class CoverageReporter(
       interp: os.Path,
-      env: Map[String, String]
+      dataFile: os.Path
   ) {
-    def run(command: String, args: Seq[String]): Unit =
+    def run(command: String, args: Seq[String]): Unit = {
+      val cwd = Task.dest
       os.call(
         (
-          interp,
+          PathRef.toRelString(interp, cwd),
           "-m",
           "coverage",
           command,
           args
         ),
-        env = env,
+        env = Map("COVERAGE_FILE" -> PathRef.toRelString(dataFile, cwd)),
+        cwd = cwd,
         stdout = os.Inherit
       )
+    }
   }
 
   private def coverageReporter = Task.Anon {
     CoverageReporter(
       pythonExe().path,
-      Map(
-        "COVERAGE_FILE" -> coverageDataFile().toString
-      )
+      coverageDataFile()
     )
   }
 
@@ -124,7 +126,13 @@ trait CoverageModule extends PythonModule {
 trait CoverageTests extends CoverageModule with TestModule {
 
   override def pythonOptions = Task {
-    Seq("-m", "coverage", "run", "--data-file", coverageDataFile().toString) ++
+    Seq(
+      "-m",
+      "coverage",
+      "run",
+      "--data-file",
+      PathRef.toRelString(coverageDataFile(), BuildCtx.workspaceRoot)
+    ) ++
       super.pythonOptions()
   }
 
