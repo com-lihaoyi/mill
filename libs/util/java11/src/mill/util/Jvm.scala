@@ -135,6 +135,7 @@ object Jvm {
    *                            to gracefully terminate before attempting to forcibly kill it
    *                            (-1 for no kill, 0 for always kill immediately)
    * @param destroyOnExit Destroy on JVM exit
+   * @param pathRelativization If `true`, child `os.Path` serialization uses Mill's workspace aliases
    */
   def spawnProcess(
       mainClass: String,
@@ -151,11 +152,14 @@ object Jvm {
       stderr: os.ProcessOutput = os.Inherit,
       mergeErrIntoOut: Boolean = false,
       shutdownGracePeriod: Long = 100,
-      destroyOnExit: Boolean = true
+      destroyOnExit: Boolean = true,
+      pathRelativization: Boolean = true
   ): os.SubProcess = {
     val effectiveCwd = Option(cwd).getOrElse(os.pwd)
     PathAliasing.ensureProcessCwdAliases(effectiveCwd)
-    val processEnv = env ++ PathAliasing.workspaceEnvVarsForCwd(effectiveCwd)
+    val processEnv =
+      env ++ Option.when(pathRelativization)(PathAliasing.workspaceEnvVarsForCwd(effectiveCwd))
+        .getOrElse(Map.empty)
 
     val commandArgs = buildJvmCommand(
       mainClass,

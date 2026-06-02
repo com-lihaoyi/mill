@@ -4,7 +4,7 @@ import mill.api.{PathRef, TaskCtx}
 import mill.api.Result
 import mill.api.daemon.internal.TestReporter
 import mill.util.Jvm
-import mill.api.internal.Util
+import mill.api.internal.{PathAliasing, Util}
 import mill.Task
 import sbt.testing.Status
 
@@ -16,6 +16,7 @@ import scala.collection.mutable
 import mill.api.Logger
 
 import mill.api.BuildCtx
+import mill.constants.EnvVars
 import mill.javalib.api.internal.ZincOp
 import mill.javalib.testrunner.{TestArgs, TestResult, TestRunnerUtils}
 import os.Path
@@ -147,23 +148,26 @@ final class TestModuleUtil(
 
     val argsFile = baseFolder / "testargs"
     val sandbox = baseFolder / "sandbox"
-    os.write.over(
-      argsFile,
-      upickle.write(testArgs),
-      createFolders = true
-    )
+    PathAliasing.withRawPathSerializer {
+      os.write.over(
+        argsFile,
+        upickle.write(testArgs),
+        createFolders = true
+      )
+    }
 
     os.makeDir.all(sandbox)
 
     val proc = BuildCtx.withFilesystemCheckerDisabled {
       val inheritedEnv = if (propagateEnv) Task.env else Map.empty[String, String]
       val cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir
+      val testEnv = (inheritedEnv ++ forkEnv) - EnvVars.OS_LIB_PATH_RELATIVIZER_BASE
       Jvm.spawnProcess(
         mainClass = "mill.javalib.testrunner.entrypoint.MillTestRunnerMain",
         classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
-        env = inheritedEnv ++ forkEnv,
-        mainArgs = Seq(testRunnerClasspathArg, PathRef.toRelString(argsFile, cwd)),
+        env = testEnv,
+        mainArgs = Seq(testRunnerClasspathArg, PathRef.toAbsString(argsFile)),
         cwd = cwd,
         cpPassingJarPath = Option.when(useArgsFile)(
           os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
@@ -171,7 +175,10 @@ final class TestModuleUtil(
         javaHome = javaHome,
         stdin = os.Inherit,
         stdout = os.Inherit,
-        propagateEnv = false
+        propagateEnv = false,
+        // User test code should see ordinary os-lib path behavior. The sandbox aliases still
+        // resolve Mill-provided relative paths, but avoid rewriting test-created paths.
+        pathRelativization = false
       )
     }
 
