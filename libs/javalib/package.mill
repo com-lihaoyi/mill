@@ -33,7 +33,10 @@ object `package` extends MillStableScalaModule {
   def compileMvnDeps = Seq(Deps.sonatypeCentralClient)
   def runMvnDeps = Seq(Deps.sonatypeCentralClient)
 
-  def testMvnDeps = super.testMvnDeps() ++ Seq(Deps.TestDeps.scalaCheck)
+  def testMvnDeps = super.testMvnDeps() ++ Seq(
+    Deps.TestDeps.scalaCheck,
+    Deps.coursierInterface
+  )
   def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit.internal)
   def localTestExtraModules =
     super.localTestExtraModules ++ Seq(
