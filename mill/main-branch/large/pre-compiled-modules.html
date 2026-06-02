@@ -728,7 +728,7 @@
           <a href="../../index.html">1.1.6</a>
         </li>
         <li class="version">
-          <a href="../../dev-1.1.6-66-216115/index.html">dev-1.1.6-66-216115</a>
+          <a href="../../dev-1.1.6-88-655739/index.html">dev-1.1.6-88-655739</a>
         </li>
         <li class="version">
           <a href="../../1.0.x/index.html">1.0.6</a>
@@ -784,7 +784,7 @@ file with the line count. It also has a nested <code>test</code> module containi
 configuration.</p>
 </div>
 <div class="listingblock">
-<div class="title">mill-build/src/LineCountJavaModule.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-89-71e900/mill-dist-1.1.6-example-large-precompiled-10-precompiled-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/large/precompiled/10-precompiled-modules/mill-build/src/LineCountJavaModule.scala">browse</a>)</div>
+<div class="title">mill-build/src/LineCountJavaModule.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-90-607ca4/mill-dist-1.1.6-example-large-precompiled-10-precompiled-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/large/precompiled/10-precompiled-modules/mill-build/src/LineCountJavaModule.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package millbuild
 import mill.*, javalib.*
@@ -813,7 +813,7 @@ class LineCountJavaModule(val scriptConfig: mill.api.PrecompiledModule.Config)
 <p><code>LineCountJavaModule</code> is then inherited by <code>foo</code> and <code>bar</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-89-71e900/mill-dist-1.1.6-example-large-precompiled-10-precompiled-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/large/precompiled/10-precompiled-modules/foo/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-90-607ca4/mill-dist-1.1.6-example-large-precompiled-10-precompiled-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/large/precompiled/10-precompiled-modules/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: millbuild.LineCountJavaModule
 mill-experimental-precompiled-module: true
@@ -824,7 +824,7 @@ object test:
 </div>
 </div>
 <div class="listingblock">
-<div class="title">bar/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-89-71e900/mill-dist-1.1.6-example-large-precompiled-10-precompiled-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/large/precompiled/10-precompiled-modules/bar/package.mill.yaml">browse</a>)</div>
+<div class="title">bar/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-90-607ca4/mill-dist-1.1.6-example-large-precompiled-10-precompiled-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/large/precompiled/10-precompiled-modules/bar/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: millbuild.LineCountJavaModule
 mill-experimental-precompiled-module: true
