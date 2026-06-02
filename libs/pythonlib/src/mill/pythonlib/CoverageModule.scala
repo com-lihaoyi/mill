@@ -50,10 +50,10 @@ trait CoverageModule extends PythonModule {
 
   private case class CoverageReporter(
       interp: os.Path,
-      dataFile: os.Path
+      dataFile: os.Path,
+      cwd: os.Path
   ) {
     def run(command: String, args: Seq[String]): Unit = {
-      val cwd = Task.dest
       os.call(
         (
           PathRef.toRelString(interp, cwd),
@@ -72,7 +72,8 @@ trait CoverageModule extends PythonModule {
   private def coverageReporter = Task.Anon {
     CoverageReporter(
       pythonExe().path,
-      coverageDataFile()
+      coverageDataFile(),
+      Task.dest
     )
   }
 
