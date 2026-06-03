@@ -25,31 +25,24 @@ object PathAliasing {
    * round-trip through the same aliases the daemon uses).
    */
   def workspaceEnvVars(workspace: os.Path = BuildCtx.workspaceRoot): Map[String, String] = {
-    // Env vars cross process boundaries, so use a real path instead of a cwd-relative alias.
-    val workspaceAbs = PathRef.toAbsString(workspace)
     Map(
-      EnvVars.MILL_WORKSPACE_ROOT -> workspaceAbs,
+      // Env vars cross process boundaries, so use a real path instead of a cwd-relative alias.
+      EnvVars.MILL_WORKSPACE_ROOT -> PathRef.toAbsString(workspace),
       EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> workspaceRootPathRelativizerBase(workspace)
     )
   }
 
-  def workspacePathRelativizerBase(workspace: os.Path = BuildCtx.workspaceRoot): String = {
-    // The relativizer base itself must name the real workspace before giving its alias.
-    val workspaceAbs = PathRef.toAbsString(workspace)
-    // The relativizer base itself must name the real home directory before giving its alias.
-    val homeAbs = PathRef.toAbsString(os.home)
-    s"$workspaceAbs,../mill-workspace;$homeAbs,../mill-home"
-  }
+  def workspacePathRelativizerBase(workspace: os.Path = BuildCtx.workspaceRoot): String =
+    pathRelativizerBase(defaultMapping(workspace))
 
-  def workspaceRootPathRelativizerBase(workspace: os.Path = BuildCtx.workspaceRoot): String = {
-    // The relativizer base itself must name the real workspace before giving its alias.
-    val workspaceAbs = PathRef.toAbsString(workspace)
-    // The relativizer base itself must name the real home directory before giving its alias.
-    val homeAbs = PathRef.toAbsString(os.home)
-    s"$workspaceAbs,out/mill-workspace;$homeAbs,out/mill-home"
-  }
+  def workspaceRootPathRelativizerBase(workspace: os.Path = BuildCtx.workspaceRoot): String =
+    pathRelativizerBase(Seq(
+      workspace -> (os.rel / "out" / "mill-workspace"),
+      os.home -> (os.rel / "out" / "mill-home")
+    ))
 
   private def isWorkspaceRootCwd(cwd: os.Path, workspace: os.Path): Boolean =
+    // Compare real on-disk paths, since serialized paths may be cwd-relative aliases.
     cwd != null && PathRef.toAbsNioPath(cwd) == PathRef.toAbsNioPath(workspace)
 
   private def ups(count: Int): os.RelPath =
@@ -115,16 +108,19 @@ object PathAliasing {
       )
     }
 
-  def pathRelativizerBaseForCwd(
-      cwd: os.Path,
-      workspace: os.Path = BuildCtx.workspaceRoot
-  ): String =
-    aliasMappingForCwd(cwd, workspace)
+  private def pathRelativizerBase(mapping: Seq[(os.Path, os.RelPath)]): String =
+    mapping
       .map { case (target, alias) =>
         // The relativizer base itself must name the real target before giving its alias.
         s"${PathRef.toAbsString(target)},$alias"
       }
       .mkString(";")
+
+  def pathRelativizerBaseForCwd(
+      cwd: os.Path,
+      workspace: os.Path = BuildCtx.workspaceRoot
+  ): String =
+    pathRelativizerBase(aliasMappingForCwd(cwd, workspace))
 
   def workspaceEnvVarsForCwd(
       cwd: os.Path,

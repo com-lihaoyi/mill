@@ -90,7 +90,7 @@ object PathRef {
    */
   def toRelString(
       path: os.Path,
-      subprocessCwd: os.Path,
+      subprocessCwd: os.Path = BuildCtx.workspaceRoot,
       workspaceRoot: os.Path = BuildCtx.workspaceRoot
   ): String = {
     val mappings = PathAliasing.aliasMappingForCwd(subprocessCwd, workspaceRoot)
@@ -104,8 +104,6 @@ object PathRef {
       }
       .getOrElse(toAbsString(path))
   }
-  def toRelString(path: os.Path): String =
-    toRelString(path, BuildCtx.workspaceRoot)
   def toRelString(
       path: PathRef,
       subprocessCwd: os.Path,
@@ -113,8 +111,6 @@ object PathRef {
   ): String = toRelString(path.path, subprocessCwd, workspaceRoot)
   def toRelString(path: PathRef, subprocessCwd: os.Path): String =
     toRelString(path.path, subprocessCwd)
-  def toRelString(path: PathRef): String =
-    toRelString(path.path)
 
   /**
    * This class maintains a cache of already validated paths.
