@@ -143,13 +143,17 @@ object PathRefTests extends TestSuite {
       )
 
       val sourceCwd = workspace / "foo"
+      // Source-directory subprocesses do not get aliases, so workspace paths stay absolute.
+      val expectedWorkspacePath = PathRef.toAbsString(workspacePath)
+      // Source-directory subprocesses do not get aliases, so home paths stay absolute.
+      val expectedHomePath = PathRef.toAbsString(homePath)
       assert(
         PathRef.toRelString(
           workspacePath,
           sourceCwd,
           workspace
-        ) == PathRef.toAbsString(workspacePath),
-        PathRef.toRelString(homePath, sourceCwd, workspace) == PathRef.toAbsString(homePath)
+        ) == expectedWorkspacePath,
+        PathRef.toRelString(homePath, sourceCwd, workspace) == expectedHomePath
       )
     }
 

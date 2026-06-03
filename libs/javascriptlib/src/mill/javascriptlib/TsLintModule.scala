@@ -72,6 +72,7 @@ trait TsLintModule extends Module {
         val cwd = BuildCtx.workspaceRoot
         os.symlink(cwd / "node_modules", npmInstallLint().path / "node_modules")
         val eslint = npmInstallLint().path / "node_modules/.bin/eslint"
+        // Node resolves packages from the executable's real location; aliases break config imports.
         val eslintCmd = PathRef.toAbsString(eslint)
         val logPath = npmInstallLint().path / "eslint.log"
         val result =
@@ -88,6 +89,7 @@ trait TsLintModule extends Module {
         // paths as `foo/src/foo.ts`. On reproducible mode `$cwd` would interpolate
         // to the relativized `../mill-workspace` form, but eslint emits real
         // absolute paths — match those.
+        // Eslint diagnostics contain real paths, so normalize against the real workspace path.
         val cwdAbs = PathRef.toAbsString(cwd)
         val replacements = Seq(
           s"$cwdAbs/" -> "",
@@ -124,6 +126,7 @@ trait TsLintModule extends Module {
         val cwd = BuildCtx.workspaceRoot
         os.symlink(cwd / "node_modules", npmInstallLint().path / "node_modules")
         val eslint = npmInstallLint().path / "node_modules/.bin/eslint"
+        // Node resolves packages from the executable's real location; aliases break config imports.
         val eslintCmd = PathRef.toAbsString(eslint)
         val logPath = npmInstallLint().path / "eslint.log"
 
@@ -156,6 +159,7 @@ trait TsLintModule extends Module {
       case Prettier =>
         val cwd = BuildCtx.workspaceRoot
         val prettier = npmInstallLint().path / "node_modules/.bin/prettier"
+        // Node resolves packages from the executable's real location; aliases break plugin imports.
         val prettierCmd = PathRef.toAbsString(prettier)
         val logPath = npmInstallLint().path / "prettier.log"
         val defaultArgs = if (args.value.isEmpty) Seq("*/**/*.ts") else args.value
@@ -199,6 +203,7 @@ trait TsLintModule extends Module {
       case Prettier =>
         val cwd = BuildCtx.workspaceRoot
         val prettier = npmInstallLint().path / "node_modules/.bin/prettier"
+        // Node resolves packages from the executable's real location; aliases break plugin imports.
         val prettierCmd = PathRef.toAbsString(prettier)
         val logPath = npmInstallLint().path / "prettier.log"
         val defaultArgs = if (args.value.isEmpty) Seq("*/**/*.ts") else args.value
