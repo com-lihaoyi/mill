@@ -473,7 +473,7 @@ trait GroupExecution {
                   else taskLocks.currentVersion
                 taskLocks.retainDowngraded(scope, version)
 
-                if(replayLogs && os.exists(paths.log)) {
+                if (replayLogs && os.exists(paths.log)) {
                   os.read.stream(paths.log).writeBytesTo(logger.streams.err)
                 }
 
