@@ -1,7 +1,7 @@
 package mill.api.internal
 
 import mill.api.{BuildCtx, PathRef}
-import mill.constants.EnvVars
+import mill.constants.{DaemonFiles, EnvVars, OutFiles}
 
 import java.nio.file.{Files, LinkOption}
 
@@ -67,9 +67,24 @@ object PathAliasing {
     }
   }
 
+  private def millRunSandboxAliasPrefix(cwd: os.Path, workspace: os.Path): Option[os.RelPath] = {
+    val out = workspace / "out"
+    if (!cwd.startsWith(out)) None
+    else {
+      val segments = cwd.relativeTo(out).segments
+      val isDaemonSandbox =
+        segments == Seq(OutFiles.OutFiles.millDaemon, DaemonFiles.sandbox)
+      val isNoDaemonSandbox =
+        segments.length == 3 &&
+          segments.head == OutFiles.OutFiles.millNoDaemon &&
+          segments.last == DaemonFiles.sandbox
+      Option.when(isDaemonSandbox || isNoDaemonSandbox)(os.rel / "out")
+    }
+  }
+
   private def aliasPrefixForCwd(cwd: os.Path, workspace: os.Path): Option[os.RelPath] =
     if (isWorkspaceRootCwd(cwd, workspace)) Some(os.rel / "out")
-    else taskDestAliasPrefix(cwd, workspace)
+    else millRunSandboxAliasPrefix(cwd, workspace).orElse(taskDestAliasPrefix(cwd, workspace))
 
   def aliasMappingForCwd(
       cwd: os.Path,

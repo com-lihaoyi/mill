@@ -149,6 +149,7 @@ object MillProcessLauncher {
       // `mill-jvm-version`), so subprocesses the daemon spawns that resolve `$JAVA_HOME/bin/java`
       // (e.g. the Android `lint` wrapper, Gradle-style tools) use that JVM rather than inheriting
       // the launcher shell's JAVA_HOME. Only set when a version is explicitly configured.
+      // `PathRef.toAbsString`: subprocesses consume JAVA_HOME as a real filesystem root.
       daemonJavaHome.map(home => "JAVA_HOME" -> PathRef.toAbsString(home))
     ).flatten
 

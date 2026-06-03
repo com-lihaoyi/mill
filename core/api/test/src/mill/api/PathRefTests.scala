@@ -1,5 +1,6 @@
 package mill.api
 
+import mill.constants.{DaemonFiles, OutFiles}
 import utest.*
 
 import java.nio.file.Files
@@ -121,6 +122,20 @@ object PathRefTests extends TestSuite {
         ) == "out/mill-workspace/foo/src/Main.java",
         PathRef.toRelString(homePath, workspace, workspace) == "out/mill-home/cache/dep.jar"
       )
+
+      val daemonSandbox = workspace / "out" / OutFiles.OutFiles.millDaemon / DaemonFiles.sandbox
+      val noDaemonSandbox =
+        workspace / "out" / OutFiles.OutFiles.millNoDaemon / "pid-1" / DaemonFiles.sandbox
+      for (sandbox <- Seq(daemonSandbox, noDaemonSandbox)) {
+        assert(
+          PathRef.toRelString(
+            workspacePath,
+            sandbox,
+            workspace
+          ) == "out/mill-workspace/foo/src/Main.java",
+          PathRef.toRelString(homePath, sandbox, workspace) == "out/mill-home/cache/dep.jar"
+        )
+      }
 
       val taskDest = workspace / "out" / "foo" / "run.dest"
       assert(

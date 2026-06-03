@@ -26,6 +26,13 @@ import java.io.File
 @mill.api.experimental
 trait KspModule extends KotlinModule { outer =>
 
+  private def kspAbsPath(path: os.Path): String = {
+    // `PathRef.toAbsString`: KSP compares configured roots with Kotlin File.relativeTo.
+    PathRef.toAbsString(path)
+  }
+
+  private def kspAbsPath(pathRef: PathRef): String = kspAbsPath(pathRef.path)
+
   /**
    * Controls the mechanism in which the Kotlin Symbol Processing is run.
    * [[KspModuleMode.Ksp1]] works with the embeddable kotlin compiler and via the KSP compiler plugin.
@@ -367,17 +374,15 @@ trait KspModule extends KotlinModule { outer =>
       "-jvm-target",
       kspJvmTarget(),
       s"-jdk-home=${System.getProperty("java.home")}",
-      // KSP incremental processing calls Kotlin File.relativeTo, which rejects mixed absolute
-      // and relative roots: https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.io/relative-to.html
-      s"-source-roots=${kspSources().map(PathRef.toAbsString).mkString(File.pathSeparator)}",
-      s"-project-base-dir=${PathRef.toAbsString(moduleDir)}",
-      s"-output-base-dir=${PathRef.toAbsString(kspOutputDir)}",
-      s"-caches-dir=${PathRef.toAbsString(kspCachesDir)}",
-      s"-libraries=${kspClasspath().map(PathRef.toAbsString).mkString(File.pathSeparator)}",
-      s"-class-output-dir=${PathRef.toAbsString(classes)}",
-      s"-kotlin-output-dir=${PathRef.toAbsString(kotlin)}",
-      s"-java-output-dir=${PathRef.toAbsString(java)}",
-      s"-resource-output-dir=${PathRef.toAbsString(resources)}",
+      s"-source-roots=${kspSources().map(kspAbsPath).mkString(File.pathSeparator)}",
+      s"-project-base-dir=${kspAbsPath(moduleDir)}",
+      s"-output-base-dir=${kspAbsPath(kspOutputDir)}",
+      s"-caches-dir=${kspAbsPath(kspCachesDir)}",
+      s"-libraries=${kspClasspath().map(kspAbsPath).mkString(File.pathSeparator)}",
+      s"-class-output-dir=${kspAbsPath(classes)}",
+      s"-kotlin-output-dir=${kspAbsPath(kotlin)}",
+      s"-java-output-dir=${kspAbsPath(java)}",
+      s"-resource-output-dir=${kspAbsPath(resources)}",
       s"-language-version=${kspLanguageVersion()}",
       s"-incremental=true",
       s"-incremental-log=true",
@@ -476,17 +481,15 @@ trait KspModule extends KotlinModule { outer =>
       "-jvm-target",
       kspJvmTarget(),
       s"-jdk-home=${System.getProperty("java.home")}",
-      // KSP incremental processing calls Kotlin File.relativeTo, which rejects mixed absolute
-      // and relative roots: https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.io/relative-to.html
-      s"-source-roots=${kspSources().map(PathRef.toAbsString).mkString(File.pathSeparator)}",
-      s"-project-base-dir=${PathRef.toAbsString(moduleDir)}",
-      s"-output-base-dir=${PathRef.toAbsString(kspOutputDir)}",
-      s"-caches-dir=${PathRef.toAbsString(kspCachesDir)}",
-      s"-libraries=${kspClasspath().map(PathRef.toAbsString).mkString(File.pathSeparator)}",
-      s"-class-output-dir=${PathRef.toAbsString(classes)}",
-      s"-kotlin-output-dir=${PathRef.toAbsString(kotlin)}",
-      s"-java-output-dir=${PathRef.toAbsString(java)}",
-      s"-resource-output-dir=${PathRef.toAbsString(resources)}",
+      s"-source-roots=${kspSources().map(kspAbsPath).mkString(File.pathSeparator)}",
+      s"-project-base-dir=${kspAbsPath(moduleDir)}",
+      s"-output-base-dir=${kspAbsPath(kspOutputDir)}",
+      s"-caches-dir=${kspAbsPath(kspCachesDir)}",
+      s"-libraries=${kspClasspath().map(kspAbsPath).mkString(File.pathSeparator)}",
+      s"-class-output-dir=${kspAbsPath(classes)}",
+      s"-kotlin-output-dir=${kspAbsPath(kotlin)}",
+      s"-java-output-dir=${kspAbsPath(java)}",
+      s"-resource-output-dir=${kspAbsPath(resources)}",
       s"-language-version=${kspLanguageVersion()}",
       s"-incremental=true",
       s"-incremental-log=true",

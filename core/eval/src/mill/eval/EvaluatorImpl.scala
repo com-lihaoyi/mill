@@ -261,7 +261,6 @@ final class EvaluatorImpl(
       import pprint.Util.literalize
 
       invalidBuildOverrides.map { case (k, v) =>
-        java.nio.file.Files.readString(v.path.toNIO)
         val extendsInfo = mill.internal.Util.parseHeaderData(v.path) match {
           case mill.api.Result.Success(headerData) =>
             val extendsValues = headerData.`extends`.value.value.map(_.value)

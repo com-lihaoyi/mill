@@ -436,7 +436,8 @@ object Jvm {
       sharedPrefixes: Iterable[String] = Seq(),
       label: String = null
   )(using e: sourcecode.Enclosing): MillURLClassLoader = MillURLClassLoader(
-    classPath.map(_.toNIO),
+    // URLClassLoader consumes these paths in-process, so bypass the active path serializer.
+    classPath.map(PathRef.toAbsNioPath),
     parent,
     sharedLoader,
     sharedPrefixes,

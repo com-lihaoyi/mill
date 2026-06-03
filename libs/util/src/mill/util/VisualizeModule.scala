@@ -191,6 +191,7 @@ object VisualizeModule extends ExternalModule {
             val spawned = mill.util.Jvm.spawnProcess(
               mainClass = "mill.graphviz.VisualizeWorkerMain",
               classPath = workerToolsClasspath.map(_.path).toVector,
+              // The worker constructs `os.Path` from these argv strings, which requires absolutes.
               mainArgs = Seq(PathRef.toAbsString(payloadPath), PathRef.toAbsString(dest)),
               stdin = os.Inherit,
               stdout = os.Inherit,

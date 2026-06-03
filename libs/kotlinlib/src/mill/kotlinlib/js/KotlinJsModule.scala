@@ -310,9 +310,10 @@ trait KotlinJsModule extends KotlinModule { outer =>
 //        (allKotlinSourceFiles.map(_.path.toIO.getAbsolutePath), Seq())
 //    }
 
-    // Kotlin/JS KLIB loading does not resolve Mill's cwd aliases reliably; with alias paths,
-    // stdlib symbols like `kotlin.Int`/`kotlin.Unit` disappear in the Arrow example.
-    val includeArgs = irClasspath.map(p => s"-Xinclude=${PathRef.toAbsString(p.path)}").toSeq
+    val includeArgs = irClasspath.map { p =>
+      // `PathRef.toAbsString`: Kotlin/JS KLIB loading loses stdlib symbols with cwd aliases.
+      s"-Xinclude=${PathRef.toAbsString(p.path)}"
+    }.toSeq
     val inputFiles = irClasspath.fold(allKotlinSourceFiles.map(_.path))(_ => Seq())
 
     val librariesCp = librariesClasspath.map(_.path)
@@ -320,10 +321,13 @@ trait KotlinJsModule extends KotlinModule { outer =>
       .filter(isKotlinJsLibrary)
 
     val innerCompilerArgs = Seq.newBuilder[String]
-    // Same KLIB loader limitation as `includeArgs`.
+    def kotlinJsLibraryPath(path: os.Path): String = {
+      // `PathRef.toAbsString`: same KLIB loader limitation as `includeArgs`.
+      PathRef.toAbsString(path)
+    }
     innerCompilerArgs ++= Seq(
       "-libraries",
-      librariesCp.iterator.map(PathRef.toAbsString).mkString(File.pathSeparator)
+      librariesCp.iterator.map(kotlinJsLibraryPath).mkString(File.pathSeparator)
     )
     innerCompilerArgs ++= Seq("-main", if (callMain) "call" else "noCall")
     if (moduleKind != ModuleKind.NoModule) {
@@ -368,23 +372,25 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // apply multi-platform support (expect/actual)
     // TODO if there is penalty for activating it in the compiler, put it behind configuration flag
     innerCompilerArgs += "-Xmulti-platform"
-    // The Kotlin/JS linker reports success with cwd-alias output dirs but can leave the expected
-    // entrypoint missing from `linkBinary.dest/binaries`; pass real output dirs to the linker.
+    def kotlinJsOutputPath(path: os.Path): String = {
+      // `PathRef.toAbsString`: Kotlin/JS linker can skip expected outputs with cwd-alias dirs.
+      PathRef.toAbsString(path)
+    }
     val outputArgs = outputMode match {
       case OutputMode.KlibFile =>
         Seq(
           "-Xir-produce-klib-file",
           "-ir-output-dir",
-          PathRef.toAbsString(destinationRoot / "libs")
+          kotlinJsOutputPath(destinationRoot / "libs")
         )
       case OutputMode.KlibDir =>
         Seq(
           "-Xir-produce-klib-dir",
           "-ir-output-dir",
-          PathRef.toAbsString(destinationRoot / "classes")
+          kotlinJsOutputPath(destinationRoot / "classes")
         )
       case OutputMode.Js =>
-        Seq("-Xir-produce-js", "-ir-output-dir", PathRef.toAbsString(destinationRoot / "binaries"))
+        Seq("-Xir-produce-js", "-ir-output-dir", kotlinJsOutputPath(destinationRoot / "binaries"))
     }
 
     innerCompilerArgs ++= outputArgs
@@ -560,15 +566,22 @@ trait KotlinJsModule extends KotlinModule { outer =>
           "Cannot run Kotlin/JS tests, because run target is not specified."
         )
       }
+      val sourceMapSupportPath = {
+        // `PathRef.toAbsString`: Mocha passes this to Node's cwd-sensitive module resolver.
+        PathRef.toAbsString(sourceMapSupportModule().path)
+      }
+      val mochaPath = {
+        // `PathRef.toAbsString`: Mocha passes this to Node's cwd-sensitive module resolver.
+        PathRef.toAbsString(mochaModule().path)
+      }
       kotlinJsRunBinary(
         // TODO add runner to be able to use test selector
         args = Args(args() ++ Seq(
           // TODO this is valid only for the NodeJS target. Once browser support is
           //  added, need to have different argument handling
           "--require",
-          // Mocha passes these to Node's module resolver; absolute files avoid cwd-sensitive aliases.
-          PathRef.toAbsString(sourceMapSupportModule().path),
-          PathRef.toAbsString(mochaModule().path),
+          sourceMapSupportPath,
+          mochaPath,
           "--timeout",
           testTimeout().toString,
           "--reporter",
