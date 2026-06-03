@@ -409,6 +409,11 @@ trait GroupExecution {
               }
             )
           }
+          
+          // when requested, forward the cached logs to STDERR
+          def doReplayLog() = if (replayLogs && os.exists(paths.log)) {
+            os.read.stream(paths.log).writeBytesTo(logger.streams.err)
+          }
 
           taskLocks.readThenWrite { scope =>
             loadCachedOrWorker(
@@ -417,11 +422,7 @@ trait GroupExecution {
             ) match {
               case Some(res) =>
                 taskLocks.retainRead(scope)
-
-                if (replayLogs && os.exists(paths.log)) {
-                  os.read.stream(paths.log).writeBytesTo(logger.streams.err)
-                }
-
+                doReplayLog()
                 LockUpgrade.Decision.Complete(res)
               case None =>
                 LockUpgrade.Decision.Escalate
@@ -477,11 +478,7 @@ trait GroupExecution {
                   if (remoteMaterialized) taskLocks.markTaskWritten()
                   else taskLocks.currentVersion
                 taskLocks.retainDowngraded(scope, version)
-
-                if (replayLogs && os.exists(paths.log)) {
-                  os.read.stream(paths.log).writeBytesTo(logger.streams.err)
-                }
-
+                doReplayLog()
                 res
 
               case None =>
