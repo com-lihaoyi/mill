@@ -363,28 +363,20 @@ trait KspModule extends KotlinModule { outer =>
     else
       s"-processor-options=${processorOptionsValue}"
 
+    // KSP compares these configured roots with Kotlin File.relativeTo, so they must be absolute.
     val args = Seq(
       s"-module-name=${kspModuleName}",
       "-jvm-target",
       kspJvmTarget(),
       s"-jdk-home=${System.getProperty("java.home")}",
-      // `PathRef.toAbsString`: KSP compares configured roots with Kotlin File.relativeTo.
       s"-source-roots=${kspSources().map(pr => PathRef.toAbsString(pr.path)).mkString(File.pathSeparator)}",
-      // `PathRef.toAbsString`: KSP compares configured roots with Kotlin File.relativeTo.
       s"-project-base-dir=${PathRef.toAbsString(moduleDir)}",
-      // `PathRef.toAbsString`: KSP compares configured roots with Kotlin File.relativeTo.
       s"-output-base-dir=${PathRef.toAbsString(kspOutputDir)}",
-      // `PathRef.toAbsString`: KSP compares configured roots with Kotlin File.relativeTo.
       s"-caches-dir=${PathRef.toAbsString(kspCachesDir)}",
-      // `PathRef.toAbsString`: KSP compares configured roots with Kotlin File.relativeTo.
       s"-libraries=${kspClasspath().map(pr => PathRef.toAbsString(pr.path)).mkString(File.pathSeparator)}",
-      // `PathRef.toAbsString`: KSP compares configured roots with Kotlin File.relativeTo.
       s"-class-output-dir=${PathRef.toAbsString(classes)}",
-      // `PathRef.toAbsString`: KSP compares configured roots with Kotlin File.relativeTo.
       s"-kotlin-output-dir=${PathRef.toAbsString(kotlin)}",
-      // `PathRef.toAbsString`: KSP compares configured roots with Kotlin File.relativeTo.
       s"-java-output-dir=${PathRef.toAbsString(java)}",
-      // `PathRef.toAbsString`: KSP compares configured roots with Kotlin File.relativeTo.
       s"-resource-output-dir=${PathRef.toAbsString(resources)}",
       s"-language-version=${kspLanguageVersion()}",
       s"-incremental=true",
@@ -480,28 +472,20 @@ trait KspModule extends KotlinModule { outer =>
     else
       s"-processor-options=${processorOptionsValue}"
 
+    // KSP compares these configured roots with Kotlin File.relativeTo, so they must be absolute.
     val args = Seq(
       s"-module-name=${kspModuleName}",
       "-jvm-target",
       kspJvmTarget(),
       s"-jdk-home=${System.getProperty("java.home")}",
-      // `PathRef.toAbsString`: KSP compares configured roots with Kotlin File.relativeTo.
       s"-source-roots=${kspSources().map(pr => PathRef.toAbsString(pr.path)).mkString(File.pathSeparator)}",
-      // `PathRef.toAbsString`: KSP compares configured roots with Kotlin File.relativeTo.
       s"-project-base-dir=${PathRef.toAbsString(moduleDir)}",
-      // `PathRef.toAbsString`: KSP compares configured roots with Kotlin File.relativeTo.
       s"-output-base-dir=${PathRef.toAbsString(kspOutputDir)}",
-      // `PathRef.toAbsString`: KSP compares configured roots with Kotlin File.relativeTo.
       s"-caches-dir=${PathRef.toAbsString(kspCachesDir)}",
-      // `PathRef.toAbsString`: KSP compares configured roots with Kotlin File.relativeTo.
       s"-libraries=${kspClasspath().map(pr => PathRef.toAbsString(pr.path)).mkString(File.pathSeparator)}",
-      // `PathRef.toAbsString`: KSP compares configured roots with Kotlin File.relativeTo.
       s"-class-output-dir=${PathRef.toAbsString(classes)}",
-      // `PathRef.toAbsString`: KSP compares configured roots with Kotlin File.relativeTo.
       s"-kotlin-output-dir=${PathRef.toAbsString(kotlin)}",
-      // `PathRef.toAbsString`: KSP compares configured roots with Kotlin File.relativeTo.
       s"-java-output-dir=${PathRef.toAbsString(java)}",
-      // `PathRef.toAbsString`: KSP compares configured roots with Kotlin File.relativeTo.
       s"-resource-output-dir=${PathRef.toAbsString(resources)}",
       s"-language-version=${kspLanguageVersion()}",
       s"-incremental=true",

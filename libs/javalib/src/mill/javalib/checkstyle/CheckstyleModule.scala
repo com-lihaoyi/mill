@@ -27,13 +27,12 @@ trait CheckstyleModule extends JavaModule {
   protected def checkstyle0(stdout: Boolean, leftover: mainargs.Leftover[String]) = Task.Anon {
 
     val output = checkstyleOutput().path
-    val cwd = moduleDir
     val args = checkstyleOptions() ++
-      Seq("-c", PathRef.toRelString(checkstyleConfig(), cwd)) ++
+      Seq("-c", PathRef.toRelString(checkstyleConfig(), moduleDir)) ++
       Seq("-f", checkstyleFormat()) ++
-      (if (stdout) Seq.empty else Seq("-o", PathRef.toRelString(output, cwd))) ++
+      (if (stdout) Seq.empty else Seq("-o", PathRef.toRelString(output, moduleDir))) ++
       (if (leftover.value.nonEmpty) leftover.value
-       else sources().map(p => PathRef.toRelString(p, cwd)))
+       else sources().map(p => PathRef.toRelString(p, moduleDir)))
     val jvmArgs = checkstyleLanguage()
       .map(lang => s"-Duser.language=$lang")
       .toSeq
@@ -45,7 +44,7 @@ trait CheckstyleModule extends JavaModule {
       mainClass = "com.puppycrawl.tools.checkstyle.Main",
       classPath = checkstyleClasspath().map(_.path).toVector,
       mainArgs = args,
-      cwd = cwd, // allow passing relative paths for sources like src/a/b
+      cwd = moduleDir, // allow passing relative paths for sources like src/a/b
       stdin = os.Inherit,
       stdout = os.Inherit,
       check = false,

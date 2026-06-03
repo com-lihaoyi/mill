@@ -38,8 +38,7 @@ object MillProcessLauncher {
       userPropsSeq ++
       Seq(
         mainClass,
-        // Daemon entry point reads `args[0]` with plain `java.nio.file.Paths.get(...)` and
-        // would resolve a `../mill-workspace/...` form against its own cwd. Pass absolute.
+        // `PathRef.toAbsString`: daemon entry point reads `args[0]` with plain Java path APIs.
         PathRef.toAbsString(processDir),
         outMode.asString,
         useFileLocks.toString
@@ -100,7 +99,7 @@ object MillProcessLauncher {
     val cmd = millLaunchJvmCommand(runnerClasspath, effectiveEnv, workDir, millRepositories) ++
       Seq(
         "mill.daemon.MillDaemonMain",
-        // Same reason as the no-daemon variant above: pass the daemon-dir arg as a real abs path.
+        // `PathRef.toAbsString`: daemon entry point reads `args[0]` with plain Java path APIs.
         PathRef.toAbsString(daemonDir),
         outMode.asString,
         useFileLocks.toString
@@ -398,8 +397,7 @@ object MillProcessLauncher {
 
   def getExecutablePath: String = {
     try
-      // Real absolute: code consuming `MILL_EXECUTABLE_PATH` typically does
-      // `os.Path(sys.env(...))`, which rejects a relativized string.
+      // `PathRef.toAbsString`: consumers typically do `os.Path(sys.env("MILL_EXECUTABLE_PATH"))`.
       PathRef.toAbsString(
         os.Path(getClass.getProtectionDomain.getCodeSource.getLocation.toURI)
       )

@@ -28,7 +28,7 @@ class MillServerLauncher(
 
   def run(daemonDir: os.Path, javaHome: Option[os.Path], log: String => Unit): Int = {
     os.makeDir.all(daemonDir)
-    // `Locks.forDirectory` opens a real file lock; pass it the on-disk path, not the alias.
+    // `PathRef.toAbsString`: `Locks.forDirectory` opens a real file lock.
     val locks = Locks.forDirectory(PathRef.toAbsString(daemonDir), useFileLocks)
     log(s"launchOrConnectToServer: $locks")
 

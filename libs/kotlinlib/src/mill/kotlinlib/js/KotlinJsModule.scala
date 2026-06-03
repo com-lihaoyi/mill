@@ -167,8 +167,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     runTarget match {
       case Some(RunTarget.Node) =>
-        // Node resolves the entrypoint relative to its process cwd; commands can run from the
-        // workspace root, where Mill's `out/mill-workspace` alias points back into the workspace.
+        // `PathRef.toAbsString`: Node resolves the entrypoint relative to its process cwd.
         val binaryPath = PathRef.toAbsString(binaryDir / s"$artifactId.${moduleKind.extension}")
         val processResult = os.call(
           cmd = Seq("node") ++ args.value ++ Seq(binaryPath),

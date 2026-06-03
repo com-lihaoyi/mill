@@ -26,7 +26,7 @@ object PathAliasing {
    */
   def workspaceEnvVars(workspace: os.Path = BuildCtx.workspaceRoot): Map[String, String] = {
     Map(
-      // Env vars cross process boundaries, so use a real path instead of a cwd-relative alias.
+      // `PathRef.toAbsString`: env vars cross process boundaries, so use a real path.
       EnvVars.MILL_WORKSPACE_ROOT -> PathRef.toAbsString(workspace),
       EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> workspaceRootPathRelativizerBase(workspace)
     )
@@ -111,7 +111,7 @@ object PathAliasing {
   private def pathRelativizerBase(mapping: Seq[(os.Path, os.RelPath)]): String =
     mapping
       .map { case (target, alias) =>
-        // The relativizer base itself must name the real target before giving its alias.
+        // `PathRef.toAbsString`: the relativizer base itself must name the real target.
         s"${PathRef.toAbsString(target)},$alias"
       }
       .mkString(";")

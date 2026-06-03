@@ -55,7 +55,7 @@ object MillMain0 {
    * concurrent Mill processes.
    */
   def outFileLock(out: os.Path): Lock =
-    // `Lock.file` opens a real file lock; the alias form would be resolved against the caller's cwd.
+    // `PathRef.toAbsString`: `Lock.file` opens a real file lock.
     Lock.file(PathRef.toAbsString(out / OutFiles.millOutLock))
 
   private[daemon] def useInProcessLauncherResources(

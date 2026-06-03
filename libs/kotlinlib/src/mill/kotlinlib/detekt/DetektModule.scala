@@ -21,12 +21,12 @@ trait DetektModule extends KotlinModule {
   }
 
   private def detekt0() = Task.Anon {
-    val cwd = moduleDir
     val inputRoots = sources().iterator.map(_.path).filter(os.exists).toSeq
-    val inputs = if (inputRoots.nonEmpty) inputRoots.map(PathRef.toRelString(_, cwd)).mkString(",")
-    else PathRef.toRelString(BuildCtx.workspaceRoot, cwd)
+    val inputs =
+      if (inputRoots.nonEmpty) inputRoots.map(PathRef.toRelString(_, moduleDir)).mkString(",")
+      else PathRef.toRelString(BuildCtx.workspaceRoot, moduleDir)
     val args = detektOptions() ++ Seq("-i", inputs) ++
-      Seq("-c", PathRef.toRelString(detektConfig(), cwd))
+      Seq("-c", PathRef.toRelString(detektConfig(), moduleDir))
 
     Task.log.info("running detekt ...")
     Task.log.debug(s"with $args")
@@ -36,7 +36,7 @@ trait DetektModule extends KotlinModule {
         mainClass = "io.gitlab.arturbosch.detekt.cli.Main",
         classPath = detektClasspath().map(_.path).toVector,
         mainArgs = args,
-        cwd = cwd, // allow passing relative paths for sources like src/a/b
+        cwd = moduleDir, // allow passing relative paths for sources like src/a/b
         stdin = os.Inherit,
         stdout = os.Inherit,
         check = false

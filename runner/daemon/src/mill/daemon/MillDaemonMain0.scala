@@ -61,7 +61,7 @@ object MillDaemonMain0 {
       val exitCode = MillDaemonMain0(
         daemonDir = args.daemonDir,
         acceptTimeout = acceptTimeout,
-        // `Locks.forDirectory` opens a real file lock; pass the canonical absolute path.
+        // `PathRef.toAbsString`: `Locks.forDirectory` opens a real file lock.
         Locks.forDirectory(PathRef.toAbsString(args.daemonDir), args.useFileLocks),
         outMode = args.outMode
       ).run().getOrElse(0)
