@@ -320,7 +320,7 @@ trait TestModule
     super.allForkEnv() ++ Map(
       EnvVars.MILL_TEST_RESOURCE_DIR -> resources().iterator
         .map { resourceDir =>
-          // `PathRef.toAbsString`: test code does `os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))`.
+          // Test code does `os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))`.
           PathRef.toAbsString(resourceDir)
         }
         .mkString(";")

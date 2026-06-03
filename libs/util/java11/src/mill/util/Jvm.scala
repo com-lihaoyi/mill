@@ -195,7 +195,7 @@ object Jvm {
   def jdkTool(toolName: String, javaHome: Option[os.Path]): String = {
     javaHome
       .map { home =>
-        // `PathRef.toAbsString`: ProcessBuilder executes this JDK tool directly, outside os-lib alias resolution.
+        // ProcessBuilder executes this JDK tool directly, outside os-lib alias resolution.
         PathRef.toAbsString(home)
       }
       .orElse(sys.props.get("java.home"))

@@ -167,7 +167,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     runTarget match {
       case Some(RunTarget.Node) =>
-        // `PathRef.toAbsString`: Node resolves the entrypoint relative to its process cwd.
+        // Node resolves the entrypoint relative to its process cwd.
         val binaryPath = PathRef.toAbsString(binaryDir / s"$artifactId.${moduleKind.extension}")
         val processResult = os.call(
           cmd = Seq("node") ++ args.value ++ Seq(binaryPath),
@@ -310,7 +310,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
 //    }
 
     val includeArgs = irClasspath.map { p =>
-      // `PathRef.toAbsString`: Kotlin/JS KLIB loading loses stdlib symbols with cwd aliases.
+      // Kotlin/JS KLIB loading loses stdlib symbols with cwd aliases.
       s"-Xinclude=${PathRef.toAbsString(p.path)}"
     }.toSeq
     val inputFiles = irClasspath.fold(allKotlinSourceFiles.map(_.path))(_ => Seq())
@@ -321,7 +321,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     val innerCompilerArgs = Seq.newBuilder[String]
     def kotlinJsLibraryPath(path: os.Path): String = {
-      // `PathRef.toAbsString`: same KLIB loader limitation as `includeArgs`.
+      // Same KLIB loader limitation as `includeArgs`.
       PathRef.toAbsString(path)
     }
     innerCompilerArgs ++= Seq(
@@ -372,7 +372,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // TODO if there is penalty for activating it in the compiler, put it behind configuration flag
     innerCompilerArgs += "-Xmulti-platform"
     def kotlinJsOutputPath(path: os.Path): String = {
-      // `PathRef.toAbsString`: Kotlin/JS linker can skip expected outputs with cwd-alias dirs.
+      // Kotlin/JS linker can skip expected outputs with cwd-alias dirs.
       PathRef.toAbsString(path)
     }
     val outputArgs = outputMode match {
@@ -566,11 +566,11 @@ trait KotlinJsModule extends KotlinModule { outer =>
         )
       }
       val sourceMapSupportPath = {
-        // `PathRef.toAbsString`: Mocha passes this to Node's cwd-sensitive module resolver.
+        // Mocha passes this to Node's cwd-sensitive module resolver.
         PathRef.toAbsString(sourceMapSupportModule().path)
       }
       val mochaPath = {
-        // `PathRef.toAbsString`: Mocha passes this to Node's cwd-sensitive module resolver.
+        // Mocha passes this to Node's cwd-sensitive module resolver.
         PathRef.toAbsString(mochaModule().path)
       }
       kotlinJsRunBinary(

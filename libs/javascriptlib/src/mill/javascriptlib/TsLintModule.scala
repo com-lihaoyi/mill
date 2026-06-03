@@ -72,7 +72,7 @@ trait TsLintModule extends Module {
         val cwd = BuildCtx.workspaceRoot
         os.symlink(cwd / "node_modules", npmInstallLint().path / "node_modules")
         val eslint = npmInstallLint().path / "node_modules/.bin/eslint"
-        // `PathRef.toAbsString`: Node resolves packages from the executable's real location.
+        // Node resolves packages from the executable's real location.
         val eslintCmd = PathRef.toAbsString(eslint)
         val logPath = npmInstallLint().path / "eslint.log"
         val result =
@@ -89,7 +89,7 @@ trait TsLintModule extends Module {
         // paths as `foo/src/foo.ts`. On reproducible mode `$cwd` would interpolate
         // to the relativized `../mill-workspace` form, but eslint emits real
         // absolute paths — match those.
-        // `PathRef.toAbsString`: Eslint diagnostics contain real paths, so normalize against one.
+        // Eslint diagnostics contain real paths, so normalize against one.
         val cwdAbs = PathRef.toAbsString(cwd)
         val replacements = Seq(
           s"$cwdAbs/" -> "",
@@ -126,7 +126,7 @@ trait TsLintModule extends Module {
         val cwd = BuildCtx.workspaceRoot
         os.symlink(cwd / "node_modules", npmInstallLint().path / "node_modules")
         val eslint = npmInstallLint().path / "node_modules/.bin/eslint"
-        // `PathRef.toAbsString`: Node resolves packages from the executable's real location.
+        // Node resolves packages from the executable's real location.
         val eslintCmd = PathRef.toAbsString(eslint)
         val logPath = npmInstallLint().path / "eslint.log"
 
@@ -159,7 +159,7 @@ trait TsLintModule extends Module {
       case Prettier =>
         val cwd = BuildCtx.workspaceRoot
         val prettier = npmInstallLint().path / "node_modules/.bin/prettier"
-        // `PathRef.toAbsString`: Node resolves packages from the executable's real location.
+        // Node resolves packages from the executable's real location.
         val prettierCmd = PathRef.toAbsString(prettier)
         val logPath = npmInstallLint().path / "prettier.log"
         val defaultArgs = if (args.value.isEmpty) Seq("*/**/*.ts") else args.value
@@ -203,7 +203,7 @@ trait TsLintModule extends Module {
       case Prettier =>
         val cwd = BuildCtx.workspaceRoot
         val prettier = npmInstallLint().path / "node_modules/.bin/prettier"
-        // `PathRef.toAbsString`: Node resolves packages from the executable's real location.
+        // Node resolves packages from the executable's real location.
         val prettierCmd = PathRef.toAbsString(prettier)
         val logPath = npmInstallLint().path / "prettier.log"
         val defaultArgs = if (args.value.isEmpty) Seq("*/**/*.ts") else args.value

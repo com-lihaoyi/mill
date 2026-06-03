@@ -118,7 +118,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         os.write.over(workerDir / "java-runtime-options", key.runtimeOptions.mkString("\n"))
 
         val mainClass = "mill.javalib.worker.MillJvmWorkerMain"
-        // `PathRef.toAbsString`: file locks open real files and do not go through os-lib alias resolution.
+        // File locks open real files and do not go through os-lib alias resolution.
         val daemonDirAbs = PathRef.toAbsString(daemonDir)
         val baseLocks = Locks.forDirectory(daemonDirAbs, useFileLocks)
         val locks = {

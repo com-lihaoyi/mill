@@ -167,7 +167,7 @@ final class TestModuleUtil(
         classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
         env = testEnv,
-        // `PathRef.toAbsString`: the forked test runner reads this args file via Java/NIO APIs.
+        // The forked test runner reads this args file via Java/NIO APIs.
         mainArgs = Seq(testRunnerClasspathArg, PathRef.toAbsString(argsFile)),
         cwd = cwd,
         cpPassingJarPath = Option.when(useArgsFile)(

@@ -103,7 +103,7 @@ trait KoverModule extends KotlinModule { outer =>
       val argsFile = koverDataDir().path / "kover-agent.args"
       val content =
         "report.file=" + {
-          // `PathRef.toAbsString`: the Java agent reads this path itself before Mill can install aliases.
+          // The Java agent reads this path itself before Mill can install aliases.
           PathRef.toAbsString(koverBinaryReport().path)
         }
       BuildCtx.withFilesystemCheckerDisabled {
@@ -112,10 +112,10 @@ trait KoverModule extends KotlinModule { outer =>
       super.forkArgs() ++
         Seq(
           "-javaagent:" + {
-            // `PathRef.toAbsString`: `-javaagent` is resolved by the JVM during startup, before Mill code runs.
+            // `-javaagent` is resolved by the JVM during startup, before Mill code runs.
             PathRef.toAbsString(koverAgentJar().path)
           } + "=file:" + {
-            // `PathRef.toAbsString`: the agent receives this args-file URI and opens it outside os-lib aliases.
+            // The agent receives this args-file URI and opens it outside os-lib aliases.
             PathRef.toAbsString(argsFile)
           }
         )

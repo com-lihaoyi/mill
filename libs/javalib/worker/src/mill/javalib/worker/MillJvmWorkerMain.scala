@@ -42,7 +42,7 @@ object MillJvmWorkerMain {
       extends Server[JvmWorkerServerData, Unit](Server.Args(
         daemonDir,
         acceptTimeout = None, // The worker kills the process when it needs to.
-        // `PathRef.toAbsString`: file locks need a real on-disk path — opened directly via NIO without
+        // File locks need a real on-disk path — opened directly via NIO without
         // going through the os-lib alias resolver.
         Locks.forDirectory(PathRef.toAbsString(daemonDir), useFileLocks),
         bufferSize = 4 * 1024

@@ -104,7 +104,7 @@ trait AndroidSdkManagerModule extends ExternalModule {
     os.proc(
       args
     ).pipeTo(os.proc(
-      // `PathRef.toAbsString`: ProcessBuilder executes sdkmanager directly; cwd aliases are not enough.
+      // ProcessBuilder executes sdkmanager directly; cwd aliases are not enough.
       PathRef.toAbsString(sdkManagerExePath),
       "--licenses"
     )).call(stdout = os.Pipe)
@@ -405,7 +405,7 @@ trait AndroidSdkManagerModule extends ExternalModule {
   ): CommandResult = {
     os.call(
       cmd = Seq(
-        // `PathRef.toAbsString`: ProcessBuilder executes sdkmanager directly; it cannot rely on path aliases.
+        // ProcessBuilder executes sdkmanager directly; it cannot rely on path aliases.
         PathRef.toAbsString(sdkmanagerExe),
         "--install"
       ) ++ packages,

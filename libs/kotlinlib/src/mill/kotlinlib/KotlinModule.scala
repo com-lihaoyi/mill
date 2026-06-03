@@ -350,7 +350,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
           // classpath
           when(compileCpPaths.iterator.nonEmpty)(
             "-classpath",
-            // `PathRef.toAbsString`: the in-process Kotlin compiler resolves classpath entries
+            // The in-process Kotlin compiler resolves classpath entries
             // outside Mill's subprocess cwd aliases.
             compileCpPaths.iterator.map(PathRef.toAbsString).mkString(File.pathSeparator)
           ),
@@ -460,7 +460,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       Seq.empty[String]
     } else {
       val compilations = Task.traverse(kotlinFriendModulesChecked) { friend => friend.compile }()
-      // `PathRef.toAbsString`: the in-process Kotlin compiler compares friend outputs against
+      // The in-process Kotlin compiler compares friend outputs against
       // resolved classpath entries.
       Seq(compilations.map(c => PathRef.toAbsString(c.classes.path)).mkString(
         "-Xfriend-paths=",

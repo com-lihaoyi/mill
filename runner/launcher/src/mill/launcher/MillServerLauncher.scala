@@ -28,7 +28,7 @@ class MillServerLauncher(
 
   def run(daemonDir: os.Path, javaHome: Option[os.Path], log: String => Unit): Int = {
     os.makeDir.all(daemonDir)
-    // `PathRef.toAbsString`: `Locks.forDirectory` opens a real file lock.
+    // `Locks.forDirectory` opens a real file lock.
     val locks = Locks.forDirectory(PathRef.toAbsString(daemonDir), useFileLocks)
     log(s"launchOrConnectToServer: $locks")
 

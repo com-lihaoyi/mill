@@ -94,7 +94,7 @@ object VisualizeModule extends ExternalModule {
           mill.util.Jvm.callProcess(
             mainClass = "mill.graphviz.VisualizeWorkerMain",
             classPath = toolsClasspath.map(_.path).toVector,
-            // `PathRef.toAbsString`: the worker constructs `os.Path` from these argv strings.
+            // The worker constructs `os.Path` from these argv strings.
             mainArgs = Seq(PathRef.toAbsString(payloadPath), PathRef.toAbsString(ctx.dest)),
             stdin = os.Inherit,
             stdout = os.Inherit
@@ -191,7 +191,7 @@ object VisualizeModule extends ExternalModule {
             val spawned = mill.util.Jvm.spawnProcess(
               mainClass = "mill.graphviz.VisualizeWorkerMain",
               classPath = workerToolsClasspath.map(_.path).toVector,
-              // `PathRef.toAbsString`: the worker constructs `os.Path` from these argv strings.
+              // The worker constructs `os.Path` from these argv strings.
               mainArgs = Seq(PathRef.toAbsString(payloadPath), PathRef.toAbsString(dest)),
               stdin = os.Inherit,
               stdout = os.Inherit,

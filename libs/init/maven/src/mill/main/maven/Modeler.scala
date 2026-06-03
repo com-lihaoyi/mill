@@ -73,7 +73,7 @@ object Modeler {
   }
 
   def defaultLocalRepository: LocalRepository =
-    // `PathRef.toAbsFile`: Maven's repository layer stores this path string verbatim and resolves
+    // Maven's repository layer stores this path string verbatim and resolves
     // it later from arbitrary cwds.
     LocalRepository(PathRef.toAbsFile(os.home / ".m2/repository"))
 
@@ -87,7 +87,7 @@ object Modeler {
     val props = Properties()
     System.getenv().forEach((k, v) => props.put(s"env.$k", v))
     System.getProperties.forEach((k, v) => props.put(k, v))
-    // `PathRef.toAbsString`: Maven reads this property and uses it for relative path resolution.
+    // Maven reads this property and uses it for relative path resolution.
     props.put("maven.multiModuleProjectDirectory", PathRef.toAbsString(mvnWorkspace))
     props
   }
