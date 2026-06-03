@@ -4,6 +4,7 @@ import mill.api.{BuildCtx, PathRef}
 import mill.constants.{DaemonFiles, EnvVars, OutFiles}
 
 import java.nio.file.{Files, LinkOption}
+import scala.jdk.CollectionConverters.*
 
 object PathAliasing {
   val workspaceAlias = "../mill-workspace"
@@ -35,18 +36,17 @@ object PathAliasing {
   def workspacePathRelativizerBase(workspace: os.Path = BuildCtx.workspaceRoot): String =
     pathRelativizerBase(defaultMapping(workspace))
 
-  def workspaceRootPathRelativizerBase(workspace: os.Path = BuildCtx.workspaceRoot): String =
+  def workspaceRootPathRelativizerBase(workspace: os.Path = BuildCtx.workspaceRoot): String = {
+    val prefix = relativePath(workspace, regularOutputRoot(workspace))
     pathRelativizerBase(Seq(
-      workspace -> (os.rel / "out" / "mill-workspace"),
-      os.home -> (os.rel / "out" / "mill-home")
+      workspace -> (prefix / "mill-workspace"),
+      os.home -> (prefix / "mill-home")
     ))
+  }
 
   private def isWorkspaceRootCwd(cwd: os.Path, workspace: os.Path): Boolean =
     // Compare real on-disk paths, since serialized paths may be cwd-relative aliases.
     cwd != null && PathRef.toAbsNioPath(cwd) == PathRef.toAbsNioPath(workspace)
-
-  private def ups(count: Int): os.RelPath =
-    Iterator.fill(count)(os.up).foldLeft(os.rel)(_ / _)
 
   private def outputRoots(workspace: os.Path): Seq[os.Path] = {
     val env = System.getenv()
@@ -63,6 +63,27 @@ object PathAliasing {
       .sortBy(path => -path.segments.length)
   }
 
+  private def regularOutputRoot(workspace: os.Path): os.Path = {
+    val env = System.getenv()
+    os.Path(
+      Option(env.get(EnvVars.MILL_OUTPUT_DIR))
+        .filter(_.nonEmpty)
+        .getOrElse(OutFiles.OutFiles.defaultOut),
+      workspace
+    )
+  }
+
+  private def relativePath(from: os.Path, to: os.Path): os.RelPath = {
+    val rel = from.wrapped.toAbsolutePath.normalize().relativize(to.wrapped.toAbsolutePath.normalize())
+    rel.iterator().asScala.foldLeft(os.rel) { (acc, segment) =>
+      segment.toString match {
+        case "." => acc
+        case ".." => acc / os.up
+        case s => acc / s
+      }
+    }
+  }
+
   private def outputRootSegments(cwd: os.Path, workspace: os.Path): Option[Seq[String]] =
     outputRoots(workspace).collectFirst {
       case out if cwd.startsWith(out) => cwd.relativeTo(out).segments
@@ -72,11 +93,7 @@ object PathAliasing {
     outputRootSegments(cwd, workspace).flatMap { segments =>
       segments.lastIndexWhere(_.endsWith(".dest")) match {
         case -1 => None
-        case destIndex
-            if segments.length == destIndex + 2 &&
-              segments.last == DaemonFiles.sandbox =>
-          Some(os.up)
-        case destIndex => Some(ups(segments.length - destIndex))
+        case _ => Some(os.up)
       }
     }
   }
@@ -94,19 +111,41 @@ object PathAliasing {
   }
 
   private def aliasPrefixForCwd(cwd: os.Path, workspace: os.Path): Option[os.RelPath] =
-    if (isWorkspaceRootCwd(cwd, workspace)) Some(os.rel / "out")
+    if (isWorkspaceRootCwd(cwd, workspace))
+      Some(relativePath(workspace, regularOutputRoot(workspace)))
     else millRunSandboxAliasPrefix(cwd, workspace).orElse(taskDestAliasPrefix(cwd, workspace))
 
   def aliasMappingForCwd(
       cwd: os.Path,
       workspace: os.Path = BuildCtx.workspaceRoot
-  ): Seq[(os.Path, os.RelPath)] =
-    aliasPrefixForCwd(cwd, workspace).toSeq.flatMap { prefix =>
-      Seq(
-        workspace -> (prefix / "mill-workspace"),
-        os.home -> (prefix / "mill-home")
+  ): Seq[(os.Path, os.RelPath)] = {
+    val cwdCandidates = Seq(cwd, PathRef.toResolvedOsPathAnchored(cwd, workspace)).distinct
+    cwdCandidates.iterator.flatMap(aliasPrefixForCwd(_, workspace)).toSeq.headOption.toSeq.flatMap {
+      prefix =>
+      val workspaceAlias = prefix / "mill-workspace"
+      val homeAlias = prefix / "mill-home"
+      val currentCwdForwarders = cwdCandidates.flatMap { cwd0 =>
+        aliasPrefixForCwd(cwd0, workspace).filter(_ == prefix).toSeq.flatMap { _ =>
+          val parent = cwd0 / prefix
+          Seq(
+            // Prefer already-aliased paths over the real workspace/home mappings below. A
+            // subprocess may parse `../mill-workspace/...` into a lexical path under the symlink
+            // location; without these entries it would be rendered as
+            // `../mill-workspace/out/.../mill-workspace/...`.
+            parent / "mill-workspace" -> workspaceAlias,
+            parent / "mill-home" -> homeAlias
+          )
+        }
+      }
+      val roots = Seq(
+        workspace -> workspaceAlias,
+        os.home -> homeAlias
       )
+      (currentCwdForwarders ++ roots)
+        .distinct
+        .sortBy { case (root, _) => -root.segments.length }
     }
+  }
 
   private def pathRelativizerBase(mapping: Seq[(os.Path, os.RelPath)]): String =
     mapping
@@ -207,14 +246,13 @@ object PathAliasing {
 
   /**
    * Install the `mill-workspace` / `mill-home` forwarder symlinks for a process whose cwd is
-   * `cwd`. The aliases live outside the cwd: normally in its parent, but for cwd values under a
-   * task `.dest` directory, in the containing `.dest` directory's parent. That keeps tools which
+   * `cwd`. The aliases live outside the cwd, normally in its parent. That keeps tools which
    * walk/archive their own working directory (`jar -c .`, `tar`, `os.walk`) from seeing aliases
-   * while still letting nested cwd values resolve paths like `../../../mill-workspace/...`.
+   * while still letting subprocess cwd values resolve paths like `../mill-workspace/...`.
    *
    * The exception is a subprocess spawned directly at the workspace root. In that case, the
-   * path relativizer needs `out/mill-workspace` / `out/mill-home`, so put the forwarders there
-   * instead of outside the workspace.
+   * path relativizer needs aliases under the configured Mill output directory, so put the
+   * forwarders there instead of outside the workspace.
    */
   def ensureProcessCwdAliases(
       cwd: os.Path,

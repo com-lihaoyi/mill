@@ -165,6 +165,15 @@ object Jvm {
     val processEnv =
       env ++ Option.when(pathRelativization)(PathAliasing.workspaceEnvVarsForCwd(effectiveCwd))
         .getOrElse(Map.empty)
+    if (processEnv.contains(EnvVars.MILL_TEST_RESOURCE_DIR)) {
+      mill.constants.DebugLog.println(
+        s"""spawnProcess cwd=${effectiveCwd.wrapped.toAbsolutePath.normalize()}
+           |workspaceRoot=${BuildCtx.workspaceRoot.wrapped.toAbsolutePath.normalize()}
+           |MILL_TEST_RESOURCE_DIR=${processEnv.getOrElse(EnvVars.MILL_TEST_RESOURCE_DIR, "")}
+           |OS_LIB_PATH_RELATIVIZER_BASE=${processEnv.getOrElse(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE, "")}
+           |""".stripMargin
+      )
+    }
 
     val commandArgs = buildJvmCommand(
       mainClass,

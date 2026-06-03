@@ -84,9 +84,22 @@ object PathRef {
     catch { case _: java.io.IOException => p }
 
   /**
+   * Resolve symlinks in `p`, then translate the result back under `root` when it points inside
+   * the same real directory tree. This strips internal forwarder symlinks while preserving the
+   * lexical workspace root used by Mill's path aliases.
+   */
+  private[mill] def toResolvedOsPathAnchored(p: os.Path, root: os.Path): os.Path = {
+    val resolvedPath = toResolvedOsPath(p)
+    val resolvedRoot = toResolvedOsPath(root)
+    if (resolvedPath.startsWith(resolvedRoot)) root / resolvedPath.subRelativeTo(resolvedRoot)
+    else p
+  }
+
+  /**
    * Format `path` as a string for a Mill subprocess whose working directory is `subprocessCwd`.
-   * Subprocesses at the workspace root use `out/mill-workspace` and `out/mill-home`; subprocesses
-   * in task sandboxes use the historical `../mill-workspace` and `../mill-home` aliases.
+   * Subprocesses at the workspace root use aliases under the configured output directory;
+   * subprocesses in task sandboxes use the historical `../mill-workspace` and `../mill-home`
+   * aliases.
    */
   def toRelString(
       path: os.Path,

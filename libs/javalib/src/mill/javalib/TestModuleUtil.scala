@@ -159,10 +159,18 @@ final class TestModuleUtil(
 
     val proc = BuildCtx.withFilesystemCheckerDisabled {
       val inheritedEnv = if (propagateEnv) Task.env else Map.empty[String, String]
-      val cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir
+      val cwd = PathRef.toResolvedOsPathAnchored(
+        if (testSandboxWorkingDir) sandbox else forkWorkingDir,
+        BuildCtx.workspaceRoot
+      )
       val testResourceEnv = Map(
         EnvVars.MILL_TEST_RESOURCE_DIR -> resources.iterator
-          .map(resourceDir => PathRef.toRelString(resourceDir.path, cwd))
+          .map(resourceDir =>
+            PathRef.toRelString(
+              PathRef.toResolvedOsPathAnchored(resourceDir.path, BuildCtx.workspaceRoot),
+              cwd
+            )
+          )
           .mkString(";")
       )
       val testEnv = inheritedEnv ++ forkEnv ++ testResourceEnv
