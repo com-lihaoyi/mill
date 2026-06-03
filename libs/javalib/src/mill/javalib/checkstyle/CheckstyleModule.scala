@@ -32,7 +32,8 @@ trait CheckstyleModule extends JavaModule {
       Seq("-c", PathRef.toRelString(checkstyleConfig(), cwd)) ++
       Seq("-f", checkstyleFormat()) ++
       (if (stdout) Seq.empty else Seq("-o", PathRef.toRelString(output, cwd))) ++
-      (if (leftover.value.nonEmpty) leftover.value else sources().map(p => PathRef.toRelString(p, cwd)))
+      (if (leftover.value.nonEmpty) leftover.value
+       else sources().map(p => PathRef.toRelString(p, cwd)))
     val jvmArgs = checkstyleLanguage()
       .map(lang => s"-Duser.language=$lang")
       .toSeq

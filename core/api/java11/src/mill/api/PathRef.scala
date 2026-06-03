@@ -2,6 +2,7 @@ package mill.api
 
 import mill.api.daemon.DummyOutputStream
 import mill.api.daemon.internal.PathRefApi
+import mill.api.internal.PathAliasing
 import upickle.ReadWriter as RW
 
 import java.nio.file as jnio
@@ -92,18 +93,7 @@ object PathRef {
       subprocessCwd: os.Path,
       workspaceRoot: os.Path = BuildCtx.workspaceRoot
   ): String = {
-    val mappings =
-      if (
-        subprocessCwd != null &&
-        toAbsNioPath(subprocessCwd) == toAbsNioPath(workspaceRoot)
-      ) Seq(
-        workspaceRoot -> (os.rel / "out" / "mill-workspace"),
-        os.home -> (os.rel / "out" / "mill-home")
-      )
-      else Seq(
-        workspaceRoot -> (os.up / "mill-workspace"),
-        os.home -> (os.up / "mill-home")
-      )
+    val mappings = PathAliasing.aliasMappingForCwd(subprocessCwd, workspaceRoot)
 
     mappings
       .collectFirst {

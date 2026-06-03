@@ -5,6 +5,7 @@ import utest.*
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermissions
 import scala.util.Properties
+import mill.api.JsonFormatters.*
 
 object PathRefTests extends TestSuite {
   val tests: Tests = Tests {
@@ -106,6 +107,86 @@ object PathRefTests extends TestSuite {
 
       test("qref") - check(quick = true)
       test("ref") - check(quick = false)
+    }
+
+    test("toRelStringUsesAliasesForSubprocessCwd") - withTmpDir { workspace =>
+      val homePath = os.home / "cache" / "dep.jar"
+      val workspacePath = workspace / "foo" / "src" / "Main.java"
+
+      assert(
+        PathRef.toRelString(
+          workspacePath,
+          workspace,
+          workspace
+        ) == "out/mill-workspace/foo/src/Main.java",
+        PathRef.toRelString(homePath, workspace, workspace) == "out/mill-home/cache/dep.jar"
+      )
+
+      val taskDest = workspace / "out" / "foo" / "run.dest"
+      assert(
+        PathRef.toRelString(
+          workspacePath,
+          taskDest,
+          workspace
+        ) == "../mill-workspace/foo/src/Main.java",
+        PathRef.toRelString(homePath, taskDest, workspace) == "../mill-home/cache/dep.jar"
+      )
+
+      val nestedCwd = taskDest / "sub" / "dir"
+      assert(
+        PathRef.toRelString(
+          workspacePath,
+          nestedCwd,
+          workspace
+        ) == "../../../mill-workspace/foo/src/Main.java",
+        PathRef.toRelString(homePath, nestedCwd, workspace) == "../../../mill-home/cache/dep.jar"
+      )
+
+      val sourceCwd = workspace / "foo"
+      assert(
+        PathRef.toRelString(
+          workspacePath,
+          sourceCwd,
+          workspace
+        ) == PathRef.toAbsString(workspacePath),
+        PathRef.toRelString(homePath, sourceCwd, workspace) == PathRef.toAbsString(homePath)
+      )
+    }
+
+    test("osPathJsonUsesActivePathSerializer") - withTmpDir { workspace =>
+      val file = workspace / "out" / "compile.dest" / "zinc"
+
+      object WorkspaceAliasSerializer extends os.Path.Serializer {
+        private def toRelWorkspacePath(p: os.Path): String =
+          if (p.startsWith(workspace))
+            (os.up / "mill-workspace" / p.subRelativeTo(workspace)).toString
+          else p.wrapped.toString
+
+        private def deserializeString(s: String): java.nio.file.Path =
+          if (s == "../mill-workspace") workspace.wrapped
+          else if (s.startsWith("../mill-workspace/")) {
+            (workspace / os.RelPath(s.stripPrefix("../mill-workspace/"))).wrapped
+          } else os.Path.defaultPathSerializer.deserialize(s)
+
+        def serializeString(p: os.Path): String = toRelWorkspacePath(p)
+        def serializeFile(p: os.Path): java.io.File = java.io.File(toRelWorkspacePath(p))
+        def serializePath(p: os.Path): java.nio.file.Path =
+          java.nio.file.Paths.get(toRelWorkspacePath(p))
+        def deserialize(s: String): java.nio.file.Path = deserializeString(s)
+        def deserialize(s: java.io.File): java.nio.file.Path = deserializeString(s.toString)
+        def deserialize(s: java.nio.file.Path): java.nio.file.Path = deserializeString(s.toString)
+        def deserialize(s: java.net.URI): java.nio.file.Path =
+          os.Path.defaultPathSerializer.deserialize(s)
+      }
+
+      os.Path.pathSerializer.withValue(WorkspaceAliasSerializer) {
+        val json = upickle.write(file)
+        val decoded = upickle.read[os.Path](json)
+        assert(
+          json == "\"../mill-workspace/out/compile.dest/zinc\"",
+          decoded == file
+        )
+      }
     }
   }
 

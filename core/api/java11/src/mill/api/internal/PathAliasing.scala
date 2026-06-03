@@ -41,12 +41,43 @@ object PathAliasing {
   private def isWorkspaceRootCwd(cwd: os.Path, workspace: os.Path): Boolean =
     cwd != null && PathRef.toAbsNioPath(cwd) == PathRef.toAbsNioPath(workspace)
 
+  private def ups(count: Int): os.RelPath =
+    Iterator.fill(count)(os.up).foldLeft(os.rel)(_ / _)
+
+  private def taskDestAliasPrefix(cwd: os.Path, workspace: os.Path): Option[os.RelPath] = {
+    val out = workspace / "out"
+    if (!cwd.startsWith(out)) None
+    else {
+      val segments = cwd.relativeTo(out).segments
+      segments.indexWhere(_.endsWith(".dest")) match {
+        case -1 => None
+        case destIndex => Some(ups(segments.length - destIndex))
+      }
+    }
+  }
+
+  private def aliasPrefixForCwd(cwd: os.Path, workspace: os.Path): Option[os.RelPath] =
+    if (isWorkspaceRootCwd(cwd, workspace)) Some(os.rel / "out")
+    else taskDestAliasPrefix(cwd, workspace)
+
+  def aliasMappingForCwd(
+      cwd: os.Path,
+      workspace: os.Path = BuildCtx.workspaceRoot
+  ): Seq[(os.Path, os.RelPath)] =
+    aliasPrefixForCwd(cwd, workspace).toSeq.flatMap { prefix =>
+      Seq(
+        workspace -> (prefix / "mill-workspace"),
+        os.home -> (prefix / "mill-home")
+      )
+    }
+
   def pathRelativizerBaseForCwd(
       cwd: os.Path,
       workspace: os.Path = BuildCtx.workspaceRoot
   ): String =
-    if (isWorkspaceRootCwd(cwd, workspace)) workspaceRootPathRelativizerBase(workspace)
-    else workspacePathRelativizerBase(workspace)
+    aliasMappingForCwd(cwd, workspace)
+      .map { case (target, alias) => s"${PathRef.toAbsString(target)},$alias" }
+      .mkString(";")
 
   def workspaceEnvVarsForCwd(
       cwd: os.Path,
@@ -132,9 +163,11 @@ object PathAliasing {
   }
 
   /**
-   * Install the `../mill-workspace` / `../mill-home` forwarder symlinks for a process whose cwd is
-   * `cwd`. The aliases live in `cwd`'s *parent*, never inside `cwd` itself, so that a tool which
-   * walks/archives its own working directory (`jar -c .`, `tar`, `os.walk`) does not see them.
+   * Install the `mill-workspace` / `mill-home` forwarder symlinks for a process whose cwd is
+   * `cwd`. The aliases live outside the cwd: normally in its parent, but for cwd values under a
+   * task `.dest` directory, in the containing `.dest` directory's parent. That keeps tools which
+   * walk/archive their own working directory (`jar -c .`, `tar`, `os.walk`) from seeing aliases
+   * while still letting nested cwd values resolve paths like `../../../mill-workspace/...`.
    *
    * The exception is a subprocess spawned directly at the workspace root. In that case, the
    * path relativizer needs `out/mill-workspace` / `out/mill-home`, so put the forwarders there
@@ -146,14 +179,19 @@ object PathAliasing {
   ): Unit = {
     if (cwd == null) return
     val workspace0 = workspace
-    val parent = if (isWorkspaceRootCwd(cwd, workspace0)) cwd / "out" else cwd / os.up
-    val parentNio = parent.toNIO
-    val linkOpts = LinkOption.NOFOLLOW_LINKS
-    // The enclosing dir is not actually a directory; cannot host the aliases (best-effort).
-    if (Files.exists(parentNio, linkOpts) && !Files.isDirectory(parentNio, linkOpts)) return
-    BuildCtx.withFilesystemCheckerDisabled {
-      os.makeDir.all(parent)
-      for ((target, alias) <- defaultMapping(workspace0)) ensureSymlink(parent / alias.last, target)
+    aliasPrefixForCwd(cwd, workspace0) match {
+      case None =>
+      case Some(prefix) =>
+        val parent = cwd / prefix
+        val parentNio = parent.toNIO
+        val linkOpts = LinkOption.NOFOLLOW_LINKS
+        // The enclosing dir is not actually a directory; cannot host the aliases (best-effort).
+        if (Files.exists(parentNio, linkOpts) && !Files.isDirectory(parentNio, linkOpts)) return
+        BuildCtx.withFilesystemCheckerDisabled {
+          os.makeDir.all(parent)
+          for ((target, alias) <- defaultMapping(workspace0))
+            ensureSymlink(parent / alias.last, target)
+        }
     }
   }
 }

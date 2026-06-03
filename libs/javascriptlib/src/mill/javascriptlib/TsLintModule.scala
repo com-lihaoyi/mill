@@ -72,7 +72,7 @@ trait TsLintModule extends Module {
         val cwd = BuildCtx.workspaceRoot
         os.symlink(cwd / "node_modules", npmInstallLint().path / "node_modules")
         val eslint = npmInstallLint().path / "node_modules/.bin/eslint"
-        val eslintCmd = PathRef.toRelString(eslint, cwd)
+        val eslintCmd = PathRef.toAbsString(eslint)
         val logPath = npmInstallLint().path / "eslint.log"
         val result =
           Try {
@@ -124,7 +124,7 @@ trait TsLintModule extends Module {
         val cwd = BuildCtx.workspaceRoot
         os.symlink(cwd / "node_modules", npmInstallLint().path / "node_modules")
         val eslint = npmInstallLint().path / "node_modules/.bin/eslint"
-        val eslintCmd = PathRef.toRelString(eslint, cwd)
+        val eslintCmd = PathRef.toAbsString(eslint)
         val logPath = npmInstallLint().path / "eslint.log"
 
         val result =
@@ -156,7 +156,7 @@ trait TsLintModule extends Module {
       case Prettier =>
         val cwd = BuildCtx.workspaceRoot
         val prettier = npmInstallLint().path / "node_modules/.bin/prettier"
-        val prettierCmd = PathRef.toRelString(prettier, cwd)
+        val prettierCmd = PathRef.toAbsString(prettier)
         val logPath = npmInstallLint().path / "prettier.log"
         val defaultArgs = if (args.value.isEmpty) Seq("*/**/*.ts") else args.value
         val userPrettierIgnore = os.exists(cwd / ".prettierignore")
@@ -199,7 +199,7 @@ trait TsLintModule extends Module {
       case Prettier =>
         val cwd = BuildCtx.workspaceRoot
         val prettier = npmInstallLint().path / "node_modules/.bin/prettier"
-        val prettierCmd = PathRef.toRelString(prettier, cwd)
+        val prettierCmd = PathRef.toAbsString(prettier)
         val logPath = npmInstallLint().path / "prettier.log"
         val defaultArgs = if (args.value.isEmpty) Seq("*/**/*.ts") else args.value
         val userPrettierIgnore = os.exists(cwd / ".prettierignore")

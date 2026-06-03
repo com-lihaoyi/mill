@@ -7,6 +7,7 @@ import mill.util.Jvm
 import mill.api.TaskCtx
 import mill.javalib.JavaHomeModule
 import mill.api.BuildCtx
+import mill.api.internal.PathAliasing
 
 trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule { outer =>
 
@@ -150,7 +151,7 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
       command0 = pythonExe().path,
       options = pythonOptions(),
       env0 = runnerEnvTask(),
-      forkEnv0 = forkEnv(),
+      forkEnv0 = PathAliasing.withRawPathSerializer(forkEnv()),
       workingDir0 = Task.dest
     )
   }

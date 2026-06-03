@@ -631,18 +631,21 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val name = androidVirtualDevice().name
     val deviceId = androidVirtualDevice().deviceId
     val cwd = Task.dest
-    val command = os.call((
-      PathRef.toRelString(androidSdkModule().avdmanagerExe(), cwd),
-      "create",
-      "avd",
-      "--name",
-      name,
-      "--package",
-      sdkInstallSystemImage(),
-      "--device",
-      deviceId,
-      "--force"
-    ), cwd = cwd)
+    val command = os.call(
+      (
+        PathRef.toRelString(androidSdkModule().avdmanagerExe(), cwd),
+        "create",
+        "avd",
+        "--name",
+        name,
+        "--package",
+        sdkInstallSystemImage(),
+        "--device",
+        deviceId,
+        "--force"
+      ),
+      cwd = cwd
+    )
     if (command.exitCode != 0) {
       Task.log.error(s"Failed to create android virtual device: ${command.err.text()}")
       throw Exception(s"Failed to create android virtual device: ${command.exitCode}")

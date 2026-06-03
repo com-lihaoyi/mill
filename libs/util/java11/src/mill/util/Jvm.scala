@@ -135,6 +135,47 @@ object Jvm {
    *                            to gracefully terminate before attempting to forcibly kill it
    *                            (-1 for no kill, 0 for always kill immediately)
    * @param destroyOnExit Destroy on JVM exit
+   */
+  def spawnProcess(
+      mainClass: String,
+      mainArgs: os.Shellable,
+      javaHome: Option[os.Path],
+      jvmArgs: os.Shellable,
+      classPath: Iterable[os.Path],
+      cpPassingJarPath: Option[os.Path],
+      env: Map[String, String],
+      propagateEnv: Boolean,
+      cwd: os.Path,
+      stdin: os.ProcessInput,
+      stdout: os.ProcessOutput,
+      stderr: os.ProcessOutput,
+      mergeErrIntoOut: Boolean,
+      shutdownGracePeriod: Long,
+      destroyOnExit: Boolean
+  ): os.SubProcess =
+    spawnProcess(
+      mainClass = mainClass,
+      mainArgs = mainArgs,
+      javaHome = javaHome,
+      jvmArgs = jvmArgs,
+      classPath = classPath,
+      cpPassingJarPath = cpPassingJarPath,
+      env = env,
+      propagateEnv = propagateEnv,
+      cwd = cwd,
+      stdin = stdin,
+      stdout = stdout,
+      stderr = stderr,
+      mergeErrIntoOut = mergeErrIntoOut,
+      shutdownGracePeriod = shutdownGracePeriod,
+      destroyOnExit = destroyOnExit,
+      pathRelativization = true
+    )
+
+  /**
+   * Runs a JVM subprocess with the given configuration and streams
+   * it's stdout and stderr to the console.
+   *
    * @param pathRelativization If `true`, child `os.Path` serialization uses Mill's workspace aliases
    */
   def spawnProcess(

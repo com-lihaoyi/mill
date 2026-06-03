@@ -372,9 +372,17 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // entrypoint missing from `linkBinary.dest/binaries`; pass real output dirs to the linker.
     val outputArgs = outputMode match {
       case OutputMode.KlibFile =>
-        Seq("-Xir-produce-klib-file", "-ir-output-dir", PathRef.toAbsString(destinationRoot / "libs"))
+        Seq(
+          "-Xir-produce-klib-file",
+          "-ir-output-dir",
+          PathRef.toAbsString(destinationRoot / "libs")
+        )
       case OutputMode.KlibDir =>
-        Seq("-Xir-produce-klib-dir", "-ir-output-dir", PathRef.toAbsString(destinationRoot / "classes"))
+        Seq(
+          "-Xir-produce-klib-dir",
+          "-ir-output-dir",
+          PathRef.toAbsString(destinationRoot / "classes")
+        )
       case OutputMode.Js =>
         Seq("-Xir-produce-js", "-ir-output-dir", PathRef.toAbsString(destinationRoot / "binaries"))
     }
