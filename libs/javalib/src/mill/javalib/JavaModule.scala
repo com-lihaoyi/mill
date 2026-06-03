@@ -944,8 +944,7 @@ trait JavaModule
   def allSourceFiles: T[Seq[PathRef]] = Task {
     val allSources0 = allSources() ++ wrappedSources().map(_.generated)
     val toExclude = wrappedSources().map(_.original.path)
-    Lib.findSourceFiles(allSources0, sourceFileExtensions)
-      .filterNot(toExclude.contains)
+    Lib.findSourceFilesExcluding(allSources0, sourceFileExtensions, toExclude)
       .map(PathRef(_))
   }
 
@@ -1662,9 +1661,14 @@ trait JavaModule
   def sanitizeUri(uri: String): String =
     if (uri.endsWith("/")) sanitizeUri(uri.substring(0, uri.length - 1)) else uri
 
-  // `.wrapped.toUri`, not `.toURI`: BSP clients need absolute `file://` URIs, but in
-  // reproducible-build mode `os.Path.toURI` relativizes and resolves wrongly against the daemon cwd.
-  def sanitizeUri(uri: os.Path): String = sanitizeUri(uri.wrapped.toUri.toString)
+  // Resolve symlink aliases before `.wrapped.toUri`: BSP clients need stable absolute `file://`
+  // URIs, but reproducible-build path aliases can route paths through `mill-home`/`mill-workspace`
+  // symlinks inside the output directory.
+  def sanitizeUri(uri: os.Path): String = {
+    val anchored = PathRef.toResolvedOsPathAnchored(uri, BuildCtx.workspaceRoot)
+    val path = if (anchored == uri) PathRef.toResolvedOsPath(uri) else anchored
+    sanitizeUri(path.wrapped.toUri.toString)
+  }
 
   def sanitizeUri(uri: PathRef): String = sanitizeUri(uri.path)
 

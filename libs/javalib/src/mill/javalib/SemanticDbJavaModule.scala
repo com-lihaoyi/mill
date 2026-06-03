@@ -267,6 +267,7 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
         .getOrElse {
           sys.error(s"Cannot get original source from generated source $generatedSource")
         }
+      val anchoredSource = PathRef.toResolvedOsPathAnchored(source, sourceroot)
 
       val firstLineIdx = generatedSourceLines.indexWhere(_.startsWith(userCodeStartMarker)) + 1
 
@@ -279,15 +280,15 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
           .get
           .invoke(
             null,
-            os.read(source),
-            source.relativeTo(sourceroot),
+            os.read(anchoredSource),
+            anchoredSource.relativeTo(sourceroot),
             (lineIdx: Int) => Some(lineIdx - firstLineIdx).filter(_ >= 0),
             generatedSourceSemdb
           ).asInstanceOf[Array[Byte]]
       }
 
       val sourceSemdbSubPath = {
-        val sourceSubPath = source.relativeTo(sourceroot).asSubPath
+        val sourceSubPath = anchoredSource.relativeTo(sourceroot).asSubPath
         sourceSubPath / os.up / s"${sourceSubPath.last}.semanticdb"
       }
       (res, sourceSemdbSubPath)
@@ -309,7 +310,9 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
     val semanticPath = os.rel / "META-INF/semanticdb"
     val toClean = classesDir / semanticPath / sourceroot.segments.toSeq
 
-    val existingSources = sources.map(_.subRelativeTo(sourceroot)).toSet
+    val existingSources = sources
+      .map(source => PathRef.toResolvedOsPathAnchored(source, sourceroot).subRelativeTo(sourceroot))
+      .toSet
 
     // copy over all found semanticdb-files into the target directory
     // but with corrected directory layout

@@ -89,10 +89,20 @@ object PathRef {
    * lexical workspace root used by Mill's path aliases.
    */
   private[mill] def toResolvedOsPathAnchored(p: os.Path, root: os.Path): os.Path = {
-    val resolvedPath = toResolvedOsPath(p)
     val resolvedRoot = toResolvedOsPath(root)
-    if (resolvedPath.startsWith(resolvedRoot)) root / resolvedPath.subRelativeTo(resolvedRoot)
-    else p
+
+    @scala.annotation.tailrec
+    def rec(current: os.Path, missing: List[String]): os.Path = {
+      if (os.exists(current) || current.segmentCount == 0) {
+        val resolvedCurrent = toResolvedOsPath(current)
+        if (resolvedCurrent.startsWith(resolvedRoot)) {
+          val anchoredCurrent = root / resolvedCurrent.subRelativeTo(resolvedRoot)
+          missing.foldLeft(anchoredCurrent)(_ / _)
+        } else p
+      } else rec(current / os.up, current.last :: missing)
+    }
+
+    rec(p, Nil)
   }
 
   /**

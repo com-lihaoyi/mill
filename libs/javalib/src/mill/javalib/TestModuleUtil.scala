@@ -163,16 +163,7 @@ final class TestModuleUtil(
         if (testSandboxWorkingDir) sandbox else forkWorkingDir,
         BuildCtx.workspaceRoot
       )
-      val testResourceEnv = Map(
-        EnvVars.MILL_TEST_RESOURCE_DIR -> resources.iterator
-          .map(resourceDir =>
-            PathRef.toRelString(
-              PathRef.toResolvedOsPathAnchored(resourceDir.path, BuildCtx.workspaceRoot),
-              cwd
-            )
-          )
-          .mkString(";")
-      )
+      val testResourceEnv = TestModuleUtil.testResourceEnv(resources, cwd)
       val testEnv = inheritedEnv ++ forkEnv ++ testResourceEnv
       Jvm.spawnProcess(
         mainClass = "mill.javalib.testrunner.entrypoint.MillTestRunnerMain",
@@ -456,6 +447,21 @@ final class TestModuleUtil(
 }
 
 private[mill] object TestModuleUtil {
+
+  def testResourceEnv(
+      resources: Seq[PathRef],
+      cwd: os.Path,
+      usePathAliases: Boolean = true
+  ): Map[String, String] =
+    Map(
+      EnvVars.MILL_TEST_RESOURCE_DIR -> resources.iterator
+        .map { resourceDir =>
+          val path = PathRef.toResolvedOsPathAnchored(resourceDir.path, BuildCtx.workspaceRoot)
+          if (usePathAliases) PathRef.toRelString(path, cwd)
+          else PathRef.toAbsString(path)
+        }
+        .mkString(";")
+    )
 
   private[mill] def testSubprocessCount(
       testParallelism: Boolean,

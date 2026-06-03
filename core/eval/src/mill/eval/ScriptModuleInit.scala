@@ -2,7 +2,7 @@ package mill.eval
 
 import mill.api.daemon.SelectMode
 import mill.api.internal.Located
-import mill.api.{Evaluator, ExternalModule, PrecompiledModule, Result, ScriptModule}
+import mill.api.{Evaluator, ExternalModule, PathRef, PrecompiledModule, Result, ScriptModule}
 import mill.resolve.Resolve
 import scala.annotation.unused
 
@@ -240,7 +240,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
       skipPath
     )
       .flatMap { scriptPath =>
-        resolveScriptModule(scriptPath.toString, eval).map { result =>
+        resolveScriptModule(PathRef.toAbsString(scriptPath), eval).map { result =>
           (scriptPath.toNIO, result)
         }
       }

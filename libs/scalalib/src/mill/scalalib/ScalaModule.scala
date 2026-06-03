@@ -66,8 +66,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     // This can be removed once we can break bin compat
     val allSources0 = allSources() ++ wrappedSources().map(_.generated)
     val toExclude = wrappedSources().map(_.original.path)
-    Lib.findSourceFiles(allSources0, sourceFileExtensions)
-      .filterNot(toExclude.contains)
+    Lib.findSourceFilesExcluding(allSources0, sourceFileExtensions, toExclude)
       .map(PathRef(_))
   }
 
@@ -668,10 +667,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         scalaVersion = scalaVersion(),
         scalaBinaryVersion = scalaBinaryVersion(scalaVersion()),
         platform = ScalaPlatform.JVM,
-        // `.wrapped.toUri`, not `.toURI`: BSP clients need absolute `file://` URIs, but in
-        // reproducible-build mode `os.Path.toURI` relativizes (to `../mill-home/...`) and resolves
-        // wrongly against the daemon's sandbox cwd.
-        jars = scalaCompilerClasspath().map(_.path.wrapped.toUri.toString).iterator.toSeq,
+        jars = scalaCompilerClasspath().map(sanitizeUri).iterator.toSeq,
         jvmBuildTarget = Some(bspJvmBuildTargetTask())
       )
     ))
