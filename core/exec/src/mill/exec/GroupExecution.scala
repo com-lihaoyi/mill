@@ -409,7 +409,7 @@ trait GroupExecution {
               }
             )
           }
-          
+
           // when requested, forward the cached logs to STDERR
           def doReplayLog() = if (replayLogs && os.exists(paths.log)) {
             os.read.stream(paths.log).writeBytesTo(logger.streams.err)
