@@ -303,6 +303,13 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       val ctx = Task.ctx()
       val dest = ctx.dest
       val classes = dest / "classes"
+
+      val useBtApi = kotlincUseBtApi() && kotlinUseEmbeddableCompiler()
+      if (!useBtApi) {
+        // Non BT-API compiler is not incremental and does not keep track of older files,
+        // so we always need to start fresh.
+        os.remove.all(classes)
+      }
       os.makeDir.all(classes)
 
       val javaSourceFiles = allJavaSourceFiles().map(_.path)
@@ -357,9 +364,6 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
           allKotlincOptions(),
           extraKotlinArgs
         ).flatten
-
-        val useBtApi =
-          kotlincUseBtApi() && kotlinUseEmbeddableCompiler()
 
         if (kotlincUseBtApi() && !kotlinUseEmbeddableCompiler()) {
           ctx.log.warn(
