@@ -164,14 +164,11 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
    */
   def typeCheck: T[Unit] = Task {
     runner().run(
-      (
-        // format: off
+      Seq(
         "-m", "mypy",
         "--strict",
-        "--cache-dir", PathRef.toRelString(Task.dest / "mypycache", Task.dest),
-        sources().map(_.path)
-        // format: on
-      ),
+        "--cache-dir", PathRef.toRelString(Task.dest / "mypycache", Task.dest)
+      ) ++ sources().map(pr => PathRef.toRelString(pr.path, Task.dest)),
       workingDir = Task.dest
     )
   }
@@ -183,10 +180,7 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
    */
   def run(args: mill.api.Args) = Task.Command {
     runner().run(
-      args = (
-        PathRef.toRelString(mainScript().path, Task.dest),
-        args.value
-      ),
+      args = Seq(PathRef.toRelString(mainScript().path, Task.dest)) ++ args.value,
       workingDir = Task.dest
     )
   }
@@ -250,18 +244,16 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
   def bundle = Task {
     val pexFile = Task.dest / "bundle.pex"
     runner().run(
-      (
-        // format: off
+      Seq(
         "-m", "pex",
-        transitivePythonDeps().toSeq,
+      ) ++ transitivePythonDeps().toSeq ++
         transitivePythonPath().flatMap(pr =>
           Seq("-D", PathRef.toRelString(pr.path, Task.dest))
-        ),
-        "--exe", PathRef.toRelString(mainScript().path, Task.dest),
-        "-o", PathRef.toRelString(pexFile, Task.dest),
-        bundleOptions()
-        // format: on
-      ),
+        ) ++
+        Seq(
+          "--exe", PathRef.toRelString(mainScript().path, Task.dest),
+          "-o", PathRef.toRelString(pexFile, Task.dest)
+        ) ++ bundleOptions(),
       workingDir = Task.dest
     )
     PathRef(pexFile)
@@ -308,6 +300,7 @@ object PythonModule {
         workingDir: os.Path = null
     )(using ctx: TaskCtx): Unit = {
       val cwd = Option(workingDir).getOrElse(workingDir0)
+      PathAliasing.ensureProcessCwdAliases(cwd)
       os.call(
         cmd = Seq(Option(command).getOrElse(PathRef.toRelString(command0, cwd))) ++
           options ++ args.value,
@@ -319,7 +312,7 @@ object PythonModule {
             javaHome = javaHome,
             cwd = cwd
           ) ++ forkEnv0
-        ),
+        ) ++ PathAliasing.workspaceEnvVarsForCwd(cwd),
         cwd = cwd,
         stdin = os.Inherit,
         stdout = os.Inherit,

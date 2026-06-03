@@ -55,7 +55,8 @@ object MillMain0 {
    * concurrent Mill processes.
    */
   def outFileLock(out: os.Path): Lock =
-    // `Lock.file` opens a real file lock.
+    // The shared out lock is opened by different launcher/daemon processes, so its location
+    // must not depend on whichever cwd opens it.
     Lock.file(PathRef.toAbsString(out / OutFiles.millOutLock))
 
   private[daemon] def useInProcessLauncherResources(

@@ -119,15 +119,21 @@ trait PipModule extends Module {
         Seq("--index-url", head) ++ tail.flatMap(t => Seq("--extra-index-url", t))
     }
 
-    val cwd = Task.dest
     PipModule.InstallArgs(
       indexArgs ++
-        transitiveUnmanagedWheels().map(p => PathRef.toRelString(p, cwd)) ++
+        transitiveUnmanagedWheels().map { p =>
+          // `pipInstallArgs` is evaluated separately from the `venv` task that consumes it.
+          PathRef.toAbsString(p)
+        } ++
         pythonToolDeps() ++
         transitivePythonDeps() ++
-        transitivePythonRequirementFiles().flatMap(pr =>
-          Seq("-r", PathRef.toRelString(pr, cwd))
-        ),
+        transitivePythonRequirementFiles().flatMap { pr =>
+          Seq(
+            "-r",
+            // `pipInstallArgs` is evaluated separately from the `venv` task that consumes it.
+            PathRef.toAbsString(pr)
+          )
+        },
       transitiveUnmanagedWheels() ++ transitivePythonRequirementFiles()
     )
   }

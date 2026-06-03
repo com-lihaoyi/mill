@@ -320,13 +320,14 @@ trait KotlinJsModule extends KotlinModule { outer =>
       .filter(isKotlinJsLibrary)
 
     val innerCompilerArgs = Seq.newBuilder[String]
-    def kotlinJsLibraryPath(path: os.Path): String = {
-      // Same KLIB loader limitation as `includeArgs`.
-      PathRef.toAbsString(path)
-    }
     innerCompilerArgs ++= Seq(
       "-libraries",
-      librariesCp.iterator.map(kotlinJsLibraryPath).mkString(File.pathSeparator)
+      librariesCp.iterator
+        .map { path =>
+          // Same KLIB loader limitation as `includeArgs`.
+          PathRef.toAbsString(path)
+        }
+        .mkString(File.pathSeparator)
     )
     innerCompilerArgs ++= Seq("-main", if (callMain) "call" else "noCall")
     if (moduleKind != ModuleKind.NoModule) {
@@ -371,25 +372,28 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // apply multi-platform support (expect/actual)
     // TODO if there is penalty for activating it in the compiler, put it behind configuration flag
     innerCompilerArgs += "-Xmulti-platform"
-    def kotlinJsOutputPath(path: os.Path): String = {
-      // Kotlin/JS linker can skip expected outputs with cwd-alias dirs.
-      PathRef.toAbsString(path)
-    }
     val outputArgs = outputMode match {
       case OutputMode.KlibFile =>
         Seq(
           "-Xir-produce-klib-file",
           "-ir-output-dir",
-          kotlinJsOutputPath(destinationRoot / "libs")
+          // The Kotlin/JS compiler worker interprets this string in its own process cwd.
+          PathRef.toAbsString(destinationRoot / "libs")
         )
       case OutputMode.KlibDir =>
         Seq(
           "-Xir-produce-klib-dir",
           "-ir-output-dir",
-          kotlinJsOutputPath(destinationRoot / "classes")
+          // The Kotlin/JS compiler worker interprets this string in its own process cwd.
+          PathRef.toAbsString(destinationRoot / "classes")
         )
       case OutputMode.Js =>
-        Seq("-Xir-produce-js", "-ir-output-dir", kotlinJsOutputPath(destinationRoot / "binaries"))
+        Seq(
+          "-Xir-produce-js",
+          "-ir-output-dir",
+          // The Kotlin/JS compiler worker interprets this string in its own process cwd.
+          PathRef.toAbsString(destinationRoot / "binaries")
+        )
     }
 
     innerCompilerArgs ++= outputArgs
@@ -565,22 +569,16 @@ trait KotlinJsModule extends KotlinModule { outer =>
           "Cannot run Kotlin/JS tests, because run target is not specified."
         )
       }
-      val sourceMapSupportPath = {
-        // Mocha passes this to Node's cwd-sensitive module resolver.
-        PathRef.toAbsString(sourceMapSupportModule().path)
-      }
-      val mochaPath = {
-        // Mocha passes this to Node's cwd-sensitive module resolver.
-        PathRef.toAbsString(mochaModule().path)
-      }
       kotlinJsRunBinary(
         // TODO add runner to be able to use test selector
         args = Args(args() ++ Seq(
           // TODO this is valid only for the NodeJS target. Once browser support is
           //  added, need to have different argument handling
           "--require",
-          sourceMapSupportPath,
-          mochaPath,
+          // Node resolves required modules from the current test task cwd.
+          PathRef.toAbsString(sourceMapSupportModule().path),
+          // Node resolves the Mocha entrypoint from the current test task cwd.
+          PathRef.toAbsString(mochaModule().path),
           "--timeout",
           testTimeout().toString,
           "--reporter",

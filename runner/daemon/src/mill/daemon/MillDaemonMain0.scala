@@ -61,7 +61,7 @@ object MillDaemonMain0 {
       val exitCode = MillDaemonMain0(
         daemonDir = args.daemonDir,
         acceptTimeout = acceptTimeout,
-        // `Locks.forDirectory` opens a real file lock.
+        // The daemon dir came from argv; keep the lock path independent of this process cwd.
         Locks.forDirectory(PathRef.toAbsString(args.daemonDir), args.useFileLocks),
         outMode = args.outMode
       ).run().getOrElse(0)

@@ -540,25 +540,26 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     val formats = androidLintReportFormat()
 
+    // Android lint records and compares these path roots in generated reports/baselines.
     val reportArg: Seq[String] = formats.flatMap { format =>
-      Seq(format.flag, PathRef.toRelString(Task.dest / s"report.${format.extension}", moduleDir))
+      Seq(format.flag, PathRef.toAbsString(Task.dest / s"report.${format.extension}"))
     }
     val cp = compileClasspath().map(_.path).filter(os.exists)
-      .map(PathRef.toRelString(_, moduleDir)).mkString(":")
+      .map(PathRef.toAbsString).mkString(":")
     val src = sources().map(_.path).filter(os.exists)
-      .map(PathRef.toRelString(_, moduleDir)).mkString(":")
+      .map(PathRef.toAbsString).mkString(":")
     val res = resources().map(_.path).filter(os.exists)
-      .map(PathRef.toRelString(_, moduleDir)).mkString(":")
+      .map(PathRef.toAbsString).mkString(":")
     val configArg = androidLintConfigPath()
-      .map(c => Seq("--config", PathRef.toRelString(c, moduleDir))).toSeq.flatten
+      .map(c => Seq("--config", PathRef.toAbsString(c))).toSeq.flatten
     val baselineArg =
       androidLintBaselinePath()
-        .map(b => Seq("--baseline", PathRef.toRelString(b, moduleDir))).toSeq.flatten
+        .map(b => Seq("--baseline", PathRef.toAbsString(b))).toSeq.flatten
 
     os.call(
       Seq(
-        PathRef.toRelString(androidSdkModule().lintExe(), moduleDir),
-        PathRef.toRelString(moduleDir / "src/main", moduleDir),
+        PathRef.toAbsString(androidSdkModule().lintExe()),
+        PathRef.toAbsString(moduleDir / "src/main"),
         "--classpath",
         cp,
         "--sources",
@@ -566,8 +567,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
         "--resources",
         res
       ) ++ configArg ++ baselineArg ++ reportArg ++ androidLintArgs(),
-      check = androidLintAbortOnError,
-      cwd = moduleDir
+      check = androidLintAbortOnError
     )
 
     PathRef(Task.dest)
@@ -631,7 +631,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val deviceId = androidVirtualDevice().deviceId
     val command = os.call(
       (
-        PathRef.toRelString(androidSdkModule().avdmanagerExe(), Task.dest),
+        // ProcessBuilder executes avdmanager directly; it cannot rely on path aliases.
+        PathRef.toAbsString(androidSdkModule().avdmanagerExe()),
         "create",
         "avd",
         "--name",
@@ -641,8 +642,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
         "--device",
         deviceId,
         "--force"
-      ),
-      cwd = Task.dest
+      )
     )
     if (command.exitCode != 0) {
       Task.log.error(s"Failed to create android virtual device: ${command.err.text()}")

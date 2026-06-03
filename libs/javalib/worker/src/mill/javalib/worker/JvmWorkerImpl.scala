@@ -118,7 +118,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         os.write.over(workerDir / "java-runtime-options", key.runtimeOptions.mkString("\n"))
 
         val mainClass = "mill.javalib.worker.MillJvmWorkerMain"
-        // File locks open real files and do not go through os-lib alias resolution.
+        // The lock path is reused by this process and the worker process; keep it as a real path
+        // so NIO does not resolve an alias string against different process cwd values.
         val daemonDirAbs = PathRef.toAbsString(daemonDir)
         val baseLocks = Locks.forDirectory(daemonDirAbs, useFileLocks)
         val locks = {

@@ -61,7 +61,10 @@ trait MillJavaModule extends JavaModule {
     else Seq(this, build.core.api.test)
 
   def localTestOverridesEnv = Task {
-    val localRepos = localTestRepositories().map(_.path.wrapped.toUri.toASCIIString)
+    val localRepos = localTestRepositories().map { repo =>
+      // Coursier consumes repository locations as URI strings outside Mill's path serializer.
+      PathRef.toAbsNioPath(repo.path).toUri.toASCIIString
+    }
     val repos = localRepos ++ Seq(Task.env.getOrElse("COURSIER_REPOSITORIES", "ivy2Local|central"))
     Seq("COURSIER_REPOSITORIES" -> repos.mkString("|"))
   }

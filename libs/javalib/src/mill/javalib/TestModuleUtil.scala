@@ -33,7 +33,7 @@ final class TestModuleUtil(
     forkArgs: Seq[String],
     selectors: Seq[String],
     scalalibClasspath: Seq[PathRef],
-    @unused resources: Seq[PathRef],
+    resources: Seq[PathRef],
     testFramework: String,
     runClasspath: Seq[PathRef],
     testClasspath: Seq[PathRef],
@@ -161,14 +161,18 @@ final class TestModuleUtil(
     val proc = BuildCtx.withFilesystemCheckerDisabled {
       val inheritedEnv = if (propagateEnv) Task.env else Map.empty[String, String]
       val cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir
-      val testEnv = (inheritedEnv ++ forkEnv) - EnvVars.OS_LIB_PATH_RELATIVIZER_BASE
+      val testResourceEnv = Map(
+        EnvVars.MILL_TEST_RESOURCE_DIR -> resources.iterator
+          .map(resourceDir => PathRef.toRelString(resourceDir.path, cwd))
+          .mkString(";")
+      )
+      val testEnv = inheritedEnv ++ forkEnv ++ testResourceEnv
       Jvm.spawnProcess(
         mainClass = "mill.javalib.testrunner.entrypoint.MillTestRunnerMain",
         classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
         env = testEnv,
-        // The forked test runner reads this args file via Java/NIO APIs.
-        mainArgs = Seq(testRunnerClasspathArg, PathRef.toAbsString(argsFile)),
+        mainArgs = Seq(testRunnerClasspathArg, PathRef.toRelString(argsFile, cwd)),
         cwd = cwd,
         cpPassingJarPath = Option.when(useArgsFile)(
           os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
@@ -176,10 +180,7 @@ final class TestModuleUtil(
         javaHome = javaHome,
         stdin = os.Inherit,
         stdout = os.Inherit,
-        propagateEnv = false,
-        // User test code should see ordinary os-lib path behavior. The sandbox aliases still
-        // resolve Mill-provided relative paths, but avoid rewriting test-created paths.
-        pathRelativization = false
+        propagateEnv = false
       )
     }
 

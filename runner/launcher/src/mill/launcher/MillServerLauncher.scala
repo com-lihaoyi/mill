@@ -28,7 +28,7 @@ class MillServerLauncher(
 
   def run(daemonDir: os.Path, javaHome: Option[os.Path], log: String => Unit): Int = {
     os.makeDir.all(daemonDir)
-    // `Locks.forDirectory` opens a real file lock.
+    // The launcher and daemon both open this lock; avoid cwd-dependent alias strings.
     val locks = Locks.forDirectory(PathRef.toAbsString(daemonDir), useFileLocks)
     log(s"launchOrConnectToServer: $locks")
 
