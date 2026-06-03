@@ -21,7 +21,6 @@ import mill.javalib.api.internal.ZincOp
 import mill.javalib.testrunner.{TestArgs, TestResult, TestRunnerUtils}
 import os.Path
 
-import scala.annotation.unused
 import scala.concurrent.Future
 
 /**

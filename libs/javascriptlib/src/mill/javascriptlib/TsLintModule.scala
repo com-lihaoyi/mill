@@ -76,11 +76,7 @@ trait TsLintModule extends Module {
         val result =
           Try {
             os.call(
-              (
-                // Node resolves packages from the executable's real npm install location.
-                PathRef.toAbsString(eslint),
-                "."
-              ),
+              (eslint, "."),
               stdout = os.PathRedirect(logPath),
               stderr = os.PathRedirect(logPath),
               cwd = cwd
@@ -132,12 +128,7 @@ trait TsLintModule extends Module {
         val result =
           Try {
             os.call(
-              (
-                // Node resolves packages from the executable's real npm install location.
-                PathRef.toAbsString(eslint),
-                ".",
-                "--fix"
-              ),
+              (eslint, ".", "--fix"),
               stdout = os.PathRedirect(logPath),
               stderr = os.PathRedirect(logPath),
               cwd = cwd
@@ -170,12 +161,7 @@ trait TsLintModule extends Module {
         val result =
           Try {
             os.call(
-              (
-                // Node resolves packages from the executable's real npm install location.
-                PathRef.toAbsString(prettier),
-                "--check",
-                defaultArgs
-              ), // todo: collect from command line?
+              (prettier, "--check", defaultArgs), // todo: collect from command line?
               stdout = os.Inherit,
               stderr = os.PathRedirect(logPath),
               cwd = cwd
@@ -217,12 +203,7 @@ trait TsLintModule extends Module {
         val result =
           Try {
             os.call(
-              (
-                // Node resolves packages from the executable's real npm install location.
-                PathRef.toAbsString(prettier),
-                "--write",
-                defaultArgs
-              ), // todo: collect from command line?
+              (prettier, "--write", defaultArgs), // todo: collect from command line?
               stdout = os.Inherit,
               stderr = os.PathRedirect(logPath),
               cwd = cwd
