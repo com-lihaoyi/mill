@@ -417,6 +417,11 @@ trait GroupExecution {
             ) match {
               case Some(res) =>
                 taskLocks.retainRead(scope)
+
+                if (replayLogs && os.exists(paths.log)) {
+                  os.read.stream(paths.log).writeBytesTo(logger.streams.err)
+                }
+
                 LockUpgrade.Decision.Complete(res)
               case None =>
                 LockUpgrade.Decision.Escalate
