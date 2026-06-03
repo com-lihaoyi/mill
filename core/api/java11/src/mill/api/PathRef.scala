@@ -174,7 +174,7 @@ object PathRef {
   ): PathRef = {
     val basePath = path
 
-    val sig = {
+    val sig = PathAliasing.withRawPathSerializer {
       val isPosix = path.wrapped.getFileSystem.supportedFileAttributeViews().contains("posix")
       val digest = MessageDigest.getInstance("MD5")
       val digestOut = DigestOutputStream(DummyOutputStream, digest)

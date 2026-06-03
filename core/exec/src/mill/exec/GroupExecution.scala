@@ -992,7 +992,7 @@ object GroupExecution {
         }
       val (prefix, suffix) = firstExistingPrefix(path, Nil)
       val resolvedPrefix =
-        if (os.exists(prefix)) os.Path(prefix.toNIO.toRealPath()) else prefix
+        if (os.exists(prefix)) os.Path(PathRef.toAbsNioPath(prefix).toRealPath()) else prefix
       suffix.foldLeft(resolvedPrefix)(_ / _)
     }
 

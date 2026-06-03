@@ -29,7 +29,7 @@ object PathAliasing {
     val workspaceAbs = PathRef.toAbsString(workspace)
     Map(
       EnvVars.MILL_WORKSPACE_ROOT -> workspaceAbs,
-      EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> workspacePathRelativizerBase(workspace)
+      EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> workspaceRootPathRelativizerBase(workspace)
     )
   }
 

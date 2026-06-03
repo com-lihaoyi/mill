@@ -341,7 +341,7 @@ object MillMain0 {
                               (locking, artifacts, fileLockLease)
                             } else (
                               LauncherLocking.Noop,
-                              LauncherOutFiles.noop(out.toNIO),
+                              LauncherOutFiles.noop(PathRef.toAbsNioPath(out)),
                               fileLockLease
                             )
                           } catch {
