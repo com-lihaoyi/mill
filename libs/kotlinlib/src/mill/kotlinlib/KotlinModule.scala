@@ -418,9 +418,11 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
    * Prefer using this over [[kotlinFriendModules]].
    */
   private[kotlinlib] lazy val kotlinFriendModulesChecked: Seq[KotlinModule] = {
+    val deps = recursiveModuleDeps.toSet ++ compileModuleDeps
+    val missing = kotlinFriendModules.toSet.diff(deps)
     require(
-      kotlinFriendModules.toSet.subsetOf(moduleDepsChecked.toSet),
-      "All kotlinFriendModules must also be declared in moduleDeps"
+      missing.isEmpty,
+      s"All kotlinFriendModules must also be declared in moduleDeps/compileModuleDeps. Module ${this} is missing a dependency to ${missing.toSeq.map(_.toString).sorted.mkString(", ")}"
     )
     kotlinFriendModules.distinct
   }
@@ -548,7 +550,9 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     override def kotlincPluginMvnDeps: T[Seq[Dep]] =
       Task { outer.kotlincPluginMvnDeps() }
     override def kotlinFriendModules: Seq[KotlinModule] =
-      super.kotlinFriendModules ++ Seq(outer)
+      super.kotlinFriendModules ++
+        // auto-add outer module, iff we depend on it
+        Seq(outer).filter(recursiveModuleDeps.toSet ++ compileModuleDeps)
     override def kotlincOptions: T[Seq[String]] = Task {
       outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources"))
     }
@@ -570,7 +574,9 @@ object KotlinModule {
     override def kotlincPluginMvnDeps: T[Seq[Dep]] =
       Task { outer.kotlincPluginMvnDeps() }
     override def kotlinFriendModules: Seq[KotlinModule] =
-      super.kotlinFriendModules ++ Seq(outer)
+      super.kotlinFriendModules ++
+        // auto-add outer module, iff we depend on it
+        Seq(outer).filter(recursiveModuleDeps.toSet ++ compileModuleDeps)
     override def kotlincOptions: T[Seq[String]] = Task {
       outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources"))
     }
