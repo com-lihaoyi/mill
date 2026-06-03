@@ -2,7 +2,7 @@ package mill.javalib.worker
 
 import mill.api.daemon.*
 import mill.api.daemon.internal.{CompileProblemReporter, internal}
-import mill.api.BuildCtx
+import mill.api.{BuildCtx, PathRef}
 import mill.client.{LaunchedServer, ServerLauncher}
 import mill.client.lock.{DoubleLock, Locks, MemoryLock}
 import mill.constants.DaemonFiles
@@ -118,7 +118,9 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         os.write.over(workerDir / "java-runtime-options", key.runtimeOptions.mkString("\n"))
 
         val mainClass = "mill.javalib.worker.MillJvmWorkerMain"
-        val baseLocks = Locks.forDirectory(daemonDir.toString, useFileLocks)
+        // `PathRef.toAbsString`: file locks open real files and do not go through os-lib alias resolution.
+        val daemonDirAbs = PathRef.toAbsString(daemonDir)
+        val baseLocks = Locks.forDirectory(daemonDirAbs, useFileLocks)
         val locks = {
           Locks(
             // File locks are non-reentrant, so we need to lock on the memory lock first.
@@ -140,7 +142,11 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
             () => {
               val process = Jvm.spawnProcess(
                 mainClass = mainClass,
-                mainArgs = Seq(daemonDir.toString, jobs.toString, useFileLocks.toString),
+                mainArgs = Seq(
+                  daemonDirAbs,
+                  jobs.toString,
+                  useFileLocks.toString
+                ),
                 javaHome = key.javaHome,
                 jvmArgs = key.runtimeOptions ++ suppressArgs,
                 classPath = classPath

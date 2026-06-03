@@ -136,42 +136,6 @@ object Jvm {
    *                            (-1 for no kill, 0 for always kill immediately)
    * @param destroyOnExit Destroy on JVM exit
    */
-  def spawnProcess(
-      mainClass: String,
-      mainArgs: os.Shellable,
-      javaHome: Option[os.Path],
-      jvmArgs: os.Shellable,
-      classPath: Iterable[os.Path],
-      cpPassingJarPath: Option[os.Path],
-      env: Map[String, String],
-      propagateEnv: Boolean,
-      cwd: os.Path,
-      stdin: os.ProcessInput,
-      stdout: os.ProcessOutput,
-      stderr: os.ProcessOutput,
-      mergeErrIntoOut: Boolean,
-      shutdownGracePeriod: Long,
-      destroyOnExit: Boolean
-  ): os.SubProcess =
-    spawnProcess(
-      mainClass = mainClass,
-      mainArgs = mainArgs,
-      javaHome = javaHome,
-      jvmArgs = jvmArgs,
-      classPath = classPath,
-      cpPassingJarPath = cpPassingJarPath,
-      env = env,
-      propagateEnv = propagateEnv,
-      cwd = cwd,
-      stdin = stdin,
-      stdout = stdout,
-      stderr = stderr,
-      mergeErrIntoOut = mergeErrIntoOut,
-      shutdownGracePeriod = shutdownGracePeriod,
-      destroyOnExit = destroyOnExit,
-      pathRelativization = true
-    )
-
   /**
    * Runs a JVM subprocess with the given configuration and streams
    * it's stdout and stderr to the console.
@@ -194,7 +158,7 @@ object Jvm {
       mergeErrIntoOut: Boolean = false,
       shutdownGracePeriod: Long = 100,
       destroyOnExit: Boolean = true,
-      pathRelativization: Boolean = true
+      @unroll pathRelativization: Boolean = true
   ): os.SubProcess = {
     val effectiveCwd = Option(cwd).getOrElse(os.pwd)
     PathAliasing.ensureProcessCwdAliases(effectiveCwd)
@@ -230,7 +194,10 @@ object Jvm {
    */
   def jdkTool(toolName: String, javaHome: Option[os.Path]): String = {
     javaHome
-      .map(_.toString())
+      .map { home =>
+        // `PathRef.toAbsString`: ProcessBuilder executes this JDK tool directly, outside os-lib alias resolution.
+        PathRef.toAbsString(home)
+      }
       .orElse(sys.props.get("java.home"))
       .map(h =>
         if (isWin) File(h, s"bin\\${toolName}.exe")

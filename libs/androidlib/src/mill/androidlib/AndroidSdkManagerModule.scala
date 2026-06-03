@@ -101,9 +101,11 @@ trait AndroidSdkManagerModule extends ExternalModule {
       Seq("cmd", "/c", "(for /l %i in (1,1,10) do @echo y)")
     else
       Seq("echo", "y\n" * 10)
+    // `PathRef.toAbsString`: ProcessBuilder executes sdkmanager directly; cwd aliases are not enough.
+    val sdkManagerExe = PathRef.toAbsString(sdkManagerExePath)
     os.proc(
       args
-    ).pipeTo(os.proc(sdkManagerExePath.toString, "--licenses")).call(stdout = os.Pipe)
+    ).pipeTo(os.proc(sdkManagerExe, "--licenses")).call(stdout = os.Pipe)
   }
 
   // TODO: Replace hardcoded mapping with automated parsing
@@ -399,9 +401,11 @@ trait AndroidSdkManagerModule extends ExternalModule {
       sdkmanagerExe: os.Path,
       packages: Seq[String]
   ): CommandResult = {
+    // `PathRef.toAbsString`: ProcessBuilder executes sdkmanager directly; it cannot rely on path aliases.
+    val sdkmanagerExeAbs = PathRef.toAbsString(sdkmanagerExe)
     os.call(
       cmd = Seq(
-        sdkmanagerExe.toString,
+        sdkmanagerExeAbs,
         "--install"
       ) ++ packages,
       stdout = os.Inherit,

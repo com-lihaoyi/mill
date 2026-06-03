@@ -150,18 +150,12 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
     new PythonModule.RunnerImpl(
       command0 = pythonExe().path,
       options = pythonOptions(),
-      env0 = runnerEnvTask(),
-      forkEnv0 = PathAliasing.withRawPathSerializer(forkEnv()),
-      workingDir0 = Task.dest
-    )
-  }
-
-  private def runnerEnvTask = Task.Anon {
-    PythonModule.RunnerEnv(
       pythonPath = transitivePythonPath().map(_.path),
       pythonPycachePrefix = Task.dest / "cache",
       forceColor = Task.log.prompt.colored,
-      javaHome = javaHome().map(_.path)
+      javaHome = javaHome().map(_.path),
+      forkEnv0 = PathAliasing.withRawPathSerializer(forkEnv()),
+      workingDir0 = Task.dest
     )
   }
 
@@ -212,7 +206,13 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
         mainClass = "mill.javalib.backgroundwrapper.MillBackgroundWrapper",
         classPath = mill.javalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
         jvmArgs = Nil,
-        env = runnerEnvTask().toEnv(cwd),
+        env = PythonModule.runnerEnv(
+          pythonPath = transitivePythonPath().map(_.path),
+          pythonPycachePrefix = Task.dest / "cache",
+          forceColor = Task.log.prompt.colored,
+          javaHome = javaHome().map(_.path),
+          cwd = cwd
+        ),
         mainArgs = backgroundPaths.toArgs(cwd) ++ Seq(
           "<subprocess>",
           PathRef.toRelString(pythonExe().path, cwd),
@@ -294,7 +294,10 @@ object PythonModule {
   private class RunnerImpl(
       command0: os.Path,
       options: Seq[String],
-      env0: RunnerEnv,
+      pythonPath: Seq[os.Path],
+      pythonPycachePrefix: os.Path,
+      forceColor: Boolean,
+      javaHome: Option[os.Path],
       forkEnv0: Map[String, String],
       workingDir0: os.Path
   ) extends Runner {
@@ -308,7 +311,15 @@ object PythonModule {
       os.call(
         cmd = Seq(Option(command).getOrElse(PathRef.toRelString(command0, cwd))) ++
           options ++ args.value,
-        env = Option(env).getOrElse(env0.toEnv(cwd) ++ forkEnv0),
+        env = Option(env).getOrElse(
+          PythonModule.runnerEnv(
+            pythonPath = pythonPath,
+            pythonPycachePrefix = pythonPycachePrefix,
+            forceColor = forceColor,
+            javaHome = javaHome,
+            cwd = cwd
+          ) ++ forkEnv0
+        ),
         cwd = cwd,
         stdin = os.Inherit,
         stdout = os.Inherit,
@@ -317,20 +328,18 @@ object PythonModule {
     }
   }
 
-  private case class RunnerEnv(
+  private def runnerEnv(
       pythonPath: Seq[os.Path],
       pythonPycachePrefix: os.Path,
       forceColor: Boolean,
-      javaHome: Option[os.Path]
-  ) {
-    def toEnv(cwd: os.Path): Map[String, String] =
-      Map(
-        "PYTHONPATH" -> pythonPath.map(PathRef.toRelString(
-          _,
-          cwd
-        )).mkString(java.io.File.pathSeparator),
-        "PYTHONPYCACHEPREFIX" -> PathRef.toRelString(pythonPycachePrefix, cwd),
-        if (forceColor) "FORCE_COLOR" -> "1" else "NO_COLOR" -> "1"
-      ) ++ javaHome.map(jh => "JAVA_HOME" -> PathRef.toRelString(jh, cwd))
-  }
+      javaHome: Option[os.Path],
+      cwd: os.Path
+  ): Map[String, String] =
+    Map(
+      "PYTHONPATH" -> pythonPath.map(PathRef.toRelString(_, cwd)).mkString(
+        java.io.File.pathSeparator
+      ),
+      "PYTHONPYCACHEPREFIX" -> PathRef.toRelString(pythonPycachePrefix, cwd),
+      if (forceColor) "FORCE_COLOR" -> "1" else "NO_COLOR" -> "1"
+    ) ++ javaHome.map(jh => "JAVA_HOME" -> PathRef.toRelString(jh, cwd))
 }

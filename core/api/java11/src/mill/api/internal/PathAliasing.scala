@@ -55,30 +55,48 @@ object PathAliasing {
   private def ups(count: Int): os.RelPath =
     Iterator.fill(count)(os.up).foldLeft(os.rel)(_ / _)
 
+  private def outputRoots(workspace: os.Path): Seq[os.Path] = {
+    val env = System.getenv()
+    Seq(
+      Option(env.get(EnvVars.MILL_BSP_OUTPUT_DIR)),
+      Option(env.get(EnvVars.MILL_OUTPUT_DIR)),
+      Some(OutFiles.OutFiles.defaultBspOut),
+      Some(OutFiles.OutFiles.defaultOut)
+    )
+      .flatten
+      .filter(_.nonEmpty)
+      .distinct
+      .map(os.Path(_, workspace))
+      .sortBy(path => -path.segments.length)
+  }
+
+  private def outputRootSegments(cwd: os.Path, workspace: os.Path): Option[Seq[String]] =
+    outputRoots(workspace).collectFirst {
+      case out if cwd.startsWith(out) => cwd.relativeTo(out).segments
+    }
+
   private def taskDestAliasPrefix(cwd: os.Path, workspace: os.Path): Option[os.RelPath] = {
-    val out = workspace / "out"
-    if (!cwd.startsWith(out)) None
-    else {
-      val segments = cwd.relativeTo(out).segments
-      segments.indexWhere(_.endsWith(".dest")) match {
+    outputRootSegments(cwd, workspace).flatMap { segments =>
+      segments.lastIndexWhere(_.endsWith(".dest")) match {
         case -1 => None
+        case destIndex
+            if segments.length == destIndex + 2 &&
+              segments.last == DaemonFiles.sandbox =>
+          Some(os.up)
         case destIndex => Some(ups(segments.length - destIndex))
       }
     }
   }
 
   private def millRunSandboxAliasPrefix(cwd: os.Path, workspace: os.Path): Option[os.RelPath] = {
-    val out = workspace / "out"
-    if (!cwd.startsWith(out)) None
-    else {
-      val segments = cwd.relativeTo(out).segments
+    outputRootSegments(cwd, workspace).flatMap { segments =>
       val isDaemonSandbox =
         segments == Seq(OutFiles.OutFiles.millDaemon, DaemonFiles.sandbox)
       val isNoDaemonSandbox =
         segments.length == 3 &&
           segments.head == OutFiles.OutFiles.millNoDaemon &&
           segments.last == DaemonFiles.sandbox
-      Option.when(isDaemonSandbox || isNoDaemonSandbox)(os.rel / "out")
+      Option.when(isDaemonSandbox || isNoDaemonSandbox)(os.up)
     }
   }
 

@@ -1,7 +1,7 @@
 package mill.pythonlib
 
 import mill.*
-import mill.api.{BuildCtx, PathRef}
+import mill.api.PathRef
 
 /**
  * Code coverage via Python's [coverage](https://coverage.readthedocs.io/)
@@ -132,7 +132,7 @@ trait CoverageTests extends CoverageModule with TestModule {
       "coverage",
       "run",
       "--data-file",
-      PathRef.toRelString(coverageDataFile(), BuildCtx.workspaceRoot)
+      PathRef.toRelString(coverageDataFile())
     ) ++
       super.pythonOptions()
   }

@@ -850,7 +850,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
     keytoolModuleRef().createKeystoreWithCertificate(
       Task.Anon(Seq(
         "--keystore",
-        outer.debugKeystoreFile().path.toString,
+        // `PathRef.toAbsString`: the keytool helper parses this argv path and writes it with plain Java IO.
+        PathRef.toAbsString(outer.debugKeystoreFile().path),
         "--storepass",
         debugKeyStorePass,
         "--alias",

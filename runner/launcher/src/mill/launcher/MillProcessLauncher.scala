@@ -138,7 +138,7 @@ object MillProcessLauncher {
     // Inheriting parent values causes nested Mill runs to lock/use the parent's out folder.
     val mergedJdkJavaOpts =
       Seq(env.getOrElse("JDK_JAVA_OPTIONS", ""), env.getOrElse("JAVA_OPTS", "")).mkString(" ").trim
-    val workspaceEnv = PathAliasing.workspaceEnvVars(workDir)
+    val workspaceEnv = PathAliasing.workspaceEnvVarsForCwd(sandbox, workDir)
     val processEnv = env ++ workspaceEnv ++ Seq(
       Some(EnvVars.MILL_ENABLE_STATIC_CHECKS -> "true"),
       Option.unless(env.contains(EnvVars.MILL_EXECUTABLE_PATH))(
