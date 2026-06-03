@@ -91,7 +91,6 @@ Options:
   task <str>...          The name or a query of the tasks(s) you want to build.
 
 See documentation at https://mill-build.org for more details
-
 ----
 
 .Output of `mill --help-advanced`
