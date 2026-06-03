@@ -47,7 +47,8 @@ case class Execution(
     remoteCacheSalt: Option[String] = None,
     remoteCacheFilter: Option[String] = None,
     // Tracks tasks invalidated due to version/classloader mismatch
-    versionMismatchReasons: ConcurrentHashMap[Task[?], String] = ConcurrentHashMap()
+    versionMismatchReasons: ConcurrentHashMap[Task[?], String] = ConcurrentHashMap(),
+    replayLogs: Boolean
 ) extends GroupExecution with AutoCloseable {
 
   // Track nesting depth of executeTasks calls to only show final status on outermost call
@@ -82,7 +83,8 @@ case class Execution(
       spanningInvalidationTree: Option[String],
       remoteCacheLocation: Option[String],
       remoteCacheSalt: Option[String],
-      remoteCacheFilter: Option[String]
+      remoteCacheFilter: Option[String],
+      replayLogs: Boolean
   ) = this(
     baseLogger = baseLogger,
     // Only depth=0 (the user build) publishes through `runArtifacts`, so meta-build
@@ -117,7 +119,8 @@ case class Execution(
     spanningInvalidationTree = spanningInvalidationTree,
     remoteCacheLocation = remoteCacheLocation,
     remoteCacheSalt = remoteCacheSalt,
-    remoteCacheFilter = remoteCacheFilter
+    remoteCacheFilter = remoteCacheFilter,
+    replayLogs = replayLogs
   )
 
   def withBaseLogger(newBaseLogger: Logger) = {

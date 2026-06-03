@@ -433,7 +433,8 @@ object MillMain0 {
                                     ),
                                     reporter = reporter,
                                     metaBuildReporter = metaBuildReporter,
-                                    enableTicker = enableTicker
+                                    enableTicker = enableTicker,
+                                    replayLogs = config.replayLogs.value
                                   ).evaluate()
                                 }
                               }

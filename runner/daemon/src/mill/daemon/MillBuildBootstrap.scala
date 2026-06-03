@@ -72,7 +72,8 @@ class MillBuildBootstrap(
     // module hashCode) because at meta-build time we don't have a stable
     // module-hashCode mapping yet.
     metaBuildReporter: Int => Option[CompileProblemReporter] = _ => None,
-    enableTicker: Boolean
+    enableTicker: Boolean,
+    replayLogs: Boolean
 ) { outer =>
   // The workspace locking is owned by the metaBuild access (alongside the
   // shared state) but Execution still consumes the LauncherLocking directly
@@ -301,7 +302,8 @@ class MillBuildBootstrap(
       depth = depth,
       actualBuildFileName = nestedState.buildFile,
       enableTicker = enableTicker,
-      staticBuildOverrideFiles = staticBuildOverrideFiles.toMap
+      staticBuildOverrideFiles = staticBuildOverrideFiles.toMap,
+      replayLogs = replayLogs
     )
   }
 
@@ -832,7 +834,8 @@ object MillBuildBootstrap {
       depth: Int,
       actualBuildFileName: Option[String] = None,
       enableTicker: Boolean,
-      staticBuildOverrideFiles: Map[java.nio.file.Path, String]
+      staticBuildOverrideFiles: Map[java.nio.file.Path, String],
+      replayLogs: Boolean
   ): EvaluatorApi = {
     val bootLogPrefix: Seq[String] =
       if (depth == 0) Nil
@@ -881,7 +884,8 @@ object MillBuildBootstrap {
           spanningInvalidationTree,
           remoteCacheLocation,
           remoteCacheSalt,
-          remoteCacheFilter
+          remoteCacheFilter,
+          replayLogs
         )
       ).asInstanceOf[EvaluatorApi]
 
