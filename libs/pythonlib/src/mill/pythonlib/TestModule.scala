@@ -53,8 +53,12 @@ object TestModule {
   trait Unittest extends PythonModule with TestModule {
     protected def testTask(args: Task[Seq[String]]) = Task.Anon {
       val testArgs = if (args().isEmpty) {
+        // Absolute (symlink-resolved) paths: workingDir is the workspace root, and
+        // unittest/pytest `chdir` into test directories during discovery/collection, so a
+        // relativized `../mill-workspace`/through-forwarder path would not resolve (and would
+        // double-alias, making the runner collect tests twice).
         Seq("discover") ++ sources().flatMap(pr =>
-          Seq("-s", PathRef.toRelString(pr.path))
+          Seq("-s", PathRef.toResolvedPathString(pr.path))
         )
       } else {
         args()
@@ -79,8 +83,11 @@ object TestModule {
         (
           // format: off
           "-m", "pytest",
-          "-o", s"cache_dir=${PathRef.toRelString(Task.dest / "cache")}", "-v",
-          sources().map(pr => PathRef.toRelString(pr.path)),
+          // Absolute (symlink-resolved) paths: pytest `chdir`s into test directories during
+          // collection, so a relativized/through-forwarder path would not resolve and would
+          // double-alias (causing tests to be collected twice under different path strings).
+          "-o", s"cache_dir=${PathRef.toResolvedPathString(Task.dest / "cache")}", "-v",
+          sources().map(pr => PathRef.toResolvedPathString(pr.path)),
           args()
           // format: in
         ),
