@@ -193,6 +193,14 @@ object PrecompiledModuleRef {
     }
   }
 
+  private[mill] def validatePrecompiledClass(
+      cls: Class[?],
+      @scala.annotation.unused relPath: String,
+      scriptFile: os.Path,
+      extendsIndex: Int
+  ): java.lang.reflect.Constructor[?] =
+    validatePrecompiledClass(cls, scriptFile, extendsIndex)
+
   def apply(
       @scala.annotation.unused parent: mill.api.Module,
       relPath: String,
