@@ -209,10 +209,14 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
           javaHome = javaHome().map(_.path),
           cwd = cwd
         ),
-        mainArgs = backgroundPaths.toArgs(cwd) ++ Seq(
+        mainArgs = backgroundPaths.toArgs ++ Seq(
           "<subprocess>",
-          PathRef.toRelString(pythonExe().path, cwd),
-          PathRef.toRelString(mainScript().path, cwd)
+          // `MillBackgroundWrapper` is a detached process that relaunches these via plain
+          // `java.nio`/`ProcessBuilder`, so its cwd and our path aliases aren't reachable, and any
+          // ephemeral `mill-no-daemon/<id>/mill-workspace` forwarder it routes through is deleted
+          // when the launcher exits: pass real absolute paths with symlinks resolved.
+          PathRef.toResolvedPathString(pythonExe().path),
+          PathRef.toResolvedPathString(mainScript().path)
         ) ++ args.value,
         cwd = cwd,
         stdin = "",

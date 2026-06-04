@@ -142,7 +142,7 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
     case true => Task {
         val moduleResources = Seq(androidProcessedLayoutXmls().path / "resources")
 
-        val aapt2Compile = Seq(androidSdkModule().aapt2Exe().path.toString(), "compile")
+        val aapt2Compile = Seq(PathRef.toAbsString(androidSdkModule().aapt2Exe()), "compile")
 
         for (libResDir <- moduleResources) {
           val segmentsSeq = libResDir.segments.toSeq

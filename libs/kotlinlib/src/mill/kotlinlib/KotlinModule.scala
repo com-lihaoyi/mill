@@ -305,6 +305,14 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       val classes = dest / "classes"
       os.makeDir.all(classes)
 
+      // `Task.dest` can be a lexical path that routes through the `out/mill-daemon/mill-workspace`
+      // forwarder symlink (when deserialized from cache in reproducible mode). A plain
+      // `relativeTo(workspaceRoot)` would then render as `out/mill-daemon/mill-workspace/out/...`.
+      // Re-anchor through the symlink so display paths are the clean `out/compile.dest/classes`.
+      val classesDisplay =
+        PathRef.toResolvedOsPathAnchored(classes, BuildCtx.workspaceRoot)
+          .relativeTo(BuildCtx.workspaceRoot)
+
       val javaSourceFiles = allJavaSourceFiles().map(_.path)
       val kotlinSourceFiles = allKotlinSourceFiles().map(_.path)
 
@@ -317,7 +325,6 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       val updateCompileOutput = upstreamCompileOutput()
 
       def compileJava: Result[CompilationResult] = {
-        val classesDisplay = classes.relativeTo(BuildCtx.workspaceRoot)
         ctx.log.info(
           s"Compiling ${javaSourceFiles.size} Java sources to ${classesDisplay} ..."
         )
@@ -338,7 +345,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       if (isMixed || isKotlin) {
         val extra = if (isJava) s"and reading ${javaSourceFiles.size} Java sources " else ""
         ctx.log.info(
-          s"Compiling ${kotlinSourceFiles.size} Kotlin sources ${extra}to ${classes.relativeTo(BuildCtx.workspaceRoot)} ..."
+          s"Compiling ${kotlinSourceFiles.size} Kotlin sources ${extra}to ${classesDisplay} ..."
         )
 
         val compilerArgs: Seq[String] = Seq(

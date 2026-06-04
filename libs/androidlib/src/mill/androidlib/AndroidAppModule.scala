@@ -390,7 +390,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val alignedApk: os.Path = Task.dest / "app.aligned.apk"
 
     os.call((
-      androidSdkModule().zipalignExe().path,
+      PathRef.toAbsString(androidSdkModule().zipalignExe()),
       "-f",
       "-p",
       "4",
@@ -508,7 +508,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val signedApk = Task.dest / "app.apk"
 
     val signArgs = Seq(
-      androidSdkModule().apksignerExe().path.toString,
+      PathRef.toAbsString(androidSdkModule().apksignerExe()),
       "sign",
       "--in",
       androidAlignedUnsignedApk().path.toString,
@@ -656,7 +656,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
    */
   def deleteAndroidVirtualDevice: T[os.CommandResult] = Task {
     os.call((
-      androidSdkModule().avdmanagerExe().path,
+      PathRef.toAbsString(androidSdkModule().avdmanagerExe()),
       "delete",
       "avd",
       "--name",
@@ -699,7 +699,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     )
 
     val command = Seq(
-      androidSdkModule().emulatorExe().path.toString()
+      PathRef.toAbsString(androidSdkModule().emulatorExe())
     ) ++
       Option.when(!excludeDefaultArgs.value)(defaultArgs).toSeq.flatten ++ extraArgs ++ settings
 
@@ -726,7 +726,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   def adbDevices(): Command[String] = Task.Command {
-    os.call((androidSdkModule().adbExe().path, "devices", "-l")).out.text()
+    os.call((PathRef.toAbsString(androidSdkModule().adbExe()), "devices", "-l")).out.text()
   }
 
   /**
@@ -735,7 +735,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def stopAndroidEmulator(): Command[String] = Task.Command {
     val emulator = runningEmulator()
     os.call(
-      (androidSdkModule().adbExe().path, "-s", emulator, "emu", "kill")
+      (PathRef.toAbsString(androidSdkModule().adbExe()), "-s", emulator, "emu", "kill")
     )
     emulator
   }
@@ -770,7 +770,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val emulator = runningEmulator()
 
     os.call(
-      (androidSdkModule().adbExe().path, "-s", emulator, "install", "-r", androidApk().path)
+      (PathRef.toAbsString(androidSdkModule().adbExe()), "-s", emulator, "install", "-r", androidApk().path)
     )
 
     emulator
@@ -809,7 +809,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     os.call(
       (
-        androidSdkModule().adbExe().path,
+        PathRef.toAbsString(androidSdkModule().adbExe()),
         "-s",
         emulator,
         "shell",
@@ -900,7 +900,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     def getBootflag: String = {
       val result = os.call(
         (
-          adbPath.path,
+          PathRef.toAbsString(adbPath),
           "-s",
           emulator,
           "shell",
@@ -997,7 +997,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       val proguardFile = androidProguard().path
 
       val d8Args = Seq(
-        androidSdkModule().d8Exe().path.toString,
+        PathRef.toAbsString(androidSdkModule().d8Exe()),
         if (androidIsDebug()) "--debug" else "--release",
         // TODO explore --incremental flag for incremental builds
         "--output",
@@ -1145,7 +1145,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
       os.call(
         (
-          androidSdkModule().adbExe().path,
+          PathRef.toAbsString(androidSdkModule().adbExe()),
           "-s",
           emulator,
           "install",
@@ -1173,7 +1173,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
       val instrumentOutput = os.proc(
         Seq(
-          androidSdkModule().adbExe().path.toString,
+          PathRef.toAbsString(androidSdkModule().adbExe()),
           "-s",
           device,
           "shell",

@@ -183,6 +183,21 @@ def listCross(using ctx: mill.api.ModuleCtx) = BuildCtx.watchValue {
   os.list(ctx.asInstanceOf[{ def millSourcePath: os.Path }].millSourcePath).map(_.last)
 }
 
+def workspacePath(path: os.Path): os.Path = {
+  def resolve(path: os.Path) =
+    try os.Path(path.wrapped.toRealPath())
+    catch { case _: java.io.IOException => path }
+
+  val resolvedWorkspace = resolve(BuildCtx.workspaceRoot)
+  val resolvedPath = resolve(path)
+  if (resolvedPath.startsWith(resolvedWorkspace))
+    BuildCtx.workspaceRoot / resolvedPath.subRelativeTo(resolvedWorkspace)
+  else path
+}
+
+def workspaceSubPath(path: os.Path): os.SubPath =
+  workspacePath(path).subRelativeTo(BuildCtx.workspaceRoot)
+
 val dummyDeps: Seq[Dep] = Seq(
   Deps.DocDeps.millScip,
   Deps.semanticDbJava_runtime,

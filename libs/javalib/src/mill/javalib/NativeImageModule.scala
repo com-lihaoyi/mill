@@ -83,9 +83,12 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
         mainClass = "mill.javalib.backgroundwrapper.MillBackgroundWrapper",
         classPath = mill.javalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
         jvmArgs = Nil,
-        mainArgs = backgroundPaths.toArgs(cwd) ++ Seq(
+        mainArgs = backgroundPaths.toArgs ++ Seq(
           "<subprocess>",
-          PathRef.toRelString(nativeImage().path, cwd)
+          // Detached `MillBackgroundWrapper` relaunches this via plain `java.nio`/`ProcessBuilder`,
+          // so our cwd aliases aren't reachable and any ephemeral nodaemon forwarder it routes
+          // through is deleted when the launcher exits: pass a real absolute path (symlinks resolved).
+          PathRef.toResolvedPathString(nativeImage().path)
         ) ++ args.value,
         cwd = cwd,
         stdin = "",

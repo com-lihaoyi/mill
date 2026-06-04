@@ -20,6 +20,17 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ProblemFilter.exclude[Problem]("mill.api.SimpleTaskTokenReader*"),
     ProblemFilter.exclude[Problem]("mill.util.RequestId*"),
     ProblemFilter.exclude[Problem]("mill.util.Timed*"),
+    // Internal classloader-cache helper; its internal key representation changed from a
+    // digest `Long` to a structured `Seq`, changing these method signatures. Not user-facing.
+    ProblemFilter.exclude[IncompatibleResultTypeProblem](
+      "mill.util.RefCountedClassLoaderCache.keyToInternalKey"
+    ),
+    ProblemFilter.exclude[IncompatibleMethTypeProblem](
+      "mill.util.RefCountedClassLoaderCache.setup"
+    ),
+    ProblemFilter.exclude[IncompatibleMethTypeProblem](
+      "mill.util.RefCountedClassLoaderCache.teardown"
+    ),
     ProblemFilter.exclude[Problem]("mill.javalib.bsp.BspRunModule*"),
     // internal stuff
     ProblemFilter.exclude[Problem]("mill.javalib.api.internal.*"),

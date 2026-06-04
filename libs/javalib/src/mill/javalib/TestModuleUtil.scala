@@ -163,7 +163,12 @@ final class TestModuleUtil(
         if (testSandboxWorkingDir) sandbox else forkWorkingDir,
         BuildCtx.workspaceRoot
       )
-      val testResourceEnv = TestModuleUtil.testResourceEnv(resources, cwd)
+      // `MILL_TEST_RESOURCE_DIR` is consumed directly by arbitrary user test code via
+      // `os.Path(...)`. The forked test JVM runs the user's *resolved* Mill classpath, whose
+      // os-lib version is arbitrary and generally predates the path relativizer (e.g. released
+      // Mill 1.0.x ships os-lib 0.11.5, whose `os.Path` rejects any non-absolute string). So this
+      // env var must be an absolute path, not a `../mill-workspace/...` alias.
+      val testResourceEnv = TestModuleUtil.testResourceEnv(resources, cwd, usePathAliases = false)
       val testEnv = inheritedEnv ++ forkEnv ++ testResourceEnv
       Jvm.spawnProcess(
         mainClass = "mill.javalib.testrunner.entrypoint.MillTestRunnerMain",
