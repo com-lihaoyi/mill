@@ -385,7 +385,8 @@ object TabCompleteTests extends TestSuite {
             "--task                    <str> The name or a query of the tasks(s) you want to build.",
             "--remote-cache-location   <str> Remote cache location: a Bazel-remote-protocol HTTP cache URL, or a `file:` URL / path to a local or shared folder.",
             "--remote-cache-salt       <str> Extra string mixed into the remote cache key, e.g. to keep Mac and Linux builds from sharing entries.",
-            "--remote-cache-filter     <str> Task-selector pattern (e.g. `__.compile`) limiting which tasks use the remote cache."
+            "--remote-cache-filter     <str> Task-selector pattern (e.g. `__.compile`) limiting which tasks use the remote cache.",
+            "--replay-logs             Replay logs for cached tasks."
           )
         )
       }
