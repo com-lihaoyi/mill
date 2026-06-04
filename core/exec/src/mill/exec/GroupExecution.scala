@@ -364,6 +364,11 @@ trait GroupExecution {
             )
           }
 
+          // when requested, forward the cached logs to STDERR
+          def doReplayLog() = if (replayLogs && os.exists(paths.log)) {
+            os.read.stream(paths.log).writeBytesTo(logger.streams.err)
+          }
+
           taskLocks.readThenWrite { scope =>
             loadCachedOrWorker(
               readLocal(),
@@ -371,6 +376,7 @@ trait GroupExecution {
             ) match {
               case Some(res) =>
                 taskLocks.retainRead(scope)
+                doReplayLog()
                 LockUpgrade.Decision.Complete(res)
               case None =>
                 LockUpgrade.Decision.Escalate
@@ -415,7 +421,9 @@ trait GroupExecution {
                   if (remoteMaterialized) taskLocks.markTaskWritten()
                   else taskLocks.currentVersion
                 taskLocks.retainDowngraded(scope, version)
+                doReplayLog()
                 res
+
               case None =>
                 // Advance the output version before any destructive mutation
                 // below — not only on successful publish. Deleting `dest/` here,

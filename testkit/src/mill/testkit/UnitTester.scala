@@ -122,7 +122,7 @@ class UnitTester(
     else Some(mill.exec.ExecutionContexts.createExecutor(effectiveThreadCount))
 
   val execution = new mill.exec.Execution(
-    baseLogger = new mill.internal.PrefixLogger(logger, Nil),
+    baseLogger = mill.internal.PrefixLogger(logger, Nil),
     profileLogger = new mill.internal.JsonArrayLogger.Profile(outPath / millProfile),
     workspace = module.moduleDir,
     outPath = outPath,
@@ -147,7 +147,8 @@ class UnitTester(
     staticBuildOverrideFiles = Map(),
     depth = 0,
     isFinalDepth = true,
-    spanningInvalidationTree = None
+    spanningInvalidationTree = None,
+    replayLogs = false
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(
