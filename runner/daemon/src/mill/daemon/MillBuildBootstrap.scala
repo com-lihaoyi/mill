@@ -312,7 +312,8 @@ class MillBuildBootstrap(
           else resolved.toString
         }
         val (refs, compileDestOpt) = nestedSharedFrame match {
-          case Some(frame) => (frame.runClasspath, Some(workspaceAnchored(pathApiPath(frame.compileOutput))))
+          case Some(frame) =>
+            (frame.runClasspath, Some(workspaceAnchored(pathApiPath(frame.compileOutput))))
           case None => (millBootClasspathPathRefs, None)
         }
         refs.iterator.map(p => pathApiPath(p) -> p)
