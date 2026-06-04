@@ -99,6 +99,10 @@ object BuildGenYaml extends BuildGen {
     springBootPlatformVersion.base.foreach(v =>
       lines += s"""def springBootPlatformVersion = "$v""""
     )
+    quarkusPlatformVersion.base.foreach(v =>
+      lines += s"""def quarkusPlatformVersion = "$v""""
+    )
+
     renderScalaOptValues("def scalacOptions", scalacOptions).foreach(lines += _)
     renderScalaMvnDepValues("def scalacPluginMvnDeps", scalacPluginMvnDeps).foreach(lines += _)
     testParallelism.base.foreach(v => lines += s"def testParallelism = $v")
@@ -228,6 +232,10 @@ object BuildGenYaml extends BuildGen {
       "springBootPlatformVersion",
       springBootPlatformVersion
     ).foreach(lines += _)
+    renderYamlStringValue(
+      "quarkusPlatformVersion",
+      quarkusPlatformVersion
+    ).foreach(lines += _)
 
     // BomModule cannot have sources - set empty sources/resources when BomModule is used
     val isBomModule = effectiveSupertypes.contains("BomModule")
@@ -322,6 +330,7 @@ object BuildGenYaml extends BuildGen {
     "ScalaNativeModule" -> "mill.scalanativelib.ScalaNativeModule",
     "ErrorProneModule" -> "mill.javalib.errorprone.ErrorProneModule",
     "SpringBootModule" -> "spring.boot.SpringBootModule",
+    "QuarkusModule" -> "quarkus.QuarkusModule",
     "ProjectBaseModule" -> "millbuild.ProjectBaseModule"
   )
 
@@ -376,7 +385,7 @@ object BuildGenYaml extends BuildGen {
   }
 
   private def renderYamlStringValue(name: String, value: Value[String]): Option[String] = {
-    value.base.filter(_.nonEmpty).map(v => s"$name: $v")
+    value.base.map(v => s"$name: ${yamlEscapeString(v)}")
   }
 
   private def renderYamlBooleanValue(name: String, value: Value[Boolean]): Option[String] = {
@@ -450,12 +459,20 @@ object BuildGenYaml extends BuildGen {
 
   private def containsPlaceholder(s: String): Boolean = s.contains("${") && s.contains("}")
 
+  private val yamlQuoteContains = ":#\"'\n,"
+  private val yamlQuoteStarts = " {[*&!|>?@`"
+
+  private def needsQuoting(s: String, inList: Boolean): Boolean = {
+    s.isEmpty ||
+    s.exists(yamlQuoteContains.contains) ||
+    yamlQuoteStarts.contains(s.head) ||
+    s.endsWith(" ") ||
+    containsPlaceholder(s) ||
+    (inList && (s.contains("[") || s.contains("]")))
+  }
+
   private def yamlEscapeString(s: String): String = {
-    // Simple escaping for YAML strings - quote if contains special chars
-    if (
-      s.contains(":") || s.contains("#") || s.contains("\"") || s.contains("'") ||
-      s.contains("\n") || s.startsWith(" ") || s.endsWith(" ") || s.contains(",")
-    ) {
+    if (needsQuoting(s, inList = false)) {
       "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n") + "\""
     } else {
       s
@@ -463,12 +480,7 @@ object BuildGenYaml extends BuildGen {
   }
 
   private def yamlEscapeStringInList(s: String): String = {
-    // For list items, we need to quote strings containing commas, brackets, or other special chars
-    if (
-      s.contains(",") || s.contains("[") || s.contains("]") || s.contains(":") ||
-      s.contains("#") || s.contains("\"") || s.contains("'") || s.contains("\n") ||
-      s.startsWith(" ") || s.endsWith(" ")
-    ) {
+    if (needsQuoting(s, inList = true)) {
       "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n") + "\""
     } else {
       s

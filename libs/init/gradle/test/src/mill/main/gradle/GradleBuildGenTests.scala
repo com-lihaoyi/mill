@@ -54,16 +54,19 @@ trait GradleBuildGenTests extends TestSuite {
         initArgs = Seq("--gradle-jvm-id", "17") ++ extraArgs
       ))
     }
+    test("quarkus-getting-started") {
+      assert(checker.check(
+        sourceRel = "quarkus-getting-started",
+        expectedRel = os.sub / expectedDir / "quarkus-getting-started",
+        initArgs = Seq("--gradle-jvm-id", "21") ++ extraArgs
+      ))
+    }
   }
-}
-
-object GradleBuildGenTests extends GradleBuildGenTests {
-  def expectedDir: os.SubPath = "expected"
 }
 
 object GradleBuildGenYamlTests extends GradleBuildGenTests {
   def expectedDir: os.SubPath = "expected"
-  override def extraArgs = Seq("--declarative", "true")
+  // No extra args, equivalent to `--declarative true`
 }
 
 object GradleBuildGenScalaTests extends GradleBuildGenTests {

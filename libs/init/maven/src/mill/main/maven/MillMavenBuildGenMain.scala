@@ -85,6 +85,8 @@ object MillMavenBuildGenMain {
           val isSpringParentProject = isSpringBootProject(model)
           val springBootVersion = detectSpringBootVersion(model)
 
+          val quarkusVersionOpt = detectQuarkusPluginVersion(model)
+
           val (bomMvnDeps, depManagement, bomModuleDeps) =
             Option(model.getDependencyManagement).fold((Nil, Nil, Nil)) { dm =>
               val (bomDeps, deps) = dm.getDependencies.asScala.toSeq.partition(isBom)
@@ -114,6 +116,9 @@ object MillMavenBuildGenMain {
           if (isSpringParentProject) {
             mainModule = mainModule.withSpringBootModule(springBootVersion)
           }
+          if (quarkusVersionOpt.isDefined) {
+            mainModule = mainModule.withQuarkusModule(quarkusVersionOpt)
+          }
           if (os.exists(moduleDir / "src/test")) {
             val testMvnDeps = mvnDeps("test")
             val testMixin = ModuleSpec.testModuleMixin(testMvnDeps)
@@ -125,7 +130,7 @@ object MillMavenBuildGenMain {
             var testModule = ModuleSpec(
               name = "test",
               supertypes = "MavenTests" +: testMixin.toSeq,
-              forkArgs = plugins.testForkArgs,
+              forkArgs = Values(plugins.testForkArgs, appendSuper = true),
               forkWorkingDir = Some("moduleDir"),
               mvnDeps = testMvnDeps,
               compileMvnDeps = mainModule.compileMvnDeps,
@@ -218,6 +223,14 @@ object MillMavenBuildGenMain {
     Option(model.getParent)
       .filter(isSpringBootParent)
       .flatMap(parent => nonEmpty(parent.getVersion))
+  }
+
+  private val QuarkusPluginArtifactId = "quarkus-maven-plugin"
+
+  private def detectQuarkusPluginVersion(model: Model): Option[String] = {
+    model.getBuild.getPlugins.asScala.find(p =>
+      p.getArtifactId == QuarkusPluginArtifactId
+    ).flatMap(p => nonEmpty(p.getVersion))
   }
 
   private def toMvnDep(dep: Dependency) = {

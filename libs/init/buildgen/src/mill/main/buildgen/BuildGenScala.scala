@@ -155,6 +155,7 @@ object BuildGenScala extends BuildGen {
     for (a <- alias) lines += s"$a =>"
     lines += renderDefValue("moduleDir", moduleDir, identity[String])
     lines += renderDefValue("springBootPlatformVersion", springBootPlatformVersion, encodeString)
+    lines += renderDefValue("quarkusPlatformVersion", quarkusPlatformVersion, encodeString)
     lines += renderDefValues("moduleDeps", moduleDeps, encodeModuleDep, isTask = false)
     lines += renderDefValues(
       "compileModuleDeps",

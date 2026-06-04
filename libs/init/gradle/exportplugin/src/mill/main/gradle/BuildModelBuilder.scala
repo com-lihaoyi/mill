@@ -40,6 +40,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
     import project0.*
     val moduleDir = os.Path(getProjectDir)
     val isSpringBoot = isSpringBootProject(project0)
+    val isQuarkus = isQuarkusProject(project0)
     var mainModule = ModuleSpec(
       name = moduleDir.last,
       repositories = getRepositories.asScala.toSeq.collect(toRepositoryUrlString).distinct
@@ -77,6 +78,15 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         case T(t) => Some(t)
         case _ => None
       }
+      // Exclude BOM deps that will be added by Mill Modules
+      val effectiveBomDeps = {
+        val exclusions = Set.newBuilder[(String, String)]
+        if (isSpringBoot) exclusions += ("org.springframework.boot" -> "spring-boot-dependencies")
+        if (isQuarkus) exclusions += ("io.quarkus.platform" -> "quarkus-bom")
+        val exclusionSet = exclusions.result()
+
+        mainBomDeps.filterNot(dep => exclusionSet.contains((dep.getGroup, dep.getName)))
+      }
       val buildDir = os.Path(getLayout.getBuildDirectory.get().getAsFile)
       val mainJavaCompile = task[JavaCompile]("compileJava")
       mainModule = mainModule.copy(
@@ -85,7 +95,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         mvnDeps = mvnDeps("implementation", "api"),
         compileMvnDeps = mvnDeps("compileOnly", "compileOnlyApi"),
         runMvnDeps = mvnDeps("runtimeOnly"),
-        bomMvnDeps = mainBomDeps.collect(toMvnDep),
+        bomMvnDeps = effectiveBomDeps.collect(toMvnDep),
         depManagement = mainConstraints.collect(toMvnDep),
         javacOptions = mainJavaCompile.fold(Nil)(javacOptions),
         moduleDeps = moduleDeps("implementation", "api"),
@@ -105,6 +115,23 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         mainModule = mainModule.withSpringBootModule(pluginVersion)
       }
 
+      if (isQuarkus) {
+        val pluginVersion = detectPluginVersion(project0, QuarkusPluginId)
+        mainModule = mainModule.withQuarkusModule(pluginVersion)
+
+        // Add PublishModule and artifact/pom settings.
+        mainModule = mainModule.copy(
+          imports = "mill.javalib.publish.*" +: mainModule.imports,
+          supertypes = mainModule.supertypes :+ "PublishModule",
+          artifactName = Option(getName),
+          publishVersion = Option(getVersion).map(_.toString),
+          pomSettings = Some(PomSettings(
+            organization = getGroup.toString,
+            description = Option(getDescription).getOrElse("")
+          ))
+        )
+      }
+
       if (os.exists(moduleDir / "src/test")) {
         val testMixin = ModuleSpec.testModuleMixin(configs.find(_.getName == "testRuntimeClasspath")
           .fold(Nil)(_.getAllDependencies.asScala.toSeq.collect(toMvnDep)))
@@ -114,11 +141,14 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         var testModule = ModuleSpec(
           name = "test",
           supertypes = "MavenTests" +: testMixin.toSeq,
-          forkArgs = task[Test]("test").fold(Nil) { task =>
-            task.getSystemProperties.asScala.map {
-              case (k, v) => Opt(s"-D$k=$v")
-            }.toSeq ++ Opt.groups(task.getJvmArgs.asScala.toSeq)
-          },
+          forkArgs = Values(
+            task[Test]("test").fold(Nil) { task =>
+              task.getSystemProperties.asScala.map {
+                case (k, v) => Opt(s"-D$k=$v")
+              }.toSeq ++ Opt.groups(task.getJvmArgs.asScala.toSeq)
+            },
+            appendSuper = true
+          ),
           forkWorkingDir = Some("moduleDir"),
           mvnDeps = mvnDeps("testImplementation"),
           compileMvnDeps = mvnDeps("testCompileOnly"),
@@ -199,19 +229,30 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
   private val platform = objectFactory.named(classOf[Category], Category.REGULAR_PLATFORM)
   private val enforcedPlatform = objectFactory.named(classOf[Category], Category.ENFORCED_PLATFORM)
   private val SpringBootPluginId = "org.springframework.boot"
+  private val QuarkusPluginId = "io.quarkus"
 
   private def isSpringBootProject(project: Project): Boolean =
     project.getPluginManager.hasPlugin(SpringBootPluginId)
 
+  private def isQuarkusProject(project: Project): Boolean =
+    project.getPluginManager.hasPlugin(QuarkusPluginId)
+
   /**
    * Tries to detect the version of the given plugin
    * by looking at the implementation version of the plugin class's package.
+   * Fallbacks to looking for the plugin in the buildscript classpath.
    */
   private def detectPluginVersion(project: Project, pluginId: String): Option[String] = {
-    Option(project.getPlugins.findPlugin(pluginId))
+    val pluginImplVersion = Option(project.getPlugins.findPlugin(pluginId))
       .flatMap(plugin => Option(plugin.getClass.getPackage))
       .flatMap(pkg => Option(pkg.getImplementationVersion))
       .filter(_.nonEmpty)
+    val buildScriptVersion = project.getBuildscript.getConfigurations.getByName(
+      "classpath"
+    ).getResolvedConfiguration.getResolvedArtifacts.asScala
+      .find(artifact => artifact.getModuleVersion.getId.getGroup == pluginId)
+      .map(_.getModuleVersion.getId.getVersion)
+    pluginImplVersion.orElse(buildScriptVersion)
   }
 
   private def isBom(dep: Dependency | DependencyConstraint) = dep match {
