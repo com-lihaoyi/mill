@@ -245,9 +245,10 @@ final class EvaluatorImpl(
       // would make the comparison silently fail. We compare the workspace-relative form so the
       // check is immune to a shared symlinked prefix.
       val relFilePath =
-        PathRef.toResolvedOsPath(filePath).relativeTo(PathRef.toResolvedOsPath(workspace))
+        PathRef.toResolvedOsPathAnchored(filePath, workspace).relativeTo(workspace)
       val isRootBuildFile =
-        relFilePath == os.sub / "build.mill.yaml" ||
+        relFilePath == os.sub / "build.mill" ||
+          relFilePath == os.sub / "build.mill.yaml" ||
           relFilePath == os.sub / "mill-build" / "build.mill"
 
       val millKeys = mill.constants.ConfigConstants.all()

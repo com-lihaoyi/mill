@@ -74,7 +74,8 @@ object PathAliasing {
   }
 
   private def relativePath(from: os.Path, to: os.Path): os.RelPath = {
-    val rel = from.wrapped.toAbsolutePath.normalize().relativize(to.wrapped.toAbsolutePath.normalize())
+    val rel =
+      from.wrapped.toAbsolutePath.normalize().relativize(to.wrapped.toAbsolutePath.normalize())
     rel.iterator().asScala.foldLeft(os.rel) { (acc, segment) =>
       segment.toString match {
         case "." => acc
@@ -122,28 +123,28 @@ object PathAliasing {
     val cwdCandidates = Seq(cwd, PathRef.toResolvedOsPathAnchored(cwd, workspace)).distinct
     cwdCandidates.iterator.flatMap(aliasPrefixForCwd(_, workspace)).toSeq.headOption.toSeq.flatMap {
       prefix =>
-      val workspaceAlias = prefix / "mill-workspace"
-      val homeAlias = prefix / "mill-home"
-      val currentCwdForwarders = cwdCandidates.flatMap { cwd0 =>
-        aliasPrefixForCwd(cwd0, workspace).filter(_ == prefix).toSeq.flatMap { _ =>
-          val parent = cwd0 / prefix
-          Seq(
-            // Prefer already-aliased paths over the real workspace/home mappings below. A
-            // subprocess may parse `../mill-workspace/...` into a lexical path under the symlink
-            // location; without these entries it would be rendered as
-            // `../mill-workspace/out/.../mill-workspace/...`.
-            parent / "mill-workspace" -> workspaceAlias,
-            parent / "mill-home" -> homeAlias
-          )
+        val workspaceAlias = prefix / "mill-workspace"
+        val homeAlias = prefix / "mill-home"
+        val currentCwdForwarders = cwdCandidates.flatMap { cwd0 =>
+          aliasPrefixForCwd(cwd0, workspace).filter(_ == prefix).toSeq.flatMap { _ =>
+            val parent = cwd0 / prefix
+            Seq(
+              // Prefer already-aliased paths over the real workspace/home mappings below. A
+              // subprocess may parse `../mill-workspace/...` into a lexical path under the symlink
+              // location; without these entries it would be rendered as
+              // `../mill-workspace/out/.../mill-workspace/...`.
+              parent / "mill-workspace" -> workspaceAlias,
+              parent / "mill-home" -> homeAlias
+            )
+          }
         }
-      }
-      val roots = Seq(
-        workspace -> workspaceAlias,
-        os.home -> homeAlias
-      )
-      (currentCwdForwarders ++ roots)
-        .distinct
-        .sortBy { case (root, _) => -root.segments.length }
+        val roots = Seq(
+          workspace -> workspaceAlias,
+          os.home -> homeAlias
+        )
+        (currentCwdForwarders ++ roots)
+          .distinct
+          .sortBy { case (root, _) => -root.segments.length }
     }
   }
 

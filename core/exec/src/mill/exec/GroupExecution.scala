@@ -976,8 +976,16 @@ object GroupExecution {
     // `<cwd>/../mill-workspace/...` in reproducible mode) compare equal to their
     // real on-disk form after `normalizeForCheck`.
     private val normalizedWorkspace = normalizeForCheck(workspace)
-    private val normalizedReadDests = validReadDests.map(normalizeForCheck).toSet
-    private val normalizedWriteDests = validWriteDests.map(normalizeForCheck).toSet
+    private val normalizedReadDests0 = validReadDests.map(normalizeForCheck)
+    private val normalizedWriteDests0 = validWriteDests.map(normalizeForCheck)
+    private val normalizedReadDests = normalizedReadDests0.toSet
+    private val normalizedWriteDests = normalizedWriteDests0.toSet
+    private val normalizeReads =
+      workspace != normalizedWorkspace ||
+        validReadDests.lazyZip(normalizedReadDests0).exists(_ != _)
+    private val normalizeWrites =
+      workspace != normalizedWorkspace ||
+        validWriteDests.lazyZip(normalizedWriteDests0).exists(_ != _)
 
     private def normalizeForCheck(path: os.Path): os.Path = {
       // `toRealPath` requires the path to exist; resolve the longest existing prefix and
@@ -1007,9 +1015,10 @@ object GroupExecution {
         path: os.Path,
         rawValidDests: Seq[os.Path],
         normalizedValidDests: Set[os.Path],
+        normalizeRoots: Boolean,
         suffix: String
     ): Unit = {
-      if (!path.segments.exists(aliasLinkNames)) {
+      if (!normalizeRoots && !path.segments.exists(aliasLinkNames)) {
         // Fast path (no filesystem IO): the path does not traverse an alias symlink, so it is
         // already real (sharing any symlinked prefix with `workspace`). Compare lexically against
         // the un-resolved workspace/dests. This is the overwhelmingly common case.
@@ -1038,6 +1047,7 @@ object GroupExecution {
           p,
           validReadDests,
           normalizedReadDests,
+          normalizeReads,
           "You can only read files referenced by `Task.Source` or `Task.Sources`, or within a `Task.Input"
         )
       case _ =>
@@ -1050,6 +1060,7 @@ object GroupExecution {
           path,
           validWriteDests,
           normalizedWriteDests,
+          normalizeWrites,
           "Normal `Task`s can only write to files within their `Task.dest` folder, only `Task.Command`s can write to other arbitrary files."
         )
   }

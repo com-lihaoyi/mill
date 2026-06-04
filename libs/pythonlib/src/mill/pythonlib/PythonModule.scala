@@ -165,9 +165,11 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
   def typeCheck: T[Unit] = Task {
     runner().run(
       Seq(
-        "-m", "mypy",
+        "-m",
+        "mypy",
         "--strict",
-        "--cache-dir", PathRef.toRelString(Task.dest / "mypycache", Task.dest)
+        "--cache-dir",
+        PathRef.toRelString(Task.dest / "mypycache", Task.dest)
       ) ++ sources().map(pr => PathRef.toRelString(pr.path, Task.dest)),
       workingDir = Task.dest
     )
@@ -245,14 +247,17 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
     val pexFile = Task.dest / "bundle.pex"
     runner().run(
       Seq(
-        "-m", "pex",
+        "-m",
+        "pex"
       ) ++ transitivePythonDeps().toSeq ++
         transitivePythonPath().flatMap(pr =>
           Seq("-D", PathRef.toRelString(pr.path, Task.dest))
         ) ++
         Seq(
-          "--exe", PathRef.toRelString(mainScript().path, Task.dest),
-          "-o", PathRef.toRelString(pexFile, Task.dest)
+          "--exe",
+          PathRef.toRelString(mainScript().path, Task.dest),
+          "-o",
+          PathRef.toRelString(pexFile, Task.dest)
         ) ++ bundleOptions(),
       workingDir = Task.dest
     )

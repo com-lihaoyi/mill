@@ -104,9 +104,7 @@ private class BspCompileProblemReporter(
 
       case Some(f) =>
         val diagnostic = toDiagnostic(problem)
-        val textDocument = TextDocumentIdentifier(
-          mill.api.PathRef.toAbsNioPath(os.Path(f)).toUri.toString
-        )
+        val textDocument = TextDocumentIdentifier(Utils.sanitizeUri(f.toPath))
         if (diagnostics.add(textDocument, diagnostic)) {
           val diagnosticList = new java.util.LinkedList[Diagnostic]()
           diagnosticList.add(diagnostic)
@@ -168,8 +166,7 @@ private class BspCompileProblemReporter(
   }
 
   override def fileVisited(file: java.nio.file.Path): Unit = {
-    val uri = mill.api.PathRef.toAbsNioPath(os.Path(file)).toUri.toString
-    val textDocument = TextDocumentIdentifier(uri)
+    val textDocument = TextDocumentIdentifier(Utils.sanitizeUri(file))
     val (diagnostics0, hasNewDiagnostics) = diagnostics.getAll(textDocument)
     if (hasNewDiagnostics)
       sendBuildPublishDiagnostics(textDocument, diagnostics0, reset = true)

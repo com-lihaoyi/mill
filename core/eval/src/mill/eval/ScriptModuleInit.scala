@@ -175,10 +175,9 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
           mill.api.internal.PrecompiledModuleRef.cacheGet(scriptFile) match {
             case Some(m) => m.asInstanceOf[PrecompiledModule]
             case None =>
-              val relPath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot).toString
               val extendsIdx = extendsIndex.getOrElse(0)
               val validCtor = mill.api.internal.PrecompiledModuleRef
-                .validatePrecompiledClass(cls, relPath, scriptFile, extendsIdx)
+                .validatePrecompiledClass(cls, scriptFile, extendsIdx)
               validCtor.newInstance(args*).asInstanceOf[PrecompiledModule]
           }
         )
