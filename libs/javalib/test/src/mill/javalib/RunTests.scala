@@ -141,8 +141,12 @@ object RunTests extends TestSuite {
         val config = seen.get
         assert(
           config.env(EnvVars.MILL_WORKSPACE_ROOT) == HelloJavaWithMain.moduleDir.toString,
+          // The fork callsite injects the relativizer base for the fork's working directory (the
+          // workspace root here): the unified `pathRelativizerBaseForCwd` form, which adds the
+          // `out/mill-workspace` forwarder mappings on top of the plain workspace-root aliases so
+          // already-aliased paths don't get double-aliased.
           config.env(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE) ==
-            PathAliasing.workspaceRootPathRelativizerBase(HelloJavaWithMain.moduleDir),
+            PathAliasing.pathRelativizerBaseForCwd(HelloJavaWithMain.moduleDir),
           os.isLink(HelloJavaWithMain.moduleDir / "out" / "mill-workspace"),
           os.isLink(HelloJavaWithMain.moduleDir / "out" / "mill-home")
         )

@@ -184,7 +184,15 @@ trait TypeScriptModule extends Module { outer =>
     def copyOutSources(sources: Seq[PathRef], target: Path): Unit = {
 
       def copySource(source: PathRef): Unit = {
-        if (!source.path.startsWith(BuildCtx.workspaceRoot / "out")) () // Guard clause
+        // Guard: only copy sources that genuinely live under `out/`. Resolve through any
+        // `out/mill-workspace` forwarder symlink first — otherwise a raw module-dep source like
+        // `<ws>/foo/src` reached via the forwarder serializes as `<ws>/out/.../mill-workspace/foo/src`,
+        // lexically matching `<ws>/out` and tricking this guard into copying it (then colliding with
+        // `tscCopyModDeps`'s copy of the same files).
+        if (
+          !PathRef.toResolvedOsPathAnchored(source.path, BuildCtx.workspaceRoot)
+            .startsWith(BuildCtx.workspaceRoot / "out")
+        ) () // Guard clause
         else os.list(source.path).foreach {
           case IsSrcDirectory(srcDir) => copySrcDirectory(srcDir, target)
           case path => os.copy.over(path, target / path.last, createFolders = true)
@@ -200,14 +208,16 @@ trait TypeScriptModule extends Module { outer =>
     // mod deps
     tscModDepsSources()
       .foreach { case (mod, sources_) =>
-        copyOutSources(sources_, Task.dest / mod.relativeTo(BuildCtx.workspaceRoot) / "src")
+        copyOutSources(sources_, Task.dest / TypeScriptModule.anchoredModuleDir(mod).relativeTo(BuildCtx.workspaceRoot) / "src")
       }
 
   }
 
   private[javascriptlib] def tscCopyModDeps: Task[Unit] = Task.Anon {
     val targets =
-      recModuleDeps.map { _.moduleDir.subRelativeTo(BuildCtx.workspaceRoot).segments.head }.distinct
+      recModuleDeps.map { m =>
+        TypeScriptModule.anchoredModuleDir(m.moduleDir).subRelativeTo(BuildCtx.workspaceRoot).segments.head
+      }.distinct
 
     targets.foreach { target =>
       val destination = Task.dest / target
@@ -236,7 +246,7 @@ trait TypeScriptModule extends Module { outer =>
 
     tscModDepsGenSources().foreach { case (mod, source_) =>
       source_.foreach { target =>
-        val modDir = mod.relativeTo(BuildCtx.workspaceRoot)
+        val modDir = TypeScriptModule.anchoredModuleDir(mod).relativeTo(BuildCtx.workspaceRoot)
         val destination = Task.dest / modDir / "generatedSources" / target.path.last
         copyGeneratedSources(target.path, destination)
       }
@@ -266,7 +276,7 @@ trait TypeScriptModule extends Module { outer =>
     linkResource(resources(), dest)
 
     tscModDepsResources().foreach { case (mod, r) =>
-      val modDir = mod.relativeTo(BuildCtx.workspaceRoot)
+      val modDir = TypeScriptModule.anchoredModuleDir(mod).relativeTo(BuildCtx.workspaceRoot)
       val modDest = Task.dest / modDir / "resources"
       if (!os.exists(modDest)) os.makeDir.all(modDest)
       linkResource(r, modDest)
@@ -323,7 +333,7 @@ trait TypeScriptModule extends Module { outer =>
           .flatMap(pr => if (isDir(pr.path)) os.walk(pr.path) else Seq(pr.path))
           .filter(fileExt)
           .flatMap { p =>
-            val modDir = mod.relativeTo(BuildCtx.workspaceRoot)
+            val modDir = TypeScriptModule.anchoredModuleDir(mod).relativeTo(BuildCtx.workspaceRoot)
             val modmoduleDir = BuildCtx.workspaceRoot / modDir
             val modOutPath = BuildCtx.workspaceRoot / "out" / modDir
 
@@ -345,7 +355,7 @@ trait TypeScriptModule extends Module { outer =>
     val modGenSources = tscModDepsGenSources()
       .toIndexedSeq
       .flatMap { case (mod, source_) =>
-        val modDir = mod.relativeTo(BuildCtx.workspaceRoot)
+        val modDir = TypeScriptModule.anchoredModuleDir(mod).relativeTo(BuildCtx.workspaceRoot)
         source_.map(s"$modDir/generatedSources/" + _.path.last)
       }
 
@@ -466,10 +476,10 @@ trait TypeScriptModule extends Module { outer =>
     os.copy.over(npmInstall().path / "package.json", Task.dest / "package.json")
 
     if (!os.exists(Task.dest / "node_modules"))
-      os.symlink(Task.dest / "node_modules", npmInstall().path / "node_modules")
+      mill.api.internal.PathAliasing.withRawPathSerializer(os.symlink(Task.dest / "node_modules", npmInstall().path / "node_modules"))
 
     if (!os.exists(Task.dest / "package-lock.json"))
-      os.symlink(Task.dest / "package-lock.json", npmInstall().path / "package-lock.json")
+      mill.api.internal.PathAliasing.withRawPathSerializer(os.symlink(Task.dest / "package-lock.json", npmInstall().path / "package-lock.json"))
   }
 
   /**
@@ -557,12 +567,12 @@ trait TypeScriptModule extends Module { outer =>
 
     val tsnode: String =
       if (enableEsm()) "ts-node/esm"
-      else (npmInstall().path / "node_modules/.bin/ts-node").toString
+      else (mill.api.PathRef.toResolvedPathString(npmInstall().path / "node_modules/.bin/ts-node")).toString
 
     val tsconfigPaths: Seq[String] =
       Seq(
         if (enableEsm()) Some("tsconfig-paths/register")
-        else Some((npmInstall().path / "node_modules/tsconfig-paths/register").toString),
+        else Some((mill.api.PathRef.toResolvedPathString(npmInstall().path / "node_modules/tsconfig-paths/register")).toString),
         if (enableEsm()) Some("--no-warnings=ExperimentalWarning") else None
       ).flatten
 
@@ -672,7 +682,7 @@ trait TypeScriptModule extends Module { outer =>
 
   def bundle: T[PathRef] = Task {
     val env = forkEnv()
-    val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
+    val tsnode = mill.api.PathRef.toResolvedPathString(npmInstall().path / "node_modules/.bin/ts-node")
     val bundle = Task.dest / "bundle.js"
     val out = compile().path
 
@@ -837,6 +847,16 @@ trait TypeScriptModule extends Module { outer =>
 }
 
 object TypeScriptModule {
+  /**
+   * A module's `moduleDir` can route through the `out/mill-workspace` forwarder symlink in
+   * reproducible mode, so `moduleDir.relativeTo(workspaceRoot)` would lexically render as
+   * `out/mill-daemon/mill-workspace/<mod>` instead of just `<mod>` (and copying
+   * `workspaceRoot/out` into a subdir of itself). Resolve symlinks and re-anchor under the
+   * workspace so the relative path is the clean `<mod>`.
+   */
+  private[javascriptlib] def anchoredModuleDir(modDir: os.Path): os.Path =
+    PathRef.toResolvedOsPathAnchored(modDir, BuildCtx.workspaceRoot)
+
   case class PackageJson(
       name: String = "",
       version: String = "",
