@@ -630,8 +630,11 @@ object TestModule {
 
     private def runTest: T[TestResult] = Task {
       val mainFile = mill.api.PathRef.toResolvedPathString(service.mainFilePath())
-      val tsnode = mill.api.PathRef.toResolvedPathString(npmInstall().path / "node_modules/.bin/ts-node")
-      val tsconfigpaths = mill.api.PathRef.toResolvedPathString(npmInstall().path / "node_modules/tsconfig-paths/register")
+      val tsnode =
+        mill.api.PathRef.toResolvedPathString(npmInstall().path / "node_modules/.bin/ts-node")
+      val tsconfigpaths = mill.api.PathRef.toResolvedPathString(
+        npmInstall().path / "node_modules/tsconfig-paths/register"
+      )
       val port_ = port()
       val env = service.forkEnv() + ("PORT" -> port_)
 
@@ -642,7 +645,8 @@ object TestModule {
       )
 
       mkConfig()
-      val cypress = mill.api.PathRef.toResolvedPathString(npmInstall().path / "node_modules/.bin/cypress")
+      val cypress =
+        mill.api.PathRef.toResolvedPathString(npmInstall().path / "node_modules/.bin/cypress")
       os.call(
         (
           cypress,
@@ -691,8 +695,11 @@ object TestModule {
 
     private def runTest: T[TestResult] = Task {
       val mainFile = mill.api.PathRef.toResolvedPathString(service.mainFilePath())
-      val tsnode = mill.api.PathRef.toResolvedPathString(npmInstall().path / "node_modules/.bin/ts-node")
-      val tsconfigpaths = mill.api.PathRef.toResolvedPathString(npmInstall().path / "node_modules/tsconfig-paths/register")
+      val tsnode =
+        mill.api.PathRef.toResolvedPathString(npmInstall().path / "node_modules/.bin/ts-node")
+      val tsconfigpaths = mill.api.PathRef.toResolvedPathString(
+        npmInstall().path / "node_modules/tsconfig-paths/register"
+      )
       val port_ = port()
       val env = service.forkEnv() + ("PORT" -> port_)
 

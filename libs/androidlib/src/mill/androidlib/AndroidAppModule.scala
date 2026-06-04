@@ -770,7 +770,14 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val emulator = runningEmulator()
 
     os.call(
-      (PathRef.toAbsString(androidSdkModule().adbExe()), "-s", emulator, "install", "-r", androidApk().path)
+      (
+        PathRef.toAbsString(androidSdkModule().adbExe()),
+        "-s",
+        emulator,
+        "install",
+        "-r",
+        androidApk().path
+      )
     )
 
     emulator

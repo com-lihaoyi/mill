@@ -208,7 +208,12 @@ trait TypeScriptModule extends Module { outer =>
     // mod deps
     tscModDepsSources()
       .foreach { case (mod, sources_) =>
-        copyOutSources(sources_, Task.dest / TypeScriptModule.anchoredModuleDir(mod).relativeTo(BuildCtx.workspaceRoot) / "src")
+        copyOutSources(
+          sources_,
+          Task.dest / TypeScriptModule.anchoredModuleDir(
+            mod
+          ).relativeTo(BuildCtx.workspaceRoot) / "src"
+        )
       }
 
   }
@@ -216,7 +221,9 @@ trait TypeScriptModule extends Module { outer =>
   private[javascriptlib] def tscCopyModDeps: Task[Unit] = Task.Anon {
     val targets =
       recModuleDeps.map { m =>
-        TypeScriptModule.anchoredModuleDir(m.moduleDir).subRelativeTo(BuildCtx.workspaceRoot).segments.head
+        TypeScriptModule.anchoredModuleDir(
+          m.moduleDir
+        ).subRelativeTo(BuildCtx.workspaceRoot).segments.head
       }.distinct
 
     targets.foreach { target =>
@@ -476,10 +483,16 @@ trait TypeScriptModule extends Module { outer =>
     os.copy.over(npmInstall().path / "package.json", Task.dest / "package.json")
 
     if (!os.exists(Task.dest / "node_modules"))
-      mill.api.internal.PathAliasing.withRawPathSerializer(os.symlink(Task.dest / "node_modules", npmInstall().path / "node_modules"))
+      mill.api.internal.PathAliasing.withRawPathSerializer(os.symlink(
+        Task.dest / "node_modules",
+        npmInstall().path / "node_modules"
+      ))
 
     if (!os.exists(Task.dest / "package-lock.json"))
-      mill.api.internal.PathAliasing.withRawPathSerializer(os.symlink(Task.dest / "package-lock.json", npmInstall().path / "package-lock.json"))
+      mill.api.internal.PathAliasing.withRawPathSerializer(os.symlink(
+        Task.dest / "package-lock.json",
+        npmInstall().path / "package-lock.json"
+      ))
   }
 
   /**
@@ -567,12 +580,16 @@ trait TypeScriptModule extends Module { outer =>
 
     val tsnode: String =
       if (enableEsm()) "ts-node/esm"
-      else (mill.api.PathRef.toResolvedPathString(npmInstall().path / "node_modules/.bin/ts-node")).toString
+      else (mill.api.PathRef.toResolvedPathString(
+        npmInstall().path / "node_modules/.bin/ts-node"
+      )).toString
 
     val tsconfigPaths: Seq[String] =
       Seq(
         if (enableEsm()) Some("tsconfig-paths/register")
-        else Some((mill.api.PathRef.toResolvedPathString(npmInstall().path / "node_modules/tsconfig-paths/register")).toString),
+        else Some((mill.api.PathRef.toResolvedPathString(
+          npmInstall().path / "node_modules/tsconfig-paths/register"
+        )).toString),
         if (enableEsm()) Some("--no-warnings=ExperimentalWarning") else None
       ).flatten
 
@@ -682,7 +699,8 @@ trait TypeScriptModule extends Module { outer =>
 
   def bundle: T[PathRef] = Task {
     val env = forkEnv()
-    val tsnode = mill.api.PathRef.toResolvedPathString(npmInstall().path / "node_modules/.bin/ts-node")
+    val tsnode =
+      mill.api.PathRef.toResolvedPathString(npmInstall().path / "node_modules/.bin/ts-node")
     val bundle = Task.dest / "bundle.js"
     val out = compile().path
 
@@ -847,6 +865,7 @@ trait TypeScriptModule extends Module { outer =>
 }
 
 object TypeScriptModule {
+
   /**
    * A module's `moduleDir` can route through the `out/mill-workspace` forwarder symlink in
    * reproducible mode, so `moduleDir.relativeTo(workspaceRoot)` would lexically render as
