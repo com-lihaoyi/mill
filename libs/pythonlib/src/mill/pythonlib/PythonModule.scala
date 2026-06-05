@@ -207,7 +207,9 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
           pythonPycachePrefix = Task.dest / "cache",
           forceColor = Task.log.prompt.colored,
           javaHome = javaHome().map(_.path),
-          cwd = cwd
+          cwd = cwd,
+          // The detached background process can't resolve `../mill-workspace` aliases.
+          relativize = false
         ),
         mainArgs = backgroundPaths.toArgs ++ Seq(
           "<subprocess>",
@@ -215,7 +217,13 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
           // `java.nio`/`ProcessBuilder`, so its cwd and our path aliases aren't reachable, and any
           // ephemeral `mill-no-daemon/<id>/mill-workspace` forwarder it routes through is deleted
           // when the launcher exits: pass real absolute paths with symlinks resolved.
-          PathRef.toResolvedPathString(pythonExe().path),
+          //
+          // For the interpreter, resolve only the enclosing `venv/bin` directory (to strip any
+          // `mill-workspace` forwarder from the prefix) but keep the final `python3` symlink
+          // unresolved: fully resolving it would point at the base interpreter and Python would
+          // no longer detect the virtualenv (via the adjacent `pyvenv.cfg`), losing the venv's
+          // installed packages.
+          PathRef.toResolvedPathString(pythonExe().path / os.up) + "/" + pythonExe().path.last,
           PathRef.toResolvedPathString(mainScript().path)
         ) ++ args.value,
         cwd = cwd,
@@ -335,13 +343,18 @@ object PythonModule {
       pythonPycachePrefix: os.Path,
       forceColor: Boolean,
       javaHome: Option[os.Path],
-      cwd: os.Path
-  ): Map[String, String] =
+      cwd: os.Path,
+      // When false, emit real absolute paths instead of `../mill-workspace` aliases. The detached
+      // background process (`MillBackgroundWrapper`) relaunches via plain `ProcessBuilder` and
+      // cannot reach Mill's cwd path aliases, so its env must not contain relativized paths.
+      relativize: Boolean = true
+  ): Map[String, String] = {
+    def fmt(p: os.Path): String =
+      if (relativize) PathRef.toRelString(p, cwd) else PathRef.toResolvedPathString(p)
     Map(
-      "PYTHONPATH" -> pythonPath.map(PathRef.toRelString(_, cwd)).mkString(
-        java.io.File.pathSeparator
-      ),
-      "PYTHONPYCACHEPREFIX" -> PathRef.toRelString(pythonPycachePrefix, cwd),
+      "PYTHONPATH" -> pythonPath.map(fmt).mkString(java.io.File.pathSeparator),
+      "PYTHONPYCACHEPREFIX" -> fmt(pythonPycachePrefix),
       if (forceColor) "FORCE_COLOR" -> "1" else "NO_COLOR" -> "1"
-    ) ++ javaHome.map(jh => "JAVA_HOME" -> PathRef.toRelString(jh, cwd))
+    ) ++ javaHome.map(jh => "JAVA_HOME" -> fmt(jh))
+  }
 }

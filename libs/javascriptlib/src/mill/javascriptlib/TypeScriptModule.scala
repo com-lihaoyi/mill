@@ -317,18 +317,27 @@ trait TypeScriptModule extends Module { outer =>
       relativeToTypescript(externalSourceDir, path, prefix)
     }
 
+    // In reproducible-build mode `os.walk` returns entries routed through the `out/mill-workspace`
+    // forwarder symlink (it round-trips through the relativized `toNIO`), so the lexical
+    // `startsWith`/`relativeTo` arithmetic below would emit `mill-workspace/...` tsconfig `files`
+    // entries that `tsc` can't resolve. Resolve both the walked paths and the comparison bases to
+    // their real on-disk locations so the arithmetic matches the layout `tscCopySources` produces.
+    val rModuleDir = PathRef.toResolvedOsPath(moduleDir)
+    val rOut = PathRef.toResolvedOsPath(BuildCtx.workspaceRoot / "out")
+    val rOutModule = PathRef.toResolvedOsPath(BuildCtx.workspaceRoot / "out" / moduleName)
     val cores = sources()
       .toIndexedSeq
       .flatMap(pr => if (isDir(pr.path)) os.walk(pr.path) else Seq(pr.path))
+      .map(PathRef.toResolvedOsPath)
       .filter(fileExt)
       .flatMap { p =>
         p match {
-          case _ if p.startsWith(moduleDir) && !p.startsWith(moduleDir / "out") =>
-            relativeToTS(moduleDir, p)
-          case _ if p.startsWith(BuildCtx.workspaceRoot / "out" / moduleName) =>
-            handleOutTS(BuildCtx.workspaceRoot / "out" / moduleName, p)
-          case _ if p.startsWith(BuildCtx.workspaceRoot / "out") =>
-            handleOutTS(BuildCtx.workspaceRoot / "out", p)
+          case _ if p.startsWith(rModuleDir) && !p.startsWith(rModuleDir / "out") =>
+            relativeToTS(rModuleDir, p)
+          case _ if p.startsWith(rOutModule) =>
+            handleOutTS(rOutModule, p)
+          case _ if p.startsWith(rOut) =>
+            handleOutTS(rOut, p)
           case _ => None
         }
       }

@@ -776,7 +776,9 @@ trait AndroidAppModule extends AndroidModule { outer =>
         emulator,
         "install",
         "-r",
-        androidApk().path
+        // `adb` runs as an external process and cannot resolve Mill's `../mill-workspace` path
+        // aliases, so hand it a real absolute APK path rather than the relativized `.path`.
+        PathRef.toAbsString(androidApk())
       )
     )
 
@@ -1157,7 +1159,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
           emulator,
           "install",
           "-t",
-          androidTestApk().path
+          // `adb` can't resolve Mill's `../mill-workspace` aliases; pass a real absolute path.
+          PathRef.toAbsString(androidTestApk())
         )
       )
       emulator
