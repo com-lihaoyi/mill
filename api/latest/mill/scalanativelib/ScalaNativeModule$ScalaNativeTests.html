@@ -581,7 +581,7 @@ node40 -> node32;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="ScalaNativeModule$ScalaNativeBridge.html" t="n" class="documentableName ">ScalaNativeBridge</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">scalaNativeWorkerValue</span>: <span t="t">ScalaNativeWorker</span>, <span t="k"></span><span data-unresolved-link="" t="n">bridgeFullClassPathValue</span>: <span data-unresolved-link="" t="t">Seq</span>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>])
+            <span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="ScalaNativeModule$ScalaNativeBridge.html" t="n" class="documentableName ">ScalaNativeBridge</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">scalaNativeWorkerValue</span>: <span t="t">ScalaNativeWorker</span>, <span t="k"></span><span data-unresolved-link="" t="n">bridgeFullClassPathValue</span>: <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>])
            </div>
           </div>
          </div>
@@ -1194,12 +1194,12 @@ node40 -> node32;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="allForkEnv-0" data-f-keywords="override" data-f-inherited="TestModule">
+        <div class="documentableElement" id="allForkEnv-0" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="ScalaNativeModule$ScalaNativeTests.html#allForkEnv-0" t="n" class="documentableName ">allForkEnv</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>]]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScalaNativeModule$ScalaNativeTests.html#allForkEnv-0" t="n" class="documentableName ">allForkEnv</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>]]
            </div>
           </div>
          </div>
@@ -1214,29 +1214,21 @@ node40 -> node32;
             <div class="cover">
              <div class="doc">
               <p>Environment variables to pass to the forked JVM.</p>
-              <p>Includes <a href="../javalib/TestModule.html#forkEnv-0">forkEnv</a>, the Java-home PATH override, and the workspace root. The os-lib path-relativizer var is added at the fork callsite, so it does not become part of this cached task output.</p>
+              <p>Includes <a href="../javalib/RunModule.html#forkEnv-0">forkEnv</a>, the Java-home PATH override, and the workspace root. The os-lib path-relativizer var is added at the fork callsite, so it does not become part of this cached task output.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
-               Definition Classes
-              </dt>
-              <dd class="body-medium">
-               <div>
-                <a href="../javalib/TestModule.html#allForkEnv-0">TestModule</a> -&gt; <a href="../javalib/RunModule.html">RunModule</a>
-               </div>
-              </dd>
-              <dt class="body-small">
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="../javalib/TestModule.html#allForkEnv-0">TestModule</a>
+               <a href="../javalib/RunModule.html#allForkEnv-0">RunModule</a>
               </dd>
               <dt class="body-small">
                Source
               </dt>
               <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/TestModule.scala" target="_blank">TestModule.scala</a>
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/RunModule.scala" target="_blank">RunModule.scala</a>
               </dd>
              </dl>
             </div>
@@ -2286,7 +2278,7 @@ node40 -> node32;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScalaNativeModule$ScalaNativeTests.html#bridgeFullClassPath-0" t="n" class="documentableName ">bridgeFullClassPath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScalaNativeModule$ScalaNativeTests.html#bridgeFullClassPath-0" t="n" class="documentableName ">bridgeFullClassPath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
            </div>
           </div>
          </div>
@@ -5771,7 +5763,7 @@ node40 -> node32;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScalaNativeModule$ScalaNativeTests.html#nativeClang-0" t="n" class="documentableName ">nativeClang</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScalaNativeModule$ScalaNativeTests.html#nativeClang-0" t="n" class="documentableName ">nativeClang</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<a href="../api/PathRef.html" t="t">PathRef</a>]
            </div>
           </div>
          </div>
@@ -5807,7 +5799,7 @@ node40 -> node32;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScalaNativeModule$ScalaNativeTests.html#nativeClangPP-0" t="n" class="documentableName ">nativeClangPP</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScalaNativeModule$ScalaNativeTests.html#nativeClangPP-0" t="n" class="documentableName ">nativeClangPP</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<a href="../api/PathRef.html" t="t">PathRef</a>]
            </div>
           </div>
          </div>
@@ -6146,7 +6138,7 @@ node40 -> node32;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScalaNativeModule$ScalaNativeTests.html#nativeLink-0" t="n" class="documentableName ">nativeLink</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScalaNativeModule$ScalaNativeTests.html#nativeLink-0" t="n" class="documentableName ">nativeLink</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<a href="../api/PathRef.html" t="t">PathRef</a>]
            </div>
           </div>
          </div>
@@ -6678,7 +6670,7 @@ node40 -> node32;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="ScalaNativeModule$ScalaNativeTests.html#prepareOffline-e9a" t="n" class="documentableName ">prepareOffline</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">all</span>: <span data-unresolved-link="" t="t">Flag</span>): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]]
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="ScalaNativeModule$ScalaNativeTests.html#prepareOffline-e9a" t="n" class="documentableName ">prepareOffline</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">all</span>: <span data-unresolved-link="" t="t">Flag</span>): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
            </div>
           </div>
          </div>
@@ -7443,7 +7435,7 @@ node40 -> node32;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="ScalaNativeModule$ScalaNativeTests.html#resources-0" t="n" class="documentableName ">resources</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]]
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="ScalaNativeModule$ScalaNativeTests.html#resources-0" t="n" class="documentableName ">resources</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
            </div>
           </div>
          </div>
@@ -8691,7 +8683,7 @@ node40 -> node32;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScalaNativeModule$ScalaNativeTests.html#scalaNativeWorkerClasspath-0" t="n" class="documentableName ">scalaNativeWorkerClasspath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScalaNativeModule$ScalaNativeTests.html#scalaNativeWorkerClasspath-0" t="n" class="documentableName ">scalaNativeWorkerClasspath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
            </div>
           </div>
          </div>

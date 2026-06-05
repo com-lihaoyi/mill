@@ -93,6 +93,36 @@ node3 -> node2;
          <button class="icon-button show-content expand"></button>
          <h4 class="groupHeader h200">Concrete methods</h4>
         </div>
+        <div class="documentableElement" id="aliasMappingForCwd-34b">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="PathAliasing$.html#aliasMappingForCwd-34b" t="n" class="documentableName ">aliasMappingForCwd</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">cwd</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">workspace</span>: <span data-unresolved-link="" t="t">Path</span> = ...): <span data-unresolved-link="" t="t">Seq</span>[(<span data-unresolved-link="" t="t">Path</span>, <span data-unresolved-link="" t="t">RelPath</span>)]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/core/api/java11/src/mill/api/internal/PathAliasing.scala" target="_blank">PathAliasing.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="defaultMapping-fffff7fa">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -143,11 +173,12 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Install the <code>../mill-workspace</code> / <code>../mill-home</code> forwarder symlinks for a process whose cwd is <code>cwd</code>. The aliases live in <code>cwd</code>'s <em>parent</em>, never inside <code>cwd</code> itself, so that a tool which walks/archives its own working directory (<code>jar -c .</code>, <code>tar</code>, <code>os.walk</code>) does not see them.</p>
+             <p>Install the <code>mill-workspace</code> / <code>mill-home</code> forwarder symlinks for a process whose cwd is <code>cwd</code>. The aliases live outside the cwd, normally in its parent. That keeps tools which walk/archive their own working directory (<code>jar -c .</code>, <code>tar</code>, <code>os.walk</code>) from seeing aliases while still letting subprocess cwd values resolve paths like <code>../mill-workspace/...</code>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Install the <code>../mill-workspace</code> / <code>../mill-home</code> forwarder symlinks for a process whose cwd is <code>cwd</code>. The aliases live in <code>cwd</code>'s <em>parent</em>, never inside <code>cwd</code> itself, so that a tool which walks/archives its own working directory (<code>jar -c .</code>, <code>tar</code>, <code>os.walk</code>) does not see them.</p>
+              <p>Install the <code>mill-workspace</code> / <code>mill-home</code> forwarder symlinks for a process whose cwd is <code>cwd</code>. The aliases live outside the cwd, normally in its parent. That keeps tools which walk/archive their own working directory (<code>jar -c .</code>, <code>tar</code>, <code>os.walk</code>) from seeing aliases while still letting subprocess cwd values resolve paths like <code>../mill-workspace/...</code>.</p>
+              <p>The exception is a subprocess spawned directly at the workspace root. In that case, the path relativizer needs aliases under the configured Mill output directory, so put the forwarders there instead of outside the workspace.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -198,6 +229,36 @@ node3 -> node2;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="pathRelativizerBaseForCwd-785">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="PathAliasing$.html#pathRelativizerBaseForCwd-785" t="n" class="documentableName ">pathRelativizerBaseForCwd</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">cwd</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">workspace</span>: <span data-unresolved-link="" t="t">Path</span> = ...): <span data-unresolved-link="" t="t">String</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/core/api/java11/src/mill/api/internal/PathAliasing.scala" target="_blank">PathAliasing.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="withDefaultPathSerializer-fffff7d2">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -213,11 +274,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Scope <code>body</code> so the <code>os.Path</code> serializer is the default (env-driven) one — typically used to opt OUT of an in-process relativizing serializer that an outer caller installed, so paths within <code>body</code> serialize as absolute. Used by long-running processes (launcher, IDEA generator, test runner) whose own output should not be aliased even when their daemon parent's is.</p>
+             <p>Scope <code>body</code> so the <code>os.Path</code> serializer is the default (env-driven) one. Used by long-running in-process tools whose own output should not inherit an outer caller's custom serializer.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Scope <code>body</code> so the <code>os.Path</code> serializer is the default (env-driven) one — typically used to opt OUT of an in-process relativizing serializer that an outer caller installed, so paths within <code>body</code> serialize as absolute. Used by long-running processes (launcher, IDEA generator, test runner) whose own output should not be aliased even when their daemon parent's is.</p>
+              <p>Scope <code>body</code> so the <code>os.Path</code> serializer is the default (env-driven) one. Used by long-running in-process tools whose own output should not inherit an outer caller's custom serializer.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -248,11 +309,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Scope <code>body</code> so every <code>os.Path</code> serializes to its real absolute on-disk form. Use narrowly, around an <code>os.proc(...).spawn</code>/<code>call</code>, when handing a <code>cwd</code> (and stdout/stderr redirects) to <code>ProcessBuilder</code>: os-lib turns <code>cwd</code> into <code>ProcessBuilder.directory()</code> via <code>cwd.toIO</code>, which the OS resolves on the real filesystem, so a relativized <code>../mill-workspace/...</code> form would not resolve. (<code>realAbs</code> can't be used here because the <code>cwd</code> is consumed by os-lib, not the caller.)</p>
+             <p>Scope <code>body</code> so os-lib's <code>ProcessBuilder</code> inputs (<code>cwd</code>, stdout/stderr redirects) use real on-disk paths. Keep this narrow: ordinary user-facing path strings should go through PathRef.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Scope <code>body</code> so every <code>os.Path</code> serializes to its real absolute on-disk form. Use narrowly, around an <code>os.proc(...).spawn</code>/<code>call</code>, when handing a <code>cwd</code> (and stdout/stderr redirects) to <code>ProcessBuilder</code>: os-lib turns <code>cwd</code> into <code>ProcessBuilder.directory()</code> via <code>cwd.toIO</code>, which the OS resolves on the real filesystem, so a relativized <code>../mill-workspace/...</code> form would not resolve. (<code>realAbs</code> can't be used here because the <code>cwd</code> is consumed by os-lib, not the caller.)</p>
+              <p>Scope <code>body</code> so os-lib's <code>ProcessBuilder</code> inputs (<code>cwd</code>, stdout/stderr redirects) use real on-disk paths. Keep this narrow: ordinary user-facing path strings should go through PathRef.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -338,12 +399,72 @@ node3 -> node2;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="workspaceEnvVarsForCwd-c48">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="PathAliasing$.html#workspaceEnvVarsForCwd-c48" t="n" class="documentableName ">workspaceEnvVarsForCwd</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">cwd</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">workspace</span>: <span data-unresolved-link="" t="t">Path</span> = ...): <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/core/api/java11/src/mill/api/internal/PathAliasing.scala" target="_blank">PathAliasing.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="workspacePathRelativizerBase-a74">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="PathAliasing$.html#workspacePathRelativizerBase-a74" t="n" class="documentableName ">workspacePathRelativizerBase</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">workspace</span>: <span data-unresolved-link="" t="t">Path</span> = ...): <span data-unresolved-link="" t="t">String</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/core/api/java11/src/mill/api/internal/PathAliasing.scala" target="_blank">PathAliasing.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="workspaceRootPathRelativizerBase-a74">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="PathAliasing$.html#workspaceRootPathRelativizerBase-a74" t="n" class="documentableName ">workspaceRootPathRelativizerBase</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">workspace</span>: <span data-unresolved-link="" t="t">Path</span> = ...): <span data-unresolved-link="" t="t">String</span>
            </div>
           </div>
          </div>
