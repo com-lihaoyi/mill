@@ -479,17 +479,14 @@ private[mill] object TestModuleUtil {
     Map(
       EnvVars.MILL_TEST_RESOURCE_DIR -> resources.iterator
         .map { resourceDir =>
-          if (usePathAliases)
-            PathRef.toRelString(
-              PathRef.toResolvedOsPathAnchored(resourceDir.path, BuildCtx.workspaceRoot),
-              cwd
-            )
-          else
-            // `MILL_TEST_RESOURCE_DIR` is consumed by arbitrary user test code that may `os.list`
-            // it and compare entries against `dir / name`. Hand back the fully symlink-resolved
-            // real path (not the forwarder-anchored form): `os.list` yields real-resolved entries,
-            // so the directory itself must be real for `os.Path` identities to match.
-            PathRef.toResolvedPathString(resourceDir.path)
+          val anchored = PathRef.toResolvedOsPathAnchored(resourceDir.path, BuildCtx.workspaceRoot)
+          // Clean workspace-anchored absolute path (forwarder symlinks stripped, lexical so it
+          // also works for resource dirs not yet materialized on disk, e.g. when BSP queries the
+          // test environment before a compile). User test code that `os.list`s this dir compares
+          // entries against `dir / name`; that works because the test fork runs without the os-lib
+          // relativizer (see the spawn site), so `os.list` doesn't re-route through a forwarder.
+          if (usePathAliases) PathRef.toRelString(anchored, cwd)
+          else PathRef.toAbsString(anchored)
         }
         .mkString(";")
     )
