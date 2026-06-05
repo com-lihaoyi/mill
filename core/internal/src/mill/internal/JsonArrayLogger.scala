@@ -1,5 +1,7 @@
 package mill.internal
 
+import mill.api.PathRef
+
 import java.io.{BufferedOutputStream, PrintStream}
 import java.lang.management.ManagementFactory
 import java.nio.file.{Files, StandardOpenOption}
@@ -15,8 +17,9 @@ class JsonArrayLogger[T: upickle.Writer](outPath: os.Path, indent: Int) {
       Seq(StandardOpenOption.CREATE, StandardOpenOption.WRITE),
       Seq(StandardOpenOption.TRUNCATE_EXISTING)
     ).flatten
-    os.makeDir.all(outPath / os.up)
-    PrintStream(BufferedOutputStream(Files.newOutputStream(outPath.toNIO, options*)))
+    val outNioPath = PathRef.toAbsNioPath(outPath)
+    Files.createDirectories(outNioPath.getParent)
+    PrintStream(BufferedOutputStream(Files.newOutputStream(outNioPath, options*)))
   }
 
   // Log the JSON entries asynchronously on a separate thread to try and avoid blocking

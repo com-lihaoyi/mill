@@ -8,7 +8,6 @@ import mill.api.BuildCtx
 import mill.constants.{DaemonFiles, Util}
 import mill.javalib.graalvm.{GraalVMMetadataWorker, MetadataQuery, MetadataResult}
 import mill.util.Jvm
-import mill.util.Jvm.realAbsResolved
 
 import java.io.File
 import scala.util.Properties
@@ -40,17 +39,15 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
 
     val executeableName = "native-executable"
     val toolPath = nativeImageTool().path
-    // `realAbsResolved` throughout: `native-image` scans classpath JARs' on-disk paths for
-    // build-time-init directives in their `META-INF/native-image/...`; alias form not resolved.
     val command = Seq.newBuilder[String]
-      .+=(realAbsResolved(toolPath))
+      .+=(PathRef.toRelString(toolPath, dest))
       .++=(nativeImageOptions())
       .+=("-cp")
-      .+=(nativeImageClasspath().iterator.map(p => realAbsResolved(p.path)).mkString(
+      .+=(nativeImageClasspath().iterator.map(p => PathRef.toRelString(p.path, dest)).mkString(
         java.io.File.pathSeparator
       ))
       .+=(finalMainClass())
-      .+=(java.nio.file.Paths.get(realAbsResolved(dest), executeableName).toString)
+      .+=((dest / executeableName).toString)
       .result()
 
     os.proc(command).call(cwd = dest, stdout = os.Inherit)
@@ -78,6 +75,7 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
    */
   def nativeRunBackground(args: mill.api.Args) = Task.Command(persistent = true) {
     val backgroundPaths = mill.javalib.RunModule.BackgroundPaths(Task.dest)
+    val cwd = BuildCtx.workspaceRoot
     val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
 
     BuildCtx.withFilesystemCheckerDisabled {
@@ -87,9 +85,12 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
         jvmArgs = Nil,
         mainArgs = backgroundPaths.toArgs ++ Seq(
           "<subprocess>",
-          nativeImage().path.toString
+          // Detached `MillBackgroundWrapper` relaunches this via plain `java.nio`/`ProcessBuilder`,
+          // so our cwd aliases aren't reachable and any ephemeral nodaemon forwarder it routes
+          // through is deleted when the launcher exits: pass a real absolute path (symlinks resolved).
+          PathRef.toResolvedPathString(nativeImage().path)
         ) ++ args.value,
-        cwd = BuildCtx.workspaceRoot,
+        cwd = cwd,
         stdin = "",
         // Hack to forward the background subprocess output to the Mill server process
         // stdout/stderr files, so the output will get properly slurped up by the Mill server
@@ -118,9 +119,10 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
     val configurationDirectoriesArg = if (configurations.isEmpty) {
       Seq.empty[String]
     } else {
-      // `realAbsResolved`: same as above — native-image scans by on-disk path, alias form fails.
+      // This option is assembled before the `native-image` task cwd is known, and Graal documents
+      // it as an absolute-style config-dir argument (`-H:ConfigurationFileDirectories=/path/to/...`).
       val configurationFileDirectoriesValue =
-        configurations.map(c => realAbsResolved(c.metadataLocation)).mkString(",")
+        configurations.map(c => PathRef.toResolvedPathString(c.metadataLocation)).mkString(",")
       Seq(s"-H:ConfigurationFileDirectories=$configurationFileDirectoriesValue")
     }
     nativeExcludedConfig() ++ configurationDirectoriesArg ++ nativeIncludedResourcesImageOptions()
@@ -360,11 +362,11 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
     nativeExcludedConfigJars()
       .distinct
       .flatMap { file =>
-        // `realAbsResolved`: the `\Q...\E` literal must match the on-disk jar path native-image
-        // sees; the alias form would never match and silently skip the exclusion.
+        // `--exclude-config` matches the jar path seen by Graal's classpath scanner, so resolve
+        // symlinks before embedding it in the regex literal.
         Seq(
           "--exclude-config",
-          s"\\Q${realAbsResolved(file.path)}\\E",
+          s"\\Q${PathRef.toResolvedPathString(file.path)}\\E",
           s"^/META-INF/native-image/.*"
         )
       }

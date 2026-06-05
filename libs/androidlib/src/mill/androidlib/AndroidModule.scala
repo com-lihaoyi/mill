@@ -739,7 +739,7 @@ trait AndroidModule extends JavaModule { outer =>
   def androidCompiledLibResources: T[PathRef] = Task {
     val libAndroidResources: Seq[os.Path] = androidLibraryResources().map(_.path)
 
-    val aapt2Compile = Seq(androidSdkModule().aapt2Exe().path.toString(), "compile")
+    val aapt2Compile = Seq(PathRef.toAbsString(androidSdkModule().aapt2Exe()), "compile")
 
     for (libResDir <- libAndroidResources) {
       val segmentsSeq = libResDir.segments.toSeq
@@ -770,7 +770,7 @@ trait AndroidModule extends JavaModule { outer =>
     val moduleResources: Seq[os.Path] =
       androidResources().map(_.path).filter(os.exists)
 
-    val aapt2Compile = Seq(androidSdkModule().aapt2Exe().path.toString(), "compile")
+    val aapt2Compile = Seq(PathRef.toAbsString(androidSdkModule().aapt2Exe()), "compile")
 
     for (libResDir <- moduleResources) {
       val segmentsSeq = libResDir.segments.toSeq
@@ -848,7 +848,7 @@ trait AndroidModule extends JavaModule { outer =>
       transitiveMergedAssetsDir.toString
     )
 
-    val aapt2Link = Seq(androidSdkModule().aapt2Exe().path.toString(), "link")
+    val aapt2Link = Seq(PathRef.toAbsString(androidSdkModule().aapt2Exe()), "link")
 
     Task.log.info((aapt2Link ++ linkArgs).mkString(" "))
 

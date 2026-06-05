@@ -74,6 +74,7 @@ object MillLauncherMain {
       // `out/mill-home` aliases. These env vars contribute to the daemon's restart fingerprint,
       // so an existing daemon restarts when the user's workspace changes.
       val workspaceEnv = PathAliasing.workspaceEnvVars(workDir)
+      PathAliasing.ensureProcessCwdAliases(workDir, workDir)
       val scopedEnv = effectiveEnv ++ workspaceEnv
 
       try {

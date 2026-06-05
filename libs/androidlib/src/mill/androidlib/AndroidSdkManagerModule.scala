@@ -103,7 +103,11 @@ trait AndroidSdkManagerModule extends ExternalModule {
       Seq("echo", "y\n" * 10)
     os.proc(
       args
-    ).pipeTo(os.proc(sdkManagerExePath.toString, "--licenses")).call(stdout = os.Pipe)
+    ).pipeTo(os.proc(
+      // ProcessBuilder executes sdkmanager directly; cwd aliases are not enough.
+      PathRef.toAbsString(sdkManagerExePath),
+      "--licenses"
+    )).call(stdout = os.Pipe)
   }
 
   // TODO: Replace hardcoded mapping with automated parsing
@@ -401,7 +405,8 @@ trait AndroidSdkManagerModule extends ExternalModule {
   ): CommandResult = {
     os.call(
       cmd = Seq(
-        sdkmanagerExe.toString,
+        // ProcessBuilder executes sdkmanager directly; it cannot rely on path aliases.
+        PathRef.toAbsString(sdkmanagerExe),
         "--install"
       ) ++ packages,
       stdout = os.Inherit,

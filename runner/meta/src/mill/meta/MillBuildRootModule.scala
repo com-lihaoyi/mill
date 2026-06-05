@@ -47,11 +47,12 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
 
   def parseBuildFiles: T[DiscoveredBuildFiles] = Task {
     BuildCtx.withFilesystemCheckerDisabled {
+      val projectRoot = rootModuleInfo.projectRoot / os.up
       DiscoveredBuildFiles.parseBuildFiles(
         rootModuleInfo.topLevelProjectRoot,
-        rootModuleInfo.projectRoot / os.up,
+        projectRoot,
         MillScalaParser.current.value,
-        scriptSources().map(_.path),
+        scriptSources().map(p => PathRef.toResolvedOsPathAnchored(p.path, projectRoot)),
         Task.log.prompt.colored
       )
     }

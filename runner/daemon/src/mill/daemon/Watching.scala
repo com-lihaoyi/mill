@@ -1,10 +1,9 @@
 package mill.daemon
 
-import mill.api.SystemStreams
+import mill.api.{PathRef, SystemStreams}
 import mill.api.daemon.Watchable
 import mill.api.BuildCtx
 import mill.internal.Colors
-import mill.util.Jvm
 
 import java.io.InputStream
 import java.nio.channels.ClosedChannelException
@@ -186,11 +185,11 @@ object Watching {
         // through platform-level symlinks (e.g. `/tmp` -> `/private/tmp`) compare equal —
         // otherwise `recursiveWatches` rejects every subdir and `--watch` misses changes to
         // `Task.Source`/`Task.Sources` files in subdirectories. Memoized: the `filter`/`onEvent`
-        // callbacks fire per filesystem event, and each `realAbsResolvedPath` is a `toRealPath`
+        // callbacks fire per filesystem event, and each `toResolvedOsPath` is a `toRealPath`
         // syscall, so cache results rather than re-resolving the same path on every event.
         val canonicalCache = new java.util.concurrent.ConcurrentHashMap[os.Path, os.Path]()
         val canonical: os.Path => os.Path =
-          p => canonicalCache.computeIfAbsent(p, Jvm.realAbsResolvedPath(_))
+          p => canonicalCache.computeIfAbsent(p, PathRef.toResolvedOsPath(_))
 
         val canonicalFilterPaths = filterPaths.map(canonical)
         val canonicalWatchedPathsSet = watchedPathsSet.map(canonical)

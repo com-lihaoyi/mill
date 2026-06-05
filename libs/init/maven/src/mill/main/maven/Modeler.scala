@@ -1,6 +1,6 @@
 package mill.main.maven
 
-import mill.util.Jvm
+import mill.api.PathRef
 import org.apache.maven.model.building.*
 import org.apache.maven.model.resolution.ModelResolver
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils
@@ -23,7 +23,7 @@ class Modeler(
     def recurse(dir: os.Path): Seq[ModelBuildingResult] = {
       // Pass Maven an un-relativized absolute File: it stores the path verbatim and later
       // resolves it against its own cwd, so the alias form drifts out of `mvnWorkspace`.
-      val result = build(Jvm.realAbsFile(dir / "pom.xml"))
+      val result = build(PathRef.toAbsFile(dir / "pom.xml"))
       val subResults = result.getEffectiveModel.getModules.asScala.flatMap(rel =>
         recurse(dir / os.RelPath(rel))
       ).toSeq
@@ -73,9 +73,9 @@ object Modeler {
   }
 
   def defaultLocalRepository: LocalRepository =
-    // `Jvm.realAbsFile`: Maven's repository layer stores this path string verbatim and resolves
+    // Maven's repository layer stores this path string verbatim and resolves
     // it later from arbitrary cwds.
-    LocalRepository(Jvm.realAbsFile(os.home / ".m2/repository"))
+    LocalRepository(PathRef.toAbsFile(os.home / ".m2/repository"))
 
   def defaultRemoteRepositories: Seq[RemoteRepository] =
     Seq(
@@ -87,8 +87,8 @@ object Modeler {
     val props = Properties()
     System.getenv().forEach((k, v) => props.put(s"env.$k", v))
     System.getProperties.forEach((k, v) => props.put(k, v))
-    // `Jvm.realAbs`: Maven reads this property and uses it for relative path resolution.
-    props.put("maven.multiModuleProjectDirectory", Jvm.realAbs(mvnWorkspace))
+    // Maven reads this property and uses it for relative path resolution.
+    props.put("maven.multiModuleProjectDirectory", PathRef.toAbsString(mvnWorkspace))
     props
   }
 }

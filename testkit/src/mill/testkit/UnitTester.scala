@@ -157,9 +157,14 @@ class UnitTester(
     execution = execution
   )
 
+  private def withWorkspaceRoot[T](body: => T): T =
+    BuildCtx.workspaceRoot0.withValue(module.moduleDir)(body)
+
   def apply(args: String*): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
-    Evaluator.withCurrentEvaluator(evaluator) {
-      evaluator.resolveTasks(args, SelectMode.Separated)
+    withWorkspaceRoot {
+      Evaluator.withCurrentEvaluator(evaluator) {
+        evaluator.resolveTasks(args, SelectMode.Separated)
+      }
     } match {
       case f: Result.Failure => Left(ExecResult.Failure(f.error))
       case Result.Success(resolved) => apply(resolved)
@@ -180,7 +185,9 @@ class UnitTester(
       tasks: Seq[Task[?]]
   ): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
 
-    val evaluated = evaluator.execute(tasks.asInstanceOf[Seq[Task[Any]]]).executionResults
+    val evaluated = withWorkspaceRoot {
+      evaluator.execute(tasks.asInstanceOf[Seq[Task[Any]]]).executionResults
+    }
 
     if (evaluated.transitiveFailing.nonEmpty) Left(evaluated.transitiveFailing.values.head)
     else {
@@ -206,7 +213,9 @@ class UnitTester(
       expectedRawValues: Seq[ExecResult[?]]
   ): Unit = {
 
-    val res = evaluator.execute(Seq(task)).executionResults
+    val res = withWorkspaceRoot {
+      evaluator.execute(Seq(task)).executionResults
+    }
 
     val cleaned = res.results.map {
       case ExecResult.Exception(ex, _) =>
@@ -221,7 +230,9 @@ class UnitTester(
 
   def check(tasks: Seq[Task[?]], expected: Seq[Task[?]]): Unit = {
 
-    val evaluated = evaluator.execute(tasks.asInstanceOf[Seq[Task[Any]]]).executionResults
+    val evaluated = withWorkspaceRoot {
+      evaluator.execute(tasks.asInstanceOf[Seq[Task[Any]]]).executionResults
+    }
       .uncached
       .flatMap(_.asSimple)
       .filter(module.moduleInternal.simpleTasks.contains)
@@ -235,7 +246,7 @@ class UnitTester(
   /** Replaces the [[BuildCtx.workspaceRoot]] for the given scope with [[module.moduleDir]]. */
   def scoped[T](tester: UnitTester => T): T = {
     try {
-      BuildCtx.workspaceRoot0.withValue(module.moduleDir) {
+      withWorkspaceRoot {
         mill.api.daemon.LauncherSubprocess.withValue(config =>
           DaemonRpc
             .defaultRunSubprocessWithStreams(None)(DaemonRpc.ServerToClient.RunSubprocess(config))

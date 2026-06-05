@@ -2,6 +2,7 @@ package mill.api
 
 import mill.api.daemon.DummyOutputStream
 import mill.api.daemon.internal.PathRefApi
+import mill.api.internal.PathAliasing
 import upickle.ReadWriter as RW
 
 import java.nio.file as jnio
@@ -61,26 +62,78 @@ object PathRef {
    * hand to external tools or to Java APIs that resolve relative paths against
    * their own cwd.
    */
-  def realAbs(p: os.Path): String = realAbsPath(p).toString
-  def realAbs(p: PathRef): String = realAbs(p.path)
-  def realAbsPath(p: os.Path): jnio.Path = p.wrapped.toAbsolutePath.normalize()
-  def realAbsPath(p: PathRef): jnio.Path = realAbsPath(p.path)
-  def realAbsFile(p: os.Path): java.io.File = realAbsPath(p).toFile
-  def realAbsFile(p: PathRef): java.io.File = realAbsFile(p.path)
+  def toAbsString(p: os.Path): String = toAbsNioPath(p).toString
+  def toAbsString(p: PathRef): String = toAbsString(p.path)
+  def toAbsNioPath(p: os.Path): jnio.Path = p.wrapped.toAbsolutePath.normalize()
+  def toAbsNioPath(p: PathRef): jnio.Path = toAbsNioPath(p.path)
+  def toAbsFile(p: os.Path): java.io.File = toAbsNioPath(p).toFile
+  def toAbsFile(p: PathRef): java.io.File = toAbsFile(p.path)
 
   /**
-   * Like [[realAbs]] but also follows symlinks via `toRealPath`, falling back to
-   * lexical [[realAbs]] if the path does not exist on disk. Use when a subprocess
+   * Like [[toAbsString]] but also follows symlinks via `toRealPath`, falling back to
+   * lexical [[toAbsString]] if the path does not exist on disk. Use when a subprocess
    * walks the path-as-it-exists and lexical `../` collapse would land on the wrong file.
    */
-  def realAbsResolved(p: os.Path): String =
+  def toResolvedPathString(p: os.Path): String =
     try p.wrapped.toRealPath().toString
-    catch { case _: java.io.IOException => realAbs(p) }
+    catch { case _: java.io.IOException => toAbsString(p) }
 
-  /** Same as [[realAbsResolved]] but returns an [[os.Path]] and falls back to `p` on IO errors. */
-  def realAbsResolvedPath(p: os.Path): os.Path =
+  /** Same as [[toResolvedPathString]] but returns an [[os.Path]] and falls back to `p` on IO errors. */
+  def toResolvedOsPath(p: os.Path): os.Path =
     try os.Path(p.wrapped.toRealPath())
     catch { case _: java.io.IOException => p }
+
+  /**
+   * Resolve symlinks in `p`, then translate the result back under `root` when it points inside
+   * the same real directory tree. This strips internal forwarder symlinks while preserving the
+   * lexical workspace root used by Mill's path aliases.
+   */
+  private[mill] def toResolvedOsPathAnchored(p: os.Path, root: os.Path): os.Path = {
+    val resolvedRoot = toResolvedOsPath(root)
+
+    @scala.annotation.tailrec
+    def rec(current: os.Path, missing: List[String]): os.Path = {
+      if (os.exists(current) || current.segmentCount == 0) {
+        val resolvedCurrent = toResolvedOsPath(current)
+        if (resolvedCurrent.startsWith(resolvedRoot)) {
+          val anchoredCurrent = root / resolvedCurrent.subRelativeTo(resolvedRoot)
+          missing.foldLeft(anchoredCurrent)(_ / _)
+        } else p
+      } else rec(current / os.up, current.last :: missing)
+    }
+
+    rec(p, Nil)
+  }
+
+  /**
+   * Format `path` as a string for a Mill subprocess whose working directory is `subprocessCwd`.
+   * Subprocesses at the workspace root use aliases under the configured output directory;
+   * subprocesses in task sandboxes use the historical `../mill-workspace` and `../mill-home`
+   * aliases.
+   */
+  def toRelString(
+      path: os.Path,
+      subprocessCwd: os.Path = BuildCtx.workspaceRoot,
+      workspaceRoot: os.Path = BuildCtx.workspaceRoot
+  ): String = {
+    val mappings = PathAliasing.aliasMappingForCwd(subprocessCwd, workspaceRoot)
+
+    mappings
+      .collectFirst {
+        case (root, alias) if path.startsWith(root) =>
+          val subPath = path.subRelativeTo(root)
+          if (subPath.segments.isEmpty) alias.toString
+          else (alias / subPath).toString
+      }
+      .getOrElse(toAbsString(path))
+  }
+  def toRelString(
+      path: PathRef,
+      subprocessCwd: os.Path,
+      workspaceRoot: os.Path
+  ): String = toRelString(path.path, subprocessCwd, workspaceRoot)
+  def toRelString(path: PathRef, subprocessCwd: os.Path): String =
+    toRelString(path.path, subprocessCwd)
 
   /**
    * This class maintains a cache of already validated paths.
@@ -144,7 +197,7 @@ object PathRef {
   ): PathRef = {
     val basePath = path
 
-    val sig = {
+    val sig = PathAliasing.withRawPathSerializer {
       val isPosix = path.wrapped.getFileSystem.supportedFileAttributeViews().contains("posix")
       val digest = MessageDigest.getInstance("MD5")
       val digestOut = DigestOutputStream(DummyOutputStream, digest)

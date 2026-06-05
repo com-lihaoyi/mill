@@ -1,11 +1,11 @@
 package mill.launcher
 
 import io.github.alexarchambault.nativeterm.NativeTerminal
+import mill.api.PathRef
 import mill.api.internal.{OneOrMore, PathAliasing}
 import mill.client.ClientUtil
 import mill.constants.*
 import mill.internal.OutputDirectoryLayout
-import mill.util.Jvm
 
 import java.io.File
 import java.util.UUID
@@ -38,9 +38,8 @@ object MillProcessLauncher {
       userPropsSeq ++
       Seq(
         mainClass,
-        // Daemon entry point reads `args[0]` with plain `java.nio.file.Paths.get(...)` and
-        // would resolve a `../mill-workspace/...` form against its own cwd. Pass absolute.
-        Jvm.realAbs(processDir),
+        // Daemon entry point reads `args[0]` with plain Java path APIs.
+        PathRef.toAbsString(processDir),
         outMode.asString,
         useFileLocks.toString
       ) ++
@@ -100,8 +99,8 @@ object MillProcessLauncher {
     val cmd = millLaunchJvmCommand(runnerClasspath, effectiveEnv, workDir, millRepositories) ++
       Seq(
         "mill.daemon.MillDaemonMain",
-        // Same reason as the no-daemon variant above: pass the daemon-dir arg as a real abs path.
-        Jvm.realAbs(daemonDir),
+        // Daemon entry point reads `args[0]` with plain Java path APIs.
+        PathRef.toAbsString(daemonDir),
         outMode.asString,
         useFileLocks.toString
       )
@@ -138,7 +137,7 @@ object MillProcessLauncher {
     // Inheriting parent values causes nested Mill runs to lock/use the parent's out folder.
     val mergedJdkJavaOpts =
       Seq(env.getOrElse("JDK_JAVA_OPTIONS", ""), env.getOrElse("JAVA_OPTS", "")).mkString(" ").trim
-    val workspaceEnv = PathAliasing.workspaceEnvVars(workDir)
+    val workspaceEnv = PathAliasing.workspaceEnvVarsForCwd(sandbox, workDir)
     val processEnv = env ++ workspaceEnv ++ Seq(
       Some(EnvVars.MILL_ENABLE_STATIC_CHECKS -> "true"),
       Option.unless(env.contains(EnvVars.MILL_EXECUTABLE_PATH))(
@@ -149,7 +148,8 @@ object MillProcessLauncher {
       // `mill-jvm-version`), so subprocesses the daemon spawns that resolve `$JAVA_HOME/bin/java`
       // (e.g. the Android `lint` wrapper, Gradle-style tools) use that JVM rather than inheriting
       // the launcher shell's JAVA_HOME. Only set when a version is explicitly configured.
-      daemonJavaHome.map(home => "JAVA_HOME" -> Jvm.realAbs(home))
+      // Subprocesses consume JAVA_HOME as a real filesystem root.
+      daemonJavaHome.map(home => "JAVA_HOME" -> PathRef.toAbsString(home))
     ).flatten
 
     // destroyOnExit = false to prevent the daemon from being killed when the Mill client exits.
@@ -397,9 +397,8 @@ object MillProcessLauncher {
 
   def getExecutablePath: String = {
     try
-      // Real absolute: code consuming `MILL_EXECUTABLE_PATH` typically does
-      // `os.Path(sys.env(...))`, which rejects a relativized string.
-      Jvm.realAbs(
+      // Consumers typically do `os.Path(sys.env("MILL_EXECUTABLE_PATH"))`.
+      PathRef.toAbsString(
         os.Path(getClass.getProtectionDomain.getCodeSource.getLocation.toURI)
       )
     catch {

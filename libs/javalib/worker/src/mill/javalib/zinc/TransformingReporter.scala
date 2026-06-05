@@ -1,6 +1,6 @@
 package mill.javalib.zinc
 
-import mill.util.Jvm
+import mill.api.PathRef
 
 private trait TransformingReporter(
     color: Boolean,
@@ -88,9 +88,8 @@ private object TransformingReporter {
         // `mill-workspace` alias symlink (in reproducible-build mode the compiler sees sources via
         // the alias, so `path` may traverse it) so diagnostics show the clean workspace-relative
         // form rather than the alias-traversing one.
-        val real = Jvm.realAbsResolvedPath
-        val absPath = real(os.Path(path, workspaceRoot))
-        val realWorkspace = real(workspaceRoot)
+        val absPath = PathRef.toResolvedOsPath(os.Path(path, workspaceRoot))
+        val realWorkspace = PathRef.toResolvedOsPath(workspaceRoot)
         // Render paths within the current workspaceRoot as relative paths to cut down on verbosity
         val displayPath =
           if absPath.startsWith(realWorkspace) then absPath.subRelativeTo(realWorkspace).toString

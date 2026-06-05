@@ -1,7 +1,7 @@
 package mill.kotlinlib.detekt
 
 import mill.*
-import mill.api.{PathRef}
+import mill.api.PathRef
 import mill.kotlinlib.{DepSyntax, KotlinModule, Versions}
 import mill.util.Jvm
 import mill.api.BuildCtx
@@ -22,10 +22,11 @@ trait DetektModule extends KotlinModule {
 
   private def detekt0() = Task.Anon {
     val inputRoots = sources().iterator.map(_.path).filter(os.exists).toSeq
-    val inputs = if (inputRoots.nonEmpty) inputRoots.map(_.toString()).mkString(",")
-    else BuildCtx.workspaceRoot.toString()
+    val inputs =
+      if (inputRoots.nonEmpty) inputRoots.map(PathRef.toRelString(_, moduleDir)).mkString(",")
+      else PathRef.toRelString(BuildCtx.workspaceRoot, moduleDir)
     val args = detektOptions() ++ Seq("-i", inputs) ++
-      Seq("-c", detektConfig().path.toString())
+      Seq("-c", PathRef.toRelString(detektConfig(), moduleDir))
 
     Task.log.info("running detekt ...")
     Task.log.debug(s"with $args")

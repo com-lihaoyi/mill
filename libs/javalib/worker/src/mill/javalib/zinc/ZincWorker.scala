@@ -820,7 +820,7 @@ object ZincWorker {
         // path against the long-lived worker JVM's `user.dir` (a task dest such as
         // `compile.dest`), leaving `..` segments that Windows `CreateProcess` does not
         // normalize while looking up the executable.
-        val realJavaHome = PathRef.realAbsPath(home)
+        val realJavaHome = PathRef.toAbsNioPath(home)
         (javac.JavaCompiler.fork(Some(realJavaHome)), javac.Javadoc.fork(Some(realJavaHome)))
       case None =>
         val c = IncrementalTrackingJavaCompiler.local.getOrElse(javac.JavaCompiler.fork())

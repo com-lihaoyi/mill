@@ -128,7 +128,7 @@ object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskMod
     }
 
     val configArgument = config match {
-      case Some(path) => Seq("--editorconfig", path.path.toString())
+      case Some(path) => Seq("--editorconfig", PathRef.toRelString(path, moduleDir))
       case None => Seq.empty
     }
     val formatArgument = if (ktlintArgs.format) Seq("--format") else Seq.empty
@@ -137,7 +137,7 @@ object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskMod
     args ++= options
     args ++= configArgument
     args ++= formatArgument
-    args ++= sourceFiles.map(_.toString())
+    args ++= sourceFiles.map(PathRef.toRelString(_, moduleDir))
 
     val exitCode = BuildCtx.withFilesystemCheckerDisabled {
       os.ProcessOps.spawnHook.withValue(_ => ()) {
