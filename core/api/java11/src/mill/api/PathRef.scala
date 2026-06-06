@@ -331,10 +331,8 @@ object PathRef {
   }
   private[mill] val currentOverrideModulePath = DynamicVariable[os.Path](null)
 
-  // scalafix:off; we want to hide the unapply method
   @nowarn("msg=unused")
   private def unapply(pathRef: PathRef): Option[(os.Path, Boolean, Int, Revalidate)] = {
     Some((pathRef.path, pathRef.quick, pathRef.sig, pathRef.revalidate))
   }
-  // scalalfix:on
 }

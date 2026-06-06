@@ -4,7 +4,7 @@ import mill.*
 import mill.api.{Discover, ExternalModule, PathRef, TaskCtx}
 import mill.api.daemon.experimental
 import mill.javalib.api.Versions
-import mill.javalib.{CoursierModule, Dep, DepSyntax, OfflineSupportModule}
+import mill.javalib.{CoursierModule, DepSyntax, OfflineSupportModule}
 import mill.util.{Jvm, Version}
 import upickle.implicits.namedTuples.default.given
 

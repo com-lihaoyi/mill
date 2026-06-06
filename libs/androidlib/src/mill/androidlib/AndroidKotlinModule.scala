@@ -3,7 +3,7 @@ package mill.androidlib
 import mill.*
 import mill.api.{ModuleRef, PathRef, Result}
 import mill.javalib.{CoursierModule, Dep}
-import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
+import mill.kotlinlib.{DepSyntax, KotlinModule}
 import mill.{T, Task}
 import mill.androidlib.databinding.{
   AndroidDataBindingWorker,
