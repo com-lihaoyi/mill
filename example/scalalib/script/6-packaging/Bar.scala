@@ -1,4 +1,4 @@
-//| scalaVersion: 3.8.2
+//| scalaVersion: 3.8.4
 //| jvmVersion: "graalvm-community:17"
 //| nativeImageOptions: ["--no-fallback"]
 def main() = {

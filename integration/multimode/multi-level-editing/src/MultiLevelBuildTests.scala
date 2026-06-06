@@ -1,8 +1,10 @@
 package mill.integration
 
+import mill.api.PathRef
+import mill.api.internal.PathAliasing
 import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
 import mill.constants.OutFiles.OutFiles.*
-import mill.daemon.RunnerState
+import mill.daemon.RunnerLauncherState
 import utest.*
 
 import scala.util.matching.Regex
@@ -43,15 +45,35 @@ trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
   def loadFrames(
       tester: IntegrationTester,
       n: Int
-  ): IndexedSeq[(RunnerState.Frame.Logged, os.Path)] = {
+  ): IndexedSeq[(RunnerLauncherState.Logged, os.Path)] = {
     for (depth <- Range(0, n))
       yield {
         val path =
           tester.workspacePath / "out" / Seq.fill(depth)(millBuild) / millRunnerState
-        if (os.exists(path)) upickle.read[RunnerState.Frame.Logged](os.read(path)) -> path
-        else RunnerState.Frame.Logged(Map(), Seq(), Seq(), None, Seq(), 0) -> path
+        if (os.exists(path))
+          readLoggedFrame(tester, path) -> path
+        else RunnerLauncherState.Logged(Map(), Seq(), Seq(), None, Seq(), 0) -> path
       }
   }
+
+  // `mill-runner-state.json` is written with reproducible-build path aliases enabled.
+  // Scope the matching alias mapping while this test JVM reads those `os.Path` values back.
+  private def withTestPathAliases[T](tester: IntegrationTester)(body: => T): T =
+    os.Path.pathSerializer.withValue(
+      os.Path.pathRemapSerializerNio(
+        PathAliasing.defaultMapping(tester.workspacePath).map { case (from, to) =>
+          PathRef.toAbsNioPath(from) -> java.nio.file.Paths.get(to.toString)
+        }
+      )
+    )(body)
+
+  private def readLoggedFrame(
+      tester: IntegrationTester,
+      path: os.Path
+  ): RunnerLauncherState.Logged =
+    withTestPathAliases(tester) {
+      upickle.read[RunnerLauncherState.Logged](os.read(path))
+    }
 
   /**
    * Verify that each level of the multi-level build ends upcausing the
@@ -372,7 +394,7 @@ object MultiLevelBuildTestsRuntimeErrorEdits extends MultiLevelBuildTests {
         val runErrorSnippet =
           """{
             |override def runClasspath = Task {
-            |  throw new Exception("boom")
+            |  throw Exception("boom")
             |  super.runClasspath()
             |}""".stripMargin
 

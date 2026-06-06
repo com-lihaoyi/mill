@@ -9,7 +9,7 @@ object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
   implicit val retryMax: RetryMax = RetryMax(120.seconds)
   implicit val retryInterval: RetryInterval = RetryInterval(1.seconds)
   val tests: Tests = Tests {
-    test("changed-code") - integrationTest { tester =>
+    test("changedCode") - integrationTest { tester =>
       import tester.*
 
       // Check method body code changes correctly trigger downstream evaluation
@@ -48,7 +48,7 @@ object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
       assert(!cached2.out.contains("Computing barCommand"))
     }
 
-    test("resolveTree-shows-code-changed") - integrationTest { tester =>
+    test("resolveTreeCode") - integrationTest { tester =>
       import tester.*
 
       // Prepare selective execution
@@ -77,8 +77,8 @@ object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
           "{",
           "  \"def build_.package_$bar$#barHelper(os.Path)java.lang.String\": {",
           "    \"call build_.package_$bar$#barHelper(os.Path)java.lang.String\": {",
-          "      \"def build_.package_$bar$#barCommand$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result\": {",
-          "        \"call build_.package_$bar$!barCommand$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result\": {",
+          "      \"def build_.package_$bar$#$anonfun$2(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result\": {",
+          "        \"call build_.package_$bar$!$anonfun$2(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result\": {",
           "          \"def build_.package_$bar$#barCommand()mill.api.Task$Command\": {",
           "            \"bar.barCommand\": {}",
           "          }",
@@ -115,8 +115,8 @@ object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
           "{",
           "  \"def build_.package_$bar$#barHelper(os.Path)java.lang.String\": {",
           "    \"call build_.package_$bar$#barHelper(os.Path)java.lang.String\": {",
-          "      \"def build_.package_$bar$#barCommand$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result\": {",
-          "        \"call build_.package_$bar$!barCommand$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result\": {",
+          "      \"def build_.package_$bar$#$anonfun$2(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result\": {",
+          "        \"call build_.package_$bar$!$anonfun$2(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result\": {",
           "          \"def build_.package_$bar$#barCommand()mill.api.Task$Command\": {",
           "            \"bar.barCommand\": {",
           "              \"bar.barCommand2\": {}",
@@ -131,12 +131,14 @@ object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
       )
     }
 
-    test("resolveTree-adding-scalamodule-does-not-show-clinit") - integrationTest { tester =>
+    test("resolveTreeClinit") - integrationTest { tester =>
       import tester.*
 
       if (tester.daemonMode) {
         eval("shutdown", check = true, stderr = os.Inherit)
       }
+
+      os.remove.all(workspacePath / "out")
 
       os.write.over(
         workspacePath / "build.mill",

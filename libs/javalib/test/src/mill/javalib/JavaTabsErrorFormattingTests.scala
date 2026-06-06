@@ -19,12 +19,12 @@ object JavaTabsErrorFormattingTests extends TestSuite {
 
   val tests: Tests = Tests {
     test("javaTabsErrorRange") {
-      val errBuffer = new ByteArrayOutputStream()
+      val errBuffer = ByteArrayOutputStream()
       UnitTester(
         TabsJava,
         sourceRoot = resourcePath,
-        outStream = new PrintStream(new ByteArrayOutputStream()),
-        errStream = new PrintStream(errBuffer, true)
+        outStream = PrintStream(ByteArrayOutputStream()),
+        errStream = PrintStream(errBuffer, true)
       ).scoped { eval =>
         val Left(_) = eval.apply(TabsJava.core.compile).runtimeChecked
         val errLines = fansi.Str(errBuffer.toString()).plainText

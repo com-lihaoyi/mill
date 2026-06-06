@@ -24,10 +24,10 @@ object BspInstallDebugTests extends UtestIntegrationTestSuite {
         contents.contains(s""""bspVersion":"${bsp4jVersion}"""")
       )
     }
-    test("BSP install via external command forwards --debug option to server") {
+    test("externalInstall") {
       runTest("mill.bsp.BSP/install")
     }
-    test("BSP install forwards --debug option to server") {
+    test("install") {
       runTest("--bsp-install")
     }
   }

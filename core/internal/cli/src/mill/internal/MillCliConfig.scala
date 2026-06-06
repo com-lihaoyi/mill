@@ -78,6 +78,7 @@ case class MillCliConfig(
     )
     color: Option[Boolean] = None,
     @arg(
+      short = 'L',
       doc =
         """Select a meta-level to run the given tasks. Level 0 is the main project in `build.mill`,
            level 1 the first meta-build in `mill-build/build.mill`, etc.
@@ -105,18 +106,6 @@ case class MillCliConfig(
         """Automatically reload the build when its sources change when running the BSP server (defaults to true)."""
     )
     bspWatch: Boolean = true,
-    @arg(
-      hidden = true,
-      doc =
-        """Do not wait for an exclusive BSP server lock to run BSP server, just exit with an error if the BSP server lock is hold by another process"""
-    )
-    noWaitForBspLock: Flag = Flag(),
-    @arg(
-      hidden = true,
-      doc =
-        """If the BSP lock is hold by another process, wait for it to release the lock"""
-    )
-    bspNoKillOther: Flag = Flag(),
     @arg(
       hidden = true,
       doc =
@@ -171,15 +160,36 @@ case class MillCliConfig(
     disablePrompt: Flag = Flag(),
     @arg(hidden = true, doc = "Unsupported, but kept for compatibility")
     enableTicker: Option[Boolean] = None,
+    @arg(
+      hidden = true,
+      name = "remote-cache-location",
+      doc =
+        "Remote cache location: a Bazel-remote-protocol HTTP cache URL, or a `file:` URL / path to a local or shared folder."
+    )
+    remoteCacheLocation: Option[String] = None,
+    @arg(
+      hidden = true,
+      name = "remote-cache-salt",
+      doc =
+        "Extra string mixed into the remote cache key, e.g. to keep Mac and Linux builds from sharing entries."
+    )
+    remoteCacheSalt: Option[String] = None,
+    @arg(
+      hidden = true,
+      name = "remote-cache-filter",
+      doc = "Task-selector pattern (e.g. `__.compile`) limiting which tasks use the remote cache."
+    )
+    remoteCacheFilter: Option[String] = None,
     @arg(hidden = true, doc = "Deprecated, use `--ticker false` instead")
-    disableTicker: Flag
+    disableTicker: Flag,
+    @arg(doc = "Replay logs for cached tasks.")
+    replayLogs: Flag = Flag()
 ) {
   def noDaemonEnabled =
     Seq(
       interactive,
       noDaemon,
-      noServer,
-      bsp
+      noServer
     ).count(_.value)
 }
 
@@ -206,7 +216,7 @@ Task cheat sheet:
   ./mill foo.bar.compile           # compile the module `foo.bar`
 
   ./mill foo.run --arg 1           # run the main method of the module `foo` and pass in `--arg 1`
-  ./mill foo.repl               # run the Scala repl for the module `foo` (if it is a ScalaModule)
+  ./mill foo.repl                  # run the Scala repl for the module `foo` (if it is a ScalaModule)
 
   ./mill foo.__.test               # run tests in modules nested within `foo` (recursively)
   ./mill foo.test arg1 arg2        # run tests in the `foo` module passing in test arguments `arg1 arg2`

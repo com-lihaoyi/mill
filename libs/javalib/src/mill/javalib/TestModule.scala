@@ -11,10 +11,9 @@ import mill.api.TaskCtx
 import mill.api.DefaultTaskModule
 import mill.javalib.bsp.BspModule
 import mill.api.JsonFormatters.given
-import mill.constants.EnvVars
 import mill.javalib.api.internal.ZincOp
 import mill.javalib.testrunner.{Framework, TestArgs, TestResult, TestRunner, TestRunnerUtils}
-import mill.util.Version
+import mill.util.{Jvm, Version}
 
 import java.nio.file.Path
 
@@ -212,6 +211,22 @@ trait TestModule
   def testParallelism: T[Boolean] = Task { true }
 
   /**
+   * Whether Mill should pass each fork group's full selected `TaskDef` batch to
+   * `Runner.tasks` inside one forked test JVM.
+   *
+   * Some sbt-testing frameworks use `Runner.tasks` to wire relationships between related
+   * `TaskDef`s. For example, Weaver's `GlobalResource` setup is connected to suites from
+   * the full `TaskDef` batch. Set this to true for such frameworks.
+   *
+   * Setting this to true disables intra-group queue parallelism: all classes in a
+   * `testForkGrouping` group run in one subprocess. Separate fork groups can still run
+   * independently.
+   *
+   * See also: https://github.com/com-lihaoyi/mill/issues/7113
+   */
+  def testBatchFrameworkTasks: T[Boolean] = Task { false }
+
+  /**
    * Discovers and runs the module's tests in a subprocess, reporting the
    * results to the console.
    * Arguments before "--" will be used as wildcard selector to select
@@ -300,12 +315,6 @@ trait TestModule
    */
   def testSandboxWorkingDir: T[Boolean] = true
 
-  override def allForkEnv: T[Map[String, String]] = Task {
-    super.allForkEnv() ++ Map(
-      EnvVars.MILL_TEST_RESOURCE_DIR -> resources().iterator.map(_.path).mkString(";")
-    )
-  }
-
   /**
    * The actual task shared by `test`-tasks that runs test in a forked JVM.
    */
@@ -314,7 +323,7 @@ trait TestModule
       globSelectors: Task[Seq[String]]
   ): Task[(msg: String, results: Seq[TestResult])] =
     Task.Anon {
-      val testModuleUtil = new TestModuleUtil(
+      val testModuleUtil = TestModuleUtil(
         testUseArgsFile(),
         forkArgs(),
         globSelectors(),
@@ -335,7 +344,8 @@ trait TestModule
         testLogLevel(),
         propagateEnv(),
         jvmWorker().internalWorker(),
-        discoveredClassesOpt = aheadOfTimeDiscoveredTestClassesIfNeeded()
+        discoveredClassesOpt = aheadOfTimeDiscoveredTestClassesIfNeeded(),
+        testBatchFrameworkTasks = testBatchFrameworkTasks()
       )
       testModuleUtil.runTests()
     }
@@ -370,7 +380,7 @@ trait TestModule
       classes: Seq[String]
   )] = Task.Anon {
     val (frameworkName, classFingerprint) =
-      mill.util.Jvm.withClassLoader(
+      Jvm.withClassLoader(
         classPath = runClasspath().map(_.path),
         sharedPrefixes = Seq("sbt.testing.", "mill.api.daemon.internal.TestReporter")
       ) { classLoader =>

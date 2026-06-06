@@ -12,7 +12,7 @@ class JsCompileImpl extends Compiler() {
       ctx: TaskCtx
   ): (Int, String) = {
 
-    val compiler = new K2JSCompiler()
+    val compiler = K2JSCompiler()
     val allArgs = args ++ sources.map(_.toString)
 
     val exitCode = compiler.exec(ctx.log.streams.err, allArgs*)

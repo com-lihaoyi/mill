@@ -1,0 +1,43 @@
+name: Scheduled Android Tests
+
+on:
+  schedule:
+    # 03:00 every Sunday
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+
+concurrency:
+  group: scheduled-android-tests
+  cancel-in-progress: true
+
+env:
+  FORCE_COLOR: '1'
+
+jobs:
+  build-linux:
+    uses: ./.github/workflows/pre-build.yml
+    with:
+      compileargs: 'dist.executable + core.api.test.compile + testkit.compile + libs.androidlib.compile'
+      java-version: 21
+      os: ubuntu-latest
+      shell: bash
+
+  android:
+    needs: build-linux
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: androidtodo
+            millargs: example.thirdparty.androidtodo.packaged.daemon
+            setup-android: true
+          - name: android-endless-tunnel
+            millargs: example.thirdparty.android-endless-tunnel.packaged.daemon
+            setup-android: true
+    name: Android / ${{ matrix.name }}
+    uses: ./.github/workflows/post-build-selective.yml
+    with:
+      setup-android: ${{ matrix.setup-android }}
+      java-version: 21
+      millargs: ${{ matrix.millargs }}
+      shell: bash

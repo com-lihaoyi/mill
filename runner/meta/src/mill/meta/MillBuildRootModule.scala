@@ -33,7 +33,7 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
       // If we are using the bootstrap module in the root of the project, do not look for
       // build files in the parent folder, since that would be outside the project entirely
       if (rootModuleInfo.projectRoot == rootModuleInfo.topLevelProjectRoot) Nil
-      else DiscoveredBuildFiles
+      else mill.internal.BuildFileDiscovery
         .walkBuildFiles(rootModuleInfo.projectRoot / os.up, rootModuleInfo.output)
         .sorted // Ensure ordering is deterministic
     }
@@ -47,11 +47,12 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
 
   def parseBuildFiles: T[DiscoveredBuildFiles] = Task {
     BuildCtx.withFilesystemCheckerDisabled {
+      val projectRoot = rootModuleInfo.projectRoot / os.up
       DiscoveredBuildFiles.parseBuildFiles(
         rootModuleInfo.topLevelProjectRoot,
-        rootModuleInfo.projectRoot / os.up,
+        projectRoot,
         MillScalaParser.current.value,
-        scriptSources().map(_.path),
+        scriptSources().map(p => PathRef.toResolvedOsPathAnchored(p.path, projectRoot)),
         Task.log.prompt.colored
       )
     }
@@ -104,7 +105,6 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
       support,
       resources,
       rootModuleInfo.topLevelProjectRoot,
-      rootModuleInfo.output,
       MillScalaParser.current.value
     )
     (
@@ -127,7 +127,10 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
       compile().classes,
       signatures,
       parseBuildFiles().seenScripts.collect {
-        case (k, v) if k.last.endsWith(".mill.yaml") => (k.toNIO, v)
+        case (k, v)
+            if k.last.endsWith(".mill.yaml") &&
+              !mill.internal.Util.isPrecompiledYamlModule(k) =>
+          k.toString -> v
       },
       // Serialize to string to avoid classloader issues when crossing classloader boundaries
       spanningTree.render()
@@ -261,7 +264,11 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
         "-deprecation",
         "-Wconf:msg=will be encoded on the classpath:silent",
         "-Ymagic-offset-header:SOURCE_CODE_START"
-      )
+      ) ++
+      // `-sourceroot` so scalac stores TASTY source paths relative to it. The value uses
+      // the workspace's relativizer alias (`mill-workspace`) so two reproducible-mode runs
+      // in different workspace dirs emit byte-identical `package_.class`/`.tasty`.
+      Seq("-sourceroot", rootModuleInfo.topLevelProjectRoot.toString)
   }
 
   /** Used in BSP IntelliJ, which can only work with directories */
@@ -305,11 +312,11 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
         ZincOp.CompileMixed(
           upstreamCompileOutput = upstreamCompileOutput(),
           sources = Seq.from(sources.map(_.path)),
-          compileClasspath = compileClasspath().map(_.path),
+          compileClasspath = compileClasspath(),
           javacOptions = jOpts.compiler,
           scalaVersion = scalaVersion(),
-          scalaOrganization = scalaOrganization(),
-          scalacOptions = allScalacOptions(),
+          scalaOrganization = JvmWorkerUtil.scalaOrganization(scalaVersion()),
+          scalacOptions = allScalacOptions() ++ tastyReproducibilityScalacOptions(),
           compilerClasspath = scalaCompilerClasspath(),
           scalacPluginClasspath = scalacPluginClasspath(),
           compilerBridgeOpt = scalaCompilerBridge(),

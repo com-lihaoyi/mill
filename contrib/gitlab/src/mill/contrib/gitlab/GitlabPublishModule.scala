@@ -39,8 +39,8 @@ trait GitlabPublishModule extends PublishModule { outer =>
     if (skipPublish) {
       Task.log.info(s"SkipPublish = true, skipping publishing of $artifactInfo")
     } else {
-      val uploader = new GitlabUploader(gitlabHeaders()(), readTimeout, connectTimeout)
-      new GitlabPublisher(
+      val uploader = GitlabUploader(gitlabHeaders()(), readTimeout, connectTimeout)
+      GitlabPublisher(
         uploader.upload,
         gitlabRepo,
         Task.log
@@ -66,9 +66,9 @@ object GitlabPublishModule extends ExternalModule {
     val artifacts = Task.sequence(publishArtifacts.value)().map {
       case data @ PublishModule.PublishData(_, _) => data.withConcretePath
     }
-    val uploader = new GitlabUploader(auth, readTimeout, connectTimeout)
+    val uploader = GitlabUploader(auth, readTimeout, connectTimeout)
 
-    new GitlabPublisher(
+    GitlabPublisher(
       uploader.upload,
       repo,
       Task.log

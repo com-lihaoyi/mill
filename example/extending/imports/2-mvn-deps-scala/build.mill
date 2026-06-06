@@ -11,7 +11,7 @@ import scalatags.Text.all.*
 object bar extends ScalaModule {
   def scalaVersion = "2.13.16"
 
-  def mvnDeps = Seq(mvn"com.lihaoyi::os-lib:0.10.7")
+  def mvnDeps = Seq(mvn"com.lihaoyi::os-lib:0.11.9-M8")
   def htmlSnippet = Task { div(h1("hello"), p("world")).toString }
   def resources = Task {
     os.write(Task.dest / "snippet.txt", htmlSnippet())

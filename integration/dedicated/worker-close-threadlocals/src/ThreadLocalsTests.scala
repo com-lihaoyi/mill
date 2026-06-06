@@ -8,15 +8,26 @@ object ThreadLocalsTests extends UtestIntegrationTestSuite {
     test("cache") - integrationTest { tester =>
       import tester.*
 
-      eval("demo.demoCrash")
-      val res = eval("demo.demoCrash", env = Map("WORKER_ENV" -> "1"))
-      assert(res.out.contains(
-        s"Worker is closing1 $workspacePath/out/demo/myWorker.dest class mill.exec.GroupExecution$$ExecutionChecker"
-      ))
-      assert(res.out.contains(s"Worker is closing2"))
-      assert(res.out.contains(s"Worker is closing3"))
-      assert(res.err.contains(s"Worker is closing4"))
-      assert(res.err.contains(s"Worker is closing5"))
+      // Worker replacement (and thus the close() that emits the messages
+      // checked below) only happens within a single daemon's lifetime: the
+      // second invocation observes the env-driven identity-hash change and
+      // closes the prior worker. In `--no-daemon` mode each invocation is a
+      // fresh JVM with an empty worker cache, so no close() ever runs.
+      if (tester.daemonMode) {
+        eval("demo.demoCrash")
+        val res = eval("demo.demoCrash", env = Map("WORKER_ENV" -> "1"))
+        // Match the `myWorker.dest` path by suffix rather than the absolute `$workspacePath`
+        // prefix: in reproducible-build mode the printed path is relativized (e.g.
+        // `out/mill-workspace/out/demo/myWorker.dest`).
+        assert(res.out.contains("Worker is closing1 "))
+        assert(res.out.contains(
+          s"out/demo/myWorker.dest class mill.exec.GroupExecution$$ExecutionChecker"
+        ))
+        assert(res.out.contains(s"Worker is closing2"))
+        assert(res.out.contains(s"Worker is closing3"))
+        assert(res.err.contains(s"Worker is closing4"))
+        assert(res.err.contains(s"Worker is closing5"))
+      }
     }
   }
 }

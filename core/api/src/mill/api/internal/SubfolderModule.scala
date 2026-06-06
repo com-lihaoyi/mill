@@ -15,7 +15,7 @@ object SubfolderModule {
     val prefix = mill.constants.CodeGenConstants.globalPackagePrefix
     val stripped = pkg.stripPrefix(prefix)
     if (stripped.isEmpty || stripped == ".") Seq.empty
-    else stripped.stripPrefix(".").split('.').toSeq
+    else stripped.stripPrefix(".").split('.').map(scala.reflect.NameTransformer.decode).toSeq
   }
 }
 

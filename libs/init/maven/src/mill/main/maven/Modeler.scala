@@ -1,5 +1,6 @@
 package mill.main.maven
 
+import mill.api.PathRef
 import org.apache.maven.model.building.*
 import org.apache.maven.model.resolution.ModelResolver
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils
@@ -20,7 +21,9 @@ class Modeler(
   /** Returns the [[ModelBuildingResult]] for all projects in `workspace`. */
   def buildAll(): Seq[ModelBuildingResult] = {
     def recurse(dir: os.Path): Seq[ModelBuildingResult] = {
-      val result = build((dir / "pom.xml").toIO)
+      // Pass Maven an un-relativized absolute File: it stores the path verbatim and later
+      // resolves it against its own cwd, so the alias form drifts out of `mvnWorkspace`.
+      val result = build(PathRef.toAbsFile(dir / "pom.xml"))
       val subResults = result.getEffectiveModel.getModules.asScala.flatMap(rel =>
         recurse(dir / os.RelPath(rel))
       ).toSeq
@@ -31,7 +34,7 @@ class Modeler(
 
   /** Returns the [[ModelBuildingResult]] for `pomFile`. */
   def build(pomFile: File): ModelBuildingResult = {
-    val request = new DefaultModelBuildingRequest()
+    val request = DefaultModelBuildingRequest()
     request.setPomFile(pomFile)
     request.setModelResolver(resolver)
     request.setSystemProperties(systemProperties)
@@ -60,29 +63,32 @@ object Modeler {
       context: String = "",
       systemProperties: Properties = null
   ): Modeler = {
-    val builder = new DefaultModelBuilderFactory().newInstance()
-    val system = new RepositorySystemSupplier().get()
+    val builder = DefaultModelBuilderFactory().newInstance()
+    val system = RepositorySystemSupplier().get()
     val session = MavenRepositorySystemUtils.newSession()
     session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, local))
-    val resolver = new Resolver(system, session, remotes, context)
+    val resolver = Resolver(system, session, remotes, context)
     val properties = Option(systemProperties).getOrElse(defaultSystemProperties(mvnWorkspace))
     new Modeler(mvnWorkspace, builder, resolver, properties)
   }
 
   def defaultLocalRepository: LocalRepository =
-    new LocalRepository((os.home / ".m2/repository").toIO)
+    // Maven's repository layer stores this path string verbatim and resolves
+    // it later from arbitrary cwds.
+    LocalRepository(PathRef.toAbsFile(os.home / ".m2/repository"))
 
   def defaultRemoteRepositories: Seq[RemoteRepository] =
     Seq(
-      new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2")
+      RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2")
         .build()
     )
 
   def defaultSystemProperties(mvnWorkspace: os.Path): Properties = {
-    val props = new Properties()
+    val props = Properties()
     System.getenv().forEach((k, v) => props.put(s"env.$k", v))
     System.getProperties.forEach((k, v) => props.put(k, v))
-    props.put("maven.multiModuleProjectDirectory", mvnWorkspace.toString)
+    // Maven reads this property and uses it for relative path resolution.
+    props.put("maven.multiModuleProjectDirectory", PathRef.toAbsString(mvnWorkspace))
     props
   }
 }

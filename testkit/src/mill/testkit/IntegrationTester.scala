@@ -2,6 +2,7 @@ package mill.testkit
 
 import mill.api.SelectMode
 import mill.api.internal.Cached
+import mill.constants.EnvVars
 import mill.constants.OutFiles.OutFiles
 import mill.launcher.MillLauncherMain
 import mill.api.daemon.SystemStreams
@@ -81,26 +82,23 @@ object IntegrationTester {
          |""".stripMargin
     }
 
-    /**
-     * Asserts that the given lines appear as exact consecutive lines in the combined
-     * stdout/stderr output. Normalizes backslashes to forward slashes for cross-platform compatibility.
-     */
-    def assertContainsLines(expectedLines: String*): Unit = {
-      val combined = geny.ByteData.Chunks(result.chunks.map {
-        case Left(b) => b
-        case Right(b) => b
-      }).text()
-      val combinedNormalized = fansi.Str(combined, errorMode = fansi.ErrorMode.Strip)
-        .plainText
-        .replace('\\', '/')
-      val actualLines = combinedNormalized.linesIterator.toVector
+    private def chunks: Seq[Either[geny.Bytes, geny.Bytes]] = result.chunks
 
-      val found = actualLines.sliding(expectedLines.size).exists(_ == expectedLines)
-      assert(
-        found,
-        s"Expected consecutive lines not found:\n${expectedLines.mkString("\n")}\n\nActual output:\n${actualLines.mkString("\n")}"
-      )
-    }
+    /**
+     * Returns true iff the given lines appear as exact consecutive lines in
+     * the combined stdout/stderr output. Normalizes backslashes to forward
+     * slashes for cross-platform compatibility.
+     */
+    def containsLines(expectedLines: String*): Boolean =
+      IntegrationTester.containsConsecutiveLines(chunks, expectedLines)
+
+    /**
+     * Asserts that the given lines appear as exact consecutive lines in the
+     * combined stdout/stderr output. Normalizes backslashes to forward slashes
+     * for cross-platform compatibility.
+     */
+    def assertContainsLines(expectedLines: String*): Unit =
+      IntegrationTester.assertConsecutiveLines(chunks, expectedLines)
   }
 
   /**
@@ -124,6 +122,57 @@ object IntegrationTester {
     }
 
     def clear(): Unit = chunks.synchronized { chunks.clear() }
+
+    private def chunksSnapshot: Seq[Either[geny.Bytes, geny.Bytes]] =
+      chunks.synchronized(chunks.toSeq)
+
+    /**
+     * Returns true iff the given lines appear as exact consecutive lines in
+     * the combined stdout/stderr output. Normalizes backslashes to forward
+     * slashes for cross-platform compatibility.
+     */
+    def containsLines(expectedLines: String*): Boolean =
+      IntegrationTester.containsConsecutiveLines(chunksSnapshot, expectedLines)
+
+    /**
+     * Asserts that the given lines appear as exact consecutive lines in the
+     * combined stdout/stderr output. Normalizes backslashes to forward slashes
+     * for cross-platform compatibility.
+     */
+    def assertContainsLines(expectedLines: String*): Unit =
+      IntegrationTester.assertConsecutiveLines(chunksSnapshot, expectedLines)
+  }
+
+  private def normalizedLines(chunks: Seq[Either[geny.Bytes, geny.Bytes]]): Vector[String] = {
+    val combined = geny.ByteData.Chunks(chunks.map {
+      case Left(b) => b
+      case Right(b) => b
+    }).text()
+    fansi.Str(combined, errorMode = fansi.ErrorMode.Strip)
+      .plainText
+      .replace('\\', '/')
+      .linesIterator
+      .toVector
+  }
+
+  private def containsConsecutiveLines(
+      chunks: Seq[Either[geny.Bytes, geny.Bytes]],
+      expectedLines: Seq[String]
+  ): Boolean = {
+    val actualLines = normalizedLines(chunks)
+    actualLines.sliding(expectedLines.size).exists(_ == expectedLines)
+  }
+
+  private def assertConsecutiveLines(
+      chunks: Seq[Either[geny.Bytes, geny.Bytes]],
+      expectedLines: Seq[String]
+  ): Unit = {
+    val actualLines = normalizedLines(chunks)
+    val found = actualLines.sliding(expectedLines.size).exists(_ == expectedLines)
+    assert(
+      found,
+      s"Expected consecutive lines not found:\n${expectedLines.mkString("\n")}\n\nActual output:\n${actualLines.mkString("\n")}"
+    )
   }
 
   /** An [[Impl.eval]] that is prepared for execution but haven't been executed yet. Run it with [[run]]. */
@@ -188,7 +237,19 @@ object IntegrationTester {
       val shellable: os.Shellable =
         (millExecutable, serverArgs, "--ticker", "false", debugArgs, cmd)
 
-      val callEnv = millTestSuiteEnv ++ env
+      val parentEnv =
+        if (propagateEnv) {
+          sys.env -- Seq(
+            EnvVars.MILL_WORKSPACE_ROOT,
+            EnvVars.MILL_OUTPUT_DIR,
+            EnvVars.OS_LIB_PATH_RELATIVIZER_BASE
+          )
+        } else Map.empty[String, String]
+      val sandboxMillEnv = Map(
+        EnvVars.MILL_WORKSPACE_ROOT -> workspacePath.wrapped.toAbsolutePath.normalize().toString,
+        EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> ""
+      )
+      val callEnv = parentEnv ++ millTestSuiteEnv ++ sandboxMillEnv ++ env
 
       def run() = {
         if (useInMemory && stdin == os.Pipe && stdout == os.Pipe && stderr == os.Pipe) {
@@ -206,7 +267,7 @@ object IntegrationTester {
             mergeErrIntoOut = mergeErrIntoOut,
             timeout = timeout,
             check = check,
-            propagateEnv = propagateEnv,
+            propagateEnv = false,
             shutdownGracePeriod = timeoutGracePeriod
           )
 
@@ -221,7 +282,7 @@ object IntegrationTester {
         stdout = stdout,
         stderr = stderr,
         mergeErrIntoOut = mergeErrIntoOut,
-        propagateEnv = propagateEnv,
+        propagateEnv = false,
         shutdownGracePeriod = timeoutGracePeriod
       )
 
@@ -286,7 +347,7 @@ object IntegrationTester {
         timeoutGracePeriod = timeoutGracePeriod
       ).spawn()
 
-      new IntegrationTester.SpawnedProcess(process, chunks)
+      IntegrationTester.SpawnedProcess(process, chunks)
     }
 
     /**
@@ -327,7 +388,7 @@ object IntegrationTester {
      * Helpers to read the `.json` metadata files belonging to a particular task
      * (specified by [[selector0]]) from the `out/` folder.
      */
-    def out(selector0: String): Meta = new Meta(selector0)
+    def out(selector0: String): Meta = Meta(selector0)
 
     class Meta(selector0: String) {
 

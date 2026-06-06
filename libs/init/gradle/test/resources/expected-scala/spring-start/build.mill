@@ -1,0 +1,35 @@
+//| mill-version: SNAPSHOT
+//| mill-jvm-version: system
+package build
+
+import mill.*
+import mill.javalib.*
+import mill.javalib.spring.boot.*
+
+object `package` extends SpringBootModule, MavenModule {
+
+  def springBootPlatformVersion = "4.0.6"
+
+  def mvnDeps = Seq(mvn"org.springframework.boot:spring-boot-starter")
+
+  def javacOptions =
+    Seq("-source", "17", "-target", "17", "-encoding", "UTF-8", "-parameters")
+
+  object test extends SpringBootTestsModule, MavenTests, TestModule.Junit5 {
+
+    def mvnDeps = Seq(mvn"org.springframework.boot:spring-boot-starter-test")
+
+    def runMvnDeps = Seq(mvn"org.junit.platform:junit-platform-launcher")
+
+    def javacOptions =
+      Seq("-source", "17", "-target", "17", "-encoding", "UTF-8", "-parameters")
+
+    def forkWorkingDir = moduleDir
+
+    def testParallelism = false
+
+    def testSandboxWorkingDir = false
+
+  }
+
+}

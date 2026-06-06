@@ -1,0 +1,18 @@
+package build
+import mill.*
+import mill.javalib.JavaModule
+import mill.scalalib.ScalaModule
+import mill.kotlinlib.KotlinModule
+
+def foo = Task { 31337 }
+
+object javaApp extends JavaModule
+
+object scalaApp extends ScalaModule {
+  def scalaVersion = "3.8.2"
+}
+
+object kotlinApp extends KotlinModule {
+  def kotlinVersion = "2.2.20"
+  def mainClass = Some("kotlinapp.KotlinAppKt")
+}

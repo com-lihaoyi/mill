@@ -66,8 +66,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     // This can be removed once we can break bin compat
     val allSources0 = allSources() ++ wrappedSources().map(_.generated)
     val toExclude = wrappedSources().map(_.original.path)
-    Lib.findSourceFiles(allSources0, sourceFileExtensions)
-      .filterNot(toExclude.contains)
+    Lib.findSourceFilesExcluding(allSources0, sourceFileExtensions, toExclude)
       .map(PathRef(_))
   }
 
@@ -219,6 +218,17 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   }
 
   /**
+   * The `-sourceroot` option that makes Scala 3 record workspace-relative source paths in TASTY, so
+   * the compiled `out/` is reproducible. Injected directly into the compiler invocation rather than
+   * [[allScalacOptions]], so the `../mill-workspace` alias path doesn't leak into the scalac options
+   * Mill reports to IDE/doc tooling (BSP, IntelliJ via `GenIdea`, scaladoc), where that alias is
+   * wrong or changes generated output.
+   */
+  private[mill] def tastyReproducibilityScalacOptions: T[Seq[String]] = Task {
+    Option.when(isDottyOrScala3(scalaVersion()))(s"-sourceroot:${BuildCtx.workspaceRoot}").toSeq
+  }
+
+  /**
    * Options to pass directly into Scaladoc.
    */
   def scalaDocOptions: T[Seq[String]] = Task {
@@ -346,11 +356,11 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       ZincOp.CompileMixed(
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
-        compileClasspath = compileClasspath().map(_.path),
+        compileClasspath = compileClasspath(),
         javacOptions = jOpts.compiler,
         scalaVersion = sv,
         scalaOrganization = scalaOrganization0(sv),
-        scalacOptions = allScalacOptions(),
+        scalacOptions = allScalacOptions() ++ tastyReproducibilityScalacOptions(),
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = scalacPluginClasspath(),
         compilerBridgeOpt = scalaCompilerBridge(),
@@ -657,7 +667,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         scalaVersion = scalaVersion(),
         scalaBinaryVersion = scalaBinaryVersion(scalaVersion()),
         platform = ScalaPlatform.JVM,
-        jars = scalaCompilerClasspath().map(_.path.toURI.toString).iterator.toSeq,
+        jars = scalaCompilerClasspath().map(sanitizeUri).iterator.toSeq,
         jvmBuildTarget = Some(bspJvmBuildTargetTask())
       )
     ))
@@ -703,7 +713,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
           compileClasspath =
             (compileClasspathTask(
               CompileFor.SemanticDb
-            )() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(_.path),
+            )() ++ resolvedSemanticDbJavaPluginMvnDeps()),
           javacOptions = jOpts.compiler,
           scalaVersion = sv,
           scalaOrganization = scalaOrganization0(sv),

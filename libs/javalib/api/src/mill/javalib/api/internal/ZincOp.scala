@@ -12,7 +12,7 @@ object ZincOp {
   case class CompileJava(
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Seq[os.Path],
-      compileClasspath: Seq[os.Path],
+      compileClasspath: Seq[PathRef],
       javacOptions: Seq[String],
       incrementalCompilation: Boolean,
       workDir: os.Path
@@ -24,7 +24,7 @@ object ZincOp {
   case class CompileMixed(
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Seq[os.Path],
-      compileClasspath: Seq[os.Path],
+      compileClasspath: Seq[PathRef],
       javacOptions: Seq[String],
       scalaVersion: String,
       scalaOrganization: String,

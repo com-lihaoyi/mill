@@ -8,7 +8,7 @@ import scala.concurrent.duration.Duration
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{PriorityBlockingQueue, ThreadFactory, ThreadPoolExecutor, TimeUnit}
 import mill.api.Logger
-import mill.api.daemon.internal.NonFatal
+import mill.api.daemon.internal.{NonFatal, PriorityRunnable}
 
 object ExecutionContexts {
 
@@ -24,10 +24,20 @@ object ExecutionContexts {
     def close(): Unit = () // do nothing
 
     def blocking[T](t: => T): T = t
+    // Under `--jobs=1`, `Fork.async` routes here and runs the body inline on the
+    // parent thread, sharing the parent's `os.pwd` and system streams. Unlike
+    // `ThreadPool.async`, this does NOT relocate `os.pwd` into the `dest` sandbox
+    // folder, does NOT materialize `dest`, and does NOT write a per-future
+    // `dest.log` or add a terminal prompt line. The pwd-sandbox-in-`dest` +
+    // per-future `dest.log` contract documented on [[mill.api.TaskCtx.Fork.async]]
+    // is therefore not honored here; only the value of the body is surfaced
+    // through the returned `Future`.
     def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(using
         ctx: mill.api.TaskCtx
     ): Future[T] =
-      Future.successful(t(ctx.log))
+      // A throwing body yields a failed Future, matching `ThreadPool.async`, so
+      // `fork.async` failure semantics don't differ between `--jobs=1` and `--jobs>1`.
+      Future.fromTry(NonFatal.Try(t(ctx.log)))
   }
 
   /**
@@ -37,69 +47,47 @@ object ExecutionContexts {
   class ThreadPool(executor: ThreadPoolExecutor) extends mill.api.TaskCtx.Fork.Impl {
     def await[T](t: Future[T]): T = blocking { Await.result(t, Duration.Inf) }
 
-    def updateThreadCount(delta: Int): Unit = synchronized {
-      if (delta > 0) {
-        executor.setMaximumPoolSize(executor.getMaximumPoolSize + delta)
-        executor.setCorePoolSize(executor.getCorePoolSize + delta)
-      } else {
-        executor.setCorePoolSize(executor.getCorePoolSize + delta)
-        executor.setMaximumPoolSize(executor.getMaximumPoolSize + delta)
+    // Synchronize on the underlying `executor`: concurrent launchers
+    // share one daemon-level executor across multiple `ThreadPool`
+    // wrappers, so locking on `this` wouldn't serialise the
+    // read-modify-write of core/max pool sizes.
+    def enterBlocking(): Unit = executor.synchronized {
+      val newCorePoolSize = executor.getCorePoolSize + 1
+      if (newCorePoolSize > executor.getMaximumPoolSize) {
+        executor.setMaximumPoolSize(newCorePoolSize)
       }
+      executor.setCorePoolSize(newCorePoolSize)
+    }
+
+    // Scale both core AND max back down so the extra worker spun up for the
+    // `blocking{...}` span is reaped once idle, restoring the `--jobs`
+    // parallelism bound instead of leaving leftover threads draining the
+    // queue. Lower core first so the `core <= max` invariant always holds.
+    // The resulting thread churn no longer fragments the chrome profile,
+    // because [[mill.internal.ThreadNumberer]] now recycles profile lanes
+    // independently of physical thread identity.
+    def leaveBlocking(): Unit = executor.synchronized {
+      executor.setCorePoolSize(executor.getCorePoolSize - 1)
+      executor.setMaximumPoolSize(executor.getMaximumPoolSize - 1)
     }
 
     def blocking[T](t: => T): T = {
-      updateThreadCount(1)
+      enterBlocking()
       try t
-      finally updateThreadCount(-1)
+      finally leaveBlocking()
     }
 
     def execute(runnable: Runnable): Unit = {
-      // By default, any child task inherits the pwd and system streams from the
-      // context which submitted it
-      val submitterPwd = os.dynamicPwdFunction.value
-      val submitterChecker = os.checker.value
-      val submitterStreams = new mill.api.SystemStreams(Console.out, Console.err, System.in)
+      val submitterContext = TaskThreadContext.capture()
       executor.execute(new PriorityRunnable(
         0,
-        () =>
-          os.checker.withValue(submitterChecker) {
-            os.dynamicPwdFunction.withValue(() => submitterPwd()) {
-              mill.api.SystemStreamsUtils.withStreams(submitterStreams) {
-                runnable.run()
-              }
-            }
-          }
+        () => submitterContext.bind(runnable.run())
       ))
 
     }
 
     def reportFailure(t: Throwable): Unit = {}
     def close(): Unit = executor.shutdown()
-
-    val priorityRunnableCount = java.util.concurrent.atomic.AtomicLong()
-
-    /**
-     * Subclass of [[java.lang.Runnable]] that assigns a priority to execute it
-     *
-     * Priority 0 is the default priority of all Mill task, priorities <0 can be used to
-     * prioritize this runnable over most other tasks, while priorities >0 can be used to
-     * de-prioritize it.
-     */
-    class PriorityRunnable(val priority: Int, run0: () => Unit) extends Runnable
-        with Comparable[PriorityRunnable] {
-      def run() = run0()
-      val priorityRunnableIndex: Long = priorityRunnableCount.getAndIncrement()
-      override def compareTo(o: PriorityRunnable): Int = priority.compareTo(o.priority) match {
-        case 0 =>
-          // `Comparable` wants a *total* ordering, so we need to use `priorityRunnableIndex`
-          // to break ties between instances with the same priority. This index is assigned
-          // when a task is submitted, so it should more or less follow insertion order,
-          // and is a `Long` which should be big enough never to overflow
-          assert(this == o || this.priorityRunnableIndex != o.priorityRunnableIndex)
-          this.priorityRunnableIndex.compareTo(o.priorityRunnableIndex)
-        case n => n
-      }
-    }
 
     /**
      * A variant of `scala.concurrent.Future{...}` that sets the `pwd` to a different
@@ -109,34 +97,23 @@ object ExecutionContexts {
     def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(using
         ctx: mill.api.TaskCtx
     ): Future[T] = {
-      val logger = new MultiLogger(
-        new PrefixLogger(ctx.log, Seq(key), ctx.log.keySuffix, message),
-        new FileLogger(dest / os.up / s"${dest.last}.log", false),
+      val logger = MultiLogger(
+        PrefixLogger(ctx.log, Seq(key), ctx.log.keySuffix, message),
+        FileLogger(dest / os.up / s"${dest.last}.log", false),
         ctx.log.streams.in
       )
 
-      var destInitialized: Boolean = false
-      def makeDest() = synchronized {
-        if (!destInitialized) {
-          os.makeDir.all(dest)
-          destInitialized = true
-        }
-
-        dest
-      }
-      val submitterChecker = os.checker.value
-      val promise = concurrent.Promise[T]
+      val lazyDest = new LazyDest(() => dest)
+      val submitterContext = TaskThreadContext.capture(
+        pwd = () => lazyDest.get(),
+        streams = logger.streams
+      )
+      val promise = concurrent.Promise[T]()
       val runnable = new PriorityRunnable(
         priority = priority,
         run0 = () => {
           val result = NonFatal.Try(logger.withPromptLine {
-            os.checker.withValue(submitterChecker) {
-              os.dynamicPwdFunction.withValue(() => makeDest()) {
-                mill.api.SystemStreamsUtils.withStreams(logger.streams) {
-                  t(logger)
-                }
-              }
-            }
+            submitterContext.bind(t(logger))
           })
           promise.complete(result)
         }
@@ -151,19 +128,18 @@ object ExecutionContexts {
   def createExecutor(threadCount: Int): ThreadPoolExecutor = {
     val executorIndex = executorCounter.incrementAndGet()
     val threadCounter = new AtomicInteger
-    new ThreadPoolExecutor(
+    ThreadPoolExecutor(
       threadCount,
       threadCount,
-      60 * 1000,
+      60,
       TimeUnit.SECONDS,
-      // Use a `Deque` rather than a normal `Queue`, with the various `poll`/`take`
-      // operations reversed, providing elements in a LIFO order. This ensures that
-      // child `fork.async` tasks always take priority over parent tasks, avoiding
-      // large numbers of blocked parent tasks from piling up
-      new PriorityBlockingQueue[Runnable](),
+      // Use a priority queue so child `fork.async` tasks can run ahead of
+      // lower-priority parent tasks, avoiding large numbers of blocked parent
+      // tasks from piling up.
+      PriorityBlockingQueue[Runnable](),
       runnable => {
         val threadIndex = threadCounter.incrementAndGet()
-        val t = new Thread(
+        val t = Thread(
           runnable,
           s"execution-contexts-threadpool-$executorIndex-thread-$threadIndex"
         )

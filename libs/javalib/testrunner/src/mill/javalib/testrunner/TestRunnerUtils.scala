@@ -9,6 +9,7 @@ import java.io.PrintStream
 import java.lang.annotation.Annotation
 import java.lang.reflect.Modifier
 import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.regex.Pattern
@@ -25,7 +26,7 @@ import scala.math.Ordering.Implicits.*
     if (os.isDir(base)) {
       os.walk.stream(base).filter(_.ext == "class").map(_.relativeTo(base).toString)
     } else {
-      val zip = new ZipInputStream(Files.newInputStream(base.toNIO))
+      val zip = ZipInputStream(Files.newInputStream(base.toNIO))
       geny.Generator.selfClosing(
         (
           Iterator.continually(zip.getNextEntry)
@@ -135,7 +136,7 @@ import scala.math.Ordering.Implicits.*
 
     val tasks = runner.tasks(
       for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter(cls))
-        yield new TaskDef(
+        yield TaskDef(
           cls.getName.stripSuffix("$"),
           fingerprint,
           false,
@@ -159,7 +160,7 @@ import scala.math.Ordering.Implicits.*
       events: ConcurrentLinkedQueue[Event],
       systemOut: PrintStream
   ): Boolean = {
-    val taskStatus = new AtomicBoolean(true)
+    val taskStatus = AtomicBoolean(true)
     val taskQueue = tasks.to(mutable.Queue)
     while (taskQueue.nonEmpty) {
       val next =
@@ -252,7 +253,7 @@ import scala.math.Ordering.Implicits.*
     // Capture this value outside of the task event handler so it
     // isn't affected by a test framework's stream redirects
     val systemOut = System.out
-    val events = new ConcurrentLinkedQueue[Event]()
+    val events = ConcurrentLinkedQueue[Event]()
 
     var successCounter = 0L
     var failureCounter = 0L
@@ -309,7 +310,7 @@ import scala.math.Ordering.Implicits.*
     // Capture this value outside of the task event handler so it
     // isn't affected by a test framework's stream redirects
     val systemOut = System.out
-    val events = new ConcurrentLinkedQueue[Event]()
+    val events = ConcurrentLinkedQueue[Event]()
     val globSelectorCache = testClasses.view
       .map { case (cls, fingerprint) => cls.getName.stripSuffix("$") -> (cls, fingerprint) }
       .toMap
@@ -324,7 +325,7 @@ import scala.math.Ordering.Implicits.*
         .get(testClassName)
         .map { case (cls, fingerprint) =>
           val clsName = cls.getName.stripSuffix("$")
-          new TaskDef(clsName, fingerprint, false, Array(new SuiteSelector))
+          TaskDef(clsName, fingerprint, false, Array(new SuiteSelector))
         }
 
       val tasks = runner.tasks(taskDefs.toArray)
@@ -345,7 +346,14 @@ import scala.math.Ordering.Implicits.*
       logClaim(testClass) { runClaimedTestClass(testClass) }
     }
 
-    for (file <- os.list(testClassQueueFolder)) {
+    val queueFiles =
+      if (Files.isDirectory(testClassQueueFolder.wrapped)) {
+        val stream = Files.list(testClassQueueFolder.wrapped)
+        try stream.toArray
+        finally stream.close()
+      } else Array.empty[java.lang.Object]
+    for (fileNio <- queueFiles.iterator.map(_.asInstanceOf[java.nio.file.Path])) {
+      val file = os.Path(fileNio.toAbsolutePath.normalize())
       for (claimedTestClass <- claimFile(file, claimFolder)) {
         logClaim(claimedTestClass) { runClaimedTestClass(claimedTestClass) }
       }
@@ -357,7 +365,13 @@ import scala.math.Ordering.Implicits.*
   def claimFile(file: os.Path, claimFolder: os.Path): Option[String] = {
     Option.when(
       os.exists(file) &&
-        scala.util.Try(os.move(file, claimFolder / file.last, atomicMove = true)).isSuccess
+        scala.util.Try {
+          Files.move(
+            file.wrapped,
+            (claimFolder / file.last).wrapped,
+            StandardCopyOption.ATOMIC_MOVE
+          )
+        }.isSuccess
     ) {
 
       file.last

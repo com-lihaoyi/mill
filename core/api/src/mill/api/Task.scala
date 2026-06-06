@@ -49,7 +49,9 @@ sealed abstract class Task[T] extends Task.Ops[T] with Applyable[Task, T] with T
 
   /**
    * Even if this task's inputs did not change, does it need to re-evaluate
-   * anyway?
+   * anyway? A non-zero `sideHash` marks the task as side-effecting (see
+   * [[Task.sideEffectingHash]]): the execution layer re-reads it every run rather
+   * than serving a cached value. The default `0` means the task is pure/cacheable.
    */
   def sideHash: Int = 0
 
@@ -62,12 +64,26 @@ sealed abstract class Task[T] extends Task.Ops[T] with Applyable[Task, T] with T
   private[mill] def asCommand: Option[Task.Command[T]] = None
   private[mill] def asWorker: Option[Task.Worker[T]] = None
   private[mill] def isExclusiveCommand: Boolean = this match {
-    case c: Task.Command[_] if c.exclusive => true
+    case c: Task.Command[_] if c.exclusive || c.globalExclusive => true
+    case _ => false
+  }
+  private[mill] def isGlobalExclusiveCommand: Boolean = this match {
+    case c: Task.Command[_] if c.globalExclusive => true
     case _ => false
   }
 }
 
 object Task {
+
+  /**
+   * Sentinel [[Task.sideHash]] for side-effecting tasks (e.g. [[Task.Input]]) that must be
+   * re-evaluated every run regardless of whether their inputs changed. The execution layer
+   * treats any non-zero `sideHash` as "side-effecting" (see `GroupExecution`): it drops the
+   * cached value to force re-reading the filesystem/env, while keeping a stable hash so the
+   * re-read result can still be compared for downstream invalidation. The specific value is
+   * arbitrary; it only needs to be a fixed non-zero constant.
+   */
+  private[mill] val sideEffectingHash: Int = 31337
 
   type rename = mill.api.rename
 
@@ -229,7 +245,7 @@ object Task {
       persistent: Boolean = false
   ): UncachedFactory =
     // Magnet pattern for the second param list in Task.Uncached(persistent = true) { ... }
-    new UncachedFactory(persistent)
+    UncachedFactory(persistent)
 
   class UncachedFactory private[mill] (val persistent: Boolean) {
     inline def apply[T](inline t: Result[T])(using
@@ -253,7 +269,14 @@ object Task {
     ${
       Macros.commandImpl[T](
         't
-      )('w, 'ctx, exclusive = '{ false }, persistent = '{ false }, '{ null })
+      )(
+        'w,
+        'ctx,
+        exclusive = '{ false },
+        globalExclusive = '{ false },
+        persistent = '{ false },
+        '{ null }
+      )
     }
 
   /**
@@ -262,7 +285,16 @@ object Task {
    *                  terminal logging prefixes that are applied to normal tasks.
    *                  These are normally used for "top level" commands which are
    *                  run directly to perform some action or display some output
-   *                  to the user.
+   *                  to the user. Exclusive commands do NOT take the daemon-wide
+   *                  workspace lock, so concurrent launchers may still run their
+   *                  own non-conflicting tasks while an exclusive command runs.
+   * @param globalExclusive Like `exclusive`, but additionally takes the
+   *                        daemon-wide workspace Write lock so that no other
+   *                        launcher can be running tasks concurrently. Reserved
+   *                        for commands like `clean`, `init`, or formatters
+   *                        that mutate `out/` or workspace source files in ways
+   *                        that would race with concurrent launchers. Implies
+   *                        `exclusive`.
    * @param persistent If true the `Task.dest` directory is not cleaned between
    *                   runs.
    */
@@ -270,16 +302,19 @@ object Task {
       @unused t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       exclusive: Boolean = false,
       persistent: Boolean = false,
-      @com.lihaoyi.unroll selectiveInputs: Seq[Task[?]] = null
+      @com.lihaoyi.unroll selectiveInputs: Seq[Task[?]] = null,
+      @com.lihaoyi.unroll globalExclusive: Boolean = false
   ): CommandFactory =
     new CommandFactory(
       exclusive = exclusive,
+      globalExclusive = globalExclusive,
       persistent = persistent,
       selectiveInputs = selectiveInputs
     )
 
   class CommandFactory private[mill] (
       val exclusive: Boolean,
+      val globalExclusive: Boolean,
       val persistent: Boolean,
       val selectiveInputs: Seq[Task[?]]
   ) {
@@ -290,7 +325,14 @@ object Task {
       ${
         Macros.commandImpl[T](
           't
-        )('w, 'ctx, '{ this.exclusive }, '{ this.persistent }, '{ this.selectiveInputs })
+        )(
+          'w,
+          'ctx,
+          '{ this.exclusive },
+          '{ this.globalExclusive },
+          '{ this.persistent },
+          '{ this.selectiveInputs }
+        )
       }
   }
 
@@ -354,7 +396,7 @@ object Task {
       @unused t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       persistent: Boolean = false,
       @com.lihaoyi.unroll selectiveInputs: Seq[Task[?]] = null
-  ): ApplyFactory = new ApplyFactory(persistent, selectiveInputs)
+  ): ApplyFactory = ApplyFactory(persistent, selectiveInputs)
 
   class ApplyFactory private[mill] (
       val persistent: Boolean,
@@ -383,7 +425,10 @@ object Task {
 
     override def evaluate0: (Seq[Any], TaskCtx) => Result[T] =
       (_, _) => {
-        val relPath = os.Path(ctx0.fileName).relativeTo(mill.api.BuildCtx.workspaceRoot)
+        val workspaceRoot = mill.api.BuildCtx.workspaceRoot
+        val relPath = PathRef
+          .toResolvedOsPathAnchored(os.Path(ctx0.fileName, workspaceRoot), workspaceRoot)
+          .relativeTo(workspaceRoot)
         Result.Failure(s"configuration missing in $relPath")
       }
 
@@ -395,10 +440,10 @@ object Task {
   }
 
   abstract class Ops[T] { this: Task[T] =>
-    def map[V](f: T => V): Task[V] = new Task.Mapped(this, f)
+    def map[V](f: T => V): Task[V] = Task.Mapped(this, f)
     def filter(f: T => Boolean): Task[T] = this
     def withFilter(f: T => Boolean): Task[T] = this
-    def zip[V](other: Task[V]): Task[(T, V)] = new Task.Zipped(this, other)
+    def zip[V](other: Task[V]): Task[(T, V)] = Task.Zipped(this, other)
 
   }
 
@@ -433,7 +478,7 @@ object Task {
 
     def label: String = ctx.segments.value.last match {
       case Segment.Label(v) => v
-      case Segment.Cross(_) => throw new IllegalArgumentException(
+      case Segment.Cross(_) => throw IllegalArgumentException(
           "Task.Named only support a ctx with a Label segment, but found a Cross."
         )
     }
@@ -448,7 +493,7 @@ object Task {
 
     def readWriterOpt: Option[upickle.ReadWriter[?]] = None
 
-    def writerOpt: Option[upickle.Writer[?]] = readWriterOpt.orElse(None)
+    def writerOpt: Option[upickle.Writer[?]] = readWriterOpt
   }
 
   class Computed[T](
@@ -530,8 +575,8 @@ object Task {
       val isPrivate: Option[Boolean],
       val exclusive: Boolean,
       override val persistent: Boolean,
-      @com.lihaoyi.unroll override val selectiveInputs0: Seq[Task[?]] =
-        null
+      @com.lihaoyi.unroll override val selectiveInputs0: Seq[Task[?]] = null,
+      @com.lihaoyi.unroll val globalExclusive: Boolean = false
   ) extends Task.Named[T] {
     override def asCommand: Some[Command[T]] = Some(this)
     // FIXME: deprecated return type: Change to Option
@@ -556,7 +601,7 @@ object Task {
       val isPrivate: Option[Boolean]
   ) extends Simple[T] {
     val inputs = Nil
-    override def sideHash: Int = util.Random.nextInt()
+    override def sideHash: Int = Task.sideEffectingHash
     // FIXME: deprecated return type: Change to Option
     override def writerOpt: Some[Writer[?]] = Some(writer)
     override private[mill] def isInputTask: Boolean = true
@@ -778,6 +823,7 @@ object Task {
         w: Expr[Writer[T]],
         ctx: Expr[mill.api.ModuleCtx],
         exclusive: Expr[Boolean],
+        globalExclusive: Expr[Boolean],
         persistent: Expr[Boolean],
         selectiveInputs: Expr[Seq[Task[?]]]
     ): Expr[Command[T]] = {
@@ -792,6 +838,7 @@ object Task {
               $w,
               ${ taskIsPrivate() },
               exclusive = $exclusive,
+              globalExclusive = $globalExclusive,
               persistent = $persistent,
               selectiveInputs0 = $selectiveInputs
             )

@@ -26,12 +26,7 @@ public class OutFiles {
      */
     private final String envBspOutOrNull = System.getenv(EnvVars.MILL_BSP_OUTPUT_DIR);
 
-    /** @see EnvVars#MILL_NO_SEPARATE_BSP_OUTPUT_DIR */
-    public final boolean mergeBspOut =
-        // explicit request
-        "1".equals(System.getenv(EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR))
-            // user specified MILL_OUTPUT_DIR but not MILL_BSP_OUTPUT_DIR
-            || (envOutOrNull != null && envBspOutOrNull == null);
+    public final boolean mergeBspOut = envBspOutOrNull == null;
 
     /**
      * Default hard-coded value for the Mill `out/` folder path.
@@ -55,8 +50,7 @@ public class OutFiles {
      * Effective path of the Mill `out/` folder when Mill is running in BSP mode.
      * You should favor using {@link #outFor} instead.
      */
-    public final String bspOut =
-        mergeBspOut ? out : envBspOutOrNull != null ? envBspOutOrNull : defaultBspOut;
+    public final String bspOut = envBspOutOrNull != null ? envBspOutOrNull : out;
 
     /**
      * Path of the Mill {@link #out} folder.
@@ -128,7 +122,7 @@ public class OutFiles {
     public final String millOutLock = "mill-out-lock";
 
     /**
-     * Lock file used for exclusively running the Mill BSP server for that lock id
+     * Lock file used for exclusively running the Mill BSP server for that lock id.
      */
     public final String millBspLock(String lockId) {
       return "mill-bsp-" + lockId + "-lock";
@@ -140,7 +134,8 @@ public class OutFiles {
     public final String millActive = "mill-active.json";
 
     /**
-     * JSON file containing info about the active Mill BSP process for that lock id (process directory and PID)
+     * JSON file containing info about the active Mill BSP process for that lock id
+     * (process directory and PID).
      */
     public final String millActiveBsp(String lockId) {
       return "mill-active-bsp-" + lockId + ".json";
@@ -203,10 +198,10 @@ public class OutFiles {
   public static final String millOutLock = OutFiles.millOutLock;
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
-  public static final String millActive = OutFiles.millActive;
+  public static final String millActive = "mill-active.json";
   /** @deprecated Use millActive instead */
   @Deprecated
-  public static final String millActiveCommand = OutFiles.millActive;
+  public static final String millActiveCommand = millActive;
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
   public static final String millSelectiveExecution = OutFiles.millSelectiveExecution;

@@ -6,7 +6,6 @@ import mill.javalib.*
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.{TestSuite, Tests, assert, *}
-import scala.annotation.nowarn
 
 object BuildTest extends TestSuite {
   private val runDockerTests = sys.env.get("MILL_FLYWAY_DOCKER_IT").contains("1")
@@ -38,6 +37,22 @@ object BuildTest extends TestSuite {
 
       def flywayUrl = "jdbc:h2:mem:test_db;DB_CLOSE_DELAY=-1"
       def flywayDriverDeps = Seq(h2)
+    }
+
+    object extraConfigBuild extends FlywayModule {
+      override def resources = Task.Sources(resourceFolder)
+
+      def h2 = mvn"com.h2database:h2:2.1.214"
+
+      def flywayUrl = "jdbc:h2:mem:extra_config_db;DB_CLOSE_DELAY=-1"
+      def flywayDriverDeps = Seq(h2)
+
+      override def flywayExtraConfig = Task {
+        Map(
+          "flyway.outOfOrder" -> "true",
+          "flyway.schemas" -> "PUBLIC"
+        )
+      }
     }
 
     object pgBuild extends FlywayModule {
@@ -75,7 +90,6 @@ object BuildTest extends TestSuite {
     val millDiscover: Discover = Discover[this.type]
   }
 
-  @nowarn("msg=unused pattern variable")
   def tests = Tests {
     test("clean") - UnitTester(Build, null).scoped { eval =>
       val Right(result) = eval(Build.build.flywayClean()).runtimeChecked
@@ -97,6 +111,24 @@ object BuildTest extends TestSuite {
 
     test("info") - UnitTester(Build, null).scoped { eval =>
       val Right(result) = eval(Build.build.flywayInfo()).runtimeChecked
+      assert(result.evalCount > 0)
+    }
+
+    test("extraConfig_migrate") - UnitTester(Build, null).scoped { eval =>
+      val Right(result) = eval(Build.extraConfigBuild.flywayMigrate()).runtimeChecked
+      assert(
+        result.evalCount > 0,
+        result.value.migrationsExecuted == 1
+      )
+    }
+
+    test("extraConfig_clean") - UnitTester(Build, null).scoped { eval =>
+      val Right(result) = eval(Build.extraConfigBuild.flywayClean()).runtimeChecked
+      assert(result.evalCount > 0)
+    }
+
+    test("extraConfig_info") - UnitTester(Build, null).scoped { eval =>
+      val Right(result) = eval(Build.extraConfigBuild.flywayInfo()).runtimeChecked
       assert(result.evalCount > 0)
     }
 

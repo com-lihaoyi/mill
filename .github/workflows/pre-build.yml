@@ -39,7 +39,16 @@ jobs:
 
       - run: ./mill -k ${{ inputs.compileargs }}
 
-      - uses: actions/upload-artifact@v6.0.0
+      - name: Remove out symlinks before artifact upload
+        shell: bash
+        run: |
+          if [ -d out ]; then
+            # These point at runner-local home/workspace paths and can make
+            # upload-artifact follow directories that should not be archived.
+            find out \( -name mill-home -o -name mill-workspace \) -type l -print -delete
+          fi
+
+      - uses: actions/upload-artifact@v7.0.1
         with:
           path: .
           name: ${{ inputs.os }}-artifact

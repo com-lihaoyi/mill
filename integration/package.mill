@@ -67,6 +67,25 @@ object `package` extends mill.Module {
     }
   }
 
+  /**
+   * Download (once, cached as a `PathRef`) the real `bazel-remote` release binary for the current
+   * platform, so the `reproducibility` integration test can exercise the Bazel-remote HTTP cache
+   * protocol against a genuine server rather than re-downloading it on every test run.
+   */
+  def bazelRemote = Task {
+    val version = "2.6.1"
+    val osName = System.getProperty("os.name").toLowerCase
+    val osArch = System.getProperty("os.arch").toLowerCase
+    val arch = if (osArch.contains("aarch64") || osArch.contains("arm")) "arm64" else "amd64"
+    val os0 = if (osName.contains("mac") || osName.contains("darwin")) "darwin" else "linux"
+    val url =
+      s"https://github.com/buchgr/bazel-remote/releases/download/v$version/bazel-remote-$version-$os0-$arch"
+    val dest = Task.dest / "bazel-remote"
+    os.proc("curl", "-sL", "--fail", "-o", dest, url).call()
+    os.perms.set(dest, "rwxr-xr-x")
+    PathRef(dest)
+  }
+
   case class SharedWorkerInfo(outPath: os.Path, port: Int)
 
   def millVersionNoSelective = Task(selectiveInputs = Nil) {
@@ -243,6 +262,11 @@ object `package` extends mill.Module {
   trait DedicatedIntegrationCrossModule extends IntegrationCrossModule {
     override def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
       Task.Command(selectiveInputs = selectiveInputs) { proguard.daemon.testForked0(args*)() }
+    override def forkEnv = Task {
+      super.forkEnv() ++ Option.when(crossValue == "reproducibility")(
+        "MILL_TEST_BAZEL_REMOTE" -> bazelRemote().path.toString
+      )
+    }
   }
   trait MultimodeIntegrationCrossModule extends IntegrationCrossModule {
     override def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
@@ -289,7 +313,14 @@ object `package` extends mill.Module {
       s"-Dmill.integration.coursier-version=${Deps.coursier.dep.versionConstraint.asString}"
     )
     def forkEnv = Task {
+      val locale =
+        if (scala.util.Properties.isMac) "en_US.UTF-8"
+        else "C.utf8"
       super.forkEnv() ++ Seq(
+        // Keep integration subprocess output stable even when the outer shell exports
+        // a locale alias unsupported by the current platform, e.g. macOS + C.UTF-8.
+        "LC_ALL" -> locale,
+        "LANG" -> locale,
         // "UTEST_UPDATE_GOLDEN_TESTS" -> "1",
         "MILL_PROJECT_ROOT" -> BuildCtx.workspaceRoot.toString,
         "TEST_SCALA_2_13_VERSION" -> Deps.testScala213Version,
@@ -314,7 +345,8 @@ object `package` extends mill.Module {
     def moduleDeps = Seq(build.libs.util.test, build.runner.bsp, build.libs.javalib.testrunner)
     def mvnDeps = super.mvnDeps() ++ Seq(
       Deps.bsp4j,
-      Deps.scalaCliBsp
+      Deps.scalaCliBsp,
+      Deps.coursierInterface
     )
   }
 }

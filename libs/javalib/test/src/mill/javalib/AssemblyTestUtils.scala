@@ -28,9 +28,9 @@ trait AssemblyTestUtils {
 
   def readFileFromJar(jar: JarFile, name: String): String = {
     Using.resource(jar.getInputStream(jar.getEntry(name))) { is =>
-      val baos = new ByteArrayOutputStream()
+      val baos = ByteArrayOutputStream()
       os.Internals.transfer(is, baos)
-      new String(baos.toByteArray)
+      String(baos.toByteArray)
     }
   }
 

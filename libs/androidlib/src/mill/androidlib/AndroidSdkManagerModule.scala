@@ -32,12 +32,12 @@ trait AndroidSdkManagerModule extends ExternalModule {
 
   def androidSdkManagerLockFile: os.Path = androidMillHomeDir() / ".sdkmanager.lock"
 
-  def androidSdkManagerWorkerMaxWaitAttempts: Task[Int] = Task {
+  def androidSdkManagerWorkerMaxWaitAttempts: Task.Simple[Int] = Task {
     25
   }
 
   def androidSdkManagerWorker: Task.Worker[AndroidSdkManagerWorker] = Task.Worker {
-    new AndroidSdkManagerWorker(androidMillHomeDir(), androidSdkManagerWorkerMaxWaitAttempts())
+    AndroidSdkManagerWorker(androidMillHomeDir(), androidSdkManagerWorkerMaxWaitAttempts())
   }
 
   /**
@@ -53,7 +53,7 @@ trait AndroidSdkManagerModule extends ExternalModule {
       if (isWin) "win"
       else if (isMac) "mac"
       else if (isLinux) "linux"
-      else throw new IllegalStateException("Unknown platform")
+      else throw IllegalStateException("Unknown platform")
 
     s"https://dl.google.com/android/repository/commandlinetools-$platform-${versionLong}_latest.zip"
   }
@@ -94,7 +94,7 @@ trait AndroidSdkManagerModule extends ExternalModule {
   private def sha1 = MessageDigest.getInstance("sha1")
 
   private def hexArray(arr: Array[Byte]) =
-    String.format("%0" + (arr.length << 1) + "x", new BigInteger(1, arr))
+    String.format("%0" + (arr.length << 1) + "x", BigInteger(1, arr))
 
   private def acceptLicenses(sdkManagerExePath: os.Path) = {
     val args = if (isWin)
@@ -103,7 +103,11 @@ trait AndroidSdkManagerModule extends ExternalModule {
       Seq("echo", "y\n" * 10)
     os.proc(
       args
-    ).pipeTo(os.proc(sdkManagerExePath.toString, "--licenses")).call(stdout = os.Pipe)
+    ).pipeTo(os.proc(
+      // ProcessBuilder executes sdkmanager directly; cwd aliases are not enough.
+      PathRef.toAbsString(sdkManagerExePath),
+      "--licenses"
+    )).call(stdout = os.Pipe)
   }
 
   // TODO: Replace hardcoded mapping with automated parsing
@@ -121,7 +125,7 @@ trait AndroidSdkManagerModule extends ExternalModule {
       case "17.0" => "12700392"
       case "19.0" => "13114758"
       case _ =>
-        throw new IllegalArgumentException(s"Unsupported cmdline tools version: $versionShort")
+        throw IllegalArgumentException(s"Unsupported cmdline tools version: $versionShort")
     }
   }
 
@@ -401,7 +405,8 @@ trait AndroidSdkManagerModule extends ExternalModule {
   ): CommandResult = {
     os.call(
       cmd = Seq(
-        sdkmanagerExe.toString,
+        // ProcessBuilder executes sdkmanager directly; it cannot rely on path aliases.
+        PathRef.toAbsString(sdkmanagerExe),
         "--install"
       ) ++ packages,
       stdout = os.Inherit,

@@ -1,0 +1,79 @@
+// Pre-compiled modules allow you to define a `package.mill.yaml` or `build.mill.yaml` file
+// whose `extends` clause refers to a pre-compiled class (a subclass of `mill.api.PrecompiledModule`).
+
+// Pre-compiled modules are useful when you have a lot of similar modules, as is common in large
+// codebases. Rather than code-generating and compiling a separate build script for each module,
+// these identical modules can be compiled once in your `mill-build/src` or even compiled and
+// published earlier to Maven Central, and from there used throughout your project.
+//
+// In this example, `foo/package.mill.yaml` and `bar/package.mill.yaml` both extend
+// `millbuild.LineCountJavaModule`, a custom `PrecompiledModule` subclass defined in
+// `mill-build/src/`. This module counts the lines of source code and generates a resource
+// file with the line count. It also has a nested `test` module containing the test suite
+// configuration.
+
+/** See Also: mill-build/src/LineCountJavaModule.scala */
+
+// `LineCountJavaModule` is then inherited by `foo` and `bar`:
+
+/** See Also: foo/package.mill.yaml */
+/** See Also: bar/package.mill.yaml */
+
+// `bar` declares `moduleDeps: !append [foo]`, so `bar` depends on `foo` and can use `foo`'s
+// classes. Similarly, `bar.test` declares `moduleDeps: !append [foo.test]`, so ``bar``'s
+// test module depends on `foo`'s test module and can reuse its test utilities.
+
+//// SNIPPET:USAGE
+
+/** Usage
+
+> ./mill resolve _
+...
+bar
+...
+foo
+...
+
+> ./mill resolve foo._
+foo.test
+...
+foo.compile
+...
+foo.run
+...
+foo.lineCount
+...
+
+> ./mill resolve bar.test._
+bar.test.compile
+...
+bar.test.testForked
+...
+
+> ./mill foo.run
+Hello, Foo!
+
+> ./mill bar.run
+Hello, Bar!, Hello, Qux!
+
+> ./mill show foo.lineCount
+11
+
+> ./mill show bar.lineCount
+18
+
+> ./mill foo.test
+...testGreet...
+
+> ./mill bar.test
+...testGreetAll...
+...testFooGreetFromBarTest...
+*/
+//// SNIPPET:END
+
+// Instead of generating Scala code from the YAML file, Mill instantiates the pre-compiled
+// module class reflectively at runtime, similar to xref:javalib/script.adoc[script modules].
+// Pre-compiled modules are visible to `resolve` and can be referenced from other
+// pre-compiled modules and scripts, but not from `.mill` files since they are instantiated
+// at resolution time after `.mill` files are already compiled. They are enabled via the
+// `mill-experimental-precompiled-module: true` key.

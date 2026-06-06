@@ -4,12 +4,12 @@ import scala.util.{Success, Try}
 import scala.xml.{Elem, MetaData, Node, NodeSeq, Null, UnprefixedAttribute}
 import scala.collection.mutable
 import java.net.URL
-
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
 import mill.api.*
 import mill.api.daemon.internal.{
   EvaluatorApi,
+  IdeUtils,
   JavaModuleApi,
   MillBuildRootModuleApi,
   ModuleApi,
@@ -20,9 +20,12 @@ import mill.api.daemon.internal.{
   TestModuleApi
 }
 import mill.api.daemon.internal.idea.{Element, IdeaConfigFile, JavaFacet, ResolvedModule}
+import mill.api.internal.PathAliasing
 import mill.util.BuildInfo
 import org.eclipse.jgit.ignore.{FastIgnoreRule, IgnoreNode}
 import os.SubPath
+
+import scala.annotation.nowarn
 import scala.jdk.CollectionConverters.*
 
 class GenIdeaImpl(
@@ -37,26 +40,30 @@ class GenIdeaImpl(
   private val ideaDir: os.Path = workDir / ".idea"
   val ideaConfigVersion = 4
 
-  def run(): Unit = {
-    val pp = new scala.xml.PrettyPrinter(999, 4)
-    val jdkInfo = extractCurrentJdk(ideaDir / "misc.xml")
-      .getOrElse(("JDK_1_8", "1.8 (1)"))
+  def run(): Unit =
+    // IntelliJ needs real absolute filesystem paths in the generated config files; the
+    // `out/mill-workspace`/`out/mill-home` alias forms cause IntelliJ load failures and
+    // library-file name collisions.
+    PathAliasing.withDefaultPathSerializer {
+      val pp = new scala.xml.PrettyPrinter(999, 4)
+      val jdkInfo = extractCurrentJdk(ideaDir / "misc.xml")
+        .getOrElse(("JDK_1_8", "1.8 (1)"))
 
-    println("Analyzing modules ...")
-    val layout: Seq[(subPath: SubPath, xml: Node)] =
-      xmlFileLayout(evaluators, jdkInfo)
+      println("Analyzing modules ...")
+      val layout: Seq[(subPath: SubPath, xml: Node)] =
+        xmlFileLayout(evaluators, jdkInfo)
 
-    println("Cleaning obsolete IDEA project files ...")
-    os.remove.all(ideaDir / "libraries")
-    os.remove.all(ideaDir / "scala_compiler.xml")
-    os.remove.all(ideaDir / "mill_modules")
+      println("Cleaning obsolete IDEA project files ...")
+      os.remove.all(ideaDir / "libraries")
+      os.remove.all(ideaDir / "scala_compiler.xml")
+      os.remove.all(ideaDir / "mill_modules")
 
-    println(s"Writing ${layout.size} IDEA project files to ${ideaDir} ...")
-    for ((subPath = subPath, xml = xml) <- layout) {
-      println(s"Writing ${subPath} ...")
-      os.write.over(ideaDir / subPath, pp.format(xml), createFolders = true)
+      println(s"Writing ${layout.size} IDEA project files to ${ideaDir} ...")
+      for ((subPath = subPath, xml = xml) <- layout) {
+        println(s"Writing ${subPath} ...")
+        os.write.over(ideaDir / subPath, pp.format(xml), createFolders = true)
+      }
     }
-  }
 
   def extractCurrentJdk(ideaPath: os.Path): Option[(String, String)] = {
     import scala.xml.XML
@@ -180,6 +187,10 @@ class GenIdeaImpl(
 
     val allResolved: Seq[os.Path] =
       (resolvedModules.flatMap(_.scopedCpEntries).map(s => os.Path(s.path)) ++ buildDepsPaths)
+        // Canonicalize first: in reproducible-build mode the same jar can arrive via two different
+        // path forms (alias-traversing vs real), which `.distinct` would NOT collapse, producing
+        // spurious duplicate `<lib> (1).xml` library files via `pathShortLibNameDuplicate` below.
+        .map(realPath)
         .distinct
         .sorted
 
@@ -189,7 +200,7 @@ class GenIdeaImpl(
         .partition(_.asWholeFile.isDefined)
 
     // whole file
-    val ideaWholeConfigFiles: Seq[(os.SubPath, Elem)] =
+    val ideaWholeConfigFiles: Seq[(os.SubPath, Node)] =
       wholeFileConfigs.flatMap(_.asWholeFile).map { wf =>
         os.sub / os.SubPath(wf._1) -> ideaConfigElementTemplate(wf._2)
       }
@@ -296,7 +307,7 @@ class GenIdeaImpl(
      */
     def sbtLibraryNameFromPom(pomPath: os.Path): String = {
       val pom = xmlParseDom(os.read(pomPath)).flatMap(Pom.project)
-        .getOrElse(throw new RuntimeException(s"Could not parse pom file: ${pomPath}"))
+        .getOrElse(throw RuntimeException(s"Could not parse pom file: ${pomPath}"))
 
       val artifactId = pom.module.name.value
       val scalaArtifactRegex = ".*_[23]\\.[0-9]{1,2}".r
@@ -342,9 +353,9 @@ class GenIdeaImpl(
     // Create IgnoreNode from bspScriptIgnore patterns
     val ignoreRules = bspScriptIgnore
       .filter(l => !l.startsWith("#"))
-      .map(pattern => (pattern, new FastIgnoreRule(pattern)))
+      .map(pattern => (pattern, FastIgnoreRule(pattern)))
 
-    val ignoreNode = new IgnoreNode(ignoreRules.map(_._2).asJava)
+    val ignoreNode = IgnoreNode(ignoreRules.map(_._2).asJava)
 
     // Extract directory prefixes from negation patterns (patterns starting with !)
     // These directories need to be walked even if they're ignored, because they contain
@@ -406,7 +417,9 @@ class GenIdeaImpl(
       Tuple2(
         os.sub / "modules.xml",
         allModulesXmlTemplate(
-          (modules.map { case (segments = segments) => moduleName(segments) } ++
+          (modules.map { case (segments = segments) =>
+            IdeUtils.moduleName(segments).getOrElse("")
+          } ++
             scriptFiles.map(scriptModuleName)).sorted
         )
       ),
@@ -485,7 +498,9 @@ class GenIdeaImpl(
 
       val sanizedDeps: Seq[ScopedOrd[String]] = {
         resolvedModule.scopedCpEntries
-          .map(s => (lib = pathToLibName(os.Path(s.path)), scope = s.scope))
+          // Canonicalize like `allResolved` (the `pathToLibName` keys) so an alias-traversing jar
+          // path resolves to the same key as its real on-disk form.
+          .map(s => (lib = pathToLibName(realPath(os.Path(s.path))), scope = s.scope))
           .groupBy(_.lib)
           .view
           .mapValues(_.map(_.scope))
@@ -517,7 +532,7 @@ class GenIdeaImpl(
           .from(recursive.map((_, None)) ++
             provided.map((_, Some("PROVIDED"))))
           .filter(!_._1.skipIdea)
-          .map { case (v, s) => ScopedOrd(moduleName(moduleLabels(v)), s) }
+          .map { case (v, s) => ScopedOrd(IdeUtils.moduleName(moduleLabels(v)).getOrElse(""), s) }
           .iterator
           .toSeq
           .distinct
@@ -547,7 +562,7 @@ class GenIdeaImpl(
       )
 
       val moduleFile = Tuple2(
-        os.sub / "mill_modules" / s"${moduleName(resolvedModule.segments)}.iml",
+        os.sub / "mill_modules" / s"${IdeUtils.moduleName(resolvedModule.segments).getOrElse("")}.iml",
         moduleXml
       )
 
@@ -611,8 +626,7 @@ class GenIdeaImpl(
     (Seq.fill(r.ups)("..") ++ r.segments).mkString("/")
   }
 
-  def ideaConfigElementTemplate(element: Element): Elem = {
-
+  def ideaConfigElementTemplate(element: Element): Node = {
     val example = <config/>
 
     val attribute1: MetaData =
@@ -620,7 +634,7 @@ class GenIdeaImpl(
       else
         element.attributes.toSeq.reverse.foldLeft(Null.asInstanceOf[MetaData]) {
           case (prevAttr, (k, v)) =>
-            new UnprefixedAttribute(k, v, prevAttr)
+            UnprefixedAttribute(k, v, prevAttr)
         }
 
     new Elem(
@@ -629,7 +643,10 @@ class GenIdeaImpl(
       attributes1 = attribute1,
       example.scope,
       minimizeEmpty = true,
-      child = element.childs.map(ideaConfigElementTemplate)*
+      child = ((element.childs: @nowarn("cat=deprecation")) ++ element.childsOrText).map {
+        case e: Element => ideaConfigElementTemplate(e)
+        case s: String => scala.xml.Text(s)
+      }*
     )
   }
 
@@ -696,10 +713,16 @@ class GenIdeaImpl(
     "file://" + relForwardPath(path)
   }
 
-  private val projectDir = (workDir, "$PROJECT_DIR$/")
-  private val homeDir = (os.home, "$USER_HOME$/")
+  // Resolve through any `mill-workspace`/`mill-home` alias symlinks so `relForwardPath` /
+  // `pathToLibName` see the canonical jar location (otherwise an alias-traversing path looks
+  // project-relative when it's really a coursier-cache file under `$USER_HOME$`).
+  private val realPath: os.Path => os.Path = PathRef.toResolvedOsPath
 
-  private def relForwardPath(path: os.Path): String = {
+  private val projectDir = (realPath(workDir), "$PROJECT_DIR$/")
+  private val homeDir = (realPath(os.home), "$USER_HOME$/")
+
+  private def relForwardPath(path0: os.Path): String = {
+    val path = realPath(path0)
 
     def forward(p: os.FilePath): String = p.toString().replace("""\""", "/")
 
@@ -795,6 +818,18 @@ class GenIdeaImpl(
     val outputUrl = relUrl(compileOutputPath)
 
     <module type="JAVA_MODULE" version={"" + ideaConfigVersion}>
+      {
+      if (facets.isEmpty) NodeSeq.Empty
+      else {
+        <component name="FacetManager">
+          {
+          for (facet <- facets) yield <facet type={facet.`type`} name={facet.name}>
+            {ideaConfigElementTemplate(facet.config)}
+          </facet>
+        }
+        </component>
+      }
+    }
       <component name="NewModuleRootManager">
         {
       if (isTest) <output-test url={outputUrl} />
@@ -853,18 +888,6 @@ class GenIdeaImpl(
         }
     }
       </component>
-      {
-      if (facets.isEmpty) NodeSeq.Empty
-      else {
-        <component name="FacetManager">
-            {
-          for (facet <- facets) yield <facet type={facet.`type`} name={facet.name}>
-              {ideaConfigElementTemplate(facet.config)}
-            </facet>
-        }
-          </component>
-      }
-    }
     </module>
   }
 
@@ -872,7 +895,7 @@ class GenIdeaImpl(
       settings: Map[(Seq[os.Path], Seq[String]), Vector[JavaModuleApi]]
   ) = {
     def modulesString(mods: Seq[ModuleApi]) =
-      mods.map(m => moduleName(m.moduleSegments)).mkString(",")
+      mods.map(m => IdeUtils.moduleName(m.moduleSegments).getOrElse("")).mkString(",")
 
     val orderedSettings = settings.toSeq.map {
       case ((plugins, params), mods) => ((plugins, params), modulesString(mods))
@@ -907,7 +930,9 @@ class GenIdeaImpl(
 
     <module type="JAVA_MODULE" version={"" + ideaConfigVersion}>
       <component name="NewModuleRootManager">
-        <output url="file://$MODULE_DIR$/../../out/script/{scriptPath.baseName}/compile.dest"/>
+        <output url={
+      s"file://$$MODULE_DIR$$/../../out/script/${scriptPath.baseName}/compile.dest"
+    }/>
         <exclude-output />
         <content url={relUrl}>
           <sourceFolder url={relUrl} isTestSource="false"/>
@@ -920,23 +945,6 @@ class GenIdeaImpl(
 }
 
 object GenIdeaImpl {
-
-  /**
-   * Create the module name (to be used by Idea) for the module based on it segments.
-   *
-   * @see [[Module.moduleSegments]]
-   */
-  def moduleName(p: Segments): String =
-    p.value
-      .foldLeft(new StringBuilder()) {
-        case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
-        case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
-        case (sb, Segment.Label(s)) => sb.append(".").append(s)
-        case (sb, Segment.Cross(s)) => sb.append("-").append(s.mkString("-"))
-      }
-      .mkString
-      .toLowerCase()
-
   def allJars(classloader: ClassLoader): Seq[URL] = {
     allClassloaders(classloader)
       .collect { case t: java.net.URLClassLoader => t.getURLs }

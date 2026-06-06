@@ -42,7 +42,7 @@ object HelloWorldTests extends TestSuite {
   object HelloWorldNonPrecompiledBridge extends TestRootModule {
     object core extends HelloWorldModule {
       def jvmVersion = "17"
-      override def scalaVersion = "2.12.1"
+      override def scalaVersion = "2.12.6"
     }
     lazy val millDiscover = Discover[this.type]
 
@@ -104,9 +104,9 @@ object HelloWorldTests extends TestSuite {
 
   def readFileFromJar(jar: JarFile, name: String): String = {
     Using.resource(jar.getInputStream(jar.getEntry(name))) { is =>
-      val baos = new ByteArrayOutputStream()
+      val baos = ByteArrayOutputStream()
       os.Internals.transfer(is, baos)
-      new String(baos.toByteArray)
+      String(baos.toByteArray)
     }
   }
 
@@ -212,10 +212,9 @@ object HelloWorldTests extends TestSuite {
 
         assert(result2.evalCount == 0)
 
-        // Make sure we *do* end up compiling the compiler bridge, since it's
-        // *not* using a pre-compiled bridge value
+        // Ensure the subprocess-backed worker path is exercised.
         assert(os.exists(
-          eval.outPath / "mill.javalib.JvmWorkerModule/internalWorker.dest" / s"zinc-${zincVersion}"
+          eval.outPath / "mill.javalib.JvmWorkerModule/internalWorker.dest" / "zinc-worker"
         ))
       }
 
@@ -276,7 +275,7 @@ object HelloWorldTests extends TestSuite {
           result.evalCount > 0
         )
 
-        Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
+        Using.resource(JarFile(result.value.path.toIO)) { jarFile =>
           val entries = jarFile.entries().asScala.map(_.getName).toSeq.sorted
 
           val otherFiles = Seq(

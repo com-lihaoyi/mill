@@ -22,11 +22,12 @@ trait JsonFormatters {
       Right(os.Path(strs.last, BuildCtx.workspaceRoot))
   }
 
-  implicit val pathReadWrite: RW[os.Path] = upickle.readwriter[String]
-    .bimap[os.Path](
+  implicit val pathReadWrite: RW[os.Path] = upickle.stringKeyRW(
+    upickle.readwriter[String].bimap[os.Path](
       _.toString,
-      os.Path(_)
+      s => os.Path(os.Path.pathSerializer.value.deserialize(s))
     )
+  )
 
   implicit val relPathRW: RW[os.RelPath] = upickle.readwriter[String]
     .bimap[os.RelPath](_.toString, os.RelPath(_))
@@ -69,7 +70,7 @@ trait JsonFormatters {
           "lineNumber" -> ujson.Num(ste.getLineNumber)
         ),
       json =>
-        new StackTraceElement(
+        StackTraceElement(
           json("declaringClass").str.toString,
           json("methodName").str.toString,
           json("fileName").arr.headOption.map(_.str.toString).orNull,

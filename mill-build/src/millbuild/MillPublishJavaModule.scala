@@ -117,7 +117,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
     val pomPath = Task.dest / s"${artifactId()}-$snapshotVersion.pom"
     os.write.over(pomPath, snapshotPom)
 
-    val publisher = new LocalM2Publisher(Task.dest)
+    val publisher = LocalM2Publisher(Task.dest)
     // Use jarRaw() for the main jar to keep SNAPSHOT in buildinfo
     // Don't include sourceJar to avoid dependency on manifest/publishVersion/millVersion
     val rawJarInfo = pomPackagingType match {

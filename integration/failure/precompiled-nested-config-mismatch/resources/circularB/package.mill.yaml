@@ -1,0 +1,3 @@
+extends: millbuild.MyModule
+mill-experimental-precompiled-module: true
+moduleDeps: [circularA]

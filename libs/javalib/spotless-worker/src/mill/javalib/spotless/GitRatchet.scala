@@ -18,7 +18,7 @@ import scala.util.Using
  */
 class GitRatchet(root: os.Path) extends AutoCloseable {
 
-  val repository = RepositoryBuilder().setFS(FS.DETECTED).findGitDir(root.toIO).build()
+  val repository = RepositoryBuilder().setFS(FS.DETECTED).findGitDir(root.wrapped.toFile).build()
 
   // HACK:
   // Forcibly load classes referenced in close to avoid: java.lang.NoClassDefFoundError.
@@ -46,11 +46,18 @@ class GitRatchet(root: os.Path) extends AutoCloseable {
   def diff(staged: Boolean, from: String, to: Option[String])(using ctx: TaskCtx.Workspace) = {
     val oldTree = commitTree(from)
     val newTree = to.fold(if staged then indexTree else workingTree)(commitTree)
+    // Compare symlink-resolved real paths: in reproducible-build mode `root` (the module dir) and
+    // `ctx.workspace` may carry different `os.Path` wrapped forms for the same directory (one
+    // routed through a `../mill-workspace` forwarder alias, the other a real absolute path), so a
+    // plain `==`/`relativeTo` would wrongly treat the root module as a sub-path and build a
+    // PathFilter that matches nothing ("ratchet found no changes").
+    val realRoot = PathRef.toResolvedOsPath(root)
+    val realWorkspace = PathRef.toResolvedOsPath(ctx.workspace)
     val treeFilter =
-      if root == ctx.workspace then TreeFilter.ANY_DIFF
+      if realRoot == realWorkspace then TreeFilter.ANY_DIFF
       else
         AndTreeFilter.create(
-          PathFilter.create(root.relativeTo(ctx.workspace).toString()),
+          PathFilter.create(realRoot.relativeTo(realWorkspace).toString()),
           TreeFilter.ANY_DIFF
         )
     git.diff()

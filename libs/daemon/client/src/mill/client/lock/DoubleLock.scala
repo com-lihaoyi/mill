@@ -12,7 +12,7 @@ class DoubleLock(lock1: Lock, lock2: Lock) extends Lock {
     try {
       l1 = lock1.lock()
       l2 = lock2.lock()
-      result = new DoubleLocked(l1, l2)
+      result = DoubleLocked(l1, l2)
     } finally {
       if (result == null) {
         if (l2 != null) l2.release()
@@ -40,15 +40,6 @@ class DoubleLock(lock1: Lock, lock2: Lock) extends Lock {
     }
     if (result == null) result = new DoubleTryLocked(null, null)
     result
-  }
-
-  override def probe(): Boolean = {
-    val tl = tryLock()
-    if (!tl.isLocked) true
-    else {
-      tl.release()
-      false
-    }
   }
 
   override def close(): Unit = {

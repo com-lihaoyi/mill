@@ -116,5 +116,17 @@ object MillMainTests extends TestSuite {
         }
       }
     }
+
+    test("in-process launcher resources") {
+      test("daemon") {
+        assert(MillMain0.useInProcessLauncherResources(hasDaemonClient = true, bspMode = false))
+      }
+      test("bsp") {
+        assert(MillMain0.useInProcessLauncherResources(hasDaemonClient = false, bspMode = true))
+      }
+      test("ordinary no-daemon") {
+        assert(!MillMain0.useInProcessLauncherResources(hasDaemonClient = false, bspMode = false))
+      }
+    }
   }
 }

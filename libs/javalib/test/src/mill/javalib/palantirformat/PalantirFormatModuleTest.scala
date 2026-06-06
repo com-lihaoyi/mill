@@ -93,7 +93,7 @@ object PalantirFormatModuleTest extends TestSuite {
 
   def afterFormat(
       moduleRoot: os.Path,
-      version: String = "2.50.0",
+      version: String = "2.90.0",
       check: Boolean = false,
       sources: Seq[String] = Seq.empty
   ): Seq[os.Path] = {

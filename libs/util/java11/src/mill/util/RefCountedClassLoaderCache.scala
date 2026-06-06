@@ -13,11 +13,21 @@ class RefCountedClassLoaderCache(
     sharedLoader: ClassLoader = null,
     sharedPrefixes: Seq[String] = Nil,
     parent: ClassLoader = null
-) extends CachedFactoryBase[Seq[PathRef], Long, sourcecode.Enclosing, URLClassLoader] {
+) extends CachedFactoryBase[
+      Seq[PathRef],
+      Seq[(String, Boolean, Int, PathRef.Revalidate)],
+      sourcecode.Enclosing,
+      URLClassLoader
+    ] {
 
-  def keyToInternalKey(key: Seq[PathRef]): Long = key.hashCode
+  def keyToInternalKey(key: Seq[PathRef]): Seq[(String, Boolean, Int, PathRef.Revalidate)] =
+    key.map(ref => (PathRef.toResolvedPathString(ref.path), ref.quick, ref.sig, ref.revalidate))
 
-  def setup(key: Seq[PathRef], internalKey: Long, initData: sourcecode.Enclosing): URLClassLoader =
+  def setup(
+      key: Seq[PathRef],
+      internalKey: Seq[(String, Boolean, Int, PathRef.Revalidate)],
+      initData: sourcecode.Enclosing
+  ): URLClassLoader =
     mill.util.Jvm.createClassLoader(
       key.map(_.path),
       parent = parent,
@@ -25,7 +35,11 @@ class RefCountedClassLoaderCache(
       sharedPrefixes = sharedPrefixes
     )(using initData)
 
-  def teardown(key: Seq[PathRef], internalKey: Long, value: URLClassLoader): Unit = {
+  def teardown(
+      key: Seq[PathRef],
+      internalKey: Seq[(String, Boolean, Int, PathRef.Revalidate)],
+      value: URLClassLoader
+  ): Unit = {
     extraRelease(value)
     value.close()
   }

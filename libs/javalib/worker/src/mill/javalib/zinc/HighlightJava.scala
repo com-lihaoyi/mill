@@ -22,8 +22,8 @@ object HighlightJava {
   ): fansi.Str = {
     // Use the token manager directly for pure lexical tokenization
     // This works even on incomplete/invalid Java code snippets
-    val charStream = new SimpleCharStream(Providers.provider(sourceCode))
-    val tokenManager = new GeneratedJavaParserTokenManager(charStream)
+    val charStream = SimpleCharStream(Providers.provider(sourceCode))
+    val tokenManager = GeneratedJavaParserTokenManager(charStream)
 
     val overlays = collection.mutable.Buffer.empty[(fansi.Attrs, Int, Int)]
 
@@ -161,7 +161,7 @@ object HighlightJava {
       }
     }
 
-    val visitor = new SemanticVisitor()
+    val visitor = SemanticVisitor()
 
     // Try different parse strategies for code snippets
     // Order matters - try more specific constructs first

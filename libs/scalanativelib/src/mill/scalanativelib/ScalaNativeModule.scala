@@ -3,7 +3,7 @@ package scalanativelib
 
 import mainargs.Flag
 import mill.{api as _, *}
-import mill.api.{CrossVersion, Result, TaskCtx}
+import mill.api.{CrossVersion, PathRef, Result, TaskCtx}
 import mill.api.daemon.internal.bsp.ScalaBuildTarget
 import mill.javalib.api.JvmWorkerUtil
 import mill.api.daemon.internal.{ScalaNativeModuleApi, ScalaPlatform, internal}
@@ -156,7 +156,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
     }
   }
   private[scalanativelib] def withScalaNativeBridge = Task.Anon {
-    new ScalaNativeBridge(
+    ScalaNativeBridge(
       ScalaNativeWorkerExternalModule.scalaNativeWorker(),
       bridgeFullClassPath()
     )
@@ -326,11 +326,11 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   }
 
   def nativeLinkOtherMain(mainClass: String) = Task.Anon {
-    val dest = Task.dest / s"nativeLink-${mainClass.hashCode}"
-    os.remove.all(dest)
+    val dest = Task.dest
+    os.remove.all(dest / "out")
     PathRef(os.Path(withScalaNativeBridge.apply().apply(_.nativeLink(
       nativeConfig(Some(mainClass))().config,
-      Task.dest.toIO
+      dest.toIO
     ))))
   }
 
@@ -377,7 +377,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
       Option(forkArgs).getOrElse(forkArgsDefault)
       val env = Option(forkEnv).getOrElse(forkEnvDefault)
       val propEnv = Option(propagateEnv).getOrElse(propagateEnvDefault: java.lang.Boolean)
-      val native = nativeExe.path.toString
+      val native = PathRef.toRelString(nativeExe.path, cwd)
 
       os.call(
         cmd = native +: mainArgs,
@@ -391,7 +391,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   }
 
   override def runner: Task[RunModule.Runner] = Task.Anon {
-    new NativeRunner(
+    NativeRunner(
       mainClassDefault = finalMainClassOpt(),
       nativeExe = nativeLink(),
       forkArgsDefault = forkArgs(),
@@ -401,7 +401,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   }
 
   def nativeRunnerOtherMain(mainClass: String): Task[RunModule.Runner] = Task.Anon {
-    new NativeRunner(
+    NativeRunner(
       mainClassDefault = Right(mainClass),
       nativeExe = nativeLinkOtherMain(mainClass)(),
       forkArgsDefault = forkArgs(),
@@ -419,7 +419,8 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
         scalaVersion = scalaVersion(),
         scalaBinaryVersion = JvmWorkerUtil.scalaBinaryVersion(scalaVersion()),
         ScalaPlatform.Native,
-        jars = scalaCompilerClasspath().map(_.path.toURI.toString).iterator.toSeq,
+        // `.wrapped.toUri`, not `.toURI`: BSP needs absolute URIs (see ScalaModule.bspBuildTargetData).
+        jars = scalaCompilerClasspath().map(_.path.wrapped.toUri.toString).iterator.toSeq,
         jvmBuildTarget = None
       )
     ))

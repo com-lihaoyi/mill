@@ -28,7 +28,7 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
    */
   def androidBundleZip: T[PathRef] = Task {
     val dexFile = androidDex().path
-    val resFile = androidLinkedResources().path / "apk/res.apk"
+    val resFile = androidLinkedResources().apk.path
     val baseDir = Task.dest / "base"
     val appDir = Task.dest / "app"
 
@@ -75,10 +75,12 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
     os.call((
       "java",
       "-jar",
-      androidSdkModule().bundleToolPath().path,
+      // `java`/`jarsigner` run with the (possibly symlinked) spawn cwd and resolve path args
+      // themselves, so pass real absolute paths rather than `../mill-...` relativized aliases.
+      PathRef.toAbsString(androidSdkModule().bundleToolPath()),
       "build-bundle",
-      s"--modules=$zipPath",
-      s"--output=$bundleFile"
+      s"--modules=${PathRef.toAbsString(zipPath)}",
+      s"--output=${PathRef.toAbsString(bundleFile)}"
     ))
 
     PathRef(bundleFile)
@@ -119,10 +121,10 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
       "-storepass",
       keystorePass,
       "-keystore",
-      keyPath,
+      PathRef.toAbsString(keyPath),
       "-signedjar",
-      signedBundle,
-      androidUnsignedBundle().path,
+      PathRef.toAbsString(signedBundle),
+      PathRef.toAbsString(androidUnsignedBundle().path),
       keyAlias
     ))
 
