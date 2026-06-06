@@ -805,7 +805,7 @@ trait AndroidModule extends JavaModule { outer =>
     val filesToLink = os.walk(compiledLibResDir).filter(os.isFile(_)) ++
       moduleResDirs.flatMap(os.walk(_).filter(os.isFile(_)))
     val argFile = Task.dest / "to-link.txt"
-    os.write.over(argFile, filesToLink.map(_.toString()).mkString("\n"))
+    os.write.over(argFile, filesToLink.mkString("\n"))
 
     val transitiveMergedAssetsDir = androidTransitiveMergedAssets().path
 

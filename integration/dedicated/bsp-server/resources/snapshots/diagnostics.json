@@ -1,17 +1,6 @@
 [
   {
     "textDocument": {
-      "uri": "file:///workspace/mill-build/build.mill"
-    },
-    "buildTarget": {
-      "uri": "file:///workspace/mill-build/mill-build"
-    },
-    "originId": "",
-    "diagnostics": [],
-    "reset": true
-  },
-  {
-    "textDocument": {
       "uri": "file:///workspace/build.mill"
     },
     "buildTarget": {
@@ -39,36 +28,6 @@
       }
     ],
     "reset": false
-  },
-  {
-    "textDocument": {
-      "uri": "file:///workspace/build.mill"
-    },
-    "buildTarget": {
-      "uri": "file:///workspace/mill-build"
-    },
-    "originId": "",
-    "diagnostics": [
-      {
-        "range": {
-          "start": {
-            "line": 106,
-            "character": 17
-          },
-          "end": {
-            "line": 106,
-            "character": 22
-          }
-        },
-        "severity": 2,
-        "code": {
-          "left": "-1"
-        },
-        "source": "mill",
-        "message": "method thing in object diag is deprecated since 0.0.1: deprecated"
-      }
-    ],
-    "reset": true
   },
   {
     "textDocument": {
