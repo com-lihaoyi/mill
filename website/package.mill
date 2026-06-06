@@ -46,7 +46,7 @@ object `package` extends mill.Module {
   private val antoraExe = if (scala.util.Properties.isWin) "antora.cmd" else "antora"
   def npmBase: T[os.Path] = Task(persistent = true) { Task.dest }
   def prepareAntora(npmDir: os.Path) = {
-    os.call(
+    mill.api.internal.PathAliasing.withRawPathSerializer(os.call(
       cmd = (
         npmExe,
         "--no-audit",
@@ -58,7 +58,7 @@ object `package` extends mill.Module {
       ),
       env = Map(),
       cwd = npmDir
-    )
+    ))
   }
 
   def runAntora(npmDir: os.Path, workDir: os.Path, args: Seq[String])(using
@@ -67,13 +67,13 @@ object `package` extends mill.Module {
 
     prepareAntora(npmDir)
     val cmdArgs =
-      Seq(s"${npmDir}/node_modules/.bin/${antoraExe}") ++ args
+      Seq(PathRef.toAbsString(npmDir / "node_modules" / ".bin" / antoraExe)) ++ args
     ctx.log.debug(s"command: ${cmdArgs.mkString("'", "' '", "'")}")
-    os.call(
+    mill.api.internal.PathAliasing.withRawPathSerializer(os.call(
       cmd = cmdArgs,
       env = Map("CI" -> "true"),
       cwd = workDir
-    )
+    ))
     PathRef(workDir / "build/site")
   }
 
@@ -253,22 +253,27 @@ object `package` extends mill.Module {
     PathRef(Task.dest)
   }
   def githubPagesPlaybookText(authorMode: Boolean) = Task.Anon { (extraSources: Seq[os.Path]) =>
+    val workspaceRoot = PathRef.toAbsString(build.workspacePath(BuildCtx.workspaceRoot))
+    val localSitePath = build.workspacePath(Task.dest) / "site"
+    val siteDir = PathRef.toAbsString(localSitePath)
+    val siteUri = PathRef.toAbsNioPath(localSitePath).toUri.toASCIIString
+    val supplementalFilesPath = PathRef.toAbsString(build.workspacePath(supplementalFiles().path))
     val taggedSources = for (path <- extraSources) yield {
-      s"""    - url: ${BuildCtx.workspaceRoot}
-         |      start_path: ${path.relativeTo(BuildCtx.workspaceRoot)}
+      s"""    - url: $workspaceRoot
+         |      start_path: ${build.workspaceSubPath(path)}
          |      edit_url: false
          |""".stripMargin
     }
     s"""site:
        |  title: The Mill Build Tool
-       |  url: ${if (authorMode) s"${Task.dest}/site" else Settings.docUrl}
+       |  url: ${if (authorMode) siteDir else Settings.docUrl}
        |  start_page: mill::index.adoc
        |  keys:
        |    google_analytics: 'G-1C582ZJR85'
        |
        |content:
        |  sources:
-       |    - url: ${if (authorMode) BuildCtx.workspaceRoot else Settings.projectUrl}
+       |    - url: ${if (authorMode) workspaceRoot else Settings.projectUrl}
        |      branches: []
        |      tags: ${Settings.legacyDocTags.filter(_ => !authorMode).map(
         "'" + _ + "'"
@@ -278,21 +283,21 @@ object `package` extends mill.Module {
        |
        |${taggedSources.mkString("\n\n")}
        |
-       |    - url: ${BuildCtx.workspaceRoot}
-       |      start_path: ${devAntoraSources().path.relativeTo(BuildCtx.workspaceRoot)}
+       |    - url: $workspaceRoot
+       |      start_path: ${build.workspaceSubPath(devAntoraSources().path)}
        |
-       |    - url: ${BuildCtx.workspaceRoot}
-       |      start_path: ${blogFolder().path.relativeTo(BuildCtx.workspaceRoot)}
+       |    - url: $workspaceRoot
+       |      start_path: ${build.workspaceSubPath(blogFolder().path)}
        |ui:
        |  bundle:
        |    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
        |    snapshot: true
-       |  supplemental_files: ${supplementalFiles().path.toString()}
+       |  supplemental_files: $supplementalFilesPath
        |
        |asciidoc:
        |  attributes:
        |    mill-github-url: ${Settings.projectUrl}
-       |    mill-doc-url: ${if (authorMode) s"file://${Task.dest}/site" else Settings.docUrl}
+       |    mill-doc-url: ${if (authorMode) siteUri else Settings.docUrl}
        |    utest-github-url: https://github.com/com-lihaoyi/utest
        |    upickle-github-url: https://github.com/com-lihaoyi/upickle
        |    mill-scip-version: ${Deps.DocDeps.millScip.version}
@@ -399,14 +404,14 @@ object `package` extends mill.Module {
   def localPages: T[PathRef] = Task {
     val pages = generatePages(true, apidocs.unidocLocal).apply().apply(Nil)
     Task.log.streams.out.println(
-      s"You can browse the pages at: ${(pages.path / "index.html").toNIO.toUri()}"
+      s"You can browse the pages at: ${PathRef.toAbsNioPath(pages.path / "index.html").toUri()}"
     )
     pages
   }
   def fastPages: T[PathRef] = Task {
     val pages = generatePages(true, apidocs.dummy).apply().apply(Nil)
     Task.log.streams.out.println(
-      s"You can browse the pages at: ${(pages.path / "index.html").toNIO.toUri()}"
+      s"You can browse the pages at: ${PathRef.toAbsNioPath(pages.path / "index.html").toUri()}"
     )
     pages
   }
@@ -418,7 +423,7 @@ object `package` extends mill.Module {
       source()
       val docSite = Task.dest
       val playbook = docSite / "antora-playbook.yml"
-      val siteDir = docSite / "site"
+      val siteDir = build.workspacePath(docSite) / "site"
       os.write(
         target = playbook,
         data = githubPagesPlaybookText(authorMode).apply().apply(extraSources),
@@ -431,7 +436,7 @@ object `package` extends mill.Module {
         args = Seq(
           playbook.last,
           "--to-dir",
-          siteDir.toString(),
+          PathRef.toAbsString(siteDir),
           "--attribute",
           "page-pagination"
         ) ++
@@ -602,7 +607,7 @@ object `package` extends mill.Module {
   def brokenLocalLinks: T[Map[os.Path, Seq[(String, String)]]] = Task {
     val allLinksAndAnchors0 = allLinksAndAnchors()
     val pathsToIds = allLinksAndAnchors0
-      .map { case (path, remoteLinks, localLinks, ids) => (path, ids) }
+      .map { case (path, remoteLinks, localLinks, ids) => (PathRef.toResolvedOsPath(path), ids) }
       .toMap
 
     val brokenLinksPerPath: Seq[(os.Path, Seq[(String, String)])] =
@@ -618,13 +623,13 @@ object `package` extends mill.Module {
             .filter(_._2 != "#")
             .flatMap { case (elementString, url) =>
               val (baseUrl, anchorOpt) = url match {
-                case s"#$anchor" => (path.toString, Some(anchor))
+                case s"#$anchor" => (PathRef.toResolvedPathString(path), Some(anchor))
                 case s"$prefix#$anchor" => (prefix, Some(anchor))
 
                 case url => (url, None)
               }
 
-              val dest0 = os.Path(baseUrl, path / "..")
+              val dest0 = PathRef.toResolvedOsPath(os.Path(baseUrl, path / ".."))
               val possibleDests = Seq(dest0, dest0 / "index.html")
               possibleDests.find(os.exists(_)) match {
                 case None => Some((elementString, url))

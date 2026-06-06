@@ -20,6 +20,7 @@ import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission
 import java.util.jar.{JarEntry, JarOutputStream}
 import scala.collection.mutable
+import scala.concurrent.duration.DurationInt
 import scala.util.Properties.isWin
 import scala.util.chaining.scalaUtilChainingOps
 
@@ -647,7 +648,7 @@ object Jvm {
     val isBatch =
       isWin && !(org.jline.utils.OSUtils.IS_CYGWIN || org.jline.utils.OSUtils.IS_MSYSTEM)
     val outputPath = destFolder / (if (isBatch) "run.bat" else "run")
-    val classPathStrs = classPath.map(_.toString)
+    val classPathStrs = classPath.map(PathRef.toResolvedPathString)
 
     os.write(outputPath, launcherUniversalScript(mainClass, classPathStrs, classPathStrs, jvmArgs))
 
@@ -673,6 +674,8 @@ object Jvm {
       .withCredentials(config.credentials)
       .withTtl(config.ttl)
       .withCachePolicies(config.cachePolicies)
+      .withRetry(8)
+      .withRetryBackoffInitialDelay(2.seconds)
       // Apply Mill's default logger first, then the user customizer, so that
       // overrides in coursierCacheCustomizer (e.g. a custom logger) take precedence.
       .pipe { cache =>

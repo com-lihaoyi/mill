@@ -57,12 +57,12 @@ object `package` extends mill.Module {
 
     def all = Task {
       Map(
-        "jansi" -> jansi().path.toString,
-        "netty" -> netty().path.toString,
-        "FastCSV" -> FastCSV().path.toString,
-        "ehcache3" -> ehcache3().path.toString,
-        "Airstream" -> Airstream().path.toString,
-        "fs2" -> fs2().path.toString
+        "jansi" -> PathRef.toResolvedPathString(jansi().path),
+        "netty" -> PathRef.toResolvedPathString(netty().path),
+        "FastCSV" -> PathRef.toResolvedPathString(FastCSV().path),
+        "ehcache3" -> PathRef.toResolvedPathString(ehcache3().path),
+        "Airstream" -> PathRef.toResolvedPathString(Airstream().path),
+        "fs2" -> PathRef.toResolvedPathString(fs2().path)
       )
     }
   }
@@ -183,7 +183,9 @@ object `package` extends mill.Module {
           Map(
             "MILL_INTEGRATION_DAEMON_MODE" -> (mode == "daemon").toString,
             "MILL_INTEGRATION_IS_PACKAGED_LAUNCHER" -> millIntegrationIsPackagedLauncher().toString,
-            "MILL_INTEGRATION_LAUNCHER" -> millIntegrationLauncher().path.toString
+            "MILL_INTEGRATION_LAUNCHER" -> PathRef.toResolvedPathString(
+              millIntegrationLauncher().path
+            )
           ) ++
           (if (millIntegrationIsPackagedLauncher()) Map()
            else build.dist.raw.localTestOverridesEnv())
@@ -264,7 +266,7 @@ object `package` extends mill.Module {
       Task.Command(selectiveInputs = selectiveInputs) { proguard.daemon.testForked0(args*)() }
     override def forkEnv = Task {
       super.forkEnv() ++ Option.when(crossValue == "reproducibility")(
-        "MILL_TEST_BAZEL_REMOTE" -> bazelRemote().path.toString
+        "MILL_TEST_BAZEL_REMOTE" -> PathRef.toResolvedPathString(bazelRemote().path)
       )
     }
   }
@@ -322,7 +324,7 @@ object `package` extends mill.Module {
         "LC_ALL" -> locale,
         "LANG" -> locale,
         // "UTEST_UPDATE_GOLDEN_TESTS" -> "1",
-        "MILL_PROJECT_ROOT" -> BuildCtx.workspaceRoot.toString,
+        "MILL_PROJECT_ROOT" -> PathRef.toResolvedPathString(BuildCtx.workspaceRoot),
         "TEST_SCALA_2_13_VERSION" -> Deps.testScala213Version,
         "TEST_SCALA_JS_CURRENT_VERSION" -> Deps.Scalajs_1.scalaJsVersion,
         "TEST_KOTLIN_VERSION" -> Deps.kotlinCompiler.version
