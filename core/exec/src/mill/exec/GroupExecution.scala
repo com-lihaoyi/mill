@@ -36,12 +36,6 @@ trait GroupExecution {
   def classLoaderIdentityHash: Int
 
   /**
-   * Tracks tasks invalidated due to version/classloader mismatch, with the reason string.
-   * Populated by TaskCacheEntry reads, used by ExecutionLogs.logInvalidationTree.
-   */
-  def versionMismatchReasons: java.util.concurrent.ConcurrentHashMap[Task[?], String]
-
-  /**
    * `String` is the worker name, `Int` is the worker hash, `Val` is the worker instance,
    * `TaskApi[?]` is the worker's Task (for traversing dependencies during ordered closure).
    */
@@ -55,6 +49,8 @@ trait GroupExecution {
   def exclusiveSystemStreams: SystemStreams
   def getEvaluator: () => EvaluatorApi
   def staticBuildOverrideFiles: Map[java.nio.file.Path, String]
+
+  def replayLogs: Boolean
 
   /** Evaluate a build override YAML value and deserialize it */
   private def evaluateBuildOverride(
@@ -322,7 +318,7 @@ trait GroupExecution {
           // re-evaluation actually re-reads the filesystem/env state.
           def readLocal(): Option[TaskCacheEntry.Loaded] =
             cacheEntry
-              .read(logger, inputsHash, labelled, versionMismatchReasons)
+              .read(logger, inputsHash, labelled)
               .map(cached => if (hasSideEffects) cached.copy(valueOpt = None) else cached)
 
           def loadCachedOrWorker(
@@ -401,6 +397,12 @@ trait GroupExecution {
             // by the `None` branch below.
             val remoteMaterialized = false
             // If we later implement remote caching and we have a reusable remote cache location and it exists, we can set this to `true`.
+            // Example code
+            // ... = localReusable.isEmpty && remoteCache.exists { cache =>
+            //    taskLocks.blockingOnPool {
+            //      cache.load(paths, inputsHash, labelled.ctx.segments.render)
+            //    }
+            //  }
 
             // After a remote materialization, re-read the now-present `meta.json` and reuse
             // the same `loadCachedOrWorker` path as a local hit instead of duplicating it.
@@ -510,7 +512,8 @@ trait GroupExecution {
                   inputsHash = inputsHash,
                   previousInputsHash = cached.map(_.previousInputsHash).getOrElse(-1),
                   valueHashChanged = !cached.map(_.valueHash).contains(valueHash),
-                  serializedPaths = serializedPaths
+                  serializedPaths = serializedPaths,
+                  invalidationReason = cached.flatMap(_.invalidationReason)
                 )
             }
           }
@@ -1013,7 +1016,10 @@ object GroupExecution {
       inputsHash: Int,
       previousInputsHash: Int,
       valueHashChanged: Boolean,
-      serializedPaths: Seq[PathRef]
+      serializedPaths: Seq[PathRef],
+      // Why this terminal's cached env signature differed from the current run (`name:OLD->NEW`),
+      // if it was invalidated for that reason. Aggregated by `Execution` for the invalidation tree.
+      invalidationReason: Option[String] = None
   )
 
   enum CacheStatus {

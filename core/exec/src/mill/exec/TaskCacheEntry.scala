@@ -1,14 +1,17 @@
 package mill.exec
 
 import mill.api.daemon.internal.NonFatal
-import mill.api.internal.Cached
+import mill.api.internal.{Cached, EnvSignature}
 import mill.api.{ExecutionPaths, Logger, PathRef, Task, Val}
 
 private[exec] final class TaskCacheEntry(
     paths: ExecutionPaths,
     classLoaderSigHash: Int
 ) {
-  def write(json: ujson.Value, valueHash: Int, inputsHash: Int): Unit =
+  private def currentEnv: EnvSignature = EnvSignature.current(classLoaderSigHash)
+
+  def write(json: ujson.Value, valueHash: Int, inputsHash: Int): Unit = {
+    val env = currentEnv
     os.write.over(
       paths.meta,
       upickle.stream(
@@ -16,20 +19,20 @@ private[exec] final class TaskCacheEntry(
           json,
           valueHash,
           inputsHash,
-          millVersion = mill.constants.BuildInfo.millVersion,
-          millJvmVersion = sys.props("java.version"),
-          classLoaderSigHash = classLoaderSigHash
+          millVersion = env.millVersion,
+          millJvmVersion = env.millJvmVersion,
+          classLoaderSigHash = env.classLoaderSigHash
         ),
         indent = 4
       ),
       createFolders = true
     )
+  }
 
   def read(
       logger: Logger,
       inputsHash: Int,
-      labelled: Task.Named[?],
-      versionMismatchReasons: java.util.concurrent.ConcurrentHashMap[Task[?], String]
+      labelled: Task.Named[?]
   ): Option[TaskCacheEntry.Loaded] = {
     for {
       cached <-
@@ -38,27 +41,14 @@ private[exec] final class TaskCacheEntry(
         try Some(upickle.read[Cached](paths.meta.wrapped.toFile, trace = false))
         catch { case NonFatal(_) => None }
     } yield {
-      def checkMatch[T](cachedValue: T, currentValue: T, reasonName: String): Boolean = {
-        val matches = cachedValue == currentValue
-        if (!matches) {
-          versionMismatchReasons.putIfAbsent(labelled, s"$reasonName:$cachedValue->$currentValue")
-        }
-        matches
-      }
-
-      val millVersionMatches =
-        checkMatch(cached.millVersion, mill.constants.BuildInfo.millVersion, "mill-version-changed")
-      val jvmVersionMatches =
-        checkMatch(cached.millJvmVersion, sys.props("java.version"), "mill-jvm-version-changed")
-      val classLoaderMatches =
-        checkMatch(cached.classLoaderSigHash, classLoaderSigHash, "classpath-changed")
+      val envDiffReasons =
+        EnvSignature(cached.millVersion, cached.millJvmVersion, cached.classLoaderSigHash)
+          .diffReasonsTo(currentEnv)
 
       TaskCacheEntry.Loaded(
         previousInputsHash = cached.inputsHash,
         valueOpt = for {
-          _ <- Option.when(
-            cached.inputsHash == inputsHash && millVersionMatches && jvmVersionMatches && classLoaderMatches
-          )(())
+          _ <- Option.when(cached.inputsHash == inputsHash && envDiffReasons.isEmpty)(())
           reader <- labelled.readWriterOpt
           (parsed, serializedPaths) <-
             try Some(PathRef.withSerializedPaths(upickle.read(cached.value, trace = false)(using
@@ -71,7 +61,8 @@ private[exec] final class TaskCacheEntry(
               case NonFatal(_) => None
             }
         } yield (Val(parsed), serializedPaths),
-        valueHash = cached.valueHash
+        valueHash = cached.valueHash,
+        invalidationReason = envDiffReasons.headOption
       )
     }
   }
@@ -81,6 +72,9 @@ private[exec] object TaskCacheEntry {
   final case class Loaded(
       previousInputsHash: Int,
       valueOpt: Option[(Val, Seq[PathRef])],
-      valueHash: Int
+      valueHash: Int,
+      // The reason this entry's env signature differs from the current run (`name:OLD->NEW`), if
+      // any; surfaced via `GroupExecution.Results` to the invalidation-tree log.
+      invalidationReason: Option[String] = None
   )
 }
