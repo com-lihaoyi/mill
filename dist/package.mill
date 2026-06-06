@@ -325,11 +325,17 @@ object `package` extends MillJavaModule with Proguard with DistModule {
     val dest = Task.dest / filename
 
     val jvmArgs = testArgs() ++ forkArgs()
-    val classpath = runClasspath().map(_.path.toString)
+    val classpath = runClasspath().map(p => PathRef.toResolvedPathString(p.path))
     val classpathJar = Task.dest / "classpath.jar"
     Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
 
-    writeExecutableScript(dest, mainClass().get, classpath, Seq(classpathJar.toString()), jvmArgs)
+    writeExecutableScript(
+      dest,
+      mainClass().get,
+      classpath,
+      Seq(PathRef.toResolvedPathString(classpathJar)),
+      jvmArgs
+    )
     PathRef(dest)
   }
 
@@ -345,7 +351,12 @@ object `package` extends MillJavaModule with Proguard with DistModule {
 
     // Use the unified localRepo instead of individual publishLocalTestRepo paths
     override def localTestOverridesEnv = Task {
-      val repos = Seq(localRepo().path.toNIO.toUri.toASCIIString) ++
+      val repos = Seq(
+        PathRef.toResolvedOsPath(localRepo().path).wrapped.toAbsolutePath
+          .normalize()
+          .toUri
+          .toASCIIString
+      ) ++
         Seq(Task.env.getOrElse("COURSIER_REPOSITORIES", "ivy2Local|central"))
       Seq("COURSIER_REPOSITORIES" -> repos.mkString("|"))
     }
@@ -377,7 +388,9 @@ object `package` extends MillJavaModule with Proguard with DistModule {
           // so Mill needs to resolve modules at that version from ~/.ivy2/local
           Task.traverse(allPublishModules)(m => m.publishLocal(doc = false))()
           Jvm.runInteractiveCommand(
-            cmd = Seq(build.dist.raw.executableVersioned().path.toString) ++ rest,
+            cmd = Seq(
+              PathRef.toResolvedPathString(build.dist.raw.executableVersioned().path)
+            ) ++ rest,
             env = forkEnv() ++ build.dist.raw.localTestOverridesEnv(),
             cwd = wd,
             propagateEnv = true
