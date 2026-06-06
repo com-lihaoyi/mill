@@ -15,7 +15,7 @@ import mill.javalib.api.*
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "3.8.3"
+  val scalaVersion = "3.8.4"
 
   val scalaVersionJava11 = "3.7.4"
   val scala2Version = "2.13.18"
@@ -157,7 +157,7 @@ object Deps {
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:${osLib.version}"
   val pprint = mvn"com.lihaoyi::pprint:0.9.6"
   val mainargs = mvn"com.lihaoyi::mainargs:0.7.8"
-  val millModuledefsVersion = "0.13.1"
+  val millModuledefsVersion = "0.13.3"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = mvn"${millModuledefsString}"
   val millModuledefsPlugin =
