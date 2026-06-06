@@ -380,7 +380,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
             semDbs.map { case (k, vs) => (k.toString, vs.map(_.toString)) },
             Map(
               "scripts/folder2/FooTest.java" -> ArraySeq(),
-              "mill-build" -> ArraySeq("build.mill.semanticdb"),
+              "mill-build" -> List(),
               "hello-kotlin" -> ArraySeq(),
               "hello-java" -> ArraySeq(),
               "hello-java/test" -> ArraySeq(),
