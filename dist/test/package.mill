@@ -21,14 +21,14 @@ object `package` extends ScalaModule with TestModule.Utest {
   }
   def exampleZipsManifest = Task {
     val dest = Task.dest / "exampleZips.json"
-    val entries = build.dist.exampleZips().map(_.path.toString)
+    val entries = build.dist.exampleZips().map(p => PathRef.toResolvedPathString(p.path))
     os.write(dest, upickle.default.write(entries))
     PathRef(dest)
   }
   def forkEnv = Map(
     "MILL_NATIVE_SUFFIX" -> build.dist.native.nativeSuffix(),
-    "MILL_EXAMPLE_LIST_PATH" -> exampleList().path.toString,
-    "MILL_EXAMPLE_ZIPS_MANIFEST" -> exampleZipsManifest().path.toString,
+    "MILL_EXAMPLE_LIST_PATH" -> PathRef.toResolvedPathString(exampleList().path),
+    "MILL_EXAMPLE_ZIPS_MANIFEST" -> PathRef.toResolvedPathString(exampleZipsManifest().path),
     "MILL_EXPECTED_VERSION" -> build.millVersion(),
     "MILL_EXPECTED_DEFAULT_VERSION" -> build.millVersion()
   )

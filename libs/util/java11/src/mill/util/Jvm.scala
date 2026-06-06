@@ -647,7 +647,7 @@ object Jvm {
     val isBatch =
       isWin && !(org.jline.utils.OSUtils.IS_CYGWIN || org.jline.utils.OSUtils.IS_MSYSTEM)
     val outputPath = destFolder / (if (isBatch) "run.bat" else "run")
-    val classPathStrs = classPath.map(_.toString)
+    val classPathStrs = classPath.map(PathRef.toResolvedPathString)
 
     os.write(outputPath, launcherUniversalScript(mainClass, classPathStrs, classPathStrs, jvmArgs))
 
