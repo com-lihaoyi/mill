@@ -607,7 +607,7 @@ object `package` extends mill.Module {
   def brokenLocalLinks: T[Map[os.Path, Seq[(String, String)]]] = Task {
     val allLinksAndAnchors0 = allLinksAndAnchors()
     val pathsToIds = allLinksAndAnchors0
-      .map { case (path, remoteLinks, localLinks, ids) => (path, ids) }
+      .map { case (path, remoteLinks, localLinks, ids) => (PathRef.toResolvedOsPath(path), ids) }
       .toMap
 
     val brokenLinksPerPath: Seq[(os.Path, Seq[(String, String)])] =
@@ -623,13 +623,13 @@ object `package` extends mill.Module {
             .filter(_._2 != "#")
             .flatMap { case (elementString, url) =>
               val (baseUrl, anchorOpt) = url match {
-                case s"#$anchor" => (path.toString, Some(anchor))
+                case s"#$anchor" => (PathRef.toResolvedPathString(path), Some(anchor))
                 case s"$prefix#$anchor" => (prefix, Some(anchor))
 
                 case url => (url, None)
               }
 
-              val dest0 = os.Path(baseUrl, path / "..")
+              val dest0 = PathRef.toResolvedOsPath(os.Path(baseUrl, path / ".."))
               val possibleDests = Seq(dest0, dest0 / "index.html")
               possibleDests.find(os.exists(_)) match {
                 case None => Some((elementString, url))
