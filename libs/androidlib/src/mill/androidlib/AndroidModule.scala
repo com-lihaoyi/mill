@@ -748,9 +748,11 @@ trait AndroidModule extends JavaModule { outer =>
       os.makeDir(dirDest)
       val aapt2Args = Seq(
         "--dir",
-        libResDir.toString,
+        // Pass real absolute paths rather than `../mill-workspace` relativized aliases,
+        // which the aapt2 subprocess cannot resolve from its own working directory.
+        PathRef.toAbsString(libResDir),
         "-o",
-        dirDest.toString
+        PathRef.toAbsString(dirDest)
       )
 
       os.call(aapt2Compile ++ aapt2Args)
@@ -779,9 +781,11 @@ trait AndroidModule extends JavaModule { outer =>
       os.makeDir(dirDest)
       val aapt2Args = Seq(
         "--dir",
-        libResDir.toString,
+        // Pass real absolute paths rather than `../mill-workspace` relativized aliases,
+        // which the aapt2 subprocess cannot resolve from its own working directory.
+        PathRef.toAbsString(libResDir),
         "-o",
-        dirDest.toString
+        PathRef.toAbsString(dirDest)
       )
 
       os.call(aapt2Compile ++ aapt2Args)
@@ -805,7 +809,9 @@ trait AndroidModule extends JavaModule { outer =>
     val filesToLink = os.walk(compiledLibResDir).filter(os.isFile(_)) ++
       moduleResDirs.flatMap(os.walk(_).filter(os.isFile(_)))
     val argFile = Task.dest / "to-link.txt"
-    os.write.over(argFile, filesToLink.map(_.toString()).mkString("\n"))
+    // Use real absolute paths rather than `../mill-workspace` relativized aliases, which
+    // the aapt2 link subprocess cannot resolve from its own working directory.
+    os.write.over(argFile, filesToLink.map(PathRef.toAbsString(_)).mkString("\n"))
 
     val transitiveMergedAssetsDir = androidTransitiveMergedAssets().path
 
@@ -822,13 +828,13 @@ trait AndroidModule extends JavaModule { outer =>
 
     val linkArgs = Seq(
       "-I",
-      androidSdkModule().androidJarPath().path.toString,
+      PathRef.toAbsString(androidSdkModule().androidJarPath().path),
       "--manifest",
-      androidMergedManifest().path.toString,
+      PathRef.toAbsString(androidMergedManifest().path),
       "--custom-package",
       androidNamespace,
       "--java",
-      javaRClassDir.toString,
+      PathRef.toAbsString(javaRClassDir),
       "--min-sdk-version",
       androidMinSdk().toString,
       "--target-sdk-version",
@@ -838,14 +844,14 @@ trait AndroidModule extends JavaModule { outer =>
       "--version-name",
       androidVersionName(),
       "--proguard",
-      proguardRulesFile.toString
+      PathRef.toAbsString(proguardRulesFile)
     ) ++ androidAaptOptions() ++ Seq(
       "-o",
-      resApkFile.toString,
+      PathRef.toAbsString(resApkFile),
       "-R",
-      "@" + argFile.toString,
+      "@" + PathRef.toAbsString(argFile),
       "-A",
-      transitiveMergedAssetsDir.toString
+      PathRef.toAbsString(transitiveMergedAssetsDir)
     )
 
     val aapt2Link = Seq(PathRef.toAbsString(androidSdkModule().aapt2Exe()), "link")
