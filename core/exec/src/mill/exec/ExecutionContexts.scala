@@ -108,7 +108,7 @@ object ExecutionContexts {
         pwd = () => lazyDest.get(),
         streams = logger.streams
       )
-      val promise = concurrent.Promise[T]
+      val promise = concurrent.Promise[T]()
       val runnable = new PriorityRunnable(
         priority = priority,
         run0 = () => {
