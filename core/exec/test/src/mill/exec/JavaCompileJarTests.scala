@@ -12,10 +12,15 @@ import mill.*
 import mill.api.{Discover, Task}
 
 object JavaCompileJarTests extends TestSuite {
+  private val javaExeSuffix = if (mill.constants.Util.isWindows) ".exe" else ""
+  private val javaHomeBin = os.Path(sys.props("java.home")) / "bin"
+  private val javaExe = javaHomeBin / s"java$javaExeSuffix"
+  private val javacExe = javaHomeBin / s"javac$javaExeSuffix"
+
   def compileAll(sources: Seq[PathRef])(using ctx: Dest) = {
     os.makeDir.all(ctx.dest)
 
-    os.proc("javac", sources.map(_.path.toString()).toSeq, "-d", ctx.dest).call(ctx.dest)
+    os.proc(javacExe, sources.map(_.path.toString()).toSeq, "-d", ctx.dest).call(ctx.dest)
     PathRef(ctx.dest)
   }
 
@@ -62,7 +67,7 @@ object JavaCompileJarTests extends TestSuite {
         }
 
         def run(mainClsName: String) = Task.Command {
-          os.proc("java", "-Duser.language=en", "-cp", classFiles().path, mainClsName)
+          os.proc(javaExe, "-Duser.language=en", "-cp", classFiles().path, mainClsName)
             .call(stderr = os.Pipe)
         }
 
@@ -166,7 +171,7 @@ object JavaCompileJarTests extends TestSuite {
       ).toSeq)
 
       val executed = os.proc(
-        "java",
+        javaExe,
         "-cp",
         evaluator.outPath / "jar.dest/out.jar",
         "test.Foo"
