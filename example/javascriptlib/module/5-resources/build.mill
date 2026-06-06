@@ -1,13 +1,16 @@
 package build
 
 import mill.*, javascriptlib.*
+import mill.api.PathRef
 import ujson.*
 
 object foo extends TypeScriptModule {
   object test extends TypeScriptTests, TestModule.Jest {
     def otherFiles = Task.Source("other-files")
 
-    def forkEnv = super.forkEnv() + ("OTHER_FILES_DIR" -> otherFiles().path.toString)
+    def forkEnv = super.forkEnv() + (
+      "OTHER_FILES_DIR" -> PathRef.toRelString(otherFiles(), compile().path)
+    )
   }
 }
 

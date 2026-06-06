@@ -117,7 +117,7 @@ object app extends AndroidAppKotlinModule {
 
 
 > ./mill lib.publishM2Local
-Publish sumlib-kotlin-0.0.1 to /home/.../.m2/repository/...
+Publish sumlib-kotlin-0.0.1 to .../.m2/repository/...
 
 > ./mill show lib.publishArtifacts
 {

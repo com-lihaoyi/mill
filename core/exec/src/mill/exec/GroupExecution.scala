@@ -38,12 +38,6 @@ trait GroupExecution {
   def classLoaderIdentityHash: Int
 
   /**
-   * Tracks tasks invalidated due to version/classloader mismatch, with the reason string.
-   * Populated by TaskCacheEntry reads, used by ExecutionLogs.logInvalidationTree.
-   */
-  def versionMismatchReasons: java.util.concurrent.ConcurrentHashMap[Task[?], String]
-
-  /**
    * `String` is the worker name, `Int` is the worker hash, `Val` is the worker instance,
    * `TaskApi[?]` is the worker's Task (for traversing dependencies during ordered closure).
    */
@@ -68,9 +62,13 @@ trait GroupExecution {
   private lazy val remoteCacheFilterSegments: Option[Segments] =
     remoteCacheFilter.flatMap(ParseArgs.extractSegments(_).toOption.map(_._2))
 
-  /** The cache location for `labelled`, or `None` if not a filter-matching [[Task.Computed]]. */
-  private def remoteCacheTarget(labelled: Task.Named[?]): Option[String] =
-    remoteCacheLocation.filter(_ =>
+  // One cache per run: resolve the `--remote-cache-location` backend once, not per task.
+  private lazy val remoteTaskCache: Option[BazelRemoteCache] =
+    remoteCacheLocation.map(BazelRemoteCache.forLocation(_, remoteCacheSalt, workspace))
+
+  /** The remote cache for `labelled`, or `None` if not a filter-matching [[Task.Computed]]. */
+  private def remoteCacheTarget(labelled: Task.Named[?]): Option[BazelRemoteCache] =
+    remoteTaskCache.filter(_ =>
       labelled.isInstanceOf[Task.Computed[?]] &&
         remoteCacheFilterSegments.forall(checkPatternMatch(_, labelled.ctx.segments))
     )
@@ -142,7 +140,7 @@ trait GroupExecution {
     // (in reproducible mode) compare equal to their real on-disk form. Both sides of the
     // `startsWith`/`==` checks below must be canonicalized, else a workspace under a symlinked
     // prefix (e.g. macOS `/tmp` -> `/private/tmp`) would silently fail to match.
-    def canonical(p: os.Path): os.Path = PathRef.realAbsResolvedPath(p)
+    def canonical(p: os.Path): os.Path = PathRef.toResolvedOsPath(p)
     val canonicalWorkspace = canonical(workspace)
     val canonicalRootBuildYaml =
       canonical(os.Path(rootModule.moduleDirJava) / os.up / "build.mill.yaml")
@@ -359,7 +357,7 @@ trait GroupExecution {
           leaseTracker = leaseTracker,
           executionContext = executionContext
         )
-        val remoteLocation = remoteCacheTarget(labelled)
+        val remoteCache = remoteCacheTarget(labelled)
 
         // Helper to evaluate the task with full caching support
         def evaluateTaskWithCaching(): GroupExecution.Results = {
@@ -368,7 +366,7 @@ trait GroupExecution {
           // re-evaluation actually re-reads the filesystem/env state.
           def readLocal(): Option[TaskCacheEntry.Loaded] =
             cacheEntry
-              .read(logger, inputsHash, labelled, versionMismatchReasons)
+              .read(logger, inputsHash, labelled)
               .map(cached => if (hasSideEffects) cached.copy(valueOpt = None) else cached)
 
           def loadCachedOrWorker(
@@ -446,16 +444,9 @@ trait GroupExecution {
             // `dest/`/`log`/`meta` is safe; a poisoned entry re-reads as a miss and is recomputed
             // by the `None` branch below.
             val remoteMaterialized =
-              localReusable.isEmpty && remoteLocation.exists { location =>
+              localReusable.isEmpty && remoteCache.exists { cache =>
                 taskLocks.blockingOnPool {
-                  BazelRemoteCache.load(
-                    paths,
-                    inputsHash,
-                    labelled.ctx.segments.render,
-                    location,
-                    remoteCacheSalt,
-                    workspace
-                  )
+                  cache.load(paths, inputsHash, labelled.ctx.segments.render)
                 }
               }
 
@@ -527,16 +518,13 @@ trait GroupExecution {
                       val (valueHash, serializedPaths) =
                         handleTaskResult(v, cacheEntry, inputsHash, labelled)
                       // Push freshly-computed outputs to the remote cache for other machines.
-                      remoteLocation.foreach { location =>
+                      remoteCache.foreach { cache =>
                         taskLocks.blockingOnPool {
-                          BazelRemoteCache.store(
+                          cache.store(
                             paths,
                             inputsHash,
                             labelled.ctx.segments.render,
-                            location,
-                            remoteCacheSalt,
-                            serializedPaths,
-                            workspace
+                            serializedPaths
                           )
                         }
                       }
@@ -572,7 +560,8 @@ trait GroupExecution {
                   inputsHash = inputsHash,
                   previousInputsHash = cached.map(_.previousInputsHash).getOrElse(-1),
                   valueHashChanged = !cached.map(_.valueHash).contains(valueHash),
-                  serializedPaths = serializedPaths
+                  serializedPaths = serializedPaths,
+                  invalidationReason = cached.flatMap(_.invalidationReason)
                 )
             }
           }
@@ -986,8 +975,16 @@ object GroupExecution {
     // `<cwd>/../mill-workspace/...` in reproducible mode) compare equal to their
     // real on-disk form after `normalizeForCheck`.
     private val normalizedWorkspace = normalizeForCheck(workspace)
-    private val normalizedReadDests = validReadDests.map(normalizeForCheck).toSet
-    private val normalizedWriteDests = validWriteDests.map(normalizeForCheck).toSet
+    private val normalizedReadDests0 = validReadDests.map(normalizeForCheck)
+    private val normalizedWriteDests0 = validWriteDests.map(normalizeForCheck)
+    private val normalizedReadDests = normalizedReadDests0.toSet
+    private val normalizedWriteDests = normalizedWriteDests0.toSet
+    private val normalizeReads =
+      workspace != normalizedWorkspace ||
+        validReadDests.lazyZip(normalizedReadDests0).exists(_ != _)
+    private val normalizeWrites =
+      workspace != normalizedWorkspace ||
+        validWriteDests.lazyZip(normalizedWriteDests0).exists(_ != _)
 
     private def normalizeForCheck(path: os.Path): os.Path = {
       // `toRealPath` requires the path to exist; resolve the longest existing prefix and
@@ -1002,7 +999,7 @@ object GroupExecution {
         }
       val (prefix, suffix) = firstExistingPrefix(path, Nil)
       val resolvedPrefix =
-        if (os.exists(prefix)) os.Path(prefix.toNIO.toRealPath()) else prefix
+        if (os.exists(prefix)) os.Path(PathRef.toAbsNioPath(prefix).toRealPath()) else prefix
       suffix.foldLeft(resolvedPrefix)(_ / _)
     }
 
@@ -1017,9 +1014,10 @@ object GroupExecution {
         path: os.Path,
         rawValidDests: Seq[os.Path],
         normalizedValidDests: Set[os.Path],
+        normalizeRoots: Boolean,
         suffix: String
     ): Unit = {
-      if (!path.segments.exists(aliasLinkNames)) {
+      if (!normalizeRoots && !path.segments.exists(aliasLinkNames)) {
         // Fast path (no filesystem IO): the path does not traverse an alias symlink, so it is
         // already real (sharing any symlinked prefix with `workspace`). Compare lexically against
         // the un-resolved workspace/dests. This is the overwhelmingly common case.
@@ -1048,6 +1046,7 @@ object GroupExecution {
           p,
           validReadDests,
           normalizedReadDests,
+          normalizeReads,
           "You can only read files referenced by `Task.Source` or `Task.Sources`, or within a `Task.Input"
         )
       case _ =>
@@ -1060,6 +1059,7 @@ object GroupExecution {
           path,
           validWriteDests,
           normalizedWriteDests,
+          normalizeWrites,
           "Normal `Task`s can only write to files within their `Task.dest` folder, only `Task.Command`s can write to other arbitrary files."
         )
   }
@@ -1143,7 +1143,10 @@ object GroupExecution {
       inputsHash: Int,
       previousInputsHash: Int,
       valueHashChanged: Boolean,
-      serializedPaths: Seq[PathRef]
+      serializedPaths: Seq[PathRef],
+      // Why this terminal's cached env signature differed from the current run (`name:OLD->NEW`),
+      // if it was invalidated for that reason. Aggregated by `Execution` for the invalidation tree.
+      invalidationReason: Option[String] = None
   )
 
   enum CacheStatus {

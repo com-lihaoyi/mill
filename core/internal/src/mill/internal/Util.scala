@@ -1,7 +1,7 @@
 package mill.internal
 
 import scala.reflect.NameTransformer.encode
-import mill.api.Result
+import mill.api.{PathRef, Result}
 import mill.api.Logger
 import mill.api.ExecResult
 import mill.api.Result.Failure.ExceptionInfo
@@ -117,7 +117,11 @@ object Util {
 
         val workspaceRoot = mill.api.BuildCtx.workspaceRoot
         val workspaceRootNio = workspaceRoot.wrapped.toAbsolutePath.normalize()
-        val pathNio = os.Path(path.toString).wrapped.toAbsolutePath.normalize()
+        val pathNio = PathRef
+          .toResolvedOsPathAnchored(os.Path(path), workspaceRoot)
+          .wrapped
+          .toAbsolutePath
+          .normalize()
         val displayPath =
           try workspaceRootNio.relativize(pathNio).toString
           catch { case _: IllegalArgumentException => pathNio.toString }

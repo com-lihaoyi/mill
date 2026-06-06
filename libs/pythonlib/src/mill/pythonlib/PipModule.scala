@@ -1,7 +1,7 @@
 package mill.pythonlib
 
 import mill.*
-import mill.util.Jvm
+import mill.api.PathRef
 
 /**
  * Basic tasks for preparing a python interpreter in a venv with required
@@ -119,16 +119,21 @@ trait PipModule extends Module {
         Seq("--index-url", head) ++ tail.flatMap(t => Seq("--extra-index-url", t))
     }
 
-    // `Jvm.realAbs`: pip stores wheel/requirement paths in the venv's installed-package
-    // metadata, then resolves them later from arbitrary cwds (re-install, freeze, etc.).
     PipModule.InstallArgs(
       indexArgs ++
-        transitiveUnmanagedWheels().map(Jvm.realAbs) ++
+        transitiveUnmanagedWheels().map { p =>
+          // `pipInstallArgs` is evaluated separately from the `venv` task that consumes it.
+          PathRef.toAbsString(p)
+        } ++
         pythonToolDeps() ++
         transitivePythonDeps() ++
-        transitivePythonRequirementFiles().flatMap(pr =>
-          Seq("-r", Jvm.realAbs(pr))
-        ),
+        transitivePythonRequirementFiles().flatMap { pr =>
+          Seq(
+            "-r",
+            // `pipInstallArgs` is evaluated separately from the `venv` task that consumes it.
+            PathRef.toAbsString(pr)
+          )
+        },
       transitiveUnmanagedWheels() ++ transitivePythonRequirementFiles()
     )
   }

@@ -1,6 +1,8 @@
 package mill.daemon
 
-import java.nio.file.StandardOpenOption
+import mill.api.PathRef
+
+import java.nio.file.{Files, StandardOpenOption}
 
 /**
  * An OutputStream that writes to a console log file and automatically
@@ -14,14 +16,13 @@ private[daemon] class RotatingConsoleLogOutputStream(
   private var underlying: java.io.OutputStream = openStream()
 
   private def openStream(): java.io.OutputStream = {
-    os.write.outputStream(
-      consoleLogFile,
-      createFolders = true,
-      openOptions = Seq(
-        StandardOpenOption.CREATE,
-        StandardOpenOption.WRITE,
-        StandardOpenOption.TRUNCATE_EXISTING
-      )
+    val consoleLogNioPath = PathRef.toAbsNioPath(consoleLogFile)
+    Files.createDirectories(consoleLogNioPath.getParent)
+    Files.newOutputStream(
+      consoleLogNioPath,
+      StandardOpenOption.CREATE,
+      StandardOpenOption.WRITE,
+      StandardOpenOption.TRUNCATE_EXISTING
     )
   }
 

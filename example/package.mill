@@ -305,7 +305,7 @@ object `package` extends Module {
     def rendered = Task {
       var seenCode = false
       var seenFrontMatter = false
-      val examplePath = moduleDir.subRelativeTo(BuildCtx.workspaceRoot)
+      val examplePath = build.workspaceSubPath(moduleDir)
       val frontMatter = parsed().takeWhile(_.isInstanceOf[Chunk.Yaml]).collect {
         case Chunk.Yaml(lines) => lines.mkString("\n")
       }.mkString("\n")
@@ -434,7 +434,11 @@ $frontMatter
     def repoSlug = repoPath.split("/").last
 
     def downloadTestRepo(label: String, commit: String, dest: os.Path) = {
-      mill.util.Retry() {
+      mill.util.Retry(
+        count = 6,
+        backoffMillis = 2000,
+        logger = mill.util.Retry.printStreamLogger(System.err)
+      ) {
         os.unzip.stream(requests.get.stream(s"https://github.com/$label/archive/$commit.zip"), dest)
       }
       dest

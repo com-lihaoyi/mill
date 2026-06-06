@@ -21,7 +21,7 @@ import mill.api.daemon.internal.{
 }
 import mill.api.daemon.internal.idea.{Element, IdeaConfigFile, JavaFacet, ResolvedModule}
 import mill.api.internal.PathAliasing
-import mill.util.{BuildInfo, Jvm}
+import mill.util.BuildInfo
 import org.eclipse.jgit.ignore.{FastIgnoreRule, IgnoreNode}
 import os.SubPath
 
@@ -716,7 +716,7 @@ class GenIdeaImpl(
   // Resolve through any `mill-workspace`/`mill-home` alias symlinks so `relForwardPath` /
   // `pathToLibName` see the canonical jar location (otherwise an alias-traversing path looks
   // project-relative when it's really a coursier-cache file under `$USER_HOME$`).
-  private val realPath: os.Path => os.Path = Jvm.realAbsResolvedPath
+  private val realPath: os.Path => os.Path = PathRef.toResolvedOsPath
 
   private val projectDir = (realPath(workDir), "$PROJECT_DIR$/")
   private val homeDir = (realPath(os.home), "$USER_HOME$/")

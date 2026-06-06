@@ -3,7 +3,7 @@ package mill.javalib.micronaut
 import mill.{T, Task}
 import mill.api.{PathRef, experimental}
 import mill.util.Jvm
-import mill.javalib.{Dep, DepSyntax, JavaModule}
+import mill.javalib.{DepSyntax, JavaModule}
 
 /**
  * A module that provides Micronaut AOT processing functionality
@@ -82,22 +82,19 @@ trait MicronautAotModule extends JavaModule {
   def micronautProcessAOT: T[PathRef] = Task {
     val dest = Task.dest
 
-    import Jvm.realAbsResolved
-    // `realAbsResolved` throughout: Micronaut AOT CLI mishandles the `out/mill-workspace` alias
-    // form and silently produces no GraalVM config.
     val args = Seq(
       "--classpath",
       (runClasspath() ++ resolvedMicronautAotCli())
-        .map(pr => realAbsResolved(pr.path))
+        .map(pr => PathRef.toRelString(pr.path, dest))
         .mkString(java.io.File.pathSeparator),
       "--package",
       micronautPackage(),
       "--runtime",
       aotRuntime(),
       "--config",
-      realAbsResolved(micronautAotConfigFile().path),
+      PathRef.toRelString(micronautAotConfigFile().path, dest),
       "--output",
-      realAbsResolved(dest)
+      PathRef.toRelString(dest, dest)
     )
 
     Jvm.callProcess(

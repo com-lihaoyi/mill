@@ -5,6 +5,7 @@ import mill.api.{ExecResult, Result, Val}
 import mill.constants.OutFiles.OutFiles
 import mill.api.SelectiveExecution.ChangedTasks
 import mill.api.*
+import mill.api.internal.EnvSignature
 import mill.exec.PlanImpl
 import mill.internal.{CodeSigUtils, InvalidationForest, SpanningForest}
 import mill.internal.SpanningForest.breadthFirst
@@ -75,19 +76,13 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       newHashes: SelectiveExecution.Metadata
   ): DownstreamResult = {
     val allTasks = transitiveNamed.map(t => t: Task[?])
-    def globalInvalidate(name: String, key: SelectiveExecution.Metadata => Any) = {
-      Option.when(key(oldHashes) != key(newHashes)) {
-        DownstreamResult(
-          allTasks.toSet,
-          allTasks,
-          globalInvalidationReason = Some(s"$name:${key(oldHashes)}->${key(newHashes)}")
-        )
-      }
-    }
+    def envSignature(m: SelectiveExecution.Metadata): EnvSignature =
+      EnvSignature(m.millVersion, m.millJvmVersion, m.classLoaderSigHash)
 
-    globalInvalidate("mill-version-changed", _.millVersion)
-      .orElse(globalInvalidate("mill-jvm-version-changed", _.millJvmVersion))
-      .orElse(globalInvalidate("classpath-changed", _.classLoaderSigHash))
+    envSignature(oldHashes).diffReasonsTo(envSignature(newHashes)).headOption
+      .map(reason =>
+        DownstreamResult(allTasks.toSet, allTasks, globalInvalidationReason = Some(reason))
+      )
       .getOrElse {
         val namesToTasks = transitiveNamed.map(t => (t.ctx.segments.render -> t)).toMap
 
@@ -323,6 +318,7 @@ object SelectiveExecutionImpl {
         case (task, Result.Success(v)) => (task.ctx.segments.render, v.value.##)
         case (task, f: Result.Failure) => (task.ctx.segments.render, f.errorOpt.##)
       }
+      val env = EnvSignature.current(evaluator.classLoaderSigHash)
       SelectiveExecution.Metadata.Computed(
         new SelectiveExecution.Metadata(
           inputHashes,
@@ -330,9 +326,9 @@ object SelectiveExecutionImpl {
           // Hash the actual build override values from YAML files
           allBuildOverrides.map { case (k, located) => (k, located.value.value.hashCode) },
           forceRunTasks = Set(),
-          millVersion = mill.constants.BuildInfo.millVersion,
-          millJvmVersion = sys.props("java.version"),
-          classLoaderSigHash = evaluator.classLoaderSigHash
+          millVersion = env.millVersion,
+          millJvmVersion = env.millJvmVersion,
+          classLoaderSigHash = env.classLoaderSigHash
         ),
         results.map { case (k, v) =>
           val execRes: ExecResult[Val] = v match {
