@@ -151,9 +151,11 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
           os.makeDir(dirDest)
           val aapt2Args = Seq(
             "--dir",
-            libResDir.toString,
+            // Pass real absolute paths rather than `../mill-workspace` relativized aliases,
+            // which the aapt2 subprocess cannot resolve from its own working directory.
+            PathRef.toAbsString(libResDir),
             "-o",
-            dirDest.toString
+            PathRef.toAbsString(dirDest)
           )
 
           os.call(aapt2Compile ++ aapt2Args)
