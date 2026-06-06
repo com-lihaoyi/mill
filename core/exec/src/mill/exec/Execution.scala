@@ -46,8 +46,6 @@ case class Execution(
     remoteCacheLocation: Option[String] = None,
     remoteCacheSalt: Option[String] = None,
     remoteCacheFilter: Option[String] = None,
-    // Tracks tasks invalidated due to version/classloader mismatch
-    versionMismatchReasons: ConcurrentHashMap[Task[?], String] = ConcurrentHashMap(),
     replayLogs: Boolean
 ) extends GroupExecution with AutoCloseable {
 
@@ -464,12 +462,10 @@ case class Execution(
 
         val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
 
-        val taskInvalidationReasons = {
-          import scala.jdk.CollectionConverters.ConcurrentMapHasAsScala
-          versionMismatchReasons.asScala.collect {
-            case (t: Task.Named[?], reason) => t.ctx.segments.render -> reason
-          }.toMap
-        }
+        val taskInvalidationReasons = finishedOptsMap.iterator.collect {
+          case (t: Task.Named[?], Some(res)) if res.invalidationReason.isDefined =>
+            t.ctx.segments.render -> res.invalidationReason.get
+        }.toMap
 
         ExecutionLogs.logInvalidationTree(
           interGroupDeps = interGroupDeps,

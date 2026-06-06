@@ -33,9 +33,6 @@ object PathAliasing {
     )
   }
 
-  def workspacePathRelativizerBase(workspace: os.Path = BuildCtx.workspaceRoot): String =
-    pathRelativizerBase(defaultMapping(workspace))
-
   def workspaceRootPathRelativizerBase(workspace: os.Path = BuildCtx.workspaceRoot): String = {
     val prefix = relativePath(workspace, regularOutputRoot(workspace))
     pathRelativizerBase(Seq(
