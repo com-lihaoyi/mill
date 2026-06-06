@@ -39,16 +39,8 @@ case class PathRef private[mill] (
   def withRevalidate(revalidate: PathRef.Revalidate): PathRef = copy(revalidate = revalidate)
   def withRevalidateOnce: PathRef = copy(revalidate = PathRef.Revalidate.Once)
 
-  override def toString: String = {
-    val quick = if (this.quick) "qref:" else "ref:"
-    val valid = revalidate match {
-      case PathRef.Revalidate.Never => "v0:"
-      case PathRef.Revalidate.Once => "v1:"
-      case PathRef.Revalidate.Always => "vn:"
-    }
-    val sig = String.format("%08x", this.sig: Integer)
-    quick + valid + sig + ":" + path.toString()
-  }
+  override def toString: String =
+    PathRef.PathRefFormat.render(quick, revalidate, sig, path.toString())
 }
 
 object PathRef {
@@ -281,20 +273,10 @@ object PathRef {
       p.toString()
     },
     { s =>
-      serializedPathRefParts(s) match {
-        case Some((prefix, valid0, hex, pathString)) =>
-
-          val path = os.Path(pathString)
-          val quick = prefix == "qref"
-          val validOrig = valid0 match {
-            case "v0" => Revalidate.Never
-            case "v1" => Revalidate.Once
-            case "vn" => Revalidate.Always
-          }
-          // Parsing to a long and casting to an int is the only way to make
-          // round-trip handling of negative numbers work =(
-          val sig = java.lang.Long.parseLong(hex, 16).toInt
-          val pr = PathRef(path, quick, sig, revalidate = validOrig)
+      PathRefFormat.parse(s) match {
+        case Some(parsed) =>
+          val path = os.Path(parsed.pathString)
+          val pr = PathRef(path, parsed.quick, parsed.sig, revalidate = parsed.revalidate)
           validatedPaths.value.revalidateIfNeededOrThrow(pr)
           storeSerializedPaths(pr)
           pr
@@ -308,22 +290,54 @@ object PathRef {
     }
   )
 
-  private def serializedPathRefParts(s: String): Option[(String, String, String, String)] = {
-    val firstColon = s.indexOf(':')
-    if (firstColon < 0) None
-    else {
-      val prefix = s.substring(0, firstColon)
-      if (prefix != "ref" && prefix != "qref") None
+  /**
+   * The single encode/decode codec for the [[PathRef.toString]] wire format
+   * (`{qref|ref}:{v0|v1|vn}:{08x-sig}:{path}`). Owns the token tables and the
+   * signed-hex convention so encode ([[render]]) and decode ([[parse]]) can never
+   * drift. This format is an on-disk + remote-cache contract, pinned byte-for-byte
+   * by `PathRefTests.json`.
+   */
+  private[mill] object PathRefFormat {
+    final case class Parsed(quick: Boolean, revalidate: Revalidate, sig: Int, pathString: String)
+
+    private def quickToken(quick: Boolean): String = if (quick) "qref" else "ref"
+
+    private def revalidateToken(revalidate: Revalidate): String = revalidate match {
+      case Revalidate.Never => "v0"
+      case Revalidate.Once => "v1"
+      case Revalidate.Always => "vn"
+    }
+
+    private def parseRevalidate(token: String): Revalidate = token match {
+      case "v0" => Revalidate.Never
+      case "v1" => Revalidate.Once
+      case "vn" => Revalidate.Always
+    }
+
+    private def renderSig(sig: Int): String = String.format("%08x", sig: Integer)
+
+    // Parsing to a long and casting to an int is the only way to make
+    // round-trip handling of negative numbers work =(
+    private def parseSig(hex: String): Int = java.lang.Long.parseLong(hex, 16).toInt
+
+    def render(quick: Boolean, revalidate: Revalidate, sig: Int, pathString: String): String =
+      s"${quickToken(quick)}:${revalidateToken(revalidate)}:${renderSig(sig)}:$pathString"
+
+    def parse(s: String): Option[Parsed] = {
+      val firstColon = s.indexOf(':')
+      if (firstColon < 0) None
       else {
-        val secondColon = s.indexOf(':', firstColon + 1)
-        val thirdColon = if (secondColon < 0) -1 else s.indexOf(':', secondColon + 1)
-        if (secondColon < 0 || thirdColon < 0) None
+        val prefix = s.substring(0, firstColon)
+        if (prefix != "ref" && prefix != "qref") None
         else {
-          Some((
-            prefix,
-            s.substring(firstColon + 1, secondColon),
-            s.substring(secondColon + 1, thirdColon),
-            s.substring(thirdColon + 1)
+          val secondColon = s.indexOf(':', firstColon + 1)
+          val thirdColon = if (secondColon < 0) -1 else s.indexOf(':', secondColon + 1)
+          if (secondColon < 0 || thirdColon < 0) None
+          else Some(Parsed(
+            quick = prefix == "qref",
+            revalidate = parseRevalidate(s.substring(firstColon + 1, secondColon)),
+            sig = parseSig(s.substring(secondColon + 1, thirdColon)),
+            pathString = s.substring(thirdColon + 1)
           ))
         }
       }
