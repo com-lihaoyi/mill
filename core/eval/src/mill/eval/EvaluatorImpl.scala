@@ -245,9 +245,10 @@ final class EvaluatorImpl(
       // would make the comparison silently fail. We compare the workspace-relative form so the
       // check is immune to a shared symlinked prefix.
       val relFilePath =
-        PathRef.realAbsResolvedPath(filePath).relativeTo(PathRef.realAbsResolvedPath(workspace))
+        PathRef.toResolvedOsPathAnchored(filePath, workspace).relativeTo(workspace)
       val isRootBuildFile =
-        relFilePath == os.sub / "build.mill.yaml" ||
+        relFilePath == os.sub / "build.mill" ||
+          relFilePath == os.sub / "build.mill.yaml" ||
           relFilePath == os.sub / "mill-build" / "build.mill"
 
       val millKeys = mill.constants.ConfigConstants.all()
@@ -261,7 +262,6 @@ final class EvaluatorImpl(
       import pprint.Util.literalize
 
       invalidBuildOverrides.map { case (k, v) =>
-        java.nio.file.Files.readString(v.path.toNIO)
         val extendsInfo = mill.internal.Util.parseHeaderData(v.path) match {
           case mill.api.Result.Success(headerData) =>
             val extendsValues = headerData.`extends`.value.value.map(_.value)

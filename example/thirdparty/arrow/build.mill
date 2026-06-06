@@ -124,9 +124,7 @@ object `package` extends Module {
       // This is allowed with `-Xcommon-sources` flag, but probably will be prohibited in the future.
       // Ideally, it should be in the [[KotlinModule]] directly, but this implies [[KotlinModule]] should know where
       // common sources are, making some assumptions about layout.
-      // `Jvm.realAbs`: alias-routed paths confuse kotlinc's multi-platform expect/actual checker,
-      // which compares these against the absolute source paths it walks (same as the core kotlinc args).
-      s"-Xcommon-sources=${files.map(p => mill.util.Jvm.realAbs(p)).mkString(",")}"
+      s"-Xcommon-sources=${files.mkString(",")}"
     }
 
     trait ArrowPlatformModule extends KotlinMavenModule, PlatformKotlinModule { outer =>

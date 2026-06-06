@@ -29,17 +29,18 @@ import scala.util.control.NonFatal
  * uses a local/shared directory directly (see [[Backend]]), with no server. Setting
  * `MILL_REMOTE_CACHE_AUTHORIZATION` sends its value as the `Authorization` header.
  */
-private[mill] object BazelRemoteCache {
+/**
+ * One instance per remote-cache-enabled run: it resolves the [[BazelRemoteCache.Backend]] once
+ * (parsing `--remote-cache-location` a single time rather than per task) and captures the cache
+ * salt. [[store]]/[[load]] act on one task's `dest/`/`log`/`meta.json`.
+ */
+private[mill] class BazelRemoteCache private (
+    backend: BazelRemoteCache.Backend,
+    salt: Option[String]
+) {
+  import BazelRemoteCache.*
 
-  private val connectTimeout = Duration.ofSeconds(30)
-  private val requestTimeout = Duration.ofSeconds(120)
-
-  private lazy val client: HttpClient =
-    HttpClient.newBuilder().connectTimeout(connectTimeout).build()
-
-  private lazy val authHeader: Option[String] = sys.env.get("MILL_REMOTE_CACHE_AUTHORIZATION")
-
-  def actionCacheKey(inputsHash: Int, segmentsRender: String, salt: Option[String]): String = {
+  private def actionCacheKey(inputsHash: Int, segmentsRender: String): String = {
     val md = MessageDigest.getInstance("SHA-256")
     md.update(ByteBuffer.allocate(4).putInt(inputsHash).array())
     md.update(0.toByte)
@@ -54,13 +55,9 @@ private[mill] object BazelRemoteCache {
       paths: ExecutionPaths,
       inputsHash: Int,
       segmentsRender: String,
-      location: String,
-      salt: Option[String],
-      pathRefs: Seq[PathRef],
-      workspace: os.Path
+      pathRefs: Seq[PathRef]
   ): Unit = mill.api.BuildCtx.withFilesystemCheckerDisabled {
     // Cache I/O is trusted framework I/O that legitimately writes outside the task's `dest/`.
-    val backend = Backend.forLocation(location, workspace)
     // `deleteOnExit = false`: the `finally os.remove(blobFile)` below already removes it on every
     // path; a per-blob JVM shutdown hook would otherwise leak in a long-lived daemon.
     val blobFile = os.temp(prefix = "mill-remote-cache-", deleteOnExit = false)
@@ -75,7 +72,7 @@ private[mill] object BazelRemoteCache {
       // entry pointing at a missing blob.
       if (backend.put(s"cas/$sha", Backend.Body.File(blobFile)))
         backend.put(
-          s"ac/${actionCacheKey(inputsHash, segmentsRender, salt)}",
+          s"ac/${actionCacheKey(inputsHash, segmentsRender)}",
           Backend.Body.Bytes(Protobuf.encodeActionResult(sha, os.size(blobFile)))
         )
     } catch {
@@ -87,14 +84,10 @@ private[mill] object BazelRemoteCache {
   def load(
       paths: ExecutionPaths,
       inputsHash: Int,
-      segmentsRender: String,
-      location: String,
-      salt: Option[String],
-      workspace: os.Path
+      segmentsRender: String
   ): Boolean = mill.api.BuildCtx.withFilesystemCheckerDisabled {
-    val backend = Backend.forLocation(location, workspace)
     try {
-      backend.get(s"ac/${actionCacheKey(inputsHash, segmentsRender, salt)}").map { is =>
+      backend.get(s"ac/${actionCacheKey(inputsHash, segmentsRender)}").map { is =>
         try is.readAllBytes()
         finally is.close()
       } match {
@@ -131,6 +124,21 @@ private[mill] object BazelRemoteCache {
       case NonFatal(_) => false
     }
   }
+}
+
+private[mill] object BazelRemoteCache {
+
+  /** Build a cache for `location`, parsing the backend (and resolving any `file:`/`~/` path) once. */
+  def forLocation(location: String, salt: Option[String], workspace: os.Path): BazelRemoteCache =
+    new BazelRemoteCache(Backend.forLocation(location, workspace), salt)
+
+  private val connectTimeout = Duration.ofSeconds(30)
+  private val requestTimeout = Duration.ofSeconds(120)
+
+  private lazy val client: HttpClient =
+    HttpClient.newBuilder().connectTimeout(connectTimeout).build()
+
+  private lazy val authHeader: Option[String] = sys.env.get("MILL_REMOTE_CACHE_AUTHORIZATION")
 
   // Gzipped archive of a task's outputs, one entry per file/dir/symlink. Files carry mtime so
   // `quick` PathRefs (which hash it) re-validate. See writeFile/writeDir/writeLink for the layout.

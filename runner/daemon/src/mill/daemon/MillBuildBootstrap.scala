@@ -72,7 +72,8 @@ class MillBuildBootstrap(
     // module hashCode) because at meta-build time we don't have a stable
     // module-hashCode mapping yet.
     metaBuildReporter: Int => Option[CompileProblemReporter] = _ => None,
-    enableTicker: Boolean
+    enableTicker: Boolean,
+    replayLogs: Boolean
 ) { outer =>
   // The workspace locking is owned by the metaBuild access (alongside the
   // shared state) but Execution still consumes the LauncherLocking directly
@@ -280,18 +281,47 @@ class MillBuildBootstrap(
       // Stable, location-independent classpath signature so two reproducible-mode
       // builds in different workspace dirs produce the same `classLoaderSigHash`.
       millClassloaderSigHash = {
-        def stable(path: os.Path): String =
-          if (path.startsWith(currentRoot)) s"<workspace>/${path.subRelativeTo(currentRoot)}"
-          else if (path.startsWith(os.home)) s"<home>/${path.subRelativeTo(os.home)}"
-          else path.toString
+        def pathApiPath(pathRef: PathRefApi): os.Path =
+          os.Path(pathRef.javaPath.toString, currentRoot)
+
+        val resolvedRoot = PathRef.toResolvedOsPath(currentRoot)
+        val resolvedHome = PathRef.toResolvedOsPath(os.home)
+
+        def resolveExistingAncestor(path: os.Path): os.Path = {
+          @scala.annotation.tailrec
+          def rec(current: os.Path, missing: List[String]): os.Path = {
+            if (os.exists(current) || current.segmentCount == 0) {
+              val resolved = PathRef.toResolvedOsPath(current)
+              missing.foldLeft(resolved)(_ / _)
+            } else rec(current / os.up, current.last :: missing)
+          }
+          rec(path, Nil)
+        }
+
+        def workspaceAnchored(path: os.Path): os.Path = {
+          val resolved = resolveExistingAncestor(path)
+          if (resolved.startsWith(resolvedRoot)) currentRoot / resolved.subRelativeTo(resolvedRoot)
+          else path
+        }
+
+        def stable(path: os.Path): String = {
+          val resolved = resolveExistingAncestor(path)
+          if (resolved.startsWith(resolvedRoot))
+            s"<workspace>/${resolved.subRelativeTo(resolvedRoot)}"
+          else if (resolved.startsWith(resolvedHome))
+            s"<home>/${resolved.subRelativeTo(resolvedHome)}"
+          else resolved.toString
+        }
         val (refs, compileDestOpt) = nestedSharedFrame match {
-          case Some(frame) => (frame.runClasspath, Some(os.Path(frame.compileOutput.javaPath)))
+          case Some(frame) =>
+            (frame.runClasspath, Some(workspaceAnchored(pathApiPath(frame.compileOutput))))
           case None => (millBootClasspathPathRefs, None)
         }
-        refs.iterator.map(p => os.Path(p.javaPath) -> p)
+        refs.iterator.map(p => pathApiPath(p) -> p)
           .filterNot { case (path, _) =>
             // Build-code changes are tracked by codesig analysis, not classLoaderSigHash.
-            compileDestOpt.contains(path) || path.toString.contains("generatedScriptSources.dest")
+            compileDestOpt.contains(workspaceAnchored(path)) ||
+            path.toString.contains("generatedScriptSources.dest")
           }
           .map { case (path, p) => (stable(path), p.sig) }
           .toSeq
@@ -301,7 +331,8 @@ class MillBuildBootstrap(
       depth = depth,
       actualBuildFileName = nestedState.buildFile,
       enableTicker = enableTicker,
-      staticBuildOverrideFiles = staticBuildOverrideFiles.toMap
+      staticBuildOverrideFiles = staticBuildOverrideFiles.toMap,
+      replayLogs = replayLogs
     )
   }
 
@@ -832,7 +863,8 @@ object MillBuildBootstrap {
       depth: Int,
       actualBuildFileName: Option[String] = None,
       enableTicker: Boolean,
-      staticBuildOverrideFiles: Map[java.nio.file.Path, String]
+      staticBuildOverrideFiles: Map[java.nio.file.Path, String],
+      replayLogs: Boolean
   ): EvaluatorApi = {
     val bootLogPrefix: Seq[String] =
       if (depth == 0) Nil
@@ -881,7 +913,8 @@ object MillBuildBootstrap {
           spanningInvalidationTree,
           remoteCacheLocation,
           remoteCacheSalt,
-          remoteCacheFilter
+          remoteCacheFilter,
+          replayLogs
         )
       ).asInstanceOf[EvaluatorApi]
 

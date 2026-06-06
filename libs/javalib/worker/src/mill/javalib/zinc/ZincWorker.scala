@@ -483,28 +483,15 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
 
     val finalScalacOptions = addColorNeverOption.toSeq ++ scalacOptions
 
-    val millSources = virtualSources.filter(_.name.endsWith(".mill"))
-    val (originalSourcesMap, posMapperOpt) =
-      if (millSources.isEmpty) (Map.empty[os.Path, os.Path], None)
-      else PositionMapper.create(millSources)
-
     val newReporter = reporter match {
       case None =>
         new ManagedLoggedReporter(maxErrors, logger) with RecordingReporter
-          with TransformingReporter(
-            localConfig.logPromptColored,
-            posMapperOpt.orNull,
-            localConfig.workspaceRoot
-          ) {}
+          with TransformingReporter(localConfig.logPromptColored, localConfig.workspaceRoot) {}
       case Some(forwarder) =>
         new ManagedLoggedReporter(maxErrors, logger)
           with ForwardingReporter(forwarder)
           with RecordingReporter
-          with TransformingReporter(
-            localConfig.logPromptColored,
-            posMapperOpt.orNull,
-            localConfig.workspaceRoot
-          ) {}
+          with TransformingReporter(localConfig.logPromptColored, localConfig.workspaceRoot) {}
     }
 
     val inputs = incrementalCompiler.inputs(
@@ -581,10 +568,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
     } finally {
       IncrementalAnnotationProcessing.clearTracker()
       for (rep <- reporter) {
-        for (f <- sources) {
-          rep.fileVisited(f.toNIO)
-          for (f0 <- originalSourcesMap.get(f)) rep.fileVisited(f0.toNIO)
-        }
+        for (f <- sources) rep.fileVisited(f.toNIO)
         rep.finish()
       }
       previousScalaColor match {
@@ -814,7 +798,14 @@ object ZincWorker {
   private def getLocalOrCreateJavaTools(forkJavaHome: Option[os.Path]): JavaTools = {
     val (compiler, docs) = forkJavaHome match {
       case Some(home) =>
-        (javac.JavaCompiler.fork(Some(home.toNIO)), javac.Javadoc.fork(Some(home.toNIO)))
+        // Zinc calls `toAbsolutePath` on this value before launching `javac`/`javadoc`.
+        // If we pass `home.toNIO`, Mill's reproducible path serializer can turn a JDK
+        // under `os.home` into `../mill-home/...`. Zinc then absolutizes that relative
+        // path against the long-lived worker JVM's `user.dir` (a task dest such as
+        // `compile.dest`), leaving `..` segments that Windows `CreateProcess` does not
+        // normalize while looking up the executable.
+        val realJavaHome = PathRef.toAbsNioPath(home)
+        (javac.JavaCompiler.fork(Some(realJavaHome)), javac.Javadoc.fork(Some(realJavaHome)))
       case None =>
         val c = IncrementalTrackingJavaCompiler.local.getOrElse(javac.JavaCompiler.fork())
         val d = javac.Javadoc.local.getOrElse(javac.Javadoc.fork())

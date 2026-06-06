@@ -2,7 +2,7 @@ package mill.daemon
 
 import mill.api.daemon.internal.bsp.{BspBootstrapBridge, BspServerHandle}
 import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
-import mill.api.{Logger, MillException, Result, SystemStreams}
+import mill.api.{Logger, MillException, PathRef, Result, SystemStreams}
 import mill.api.daemon.internal.{LauncherLocking, LauncherOutFiles}
 import mill.api.internal.PathAliasing
 import mill.bsp.BSP
@@ -25,7 +25,7 @@ import mill.internal.{
   OutputDirectoryLayout
 }
 import mill.server.Server
-import mill.util.{BuildInfo, Jvm}
+import mill.util.BuildInfo
 import mill.api
 
 import java.io.{InputStream, PrintStream, PrintWriter, StringWriter}
@@ -55,8 +55,9 @@ object MillMain0 {
    * concurrent Mill processes.
    */
   def outFileLock(out: os.Path): Lock =
-    // `Lock.file` opens a real file lock; the alias form would be resolved against the caller's cwd.
-    Lock.file(Jvm.realAbs(out / OutFiles.millOutLock))
+    // The shared out lock is opened by different launcher/daemon processes, so its location
+    // must not depend on whichever cwd opens it.
+    Lock.file(PathRef.toAbsString(out / OutFiles.millOutLock))
 
   private[daemon] def useInProcessLauncherResources(
       hasDaemonClient: Boolean,
@@ -341,7 +342,7 @@ object MillMain0 {
                               (locking, artifacts, fileLockLease)
                             } else (
                               LauncherLocking.Noop,
-                              LauncherOutFiles.noop(out.toNIO),
+                              LauncherOutFiles.noop(PathRef.toAbsNioPath(out)),
                               fileLockLease
                             )
                           } catch {
@@ -433,7 +434,8 @@ object MillMain0 {
                                     ),
                                     reporter = reporter,
                                     metaBuildReporter = metaBuildReporter,
-                                    enableTicker = enableTicker
+                                    enableTicker = enableTicker,
+                                    replayLogs = config.replayLogs.value
                                   ).evaluate()
                                 }
                               }

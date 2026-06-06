@@ -305,7 +305,7 @@ object `package` extends Module {
     def rendered = Task {
       var seenCode = false
       var seenFrontMatter = false
-      val examplePath = moduleDir.subRelativeTo(BuildCtx.workspaceRoot)
+      val examplePath = build.workspaceSubPath(moduleDir)
       val frontMatter = parsed().takeWhile(_.isInstanceOf[Chunk.Yaml]).collect {
         case Chunk.Yaml(lines) => lines.mkString("\n")
       }.mkString("\n")

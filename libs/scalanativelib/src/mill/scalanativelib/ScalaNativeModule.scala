@@ -3,7 +3,7 @@ package scalanativelib
 
 import mainargs.Flag
 import mill.{api as _, *}
-import mill.api.{CrossVersion, Result, TaskCtx}
+import mill.api.{CrossVersion, PathRef, Result, TaskCtx}
 import mill.api.daemon.internal.bsp.ScalaBuildTarget
 import mill.javalib.api.JvmWorkerUtil
 import mill.api.daemon.internal.{ScalaNativeModuleApi, ScalaPlatform, internal}
@@ -377,9 +377,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
       Option(forkArgs).getOrElse(forkArgsDefault)
       val env = Option(forkEnv).getOrElse(forkEnvDefault)
       val propEnv = Option(propagateEnv).getOrElse(propagateEnvDefault: java.lang.Boolean)
-      // `Jvm.realAbs`: passed verbatim to `os.call` as the executable path; the alias form
-      // would be resolved against the subprocess's own cwd and fail to launch.
-      val native = mill.util.Jvm.realAbs(nativeExe.path)
+      val native = PathRef.toRelString(nativeExe.path, cwd)
 
       os.call(
         cmd = native +: mainArgs,

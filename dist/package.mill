@@ -450,7 +450,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
 
   def exampleArtifactNames = Task {
     for (path <- examplePaths()) yield {
-      val example = path.subRelativeTo(BuildCtx.workspaceRoot)
+      val example = build.workspaceSubPath(path)
       val artifactName = example.segments.mkString("-")
       s"${build.dist.artifactFileNamePrefix()}-$artifactName"
     }

@@ -1,8 +1,7 @@
 package mill.javascriptlib
 
 import mill.*
-import mill.api.Result
-import mill.util.Jvm
+import mill.api.{PathRef, Result}
 import scala.util.{Try, Success, Failure}
 import os.*
 import mill.api.BuildCtx
@@ -71,8 +70,12 @@ trait TsLintModule extends Module {
     resolvedFmtConfig() match {
       case Eslint =>
         val cwd = BuildCtx.workspaceRoot
-        os.symlink(cwd / "node_modules", npmInstallLint().path / "node_modules")
-        val eslint = npmInstallLint().path / "node_modules/.bin/eslint"
+        mill.api.internal.PathAliasing.withRawPathSerializer(os.symlink(
+          cwd / "node_modules",
+          npmInstallLint().path / "node_modules"
+        ))
+        val eslint =
+          PathRef.toResolvedPathString(npmInstallLint().path / "node_modules/.bin/eslint")
         val logPath = npmInstallLint().path / "eslint.log"
         val result =
           Try {
@@ -88,9 +91,9 @@ trait TsLintModule extends Module {
         // paths as `foo/src/foo.ts`. On reproducible mode `$cwd` would interpolate
         // to the relativized `../mill-workspace` form, but eslint emits real
         // absolute paths — match those.
-        val cwdAbs = Jvm.realAbs(cwd)
         val replacements = Seq(
-          s"$cwdAbs/" -> "",
+          // Eslint diagnostics contain real workspace paths.
+          s"${PathRef.toAbsString(cwd)}/" -> "",
           "potentially fixable with the `--fix` option" ->
             s"potentially fixable with running ${moduleDir.last}.reformatAll"
         )
@@ -122,8 +125,12 @@ trait TsLintModule extends Module {
     resolvedFmtConfig() match {
       case Eslint =>
         val cwd = BuildCtx.workspaceRoot
-        os.symlink(cwd / "node_modules", npmInstallLint().path / "node_modules")
-        val eslint = npmInstallLint().path / "node_modules/.bin/eslint"
+        mill.api.internal.PathAliasing.withRawPathSerializer(os.symlink(
+          cwd / "node_modules",
+          npmInstallLint().path / "node_modules"
+        ))
+        val eslint =
+          PathRef.toResolvedPathString(npmInstallLint().path / "node_modules/.bin/eslint")
         val logPath = npmInstallLint().path / "eslint.log"
 
         val result =
@@ -154,11 +161,15 @@ trait TsLintModule extends Module {
     resolvedFmtConfig() match {
       case Prettier =>
         val cwd = BuildCtx.workspaceRoot
-        val prettier = npmInstallLint().path / "node_modules/.bin/prettier"
+        val prettier =
+          PathRef.toResolvedPathString(npmInstallLint().path / "node_modules/.bin/prettier")
         val logPath = npmInstallLint().path / "prettier.log"
         val defaultArgs = if (args.value.isEmpty) Seq("*/**/*.ts") else args.value
         val userPrettierIgnore = os.exists(cwd / ".prettierignore")
-        if (!userPrettierIgnore) os.symlink(cwd / ".prettierignore", prettierIgnore().path)
+        if (!userPrettierIgnore) mill.api.internal.PathAliasing.withRawPathSerializer(os.symlink(
+          cwd / ".prettierignore",
+          prettierIgnore().path
+        ))
         val result =
           Try {
             os.call(
@@ -196,11 +207,15 @@ trait TsLintModule extends Module {
     resolvedFmtConfig() match {
       case Prettier =>
         val cwd = BuildCtx.workspaceRoot
-        val prettier = npmInstallLint().path / "node_modules/.bin/prettier"
+        val prettier =
+          PathRef.toResolvedPathString(npmInstallLint().path / "node_modules/.bin/prettier")
         val logPath = npmInstallLint().path / "prettier.log"
         val defaultArgs = if (args.value.isEmpty) Seq("*/**/*.ts") else args.value
         val userPrettierIgnore = os.exists(cwd / ".prettierignore")
-        if (!userPrettierIgnore) os.symlink(cwd / ".prettierignore", prettierIgnore().path)
+        if (!userPrettierIgnore) mill.api.internal.PathAliasing.withRawPathSerializer(os.symlink(
+          cwd / ".prettierignore",
+          prettierIgnore().path
+        ))
         val result =
           Try {
             os.call(

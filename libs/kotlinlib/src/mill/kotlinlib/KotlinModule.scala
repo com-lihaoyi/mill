@@ -303,7 +303,22 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       val ctx = Task.ctx()
       val dest = ctx.dest
       val classes = dest / "classes"
+
+      val useBtApi = kotlincUseBtApi() && kotlinUseEmbeddableCompiler()
+      if (!useBtApi) {
+        // Non BT-API compiler is not incremental and does not keep track of older files,
+        // so we always need to start fresh.
+        os.remove.all(classes)
+      }
       os.makeDir.all(classes)
+
+      // `Task.dest` can be a lexical path that routes through the `out/mill-daemon/mill-workspace`
+      // forwarder symlink (when deserialized from cache in reproducible mode). A plain
+      // `relativeTo(workspaceRoot)` would then render as `out/mill-daemon/mill-workspace/out/...`.
+      // Re-anchor through the symlink so display paths are the clean `out/compile.dest/classes`.
+      val classesDisplay =
+        PathRef.toResolvedOsPathAnchored(classes, BuildCtx.workspaceRoot)
+          .relativeTo(BuildCtx.workspaceRoot)
 
       val javaSourceFiles = allJavaSourceFiles().map(_.path)
       val kotlinSourceFiles = allKotlinSourceFiles().map(_.path)
@@ -317,7 +332,6 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       val updateCompileOutput = upstreamCompileOutput()
 
       def compileJava: Result[CompilationResult] = {
-        val classesDisplay = classes.relativeTo(BuildCtx.workspaceRoot)
         ctx.log.info(
           s"Compiling ${javaSourceFiles.size} Java sources to ${classesDisplay} ..."
         )
@@ -338,28 +352,25 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       if (isMixed || isKotlin) {
         val extra = if (isJava) s"and reading ${javaSourceFiles.size} Java sources " else ""
         ctx.log.info(
-          s"Compiling ${kotlinSourceFiles.size} Kotlin sources ${extra}to ${classes.relativeTo(BuildCtx.workspaceRoot)} ..."
+          s"Compiling ${kotlinSourceFiles.size} Kotlin sources ${extra}to ${classesDisplay} ..."
         )
 
-        // `Jvm.realAbs`: alias-routed paths confuse kotlinc's multi-platform expect/actual
-        // checker, which sees the same source file via the symlink and via direct walk.
         val compilerArgs: Seq[String] = Seq(
           // destdir
-          Seq("-d", Jvm.realAbs(classes)),
+          Seq("-d", classes.toString),
           // apply multi-platform support (expect/actual)
           // TODO if there is penalty for activating it in the compiler, put it behind configuration flag
           Seq("-Xmulti-platform"),
           // classpath
           when(compileCpPaths.iterator.nonEmpty)(
             "-classpath",
-            compileCpPaths.iterator.map(Jvm.realAbs).mkString(File.pathSeparator)
+            // The in-process Kotlin compiler resolves classpath entries
+            // outside Mill's subprocess cwd aliases.
+            compileCpPaths.iterator.map(PathRef.toAbsString).mkString(File.pathSeparator)
           ),
           allKotlincOptions(),
           extraKotlinArgs
         ).flatten
-
-        val useBtApi =
-          kotlincUseBtApi() && kotlinUseEmbeddableCompiler()
 
         if (kotlincUseBtApi() && !kotlinUseEmbeddableCompiler()) {
           ctx.log.warn(
@@ -414,9 +425,11 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
    * Prefer using this over [[kotlinFriendModules]].
    */
   private[kotlinlib] lazy val kotlinFriendModulesChecked: Seq[KotlinModule] = {
+    val deps = recursiveModuleDeps.toSet ++ compileModuleDeps
+    val missing = kotlinFriendModules.toSet.diff(deps)
     require(
-      kotlinFriendModules.toSet.subsetOf(moduleDepsChecked.toSet),
-      "All kotlinFriendModules must also be declared in moduleDeps"
+      missing.isEmpty,
+      s"All kotlinFriendModules must also be declared in moduleDeps/compileModuleDeps. Module ${this} is missing a dependency to ${missing.toSeq.map(_.toString).sorted.mkString(", ")}"
     )
     kotlinFriendModules.distinct
   }
@@ -454,15 +467,19 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
   protected def mandatoryKotlincOptions: T[Seq[String]] = Task {
     val languageVersion = kotlinLanguageVersion()
     val kotlinkotlinApiVersion = kotlinApiVersion()
-    // `Jvm.realAbs`: same kotlinc expect/actual concern as `compilerArgs` above.
-    val plugins = kotlincPluginJars().map(pr => Jvm.realAbs(pr.path))
+    val plugins = kotlincPluginJars().map(_.path.toString)
 
     val friendPathsOption = if (kotlinFriendModulesChecked.isEmpty) {
       Seq.empty[String]
     } else {
       val compilations = Task.traverse(kotlinFriendModulesChecked) { friend => friend.compile }()
-      // `Jvm.realAbs`: friend-path classes are compared against kotlinc's walked source paths.
-      Seq(compilations.map(c => Jvm.realAbs(c.classes.path)).mkString("-Xfriend-paths=", ",", ""))
+      // The in-process Kotlin compiler compares friend outputs against
+      // resolved classpath entries.
+      Seq(compilations.map(c => PathRef.toAbsString(c.classes.path)).mkString(
+        "-Xfriend-paths=",
+        ",",
+        ""
+      ))
     }
 
     Seq("-no-stdlib") ++
@@ -544,7 +561,9 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     override def kotlincPluginMvnDeps: T[Seq[Dep]] =
       Task { outer.kotlincPluginMvnDeps() }
     override def kotlinFriendModules: Seq[KotlinModule] =
-      super.kotlinFriendModules ++ Seq(outer)
+      super.kotlinFriendModules ++
+        // auto-add outer module, iff we depend on it
+        Seq(outer).filter(recursiveModuleDeps.toSet ++ compileModuleDeps)
     override def kotlincOptions: T[Seq[String]] = Task {
       outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources"))
     }
@@ -566,7 +585,9 @@ object KotlinModule {
     override def kotlincPluginMvnDeps: T[Seq[Dep]] =
       Task { outer.kotlincPluginMvnDeps() }
     override def kotlinFriendModules: Seq[KotlinModule] =
-      super.kotlinFriendModules ++ Seq(outer)
+      super.kotlinFriendModules ++
+        // auto-add outer module, iff we depend on it
+        Seq(outer).filter(recursiveModuleDeps.toSet ++ compileModuleDeps)
     override def kotlincOptions: T[Seq[String]] = Task {
       outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources"))
     }

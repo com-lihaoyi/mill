@@ -11,7 +11,6 @@ import mill.api.TaskCtx
 import mill.api.DefaultTaskModule
 import mill.javalib.bsp.BspModule
 import mill.api.JsonFormatters.given
-import mill.constants.EnvVars
 import mill.javalib.api.internal.ZincOp
 import mill.javalib.testrunner.{Framework, TestArgs, TestResult, TestRunner, TestRunnerUtils}
 import mill.util.{Jvm, Version}
@@ -315,16 +314,6 @@ trait TestModule
    * isolation.
    */
   def testSandboxWorkingDir: T[Boolean] = true
-
-  override def allForkEnv: T[Map[String, String]] = Task {
-    super.allForkEnv() ++ Map(
-      // `Jvm.realAbs`: test code does `os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))` — the
-      // single-arg constructor rejects the relativized `../mill-workspace/...` form.
-      EnvVars.MILL_TEST_RESOURCE_DIR -> resources().iterator
-        .map(Jvm.realAbs)
-        .mkString(";")
-    )
-  }
 
   /**
    * The actual task shared by `test`-tasks that runs test in a forked JVM.

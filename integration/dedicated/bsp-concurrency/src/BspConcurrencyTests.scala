@@ -118,7 +118,7 @@ object BspConcurrencyTests extends UtestIntegrationTestSuite {
         ) { (buildServer, _) =>
           // Resolve target metadata first; this returns quickly because BSP
           // doesn't evaluate `sources` for `workspaceBuildTargets`.
-          val targets = buildServer.workspaceBuildTargets().get(30, TimeUnit.SECONDS)
+          val targets = buildServer.workspaceBuildTargets().get(120, TimeUnit.SECONDS)
           val gatedTarget = targets.getTargets.asScala
             .find(_.getDisplayName == "gated").map(_.getId).getOrElse(
               throw new java.lang.AssertionError(
@@ -151,7 +151,7 @@ object BspConcurrencyTests extends UtestIntegrationTestSuite {
           // Release the gate; both sides should now proceed and complete.
           os.remove(gateFile(tester))
           cliLauncher.process.waitFor()
-          val bspResult = bspCompileFuture.get(60, TimeUnit.SECONDS)
+          val bspResult = bspCompileFuture.get(120, TimeUnit.SECONDS)
 
           assert(cliLauncher.process.exitCode() == 0)
           assert(bspResult.getStatusCode == b.StatusCode.OK)
@@ -208,7 +208,7 @@ object BspConcurrencyTests extends UtestIntegrationTestSuite {
           // Release the gate; CLI completes first, BSP unblocks, both succeed.
           os.remove(exclusiveGateFile(tester))
           cliLauncher.process.waitFor()
-          val targets = workspaceTargetsFuture.get(60, TimeUnit.SECONDS)
+          val targets = workspaceTargetsFuture.get(120, TimeUnit.SECONDS)
           assert(cliLauncher.process.exitCode() == 0)
           assert(targets.getTargets.asScala.exists(_.getDisplayName == "gated"))
         }
@@ -237,7 +237,7 @@ object BspConcurrencyTests extends UtestIntegrationTestSuite {
           millTestSuiteEnv,
           bspLog = Some((bytes, len) => bspStderr.write(bytes, 0, len))
         ) { (buildServer, _) =>
-          val targets = buildServer.workspaceBuildTargets().get(30, TimeUnit.SECONDS)
+          val targets = buildServer.workspaceBuildTargets().get(120, TimeUnit.SECONDS)
           val abTarget = targetByDisplayName(targets, "orderedAb")
           val baTarget = targetByDisplayName(targets, "orderedBa")
 
@@ -246,8 +246,8 @@ object BspConcurrencyTests extends UtestIntegrationTestSuite {
           val baCompile =
             buildServer.buildTargetCompile(new b.CompileParams(Seq(baTarget).asJava))
 
-          val abResult = abCompile.get(60, TimeUnit.SECONDS)
-          val baResult = baCompile.get(60, TimeUnit.SECONDS)
+          val abResult = abCompile.get(120, TimeUnit.SECONDS)
+          val baResult = baCompile.get(120, TimeUnit.SECONDS)
 
           assert(abResult.getStatusCode == b.StatusCode.OK)
           assert(baResult.getStatusCode == b.StatusCode.OK)

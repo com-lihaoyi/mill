@@ -181,7 +181,9 @@ case class MillCliConfig(
     )
     remoteCacheFilter: Option[String] = None,
     @arg(hidden = true, doc = "Deprecated, use `--ticker false` instead")
-    disableTicker: Flag
+    disableTicker: Flag,
+    @arg(doc = "Replay logs for cached tasks.")
+    replayLogs: Flag = Flag()
 ) {
   def noDaemonEnabled =
     Seq(

@@ -16,11 +16,11 @@ import scala.collection.mutable
 import mill.api.Logger
 
 import mill.api.BuildCtx
+import mill.constants.EnvVars
 import mill.javalib.api.internal.ZincOp
 import mill.javalib.testrunner.{TestArgs, TestResult, TestRunnerUtils}
 import os.Path
 
-import scala.annotation.unused
 import scala.concurrent.Future
 
 /**
@@ -32,7 +32,7 @@ final class TestModuleUtil(
     forkArgs: Seq[String],
     selectors: Seq[String],
     scalalibClasspath: Seq[PathRef],
-    @unused resources: Seq[PathRef],
+    resources: Seq[PathRef],
     testFramework: String,
     runClasspath: Seq[PathRef],
     testClasspath: Seq[PathRef],
@@ -147,26 +147,54 @@ final class TestModuleUtil(
 
     val argsFile = baseFolder / "testargs"
     val sandbox = baseFolder / "sandbox"
-    // Serialize the test args with real-absolute paths: the test runner subprocess runs with
-    // cwd = sandbox and reads this file before any alias symlinks are in scope, so relativized
-    // `../mill-workspace/...` forms would not resolve.
-    os.write.over(
-      argsFile,
-      PathAliasing.withRawPathSerializer(upickle.write(testArgs)),
-      createFolders = true
-    )
+    PathAliasing.withRawPathSerializer {
+      os.write.over(
+        argsFile,
+        upickle.write(testArgs),
+        createFolders = true
+      )
+    }
 
     os.makeDir.all(sandbox)
 
     val proc = BuildCtx.withFilesystemCheckerDisabled {
       val inheritedEnv = if (propagateEnv) Task.env else Map.empty[String, String]
+      val cwd = PathRef.toResolvedOsPathAnchored(
+        if (testSandboxWorkingDir) sandbox else forkWorkingDir,
+        BuildCtx.workspaceRoot
+      )
+      // `MILL_TEST_RESOURCE_DIR` is consumed directly by arbitrary user test code via
+      // `os.Path(...)`. The forked test JVM runs the user's *resolved* Mill classpath, whose
+      // os-lib version is arbitrary and generally predates the path relativizer (e.g. released
+      // Mill 1.0.x ships os-lib 0.11.5, whose `os.Path` rejects any non-absolute string). So this
+      // env var must be an absolute path, not a `../mill-workspace/...` alias.
+      val testResourceEnv = TestModuleUtil.testResourceEnv(resources, cwd, usePathAliases = false)
+      // Do NOT hand the forked test JVM the os-lib relativizer base. The test fork runs the
+      // user's *resolved* Mill classpath, whose os-lib version is arbitrary: old versions (e.g.
+      // os-lib 0.11.5 shipped with released Mill 1.0.x) ignore `OS_LIB_PATH_RELATIVIZER_BASE`
+      // entirely, while newer versions (0.11.9-M8) honor it and then mis-resolve `os.list`/
+      // `os.walk` — those route the listed directory's *serialized* (relativized) form through
+      // the `mill-workspace` forwarder symlink under the fork's cwd, so the returned children no
+      // longer compare equal to `dir / name`. The relativizer therefore provides no benefit in a
+      // test fork and only corrupts user filesystem operations, so we drop it (passing
+      // `pathRelativization = false`) and re-add only `MILL_WORKSPACE_ROOT` for bootstrap.
+      val testEnv = (inheritedEnv ++ forkEnv ++ testResourceEnv +
+        (EnvVars.MILL_WORKSPACE_ROOT -> PathRef.toAbsString(BuildCtx.workspaceRoot)))
+        // The daemon's own env carries `OS_LIB_PATH_RELATIVIZER_BASE`; strip it so the inherited
+        // copy doesn't re-activate the relativizer inside the fork (see comment above).
+        .removed(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE)
       Jvm.spawnProcess(
         mainClass = "mill.javalib.testrunner.entrypoint.MillTestRunnerMain",
         classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
-        env = inheritedEnv ++ forkEnv,
-        mainArgs = Seq(testRunnerClasspathArg, argsFile.wrapped.toString),
-        cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
+        env = testEnv,
+        // Absolute path: the test fork runs without the os-lib relativizer (see above), and its
+        // entrypoint does `os.Path(args(1))` (no base), which rejects a relativized
+        // `../mill-workspace/...` alias. The `testargs` payload itself is written with real paths
+        // (`withRawPathSerializer`), so the fork resolves everything without alias support.
+        mainArgs = Seq(testRunnerClasspathArg, PathRef.toAbsString(argsFile)),
+        cwd = cwd,
+        pathRelativization = false,
         cpPassingJarPath = Option.when(useArgsFile)(
           os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
         ),
@@ -442,6 +470,26 @@ final class TestModuleUtil(
 }
 
 private[mill] object TestModuleUtil {
+
+  def testResourceEnv(
+      resources: Seq[PathRef],
+      cwd: os.Path,
+      usePathAliases: Boolean = true
+  ): Map[String, String] =
+    Map(
+      EnvVars.MILL_TEST_RESOURCE_DIR -> resources.iterator
+        .map { resourceDir =>
+          val anchored = PathRef.toResolvedOsPathAnchored(resourceDir.path, BuildCtx.workspaceRoot)
+          // Clean workspace-anchored absolute path (forwarder symlinks stripped, lexical so it
+          // also works for resource dirs not yet materialized on disk, e.g. when BSP queries the
+          // test environment before a compile). User test code that `os.list`s this dir compares
+          // entries against `dir / name`; that works because the test fork runs without the os-lib
+          // relativizer (see the spawn site), so `os.list` doesn't re-route through a forwarder.
+          if (usePathAliases) PathRef.toRelString(anchored, cwd)
+          else PathRef.toAbsString(anchored)
+        }
+        .mkString(";")
+    )
 
   private[mill] def testSubprocessCount(
       testParallelism: Boolean,

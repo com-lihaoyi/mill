@@ -1,5 +1,6 @@
 package build
-import mill.*, kotlinlib.*, util.Jvm
+import mill.*, kotlinlib.*
+import mill.api.PathRef
 
 object `package` extends KotlinModule {
 
@@ -32,13 +33,19 @@ object `package` extends KotlinModule {
     PathRef(Task.dest / output)
   }
 
-  def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.wrapped.toString)
+  def forkEnv = Map(
+    // `System.load` rejects relative paths: "UnsatisfiedLinkError" if filename is not absolute.
+    "HELLO_WORLD_BINARY" -> PathRef.toAbsString(nativeCompiled())
+  )
 
   object test extends KotlinTests, TestModule.Junit5 {
     def mvnDeps = Seq(
       mvn"io.kotest:kotest-runner-junit5:5.9.1"
     )
-    def forkEnv = Map("HELLO_WORLD_BINARY" -> Jvm.realAbs(nativeCompiled()))
+    def forkEnv = Map(
+      // `System.load` rejects relative paths: "UnsatisfiedLinkError" if filename is not absolute.
+      "HELLO_WORLD_BINARY" -> PathRef.toAbsString(nativeCompiled())
+    )
   }
 }
 

@@ -1,7 +1,7 @@
 package mill.javalib.checkstyle
 
 import mill.*
-import mill.api.{PathRef}
+import mill.api.PathRef
 import mill.javalib.{DepSyntax, JavaModule}
 import mill.util.Jvm
 import mill.api.BuildCtx
@@ -28,10 +28,11 @@ trait CheckstyleModule extends JavaModule {
 
     val output = checkstyleOutput().path
     val args = checkstyleOptions() ++
-      Seq("-c", checkstyleConfig().path.toString()) ++
+      Seq("-c", PathRef.toRelString(checkstyleConfig(), moduleDir)) ++
       Seq("-f", checkstyleFormat()) ++
-      (if (stdout) Seq.empty else Seq("-o", output.toString())) ++
-      (if (leftover.value.nonEmpty) leftover.value else sources().map(_.path.toString()))
+      (if (stdout) Seq.empty else Seq("-o", PathRef.toRelString(output, moduleDir))) ++
+      (if (leftover.value.nonEmpty) leftover.value
+       else sources().map(p => PathRef.toRelString(p, moduleDir)))
     val jvmArgs = checkstyleLanguage()
       .map(lang => s"-Duser.language=$lang")
       .toSeq

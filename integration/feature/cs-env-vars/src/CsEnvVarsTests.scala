@@ -13,7 +13,7 @@ object CsEnvVarsTests extends UtestIntegrationTestSuite {
   private def resolveCp(workspace: os.Path)(raw: String): os.Path =
     os.Path.pathSerializer.withValue(os.Path.pathRemapSerializerNio(
       PathAliasing.defaultMapping(workspace).map { case (from, to) =>
-        mill.api.PathRef.realAbsPath(from) -> java.nio.file.Paths.get(to.toString)
+        mill.api.PathRef.toAbsNioPath(from) -> java.nio.file.Paths.get(to.toString)
       }
     ))(os.Path(raw))
 

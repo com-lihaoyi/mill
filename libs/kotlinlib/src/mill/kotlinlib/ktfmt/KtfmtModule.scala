@@ -120,7 +120,7 @@ object KtfmtModule extends ExternalModule with KtfmtBaseModule with DefaultTaskM
       args += "--do-not-remove-unused-imports"
     }
     if (!format) args += "--set-exit-if-changed"
-    args ++= sources.iterator.map(_.path.toString())
+    args ++= sources.iterator.map(p => PathRef.toRelString(p, moduleDir))
 
     val exitCode = os.ProcessOps.spawnHook.withValue(_ => ()) {
       Jvm.callProcess(

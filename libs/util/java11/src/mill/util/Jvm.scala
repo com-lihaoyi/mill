@@ -29,15 +29,6 @@ import scala.util.chaining.scalaUtilChainingOps
  */
 object Jvm {
 
-  def realAbs(p: os.Path): String = PathRef.realAbs(p)
-  def realAbs(p: PathRef): String = PathRef.realAbs(p)
-  def realAbsPath(p: os.Path): java.nio.file.Path = PathRef.realAbsPath(p)
-  def realAbsPath(p: PathRef): java.nio.file.Path = PathRef.realAbsPath(p)
-  def realAbsFile(p: os.Path): java.io.File = PathRef.realAbsFile(p)
-  def realAbsFile(p: PathRef): java.io.File = PathRef.realAbsFile(p)
-  def realAbsResolved(p: os.Path): String = PathRef.realAbsResolved(p)
-  def realAbsResolvedPath(p: os.Path): os.Path = PathRef.realAbsResolvedPath(p)
-
   /**
    * Runs a JVM subprocess with the given configuration and returns a
    * [[os.CommandResult]] with it's aggregated output and error streams.
@@ -88,6 +79,7 @@ object Jvm {
   )(using ctx: TaskCtx): os.CommandResult = {
     val effectiveCwd = Option(cwd).getOrElse(os.pwd)
     PathAliasing.ensureProcessCwdAliases(effectiveCwd)
+    val processEnv = env ++ PathAliasing.workspaceEnvVarsForCwd(effectiveCwd)
     val commandArgs = buildJvmCommand(
       mainClass,
       mainArgs,
@@ -104,7 +96,7 @@ object Jvm {
 
     os.proc(commandArgs).call(
       cwd = effectiveCwd,
-      env = env,
+      env = processEnv,
       propagateEnv = propagateEnv,
       stdin = stdin,
       stdout = stdout,
@@ -144,6 +136,12 @@ object Jvm {
    *                            (-1 for no kill, 0 for always kill immediately)
    * @param destroyOnExit Destroy on JVM exit
    */
+  /**
+   * Runs a JVM subprocess with the given configuration and streams
+   * it's stdout and stderr to the console.
+   *
+   * @param pathRelativization If `true`, child `os.Path` serialization uses Mill's workspace aliases
+   */
   def spawnProcess(
       mainClass: String,
       mainArgs: os.Shellable = Seq.empty,
@@ -159,10 +157,14 @@ object Jvm {
       stderr: os.ProcessOutput = os.Inherit,
       mergeErrIntoOut: Boolean = false,
       shutdownGracePeriod: Long = 100,
-      destroyOnExit: Boolean = true
+      destroyOnExit: Boolean = true,
+      @unroll pathRelativization: Boolean = true
   ): os.SubProcess = {
     val effectiveCwd = Option(cwd).getOrElse(os.pwd)
     PathAliasing.ensureProcessCwdAliases(effectiveCwd)
+    val processEnv =
+      env ++ Option.when(pathRelativization)(PathAliasing.workspaceEnvVarsForCwd(effectiveCwd))
+        .getOrElse(Map.empty)
 
     val commandArgs = buildJvmCommand(
       mainClass,
@@ -176,7 +178,7 @@ object Jvm {
 
     os.proc(commandArgs).spawn(
       cwd = effectiveCwd,
-      env = env,
+      env = processEnv,
       stdin = stdin,
       stdout = stdout,
       stderr = stderr,
@@ -192,7 +194,10 @@ object Jvm {
    */
   def jdkTool(toolName: String, javaHome: Option[os.Path]): String = {
     javaHome
-      .map(_.toString())
+      .map { home =>
+        // ProcessBuilder executes this JDK tool directly, outside os-lib alias resolution.
+        PathRef.toAbsString(home)
+      }
       .orElse(sys.props.get("java.home"))
       .map(h =>
         if (isWin) File(h, s"bin\\${toolName}.exe")
@@ -237,9 +242,7 @@ object Jvm {
 
     if (cwd != null) os.makeDir.all(cwd)
 
-    // `realAbs` for the `-cp` arg: the alias form needs the symlink in the subprocess's
-    // cwd's parent, which is unreliable on Windows / nested-native-daemon tests.
-    val cpStr = cp.iterator.map(realAbs).mkString(java.io.File.pathSeparator)
+    val cpStr = cp.iterator.map(PathRef.toRelString(_, cwd)).mkString(java.io.File.pathSeparator)
     Vector(javaExe(javaHome)) ++
       jdk23PlusUnsafeOpts(javaHome) ++
       jvmArgs.value ++
@@ -292,7 +295,6 @@ object Jvm {
       propagateEnv: Boolean = true
   )(using ctx: TaskCtx): Int = {
     val effectiveCwd = Option(cwd).getOrElse(os.pwd)
-    PathAliasing.ensureProcessCwdAliases(effectiveCwd)
     val commandArgs = buildJvmCommand(
       mainClass,
       mainArgs,
@@ -324,14 +326,17 @@ object Jvm {
       cwd: os.Path = os.pwd,
       propagateEnv: Boolean = true
   ): Int = {
+    val effectiveCwd = Option(cwd).getOrElse(os.pwd)
+    PathAliasing.ensureProcessCwdAliases(effectiveCwd)
+    val processEnv = env ++ PathAliasing.workspaceEnvVarsForCwd(effectiveCwd)
     LauncherSubprocess.value(LauncherSubprocess.Config(
       cmd = cmd,
-      env = env,
+      env = processEnv,
       // Pass the absolute cwd: this string is consumed launcher-side by `os.Path(...)`, which
       // requires an absolute path. In reproducible mode `cwd.toString` is relativized (e.g.
       // `out/mill-workspace/out/run.dest`), so use the underlying absolute path to avoid the
       // launcher throwing "Path must be absolute" (which it swallows into a silent exit code 1).
-      cwd = cwd.wrapped.toAbsolutePath.normalize().toString,
+      cwd = effectiveCwd.wrapped.toAbsolutePath.normalize().toString,
       propagateEnv = propagateEnv
     ))
   }
@@ -398,7 +403,8 @@ object Jvm {
       sharedPrefixes: Iterable[String] = Seq(),
       label: String = null
   )(using e: sourcecode.Enclosing): MillURLClassLoader = MillURLClassLoader(
-    classPath.map(_.toNIO),
+    // URLClassLoader consumes these paths in-process, so bypass the active path serializer.
+    classPath.map(PathRef.toAbsNioPath),
     parent,
     sharedLoader,
     sharedPrefixes,

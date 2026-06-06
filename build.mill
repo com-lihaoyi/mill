@@ -1,4 +1,4 @@
-//| mill-version: 1.1.6-89-71e900
+//| mill-version: 1.1.6-104-5bbe1e
 //| mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
 //| mill-opts: ["--jobs=0.5C", "-DMILL_ENABLE_STATIC_CHECKS=true"]
 
@@ -182,6 +182,21 @@ def listCross(using ctx: mill.api.ModuleCtx) = BuildCtx.watchValue {
   import scala.reflect.Selectable.reflectiveSelectable
   os.list(ctx.asInstanceOf[{ def millSourcePath: os.Path }].millSourcePath).map(_.last)
 }
+
+def workspacePath(path: os.Path): os.Path = {
+  def resolve(path: os.Path) =
+    try os.Path(path.wrapped.toRealPath())
+    catch { case _: java.io.IOException => path }
+
+  val resolvedWorkspace = resolve(BuildCtx.workspaceRoot)
+  val resolvedPath = resolve(path)
+  if (resolvedPath.startsWith(resolvedWorkspace))
+    BuildCtx.workspaceRoot / resolvedPath.subRelativeTo(resolvedWorkspace)
+  else path
+}
+
+def workspaceSubPath(path: os.Path): os.SubPath =
+  workspacePath(path).subRelativeTo(BuildCtx.workspaceRoot)
 
 val dummyDeps: Seq[Dep] = Seq(
   Deps.DocDeps.millScip,

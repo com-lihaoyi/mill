@@ -9,7 +9,6 @@ import mill.api.daemon.internal.internal
 import mill.api.JsonFormatters.given
 import mill.api.{ModuleRef, PathRef, Task}
 import mill.javalib.*
-import mill.util.Jvm
 import os.{Path, RelPath, zip}
 import os.RelPath.stringRelPathValidated
 import upickle.*
@@ -391,7 +390,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val alignedApk: os.Path = Task.dest / "app.aligned.apk"
 
     os.call((
-      androidSdkModule().zipalignExe().path,
+      PathRef.toAbsString(androidSdkModule().zipalignExe()),
       "-f",
       "-p",
       "4",
@@ -509,7 +508,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val signedApk = Task.dest / "app.apk"
 
     val signArgs = Seq(
-      androidSdkModule().apksignerExe().path.toString,
+      PathRef.toAbsString(androidSdkModule().apksignerExe()),
       "sign",
       "--in",
       androidAlignedUnsignedApk().path.toString,
@@ -541,22 +540,26 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     val formats = androidLintReportFormat()
 
-    // `Jvm.realAbs`: lint records absolute source/classpath paths into its baseline XML
-    // and HTML reports, then compares them across runs from different cwds.
+    // Android lint records and compares these path roots in generated reports/baselines.
     val reportArg: Seq[String] = formats.flatMap { format =>
-      Seq(format.flag, Jvm.realAbs(Task.dest / s"report.${format.extension}"))
+      Seq(format.flag, PathRef.toAbsString(Task.dest / s"report.${format.extension}"))
     }
-    val cp = compileClasspath().map(_.path).filter(os.exists).map(Jvm.realAbs).mkString(":")
-    val src = sources().map(_.path).filter(os.exists).map(Jvm.realAbs).mkString(":")
-    val res = resources().map(_.path).filter(os.exists).map(Jvm.realAbs).mkString(":")
-    val configArg = androidLintConfigPath().map(c => Seq("--config", Jvm.realAbs(c))).toSeq.flatten
+    val cp = compileClasspath().map(_.path).filter(os.exists)
+      .map(PathRef.toAbsString).mkString(":")
+    val src = sources().map(_.path).filter(os.exists)
+      .map(PathRef.toAbsString).mkString(":")
+    val res = resources().map(_.path).filter(os.exists)
+      .map(PathRef.toAbsString).mkString(":")
+    val configArg = androidLintConfigPath()
+      .map(c => Seq("--config", PathRef.toAbsString(c))).toSeq.flatten
     val baselineArg =
-      androidLintBaselinePath().map(b => Seq("--baseline", Jvm.realAbs(b))).toSeq.flatten
+      androidLintBaselinePath()
+        .map(b => Seq("--baseline", PathRef.toAbsString(b))).toSeq.flatten
 
     os.call(
       Seq(
-        Jvm.realAbs(androidSdkModule().lintExe()),
-        Jvm.realAbs(moduleDir / "src/main"),
+        PathRef.toAbsString(androidSdkModule().lintExe()),
+        PathRef.toAbsString(moduleDir / "src/main"),
         "--classpath",
         cp,
         "--sources",
@@ -626,18 +629,21 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def createAndroidVirtualDevice(): Command[String] = Task.Command(exclusive = true) {
     val name = androidVirtualDevice().name
     val deviceId = androidVirtualDevice().deviceId
-    val command = os.call((
-      androidSdkModule().avdmanagerExe().path,
-      "create",
-      "avd",
-      "--name",
-      name,
-      "--package",
-      sdkInstallSystemImage(),
-      "--device",
-      deviceId,
-      "--force"
-    ))
+    val command = os.call(
+      (
+        // ProcessBuilder executes avdmanager directly; it cannot rely on path aliases.
+        PathRef.toAbsString(androidSdkModule().avdmanagerExe()),
+        "create",
+        "avd",
+        "--name",
+        name,
+        "--package",
+        sdkInstallSystemImage(),
+        "--device",
+        deviceId,
+        "--force"
+      )
+    )
     if (command.exitCode != 0) {
       Task.log.error(s"Failed to create android virtual device: ${command.err.text()}")
       throw Exception(s"Failed to create android virtual device: ${command.exitCode}")
@@ -650,7 +656,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
    */
   def deleteAndroidVirtualDevice: T[os.CommandResult] = Task {
     os.call((
-      androidSdkModule().avdmanagerExe().path,
+      PathRef.toAbsString(androidSdkModule().avdmanagerExe()),
       "delete",
       "avd",
       "--name",
@@ -693,7 +699,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     )
 
     val command = Seq(
-      androidSdkModule().emulatorExe().path.toString()
+      PathRef.toAbsString(androidSdkModule().emulatorExe())
     ) ++
       Option.when(!excludeDefaultArgs.value)(defaultArgs).toSeq.flatten ++ extraArgs ++ settings
 
@@ -720,7 +726,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   def adbDevices(): Command[String] = Task.Command {
-    os.call((androidSdkModule().adbExe().path, "devices", "-l")).out.text()
+    os.call((PathRef.toAbsString(androidSdkModule().adbExe()), "devices", "-l")).out.text()
   }
 
   /**
@@ -729,7 +735,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def stopAndroidEmulator(): Command[String] = Task.Command {
     val emulator = runningEmulator()
     os.call(
-      (androidSdkModule().adbExe().path, "-s", emulator, "emu", "kill")
+      (PathRef.toAbsString(androidSdkModule().adbExe()), "-s", emulator, "emu", "kill")
     )
     emulator
   }
@@ -764,7 +770,16 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val emulator = runningEmulator()
 
     os.call(
-      (androidSdkModule().adbExe().path, "-s", emulator, "install", "-r", androidApk().path)
+      (
+        PathRef.toAbsString(androidSdkModule().adbExe()),
+        "-s",
+        emulator,
+        "install",
+        "-r",
+        // `adb` runs as an external process and cannot resolve Mill's `../mill-workspace` path
+        // aliases, so hand it a real absolute APK path rather than the relativized `.path`.
+        PathRef.toAbsString(androidApk())
+      )
     )
 
     emulator
@@ -803,7 +818,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     os.call(
       (
-        androidSdkModule().adbExe().path,
+        PathRef.toAbsString(androidSdkModule().adbExe()),
         "-s",
         emulator,
         "shell",
@@ -842,7 +857,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
     keytoolModuleRef().createKeystoreWithCertificate(
       Task.Anon(Seq(
         "--keystore",
-        outer.debugKeystoreFile().path.toString,
+        // The keytool helper parses this argv path and writes it with plain Java IO.
+        PathRef.toAbsString(outer.debugKeystoreFile().path),
         "--storepass",
         debugKeyStorePass,
         "--alias",
@@ -893,7 +909,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     def getBootflag: String = {
       val result = os.call(
         (
-          adbPath.path,
+          PathRef.toAbsString(adbPath),
           "-s",
           emulator,
           "shell",
@@ -990,7 +1006,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       val proguardFile = androidProguard().path
 
       val d8Args = Seq(
-        androidSdkModule().d8Exe().path.toString,
+        PathRef.toAbsString(androidSdkModule().d8Exe()),
         if (androidIsDebug()) "--debug" else "--release",
         // TODO explore --incremental flag for incremental builds
         "--output",
@@ -1138,12 +1154,13 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
       os.call(
         (
-          androidSdkModule().adbExe().path,
+          PathRef.toAbsString(androidSdkModule().adbExe()),
           "-s",
           emulator,
           "install",
           "-t",
-          androidTestApk().path
+          // `adb` can't resolve Mill's `../mill-workspace` aliases; pass a real absolute path.
+          PathRef.toAbsString(androidTestApk())
         )
       )
       emulator
@@ -1166,7 +1183,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
       val instrumentOutput = os.proc(
         Seq(
-          androidSdkModule().adbExe().path.toString,
+          PathRef.toAbsString(androidSdkModule().adbExe()),
           "-s",
           device,
           "shell",
