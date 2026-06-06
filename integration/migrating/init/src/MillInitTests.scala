@@ -19,7 +19,7 @@ object MillInitTests extends UtestIntegrationTestSuite {
       assert(res.out.endsWith(msg))
     }
 
-    test("Mill init works for g8 templates") - integrationTest { tester =>
+    test("g8") - integrationTest { tester =>
       import tester.*
       eval(("init", "com-lihaoyi/mill-scala-hello.g8", "--name=example")).isSuccess ==> true
       val projFile = workspacePath / "example/build.sc"

@@ -13,14 +13,20 @@ object HelloGroovyTests extends TestSuite {
 
   val groovy4Version = "4.0.28"
   val groovy5Version = "5.0.3"
-  val groovyVersions = Seq(groovy4Version, groovy5Version)
+  val groovy6Version = "6.0.0-alpha-1"
+  // (groovyVersion, spockSupported) - Spock does not yet support Groovy 6
+  val groovyVersions = Seq(
+    (groovy4Version, true),
+    (groovy5Version, true),
+    (groovy6Version, false)
+  )
   val junit5Version = sys.props.getOrElse("TEST_JUNIT5_VERSION", "5.13.4")
   val spockGroovy4Version = "2.3-groovy-4.0"
   val spockGroovy5Version = "2.4-groovy-5.0"
 
   object HelloGroovy extends TestRootModule {
 
-    trait GroovyVersionCross extends GroovyModule with Cross.Module[String] {
+    trait GroovyVersionCross extends GroovyModule with Cross.Module2[String, Boolean] {
       override def groovyVersion: Task.Simple[String] = crossValue
     }
 
@@ -216,7 +222,7 @@ object HelloGroovyTests extends TestSuite {
       }
 
       def getBytecodeVersion(classFilePath: os.Path): BytecodeVersion = {
-        val classReader = new ClassReader(new FileInputStream(classFilePath.toIO))
+        val classReader = ClassReader(FileInputStream(classFilePath.toIO))
         val buffer = classReader.b
 
         // see https://en.wikipedia.org/wiki/Java_class_file#General_layout
@@ -261,7 +267,7 @@ object HelloGroovyTests extends TestSuite {
 
     test("compile & run Spock test") {
       testEval().scoped { eval =>
-        main.crossModules.foreach(m => {
+        main.crossModules.filter(_.crossValue2).foreach(m => {
           val Right(result1) = eval.apply(m.spock.tests.compile).runtimeChecked
           assert(
             os.walk(result1.value.classes.path).exists(_.last == "SpockTest.class")

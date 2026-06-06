@@ -13,12 +13,12 @@ class Bar extends Root {
 
 object Hello {
   def main(): Unit = {
-    new Foo()
+    Foo()
   }
 }
 
 // Regression test:
-// `new Foo()` should not conservatively fan out from Root.<init> to methods on sibling class Bar.
+// `Foo()` should not conservatively fan out from Root.<init> to methods on sibling class Bar.
 /* expected-direct-call-graph
 {
     "hello.Bar#<init>()void": [

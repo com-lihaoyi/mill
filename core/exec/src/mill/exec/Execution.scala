@@ -1,14 +1,15 @@
 package mill.exec
 
 import mill.api.daemon.internal.*
-import mill.constants.OutFiles.OutFiles.millProfile
+import mill.api.daemon.internal.{LauncherLocking, LauncherOutFiles}
 import mill.api.*
-import mill.internal.{CodeSigUtils, JsonArrayLogger, PrefixLogger, SpanningForest}
+import mill.internal.{CodeSigUtils, JsonArrayLogger, PrefixLogger, PromptWaitReporter}
 
 import java.util.concurrent.{ConcurrentHashMap, ThreadPoolExecutor}
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable
 import scala.concurrent.*
+import scala.util.{Failure, Success}
 
 /**
  * Core logic of evaluating tasks, without any user-facing helper methods
@@ -32,28 +33,26 @@ case class Execution(
     getEvaluator: () => EvaluatorApi,
     offline: Boolean,
     useFileLocks: Boolean,
+    workspaceLocking: LauncherLocking,
+    runArtifacts: LauncherOutFiles,
     staticBuildOverrideFiles: Map[java.nio.file.Path, String],
     enableTicker: Boolean,
     depth: Int,
     isFinalDepth: Boolean,
     // JSON string to avoid classloader issues when crossing classloader boundaries
     spanningInvalidationTree: Option[String],
+    // The filter is a raw string parsed into `Segments` lazily in `GroupExecution`, to avoid
+    // threading `Segments` across the reflective construction boundary.
+    remoteCacheLocation: Option[String] = None,
+    remoteCacheSalt: Option[String] = None,
+    remoteCacheFilter: Option[String] = None,
     // Tracks tasks invalidated due to version/classloader mismatch
-    versionMismatchReasons: ConcurrentHashMap[Task[?], String] = new ConcurrentHashMap()
+    versionMismatchReasons: ConcurrentHashMap[Task[?], String] = ConcurrentHashMap(),
+    replayLogs: Boolean
 ) extends GroupExecution with AutoCloseable {
 
   // Track nesting depth of executeTasks calls to only show final status on outermost call
-  private val executionNestingDepth = new AtomicInteger(0)
-
-  // Lazily computed worker dependency graph, cached for the duration of the execution. It's
-  // ok to take a snapshot of the cache, since the workerCache entries we may want to remove
-  // must be from previous evaluation runs and wouldn't be added as part of this evaluation
-  lazy val (workerDeps, reverseDeps, workerTopoIndex) = {
-    val cacheSnapshot = workerCache.synchronized { workerCache.toMap }
-    val deps = GroupExecution.workerDependencies(cacheSnapshot)
-    val topoIndex = deps.iterator.map(_._1).zipWithIndex.toMap
-    (deps, SpanningForest.reverseEdges(deps), topoIndex)
-  }
+  private val executionNestingDepth = AtomicInteger(0)
 
   // this (shorter) constructor is used from [[mill.daemon.MillBuildBootstrap]] via reflection
   def this(
@@ -74,15 +73,27 @@ case class Execution(
       getEvaluator: () => EvaluatorApi,
       offline: Boolean,
       useFileLocks: Boolean,
+      workspaceLocking: LauncherLocking,
+      runArtifacts: LauncherOutFiles,
       staticBuildOverrideFiles: Map[java.nio.file.Path, String],
       enableTicker: Boolean,
       depth: Int,
       isFinalDepth: Boolean,
       // JSON string to avoid classloader issues when crossing classloader boundaries
-      spanningInvalidationTree: Option[String]
+      spanningInvalidationTree: Option[String],
+      remoteCacheLocation: Option[String],
+      remoteCacheSalt: Option[String],
+      remoteCacheFilter: Option[String],
+      replayLogs: Boolean
   ) = this(
     baseLogger = baseLogger,
-    profileLogger = new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
+    // Only depth=0 (the user build) publishes through `runArtifacts`, so meta-build
+    // levels must write to their own per-depth `outPath / mill-profile.json` to avoid
+    // multiple Executions racing on the same file and producing a corrupted profile.
+    profileLogger = new JsonArrayLogger.Profile(
+      if (depth == 0) os.Path(runArtifacts.profile)
+      else os.Path(outPath) / mill.constants.OutFiles.millProfile
+    ),
     workspace = os.Path(workspace),
     outPath = os.Path(outPath),
     externalOutPath = os.Path(externalOutPath),
@@ -99,11 +110,17 @@ case class Execution(
     getEvaluator = getEvaluator,
     offline = offline,
     useFileLocks = useFileLocks,
+    workspaceLocking = workspaceLocking,
+    runArtifacts = runArtifacts,
     staticBuildOverrideFiles = staticBuildOverrideFiles,
     enableTicker = enableTicker,
     depth = depth,
     isFinalDepth = isFinalDepth,
-    spanningInvalidationTree = spanningInvalidationTree
+    spanningInvalidationTree = spanningInvalidationTree,
+    remoteCacheLocation = remoteCacheLocation,
+    remoteCacheSalt = remoteCacheSalt,
+    remoteCacheFilter = remoteCacheFilter,
+    replayLogs = replayLogs
   )
 
   def withBaseLogger(newBaseLogger: Logger) = {
@@ -129,14 +146,13 @@ case class Execution(
       goals: Seq[Task[?]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = TestReporter.DummyTestReporter,
-      logger: Logger = baseLogger,
-      serialCommandExec: Boolean = false
+      logger: Logger = baseLogger
   ): Execution.Results = logger.prompt.withPromptUnpaused {
     os.makeDir.all(outPath)
     executionNestingDepth.incrementAndGet()
     try {
       PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
-        execute0(goals, logger, reporter, testReporter, serialCommandExec)
+        execute0(goals, logger, reporter, testReporter)
       }
     } finally {
       executionNestingDepth.decrementAndGet()
@@ -149,15 +165,32 @@ case class Execution(
       reporter: Int => Option[
         CompileProblemReporter
       ] /* = _ => Option.empty[CompileProblemReporter]*/,
-      testReporter: TestReporter /* = TestReporter.DummyTestReporter*/,
-      serialCommandExec: Boolean
+      testReporter: TestReporter /* = TestReporter.DummyTestReporter*/
+  ): Execution.Results = {
+    while (true) {
+      try return execute0Once(goals, logger, reporter, testReporter)
+      catch {
+        case e: Execution.RetryDueToDroppedTaskLock =>
+          logger.debug(s"Retrying evaluation after concurrent rewrite of ${e.label}")
+      }
+    }
+    throw new AssertionError("unreachable")
+  }
+
+  private def execute0Once(
+      goals: Seq[Task[?]],
+      logger: Logger,
+      reporter: Int => Option[
+        CompileProblemReporter
+      ] /* = _ => Option.empty[CompileProblemReporter]*/,
+      testReporter: TestReporter /* = TestReporter.DummyTestReporter*/
   ): Execution.Results = {
     os.makeDir.all(outPath)
-    val failed = new AtomicBoolean(false)
-    val count = new AtomicInteger(1)
-    val completedCount = new AtomicInteger(0)
-    val rootFailedCount = new AtomicInteger(0) // Track only root failures
-    val planningLogger = new PrefixLogger(
+    val failed = AtomicBoolean(false)
+    val count = AtomicInteger(1)
+    val completedCount = AtomicInteger(0)
+    val rootFailedCount = AtomicInteger(0) // Track only root failures
+    val planningLogger = PrefixLogger(
       logger0 = baseLogger,
       key0 = Seq("planning"),
       message = "planning"
@@ -169,10 +202,14 @@ case class Execution(
       classToTransitiveClasses,
       allTransitiveClassMethods
     ) = planningLogger.withPromptLine {
-      val plan = PlanImpl.plan(goals)
-      val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
+      val plan = PlanImpl.plan(goals, effectiveInputs)
+      val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups, effectiveInputs)
       val indexToTerminal = plan.sortedGroups.keys().toArray
-      ExecutionLogs.logDependencyTree(interGroupDeps, indexToTerminal, outPath)
+      ExecutionLogs.logDependencyTree(
+        interGroupDeps,
+        indexToTerminal,
+        runArtifacts
+      )
       // Prepare a lookup tables up front of all the method names that each class owns,
       // and the class hierarchy, so during evaluation it is cheap to look up what class
       // each task belongs to determine of the enclosing class code signature changed.
@@ -200,9 +237,9 @@ case class Execution(
         s"$completedMsg$keySuffix$extraKeySuffix${Execution.formatFailedCount(rootFailedCount.get(), completed, logger.prompt.errorColor, logger.prompt.successColor)}"
       }
 
-      val tasksTransitive = PlanImpl.transitiveTasks(Seq.from(indexToTerminal)).toSet
+      val tasksTransitive = plan.transitive.toSet
       val downstreamEdges: Map[Task[?], Set[Task[?]]] =
-        tasksTransitive.flatMap(t => t.inputs.map(_ -> t)).groupMap(_._1)(_._2)
+        tasksTransitive.flatMap(t => effectiveInputs(t).map(_ -> t)).groupMap(_._1)(_._2)
 
       val allExclusiveCommands = tasksTransitive.filter(_.isExclusiveCommand)
       val downstreamOfExclusive =
@@ -210,23 +247,23 @@ case class Execution(
           downstreamEdges.getOrElse(t, Set())
         )
 
+      val tracker = new Execution.LeaseTracker(
+        indexToTerminal,
+        interGroupDeps
+      )
+
       def evaluateTerminals(
           terminals: Seq[Task[?]],
           exclusive: Boolean
       ) = {
         val forkExecutionContext =
-          ec.fold(ExecutionContexts.RunNow)(new ExecutionContexts.ThreadPool(_))
+          ec.fold(ExecutionContexts.RunNow)(ExecutionContexts.ThreadPool(_))
         implicit val taskExecutionContext =
           if (exclusive) ExecutionContexts.RunNow else forkExecutionContext
-        // We walk the task graph in topological order and schedule the futures
-        // to run asynchronously. During this walk, we store the scheduled futures
-        // in a dictionary. When scheduling each future, we are guaranteed that the
-        // necessary upstream futures will have already been scheduled and stored,
-        // due to the topological order of traversal.
         for (terminal <- terminals) {
           val deps = interGroupDeps(terminal)
 
-          val group = plan.sortedGroups.lookupKey(terminal)
+          val group = plan.sortedGroups.lookupKey(terminal).toSeq
           val exclusiveDeps = deps.filter(d => d.isExclusiveCommand)
 
           if (terminal.asCommand.isEmpty && downstreamOfExclusive.contains(terminal)) {
@@ -238,11 +275,12 @@ case class Execution(
               .map(t => (t, failure))
               .toMap
 
+            tracker.onCompleted(terminal)
             futures(terminal) = Future.successful(
               Some(GroupExecution.Results(
                 newResults = taskResults,
                 newEvaluated = group.toSeq,
-                cached = false,
+                cacheStatus = GroupExecution.CacheStatus.Recomputed,
                 inputsHash = -1,
                 previousInputsHash = -1,
                 valueHashChanged = false,
@@ -250,173 +288,231 @@ case class Execution(
               ))
             )
           } else {
-            futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
-              try {
-                val countMsg = mill.api.internal.Util.leftPad(
-                  count.getAndIncrement().toString,
-                  terminals.length.toString.length,
-                  '0'
-                )
+            val raw = Future.sequence(deps.map(futures)).map {
+              upstreamValues =>
+                try {
+                  val countMsg = mill.api.internal.Util.leftPad(
+                    count.getAndIncrement().toString,
+                    terminals.length.toString.length,
+                    '0'
+                  )
 
-                val contextLogger = new PrefixLogger(
-                  logger0 = logger,
-                  key0 = Seq(countMsg),
-                  keySuffix = keySuffix,
-                  message = terminal.toString,
-                  noPrefix = exclusive
-                )
+                  val contextLogger = PrefixLogger(
+                    logger0 = logger,
+                    key0 = Seq(countMsg),
+                    keySuffix = keySuffix,
+                    message = terminal.toString,
+                    noPrefix = exclusive
+                  )
 
-                if (enableTicker) prefixes.put(terminal, contextLogger.logKey)
-                contextLogger.withPromptLine {
-                  logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix())
-
-                  if (failed.get()) None
-                  else {
-                    val upstreamResults = upstreamValues
-                      .iterator
-                      .flatMap(_.iterator.flatMap(_.newResults))
-                      .toMap
-
-                    val upstreamPathRefs = upstreamValues
-                      .iterator
-                      .flatMap(_.iterator.flatMap(_.serializedPaths))
-                      .toSeq
-
-                    val startTime = System.nanoTime() / 1000
-
-                    val res = executeGroupCached(
-                      terminal = terminal,
-                      group = plan.sortedGroups.lookupKey(terminal).toSeq,
-                      results = upstreamResults,
-                      countMsg = countMsg,
-                      zincProblemReporter = reporter,
-                      testReporter = testReporter,
-                      logger = contextLogger,
-                      deps = deps,
-                      classToTransitiveClasses = classToTransitiveClasses,
-                      allTransitiveClassMethods = allTransitiveClassMethods,
-                      executionContext = forkExecutionContext,
-                      exclusive = exclusive,
-                      upstreamPathRefs = upstreamPathRefs
-                    )
-
-                    // Count new failures - if there are upstream failures, tasks should be skipped, not failed
-                    val newFailures = res.newResults.values.count(r => r.asFailing.isDefined)
-
-                    rootFailedCount.addAndGet(newFailures)
-                    completedCount.incrementAndGet()
-
-                    // Always show completed count in header after task finishes
+                  if (enableTicker) prefixes.put(terminal, contextLogger.logKey)
+                  contextLogger.withPromptLine {
                     logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix())
 
-                    if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
-                      failed.set(true)
+                    if (failed.get()) None
+                    else {
+                      val upstreamResults =
+                        mutable.HashMap.empty[Task[?], ExecResult[(Val, Int)]]
+                      val upstreamPathRefs = mutable.ArrayBuffer.empty[PathRef]
+                      upstreamValues.foreach {
+                        case Some(results) =>
+                          upstreamResults.addAll(results.newResults)
+                          upstreamPathRefs.addAll(results.serializedPaths)
+                        case None =>
+                      }
 
-                    val endTime = System.nanoTime() / 1000
-                    val duration = endTime - startTime
+                      val startTime = System.nanoTime() / 1000
 
-                    if (!res.cached) uncached.put(terminal, ())
-                    if (res.valueHashChanged) changedValueHash.put(terminal, ())
+                      val res = executeGroupCached(
+                        terminal = terminal,
+                        group = group,
+                        results = upstreamResults,
+                        countMsg = countMsg,
+                        zincProblemReporter = reporter,
+                        testReporter = testReporter,
+                        logger = contextLogger,
+                        deps = deps,
+                        classToTransitiveClasses = classToTransitiveClasses,
+                        allTransitiveClassMethods = allTransitiveClassMethods,
+                        executionContext = forkExecutionContext,
+                        exclusive = exclusive,
+                        upstreamPathRefs = upstreamPathRefs,
+                        leaseTracker = tracker
+                      )
 
-                    profileLogger.log(
-                      terminal.toString,
-                      duration,
-                      res.cached,
-                      res.valueHashChanged,
-                      deps.map(_.toString),
-                      res.inputsHash,
-                      res.previousInputsHash
-                    )
+                      // Skipped (upstream-failed) tasks are not counted as new failures.
+                      val newFailures = res.newResults.values.count(r => r.asFailing.isDefined)
 
-                    Some(res)
+                      rootFailedCount.addAndGet(newFailures)
+                      completedCount.incrementAndGet()
+
+                      logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix())
+
+                      if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
+                        failed.set(true)
+
+                      val endTime = System.nanoTime() / 1000
+                      val duration = endTime - startTime
+
+                      if (res.cacheStatus == GroupExecution.CacheStatus.Recomputed)
+                        uncached.put(terminal, ())
+                      if (res.valueHashChanged) changedValueHash.put(terminal, ())
+
+                      profileLogger.log(
+                        terminal.toString,
+                        duration,
+                        res.cacheStatus.profileValue,
+                        res.valueHashChanged,
+                        deps.map(_.toString),
+                        res.inputsHash,
+                        res.previousInputsHash
+                      )
+
+                      Some(res)
+                    }
                   }
+                } catch {
+                  // Controlled shutdown signal; let it propagate.
+                  case e: mill.api.daemon.StopWithResponse[?] => throw e
+                  // Wrap fatal so the Future infrastructure catches it; otherwise
+                  // downstream Awaits hang on a silently-terminated future.
+                  case e: Throwable if !mill.api.daemon.internal.NonFatal(e) =>
+                    val nonFatal = Exception(s"fatal exception occurred: $e", e)
+                    nonFatal.setStackTrace(e.getStackTrace)
+                    throw nonFatal
                 }
-              } catch {
-                // Let StopWithResponse propagate - it's a controlled shutdown signal
-                case e: mill.api.daemon.StopWithResponse[?] => throw e
-                // Wrapping the fatal error in a non-fatal exception, so it would be caught by Scala's Future
-                // infrastructure, rather than silently terminating the future and leaving downstream Awaits hanging.
-                case e: Throwable if !mill.api.daemon.internal.NonFatal(e) =>
-                  val nonFatal = new Exception(s"fatal exception occurred: $e", e)
-                  // Set the stack trace of the non-fatal exception to the original exception's stack trace
-                  // as it actually indicates the location of the error.
-                  nonFatal.setStackTrace(e.getStackTrace)
-                  throw nonFatal
-              }
+            }
+            // andThen so onCompleted fires even when an upstream throw
+            // skips the .map body; otherwise transitive downstream
+            // pending counts and Read leases leak until tracker.drain().
+            futures(terminal) = raw.andThen { case _ => tracker.onCompleted(terminal) }
+          }
+        }
+
+        // Wait for every future to settle (Try-wrapped, not fail-fast)
+        // so the outer `tracker.drain()` finally can't race a sibling
+        // still mid-`retain`/`onCompleted`; first failure rethrown after.
+        val settled = Future.sequence(
+          terminals.map(t => futures(t).transform(r => Success(t -> r)))
+        )
+        Await.result(settled, duration.Duration.Inf).map {
+          case (t, Success(v)) => (t, v)
+          case (_, Failure(e)) => throw e
+        }
+      }
+
+      try {
+        val (nonExclusiveTasks, leafExclusiveCommands) = indexToTerminal.partition {
+          case t: Task.Named[_] => !downstreamOfExclusive.contains(t)
+          case _ => true
+        }
+
+        val batchWaitReporter =
+          PromptWaitReporter.fromLogger(logger, baseLogger.streams.err)
+        def withExclusiveLease[A](kind: LauncherLocking.LockKind)(body: => A): A = {
+          val lease = workspaceLocking.exclusiveLock(kind, batchWaitReporter)
+          try body
+          finally lease.close()
+        }
+
+        // Whole-batch Write rather than splitting Read/Write across phases:
+        // splitting would let a peer rewrite an upstream `dest` between
+        // our Read-drain and Write-acquire, racing our retained-Read
+        // invariants and corrupting downstream consumers.
+        // Only `globalExclusive` commands need the daemon-wide Write lock;
+        // plain `exclusive` commands still serialize within this batch but
+        // can overlap with other launchers' tasks.
+        val haveExclusive = leafExclusiveCommands.nonEmpty
+        val haveGlobalExclusive = leafExclusiveCommands.exists(_.isGlobalExclusiveCommand)
+        val outerKind =
+          if (haveGlobalExclusive) LauncherLocking.LockKind.Write
+          else LauncherLocking.LockKind.Read
+
+        val empty = Seq.empty[(Task[?], Option[GroupExecution.Results])]
+
+        def runBatch(): (
+            Seq[(Task[?], Option[GroupExecution.Results])],
+            Seq[(Task[?], Option[GroupExecution.Results])]
+        ) = {
+          val ne =
+            if (nonExclusiveTasks.isEmpty) empty
+            else evaluateTerminals(nonExclusiveTasks, exclusive = false).toSeq
+          val ex = leafExclusiveCommands.flatMap { terminal =>
+            evaluateTerminals(Seq(terminal), exclusive = true)
+          }.toSeq
+          (ne, ex)
+        }
+
+        val (nonExclusiveResults, exclusiveResults) =
+          if (nonExclusiveTasks.isEmpty && !haveExclusive) (empty, empty)
+          // Suspend any outer-batch exclusive lease this launcher already
+          // holds so a nested call (e.g. from `show`'s body invoking
+          // `Evaluator.execute`) can take its own without self-deadlocking on
+          // the non-reentrant underlying lock. No-op when nothing is held.
+          else workspaceLocking.withReleasedExclusive(batchWaitReporter)(
+            withExclusiveLease(outerKind)(runBatch())
+          )
+
+        // FAILED on any outermost failure (meta-build failure aborts bootstrap);
+        // SUCCESS only at the final requested depth.
+        val isOutermostExecution = executionNestingDepth.get() == 1
+        val hasFailures = rootFailedCount.get() > 0
+        val showFinalStatus = isOutermostExecution && (hasFailures || isFinalDepth)
+        logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(completed = showFinalStatus))
+
+        logger.prompt.clearPromptStatuses()
+
+        val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
+
+        val taskInvalidationReasons = {
+          import scala.jdk.CollectionConverters.ConcurrentMapHasAsScala
+          versionMismatchReasons.asScala.collect {
+            case (t: Task.Named[?], reason) => t.ctx.segments.render -> reason
+          }.toMap
+        }
+
+        ExecutionLogs.logInvalidationTree(
+          interGroupDeps = interGroupDeps,
+          runArtifacts = runArtifacts,
+          uncached = uncached,
+          changedValueHash = changedValueHash,
+          spanningInvalidationTree = spanningInvalidationTree,
+          taskInvalidationReasons = taskInvalidationReasons
+        )
+
+        val results0: Array[(Task[?], ExecResult[(Val, Int)])] = indexToTerminal
+          .map { t =>
+            finishedOptsMap(t) match {
+              case None => (t, ExecResult.Skipped)
+              case Some(res) =>
+                var first: ExecResult[(Val, Int)] = null
+                var failing: ExecResult[(Val, Int)] = null
+                def observe(result: ExecResult[(Val, Int)]): Unit = {
+                  if (first == null) first = result
+                  if (failing == null && result.asFailing.isDefined) failing = result
+                }
+                res.newResults.get(t).foreach(observe)
+                val group = plan.sortedGroups.lookupKey(t)
+                group.foreach(t0 => res.newResults.get(t0).foreach(observe))
+
+                if (first == null) {
+                  throw new NoSuchElementException(s"No result found for $t")
+                }
+                Tuple2(t, if (failing == null) first else failing)
+
             }
           }
-        }
 
-        // Make sure we wait for all tasks from this batch to finish before starting the next
-        // one, so we don't mix up exclusive and non-exclusive tasks running at the same time
-        terminals.map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
-      }
+        val results: Map[Task[?], ExecResult[(Val, Int)]] = results0.toMap
 
-      val (nonExclusiveTasks, leafExclusiveCommands) = indexToTerminal.partition {
-        case t: Task.Named[_] => !downstreamOfExclusive.contains(t)
-        case _ => !serialCommandExec
-      }
-
-      // Run all non-command tasks according to the threads
-      // given but run the commands in linear order
-      val nonExclusiveResults = evaluateTerminals(nonExclusiveTasks, exclusive = false)
-
-      val exclusiveResults = evaluateTerminals(leafExclusiveCommands, exclusive = true)
-
-      // Set final header showing SUCCESS/FAILED status:
-      // - FAILED: show for any outermost execution with failures (meta-build failures terminate bootstrapping)
-      // - SUCCESS: only show for the final requested depth (depth 0 normally, or --meta-level if specified)
-      val isOutermostExecution = executionNestingDepth.get() == 1
-      val hasFailures = rootFailedCount.get() > 0
-      val showFinalStatus = isOutermostExecution && (hasFailures || isFinalDepth)
-      logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(completed = showFinalStatus))
-
-      logger.prompt.clearPromptStatuses()
-
-      val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
-
-      // Convert versionMismatchReasons to Map[String, String] for InvalidationForest
-      val taskInvalidationReasons = {
-        import scala.jdk.CollectionConverters.ConcurrentMapHasAsScala
-        versionMismatchReasons.asScala.collect {
-          case (t: Task.Named[?], reason) => t.ctx.segments.render -> reason
-        }.toMap
-      }
-
-      ExecutionLogs.logInvalidationTree(
-        interGroupDeps = interGroupDeps,
-        outPath = outPath,
-        uncached = uncached,
-        changedValueHash = changedValueHash,
-        spanningInvalidationTree = spanningInvalidationTree,
-        taskInvalidationReasons = taskInvalidationReasons
-      )
-
-      val results0: Array[(Task[?], ExecResult[(Val, Int)])] = indexToTerminal
-        .map { t =>
-          finishedOptsMap(t) match {
-            case None => (t, ExecResult.Skipped)
-            case Some(res) =>
-              Tuple2(
-                t,
-                (Seq(t) ++ plan.sortedGroups.lookupKey(t))
-                  .flatMap { t0 => res.newResults.get(t0) }
-                  .sortBy(!_.isInstanceOf[ExecResult.Failing[?]])
-                  .head
-              )
-
-          }
-        }
-
-      val results: Map[Task[?], ExecResult[(Val, Int)]] = results0.toMap
-
-      import scala.collection.JavaConverters.*
-      Execution.Results(
-        goals.toIndexedSeq.map(results(_).map(_._1)),
-        finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated)).toSeq,
-        results.map { case (k, v) => (k, v.map(_._1)) },
-        prefixes.asScala.toMap
-      )
+        import scala.jdk.CollectionConverters.*
+        Execution.Results(
+          goals.toIndexedSeq.map(results(_).map(_._1)),
+          finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated)).toSeq,
+          results.map { case (k, v) => (k, v.map(_._1)) },
+          prefixes.asScala.toMap
+        )
+      } finally tracker.drain()
     }
   }
 
@@ -426,6 +522,267 @@ case class Execution(
 }
 
 object Execution {
+  class RetryDueToDroppedTaskLock(val label: String) extends RuntimeException(label)
+
+  /**
+   * Tracks per-task read leases on the workspace lock and releases them once
+   * every transitive downstream task that depends on the holder has completed.
+   *
+   * The transitive part matters because a direct downstream can forward
+   * PathRefs or other data from an upstream output to its own downstreams.
+   * Releasing the upstream read lease when only the direct downstream completes
+   * would let a concurrent launcher overwrite that output while a later
+   * transitive downstream may still read it.
+   */
+  class LeaseTracker(
+      indexToTerminal: Array[Task[?]],
+      interGroupDeps: Map[Task[?], Seq[Task[?]]]
+  ) {
+    class Retained(
+        val path: java.nio.file.Path,
+        val label: String,
+        val key: String,
+        var lease: LauncherLocking.Lease,
+        var observedVersion: Long
+    ) {
+      var dropped: Boolean = false
+    }
+
+    class State(initialPending: Int) {
+      val pending = AtomicInteger(initialPending)
+      val completed = AtomicBoolean(false)
+      val activeConsumers = AtomicInteger(0)
+      var retained: Retained = null
+    }
+
+    val states = new ConcurrentHashMap[Task[?], State]()
+
+    // Index of the states with a dropped retained read, so `reacquireDropped`
+    // visits only those instead of scanning the whole graph. A `State` has at
+    // most one retained, so membership mirrors `Retained.dropped` exactly.
+    private val droppedStates = ConcurrentHashMap.newKeySet[State]()
+
+    def hasDropped: Boolean = !droppedStates.isEmpty
+
+    // Flip `Retained.dropped` and the index together; call under `s`'s monitor.
+    private def markDropped(s: State, retained: Retained): Unit =
+      if (!retained.dropped) {
+        retained.dropped = true
+        droppedStates.add(s)
+      }
+    private def clearDropped(s: State, retained: Retained): Unit =
+      if (retained.dropped) {
+        retained.dropped = false
+        droppedStates.remove(s)
+      }
+    // `indexToTerminal` is in topological order, so each dep's transitive upstreams are
+    // already computed; union them in a single pass rather than running an independent
+    // DFS per terminal that re-walks shared ancestors (O(V*(V+E)) on deep/dense graphs).
+    private val transitiveUpstreams: Map[Task[?], Seq[Task[?]]] = {
+      val out = mutable.LinkedHashMap.empty[Task[?], Seq[Task[?]]]
+      for (task <- indexToTerminal) {
+        val seen = mutable.LinkedHashSet.empty[Task[?]]
+        for (dep <- interGroupDeps.getOrElse(task, Nil)) {
+          seen += dep
+          out.get(dep).foreach(seen ++= _)
+        }
+        out(task) = seen.toSeq
+      }
+      out.toMap
+    }
+
+    locally {
+      val pendingCounts = mutable.Map.empty[Task[?], Int].withDefaultValue(0)
+      for ((_, upstreams) <- interGroupDeps; up <- upstreams)
+        pendingCounts(up) = pendingCounts(up) + 1
+      for (t <- indexToTerminal) states.put(t, State(pendingCounts.getOrElse(t, 0)))
+    }
+
+    private def closeQuietly(lease: LauncherLocking.Lease): Unit =
+      try lease.close()
+      catch { case _: Throwable => () }
+
+    private def drainLeases(s: State): Unit = s.synchronized {
+      val retained = s.retained
+      s.retained = null
+      if (retained != null) {
+        clearDropped(s, retained) // drop the index entry before discarding it
+        if (retained.lease != null) {
+          closeQuietly(retained.lease)
+          retained.lease = null
+        }
+      }
+    }
+
+    private def releaseIfDrained(start: Task[?]): Unit = releaseIfDrained(Seq(start))
+    private def releaseIfDrained(starts: IterableOnce[Task[?]]): Unit = {
+      val queue = mutable.Queue.from(starts)
+      while (queue.nonEmpty) {
+        val task = queue.dequeue()
+        val s = states.get(task)
+        if (
+          s != null &&
+          s.completed.get() &&
+          s.pending.get() == 0 &&
+          s.activeConsumers.get() == 0 &&
+          states.remove(task, s)
+        ) {
+          drainLeases(s)
+          for (upstream <- interGroupDeps.getOrElse(task, Nil)) {
+            val upstreamState = states.get(upstream)
+            if (upstreamState != null) {
+              upstreamState.pending.decrementAndGet()
+              queue.enqueue(upstream)
+            }
+          }
+        }
+      }
+    }
+
+    def retain(
+        task: Task[?],
+        path: java.nio.file.Path,
+        label: String,
+        lease: LauncherLocking.Lease,
+        observedVersion: Long
+    ): Unit = {
+      val s = states.get(task)
+      if (s != null) s.synchronized {
+        if (s.retained != null) {
+          clearDropped(s, s.retained)
+          if (s.retained.lease != null) closeQuietly(s.retained.lease)
+        }
+        s.retained = Retained(
+          path = path,
+          label = label,
+          key = path.toAbsolutePath.normalize().toString,
+          lease = lease,
+          observedVersion = observedVersion
+        )
+      }
+      else closeQuietly(lease)
+    }
+
+    def releaseHigherThan(key: String): Unit = {
+      import scala.jdk.CollectionConverters.*
+      for (s <- states.values().asScala) s.synchronized {
+        val retained = s.retained
+        if (
+          retained != null &&
+          retained.lease != null &&
+          retained.key > key &&
+          s.activeConsumers.get() == 0
+        ) {
+          closeQuietly(retained.lease)
+          retained.lease = null
+          markDropped(s, retained)
+        }
+      }
+    }
+
+    def reacquireDropped(
+        workspaceLocking: LauncherLocking,
+        waitReporter: LauncherLocking.WaitReporter,
+        // `block = false` is mandatory while holding any task Write lease.
+        // Blocking Read reacquisition can wait for a peer writer, and allowing
+        // a writer to block on another task lock can recreate the exact
+        // cross-task wait cycle that ordered dropping is meant to avoid.
+        // Blocking reacquisition is only safe from read/cache-probe paths and
+        // non-Named groups, where this evaluation does not hold a task Write.
+        block: Boolean = true
+    ): Unit = {
+      if (!hasDropped) return // nothing dropped: skip the scan (the common case)
+      import scala.jdk.CollectionConverters.*
+      // Snapshot of the index; each entry is re-validated under its monitor below.
+      val dropped = droppedStates.asScala.toSeq.flatMap { s =>
+        s.synchronized {
+          val retained = s.retained
+          Option.when(retained != null && retained.dropped && retained.lease == null)(s -> retained)
+        }
+      }.sortBy(_._2.key)
+
+      for ((s, retained) <- dropped) {
+        val lease =
+          if (block) {
+            workspaceLocking.taskLock(
+              retained.path,
+              retained.label,
+              LauncherLocking.LockKind.Read,
+              waitReporter
+            )
+          } else {
+            workspaceLocking.tryTaskReadLock(retained.path, retained.label) match {
+              case Right(lease) => lease
+              case Left(_) => throw RetryDueToDroppedTaskLock(retained.label)
+            }
+          }
+        val currentVersion = workspaceLocking.taskVersion(retained.path)
+        if (currentVersion != retained.observedVersion) {
+          closeQuietly(lease)
+          throw RetryDueToDroppedTaskLock(retained.label)
+        }
+        s.synchronized {
+          if ((s.retained eq retained) && retained.dropped && retained.lease == null) {
+            retained.lease = lease
+            clearDropped(s, retained)
+          } else closeQuietly(lease)
+        }
+      }
+    }
+
+    /**
+     * Mark every transitive upstream of `terminal` as having an active consumer
+     * for the duration of `body`, so [[releaseHigherThan]] will not drop their
+     * retained reads while `body` may still read those outputs.
+     *
+     * Incrementing alone is not sufficient: a sibling future may already have
+     * dropped (or be concurrently dropping) one of those reads in the window
+     * before we incremented, and the increment never re-takes a lease that is
+     * already gone. So *after* marking the upstreams active — which blocks any
+     * further drops, since [[releaseHigherThan]] skips tasks whose
+     * `activeConsumers` is non-zero — we `reacquire()` to re-take and
+     * re-validate anything dropped beforehand, before `body` (user code or
+     * worker cleanup) can observe an unprotected upstream `dest/`. `reacquire`
+     * may throw [[RetryDueToDroppedTaskLock]] if an upstream was rewritten by a
+     * peer while it was dropped, forcing a from-scratch retry.
+     */
+    def withActiveConsumers[T](terminal: Task[?], reacquire: () => Unit)(body: => T): T = {
+      val upstreams = transitiveUpstreams.getOrElse(terminal, Nil)
+      upstreams.foreach { task =>
+        val s = states.get(task)
+        if (s != null) s.activeConsumers.incrementAndGet()
+      }
+      try {
+        reacquire()
+        body
+      } finally {
+        upstreams.foreach { task =>
+          val s = states.get(task)
+          if (s != null) s.activeConsumers.decrementAndGet()
+        }
+        // One BFS over the whole upstream union: the `states.remove` CAS dedups work
+        // across seeds, so this is linear in the upstream subgraph rather than the
+        // O(upstreams) separate BFS traversals a per-upstream call would do.
+        releaseIfDrained(upstreams)
+      }
+    }
+
+    def onCompleted(terminal: Task[?]): Unit = {
+      val own = states.get(terminal)
+      if (own != null) {
+        own.completed.set(true)
+        releaseIfDrained(terminal)
+      }
+    }
+
+    def drain(): Unit = {
+      import scala.jdk.CollectionConverters.*
+      states.keys().asScala.toList.foreach { task =>
+        val s = states.remove(task)
+        if (s != null) drainLeases(s)
+      }
+    }
+  }
 
   /**
    * Format a failed count as a string to be used in status messages.
@@ -446,18 +803,36 @@ object Execution {
     }
   }
 
-  def findInterGroupDeps(sortedGroups: MultiBiMap[Task[?], Task[?]])
-      : Map[Task[?], Seq[Task[?]]] = {
+  def findInterGroupDeps(
+      sortedGroups: MultiBiMap[Task[?], Task[?]],
+      effectiveInputs: Task[?] => Seq[Task[?]] = _.inputs
+  ): Map[Task[?], Seq[Task[?]]] = {
     val out = Map.newBuilder[Task[?], Seq[Task[?]]]
+    val terminalOrder = sortedGroups.keys().zipWithIndex.toMap
     for ((terminal, group) <- sortedGroups) {
       val groupSet = group.toSet
-      out.addOne(
-        terminal -> groupSet
-          .flatMap(
-            _.inputs.collect { case f if !groupSet.contains(f) => sortedGroups.lookupValue(f) }
+      val deps = mutable.LinkedHashSet.empty[Task[?]]
+      for {
+        task <- group
+        input <- effectiveInputs(task)
+        if !groupSet.contains(input)
+      } input match {
+        // Anonymous tasks aren't deterministic group cut-points
+        // (see PlanImpl.plan), so a non-Named upstream escaping here
+        // means grouping is wrong; fail loudly rather than wire the
+        // dep to an arbitrary group.
+        case f: Task.Named[?] => deps += f
+        case f =>
+          throw new AssertionError(
+            s"Non-Named external dependency $f escaping group of $terminal; " +
+              s"groupAroundImportantTasks must cut at every named task."
           )
-          .toVector
-          .sortBy(_.toString)
+      }
+      out.addOne(
+        // Every dep is a `Task.Named` (asserted above) and, under the sole caller, a
+        // grouping cut point, so it is always a `terminalOrder` key; index directly so a
+        // real grouping inconsistency throws loudly rather than sorting an unknown dep last.
+        terminal -> deps.toVector.sortBy(t => terminalOrder(t))
       )
     }
     out.result()

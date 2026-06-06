@@ -5,7 +5,7 @@ object Foo {
 
   def main(args: Array[String]): Unit = {
     val filePath = args(0)
-    val fi = new InputReader(new java.io.FileInputStream(filePath))
+    val fi = InputReader(new java.io.FileInputStream(filePath))
     try {
       while (
         fi.nextLine() match {

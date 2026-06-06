@@ -282,7 +282,7 @@ private object TabCompleteModule extends ExternalModule {
    * to instead write it to a manually-specified destination path
    */
   @nonBootstrapped
-  def install(dest: os.Path = null) = Task.Command(exclusive = true) {
+  def install(dest: os.Path = null) = Task.Command(globalExclusive = true) {
     val script = os.read(os.resource / "mill/tabcomplete/complete.sh")
 
     def writeLoudly(path: os.Path, contents: String) = {

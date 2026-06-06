@@ -46,7 +46,7 @@ private[mill] object Mirrors {
   transparent inline given autoPath[R, T <: R]: Path[R, T] =
     ${ Internal.autoPathImpl[R, T] }
 
-  def makeRoot[T](ms: Map[String, Mirror]): Root[T] = new Internal.Rooted(ms)
+  def makeRoot[T](ms: Map[String, Mirror]): Root[T] = Internal.Rooted(ms)
 
   final class AutoSum[T, L <: String, Ns <: Tuple, Ts <: Tuple](ord: T => Int) extends Mirror.Sum {
     type MirroredType = T
@@ -397,7 +397,7 @@ private[mill] object Mirrors {
         val defaultCase = CaseDef(
           Wildcard(),
           None,
-          '{ throw new IllegalArgumentException(s"Unknown argument ${$arg}") }.asTerm
+          '{ throw IllegalArgumentException(s"Unknown argument ${$arg}") }.asTerm
         )
         val matchExpr = Match(arg.asTerm, cases :+ defaultCase)
         matchExpr.asExprOf[Int]
@@ -409,7 +409,7 @@ private[mill] object Mirrors {
       val innerMirrors = structure.cases.collect({
         case (child, MirrorKind.SingletonProxy) =>
           val mirror = '{
-            new Mirror.SingletonProxy(${ Ref(child.companionModule).asExprOf[AnyRef] })
+            Mirror.SingletonProxy(${ Ref(child.companionModule).asExprOf[AnyRef] })
           }
           (child.name, mirror)
         case (child, MirrorKind.Product)

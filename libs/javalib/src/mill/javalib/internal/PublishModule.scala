@@ -34,7 +34,7 @@ private[mill] object PublishModule {
       pgpWorker: PgpWorkerApi
   ): Option[String] =
     pgpImportSecretIfProvided(env, pgpWorker).map(_.fold(
-      err => throw new IllegalArgumentException(err),
+      err => throw IllegalArgumentException(err),
       identity
     ))
 
@@ -157,7 +157,7 @@ private[mill] object PublishModule {
         maybePassphrase: Option[String]
     ): Option[GpgKey] =
       createFromEnvVars(maybeKeyId, maybePassphrase)
-        .map(_.fold(err => throw new IllegalArgumentException(err), identity))
+        .map(_.fold(err => throw IllegalArgumentException(err), identity))
 
     def gpgArgsForPassphrase(passphrase: Option[String]): Seq[PossiblySecret[String]] =
       passphrase.iterator.flatMap(p => Iterator("--passphrase", Secret(p))).toSeq

@@ -65,6 +65,8 @@
 ** xref:large/selective-execution.adoc[]
 ** xref:large/multi-file-builds.adoc[]
 ** xref:large/multi-language-builds.adoc[]
+** xref:large/pre-compiled-modules.adoc[]
+** xref:large/remote-caching.adoc[]
 // This section talks about Mill plugins. While it could theoretically fit in
 // either section above, it is probably an important enough topic it is worth
 // breaking out on its own
@@ -75,6 +77,7 @@
 *** xref:contrib/artifactory.adoc[]
 *** xref:contrib/buildinfo.adoc[]
 *** xref:contrib/codeartifact.adoc[]
+*** xref:contrib/owaspdependencycheck.adoc[]
 *** xref:contrib/docker.adoc[]
 *** xref:contrib/flyway.adoc[]
 *** xref:contrib/gitlab.adoc[]
@@ -102,6 +105,7 @@
 *** xref:android/java.adoc[]
 *** xref:android/kotlin.adoc[]
 *** xref:android/scala.adoc[]
+*** xref:android/publishing.adoc[]
 *** xref:android/android-linting.adoc[]
 *** xref:android/compose-samples.adoc[]
 *** xref:android/hilt-sample.adoc[]

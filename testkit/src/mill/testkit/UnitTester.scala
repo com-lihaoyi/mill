@@ -81,7 +81,7 @@ class UnitTester(
   } else {
     sourceRoot match {
       case Some(sourceRoot) =>
-        throw new IllegalArgumentException(
+        throw IllegalArgumentException(
           s"Cannot provide sourceRoot=$sourceRoot when resetSourcePath=false"
         )
       case None => // ok
@@ -122,7 +122,7 @@ class UnitTester(
     else Some(mill.exec.ExecutionContexts.createExecutor(effectiveThreadCount))
 
   val execution = new mill.exec.Execution(
-    baseLogger = new mill.internal.PrefixLogger(logger, Nil),
+    baseLogger = mill.internal.PrefixLogger(logger, Nil),
     profileLogger = new mill.internal.JsonArrayLogger.Profile(outPath / millProfile),
     workspace = module.moduleDir,
     outPath = outPath,
@@ -137,15 +137,18 @@ class UnitTester(
     codeSignatures = Map(),
     systemExit = (reason, exitCode) =>
       throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
-    exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
+    exclusiveSystemStreams = SystemStreams(outStream, errStream, inStream),
     getEvaluator = () => evaluator,
     offline = offline,
     useFileLocks = false,
+    workspaceLocking = mill.api.daemon.internal.LauncherLocking.Noop,
+    runArtifacts = mill.api.daemon.internal.LauncherOutFiles.noop(outPath.toNIO),
     enableTicker = false,
     staticBuildOverrideFiles = Map(),
     depth = 0,
     isFinalDepth = true,
-    spanningInvalidationTree = None
+    spanningInvalidationTree = None,
+    replayLogs = false
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(
@@ -154,9 +157,14 @@ class UnitTester(
     execution = execution
   )
 
+  private def withWorkspaceRoot[T](body: => T): T =
+    BuildCtx.workspaceRoot0.withValue(module.moduleDir)(body)
+
   def apply(args: String*): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
-    Evaluator.withCurrentEvaluator(evaluator) {
-      evaluator.resolveTasks(args, SelectMode.Separated)
+    withWorkspaceRoot {
+      Evaluator.withCurrentEvaluator(evaluator) {
+        evaluator.resolveTasks(args, SelectMode.Separated)
+      }
     } match {
       case f: Result.Failure => Left(ExecResult.Failure(f.error))
       case Result.Success(resolved) => apply(resolved)
@@ -177,7 +185,9 @@ class UnitTester(
       tasks: Seq[Task[?]]
   ): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
 
-    val evaluated = evaluator.execute(tasks.asInstanceOf[Seq[Task[Any]]]).executionResults
+    val evaluated = withWorkspaceRoot {
+      evaluator.execute(tasks.asInstanceOf[Seq[Task[Any]]]).executionResults
+    }
 
     if (evaluated.transitiveFailing.nonEmpty) Left(evaluated.transitiveFailing.values.head)
     else {
@@ -203,11 +213,13 @@ class UnitTester(
       expectedRawValues: Seq[ExecResult[?]]
   ): Unit = {
 
-    val res = evaluator.execute(Seq(task)).executionResults
+    val res = withWorkspaceRoot {
+      evaluator.execute(Seq(task)).executionResults
+    }
 
     val cleaned = res.results.map {
       case ExecResult.Exception(ex, _) =>
-        ExecResult.Exception(ex, new OuterStack(Nil))
+        ExecResult.Exception(ex, OuterStack(Nil))
       case x => x.map(_.value)
     }
 
@@ -218,7 +230,9 @@ class UnitTester(
 
   def check(tasks: Seq[Task[?]], expected: Seq[Task[?]]): Unit = {
 
-    val evaluated = evaluator.execute(tasks.asInstanceOf[Seq[Task[Any]]]).executionResults
+    val evaluated = withWorkspaceRoot {
+      evaluator.execute(tasks.asInstanceOf[Seq[Task[Any]]]).executionResults
+    }
       .uncached
       .flatMap(_.asSimple)
       .filter(module.moduleInternal.simpleTasks.contains)
@@ -232,7 +246,7 @@ class UnitTester(
   /** Replaces the [[BuildCtx.workspaceRoot]] for the given scope with [[module.moduleDir]]. */
   def scoped[T](tester: UnitTester => T): T = {
     try {
-      BuildCtx.workspaceRoot0.withValue(module.moduleDir) {
+      withWorkspaceRoot {
         mill.api.daemon.LauncherSubprocess.withValue(config =>
           DaemonRpc
             .defaultRunSubprocessWithStreams(None)(DaemonRpc.ServerToClient.RunSubprocess(config))

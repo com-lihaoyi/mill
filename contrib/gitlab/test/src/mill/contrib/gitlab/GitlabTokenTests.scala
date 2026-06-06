@@ -134,7 +134,7 @@ object GitlabTokenTests extends TestSuite {
       }
 
       val repo = ProjectRepository("https://gitlab.local", 10)
-      val publisher = new GitlabPublisher(uploader, repo, DummyLogger)
+      val publisher = GitlabPublisher(uploader, repo, DummyLogger)
 
       val fakeFile = os.pwd / "dummy.data"
       os.write(fakeFile, Array[Byte]())

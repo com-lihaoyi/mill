@@ -40,7 +40,7 @@ object TestReporter {
   }
 
   def apply(logLevel: LogLevel): TestReporter =
-    new DefaultImpl(logLevel)
+    DefaultImpl(logLevel)
 
   private final class DefaultImpl(override val logLevel: LogLevel) extends TestReporter {
     override def logStart(event: Event): Unit = {}

@@ -1,7 +1,7 @@
 package mill.kotlinlib.detekt
 
 import mill.*
-import mill.api.{PathRef}
+import mill.api.PathRef
 import mill.kotlinlib.{DepSyntax, KotlinModule, Versions}
 import mill.util.Jvm
 import mill.api.BuildCtx
@@ -21,22 +21,27 @@ trait DetektModule extends KotlinModule {
   }
 
   private def detekt0() = Task.Anon {
-
-    val args = detektOptions() ++ Seq("-i", BuildCtx.workspaceRoot.toString()) ++
-      Seq("-c", detektConfig().path.toString())
+    val inputRoots = sources().iterator.map(_.path).filter(os.exists).toSeq
+    val inputs =
+      if (inputRoots.nonEmpty) inputRoots.map(PathRef.toRelString(_, moduleDir)).mkString(",")
+      else PathRef.toRelString(BuildCtx.workspaceRoot, moduleDir)
+    val args = detektOptions() ++ Seq("-i", inputs) ++
+      Seq("-c", PathRef.toRelString(detektConfig(), moduleDir))
 
     Task.log.info("running detekt ...")
     Task.log.debug(s"with $args")
 
-    Jvm.callProcess(
-      mainClass = "io.gitlab.arturbosch.detekt.cli.Main",
-      classPath = detektClasspath().map(_.path).toVector,
-      mainArgs = args,
-      cwd = moduleDir, // allow passing relative paths for sources like src/a/b
-      stdin = os.Inherit,
-      stdout = os.Inherit,
-      check = false
-    ).exitCode
+    os.ProcessOps.spawnHook.withValue(_ => ()) {
+      Jvm.callProcess(
+        mainClass = "io.gitlab.arturbosch.detekt.cli.Main",
+        classPath = detektClasspath().map(_.path).toVector,
+        mainArgs = args,
+        cwd = moduleDir, // allow passing relative paths for sources like src/a/b
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        check = false
+      ).exitCode
+    }
   }
 
   private def detektHandleErrors(check: Boolean, exitCode: Int)(using
@@ -45,17 +50,17 @@ trait DetektModule extends KotlinModule {
 
     if (exitCode == 0) {} // do nothing
     else if (exitCode == 1) {
-      throw new RuntimeException("detekt: An unexpected error occurred")
+      throw RuntimeException("detekt: An unexpected error occurred")
     } else if (exitCode == 2) {
       if (check) {
-        throw new RuntimeException("detekt: Max issues was reached")
+        throw RuntimeException("detekt: Max issues was reached")
       } else {
         Task.log.error("detekt: Max issues was reached")
       }
     } else if (exitCode == 3) {
-      throw new RuntimeException("detekt: Invalid configuration file detected")
+      throw RuntimeException("detekt: Invalid configuration file detected")
     } else {
-      throw new RuntimeException(s"detekt exited abnormally with exit code = $exitCode")
+      throw RuntimeException(s"detekt exited abnormally with exit code = $exitCode")
     }
   }
 

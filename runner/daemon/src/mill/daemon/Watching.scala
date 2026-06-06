@@ -1,6 +1,6 @@
 package mill.daemon
 
-import mill.api.SystemStreams
+import mill.api.{PathRef, SystemStreams}
 import mill.api.daemon.Watchable
 import mill.api.BuildCtx
 import mill.internal.Colors
@@ -8,6 +8,7 @@ import mill.internal.Colors
 import java.io.InputStream
 import java.nio.channels.ClosedChannelException
 import scala.annotation.tailrec
+import scala.util.control.NonFatal
 import scala.util.Using
 
 /**
@@ -39,7 +40,7 @@ object Watching {
    * @param ringBell whether to emit bells
    * @param watch if [[None]] just runs once and returns
    */
-  def watchLoop[T <: Result](
+  def watchLoop[T <: Result & AutoCloseable](
       ringBell: Boolean,
       watch: Option[WatchArgs],
       streams: SystemStreams,
@@ -71,26 +72,33 @@ object Watching {
         var prevState: Option[T] = None
         var skipSelectiveExecution = true // Always skip selective execution for first run
 
-        // Exits when the thread gets interrupted.
-        while (true) {
-          val result = evaluate(skipSelectiveExecution, prevState)
-          prevState = Some(result)
-          handleError(result.errorOpt)
+        try {
+          while (true) {
+            val previousState = prevState
+            previousState.foreach(_.close())
+            prevState = None
 
-          try {
-            watchArgs.setIdle(true)
-            skipSelectiveExecution = watchAndWait(
-              result.watched,
-              watchArgs,
-              () => Option.when(lookForEnterKey(streams.in))(()),
-              "  (Enter to re-run, Ctrl-C to exit)",
-              streams.err.println(_)
-            ).isDefined
-          } finally {
-            watchArgs.setIdle(false)
+            val result = evaluate(skipSelectiveExecution, previousState)
+            prevState = Some(result)
+            handleError(result.errorOpt)
+
+            try {
+              watchArgs.setIdle(true)
+              skipSelectiveExecution = watchAndWait(
+                result.watched,
+                watchArgs,
+                () => Option.when(lookForEnterKey(streams.in))(()),
+                "  (Enter to re-run, Ctrl-C to exit)",
+                streams.err.println(_)
+              ).isDefined
+            } finally {
+              watchArgs.setIdle(false)
+            }
           }
+        } finally {
+          prevState.foreach(_.close())
         }
-        throw new IllegalStateException("unreachable")
+        throw IllegalStateException("unreachable")
     }
   }
 
@@ -173,14 +181,29 @@ object Watching {
         }
         writeToWatchLog(s"[watched-paths:filtered] ${filterPaths.toSeq.sorted.mkString("\n")}")
 
+        // Canonicalise so paths routed through the `mill-workspace` alias symlink and paths
+        // through platform-level symlinks (e.g. `/tmp` -> `/private/tmp`) compare equal —
+        // otherwise `recursiveWatches` rejects every subdir and `--watch` misses changes to
+        // `Task.Source`/`Task.Sources` files in subdirectories. Memoized: the `filter`/`onEvent`
+        // callbacks fire per filesystem event, and each `toResolvedOsPath` is a `toRealPath`
+        // syscall, so cache results rather than re-resolving the same path on every event.
+        val canonicalCache = new java.util.concurrent.ConcurrentHashMap[os.Path, os.Path]()
+        val canonical: os.Path => os.Path =
+          p => canonicalCache.computeIfAbsent(p, PathRef.toResolvedOsPath(_))
+
+        val canonicalFilterPaths = filterPaths.map(canonical)
+        val canonicalWatchedPathsSet = watchedPathsSet.map(canonical)
+
         Using.resource(os.watch.watch(
           // Just watch the root folder
           Seq(workspaceRoot),
           filter = path => {
+            val canonicalPath = canonical(path)
             val shouldBeWatched =
-              filterPaths.contains(path) || watchedPathsSet.exists(watchedPath =>
-                path.startsWith(watchedPath)
-              )
+              canonicalFilterPaths.contains(canonicalPath) ||
+                canonicalWatchedPathsSet.exists(watchedPath =>
+                  canonicalPath.startsWith(watchedPath)
+                )
             writeToWatchLog(s"[filter] (shouldBeWatched=$shouldBeWatched) $path")
             shouldBeWatched
           },
@@ -188,9 +211,12 @@ object Watching {
             // Make sure that the changed paths are actually the ones in our watch list and not some adjacent files in the
             // same folder
             val hasWatchedPath =
-              changedPaths.exists(p =>
-                watchedPathsSet.exists(watchedPath => p.startsWith(watchedPath))
-              )
+              changedPaths.exists { p =>
+                val canonicalPath = canonical(p)
+                canonicalWatchedPathsSet.exists(watchedPath =>
+                  canonicalPath.startsWith(watchedPath)
+                )
+              }
 
             // Do not log if the only thing that changed was the watch log file itself.
             //
@@ -235,7 +261,18 @@ object Watching {
       )
     }
 
-    if (watchArgs.useNotify) doWatchFsNotify() else doWatchPolling()
+    if (watchArgs.useNotify) {
+      try doWatchFsNotify()
+      catch {
+        case NonFatal(e) =>
+          log(
+            watchArgs.colors.error(
+              s"Native file watcher failed (${e.getMessage}), falling back to polling."
+            ).toString()
+          )
+          doWatchPolling()
+      }
+    } else doWatchPolling()
   }
 
   /**

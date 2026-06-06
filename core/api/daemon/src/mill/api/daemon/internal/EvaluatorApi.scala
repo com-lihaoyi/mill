@@ -40,6 +40,14 @@ trait EvaluatorApi extends AutoCloseable {
       @unused allowPositionalCommandArgs: Boolean = false
   ): Result[Boolean] = Result.Success(false)
 
+  private[mill] def probeSelectiveReuse(
+      @unused scriptArgs: Seq[String],
+      @unused selectMode: SelectMode,
+      @unused previousMetadata: String,
+      @unused allowPositionalCommandArgs: Boolean = false
+  ): Result[EvaluatorApi.SelectiveReuseDecision] =
+    Result.Success(EvaluatorApi.SelectiveReuseDecision(reusable = false, previousMetadata))
+
   /**
    * Returns a copy of this evaluator with the isFinalDepth flag set to the given value.
    * Used to defer the decision of whether this is the final depth until after
@@ -48,6 +56,8 @@ trait EvaluatorApi extends AutoCloseable {
   private[mill] def withIsFinalDepth(isFinalDepth: Boolean): EvaluatorApi = this
 }
 object EvaluatorApi {
+  private[mill] case class SelectiveReuseDecision(reusable: Boolean, nextMetadata: String)
+
   trait Result[T] {
     def watchable: Seq[Watchable]
     def values: mill.api.daemon.Result[Seq[T]]

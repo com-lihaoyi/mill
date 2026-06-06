@@ -47,7 +47,6 @@ object UnidocTests extends TestSuite {
         val task = if (site) module.docs.unidocSite else module.docs.unidocLocal
         val Right(_) = eval.apply(task).runtimeChecked
         val dest = eval.outPath / "docs" / (if (site) "unidocSite.dest" else "unidocLocal.dest")
-        val sandbox = os.pwd
 
         def fixWindowsPath(path: String) =
           if (Properties.isWin) path.replace("\\", "/")
@@ -57,7 +56,9 @@ object UnidocTests extends TestSuite {
           if (site) "https://github.com/test-org/my-app/blob/main"
           else {
             fixWindowsPath(
-              if (isScala3) s"file://${module.moduleDir.toString.replace(sandbox.toString, "")}"
+              // Scala 3 source links are absolute `file://` URLs rooted at the workspace (so the
+              // TASTY-recorded source paths stay workspace-relative and `out/` reproducible).
+              if (isScala3) s"file://${module.moduleDir}"
               else module.moduleDir.toString
             )
           }

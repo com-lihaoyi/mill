@@ -81,6 +81,12 @@ object MillMavenBuildGenMain {
           def moduleDeps(scope: String) = mavenModuleDeps.collect {
             case dep if dep.getScope == scope => moduleDepLookup(dep)
           }
+
+          val isSpringParentProject = isSpringBootProject(model)
+          val springBootVersion = detectSpringBootVersion(model)
+
+          val quarkusVersionOpt = detectQuarkusPluginVersion(model)
+
           val (bomMvnDeps, depManagement, bomModuleDeps) =
             Option(model.getDependencyManagement).fold((Nil, Nil, Nil)) { dm =>
               val (bomDeps, deps) = dm.getDependencies.asScala.toSeq.partition(isBom)
@@ -90,6 +96,7 @@ object MillMavenBuildGenMain {
               }
               (bomMvnDeps, depManagement, bomModuleDeps)
             }
+
           mainModule = mainModule.copy(
             imports = "mill.javalib.*" +: mainModule.imports,
             supertypes = "MavenModule" +: mainModule.supertypes,
@@ -104,7 +111,14 @@ object MillMavenBuildGenMain {
             runModuleDeps = moduleDeps("runtime"),
             bomModuleDeps = bomModuleDeps,
             artifactName = Option(model.getArtifactId)
-          ).withErrorProneModule(plugins.errorProneMvnDeps)
+          )
+          mainModule = plugins.withErrorProneModule(mainModule).getOrElse(mainModule)
+          if (isSpringParentProject) {
+            mainModule = mainModule.withSpringBootModule(springBootVersion)
+          }
+          if (quarkusVersionOpt.isDefined) {
+            mainModule = mainModule.withQuarkusModule(quarkusVersionOpt)
+          }
           if (os.exists(moduleDir / "src/test")) {
             val testMvnDeps = mvnDeps("test")
             val testMixin = ModuleSpec.testModuleMixin(testMvnDeps)
@@ -116,7 +130,7 @@ object MillMavenBuildGenMain {
             var testModule = ModuleSpec(
               name = "test",
               supertypes = "MavenTests" +: testMixin.toSeq,
-              forkArgs = plugins.testForkArgs,
+              forkArgs = Values(plugins.testForkArgs, appendSuper = true),
               forkWorkingDir = Some("moduleDir"),
               mvnDeps = testMvnDeps,
               compileMvnDeps = mainModule.compileMvnDeps,
@@ -128,6 +142,9 @@ object MillMavenBuildGenMain {
               testSandboxWorkingDir = Some(false),
               testFramework = Option.when(testMixin.isEmpty)("")
             )
+            if (isSpringParentProject) {
+              testModule = testModule.withSpringBootTestsModule()
+            }
             if (testMixin.contains("TestModule.Junit5")) {
               testModule.mvnDeps.base.collectFirst {
                 case dep if dep.organization == "org.junit.jupiter" && dep.version.nonEmpty =>
@@ -186,6 +203,35 @@ object MillMavenBuildGenMain {
   }
 
   private def isBom(dep: Dependency) = dep.getScope == "import" && dep.getType == "pom"
+
+  private val SpringBootGroupId = "org.springframework.boot"
+  private val SpringBootParentArtifactId = "spring-boot-starter-parent"
+
+  private def isSpringBootParent(parent: Parent): Boolean =
+    parent.getGroupId == SpringBootGroupId && parent.getArtifactId == SpringBootParentArtifactId
+
+  /**
+   * Detect if the project is a Spring Boot project by checking if it inherits from spring-boot-starter-parent.
+   */
+  private def isSpringBootProject(model: Model): Boolean =
+    Option(model.getParent).exists(isSpringBootParent)
+
+  private def nonEmpty(value: String): Option[String] = Option(value).filter(_.nonEmpty)
+
+  /** Detect Spring Boot platform version from spring-boot-starter-parent. */
+  private def detectSpringBootVersion(model: Model): Option[String] = {
+    Option(model.getParent)
+      .filter(isSpringBootParent)
+      .flatMap(parent => nonEmpty(parent.getVersion))
+  }
+
+  private val QuarkusPluginArtifactId = "quarkus-maven-plugin"
+
+  private def detectQuarkusPluginVersion(model: Model): Option[String] = {
+    model.getBuild.getPlugins.asScala.find(p =>
+      p.getArtifactId == QuarkusPluginArtifactId
+    ).flatMap(p => nonEmpty(p.getVersion))
+  }
 
   private def toMvnDep(dep: Dependency) = {
     import dep.*

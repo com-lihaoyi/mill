@@ -45,7 +45,7 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
 
   def androidDataBindingCompilerVersion: T[String] = Task {
     isBindingEnabled match {
-      case true => throw new Exception(
+      case true => throw Exception(
           "androidDataBindingCompilerVersion must be set (e.g. \"8.13.0\") when view or data binding is enabled."
         )
       case false => ""
@@ -142,7 +142,7 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
     case true => Task {
         val moduleResources = Seq(androidProcessedLayoutXmls().path / "resources")
 
-        val aapt2Compile = Seq(androidSdkModule().aapt2Exe().path.toString(), "compile")
+        val aapt2Compile = Seq(PathRef.toAbsString(androidSdkModule().aapt2Exe()), "compile")
 
         for (libResDir <- moduleResources) {
           val segmentsSeq = libResDir.segments.toSeq

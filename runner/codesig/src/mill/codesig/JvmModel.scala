@@ -44,7 +44,7 @@ object JvmModel {
     }
 
     object JCls extends Table[String, JType.Cls] {
-      def create: String => JType.Cls = new JType.Cls(_)
+      def create: String => JType.Cls = JType.Cls(_)
       def apply(name: String): JType.Cls = get(name)
     }
 
@@ -224,7 +224,7 @@ object JvmModel {
         args.addOne(JType.read(s.substring(index, split + 1)))
         index = split + 1
       }
-      new Desc(
+      Desc(
         ArraySeq.unsafeWrapArray(args.result()),
         JType.read(s.substring(closeParenIndex + 1))
       )

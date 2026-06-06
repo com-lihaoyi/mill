@@ -20,6 +20,17 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ProblemFilter.exclude[Problem]("mill.api.SimpleTaskTokenReader*"),
     ProblemFilter.exclude[Problem]("mill.util.RequestId*"),
     ProblemFilter.exclude[Problem]("mill.util.Timed*"),
+    // Internal classloader-cache helper; its internal key representation changed from a
+    // digest `Long` to a structured `Seq`, changing these method signatures. Not user-facing.
+    ProblemFilter.exclude[IncompatibleResultTypeProblem](
+      "mill.util.RefCountedClassLoaderCache.keyToInternalKey"
+    ),
+    ProblemFilter.exclude[IncompatibleMethTypeProblem](
+      "mill.util.RefCountedClassLoaderCache.setup"
+    ),
+    ProblemFilter.exclude[IncompatibleMethTypeProblem](
+      "mill.util.RefCountedClassLoaderCache.teardown"
+    ),
     ProblemFilter.exclude[Problem]("mill.javalib.bsp.BspRunModule*"),
     // internal stuff
     ProblemFilter.exclude[Problem]("mill.javalib.api.internal.*"),
@@ -58,6 +69,18 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ProblemFilter.exclude[ReversedMissingMethodProblem](
       "mill.javalib.TestModule#Junit5.mill$javalib$TestModule$Junit5$$super$bomMvnDeps"
     ),
+    // New `allForkEnv` task added to `TestModule` to thread fork-env path aliases through the
+    // reproducible-build relativizer. Additive (has a default impl); the mixin-forwarder rewiring
+    // only affects classes recompiled against the new Mill.
+    ProblemFilter.exclude[NewMixinForwarderProblem]("mill.javalib.TestModule.allForkEnv"),
+    // New `testResources` task added to the internal `BspJavaModule` trait. Additive new method
+    // with a default implementation; `BspJavaModule` is an internal BSP-wiring trait.
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.javalib.bsp.BspJavaModule.mill$javalib$bsp$BspJavaModule$$testResources"
+    ),
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.javalib.bsp.BspJavaModule.mill$javalib$bsp$BspJavaModule$_setter_$mill$javalib$bsp$BspJavaModule$$testResources_="
+    ),
 
     // Seems like a false positive, since it will always get mixed into `RootModule0` which
     // provides the implementations
@@ -77,7 +100,36 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
       "mill.javalib.SonatypeCentralPublisher$PreparedArtifacts*"
     ),
     // private macro helpers, not part of public API
-    ProblemFilter.exclude[DirectMissingMethodProblem]("mill.api.Task#Macros*")
+    ProblemFilter.exclude[DirectMissingMethodProblem]("mill.api.Task#Macros*"),
+    // internal APIs, used in `.mill`/`.mill.yaml` generated code but not intended for plugins
+    ProblemFilter.exclude[Problem]("mill.api.internal.SubfolderModule*"),
+    ProblemFilter.exclude[Problem]("mill.api.internal.BuildFileCls*"),
+    ProblemFilter.exclude[Problem]("mill.util.internal.DummyBuildFile*"),
+    ProblemFilter.exclude[Problem]("mill.util.internal.DummyMiscInfo*"),
+    ProblemFilter.exclude[Problem]("mill.api.internal.RootModule$Info*"),
+    ProblemFilter.exclude[Problem]("mill.api.internal.RootModule#Info*"),
+    ProblemFilter.exclude[Problem]("mill.api.daemon.internal.bsp.BspServerHandle.*"),
+    // `BuildFileApi` is `mill.api.daemon.internal` (not part of the
+    // user-facing API). Concurrency support replaced the mutable
+    // `evalWatchedValues` buffer with an isolated-buffer scope helper
+    // (`withEvalWatchedValues`); both old and new methods are internal.
+    ProblemFilter.exclude[Problem]("mill.api.daemon.internal.BuildFileApi.*"),
+    ProblemFilter.exclude[Problem]("mill.api.daemon.internal.BuildFileApi#Bootstrap.*"),
+    // Incorrect return type, no choice but to change the signature
+    ProblemFilter.exclude[Problem]("mill.kotlinlib.KotlinModule.kotlinUseEmbeddableCompiler"),
+    ProblemFilter.exclude[Problem](
+      "mill.kotlinlib.KotlinModule#KotlinTests0.kotlinUseEmbeddableCompiler"
+    ),
+    ProblemFilter.exclude[Problem](
+      "mill.kotlinlib.KotlinModule#KotlinTests.kotlinUseEmbeddableCompiler"
+    ),
+    // new method with default impl
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.kotlinlib.KotlinModule#KotlinTests.mill$kotlinlib$KotlinModule$KotlinTests$$super$kotlinFriendModules"
+    ),
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.kotlinlib.KotlinModule#KotlinTests0.mill$kotlinlib$KotlinModule$KotlinTests0$$super$kotlinFriendModules"
+    )
   )
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions

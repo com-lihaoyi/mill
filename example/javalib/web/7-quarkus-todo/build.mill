@@ -9,7 +9,7 @@ import mill.javalib.quarkus.QuarkusModule
 
 object `package` extends QuarkusModule, MavenModule {
 
-  def jvmVersion = "graalvm-community:23.0.1"
+  def jvmVersion = "graalvm-community:25.0.1"
   def quarkusPlatformVersion = "3.31.3"
 
   def artifactGroupId = "com.lihaoyi.example"

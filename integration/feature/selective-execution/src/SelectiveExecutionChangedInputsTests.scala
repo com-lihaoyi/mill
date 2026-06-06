@@ -9,7 +9,7 @@ object SelectiveExecutionChangedInputsTests extends UtestIntegrationTestSuite {
   implicit val retryMax: RetryMax = RetryMax(120.seconds)
   implicit val retryInterval: RetryInterval = RetryInterval(1.seconds)
   val tests: Tests = Tests {
-    test("changed-inputs") - integrationTest { tester =>
+    test("changedInputs") - integrationTest { tester =>
       import tester.*
 
       eval(
@@ -55,7 +55,7 @@ object SelectiveExecutionChangedInputsTests extends UtestIntegrationTestSuite {
       assert(runAll.out.contains("Computing barCommand"))
     }
 
-    test("changed-inputs-generic") - integrationTest { tester =>
+    test("generic") - integrationTest { tester =>
       // Make sure you can run `selective.prepare` on a broader set of tasks than
       // `selective.resolve` or `selective.run` and thingsstill work
       import tester.*
@@ -79,7 +79,7 @@ object SelectiveExecutionChangedInputsTests extends UtestIntegrationTestSuite {
       assert(cached.out.contains("Computing barCommand"))
     }
 
-    test("resolveTree-shows-input-changed") - integrationTest { tester =>
+    test("resolveTreeInput") - integrationTest { tester =>
       import tester.*
 
       // Prepare selective execution with barCommand2 which depends on barCommand -> barTask
@@ -115,7 +115,7 @@ object SelectiveExecutionChangedInputsTests extends UtestIntegrationTestSuite {
       )
     }
 
-    test("resolveTree-prunes-nonselected-diamond-branch") - integrationTest { tester =>
+    test("resolveTreePrune") - integrationTest { tester =>
       import tester.*
 
       eval(

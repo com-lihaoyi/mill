@@ -19,6 +19,7 @@ import mill.api.{
   TaskCtx
 }
 import mill.api.daemon.internal.{EvaluatorApi, JavaModuleApi, internal}
+import mill.api.internal.PathAliasing
 import mill.api.daemon.internal.bsp.{
   BspBuildTarget,
   BspJavaModuleApi,
@@ -46,6 +47,7 @@ import scala.util.matching.Regex
  */
 trait JavaModule
     extends mill.api.Module
+    with mill.api.ConfigModuleDepsModule
     with WithJvmWorkerModule
     with TestModule.JavaModuleBase
     with DefaultTaskModule
@@ -88,7 +90,10 @@ trait JavaModule
     hierarchyChecks()
 
     override def resources = super[JavaModule].resources
-    override def moduleDeps: Seq[JavaModule] = Seq(outer)
+    override def moduleDeps: Seq[JavaModule] =
+      Seq(outer) ++ outer.configModuleDeps
+        .getOrElse(moduleSegments.parts.last, Nil)
+        .collect { case m: JavaModule => m }
     override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
       outer.repositoriesTask()
     }
@@ -202,7 +207,7 @@ trait JavaModule
         case Right(bomDep) => bomDep
       }
     else
-      throw new Exception(
+      throw Exception(
         "Found Bill of Material (BOM) dependencies with invalid parameters:" + System.lineSeparator() +
           malformed.map("- " + _.dep + System.lineSeparator()).mkString +
           "Only organization, name, and version are accepted."
@@ -269,7 +274,7 @@ trait JavaModule
     if (errors.isEmpty)
       keyValuesOrErrors.collect { case Right(kv) => kv }
     else
-      throw new Exception(
+      throw Exception(
         "Found dependency management entries with invalid values. Only organization, name, version, type, classifier, exclusions, and optionality can be specified" + System.lineSeparator() +
           errors.map("- " + _ + System.lineSeparator()).mkString
       )
@@ -345,19 +350,22 @@ trait JavaModule
    *  which uses a cached result which is also checked to be free of cycle.
    *  @see [[moduleDepsChecked]]
    */
-  def moduleDeps: Seq[JavaModule] = Seq()
+  def moduleDeps: Seq[JavaModule] =
+    configModuleDeps.getOrElse("", Nil).collect { case m: JavaModule => m }
 
   /**
    *  The compile-only direct dependencies of this module. These are *not*
    *  transitive, and only take effect in the module that they are declared in.
    */
-  def compileModuleDeps: Seq[JavaModule] = Seq()
+  def compileModuleDeps: Seq[JavaModule] =
+    configCompileModuleDeps.getOrElse("", Nil).collect { case m: JavaModule => m }
 
   /**
    * The runtime-only direct dependencies of this module. These *are* transitive,
    * and so get propagated to downstream modules automatically
    */
-  def runModuleDeps: Seq[JavaModule] = Seq()
+  def runModuleDeps: Seq[JavaModule] =
+    configRunModuleDeps.getOrElse("", Nil).collect { case m: JavaModule => m }
 
   /**
    *  Bill of Material (BOM) dependencies of this module.
@@ -366,7 +374,8 @@ trait JavaModule
    *  which uses a cached result which is also checked to be free of cycles.
    *  @see [[bomModuleDepsChecked]]
    */
-  def bomModuleDeps: Seq[BomModule] = Seq()
+  def bomModuleDeps: Seq[BomModule] =
+    configBomModuleDeps.getOrElse("", Nil).collect { case m: BomModule => m }
 
   /**
    * Same as [[moduleDeps]] but checked to not contain cycles.
@@ -935,8 +944,7 @@ trait JavaModule
   def allSourceFiles: T[Seq[PathRef]] = Task {
     val allSources0 = allSources() ++ wrappedSources().map(_.generated)
     val toExclude = wrappedSources().map(_.original.path)
-    Lib.findSourceFiles(allSources0, sourceFileExtensions)
-      .filterNot(toExclude.contains)
+    Lib.findSourceFilesExcluding(allSources0, sourceFileExtensions, toExclude)
       .map(PathRef(_))
   }
 
@@ -992,7 +1000,7 @@ trait JavaModule
       ZincOp.CompileJava(
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
-        compileClasspath = compileClasspath().map(_.path),
+        compileClasspath = compileClasspath(),
         javacOptions = javacCompilerOptions,
         incrementalCompilation = zincIncrementalCompilation(),
         workDir = Task.dest
@@ -1350,6 +1358,7 @@ trait JavaModule
       Task.log.info("options: " + cmdArgs)
 
       val cmd = Seq(Jvm.jdkTool("javadoc", javaHome)) ++ cmdArgs
+      PathAliasing.ensureProcessCwdAliases(Task.dest)
       os.call(
         cmd = cmd,
         env = Map(),
@@ -1652,7 +1661,14 @@ trait JavaModule
   def sanitizeUri(uri: String): String =
     if (uri.endsWith("/")) sanitizeUri(uri.substring(0, uri.length - 1)) else uri
 
-  def sanitizeUri(uri: os.Path): String = sanitizeUri(uri.toURI.toString)
+  // Resolve symlink aliases before `.wrapped.toUri`: BSP clients need stable absolute `file://`
+  // URIs, but reproducible-build path aliases can route paths through `mill-home`/`mill-workspace`
+  // symlinks inside the output directory.
+  def sanitizeUri(uri: os.Path): String = {
+    val anchored = PathRef.toResolvedOsPathAnchored(uri, BuildCtx.workspaceRoot)
+    val path = if (anchored == uri) PathRef.toResolvedOsPath(uri) else anchored
+    sanitizeUri(path.wrapped.toUri.toString)
+  }
 
   def sanitizeUri(uri: PathRef): String = sanitizeUri(uri.path)
 
@@ -1851,14 +1867,14 @@ trait BomModule extends JavaModule {
   abstract override def compile: T[CompilationResult] = Task {
     val sources = allSourceFiles()
     if (sources.nonEmpty)
-      throw new Exception("A BomModule cannot have sources")
+      throw Exception("A BomModule cannot have sources")
     CompilationResult(Task.dest / "zinc", PathRef(Task.dest / "classes"))
   }
 
   abstract override def resources: T[Seq[PathRef]] = Task {
     val value = super.resources()
     if (value.nonEmpty)
-      throw new Exception("A BomModule cannot have resources")
+      throw Exception("A BomModule cannot have resources")
     Seq.empty[PathRef]
   }
 

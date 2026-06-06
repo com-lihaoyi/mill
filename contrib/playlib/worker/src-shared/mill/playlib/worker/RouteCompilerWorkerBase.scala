@@ -18,6 +18,8 @@ import play.routes.compiler.{
  *  Feel free to override or not use if newer play versions introduce incompatible API types.
  */
 protected[playlib] class RouteCompilerWorkerBase extends RouteCompilerWorkerApi {
+  protected def resolveFile(file: java.io.File): os.Path =
+    if (file.isAbsolute) os.Path(file) else os.Path(file, os.pwd)
 
   override def compile(
       files: Array[java.io.File],
@@ -31,12 +33,12 @@ protected[playlib] class RouteCompilerWorkerBase extends RouteCompilerWorkerApi 
     generatorType match {
       case RouteCompilerType.InjectedGenerator =>
         val result = compileWithPlay(
-          files.toIndexedSeq.map(os.Path(_)),
+          files.toIndexedSeq.map(resolveFile),
           additionalImports.toIndexedSeq,
           forwardsRouter,
           reverseRouter,
           namespaceReverseRouter,
-          os.Path(dest),
+          resolveFile(dest),
           InjectedRoutesGenerator
         )
         asMillResult(result)

@@ -71,12 +71,12 @@ case class Developer(
 ) derives RW
 
 case class PomSettings(
-    description: String,
-    organization: String,
-    url: String,
-    licenses: Seq[License],
-    versionControl: VersionControl,
-    developers: Seq[Developer],
+    description: String = "",
+    organization: String = "",
+    url: String = "",
+    licenses: Seq[License] = Nil,
+    versionControl: VersionControl = VersionControl(),
+    developers: Seq[Developer] = Nil,
     @deprecated("Value will be ignored. Use PublishModule.pomPackagingType instead", "Mill 0.11.8")
     packaging: String = PackagingType.Jar
 ) derives RW

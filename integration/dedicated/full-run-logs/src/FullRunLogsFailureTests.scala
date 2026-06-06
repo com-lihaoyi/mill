@@ -33,7 +33,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         // We passed in `--color=true` so we should expect colored output
         List(
           "(Y)mill jar(X)",
-          "(B)build.mill-<digits>] compile(X) compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
+          "(B)build.mill-<digits>] compile(X) compiling 1 Scala source to out/mill-build/compile.dest/classes ...",
           "(B)build.mill-<digits>](X) done compiling",
           "(B)<digits>] compile(X) compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
           "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(X):(R)36(X):(R)54(X)",
@@ -127,7 +127,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         normalize(res2.result.err.text()),
         List(
           "mill jar",
-          "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
+          "build.mill-<digits>] compile compiling 1 Scala source to out/mill-build/compile.dest/classes ...",
           "build.mill-<digits>] [error] build.mill:77:1",
           "build.mill-<digits>] ?",
           "build.mill-<digits>] ^",
@@ -177,19 +177,19 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         normalize(res.result.out.text()),
         List(
           "(Y)mill exception(X)",
-          "(B)build.mill-<digits>] compile(X) compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
+          "(B)build.mill-<digits>] compile(X) compiling 1 Scala source to out/mill-build/compile.dest/classes ...",
           "(B)build.mill-<digits>](X) done compiling",
           ".../..., (R)1 FAILED(X)] mill exception",
           "(R)<digits>] (X)[(R)error(X)] exception",
           "(R)java.lang.Exception(X): boom",
           "  (R)build_.package_.exceptionHelper(X)((R)build.mill(X):(R)6(X))",
-          "  (R)build_.package_.exception$$anonfun$1(X)((R)build.mill(X):(R)8(X))",
+          "  (R)build_.package_.$anonfun$1(X)((R)build.mill(X):(R)8(X))",
           "  (R)mill.api.Task$Named.evaluate(X)((R)Task.scala(X):(R)<digits>(X))",
           "  (R)mill.api.Task$Named.evaluate$(X)((R)Task.scala(X):(R)<digits>(X))",
           "  (R)mill.api.Task$Command.evaluate(X)((R)Task.scala(X):(R)<digits>(X))",
           "(R)java.lang.RuntimeException(X): bang",
           "  (R)build_.package_.exceptionHelper(X)((R)build.mill(X):(R)6(X))",
-          "  (R)build_.package_.exception$$anonfun$1(X)((R)build.mill(X):(R)8(X))",
+          "  (R)build_.package_.$anonfun$1(X)((R)build.mill(X):(R)8(X))",
           "  (R)mill.api.Task$Named.evaluate(X)((R)Task.scala(X):(R)<digits>(X))",
           "  (R)mill.api.Task$Named.evaluate$(X)((R)Task.scala(X):(R)<digits>(X))",
           "  (R)mill.api.Task$Command.evaluate(X)((R)Task.scala(X):(R)<digits>(X))"
@@ -215,19 +215,19 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         ),
         List(
           "mill {brokenN,brokenN}.compile",
-          "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
+          "build.mill-<digits>] compile compiling 1 Scala source to out/mill-build/compile.dest/classes ...",
           "build.mill-<digits>] done compiling",
           "<digits>] brokenN.compile compiling 1 Java source to out/brokenN/compile.dest/classes ...",
           "<digits>] brokenN.compile compiling 1 Java source to out/brokenN/compile.dest/classes ...",
           "<digits>] [error] broken/src/Foo.java:1:1",
           "<digits>] ?",
           "<digits>] ^",
-          "<digits>] class, interface, enum, or record expected",
+          "<digits>] class, interface, annotation type, enum, record, method or field expected",
           "<digits>] ",
           "<digits>] [error] broken/src/Foo.java:1:1",
           "<digits>] ?",
           "<digits>] ^",
-          "<digits>] class, interface, enum, or record expected",
+          "<digits>] class, interface, annotation type, enum, record, method or field expected",
           "<digits>] ",
           ".../..., 2 FAILED] mill {brokenN,brokenN}.compile",
           "<digits>] [error] brokenN.compile javac returned non-zero exit code",
@@ -242,7 +242,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "[error] broken/src/Foo.java:1:1",
           "?",
           "^",
-          "class, interface, enum, or record expected",
+          "class, interface, annotation type, enum, record, method or field expected",
           ""
         )
       )
@@ -253,7 +253,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "[error] broken/src/Foo.java:1:1",
           "?",
           "^",
-          "class, interface, enum, or record expected",
+          "class, interface, annotation type, enum, record, method or field expected",
           ""
         )
       )

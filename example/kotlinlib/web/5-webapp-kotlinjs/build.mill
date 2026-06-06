@@ -9,7 +9,7 @@ import mill.*, kotlinlib.*, kotlinlib.js.*
 
 object `package` extends KotlinModule {
 
-  override def kotlinVersion = "1.9.24"
+  override def kotlinVersion = "2.2.20"
   def ktorVersion = "2.3.12"
   def kotlinHtmlVersion = "0.11.0"
 
@@ -39,7 +39,7 @@ object `package` extends KotlinModule {
   }
 
   object client extends KotlinJsModule {
-    override def kotlinVersion = "1.9.24"
+    override def kotlinVersion = "2.2.20"
 
     override def kotlinJsSplitPerModule = false
 

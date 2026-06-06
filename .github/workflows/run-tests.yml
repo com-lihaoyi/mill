@@ -66,7 +66,7 @@ jobs:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
     uses: ./.github/workflows/pre-build.yml
     with:
-      java-version: 21
+      java-version: 25
       os: ubuntu-latest
       shell: bash
 
@@ -74,7 +74,7 @@ jobs:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
     uses: ./.github/workflows/pre-build.yml
     with:
-      java-version: 21
+      java-version: 25
       os: windows-latest
       shell: powershell
 
@@ -194,7 +194,7 @@ jobs:
       setup-android: ${{ matrix.setup-android || false }}
       install-sbt: ${{ matrix.install-sbt || false }}
       install-xvfb: ${{ matrix.install-xvfb || false }}
-      java-version: 21
+      java-version: 25
       millargs: ${{ matrix.millargs }}
       extra: ${{ matrix.extra || '' }}
       shell: bash
@@ -222,7 +222,7 @@ jobs:
     uses: ./.github/workflows/post-build-selective.yml
     with:
       os: windows-latest
-      java-version: 21
+      java-version: 25
       millargs: ${{ matrix.millargs }}
       extra: ${{ matrix.extra || '' }}
       shell: powershell

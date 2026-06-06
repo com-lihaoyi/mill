@@ -83,7 +83,7 @@
         "uri": "file:///workspace/mill-build"
       },
       "resources": [
-        "file:///workspace/.bsp/out/mill-build/generatedScriptSources.dest/resources"
+        "file:///workspace/out/mill-build/generatedScriptSources.dest/resources"
       ]
     },
     {
@@ -91,7 +91,7 @@
         "uri": "file:///workspace/mill-build/mill-build"
       },
       "resources": [
-        "file:///workspace/.bsp/out/mill-build/mill-build/generatedScriptSources.dest/resources"
+        "file:///workspace/out/mill-build/mill-build/generatedScriptSources.dest/resources"
       ]
     },
     {

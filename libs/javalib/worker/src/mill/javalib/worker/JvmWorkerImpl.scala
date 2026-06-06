@@ -2,6 +2,7 @@ package mill.javalib.worker
 
 import mill.api.daemon.*
 import mill.api.daemon.internal.{CompileProblemReporter, internal}
+import mill.api.{BuildCtx, PathRef}
 import mill.client.{LaunchedServer, ServerLauncher}
 import mill.client.lock.{DoubleLock, Locks, MemoryLock}
 import mill.constants.DaemonFiles
@@ -28,17 +29,32 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
       reportCachedProblems: Boolean
   )(using ctx: InternalJvmWorkerApi.Ctx): op.Response = {
     val log = ctx.log
+
+    // Worker bytecode is Java 17, so for user JDKs older than 17 we host the worker
+    // subprocess on Mill's daemon JVM and have it fork `javac`/`javadoc` to the
+    // user's binaries. `-release N` is also injected into scalac options so symbols
+    // resolve against the user's JDK, not the worker JVM's, stdlib.
+    val forkJavaRelease: Option[Int] = javaHome.flatMap { home =>
+      val major = Jvm.getJavaMajorVersion(Some(home))
+      Option.when(major > 0 && major < 17)(major)
+    }
+
+    // For Java < 17, host the worker subprocess in Mill's daemon JVM (which is
+    // Java 17+ by definition) rather than the user's older JVM.
+    val workerJavaHome = if (forkJavaRelease.isDefined) None else javaHome
+
     val zincCtx = ZincWorker.LocalConfig(
       dest = ctx.dest,
       logDebugEnabled = log.debugEnabled,
       logPromptColored = log.prompt.colored,
-      workspaceRoot = mill.api.BuildCtx.workspaceRoot
+      workspaceRoot = mill.api.BuildCtx.workspaceRoot,
+      forkJavaHome = if (forkJavaRelease.isDefined) javaHome else None
     )
 
     val zincApi =
-      if (javaRuntimeOptions.isEmpty && javaHome.isEmpty) localZincApi(zincCtx, log)
-      else new SubprocessZincApi(
-        javaHome,
+      if (javaHome.isEmpty && javaRuntimeOptions.isEmpty) localZincApi(zincCtx, log)
+      else SubprocessZincApi(
+        workerJavaHome,
         javaRuntimeOptions,
         zincCtx,
         log,
@@ -46,7 +62,12 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         compilerBridge
       )
 
-    zincApi.apply(op, reporter = reporter, reportCachedProblems = reportCachedProblems)
+    val effectiveOp = forkJavaRelease.fold(op)(JvmWorkerImpl.withScalaRelease(op, _))
+    zincApi.apply(
+      effectiveOp.asInstanceOf[op.type],
+      reporter = reporter,
+      reportCachedProblems = reportCachedProblems
+    )
   }
 
   override def close(): Unit = {
@@ -97,7 +118,10 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         os.write.over(workerDir / "java-runtime-options", key.runtimeOptions.mkString("\n"))
 
         val mainClass = "mill.javalib.worker.MillJvmWorkerMain"
-        val baseLocks = Locks.forDirectory(daemonDir.toString, useFileLocks)
+        // The lock path is reused by this process and the worker process; keep it as a real path
+        // so NIO does not resolve an alias string against different process cwd values.
+        val daemonDirAbs = PathRef.toAbsString(daemonDir)
+        val baseLocks = Locks.forDirectory(daemonDirAbs, useFileLocks)
         val locks = {
           Locks(
             // File locks are non-reentrant, so we need to lock on the memory lock first.
@@ -111,35 +135,41 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
 
         val suppressArgs = Jvm.getJvmSuppressionArgs(key.javaHome)
 
-        val launched = ServerLauncher.launchOrConnectToServer(
-          locks,
-          daemonDir,
-          10 * 1000,
-          () => {
-            val process = Jvm.spawnProcess(
-              mainClass = mainClass,
-              mainArgs = Seq(daemonDir.toString, jobs.toString, useFileLocks.toString),
-              javaHome = key.javaHome,
-              jvmArgs = key.runtimeOptions ++ suppressArgs,
-              classPath = classPath
-            )
-            LaunchedServer.OsProcess(process.wrapped.toHandle)
-          },
-          processDied =>
-            throw IllegalStateException(
-              s"""Failed to launch '$mainClass' for:
-                 |  javaHome = ${key.javaHome}
-                 |  runtimeOptions = ${key.runtimeOptions.mkString(",")}
-                 |  daemonDir = $daemonDir
-                 |
-                 |Failure:
-                 |$processDied
-                 |""".stripMargin
-            ),
-          _ => (),
-          false, // openSocket
-          config = ServerLauncher.DaemonConfig.empty
-        )
+        val launched = BuildCtx.withFilesystemCheckerDisabled {
+          ServerLauncher.launchOrConnectToServer(
+            locks,
+            daemonDir,
+            10 * 1000,
+            () => {
+              val process = Jvm.spawnProcess(
+                mainClass = mainClass,
+                mainArgs = Seq(
+                  daemonDirAbs,
+                  jobs.toString,
+                  useFileLocks.toString
+                ),
+                javaHome = key.javaHome,
+                jvmArgs = key.runtimeOptions ++ suppressArgs,
+                classPath = classPath
+              )
+              LaunchedServer.OsProcess(process.wrapped.toHandle)
+            },
+            processDied =>
+              throw IllegalStateException(
+                s"""Failed to launch '$mainClass' for:
+                   |  javaHome = ${key.javaHome}
+                   |  runtimeOptions = ${key.runtimeOptions.mkString(",")}
+                   |  daemonDir = $daemonDir
+                   |
+                   |Failure:
+                   |$processDied
+                   |""".stripMargin
+              ),
+            _ => (),
+            false, // openSocket
+            config = ServerLauncher.DaemonConfig.empty
+          )
+        }
 
         SubprocessZincApi.Value(launched.port, daemonDir, launched.launchedServer, locks)
       }
@@ -189,5 +219,26 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         zincLocalWorker.apply(op, reporter, reportCachedProblems, ctx, deps)
       }
     }
+  }
+}
+
+private[mill] object JvmWorkerImpl {
+
+  /** Prepends `-release <major>` to scalac options unless the user already set one. */
+  private def withScalaRelease(op: ZincOp, release: Int): ZincOp = op match {
+    case m: ZincOp.CompileMixed =>
+      m.copy(scalacOptions = injectRelease(m.scalacOptions, release))
+    case s: ZincOp.ScaladocJar =>
+      s.copy(args = injectRelease(s.args, release))
+    case other => other
+  }
+
+  private def injectRelease(opts: Seq[String], release: Int): Seq[String] = {
+    val alreadySet = opts.exists(o =>
+      o == "-release" || o == "--release" ||
+        o.startsWith("-release:") || o.startsWith("--release=") ||
+        o.startsWith("-Xrelease") || o.startsWith("-target:") || o == "-target"
+    )
+    if (alreadySet) opts else Seq("-release", release.toString) ++ opts
   }
 }

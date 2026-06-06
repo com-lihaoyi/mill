@@ -108,7 +108,13 @@ object TestModule {
       if (dir.isEmpty) dir else dir + "/"
     }
 
-    def getPathToTest: T[String] = Task { compile().path.toString + "/" + testDir }
+    // Passed to JS test runners (jest/mocha/vitest) as a positional test-path pattern that they
+    // match against the *resolved absolute* on-disk test paths. In reproducible mode `compile().path`
+    // routes through the `out/mill-workspace` forwarder symlink, so a relativized `../mill-workspace`
+    // form (or a raw lexical `.wrapped` through the forwarder) would not match and the runner reports
+    // "0 matches" — resolve symlinks to the real absolute path.
+    def getPathToTest: T[String] =
+      Task { mill.api.PathRef.toResolvedPathString(compile().path) + "/" + testDir }
   }
 
   trait IntegrationSuite extends TypeScriptModule {
@@ -408,8 +414,8 @@ object TestModule {
       val compileDir = compile().path
       os.call(
         (
-          npmInstall().path / "node_modules/.bin/ts-node",
-          npmInstall().path / "node_modules/.bin/vitest",
+          mill.api.PathRef.toResolvedPathString(npmInstall().path / "node_modules/.bin/ts-node"),
+          mill.api.PathRef.toResolvedPathString(npmInstall().path / "node_modules/.bin/vitest"),
           "--run",
           "--config",
           compileDir / "vitest.config.ts",
@@ -464,8 +470,8 @@ object TestModule {
       val compileDir = compile().path
       os.call(
         (
-          npmInstall().path / "node_modules/.bin/ts-node",
-          npmInstall().path / "node_modules/.bin/vitest",
+          mill.api.PathRef.toResolvedPathString(npmInstall().path / "node_modules/.bin/ts-node"),
+          mill.api.PathRef.toResolvedPathString(npmInstall().path / "node_modules/.bin/vitest"),
           "--run",
           "--config",
           compileDir / "vitest.config.coverage.ts",
@@ -599,7 +605,7 @@ object TestModule {
       }
 
     private def mkConfig: Task[TestResult] = Task {
-      val tsc = npmInstall().path / "node_modules/.bin/tsc"
+      val tsc = mill.api.PathRef.toResolvedPathString(npmInstall().path / "node_modules/.bin/tsc")
       os.call((
         tsc,
         configSource().path.toString,
@@ -623,9 +629,12 @@ object TestModule {
       }
 
     private def runTest: T[TestResult] = Task {
-      val mainFile = service.mainFilePath()
-      val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
-      val tsconfigpaths = npmInstall().path / "node_modules/tsconfig-paths/register"
+      val mainFile = mill.api.PathRef.toResolvedPathString(service.mainFilePath())
+      val tsnode =
+        mill.api.PathRef.toResolvedPathString(npmInstall().path / "node_modules/.bin/ts-node")
+      val tsconfigpaths = mill.api.PathRef.toResolvedPathString(
+        npmInstall().path / "node_modules/tsconfig-paths/register"
+      )
       val port_ = port()
       val env = service.forkEnv() + ("PORT" -> port_)
 
@@ -636,7 +645,8 @@ object TestModule {
       )
 
       mkConfig()
-      val cypress = npmInstall().path / "node_modules/.bin/cypress"
+      val cypress =
+        mill.api.PathRef.toResolvedPathString(npmInstall().path / "node_modules/.bin/cypress")
       os.call(
         (
           cypress,
@@ -684,9 +694,12 @@ object TestModule {
     }
 
     private def runTest: T[TestResult] = Task {
-      val mainFile = service.mainFilePath()
-      val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
-      val tsconfigpaths = npmInstall().path / "node_modules/tsconfig-paths/register"
+      val mainFile = mill.api.PathRef.toResolvedPathString(service.mainFilePath())
+      val tsnode =
+        mill.api.PathRef.toResolvedPathString(npmInstall().path / "node_modules/.bin/ts-node")
+      val tsconfigpaths = mill.api.PathRef.toResolvedPathString(
+        npmInstall().path / "node_modules/tsconfig-paths/register"
+      )
       val port_ = port()
       val env = service.forkEnv() + ("PORT" -> port_)
 
@@ -699,7 +712,7 @@ object TestModule {
       os.call(
         (
           "node",
-          npmInstall().path / "node_modules/.bin/playwright",
+          mill.api.PathRef.toResolvedPathString(npmInstall().path / "node_modules/.bin/playwright"),
           "test"
         ),
         stdout = os.Inherit,

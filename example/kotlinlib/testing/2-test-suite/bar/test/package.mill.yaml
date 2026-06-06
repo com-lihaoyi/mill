@@ -1,7 +1,7 @@
 extends: [build.bar.KotlinTests, TestModule.Junit5]
 mvnDeps:
 - io.kotest:kotest-runner-junit5:5.9.1
-- org.mockito.kotlin:mockito-kotlin:5.4.0
+- org.mockito.kotlin:mockito-kotlin:6.3.0
 
 kotlincOptions: ["-jvm-target", "11"]
 

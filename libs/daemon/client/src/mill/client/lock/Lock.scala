@@ -13,18 +13,28 @@ trait TryLocked extends Locked {
 abstract class Lock extends AutoCloseable {
   def lock(): Locked
   def tryLock(): TryLocked
-  def await(): Unit = lock().release()
+
+  def tryLockOption(): Option[TryLocked] = {
+    val tl = tryLock()
+    if (tl.isLocked) Some(tl) else None
+  }
 
   /** Returns `true` if the lock is available for taking. */
-  def probe(): Boolean
+  def probe(): Boolean =
+    tryLockOption() match {
+      case Some(tl) =>
+        tl.release()
+        true
+      case None => false
+    }
 
   def delete(): Unit = ()
 }
 
 object Lock {
-  def file(path: String): Lock = new FileLock(path)
-  def memory(): Lock = new MemoryLock()
+  def file(path: String): Lock = FileLock(path)
+  def memory(): Lock = MemoryLock()
   def forDirectory(daemonDir: String, useFileLocks: Boolean): Lock =
-    if (useFileLocks) new FileLock(daemonDir)
-    else new PidLock(daemonDir)
+    if (useFileLocks) FileLock(daemonDir)
+    else PidLock(daemonDir)
 }

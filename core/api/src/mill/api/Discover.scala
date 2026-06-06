@@ -174,11 +174,11 @@ object Discover {
           // the problem of generating a *huge* macro method body that finally exceeds the
           // JVM's maximum allowed method size
           '{
-            def func() = new ClassInfo(
+            def func() = ClassInfo(
               ${ Expr.ofList(entryPoints.toList) },
               ${
                 Expr.ofList(names.map { case (name, nonBootstrapped) =>
-                  '{ new TaskInfo(${ Expr(name) }, ${ Expr(nonBootstrapped) }) }
+                  '{ TaskInfo(${ Expr(name) }, ${ Expr(nonBootstrapped) }) }
                 })
               }
             )

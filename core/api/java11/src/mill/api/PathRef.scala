@@ -2,6 +2,7 @@ package mill.api
 
 import mill.api.daemon.DummyOutputStream
 import mill.api.daemon.internal.PathRefApi
+import mill.api.internal.PathAliasing
 import upickle.ReadWriter as RW
 
 import java.nio.file as jnio
@@ -54,6 +55,87 @@ object PathRef {
   implicit def shellable(p: PathRef): os.Shellable = p.path
 
   /**
+   * Real on-disk absolute path string for `p`, bypassing any `os.Path` serializer
+   * that may be in scope. In reproducible mode `os.Path.toString` / `.toIO` /
+   * `.toNIO` can return relativized `../mill-workspace/...` / `../mill-home/...`
+   * forms so cached values stay workspace-independent. That form is wrong to
+   * hand to external tools or to Java APIs that resolve relative paths against
+   * their own cwd.
+   */
+  def toAbsString(p: os.Path): String = toAbsNioPath(p).toString
+  def toAbsString(p: PathRef): String = toAbsString(p.path)
+  def toAbsNioPath(p: os.Path): jnio.Path = p.wrapped.toAbsolutePath.normalize()
+  def toAbsNioPath(p: PathRef): jnio.Path = toAbsNioPath(p.path)
+  def toAbsFile(p: os.Path): java.io.File = toAbsNioPath(p).toFile
+  def toAbsFile(p: PathRef): java.io.File = toAbsFile(p.path)
+
+  /**
+   * Like [[toAbsString]] but also follows symlinks via `toRealPath`, falling back to
+   * lexical [[toAbsString]] if the path does not exist on disk. Use when a subprocess
+   * walks the path-as-it-exists and lexical `../` collapse would land on the wrong file.
+   */
+  def toResolvedPathString(p: os.Path): String =
+    try p.wrapped.toRealPath().toString
+    catch { case _: java.io.IOException => toAbsString(p) }
+
+  /** Same as [[toResolvedPathString]] but returns an [[os.Path]] and falls back to `p` on IO errors. */
+  def toResolvedOsPath(p: os.Path): os.Path =
+    try os.Path(p.wrapped.toRealPath())
+    catch { case _: java.io.IOException => p }
+
+  /**
+   * Resolve symlinks in `p`, then translate the result back under `root` when it points inside
+   * the same real directory tree. This strips internal forwarder symlinks while preserving the
+   * lexical workspace root used by Mill's path aliases.
+   */
+  private[mill] def toResolvedOsPathAnchored(p: os.Path, root: os.Path): os.Path = {
+    val resolvedRoot = toResolvedOsPath(root)
+
+    @scala.annotation.tailrec
+    def rec(current: os.Path, missing: List[String]): os.Path = {
+      if (os.exists(current) || current.segmentCount == 0) {
+        val resolvedCurrent = toResolvedOsPath(current)
+        if (resolvedCurrent.startsWith(resolvedRoot)) {
+          val anchoredCurrent = root / resolvedCurrent.subRelativeTo(resolvedRoot)
+          missing.foldLeft(anchoredCurrent)(_ / _)
+        } else p
+      } else rec(current / os.up, current.last :: missing)
+    }
+
+    rec(p, Nil)
+  }
+
+  /**
+   * Format `path` as a string for a Mill subprocess whose working directory is `subprocessCwd`.
+   * Subprocesses at the workspace root use aliases under the configured output directory;
+   * subprocesses in task sandboxes use the historical `../mill-workspace` and `../mill-home`
+   * aliases.
+   */
+  def toRelString(
+      path: os.Path,
+      subprocessCwd: os.Path = BuildCtx.workspaceRoot,
+      workspaceRoot: os.Path = BuildCtx.workspaceRoot
+  ): String = {
+    val mappings = PathAliasing.aliasMappingForCwd(subprocessCwd, workspaceRoot)
+
+    mappings
+      .collectFirst {
+        case (root, alias) if path.startsWith(root) =>
+          val subPath = path.subRelativeTo(root)
+          if (subPath.segments.isEmpty) alias.toString
+          else (alias / subPath).toString
+      }
+      .getOrElse(toAbsString(path))
+  }
+  def toRelString(
+      path: PathRef,
+      subprocessCwd: os.Path,
+      workspaceRoot: os.Path
+  ): String = toRelString(path.path, subprocessCwd, workspaceRoot)
+  def toRelString(path: PathRef, subprocessCwd: os.Path): String =
+    toRelString(path.path, subprocessCwd)
+
+  /**
    * This class maintains a cache of already validated paths.
    * It is thread-safe and meant to be shared between threads, e.g. in a ThreadLocal.
    */
@@ -73,7 +155,7 @@ object PathRef {
         case Revalidate.Once | Revalidate.Always =>
           val changedSig = PathRef.apply(pathRef.path, pathRef.quick).sig
           if (pathRef.sig != changedSig) {
-            throw new PathRefValidationException(pathRef)
+            throw PathRefValidationException(pathRef)
           }
           val _ = map.put(mapKey(pathRef), pathRef)
       }
@@ -82,10 +164,10 @@ object PathRef {
   }
 
   private[mill] val validatedPaths: DynamicVariable[ValidatedPaths] =
-    new DynamicVariable[ValidatedPaths](new ValidatedPaths())
+    DynamicVariable[ValidatedPaths](ValidatedPaths())
 
   private[mill] val serializedPaths: DynamicVariable[List[PathRef]] =
-    new DynamicVariable(null)
+    DynamicVariable(null)
 
   class PathRefValidationException(val pathRef: PathRef)
       extends RuntimeException(s"Invalid path signature detected: ${pathRef}")
@@ -115,10 +197,10 @@ object PathRef {
   ): PathRef = {
     val basePath = path
 
-    val sig = {
+    val sig = PathAliasing.withRawPathSerializer {
       val isPosix = path.wrapped.getFileSystem.supportedFileAttributeViews().contains("posix")
       val digest = MessageDigest.getInstance("MD5")
-      val digestOut = new DigestOutputStream(DummyOutputStream, digest)
+      val digestOut = DigestOutputStream(DummyOutputStream, digest)
 
       def updateWithInt(value: Int): Unit = {
         digest.update((value >>> 24).toByte)
@@ -130,19 +212,20 @@ object PathRef {
       if (os.exists(path)) {
         for (
           (path, attrs) <-
-            os.walk.attrs(path, includeTarget = true, followLinks = true).sortBy(_._1.toString)
+            os.walk.attrs(path, includeTarget = true, followLinks = false).sortBy(_._1.toString)
         ) {
           val sub = path.subRelativeTo(basePath)
           digest.update(sub.toString().getBytes())
           if (!attrs.isDir) {
             try {
-              if (isPosix) {
-                updateWithInt(os.perms(path, followLinks = false).value)
-              }
+              if (isPosix) updateWithInt(os.perms(path, followLinks = false).value)
               if (quick) {
                 val value = (attrs.mtime, attrs.size).hashCode()
                 updateWithInt(value)
-              } else if (jnio.Files.isReadable(path.toNIO)) {
+              } else if (!os.isLink(path) && jnio.Files.isReadable(path.wrapped)) {
+                // `.wrapped`, not `.toNIO`: the latter is the relativized alias form which
+                // `Files.isReadable` resolves against the caller's cwd and can silently
+                // return `false`, dropping the file's content from the PathRef signature.
                 val is =
                   try Some(os.read.inputStream(path))
                   catch {
@@ -171,7 +254,7 @@ object PathRef {
       java.util.Arrays.hashCode(digest.digest())
     }
 
-    new PathRef(path, quick, sig, revalidate)
+    PathRef(path, quick, sig, revalidate)
   }
 
   private[mill] def withSerializedPaths[T](block: => T): (T, Seq[PathRef]) = {
@@ -197,35 +280,55 @@ object PathRef {
       storeSerializedPaths(p)
       p.toString()
     },
-    {
-      case s"$prefix:$valid0:$hex:$pathString" if prefix == "ref" || prefix == "qref" =>
+    { s =>
+      serializedPathRefParts(s) match {
+        case Some((prefix, valid0, hex, pathString)) =>
 
-        val path = os.Path(pathString)
-        val quick = prefix match {
-          case "qref" => true
-          case "ref" => false
-        }
-        val validOrig = valid0 match {
-          case "v0" => Revalidate.Never
-          case "v1" => Revalidate.Once
-          case "vn" => Revalidate.Always
-        }
-        // Parsing to a long and casting to an int is the only way to make
-        // round-trip handling of negative numbers work =(
-        val sig = java.lang.Long.parseLong(hex, 16).toInt
-        val pr = PathRef(path, quick, sig, revalidate = validOrig)
-        validatedPaths.value.revalidateIfNeededOrThrow(pr)
-        storeSerializedPaths(pr)
-        pr
-      case s =>
-        val path = s match {
-          case s"//$rest" => os.Path(rest, BuildCtx.workspaceRoot)
-          case _ => os.Path(s, currentOverrideModulePath.value)
-        }
+          val path = os.Path(pathString)
+          val quick = prefix == "qref"
+          val validOrig = valid0 match {
+            case "v0" => Revalidate.Never
+            case "v1" => Revalidate.Once
+            case "vn" => Revalidate.Always
+          }
+          // Parsing to a long and casting to an int is the only way to make
+          // round-trip handling of negative numbers work =(
+          val sig = java.lang.Long.parseLong(hex, 16).toInt
+          val pr = PathRef(path, quick, sig, revalidate = validOrig)
+          validatedPaths.value.revalidateIfNeededOrThrow(pr)
+          storeSerializedPaths(pr)
+          pr
+        case None =>
+          val path =
+            if (s.startsWith("//")) os.Path(s.substring(2), BuildCtx.workspaceRoot)
+            else os.Path(s, currentOverrideModulePath.value)
 
-        mill.api.BuildCtx.withFilesystemCheckerDisabled(PathRef(path))
+          mill.api.BuildCtx.withFilesystemCheckerDisabled(PathRef(path))
+      }
     }
   )
+
+  private def serializedPathRefParts(s: String): Option[(String, String, String, String)] = {
+    val firstColon = s.indexOf(':')
+    if (firstColon < 0) None
+    else {
+      val prefix = s.substring(0, firstColon)
+      if (prefix != "ref" && prefix != "qref") None
+      else {
+        val secondColon = s.indexOf(':', firstColon + 1)
+        val thirdColon = if (secondColon < 0) -1 else s.indexOf(':', secondColon + 1)
+        if (secondColon < 0 || thirdColon < 0) None
+        else {
+          Some((
+            prefix,
+            s.substring(firstColon + 1, secondColon),
+            s.substring(secondColon + 1, thirdColon),
+            s.substring(thirdColon + 1)
+          ))
+        }
+      }
+    }
+  }
   private[mill] val currentOverrideModulePath = DynamicVariable[os.Path](null)
 
   // scalafix:off; we want to hide the unapply method

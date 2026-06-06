@@ -18,7 +18,7 @@ object Hello {
   }
 
   def manualIterator(n: Int): Int = {
-    val iter = new Elements(Array(0, 1, 2, 3))
+    val iter = Elements(Array(0, 1, 2, 3))
     iter.map(_ + getInt()).next()
   }
 
@@ -26,7 +26,7 @@ object Hello {
 
   def manualIterator2(n: Int): Int = {
     val box = Array(0)
-    val iter = new Elements(Array(0, 1, 2, 3))
+    val iter = Elements(Array(0, 1, 2, 3))
     iter.map(_ + n).foreach(x => box(0) += x + getInt())
     box(0)
   }

@@ -37,10 +37,10 @@ object `package` extends MillPublishScalaModule {
     val snapshotArtifactPrefix = s"${build.dist.artifactName()}-SNAPSHOT"
     val data: Seq[(os.SubPath, String)] =
       build.dist.examplePaths().map { path =>
-        val example = path.subRelativeTo(BuildCtx.workspaceRoot)
+        val example = build.workspaceSubPath(path)
         val artifactName = s"$snapshotArtifactPrefix-${example.segments.mkString("-")}"
         val downloadUrl = s"$snapshotUrlPrefix/$artifactName.zip"
-        val subPath = path.subRelativeTo(BuildCtx.workspaceRoot / "example")
+        val subPath = build.workspacePath(path).subRelativeTo(BuildCtx.workspaceRoot / "example")
         (subPath, downloadUrl)
       }
 
@@ -118,6 +118,11 @@ object `package` extends MillPublishScalaModule {
 
     override object test extends MillScalaTests {
       override def selectiveInputs = Seq(sources, this.resources) ++ initSelectiveInputs
+      // Each init test spawns an external build tool (gradle, mvn, sbt) which
+      // writes to global ~/.gradle / ~/.m2 / ~/.sbt / ~/.coursier caches and
+      // downloads tool distributions; running tests in parallel races on
+      // those shared resources.
+      def testParallelism = false
     }
   }
 

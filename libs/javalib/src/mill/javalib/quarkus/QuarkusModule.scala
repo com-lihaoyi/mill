@@ -419,7 +419,7 @@ trait QuarkusModule extends JavaModule { outer =>
 
   private def writeBuildPropertiesFile(destDir: os.Path, props: Map[String, String]): PathRef = {
     val file = destDir / "quarkus-build.properties"
-    val properties = new Properties()
+    val properties = Properties()
     props.foreach { case (key, value) => properties.put(key, value) }
     Using(os.write.outputStream(file))(out =>
       properties.store(out, "Generated build properties by Mill")

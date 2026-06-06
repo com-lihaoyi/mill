@@ -97,7 +97,7 @@ object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
 object CodeSigSubfolderRenamedSameOrderTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
 
-    test("subfolder-renames-same-order") - integrationTest { tester =>
+    test("sameOrder") - integrationTest { tester =>
       import tester.*
       eval(("clean", "_"))
       val cached4 = eval("foo")
@@ -118,7 +118,7 @@ object CodeSigSubfolderRenamedSameOrderTests extends UtestIntegrationTestSuite {
 
 object CodeSigSubfolderRenamedReorderTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
-    test("subfolder-renames-reorder") - integrationTest { tester =>
+    test("reorder") - integrationTest { tester =>
       import tester.*
       eval(("clean", "_"))
       val cached4 = eval("foo")

@@ -5,6 +5,7 @@ import mill.api.{PathRef, Task}
 import mill.javalib.*
 import mill.javalib.publish.{PackagingType, PublishInfo}
 import mill.util.Jvm
+
 import scala.xml.*
 
 @mill.api.experimental
@@ -66,7 +67,7 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
         }
 
       case (otherPackagingType, otherModuleType) =>
-        throw new IllegalArgumentException(
+        throw IllegalArgumentException(
           s"Packaging type $otherPackagingType not supported with $otherModuleType"
         )
     }
@@ -94,7 +95,7 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
     os.makeDir.all(compiledRes)
 
     val compileResult = os.proc(
-      androidSdkModule().aapt2Exe().path,
+      PathRef.toAbsString(androidSdkModule().aapt2Exe()),
       "compile",
       "--dir",
       androidResources(),
@@ -103,13 +104,13 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
     ).call()
 
     if (compileResult.exitCode != 0) {
-      throw new RuntimeException(
+      throw RuntimeException(
         s"aapt2 failed to compile resources with error code ${compileResult.exitCode}"
       )
     }
 
     val linkResult = os.proc(
-      androidSdkModule().aapt2Exe().path,
+      PathRef.toAbsString(androidSdkModule().aapt2Exe()),
       "link",
       "--static-lib",
       "-o",
@@ -121,7 +122,7 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
     ).call(cwd = compiledRes)
 
     if (linkResult.exitCode != 0) {
-      throw new RuntimeException(
+      throw RuntimeException(
         s"aapt2 failed to link resources with error code ${linkResult.exitCode}"
       )
     }
@@ -145,11 +146,5 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
     )
 
     PathRef(aarFile)
-  }
-
-  trait AndroidLibTests extends JavaTests {
-
-    override def sources: T[Seq[PathRef]] = Task.Sources("src/test/java")
-
   }
 }

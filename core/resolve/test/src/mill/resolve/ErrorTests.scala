@@ -1,6 +1,7 @@
 package mill.resolve
 
 import mill.api.{Discover, ModuleRef}
+import mill.api.{DynamicModule, Module as ApiModule, Segment}
 import mill.testkit.TestRootModule
 import mainargs.arg
 import mill.{Cross, Module, Task}
@@ -19,7 +20,7 @@ object ErrorTests extends TestSuite {
         def fooTask = Task { println(s"Running fooTask"); 123 }
         def fooCommand(@arg(positional = true) s: String) =
           Task.Command { println(s"Running fooCommand $s") }
-        throw new Exception("Foo Boom")
+        throw Exception("Foo Boom")
       }
 
       object bar extends Module {
@@ -31,7 +32,7 @@ object ErrorTests extends TestSuite {
           def quxTask = Task { println(s"Running quxTask"); "quxTask Result" }
           def quxCommand(@arg(positional = true) s: String) =
             Task.Command { println(s"Running quxCommand $s") }
-          throw new Exception("Qux Boom")
+          throw Exception("Qux Boom")
         }
       }
 
@@ -44,7 +45,7 @@ object ErrorTests extends TestSuite {
         def fooTask = Task { println(s"Running fooTask"); 123 }
         def fooCommand(@arg(positional = true) s: String) =
           Task.Command { println(s"Running fooCommand $s") }
-        throw new Exception("Foo Boom")
+        throw Exception("Foo Boom")
       }
 
       object bar extends Module {
@@ -63,7 +64,7 @@ object ErrorTests extends TestSuite {
 
     object crossModuleSimpleInitError extends TestRootModule {
       object myCross extends Cross[MyCross](1, 2, 3, 4) {
-        throw new Exception(s"MyCross Boom")
+        throw Exception(s"MyCross Boom")
       }
       trait MyCross extends Cross.Module[Int] {
         def foo = Task { crossValue }
@@ -74,14 +75,14 @@ object ErrorTests extends TestSuite {
     object crossModulePartialInitError extends TestRootModule {
       object myCross extends Cross[MyCross](1, 2, 3, 4)
       trait MyCross extends Cross.Module[Int] {
-        if (crossValue > 2) throw new Exception(s"MyCross Boom $crossValue")
+        if (crossValue > 2) throw Exception(s"MyCross Boom $crossValue")
         def foo = Task { crossValue }
       }
 
       lazy val millDiscover = Discover[this.type]
     }
     object crossModuleSelfInitError extends TestRootModule {
-      object myCross extends Cross[MyCross](1, 2, 3, throw new Exception(s"MyCross Boom"))
+      object myCross extends Cross[MyCross](1, 2, 3, throw Exception(s"MyCross Boom"))
       trait MyCross extends Cross.Module[Int] {
         def foo = Task { crossValue }
       }
@@ -91,7 +92,7 @@ object ErrorTests extends TestSuite {
 
     object crossModuleParentInitError extends TestRootModule {
       object parent extends Module {
-        throw new Exception(s"Parent Boom")
+        throw Exception(s"Parent Boom")
         object myCross extends Cross[MyCross](1, 2, 3, 4)
         trait MyCross extends Cross.Module[Int] {
           def foo = Task { crossValue }
@@ -238,6 +239,27 @@ object ErrorTests extends TestSuite {
 
       lazy val millDiscover = Discover[this.type]
     }
+
+    // A `DynamicModule` exposing two distinct child instances that both report the same last
+    // segment `inner`. Name resolution de-duplicates them and resolves `parent.inner.task`, but
+    // `ResolveCore.instantiateModule` asks for the single child `inner`, gets two candidates,
+    // and must surface that as a clean `Result.Failure`, not a thrown `sys.error`.
+    object ambiguousDynamic extends TestRootModule {
+      object parent extends DynamicModule {
+        private def mkInner: Inner = {
+          implicit val ctx: mill.api.ModuleCtx =
+            moduleCtx.withSegments(moduleSegments ++ Segment.Label("inner"))
+          new Inner {}
+        }
+        val innerA: Inner = mkInner
+        val innerB: Inner = mkInner
+        override def moduleDirectChildren: Seq[ApiModule] = Seq(innerA, innerB)
+        trait Inner extends Module {
+          def task = Task { 1 }
+        }
+      }
+      lazy val millDiscover = Discover[this.type]
+    }
   }
 
   def isShortError(x: Result[?], s: String) = {
@@ -255,12 +277,19 @@ object ErrorTests extends TestSuite {
   }
 
   val tests = Tests {
-    val errorGraphs = new ErrorGraphs()
+    val errorGraphs = ErrorGraphs()
     import errorGraphs.*
+
+    // A label that resolves to multiple children must come back as a clean `Result.Failure`,
+    // not a thrown `sys.error` that escapes resolution.
+    test("ambiguousDynamicChildIsFailureNotThrow") - Checker(ambiguousDynamic).checkSeq0(
+      Seq("parent.inner.task"),
+      isShortError(_, "Unable to resolve single child")
+    )
 
     test("moduleInitError") {
       test("simple") {
-        val check = new Checker(moduleInitError)
+        val check = Checker(moduleInitError)
         // We can resolve the root module tasks even when the
         // sub-modules fail to initialize
         test("rootTask") - check.checkSeq(
@@ -317,7 +346,7 @@ object ErrorTests extends TestSuite {
       }
 
       test("dependency") {
-        val check = new Checker(moduleDependencyInitError)
+        val check = Checker(moduleDependencyInitError)
 
         test("fooTask") - check.checkSeq0(
           Seq("foo.fooTask"),
@@ -348,7 +377,7 @@ object ErrorTests extends TestSuite {
       test("cross") {
 
         test("simple") {
-          val check = new Checker(crossModuleSimpleInitError)
+          val check = Checker(crossModuleSimpleInitError)
           check.checkSeq0(
             Seq("myCross[1].foo"),
             isShortError(_, "MyCross Boom"),
@@ -366,7 +395,7 @@ object ErrorTests extends TestSuite {
           )
         }
         test("partial") {
-          val check = new Checker(crossModulePartialInitError)
+          val check = Checker(crossModulePartialInitError)
 
           // If any one of the cross modules fails to initialize, even if it's
           // not the one you are asking for, we fail and make sure to catch and
@@ -428,7 +457,7 @@ object ErrorTests extends TestSuite {
           )
         }
         test("self") {
-          val check = new Checker(crossModuleSelfInitError)
+          val check = Checker(crossModuleSelfInitError)
 
           // When the cross module itself fails to initialize, even before its
           // children get a chance to init. Instantiating the tasks fails, but
@@ -449,7 +478,7 @@ object ErrorTests extends TestSuite {
         }
 
         test("parent") {
-          val check = new Checker(crossModuleParentInitError)
+          val check = Checker(crossModuleParentInitError)
 
           // When the parent of the cross module fails to initialize, even
           // before the cross module or its children get a chance to init,
@@ -469,7 +498,7 @@ object ErrorTests extends TestSuite {
       }
     }
     test("cyclicModuleRefInitError") {
-      val check = new Checker(CyclicModuleRefInitError)
+      val check = Checker(CyclicModuleRefInitError)
       test - check.checkSeq0(
         Seq("__"),
         isShortError(_, "Cyclic module reference detected at myA.a,")
@@ -500,14 +529,14 @@ object ErrorTests extends TestSuite {
       )
     }
     test("cyclicModuleRefInitError2") {
-      val check = new Checker(CyclicModuleRefInitError2)
+      val check = Checker(CyclicModuleRefInitError2)
       test - check.checkSeq0(
         Seq("__"),
         isShortError(_, "Cyclic module reference detected at A.myA.a,")
       )
     }
     test("cyclicModuleRefInitError3") {
-      val check = new Checker(CyclicModuleRefInitError3)
+      val check = Checker(CyclicModuleRefInitError3)
       test - check.checkSeq0(
         Seq("__"),
         isShortError(_, "Cyclic module reference detected at A.b.a,")
@@ -522,28 +551,28 @@ object ErrorTests extends TestSuite {
       )
     }
     test("crossedCyclicModuleRefInitError") {
-      val check = new Checker(CrossedCyclicModuleRefInitError)
+      val check = Checker(CrossedCyclicModuleRefInitError)
       test - check.checkSeq0(
         Seq("__"),
         isShortError(_, "Cyclic module reference detected at cross.210.c2.210.c1,")
       )
     }
     test("nonCyclicModules") {
-      val check = new Checker(NonCyclicModules)
+      val check = Checker(NonCyclicModules)
       test - check(
         "__",
         Result.Success(Set(_.foo))
       )
     }
     test("moduleRefWithNonModuleRefChild") {
-      val check = new Checker(ModuleRefWithNonModuleRefChild)
+      val check = Checker(ModuleRefWithNonModuleRefChild)
       test - check(
         "__",
         Result.Success(Set(_.foo))
       )
     }
     test("moduleRefCycle") {
-      val check = new Checker(ModuleRefCycle)
+      val check = Checker(ModuleRefCycle)
       test - check(
         "__",
         Result.Success(Set(_.foo))
@@ -555,7 +584,7 @@ object ErrorTests extends TestSuite {
     }
     test("crossModuleUnderscoreDotConflict") {
       test("single") {
-        val check = new Checker(CrossModuleUnderscoreDotConflict)
+        val check = Checker(CrossModuleUnderscoreDotConflict)
         test - check.checkSeq0(
           Seq("myCross[foo_bar].task"),
           isShortError(_, "would be ambiguous"),
@@ -563,7 +592,7 @@ object ErrorTests extends TestSuite {
         )
       }
       test("double") {
-        val check = new Checker(CrossModuleUnderscoreDotConflictDouble)
+        val check = Checker(CrossModuleUnderscoreDotConflictDouble)
         test - check.checkSeq0(
           Seq("myCross[2_12,jvm].task"),
           isShortError(_, "would be ambiguous"),
@@ -572,7 +601,7 @@ object ErrorTests extends TestSuite {
       }
     }
     test("crossModuleCollisions") {
-      val check = new Checker(CrossModuleCollisions)
+      val check = Checker(CrossModuleCollisions)
       // Cross values (Seq("a", "b"), Seq("c")) and (Seq("a"), Seq("b", "c"))
       // produce the same cross segments [a,b,c], which is a collision
       test - check.checkSeq0(

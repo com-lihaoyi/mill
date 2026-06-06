@@ -15,7 +15,7 @@ object Hello {
 
   def simpleArraySeqForeach(): Array[Int] = {
     val holder = Array(1)
-    val arr = new TestArraySeq[String](Array("a", "bb", "CCC"))
+    val arr = TestArraySeq[String](Array("a", "bb", "CCC"))
     arr.foreach(x => holder(0) += x.length)
 
     holder

@@ -3,10 +3,9 @@ mill-jvm-version: system
 extends: [MavenModule, mill.javalib.errorprone.ErrorProneModule, PublishModule]
 bomMvnDeps:
 - org.junit:junit-bom:5.11.0
-javacOptions: [-source, 8, -target, 8]
+javacOptions: [-source, 8, -target, 8, -XDshould-stop=ifError=FLOW]
 errorProneDeps:
 - com.google.errorprone:error_prone_core:2.28.0
-errorProneJavacEnableOptions: [-XDshould-stop=ifError=FLOW]
 artifactName: maven-3-9-11
 pomSettings:
   organization: com.mycompany.app

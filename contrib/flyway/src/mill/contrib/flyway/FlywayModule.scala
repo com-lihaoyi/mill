@@ -36,6 +36,14 @@ trait FlywayModule extends JavaModule {
     Map.empty[String, String]
   }
 
+  /**
+   * Extra Flyway configuration properties beyond URL/user/password.
+   * Override this to add properties like SCHEMAS, OUT_OF_ORDER, CLEAN_DISABLED, etc.
+   * Keys should be Flyway configuration property names (e.g. "flyway.schemas").
+   * These are merged into the config map passed to Flyway.configure().
+   */
+  def flywayExtraConfig: T[Map[String, String]] = Task { Map.empty[String, String] }
+
   def flywayDriverDeps: T[Seq[Dep]]
   def flywayPluginDeps: T[Seq[Dep]] = Task {
     Seq.empty
@@ -92,9 +100,10 @@ trait FlywayModule extends JavaModule {
 
     val configProps = Map(flyway.URL -> flywayUrl()) ++
       strToOptPair(flyway.USER, flywayUser()) ++
-      strToOptPair(flyway.PASSWORD, flywayPassword())
+      strToOptPair(flyway.PASSWORD, flywayPassword()) ++
+      flywayExtraConfig()
 
-    LogFactory.setLogCreator(new ConsoleLogCreator(Level.INFO))
+    LogFactory.setLogCreator(ConsoleLogCreator(Level.INFO))
 
     Flyway
       .configure(jdbcClassloader)
@@ -114,7 +123,8 @@ trait FlywayModule extends JavaModule {
       flywayUser(),
       flywayPassword(),
       flywayFileLocations(),
-      flywayPlaceholders()
+      flywayPlaceholders(),
+      flywayExtraConfig()
     ) {
       (flyway, _, _) => toMigrateResult(callNoArg(flyway, "migrate"))
     }
@@ -129,7 +139,8 @@ trait FlywayModule extends JavaModule {
       flywayUser(),
       flywayPassword(),
       flywayFileLocations(),
-      flywayPlaceholders()
+      flywayPlaceholders(),
+      flywayExtraConfig()
     ) {
       (flyway, _, _) => toCleanResult(callNoArg(flyway, "clean"))
     }
@@ -144,7 +155,8 @@ trait FlywayModule extends JavaModule {
       flywayUser(),
       flywayPassword(),
       flywayFileLocations(),
-      flywayPlaceholders()
+      flywayPlaceholders(),
+      flywayExtraConfig()
     ) {
       (flyway, _, _) => toBaselineResult(callNoArg(flyway, "baseline"))
     }
@@ -159,7 +171,8 @@ trait FlywayModule extends JavaModule {
       flywayUser(),
       flywayPassword(),
       flywayFileLocations(),
-      flywayPlaceholders()
+      flywayPlaceholders(),
+      flywayExtraConfig()
     ) {
       (flyway, isolatedLoader, _) =>
         val info = callNoArg(flyway, "info")
@@ -191,7 +204,8 @@ trait FlywayModule extends JavaModule {
       flywayUser(),
       flywayPassword(),
       flywayFileLocations(),
-      flywayPlaceholders()
+      flywayPlaceholders(),
+      flywayExtraConfig()
     ) {
       (flyway, flywayLoader, currentUrl) =>
         val conf = callNoArg(flyway, "getConfiguration")
@@ -221,7 +235,8 @@ trait FlywayModule extends JavaModule {
       user: String,
       password: String,
       fileLocations: Seq[PathRef],
-      placeholders: Map[String, String]
+      placeholders: Map[String, String],
+      extraConfig: Map[String, String]
   )(
       f: (AnyRef, MillURLClassLoader, String) => T
   ): T = {
@@ -229,7 +244,7 @@ trait FlywayModule extends JavaModule {
       loader,
       fileLocations.map(pr => s"filesystem:${pr.path}"),
       placeholders,
-      configProps(url, user, password)
+      configProps(url, user, password) ++ extraConfig
     )
     f(flyway, loader, url)
   }
@@ -358,7 +373,7 @@ trait FlywayModule extends JavaModule {
       .orNull
 
   private def toMigrateOutput(raw: AnyRef): MigrateOutput = {
-    val out = new MigrateOutput()
+    val out = MigrateOutput()
     out.category = readStringField(raw, "category")
     out.version = readStringField(raw, "version")
     out.description = readStringField(raw, "description")
@@ -372,7 +387,7 @@ trait FlywayModule extends JavaModule {
   }
 
   private def toMigrateResult(raw: AnyRef): MigrateResult = {
-    val result = new MigrateResult()
+    val result = MigrateResult()
     result.initialSchemaVersion = readStringField(raw, "initialSchemaVersion")
     result.targetSchemaVersion = readStringField(raw, "targetSchemaVersion")
     result.schemaName = readStringField(raw, "schemaName")
@@ -393,7 +408,7 @@ trait FlywayModule extends JavaModule {
 
   private def toCleanResult(raw: AnyRef): CleanResult = {
     val result =
-      new CleanResult(readStringField(raw, "flywayVersion"), readStringField(raw, "database"))
+      CleanResult(readStringField(raw, "flywayVersion"), readStringField(raw, "database"))
     fillOperationResultBase(raw, result)
     result.schemasCleaned =
       new java.util.ArrayList[String](readStringSeqField(raw, "schemasCleaned").asJava)
@@ -404,7 +419,7 @@ trait FlywayModule extends JavaModule {
 
   private def toBaselineResult(raw: AnyRef): BaselineResult = {
     val result =
-      new BaselineResult(readStringField(raw, "flywayVersion"), readStringField(raw, "database"))
+      BaselineResult(readStringField(raw, "flywayVersion"), readStringField(raw, "database"))
     fillOperationResultBase(raw, result)
     result.successfullyBaselined = readBooleanField(raw, "successfullyBaselined")
     result.baselineVersion = readStringField(raw, "baselineVersion")

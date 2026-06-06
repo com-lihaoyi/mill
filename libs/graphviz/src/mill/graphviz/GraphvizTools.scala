@@ -22,7 +22,7 @@ object GraphvizTools {
       new AbstractJsGraphvizEngine(
         true,
         () => {
-          threadLocalJsEngines.putIfAbsent(Thread.currentThread(), new V8JavascriptEngine())
+          threadLocalJsEngines.putIfAbsent(Thread.currentThread(), V8JavascriptEngine())
           threadLocalJsEngines.get(Thread.currentThread())
         }
       ) {}
@@ -33,7 +33,7 @@ object GraphvizTools {
         for (arg <- args.toSeq) yield Future {
           val Array(src, dest0, commaSepExtensions) = arg.split(";")
           val extensions = commaSepExtensions.split(',')
-          val dest = os.Path(dest0)
+          val dest = os.Path(dest0, os.pwd)
 
           val gv = Graphviz.fromFile(new java.io.File(src)).totalMemory(128 * 1024 * 1024)
 
@@ -54,7 +54,7 @@ class V8JavascriptEngine() extends AbstractJavascriptEngine {
   LOG.info("Starting V8 runtime...")
   LOG.info("Started V8 runtime. Initializing javascript...")
   val resultHandler = new ResultHandler
-  val javetStandardConsoleInterceptor = new JavetStandardConsoleInterceptor(v8Runtime)
+  val javetStandardConsoleInterceptor = JavetStandardConsoleInterceptor(v8Runtime)
   javetStandardConsoleInterceptor.register(v8Runtime.getGlobalObject)
 
   class ResultHandlerInterceptor(resultHandler: ResultHandler) {
@@ -69,7 +69,7 @@ class V8JavascriptEngine() extends AbstractJavascriptEngine {
   }
   val v8ValueObject = v8Runtime.createV8ValueObject
   v8Runtime.getGlobalObject.set("resultHandlerInterceptor", v8ValueObject)
-  v8ValueObject.bind(new ResultHandlerInterceptor(resultHandler))
+  v8ValueObject.bind(ResultHandlerInterceptor(resultHandler))
 
   v8Runtime.getExecutor(
     "var result = resultHandlerInterceptor.result; " +

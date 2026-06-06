@@ -122,7 +122,7 @@ trait KspModule extends KotlinModule { outer =>
     sources()
   }
 
-  override def kotlinUseEmbeddableCompiler: Task[Boolean] = kspModuleMode match {
+  override def kotlinUseEmbeddableCompiler: T[Boolean] = kspModuleMode match {
     case KspModuleMode.Ksp1 => Task { true }
     case KspModuleMode.Ksp2Cli | KspModuleMode.Ksp2 => Task { super.kotlinUseEmbeddableCompiler() }
   }
@@ -152,7 +152,7 @@ trait KspModule extends KotlinModule { outer =>
    */
   def ksp1KotlincOptions: T[Seq[String]] = Task {
     if (!kspLanguageVersion().startsWith("1.")) {
-      throw new RuntimeException("KSP needs a compatible language version <= 1.9 to be set!")
+      throw RuntimeException("KSP needs a compatible language version <= 1.9 to be set!")
     }
     kotlincOptions() ++ Seq(
       "-Xallow-unstable-dependencies",
@@ -362,20 +362,22 @@ trait KspModule extends KotlinModule { outer =>
       ""
     else
       s"-processor-options=${processorOptionsValue}"
+
+    // KSP compares these configured roots with Kotlin File.relativeTo, so they must be absolute.
     val args = Seq(
       s"-module-name=${kspModuleName}",
       "-jvm-target",
       kspJvmTarget(),
       s"-jdk-home=${System.getProperty("java.home")}",
-      s"-source-roots=${kspSources().map(_.path).mkString(File.pathSeparator)}",
-      s"-project-base-dir=${moduleDir.toString}",
-      s"-output-base-dir=${kspOutputDir}",
-      s"-caches-dir=${kspCachesDir}",
-      s"-libraries=${kspClasspath().map(_.path).mkString(File.pathSeparator)}",
-      s"-class-output-dir=${classes}",
-      s"-kotlin-output-dir=${kotlin}",
-      s"-java-output-dir=${java}",
-      s"-resource-output-dir=${resources}",
+      s"-source-roots=${kspSources().map(pr => PathRef.toAbsString(pr.path)).mkString(File.pathSeparator)}",
+      s"-project-base-dir=${PathRef.toAbsString(moduleDir)}",
+      s"-output-base-dir=${PathRef.toAbsString(kspOutputDir)}",
+      s"-caches-dir=${PathRef.toAbsString(kspCachesDir)}",
+      s"-libraries=${kspClasspath().map(pr => PathRef.toAbsString(pr.path)).mkString(File.pathSeparator)}",
+      s"-class-output-dir=${PathRef.toAbsString(classes)}",
+      s"-kotlin-output-dir=${PathRef.toAbsString(kotlin)}",
+      s"-java-output-dir=${PathRef.toAbsString(java)}",
+      s"-resource-output-dir=${PathRef.toAbsString(resources)}",
       s"-language-version=${kspLanguageVersion()}",
       s"-incremental=true",
       s"-incremental-log=true",
@@ -469,20 +471,22 @@ trait KspModule extends KotlinModule { outer =>
       ""
     else
       s"-processor-options=${processorOptionsValue}"
+
+    // KSP compares these configured roots with Kotlin File.relativeTo, so they must be absolute.
     val args = Seq(
       s"-module-name=${kspModuleName}",
       "-jvm-target",
       kspJvmTarget(),
       s"-jdk-home=${System.getProperty("java.home")}",
-      s"-source-roots=${kspSources().map(_.path).mkString(File.pathSeparator)}",
-      s"-project-base-dir=${moduleDir.toString}",
-      s"-output-base-dir=${kspOutputDir}",
-      s"-caches-dir=${kspCachesDir}",
-      s"-libraries=${kspClasspath().map(_.path).mkString(File.pathSeparator)}",
-      s"-class-output-dir=${classes}",
-      s"-kotlin-output-dir=${kotlin}",
-      s"-java-output-dir=${java}",
-      s"-resource-output-dir=${resources}",
+      s"-source-roots=${kspSources().map(pr => PathRef.toAbsString(pr.path)).mkString(File.pathSeparator)}",
+      s"-project-base-dir=${PathRef.toAbsString(moduleDir)}",
+      s"-output-base-dir=${PathRef.toAbsString(kspOutputDir)}",
+      s"-caches-dir=${PathRef.toAbsString(kspCachesDir)}",
+      s"-libraries=${kspClasspath().map(pr => PathRef.toAbsString(pr.path)).mkString(File.pathSeparator)}",
+      s"-class-output-dir=${PathRef.toAbsString(classes)}",
+      s"-kotlin-output-dir=${PathRef.toAbsString(kotlin)}",
+      s"-java-output-dir=${PathRef.toAbsString(java)}",
+      s"-resource-output-dir=${PathRef.toAbsString(resources)}",
       s"-language-version=${kspLanguageVersion()}",
       s"-incremental=true",
       s"-incremental-log=true",

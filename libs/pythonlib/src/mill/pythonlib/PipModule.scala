@@ -1,6 +1,7 @@
 package mill.pythonlib
 
 import mill.*
+import mill.api.PathRef
 
 /**
  * Basic tasks for preparing a python interpreter in a venv with required
@@ -120,12 +121,19 @@ trait PipModule extends Module {
 
     PipModule.InstallArgs(
       indexArgs ++
-        transitiveUnmanagedWheels().map(_.path.toString) ++
+        transitiveUnmanagedWheels().map { p =>
+          // `pipInstallArgs` is evaluated separately from the `venv` task that consumes it.
+          PathRef.toAbsString(p)
+        } ++
         pythonToolDeps() ++
         transitivePythonDeps() ++
-        transitivePythonRequirementFiles().flatMap(pr =>
-          Seq("-r", pr.path.toString)
-        ),
+        transitivePythonRequirementFiles().flatMap { pr =>
+          Seq(
+            "-r",
+            // `pipInstallArgs` is evaluated separately from the `venv` task that consumes it.
+            PathRef.toAbsString(pr)
+          )
+        },
       transitiveUnmanagedWheels() ++ transitivePythonRequirementFiles()
     )
   }

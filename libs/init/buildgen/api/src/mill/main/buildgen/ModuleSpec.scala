@@ -12,6 +12,7 @@ case class ModuleSpec(
     crossKeys: Seq[String] = Nil,
     alias: Option[String] = None,
     moduleDir: Value[String] = Value(),
+    springBootPlatformVersion: Value[String] = Value(),
     repositories: Values[String] = Nil,
     forkArgs: Values[Opt] = Values(),
     forkWorkingDir: Value[String] = Value(),
@@ -63,7 +64,8 @@ case class ModuleSpec(
     mimaForwardIssueFilters: Values[(String, Seq[String])] = Values(),
     mimaExcludeAnnotations: Values[String] = Values(),
     mimaReportSignatureProblems: Value[Boolean] = Value(),
-    children: Seq[ModuleSpec] = Nil
+    children: Seq[ModuleSpec] = Nil,
+    quarkusPlatformVersion: Value[String] = Value()
 ) {
 
   def isBomModule: Boolean = supertypes.contains("BomModule")
@@ -75,21 +77,38 @@ case class ModuleSpec(
 
   def tree: Seq[ModuleSpec] = this +: children.flatMap(_.tree)
 
-  def withErrorProneModule(errorProneMvnDeps: Seq[MvnDep]): ModuleSpec = {
-    javacOptions.base.find(_.group.head.startsWith("-Xplugin:ErrorProne")).fold(this) { epOption =>
-      val epOptions = epOption.group.head.split("\\s").toSeq.tail
-      val (epJavacOptions, javacOptions0) = javacOptions.base
-        .diff(Seq(epOption, Opt("-XDcompilePolicy=simple")))
-        .partition(_.group.head.startsWith("-XD"))
-      this.copy(
-        imports = "mill.javalib.errorprone.ErrorProneModule" +: imports,
-        supertypes = supertypes :+ "ErrorProneModule",
-        errorProneDeps = errorProneMvnDeps,
-        errorProneOptions = epOptions,
-        errorProneJavacEnableOptions = epJavacOptions,
-        javacOptions = javacOptions0
-      )
-    }
+  def withErrorProneModule(
+      errorProneMvnDeps: Values[MvnDep] = Values(),
+      errorProneOptions: Values[String] = Values(),
+      errorProneJavacEnableOptions: Values[Opt] = Values()
+  ): ModuleSpec = {
+    this.copy(
+      imports = "mill.javalib.errorprone.ErrorProneModule" +: imports,
+      supertypes = supertypes :+ "ErrorProneModule",
+      errorProneDeps = errorProneMvnDeps,
+      errorProneOptions = errorProneOptions,
+      errorProneJavacEnableOptions = errorProneJavacEnableOptions
+    )
+  }
+
+  def withSpringBootModule(springBootVersion: Value[String]): ModuleSpec =
+    copy(
+      imports = "mill.javalib.spring.boot.*" +: imports,
+      supertypes = "SpringBootModule" +: supertypes,
+      springBootPlatformVersion = springBootVersion
+    )
+
+  def withSpringBootTestsModule(): ModuleSpec = {
+    val requiredSupertypes = Seq("SpringBootTestsModule", "MavenTests")
+    copy(supertypes = requiredSupertypes ++ supertypes.filterNot(requiredSupertypes.contains))
+  }
+
+  def withQuarkusModule(quarkusVersion: Value[String]): ModuleSpec = {
+    copy(
+      imports = "mill.javalib.quarkus.*" +: imports,
+      supertypes = "QuarkusModule" +: supertypes,
+      quarkusPlatformVersion = quarkusVersion
+    )
   }
 
   def withJmhModule(jmhCoreVersion: Value[String]): ModuleSpec = copy(
@@ -258,6 +277,7 @@ object ModuleSpec {
   def testModuleMixin(mvnDeps: Seq[MvnDep]): Option[String] = {
     // Prioritize frameworks that integrate with other frameworks.
     mvnDeps.iterator.map(dep => dep.organization -> dep.name).collectFirst {
+      case ("io.quarkus", "quarkus-junit" | "quarkus-junit5") => "QuarkusJunit"
       case ("org.scalatest" | "org.scalatestplus", _) => "TestModule.ScalaTest"
       case ("org.specs2", _) => "TestModule.Spec2"
       // https://scalameta.org/munit/docs/integrations/external-integrations.html
@@ -276,7 +296,8 @@ object ModuleSpec {
       mvnDeps.iterator.map(dep => dep.organization -> dep.name).collectFirst {
         case ("org.testng", _) => "TestModule.TestNg"
         case ("junit", _) => "TestModule.Junit4"
-        case ("org.junit.jupiter", _) => "TestModule.Junit5"
+        case ("org.junit.jupiter", _) | ("org.springframework.boot", "spring-boot-starter-test") =>
+          "TestModule.Junit5"
         case ("com.lihaoyi", "utest") => "TestModule.Utest"
         case ("org.typelevel", "weaver-cats") => "TestModule.Weaver"
         case ("dev.zio", "zio-test" | "zio-test-sbt") => "TestModule.ZioTest"
@@ -284,4 +305,6 @@ object ModuleSpec {
       }
     }
   }
+
+  def isManagedJavacOption(arg: String): Boolean = arg == "-XDcompilePolicy=simple"
 }

@@ -8,18 +8,22 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import pprint.Util.literalize
 
+import java.io.File
 import java.util.Properties
 import java.util.concurrent.TimeUnit
 import scala.util.Using
 
 object MillGradleBuildGenMain {
 
-  def main(args: Array[String]): Unit = mainargs.Parser(this).runOrExit(args.toSeq)
+  def main(args: Array[String]): Unit = {
+    mainargs.Parser(this).runOrExit(args.toSeq)
+    System.exit(0)
+  }
 
   @mainargs.main(doc = "Generates Mill build files that are derived from a Gradle build.")
   def init(
       @mainargs.arg(doc = "Coursier ID for the JVM to run Gradle")
-      gradleJvmId: String = "system",
+      gradleJvmId: String = "zulu:21",
       @mainargs.arg(doc = "merge package.mill files in to the root build.mill file")
       merge: mainargs.Flag,
       @mainargs.arg(doc = "disable generating meta-build files")
@@ -39,6 +43,12 @@ object MillGradleBuildGenMain {
     val gradleWorkspace = os.Path.expandUser(projectDir, os.pwd)
     val millWorkspace = os.pwd
 
+    val gradleWrapperProperties = {
+      val file = gradleWorkspace / "gradle/wrapper/gradle-wrapper.properties"
+      val properties = new Properties()
+      if (os.isFile(file)) Using.resource(os.read.inputStream(file))(properties.load)
+      properties
+    }
     val exportPluginJar = Using.resource(
       getClass.getResourceAsStream(exportpluginAssemblyResource)
     )(os.temp(_, suffix = ".jar"))
@@ -60,12 +70,33 @@ object MillGradleBuildGenMain {
         conn
       case conn => conn
     }
+    if (gradleWrapperProperties.getProperty("distributionUrl") == null) {
+      // Fallback to system Gradle installation instead of the version corresponding to the
+      // Tooling API dependency.
+      System.getenv("GRADLE_HOME") match {
+        case null =>
+          os.proc("gradle", "--no-daemon", "--version").call().out.lines().collectFirst {
+            case s"Gradle ${gradleVersion}" =>
+              println(s"using Gradle version $gradleVersion")
+              gradleConnector.useGradleVersion(gradleVersion)
+          }.getOrElse {
+            sys.error(s"Failed to determine Gradle version. Please set GRADLE_HOME and retry.")
+          }
+        case gradleHome =>
+          println(s"using Gradle home $gradleHome")
+          gradleConnector.useInstallation(new File(gradleHome))
+      }
+    }
+    // Hand Gradle un-aliased absolute Files — the alias form fails on Windows where
+    // the symlink can't be created without developer mode.
+    val gradleWorkspaceFile = gradleWorkspace.wrapped.toFile
+    val gradleJavaHomeFile = macosJdkBundleHome(Jvm.resolveJavaHome(gradleJvmId).get).wrapped.toFile
     var packages =
-      try Using.resource(gradleConnector.forProjectDirectory(gradleWorkspace.toIO).connect) {
+      try Using.resource(gradleConnector.forProjectDirectory(gradleWorkspaceFile).connect) {
           connection =>
             val model = connection.model(classOf[BuildModel])
               .addArguments("--init-script", initScript.toString)
-              .setJavaHome(Jvm.resolveJavaHome(gradleJvmId).get.toIO)
+              .setJavaHome(gradleJavaHomeFile)
               .setStandardOutput(System.out).get
             upickle.default.read[Seq[PackageSpec]](model.asJson)
         }
@@ -76,13 +107,9 @@ object MillGradleBuildGenMain {
       if (noMeta.value) (None, packages)
       else buildGen.withBaseModule(packages, "MavenModule" -> "MavenTests")
         .fold((None, packages))((base, pkgs) => (Some(base), pkgs))
-    val millJvmOpts = {
-      val properties = new Properties()
-      val file = gradleWorkspace / "gradle/wrapper/gradle-wrapper.properties"
-      if (os.isFile(file)) Using.resource(os.read.inputStream(file))(properties.load)
-      val prop = properties.getProperty("org.gradle.jvmargs")
-      if (prop == null) Nil else prop.trim.split("\\s").toSeq
-    }
+    val millJvmOpts = Option(
+      gradleWrapperProperties.getProperty("org.gradle.jvmargs")
+    ).fold(Nil)(_.trim.split("\\s+").toSeq)
     buildGen.writeBuildFiles(
       baseDir = millWorkspace,
       packages = packages0,
@@ -92,6 +119,20 @@ object MillGradleBuildGenMain {
       millJvmOpts = millJvmOpts
     )
   }
+
+  /**
+   * Coursier extracts a macOS Zulu/JDK archive whose top level contains both a
+   * Linux-style `bin/` layout and a macOS bundle layout `*.jdk/Contents/Home`.
+   * Coursier returns the outer directory, but Gradle's daemon canonicalises
+   * `JAVA_HOME` to `Contents/Home` and refuses to reuse a daemon when the two
+   * differ. Pre-resolve to the bundle's `Contents/Home` when present.
+   */
+  private def macosJdkBundleHome(javaHome: os.Path): os.Path =
+    if (!scala.util.Properties.isMac) javaHome
+    else os.list(javaHome)
+      .find(p => p.last.endsWith(".jdk") && os.exists(p / "Contents" / "Home" / "bin" / "java"))
+      .map(_ / "Contents" / "Home")
+      .getOrElse(javaHome)
 
   private def normalizeBuild(packages: Seq[PackageSpec]) = {
     val moduleLookup = packages.flatMap(_.modulesBySegments).toMap

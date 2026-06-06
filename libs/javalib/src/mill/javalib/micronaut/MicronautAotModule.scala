@@ -84,15 +84,17 @@ trait MicronautAotModule extends JavaModule {
 
     val args = Seq(
       "--classpath",
-      (runClasspath() ++ resolvedMicronautAotCli()).map(_.path).mkString(":"),
+      (runClasspath() ++ resolvedMicronautAotCli())
+        .map(pr => PathRef.toRelString(pr.path, dest))
+        .mkString(java.io.File.pathSeparator),
       "--package",
       micronautPackage(),
       "--runtime",
       aotRuntime(),
       "--config",
-      micronautAotConfigFile().path.toString,
+      PathRef.toRelString(micronautAotConfigFile().path, dest),
       "--output",
-      dest.toString
+      PathRef.toRelString(dest, dest)
     )
 
     Jvm.callProcess(

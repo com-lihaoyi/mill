@@ -9,7 +9,7 @@ trait RpcConsole { self =>
   def println(s: String): Unit = print(s + "\n")
   def flush(): Unit
 
-  def asStream: OutputStream = new RpcConsole.Utf8OutputStream(self)
+  def asStream: OutputStream = RpcConsole.Utf8OutputStream(self)
 }
 object RpcConsole {
   enum Message derives upickle.ReadWriter {
@@ -64,7 +64,7 @@ object RpcConsole {
       val boundary = lastCompleteUtf8Boundary(data)
 
       if (boundary > 0) {
-        console.print(new String(data, 0, boundary, StandardCharsets.UTF_8))
+        console.print(String(data, 0, boundary, StandardCharsets.UTF_8))
       }
 
       pending =
@@ -75,7 +75,7 @@ object RpcConsole {
     override def flush(): Unit = {
       // Flush any pending bytes (they are likely malformed; let String handle them)
       if (pending.nonEmpty) {
-        console.print(new String(pending, StandardCharsets.UTF_8))
+        console.print(String(pending, StandardCharsets.UTF_8))
         pending = Array.emptyByteArray
       }
       console.flush()

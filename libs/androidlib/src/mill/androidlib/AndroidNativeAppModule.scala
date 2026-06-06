@@ -60,6 +60,9 @@ trait AndroidNativeAppModule extends AndroidAppModule {
     val outDir = Task.dest // Mill provides a dest dir for this task
     os.makeDir.all(outDir) // ensure output dir exists
 
+    // CMake fans out into generated scripts and NDK toolchain helpers with their own cwds.
+    val ndkPath = PathRef.toAbsString(androidSdkModule().ndkPath())
+
     for (abi <- androidSupportedAbis()) {
 
       val outFile = outDir / "lib" / abi
@@ -67,23 +70,24 @@ trait AndroidNativeAppModule extends AndroidAppModule {
       os.makeDir.all(outDir / abi)
       os.makeDir.all(outCxx)
 
+      // These paths are consumed by CMake/Ninja subprocesses that do not share Mill's aliases.
       val cmakeArgs = Seq(
-        s"${androidSdkModule().cmakeExe().path.toString}",
-        s"-S ${androidNativeSource().path}",
+        PathRef.toAbsString(androidSdkModule().cmakeExe()),
+        s"-S ${PathRef.toAbsString(androidNativeSource())}",
         "-DCMAKE_SYSTEM_NAME=Android",
         "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
         s"-DCMAKE_SYSTEM_VERSION=${androidBuildToolsVersion()}",
         s"-DANDROID_PLATFORM=android-${androidBuildToolsVersion()}",
         s"-DANDROID_ABI=${abi}",
         s"-DCMAKE_ANDROID_ARCH_ABI=${abi}",
-        s"-DANDROID_NDK=${androidSdkModule().ndkPath().toString}",
-        s"-DCMAKE_ANDROID_NDK=${androidSdkModule().ndkPath().toString}",
-        s"-DCMAKE_TOOLCHAIN_FILE=${androidSdkModule().cmakeToolchainFilePath().path.toString}",
-        s"-DCMAKE_MAKE_PROGRAM=${androidSdkModule().ninjaExe().path.toString}",
-        s"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=${outFile.toString}",
-        s"-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${outFile.toString}",
+        s"-DANDROID_NDK=${ndkPath}",
+        s"-DCMAKE_ANDROID_NDK=${ndkPath}",
+        s"-DCMAKE_TOOLCHAIN_FILE=${PathRef.toAbsString(androidSdkModule().cmakeToolchainFilePath().path)}",
+        s"-DCMAKE_MAKE_PROGRAM=${PathRef.toAbsString(androidSdkModule().ninjaExe())}",
+        s"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=${PathRef.toAbsString(outFile)}",
+        s"-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${PathRef.toAbsString(outFile)}",
         "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
-        s"-B ${outCxx.toString}/${abi}",
+        s"-B ${PathRef.toAbsString(outCxx / abi)}",
         "-GNinja"
       ) ++ androidCMakeExtraArgs()
 
@@ -91,10 +95,11 @@ trait AndroidNativeAppModule extends AndroidAppModule {
 
       os.proc(cmakeArgs).call()
 
+      // Ninja fans out to compilers with their own cwds too.
       val ninjaArgs = Seq(
-        s"${androidSdkModule().ninjaExe().path.toString}",
+        PathRef.toAbsString(androidSdkModule().ninjaExe()),
         "-C",
-        s"${outCxx.toString}/${abi}",
+        PathRef.toAbsString(outCxx / abi),
         s"${androidNativeLibName()}.so"
       )
 

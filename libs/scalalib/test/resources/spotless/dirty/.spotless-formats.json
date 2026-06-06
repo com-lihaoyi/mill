@@ -18,7 +18,8 @@
         "$type": "Fence",
         "steps": [
           {
-            "$type": "PalantirJavaFormat"
+            "$type": "GoogleJavaFormat",
+            "version": "1.35.0"
           }
         ]
       }
@@ -39,7 +40,8 @@
         "preserve": false,
         "steps": [
           {
-            "$type": "PalantirJavaFormat"
+            "$type": "GoogleJavaFormat",
+            "version": "1.35.0"
           }
         ]
       },
@@ -147,7 +149,8 @@
     ],
     "steps": [
       {
-        "$type": "GoogleJavaFormat"
+        "$type": "GoogleJavaFormat",
+        "version": "1.35.0"
       }
     ]
   },
@@ -158,16 +161,6 @@
     "steps": [
       {
         "$type": "ImportOrder"
-      }
-    ]
-  },
-  {
-    "includes": [
-      "glob:**/PalantirJavaFormat"
-    ],
-    "steps": [
-      {
-        "$type": "PalantirJavaFormat"
       }
     ]
   },

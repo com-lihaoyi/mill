@@ -2,6 +2,7 @@ package mill.launcher
 
 import mill.api.daemon.MillException
 import mill.api.SystemStreams
+import mill.api.internal.PathAliasing
 import mill.client.*
 import mill.constants.{ConfigConstants, EnvVars, OutFiles, OutFolderMode}
 import mill.internal.MillCliConfig
@@ -27,126 +28,182 @@ object MillLauncherMain {
       env: Map[String, String],
       workDir: os.Path
   ): Int = {
-    val stderr = streamsOpt.map(_.err).getOrElse(System.err)
-
-    val parsedConfig = MillCliConfig.parse(args).toOption
-
-    val bspMode = parsedConfig.exists(c => c.bsp.value || c.bspInstall.value)
-    val useFileLocks = parsedConfig.exists(_.useFileLocks.value)
-
-    // Ensure that if we're running in BSP mode we don't start a daemon.
-    //
-    // This is needed because when Metals/Idea closes, they only kill the BSP client and the BSP
-    // server lurks around waiting for the next client to connect.
-    // This is unintuitive from the user's perspective and wastes resources, as most people expect
-    // everything related to the BSP server to be killed when closing the editor.
-    val runNoDaemon = parsedConfig.exists(_.noDaemonEnabled > 0) || bspMode
-
-    val outMode = if (bspMode) OutFolderMode.BSP else OutFolderMode.REGULAR
     if (env.contains("MILL_TEST_EXIT_AFTER_BSP_CHECK")) return 0
-    val outDir = OutFiles.OutFiles.outFor(outMode)
-    val logFile = os.Path(outDir, workDir) / "mill-launcher/log"
-    val formatter =
-      DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of("UTC"))
 
-    def log(s: String) =
-      os.write.append(logFile, s"${formatter.format(Instant.now())} $s\n", createFolders = true)
+    // The launcher does NOT relativize paths: it spawns the daemon/no-daemon processes and resolves
+    // their program/cwd/stdout-redirect paths against its *own* cwd before those processes exist, so
+    // it can't rely on the `../mill-workspace` symlinks (which live next to the spawned process's
+    // cwd). Forcing the raw (real-absolute) serializer here keeps every path the launcher hands to
+    // `ProcessBuilder` real, regardless of any `OS_LIB_PATH_RELATIVIZER_BASE` it inherited. The
+    // daemon, in contrast, *does* relativize and relies on the symlinks the launcher installs at its
+    // fixed cwd-parent.
+    PathAliasing.withRawPathSerializer {
+      val stderr = streamsOpt.map(_.err).getOrElse(System.err)
+      val parsedConfig = MillCliConfig.parse(args).toOption
 
-    if (outMode == OutFolderMode.BSP) logBspInfoMessage(outDir)
+      val bspServerMode = parsedConfig.exists(_.bsp.value)
+      val bspMode = bspServerMode || parsedConfig.exists(_.bspInstall.value)
+      val useFileLocks = parsedConfig.exists(_.useFileLocks.value)
+      val outMode = if (bspMode) OutFolderMode.BSP else OutFolderMode.REGULAR
 
-    coursier.Resolve.proxySetup()
+      val resolved = mill.internal.OutputDirectoryLayout.resolve(outMode, workDir, env)
+      import resolved.{effectiveEnv, outDir, regularOutDir}
 
-    try {
-      val millRepositories =
-        MillProcessLauncher.loadMillConfig(ConfigConstants.millRepositories, workDir)
+      // BSP shares the regular MillDaemonMain by default so build state is reused
+      // across CLI and BSP. Opting into a separate BSP output dir (via the
+      // `mill-separate-bsp-output-dir: true` build header or `MILL_BSP_OUTPUT_DIR`)
+      // also opts back into the prior foreground `MillBspMain` JVM, which owns its
+      // own stdio for the lsp4j JSON-RPC connection.
+      val bspSeparateOutputDir =
+        bspMode && mill.internal.OutputDirectoryLayout.bspOutOverride(workDir, env).isDefined
+      val runNoDaemon =
+        parsedConfig.exists(_.noDaemonEnabled > 0) || bspSeparateOutputDir
 
-      val runnerClasspath = CoursierClient.resolveMillDaemon(outMode, millRepositories)
-      val optsArgs = MillProcessLauncher.loadMillConfig(ConfigConstants.millOpts, workDir) ++ args
-      if (runNoDaemon) {
-        val mainClass = if (bspMode) "mill.daemon.MillBspMain" else "mill.daemon.MillNoDaemonMain"
-        MillProcessLauncher.launchMillNoDaemon(
-          optsArgs,
-          outMode,
-          runnerClasspath,
-          mainClass,
-          useFileLocks,
-          workDir,
-          env,
-          millRepositories
-        )
-      } else { // start in client-server mode
-        val jvmOpts = MillProcessLauncher.computeJvmOpts(workDir, env)
-        val launcher = new MillServerLauncher(
-          streamsOpt = streamsOpt,
-          env = env,
-          args = optsArgs,
-          forceFailureForTestingMillisDelay = -1,
-          useFileLocks = useFileLocks,
-          initServerFactory = (daemonDir, _) =>
-            LaunchedServer.OsProcess(
-              MillProcessLauncher.launchMillDaemon(
-                daemonDir,
-                outMode,
-                runnerClasspath,
-                useFileLocks,
-                workDir,
-                env,
-                millRepositories
-              ).wrapped.toHandle
-            ),
-          jvmOpts = jvmOpts,
-          millRepositories = millRepositories
-        )
+      val logFile = os.Path(outDir, workDir) / "mill-launcher/log"
+      val formatter =
+        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of("UTC"))
+      def log(s: String) =
+        os.write.append(logFile, s"${formatter.format(Instant.now())} $s\n", createFolders = true)
 
-        val daemonDir = os.Path(outDir, workDir) / OutFiles.OutFiles.millDaemon
-        val javaHome = MillProcessLauncher.javaHome(outMode, workDir, millRepositories)
+      if (bspServerMode) logBspInfoMessage(outDir, regularOutDir)
 
-        MillProcessLauncher.prepareMillRunFolder(daemonDir)
-        var exitCode = launcher.run(daemonDir, javaHome, log)
+      coursier.Resolve.proxySetup()
 
-        // Retry if server requests it. This can happen when:
-        // - There's a version mismatch between client and server
-        // - The server was terminated while this client was waiting
-        val maxRetries = 10
-        var retries = 0
-        while (exitCode == ClientUtil.ServerExitPleaseRetry && retries < maxRetries) {
-          exitCode = launcher.run(daemonDir, javaHome, log)
-          retries += 1
+      // Reproducible builds: tell the daemon where the workspace lives, and configure the os-lib
+      // path relativizer so cached output paths serialize via the `out/mill-workspace` /
+      // `out/mill-home` aliases. These env vars contribute to the daemon's restart fingerprint,
+      // so an existing daemon restarts when the user's workspace changes.
+      val workspaceEnv = PathAliasing.workspaceEnvVars(workDir)
+      PathAliasing.ensureProcessCwdAliases(workDir, workDir)
+      val scopedEnv = effectiveEnv ++ workspaceEnv
+
+      try {
+        val millRepositories =
+          MillProcessLauncher.loadMillConfig(ConfigConstants.millRepositories, workDir)
+        val runnerClasspath = CoursierClient.resolveMillDaemon(regularOutDir, millRepositories)
+        // Surface build-header `mill-remote-cache-*` keys as CLI flags, before the user's args
+        // so an explicit CLI flag still wins.
+        val remoteCacheArgs = Seq(
+          ConfigConstants.millRemoteCacheLocation -> "--remote-cache-location",
+          ConfigConstants.millRemoteCacheSalt -> "--remote-cache-salt",
+          ConfigConstants.millRemoteCacheFilter -> "--remote-cache-filter"
+        ).flatMap { case (key, flag) =>
+          MillProcessLauncher.loadMillConfig(key, workDir).flatMap(value => Seq(flag, value))
         }
+        val optsArgs =
+          MillProcessLauncher.loadMillConfig(ConfigConstants.millOpts, workDir) ++
+            remoteCacheArgs ++ args
 
-        if (exitCode == ClientUtil.ServerExitPleaseRetry) {
-          stderr.println(s"Max launcher retries exceeded ($maxRetries), exiting")
-        }
-        exitCode
+        if (runNoDaemon)
+          MillProcessLauncher.launchMillNoDaemon(
+            optsArgs,
+            outMode,
+            runnerClasspath,
+            mainClass =
+              if (bspSeparateOutputDir) "mill.daemon.MillBspMain"
+              else "mill.daemon.MillNoDaemonMain",
+            useFileLocks,
+            workDir,
+            scopedEnv,
+            millRepositories,
+            streamsOpt = streamsOpt
+          )
+        else
+          runViaDaemon(
+            optsArgs,
+            outMode,
+            outDir,
+            runnerClasspath,
+            useFileLocks,
+            workDir,
+            scopedEnv,
+            millRepositories,
+            streamsOpt,
+            stderr,
+            log
+          )
+      } catch {
+        case e: MillException =>
+          stderr.println(e.getMessage)
+          1
+        case e =>
+          val sw = StringWriter()
+          e.printStackTrace(PrintWriter(sw))
+          log(sw.toString)
+          stderr.println(sw.toString)
+          stderr.println(s"Mill launcher failed. See ${logFile.relativeTo(workDir)} for details.")
+          1
       }
-    } catch {
-      case e: MillException =>
-        stderr.println(e.getMessage)
-        1
-      case e =>
-        val sw = new StringWriter()
-        e.printStackTrace(new PrintWriter(sw))
-
-        log(sw.toString)
-
-        stderr.println(sw.toString)
-        stderr.println(s"Mill launcher failed. See ${logFile.relativeTo(workDir)} for details.")
-        1
     }
   }
 
-  private def logBspInfoMessage(outDir: String): Unit = {
+  private def runViaDaemon(
+      optsArgs: Seq[String],
+      outMode: OutFolderMode,
+      outDir: String,
+      runnerClasspath: Seq[os.Path],
+      useFileLocks: Boolean,
+      workDir: os.Path,
+      effectiveEnv: Map[String, String],
+      millRepositories: Seq[String],
+      streamsOpt: Option[SystemStreams],
+      stderr: java.io.PrintStream,
+      log: String => Unit
+  ): Int = {
+    val jvmOpts = MillProcessLauncher.computeJvmOpts(workDir, effectiveEnv)
+    val launcher = new MillServerLauncher(
+      streamsOpt = streamsOpt,
+      env = effectiveEnv,
+      args = optsArgs,
+      forceFailureForTestingMillisDelay = -1,
+      useFileLocks = useFileLocks,
+      initServerFactory = (daemonDir, _) =>
+        LaunchedServer.OsProcess(
+          MillProcessLauncher.launchMillDaemon(
+            daemonDir,
+            outMode,
+            runnerClasspath,
+            useFileLocks,
+            workDir,
+            effectiveEnv,
+            millRepositories
+          ).wrapped.toHandle
+        ),
+      jvmOpts = jvmOpts,
+      millRepositories = millRepositories
+    )
 
-    val message = if (OutFiles.OutFiles.mergeBspOut) {
-      s"Mill is running in BSP mode and '${EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR}' environment variable " +
-        s"is set, Mill will use the regular '$outDir' as the output directory. Unset this environment variable if you" +
-        " want to use a separate output directory for BSP. This will increase" +
-        " the CPU usage of the BSP server but make it more responsive."
+    val daemonDir = os.Path(outDir, workDir) / OutFiles.OutFiles.millDaemon
+    val javaHome = MillProcessLauncher.javaHome(effectiveEnv, workDir, millRepositories)
+
+    MillProcessLauncher.prepareMillRunFolder(daemonDir)
+
+    // Retry if server requests it. This can happen when:
+    // - There's a version mismatch between client and server
+    // - The server was terminated while this client was waiting
+    val maxRetries = 10
+    var retries = 0
+    var exitCode = launcher.run(daemonDir, javaHome, log)
+    while (exitCode == ClientUtil.ServerExitPleaseRetry && retries < maxRetries) {
+      exitCode = launcher.run(daemonDir, javaHome, log)
+      retries += 1
+    }
+    if (exitCode == ClientUtil.ServerExitPleaseRetry)
+      stderr.println(s"Max launcher retries exceeded ($maxRetries), exiting")
+    exitCode
+  }
+
+  private def logBspInfoMessage(outDir: String, regularOutDir: String): Unit = {
+    val message = if (outDir == regularOutDir) {
+      s"Mill is running in BSP mode, sharing the regular '$outDir' output directory " +
+        "and daemon/task caches with CLI builds. Set `mill-separate-bsp-output-dir: true` " +
+        s"in the root build header or '${EnvVars.MILL_BSP_OUTPUT_DIR}' to use a dedicated BSP " +
+        "output directory instead."
     } else {
-      s"Mill is running in BSP mode, using a separate output directory '$outDir'. " +
-        s"If you would like to reuse the regular `out/` directory, set the " +
-        s"'${EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR}' environment variable. This will reduce the CPU usage " +
-        "of the BSP server but make it less responsive."
+      s"Mill is running in BSP mode, using the dedicated output directory '$outDir'. " +
+        s"Remove `mill-separate-bsp-output-dir: true` from the root build header or unset " +
+        s"'${EnvVars.MILL_BSP_OUTPUT_DIR}' to share the regular '$regularOutDir' output directory " +
+        "and daemon/task caches with CLI builds."
     }
     System.err.println(message)
 
