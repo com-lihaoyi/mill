@@ -364,11 +364,26 @@ object `package` extends mill.Module {
             os.proc("git", "checkout", millVersion).call(cwd = checkout, stdout = os.Inherit)
         }
 
+        // The daemon exports JAVA_HOME pointing at its own JVM (currently Java 25, from
+        // `.mill-jvm-version`). Older Mill versions bundle an ASM too old to parse Java 25
+        // (class file major version 69) bytecode, so building their docs with the inherited
+        // JVM blows up in codesig with "Unsupported class file major version 69". Pin these
+        // nested Mill builds to an older LTS JVM that every documented Mill version handles.
+        // Versions that configure their own `.mill-jvm-version` re-exec onto that JVM and
+        // ignore this override.
+        val oldDocsEnv = Map(
+          "JAVA_HOME" -> PathRef.toAbsString(
+            mill.util.Jvm.resolveJavaHome(id = "temurin:17", ctx = Some(Task.ctx())).get
+          )
+        )
+
         val outputFolder = if (newWebsiteTask) {
-          os.proc("./mill", "-i", "website.source").call(cwd = checkout, stdout = os.Inherit)
+          os.proc("./mill", "-i", "website.source")
+            .call(cwd = checkout, env = oldDocsEnv, stdout = os.Inherit)
           checkout / "out/website/source.dest"
         } else {
-          os.proc("./mill", "-i", "docs.source").call(cwd = checkout, stdout = os.Inherit)
+          os.proc("./mill", "-i", "docs.source")
+            .call(cwd = checkout, env = oldDocsEnv, stdout = os.Inherit)
           checkout / "out/docs/source.dest"
         }
 
