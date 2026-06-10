@@ -368,7 +368,7 @@ object Deps {
     val layoutLibRenderer = mvn"com.android.tools.layoutlib:layoutlib:$layoutLibVersion"
     val layoutLibRuntime = mvn"com.android.tools.layoutlib:layoutlib-runtime:$layoutLibVersion"
     val composePreviewRenderer =
-      mvn"com.android.tools.compose:compose-preview-renderer-model:0.0.1-alpha09"
+      mvn"com.android.tools.compose:compose-preview-renderer-model:0.0.1-alpha11"
     val uiTooling = mvn"androidx.compose.ui:ui:1.7.6"
     val screenshotValidationJunitEngine =
       mvn"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha09"
