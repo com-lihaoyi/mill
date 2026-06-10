@@ -21,7 +21,7 @@ object UtestTests extends TestSuite {
   }
 
   object HelloJSWorld extends TestRootModule {
-    val scalaVersions = Seq("2.13.18", "3.7.4")
+    val scalaVersions = Seq("2.13.18", "3.8.4")
     val matrix = for (sv <- scalaVersions; fullOpt <- Seq(false, true)) yield (sv, fullOpt)
     val utestVersion = "0.8.9"
 
