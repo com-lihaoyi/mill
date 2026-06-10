@@ -300,7 +300,7 @@ object Deps {
     val kotlinxHtmlJvm_runtime = mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
     val koverCli_runtime = mvn"org.jetbrains.kotlinx:kover-cli:$koverVersion_runtime"
     val koverJvmAgent_runtime = mvn"org.jetbrains.kotlinx:kover-jvm-agent:$koverVersion_runtime"
-    val ktfmt_runtime = mvn"com.facebook:ktfmt:0.58"
+    val ktfmt_runtime = mvn"com.facebook:ktfmt:0.63"
     val ktlint_runtime = mvn"com.pinterest.ktlint:ktlint-core:0.49.1"
     val owaspDependencyCheckCli_runtime = mvn"org.owasp:dependency-check-cli:12.2.2"
     val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.90.0"
