@@ -149,7 +149,7 @@ object Deps {
 
   val jgraphtCore = mvn"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
   val javet = Seq(
-    mvn"com.caoccao.javet:javet:4.0.0",
+    mvn"com.caoccao.javet:javet:4.1.7",
     mvn"com.caoccao.javet:javet-linux-arm64:4.0.0",
     mvn"com.caoccao.javet:javet-macos:4.0.0"
   )
