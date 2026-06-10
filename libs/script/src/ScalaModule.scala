@@ -17,8 +17,13 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
     mvn"com.lihaoyi::mainargs:${mill.script.BuildInfo.mainargsVersion}"
   )
 
+  override protected def mandatoryScalacOptions: T[Seq[String]] = Task {
+    super.mandatoryScalacOptions() ++ Seq("-Ymagic-offset-header:SOURCE_CODE_START")
+  }
+
   override def allSourceFiles = Task {
     val original = scriptSource().path
+    val originalSourcecodePath = PathRef.toAbsString(original)
     val scalaVer = scalaVersion()
     if (!JvmWorkerUtil.isDottyOrScala3(scalaVer)) {
       Result.Failure(
@@ -31,8 +36,7 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
       val selfReference = s"${sanitizedName}_millScriptMainSelf"
       os.write(
         modified,
-        s"//SOURCECODE_ORIGINAL_FILE_PATH=$original\n" +
-          "//SOURCECODE_ORIGINAL_CODE_START_MARKER\n" +
+        s"///SOURCE_CODE_START:$originalSourcecodePath\n" +
           os.read(original) +
           System.lineSeparator +
           // Squeeze this onto one line so as not to affect line counts too much
