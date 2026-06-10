@@ -303,7 +303,7 @@ object Deps {
     val ktfmt_runtime = mvn"com.facebook:ktfmt:0.58"
     val ktlint_runtime = mvn"com.pinterest.ktlint:ktlint-core:0.49.1"
     val owaspDependencyCheckCli_runtime = mvn"org.owasp:dependency-check-cli:12.2.2"
-    val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.90.0"
+    val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.92.0"
     val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.24.0"
     val proguard_runtime = mvn"com.guardsquare:proguard-base:7.9.1"
     val revApi_runtime = mvn"org.revapi:revapi-standalone:0.12.1"
