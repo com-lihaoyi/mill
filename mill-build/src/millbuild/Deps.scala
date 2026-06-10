@@ -274,7 +274,7 @@ object Deps {
     mvn"androidx.databinding:databinding-compiler-common:8.13.0"
   val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.56"
 
-  val sbt_api = mvn"org.scala-sbt:sbt:1.10.10"
+  val sbt_api = mvn"org.scala-sbt:sbt:1.10.11"
   val mimaCore_api = mvn"com.typesafe::mima-core:1.1.5"
   val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:3.0.1"
   val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.3.1"
