@@ -178,7 +178,7 @@ object Deps {
 
   val graalVmReachabilityMetadataVersion = "0.3.32"
   val graalVMReachabilityMetadataBuildTool =
-    mvn"org.graalvm.buildtools:graalvm-reachability-metadata:0.11.3"
+    mvn"org.graalvm.buildtools:graalvm-reachability-metadata:0.11.5"
   val openJson = mvn"com.github.openjson:openjson:1.0.13"
 
   val testng_api = mvn"org.testng:testng:7.5.1"
