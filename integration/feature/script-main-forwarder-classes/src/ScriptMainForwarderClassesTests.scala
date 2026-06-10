@@ -44,6 +44,10 @@ object ScriptMainForwarderClassesTests extends UtestIntegrationTestSuite {
       val res7 = eval(("SourcecodeFile.scala:run"))
       assert(res7.isSuccess)
       assert(res7.out == "SourcecodeFile.scala")
+
+      val res8 = eval(("OldScala.scala:allSourceFiles"))
+      assert(!res8.isSuccess)
+      assert(res8.err.contains("Scala scripts require Scala 3.8.4+. Detected scalaVersion=3.8.3."))
     }
   }
 }

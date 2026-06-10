@@ -4,7 +4,7 @@ import mill.api.{Discover, ExternalModule, PathRef, Result, ScriptModule}
 import mill.javalib.{TestModule, DepSyntax, Dep}
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.JvmWorkerUtil
-import mill.util.Jvm
+import mill.util.{Jvm, Version}
 
 class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scriptConfig) {
   override lazy val millDiscover = Discover[this.type]
@@ -25,9 +25,9 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
     val original = scriptSource().path
     val originalSourcecodePath = PathRef.toAbsString(original)
     val scalaVer = scalaVersion()
-    if (!JvmWorkerUtil.isDottyOrScala3(scalaVer)) {
+    if (!ScalaModule.isSupportedScalaVersion(scalaVer)) {
       Result.Failure(
-        s"Scala scripts require Scala 3+. Detected scalaVersion=$scalaVer.",
+        s"Scala scripts require Scala ${ScalaModule.MinScalaVersion}+. Detected scalaVersion=$scalaVer.",
         original.toNIO
       )
     } else {
@@ -98,6 +98,12 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
 }
 
 object ScalaModule {
+  private[script] val MinScalaVersion = "3.8.4"
+
+  private[script] def isSupportedScalaVersion(scalaVersion: String): Boolean =
+    JvmWorkerUtil.isScala3(scalaVersion) &&
+      Version.isAtLeast(scalaVersion, MinScalaVersion)(using Version.MavenOrdering)
+
   class Raw(val scriptConfig: ScriptModule.Config) extends ScalaModule.Base {
     override lazy val millDiscover = Discover[this.type]
   }
