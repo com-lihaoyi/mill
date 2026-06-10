@@ -280,7 +280,7 @@ object Deps {
   val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.3.1"
   // JGit 6.x series, used by spotlessLibExtra, works on Java 11
   // subsequent releases require Java 17+
-  val jgit = mvn"org.eclipse.jgit:org.eclipse.jgit:6.10.1.202505221210-r"
+  val jgit = mvn"org.eclipse.jgit:org.eclipse.jgit:7.7.0.202606012155-r"
 
   object RuntimeDeps {
     val dokkaVersion_runtime = "2.2.0"
