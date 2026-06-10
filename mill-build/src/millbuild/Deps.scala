@@ -336,7 +336,7 @@ object Deps {
 
   /** Used to manage transitive versions. */
   lazy val transitiveDeps = Seq(
-    mvn"org.apache.ant:ant:1.10.15",
+    mvn"org.apache.ant:ant:1.10.17",
     Deps.commonsIo,
     Deps.gson,
     mvn"com.google.protobuf:protobuf-java:4.33.5",
