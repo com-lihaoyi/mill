@@ -252,7 +252,7 @@ object Deps {
   object MavenInit {
     val mavenVersion = "3.9.9"
     val mavenEmbedder = mvn"org.apache.maven:maven-embedder:$mavenVersion"
-    val mavenResolverVersion = "1.9.22"
+    val mavenResolverVersion = "1.9.27"
     val mavenResolverConnectorBasic =
       mvn"org.apache.maven.resolver:maven-resolver-connector-basic:$mavenResolverVersion"
     val mavenResolverSupplier =
