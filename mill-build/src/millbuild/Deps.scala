@@ -361,7 +361,7 @@ object Deps {
 
   object AndroidDeps {
     val manifestMerger = mvn"com.android.tools.build:manifest-merger:31.10.0"
-    val bundleTool = mvn"com.android.tools.build:bundletool:1.17.2"
+    val bundleTool = mvn"com.android.tools.build:bundletool:1.18.3"
     val ndkVersion = "27.0.12077973"
     val cmakeVersion = "3.22.1"
     val layoutLibVersion = "15.1.2"
