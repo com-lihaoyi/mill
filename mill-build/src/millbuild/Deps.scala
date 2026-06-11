@@ -97,8 +97,9 @@ object Deps {
 
   val acyclic = mvn"com.lihaoyi:::acyclic:0.3.21"
   val ammoniteVersion = "3.0.4"
-  val asmAnalysis = mvn"org.ow2.asm:asm-analysis:9.9.1"
-  val asmTree = mvn"org.ow2.asm:asm-tree:9.9.1"
+  val asmVersion = "9.10.1"
+  val asmAnalysis = mvn"org.ow2.asm:asm-analysis:${asmVersion}"
+  val asmTree = mvn"org.ow2.asm:asm-tree:${asmVersion}"
 
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
   val bouncyCastleVersion = "1.84"
@@ -153,15 +154,15 @@ object Deps {
     mvn"com.caoccao.javet:javet-macos:4.0.0"
   )
 
-  val jline = mvn"org.jline:jline:3.30.6"
+  val jline = mvn"org.jline:jline:3.30.13"
   val jnaVersion = "5.16.0"
 
   val jna = mvn"net.java.dev.jna:jna:${jnaVersion}"
   val jnaPlatform = mvn"net.java.dev.jna:jna-platform:${jnaVersion}"
 
   val junitInterface = mvn"com.github.sbt:junit-interface:0.13.3"
-  val commonsIo = mvn"commons-io:commons-io:2.21.0"
-  val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.25.1"
+  val commonsIo = mvn"commons-io:commons-io:2.22.0"
+  val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.26.0"
   val osLib = mvn"com.lihaoyi::os-lib:0.11.8"
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:${osLib.version}"
   val pprint = mvn"com.lihaoyi::pprint:0.9.6"
@@ -206,8 +207,8 @@ object Deps {
   val scalaCliBsp = mvn"org.virtuslab.scala-cli:scala-cli-bsp:1.8.0"
   val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.4.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala_runtime = mvn"org.scalameta:::semanticdb-scalac:4.16.1"
-  val semanticDbJava_runtime = mvn"com.sourcegraph:semanticdb-java:0.11.1"
+  val semanticDBscala_runtime = mvn"org.scalameta:::semanticdb-scalac:4.17.0"
+  val semanticDbJava_runtime = mvn"com.sourcegraph:semanticdb-java:0.12.3"
   val semanticDbShared =
     mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala_runtime.version}"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.4"
@@ -228,10 +229,10 @@ object Deps {
   // https://github.com/google/gson/releases/tag/gson-parent-2.13.2
   val gson = mvn"com.google.code.gson:gson:2.13.2"
   val fansi = mvn"com.lihaoyi::fansi:0.5.1"
-  val javaparser = mvn"com.github.javaparser:javaparser-core:3.28.0"
+  val javaparser = mvn"com.github.javaparser:javaparser-core:3.28.1"
   val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.16.0"
   val requests = mvn"com.lihaoyi::requests:0.9.3"
-  val logback = mvn"ch.qos.logback:logback-classic:1.5.32"
+  val logback = mvn"ch.qos.logback:logback-classic:1.5.33"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
   val kotlinVersion = "2.1.20"
   val kspVersion = "2.0.1"
@@ -273,7 +274,7 @@ object Deps {
   val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.56"
 
   val sbt_api = mvn"org.scala-sbt:sbt:1.10.10"
-  val mimaCore_api = mvn"com.typesafe::mima-core:1.1.4"
+  val mimaCore_api = mvn"com.typesafe::mima-core:1.1.5"
   val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:3.0.1"
   val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.2.0"
   // JGit 6.x series, used by spotlessLibExtra, works on Java 11
@@ -302,9 +303,9 @@ object Deps {
     val ktlint_runtime = mvn"com.pinterest.ktlint:ktlint-core:0.49.1"
     val owaspDependencyCheckCli_runtime = mvn"org.owasp:dependency-check-cli:12.2.1"
     val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.74.0"
-    val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.15.0"
+    val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.24.0"
     val proguard_runtime = mvn"com.guardsquare:proguard-base:7.7.0"
-    val revApi_runtime = mvn"org.revapi:revapi-standalone:0.12.0"
+    val revApi_runtime = mvn"org.revapi:revapi-standalone:0.12.1"
     val sbtTestInterface = mvn"com.github.sbt:junit-interface:0.13.2"
 
     def updateable = Seq(
