@@ -800,7 +800,7 @@ as part of its <a href="../depth/sandboxing.html" class="xref page">Mill Sandbox
 interference between tasks:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-110-2225b2/mill-dist-1.1.6-example-fundamentals-libraries-1-oslib.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/libraries/1-oslib">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-111-e8de0e/mill-dist-1.1.6-example-fundamentals-libraries-1-oslib.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/libraries/1-oslib">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*
 
@@ -828,6 +828,54 @@ one via <code>os.write</code> and one via a Bash subprocess - each task gets its
 working directory that prevents the files from colliding on disk. Thus the final
 <code>command</code> can depend on both tasks and read each task&#8217;s <code>file.txt</code> separately
 without conflict</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_os_lib_path_serialization"><a class="anchor" href="#_os_lib_path_serialization"></a>Path Serialization</h3>
+<div class="paragraph">
+<p>Mill configures OS-Lib&#8217;s <code>os.Path</code> string serialization so paths under your
+workspace and home directory are written using reproducible aliases such as
+<code>../mill-workspace</code> and <code>../mill-home</code>, or <code>out/mill-workspace</code> when the
+subprocess working directory is the workspace root. This affects APIs such as
+<code>os.Path.toString</code>, <code>os.Path.toIO</code>, <code>os.Path.toNIO</code>, and values such as
+<code>PathRef</code> that include an <code>os.Path</code> in their JSON representation.</p>
+</div>
+<div class="paragraph">
+<p>This keeps task outputs, cache keys, and generated JSON independent of the
+absolute checkout location and user home directory. Mill creates the matching
+alias symlinks around task and subprocess working directories, so these paths
+can still be resolved when they are used in the expected Mill context.</p>
+</div>
+<div class="paragraph">
+<p>If you need more explicit control over how a path is serialized, use the
+<code>PathRef.to*</code> helpers rather than calling <code>.toString</code> directly:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>PathRef.toRelString(path, subprocessCwd)</code> formats a path using Mill&#8217;s
+reproducible aliases relative to the working directory of a subprocess. Use
+this for command-line arguments, environment variables, or config files that
+are consumed by a subprocess that will run from <code>subprocessCwd</code> and can accept
+relative paths.</p>
+</li>
+<li>
+<p><code>PathRef.toAbsString(path)</code>, <code>PathRef.toAbsFile(path)</code>, and
+<code>PathRef.toAbsNioPath(path)</code> bypass OS-Lib&#8217;s relativizing serializer and return
+real absolute paths. Use these for Java APIs or external tools that require
+absolute paths, or for processes that do not run with Mill&#8217;s path aliases.</p>
+</li>
+<li>
+<p><code>PathRef.toResolvedPathString(path)</code> and <code>PathRef.toResolvedOsPath(path)</code>
+resolve symlinks when the path exists before serializing it. Use these when a
+long-lived process or tool needs the real on-disk location rather than a
+lexical path that may pass through a Mill alias symlink.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Prefer the reproducible <code>toRelString</code> form when it is accepted by the consumer.
+Use the absolute or resolved forms only where the consumer requires that style.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -886,7 +934,7 @@ need to be recomputed</p>
 collections types (<code>Seq</code>s, <code>List</code>s, <code>Tuple</code>s, etc.) are serializable by default.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-110-2225b2/mill-dist-1.1.6-example-fundamentals-libraries-2-upickle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/libraries/2-upickle">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-111-e8de0e/mill-dist-1.1.6-example-fundamentals-libraries-2-upickle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/libraries/2-upickle">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*
 
@@ -1019,7 +1067,7 @@ are downloaded once and cached for later use.</p>
 compile the Remote APIs source code as part of our build:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-110-2225b2/mill-dist-1.1.6-example-fundamentals-libraries-3-requests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/libraries/3-requests">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-111-e8de0e/mill-dist-1.1.6-example-fundamentals-libraries-3-requests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/libraries/3-requests">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*
 
@@ -1152,7 +1200,7 @@ servers, and so on. So this works out surprisingly well in practice.</p>
 are run from the command line.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-110-2225b2/mill-dist-1.1.6-example-fundamentals-libraries-4-mainargs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/libraries/4-mainargs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.6-111-e8de0e/mill-dist-1.1.6-example-fundamentals-libraries-4-mainargs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.6/example/fundamentals/libraries/4-mainargs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*
 
