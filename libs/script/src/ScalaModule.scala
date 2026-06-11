@@ -98,7 +98,7 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
 }
 
 object ScalaModule {
-  private[script] val MinScalaVersion = "3.8.4"
+  private[script] val MinScalaVersion = "3.7.3"
 
   private[script] def isSupportedScalaVersion(scalaVersion: String): Boolean =
     JvmWorkerUtil.isScala3(scalaVersion) &&
