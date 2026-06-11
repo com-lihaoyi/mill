@@ -39,7 +39,8 @@ case class Execution(
     // JSON string to avoid classloader issues when crossing classloader boundaries
     spanningInvalidationTree: Option[String],
     // Tracks tasks invalidated due to version/classloader mismatch
-    versionMismatchReasons: ConcurrentHashMap[Task[?], String] = new ConcurrentHashMap()
+    versionMismatchReasons: ConcurrentHashMap[Task[?], String] = new ConcurrentHashMap(),
+    replayLogs: Boolean
 ) extends GroupExecution with AutoCloseable {
 
   // Track nesting depth of executeTasks calls to only show final status on outermost call
@@ -79,7 +80,8 @@ case class Execution(
       depth: Int,
       isFinalDepth: Boolean,
       // JSON string to avoid classloader issues when crossing classloader boundaries
-      spanningInvalidationTree: Option[String]
+      spanningInvalidationTree: Option[String],
+      replayLogs: Boolean
   ) = this(
     baseLogger = baseLogger,
     profileLogger = new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
@@ -103,7 +105,8 @@ case class Execution(
     enableTicker = enableTicker,
     depth = depth,
     isFinalDepth = isFinalDepth,
-    spanningInvalidationTree = spanningInvalidationTree
+    spanningInvalidationTree = spanningInvalidationTree,
+    replayLogs = replayLogs
   )
 
   def withBaseLogger(newBaseLogger: Logger) = {

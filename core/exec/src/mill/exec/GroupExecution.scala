@@ -61,6 +61,7 @@ trait GroupExecution {
   def exclusiveSystemStreams: SystemStreams
   def getEvaluator: () => EvaluatorApi
   def staticBuildOverrideFiles: Map[java.nio.file.Path, String]
+  def replayLogs: Boolean
 
   /** Evaluate a build override YAML value and deserialize it */
   private def evaluateBuildOverride(
@@ -255,6 +256,7 @@ trait GroupExecution {
       externalInputsHash + sideHashes + scriptsHash + invalidateAllHashes
     }
 
+    
     terminal match {
       case labelled: Task.Named[_] =>
         val out = if (!labelled.ctx.external) outPath else externalOutPath
@@ -276,6 +278,11 @@ trait GroupExecution {
           valueHashChanged = false,
           serializedPaths = serializedPaths
         )
+
+        // when requested, forward the cached logs to STDERR
+        def doReplayLog() = if (replayLogs && os.exists(paths.log)) {
+          os.read.stream(paths.log).writeBytesTo(logger.streams.err)
+        }
 
         // Helper to evaluate the task with full caching support
         def evaluateTaskWithCaching(): GroupExecution.Results = {
@@ -306,6 +313,7 @@ trait GroupExecution {
 
           cachedValueAndHash match {
             case Some(((v, serializedPaths), hashCode)) =>
+              doReplayLog()
               cachedResult(ExecResult.Success((v, hashCode)), serializedPaths)
 
             case _ =>

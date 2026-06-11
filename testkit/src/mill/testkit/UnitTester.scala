@@ -145,7 +145,8 @@ class UnitTester(
     staticBuildOverrideFiles = Map(),
     depth = 0,
     isFinalDepth = true,
-    spanningInvalidationTree = None
+    spanningInvalidationTree = None,
+    replayLogs = false
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(

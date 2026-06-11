@@ -172,7 +172,9 @@ case class MillCliConfig(
     @arg(hidden = true, doc = "Unsupported, but kept for compatibility")
     enableTicker: Option[Boolean] = None,
     @arg(hidden = true, doc = "Deprecated, use `--ticker false` instead")
-    disableTicker: Flag
+    disableTicker: Flag,
+    @arg(doc = "Replay logs for cached tasks.")
+    replayLogs: Flag = Flag()
 ) {
   def noDaemonEnabled =
     Seq(
