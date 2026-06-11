@@ -256,7 +256,6 @@ trait GroupExecution {
       externalInputsHash + sideHashes + scriptsHash + invalidateAllHashes
     }
 
-    
     terminal match {
       case labelled: Task.Named[_] =>
         val out = if (!labelled.ctx.external) outPath else externalOutPath
