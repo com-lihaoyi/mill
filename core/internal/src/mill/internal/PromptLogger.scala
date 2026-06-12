@@ -182,7 +182,7 @@ class PromptLogger(
             if (reportedIdentifiers(key) && lines0.isEmpty) None
             else {
               reportedIdentifiers.add(key)
-              seenIdentifiers.get(key)
+              seenIdentifiers.get(key).orElse(Some(("", "")))
             }
 
           val lines = for (line <- lines0) yield {
