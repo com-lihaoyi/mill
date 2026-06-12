@@ -72,6 +72,29 @@ trait PrecompiledModule extends ExternalModule with ConfigModuleDepsModule {
 @experimental
 object PrecompiledModule {
   export ScriptModule.Config
+
+  /**
+   * Every [[PrecompiledModule]] reachable from the current build's root module.
+   * Safe to call after module construction completes — e.g. inside a `Task` body
+   * or a `moduleDeps` override. Reading this from a non-lazy field initializer
+   * on a `PrecompiledModule` subclass will deadlock, because the discovery walk
+   * is itself in progress while the subclass is being constructed.
+   *
+   * Returns an empty sequence if no build is active (e.g. `BuildCtx.rootModule`
+   * has not yet been published).
+   */
+  def all: Seq[PrecompiledModule] =
+    Option(BuildCtx.rootModule).toSeq.flatMap { root =>
+      root.asInstanceOf[Module].moduleInternal.modules
+        .collect { case m: PrecompiledModule => m }
+    }
+
+  /**
+   * Type-narrowed variant of [[all]]: returns only precompiled modules whose
+   * class matches `T`. Lets callers skip a `.collect` at the call site.
+   */
+  def all[T <: PrecompiledModule](using ct: scala.reflect.ClassTag[T]): Seq[T] =
+    all.collect { case m if ct.runtimeClass.isInstance(m) => m.asInstanceOf[T] }
 }
 
 /**
