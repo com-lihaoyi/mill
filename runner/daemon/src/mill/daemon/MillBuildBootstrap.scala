@@ -62,7 +62,8 @@ class MillBuildBootstrap(
     offline: Boolean,
     useFileLocks: Boolean,
     reporter: EvaluatorApi => Int => Option[CompileProblemReporter],
-    enableTicker: Boolean
+    enableTicker: Boolean,
+    replayLogs: Boolean
 ) { outer =>
   import MillBuildBootstrap.*
 
@@ -232,7 +233,8 @@ class MillBuildBootstrap(
       depth = depth,
       actualBuildFileName = nestedState.buildFile,
       enableTicker = enableTicker,
-      staticBuildOverrideFiles = staticBuildOverrideFiles.toMap
+      staticBuildOverrideFiles = staticBuildOverrideFiles.toMap,
+      replayLogs = replayLogs
     )
   }
 
@@ -460,7 +462,8 @@ object MillBuildBootstrap {
       depth: Int,
       actualBuildFileName: Option[String] = None,
       enableTicker: Boolean,
-      staticBuildOverrideFiles: Map[java.nio.file.Path, String]
+      staticBuildOverrideFiles: Map[java.nio.file.Path, String],
+      replayLogs: Boolean
   ): EvaluatorApi = {
     val bootLogPrefix: Seq[String] =
       if (depth == 0) Nil
@@ -504,7 +507,8 @@ object MillBuildBootstrap {
           enableTicker,
           depth,
           false, // isFinalDepth: set later via withIsFinalDepth when needed
-          spanningInvalidationTree
+          spanningInvalidationTree,
+          replayLogs
         )
       ).asInstanceOf[EvaluatorApi]
 

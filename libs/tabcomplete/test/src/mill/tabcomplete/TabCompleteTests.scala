@@ -384,7 +384,8 @@ object TabCompleteTests extends TestSuite {
             "--no-wait-for-build-lock  Do not wait for an exclusive lock on the Mill output directory to evaluate tasks / commands.",
             "--no-wait-for-bsp-lock    Do not wait for an exclusive BSP server lock to run BSP server, just exit with an error if the BSP server lock is hold by another process",
             "--version                 Show mill version information and exit.",
-            "--task                    <str> The name or a query of the tasks(s) you want to build."
+            "--task                    <str> The name or a query of the tasks(s) you want to build.",
+            "--replay-logs             Replay logs for cached tasks."
           )
         )
       }

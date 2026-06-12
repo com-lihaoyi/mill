@@ -300,7 +300,8 @@ object MillMain0 {
                                   offline = config.offline.value,
                                   useFileLocks = config.useFileLocks.value,
                                   reporter = reporter,
-                                  enableTicker = enableTicker
+                                  enableTicker = enableTicker,
+                                  replayLogs = config.replayLogs.value
                                 ).evaluate()
                               }
                             }
