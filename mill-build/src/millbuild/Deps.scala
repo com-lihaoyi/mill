@@ -216,9 +216,9 @@ object Deps {
 
   val springBootTools_api = mvn"org.springframework.boot:spring-boot-loader-tools:3.3.0"
   val springBootTools_runtime = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.13"
-  val quarkusAppModel_api = mvn"io.quarkus:quarkus-bootstrap-app-model:3.31.1"
-  val quarkusBootstrapCore_api = mvn"io.quarkus:quarkus-bootstrap-core:3.31.1"
-  val quarkusCoreDeployment_api = mvn"io.quarkus:quarkus-core-deployment:3.31.1"
+  val quarkusAppModel_api = mvn"io.quarkus:quarkus-bootstrap-app-model:3.31.4"
+  val quarkusBootstrapCore_api = mvn"io.quarkus:quarkus-bootstrap-core:3.31.4"
+  val quarkusCoreDeployment_api = mvn"io.quarkus:quarkus-core-deployment:3.31.4"
   val upickle = mvn"com.lihaoyi::upickle:4.4.3"
   val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:${upickle.version}"
   // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
