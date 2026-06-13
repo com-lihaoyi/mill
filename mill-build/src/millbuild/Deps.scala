@@ -291,7 +291,7 @@ object Deps {
       mvn"org.jetbrains.dokka:analysis-kotlin-descriptors:$dokkaVersion_runtime"
     val dokkaBase_runtime = mvn"org.jetbrains.dokka:dokka-base:$dokkaVersion_runtime"
     val dokkaCli_runtime = mvn"org.jetbrains.dokka:dokka-cli:$dokkaVersion_runtime"
-    val errorProneCore_runtime = mvn"com.google.errorprone:error_prone_core:2.49.0"
+    val errorProneCore_runtime = mvn"com.google.errorprone:error_prone_core:2.50.0"
     val freemarker_runtime = mvn"org.freemarker:freemarker:2.3.34"
     val jupiterInterface_runtime = mvn"com.github.sbt.junit:jupiter-interface:0.13.3"
     val jupiterInterface6_runtime = mvn"com.github.sbt.junit:jupiter-interface:0.17.0"
