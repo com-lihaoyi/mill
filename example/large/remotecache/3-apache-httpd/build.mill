@@ -1,0 +1,50 @@
+//| mill-remote-cache-location: http://localhost:8379
+
+// Mill's remote cache speaks the Bazel HTTP cache protocol, which per the
+// https://bazel.build/remote/caching[Bazel docs] works against "any HTTP/1.1 server that
+// supports PUT and GET" — not just purpose-built caches. So you can also back the cache with a
+// general-purpose web server you may already run, such as https://httpd.apache.org[Apache
+// httpd] with its `mod_dav` WebDAV module.
+//
+// The `httpd.conf` next to this build serves an `apache-data/` folder over WebDAV; we create
+// that folder, start a stock Apache with the config, and point `mill-remote-cache-location` at
+// it in the build header.
+
+package build
+import mill.*, javalib.*
+
+object foo extends JavaModule
+
+/** Usage
+
+> mkdir -p apache-data/ac apache-data/cas
+
+> /usr/sbin/httpd -d "$(pwd)" -f httpd.conf -k start # mac
+
+> apache2 -d "$(pwd)" -f httpd.conf -k start # linux
+
+> ./mill foo.run
+Hello World!
+
+> ./mill clean foo.compile
+
+> ./mill foo.run
+Hello World!
+
+> kill $(cat httpd.pid)
+
+*/
+
+// After `./mill clean foo.compile`, the second `./mill foo.run` fetched the compile output from
+// Apache rather than recompiling, as `"cached": true` for `foo.compile` in
+// `out/mill-profile.json` shows:
+
+/** Usage
+
+> cat out/mill-profile.json | jq '.[] | select(.label == "foo.compile").cached'
+true
+
+*/
+
+// The cache files Apache stored end up under `apache-data/ac/` and `apache-data/cas/`, the same
+// on-the-wire layout as a dedicated Bazel remote cache.

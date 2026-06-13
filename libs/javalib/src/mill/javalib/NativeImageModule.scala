@@ -7,6 +7,7 @@ import mill.*
 import mill.api.BuildCtx
 import mill.constants.{DaemonFiles, Util}
 import mill.javalib.graalvm.{GraalVMMetadataWorker, MetadataQuery, MetadataResult}
+import mill.util.Jvm
 
 import java.io.File
 import scala.util.Properties
@@ -37,13 +38,16 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
     val dest = Task.dest
 
     val executeableName = "native-executable"
+    val toolPath = nativeImageTool().path
     val command = Seq.newBuilder[String]
-      .+=(nativeImageTool().path.toString)
+      .+=(PathRef.toRelString(toolPath, dest))
       .++=(nativeImageOptions())
       .+=("-cp")
-      .+=(nativeImageClasspath().iterator.map(_.path).mkString(java.io.File.pathSeparator))
+      .+=(nativeImageClasspath().iterator.map(p => PathRef.toRelString(p.path, dest)).mkString(
+        java.io.File.pathSeparator
+      ))
       .+=(finalMainClass())
-      .+=((dest / executeableName).toString())
+      .+=((dest / executeableName).toString)
       .result()
 
     os.proc(command).call(cwd = dest, stdout = os.Inherit)
@@ -71,18 +75,22 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
    */
   def nativeRunBackground(args: mill.api.Args) = Task.Command(persistent = true) {
     val backgroundPaths = mill.javalib.RunModule.BackgroundPaths(Task.dest)
+    val cwd = BuildCtx.workspaceRoot
     val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
 
     BuildCtx.withFilesystemCheckerDisabled {
-      mill.util.Jvm.spawnProcess(
+      Jvm.spawnProcess(
         mainClass = "mill.javalib.backgroundwrapper.MillBackgroundWrapper",
         classPath = mill.javalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
         jvmArgs = Nil,
         mainArgs = backgroundPaths.toArgs ++ Seq(
           "<subprocess>",
-          nativeImage().path.toString
+          // Detached `MillBackgroundWrapper` relaunches this via plain `java.nio`/`ProcessBuilder`,
+          // so our cwd aliases aren't reachable and any ephemeral nodaemon forwarder it routes
+          // through is deleted when the launcher exits: pass a real absolute path (symlinks resolved).
+          PathRef.toResolvedPathString(nativeImage().path)
         ) ++ args.value,
-        cwd = BuildCtx.workspaceRoot,
+        cwd = cwd,
         stdin = "",
         // Hack to forward the background subprocess output to the Mill server process
         // stdout/stderr files, so the output will get properly slurped up by the Mill server
@@ -111,8 +119,10 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
     val configurationDirectoriesArg = if (configurations.isEmpty) {
       Seq.empty[String]
     } else {
+      // This option is assembled before the `native-image` task cwd is known, and Graal documents
+      // it as an absolute-style config-dir argument (`-H:ConfigurationFileDirectories=/path/to/...`).
       val configurationFileDirectoriesValue =
-        configurations.map(_.metadataLocation.toString).mkString(",")
+        configurations.map(c => PathRef.toResolvedPathString(c.metadataLocation)).mkString(",")
       Seq(s"-H:ConfigurationFileDirectories=$configurationFileDirectoriesValue")
     }
     nativeExcludedConfig() ++ configurationDirectoriesArg ++ nativeIncludedResourcesImageOptions()
@@ -179,7 +189,7 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
    */
   def nativeGraalVMReachabilityMetadataClassloader: Worker[ClassLoader & AutoCloseable] =
     Task.Worker {
-      mill.util.Jvm.createClassLoader(
+      Jvm.createClassLoader(
         classPath = nativeGraalVMReachabilityMetadataClasspath().map(_.path),
         parent = getClass.getClassLoader
       )
@@ -351,9 +361,15 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
   def nativeExcludedConfig: T[Seq[String]] = Task {
     nativeExcludedConfigJars()
       .distinct
-      .flatMap(file =>
-        Seq("--exclude-config", s"\\Q${file.path.toString}\\E", s"^/META-INF/native-image/.*")
-      )
+      .flatMap { file =>
+        // `--exclude-config` matches the jar path seen by Graal's classpath scanner, so resolve
+        // symlinks before embedding it in the regex literal.
+        Seq(
+          "--exclude-config",
+          s"\\Q${PathRef.toResolvedPathString(file.path)}\\E",
+          s"^/META-INF/native-image/.*"
+        )
+      }
   }
 
   /**

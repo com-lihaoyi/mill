@@ -41,8 +41,12 @@ case class Execution(
     isFinalDepth: Boolean,
     // JSON string to avoid classloader issues when crossing classloader boundaries
     spanningInvalidationTree: Option[String],
-    // Tracks tasks invalidated due to version/classloader mismatch
-    versionMismatchReasons: ConcurrentHashMap[Task[?], String] = ConcurrentHashMap()
+    // The filter is a raw string parsed into `Segments` lazily in `GroupExecution`, to avoid
+    // threading `Segments` across the reflective construction boundary.
+    remoteCacheLocation: Option[String] = None,
+    remoteCacheSalt: Option[String] = None,
+    remoteCacheFilter: Option[String] = None,
+    replayLogs: Boolean
 ) extends GroupExecution with AutoCloseable {
 
   // Track nesting depth of executeTasks calls to only show final status on outermost call
@@ -74,7 +78,11 @@ case class Execution(
       depth: Int,
       isFinalDepth: Boolean,
       // JSON string to avoid classloader issues when crossing classloader boundaries
-      spanningInvalidationTree: Option[String]
+      spanningInvalidationTree: Option[String],
+      remoteCacheLocation: Option[String],
+      remoteCacheSalt: Option[String],
+      remoteCacheFilter: Option[String],
+      replayLogs: Boolean
   ) = this(
     baseLogger = baseLogger,
     // Only depth=0 (the user build) publishes through `runArtifacts`, so meta-build
@@ -106,7 +114,11 @@ case class Execution(
     enableTicker = enableTicker,
     depth = depth,
     isFinalDepth = isFinalDepth,
-    spanningInvalidationTree = spanningInvalidationTree
+    spanningInvalidationTree = spanningInvalidationTree,
+    remoteCacheLocation = remoteCacheLocation,
+    remoteCacheSalt = remoteCacheSalt,
+    remoteCacheFilter = remoteCacheFilter,
+    replayLogs = replayLogs
   )
 
   def withBaseLogger(newBaseLogger: Logger) = {
@@ -132,14 +144,13 @@ case class Execution(
       goals: Seq[Task[?]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = TestReporter.DummyTestReporter,
-      logger: Logger = baseLogger,
-      serialCommandExec: Boolean = false
+      logger: Logger = baseLogger
   ): Execution.Results = logger.prompt.withPromptUnpaused {
     os.makeDir.all(outPath)
     executionNestingDepth.incrementAndGet()
     try {
       PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
-        execute0(goals, logger, reporter, testReporter, serialCommandExec)
+        execute0(goals, logger, reporter, testReporter)
       }
     } finally {
       executionNestingDepth.decrementAndGet()
@@ -152,11 +163,10 @@ case class Execution(
       reporter: Int => Option[
         CompileProblemReporter
       ] /* = _ => Option.empty[CompileProblemReporter]*/,
-      testReporter: TestReporter /* = TestReporter.DummyTestReporter*/,
-      serialCommandExec: Boolean
+      testReporter: TestReporter /* = TestReporter.DummyTestReporter*/
   ): Execution.Results = {
     while (true) {
-      try return execute0Once(goals, logger, reporter, testReporter, serialCommandExec)
+      try return execute0Once(goals, logger, reporter, testReporter)
       catch {
         case e: Execution.RetryDueToDroppedTaskLock =>
           logger.debug(s"Retrying evaluation after concurrent rewrite of ${e.label}")
@@ -171,8 +181,7 @@ case class Execution(
       reporter: Int => Option[
         CompileProblemReporter
       ] /* = _ => Option.empty[CompileProblemReporter]*/,
-      testReporter: TestReporter /* = TestReporter.DummyTestReporter*/,
-      serialCommandExec: Boolean
+      testReporter: TestReporter /* = TestReporter.DummyTestReporter*/
   ): Execution.Results = {
     os.makeDir.all(outPath)
     val failed = AtomicBoolean(false)
@@ -226,8 +235,7 @@ case class Execution(
         s"$completedMsg$keySuffix$extraKeySuffix${Execution.formatFailedCount(rootFailedCount.get(), completed, logger.prompt.errorColor, logger.prompt.successColor)}"
       }
 
-      val tasksTransitive =
-        PlanImpl.transitiveTasks(Seq.from(indexToTerminal), effectiveInputs).toSet
+      val tasksTransitive = plan.transitive.toSet
       val downstreamEdges: Map[Task[?], Set[Task[?]]] =
         tasksTransitive.flatMap(t => effectiveInputs(t).map(_ -> t)).groupMap(_._1)(_._2)
 
@@ -270,7 +278,7 @@ case class Execution(
               Some(GroupExecution.Results(
                 newResults = taskResults,
                 newEvaluated = group.toSeq,
-                cached = false,
+                cacheStatus = GroupExecution.CacheStatus.Recomputed,
                 inputsHash = -1,
                 previousInputsHash = -1,
                 valueHashChanged = false,
@@ -344,13 +352,14 @@ case class Execution(
                       val endTime = System.nanoTime() / 1000
                       val duration = endTime - startTime
 
-                      if (!res.cached) uncached.put(terminal, ())
+                      if (res.cacheStatus == GroupExecution.CacheStatus.Recomputed)
+                        uncached.put(terminal, ())
                       if (res.valueHashChanged) changedValueHash.put(terminal, ())
 
                       profileLogger.log(
                         terminal.toString,
                         duration,
-                        res.cached,
+                        res.cacheStatus.profileValue,
                         res.valueHashChanged,
                         deps.map(_.toString),
                         res.inputsHash,
@@ -393,7 +402,7 @@ case class Execution(
       try {
         val (nonExclusiveTasks, leafExclusiveCommands) = indexToTerminal.partition {
           case t: Task.Named[_] => !downstreamOfExclusive.contains(t)
-          case _ => !serialCommandExec
+          case _ => true
         }
 
         val batchWaitReporter =
@@ -417,10 +426,6 @@ case class Execution(
           if (haveGlobalExclusive) LauncherLocking.LockKind.Write
           else LauncherLocking.LockKind.Read
 
-        // Suspend any outer-batch exclusive lease this launcher already
-        // holds so a nested call (e.g. from `show`'s body invoking
-        // `Evaluator.execute`) can take its own without self-deadlocking on
-        // the non-reentrant underlying lock. No-op when nothing is held.
         val empty = Seq.empty[(Task[?], Option[GroupExecution.Results])]
 
         def runBatch(): (
@@ -438,6 +443,10 @@ case class Execution(
 
         val (nonExclusiveResults, exclusiveResults) =
           if (nonExclusiveTasks.isEmpty && !haveExclusive) (empty, empty)
+          // Suspend any outer-batch exclusive lease this launcher already
+          // holds so a nested call (e.g. from `show`'s body invoking
+          // `Evaluator.execute`) can take its own without self-deadlocking on
+          // the non-reentrant underlying lock. No-op when nothing is held.
           else workspaceLocking.withReleasedExclusive(batchWaitReporter)(
             withExclusiveLease(outerKind)(runBatch())
           )
@@ -453,12 +462,10 @@ case class Execution(
 
         val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
 
-        val taskInvalidationReasons = {
-          import scala.jdk.CollectionConverters.ConcurrentMapHasAsScala
-          versionMismatchReasons.asScala.collect {
-            case (t: Task.Named[?], reason) => t.ctx.segments.render -> reason
-          }.toMap
-        }
+        val taskInvalidationReasons = finishedOptsMap.iterator.collect {
+          case (t: Task.Named[?], Some(res)) if res.invalidationReason.isDefined =>
+            t.ctx.segments.render -> res.invalidationReason.get
+        }.toMap
 
         ExecutionLogs.logInvalidationTree(
           interGroupDeps = interGroupDeps,
@@ -545,19 +552,39 @@ object Execution {
     }
 
     val states = new ConcurrentHashMap[Task[?], State]()
-    private val transitiveUpstreams: Map[Task[?], Seq[Task[?]]] = {
-      def rec(task: Task[?]): Seq[Task[?]] = {
-        val seen = mutable.LinkedHashSet.empty[Task[?]]
-        val stack = mutable.Stack.from(interGroupDeps.getOrElse(task, Nil).reverse)
-        while (stack.nonEmpty) {
-          val upstream = stack.pop()
-          if (seen.add(upstream)) {
-            stack.pushAll(interGroupDeps.getOrElse(upstream, Nil).reverse)
-          }
-        }
-        seen.toSeq
+
+    // Index of the states with a dropped retained read, so `reacquireDropped`
+    // visits only those instead of scanning the whole graph. A `State` has at
+    // most one retained, so membership mirrors `Retained.dropped` exactly.
+    private val droppedStates = ConcurrentHashMap.newKeySet[State]()
+
+    def hasDropped: Boolean = !droppedStates.isEmpty
+
+    // Flip `Retained.dropped` and the index together; call under `s`'s monitor.
+    private def markDropped(s: State, retained: Retained): Unit =
+      if (!retained.dropped) {
+        retained.dropped = true
+        droppedStates.add(s)
       }
-      indexToTerminal.iterator.map(t => t -> rec(t)).toMap
+    private def clearDropped(s: State, retained: Retained): Unit =
+      if (retained.dropped) {
+        retained.dropped = false
+        droppedStates.remove(s)
+      }
+    // `indexToTerminal` is in topological order, so each dep's transitive upstreams are
+    // already computed; union them in a single pass rather than running an independent
+    // DFS per terminal that re-walks shared ancestors (O(V*(V+E)) on deep/dense graphs).
+    private val transitiveUpstreams: Map[Task[?], Seq[Task[?]]] = {
+      val out = mutable.LinkedHashMap.empty[Task[?], Seq[Task[?]]]
+      for (task <- indexToTerminal) {
+        val seen = mutable.LinkedHashSet.empty[Task[?]]
+        for (dep <- interGroupDeps.getOrElse(task, Nil)) {
+          seen += dep
+          out.get(dep).foreach(seen ++= _)
+        }
+        out(task) = seen.toSeq
+      }
+      out.toMap
     }
 
     locally {
@@ -574,14 +601,18 @@ object Execution {
     private def drainLeases(s: State): Unit = s.synchronized {
       val retained = s.retained
       s.retained = null
-      if (retained != null && retained.lease != null) {
-        closeQuietly(retained.lease)
-        retained.lease = null
+      if (retained != null) {
+        clearDropped(s, retained) // drop the index entry before discarding it
+        if (retained.lease != null) {
+          closeQuietly(retained.lease)
+          retained.lease = null
+        }
       }
     }
 
-    private def releaseIfDrained(start: Task[?]): Unit = {
-      val queue = mutable.Queue(start)
+    private def releaseIfDrained(start: Task[?]): Unit = releaseIfDrained(Seq(start))
+    private def releaseIfDrained(starts: IterableOnce[Task[?]]): Unit = {
+      val queue = mutable.Queue.from(starts)
       while (queue.nonEmpty) {
         val task = queue.dequeue()
         val s = states.get(task)
@@ -613,7 +644,10 @@ object Execution {
     ): Unit = {
       val s = states.get(task)
       if (s != null) s.synchronized {
-        if (s.retained != null && s.retained.lease != null) closeQuietly(s.retained.lease)
+        if (s.retained != null) {
+          clearDropped(s, s.retained)
+          if (s.retained.lease != null) closeQuietly(s.retained.lease)
+        }
         s.retained = Retained(
           path = path,
           label = label,
@@ -637,7 +671,7 @@ object Execution {
         ) {
           closeQuietly(retained.lease)
           retained.lease = null
-          retained.dropped = true
+          markDropped(s, retained)
         }
       }
     }
@@ -653,8 +687,10 @@ object Execution {
         // non-Named groups, where this evaluation does not hold a task Write.
         block: Boolean = true
     ): Unit = {
+      if (!hasDropped) return // nothing dropped: skip the scan (the common case)
       import scala.jdk.CollectionConverters.*
-      val dropped = states.values().asScala.toSeq.flatMap { s =>
+      // Snapshot of the index; each entry is re-validated under its monitor below.
+      val dropped = droppedStates.asScala.toSeq.flatMap { s =>
         s.synchronized {
           val retained = s.retained
           Option.when(retained != null && retained.dropped && retained.lease == null)(s -> retained)
@@ -684,7 +720,7 @@ object Execution {
         s.synchronized {
           if ((s.retained eq retained) && retained.dropped && retained.lease == null) {
             retained.lease = lease
-            retained.dropped = false
+            clearDropped(s, retained)
           } else closeQuietly(lease)
         }
       }
@@ -718,11 +754,12 @@ object Execution {
       } finally {
         upstreams.foreach { task =>
           val s = states.get(task)
-          if (s != null) {
-            s.activeConsumers.decrementAndGet()
-            releaseIfDrained(task)
-          }
+          if (s != null) s.activeConsumers.decrementAndGet()
         }
+        // One BFS over the whole upstream union: the `states.remove` CAS dedups work
+        // across seeds, so this is linear in the upstream subgraph rather than the
+        // O(upstreams) separate BFS traversals a per-upstream call would do.
+        releaseIfDrained(upstreams)
       }
     }
 
@@ -788,7 +825,10 @@ object Execution {
           )
       }
       out.addOne(
-        terminal -> deps.toVector.sortBy(t => terminalOrder.getOrElse(t, Int.MaxValue))
+        // Every dep is a `Task.Named` (asserted above) and, under the sole caller, a
+        // grouping cut point, so it is always a `terminalOrder` key; index directly so a
+        // real grouping inconsistency throws loudly rather than sorting an unknown dep last.
+        terminal -> deps.toVector.sortBy(t => terminalOrder(t))
       )
     }
     out.result()

@@ -5,7 +5,13 @@ import mill.constants.DaemonFiles
 import scala.jdk.OptionConverters.RichOptional
 
 private[mill] object LauncherOutFilesRecordStore {
-  case class Record(runId: String, pid: Long, command: String, startMillis: Option[Long])
+  case class Record(
+      runId: String,
+      pid: Long,
+      command: String,
+      processStartMillis: Option[Long],
+      createdMillis: Long
+  )
 
   def path(out: os.Path, runId: String): os.Path =
     out / os.RelPath(DaemonFiles.perLauncherFilePath(runId))
@@ -17,7 +23,9 @@ private[mill] object LauncherOutFilesRecordStore {
   def write(out: os.Path, runId: String, pid: Long, command: String): Unit = {
     val commandJson = ujson.write(ujson.Str(command))
     val startMillisJson = processStartMillis(pid).fold("null")(_.toString)
-    val json = s"""{"pid":$pid,"command":$commandJson,"startMillis":$startMillisJson}"""
+    val createdMillis = System.currentTimeMillis()
+    val json =
+      s"""{"pid":$pid,"command":$commandJson,"startMillis":$startMillisJson,"createdMillis":$createdMillis}"""
     val file = path(out, runId)
     try mill.api.BuildCtx.withFilesystemCheckerDisabled {
         os.makeDir.all(file / os.up)
@@ -48,21 +56,16 @@ private[mill] object LauncherOutFilesRecordStore {
     else
       os.list(dir)
         .filter(os.isFile(_))
-        .flatMap(readActiveRecord(_, removeStale, keepUnreadable))
-        .sortBy(record => runIdSortKey(record.runId))
+        .flatMap(file => readActiveRecord(file, removeStale, keepUnreadable).map(file -> _))
+        .sortBy { case (file, record) =>
+          (record.createdMillis, lastModifiedMillis(file))
+        }
+        .map(_._2)
   }
 
-  // RunIds are `<millis>-<pid>-<counter>`; sort by millis then trailing
-  // counter so most-recent comes last. Older single-segment formats fall
-  // back to (0, 0).
-  def runIdSortKey(runId: String): (Long, Long) = {
-    val parts = runId.split('-')
-    if (parts.isEmpty) (0L, 0L)
-    else (
-      parts.head.toLongOption.getOrElse(0L),
-      parts.last.toLongOption.getOrElse(0L)
-    )
-  }
+  private def lastModifiedMillis(path: os.Path): Long =
+    try os.mtime(path)
+    catch { case _: Throwable => 0L }
 
   private def readActiveRecord(
       file: os.Path,
@@ -78,20 +81,23 @@ private[mill] object LauncherOutFilesRecordStore {
           runId = file.baseName,
           pid = pid,
           command = json.get("command").map(_.str).getOrElse(""),
-          startMillis = json.get("startMillis").flatMap {
+          processStartMillis = json.get("startMillis").flatMap {
             case ujson.Null => None
             case v => v.numOpt.map(_.toLong)
-          }
+          },
+          createdMillis = json.get("createdMillis").flatMap(_.numOpt.map(_.toLong))
+            .getOrElse(lastModifiedMillis(file))
         )
       } catch {
-        case _: Throwable if keepUnreadable => Some(Record(file.baseName, -1L, "", None))
+        case _: Throwable if keepUnreadable =>
+          Some(Record(file.baseName, -1L, "", None, lastModifiedMillis(file)))
         case _: Throwable => None
       }
 
     def liveProcess(record: Record): Boolean =
       java.lang.ProcessHandle.of(record.pid).toScala.exists { ph =>
         if (!ph.isAlive) false
-        else record.startMillis match {
+        else record.processStartMillis match {
           // Legacy record without start time — PID-only check.
           case None => true
           // Defeat PID reuse: a recycled PID with a different start

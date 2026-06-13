@@ -17,24 +17,24 @@ private[playlib] class RouteCompilerWorker extends RouteCompilerWorkerBase {
     generatorType match {
       case RouteCompilerType.InjectedGenerator =>
         val result = compileWithPlay(
-          files.map(os.Path(_)).toSeq,
+          files.map(resolveFile).toSeq,
           additionalImports.toSeq,
           forwardsRouter,
           reverseRouter,
           namespaceReverseRouter,
-          os.Path(dest),
+          resolveFile(dest),
           InjectedRoutesGenerator
         )
         asMillResult(result)
       case RouteCompilerType.StaticGenerator =>
         println("Static generator was deprecated in 2.6.0 and will be removed in 2.7.0")
         val result = compileWithPlay(
-          files.map(os.Path(_)).toSeq,
+          files.map(resolveFile).toSeq,
           additionalImports.toSeq,
           forwardsRouter,
           reverseRouter,
           namespaceReverseRouter,
-          os.Path(dest),
+          resolveFile(dest),
           StaticRoutesGenerator
         )
         asMillResult(result)

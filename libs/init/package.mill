@@ -37,10 +37,10 @@ object `package` extends MillPublishScalaModule {
     val snapshotArtifactPrefix = s"${build.dist.artifactName()}-SNAPSHOT"
     val data: Seq[(os.SubPath, String)] =
       build.dist.examplePaths().map { path =>
-        val example = path.subRelativeTo(BuildCtx.workspaceRoot)
+        val example = build.workspaceSubPath(path)
         val artifactName = s"$snapshotArtifactPrefix-${example.segments.mkString("-")}"
         val downloadUrl = s"$snapshotUrlPrefix/$artifactName.zip"
-        val subPath = path.subRelativeTo(BuildCtx.workspaceRoot / "example")
+        val subPath = build.workspacePath(path).subRelativeTo(BuildCtx.workspaceRoot / "example")
         (subPath, downloadUrl)
       }
 
@@ -110,10 +110,12 @@ object `package` extends MillPublishScalaModule {
     def moduleDeps = Seq(buildgen)
     def mvnDeps = Seq(Deps.mainargs)
     def testModuleDeps = super.testModuleDeps ++ Seq(buildgen.test)
+    def localTestExtraModules =
+      super.localTestExtraModules ++ Seq(build.libs.scalalib.`scalafmt-worker`)
     def prependShellScript = ""
     def testForkEnv = super.testForkEnv() ++ Map(
       "MILL_UNSTABLE_VERSION" -> "1",
-      "TEST_MAIN_ASSEMBLY" -> assembly().path.toString
+      "TEST_MAIN_ASSEMBLY" -> PathRef.toResolvedPathString(assembly().path)
     )
 
     override object test extends MillScalaTests {

@@ -12,6 +12,7 @@ import ch.epfl.scala.bsp4j.{
   TaskId
 }
 import mill.api.ExecResult.{Skipped, Success}
+import mill.api.{BuildCtx, PathRef}
 import mill.api.daemon.internal.{
   ExecutionResultsApi,
   EvaluatorApi,
@@ -32,7 +33,37 @@ object Utils {
   def sanitizeUri(uri: String): String =
     if (uri.endsWith("/")) sanitizeUri(uri.substring(0, uri.length - 1)) else uri
 
-  def sanitizeUri(uri: java.nio.file.Path): String = sanitizeUri(uri.toUri.toString)
+  private[worker] def workspaceAnchored(path: os.Path): os.Path = {
+    val anchored = PathRef.toResolvedOsPathAnchored(path, BuildCtx.workspaceRoot)
+    if (anchored != path) anchored
+    else {
+      val resolvedWorkspaceRoot = PathRef.toResolvedOsPath(BuildCtx.workspaceRoot)
+
+      @annotation.tailrec
+      def rec(current: os.Path, missing: List[String]): os.Path = {
+        if (os.exists(current) || current.segmentCount == 0) {
+          val resolvedCurrent = PathRef.toResolvedOsPath(current)
+          val resolvedPath = missing.foldLeft(resolvedCurrent)(_ / _)
+          if (resolvedCurrent.startsWith(resolvedWorkspaceRoot)) {
+            val anchoredCurrent =
+              BuildCtx.workspaceRoot / resolvedCurrent.subRelativeTo(resolvedWorkspaceRoot)
+            missing.foldLeft(anchoredCurrent)(_ / _)
+          } else resolvedPath
+        } else rec(current / os.up, current.last :: missing)
+      }
+
+      rec(path, Nil)
+    }
+  }
+
+  def sanitizeUri(uri: java.nio.file.Path): String = {
+    // `uri` may be a workspace-relativized path; deserialize it through os-lib, then turn it back
+    // into a real absolute URI for BSP clients. Resolve internal symlink routes like the BSP
+    // daemon's `out/mill-daemon/mill-workspace` alias back under the lexical workspace root, so
+    // clients see stable workspace paths.
+    val path = workspaceAnchored(os.Path(uri))
+    sanitizeUri(PathRef.toAbsNioPath(path).toUri.toString)
+  }
 
   // define the function that spawns compilation reporter for each module based on the
   // module's hash code TODO: find something more reliable than the hash code
@@ -99,22 +130,24 @@ object Utils {
       buildTargetBaseDir: os.Path,
       topLevelProjectRoot: os.Path
   ): Seq[OutputPathItem] = {
+    val buildTargetBaseDir0 = workspaceAnchored(buildTargetBaseDir)
+    val topLevelProjectRoot0 = workspaceAnchored(topLevelProjectRoot)
 
     def outputPathItem(path: os.Path) =
       // Spec says, a directory must end with a forward slash
       OutputPathItem(sanitizeUri(path.toNIO) + "/", OutputPathItemKind.DIRECTORY)
 
-    if (topLevelProjectRoot.startsWith(buildTargetBaseDir))
+    if (topLevelProjectRoot0.startsWith(buildTargetBaseDir0))
       Seq(
-        outputPathItem(topLevelProjectRoot / ".idea"),
-        outputPathItem(topLevelProjectRoot / "out"),
-        outputPathItem(topLevelProjectRoot / ".bsp"),
-        outputPathItem(topLevelProjectRoot / ".bloop"),
+        outputPathItem(topLevelProjectRoot0 / ".idea"),
+        outputPathItem(topLevelProjectRoot0 / "out"),
+        outputPathItem(topLevelProjectRoot0 / ".bsp"),
+        outputPathItem(topLevelProjectRoot0 / ".bloop"),
 
         // All Eclipse JDT related project files (likely generated)
-        outputPathItem(topLevelProjectRoot / ".project"),
-        outputPathItem(topLevelProjectRoot / ".classpath"),
-        outputPathItem(topLevelProjectRoot / ".settings")
+        outputPathItem(topLevelProjectRoot0 / ".project"),
+        outputPathItem(topLevelProjectRoot0 / ".classpath"),
+        outputPathItem(topLevelProjectRoot0 / ".settings")
       )
     else Nil
   }

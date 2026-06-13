@@ -64,7 +64,8 @@ case class ModuleSpec(
     mimaForwardIssueFilters: Values[(String, Seq[String])] = Values(),
     mimaExcludeAnnotations: Values[String] = Values(),
     mimaReportSignatureProblems: Value[Boolean] = Value(),
-    children: Seq[ModuleSpec] = Nil
+    children: Seq[ModuleSpec] = Nil,
+    quarkusPlatformVersion: Value[String] = Value()
 ) {
 
   def isBomModule: Boolean = supertypes.contains("BomModule")
@@ -100,6 +101,14 @@ case class ModuleSpec(
   def withSpringBootTestsModule(): ModuleSpec = {
     val requiredSupertypes = Seq("SpringBootTestsModule", "MavenTests")
     copy(supertypes = requiredSupertypes ++ supertypes.filterNot(requiredSupertypes.contains))
+  }
+
+  def withQuarkusModule(quarkusVersion: Value[String]): ModuleSpec = {
+    copy(
+      imports = "mill.javalib.quarkus.*" +: imports,
+      supertypes = "QuarkusModule" +: supertypes,
+      quarkusPlatformVersion = quarkusVersion
+    )
   }
 
   def withJmhModule(jmhCoreVersion: Value[String]): ModuleSpec = copy(
@@ -268,6 +277,7 @@ object ModuleSpec {
   def testModuleMixin(mvnDeps: Seq[MvnDep]): Option[String] = {
     // Prioritize frameworks that integrate with other frameworks.
     mvnDeps.iterator.map(dep => dep.organization -> dep.name).collectFirst {
+      case ("io.quarkus", "quarkus-junit" | "quarkus-junit5") => "QuarkusJunit"
       case ("org.scalatest" | "org.scalatestplus", _) => "TestModule.ScalaTest"
       case ("org.specs2", _) => "TestModule.Spec2"
       // https://scalameta.org/munit/docs/integrations/external-integrations.html

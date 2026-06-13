@@ -3,9 +3,8 @@ package mill.javalib
 import mill.api.{BuildCtx, Discover, ExternalModule, ModuleRef, PathRef, Result, experimental}
 import mill.api.daemon.internal.SemanticDbJavaModuleApi
 import mill.constants.CodeGenConstants
-import mill.util.BuildInfo
+import mill.util.{BuildInfo, Jvm, Version}
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil}
-import mill.util.Version
 import mill.{T, Task}
 
 import scala.jdk.CollectionConverters.*
@@ -262,14 +261,17 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
       val generatedSource = sourceroot / generatedSourceSubPath
       val generatedSourceLines = os.read.lines(generatedSource)
       val source = generatedSourceLines
-        .collectFirst { case s"//SOURCECODE_ORIGINAL_FILE_PATH=$rest" => os.Path(rest.trim) }
+        .collectFirst {
+          case s"//SOURCECODE_ORIGINAL_FILE_PATH=$rest" => os.Path(rest.trim)
+        }
         .getOrElse {
           sys.error(s"Cannot get original source from generated source $generatedSource")
         }
+      val anchoredSource = PathRef.toResolvedOsPathAnchored(source, sourceroot)
 
       val firstLineIdx = generatedSourceLines.indexWhere(_.startsWith(userCodeStartMarker)) + 1
 
-      val res = mill.util.Jvm.withClassLoader(
+      val res = Jvm.withClassLoader(
         workerClasspath,
         parent = getClass.getClassLoader
       ) { cl =>
@@ -278,15 +280,15 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
           .get
           .invoke(
             null,
-            os.read(source),
-            source.relativeTo(sourceroot),
+            os.read(anchoredSource),
+            anchoredSource.relativeTo(sourceroot),
             (lineIdx: Int) => Some(lineIdx - firstLineIdx).filter(_ >= 0),
             generatedSourceSemdb
           ).asInstanceOf[Array[Byte]]
       }
 
       val sourceSemdbSubPath = {
-        val sourceSubPath = source.relativeTo(sourceroot).asSubPath
+        val sourceSubPath = anchoredSource.relativeTo(sourceroot).asSubPath
         sourceSubPath / os.up / s"${sourceSubPath.last}.semanticdb"
       }
       (res, sourceSemdbSubPath)
@@ -308,7 +310,9 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
     val semanticPath = os.rel / "META-INF/semanticdb"
     val toClean = classesDir / semanticPath / sourceroot.segments.toSeq
 
-    val existingSources = sources.map(_.subRelativeTo(sourceroot)).toSet
+    val existingSources = sources
+      .map(source => PathRef.toResolvedOsPathAnchored(source, sourceroot).subRelativeTo(sourceroot))
+      .toSet
 
     // copy over all found semanticdb-files into the target directory
     // but with corrected directory layout

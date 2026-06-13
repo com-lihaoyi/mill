@@ -61,6 +61,9 @@ class MillBuildBootstrap(
     selectiveExecution: Boolean,
     offline: Boolean,
     useFileLocks: Boolean,
+    remoteCacheLocation: Option[String],
+    remoteCacheSalt: Option[String],
+    remoteCacheFilter: Option[String],
     runArtifacts: LauncherOutFiles,
     metaBuild: MetaBuildAccess,
     reporter: EvaluatorApi => Int => Option[CompileProblemReporter],
@@ -69,7 +72,8 @@ class MillBuildBootstrap(
     // module hashCode) because at meta-build time we don't have a stable
     // module-hashCode mapping yet.
     metaBuildReporter: Int => Option[CompileProblemReporter] = _ => None,
-    enableTicker: Boolean
+    enableTicker: Boolean,
+    replayLogs: Boolean
 ) { outer =>
   // The workspace locking is owned by the metaBuild access (alongside the
   // shared state) but Execution still consumes the LauncherLocking directly
@@ -262,6 +266,9 @@ class MillBuildBootstrap(
       selectiveExecution = selectiveExecution,
       offline = offline,
       useFileLocks = useFileLocks,
+      remoteCacheLocation = remoteCacheLocation,
+      remoteCacheSalt = remoteCacheSalt,
+      remoteCacheFilter = remoteCacheFilter,
       workspaceLocking = workspaceLocking,
       runArtifacts = runArtifacts,
       workerCache = workerCache,
@@ -271,27 +278,61 @@ class MillBuildBootstrap(
       // Use the current frame's runClasspath (includes mvnDeps and Mill jars) but filter out
       // compile.dest and generatedScriptSources.dest since build code changes are handled
       // by codesig analysis, not by classLoaderSigHash.
-      millClassloaderSigHash = nestedSharedFrame match {
-        case Some(frame) =>
-          val compileDestPath = os.Path(frame.compileOutput.javaPath)
-          frame.runClasspath
-            .filter { p =>
-              val path = os.Path(p.javaPath)
-              path != compileDestPath &&
-              !path.toString.contains("generatedScriptSources.dest")
-            }
-            .map(p => (os.Path(p.javaPath), p.sig))
-            .hashCode()
-        case None =>
-          millBootClasspathPathRefs
-            .map(p => (os.Path(p.javaPath), p.sig))
-            .hashCode()
+      // Stable, location-independent classpath signature so two reproducible-mode
+      // builds in different workspace dirs produce the same `classLoaderSigHash`.
+      millClassloaderSigHash = {
+        def pathApiPath(pathRef: PathRefApi): os.Path =
+          os.Path(pathRef.javaPath.toString, currentRoot)
+
+        val resolvedRoot = PathRef.toResolvedOsPath(currentRoot)
+        val resolvedHome = PathRef.toResolvedOsPath(os.home)
+
+        def resolveExistingAncestor(path: os.Path): os.Path = {
+          @scala.annotation.tailrec
+          def rec(current: os.Path, missing: List[String]): os.Path = {
+            if (os.exists(current) || current.segmentCount == 0) {
+              val resolved = PathRef.toResolvedOsPath(current)
+              missing.foldLeft(resolved)(_ / _)
+            } else rec(current / os.up, current.last :: missing)
+          }
+          rec(path, Nil)
+        }
+
+        def workspaceAnchored(path: os.Path): os.Path = {
+          val resolved = resolveExistingAncestor(path)
+          if (resolved.startsWith(resolvedRoot)) currentRoot / resolved.subRelativeTo(resolvedRoot)
+          else path
+        }
+
+        def stable(path: os.Path): String = {
+          val resolved = resolveExistingAncestor(path)
+          if (resolved.startsWith(resolvedRoot))
+            s"<workspace>/${resolved.subRelativeTo(resolvedRoot)}"
+          else if (resolved.startsWith(resolvedHome))
+            s"<home>/${resolved.subRelativeTo(resolvedHome)}"
+          else resolved.toString
+        }
+        val (refs, compileDestOpt) = nestedSharedFrame match {
+          case Some(frame) =>
+            (frame.runClasspath, Some(workspaceAnchored(pathApiPath(frame.compileOutput))))
+          case None => (millBootClasspathPathRefs, None)
+        }
+        refs.iterator.map(p => pathApiPath(p) -> p)
+          .filterNot { case (path, _) =>
+            // Build-code changes are tracked by codesig analysis, not classLoaderSigHash.
+            compileDestOpt.contains(workspaceAnchored(path)) ||
+            path.toString.contains("generatedScriptSources.dest")
+          }
+          .map { case (path, p) => (stable(path), p.sig) }
+          .toSeq
+          .hashCode()
       },
       millClassloaderIdentityHash = millClassloaderIdentityHash0,
       depth = depth,
       actualBuildFileName = nestedState.buildFile,
       enableTicker = enableTicker,
-      staticBuildOverrideFiles = staticBuildOverrideFiles.toMap
+      staticBuildOverrideFiles = staticBuildOverrideFiles.toMap,
+      replayLogs = replayLogs
     )
   }
 
@@ -603,12 +644,15 @@ class MillBuildBootstrap(
                 runClasspath: Seq[PathRefApi],
                 compileClasses: PathRefApi,
                 codeSignatures: Map[String, Int],
-                buildOverrideFiles: Map[java.nio.file.Path, String],
+                buildOverrideFileStrings: Map[String, String],
                 spanningInvalidationTree: String
               ))),
               evalWatches,
               moduleWatches
             ) =>
+          val buildOverrideFiles =
+            buildOverrideFileStrings.map { case (path, text) => os.Path(path).wrapped -> text }
+
           // Even when the meta-build's compiled output is bit-identical to
           // the previous frame, we cannot reuse the existing classloader if
           // the outer (one-level-up) `moduleWatched` has changed. The user's
@@ -804,6 +848,9 @@ object MillBuildBootstrap {
       selectiveExecution: Boolean,
       offline: Boolean,
       useFileLocks: Boolean,
+      remoteCacheLocation: Option[String],
+      remoteCacheSalt: Option[String],
+      remoteCacheFilter: Option[String],
       workspaceLocking: LauncherLocking,
       runArtifacts: LauncherOutFiles,
       workerCache: collection.mutable.Map[String, (Int, Val, TaskApi[?])],
@@ -816,7 +863,8 @@ object MillBuildBootstrap {
       depth: Int,
       actualBuildFileName: Option[String] = None,
       enableTicker: Boolean,
-      staticBuildOverrideFiles: Map[java.nio.file.Path, String]
+      staticBuildOverrideFiles: Map[java.nio.file.Path, String],
+      replayLogs: Boolean
   ): EvaluatorApi = {
     val bootLogPrefix: Seq[String] =
       if (depth == 0) Nil
@@ -862,7 +910,11 @@ object MillBuildBootstrap {
           enableTicker,
           depth,
           false, // isFinalDepth: set later via withIsFinalDepth when needed
-          spanningInvalidationTree
+          spanningInvalidationTree,
+          remoteCacheLocation,
+          remoteCacheSalt,
+          remoteCacheFilter,
+          replayLogs
         )
       ).asInstanceOf[EvaluatorApi]
 
@@ -1005,7 +1057,10 @@ object MillBuildBootstrap {
   ): Option[(java.nio.file.Path, String)] = {
     val p = currentRoot / ".." / fileName
     Option.when(os.exists(p)) {
-      p.toNIO -> mill.constants.Util.readBuildHeader(p.toNIO, fileName)
+      // `p.wrapped` gives the un-relativized NIO path; in reproducible mode
+      // `.toNIO` would yield the `../mill-workspace/...` alias form that
+      // `readBuildHeader` (plain Java IO) cannot open from the daemon cwd.
+      p.wrapped -> mill.constants.Util.readBuildHeader(p.wrapped, fileName)
     }
   }
 

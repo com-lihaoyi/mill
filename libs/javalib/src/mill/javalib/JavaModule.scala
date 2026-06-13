@@ -19,6 +19,7 @@ import mill.api.{
   TaskCtx
 }
 import mill.api.daemon.internal.{EvaluatorApi, JavaModuleApi, internal}
+import mill.api.internal.PathAliasing
 import mill.api.daemon.internal.bsp.{
   BspBuildTarget,
   BspJavaModuleApi,
@@ -943,8 +944,7 @@ trait JavaModule
   def allSourceFiles: T[Seq[PathRef]] = Task {
     val allSources0 = allSources() ++ wrappedSources().map(_.generated)
     val toExclude = wrappedSources().map(_.original.path)
-    Lib.findSourceFiles(allSources0, sourceFileExtensions)
-      .filterNot(toExclude.contains)
+    Lib.findSourceFilesExcluding(allSources0, sourceFileExtensions, toExclude)
       .map(PathRef(_))
   }
 
@@ -1358,6 +1358,7 @@ trait JavaModule
       Task.log.info("options: " + cmdArgs)
 
       val cmd = Seq(Jvm.jdkTool("javadoc", javaHome)) ++ cmdArgs
+      PathAliasing.ensureProcessCwdAliases(Task.dest)
       os.call(
         cmd = cmd,
         env = Map(),
@@ -1660,7 +1661,14 @@ trait JavaModule
   def sanitizeUri(uri: String): String =
     if (uri.endsWith("/")) sanitizeUri(uri.substring(0, uri.length - 1)) else uri
 
-  def sanitizeUri(uri: os.Path): String = sanitizeUri(uri.toURI.toString)
+  // Resolve symlink aliases before `.wrapped.toUri`: BSP clients need stable absolute `file://`
+  // URIs, but reproducible-build path aliases can route paths through `mill-home`/`mill-workspace`
+  // symlinks inside the output directory.
+  def sanitizeUri(uri: os.Path): String = {
+    val anchored = PathRef.toResolvedOsPathAnchored(uri, BuildCtx.workspaceRoot)
+    val path = if (anchored == uri) PathRef.toResolvedOsPath(uri) else anchored
+    sanitizeUri(path.wrapped.toUri.toString)
+  }
 
   def sanitizeUri(uri: PathRef): String = sanitizeUri(uri.path)
 

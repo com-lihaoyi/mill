@@ -3,12 +3,13 @@
 
 package build
 import mill.*, javalib.*, util.Jvm
+import mill.api.PathRef
 
 object `package` extends JavaModule {
   // Additional source folder to put C sources
   def nativeSources = Task.Sources("native-src")
 
-  // Auto-generate JNI `.h` files from Java classes using Javac
+  // Auto-generate JNI `.h` files from Java classes using Javac.
   def nativeHeaders = Task {
     os.call(
       cmd = (
@@ -16,8 +17,8 @@ object `package` extends JavaModule {
         "-h",
         Task.dest,
         "-d",
-        Task.dest.toString,
-        allSourceFiles().map(_.path)
+        Task.dest,
+        allSourceFiles()
       )
     )
     PathRef(Task.dest)
@@ -26,30 +27,36 @@ object `package` extends JavaModule {
   // Compile C
   def nativeCompiled = Task {
     val cSourceFiles = nativeSources().map(_.path).flatMap(os.walk(_)).filter(_.ext == "c")
-    val output = "libhelloworld.so"
+    val outputPath = Task.dest / "libhelloworld.so"
     os.call(
       cmd = (
         "clang",
         "-shared",
         "-fPIC",
-        "-I" + nativeHeaders().path, //
+        "-I" + nativeHeaders().path,
         "-I" + sys.props("java.home") + "/include/", // global JVM header files
         "-I" + sys.props("java.home") + "/include/darwin",
         "-I" + sys.props("java.home") + "/include/linux",
         "-o",
-        Task.dest / output,
+        outputPath,
         cSourceFiles
       ),
       stdout = os.Inherit
     )
 
-    PathRef(Task.dest / output)
+    PathRef(outputPath)
   }
 
-  def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
+  def forkEnv = Map(
+    // `System.load` rejects relative paths: "UnsatisfiedLinkError" if filename is not absolute.
+    "HELLO_WORLD_BINARY" -> PathRef.toAbsString(nativeCompiled())
+  )
 
   object test extends JavaTests, TestModule.Junit4 {
-    def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
+    def forkEnv = Map(
+      // `System.load` rejects relative paths: "UnsatisfiedLinkError" if filename is not absolute.
+      "HELLO_WORLD_BINARY" -> PathRef.toAbsString(nativeCompiled())
+    )
   }
 }
 

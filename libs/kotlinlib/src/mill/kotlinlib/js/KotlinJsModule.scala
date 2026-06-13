@@ -167,8 +167,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     runTarget match {
       case Some(RunTarget.Node) =>
-        val binaryPath = (binaryDir / s"$artifactId.${moduleKind.extension}")
-          .toIO.getAbsolutePath
+        // Node resolves the entrypoint relative to its process cwd.
+        val binaryPath = PathRef.toAbsString(binaryDir / s"$artifactId.${moduleKind.extension}")
         val processResult = os.call(
           cmd = Seq("node") ++ args.value ++ Seq(binaryPath),
           env = envArgs,
@@ -309,7 +309,10 @@ trait KotlinJsModule extends KotlinModule { outer =>
 //        (allKotlinSourceFiles.map(_.path.toIO.getAbsolutePath), Seq())
 //    }
 
-    val includeArgs = irClasspath.map(p => s"-Xinclude=${p.path}").toSeq
+    val includeArgs = irClasspath.map { p =>
+      // Kotlin/JS KLIB loading loses stdlib symbols with cwd aliases.
+      s"-Xinclude=${PathRef.toAbsString(p.path)}"
+    }.toSeq
     val inputFiles = irClasspath.fold(allKotlinSourceFiles.map(_.path))(_ => Seq())
 
     val librariesCp = librariesClasspath.map(_.path)
@@ -317,8 +320,15 @@ trait KotlinJsModule extends KotlinModule { outer =>
       .filter(isKotlinJsLibrary)
 
     val innerCompilerArgs = Seq.newBuilder[String]
-    // classpath
-    innerCompilerArgs ++= Seq("-libraries", librariesCp.iterator.mkString(File.pathSeparator))
+    innerCompilerArgs ++= Seq(
+      "-libraries",
+      librariesCp.iterator
+        .map { path =>
+          // Same KLIB loader limitation as `includeArgs`.
+          PathRef.toAbsString(path)
+        }
+        .mkString(File.pathSeparator)
+    )
     innerCompilerArgs ++= Seq("-main", if (callMain) "call" else "noCall")
     if (moduleKind != ModuleKind.NoModule) {
       innerCompilerArgs ++= Seq(
@@ -367,19 +377,22 @@ trait KotlinJsModule extends KotlinModule { outer =>
         Seq(
           "-Xir-produce-klib-file",
           "-ir-output-dir",
-          (destinationRoot / "libs").toIO.getAbsolutePath
+          // The Kotlin/JS compiler worker interprets this string in its own process cwd.
+          PathRef.toAbsString(destinationRoot / "libs")
         )
       case OutputMode.KlibDir =>
         Seq(
           "-Xir-produce-klib-dir",
           "-ir-output-dir",
-          (destinationRoot / "classes").toIO.getAbsolutePath
+          // The Kotlin/JS compiler worker interprets this string in its own process cwd.
+          PathRef.toAbsString(destinationRoot / "classes")
         )
       case OutputMode.Js =>
         Seq(
           "-Xir-produce-js",
           "-ir-output-dir",
-          (destinationRoot / "binaries").toIO.getAbsolutePath
+          // The Kotlin/JS compiler worker interprets this string in its own process cwd.
+          PathRef.toAbsString(destinationRoot / "binaries")
         )
     }
 
@@ -496,9 +509,10 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // TODO may be optimized if there is a single folder for all modules
     // but may be problematic if modules use different NPM packages versions
     private def nodeModulesDir = Task(persistent = true) {
+      val localNpmCache = Task.dest / "npm-cache"
       os.call(
         cmd = Seq("npm", "install", "mocha@10.2.0", "source-map-support@0.5.21"),
-        env = Task.env,
+        env = Task.env ++ Map("npm_config_cache" -> localNpmCache.toString),
         cwd = Task.dest,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -561,8 +575,10 @@ trait KotlinJsModule extends KotlinModule { outer =>
           // TODO this is valid only for the NodeJS target. Once browser support is
           //  added, need to have different argument handling
           "--require",
-          sourceMapSupportModule().path.toString(),
-          mochaModule().path.toString(),
+          // Node resolves required modules from the current test task cwd.
+          PathRef.toAbsString(sourceMapSupportModule().path),
+          // Node resolves the Mocha entrypoint from the current test task cwd.
+          PathRef.toAbsString(mochaModule().path),
           "--timeout",
           testTimeout().toString,
           "--reporter",

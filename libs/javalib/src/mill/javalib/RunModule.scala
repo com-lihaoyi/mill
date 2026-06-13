@@ -43,7 +43,9 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
   /**
    * Environment variables to pass to the forked JVM.
    *
-   * Includes [[forkEnv]] and the variables defined by Mill itself.
+   * Includes [[forkEnv]], the Java-home PATH override, and the workspace root. The os-lib
+   * path-relativizer var is added at the fork callsite, so it does not become part of this cached
+   * task output.
    */
   def allForkEnv: T[Map[String, String]] = Task {
     javaHomePathForkEnv() ++ forkEnv() ++ Map(
@@ -208,12 +210,13 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
   def runBackgroundTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
     Task.Anon {
       val dest = Task.dest
+      val cwd = forkWorkingDir()
       runner().run(
         args = RunModule.BackgroundPaths(dest).toArgs ++ Seq(
           mainClass()
         ) ++ args().value,
         mainClass = "mill.javalib.backgroundwrapper.MillBackgroundWrapper",
-        workingDir = forkWorkingDir(),
+        workingDir = cwd,
         extraRunClasspath = jvmWorker().backgroundWrapperClasspath().map(_.path).toSeq,
         background = true,
         runBackgroundLogToConsole = runBackgroundLogToConsole
@@ -369,8 +372,10 @@ object RunModule {
         case None => useCpPassingJar0
       }
       val env = Option(forkEnv).getOrElse(forkEnv0)
-
       val propEnv = Option(propagateEnv).getOrElse(propagateEnv0: java.lang.Boolean)
+      val inheritedEnv = if (propEnv) ctx.env else Map.empty[String, String]
+      val processEnv = inheritedEnv ++ env
+
       val cpPassingJarPath =
         if useCpPassingJar1 then
           Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false))
@@ -395,7 +400,7 @@ object RunModule {
             mainClass = mainClass1,
             classPath = classPath,
             jvmArgs = jvmArgs,
-            env = (if (propEnv) ctx.env else Map()) ++ env,
+            env = processEnv,
             mainArgs = mainArgs,
             cwd = cwd,
             stdin = "",
@@ -411,7 +416,7 @@ object RunModule {
             mainClass = mainClass1,
             classPath = classPath,
             jvmArgs = jvmArgs,
-            env = (if (propEnv) ctx.env else Map()) ++ env,
+            env = processEnv,
             mainArgs = mainArgs,
             cwd = cwd,
             cpPassingJarPath = cpPassingJarPath,
@@ -434,12 +439,20 @@ object RunModule {
     def lockPath: os.Path = destDir / "lock"
     def logPath: os.Path = destDir / "log"
 
-    def toArgs: Seq[String] =
+    def toArgs: Seq[String] = {
+      // `MillBackgroundWrapper` resolves these with plain `java.nio.Paths.get` (no os-lib
+      // relativizer) in a detached process that outlives us. The paths must therefore be real
+      // absolute paths with symlinks resolved: a lexical `toAbsString` would route through the
+      // ephemeral `out/mill-no-daemon/<id>/mill-workspace` forwarder symlink, which the launcher
+      // deletes on exit — breaking the wrapper's pid/lock/log reads and killing the background
+      // process. Resolve `destDir` (which exists) so the appended file names land on the real dir.
+      val realDest = PathRef.toResolvedOsPath(destDir)
       Seq(
-        newestPidPath.toString,
-        currentlyRunningPidPath.toString,
-        lockPath.toString,
-        logPath.toString
+        PathRef.toAbsString(realDest / newestPidPath.last),
+        PathRef.toAbsString(realDest / currentlyRunningPidPath.last),
+        PathRef.toAbsString(realDest / lockPath.last),
+        PathRef.toAbsString(realDest / logPath.last)
       )
+    }
   }
 }

@@ -114,7 +114,7 @@ object app extends AndroidAppModule {
 
 
 > ./mill lib.publishM2Local
-Publish sumlib-java-0.0.1 to /home/.../.m2/repository/...
+Publish sumlib-java-0.0.1 to .../.m2/repository/...
 
 > ./mill show lib.publishArtifacts
 {

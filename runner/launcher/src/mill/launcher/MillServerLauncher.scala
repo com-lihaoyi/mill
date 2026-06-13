@@ -1,8 +1,10 @@
 package mill.launcher
 
+import mill.api.PathRef
 import mill.api.daemon.SystemStreams
 import mill.client.{ClientUtil, LaunchedServer, ServerLauncher}
 import mill.constants.BuildInfo
+import mill.constants.EnvVars
 import mill.client.lock.Locks
 import mill.constants.Util
 import mill.rpc.RpcConsole
@@ -26,14 +28,16 @@ class MillServerLauncher(
 
   def run(daemonDir: os.Path, javaHome: Option[os.Path], log: String => Unit): Int = {
     os.makeDir.all(daemonDir)
-    val locks = Locks.forDirectory(daemonDir.toString, useFileLocks)
+    // The launcher and daemon both open this lock; avoid cwd-dependent alias strings.
+    val locks = Locks.forDirectory(PathRef.toAbsString(daemonDir), useFileLocks)
     log(s"launchOrConnectToServer: $locks")
 
     val config = ServerLauncher.DaemonConfig(
       millVersion = millVersion,
       javaVersion = javaHome.map(_.toString).getOrElse(""),
       jvmOpts = jvmOpts,
-      millRepositories = millRepositories
+      millRepositories = millRepositories,
+      pathRelativizerBase = env.getOrElse(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE, "")
     )
 
     val launched = ServerLauncher.launchOrConnectToServer(
@@ -53,7 +57,12 @@ class MillServerLauncher(
       log(s"runWithConnection exit code: $result")
       result
     } finally {
+      // `launched.close()` closes the socket; `locks.close()` frees the file
+      // channels/handles eagerly opened by `Locks.forDirectory`, which the lock
+      // `release()`s do not. Guard each so a failure in one still attempts the other.
       try launched.close()
+      catch { case _: Exception => }
+      try locks.close()
       catch { case _: Exception => }
     }
   }

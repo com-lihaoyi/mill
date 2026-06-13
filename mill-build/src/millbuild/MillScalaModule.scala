@@ -22,6 +22,30 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
 
   def scalafixConfig = Task { Some(BuildCtx.workspaceRoot / ".scalafix.conf") }
 
+  // Replicate `ScalafixModule.fix`, but invoke scalafix under a raw path serializer so the
+  // working directory (and source/classpath/config paths) resolve to real absolute paths rather
+  // than the `../mill-workspace` reproducible-build alias, which scalafix rejects with
+  // "working directory must be relative: ../mill-workspace". We can't just wrap `super.fix(...)`
+  // because Mill evaluates that as a separate super-task outside this command's dynamic scope.
+  override def fix(args: String*) = Task.Command {
+    MillScalaModule.runScalafix(
+      Task.ctx().log,
+      scalafixRepositories(),
+      ScalafixModule.filesToFix(sources()).map(_.path),
+      (
+        compileClasspath() ++
+          localClasspath() ++
+          Seq(semanticDbDataDetailed().compilationResult.classes)
+      ).map(_.path),
+      scalaVersion(),
+      scalacOptions(),
+      scalafixIvyDeps(),
+      scalafixConfig(),
+      args,
+      BuildCtx.workspaceRoot
+    )
+  }
+
   def semanticDbVersion = Deps.semanticDBscala_runtime.version
 
   def isScala3: T[Boolean] = Task { JvmWorkerUtil.isScala3(scalaVersion()) }
@@ -94,6 +118,24 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
   trait MillScalaTests extends ScalaTests with MillJavaModule with MillBaseTestsModule
       with ScalafixModule {
     def scalafixConfig = Task { Some(BuildCtx.workspaceRoot / ".scalafix.conf") }
+    override def fix(args: String*) = Task.Command {
+      MillScalaModule.runScalafix(
+        Task.ctx().log,
+        scalafixRepositories(),
+        ScalafixModule.filesToFix(sources()).map(_.path),
+        (
+          compileClasspath() ++
+            localClasspath() ++
+            Seq(semanticDbDataDetailed().compilationResult.classes)
+        ).map(_.path),
+        this.scalaVersion(),
+        scalacOptions(),
+        scalafixIvyDeps(),
+        scalafixConfig(),
+        args,
+        BuildCtx.workspaceRoot
+      )
+    }
     def forkArgs = super.forkArgs() ++ outer.testArgs()
     def moduleDeps = outer.testModuleDeps
     def mvnDeps = super.mvnDeps() ++ outer.testMvnDeps()
@@ -116,6 +158,64 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
         else (Nil, Nil)
       // Tests frequently use unused-pattern bindings for assertions; keep those warnings off.
       base ++ unusedFlag ++ unusedWconf
+    }
+  }
+}
+
+object MillScalaModule {
+
+  /**
+   * Replicates `ScalafixModule.fix`, but reconciles Mill's reproducible-build path relativization
+   * with scalafix, which needs real absolute paths and matches source files to their semanticdb by
+   * relativizing them against the working directory.
+   */
+  def runScalafix(
+      log: mill.api.daemon.Logger,
+      repositories: Seq[coursier.core.Repository],
+      sourcesToFix: Seq[os.Path],
+      classpath: Seq[os.Path],
+      scalaVersion: String,
+      scalacOptions: Seq[String],
+      scalafixDeps: Seq[mill.javalib.Dep],
+      config: Option[os.Path],
+      args: Seq[String],
+      workspaceRoot: os.Path
+  ): mill.api.daemon.Result[Unit] = {
+    val aliasSegments = Seq("out", "mill-daemon", "mill-workspace")
+    val realWorkspaceRoot = mill.api.PathRef.toResolvedOsPath(workspaceRoot)
+    val aliasWorkspaceRoot = realWorkspaceRoot / aliasSegments
+
+    // Scala 3.7.x records semanticdb paths through Mill's alias symlink for Java 11 modules.
+    // Keep the working directory real, but pass source files through the same symlink so scalafix's
+    // source-relative semanticdb lookup matches those modules.
+    val useAliasSources = mill.api.internal.PathAliasing.withRawPathSerializer {
+      classpath.exists(cp => os.isDir(cp / "META-INF" / "semanticdb" / aliasSegments))
+    }
+    val effectiveSources =
+      if (useAliasSources) {
+        sourcesToFix.map { source =>
+          val resolved = mill.api.PathRef.toResolvedOsPath(source)
+          if (resolved.startsWith(realWorkspaceRoot)) {
+            aliasWorkspaceRoot / resolved.subRelativeTo(realWorkspaceRoot)
+          } else source
+        }
+      } else {
+        sourcesToFix.map(mill.api.PathRef.toResolvedOsPath)
+      }
+
+    mill.api.internal.PathAliasing.withRawPathSerializer {
+      ScalafixModule.fixAction(
+        log,
+        repositories,
+        effectiveSources,
+        classpath.map(mill.api.PathRef.toResolvedOsPath),
+        scalaVersion,
+        scalacOptions,
+        scalafixDeps,
+        config.map(mill.api.PathRef.toResolvedOsPath),
+        args,
+        realWorkspaceRoot
+      )
     }
   }
 }

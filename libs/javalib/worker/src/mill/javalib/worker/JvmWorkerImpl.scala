@@ -2,6 +2,7 @@ package mill.javalib.worker
 
 import mill.api.daemon.*
 import mill.api.daemon.internal.{CompileProblemReporter, internal}
+import mill.api.{BuildCtx, PathRef}
 import mill.client.{LaunchedServer, ServerLauncher}
 import mill.client.lock.{DoubleLock, Locks, MemoryLock}
 import mill.constants.DaemonFiles
@@ -117,7 +118,10 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         os.write.over(workerDir / "java-runtime-options", key.runtimeOptions.mkString("\n"))
 
         val mainClass = "mill.javalib.worker.MillJvmWorkerMain"
-        val baseLocks = Locks.forDirectory(daemonDir.toString, useFileLocks)
+        // The lock path is reused by this process and the worker process; keep it as a real path
+        // so NIO does not resolve an alias string against different process cwd values.
+        val daemonDirAbs = PathRef.toAbsString(daemonDir)
+        val baseLocks = Locks.forDirectory(daemonDirAbs, useFileLocks)
         val locks = {
           Locks(
             // File locks are non-reentrant, so we need to lock on the memory lock first.
@@ -131,35 +135,41 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
 
         val suppressArgs = Jvm.getJvmSuppressionArgs(key.javaHome)
 
-        val launched = ServerLauncher.launchOrConnectToServer(
-          locks,
-          daemonDir,
-          10 * 1000,
-          () => {
-            val process = Jvm.spawnProcess(
-              mainClass = mainClass,
-              mainArgs = Seq(daemonDir.toString, jobs.toString, useFileLocks.toString),
-              javaHome = key.javaHome,
-              jvmArgs = key.runtimeOptions ++ suppressArgs,
-              classPath = classPath
-            )
-            LaunchedServer.OsProcess(process.wrapped.toHandle)
-          },
-          processDied =>
-            throw IllegalStateException(
-              s"""Failed to launch '$mainClass' for:
-                 |  javaHome = ${key.javaHome}
-                 |  runtimeOptions = ${key.runtimeOptions.mkString(",")}
-                 |  daemonDir = $daemonDir
-                 |
-                 |Failure:
-                 |$processDied
-                 |""".stripMargin
-            ),
-          _ => (),
-          false, // openSocket
-          config = ServerLauncher.DaemonConfig.empty
-        )
+        val launched = BuildCtx.withFilesystemCheckerDisabled {
+          ServerLauncher.launchOrConnectToServer(
+            locks,
+            daemonDir,
+            10 * 1000,
+            () => {
+              val process = Jvm.spawnProcess(
+                mainClass = mainClass,
+                mainArgs = Seq(
+                  daemonDirAbs,
+                  jobs.toString,
+                  useFileLocks.toString
+                ),
+                javaHome = key.javaHome,
+                jvmArgs = key.runtimeOptions ++ suppressArgs,
+                classPath = classPath
+              )
+              LaunchedServer.OsProcess(process.wrapped.toHandle)
+            },
+            processDied =>
+              throw IllegalStateException(
+                s"""Failed to launch '$mainClass' for:
+                   |  javaHome = ${key.javaHome}
+                   |  runtimeOptions = ${key.runtimeOptions.mkString(",")}
+                   |  daemonDir = $daemonDir
+                   |
+                   |Failure:
+                   |$processDied
+                   |""".stripMargin
+              ),
+            _ => (),
+            false, // openSocket
+            config = ServerLauncher.DaemonConfig.empty
+          )
+        }
 
         SubprocessZincApi.Value(launched.port, daemonDir, launched.launchedServer, locks)
       }

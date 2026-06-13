@@ -1,6 +1,6 @@
 package mill.daemon
 
-import mill.api.{BuildCtx, SystemStreams}
+import mill.api.{BuildCtx, PathRef, SystemStreams}
 import mill.client.lock.Locks
 import mill.constants.OutFolderMode
 import mill.internal.{LauncherLockRegistry, LauncherOutFilesState, OutputDirectoryLayout}
@@ -61,7 +61,8 @@ object MillDaemonMain0 {
       val exitCode = MillDaemonMain0(
         daemonDir = args.daemonDir,
         acceptTimeout = acceptTimeout,
-        Locks.forDirectory(args.daemonDir.toString, args.useFileLocks),
+        // The daemon dir came from argv; keep the lock path independent of this process cwd.
+        Locks.forDirectory(PathRef.toAbsString(args.daemonDir), args.useFileLocks),
         outMode = args.outMode
       ).run().getOrElse(0)
 

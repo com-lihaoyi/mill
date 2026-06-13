@@ -161,4 +161,17 @@ object Lib {
     } yield path
   }
 
+  def findSourceFilesExcluding(
+      sources: Seq[PathRef],
+      extensions: Seq[String],
+      excluded: Seq[os.Path]
+  ): Seq[os.Path] = {
+    if (excluded.isEmpty) findSourceFiles(sources, extensions)
+    else {
+      val excludedResolved = excluded.iterator.map(PathRef.toResolvedOsPath).toSet
+      findSourceFiles(sources, extensions)
+        .filterNot(path => excludedResolved.contains(PathRef.toResolvedOsPath(path)))
+    }
+  }
+
 }

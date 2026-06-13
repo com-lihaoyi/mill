@@ -10,6 +10,9 @@ public class ConfigConstants {
   public static final String millAllowNestedBuildMill = "mill-allow-nested-build-mill";
   public static final String millSeparateBspOutputDir = "mill-separate-bsp-output-dir";
   public static final String millRepositories = "mill-repositories";
+  public static final String millRemoteCacheLocation = "mill-remote-cache-location";
+  public static final String millRemoteCacheSalt = "mill-remote-cache-salt";
+  public static final String millRemoteCacheFilter = "mill-remote-cache-filter";
 
   public static String[] all() {
     return new String[] {
@@ -21,7 +24,10 @@ public class ConfigConstants {
       millOpts,
       millAllowNestedBuildMill,
       millSeparateBspOutputDir,
-      millRepositories
+      millRepositories,
+      millRemoteCacheLocation,
+      millRemoteCacheSalt,
+      millRemoteCacheFilter
     };
   }
 }

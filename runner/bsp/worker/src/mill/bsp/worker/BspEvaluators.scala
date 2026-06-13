@@ -60,7 +60,7 @@ class BspEvaluators(
           case inputTasks => Utils.extractPathsFromResults(ev.executeApi(inputTasks).values.get)
         }
       }
-      .map(_.subRelativeTo(workspaceDir))
+      .map(path => Utils.workspaceAnchored(path).subRelativeTo(workspaceDir))
   }
 
   lazy val nonScriptSources: Seq[os.SubPath] = extractInputPaths(_.bspBuildTargetSources)

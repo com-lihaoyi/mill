@@ -120,17 +120,19 @@ object KtfmtModule extends ExternalModule with KtfmtBaseModule with DefaultTaskM
       args += "--do-not-remove-unused-imports"
     }
     if (!format) args += "--set-exit-if-changed"
-    args ++= sources.iterator.map(_.path.toString())
+    args ++= sources.iterator.map(p => PathRef.toRelString(p, moduleDir))
 
-    val exitCode = Jvm.callProcess(
-      mainClass = "com.facebook.ktfmt.cli.Main",
-      classPath = classPath.map(_.path).toVector,
-      mainArgs = args.result(),
-      cwd = moduleDir, // allow passing relative paths for sources like src/a/b
-      stdin = os.Inherit,
-      stdout = os.Inherit,
-      check = false
-    ).exitCode
+    val exitCode = os.ProcessOps.spawnHook.withValue(_ => ()) {
+      Jvm.callProcess(
+        mainClass = "com.facebook.ktfmt.cli.Main",
+        classPath = classPath.map(_.path).toVector,
+        mainArgs = args.result(),
+        cwd = moduleDir, // allow passing relative paths for sources like src/a/b
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        check = false
+      ).exitCode
+    }
 
     if (exitCode == 0) {} // do nothing
     else {

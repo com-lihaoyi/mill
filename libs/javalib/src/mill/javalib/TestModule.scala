@@ -11,10 +11,9 @@ import mill.api.TaskCtx
 import mill.api.DefaultTaskModule
 import mill.javalib.bsp.BspModule
 import mill.api.JsonFormatters.given
-import mill.constants.EnvVars
 import mill.javalib.api.internal.ZincOp
 import mill.javalib.testrunner.{Framework, TestArgs, TestResult, TestRunner, TestRunnerUtils}
-import mill.util.Version
+import mill.util.{Jvm, Version}
 
 import java.nio.file.Path
 
@@ -316,12 +315,6 @@ trait TestModule
    */
   def testSandboxWorkingDir: T[Boolean] = true
 
-  override def allForkEnv: T[Map[String, String]] = Task {
-    super.allForkEnv() ++ Map(
-      EnvVars.MILL_TEST_RESOURCE_DIR -> resources().iterator.map(_.path).mkString(";")
-    )
-  }
-
   /**
    * The actual task shared by `test`-tasks that runs test in a forked JVM.
    */
@@ -387,7 +380,7 @@ trait TestModule
       classes: Seq[String]
   )] = Task.Anon {
     val (frameworkName, classFingerprint) =
-      mill.util.Jvm.withClassLoader(
+      Jvm.withClassLoader(
         classPath = runClasspath().map(_.path),
         sharedPrefixes = Seq("sbt.testing.", "mill.api.daemon.internal.TestReporter")
       ) { classLoader =>
