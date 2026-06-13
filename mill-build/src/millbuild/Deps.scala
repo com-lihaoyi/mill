@@ -284,7 +284,7 @@ object Deps {
 
   object RuntimeDeps {
     val dokkaVersion_runtime = "2.2.0"
-    val koverVersion_runtime = "0.8.3"
+    val koverVersion_runtime = "0.9.8"
 
     val detektCli_runtime = mvn"io.gitlab.arturbosch.detekt:detekt-cli:1.23.8"
     val dokkaAnalysisDescriptors_runtime =
