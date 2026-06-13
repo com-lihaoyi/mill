@@ -100,7 +100,9 @@ trait BuildGen {
           parentValues(a.mimaForwardIssueFilters, b.mimaForwardIssueFilters),
         mimaExcludeAnnotations = parentValues(a.mimaExcludeAnnotations, b.mimaExcludeAnnotations),
         mimaReportSignatureProblems =
-          parentValue(a.mimaReportSignatureProblems, b.mimaReportSignatureProblems)
+          parentValue(a.mimaReportSignatureProblems, b.mimaReportSignatureProblems),
+        annotationProcessorsMvnDeps =
+          parentValues(a.annotationProcessorsMvnDeps, b.annotationProcessorsMvnDeps)
       )
 
     def extendValue[A](a: Value[A], parent: Value[A]) = a.copy(
@@ -174,7 +176,9 @@ trait BuildGen {
       mimaExcludeAnnotations =
         extendValues(a.mimaExcludeAnnotations, parent.mimaExcludeAnnotations),
       mimaReportSignatureProblems =
-        extendValue(a.mimaReportSignatureProblems, parent.mimaReportSignatureProblems)
+        extendValue(a.mimaReportSignatureProblems, parent.mimaReportSignatureProblems),
+      annotationProcessorsMvnDeps =
+        extendValues(a.annotationProcessorsMvnDeps, parent.annotationProcessorsMvnDeps)
     )
 
     val (baseHierarchy, testHierarchy) = baseTestHierarchy.unzip

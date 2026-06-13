@@ -26,7 +26,8 @@ object BuildGenScala extends BuildGen {
         depManagement,
         errorProneDeps,
         scalacPluginMvnDeps,
-        scalafixIvyDeps
+        scalafixIvyDeps,
+        annotationProcessorsMvnDeps
       )
     }.flatMap { values =>
       values.base ++ values.cross.flatMap(_._2)
@@ -58,7 +59,8 @@ object BuildGenScala extends BuildGen {
           depManagement = withRefs(depManagement),
           errorProneDeps = withRefs(errorProneDeps),
           scalacPluginMvnDeps = withRefs(scalacPluginMvnDeps),
-          scalafixIvyDeps = withRefs(scalafixIvyDeps)
+          scalafixIvyDeps = withRefs(scalafixIvyDeps),
+          annotationProcessorsMvnDeps = withRefs(annotationProcessorsMvnDeps)
         )
       })
     )
@@ -204,6 +206,11 @@ object BuildGenScala extends BuildGen {
     lines += renderDefValue("jmhCoreVersion", jmhCoreVersion, encodeString)
     lines += renderDefValue("scalafixConfig", scalafixConfig, encodeSome)
     lines += renderDefValues("scalafixIvyDeps", scalafixIvyDeps, encodeMvnDep)
+    lines += renderDefValues(
+      "annotationProcessorsMvnDeps",
+      annotationProcessorsMvnDeps,
+      encodeMvnDep
+    )
     lines += renderDefValue("scoverageVersion", scoverageVersion, encodeString)
     lines += renderDefValue("branchCoverageMin", branchCoverageMin, encodeSome)
     lines += renderDefValue("statementCoverageMin", statementCoverageMin, encodeSome)
