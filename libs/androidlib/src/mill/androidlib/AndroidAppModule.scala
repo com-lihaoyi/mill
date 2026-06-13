@@ -830,8 +830,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
         "-n",
         s"${androidApplicationId}/${activity()}",
         "-W"
-      ),
-      Task.log
+      )
     ).out.lines()
   }
 
@@ -942,48 +941,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
       emulator
     else
       throw Exception("Device failed to boot")
-  }
-
-  private def adbCallWithRetry(
-      adbPath: PathRef,
-      emulator: String,
-      adbArgs: Seq[String],
-      logger: Logger,
-      maxAttempts: Int = 5
-  ): os.CommandResult = {
-    def isTransientAdbDeviceError(ex: Throwable): Boolean = {
-      val msg = Option(ex.getMessage).getOrElse("").toLowerCase
-      msg.contains("device offline") ||
-      msg.contains("device not found") ||
-      msg.contains("no devices/emulators found")
-    }
-
-    var attempt = 1
-    var lastError: Throwable | Null = null
-
-    while (attempt <= maxAttempts) {
-      try {
-        val callArgs: Seq[os.Shellable] =
-          Seq[os.Shellable](adbPath.path, "-s", emulator) ++
-            adbArgs.map(arg => arg: os.Shellable)
-        return os.call(callArgs)
-      } catch {
-        case e if NonFatal(e) && isTransientAdbDeviceError(e) && attempt < maxAttempts =>
-          lastError = e
-          logger.info(
-            s"ADB command failed with a transient device error (attempt $attempt/$maxAttempts). Retrying..."
-          )
-          Thread.sleep(2000)
-          waitForDevice(adbPath, emulator, logger)
-          attempt += 1
-        case e => throw e
-      }
-    }
-
-    throw new Exception(
-      s"ADB command failed after $maxAttempts attempts: ${adbArgs.mkString(" ")}",
-      lastError
-    )
   }
 
   /**
