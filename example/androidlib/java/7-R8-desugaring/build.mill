@@ -1,0 +1,54 @@
+//| mill-jvm-version: zulu:21
+// Desugaring is a forward compatibility feature to support the usage of newer Java APIs in older versions of Android.
+// Because mill does not support older versions of Java, the number of tasks that can be used are limited.
+// Android desugaring is a new, under development feature.
+// It's expected to have low popularity aming mill users and is not fully supported in mill.
+// Nevertheless, this is a demonstration of how desugaring can be used.
+package build
+
+import mill.*, androidlib.*, scalalib.*
+
+object androidSdkModule0 extends AndroidSdkModule { // <1>
+  def buildToolsVersion = "35.0.0"
+}
+
+object app extends AndroidAppModule { // <2>
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+  def androidMinSdk = 25
+  def androidCompileSdk = 25
+  def androidApplicationId = "com.helloworld.app"
+  def androidApplicationNamespace = "com.helloworld.app"
+
+//  override def androidBuildSettings = Task {
+//    AndroidBuildTypeSettings(enableDesugaring = true)
+//  }
+
+  override def jvmVersion = "zulu:7"
+
+  override def androidVirtualDevice = super.androidVirtualDevice().withName("java-desugaring-test")
+  override def androidEmulatorPort: String = System.getenv.getOrDefault("EMULATOR_PORT", "5554")
+
+  // Unit tests for the application
+  object test extends AndroidAppTests, TestModule.Junit4 {
+    override def jvmVersion = "zulu:7"
+    def mvnDeps = Seq(mvn"junit:junit:4.13.2")
+  }
+
+}
+
+/** Usage
+
+> ./mill show app.androidDexDesugaringArgs
+[
+  "--lib",
+  ...,
+  "--desugared-lib",
+  ...
+]
+
+> ./mill show app.test.testLocal
+
+*/
+
+// Test local is the only way to run the unit tests with desugaring and old versions of Java because
+// the default test forked alternative runs under newest versions of Java and fails with java < 11.
