@@ -23,7 +23,6 @@ import mill.javalib.testrunner.TestResult
 
 import scala.util.Properties.isWin
 import scala.util.matching.Regex
-import scala.util.control.NonFatal
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats
@@ -999,7 +998,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
       val appCompiledFiles = appCompiledPathRefs.map(_.path.toString())
 
       val libsJarPathRefs = androidPackagedDeps()
-        .filter(_ != androidSdkModule().androidJarPath())
+        .filter(_ != androidSdkModule().androidJarPath()) ++
+        Option.when(
+          androidBuildSettings().enableDesugaring
+        )(androidDesugarJdkClasspath()).getOrElse(Seq.empty)
 
       val libsJarFiles = libsJarPathRefs.map(_.path.toString())
 
@@ -1154,7 +1156,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     def androidTestInstall(): Command[String] = Task.Command {
 
       val emulator = outer.androidInstallTask()
-      val adbPath = androidSdkModule().adbExe()
+      androidSdkModule().adbExe()
 
       os.call(
         (

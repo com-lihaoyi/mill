@@ -120,18 +120,6 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
     PathRef(globalProguard)
   }
 
-  /**
-   * The default release settings with the following settings:
-   * - minifyEnabled=true
-   * - shrinkEnabled=true
-   * @return
-   */
-  def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
-    AndroidBuildTypeSettings(
-      isMinifyEnabled = true
-    )
-  }
-
   private def androidDefaultProguardFiles: Task[Seq[PathRef]] = Task.Anon {
     val dest = Task.dest
     androidDefaultProguardFileNames().map { fileName =>
@@ -146,29 +134,8 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
     Seq.empty[String]
   }
 
-  override def enableDesugaring: T[Boolean] = Task {
-    androidBuildSettings().enableDesugaring
-  }
-
   def androidR8ExtraRules: T[Seq[String]] = Task {
     Seq.empty[String]
-  }
-
-  def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
-    AndroidBuildTypeSettings()
-  }
-
-  /**
-   * Gives the android build type settings for debug or release.
-   * Controlled by [[androidIsDebug]] flag!
-   *
-   * @return
-   */
-  def androidBuildSettings: T[AndroidBuildTypeSettings] = Task {
-    if (androidIsDebug())
-      androidDebugSettings()
-    else
-      androidReleaseSettings()
   }
 
   /**
@@ -246,9 +213,8 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
           // Instruct R8 to print seeds and usage.
           s"-printseeds $seedsOut",
           s"-printusage $usageOut"
-        ) ++
-        (if (androidBuildSettings().isMinifyEnabled) then androidGeneratedMinifyKeepRules()
-         else Seq())
+        ) ++ androidGeneratedMinifyKeepRules()
+
       // Create an extra ProGuard config file
       val extraRulesFile = Task.dest / "extra-rules.pro"
       val extraRulesContent = extraRules.mkString("\n")
@@ -260,8 +226,12 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
       val appCompiledFiles: Seq[PathRef] = androidPackagedCompiledClasses()
         .filter(_.path.ext == "class")
 
+      val desugaringClasspath = Option.when(androidBuildSettings().enableDesugaring) {
+        androidDesugarJdkClasspath()
+      }.getOrElse(Seq.empty[PathRef])
+
       val allClassFilesPathRefs =
-        classpathClassFiles ++ appCompiledFiles ++ androidPackagedDeps()
+        classpathClassFiles ++ appCompiledFiles ++ androidPackagedDeps() ++ desugaringClasspath
 
       val allClassFiles = allClassFilesPathRefs.map(_.path.toString)
       val allClassFilesFile = Task.dest / "all-classes.txt"
@@ -285,8 +255,10 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
         configOut.toString
       )
 
-      if (!enableDesugaring()) {
+      if (!androidBuildSettings().enableDesugaring) {
         r8ArgsBuilder += "--no-desugaring"
+      } else {
+        r8ArgsBuilder ++= androidDexDesugaringArgs()
       }
 
       if (!androidBuildSettings().isMinifyEnabled) {
@@ -324,8 +296,6 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
         )
       }
 
-      r8ArgsBuilder ++= androidDexDesugaringArgs()
-
       // ProGuard configuration files: add our extra rules file,
       // all provided config files and the common rules.
       val pgArgs =
@@ -359,14 +329,19 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
     }
 
   /**
-   * Generates ProGuard/R8 keep rules to keep classes that are referenced in the AndroidManifest.xml
+   * Generates ProGuard/R8 keep rules if isMinifyEnabled to keep classes that are referenced in the AndroidManifest.xml
    * and in the layout XML files (for custom views).
    *
    * [[https://android.googlesource.com/platform/tools/base/+/refs/tags/studio-2025.1.3/sdk-common/src/main/java/com/android/ide/common/symbols/SymbolUtils.kt#235]]
    */
   def androidGeneratedMinifyKeepRules: T[Seq[String]] = Task {
-    val keepClasses = extractKeepClassesFromManifest() ++ extractKeepClassesFromResources()
-    keepClasses.map(c => s"-keep class $c { *; }")
+    androidBuildSettings().isMinifyEnabled match {
+      case true =>
+        val keepClasses = extractKeepClassesFromManifest() ++ extractKeepClassesFromResources()
+        keepClasses.map(c => s"-keep class $c { *; }")
+      case false => Seq.empty[String]
+    }
+
   }
 
   private def combinePackageAndClassName(packageName: String, className: String): String = {

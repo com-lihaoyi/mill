@@ -670,35 +670,29 @@ trait AndroidModule extends JavaModule { outer =>
   def androidNamespace: String
 
   /**
-   * If true, desugaring will be enabled during dexing.
-   * Defaults to false.
-   */
-  def enableDesugaring: T[Boolean] = Task {
-    false
-  }
-
-  /**
    * The desugar_jdk_libs dependency to use for desugaring.
    */
-  def desugaringLibrary: T[Option[Dep]] = Task {
+  def androidDesugaringLibrary: T[Option[Dep]] = Task {
     None
   }
 
-  def resolvedDesugarJdkLibs: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(desugaringLibrary().toSeq)
+  def androidResolvedDesugarJdkLibs: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(androidDesugaringLibrary().toSeq)
   }
 
-  def desugarJdkClasspath: T[Seq[PathRef]] = Task {
-    resolvedDesugarJdkLibs().filterNot(p => p.path.toString().contains("configuration"))
+  def androidDesugarJdkClasspath: T[Seq[PathRef]] = Task {
+    androidResolvedDesugarJdkLibs().take(1)
   }
 
   /**
    * Extracts desugar.json from desugar_jdk_libs configuration jar
    */
-  def desugarJdkConfig: T[Option[PathRef]] = Task {
-    if (desugaringLibrary().isDefined) {
+  def androidDesugarJdkConfig: T[Option[PathRef]] = Task {
+    if (androidDesugaringLibrary().isDefined) {
       val configurationJar =
-        resolvedDesugarJdkLibs().find(p => p.path.toString().contains("configuration")).get.path
+        androidResolvedDesugarJdkLibs().find(p =>
+          p.path.toString().contains("configuration")
+        ).get.path
       val extractDir = Task.dest / "desugar-config"
       os.unzip(configurationJar, extractDir)
       val config = os.walk(extractDir).find(_.last == "desugar.json").get
@@ -708,21 +702,55 @@ trait AndroidModule extends JavaModule { outer =>
     }
   }
 
+  /**
+   * Gives the android build type settings for debug or release.
+   * Controlled by [[androidIsDebug]] flag!
+   *
+   * @return
+   */
+  def androidBuildSettings: T[AndroidBuildTypeSettings] = Task {
+    if (androidIsDebug())
+      androidDebugSettings()
+    else
+      androidReleaseSettings()
+  }
+
+  /**
+   * The default debug settings with the following settings:
+   * - minifyEnabled=false
+   *
+   * @return
+   */
+  def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
+    AndroidBuildTypeSettings()
+  }
+
+  /**
+   * The default release settings with the following settings:
+   * - minifyEnabled=true
+   * @return
+   */
+  def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
+    AndroidBuildTypeSettings(
+      isMinifyEnabled = true
+    )
+  }
+
   def androidDexDesugaringArgs: T[Seq[String]] = Task {
-    if (enableDesugaring()) {
-      if (desugaringLibrary().isEmpty) {
+    if (androidBuildSettings().enableDesugaring) {
+      if (androidDesugaringLibrary().isEmpty) {
         throw new Exception(
           s"Desugaring is enabled, but no desugaring library is provided. Please provide one via desugaringLibrary."
         )
       }
-      desugarJdkClasspath().flatMap { desugarDep =>
+      androidDesugarJdkClasspath().flatMap { desugarDep =>
         Seq(
           "--lib",
           desugarDep.path.toString
         )
       } ++ Seq(
         "--desugared-lib",
-        desugarJdkConfig().get.path.toString
+        androidDesugarJdkConfig().get.path.toString
       )
     } else {
       Seq.empty

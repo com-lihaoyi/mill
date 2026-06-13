@@ -1,6 +1,7 @@
 package com.helloworld;
 
 import java.time.LocalDate;
+import java.util.function.*;
 
 public class SampleLogic {
 
@@ -9,7 +10,7 @@ public class SampleLogic {
   }
 
   // Uses java.time API (Java 8+) - requires desugaring on minSdk < 26
-  public static String today() {
-    return LocalDate.now().toString();
+  public static Supplier<String> today() {
+    return () -> LocalDate.now().toString();
   }
 }

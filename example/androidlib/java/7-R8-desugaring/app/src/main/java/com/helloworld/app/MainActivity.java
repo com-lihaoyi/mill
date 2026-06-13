@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.Gravity;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.TextView;
+import com.helloworld.SampleLogic;
 
 public class MainActivity extends Activity {
   @Override
@@ -15,7 +16,7 @@ public class MainActivity extends Activity {
     TextView textView = new TextView(this);
 
     // Set the text to the string resource
-    textView.setText(getString(R.string.hello_world));
+    textView.setText(SampleLogic.today().get());
 
     // Set text size
     textView.setTextSize(32);
