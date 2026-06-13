@@ -294,7 +294,7 @@ object Deps {
     val errorProneCore_runtime = mvn"com.google.errorprone:error_prone_core:2.49.0"
     val freemarker_runtime = mvn"org.freemarker:freemarker:2.3.34"
     val jupiterInterface_runtime = mvn"com.github.sbt.junit:jupiter-interface:0.13.3"
-    val jupiterInterface6_runtime = mvn"com.github.sbt.junit:jupiter-interface:0.17.0"
+    val jupiterInterface6_runtime = mvn"com.github.sbt.junit:jupiter-interface:0.17.1"
     val kotestJvm_runtime =
       mvn"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler:5.9.1"
     val kotlinxHtmlJvm_runtime = mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
