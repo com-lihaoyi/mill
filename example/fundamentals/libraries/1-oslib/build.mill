@@ -32,6 +32,43 @@ def command = Task {
 // `command` can depend on both tasks and read each task's `file.txt` separately
 // without conflict
 
+// [#_os_lib_path_serialization]
+// === Path Serialization
+//
+// Mill configures OS-Lib's `os.Path` string serialization so paths under your
+// workspace and home directory are written using reproducible aliases such as
+// `../mill-workspace` and `../mill-home`, or `out/mill-workspace` when the
+// subprocess working directory is the workspace root. This affects APIs such as
+// `os.Path.toString`, `os.Path.toIO`, `os.Path.toNIO`, and values such as
+// `PathRef` that include an `os.Path` in their JSON representation.
+//
+// This keeps task outputs, cache keys, and generated JSON independent of the
+// absolute checkout location and user home directory. Mill creates the matching
+// alias symlinks around task and subprocess working directories, so these paths
+// can still be resolved when they are used in the expected Mill context.
+//
+// If you need more explicit control over how a path is serialized, use the
+// `PathRef.to*` helpers rather than calling `.toString` directly:
+//
+// * `PathRef.toRelString(path, subprocessCwd)` formats a path using Mill's
+//   reproducible aliases relative to the working directory of a subprocess. Use
+//   this for command-line arguments, environment variables, or config files that
+//   are consumed by a subprocess that will run from `subprocessCwd` and can accept
+//   relative paths.
+//
+// * `PathRef.toAbsString(path)`, `PathRef.toAbsFile(path)`, and
+//   `PathRef.toAbsNioPath(path)` bypass OS-Lib's relativizing serializer and return
+//   real absolute paths. Use these for Java APIs or external tools that require
+//   absolute paths, or for processes that do not run with Mill's path aliases.
+//
+// * `PathRef.toResolvedPathString(path)` and `PathRef.toResolvedOsPath(path)`
+//   resolve symlinks when the path exists before serializing it. Use these when a
+//   long-lived process or tool needs the real on-disk location rather than a
+//   lexical path that may pass through a Mill alias symlink.
+//
+// Prefer the reproducible `toRelString` form when it is accepted by the consumer.
+// Use the absolute or resolved forms only where the consumer requires that style.
+
 /** Usage
 
 > ./mill command # mac/linux

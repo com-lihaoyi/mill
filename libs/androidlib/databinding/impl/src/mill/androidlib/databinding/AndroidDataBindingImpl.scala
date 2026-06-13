@@ -21,8 +21,8 @@ class AndroidDataBindingImpl extends AndroidDataBindingWorker {
     val processor = createXmlProcessor(args)
     val input = LayoutXmlProcessor.ResourceInput(
       false,
-      os.Path(args.resInputDir).toIO,
-      os.Path(args.resOutputDir).toIO
+      os.Path(args.resInputDir).toNIO.toAbsolutePath.toFile,
+      os.Path(args.resOutputDir).toNIO.toAbsolutePath.toFile
     )
     processor.processResources(input, args.enableViewBinding, args.enableDataBinding)
 
