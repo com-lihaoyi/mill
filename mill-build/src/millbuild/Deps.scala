@@ -272,7 +272,7 @@ object Deps {
   val androidDataBindingCompiler = mvn"androidx.databinding:databinding-compiler:8.13.0"
   val androidDataBindingCompilerCommon =
     mvn"androidx.databinding:databinding-compiler-common:8.13.0"
-  val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.56"
+  val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.59.2"
 
   val sbt_api = mvn"org.scala-sbt:sbt:1.10.10"
   val mimaCore_api = mvn"com.typesafe::mima-core:1.1.5"
