@@ -277,7 +277,7 @@ object Deps {
   val sbt_api = mvn"org.scala-sbt:sbt:1.10.10"
   val mimaCore_api = mvn"com.typesafe::mima-core:1.1.5"
   val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:3.0.1"
-  val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.3.1"
+  val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:4.6.2"
   // JGit 6.x series, used by spotlessLibExtra, works on Java 11
   // subsequent releases require Java 17+
   val jgit = mvn"org.eclipse.jgit:org.eclipse.jgit:6.10.1.202505221210-r"
