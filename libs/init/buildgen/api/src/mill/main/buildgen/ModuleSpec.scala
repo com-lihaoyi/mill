@@ -65,7 +65,8 @@ case class ModuleSpec(
     mimaExcludeAnnotations: Values[String] = Values(),
     mimaReportSignatureProblems: Value[Boolean] = Value(),
     children: Seq[ModuleSpec] = Nil,
-    quarkusPlatformVersion: Value[String] = Value()
+    quarkusPlatformVersion: Value[String] = Value(),
+    annotationProcessorsMvnDeps: Values[MvnDep] = Values()
 ) {
 
   def isBomModule: Boolean = supertypes.contains("BomModule")

@@ -110,9 +110,15 @@ object MillMavenBuildGenMain {
             compileModuleDeps = moduleDeps("provided"),
             runModuleDeps = moduleDeps("runtime"),
             bomModuleDeps = bomModuleDeps,
-            artifactName = Option(model.getArtifactId)
+            artifactName = Option(model.getArtifactId),
+            annotationProcessorsMvnDeps = plugins.annotationProcessorsMvnDeps
           )
-          mainModule = plugins.withErrorProneModule(mainModule).getOrElse(mainModule)
+          if (plugins.isErrorProneEnabled) {
+            mainModule = mainModule.withErrorProneModule(
+              errorProneMvnDeps = plugins.errorProneMvnDeps,
+              errorProneOptions = plugins.errorProneOptions
+            )
+          }
           if (isSpringParentProject) {
             mainModule = mainModule.withSpringBootModule(springBootVersion)
           }

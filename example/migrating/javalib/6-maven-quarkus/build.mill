@@ -8,8 +8,6 @@
 
 > rm kafka-avro-schema-quickstart/package.mill.yaml grpc-plain-text-quickstart/package.mill.yaml grpc-tls-quickstart/package.mill.yaml # skip subprojects with quarkus codegen. Not yet implemented in mill.
 
-> rm hibernate-orm-jakarta-data-quickstart/package.mill.yaml # skip example with annotation processors
-
 > ./mill __.compile # Just compile all modules. `quarkusRunJar` task fails for some
 
 */
