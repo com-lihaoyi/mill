@@ -101,7 +101,8 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         moduleDeps = moduleDeps("implementation", "api"),
         compileModuleDeps = moduleDeps("compileOnly", "compileOnlyApi"),
         runModuleDeps = moduleDeps("runtimeOnly"),
-        bomModuleDeps = mainBomDeps.collect(toModuleDep)
+        bomModuleDeps = mainBomDeps.collect(toModuleDep),
+        annotationProcessorsMvnDeps = mvnDeps("annotationProcessor")
       )
       val hasErrorPronePlugin = getPluginManager.hasPlugin("net.ltgt.errorprone")
       if (hasErrorPronePlugin) {
@@ -166,7 +167,8 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
           bomModuleDeps = testBomDeps.collect(toModuleDep),
           testParallelism = Some(false),
           testSandboxWorkingDir = Some(false),
-          testFramework = Option.when(testMixin.isEmpty)("")
+          testFramework = Option.when(testMixin.isEmpty)(""),
+          annotationProcessorsMvnDeps = mvnDeps("testAnnotationProcessor")
         )
         if (hasErrorPronePlugin) {
           testModule = testModule.withErrorProneModule(
