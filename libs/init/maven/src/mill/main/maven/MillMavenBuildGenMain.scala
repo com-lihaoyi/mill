@@ -81,21 +81,26 @@ object MillMavenBuildGenMain {
           def moduleDeps(scope: String) = mavenModuleDeps.collect {
             case dep if dep.getScope == scope => moduleDepLookup(dep)
           }
+          val (effectiveBomMvnDeps, effectiveDepManagement, effectiveBomModuleDeps) =
+            Option(model.getDependencyManagement).fold((Nil, Nil, Nil)) { dm =>
+              collectDependencyManagement(dm, toMvnOrModuleDep, moduleDepLookup)
+            }
 
           val isSpringParentProject = isSpringBootProject(model)
           val springBootVersion = detectSpringBootVersion(model)
 
           val quarkusVersionOpt = detectQuarkusPluginVersion(model)
 
-          val (bomMvnDeps, depManagement, bomModuleDeps) =
-            Option(model.getDependencyManagement).fold((Nil, Nil, Nil)) { dm =>
-              val (bomDeps, deps) = dm.getDependencies.asScala.toSeq.partition(isBom)
-              val (bomMvnDeps, bomModuleDeps) = bomDeps.partitionMap(toMvnOrModuleDep)
-              val depManagement = deps.collect {
-                case dep if !moduleDepLookup.isDefinedAt(dep) => toMvnDep(dep)
-              }
-              (bomMvnDeps, depManagement, bomModuleDeps)
+          val (rawBomMvnDeps, rawDepManagement, rawBomModuleDeps) =
+            Option(result.getRawModel.getDependencyManagement).fold((Nil, Nil, Nil)) { dm =>
+              collectDependencyManagement(dm, toMvnOrModuleDep, moduleDepLookup)
             }
+
+          val (bomMvnDeps, depManagement, bomModuleDeps) = selectDependencyManagement(
+            isSpringParentProject = isSpringParentProject,
+            effective = (effectiveBomMvnDeps, effectiveDepManagement, effectiveBomModuleDeps),
+            raw = (rawBomMvnDeps, rawDepManagement, rawBomModuleDeps)
+          )
 
           mainModule = mainModule.copy(
             imports = "mill.javalib.*" +: mainModule.imports,
@@ -212,9 +217,13 @@ object MillMavenBuildGenMain {
 
   private val SpringBootGroupId = "org.springframework.boot"
   private val SpringBootParentArtifactId = "spring-boot-starter-parent"
+  private val SpringBootDependenciesArtifactId = "spring-boot-dependencies"
 
   private def isSpringBootParent(parent: Parent): Boolean =
     parent.getGroupId == SpringBootGroupId && parent.getArtifactId == SpringBootParentArtifactId
+
+  private def isSpringBootDependenciesBom(dep: MvnDep): Boolean =
+    dep.organization == SpringBootGroupId && dep.name == SpringBootDependenciesArtifactId
 
   /**
    * Detect if the project is a Spring Boot project by checking if it inherits from spring-boot-starter-parent.
@@ -223,6 +232,29 @@ object MillMavenBuildGenMain {
     Option(model.getParent).exists(isSpringBootParent)
 
   private def nonEmpty(value: String): Option[String] = Option(value).filter(_.nonEmpty)
+
+  private def collectDependencyManagement(
+      dm: DependencyManagement,
+      toMvnOrModuleDep: Dependency => Either[MvnDep, ModuleDep],
+      moduleDepLookup: PartialFunction[Dependency, ModuleDep]
+  ): (Seq[MvnDep], Seq[MvnDep], Seq[ModuleDep]) = {
+    val (bomDeps, deps) = dm.getDependencies.asScala.toSeq.partition(isBom)
+    val (bomMvnDeps, bomModuleDeps) = bomDeps.partitionMap(toMvnOrModuleDep)
+    val depManagement = deps.collect {
+      case dep if !moduleDepLookup.isDefinedAt(dep) => toMvnDep(dep)
+    }
+    (bomMvnDeps, depManagement, bomModuleDeps)
+  }
+
+  private def selectDependencyManagement(
+      isSpringParentProject: Boolean,
+      effective: (Seq[MvnDep], Seq[MvnDep], Seq[ModuleDep]),
+      raw: (Seq[MvnDep], Seq[MvnDep], Seq[ModuleDep])
+  ): (Seq[MvnDep], Seq[MvnDep], Seq[ModuleDep]) =
+    if (isSpringParentProject) {
+      // Effective model pulls in a very large inherited set from spring-boot-dependencies BOM.
+      (raw._1.filterNot(isSpringBootDependenciesBom), raw._2, raw._3)
+    } else effective
 
   /** Detect Spring Boot platform version from spring-boot-starter-parent. */
   private def detectSpringBootVersion(model: Model): Option[String] = {

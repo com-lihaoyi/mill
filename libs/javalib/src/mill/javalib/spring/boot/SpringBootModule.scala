@@ -29,6 +29,15 @@ trait SpringBootModule extends JavaModule, RepackageModule {
   )
 
   /**
+   * Spring boot relies a lot on reflection, so enabling parameter names is a good default.
+   */
+  override def mandatoryJavacOptions: Task.Simple[Seq[String]] = Task {
+    super.mandatoryJavacOptions() ++ Seq(
+      "-parameters"
+    )
+  }
+
+  /**
    * The Module holding the Spring Boot tools.
    */
   def springBootToolsModule: ModuleRef[SpringBootToolsModule] = ModuleRef(SpringBootToolsModule)
