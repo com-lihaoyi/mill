@@ -3,7 +3,7 @@ import mill.*, groovylib.*
 
 object foo extends GroovyModule {
 
-  def groovyVersion = "5.0.3"
+  def groovyVersion = "5.0.6"
 
   def moduleDeps = Seq(build.bar)
   def mvnDeps = Seq(
@@ -13,7 +13,7 @@ object foo extends GroovyModule {
 
 object bar extends GroovyModule {
 
-  def groovyVersion = "5.0.3"
+  def groovyVersion = "5.0.6"
 
   def mvnDeps = Seq(
     mvn"org.apache.groovy:groovy-xml"
