@@ -137,10 +137,28 @@ trait RepackageModule extends mill.api.Module {
     PathRef(dest)
   }
 
+  /** Bin-compat stub. */
+  @deprecated("Use RepackageModule.EmbeddableRepackageModule instead", "Mill after 1.1.6")
+  private implicit class EmbeddableSpringBootModule(jm: JavaModule) extends mill.api.Module {
+    override def moduleCtx = jm.moduleCtx
+
+    /** Bin-compat stub. */
+    @deprecated("Use RepackageModule.EmbeddableRepackageModule.repackageModuleData instead", "Mill after 1.1.6")
+    object springBootAssemblyModule extends mill.api.Module {
+
+      /** Bin-compat stub. */
+      @deprecated("Use RepackageModule.EmbeddableRepackageModule.repackageModuleData.artifactJar instead", "Mill after 1.1.6")
+      def artifactJar: T[PathRef] = Task {
+        Task.fail("Use RepackageModule.EmbeddableRepackageModule.repackageModuleData.artifactJar instead")
+        jm.jar()
+      }
+    }
+  }
+
 }
 
 object RepackageModule extends ExternalModule {
-  // Hack-ish way to attach some generated resources under the context of the task dependency
+  // Attach some generated resources under the context of the task dependency
   private implicit class EmbeddableRepackageModule(jm: JavaModule) extends mill.api.Module {
     override def moduleCtx = jm.moduleCtx
 
