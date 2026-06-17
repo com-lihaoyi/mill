@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperatio
 import org.jetbrains.kotlin.cli.common.ExitCode
 
 import java.io.{PrintWriter, StringWriter}
+import java.security.MessageDigest
 import scala.jdk.CollectionConverters.*
 import scala.util.chaining.scalaUtilChainingOps
 
@@ -53,6 +54,24 @@ class JvmCompileBtApiImpl() extends Compiler {
       .getOrElse(ctx.dest / "classes")
   }
 
+  private def classpathEntriesFromArgs(args: Seq[String])(using ctx: TaskCtx): Seq[os.Path] = {
+    args.sliding(2)
+      .collectFirst {
+        case Seq("-classpath" | "-cp", classpath) => classpath
+      }
+      .toSeq
+      .flatMap(_.split(java.io.File.pathSeparator).iterator)
+      .filter(_.nonEmpty)
+      .map(os.Path(_, ctx.workspace))
+      .filter(os.exists)
+  }
+
+  private def snapshotFileName(entry: os.Path): String = {
+    val digest = MessageDigest.getInstance("SHA-256")
+      .digest(entry.toString.getBytes(java.nio.charset.StandardCharsets.UTF_8))
+    digest.map("%02x".format(_)).mkString + ".snapshot"
+  }
+
   def compile(args: Seq[String], sources: Seq[os.Path])(using ctx: TaskCtx): (Int, String) = {
 
     val incrementalCachePath = ctx.dest / "inc-state"
@@ -82,23 +101,43 @@ class JvmCompileBtApiImpl() extends Compiler {
       )
     }
 
-    // Snapshot-based incremental compilation stores state in `inc-state`.
-    // The empty snapshot list means Kotlin computes classpath snapshots from current classpath entries.
-    val incrementalConfig = new JvmSnapshotBasedIncrementalCompilationConfiguration(
-      incrementalCachePath.toNIO,
-      SourcesChanges.ToBeCalculated.INSTANCE,
-      Seq.empty[java.nio.file.Path].asJava,
-      (incrementalCachePath / "shrunk-classpath-snapshot.bin").toNIO,
-      snapshotIcOptions
-    )
-    compilationOperation.set(JvmCompilationOperation.INCREMENTAL_COMPILATION, incrementalConfig)
-
     val compilationResult = {
       val buildSession = toolchains.createBuildSession()
+      val executionPolicy = toolchains.createInProcessExecutionPolicy()
       try {
+        // Capture a snapshot of every classpath entry so that the incremental
+        // compilation engine can detect ABI changes in upstream dependencies
+        // (e.g. a new variant added to a sealed type) and recompile downstream
+        // sources that depend on them. Without these snapshots the engine has
+        // nothing to diff the stored `shrunk-classpath-snapshot.bin` against and
+        // silently skips recompilation of affected sources.
+        val classpathSnapshotsDir = ctx.dest / "classpath-snapshots"
+        os.makeDir.all(classpathSnapshotsDir)
+        val classpathSnapshotFiles = classpathEntriesFromArgs(args).map { entry =>
+          val snapshottingOperation = jvmToolchain.createClasspathSnapshottingOperation(entry.toNIO)
+          val snapshot = buildSession.executeOperation(
+            snapshottingOperation,
+            executionPolicy,
+            kotlinLogger
+          )
+          val snapshotFile = classpathSnapshotsDir / snapshotFileName(entry)
+          snapshot.saveSnapshot(snapshotFile.toIO)
+          snapshotFile.toNIO
+        }
+
+        // Snapshot-based incremental compilation stores state in `inc-state`.
+        val incrementalConfig = new JvmSnapshotBasedIncrementalCompilationConfiguration(
+          incrementalCachePath.toNIO,
+          SourcesChanges.ToBeCalculated.INSTANCE,
+          classpathSnapshotFiles.asJava,
+          (incrementalCachePath / "shrunk-classpath-snapshot.bin").toNIO,
+          snapshotIcOptions
+        )
+        compilationOperation.set(JvmCompilationOperation.INCREMENTAL_COMPILATION, incrementalConfig)
+
         buildSession.executeOperation(
           compilationOperation,
-          toolchains.createInProcessExecutionPolicy(),
+          executionPolicy,
           kotlinLogger
         )
       } finally {
