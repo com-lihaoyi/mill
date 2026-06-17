@@ -33,7 +33,7 @@ object GraphvizTools {
         for (arg <- args.toSeq) yield Future {
           val Array(src, dest0, commaSepExtensions) = arg.split(";")
           val extensions = commaSepExtensions.split(',')
-          val dest = os.Path(dest0)
+          val dest = os.Path(dest0, os.pwd)
 
           val gv = Graphviz.fromFile(new java.io.File(src)).totalMemory(128 * 1024 * 1024)
 

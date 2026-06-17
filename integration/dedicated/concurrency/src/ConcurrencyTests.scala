@@ -43,6 +43,12 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
   ): Set[String] =
     launcher.err.text().linesIterator
       .filter(_.startsWith("blocked on "))
+      // Only consider task-labelled lock waits (`blocked on <kind> lock '<task>' ...`). The
+      // unlabelled outer *command* lock wait (`blocked on <kind> lock PID ...`) is timing
+      // dependent: it "often races free" before the second launcher escalates, so whether it
+      // appears is non-deterministic. The assertions below check the exact set of *task* locks
+      // (to catch unintended read->write escalations), which is what is deterministic.
+      .filter(_.contains("lock '"))
       .toSet
 
   /**

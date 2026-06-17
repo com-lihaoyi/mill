@@ -158,14 +158,14 @@ object RunnerLauncherState {
     }
 
     private def paths(ws: Seq[Watchable]): Seq[os.Path] =
-      ws.collect { case Watchable.Path(p, _, _) => os.Path(p) }.distinct
+      ws.collect { case Watchable.Path(p, _, _) => os.Path(p, os.pwd) }.distinct
 
     def fromMetaFrame(f: MetaFrame): Logged = Logged(
       workerCache = summarizeWorkerCache(f.evaluator.workerCache),
       evalWatched = paths(f.evalWatched),
       moduleWatched = paths(f.moduleWatched),
       classLoaderIdentity = f.classLoaderOpt.map(_.identity),
-      runClasspath = f.runClasspath.map(p => os.Path(p.javaPath) -> p.sig),
+      runClasspath = f.runClasspath.map(p => os.Path(p.javaPath, os.pwd) -> p.sig),
       runClasspathHash = f.runClasspath.hashCode()
     )
 

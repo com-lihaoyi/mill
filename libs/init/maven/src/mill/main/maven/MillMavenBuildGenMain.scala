@@ -89,6 +89,8 @@ object MillMavenBuildGenMain {
           val isSpringParentProject = isSpringBootProject(model)
           val springBootVersion = detectSpringBootVersion(model)
 
+          val quarkusVersionOpt = detectQuarkusPluginVersion(model)
+
           val (rawBomMvnDeps, rawDepManagement, rawBomModuleDeps) =
             Option(result.getRawModel.getDependencyManagement).fold((Nil, Nil, Nil)) { dm =>
               collectDependencyManagement(dm, toMvnOrModuleDep, moduleDepLookup)
@@ -113,11 +115,20 @@ object MillMavenBuildGenMain {
             compileModuleDeps = moduleDeps("provided"),
             runModuleDeps = moduleDeps("runtime"),
             bomModuleDeps = bomModuleDeps,
-            artifactName = Option(model.getArtifactId)
+            artifactName = Option(model.getArtifactId),
+            annotationProcessorsMvnDeps = plugins.annotationProcessorsMvnDeps
           )
-          mainModule = plugins.withErrorProneModule(mainModule).getOrElse(mainModule)
+          if (plugins.isErrorProneEnabled) {
+            mainModule = mainModule.withErrorProneModule(
+              errorProneMvnDeps = plugins.errorProneMvnDeps,
+              errorProneOptions = plugins.errorProneOptions
+            )
+          }
           if (isSpringParentProject) {
             mainModule = mainModule.withSpringBootModule(springBootVersion)
+          }
+          if (quarkusVersionOpt.isDefined) {
+            mainModule = mainModule.withQuarkusModule(quarkusVersionOpt)
           }
           if (os.exists(moduleDir / "src/test")) {
             val testMvnDeps = mvnDeps("test")
@@ -130,7 +141,7 @@ object MillMavenBuildGenMain {
             var testModule = ModuleSpec(
               name = "test",
               supertypes = "MavenTests" +: testMixin.toSeq,
-              forkArgs = plugins.testForkArgs,
+              forkArgs = Values(plugins.testForkArgs, appendSuper = true),
               forkWorkingDir = Some("moduleDir"),
               mvnDeps = testMvnDeps,
               compileMvnDeps = mainModule.compileMvnDeps,
@@ -250,6 +261,14 @@ object MillMavenBuildGenMain {
     Option(model.getParent)
       .filter(isSpringBootParent)
       .flatMap(parent => nonEmpty(parent.getVersion))
+  }
+
+  private val QuarkusPluginArtifactId = "quarkus-maven-plugin"
+
+  private def detectQuarkusPluginVersion(model: Model): Option[String] = {
+    model.getBuild.getPlugins.asScala.find(p =>
+      p.getArtifactId == QuarkusPluginArtifactId
+    ).flatMap(p => nonEmpty(p.getVersion))
   }
 
   private def toMvnDep(dep: Dependency) = {

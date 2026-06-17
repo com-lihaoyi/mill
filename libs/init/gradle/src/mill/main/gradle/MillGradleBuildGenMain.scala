@@ -15,7 +15,10 @@ import scala.util.Using
 
 object MillGradleBuildGenMain {
 
-  def main(args: Array[String]): Unit = mainargs.Parser(this).runOrExit(args.toSeq)
+  def main(args: Array[String]): Unit = {
+    mainargs.Parser(this).runOrExit(args.toSeq)
+    System.exit(0)
+  }
 
   @mainargs.main(doc = "Generates Mill build files that are derived from a Gradle build.")
   def init(
@@ -84,12 +87,16 @@ object MillGradleBuildGenMain {
           gradleConnector.useInstallation(new File(gradleHome))
       }
     }
+    // Hand Gradle un-aliased absolute Files — the alias form fails on Windows where
+    // the symlink can't be created without developer mode.
+    val gradleWorkspaceFile = gradleWorkspace.wrapped.toFile
+    val gradleJavaHomeFile = macosJdkBundleHome(Jvm.resolveJavaHome(gradleJvmId).get).wrapped.toFile
     var packages =
-      try Using.resource(gradleConnector.forProjectDirectory(gradleWorkspace.toIO).connect) {
+      try Using.resource(gradleConnector.forProjectDirectory(gradleWorkspaceFile).connect) {
           connection =>
             val model = connection.model(classOf[BuildModel])
               .addArguments("--init-script", initScript.toString)
-              .setJavaHome(macosJdkBundleHome(Jvm.resolveJavaHome(gradleJvmId).get).toIO)
+              .setJavaHome(gradleJavaHomeFile)
               .setStandardOutput(System.out).get
             upickle.default.read[Seq[PackageSpec]](model.asJson)
         }

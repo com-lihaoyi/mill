@@ -16,8 +16,12 @@ object ThreadLocalsTests extends UtestIntegrationTestSuite {
       if (tester.daemonMode) {
         eval("demo.demoCrash")
         val res = eval("demo.demoCrash", env = Map("WORKER_ENV" -> "1"))
+        // Match the `myWorker.dest` path by suffix rather than the absolute `$workspacePath`
+        // prefix: in reproducible-build mode the printed path is relativized (e.g.
+        // `out/mill-workspace/out/demo/myWorker.dest`).
+        assert(res.out.contains("Worker is closing1 "))
         assert(res.out.contains(
-          s"Worker is closing1 $workspacePath/out/demo/myWorker.dest class mill.exec.GroupExecution$$ExecutionChecker"
+          s"out/demo/myWorker.dest class mill.exec.GroupExecution$$ExecutionChecker"
         ))
         assert(res.out.contains(s"Worker is closing2"))
         assert(res.out.contains(s"Worker is closing3"))

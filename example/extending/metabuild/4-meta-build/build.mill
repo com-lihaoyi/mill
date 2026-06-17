@@ -8,7 +8,7 @@ object `package` extends ScalaModule {
   def scalaVersion = "3.8.2"
   def mvnDeps = Seq(
     mvn"com.lihaoyi::scalatags:${millbuild.DepVersions.scalatagsVersion}",
-    mvn"com.lihaoyi::os-lib:0.10.7"
+    mvn"com.lihaoyi::os-lib:0.11.9-M8"
   )
 
   def htmlSnippet = Task { h1("hello").toString }

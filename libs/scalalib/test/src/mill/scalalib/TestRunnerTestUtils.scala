@@ -116,7 +116,14 @@ object TestRunnerTestUtils {
         val testOnly = result.value
         if (expectedFileListing.nonEmpty) {
           val dest = eval.outPath / m(mod).toString / "testOnly.dest"
-          val sortedListed = os.list(dest).map(_.last).sorted
+          // Exclude `mill-workspace`/`mill-home` — these are alias symlinks
+          // created by `PathAliasing.ensureProcessCwdAliases` in the parent of
+          // every working directory (here the test subprocess runs in
+          // `dest/sandbox`, so they land in `dest`). They are reproducible-
+          // build infrastructure, not test artifacts.
+          val aliasNames = Set("mill-workspace", "mill-home")
+          val sortedListed =
+            os.list(dest).map(_.last).filterNot(aliasNames.contains).sorted
           val sortedExpected = expectedFileListing(m(mod)).toSeq.sorted
           assert(sortedListed == sortedExpected)
         }

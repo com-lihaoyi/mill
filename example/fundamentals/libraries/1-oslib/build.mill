@@ -32,6 +32,56 @@ def command = Task {
 // `command` can depend on both tasks and read each task's `file.txt` separately
 // without conflict
 
+// [#_os_lib_path_serialization]
+// === Path Serialization
+//
+// Task return values are cached as JSON, so any `os.Path`/`PathRef` in them is
+// serialized to a string. To keep `out/` independent of where the build lives on disk
+// (so caches stay portable and can feed a xref:large/remote-caching.adoc[remote cache]),
+// Mill rewrites paths under the workspace or home directory as relative aliases --
+// `../mill-workspace/...` and `../mill-home/...` -- and plants matching forwarder
+// symlinks so they resolve back to the real files. This affects `os.Path.toString`,
+// `.toIO`, `.toNIO`, and any serialized `os.Path`/`PathRef`. Within a task you never
+// notice it: the aliases round-trip transparently.
+//
+// ==== When to reach for custom serialization
+//
+// An alias only resolves from a cwd where Mill planted its forwarders, which it does for
+// just three cwd shapes: task `.dest` folders and the run sandbox (which use `../mill-*`),
+// and the workspace root (which uses `out/mill-*`, since `../mill-*` would escape the
+// workspace). So when serializing a path for a subprocess, the correct string depends on
+// *that subprocess's* cwd, not the current task's, and plain `.toString` is often wrong.
+// Pick the `PathRef.to*` helper for where the subprocess runs and what it accepts:
+//
+// `PathRef.toRelString(path, subprocessCwd)`::
+// The reproducible form: serializes `path` using the alias scheme valid at
+// `subprocessCwd` (`out/mill-*` at the workspace root, `../mill-*` in a `.dest`/sandbox),
+// falling back to an absolute path when `subprocessCwd` has no forwarders. This is the
+// only custom form that stays reproducible (it never bakes in an absolute path), so
+// prefer it whenever the subprocess runs in a directory Mill aliases and accepts relative
+// paths. Reach for it specifically when
+// the subprocess's cwd differs from the current task's -- most commonly a tool you spawn
+// at the *workspace root*, whose `out/mill-*` aliases differ from the task's `../mill-*`,
+// so the default `.toString` would be wrong. (`workspaceRoot` is the default
+// `subprocessCwd`, matching that common case.)
+//
+// `PathRef.toAbsString(path)` / `PathRef.toAbsFile(path)` / `PathRef.toAbsNioPath(path)`::
+// The *lexically* absolute path -- made absolute and `..`-normalized textually, without
+// touching the disk, so any symlinks are left intact -- as a `String`, `java.io.File`, or
+// `java.nio.file.Path`. Use these when the subprocess runs in some directory Mill does not
+// alias (so a relative alias can't resolve there), or treats relative and absolute paths
+// differently (resolving relatives against a base other than its cwd, or accepting only
+// absolute paths).
+//
+// `PathRef.toResolvedPathString(path)` / `PathRef.toResolvedOsPath(path)`::
+// The same, but additionally run through `toRealPath`, so symlinks are *followed* to the
+// canonical on-disk location. The difference from the `toAbs*` forms only shows up when
+// the path traverses a symlink -- one of Mill's `mill-*` forwarders, or an OS symlink like
+// macOS's `/tmp` -> `/private/tmp` -- and the consumer canonicalizes paths itself (e.g.
+// Node's module resolution or `native-image`) or you compare two paths for equality; a
+// merely-lexical absolute path would still contain the symlink and mismatch the real one.
+// Falls back to the lexical absolute form when the path doesn't exist on disk.
+
 /** Usage
 
 > ./mill command # mac/linux

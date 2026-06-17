@@ -1,5 +1,6 @@
 package mill.internal
 
+import mill.api.PathRef
 import mill.api.daemon.internal.LauncherOutFiles
 import mill.constants.DaemonFiles
 import mill.constants.OutFiles
@@ -17,11 +18,16 @@ private[mill] class LauncherOutFilesImpl(
   import LauncherOutFilesImpl.*
 
   private val runDir = out / LauncherOutFilesState.runRootDirName / runId
-  override val consoleTail: java.nio.file.Path = (runDir / "mill-console-tail").toNIO
-  override val profile: java.nio.file.Path = (runDir / OutFiles.millProfile).toNIO
-  override val chromeProfile: java.nio.file.Path = (runDir / OutFiles.millChromeProfile).toNIO
-  override val dependencyTree: java.nio.file.Path = (runDir / OutFiles.millDependencyTree).toNIO
-  override val invalidationTree: java.nio.file.Path = (runDir / OutFiles.millInvalidationTree).toNIO
+  override val consoleTail: java.nio.file.Path =
+    PathRef.toAbsNioPath(runDir / "mill-console-tail")
+  override val profile: java.nio.file.Path =
+    PathRef.toAbsNioPath(runDir / OutFiles.millProfile)
+  override val chromeProfile: java.nio.file.Path =
+    PathRef.toAbsNioPath(runDir / OutFiles.millChromeProfile)
+  override val dependencyTree: java.nio.file.Path =
+    PathRef.toAbsNioPath(runDir / OutFiles.millDependencyTree)
+  override val invalidationTree: java.nio.file.Path =
+    PathRef.toAbsNioPath(runDir / OutFiles.millInvalidationTree)
   private val closed = AtomicBoolean(false)
 
   private val publishedOutFiles = Seq(
@@ -116,7 +122,7 @@ private[mill] object LauncherOutFilesImpl {
       link: os.Path,
       outFilesState: LauncherOutFilesState
   )(body: => T): T = {
-    val key = link.toNIO.toAbsolutePath.normalize.toString
+    val key = PathRef.toAbsNioPath(link).toString
     outFilesState.publishedPathLockFor(key).synchronized(body)
   }
 
@@ -131,8 +137,8 @@ private[mill] object LauncherOutFilesImpl {
       catch { case _: Throwable => () }
       writeTemp(tmp)
       java.nio.file.Files.move(
-        tmp.toNIO,
-        link.toNIO,
+        PathRef.toAbsNioPath(tmp),
+        PathRef.toAbsNioPath(link),
         StandardCopyOption.REPLACE_EXISTING,
         StandardCopyOption.ATOMIC_MOVE
       )

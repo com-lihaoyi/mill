@@ -70,6 +70,13 @@ object GenIdeaUtils {
         "-Xplugin:/[a-zA-Z0-9._/-]+/out/",
         "-Xplugin:.../"
       )
+      // In reproducible-build mode scalac `-Xplugin` paths are relativized through the path
+      // aliases (`../mill-workspace/...` / `../mill-home/...`); collapse the prefix up to the
+      // `com/lihaoyi/` marker just like the absolute forms above.
+      .replaceAll(
+        "-Xplugin:(?:out/|\\.\\./)mill-[a-zA-Z0-9._/-]+/com/lihaoyi/",
+        "-Xplugin:.../com/lihaoyi/"
+      )
       // Normalize varying local repo paths (e.g., dist/raw/localRepo.dest vs runner/.../publishLocalTestRepo.dest)
       .replaceAll(
         "\\.\\.\\./[a-zA-Z0-9._/-]+/com/lihaoyi/",
@@ -96,9 +103,10 @@ object GenIdeaUtils {
         "(name=\"SBT: [^\"]+_2)\\.[0-9]+:([0-9][0-9a-zA-Z._-]*):jar\"",
         "$1.X:<version>:jar\""
       )
-      // Normalize library jar names with semver versions like name="os-zip-0.11.6.jar" or name="scala3-library_3-3.8.2.jar"
+      // Normalize library jar names with semver versions like name="os-zip-0.11.6.jar" or
+      // name="scala3-library_3-3.8.2.jar", including milestone/RC suffixes like "0.11.9-M6".
       .replaceAll(
-        "(name=\"[a-zA-Z0-9_-]+)-[0-9]+\\.[0-9]+\\.[0-9]+\\.jar\"",
+        "(name=\"[a-zA-Z0-9_-]+)-[0-9]+\\.[0-9]+\\.[0-9]+(-[A-Za-z][A-Za-z0-9]*)?\\.jar\"",
         "$1-<version>.jar\""
       )
       // Normalize scala-SDK names like name="scala-SDK-3.8.2"

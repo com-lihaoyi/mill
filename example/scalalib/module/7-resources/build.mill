@@ -5,7 +5,7 @@ import mill.*, scalalib.*
 object foo extends ScalaModule {
   def scalaVersion = "3.8.2"
   def mvnDeps = Seq(
-    mvn"com.lihaoyi::os-lib:0.11.4"
+    mvn"com.lihaoyi::os-lib:0.11.9-M8"
   )
 
   object test extends ScalaTests {

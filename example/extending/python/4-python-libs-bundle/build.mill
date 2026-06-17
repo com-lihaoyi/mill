@@ -63,20 +63,23 @@ trait PythonModule extends Module {
     gatherScripts(Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps))
 
     val pexFile = Task.dest / "bundle.pex"
+    // PEX unpacks itself and runs from its own temporary working directory, so every path we
+    // hand it must be absolute: a working-directory-relative path would be resolved against
+    // PEX's own cwd, not ours, and fail to be found.
     os.call(
       (
-        pythonExe().path,
+        PathRef.toAbsString(pythonExe().path),
         "-m",
         "pex",
         transitivePythonDeps(),
         "-D",
-        Task.dest,
+        PathRef.toAbsString(Task.dest),
         "-c",
-        sources().path / mainFileName(),
+        PathRef.toAbsString(sources().path / mainFileName()),
         "-o",
-        pexFile
+        PathRef.toAbsString(pexFile)
       ),
-      env = Map("PYTHONPATH" -> Task.dest.toString),
+      env = Map("PYTHONPATH" -> PathRef.toAbsString(Task.dest)),
       stdout = os.Inherit
     )
 

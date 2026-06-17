@@ -5,6 +5,7 @@ import mill.api.PathRef
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.api.daemon.{Logger, Result}
 import mill.client.lock.*
+import mill.constants.EnvVars
 import mill.javalib.api.internal.*
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mill.javalib.api.internal.ZincCompilerBridgeProvider
@@ -425,7 +426,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
     val store = fileAnalysisStore(workDir / zincCache)
 
     // Fix jdk classes marked as binary dependencies, see https://github.com/com-lihaoyi/mill/pull/1904
-    val converter = MappedFileConverter.empty
+    val converter = ZincWorker.reproducibleConverter
     val classpath = (compileClasspathPaths.iterator ++ Some(classesDir))
       .map(path => converter.toVirtualFile(path.toNIO))
       .toArray
@@ -482,28 +483,15 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
 
     val finalScalacOptions = addColorNeverOption.toSeq ++ scalacOptions
 
-    val millSources = virtualSources.filter(_.name.endsWith(".mill"))
-    val (originalSourcesMap, posMapperOpt) =
-      if (millSources.isEmpty) (Map.empty[os.Path, os.Path], None)
-      else PositionMapper.create(millSources)
-
     val newReporter = reporter match {
       case None =>
         new ManagedLoggedReporter(maxErrors, logger) with RecordingReporter
-          with TransformingReporter(
-            localConfig.logPromptColored,
-            posMapperOpt.orNull,
-            localConfig.workspaceRoot
-          ) {}
+          with TransformingReporter(localConfig.logPromptColored, localConfig.workspaceRoot) {}
       case Some(forwarder) =>
         new ManagedLoggedReporter(maxErrors, logger)
           with ForwardingReporter(forwarder)
           with RecordingReporter
-          with TransformingReporter(
-            localConfig.logPromptColored,
-            posMapperOpt.orNull,
-            localConfig.workspaceRoot
-          ) {}
+          with TransformingReporter(localConfig.logPromptColored, localConfig.workspaceRoot) {}
     }
 
     val inputs = incrementalCompiler.inputs(
@@ -580,10 +568,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
     } finally {
       IncrementalAnnotationProcessing.clearTracker()
       for (rep <- reporter) {
-        for (f <- sources) {
-          rep.fileVisited(f.toNIO)
-          for (f0 <- originalSourcesMap.get(f)) rep.fileVisited(f0.toNIO)
-        }
+        for (f <- sources) rep.fileVisited(f.toNIO)
         rep.finish()
       }
       previousScalaColor match {
@@ -698,6 +683,80 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
 object ZincWorker {
   private val DirectoryFileHash = 42
 
+  /** Root for relativizing Zinc analysis-store paths in reproducible mode; `None` otherwise. */
+  private[zinc] def reproducibleRoot: Option[java.nio.file.Path] =
+    Option.when(sys.env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).exists(_.nonEmpty))(
+      java.nio.file.Paths.get("").toAbsolutePath.normalize()
+    )
+
+  /** Encodes Zinc VirtualFile ids with a `$${BASE}` placeholder in reproducible mode. */
+  private[zinc] def reproducibleConverter: xsbti.FileConverter =
+    reproducibleRoot
+      .map(root => MappedFileConverter(Map("BASE" -> root), allowMachinePath = true))
+      .getOrElse(MappedFileConverter.empty)
+
+  /**
+   * Wraps Zinc's machine-independent path mappers to pass already-relative paths through
+   * unchanged. The default write mapper calls `Path#relativize(root, p)` which throws on
+   * relative input; the read mapper resolves them against the root, producing absolute ids
+   * that no longer match the stored relative ones and silently invalidating the analysis store.
+   * In reproducible mode the os-lib relativizer makes most paths Zinc sees already relative,
+   * so we need both halves to leave them alone and only forward absolute paths to the base.
+   */
+  private[zinc] def relativePassthroughMappers(
+      base: xsbti.compile.analysis.ReadWriteMappers
+  ): xsbti.compile.analysis.ReadWriteMappers = {
+    import xsbti.VirtualFileRef
+    import xsbti.compile.MiniSetup
+    import xsbti.compile.analysis.{ReadMapper, Stamp, WriteMapper}
+
+    def absRef(ref: VirtualFileRef): Boolean =
+      try java.nio.file.Paths.get(ref.id()).isAbsolute
+      catch { case _: Throwable => false }
+
+    def guardRef(f: VirtualFileRef, fwd: VirtualFileRef => VirtualFileRef): VirtualFileRef =
+      if (absRef(f)) fwd(f) else f
+    def guardPath(p: java.nio.file.Path, fwd: java.nio.file.Path => java.nio.file.Path)
+        : java.nio.file.Path =
+      if (p.isAbsolute) fwd(p) else p
+
+    val w = base.getWriteMapper
+    val r = base.getReadMapper
+
+    val guardedWrite: WriteMapper = new WriteMapper {
+      def mapSourceFile(f: VirtualFileRef) = guardRef(f, w.mapSourceFile)
+      def mapBinaryFile(f: VirtualFileRef) = guardRef(f, w.mapBinaryFile)
+      def mapProductFile(f: VirtualFileRef) = guardRef(f, w.mapProductFile)
+      def mapOutputDir(p: java.nio.file.Path) = guardPath(p, w.mapOutputDir)
+      def mapSourceDir(p: java.nio.file.Path) = guardPath(p, w.mapSourceDir)
+      def mapClasspathEntry(p: java.nio.file.Path) = guardPath(p, w.mapClasspathEntry)
+      def mapJavacOption(o: String) = w.mapJavacOption(o)
+      def mapScalacOption(o: String) = w.mapScalacOption(o)
+      def mapBinaryStamp(f: VirtualFileRef, s: Stamp) = w.mapBinaryStamp(f, s)
+      def mapSourceStamp(f: VirtualFileRef, s: Stamp) = w.mapSourceStamp(f, s)
+      def mapProductStamp(f: VirtualFileRef, s: Stamp) = w.mapProductStamp(f, s)
+      // ConsistentAnalysisFormat maps MiniSetup through the option/classpath methods above.
+      def mapMiniSetup(s: MiniSetup) = s
+    }
+
+    val guardedRead: ReadMapper = new ReadMapper {
+      def mapSourceFile(f: VirtualFileRef) = guardRef(f, r.mapSourceFile)
+      def mapBinaryFile(f: VirtualFileRef) = guardRef(f, r.mapBinaryFile)
+      def mapProductFile(f: VirtualFileRef) = guardRef(f, r.mapProductFile)
+      def mapOutputDir(p: java.nio.file.Path) = guardPath(p, r.mapOutputDir)
+      def mapSourceDir(p: java.nio.file.Path) = guardPath(p, r.mapSourceDir)
+      def mapClasspathEntry(p: java.nio.file.Path) = guardPath(p, r.mapClasspathEntry)
+      def mapJavacOption(o: String) = r.mapJavacOption(o)
+      def mapScalacOption(o: String) = r.mapScalacOption(o)
+      def mapBinaryStamp(f: VirtualFileRef, s: Stamp) = r.mapBinaryStamp(f, s)
+      def mapSourceStamp(f: VirtualFileRef, s: Stamp) = r.mapSourceStamp(f, s)
+      def mapProductStamp(f: VirtualFileRef, s: Stamp) = r.mapProductStamp(f, s)
+      def mapMiniSetup(s: MiniSetup) = s
+    }
+
+    new xsbti.compile.analysis.ReadWriteMappers(guardedRead, guardedWrite)
+  }
+
   /**
    * Dependencies of the invocation.
    *
@@ -739,7 +798,14 @@ object ZincWorker {
   private def getLocalOrCreateJavaTools(forkJavaHome: Option[os.Path]): JavaTools = {
     val (compiler, docs) = forkJavaHome match {
       case Some(home) =>
-        (javac.JavaCompiler.fork(Some(home.toNIO)), javac.Javadoc.fork(Some(home.toNIO)))
+        // Zinc calls `toAbsolutePath` on this value before launching `javac`/`javadoc`.
+        // If we pass `home.toNIO`, Mill's reproducible path serializer can turn a JDK
+        // under `os.home` into `../mill-home/...`. Zinc then absolutizes that relative
+        // path against the long-lived worker JVM's `user.dir` (a task dest such as
+        // `compile.dest`), leaving `..` segments that Windows `CreateProcess` does not
+        // normalize while looking up the executable.
+        val realJavaHome = PathRef.toAbsNioPath(home)
+        (javac.JavaCompiler.fork(Some(realJavaHome)), javac.Javadoc.fork(Some(realJavaHome)))
       case None =>
         val c = IncrementalTrackingJavaCompiler.local.getOrElse(javac.JavaCompiler.fork())
         val d = javac.Javadoc.local.getOrElse(javac.Javadoc.fork())
@@ -751,14 +817,24 @@ object ZincWorker {
   private def libraryJarNameGrep(compilerClasspath: Seq[PathRef], scalaVersion: String): PathRef =
     JvmWorkerUtil.grepJar(compilerClasspath, "scala-library", scalaVersion, sources = false)
 
-  private def fileAnalysisStore(path: os.Path): AnalysisStore =
+  private def fileAnalysisStore(path: os.Path): AnalysisStore = {
+    // In reproducible mode the absolute classpath/output `Path`s recorded in the persisted
+    // `MiniSetup` are relativized against the daemon working directory so the analysis store is
+    // workspace-independent. VirtualFile ids (sources/products/binaries) are relativized
+    // separately via the `MappedFileConverter`, see `ZincWorker.reproducibleConverter`.
+    val mappers = ZincWorker.reproducibleRoot match {
+      case Some(root) =>
+        ZincWorker.relativePassthroughMappers(ReadWriteMappers.getMachineIndependentMappers(root))
+      case None => ReadWriteMappers.getEmptyMappers
+    }
     ConsistentFileAnalysisStore.binary(
       file = path.toIO,
-      mappers = ReadWriteMappers.getEmptyMappers,
+      mappers = mappers,
       reproducible = true,
       // No need to utilize more than 8 cores to serialize a small file
       parallelism = math.min(Runtime.getRuntime.availableProcessors(), 8)
     )
+  }
 
   private[zinc] def classpathFileHashes(
       compileClasspath: Seq[PathRef],

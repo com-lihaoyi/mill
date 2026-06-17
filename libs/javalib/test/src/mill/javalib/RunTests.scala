@@ -6,6 +6,8 @@ import mill.api.daemon.LauncherSubprocess
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import mill.api.Discover
+import mill.api.internal.PathAliasing
+import mill.constants.EnvVars
 
 object RunTests extends TestSuite {
 
@@ -33,6 +35,21 @@ object RunTests extends TestSuite {
     object app extends JavaModule {
       override def moduleDeps = Seq(core)
       override def mainClass = None
+    }
+
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  object HelloJavaWithLiteralForkEnv extends TestRootModule {
+    object core extends JavaModule
+    object app extends JavaModule {
+      override def moduleDeps = Seq(core)
+      override def mainClass: T[Option[String]] = Some("hello.Main")
+      override def forkEnv: T[Map[String, String]] = Task {
+        val workspace = PathRef.toRelString(moduleDir)
+        val home = PathRef.toRelString(os.home)
+        Map("WORKSPACE_PATH" -> workspace, "HOME_PATH" -> home)
+      }
     }
 
     lazy val millDiscover = Discover[this.type]
@@ -75,6 +92,85 @@ object RunTests extends TestSuite {
     }
 
     test("forkRun") {
+      test("allForkEnvCachesWorkspaceRootButNotRelativizerBase") - UnitTester(
+        HelloJavaWithMain,
+        resourcePath
+      ).scoped { eval =>
+        val Right(first) = eval.apply(HelloJavaWithMain.app.allForkEnv).runtimeChecked
+        assert(
+          first.value(EnvVars.MILL_WORKSPACE_ROOT) == HelloJavaWithMain.moduleDir.toString,
+          !first.value.contains(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE)
+        )
+
+        val Right(second) = eval.apply(HelloJavaWithMain.app.allForkEnv).runtimeChecked
+        assert(
+          second.evalCount == 0,
+          second.value(EnvVars.MILL_WORKSPACE_ROOT) == HelloJavaWithMain.moduleDir.toString,
+          !second.value.contains(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE)
+        )
+      }
+
+      test("allForkEnvUsesExplicitForkEnvPathAliases") - UnitTester(
+        HelloJavaWithLiteralForkEnv,
+        resourcePath
+      ).scoped { eval =>
+        val Right(first) = eval.apply(HelloJavaWithLiteralForkEnv.app.allForkEnv).runtimeChecked
+        val Right(second) = eval.apply(HelloJavaWithLiteralForkEnv.app.allForkEnv).runtimeChecked
+
+        assert(
+          first.value("WORKSPACE_PATH") == "out/mill-workspace/app",
+          first.value("HOME_PATH") == "out/mill-home",
+          second.evalCount == 0,
+          second.value("WORKSPACE_PATH") == "out/mill-workspace/app",
+          second.value("HOME_PATH") == "out/mill-home"
+        )
+      }
+
+      test("runInjectsRelativizerAtForkCallsite") - UnitTester(
+        HelloJavaWithMain,
+        resourcePath
+      ).scoped { eval =>
+        var seen: Option[LauncherSubprocess.Config] = None
+
+        LauncherSubprocess.withValue(config => { seen = Some(config); 0 }) {
+          val Right(result) =
+            eval.apply(HelloJavaWithMain.app.run(Task.Anon(Args("testArg")))).runtimeChecked
+          assert(result.evalCount > 0)
+        }
+
+        val config = seen.get
+        assert(
+          config.env(EnvVars.MILL_WORKSPACE_ROOT) == HelloJavaWithMain.moduleDir.toString,
+          // The fork callsite injects the relativizer base for the fork's working directory (the
+          // workspace root here): the unified `pathRelativizerBaseForCwd` form, which adds the
+          // `out/mill-workspace` forwarder mappings on top of the plain workspace-root aliases so
+          // already-aliased paths don't get double-aliased.
+          config.env(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE) ==
+            PathAliasing.pathRelativizerBaseForCwd(HelloJavaWithMain.moduleDir),
+          os.isLink(HelloJavaWithMain.moduleDir / "out" / "mill-workspace"),
+          os.isLink(HelloJavaWithMain.moduleDir / "out" / "mill-home")
+        )
+      }
+
+      test("runPreservesExplicitForkEnvPathAliases") - UnitTester(
+        HelloJavaWithLiteralForkEnv,
+        resourcePath
+      ).scoped { eval =>
+        var seen: Option[LauncherSubprocess.Config] = None
+
+        LauncherSubprocess.withValue(config => { seen = Some(config); 0 }) {
+          val Right(result) =
+            eval.apply(HelloJavaWithLiteralForkEnv.app.run(Task.Anon(Args("testArg"))))
+              .runtimeChecked
+          assert(result.evalCount > 0)
+        }
+
+        assert(
+          seen.get.env("WORKSPACE_PATH") == "out/mill-workspace/app",
+          seen.get.env("HOME_PATH") == "out/mill-home"
+        )
+      }
+
       test("runIfMainClassProvided") - UnitTester(HelloJavaWithMain, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(
           HelloJavaWithMain.app.run(Task.Anon(Args("testArg")))

@@ -335,7 +335,11 @@ object BspServerTestUtil {
       workspacePath.toString -> "/workspace",
       coursierCache.toString -> "/coursier-cache",
       millWorkspace.toString -> "/mill-workspace",
-      os.home.toString -> "/user-home"
+      os.home.toString -> "/user-home",
+      // In reproducible-build mode, paths embedded in generated sources (e.g. the
+      // `SOURCECODE_ORIGINAL_FILE_PATH` marker) stay relativized through the workspace/home aliases.
+      "../mill-workspace" -> "/workspace",
+      "../mill-home" -> "/user-home"
     )
 
   def scalaVersionNormalizedValues(): Seq[(String, String)] = {

@@ -20,7 +20,9 @@ object `package` extends MillPublishScalaModule {
 
   def forkEnv =
     super.forkEnv() ++
-      Map("MILL_EXECUTABLE_PATH" -> build.dist.raw.launcher().path.toString()) ++
+      Map(
+        "MILL_EXECUTABLE_PATH" -> PathRef.toResolvedPathString(build.dist.raw.executable().path)
+      ) ++
       build.dist.raw.testForkEnv()
 
   object internal extends MillScalaModule {

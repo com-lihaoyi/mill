@@ -345,7 +345,8 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
         scalaVersion = scalaVersion(),
         scalaBinaryVersion = scalaBinaryVersion(scalaVersion()),
         platform = ScalaPlatform.JS,
-        jars = scalaCompilerClasspath().iterator.map(_.path.toURI.toString).toSeq,
+        // `.wrapped.toUri`, not `.toURI`: BSP needs absolute URIs (see ScalaModule.bspBuildTargetData).
+        jars = scalaCompilerClasspath().iterator.map(_.path.wrapped.toUri.toString).toSeq,
         jvmBuildTarget = None
       )
     ))

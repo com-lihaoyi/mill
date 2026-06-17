@@ -38,15 +38,7 @@ private object ExecutionLogs {
     val changedTasks = changedValueHash.keys().asScala.toSet
     val downstreamSources =
       if (changedTasks.isEmpty) Set.empty[Task[?]]
-      else {
-        val builder = Set.newBuilder[Task[?]]
-        for {
-          deps <- interGroupDeps.valuesIterator
-          dep <- deps
-          if changedTasks.contains(dep)
-        } builder += dep
-        builder.result()
-      }
+      else interGroupDeps.valuesIterator.flatten.filter(changedTasks.contains).toSet
 
     // Root invalidated tasks: uncached tasks that either cause downstream invalidations
     // or are non-input tasks (e.g. invalidated due to codesig change)

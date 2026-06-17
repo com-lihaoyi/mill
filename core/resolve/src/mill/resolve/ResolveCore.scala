@@ -357,7 +357,9 @@ private object ResolveCore {
           ).flatMap {
             case Seq((_, Some(f))) => f(current)
             case unknown =>
-              sys.error(
+              // A label resolving to zero or multiple children must surface as a
+              // `Result.Failure`, not a thrown `sys.error` that escapes resolution.
+              mill.api.Result.Failure(
                 s"Unable to resolve single child " +
                   s"rootModule: ${rootModule}, segments: ${segments.render}," +
                   s"current: $current, s: ${s}, unknown: $unknown"

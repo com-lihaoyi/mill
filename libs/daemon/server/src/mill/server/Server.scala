@@ -545,11 +545,7 @@ object Server {
     val l = mill.client.ServerLauncher.retryWithTimeout(
       100,
       "Mill server process already present"
-    ) { () =>
-      val l = lock.tryLock()
-      if (l.isLocked) Some(l)
-      else None
-    }
+    ) { () => lock.tryLockOption() }
 
     val autoCloseable = new AutoCloseable {
       @volatile private var closed = false

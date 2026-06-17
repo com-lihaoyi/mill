@@ -24,10 +24,11 @@ object myplugin extends ScalaModule, PublishModule {
   object integration extends ScalaTests, TestModule.Utest {
     def mvnDeps = Seq(mvn"com.lihaoyi::mill-testkit:$millVersion")
     def forkEnv = Task {
-      val repos = Seq(publishLocalTestRepo().path.toNIO.toUri.toASCIIString) ++
+      val repos = Seq(publishLocalTestRepo().path.wrapped.toUri.toASCIIString) ++
         Seq(Task.env.getOrElse("COURSIER_REPOSITORIES", "ivy2Local|central"))
       Map(
-        "MILL_EXECUTABLE_PATH" -> millExecutable.assembly().path.toString,
+        // IntegrationTester reads this env var with os.Path(_), so keep it absolute.
+        "MILL_EXECUTABLE_PATH" -> PathRef.toAbsString(millExecutable.assembly()),
         "COURSIER_REPOSITORIES" -> repos.mkString("|")
       )
     }

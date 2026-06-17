@@ -7,6 +7,7 @@ import mill.util.Jvm
 import mill.api.TaskCtx
 import mill.javalib.JavaHomeModule
 import mill.api.BuildCtx
+import mill.api.internal.PathAliasing
 
 trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule { outer =>
 
@@ -147,19 +148,14 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
   // cache. This is slow. Look into sharing the cache between tasks.
   def runner: Task[PythonModule.Runner] = Task.Anon {
     new PythonModule.RunnerImpl(
-      command0 = pythonExe().path.toString,
+      command0 = pythonExe().path,
       options = pythonOptions(),
-      env0 = runnerEnvTask() ++ forkEnv(),
+      pythonPath = transitivePythonPath().map(_.path),
+      pythonPycachePrefix = Task.dest / "cache",
+      forceColor = Task.log.prompt.colored,
+      javaHome = javaHome().map(_.path),
+      forkEnv0 = PathAliasing.withRawPathSerializer(forkEnv()),
       workingDir0 = Task.dest
-    )
-  }
-
-  private def runnerEnvTask = Task.Anon {
-    Map(
-      "PYTHONPATH" -> transitivePythonPath().map(_.path).mkString(java.io.File.pathSeparator),
-      "PYTHONPYCACHEPREFIX" -> (Task.dest / "cache").toString,
-      if (Task.log.prompt.colored) { "FORCE_COLOR" -> "1" }
-      else { "NO_COLOR" -> "1" }
     )
   }
 
@@ -168,14 +164,14 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
    */
   def typeCheck: T[Unit] = Task {
     runner().run(
-      (
-        // format: off
-        "-m", "mypy",
+      Seq(
+        "-m",
+        "mypy",
         "--strict",
-        "--cache-dir", (Task.dest / "mypycache").toString,
-        sources().map(_.path)
-        // format: on
-      )
+        "--cache-dir",
+        PathRef.toRelString(Task.dest / "mypycache", Task.dest)
+      ) ++ sources().map(pr => PathRef.toRelString(pr.path, Task.dest)),
+      workingDir = Task.dest
     )
   }
 
@@ -186,10 +182,8 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
    */
   def run(args: mill.api.Args) = Task.Command {
     runner().run(
-      args = (
-        mainScript().path,
-        args.value
-      )
+      args = Seq(PathRef.toRelString(mainScript().path, Task.dest)) ++ args.value,
+      workingDir = Task.dest
     )
   }
 
@@ -200,6 +194,7 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
    */
   def runBackground(args: mill.api.Args) = Task.Command(persistent = true) {
     val backgroundPaths = mill.javalib.RunModule.BackgroundPaths(Task.dest)
+    val cwd = BuildCtx.workspaceRoot
     val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
 
     BuildCtx.withFilesystemCheckerDisabled {
@@ -207,13 +202,31 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
         mainClass = "mill.javalib.backgroundwrapper.MillBackgroundWrapper",
         classPath = mill.javalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
         jvmArgs = Nil,
-        env = runnerEnvTask(),
+        env = PythonModule.runnerEnv(
+          pythonPath = transitivePythonPath().map(_.path),
+          pythonPycachePrefix = Task.dest / "cache",
+          forceColor = Task.log.prompt.colored,
+          javaHome = javaHome().map(_.path),
+          cwd = cwd,
+          // The detached background process can't resolve `../mill-workspace` aliases.
+          relativize = false
+        ),
         mainArgs = backgroundPaths.toArgs ++ Seq(
           "<subprocess>",
-          pythonExe().path.toString,
-          mainScript().path.toString
+          // `MillBackgroundWrapper` is a detached process that relaunches these via plain
+          // `java.nio`/`ProcessBuilder`, so its cwd and our path aliases aren't reachable, and any
+          // ephemeral `mill-no-daemon/<id>/mill-workspace` forwarder it routes through is deleted
+          // when the launcher exits: pass real absolute paths with symlinks resolved.
+          //
+          // For the interpreter, resolve only the enclosing `venv/bin` directory (to strip any
+          // `mill-workspace` forwarder from the prefix) but keep the final `python3` symlink
+          // unresolved: fully resolving it would point at the base interpreter and Python would
+          // no longer detect the virtualenv (via the adjacent `pyvenv.cfg`), losing the venv's
+          // installed packages.
+          PathRef.toResolvedPathString(pythonExe().path / os.up) + "/" + pythonExe().path.last,
+          PathRef.toResolvedPathString(mainScript().path)
         ) ++ args.value,
-        cwd = BuildCtx.workspaceRoot,
+        cwd = cwd,
         stdin = "",
         // Hack to forward the background subprocess output to the Mill server process
         // stdout/stderr files, so the output will get properly slurped up by the Mill server
@@ -245,18 +258,19 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
   def bundle = Task {
     val pexFile = Task.dest / "bundle.pex"
     runner().run(
-      (
-        // format: off
-        "-m", "pex",
-        transitivePythonDeps().toSeq,
+      Seq(
+        "-m",
+        "pex"
+      ) ++ transitivePythonDeps().toSeq ++
         transitivePythonPath().flatMap(pr =>
-          Seq("-D", pr.path.toString)
-        ),
-        "--exe", mainScript().path,
-        "-o", pexFile,
-        bundleOptions()
-        // format: on
-      ),
+          Seq("-D", PathRef.toRelString(pr.path, Task.dest))
+        ) ++
+        Seq(
+          "--exe",
+          PathRef.toRelString(mainScript().path, Task.dest),
+          "-o",
+          PathRef.toRelString(pexFile, Task.dest)
+        ) ++ bundleOptions(),
       workingDir = Task.dest
     )
     PathRef(pexFile)
@@ -264,6 +278,14 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
 
   trait PythonTests extends PythonModule {
     override def moduleDeps: Seq[PythonModule] = Seq(outer)
+
+    // Inherit the outer module's JDK selection so tests run on the same Java as the
+    // module under test (mirrors `JavaModule`'s nested test module). Without this,
+    // e.g. a PySpark module pinning `jvmId` would still launch tests on the default JDK.
+    override def jvmId: T[String] = outer.jvmId
+    override def jvmVersion: T[String] = outer.jvmVersion
+    override def jvmIndexVersion: T[String] = outer.jvmIndexVersion
+    override def javaHome: T[Option[PathRef]] = outer.javaHome
   }
 
 }
@@ -279,9 +301,13 @@ object PythonModule {
   }
 
   private class RunnerImpl(
-      command0: String,
+      command0: os.Path,
       options: Seq[String],
-      env0: Map[String, String],
+      pythonPath: Seq[os.Path],
+      pythonPycachePrefix: os.Path,
+      forceColor: Boolean,
+      javaHome: Option[os.Path],
+      forkEnv0: Map[String, String],
       workingDir0: os.Path
   ) extends Runner {
     def run(
@@ -290,14 +316,45 @@ object PythonModule {
         env: Map[String, String] = null,
         workingDir: os.Path = null
     )(using ctx: TaskCtx): Unit = {
+      val cwd = Option(workingDir).getOrElse(workingDir0)
+      PathAliasing.ensureProcessCwdAliases(cwd)
       os.call(
-        cmd = Seq(Option(command).getOrElse(command0)) ++ options ++ args.value,
-        env = Option(env).getOrElse(env0),
-        cwd = Option(workingDir).getOrElse(workingDir0),
+        cmd = Seq(Option(command).getOrElse(PathRef.toRelString(command0, cwd))) ++
+          options ++ args.value,
+        env = Option(env).getOrElse(
+          PythonModule.runnerEnv(
+            pythonPath = pythonPath,
+            pythonPycachePrefix = pythonPycachePrefix,
+            forceColor = forceColor,
+            javaHome = javaHome,
+            cwd = cwd
+          ) ++ forkEnv0
+        ) ++ PathAliasing.workspaceEnvVarsForCwd(cwd),
+        cwd = cwd,
         stdin = os.Inherit,
         stdout = os.Inherit,
         check = true
       )
     }
+  }
+
+  private def runnerEnv(
+      pythonPath: Seq[os.Path],
+      pythonPycachePrefix: os.Path,
+      forceColor: Boolean,
+      javaHome: Option[os.Path],
+      cwd: os.Path,
+      // When false, emit real absolute paths instead of `../mill-workspace` aliases. The detached
+      // background process (`MillBackgroundWrapper`) relaunches via plain `ProcessBuilder` and
+      // cannot reach Mill's cwd path aliases, so its env must not contain relativized paths.
+      relativize: Boolean = true
+  ): Map[String, String] = {
+    def fmt(p: os.Path): String =
+      if (relativize) PathRef.toRelString(p, cwd) else PathRef.toResolvedPathString(p)
+    Map(
+      "PYTHONPATH" -> pythonPath.map(fmt).mkString(java.io.File.pathSeparator),
+      "PYTHONPYCACHEPREFIX" -> fmt(pythonPycachePrefix),
+      if (forceColor) "FORCE_COLOR" -> "1" else "NO_COLOR" -> "1"
+    ) ++ javaHome.map(jh => "JAVA_HOME" -> fmt(jh))
   }
 }

@@ -1,7 +1,7 @@
 package mill.kotlinlib
 
 import mill.api.daemon.internal.idea.{Element, JavaFacet}
-import mill.api.{BuildCtx, Task, TaskCtx, experimental}
+import mill.api.{BuildCtx, PathRef, Task, TaskCtx, experimental}
 import mill.api.daemon.internal.IdeUtils
 
 private lazy val FriendPathsPattern = "^-Xfriend-paths=(.+)$".r
@@ -36,7 +36,12 @@ trait KotlinIdeaModule extends KotlinModule {
           Task.Anon { friend.genIdeaInternalExt().ideaCompileOutput().path }
         )()
         options += redirectedFriendPaths
-          .map(path => "$MODULE_DIR$/../../" + (path.relativeTo(BuildCtx.workspaceRoot)).toString)
+          .map { path =>
+            val rel = PathRef
+              .toResolvedOsPathAnchored(path, BuildCtx.workspaceRoot)
+              .relativeTo(BuildCtx.workspaceRoot)
+            "$MODULE_DIR$/../../" + rel
+          }
           .mkString("-Xfriend-paths=", ",", "")
       }
 

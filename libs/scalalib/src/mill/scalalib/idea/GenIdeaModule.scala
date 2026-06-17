@@ -10,7 +10,17 @@ trait GenIdeaModule extends mill.javalib.idea.GenIdeaModule {
 
   override def scalacPluginsMvnDeps = javaModuleRef().scalacPluginMvnDeps
 
-  override def allScalacOptions = javaModuleRef().allScalacOptions
+  override def allScalacOptions = Task.Anon {
+    // Strip `-sourceroot <path>` pairs: IntelliJ manages source roots itself, and the
+    // value would otherwise be embedded into the generated `scala_compiler.xml` and
+    // depend on the workspace location.
+    val (out, _) = javaModuleRef().allScalacOptions().foldLeft((Vector.empty[String], false)) {
+      case ((acc, _), "-sourceroot") => (acc, true) // skip this flag
+      case ((acc, true), _) => (acc, false) // and its value
+      case ((acc, false), x) => (acc :+ x, false)
+    }
+    out
+  }
 
   override def scalaVersion = Task.Anon { Some(javaModuleRef().scalaVersion()) }
 

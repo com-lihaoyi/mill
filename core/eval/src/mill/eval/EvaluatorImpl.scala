@@ -7,9 +7,11 @@ import mill.api.internal.{ResolveChecker, Resolved, RootModule0}
 import mill.api.daemon.Watchable
 import mill.exec.{Execution, PlanImpl}
 import mill.internal.PrefixLogger
+import mill.api.internal.PathAliasing
 import mill.resolve.Resolve
 import mill.api.internal.ParseArgs
 import mill.eval.SelectiveExecutionImpl.transitiveNamedSelective
+import scala.annotation.unused
 
 /**
  * [[EvaluatorImpl]] is the primary API through which a user interacts with the Mill
@@ -41,6 +43,7 @@ final class EvaluatorImpl(
       ScriptModuleInit()
     )
   override val staticBuildOverrides = execution.staticBuildOverrides
+  PathAliasing.ensureProcessCwdAliases(os.pwd, workspace)
 
   def workspace = execution.workspace
   def baseLogger = execution.baseLogger
@@ -235,10 +238,18 @@ final class EvaluatorImpl(
         }
       }
 
-      val filePath = os.Path(module.moduleCtx.fileName).relativeTo(workspace)
-
+      val filePath = os.Path(module.moduleCtx.fileName, workspace)
+      // Canonicalize both the file and the workspace before comparing: in reproducible mode the
+      // file may arrive via a `mill-workspace` alias symlink, and the workspace itself may sit
+      // under a symlinked prefix (e.g. macOS `/tmp` -> `/private/tmp`). Resolving only one side
+      // would make the comparison silently fail. We compare the workspace-relative form so the
+      // check is immune to a shared symlinked prefix.
+      val relFilePath =
+        PathRef.toResolvedOsPathAnchored(filePath, workspace).relativeTo(workspace)
       val isRootBuildFile =
-        filePath == os.sub / "mill-build/build.mill" || filePath == os.sub / "build.mill.yaml"
+        relFilePath == os.sub / "build.mill" ||
+          relFilePath == os.sub / "build.mill.yaml" ||
+          relFilePath == os.sub / "mill-build" / "build.mill"
 
       val millKeys = mill.constants.ConfigConstants.all()
       val validKeys =
@@ -251,7 +262,6 @@ final class EvaluatorImpl(
       import pprint.Util.literalize
 
       invalidBuildOverrides.map { case (k, v) =>
-        java.nio.file.Files.readString(v.path.toNIO)
         val extendsInfo = mill.internal.Util.parseHeaderData(v.path) match {
           case mill.api.Result.Success(headerData) =>
             val extendsValues = headerData.`extends`.value.value.map(_.value)
@@ -320,9 +330,9 @@ final class EvaluatorImpl(
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = TestReporter.DummyTestReporter,
       logger: Logger = baseLogger,
-      serialCommandExec: Boolean = false,
+      @unused serialCommandExec: Boolean = false,
       selectiveExecution: Boolean = false
-  ): Evaluator.Result[T] = {
+  ): Evaluator.Result[T] = PathAliasing.withSpawnAliasHook(workspace) {
     val selectiveExecutionEnabled = selectiveExecution && !tasks.exists(_.isExclusiveCommand)
 
     val (selectedTasks, selectiveResults, maybeNewMetadata) =
@@ -359,8 +369,7 @@ final class EvaluatorImpl(
       goals = selectedTasks,
       reporter = reporter,
       testReporter = testReporter,
-      logger = logger,
-      serialCommandExec = serialCommandExec
+      logger = logger
     )
 
     val allResults = evaluated.transitiveResults ++ selectiveResults
@@ -373,21 +382,7 @@ final class EvaluatorImpl(
         Seq(Watchable.Path.from(p))
       case (t: Task.Input[_], result) =>
 
-        val ctx = new mill.api.TaskCtx.Impl(
-          args = Vector(),
-          dest0 = () => null,
-          log = logger,
-          _env = this.execution.env,
-          reporter = reporter,
-          testReporter = testReporter,
-          workspace = workspace,
-          _systemExitWithReason = (reason, exitCode) =>
-            throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
-          fork = null,
-          jobs = execution.effectiveThreadCount,
-          offline = offline,
-          useFileLocks = useFileLocks
-        )
+        val ctx = EvaluatorImpl.inputTaskCtx(this, logger, reporter, testReporter)
         val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
         Seq(Watchable.Value(
           () => t.evaluate(ctx).hashCode(),
@@ -454,4 +449,27 @@ final class EvaluatorImpl(
   def close(): Unit = execution.close()
 
   val selective = new mill.eval.SelectiveExecutionImpl(this)
+}
+
+private[mill] object EvaluatorImpl {
+  def inputTaskCtx(
+      evaluator: Evaluator,
+      logger: Logger,
+      reporter: Int => Option[CompileProblemReporter],
+      testReporter: TestReporter
+  ): mill.api.TaskCtx.Impl = new mill.api.TaskCtx.Impl(
+    args = Vector(),
+    dest0 = () => null,
+    log = logger,
+    _env = evaluator.env,
+    reporter = reporter,
+    testReporter = testReporter,
+    workspace = evaluator.workspace,
+    _systemExitWithReason = (reason, exitCode) =>
+      throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
+    fork = null,
+    jobs = evaluator.effectiveThreadCount,
+    offline = evaluator.offline,
+    useFileLocks = evaluator.useFileLocks
+  )
 }

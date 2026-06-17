@@ -2,7 +2,7 @@ package mill.eval
 
 import mill.api.daemon.SelectMode
 import mill.api.internal.Located
-import mill.api.{Evaluator, ExternalModule, PrecompiledModule, Result, ScriptModule}
+import mill.api.{Evaluator, ExternalModule, PathRef, PrecompiledModule, Result, ScriptModule}
 import mill.resolve.Resolve
 import scala.annotation.unused
 
@@ -175,10 +175,9 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
           mill.api.internal.PrecompiledModuleRef.cacheGet(scriptFile) match {
             case Some(m) => m.asInstanceOf[PrecompiledModule]
             case None =>
-              val relPath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot).toString
               val extendsIdx = extendsIndex.getOrElse(0)
               val validCtor = mill.api.internal.PrecompiledModuleRef
-                .validatePrecompiledClass(cls, relPath, scriptFile, extendsIdx)
+                .validatePrecompiledClass(cls, scriptFile, extendsIdx)
               validCtor.newInstance(args*).asInstanceOf[PrecompiledModule]
           }
         )
@@ -193,8 +192,10 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
   def resolveScriptModule(scriptFile0: String, eval: Evaluator): Option[Result[ExternalModule]] = {
     val scriptFile = os.Path(scriptFile0, mill.api.BuildCtx.workspaceRoot)
     // Add a synthetic watch on `scriptFile`, representing the special handling
-    // of `staticBuildOverrides` which is read from the script file build header
-    mill.api.BuildCtx.evalWatch(scriptFile)
+    // of `staticBuildOverrides` which is read from the script file build header.
+    // Directory probes are not script files, and watching them would recursively
+    // digest their entire contents.
+    if (!os.isDir(scriptFile)) mill.api.BuildCtx.evalWatch(scriptFile)
 
     Option.when(os.isFile(scriptFile)) {
       // Check for recursive moduleDeps cycle
@@ -238,7 +239,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
       skipPath
     )
       .flatMap { scriptPath =>
-        resolveScriptModule(scriptPath.toString, eval).map { result =>
+        resolveScriptModule(PathRef.toAbsString(scriptPath), eval).map { result =>
           (scriptPath.toNIO, result)
         }
       }
@@ -296,6 +297,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
       val candidates = Seq("package.mill.yaml", "build.mill.yaml")
       candidates.iterator.flatMap { name =>
         val yamlFile = dir / name
+        mill.api.BuildCtx.evalWatch(yamlFile)
         if (os.isFile(yamlFile) && mill.internal.Util.isPrecompiledYamlModule(yamlFile))
           resolveScriptModule(yamlFile.toString, eval)
         else None

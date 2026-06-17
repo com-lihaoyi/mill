@@ -13,11 +13,14 @@ import coursier.util.Task
 import coursier.{Artifacts, Classifier, Dependency, Fetch, Repository, Resolution, Resolve, Type}
 import mill.api.*
 import mill.api.daemon.*
+import mill.api.internal.PathAliasing
+import mill.constants.EnvVars
 import java.io.{BufferedOutputStream, File}
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission
 import java.util.jar.{JarEntry, JarOutputStream}
 import scala.collection.mutable
+import scala.concurrent.duration.DurationInt
 import scala.util.Properties.isWin
 import scala.util.chaining.scalaUtilChainingOps
 
@@ -75,6 +78,9 @@ object Jvm {
       destroyOnExit: Boolean = true,
       check: Boolean = true
   )(using ctx: TaskCtx): os.CommandResult = {
+    val effectiveCwd = Option(cwd).getOrElse(os.pwd)
+    PathAliasing.ensureProcessCwdAliases(effectiveCwd)
+    val processEnv = env ++ PathAliasing.workspaceEnvVarsForCwd(effectiveCwd)
     val commandArgs = buildJvmCommand(
       mainClass,
       mainArgs,
@@ -82,7 +88,7 @@ object Jvm {
       jvmArgs,
       classPath,
       cpPassingJarPath,
-      cwd
+      effectiveCwd
     )
 
     ctx.log.debug(
@@ -90,8 +96,8 @@ object Jvm {
     )
 
     os.proc(commandArgs).call(
-      cwd = cwd,
-      env = env,
+      cwd = effectiveCwd,
+      env = processEnv,
       propagateEnv = propagateEnv,
       stdin = stdin,
       stdout = stdout,
@@ -131,6 +137,12 @@ object Jvm {
    *                            (-1 for no kill, 0 for always kill immediately)
    * @param destroyOnExit Destroy on JVM exit
    */
+  /**
+   * Runs a JVM subprocess with the given configuration and streams
+   * it's stdout and stderr to the console.
+   *
+   * @param pathRelativization If `true`, child `os.Path` serialization uses Mill's workspace aliases
+   */
   def spawnProcess(
       mainClass: String,
       mainArgs: os.Shellable = Seq.empty,
@@ -146,8 +158,15 @@ object Jvm {
       stderr: os.ProcessOutput = os.Inherit,
       mergeErrIntoOut: Boolean = false,
       shutdownGracePeriod: Long = 100,
-      destroyOnExit: Boolean = true
+      destroyOnExit: Boolean = true,
+      @unroll pathRelativization: Boolean = true
   ): os.SubProcess = {
+    val effectiveCwd = Option(cwd).getOrElse(os.pwd)
+    PathAliasing.ensureProcessCwdAliases(effectiveCwd)
+    val processEnv =
+      env ++ Option.when(pathRelativization)(PathAliasing.workspaceEnvVarsForCwd(effectiveCwd))
+        .getOrElse(Map.empty)
+
     val commandArgs = buildJvmCommand(
       mainClass,
       mainArgs,
@@ -155,12 +174,12 @@ object Jvm {
       jvmArgs,
       classPath,
       cpPassingJarPath,
-      cwd
+      effectiveCwd
     )
 
     os.proc(commandArgs).spawn(
-      cwd = cwd,
-      env = env,
+      cwd = effectiveCwd,
+      env = processEnv,
       stdin = stdin,
       stdout = stdout,
       stderr = stderr,
@@ -176,7 +195,10 @@ object Jvm {
    */
   def jdkTool(toolName: String, javaHome: Option[os.Path]): String = {
     javaHome
-      .map(_.toString())
+      .map { home =>
+        // ProcessBuilder executes this JDK tool directly, outside os-lib alias resolution.
+        PathRef.toAbsString(home)
+      }
       .orElse(sys.props.get("java.home"))
       .map(h =>
         if (isWin) File(h, s"bin\\${toolName}.exe")
@@ -221,11 +243,11 @@ object Jvm {
 
     if (cwd != null) os.makeDir.all(cwd)
 
+    val cpStr = cp.iterator.map(PathRef.toRelString(_, cwd)).mkString(java.io.File.pathSeparator)
     Vector(javaExe(javaHome)) ++
       jdk23PlusUnsafeOpts(javaHome) ++
       jvmArgs.value ++
-      Option.when(cp.nonEmpty)(Vector("-cp", cp.mkString(java.io.File.pathSeparator)))
-        .getOrElse(Vector.empty) ++
+      Option.when(cp.nonEmpty)(Vector("-cp", cpStr)).getOrElse(Vector.empty) ++
       Vector(mainClass) ++
       mainArgs.value
   }
@@ -273,6 +295,7 @@ object Jvm {
       cwd: os.Path = null,
       propagateEnv: Boolean = true
   )(using ctx: TaskCtx): Int = {
+    val effectiveCwd = Option(cwd).getOrElse(os.pwd)
     val commandArgs = buildJvmCommand(
       mainClass,
       mainArgs,
@@ -280,7 +303,7 @@ object Jvm {
       jvmArgs,
       classPath,
       cpPassingJarPath,
-      cwd
+      effectiveCwd
     )
 
     ctx.log.debug(
@@ -290,7 +313,7 @@ object Jvm {
     runInteractiveCommand(
       cmd = commandArgs,
       env = env,
-      cwd = Option(cwd).getOrElse(os.pwd),
+      cwd = effectiveCwd,
       propagateEnv = propagateEnv
     )
   }
@@ -304,10 +327,17 @@ object Jvm {
       cwd: os.Path = os.pwd,
       propagateEnv: Boolean = true
   ): Int = {
+    val effectiveCwd = Option(cwd).getOrElse(os.pwd)
+    PathAliasing.ensureProcessCwdAliases(effectiveCwd)
+    val processEnv = env ++ PathAliasing.workspaceEnvVarsForCwd(effectiveCwd)
     LauncherSubprocess.value(LauncherSubprocess.Config(
       cmd = cmd,
-      env = env,
-      cwd = cwd.toString,
+      env = processEnv,
+      // Pass the absolute cwd: this string is consumed launcher-side by `os.Path(...)`, which
+      // requires an absolute path. In reproducible mode `cwd.toString` is relativized (e.g.
+      // `out/mill-workspace/out/run.dest`), so use the underlying absolute path to avoid the
+      // launcher throwing "Path must be absolute" (which it swallows into a silent exit code 1).
+      cwd = effectiveCwd.wrapped.toAbsolutePath.normalize().toString,
       propagateEnv = propagateEnv
     ))
   }
@@ -349,7 +379,14 @@ object Jvm {
     Option.when(javaMajorVersion >= 23)("--sun-misc-unsafe-memory-access=allow").toSeq ++
       // Silence another benign warning, this one raised by JLine and `com.swoval:file-tree-views`
       // which is transitively used by Zinc for faster filesystem operations
-      Option.when(javaMajorVersion >= 16)("--enable-native-access=ALL-UNNAMED").toSeq
+      Option.when(javaMajorVersion >= 16)("--enable-native-access=ALL-UNNAMED").toSeq ++
+      // In reproducible-build mode the Zinc output dir is passed as a workspace-relative path
+      // (resolved via the `out/mill-workspace` alias), which makes sbt.io print a noisy
+      // "Tried to extract the base path for relative glob ..." warning to stderr. The glob still
+      // resolves correctly, so opt into the implicit relative-glob conversion to silence it.
+      Option.when(
+        sys.env.get(EnvVars.OS_LIB_PATH_RELATIVIZER_BASE).exists(_.nonEmpty)
+      )("-Dsbt.io.implicit.relative.glob.conversion=allow").toSeq
   }
 
   /**
@@ -367,7 +404,8 @@ object Jvm {
       sharedPrefixes: Iterable[String] = Seq(),
       label: String = null
   )(using e: sourcecode.Enclosing): MillURLClassLoader = MillURLClassLoader(
-    classPath.map(_.toNIO),
+    // URLClassLoader consumes these paths in-process, so bypass the active path serializer.
+    classPath.map(PathRef.toAbsNioPath),
     parent,
     sharedLoader,
     sharedPrefixes,
@@ -487,13 +525,14 @@ object Jvm {
   }
 
   def createClasspathPassingJar(jar: os.Path, classpath: Seq[os.Path]): Unit = {
+    val classPathManifestValue = classpath.iterator
+      .map(_.wrapped.toAbsolutePath.normalize().toUri.toURL.toExternalForm)
+      .mkString(" ")
     createJar(
       jar = jar,
       inputPaths = Seq(),
       manifest = JarManifest.MillDefault.add(
-        "Class-Path" -> classpath.iterator.map(_.toURL.toExternalForm()).mkString(
-          " "
-        )
+        "Class-Path" -> classPathManifestValue
       ),
       fileFilter = (_, _) => true
     )
@@ -609,7 +648,7 @@ object Jvm {
     val isBatch =
       isWin && !(org.jline.utils.OSUtils.IS_CYGWIN || org.jline.utils.OSUtils.IS_MSYSTEM)
     val outputPath = destFolder / (if (isBatch) "run.bat" else "run")
-    val classPathStrs = classPath.map(_.toString)
+    val classPathStrs = classPath.map(PathRef.toResolvedPathString)
 
     os.write(outputPath, launcherUniversalScript(mainClass, classPathStrs, classPathStrs, jvmArgs))
 
@@ -628,10 +667,15 @@ object Jvm {
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
       config: CoursierConfig
   ) =
-    FileCache[Task](os.Path(config.cacheLocation).toIO)
+    // Use `.wrapped.toFile` instead of `.toIO`: in reproducible mode the path
+    // serializer relativizes `toIO` to `..\mill-home\...`, which on Windows
+    // breaks Plexus's zip-slip prefix check inside ArchiveCache → JDK extract.
+    FileCache[Task](os.Path(config.cacheLocation).wrapped.toFile)
       .withCredentials(config.credentials)
       .withTtl(config.ttl)
       .withCachePolicies(config.cachePolicies)
+      .withRetry(8)
+      .withRetryBackoffInitialDelay(2.seconds)
       // Apply Mill's default logger first, then the user customizer, so that
       // overrides in coursierCacheCustomizer (e.g. a custom logger) take precedence.
       .pipe { cache =>
@@ -856,9 +900,9 @@ object Jvm {
     val jvmCache = JvmCache()
       .withArchiveCache(
         ArchiveCache()
-          .withLocation(os.Path(config.archiveCacheLocation).toIO)
+          .withLocation(os.Path(config.archiveCacheLocation).wrapped.toFile)
           .withCache(coursierCache0)
-          .withShortPathDirectory(shortPathDirOpt.map(_.toIO))
+          .withShortPathDirectory(shortPathDirOpt.map(_.wrapped.toFile))
       )
       .withIndex(jvmIndex0(
         ctx,

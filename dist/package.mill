@@ -116,11 +116,15 @@ trait DistModule extends RunModule {
 
   def executable = Task {
     val rawExecutable = executableRaw()
+    // `wrapped`: launcher script may be invoked from any cwd, so embed real absolute paths
+    // rather than the relativized `../mill-workspace/...` alias form.
+    val rawExecutableAbs = rawExecutable.path.wrapped.toAbsolutePath.normalize().toString
+    val localRepoUri = localRepo().path.wrapped.toUri.toASCIIString
     if (Properties.isWin) {
       val launcher = Task.dest / "mill.bat"
       val launcherContent =
         s"""@echo off
-           |set "NEW_COURSIER_REPOSITORIES=${localRepo().path.toNIO.toUri.toASCIIString}|ivy2Local|central"
+           |set "NEW_COURSIER_REPOSITORIES=$localRepoUri|ivy2Local|central"
            |if defined COURSIER_REPOSITORIES (
            |  set "NEW_COURSIER_REPOSITORIES=%NEW_COURSIER_REPOSITORIES%|%COURSIER_REPOSITORIES%"
            |) else (
@@ -128,7 +132,7 @@ trait DistModule extends RunModule {
            |)
            |set "COURSIER_REPOSITORIES=%NEW_COURSIER_REPOSITORIES%"
            |set NEW_COURSIER_REPOSITORIES=
-           |"${rawExecutable.path.toString.replace("\"", "\\\"")}" %*
+           |"${rawExecutableAbs.replace("\"", "\\\"")}" %*
            |if errorlevel 1 exit /b %errorlevel%
            |""".stripMargin
       os.write(launcher, launcherContent)
@@ -138,8 +142,8 @@ trait DistModule extends RunModule {
       val launcherContent =
         s"""#!/usr/bin/env bash
            |set -e
-           |export COURSIER_REPOSITORIES="${localRepo().path.toNIO.toUri.toASCIIString}|$${COURSIER_REPOSITORIES:-ivy2Local|central}"
-           |exec '${rawExecutable.path.toString.replace("'", "\\'")}' "$$@"
+           |export COURSIER_REPOSITORIES="$localRepoUri|$${COURSIER_REPOSITORIES:-ivy2Local|central}"
+           |exec '${rawExecutableAbs.replace("'", "\\'")}' "$$@"
            |""".stripMargin
       os.write(launcher, launcherContent)
       val perms = Files.getPosixFilePermissions(launcher.toNIO)
@@ -321,11 +325,17 @@ object `package` extends MillJavaModule with Proguard with DistModule {
     val dest = Task.dest / filename
 
     val jvmArgs = testArgs() ++ forkArgs()
-    val classpath = runClasspath().map(_.path.toString)
+    val classpath = runClasspath().map(p => PathRef.toResolvedPathString(p.path))
     val classpathJar = Task.dest / "classpath.jar"
     Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
 
-    writeExecutableScript(dest, mainClass().get, classpath, Seq(classpathJar.toString()), jvmArgs)
+    writeExecutableScript(
+      dest,
+      mainClass().get,
+      classpath,
+      Seq(PathRef.toResolvedPathString(classpathJar)),
+      jvmArgs
+    )
     PathRef(dest)
   }
 
@@ -341,7 +351,12 @@ object `package` extends MillJavaModule with Proguard with DistModule {
 
     // Use the unified localRepo instead of individual publishLocalTestRepo paths
     override def localTestOverridesEnv = Task {
-      val repos = Seq(localRepo().path.toNIO.toUri.toASCIIString) ++
+      val repos = Seq(
+        PathRef.toResolvedOsPath(localRepo().path).wrapped.toAbsolutePath
+          .normalize()
+          .toUri
+          .toASCIIString
+      ) ++
         Seq(Task.env.getOrElse("COURSIER_REPOSITORIES", "ivy2Local|central"))
       Seq("COURSIER_REPOSITORIES" -> repos.mkString("|"))
     }
@@ -373,7 +388,9 @@ object `package` extends MillJavaModule with Proguard with DistModule {
           // so Mill needs to resolve modules at that version from ~/.ivy2/local
           Task.traverse(allPublishModules)(m => m.publishLocal(doc = false))()
           Jvm.runInteractiveCommand(
-            cmd = Seq(build.dist.raw.executableVersioned().path.toString) ++ rest,
+            cmd = Seq(
+              PathRef.toResolvedPathString(build.dist.raw.executableVersioned().path)
+            ) ++ rest,
             env = forkEnv() ++ build.dist.raw.localTestOverridesEnv(),
             cwd = wd,
             propagateEnv = true
@@ -446,7 +463,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
 
   def exampleArtifactNames = Task {
     for (path <- examplePaths()) yield {
-      val example = path.subRelativeTo(BuildCtx.workspaceRoot)
+      val example = build.workspaceSubPath(path)
       val artifactName = example.segments.mkString("-")
       s"${build.dist.artifactFileNamePrefix()}-$artifactName"
     }

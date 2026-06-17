@@ -35,18 +35,6 @@ class FileLock(path: String) extends Lock {
     )
   }
 
-  override def probe(): Boolean = {
-    initializeIfNeeded()
-    val l =
-      try chan.tryLock()
-      catch { case _: OverlappingFileLockException => null }
-    if (l == null) false
-    else {
-      l.release()
-      true
-    }
-  }
-
   override def close(): Unit = {
     chan.close()
     raf.close()

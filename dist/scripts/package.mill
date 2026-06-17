@@ -96,9 +96,10 @@ object `package` extends mill.Module { scripts =>
     def mvnDeps = Seq(millbuild.Deps.osLib, millbuild.Deps.pprint)
     def utestVersion = millbuild.Deps.TestDeps.utest.version
     def forkEnv = Map(
-      "MILL_TEST_SH_SCRIPT" -> millSh.compile0().path.toString,
-      "MILL_TEST_BAT_SCRIPT" -> millBat.compile0().path.toString,
-      "MILL_NATIVE_SUFFIX" -> build.dist.native.nativeSuffix()
+      "MILL_TEST_SH_SCRIPT" -> PathRef.toResolvedPathString(millSh.compile0().path),
+      "MILL_TEST_BAT_SCRIPT" -> PathRef.toResolvedPathString(millBat.compile0().path),
+      "MILL_NATIVE_SUFFIX" -> build.dist.native.nativeSuffix(),
+      "MILL_EXPECTED_DEFAULT_VERSION" -> build.millVersion()
     )
   }
   def scriptsModules: Seq[BootstrapScriptModule] = Seq(millSh, millBat)

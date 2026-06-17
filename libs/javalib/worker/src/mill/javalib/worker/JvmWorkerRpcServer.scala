@@ -35,6 +35,8 @@ class JvmWorkerRpcServer(
       clientStderr: RpcConsole,
       serverToClient: MillRpcChannel[ServerToClient]
   ): MillRpcChannel[JvmWorkerRpcServer.Request] = setIdle.doWork {
+    val compilerBridgeWorkspace = initialize.compilerBridgeWorkspace
+
     // This is an ugly hack. `ConsoleOut` is sealed, but we need to provide a way to send these logs to the Mill server
     // over RPC, so we hijack `PrintStream` by overriding the methods that `ConsoleOut` uses.
     //
@@ -65,7 +67,7 @@ class JvmWorkerRpcServer(
               log,
               consoleOut,
               ZincCompilerBridgeProvider(
-                workspace = initialize.compilerBridgeWorkspace,
+                workspace = compilerBridgeWorkspace,
                 logInfo = log.info,
                 acquire = (scalaVersion, scalaOrganization) =>
                   input.compilerBridge.getOrElse {
@@ -87,7 +89,8 @@ object JvmWorkerRpcServer {
   /**
    * @param compilerBridgeWorkspace The workspace to use for the compiler bridge.
    */
-  case class Initialize(compilerBridgeWorkspace: os.Path) derives ReadWriter
+  case class Initialize(compilerBridgeWorkspace: os.Path, workspaceRoot: os.Path)
+      derives ReadWriter
 
   enum ReporterMode(val reportCachedProblems: Boolean) derives ReadWriter {
     case NoReporter extends ReporterMode(false)

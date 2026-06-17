@@ -1,5 +1,6 @@
 package mill.internal
 
+import mill.api.internal.PathAliasing
 import mill.constants.CodeGenConstants.*
 import mill.constants.ConfigConstants
 import mill.constants.OutFiles.OutFiles.millBuild
@@ -7,7 +8,7 @@ import mill.constants.OutFiles.OutFiles.millBuild
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 object BuildFileDiscovery {
-  def findRootBuildFiles(projectRoot: os.Path) = {
+  def findRootBuildFiles(projectRoot: os.Path) = PathAliasing.withRawPathSerializer {
     val rootBuildFiles = rootBuildFileNames.asScala
       .filter(rootBuildFileName => os.exists(projectRoot / rootBuildFileName))
 
@@ -25,37 +26,44 @@ object BuildFileDiscovery {
     (dummy = dummy, foundRootBuildFileName = foundRootBuildFileName)
   }
 
-  def walkNestedBuildFiles(projectRoot: os.Path, output: os.Path): Seq[os.Path] = {
-    if (!os.exists(projectRoot)) Nil
-    else {
-      val buildFileNames = nestedBuildFileNamesFor(projectRoot)
+  def walkNestedBuildFiles(projectRoot: os.Path, output: os.Path): Seq[os.Path] =
+    PathAliasing.withRawPathSerializer {
+      if (!os.exists(projectRoot)) Nil
+      else {
+        val buildFileNames = nestedBuildFileNamesFor(projectRoot)
 
-      os.walk(
-        projectRoot,
-        followLinks = true,
-        skip = p =>
-          p == output ||
-            p == projectRoot / millBuild ||
-            (os.isDir(p) && !buildFileNames.exists(n => os.exists(p / n)))
-      ).filter(p => buildFileNames.contains(p.last))
+        os.walk(
+          projectRoot,
+          followLinks = true,
+          skip = p =>
+            p == output ||
+              p == projectRoot / millBuild ||
+              (os.isDir(p) && !buildFileNames.exists(n => os.exists(p / n)))
+        ).filter(p => buildFileNames.contains(p.last))
+      }
     }
-  }
 
-  def walkBuildFiles(projectRoot: os.Path, output: os.Path): Seq[os.Path] = {
-    if (!os.exists(projectRoot)) Nil
-    else {
-      val buildFiles = walkNestedBuildFiles(projectRoot, output)
-      val adjacentScripts = (projectRoot +: buildFiles.map(_ / os.up))
-        .flatMap(os.list(_))
-        .filter(p =>
-          buildFileExtensions.asScala.exists(ext =>
-            p.baseName.nonEmpty && p.last.endsWith("." + ext)
+  def walkBuildFiles(projectRoot: os.Path, output: os.Path): Seq[os.Path] =
+    PathAliasing.withRawPathSerializer {
+      if (!os.exists(projectRoot)) Nil
+      else {
+        val buildFiles = walkNestedBuildFiles(projectRoot, output)
+        val adjacentScripts = (projectRoot +: buildFiles.map(_ / os.up))
+          .flatMap(os.list(_))
+          .filter(p =>
+            buildFileExtensions.asScala.exists(ext =>
+              p.baseName.nonEmpty && p.last.endsWith("." + ext)
+            )
           )
-        )
 
-      (buildFiles ++ adjacentScripts).distinct
+        // Canonicalize through the `mill-workspace` alias symlink so a build file discovered via
+        // both its real and aliased paths collapses to one entry under `.distinct`.
+        def canonical(p: os.Path): os.Path =
+          try os.Path(p.wrapped.toRealPath())
+          catch { case _: java.io.IOException => p }
+        (buildFiles ++ adjacentScripts).map(canonical).distinct
+      }
     }
-  }
 
   private def nestedBuildFileNamesFor(projectRoot: os.Path): Seq[String] = {
     val allowNestedBuildMillFiles = Util.readBooleanFromBuildHeader(

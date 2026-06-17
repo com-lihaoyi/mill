@@ -146,10 +146,14 @@ object PrecompiledModuleRef {
    */
   private[mill] def validatePrecompiledClass(
       cls: Class[?],
-      relPath: String,
       scriptFile: os.Path,
       extendsIndex: Int
   ): java.lang.reflect.Constructor[?] = {
+    val displayPath = mill.api.PathRef
+      .toResolvedOsPathAnchored(scriptFile, mill.api.BuildCtx.workspaceRoot)
+      .relativeTo(mill.api.BuildCtx.workspaceRoot)
+      .toString
+
     def fail(msg: String): Nothing =
       throw new mill.api.daemon.Result.Exception(
         msg,
@@ -158,14 +162,14 @@ object PrecompiledModuleRef {
 
     if (cls.isInterface) {
       fail(
-        s"Precompiled module '$relPath' extends '${cls.getName}' which is a trait. " +
+        s"Precompiled module '$displayPath' extends '${cls.getName}' which is a trait. " +
           s"Precompiled modules must extend a class with a " +
           s"(val scriptConfig: mill.api.PrecompiledModule.Config) constructor parameter"
       )
     }
     if (java.lang.reflect.Modifier.isAbstract(cls.getModifiers)) {
       fail(
-        s"Precompiled module '$relPath' extends '${cls.getName}' which is abstract. " +
+        s"Precompiled module '$displayPath' extends '${cls.getName}' which is abstract. " +
           s"Precompiled modules must extend a concrete class with a " +
           s"(val scriptConfig: mill.api.PrecompiledModule.Config) constructor parameter"
       )
@@ -182,12 +186,20 @@ object PrecompiledModuleRef {
           ctor.getParameterTypes.map(_.getSimpleName).mkString("(", ", ", ")")
         }.mkString(", ")
         fail(
-          s"Precompiled module '$relPath' extends '${cls.getName}' which does not have " +
+          s"Precompiled module '$displayPath' extends '${cls.getName}' which does not have " +
             s"a (val scriptConfig: mill.api.PrecompiledModule.Config) constructor parameter. " +
             s"Found constructor(s): $actualSig"
         )
     }
   }
+
+  private[mill] def validatePrecompiledClass(
+      cls: Class[?],
+      @scala.annotation.unused relPath: String,
+      scriptFile: os.Path,
+      extendsIndex: Int
+  ): java.lang.reflect.Constructor[?] =
+    validatePrecompiledClass(cls, scriptFile, extendsIndex)
 
   def apply(
       @scala.annotation.unused parent: mill.api.Module,
@@ -240,7 +252,7 @@ object PrecompiledModuleRef {
                 }
             }
           val extendsIndex = headerData.`extends`.index
-          val validCtor = validatePrecompiledClass(cls, relPath, scriptFile, extendsIndex)
+          val validCtor = validatePrecompiledClass(cls, scriptFile, extendsIndex)
           val module = validCtor.newInstance(config).asInstanceOf[mill.api.Module]
           findNestedConfigMismatch(module, scriptFile, headerData).foreach { f =>
             throw new mill.api.daemon.Result.Exception(

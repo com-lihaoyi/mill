@@ -8,10 +8,38 @@ import scala.concurrent.{Await, Future, Promise}
 
 object ExecutionContextsTests extends TestSuite {
   val tests = Tests {
-    test("blockingReusesCompensationThreads") {
-      // Repeated managed-blocking should keep reusing the same compensation
-      // worker instead of shrinking maximumPoolSize and retiring an idle worker
-      // after every blocked parent task.
+    test("blockingScalesPoolUpThenBackDownToBaseline") {
+      // Managed-blocking grows BOTH core and max while a task is parked, then
+      // scales both back down on exit so the `--jobs` parallelism bound is
+      // restored (no leftover workers left draining the queue). The resulting
+      // thread churn is intentional and is kept out of chrome profiles by
+      // `mill.internal.ThreadNumberer` recycling ids of reaped threads.
+      val executor = ExecutionContexts.createExecutor(threadCount = 2)
+      val pool = ExecutionContexts.ThreadPool(executor)
+      try {
+        assert(executor.getCorePoolSize == 2 && executor.getMaximumPoolSize == 2)
+
+        pool.enterBlocking()
+        assert(executor.getCorePoolSize == 3 && executor.getMaximumPoolSize == 3)
+
+        pool.enterBlocking()
+        assert(executor.getCorePoolSize == 4 && executor.getMaximumPoolSize == 4)
+
+        pool.leaveBlocking()
+        assert(executor.getCorePoolSize == 3 && executor.getMaximumPoolSize == 3)
+
+        pool.leaveBlocking()
+        assert(executor.getCorePoolSize == 2 && executor.getMaximumPoolSize == 2)
+
+        assert(executor.getKeepAliveTime(TimeUnit.SECONDS) == 60)
+      } finally executor.shutdown()
+    }
+
+    test("blockingRunsCompensationWorkerWhileParked") {
+      // With both core threads occupied (one by a long-running blocker, one by a
+      // parent that parks in `blocking{...}`), a child task must still make
+      // progress — which is only possible if `blocking{...}` grew the pool so a
+      // compensation worker could run it.
       val executor = ExecutionContexts.createExecutor(threadCount = 2)
       val pool = ExecutionContexts.ThreadPool(executor)
       val blockerStarted = CountDownLatch(1)
@@ -24,29 +52,18 @@ object ExecutionContextsTests extends TestSuite {
         })
         assert(blockerStarted.await(5, TimeUnit.SECONDS))
 
-        val threads = collection.mutable.Set.empty[String]
-        for (_ <- 0 until 20) {
-          val result = Promise[(String, String)]()
-          pool.execute(() => {
-            val parentThread = Thread.currentThread().getName
-            val childThread = pool.blocking {
-              Await.result(
-                Future(Thread.currentThread().getName)(using pool),
-                5.seconds
-              )
-            }
-            result.success((parentThread, childThread))
-          })
-          threads.addAll(Await.result(result.future, 5.seconds).productIterator.map(_.toString))
+        val result = Promise[String]()
+        pool.execute(() => {
+          val childThread = pool.blocking {
+            Await.result(
+              Future(Thread.currentThread().getName)(using pool),
+              5.seconds
+            )
+          }
+          result.success(childThread)
+        })
 
-          // Give an executor that shrinks maximumPoolSize on every blocking exit
-          // enough time to retire one of the excess workers before the next loop.
-          Thread.sleep(10)
-        }
-
-        assert(threads.size <= 3)
-        assert(executor.getMaximumPoolSize == 3)
-        assert(executor.getKeepAliveTime(TimeUnit.SECONDS) == 60)
+        assert(Await.result(result.future, 5.seconds) != null)
       } finally {
         releaseBlocker.countDown()
         executor.shutdown()

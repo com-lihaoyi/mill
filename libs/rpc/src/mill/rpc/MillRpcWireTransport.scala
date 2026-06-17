@@ -1,5 +1,6 @@
 package mill.rpc
 
+import mill.api.internal.PathAliasing
 import pprint.{TPrint, TPrintColors}
 import upickle.{Reader, Writer}
 
@@ -60,6 +61,8 @@ class MillRpcWireTransport(
 
   /** Helper that writes a message to the wire, logging along the way. */
   def writeSerialized[A: Writer](message: A): Unit = {
-    write(upickle.write(message))
+    PathAliasing.withRawPathSerializer {
+      write(upickle.write(message))
+    }
   }
 }

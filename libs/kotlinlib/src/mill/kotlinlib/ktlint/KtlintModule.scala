@@ -128,7 +128,7 @@ object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskMod
     }
 
     val configArgument = config match {
-      case Some(path) => Seq("--editorconfig", path.path.toString())
+      case Some(path) => Seq("--editorconfig", PathRef.toRelString(path, moduleDir))
       case None => Seq.empty
     }
     val formatArgument = if (ktlintArgs.format) Seq("--format") else Seq.empty
@@ -137,18 +137,20 @@ object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskMod
     args ++= options
     args ++= configArgument
     args ++= formatArgument
-    args ++= sourceFiles.map(_.toString())
+    args ++= sourceFiles.map(PathRef.toRelString(_, moduleDir))
 
     val exitCode = BuildCtx.withFilesystemCheckerDisabled {
-      Jvm.callProcess(
-        mainClass = "com.pinterest.ktlint.Main",
-        classPath = classPath.map(_.path).toVector,
-        mainArgs = args.result(),
-        cwd = moduleDir,
-        stdin = os.Inherit,
-        stdout = os.Inherit,
-        check = false
-      ).exitCode
+      os.ProcessOps.spawnHook.withValue(_ => ()) {
+        Jvm.callProcess(
+          mainClass = "com.pinterest.ktlint.Main",
+          classPath = classPath.map(_.path).toVector,
+          mainArgs = args.result(),
+          cwd = moduleDir,
+          stdin = os.Inherit,
+          stdout = os.Inherit,
+          check = false
+        ).exitCode
+      }
     }
 
     if (exitCode == 0) {} // do nothing

@@ -4,7 +4,6 @@ package playlib
 import mill.javalib.api.JvmWorkerUtil
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.{TestSuite, Tests, assert, *}
-import scala.annotation.nowarn
 import mill.api.Discover
 
 object PlayModuleTests extends TestSuite with PlayTestSuite {
@@ -23,7 +22,6 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
   }
   val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "playmulti"
 
-  @nowarn("msg=unused pattern variable")
   def tests: Tests = Tests {
     test("layout") {
       test("fromBuild") {

@@ -9,3 +9,35 @@ include::partial$example/fundamentals/out-dir/1-out-files.adoc[]
 == Using another location than the `out/` directory
 
 include::partial$example/fundamentals/out-dir/2-custom-out.adoc[]
+
+== Reproducible `out/` Contents
+
+As of Mill 1.2.0, the contents of the `out/` folder are made independent of where the build
+lives on disk. Absolute paths that fall under the workspace root or the user home directory are
+serialized into Mill's task caches, JSON metadata, and logs as stable relative aliases rather
+than machine-specific absolute paths:
+
+* Paths under the workspace root are written as `../mill-workspace/...`
+* Paths under the home directory are written as `../mill-home/...`
+
+To make these aliases resolve correctly, Mill installs `mill-workspace` and `mill-home`
+forwarder symlinks (pointing back at the real locations) in the working directory of each
+subprocess it spawns, similar to Bazel's symlink sandbox. Subprocesses participate in this
+relativization via the `MILL_WORKSPACE_ROOT` and `OS_LIB_PATH_RELATIVIZER_BASE` environment
+variables; a subprocess can opt out of relativization (and serialize plain absolute paths) by
+setting `OS_LIB_PATH_RELATIVIZER_BASE` to the empty string.
+
+This portability is what allows task caches to be shared across different checkouts and
+machines, and underpins xref:large/remote-caching.adoc[Remote Caching].
+
+[NOTE]
+====
+Because Mill now writes `mill-workspace` and `mill-home` symlinks under `out/` that point at
+machine-local paths, you should strip them before uploading `out/` as a CI artifact for re-use
+on another machine:
+
+[source,console]
+----
+find out \( -name mill-home -o -name mill-workspace \) -type l -delete
+----
+====

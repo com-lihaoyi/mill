@@ -3,7 +3,7 @@ package mill.javalib.micronaut
 import mill.{T, Task}
 import mill.api.{PathRef, experimental}
 import mill.util.Jvm
-import mill.javalib.{Dep, DepSyntax, JavaModule}
+import mill.javalib.{DepSyntax, JavaModule}
 
 /**
  * A module that provides Micronaut AOT processing functionality
@@ -84,15 +84,17 @@ trait MicronautAotModule extends JavaModule {
 
     val args = Seq(
       "--classpath",
-      (runClasspath() ++ resolvedMicronautAotCli()).map(_.path).mkString(":"),
+      (runClasspath() ++ resolvedMicronautAotCli())
+        .map(pr => PathRef.toRelString(pr.path, dest))
+        .mkString(java.io.File.pathSeparator),
       "--package",
       micronautPackage(),
       "--runtime",
       aotRuntime(),
       "--config",
-      micronautAotConfigFile().path.toString,
+      PathRef.toRelString(micronautAotConfigFile().path, dest),
       "--output",
-      dest.toString
+      PathRef.toRelString(dest, dest)
     )
 
     Jvm.callProcess(

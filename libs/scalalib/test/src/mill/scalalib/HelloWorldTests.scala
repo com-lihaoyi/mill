@@ -42,7 +42,7 @@ object HelloWorldTests extends TestSuite {
   object HelloWorldNonPrecompiledBridge extends TestRootModule {
     object core extends HelloWorldModule {
       def jvmVersion = "17"
-      override def scalaVersion = "2.12.1"
+      override def scalaVersion = "2.12.6"
     }
     lazy val millDiscover = Discover[this.type]
 
@@ -212,10 +212,9 @@ object HelloWorldTests extends TestSuite {
 
         assert(result2.evalCount == 0)
 
-        // Make sure we *do* end up compiling the compiler bridge, since it's
-        // *not* using a pre-compiled bridge value
+        // Ensure the subprocess-backed worker path is exercised.
         assert(os.exists(
-          eval.outPath / "mill.javalib.JvmWorkerModule/internalWorker.dest" / s"zinc-${zincVersion}"
+          eval.outPath / "mill.javalib.JvmWorkerModule/internalWorker.dest" / "zinc-worker"
         ))
       }
 

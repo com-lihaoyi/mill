@@ -26,9 +26,15 @@ object MillRepositoriesTests extends UtestIntegrationTestSuite {
       val (_, vs) = upickle.read[(String, Seq[String])](
         os.read(workspacePath / "out/mill-daemon/cache/mill-daemon-classpath")
       )
+      // Extract the path tail starting at `/custom-local-repo`, which strips any leading prefix
+      // (absolute workspace path, a `qref:v1:<hash>:` PathRef prefix, or — in reproducible-build
+      // mode — a relativized `out/mill-workspace/` prefix) so the golden stays stable.
       def findConstants(vs: Seq[String]) = vs
         .filter(_.contains("mill-core-constants"))
-        .map(_.split(os.pwd.toString).last)
+        .map { s =>
+          val i = s.indexOf("/custom-local-repo")
+          if (i >= 0) s.substring(i) else s
+        }
 
       // Make sure the various Mill jars all get resolved from `custom-local-repo` rather
       // han the `localRepo.dest` that would be normally be used in the integration tests

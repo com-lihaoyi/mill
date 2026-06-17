@@ -3,7 +3,7 @@ package mill.androidlib
 import mill.*
 import mill.api.{ModuleRef, PathRef, Result}
 import mill.javalib.{CoursierModule, Dep}
-import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
+import mill.kotlinlib.{DepSyntax, KotlinModule}
 import mill.{T, Task}
 import mill.androidlib.databinding.{
   AndroidDataBindingWorker,
@@ -142,7 +142,7 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
     case true => Task {
         val moduleResources = Seq(androidProcessedLayoutXmls().path / "resources")
 
-        val aapt2Compile = Seq(androidSdkModule().aapt2Exe().path.toString(), "compile")
+        val aapt2Compile = Seq(PathRef.toAbsString(androidSdkModule().aapt2Exe()), "compile")
 
         for (libResDir <- moduleResources) {
           val segmentsSeq = libResDir.segments.toSeq
@@ -151,9 +151,11 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
           os.makeDir(dirDest)
           val aapt2Args = Seq(
             "--dir",
-            libResDir.toString,
+            // Pass real absolute paths rather than `../mill-workspace` relativized aliases,
+            // which the aapt2 subprocess cannot resolve from its own working directory.
+            PathRef.toAbsString(libResDir),
             "-o",
-            dirDest.toString
+            PathRef.toAbsString(dirDest)
           )
 
           os.call(aapt2Compile ++ aapt2Args)

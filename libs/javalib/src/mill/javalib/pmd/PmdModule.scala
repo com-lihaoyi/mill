@@ -1,10 +1,10 @@
 package mill.javalib.pmd
 
 import mill.*
-import mill.api.{Discover, ExternalModule, TaskCtx}
+import mill.api.{Discover, ExternalModule, PathRef, TaskCtx}
 import mill.api.daemon.experimental
 import mill.javalib.api.Versions
-import mill.javalib.{CoursierModule, Dep, DepSyntax, OfflineSupportModule}
+import mill.javalib.{CoursierModule, DepSyntax, OfflineSupportModule}
 import mill.util.{Jvm, Version}
 import upickle.implicits.namedTuples.default.given
 
@@ -39,16 +39,18 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
     Task.Anon {
       val output = Task.dest / s"pmd-output.$format"
       os.makeDir.all(output / os.up)
+      val sourceRoots =
+        if (leftover.value.nonEmpty) leftover.value.toSeq
+        else pmdSourceRoots().map(p => PathRef.toRelString(p, moduleDir))
       val baseArgs = Seq(
         "-d",
-        if (leftover.value.nonEmpty) leftover.value.mkString(",")
-        else "",
+        sourceRoots.mkString(","),
         "-R",
-        pmdRulesets().map(_.path.toString).mkString(","),
+        pmdRulesets().map(p => PathRef.toRelString(p, moduleDir)).mkString(","),
         "-f",
         format,
         "-r",
-        output.toString
+        PathRef.toRelString(output, moduleDir)
       )
 
       val args =
@@ -147,6 +149,9 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
 
   /** PMD rulesets files. Defaults to `pmd-ruleset.xml`. */
   def pmdRulesets: T[Seq[PathRef]] = Task.Sources(moduleDir / "pmd-ruleset.xml")
+
+  /** Source roots analyzed by PMD when no explicit CLI sources are provided. */
+  def pmdSourceRoots: T[Seq[PathRef]] = Task.Sources(moduleDir / "src")
 
   /** Additional arguments for PMD. */
   def pmdOptions: T[Seq[String]] = Task {

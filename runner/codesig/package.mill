@@ -31,10 +31,13 @@ object `package` extends MillPublishScalaModule {
       Task.traverse(caseKeys) { i => f1(cases(i)).map(v => s"MILL_TEST_${s}_$i" -> f2(v)) }
     }
     def forkEnv = Task {
-      Map("MILL_TEST_LOGS" -> testLogFolder().toString) ++
-        caseEnvs(_.compile)("CLASSES", _.classes.path.toString)() ++
-        caseEnvs(_.compileClasspath)("CLASSPATH", _.map(_.path).mkString(","))() ++
-        caseEnvs(_.sources)("SOURCES", _.head.path.toString)()
+      Map("MILL_TEST_LOGS" -> PathRef.toResolvedPathString(testLogFolder())) ++
+        caseEnvs(_.compile)("CLASSES", c => PathRef.toResolvedPathString(c.classes.path))() ++
+        caseEnvs(_.compileClasspath)(
+          "CLASSPATH",
+          _.map(p => PathRef.toResolvedPathString(p.path)).mkString(",")
+        )() ++
+        caseEnvs(_.sources)("SOURCES", s => PathRef.toResolvedPathString(s.head.path))()
     }
 
     object cases extends Cross[CaseModule](caseKeys)

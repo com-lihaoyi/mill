@@ -2,6 +2,7 @@ package mill.testkit
 
 import mill.api.SelectMode
 import mill.api.internal.Cached
+import mill.constants.EnvVars
 import mill.constants.OutFiles.OutFiles
 import mill.launcher.MillLauncherMain
 import mill.api.daemon.SystemStreams
@@ -236,7 +237,19 @@ object IntegrationTester {
       val shellable: os.Shellable =
         (millExecutable, serverArgs, "--ticker", "false", debugArgs, cmd)
 
-      val callEnv = millTestSuiteEnv ++ env
+      val parentEnv =
+        if (propagateEnv) {
+          sys.env -- Seq(
+            EnvVars.MILL_WORKSPACE_ROOT,
+            EnvVars.MILL_OUTPUT_DIR,
+            EnvVars.OS_LIB_PATH_RELATIVIZER_BASE
+          )
+        } else Map.empty[String, String]
+      val sandboxMillEnv = Map(
+        EnvVars.MILL_WORKSPACE_ROOT -> workspacePath.wrapped.toAbsolutePath.normalize().toString,
+        EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> ""
+      )
+      val callEnv = parentEnv ++ millTestSuiteEnv ++ sandboxMillEnv ++ env
 
       def run() = {
         if (useInMemory && stdin == os.Pipe && stdout == os.Pipe && stderr == os.Pipe) {
@@ -254,7 +267,7 @@ object IntegrationTester {
             mergeErrIntoOut = mergeErrIntoOut,
             timeout = timeout,
             check = check,
-            propagateEnv = propagateEnv,
+            propagateEnv = false,
             shutdownGracePeriod = timeoutGracePeriod
           )
 
@@ -269,7 +282,7 @@ object IntegrationTester {
         stdout = stdout,
         stderr = stderr,
         mergeErrIntoOut = mergeErrIntoOut,
-        propagateEnv = propagateEnv,
+        propagateEnv = false,
         shutdownGracePeriod = timeoutGracePeriod
       )
 

@@ -140,16 +140,6 @@ object InspectTests extends UtestIntegrationTestSuite {
           |    The Core Module Docz!
           |
           |Inherited Modules:
-          |    mill.javalib.CoursierModule
-          |    mill.javalib.JavaHomeModule
-          |    mill.javalib.WithJvmWorkerModule
-          |    mill.javalib.bsp.BspModule
-          |    mill.javalib.RunModule
-          |    mill.javalib.GenIdeaModule
-          |    mill.javalib.OfflineSupportModule
-          |    mill.javalib.SemanticDbJavaModule
-          |    mill.javalib.AssemblyModule
-          |    mill.util.JdkCommandsModule
           |    mill.javalib.JavaModule
           |
           |Default Task: core.run
@@ -166,16 +156,6 @@ object InspectTests extends UtestIntegrationTestSuite {
         """MyJavaTaskModule(build.mill:53)
           |
           |Inherited Modules:
-          |    mill.javalib.CoursierModule
-          |    mill.javalib.JavaHomeModule
-          |    mill.javalib.WithJvmWorkerModule
-          |    mill.javalib.bsp.BspModule
-          |    mill.javalib.RunModule
-          |    mill.javalib.GenIdeaModule
-          |    mill.javalib.OfflineSupportModule
-          |    mill.javalib.SemanticDbJavaModule
-          |    mill.javalib.AssemblyModule
-          |    mill.util.JdkCommandsModule
           |    mill.javalib.JavaModule
           |
           |Module Dependencies:

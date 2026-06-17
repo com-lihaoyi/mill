@@ -1,6 +1,7 @@
 package mill.javascriptlib
 
 import mill.*
+import mill.api.PathRef
 import os.*
 
 trait PublishModule extends TypeScriptModule {
@@ -122,10 +123,11 @@ trait PublishModule extends TypeScriptModule {
       s"""
          |  plugins: [
          |    ${resources().map { p => p.path }.filter(os.exists).map { rp =>
+          val cwd = Task.dest
           s"""    copyStaticFiles({
-             |      src: ${ujson.Str(rp.toString)},
+             |      src: ${ujson.Str(PathRef.toRelString(rp, cwd))},
              |      dest: ${ujson.Str(
-              compile().path.toString + "/" + pubBundledOut() + "/" + rp.last
+              PathRef.toRelString(compile().path / pubBundledOut() / rp.last, cwd)
             )},
              |      dereference: true,
              |      preserveTimestamps: true,

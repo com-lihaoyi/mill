@@ -5,8 +5,8 @@ import java.nio.file.Path
 import mill.api.daemon.internal.bsp.BspJavaModuleApi
 import mill.Task
 import mill.api.daemon.internal.{EvaluatorApi, internal}
-import mill.api.ModuleCtx
-import mill.javalib.{JavaModule, SemanticDbJavaModule}
+import mill.api.{BuildCtx, ModuleCtx, PathRef}
+import mill.javalib.{JavaModule, SemanticDbJavaModule, TestModule, TestModuleUtil}
 import mill.api.JsonFormatters.given
 import mill.api.daemon.internal.TaskApi
 
@@ -15,6 +15,19 @@ trait BspJavaModule extends mill.api.Module with BspJavaModuleApi {
 
   def javaModuleRef: mill.api.ModuleRef[JavaModule & BspModule]
   val jm = javaModuleRef()
+
+  private val testResources = jm match {
+    case m: (TestModule & JavaModule) => Task.Anon { m.resources() }
+    case _ => Task.Anon { Seq.empty }
+  }
+
+  private def testResourceEnv(resources: Seq[mill.api.PathRef], workingDir: os.Path)
+      : Map[String, String] = {
+    val cwd = PathRef.toResolvedOsPathAnchored(workingDir, BuildCtx.workspaceRoot)
+    if (resources.isEmpty) Map.empty
+    else TestModuleUtil.testResourceEnv(resources, cwd, usePathAliases = false)
+  }
+
   override private[mill] def bspBuildTargetInverseSources[T](
       id: T,
       searched: String
@@ -160,7 +173,12 @@ trait BspJavaModule extends mill.api.Module with BspJavaModuleApi {
           forkEnv: Map[String, String]
       )] =
     Task {
-      (jm.allLocalMainClasses(), jm.forkArgs(), jm.allForkEnv())
+      val workingDir = jm.forkWorkingDir()
+      (
+        jm.allLocalMainClasses(),
+        jm.forkArgs(),
+        jm.allForkEnv() ++ testResourceEnv(testResources(), workingDir)
+      )
     }
 
   override private[mill] def bspLoggingTest = Task.Anon {
