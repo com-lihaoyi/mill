@@ -143,13 +143,21 @@ trait RepackageModule extends mill.api.Module {
     override def moduleCtx = jm.moduleCtx
 
     /** Bin-compat stub. */
-    @deprecated("Use RepackageModule.EmbeddableRepackageModule.repackageModuleData instead", "Mill after 1.1.6")
+    @deprecated(
+      "Use RepackageModule.EmbeddableRepackageModule.repackageModuleData instead",
+      "Mill after 1.1.6"
+    )
     object springBootAssemblyModule extends mill.api.Module {
 
       /** Bin-compat stub. */
-      @deprecated("Use RepackageModule.EmbeddableRepackageModule.repackageModuleData.artifactJar instead", "Mill after 1.1.6")
+      @deprecated(
+        "Use RepackageModule.EmbeddableRepackageModule.repackageModuleData.artifactJar instead",
+        "Mill after 1.1.6"
+      )
       def artifactJar: T[PathRef] = Task {
-        Task.fail("Use RepackageModule.EmbeddableRepackageModule.repackageModuleData.artifactJar instead")
+        Task.fail(
+          "Use RepackageModule.EmbeddableRepackageModule.repackageModuleData.artifactJar instead"
+        )
         jm.jar()
       }
     }
