@@ -15,7 +15,9 @@ class KotlinWorkerImpl extends KotlinWorker {
       target: KotlinWorkerTarget,
       useBtApi: Boolean,
       args: Seq[String],
-      sources: Seq[os.Path]
+      sources: Seq[os.Path],
+      classpath: Seq[mill.api.PathRef] = Nil,
+      classpathSnapshotCache: Option[os.Path] = None
   )(using
       ctx: TaskCtx
   ): Result[Unit] = {
@@ -33,7 +35,8 @@ class KotlinWorkerImpl extends KotlinWorker {
 
     ctx.log.debug(s"Using compiler backend: ${compiler.getClass().getSimpleName()}")
 
-    val (exitCode, exitCodeName) = compiler.compile(args, sources)
+    val (exitCode, exitCodeName) =
+      compiler.compile(args, sources, classpath, classpathSnapshotCache)
 
     if (exitCode != 0) {
       sys.error(s"Kotlin compiler failed with exit code ${exitCode} ($exitCodeName)")

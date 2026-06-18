@@ -5,7 +5,7 @@
  */
 package mill.kotlinlib.worker.api
 
-import mill.api.TaskCtx
+import mill.api.{PathRef, TaskCtx}
 import mill.api.daemon.Result
 
 trait KotlinWorker {
@@ -14,7 +14,9 @@ trait KotlinWorker {
       target: KotlinWorkerTarget,
       useBtApi: Boolean,
       args: Seq[String],
-      sources: Seq[os.Path]
+      sources: Seq[os.Path],
+      classpath: Seq[PathRef] = Nil,
+      classpathSnapshotCache: Option[os.Path] = None
   )(using ctx: TaskCtx): Result[Unit]
 
 }

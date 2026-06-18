@@ -18,18 +18,6 @@ object `package` extends MillStableScalaModule with BuildInfo {
     override def selectiveInputs = Seq(sources, resources) ++ kotlinSelectiveInputs
   }
 
-  // The ExhaustiveWhenBtApiReproTests spawns a Mill subprocess (via IntegrationTester)
-  // that must run the kotlinlib worker built from the current sources rather than a
-  // published release. Point it at the locally-built dev launcher and the matching
-  // local module repository, mirroring how the `integration` tests are wired.
-  // `MillScalaTests.forkEnv` incorporates this module's `testForkEnv`, so the test
-  // subprocess inherits these settings.
-  override def testForkEnv = Task {
-    super.testForkEnv() ++
-      build.dist.raw.localTestOverridesEnv() ++
-      Map("MILL_EXECUTABLE_PATH" -> build.dist.raw.launcher().path.toString)
-  }
-
   def moduleDeps =
     Seq(build.libs.javalib, build.libs.javalib.testrunner, api, `ksp2-api`)
   def localTestExtraModules =

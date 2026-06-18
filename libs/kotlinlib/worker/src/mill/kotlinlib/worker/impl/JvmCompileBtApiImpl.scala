@@ -1,6 +1,6 @@
 package mill.kotlinlib.worker.impl
 
-import mill.api.TaskCtx
+import mill.api.{PathRef, TaskCtx}
 import org.jetbrains.kotlin.buildtools.api.{
   CompilationResult,
   KotlinLogger,
@@ -8,13 +8,14 @@ import org.jetbrains.kotlin.buildtools.api.{
   SourcesChanges
 }
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain
+import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshotGranularity
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationConfiguration
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationOptions
+import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshottingOperation
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation
 import org.jetbrains.kotlin.cli.common.ExitCode
 
 import java.io.{PrintWriter, StringWriter}
-import java.security.MessageDigest
 import scala.jdk.CollectionConverters.*
 import scala.util.chaining.scalaUtilChainingOps
 
@@ -54,25 +55,12 @@ class JvmCompileBtApiImpl() extends Compiler {
       .getOrElse(ctx.dest / "classes")
   }
 
-  private def classpathEntriesFromArgs(args: Seq[String])(using ctx: TaskCtx): Seq[os.Path] = {
-    args.sliding(2)
-      .collectFirst {
-        case Seq("-classpath" | "-cp", classpath) => classpath
-      }
-      .toSeq
-      .flatMap(_.split(java.io.File.pathSeparator).iterator)
-      .filter(_.nonEmpty)
-      .map(os.Path(_, ctx.workspace))
-      .filter(os.exists)
-  }
-
-  private def snapshotFileName(entry: os.Path): String = {
-    val digest = MessageDigest.getInstance("SHA-256")
-      .digest(entry.toString.getBytes(java.nio.charset.StandardCharsets.UTF_8))
-    digest.map("%02x".format(_)).mkString + ".snapshot"
-  }
-
-  def compile(args: Seq[String], sources: Seq[os.Path])(using ctx: TaskCtx): (Int, String) = {
+  def compile(
+      args: Seq[String],
+      sources: Seq[os.Path],
+      classpath: Seq[PathRef] = Nil,
+      classpathSnapshotCache: Option[os.Path] = None
+  )(using ctx: TaskCtx): (Int, String) = {
 
     val incrementalCachePath = ctx.dest / "inc-state"
     os.makeDir.all(incrementalCachePath)
@@ -80,20 +68,26 @@ class JvmCompileBtApiImpl() extends Compiler {
 
     val toolchains = KotlinToolchains.loadImplementation(getClass().getClassLoader())
     val jvmToolchain = JvmPlatformToolchain.from(toolchains)
-    val sourceFiles = sources.map(_.toNIO).asJava
+    // The BTAPI IC engine (RelocatableFileToPathConverter) rejects the relative
+    // `../mill-workspace/...` paths os-lib renders inside Mill's sandbox, so every
+    // path handed to it is resolved to a real absolute path via `PathRef.toAbsNioPath`.
+    val sourceFiles = sources.map(PathRef.toAbsNioPath(_)).asJava
     val compilationOperation =
-      jvmToolchain.createJvmCompilationOperation(sourceFiles, destinationDirectory.toNIO)
+      jvmToolchain.createJvmCompilationOperation(
+        sourceFiles,
+        PathRef.toAbsNioPath(destinationDirectory)
+      )
 
     compilationOperation.getCompilerArguments().applyArgumentStrings(args.asJava)
 
     val snapshotIcOptions = compilationOperation.createSnapshotBasedIcOptions().tap { options =>
       options.set(
         JvmSnapshotBasedIncrementalCompilationOptions.ROOT_PROJECT_DIR,
-        ctx.workspace.toNIO
+        PathRef.toAbsNioPath(ctx.workspace)
       )
       options.set(
         JvmSnapshotBasedIncrementalCompilationOptions.MODULE_BUILD_DIR,
-        incrementalCachePath.toNIO
+        PathRef.toAbsNioPath(incrementalCachePath)
       )
       options.set(
         JvmSnapshotBasedIncrementalCompilationOptions.PRECISE_JAVA_TRACKING,
@@ -101,36 +95,48 @@ class JvmCompileBtApiImpl() extends Compiler {
       )
     }
 
+    val snapshotCacheDir = classpathSnapshotCache.getOrElse(ctx.dest / "classpath-snapshots")
+    os.makeDir.all(snapshotCacheDir)
+
     val compilationResult = {
       val buildSession = toolchains.createBuildSession()
       val executionPolicy = toolchains.createInProcessExecutionPolicy()
       try {
-        // Capture a snapshot of every classpath entry so that the incremental
-        // compilation engine can detect ABI changes in upstream dependencies
-        // (e.g. a new variant added to a sealed type) and recompile downstream
-        // sources that depend on them. Without these snapshots the engine has
-        // nothing to diff the stored `shrunk-classpath-snapshot.bin` against and
-        // silently skips recompilation of affected sources.
-        val classpathSnapshotsDir = ctx.dest / "classpath-snapshots"
-        os.makeDir.all(classpathSnapshotsDir)
-        val classpathSnapshotFiles = classpathEntriesFromArgs(args).map { entry =>
-          val snapshottingOperation = jvmToolchain.createClasspathSnapshottingOperation(entry.toNIO)
-          val snapshot = buildSession.executeOperation(
-            snapshottingOperation,
-            executionPolicy,
-            kotlinLogger
-          )
-          val snapshotFile = classpathSnapshotsDir / snapshotFileName(entry)
-          snapshot.saveSnapshot(snapshotFile.toIO)
-          snapshotFile.toNIO
+        // A classpath entry's snapshot depends only on its content, so cache each
+        // snapshot under the entry's `PathRef.sig`. A content change yields a new
+        // `sig`, hence a new snapshot path, which both invalidates the cache and
+        // makes the (potentially warm, daemon-resident) IC engine load the fresh
+        // snapshot rather than a stale one cached by file path.
+        val classpathSnapshotFiles = classpath.filter(ref => os.exists(ref.path)).map { ref =>
+          val snapshotFile = snapshotCacheDir / s"${ref.sig}.snapshot"
+          if (!os.exists(snapshotFile)) {
+            val snapshottingOperation =
+              jvmToolchain.createClasspathSnapshottingOperation(PathRef.toAbsNioPath(ref.path))
+            snapshottingOperation.set(
+              JvmClasspathSnapshottingOperation.GRANULARITY,
+              ClassSnapshotGranularity.CLASS_MEMBER_LEVEL
+            )
+            snapshottingOperation.set(
+              JvmClasspathSnapshottingOperation.PARSE_INLINED_LOCAL_CLASSES,
+              java.lang.Boolean.TRUE
+            )
+            val snapshot = buildSession.executeOperation(
+              snapshottingOperation,
+              executionPolicy,
+              kotlinLogger
+            )
+            val tmpFile = os.temp(dir = snapshotCacheDir, suffix = ".snapshot")
+            snapshot.saveSnapshot(PathRef.toAbsNioPath(tmpFile).toFile)
+            os.move(tmpFile, snapshotFile, atomicMove = true, replaceExisting = true)
+          }
+          PathRef.toAbsNioPath(snapshotFile)
         }
 
-        // Snapshot-based incremental compilation stores state in `inc-state`.
         val incrementalConfig = new JvmSnapshotBasedIncrementalCompilationConfiguration(
-          incrementalCachePath.toNIO,
+          PathRef.toAbsNioPath(incrementalCachePath),
           SourcesChanges.ToBeCalculated.INSTANCE,
           classpathSnapshotFiles.asJava,
-          (incrementalCachePath / "shrunk-classpath-snapshot.bin").toNIO,
+          PathRef.toAbsNioPath(incrementalCachePath / "shrunk-classpath-snapshot.bin"),
           snapshotIcOptions
         )
         compilationOperation.set(JvmCompilationOperation.INCREMENTAL_COMPILATION, incrementalConfig)

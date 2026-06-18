@@ -94,7 +94,8 @@ trait KaptModule extends KotlinModule { outer =>
         incrementalData = PathRef(incrementalDataOutput)
       )
     } else {
-      val compileCp = compileClasspath().map(_.path).filter(os.exists)
+      val compileClasspathRefs = compileClasspath().filter(ref => os.exists(ref.path))
+      val compileCp = compileClasspathRefs.map(_.path)
       val aptMode = kaptAptMode()
       if (kotlinLanguageVersion().startsWith("2.") && aptMode != "stubsAndApt") {
         throw new RuntimeException(
@@ -140,12 +141,15 @@ trait KaptModule extends KotlinModule { outer =>
         )
       }
 
-      KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
+      val kotlinWorkerManager = KotlinWorkerManager.kotlinWorker()
+      kotlinWorkerManager.withValue(kotlinCompilerClasspath()) {
         _.compile(
           target = KotlinWorkerTarget.Jvm,
           useBtApi = useBtApi,
           args = compilerArgs,
-          sources = sourceFiles
+          sources = sourceFiles,
+          classpath = compileClasspathRefs,
+          classpathSnapshotCache = Some(kotlinWorkerManager.classpathSnapshotCache)
         )
       } match {
         case Result.Success(_) =>

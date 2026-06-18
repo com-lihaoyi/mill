@@ -13,6 +13,9 @@ import mill.util.ClassLoaderCachedFactory
 class KotlinWorkerManager()(using ctx: TaskCtx)
     extends ClassLoaderCachedFactory[KotlinWorker](ctx.jobs) {
 
+  /** Worker-global, persistent directory for cached classpath snapshots. */
+  val classpathSnapshotCache: os.Path = ctx.dest / "classpath-snapshots"
+
   def getValue(cl: ClassLoader) = KotlinWorkerManager.get(cl)
 }
 
