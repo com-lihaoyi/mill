@@ -20,9 +20,11 @@ object ReproducibilityTests extends UtestIntegrationTestSuite {
     "javaApp.assembly",
     "scalaApp.assembly",
     "kotlinApp.assembly",
+    "kotlinIcApp.assembly",
     "javaApp.allForkEnv",
     "scalaApp.allForkEnv",
-    "kotlinApp.allForkEnv"
+    "kotlinApp.allForkEnv",
+    "kotlinIcApp.allForkEnv"
   )
 
   /** Join task selectors with `+` so they run in a single Mill invocation. */
@@ -32,8 +34,13 @@ object ReproducibilityTests extends UtestIntegrationTestSuite {
     for (p <- os.walk(workspacePath / "out")) {
       val sub = p.subRelativeTo(workspacePath).toString()
 
+      // Kotlin IC's `last-build.bin` is a serialized wall-clock timestamp, not an input to any
+      // task, so it can't be byte-reproducible and doesn't affect caching.
+      val kotlinIcBuildTimestamp = p.last == "last-build.bin"
+
       val cacheable =
         (sub.contains(".dest") || sub.contains(".json") || os.isDir(p)) &&
+          !kotlinIcBuildTimestamp &&
           !sub.replace("out/mill-build", "").contains("mill-") &&
           !(p.ext == "json" && ujson.read(
             os.read(p)
@@ -181,7 +188,8 @@ object ReproducibilityTests extends UtestIntegrationTestSuite {
     // same cache and assert the expensive tasks are served from it rather than rebuilt.
     test("remoteCache") - withBazelRemote { url =>
       val cacheArgs = Seq("--remote-cache-location", url)
-      val compileTasks = Seq("javaApp.compile", "scalaApp.compile", "kotlinApp.compile")
+      val compileTasks =
+        Seq("javaApp.compile", "scalaApp.compile", "kotlinApp.compile", "kotlinIcApp.compile")
 
       // First checkout: cold cache, everything is computed locally and pushed.
       integrationTest { tester =>
@@ -195,7 +203,12 @@ object ReproducibilityTests extends UtestIntegrationTestSuite {
         val res = tester.eval(cacheArgs ++ plus(appTasks), check = true)
         assert(res.isSuccess)
         for (
-          t <- compileTasks ++ Seq("javaApp.assembly", "scalaApp.assembly", "kotlinApp.assembly")
+          t <- compileTasks ++ Seq(
+            "javaApp.assembly",
+            "scalaApp.assembly",
+            "kotlinApp.assembly",
+            "kotlinIcApp.assembly"
+          )
         )
           assert(!evaluated(tester, t))
       }

@@ -16,3 +16,18 @@ object kotlinApp extends KotlinModule {
   def kotlinVersion = "2.2.20"
   def mainClass = Some("kotlinapp.KotlinAppKt")
 }
+
+// Exercises the Kotlin Build Tools API incremental-compilation path. The module dependency
+// forces a workspace-local classpath entry to be snapshotted, guarding that BTAPI snapshots
+// and IC caches stay relocatable.
+trait BtApiKotlinModule extends KotlinModule {
+  def kotlinVersion = "2.3.21"
+  def kotlinUseEmbeddableCompiler = true
+}
+
+object kotlinIcLib extends BtApiKotlinModule
+
+object kotlinIcApp extends BtApiKotlinModule {
+  def moduleDeps = Seq(kotlinIcLib)
+  def mainClass = Some("kotlinicapp.KotlinIcAppKt")
+}
