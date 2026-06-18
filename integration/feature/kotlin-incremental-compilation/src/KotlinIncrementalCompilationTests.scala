@@ -40,10 +40,8 @@ object KotlinIncrementalCompilationTests extends UtestIntegrationTestSuite {
 
   private def writeFeatureBranchSources(workspacePath: os.Path): Unit = {
     os.write.over(
-      workspacePath / "model/src/repro/Foo.kt",
-      """package repro
-        |
-        |sealed interface Foo {
+      workspacePath / "model/src/Foo.kt",
+      """sealed interface Foo {
         |    data object Bar : Foo
         |
         |    data object Oof : Foo
