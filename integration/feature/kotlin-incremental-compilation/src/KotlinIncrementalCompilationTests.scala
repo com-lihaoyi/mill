@@ -6,7 +6,7 @@ import utest.*
 
 // Regression test: adding a variant to an upstream sealed type must invalidate
 // downstream `when` exhaustiveness checks via the Kotlin Build Tools API IC engine.
-object ExhaustiveWhenBtApiReproTests extends UtestIntegrationTestSuite {
+object KotlinIncrementalCompilationTests extends UtestIntegrationTestSuite {
 
   private val nonExhaustiveWhenError = "'when' expression must be exhaustive."
   private val missingCaseName = "Oof"
