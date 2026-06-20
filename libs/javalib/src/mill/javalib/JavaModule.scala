@@ -1854,11 +1854,6 @@ object JavaModule {
 
   private[mill] def internalOrg = coursier.core.Organization("mill-internal")
   private[mill] def internalVersion = "0+mill-internal"
-//  private lazy val removeInternalVersionRegex =
-//    (
-//      ":" + Regex.quote(JavaModule.internalVersion) +
-//        "(\\w*(" + Regex.quote(dedupTreeSuffix) + ")?$|\\n)"
-//    ).r
 
 }
 
