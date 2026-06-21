@@ -129,6 +129,8 @@ _2026-06-21_
 
 _Changes since {prev-version}:_
 
+_All changes were backported from the 1.2.0 development branch._
+
 * Fix a stale classes issue in KotlinModule using the CLI compiler {link-pr}/7189[#7189]
 * Introduce a `scalafmt-worker` module
 * Make annotation processors not inherit zinc classpath {link-pr}/7089[#7089]
