@@ -9,6 +9,8 @@ import mill.javalib.RunModule
 import mill.javalib.AssemblyModule
 import mill.javalib.spring.boot.SpringBootToolsModule
 
+import scala.annotation.nowarn
+
 /**
  * Support to produce self-executable assemblies with the `Repackager` from the Spring Boot Tools suite
  * (https://docs.spring.io/spring-boot/build-tool-plugin/index.html).
@@ -139,6 +141,7 @@ trait RepackageModule extends mill.api.Module {
 
   /** Bin-compat stub. */
   @deprecated("Use RepackageModule.EmbeddableRepackageModule instead", "Mill after 1.1.6")
+  @nowarn("msg=unused private member")
   private implicit class EmbeddableSpringBootModule(jm: JavaModule) extends mill.api.Module {
     override def moduleCtx = jm.moduleCtx
 
