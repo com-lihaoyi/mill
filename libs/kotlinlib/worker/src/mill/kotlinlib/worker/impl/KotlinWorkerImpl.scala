@@ -10,7 +10,7 @@ import mill.api.TaskCtx
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 
 class KotlinWorkerImpl(
-    private val workerCtx: TaskCtx
+    private val classpathSnapshotCache: os.Path
 ) extends KotlinWorker {
   def compile(
       target: KotlinWorkerTarget,
@@ -29,7 +29,7 @@ class KotlinWorkerImpl(
     // Use dedicated class to load implementation classes lazily
     val compiler = (target = target, useBtApi = useBtApi) match {
       case (KotlinWorkerTarget.Jvm, true) => JvmCompileBtApiImpl(
-          classpathSnapshotCache = workerCtx.dest / "classpath-snapshots"
+          classpathSnapshotCache = classpathSnapshotCache
         )
       case (KotlinWorkerTarget.Jvm, false) => JvmCompileImpl()
       case (target = KotlinWorkerTarget.Js) => JsCompileImpl()

@@ -28,7 +28,13 @@ object KotlinWorkerManager extends ExternalModule {
       ) + ".impl." + classOf[KotlinWorker].getSimpleName() + "Impl"
 
     val impl = toolsClassLoader.loadClass(className)
-    val worker = impl.getConstructor(classOf[TaskCtx]).newInstance(ctx).asInstanceOf[KotlinWorker]
+    // FIXME: this prevents reuse over JVM restarts but is safe with different snapshotting algorithms in different
+    //  classloaders
+    val classpathSnapshotCache =
+      ctx.dest / "classpath-snapshots" / toolsClassLoader.hashCode.toString
+    val worker = impl.getConstructor(
+      classOf[os.Path]
+    ).newInstance(classpathSnapshotCache).asInstanceOf[KotlinWorker]
     if (worker.getClass().getClassLoader() != toolsClassLoader) {
       ctx.log.warn(
         """Worker not loaded from worker classloader.
