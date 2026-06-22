@@ -72,7 +72,8 @@ object ReproducibilityTests extends UtestIntegrationTestSuite {
   // Whether `task` was recomputed (`"cached": false` in `mill-profile.json`) rather than served
   // from a cache, in the most recent invocation in `tester`'s workspace.
   def evaluated(tester: IntegrationTester, task: String): Boolean = {
-    val profile = os.read(tester.workspacePath / "out" / mill.constants.OutFiles.OutFiles.millProfile)
+    val profile =
+      os.read(tester.workspacePath / "out" / mill.constants.OutFiles.OutFiles.millProfile)
     ujson.read(profile).arr.exists { e =>
       e("label").str == task && e.obj.get("cached").flatMap(_.boolOpt).contains(false)
     }
