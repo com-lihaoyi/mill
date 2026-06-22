@@ -14,6 +14,11 @@ class KotlinWorkerManager()(using ctx: TaskCtx)
     extends ClassLoaderCachedFactory[KotlinWorker](ctx.jobs) {
 
   def getValue(cl: ClassLoader) = KotlinWorkerManager.get(cl)
+
+  override def close(): Unit = {
+    super.close()
+    os.remove.all(ctx.dest / "classpath-snapshots")
+  }
 }
 
 object KotlinWorkerManager extends ExternalModule {
