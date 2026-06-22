@@ -1,15 +1,18 @@
 package mill.kotlinlib.worker.impl
 
-import mill.api.TaskCtx
+import mill.api.{PathRef, TaskCtx}
 import org.jetbrains.kotlin.buildtools.api.{
   CompilationResult,
+  ExecutionPolicy,
   KotlinLogger,
   KotlinToolchains,
   SourcesChanges
 }
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain
+import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshotGranularity
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationConfiguration
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationOptions
+import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshottingOperation
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation
 import org.jetbrains.kotlin.cli.common.ExitCode
 
@@ -17,7 +20,14 @@ import java.io.{PrintWriter, StringWriter}
 import scala.jdk.CollectionConverters.*
 import scala.util.chaining.scalaUtilChainingOps
 
-class JvmCompileBtApiImpl() extends Compiler {
+/**
+ * @param classpathSnapshotCache The path to store classpath snapshots for incremental compilation.
+ *                               Should live longer than the compile task itself, i.e. within a Worker
+ *                               or a persistent task.
+ */
+class JvmCompileBtApiImpl(
+    val classpathSnapshotCache: os.Path
+) extends Compiler {
 
   private def formatThrowable(throwable: Throwable): String = {
     val sw = StringWriter()
@@ -53,7 +63,11 @@ class JvmCompileBtApiImpl() extends Compiler {
       .getOrElse(ctx.dest / "classes")
   }
 
-  def compile(args: Seq[String], sources: Seq[os.Path])(using ctx: TaskCtx): (Int, String) = {
+  def compile(
+      args: Seq[String],
+      sources: Seq[os.Path],
+      classpath: Seq[PathRef]
+  )(using ctx: TaskCtx): (Int, String) = {
 
     val incrementalCachePath = ctx.dest / "inc-state"
     os.makeDir.all(incrementalCachePath)
@@ -61,9 +75,15 @@ class JvmCompileBtApiImpl() extends Compiler {
 
     val toolchains = KotlinToolchains.loadImplementation(getClass().getClassLoader())
     val jvmToolchain = JvmPlatformToolchain.from(toolchains)
+    // The BTAPI IC engine (RelocatableFileToPathConverter) rejects the relative
+    // `../mill-workspace/...` paths os-lib renders inside Mill's sandbox, so every
+    // path handed to it is resolved to a real absolute path via `PathRef.toAbsNioPath`.
     val sourceFiles = sources.map(_.toNIO).asJava
     val compilationOperation =
-      jvmToolchain.createJvmCompilationOperation(sourceFiles, destinationDirectory.toNIO)
+      jvmToolchain.createJvmCompilationOperation(
+        sourceFiles,
+        destinationDirectory.toNIO
+      )
 
     compilationOperation.getCompilerArguments().applyArgumentStrings(args.asJava)
 
@@ -82,23 +102,28 @@ class JvmCompileBtApiImpl() extends Compiler {
       )
     }
 
-    // Snapshot-based incremental compilation stores state in `inc-state`.
-    // The empty snapshot list means Kotlin computes classpath snapshots from current classpath entries.
-    val incrementalConfig = new JvmSnapshotBasedIncrementalCompilationConfiguration(
-      incrementalCachePath.toNIO,
-      SourcesChanges.ToBeCalculated.INSTANCE,
-      Seq.empty[java.nio.file.Path].asJava,
-      (incrementalCachePath / "shrunk-classpath-snapshot.bin").toNIO,
-      snapshotIcOptions
-    )
-    compilationOperation.set(JvmCompilationOperation.INCREMENTAL_COMPILATION, incrementalConfig)
+    os.makeDir.all(classpathSnapshotCache)
 
     val compilationResult = {
       val buildSession = toolchains.createBuildSession()
+      val executionPolicy = toolchains.createInProcessExecutionPolicy()
       try {
+        val classpathSnapshotFiles = classpath.filter(ref => os.exists(ref.path)).map { ref =>
+          snapshot(jvmToolchain, buildSession, executionPolicy, ref)
+        }
+
+        val incrementalConfig = new JvmSnapshotBasedIncrementalCompilationConfiguration(
+          incrementalCachePath.toNIO,
+          SourcesChanges.ToBeCalculated.INSTANCE,
+          classpathSnapshotFiles.asJava,
+          (incrementalCachePath / "shrunk-classpath-snapshot.bin").toNIO,
+          snapshotIcOptions
+        )
+        compilationOperation.set(JvmCompilationOperation.INCREMENTAL_COMPILATION, incrementalConfig)
+
         buildSession.executeOperation(
           compilationOperation,
-          toolchains.createInProcessExecutionPolicy(),
+          executionPolicy,
           kotlinLogger
         )
       } finally {
@@ -119,4 +144,39 @@ class JvmCompileBtApiImpl() extends Compiler {
     (exitCode.getCode(), exitCode.name())
   }
 
+  // A classpath entry's snapshot depends only on its content, so cache each
+  // snapshot under the entry's `PathRef.sig`. A content change yields a new
+  // `sig`, hence a new snapshot path, which both invalidates the cache and
+  // makes the (potentially warm, daemon-resident) IC engine load the fresh
+  // snapshot rather than a stale one cached by file path.
+  private def snapshot(
+      jvmToolchain: JvmPlatformToolchain,
+      buildSession: KotlinToolchains.BuildSession,
+      executionPolicy: ExecutionPolicy.InProcess,
+      ref: PathRef
+  )(using TaskCtx): java.nio.file.Path = {
+    val snapshotFile = classpathSnapshotCache / s"${ref.sig}.snapshot"
+    if (!os.exists(snapshotFile)) {
+      val snapshottingOperation =
+        jvmToolchain.createClasspathSnapshottingOperation(ref.path.toNIO)
+      snapshottingOperation.set(
+        JvmClasspathSnapshottingOperation.GRANULARITY,
+        ClassSnapshotGranularity.CLASS_MEMBER_LEVEL
+      )
+      snapshottingOperation.set(
+        JvmClasspathSnapshottingOperation.PARSE_INLINED_LOCAL_CLASSES,
+        java.lang.Boolean.TRUE
+      )
+      val snapshot = buildSession.executeOperation(
+        snapshottingOperation,
+        executionPolicy,
+        kotlinLogger
+      )
+
+      val tmpFile = os.temp(dir = classpathSnapshotCache, suffix = ".snapshot")
+      snapshot.saveSnapshot(tmpFile.toIO)
+      os.move(tmpFile, snapshotFile, atomicMove = true, replaceExisting = true)
+    }
+    snapshotFile.toNIO
+  }
 }

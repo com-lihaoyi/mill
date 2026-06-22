@@ -14,6 +14,11 @@ class KotlinWorkerManager()(using ctx: TaskCtx)
     extends ClassLoaderCachedFactory[KotlinWorker](ctx.jobs) {
 
   def getValue(cl: ClassLoader) = KotlinWorkerManager.get(cl)
+
+  override def close(): Unit = {
+    super.close()
+    os.remove.all(ctx.dest / "classpath-snapshots")
+  }
 }
 
 object KotlinWorkerManager extends ExternalModule {
@@ -28,7 +33,13 @@ object KotlinWorkerManager extends ExternalModule {
       ) + ".impl." + classOf[KotlinWorker].getSimpleName() + "Impl"
 
     val impl = toolsClassLoader.loadClass(className)
-    val worker = impl.getConstructor().newInstance().asInstanceOf[KotlinWorker]
+    // FIXME: this prevents reuse over JVM restarts but is safe with different snapshotting algorithms in different
+    //  classloaders
+    val classpathSnapshotCache =
+      ctx.dest / "classpath-snapshots" / toolsClassLoader.hashCode.toString
+    val worker = impl.getConstructor(
+      classOf[os.Path]
+    ).newInstance(classpathSnapshotCache).asInstanceOf[KotlinWorker]
     if (worker.getClass().getClassLoader() != toolsClassLoader) {
       ctx.log.warn(
         """Worker not loaded from worker classloader.
