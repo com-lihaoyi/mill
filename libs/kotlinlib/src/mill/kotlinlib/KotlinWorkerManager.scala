@@ -9,6 +9,7 @@ import mill.*
 import mill.api.{Discover, ExternalModule, TaskCtx}
 import mill.kotlinlib.worker.api.KotlinWorker
 import mill.util.ClassLoaderCachedFactory
+import mill.kotlinlib.worker.api.renderIntAsHex
 
 class KotlinWorkerManager()(using ctx: TaskCtx)
     extends ClassLoaderCachedFactory[KotlinWorker](ctx.jobs) {
@@ -20,7 +21,7 @@ class KotlinWorkerManager()(using ctx: TaskCtx)
   override def getValue(cachedClassLoader: ClassLoader, classpath: Seq[PathRef]): KotlinWorker =
     KotlinWorkerManager.get(
       toolsClassLoader = cachedClassLoader,
-      cachePathHashCode = classpath.hashCode(),
+      cachePathHashCode = classpath.map(_.sig).hashCode(),
       cachePathIsStable = true
     )
 }
@@ -50,7 +51,9 @@ object KotlinWorkerManager extends ExternalModule {
     // FIXME: this prevents reuse over JVM restarts but is safe with different snapshotting algorithms in different
     //  classloaders
     val classpathSnapshotCache =
-      ctx.dest / "classpath-snapshots" / cachePathHashCode.toString
+      ctx.dest / s"${
+          if (cachePathIsStable) "stable-" else ""
+        }classpath-snapshots" / renderIntAsHex(cachePathHashCode)
 
     val worker = impl
       .getConstructor(
