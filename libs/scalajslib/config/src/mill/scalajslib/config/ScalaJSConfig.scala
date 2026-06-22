@@ -43,6 +43,9 @@ private[mill] object ScalaJSConfig {
           case ESVersion.ES2019 => sjs.ESVersion.ES2019
           case ESVersion.ES2020 => sjs.ESVersion.ES2020
           case ESVersion.ES2021 => sjs.ESVersion.ES2021
+          case ESVersion.ES2022 => sjs.ESVersion.ES2022
+          case ESVersion.ES2023 => sjs.ESVersion.ES2023
+          case ESVersion.ES2024 => sjs.ESVersion.ES2024
         }
       )
 
@@ -55,11 +58,20 @@ private[mill] object ScalaJSConfig {
       }
 
     if (!minorIsGreaterThanOrEqual(sjsVersion, 6))
-      esFeatures0.esVersion match {
-        case sjs.ESVersion.ES5_1 | sjs.ESVersion.ES2015 =>
+      esFeatures.esVersion match {
+        case ESVersion.ES5_1 | ESVersion.ES2015 =>
         case v => throw new Exception(
             s"ESVersion $v is not supported with Scala.js < 1.6. Either update Scala.js or use one of ESVersion.ES5_1 or ESVersion.ES2015"
           )
+      }
+
+    if (!minorIsGreaterThanOrEqual(sjsVersion, 17))
+      esFeatures.esVersion match {
+        case ESVersion.ES2022 | ESVersion.ES2023 | ESVersion.ES2024 =>
+          throw new Exception(
+            s"ESVersion ${esFeatures.esVersion} is not supported with Scala.js < 1.17. Either update Scala.js or use ESVersion.ES2021 or earlier"
+          )
+        case _ =>
       }
 
     val moduleKind0 = moduleKind match {
@@ -87,9 +99,16 @@ private[mill] object ScalaJSConfig {
       )
 
     if (useWebAssembly)
-      if (minorIsGreaterThanOrEqual(sjsVersion, 17))
+      if (minorIsGreaterThanOrEqual(sjsVersion, 17)) {
+        // Scala.js 1.22.0 deprecated withExperimentalUseWebAssembly in favor of
+        // ESFeatures.withUseWebAssembly, but the stable API requires compiling against
+        // Scala.js 1.22+. The deprecated method remains functional across all versions.
         config = config.withExperimentalUseWebAssembly(true)
-      else
+        if (esFeatures.useJSPI && !minorIsGreaterThanOrEqual(sjsVersion, 22))
+          throw Exception(
+            "JSPI (JavaScript Promise Integration) requires Scala.js >= 1.22.0"
+          )
+      } else
         throw Exception("Emitting wasm is not supported with Scala.js < 1.17")
 
     config

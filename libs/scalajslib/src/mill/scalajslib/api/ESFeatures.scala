@@ -6,7 +6,8 @@ case class ESFeatures private (
     allowBigIntsForLongs: Boolean,
     avoidClasses: Boolean,
     avoidLetsAndConsts: Boolean,
-    esVersion: ESVersion
+    esVersion: ESVersion,
+    useJSPI: Boolean
 ) derives ReadWriter {
 
   def withAllowBigIntsForLongs(allowBigIntsForLongs: Boolean): ESFeatures =
@@ -20,6 +21,9 @@ case class ESFeatures private (
 
   def withESVersion(esVersion: ESVersion): ESFeatures =
     copy(esVersion = esVersion)
+
+  def withUseJSPI(useJSPI: Boolean): ESFeatures =
+    copy(useJSPI = useJSPI)
 }
 
 object ESFeatures {
@@ -27,6 +31,7 @@ object ESFeatures {
     allowBigIntsForLongs = false,
     avoidClasses = true,
     avoidLetsAndConsts = true,
-    esVersion = ESVersion.ES2015
+    esVersion = ESVersion.ES2015,
+    useJSPI = false
   )
 }

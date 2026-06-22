@@ -4,5 +4,6 @@ private[scalajslib] case class ESFeatures(
     allowBigIntsForLongs: Boolean,
     avoidClasses: Boolean,
     avoidLetsAndConsts: Boolean,
-    esVersion: ESVersion
+    esVersion: ESVersion,
+    useJSPI: Boolean
 )
