@@ -65,11 +65,11 @@ private[mill] object ScalaJSConfig {
           )
       }
 
-    if (!minorIsGreaterThanOrEqual(sjsVersion, 17))
+    if (!minorIsGreaterThanOrEqual(sjsVersion, 22))
       esFeatures.esVersion match {
         case ESVersion.ES2022 | ESVersion.ES2023 | ESVersion.ES2024 =>
           throw new Exception(
-            s"ESVersion ${esFeatures.esVersion} is not supported with Scala.js < 1.17. Either update Scala.js or use ESVersion.ES2021 or earlier"
+            s"ESVersion ${esFeatures.esVersion} is not supported with Scala.js < 1.22. Either update Scala.js or use ESVersion.ES2021 or earlier"
           )
         case _ =>
       }
@@ -99,12 +99,16 @@ private[mill] object ScalaJSConfig {
       )
 
     if (useWebAssembly)
-      if (minorIsGreaterThanOrEqual(sjsVersion, 17)) {
-        // Scala.js 1.22.0 deprecated withExperimentalUseWebAssembly in favor of
-        // ESFeatures.withUseWebAssembly, but the stable API requires compiling against
-        // Scala.js 1.22+. The deprecated method remains functional across all versions.
+      if (minorIsGreaterThanOrEqual(sjsVersion, 22)) {
+        // Scala.js 1.22.0 stabilized WebAssembly support:
+        // withExperimentalUseWebAssembly was replaced by ESFeatures.withUseWebAssembly
+        var wasmEsFeatures = esFeatures0.withUseWebAssembly(true)
+        if (esFeatures.useJSPI)
+          wasmEsFeatures = wasmEsFeatures.withUseJSPI(true)
+        config = config.withESFeatures(wasmEsFeatures)
+      } else if (minorIsGreaterThanOrEqual(sjsVersion, 17)) {
         config = config.withExperimentalUseWebAssembly(true)
-        if (esFeatures.useJSPI && !minorIsGreaterThanOrEqual(sjsVersion, 22))
+        if (esFeatures.useJSPI)
           throw Exception(
             "JSPI (JavaScript Promise Integration) requires Scala.js >= 1.22.0"
           )

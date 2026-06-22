@@ -35,10 +35,10 @@ object ScalaJSConfigVersionGuardTests extends TestSuite {
       }
     }
 
-    test("ES2022 with Scala.js 1.16 throws") {
+    test("ES2022 with Scala.js 1.21 throws version guard") {
       val ex = intercept[Exception] {
         ScalaJSConfig.config(
-          sjsVersion = "1.16.0",
+          sjsVersion = "1.21.0",
           moduleSplitStyle = ModuleSplitStyle.FewestModules,
           esFeatures = makeESFeatures(ESVersion.ES2022),
           moduleKind = ModuleKind.NoModule,
@@ -49,13 +49,13 @@ object ScalaJSConfigVersionGuardTests extends TestSuite {
         )
       }
       assert(ex.getMessage.contains("ES2022"))
-      assert(ex.getMessage.contains("1.17"))
+      assert(ex.getMessage.contains("1.22"))
     }
 
-    test("ES2023 with Scala.js 1.16 throws") {
+    test("ES2023 with Scala.js 1.21 throws version guard") {
       val ex = intercept[Exception] {
         ScalaJSConfig.config(
-          sjsVersion = "1.16.0",
+          sjsVersion = "1.21.0",
           moduleSplitStyle = ModuleSplitStyle.FewestModules,
           esFeatures = makeESFeatures(ESVersion.ES2023),
           moduleKind = ModuleKind.NoModule,
@@ -66,12 +66,13 @@ object ScalaJSConfigVersionGuardTests extends TestSuite {
         )
       }
       assert(ex.getMessage.contains("ES2023"))
+      assert(ex.getMessage.contains("1.22"))
     }
 
-    test("ES2024 with Scala.js 1.16 throws") {
+    test("ES2024 with Scala.js 1.21 throws version guard") {
       val ex = intercept[Exception] {
         ScalaJSConfig.config(
-          sjsVersion = "1.16.0",
+          sjsVersion = "1.21.0",
           moduleSplitStyle = ModuleSplitStyle.FewestModules,
           esFeatures = makeESFeatures(ESVersion.ES2024),
           moduleKind = ModuleKind.NoModule,
@@ -82,37 +83,12 @@ object ScalaJSConfigVersionGuardTests extends TestSuite {
         )
       }
       assert(ex.getMessage.contains("ES2024"))
+      assert(ex.getMessage.contains("1.22"))
     }
 
-    test("ES2022 with Scala.js 1.17 succeeds") {
+    test("ES2021 with Scala.js 1.21 succeeds") {
       ScalaJSConfig.config(
-        sjsVersion = "1.17.0",
-        moduleSplitStyle = ModuleSplitStyle.FewestModules,
-        esFeatures = makeESFeatures(ESVersion.ES2022),
-        moduleKind = ModuleKind.NoModule,
-        scalaJSOptimizer = true,
-        scalaJSSourceMap = true,
-        patterns = OutputPatterns.Defaults,
-        useWebAssembly = false
-      )
-    }
-
-    test("ES2022 with Scala.js 1.22 succeeds") {
-      ScalaJSConfig.config(
-        sjsVersion = "1.22.0",
-        moduleSplitStyle = ModuleSplitStyle.FewestModules,
-        esFeatures = makeESFeatures(ESVersion.ES2022),
-        moduleKind = ModuleKind.NoModule,
-        scalaJSOptimizer = true,
-        scalaJSSourceMap = true,
-        patterns = OutputPatterns.Defaults,
-        useWebAssembly = false
-      )
-    }
-
-    test("ES2021 with Scala.js 1.16 succeeds") {
-      ScalaJSConfig.config(
-        sjsVersion = "1.16.0",
+        sjsVersion = "1.21.0",
         moduleSplitStyle = ModuleSplitStyle.FewestModules,
         esFeatures = makeESFeatures(ESVersion.ES2021),
         moduleKind = ModuleKind.NoModule,
@@ -128,7 +104,7 @@ object ScalaJSConfigVersionGuardTests extends TestSuite {
         ScalaJSConfig.config(
           sjsVersion = "1.21.0",
           moduleSplitStyle = ModuleSplitStyle.FewestModules,
-          esFeatures = makeESFeatures(ESVersion.ES2022, useJSPI = true),
+          esFeatures = makeESFeatures(ESVersion.ES2021, useJSPI = true),
           moduleKind = ModuleKind.ESModule,
           scalaJSOptimizer = true,
           scalaJSSourceMap = true,
@@ -144,7 +120,7 @@ object ScalaJSConfigVersionGuardTests extends TestSuite {
       ScalaJSConfig.config(
         sjsVersion = "1.21.0",
         moduleSplitStyle = ModuleSplitStyle.FewestModules,
-        esFeatures = makeESFeatures(ESVersion.ES2022, useJSPI = true),
+        esFeatures = makeESFeatures(ESVersion.ES2021, useJSPI = true),
         moduleKind = ModuleKind.ESModule,
         scalaJSOptimizer = true,
         scalaJSSourceMap = true,
