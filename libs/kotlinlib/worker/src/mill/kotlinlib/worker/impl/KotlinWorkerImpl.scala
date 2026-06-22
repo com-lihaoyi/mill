@@ -48,7 +48,7 @@ class KotlinWorkerImpl(
   }
 
   override def close(): Unit = {
-    if(!classpathSnapshotCacheIsStable) {
+    if (!classpathSnapshotCacheIsStable) {
       os.remove.all(classpathSnapshotCache)
     }
   }

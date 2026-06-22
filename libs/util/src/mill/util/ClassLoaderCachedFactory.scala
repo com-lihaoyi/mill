@@ -20,7 +20,8 @@ abstract class ClassLoaderCachedFactory[T](jobs: Int)(using e: sourcecode.Enclos
   @deprecated("Use getValue(ClassLoader, Seq[PathRef] instead", "Mill after 1.2.0-RC1")
   def getValue(cl: ClassLoader): T
   // default impl to ensure binary compatibility
-  def getValue(cachedClassLoader: ClassLoader, @nowarn("msg=unused") classpath: Seq[PathRef]): T = getValue(cachedClassLoader)
+  def getValue(cachedClassLoader: ClassLoader, @nowarn("msg=unused") classpath: Seq[PathRef]): T =
+    getValue(cachedClassLoader)
 
   override def setup(key: Seq[PathRef]) = {
     val cl = classloaderCache.getOrCreate(key, e)
