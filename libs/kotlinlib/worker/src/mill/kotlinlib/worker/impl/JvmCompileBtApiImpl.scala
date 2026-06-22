@@ -14,6 +14,11 @@ import java.io.{PrintWriter, StringWriter}
 import scala.jdk.CollectionConverters.*
 import scala.util.chaining.scalaUtilChainingOps
 
+/**
+ * @param classpathSnapshotCache The path to store classpath snapshots for incremental compilation.
+ *                               Should live longer than the compile task itself, i.e. within a Worker
+ *                               or a persistent task.
+ */
 class JvmCompileBtApiImpl(
   val classpathSnapshotCache: os.Path,
 ) extends Compiler {
