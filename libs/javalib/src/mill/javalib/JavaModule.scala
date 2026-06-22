@@ -40,7 +40,6 @@ import os.Path
 
 import java.io.File
 import scala.util.chaining.scalaUtilChainingOps
-import scala.util.matching.Regex
 
 /**
  * Core configuration required to compile a single Java module
@@ -1463,18 +1462,21 @@ trait JavaModule
             .filter(dep => matchers.exists(matcher => matcher.matches(dep.module))).toSeq
       }
 
-      val tree = coursier.util.Print.dependencyTree(
+      val tree = coursier.util.Print.dependencyTree0(
         resolution = resolution,
         roots = roots,
         printExclusions = false,
-        reverse = if (whatDependsOn.isEmpty) inverse else true
+        reverse = if (whatDependsOn.isEmpty) inverse else true,
+        // Fix issue: https://github.com/com-lihaoyi/mill/issues/6823
+        // see also comment: https://github.com/coursier/coursier/pull/3671#issuecomment-4752734517
+        reverseDeduplicateNodes = true
       )
 
       // Filter the output, so that the special organization and version used for Mill's own modules
       // don't appear in the output. This only leaves the modules' name built from millModuleSegments.
       val processedTree = tree
         .replace(s"${JavaModule.internalOrg.value}:", "")
-        .pipe(JavaModule.removeInternalVersionRegex.replaceAllIn(_, "$1"))
+        .replace(s":${JavaModule.internalVersion}", "")
 
       processedTree
     }
@@ -1852,9 +1854,6 @@ object JavaModule {
 
   private[mill] def internalOrg = coursier.core.Organization("mill-internal")
   private[mill] def internalVersion = "0+mill-internal"
-
-  private lazy val removeInternalVersionRegex =
-    (":" + Regex.quote(JavaModule.internalVersion) + "(\\w*$|\\n)").r
 
 }
 

@@ -119,6 +119,28 @@ details.
   from retained per-task read locks {link-pr}/7136[#7136]
 
 
+[#1-1-7]
+=== 1.1.7
+:version: 1.1.7
+:milestone-name: 1.1.7
+:milestone: 147
+:prev-version: 1.1.6
+_2026-06-21_
+
+_Changes since {prev-version}:_
+
+_All changes were backported from the 1.2.0 development branch._
+
+* Fix a stale classes issue in KotlinModule using the CLI compiler {link-pr}/7189[#7189]
+* Introduce a `scalafmt-worker` module
+* Make annotation processors not inherit zinc classpath {link-pr}/7089[#7089]
+* Add option `-L` as short alternative to `--meta-level` {link-pr}/7115[#7115]
+* Add `--replay-logs` option to show logs of cached tasks {link-pr}/7263[#7263]
+* Fix race-condition in RepackageModule {link-pr}/7300[#7300]
+* Deduplicate reverse dependency tree to fix OOM errors in coursier {link-pr}/7301[#7301]
+* Various dependency update
+
+
 [#1-1-6]
 === 1.1.6
 :version: 1.1.6
