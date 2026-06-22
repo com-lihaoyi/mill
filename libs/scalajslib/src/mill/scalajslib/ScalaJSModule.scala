@@ -32,6 +32,7 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
     override def jsEnvConfig: T[JsEnvConfig] = outer.jsEnvConfig()
     override def scalaJSOptimizer: T[Boolean] = outer.scalaJSOptimizer()
     override def scalaJSUseWebAssembly: T[Boolean] = outer.scalaJSUseWebAssembly()
+    override def scalaJSUseWebAssemblyJSPI: T[Boolean] = outer.scalaJSUseWebAssemblyJSPI()
   }
 
   def scalaJSBinaryVersion = Task { JvmWorkerUtil.scalaJSBinaryVersion(scalaJSVersion()) }
@@ -144,7 +145,8 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
       outputPatterns = scalaJSOutputPatterns(),
       minify = scalaJSMinify(),
       importMap = scalaJSImportMap(),
-      experimentalUseWebAssembly = scalaJSUseWebAssembly()
+      experimentalUseWebAssembly = scalaJSUseWebAssembly(),
+      useWebAssemblyJSPI = scalaJSUseWebAssemblyJSPI()
     )
   }
 
@@ -196,7 +198,8 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
       outputPatterns: OutputPatterns,
       minify: Boolean,
       importMap: Seq[ESModuleImportMapping],
-      experimentalUseWebAssembly: Boolean
+      experimentalUseWebAssembly: Boolean,
+      useWebAssemblyJSPI: Boolean
   )(using ctx: mill.api.TaskCtx): Result[Report] = {
     val outputPath = ctx.dest
 
@@ -218,7 +221,8 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
       outputPatterns = outputPatterns,
       minify = minify,
       importMap = importMap,
-      experimentalUseWebAssembly = experimentalUseWebAssembly
+      experimentalUseWebAssembly = experimentalUseWebAssembly,
+      useWebAssemblyJSPI = useWebAssemblyJSPI
     )
   }
 
@@ -307,6 +311,13 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
    */
   def scalaJSUseWebAssembly: T[Boolean] = Task { scalaJSExperimentalUseWebAssembly() }
 
+  /**
+   * Enables WebAssembly JavaScript Promise Integration (JSPI).
+   *
+   * Requires [[scalaJSUseWebAssembly]] and Scala.js >= 1.22.0.
+   */
+  def scalaJSUseWebAssemblyJSPI: T[Boolean] = Task { false }
+
   /** @deprecated Use [[scalaJSUseWebAssembly]] instead */
   @deprecated("Use scalaJSUseWebAssembly instead", "Mill 1.2.0")
   def scalaJSExperimentalUseWebAssembly: T[Boolean] = Task { false }
@@ -390,7 +401,8 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       outputPatterns = scalaJSOutputPatterns(),
       minify = scalaJSMinify(),
       importMap = scalaJSImportMap(),
-      experimentalUseWebAssembly = scalaJSUseWebAssembly()
+      experimentalUseWebAssembly = scalaJSUseWebAssembly(),
+      useWebAssemblyJSPI = scalaJSUseWebAssemblyJSPI()
     )
   }
 

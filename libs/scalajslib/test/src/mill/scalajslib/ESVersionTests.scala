@@ -22,13 +22,6 @@ object ESVersionTests extends TestSuite {
       )
       assert(names == expected)
     }
-    test("ESFeatures has useJSPI field defaulting to false") {
-      assert(ESFeatures.Defaults.useJSPI == false)
-    }
-    test("ESFeatures withUseJSPI builder sets the value") {
-      val features = ESFeatures.Defaults.withUseJSPI(true)
-      assert(features.useJSPI == true)
-    }
     test("ESFeatures withESVersion accepts ES2022") {
       val features = ESFeatures.Defaults.withESVersion(ESVersion.ES2022)
       assert(features.esVersion == ESVersion.ES2022)

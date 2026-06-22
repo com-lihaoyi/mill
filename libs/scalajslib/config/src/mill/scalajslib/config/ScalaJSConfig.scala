@@ -20,7 +20,8 @@ private[mill] object ScalaJSConfig {
       scalaJSOptimizer: Boolean,
       scalaJSSourceMap: Boolean,
       patterns: OutputPatterns,
-      useWebAssembly: Boolean
+      useWebAssembly: Boolean,
+      useWebAssemblyJSPI: Boolean
   ): sjs.StandardConfig = {
 
     val moduleSplitStyle0 = moduleSplitStyle match {
@@ -98,22 +99,22 @@ private[mill] object ScalaJSConfig {
           .withSourceMapURI(patterns.sourceMapURI)
       )
 
-    if (esFeatures.useJSPI && !useWebAssembly)
+    if (useWebAssemblyJSPI && !useWebAssembly)
       throw Exception(
-        "useJSPI requires the WebAssembly backend to be enabled (set scalaJSUseWebAssembly = true)"
+        "scalaJSUseWebAssemblyJSPI requires the WebAssembly backend to be enabled (set scalaJSUseWebAssembly = true)"
       )
 
     if (useWebAssembly)
       if (minorIsGreaterThanOrEqual(sjsVersion, 22)) {
         // Scala.js 1.22.0 stabilized WebAssembly support:
         // withExperimentalUseWebAssembly was replaced by ESFeatures.withUseWebAssembly
-        var wasmEsFeatures = esFeatures0.withUseWebAssembly(true)
-        if (esFeatures.useJSPI)
-          wasmEsFeatures = wasmEsFeatures.withUseJSPI(true)
+        val wasmEsFeatures = esFeatures0.withUseWebAssembly(true)
         config = config.withESFeatures(wasmEsFeatures)
+        if (useWebAssemblyJSPI)
+          config = config.withWasmFeatures(_.withUseJSPI(true))
       } else if (minorIsGreaterThanOrEqual(sjsVersion, 17)) {
         config = config.withExperimentalUseWebAssembly(true)
-        if (esFeatures.useJSPI)
+        if (useWebAssemblyJSPI)
           throw Exception(
             "JSPI (JavaScript Promise Integration) requires Scala.js >= 1.22.0"
           )
