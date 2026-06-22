@@ -17,8 +17,17 @@ object ESVersionTests extends TestSuite {
     test("ESVersion enum has all expected values") {
       val names = ESVersion.values.map(_.toString).toSet
       val expected = Set(
-        "ES5_1", "ES2015", "ES2016", "ES2017", "ES2018",
-        "ES2019", "ES2020", "ES2021", "ES2022", "ES2023", "ES2024"
+        "ES5_1",
+        "ES2015",
+        "ES2016",
+        "ES2017",
+        "ES2018",
+        "ES2019",
+        "ES2020",
+        "ES2021",
+        "ES2022",
+        "ES2023",
+        "ES2024"
       )
       assert(names == expected)
     }
