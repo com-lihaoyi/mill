@@ -1,12 +1,7 @@
 package mill.kotlinlib.worker.impl
 
 import mill.api.{PathRef, TaskCtx}
-import org.jetbrains.kotlin.buildtools.api.{
-  CompilationResult,
-  KotlinLogger,
-  KotlinToolchains,
-  SourcesChanges
-}
+import org.jetbrains.kotlin.buildtools.api.{CompilationResult, ExecutionPolicy, KotlinLogger, KotlinToolchains, SourcesChanges}
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain
 import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshotGranularity
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationConfiguration
@@ -102,34 +97,8 @@ class JvmCompileBtApiImpl() extends Compiler {
       val buildSession = toolchains.createBuildSession()
       val executionPolicy = toolchains.createInProcessExecutionPolicy()
       try {
-        // A classpath entry's snapshot depends only on its content, so cache each
-        // snapshot under the entry's `PathRef.sig`. A content change yields a new
-        // `sig`, hence a new snapshot path, which both invalidates the cache and
-        // makes the (potentially warm, daemon-resident) IC engine load the fresh
-        // snapshot rather than a stale one cached by file path.
         val classpathSnapshotFiles = classpath.filter(ref => os.exists(ref.path)).map { ref =>
-          val snapshotFile = snapshotCacheDir / s"${ref.sig}.snapshot"
-          if (!os.exists(snapshotFile)) {
-            val snapshottingOperation =
-              jvmToolchain.createClasspathSnapshottingOperation(PathRef.toAbsNioPath(ref.path))
-            snapshottingOperation.set(
-              JvmClasspathSnapshottingOperation.GRANULARITY,
-              ClassSnapshotGranularity.CLASS_MEMBER_LEVEL
-            )
-            snapshottingOperation.set(
-              JvmClasspathSnapshottingOperation.PARSE_INLINED_LOCAL_CLASSES,
-              java.lang.Boolean.TRUE
-            )
-            val snapshot = buildSession.executeOperation(
-              snapshottingOperation,
-              executionPolicy,
-              kotlinLogger
-            )
-            val tmpFile = os.temp(dir = snapshotCacheDir, suffix = ".snapshot")
-            snapshot.saveSnapshot(PathRef.toAbsNioPath(tmpFile).toFile)
-            os.move(tmpFile, snapshotFile, atomicMove = true, replaceExisting = true)
-          }
-          PathRef.toAbsNioPath(snapshotFile)
+          snapshot(jvmToolchain, snapshotCacheDir, buildSession, executionPolicy, ref)
         }
 
         val incrementalConfig = new JvmSnapshotBasedIncrementalCompilationConfiguration(
@@ -164,4 +133,40 @@ class JvmCompileBtApiImpl() extends Compiler {
     (exitCode.getCode(), exitCode.name())
   }
 
+  // A classpath entry's snapshot depends only on its content, so cache each
+  // snapshot under the entry's `PathRef.sig`. A content change yields a new
+  // `sig`, hence a new snapshot path, which both invalidates the cache and
+  // makes the (potentially warm, daemon-resident) IC engine load the fresh
+  // snapshot rather than a stale one cached by file path.
+  private def snapshot(
+    jvmToolchain: JvmPlatformToolchain,
+    snapshotCacheDir: os.Path,
+    buildSession: KotlinToolchains.BuildSession,
+    executionPolicy: ExecutionPolicy.InProcess,
+    ref: PathRef,
+  )(using TaskCtx): java.nio.file.Path = {
+    val snapshotFile = snapshotCacheDir / s"${ref.sig}.snapshot"
+    if (!os.exists(snapshotFile)) {
+      val snapshottingOperation =
+        jvmToolchain.createClasspathSnapshottingOperation(PathRef.toAbsNioPath(ref.path))
+      snapshottingOperation.set(
+        JvmClasspathSnapshottingOperation.GRANULARITY,
+        ClassSnapshotGranularity.CLASS_MEMBER_LEVEL
+      )
+      snapshottingOperation.set(
+        JvmClasspathSnapshottingOperation.PARSE_INLINED_LOCAL_CLASSES,
+        java.lang.Boolean.TRUE
+      )
+      val snapshot = buildSession.executeOperation(
+        snapshottingOperation,
+        executionPolicy,
+        kotlinLogger,
+      )
+
+      val tmpFile = os.temp(dir = snapshotCacheDir, suffix = ".snapshot")
+      snapshot.saveSnapshot(PathRef.toAbsNioPath(tmpFile).toFile)
+      os.move(tmpFile, snapshotFile, atomicMove = true, replaceExisting = true)
+    }
+    PathRef.toAbsNioPath(snapshotFile)
+  }
 }
