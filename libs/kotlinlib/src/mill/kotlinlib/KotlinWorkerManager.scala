@@ -13,12 +13,16 @@ import mill.util.ClassLoaderCachedFactory
 class KotlinWorkerManager()(using ctx: TaskCtx)
     extends ClassLoaderCachedFactory[KotlinWorker](ctx.jobs) {
 
-  def getValue(cl: ClassLoader) = KotlinWorkerManager.get(cl)
+  @deprecated("Use the other overload instead.", "Mill after 1.2.0-RC1")
+  override def getValue(cachedClassLoader: ClassLoader): KotlinWorker =
+    KotlinWorkerManager.get(cachedClassLoader)
 
-  override def close(): Unit = {
-    super.close()
-    os.remove.all(ctx.dest / "classpath-snapshots")
-  }
+  override def getValue(cachedClassLoader: ClassLoader, classpath: Seq[PathRef]): KotlinWorker =
+    KotlinWorkerManager.get(
+      toolsClassLoader = cachedClassLoader,
+      cachePathHashCode = classpath.hashCode(),
+      cachePathIsStable = true
+    )
 }
 
 object KotlinWorkerManager extends ExternalModule {
@@ -26,7 +30,17 @@ object KotlinWorkerManager extends ExternalModule {
     KotlinWorkerManager()
   }
 
-  def get(toolsClassLoader: ClassLoader)(using ctx: TaskCtx): KotlinWorker = {
+  @deprecated("Use the other overload instead.", "Mill after 1.2.0-RC1")
+  def get(toolsClassLoader: ClassLoader)(using ctx: TaskCtx): KotlinWorker =
+    get(toolsClassLoader, toolsClassLoader.hashCode(), cachePathIsStable = false)
+
+  private def get(
+      toolsClassLoader: ClassLoader,
+      cachePathHashCode: Int,
+      cachePathIsStable: Boolean
+  )(using
+      ctx: TaskCtx
+  ): KotlinWorker = {
     val className =
       classOf[KotlinWorker].getPackage().getName().split("\\.").dropRight(1).mkString(
         "."
@@ -36,10 +50,16 @@ object KotlinWorkerManager extends ExternalModule {
     // FIXME: this prevents reuse over JVM restarts but is safe with different snapshotting algorithms in different
     //  classloaders
     val classpathSnapshotCache =
-      ctx.dest / "classpath-snapshots" / toolsClassLoader.hashCode.toString
-    val worker = impl.getConstructor(
-      classOf[os.Path]
-    ).newInstance(classpathSnapshotCache).asInstanceOf[KotlinWorker]
+      ctx.dest / "classpath-snapshots" / cachePathHashCode.toString
+
+    val worker = impl
+      .getConstructor(
+        classOf[os.Path],
+        classOf[Boolean]
+      )
+      .newInstance(classpathSnapshotCache, cachePathIsStable)
+      .asInstanceOf[KotlinWorker]
+
     if (worker.getClass().getClassLoader() != toolsClassLoader) {
       ctx.log.warn(
         """Worker not loaded from worker classloader.
