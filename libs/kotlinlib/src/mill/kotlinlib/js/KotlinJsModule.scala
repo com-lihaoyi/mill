@@ -423,7 +423,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       useBtApi = useBtApi,
       args = compilerArgs,
       sources = inputFiles,
-      classpath = Nil,
+      classpath = Nil
     )
 
     val analysisFile = Task.dest / "kotlin.analysis.dummy"

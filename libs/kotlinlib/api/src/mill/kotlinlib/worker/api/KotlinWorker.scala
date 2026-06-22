@@ -9,6 +9,7 @@ import mill.api.{PathRef, TaskCtx}
 import mill.api.daemon.Result
 
 trait KotlinWorker {
+
   /**
    * Compile the given sources.
    * @param useBtApi Whether to use the Build Tools API. Only relevant for [[KotlinWorkerTarget.Jvm]].
@@ -21,7 +22,7 @@ trait KotlinWorker {
       useBtApi: Boolean,
       args: Seq[String],
       sources: Seq[os.Path],
-      classpath: Seq[PathRef],
+      classpath: Seq[PathRef]
   )(using ctx: TaskCtx): Result[Unit]
 
 }

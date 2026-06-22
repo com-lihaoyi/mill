@@ -387,7 +387,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
               useBtApi = useBtApi,
               args = compilerArgs,
               sources = kotlinSourceFiles ++ javaSourceFiles,
-              classpath = compileCp,
+              classpath = compileCp
             )
           }
 

@@ -1,7 +1,13 @@
 package mill.kotlinlib.worker.impl
 
 import mill.api.{PathRef, TaskCtx}
-import org.jetbrains.kotlin.buildtools.api.{CompilationResult, ExecutionPolicy, KotlinLogger, KotlinToolchains, SourcesChanges}
+import org.jetbrains.kotlin.buildtools.api.{
+  CompilationResult,
+  ExecutionPolicy,
+  KotlinLogger,
+  KotlinToolchains,
+  SourcesChanges
+}
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain
 import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshotGranularity
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationConfiguration
@@ -20,7 +26,7 @@ import scala.util.chaining.scalaUtilChainingOps
  *                               or a persistent task.
  */
 class JvmCompileBtApiImpl(
-  val classpathSnapshotCache: os.Path,
+    val classpathSnapshotCache: os.Path
 ) extends Compiler {
 
   private def formatThrowable(throwable: Throwable): String = {
@@ -60,7 +66,7 @@ class JvmCompileBtApiImpl(
   def compile(
       args: Seq[String],
       sources: Seq[os.Path],
-      classpath: Seq[PathRef],
+      classpath: Seq[PathRef]
   )(using ctx: TaskCtx): (Int, String) = {
 
     val incrementalCachePath = ctx.dest / "inc-state"
@@ -144,10 +150,10 @@ class JvmCompileBtApiImpl(
   // makes the (potentially warm, daemon-resident) IC engine load the fresh
   // snapshot rather than a stale one cached by file path.
   private def snapshot(
-    jvmToolchain: JvmPlatformToolchain,
-    buildSession: KotlinToolchains.BuildSession,
-    executionPolicy: ExecutionPolicy.InProcess,
-    ref: PathRef,
+      jvmToolchain: JvmPlatformToolchain,
+      buildSession: KotlinToolchains.BuildSession,
+      executionPolicy: ExecutionPolicy.InProcess,
+      ref: PathRef
   )(using TaskCtx): java.nio.file.Path = {
     val snapshotFile = classpathSnapshotCache / s"${ref.sig}.snapshot"
     if (!os.exists(snapshotFile)) {
@@ -164,7 +170,7 @@ class JvmCompileBtApiImpl(
       val snapshot = buildSession.executeOperation(
         snapshottingOperation,
         executionPolicy,
-        kotlinLogger,
+        kotlinLogger
       )
 
       val tmpFile = os.temp(dir = classpathSnapshotCache, suffix = ".snapshot")

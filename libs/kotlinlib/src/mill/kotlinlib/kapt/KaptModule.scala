@@ -148,7 +148,7 @@ trait KaptModule extends KotlinModule { outer =>
           useBtApi = useBtApi,
           args = compilerArgs,
           sources = sourceFiles,
-          classpath = compileClasspathRefs,
+          classpath = compileClasspathRefs
         )
       } match {
         case Result.Success(_) =>

@@ -274,7 +274,7 @@ trait KspModule extends KotlinModule { outer =>
         useBtApi = useBtApi,
         args = compilerArgs,
         sources = sourceFiles,
-        classpath = compileClasspathRefs,
+        classpath = compileClasspathRefs
       )
     }
 

@@ -8,7 +8,7 @@ class JvmCompileImpl() extends Compiler {
   def compile(
       args: Seq[String],
       sources: Seq[os.Path],
-      classpath: Seq[PathRef],
+      classpath: Seq[PathRef]
   )(using
       ctx: TaskCtx
   ): (Int, String) = {

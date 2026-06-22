@@ -3,6 +3,7 @@ package mill.kotlinlib.worker.impl
 import mill.api.{PathRef, TaskCtx}
 
 trait Compiler {
+
   /**
    * @param args Compiler arguments.
    * @param sources Source files to compile.
@@ -11,7 +12,7 @@ trait Compiler {
   def compile(
       args: Seq[String],
       sources: Seq[os.Path],
-      classpath: Seq[PathRef],
+      classpath: Seq[PathRef]
   )(using
       ctx: TaskCtx
   ): (Int, String)
