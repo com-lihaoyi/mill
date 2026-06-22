@@ -116,17 +116,21 @@ object ScalaJSConfigVersionGuardTests extends TestSuite {
       assert(ex.getMessage.contains("1.22"))
     }
 
-    test("JSPI without WASM does not throw") {
-      ScalaJSConfig.config(
-        sjsVersion = "1.21.0",
-        moduleSplitStyle = ModuleSplitStyle.FewestModules,
-        esFeatures = makeESFeatures(ESVersion.ES2021, useJSPI = true),
-        moduleKind = ModuleKind.ESModule,
-        scalaJSOptimizer = true,
-        scalaJSSourceMap = true,
-        patterns = OutputPatterns.Defaults,
-        useWebAssembly = false
-      )
+    test("JSPI without WASM throws") {
+      val ex = intercept[Exception] {
+        ScalaJSConfig.config(
+          sjsVersion = "1.21.0",
+          moduleSplitStyle = ModuleSplitStyle.FewestModules,
+          esFeatures = makeESFeatures(ESVersion.ES2021, useJSPI = true),
+          moduleKind = ModuleKind.ESModule,
+          scalaJSOptimizer = true,
+          scalaJSSourceMap = true,
+          patterns = OutputPatterns.Defaults,
+          useWebAssembly = false
+        )
+      }
+      assert(ex.getMessage.contains("useJSPI"))
+      assert(ex.getMessage.contains("WebAssembly"))
     }
 
     test("ES5_1 with Scala.js 1.5 succeeds") {

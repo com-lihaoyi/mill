@@ -98,6 +98,11 @@ private[mill] object ScalaJSConfig {
           .withSourceMapURI(patterns.sourceMapURI)
       )
 
+    if (esFeatures.useJSPI && !useWebAssembly)
+      throw Exception(
+        "useJSPI requires the WebAssembly backend to be enabled (set scalaJSUseWebAssembly = true)"
+      )
+
     if (useWebAssembly)
       if (minorIsGreaterThanOrEqual(sjsVersion, 22)) {
         // Scala.js 1.22.0 stabilized WebAssembly support:

@@ -158,7 +158,7 @@ trait ScalaJSConfigModule extends ScalaJSModule { outer =>
       scalaJSOptimizer = scalaJSOptimizer(),
       scalaJSSourceMap = scalaJSSourceMap(),
       patterns = toWorkerApi(scalaJSOutputPatterns()),
-      useWebAssembly = scalaJSExperimentalUseWebAssembly()
+      useWebAssembly = scalaJSUseWebAssembly()
     )
   }
 
