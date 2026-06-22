@@ -155,7 +155,7 @@ class JvmCompileBtApiImpl(
       executionPolicy: ExecutionPolicy.InProcess,
       ref: PathRef
   )(using TaskCtx): java.nio.file.Path = {
-    val snapshotFile = classpathSnapshotCache / s"${ref.sig}.snapshot"
+    val snapshotFile = classpathSnapshotCache / s"${ref.sig}-${ref.path.last}.snapshot"
     if (!os.exists(snapshotFile)) {
       val snapshottingOperation =
         jvmToolchain.createClasspathSnapshottingOperation(PathRef.toAbsNioPath(ref.path))
