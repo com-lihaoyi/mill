@@ -245,6 +245,7 @@ trait KspModule extends KotlinModule { outer =>
     val compiledSources = Task.dest / "compiled"
     os.makeDir.all(compiledSources)
 
+    val compileClasspathRefs = kspClasspath().filter(ref => os.exists(ref.path))
     val classpath = Seq(
       // destdir
       "-d",
@@ -266,12 +267,14 @@ trait KspModule extends KotlinModule { outer =>
       )
     }
 
-    KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
+    val kotlinWorkerManager = KotlinWorkerManager.kotlinWorker()
+    kotlinWorkerManager.withValue(kotlinCompilerClasspath()) {
       _.compile(
         target = KotlinWorkerTarget.Jvm,
         useBtApi = useBtApi,
         args = compilerArgs,
-        sources = sourceFiles
+        sources = sourceFiles,
+        classpath = compileClasspathRefs
       )
     }
 
