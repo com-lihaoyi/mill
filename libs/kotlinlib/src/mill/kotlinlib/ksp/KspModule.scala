@@ -275,7 +275,6 @@ trait KspModule extends KotlinModule { outer =>
         args = compilerArgs,
         sources = sourceFiles,
         classpath = compileClasspathRefs,
-        classpathSnapshotCache = Some(kotlinWorkerManager.classpathSnapshotCache)
       )
     }
 

@@ -149,7 +149,6 @@ trait KaptModule extends KotlinModule { outer =>
           args = compilerArgs,
           sources = sourceFiles,
           classpath = compileClasspathRefs,
-          classpathSnapshotCache = Some(kotlinWorkerManager.classpathSnapshotCache)
         )
       } match {
         case Result.Success(_) =>

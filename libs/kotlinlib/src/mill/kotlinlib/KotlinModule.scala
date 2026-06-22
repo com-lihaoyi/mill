@@ -388,7 +388,6 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
               args = compilerArgs,
               sources = kotlinSourceFiles ++ javaSourceFiles,
               classpath = compileCp,
-              classpathSnapshotCache = Some(kotlinWorkerManager.classpathSnapshotCache)
             )
           }
 

@@ -9,15 +9,15 @@ import mill.api.daemon.Result
 import mill.api.TaskCtx
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 
-class KotlinWorkerImpl extends KotlinWorker {
-
+class KotlinWorkerImpl(
+  private val workerCtx: TaskCtx,
+) extends KotlinWorker {
   def compile(
       target: KotlinWorkerTarget,
       useBtApi: Boolean,
       args: Seq[String],
       sources: Seq[os.Path],
-      classpath: Seq[mill.api.PathRef] = Nil,
-      classpathSnapshotCache: Option[os.Path] = None
+      classpath: Seq[mill.api.PathRef],
   )(using
       ctx: TaskCtx
   ): Result[Unit] = {
@@ -28,15 +28,16 @@ class KotlinWorkerImpl extends KotlinWorker {
 
     // Use dedicated class to load implementation classes lazily
     val compiler = (target = target, useBtApi = useBtApi) match {
-      case (KotlinWorkerTarget.Jvm, true) => JvmCompileBtApiImpl()
+      case (KotlinWorkerTarget.Jvm, true) => JvmCompileBtApiImpl(
+        classpathSnapshotCache = workerCtx.dest / "classpath-snapshots"
+      )
       case (KotlinWorkerTarget.Jvm, false) => JvmCompileImpl()
       case (target = KotlinWorkerTarget.Js) => JsCompileImpl()
     }
 
     ctx.log.debug(s"Using compiler backend: ${compiler.getClass().getSimpleName()}")
 
-    val (exitCode, exitCodeName) =
-      compiler.compile(args, sources, classpath, classpathSnapshotCache)
+    val (exitCode, exitCodeName) = compiler.compile(args, sources, classpath)
 
     if (exitCode != 0) {
       sys.error(s"Kotlin compiler failed with exit code ${exitCode} ($exitCodeName)")

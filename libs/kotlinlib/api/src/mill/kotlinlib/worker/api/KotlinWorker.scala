@@ -9,14 +9,12 @@ import mill.api.{PathRef, TaskCtx}
 import mill.api.daemon.Result
 
 trait KotlinWorker {
-
   def compile(
       target: KotlinWorkerTarget,
       useBtApi: Boolean,
       args: Seq[String],
       sources: Seq[os.Path],
-      classpath: Seq[PathRef] = Nil,
-      classpathSnapshotCache: Option[os.Path] = None
+      classpath: Seq[PathRef],
   )(using ctx: TaskCtx): Result[Unit]
 
 }

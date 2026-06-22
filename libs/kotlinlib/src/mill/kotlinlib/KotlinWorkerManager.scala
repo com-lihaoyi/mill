@@ -13,9 +13,6 @@ import mill.util.ClassLoaderCachedFactory
 class KotlinWorkerManager()(using ctx: TaskCtx)
     extends ClassLoaderCachedFactory[KotlinWorker](ctx.jobs) {
 
-  /** Worker-global, persistent directory for cached classpath snapshots. */
-  val classpathSnapshotCache: os.Path = ctx.dest / "classpath-snapshots"
-
   def getValue(cl: ClassLoader) = KotlinWorkerManager.get(cl)
 }
 
@@ -31,7 +28,7 @@ object KotlinWorkerManager extends ExternalModule {
       ) + ".impl." + classOf[KotlinWorker].getSimpleName() + "Impl"
 
     val impl = toolsClassLoader.loadClass(className)
-    val worker = impl.getConstructor().newInstance().asInstanceOf[KotlinWorker]
+    val worker = impl.getConstructor(classOf[TaskCtx]).newInstance(ctx).asInstanceOf[KotlinWorker]
     if (worker.getClass().getClassLoader() != toolsClassLoader) {
       ctx.log.warn(
         """Worker not loaded from worker classloader.

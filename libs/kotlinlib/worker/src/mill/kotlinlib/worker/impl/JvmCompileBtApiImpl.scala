@@ -14,7 +14,9 @@ import java.io.{PrintWriter, StringWriter}
 import scala.jdk.CollectionConverters.*
 import scala.util.chaining.scalaUtilChainingOps
 
-class JvmCompileBtApiImpl() extends Compiler {
+class JvmCompileBtApiImpl(
+  val classpathSnapshotCache: os.Path,
+) extends Compiler {
 
   private def formatThrowable(throwable: Throwable): String = {
     val sw = StringWriter()
@@ -53,8 +55,7 @@ class JvmCompileBtApiImpl() extends Compiler {
   def compile(
       args: Seq[String],
       sources: Seq[os.Path],
-      classpath: Seq[PathRef] = Nil,
-      classpathSnapshotCache: Option[os.Path] = None
+      classpath: Seq[PathRef],
   )(using ctx: TaskCtx): (Int, String) = {
 
     val incrementalCachePath = ctx.dest / "inc-state"
@@ -90,15 +91,14 @@ class JvmCompileBtApiImpl() extends Compiler {
       )
     }
 
-    val snapshotCacheDir = classpathSnapshotCache.getOrElse(ctx.dest / "classpath-snapshots")
-    os.makeDir.all(snapshotCacheDir)
+    os.makeDir.all(classpathSnapshotCache)
 
     val compilationResult = {
       val buildSession = toolchains.createBuildSession()
       val executionPolicy = toolchains.createInProcessExecutionPolicy()
       try {
         val classpathSnapshotFiles = classpath.filter(ref => os.exists(ref.path)).map { ref =>
-          snapshot(jvmToolchain, snapshotCacheDir, buildSession, executionPolicy, ref)
+          snapshot(jvmToolchain, buildSession, executionPolicy, ref)
         }
 
         val incrementalConfig = new JvmSnapshotBasedIncrementalCompilationConfiguration(
@@ -140,12 +140,11 @@ class JvmCompileBtApiImpl() extends Compiler {
   // snapshot rather than a stale one cached by file path.
   private def snapshot(
     jvmToolchain: JvmPlatformToolchain,
-    snapshotCacheDir: os.Path,
     buildSession: KotlinToolchains.BuildSession,
     executionPolicy: ExecutionPolicy.InProcess,
     ref: PathRef,
   )(using TaskCtx): java.nio.file.Path = {
-    val snapshotFile = snapshotCacheDir / s"${ref.sig}.snapshot"
+    val snapshotFile = classpathSnapshotCache / s"${ref.sig}.snapshot"
     if (!os.exists(snapshotFile)) {
       val snapshottingOperation =
         jvmToolchain.createClasspathSnapshottingOperation(PathRef.toAbsNioPath(ref.path))
@@ -163,7 +162,7 @@ class JvmCompileBtApiImpl() extends Compiler {
         kotlinLogger,
       )
 
-      val tmpFile = os.temp(dir = snapshotCacheDir, suffix = ".snapshot")
+      val tmpFile = os.temp(dir = classpathSnapshotCache, suffix = ".snapshot")
       snapshot.saveSnapshot(PathRef.toAbsNioPath(tmpFile).toFile)
       os.move(tmpFile, snapshotFile, atomicMove = true, replaceExisting = true)
     }

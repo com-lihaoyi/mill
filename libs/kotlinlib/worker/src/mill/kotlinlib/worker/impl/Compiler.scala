@@ -6,8 +6,7 @@ trait Compiler {
   def compile(
       args: Seq[String],
       sources: Seq[os.Path],
-      classpath: Seq[PathRef] = Nil,
-      classpathSnapshotCache: Option[os.Path] = None
+      classpath: Seq[PathRef],
   )(using
       ctx: TaskCtx
   ): (Int, String)
