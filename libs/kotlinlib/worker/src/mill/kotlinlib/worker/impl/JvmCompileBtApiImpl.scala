@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompil
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshottingOperation
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation
 import org.jetbrains.kotlin.cli.common.ExitCode
+import mill.kotlinlib.worker.api.renderIntAsHex
 
 import java.io.{PrintWriter, StringWriter}
 import scala.jdk.CollectionConverters.*
@@ -155,7 +156,8 @@ class JvmCompileBtApiImpl(
       executionPolicy: ExecutionPolicy.InProcess,
       ref: PathRef
   )(using TaskCtx): java.nio.file.Path = {
-    val snapshotFile = classpathSnapshotCache / s"${ref.sig}.snapshot"
+    val snapshotFile =
+      classpathSnapshotCache / s"${renderIntAsHex(ref.sig)}-${ref.path.last}.snapshot"
     if (!os.exists(snapshotFile)) {
       val snapshottingOperation =
         jvmToolchain.createClasspathSnapshottingOperation(ref.path.toNIO)
