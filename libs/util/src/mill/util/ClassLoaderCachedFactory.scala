@@ -17,7 +17,7 @@ abstract class ClassLoaderCachedFactory[T](jobs: Int)(using e: sourcecode.Enclos
     sharedPrefixes = Seq("sbt.testing.", "mill.api.daemon.internal.TestReporter")
   )
 
-  @deprecated("Use getValue(ClassLoader, Seq[PathRef] instead", "Mill after 1.2.0-RC1")
+  @deprecated("Use getValue(ClassLoader, Seq[PathRef]) instead", "Mill after 1.2.0-RC1")
   def getValue(cl: ClassLoader): T
   // default impl to ensure binary compatibility
   def getValue(cachedClassLoader: ClassLoader, @nowarn("msg=unused") classpath: Seq[PathRef]): T =
