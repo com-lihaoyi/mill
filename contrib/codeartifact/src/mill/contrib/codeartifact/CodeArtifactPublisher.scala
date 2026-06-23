@@ -21,10 +21,7 @@ class CodeartifactPublisher(
   )
 
   private def basePublishPath(artifact: Artifact) =
-    os.SubPath(Vector(
-      artifact.group.replace(".", "/"),
-      artifact.id
-    ))
+    os.SubPath(artifact.group.replace(".", "/")) / artifact.id
 
   private def versionPublishPath(artifact: Artifact) =
     basePublishPath(artifact) / artifact.version
