@@ -10,8 +10,9 @@ import mill.api.TaskCtx
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 
 class KotlinWorkerImpl(
-    private val classpathSnapshotCache: os.Path
-) extends KotlinWorker {
+    private val classpathSnapshotCache: os.Path,
+    private val classpathSnapshotCacheIsStable: Boolean
+) extends KotlinWorker, AutoCloseable {
   def compile(
       target: KotlinWorkerTarget,
       useBtApi: Boolean,
@@ -46,4 +47,9 @@ class KotlinWorkerImpl(
 
   }
 
+  override def close(): Unit = {
+    if (!classpathSnapshotCacheIsStable) {
+      os.remove.all(classpathSnapshotCache)
+    }
+  }
 }
