@@ -181,14 +181,29 @@ object Watching {
         }
         writeToWatchLog(s"[watched-paths:filtered] ${filterPaths.toSeq.sorted.mkString("\n")}")
 
+        // Canonicalise so paths routed through the `mill-workspace` alias symlink and paths
+        // through platform-level symlinks (e.g. `/tmp` -> `/private/tmp`) compare equal —
+        // otherwise `recursiveWatches` rejects every subdir and `--watch` misses changes to
+        // `Task.Source`/`Task.Sources` files in subdirectories. Memoized: the `filter`/`onEvent`
+        // callbacks fire per filesystem event, and each `toResolvedOsPath` is a `toRealPath`
+        // syscall, so cache results rather than re-resolving the same path on every event.
+        val canonicalCache = new java.util.concurrent.ConcurrentHashMap[os.Path, os.Path]()
+        val canonical: os.Path => os.Path =
+          p => canonicalCache.computeIfAbsent(p, identity)
+
+        val canonicalFilterPaths = filterPaths.map(canonical)
+        val canonicalWatchedPathsSet = watchedPathsSet.map(canonical)
+
         Using.resource(os.watch.watch(
           // Just watch the root folder
           Seq(workspaceRoot),
           filter = path => {
+            val canonicalPath = canonical(path)
             val shouldBeWatched =
-              filterPaths.contains(path) || watchedPathsSet.exists(watchedPath =>
-                path.startsWith(watchedPath)
-              )
+              canonicalFilterPaths.contains(canonicalPath) ||
+                canonicalWatchedPathsSet.exists(watchedPath =>
+                  canonicalPath.startsWith(watchedPath)
+                )
             writeToWatchLog(s"[filter] (shouldBeWatched=$shouldBeWatched) $path")
             shouldBeWatched
           },
@@ -196,9 +211,12 @@ object Watching {
             // Make sure that the changed paths are actually the ones in our watch list and not some adjacent files in the
             // same folder
             val hasWatchedPath =
-              changedPaths.exists(p =>
-                watchedPathsSet.exists(watchedPath => p.startsWith(watchedPath))
-              )
+              changedPaths.exists { p =>
+                val canonicalPath = canonical(p)
+                canonicalWatchedPathsSet.exists(watchedPath =>
+                  canonicalPath.startsWith(watchedPath)
+                )
+              }
 
             // Do not log if the only thing that changed was the watch log file itself.
             //
@@ -220,7 +238,7 @@ object Watching {
             // gets written to the watch log, which then triggers an event, and so on.
             //
             // https://github.com/com-lihaoyi/mill/issues/5843
-//            writeToWatchLog(s"[watch:event] $eventType: ${pprint.apply(data).plainText}")
+            //            writeToWatchLog(s"[watch:event] $eventType: ${pprint.apply(data).plainText}")
           }
         )) { _ =>
           // If already stale, re-evaluate instantly.
