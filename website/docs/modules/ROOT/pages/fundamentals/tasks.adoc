@@ -56,6 +56,7 @@ include::partial$example/fundamentals/tasks/5-persistent-tasks.adoc[]
 
 include::partial$example/fundamentals/tasks/6-workers.adoc[]
 
+[#_uncached_tasks]
 === Uncached Tasks
 
 You can define uncached tasks with the `Task.Uncached {...}` syntax.
