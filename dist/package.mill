@@ -558,7 +558,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
 
     def nativeImageOptions = Seq(
       "--no-fallback",
-      "--enable-url-protocols=https",
+      "--enable-url-protocols=http,https",
       "-Os",
       // Build for compatibility with older CPUs that lack AVX2 and other modern features
       // https://github.com/com-lihaoyi/mill/issues/4630
