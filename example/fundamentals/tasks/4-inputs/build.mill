@@ -140,9 +140,12 @@ def myEnvTask = Task {
 // [NOTE]
 // ====
 // `Task.Input` can't have task dependencies!
-// This is mainly because input tasks can trigger re-evaluation when run with `--watch` or if you run selective execution,
-// and task dependency may make this mechanism slow and in some situations incorrect.
+// This is mainly because input tasks can trigger re-evaluation when run with
+// `--watch` or if you run selective execution, and task dependencies may make
+// this mechanism slow and in some situations incorrect.
 //
-// If you need to have dependencies in a task that always avaluates but is not cached, you can use xref:cli/tasks.adoc#_uncached_tasks[`Task.Uncached`].
-// `Task.Uncached` is new in Mill 1, since in older versions, input tasks could depend on other tasks.
+// If you need to have dependencies in a task that always evaluates but is not
+// cached, you can use xref:cli/tasks.adoc#_uncached_tasks[`Task.Uncached`].
+// `Task.Uncached` was added to Mill 1. In older versions input tasks could
+// depend on other tasks.
 // ====
