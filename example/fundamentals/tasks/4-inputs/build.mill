@@ -76,6 +76,20 @@ def gitStatusTask2 = Task { "version-" + gitStatusInput() }
 // "did anything change?" and any heavy-lifting should be delegated to downstream
 // tasks where it can be cached if possible.
 //
+// [NOTE]
+// ====
+// Inpu tasks can't have task dependencies!
+// This is mainly because input tasks can trigger re-evaluation when run with
+// `--watch` or if you run selective execution, and task dependencies may make
+// this mechanism slow and in some situations incorrect.
+//
+// If you need to have dependencies in a task that always evaluates but is not
+// cached, you can use xref:fundamentals/tasks.adoc#_uncached_tasks[`Task.Uncached`].
+// `Task.Uncached` was added to Mill 1. In older versions input tasks could
+// depend on other tasks.
+// ====
+
+//
 // ==== System Properties Inputs
 //
 // One major use case of `Input` tasks is to make your build configurable via
@@ -136,16 +150,3 @@ def myEnvTask = Task {
 > ./mill show myEnvTask # Task is correctly invalidated when env is removed
 "Hello Env null"
 */
-
-// [NOTE]
-// ====
-// `Task.Input` can't have task dependencies!
-// This is mainly because input tasks can trigger re-evaluation when run with
-// `--watch` or if you run selective execution, and task dependencies may make
-// this mechanism slow and in some situations incorrect.
-//
-// If you need to have dependencies in a task that always evaluates but is not
-// cached, you can use xref:cli/tasks.adoc#_uncached_tasks[`Task.Uncached`].
-// `Task.Uncached` was added to Mill 1. In older versions input tasks could
-// depend on other tasks.
-// ====
