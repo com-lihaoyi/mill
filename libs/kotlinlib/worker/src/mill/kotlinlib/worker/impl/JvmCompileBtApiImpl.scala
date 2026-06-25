@@ -78,11 +78,11 @@ class JvmCompileBtApiImpl(
     // The BTAPI IC engine (RelocatableFileToPathConverter) rejects the relative
     // `../mill-workspace/...` paths os-lib renders inside Mill's sandbox, so every
     // path handed to it is resolved to a real absolute path via `PathRef.toAbsNioPath`.
-    val sourceFiles = sources.map(PathRef.toAbsNioPath(_)).asJava
+    val sourceFiles = sources.map(_.toNIO).asJava
     val compilationOperation =
       jvmToolchain.createJvmCompilationOperation(
         sourceFiles,
-        PathRef.toAbsNioPath(destinationDirectory)
+        destinationDirectory.toNIO
       )
 
     compilationOperation.getCompilerArguments().applyArgumentStrings(args.asJava)
@@ -90,11 +90,11 @@ class JvmCompileBtApiImpl(
     val snapshotIcOptions = compilationOperation.createSnapshotBasedIcOptions().tap { options =>
       options.set(
         JvmSnapshotBasedIncrementalCompilationOptions.ROOT_PROJECT_DIR,
-        PathRef.toAbsNioPath(ctx.workspace)
+        ctx.workspace.toNIO
       )
       options.set(
         JvmSnapshotBasedIncrementalCompilationOptions.MODULE_BUILD_DIR,
-        PathRef.toAbsNioPath(incrementalCachePath)
+        incrementalCachePath.toNIO
       )
       options.set(
         JvmSnapshotBasedIncrementalCompilationOptions.PRECISE_JAVA_TRACKING,
@@ -113,10 +113,10 @@ class JvmCompileBtApiImpl(
         }
 
         val incrementalConfig = new JvmSnapshotBasedIncrementalCompilationConfiguration(
-          PathRef.toAbsNioPath(incrementalCachePath),
+          incrementalCachePath.toNIO,
           SourcesChanges.ToBeCalculated.INSTANCE,
           classpathSnapshotFiles.asJava,
-          PathRef.toAbsNioPath(incrementalCachePath / "shrunk-classpath-snapshot.bin"),
+          (incrementalCachePath / "shrunk-classpath-snapshot.bin").toNIO,
           snapshotIcOptions
         )
         compilationOperation.set(JvmCompilationOperation.INCREMENTAL_COMPILATION, incrementalConfig)
@@ -158,7 +158,7 @@ class JvmCompileBtApiImpl(
     val snapshotFile = classpathSnapshotCache / s"${ref.sig}.snapshot"
     if (!os.exists(snapshotFile)) {
       val snapshottingOperation =
-        jvmToolchain.createClasspathSnapshottingOperation(PathRef.toAbsNioPath(ref.path))
+        jvmToolchain.createClasspathSnapshottingOperation(ref.path.toNIO)
       snapshottingOperation.set(
         JvmClasspathSnapshottingOperation.GRANULARITY,
         ClassSnapshotGranularity.CLASS_MEMBER_LEVEL
@@ -174,9 +174,9 @@ class JvmCompileBtApiImpl(
       )
 
       val tmpFile = os.temp(dir = classpathSnapshotCache, suffix = ".snapshot")
-      snapshot.saveSnapshot(PathRef.toAbsNioPath(tmpFile).toFile)
+      snapshot.saveSnapshot(tmpFile.toIO)
       os.move(tmpFile, snapshotFile, atomicMove = true, replaceExisting = true)
     }
-    PathRef.toAbsNioPath(snapshotFile)
+    snapshotFile.toNIO
   }
 }
