@@ -46,7 +46,7 @@ jobs:
           publishartifacts: dist.native.publishArtifacts
           uploadgithub: false
 
-        # No windows-arm support becaues Graal native image doesn't support it
+        # No windows-arm support because Graal native image doesn't support it
         # https://github.com/oracle/graal/issues/9215
     env:
       MILL_SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
