@@ -4,6 +4,7 @@ import mill.api.daemon.experimental
 import upickle.ReadWriter
 import mill.api.JsonFormatters.pathReadWrite
 import mill.api.PathRef
+import mill.javalib.quarkus.ApplicationModelWorker.LaunchMode
 
 @experimental
 trait ApplicationModelWorker extends AutoCloseable {
@@ -22,8 +23,17 @@ trait ApplicationModelWorker extends AutoCloseable {
   def quarkusDeploymentDependencies(runtimeDeps: Seq[ApplicationModelWorker.Dependency])
       : Seq[ApplicationModelWorker.Dependency]
 
-}
+  def quarkusCodeGen(
+      appModel: ApplicationModelWorker.AppModel,
+      generatedSourcesDir: os.Path,
+      sourcesDir: Seq[os.Path],
+      buildDir: os.Path,
+      buildProperties: os.Path,
+      launchMode: LaunchMode,
+      isTest: Boolean
+  ): os.Path
 
+}
 object ApplicationModelWorker {
 
   /**
@@ -69,6 +79,22 @@ object ApplicationModelWorker {
 
   enum AppMode derives ReadWriter {
     case App
+    case Test
+  }
+
+  /** Mill API for io.quarkus.runtime.LaunchMode. */
+  enum LaunchMode derives ReadWriter {
+
+    /** Normal production build (Native Image or JVM) */
+    case Normal
+
+    /** Like Normal but with dev services supported ([[https://quarkus.io/guides/dev-services]]]. Doesn't make a difference in mill yet */
+    case Run
+
+    /** Like run but also with live reload (dev mode). Doesn't make a difference in mill yet */
+    case Development
+
+    /** A test run */
     case Test
   }
 

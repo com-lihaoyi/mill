@@ -64,10 +64,10 @@ trait QuarkusModule extends JavaModule { outer =>
    * The artifact id used to Quarkus bootstrap this module.
    * It needs to be set and a non-empty String for the Quarkus application model serialization to work!
    */
-  def artifactId: T[String] = Task {
+  override def artifactId: T[String] = Task {
     Option(super.artifactId()).filterNot(_.isEmpty)
       .getOrElse(Task.fail(
-        "The artifactVersion is not set. Please override the artifactVersion so quarkus can generate the application model for this module"
+        "The artifactId is not set. Please override the artifactId so quarkus can generate the application model for this module"
       ))
   }
 
@@ -345,16 +345,82 @@ trait QuarkusModule extends JavaModule { outer =>
     quarkusModuleData() ++ t.flatten
   }
 
+  /**
+   * The module data to pass to the quarkus ApplicationModel without the compiled output directory
+   */
+  def quarkusCodeGenModuleData: T[Seq[ApplicationModelWorker.ModuleData]] = Task {
+    os.makeDir.all(Task.dest / "empty")
+    Seq(
+      ApplicationModelWorker.ModuleData(
+        quarkusModuleClassifier(),
+        ApplicationModelWorker.Source(sources().head.path, Task.dest / "empty"),
+        ApplicationModelWorker.Source(resources().head.path, quarkusBuildResources().path)
+      )
+    )
+  }
+
+  def transitiveQuarkusCodeGenModuleData: T[Seq[ApplicationModelWorker.ModuleData]] = Task {
+    val t = Task.sequence(moduleDepsChecked.collect {
+      case module: QuarkusModule => module.quarkusCodeGenModuleData
+    })()
+
+    quarkusCodeGenModuleData() ++ t.flatten
+  }
+
+  def quarkusCodeGenerationAppModel: T[ApplicationModelWorker.AppModel] = Task {
+    quarkusAppModelWithBuildDir(
+      Task.Anon(PathRef(Task.dest)),
+      Task.Anon(transitiveQuarkusCodeGenModuleData())
+    )()
+  }
+
   def quarkusAppModel: T[ApplicationModelWorker.AppModel] = Task {
+    quarkusAppModelWithBuildDir(
+      Task.Anon(compile().classes),
+      Task.Anon(transitiveQuarkusModuleData())
+    )()
+  }
+
+  /**
+   * The kind of build that this module creates for quarkus. Defaults on
+   * Development (dev or an IDE launch).
+   * For more info see [[io.quarkus.runtime.LaunchMode]]
+   */
+  def quarkusLaunchMode: T[ApplicationModelWorker.LaunchMode] = Task {
+    ApplicationModelWorker.LaunchMode.Development
+  }
+
+  def quarkusCodeGen: T[PathRef] = Task {
+    os.makeDir.all(Task.dest / "build")
+    os.makeDir.all(Task.dest / "generated")
+    val out = quarkusApplicationModelWorker().quarkusCodeGen(
+      appModel = quarkusCodeGenerationAppModel(),
+      generatedSourcesDir = Task.dest / "generated",
+      sourcesDir = sources().map(_.path / os.up),
+      buildDir = Task.dest / "build",
+      buildProperties = quarkusJarBuildPropertiesFile().path,
+      launchMode = quarkusLaunchMode(),
+      isTest = false
+    )
+    PathRef(out)
+  }
+
+  override def generatedSources: Task.Simple[Seq[PathRef]] = super.generatedSources() ++
+    os.list(quarkusCodeGen().path).map(PathRef(_))
+
+  private def quarkusAppModelWithBuildDir(
+      buildDir: Task[PathRef],
+      moduleData: Task[Seq[ApplicationModelWorker.ModuleData]]
+  ): Task[ApplicationModelWorker.AppModel] = Task.Anon {
     ApplicationModelWorker.AppModel(
       projectRoot = outer.moduleDir,
-      buildDir = outer.compile().classes.path,
+      buildDir = buildDir().path,
       buildFile = quarkusMillBuildFile().path,
       quarkusVersion = quarkusPlatformVersion(),
       groupId = artifactGroupId(),
       artifactId = artifactId(),
       version = artifactVersion(),
-      moduleData = transitiveQuarkusModuleData(),
+      moduleData = moduleData(),
       boms = bomMvnDeps().map(_.formatted),
       dependencies = quarkusDependencies(),
       nativeImage = quarkusNativeImage(),
@@ -503,6 +569,15 @@ trait QuarkusModule extends JavaModule { outer =>
 
     override def quarkusAppMode: T[ApplicationModelWorker.AppMode] = Task {
       ApplicationModelWorker.AppMode.Test
+    }
+
+    /**
+     * The kind of build that this module creates for quarkus. Defaults on
+     * Test (a test run).
+     * For more info see [[io.quarkus.runtime.LaunchMode]]
+     */
+    def quarkusLaunchMode: T[ApplicationModelWorker.LaunchMode] = Task {
+      ApplicationModelWorker.LaunchMode.Test
     }
 
     def quarkusSerializedAppModelJavaOpts: T[Seq[String]] = Task {

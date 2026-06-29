@@ -6,8 +6,10 @@
 
 > ./mill init
 
-> rm kafka-avro-schema-quickstart/package.mill.yaml grpc-plain-text-quickstart/package.mill.yaml grpc-tls-quickstart/package.mill.yaml # skip subprojects with quarkus codegen. Not yet implemented in mill.
+> rm grpc-plain-text-quickstart/package.mill.yaml  grpc-tls-quickstart/package.mill.yaml # skip subprojects with quarkus codegen. Not yet implemented in mill.
 
-> ./mill __.compile # Just compile all modules. `quarkusRunJar` task fails for some
+> ./mill __.compile # mac/linux
+
+> ./mill {getting-started-reactive,kafka-avro-schema-quickstart,neo4j-quickstart}.compile # windows needs more than 15 minutes on CI to compile all of them, compile only some projects as a smoke test
 
 */

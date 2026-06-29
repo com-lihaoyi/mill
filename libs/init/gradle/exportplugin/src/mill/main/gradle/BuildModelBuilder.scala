@@ -118,7 +118,8 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
 
       if (isQuarkus) {
         val pluginVersion = detectPluginVersion(project0, QuarkusPluginId)
-        mainModule = mainModule.withQuarkusModule(pluginVersion)
+        mainModule =
+          mainModule.withQuarkusModule(pluginVersion, Option(getGroup.toString).filter(_.nonEmpty))
 
         // Add PublishModule and artifact/pom settings.
         mainModule = mainModule.copy(

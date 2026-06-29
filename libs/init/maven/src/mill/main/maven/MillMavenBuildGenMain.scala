@@ -128,7 +128,10 @@ object MillMavenBuildGenMain {
             mainModule = mainModule.withSpringBootModule(springBootVersion)
           }
           if (quarkusVersionOpt.isDefined) {
-            mainModule = mainModule.withQuarkusModule(quarkusVersionOpt)
+            mainModule = mainModule.withQuarkusModule(
+              quarkusVersionOpt,
+              Option(model.getGroupId).filter(_.nonEmpty)
+            )
           }
           if (os.exists(moduleDir / "src/test")) {
             val testMvnDeps = mvnDeps("test")

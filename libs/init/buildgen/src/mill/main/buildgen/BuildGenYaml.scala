@@ -107,6 +107,8 @@ object BuildGenYaml extends BuildGen {
       lines += s"""def quarkusPlatformVersion = "$v""""
     )
 
+    artifactName.base.foreach(v => lines += s"def artifactName = $v")
+
     renderScalaOptValues("def scalacOptions", scalacOptions).foreach(lines += _)
     renderScalaMvnDepValues("def scalacPluginMvnDeps", scalacPluginMvnDeps).foreach(lines += _)
     testParallelism.base.foreach(v => lines += s"def testParallelism = $v")
@@ -239,6 +241,11 @@ object BuildGenYaml extends BuildGen {
     renderYamlStringValue(
       "quarkusPlatformVersion",
       quarkusPlatformVersion
+    ).foreach(lines += _)
+
+    renderYamlStringValue(
+      "artifactGroupId",
+      artifactGroupId
     ).foreach(lines += _)
 
     // BomModule cannot have sources - set empty sources/resources when BomModule is used

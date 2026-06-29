@@ -66,7 +66,8 @@ case class ModuleSpec(
     mimaReportSignatureProblems: Value[Boolean] = Value(),
     children: Seq[ModuleSpec] = Nil,
     quarkusPlatformVersion: Value[String] = Value(),
-    annotationProcessorsMvnDeps: Values[MvnDep] = Values()
+    annotationProcessorsMvnDeps: Values[MvnDep] = Values(),
+    artifactGroupId: Value[String] = Value()
 ) {
 
   def isBomModule: Boolean = supertypes.contains("BomModule")
@@ -104,11 +105,15 @@ case class ModuleSpec(
     copy(supertypes = requiredSupertypes ++ supertypes.filterNot(requiredSupertypes.contains))
   }
 
-  def withQuarkusModule(quarkusVersion: Value[String]): ModuleSpec = {
+  def withQuarkusModule(
+      quarkusVersion: Value[String],
+      artifactGroupId: Value[String]
+  ): ModuleSpec = {
     copy(
       imports = "mill.javalib.quarkus.*" +: imports,
       supertypes = "QuarkusModule" +: supertypes,
-      quarkusPlatformVersion = quarkusVersion
+      quarkusPlatformVersion = quarkusVersion,
+      artifactGroupId = artifactGroupId
     )
   }
 
