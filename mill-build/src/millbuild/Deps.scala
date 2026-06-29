@@ -154,7 +154,7 @@ object Deps {
     mvn"com.caoccao.javet:javet-macos:4.0.0"
   )
 
-  val jline = mvn"org.jline:jline:3.30.13"
+  val jline = mvn"org.jline:jline:3.30.14"
   val jnaVersion = "5.16.0"
 
   val jna = mvn"net.java.dev.jna:jna:${jnaVersion}"
