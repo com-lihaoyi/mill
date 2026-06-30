@@ -108,6 +108,9 @@ trait ScalaJSConfigModule extends ScalaJSModule { outer =>
       case api.ESVersion.ES2019 => workerApi.ESVersion.ES2019
       case api.ESVersion.ES2020 => workerApi.ESVersion.ES2020
       case api.ESVersion.ES2021 => workerApi.ESVersion.ES2021
+      case api.ESVersion.ES2022 => workerApi.ESVersion.ES2022
+      case api.ESVersion.ES2023 => workerApi.ESVersion.ES2023
+      case api.ESVersion.ES2024 => workerApi.ESVersion.ES2024
       case api.ESVersion.ES5_1 => workerApi.ESVersion.ES5_1
     }
   )
@@ -154,7 +157,8 @@ trait ScalaJSConfigModule extends ScalaJSModule { outer =>
       scalaJSOptimizer = scalaJSOptimizer(),
       scalaJSSourceMap = scalaJSSourceMap(),
       patterns = toWorkerApi(scalaJSOutputPatterns()),
-      useWebAssembly = scalaJSExperimentalUseWebAssembly()
+      useWebAssembly = scalaJSUseWebAssembly(),
+      useWebAssemblyJSPI = scalaJSUseWebAssemblyJSPI()
     )
   }
 

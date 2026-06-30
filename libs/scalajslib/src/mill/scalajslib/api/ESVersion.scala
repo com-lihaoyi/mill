@@ -10,5 +10,8 @@ enum ESVersion derives ReadWriter {
   case ES2019
   case ES2020
   case ES2021
+  case ES2022
+  case ES2023
+  case ES2024
   case ES5_1
 }
