@@ -19,14 +19,18 @@ object UtestExampleTestSuite extends TestSuite {
         Retry(
           logger = Retry.printStreamLogger(System.err),
           count = if (sys.env.contains("CI")) 1 else 0,
-          timeoutMillis = 15.minutes.toMillis
+          timeoutMillis = sys.env.get("MILL_TEST_TIMEOUT_MINUTES")
+            .flatMap(_.toIntOption)
+            .map(_.minutes.toMillis)
+            .getOrElse(15.minutes.toMillis)
         ) {
           ExampleTester.run(
             daemonMode,
             workspaceSourcePath,
             millExecutable,
             useInMemory = sys.env.get("MILL_TEST_USE_IN_MEMORY").contains("1") &&
-              sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")
+              sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR"),
+            runScheduled = sys.env.get("MILL_TEST_SCHEDULED").contains("true")
           )
         }
 

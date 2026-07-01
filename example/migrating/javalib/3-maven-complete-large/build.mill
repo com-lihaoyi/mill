@@ -9,9 +9,12 @@
 > rm twin/src/test/java/com/iluwatar/twin/BallThreadTest.java # skip flaky test
 > rm actor-model/src/test/java/com/iluwatar/actor/ActorModelTest.java # skip flaky test
 
-> ./mill __.compile # Compile all 300+ subprojects!
+> ./mill {acyclic-visitor,service-to-worker,update-method}.compile
+compiling 10 Java sources to ...service-to-worker...
 compiling 6 Java sources to ...service-to-worker...
 compiling 4 Java sources to ...update-method...
+
+> ./mill __.compile # scheduled
 
 > ./mill acyclic-visitor.test # run a subproject's tests
 ...

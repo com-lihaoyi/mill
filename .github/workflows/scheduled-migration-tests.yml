@@ -1,0 +1,73 @@
+name: Scheduled Migration Tests
+
+on:
+  schedule:
+    # 04:00 every Sunday
+    - cron: '0 4 * * 0'
+  workflow_dispatch:
+
+concurrency:
+  group: scheduled-migration-tests
+  cancel-in-progress: true
+
+env:
+  FORCE_COLOR: '1'
+  MILL_TEST_SCHEDULED: 'true'
+  MILL_TEST_TIMEOUT_MINUTES: '60'
+
+jobs:
+  build-linux:
+    uses: ./.github/workflows/pre-build.yml
+    with:
+      java-version: 25
+      os: ubuntu-latest
+      shell: bash
+
+  build-windows:
+    uses: ./.github/workflows/pre-build.yml
+    with:
+      java-version: 25
+      os: windows-latest
+      shell: powershell
+
+  linux:
+    needs: build-linux
+    uses: ./.github/workflows/post-build-selective.yml
+    with:
+      install-sbt: true
+      java-version: 25
+      millargs: "example.migrating._._"
+      extra: "--jobs=1"
+      shell: bash
+
+  windows:
+    needs: build-windows
+    uses: ./.github/workflows/post-build-selective.yml
+    with:
+      os: windows-latest
+      java-version: 25
+      millargs: "example.migrating._._"
+      extra: "--jobs=1"
+      shell: powershell
+
+  mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+        with: { fetch-depth: 1 }
+
+      - uses: ./.github/actions/pre-build-setup
+        with:
+          os: macos-latest
+          java-version: 25
+          shell: bash
+
+      - uses: ./.github/actions/post-build-setup
+        with:
+          java-version: 25
+          os: macos-latest
+
+      - uses: sbt/setup-sbt@v1
+
+      - run: ./mill -k --jobs=1 'example.migrating._._'
+        shell: bash
