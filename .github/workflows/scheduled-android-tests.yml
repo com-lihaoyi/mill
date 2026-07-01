@@ -12,6 +12,8 @@ concurrency:
 
 env:
   FORCE_COLOR: '1'
+  MILL_TEST_SCHEDULED: 'true'
+  MILL_TEST_TIMEOUT_MINUTES: '60'
 
 jobs:
   build-linux:
