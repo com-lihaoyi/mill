@@ -180,7 +180,7 @@ object HelloKotlinTests extends TestSuite {
         debugEnabled = true
       ).scoped { eval =>
         // Build Tools API is enabled for Kotlin 2.3+ with the embeddable compiler. Exercise every
-        // such version: 2.3.x uses the legacy factory, 2.4.0+ the reflective builder flow.
+        // such version: 2.3.x uses the legacy factory backend, 2.4.0+ the dedicated builder-API worker.
         val btApiModules = HelloKotlin.main.crossModules.filter(m =>
           btApiSupported(m.crossValue) && m.crossValue2
         )

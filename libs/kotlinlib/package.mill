@@ -12,7 +12,8 @@ object `package` extends MillStableScalaModule with BuildInfo {
     api.sources,
     ksp2.sources,
     `ksp2-api`.sources,
-    worker.sources
+    worker.sources,
+    `worker-btapi2`.sources
   )
   override object test extends MillScalaTests {
     override def selectiveInputs = Seq(sources, resources) ++ kotlinSelectiveInputs
@@ -21,7 +22,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
   def moduleDeps =
     Seq(build.libs.javalib, build.libs.javalib.testrunner, api, `ksp2-api`)
   def localTestExtraModules =
-    super.localTestExtraModules ++ Seq(worker)
+    super.localTestExtraModules ++ Seq(worker, `worker-btapi2`)
 
   def buildInfoPackageName = "mill.kotlinlib"
   def buildInfoObjectName = "Versions"
@@ -67,6 +68,22 @@ object `package` extends MillStableScalaModule with BuildInfo {
         Deps.osLib,
         Deps.kotlinCompiler,
         Deps.kotlinBuildToolsApi_api
+      )
+  }
+
+  // Dedicated Build Tools API backend for Kotlin 2.4+, compiled against the 2.4 API generation.
+  // Classloaded by `worker`'s `KotlinWorkerImpl` based on the user's Kotlin version, so the two
+  // incompatible BTA generations never share a compilation classpath.
+  object `worker-btapi2` extends MillPublishScalaModule {
+    override def compileModuleDeps = Seq(api, worker)
+
+    def mandatoryMvnDeps = Seq.empty[Dep]
+
+    override def compileMvnDeps: T[Seq[Dep]] =
+      super.mandatoryMvnDeps() ++ Seq(
+        Deps.osLib,
+        Deps.kotlinCompiler,
+        Deps.kotlinBuildToolsApi_api2
       )
   }
 

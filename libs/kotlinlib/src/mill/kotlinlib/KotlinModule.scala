@@ -97,7 +97,8 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
    */
   def kotlinCompilerClasspath: T[Seq[PathRef]] = Task {
     val deps = kotlinCompilerMvnDeps() ++ Seq(
-      Dep.millProjectModule("mill-libs-kotlinlib-worker")
+      Dep.millProjectModule("mill-libs-kotlinlib-worker"),
+      Dep.millProjectModule("mill-libs-kotlinlib-worker-btapi2")
     )
     defaultResolver().classpath(
       deps,
@@ -385,6 +386,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
             _.compile(
               target = KotlinWorkerTarget.Jvm,
               useBtApi = useBtApi,
+              kotlinVersion = kotlinVersion(),
               args = compilerArgs,
               sources = kotlinSourceFiles ++ javaSourceFiles,
               classpath = compileCp
