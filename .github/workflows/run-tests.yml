@@ -165,7 +165,7 @@ jobs:
           - millargs: "example.thirdparty.koin-androidx-samples.packaged.daemon"
             setup-android: true
 
-          - millargs: "example.migrating.scalalib._"
+          - millargs: "example.migrating._._"
             install-sbt: true
 
           - millargs: "'example.{groovylib,pythonlib,javascriptlib}._._'"
