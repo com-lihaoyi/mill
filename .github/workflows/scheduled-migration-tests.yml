@@ -37,7 +37,6 @@ jobs:
       install-sbt: true
       java-version: 25
       millargs: "example.migrating._._"
-      extra: "--jobs=1"
       shell: bash
 
   windows:
@@ -69,5 +68,5 @@ jobs:
 
       - uses: sbt/setup-sbt@v1
 
-      - run: ./mill -k --jobs=1 'example.migrating._._'
+      - run: ./mill -k 'example.migrating._._'
         shell: bash
