@@ -8,7 +8,6 @@ package mill.kotlinlib.worker.impl
 import mill.api.daemon.Result
 import mill.api.TaskCtx
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
-import scala.jdk.CollectionConverters.*
 
 abstract class KotlinWorkerImplBase(
     private val classpathSnapshotCache: os.Path,
