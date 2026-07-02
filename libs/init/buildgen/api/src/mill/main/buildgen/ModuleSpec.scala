@@ -93,33 +93,38 @@ case class ModuleSpec(
     )
   }
 
-  private def stripSpringVersion(deps: Values[MvnDep]): Values[MvnDep] =
+  private def stripSpringVersion(deps: Values[MvnDep], platformVer: String): Values[MvnDep] =
     deps.copy(base = deps.base.map {
-      case dep if dep.organization == "org.springframework.boot" => dep.copy(version = "")
+      case dep if dep.organization == "org.springframework.boot" =>
+        if (platformVer.nonEmpty && dep.version.nonEmpty && dep.version != platformVer) dep
+        else dep.copy(version = "")
       case dep => dep
     })
 
-  def withSpringBootModule(springBootVersion: Value[String]): ModuleSpec =
+  def withSpringBootModule(springBootVersion: Value[String]): ModuleSpec = {
+    val verStr = springBootVersion.toOption.getOrElse("")
     copy(
       imports = "mill.javalib.spring.boot.*" +: imports,
       supertypes = "SpringBootModule" +: supertypes,
       springBootPlatformVersion = springBootVersion,
-      mvnDeps = stripSpringVersion(mvnDeps),
-      compileMvnDeps = stripSpringVersion(compileMvnDeps),
-      runMvnDeps = stripSpringVersion(runMvnDeps),
-      bomMvnDeps = stripSpringVersion(bomMvnDeps),
-      depManagement = stripSpringVersion(depManagement)
+      mvnDeps = stripSpringVersion(mvnDeps, verStr),
+      compileMvnDeps = stripSpringVersion(compileMvnDeps, verStr),
+      runMvnDeps = stripSpringVersion(runMvnDeps, verStr),
+      bomMvnDeps = stripSpringVersion(bomMvnDeps, verStr),
+      depManagement = stripSpringVersion(depManagement, verStr)
     )
+  }
 
-  def withSpringBootTestsModule(): ModuleSpec = {
+  def withSpringBootTestsModule(springBootVersion: Value[String]): ModuleSpec = {
     val requiredSupertypes = Seq("SpringBootTestsModule", "MavenTests")
+    val verStr = springBootVersion.toOption.getOrElse("")
     copy(
       supertypes = requiredSupertypes ++ supertypes.filterNot(requiredSupertypes.contains),
-      mvnDeps = stripSpringVersion(mvnDeps),
-      compileMvnDeps = stripSpringVersion(compileMvnDeps),
-      runMvnDeps = stripSpringVersion(runMvnDeps),
-      bomMvnDeps = stripSpringVersion(bomMvnDeps),
-      depManagement = stripSpringVersion(depManagement)
+      mvnDeps = stripSpringVersion(mvnDeps, verStr),
+      compileMvnDeps = stripSpringVersion(compileMvnDeps, verStr),
+      runMvnDeps = stripSpringVersion(runMvnDeps, verStr),
+      bomMvnDeps = stripSpringVersion(bomMvnDeps, verStr),
+      depManagement = stripSpringVersion(depManagement, verStr)
     )
   }
 

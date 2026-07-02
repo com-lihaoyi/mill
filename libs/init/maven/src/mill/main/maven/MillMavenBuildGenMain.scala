@@ -145,7 +145,7 @@ object MillMavenBuildGenMain {
               testFramework = Option.when(testMixin.isEmpty)("")
             )
             if (isSpringParentProject) {
-              testModule = testModule.withSpringBootTestsModule()
+              testModule = testModule.withSpringBootTestsModule(springBootVersion)
             }
             if (testMixin.contains("TestModule.Junit5")) {
               testModule.mvnDeps.base.collectFirst {
@@ -263,9 +263,16 @@ object MillMavenBuildGenMain {
     }
 
     fromBom.orElse {
-      model.getDependencies.asScala
-        .find(_.getGroupId == SpringBoot.GroupId)
+      val springBootVersions = model.getDependencies.asScala
+        .filter(_.getGroupId == SpringBoot.GroupId)
         .flatMap(dep => nonEmpty(dep.getVersion))
+      springBootVersions
+        .groupBy(identity)
+        .map { case (k, v) => (k, v.size) }
+        .toSeq
+        .sortBy(-_._2)
+        .headOption
+        .map(_._1)
     }
   }
 
