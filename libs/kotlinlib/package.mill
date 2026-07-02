@@ -81,10 +81,9 @@ object `package` extends MillStableScalaModule with BuildInfo {
     }
 
     def sourcesSpecific = Task.Sources(os.sub / s"src-${crossValue}")
+    override def sources = super.sources() ++ sourcesSpecific()
 
-    override def sources = Task {
-      super.sources() ++ sourcesSpecific()
-    }
+    def includeInApiDocs = false
   }
 
   object `ksp2-api` extends MillPublishScalaModule with MillJava11ScalaModule
