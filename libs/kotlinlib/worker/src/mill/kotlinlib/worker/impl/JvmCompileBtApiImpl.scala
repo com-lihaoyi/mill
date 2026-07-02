@@ -62,8 +62,14 @@ class JvmCompileBtApiImpl(classpathSnapshotCache: os.Path)
       classpathEntry: Path
   )(using ctx: TaskCtx): BuildOperation[ClasspathEntrySnapshot] = {
     val operation = jvmToolchain.createClasspathSnapshottingOperation(classpathEntry)
-    operation.set(JvmClasspathSnapshottingOperation.GRANULARITY, ClassSnapshotGranularity.CLASS_MEMBER_LEVEL)
-    operation.set(JvmClasspathSnapshottingOperation.PARSE_INLINED_LOCAL_CLASSES, java.lang.Boolean.TRUE)
+    operation.set(
+      JvmClasspathSnapshottingOperation.GRANULARITY,
+      ClassSnapshotGranularity.CLASS_MEMBER_LEVEL
+    )
+    operation.set(
+      JvmClasspathSnapshottingOperation.PARSE_INLINED_LOCAL_CLASSES,
+      java.lang.Boolean.TRUE
+    )
     operation
   }
 }

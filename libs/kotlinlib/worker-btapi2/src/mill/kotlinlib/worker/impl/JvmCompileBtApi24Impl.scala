@@ -63,12 +63,16 @@ class JvmCompileBtApi24Impl(classpathSnapshotCache: os.Path)
       classpathEntry: Path
   )(using ctx: TaskCtx): BuildOperation[ClasspathEntrySnapshot] = {
     val builder = jvmToolchain.classpathSnapshottingOperationBuilder(classpathEntry)
-    builder.set(JvmClasspathSnapshottingOperation.GRANULARITY, ClassSnapshotGranularity.CLASS_MEMBER_LEVEL)
-    builder.set(JvmClasspathSnapshottingOperation.PARSE_INLINED_LOCAL_CLASSES, java.lang.Boolean.TRUE)
+    builder.set(
+      JvmClasspathSnapshottingOperation.GRANULARITY,
+      ClassSnapshotGranularity.CLASS_MEMBER_LEVEL
+    )
+    builder.set(
+      JvmClasspathSnapshottingOperation.PARSE_INLINED_LOCAL_CLASSES,
+      java.lang.Boolean.TRUE
+    )
     builder.build()
   }
-
-
 
   private def untypedArguments(args: Seq[String]): Vector[String] = {
     val kept = Vector.newBuilder[String]
@@ -94,10 +98,14 @@ class JvmCompileBtApi24Impl(classpathSnapshotCache: os.Path)
         case "-jdk-home" => a.set(JvmCompilerArguments.JDK_HOME, Path.of(value))
         case "-no-stdlib" => a.set(JvmCompilerArguments.NO_STDLIB, java.lang.Boolean.TRUE)
         case "-no-reflect" => a.set(JvmCompilerArguments.NO_REFLECT, java.lang.Boolean.TRUE)
-        case "-java-parameters" => a.set(JvmCompilerArguments.JAVA_PARAMETERS, java.lang.Boolean.TRUE)
-        case "-language-version" => kotlinVersions.get(value).foreach(a.set(CommonCompilerArguments.LANGUAGE_VERSION, _))
-        case "-api-version" => kotlinVersions.get(value).foreach(a.set(CommonCompilerArguments.API_VERSION, _))
-        case "-jvm-target" => jvmTargets.get(value).foreach(a.set(JvmCompilerArguments.JVM_TARGET, _))
+        case "-java-parameters" =>
+          a.set(JvmCompilerArguments.JAVA_PARAMETERS, java.lang.Boolean.TRUE)
+        case "-language-version" =>
+          kotlinVersions.get(value).foreach(a.set(CommonCompilerArguments.LANGUAGE_VERSION, _))
+        case "-api-version" =>
+          kotlinVersions.get(value).foreach(a.set(CommonCompilerArguments.API_VERSION, _))
+        case "-jvm-target" =>
+          jvmTargets.get(value).foreach(a.set(JvmCompilerArguments.JVM_TARGET, _))
         case _ =>
       }
       i += (if (flag == "-d") 2 else math.max(typedWidth(flag), 1))
