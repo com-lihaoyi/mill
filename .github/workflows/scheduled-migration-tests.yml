@@ -36,7 +36,7 @@ jobs:
     with:
       install-sbt: true
       java-version: 25
-      millargs: "example.migrating._._"
+      millargs: "example.migrating._._.testForked"
       shell: bash
 
   windows:
@@ -45,7 +45,7 @@ jobs:
     with:
       os: windows-latest
       java-version: 25
-      millargs: "example.migrating._._"
+      millargs: "example.migrating._._.testForked"
       extra: "--jobs=1"
       shell: powershell
 
@@ -68,5 +68,5 @@ jobs:
 
       - uses: sbt/setup-sbt@v1
 
-      - run: ./mill -k 'example.migrating._._'
+      - run: ./mill -k 'example.migrating._._.testForked'
         shell: bash
