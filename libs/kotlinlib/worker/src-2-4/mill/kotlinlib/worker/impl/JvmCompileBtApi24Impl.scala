@@ -20,8 +20,7 @@ import scala.jdk.CollectionConverters.*
 /**
  * [[BtApiCompiler]] backend for Kotlin 2.4.0+, which replaced the legacy operation factories with
  * the builders introduced in 2.3.20 and added typesafe compiler options. Compiled against the 2.4
- * Build Tools API and classloaded by [[KotlinWorkerImpl]] so the two incompatible API generations
- * never share a compilation classpath.
+ * Build Tools API and classloaded by [[KotlinWorkerImpl]].
  */
 class JvmCompileBtApi24Impl(classpathSnapshotCache: os.Path)
     extends BtApiCompiler(classpathSnapshotCache) {

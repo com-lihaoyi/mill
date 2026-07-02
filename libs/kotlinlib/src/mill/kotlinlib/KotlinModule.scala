@@ -99,8 +99,8 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     val Array(major, minor) = kotlinVersion().split("[.]").take(2).map(_.toIntOption)
     val usesDeprecatedApi = major.exists(_ < 2) || (major.contains(2) && minor.exists(_ < 4))
     val workerModule =
-      if (usesDeprecatedApi) "mill-libs-kotlinlib-worker"
-      else "mill-libs-kotlinlib-worker-btapi-2-4"
+      if (usesDeprecatedApi) "mill-libs-kotlinlib-worker-1"
+      else "mill-libs-kotlinlib-worker-2-4"
     val deps = kotlinCompilerMvnDeps() ++ Seq(
       Dep.millProjectModule(workerModule)
     )

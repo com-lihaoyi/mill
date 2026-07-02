@@ -10,7 +10,7 @@ import mill.api.TaskCtx
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import scala.jdk.CollectionConverters.*
 
-class KotlinWorkerImpl(
+abstract class KotlinWorkerImplBase(
     private val classpathSnapshotCache: os.Path,
     private val classpathSnapshotCacheIsStable: Boolean
 ) extends KotlinWorker, AutoCloseable {
@@ -29,7 +29,7 @@ class KotlinWorkerImpl(
     ctx.log.debug(s"Using source files: ${sources.map(v => s"'${v}'").mkString(" ")}")
 
     val compiler = (target = target, useBtApi = useBtApi) match {
-      case (KotlinWorkerTarget.Jvm, true) => jvmBtApiCompiler
+      case (KotlinWorkerTarget.Jvm, true) => jvmBtApiCompiler()
       case (KotlinWorkerTarget.Jvm, false) => JvmCompileImpl()
       case (target = KotlinWorkerTarget.Js) => JsCompileImpl()
     }
@@ -45,11 +45,7 @@ class KotlinWorkerImpl(
 
   }
 
-  private lazy val jvmBtApiCompiler: BtApiCompiler =
-    java.util.ServiceLoader
-      .load(classOf[BtApiCompilerFactory], getClass.getClassLoader)
-      .iterator.asScala.nextOption()
-      .fold(JvmCompileBtApiImpl(classpathSnapshotCache))(_.create(classpathSnapshotCache))
+  protected def jvmBtApiCompiler(): BtApiCompiler
 
   override def close(): Unit = {
     if (!classpathSnapshotCacheIsStable) {

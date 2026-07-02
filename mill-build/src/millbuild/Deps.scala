@@ -239,6 +239,7 @@ object Deps {
   val kspVersion = "2.0.1"
   val kotlinBuildToolsApiVersion_api = "2.3.0"
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
+  val kotlin24Compiler_api = mvn"org.jetbrains.kotlin:kotlin-compiler:2.4.0"
   val kotlinBuildToolsApi_api =
     mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kotlinBuildToolsApiVersion_api"
   // The 2.4.0 Build Tools API dropped the legacy operation factories in favour of builders; the
