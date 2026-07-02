@@ -421,7 +421,6 @@ trait KotlinJsModule extends KotlinModule { outer =>
     val workerResult = worker.compile(
       target = KotlinWorkerTarget.Js,
       useBtApi = useBtApi,
-      kotlinVersion = kotlinVersion,
       args = compilerArgs,
       sources = inputFiles,
       classpath = Nil

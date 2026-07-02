@@ -72,8 +72,6 @@ object `package` extends MillStableScalaModule with BuildInfo {
   }
 
   // Dedicated Build Tools API backend for Kotlin 2.4+, compiled against the 2.4 API generation.
-  // Classloaded by `worker`'s `KotlinWorkerImpl` based on the user's Kotlin version, so the two
-  // incompatible BTA generations never share a compilation classpath.
   object `worker-btapi2` extends MillPublishScalaModule {
     override def compileModuleDeps = Seq(api, worker)
 

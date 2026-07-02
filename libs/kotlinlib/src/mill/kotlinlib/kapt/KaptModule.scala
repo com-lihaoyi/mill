@@ -146,7 +146,6 @@ trait KaptModule extends KotlinModule { outer =>
         _.compile(
           target = KotlinWorkerTarget.Jvm,
           useBtApi = useBtApi,
-          kotlinVersion = kotlinVersion(),
           args = compilerArgs,
           sources = sourceFiles,
           classpath = compileClasspathRefs

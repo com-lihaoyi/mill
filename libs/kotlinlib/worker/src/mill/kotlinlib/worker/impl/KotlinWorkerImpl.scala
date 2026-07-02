@@ -16,7 +16,6 @@ class KotlinWorkerImpl(
   def compile(
       target: KotlinWorkerTarget,
       useBtApi: Boolean,
-      kotlinVersion: String,
       args: Seq[String],
       sources: Seq[os.Path],
       classpath: Seq[mill.api.PathRef]
@@ -28,19 +27,8 @@ class KotlinWorkerImpl(
 
     ctx.log.debug(s"Using source files: ${sources.map(v => s"'${v}'").mkString(" ")}")
 
-    // Kotlin 2.4.0 replaced the legacy Build Tools API operation factories with builders, so each
-    // API generation has its own `Compiler`. The 2.4 backend lives in a sibling module compiled
-    // against the 2.4 API; classload it (rather than link statically) to keep the two generations
-    // off a shared compilation classpath.
     val compiler = (target = target, useBtApi = useBtApi) match {
-      case (KotlinWorkerTarget.Jvm, true) =>
-        if (usesBuilderApi(kotlinVersion))
-          getClass().getClassLoader()
-            .loadClass("mill.kotlinlib.worker.impl.JvmCompileBtApi24Impl")
-            .getConstructor(classOf[os.Path])
-            .newInstance(classpathSnapshotCache)
-            .asInstanceOf[Compiler]
-        else JvmCompileBtApiImpl(classpathSnapshotCache)
+      case (KotlinWorkerTarget.Jvm, true) => jvmBtApiCompiler
       case (KotlinWorkerTarget.Jvm, false) => JvmCompileImpl()
       case (target = KotlinWorkerTarget.Js) => JsCompileImpl()
     }
@@ -55,6 +43,22 @@ class KotlinWorkerImpl(
     ()
 
   }
+
+  // Kotlin 2.4.0 replaced the legacy Build Tools API operation factories with builders.
+  private lazy val jvmBtApiCompiler: Compiler =
+    if (usesBuilderApi(loadedCompilerVersion))
+      getClass
+        .getClassLoader
+        .loadClass("mill.kotlinlib.worker.impl.JvmCompileBtApi24Impl")
+        .getConstructor(classOf[os.Path])
+        .newInstance(classpathSnapshotCache)
+        .asInstanceOf[Compiler]
+    else JvmCompileBtApiImpl(classpathSnapshotCache)
+
+  private def loadedCompilerVersion: String =
+    org.jetbrains.kotlin.buildtools.api.KotlinToolchains
+      .loadImplementation(getClass.getClassLoader)
+      .getCompilerVersion
 
   override def close(): Unit = {
     if (!classpathSnapshotCacheIsStable) {

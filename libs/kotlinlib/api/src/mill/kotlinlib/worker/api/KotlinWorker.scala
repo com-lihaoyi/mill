@@ -13,8 +13,6 @@ trait KotlinWorker {
   /**
    * Compile the given sources.
    * @param useBtApi Whether to use the Build Tools API. Only relevant for [[KotlinWorkerTarget.Jvm]].
-   * @param kotlinVersion The Kotlin version being compiled against. Selects the Build Tools API
-   *                      backend, since the API changed incompatibly in 2.4.0.
    * @param args Compiler arguments.
    * @param sources Source files to compile.
    * @param classpath Compilation classpath, useful for incremental compilation.
@@ -22,7 +20,6 @@ trait KotlinWorker {
   def compile(
       target: KotlinWorkerTarget,
       useBtApi: Boolean,
-      kotlinVersion: String,
       args: Seq[String],
       sources: Seq[os.Path],
       classpath: Seq[PathRef]
