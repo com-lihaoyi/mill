@@ -1,6 +1,6 @@
 package mill.exec
 
-import mill.api.{ExecutionPaths, PathRef}
+import mill.api.{ExecutionPaths, Logger, PathRef}
 
 import java.io.{ByteArrayOutputStream, DataInputStream, DataOutputStream, InputStream, OutputStream}
 import java.net.URI
@@ -27,7 +27,9 @@ import scala.util.control.NonFatal
  *
  * A `--remote-cache-location` of `http(s)://` uses the protocol above; a `file:` URL or path
  * uses a local/shared directory directly (see [[Backend]]), with no server. Setting
- * `MILL_REMOTE_CACHE_AUTHORIZATION` sends its value as the `Authorization` header.
+ * `MILL_REMOTE_CACHE_AUTHORIZATION` sends its value as the `Authorization` header;
+ * `--remote-cache-connect-timeout`/`--remote-cache-read-timeout` bound the HTTP connect and
+ * per-request read time.
  */
 /**
  * One instance per remote-cache-enabled run: it resolves the [[BazelRemoteCache.Backend]] once
@@ -55,7 +57,8 @@ private[mill] class BazelRemoteCache private (
       paths: ExecutionPaths,
       inputsHash: Int,
       segmentsRender: String,
-      pathRefs: Seq[PathRef]
+      pathRefs: Seq[PathRef],
+      logger: Logger
   ): Unit = mill.api.BuildCtx.withFilesystemCheckerDisabled {
     // Cache I/O is trusted framework I/O that legitimately writes outside the task's `dest/`.
     // `deleteOnExit = false`: the `finally os.remove(blobFile)` below already removes it on every
@@ -67,16 +70,25 @@ private[mill] class BazelRemoteCache private (
       try writeBlob(paths, pathRefs, out)
       finally out.close()
       val sha = mill.constants.Util.hexArray(digest.digest())
+      val size = os.size(blobFile)
+
+      logger.debug(s"remote cache: saving $segmentsRender ($sha, ${readableSize(size)})")
+      logger.ticker(s"remote cache: uploading $segmentsRender (${readableSize(size)})")
 
       // Upload the blob before the AC entry that references it, so a reader never sees an AC
       // entry pointing at a missing blob.
-      if (backend.put(s"cas/$sha", Backend.Body.File(blobFile)))
+      if (backend.put(s"cas/$sha", Backend.Body.File(blobFile), logger, segmentsRender)) {
         backend.put(
           s"ac/${actionCacheKey(inputsHash, segmentsRender)}",
-          Backend.Body.Bytes(Protobuf.encodeActionResult(sha, os.size(blobFile)))
+          Backend.Body.Bytes(Protobuf.encodeActionResult(sha, size)),
+          logger,
+          segmentsRender
         )
+        logger.debug(s"remote cache: saved $segmentsRender")
+      }
     } catch {
-      case NonFatal(_) =>
+      case NonFatal(e) =>
+        logger.debug(s"remote cache: save failed for $segmentsRender: $e")
     } finally os.remove(blobFile)
   }
 
@@ -84,36 +96,54 @@ private[mill] class BazelRemoteCache private (
   def load(
       paths: ExecutionPaths,
       inputsHash: Int,
-      segmentsRender: String
+      segmentsRender: String,
+      logger: Logger
   ): Boolean = mill.api.BuildCtx.withFilesystemCheckerDisabled {
     try {
-      backend.get(s"ac/${actionCacheKey(inputsHash, segmentsRender)}").map { is =>
-        try is.readAllBytes()
-        finally is.close()
+      logger.debug(s"remote cache: looking up $segmentsRender")
+      backend.get(s"ac/${actionCacheKey(inputsHash, segmentsRender)}", logger, segmentsRender).map {
+        is =>
+          try is.readAllBytes()
+          finally is.close()
       } match {
-        case None => false
+        case None =>
+          logger.debug(s"remote cache miss: $segmentsRender")
+          false
         case Some(acBytes) =>
           Protobuf.decodeBlobDigestHash(acBytes) match {
-            case None => false
+            case None =>
+              logger.debug(s"remote cache miss: $segmentsRender (undecodable action result)")
+              false
             case Some(sha) =>
-              backend.get(s"cas/$sha") match {
+              backend.get(s"cas/$sha", logger, segmentsRender) match {
                 // Blob evicted or not yet propagated: treat as a miss and recompute.
-                case None => false
-                case Some(is) =>
+                case None =>
+                  logger.debug(s"remote cache miss: $segmentsRender (blob $sha evicted)")
+                  false
+                case Some(rawIs) =>
+                  logger.ticker(s"remote cache: downloading $segmentsRender")
+                  val is =
+                    ProgressInputStream(
+                      rawIs,
+                      logger,
+                      s"remote cache: downloading $segmentsRender"
+                    )
                   // Wipe stale `dest/` only on a hit; a miss keeps it so a persistent task reuses
                   // its state.
                   if (os.exists(paths.dest)) os.remove.all(paths.dest)
                   try {
                     readBlob(paths, is)
+                    logger.debug(s"remote cache hit: restored $segmentsRender")
                     true
                   } catch {
-                    case NonFatal(_) =>
+                    case NonFatal(e) =>
                       // A mid-stream download failure has left `dest/` partially unpacked. The
                       // recompute path skips
                       // re-deleting a *persistent* task's `dest/` — so empty it here to hand the
                       // task body a clean dest. This discards a persistent task's prior
                       // incremental state, which is acceptable since the hit above already wiped
                       // it.
+                      logger.debug(s"remote cache: restore failed for $segmentsRender: $e")
                       if (os.exists(paths.dest)) os.remove.all(paths.dest)
                       false
                   } finally is.close()
@@ -121,22 +151,31 @@ private[mill] class BazelRemoteCache private (
           }
       }
     } catch {
-      case NonFatal(_) => false
+      case NonFatal(e) =>
+        logger.debug(s"remote cache: load failed for $segmentsRender: $e")
+        false
     }
   }
 }
 
 private[mill] object BazelRemoteCache {
 
-  /** Build a cache for `location`, parsing the backend (and resolving any `file:`/`~/` path) once. */
-  def forLocation(location: String, salt: Option[String], workspace: os.Path): BazelRemoteCache =
-    new BazelRemoteCache(Backend.forLocation(location, workspace), salt)
-
-  private val connectTimeout = Duration.ofSeconds(30)
-  private val requestTimeout = Duration.ofSeconds(120)
-
-  private lazy val client: HttpClient =
-    HttpClient.newBuilder().connectTimeout(connectTimeout).build()
+  /**
+   * Build a cache for `location`, parsing the backend (and resolving any `file:`/`~/` path) once.
+   * `connectTimeout`/`requestTimeout` bound the HTTP connect and per-request read time for an
+   * `http(s)://` backend (defaults come from the `--remote-cache-*-timeout` CLI flags).
+   */
+  def forLocation(
+      location: String,
+      salt: Option[String],
+      workspace: os.Path,
+      connectTimeout: Duration,
+      requestTimeout: Duration
+  ): BazelRemoteCache =
+    new BazelRemoteCache(
+      Backend.forLocation(location, workspace, connectTimeout, requestTimeout),
+      salt
+    )
 
   private lazy val authHeader: Option[String] = sys.env.get("MILL_REMOTE_CACHE_AUTHORIZATION")
 
@@ -243,8 +282,8 @@ private[mill] object BazelRemoteCache {
       PosixFilePermission.OTHERS_EXECUTE
 
   private trait Backend {
-    def get(key: String): Option[InputStream]
-    def put(key: String, body: Backend.Body): Boolean
+    def get(key: String, logger: Logger, label: String): Option[InputStream]
+    def put(key: String, body: Backend.Body, logger: Logger, label: String): Boolean
   }
 
   private object Backend {
@@ -253,9 +292,14 @@ private[mill] object BazelRemoteCache {
       case Bytes(bytes: Array[Byte])
     }
 
-    def forLocation(location: String, workspace: os.Path): Backend =
+    def forLocation(
+        location: String,
+        workspace: os.Path,
+        connectTimeout: Duration,
+        requestTimeout: Duration
+    ): Backend =
       if (location.startsWith("http://") || location.startsWith("https://"))
-        new HttpBackend(location.stripSuffix("/"))
+        new HttpBackend(location.stripSuffix("/"), connectTimeout, requestTimeout)
       else if (location.startsWith("file:"))
         new FileBackend(os.Path(java.nio.file.Path.of(URI.create(location))))
       else if (location.startsWith("~/"))
@@ -263,32 +307,45 @@ private[mill] object BazelRemoteCache {
       else new FileBackend(os.Path(location, workspace))
   }
 
-  private class HttpBackend(baseUrl: String) extends Backend {
+  private class HttpBackend(baseUrl: String, connectTimeout: Duration, requestTimeout: Duration)
+      extends Backend {
+    private val client: HttpClient =
+      HttpClient.newBuilder().connectTimeout(connectTimeout).build()
     private def requestBuilder(key: String): HttpRequest.Builder = {
       val b = HttpRequest.newBuilder(URI.create(s"$baseUrl/$key")).timeout(requestTimeout)
       authHeader.fold(b)(h => b.header("Authorization", h))
     }
-    def get(key: String): Option[InputStream] = {
+    def get(key: String, logger: Logger, label: String): Option[InputStream] = {
       val resp =
         client.send(requestBuilder(key).GET().build(), HttpResponse.BodyHandlers.ofInputStream())
       if (resp.statusCode() == 200) Some(resp.body())
-      else { resp.body().close(); None }
+      else {
+        resp.body().close()
+        if (resp.statusCode() != 404)
+          logger.debug(s"remote cache: server error ${resp.statusCode()} on GET $key ($label)")
+        None
+      }
     }
-    def put(key: String, body: Backend.Body): Boolean = {
+    def put(key: String, body: Backend.Body, logger: Logger, label: String): Boolean = {
       val publisher = body match {
         case Backend.Body.File(file) => HttpRequest.BodyPublishers.ofFile(file.wrapped)
         case Backend.Body.Bytes(bytes) => HttpRequest.BodyPublishers.ofByteArray(bytes)
       }
-      client.send(
+      val status = client.send(
         requestBuilder(key).PUT(publisher).build(),
         HttpResponse.BodyHandlers.discarding()
-      ).statusCode() / 100 == 2
+      ).statusCode()
+      if (status / 100 == 2) true
+      else {
+        logger.debug(s"remote cache: server error $status on PUT $key ($label)")
+        false
+      }
     }
   }
 
   private class FileBackend(dir: os.Path) extends Backend {
     private def path(key: String): os.Path = dir / os.SubPath(key)
-    def get(key: String): Option[InputStream] = {
+    def get(key: String, logger: Logger, label: String): Option[InputStream] = {
       val p = path(key)
       Option.when(os.exists(p))(os.read.inputStream(p))
     }
@@ -298,7 +355,7 @@ private[mill] object BazelRemoteCache {
     // which surface as a cache miss and a clean recompute (never corruption), so a plain overwrite
     // is sufficient. (An atomic temp+rename was tried but gave temp files restrictive `0600` perms,
     // breaking cross-user reads on the shared-folder backend it was meant to help.)
-    def put(key: String, body: Backend.Body): Boolean = {
+    def put(key: String, body: Backend.Body, logger: Logger, label: String): Boolean = {
       body match {
         case Backend.Body.File(file) => os.copy.over(file, path(key), createFolders = true)
         case Backend.Body.Bytes(bytes) => os.write.over(path(key), bytes, createFolders = true)
@@ -317,6 +374,31 @@ private[mill] object BazelRemoteCache {
       remaining -= r
     }
   }
+
+  private class ProgressInputStream(underlying: InputStream, logger: Logger, prefix: String)
+      extends InputStream {
+    private var count = 0L
+    private var lastReported = 0L
+    private def report(): Unit =
+      if (count - lastReported >= 65536) {
+        lastReported = count
+        logger.ticker(s"$prefix (${readableSize(count)})")
+      }
+    override def read(): Int = {
+      val b = underlying.read()
+      if (b >= 0) { count += 1; report() }
+      b
+    }
+    override def read(b: Array[Byte], off: Int, len: Int): Int = {
+      val n = underlying.read(b, off, len)
+      if (n > 0) { count += n; report() }
+      n
+    }
+    override def close(): Unit = underlying.close()
+  }
+
+  private def readableSize(n: Long): String =
+    coursier.cache.loggers.SingleLineRefreshDisplay.byteCount(n)
 
   /**
    * Hand-rolled encoder/decoder for the [[https://github.com/bazelbuild/remote-apis ActionResult]]

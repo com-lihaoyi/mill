@@ -55,6 +55,8 @@ trait GroupExecution {
   def remoteCacheLocation: Option[String]
   def remoteCacheSalt: Option[String]
   def remoteCacheFilter: Option[String]
+  def remoteCacheConnectTimeoutSeconds: Int
+  def remoteCacheReadTimeoutSeconds: Int
 
   def replayLogs: Boolean
 
@@ -64,7 +66,13 @@ trait GroupExecution {
 
   // One cache per run: resolve the `--remote-cache-location` backend once, not per task.
   private lazy val remoteTaskCache: Option[BazelRemoteCache] =
-    remoteCacheLocation.map(BazelRemoteCache.forLocation(_, remoteCacheSalt, workspace))
+    remoteCacheLocation.map(BazelRemoteCache.forLocation(
+      _,
+      remoteCacheSalt,
+      workspace,
+      java.time.Duration.ofSeconds(remoteCacheConnectTimeoutSeconds),
+      java.time.Duration.ofSeconds(remoteCacheReadTimeoutSeconds)
+    ))
 
   /** The remote cache for `labelled`, or `None` if not a filter-matching [[Task.Computed]]. */
   private def remoteCacheTarget(labelled: Task.Named[?]): Option[BazelRemoteCache] =
@@ -446,7 +454,7 @@ trait GroupExecution {
             val remoteMaterialized =
               localReusable.isEmpty && remoteCache.exists { cache =>
                 taskLocks.blockingOnPool {
-                  cache.load(paths, inputsHash, labelled.ctx.segments.render)
+                  cache.load(paths, inputsHash, labelled.ctx.segments.render, logger)
                 }
               }
 
@@ -524,7 +532,8 @@ trait GroupExecution {
                             paths,
                             inputsHash,
                             labelled.ctx.segments.render,
-                            serializedPaths
+                            serializedPaths,
+                            logger
                           )
                         }
                       }

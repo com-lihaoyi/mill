@@ -46,6 +46,8 @@ case class Execution(
     remoteCacheLocation: Option[String] = None,
     remoteCacheSalt: Option[String] = None,
     remoteCacheFilter: Option[String] = None,
+    remoteCacheConnectTimeoutSeconds: Int = 30,
+    remoteCacheReadTimeoutSeconds: Int = 120,
     replayLogs: Boolean
 ) extends GroupExecution with AutoCloseable {
 
@@ -82,6 +84,8 @@ case class Execution(
       remoteCacheLocation: Option[String],
       remoteCacheSalt: Option[String],
       remoteCacheFilter: Option[String],
+      remoteCacheConnectTimeoutSeconds: Int,
+      remoteCacheReadTimeoutSeconds: Int,
       replayLogs: Boolean
   ) = this(
     baseLogger = baseLogger,
@@ -118,6 +122,8 @@ case class Execution(
     remoteCacheLocation = remoteCacheLocation,
     remoteCacheSalt = remoteCacheSalt,
     remoteCacheFilter = remoteCacheFilter,
+    remoteCacheConnectTimeoutSeconds = remoteCacheConnectTimeoutSeconds,
+    remoteCacheReadTimeoutSeconds = remoteCacheReadTimeoutSeconds,
     replayLogs = replayLogs
   )
 
