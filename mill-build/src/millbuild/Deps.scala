@@ -242,7 +242,7 @@ object Deps {
   val kotlinBuildToolsApi_api =
     mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kotlinBuildToolsApiVersion_api"
   // The 2.4.0 Build Tools API dropped the legacy operation factories in favour of builders; the
-  // `worker-btapi2` module compiles the dedicated Kotlin 2.4+ backend against this generation.
+  // `worker-btapi-2-4` module compiles the dedicated Kotlin 2.4+ backend against this generation.
   val kotlinBuildToolsApiVersion_api2 = "2.4.0"
   val kotlinBuildToolsApi_api2 =
     mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kotlinBuildToolsApiVersion_api2"
