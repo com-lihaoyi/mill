@@ -8,6 +8,7 @@ package mill.kotlinlib.worker.impl
 import mill.api.daemon.Result
 import mill.api.TaskCtx
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
+import scala.jdk.CollectionConverters.*
 
 class KotlinWorkerImpl(
     private val classpathSnapshotCache: os.Path,
@@ -44,31 +45,15 @@ class KotlinWorkerImpl(
 
   }
 
-  // Kotlin 2.4.0 replaced the legacy Build Tools API operation factories with builders.
-  private lazy val jvmBtApiCompiler: Compiler =
-    if (usesBuilderApi(loadedCompilerVersion))
-      getClass
-        .getClassLoader
-        .loadClass("mill.kotlinlib.worker.impl.JvmCompileBtApi24Impl")
-        .getConstructor(classOf[os.Path])
-        .newInstance(classpathSnapshotCache)
-        .asInstanceOf[Compiler]
-    else JvmCompileBtApiImpl(classpathSnapshotCache)
-
-  private def loadedCompilerVersion: String =
-    org.jetbrains.kotlin.buildtools.api.KotlinToolchains
-      .loadImplementation(getClass.getClassLoader)
-      .getCompilerVersion
+  private lazy val jvmBtApiCompiler: BtApiCompiler =
+    java.util.ServiceLoader
+      .load(classOf[BtApiCompilerFactory], getClass.getClassLoader)
+      .iterator.asScala.nextOption()
+      .fold(JvmCompileBtApiImpl(classpathSnapshotCache))(_.create(classpathSnapshotCache))
 
   override def close(): Unit = {
     if (!classpathSnapshotCacheIsStable) {
       os.remove.all(classpathSnapshotCache)
     }
-  }
-
-  private def usesBuilderApi(kotlinVersion: String): Boolean = {
-    val Seq(major, minor) =
-      kotlinVersion.split("[.-]").take(2).flatMap(_.toIntOption).toSeq.padTo(2, 0)
-    major > 2 || (major == 2 && minor >= 4)
   }
 }

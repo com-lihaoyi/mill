@@ -71,9 +71,9 @@ object `package` extends MillStableScalaModule with BuildInfo {
       )
   }
 
-  // Dedicated Build Tools API backend for Kotlin 2.4+, compiled against the 2.4 API generation.
   object `worker-btapi-2-4` extends MillPublishScalaModule {
-    override def compileModuleDeps = Seq(api, worker)
+    override def moduleDeps = Seq(worker)
+    override def compileModuleDeps = Seq(api)
 
     def mandatoryMvnDeps = Seq.empty[Dep]
 
