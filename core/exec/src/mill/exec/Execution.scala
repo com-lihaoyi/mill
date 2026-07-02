@@ -141,6 +141,24 @@ case class Execution(
 
   def withIsFinalDepth(newIsFinalDepth: Boolean) = this.copy(isFinalDepth = newIsFinalDepth)
 
+  def logRemoteCacheProfileSlice(
+      label: String,
+      durationMicros: Long,
+      cached: Boolean | Null
+  ): Unit =
+    profileLogger.log(
+      terminal = label,
+      duration = durationMicros,
+      cached = cached match {
+        case b: Boolean => b
+        case null => null
+      },
+      valueHashChanged = null,
+      deps = Nil,
+      inputsHash = 0,
+      previousInputsHash = -1
+    )
+
   /**
    * @param goals The tasks that need to be evaluated
    * @param reporter A function that will accept a module id and provide a listener for build problems in that module

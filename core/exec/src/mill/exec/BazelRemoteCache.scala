@@ -1,6 +1,7 @@
 package mill.exec
 
 import mill.api.{ExecutionPaths, Logger, PathRef}
+import coursier.cache.loggers.SingleLineRefreshDisplay.byteCount as readableSize
 
 import java.io.{ByteArrayOutputStream, DataInputStream, DataOutputStream, InputStream, OutputStream}
 import java.net.URI
@@ -52,14 +53,14 @@ private[mill] class BazelRemoteCache private (
     mill.constants.Util.hexArray(md.digest())
   }
 
-  /** Failures are swallowed: an upload must never fail the build. */
+  /** Failures are swallowed: an upload must never fail the build. Returns the uploaded blob size, or `None` if nothing was stored. */
   def store(
       paths: ExecutionPaths,
       inputsHash: Int,
       segmentsRender: String,
       pathRefs: Seq[PathRef],
       logger: Logger
-  ): Unit = mill.api.BuildCtx.withFilesystemCheckerDisabled {
+  ): Option[Long] = mill.api.BuildCtx.withFilesystemCheckerDisabled {
     // Cache I/O is trusted framework I/O that legitimately writes outside the task's `dest/`.
     // `deleteOnExit = false`: the `finally os.remove(blobFile)` below already removes it on every
     // path; a per-blob JVM shutdown hook would otherwise leak in a long-lived daemon.
@@ -85,20 +86,22 @@ private[mill] class BazelRemoteCache private (
           segmentsRender
         )
         logger.debug(s"remote cache: saved $segmentsRender")
-      }
+        Some(size)
+      } else None
     } catch {
       case NonFatal(e) =>
         logger.debug(s"remote cache: save failed for $segmentsRender: $e")
+        None
     } finally os.remove(blobFile)
   }
 
-  /** Reverse of [[store]]: `true` if a full entry was found and unpacked, `false` otherwise. */
+  /** Reverse of [[store]]: `Some(bytes)` if a full entry was found and unpacked, `None` otherwise. */
   def load(
       paths: ExecutionPaths,
       inputsHash: Int,
       segmentsRender: String,
       logger: Logger
-  ): Boolean = mill.api.BuildCtx.withFilesystemCheckerDisabled {
+  ): Option[Long] = mill.api.BuildCtx.withFilesystemCheckerDisabled {
     try {
       logger.debug(s"remote cache: looking up $segmentsRender")
       backend.get(s"ac/${actionCacheKey(inputsHash, segmentsRender)}", logger, segmentsRender).map {
@@ -108,18 +111,18 @@ private[mill] class BazelRemoteCache private (
       } match {
         case None =>
           logger.debug(s"remote cache miss: $segmentsRender")
-          false
+          None
         case Some(acBytes) =>
           Protobuf.decodeBlobDigestHash(acBytes) match {
             case None =>
               logger.debug(s"remote cache miss: $segmentsRender (undecodable action result)")
-              false
+              None
             case Some(sha) =>
               backend.get(s"cas/$sha", logger, segmentsRender) match {
                 // Blob evicted or not yet propagated: treat as a miss and recompute.
                 case None =>
                   logger.debug(s"remote cache miss: $segmentsRender (blob $sha evicted)")
-                  false
+                  None
                 case Some(rawIs) =>
                   logger.ticker(s"remote cache: downloading $segmentsRender")
                   val is =
@@ -133,8 +136,10 @@ private[mill] class BazelRemoteCache private (
                   if (os.exists(paths.dest)) os.remove.all(paths.dest)
                   try {
                     readBlob(paths, is)
-                    logger.debug(s"remote cache hit: restored $segmentsRender")
-                    true
+                    logger.debug(
+                      s"remote cache hit: restored $segmentsRender (${readableSize(is.bytesRead)})"
+                    )
+                    Some(is.bytesRead)
                   } catch {
                     case NonFatal(e) =>
                       // A mid-stream download failure has left `dest/` partially unpacked. The
@@ -145,7 +150,7 @@ private[mill] class BazelRemoteCache private (
                       // it.
                       logger.debug(s"remote cache: restore failed for $segmentsRender: $e")
                       if (os.exists(paths.dest)) os.remove.all(paths.dest)
-                      false
+                      None
                   } finally is.close()
               }
           }
@@ -153,7 +158,7 @@ private[mill] class BazelRemoteCache private (
     } catch {
       case NonFatal(e) =>
         logger.debug(s"remote cache: load failed for $segmentsRender: $e")
-        false
+        None
     }
   }
 }
@@ -395,10 +400,8 @@ private[mill] object BazelRemoteCache {
       n
     }
     override def close(): Unit = underlying.close()
+    def bytesRead: Long = count
   }
-
-  private def readableSize(n: Long): String =
-    coursier.cache.loggers.SingleLineRefreshDisplay.byteCount(n)
 
   /**
    * Hand-rolled encoder/decoder for the [[https://github.com/bazelbuild/remote-apis ActionResult]]

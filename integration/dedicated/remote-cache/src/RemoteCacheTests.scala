@@ -154,6 +154,32 @@ object RemoteCacheTests extends UtestIntegrationTestSuite {
       }
     }
 
+    // Remote-cache restore/save show up as their own slices in `mill-profile.json` and as
+    // timeline entries in `mill-chrome-profile.json`.
+    test("profileSlices") - withServer { url =>
+      def profileLabels(tester: mill.testkit.IntegrationTester): Seq[String] =
+        ujson.read(os.read(tester.workspacePath / "out" / mill.constants.OutFiles.millProfile))
+          .arr.map(_.obj("label").str).toSeq
+      def chromeNames(tester: mill.testkit.IntegrationTester): Seq[String] =
+        ujson.read(os.read(
+          tester.workspacePath / "out" / mill.constants.OutFiles.millChromeProfile
+        )).arr.flatMap(_.obj.get("name").map(_.str)).toSeq
+
+      integrationTest { tester =>
+        val res = tester.eval(("--remote-cache-location", url, "cachedTask"))
+        assert(res.isSuccess)
+        assert(profileLabels(tester).exists(_.startsWith("cachedTask <remote cache save:")))
+        assert(chromeNames(tester).exists(_.startsWith("remote cache save: cachedTask")))
+      }
+      integrationTest { tester =>
+        val res = tester.eval(("--remote-cache-location", url, "cachedTask"))
+        assert(res.isSuccess)
+        assert(!evaluated(tester, "cachedTask"))
+        assert(profileLabels(tester).exists(_.startsWith("cachedTask <remote cache restore: hit")))
+        assert(chromeNames(tester).exists(_.startsWith("remote cache restore: cachedTask (hit")))
+      }
+    }
+
     // A hit must restore the referenced `dest/` files, or `PathRef` re-validation forces a recompute.
     test("pathRefRestore") - withServer { url =>
       integrationTest { tester =>
