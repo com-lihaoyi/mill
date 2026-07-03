@@ -87,7 +87,11 @@ object MillMavenBuildGenMain {
           val quarkusVersionOpt = detectQuarkusPluginVersion(model)
 
           val (bomMvnDeps, depManagement, bomModuleDeps) =
-            Option(model.getDependencyManagement).map(filterSpringBootBomDeps).fold((Nil, Nil, Nil)) { dm =>
+            Option(model.getDependencyManagement).map(filterSpringBootBomDeps).fold((
+              Nil,
+              Nil,
+              Nil
+            )) { dm =>
               collectDependencyManagement(dm, toMvnOrModuleDep, moduleDepLookup)
             }
 
@@ -293,7 +297,7 @@ object MillMavenBuildGenMain {
         val source = if (location != null) location.getSource else null
         val sourceId = if (source != null) Option(source.getModelId).getOrElse("") else ""
         sourceId.contains(SpringBoot.DependenciesArtifactId) ||
-          sourceId.contains(SpringBoot.ParentArtifactId)
+        sourceId.contains(SpringBoot.ParentArtifactId)
       }
       val filteredDm = new DependencyManagement()
       filteredDm.setDependencies(filteredDeps.asJava)

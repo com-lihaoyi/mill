@@ -1,10 +1,8 @@
 package mill.main.maven
 
 import mill.api.PathRef
-import org.apache.maven.model.{DependencyManagement, Model}
+import org.apache.maven.model.DependencyManagement
 import org.apache.maven.model.building.*
-import org.apache.maven.model.composition.DependencyManagementImporter
-import org.apache.maven.model.inheritance.InheritanceAssembler
 import org.apache.maven.model.resolution.ModelResolver
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils
 import org.eclipse.aether.repository.{LocalRepository, RemoteRepository}
@@ -95,10 +93,4 @@ object Modeler {
     props.put("maven.multiModuleProjectDirectory", PathRef.toAbsString(mvnWorkspace))
     props
   }
-}
-
-object SpringBoot {
-  val GroupId = "org.springframework.boot"
-  val ParentArtifactId = "spring-boot-starter-parent"
-  val DependenciesArtifactId = "spring-boot-dependencies"
 }

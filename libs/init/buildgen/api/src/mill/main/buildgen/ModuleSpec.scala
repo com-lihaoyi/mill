@@ -5,6 +5,12 @@ import upickle.default.{ReadWriter, macroRW, readwriter}
 
 import scala.language.implicitConversions
 
+object SpringBoot {
+  val GroupId = "org.springframework.boot"
+  val ParentArtifactId = "spring-boot-starter-parent"
+  val DependenciesArtifactId = "spring-boot-dependencies"
+}
+
 case class ModuleSpec(
     name: String,
     imports: Seq[String] = Nil,
@@ -95,7 +101,7 @@ case class ModuleSpec(
 
   private def stripSpringVersion(deps: Values[MvnDep], platformVer: String): Values[MvnDep] =
     deps.copy(base = deps.base.map {
-      case dep if dep.organization == "org.springframework.boot" =>
+      case dep if dep.organization == SpringBoot.GroupId =>
         if (platformVer.nonEmpty && dep.version.nonEmpty && dep.version != platformVer) dep
         else dep.copy(version = "")
       case dep => dep
@@ -110,8 +116,11 @@ case class ModuleSpec(
       mvnDeps = stripSpringVersion(mvnDeps, verStr),
       compileMvnDeps = stripSpringVersion(compileMvnDeps, verStr),
       runMvnDeps = stripSpringVersion(runMvnDeps, verStr),
-      bomMvnDeps = stripSpringVersion(bomMvnDeps, verStr),
-      depManagement = stripSpringVersion(depManagement, verStr)
+      bomMvnDeps = bomMvnDeps.copy(base =
+        bomMvnDeps.base.filterNot(dep =>
+          dep.organization == SpringBoot.GroupId && dep.name == SpringBoot.DependenciesArtifactId
+        )
+      )
     )
   }
 
@@ -122,9 +131,7 @@ case class ModuleSpec(
       supertypes = requiredSupertypes ++ supertypes.filterNot(requiredSupertypes.contains),
       mvnDeps = stripSpringVersion(mvnDeps, verStr),
       compileMvnDeps = stripSpringVersion(compileMvnDeps, verStr),
-      runMvnDeps = stripSpringVersion(runMvnDeps, verStr),
-      bomMvnDeps = stripSpringVersion(bomMvnDeps, verStr),
-      depManagement = stripSpringVersion(depManagement, verStr)
+      runMvnDeps = stripSpringVersion(runMvnDeps, verStr)
     )
   }
 
