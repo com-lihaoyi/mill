@@ -237,11 +237,11 @@ object Deps {
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
   val kotlinVersion = "2.1.20"
   val kspVersion = "2.0.1"
-  val kotlinBuildToolsApiVersion_api = "2.3.0"
+  val kotlinBuildToolsApi23Version_api = "2.3.0"
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
   val kotlin24Compiler_api = mvn"org.jetbrains.kotlin:kotlin-compiler:2.4.0"
-  val kotlinBuildToolsApi_api =
-    mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kotlinBuildToolsApiVersion_api"
+  val kotlinBuildTools23Api_api =
+    mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kotlinBuildToolsApi23Version_api"
   // The 2.4.0 Build Tools API dropped the legacy operation factories in favour of builders; the
   // `worker-btapi-2-4` module compiles the dedicated Kotlin 2.4+ backend against this generation.
   val kotlinBuildToolsApi24Version_api = "2.4.0"

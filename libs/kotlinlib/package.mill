@@ -70,7 +70,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
       val deps = crossValue match {
         case "1" => Seq(
             Deps.kotlinCompiler,
-            Deps.kotlinBuildToolsApi_api
+            Deps.kotlinBuildTools23Api_api
           )
         case "2-4" => Seq(
             Deps.kotlin24Compiler_api,
