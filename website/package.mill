@@ -29,9 +29,7 @@ object `package` extends mill.Module {
       }
     def scalaVersion = Deps.scalaVersion
     def moduleDeps = build.moduleInternal.modules.collect {
-      // we exclude maven-worker module to workaround issue
-      // https://github.com/com-lihaoyi/mill/pull/5977/#issuecomment-3407301062
-      case m: MillPublishScalaModule if m != build.libs.javalib.`maven-worker` => m
+      case m: MillPublishScalaModule if m.includeInApiDocs => m
     }
     def unidocSourceUrl = Task {
       val sha = "main" // VcsVersion.vcsState().currentRevision
