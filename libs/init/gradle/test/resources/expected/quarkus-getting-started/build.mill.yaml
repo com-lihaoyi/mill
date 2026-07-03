@@ -2,6 +2,7 @@ mill-version: SNAPSHOT
 mill-jvm-version: system
 extends: [quarkus.QuarkusModule, MavenModule, PublishModule]
 quarkusPlatformVersion: 3.31.3
+artifactGroupId: com.lihaoyi.example
 mvnDeps:
 - io.quarkus:quarkus-arc
 - io.quarkus:quarkus-rest

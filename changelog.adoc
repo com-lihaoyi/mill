@@ -16,6 +16,131 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 === main branch
 
+[#1-2-0-RC1]
+=== 1.2.0-RC1
+:version: 1.2.0-RC1
+:milestone-name: 1.2.0
+:milestone: 146
+:prev-version: 1.1.6
+_Changes since {prev-version}:_
+
+`1.2.0` is planned to be a binary-compatible but breaking update to the Mill build tool: while
+Mill's APIs and method signatures won't change, some third-party plugins or custom build logic 
+may need to be tweaked for compatibility with the new path-serialization strategy necessary
+to support reproducible builds and remote caching.
+
+The headline features of Mill `1.2.0` are *Remote Caching* and a *reproducible `out/` folder*.
+Mill now serializes absolute paths under the workspace and home directories as stable relative
+aliases, making `out/` independent of where the build lives on disk. This makes task caches
+portable across checkouts and machines, which in turn enables Remote Caching: sharing task
+outputs (e.g. `compile`, `testCached`) across worktrees, machines, and CI via a cache speaking
+the Bazel remote-execution protocol (bazel-remote, Buildbarn, EngFlow) or a shared `file:`/NFS
+folder. See https://mill-build.org/mill/main-branch/large/remote-caching.html[Remote Caching] for
+details.
+
+* *Remote Caching*: share task outputs across worktrees, machines, and CI via a remote cache,
+  enabled with `--remote-cache-location` (or the `mill-remote-cache-location` build-header key).
+  Mill supports the Bazel remote-cache protocol and any Bazel-compatible cache servers such as
+  e.g. https://github.com/buchgr/bazel-remote[Bazel-Remote].
+  See https://mill-build.org/mill/main-branch/large/remote-caching.html[Remote Caching]
+  {link-pr}/2777[#2777]
+
+* *Reproducible `out/` folder contents*: absolute paths under the workspace and home directories
+  are now serialized as stable relative aliases, so task caches, metadata, and logs no longer
+  embed machine-specific absolute paths. See
+  https://mill-build.org/mill/main-branch/fundamentals/out-dir.html#_reproducible_out_contents[Reproducible `out/` Contents]
+  {link-pr}/4642[#4642]. __**Some user code may need to customize exactly how paths are serialized
+  to ensure it works while still maintaining reproducibility**__ 
+  (see https://mill-build.org/mill/main-branch/fundamentals/bundled-libraries.html#_os_lib_path_serialization[Path Serialization])
+
+* *Fine-grained task-level concurrency between launchers*: the Mill daemon now uses per-task
+  read/write locking instead of a single global workspace lock, so multiple concurrent `mill`
+  commands can run non-conflicting tasks in parallel. See
+  https://mill-build.org/mill/main-branch/depth/parallelism.html#_concurrent_mill_invocations[Concurrent Mill Invocations]
+  {link-pr}/6955[#6955]
+
+* Split out a `globalExclusive = true` flag from the vanilla `exclusive = true` flag on
+  `Task.Command`; `globalExclusive` takes the daemon-wide workspace lock and is used for mutating
+  commands like `clean`, `init`, and the formatters. See
+  https://mill-build.org/mill/main-branch/fundamentals/tasks.html#_globally_exclusive_commands[Globally-Exclusive Commands]
+  {link-pr}/7069[#7069]
+
+* Add a `--replay-logs` option to re-print the logs of cached tasks {link-pr}/7196[#7196]
+
+* `mill init`: Detect Quarkus and Spring Boot projects and apply `QuarkusModule`/`SpringBootModule`.
+  See https://mill-build.org/mill/main-branch/migrating/auto-migrating.html[Automated Migration Tools]
+  {link-pr}/7117[#7117] {link-pr}/7093[#7093]
+
+* `SpringBootModule` now inherits `RepackageModule` {link-pr}/7120[#7120]
+
+* Dependency strings now support a `force` attribute, e.g. `mvn"org:name:ver;force"`, usable from
+  YAML build headers. See
+  https://mill-build.org/mill/main-branch/fundamentals/library-deps.html#_forcing_versions[Forcing versions]
+  {link-pr}/7108[#7108]
+
+* Add `testBatchFrameworkTasks` to run each fork group as a single batch inside the forked JVM,
+  needed by frameworks like Weaver. See
+  https://mill-build.org/mill/main-branch/javalib/testing.html#_batch_mode_for_test_frameworks[Batch Mode for Test Frameworks]
+  {link-pr}/7119[#7119]
+
+* Add `BuildCtx.rootModule` to give plugins and `Task.Command`s access to the build's root module
+  {link-pr}/7090[#7090]
+
+* Add option `-L` as a short alternative to `--meta-level` {link-pr}/7115[#7115]
+
+* Use `-Ymagic-offset-header` to fix up line numbers in build files and scripts, so compiler
+  errors and stack traces point at the right lines {link-pr}/5932[#5932] {link-pr}/7262[#7262]
+
+* Update scalafmt to 3.11.0 {link-pr}/7048[#7048]
+
+* Refine defaults for `KotlinModule.kotlinFriendModules` {link-pr}/7191[#7191]
+
+* Android: Only have `AndroidLibModule` for libraries {link-pr}/7034[#7034]
+
+* Make sure Groovy integration works fine with Groovy 6 {link-pr}/7124[#7124]
+
+* Use Java 25 by default {link-pr}/7076[#7076]
+
+* Update Scala.js to 1.21.0 {link-pr}/7049[#7049] and Scala Native to 0.5.12 {link-pr}/7143[#7143]
+
+* Re-add support for dot-config files {link-pr}/7180[#7180]
+
+* Always clean the classes dir when using the Kotlin CLI compiler {link-pr}/7189[#7189]
+
+* Use an absolute path when loading a native library {link-pr}/7208[#7208]
+
+* Fix `mill visualize` with no arguments failing with a `MatchError` {link-pr}/6973[#6973]
+
+* Fix Spotless `RelPathRef` decoding {link-pr}/7111[#7111]
+
+* Fix `*.iml` generation for Kotlin in GenIDEA {link-pr}/7082[#7082]
+
+* Fix fine-grained-locking BSP import deadlock {link-pr}/7161[#7161] and cross-request deadlocks
+  from retained per-task read locks {link-pr}/7136[#7136]
+
+
+[#1-1-7]
+=== 1.1.7
+:version: 1.1.7
+:milestone-name: 1.1.7
+:milestone: 147
+:prev-version: 1.1.6
+_2026-06-21_
+
+_Changes since {prev-version}:_
+
+_All changes were backported from the 1.2.0 development branch._
+
+* Fix a stale classes issue in KotlinModule using the CLI compiler {link-pr}/7189[#7189]
+* Introduce a `scalafmt-worker` module
+* Make annotation processors not inherit zinc classpath {link-pr}/7089[#7089]
+* Add option `-L` as short alternative to `--meta-level` {link-pr}/7115[#7115]
+* Add `--replay-logs` option to show logs of cached tasks {link-pr}/7263[#7263]
+* Fix race-condition in RepackageModule {link-pr}/7300[#7300]
+* Deduplicate reverse dependency tree to fix OOM errors in coursier {link-pr}/7301[#7301]
+* Various dependency update
+
+
 [#1-1-6]
 === 1.1.6
 :version: 1.1.6

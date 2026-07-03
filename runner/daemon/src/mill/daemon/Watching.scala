@@ -3,6 +3,7 @@ package mill.daemon
 import mill.api.{PathRef, SystemStreams}
 import mill.api.daemon.Watchable
 import mill.api.BuildCtx
+import mill.api.internal.PathAliasing
 import mill.internal.Colors
 
 import java.io.InputStream
@@ -194,61 +195,63 @@ object Watching {
         val canonicalFilterPaths = filterPaths.map(canonical)
         val canonicalWatchedPathsSet = watchedPathsSet.map(canonical)
 
-        Using.resource(os.watch.watch(
-          // Just watch the root folder
-          Seq(workspaceRoot),
-          filter = path => {
-            val canonicalPath = canonical(path)
-            val shouldBeWatched =
-              canonicalFilterPaths.contains(canonicalPath) ||
-                canonicalWatchedPathsSet.exists(watchedPath =>
-                  canonicalPath.startsWith(watchedPath)
-                )
-            writeToWatchLog(s"[filter] (shouldBeWatched=$shouldBeWatched) $path")
-            shouldBeWatched
-          },
-          onEvent = changedPaths => {
-            // Make sure that the changed paths are actually the ones in our watch list and not some adjacent files in the
-            // same folder
-            val hasWatchedPath =
-              changedPaths.exists { p =>
-                val canonicalPath = canonical(p)
-                canonicalWatchedPathsSet.exists(watchedPath =>
-                  canonicalPath.startsWith(watchedPath)
+        PathAliasing.withRawPathSerializer {
+          Using.resource(os.watch.watch(
+            // Just watch the root folder
+            Seq(workspaceRoot),
+            filter = path => {
+              val canonicalPath = canonical(path)
+              val shouldBeWatched =
+                canonicalFilterPaths.contains(canonicalPath) ||
+                  canonicalWatchedPathsSet.exists(watchedPath =>
+                    canonicalPath.startsWith(watchedPath)
+                  )
+              writeToWatchLog(s"[filter] (shouldBeWatched=$shouldBeWatched) $path")
+              shouldBeWatched
+            },
+            onEvent = changedPaths => {
+              // Make sure that the changed paths are actually the ones in our watch list and not some adjacent files in the
+              // same folder
+              val hasWatchedPath =
+                changedPaths.exists { p =>
+                  val canonicalPath = canonical(p)
+                  canonicalWatchedPathsSet.exists(watchedPath =>
+                    canonicalPath.startsWith(watchedPath)
+                  )
+                }
+
+              // Do not log if the only thing that changed was the watch log file itself.
+              //
+              // See https://github.com/com-lihaoyi/mill/issues/5843
+              if (hasWatchedPath || changedPaths.exists(_ != watchLogFile)) {
+                writeToWatchLog(
+                  s"[changed-paths] (hasWatchedPath=$hasWatchedPath) ${changedPaths.mkString("\n")}"
                 )
               }
 
-            // Do not log if the only thing that changed was the watch log file itself.
-            //
-            // See https://github.com/com-lihaoyi/mill/issues/5843
-            if (hasWatchedPath || changedPaths.exists(_ != watchLogFile)) {
-              writeToWatchLog(
-                s"[changed-paths] (hasWatchedPath=$hasWatchedPath) ${changedPaths.mkString("\n")}"
-              )
+              if (hasWatchedPath) {
+                pathChangesDetected = true
+              }
+            },
+            logger = (eventType, data) => {
+              val _ = eventType
+              val _ = data
+              // Uncommenting this causes indefinite loop as writing to watch log triggers an event, which then
+              // gets written to the watch log, which then triggers an event, and so on.
+              //
+              // https://github.com/com-lihaoyi/mill/issues/5843
+              //            writeToWatchLog(s"[watch:event] $eventType: ${pprint.apply(data).plainText}")
             }
+          )) { _ =>
+            // If already stale, re-evaluate instantly.
+            //
+            // We need to do this to prevent any changes from slipping through the gap between the last evaluation and
+            // starting the watch.
+            val alreadyStale = watched.exists(w => !haveNotChanged(w))
 
-            if (hasWatchedPath) {
-              pathChangesDetected = true
-            }
-          },
-          logger = (eventType, data) => {
-            val _ = eventType
-            val _ = data
-            // Uncommenting this causes indefinite loop as writing to watch log triggers an event, which then
-            // gets written to the watch log, which then triggers an event, and so on.
-            //
-            // https://github.com/com-lihaoyi/mill/issues/5843
-//            writeToWatchLog(s"[watch:event] $eventType: ${pprint.apply(data).plainText}")
+            if (alreadyStale) None
+            else doWatch(notifiablesChanged = () => pathChangesDetected)
           }
-        )) { _ =>
-          // If already stale, re-evaluate instantly.
-          //
-          // We need to do this to prevent any changes from slipping through the gap between the last evaluation and
-          // starting the watch.
-          val alreadyStale = watched.exists(w => !haveNotChanged(w))
-
-          if (alreadyStale) None
-          else doWatch(notifiablesChanged = () => pathChangesDetected)
         }
       }(using
         closable =>

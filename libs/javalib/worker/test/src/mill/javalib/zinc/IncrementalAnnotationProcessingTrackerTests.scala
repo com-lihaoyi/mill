@@ -1,6 +1,8 @@
 package mill.javalib.zinc
 
 import utest.*
+import sbt.internal.inc.{Analysis, Relations}
+import xsbti.VirtualFileRef
 
 import javax.tools.{FileObject, JavaFileObject, SimpleJavaFileObject}
 
@@ -99,6 +101,51 @@ object IncrementalAnnotationProcessingTrackerTests extends TestSuite {
             source.toNIO.toAbsolutePath.normalize()
           )
         )
+      } finally os.remove.all(workDir)
+    }
+
+    test("persistAcceptsRelativeAnalysisProductIds") {
+      val workDir = os.temp.dir()
+      try {
+        val classesDir = workDir / "classes"
+        val source = workDir / "src/example/Foo.java"
+        val product = classesDir / "example/Foo.class"
+        os.makeDir.all(source / os.up)
+        os.makeDir.all(product / os.up)
+        os.write(source, "package example; class Foo {}")
+        os.write(product, "")
+
+        val analysis = Analysis.empty.copy(
+          relations = Relations.empty.addSource(
+            src = VirtualFileRef.of(source.toString),
+            products = Seq(
+              VirtualFileRef.of(
+                "mill-workspace/out/app/compile.dest/classes/example/Foo.class"
+              )
+            ),
+            classes = Nil,
+            internalDeps = Nil,
+            externalDeps = Nil,
+            libraryDeps = Nil
+          )
+        )
+
+        val tracker = new IncrementalAnnotationProcessing.CompileTracker(
+          trackingMode = IncrementalAnnotationProcessing.TrackingMode.Isolating,
+          sources = Set(source),
+          classesDir = classesDir
+        )
+
+        IncrementalAnnotationProcessing.persist(
+          workDir = workDir,
+          classesDir = classesDir,
+          analysis = analysis,
+          auxiliaryClassFileExtensions = Nil,
+          sourceStamps = Map.empty,
+          tracker = tracker
+        )
+
+        assert(os.exists(IncrementalAnnotationProcessing.snapshotPath(workDir)))
       } finally os.remove.all(workDir)
     }
   }

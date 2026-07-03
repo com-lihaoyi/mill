@@ -50,9 +50,12 @@ object PathRef {
    * Real on-disk absolute path string for `p`, bypassing any `os.Path` serializer
    * that may be in scope. In reproducible mode `os.Path.toString` / `.toIO` /
    * `.toNIO` can return relativized `../mill-workspace/...` / `../mill-home/...`
-   * forms so cached values stay workspace-independent. That form is wrong to
-   * hand to external tools or to Java APIs that resolve relative paths against
-   * their own cwd.
+   * forms so cached values stay workspace-independent. Those aliases only resolve
+   * from a cwd where Mill has planted the matching forwarder symlinks (a task
+   * `.dest`, the run sandbox, or the workspace root). Use this when the consumer
+   * runs in some other directory, or treats relative paths differently from
+   * absolute ones (or only accepts absolute paths). For a consumer that does run
+   * in an aliased cwd and accepts relative paths, prefer [[toRelString]].
    */
   def toAbsString(p: os.Path): String = toAbsNioPath(p).toString
   def toAbsString(p: PathRef): String = toAbsString(p.path)

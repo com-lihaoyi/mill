@@ -207,6 +207,14 @@ You can use the `forceVersion` method to ensure the used version of a dependency
 * If you want to force to the older version (to prevent it being evicted, and replaced by 0.4.0) then you can use `val deps = Seq(mvn"com.lihaoyi::fansi:0.2.14".forceVersion())`
 * `mill show myModule.resolvedMvnDeps | grep "fansi"` should show fansi 0.2.14
 
+You can also use the `;force` suffix in the short dependency notation, which is equivalent to
+calling `.forceVersion()` and is usable from YAML build headers:
+
+[source,scala]
+----
+val deps = Seq(mvn"com.lihaoyi::fansi:0.2.14;force")
+----
+
 == Dependency management
 
 Dependency management consists in listing dependencies whose versions we want to force. Having

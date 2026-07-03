@@ -96,12 +96,18 @@ object BuildGenYaml extends BuildGen {
       "def errorProneJavacEnableOptions",
       errorProneJavacEnableOptions
     ).foreach(lines += _)
+    renderScalaMvnDepValues(
+      "def annotationProcessorsMvnDeps",
+      annotationProcessorsMvnDeps
+    ).foreach(lines += _)
     springBootPlatformVersion.base.foreach(v =>
       lines += s"""def springBootPlatformVersion = "$v""""
     )
     quarkusPlatformVersion.base.foreach(v =>
       lines += s"""def quarkusPlatformVersion = "$v""""
     )
+
+    artifactName.base.foreach(v => lines += s"def artifactName = $v")
 
     renderScalaOptValues("def scalacOptions", scalacOptions).foreach(lines += _)
     renderScalaMvnDepValues("def scalacPluginMvnDeps", scalacPluginMvnDeps).foreach(lines += _)
@@ -237,6 +243,11 @@ object BuildGenYaml extends BuildGen {
       quarkusPlatformVersion
     ).foreach(lines += _)
 
+    renderYamlStringValue(
+      "artifactGroupId",
+      artifactGroupId
+    ).foreach(lines += _)
+
     // BomModule cannot have sources - set empty sources/resources when BomModule is used
     val isBomModule = effectiveSupertypes.contains("BomModule")
 
@@ -289,6 +300,12 @@ object BuildGenYaml extends BuildGen {
     renderYamlStringListValues(
       "errorProneJavacEnableOptions",
       errorProneJavacEnableOptions
+    ).foreach(lines += _)
+
+    // Annotation Processors
+    renderYamlMvnDepsList(
+      "annotationProcessorsMvnDeps",
+      annotationProcessorsMvnDeps
     ).foreach(lines += _)
 
     // Publishing

@@ -26,7 +26,7 @@ runs:
       shell: bash
 
     - uses: actions/setup-node@v4
-      with: { node-version: '22' }
+      with: { node-version: '25' }
 
     - run: cat .mill-jvm-version
       shell: ${{ inputs.shell }}

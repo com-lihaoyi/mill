@@ -30,3 +30,24 @@ include::partial$example/javalib/testing/6-test-grouping.adoc[]
 === Test Grouping & Test Parallelism together
 
 include::partial$example/javalib/testing/7-test-group-parallel.adoc[]
+
+=== Batch Mode for Test Frameworks
+
+Some sbt-testing-interface frameworks use `Runner.tasks` to wire relationships between related
+test tasks, and need to see the full batch of selected tasks at once rather than having Mill
+pre-filter and parallelize them. For example, https://disneystreaming.github.io/weaver-test/[Weaver]'s
+`GlobalResource` setup is connected to suites from the full task batch.
+
+For such frameworks, override `testBatchFrameworkTasks` to `true`:
+
+[source,scala]
+----
+object test extends ScalaTests {
+  def testBatchFrameworkTasks = true
+}
+----
+
+When enabled, Mill passes each fork group's full set of selected tasks to the framework in a
+single forked JVM. This disables intra-group queue parallelism (all classes in a
+xref:#_test_grouping[`testForkGrouping`] group run in one subprocess), though separate fork
+groups still run independently.

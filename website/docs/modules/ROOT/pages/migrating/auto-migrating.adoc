@@ -13,6 +13,11 @@ is converted to a Mill `build.mill`/`package.mill` file containing a top-level `
 or `SbtModule`. A nested `test` module is defined, if `src/test` exists, and is configured
 with a supported xref:javalib/testing.adoc[test framework], if found.
 
+`mill init` also detects common application frameworks and wires up the corresponding
+Mill module: xref:javalib/spring-boot.adoc[Spring Boot] projects are configured with
+`SpringBootModule`, and xref:javalib/web-examples.adoc#_quarkus_example[Quarkus] projects
+with `QuarkusModule`.
+
 Again, note that `mill init` importing Maven builds is best-effort.
 This means that while small projects can be expected to complete without issue:
 

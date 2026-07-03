@@ -157,7 +157,8 @@ object `package` extends mill.Module {
         Seq(
           build.libs.javalib,
           build.libs.scalajslib.worker("1"),
-          build.libs.kotlinlib.worker
+          build.libs.kotlinlib.worker("1"),
+          build.libs.kotlinlib.worker("2-4")
         )
 
     def compileModuleDeps =

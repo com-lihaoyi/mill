@@ -13,13 +13,15 @@ object WasmTests extends TestSuite {
   object Wasm extends TestRootModule with ScalaJSModule {
     override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
-    override def scalaJSVersion = "1.20.2"
+    override def scalaJSVersion = "1.22.0"
 
     override def moduleKind = ModuleKind.ESModule
 
     override def moduleSplitStyle = ModuleSplitStyle.FewestModules
 
-    override def scalaJSExperimentalUseWebAssembly: T[Boolean] = true
+    override def esFeatures = super.esFeatures().withESVersion(ESVersion.ES2022)
+
+    override def scalaJSUseWebAssembly: T[Boolean] = true
 
     override lazy val millDiscover = {
       import mill.util.TokenReaders.given

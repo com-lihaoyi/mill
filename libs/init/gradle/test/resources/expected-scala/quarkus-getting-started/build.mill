@@ -11,6 +11,8 @@ object `package` extends QuarkusModule, MavenModule, PublishModule {
 
   def quarkusPlatformVersion = "3.31.3"
 
+  def artifactGroupId = "com.lihaoyi.example"
+
   def mvnDeps = Seq(mvn"io.quarkus:quarkus-arc", mvn"io.quarkus:quarkus-rest")
 
   def javacOptions = Seq("-source", "21", "-target", "21")

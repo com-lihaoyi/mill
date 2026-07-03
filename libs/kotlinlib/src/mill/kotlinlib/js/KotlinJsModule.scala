@@ -422,7 +422,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
       target = KotlinWorkerTarget.Js,
       useBtApi = useBtApi,
       args = compilerArgs,
-      sources = inputFiles
+      sources = inputFiles,
+      classpath = Nil
     )
 
     val analysisFile = Task.dest / "kotlin.analysis.dummy"

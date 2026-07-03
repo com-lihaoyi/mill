@@ -35,6 +35,19 @@ build to improve parallelism.
 
 
 
+== Concurrent Mill Invocations
+
+As of Mill 1.2.0, the Mill daemon uses fine-grained per-task read/write locking rather than a
+single global lock over the `out/` folder. This means multiple concurrent `mill` commands run
+against the same project (for example a command-line `./mill` invocation alongside an
+IDE-triggered xref:cli/installation-ide.adoc[BSP] request) can run their non-conflicting tasks
+in parallel, instead of one invocation having to wait for the other to finish.
+
+Commands that mutate shared state, such as `clean`, `init`, or the various code formatters, are
+marked xref:fundamentals/tasks.adoc#_globally_exclusive_commands[globally exclusive]: they take
+the daemon-wide workspace lock so that no other invocation runs concurrently while they execute.
+Running with `--no-daemon` instead takes a single coarse process-level lock per invocation.
+
 == Mill Chrome Profiles
 
 Every `mill` run generates an output file in `out/mill-chrome-profile.json` that can be

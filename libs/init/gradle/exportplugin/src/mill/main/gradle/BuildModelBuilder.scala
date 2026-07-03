@@ -101,7 +101,8 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         moduleDeps = moduleDeps("implementation", "api"),
         compileModuleDeps = moduleDeps("compileOnly", "compileOnlyApi"),
         runModuleDeps = moduleDeps("runtimeOnly"),
-        bomModuleDeps = mainBomDeps.collect(toModuleDep)
+        bomModuleDeps = mainBomDeps.collect(toModuleDep),
+        annotationProcessorsMvnDeps = mvnDeps("annotationProcessor")
       )
       val hasErrorPronePlugin = getPluginManager.hasPlugin("net.ltgt.errorprone")
       if (hasErrorPronePlugin) {
@@ -117,7 +118,8 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
 
       if (isQuarkus) {
         val pluginVersion = detectPluginVersion(project0, QuarkusPluginId)
-        mainModule = mainModule.withQuarkusModule(pluginVersion)
+        mainModule =
+          mainModule.withQuarkusModule(pluginVersion, Option(getGroup.toString).filter(_.nonEmpty))
 
         // Add PublishModule and artifact/pom settings.
         mainModule = mainModule.copy(
@@ -166,7 +168,8 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
           bomModuleDeps = testBomDeps.collect(toModuleDep),
           testParallelism = Some(false),
           testSandboxWorkingDir = Some(false),
-          testFramework = Option.when(testMixin.isEmpty)("")
+          testFramework = Option.when(testMixin.isEmpty)(""),
+          annotationProcessorsMvnDeps = mvnDeps("testAnnotationProcessor")
         )
         if (hasErrorPronePlugin) {
           testModule = testModule.withErrorProneModule(

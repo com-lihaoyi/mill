@@ -109,7 +109,7 @@ object JLineNativeLoader {
     System.setProperty("library.jline.path", loader.millJLineNativeDir.toString)
     System.setProperty("library.jline.name", loader.millJLineNativeLibLocation.last)
 
-    System.load(loader.millJLineNativeLibLocation.toString)
+    System.load(loader.millJLineNativeLibLocation.toNIO.toAbsolutePath().toString())
 
     val cls = classOf[org.jline.nativ.JLineNativeLoader]
     val fld = cls.getDeclaredField("loaded")

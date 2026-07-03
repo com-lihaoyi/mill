@@ -20,9 +20,11 @@ object ReproducibilityTests extends UtestIntegrationTestSuite {
     "javaApp.assembly",
     "scalaApp.assembly",
     "kotlinApp.assembly",
+    "kotlinIcApp.assembly",
     "javaApp.allForkEnv",
     "scalaApp.allForkEnv",
-    "kotlinApp.allForkEnv"
+    "kotlinApp.allForkEnv",
+    "kotlinIcApp.allForkEnv"
   )
 
   /** Join task selectors with `+` so they run in a single Mill invocation. */
@@ -32,8 +34,13 @@ object ReproducibilityTests extends UtestIntegrationTestSuite {
     for (p <- os.walk(workspacePath / "out")) {
       val sub = p.subRelativeTo(workspacePath).toString()
 
+      // Kotlin IC's `last-build.bin` is a serialized wall-clock timestamp, not an input to any
+      // task, so it can't be byte-reproducible and doesn't affect caching.
+      val kotlinIcBuildTimestamp = p.last == "last-build.bin"
+
       val cacheable =
         (sub.contains(".dest") || sub.contains(".json") || os.isDir(p)) &&
+          !kotlinIcBuildTimestamp &&
           !sub.replace("out/mill-build", "").contains("mill-") &&
           !(p.ext == "json" && ujson.read(
             os.read(p)
@@ -65,7 +72,8 @@ object ReproducibilityTests extends UtestIntegrationTestSuite {
   // Whether `task` was recomputed (`"cached": false` in `mill-profile.json`) rather than served
   // from a cache, in the most recent invocation in `tester`'s workspace.
   def evaluated(tester: IntegrationTester, task: String): Boolean = {
-    val profile = os.read(tester.workspacePath / "out" / mill.constants.OutFiles.millProfile)
+    val profile =
+      os.read(tester.workspacePath / "out" / mill.constants.OutFiles.OutFiles.millProfile)
     ujson.read(profile).arr.exists { e =>
       e("label").str == task && e.obj.get("cached").flatMap(_.boolOpt).contains(false)
     }
@@ -80,7 +88,7 @@ object ReproducibilityTests extends UtestIntegrationTestSuite {
 
   def metaBuildCached(tester: IntegrationTester, task: String): Boolean =
     cachedInProfile(
-      tester.workspacePath / "out" / "mill-build" / mill.constants.OutFiles.millProfile,
+      tester.workspacePath / "out" / "mill-build" / mill.constants.OutFiles.OutFiles.millProfile,
       task
     )
 
@@ -181,7 +189,8 @@ object ReproducibilityTests extends UtestIntegrationTestSuite {
     // same cache and assert the expensive tasks are served from it rather than rebuilt.
     test("remoteCache") - withBazelRemote { url =>
       val cacheArgs = Seq("--remote-cache-location", url)
-      val compileTasks = Seq("javaApp.compile", "scalaApp.compile", "kotlinApp.compile")
+      val compileTasks =
+        Seq("javaApp.compile", "scalaApp.compile", "kotlinApp.compile", "kotlinIcApp.compile")
 
       // First checkout: cold cache, everything is computed locally and pushed.
       integrationTest { tester =>
@@ -195,7 +204,12 @@ object ReproducibilityTests extends UtestIntegrationTestSuite {
         val res = tester.eval(cacheArgs ++ plus(appTasks), check = true)
         assert(res.isSuccess)
         for (
-          t <- compileTasks ++ Seq("javaApp.assembly", "scalaApp.assembly", "kotlinApp.assembly")
+          t <- compileTasks ++ Seq(
+            "javaApp.assembly",
+            "scalaApp.assembly",
+            "kotlinApp.assembly",
+            "kotlinIcApp.assembly"
+          )
         )
           assert(!evaluated(tester, t))
       }
