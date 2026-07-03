@@ -95,12 +95,12 @@ trait BtApiCompiler(val classpathSnapshotCache: os.Path) extends Compiler {
 
         buildSession.executeOperation(
           compilationOperation(
-            jvmToolchain,
-            sourceFiles,
-            destinationDirectory,
-            args,
-            incrementalCachePath,
-            classpathSnapshotFiles
+            jvmToolchain = jvmToolchain,
+            sourceFiles = sourceFiles,
+            destinationDirectory = destinationDirectory,
+            args = args,
+            incrementalCachePath = incrementalCachePath,
+            classpathSnapshotFiles = classpathSnapshotFiles
           ),
           executionPolicy,
           kotlinLogger
