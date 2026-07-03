@@ -107,15 +107,19 @@ case class ModuleSpec(
       case dep => dep
     })
 
-  def withSpringBootModule(springBootVersion: Value[String]): ModuleSpec = {
+  def withSpringBootModule(
+      springBootVersion: Value[String],
+      stripVersion: Boolean = true
+  ): ModuleSpec = {
     val verStr = springBootVersion.base.getOrElse("")
+    val doStrip = stripVersion && verStr.nonEmpty
     copy(
       imports = "mill.javalib.spring.boot.*" +: imports,
       supertypes = "SpringBootModule" +: supertypes,
       springBootPlatformVersion = springBootVersion,
-      mvnDeps = stripSpringVersion(mvnDeps, verStr),
-      compileMvnDeps = stripSpringVersion(compileMvnDeps, verStr),
-      runMvnDeps = stripSpringVersion(runMvnDeps, verStr),
+      mvnDeps = if (doStrip) stripSpringVersion(mvnDeps, verStr) else mvnDeps,
+      compileMvnDeps = if (doStrip) stripSpringVersion(compileMvnDeps, verStr) else compileMvnDeps,
+      runMvnDeps = if (doStrip) stripSpringVersion(runMvnDeps, verStr) else runMvnDeps,
       bomMvnDeps = bomMvnDeps.copy(base =
         bomMvnDeps.base.filterNot(dep =>
           dep.organization == SpringBoot.GroupId && dep.name == SpringBoot.DependenciesArtifactId
@@ -124,14 +128,18 @@ case class ModuleSpec(
     )
   }
 
-  def withSpringBootTestsModule(springBootVersion: Value[String]): ModuleSpec = {
+  def withSpringBootTestsModule(
+      springBootVersion: Value[String] = Value(),
+      stripVersion: Boolean = true
+  ): ModuleSpec = {
     val requiredSupertypes = Seq("SpringBootTestsModule", "MavenTests")
     val verStr = springBootVersion.base.getOrElse("")
+    val doStrip = stripVersion && verStr.nonEmpty
     copy(
       supertypes = requiredSupertypes ++ supertypes.filterNot(requiredSupertypes.contains),
-      mvnDeps = stripSpringVersion(mvnDeps, verStr),
-      compileMvnDeps = stripSpringVersion(compileMvnDeps, verStr),
-      runMvnDeps = stripSpringVersion(runMvnDeps, verStr)
+      mvnDeps = if (doStrip) stripSpringVersion(mvnDeps, verStr) else mvnDeps,
+      compileMvnDeps = if (doStrip) stripSpringVersion(compileMvnDeps, verStr) else compileMvnDeps,
+      runMvnDeps = if (doStrip) stripSpringVersion(runMvnDeps, verStr) else runMvnDeps
     )
   }
 
