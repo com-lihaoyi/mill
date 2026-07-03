@@ -102,7 +102,7 @@ case class ModuleSpec(
     })
 
   def withSpringBootModule(springBootVersion: Value[String]): ModuleSpec = {
-    val verStr = springBootVersion.toOption.getOrElse("")
+    val verStr = springBootVersion.base.getOrElse("")
     copy(
       imports = "mill.javalib.spring.boot.*" +: imports,
       supertypes = "SpringBootModule" +: supertypes,
@@ -117,7 +117,7 @@ case class ModuleSpec(
 
   def withSpringBootTestsModule(springBootVersion: Value[String]): ModuleSpec = {
     val requiredSupertypes = Seq("SpringBootTestsModule", "MavenTests")
-    val verStr = springBootVersion.toOption.getOrElse("")
+    val verStr = springBootVersion.base.getOrElse("")
     copy(
       supertypes = requiredSupertypes ++ supertypes.filterNot(requiredSupertypes.contains),
       mvnDeps = stripSpringVersion(mvnDeps, verStr),

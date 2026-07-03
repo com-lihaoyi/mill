@@ -67,14 +67,7 @@ object Modeler {
       context: String = "",
       systemProperties: Properties = null
   ): Modeler = {
-    val builder = new DefaultModelBuilderFactory() {
-      override def newInheritanceAssembler(): InheritanceAssembler = {
-        new FilteringInheritanceAssembler(super.newInheritanceAssembler())
-      }
-      override def newDependencyManagementImporter(): DependencyManagementImporter = {
-        new FilteringDependencyManagementImporter(super.newDependencyManagementImporter())
-      }
-    }.newInstance()
+    val builder = DefaultModelBuilderFactory().newInstance()
     val system = RepositorySystemSupplier().get()
     val session = MavenRepositorySystemUtils.newSession()
     session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, local))
@@ -108,61 +101,4 @@ object SpringBoot {
   val GroupId = "org.springframework.boot"
   val ParentArtifactId = "spring-boot-starter-parent"
   val DependenciesArtifactId = "spring-boot-dependencies"
-}
-
-class FilteringInheritanceAssembler(delegate: InheritanceAssembler)
-    extends InheritanceAssembler {
-  override def assembleModelInheritance(
-      child: Model,
-      parent: Model,
-      request: ModelBuildingRequest,
-      problems: ModelProblemCollector
-  ): Unit = {
-    val parentGroupId =
-      Option(parent.getGroupId).orElse(Option(parent.getParent).map(_.getGroupId)).getOrElse("")
-    val parentArtifactId = parent.getArtifactId
-
-    if (
-      parentGroupId == SpringBoot.GroupId && parentArtifactId == SpringBoot.DependenciesArtifactId
-    ) {
-      val parentClone = parent.clone()
-      parentClone.setDependencyManagement(null)
-      delegate.assembleModelInheritance(child, parentClone, request, problems)
-    } else {
-      delegate.assembleModelInheritance(child, parent, request, problems)
-    }
-  }
-}
-
-class FilteringDependencyManagementImporter(delegate: DependencyManagementImporter)
-    extends DependencyManagementImporter {
-  override def importManagement(
-      target: Model,
-      sources: java.util.List[? <: DependencyManagement],
-      request: ModelBuildingRequest,
-      problems: ModelProblemCollector
-  ): Unit = {
-    // Filter out Spring Boot BOMs by checking if their source location points to a Spring Boot BOM or parent.
-    val filteredSources = if (sources == null) null
-    else {
-      sources.asScala.filterNot { dm =>
-        Option(dm.getDependencies).flatMap(_.asScala.headOption).exists { dep =>
-          val location = dep.getLocation("")
-          val source = if (location != null) location.getSource else null
-          val sourceName = if (source != null) {
-            Option(source.getModelId).orElse(Option(source.getLocation)).getOrElse("")
-          } else ""
-          val isSpringBOM = sourceName.contains(SpringBoot.DependenciesArtifactId) ||
-            sourceName.contains(SpringBoot.ParentArtifactId)
-          isSpringBOM
-        }
-      }.asJava
-    }
-    delegate.importManagement(
-      target,
-      filteredSources.asInstanceOf[java.util.List[? <: DependencyManagement]],
-      request,
-      problems
-    )
-  }
 }

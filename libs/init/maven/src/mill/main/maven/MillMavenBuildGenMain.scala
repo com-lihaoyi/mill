@@ -58,9 +58,10 @@ object MillMavenBuildGenMain {
 
       model.getPackaging match {
         case "pom" =>
-          if (Option(model.getDependencyManagement).exists(!_.getDependencies.isEmpty)) {
+          val dmOpt = Option(model.getDependencyManagement).map(filterSpringBootBomDeps)
+          if (dmOpt.exists(!_.getDependencies.isEmpty)) {
             val (bomDeps, deps) =
-              model.getDependencyManagement.getDependencies.asScala.toSeq.partition(isBom)
+              dmOpt.get.getDependencies.asScala.toSeq.partition(isBom)
             val (bomMvnDeps, bomModuleDeps) = bomDeps.partitionMap(toMvnOrModuleDep)
             val (depManagement, moduleDeps) = deps.partitionMap(toMvnOrModuleDep)
             mainModule = mainModule.copy(
@@ -86,7 +87,7 @@ object MillMavenBuildGenMain {
           val quarkusVersionOpt = detectQuarkusPluginVersion(model)
 
           val (bomMvnDeps, depManagement, bomModuleDeps) =
-            Option(model.getDependencyManagement).fold((Nil, Nil, Nil)) { dm =>
+            Option(model.getDependencyManagement).map(filterSpringBootBomDeps).fold((Nil, Nil, Nil)) { dm =>
               collectDependencyManagement(dm, toMvnOrModuleDep, moduleDepLookup)
             }
 
@@ -282,6 +283,22 @@ object MillMavenBuildGenMain {
     model.getBuild.getPlugins.asScala.find(p =>
       p.getArtifactId == QuarkusPluginArtifactId
     ).flatMap(p => nonEmpty(p.getVersion))
+  }
+
+  private def filterSpringBootBomDeps(dm: DependencyManagement): DependencyManagement = {
+    if (dm == null) null
+    else {
+      val filteredDeps = dm.getDependencies.asScala.filterNot { dep =>
+        val location = dep.getLocation("")
+        val source = if (location != null) location.getSource else null
+        val sourceId = if (source != null) Option(source.getModelId).getOrElse("") else ""
+        sourceId.contains(SpringBoot.DependenciesArtifactId) ||
+          sourceId.contains(SpringBoot.ParentArtifactId)
+      }
+      val filteredDm = new DependencyManagement()
+      filteredDm.setDependencies(filteredDeps.asJava)
+      filteredDm
+    }
   }
 
   private def toMvnDep(dep: Dependency) = {
