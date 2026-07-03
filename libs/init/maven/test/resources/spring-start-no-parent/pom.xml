@@ -23,7 +23,7 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
-            <!--    Add extra dep, shouldn't be filtered       -->
+			<!-- Add extra dep, shouldn't be filtered -->
 			<dependency>
 				<groupId>commons-io</groupId>
 				<artifactId>commons-io</artifactId>

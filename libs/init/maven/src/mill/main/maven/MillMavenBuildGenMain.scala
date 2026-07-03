@@ -219,7 +219,8 @@ object MillMavenBuildGenMain {
       .flatMap(_.getDependencies.asScala.find(dep =>
         dep.getGroupId == SpringBoot.GroupId &&
           (dep.getArtifactId == SpringBoot.DependenciesArtifactId || dep.getArtifactId == SpringBoot.ParentArtifactId) &&
-          dep.getScope == "import"
+          dep.getScope == "import" &&
+          dep.getType == "pom"
       ))
 
   /**
@@ -229,7 +230,7 @@ object MillMavenBuildGenMain {
   private def isSpringBootProject(model: Model, rawModel: Model): Boolean =
     Option(model.getParent).exists(isSpringBootParent) ||
       findSpringBootBom(rawModel).isDefined ||
-      model.getDependencies.asScala.exists(_.getGroupId == SpringBoot.GroupId)
+      rawModel.getDependencies.asScala.exists(_.getGroupId == SpringBoot.GroupId)
 
   private def nonEmpty(value: String): Option[String] = Option(value).filter(_.nonEmpty)
 
@@ -257,17 +258,15 @@ object MillMavenBuildGenMain {
       .filter(isSpringBootParent)
       .flatMap(parent => nonEmpty(parent.getVersion))
 
-    val fromBom = parentVersion.orElse {
-      findSpringBootBom(rawModel)
-        .flatMap(dep => nonEmpty(dep.getVersion))
-        .map {
-          case PropertyRegex(propName) =>
-            Option(model.getProperties.getProperty(propName)).getOrElse(s"$${$propName}")
-          case other => other
-        }
-    }
+    val fromBom = findSpringBootBom(rawModel)
+      .flatMap(dep => nonEmpty(dep.getVersion))
+      .map {
+        case PropertyRegex(propName) =>
+          Option(model.getProperties.getProperty(propName)).getOrElse(s"$${$propName}")
+        case other => other
+      }
 
-    fromBom.orElse {
+    parentVersion.orElse(fromBom).orElse {
       val springBootVersions = model.getDependencies.asScala
         .filter(_.getGroupId == SpringBoot.GroupId)
         .flatMap(dep => nonEmpty(dep.getVersion))
@@ -290,19 +289,16 @@ object MillMavenBuildGenMain {
   }
 
   private def filterSpringBootBomDeps(dm: DependencyManagement): DependencyManagement = {
-    if (dm == null) null
-    else {
-      val filteredDeps = dm.getDependencies.asScala.filterNot { dep =>
-        val location = dep.getLocation("")
-        val source = if (location != null) location.getSource else null
-        val sourceId = if (source != null) Option(source.getModelId).getOrElse("") else ""
-        sourceId.contains(SpringBoot.DependenciesArtifactId) ||
-        sourceId.contains(SpringBoot.ParentArtifactId)
-      }
-      val filteredDm = new DependencyManagement()
-      filteredDm.setDependencies(filteredDeps.asJava)
-      filteredDm
+    val filteredDeps = dm.getDependencies.asScala.filterNot { dep =>
+      val location = dep.getLocation("")
+      val source = if (location != null) location.getSource else null
+      val sourceId = if (source != null) Option(source.getModelId).getOrElse("") else ""
+      sourceId.contains(SpringBoot.DependenciesArtifactId) ||
+      sourceId.contains(SpringBoot.ParentArtifactId)
     }
+    val filteredDm = new DependencyManagement()
+    filteredDm.setDependencies(filteredDeps.asJava)
+    filteredDm
   }
 
   private def toMvnDep(dep: Dependency) = {

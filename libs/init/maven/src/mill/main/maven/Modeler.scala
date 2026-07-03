@@ -1,7 +1,6 @@
 package mill.main.maven
 
 import mill.api.PathRef
-import org.apache.maven.model.DependencyManagement
 import org.apache.maven.model.building.*
 import org.apache.maven.model.resolution.ModelResolver
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils
