@@ -36,7 +36,7 @@ object CodeSigHelloTests extends UtestIntegrationTestSuite {
       // Code change in foo task body - should show code change path
       assertGoldenLiteral(
         invalidationTree(tester),
-        ArraySeq(
+        Seq(
           "{",
           "  \"def build_.package_#foo$$anonfun$1$$anonfun$1$$anonfun$1()int\": {",
           "    \"call build_.package_!foo$$anonfun$1$$anonfun$1$$anonfun$1()int\": {",
@@ -68,7 +68,7 @@ object CodeSigHelloTests extends UtestIntegrationTestSuite {
       // Code change in helperFoo - should show code change path through helperFoo
       assertGoldenLiteral(
         invalidationTree(tester),
-        ArraySeq(
+        Seq(
           "{",
           "  \"def build_.package_#helperFoo()int\": {",
           "    \"call build_.package_#helperFoo()int\": {",
@@ -177,7 +177,7 @@ object CodeSigHelloTests extends UtestIntegrationTestSuite {
       // Lazy val value change - should show code change path through lazyValue
       assertGoldenLiteral(
         invalidationTree(tester),
-        ArraySeq(
+        Seq(
           "{",
           "  \"def build_.package_#lazyValue$lzyINIT1()java.lang.Object\": {",
           "    \"call build_.package_!lazyValue$lzyINIT1()java.lang.Object\": {",
