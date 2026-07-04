@@ -25,6 +25,7 @@ sealed trait Result[+T] {
   }
 }
 object Result {
+  // If this breaks compat for Mill 1.x plugins, make this method public again
   @deprecated("Use the overload accepting a by-name parameter", "Mill after 1.1.7")
   @publicInBinary
   private[daemon] def create[T](value: T): Result[T] = Success(value)
