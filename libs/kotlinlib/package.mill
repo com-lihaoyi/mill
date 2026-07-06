@@ -12,7 +12,8 @@ object `package` extends MillStableScalaModule with BuildInfo {
     api.sources,
     ksp2.sources,
     `ksp2-api`.sources,
-    worker.sources
+    worker("1").sources,
+    worker("2-4").sources
   )
   override object test extends MillScalaTests {
     override def selectiveInputs = Seq(sources, resources) ++ kotlinSelectiveInputs
@@ -21,7 +22,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
   def moduleDeps =
     Seq(build.libs.javalib, build.libs.javalib.testrunner, api, `ksp2-api`)
   def localTestExtraModules =
-    super.localTestExtraModules ++ Seq(worker)
+    super.localTestExtraModules ++ Seq(worker("1"), worker("2-4"))
 
   def buildInfoPackageName = "mill.kotlinlib"
   def buildInfoObjectName = "Versions"
@@ -57,17 +58,32 @@ object `package` extends MillStableScalaModule with BuildInfo {
     )
   }
 
-  object worker extends MillPublishScalaModule {
+  object worker extends Cross[Worker]("1", "2-4")
+  trait Worker extends MillPublishScalaModule, Cross.Module[String] {
     override def compileModuleDeps = Seq(api)
-
     def mandatoryMvnDeps = Seq.empty[Dep]
 
-    override def compileMvnDeps: T[Seq[Dep]] =
-      super.mandatoryMvnDeps() ++ Seq(
-        Deps.osLib,
-        Deps.kotlinCompiler,
-        Deps.kotlinBuildToolsApi_api
+    override def compileMvnDeps: T[Seq[Dep]] = {
+      val shared = Seq(
+        Deps.osLib
       )
+      val deps = crossValue match {
+        case "1" => Seq(
+            Deps.kotlinCompiler,
+            Deps.kotlinBuildTools23Api_api
+          )
+        case "2-4" => Seq(
+            Deps.kotlin24Compiler_api,
+            Deps.kotlinBuildTools24Api_api
+          )
+      }
+      super.mandatoryMvnDeps() ++ shared ++ deps
+    }
+
+    def sourcesSpecific = Task.Sources(os.sub / s"src-${crossValue}")
+    override def sources = super.sources() ++ sourcesSpecific()
+
+    def includeInApiDocs = false
   }
 
   object `ksp2-api` extends MillPublishScalaModule with MillJava11ScalaModule

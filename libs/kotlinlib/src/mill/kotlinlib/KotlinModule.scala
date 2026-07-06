@@ -96,8 +96,13 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
    * Default is derived from [[kotlinCompilerMvnDeps]].
    */
   def kotlinCompilerClasspath: T[Seq[PathRef]] = Task {
+    val Array(major, minor) = kotlinVersion().split("[.]").take(2).map(_.toIntOption).padTo(2, None)
+    val usesDeprecatedApi = major.exists(_ < 2) || (major.contains(2) && minor.exists(_ < 4))
+    val workerModule =
+      if (usesDeprecatedApi) "mill-libs-kotlinlib-worker-1"
+      else "mill-libs-kotlinlib-worker-2-4"
     val deps = kotlinCompilerMvnDeps() ++ Seq(
-      Dep.millProjectModule("mill-libs-kotlinlib-worker")
+      Dep.millProjectModule(workerModule)
     )
     defaultResolver().classpath(
       deps,

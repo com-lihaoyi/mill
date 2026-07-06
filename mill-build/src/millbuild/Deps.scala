@@ -154,7 +154,7 @@ object Deps {
     mvn"com.caoccao.javet:javet-macos:4.0.0"
   )
 
-  val jline = mvn"org.jline:jline:3.30.14"
+  val jline = mvn"org.jline:jline:3.30.15"
   val jnaVersion = "5.16.0"
 
   val jna = mvn"net.java.dev.jna:jna:${jnaVersion}"
@@ -162,7 +162,7 @@ object Deps {
 
   val junitInterface = mvn"com.github.sbt:junit-interface:0.13.3"
   val commonsIo = mvn"commons-io:commons-io:2.22.0"
-  val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.26.0"
+  val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.26.1"
   val osLibVersion = "0.11.9-M8"
   val osLib = mvn"com.lihaoyi::os-lib:$osLibVersion"
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:$osLibVersion"
@@ -237,10 +237,16 @@ object Deps {
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
   val kotlinVersion = "2.1.20"
   val kspVersion = "2.0.1"
-  val kotlinBuildToolsApiVersion_api = "2.3.0"
+  val kotlinBuildToolsApi23Version_api = "2.3.0"
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
-  val kotlinBuildToolsApi_api =
-    mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kotlinBuildToolsApiVersion_api"
+  val kotlin24Compiler_api = mvn"org.jetbrains.kotlin:kotlin-compiler:2.4.0"
+  val kotlinBuildTools23Api_api =
+    mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kotlinBuildToolsApi23Version_api"
+  // The 2.4.0 Build Tools API dropped the legacy operation factories in favour of builders; the
+  // `worker-btapi-2-4` module compiles the dedicated Kotlin 2.4+ backend against this generation.
+  val kotlinBuildToolsApi24Version_api = "2.4.0"
+  val kotlinBuildTools24Api_api =
+    mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kotlinBuildToolsApi24Version_api"
   val kotlinBuildToolsImpl = mvn"org.jetbrains.kotlin:kotlin-build-tools-impl:$kotlinVersion"
   val kotlinStdlib = mvn"org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
   val groovyVersion_lowerBound = "4.0.28"
@@ -280,7 +286,7 @@ object Deps {
   val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.3.1"
   // JGit 6.x series, used by spotlessLibExtra, works on Java 11
   // subsequent releases require Java 17+
-  val jgit = mvn"org.eclipse.jgit:org.eclipse.jgit:6.10.1.202505221210-r"
+  val jgit = mvn"org.eclipse.jgit:org.eclipse.jgit:7.7.0.202606012155-r"
 
   object RuntimeDeps {
     val dokkaVersion_runtime = "2.2.0"
@@ -294,13 +300,13 @@ object Deps {
     val errorProneCore_runtime = mvn"com.google.errorprone:error_prone_core:2.49.0"
     val freemarker_runtime = mvn"org.freemarker:freemarker:2.3.34"
     val jupiterInterface_runtime = mvn"com.github.sbt.junit:jupiter-interface:0.13.3"
-    val jupiterInterface6_runtime = mvn"com.github.sbt.junit:jupiter-interface:0.17.0"
+    val jupiterInterface6_runtime = mvn"com.github.sbt.junit:jupiter-interface:0.17.1"
     val kotestJvm_runtime =
       mvn"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler:5.9.1"
     val kotlinxHtmlJvm_runtime = mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
     val koverCli_runtime = mvn"org.jetbrains.kotlinx:kover-cli:$koverVersion_runtime"
     val koverJvmAgent_runtime = mvn"org.jetbrains.kotlinx:kover-jvm-agent:$koverVersion_runtime"
-    val ktfmt_runtime = mvn"com.facebook:ktfmt:0.58"
+    val ktfmt_runtime = mvn"com.facebook:ktfmt:0.64"
     val ktlint_runtime = mvn"com.pinterest.ktlint:ktlint-core:0.49.1"
     val owaspDependencyCheckCli_runtime = mvn"org.owasp:dependency-check-cli:12.2.2"
     val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.94.0"
