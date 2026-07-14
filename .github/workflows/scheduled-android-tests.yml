@@ -12,8 +12,6 @@ concurrency:
 
 env:
   FORCE_COLOR: '1'
-  MILL_TEST_SCHEDULED: 'true'
-  MILL_TEST_TIMEOUT_MINUTES: '60'
 
 jobs:
   build-linux:
@@ -42,4 +40,6 @@ jobs:
       setup-android: ${{ matrix.setup-android }}
       java-version: 21
       millargs: ${{ matrix.millargs }}
+      mill-test-scheduled: 'true'
+      mill-test-timeout-minutes: '30'
       shell: bash

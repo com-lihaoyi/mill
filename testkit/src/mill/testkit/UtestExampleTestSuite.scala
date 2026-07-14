@@ -30,7 +30,7 @@ object UtestExampleTestSuite extends TestSuite {
             millExecutable,
             useInMemory = sys.env.get("MILL_TEST_USE_IN_MEMORY").contains("1") &&
               sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR"),
-            runScheduled = sys.env.get("MILL_TEST_SCHEDULED").contains("true")
+            runScheduled = sys.env.get("MILL_TEST_SCHEDULED").map(_.toLowerCase).contains("true")
           )
         }
 
