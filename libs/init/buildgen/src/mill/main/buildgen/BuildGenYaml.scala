@@ -109,6 +109,8 @@ object BuildGenYaml extends BuildGen {
     kotlinVersion.base.foreach(v =>
       lines += s"""def kotlinVersion = "$v""""
     )
+    renderScalaOptValues("def kotlincOptions", kotlincOptions).foreach(lines += _)
+    renderScalaMvnDepValues("def kotlincPluginMvnDeps", kotlincPluginMvnDeps).foreach(lines += _)
 
     artifactName.base.foreach(v => lines += s"def artifactName = $v")
 
@@ -249,6 +251,8 @@ object BuildGenYaml extends BuildGen {
       "kotlinVersion",
       kotlinVersion
     ).foreach(lines += _)
+    renderYamlStringListValues("kotlincOptions", kotlincOptions).foreach(lines += _)
+    renderYamlMvnDepsList("kotlincPluginMvnDeps", kotlincPluginMvnDeps).foreach(lines += _)
 
     renderYamlStringValue(
       "artifactGroupId",

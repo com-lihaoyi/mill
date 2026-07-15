@@ -68,7 +68,9 @@ case class ModuleSpec(
     quarkusPlatformVersion: Value[String] = Value(),
     annotationProcessorsMvnDeps: Values[MvnDep] = Values(),
     artifactGroupId: Value[String] = Value(),
-    kotlinVersion: Value[String] = Value()
+    kotlinVersion: Value[String] = Value(),
+    kotlincOptions: Values[Opt] = Values(),
+    kotlincPluginMvnDeps: Values[MvnDep] = Values()
 ) {
 
   def isBomModule: Boolean = supertypes.contains("BomModule")

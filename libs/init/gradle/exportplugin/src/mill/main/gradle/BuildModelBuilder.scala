@@ -58,6 +58,57 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
     }
   }
 
+  private def getDeps(data: ExtractedJvmData, configNames: String*): Seq[Dependency] = {
+    data.configs
+      .filter(config => configNames.contains(config.getName))
+      .flatMap(_.getDependencies.asScala)
+  }
+
+  private def getMvnDeps(
+    data: ExtractedJvmData,
+    isKotlin: Boolean,
+    kotlinVersionForDeps: String,
+    configNames: String*
+  ): Seq[MvnDep] = {
+    val collected = getDeps(data, configNames*).filterNot(isBom).collect(toMvnDep)
+    if (isKotlin && kotlinVersionForDeps.nonEmpty) {
+      fixKotlinVersions(collected, kotlinVersionForDeps, data.kotlinTestResolvedNameOpt).distinct
+    } else collected.distinct
+  }
+
+  private def getModuleDeps(
+    data: ExtractedJvmData,
+    configNames: String*
+  ): Seq[ModuleDep] = {
+    getDeps(data, configNames*).filterNot(isBom).collect(toModuleDep).distinct
+  }
+
+  // Reads freeCompilerArgs from the modern KGP 1.9+ API (getCompilerOptions).
+  // getFreeCompilerArgs returns a Gradle ListProperty<String>, so we call .get() on it.
+  private def kotlinOptions(task: Task): Seq[String] = {
+    try {
+      val compilerOptions = task.getClass.getMethod("getCompilerOptions").invoke(task)
+      val freeArgsProperty = compilerOptions.getClass.getMethod("getFreeCompilerArgs").invoke(compilerOptions)
+      freeArgsProperty.getClass.getMethod("get").invoke(freeArgsProperty)
+        .asInstanceOf[java.util.List[String]].asScala.toSeq
+    } catch {
+      case _: Throwable => Nil
+    }
+  }
+
+  // Reads the resolved compiler plugin JARs from the kotlinCompilerPluginClasspath* configurations,
+  // excluding kotlin-scripting-compiler-embeddable which is always present as Kotlin infrastructure.
+  // We use getFirstLevelModuleDependencies() to avoid picking up transitive deps of the infra plugin.
+  private def kotlinCompilerPlugins(project0: Project, configName: String): Seq[MvnDep] = {
+    import project0.*
+    Option(getConfigurations.findByName(configName))
+      .flatMap(config => Try(config.getResolvedConfiguration.getFirstLevelModuleDependencies.asScala).toOption)
+      .getOrElse(Set.empty[ResolvedDependency])
+      .filterNot(_.getModuleName == "kotlin-scripting-compiler-embeddable")
+      .map(dep => MvnDep(dep.getModuleGroup, dep.getModuleName, dep.getModuleVersion))
+      .toSeq.distinct
+  }
+
   private case class ExtractedJvmData(
     configs: Seq[Configuration],
     kotlinVersionForDeps: String,
@@ -67,7 +118,10 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
     testBomDeps: Seq[Dependency],
     testConstraints: Seq[DependencyConstraint],
     testJavaCompile: Option[JavaCompile],
+    mainKotlinPluginDeps: Seq[MvnDep],
     mainJavaCompile: Option[JavaCompile],
+    mainKotlinCompile: Option[Task],
+    testKotlinCompile: Option[Task],
     effectiveBomDeps: Seq[Dependency],
     mainConstraints: Seq[DependencyConstraint]
   )
@@ -107,6 +161,8 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
 
     val mainJavaCompile = task[JavaCompile]("compileJava")
     val testJavaCompile = task[JavaCompile]("compileTestJava")
+    val mainKotlinCompile = Option(getTasks.findByName("compileKotlin"))
+    val testKotlinCompile = Option(getTasks.findByName("compileTestKotlin"))
     val mainBomDeps = mainConfigs.flatMap(_.getDependencies.asScala).filter(isBom)
     val mainConstraints = mainConfigs.flatMap(_.getDependencyConstraints.asScala)
     val isSpringBoot = isSpringBootProject(project0)
@@ -131,10 +187,53 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       testBomDeps = testBomDeps,
       testConstraints = testConstraints,
       testJavaCompile = testJavaCompile,
+      mainKotlinPluginDeps = kotlinCompilerPlugins(project0, "kotlinCompilerPluginClasspathMain"),
       mainJavaCompile = mainJavaCompile,
+      mainKotlinCompile = mainKotlinCompile,
+      testKotlinCompile = testKotlinCompile,
       effectiveBomDeps = effectiveBomDeps,
       mainConstraints = mainConstraints
     )
+  }
+
+  private def configureBaseJvmModule(
+    project0: Project,
+    data: ExtractedJvmData,
+    mainModule0: ModuleSpec,
+    isKotlin: Boolean,
+    kotlinVersionOpt: Option[String]
+  ): ModuleSpec = {
+    import project0.*
+    val kotlinVersionForDeps = kotlinVersionOpt.getOrElse("")
+    var mainModule = mainModule0.copy(
+      kotlinVersion = kotlinVersionOpt,
+      mvnDeps = getMvnDeps(data, isKotlin, kotlinVersionForDeps, "implementation", "api"),
+      compileMvnDeps = getMvnDeps(data, isKotlin, kotlinVersionForDeps, "compileOnly", "compileOnlyApi"),
+      runMvnDeps = getMvnDeps(data, isKotlin, kotlinVersionForDeps, "runtimeOnly"),
+      bomMvnDeps = if (isKotlin && kotlinVersionForDeps.nonEmpty) {
+        fixKotlinVersions(data.effectiveBomDeps.collect(toMvnDep), kotlinVersionForDeps, data.kotlinTestResolvedNameOpt).distinct
+      } else data.effectiveBomDeps.collect(toMvnDep).distinct,
+      depManagement = if (isKotlin && kotlinVersionForDeps.nonEmpty) {
+        fixKotlinVersions(data.mainConstraints.collect(toMvnDep), kotlinVersionForDeps, data.kotlinTestResolvedNameOpt).distinct
+      } else data.mainConstraints.collect(toMvnDep).distinct,
+      javacOptions = data.mainJavaCompile.fold(Nil)(javacOptions),
+      moduleDeps = getModuleDeps(data, "implementation", "api"),
+      compileModuleDeps = getModuleDeps(data, "compileOnly", "compileOnlyApi"),
+      runModuleDeps = getModuleDeps(data, "runtimeOnly"),
+      bomModuleDeps = data.configs.flatMap(_.getDependencies.asScala).filter(isBom).collect(toModuleDep).distinct,
+      annotationProcessorsMvnDeps = getMvnDeps(data, isKotlin, kotlinVersionForDeps, "annotationProcessor"),
+      kotlincOptions = data.mainKotlinCompile.fold(Nil)(task => Opt.groups(kotlinOptions(task))),
+      kotlincPluginMvnDeps = data.mainKotlinPluginDeps
+    )
+
+    val hasErrorPronePlugin = getPluginManager.hasPlugin("net.ltgt.errorprone")
+    if (hasErrorPronePlugin) {
+      mainModule = mainModule.withErrorProneModule(
+        errorProneMvnDeps = getMvnDeps(data, isKotlin, kotlinVersionForDeps, "errorprone"),
+        errorProneOptions = data.mainJavaCompile.fold(Nil)(errorProneOptions)
+      )
+    }
+    mainModule
   }
 
   private def configureJvmModule(
@@ -147,51 +246,16 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
     import project0.*
     val moduleDir = os.Path(getProjectDir)
     val kotlinVersionForDeps = kotlinVersionOpt.getOrElse("")
-    def fixKotlinVersions0(deps: Seq[MvnDep]): Seq[MvnDep] = {
-      if (isKotlin && kotlinVersionForDeps.nonEmpty) {
-        fixKotlinVersions(
-          deps,
-          kotlinVersionForDeps = kotlinVersionForDeps,
-          kotlinTestResolvedNameOpt = data.kotlinTestResolvedNameOpt
-        )
-      } else deps
-    }
-    def deps(configNames: String*) = data.configs
-      .filter(config => configNames.contains(config.getName))
-      .flatMap(_.getDependencies.asScala)
-    def mvnDeps(configNames: String*) = {
-      fixKotlinVersions0(deps(configNames*).filterNot(isBom).collect(toMvnDep)).distinct
-    }
-    def moduleDeps(configNames: String*) =
-      deps(configNames*).filterNot(isBom).collect(toModuleDep).distinct
-
     val isSpringBoot = isSpringBootProject(project0)
     val isQuarkus = isQuarkusProject(project0)
 
-    var mainModule = mainModule0.copy(
-      imports = (if (isKotlin) Seq("mill.kotlinlib.*", "mill.javalib.*") else Seq("mill.javalib.*")) ++ mainModule0.imports,
-      supertypes = (if (isKotlin) "KotlinMavenModule" else "MavenModule") +: mainModule0.supertypes,
-      kotlinVersion = kotlinVersionOpt,
-      mvnDeps = mvnDeps("implementation", "api"),
-      compileMvnDeps = mvnDeps("compileOnly", "compileOnlyApi"),
-      runMvnDeps = mvnDeps("runtimeOnly"),
-      bomMvnDeps = fixKotlinVersions0(data.effectiveBomDeps.collect(toMvnDep)),
-      depManagement = fixKotlinVersions0(data.mainConstraints.collect(toMvnDep)),
-      javacOptions = data.mainJavaCompile.fold(Nil)(javacOptions),
-      moduleDeps = moduleDeps("implementation", "api"),
-      compileModuleDeps = moduleDeps("compileOnly", "compileOnlyApi"),
-      runModuleDeps = moduleDeps("runtimeOnly"),
-      bomModuleDeps = data.configs.flatMap(_.getDependencies.asScala).filter(isBom).collect(toModuleDep),
-      annotationProcessorsMvnDeps = mvnDeps("annotationProcessor")
+    val baseJvmModule = configureBaseJvmModule(project0, data, mainModule0, isKotlin, kotlinVersionOpt)
+
+    var mainModule = baseJvmModule.copy(
+      imports = (if (isKotlin) Seq("mill.kotlinlib.*", "mill.javalib.*") else Seq("mill.javalib.*")) ++ baseJvmModule.imports,
+      supertypes = (if (isKotlin) "KotlinMavenModule" else "MavenModule") +: baseJvmModule.supertypes
     )
 
-    val hasErrorPronePlugin = getPluginManager.hasPlugin("net.ltgt.errorprone")
-    if (hasErrorPronePlugin) {
-      mainModule = mainModule.withErrorProneModule(
-        errorProneMvnDeps = mvnDeps("errorprone"),
-        errorProneOptions = data.mainJavaCompile.fold(Nil)(errorProneOptions)
-      )
-    }
     if (isSpringBoot) {
       val pluginVersion = detectPluginVersion(project0, SpringBootPluginId)
       mainModule = mainModule.withSpringBootModule(pluginVersion)
@@ -215,6 +279,8 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       )
     }
 
+    val hasErrorPronePlugin = getPluginManager.hasPlugin("net.ltgt.errorprone")
+
     def task[T](name: String)(using T: TypeTest[Task, T]) = getTasks.findByName(name) match {
       case T(t) => Some(t)
       case _ => None
@@ -235,24 +301,29 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
           appendSuper = true
         ),
         forkWorkingDir = Some("moduleDir"),
-        mvnDeps = mvnDeps("testImplementation"),
-        compileMvnDeps = mvnDeps("testCompileOnly"),
-        runMvnDeps = mvnDeps("testRuntimeOnly"),
-        bomMvnDeps = fixKotlinVersions0(testBomDeps.collect(toMvnDep)),
-        depManagement = fixKotlinVersions0(testConstraints.collect(toMvnDep)),
+        mvnDeps = getMvnDeps(data, isKotlin, kotlinVersionForDeps, "testImplementation"),
+        compileMvnDeps = getMvnDeps(data, isKotlin, kotlinVersionForDeps, "testCompileOnly"),
+        runMvnDeps = getMvnDeps(data, isKotlin, kotlinVersionForDeps, "testRuntimeOnly"),
+        bomMvnDeps = if (isKotlin && kotlinVersionForDeps.nonEmpty) {
+          fixKotlinVersions(testBomDeps.collect(toMvnDep), kotlinVersionForDeps, data.kotlinTestResolvedNameOpt).distinct
+        } else testBomDeps.collect(toMvnDep).distinct,
+        depManagement = if (isKotlin && kotlinVersionForDeps.nonEmpty) {
+          fixKotlinVersions(testConstraints.collect(toMvnDep), kotlinVersionForDeps, data.kotlinTestResolvedNameOpt).distinct
+        } else testConstraints.collect(toMvnDep).distinct,
         javacOptions = data.testJavaCompile.fold(Nil)(javacOptions),
         moduleDeps = Values(
-          moduleDeps("testImplementation")
+          getModuleDeps(data, "testImplementation")
             .diff(Seq(ModuleDep(moduleDir.subRelativeTo(workspace).segments))),
           appendSuper = true
         ),
-        compileModuleDeps = moduleDeps("testCompileOnly"),
-        runModuleDeps = moduleDeps("testRuntimeOnly"),
-        bomModuleDeps = testBomDeps.collect(toModuleDep),
+        compileModuleDeps = getModuleDeps(data, "testCompileOnly"),
+        runModuleDeps = getModuleDeps(data, "testRuntimeOnly"),
+        bomModuleDeps = testBomDeps.collect(toModuleDep).distinct,
         testParallelism = Some(false),
         testSandboxWorkingDir = Some(false),
         testFramework = Option.when(data.testMixin.isEmpty)(""),
-        annotationProcessorsMvnDeps = mvnDeps("testAnnotationProcessor")
+        annotationProcessorsMvnDeps = getMvnDeps(data, isKotlin, kotlinVersionForDeps, "testAnnotationProcessor"),
+        kotlincOptions = data.testKotlinCompile.fold(Nil)(task => Opt.groups(kotlinOptions(task)))
       )
       if (hasErrorPronePlugin) {
         testModule = testModule.withErrorProneModule(

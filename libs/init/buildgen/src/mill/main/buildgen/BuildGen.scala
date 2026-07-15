@@ -103,7 +103,9 @@ trait BuildGen {
           parentValue(a.mimaReportSignatureProblems, b.mimaReportSignatureProblems),
         annotationProcessorsMvnDeps =
           parentValues(a.annotationProcessorsMvnDeps, b.annotationProcessorsMvnDeps),
-        kotlinVersion = parentValue(a.kotlinVersion, b.kotlinVersion)
+        kotlinVersion = parentValue(a.kotlinVersion, b.kotlinVersion),
+        kotlincOptions = parentValues(a.kotlincOptions, b.kotlincOptions),
+        kotlincPluginMvnDeps = parentValues(a.kotlincPluginMvnDeps, b.kotlincPluginMvnDeps)
       )
 
     def extendValue[A](a: Value[A], parent: Value[A]) = a.copy(
@@ -180,7 +182,9 @@ trait BuildGen {
         extendValue(a.mimaReportSignatureProblems, parent.mimaReportSignatureProblems),
       annotationProcessorsMvnDeps =
         extendValues(a.annotationProcessorsMvnDeps, parent.annotationProcessorsMvnDeps),
-      kotlinVersion = extendValue(a.kotlinVersion, parent.kotlinVersion)
+      kotlinVersion = extendValue(a.kotlinVersion, parent.kotlinVersion),
+      kotlincOptions = extendValues(a.kotlincOptions, parent.kotlincOptions),
+      kotlincPluginMvnDeps = extendValues(a.kotlincPluginMvnDeps, parent.kotlincPluginMvnDeps)
     )
 
     val (baseHierarchy, testHierarchy) = baseTestHierarchy.unzip
