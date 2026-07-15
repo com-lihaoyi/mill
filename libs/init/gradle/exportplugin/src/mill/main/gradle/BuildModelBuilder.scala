@@ -36,187 +36,234 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
     BuildModel.Impl(upickle.default.write(exportedBuild))
   }
 
-  private def toPackage(project0: Project): PackageSpec = {
+  private def enrichKotlinVersions(
+    deps: Seq[MvnDep],
+    kotlinVersionForDeps: String,
+    kotlinTestResolvedNameOpt: Option[String] = None
+  ): Seq[MvnDep] = {
+    deps.map { dep =>
+      if (dep.organization == "org.jetbrains.kotlin" && dep.name == "kotlin-test") {
+        // org.jetbrains.kotlin:kotlin-test is a multiplatform POM that lacks JVM classes.
+        // We map it to the actual platform variant (e.g. kotlin-test-junit5)
+        // resolved by Gradle's test runtime classpath.
+        val newName = kotlinTestResolvedNameOpt.getOrElse("kotlin-test")
+        dep.copy(name = newName, version = kotlinVersionForDeps)
+      } else if (dep.organization == "org.jetbrains.kotlin" && dep.version.isEmpty) {
+        dep.copy(version = kotlinVersionForDeps)
+      } else {
+        dep
+      }
+    }
+  }
+
+  private case class HarvestedJvmData(
+    configs: Seq[Configuration],
+    kotlinVersionForDeps: String,
+    kotlinTestResolvedNameOpt: Option[String],
+    testMvnDepsList: Seq[MvnDep],
+    testMixin: Seq[String],
+    testBomDeps: Seq[Dependency],
+    testConstraints: Seq[DependencyConstraint],
+    testJavaCompile: Option[JavaCompile],
+    mainJavaCompile: Option[JavaCompile],
+    effectiveBomDeps: Seq[Dependency],
+    mainConstraints: Seq[DependencyConstraint]
+  )
+
+  private def harvestJvmData(project0: Project, isKotlin: Boolean, kotlinVersionOpt: Option[String]): HarvestedJvmData = {
     import project0.*
-    val moduleDir = os.Path(getProjectDir)
+    val configs = getConfigurations.asScala.toSeq
+    val kotlinVersionForDeps = kotlinVersionOpt.getOrElse("")
+    val kotlinTestResolvedNameOpt = configs.find(_.getName == "testRuntimeClasspath")
+      .flatMap { config =>
+        Try(config.getResolvedConfiguration.getResolvedArtifacts.asScala).toOption
+          .flatMap { artifacts =>
+            artifacts.find(art => art.getModuleVersion.getId.getGroup == "org.jetbrains.kotlin" && art.getModuleVersion.getId.getName.startsWith("kotlin-test-"))
+              .map(_.getModuleVersion.getId.getName)
+          }
+      }
+    val testMvnDepsList = configs.find(_.getName == "testRuntimeClasspath")
+      .fold(Nil)(_.getAllDependencies.asScala.toSeq.collect(toMvnDep))
+
+    val testMixin = ModuleSpec.testModuleMixin {
+      if (isKotlin && kotlinVersionForDeps.nonEmpty) {
+        enrichKotlinVersions(
+          testMvnDepsList,
+          kotlinVersionForDeps = kotlinVersionForDeps,
+          kotlinTestResolvedNameOpt = kotlinTestResolvedNameOpt
+        )
+      } else testMvnDepsList
+    }
+    val (testConfigs, mainConfigs) = configs.partition(_.getName.startsWith("test"))
+    val testBomDeps = testConfigs.flatMap(_.getDependencies.asScala).filter(isBom)
+    val testConstraints = testConfigs.flatMap(_.getDependencyConstraints.asScala)
+
+    def task[T](name: String)(using T: TypeTest[Task, T]) = getTasks.findByName(name) match {
+      case T(t) => Some(t)
+      case _ => None
+    }
+
+    val mainJavaCompile = task[JavaCompile]("compileJava")
+    val testJavaCompile = task[JavaCompile]("compileTestJava")
+    val mainBomDeps = mainConfigs.flatMap(_.getDependencies.asScala).filter(isBom)
+    val mainConstraints = mainConfigs.flatMap(_.getDependencyConstraints.asScala)
     val isSpringBoot = isSpringBootProject(project0)
     val isQuarkus = isQuarkusProject(project0)
-    val isKotlin = isKotlinProject(project0)
-    val kotlinVersionOpt = if (isKotlin) detectKotlinVersion(project0) else None
-    var mainModule = ModuleSpec(
-      name = moduleDir.last,
-      repositories = getRepositories.asScala.toSeq.collect(toRepositoryUrlString).distinct
-        .diff(Seq(
-          getRepositories.mavenCentral,
-          getRepositories.mavenLocal,
-          getRepositories.gradlePluginPortal
-        ).collect(toRepositoryUrlString))
+
+    val effectiveBomDeps = {
+      val exclusions = Set.newBuilder[(String, String)]
+      if (isSpringBoot) exclusions += ("org.springframework.boot" -> "spring-boot-dependencies")
+      if (isQuarkus) exclusions += ("io.quarkus.platform" -> "quarkus-bom")
+      val exclusionSet = exclusions.result()
+
+      mainBomDeps.filterNot(dep => exclusionSet.contains((dep.getGroup, dep.getName)))
+    }
+
+    HarvestedJvmData(
+      configs = configs,
+      kotlinVersionForDeps = kotlinVersionForDeps,
+      kotlinTestResolvedNameOpt = kotlinTestResolvedNameOpt,
+      testMvnDepsList = testMvnDepsList,
+      testMixin = testMixin.toSeq,
+      testBomDeps = testBomDeps,
+      testConstraints = testConstraints,
+      testJavaCompile = testJavaCompile,
+      mainJavaCompile = mainJavaCompile,
+      effectiveBomDeps = effectiveBomDeps,
+      mainConstraints = mainConstraints
+    )
+  }
+
+  private def configureJvmModule(
+    project0: Project,
+    data: HarvestedJvmData,
+    mainModule0: ModuleSpec,
+    isKotlin: Boolean,
+    kotlinVersionOpt: Option[String]
+  ): PackageSpec = {
+    import project0.*
+    val moduleDir = os.Path(getProjectDir)
+    val kotlinVersionForDeps = kotlinVersionOpt.getOrElse("")
+    def enrichKotlinVersions0(deps: Seq[MvnDep]): Seq[MvnDep] = {
+      if (isKotlin && kotlinVersionForDeps.nonEmpty) {
+        enrichKotlinVersions(
+          deps,
+          kotlinVersionForDeps = kotlinVersionForDeps,
+          kotlinTestResolvedNameOpt = data.kotlinTestResolvedNameOpt
+        )
+      } else deps
+    }
+    def deps(configNames: String*) = data.configs
+      .filter(config => configNames.contains(config.getName))
+      .flatMap(_.getDependencies.asScala)
+    def mvnDeps(configNames: String*) = {
+      enrichKotlinVersions0(deps(configNames*).filterNot(isBom).collect(toMvnDep)).distinct
+    }
+    def moduleDeps(configNames: String*) =
+      deps(configNames*).filterNot(isBom).collect(toModuleDep).distinct
+
+    val isSpringBoot = isSpringBootProject(project0)
+    val isQuarkus = isQuarkusProject(project0)
+
+    var mainModule = mainModule0.copy(
+      imports = (if (isKotlin) Seq("mill.kotlinlib.*", "mill.javalib.*") else Seq("mill.javalib.*")) ++ mainModule0.imports,
+      supertypes = (if (isKotlin) "KotlinMavenModule" else "MavenModule") +: mainModule0.supertypes,
+      kotlinVersion = kotlinVersionOpt,
+      mvnDeps = mvnDeps("implementation", "api"),
+      compileMvnDeps = mvnDeps("compileOnly", "compileOnlyApi"),
+      runMvnDeps = mvnDeps("runtimeOnly"),
+      bomMvnDeps = enrichKotlinVersions0(data.effectiveBomDeps.collect(toMvnDep)),
+      depManagement = enrichKotlinVersions0(data.mainConstraints.collect(toMvnDep)),
+      javacOptions = data.mainJavaCompile.fold(Nil)(javacOptions),
+      moduleDeps = moduleDeps("implementation", "api"),
+      compileModuleDeps = moduleDeps("compileOnly", "compileOnlyApi"),
+      runModuleDeps = moduleDeps("runtimeOnly"),
+      bomModuleDeps = data.configs.flatMap(_.getDependencies.asScala).filter(isBom).collect(toModuleDep),
+      annotationProcessorsMvnDeps = mvnDeps("annotationProcessor")
     )
 
-    if (getPluginManager.hasPlugin("java-platform")) {
-      val configs = getConfigurations.asScala.toSeq
-      val deps = configs.flatMap(_.getDependencies.asScala)
-      val constraints = configs.flatMap(_.getDependencyConstraints.asScala)
-      mainModule = mainModule.copy(
-        imports = "mill.javalib.*" +: mainModule.imports,
-        supertypes = "JavaModule" +: "BomModule" +: mainModule.supertypes,
-        bomMvnDeps = deps.filter(isBom).collect(toMvnDep),
-        depManagement = constraints.collect(toMvnDep),
-        moduleDeps = constraints.collect(toModuleDep),
-        bomModuleDeps = deps.filter(isBom).collect(toModuleDep)
+    val hasErrorPronePlugin = getPluginManager.hasPlugin("net.ltgt.errorprone")
+    if (hasErrorPronePlugin) {
+      mainModule = mainModule.withErrorProneModule(
+        errorProneMvnDeps = mvnDeps("errorprone"),
+        errorProneOptions = data.mainJavaCompile.fold(Nil)(errorProneOptions)
       )
-    } else if (getPluginManager.hasPlugin("java") || isKotlin) {
-      val configs = getConfigurations.asScala.toSeq
-      val kotlinVersionForDeps = kotlinVersionOpt.getOrElse("")
-      val kotlinTestResolvedNameOpt = configs.find(_.getName == "testRuntimeClasspath")
-        .flatMap { config =>
-          config.getAllDependencies.asScala.toSeq.collect(toMvnDep)
-            .find(dep => dep.organization == "org.jetbrains.kotlin" && dep.name.startsWith("kotlin-test-"))
-            .map(_.name)
-        }
-      def enrichKotlinVersions(deps: Seq[MvnDep], isTest: Boolean = false): Seq[MvnDep] = {
-        if (isKotlin && kotlinVersionForDeps.nonEmpty) {
-          deps.map { dep =>
-            if (dep.organization == "org.jetbrains.kotlin" && dep.name == "kotlin-test") {
-              val newName = if (isTest) kotlinTestResolvedNameOpt.getOrElse("kotlin-test") else "kotlin-test"
-              dep.copy(name = newName, version = kotlinVersionForDeps)
-            } else if (dep.organization == "org.jetbrains.kotlin" && dep.version.isEmpty) {
-              dep.copy(version = kotlinVersionForDeps)
-            } else {
-              dep
-            }
-          }
-        } else deps
-      }
-      def deps(configNames: String*) = configs
-        .filter(config => configNames.contains(config.getName))
-        .flatMap(_.getDependencies.asScala)
-      def mvnDeps(configNames: String*) = {
-        val isTest = configNames.exists(_.startsWith("test"))
-        enrichKotlinVersions(deps(configNames*).filterNot(isBom).collect(toMvnDep), isTest)
-      }
-      def moduleDeps(configNames: String*) =
-        deps(configNames*).filterNot(isBom).collect(toModuleDep)
-      val (testConfigs, mainConfigs) = configs.partition(_.getName.startsWith("test"))
-      val mainBomDeps = mainConfigs.flatMap(_.getDependencies.asScala).filter(isBom)
-      val mainConstraints = mainConfigs.flatMap(_.getDependencyConstraints.asScala)
-      def task[T](name: String)(using T: TypeTest[Task, T]) = getTasks.findByName(name) match {
-        case T(t) => Some(t)
-        case _ => None
-      }
-      // Exclude BOM deps that will be added by Mill Modules
-      val effectiveBomDeps = {
-        val exclusions = Set.newBuilder[(String, String)]
-        if (isSpringBoot) exclusions += ("org.springframework.boot" -> "spring-boot-dependencies")
-        if (isQuarkus) exclusions += ("io.quarkus.platform" -> "quarkus-bom")
-        val exclusionSet = exclusions.result()
+    }
+    if (isSpringBoot) {
+      val pluginVersion = detectPluginVersion(project0, SpringBootPluginId)
+      mainModule = mainModule.withSpringBootModule(pluginVersion)
+    }
 
-        mainBomDeps.filterNot(dep => exclusionSet.contains((dep.getGroup, dep.getName)))
-      }
-      val buildDir = os.Path(getLayout.getBuildDirectory.get().getAsFile)
-      val mainJavaCompile = task[JavaCompile]("compileJava")
+    if (isQuarkus) {
+      val pluginVersion = detectPluginVersion(project0, QuarkusPluginId)
+      mainModule =
+        mainModule.withQuarkusModule(pluginVersion, Option(getGroup.toString).filter(_.nonEmpty))
+
+      // Add PublishModule and artifact/pom settings.
       mainModule = mainModule.copy(
-        imports = (if (isKotlin) Seq("mill.kotlinlib.*", "mill.javalib.*") else Seq("mill.javalib.*")) ++ mainModule.imports,
-        supertypes = (if (isKotlin) "KotlinMavenModule" else "MavenModule") +: mainModule.supertypes,
-        kotlinVersion = kotlinVersionOpt,
-        mvnDeps = mvnDeps("implementation", "api"),
-        compileMvnDeps = mvnDeps("compileOnly", "compileOnlyApi"),
-        runMvnDeps = mvnDeps("runtimeOnly"),
-        bomMvnDeps = enrichKotlinVersions(effectiveBomDeps.collect(toMvnDep)),
-        depManagement = enrichKotlinVersions(mainConstraints.collect(toMvnDep)),
-        javacOptions = mainJavaCompile.fold(Nil)(javacOptions),
-        moduleDeps = moduleDeps("implementation", "api"),
-        compileModuleDeps = moduleDeps("compileOnly", "compileOnlyApi"),
-        runModuleDeps = moduleDeps("runtimeOnly"),
-        bomModuleDeps = mainBomDeps.collect(toModuleDep),
-        annotationProcessorsMvnDeps = mvnDeps("annotationProcessor")
+        imports = "mill.javalib.publish.*" +: mainModule.imports,
+        supertypes = mainModule.supertypes :+ "PublishModule",
+        artifactName = Option(getName),
+        publishVersion = Option(getVersion).map(_.toString),
+        pomSettings = Some(PomSettings(
+          organization = getGroup.toString,
+          description = Option(getDescription).getOrElse("")
+        ))
       )
-      val hasErrorPronePlugin = getPluginManager.hasPlugin("net.ltgt.errorprone")
+    }
+
+    def task[T](name: String)(using T: TypeTest[Task, T]) = getTasks.findByName(name) match {
+      case T(t) => Some(t)
+      case _ => None
+    }
+
+    if (os.exists(moduleDir / "src/test")) {
+      val testBomDeps = data.testBomDeps
+      val testConstraints = data.testConstraints
+      var testModule = ModuleSpec(
+        name = "test",
+        supertypes = (if (isKotlin) "KotlinMavenTests" else "MavenTests") +: data.testMixin,
+        forkArgs = Values(
+          task[Test]("test").fold(Nil) { task =>
+            task.getSystemProperties.asScala.map {
+              case (k, v) => Opt(s"-D$k=$v")
+            }.toSeq ++ Opt.groups(task.getJvmArgs.asScala.toSeq)
+          },
+          appendSuper = true
+        ),
+        forkWorkingDir = Some("moduleDir"),
+        mvnDeps = mvnDeps("testImplementation"),
+        compileMvnDeps = mvnDeps("testCompileOnly"),
+        runMvnDeps = mvnDeps("testRuntimeOnly"),
+        bomMvnDeps = enrichKotlinVersions0(testBomDeps.collect(toMvnDep)),
+        depManagement = enrichKotlinVersions0(testConstraints.collect(toMvnDep)),
+        javacOptions = data.testJavaCompile.fold(Nil)(javacOptions),
+        moduleDeps = Values(
+          moduleDeps("testImplementation")
+            .diff(Seq(ModuleDep(moduleDir.subRelativeTo(workspace).segments))),
+          appendSuper = true
+        ),
+        compileModuleDeps = moduleDeps("testCompileOnly"),
+        runModuleDeps = moduleDeps("testRuntimeOnly"),
+        bomModuleDeps = testBomDeps.collect(toModuleDep),
+        testParallelism = Some(false),
+        testSandboxWorkingDir = Some(false),
+        testFramework = Option.when(data.testMixin.isEmpty)(""),
+        annotationProcessorsMvnDeps = mvnDeps("testAnnotationProcessor")
+      )
       if (hasErrorPronePlugin) {
-        mainModule = mainModule.withErrorProneModule(
-          errorProneMvnDeps = mvnDeps("errorprone"),
-          errorProneOptions = mainJavaCompile.fold(Nil)(errorProneOptions)
+        testModule = testModule.withErrorProneModule(
+          errorProneMvnDeps = mainModule.errorProneDeps,
+          errorProneOptions = data.testJavaCompile.fold(Nil)(errorProneOptions)
         )
       }
       if (isSpringBoot) {
-        val pluginVersion = detectPluginVersion(project0, SpringBootPluginId)
-        mainModule = mainModule.withSpringBootModule(pluginVersion)
+        testModule = testModule.withSpringBootTestsModule()
       }
-
-      if (isQuarkus) {
-        val pluginVersion = detectPluginVersion(project0, QuarkusPluginId)
-        mainModule =
-          mainModule.withQuarkusModule(pluginVersion, Option(getGroup.toString).filter(_.nonEmpty))
-
-        // Add PublishModule and artifact/pom settings.
-        mainModule = mainModule.copy(
-          imports = "mill.javalib.publish.*" +: mainModule.imports,
-          supertypes = mainModule.supertypes :+ "PublishModule",
-          artifactName = Option(getName),
-          publishVersion = Option(getVersion).map(_.toString),
-          pomSettings = Some(PomSettings(
-            organization = getGroup.toString,
-            description = Option(getDescription).getOrElse("")
-          ))
-        )
-      }
-
-      if (os.exists(moduleDir / "src/test")) {
-        val testMvnDepsList = configs.find(_.getName == "testRuntimeClasspath")
-          .fold(Nil)(_.getAllDependencies.asScala.toSeq.collect(toMvnDep))
-        val testMixin = ModuleSpec.testModuleMixin(enrichKotlinVersions(testMvnDepsList, isTest = true))
-        val testBomDeps = testConfigs.flatMap(_.getDependencies.asScala).filter(isBom)
-        val testConstraints = testConfigs.flatMap(_.getDependencyConstraints.asScala)
-        val testJavaCompile = task[JavaCompile]("compileTestJava")
-        var testModule = ModuleSpec(
-          name = "test",
-          supertypes = (if (isKotlin) "KotlinMavenTests" else "MavenTests") +: testMixin.toSeq,
-          forkArgs = Values(
-            task[Test]("test").fold(Nil) { task =>
-              task.getSystemProperties.asScala.map {
-                case (k, v) => Opt(s"-D$k=$v")
-              }.toSeq ++ Opt.groups(task.getJvmArgs.asScala.toSeq)
-            },
-            appendSuper = true
-          ),
-          forkWorkingDir = Some("moduleDir"),
-          mvnDeps = mvnDeps("testImplementation"),
-          compileMvnDeps = mvnDeps("testCompileOnly"),
-          runMvnDeps = mvnDeps("testRuntimeOnly"),
-          bomMvnDeps = enrichKotlinVersions(testBomDeps.collect(toMvnDep), isTest = true),
-          depManagement = enrichKotlinVersions(testConstraints.collect(toMvnDep), isTest = true),
-          javacOptions = testJavaCompile.fold(Nil)(javacOptions),
-          moduleDeps = Values(
-            moduleDeps("testImplementation")
-              .diff(Seq(ModuleDep(moduleDir.subRelativeTo(workspace).segments))),
-            appendSuper = true
-          ),
-          compileModuleDeps = moduleDeps("testCompileOnly"),
-          runModuleDeps = moduleDeps("testRuntimeOnly"),
-          bomModuleDeps = testBomDeps.collect(toModuleDep),
-          testParallelism = Some(false),
-          testSandboxWorkingDir = Some(false),
-          testFramework = Option.when(testMixin.isEmpty)(""),
-          annotationProcessorsMvnDeps = mvnDeps("testAnnotationProcessor")
-        )
-        if (hasErrorPronePlugin) {
-          testModule = testModule.withErrorProneModule(
-            errorProneMvnDeps = mainModule.errorProneDeps,
-            errorProneOptions = testJavaCompile.fold(Nil)(errorProneOptions)
-          )
-        }
-        if (isSpringBoot) {
-          testModule = testModule.withSpringBootTestsModule()
-        }
-        if (testMixin.contains("TestModule.Junit5")) {
-          val junitVersionOpt = testModule.mvnDeps.base.collectFirst {
-            case dep if dep.organization == "org.junit.jupiter" && dep.version.nonEmpty => dep.version
-          }.orElse {
-            testMvnDepsList.collectFirst {
-              case dep if dep.organization == "org.junit.jupiter" && dep.version.nonEmpty => dep.version
-            }
-          }.orElse(Some("5.10.2"))
-          for (junitVersion <- junitVersionOpt) {
+      if (data.testMixin.contains("TestModule.Junit5")) {
+        testModule.mvnDeps.base.collectFirst {
+          case dep if dep.organization == "org.junit.jupiter" && dep.version.nonEmpty =>
+            val junitVersion = dep.version
             testModule = testModule.withJupiterInterface(junitVersion)
             val launcherDep = testModule.runMvnDeps.base.find(
               _.is("org.junit.platform", "junit-platform-launcher")
@@ -234,10 +281,47 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
                 ).distinct
               )
             }
-          }
         }
-        mainModule = mainModule.copy(children = Seq(testModule))
       }
+      mainModule = mainModule.copy(children = Seq(testModule))
+    }
+
+    PackageSpec(moduleDir.subRelativeTo(workspace), mainModule)
+  }
+
+  private def toPackage(project0: Project): PackageSpec = {
+    import project0.*
+    val moduleDir = os.Path(getProjectDir)
+    val isKotlin = isKotlinProject(project0)
+    val kotlinVersionOpt = if (isKotlin) detectKotlinVersion(project0) else None
+    var mainModule = ModuleSpec(
+      name = moduleDir.last,
+      repositories = getRepositories.asScala.toSeq.collect(toRepositoryUrlString).distinct
+        .diff(Seq(
+          getRepositories.mavenCentral,
+          getRepositories.mavenLocal,
+          getRepositories.gradlePluginPortal
+        ).collect(toRepositoryUrlString))
+    )
+
+    var packageSpec = if (getPluginManager.hasPlugin("java-platform")) {
+      val configs = getConfigurations.asScala.toSeq
+      val deps = configs.flatMap(_.getDependencies.asScala)
+      val constraints = configs.flatMap(_.getDependencyConstraints.asScala)
+      mainModule = mainModule.copy(
+        imports = "mill.javalib.*" +: mainModule.imports,
+        supertypes = "JavaModule" +: "BomModule" +: mainModule.supertypes,
+        bomMvnDeps = deps.filter(isBom).collect(toMvnDep),
+        depManagement = constraints.collect(toMvnDep),
+        moduleDeps = constraints.collect(toModuleDep),
+        bomModuleDeps = deps.filter(isBom).collect(toModuleDep)
+      )
+      PackageSpec(moduleDir.subRelativeTo(workspace), mainModule)
+    } else if (getPluginManager.hasPlugin("java") || isKotlin) {
+      val data = harvestJvmData(project0, isKotlin, kotlinVersionOpt)
+      configureJvmModule(project0, data, mainModule, isKotlin, kotlinVersionOpt)
+    } else {
+      PackageSpec(moduleDir.subRelativeTo(workspace), mainModule)
     }
 
     for {
@@ -245,17 +329,18 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       pub <- pubExt.getPublications.withType(classOf[MavenPublication]).asScala.headOption
       pom = Option(pub.getPom)
     } do {
-      mainModule = mainModule.copy(
-        imports = "mill.javalib.*" +: "mill.javalib.publish.*" +: mainModule.imports,
-        supertypes = mainModule.supertypes :+ "PublishModule",
+      val updatedMainModule = packageSpec.module.copy(
+        imports = "mill.javalib.*" +: "mill.javalib.publish.*" +: packageSpec.module.imports,
+        supertypes = packageSpec.module.supertypes :+ "PublishModule",
         artifactName = Option(pub.getArtifactId),
         pomPackagingType = pom.flatMap(toPomPackagingType),
         pomSettings = pom.map(toPomSettings(_, pub.getGroupId)),
         publishVersion = Option(getVersion).map(_.toString)
       )
+      packageSpec = packageSpec.copy(module = updatedMainModule)
     }
 
-    PackageSpec(moduleDir.subRelativeTo(workspace), mainModule)
+    packageSpec
   }
 
   private val toRepositoryUrlString: PartialFunction[ArtifactRepository, String] = {
