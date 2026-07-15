@@ -36,10 +36,10 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
     BuildModel.Impl(upickle.default.write(exportedBuild))
   }
 
-  private def enrichKotlinVersions(
+  private def fixKotlinVersions(
     deps: Seq[MvnDep],
     kotlinVersionForDeps: String,
-    kotlinTestResolvedNameOpt: Option[String] = None
+    kotlinTestResolvedNameOpt: Option[String]
   ): Seq[MvnDep] = {
     deps.map { dep =>
       if (dep.organization == "org.jetbrains.kotlin" && dep.name == "kotlin-test") {
@@ -49,6 +49,8 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         val newName = kotlinTestResolvedNameOpt.getOrElse("kotlin-test")
         dep.copy(name = newName, version = kotlinVersionForDeps)
       } else if (dep.organization == "org.jetbrains.kotlin" && dep.version.isEmpty) {
+        // Some Kotlin deps are declared without a version.
+        // We pin them to the project's resolved Kotlin version.
         dep.copy(version = kotlinVersionForDeps)
       } else {
         dep
@@ -56,7 +58,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
     }
   }
 
-  private case class HarvestedJvmData(
+  private case class ExtractedJvmData(
     configs: Seq[Configuration],
     kotlinVersionForDeps: String,
     kotlinTestResolvedNameOpt: Option[String],
@@ -70,7 +72,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
     mainConstraints: Seq[DependencyConstraint]
   )
 
-  private def harvestJvmData(project0: Project, isKotlin: Boolean, kotlinVersionOpt: Option[String]): HarvestedJvmData = {
+  private def extractJvmData(project0: Project, isKotlin: Boolean, kotlinVersionOpt: Option[String]): ExtractedJvmData = {
     import project0.*
     val configs = getConfigurations.asScala.toSeq
     val kotlinVersionForDeps = kotlinVersionOpt.getOrElse("")
@@ -87,7 +89,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
 
     val testMixin = ModuleSpec.testModuleMixin {
       if (isKotlin && kotlinVersionForDeps.nonEmpty) {
-        enrichKotlinVersions(
+        fixKotlinVersions(
           testMvnDepsList,
           kotlinVersionForDeps = kotlinVersionForDeps,
           kotlinTestResolvedNameOpt = kotlinTestResolvedNameOpt
@@ -110,6 +112,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
     val isSpringBoot = isSpringBootProject(project0)
     val isQuarkus = isQuarkusProject(project0)
 
+    // Exclude BOM deps that will be added by Mill Modules
     val effectiveBomDeps = {
       val exclusions = Set.newBuilder[(String, String)]
       if (isSpringBoot) exclusions += ("org.springframework.boot" -> "spring-boot-dependencies")
@@ -119,7 +122,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       mainBomDeps.filterNot(dep => exclusionSet.contains((dep.getGroup, dep.getName)))
     }
 
-    HarvestedJvmData(
+    ExtractedJvmData(
       configs = configs,
       kotlinVersionForDeps = kotlinVersionForDeps,
       kotlinTestResolvedNameOpt = kotlinTestResolvedNameOpt,
@@ -136,7 +139,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
 
   private def configureJvmModule(
     project0: Project,
-    data: HarvestedJvmData,
+    data: ExtractedJvmData,
     mainModule0: ModuleSpec,
     isKotlin: Boolean,
     kotlinVersionOpt: Option[String]
@@ -144,9 +147,9 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
     import project0.*
     val moduleDir = os.Path(getProjectDir)
     val kotlinVersionForDeps = kotlinVersionOpt.getOrElse("")
-    def enrichKotlinVersions0(deps: Seq[MvnDep]): Seq[MvnDep] = {
+    def fixKotlinVersions0(deps: Seq[MvnDep]): Seq[MvnDep] = {
       if (isKotlin && kotlinVersionForDeps.nonEmpty) {
-        enrichKotlinVersions(
+        fixKotlinVersions(
           deps,
           kotlinVersionForDeps = kotlinVersionForDeps,
           kotlinTestResolvedNameOpt = data.kotlinTestResolvedNameOpt
@@ -157,7 +160,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       .filter(config => configNames.contains(config.getName))
       .flatMap(_.getDependencies.asScala)
     def mvnDeps(configNames: String*) = {
-      enrichKotlinVersions0(deps(configNames*).filterNot(isBom).collect(toMvnDep)).distinct
+      fixKotlinVersions0(deps(configNames*).filterNot(isBom).collect(toMvnDep)).distinct
     }
     def moduleDeps(configNames: String*) =
       deps(configNames*).filterNot(isBom).collect(toModuleDep).distinct
@@ -172,8 +175,8 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       mvnDeps = mvnDeps("implementation", "api"),
       compileMvnDeps = mvnDeps("compileOnly", "compileOnlyApi"),
       runMvnDeps = mvnDeps("runtimeOnly"),
-      bomMvnDeps = enrichKotlinVersions0(data.effectiveBomDeps.collect(toMvnDep)),
-      depManagement = enrichKotlinVersions0(data.mainConstraints.collect(toMvnDep)),
+      bomMvnDeps = fixKotlinVersions0(data.effectiveBomDeps.collect(toMvnDep)),
+      depManagement = fixKotlinVersions0(data.mainConstraints.collect(toMvnDep)),
       javacOptions = data.mainJavaCompile.fold(Nil)(javacOptions),
       moduleDeps = moduleDeps("implementation", "api"),
       compileModuleDeps = moduleDeps("compileOnly", "compileOnlyApi"),
@@ -235,8 +238,8 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         mvnDeps = mvnDeps("testImplementation"),
         compileMvnDeps = mvnDeps("testCompileOnly"),
         runMvnDeps = mvnDeps("testRuntimeOnly"),
-        bomMvnDeps = enrichKotlinVersions0(testBomDeps.collect(toMvnDep)),
-        depManagement = enrichKotlinVersions0(testConstraints.collect(toMvnDep)),
+        bomMvnDeps = fixKotlinVersions0(testBomDeps.collect(toMvnDep)),
+        depManagement = fixKotlinVersions0(testConstraints.collect(toMvnDep)),
         javacOptions = data.testJavaCompile.fold(Nil)(javacOptions),
         moduleDeps = Values(
           moduleDeps("testImplementation")
@@ -318,7 +321,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       )
       PackageSpec(moduleDir.subRelativeTo(workspace), mainModule)
     } else if (getPluginManager.hasPlugin("java") || isKotlin) {
-      val data = harvestJvmData(project0, isKotlin, kotlinVersionOpt)
+      val data = extractJvmData(project0, isKotlin, kotlinVersionOpt)
       configureJvmModule(project0, data, mainModule, isKotlin, kotlinVersionOpt)
     } else {
       PackageSpec(moduleDir.subRelativeTo(workspace), mainModule)
@@ -364,6 +367,9 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
     project.getPluginManager.hasPlugin(KotlinJvmPluginId) ||
       project.getPluginManager.hasPlugin("kotlin")
 
+  /**
+   * Detects the Kotlin version by using the `getPluginVersion` method on the Kotlin plugin, if present.
+   */
   private def detectKotlinVersion(project: Project): Option[String] = {
     val pluginOpt = Option(project.getPlugins.findPlugin(KotlinJvmPluginId))
       .orElse(Option(project.getPlugins.findPlugin("kotlin")))
@@ -374,6 +380,11 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       } catch {
         case _: Throwable => None
       }
+    }.orElse {
+      // Fallback to implementation version and remove any "-release" suffix
+      detectPluginVersion(project, KotlinJvmPluginId)
+        .orElse(detectPluginVersion(project, "kotlin"))
+        .map(_.split("-release").head)
     }
   }
 
