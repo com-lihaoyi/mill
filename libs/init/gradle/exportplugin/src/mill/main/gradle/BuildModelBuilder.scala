@@ -43,15 +43,15 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
   }
 
   private def getMvnDeps(
-    data: ExtractedJvmData,
-    configNames: String*
+      data: ExtractedJvmData,
+      configNames: String*
   ): Seq[MvnDep] = {
     getDeps(data, configNames*).filterNot(isBom).collect(toMvnDep).distinct
   }
 
   private def getModuleDeps(
-    data: ExtractedJvmData,
-    configNames: String*
+      data: ExtractedJvmData,
+      configNames: String*
   ): Seq[ModuleDep] = {
     getDeps(data, configNames*).filterNot(isBom).collect(toModuleDep).distinct
   }
@@ -59,7 +59,8 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
   private def kotlinOptions(task: Task): Seq[String] = {
     try {
       val compilerOptions = task.getClass.getMethod("getCompilerOptions").invoke(task)
-      val freeArgsProperty = compilerOptions.getClass.getMethod("getFreeCompilerArgs").invoke(compilerOptions)
+      val freeArgsProperty =
+        compilerOptions.getClass.getMethod("getFreeCompilerArgs").invoke(compilerOptions)
       // getFreeCompilerArgs returns a Gradle ListProperty<String>, so we call .get() on it.
       freeArgsProperty.getClass.getMethod("get").invoke(freeArgsProperty)
         .asInstanceOf[java.util.List[String]].asScala.toSeq
@@ -73,7 +74,9 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
   private def kotlinCompilerPlugins(project0: Project, configName: String): Seq[MvnDep] = {
     import project0.*
     Option(getConfigurations.findByName(configName))
-      .flatMap(config => Try(config.getResolvedConfiguration.getFirstLevelModuleDependencies.asScala).toOption)
+      .flatMap(config =>
+        Try(config.getResolvedConfiguration.getFirstLevelModuleDependencies.asScala).toOption
+      )
       .getOrElse(Set.empty[ResolvedDependency])
       .filterNot(_.getModuleName == "kotlin-scripting-compiler-embeddable")
       .map(dep => MvnDep(dep.getModuleGroup, dep.getModuleName, dep.getModuleVersion))
@@ -81,28 +84,29 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
   }
 
   private case class ExtractedJvmData(
-    configs: Seq[Configuration],
-    mainConfigs: Seq[Configuration],
-    testMvnDepsList: Seq[MvnDep],
-    testMixin: Seq[String],
-    testBomDeps: Seq[Dependency],
-    testConstraints: Seq[DependencyConstraint],
-    testJavaCompile: Option[JavaCompile],
-    mainKotlinPluginDeps: Seq[MvnDep],
-    mainJavaCompile: Option[JavaCompile],
-    mainKotlinCompile: Option[Task],
-    testKotlinCompile: Option[Task],
-    effectiveBomDeps: Seq[Dependency],
-    mainConstraints: Seq[DependencyConstraint],
-    isSpringBoot: Boolean,
-    isQuarkus: Boolean,
-    hasErrorPronePlugin: Boolean
+      configs: Seq[Configuration],
+      mainConfigs: Seq[Configuration],
+      testMvnDepsList: Seq[MvnDep],
+      testMixin: Seq[String],
+      testBomDeps: Seq[Dependency],
+      testConstraints: Seq[DependencyConstraint],
+      testJavaCompile: Option[JavaCompile],
+      mainKotlinPluginDeps: Seq[MvnDep],
+      mainJavaCompile: Option[JavaCompile],
+      mainKotlinCompile: Option[Task],
+      testKotlinCompile: Option[Task],
+      effectiveBomDeps: Seq[Dependency],
+      mainConstraints: Seq[DependencyConstraint],
+      isSpringBoot: Boolean,
+      isQuarkus: Boolean,
+      hasErrorPronePlugin: Boolean
   )
 
-  private def getTask[T](project0: Project, name: String)(using T: TypeTest[Task, T]) = project0.getTasks.findByName(name) match {
-    case T(t) => Some(t)
-    case _ => None
-  }
+  private def getTask[T](project0: Project, name: String)(using T: TypeTest[Task, T]) =
+    project0.getTasks.findByName(name) match {
+      case T(t) => Some(t)
+      case _ => None
+    }
 
   private def extractJvmData(project0: Project, isKotlin: Boolean): ExtractedJvmData = {
     import project0.*
@@ -143,7 +147,8 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       testBomDeps = testBomDeps,
       testConstraints = testConstraints,
       testJavaCompile = testJavaCompile,
-      mainKotlinPluginDeps = if (isKotlin) kotlinCompilerPlugins(project0, "kotlinCompilerPluginClasspathMain") else Nil,
+      mainKotlinPluginDeps =
+        if (isKotlin) kotlinCompilerPlugins(project0, "kotlinCompilerPluginClasspathMain") else Nil,
       mainJavaCompile = mainJavaCompile,
       mainKotlinCompile = mainKotlinCompile,
       testKotlinCompile = testKotlinCompile,
@@ -156,11 +161,11 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
   }
 
   private def configureBaseJvmModule(
-    project0: Project,
-    data: ExtractedJvmData,
-    mainModule0: ModuleSpec,
-    isKotlin: Boolean,
-    kotlinVersionOpt: Option[String]
+      project0: Project,
+      data: ExtractedJvmData,
+      mainModule0: ModuleSpec,
+      isKotlin: Boolean,
+      kotlinVersionOpt: Option[String]
   ): ModuleSpec = {
     import project0.*
     var mainModule = mainModule0.copy(
@@ -174,7 +179,9 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       moduleDeps = getModuleDeps(data, "implementation", "api"),
       compileModuleDeps = getModuleDeps(data, "compileOnly", "compileOnlyApi"),
       runModuleDeps = getModuleDeps(data, "runtimeOnly"),
-      bomModuleDeps = data.mainConfigs.flatMap(_.getDependencies.asScala).filter(isBom).collect(toModuleDep).distinct,
+      bomModuleDeps = data.mainConfigs.flatMap(
+        _.getDependencies.asScala
+      ).filter(isBom).collect(toModuleDep).distinct,
       annotationProcessorsMvnDeps = getMvnDeps(data, "annotationProcessor"),
       kotlincOptions = data.mainKotlinCompile.fold(Nil)(task => Opt.groups(kotlinOptions(task))),
       kotlincPluginMvnDeps = data.mainKotlinPluginDeps
@@ -183,20 +190,24 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
   }
 
   private def configureJvmModule(
-    project0: Project,
-    data: ExtractedJvmData,
-    mainModule0: ModuleSpec,
-    isKotlin: Boolean,
-    kotlinVersionOpt: Option[String]
+      project0: Project,
+      data: ExtractedJvmData,
+      mainModule0: ModuleSpec,
+      isKotlin: Boolean,
+      kotlinVersionOpt: Option[String]
   ): PackageSpec = {
     import project0.*
     val moduleDir = os.Path(getProjectDir)
 
-    val baseJvmModule = configureBaseJvmModule(project0, data, mainModule0, isKotlin, kotlinVersionOpt)
+    val baseJvmModule =
+      configureBaseJvmModule(project0, data, mainModule0, isKotlin, kotlinVersionOpt)
 
     var mainModule = baseJvmModule.copy(
-      imports = (if (isKotlin) Seq("mill.kotlinlib.*", "mill.javalib.*") else Seq("mill.javalib.*")) ++ baseJvmModule.imports,
-      supertypes = (if (isKotlin) "KotlinMavenModule" else "MavenModule") +: baseJvmModule.supertypes
+      imports =
+        (if (isKotlin) Seq("mill.kotlinlib.*", "mill.javalib.*")
+         else Seq("mill.javalib.*")) ++ baseJvmModule.imports,
+      supertypes =
+        (if (isKotlin) "KotlinMavenModule" else "MavenModule") +: baseJvmModule.supertypes
     )
 
     if (data.isSpringBoot) {
@@ -242,7 +253,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
               .flatMap { artifacts =>
                 artifacts.find(art =>
                   art.getModuleVersion.getId.getGroup == "org.jetbrains.kotlin" &&
-                  art.getModuleVersion.getId.getName.startsWith("kotlin-test-")
+                    art.getModuleVersion.getId.getName.startsWith("kotlin-test-")
                 ).map(_.getModuleVersion.getId.getName)
               }
           }
@@ -266,7 +277,8 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
           if (kotlinTestResolvedNameOpt.isDefined) {
             deps.map { dep =>
               if (dep.organization == "org.jetbrains.kotlin" && dep.name == "kotlin-test") {
-                val version = if (dep.version.nonEmpty) dep.version else kotlinVersionOpt.getOrElse("")
+                val version =
+                  if (dep.version.nonEmpty) dep.version else kotlinVersionOpt.getOrElse("")
                 dep.copy(name = kotlinTestResolvedNameOpt.get, version = version)
               } else {
                 dep
