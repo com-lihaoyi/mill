@@ -106,6 +106,9 @@ object BuildGenYaml extends BuildGen {
     quarkusPlatformVersion.base.foreach(v =>
       lines += s"""def quarkusPlatformVersion = "$v""""
     )
+    kotlinVersion.base.foreach(v =>
+      lines += s"""def kotlinVersion = "$v""""
+    )
 
     artifactName.base.foreach(v => lines += s"def artifactName = $v")
 
@@ -241,6 +244,10 @@ object BuildGenYaml extends BuildGen {
     renderYamlStringValue(
       "quarkusPlatformVersion",
       quarkusPlatformVersion
+    ).foreach(lines += _)
+    renderYamlStringValue(
+      "kotlinVersion",
+      kotlinVersion
     ).foreach(lines += _)
 
     renderYamlStringValue(
