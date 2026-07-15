@@ -1,0 +1,15 @@
+extends: millbuild.ProjectBaseModule
+kotlincOptions: [-Xjsr305=strict]
+kotlincPluginMvnDeps:
+- org.jetbrains.kotlin:kotlin-serialization-compiler-plugin-embeddable:2.4.0
+mvnDeps:
+- org.jetbrains.kotlin:kotlin-stdlib:2.4.0
+- org.jetbrains.kotlinx:kotlinx-datetime:0.8.0
+- org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0
+- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2
+
+object test:
+  extends: [ProjectBaseTests, TestModule.Junit5]
+  kotlincOptions: [-Xjsr305=strict]
+  mvnDeps:
+  - org.jetbrains.kotlin:kotlin-test-junit5:2.4.0

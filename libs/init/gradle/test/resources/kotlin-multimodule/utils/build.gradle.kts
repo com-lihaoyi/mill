@@ -11,3 +11,9 @@ dependencies {
     implementation(libs.bundles.kotlinxEcosystem)
     testImplementation(kotlin("test"))
 }
+// Add a kotlin compiler option. To be picked up and placed in kotlincOptions
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xjsr305=strict")
+    }
+}
