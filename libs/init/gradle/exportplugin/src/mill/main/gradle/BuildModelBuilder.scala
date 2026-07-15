@@ -41,6 +41,8 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
     val moduleDir = os.Path(getProjectDir)
     val isSpringBoot = isSpringBootProject(project0)
     val isQuarkus = isQuarkusProject(project0)
+    val isKotlin = isKotlinProject(project0)
+    val kotlinVersionOpt = if (isKotlin) detectKotlinVersion(project0) else None
     var mainModule = ModuleSpec(
       name = moduleDir.last,
       repositories = getRepositories.asScala.toSeq.collect(toRepositoryUrlString).distinct
@@ -63,12 +65,36 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         moduleDeps = constraints.collect(toModuleDep),
         bomModuleDeps = deps.filter(isBom).collect(toModuleDep)
       )
-    } else if (getPluginManager.hasPlugin("java")) {
+    } else if (getPluginManager.hasPlugin("java") || isKotlin) {
       val configs = getConfigurations.asScala.toSeq
+      val kotlinVersionForDeps = kotlinVersionOpt.getOrElse("")
+      val kotlinTestResolvedNameOpt = configs.find(_.getName == "testRuntimeClasspath")
+        .flatMap { config =>
+          config.getAllDependencies.asScala.toSeq.collect(toMvnDep)
+            .find(dep => dep.organization == "org.jetbrains.kotlin" && dep.name.startsWith("kotlin-test-"))
+            .map(_.name)
+        }
+      def enrichKotlinVersions(deps: Seq[MvnDep], isTest: Boolean = false): Seq[MvnDep] = {
+        if (isKotlin && kotlinVersionForDeps.nonEmpty) {
+          deps.map { dep =>
+            if (dep.organization == "org.jetbrains.kotlin" && dep.name == "kotlin-test") {
+              val newName = if (isTest) kotlinTestResolvedNameOpt.getOrElse("kotlin-test") else "kotlin-test"
+              dep.copy(name = newName, version = kotlinVersionForDeps)
+            } else if (dep.organization == "org.jetbrains.kotlin" && dep.version.isEmpty) {
+              dep.copy(version = kotlinVersionForDeps)
+            } else {
+              dep
+            }
+          }
+        } else deps
+      }
       def deps(configNames: String*) = configs
         .filter(config => configNames.contains(config.getName))
         .flatMap(_.getDependencies.asScala)
-      def mvnDeps(configNames: String*) = deps(configNames*).filterNot(isBom).collect(toMvnDep)
+      def mvnDeps(configNames: String*) = {
+        val isTest = configNames.exists(_.startsWith("test"))
+        enrichKotlinVersions(deps(configNames*).filterNot(isBom).collect(toMvnDep), isTest)
+      }
       def moduleDeps(configNames: String*) =
         deps(configNames*).filterNot(isBom).collect(toModuleDep)
       val (testConfigs, mainConfigs) = configs.partition(_.getName.startsWith("test"))
@@ -90,13 +116,14 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       val buildDir = os.Path(getLayout.getBuildDirectory.get().getAsFile)
       val mainJavaCompile = task[JavaCompile]("compileJava")
       mainModule = mainModule.copy(
-        imports = "mill.javalib.*" +: mainModule.imports,
-        supertypes = "MavenModule" +: mainModule.supertypes,
+        imports = (if (isKotlin) Seq("mill.kotlinlib.*", "mill.javalib.*") else Seq("mill.javalib.*")) ++ mainModule.imports,
+        supertypes = (if (isKotlin) "KotlinMavenModule" else "MavenModule") +: mainModule.supertypes,
+        kotlinVersion = kotlinVersionOpt,
         mvnDeps = mvnDeps("implementation", "api"),
         compileMvnDeps = mvnDeps("compileOnly", "compileOnlyApi"),
         runMvnDeps = mvnDeps("runtimeOnly"),
-        bomMvnDeps = effectiveBomDeps.collect(toMvnDep),
-        depManagement = mainConstraints.collect(toMvnDep),
+        bomMvnDeps = enrichKotlinVersions(effectiveBomDeps.collect(toMvnDep)),
+        depManagement = enrichKotlinVersions(mainConstraints.collect(toMvnDep)),
         javacOptions = mainJavaCompile.fold(Nil)(javacOptions),
         moduleDeps = moduleDeps("implementation", "api"),
         compileModuleDeps = moduleDeps("compileOnly", "compileOnlyApi"),
@@ -135,14 +162,15 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       }
 
       if (os.exists(moduleDir / "src/test")) {
-        val testMixin = ModuleSpec.testModuleMixin(configs.find(_.getName == "testRuntimeClasspath")
-          .fold(Nil)(_.getAllDependencies.asScala.toSeq.collect(toMvnDep)))
+        val testMvnDepsList = configs.find(_.getName == "testRuntimeClasspath")
+          .fold(Nil)(_.getAllDependencies.asScala.toSeq.collect(toMvnDep))
+        val testMixin = ModuleSpec.testModuleMixin(enrichKotlinVersions(testMvnDepsList, isTest = true))
         val testBomDeps = testConfigs.flatMap(_.getDependencies.asScala).filter(isBom)
         val testConstraints = testConfigs.flatMap(_.getDependencyConstraints.asScala)
         val testJavaCompile = task[JavaCompile]("compileTestJava")
         var testModule = ModuleSpec(
           name = "test",
-          supertypes = "MavenTests" +: testMixin.toSeq,
+          supertypes = (if (isKotlin) "KotlinMavenTests" else "MavenTests") +: testMixin.toSeq,
           forkArgs = Values(
             task[Test]("test").fold(Nil) { task =>
               task.getSystemProperties.asScala.map {
@@ -155,8 +183,8 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
           mvnDeps = mvnDeps("testImplementation"),
           compileMvnDeps = mvnDeps("testCompileOnly"),
           runMvnDeps = mvnDeps("testRuntimeOnly"),
-          bomMvnDeps = testBomDeps.collect(toMvnDep),
-          depManagement = testConstraints.collect(toMvnDep),
+          bomMvnDeps = enrichKotlinVersions(testBomDeps.collect(toMvnDep), isTest = true),
+          depManagement = enrichKotlinVersions(testConstraints.collect(toMvnDep), isTest = true),
           javacOptions = testJavaCompile.fold(Nil)(javacOptions),
           moduleDeps = Values(
             moduleDeps("testImplementation")
@@ -181,26 +209,31 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
           testModule = testModule.withSpringBootTestsModule()
         }
         if (testMixin.contains("TestModule.Junit5")) {
-          testModule.mvnDeps.base.collectFirst {
-            case dep if dep.organization == "org.junit.jupiter" && dep.version.nonEmpty =>
-              val junitVersion = dep.version
-              testModule = testModule.withJupiterInterface(junitVersion)
-              val launcherDep = testModule.runMvnDeps.base.find(
-                _.is("org.junit.platform", "junit-platform-launcher")
-              )
-              if (launcherDep.forall(_.version.isEmpty)) {
-                if (launcherDep.isEmpty) {
-                  testModule = testModule.copy(runMvnDeps =
-                    testModule.runMvnDeps.base :+
-                      MvnDep("org.junit.platform", "junit-platform-launcher", "")
-                  )
-                }
-                testModule = testModule.copy(bomMvnDeps =
-                  testModule.bomMvnDeps.base.appended(
-                    MvnDep("org.junit", "junit-bom", junitVersion)
-                  ).distinct
+          val junitVersionOpt = testModule.mvnDeps.base.collectFirst {
+            case dep if dep.organization == "org.junit.jupiter" && dep.version.nonEmpty => dep.version
+          }.orElse {
+            testMvnDepsList.collectFirst {
+              case dep if dep.organization == "org.junit.jupiter" && dep.version.nonEmpty => dep.version
+            }
+          }.orElse(Some("5.10.2"))
+          for (junitVersion <- junitVersionOpt) {
+            testModule = testModule.withJupiterInterface(junitVersion)
+            val launcherDep = testModule.runMvnDeps.base.find(
+              _.is("org.junit.platform", "junit-platform-launcher")
+            )
+            if (launcherDep.forall(_.version.isEmpty)) {
+              if (launcherDep.isEmpty) {
+                testModule = testModule.copy(runMvnDeps =
+                  testModule.runMvnDeps.base :+
+                    MvnDep("org.junit.platform", "junit-platform-launcher", "")
                 )
               }
+              testModule = testModule.copy(bomMvnDeps =
+                testModule.bomMvnDeps.base.appended(
+                  MvnDep("org.junit", "junit-bom", junitVersion)
+                ).distinct
+              )
+            }
           }
         }
         mainModule = mainModule.copy(children = Seq(testModule))
@@ -239,6 +272,25 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
 
   private def isQuarkusProject(project: Project): Boolean =
     project.getPluginManager.hasPlugin(QuarkusPluginId)
+
+  private val KotlinJvmPluginId = "org.jetbrains.kotlin.jvm"
+
+  private def isKotlinProject(project: Project): Boolean =
+    project.getPluginManager.hasPlugin(KotlinJvmPluginId) ||
+      project.getPluginManager.hasPlugin("kotlin")
+
+  private def detectKotlinVersion(project: Project): Option[String] = {
+    val pluginOpt = Option(project.getPlugins.findPlugin(KotlinJvmPluginId))
+      .orElse(Option(project.getPlugins.findPlugin("kotlin")))
+    pluginOpt.flatMap { plugin =>
+      try {
+        val method = plugin.getClass.getMethod("getPluginVersion")
+        Option(method.invoke(plugin)).map(_.toString)
+      } catch {
+        case _: Throwable => None
+      }
+    }
+  }
 
   /**
    * Tries to detect the version of the given plugin
