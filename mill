@@ -79,6 +79,23 @@ check_glibc_version() {
   fi
 }
 
+should_force_jvm() {
+  # The native launcher embeds its TLS trust store at build time and cannot read
+  # JAVA_TOOL_OPTIONS. When a custom Java trust store has been injected for
+  # outbound TLS (e.g. an intercepting corporate/egress proxy that re-terminates
+  # HTTPS with its own CA), the native launcher's dependency resolver cannot
+  # validate the connection and fails. Detect that and fall back to the JVM
+  # launcher, which honors JAVA_TOOL_OPTIONS. Set MILL_NATIVE_FORCE=1 to override.
+  if [ "${MILL_NATIVE_FORCE}" = "1" ]; then return 1; fi
+  case " ${JAVA_TOOL_OPTIONS} ${JDK_JAVA_OPTIONS} ${_JAVA_OPTIONS} " in
+    *trustStore*)
+      echo "mill: custom Java trustStore detected (intercepting TLS proxy?); using the JVM launcher instead of the native one. Set MILL_NATIVE_FORCE=1 to override." 1>&2
+      return 0
+      ;;
+  esac
+  return 1
+}
+
 set_artifact_suffix() {
   if [ "$(uname -s 2>/dev/null | cut -c 1-5)" = "Linux" ]; then
     # Native binaries require new enough GLIBC; fall back to JVM launcher if older
@@ -111,7 +128,7 @@ case "$MILL_VERSION" in
       0.1.* | 0.2.* | 0.3.* | 0.4.* | 0.5.* | 0.6.* | 0.7.* | 0.8.* | 0.9.* | 0.10.* | 0.11.* | 0.12.*)
         ;;
       *)
-        set_artifact_suffix
+        if ! should_force_jvm; then set_artifact_suffix; fi
         ;;
     esac
     ;;
