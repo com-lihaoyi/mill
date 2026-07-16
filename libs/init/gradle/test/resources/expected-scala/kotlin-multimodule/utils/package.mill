@@ -7,8 +7,7 @@ import millbuild.*
 
 object `package` extends ProjectBaseModule {
 
-  def mvnDeps = Seq(
-    mvn"org.jetbrains.kotlin:kotlin-stdlib:2.4.0",
+  def mvnDeps = super.mvnDeps() ++ Seq(
     mvn"org.jetbrains.kotlinx:kotlinx-datetime:0.8.0",
     mvn"org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0",
     mvn"org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2"

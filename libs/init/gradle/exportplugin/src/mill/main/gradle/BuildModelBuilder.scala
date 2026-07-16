@@ -69,20 +69,6 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
     }
   }
 
-  // Use getFirstLevelModuleDependencies() to avoid picking up transitive deps of the infra plugin.
-  // excluding kotlin-scripting-compiler-embeddable which is always present as Kotlin infrastructure.
-  private def kotlinCompilerPlugins(project0: Project, configName: String): Seq[MvnDep] = {
-    import project0.*
-    Option(getConfigurations.findByName(configName))
-      .flatMap(config =>
-        Try(config.getResolvedConfiguration.getFirstLevelModuleDependencies.asScala).toOption
-      )
-      .getOrElse(Set.empty[ResolvedDependency])
-      .filterNot(_.getModuleName == "kotlin-scripting-compiler-embeddable")
-      .map(dep => MvnDep(dep.getModuleGroup, dep.getModuleName, dep.getModuleVersion))
-      .toSeq.distinct
-  }
-
   private case class ExtractedJvmData(
       configs: Seq[Configuration],
       mainConfigs: Seq[Configuration],
@@ -91,25 +77,46 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       testBomDeps: Seq[Dependency],
       testConstraints: Seq[DependencyConstraint],
       testJavaCompile: Option[JavaCompile],
-      mainKotlinPluginDeps: Seq[MvnDep],
       mainJavaCompile: Option[JavaCompile],
-      mainKotlinCompile: Option[Task],
-      testKotlinCompile: Option[Task],
       effectiveBomDeps: Seq[Dependency],
       mainConstraints: Seq[DependencyConstraint],
+      forkArgs: Seq[Opt],
+      kotlinData: Option[KotlinData],
+      frameworkData: FrameworkData,
+      publishData: PublishData
+  )
+
+  private case class KotlinData(
+      kotlinVersion: Option[String],
+      mainKotlinCompile: Option[Task],
+      testKotlinCompile: Option[Task],
+      mainKotlinPluginDeps: Seq[MvnDep],
+      kotlinTestResolvedNameOpt: Option[String]
+  )
+
+  private case class FrameworkData(
       isSpringBoot: Boolean,
+      springBootVersion: Option[String],
       isQuarkus: Boolean,
+      quarkusVersion: Option[String],
       hasErrorPronePlugin: Boolean
   )
 
-  private def getTask[T](project0: Project, name: String)(using T: TypeTest[Task, T]) =
-    project0.getTasks.findByName(name) match {
-      case T(t) => Some(t)
-      case _ => None
-    }
+  private case class PublishData(
+      artifactName: Option[String],
+      publishVersion: Option[String],
+      pomSettings: Option[PomSettings]
+  )
 
   private def extractJvmData(project0: Project, isKotlin: Boolean): ExtractedJvmData = {
     import project0.*
+
+    def getTask[T](name: String)(using T: TypeTest[Task, T]) =
+      getTasks.findByName(name) match {
+        case T(t) => Some(t)
+        case _ => None
+      }
+
     val configs = getConfigurations.asScala.toSeq
 
     val testMvnDepsList = configs.find(_.getName == "testRuntimeClasspath")
@@ -120,14 +127,83 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
     val testBomDeps = testConfigs.flatMap(_.getDependencies.asScala).filter(isBom)
     val testConstraints = testConfigs.flatMap(_.getDependencyConstraints.asScala)
 
-    val mainJavaCompile = getTask[JavaCompile](project0, "compileJava")
-    val testJavaCompile = getTask[JavaCompile](project0, "compileTestJava")
-    val mainKotlinCompile = Option(getTasks.findByName("compileKotlin"))
-    val testKotlinCompile = Option(getTasks.findByName("compileTestKotlin"))
+    val mainJavaCompile = getTask[JavaCompile]("compileJava")
+    val testJavaCompile = getTask[JavaCompile]("compileTestJava")
     val mainBomDeps = mainConfigs.flatMap(_.getDependencies.asScala).filter(isBom)
     val mainConstraints = mainConfigs.flatMap(_.getDependencyConstraints.asScala)
-    val isSpringBoot = isSpringBootProject(project0)
-    val isQuarkus = isQuarkusProject(project0)
+
+    val forkArgs = getTask[Test]("test").fold(Nil) { task =>
+      task.getSystemProperties.asScala.map {
+        case (k, v) => Opt(s"-D$k=$v")
+      }.toSeq ++ Opt.groups(task.getJvmArgs.asScala.toSeq)
+    }
+
+    val kotlinDataOpt = Option.when(isKotlin) {
+
+      // Use getFirstLevelModuleDependencies() to avoid picking up transitive deps of the infra plugin.
+      // excluding kotlin-scripting-compiler-embeddable which is always present as Kotlin infrastructure.
+      val kotlinCompilerPlugins = {
+        val configName = "kotlinCompilerPluginClasspathMain"
+        Option(getConfigurations.findByName(configName))
+          .flatMap(config =>
+            Try(config.getResolvedConfiguration.getFirstLevelModuleDependencies.asScala).toOption
+          )
+          .getOrElse(Set.empty[ResolvedDependency])
+          .filterNot(_.getModuleName == "kotlin-scripting-compiler-embeddable")
+          .map(dep => MvnDep(dep.getModuleGroup, dep.getModuleName, dep.getModuleVersion))
+          .toSeq.distinct
+      }
+
+      // org.jetbrains.kotlin:kotlin-test is a multiplatform POM that lacks JVM classes.
+      // We find the actual platform variant (e.g. kotlin-test-junit5)
+      // resolved by Gradle's test runtime classpath.
+      val kotlinTestResolvedNameOpt = {
+        testConfigs.find(_.getName == "testRuntimeClasspath")
+          .flatMap { config =>
+            Try(config.getResolvedConfiguration.getResolvedArtifacts.asScala).toOption
+              .flatMap { artifacts =>
+                artifacts.find(art =>
+                  art.getModuleVersion.getId.getGroup == "org.jetbrains.kotlin" &&
+                    art.getModuleVersion.getId.getName.startsWith("kotlin-test-")
+                ).map(_.getModuleVersion.getId.getName)
+              }
+          }
+      }
+      KotlinData(
+        kotlinVersion = detectKotlinVersion(project0),
+        mainKotlinCompile = Option(getTasks.findByName("compileKotlin")),
+        testKotlinCompile = Option(getTasks.findByName("compileTestKotlin")),
+        mainKotlinPluginDeps = kotlinCompilerPlugins,
+        kotlinTestResolvedNameOpt = kotlinTestResolvedNameOpt
+      )
+    }
+
+    val (isSpringBoot, springBootVersion) =
+      if (isSpringBootProject(project0)) {
+        (true, detectPluginVersion(project0, SpringBootPluginId))
+      } else (false, None)
+    val (isQuarkus, quarkusVersion) =
+      if (isQuarkusProject(project0)) {
+        (true, detectPluginVersion(project0, QuarkusPluginId))
+      } else (false, None)
+    val hasErrorPronePlugin = getPluginManager.hasPlugin("net.ltgt.errorprone")
+
+    val frameworkData = FrameworkData(
+      isSpringBoot = isSpringBoot,
+      springBootVersion = springBootVersion,
+      isQuarkus = isQuarkus,
+      quarkusVersion = quarkusVersion,
+      hasErrorPronePlugin = hasErrorPronePlugin
+    )
+
+    val publishData = PublishData(
+      artifactName = Option(getName),
+      publishVersion = Option(getVersion).map(_.toString),
+      pomSettings = Some(PomSettings(
+        organization = getGroup.toString,
+        description = Option(getDescription).getOrElse("")
+      ))
+    )
 
     // Exclude BOM deps that will be added by Mill Modules
     val effectiveBomDeps = {
@@ -147,29 +223,21 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       testBomDeps = testBomDeps,
       testConstraints = testConstraints,
       testJavaCompile = testJavaCompile,
-      mainKotlinPluginDeps =
-        if (isKotlin) kotlinCompilerPlugins(project0, "kotlinCompilerPluginClasspathMain") else Nil,
       mainJavaCompile = mainJavaCompile,
-      mainKotlinCompile = mainKotlinCompile,
-      testKotlinCompile = testKotlinCompile,
       effectiveBomDeps = effectiveBomDeps,
       mainConstraints = mainConstraints,
-      isSpringBoot = isSpringBoot,
-      isQuarkus = isQuarkus,
-      hasErrorPronePlugin = getPluginManager.hasPlugin("net.ltgt.errorprone")
+      forkArgs = forkArgs,
+      kotlinData = kotlinDataOpt,
+      frameworkData = frameworkData,
+      publishData = publishData
     )
   }
 
   private def configureBaseJvmModule(
-      project0: Project,
       data: ExtractedJvmData,
-      mainModule0: ModuleSpec,
-      isKotlin: Boolean,
-      kotlinVersionOpt: Option[String]
+      mainModule0: ModuleSpec
   ): ModuleSpec = {
-    import project0.*
-    var mainModule = mainModule0.copy(
-      kotlinVersion = kotlinVersionOpt,
+    var module = mainModule0.copy(
       mvnDeps = getMvnDeps(data, "implementation", "api"),
       compileMvnDeps = getMvnDeps(data, "compileOnly", "compileOnlyApi"),
       runMvnDeps = getMvnDeps(data, "runtimeOnly"),
@@ -182,25 +250,29 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       bomModuleDeps = data.mainConfigs.flatMap(
         _.getDependencies.asScala
       ).filter(isBom).collect(toModuleDep).distinct,
-      annotationProcessorsMvnDeps = getMvnDeps(data, "annotationProcessor"),
-      kotlincOptions = data.mainKotlinCompile.fold(Nil)(task => Opt.groups(kotlinOptions(task))),
-      kotlincPluginMvnDeps = data.mainKotlinPluginDeps
+      annotationProcessorsMvnDeps = getMvnDeps(data, "annotationProcessor")
     )
-    mainModule
+
+    data.kotlinData.foreach { kd =>
+      module = module.copy(
+        kotlinVersion = kd.kotlinVersion,
+        kotlincOptions = kd.mainKotlinCompile.fold(Nil)(task => Opt.groups(kotlinOptions(task))),
+        kotlincPluginMvnDeps = kd.mainKotlinPluginDeps
+      )
+    }
+
+    module
   }
 
   private def configureJvmModule(
-      project0: Project,
+      moduleDir: os.Path,
       data: ExtractedJvmData,
-      mainModule0: ModuleSpec,
-      isKotlin: Boolean,
-      kotlinVersionOpt: Option[String]
+      mainModule0: ModuleSpec
   ): PackageSpec = {
-    import project0.*
-    val moduleDir = os.Path(getProjectDir)
+    val isKotlin = data.kotlinData.isDefined
 
     val baseJvmModule =
-      configureBaseJvmModule(project0, data, mainModule0, isKotlin, kotlinVersionOpt)
+      configureBaseJvmModule(data, mainModule0)
 
     var mainModule = baseJvmModule.copy(
       imports =
@@ -210,30 +282,28 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         (if (isKotlin) "KotlinMavenModule" else "MavenModule") +: baseJvmModule.supertypes
     )
 
-    if (data.isSpringBoot) {
-      val pluginVersion = detectPluginVersion(project0, SpringBootPluginId)
-      mainModule = mainModule.withSpringBootModule(pluginVersion)
+    if (data.frameworkData.isSpringBoot) {
+      mainModule = mainModule.withSpringBootModule(data.frameworkData.springBootVersion)
     }
 
-    if (data.isQuarkus) {
-      val pluginVersion = detectPluginVersion(project0, QuarkusPluginId)
+    if (data.frameworkData.isQuarkus) {
       mainModule =
-        mainModule.withQuarkusModule(pluginVersion, Option(getGroup.toString).filter(_.nonEmpty))
+        mainModule.withQuarkusModule(
+          data.frameworkData.quarkusVersion,
+          data.publishData.pomSettings.map(_.organization)
+        )
 
       // Add PublishModule and artifact/pom settings.
       mainModule = mainModule.copy(
         imports = "mill.javalib.publish.*" +: mainModule.imports,
         supertypes = mainModule.supertypes :+ "PublishModule",
-        artifactName = Option(getName),
-        publishVersion = Option(getVersion).map(_.toString),
-        pomSettings = Some(PomSettings(
-          organization = getGroup.toString,
-          description = Option(getDescription).getOrElse("")
-        ))
+        artifactName = data.publishData.artifactName,
+        publishVersion = data.publishData.publishVersion,
+        pomSettings = data.publishData.pomSettings
       )
     }
 
-    if (data.hasErrorPronePlugin) {
+    if (data.frameworkData.hasErrorPronePlugin) {
       mainModule = mainModule.withErrorProneModule(
         errorProneMvnDeps = getMvnDeps(data, "errorprone"),
         errorProneOptions = data.mainJavaCompile.fold(Nil)(errorProneOptions)
@@ -243,43 +313,26 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
     if (os.exists(moduleDir / "src/test")) {
       val testBomDeps = data.testBomDeps
       val testConstraints = data.testConstraints
-      // org.jetbrains.kotlin:kotlin-test is a multiplatform POM that lacks JVM classes.
-      // We find the actual platform variant (e.g. kotlin-test-junit5)
-      // resolved by Gradle's test runtime classpath.
-      val kotlinTestResolvedNameOpt = if (isKotlin) {
-        data.configs.find(_.getName == "testRuntimeClasspath")
-          .flatMap { config =>
-            Try(config.getResolvedConfiguration.getResolvedArtifacts.asScala).toOption
-              .flatMap { artifacts =>
-                artifacts.find(art =>
-                  art.getModuleVersion.getId.getGroup == "org.jetbrains.kotlin" &&
-                    art.getModuleVersion.getId.getName.startsWith("kotlin-test-")
-                ).map(_.getModuleVersion.getId.getName)
-              }
-          }
-      } else None
 
       var testModule = ModuleSpec(
         name = "test",
         supertypes = (if (isKotlin) "KotlinMavenTests" else "MavenTests") +: data.testMixin,
         forkArgs = Values(
-          getTask[Test](project0, "test").fold(Nil) { task =>
-            task.getSystemProperties.asScala.map {
-              case (k, v) => Opt(s"-D$k=$v")
-            }.toSeq ++ Opt.groups(task.getJvmArgs.asScala.toSeq)
-          },
+          data.forkArgs,
           appendSuper = true
         ),
         forkWorkingDir = Some("moduleDir"),
         mvnDeps = {
           val deps = getMvnDeps(data, "testImplementation")
           // Change the name of the kotlin-test dependency to the resolved name, if available
-          if (kotlinTestResolvedNameOpt.isDefined) {
+          val resolvedNameOpt = data.kotlinData.flatMap(_.kotlinTestResolvedNameOpt)
+          if (resolvedNameOpt.isDefined) {
             deps.map { dep =>
               if (dep.organization == "org.jetbrains.kotlin" && dep.name == "kotlin-test") {
                 val version =
-                  if (dep.version.nonEmpty) dep.version else kotlinVersionOpt.getOrElse("")
-                dep.copy(name = kotlinTestResolvedNameOpt.get, version = version)
+                  if (dep.version.nonEmpty) dep.version
+                  else data.kotlinData.flatMap(_.kotlinVersion).getOrElse("")
+                dep.copy(name = resolvedNameOpt.get, version = version)
               } else {
                 dep
               }
@@ -303,15 +356,17 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         testSandboxWorkingDir = Some(false),
         testFramework = Option.when(data.testMixin.isEmpty)(""),
         annotationProcessorsMvnDeps = getMvnDeps(data, "testAnnotationProcessor"),
-        kotlincOptions = data.testKotlinCompile.fold(Nil)(task => Opt.groups(kotlinOptions(task)))
+        kotlincOptions = data.kotlinData.map(_.testKotlinCompile.fold(Nil)(task =>
+          Opt.groups(kotlinOptions(task))
+        )).getOrElse(Nil)
       )
-      if (data.hasErrorPronePlugin) {
+      if (data.frameworkData.hasErrorPronePlugin) {
         testModule = testModule.withErrorProneModule(
           errorProneMvnDeps = mainModule.errorProneDeps,
           errorProneOptions = data.testJavaCompile.fold(Nil)(errorProneOptions)
         )
       }
-      if (data.isSpringBoot) {
+      if (data.frameworkData.isSpringBoot) {
         testModule = testModule.withSpringBootTestsModule()
       }
       if (data.testMixin.contains("TestModule.Junit5")) {
@@ -347,7 +402,6 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
     import project0.*
     val moduleDir = os.Path(getProjectDir)
     val isKotlin = isKotlinProject(project0)
-    val kotlinVersionOpt = if (isKotlin) detectKotlinVersion(project0) else None
     var mainModule = ModuleSpec(
       name = moduleDir.last,
       repositories = getRepositories.asScala.toSeq.collect(toRepositoryUrlString).distinct
@@ -373,7 +427,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       PackageSpec(moduleDir.subRelativeTo(workspace), mainModule)
     } else if (getPluginManager.hasPlugin("java") || isKotlin) {
       val data = extractJvmData(project0, isKotlin)
-      configureJvmModule(project0, data, mainModule, isKotlin, kotlinVersionOpt)
+      configureJvmModule(moduleDir, data, mainModule)
     } else {
       PackageSpec(moduleDir.subRelativeTo(workspace), mainModule)
     }
