@@ -107,8 +107,8 @@ object MillGradleBuildGenMain {
       if (noMeta.value) (None, packages)
       else buildGen.withBaseModule(
         packages,
-        "KotlinMavenModule" -> "KotlinMavenTests",
-        "MavenModule" -> "MavenTests"
+        "MavenModule" -> "MavenTests",
+        "KotlinMavenModule" -> "KotlinMavenTests"
       ).fold((None, packages))((base, pkgs) => (Some(base), pkgs))
     val millJvmOpts = Option(
       gradleWrapperProperties.getProperty("org.gradle.jvmargs")
