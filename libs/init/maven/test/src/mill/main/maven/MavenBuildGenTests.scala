@@ -32,6 +32,13 @@ trait MavenBuildGenTests extends TestSuite {
         initArgs = Seq() ++ extraArgs
       ))
     }
+    test("spring-start-no-parent") {
+      assert(checker.check(
+        sourceRel = os.sub / "spring-start-no-parent",
+        expectedRel = os.sub / expectedDir / "spring-start-no-parent",
+        initArgs = Seq() ++ extraArgs
+      ))
+    }
     test("with-args") {
       val args = Seq("--publish-properties", "--merge", "--no-meta")
       test("maven-samples") {
