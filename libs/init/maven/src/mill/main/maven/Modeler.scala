@@ -40,6 +40,7 @@ class Modeler(
     request.setSystemProperties(systemProperties)
     request.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL)
     request.setTwoPhaseBuilding(true)
+    request.setLocationTracking(true)
     try {
       val result1 = builder.build(request)
       val depMgmt1 = Option(result1.getEffectiveModel.getDependencyManagement).map(_.clone)
