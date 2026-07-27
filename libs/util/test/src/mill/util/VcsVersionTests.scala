@@ -1,8 +1,17 @@
 package mill.util
 
+import mill.api.{Discover, Logger}
+import mill.testkit.{TestRootModule, UnitTester}
 import mill.util.VcsVersion
 import utest.*
 object VcsVersionTests extends TestSuite {
+
+  class VcsVersionTestModule(moduleRoot: os.Path, vcsState: VcsVersion.State)
+      extends TestRootModule(moduleRoot)
+      with VcsVersionModule {
+    override protected def vcsStateForPublishVersion(logger: Logger): VcsVersion.State = vcsState
+    lazy val millDiscover = Discover[this.type]
+  }
 
   def state(
       lastTag: String,
@@ -129,6 +138,21 @@ object VcsVersionTests extends TestSuite {
         }
       }
 
+    }
+
+    test("VcsVersionModule.publishVersion") {
+      def publishVersion(vcsState: VcsVersion.State): String = {
+        val module = new VcsVersionTestModule(os.temp.dir(), vcsState)
+        UnitTester(module, null).scoped { evaluator =>
+          val Right(UnitTester.Result(version, _)) =
+            evaluator(module.publishVersion).runtimeChecked
+          version
+        }
+      }
+
+      assert(publishVersion(state(null, 1)) == "0.0.0-1-abcdef-SNAPSHOT")
+      assert(publishVersion(state("v1.2.3", 0)) == "1.2.3")
+      assert(publishVersion(state("v1.2.3", 1)) == "1.2.3-1-abcdef-SNAPSHOT")
     }
   }
 }
