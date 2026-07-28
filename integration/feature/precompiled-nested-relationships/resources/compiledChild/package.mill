@@ -1,0 +1,6 @@
+package build.compiledChild
+
+import mill.*
+import javalib.*
+
+object `package` extends JavaModule
