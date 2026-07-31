@@ -146,7 +146,10 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         val configName = "kotlinCompilerPluginClasspathMain"
         Option(getConfigurations.findByName(configName))
           .flatMap(config =>
-            Try(config.getResolvedConfiguration.getFirstLevelModuleDependencies.asScala).toOption
+            Try(config.getResolvedConfiguration.getFirstLevelModuleDependencies.asScala).fold(
+              _ => { println(s"Warning: could not resolve '$configName', skipping Kotlin compiler plugins"); None },
+              v => Some(v)
+            )
           )
           .getOrElse(Set.empty[ResolvedDependency])
           .filterNot(_.getModuleName == "kotlin-scripting-compiler-embeddable")
@@ -158,10 +161,13 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       // We find the actual platform variant (e.g. kotlin-test-junit5)
       // resolved by Gradle's test runtime classpath.
       val kotlinTestResolvedNameOpt = {
-        testConfigs.find(_.getName == "testRuntimeClasspath")
+        val configName = "testRuntimeClasspath"
+        testConfigs.find(_.getName == configName)
           .flatMap { config =>
-            Try(config.getResolvedConfiguration.getResolvedArtifacts.asScala).toOption
-              .flatMap { artifacts =>
+            Try(config.getResolvedConfiguration.getResolvedArtifacts.asScala).fold(
+              _ => { println(s"Warning: could not resolve '$configName', kotlin-test variant will not be detected"); None },
+              v => Some(v)
+            ).flatMap { artifacts =>
                 artifacts.find(art =>
                   art.getModuleVersion.getId.getGroup == "org.jetbrains.kotlin" &&
                     art.getModuleVersion.getId.getName.startsWith("kotlin-test-")
