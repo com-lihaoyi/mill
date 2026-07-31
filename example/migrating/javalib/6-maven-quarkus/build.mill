@@ -10,6 +10,6 @@
 
 > ./mill {getting-started-reactive,kafka-avro-schema-quickstart}.compile
 
-> ./mill __.compile # scheduled
+> ./mill __.compile # scheduled linux
 
 */

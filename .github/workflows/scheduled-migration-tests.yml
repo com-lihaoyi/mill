@@ -45,7 +45,7 @@ jobs:
     with:
       os: windows-latest
       java-version: 25
-      millargs: "example.migrating._._.testForked"
+      millargs: "example.migrating._._.packaged.daemon"
       extra: "--jobs=1"
       shell: powershell
 
