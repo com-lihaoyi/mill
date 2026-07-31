@@ -5,6 +5,12 @@ import upickle.default.{ReadWriter, macroRW, readwriter}
 
 import scala.language.implicitConversions
 
+object SpringBoot {
+  val GroupId = "org.springframework.boot"
+  val ParentArtifactId = "spring-boot-starter-parent"
+  val DependenciesArtifactId = "spring-boot-dependencies"
+}
+
 case class ModuleSpec(
     name: String,
     imports: Seq[String] = Nil,
@@ -96,16 +102,48 @@ case class ModuleSpec(
     )
   }
 
-  def withSpringBootModule(springBootVersion: Value[String]): ModuleSpec =
+  private def stripSpringVersion(deps: Values[MvnDep], platformVer: String): Values[MvnDep] =
+    deps.copy(base = deps.base.map {
+      case dep if dep.organization == SpringBoot.GroupId =>
+        if (platformVer.nonEmpty && dep.version.nonEmpty && dep.version != platformVer) dep
+        else dep.copy(version = "")
+      case dep => dep
+    })
+
+  def withSpringBootModule(
+      springBootVersion: Value[String],
+      stripVersion: Boolean = true
+  ): ModuleSpec = {
+    val verStr = springBootVersion.base.getOrElse("")
+    val doStrip = stripVersion && verStr.nonEmpty
     copy(
       imports = "mill.javalib.spring.boot.*" +: imports,
       supertypes = "SpringBootModule" +: supertypes,
-      springBootPlatformVersion = springBootVersion
+      springBootPlatformVersion = springBootVersion,
+      mvnDeps = if (doStrip) stripSpringVersion(mvnDeps, verStr) else mvnDeps,
+      compileMvnDeps = if (doStrip) stripSpringVersion(compileMvnDeps, verStr) else compileMvnDeps,
+      runMvnDeps = if (doStrip) stripSpringVersion(runMvnDeps, verStr) else runMvnDeps,
+      bomMvnDeps = bomMvnDeps.copy(base =
+        bomMvnDeps.base.filterNot(dep =>
+          dep.organization == SpringBoot.GroupId && dep.name == SpringBoot.DependenciesArtifactId
+        )
+      )
     )
+  }
 
-  def withSpringBootTestsModule(): ModuleSpec = {
+  def withSpringBootTestsModule(
+      springBootVersion: Value[String] = Value(),
+      stripVersion: Boolean = true
+  ): ModuleSpec = {
     val requiredSupertypes = Seq("SpringBootTestsModule", "MavenTests")
-    copy(supertypes = requiredSupertypes ++ supertypes.filterNot(requiredSupertypes.contains))
+    val verStr = springBootVersion.base.getOrElse("")
+    val doStrip = stripVersion && verStr.nonEmpty
+    copy(
+      supertypes = requiredSupertypes ++ supertypes.filterNot(requiredSupertypes.contains),
+      mvnDeps = if (doStrip) stripSpringVersion(mvnDeps, verStr) else mvnDeps,
+      compileMvnDeps = if (doStrip) stripSpringVersion(compileMvnDeps, verStr) else compileMvnDeps,
+      runMvnDeps = if (doStrip) stripSpringVersion(runMvnDeps, verStr) else runMvnDeps
+    )
   }
 
   def withQuarkusModule(
