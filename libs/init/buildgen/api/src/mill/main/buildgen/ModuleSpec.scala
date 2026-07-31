@@ -73,7 +73,10 @@ case class ModuleSpec(
     children: Seq[ModuleSpec] = Nil,
     quarkusPlatformVersion: Value[String] = Value(),
     annotationProcessorsMvnDeps: Values[MvnDep] = Values(),
-    artifactGroupId: Value[String] = Value()
+    artifactGroupId: Value[String] = Value(),
+    kotlinVersion: Value[String] = Value(),
+    kotlincOptions: Values[Opt] = Values(),
+    kotlincPluginMvnDeps: Values[MvnDep] = Values()
 ) {
 
   def isBomModule: Boolean = supertypes.contains("BomModule")
@@ -340,7 +343,8 @@ object ModuleSpec {
       mvnDeps.iterator.map(dep => dep.organization -> dep.name).collectFirst {
         case ("org.testng", _) => "TestModule.TestNg"
         case ("junit", _) => "TestModule.Junit4"
-        case ("org.junit.jupiter", _) | ("org.springframework.boot", "spring-boot-starter-test") =>
+        case ("org.junit.jupiter", _) | ("org.springframework.boot", "spring-boot-starter-test") |
+            ("org.jetbrains.kotlin", "kotlin-test" | "kotlin-test-junit5") =>
           "TestModule.Junit5"
         case ("com.lihaoyi", "utest") => "TestModule.Utest"
         case ("org.typelevel", "weaver-cats") => "TestModule.Weaver"
