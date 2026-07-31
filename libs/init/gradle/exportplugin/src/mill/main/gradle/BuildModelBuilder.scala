@@ -147,7 +147,11 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         Option(getConfigurations.findByName(configName))
           .flatMap(config =>
             Try(config.getResolvedConfiguration.getFirstLevelModuleDependencies.asScala).fold(
-              _ => { println(s"Warning: could not resolve '$configName', skipping Kotlin compiler plugins"); None },
+              _ => {
+                println(
+                  s"Warning: could not resolve '$configName', skipping Kotlin compiler plugins"
+                ); None
+              },
               v => Some(v)
             )
           )
@@ -165,14 +169,18 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         testConfigs.find(_.getName == configName)
           .flatMap { config =>
             Try(config.getResolvedConfiguration.getResolvedArtifacts.asScala).fold(
-              _ => { println(s"Warning: could not resolve '$configName', kotlin-test variant will not be detected"); None },
+              _ => {
+                println(
+                  s"Warning: could not resolve '$configName', kotlin-test variant will not be detected"
+                ); None
+              },
               v => Some(v)
             ).flatMap { artifacts =>
-                artifacts.find(art =>
-                  art.getModuleVersion.getId.getGroup == "org.jetbrains.kotlin" &&
-                    art.getModuleVersion.getId.getName.startsWith("kotlin-test-")
-                ).map(_.getModuleVersion.getId.getName)
-              }
+              artifacts.find(art =>
+                art.getModuleVersion.getId.getGroup == "org.jetbrains.kotlin" &&
+                  art.getModuleVersion.getId.getName.startsWith("kotlin-test-")
+              ).map(_.getModuleVersion.getId.getName)
+            }
           }
       }
       KotlinData(
