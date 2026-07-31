@@ -181,6 +181,9 @@ object BuildGenScala extends BuildGen {
     lines += renderDefValues("scalacOptions", scalacOptions, encodeLiteralOpt)
     lines += renderDefValues("scalacPluginMvnDeps", scalacPluginMvnDeps, encodeMvnDep)
     lines += renderDefValues("javacOptions", javacOptions, encodeOpt)
+    lines += renderDefValue("kotlinVersion", kotlinVersion, encodeString)
+    lines += renderDefValues("kotlincOptions", kotlincOptions, encodeLiteralOpt)
+    lines += renderDefValues("kotlincPluginMvnDeps", kotlincPluginMvnDeps, encodeMvnDep)
     lines += renderDefValues(
       "sourcesRootFolders",
       sourcesRootFolders,
