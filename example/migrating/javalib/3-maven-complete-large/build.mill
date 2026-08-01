@@ -6,12 +6,7 @@
 
 > ./mill init --mill-jvm-id 21 # Repo needs Java >=21 to build and test
 
-> rm twin/src/test/java/com/iluwatar/twin/BallThreadTest.java # skip flaky test
-> rm actor-model/src/test/java/com/iluwatar/actor/ActorModelTest.java # skip flaky test
-
-> ./mill __.compile # Compile all 300+ subprojects!
-compiling 6 Java sources to ...service-to-worker...
-compiling 4 Java sources to ...update-method...
+> ./mill {acyclic-visitor,service-to-worker,update-method}.compile
 
 > ./mill acyclic-visitor.test # run a subproject's tests
 ...
@@ -19,5 +14,9 @@ Test com.iluwatar.acyclicvisitor.ZoomTest#testAcceptForUnix() started
 Test com.iluwatar.acyclicvisitor.ZoomTest#testAcceptForUnix() finished, took ...
 Test com.iluwatar.acyclicvisitor.ZoomTest finished, took ...
 ...
+
+> ./mill __.compile # scheduled compile all subprojects
+
+> ./mill {singleton,builder,decorator,proxy,strategy,observer,producer-consumer}.__.test # scheduled run some subprojects' tests
 
 */

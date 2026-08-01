@@ -2,6 +2,8 @@ name: post-build-selective
 
 env:
   FORCE_COLOR: '1'
+  MILL_TEST_SCHEDULED: ${{ inputs.mill-test-scheduled }}
+  MILL_TEST_TIMEOUT_MINUTES: ${{ inputs.mill-test-timeout-minutes }}
 
 on:
   workflow_call:
@@ -35,6 +37,12 @@ on:
       install-xvfb:
         default: false
         type: boolean
+      mill-test-scheduled:
+        default: 'false'
+        type: string
+      mill-test-timeout-minutes:
+        default: '15'
+        type: string
 
 jobs:
   run:
