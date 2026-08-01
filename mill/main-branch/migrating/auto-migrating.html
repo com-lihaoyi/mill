@@ -949,19 +949,18 @@ compiling, and passing all tests in Mill:</p>
 
 &gt; ./mill init --mill-jvm-id 21 # Repo needs Java &gt;=21 to build and test
 
-&gt; rm twin/src/test/java/com/iluwatar/twin/BallThreadTest.java # skip flaky test
-&gt; rm actor-model/src/test/java/com/iluwatar/actor/ActorModelTest.java # skip flaky test
-
-&gt; ./mill __.compile # Compile all 300+ subprojects!
-compiling 6 Java sources to ...service-to-worker...
-compiling 4 Java sources to ...update-method...
+&gt; ./mill {acyclic-visitor,service-to-worker,update-method}.compile
 
 &gt; ./mill acyclic-visitor.test # run a subproject's tests
 ...
 Test com.iluwatar.acyclicvisitor.ZoomTest#testAcceptForUnix() started
 Test com.iluwatar.acyclicvisitor.ZoomTest#testAcceptForUnix() finished, took ...
 Test com.iluwatar.acyclicvisitor.ZoomTest finished, took ...
-...</code></pre>
+...
+
+&gt; ./mill __.compile # scheduled compile all subprojects
+
+&gt; ./mill {singleton,builder,decorator,proxy,strategy,observer,producer-consumer}.__.test # scheduled run some subprojects' tests</code></pre>
 </div>
 </div>
 </div>
