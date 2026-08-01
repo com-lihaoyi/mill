@@ -65,7 +65,8 @@ object ExampleTester {
       millExecutable: os.Path,
       bashExecutable: String = defaultBashExecutable(),
       workspacePath: os.Path = os.pwd,
-      useInMemory: Boolean = false
+      useInMemory: Boolean = false,
+      runScheduled: Boolean = false
   ): os.Path = {
     val tester = ExampleTester(
       daemonMode,
@@ -73,7 +74,8 @@ object ExampleTester {
       millExecutable,
       bashExecutable,
       workspacePath,
-      useInMemory = useInMemory
+      useInMemory = useInMemory,
+      runScheduled = runScheduled
     )
     tester.run()
     tester.workspacePath
@@ -94,17 +96,30 @@ class ExampleTester(
     val baseWorkspacePath: os.Path,
     val propagateJavaHome: Boolean = true,
     val cleanupProcessIdFile: Boolean = true,
-    val useInMemory: Boolean = false
+    val useInMemory: Boolean = false,
+    val runScheduled: Boolean = false
 ) extends IntegrationTesterBase {
 
-  def commandFilter(commandComment: String): Boolean = commandComment match {
-    case s"windows$_" => isWindows
-    case s"mac/linux$_" => !isWindows
-    case s"mac$_" => scala.util.Properties.isMac
-    case s"linux$_" => !scala.util.Properties.isMac && !isWindows
-    case s"--no-daemon$_" => !daemonMode
-    case s"not --no-daemon$_" => daemonMode
-    case _ => true
+  def commandFilter(commandComment: String): Boolean = {
+    val isScheduledCommand = commandComment.startsWith("scheduled")
+    val isCI = sys.env.contains("CI")
+
+    val runScheduledOk =
+      if (isScheduledCommand && isCI) runScheduled
+      else true
+
+    runScheduledOk && {
+      val remainingComment = commandComment.stripPrefix("scheduled").trim
+      remainingComment match {
+        case s"windows$_" => isWindows
+        case s"mac/linux$_" => !isWindows
+        case s"mac$_" => scala.util.Properties.isMac
+        case s"linux$_" => !scala.util.Properties.isMac && !isWindows
+        case s"--no-daemon$_" => !daemonMode
+        case s"not --no-daemon$_" => daemonMode
+        case _ => true
+      }
+    }
   }
 
   def processCommandBlock(commandBlock: String): Unit = {
