@@ -43,7 +43,7 @@ trait MavenBuildGenTests extends TestSuite {
       assert(checker.check(
         sourceRel = os.sub / "micronaut-getting-started",
         expectedRel = os.sub / expectedDir / "micronaut-getting-started",
-        initArgs = Seq() ++ extraArgs
+        initArgs = Seq("--mill-jvm-id","25") ++ extraArgs
       ))
     }
     test("with-args") {

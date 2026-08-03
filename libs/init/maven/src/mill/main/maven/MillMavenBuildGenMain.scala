@@ -292,7 +292,6 @@ object MillMavenBuildGenMain {
   private def isFrameworkBomSource(sourceId: String): Boolean = {
     sourceId.split(":") match {
       case Array(groupId, artifactId, _*) => {
-        println(s"checking if $groupId:$artifactId is a framework BOM source")
         (groupId == SpringBoot.GroupId && (artifactId == SpringBoot.DependenciesArtifactId || artifactId == SpringBoot.ParentArtifactId)) ||
           (groupId == Micronaut.PlatformGroupId &&
             (artifactId == Micronaut.PlatformArtifactId || Micronaut.BomArtifactIds.contains(artifactId)))
