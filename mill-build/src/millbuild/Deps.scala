@@ -249,7 +249,7 @@ object Deps {
     mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kotlinBuildToolsApi24Version_api"
   val kotlinBuildToolsImpl = mvn"org.jetbrains.kotlin:kotlin-build-tools-impl:$kotlinVersion"
   val kotlinStdlib = mvn"org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-  val groovyVersion_lowerBound = "4.0.28"
+  val groovyVersion_lowerBound = "4.0.33"
   val groovyCompiler_lowerBound = mvn"org.apache.groovy:groovy:$groovyVersion_lowerBound"
   val groovyVersion = "5.0.6"
   val groovyCompiler_runtime = mvn"org.apache.groovy:groovy:$groovyVersion"
