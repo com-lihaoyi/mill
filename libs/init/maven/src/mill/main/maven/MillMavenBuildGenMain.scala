@@ -58,7 +58,7 @@ object MillMavenBuildGenMain {
 
       model.getPackaging match {
         case "pom" =>
-          val dmOpt = Option(model.getDependencyManagement).map(filterSpringBootBomDeps)
+          val dmOpt = Option(model.getDependencyManagement).map(filterFrameworkBomDeps)
           if (dmOpt.exists(!_.getDependencies.isEmpty)) {
             val (bomDeps, deps) =
               dmOpt.get.getDependencies.asScala.toSeq.partition(isBom)
@@ -87,7 +87,7 @@ object MillMavenBuildGenMain {
           val quarkusVersionOpt = detectQuarkusPluginVersion(model)
 
           val (bomMvnDeps, depManagement, bomModuleDeps) =
-            Option(model.getDependencyManagement).map(filterSpringBootBomDeps).fold((
+            Option(model.getDependencyManagement).map(filterFrameworkBomDeps).fold((
               Nil,
               Nil,
               Nil
@@ -288,13 +288,25 @@ object MillMavenBuildGenMain {
     ).flatMap(p => nonEmpty(p.getVersion))
   }
 
-  private def filterSpringBootBomDeps(dm: DependencyManagement): DependencyManagement = {
+
+  private def isFrameworkBomSource(sourceId: String): Boolean = {
+    sourceId.split(":") match {
+      case Array(groupId, artifactId, _*) => {
+        println(s"checking if $groupId:$artifactId is a framework BOM source")
+        (groupId == SpringBoot.GroupId && (artifactId == SpringBoot.DependenciesArtifactId || artifactId == SpringBoot.ParentArtifactId)) ||
+          (groupId == Micronaut.PlatformGroupId &&
+            (artifactId == Micronaut.PlatformArtifactId || Micronaut.BomArtifactIds.contains(artifactId)))
+      }
+      case _ => false
+    }
+  }
+
+  private def filterFrameworkBomDeps(dm: DependencyManagement): DependencyManagement = {
     val filteredDeps = dm.getDependencies.asScala.filterNot { dep =>
       val location = dep.getLocation("")
       val source = if (location != null) location.getSource else null
       val sourceId = if (source != null) Option(source.getModelId).getOrElse("") else ""
-      sourceId.contains(SpringBoot.DependenciesArtifactId) ||
-      sourceId.contains(SpringBoot.ParentArtifactId)
+      isFrameworkBomSource(sourceId)
     }
     val filteredDm = new DependencyManagement()
     filteredDm.setDependencies(filteredDeps.asJava)

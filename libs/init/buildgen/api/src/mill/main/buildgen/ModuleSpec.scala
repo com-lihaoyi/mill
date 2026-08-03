@@ -11,6 +11,18 @@ object SpringBoot {
   val DependenciesArtifactId = "spring-boot-dependencies"
 }
 
+object Micronaut {
+  val PlatformGroupId = "io.micronaut.platform"
+  val PlatformArtifactId = "micronaut-platform"
+  val ParentArtifactId = "micronaut-parent"
+  val BomArtifactIds = Set(
+    "micronaut-parent",
+    "micronaut-platform",
+    "micronaut-bom",
+    "micronaut-starter-parent"
+  )
+}
+
 case class ModuleSpec(
     name: String,
     imports: Seq[String] = Nil,
