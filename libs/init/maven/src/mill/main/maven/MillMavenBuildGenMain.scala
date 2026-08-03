@@ -288,13 +288,14 @@ object MillMavenBuildGenMain {
     ).flatMap(p => nonEmpty(p.getVersion))
   }
 
-
   private def isFrameworkBomSource(sourceId: String): Boolean = {
     sourceId.split(":") match {
       case Array(groupId, artifactId, _*) => {
         (groupId == SpringBoot.GroupId && (artifactId == SpringBoot.DependenciesArtifactId || artifactId == SpringBoot.ParentArtifactId)) ||
-          (groupId == Micronaut.PlatformGroupId &&
-            (artifactId == Micronaut.PlatformArtifactId || Micronaut.BomArtifactIds.contains(artifactId)))
+        (groupId == Micronaut.PlatformGroupId &&
+          (artifactId == Micronaut.PlatformArtifactId || Micronaut.BomArtifactIds.contains(
+            artifactId
+          )))
       }
       case _ => false
     }
