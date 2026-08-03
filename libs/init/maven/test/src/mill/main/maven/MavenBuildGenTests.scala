@@ -39,6 +39,13 @@ trait MavenBuildGenTests extends TestSuite {
         initArgs = Seq() ++ extraArgs
       ))
     }
+    test("micronaut-getting-started") {
+      assert(checker.check(
+        sourceRel = os.sub / "micronaut-getting-started",
+        expectedRel = os.sub / expectedDir / "micronaut-getting-started",
+        initArgs = Seq() ++ extraArgs
+      ))
+    }
     test("with-args") {
       val args = Seq("--publish-properties", "--merge", "--no-meta")
       test("maven-samples") {
