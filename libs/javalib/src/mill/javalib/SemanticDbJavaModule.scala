@@ -238,7 +238,12 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
     val buildTool = s" -build-tool:${if (isNewEnough) "mill" else "sbt"}"
     val verbose = if (ctx.log.debugEnabled) " -verbose" else ""
     javacOptions ++ Seq(
-      s"-Xplugin:semanticdb -sourceroot:${ctx.workspace} -targetroot:${ctx.dest / "classes"}${buildTool}${verbose}"
+      // enable the plugin
+      s"-Xplugin:semanticdb",
+      // set sourceroot option
+      "-P:semanticdb:sourceroot:${ctx.workspace}",
+      // set targetroot option
+      "-P:semanticdb:targetroot:${ctx.dest / "classes"}${buildTool}${verbose}"
     )
   }
 
