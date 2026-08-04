@@ -237,14 +237,14 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
       Version.isAtLeast(semanticDbJavaVersion, "0.8.10")(using Version.IgnoreQualifierOrdering)
     val buildTool = if (isNewEnough) "mill" else "sbt"
 
-    // https://github.com/scalameta/scalameta/blob/main/semanticdb/guide.md#javac-compiler-plugin
     javacOptions ++ Seq(
+      // https://github.com/scalameta/scalameta/blob/main/semanticdb/guide.md#javac-compiler-plugin
       Seq(
         // enable the plugin
         s"-Xplugin:semanticdb",
-        // set sourceroot option
+        // set sourceroot option, escape spaces
         s"-sourceroot:${ctx.workspace}".replace(" ", "\\ "),
-        // set targetroot option
+        // set targetroot option, escape spaces
         s"-targetroot:${ctx.dest / "classes"}".replace(" ", "\\ "),
         // set build-tool option
         s"-build-tool:${buildTool}",
@@ -254,7 +254,6 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
         // all args must be set as a single Javac parameter
         .mkString(" ")
     )
-
   }
 
   private val userCodeStartMarker = "//SOURCECODE_ORIGINAL_CODE_START_MARKER"
