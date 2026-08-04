@@ -236,10 +236,24 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
   ): Seq[String] = {
     val isNewEnough =
       Version.isAtLeast(semanticDbJavaVersion, "0.8.10")(using Version.IgnoreQualifierOrdering)
-    val buildTool = s" -build-tool:${if (isNewEnough) "mill" else "sbt"}"
-    val verbose = if (ctx.log.debugEnabled) " -verbose" else ""
+    val buildTool = if (isNewEnough) "mill" else "sbt"
+
     javacOptions ++ Seq(
-      s"-Xplugin:semanticdb -sourceroot:${ctx.workspace} -targetroot:${ctx.dest / "classes"}${buildTool}${verbose}"
+      // https://github.com/scalameta/scalameta/blob/main/semanticdb/guide.md#javac-compiler-plugin
+      Seq(
+        // enable the plugin
+        s"-Xplugin:semanticdb",
+        // set sourceroot option, escape spaces
+        s"-sourceroot:${ctx.workspace}".replace(" ", "\\ "),
+        // set targetroot option, escape spaces
+        s"-targetroot:${ctx.dest / "classes"}".replace(" ", "\\ "),
+        // set build-tool option
+        s"-build-tool:${buildTool}",
+        // set verbose option
+        if (ctx.log.debugEnabled) "-verbose" else ""
+      )
+        // all args must be set as a single Javac parameter
+        .mkString(" ")
     )
   }
 
