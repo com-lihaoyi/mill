@@ -308,7 +308,7 @@ object Deps {
     val koverJvmAgent_runtime = mvn"org.jetbrains.kotlinx:kover-jvm-agent:$koverVersion_runtime"
     val ktfmt_runtime = mvn"com.facebook:ktfmt:0.64"
     val ktlint_runtime = mvn"com.pinterest.ktlint:ktlint-core:0.49.1"
-    val owaspDependencyCheckCli_runtime = mvn"org.owasp:dependency-check-cli:12.2.2"
+    val owaspDependencyCheckCli_runtime = mvn"org.owasp:dependency-check-cli:13.0.0"
     val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.94.0"
     val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.24.0"
     val proguard_runtime = mvn"com.guardsquare:proguard-base:7.9.1"
