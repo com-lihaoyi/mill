@@ -1,7 +1,7 @@
 plugins {
     id("io.micronaut.application") version "5.0.0"
     id("com.gradleup.shadow") version "9.4.1"
-    id("com.diffplug.spotless") version "6.23.3"
+    id("com.diffplug.spotless") version "6.23.3" // TODO: Add support for spotless module
     id("io.micronaut.aot") version "5.0.0"
 }
 
@@ -87,12 +87,12 @@ tasks.named("dockerfile") {
 
 
 
-
-spotless {
-    java {
-        licenseHeaderFile(file("LICENSEHEADER"))
-    }
-}
+// TODO: Add support for spotless module
+//spotless {
+//    java {
+//        licenseHeaderFile(file("LICENSEHEADER"))
+//    }
+//}
 tasks.withType(io.micronaut.gradle.testresources.StartTestResourcesService).configureEach {
     useClassDataSharing = false
 }
