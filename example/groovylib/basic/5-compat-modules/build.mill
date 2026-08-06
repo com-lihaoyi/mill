@@ -10,7 +10,7 @@ import mill.*, groovylib.*
 
 object foo extends GroovyMavenModule {
 
-  def groovyVersion = "5.0.6"
+  def groovyVersion = "5.0.8"
 
   object test extends GroovyMavenTests with TestModule.Junit5 {}
   object integration extends GroovyMavenTests with TestModule.Junit5 {}
