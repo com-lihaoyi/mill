@@ -126,6 +126,15 @@ object MillMavenBuildGenMain {
               Option(model.getGroupId).filter(_.nonEmpty)
             )
           }
+          val isMicronautAot = isMicronautAotProject(model)
+          if (isMicronautAot) {
+            val (mnVersion, mnPkg, mnConfigFile) = detectMicronautAot(model)
+            mainModule = mainModule.withMicronautAotModule(
+              micronautVersion = mnVersion,
+              micronautPackage = mnPkg,
+              micronautAotConfigFile = mnConfigFile
+            )
+          }
           if (os.exists(moduleDir / "src/test")) {
             val testMvnDeps = mvnDeps("test")
             val testMixin = ModuleSpec.testModuleMixin(testMvnDeps)
@@ -286,6 +295,47 @@ object MillMavenBuildGenMain {
     model.getBuild.getPlugins.asScala.find(p =>
       p.getArtifactId == QuarkusPluginArtifactId
     ).flatMap(p => nonEmpty(p.getVersion))
+  }
+
+  private def isMicronautAotProject(model: Model): Boolean =
+    Option(model.getProperties).exists(p =>
+      nonEmpty(p.getProperty("micronaut.aot.packageName")).isDefined ||
+        nonEmpty(p.getProperty("micronaut.aot.package")).isDefined
+    ) ||
+      Option(model.getBuild).flatMap(b => Option(b.getPlugins)).exists(_.asScala.exists(p =>
+        p.getArtifactId == "micronaut-maven-plugin"
+      ))
+
+  private def detectMicronautAot(model: Model): (Value[String], Value[String], Value[String]) = {
+    val props = Option(model.getProperties).getOrElse(new java.util.Properties())
+
+    val ver = Option(model.getParent)
+      .filter(p =>
+        p.getGroupId == Micronaut.PlatformGroupId || Micronaut.isMicronautGroup(p.getGroupId)
+      )
+      .flatMap(p => nonEmpty(p.getVersion))
+      .orElse(nonEmpty(props.getProperty("micronaut.version")))
+      .orElse(nonEmpty(props.getProperty("micronaut.platform.version")))
+
+    val pkg = Option(props.getProperty("micronaut.aot.packageName")).filter(_.nonEmpty)
+      .orElse(Option(props.getProperty("micronaut.aot.package")).filter(_.nonEmpty))
+
+    val pluginOpt = Option(model.getBuild).flatMap(b =>
+      Option(b.getPlugins).flatMap(_.asScala.find(p => p.getArtifactId == "micronaut-maven-plugin"))
+    )
+
+    val configDom = pluginOpt.map(_.getConfiguration).collect {
+      case dom: org.codehaus.plexus.util.xml.Xpp3Dom => dom
+    }
+
+    val configFile =
+      configDom.flatMap(dom => Option(dom.getChild("configFile"))).map(_.getValue).flatMap(nonEmpty)
+
+    (
+      Value(ver),
+      Value(pkg),
+      Value(configFile)
+    )
   }
 
   private def isFrameworkBomSource(sourceId: String): Boolean = {

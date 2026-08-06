@@ -4,9 +4,10 @@ package build
 
 import mill.*
 import mill.javalib.*
+import mill.javalib.micronaut.*
 import mill.javalib.publish.*
 
-object `package` extends MavenModule, PublishModule {
+object `package` extends MicronautAotModule, MavenModule, PublishModule {
 
   def mvnDeps = Seq(
     mvn"io.micronaut:micronaut-http-server-netty:5.0.2",
@@ -15,10 +16,16 @@ object `package` extends MavenModule, PublishModule {
 
   def runMvnDeps = Seq(mvn"ch.qos.logback:logback-classic:1.5.32")
 
+  def bomMvnDeps = Seq(mvn"io.micronaut.platform:micronaut-platform:5.0.2")
+
   def javacOptions = Seq(
     "-Amicronaut.processing.group=example.micronaut",
     "-Amicronaut.processing.module=default"
   )
+
+  def micronautPackage = "example.micronaut.aot.generated"
+
+  def micronautAotConfigFile = PathRef(moduleDir / "aot-jar.properties")
 
   def annotationProcessorsMvnDeps = Seq(
     mvn"io.micronaut:micronaut-inject-java:5.0.2",

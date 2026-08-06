@@ -1,11 +1,15 @@
 mill-version: SNAPSHOT
 mill-jvm-version: 25
-extends: [MavenModule, PublishModule]
+extends: [mill.javalib.micronaut.MicronautAotModule, MavenModule, PublishModule]
+micronautPackage: example.micronaut.aot.generated
+micronautAotConfigFile: aot-jar.properties
 mvnDeps:
 - io.micronaut:micronaut-http-server-netty:5.0.2
 - io.micronaut.serde:micronaut-serde-jackson:3.0.0
 runMvnDeps:
 - ch.qos.logback:logback-classic:1.5.32
+bomMvnDeps:
+- io.micronaut.platform:micronaut-platform:5.0.2
 javacOptions: [-Amicronaut.processing.group=example.micronaut, -Amicronaut.processing.module=default]
 annotationProcessorsMvnDeps:
 - io.micronaut:micronaut-inject-java:5.0.2
