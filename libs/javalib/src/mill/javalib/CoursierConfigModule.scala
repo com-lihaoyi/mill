@@ -79,7 +79,7 @@ trait CoursierConfigModule extends Module {
    * Environment variables and Java properties, and their values, used by coursier
    */
   def coursierEnv: T[(env: Map[String, String], props: Map[String, String])] = Task.Input {
-    val env = Task.env.filterKeys(envVars).toMap
+    val env = Task.env.view.filterKeys(envVars).toMap
     val props =
       propNames.iterator.flatMap(name => sys.props.get(name).iterator.map(name -> _)).toMap
     (env = env, props = props)
