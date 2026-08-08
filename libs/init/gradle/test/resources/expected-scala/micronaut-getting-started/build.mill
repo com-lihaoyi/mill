@@ -1,0 +1,104 @@
+//| mill-version: SNAPSHOT
+//| mill-jvm-version: 25
+package build
+
+import mill.*
+import mill.javalib.*
+import mill.javalib.micronaut.*
+
+object `package` extends MicronautAotModule, MavenModule {
+
+  def mvnDeps = Seq(
+    mvn"io.micronaut.serde:micronaut-serde-jackson",
+    mvn"io.micronaut:micronaut-inject",
+    mvn"io.micronaut:micronaut-http-server-netty"
+  )
+
+  def compileMvnDeps = Seq(mvn"io.micronaut:micronaut-http-client")
+
+  def runMvnDeps = Seq(mvn"ch.qos.logback:logback-classic")
+
+  def bomMvnDeps = Seq(mvn"io.micronaut.platform:micronaut-platform:5.0.2")
+
+  def javacOptions = Seq(
+    "-source",
+    "25",
+    "-target",
+    "25",
+    "-parameters",
+    "-Amicronaut.processing.incremental=true",
+    "-Amicronaut.processing.annotations=example.micronaut.*",
+    "-Amicronaut.processing.group=example.micronaut",
+    "-Amicronaut.processing.module=default"
+  )
+
+  def micronautPackage = "example.micronaut"
+
+  def micronautAotConfigProperties = Map(
+    "cacheEnvironment" -> "true",
+    "convertYamlToJava" -> "false",
+    "deduceEnvironment" -> "true",
+    "optimizeClassLoading" -> "true",
+    "optimizeNetty" -> "true",
+    "optimizeServiceLoading" -> "false",
+    "precomputeOperations" -> "true",
+    "replaceLogbackXml" -> "true",
+    "version" -> "3.0.0"
+  )
+
+  def annotationProcessorsMvnDeps = Seq(
+    mvn"io.micronaut:micronaut-graal",
+    mvn"io.micronaut:micronaut-http-validation",
+    mvn"io.micronaut.serde:micronaut-serde-processor",
+    mvn"io.micronaut:micronaut-inject-java"
+  )
+
+  def repositories = Seq(
+    "https://s01.oss.sonatype.org/content/repositories/snapshots/",
+    "https://central.sonatype.com/repository/maven-snapshots/"
+  )
+
+  object test extends MavenTests, TestModule.Junit5 {
+
+    def mvnDeps = Seq(
+      mvn"io.micronaut:micronaut-http-client",
+      mvn"io.micronaut:micronaut-inject",
+      mvn"org.junit.jupiter:junit-jupiter-api",
+      mvn"io.micronaut.test:micronaut-test-junit5"
+    )
+
+    def runMvnDeps = Seq(
+      mvn"org.junit.platform:junit-platform-launcher",
+      mvn"org.junit.jupiter:junit-jupiter-engine"
+    )
+
+    def javacOptions = Seq(
+      "-source",
+      "25",
+      "-target",
+      "25",
+      "-parameters",
+      "-Amicronaut.processing.incremental=true",
+      "-Amicronaut.processing.annotations=example.micronaut.*",
+      "-Amicronaut.processing.group=example.micronaut",
+      "-Amicronaut.processing.module=default"
+    )
+
+    def forkArgs = super.forkArgs() ++
+      Seq("-Djunit.platform.listeners.uid.tracking.enabled=true")
+
+    def forkWorkingDir = moduleDir
+
+    def annotationProcessorsMvnDeps = Seq(
+      mvn"io.micronaut:micronaut-graal",
+      mvn"io.micronaut:micronaut-inject-java",
+      mvn"io.micronaut.serde:micronaut-serde-processor"
+    )
+
+    def testParallelism = false
+
+    def testSandboxWorkingDir = false
+
+  }
+
+}

@@ -253,6 +253,9 @@ object BuildGenYaml extends BuildGen {
     ).foreach(lines += _)
     renderYamlStringListValues("kotlincOptions", kotlincOptions).foreach(lines += _)
     renderYamlMvnDepsList("kotlincPluginMvnDeps", kotlincPluginMvnDeps).foreach(lines += _)
+    renderYamlStringValue("micronautPackage", micronautPackage).foreach(lines += _)
+    renderYamlStringValue("micronautAotConfigFile", micronautAotConfigFile).foreach(lines += _)
+    lines ++= renderYamlStringMap("micronautAotConfigProperties", micronautAotConfigProperties)
 
     renderYamlStringValue(
       "artifactGroupId",
@@ -359,6 +362,7 @@ object BuildGenYaml extends BuildGen {
     "ErrorProneModule" -> "mill.javalib.errorprone.ErrorProneModule",
     "SpringBootModule" -> "spring.boot.SpringBootModule",
     "QuarkusModule" -> "quarkus.QuarkusModule",
+    "MicronautAotModule" -> "mill.javalib.micronaut.MicronautAotModule",
     "ProjectBaseModule" -> "millbuild.ProjectBaseModule"
   )
 
@@ -414,6 +418,17 @@ object BuildGenYaml extends BuildGen {
 
   private def renderYamlStringValue(name: String, value: Value[String]): Option[String] = {
     value.base.map(v => s"$name: ${yamlEscapeString(v)}")
+  }
+
+  private def renderYamlStringMap(name: String, value: Value[Map[String, String]]): Seq[String] = {
+    value.base.filter(_.nonEmpty).fold(Seq.empty[String]) { map =>
+      val lines = Seq.newBuilder[String]
+      lines += s"$name:"
+      for ((k, v) <- map.toSeq.sortBy(_._1)) {
+        lines += s"  $k: ${yamlEscapeString(v)}"
+      }
+      lines.result()
+    }
   }
 
   private def renderYamlBooleanValue(name: String, value: Value[Boolean]): Option[String] = {

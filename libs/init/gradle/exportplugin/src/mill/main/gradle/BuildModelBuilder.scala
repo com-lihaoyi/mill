@@ -9,8 +9,10 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.artifacts.repositories.UrlArtifactRepository
 import org.gradle.api.attributes.Category
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint
+import org.gradle.api.file.RegularFile
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.plugins.{JavaPluginExtension, ExtensionAware}
+import org.gradle.api.provider.Provider
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.*
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPom
@@ -99,6 +101,11 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       springBootVersion: Option[String],
       isQuarkus: Boolean,
       quarkusVersion: Option[String],
+      isMicronautAot: Boolean,
+      micronautVersion: Option[String],
+      micronautPackage: Option[String],
+      micronautAotConfigFile: Option[String],
+      micronautAotConfigProperties: Option[Map[String, String]],
       hasErrorPronePlugin: Boolean
   )
 
@@ -200,6 +207,11 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       if (isQuarkusProject(project0)) {
         (true, detectPluginVersion(project0, QuarkusPluginId))
       } else (false, None)
+    val isMicronautAot = isMicronautAotProject(project0)
+    val (mnVersion, mnPkg, mnConfigFile, mnConfigProps) =
+      if (isMicronautAot) detectMicronautAot(project0)
+      else (None, None, None, None)
+
     val hasErrorPronePlugin = getPluginManager.hasPlugin("net.ltgt.errorprone")
 
     val frameworkData = FrameworkData(
@@ -207,6 +219,11 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       springBootVersion = springBootVersion,
       isQuarkus = isQuarkus,
       quarkusVersion = quarkusVersion,
+      isMicronautAot = isMicronautAot,
+      micronautVersion = mnVersion,
+      micronautPackage = mnPkg,
+      micronautAotConfigFile = mnConfigFile,
+      micronautAotConfigProperties = mnConfigProps,
       hasErrorPronePlugin = hasErrorPronePlugin
     )
 
@@ -314,6 +331,15 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         artifactName = data.publishData.artifactName,
         publishVersion = data.publishData.publishVersion,
         pomSettings = data.publishData.pomSettings
+      )
+    }
+
+    if (data.frameworkData.isMicronautAot) {
+      mainModule = mainModule.withMicronautAotModule(
+        micronautVersion = Value(data.frameworkData.micronautVersion),
+        micronautPackage = Value(data.frameworkData.micronautPackage),
+        micronautAotConfigFile = Value(data.frameworkData.micronautAotConfigFile),
+        micronautAotConfigProperties = Value(data.frameworkData.micronautAotConfigProperties)
       )
     }
 
@@ -473,12 +499,82 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
   private val enforcedPlatform = objectFactory.named(classOf[Category], Category.ENFORCED_PLATFORM)
   private val SpringBootPluginId = "org.springframework.boot"
   private val QuarkusPluginId = "io.quarkus"
+  private val MicronautAotPluginId = "io.micronaut.aot"
+  private val MicronautApplicationPluginId = "io.micronaut.application"
 
   private def isSpringBootProject(project: Project): Boolean =
     project.getPluginManager.hasPlugin(SpringBootPluginId)
 
   private def isQuarkusProject(project: Project): Boolean =
     project.getPluginManager.hasPlugin(QuarkusPluginId)
+
+  private def isMicronautAotProject(project: Project): Boolean =
+    project.getPluginManager.hasPlugin(MicronautAotPluginId) ||
+      project.getPluginManager.hasPlugin(MicronautApplicationPluginId)
+
+  private val AotBooleanProps = List(
+    "cacheEnvironment",
+    "convertYamlToJava",
+    "deduceEnvironment",
+    "optimizeClassLoading",
+    "optimizeNetty",
+    "optimizeServiceLoading",
+    "precomputeOperations",
+    "replaceLogbackXml"
+  )
+
+  private def providerValue[T](obj: Any, getterName: String): Option[T] =
+    Try {
+      val provider = obj.getClass.getMethod(getterName).invoke(obj).asInstanceOf[Provider[T]]
+      Option(provider.getOrNull())
+    }.fold(
+      (err: Throwable) => {
+        println(s"Warning: could not resolve Micronaut AOT $getterName: $err")
+        None
+      },
+      v => v
+    )
+
+  private def detectMicronautAot(project: Project)
+      : (Option[String], Option[String], Option[String], Option[Map[String, String]]) = {
+    def prop(key: String): Option[String] =
+      Option(project.findProperty(key)).map(_.toString).filter(_.nonEmpty)
+
+    val ver = prop("micronautVersion")
+
+    val micronautExt = Option(project.getExtensions.findByName("micronaut"))
+
+    val aotExt: Option[Any] = micronautExt.collect {
+      case ea: ExtensionAware => ea.getExtensions.findByName("aot")
+    }.flatMap(Option(_))
+
+    val pkg = prop("micronaut.aot.packageName")
+      .orElse(aotExt.flatMap(providerValue[String](_, "getTargetPackage")))
+
+    val configFile = aotExt.flatMap { aot =>
+      providerValue[RegularFile](aot, "getConfigFile")
+        .map(_.getAsFile)
+        .collect {
+          case f if f.exists() =>
+            val projectDir = os.Path(project.getProjectDir)
+            val filePath = os.Path(f)
+            if (filePath.startsWith(projectDir)) filePath.subRelativeTo(projectDir).toString
+            else f.getName
+        }
+    }
+
+    val aotConfigProps = aotExt.flatMap { aot =>
+      val getters = AotBooleanProps.map(name =>
+        name -> s"get${name.head.toUpper}${name.tail}"
+      ) :+ ("version" -> "getVersion")
+      val props = getters.flatMap { case (name, getter) =>
+        providerValue[Any](aot, getter).map(v => name -> v.toString)
+      }.toMap
+      Option.when(props.nonEmpty)(props)
+    }
+
+    (ver, pkg, configFile, aotConfigProps)
+  }
 
   private val KotlinJvmPluginId = "org.jetbrains.kotlin.jvm"
 
