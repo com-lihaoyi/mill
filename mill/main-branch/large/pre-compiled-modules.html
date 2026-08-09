@@ -143,7 +143,7 @@
       <strong>
         WARNING: this page contains documentation for an old/unstable version of Mill
         (main-branch). The latest stable Mill version is
-        1.1.7 and its documentation can be found at
+        1.1.8 and its documentation can be found at
         <a href="https://mill-build.org">https://mill-build.org</a>
       </strong>
     </div>
@@ -728,7 +728,7 @@
           <a href="../../dev-1.2.0-RC1-46-16168f/index.html">dev-1.2.0-RC1-46-16168f</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">1.1.7</a>
+          <a href="../../index.html">1.1.8</a>
         </li>
         <li class="version">
           <a href="../../1.0.x/index.html">1.0.6</a>
@@ -784,7 +784,7 @@ file with the line count. It also has a nested <code>test</code> module containi
 configuration.</p>
 </div>
 <div class="listingblock">
-<div class="title">mill-build/src/LineCountJavaModule.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.2.0-RC1-54-6cd034/mill-dist-1.2.0-RC1-example-large-precompiled-10-precompiled-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.2.0-RC1/example/large/precompiled/10-precompiled-modules/mill-build/src/LineCountJavaModule.scala">browse</a>)</div>
+<div class="title">mill-build/src/LineCountJavaModule.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.2.0-RC1-55-d57b53/mill-dist-1.2.0-RC1-example-large-precompiled-10-precompiled-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.2.0-RC1/example/large/precompiled/10-precompiled-modules/mill-build/src/LineCountJavaModule.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package millbuild
 import mill.*, javalib.*
@@ -813,7 +813,7 @@ class LineCountJavaModule(val scriptConfig: mill.api.PrecompiledModule.Config)
 <p><code>LineCountJavaModule</code> is then inherited by <code>foo</code> and <code>bar</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.2.0-RC1-54-6cd034/mill-dist-1.2.0-RC1-example-large-precompiled-10-precompiled-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.2.0-RC1/example/large/precompiled/10-precompiled-modules/foo/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.2.0-RC1-55-d57b53/mill-dist-1.2.0-RC1-example-large-precompiled-10-precompiled-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.2.0-RC1/example/large/precompiled/10-precompiled-modules/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: millbuild.LineCountJavaModule
 mill-experimental-precompiled-module: true
@@ -824,7 +824,7 @@ object test:
 </div>
 </div>
 <div class="listingblock">
-<div class="title">bar/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.2.0-RC1-54-6cd034/mill-dist-1.2.0-RC1-example-large-precompiled-10-precompiled-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.2.0-RC1/example/large/precompiled/10-precompiled-modules/bar/package.mill.yaml">browse</a>)</div>
+<div class="title">bar/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.2.0-RC1-55-d57b53/mill-dist-1.2.0-RC1-example-large-precompiled-10-precompiled-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.2.0-RC1/example/large/precompiled/10-precompiled-modules/bar/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: millbuild.LineCountJavaModule
 mill-experimental-precompiled-module: true
