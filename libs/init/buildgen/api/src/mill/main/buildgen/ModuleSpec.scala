@@ -11,6 +11,20 @@ object SpringBoot {
   val DependenciesArtifactId = "spring-boot-dependencies"
 }
 
+object Micronaut {
+  val PlatformGroupId = "io.micronaut.platform"
+  val PlatformArtifactId = "micronaut-platform"
+  val ParentArtifactId = "micronaut-parent"
+  val BomArtifactIds = Set(
+    "micronaut-parent",
+    "micronaut-platform",
+    "micronaut-bom",
+    "micronaut-starter-parent"
+  )
+  def isMicronautGroup(groupId: String): Boolean =
+    groupId != null && (groupId == "io.micronaut" || groupId.startsWith("io.micronaut."))
+}
+
 case class ModuleSpec(
     name: String,
     imports: Seq[String] = Nil,
@@ -73,7 +87,13 @@ case class ModuleSpec(
     children: Seq[ModuleSpec] = Nil,
     quarkusPlatformVersion: Value[String] = Value(),
     annotationProcessorsMvnDeps: Values[MvnDep] = Values(),
-    artifactGroupId: Value[String] = Value()
+    artifactGroupId: Value[String] = Value(),
+    kotlinVersion: Value[String] = Value(),
+    kotlincOptions: Values[Opt] = Values(),
+    kotlincPluginMvnDeps: Values[MvnDep] = Values(),
+    micronautPackage: Value[String] = Value(),
+    micronautAotConfigProperties: Value[Map[String, String]] = Value(),
+    micronautAotConfigFile: Value[String] = Value()
 ) {
 
   def isBomModule: Boolean = supertypes.contains("BomModule")
@@ -152,6 +172,32 @@ case class ModuleSpec(
       supertypes = "QuarkusModule" +: supertypes,
       quarkusPlatformVersion = quarkusVersion,
       artifactGroupId = artifactGroupId
+    )
+  }
+
+  def withMicronautAotModule(
+      micronautVersion: Value[String] = Value(),
+      micronautPackage: Value[String] = Value(),
+      micronautAotConfigFile: Value[String] = Value(),
+      micronautAotConfigProperties: Value[Map[String, String]] = Value()
+  ): ModuleSpec = {
+    val requiredSupertypes = Seq("MicronautAotModule")
+    val requiredImports = Seq("mill.javalib.micronaut.*")
+    val verStr = micronautVersion.base.getOrElse("")
+    // Also add the platform BOM
+    val newBomMvnDeps =
+      if (verStr.nonEmpty) {
+        val platformBom = MvnDep(Micronaut.PlatformGroupId, Micronaut.PlatformArtifactId, verStr)
+        bomMvnDeps.copy(base = (bomMvnDeps.base :+ platformBom).distinct)
+      } else bomMvnDeps
+
+    copy(
+      imports = requiredImports ++ imports.filterNot(requiredImports.contains),
+      supertypes = requiredSupertypes ++ supertypes.filterNot(requiredSupertypes.contains),
+      bomMvnDeps = newBomMvnDeps,
+      micronautPackage = micronautPackage,
+      micronautAotConfigFile = micronautAotConfigFile,
+      micronautAotConfigProperties = micronautAotConfigProperties
     )
   }
 
@@ -340,7 +386,8 @@ object ModuleSpec {
       mvnDeps.iterator.map(dep => dep.organization -> dep.name).collectFirst {
         case ("org.testng", _) => "TestModule.TestNg"
         case ("junit", _) => "TestModule.Junit4"
-        case ("org.junit.jupiter", _) | ("org.springframework.boot", "spring-boot-starter-test") =>
+        case ("org.junit.jupiter", _) | ("org.springframework.boot", "spring-boot-starter-test") |
+            ("org.jetbrains.kotlin", "kotlin-test" | "kotlin-test-junit5") =>
           "TestModule.Junit5"
         case ("com.lihaoyi", "utest") => "TestModule.Utest"
         case ("org.typelevel", "weaver-cats") => "TestModule.Weaver"

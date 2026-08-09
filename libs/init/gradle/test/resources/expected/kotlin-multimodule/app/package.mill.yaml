@@ -1,0 +1,8 @@
+extends: millbuild.ProjectBaseModule
+moduleDeps: [utils]
+
+object test:
+  extends: ProjectBaseTests
+  mvnDeps:
+  - org.jetbrains.kotlin:kotlin-stdlib:2.4.0
+  testFramework: ""
