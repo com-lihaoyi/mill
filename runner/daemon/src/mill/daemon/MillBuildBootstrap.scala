@@ -64,6 +64,7 @@ class MillBuildBootstrap(
     remoteCacheLocation: Option[String],
     remoteCacheSalt: Option[String],
     remoteCacheFilter: Option[String],
+    remoteCacheReadOnly: Boolean,
     runArtifacts: LauncherOutFiles,
     metaBuild: MetaBuildAccess,
     reporter: EvaluatorApi => Int => Option[CompileProblemReporter],
@@ -269,6 +270,7 @@ class MillBuildBootstrap(
       remoteCacheLocation = remoteCacheLocation,
       remoteCacheSalt = remoteCacheSalt,
       remoteCacheFilter = remoteCacheFilter,
+      remoteCacheReadOnly = remoteCacheReadOnly,
       workspaceLocking = workspaceLocking,
       runArtifacts = runArtifacts,
       workerCache = workerCache,
@@ -851,6 +853,7 @@ object MillBuildBootstrap {
       remoteCacheLocation: Option[String],
       remoteCacheSalt: Option[String],
       remoteCacheFilter: Option[String],
+      remoteCacheReadOnly: Boolean,
       workspaceLocking: LauncherLocking,
       runArtifacts: LauncherOutFiles,
       workerCache: collection.mutable.Map[String, (Int, Val, TaskApi[?])],
@@ -914,6 +917,7 @@ object MillBuildBootstrap {
           remoteCacheLocation,
           remoteCacheSalt,
           remoteCacheFilter,
+          remoteCacheReadOnly,
           replayLogs
         )
       ).asInstanceOf[EvaluatorApi]

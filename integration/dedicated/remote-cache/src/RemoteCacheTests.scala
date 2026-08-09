@@ -242,6 +242,31 @@ object RemoteCacheTests extends UtestIntegrationTestSuite {
       }
     }
 
+    test("readOnly") - {
+      val cacheDir = os.temp.dir(prefix = "mill-remote-cache-read-only")
+      val url = cacheDir.toNIO.toUri.toString
+      integrationTest { tester =>
+        val res = tester.eval(("--remote-cache-location", url, "cachedTask"))
+        assert(res.isSuccess)
+        assert(evaluated(tester, "cachedTask"))
+      }
+      val cachedFiles = os.walk(cacheDir).filter(os.isFile).toSet
+      integrationTest { tester =>
+        val res = tester.eval((
+          "--remote-cache-location",
+          url,
+          "--remote-cache-read-only",
+          "cachedTask",
+          "+",
+          "uncachedTask"
+        ))
+        assert(res.isSuccess)
+        assert(!evaluated(tester, "cachedTask"))
+        assert(evaluated(tester, "uncachedTask"))
+      }
+      assert(os.walk(cacheDir).filter(os.isFile).toSet == cachedFiles)
+    }
+
     // An unreachable cache degrades gracefully: the build still succeeds, computing locally.
     test("gracefulDegradationWhenCacheUnreachable") - integrationTest { tester =>
       val res =

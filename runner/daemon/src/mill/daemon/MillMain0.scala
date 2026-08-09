@@ -427,6 +427,7 @@ object MillMain0 {
                                     remoteCacheLocation = config.remoteCacheLocation,
                                     remoteCacheSalt = config.remoteCacheSalt,
                                     remoteCacheFilter = config.remoteCacheFilter,
+                                    remoteCacheReadOnly = config.remoteCacheReadOnly.value,
                                     runArtifacts = runArtifacts,
                                     metaBuild = new MetaBuildAccess(
                                       ref = sharedState,

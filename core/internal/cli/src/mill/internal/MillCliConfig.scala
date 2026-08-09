@@ -180,6 +180,12 @@ case class MillCliConfig(
       doc = "Task-selector pattern (e.g. `__.compile`) limiting which tasks use the remote cache."
     )
     remoteCacheFilter: Option[String] = None,
+    @arg(
+      hidden = true,
+      name = "remote-cache-read-only",
+      doc = "Read from the remote cache without storing newly computed results."
+    )
+    remoteCacheReadOnly: Flag = Flag(),
     @arg(hidden = true, doc = "Deprecated, use `--ticker false` instead")
     disableTicker: Flag,
     @arg(doc = "Replay logs for cached tasks.")

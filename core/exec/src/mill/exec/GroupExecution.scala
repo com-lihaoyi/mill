@@ -55,6 +55,7 @@ trait GroupExecution {
   def remoteCacheLocation: Option[String]
   def remoteCacheSalt: Option[String]
   def remoteCacheFilter: Option[String]
+  def remoteCacheReadOnly: Boolean
 
   def replayLogs: Boolean
 
@@ -517,15 +518,17 @@ trait GroupExecution {
                     case ExecResult.Success((v, _)) =>
                       val (valueHash, serializedPaths) =
                         handleTaskResult(v, cacheEntry, inputsHash, labelled)
-                      // Push freshly-computed outputs to the remote cache for other machines.
-                      remoteCache.foreach { cache =>
-                        taskLocks.blockingOnPool {
-                          cache.store(
-                            paths,
-                            inputsHash,
-                            labelled.ctx.segments.render,
-                            serializedPaths
-                          )
+                      if (!remoteCacheReadOnly) {
+                        // Push freshly-computed outputs to the remote cache for other machines.
+                        remoteCache.foreach { cache =>
+                          taskLocks.blockingOnPool {
+                            cache.store(
+                              paths,
+                              inputsHash,
+                              labelled.ctx.segments.render,
+                              serializedPaths
+                            )
+                          }
                         }
                       }
                       // Reuse `handleTaskResult`'s hash (derived from the JSON it writes) as the
