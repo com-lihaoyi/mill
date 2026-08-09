@@ -61,6 +61,20 @@ trait GradleBuildGenTests extends TestSuite {
         initArgs = Seq("--gradle-jvm-id", "21") ++ extraArgs
       ))
     }
+    test("kotlin-multimodule") {
+      assert(checker.check(
+        sourceRel = "kotlin-multimodule",
+        expectedRel = os.sub / expectedDir / "kotlin-multimodule",
+        initArgs = Seq("--gradle-jvm-id", "24") ++ extraArgs
+      ))
+    }
+    test("micronaut-getting-started") {
+      assert(checker.check(
+        sourceRel = "micronaut-getting-started",
+        expectedRel = os.sub / expectedDir / "micronaut-getting-started",
+        initArgs = Seq("--gradle-jvm-id", "25", "--mill-jvm-id", "25") ++ extraArgs
+      ))
+    }
   }
 }
 

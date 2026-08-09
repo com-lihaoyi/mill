@@ -181,6 +181,16 @@ object BuildGenScala extends BuildGen {
     lines += renderDefValues("scalacOptions", scalacOptions, encodeLiteralOpt)
     lines += renderDefValues("scalacPluginMvnDeps", scalacPluginMvnDeps, encodeMvnDep)
     lines += renderDefValues("javacOptions", javacOptions, encodeOpt)
+    lines += renderDefValue("kotlinVersion", kotlinVersion, encodeString)
+    lines += renderDefValues("kotlincOptions", kotlincOptions, encodeLiteralOpt)
+    lines += renderDefValues("kotlincPluginMvnDeps", kotlincPluginMvnDeps, encodeMvnDep)
+    lines += renderDefValue("micronautPackage", micronautPackage, encodeString)
+    lines += renderDefValue("micronautAotConfigFile", micronautAotConfigFile, encodePathRef)
+    lines += renderDefValue(
+      "micronautAotConfigProperties",
+      micronautAotConfigProperties,
+      encodeStringMap
+    )
     lines += renderDefValues(
       "sourcesRootFolders",
       sourcesRootFolders,
@@ -444,4 +454,7 @@ object BuildGenScala extends BuildGen {
   private def encodeSome(a: Any) = s"Some($a)"
   private def encodeIssueFiltersTuple(k: String, v: Seq[String]) =
     s"""("$k", ${if (v.isEmpty) "Seq.empty[ProblemFilter]" else v.mkString("Seq(", ", ", ")")})"""
+  private def encodePathRef(s: String) = s"PathRef(moduleDir / \"$s\")"
+  private def encodeStringMap(map: Map[String, String]) =
+    map.toSeq.sortBy(_._1).map { case (k, v) => s"\"$k\" -> \"$v\"" }.mkString("Map(", ", ", ")")
 }

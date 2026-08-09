@@ -119,6 +119,24 @@ details.
   from retained per-task read locks {link-pr}/7136[#7136]
 
 
+=== 1.1.8
+:version: 1.1.8
+:milestone-name: 1.1.8
+:milestone: 149
+:prev-version: 1.1.7
+_2026-08-07_
+
+* Improved performance for module dependencies {link-pr}/7304[#7304]
+* Fixes for IDEA project generator #7313, {link-pr}/7314[#7314]
+* Refined defaults for `KotlinModule.kotlinFriendModules` {link-pr}/7315[#7315]
+* Fix Kotlin incremental compilation {link-pr}/7320[#7320]
+* Make Kotlin classpath snapshotting persistent {link-pr}/7321[#7321]
+* Fix bash completion interruptable behavior and silence output {link-pr}/7346[#7346]
+* Support Kotlin 2.4 incremental compilation {link-pr}/7355[#7355]
+* Fix semanticdb support for Java module with spaces in the source path {link-pr}/7414[#7414]
+* Some dependency updates
+
+
 [#1-1-7]
 === 1.1.7
 :version: 1.1.7
