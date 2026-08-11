@@ -96,6 +96,7 @@ object InspectTests extends UtestIntegrationTestSuite {
           |    core.compileMvnDeps
           |    core.runMvnDeps
           |    core.bomMvnDeps
+          |    core.mandatoryBomMvnDeps
           |    core.depManagement
           |    core.repositories
           |    core.checkGradleModules
