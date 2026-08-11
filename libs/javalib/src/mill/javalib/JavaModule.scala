@@ -187,9 +187,14 @@ trait JavaModule
    */
   def bomMvnDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
 
+  /**
+   * Mandatory BOM dependencies that shouldn't be removed by overriding [[bomMvnDeps]].
+   */
+  def mandatoryBomMvnDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
+
   def allBomDeps: Task[Seq[BomDependency]] = Task.Anon {
     val modVerOrMalformed =
-      bomMvnDeps().map(bindDependency()).map { bomDep =>
+      (bomMvnDeps() ++ mandatoryBomMvnDeps()).map(bindDependency()).map { bomDep =>
         val fromModVer = coursier.core.Dependency(bomDep.dep.module, bomDep.version)
         if (fromModVer == bomDep.dep)
           Right(bomDep.dep.asBomDependency)
