@@ -71,8 +71,8 @@ trait QuarkusModule extends JavaModule { outer =>
       ))
   }
 
-  override def bomMvnDeps: T[Seq[Dep]] = Task {
-    super.bomMvnDeps() ++ Seq(
+  override def mandatoryBomMvnDeps: T[Seq[Dep]] = Task {
+    super.mandatoryBomMvnDeps() ++ Seq(
       mvn"io.quarkus.platform:quarkus-bom:${quarkusPlatformVersion()}"
     )
   }
