@@ -192,9 +192,15 @@ trait JavaModule
    */
   def mandatoryBomMvnDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
 
+  /**
+   * Aggregation of mandatoryBomMvnDeps and bomMvnDeps.
+   * In most cases, instead of overriding this task you want to override `bomMvnDeps` instead.
+   */
+  def allBomMvnDeps: T[Seq[Dep]] = Task { bomMvnDeps() ++ mandatoryBomMvnDeps() }
+
   def allBomDeps: Task[Seq[BomDependency]] = Task.Anon {
     val modVerOrMalformed =
-      (bomMvnDeps() ++ mandatoryBomMvnDeps()).map(bindDependency()).map { bomDep =>
+      allBomMvnDeps().map(bindDependency()).map { bomDep =>
         val fromModVer = coursier.core.Dependency(bomDep.dep.module, bomDep.version)
         if (fromModVer == bomDep.dep)
           Right(bomDep.dep.asBomDependency)
