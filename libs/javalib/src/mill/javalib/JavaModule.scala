@@ -129,7 +129,7 @@ trait JavaModule
 
     override def bomMvnDeps = super.bomMvnDeps() ++ outer.bomMvnDeps()
 
-    override def mandatoryBomMvnDeps: T[Seq[Dep]] = outer.mandatoryBomMvnDeps
+    override def mandatoryBomMvnDeps = outer.mandatoryBomMvnDeps()
 
     override def depManagement = super.depManagement() ++ outer.depManagement()
 
@@ -1789,7 +1789,7 @@ object JavaModule {
 
     override def bomMvnDeps = super.bomMvnDeps() ++ outer.bomMvnDeps()
 
-    override def mandatoryBomMvnDeps: T[Seq[Dep]] = outer.mandatoryBomMvnDeps
+    override def mandatoryBomMvnDeps = outer.mandatoryBomMvnDeps()
 
     override def depManagement = super.depManagement() ++ outer.depManagement()
 
