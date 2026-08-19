@@ -1,7 +1,7 @@
 package mill.integration
 
 import coursier.Resolve
-import coursier.cache.FileCache
+import coursier.cache.Cache
 import coursier.jvm.{JvmCache, JvmChannel, JvmIndex}
 import mill.testkit.UtestIntegrationTestSuite
 
@@ -16,7 +16,7 @@ object NoJavaBootstrapTests extends UtestIntegrationTestSuite {
   // In PRs bumping the index version, the JVM version might differ from the
   // one of the Mill process running the tests
   private lazy val expectedJavaVersion = {
-    val cache = FileCache()
+    val cache = Cache.default
     val index = JvmIndex.load(
       cache = cache,
       repositories = Resolve.defaultRepositories,
