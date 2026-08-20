@@ -102,7 +102,8 @@ case class ModuleSpec(
     androidTargetSdk: Value[Int] = Value(),
     androidVersionCode: Value[Int] = Value(),
     androidVersionName: Value[String] = Value(),
-    androidBuildToolsVersion: Value[String] = Value()
+    androidBuildToolsVersion: Value[String] = Value(),
+    androidSdkModuleDep: Value[ModuleDep] = Value()
 ) {
 
   def isBomModule: Boolean = supertypes.contains("BomModule")
@@ -210,6 +211,7 @@ case class ModuleSpec(
     )
   }
   
+  /** `androidBuildToolsVersion` is just a marker here, picked up later by `MillGradleBuildGenMain.attachAndroidSdkModule`. */
   def withAndroidKotlinModule(
       isApp: Boolean,
       namespace: Value[String],
@@ -220,27 +222,19 @@ case class ModuleSpec(
       versionCode: Value[Int],
       versionName: Value[String],
       buildToolsVersion: Value[String]
-  ): ModuleSpec = {
-    val sdkModuleName = "androidSdkModule0"
-    val sdkModule = ModuleSpec(
-      name = sdkModuleName,
-      supertypes = Seq("AndroidSdkModule"),
-      androidBuildToolsVersion = buildToolsVersion
-    )
-    copy(
-      imports = Seq("mill.androidlib.*", "mill.kotlinlib.*") ++ imports,
-      supertypes = (if (isApp) "AndroidAppKotlinModule" else "AndroidKotlinModule") +: supertypes,
-      androidApplicationNamespace = if (isApp) namespace else Value(),
-      androidNamespace = if (isApp) Value() else namespace,
-      androidApplicationId = if (isApp) applicationId else Value(),
-      androidCompileSdk = compileSdk,
-      androidMinSdk = minSdk,
-      androidTargetSdk = targetSdk,
-      androidVersionCode = versionCode,
-      androidVersionName = versionName,
-      children = children :+ sdkModule
-    )
-  }
+  ): ModuleSpec = copy(
+    imports = Seq("mill.androidlib.*", "mill.kotlinlib.*") ++ imports,
+    supertypes = (if (isApp) "AndroidAppKotlinModule" else "AndroidKotlinModule") +: supertypes,
+    androidApplicationNamespace = if (isApp) namespace else Value(),
+    androidNamespace = if (isApp) Value() else namespace,
+    androidApplicationId = if (isApp) applicationId else Value(),
+    androidCompileSdk = compileSdk,
+    androidMinSdk = minSdk,
+    androidTargetSdk = targetSdk,
+    androidVersionCode = versionCode,
+    androidVersionName = versionName,
+    androidBuildToolsVersion = buildToolsVersion
+  )
 
   def withJmhModule(jmhCoreVersion: Value[String]): ModuleSpec = copy(
     imports = "mill.contrib.jmh.JmhModule" +: imports,

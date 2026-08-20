@@ -22,13 +22,7 @@ object `package` extends AndroidAppKotlinModule {
 
   def androidVersionName = "1.0"
 
-  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
-
-  object androidSdkModule0 extends AndroidSdkModule {
-
-    def buildToolsVersion = "36.0.0"
-
-  }
+  def androidSdkModule = mill.api.ModuleRef(build.androidSdkModule0)
 
   object test extends AndroidAppKotlinTests, TestModule.Junit4 {
 

@@ -200,8 +200,11 @@ object BuildGenScala extends BuildGen {
     lines += renderDefValue("androidVersionCode", androidVersionCode, _.toString)
     lines += renderDefValue("androidVersionName", androidVersionName, encodeString)
     lines += renderDefValue("buildToolsVersion", androidBuildToolsVersion, encodeString)
-    for (sdkModule <- children.find(_.supertypes.contains("AndroidSdkModule")))
-      lines += s"def androidSdkModule = mill.api.ModuleRef(${sdkModule.name})"
+    lines += renderDefValue(
+      "androidSdkModule",
+      androidSdkModuleDep,
+      dep => s"mill.api.ModuleRef(${encodeModuleDep(dep)})"
+    )
     lines += renderDefValues(
       "sourcesRootFolders",
       sourcesRootFolders,
