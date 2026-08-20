@@ -93,7 +93,16 @@ case class ModuleSpec(
     kotlincPluginMvnDeps: Values[MvnDep] = Values(),
     micronautPackage: Value[String] = Value(),
     micronautAotConfigProperties: Value[Map[String, String]] = Value(),
-    micronautAotConfigFile: Value[String] = Value()
+    micronautAotConfigFile: Value[String] = Value(),
+    androidApplicationNamespace: Value[String] = Value(),
+    androidNamespace: Value[String] = Value(),
+    androidApplicationId: Value[String] = Value(),
+    androidCompileSdk: Value[Int] = Value(),
+    androidMinSdk: Value[Int] = Value(),
+    androidTargetSdk: Value[Int] = Value(),
+    androidVersionCode: Value[Int] = Value(),
+    androidVersionName: Value[String] = Value(),
+    androidBuildToolsVersion: Value[String] = Value()
 ) {
 
   def isBomModule: Boolean = supertypes.contains("BomModule")
