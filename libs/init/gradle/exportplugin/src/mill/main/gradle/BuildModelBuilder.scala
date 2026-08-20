@@ -444,12 +444,9 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
     val isKotlin = isKotlinProject(project0)
     var mainModule = ModuleSpec(
       name = moduleDir.last,
-      repositories = getRepositories.asScala.toSeq.collect(toRepositoryUrlString).distinct
-        .diff(Seq(
-          getRepositories.mavenCentral,
-          getRepositories.mavenLocal,
-          getRepositories.gradlePluginPortal
-        ).collect(toRepositoryUrlString))
+      repositories = getRepositories.asScala.toSeq
+        .filterNot(repo => WellKnownRepositoryNames.contains(repo.getName))
+        .collect(toRepositoryUrlString).distinct
     )
 
     var packageSpec = if (getPluginManager.hasPlugin("java-platform")) {
@@ -494,6 +491,18 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
   private val toRepositoryUrlString: PartialFunction[ArtifactRepository, String] = {
     case repo: UrlArtifactRepository => repo.getUrl.toURL.toExternalForm
   }
+
+  /**
+   * Gradle's own default names for `mavenCentral()`/`mavenLocal()`/`gradlePluginPortal()`. We
+   * filter by name rather than by calling those `RepositoryHandler` methods for their URLs,
+   * since calling them adds the repository to the project as a side effect.
+   * That throws under `dependencyResolutionManagement { repositoriesMode.set(FAIL_ON_PROJECT_REPOS) }`.
+   */
+  private val WellKnownRepositoryNames = Set(
+    ArtifactRepositoryContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME,
+    ArtifactRepositoryContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME,
+    "Gradle Central Plugin Repository"
+  )
 
   private val platform = objectFactory.named(classOf[Category], Category.REGULAR_PLATFORM)
   private val enforcedPlatform = objectFactory.named(classOf[Category], Category.ENFORCED_PLATFORM)
