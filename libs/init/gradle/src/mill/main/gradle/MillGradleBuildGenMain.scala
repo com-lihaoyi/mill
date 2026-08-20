@@ -39,7 +39,6 @@ object MillGradleBuildGenMain {
   ): Unit = {
     println("converting Gradle build")
 
-    val buildGen = if (declarative) BuildGenYaml else BuildGenScala
     val gradleWorkspace = os.Path.expandUser(projectDir, os.pwd)
     val millWorkspace = os.pwd
 
@@ -102,6 +101,15 @@ object MillGradleBuildGenMain {
         }
       finally gradleConnector.disconnect()
     packages = normalizeBuild(packages)
+
+    val hasAndroidModule = packages.exists(_.module.tree.exists(_.androidApplicationNamespace.base.isDefined))
+    if (declarative && hasAndroidModule) {
+      sys.error(
+        "Android modules are not yet supported with declarative (YAML) build files. " +
+          "Re-run with --declarative false."
+      )
+    }
+    val buildGen = if (declarative) BuildGenYaml else BuildGenScala
 
     val (baseModule, packages0) =
       if (noMeta.value) (None, packages)
