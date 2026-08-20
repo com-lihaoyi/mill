@@ -130,7 +130,7 @@ object Deps {
     mvn"io.get-coursier::coursier-jvm:$coursierVersion".withDottyCompat(scalaVersion)
 
   val cask = mvn"com.lihaoyi::cask:0.9.4"
-  val castor = mvn"com.lihaoyi::castor:0.3.0"
+  val castor = mvn"com.lihaoyi::castor:0.3.2"
   val fastparse = mvn"com.lihaoyi::fastparse:3.1.1"
   val flywayCore = mvn"org.flywaydb:flyway-core:11.8.2"
   val jibCore = mvn"com.google.cloud.tools:jib-core:0.27.2"
