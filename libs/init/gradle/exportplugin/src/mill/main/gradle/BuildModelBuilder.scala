@@ -191,7 +191,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
           }
       }
       KotlinData(
-        kotlinVersion = detectKotlinVersion(project0),
+        kotlinVersion = detectKotlinVersion(project0, configs),
         mainKotlinCompile = Option(getTasks.findByName("compileKotlin")),
         testKotlinCompile = Option(getTasks.findByName("compileTestKotlin")),
         mainKotlinPluginDeps = kotlinCompilerPlugins,
@@ -438,6 +438,109 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
     PackageSpec(moduleDir.subRelativeTo(workspace), mainModule)
   }
 
+  private val AndroidApplicationPluginId = "com.android.application"
+
+  private def isAndroidAppProject(project: Project): Boolean =
+    project.getPluginManager.hasPlugin(AndroidApplicationPluginId)
+
+  private case class AndroidAppData(
+      namespace: Option[String],
+      applicationId: Option[String],
+      compileSdk: Option[Int],
+      minSdk: Option[Int],
+      targetSdk: Option[Int],
+      versionCode: Option[Int],
+      versionName: Option[String],
+      buildToolsVersion: Option[String]
+  )
+
+  private def reflectGet[T](obj: Any, getterName: String): Option[T] =
+    Try(obj.getClass.getMethod(getterName).invoke(obj)).toOption.flatMap(Option(_))
+      .map(_.asInstanceOf[T])
+
+  /**
+   * Reads the `android { ... }` extension via reflection rather than a compile-time AGP
+   * dependency, since `exportplugin` must work against whatever AGP version the target
+   * project applies.
+   */
+  private def extractAndroidAppData(project: Project): AndroidAppData = {
+    val androidExt = Option(project.getExtensions.findByName("android"))
+    val defaultConfig = androidExt.flatMap(reflectGet[Any](_, "getDefaultConfig"))
+
+    AndroidAppData(
+      namespace = androidExt.flatMap(reflectGet[String](_, "getNamespace")),
+      applicationId = defaultConfig.flatMap(reflectGet[String](_, "getApplicationId")),
+      compileSdk = androidExt.flatMap(reflectGet[Integer](_, "getCompileSdk")).map(_.intValue),
+      minSdk = defaultConfig.flatMap(reflectGet[Integer](_, "getMinSdk")).map(_.intValue),
+      targetSdk = defaultConfig.flatMap(reflectGet[Integer](_, "getTargetSdk")).map(_.intValue),
+      versionCode = defaultConfig.flatMap(reflectGet[Integer](_, "getVersionCode")).map(_.intValue),
+      versionName = defaultConfig.flatMap(reflectGet[String](_, "getVersionName")),
+      buildToolsVersion = androidExt.flatMap(reflectGet[String](_, "getBuildToolsVersion"))
+    )
+  }
+
+  private def configureAndroidAppModule(
+      moduleDir: os.Path,
+      data: ExtractedJvmData,
+      androidData: AndroidAppData,
+      mainModule0: ModuleSpec
+  ): PackageSpec = {
+    import androidData.*
+    val baseJvmModule = configureBaseJvmModule(data, mainModule0)
+
+    var mainModule = baseJvmModule.withAndroidKotlinModule(
+      isApp = true,
+      namespace = namespace,
+      applicationId = applicationId,
+      compileSdk = compileSdk,
+      minSdk = minSdk,
+      targetSdk = targetSdk,
+      versionCode = versionCode,
+      versionName = versionName,
+      buildToolsVersion = buildToolsVersion
+    )
+
+    if (os.exists(moduleDir / "src/test")) {
+      // Android has no plain "testRuntimeClasspath" config (unlike plain Java/Kotlin) - unit
+      // test configs are build-type-qualified, e.g. "debugUnitTestRuntimeClasspath".
+      val androidTestMvnDepsList = data.configs.find(_.getName == "debugUnitTestRuntimeClasspath")
+        .fold(Nil)(_.getAllDependencies.asScala.toSeq.collect(toMvnDep))
+      val androidTestMixin = ModuleSpec.testModuleMixin(androidTestMvnDepsList)
+      val testModule = ModuleSpec(
+        name = "test",
+        supertypes = "AndroidAppKotlinTests" +: androidTestMixin.toSeq,
+        mvnDeps = getMvnDeps(data, "testImplementation"),
+        compileMvnDeps = getMvnDeps(data, "testCompileOnly"),
+        runMvnDeps = getMvnDeps(data, "testRuntimeOnly"),
+        moduleDeps = getModuleDeps(data, "testImplementation")
+          .diff(Seq(ModuleDep(moduleDir.subRelativeTo(workspace).segments))),
+        compileModuleDeps = getModuleDeps(data, "testCompileOnly"),
+        runModuleDeps = getModuleDeps(data, "testRuntimeOnly"),
+        testParallelism = Some(false),
+        testSandboxWorkingDir = Some(false),
+        testFramework = Option.when(androidTestMixin.isEmpty)("")
+      )
+      mainModule = mainModule.copy(children = mainModule.children :+ testModule)
+    }
+
+    if (os.exists(moduleDir / "src/androidTest")) {
+      val androidTestModule = ModuleSpec(
+        name = "it",
+        supertypes = Seq("AndroidAppKotlinInstrumentedTests"),
+        mvnDeps = getMvnDeps(data, "androidTestImplementation"),
+        compileMvnDeps = getMvnDeps(data, "androidTestCompileOnly"),
+        runMvnDeps = getMvnDeps(data, "androidTestRuntimeOnly"),
+        moduleDeps = getModuleDeps(data, "androidTestImplementation")
+          .diff(Seq(ModuleDep(moduleDir.subRelativeTo(workspace).segments))),
+        compileModuleDeps = getModuleDeps(data, "androidTestCompileOnly"),
+        runModuleDeps = getModuleDeps(data, "androidTestRuntimeOnly")
+      )
+      mainModule = mainModule.copy(children = mainModule.children :+ androidTestModule)
+    }
+
+    PackageSpec(moduleDir.subRelativeTo(workspace), mainModule)
+  }
+
   private def toPackage(project0: Project): PackageSpec = {
     import project0.*
     val moduleDir = os.Path(getProjectDir)
@@ -462,6 +565,11 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         bomModuleDeps = deps.filter(isBom).collect(toModuleDep)
       )
       PackageSpec(moduleDir.subRelativeTo(workspace), mainModule)
+    } else if (isAndroidAppProject(project0)) {
+      // Apply the Kotlin module by default, matching AGP's own latest behavior.
+      val data = extractJvmData(project0, isKotlin = true)
+      val androidData = extractAndroidAppData(project0)
+      configureAndroidAppModule(moduleDir, data, androidData, mainModule)
     } else if (getPluginManager.hasPlugin("java") || isKotlin) {
       val data = extractJvmData(project0, isKotlin)
       configureJvmModule(moduleDir, data, mainModule)
@@ -586,27 +694,39 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
   }
 
   private val KotlinJvmPluginId = "org.jetbrains.kotlin.jvm"
+  private val KotlinAndroidPluginId = "org.jetbrains.kotlin.android"
 
   private def isKotlinProject(project: Project): Boolean =
     project.getPluginManager.hasPlugin(KotlinJvmPluginId) ||
+      project.getPluginManager.hasPlugin(KotlinAndroidPluginId) ||
       project.getPluginManager.hasPlugin("kotlin")
 
   /**
-   * Detects the Kotlin version by using the `getPluginVersion` method on the Kotlin plugin, if present.
+   * Detects the Kotlin version by using the `getPluginVersion` method on the Kotlin plugin, if
+   * present. Fallbacks to kotlin-stdlib version (AGP 9).
    */
-  private def detectKotlinVersion(project: Project): Option[String] = {
+  private def detectKotlinVersion(project: Project, configs: Seq[Configuration]): Option[String] = {
     val pluginOpt = Option(project.getPlugins.findPlugin(KotlinJvmPluginId))
+      .orElse(Option(project.getPlugins.findPlugin(KotlinAndroidPluginId)))
       .orElse(Option(project.getPlugins.findPlugin("kotlin")))
-    pluginOpt.flatMap { plugin =>
+    val viaPluginVersion = pluginOpt.flatMap { plugin =>
       try {
         val method = plugin.getClass.getMethod("getPluginVersion")
         Option(method.invoke(plugin)).map(_.toString)
       } catch {
         case _: Throwable => None
       }
+    }
+    viaPluginVersion.orElse {
+      configs.iterator
+        .flatMap(_.getDependencies.asScala)
+        .collect(toMvnDep)
+        .find(d => d.organization == "org.jetbrains.kotlin" && d.name.startsWith("kotlin-stdlib"))
+        .map(_.version).filter(_.nonEmpty)
     }.orElse {
       // Fallback to implementation version and remove any "-release" suffix
       detectPluginVersion(project, KotlinJvmPluginId)
+        .orElse(detectPluginVersion(project, KotlinAndroidPluginId))
         .orElse(detectPluginVersion(project, "kotlin"))
         .map(_.split("-release").head)
     }

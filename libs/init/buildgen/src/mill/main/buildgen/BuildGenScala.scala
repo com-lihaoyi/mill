@@ -191,6 +191,17 @@ object BuildGenScala extends BuildGen {
       micronautAotConfigProperties,
       encodeStringMap
     )
+    lines += renderDefValue("androidApplicationNamespace", androidApplicationNamespace, encodeString)
+    lines += renderDefValue("androidNamespace", androidNamespace, encodeString)
+    lines += renderDefValue("androidApplicationId", androidApplicationId, encodeString)
+    lines += renderDefValue("androidCompileSdk", androidCompileSdk, _.toString)
+    lines += renderDefValue("androidMinSdk", androidMinSdk, _.toString)
+    lines += renderDefValue("androidTargetSdk", androidTargetSdk, _.toString)
+    lines += renderDefValue("androidVersionCode", androidVersionCode, _.toString)
+    lines += renderDefValue("androidVersionName", androidVersionName, encodeString)
+    lines += renderDefValue("buildToolsVersion", androidBuildToolsVersion, encodeString)
+    for (sdkModule <- children.find(_.supertypes.contains("AndroidSdkModule")))
+      lines += s"def androidSdkModule = mill.api.ModuleRef(${sdkModule.name})"
     lines += renderDefValues(
       "sourcesRootFolders",
       sourcesRootFolders,
