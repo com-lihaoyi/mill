@@ -1,0 +1,56 @@
+package build.app
+
+import mill.*
+import mill.androidlib.*
+import mill.kotlinlib.*
+
+object `package` extends AndroidAppKotlinModule {
+
+  def mvnDeps = Seq(mvn"org.jetbrains.kotlin:kotlin-stdlib:2.2.10")
+
+  def kotlinVersion = "2.2.10"
+
+  def androidApplicationNamespace = "com.helloworld.app"
+
+  def androidApplicationId = "com.helloworld.app"
+
+  def androidCompileSdk = 35
+
+  def androidMinSdk = 19
+
+  def androidTargetSdk = 35
+
+  def androidVersionCode = 1
+
+  def androidVersionName = "1.0"
+
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+
+  object androidSdkModule0 extends AndroidSdkModule {
+
+    def buildToolsVersion = "36.0.0"
+
+  }
+
+  object it extends AndroidAppKotlinInstrumentedTests {
+
+    def mvnDeps = Seq(
+      mvn"androidx.test.ext:junit:1.2.1",
+      mvn"androidx.test:runner:1.6.2",
+      mvn"androidx.test.espresso:espresso-core:3.5.1",
+      mvn"junit:junit:4.13.2"
+    )
+
+  }
+
+  object test extends AndroidAppKotlinTests, TestModule.Junit4 {
+
+    def mvnDeps = Seq(mvn"junit:junit:4.13.2")
+
+    def testParallelism = false
+
+    def testSandboxWorkingDir = false
+
+  }
+
+}
