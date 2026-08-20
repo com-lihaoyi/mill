@@ -209,6 +209,38 @@ case class ModuleSpec(
       micronautAotConfigProperties = micronautAotConfigProperties
     )
   }
+  
+  def withAndroidKotlinModule(
+      isApp: Boolean,
+      namespace: Value[String],
+      applicationId: Value[String],
+      compileSdk: Value[Int],
+      minSdk: Value[Int],
+      targetSdk: Value[Int],
+      versionCode: Value[Int],
+      versionName: Value[String],
+      buildToolsVersion: Value[String]
+  ): ModuleSpec = {
+    val sdkModuleName = "androidSdkModule0"
+    val sdkModule = ModuleSpec(
+      name = sdkModuleName,
+      supertypes = Seq("AndroidSdkModule"),
+      androidBuildToolsVersion = buildToolsVersion
+    )
+    copy(
+      imports = Seq("mill.androidlib.*", "mill.kotlinlib.*") ++ imports,
+      supertypes = (if (isApp) "AndroidAppKotlinModule" else "AndroidKotlinModule") +: supertypes,
+      androidApplicationNamespace = if (isApp) namespace else Value(),
+      androidNamespace = if (isApp) Value() else namespace,
+      androidApplicationId = if (isApp) applicationId else Value(),
+      androidCompileSdk = compileSdk,
+      androidMinSdk = minSdk,
+      androidTargetSdk = targetSdk,
+      androidVersionCode = versionCode,
+      androidVersionName = versionName,
+      children = children :+ sdkModule
+    )
+  }
 
   def withJmhModule(jmhCoreVersion: Value[String]): ModuleSpec = copy(
     imports = "mill.contrib.jmh.JmhModule" +: imports,
