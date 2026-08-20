@@ -24,9 +24,11 @@ trait SpringBootModule extends JavaModule, RepackageModule {
   def springBootPlatformVersion: T[String]
 
   /** org.springframework.boot:spring-boot-dependencies with [[springBootPlatformVersion]] as the version */
-  override def bomMvnDeps: T[Seq[Dep]] = Seq(
-    mvn"org.springframework.boot:spring-boot-dependencies:${springBootPlatformVersion()}"
-  )
+  override def mandatoryBomMvnDeps: T[Seq[Dep]] = Task {
+    super.mandatoryBomMvnDeps() ++ Seq(
+      mvn"org.springframework.boot:spring-boot-dependencies:${springBootPlatformVersion()}"
+    )
+  }
 
   /**
    * Spring boot relies a lot on reflection, so enabling parameter names is a good default.
