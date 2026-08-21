@@ -3,5 +3,4 @@ package foo.java
 
 import java.nio.file.{Files, Paths}
 
-object Collide {
-}
+object Collide {}
