@@ -101,16 +101,9 @@ object MillGradleBuildGenMain {
         }
       finally gradleConnector.disconnect()
     packages = normalizeBuild(packages)
+    if (declarative) packages = dropAndroidModulesForYaml(packages)
     packages = attachAndroidSdkModule(packages)
 
-    val hasAndroidModule =
-      packages.exists(_.module.tree.exists(_.androidApplicationNamespace.base.isDefined))
-    if (declarative && hasAndroidModule) {
-      sys.error(
-        "Android modules are not yet supported with declarative (YAML) build files. " +
-          "Re-run with --declarative false."
-      )
-    }
     val buildGen = if (declarative) BuildGenYaml else BuildGenScala
 
     val (baseModule, packages0) =
@@ -173,6 +166,25 @@ object MillGradleBuildGenMain {
         module0
       })
     )
+  }
+
+  /** Android modules aren't supported in declarative (YAML) output yet, so just drop them instead of failing */
+  private def dropAndroidModulesForYaml(packages: Seq[PackageSpec]): Seq[PackageSpec] = {
+    def isAndroidModule(m: ModuleSpec) =
+      m.androidApplicationNamespace.base.isDefined || m.androidNamespace.base.isDefined
+
+    val rootDir = packages.map(_.dir).minBy(_.segments.length)
+    packages.flatMap { pkg =>
+      if (!isAndroidModule(pkg.module)) Some(pkg)
+      else {
+        println(
+          s"Skipping Android module '${pkg.module.name}' for declarative (YAML) output - " +
+            "not supported yet. Re-run with --declarative false to include it."
+        )
+        if (pkg.dir == rootDir) Some(pkg.copy(module = ModuleSpec(name = pkg.module.name)))
+        else None
+      }
+    }
   }
 
   /** Gives all Android modules one shared `androidSdkModule0` on the root package, instead of each declaring its own. */

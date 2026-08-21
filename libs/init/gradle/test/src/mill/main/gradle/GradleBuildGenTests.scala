@@ -75,11 +75,6 @@ trait GradleBuildGenTests extends TestSuite {
         initArgs = Seq("--gradle-jvm-id", "25", "--mill-jvm-id", "25") ++ extraArgs
       ))
     }
-  }
-
-  // Android modules aren't supported with declarative (YAML) build files (yet)
-  def nonDeclarativeTests = Tests {
-    val checker = BuildGenChecker()
     test("android-hello-kotlin") {
       assert(checker.check(
         sourceRel = "android-hello-kotlin",
@@ -105,5 +100,4 @@ object GradleBuildGenYamlTests extends GradleBuildGenTests {
 object GradleBuildGenScalaTests extends GradleBuildGenTests {
   def expectedDir: os.SubPath = "expected-scala"
   override def extraArgs = Seq("--declarative", "false")
-  override def tests = super.tests ++ nonDeclarativeTests
 }
