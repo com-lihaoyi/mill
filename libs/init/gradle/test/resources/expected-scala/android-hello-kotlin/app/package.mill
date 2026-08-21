@@ -26,7 +26,7 @@ object `package` extends AndroidAppKotlinModule {
 
   def androidSdkModule = mill.api.ModuleRef(build.androidSdkModule0)
 
-  object it extends AndroidAppKotlinInstrumentedTests {
+  object androidTest extends AndroidAppKotlinInstrumentedTests {
 
     def mvnDeps = Seq(
       mvn"androidx.test.ext:junit:1.2.1",

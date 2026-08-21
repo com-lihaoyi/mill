@@ -522,7 +522,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
 
     if (os.exists(moduleDir / "src/androidTest")) {
       val androidTestModule = ModuleSpec(
-        name = "it",
+        name = "androidTest",
         supertypes = Seq("AndroidAppKotlinInstrumentedTests"),
         mvnDeps = getMvnDeps(data, "androidTestImplementation"),
         compileMvnDeps = getMvnDeps(data, "androidTestCompileOnly"),
