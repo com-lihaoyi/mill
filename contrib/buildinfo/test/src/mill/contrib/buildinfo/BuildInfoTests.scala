@@ -25,7 +25,7 @@ object BuildInfoTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object BuildInfoPlain extends TestRootModule with BuildInfo with ScalaModule {
+  object BuildInfoScala extends TestRootModule with BuildInfo with ScalaModule {
     def scalaVersion = scalaVersionString
     def buildInfoPackageName = "foo"
     def buildInfoMembers = Seq(
@@ -195,15 +195,15 @@ object BuildInfoTests extends TestSuite {
       assert(found.contains("object bar"))
     }
 
-    test("compile") - UnitTester(BuildInfoPlain, testModuleSourcesPath / "scala").scoped { eval =>
-      val Right(_) = eval.apply(BuildInfoPlain.compile).runtimeChecked
+    test("compile") - UnitTester(BuildInfoScala, testModuleSourcesPath / "scala").scoped { eval =>
+      val Right(_) = eval.apply(BuildInfoScala.compile).runtimeChecked
       assert(true)
     }
 
-    test("run") - UnitTester(BuildInfoPlain, testModuleSourcesPath / "scala").scoped { eval =>
+    test("run") - UnitTester(BuildInfoScala, testModuleSourcesPath / "scala").scoped { eval =>
       val runResult = eval.outPath / "hello-mill"
       val Right(_) =
-        eval.apply(BuildInfoPlain.run(Task.Anon(Args(runResult.toString)))).runtimeChecked
+        eval.apply(BuildInfoScala.run(Task.Anon(Args(runResult.toString)))).runtimeChecked
 
       assert(
         os.exists(runResult),
@@ -287,11 +287,11 @@ object BuildInfoTests extends TestSuite {
     }
 
     test("generatedSources must be a folder") - UnitTester(
-      BuildInfoPlain,
+      BuildInfoScala,
       testModuleSourcesPath / "scala"
     ).scoped { eval =>
       val buildInfoGeneratedSourcesFolder = eval.outPath / "buildInfoSources.dest"
-      val Right(result) = eval.apply(BuildInfoPlain.generatedSources).runtimeChecked
+      val Right(result) = eval.apply(BuildInfoScala.generatedSources).runtimeChecked
       assert(
         result.value.size == 1,
         os.isDir(result.value.head.path),
