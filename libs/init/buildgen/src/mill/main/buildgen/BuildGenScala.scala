@@ -191,7 +191,11 @@ object BuildGenScala extends BuildGen {
       micronautAotConfigProperties,
       encodeStringMap
     )
-    lines += renderDefValue("androidApplicationNamespace", androidApplicationNamespace, encodeString)
+    lines += renderDefValue(
+      "androidApplicationNamespace",
+      androidApplicationNamespace,
+      encodeString
+    )
     lines += renderDefValue("androidNamespace", androidNamespace, encodeString)
     lines += renderDefValue("androidApplicationId", androidApplicationId, encodeString)
     lines += renderDefValue("androidCompileSdk", androidCompileSdk, _.toString)

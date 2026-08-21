@@ -210,7 +210,7 @@ case class ModuleSpec(
       micronautAotConfigProperties = micronautAotConfigProperties
     )
   }
-  
+
   /** `androidBuildToolsVersion` is just a marker here, picked up later by `MillGradleBuildGenMain.attachAndroidSdkModule`. */
   def withAndroidKotlinModule(
       isApp: Boolean,

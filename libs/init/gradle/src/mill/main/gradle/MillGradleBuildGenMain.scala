@@ -103,7 +103,8 @@ object MillGradleBuildGenMain {
     packages = normalizeBuild(packages)
     packages = attachAndroidSdkModule(packages)
 
-    val hasAndroidModule = packages.exists(_.module.tree.exists(_.androidApplicationNamespace.base.isDefined))
+    val hasAndroidModule =
+      packages.exists(_.module.tree.exists(_.androidApplicationNamespace.base.isDefined))
     if (declarative && hasAndroidModule) {
       sys.error(
         "Android modules are not yet supported with declarative (YAML) build files. " +
@@ -176,7 +177,8 @@ object MillGradleBuildGenMain {
 
   /** Gives all Android modules one shared `androidSdkModule0` on the root package, instead of each declaring its own. */
   private def attachAndroidSdkModule(packages: Seq[PackageSpec]): Seq[PackageSpec] = {
-    val androidModules = packages.flatMap(_.module.tree).filter(_.androidBuildToolsVersion.base.isDefined)
+    val androidModules =
+      packages.flatMap(_.module.tree).filter(_.androidBuildToolsVersion.base.isDefined)
     if (androidModules.isEmpty) packages
     else {
       val sdkModuleName = "androidSdkModule0"
@@ -195,7 +197,10 @@ object MillGradleBuildGenMain {
           else m.copy(
             androidBuildToolsVersion = Value(),
             androidSdkModuleDep =
-              Value(Some(ModuleDep(segments = rootDir.segments, childSegment = Some(sdkModuleName))))
+              Value(Some(ModuleDep(
+                segments = rootDir.segments,
+                childSegment = Some(sdkModuleName)
+              )))
           )
         }
         pkg.copy(module =
