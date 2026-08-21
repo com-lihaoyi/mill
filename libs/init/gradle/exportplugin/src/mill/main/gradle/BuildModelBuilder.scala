@@ -58,18 +58,24 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
     getDeps(data, configNames*).filterNot(isBom).collect(toModuleDep).distinct
   }
 
-  private def kotlinOptions(task: Task): Seq[String] = {
-    try {
-      val compilerOptions = task.getClass.getMethod("getCompilerOptions").invoke(task)
-      val freeArgsProperty =
-        compilerOptions.getClass.getMethod("getFreeCompilerArgs").invoke(compilerOptions)
-      // getFreeCompilerArgs returns a Gradle ListProperty<String>, so we call .get() on it.
-      freeArgsProperty.getClass.getMethod("get").invoke(freeArgsProperty)
-        .asInstanceOf[java.util.List[String]].asScala.toSeq
-    } catch {
-      case _: Throwable => Nil
-    }
-  }
+  private def tryReflect[T](label: String)(thunk: => T): Option[T] =
+    Try(thunk).fold(
+      err => {
+        println(s"Warning: could not resolve $label: $err")
+        None
+      },
+      v => Option(v)
+    )
+
+  private def reflectGet[T](obj: Any, getterName: String): Option[T] =
+    tryReflect(getterName)(obj.getClass.getMethod(getterName).invoke(obj).asInstanceOf[T])
+
+  private def kotlinOptions(task: Task): Seq[String] =
+    // getFreeCompilerArgs returns a Gradle ListProperty<String>, so we call .get() on it.
+    reflectGet[Any](task, "getCompilerOptions")
+      .flatMap(reflectGet[Any](_, "getFreeCompilerArgs"))
+      .flatMap(reflectGet[java.util.List[String]](_, "get"))
+      .fold(Nil)(_.asScala.toSeq)
 
   private case class ExtractedJvmData(
       configs: Seq[Configuration],
@@ -113,6 +119,17 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       artifactName: Option[String],
       publishVersion: Option[String],
       pomSettings: Option[PomSettings]
+  )
+
+  private case class AndroidAppData(
+      namespace: Option[String],
+      applicationId: Option[String],
+      compileSdk: Option[Int],
+      minSdk: Option[Int],
+      targetSdk: Option[Int],
+      versionCode: Option[Int],
+      versionName: Option[String],
+      buildToolsVersion: Option[String]
   )
 
   private def extractJvmData(project0: Project, isKotlin: Boolean): ExtractedJvmData = {
@@ -438,26 +455,6 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
     PackageSpec(moduleDir.subRelativeTo(workspace), mainModule)
   }
 
-  private val AndroidApplicationPluginId = "com.android.application"
-
-  private def isAndroidAppProject(project: Project): Boolean =
-    project.getPluginManager.hasPlugin(AndroidApplicationPluginId)
-
-  private case class AndroidAppData(
-      namespace: Option[String],
-      applicationId: Option[String],
-      compileSdk: Option[Int],
-      minSdk: Option[Int],
-      targetSdk: Option[Int],
-      versionCode: Option[Int],
-      versionName: Option[String],
-      buildToolsVersion: Option[String]
-  )
-
-  private def reflectGet[T](obj: Any, getterName: String): Option[T] =
-    Try(obj.getClass.getMethod(getterName).invoke(obj)).toOption.flatMap(Option(_))
-      .map(_.asInstanceOf[T])
-
   /**
    * Reads the `android { ... }` extension via reflection rather than a compile-time AGP
    * dependency, since `exportplugin` must work against whatever AGP version the target
@@ -641,16 +638,9 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
   )
 
   private def providerValue[T](obj: Any, getterName: String): Option[T] =
-    Try {
-      val provider = obj.getClass.getMethod(getterName).invoke(obj).asInstanceOf[Provider[T]]
-      Option(provider.getOrNull())
-    }.fold(
-      (err: Throwable) => {
-        println(s"Warning: could not resolve Micronaut AOT $getterName: $err")
-        None
-      },
-      v => v
-    )
+    tryReflect(s"Micronaut AOT $getterName") {
+      obj.getClass.getMethod(getterName).invoke(obj).asInstanceOf[Provider[T]].getOrNull()
+    }
 
   private def detectMicronautAot(project: Project)
       : (Option[String], Option[String], Option[String], Option[Map[String, String]]) = {
@@ -709,14 +699,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
     val pluginOpt = Option(project.getPlugins.findPlugin(KotlinJvmPluginId))
       .orElse(Option(project.getPlugins.findPlugin(KotlinAndroidPluginId)))
       .orElse(Option(project.getPlugins.findPlugin("kotlin")))
-    val viaPluginVersion = pluginOpt.flatMap { plugin =>
-      try {
-        val method = plugin.getClass.getMethod("getPluginVersion")
-        Option(method.invoke(plugin)).map(_.toString)
-      } catch {
-        case _: Throwable => None
-      }
-    }
+    val viaPluginVersion = pluginOpt.flatMap(reflectGet[Any](_, "getPluginVersion")).map(_.toString)
     viaPluginVersion.orElse {
       configs.iterator
         .flatMap(_.getDependencies.asScala)
@@ -749,6 +732,11 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       .map(_.getModuleVersion.getId.getVersion)
     pluginImplVersion.orElse(buildScriptVersion)
   }
+
+  private val AndroidApplicationPluginId = "com.android.application"
+
+  private def isAndroidAppProject(project: Project): Boolean =
+    project.getPluginManager.hasPlugin(AndroidApplicationPluginId)
 
   private def isBom(dep: Dependency | DependencyConstraint) = dep match {
     case dep: ModuleDependency =>
