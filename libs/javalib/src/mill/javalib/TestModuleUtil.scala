@@ -83,9 +83,6 @@ final class TestModuleUtil(
         // skip test groups that we know will be empty, which is important because even an empty
         // test group requires spawning a JVM which can take 1+ seconds to realize there are no
         // tests to run and shut down
-        println(s"Running test discovery for ${selectors.mkString(" ")}")
-        println(s"Run args: ${args.mkString(" ")}")
-        println(s"discoveredClassesOpt: ${discoveredClassesOpt.map(_.map(_._1).mkString(",")).getOrElse("None")}")
         val discoveredTests = jvmWorker.apply(
           ZincOp.GetTestTasks(
             (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
@@ -97,8 +94,6 @@ final class TestModuleUtil(
           ),
           javaHome = javaHome
         ).toSet
-
-        println(s"Discovered tests: ${discoveredTests.mkString(", ")}")
 
         filteredClassLists0.map(_.filter(discoveredTests)).filter(_.nonEmpty)
       }

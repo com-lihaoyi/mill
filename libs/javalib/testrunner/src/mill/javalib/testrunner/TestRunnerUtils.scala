@@ -134,27 +134,9 @@ import scala.math.Ordering.Implicits.*
     val runner = framework.runner(args.toArray, Array[String](), cl)
     val testClasses = discoverTests(cl, framework, testClassfilePath, discoveredTestClasses)
 
-    println(s"TestClasses found: ${testClasses.mkString(", ")}")
-
-    for ((cls, fingerprint) <- testClasses) {
-      println(s"TestClass: ${cls.getName}, Fingerprint: $fingerprint")
-      println(s"Passes classFilter: ${classFilter.globMatch(cls.getName)}")
-    }
-
     val tasks = runner.tasks(
-      for {
-        (cls, fingerprint) <- testClasses.iterator.toArray if classFilter.globMatch(cls.getName)
-        _ = {
-          println(s"Creating TaskDef for ${cls.getName.stripSuffix("$")} with fingerprint $fingerprint")
-          val taskDef = TaskDef(
-            cls.getName.stripSuffix("$"),
-            fingerprint,
-            classFilter.isExplicitlySpecified(cls.getName),
-            Array(new SuiteSelector)
-          )
-          println(s"Created TaskDef: $taskDef")
-        }
-       } yield TaskDef(
+      for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter.globMatch(cls.getName))
+        yield TaskDef(
           cls.getName.stripSuffix("$"),
           fingerprint,
           classFilter.isExplicitlySpecified(cls.getName),
@@ -162,27 +144,12 @@ import scala.math.Ordering.Implicits.*
         )
     )
 
-    println(s"Found ${tasks.length} tasks for ${testClasses.length} test classes")
-    for (t <- tasks) {
-      val taskDef0 = Option(t.taskDef())
-      if (taskDef0.isDefined) {
-        val taskDef = taskDef0.get
-        println(
-          s"Task: ${taskDef.fullyQualifiedName()}, Fingerprint: ${taskDef.fingerprint()}, ExplicitlySpecified: ${taskDef.explicitlySpecified()}"
-        )
-      } else {
-        println(s"Task: null")
-      }
-    }
-
     def nameOpt(t: Task) = Option(t.taskDef()).map(_.fullyQualifiedName())
     val groupedTasks = tasks
       .groupBy(nameOpt)
       .values
       .toArray
       .sortBy(_.headOption.map(nameOpt))
-
-    println(s"Grouped tasks: ${groupedTasks.map(_.map(nameOpt).mkString("[", ", ", "]")).mkString(", ")}")
 
     (runner, groupedTasks)
   }
@@ -195,13 +162,6 @@ import scala.math.Ordering.Implicits.*
   ): Boolean = {
     val taskStatus = AtomicBoolean(true)
     val taskQueue = tasks.to(mutable.Queue)
-    println(s"Executing ${taskQueue.size} tasks:")
-    for (t <- taskQueue) {
-      val taskDef0 = t.taskDef()
-      val taskName = Option(taskDef0).map(_.fullyQualifiedName()).getOrElse("null")
-      val isExplicitlySpecified = Option(taskDef0).map(_.explicitlySpecified()).getOrElse(false)
-      println(s"Task: $taskName, ExplicitlySpecified: $isExplicitlySpecified")
-    }
     while (taskQueue.nonEmpty) {
       val next =
         try taskQueue.dequeue().execute(

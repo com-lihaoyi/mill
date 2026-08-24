@@ -6,7 +6,6 @@ import mill.api.daemon.internal.internal
 
   def apply(args0: mill.javalib.api.internal.ZincOp.GetTestTasks): Seq[String] = {
     import args0.*
-    println("GetTestTasks selectors: " + selectors)
     val classFilter = ClassFilter(selectors)
     mill.util.Jvm.withClassLoader(
       classPath = runCp,

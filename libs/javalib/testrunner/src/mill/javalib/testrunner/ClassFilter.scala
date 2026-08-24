@@ -10,10 +10,15 @@ import mill.api.daemon.internal.internal
  * `rawSelectors` defaults to `matchSelectors`. Pass it separately only when `matchSelectors`
  * has already been resolved to concrete class names (e.g. the batch scheduler's per-group selector)
  */
-@internal final class ClassFilter private (matchSelectors: Seq[String], rawSelectors: Option[Seq[String]]) {
+@internal final class ClassFilter private (
+    matchSelectors: Seq[String],
+    rawSelectors: Option[Seq[String]]
+) {
   private val matchers = matchSelectors.map(TestRunnerUtils.matchesGlob)
   private val exactMatchers =
-    rawSelectors.getOrElse(matchSelectors).filterNot(_.contains('*')).map(TestRunnerUtils.matchesGlob)
+    rawSelectors.getOrElse(
+      matchSelectors
+    ).filterNot(_.contains('*')).map(TestRunnerUtils.matchesGlob)
 
   def hasFilters: Boolean = matchSelectors.nonEmpty
 
