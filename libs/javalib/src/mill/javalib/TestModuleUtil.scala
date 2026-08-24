@@ -18,7 +18,7 @@ import mill.api.Logger
 import mill.api.BuildCtx
 import mill.constants.EnvVars
 import mill.javalib.api.internal.ZincOp
-import mill.javalib.testrunner.{TestArgs, TestResult, TestRunnerUtils}
+import mill.javalib.testrunner.{ClassFilter, TestArgs, TestResult, TestRunnerUtils}
 import os.Path
 
 import scala.concurrent.Future
@@ -61,7 +61,7 @@ final class TestModuleUtil(
     .mkString(",")
 
   def runTests(): Result[(msg: String, results: Seq[TestResult])] = {
-    val globFilter = TestRunnerUtils.globFilter(selectors)
+    val classFilter = ClassFilter(selectors)
 
     def doesNotMatchError = new Result.Exception(
       s"Test selector does not match any test: ${selectors.mkString(" ")}" +
@@ -69,7 +69,7 @@ final class TestModuleUtil(
     )
 
     /** This is filtered by mill. */
-    val filteredClassLists0 = testClassLists.map(_.filter(globFilter)).filter(_.nonEmpty)
+    val filteredClassLists0 = testClassLists.map(_.filter(classFilter.globMatch)).filter(_.nonEmpty)
 
     /** This is filtered by the test framework when using queue scheduling. */
     val filteredClassLists = {
@@ -145,6 +145,7 @@ final class TestModuleUtil(
       resultPath = resultPath,
       colored = Task.log.prompt.colored,
       testCp = testClasspath.map(_.path),
+      rawSelectors = selectors,
       globSelectors = selector,
       logLevel = testLogLevel,
       discoveredTestClasses = discoveredClassesOpt

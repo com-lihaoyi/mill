@@ -125,7 +125,7 @@ import scala.math.Ordering.Implicits.*
   def getTestTasks(
       framework: Framework,
       args: Seq[String],
-      classFilter: Class[?] => Boolean,
+      classFilter: ClassFilter,
       cl: ClassLoader,
       testClassfilePath: Seq[Path],
       discoveredTestClasses: Option[Seq[(String, Int)]]
@@ -138,18 +138,18 @@ import scala.math.Ordering.Implicits.*
 
     for ((cls, fingerprint) <- testClasses) {
       println(s"TestClass: ${cls.getName}, Fingerprint: $fingerprint")
-      println(s"Passes classFilter: ${classFilter(cls)}")
+      println(s"Passes classFilter: ${classFilter.globMatch(cls.getName)}")
     }
 
     val tasks = runner.tasks(
       for {
-        (cls, fingerprint) <- testClasses.iterator.toArray if classFilter(cls)
+        (cls, fingerprint) <- testClasses.iterator.toArray if classFilter.globMatch(cls.getName)
         _ = {
           println(s"Creating TaskDef for ${cls.getName.stripSuffix("$")} with fingerprint $fingerprint")
           val taskDef = TaskDef(
             cls.getName.stripSuffix("$"),
             fingerprint,
-            true,
+            classFilter.isExplicitlySpecified(cls.getName),
             Array(new SuiteSelector)
           )
           println(s"Created TaskDef: $taskDef")
@@ -157,7 +157,7 @@ import scala.math.Ordering.Implicits.*
        } yield TaskDef(
           cls.getName.stripSuffix("$"),
           fingerprint,
-          true,
+          classFilter.isExplicitlySpecified(cls.getName),
           Array(new SuiteSelector)
         )
     )
@@ -320,7 +320,7 @@ import scala.math.Ordering.Implicits.*
       frameworkInstances: ClassLoader => Framework,
       testClassfilePath: Seq[Path],
       args: Seq[String],
-      classFilter: Class[?] => Boolean,
+      classFilter: ClassFilter,
       cl: ClassLoader,
       testReporter: TestReporter,
       discoveredTestClasses: Option[Seq[(String, Int)]],
@@ -345,7 +345,8 @@ import scala.math.Ordering.Implicits.*
       runner: Runner,
       claimFolder: os.Path,
       testClassQueueFolder: os.Path,
-      resultPath: os.Path
+      resultPath: os.Path,
+      classFilter: ClassFilter = ClassFilter(Nil)
   ): (String, Iterator[TestResult]) = {
     // Capture this value outside of the task event handler so it
     // isn't affected by a test framework's stream redirects
@@ -365,7 +366,12 @@ import scala.math.Ordering.Implicits.*
         .get(testClassName)
         .map { case (cls, fingerprint) =>
           val clsName = cls.getName.stripSuffix("$")
-          TaskDef(clsName, fingerprint, true, Array(new SuiteSelector))
+          TaskDef(
+            clsName,
+            fingerprint,
+            classFilter.isExplicitlySpecified(clsName),
+            Array(new SuiteSelector)
+          )
         }
 
       val tasks = runner.tasks(taskDefs.toArray)
@@ -428,7 +434,8 @@ import scala.math.Ordering.Implicits.*
       cl: ClassLoader,
       testReporter: TestReporter,
       resultPath: os.Path,
-      discoveredTestClasses: Option[Seq[(String, Int)]]
+      discoveredTestClasses: Option[Seq[(String, Int)]],
+      classFilter: ClassFilter = ClassFilter(Nil)
   ): (String, Seq[TestResult]) = {
 
     val framework = frameworkInstances(cl)
@@ -444,7 +451,8 @@ import scala.math.Ordering.Implicits.*
       runner,
       claimFolder,
       testClassQueueFolder,
-      resultPath
+      resultPath,
+      classFilter
     )
 
     (doneMessage, results.toSeq)
@@ -454,7 +462,7 @@ import scala.math.Ordering.Implicits.*
       frameworkInstances: ClassLoader => Framework,
       testClassfilePath: Seq[Path],
       args: Seq[String],
-      classFilter: Class[?] => Boolean,
+      classFilter: ClassFilter,
       cl: ClassLoader,
       discoveredTestClasses: Option[Seq[(String, Int)]]
   ): Array[String] = {
@@ -477,13 +485,4 @@ import scala.math.Ordering.Implicits.*
           (s: String) => pattern.matcher(s).matches()
       }
     }
-
-  def globFilter(selectors: Seq[String]): String => Boolean = {
-    val filters = selectors.map(matchesGlob)
-    if (filters.isEmpty) _ => true
-    else { className =>
-      val name = className.stripSuffix("$")
-      filters.exists(f => f(name))
-    }
-  }
 }

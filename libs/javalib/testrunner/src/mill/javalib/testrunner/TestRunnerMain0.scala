@@ -12,12 +12,15 @@ import mill.api.internal.PathAliasing
 
         val result = testArgs.globSelectors match {
           case Left(selectors) =>
-            val filter = TestRunnerUtils.globFilter(selectors)
+            // `selectors` may already be the batch scheduler's per-group, resolved list, so
+            // matching uses it, but explicitness must still read the original `testArgs.rawSelectors`.
+            val classFilter =
+              ClassFilter(matchSelectors = selectors, rawSelectors = Some(testArgs.rawSelectors))
             TestRunnerUtils.runTestFramework0(
               frameworkInstances = Framework.framework(testArgs.framework),
               testClassfilePath = Seq.from(testArgs.testCp),
               args = testArgs.arguments,
-              classFilter = cls => filter(cls.getName),
+              classFilter = classFilter,
               cl = classLoader,
               testReporter = TestReporter(testArgs.logLevel),
               discoveredTestClasses = testArgs.discoveredTestClasses,
@@ -34,7 +37,8 @@ import mill.api.internal.PathAliasing
               cl = classLoader,
               testReporter = TestReporter(testArgs.logLevel),
               discoveredTestClasses = testArgs.discoveredTestClasses,
-              resultPath = testArgs.resultPath
+              resultPath = testArgs.resultPath,
+              classFilter = ClassFilter(testArgs.rawSelectors)
             )
         }
 

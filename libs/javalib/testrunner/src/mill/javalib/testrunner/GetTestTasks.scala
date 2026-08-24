@@ -7,7 +7,7 @@ import mill.api.daemon.internal.internal
   def apply(args0: mill.javalib.api.internal.ZincOp.GetTestTasks): Seq[String] = {
     import args0.*
     println("GetTestTasks selectors: " + selectors)
-    val globFilter = TestRunnerUtils.globFilter(selectors)
+    val classFilter = ClassFilter(selectors)
     mill.util.Jvm.withClassLoader(
       classPath = runCp,
       sharedPrefixes = Seq("sbt.testing.")
@@ -17,7 +17,7 @@ import mill.api.daemon.internal.internal
           Framework.framework(framework),
           Seq.from(testCp),
           args,
-          cls => globFilter(cls.getName),
+          classFilter,
           classLoader,
           discoveredClassesOpt
         )
