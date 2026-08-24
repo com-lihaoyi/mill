@@ -139,7 +139,7 @@ import scala.math.Ordering.Implicits.*
         yield TaskDef(
           cls.getName.stripSuffix("$"),
           fingerprint,
-          false,
+          true,
           Array(new SuiteSelector)
         )
     )
@@ -325,7 +325,7 @@ import scala.math.Ordering.Implicits.*
         .get(testClassName)
         .map { case (cls, fingerprint) =>
           val clsName = cls.getName.stripSuffix("$")
-          TaskDef(clsName, fingerprint, false, Array(new SuiteSelector))
+          TaskDef(clsName, fingerprint, true, Array(new SuiteSelector))
         }
 
       val tasks = runner.tasks(taskDefs.toArray)
