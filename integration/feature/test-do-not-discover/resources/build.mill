@@ -1,0 +1,14 @@
+package build
+
+// Reproduction of issue https://github.com/com-lihaoyi/mill/issues/7450
+
+import mill.*
+import mill.scalalib.*
+
+object foo extends ScalaModule {
+  def scalaVersion = "3.8.2"
+
+  object test extends ScalaTests with TestModule.ScalaTest {
+    def mvnDeps = Seq(mvn"org.scalatest::scalatest:3.2.19")
+  }
+}
