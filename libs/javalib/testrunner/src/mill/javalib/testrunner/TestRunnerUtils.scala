@@ -122,6 +122,35 @@ import scala.math.Ordering.Implicits.*
     }.map { f => (cls, f) }
   }
 
+  /**
+   * Builds tasks for classes, rescuing any undiscovered but explicitly specified.
+   * Only those are then marked as explicitly specified.
+   */
+  private def tasksWithRescue(
+      runner: Runner,
+      classFilter: ClassFilter,
+      classes: Seq[ClassWithFingerprint]
+  ): Array[Task] = {
+    def taskDef(cls: Class[?], fingerprint: Fingerprint, explicit: Boolean) =
+      TaskDef(cls.getName.stripSuffix("$"), fingerprint, explicit, Array(new SuiteSelector))
+
+    val discoveredTasks =
+      runner.tasks(classes.map { case (cls, fingerprint) =>
+        taskDef(cls, fingerprint, false)
+      }.toArray)
+
+    val discoveredNames = discoveredTasks.iterator
+      .map(_.taskDef()).filter(_ != null).map(_.fullyQualifiedName()).toSet
+
+    val rescuedTaskDefs = classes.filter { case (cls, _) =>
+      !discoveredNames(
+        cls.getName.stripSuffix("$")
+      ) && classFilter.isExplicitlySpecified(cls.getName)
+    }.map { case (cls, fingerprint) => taskDef(cls, fingerprint, true) }
+
+    discoveredTasks ++ runner.tasks(rescuedTaskDefs.toArray)
+  }
+
   def getTestTasks(
       framework: Framework,
       args: Seq[String],
@@ -133,16 +162,9 @@ import scala.math.Ordering.Implicits.*
 
     val runner = framework.runner(args.toArray, Array[String](), cl)
     val testClasses = discoverTests(cl, framework, testClassfilePath, discoveredTestClasses)
+    val matched = testClasses.filter { case (cls, _) => classFilter.globMatch(cls.getName) }
 
-    val tasks = runner.tasks(
-      for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter.globMatch(cls.getName))
-        yield TaskDef(
-          cls.getName.stripSuffix("$"),
-          fingerprint,
-          classFilter.isExplicitlySpecified(cls.getName),
-          Array(new SuiteSelector)
-        )
-    )
+    val tasks = tasksWithRescue(runner, classFilter, matched)
 
     def nameOpt(t: Task) = Option(t.taskDef()).map(_.fullyQualifiedName())
     val groupedTasks = tasks
@@ -322,19 +344,7 @@ import scala.math.Ordering.Implicits.*
 
       if (testReporter.logLevel <= TestReporter.LogLevel.Debug)
         System.err.println(s"Running Test Class $testClassName")
-      val taskDefs = globSelectorCache
-        .get(testClassName)
-        .map { case (cls, fingerprint) =>
-          val clsName = cls.getName.stripSuffix("$")
-          TaskDef(
-            clsName,
-            fingerprint,
-            classFilter.isExplicitlySpecified(clsName),
-            Array(new SuiteSelector)
-          )
-        }
-
-      val tasks = runner.tasks(taskDefs.toArray)
+      val tasks = tasksWithRescue(runner, classFilter, globSelectorCache.get(testClassName).toSeq)
       val taskResult = executeTasks(tasks, testReporter, events, systemOut)
       if taskResult then successCounter += 1 else failureCounter += 1
       os.write.over(resultPath, upickle.write((successCounter, failureCounter)))
