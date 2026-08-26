@@ -1,0 +1,6 @@
+package build
+import mill.*
+
+object foo extends Module {
+  def bar = Task { os.write(Task.dest / "out.txt", "hello"); 123 }
+}

@@ -630,6 +630,46 @@ object MainModuleTests extends TestSuite {
           )
         }
       }
+
+      // Mill's own internal `out/mill-*` state must survive `clean`, whether it is invoked
+      // bare or with a selector that resolves the root module (e.g. `clean __`). Deleting
+      // `out/mill-daemon/processId` from under a running daemon makes it exit mid-command,
+      // surfacing to the user as "Worker wire broken".
+      // See https://github.com/com-lihaoyi/mill/issues/7053
+      test("keeps-mill-internals") {
+        // folders Mill keeps its own machinery in, e.g. `out/mill-daemon/processId`
+        val internalFolders = Seq(OutFiles.millDaemon, OutFiles.millNoDaemon)
+        // internal bookkeeping that lives directly in `out/` as plain files
+        val internalFiles = Seq(OutFiles.millOutLock, OutFiles.millProfile)
+
+        val markers =
+          internalFolders.map(os.sub / _ / "marker") ++ internalFiles.map(os.sub / _)
+
+        def check(selector: String*): Unit = UnitTester(cleanModule, null).scoped { ev =>
+          val out = ev.evaluator.outPath
+          val r1 = ev.evaluator.execute(Seq(cleanModule.all)).executionResults
+          assert(r1.transitiveFailing.size == 0)
+
+          // Stand in for the internal state a real daemon keeps under `out/`
+          markers.foreach(p => os.write.over(out / p, "x", createFolders = true))
+          checkExists(out, true)(markers*)
+
+          val r2 = ev.evaluator
+            .execute(Seq(cleanModule.clean(ev.evaluator, selector*)))
+            .executionResults
+          assert(r2.transitiveFailing.size == 0)
+
+          // task output is gone, but Mill's own state is untouched
+          checkExists(out, false)(os.sub / "foo/task.dest/dummy.txt")
+          checkExists(out, true)(markers*)
+          assert(os.exists(out))
+        }
+
+        test("no-selector") - check()
+        // `__` resolves the root module too, whose `Segments` is empty; that used to make
+        // `clean` treat `out/` itself as a module folder and wipe it wholesale.
+        test("wildcard-all") - check("__")
+      }
     }
 
     test("cleanWorker") {
