@@ -73,7 +73,7 @@ trait AndroidModule extends JavaModule { outer =>
     }
     // add the application package
     val manifestWithPackage =
-      manifestElem % Attribute(None, "package", Text(androidNamespace), Null)
+      manifestElem % Attribute(None, "package", Text(androidNamespace()), Null)
 
     val generatedManifestPath = Task.dest / "AndroidManifest.xml"
     os.write(generatedManifestPath, manifestWithPackage.mkString)
@@ -155,9 +155,7 @@ trait AndroidModule extends JavaModule { outer =>
    */
   def androidAaptLinkExtraPackages: T[Seq[String]] = Task {
     // TODO: cleanup once we properly pass resources from dependencies
-    recursiveModuleDeps.collect {
-      case p: AndroidModule => p.androidNamespace
-    }
+    Task.traverse(recursiveModuleDeps.collect { case p: AndroidModule => p })(_.androidNamespace)()
   }
 
   /**
@@ -667,7 +665,7 @@ trait AndroidModule extends JavaModule { outer =>
    * Namespace of the Android module.
    * Used in manifest package and also used as the package to place the generated R sources
    */
-  def androidNamespace: String
+  def androidNamespace: T[String]
 
   /**
    * If true, a BuildConfig.java file will be generated.
@@ -675,13 +673,13 @@ trait AndroidModule extends JavaModule { outer =>
    *
    * [[https://developer.android.com/reference/tools/gradle-api/7.4/com/android/build/api/dsl/BuildFeatures#buildConfig()]]
    */
-  def enableBuildConfig: Boolean = true
+  def enableBuildConfig: T[Boolean] = true
 
   /**
    * The package name where the BuildInfo.java file will be generated.
    * Defaults to [[androidNamespace]].
    */
-  def androidBuildInfoPackageName: String = androidNamespace
+  def androidBuildInfoPackageName: T[String] = androidNamespace()
 
   /**
    * The members to include in the generated BuildConfig.java file.
@@ -692,7 +690,7 @@ trait AndroidModule extends JavaModule { outer =>
     Seq(
       s"boolean DEBUG = ${androidIsDebug()}",
       s"""String BUILD_TYPE = "$buildType"""",
-      s"""String LIBRARY_PACKAGE_NAME = "$androidBuildInfoPackageName""""
+      s"""String LIBRARY_PACKAGE_NAME = "${androidBuildInfoPackageName()}""""
     )
   }
 
@@ -706,13 +704,13 @@ trait AndroidModule extends JavaModule { outer =>
     }
     val content: String =
       s"""
-         |package $androidBuildInfoPackageName;
+         |package ${androidBuildInfoPackageName()};
          |public final class BuildConfig {
          |  ${parsedMembers.mkString("\n  ")}
          |}
           """.stripMargin
 
-    val destination = Task.dest / "source" / os.SubPath(androidBuildInfoPackageName.replace(
+    val destination = Task.dest / "source" / os.SubPath(androidBuildInfoPackageName().replace(
       ".",
       "/"
     )) / "BuildConfig.java"
@@ -722,12 +720,9 @@ trait AndroidModule extends JavaModule { outer =>
     Seq(PathRef(destination))
   }
 
-  override def generatedSources: T[Seq[PathRef]] = if enableBuildConfig then
-    Task {
-      super.generatedSources() ++ androidGeneratedBuildConfigSources()
-    }
-  else {
-    super.generatedSources()
+  override def generatedSources: T[Seq[PathRef]] = Task {
+    if (enableBuildConfig()) super.generatedSources() ++ androidGeneratedBuildConfigSources()
+    else super.generatedSources()
   }
 
   /**
@@ -832,7 +827,7 @@ trait AndroidModule extends JavaModule { outer =>
       "--manifest",
       PathRef.toAbsString(androidMergedManifest().path),
       "--custom-package",
-      androidNamespace,
+      androidNamespace(),
       "--java",
       PathRef.toAbsString(javaRClassDir),
       "--min-sdk-version",
@@ -957,7 +952,7 @@ trait AndroidModule extends JavaModule { outer =>
 
     override def androidManifest: T[PathRef] = outer.androidManifest()
 
-    override def androidNamespace: String = s"${outer.androidNamespace}.test"
+    override def androidNamespace: T[String] = s"${outer.androidNamespace()}.test"
 
     override def moduleDir: os.Path = outer.moduleDir
 
@@ -969,13 +964,11 @@ trait AndroidModule extends JavaModule { outer =>
      * `testOptions.unitTests { isIncludeAndroidResources = false }`
      * seen in Gradle (AGP)
      */
-    def androidIncludeAndroidResources: Boolean = false
+    def androidIncludeAndroidResources: T[Boolean] = false
 
-    override def runClasspath: T[Seq[PathRef]] = {
-      if (androidIncludeAndroidResources)
-        Task { runClasspathWithAndroidResources() }
-      else
-        Task { super.runClasspath() }
+    override def runClasspath: T[Seq[PathRef]] = Task {
+      if (androidIncludeAndroidResources()) runClasspathWithAndroidResources()
+      else super.runClasspath()
     }
 
     /**
@@ -983,7 +976,7 @@ trait AndroidModule extends JavaModule { outer =>
      */
     def androidTestConfigProperties: T[Map[String, String]] = Task {
       Map(
-        "android_custom_package" -> outer.androidNamespace,
+        "android_custom_package" -> outer.androidNamespace(),
         "android_merged_manifest" -> outer.androidMergedManifest().path.toString,
         "android_resource_apk" -> outer.androidLinkedResources().apk.path.toString,
         "android_merged_assets" -> outer.androidTransitiveMergedAssets().path.toString

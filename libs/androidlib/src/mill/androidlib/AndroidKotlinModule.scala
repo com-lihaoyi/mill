@@ -32,24 +32,20 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
    *
    * For more information go to [[https://developer.android.com/topic/libraries/view-binding]]
    */
-  def androidEnableViewBinding: Boolean = false
+  def androidEnableViewBinding: T[Boolean] = false
 
   /**
    * Enable dataBinding feature (Part of Android Jetpack)
    *
    * For more information go to [[https://developer.android.com/topic/libraries/data-binding]]
    */
-  def androidEnableDataBinding: Boolean = false
+  def androidEnableDataBinding: T[Boolean] = false
 
-  private def isBindingEnabled: Boolean = androidEnableViewBinding || androidEnableDataBinding
+  private def isBindingEnabled: T[Boolean] = Task { androidEnableViewBinding() || androidEnableDataBinding() }
 
   def androidDataBindingCompilerVersion: T[String] = Task {
-    isBindingEnabled match {
-      case true => throw Exception(
-          "androidDataBindingCompilerVersion must be set (e.g. \"8.13.0\") when view or data binding is enabled."
-        )
-      case false => ""
-    }
+    if (isBindingEnabled()) Task.fail("androidDataBindingCompilerVersion must be set (e.g. \"8.13.0\") when view or data binding is enabled.")
+    else ""
   }
 
   def androidDataBindingCompilerDeps: T[Seq[Dep]] = Task {
@@ -94,12 +90,12 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
     os.makeDir.all(resOutputDir)
     os.makeDir.all(layoutInfoOutputDir)
     val args = ProcessResourcesArgs(
-      applicationPackageName = androidNamespace,
+      applicationPackageName = androidNamespace(),
       resInputDir = androidResources().head.path.toString,
       resOutputDir = resOutputDir.toString,
       layoutInfoOutputDir = layoutInfoOutputDir.toString,
-      enableViewBinding = androidEnableViewBinding,
-      enableDataBinding = androidEnableDataBinding
+      enableViewBinding = androidEnableViewBinding(),
+      enableDataBinding = androidEnableDataBinding()
     )
 
     androidDataBindingWorkerModule().processResources(androidDataBindingWorker(), args)
@@ -115,13 +111,13 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
     os.makeDir.all(outputDir)
     os.makeDir.all(classInfoDir)
     val args = GenerateBindingSourcesArgs(
-      applicationPackageName = androidNamespace,
+      applicationPackageName = androidNamespace(),
       layoutInfoDir = (androidProcessedLayoutXmls().path / "layout_info").toString,
       classInfoDir = classInfoDir.toString,
       outputDir = outputDir.toString,
       logFolder = logDir.toString,
-      enableViewBinding = androidEnableViewBinding,
-      enableDataBinding = androidEnableDataBinding
+      enableViewBinding = androidEnableViewBinding(),
+      enableDataBinding = androidEnableDataBinding()
     )
 
     androidDataBindingWorkerModule().generateBindingSources(androidDataBindingWorker(), args)
@@ -129,40 +125,39 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
     PathRef(Task.dest)
   }
 
-  override def generatedSources: T[Seq[PathRef]] = isBindingEnabled match {
-    case true => super.generatedSources() :+ generatedAndroidBindingSources()
-    case false => super.generatedSources()
+  override def generatedSources: T[Seq[PathRef]] = Task {
+    if (isBindingEnabled()) super.generatedSources() :+ generatedAndroidBindingSources()
+    else super.generatedSources()
   }
 
   /**
    * If data binding or view binding is enabled, aapt2 needs the processed resources
    * https://android.googlesource.com/platform/frameworks/data-binding/+/85dd11e6e0da7a35ca0c154beaf02b7f7217bd2f/exec/src/main/java/android/databinding/cli/ProcessXmlOptions.java#39
    */
-  override def androidCompiledModuleResources: T[Seq[PathRef]] = isBindingEnabled match {
-    case true => Task {
-        val moduleResources = Seq(androidProcessedLayoutXmls().path / "resources")
+  override def androidCompiledModuleResources: T[Seq[PathRef]] = Task {
+    if (isBindingEnabled()) {
+      val moduleResources = Seq(androidProcessedLayoutXmls().path / "resources")
 
-        val aapt2Compile = Seq(PathRef.toAbsString(androidSdkModule().aapt2Exe()), "compile")
+      val aapt2Compile = Seq(PathRef.toAbsString(androidSdkModule().aapt2Exe()), "compile")
 
-        for (libResDir <- moduleResources) {
-          val segmentsSeq = libResDir.segments.toSeq
-          val libraryName = segmentsSeq.dropRight(1).last
-          val dirDest = Task.dest / libraryName
-          os.makeDir(dirDest)
-          val aapt2Args = Seq(
-            "--dir",
-            // Pass real absolute paths rather than `../mill-workspace` relativized aliases,
-            // which the aapt2 subprocess cannot resolve from its own working directory.
-            PathRef.toAbsString(libResDir),
-            "-o",
-            PathRef.toAbsString(dirDest)
-          )
+      for (libResDir <- moduleResources) {
+        val segmentsSeq = libResDir.segments.toSeq
+        val libraryName = segmentsSeq.dropRight(1).last
+        val dirDest = Task.dest / libraryName
+        os.makeDir(dirDest)
+        val aapt2Args = Seq(
+          "--dir",
+          // Pass real absolute paths rather than `../mill-workspace` relativized aliases,
+          // which the aapt2 subprocess cannot resolve from its own working directory.
+          PathRef.toAbsString(libResDir),
+          "-o",
+          PathRef.toAbsString(dirDest)
+        )
 
-          os.call(aapt2Compile ++ aapt2Args)
-        }
-        androidTransitiveCompiledResources() ++ Seq(PathRef(Task.dest))
+        os.call(aapt2Compile ++ aapt2Args)
       }
-    case false => super.androidCompiledModuleResources()
+      androidTransitiveCompiledResources() ++ Seq(PathRef(Task.dest))
+    } else super.androidCompiledModuleResources()
   }
 
   override def kotlincPluginMvnDeps: T[Seq[Dep]] = Task {

@@ -16,9 +16,9 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
    * and for placing the android resources in.
    * @return
    */
-  def androidLibPackage: String
+  def androidLibPackage: T[String]
 
-  override final def androidNamespace: String = androidLibPackage
+  override final def androidNamespace: T[String] = androidLibPackage()
 
   /**
    * Provides os.Path to an XML file containing configuration and metadata about your android application.
@@ -30,7 +30,7 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
     val manifestElem = XML.loadFile(manifestFromSourcePath.toString())
     // add the application package
     val manifestWithPackage =
-      manifestElem % Attribute(None, "package", Text(androidLibPackage), Null)
+      manifestElem % Attribute(None, "package", Text(androidLibPackage()), Null)
 
     val generatedManifestPath = Task.dest / "AndroidManifest.xml"
     os.write(generatedManifestPath, manifestWithPackage.mkString)
