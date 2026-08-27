@@ -40,5 +40,14 @@ import mill.api.internal
     }
   }
 
-  def main(args: Array[String]): Unit = mainargs.ParserForMethods(this).runOrExit(args)
+  def main(args: Array[String]): Unit = {
+    mainargs.ParserForMethods(this).runOrExit(args)
+    // Discovery is over, kill the JVM whether or not anyone's threads are still running.
+    // Test frameworks may leave non-daemon threads behind: `getTestTasks` instantiates a
+    // `Runner` and never calls `done()` on it, and e.g. ScalaTest spawns a non-daemon
+    // "ScalaTest-dispatcher" thread as part of that. Returning normally would leave this
+    // process alive forever, and `TestModuleUtil.runTests` waits for it to exit.
+    System.out.flush()
+    System.exit(0)
+  }
 }
