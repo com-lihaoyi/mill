@@ -20,10 +20,10 @@ private[mill] trait MavenPublish {
 
     val (snapshots, releases) = publishDatas.partition(_.meta.isSnapshot)
 
-    releases.map(_ -> false).appendedAll(snapshots.map(_ -> true)).foreach { (data, isSnapshot) =>
-      mavenPublishData(
+    Seq(releases -> false, snapshots -> true).foreach { (datas, isSnapshot) =>
+      mavenDeploy(
         dryRun = dryRun,
-        publishData = data,
+        publishDatas = datas,
         isSnapshot = isSnapshot,
         credentials = credentials,
         releaseUri = releaseUri,
@@ -35,9 +35,16 @@ private[mill] trait MavenPublish {
     }
   }
 
-  def mavenPublishData(
+  /**
+   * Deploys all of the given [[PublishData]]s in a single Maven deploy operation.
+   *
+   * Deploying everything in one go (rather than once per module) matters for `SNAPSHOT` versions:
+   * Maven derives the timestamp part of the deployed snapshot version once per deploy operation,
+   * so publishing the modules one by one would give each of them a different timestamp.
+   */
+  def mavenDeploy(
       dryRun: Boolean,
-      publishData: PublishData,
+      publishDatas: Seq[PublishData],
       isSnapshot: Boolean,
       credentials: (username: String, password: String),
       releaseUri: String,
@@ -45,16 +52,19 @@ private[mill] trait MavenPublish {
       taskDest: os.Path,
       log: Logger,
       worker: InternalMavenWorkerSupport.Api
-  ): Unit = {
+  ): Unit = if (publishDatas.nonEmpty) {
     val uri = if (isSnapshot) snapshotUri else releaseUri
-    val artifacts = MavenWorkerSupport.RemoteM2Publisher.asM2ArtifactsFromPublishDatas(
-      publishData.meta,
-      publishData.payloadAsMap
-    )
+    val artifacts = publishDatas.flatMap { publishData =>
+      MavenWorkerSupport.RemoteM2Publisher.asM2ArtifactsFromPublishDatas(
+        publishData.meta,
+        publishData.payloadAsMap
+      )
+    }
 
     if (isSnapshot) {
       log.info(
-        s"Detected a 'SNAPSHOT' version for ${publishData.meta}, publishing to Maven Repository at '$uri'"
+        s"Detected a 'SNAPSHOT' version for ${publishDatas.map(_.meta).mkString(", ")}, " +
+          s"publishing to Maven Repository at '$uri'"
       )
     }
 
