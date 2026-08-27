@@ -15,7 +15,7 @@ import mill.javalib.api.*
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "3.8.4"
+  val scalaVersion = "3.9.0"
 
   val scalaVersionJava11 = "3.7.4"
   val scala2Version = "2.13.18"
