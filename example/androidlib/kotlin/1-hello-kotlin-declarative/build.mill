@@ -1,0 +1,279 @@
+//| mill-jvm-version: zulu:21
+// This section sets up a basic Android project using Mill.
+// We utilize `AndroidAppKotlinModule` and `AndroidSdkModule` to streamline the process of
+// building an Android application with minimal configuration.
+//
+// By extending `AndroidAppKotlinModule`, we inherit all Android-related tasks such as
+// resource generation, APK building, DEX conversion, and APK signing.
+// Additionally, `AndroidSdkModule` is embedded, making SDK management seamless.
+
+//// SNIPPET:BUILD
+package build
+
+import mill.*, androidlib.*, kotlinlib.*, scalalib.*
+
+import coursier.maven.MavenRepository
+
+// Create and configure an Android SDK module to manage Android SDK paths and tools.
+object androidSdkModule0 extends AndroidSdkModule {
+  def buildToolsVersion = "35.0.0"
+}
+
+// Actual android application
+object app extends AndroidAppKotlinModule {
+
+  def kotlinVersion = "2.0.20"
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+  def androidMinSdk = 19
+  def androidCompileSdk = 35
+  def androidApplicationId = "com.helloworld.app"
+  def androidApplicationNamespace = "com.helloworld.app"
+
+  /**
+   * Configuration for ReleaseKey
+   * WARNING: Replace these default values with secure and private credentials before using in production.
+   * Never use these defaults in a production environment as they are not secure.
+   * This is just for testing purposes.
+   */
+  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
+  override def androidVirtualDevice = super.androidVirtualDevice().withName("kotlin-test")
+  override def androidEmulatorPort: String = System.getenv.getOrDefault("EMULATOR_PORT", "5556")
+
+  override def androidIsDebug: T[Boolean] = Task { false }
+
+  object test extends AndroidAppKotlinTests, TestModule.Junit4 {
+    def junit4Version = "4.13.2"
+  }
+
+  object it extends AndroidAppKotlinInstrumentedTests {
+
+    // TODO currently instrumented tests debug mode
+    // is coupled with the app debug mode. Fix so
+    // that instrumented tests can be built with debug
+    // configuration but the apk signature will not match
+    // the app apk
+    override def androidIsDebug: T[Boolean] = Task {
+      false
+    }
+
+    def mvnDeps = Seq(
+      mvn"androidx.test.ext:junit:1.2.1",
+      mvn"androidx.test:runner:1.6.2",
+      mvn"androidx.test.espresso:espresso-core:3.5.1",
+      mvn"junit:junit:4.13.2"
+    )
+  }
+}
+
+//// SNIPPET:END
+
+/** Usage
+
+> ./mill show app.androidApk
+".../out/app/androidApk.dest/app.apk"
+
+> ./mill app.it.androidTestApk
+
+*/
+
+// This command triggers the build process, which installs the Android Setup, compiles the kotlin
+// code, generates Android resources, converts kotlin bytecode to DEX format, packages everything
+// into an APK, optimizes the APK using `zipalign`, and finally signs it.
+//
+// This Mill build configuration is designed to build a simple "Hello World" Android application.
+// By extending `AndroidAppKotlinModule`, we leverage its predefined Android build tasks, ensuring that
+// all necessary steps (resource generation, APK creation, and signing) are executed automatically.
+//
+// #### Project Structure:
+// The project follows the standard Android app layout. Below is a typical project folder structure:
+//
+// ----
+// .
+//├── app
+//│   └── src
+//│       ├── androidTest/java/com/helloworld/app/ExampleInstrumentedTest.kt
+//│       ├── main
+//│       │   ├── AndroidManifest.xml
+//│       │   ├── java/com/helloworld/app/MainActivity.kt
+//│       │   └── res
+//│       │       └── values
+//│       │           ├── colors.xml
+//│       │           └── strings.xml
+//│       └── test/java/com/helloworld/app/ExampleUnitTest.kt
+//└── build.mill
+// ----
+//
+
+// This command runs unit tests on your local environment.
+/** Usage
+
+> ./mill -j 1 show app.test
+...Compiling 2 Kotlin sources...
+
+> cat out/app/test/testForked.dest/worker-0/out.json
+["",[...{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.text_size_is_correct","selector":"com.helloworld.ExampleUnitTest.text_size_is_correct","duration":...,"status":"Success"}...]]
+
+> cat out/app/test/testForked.dest/worker-0/out.json
+["",[...{"fullyQualifiedName":"com.helloworld.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct","selector":"com.helloworld.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct","duration":...,"status":"Success"}...]]
+
+*/
+
+// Create an AVD and start an Android Emulator to install the APK.
+
+/** Usage
+
+> ./mill app.createAndroidVirtualDevice
+
+> ./mill show app.startAndroidEmulator
+
+> ./mill show app.adbDevices
+...emulator-...device...
+
+*/
+
+// To install the APK on the emulator:
+/** Usage
+
+> ./mill show app.androidInstall
+...All files should be loaded. Notifying the device...
+
+*/
+
+// You can also use the `run` command which combines the installation and launching of the app in one step. It will automatically trigger the `androidInstall` task and then launch the main activity of the app on the emulator.
+/** Usage
+> ./mill show app.run
+*/
+
+// The android tests (existing typically in androidTest directory, aka instrumented tests)
+// typically run on an android device.
+// The `it` task runs the android tests on the emulator created and started earlier.
+
+/** Usage
+
+> ./mill show app.it
+...
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "selector": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "duration": 0,
+      "status": "Success"
+    },
+    {
+      "fullyQualifiedName": "com.helloworld.logictest.SampleLogicInKotlinDirInstrumentedTest.kotlin_dir_text_size_is_correct",
+      "selector": "com.helloworld.logictest.SampleLogicInKotlinDirInstrumentedTest.kotlin_dir_text_size_is_correct",
+      "duration": 0,
+      "status": "Success"
+    },
+    {
+      "fullyQualifiedName": "com.helloworld.logictest.SampleLogicInstrumentedTest.text_size_is_correct",
+      "selector": "com.helloworld.logictest.SampleLogicInstrumentedTest.text_size_is_correct",
+      "duration": 0,
+      "status": "Success"
+    }
+  ]
+}
+...
+
+> cat out/app/it/testForked.dest/test-report.xml
+...
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites tests="3" failures="0" errors="0" skipped="0" time="0.0">
+...
+
+*/
+
+// The instrumented tests command accepts additional parameters to filter tests using `adb` `-e` options.
+//
+// Basic documentation can be found https://developer.android.com/studio/test/command-line#am-instrument-options[here] while more JUnitRunner flags can be found https://developer.android.com/reference/androidx/test/runner/AndroidJUnitRunner#typical-usage[here].
+//
+// For example, to run a specific package:
+/** Usage
+
+> ./mill show app.it -e package com.helloworld.logictest
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "com.helloworld.logictest.SampleLogicInKotlinDirInstrumentedTest.kotlin_dir_text_size_is_correct",
+      "selector": "com.helloworld.logictest.SampleLogicInKotlinDirInstrumentedTest.kotlin_dir_text_size_is_correct",
+      "duration": 0,
+      "status": "Success"
+    },
+    {
+      "fullyQualifiedName": "com.helloworld.logictest.SampleLogicInstrumentedTest.text_size_is_correct",
+      "selector": "com.helloworld.logictest.SampleLogicInstrumentedTest.text_size_is_correct",
+      "duration": 0,
+      "status": "Success"
+    }
+  ]
+}
+*/
+
+// To run a specific class:
+/** Usage
+> ./mill show app.it -e class com.helloworld.logictest.SampleLogicInstrumentedTest
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "com.helloworld.logictest.SampleLogicInstrumentedTest.text_size_is_correct",
+      "selector": "com.helloworld.logictest.SampleLogicInstrumentedTest.text_size_is_correct",
+      "duration": 0,
+      "status": "Success"
+    }
+  ]
+}
+*/
+
+// To run a specific method: (Notice the use of single quotes to avoid shell interpretation of the `#` character)
+/** Usage
+
+> ./mill show app.it -e class 'com.helloworld.app.ExampleInstrumentedTest#useAppContext'
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "selector": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "duration": 0,
+      "status": "Success"
+    }
+  ]
+}
+
+*/
+
+// You can also exlude spefic tests and combine multiple `-e` options as needed. For example, to exclude a specific package and class:
+/** Usage
+
+> ./mill show app.it -e notPackage com.helloworld.app -e notClass com.helloworld.logictest.SampleLogicInKotlinDirInstrumentedTest
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "com.helloworld.logictest.SampleLogicInstrumentedTest.text_size_is_correct",
+      "selector": "com.helloworld.logictest.SampleLogicInstrumentedTest.text_size_is_correct",
+      "duration": 0,
+      "status": "Success"
+    }
+  ]
+}
+
+*/
+
+// After running the tests, you can stop and delete the Android Virtual Device (AVD).
+/** Usage
+
+> ./mill show app.stopAndroidEmulator
+
+> ./mill show app.deleteAndroidVirtualDevice
+
+*/
+
+// The provided commands can be used in a CI/CD pipeline assuming the right setup is in place.
