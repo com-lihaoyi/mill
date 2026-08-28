@@ -10,6 +10,7 @@
     {
       "type": "library",
       "bom-ref": "pkg:maven/commons-io/commons-io@2.18.0?type=jar",
+      "purl": "pkg:maven/commons-io/commons-io@2.18.0?type=jar",
       "group": "commons-io",
       "name": "commons-io",
       "version": "2.18.0",
@@ -32,6 +33,7 @@
     {
       "type": "library",
       "bom-ref": "pkg:maven/ch.qos.logback/logback-classic@1.5.12?type=jar",
+      "purl": "pkg:maven/ch.qos.logback/logback-classic@1.5.12?type=jar",
       "group": "ch.qos.logback",
       "name": "logback-classic",
       "version": "1.5.12",
@@ -60,6 +62,7 @@
     {
       "type": "library",
       "bom-ref": "pkg:maven/ch.qos.logback/logback-core@1.5.12?type=jar",
+      "purl": "pkg:maven/ch.qos.logback/logback-core@1.5.12?type=jar",
       "group": "ch.qos.logback",
       "name": "logback-core",
       "version": "1.5.12",
@@ -88,6 +91,7 @@
     {
       "type": "library",
       "bom-ref": "pkg:maven/org.slf4j/slf4j-api@2.0.15?type=jar",
+      "purl": "pkg:maven/org.slf4j/slf4j-api@2.0.15?type=jar",
       "group": "org.slf4j",
       "name": "slf4j-api",
       "version": "2.0.15",
