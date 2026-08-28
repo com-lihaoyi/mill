@@ -1,1 +1,6 @@
 mill-jvm-version: zulu:21
+extends: Module
+
+object androidSdkModule:
+  extends: mill.androidlib.AndroidSdkModule
+  buildToolsVersion: 35.0.0

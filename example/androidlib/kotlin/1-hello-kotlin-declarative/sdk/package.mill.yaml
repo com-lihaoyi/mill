@@ -1,2 +1,0 @@
-extends: AndroidSdkModule
-buildToolsVersion: 35.0.0
