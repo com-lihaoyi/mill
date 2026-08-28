@@ -66,6 +66,18 @@ object `package` extends MillStableScalaModule with BuildInfo {
       ),
       ProblemFilter.exclude[DirectMissingMethodProblem](
         "mill.api.internal.Util.renderSecondsSuffix$default$2"
+      ),
+      ProblemFilter.exclude[DirectMissingMethodProblem](
+        "mill.api.internal.ModuleDepsResolver.resolveModuleDeps"
+      ),
+      ProblemFilter.exclude[DirectMissingMethodProblem](
+        "mill.api.internal.ModuleDepsResolver#ModuleDepsConfig.apply"
+      ),
+      ProblemFilter.exclude[DirectMissingMethodProblem](
+        "mill.api.internal.ModuleDepsResolver#ModuleDepsConfig.this"
+      ),
+      ProblemFilter.exclude[DirectMissingMethodProblem](
+        "mill.api.internal.ModuleDepsResolver#ModuleDepsConfig.copy"
       )
     )
 }
