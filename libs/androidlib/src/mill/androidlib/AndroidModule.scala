@@ -673,7 +673,7 @@ trait AndroidModule extends JavaModule { outer =>
    *
    * [[https://developer.android.com/reference/tools/gradle-api/7.4/com/android/build/api/dsl/BuildFeatures#buildConfig()]]
    */
-  def enableBuildConfig: T[Boolean] = true
+  def enableBuildConfig: Boolean = true
 
   /**
    * The package name where the BuildInfo.java file will be generated.
@@ -720,9 +720,12 @@ trait AndroidModule extends JavaModule { outer =>
     Seq(PathRef(destination))
   }
 
-  override def generatedSources: T[Seq[PathRef]] = Task {
-    if (enableBuildConfig()) super.generatedSources() ++ androidGeneratedBuildConfigSources()
-    else super.generatedSources()
+  override def generatedSources: T[Seq[PathRef]] = if enableBuildConfig then
+    Task {
+      super.generatedSources() ++ androidGeneratedBuildConfigSources()
+    }
+  else {
+    super.generatedSources()
   }
 
   /**
@@ -964,11 +967,13 @@ trait AndroidModule extends JavaModule { outer =>
      * `testOptions.unitTests { isIncludeAndroidResources = false }`
      * seen in Gradle (AGP)
      */
-    def androidIncludeAndroidResources: T[Boolean] = false
+    def androidIncludeAndroidResources: Boolean = false
 
-    override def runClasspath: T[Seq[PathRef]] = Task {
-      if (androidIncludeAndroidResources()) runClasspathWithAndroidResources()
-      else super.runClasspath()
+    override def runClasspath: T[Seq[PathRef]] = {
+      if (androidIncludeAndroidResources)
+        Task { runClasspathWithAndroidResources() }
+      else
+        Task { super.runClasspath() }
     }
 
     /**

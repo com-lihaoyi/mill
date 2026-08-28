@@ -32,19 +32,22 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
    *
    * For more information go to [[https://developer.android.com/topic/libraries/view-binding]]
    */
-  def androidEnableViewBinding: T[Boolean] = false
+  def androidEnableViewBinding: Boolean = false
 
   /**
    * Enable dataBinding feature (Part of Android Jetpack)
    *
    * For more information go to [[https://developer.android.com/topic/libraries/data-binding]]
    */
-  def androidEnableDataBinding: T[Boolean] = false
+  def androidEnableDataBinding: Boolean = false
 
-  private def isBindingEnabled: T[Boolean] = Task { androidEnableViewBinding() || androidEnableDataBinding() }
+  private def isBindingEnabled: Boolean = androidEnableViewBinding || androidEnableDataBinding
 
   def androidDataBindingCompilerVersion: T[String] = Task {
-    if (isBindingEnabled()) Task.fail("androidDataBindingCompilerVersion must be set (e.g. \"8.13.0\") when view or data binding is enabled.")
+    if (isBindingEnabled)
+      Task.fail(
+        "androidDataBindingCompilerVersion must be set (e.g. \"8.13.0\") when view or data binding is enabled."
+      )
     else ""
   }
 
@@ -94,8 +97,8 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
       resInputDir = androidResources().head.path.toString,
       resOutputDir = resOutputDir.toString,
       layoutInfoOutputDir = layoutInfoOutputDir.toString,
-      enableViewBinding = androidEnableViewBinding(),
-      enableDataBinding = androidEnableDataBinding()
+      enableViewBinding = androidEnableViewBinding,
+      enableDataBinding = androidEnableDataBinding
     )
 
     androidDataBindingWorkerModule().processResources(androidDataBindingWorker(), args)
@@ -116,8 +119,8 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
       classInfoDir = classInfoDir.toString,
       outputDir = outputDir.toString,
       logFolder = logDir.toString,
-      enableViewBinding = androidEnableViewBinding(),
-      enableDataBinding = androidEnableDataBinding()
+      enableViewBinding = androidEnableViewBinding,
+      enableDataBinding = androidEnableDataBinding
     )
 
     androidDataBindingWorkerModule().generateBindingSources(androidDataBindingWorker(), args)
@@ -125,17 +128,17 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
     PathRef(Task.dest)
   }
 
-  override def generatedSources: T[Seq[PathRef]] = Task {
-    if (isBindingEnabled()) super.generatedSources() :+ generatedAndroidBindingSources()
-    else super.generatedSources()
+  override def generatedSources: T[Seq[PathRef]] = isBindingEnabled match {
+    case true => super.generatedSources() :+ generatedAndroidBindingSources()
+    case false => super.generatedSources()
   }
 
   /**
    * If data binding or view binding is enabled, aapt2 needs the processed resources
    * https://android.googlesource.com/platform/frameworks/data-binding/+/85dd11e6e0da7a35ca0c154beaf02b7f7217bd2f/exec/src/main/java/android/databinding/cli/ProcessXmlOptions.java#39
    */
-  override def androidCompiledModuleResources: T[Seq[PathRef]] = Task {
-    if (isBindingEnabled()) {
+  override def androidCompiledModuleResources: T[Seq[PathRef]] = if (isBindingEnabled)
+    Task {
       val moduleResources = Seq(androidProcessedLayoutXmls().path / "resources")
 
       val aapt2Compile = Seq(PathRef.toAbsString(androidSdkModule().aapt2Exe()), "compile")
@@ -157,8 +160,8 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
         os.call(aapt2Compile ++ aapt2Args)
       }
       androidTransitiveCompiledResources() ++ Seq(PathRef(Task.dest))
-    } else super.androidCompiledModuleResources()
-  }
+    }
+  else super.androidCompiledModuleResources()
 
   override def kotlincPluginMvnDeps: T[Seq[Dep]] = Task {
     val kv = kotlinVersion()

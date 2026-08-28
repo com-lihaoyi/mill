@@ -411,7 +411,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   /**
    * Name of the release keystore file. Default is not set.
    */
-  def androidReleaseKeyName: T[Option[String]] = None
+  def androidReleaseKeyName: Option[String] = None
 
   /**
    * Password for the release key. Default is not set.
@@ -835,8 +835,9 @@ trait AndroidAppModule extends AndroidModule { outer =>
    * Default os.Path to the keystore file, derived from `androidReleaseKeyName()`.
    * Users can customize the keystore file name to change this path.
    */
-  def androidReleaseKeyPath: T[Seq[PathRef]] = Task {
-    androidReleaseKeyName().map(name => PathRef(moduleDir / name)).toSeq
+  def androidReleaseKeyPath: T[Seq[PathRef]] = {
+    val subPaths = androidReleaseKeyName.map(os.sub / _).toSeq
+    Task.Sources(subPaths*)
   }
 
   private def debugKeystoreFile: Task[PathRef] = Task.Anon {
@@ -1044,7 +1045,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       Task { s"${outer.androidApplicationNamespace()}.test" }
 
     override def androidReleaseKeyAlias: T[Option[String]] = outer.androidReleaseKeyAlias()
-    override def androidReleaseKeyName: T[Option[String]] = outer.androidReleaseKeyName
+    override def androidReleaseKeyName: Option[String] = outer.androidReleaseKeyName
     override def androidReleaseKeyPass: T[Option[String]] = outer.androidReleaseKeyPass()
     override def androidReleaseKeyStorePass: T[Option[String]] = outer.androidReleaseKeyStorePass()
     override def androidReleaseKeyPath: T[Seq[PathRef]] = outer.androidReleaseKeyPath()
