@@ -106,7 +106,7 @@ private abstract class MillBuildServer(
       depth => metaBuildReporterFor(depth),
       (evaluators, watched, errorOpt) =>
         if (errorOpt.isDefined && evaluators.isEmpty) {
-          if (watcherThreadNeedsStart) startWatcherThreadIfNeeded(Seq.empty)
+          if (watcherThreadNeedsStart) startWatcherThreadIfNeeded(Seq.empty, watched)
           onUnavailable(evaluators, watched, errorOpt)
         } else {
           val bspEvaluators = new BspEvaluators(
@@ -115,7 +115,7 @@ private abstract class MillBuildServer(
             s => baseLogger.debug(s())
           )
           if (watcherThreadNeedsStart)
-            startWatcherThreadIfNeeded(bspEvaluators.targetSnapshots)
+            startWatcherThreadIfNeeded(bspEvaluators.targetSnapshots, watched)
           body(bspEvaluators, evaluators, watched, errorOpt)
         }
     )
@@ -132,19 +132,32 @@ private abstract class MillBuildServer(
   @volatile private var watcherThread: Thread = null
   private val watcherPollIntervalMs: Long = 500L
 
-  private def startWatcherThread(initialTargetSnapshots: Seq[ChangeNotifier.TargetSnapshot])
-      : Unit = {
+  private def startWatcherThread(
+      initialTargetSnapshots: Seq[ChangeNotifier.TargetSnapshot],
+      initialBuildDefinitionWatches: Seq[Watchable]
+  ): Unit = {
     val watchLogger = new PrefixLogger(baseLogger, Seq("watch"))
     watcherThread = mill.api.daemon.StartThread("mill-bsp-watcher", daemon = true) {
       var prevTargetSnapshots = initialTargetSnapshots
+      var buildDefinitionWatches = initialBuildDefinitionWatches
+      var pendingBuildDefinitionChange = false
       try while (
           !stopped &&
           !shutdownPromise.isCompleted &&
           !Thread.currentThread().isInterrupted
         ) {
           try {
-            val watchedSeq =
-              withBootstrappedEvaluators("BSP:watch")((_, watched, _) => watched) {
+            // The first pass stabilizes module watches discovered lazily while the
+            // initial target snapshots were built. Only stale watches from the
+            // preceding pass represent a build-definition transition.
+            pendingBuildDefinitionChange = pendingBuildDefinitionChange ||
+              buildDefinitionWatches.exists { watchable =>
+                try !WatchSig.haveNotChanged(watchable)
+                catch { case NonFatal(_) => true }
+              }
+
+            val (watchedSeq, snapshotsUpdated) =
+              withBootstrappedEvaluators("BSP:watch")((_, watched, _) => (watched, false)) {
                 (bspEvaluators, _, watched, _) =>
                   val current = bspEvaluators.targetSnapshots
                   val currentClient = client
@@ -152,11 +165,14 @@ private abstract class MillBuildServer(
                     ChangeNotifier.notifyChanges(
                       currentClient,
                       prevTargetSnapshots,
-                      current
+                      current,
+                      buildDefinitionChanged = pendingBuildDefinitionChange
                     )
                   prevTargetSnapshots = current
-                  watched
+                  (watched, true)
               }
+            if (snapshotsUpdated) pendingBuildDefinitionChange = false
+            buildDefinitionWatches = watchedSeq
 
             def stillUnchanged(): Boolean =
               try watchedSeq.forall(WatchSig.haveNotChanged)
@@ -197,10 +213,11 @@ private abstract class MillBuildServer(
   }
 
   private def startWatcherThreadIfNeeded(
-      initialTargetSnapshots: Seq[ChangeNotifier.TargetSnapshot]
+      initialTargetSnapshots: Seq[ChangeNotifier.TargetSnapshot],
+      initialBuildDefinitionWatches: Seq[Watchable]
   ): Unit = synchronized {
     if (bspWatch && buildInitialized && watcherThread == null && !stopped)
-      startWatcherThread(initialTargetSnapshots)
+      startWatcherThread(initialTargetSnapshots, initialBuildDefinitionWatches)
   }
 
   def close(): Unit = {
