@@ -430,8 +430,12 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
     val classpath = (compileClasspathPaths.iterator ++ Some(classesDir))
       .map(path => converter.toVirtualFile(path.toNIO))
       .toArray
+    // Compiler plugins compare virtual source paths with options such as SemanticDB's sourceroot.
+    // Keep OS-Lib's reproducible path aliases out of that compiler-facing boundary.
+    val resolvedWorkspaceRoot = PathRef.toResolvedOsPath(localConfig.workspaceRoot)
     val virtualSources = sources.iterator
-      .map(path => converter.toVirtualFile(path.toNIO))
+      .map(PathRef.toResolvedOsPathAnchored(_, resolvedWorkspaceRoot))
+      .map(path => converter.toVirtualFile(PathRef.toAbsNioPath(path)))
       .toArray
 
     val externalHooks = new DefaultExternalHooks(

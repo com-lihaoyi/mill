@@ -14,6 +14,18 @@ object ScalaSemanticDbTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
+  class SemanticWorldWithJvm(scalaVersion0: String) extends TestRootModule {
+    object core extends SemanticModule {
+      override def scalaVersion = scalaVersion0
+      override def jvmVersion = "17"
+    }
+
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  object Scala2SemanticWorldWithJvm extends SemanticWorldWithJvm(scala213Version)
+  object Scala3SemanticWorldWithJvm extends SemanticWorldWithJvm(scala33Version)
+
   def tests: Tests = Tests {
 
     test("semanticDbData") {
@@ -124,6 +136,28 @@ object ScalaSemanticDbTests extends TestSuite {
           )
         }
       }
+    }
+
+    test("semanticDbDataWithJvmVersion") {
+      def check(world: SemanticWorldWithJvm): Unit =
+        UnitTester(world, sourceRoot = resourcePath).scoped { eval =>
+          val Right(result) = eval.apply(world.core.semanticDbData).runtimeChecked
+          val semanticDbFiles = os
+            .walk(result.value.path)
+            .filter(path => os.isFile(path) && path.ext == "semanticdb")
+            .map(_.relativeTo(result.value.path))
+            .toSet
+
+          assert(
+            semanticDbFiles == Set(
+              os.sub / "META-INF/semanticdb/core/src/Main.scala.semanticdb",
+              os.sub / "META-INF/semanticdb/core/src/Result.scala.semanticdb"
+            )
+          )
+        }
+
+      test("scala2") - check(Scala2SemanticWorldWithJvm)
+      test("scala3") - check(Scala3SemanticWorldWithJvm)
     }
 
   }
