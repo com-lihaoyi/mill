@@ -615,7 +615,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         createFolders = true
       )
       os.write.over(
-        workspacePath / "scripts/visible.scala",
+        workspacePath / "scripts/visible.sc",
         """object visible
           |""".stripMargin
       )
@@ -633,7 +633,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
           .map(_.getId.getUri)
           .toSet
 
-        assert(targetUris.contains((workspacePath / "scripts/visible.scala").toURI.toASCIIString))
+        assert(targetUris.contains((workspacePath / "scripts/visible.sc").toURI.toASCIIString))
         assert(
           !targetUris.contains(
             (workspacePath / "gatling/gatling-app/src/main/scala/io/gatling/app/Analytics.scala")
