@@ -1,7 +1,7 @@
 package mill.main.gradle
 
 import mill.main.buildgen.*
-import mill.main.buildgen.ModuleSpec.ModuleDep
+import mill.main.buildgen.ModuleSpec.{ModuleDep, Value}
 import mill.main.gradle.BuildInfo.exportpluginAssemblyResource
 import mill.util.Jvm
 import org.gradle.tooling.GradleConnector
@@ -39,7 +39,6 @@ object MillGradleBuildGenMain {
   ): Unit = {
     println("converting Gradle build")
 
-    val buildGen = if (declarative) BuildGenYaml else BuildGenScala
     val gradleWorkspace = os.Path.expandUser(projectDir, os.pwd)
     val millWorkspace = os.pwd
 
@@ -102,11 +101,18 @@ object MillGradleBuildGenMain {
         }
       finally gradleConnector.disconnect()
     packages = normalizeBuild(packages)
+    if (declarative) packages = dropAndroidModulesForYaml(packages)
+    packages = attachAndroidSdkModule(packages)
+
+    val buildGen = if (declarative) BuildGenYaml else BuildGenScala
 
     val (baseModule, packages0) =
       if (noMeta.value) (None, packages)
-      else buildGen.withBaseModule(packages, "MavenModule" -> "MavenTests")
-        .fold((None, packages))((base, pkgs) => (Some(base), pkgs))
+      else buildGen.withBaseModule(
+        packages,
+        "MavenModule" -> "MavenTests",
+        "KotlinMavenModule" -> "KotlinMavenTests"
+      ).fold((None, packages))((base, pkgs) => (Some(base), pkgs))
     val millJvmOpts = Option(
       gradleWrapperProperties.getProperty("org.gradle.jvmargs")
     ).fold(Nil)(_.trim.split("\\s+").toSeq)
@@ -160,5 +166,60 @@ object MillGradleBuildGenMain {
         module0
       })
     )
+  }
+
+  /** Android modules aren't supported in declarative (YAML) output yet, so just drop them instead of failing */
+  private def dropAndroidModulesForYaml(packages: Seq[PackageSpec]): Seq[PackageSpec] = {
+    def isAndroidModule(m: ModuleSpec) =
+      m.androidApplicationNamespace.base.isDefined || m.androidNamespace.base.isDefined
+
+    val rootDir = packages.map(_.dir).minBy(_.segments.length)
+    packages.flatMap { pkg =>
+      if (!isAndroidModule(pkg.module)) Some(pkg)
+      else {
+        println(
+          s"Skipping Android module '${pkg.module.name}' for declarative (YAML) output - " +
+            "not supported yet. Re-run with --declarative false to include it."
+        )
+        if (pkg.dir == rootDir) Some(pkg.copy(module = ModuleSpec(name = pkg.module.name)))
+        else None
+      }
+    }
+  }
+
+  /** Gives all Android modules one shared `androidSdkModule0` on the root package, instead of each declaring its own. */
+  private def attachAndroidSdkModule(packages: Seq[PackageSpec]): Seq[PackageSpec] = {
+    val androidModules =
+      packages.flatMap(_.module.tree).filter(_.androidBuildToolsVersion.base.isDefined)
+    if (androidModules.isEmpty) packages
+    else {
+      val sdkModuleName = "androidSdkModule0"
+      val sdkModule = ModuleSpec(
+        name = sdkModuleName,
+        imports = Seq("mill.androidlib.*"),
+        supertypes = Seq("AndroidSdkModule"),
+        androidBuildToolsVersion = androidModules.head.androidBuildToolsVersion
+      )
+      val rootDir = packages.map(_.dir).minBy(_.segments.length)
+      packages.map { pkg =>
+        // Rewire the original tree first - only then attach sdkModule as a new child, so
+        // recMap below never re-visits (and strips) the sdk module's own marker field.
+        val rewired = pkg.module.recMap { m =>
+          if (m.androidBuildToolsVersion.base.isEmpty) m
+          else m.copy(
+            androidBuildToolsVersion = Value(),
+            androidSdkModuleDep =
+              Value(Some(ModuleDep(
+                segments = rootDir.segments,
+                childSegment = Some(sdkModuleName)
+              )))
+          )
+        }
+        pkg.copy(module =
+          if (pkg.dir == rootDir) rewired.copy(children = rewired.children :+ sdkModule)
+          else rewired
+        )
+      }
+    }
   }
 }

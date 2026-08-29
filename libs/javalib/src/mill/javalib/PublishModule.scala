@@ -167,7 +167,7 @@ trait PublishModule extends JavaModule with PgpWorkerSupport { outer =>
       Dependency(a, Scope.Import)
     }
     Seq(fromBomMods*) ++
-      bomMvnDeps().map(resolvePublishDependency.apply().apply(_))
+      allBomMvnDeps().map(resolvePublishDependency.apply().apply(_))
   }
 
   /**

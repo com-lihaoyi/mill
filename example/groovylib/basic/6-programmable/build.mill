@@ -4,7 +4,7 @@ package build
 import mill.*, groovylib.*
 
 object foo extends GroovyModule {
-  def groovyVersion = "5.0.6"
+  def groovyVersion = "5.1.1"
 
   // Groovy dependency version have been loaded via BOM from the Module already
   def mvnDeps = Seq(

@@ -770,6 +770,7 @@ object TestModule {
     def mandatoryMvnDeps: T[Seq[Dep]] = Seq()
     def resources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
     def bomMvnDeps: T[Seq[Dep]] = Seq()
+    def mandatoryBomMvnDeps: T[Seq[Dep]] = Seq()
   }
 
   trait ScalaModuleBase extends mill.Module {

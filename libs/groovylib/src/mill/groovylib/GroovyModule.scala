@@ -39,7 +39,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
     }
   }
 
-  override def bomMvnDeps: T[Seq[Dep]] = super.bomMvnDeps() ++
+  override def mandatoryBomMvnDeps: T[Seq[Dep]] = super.mandatoryBomMvnDeps() ++
     Seq(groovyVersion())
       .filter(_.nonEmpty && useGroovyBom())
       .map(v => mvn"org.apache.groovy:groovy-bom:$v")
@@ -300,7 +300,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
 
     override def groovyLanguageVersion: T[String] = outer.groovyLanguageVersion()
     override def groovyVersion: T[String] = Task { outer.groovyVersion() }
-    override def bomMvnDeps: T[Seq[Dep]] = outer.bomMvnDeps()
+    override def mandatoryBomMvnDeps: Task.Simple[Seq[Dep]] = outer.mandatoryBomMvnDeps
     override def mandatoryMvnDeps: Task.Simple[Seq[Dep]] = outer.mandatoryMvnDeps
   }
 }

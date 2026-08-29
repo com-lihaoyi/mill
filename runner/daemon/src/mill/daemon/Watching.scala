@@ -281,7 +281,7 @@ object Watching {
   /**
    * @param notifiablesChanged returns true if any of the notifiables have changed
    *
-   * @return `Some(...)` if notifiablesChanged returned a `Some(...)`, `None` if changes in watched files occured.
+   * @return `Some(...)` if notifiablesChanged returned a `Some(...)`, `None` if changes in watched files occurred.
    */
   def statWatchWait[T](
       watchedValues: Seq[Watchable.Value],
