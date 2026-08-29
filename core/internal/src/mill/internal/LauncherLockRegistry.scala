@@ -39,7 +39,12 @@ private[mill] class LauncherLockRegistry {
   ): CrossThreadRwLock =
     taskLocks.computeIfAbsent(
       normalizedAbsolutePath,
-      _ => CrossThreadRwLock(label = displayLabel, showLabelInMessage = false)
+      _ =>
+        CrossThreadRwLock(
+          label = displayLabel,
+          showLabelInMessage = false,
+          allowSameOwnerOverlap = true
+        )
     )
 
   def taskVersion(normalizedAbsolutePath: String): Long =

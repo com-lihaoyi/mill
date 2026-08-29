@@ -356,6 +356,39 @@ object PlanTests extends TestSuite {
       tracker.drain()
     }
 
+    test("leaseTrackerAcceptsLocalWritesButRetriesOnPeerWrites") {
+      import transitiveLeaseChain.*
+
+      val tracker = new Execution.LeaseTracker(
+        Array(a, b, c),
+        Map(a -> Nil, b -> Seq(a), c -> Seq(b))
+      )
+      val locking = new TestLocking
+      val aPath = Paths.get("/tmp/mill-lock-test/a")
+      val bPath = Paths.get("/tmp/mill-lock-test/b")
+      val aKey = aPath.toAbsolutePath.normalize().toString
+      val bKey = bPath.toAbsolutePath.normalize().toString
+
+      tracker.markLocallyWritten(bKey)(locking.markTaskWritten(bPath))
+      tracker.markLocallyWritten(bKey)(locking.markTaskWritten(bPath))
+
+      tracker.retain(b, bPath, "b", new TestLease, 0L)
+      tracker.releaseHigherThan(aKey)
+      tracker.reacquireDropped(locking, LauncherLocking.WaitReporter.Noop)
+
+      tracker.releaseHigherThan(aKey)
+      locking.markTaskWritten(bPath)
+      val retry =
+        try {
+          tracker.reacquireDropped(locking, LauncherLocking.WaitReporter.Noop)
+          throw new java.lang.AssertionError("expected retry")
+        } catch {
+          case e: Execution.RetryDueToDroppedTaskLock => e
+        }
+      assert(retry.label == "b")
+      tracker.drain()
+    }
+
     test("leaseTrackerNonBlockingReacquireRetriesOnContention") {
       import transitiveLeaseChain.*
 

@@ -103,6 +103,15 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
     if (os.exists(waitFile)) os.remove(waitFile)
 
   val tests: Tests = Tests {
+    test("prepare-offline-does-not-contend-with-the-same-launcher") - integrationTest { tester =>
+      import tester.*
+      assert(tester.daemonMode)
+
+      val result = eval(("__.prepareOffline"), timeout = 30000L)
+      assert(result.isSuccess)
+      assert(!result.err.contains("blocked on "))
+    }
+
     test("same-task-write-lock-blocks-second-launcher") - integrationTest { tester =>
       import tester.*
       assert(tester.daemonMode)

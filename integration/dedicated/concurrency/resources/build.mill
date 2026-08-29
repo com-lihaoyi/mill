@@ -5,6 +5,19 @@ import mill.*
 object `package` extends mill.Module {
   val fastSuffix = 0
 
+  object sharedOffline extends Module {
+    def prepareOffline() = Task.Command { "prepared" }
+  }
+
+  trait OfflineModule extends Module {
+    def prepareOffline() = Task.Command { sharedOffline.prepareOffline()() }
+  }
+
+  object offline0 extends OfflineModule
+  object offline1 extends OfflineModule
+  object offline2 extends OfflineModule
+  object offline3 extends OfflineModule
+
   private def workspace = mill.api.BuildCtx.workspaceRoot
 
   private def gate(name: String) = workspace / s"$name-wait"

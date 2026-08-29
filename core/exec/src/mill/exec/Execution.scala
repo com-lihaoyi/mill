@@ -557,6 +557,13 @@ object Execution {
     // visits only those instead of scanning the whole graph. A `State` has at
     // most one retained, so membership mirrors `Retained.dropped` exactly.
     private val droppedStates = ConcurrentHashMap.newKeySet[State]()
+    private class LocalVersionState {
+      var latestVersion: Long = Long.MinValue
+    }
+    private val localVersionsByKey = new ConcurrentHashMap[String, LocalVersionState]()
+
+    private def localVersionState(key: String): LocalVersionState =
+      localVersionsByKey.computeIfAbsent(key, _ => LocalVersionState())
 
     def hasDropped: Boolean = !droppedStates.isEmpty
 
@@ -648,15 +655,32 @@ object Execution {
           clearDropped(s, s.retained)
           if (s.retained.lease != null) closeQuietly(s.retained.lease)
         }
+        val key = path.toAbsolutePath.normalize().toString
+        localVersionState(key)
         s.retained = Retained(
           path = path,
           label = label,
-          key = path.toAbsolutePath.normalize().toString,
+          key = key,
           lease = lease,
           observedVersion = observedVersion
         )
       }
       else closeQuietly(lease)
+    }
+
+    /**
+     * A task lock only coordinates different launcher runs, so writes by this
+     * evaluation are compatible with its own retained leases. Record their
+     * latest version so reacquisition can still detect writes by another
+     * launcher.
+     */
+    def markLocallyWritten(key: String)(write: => Long): Long = {
+      val state = localVersionState(key)
+      state.synchronized {
+        val version = write
+        state.latestVersion = math.max(state.latestVersion, version)
+        version
+      }
     }
 
     def releaseHigherThan(key: String): Unit = {
@@ -711,9 +735,13 @@ object Execution {
               case Right(lease) => lease
               case Left(_) => throw RetryDueToDroppedTaskLock(retained.label)
             }
-          }
-        val currentVersion = workspaceLocking.taskVersion(retained.path)
-        if (currentVersion != retained.observedVersion) {
+        }
+        val localVersion = localVersionState(retained.key)
+        val versionMatches = localVersion.synchronized {
+          val currentVersion = workspaceLocking.taskVersion(retained.path)
+          currentVersion == math.max(retained.observedVersion, localVersion.latestVersion)
+        }
+        if (!versionMatches) {
           closeQuietly(lease)
           throw RetryDueToDroppedTaskLock(retained.label)
         }

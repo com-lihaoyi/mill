@@ -14,7 +14,7 @@ private[mill] class LauncherLockingImpl(
     lockRegistry: LauncherLockRegistry,
     val runId: String
 ) extends LauncherLocking {
-  private val holder = HolderInfo(launcherPid, activeCommandMessage)
+  private val holder = HolderInfo(launcherPid, activeCommandMessage, runId)
   private val closed = AtomicBoolean(false)
   private val activeLeases = scala.collection.mutable.Set.empty[LeaseWrapper]
   private val exclusiveWriteCount = AtomicInteger(0)

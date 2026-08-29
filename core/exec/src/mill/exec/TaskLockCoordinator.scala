@@ -120,7 +120,8 @@ private[exec] final class TaskLockCoordinator(
 
   def currentVersion: Long = workspaceLocking.taskVersion(taskLockPath)
 
-  def markTaskWritten(): Long = workspaceLocking.markTaskWritten(taskLockPath)
+  def markTaskWritten(): Long =
+    leaseTracker.markLocallyWritten(taskLockKey)(workspaceLocking.markTaskWritten(taskLockPath))
 
   def withActiveConsumers[T](body: => T): T =
     leaseTracker.withActiveConsumers(labelled, () => tryReacquireDroppedReads())(body)

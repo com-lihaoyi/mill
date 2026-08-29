@@ -8,22 +8,34 @@ import mill.api.daemon.internal.LauncherLocking.{Contention, Lease, LockKind, Wa
  * and released on separate threads. `label` is the human-readable name used in
  * waiting/blocking messages; uniqueness across locks is the registry's
  * responsibility (e.g. [[LauncherLockRegistry]]'s map key), not the lock's.
+ * `allowSameOwnerOverlap` is used only for task locks, which coordinate separate
+ * launcher runs rather than tasks within one run.
  */
 class CrossThreadRwLock(
     label: String,
     showLabelInMessage: Boolean = true,
-    syntheticPrefix: Seq[String] = Nil
+    syntheticPrefix: Seq[String] = Nil,
+    allowSameOwnerOverlap: Boolean = false
 ) {
   import CrossThreadRwLock.HolderInfo
 
   private val monitor = new Object
   private var readerCount = 0
-  private var writerActive = false
+  private var writerCount = 0
   private var waitingWriters = 0
   private val holders = new java.util.LinkedHashMap[Lease, HolderInfo]()
 
-  private def canAcquireRead: Boolean = !writerActive && waitingWriters == 0
-  private def canAcquireWrite: Boolean = !writerActive && readerCount == 0
+  private def sameOwnerAsAllHolders(acquirer: HolderInfo): Boolean =
+    allowSameOwnerOverlap &&
+      acquirer.ownerId.nonEmpty &&
+      !holders.isEmpty &&
+      holders.values().stream().allMatch(_.ownerId == acquirer.ownerId)
+
+  private def canAcquireRead(acquirer: HolderInfo): Boolean =
+    sameOwnerAsAllHolders(acquirer) || (writerCount == 0 && waitingWriters == 0)
+
+  private def canAcquireWrite(acquirer: HolderInfo): Boolean =
+    sameOwnerAsAllHolders(acquirer) || (writerCount == 0 && readerCount == 0)
 
   private def currentBlocker(): Option[HolderInfo] = {
     val it = holders.values().iterator()
@@ -49,9 +61,9 @@ class CrossThreadRwLock(
     val isWrite = kind == LockKind.Write
 
     val leaseOpt = monitor.synchronized {
-      val available = if (isWrite) canAcquireWrite else canAcquireRead
+      val available = if (isWrite) canAcquireWrite(acquirer) else canAcquireRead(acquirer)
       if (available) {
-        if (isWrite) writerActive = true else readerCount += 1
+        if (isWrite) writerCount += 1 else readerCount += 1
         val lease = newLease(initiallyWrite = isWrite)
         holders.put(lease, acquirer)
         Some(lease)
@@ -77,7 +89,7 @@ class CrossThreadRwLock(
         monitor.synchronized {
           try {
             while ({
-              val available = if (isWrite) canAcquireWrite else canAcquireRead
+              val available = if (isWrite) canAcquireWrite(acquirer) else canAcquireRead(acquirer)
               !available
             }) monitor.wait()
           } catch {
@@ -89,7 +101,7 @@ class CrossThreadRwLock(
               throw e
           }
           if (isWrite) waitingWriters -= 1
-          if (isWrite) writerActive = true else readerCount += 1
+          if (isWrite) writerCount += 1 else readerCount += 1
           val lease = newLease(initiallyWrite = isWrite)
           holders.put(lease, acquirer)
           lease
@@ -109,15 +121,15 @@ class CrossThreadRwLock(
    *
    * Crucially: a failed try does NOT increment [[waitingWriters]], so the
    * caller's subsequent Read attempts won't trip writer-priority
-   * (`canAcquireRead = !writerActive && waitingWriters == 0`). This is
+   * (`canAcquireRead = writerCount == 0 && waitingWriters == 0`). This is
    * what makes the retryable read-then-write pattern in
    * [[LockUpgrade.readThenWrite]] work: a launcher can fail to grab Write,
    * fall back to Read, and re-probe shared state without poisoning its
    * own next Read attempt.
    */
   def tryAcquireWrite(acquirer: HolderInfo): Either[Contention, Lease] = monitor.synchronized {
-    if (canAcquireWrite) {
-      writerActive = true
+    if (canAcquireWrite(acquirer)) {
+      writerCount += 1
       val lease = newLease(initiallyWrite = true)
       holders.put(lease, acquirer)
       Right(lease)
@@ -135,7 +147,7 @@ class CrossThreadRwLock(
    * caller as a waiter.
    */
   def tryAcquireRead(acquirer: HolderInfo): Either[Contention, Lease] = monitor.synchronized {
-    if (canAcquireRead) {
+    if (canAcquireRead(acquirer)) {
       readerCount += 1
       val lease = newLease(initiallyWrite = false)
       holders.put(lease, acquirer)
@@ -166,7 +178,7 @@ class CrossThreadRwLock(
 
     override def downgradeToRead(): Unit = monitor.synchronized {
       if (!closed && !readMode) {
-        writerActive = false
+        writerCount -= 1
         readerCount += 1
         readMode = true
         monitor.notifyAll()
@@ -176,7 +188,7 @@ class CrossThreadRwLock(
     override def close(): Unit = monitor.synchronized {
       if (!closed) {
         if (readMode) readerCount -= 1
-        else writerActive = false
+        else writerCount -= 1
         closed = true
         holders.remove(self)
         monitor.notifyAll()
@@ -186,5 +198,5 @@ class CrossThreadRwLock(
 }
 
 object CrossThreadRwLock {
-  case class HolderInfo(pid: Long, command: String)
+  case class HolderInfo(pid: Long, command: String, ownerId: String = "")
 }

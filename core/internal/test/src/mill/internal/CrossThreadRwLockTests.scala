@@ -13,6 +13,35 @@ object CrossThreadRwLockTests extends TestSuite {
   private val testHolder = HolderInfo(pid = 1234, command = "unit-test")
 
   val tests: Tests = Tests {
+    test("same-owner-task-leases-overlap-but-other-owners-block") {
+      val lock = CrossThreadRwLock("same-owner", allowSameOwnerOverlap = true)
+      val owner1 = HolderInfo(pid = 1234, command = "first", ownerId = "run-1")
+      val owner2 = HolderInfo(pid = 5678, command = "second", ownerId = "run-2")
+
+      val read = lock.acquire(
+        LockKind.Read,
+        LauncherLocking.WaitReporter.Noop,
+        noWait = false,
+        owner1
+      )
+      val write = lock.tryAcquireWrite(owner1).toOption.get
+      val secondWrite = lock.tryAcquireWrite(owner1).toOption.get
+      val secondRead = lock.tryAcquireRead(owner1).toOption.get
+
+      assert(lock.tryAcquireRead(owner2).isLeft)
+      assert(lock.tryAcquireWrite(owner2).isLeft)
+
+      write.downgradeToRead()
+      secondWrite.close()
+      secondRead.close()
+      read.close()
+      assert(lock.tryAcquireWrite(owner2).isLeft)
+
+      write.close()
+      val owner2Write = lock.tryAcquireWrite(owner2).toOption.get
+      owner2Write.close()
+    }
+
     test("allows-concurrent-reads") {
       val waitingBytes = ByteArrayOutputStream()
       val waitingErr = PrintStream(waitingBytes)
