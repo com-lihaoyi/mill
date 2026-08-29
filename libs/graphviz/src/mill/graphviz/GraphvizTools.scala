@@ -31,21 +31,48 @@ object GraphvizTools {
       implicit val ec: ExecutionContext = ExecutionContext.fromExecutor(executor)
       val futures =
         for (arg <- args.toSeq) yield Future {
-          val Array(src, dest0, commaSepExtensions) = arg.split(";")
-          val extensions = commaSepExtensions.split(',')
-          val dest = os.Path(dest0, os.pwd)
-
-          val gv = Graphviz.fromFile(new java.io.File(src)).totalMemory(128 * 1024 * 1024)
-
-          val outputs = extensions
-            .map(ext => Format.values().find(_.fileExtension == ext).head -> s"out.$ext")
-
-          for ((fmt, name) <- outputs) gv.render(fmt).toFile((dest / name).toIO)
+          render(arg)
         }
 
       Await.result(Future.sequence(futures), duration.Duration.Inf)
     } finally executor.shutdown()
   }
+
+  private def render(arg: String): Unit = {
+    var currentOutput = Option.empty[String]
+    try {
+      val Array(src, dest0, commaSepExtensions) = arg.split(";")
+      val extensions = commaSepExtensions.split(',')
+      val dest = os.Path(dest0, os.pwd)
+
+      val gv = Graphviz.fromFile(new java.io.File(src)).totalMemory(128 * 1024 * 1024)
+
+      val outputs = extensions
+        .map(ext => Format.values().find(_.fileExtension == ext).head -> s"out.$ext")
+
+      for ((fmt, name) <- outputs) {
+        currentOutput = Some(name)
+        gv.render(fmt).toFile((dest / name).toIO)
+      }
+    } catch {
+      // scala.concurrent.Future catches NonFatal failures only. Wrap fatal rendering errors so the
+      // future is completed exceptionally instead of leaving Await.result blocked forever.
+      case error: Error =>
+        val detail = currentOutput.fold("Graphviz rendering failed")(name => s"Could not render $name")
+        val message =
+          if (causedByMissingFontConfig(error)) {
+            s"$detail because Java's font system could not initialize. " +
+              "Install fontconfig and at least one system font, then retry."
+          } else {
+            s"$detail: ${error.getClass.getName}: ${Option(error.getMessage).getOrElse("")}"
+          }
+        throw new RuntimeException(message, error)
+    }
+  }
+
+  private def causedByMissingFontConfig(error: Throwable): Boolean =
+    Option(error.getMessage).exists(_.contains("Fontconfig head is null")) ||
+      Option(error.getCause).exists(causedByMissingFontConfig)
 }
 
 class V8JavascriptEngine() extends AbstractJavascriptEngine {
