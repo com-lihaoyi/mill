@@ -26,7 +26,8 @@ object SemanticDbJavaModuleTests extends TestSuite {
   def tests: Tests = Tests {
     test("versions") {
       test("defaults") - UnitTester(VersionModules, null).scoped { eval =>
-        val Right(scalaVersion) = eval.apply(VersionModules.defaults.semanticDbVersion).runtimeChecked
+        val Right(scalaVersion) =
+          eval.apply(VersionModules.defaults.semanticDbVersion).runtimeChecked
         val Right(javaVersion) =
           eval.apply(VersionModules.defaults.semanticDbJavaVersion).runtimeChecked
 
@@ -44,7 +45,8 @@ object SemanticDbJavaModuleTests extends TestSuite {
           "JAVASEMANTICDB_VERSION" -> "0.0.1"
         )
       ).scoped { eval =>
-        val Right(scalaVersion) = eval.apply(VersionModules.defaults.semanticDbVersion).runtimeChecked
+        val Right(scalaVersion) =
+          eval.apply(VersionModules.defaults.semanticDbVersion).runtimeChecked
         val Right(javaVersion) =
           eval.apply(VersionModules.defaults.semanticDbJavaVersion).runtimeChecked
 
