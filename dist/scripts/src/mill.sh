@@ -1,5 +1,10 @@
 #!/usr/bin/env sh
 
+# Mill Build Tool: {{{ mill-repo-url }}}
+# Download: {{{ mill-download-url }}}/mill-dist-{{{ mill-version }}}-mill.sh
+# Documentation: {{{ mill-bootstrap-doc-url }}}
+# Script Version: {{{ mill-version }}}
+
 set -e
 
 if [ -z "${DEFAULT_MILL_VERSION}" ] ; then DEFAULT_MILL_VERSION="{{{ mill-version }}}"; fi
