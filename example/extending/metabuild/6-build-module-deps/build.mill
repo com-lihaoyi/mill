@@ -14,8 +14,7 @@ object app extends ApplicationModule
 //
 // The `build` alias then provides access to modules defined by `build.mill` and any discovered
 // `package.mill` files. Here, `ApplicationModule` uses `build.core` as a module dependency.
-// The `core` module must be defined in `core/package.mill`; naming that file `core/module.mill`
-// would not define or make the subfolder module discoverable.
+
 
 /** Usage
 
