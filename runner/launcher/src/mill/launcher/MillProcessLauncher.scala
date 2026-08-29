@@ -51,7 +51,7 @@ object MillProcessLauncher {
     // runners) so output gets captured into the test's chunking buffers.
     // Otherwise, default to `os.Inherit` so output flows to the launcher's
     // own stdout/stderr.
-    val (stdoutDest, stderrDest, stdinDest): (
+    val streamDestinations: (
         os.ProcessOutput,
         os.ProcessOutput,
         os.ProcessInput
@@ -65,6 +65,7 @@ object MillProcessLauncher {
             os.Inherit
           )
       }
+    val (stdoutDest, stderrDest, stdinDest) = streamDestinations
     val proc = configureRunMillProcess(
       cmd,
       processDir,
