@@ -56,17 +56,6 @@ object ZincOp {
       extends ZincOp {
     type Response = Seq[String]
   }
-  case class GetTestTasks(
-      runCp: Seq[os.Path],
-      testCp: Seq[os.Path],
-      framework: String,
-      selectors: Seq[String],
-      args: Seq[String],
-      discoveredClassesOpt: Option[Seq[(String, Int)]]
-  ) extends ZincOp {
-    type Response = Seq[String]
-  }
-
   case class DiscoverTestsZinc(
       runCp: Seq[os.Path],
       analysisFile: os.Path,

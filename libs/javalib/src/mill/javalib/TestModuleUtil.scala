@@ -17,8 +17,7 @@ import mill.api.Logger
 
 import mill.api.BuildCtx
 import mill.constants.EnvVars
-import mill.javalib.api.internal.ZincOp
-import mill.javalib.testrunner.{TestArgs, TestResult, TestRunnerUtils}
+import mill.javalib.testrunner.{TestArgs, TestResult, TestRunnerOutput, TestRunnerUtils}
 import os.Path
 
 import scala.concurrent.Future
@@ -47,7 +46,6 @@ final class TestModuleUtil(
     testParallelism: Boolean,
     testLogLevel: TestReporter.LogLevel,
     propagateEnv: Boolean = true,
-    jvmWorker: mill.javalib.api.internal.InternalJvmWorkerApi,
     @com.lihaoyi.unroll
     discoveredClassesOpt: Option[Seq[(String, Int)]] = None,
     @com.lihaoyi.unroll
@@ -68,36 +66,10 @@ final class TestModuleUtil(
         "\nRun discoveredTestClasses to see available tests"
     )
 
-    /** This is filtered by mill. */
-    val filteredClassLists0 = testClassLists.map(_.filter(globFilter)).filter(_.nonEmpty)
-
-    /** This is filtered by the test framework when using queue scheduling. */
-    val filteredClassLists = {
-      if (testBatchFrameworkTasks) {
-        filteredClassLists0
-      } else {
-        // If test grouping is enabled and multiple test groups are detected, we need to
-        // run test discovery via the test framework's own argument parsing and filtering
-        // logic once before we potentially fork off multiple test groups that will
-        // each do the same thing and then run tests. This duplication is necessary so we can
-        // skip test groups that we know will be empty, which is important because even an empty
-        // test group requires spawning a JVM which can take 1+ seconds to realize there are no
-        // tests to run and shut down
-        val discoveredTests = jvmWorker.apply(
-          ZincOp.GetTestTasks(
-            (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
-            testClasspath.map(_.path),
-            testFramework,
-            selectors,
-            args,
-            discoveredClassesOpt
-          ),
-          javaHome = javaHome
-        ).toSet
-
-        filteredClassLists0.map(_.filter(discoveredTests)).filter(_.nonEmpty)
-      }
-    }
+    // Test-framework task materialization can initialize framework-owned resources and threads.
+    // Keep it in the forked test process, which owns their lifecycle, rather than duplicating it
+    // here inside a temporary classloader in Mill's long-lived JVM.
+    val filteredClassLists = testClassLists.map(_.filter(globFilter)).filter(_.nonEmpty)
 
     if (selectors.nonEmpty && filteredClassLists.isEmpty) throw doesNotMatchError
 
@@ -219,8 +191,13 @@ final class TestModuleUtil(
 
     if (!os.exists(outputPath))
       Result.Failure(s"Test reporting Failed: ${outputPath} does not exist")
-    else
-      Result.Success(upickle.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
+    else {
+      upickle.read[TestRunnerOutput](ujson.read(outputPath.toIO)) match {
+        case TestRunnerOutput.Success(value) => Result.Success(value)
+        case TestRunnerOutput.Failure(exceptions) =>
+          throw Result.SerializedException.from(exceptions)
+      }
+    }
   }
 
   def prepareTestClassesFolder(selectors2: Seq[String], base: os.Path): os.Path = {

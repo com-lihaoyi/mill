@@ -7,10 +7,8 @@ import mill.util.TokenReaders.*
 import mill.{T, Task}
 import utest.*
 
-import java.io.{ByteArrayOutputStream, PrintStream}
-
-// Make sure uncaught exceptions in test discovery, which takes place within a classloader
-// or in a subprocess JvmWorker,
+// Make sure uncaught exceptions during test-framework task materialization are propagated from
+// the forked test process with both the default and a custom JVM.
 object ZioBootstrapFailureTests extends TestSuite {
 
   private val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "ziobootstrap"
@@ -34,26 +32,28 @@ object ZioBootstrapFailureTests extends TestSuite {
   object ZioBootstrapModule extends ZioBootstrapModuleBase {
     def customJvmVersion = ""
   }
-  object ZioBootstrapModule2 extends ZioBootstrapModuleBase {
+  object ZioBootstrapCustomJvmModule extends ZioBootstrapModuleBase {
     def customJvmVersion = "19"
   }
 
   override def tests: Tests = Tests {
-    test("classloader") {
+    test("defaultJvm") {
       UnitTester(ZioBootstrapModule, sourceRoot = resourcePath).scoped { eval =>
         val Left(ExecResult.Exception(throwable, _)) =
           eval.apply(ZioBootstrapModule.app.test.testForked()).runtimeChecked
         assert(
-          throwable.toString ==
+          throwable.toString.startsWith(
             "mill.api.daemon.Result$SerializedException: Layer initialization failed"
+          ),
+          throwable.getStackTrace.exists(_.getClassName == "example.FailingSpec$")
         )
       }
     }
 
-    test("subprocess") {
-      UnitTester(ZioBootstrapModule2, sourceRoot = resourcePath).scoped { eval =>
+    test("customJvm") {
+      UnitTester(ZioBootstrapCustomJvmModule, sourceRoot = resourcePath).scoped { eval =>
         val Left(ExecResult.Exception(throwable, _)) =
-          eval.apply(ZioBootstrapModule2.app.test.testForked()).runtimeChecked
+          eval.apply(ZioBootstrapCustomJvmModule.app.test.testForked()).runtimeChecked
         assert(throwable.toString.contains("Layer initialization failed"))
       }
     }

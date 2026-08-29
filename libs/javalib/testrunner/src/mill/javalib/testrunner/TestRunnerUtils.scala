@@ -328,10 +328,13 @@ import scala.math.Ordering.Implicits.*
           TaskDef(clsName, fingerprint, false, Array(new SuiteSelector))
         }
 
-      val tasks = runner.tasks(taskDefs.toArray)
-      val taskResult = executeTasks(tasks, testReporter, events, systemOut)
-      if taskResult then successCounter += 1 else failureCounter += 1
-      os.write.over(resultPath, upickle.write((successCounter, failureCounter)))
+      // Framework fingerprint filtering can reject a Mill-discovered queue entry.
+      taskDefs.foreach { taskDef =>
+        val tasks = runner.tasks(Array(taskDef))
+        val taskResult = executeTasks(tasks, testReporter, events, systemOut)
+        if taskResult then successCounter += 1 else failureCounter += 1
+        os.write.over(resultPath, upickle.write((successCounter, failureCounter)))
+      }
     }
 
     def logClaim[T](testClass: String)(t: => T): T = {
@@ -408,20 +411,6 @@ import scala.math.Ordering.Implicits.*
     )
 
     (doneMessage, results.toSeq)
-  }
-
-  def getTestTasks0(
-      frameworkInstances: ClassLoader => Framework,
-      testClassfilePath: Seq[Path],
-      args: Seq[String],
-      classFilter: Class[?] => Boolean,
-      cl: ClassLoader,
-      discoveredTestClasses: Option[Seq[(String, Int)]]
-  ): Array[String] = {
-    val framework = frameworkInstances(cl)
-    val ( /*runner*/ _, tasksArr) =
-      getTestTasks(framework, args, classFilter, cl, testClassfilePath, discoveredTestClasses)
-    tasksArr.flatten.map(_.taskDef()).filter(_ != null).map(_.fullyQualifiedName())
   }
 
   def matchesGlob(glob: String): String => Boolean =

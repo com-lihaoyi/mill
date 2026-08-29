@@ -1,0 +1,37 @@
+package build
+
+import mill.*
+import mill.scalalib.*
+
+object probeSupport extends ScalaModule {
+  def scalaVersion = "3.3.4"
+}
+
+object probe extends ScalaModule {
+  def scalaVersion = "3.3.4"
+
+  object test extends ScalaTests {
+    def moduleDeps = Seq(probeSupport)
+    def mvnDeps = Seq(mvn"org.scala-sbt:test-interface:1.0")
+    def testFramework = "example.LifecycleProbeFramework"
+    def testSandboxWorkingDir = false
+  }
+}
+
+object weaver extends ScalaModule {
+  def scalaVersion = "3.3.4"
+  def mvnDeps = Seq(mvn"org.typelevel::cats-effect:3.7.0")
+
+  object test extends ScalaTests {
+    def mvnDeps = Seq(mvn"com.disneystreaming::weaver-cats:0.8.3")
+    def testFramework = "weaver.framework.CatsEffect"
+  }
+}
+
+object unrelated extends ScalaModule {
+  def scalaVersion = "3.3.4"
+
+  object test extends ScalaTests with TestModule.Utest {
+    def utestVersion = "0.9.1"
+  }
+}

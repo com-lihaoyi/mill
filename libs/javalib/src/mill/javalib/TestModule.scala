@@ -343,7 +343,6 @@ trait TestModule
         testParallelism(),
         testLogLevel(),
         propagateEnv(),
-        jvmWorker().internalWorker(),
         discoveredClassesOpt = aheadOfTimeDiscoveredTestClassesIfNeeded(),
         testBatchFrameworkTasks = testBatchFrameworkTasks()
       )

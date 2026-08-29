@@ -23,6 +23,12 @@ object TestRunnerSchedulerTests extends TestSuite {
               "mill.scalalib.QueueDriftExtra"
           )
         )
+        assert(
+          os.exists(
+            eval.outPath / "queueDrift" / "testForked.dest" / "claim" /
+              "mill.scalalib.QueueDriftUnrecognized"
+          )
+        )
       }
     }
   }

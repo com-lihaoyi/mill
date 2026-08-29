@@ -86,7 +86,11 @@ object TestRunnerTestUtils {
         )
       }
       override def testForkGrouping = Task {
-        Seq(Seq("mill.scalalib.QueueDriftStart", "mill.scalalib.QueueDriftFiller"))
+        Seq(Seq(
+          "mill.scalalib.QueueDriftStart",
+          "mill.scalalib.QueueDriftFiller",
+          "mill.scalalib.QueueDriftUnrecognized"
+        ))
       }
       override def testParallelism = false
     }

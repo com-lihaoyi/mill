@@ -8,6 +8,7 @@ trait QueueDriftBase
 class QueueDriftStart extends QueueDriftBase
 class QueueDriftFiller extends QueueDriftBase
 class QueueDriftExtra extends QueueDriftBase
+class QueueDriftUnrecognized
 
 class QueueDriftFramework extends Framework {
   override def fingerprints(): Array[Fingerprint] = Array(new SubclassFingerprint {

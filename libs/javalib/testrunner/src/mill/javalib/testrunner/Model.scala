@@ -1,6 +1,8 @@
 package mill.javalib.testrunner
 
 import mill.api.JsonFormatters.*
+import mill.api.JsonFormatters.Default.given
+import mill.api.daemon.Result
 import mill.api.daemon.internal.{TestReporter, internal}
 
 @internal case class TestArgs(
@@ -43,4 +45,16 @@ import mill.api.daemon.internal.{TestReporter, internal}
 
 @internal object TestResult {
   implicit def resultRW: upickle.ReadWriter[TestResult] = upickle.macroRW
+}
+
+@internal sealed trait TestRunnerOutput
+
+@internal object TestRunnerOutput {
+  case class Success(value: (String, Seq[TestResult])) extends TestRunnerOutput
+  case class Failure(exceptions: Seq[Result.Failure.ExceptionInfo]) extends TestRunnerOutput
+
+  implicit def resultRW: upickle.ReadWriter[TestRunnerOutput] = upickle.ReadWriter.merge(
+    upickle.macroRW[Success],
+    upickle.macroRW[Failure]
+  )
 }

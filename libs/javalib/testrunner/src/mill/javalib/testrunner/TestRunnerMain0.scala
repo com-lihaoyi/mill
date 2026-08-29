@@ -1,13 +1,16 @@
 package mill.javalib.testrunner
 
+import mill.api.daemon.Result
 import mill.api.daemon.internal.{TestReporter, internal}
 import mill.api.internal.PathAliasing
 
 @internal object MillTestRunnerMain0 {
   def main0(args: Array[String], classLoader: ClassLoader): Unit = {
     PathAliasing.withDefaultPathSerializer {
+      var outputPath = Option.empty[os.Path]
       try {
         val testArgs = upickle.read[TestArgs](os.read(os.Path(args(1))))
+        outputPath = Some(testArgs.outputPath)
         testArgs.sysProps.foreach { case (k, v) => System.setProperty(k, v) }
 
         val result = testArgs.globSelectors match {
@@ -42,11 +45,24 @@ import mill.api.internal.PathAliasing
         // dirtied the thread-interrupted flag and forgot to clean up. Otherwise,
         // that flag causes writing the results to disk to fail
         Thread.interrupted()
-        os.write(testArgs.outputPath, upickle.stream(result))
+        os.write(testArgs.outputPath, upickle.stream(TestRunnerOutput.Success(result)))
       } catch {
         case e: Throwable =>
+          Thread.interrupted()
           println(e)
           e.printStackTrace()
+          val failure = Result.Failure.fromException(e)
+          val exceptions =
+            if (failure.exception.nonEmpty) failure.exception
+            else
+              Seq(Result.Failure.ExceptionInfo(
+                e.getClass.getName,
+                e.getMessage,
+                e.getStackTrace.toSeq
+              ))
+          outputPath.foreach(path =>
+            os.write(path, upickle.stream(TestRunnerOutput.Failure(exceptions)))
+          )
       }
     }
     // Tests are over, kill the JVM whether or not anyone's threads are still running

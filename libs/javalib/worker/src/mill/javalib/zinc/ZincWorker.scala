@@ -671,9 +671,6 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       case msg: ZincOp.DiscoverTestsZinc =>
         TestDiscovery(msg).asInstanceOf[op.Response]
 
-      case msg: ZincOp.GetTestTasks =>
-        mill.javalib.testrunner.GetTestTasks(msg).asInstanceOf[op.Response]
-
       case msg: ZincOp.DiscoverJunit5Tests =>
         mill.javalib.testrunner.DiscoverJunit5Tests(msg).asInstanceOf[op.Response]
     }
