@@ -1,0 +1,38 @@
+// Mill uses SemanticDB metadata for IDE features and other source-code tooling.
+// It provides default plugin versions, so most builds do not need any SemanticDB
+// configuration.
+//
+// Scala 2 requires a `semanticdb-scalac` compiler plugin published for the full
+// `scalaVersion`. Scala 3 provides SemanticDB support in the compiler itself, so
+// `semanticDbVersion` only affects Scala 2 sources. Java and mixed Scala/Java
+// modules use the separate `semanticDbJavaVersion` for Java sources.
+//
+// If the defaults do not support your compiler version, override the corresponding
+// task with a compatible plugin version. An explicit task override pins that exact
+// version.
+package build
+
+import mill.*, scalalib.*
+
+object `package` extends ScalaModule {
+  def scalaVersion = "2.13.18"
+  override def semanticDbVersion = "4.17.0"
+  override def semanticDbJavaVersion = "0.12.3"
+}
+
+// Tooling can instead request a minimum plugin version without changing the build
+// by setting `SEMANTICDB_VERSION` or `JAVASEMANTICDB_VERSION`. Mill uses the newer
+// of the requested version and its built-in version, so these variables cannot
+// downgrade the built-in defaults.
+
+/** Usage
+
+> ./mill show semanticDbVersion
+"4.17.0"
+
+> ./mill show semanticDbJavaVersion
+"0.12.3"
+
+> ./mill semanticDbData
+
+*/
