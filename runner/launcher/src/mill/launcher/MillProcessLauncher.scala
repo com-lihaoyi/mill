@@ -12,6 +12,20 @@ import java.util.UUID
 import scala.jdk.CollectionConverters._
 
 object MillProcessLauncher {
+  private[launcher] def stderrIsTerminal(isatty: Int => Int): Boolean = isatty(2) == 1
+
+  private[mill] def stderrIsTerminal(): Boolean = {
+    try {
+      JLineNativeLoader.initJLineNative()
+      val isatty =
+        if (Util.isWindows) org.jline.nativ.Kernel32.isatty
+        else org.jline.nativ.CLibrary.isatty
+      stderrIsTerminal(isatty)
+    } catch {
+      case _: Throwable => Util.hasConsole()
+    }
+  }
+
   private def outDir(outMode: OutFolderMode, workDir: os.Path, env: Map[String, String]): String =
     OutputDirectoryLayout.outDir(outMode, workDir, env)
 
