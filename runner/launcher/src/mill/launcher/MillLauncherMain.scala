@@ -10,11 +10,35 @@ import mill.internal.MillCliConfig
 import java.io.{PrintWriter, StringWriter}
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, ZoneId}
+import java.util.concurrent.locks.ReentrantReadWriteLock
 
 /**
  * Mill launcher main entry point.
  */
 object MillLauncherMain {
+  private val systemPropertiesLock = new ReentrantReadWriteLock()
+
+  private[launcher] def withSystemProperties[T](properties: Map[String, String])(f: => T): T = {
+    // main0 is also used in-process by tests. Property-bearing invocations need exclusive access
+    // to process-global state, while ordinary invocations can still run concurrently.
+    val lock =
+      if (properties.isEmpty) systemPropertiesLock.readLock()
+      else systemPropertiesLock.writeLock()
+    lock.lock()
+    try {
+      val previous =
+        properties.keysIterator.map(key => key -> Option(System.getProperty(key))).toMap
+      properties.foreach { case (key, value) => System.setProperty(key, value) }
+      try f
+      finally {
+        previous.foreach {
+          case (key, Some(value)) => System.setProperty(key, value)
+          case (key, None) => System.clearProperty(key)
+        }
+      }
+    } finally lock.unlock()
+  }
+
   def main(args: Array[String]): Unit = {
     System.exit(main0(args, None, sys.env, os.pwd))
   }
@@ -24,6 +48,22 @@ object MillLauncherMain {
    */
   def main0(
       args: Array[String],
+      streamsOpt: Option[SystemStreams],
+      env: Map[String, String],
+      workDir: os.Path
+  ): Int = {
+    val parsedConfig = MillCliConfig.parse(args).toOption
+    val earlySystemProperties =
+      parsedConfig.fold(Map.empty[String, String])(_.extraSystemProperties)
+
+    withSystemProperties(earlySystemProperties) {
+      main0Processed(args, parsedConfig, streamsOpt, env, workDir)
+    }
+  }
+
+  private def main0Processed(
+      args: Array[String],
+      parsedConfig: Option[MillCliConfig],
       streamsOpt: Option[SystemStreams],
       env: Map[String, String],
       workDir: os.Path
@@ -39,7 +79,6 @@ object MillLauncherMain {
     // fixed cwd-parent.
     PathAliasing.withRawPathSerializer {
       val stderr = streamsOpt.map(_.err).getOrElse(System.err)
-      val parsedConfig = MillCliConfig.parse(args).toOption
 
       val bspServerMode = parsedConfig.exists(_.bsp.value)
       val bspMode = bspServerMode || parsedConfig.exists(_.bspInstall.value)

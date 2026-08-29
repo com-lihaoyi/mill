@@ -81,6 +81,22 @@ object MillOptsTests extends UtestIntegrationTestSuite {
       val res3 = eval(("-Dfoo-property=i-am-cow", "printSysProp", "--propName", "foo-property"))
       assert(res3.out == "i-am-cow")
 
+      // Launcher-like arguments after `--` belong to the task and must remain unchanged
+      val resAfterDelimiter = eval((
+        "printArgs",
+        "--",
+        "-J-Dtask-property=jvm-style",
+        "-Dtask-property=mill-style"
+      ))
+      assert(
+        resAfterDelimiter.out.linesIterator.toSeq == Seq(
+          "null",
+          "--",
+          "-J-Dtask-property=jvm-style",
+          "-Dtask-property=mill-style"
+        )
+      )
+
       // Existing property removed
       val res4 = eval(("printSysProp", "--propName", "foo-property"))
       assert(res4.out == "null")

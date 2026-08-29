@@ -32,3 +32,8 @@ def testProperty = Task { sys.props.get("test.property").get.toInt }
 def printSysProp(propName: String) = Task.Command {
   println(sys.props(propName))
 }
+
+def printArgs(args: String*) = Task.Command {
+  println(Option(System.getProperty("task-property")).getOrElse("null"))
+  println(args.mkString("\n"))
+}
