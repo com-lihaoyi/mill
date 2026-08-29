@@ -627,7 +627,7 @@ object MainModuleTests extends TestSuite {
           checkExists(out, false)(
             os.sub / "bar/task.json",
             os.sub / "bar/task.dest/dummy.txt",
-            os.sub / "bar/task.dest",
+            os.sub / "bar/task.dest"
           )
         }
       }
