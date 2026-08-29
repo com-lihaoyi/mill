@@ -684,11 +684,12 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   override def semanticDbDataDetailed: T[SemanticDbJavaModule.SemanticDbData] =
     Task(persistent = true) {
       val sv = scalaVersion()
+      val semanticDbSourceRoot = PathRef.toResolvedPathString(BuildCtx.workspaceRoot)
 
       val additionalScalacOptions = if (isScala3(sv)) {
-        Seq("-Xsemanticdb", s"-sourceroot:${BuildCtx.workspaceRoot}")
+        Seq("-Xsemanticdb", s"-sourceroot:$semanticDbSourceRoot")
       } else {
-        Seq("-Yrangepos", s"-P:semanticdb:sourceroot:${BuildCtx.workspaceRoot}")
+        Seq("-Yrangepos", s"-P:semanticdb:sourceroot:$semanticDbSourceRoot")
       }
 
       val scalacOptions = (

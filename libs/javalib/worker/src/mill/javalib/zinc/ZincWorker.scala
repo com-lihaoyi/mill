@@ -416,22 +416,27 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
         case _ => None
       }
       analysisFile match {
-        case Some(zincPath) => fileAnalysisStore(zincPath).get().map(_.getAnalysis)
+        case Some(zincPath) =>
+          fileAnalysisStore(zincPath, localConfig.workspaceRoot).get().map(_.getAnalysis)
         case None => Optional.empty[CompileAnalysis]
       }
     }
 
     val lookup = MockedLookup(analysisMap)
 
-    val store = fileAnalysisStore(workDir / zincCache)
+    val store = fileAnalysisStore(workDir / zincCache, localConfig.workspaceRoot)
 
     // Fix jdk classes marked as binary dependencies, see https://github.com/com-lihaoyi/mill/pull/1904
-    val converter = ZincWorker.reproducibleConverter
+    val converter = ZincWorker.reproducibleConverter(localConfig.workspaceRoot)
     val classpath = (compileClasspathPaths.iterator ++ Some(classesDir))
       .map(path => converter.toVirtualFile(path.toNIO))
       .toArray
+    // Compiler plugins compare virtual source paths with options such as SemanticDB's sourceroot.
+    // Resolve aliases received over RPC, then map the real path to a stable Zinc virtual-file id.
+    val resolvedWorkspaceRoot = PathRef.toResolvedOsPath(localConfig.workspaceRoot)
     val virtualSources = sources.iterator
-      .map(path => converter.toVirtualFile(path.toNIO))
+      .map(PathRef.toResolvedOsPathAnchored(_, resolvedWorkspaceRoot))
+      .map(path => converter.toVirtualFile(PathRef.toAbsNioPath(path)))
       .toArray
 
     val externalHooks = new DefaultExternalHooks(
@@ -689,10 +694,15 @@ object ZincWorker {
       java.nio.file.Paths.get("").toAbsolutePath.normalize()
     )
 
-  /** Encodes Zinc VirtualFile ids with a `$${BASE}` placeholder in reproducible mode. */
-  private[zinc] def reproducibleConverter: xsbti.FileConverter =
+  /** Encodes Zinc VirtualFile ids with stable placeholders in reproducible mode. */
+  private[zinc] def reproducibleConverter(workspaceRoot: os.Path): xsbti.FileConverter =
     reproducibleRoot
-      .map(root => MappedFileConverter(Map("BASE" -> root), allowMachinePath = true))
+      .map { root =>
+        val workspace = PathRef.toAbsNioPath(PathRef.toResolvedOsPath(workspaceRoot))
+        val roots = Map("BASE" -> root) ++
+          Option.when(!workspace.startsWith(root))("WORKSPACE" -> workspace)
+        MappedFileConverter(roots, allowMachinePath = true)
+      }
       .getOrElse(MappedFileConverter.empty)
 
   /**
@@ -704,7 +714,8 @@ object ZincWorker {
    * so we need both halves to leave them alone and only forward absolute paths to the base.
    */
   private[zinc] def relativePassthroughMappers(
-      base: xsbti.compile.analysis.ReadWriteMappers
+      base: xsbti.compile.analysis.ReadWriteMappers,
+      workspaceRoot: os.Path
   ): xsbti.compile.analysis.ReadWriteMappers = {
     import xsbti.VirtualFileRef
     import xsbti.compile.MiniSetup
@@ -722,6 +733,24 @@ object ZincWorker {
 
     val w = base.getWriteMapper
     val r = base.getReadMapper
+    val workspace = PathRef.toResolvedPathString(workspaceRoot)
+    val escapedWorkspace = workspace.replace(" ", "\\ ")
+
+    def mapOptionForWrite(option: String): String = {
+      val escaped =
+        if (escapedWorkspace == workspace) option
+        else mapWorkspaceInOption(option, escapedWorkspace, EscapedWorkspaceRootPlaceholder)
+      mapWorkspaceInOption(escaped, workspace, WorkspaceRootPlaceholder)
+    }
+
+    def mapOptionForRead(option: String): String = {
+      val escaped = mapWorkspaceInOption(
+        option,
+        EscapedWorkspaceRootPlaceholder,
+        escapedWorkspace
+      )
+      mapWorkspaceInOption(escaped, WorkspaceRootPlaceholder, workspace)
+    }
 
     val guardedWrite: WriteMapper = new WriteMapper {
       def mapSourceFile(f: VirtualFileRef) = guardRef(f, w.mapSourceFile)
@@ -730,8 +759,8 @@ object ZincWorker {
       def mapOutputDir(p: java.nio.file.Path) = guardPath(p, w.mapOutputDir)
       def mapSourceDir(p: java.nio.file.Path) = guardPath(p, w.mapSourceDir)
       def mapClasspathEntry(p: java.nio.file.Path) = guardPath(p, w.mapClasspathEntry)
-      def mapJavacOption(o: String) = w.mapJavacOption(o)
-      def mapScalacOption(o: String) = w.mapScalacOption(o)
+      def mapJavacOption(o: String) = mapOptionForWrite(w.mapJavacOption(o))
+      def mapScalacOption(o: String) = mapOptionForWrite(w.mapScalacOption(o))
       def mapBinaryStamp(f: VirtualFileRef, s: Stamp) = w.mapBinaryStamp(f, s)
       def mapSourceStamp(f: VirtualFileRef, s: Stamp) = w.mapSourceStamp(f, s)
       def mapProductStamp(f: VirtualFileRef, s: Stamp) = w.mapProductStamp(f, s)
@@ -746,8 +775,8 @@ object ZincWorker {
       def mapOutputDir(p: java.nio.file.Path) = guardPath(p, r.mapOutputDir)
       def mapSourceDir(p: java.nio.file.Path) = guardPath(p, r.mapSourceDir)
       def mapClasspathEntry(p: java.nio.file.Path) = guardPath(p, r.mapClasspathEntry)
-      def mapJavacOption(o: String) = r.mapJavacOption(o)
-      def mapScalacOption(o: String) = r.mapScalacOption(o)
+      def mapJavacOption(o: String) = r.mapJavacOption(mapOptionForRead(o))
+      def mapScalacOption(o: String) = r.mapScalacOption(mapOptionForRead(o))
       def mapBinaryStamp(f: VirtualFileRef, s: Stamp) = r.mapBinaryStamp(f, s)
       def mapSourceStamp(f: VirtualFileRef, s: Stamp) = r.mapSourceStamp(f, s)
       def mapProductStamp(f: VirtualFileRef, s: Stamp) = r.mapProductStamp(f, s)
@@ -756,6 +785,42 @@ object ZincWorker {
 
     new xsbti.compile.analysis.ReadWriteMappers(guardedRead, guardedWrite)
   }
+
+  // NUL cannot occur in a filesystem path, so these persisted markers cannot collide with a
+  // user-provided sourceroot or targetroot.
+  private val WorkspaceRootPlaceholder = "\u0000MILL_WORKSPACE_ROOT\u0000"
+  private val EscapedWorkspaceRootPlaceholder = "\u0000MILL_ESCAPED_WORKSPACE_ROOT\u0000"
+  private val WorkspacePathOptionPrefixes =
+    Seq("-sourceroot:", "-targetroot:", "-P:semanticdb:sourceroot:")
+
+  private def mapWorkspaceInOption(option: String, from: String, to: String): String =
+    WorkspacePathOptionPrefixes.foldLeft(option) { (mapped, prefix) =>
+      val needle = prefix + from
+      val replacement = prefix + to
+      val result = new java.lang.StringBuilder(mapped.length)
+      var copiedUntil = 0
+      var index = mapped.indexOf(needle)
+      while (index >= 0) {
+        val pathEnd = index + needle.length
+        val hasOptionBoundary = index == 0 || mapped.charAt(index - 1).isWhitespace
+        val followedByOption =
+          mapped.substring(pathEnd).dropWhile(_.isWhitespace).startsWith("-")
+        val hasPathBoundary =
+          pathEnd == mapped.length || {
+            val next = mapped.charAt(pathEnd)
+            next == '/' || next == '\\' || next == '\'' || next == '"' ||
+            (next.isWhitespace && followedByOption)
+          }
+        if (hasOptionBoundary && hasPathBoundary) {
+          result.append(mapped, copiedUntil, index)
+          result.append(replacement)
+          copiedUntil = pathEnd
+        }
+        index = mapped.indexOf(needle, pathEnd)
+      }
+      if (copiedUntil == 0) mapped
+      else result.append(mapped, copiedUntil, mapped.length).toString
+    }
 
   /**
    * Dependencies of the invocation.
@@ -817,14 +882,17 @@ object ZincWorker {
   private def libraryJarNameGrep(compilerClasspath: Seq[PathRef], scalaVersion: String): PathRef =
     JvmWorkerUtil.grepJar(compilerClasspath, "scala-library", scalaVersion, sources = false)
 
-  private def fileAnalysisStore(path: os.Path): AnalysisStore = {
+  private def fileAnalysisStore(path: os.Path, workspaceRoot: os.Path): AnalysisStore = {
     // In reproducible mode the absolute classpath/output `Path`s recorded in the persisted
     // `MiniSetup` are relativized against the daemon working directory so the analysis store is
     // workspace-independent. VirtualFile ids (sources/products/binaries) are relativized
     // separately via the `MappedFileConverter`, see `ZincWorker.reproducibleConverter`.
     val mappers = ZincWorker.reproducibleRoot match {
       case Some(root) =>
-        ZincWorker.relativePassthroughMappers(ReadWriteMappers.getMachineIndependentMappers(root))
+        ZincWorker.relativePassthroughMappers(
+          ReadWriteMappers.getMachineIndependentMappers(root),
+          workspaceRoot
+        )
       case None => ReadWriteMappers.getEmptyMappers
     }
     ConsistentFileAnalysisStore.binary(
