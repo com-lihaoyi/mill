@@ -136,7 +136,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
 
   def compileGroovyStubs: T[Result[Unit]] = Task(persistent = true) {
     val groovySourceFiles = allGroovySourceFiles().map(_.path)
-    val stubDir = compileGeneratedGroovyStubs()
+    val stubDir = compileGeneratedGroovyStubs().path
     Task.ctx().log.info(
       s"Generating Java stubs for ${groovySourceFiles.size} Groovy sources to $stubDir ..."
     )
@@ -157,7 +157,9 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
    * Path to Java stub sources as part of the `compile` step. Stubs are generated
    * by the Groovy compiler and later used by the Java compiler.
    */
-  def compileGeneratedGroovyStubs: T[os.Path] = Task(persistent = true) { Task.dest }
+  def compileGeneratedGroovyStubs: T[PathRef] = Task(persistent = true) {
+    PathRef(Task.dest, quick = true)
+  }
 
   /**
    * The actual Groovy compile task (used by [[compile]]).
@@ -204,7 +206,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
           worker = jvmWorkerRef().internalWorker(),
           upstreamCompileOutput = updateCompileOutput,
           javaSourceFiles = javaSourceFiles,
-          compileCp = (compileCp :+ compileGeneratedGroovyStubs()).map(PathRef(_, quick = true)),
+          compileCp = compileCp.map(PathRef(_, quick = true)) :+ compileGeneratedGroovyStubs(),
           javaHome = javaHome().map(_.path),
           javacOptions = javacOptions(),
           compileProblemReporter = ctx.reporter(hashCode),
