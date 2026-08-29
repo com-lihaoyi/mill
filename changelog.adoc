@@ -83,6 +83,8 @@ details.
   https://mill-build.org/mill/main-branch/javalib/testing.html#_batch_mode_for_test_frameworks[Batch Mode for Test Frameworks]
   {link-pr}/7119[#7119]
 
+* Add `TestModule.KyoTest` to run tests with the https://getkyo.io/latest/kyo-test/[Kyo Test Framework]
+
 * Add `BuildCtx.rootModule` to give plugins and `Task.Command`s access to the build's root module
   {link-pr}/7090[#7090]
 
