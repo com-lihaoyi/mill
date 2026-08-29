@@ -1,8 +1,4 @@
 pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"static","x":""},
-{"l":"sbt/mill.html#","e":false,"i":"","n":"sbt.mill","t":"sbt.mill","d":"","k":"package","x":""},
-{"l":"sbt/mill/SbtLoggerUtils$.html#","e":false,"i":"","n":"SbtLoggerUtils","t":"SbtLoggerUtils","d":"sbt.mill","k":"object","x":""},
-{"l":"sbt/mill/SbtLoggerUtils$.html#createLogger-799","e":false,"i":"","n":"createLogger","t":"createLogger(name: String, appender: Appender, level: Value): ManagedLogger","d":"sbt.mill.SbtLoggerUtils","k":"def","x":""},
-{"l":"sbt/mill/SbtLoggerUtils$$ConciseLevelConsoleAppender.html#","e":false,"i":"","n":"ConciseLevelConsoleAppender","t":"ConciseLevelConsoleAppender(name: String, log: String => Unit, ansiCodesSupported0: Boolean) extends ConsoleAppender","d":"sbt.mill.SbtLoggerUtils","k":"class","x":""},
 {"l":"mill.html#","e":false,"i":"","n":"mill","t":"mill","d":"","k":"package","x":""},
 {"l":"mill/androidlib.html#","e":false,"i":"","n":"mill.androidlib","t":"mill.androidlib","d":"","k":"package","x":""},
 {"l":"mill/androidlib/bsp.html#","e":false,"i":"","n":"mill.androidlib.bsp","t":"mill.androidlib.bsp","d":"","k":"package","x":""},
@@ -2282,7 +2278,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/groovylib/GroovyModule$.html#","e":false,"i":"","n":"GroovyModule","t":"GroovyModule","d":"mill.groovylib","k":"object","x":""},
 {"l":"mill/groovylib/GroovyModule$$GroovyTests0.html#","e":false,"i":"","n":"GroovyTests0","t":"GroovyTests0 extends JavaTests0, GroovyModule","d":"mill.groovylib.GroovyModule","k":"trait","x":""},
 {"l":"mill/groovylib/GroovyModule.html#","e":false,"i":"","n":"GroovyModule","t":"GroovyModule extends JavaModule, GroovyModuleApi","d":"mill.groovylib","k":"trait","x":""},
-{"l":"mill/groovylib/GroovyModule.html#compileGeneratedGroovyStubs-0","e":false,"i":"","n":"compileGeneratedGroovyStubs","t":"compileGeneratedGroovyStubs: Simple[Path]","d":"mill.groovylib.GroovyModule","k":"def","x":""},
+{"l":"mill/groovylib/GroovyModule.html#compileGeneratedGroovyStubs-0","e":false,"i":"","n":"compileGeneratedGroovyStubs","t":"compileGeneratedGroovyStubs: Simple[PathRef]","d":"mill.groovylib.GroovyModule","k":"def","x":""},
 {"l":"mill/groovylib/GroovyModule.html#compileGroovyStubs-0","e":false,"i":"","n":"compileGroovyStubs","t":"compileGroovyStubs: Simple[Result[Unit]]","d":"mill.groovylib.GroovyModule","k":"def","x":""},
 {"l":"mill/groovylib/GroovyModule.html#disabledGlobalAstTransformations-0","e":false,"i":"","n":"disabledGlobalAstTransformations","t":"disabledGlobalAstTransformations: Simple[Set[String]]","d":"mill.groovylib.GroovyModule","k":"def","x":""},
 {"l":"mill/groovylib/GroovyModule.html#groovyCompileEnablePreview-0","e":false,"i":"","n":"groovyCompileEnablePreview","t":"groovyCompileEnablePreview: Simple[Boolean]","d":"mill.groovylib.GroovyModule","k":"def","x":""},
@@ -5992,4 +5988,8 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/util/VisualizeModule$.html#classpath-0","e":false,"i":"","n":"classpath","t":"classpath: Simple[Seq[PathRef]]","d":"mill.util.VisualizeModule","k":"def","x":""},
 {"l":"mill/util/VisualizeModule$.html#millDiscover-0","e":false,"i":"","n":"millDiscover","t":"millDiscover: Discover","d":"mill.util.VisualizeModule","k":"val","x":""},
 {"l":"mill/util/VisualizeModule$.html#repositories-0","e":false,"i":"","n":"repositories","t":"repositories: Seq[Repository]","d":"mill.util.VisualizeModule","k":"def","x":""},
-{"l":"mill/util/VisualizeModule$.html#toolsClasspath-0","e":false,"i":"","n":"toolsClasspath","t":"toolsClasspath: Simple[Seq[PathRef]]","d":"mill.util.VisualizeModule","k":"def","x":""}];
+{"l":"mill/util/VisualizeModule$.html#toolsClasspath-0","e":false,"i":"","n":"toolsClasspath","t":"toolsClasspath: Simple[Seq[PathRef]]","d":"mill.util.VisualizeModule","k":"def","x":""},
+{"l":"sbt/mill.html#","e":false,"i":"","n":"sbt.mill","t":"sbt.mill","d":"","k":"package","x":""},
+{"l":"sbt/mill/SbtLoggerUtils$.html#","e":false,"i":"","n":"SbtLoggerUtils","t":"SbtLoggerUtils","d":"sbt.mill","k":"object","x":""},
+{"l":"sbt/mill/SbtLoggerUtils$.html#createLogger-799","e":false,"i":"","n":"createLogger","t":"createLogger(name: String, appender: Appender, level: Value): ManagedLogger","d":"sbt.mill.SbtLoggerUtils","k":"def","x":""},
+{"l":"sbt/mill/SbtLoggerUtils$$ConciseLevelConsoleAppender.html#","e":false,"i":"","n":"ConciseLevelConsoleAppender","t":"ConciseLevelConsoleAppender(name: String, log: String => Unit, ansiCodesSupported0: Boolean) extends ConsoleAppender","d":"sbt.mill.SbtLoggerUtils","k":"class","x":""}];

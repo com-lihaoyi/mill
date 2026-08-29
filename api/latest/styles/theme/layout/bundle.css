@@ -917,8 +917,7 @@ aside > .icon {
 }
 
 #content a.anchor::before {
-  content: "\f0c1";
-  font-family: "Font Awesome 5 Free";
+  content: "🔗";
   font-weight: 900;
   font-size: 20px;
 }
@@ -934,7 +933,7 @@ aside > .icon {
 
 #content :not(pre) > code {
   color: var(--code-props-content);
-  font-family: "FiraCode-Regular";
+  font-family: 'DejaVu Sans Mono', monospace;
   border: 1px solid var(--code-props-border);
   padding: 3px 5px 1px 5px;
   border-radius: 4px;
@@ -1295,7 +1294,8 @@ main :is(ul, ol) li .snippet {
 
 .show-all-code {
   margin-top: calc(2* var(--base-spacing));
-}.floating-button {
+}
+.floating-button {
   display: none;
   position: absolute;
   right: calc(3 * var(--base-spacing));
@@ -1530,7 +1530,7 @@ margin-block-start: 27px;
   box-sizing: border-box;
 }
 
-/* show direct children of currently exmanded node*/
+/* show direct children of currently expanded node*/
 .side-menu div.expanded > div {
   display: block;
 }
