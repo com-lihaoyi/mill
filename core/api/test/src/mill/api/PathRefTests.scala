@@ -107,6 +107,22 @@ object PathRefTests extends TestSuite {
       test("qref") - check(quick = true)
       test("ref") - check(quick = false)
     }
+
+    test("shellableUsesAbsolutePath") - withTmpDir { tmpDir =>
+      val file = tmpDir / "script"
+      os.write(file, "script")
+      val pathRef = PathRef(file)
+      val serializer = os.Path.pathRemapSerializerNio(
+        Seq(tmpDir.wrapped -> java.nio.file.Paths.get("..", "mill-workspace"))
+      )
+
+      os.Path.pathSerializer.withValue(serializer) {
+        assert(
+          file.toString.startsWith(".."),
+          os.proc(pathRef).commandChunks == Seq(PathRef.toAbsString(file))
+        )
+      }
+    }
   }
 
   private def withTmpDir[T](body: os.Path => T): T = {

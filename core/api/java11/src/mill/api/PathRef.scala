@@ -44,7 +44,7 @@ case class PathRef private[mill] (
 }
 
 object PathRef {
-  implicit def shellable(p: PathRef): os.Shellable = p.path
+  implicit def shellable(p: PathRef): os.Shellable = os.Shellable(Seq(toAbsString(p)))
 
   /**
    * Real on-disk absolute path string for `p`, bypassing any `os.Path` serializer

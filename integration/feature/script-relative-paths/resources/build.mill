@@ -1,0 +1,25 @@
+package build
+
+import mill.*
+
+object Scripts extends Module {
+  def myScript = Task {
+    if (scala.util.Properties.isWin) "@echo off\r\necho hi from Script\r\necho %*\r\n"
+    else "#!/bin/sh\necho hi from Script\necho \"$@\"\n"
+  }
+
+  def myScriptPath = Task {
+    val extension = if (scala.util.Properties.isWin) ".cmd" else ".sh"
+    val scriptFile = Task.dest / s"my-script$extension"
+    os.write(scriptFile, myScript(), perms = "rwxr-xr-x")
+    scriptFile
+  }
+
+  def runScript = Task {
+    val script = myScriptPath()
+    val command =
+      if (scala.util.Properties.isWin) os.proc("cmd.exe", "/c", script, "hi from Mill")
+      else os.proc(script, "hi from Mill")
+    command.call(stdout = os.Inherit, cwd = build.moduleDir)
+  }
+}
