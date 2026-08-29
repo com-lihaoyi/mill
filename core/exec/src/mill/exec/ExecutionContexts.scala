@@ -45,7 +45,29 @@ object ExecutionContexts {
    * and AutoCloseable support
    */
   class ThreadPool(executor: ThreadPoolExecutor) extends mill.api.TaskCtx.Fork.Impl {
-    def await[T](t: Future[T]): T = blocking { Await.result(t, Duration.Inf) }
+    private class AsyncRunnable(priority: Int, run0: () => Unit)
+        extends PriorityRunnable(priority, run0) {
+      override private[mill] def samePriorityGroup: Int = -1
+    }
+
+    private def runNextQueuedAsync(): Boolean =
+      executor.getQueue.poll() match {
+        case runnable: AsyncRunnable =>
+          runnable.run()
+          true
+        case null => false
+        case runnable =>
+          // A higher-priority ordinary task may have arrived before the poll.
+          // Its stable PriorityRunnable index preserves its place when reinserted.
+          executor.getQueue.add(runnable)
+          false
+      }
+
+    def await[T](t: Future[T]): T = {
+      while (!t.isCompleted && runNextQueuedAsync()) ()
+      if (t.isCompleted) Await.result(t, Duration.Inf)
+      else blocking { Await.result(t, Duration.Inf) }
+    }
 
     // Synchronize on the underlying `executor`: concurrent launchers
     // share one daemon-level executor across multiple `ThreadPool`
@@ -94,6 +116,15 @@ object ExecutionContexts {
      * folder [[dest]] and duplicates the logging streams to [[dest]].log while evaluating
      * [[t]], to avoid conflict with other tasks that may be running concurrently
      */
+    private[exec] def async0[T](priority: Int)(t: => T): Future[T] = {
+      val promise = concurrent.Promise[T]()
+      executor.execute(new AsyncRunnable(
+        priority = priority,
+        run0 = () => promise.complete(NonFatal.Try(t))
+      ))
+      promise.future
+    }
+
     def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(using
         ctx: mill.api.TaskCtx
     ): Future[T] = {
@@ -108,19 +139,11 @@ object ExecutionContexts {
         pwd = () => lazyDest.get(),
         streams = logger.streams
       )
-      val promise = concurrent.Promise[T]()
-      val runnable = new PriorityRunnable(
-        priority = priority,
-        run0 = () => {
-          val result = NonFatal.Try(logger.withPromptLine {
-            submitterContext.bind(t(logger))
-          })
-          promise.complete(result)
+      async0(priority) {
+        logger.withPromptLine {
+          submitterContext.bind(t(logger))
         }
-      )
-
-      executor.execute(runnable)
-      promise.future
+      }
     }
   }
 
@@ -134,8 +157,7 @@ object ExecutionContexts {
       60,
       TimeUnit.SECONDS,
       // Use a priority queue so child `fork.async` tasks can run ahead of
-      // lower-priority parent tasks, avoiding large numbers of blocked parent
-      // tasks from piling up.
+      // same- or lower-priority parent tasks that may await them.
       PriorityBlockingQueue[Runnable](),
       runnable => {
         val threadIndex = threadCounter.incrementAndGet()

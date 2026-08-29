@@ -2,7 +2,14 @@ package mill.exec
 
 import utest.*
 
-import java.util.concurrent.{CountDownLatch, TimeUnit}
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.{
+  ConcurrentLinkedQueue,
+  CountDownLatch,
+  PriorityBlockingQueue,
+  ThreadPoolExecutor,
+  TimeUnit
+}
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, Future, Promise}
 
@@ -71,6 +78,51 @@ object ExecutionContextsTests extends TestSuite {
           executor.shutdownNow()
           executor.awaitTermination(5, TimeUnit.SECONDS)
         }
+      }
+    }
+
+    test("awaitingAsyncChildrenDoesNotCreateAWorkerPerParent") {
+      val threadCount = 4
+      val parentCount = 100
+      val childrenPerParent = 8
+      val createdWorkers = AtomicInteger()
+      val executor = ThreadPoolExecutor(
+        threadCount,
+        threadCount,
+        60,
+        TimeUnit.SECONDS,
+        PriorityBlockingQueue[Runnable](),
+        runnable => {
+          createdWorkers.incrementAndGet()
+          Thread(runnable)
+        }
+      )
+      val pool = ExecutionContexts.ThreadPool(executor)
+      val startParents = CountDownLatch(1)
+      val parentsDone = CountDownLatch(parentCount)
+      val failures = ConcurrentLinkedQueue[Throwable]()
+
+      try {
+        for (_ <- 0 until parentCount) pool.execute(() => {
+          try {
+            startParents.await()
+            val children = Seq.fill(childrenPerParent)(pool.async0(priority = 0)(()))
+            children.foreach(pool.await)
+          } catch {
+            case t: Throwable => failures.add(t)
+          } finally parentsDone.countDown()
+        })
+
+        startParents.countDown()
+        assert(parentsDone.await(10, TimeUnit.SECONDS))
+        assert(failures.isEmpty)
+        // A child already claimed by another worker can still need a compensation
+        // thread, but worker creation must scale with --jobs, not queued parents.
+        assert(createdWorkers.get() <= threadCount * 4)
+      } finally {
+        startParents.countDown()
+        executor.shutdownNow()
+        executor.awaitTermination(5, TimeUnit.SECONDS)
       }
     }
   }

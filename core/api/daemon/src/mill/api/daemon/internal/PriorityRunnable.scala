@@ -15,12 +15,19 @@ private[mill] class PriorityRunnable(val priority: Int, run0: () => Unit)
 
   val priorityRunnableIndex: Long = PriorityRunnable.priorityRunnableCount.getAndIncrement()
 
+  // Lower groups win ties before submission order is considered.
+  private[mill] def samePriorityGroup: Int = 0
+
   override def compareTo(o: PriorityRunnable): Int = priority.compareTo(o.priority) match {
     case 0 =>
-      // `Comparable` wants a total ordering. This index is assigned when a task
-      // is submitted, so equal-priority work runs in submission order.
-      assert(this == o || this.priorityRunnableIndex != o.priorityRunnableIndex)
-      this.priorityRunnableIndex.compareTo(o.priorityRunnableIndex)
+      samePriorityGroup.compareTo(o.samePriorityGroup) match {
+        case 0 =>
+          // `Comparable` wants a total ordering. This index is assigned when a task
+          // is submitted, so equal-priority work runs in submission order.
+          assert(this == o || this.priorityRunnableIndex != o.priorityRunnableIndex)
+          this.priorityRunnableIndex.compareTo(o.priorityRunnableIndex)
+        case n => n
+      }
     case n => n
   }
 }
