@@ -40,12 +40,29 @@ object GraphvizTools {
           val outputs = extensions
             .map(ext => Format.values().find(_.fileExtension == ext).head -> s"out.$ext")
 
-          for ((fmt, name) <- outputs) gv.render(fmt).toFile((dest / name).toIO)
+          for ((fmt, name) <- outputs) {
+            try gv.render(fmt).toFile((dest / name).toIO)
+            catch {
+              case e: LinkageError if fmt == Format.PNG && causedByMissingFontConfig(e) =>
+                warnMissingFontConfig()
+            }
+          }
         }
 
       Await.result(Future.sequence(futures), duration.Duration.Inf)
     } finally executor.shutdown()
   }
+
+  private def causedByMissingFontConfig(error: Throwable): Boolean =
+    Option(error.getMessage).exists(_.contains("Fontconfig head is null")) ||
+      Option(error.getCause).exists(causedByMissingFontConfig)
+
+  private def warnMissingFontConfig(): Unit =
+    System.err.println(
+      "Could not render out.png because Java's font system failed to initialize. " +
+        "The SVG and text graph outputs are still available. " +
+        "Install fontconfig and at least one system font to enable PNG rendering."
+    )
 }
 
 class V8JavascriptEngine() extends AbstractJavascriptEngine {
