@@ -65,6 +65,8 @@ object ApplicationModelWorker {
       groupId: String,
       artifactId: String,
       version: String,
+      artifactType: String,
+      classifier: String,
       resolvedPath: os.Path,
       isRuntime: Boolean,
       isDeployment: Boolean,
