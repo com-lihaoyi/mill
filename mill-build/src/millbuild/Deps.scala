@@ -358,6 +358,7 @@ object Deps {
     val scalaTest = mvn"org.scalatest::scalatest:3.2.20"
     val utest = mvn"com.lihaoyi::utest:0.10.0-RC1"
     val zioTest = mvn"dev.zio::zio-test:2.1.14"
+    val kyoTest = mvn"io.getkyo::kyo-test-runner:1.0.0-RC6"
   }
 
   /** Used in documentation. */
