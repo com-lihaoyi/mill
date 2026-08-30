@@ -735,7 +735,7 @@ object Execution {
               case Right(lease) => lease
               case Left(_) => throw RetryDueToDroppedTaskLock(retained.label)
             }
-        }
+          }
         val localVersion = localVersionState(retained.key)
         val versionMatches = localVersion.synchronized {
           val currentVersion = workspaceLocking.taskVersion(retained.path)
