@@ -20,7 +20,7 @@ object foo extends MyModule {
 object bar extends MyModule {
   def mainClass = Some("bar.BarKt")
   def mvnDeps = Seq(
-    mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
+    mvn"org.jetbrains.kotlinx:kotlinx-html:0.12.0"
   )
 }
 
