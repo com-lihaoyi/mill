@@ -16,14 +16,16 @@ object VisualizeWorkerMain {
 
   private def render(payload: os.Path, dest: os.Path): Unit = {
     val parsed = ujson.read(os.read(payload))
-    val selected = parsed("tasks").arr.map(_.str).toSet
+    val selectedTasks = parsed("tasks").arr.map(_.str)
+    val selected = selectedTasks.toSet
     val edges = parsed("edges").arr.map { entry =>
       val src = entry("src").str
       val dests = entry("dests").arr.map(_.str).toArray.distinct
       (src, dests)
     }.toArray
 
-    val indexToTask = edges.flatMap { case (k, vs) => Iterator(k) ++ vs }.distinct
+    val indexToTask =
+      (edges.flatMap { case (k, vs) => Iterator(k) ++ vs } ++ selectedTasks).distinct
     val taskToIndex = indexToTask.zipWithIndex.toMap
 
     val jgraph = new SimpleDirectedGraph[Int, DefaultEdge](classOf[DefaultEdge])
@@ -40,22 +42,22 @@ object VisualizeWorkerMain {
         .`with`(Shape.BOX)
     )
 
-    var g = graph("example1").directed
-    for (i <- indexToTask.indices) {
-      for {
-        target <- edges(i)._2
-        j = taskToIndex(target)
-        if jgraph.containsEdge(i, j)
-      } {
-        g = g.`with`(nodes(j).link(nodes(i)))
-      }
+    var g = graph("example1").directed.`with`(nodes*)
+    for {
+      (src, dests) <- edges
+      target <- dests
+      i = taskToIndex(src)
+      j = taskToIndex(target)
+      if jgraph.containsEdge(i, j)
+    } {
+      g = g.`with`(nodes(j).link(nodes(i)))
     }
     g = g.graphAttr().`with`(Rank.dir(RankDir.LEFT_TO_RIGHT))
 
     val graphFile = os.temp(prefix = "mill-visualize-", suffix = ".dot")
     try {
       os.write.over(graphFile, g.toString)
-      GraphvizTools.main(Array(s"$graphFile;$dest;txt,dot,json,png,svg"))
+      GraphvizTools.main(Array(s"$graphFile;$dest;txt,dot,json,svg,png"))
     } finally {
       os.remove(graphFile, checkExists = false)
     }
