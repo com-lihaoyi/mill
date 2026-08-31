@@ -45,6 +45,7 @@ object `package` extends MillStableScalaModule {
       `pgp-worker`,
       `classgraph-worker`,
       `jarjarabrams-worker`,
+      `quarkus-worker`,
       `spotless-worker`,
       `scalameta-worker`
     )

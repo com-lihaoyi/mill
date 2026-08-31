@@ -135,6 +135,8 @@ class ApplicationModelWorkerImpl extends ApplicationModelWorker {
         .setResolvedPath(dep.resolvedPath.toNIO)
         .setGroupId(dep.groupId)
         .setArtifactId(dep.artifactId)
+        .setType(dep.artifactType)
+        .setClassifier(dep.classifier)
         .setVersion(dep.version)
 
       if (appModel.appMode == Test) {
@@ -286,7 +288,7 @@ class ApplicationModelWorkerImpl extends ApplicationModelWorker {
       Files.exists(quarkusDescr)
     }
 
-    dep.isRuntime && metaInfPathExists
+    dep.isRuntime && dep.artifactType == ArtifactCoords.TYPE_JAR && metaInfPathExists
   }
 
   private def processQuarkusDir(
@@ -380,17 +382,15 @@ class ApplicationModelWorkerImpl extends ApplicationModelWorker {
 
     val sourcesPathCollection: PathCollection = PathList.of(sourcesDir.map(_.toNIO)*)
     val generatedSourcesPath: Path = generatedSourcesDir.toNIO
-    val buildPropertiesPath: Path = buildProperties.toNIO
 
     val sourceRegistrar: Consumer[Path] = _ => ()
-    curatedApplication.getApplicationModel
 
     initAndRun.invoke(
       null,
       deploymentClassLoader,
       sourcesPathCollection,
       generatedSourcesPath,
-      buildPropertiesPath,
+      buildDir.toNIO,
       sourceRegistrar,
       applicationModel,
       props,

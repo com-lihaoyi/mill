@@ -331,6 +331,17 @@ object CoursierModule {
     def artifacts[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false
+    )(using ctx: mill.api.TaskCtx): coursier.Artifacts.Result =
+      artifacts(deps, sources, artifactTypes = None)
+
+    /**
+     * Raw artifact results for the passed dependencies, including only the requested artifact
+     * types when `artifactTypes` is defined.
+     */
+    def artifacts[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean,
+        artifactTypes: Option[Set[coursier.Type]]
     )(using ctx: mill.api.TaskCtx): coursier.Artifacts.Result = {
       val deps0 = deps
         .iterator
@@ -340,6 +351,7 @@ object CoursierModule {
         repositories,
         deps0.map(_.dep),
         sources = sources,
+        artifactTypes = artifactTypes,
         ctx = Some(ctx),
         checkGradleModules = checkGradleModules,
         resolutionParams = resolutionParams,
