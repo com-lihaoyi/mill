@@ -414,26 +414,33 @@ object PromptLogger {
 
     @volatile var lastPromptHeight = 0
 
-    def writeCurrentPrompt(): Unit = {
-      if (!paused()) {
-        val currentPrompt = getCurrentPrompt()
-        systemStreams0.err.write(currentPrompt)
-        if (interactive()) lastPromptHeight = String(currentPrompt).linesIterator.size
-        else lastPromptHeight = 0
-      } else lastPromptHeight = 0
+    private val clearScreenBytes = AnsiNav.clearScreen(0).getBytes
 
-      if (interactive()) systemStreams0.err.write(AnsiNav.clearScreen(0).getBytes)
+    def currentPromptBytes(): Array[Byte] = {
+      val isInteractive = interactive()
+      val promptBytes = if (!paused()) {
+        val currentPrompt = getCurrentPrompt()
+        if (isInteractive) lastPromptHeight = String(currentPrompt).linesIterator.size
+        else lastPromptHeight = 0
+        currentPrompt
+      } else {
+        lastPromptHeight = 0
+        Array.emptyByteArray
+      }
+
+      if (isInteractive) promptBytes ++ clearScreenBytes else promptBytes
     }
 
-    def moveUp() = {
-      if (lastPromptHeight != 0) {
-        systemStreams0.err.write((AnsiNav.left(9999) + AnsiNav.up(lastPromptHeight)).getBytes)
-      }
+    def writeCurrentPrompt(): Unit = systemStreams0.err.write(currentPromptBytes())
+
+    def moveUpBytes() = {
+      if (lastPromptHeight == 0) Array.emptyByteArray
+      else (AnsiNav.left(9999) + AnsiNav.up(lastPromptHeight)).getBytes
     }
 
     def refreshPrompt(): Unit = synchronizer.synchronized {
-      moveUp()
-      writeCurrentPrompt()
+      // Keep a repaint in one upstream write so RPC transport cannot expose the cursor mid-redraw.
+      systemStreams0.err.write(moveUpBytes() ++ currentPromptBytes())
     }
 
     object pumper extends ProxyStream.Pumper(
@@ -478,7 +485,7 @@ object PromptLogger {
         if (enableTicker && interactive()) {
           lastCharWritten = buf(end - 1).toChar
           synchronizer.synchronized {
-            moveUp()
+            systemStreams0.err.write(moveUpBytes())
             lastPromptHeight = 0
           }
           // Clear each line as they are drawn, rather than relying on clearing
