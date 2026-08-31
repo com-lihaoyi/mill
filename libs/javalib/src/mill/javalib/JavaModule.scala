@@ -1207,6 +1207,22 @@ trait JavaModule
   }
 
   /**
+   * Third-party dependency source JARs exposed to BSP clients.
+   *
+   * Override this task to avoid resolving sources for dependencies that are known not to
+   * publish them, or to provide those sources through another mechanism.
+   */
+  def bspMvnDependencySources: T[Seq[PathRef]] = Task {
+    millResolver().classpath(
+      Seq(
+        coursierDependencyTask().withConfiguration(cs.Configuration.provided),
+        coursierDependencyTask()
+      ),
+      sources = true
+    )
+  }
+
+  /**
    * Resolved dependency sources, unpacked into a single directory. Useful to quickly
    * look up the sources of the dependencies on your classpath so you can find the
    * exact source code you are compiling and running against.
