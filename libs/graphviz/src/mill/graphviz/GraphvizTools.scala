@@ -58,7 +58,8 @@ object GraphvizTools {
       // scala.concurrent.Future catches NonFatal failures only. Wrap fatal rendering errors so the
       // future is completed exceptionally instead of leaving Await.result blocked forever.
       case error: Error =>
-        val detail = currentOutput.fold("Graphviz rendering failed")(name => s"Could not render $name")
+        val detail =
+          currentOutput.fold("Graphviz rendering failed")(name => s"Could not render $name")
         val message =
           if (causedByMissingFontConfig(error)) {
             s"$detail because Java's font system could not initialize. " +

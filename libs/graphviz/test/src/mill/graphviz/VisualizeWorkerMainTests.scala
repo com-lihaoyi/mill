@@ -61,8 +61,9 @@ object VisualizeWorkerMainTests extends TestSuite {
         process.environment().put("FONTCONFIG_PATH", dest.toString)
 
         val running = process.start()
-        val completed = try running.waitFor(20, TimeUnit.SECONDS)
-        finally if (running.isAlive) running.destroyForcibly()
+        val completed =
+          try running.waitFor(20, TimeUnit.SECONDS)
+          finally if (running.isAlive) running.destroyForcibly()
 
         assert(completed)
         assert(running.exitValue() != 0)
