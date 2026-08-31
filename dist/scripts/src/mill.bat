@@ -1,5 +1,10 @@
 @echo off
 
+rem Mill Build Tool: {{{ mill-repo-url }}}
+rem Download: {{{ mill-download-url }}}/mill-dist-{{{ mill-version }}}-mill.bat
+rem Documentation: {{{ mill-bootstrap-doc-url }}}
+rem Script Version: {{{ mill-version }}}
+
 setlocal enabledelayedexpansion
 
 if [!DEFAULT_MILL_VERSION!]==[] ( set "DEFAULT_MILL_VERSION={{{ mill-version }}}" )
