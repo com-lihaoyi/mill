@@ -27,6 +27,10 @@ include::partial$example/scalalib/module/3-docjar.adoc[]
 
 include::partial$example/scalalib/module/4-programmable-config.adoc[]
 
+=== SemanticDB Versions
+
+include::partial$example/scalalib/module/19-semanticdb-versions.adoc[]
+
 === Custom Tasks
 
 include::partial$example/scalalib/module/5-custom-tasks.adoc[]
