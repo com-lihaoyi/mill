@@ -7,6 +7,7 @@ import mill.integration.BspServerTestUtil.*
 import mill.testkit.UtestIntegrationTestSuite
 import utest.*
 
+import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
 import scala.concurrent.{Await, Promise}
 import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters.*
@@ -15,6 +16,12 @@ import scala.util.Success
 object BspServerReloadTests extends UtestIntegrationTestSuite {
   override protected def workspaceSourcePath: os.Path =
     super.workspaceSourcePath / "project"
+
+  private def replaceFile(from: os.Path, to: os.Path): Unit = {
+    val staged = to / os.up / s".${to.last}.replacement"
+    os.copy.over(from, staged)
+    os.move.over(staged, to)
+  }
 
   def tests = Tests {
     test("reload") - integrationTest { tester =>
@@ -80,7 +87,7 @@ object BspServerReloadTests extends UtestIntegrationTestSuite {
         // must be the first one since the session started. This ensures we don't send a
         // superfluous notification upfront when starting the BSP server (which can happen
         // if we're not careful).
-        os.copy.over(
+        replaceFile(
           workspacePath / "build.mill.deletion-and-renaming",
           workspacePath / "build.mill"
         )
@@ -93,8 +100,10 @@ object BspServerReloadTests extends UtestIntegrationTestSuite {
         def eventData(event: b.BuildTargetEvent): (String, b.BuildTargetEventKind) =
           (event.getTarget.getUri.split("/").last, event.getKind)
 
-        // `lib`'s target snapshot is unchanged across the build.mill edit.
+        // Existing targets are conservatively changed because any build definition edit can
+        // affect their BSP model through shared helpers or inherited configuration.
         val expectedChanges = Set(
+          "lib" -> b.BuildTargetEventKind.CHANGED,
           "thing" -> b.BuildTargetEventKind.DELETED,
           "app" -> b.BuildTargetEventKind.DELETED,
           "my-app" -> b.BuildTargetEventKind.CREATED,
@@ -129,11 +138,11 @@ object BspServerReloadTests extends UtestIntegrationTestSuite {
         env = Map("MILL_EXECUTABLE_PATH" -> tester.millExecutable.toString)
       )
 
-      var didChangePromise = Promise[b.DidChangeBuildTarget]()
+      val didChanges = new LinkedBlockingQueue[b.DidChangeBuildTarget]()
 
       val client = new DummyBuildClient {
         override def onBuildTargetDidChange(params: b.DidChangeBuildTarget): Unit =
-          didChangePromise.complete(Success(params))
+          didChanges.add(params)
       }
 
       withBspServer(
@@ -164,20 +173,28 @@ object BspServerReloadTests extends UtestIntegrationTestSuite {
         def eventData(event: b.BuildTargetEvent): (String, b.BuildTargetEventKind) =
           (event.getTarget.getUri.split("/").last, event.getKind)
 
-        // Don't reset didChangePromise at this point. The incoming didChange notification
-        // must be the first one since the session started. This ensures we don't send a
-        // superfluous notification upfront when starting the BSP server (which can happen
-        // if we're not careful).
-        os.copy.over(workspacePath / "build.mill.base", workspacePath / "build.mill")
+        def awaitChanges(expected: Set[(String, b.BuildTargetEventKind)]) = {
+          val deadline = System.nanoTime() + 1.minute.toNanos
+          var changes = Set.empty[(String, b.BuildTargetEventKind)]
+          while (!expected.subsetOf(changes) && System.nanoTime() < deadline) {
+            val params = didChanges.poll(deadline - System.nanoTime(), TimeUnit.NANOSECONDS)
+            assert(params != null)
+            changes = params.getChanges.asScala.map(eventData).toSet
+          }
+          changes
+        }
+
+        // A recovering build can report an intermediate mill-build change before the
+        // successfully loaded user targets. Wait for the coherent terminal event batch.
+        replaceFile(workspacePath / "build.mill.base", workspacePath / "build.mill")
 
         System.err.println(
           s"Waiting for Mill daemon to pick up changes in ${workspacePath / "build.mill"}"
         )
-        val didChangeParams = Await.result(didChangePromise.future, 1.minute)
         import b.BuildTargetEventKind.*
         val expectedChanges =
           Set(("app", CREATED), ("lib", CREATED), ("thing", CREATED), ("mill-build", CHANGED))
-        val changes = didChangeParams.getChanges().asScala.map(eventData).toSet
+        val changes = awaitChanges(expectedChanges)
         assert(expectedChanges == changes)
 
         val afterChangesBuildTargets = buildServer.workspaceBuildTargets().get()
@@ -187,21 +204,19 @@ object BspServerReloadTests extends UtestIntegrationTestSuite {
           normalizedLocalValues = normalizedLocalValues
         )
 
-        didChangePromise = Promise[b.DidChangeBuildTarget]()
-        os.copy.over(workspacePath / "build.mill.broken", workspacePath / "build.mill")
+        didChanges.clear()
+        replaceFile(workspacePath / "build.mill.broken", workspacePath / "build.mill")
 
         System.err.println(
           s"Waiting for Mill daemon to pick up changes in ${workspacePath / "build.mill"}"
         )
-        val didChangeParams0 = Await.result(didChangePromise.future, 1.minute)
-
         val expectedChanges0 = Set(
           "app" -> b.BuildTargetEventKind.DELETED,
           "lib" -> b.BuildTargetEventKind.DELETED,
           "thing" -> b.BuildTargetEventKind.DELETED,
           "mill-build" -> b.BuildTargetEventKind.CHANGED
         )
-        val changes0 = didChangeParams0.getChanges().asScala.map(eventData).toSet
+        val changes0 = awaitChanges(expectedChanges0)
         assert(expectedChanges0 == changes0)
 
         val afterChangesBuildTargets0 = buildServer.workspaceBuildTargets().get()
@@ -222,6 +237,111 @@ object BspServerReloadTests extends UtestIntegrationTestSuite {
           buildCompileRes.getStatusCode == b.StatusCode.ERROR,
           !targetsMap.contains("app")
         )
+      }
+    }
+
+    test("configurationChanges") - integrationTest { tester =>
+      import tester.*
+
+      os.remove(workspacePath / "build.mill")
+      os.copy.over(
+        workspacePath / "build.mill.yaml.configuration-base",
+        workspacePath / "build.mill.yaml"
+      )
+
+      eval(
+        ("--bsp-install", "--jobs", "1"),
+        stdout = os.Inherit,
+        stderr = os.Inherit,
+        check = true,
+        env = Map("MILL_EXECUTABLE_PATH" -> tester.millExecutable.toString)
+      )
+
+      val didChanges = new LinkedBlockingQueue[b.DidChangeBuildTarget]()
+      val client = new DummyBuildClient {
+        override def onBuildTargetDidChange(params: b.DidChangeBuildTarget): Unit =
+          didChanges.add(params)
+      }
+
+      withBspServer(workspacePath, millTestSuiteEnv, client = client) {
+        (buildServer, _) =>
+          val initialTargets = buildServer.workspaceBuildTargets().get()
+          val targetId = initialTargets.getTargets.asScala
+            .find(_.getDisplayName == "root-module")
+            .get
+            .getId
+
+          def compileClasspath = buildServer
+            .buildTargetJvmCompileClasspath(
+              new b.JvmCompileClasspathParams(List(targetId).asJava)
+            )
+            .get(1, TimeUnit.MINUTES)
+            .getItems
+            .get(0)
+            .getClasspath
+            .asScala
+            .toSeq
+
+          val initialClasspath = compileClasspath
+          assert(
+            initialClasspath.exists(_.contains("slf4j-api-2.0.16.jar")),
+            !initialClasspath.exists(_.contains("slf4j-api-2.0.17.jar"))
+          )
+          def javaHome(targets: b.WorkspaceBuildTargetsResult) =
+            ujson.read(gson.toJson(
+              targets.getTargets.asScala.find(_.getId == targetId).get
+            ))("data")("javaHome").str
+
+          val initialJavaHome = javaHome(initialTargets)
+
+          def assertNoTargetChange(): Unit =
+            assert(didChanges.poll(2, TimeUnit.SECONDS) == null)
+
+          def awaitTargetChange(): Unit = {
+            val deadline = System.nanoTime() + 1.minute.toNanos
+            var changed = false
+            while (!changed && System.nanoTime() < deadline) {
+              val params = didChanges.poll(deadline - System.nanoTime(), TimeUnit.NANOSECONDS)
+              assert(params != null)
+              assert(params.getChanges.asScala.forall(
+                _.getKind == b.BuildTargetEventKind.CHANGED
+              ))
+              changed = params.getChanges.asScala.exists { event =>
+                event.getTarget == targetId && event.getKind == b.BuildTargetEventKind.CHANGED
+              }
+            }
+            assert(changed)
+          }
+
+          // Building the first target snapshot initializes modules and discovers more
+          // BuildCtx watches. The watcher's stabilization bootstrap must absorb those
+          // unchanged watches without reporting a configuration change.
+          assertNoTargetChange()
+
+          replaceFile(
+            workspacePath / "build.mill.yaml.configuration-dependency-changed",
+            workspacePath / "build.mill.yaml"
+          )
+
+          awaitTargetChange()
+
+          val changedClasspath = compileClasspath
+          assert(
+            changedClasspath.exists(_.contains("slf4j-api-2.0.17.jar")),
+            !changedClasspath.exists(_.contains("slf4j-api-2.0.16.jar"))
+          )
+          assertNoTargetChange()
+
+          replaceFile(
+            workspacePath / "build.mill.yaml.configuration-jvm-changed",
+            workspacePath / "build.mill.yaml"
+          )
+
+          awaitTargetChange()
+
+          val changedTargets = buildServer.workspaceBuildTargets().get(1, TimeUnit.MINUTES)
+          assert(initialJavaHome != javaHome(changedTargets))
+          assertNoTargetChange()
       }
     }
 
