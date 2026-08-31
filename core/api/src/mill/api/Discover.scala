@@ -52,9 +52,15 @@ final class Discover(val classInfo: Map[Class[?], Discover.ClassInfo]) {
 object Discover {
   final class ClassInfo(
       val entryPoints: Seq[mainargs.MainData[?, ?]],
-      val declaredTasks: Seq[TaskInfo]
+      val declaredTasks: Seq[TaskInfo],
+      @com.lihaoyi.unroll val pathTaskNames: Seq[String] = null
   ) {
     lazy val declaredTaskNameSet = declaredTasks.map(_.name).toSet
+
+    // Older ClassInfo instances do not contain the path-only metadata. Falling back to
+    // declaredTasks preserves their behavior while @unroll preserves constructor compatibility.
+    private[mill] lazy val pathTaskNameSet =
+      Option(pathTaskNames).fold(declaredTaskNameSet)(_.toSet)
     lazy val nonBootstrappedTaskNames = declaredTasks.filter(_.nonBootstrapped).map(_.name).toSet
   }
   final class TaskInfo(val name: String, @com.lihaoyi.unroll val nonBootstrapped: Boolean = false)
@@ -70,6 +76,7 @@ object Discover {
       import quotes.reflect.*
       val seen = mutable.Set.empty[TypeRepr]
       val moduleSym = Symbol.requiredClass("mill.api.Module")
+      val moduleRefSym = Symbol.requiredClass("mill.api.ModuleRef")
 
       def rec(tpe: TypeRepr): Unit = {
         if (seen.add(tpe)) {
@@ -81,14 +88,20 @@ object Discover {
 
           val parentTypes: Seq[TypeRepr] = tpe.baseClasses.map(_.typeRef)
 
-          for {
-            tpe <- memberTypes ++ parentTypes
-            if tpe.baseClasses.contains(moduleSym)
-          } {
-            rec(tpe)
-            tpe.asType match {
-              case '[mill.api.Cross[m]] => rec(TypeRepr.of[m])
-              case _ => () // no cross argument to extract
+          for (memberType <- memberTypes ++ parentTypes) {
+            val widened = memberType.widen.dealias
+            if (widened.baseClasses.contains(moduleSym)) {
+              rec(widened)
+              widened.asType match {
+                case '[mill.api.Cross[m]] => rec(TypeRepr.of[m])
+                case _ => () // no cross argument to extract
+              }
+            } else {
+              widened match {
+                case AppliedType(moduleRef, Seq(referenced))
+                    if moduleRef.typeSymbol == moduleRefSym => rec(referenced)
+                case _ => ()
+              }
             }
           }
         }
@@ -124,10 +137,25 @@ object Discover {
       // changing unnecessarily
       val mapping: Seq[(
           TypeRepr,
-          (Seq[scala.quoted.Expr[mainargs.MainData[?, ?]]], Seq[(String, Boolean)])
+          (
+              Seq[scala.quoted.Expr[mainargs.MainData[?, ?]]],
+              Seq[(String, Boolean)],
+              Seq[String]
+          )
       )] =
         for (curCls <- seen.toSeq.sortBy(_.typeSymbol.fullName)) yield {
           val declMethods = filterDefs(curCls.typeSymbol.declaredMethods)
+
+          val pathTaskMethods = sortedMethods(
+            curCls,
+            sub = TypeRepr.of[mill.api.Task.Named[?]],
+            curCls.typeSymbol.declaredMethods.filterNot { m =>
+              m.isSuperAccessor ||
+              m.flags.is(Flags.Synthetic) ||
+              m.flags.is(Flags.Invisible) ||
+              (m.flags.is(Flags.Private) && m.privateWithin.isEmpty)
+            }
+          )
 
           val taskMethods = sortedMethods(
             curCls,
@@ -164,12 +192,13 @@ object Discover {
               expr
           }
 
-          (curCls.widen, (entryPoints, names))
+          (curCls.widen, (entryPoints, names, pathTaskMethods.map(_.name)))
         }
 
       def classOf(cls: TypeRepr) = Ref(defn.Predef_classOf).appliedToType(cls).asExprOf[Class[?]]
       val mappingExpr = mapping.collect {
-        case (cls, (entryPoints, names)) if entryPoints.nonEmpty || names.nonEmpty =>
+        case (cls, (entryPoints, names, pathTaskNames))
+            if entryPoints.nonEmpty || names.nonEmpty || pathTaskNames.nonEmpty =>
           // by wrapping the `overridesRoutes` in a lambda function we kind of work around
           // the problem of generating a *huge* macro method body that finally exceeds the
           // JVM's maximum allowed method size
@@ -180,7 +209,8 @@ object Discover {
                 Expr.ofList(names.map { case (name, nonBootstrapped) =>
                   '{ TaskInfo(${ Expr(name) }, ${ Expr(nonBootstrapped) }) }
                 })
-              }
+              },
+              ${ Expr.ofList(pathTaskNames.map(Expr(_)).toList) }
             )
 
             (${ classOf(cls) }, func())
