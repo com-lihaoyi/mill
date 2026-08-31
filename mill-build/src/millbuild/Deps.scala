@@ -42,7 +42,7 @@ object Deps {
     val scalajsEnvSelenium =
       mvn"org.scala-js::scalajs-env-selenium:1.1.1".withDottyCompat(scalaVersion)
     val scalajsEnvPlaywright =
-      mvn"io.github.thijsbroersen::scala-js-env-playwright:0.2.3"
+      mvn"io.github.thijsbroersen::scala-js-env-playwright:0.3.2"
     val scalajsJsEnvs = mvn"org.scala-js::scalajs-js-envs:1.5.0".withDottyCompat(scalaVersion)
     val scalajsSbtTestAdapter =
       mvn"org.scala-js::scalajs-sbt-test-adapter:${scalaJsVersion}".withDottyCompat(scalaVersion)
