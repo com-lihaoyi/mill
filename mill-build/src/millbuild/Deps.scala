@@ -239,12 +239,12 @@ object Deps {
   val kspVersion = "2.0.1"
   val kotlinBuildToolsApi23Version_api = "2.3.0"
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
-  val kotlin24Compiler_api = mvn"org.jetbrains.kotlin:kotlin-compiler:2.4.0"
+  val kotlin24Compiler_api = mvn"org.jetbrains.kotlin:kotlin-compiler:2.4.10"
   val kotlinBuildTools23Api_api =
     mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kotlinBuildToolsApi23Version_api"
   // The 2.4.0 Build Tools API dropped the legacy operation factories in favour of builders; the
   // `worker-btapi-2-4` module compiles the dedicated Kotlin 2.4+ backend against this generation.
-  val kotlinBuildToolsApi24Version_api = "2.4.0"
+  val kotlinBuildToolsApi24Version_api = "2.4.10"
   val kotlinBuildTools24Api_api =
     mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kotlinBuildToolsApi24Version_api"
   val kotlinBuildToolsImpl = mvn"org.jetbrains.kotlin:kotlin-build-tools-impl:$kotlinVersion"
