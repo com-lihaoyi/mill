@@ -41,6 +41,10 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
   private[mill] def compileClasspathTask(compileFor: CompileFor): Task[Seq[PathRef]]
   def moduleDeps: Seq[JavaModule]
 
+  /**
+   * Version of the SemanticDB compiler plugin used for Scala 2 sources.
+   * Scala 3 provides SemanticDB support in the compiler itself.
+   */
   def semanticDbVersion: T[String] = Task.Input {
     val builtin = SemanticDbJavaModuleApi.buildTimeSemanticDbVersion
     val requested = Task.env.getOrElse[String](
@@ -50,6 +54,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     Version.chooseNewest(requested, builtin)(using Version.IgnoreQualifierOrdering)
   }
 
+  /** Version of the SemanticDB compiler plugin used for Java sources. */
   def semanticDbJavaVersion: T[String] = Task.Input {
     val builtin = SemanticDbJavaModuleApi.buildTimeJavaSemanticDbVersion
     val requested = Task.env.getOrElse[String](
@@ -86,7 +91,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     if (sv.isEmpty) {
       val msg =
         """|
-           |You must provide a javaSemanticDbVersion
+           |You must provide a semanticDbJavaVersion
            |
            |def semanticDbJavaVersion = ???
            |""".stripMargin
