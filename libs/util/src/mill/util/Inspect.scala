@@ -194,6 +194,7 @@ private[mill] object Inspect {
       val parents = (Option(cls.getSuperclass).toSeq ++ cls.getInterfaces).distinct
 
       val inheritedModules = parents.filter(parentFilter)
+      val subModules = module.moduleDirectChildren.map(_.toString)
 
       def getModuleDeps(methodName: String): Seq[Module] = cls
         .getMethods
@@ -235,6 +236,14 @@ private[mill] object Inspect {
             ":"
           ),
           inheritedModules.map("\n" + inspectItemIndent + _.getName),
+          // Sub-Modules:
+          if (subModules.nonEmpty) Iterator(
+            "\n\n",
+            ctx.applyPrefixColor("Sub-Modules").toString,
+            ":"
+          )
+          else Iterator.empty[String],
+          subModules.map("\n" + inspectItemIndent + _),
           // Module Dependencies: (JavaModule)
           if (hasModuleDeps) Iterator(
             "\n\n",

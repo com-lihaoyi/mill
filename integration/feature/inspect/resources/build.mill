@@ -61,3 +61,13 @@ object MyJavaTaskModule extends JavaModule {
     "Hello!"
   }
 }
+
+trait CrossModule extends Cross.Module[String]
+object cross extends Cross[CrossModule]("z", "a")
+
+object dynamic extends mill.api.DynamicModule {
+  object alpha extends Module
+  object zeta extends Module
+
+  override def moduleDirectChildren: Seq[Module] = Seq(zeta, alpha)
+}

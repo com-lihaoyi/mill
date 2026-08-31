@@ -67,6 +67,7 @@ object MainModuleTests extends TestSuite {
 
       /** SubSub module */
       object subSub extends Module
+      object alpha extends Module
     }
 
     override lazy val millDiscover = Discover[this.type]
@@ -251,6 +252,7 @@ object MainModuleTests extends TestSuite {
           res.contains("MainModuleTests.scala:"),
           res.contains("    Sub module"),
           res.contains("Inherited Modules:"),
+          res.contains("Sub-Modules:\n    sub.alpha\n    sub.subSub"),
           res.contains("Module Dependencies:"),
           res.contains("sub.subSub"),
           res.contains("Default Task: sub.hello"),
