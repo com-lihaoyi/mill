@@ -38,7 +38,13 @@ export mill.javalib.OfflineSupport
 
 export mill.javalib.OfflineSupportModule
 
-export mill.javalib.PublishModule
+type PublishModule = mill.javalib.PublishModule
+
+// Keep the JVM forwarder emitted by the former `export mill.javalib.PublishModule`.
+// The source-level term now resolves to the physical ExternalModule alias in aliases.scala.
+@scala.annotation.targetName("PublishModule")
+def publishModuleBinaryForwarder: mill.javalib.PublishModule.type =
+  mill.javalib.PublishModule
 
 export mill.javalib.RunModule
 
