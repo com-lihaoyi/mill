@@ -1,0 +1,5 @@
+package build.core
+
+import mill.*, javalib.*
+
+object `package` extends JavaModule
