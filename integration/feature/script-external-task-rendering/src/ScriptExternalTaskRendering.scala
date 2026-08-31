@@ -49,6 +49,18 @@ object ScriptExternalTaskRendering extends UtestIntegrationTestSuite {
             "mill.scalalib.scalafmt.ScalafmtModule/scalafmtClasspath"
           )
       )
+
+      val resolvePublishModule = eval(("resolve", "mill.scalalib.PublishModule/publishAll"))
+      assert(resolvePublishModule.exitCode == 0)
+      assert(
+        resolvePublishModule.out.linesIterator.toSeq ==
+          Seq("mill.scalalib.PublishModule/publishAll")
+      )
+
+      val publishModuleDefaultTask = eval(("mill.scalalib.PublishModule/", "--help"))
+      assert(publishModuleDefaultTask.exitCode == 1)
+      assert(publishModuleDefaultTask.err.contains("Expected Signature: publishAll"))
+      assert(!publishModuleDefaultTask.err.contains("unknown extension"))
     }
   }
 }
