@@ -10,6 +10,9 @@ import millbuild.*
 
 object `package` extends mill.Module { scripts =>
 
+  private val bootstrapDocumentationUrl =
+    s"${Settings.docUrl}/mill/cli/installation-ide.html#_bootstrap_scripts"
+
   trait BootstrapScriptModule extends Module {
     override def moduleDir = scripts.moduleDir
     def templateFile: T[PathRef]
@@ -17,10 +20,9 @@ object `package` extends mill.Module { scripts =>
     def substitutions: T[Map[String, String]] = Map(
       "mill-version" -> build.millVersion(),
       "mill-repo-url" -> Settings.projectUrl,
+      "mill-download-url" -> build.millDownloadUrlCurrent(),
+      "mill-bootstrap-doc-url" -> bootstrapDocumentationUrl,
       "mill-maven-url" -> Settings.mavenRepoUrl,
-      "mill-download-cache-unix" -> "~/.cache/mill/download",
-      "mill-download-cache-win" -> "%USERPROFILE%\\\\.mill\\\\download",
-      "template-file" -> templateFile().path.relativeTo(BuildCtx.workspaceRoot).toString,
       "glibc-version" -> glibcVersion()
     )
     def substitutionMarkers: T[(String, String)] = ("{{{", "}}}")
@@ -99,7 +101,10 @@ object `package` extends mill.Module { scripts =>
       "MILL_TEST_SH_SCRIPT" -> PathRef.toResolvedPathString(millSh.compile0().path),
       "MILL_TEST_BAT_SCRIPT" -> PathRef.toResolvedPathString(millBat.compile0().path),
       "MILL_NATIVE_SUFFIX" -> build.dist.native.nativeSuffix(),
-      "MILL_EXPECTED_DEFAULT_VERSION" -> build.millVersion()
+      "MILL_EXPECTED_DEFAULT_VERSION" -> build.millVersion(),
+      "MILL_EXPECTED_PROJECT_URL" -> Settings.projectUrl,
+      "MILL_EXPECTED_DOWNLOAD_URL" -> build.millDownloadUrlCurrent(),
+      "MILL_EXPECTED_BOOTSTRAP_DOC_URL" -> bootstrapDocumentationUrl
     )
   }
   def scriptsModules: Seq[BootstrapScriptModule] = Seq(millSh, millBat)
