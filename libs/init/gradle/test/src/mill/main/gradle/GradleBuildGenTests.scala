@@ -75,6 +75,20 @@ trait GradleBuildGenTests extends TestSuite {
         initArgs = Seq("--gradle-jvm-id", "25", "--mill-jvm-id", "25") ++ extraArgs
       ))
     }
+    test("android-hello-kotlin") {
+      assert(checker.check(
+        sourceRel = "android-hello-kotlin",
+        expectedRel = os.sub / expectedDir / "android-hello-kotlin",
+        initArgs = Seq("--gradle-jvm-id", "21") ++ extraArgs
+      ))
+    }
+    test("android-hello-kotlin-gradle8") {
+      assert(checker.check(
+        sourceRel = "android-hello-kotlin-gradle8",
+        expectedRel = os.sub / expectedDir / "android-hello-kotlin-gradle8",
+        initArgs = Seq("--gradle-jvm-id", "21") ++ extraArgs
+      ))
+    }
   }
 }
 

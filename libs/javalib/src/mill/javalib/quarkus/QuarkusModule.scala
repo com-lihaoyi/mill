@@ -3,7 +3,7 @@ package mill.javalib.quarkus
 import coursier.core.VariantSelector.ConfigurationBased
 import mill.api.PathRef
 import mill.{T, Task}
-import mill.javalib.{Dep, DepSyntax, JavaModule, PublishModule}
+import mill.javalib.{CoursierModule, Dep, DepSyntax, JavaModule, PublishModule}
 import mill.util.Jvm
 import upickle.default.ReadWriter.join
 
@@ -71,8 +71,8 @@ trait QuarkusModule extends JavaModule { outer =>
       ))
   }
 
-  override def bomMvnDeps: T[Seq[Dep]] = Task {
-    super.bomMvnDeps() ++ Seq(
+  override def mandatoryBomMvnDeps: T[Seq[Dep]] = Task {
+    super.mandatoryBomMvnDeps() ++ Seq(
       mvn"io.quarkus.platform:quarkus-bom:${quarkusPlatformVersion()}"
     )
   }
@@ -174,8 +174,13 @@ trait QuarkusModule extends JavaModule { outer =>
       ConfigurationBased(coursier.core.Configuration.compile)
     )
 
+    val quarkusArtifactTypes = Some(artifactTypes() + coursier.Type("exe"))
+
+    def resolveArtifacts[T: CoursierModule.Resolvable](deps: Seq[T]) =
+      millResolver().artifacts(deps, sources = false, artifactTypes = quarkusArtifactTypes)
+
     val runtimeDeps =
-      millResolver().artifacts(Seq(mill.javalib.BoundDep(depRuntime, force = false)))
+      resolveArtifacts(Seq(mill.javalib.BoundDep(depRuntime, force = false)))
 
     def qualifier(d: coursier.core.Dependency) =
       s"${d.module.organization.value}:${d.module.name.value}"
@@ -186,21 +191,51 @@ trait QuarkusModule extends JavaModule { outer =>
     def isDirectDep(d: coursier.core.Module): Boolean =
       mvnDeps().exists(dep => dep.dep.module == d)
 
+    def toQuarkusDependency(
+        artifact: (
+            coursier.core.Dependency,
+            Either[coursier.core.VariantPublication, coursier.core.Publication],
+            coursier.util.Artifact,
+            File
+        ),
+        isRuntime: Boolean,
+        isDeployment: Boolean,
+        hasExtension: Boolean
+    ): ApplicationModelWorker.Dependency = {
+      val (dependency, publication, _, file) = artifact
+      val attributes = publication.fold(
+        variantPublication =>
+          dependency.attributes.withClassifier(
+            variantPublication.classifier.getOrElse(dependency.attributes.classifier)
+          ),
+        _.attributes
+      )
+      val artifactType =
+        if (attributes.`type`.isEmpty) coursier.Type.jar.value else attributes.`type`.value
+      ApplicationModelWorker.Dependency(
+        groupId = dependency.module.organization.value,
+        artifactId = dependency.module.name.value,
+        version = dependency.versionConstraint.asString,
+        artifactType = artifactType,
+        classifier = attributes.classifier.value,
+        resolvedPath = os.Path(file),
+        isRuntime = isRuntime,
+        isDeployment = isDeployment,
+        isTopLevelArtifact = isDirectDep(dependency.module),
+        hasExtension = hasExtension
+      )
+    }
+
     val runtimeDepSet = runtimeDeps.detailedArtifacts0.map(da => qualifier(da._1)).toSet
 
-    val quarkusPrecomputedRuntimeDeps = runtimeDeps.detailedArtifacts0.map {
-      case (dependency, _, _, file) =>
-        ApplicationModelWorker.Dependency(
-          groupId = dependency.module.organization.value,
-          artifactId = dependency.module.name.value,
-          version = dependency.versionConstraint.asString,
-          resolvedPath = os.Path(file),
-          isRuntime = true,
-          isDeployment = false,
-          isTopLevelArtifact = isDirectDep(dependency.module),
-          hasExtension = false
-        )
-    }
+    val quarkusPrecomputedRuntimeDeps = runtimeDeps.detailedArtifacts0.map(artifact =>
+      toQuarkusDependency(
+        artifact,
+        isRuntime = true,
+        isDeployment = false,
+        hasExtension = false
+      )
+    )
 
     val depsWithExtensions = quarkusApplicationModelWorker().quarkusDeploymentDependencies(
       quarkusPrecomputedRuntimeDeps
@@ -213,24 +248,18 @@ trait QuarkusModule extends JavaModule { outer =>
       mvn"${d.groupId}:${d.artifactId}-deployment:${d.version}"
     )
 
-    val deploymentDeps = millResolver().artifacts(
-      deploymentMvnDeps
-    )
+    val deploymentDeps = resolveArtifacts(deploymentMvnDeps)
 
     val deploymentDepsSet = deploymentDeps.detailedArtifacts0.map(da => qualifier(da._1)).toSet
 
-    val quarkusDeploymentDeps = deploymentDeps.detailedArtifacts0.map {
-      case (dependency, _, _, file) =>
-        ApplicationModelWorker.Dependency(
-          groupId = dependency.module.organization.value,
-          artifactId = dependency.module.name.value,
-          version = dependency.versionConstraint.asString,
-          resolvedPath = os.Path(file),
-          isRuntime = runtimeDepSet.contains(qualifier(dependency)),
-          isDeployment = true,
-          isTopLevelArtifact = isDirectDep(dependency.module),
-          hasExtension = extensionDepsSet.contains(qualifier(dependency))
-        )
+    val quarkusDeploymentDeps = deploymentDeps.detailedArtifacts0.map { artifact =>
+      val dependency = artifact._1
+      toQuarkusDependency(
+        artifact,
+        isRuntime = runtimeDepSet.contains(qualifier(dependency)),
+        isDeployment = true,
+        hasExtension = extensionDepsSet.contains(qualifier(dependency))
+      )
     }
 
     val quarkusRuntimeDeps = quarkusPrecomputedRuntimeDeps.filterNot(d =>
@@ -238,26 +267,21 @@ trait QuarkusModule extends JavaModule { outer =>
     )
 
     val compileDeps =
-      millResolver().artifacts(Seq(mill.javalib.BoundDep(depCompile, force = false)))
+      resolveArtifacts(Seq(mill.javalib.BoundDep(depCompile, force = false)))
 
     val quarkusCompileDeps =
       compileDeps.detailedArtifacts0.filterNot {
         da =>
           val q = qualifier(da._1)
           runtimeDepSet.contains(q) || deploymentDepsSet.contains(q) || extensionDepsSet.contains(q)
-      }.map {
-        case (dependency, _, _, file) =>
-          ApplicationModelWorker.Dependency(
-            groupId = dependency.module.organization.value,
-            artifactId = dependency.module.name.value,
-            version = dependency.versionConstraint.asString,
-            resolvedPath = os.Path(file),
-            isRuntime = false,
-            isDeployment = false,
-            isTopLevelArtifact = isDirectDep(dependency.module),
-            hasExtension = false
-          )
-      }
+      }.map(artifact =>
+        toQuarkusDependency(
+          artifact,
+          isRuntime = false,
+          isDeployment = false,
+          hasExtension = false
+        )
+      )
 
     quarkusRuntimeDeps ++ quarkusCompileDeps ++ quarkusDeploymentDeps
   }
@@ -421,7 +445,7 @@ trait QuarkusModule extends JavaModule { outer =>
       artifactId = artifactId(),
       version = artifactVersion(),
       moduleData = moduleData(),
-      boms = bomMvnDeps().map(_.formatted),
+      boms = allBomMvnDeps().map(_.formatted),
       dependencies = quarkusDependencies(),
       nativeImage = quarkusNativeImage(),
       appMode = quarkusAppMode()

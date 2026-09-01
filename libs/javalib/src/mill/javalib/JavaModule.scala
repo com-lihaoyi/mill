@@ -129,6 +129,8 @@ trait JavaModule
 
     override def bomMvnDeps = super.bomMvnDeps() ++ outer.bomMvnDeps()
 
+    override def mandatoryBomMvnDeps = outer.mandatoryBomMvnDeps()
+
     override def depManagement = super.depManagement() ++ outer.depManagement()
 
     /**
@@ -187,9 +189,20 @@ trait JavaModule
    */
   def bomMvnDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
 
+  /**
+   * Mandatory BOM dependencies that shouldn't be removed by overriding [[bomMvnDeps]].
+   */
+  def mandatoryBomMvnDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
+
+  /**
+   * Aggregation of mandatoryBomMvnDeps and bomMvnDeps.
+   * In most cases, instead of overriding this task you want to override `bomMvnDeps` instead.
+   */
+  def allBomMvnDeps: T[Seq[Dep]] = Task { bomMvnDeps() ++ mandatoryBomMvnDeps() }
+
   def allBomDeps: Task[Seq[BomDependency]] = Task.Anon {
     val modVerOrMalformed =
-      bomMvnDeps().map(bindDependency()).map { bomDep =>
+      allBomMvnDeps().map(bindDependency()).map { bomDep =>
         val fromModVer = coursier.core.Dependency(bomDep.dep.module, bomDep.version)
         if (fromModVer == bomDep.dep)
           Right(bomDep.dep.asBomDependency)
@@ -1194,6 +1207,22 @@ trait JavaModule
   }
 
   /**
+   * Third-party dependency source JARs exposed to BSP clients.
+   *
+   * Override this task to avoid resolving sources for dependencies that are known not to
+   * publish them, or to provide those sources through another mechanism.
+   */
+  def bspMvnDependencySources: T[Seq[PathRef]] = Task {
+    millResolver().classpath(
+      Seq(
+        coursierDependencyTask().withConfiguration(cs.Configuration.provided),
+        coursierDependencyTask()
+      ),
+      sources = true
+    )
+  }
+
+  /**
    * Resolved dependency sources, unpacked into a single directory. Useful to quickly
    * look up the sources of the dependencies on your classpath so you can find the
    * exact source code you are compiling and running against.
@@ -1775,6 +1804,8 @@ object JavaModule {
     override def sourcesFolders = outer.sourcesFolders
 
     override def bomMvnDeps = super.bomMvnDeps() ++ outer.bomMvnDeps()
+
+    override def mandatoryBomMvnDeps = outer.mandatoryBomMvnDeps()
 
     override def depManagement = super.depManagement() ++ outer.depManagement()
 

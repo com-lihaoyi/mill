@@ -67,13 +67,7 @@ trait BspJavaModule extends mill.api.Module with BspJavaModuleApi {
           unmanagedClasspath: Seq[Path]
       )] = Task {
     (
-      resolvedDepsSources = jm.millResolver().classpath(
-        Seq(
-          jm.coursierDependencyTask().withConfiguration(coursier.core.Configuration.provided),
-          jm.coursierDependencyTask()
-        ),
-        sources = true
-      ).map(_.path.toNIO),
+      resolvedDepsSources = jm.bspMvnDependencySources().map(_.path.toNIO),
       unmanagedClasspath = jm.unmanagedClasspath().map(_.path.toNIO)
     )
   }

@@ -1,0 +1,13 @@
+package build
+
+import mill.*, androidlib.*
+
+object sdk extends AndroidSdkModule {
+  def buildToolsVersion = "35.0.0"
+}
+
+object app extends AndroidModule {
+  def androidSdkModule = mill.api.ModuleRef(sdk)
+  def androidCompileSdk = 35
+  def androidNamespace = "example.app"
+}

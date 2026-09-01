@@ -3,7 +3,7 @@ package mill.javalib.eclipse
 import mill.Task
 import mill.api.{ModuleCtx, ModuleRef, PathRef}
 import mill.api.daemon.internal.eclipse.{GenEclipseInternalApi, ResolvedModule}
-import mill.api.daemon.internal.{TaskApi, internal}
+import mill.api.daemon.internal.{KotlinModuleApi, ScalaModuleApi, TaskApi, internal}
 import mill.javalib.{BoundDep, JavaModule}
 import mill.api.JsonFormatters.given
 
@@ -53,6 +53,14 @@ trait GenEclipseModule extends mill.api.Module with GenEclipseInternalApi {
       extRunMvnDeps().collect(jarCollector)
   }
 
+  private[mill] def nonJdtModuleDependencyClasspath = Task {
+    Task.traverse(
+      javaModule.moduleDepsChecked.filterNot(isOnlyJavaModule).flatMap { module =>
+        module.transitiveModuleCompileModuleDeps :+ module
+      }.distinct
+    )(_.localClasspath)().flatten.filter(pathRef => os.exists(pathRef.path))
+  }
+
   private[mill] override def genEclipseModuleInformation(): TaskApi[ResolvedModule] = Task.Anon {
     // Resolve all dependencies by their "-sources.jar" archives.
     resolveSourcesJars()
@@ -63,13 +71,17 @@ trait GenEclipseModule extends mill.api.Module with GenEclipseInternalApi {
     val allSources = javaModule.allSources().map(_.path.toNIO)
 
     // Get all the module dependencies that will be translated to Eclipse JDT project dependencies
-    val moduleDeps = javaModule.moduleDepsChecked.map(_.moduleDirJava)
+    val moduleDeps = javaModule.moduleDepsChecked.filter(isOnlyJavaModule).map(_.moduleDirJava)
 
     // This can contain both JAR archives or folder of classes, etc. Eclipse does not care ^^
     val unmanagedClasspath = javaModule.unmanagedClasspath().map(_.javaPath)
 
-    // This will be all Jar archive dependencies both direct and transitive
-    val dependencyClasspath = libraryClasspath()
+    // This includes JAR dependencies and the compiled output of module types that Eclipse JDT
+    // cannot represent as projects.
+    val dependencyClasspath =
+      libraryClasspath() ++ nonJdtModuleDependencyClasspath().map { pathRef =>
+        PathRef.toAbsNioPath(PathRef.toResolvedOsPath(pathRef.path))
+      }
 
     ResolvedModule(
       segments = javaModule.moduleSegments,
@@ -79,6 +91,9 @@ trait GenEclipseModule extends mill.api.Module with GenEclipseInternalApi {
       allLibraryDependencies = unmanagedClasspath ++ dependencyClasspath
     )
   }
+
+  private def isOnlyJavaModule(module: JavaModule): Boolean =
+    !module.isInstanceOf[ScalaModuleApi] && !module.isInstanceOf[KotlinModuleApi]
 }
 
 @internal

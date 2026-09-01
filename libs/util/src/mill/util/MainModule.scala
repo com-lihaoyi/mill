@@ -229,7 +229,10 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
             val paths = Seq(evPaths.dest, evPaths.meta, evPaths.log)
             val potentialModulePath =
               rootDir / segments.parts.map(ExecutionPaths.sanitizePathSegment)
-            if (os.exists(potentialModulePath)) {
+            // `segments` is empty for tasks on the root module (e.g. resolved by `__`), which
+            // would make `potentialModulePath` the `out/` folder itself; deleting that wipes
+            // Mill's own internal state, including the running daemon's `processId` file.
+            if (segments.parts.nonEmpty && os.exists(potentialModulePath)) {
               // this is either because of some pre-Mill-0.10 files lying around
               // or most likely because the segments denote a module but not a task
               // in which case we want to remove the module and all its sub-modules
@@ -238,7 +241,8 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
               paths :+ potentialModulePath
             } else paths
           }
-          (allPaths, ts)
+          // Never delete Mill's own `out/mill-*` bookkeeping, matching the `tasks.isEmpty` case
+          (allPaths.filterNot(keepPath), ts)
         }
 
     (pathsToRemove.runtimeChecked).map {

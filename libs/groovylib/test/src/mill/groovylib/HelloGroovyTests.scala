@@ -289,7 +289,7 @@ object HelloGroovyTests extends TestSuite {
 
         test("groovy bom is added when version is at least 4.0.26") {
           testEval().scoped { eval =>
-            val Right(result) = eval.apply(deps.groovyBom.bomMvnDeps).runtimeChecked
+            val Right(result) = eval.apply(deps.groovyBom.mandatoryBomMvnDeps).runtimeChecked
 
             assert(
               result.value.contains(groovyBom)
@@ -299,7 +299,7 @@ object HelloGroovyTests extends TestSuite {
 
         test("groovy bom is NOT added when version is below 4.0.26") {
           testEval().scoped { eval =>
-            val Right(result) = eval.apply(deps.groovyNoBom.bomMvnDeps).runtimeChecked
+            val Right(result) = eval.apply(deps.groovyNoBom.mandatoryBomMvnDeps).runtimeChecked
 
             assert(
               !result.value.contains(groovyBom)

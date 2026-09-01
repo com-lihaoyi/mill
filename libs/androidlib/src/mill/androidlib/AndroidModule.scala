@@ -402,6 +402,10 @@ trait AndroidModule extends JavaModule { outer =>
     )
   }
 
+  override def bspMvnDependencySources: T[Seq[PathRef]] = Task {
+    androidUnpackedAarMvnDeps().flatMap(_.sourcesJar)
+  }
+
   def androidResolvedCompileMvnDeps: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(compileMvnDeps())
   }

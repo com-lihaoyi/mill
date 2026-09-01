@@ -30,6 +30,92 @@ object BspServerTests extends UtestIntegrationTestSuite {
     super.workspaceSourcePath / "project"
 
   def tests: Tests = Tests {
+    test("dependencySourcesWithoutSourceArtifact") - integrationTest { tester =>
+      import tester.*
+
+      def publishLocalArtifact(name: String, withSources: Boolean): Unit = {
+        val artifactDir = workspacePath / "repo/example" / name / "1.0"
+        os.makeDir.all(artifactDir)
+        os.write(
+          artifactDir / s"$name-1.0.pom",
+          s"""<project>
+             |  <modelVersion>4.0.0</modelVersion>
+             |  <groupId>example</groupId>
+             |  <artifactId>$name</artifactId>
+             |  <version>1.0</version>
+             |</project>
+             |""".stripMargin
+        )
+        os.write(artifactDir / s"$name-1.0.jar", "binary")
+        if (withSources) os.write(artifactDir / s"$name-1.0-sources.jar", "sources")
+      }
+
+      publishLocalArtifact("with-sources", withSources = true)
+      publishLocalArtifact("without-sources", withSources = false)
+      os.write.over(
+        workspacePath / "build.mill",
+        """package build
+          |
+          |import mill.*
+          |import mill.scalalib.*
+          |
+          |trait LocalRepoModule extends JavaModule {
+          |  override def repositoriesTask = Task.Anon {
+          |    Seq(coursier.maven.MavenRepository(
+          |      (mill.api.BuildCtx.workspaceRoot / "repo").toNIO.toUri.toASCIIString
+          |    ))
+          |  }
+          |}
+          |
+          |object partialSources extends LocalRepoModule {
+          |  def mvnDeps = Seq(
+          |    mvn"example:with-sources:1.0",
+          |    mvn"example:without-sources:1.0"
+          |  )
+          |}
+          |
+          |object noSources extends JavaModule {
+          |  override def repositoriesTask = Task.Anon {
+          |    Seq(coursier.maven.MavenRepository("http://127.0.0.1:1"))
+          |  }
+          |  def mvnDeps = Seq(mvn"example:unreachable:1.0")
+          |  override def bspMvnDependencySources = Task { Seq.empty[PathRef] }
+          |}
+          |""".stripMargin
+      )
+
+      eval(
+        ("--bsp-install", "--jobs", "1"),
+        stdout = os.Inherit,
+        stderr = os.Inherit,
+        check = true,
+        env = Map("MILL_EXECUTABLE_PATH" -> tester.millExecutable.toString)
+      )
+
+      withBspServer(workspacePath, millTestSuiteEnv) { (buildServer, _) =>
+        val targetsByName = buildServer.workspaceBuildTargets().get().getTargets.asScala
+          .map(target => target.getDisplayName -> target.getId)
+          .toMap
+        val requestedTargets = Seq("partialSources", "noSources").map(targetsByName).asJava
+
+        val result = buildServer
+          .buildTargetDependencySources(new b.DependencySourcesParams(requestedTargets))
+          .get(30, TimeUnit.SECONDS)
+
+        val itemsByTarget = result.getItems.asScala
+          .map(item => item.getTarget -> item.getSources.asScala.toSeq)
+          .toMap
+        assert(itemsByTarget.keySet == requestedTargets.asScala.toSet)
+        assert(itemsByTarget(targetsByName("noSources")).isEmpty)
+        assert(
+          itemsByTarget(targetsByName("partialSources")).map(source =>
+            Paths.get(URI.create(source)).getFileName.toString
+          ) ==
+            Seq("with-sources-1.0-sources.jar")
+        )
+      }
+    }
+
     test("requestSnapshots") - integrationTest { tester =>
       import tester.*
       eval(
@@ -615,7 +701,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         createFolders = true
       )
       os.write.over(
-        workspacePath / "scripts/visible.scala",
+        workspacePath / "scripts/visible.sc",
         """object visible
           |""".stripMargin
       )
@@ -633,7 +719,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
           .map(_.getId.getUri)
           .toSet
 
-        assert(targetUris.contains((workspacePath / "scripts/visible.scala").toURI.toASCIIString))
+        assert(targetUris.contains((workspacePath / "scripts/visible.sc").toURI.toASCIIString))
         assert(
           !targetUris.contains(
             (workspacePath / "gatling/gatling-app/src/main/scala/io/gatling/app/Analytics.scala")

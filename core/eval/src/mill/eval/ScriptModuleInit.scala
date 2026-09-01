@@ -95,7 +95,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
         scriptFile.ext match {
           case "java" => Result.Success("mill.script.JavaModule")
           case "kt" => Result.Success("mill.script.KotlinModule")
-          case "scala" => Result.Success("mill.script.ScalaModule")
+          case "scala" | "sc" => Result.Success("mill.script.ScalaModule")
           case "groovy" => Result.Success("mill.script.GroovyModule")
           case _ =>
             Result.Failure(
@@ -245,7 +245,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
       }
   }
 
-  private val scriptExtensions = Set("scala", "java", "kt", "yaml")
+  private val scriptExtensions = Set("scala", "sc", "java", "kt", "yaml")
 
   /**
    * Discovers all script files in the given workspace directory.

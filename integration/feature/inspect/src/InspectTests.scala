@@ -95,7 +95,7 @@ object InspectTests extends UtestIntegrationTestSuite {
           |    core.mandatoryMvnDeps
           |    core.compileMvnDeps
           |    core.runMvnDeps
-          |    core.bomMvnDeps
+          |    core.allBomMvnDeps
           |    core.depManagement
           |    core.repositories
           |    core.checkGradleModules
@@ -142,6 +142,9 @@ object InspectTests extends UtestIntegrationTestSuite {
           |Inherited Modules:
           |    mill.javalib.JavaModule
           |
+          |Sub-Modules:
+          |    core.test
+          |
           |Default Task: core.run
           |
           |Tasks (re-/defined):
@@ -182,6 +185,36 @@ object InspectTests extends UtestIntegrationTestSuite {
           |    build_.core3.package_
           |
           |Default Task: core3.run
+          |""".stripMargin
+      )
+
+      assert(eval(("inspect", "cross")).isSuccess)
+      val crossInspect = out("inspect").json.str
+      assertGoldenLiteral(
+        crossInspect,
+        """cross(build.mill:66)
+          |
+          |Inherited Modules:
+          |    mill.api.Cross
+          |
+          |Sub-Modules:
+          |    cross.z
+          |    cross.a
+          |""".stripMargin
+      )
+
+      assert(eval(("inspect", "dynamic")).isSuccess)
+      val dynamicInspect = out("inspect").json.str
+      assertGoldenLiteral(
+        dynamicInspect,
+        """dynamic(build.mill:68)
+          |
+          |Inherited Modules:
+          |    mill.api.DynamicModule
+          |
+          |Sub-Modules:
+          |    dynamic.zeta
+          |    dynamic.alpha
           |""".stripMargin
       )
 

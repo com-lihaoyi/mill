@@ -2,7 +2,7 @@ package mill.util
 
 import com.lihaoyi.unroll
 import coursier.cache.{ArchiveCache, CachePolicy, FileCache}
-import coursier.core.{BomDependency, VariantSelector}
+import coursier.core.{BomDependency, ResolutionProcess, VariantSelector}
 import coursier.error.FetchError.DownloadingArtifacts
 import coursier.error.ResolutionError.CantDownloadModule
 import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
@@ -29,6 +29,34 @@ import scala.util.chaining.scalaUtilChainingOps
  * launcher scripts, etc.
  */
 object Jvm {
+
+  private def mavenCompatibleFetcher(
+      fetch: ResolutionProcess.Fetch0[Task]
+  ): ResolutionProcess.Fetch0[Task] = { moduleVersions =>
+    fetch(moduleVersions).map(_.map {
+      case (moduleVersion, Right((source: MavenRepositoryLike, project))) =>
+        val hasManagedOptionality = project.dependencyManagement0.exists(_._2.optional) ||
+          project.profiles.exists(_.dependencyManagement.exists(_._2.optional))
+        val mavenProject =
+          if (!hasManagedOptionality) project
+          else {
+            val dependencyManagement = project.dependencyManagement0.map {
+              case (variant, dependency) => variant -> dependency.withOptional(false)
+            }
+            val profiles = project.profiles.map { profile =>
+              profile.withDependencyManagement(profile.dependencyManagement.map {
+                case (configuration, dependency) =>
+                  configuration -> dependency.withOptional(false)
+              })
+            }
+            project
+              .withDependencyManagement0(dependencyManagement)
+              .withProfiles(profiles)
+          }
+        moduleVersion -> Right(source -> mavenProject)
+      case result => result
+    })
+  }
 
   /**
    * Runs a JVM subprocess with the given configuration and returns a
@@ -968,6 +996,9 @@ object Jvm {
       .withBoms(boms.iterator.toSeq)
       .withConfFiles(config.confFiles.map(_.toNIO))
       .withMirrors(config.mirrors)
+      // Maven dependency management does not make explicit dependencies optional.
+      // https://github.com/coursier/coursier/issues/3731
+      .transformFetcher(mavenCompatibleFetcher)
 
     resolve.either() match {
       case Left(error) =>

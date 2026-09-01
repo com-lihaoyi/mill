@@ -338,6 +338,25 @@ graph ["rankdir"="LR"]
 // so it's easier to visualize while preserving the overall structure of the graph, but
 // it does mean that there will be some duplicate edges that are not shown.
 //
+// Tasks without dependencies are rendered as standalone nodes.
+//
+/** Usage
+> ./mill visualize foo.artifactId
+[
+  ".../out/visualize.dest/out.dot",
+  ".../out/visualize.dest/out.json",
+  ".../out/visualize.dest/out.png",
+  ".../out/visualize.dest/out.svg",
+  ".../out/visualize.dest/out.txt"
+]
+
+> cat out/visualize.dest/out.dot
+digraph "example1" {
+graph ["rankdir"="LR"]
+"foo.artifactId" ["style"="solid","shape"="box"]
+}
+*/
+//
 // == visualizePlan
 //
 /** Usage
