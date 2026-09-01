@@ -10,7 +10,8 @@ object TestRunnerKyoTests extends TestSuite {
 
   object kyoTestModule extends TestRootModule with ScalaModule with TestModule.KyoTest {
     override def scalaVersion: T[String] = sys.props.getOrElse("MILL_SCALA_3_NEXT_VERSION", ???)
-    override def kyoTestVersion: T[String] = sys.props.getOrElse("TEST_KYO_TEST_RUNNER_VERSION", ???)
+    override def kyoTestVersion: T[String] = 
+      sys.props.getOrElse("TEST_KYO_TEST_RUNNER_VERSION", ???)
     // The published kyo-test-runner POM does not pull in kyo-core, which the
     // kyo.test.Test API needs on the compile classpath, so add it explicitly.
     override def mvnDeps = Task {
