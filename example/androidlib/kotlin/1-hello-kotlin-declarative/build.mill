@@ -1,8 +1,7 @@
-// This example sets up the same basic Android project as xref:example/androidlib/kotlin/1-hello-kotlin.adoc[1-hello-kotlin],
-// but configured declaratively via `build.mill.yaml`/`package.mill.yaml` files instead of a
-// Scala `build.mill`. We utilize `AndroidAppKotlinModule` and `AndroidSdkModule` to streamline
+// This example sets up the same basic Android project as the "Simple Android Hello World
+// Application" example above, but configured declaratively via `build.mill.yaml`/`package.mill.yaml`
+// files instead of a Scala `build.mill`. We utilize `AndroidAppKotlinModule` and `AndroidSdkModule` to streamline
 // the process of building an Android application with minimal configuration.
-//
 //
 // The Android SDK is configured as a nested `object androidSdkModule:` in the root
 // `build.mill.yaml`. The app module then refers to it by path via the `androidSdkModule` key,
