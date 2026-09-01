@@ -1,0 +1,35 @@
+// This example sets up the same basic Android project as the "Simple Android Hello World
+// Application" example above, but configured declaratively via `build.mill.yaml`/`package.mill.yaml`
+// files instead of a Scala `build.mill`. We utilize `AndroidAppKotlinModule` and `AndroidSdkModule` to streamline
+// the process of building an Android application with minimal configuration.
+//
+// The Android SDK is configured as a nested `object androidSdkModule:` in the root
+// `build.mill.yaml`. The app module then refers to it by path via the `androidSdkModule` key,
+// the same way `moduleDeps` refers to other modules by path.
+
+/** See Also: build.mill.yaml */
+/** See Also: app/package.mill.yaml */
+/** See Also: app/test/package.mill.yaml */
+/** See Also: app/it/package.mill.yaml */
+
+// Unlike the Scala variant, this example builds a debug APK rather than a signed release
+// build: the release-signing fields aren't all `Task`-shaped, so they can't be set from YAML.
+// Everything else works the same as the Scala version.
+
+/** Usage
+
+> ./mill show app.androidApk
+".../out/app/androidApk.dest/app.apk"
+
+> ./mill app.it.androidTestApk
+
+> ./mill -j 1 show app.test
+...Compiling 2 Kotlin sources...
+
+> cat out/app/test/testForked.dest/worker-0/out.json
+["",[...{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.text_size_is_correct","selector":"com.helloworld.ExampleUnitTest.text_size_is_correct","duration":...,"status":"Success"}...]]
+
+> cat out/app/test/testForked.dest/worker-0/out.json
+["",[...{"fullyQualifiedName":"com.helloworld.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct","selector":"com.helloworld.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct","duration":...,"status":"Success"}...]]
+
+*/
