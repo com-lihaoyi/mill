@@ -46,6 +46,8 @@ case class Execution(
     remoteCacheLocation: Option[String] = None,
     remoteCacheSalt: Option[String] = None,
     remoteCacheFilter: Option[String] = None,
+    remoteCacheConnectTimeoutSeconds: Int = 30,
+    remoteCacheReadTimeoutSeconds: Int = 120,
     replayLogs: Boolean
 ) extends GroupExecution with AutoCloseable {
 
@@ -82,6 +84,8 @@ case class Execution(
       remoteCacheLocation: Option[String],
       remoteCacheSalt: Option[String],
       remoteCacheFilter: Option[String],
+      remoteCacheConnectTimeoutSeconds: Int,
+      remoteCacheReadTimeoutSeconds: Int,
       replayLogs: Boolean
   ) = this(
     baseLogger = baseLogger,
@@ -118,6 +122,8 @@ case class Execution(
     remoteCacheLocation = remoteCacheLocation,
     remoteCacheSalt = remoteCacheSalt,
     remoteCacheFilter = remoteCacheFilter,
+    remoteCacheConnectTimeoutSeconds = remoteCacheConnectTimeoutSeconds,
+    remoteCacheReadTimeoutSeconds = remoteCacheReadTimeoutSeconds,
     replayLogs = replayLogs
   )
 
@@ -134,6 +140,24 @@ case class Execution(
   }
 
   def withIsFinalDepth(newIsFinalDepth: Boolean) = this.copy(isFinalDepth = newIsFinalDepth)
+
+  def logRemoteCacheProfileSlice(
+      label: String,
+      durationMicros: Long,
+      cached: Boolean | Null
+  ): Unit =
+    profileLogger.log(
+      terminal = label,
+      duration = durationMicros,
+      cached = cached match {
+        case b: Boolean => b
+        case null => null
+      },
+      valueHashChanged = null,
+      deps = Nil,
+      inputsHash = 0,
+      previousInputsHash = -1
+    )
 
   /**
    * @param goals The tasks that need to be evaluated
