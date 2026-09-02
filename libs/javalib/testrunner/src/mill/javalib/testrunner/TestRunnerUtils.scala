@@ -57,13 +57,24 @@ import scala.math.Ordering.Implicits.*
           listClassFiles(base).map { path =>
             val cls = cl.loadClass(path.stripSuffix(".class").replace('/', '.'))
             val publicConstructorCount =
-              cls.getConstructors.count(c => Modifier.isPublic(c.getModifiers))
+              cls.getConstructors.count(c => Modifier.isPublic(c.getModifiers()))
 
             if (framework.name() == "Jupiter") {
               // sbt-jupiter-interface ignores fingerprinting since JUnit5 has its own resolving mechanism
               Some((cls, fingerprints.head))
             } else if (
-              Modifier.isAbstract(cls.getModifiers) || cls.isInterface || publicConstructorCount > 1
+              // abstract classes
+              Modifier.isAbstract(cls.getModifiers())
+              // interfaces
+              || cls.isInterface()
+              // classes, that can't be constructed publicly
+              || publicConstructorCount > 1
+              // non-static inner classes
+              || (cls.isMemberClass() && !Modifier.isStatic(cls.getModifiers()))
+              // local classes (declared inside a method)
+              || cls.isLocalClass()
+              // anonymous inner classes
+              || cls.isAnonymousClass()
             ) {
               None
             } else {
@@ -78,12 +89,6 @@ import scala.math.Ordering.Implicits.*
             .flatten
         )
       }
-      // I think this is a bug in sbt-junit-interface. AFAICT, JUnit is not
-      // meant to pick up non-static inner classes as test suites, and doing
-      // so makes the jimfs test suite fail
-      //
-      // https://stackoverflow.com/a/17468590
-      .filter { case (c, _) => !c.isMemberClass && !c.isAnonymousClass }
 
     discoveredTestClasses match {
       case Some(discoveredTestClasses0) =>
