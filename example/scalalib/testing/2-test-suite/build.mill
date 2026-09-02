@@ -51,6 +51,7 @@ compiling 2 ... source...
 // * `TestModule.Utest`, using https://github.com/com-lihaoyi/utest[uTest]
 // * `TestModule.Weaver`, using https://github.com/typelevel/weaver-test[Weaver]
 // * `TestModule.ZioTest`, using https://zio.dev/reference/test/[ZioTest]
+// * `TestModule.KyoTest`, using https://getkyo.io/latest/kyo-test/[Kyo Test]
 //
 // Each testing framework has their own flags and configuration options that are
 // documented on their respective websites, so please see the links above for more

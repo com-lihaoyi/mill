@@ -427,6 +427,7 @@ object ModuleSpec {
         case ("com.lihaoyi", "utest") => "TestModule.Utest"
         case ("org.typelevel", "weaver-cats") => "TestModule.Weaver"
         case ("dev.zio", "zio-test" | "zio-test-sbt") => "TestModule.ZioTest"
+        case ("io.getkyo", name) if name.startsWith("kyo-test") => "TestModule.KyoTest"
         case ("org.scalacheck", _) => "TestModule.ScalaCheck"
       }
     }
