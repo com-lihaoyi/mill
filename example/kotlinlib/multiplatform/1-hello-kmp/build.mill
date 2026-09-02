@@ -1,0 +1,96 @@
+import mill.*
+import mill.api.*
+import mill.kotlinlib.*
+import coursier.maven.MavenRepository
+import coursier.{Organization, ModuleName}
+
+val kotlinV  = "2.1.20"
+val composeV = "1.7.3"
+
+trait HelloKmpModule extends KotlinModule {
+  def kotlinVersion = kotlinV
+  override def jvmVersion = "17"
+
+  override def repositoriesTask = Task.Anon {
+    super.repositoriesTask() ++ Seq(
+      MavenRepository("https://maven.google.com/"),
+      MavenRepository("https://packages.jetbrains.team/maven/p/cmp/dev")
+    )
+  }
+
+  override def kotlincPluginMvnDeps = Task {
+    super.kotlincPluginMvnDeps() ++ Seq(
+      mvn"org.jetbrains.kotlin:kotlin-compose-compiler-plugin:$kotlinV"
+    )
+  }
+
+  override def kotlincOptions = Task {
+    super.kotlincOptions() ++ Seq(
+      "-jvm-target", "17",
+      "-Xmulti-platform",
+    )
+  }
+}
+
+// just sources shared between all modules
+object common extends Module {
+  def commonSources  = Task.Sources(moduleDir / "src" / "commonMain"  / "kotlin")
+  def desktopSources = Task.Sources(moduleDir / "src" / "desktopMain" / "kotlin")
+}
+
+object desktop extends Module {
+  object jvm extends HelloKmpModule {
+
+    def jvmSources = Task.Sources(moduleDir / os.up / "src" / "jvmMain" / "kotlin")
+
+    override def sources = Task {
+      common.commonSources() ++ common.desktopSources() ++ jvmSources()
+    }
+
+    override def kotlincOptions = Task {
+      def collectKt(refs: Seq[PathRef]) =
+        refs.flatMap(pr => os.walk(pr.path)).filter(_.ext == "kt")
+
+      val commonFiles  = collectKt(common.commonSources())
+      val desktopFiles = collectKt(common.desktopSources())
+      val jvmFiles     = collectKt(jvmSources())
+
+      val fragmentSources =
+        commonFiles.map(f  => s"-Xfragment-sources=commonMain:$f")  ++
+          desktopFiles.map(f => s"-Xfragment-sources=desktopMain:$f") ++
+          jvmFiles.map(f     => s"-Xfragment-sources=jvmMain:$f")
+
+      super.kotlincOptions() ++ Seq(
+        "-Xfragments=commonMain,desktopMain,jvmMain",
+        "-Xfragment-refines=desktopMain:commonMain,jvmMain:desktopMain",
+      ) ++ fragmentSources
+    }
+
+    // Fix ambiguity between skiko artifacts
+    override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = Task.Anon {
+      val sup = super.mapDependencies()
+      (d: coursier.Dependency) => {
+        val mapped = sup(d)
+        mapped.withMinimizedExclusions(
+          mapped.minimizedExclusions.join(
+            coursier.core.MinimizedExclusions(Set(
+              (coursier.Organization("org.jetbrains.skiko"), coursier.ModuleName("skiko"))
+            ))
+          )
+        )
+      }
+    }
+
+    override def mvnDeps = Task {
+      super.mvnDeps() ++ Seq(
+        mvn"org.jetbrains.compose.runtime:runtime-desktop:$composeV",
+        mvn"org.jetbrains.compose.foundation:foundation-desktop:$composeV",
+        mvn"org.jetbrains.compose.material:material-desktop:$composeV",
+        mvn"org.jetbrains.compose.ui:ui-desktop:$composeV",
+        mvn"org.jetbrains.compose.desktop:desktop-jvm-linux-x64:$composeV",
+      )
+    }
+
+    override def mainClass = Some("com.example.hellokmp.MainKt")
+  }
+}
