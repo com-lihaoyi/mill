@@ -313,7 +313,9 @@ class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
     val nonJavaModuleDependants = findNonJavaModuleDependants(resolvedJavaModules)
     if (nonJavaModuleDependants.nonEmpty) {
       val allModulesByPath: Map[Path, ModuleApi] =
-        transitiveModules(evaluators.head.rootModule).map(module => module.moduleDirJava -> module).toMap
+        transitiveModules(evaluators.head.rootModule).map(module =>
+          module.moduleDirJava -> module
+        ).toMap
 
       log(
         "Cannot generate Eclipse JDT Projects: found Java Module dependencies on Modules that " +
