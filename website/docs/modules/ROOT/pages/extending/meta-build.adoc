@@ -37,3 +37,7 @@ include::partial$example/extending/metabuild/4-meta-build.adoc[]
 == Sharing Source Code between `build.mill` and Application Code
 
 include::partial$example/extending/metabuild/5-meta-shared-sources.adoc[]
+
+== Accessing Build Modules from Meta-Build Sources
+
+include::partial$example/extending/metabuild/6-build-module-deps.adoc[]

@@ -24,13 +24,19 @@ private[worker] object ChangeNotifier {
    * @param client The BSP client to notify
    * @param previousTargets Previous build target snapshots
    * @param newTargets Current build target snapshots
+   * @param buildDefinitionChanged Whether the watcher observed a stale build-definition input
    */
   def notifyChanges(
       client: BuildClient,
       previousTargets: Seq[TargetSnapshot],
-      newTargets: Seq[TargetSnapshot]
+      newTargets: Seq[TargetSnapshot],
+      buildDefinitionChanged: Boolean
   ): Unit = {
-    val createdAndModifiedEvents = computeCreatedAndModified(previousTargets, newTargets)
+    val createdAndModifiedEvents = computeCreatedAndModified(
+      previousTargets,
+      newTargets,
+      buildDefinitionChanged
+    )
     val deletedEvents = computeDeleted(previousTargets, newTargets)
     val millBuildEvent = computeMillBuildChanged(
       previousTargets,
@@ -45,7 +51,8 @@ private[worker] object ChangeNotifier {
 
   private def computeCreatedAndModified(
       previousTargets: Seq[TargetSnapshot],
-      newTargets: Seq[TargetSnapshot]
+      newTargets: Seq[TargetSnapshot],
+      buildDefinitionChanged: Boolean
   ): Seq[bsp4j.BuildTargetEvent] = {
     val previousTargetsByUri = previousTargets.iterator.map(t => t.id.getUri -> t).toMap
     newTargets.flatMap { target =>
@@ -54,7 +61,11 @@ private[worker] object ChangeNotifier {
           val event = new bsp4j.BuildTargetEvent(target.id)
           event.setKind(bsp4j.BuildTargetEventKind.CREATED)
           Seq(event)
-        case Some(previous) if target.differsFrom(previous) =>
+        // BSP model data such as compile classpaths and Java homes lives behind
+        // separate endpoints and cannot be attributed to one target without
+        // evaluating every endpoint. Conservatively invalidate retained targets
+        // when the watcher observed an actual build-definition change.
+        case Some(previous) if buildDefinitionChanged || target.differsFrom(previous) =>
           val event = new bsp4j.BuildTargetEvent(target.id)
           event.setKind(bsp4j.BuildTargetEventKind.CHANGED)
           Seq(event)

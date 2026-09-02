@@ -5,7 +5,17 @@ import mill.constants.ProxyStream
 import utest.*
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
+import java.nio.charset.StandardCharsets
 object PromptLoggerTests extends TestSuite {
+
+  private class RecordingOutputStream extends ByteArrayOutputStream {
+    val writes = collection.mutable.ArrayBuffer.empty[String]
+
+    override def write(bytes: Array[Byte], offset: Int, length: Int): Unit = {
+      writes.append(String(bytes, offset, length, StandardCharsets.UTF_8))
+      super.write(bytes, offset, length)
+    }
+  }
 
   def setup(now: () => Long, terminalDimsCallback: () => Option[(Option[Int], Option[Int])]) = {
     val baos = ByteArrayOutputStream()
@@ -252,6 +262,46 @@ object PromptLoggerTests extends TestSuite {
         "123/456] TITLE 32s",
         ""
       )
+    }
+
+    test("interactiveRefreshIsSingleWrite") {
+      var now = 0L
+      val recordedErr = new RecordingOutputStream
+      val promptLogger = new PromptLogger(
+        colored = false,
+        enableTicker = true,
+        infoColor = fansi.Attrs.Empty,
+        warnColor = fansi.Attrs.Empty,
+        errorColor = fansi.Attrs.Empty,
+        successColor = fansi.Attrs.Empty,
+        highlightColor = fansi.Attrs.Empty,
+        systemStreams0 = SystemStreams(
+          PrintStream(ByteArrayOutputStream()),
+          PrintStream(recordedErr),
+          System.in
+        ),
+        debugEnabled = false,
+        titleText = "TITLE",
+        terminalDimsCallback = () => Some((Some(80), Some(40))),
+        currentTimeMillis = () => now,
+        autoUpdate = false,
+        chromeProfileLogger = new JsonArrayLogger.ChromeProfile(os.temp())
+      )
+
+      try {
+        promptLogger.prompt.setPromptLine(Seq("1"), "/1", "task")
+        now = 1000L
+        promptLogger.refreshPrompt()
+
+        recordedErr.writes.clear()
+        now = 2000L
+        promptLogger.refreshPrompt()
+
+        assert(recordedErr.writes.size == 1)
+        val repaint = recordedErr.writes.head
+        assert(repaint.startsWith(AnsiNav.left(9999) + AnsiNav.up(2)))
+        assert(repaint.endsWith(AnsiNav.clearScreen(0)))
+      } finally promptLogger.close()
     }
 
     test("detail") {

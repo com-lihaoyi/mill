@@ -10,7 +10,7 @@ import mill.api.internal.HeaderData
  * Sets `moduleDir` to the directory containing the config file, suitable for
  * directory-based modules with standard `src/` layouts.
  *
- * For single-file script modules (`.scala`, `.java`, `.kt`), use [[ScriptModule]]
+ * For single-file script modules (`.scala`, `.sc`, `.java`, `.kt`), use [[ScriptModule]]
  * which overrides `moduleDir` to point to the script file itself.
  */
 @experimental
@@ -98,7 +98,7 @@ object PrecompiledModule {
 }
 
 /**
- * Trait for single-file script modules (`.scala`, `.java`, `.kt`).
+ * Trait for single-file script modules (`.scala`, `.sc`, `.java`, `.kt`).
  * Overrides `moduleDir` to point to the script file itself rather than
  * its parent directory.
  */
