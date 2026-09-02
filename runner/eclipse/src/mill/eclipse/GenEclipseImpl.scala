@@ -148,6 +148,39 @@ class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
   }
 
   /**
+   *  Finds all Module dependencies of the (aggregated) Java Modules that are not themselves part
+   *  of `resolvedJavaModules`, i.e. dependencies on Modules for which no Eclipse JDT Project will
+   *  be generated (e.g. Scala / Kotlin Modules, which Eclipse JDT does not support).
+   *
+   *  @param resolvedJavaModules base for finding the "foreign" dependencies
+   *  @return a map from the path of a not-generated dependency to the paths of the Java Modules
+   *          that depend on it
+   */
+  private def findNonJavaModuleDependants(resolvedJavaModules: Map[Path, JavaResolvedModuleDto])
+      : Map[Path, Set[Path]] = {
+    val dependantsByMissingPath = mutable.Map.empty[Path, mutable.Set[Path]]
+
+    for ((path, dto) <- resolvedJavaModules) {
+      val allDependencyPaths = dto.resolvedModule.allModuleDependencies ++
+        dto.sourceSetResolvedModules.flatMap(_.allModuleDependencies)
+
+      for (dependencyPath <- allDependencyPaths if !resolvedJavaModules.contains(dependencyPath)) {
+        dependantsByMissingPath.getOrElseUpdate(dependencyPath, mutable.Set.empty) += path
+      }
+    }
+
+    dependantsByMissingPath.map { case (path, dependants) => path -> dependants.toSet }.toMap
+  }
+
+  /** Gives a human-readable name for the kind of a Mill Module, for use in log / error messages. */
+  private def describeModuleKind(module: ModuleApi): String = module match {
+    case _: ScalaModuleApi => "Scala Module"
+    case _: KotlinModuleApi => "Kotlin Module"
+    case _: JavaModuleApi => "Java Module"
+    case _ => module.getClass.getSimpleName
+  }
+
+  /**
    *  This converts the DTO into an actual model for an Eclipse JDT Project.
    *
    *  @param resolvedJavaModules base for converting to a project model
@@ -272,6 +305,27 @@ class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
 
     val resolvedJavaModules: Map[Path, JavaResolvedModuleDto] =
       getResolvedJavaModules(aggregatedJavaModules)
+
+    // Eclipse JDT does not support Scala / Kotlin Modules, so if a Java Module depends on one of
+    // those, we cannot generate a working set of Eclipse JDT Projects: there is no Eclipse Project
+    // to point the dependency at. Rather than generating a broken / incomplete result, we bail out
+    // here and tell the user which dependencies are the problem.
+    val nonJavaModuleDependants = findNonJavaModuleDependants(resolvedJavaModules)
+    if (nonJavaModuleDependants.nonEmpty) {
+      val allModulesByPath: Map[Path, ModuleApi] =
+        transitiveModules(evaluators.head.rootModule).map(module => module.moduleDirJava -> module).toMap
+
+      log(
+        "Cannot generate Eclipse JDT Projects: found Java Module dependencies on Modules that " +
+          "Eclipse JDT does not support (e.g. Scala / Kotlin Modules):"
+      )
+      for ((dependencyPath, dependantPaths) <- nonJavaModuleDependants) {
+        val kind = allModulesByPath.get(dependencyPath).map(describeModuleKind).getOrElse("unknown")
+        log(s" - $dependencyPath ($kind), required by: ${dependantPaths.mkString(", ")}")
+      }
+
+      return
+    }
 
     // Create the actual Eclipse JDT project object that will then be used to write the Eclipse
     // project specific files on disk.
