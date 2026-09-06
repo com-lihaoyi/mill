@@ -140,7 +140,7 @@ object PathRef {
                 updateWithInt(os.perms(path, followLinks = false).value)
               }
               if (quick) {
-                val value = (attrs.mtime, attrs.size).hashCode()
+                val value = (attrs.mtime.toMillis, attrs.size).hashCode()
                 updateWithInt(value)
               } else if (jnio.Files.isReadable(path.toNIO)) {
                 val is =
