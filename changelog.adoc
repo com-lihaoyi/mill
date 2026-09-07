@@ -14,6 +14,21 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
+=== 1.1.9
+:version: 1.1.9
+:milestone-name: 1.1.9
+:milestone: 150
+:prev-version: 1.1.8
+_2026-09-07_
+
+* Build with Mill to 1.1.8 and set API baseline ({link-pr}/7420[#7420])
+* fix: Avoid watching directory probes (backport {link-pr}/7173[#7173]) ({link-pr}/7433[#7433])
+* BuildInfo: Use root-imports to prevent import of colliding sub-packages (backport {link-pr}/7445[#7445]) ({link-pr}/7447[#7447])
+* Fix `clean __` deleting Mill's own `out/mill-*` state (backport {link-pr}/7459[#7459]) ({link-pr}/7467[#7467])
+* Update jarjar-abrams-core to 1.18.1 ({link-pr}/7534[#7534])
+* Normalize mtime to millis for PathRef quick signature rather than use FileTime ({link-pr}/7506[#7506])
+
+
 === 1.1.8
 :version: 1.1.8
 :milestone-name: 1.1.8
