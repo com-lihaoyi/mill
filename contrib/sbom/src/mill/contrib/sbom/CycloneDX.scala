@@ -31,6 +31,7 @@ object CycloneDX {
   case class Component(
       `type`: String,
       `bom-ref`: String,
+      purl: String,
       group: String,
       name: String,
       version: String,
@@ -44,9 +45,14 @@ object CycloneDX {
       val compLicenses = licenses.map { lic =>
         LicenseHolder(License(lic.name, lic.url))
       }
+      // Package URL (purl) per https://github.com/package-url/purl-spec
+      // Format: pkg:<type>/<namespace>/<name>@<version>?<qualifiers>
+      val purl =
+        s"pkg:maven/${dep.module.organization.value}/${dep.module.name.value}@${dep.version}?type=jar"
       Component(
         "library",
-        s"pkg:maven/${dep.module.organization.value}/${dep.module.name.value}@${dep.version}?type=jar",
+        purl,
+        purl,
         dep.module.organization.value,
         dep.module.name.value,
         dep.version,
