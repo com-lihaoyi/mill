@@ -902,6 +902,32 @@ There is no special test scope in Mill.</p>
 </div>
 </div>
 <div class="paragraph">
+<p>A dependency that shows up in several places in the tree is only expanded the first time it is
+printed; later occurrences are printed without their subtree. Every occurrence of such a
+dependency, the expanded one included, carries a trailing <code>(*n)</code> reference, so the place where
+its subtree was printed can be found by searching for the same number. Without this, the size of
+the tree would grow with the number of distinct <em>paths</em> through the dependency graph rather than
+with the number of dependencies, which for larger projects means it may never finish printing.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">├─ com.lihaoyi:upickle_2.13:1.4.0
+│  ├─ com.lihaoyi:ujson_2.13:1.4.0
+│  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*1)
+│  │     └─ com.lihaoyi:geny_2.13:0.6.10
+│  ├─ com.lihaoyi:upack_2.13:1.4.0
+│  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*1)
+│  └─ com.lihaoyi:upickle-implicits_2.13:1.4.0
+│     └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*1)
+└─ org.scala-lang:scala-library:2.13.10</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The same coordinates may carry more than one reference number. That happens when a dependency is
+pulled in along paths that apply different exclusions to it, in which case the two occurrences
+really do have different subtrees and are expanded separately.</p>
+</div>
+<div class="paragraph">
 <p>After compiling your module(s) you can find and examine files such as <code>mvnDeps.json</code> and <code>transitiveMvnDeps.json</code> in your <code>out</code> build&#8217;s folder for a given module.
 After running the <code>showMvnDepsTree</code> command you&#8217;ll also find the <code>showMvnDepsTree.json</code> and <code>showMvnDepsTree.log</code> file that contain the output of the above <code>showMvnDepsTree</code> command.</p>
 </div>
@@ -1075,7 +1101,7 @@ whose Maven coordinates are <code>com.google.cloud:libraries-bom:26.50.0</code><
 <p>Pass an external BOM to a <code>JavaModule</code> / <code>ScalaModule</code> / <code>KotlinModule</code> with <code>bomMvnDeps</code>, like</p>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.2.0-RC1-87-674b59/mill-dist-1.2.0-RC1-example-fundamentals-dependencies-1-external-bom.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.2.0-RC1/example/fundamentals/dependencies/1-external-bom/foo/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.2.0-RC1-88-552dee/mill-dist-1.2.0-RC1-example-fundamentals-dependencies-1-external-bom.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.2.0-RC1/example/fundamentals/dependencies/1-external-bom/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
 bomMvnDeps:
@@ -1106,7 +1132,7 @@ for a dependency, all exclusions are added to that dependency.</p>
 <p>Pass dependencies to <code>depManagement</code> in a <code>JavaModule</code> / <code>ScalaModule</code> / <code>KotlinModule</code>, like</p>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.2.0-RC1-87-674b59/mill-dist-1.2.0-RC1-example-fundamentals-dependencies-2-managed.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.2.0-RC1/example/fundamentals/dependencies/2-managed/foo/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.2.0-RC1-88-552dee/mill-dist-1.2.0-RC1-example-fundamentals-dependencies-2-managed.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.2.0-RC1/example/fundamentals/dependencies/2-managed/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
 depManagement:
@@ -1130,7 +1156,7 @@ protobuf-java <code>4.28.3</code> ends up being pulled here.</p>
 <p>One can also add exclusions via dependency management, like</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.2.0-RC1-87-674b59/mill-dist-1.2.0-RC1-example-fundamentals-dependencies-2-managed.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.2.0-RC1/example/fundamentals/dependencies/2-managed">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.2.0-RC1-88-552dee/mill-dist-1.2.0-RC1-example-fundamentals-dependencies-2-managed.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.2.0-RC1/example/fundamentals/dependencies/2-managed">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -1176,7 +1202,7 @@ like</p>
 <p>One can manage and publish Bill of Material (BOM) modules from Mill, by using <code>BomModule</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">myBom/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.2.0-RC1-87-674b59/mill-dist-1.2.0-RC1-example-fundamentals-dependencies-2-managed.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.2.0-RC1/example/fundamentals/dependencies/2-managed/myBom/package.mill.yaml">browse</a>)</div>
+<div class="title">myBom/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.2.0-RC1-88-552dee/mill-dist-1.2.0-RC1-example-fundamentals-dependencies-2-managed.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.2.0-RC1/example/fundamentals/dependencies/2-managed/myBom/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [JavaModule, BomModule]
 bomMvnDeps:
@@ -1259,7 +1285,7 @@ dependencies with particularly weird version numbers. For example, given the fol
 build:</p>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.2.0-RC1-87-674b59/mill-dist-1.2.0-RC1-example-fundamentals-dependencies-3-search-updates.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.2.0-RC1/example/fundamentals/dependencies/3-search-updates/foo/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.2.0-RC1-88-552dee/mill-dist-1.2.0-RC1-example-fundamentals-dependencies-3-search-updates.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.2.0-RC1/example/fundamentals/dependencies/3-search-updates/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: ScalaModule
 scalaVersion: 2.13.16
@@ -1269,7 +1295,7 @@ mvnDeps:
 </div>
 </div>
 <div class="listingblock">
-<div class="title">bar/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.2.0-RC1-87-674b59/mill-dist-1.2.0-RC1-example-fundamentals-dependencies-3-search-updates.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.2.0-RC1/example/fundamentals/dependencies/3-search-updates/bar/package.mill.yaml">browse</a>)</div>
+<div class="title">bar/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.2.0-RC1-88-552dee/mill-dist-1.2.0-RC1-example-fundamentals-dependencies-3-search-updates.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.2.0-RC1/example/fundamentals/dependencies/3-search-updates/bar/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: ScalaModule
 scalaVersion: 2.13.16
