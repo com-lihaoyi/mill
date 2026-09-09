@@ -115,6 +115,30 @@ To render a tree of dependencies (transitive included) you can run `mill myModul
 │  │  │  └─ com.lihaoyi:sourcecode_2.13:0.2.1 -> 0.3.0 (possible incompatibility)
 ----
 
+A dependency that shows up in several places in the tree is only expanded the first time it is
+printed; later occurrences are printed without their subtree. Every occurrence of such a
+dependency, the expanded one included, carries a trailing `+(*n)+` reference, so the place where
+its subtree was printed can be found by searching for the same number. Without this, the size of
+the tree would grow with the number of distinct _paths_ through the dependency graph rather than
+with the number of dependencies, which for larger projects means it may never finish printing.
+
+[source,text]
+----
+├─ com.lihaoyi:upickle_2.13:1.4.0
+│  ├─ com.lihaoyi:ujson_2.13:1.4.0
+│  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*1)
+│  │     └─ com.lihaoyi:geny_2.13:0.6.10
+│  ├─ com.lihaoyi:upack_2.13:1.4.0
+│  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*1)
+│  └─ com.lihaoyi:upickle-implicits_2.13:1.4.0
+│     └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*1)
+└─ org.scala-lang:scala-library:2.13.10
+----
+
+The same coordinates may carry more than one reference number. That happens when a dependency is
+pulled in along paths that apply different exclusions to it, in which case the two occurrences
+really do have different subtrees and are expanded separately.
+
 After compiling your module(s) you can find and examine files such as `mvnDeps.json` and `transitiveMvnDeps.json` in your `out` build's folder for a given module.
 After running the `showMvnDepsTree` command you'll also find the `showMvnDepsTree.json` and `showMvnDepsTree.log` file that contain the output of the above `showMvnDepsTree` command.
 
