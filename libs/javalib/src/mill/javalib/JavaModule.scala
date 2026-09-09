@@ -1461,16 +1461,16 @@ trait JavaModule
             .filter(dep => matchers.exists(matcher => matcher.matches(dep.module))).toSeq
       }
 
-      // Both directions deduplicate already-expanded nodes, eliding them with `(*)`. Without
-      // that, rendering walks every distinct path through the dependency graph rather than every
-      // distinct node, which for large graphs never finishes.
+      // Both directions expand an already-expanded node only once, referencing it elsewhere.
+      // Without that, rendering walks every distinct path through the dependency graph rather than
+      // every distinct node, which for large graphs never finishes.
       // Fix issue: https://github.com/com-lihaoyi/mill/issues/6823
       // see also comment: https://github.com/coursier/coursier/pull/3671#issuecomment-4752734517
       val tree =
         if (whatDependsOn.isEmpty && !inverse)
           // Coursier only offers deduplication for the inverted tree, so we render this one
           // ourselves. See `DepsTreeRenderer`.
-          DepsTreeRenderer.forward(resolution = resolution, roots = roots)
+          mill.javalib.internal.DepsTreeRenderer.forward(resolution = resolution, roots = roots)
         else
           coursier.util.Print.dependencyTree0(
             resolution = resolution,

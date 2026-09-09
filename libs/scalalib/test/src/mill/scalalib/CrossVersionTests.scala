@@ -14,12 +14,12 @@ object CrossVersionTests extends TestSuite {
       val tree =
         """├─ com.lihaoyi:upickle_2.13:1.4.0
           |│  ├─ com.lihaoyi:ujson_2.13:1.4.0
-          |│  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0
+          |│  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*1)
           |│  │     └─ com.lihaoyi:geny_2.13:0.6.10
           |│  ├─ com.lihaoyi:upack_2.13:1.4.0
-          |│  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*)
+          |│  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*1)
           |│  └─ com.lihaoyi:upickle-implicits_2.13:1.4.0
-          |│     └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*)
+          |│     └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*1)
           |└─ org.scala-lang:scala-library:2.13.10
           |""".stripMargin
       override def scalaVersion = "2.13.10"
@@ -31,12 +31,12 @@ object CrossVersionTests extends TestSuite {
         """├─ StandaloneScala213
           |│  ├─ com.lihaoyi:upickle_2.13:1.4.0
           |│  │  ├─ com.lihaoyi:ujson_2.13:1.4.0
-          |│  │  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0
+          |│  │  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*1)
           |│  │  │     └─ com.lihaoyi:geny_2.13:0.6.10
           |│  │  ├─ com.lihaoyi:upack_2.13:1.4.0
-          |│  │  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*)
+          |│  │  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*1)
           |│  │  └─ com.lihaoyi:upickle-implicits_2.13:1.4.0
-          |│  │     └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*)
+          |│  │     └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*1)
           |│  └─ org.scala-lang:scala-library:2.13.10
           |└─ org.slf4j:slf4j-api:1.7.35
           |""".stripMargin
@@ -49,12 +49,12 @@ object CrossVersionTests extends TestSuite {
         """├─ StandaloneScala213
           |│  ├─ com.lihaoyi:upickle_2.13:1.4.0
           |│  │  ├─ com.lihaoyi:ujson_2.13:1.4.0
-          |│  │  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0
+          |│  │  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*1)
           |│  │  │     └─ com.lihaoyi:geny_2.13:0.6.10
           |│  │  ├─ com.lihaoyi:upack_2.13:1.4.0
-          |│  │  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*)
+          |│  │  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*1)
           |│  │  └─ com.lihaoyi:upickle-implicits_2.13:1.4.0
-          |│  │     └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*)
+          |│  │     └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*1)
           |│  └─ org.scala-lang:scala-library:2.13.10
           |├─ com.lihaoyi:sourcecode_3:0.2.7
           |└─ org.scala-lang:scala3-library_3:3.2.1
@@ -84,12 +84,12 @@ object CrossVersionTests extends TestSuite {
           |│  ├─ StandaloneScala213
           |│  │  ├─ com.lihaoyi:upickle_2.13:1.4.0
           |│  │  │  ├─ com.lihaoyi:ujson_2.13:1.4.0
-          |│  │  │  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0
+          |│  │  │  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*1)
           |│  │  │  │     └─ com.lihaoyi:geny_2.13:0.6.10
           |│  │  │  ├─ com.lihaoyi:upack_2.13:1.4.0
-          |│  │  │  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*)
+          |│  │  │  │  └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*1)
           |│  │  │  └─ com.lihaoyi:upickle-implicits_2.13:1.4.0
-          |│  │  │     └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*)
+          |│  │  │     └─ com.lihaoyi:upickle-core_2.13:1.4.0 (*1)
           |│  │  └─ org.scala-lang:scala-library:2.13.10
           |│  └─ org.scala-lang:scala3-library_3:3.2.1
           |│     └─ org.scala-lang:scala-library:2.13.10
@@ -112,12 +112,12 @@ object CrossVersionTests extends TestSuite {
         """├─ sandwitch3
           |│  ├─ com.lihaoyi:upickle_3:1.4.0
           |│  │  ├─ com.lihaoyi:ujson_3:1.4.0
-          |│  │  │  └─ com.lihaoyi:upickle-core_3:1.4.0
+          |│  │  │  └─ com.lihaoyi:upickle-core_3:1.4.0 (*1)
           |│  │  │     └─ com.lihaoyi:geny_3:0.6.10
           |│  │  ├─ com.lihaoyi:upack_3:1.4.0
-          |│  │  │  └─ com.lihaoyi:upickle-core_3:1.4.0 (*)
+          |│  │  │  └─ com.lihaoyi:upickle-core_3:1.4.0 (*1)
           |│  │  └─ com.lihaoyi:upickle-implicits_3:1.4.0
-          |│  │     └─ com.lihaoyi:upickle-core_3:1.4.0 (*)
+          |│  │     └─ com.lihaoyi:upickle-core_3:1.4.0 (*1)
           |│  └─ org.scala-lang:scala3-library_3:3.0.2
           |│     └─ org.scala-lang:scala-library:2.13.6
           |└─ org.scala-lang:scala-library:2.13.6
