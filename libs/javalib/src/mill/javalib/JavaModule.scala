@@ -1461,15 +1461,24 @@ trait JavaModule
             .filter(dep => matchers.exists(matcher => matcher.matches(dep.module))).toSeq
       }
 
-      val tree = coursier.util.Print.dependencyTree0(
-        resolution = resolution,
-        roots = roots,
-        printExclusions = false,
-        reverse = if (whatDependsOn.isEmpty) inverse else true,
-        // Fix issue: https://github.com/com-lihaoyi/mill/issues/6823
-        // see also comment: https://github.com/coursier/coursier/pull/3671#issuecomment-4752734517
-        reverseDeduplicateNodes = true
-      )
+      // Both directions deduplicate already-expanded nodes, eliding them with `(*)`. Without
+      // that, rendering walks every distinct path through the dependency graph rather than every
+      // distinct node, which for large graphs never finishes.
+      // Fix issue: https://github.com/com-lihaoyi/mill/issues/6823
+      // see also comment: https://github.com/coursier/coursier/pull/3671#issuecomment-4752734517
+      val tree =
+        if (whatDependsOn.isEmpty && !inverse)
+          // Coursier only offers deduplication for the inverted tree, so we render this one
+          // ourselves. See `DepsTreeRenderer`.
+          DepsTreeRenderer.forward(resolution = resolution, roots = roots)
+        else
+          coursier.util.Print.dependencyTree0(
+            resolution = resolution,
+            roots = roots,
+            printExclusions = false,
+            reverse = true,
+            reverseDeduplicateNodes = true
+          )
 
       // Filter the output, so that the special organization and version used for Mill's own modules
       // don't appear in the output. This only leaves the modules' name built from millModuleSegments.

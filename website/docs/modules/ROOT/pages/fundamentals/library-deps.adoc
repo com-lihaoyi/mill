@@ -115,6 +115,12 @@ To render a tree of dependencies (transitive included) you can run `mill myModul
 │  │  │  └─ com.lihaoyi:sourcecode_2.13:0.2.1 -> 0.3.0 (possible incompatibility)
 ----
 
+A dependency that shows up in several places in the tree is only expanded the first time it is
+printed; later occurrences are marked with a trailing `(*)` and their subtree is left out. Without
+that, the size of the tree would grow with the number of distinct _paths_ through the dependency
+graph rather than with the number of dependencies, which for larger projects means it may never
+finish printing.
+
 After compiling your module(s) you can find and examine files such as `mvnDeps.json` and `transitiveMvnDeps.json` in your `out` build's folder for a given module.
 After running the `showMvnDepsTree` command you'll also find the `showMvnDepsTree.json` and `showMvnDepsTree.log` file that contain the output of the above `showMvnDepsTree` command.
 
