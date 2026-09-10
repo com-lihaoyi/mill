@@ -12,7 +12,7 @@ import mill.javalib.api.JvmWorkerUtil.*
 import mill.scalajslib.api.*
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 import mill.*
-import mill.javalib.testrunner.{TestResult, TestRunner, TestRunnerUtils}
+import mill.javalib.testrunner.{ClassFilter, TestResult, TestRunner}
 import mill.util.Version
 import upickle.implicits.namedTuples.default.given
 import sbt.testing.Framework
@@ -437,7 +437,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       args(),
       Task.testReporter,
       aheadOfTimeDiscoveredTestClassesIfNeeded(),
-      cls => TestRunnerUtils.globFilter(globSelectors())(cls.getName)
+      ClassFilter(globSelectors())
     )
     val res = TestModule.handleResults(doneMsg, results, Task.ctx(), testReportXml())
     // Hack to try and let the Node.js subprocess finish streaming its stdout

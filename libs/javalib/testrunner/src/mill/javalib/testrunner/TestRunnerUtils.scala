@@ -122,10 +122,39 @@ import scala.math.Ordering.Implicits.*
     }.map { f => (cls, f) }
   }
 
+  /**
+   * Builds tasks for classes, rescuing any undiscovered but explicitly specified.
+   * Only those are then marked as explicitly specified.
+   */
+  private def tasksWithRescue(
+      runner: Runner,
+      classFilter: ClassFilter,
+      classes: Seq[ClassWithFingerprint]
+  ): Array[Task] = {
+    def taskDef(cls: Class[?], fingerprint: Fingerprint, explicit: Boolean) =
+      TaskDef(cls.getName.stripSuffix("$"), fingerprint, explicit, Array(new SuiteSelector))
+
+    val discoveredTasks =
+      runner.tasks(classes.map { case (cls, fingerprint) =>
+        taskDef(cls, fingerprint, false)
+      }.toArray)
+
+    val discoveredNames = discoveredTasks.iterator
+      .map(_.taskDef()).filter(_ != null).map(_.fullyQualifiedName()).toSet
+
+    val rescuedTaskDefs = classes.filter { case (cls, _) =>
+      !discoveredNames(
+        cls.getName.stripSuffix("$")
+      ) && classFilter.isExplicitlySpecified(cls.getName)
+    }.map { case (cls, fingerprint) => taskDef(cls, fingerprint, true) }
+
+    discoveredTasks ++ runner.tasks(rescuedTaskDefs.toArray)
+  }
+
   def getTestTasks(
       framework: Framework,
       args: Seq[String],
-      classFilter: Class[?] => Boolean,
+      classFilter: ClassFilter,
       cl: ClassLoader,
       testClassfilePath: Seq[Path],
       discoveredTestClasses: Option[Seq[(String, Int)]]
@@ -133,16 +162,9 @@ import scala.math.Ordering.Implicits.*
 
     val runner = framework.runner(args.toArray, Array[String](), cl)
     val testClasses = discoverTests(cl, framework, testClassfilePath, discoveredTestClasses)
+    val matched = testClasses.filter { case (cls, _) => classFilter.globMatch(cls.getName) }
 
-    val tasks = runner.tasks(
-      for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter(cls))
-        yield TaskDef(
-          cls.getName.stripSuffix("$"),
-          fingerprint,
-          false,
-          Array(new SuiteSelector)
-        )
-    )
+    val tasks = tasksWithRescue(runner, classFilter, matched)
 
     def nameOpt(t: Task) = Option(t.taskDef()).map(_.fullyQualifiedName())
     val groupedTasks = tasks
@@ -280,7 +302,7 @@ import scala.math.Ordering.Implicits.*
       frameworkInstances: ClassLoader => Framework,
       testClassfilePath: Seq[Path],
       args: Seq[String],
-      classFilter: Class[?] => Boolean,
+      classFilter: ClassFilter,
       cl: ClassLoader,
       testReporter: TestReporter,
       discoveredTestClasses: Option[Seq[(String, Int)]],
@@ -305,7 +327,8 @@ import scala.math.Ordering.Implicits.*
       runner: Runner,
       claimFolder: os.Path,
       testClassQueueFolder: os.Path,
-      resultPath: os.Path
+      resultPath: os.Path,
+      classFilter: ClassFilter = ClassFilter(Nil)
   ): (String, Iterator[TestResult]) = {
     // Capture this value outside of the task event handler so it
     // isn't affected by a test framework's stream redirects
@@ -321,14 +344,7 @@ import scala.math.Ordering.Implicits.*
 
       if (testReporter.logLevel <= TestReporter.LogLevel.Debug)
         System.err.println(s"Running Test Class $testClassName")
-      val taskDefs = globSelectorCache
-        .get(testClassName)
-        .map { case (cls, fingerprint) =>
-          val clsName = cls.getName.stripSuffix("$")
-          TaskDef(clsName, fingerprint, false, Array(new SuiteSelector))
-        }
-
-      val tasks = runner.tasks(taskDefs.toArray)
+      val tasks = tasksWithRescue(runner, classFilter, globSelectorCache.get(testClassName).toSeq)
       val taskResult = executeTasks(tasks, testReporter, events, systemOut)
       if taskResult then successCounter += 1 else failureCounter += 1
       os.write.over(resultPath, upickle.write((successCounter, failureCounter)))
@@ -388,7 +404,8 @@ import scala.math.Ordering.Implicits.*
       cl: ClassLoader,
       testReporter: TestReporter,
       resultPath: os.Path,
-      discoveredTestClasses: Option[Seq[(String, Int)]]
+      discoveredTestClasses: Option[Seq[(String, Int)]],
+      classFilter: ClassFilter = ClassFilter(Nil)
   ): (String, Seq[TestResult]) = {
 
     val framework = frameworkInstances(cl)
@@ -404,7 +421,8 @@ import scala.math.Ordering.Implicits.*
       runner,
       claimFolder,
       testClassQueueFolder,
-      resultPath
+      resultPath,
+      classFilter
     )
 
     (doneMessage, results.toSeq)
@@ -414,7 +432,7 @@ import scala.math.Ordering.Implicits.*
       frameworkInstances: ClassLoader => Framework,
       testClassfilePath: Seq[Path],
       args: Seq[String],
-      classFilter: Class[?] => Boolean,
+      classFilter: ClassFilter,
       cl: ClassLoader,
       discoveredTestClasses: Option[Seq[(String, Int)]]
   ): Array[String] = {
@@ -437,13 +455,4 @@ import scala.math.Ordering.Implicits.*
           (s: String) => pattern.matcher(s).matches()
       }
     }
-
-  def globFilter(selectors: Seq[String]): String => Boolean = {
-    val filters = selectors.map(matchesGlob)
-    if (filters.isEmpty) _ => true
-    else { className =>
-      val name = className.stripSuffix("$")
-      filters.exists(f => f(name))
-    }
-  }
 }
