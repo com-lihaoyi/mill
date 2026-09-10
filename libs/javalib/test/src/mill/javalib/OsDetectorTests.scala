@@ -37,7 +37,9 @@ object OsDetectorTests extends TestSuite {
       val props = OsDetector.detect()
       assert(props("os.detected.name").nonEmpty)
       assert(props("os.detected.arch").nonEmpty)
-      assert(props("os.detected.classifier") == s"${props("os.detected.name")}-${props("os.detected.arch")}")
+      assert(props(
+        "os.detected.classifier"
+      ) == s"${props("os.detected.name")}-${props("os.detected.arch")}")
     }
   }
 }
