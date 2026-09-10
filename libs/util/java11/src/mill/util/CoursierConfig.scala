@@ -1,5 +1,6 @@
 package mill.util
 
+import com.lihaoyi.unroll
 import coursier.CoursierEnv
 import coursier.cache.{CacheEnv, CachePolicy}
 import coursier.core.Repository
@@ -16,7 +17,9 @@ final case class CoursierConfig(
     archiveCacheLocation: String,
     credentials: Seq[Credentials],
     ttl: Option[Duration],
-    cachePolicies: Seq[CachePolicy]
+    cachePolicies: Seq[CachePolicy],
+    @unroll
+    userAgent: Option[String]
 )
 
 object CoursierConfig {
@@ -49,7 +52,8 @@ object CoursierConfig {
       ),
       CacheEnv.defaultCachePolicies(
         CacheEnv.cachePolicy.read()
-      )
+      ),
+      Some(s"Mill/${BuildInfo.millVersion} (Coursier/${BuildInfo.coursierVersion})")
     )
   }
 }
