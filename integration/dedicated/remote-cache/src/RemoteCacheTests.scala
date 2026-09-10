@@ -58,6 +58,33 @@ object RemoteCacheTests extends UtestIntegrationTestSuite {
     finally server.stop(0)
   }
 
+  // A server that rejects every upload with a 500, to exercise the server-error logging path.
+  def withPutFailingServer[T](f: String => T): T = {
+    val server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
+    server.createContext(
+      "/",
+      new HttpHandler {
+        def handle(exchange: HttpExchange): Unit = {
+          try {
+            exchange.getRequestMethod match {
+              case "PUT" =>
+                exchange.getRequestBody.readAllBytes()
+                exchange.sendResponseHeaders(500, -1)
+              case _ =>
+                exchange.sendResponseHeaders(404, -1)
+            }
+          } catch {
+            case _: Throwable => exchange.sendResponseHeaders(500, -1)
+          } finally exchange.close()
+        }
+      }
+    )
+    server.setExecutor(Executors.newFixedThreadPool(4))
+    server.start()
+    try f(s"http://127.0.0.1:${server.getAddress.getPort}")
+    finally server.stop(0)
+  }
+
   def profileCached(tester: mill.testkit.IntegrationTester, task: String): Option[Boolean] = {
     val profile = os.read(tester.workspacePath / "out" / mill.constants.OutFiles.millProfile)
     val entries = ujson.read(profile).arr.filter(_("label").str == task)
@@ -97,6 +124,59 @@ object RemoteCacheTests extends UtestIntegrationTestSuite {
         assert(res.isSuccess)
         assert(res.out.contains("cachedTask-value"))
         assert(!evaluated(tester, "cachedTask"))
+      }
+    }
+
+    // `--debug` surfaces the trace logs added for issue #7343: a miss + save on the first run,
+    // a hit + restore on the second.
+    test("debugLogs") - withServer { url =>
+      integrationTest { tester =>
+        val res = tester.eval(("--debug", "--remote-cache-location", url, "show", "cachedFile"))
+        assert(res.isSuccess)
+        assert(res.err.contains("remote cache miss: cachedFile"))
+        assert(res.err.contains("remote cache: saving cachedFile"))
+        assert(res.err.contains("remote cache: saved cachedFile"))
+      }
+      integrationTest { tester =>
+        val res = tester.eval(("--debug", "--remote-cache-location", url, "show", "cachedFile"))
+        assert(res.isSuccess)
+        assert(!evaluated(tester, "cachedFile"))
+        assert(res.err.contains("remote cache hit: restored cachedFile"))
+      }
+    }
+
+    // A server error on upload is swallowed (the build still succeeds) but logged under `--debug`.
+    test("serverErrorLogged") - withPutFailingServer { url =>
+      integrationTest { tester =>
+        val res = tester.eval(("--debug", "--remote-cache-location", url, "show", "cachedTask"))
+        assert(res.isSuccess)
+        assert(res.err.contains("remote cache: server error 500 on PUT"))
+      }
+    }
+
+    // Remote-cache restore/save show up as their own slices in `mill-profile.json` and as
+    // timeline entries in `mill-chrome-profile.json`.
+    test("profileSlices") - withServer { url =>
+      def profileLabels(tester: mill.testkit.IntegrationTester): Seq[String] =
+        ujson.read(os.read(tester.workspacePath / "out" / mill.constants.OutFiles.millProfile))
+          .arr.map(_.obj("label").str).toSeq
+      def chromeNames(tester: mill.testkit.IntegrationTester): Seq[String] =
+        ujson.read(os.read(
+          tester.workspacePath / "out" / mill.constants.OutFiles.millChromeProfile
+        )).arr.flatMap(_.obj.get("name").map(_.str)).toSeq
+
+      integrationTest { tester =>
+        val res = tester.eval(("--remote-cache-location", url, "cachedTask"))
+        assert(res.isSuccess)
+        assert(profileLabels(tester).exists(_.startsWith("cachedTask <remote cache save:")))
+        assert(chromeNames(tester).exists(_.startsWith("remote cache save: cachedTask")))
+      }
+      integrationTest { tester =>
+        val res = tester.eval(("--remote-cache-location", url, "cachedTask"))
+        assert(res.isSuccess)
+        assert(!evaluated(tester, "cachedTask"))
+        assert(profileLabels(tester).exists(_.startsWith("cachedTask <remote cache restore: hit")))
+        assert(chromeNames(tester).exists(_.startsWith("remote cache restore: cachedTask (hit")))
       }
     }
 

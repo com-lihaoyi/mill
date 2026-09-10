@@ -13,6 +13,7 @@ import java.util.concurrent.ThreadPoolExecutor
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.util.hashing.MurmurHash3
+import coursier.cache.loggers.SingleLineRefreshDisplay.byteCount as readableSize
 import mill.api.daemon.internal.{
   BaseModuleApi,
   CompileProblemReporter,
@@ -55,6 +56,11 @@ trait GroupExecution {
   def remoteCacheLocation: Option[String]
   def remoteCacheSalt: Option[String]
   def remoteCacheFilter: Option[String]
+  def remoteCacheConnectTimeoutSeconds: Int
+  def remoteCacheReadTimeoutSeconds: Int
+
+  /** Records a remote-cache restore/save `mill-profile.json` entry; a no-op when profiling is off. */
+  def logRemoteCacheProfileSlice(label: String, durationMicros: Long, cached: Boolean | Null): Unit
 
   def replayLogs: Boolean
 
@@ -64,7 +70,13 @@ trait GroupExecution {
 
   // One cache per run: resolve the `--remote-cache-location` backend once, not per task.
   private lazy val remoteTaskCache: Option[BazelRemoteCache] =
-    remoteCacheLocation.map(BazelRemoteCache.forLocation(_, remoteCacheSalt, workspace))
+    remoteCacheLocation.map(BazelRemoteCache.forLocation(
+      _,
+      remoteCacheSalt,
+      workspace,
+      java.time.Duration.ofSeconds(remoteCacheConnectTimeoutSeconds),
+      java.time.Duration.ofSeconds(remoteCacheReadTimeoutSeconds)
+    ))
 
   /** The remote cache for `labelled`, or `None` if not a filter-matching [[Task.Computed]]. */
   private def remoteCacheTarget(labelled: Task.Named[?]): Option[BazelRemoteCache] =
@@ -446,7 +458,23 @@ trait GroupExecution {
             val remoteMaterialized =
               localReusable.isEmpty && remoteCache.exists { cache =>
                 taskLocks.blockingOnPool {
-                  cache.load(paths, inputsHash, labelled.ctx.segments.render)
+                  val label = labelled.ctx.segments.render
+                  val start = System.nanoTime()
+                  val restored = cache.load(paths, inputsHash, label, logger)
+                  val end = System.nanoTime()
+                  val detail =
+                    restored.fold("miss")(b => s"hit, ${readableSize(b)}")
+                  logger.prompt.logBeginChromeProfileEntry(
+                    s"remote cache restore: $label ($detail)",
+                    start
+                  )
+                  logger.prompt.logEndChromeProfileEntry(end)
+                  logRemoteCacheProfileSlice(
+                    s"$label <remote cache restore: $detail>",
+                    (end - start) / 1000,
+                    restored.isDefined
+                  )
+                  restored.isDefined
                 }
               }
 
@@ -520,11 +548,21 @@ trait GroupExecution {
                       // Push freshly-computed outputs to the remote cache for other machines.
                       remoteCache.foreach { cache =>
                         taskLocks.blockingOnPool {
-                          cache.store(
-                            paths,
-                            inputsHash,
-                            labelled.ctx.segments.render,
-                            serializedPaths
+                          val label = labelled.ctx.segments.render
+                          val start = System.nanoTime()
+                          val stored =
+                            cache.store(paths, inputsHash, label, serializedPaths, logger)
+                          val end = System.nanoTime()
+                          val detail = stored.fold("not stored")(b => readableSize(b))
+                          logger.prompt.logBeginChromeProfileEntry(
+                            s"remote cache save: $label ($detail)",
+                            start
+                          )
+                          logger.prompt.logEndChromeProfileEntry(end)
+                          logRemoteCacheProfileSlice(
+                            s"$label <remote cache save: $detail>",
+                            (end - start) / 1000,
+                            null
                           )
                         }
                       }
