@@ -5,6 +5,7 @@ import utest.*
 object ExampleListTests extends TestSuite {
   def tests = Tests {
     test("exampleListUrls") {
+      val expectedVersion = sys.env("MILL_EXPECTED_VERSION")
       val exampleListPath = os.Path(sys.env("MILL_EXAMPLE_LIST_PATH"))
       val entries = upickle.default.read[Seq[(String, String)]](os.read(exampleListPath))
       assert(entries.nonEmpty)
@@ -13,7 +14,9 @@ object ExampleListTests extends TestSuite {
         assert(!examplePath.startsWith("/"))
         assert(!examplePath.contains("\\"))
         assert(!examplePath.contains(".."))
-        assert(!downloadUrl.contains("SNAPSHOT"))
+        assert(!examplePath.contains("SNAPSHOT"))
+        assert(downloadUrl.contains(s"/$expectedVersion/"))
+        assert(downloadUrl.contains(s"-$expectedVersion-"))
 
         val uri = new java.net.URI(downloadUrl)
         val segments = uri.getPath.split("/").filter(_.nonEmpty)
@@ -21,7 +24,7 @@ object ExampleListTests extends TestSuite {
 
         val fileName = segments.last
         val version = segments(segments.length - 2)
-        assert(!version.contains("SNAPSHOT"))
+        assert(version == expectedVersion)
         assert(fileName.startsWith(s"mill-dist-$version-"))
 
         val normalizedExample = examplePath.replace("/", "-")

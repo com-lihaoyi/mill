@@ -767,7 +767,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   def androidInstallTask: Task[String] = Task.Anon {
-    val emulator = runningEmulator()
+    val adbPath = androidSdkModule().adbExe()
+    val emulator = waitForDevice(adbPath, runningEmulator(), Task.log)
 
     os.call(
       (
@@ -812,7 +813,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   private def androidRunWith(activity: Task[String]): Task[Vector[String]] = Task.Anon {
-    val emulator = runningEmulator()
+    val adbPath = androidSdkModule().adbExe()
+    val emulator = waitForDevice(adbPath, runningEmulator(), Task.log)
 
     Task.log.info(s"Starting activity ${activity()} on emulator $emulator")
 
@@ -996,7 +998,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
       val appCompiledFiles = appCompiledPathRefs.map(_.path.toString())
 
       val libsJarPathRefs = androidPackagedDeps()
-        .filter(_ != androidSdkModule().androidJarPath())
+        .filter(_ != androidSdkModule().androidJarPath()) ++
+        Option.when(
+          androidBuildSettings().enableDesugaring
+        )(androidDesugarJdkClasspath()).getOrElse(Seq.empty)
 
       val libsJarFiles = libsJarPathRefs.map(_.path.toString())
 
@@ -1017,7 +1022,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
         androidMinSdk().toString,
         "--main-dex-rules",
         proguardFile.toString()
-      ) :+ s"@$filenamesFile"
+      ) ++ androidDexDesugaringArgs() :+ s"@$filenamesFile"
 
       Task.log.info(s"Running d8 with the command: ${d8Args.mkString(" ")}")
 
@@ -1151,6 +1156,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     def androidTestInstall(): Command[String] = Task.Command {
 
       val emulator = outer.androidInstallTask()
+      androidSdkModule().adbExe()
 
       os.call(
         (

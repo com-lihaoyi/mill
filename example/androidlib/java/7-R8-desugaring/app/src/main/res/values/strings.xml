@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">HelloWorldApp</string>
+    <string name="hello_world">Hello, World Java!</string>
+</resources>
