@@ -223,7 +223,7 @@ trait CoursierModule extends mill.api.Module {
     )
     val overridden = actualResolutionParamsOverride(baseParams)
     Task.Anon {
-      overridden().addProperties(osDetectedProperties().toSeq*)
+      overridden().addProperties(osDetectedMvnProperties().toSeq*)
     }
   }
 
@@ -236,7 +236,7 @@ trait CoursierModule extends mill.api.Module {
    *
    * See [[OsDetector]].
    */
-  def osDetectedProperties: T[Map[String, String]] = Task {
+  def osDetectedMvnProperties: T[Map[String, String]] = Task {
     OsDetector.detect()
   }
 

@@ -45,7 +45,7 @@ object ScriptExternalTaskRendering extends UtestIntegrationTestSuite {
           Seq(
             "mill.javalib.CoursierConfigModule/coursierEnv",
             "mill.scalalib.scalafmt.ScalafmtModule/repositories",
-            "mill.scalalib.scalafmt.ScalafmtModule/osDetectedProperties",
+            "mill.scalalib.scalafmt.ScalafmtModule/osDetectedMvnProperties",
             "mill.scalalib.scalafmt.ScalafmtModule/checkGradleModules",
             "mill.scalalib.scalafmt.ScalafmtModule/scalafmtClasspath"
           )
