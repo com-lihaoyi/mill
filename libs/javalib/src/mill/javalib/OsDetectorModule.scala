@@ -53,5 +53,3 @@ object OsDetectorModule extends ExternalModule, DefaultTaskModule {
     OsDetector.detect()
   }
 }
-
-
