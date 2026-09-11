@@ -2,8 +2,10 @@ package mill.internal
 
 import mill.api.{BuildInfo, MillException}
 import mill.api.{Task, Segment}
+import mill.constants.OutFiles.OutFiles
 
 import scala.reflect.NameTransformer.encode
+import java.io.File
 import java.lang.reflect.Method
 
 object CodeSigUtils {
@@ -125,7 +127,11 @@ object CodeSigUtils {
       .nextOption()
       .getOrElse(throw new MillException(
         s"Could not detect the parent class of task ${namedTask}. " +
-          s"Please report this at ${BuildInfo.millReportNewIssueUrl} . "
+          s"Please report this at ${BuildInfo.millReportNewIssueUrl} . " +
+          s"In the mean time, you might want to delete ${OutFiles.out}${File.separator}mill-build " +
+          (if (OutFiles.out == OutFiles.bspOut) ""
+           else s"(or ${OutFiles.bspOut}${File.separator}mill-build for BSP) ") +
+          "and try again."
       ))
       .getDeclaringClass.getName
 
