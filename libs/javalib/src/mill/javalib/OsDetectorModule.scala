@@ -32,7 +32,9 @@ trait OsDetectorModule extends CoursierModule {
    * See [[OsDetector]].
    */
   def osDetectedMvnProperties: T[Map[String, String]] = Task {
-    OsDetectorModule.detect()()
+    // TODO using the OsDetectorModule.detect command seems to cause a timeout
+    // If the cause is found, this can be switched to reuse the command.
+    OsDetector.detect()
   }
 }
 
