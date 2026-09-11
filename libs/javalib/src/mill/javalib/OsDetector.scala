@@ -1,6 +1,6 @@
 package mill.javalib
 
-private[javalib] object OsDetector {
+trait OsDetector {
 
   /** The `os.detected.*` properties for the JVM currently running Mill. */
   def detect(): Map[String, String] =
@@ -51,3 +51,5 @@ private[javalib] object OsDetector {
       case other => other.replaceAll("[^a-z0-9_]+", "")
     }
 }
+
+object OsDetector extends OsDetector

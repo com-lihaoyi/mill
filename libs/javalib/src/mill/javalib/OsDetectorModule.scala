@@ -1,7 +1,7 @@
 package mill.javalib
 
 import coursier.params.ResolutionParams
-import mill.T
+import mill.{T, Command}
 import mill.api.{DefaultTaskModule, Discover, ExternalModule, Task}
 
 /**
@@ -32,7 +32,7 @@ trait OsDetectorModule extends CoursierModule {
    * See [[OsDetector]].
    */
   def osDetectedMvnProperties: T[Map[String, String]] = Task {
-    OsDetectorModule.detect()
+    OsDetectorModule.detect()()
   }
 }
 
@@ -49,7 +49,7 @@ object OsDetectorModule extends ExternalModule, DefaultTaskModule {
   /**
    * Outputs the `os.detected.*` properties for the JVM currently running Mill.
    */
-  def detect: T[Map[String, String]] = Task {
+  def detect(): Command[Map[String, String]] = Task.Command {
     OsDetector.detect()
   }
 }
