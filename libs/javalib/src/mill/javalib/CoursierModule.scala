@@ -221,23 +221,7 @@ trait CoursierModule extends mill.api.Module {
       "org.gradle.jvm.environment" -> VariantMatcher.Equals("standard-jvm"),
       "org.gradle.dependency.bundling" -> VariantMatcher.Equals("external")
     )
-    val overridden = actualResolutionParamsOverride(baseParams)
-    Task.Anon {
-      overridden().addProperties(osDetectedMvnProperties().toSeq*)
-    }
-  }
-
-  /**
-   * The `os.detected.*` properties (`os.detected.name`, `os.detected.arch`,
-   * `os.detected.classifier`, `os.detected.bitness`) for the platform Mill is currently running
-   * on, made available to Coursier so that `${os.detected.*}` placeholders in dependency POMs -
-   * normally injected by the `os-maven-plugin`/`osdetector` build extensions - resolve to the
-   * current platform instead of being left as literal, unresolvable text.
-   *
-   * See [[OsDetector]].
-   */
-  def osDetectedMvnProperties: T[Map[String, String]] = Task {
-    OsDetector.detect()
+    actualResolutionParamsOverride(baseParams)
   }
 
   protected[mill] def actualResolutionParamsOverride(baseParams: ResolutionParams)

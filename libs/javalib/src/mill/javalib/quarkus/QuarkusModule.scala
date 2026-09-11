@@ -3,7 +3,7 @@ package mill.javalib.quarkus
 import coursier.core.VariantSelector.ConfigurationBased
 import mill.api.PathRef
 import mill.{T, Task}
-import mill.javalib.{CoursierModule, Dep, DepSyntax, JavaModule, PublishModule}
+import mill.javalib.{CoursierModule, Dep, DepSyntax, JavaModule, OsDetectorModule, PublishModule}
 import mill.util.Jvm
 import upickle.default.ReadWriter.join
 
@@ -13,7 +13,7 @@ import java.util.Properties
 import scala.util.Using
 
 @mill.api.experimental
-trait QuarkusModule extends JavaModule { outer =>
+trait QuarkusModule extends JavaModule, OsDetectorModule { outer =>
 
   /**
    * The version of the quarkus platform (e.g. 3.31.2). Used for
