@@ -98,7 +98,6 @@ object InspectTests extends UtestIntegrationTestSuite {
           |    core.allBomMvnDeps
           |    core.depManagement
           |    core.repositories
-          |    core.osDetectedMvnProperties
           |    core.checkGradleModules
           |""".stripMargin
       )
