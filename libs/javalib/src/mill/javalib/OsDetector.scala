@@ -6,7 +6,7 @@ trait OsDetector {
   def detect(): Map[String, String] =
     detect(sys.props.getOrElse("os.name", ""), sys.props.getOrElse("os.arch", ""))
 
-  private[javalib] def detect(rawOsName: String, rawOsArch: String): Map[String, String] = {
+  def detect(rawOsName: String, rawOsArch: String): Map[String, String] = {
     val name = normalizeOsName(rawOsName)
     val arch = normalizeArch(rawOsArch)
     val bitness = if (arch.endsWith("_64")) "64" else "32"
@@ -18,7 +18,7 @@ trait OsDetector {
     )
   }
 
-  private def normalizeOsName(raw: String): String = {
+  protected def normalizeOsName(raw: String): String = {
     val name = raw.toLowerCase(java.util.Locale.ROOT)
     if (name.contains("windows")) "windows"
     else if (name.contains("mac") || name.contains("darwin")) "osx"
@@ -34,7 +34,7 @@ trait OsDetector {
     else name.replaceAll("[^a-z0-9]+", "")
   }
 
-  private def normalizeArch(raw: String): String =
+  protected def normalizeArch(raw: String): String =
     raw.toLowerCase(java.util.Locale.ROOT) match {
       case "x86_64" | "amd64" | "ia32e" | "em64t" | "x64" => "x86_64"
       case "x86_32" | "x86" | "i386" | "i486" | "i586" | "i686" | "ia32" | "x32" => "x86_32"
