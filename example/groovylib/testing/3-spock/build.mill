@@ -4,7 +4,7 @@ import mill.*, groovylib.*
 
 object `package` extends GroovyModule {
 
-  def groovyVersion = "5.1.1"
+  def groovyVersion = "5.1.2"
 
   object test extends GroovyTests with TestModule.Spock {
     def spockVersion = "2.4-groovy-5.0"
