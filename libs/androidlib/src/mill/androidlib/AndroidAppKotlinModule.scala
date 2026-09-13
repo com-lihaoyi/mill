@@ -46,7 +46,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
 
   trait AndroidAppKotlinScreenshotTests extends AndroidAppKotlinModule, TestModule, Junit5 {
 
-    override def androidApplicationId: String = outer.androidApplicationId
+    override def androidApplicationId: T[String] = outer.androidApplicationId
 
     override def discoveredTestClasses: T[Seq[String]] = Task {
       super[TestModule].discoveredTestClasses()
@@ -57,7 +57,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
      */
     override def testParallelism: T[Boolean] = Task { false }
 
-    override def androidApplicationNamespace: String = outer.androidApplicationNamespace
+    override def androidApplicationNamespace: T[String] = outer.androidApplicationNamespace
 
     override def androidCompileSdk: T[Int] = outer.androidCompileSdk()
 
@@ -195,7 +195,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
           androidProcessedResources().path.toString
         ),
         screenshots = androidDiscoveredPreviews().screenshotConfigs,
-        namespace = androidApplicationNamespace,
+        namespace = androidApplicationNamespace(),
         resourceApkPath = androidLinkedResources().apk.path.toString(),
         resultsFilePath = resultsFilePath.toString()
       )

@@ -1,0 +1,2 @@
+extends: [build.app.AndroidAppKotlinTests, TestModule.Junit4]
+junit4Version: 4.13.2

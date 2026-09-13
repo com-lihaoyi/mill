@@ -23,6 +23,13 @@ This example demonstrates how to create a basic "Hello World" Android applicatio
 using the Mill build tool. It outlines the minimum setup required to compile Kotlin code,
 package it into an APK, and run the app on an Android device.
 
+== Declarative (YAML) Android Build
+
+include::partial$example/androidlib/kotlin/1-hello-kotlin-declarative.adoc[]
+
+This is the same "Hello World" application as above, but configured declaratively via
+`build.mill.yaml`/`package.mill.yaml` files instead of a Scala `build.mill`.
+
 == Understanding `AndroidSdkModule` and `AndroidAppKotlinModule`
 
 The two main modules you need to understand when building Android apps with Mill

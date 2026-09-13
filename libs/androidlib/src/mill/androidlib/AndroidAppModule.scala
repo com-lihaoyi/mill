@@ -76,19 +76,19 @@ trait AndroidAppModule extends AndroidModule { outer =>
    *
    * See more in [[https://developer.android.com/build/configure-app-module#set-namespace]]
    */
-  def androidApplicationNamespace: String
+  def androidApplicationNamespace: T[String]
 
   /**
    * In the case of android apps this the [[androidApplicationNamespace]].
    * @return
    */
-  override final def androidNamespace: String = androidApplicationNamespace
+  override final def androidNamespace: T[String] = androidApplicationNamespace()
 
   /**
    * Android Application Id unique to every android application.
    * See more in [[https://developer.android.com/build/configure-app-module#set-application-id]]
    */
-  def androidApplicationId: String
+  def androidApplicationId: T[String]
 
   def androidDebugManifestLocation: T[PathRef] = Task.Source {
     "src/debug/AndroidManifest.xml"
@@ -115,7 +115,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   /**
    * Determines whether the build should fail if Android Lint detects any issues.
    */
-  def androidLintAbortOnError: Boolean = true
+  def androidLintAbortOnError: T[Boolean] = true
 
   /**
    * Specifies additional arguments for the Android Lint tool.
@@ -128,7 +128,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     Seq(
       s"boolean DEBUG = ${androidIsDebug()}",
       s"""String BUILD_TYPE = "$buildType"""",
-      s"""String APPLICATION_ID = "$androidApplicationId"""",
+      s"""String APPLICATION_ID = "${androidApplicationId()}"""",
       s"""int VERSION_CODE = ${androidVersionCode()}""",
       s"""String VERSION_NAME = "${androidVersionName()}""""
     )
@@ -321,9 +321,9 @@ trait AndroidAppModule extends AndroidModule { outer =>
       "--property",
       s"version_name=${androidVersionName()}",
       "--property",
-      s"package=${androidApplicationId}",
+      s"package=${androidApplicationId()}",
       "--manifest-placeholders",
-      s"applicationId=${androidApplicationId}"
+      s"applicationId=${androidApplicationId()}"
     ) ++ androidMergeableManifests().flatMap(m => Seq("--libs", m.path.toString))
   }
 
@@ -369,7 +369,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
         val rawName = nodeNameOpt(activity).get
 
         val qualifiedName = {
-          if (rawName.startsWith(".")) s"$androidApplicationId$rawName"
+          if (rawName.startsWith(".")) s"${androidApplicationId()}$rawName"
           else rawName
         }
 
@@ -567,7 +567,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
         "--resources",
         res
       ) ++ configArg ++ baselineArg ++ reportArg ++ androidLintArgs(),
-      check = androidLintAbortOnError
+      check = androidLintAbortOnError()
     )
 
     PathRef(Task.dest)
@@ -692,7 +692,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val defaultArgs = Seq(
       "-delay-adb",
       "-port",
-      androidEmulatorPort,
+      androidEmulatorPort(),
       "-no-metrics",
       "-avd",
       androidVirtualDevice().name
@@ -747,14 +747,14 @@ trait AndroidAppModule extends AndroidModule { outer =>
    * See more at `-port` on:
    * [[https://developer.android.com/studio/run/emulator-commandline#common]]
    */
-  def androidEmulatorPort: String = "5554"
+  def androidEmulatorPort: T[String] = "5554"
 
   /**
    * Returns the emulator identifier for created from [[startAndroidEmulator]]
    * by iterating the adb device list
    */
   def runningEmulator: T[String] = Task {
-    s"emulator-$androidEmulatorPort"
+    s"emulator-${androidEmulatorPort()}"
   }
 
   /**
@@ -825,7 +825,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
         "am",
         "start",
         "-n",
-        s"${androidApplicationId}/${activity()}",
+        s"${androidApplicationId()}/${activity()}",
         "-W"
       )
     ).out.lines()
@@ -1029,8 +1029,9 @@ trait AndroidAppModule extends AndroidModule { outer =>
     }
 
   trait AndroidAppTests extends AndroidTestModule, AndroidAppModule {
-    override def androidApplicationId: String = s"${outer.androidApplicationId}.test"
-    override def androidApplicationNamespace: String = s"${outer.androidApplicationNamespace}.test"
+    override def androidApplicationId: T[String] = Task { s"${outer.androidApplicationId()}.test" }
+    override def androidApplicationNamespace: T[String] =
+      Task { s"${outer.androidApplicationNamespace()}.test" }
   }
 
   trait AndroidAppInstrumentedTests extends AndroidTestModule, AndroidAppModule {
@@ -1039,8 +1040,9 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     override def resolutionParams: Task[ResolutionParams] = Task.Anon(outer.resolutionParams())
 
-    override def androidApplicationId: String = s"${outer.androidApplicationId}.test"
-    override def androidApplicationNamespace: String = s"${outer.androidApplicationNamespace}.test"
+    override def androidApplicationId: T[String] = Task { s"${outer.androidApplicationId()}.test" }
+    override def androidApplicationNamespace: T[String] =
+      Task { s"${outer.androidApplicationNamespace()}.test" }
 
     override def androidReleaseKeyAlias: T[Option[String]] = outer.androidReleaseKeyAlias()
     override def androidReleaseKeyName: Option[String] = outer.androidReleaseKeyName
@@ -1048,7 +1050,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     override def androidReleaseKeyStorePass: T[Option[String]] = outer.androidReleaseKeyStorePass()
     override def androidReleaseKeyPath: T[Seq[PathRef]] = outer.androidReleaseKeyPath()
 
-    override def androidEmulatorPort: String = outer.androidEmulatorPort
+    override def androidEmulatorPort: T[String] = outer.androidEmulatorPort
 
     override def sources: T[Seq[PathRef]] = Task.Sources("src/androidTest/java")
 
@@ -1071,12 +1073,12 @@ trait AndroidAppModule extends AndroidModule { outer =>
     }
 
     private def androidInstrumentedTestsBaseManifest: Task[Elem] = Task.Anon {
-      val label = s"Tests for ${outer.androidApplicationId}"
+      val label = s"Tests for ${outer.androidApplicationId()}"
       val instrumentationName = testFramework()
 
       <manifest xmlns:android="http://schemas.android.com/apk/res/android"
                 package={
-        androidApplicationId
+        androidApplicationId()
       }>
 
         <application>
@@ -1136,7 +1138,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
         "--property",
         s"version_code=${androidVersionCode()}",
         "--property",
-        s"target_package=${outer.androidApplicationId}",
+        s"target_package=${outer.androidApplicationId()}",
         "--property",
         s"version_name=${androidVersionName()}"
       ) ++ androidMergeableManifests().flatMap(m => Seq("--libs", m.path.toString))
@@ -1192,7 +1194,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
           "-w",
           "-r"
         ) ++ args() ++ Seq(
-          s"${androidApplicationId}/${testFramework()}"
+          s"${androidApplicationId()}/${testFramework()}"
         )
       ).spawn()
 

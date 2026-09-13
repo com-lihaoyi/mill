@@ -3,7 +3,7 @@ package mill.meta
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 import mill.constants.CodeGenConstants as CGConst
 import mill.api.Result
-import mill.api.internal.ModuleDepsResolver.{ModuleDepsEntry, ModuleDepsConfig}
+import mill.api.internal.ModuleDepsResolver.{ModuleDepsEntry, ModuleDepsConfig, ModuleLoc}
 import mill.api.internal.PrecompiledModulesInfo
 import mill.internal.Util.backtickWrap
 import mill.api.internal.*
@@ -287,7 +287,10 @@ object CodeGen {
           // Each Located[String] contains (path, index, value) - we extract (value, index)
           def extractEntry(deps: Located[Appendable[Seq[Located[String]]]]): ModuleDepsEntry = {
             val appendable = deps.value
-            ModuleDepsEntry(appendable.value.map(loc => (loc.value, loc.index)), appendable.append)
+            ModuleDepsEntry(
+              appendable.value.map(loc => ModuleLoc(loc.value, loc.index)),
+              appendable.append
+            )
           }
 
           // Collect moduleDeps config for this module path and store in the map
@@ -296,13 +299,16 @@ object CodeGen {
           val compileModuleDepsEntry = extractEntry(data.compileModuleDeps)
           val runModuleDepsEntry = extractEntry(data.runModuleDeps)
           val bomModuleDepsEntry = extractEntry(data.bomModuleDeps)
+          val androidSdkModuleEntry =
+            data.androidSdkModule.value.map(loc => ModuleLoc(loc.value, loc.index))
 
           val config = ModuleDepsConfig(
             yamlPath = scriptPath.toString,
             moduleDeps = moduleDepsEntry,
             compileModuleDeps = compileModuleDepsEntry,
             runModuleDeps = runModuleDepsEntry,
-            bomModuleDeps = bomModuleDepsEntry
+            bomModuleDeps = bomModuleDepsEntry,
+            androidSdkModule = androidSdkModuleEntry
           )
 
           moduleDepsConfig(modulePathKey) = config
@@ -310,7 +316,7 @@ object CodeGen {
           // Always generate defs without override - use macro to get super value if it exists
           val pathLiteral = literalize(modulePathKey)
           def moduleDepsSnippet(name: String) =
-            s"def $name = _root_.mill.api.internal.ModuleDepsResolver.resolveModuleDeps(build, $pathLiteral, ${literalize(name)}, _root_.mill.api.internal.ModuleDepsResolver.superMethod(${literalize(name)}))"
+            s"def $name = _root_.mill.api.internal.ModuleDepsResolver.resolveModules(build, $pathLiteral, ${literalize(name)}, _root_.mill.api.internal.ModuleDepsResolver.superMethod(${literalize(name)}))"
 
           val moduleDepsSnippets = Seq(
             moduleDepsSnippet("moduleDeps"),
@@ -319,12 +325,18 @@ object CodeGen {
             moduleDepsSnippet("bomModuleDeps")
           )
 
+          // Only emitted when YAML actually sets it. If unset, the object will fail due to
+          // an abstract member instead.
+          val androidSdkModuleSnippet = Option.when(androidSdkModuleEntry.isDefined)(
+            s"""def androidSdkModule = _root_.mill.api.internal.ModuleDepsResolver.resolveModuleRef(build, $pathLiteral, "androidSdkModule")"""
+          )
+
           val extendsSnippet =
             if (extendsConfig.nonEmpty)
               s" extends ${extendsConfig.mkString(", ")}, AutoOverride[_root_.mill.T[?]]"
             else " extends AutoOverride[_root_.mill.T[?]]"
 
-          val allSnippets = moduleDepsSnippets ++ Seq(
+          val allSnippets = moduleDepsSnippets ++ androidSdkModuleSnippet.toSeq ++ Seq(
             "inline def autoOverrideImpl[T](): T = ${ mill.api.Task.notImplementedImpl[T] }"
           ) ++ definitions
 

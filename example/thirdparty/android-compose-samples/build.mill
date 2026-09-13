@@ -238,9 +238,9 @@ object Jetchat extends mill.api.Module {
 
     def kotlinVersion = Versions.kotlinVersion
 
-    override def androidApplicationNamespace: String = "com.example.compose.jetchat"
+    override def androidApplicationNamespace = "com.example.compose.jetchat"
 
-    override def androidApplicationId: String = "com.example.compose.jetchat"
+    override def androidApplicationId = "com.example.compose.jetchat"
 
     override def bomMvnDeps = Seq(
       mvn"androidx.compose:compose-bom:2025.08.00"
