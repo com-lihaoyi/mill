@@ -206,7 +206,7 @@ object Deps {
   val scalaparse = mvn"com.lihaoyi::scalaparse:${fastparse.version}"
   val scalatags = mvn"com.lihaoyi::scalatags:0.13.1".withDottyCompat(scalaVersion)
   val scalaCliBsp = mvn"org.virtuslab.scala-cli:scala-cli-bsp:1.8.5"
-  val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.4.0"
+  val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.5.0"
   // keep in sync with doc/antora/antory.yml
   val semanticDBscala_runtime = mvn"org.scalameta:::semanticdb-scalac:4.17.0"
   val semanticDbJava_runtime = mvn"com.sourcegraph:semanticdb-java:0.12.3"
