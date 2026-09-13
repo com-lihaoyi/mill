@@ -4057,6 +4057,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/javalib/OfflineSupportModule.html#prepareOffline-e9a","e":false,"i":"","n":"prepareOffline","t":"prepareOffline(all: Flag): Command[Seq[PathRef]]","d":"mill.javalib.OfflineSupportModule","k":"def","x":""},
 {"l":"mill/javalib/OsDetector.html#","e":false,"i":"","n":"OsDetector","t":"OsDetector","d":"mill.javalib","k":"trait","x":""},
 {"l":"mill/javalib/OsDetector.html#detect-fffff328","e":false,"i":"","n":"detect","t":"detect(): Map[String, String]","d":"mill.javalib.OsDetector","k":"def","x":""},
+{"l":"mill/javalib/OsDetector.html#detect-fffff872","e":false,"i":"","n":"detect","t":"detect(rawOsName: String, rawOsArch: String): Map[String, String]","d":"mill.javalib.OsDetector","k":"def","x":""},
 {"l":"mill/javalib/OsDetector$.html#","e":false,"i":"","n":"OsDetector","t":"OsDetector extends OsDetector","d":"mill.javalib","k":"object","x":""},
 {"l":"mill/javalib/OsDetectorModule$.html#","e":false,"i":"","n":"OsDetectorModule","t":"OsDetectorModule extends ExternalModule, DefaultTaskModule","d":"mill.javalib","k":"object","x":""},
 {"l":"mill/javalib/OsDetectorModule$.html#defaultTask-665","e":false,"i":"","n":"defaultTask","t":"defaultTask(): String","d":"mill.javalib.OsDetectorModule","k":"def","x":""},
