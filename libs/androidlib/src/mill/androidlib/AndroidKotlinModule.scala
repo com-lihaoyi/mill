@@ -86,6 +86,30 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
       .asInstanceOf[AndroidDataBindingWorker]
   }
 
+  /**
+   * Gathers all resources top directories as defined in [[androidResources]]
+   * under a single directory to be passed to the xml layout processor
+   * via [[androidProcessedLayoutXmls]]. If there are conflicting files
+   * the task fails.
+   * @return
+   */
+  def androidProcessedLayoutInputDir: T[PathRef] = Task {
+    val resInputDir = Task.dest / "staged/res"
+    os.makeDir.all(resInputDir)
+    androidResources().filter(pr => os.exists(pr.path) && os.isDir(pr.path)).foreach(pathRef =>
+      val filesToCopy = os.list(pathRef.path)
+      filesToCopy.foreach(f =>
+        os.copy.into(
+          f,
+          resInputDir,
+          createFolders = true,
+          mergeFolders = true
+        )
+      )
+    )
+    PathRef(resInputDir)
+  }
+
   def androidProcessedLayoutXmls: T[PathRef] = Task {
 
     val resOutputDir = Task.dest / "resources"
@@ -95,7 +119,7 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
     os.makeDir.all(layoutInfoOutputDir)
     val args = ProcessResourcesArgs(
       applicationPackageName = androidNamespace,
-      resInputDir = androidResources().head.path.toString,
+      resInputDir = androidProcessedLayoutInputDir().path.toString,
       resOutputDir = resOutputDir.toString,
       layoutInfoOutputDir = layoutInfoOutputDir.toString,
       enableViewBinding = androidEnableViewBinding,
