@@ -20,6 +20,7 @@ trait MillBaseTestsModule extends TestModule {
       s"-DTEST_SCALATEST_VERSION=${Deps.TestDeps.scalaTest.version}",
       s"-DTEST_TEST_INTERFACE_VERSION=${Deps.sbtTestInterface_api.version}",
       s"-DTEST_ZIOTEST_VERSION=${Deps.TestDeps.zioTest.version}",
+      s"-DTEST_KYO_TEST_RUNNER_VERSION=${Deps.TestDeps.kyoTest.version}",
       s"-DTEST_ZINC_VERSION=${Deps.zinc.version}",
       s"-DTEST_KOTLIN_VERSION=${Deps.kotlinCompiler.version}",
       s"-DTEST_SBT_VERSION=${Deps.sbt_api.version}",

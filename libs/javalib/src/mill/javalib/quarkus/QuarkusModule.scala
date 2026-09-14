@@ -3,7 +3,7 @@ package mill.javalib.quarkus
 import coursier.core.VariantSelector.ConfigurationBased
 import mill.api.PathRef
 import mill.{T, Task}
-import mill.javalib.{CoursierModule, Dep, DepSyntax, JavaModule, PublishModule}
+import mill.javalib.{CoursierModule, Dep, DepSyntax, JavaModule, OsDetectorModule, PublishModule}
 import mill.util.Jvm
 import upickle.default.ReadWriter.join
 
@@ -13,7 +13,7 @@ import java.util.Properties
 import scala.util.Using
 
 @mill.api.experimental
-trait QuarkusModule extends JavaModule { outer =>
+trait QuarkusModule extends JavaModule, OsDetectorModule { outer =>
 
   /**
    * The version of the quarkus platform (e.g. 3.31.2). Used for
@@ -174,7 +174,8 @@ trait QuarkusModule extends JavaModule { outer =>
       ConfigurationBased(coursier.core.Configuration.compile)
     )
 
-    val quarkusArtifactTypes = Some(artifactTypes() + coursier.Type("exe"))
+    val jarLikeArtifactTypes = artifactTypes()
+    val quarkusArtifactTypes = Some(jarLikeArtifactTypes + coursier.Type("exe"))
 
     def resolveArtifacts[T: CoursierModule.Resolvable](deps: Seq[T]) =
       millResolver().artifacts(deps, sources = false, artifactTypes = quarkusArtifactTypes)
@@ -210,8 +211,20 @@ trait QuarkusModule extends JavaModule { outer =>
           ),
         _.attributes
       )
+      // Coursier treats several Maven packaging types (`bundle`, `eclipse-plugin`, `hk2`,
+      // `orbit`, `scala-jar`, `klib`, `maven-plugin`, see `artifactTypes`/`Resolution.defaultTypes`)
+      // as ordinary jars for classpath purposes - e.g. plenty of OSGi-packaged libraries
+      // (like `jakarta.ws.rs:jakarta.ws.rs-api`) declare `<packaging>bundle</packaging>` despite
+      // being perfectly normal jars. Quarkus's own `ArtifactCoords.isJar()` only recognizes the
+      // literal type `jar`/`test-jar` when deciding what to add to its classloaders, so anything
+      // else - including these jar-equivalent types - would silently be dropped from the
+      // classpath. Normalize them to `jar` here, and only pass through types Quarkus doesn't
+      // already treat as jar-like, such as the `exe` type used for platform-specific tool
+      // executables (e.g. `protoc`).
       val artifactType =
-        if (attributes.`type`.isEmpty) coursier.Type.jar.value else attributes.`type`.value
+        if (attributes.`type`.isEmpty || jarLikeArtifactTypes(attributes.`type`))
+          coursier.Type.jar.value
+        else attributes.`type`.value
       ApplicationModelWorker.Dependency(
         groupId = dependency.module.organization.value,
         artifactId = dependency.module.name.value,
