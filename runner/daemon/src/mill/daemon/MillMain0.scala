@@ -835,6 +835,7 @@ object MillMain0 {
   def readUsingMillVersionFile(file: os.Path): Option[String] = file match {
     case f if os.exists(f) =>
       os.read.lines(f)
+        .dropWhile(_.startsWith("#!"))
         .takeWhile(_.startsWith("//|"))
         .collectFirst {
           case usingMillVersionPattern(version) => version
