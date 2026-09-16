@@ -167,7 +167,10 @@ public class Util {
       java.util.List<String> lines = Files.readAllLines(buildFile);
       boolean readingBuildHeader = true;
       java.util.List<String> output = new ArrayList<>();
-      for (int i = 0; i < lines.size(); i++) {
+      int start = 0;
+      // Java/Kotlin scripts may start with a shebang; YAML frontmatter follows it.
+      if (!lines.isEmpty() && lines.get(0).startsWith("#!")) start = 1;
+      for (int i = start; i < lines.size(); i++) {
         String line = lines.get(i);
         if (!line.startsWith("//|")) readingBuildHeader = false;
         else if (!allowNonBuild && !buildFile.getFileName().toString().startsWith("build.")) {
