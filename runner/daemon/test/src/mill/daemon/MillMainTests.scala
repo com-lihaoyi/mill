@@ -93,6 +93,12 @@ object MillMainTests extends TestSuite {
         val read = MillMain0.readUsingMillVersionFile(file)
         assert(read == Some("1.2.3"))
       }
+      test("from build.mill after shebang") {
+        val file = os.temp.dir() / "build.mill"
+        os.write(file, "#!/usr/bin/env mill\n//| mill-version: 1.2.3")
+        val read = MillMain0.readUsingMillVersionFile(file)
+        assert(read == Some("1.2.3"))
+      }
       test("precedence") {
         val dir = os.temp.dir()
         val file1 = (dir / ".mill-version").tap { os.write(_, "1") }
