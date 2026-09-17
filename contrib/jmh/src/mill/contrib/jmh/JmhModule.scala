@@ -44,6 +44,7 @@ trait JmhModule extends JavaModule {
         classPath = (runClasspath() ++ generatorDeps()).map(_.path) ++
           Seq(jmhGeneratedSources().path, resources.path),
         mainArgs = args,
+        jvmArgs = forkArgs(),
         cwd = Task.ctx().dest,
         javaHome = javaHome().map(_.path),
         stdin = os.Inherit,
