@@ -20,10 +20,10 @@ private[mill] trait MavenPublish {
 
     val (snapshots, releases) = publishDatas.partition(_.meta.isSnapshot)
 
-    Seq(releases -> false, snapshots -> true).foreach { (datas, isSnapshot) =>
+    Seq(releases -> false, snapshots -> true).foreach { (data, isSnapshot) =>
       mavenDeploy(
         dryRun = dryRun,
-        publishData = datas,
+        publishData = data,
         isSnapshot = isSnapshot,
         credentials = credentials,
         releaseUri = releaseUri,
