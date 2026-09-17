@@ -3,7 +3,7 @@ package mill.androidlib.hilt
 import coursier.Repository
 import mill.androidlib.AndroidSdkModule
 import mill.api.{Discover, ExternalModule, PathRef}
-import mill.javalib.{Dep, JvmWorkerModule}
+import mill.javalib.{Dep, JvmWorkerModule, OsDetector, OsDetectorModule}
 import mill.{T, Task}
 
 /**
@@ -12,7 +12,7 @@ import mill.{T, Task}
  * achieve Dependency Injection using Hilt .
  */
 @mill.api.experimental
-trait AndroidHiltTransform extends ExternalModule with JvmWorkerModule {
+trait AndroidHiltTransform extends ExternalModule, JvmWorkerModule, OsDetectorModule {
 
   override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
     super.repositoriesTask() :+ AndroidSdkModule.mavenGoogle

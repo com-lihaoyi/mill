@@ -73,9 +73,14 @@ trait AndroidSdkManagerModule extends ExternalModule {
 
   private def licenseForPackage(remoteReposInfo: os.Path, packageName: String): (String, String) = {
     val repositoryInfo = XML.loadFile(remoteReposInfo.toIO)
-    val remotePackage = (repositoryInfo \ "remotePackage")
+    val remotePackageMaybe = (repositoryInfo \ "remotePackage")
       .filter(_ \@ "path" == packageName)
-      .head
+      .headOption
+    if (remotePackageMaybe.isEmpty) {
+      throw new RuntimeException(s"Couldn't find package $packageName")
+    }
+
+    val remotePackage = remotePackageMaybe.get
     val licenseName = (remotePackage \ "uses-license").head \@ "ref"
     val licenseText = (repositoryInfo \ "license")
       .filter(_ \@ "id" == licenseName)
@@ -276,7 +281,6 @@ trait AndroidSdkManagerModule extends ExternalModule {
         "platform-tools", // adb
         s"build-tools;${buildToolsVersion()}",
         s"platforms;${platformsVersion()}",
-        "tools" // proguard
       ) ++ Option.when(installPlatformSources0)(s"sources;${platformsVersion()}")
 
       val sdkManagerPath = cmdlineToolsComponents().sdkmanagerExe.path
