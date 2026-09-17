@@ -1,5 +1,5 @@
 package build.libs.javalib
-import com.github.lolgab.mill.mima.{Problem, ProblemFilter}
+import com.github.lolgab.mill.mima.{DirectMissingMethodProblem, Problem, ProblemFilter}
 
 import scala.util.Properties
 import scala.util.chaining.*
@@ -59,7 +59,16 @@ object `package` extends MillStableScalaModule {
       // This was `private[mill]`, package private doesn't have the JVM bytecode equivalent, so mima can't check it.
       ProblemFilter.exclude[Problem]("mill.javalib.PublishModule.checkSonatypeCreds"),
       ProblemFilter.exclude[Problem]("mill.javalib.publish.SonatypeHelpers.getArtifactMappings"),
-      ProblemFilter.exclude[Problem]("mill.javalib.publish.PublishInfo.parseFromFile")
+      ProblemFilter.exclude[Problem]("mill.javalib.publish.PublishInfo.parseFromFile"),
+      // `MavenPublish` is `private[mill]`, but its methods end up public in the bytecode of the
+      // modules mixing it in. `mavenPublishData` was replaced by `mavenDeploy`, which deploys all
+      // the `PublishData`s at once rather than one at a time.
+      ProblemFilter.exclude[DirectMissingMethodProblem](
+        "mill.javalib.MavenPublishModule.mavenPublishData"
+      ),
+      ProblemFilter.exclude[DirectMissingMethodProblem](
+        "mill.javalib.SonatypeCentralPublishModule.mavenPublishData"
+      )
     )
 
   object backgroundwrapper extends MillPublishJavaModule with MillJavaModule {
