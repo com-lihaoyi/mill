@@ -719,6 +719,18 @@ object Jvm {
             else cache
           }
       case cache =>
+        CoursierCacheSupport.warnNotFileCache(
+          cache,
+          Seq(
+            "cache location",
+            "credentials",
+            "TTL",
+            "cache policies",
+            "retries",
+            "offline mode"
+          ),
+          message => ctx.fold(System.err.println(message))(_.log.warn(message))
+        )
         ctx.fold(cache)(c => cache.withLogger(CoursierTickerResolutionLogger(c)))
     }
 

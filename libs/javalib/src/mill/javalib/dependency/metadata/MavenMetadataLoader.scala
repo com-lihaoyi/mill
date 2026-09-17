@@ -8,12 +8,14 @@ import coursier.cache.CachePolicy.LocalOnly
 import coursier.cache.{Cache, FileCache}
 import coursier.maven.MavenRepository
 import coursier.util.Task
+import mill.api.Logger
 import mill.javalib.dependency.versions.Version
 
 private[dependency] final case class MavenMetadataLoader(
     mavenRepo: MavenRepository,
     offline: Boolean,
-    clock: Clock
+    clock: Clock,
+    log: Logger
 ) extends MetadataLoader {
 
   private val cache = Cache.default match {
@@ -24,7 +26,13 @@ private[dependency] final case class MavenMetadataLoader(
           if (offline) cache.withCachePolicies(Seq(LocalOnly))
           else cache
         }
-    case cache => cache
+    case cache =>
+      mill.util.CoursierCacheSupport.warnNotFileCache(
+        cache,
+        Seq("the fixed clock used for TTL checks", "offline mode"),
+        log.warn(_)
+      )
+      cache
   }
 
   override def getVersions(module: coursier.Module): List[Version] = {

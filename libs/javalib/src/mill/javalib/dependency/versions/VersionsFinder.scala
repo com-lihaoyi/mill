@@ -71,7 +71,7 @@ private[dependency] object VersionsFinder {
       val cacheCustom = javaModule.coursierCacheCustomizer()
       val resolutionParams = javaModule.resolutionParams()
 
-      val metadataLoaders = repos.flatMap(MetadataLoaderFactory(_, offline, clock))
+      val metadataLoaders = repos.flatMap(MetadataLoaderFactory(_, Task.log, offline, clock))
 
       val dependencies = (deps ++ compileMvnDeps ++ runMvnDeps ++ bomMvnDeps)
         .map(bindDependency)

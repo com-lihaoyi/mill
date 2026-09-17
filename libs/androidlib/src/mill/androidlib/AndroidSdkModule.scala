@@ -101,7 +101,13 @@ trait AndroidSdkModule extends Module {
     val cache = Cache.default match {
       case cache: FileCache[?] =>
         if (Task.offline) cache.withCachePolicies(Seq(LocalOnly)) else cache
-      case cache => cache
+      case cache =>
+        mill.util.CoursierCacheSupport.warnNotFileCache(
+          cache,
+          Seq("offline mode"),
+          Task.log.warn(_)
+        )
+        cache
     }
     cache.logger.use(cache.file(Artifact(url)).run).unsafeRun()(using cache.ec) match {
       case Right(file) =>
