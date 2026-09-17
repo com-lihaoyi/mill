@@ -23,7 +23,7 @@ private[mill] trait MavenPublish {
     Seq(releases -> false, snapshots -> true).foreach { (datas, isSnapshot) =>
       mavenDeploy(
         dryRun = dryRun,
-        publishDatas = datas,
+        publishData = datas,
         isSnapshot = isSnapshot,
         credentials = credentials,
         releaseUri = releaseUri,
@@ -35,6 +35,32 @@ private[mill] trait MavenPublish {
     }
   }
 
+  @deprecated(
+    "Use `mavenDeploy` instead, which deploys all the `PublishData`s in one operation.",
+    "Mill 1.2.0"
+  )
+  def mavenPublishData(
+      dryRun: Boolean,
+      publishData: PublishData,
+      isSnapshot: Boolean,
+      credentials: (username: String, password: String),
+      releaseUri: String,
+      snapshotUri: String,
+      taskDest: os.Path,
+      log: Logger,
+      worker: InternalMavenWorkerSupport.Api
+  ): Unit = mavenDeploy(
+    dryRun = dryRun,
+    publishData = Seq(publishData),
+    isSnapshot = isSnapshot,
+    credentials = credentials,
+    releaseUri = releaseUri,
+    snapshotUri = snapshotUri,
+    taskDest = taskDest,
+    log = log,
+    worker = worker
+  )
+
   /**
    * Deploys all of the given [[PublishData]]s in a single Maven deploy operation.
    *
@@ -44,7 +70,7 @@ private[mill] trait MavenPublish {
    */
   def mavenDeploy(
       dryRun: Boolean,
-      publishDatas: Seq[PublishData],
+      publishData: Seq[PublishData],
       isSnapshot: Boolean,
       credentials: (username: String, password: String),
       releaseUri: String,
@@ -52,18 +78,18 @@ private[mill] trait MavenPublish {
       taskDest: os.Path,
       log: Logger,
       worker: InternalMavenWorkerSupport.Api
-  ): Unit = if (publishDatas.nonEmpty) {
+  ): Unit = if (publishData.nonEmpty) {
     val uri = if (isSnapshot) snapshotUri else releaseUri
-    val artifacts = publishDatas.flatMap { publishData =>
+    val artifacts = publishData.flatMap { data =>
       MavenWorkerSupport.RemoteM2Publisher.asM2ArtifactsFromPublishDatas(
-        publishData.meta,
-        publishData.payloadAsMap
+        data.meta,
+        data.payloadAsMap
       )
     }
 
     if (isSnapshot) {
       log.info(
-        s"Detected a 'SNAPSHOT' version for ${publishDatas.map(_.meta).mkString(", ")}, " +
+        s"Detected a 'SNAPSHOT' version for ${publishData.map(_.meta).mkString(", ")}, " +
           s"publishing to Maven Repository at '$uri'"
       )
     }

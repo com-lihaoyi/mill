@@ -168,10 +168,10 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
   ): Unit = {
     val dryRun = env.get("MILL_TESTS_PUBLISH_DRY_RUN").contains("1")
 
-    def publishSnapshots(publishDatas: Seq[PublishData]): Unit = {
+    def publishSnapshots(publishData: Seq[PublishData]): Unit = {
       mavenDeploy(
         dryRun = dryRun,
-        publishDatas = publishDatas,
+        publishData = publishData,
         isSnapshot = true,
         credentials = credentials,
         releaseUri = sonatypeCentralSnapshotUri,
