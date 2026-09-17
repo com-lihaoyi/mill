@@ -96,13 +96,16 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
   def androidProcessedLayoutInputDir: T[PathRef] = Task {
     val resInputDir = Task.dest / "staged/res"
     os.makeDir.all(resInputDir)
-    val qualifiedResDirsPredicate: PathRef => Boolean =
-      pr => os.exists(pr.path) && os.isDir(pr.path)
-    val qualifiedResDirs = androidResources().filter(qualifiedResDirsPredicate)
-    val nonQualifiedResDirs = androidResources().filterNot(qualifiedResDirsPredicate)
+
+    val qualifiedResDirs = androidResources().filter(pr => os.exists(pr.path) && os.isDir(pr.path))
+    val nonQualifiedResDirs =
+      androidResources().filter(pr => os.exists(pr.path) && !os.isDir(pr.path))
+
     nonQualifiedResDirs.foreach {
       pr =>
-        Task.log.warn(s"Dropped $pr because it's not a directory or it does not exist")
+        Task.log.warn(
+          s"Dropped $pr because is not a directory. Please note that androidResources should only point to top level directories"
+        )
     }
     if (qualifiedResDirs.size > 1) {
       qualifiedResDirs.foreach(pathRef =>
