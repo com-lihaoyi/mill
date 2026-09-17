@@ -2,13 +2,11 @@ package mill.androidlib
 
 import coursier.MavenRepository
 import coursier.cache.CachePolicy.LocalOnly
-import coursier.cache.FileCache
+import coursier.cache.{Cache, FileCache}
 import coursier.util.Artifact
 import mill.*
 import mill.androidlib.Versions
 import mill.api.{ModuleRef, Result, TaskCtx}
-
-import scala.util.chaining.given
 
 /**
  * Trait for managing the Android SDK in a Mill build system.
@@ -100,10 +98,17 @@ trait AndroidSdkModule extends Module {
   def bundleToolPath: T[PathRef] = Task() {
     val url = bundleToolUrl()
     // TODO: Use caching API once available, https://github.com/com-lihaoyi/mill/issues/3930
-    val cache = FileCache()
-      .pipe { cache =>
+    val cache = Cache.default match {
+      case cache: FileCache[?] =>
         if (Task.offline) cache.withCachePolicies(Seq(LocalOnly)) else cache
-      }
+      case cache =>
+        mill.util.CoursierCacheSupport.warnNotFileCache(
+          cache,
+          Seq("offline mode"),
+          Task.log.warn(_)
+        )
+        cache
+    }
     cache.logger.use(cache.file(Artifact(url)).run).unsafeRun()(using cache.ec) match {
       case Right(file) =>
         PathRef(os.Path(file)).withRevalidateOnce
