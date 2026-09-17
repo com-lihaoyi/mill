@@ -258,12 +258,29 @@ trait AndroidSdkManagerModule extends ExternalModule {
   }
 
   /**
-   * Installs the necessary Android SDK components such as platform-tools, build-tools, and Android platforms.
+   * The list of Android packages and components for mill to install in order
+   * to prepare this local environment for Android development with mill
+   */
+  def androidSdkComponentsToInstall(
+      buildToolsVersion: Task[String],
+      platformsVersion: Task[String],
+      installPlatformSources: Task[Boolean]
+  ): Task[Seq[String]] = Task.Anon {
+    val installPlatformSources0 = installPlatformSources()
+
+    Seq(
+      "platform-tools", // adb
+      s"build-tools;${buildToolsVersion()}",
+      s"platforms;${platformsVersion()}"
+    ) ++ Option.when(installPlatformSources0)(s"sources;${platformsVersion()}")
+  }
+
+  /**
+   * Installs the necessary Android SDK components listed in [[androidSdkComponentsToInstall]] .
    *
    * For more details on the `sdkmanager` tool, refer to:
    * [[https://developer.android.com/tools/sdkmanager sdkmanager Documentation]]
    */
-
   def androidSdk(
       sdkPath: Task[os.Path],
       cmdlineToolsComponents: Task[CmdlineToolsComponents],
@@ -277,11 +294,8 @@ trait AndroidSdkManagerModule extends ExternalModule {
 
       val installPlatformSources0 = installPlatformSources()
 
-      val packages = Seq(
-        "platform-tools", // adb
-        s"build-tools;${buildToolsVersion()}",
-        s"platforms;${platformsVersion()}",
-      ) ++ Option.when(installPlatformSources0)(s"sources;${platformsVersion()}")
+      val packages =
+        androidSdkComponentsToInstall(buildToolsVersion, platformsVersion, installPlatformSources)()
 
       val sdkManagerPath = cmdlineToolsComponents().sdkmanagerExe.path
 

@@ -3,7 +3,7 @@ package mill.androidlib.hilt
 import coursier.Repository
 import mill.androidlib.AndroidSdkModule
 import mill.api.{Discover, ExternalModule, PathRef}
-import mill.javalib.{Dep, JvmWorkerModule, OsDetector, OsDetectorModule}
+import mill.javalib.{Dep, JvmWorkerModule, OsDetectorModule}
 import mill.{T, Task}
 
 /**
