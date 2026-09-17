@@ -90,24 +90,29 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
    * Gathers all resources top directories as defined in [[androidResources]]
    * under a single directory to be passed to the xml layout processor
    * via [[androidProcessedLayoutXmls]]. If there are conflicting files
-   * the task fails.
-   * @return
+   * the task fails. If there is only one directory in androidResources,
+   * it is passed as the input dir so copying is avoided.
    */
   def androidProcessedLayoutInputDir: T[PathRef] = Task {
     val resInputDir = Task.dest / "staged/res"
     os.makeDir.all(resInputDir)
-    androidResources().filter(pr => os.exists(pr.path) && os.isDir(pr.path)).foreach(pathRef =>
-      val filesToCopy = os.list(pathRef.path)
-      filesToCopy.foreach(f =>
-        os.copy.into(
-          f,
-          resInputDir,
-          createFolders = true,
-          mergeFolders = true
+    val qualifiedResDirs = androidResources().filter(pr => os.exists(pr.path) && os.isDir(pr.path))
+    if (qualifiedResDirs.size > 1) {
+      qualifiedResDirs.foreach(pathRef =>
+        val filesToCopy = os.list(pathRef.path)
+        filesToCopy.foreach(f =>
+          os.copy.into(
+            f,
+            resInputDir,
+            createFolders = true,
+            mergeFolders = true
+          )
         )
       )
-    )
-    PathRef(resInputDir)
+      PathRef(resInputDir)
+    } else {
+      qualifiedResDirs.headOption.getOrElse(PathRef(resInputDir))
+    }
   }
 
   def androidProcessedLayoutXmls: T[PathRef] = Task {
