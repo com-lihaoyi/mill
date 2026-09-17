@@ -60,9 +60,12 @@ object PublishSonatypeCentralTests extends TestSuite {
           )
           val baseDir = dir / releaseGroupPath("io.github.lihaoyi") / "normal" / "0.0.1"
           val expectedFiles = releaseExpectedFiles(baseDir, "normal-0.0.1")
-          val actualFiles = os.walk(dir).toVector
+          val actualFiles = os.walk(dir).filter(os.isFile(_)).toVector
           val missingFiles = expectedFiles.filterNot(actualFiles.contains)
           assert(missingFiles.isEmpty)
+          // signatures are published without checksums of their own
+          val unexpectedFiles = actualFiles.filterNot(expectedFiles.contains)
+          assert(unexpectedFiles.isEmpty)
 
           SonatypeCentralTestUtils.verifySignedArtifacts(
             baseDir,
@@ -165,8 +168,6 @@ object PublishSonatypeCentralTests extends TestSuite {
       Vector(
         file,
         os.Path(file.toString + ".asc"),
-        os.Path(file.toString + ".asc.md5"),
-        os.Path(file.toString + ".asc.sha1"),
         os.Path(file.toString + ".md5"),
         os.Path(file.toString + ".sha1")
       )
