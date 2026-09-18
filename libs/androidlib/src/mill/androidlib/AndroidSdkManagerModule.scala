@@ -21,7 +21,7 @@ import scala.xml.XML
  * TODO explicit sdk root to sdkmanager via --sdk_root
  */
 @mill.api.experimental
-trait AndroidSdkManagerModule extends ExternalModule {
+trait AndroidSdkManagerModule extends Module {
 
   def androidMillHomeDir(): os.Path = {
     val globalDebugFileLocation = os.home / ".mill-android"
@@ -434,7 +434,7 @@ trait AndroidSdkManagerModule extends ExternalModule {
 
 }
 
-object AndroidSdkManagerModule extends AndroidSdkManagerModule {
+object AndroidSdkManagerModule extends ExternalModule, AndroidSdkManagerModule {
   lazy val millDiscover = Discover[this.type]
 }
 
