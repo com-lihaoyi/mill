@@ -1666,11 +1666,17 @@ trait JavaModule
 
   @internal
   private[mill] def bspJvmBuildTargetTask: Task[JvmBuildTarget] = Task.Anon {
+    // `None` here means the module asked for no JDK of its own, and so is built against the one
+    // Mill itself runs on - which is what both fields then fall back to.
+    val pinnedJavaHome = javaHome().map(_.path)
     JvmBuildTarget(
-      javaHome = javaHome()
-        .map(p => BspUri(p.path.toNIO))
-        .orElse(Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p).toNIO))),
-      javaVersion = Option(System.getProperty("java.version"))
+      javaHome = pinnedJavaHome
+        .orElse(Option(System.getProperty("java.home")).map(os.Path(_)))
+        .map(p => BspUri(p.toNIO)),
+      // Deliberately not `System.getProperty("java.version")`: for a module that pins its own JDK
+      // that would be the version of the JVM Mill runs on, contradicting the `javaHome` reported
+      // right beside it.
+      javaVersion = Jvm.javaVersion(pinnedJavaHome)
     )
   }
 
