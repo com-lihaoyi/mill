@@ -46,10 +46,12 @@ node7 [id=node7, label="<span style=\"color: #FFFFFF;\">trait <a href=\"Coursier
 node8 [id=node8, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../api/Module.html\" t=\"n\">Module</a></span>", class="trait vertex"];
 node9 [id=node9, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../api/ModuleCtx$$Wrapper.html\" t=\"n\">Wrapper</a></span>", class="trait vertex"];
 node10 [id=node10, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../api/daemon/internal/ModuleApi.html\" t=\"n\">ModuleApi</a></span>", class="trait vertex"];
-node11 [id=node11, label="<span style=\"color: #FFFFFF;\">trait <a href=\"quarkus/QuarkusModule.html\" t=\"n\">QuarkusModule</a></span>", class="trait vertex"];
-node12 [id=node12, label="<span style=\"color: #FFFFFF;\">trait <a href=\"quarkus/QuarkusModule.html\" t=\"n\">QuarkusModule</a>.<span t=\"k\">this</span>.<a href=\"quarkus/QuarkusModule$QuarkusTests.html\" t=\"t\">QuarkusTests</a></span>", class="trait vertex"];
-node13 [id=node13, label="<span style=\"color: #FFFFFF;\">trait <a href=\"quarkus/QuarkusModule.html\" t=\"n\">QuarkusModule</a>.<span t=\"k\">this</span>.<a href=\"quarkus/QuarkusModule$QuarkusJunit.html\" t=\"t\">QuarkusJunit</a></span>", class="trait vertex"];
-node14 [id=node14, label="<span style=\"color: #FFFFFF;\">trait <a href=\"quarkus/QuarkusModule.html\" t=\"n\">QuarkusModule</a>.<span t=\"k\">this</span>.<a href=\"quarkus/QuarkusModule$QuarkusNativeTest.html\" t=\"t\">QuarkusNativeTest</a></span>", class="trait vertex"];
+node11 [id=node11, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../androidlib/hilt/AndroidHiltTransform.html\" t=\"n\">AndroidHiltTransform</a></span>", class="trait vertex"];
+node12 [id=node12, label="<span style=\"color: #FFFFFF;\">object <a href=\"../androidlib/hilt/AndroidHiltTransform$.html\" t=\"n\">AndroidHiltTransform</a></span>", class="object vertex"];
+node13 [id=node13, label="<span style=\"color: #FFFFFF;\">trait <a href=\"quarkus/QuarkusModule.html\" t=\"n\">QuarkusModule</a></span>", class="trait vertex"];
+node14 [id=node14, label="<span style=\"color: #FFFFFF;\">trait <a href=\"quarkus/QuarkusModule.html\" t=\"n\">QuarkusModule</a>.<span t=\"k\">this</span>.<a href=\"quarkus/QuarkusModule$QuarkusTests.html\" t=\"t\">QuarkusTests</a></span>", class="trait vertex"];
+node15 [id=node15, label="<span style=\"color: #FFFFFF;\">trait <a href=\"quarkus/QuarkusModule.html\" t=\"n\">QuarkusModule</a>.<span t=\"k\">this</span>.<a href=\"quarkus/QuarkusModule$QuarkusJunit.html\" t=\"t\">QuarkusJunit</a></span>", class="trait vertex"];
+node16 [id=node16, label="<span style=\"color: #FFFFFF;\">trait <a href=\"quarkus/QuarkusModule.html\" t=\"n\">QuarkusModule</a>.<span t=\"k\">this</span>.<a href=\"quarkus/QuarkusModule$QuarkusNativeTest.html\" t=\"t\">QuarkusNativeTest</a></span>", class="trait vertex"];
 
 
  node0 -> node1;
@@ -71,8 +73,10 @@ node8 -> node10;
 node10 -> node2;
 node11 -> node0;
 node12 -> node11;
-node13 -> node12;
-node14 -> node12;
+node13 -> node0;
+node14 -> node13;
+node15 -> node14;
+node16 -> node14;
 
 }
 </script>
@@ -118,6 +122,12 @@ node14 -> node12;
    <dd class="body-medium">
     <div class="mono-small-block subtypes">
      <div>
+      trait <a href="../androidlib/hilt/AndroidHiltTransform.html" t="n">AndroidHiltTransform</a>
+     </div>
+     <div>
+      object <a href="../androidlib/hilt/AndroidHiltTransform$.html" t="n">AndroidHiltTransform</a>
+     </div>
+     <div>
       trait <a href="quarkus/QuarkusModule.html" t="n">QuarkusModule</a>
      </div>
      <div>
@@ -129,7 +139,7 @@ node14 -> node12;
      <div>
       trait <a href="quarkus/QuarkusModule.html" t="n">QuarkusModule</a>.<span t="k">this</span>.<a href="quarkus/QuarkusModule$QuarkusNativeTest.html" t="t">QuarkusNativeTest</a>
      </div>
-     <span></span>
+     <span class="show-all-code show-content text-button h100">Show all</span>
     </div>
    </dd>
   </dl>
