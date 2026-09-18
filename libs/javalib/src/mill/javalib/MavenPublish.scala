@@ -37,7 +37,7 @@ private[mill] trait MavenPublish {
 
   @deprecated(
     "Use `mavenDeploy` instead, which deploys all the `PublishData`s in one operation.",
-    "Mill 1.2.0"
+    "Mill after 1.2.0-RC1"
   )
   def mavenPublishData(
       dryRun: Boolean,
