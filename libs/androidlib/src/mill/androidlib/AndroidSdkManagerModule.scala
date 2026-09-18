@@ -73,14 +73,12 @@ trait AndroidSdkManagerModule extends Module {
 
   private def licenseForPackage(remoteReposInfo: os.Path, packageName: String): (String, String) = {
     val repositoryInfo = XML.loadFile(remoteReposInfo.toIO)
-    val remotePackageMaybe = (repositoryInfo \ "remotePackage")
+    val remotePackage = (repositoryInfo \ "remotePackage")
       .filter(_ \@ "path" == packageName)
       .headOption
-    if (remotePackageMaybe.isEmpty) {
-      throw new RuntimeException(s"Couldn't find package $packageName")
-    }
-
-    val remotePackage = remotePackageMaybe.get
+      .getOrElse {
+        sys.error(s"Couldn't find package $packageName in repository info at ${remoteReposInfo}")
+      }
     val licenseName = (remotePackage \ "uses-license").head \@ "ref"
     val licenseText = (repositoryInfo \ "license")
       .filter(_ \@ "id" == licenseName)
@@ -258,7 +256,7 @@ trait AndroidSdkManagerModule extends Module {
   }
 
   /**
-   * The list of Android packages and components for mill to install in order
+   * The list of Android packages and components for Mill to install in order
    * to prepare this local environment for Android development with mill
    */
   protected def androidSdkComponentsToInstall(
