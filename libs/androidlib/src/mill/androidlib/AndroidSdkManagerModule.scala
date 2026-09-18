@@ -261,7 +261,7 @@ trait AndroidSdkManagerModule extends ExternalModule {
    * The list of Android packages and components for mill to install in order
    * to prepare this local environment for Android development with mill
    */
-  def androidSdkComponentsToInstall(
+  protected def androidSdkComponentsToInstall(
       buildToolsVersion: Task[String],
       platformsVersion: Task[String],
       installPlatformSources: Task[Boolean]
