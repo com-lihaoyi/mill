@@ -7,7 +7,7 @@ import mill.crFormat
 import os.CommandResult
 
 @mill.api.daemon.experimental
-trait AndroidSdk extends AndroidSdkModule {
+trait AndroidSdkManager extends AndroidSdkModule {
   override def buildToolsVersion: Task.Simple[String] = Task.Input {
     Versions.millBuildToolsVersion
   }
@@ -20,7 +20,7 @@ trait AndroidSdk extends AndroidSdkModule {
   }
 }
 
-object AndroidSdk extends ExternalModule, AndroidSdk, DefaultTaskModule {
+object AndroidSdkManager extends ExternalModule, AndroidSdkManager, DefaultTaskModule {
   override lazy val millDiscover: Discover = Discover[this.type]
 
   override def defaultTask(): String = "installPackage"
