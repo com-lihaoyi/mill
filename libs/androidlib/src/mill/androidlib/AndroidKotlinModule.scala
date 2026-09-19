@@ -86,6 +86,45 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
       .asInstanceOf[AndroidDataBindingWorker]
   }
 
+  /**
+   * Gathers all resources top directories as defined in [[androidResources]]
+   * under a single directory to be passed to the xml layout processor
+   * via [[androidProcessedLayoutXmls]]. If there are conflicting files
+   * the task fails. If there is only one directory in androidResources,
+   * it is passed as the input dir so copying is avoided.
+   */
+  def androidProcessedLayoutInputDir: T[PathRef] = Task {
+    val resInputDir = Task.dest / "staged/res"
+    os.makeDir.all(resInputDir)
+
+    val qualifiedResDirs = androidResources().filter(pr => os.exists(pr.path) && os.isDir(pr.path))
+    val nonQualifiedResDirs =
+      androidResources().filter(pr => os.exists(pr.path) && !os.isDir(pr.path))
+
+    nonQualifiedResDirs.foreach {
+      pr =>
+        Task.log.warn(
+          s"Dropped $pr because is not a directory. Please note that androidResources should only point to top level directories"
+        )
+    }
+    if (qualifiedResDirs.size > 1) {
+      qualifiedResDirs.foreach(pathRef =>
+        val filesToCopy = os.list(pathRef.path)
+        filesToCopy.foreach(f =>
+          os.copy.into(
+            f,
+            resInputDir,
+            createFolders = true,
+            mergeFolders = true
+          )
+        )
+      )
+      PathRef(resInputDir)
+    } else {
+      qualifiedResDirs.headOption.getOrElse(PathRef(resInputDir))
+    }
+  }
+
   def androidProcessedLayoutXmls: T[PathRef] = Task {
 
     val resOutputDir = Task.dest / "resources"
@@ -95,7 +134,7 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
     os.makeDir.all(layoutInfoOutputDir)
     val args = ProcessResourcesArgs(
       applicationPackageName = androidNamespace,
-      resInputDir = androidResources().head.path.toString,
+      resInputDir = androidProcessedLayoutInputDir().path.toString,
       resOutputDir = resOutputDir.toString,
       layoutInfoOutputDir = layoutInfoOutputDir.toString,
       enableViewBinding = androidEnableViewBinding,
