@@ -64,48 +64,34 @@ trait AndroidSdkManagerModule extends Module {
   private def isLicenseAccepted(
       sdkPath: os.Path,
       remoteReposInfo: os.Path,
-      packageName: String,
-      logger: Logger
+      packageName: String
   ): Boolean = {
-    val licenseMaybe = licenseForPackage(remoteReposInfo, packageName)
-    licenseMaybe match {
-      case Some(license) =>
-        val licenseFile = sdkPath / "licenses" / license.licenseName
-        os.exists(licenseFile) && os.isFile(licenseFile) && os.read(
-          licenseFile
-        ).contains(license.licenseHash)
-      case None =>
-        logger.warn(
-          s"Couldn't find license for package $packageName in $remoteReposInfo , ignoring"
-        )
-        true
-    }
-
+    val (licenseName, licenseHash) = licenseForPackage(remoteReposInfo, packageName)
+    val licenseFile = sdkPath / "licenses" / licenseName
+    os.exists(licenseFile) && os.isFile(licenseFile) && os.read(licenseFile).contains(licenseHash)
   }
 
-  private def licenseForPackage(
-      remoteReposInfo: os.Path,
-      packageName: String
-  ): Option[(licenseName: String, licenseHash: String)] = {
+  private def licenseForPackage(remoteReposInfo: os.Path, packageName: String): (String, String) = {
     val repositoryInfo = XML.loadFile(remoteReposInfo.toIO)
-    val remotePackageMaybe = (repositoryInfo \ "remotePackage").find(_ \@ "path" == packageName)
-    remotePackageMaybe match {
-      case Some(_) =>
-        val remotePackage = remotePackageMaybe.get
-        val licenseName = (remotePackage \ "uses-license").head \@ "ref"
-        val licenseText = (repositoryInfo \ "license")
-          .filter(_ \@ "id" == licenseName)
-          .text
-          .replaceAll(
-            "(?<=\\s)[ \t]*",
-            ""
-          ) // remove spaces and tabs preceded by space, tab, or newline.
-          .replaceAll("(?<!\n)\n(?!\n)", " ") // replace lone newlines with space
-          .replaceAll(" +", " ")
-          .trim
-        val licenseHash = hexArray(sha1.digest(licenseText.getBytes(StandardCharsets.UTF_8)))
-        Some((licenseName, licenseHash))
-    }
+    val remotePackage = (repositoryInfo \ "remotePackage")
+      .filter(_ \@ "path" == packageName)
+      .headOption
+      .getOrElse {
+        sys.error(s"Couldn't find package $packageName in repository info at ${remoteReposInfo}")
+      }
+    val licenseName = (remotePackage \ "uses-license").head \@ "ref"
+    val licenseText = (repositoryInfo \ "license")
+      .filter(_ \@ "id" == licenseName)
+      .text
+      .replaceAll(
+        "(?<=\\s)[ \t]*",
+        ""
+      ) // remove spaces and tabs preceded by space, tab, or newline.
+      .replaceAll("(?<!\n)\n(?!\n)", " ") // replace lone newlines with space
+      .replaceAll(" +", " ")
+      .trim
+    val licenseHash = hexArray(sha1.digest(licenseText.getBytes(StandardCharsets.UTF_8)))
+    (licenseName, licenseHash)
   }
 
   private def sha1 = MessageDigest.getInstance("sha1")
@@ -173,8 +159,7 @@ trait AndroidSdkManagerModule extends Module {
           cmdlineToolsVersionShort,
           remoteReposInfo().path,
           Task.dest,
-          autoAcceptLicenses(),
-          Task.log
+          autoAcceptLicenses()
         )
       } else if (!os.exists(sdkmanagerPath)) {
         throw new IllegalStateException(
@@ -199,8 +184,7 @@ trait AndroidSdkManagerModule extends Module {
       versionShort: String,
       remoteReposInfo: os.Path,
       destination: os.Path,
-      autoAcceptLicenses: Boolean,
-      logger: Logger
+      autoAcceptLicenses: Boolean
   ) = {
 
     val millCmdlineToolsPath = sdkPath / "cmdline-tools" / millVersionShort
@@ -222,7 +206,7 @@ trait AndroidSdkManagerModule extends Module {
         atomicMove = true
       )
     }
-    if (!isLicenseAccepted(sdkPath, remoteReposInfo, s"cmdline-tools;$versionShort", logger)) {
+    if (!isLicenseAccepted(sdkPath, remoteReposInfo, s"cmdline-tools;$versionShort")) {
       if (autoAcceptLicenses) {
         acceptLicenses(millSdkManagerExe)
       } else {
@@ -319,7 +303,7 @@ trait AndroidSdkManagerModule extends Module {
       if (missingPackages.nonEmpty)
         Task.log.info(s"Found ${missingPackages} missing packages...")
       val packagesWithoutLicense = missingPackages
-        .map(p => (p, isLicenseAccepted(sdkPath(), remoteReposInfo().path, p, Task.log)))
+        .map(p => (p, isLicenseAccepted(sdkPath(), remoteReposInfo().path, p)))
         .filter(!_._2)
       if (packagesWithoutLicense.nonEmpty) {
         if (autoAcceptLicenses()) {
