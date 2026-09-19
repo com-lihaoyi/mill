@@ -12,7 +12,7 @@ package build
 import mill.*, androidlib.*, scalalib.*
 
 object sdkManager extends AndroidSdkManagerModule {
-  /**
+  /*
    * Override the packages bootstrapped by mill, e.g.
    * do not install platform-tools (defined in super class)
    */
@@ -31,21 +31,18 @@ object sdkManager extends AndroidSdkManagerModule {
 }
 
 // Override the androidSdkManagerModule with the custom one from above
-object androidSdkModule0 extends AndroidSdkModule {
+object sdkModule extends AndroidSdkModule {
   override def androidSdkManagerModule = mill.api.ModuleRef(androidSdk)
   def buildToolsVersion = "35.0.0"
 }
 
 // Set the androidSdkModule from above in the app
 object app extends AndroidAppModule {
-  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+  def androidSdkModule = mill.api.ModuleRef(sdkModule)
   def androidMinSdk = 19
   def androidCompileSdk = 35
   def androidApplicationId = "com.helloworld.app"
   def androidApplicationNamespace = "com.helloworld.app"
-
-  override def androidVirtualDevice = super.androidVirtualDevice().withName("java-test")
-  override def androidEmulatorPort: String = System.getenv.getOrDefault("EMULATOR_PORT", "5554")
 
 }
 
