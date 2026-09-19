@@ -13,10 +13,10 @@ import mill.*, androidlib.*, scalalib.*
 
 object androidSdkManagerModule0 extends AndroidSdkManagerModule {
   override def androidSdkComponentsToInstall(
-                                               buildToolsVersion: Task[String],
-                                               platformsVersion: Task[String],
-                                               installPlatformSources: Task[Boolean]
-                                             ): Task[Seq[String]] = Task.Anon {
+      buildToolsVersion: Task[String],
+      platformsVersion: Task[String],
+      installPlatformSources: Task[Boolean]
+  ): Task[Seq[String]] = Task.Anon {
     val installPlatformSources0 = installPlatformSources()
 
     Seq(
