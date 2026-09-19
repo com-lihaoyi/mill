@@ -121,7 +121,7 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
   ): Task.Command[Unit] = Task.Command {
     val artifacts = Task.sequence(publishArtifacts.value)()
 
-    val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
+    val finalBundleName = Option(bundleName).filter(_.nonEmpty)
     val credentials = getPublishCredentials(CREDENTIALS_ENV_VARIABLE_PREFIX, username, password)()
     def makeGpgArgs() = internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
       Task.env,
@@ -182,7 +182,11 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
       )
     }
 
-    def publishReleases(artifacts: Seq[PublishData], gpgArgs: GpgArgs): Unit = {
+    def publishReleases(
+        artifacts: Seq[PublishData],
+        bundleName: String,
+        gpgArgs: GpgArgs
+    ): Unit = {
       val publisher = if (useGpgCli) {
         new SonatypeCentralPublisher(
           credentials = SonatypeCredentials(credentials.username, credentials.password),
@@ -213,7 +217,7 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
         log.info(
           s"Dry-run publishing all release artifacts to '$publishTo': ${pprint.apply(artifacts)}"
         )
-        publisher.publishAllToLocal(publishTo, singleBundleName = bundleName, artifactDatas*)
+        publisher.publishAllToLocal(publishTo, singleBundleName = Some(bundleName), artifactDatas*)
         log.info(s"Dry-run publishing to '$publishTo' finished.")
       } else {
         log.info(
@@ -221,7 +225,7 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
               pprint.apply(artifacts)
             }"
         )
-        publisher.publishAll(publishingType, singleBundleName = bundleName, artifactDatas*)
+        publisher.publishAll(publishingType, singleBundleName = Some(bundleName), artifactDatas*)
         log.info(s"Published all release artifacts to Sonatype Central.")
       }
     }
@@ -238,7 +242,8 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
     if (releases.nonEmpty) {
       // If this fails do not publish anything.
       val gpgArgs = makeGpgArgs()
-      publishReleases(releases, gpgArgs)
+      val releaseBundleName = bundleName.getOrElse(defaultBundleName(releases.map(_.meta)))
+      publishReleases(releases, releaseBundleName, gpgArgs)
     }
     publishSnapshots(snapshots)
   }
@@ -246,6 +251,22 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
   private def getPublishingTypeFromReleaseFlag(shouldRelease: Boolean): PublishingType = {
     if (shouldRelease) PublishingType.AUTOMATIC else PublishingType.USER_MANAGED
   }
+
+  private def defaultBundleName(artifacts: Seq[Artifact]): String = {
+    if (artifacts.sizeIs == 1) {
+      val artifact = artifacts.head
+      s"${artifact.group}-${artifact.id}-${artifact.version}"
+    } else {
+      val versionCounts = artifacts.groupMapReduce(_.version)(_ => 1)(_ + _)
+      val mostCommonVersion =
+        artifacts.iterator.map(_.version).maxBy(versionCounts)
+      val projectName = sanitizeBundleNamePart(BuildCtx.workspaceRoot.last)
+      s"$projectName-$mostCommonVersion"
+    }
+  }
+
+  private[mill] def sanitizeBundleNamePart(value: String): String =
+    value.replaceAll("[^A-Za-z0-9._-]", "-")
 
   /**
    * Interactive task to create PGP keys for publishing to Sonatype Central.
