@@ -6,12 +6,15 @@ import mill.api.*
 import mill.crFormat
 import os.CommandResult
 
+@mill.api.daemon.experimental
 trait AndroidSdk extends AndroidSdkModule {
-  override def buildToolsVersion: Task.Simple[String] = "35.0.0"
+  override def buildToolsVersion: Task.Simple[String] = Task.Input {
+    Versions.millBuildToolsVersion
+  }
 
   def installPackage(packages: Seq[String]): Command[CommandResult] = Task.Command {
     androidSdkManagerModule().androidSdkManagerInstall(
-      Task.Anon(PathRef(androidSdk().sdkPath)),
+      sdkManagerExe,
       Task.Anon(packages)
     )()
   }

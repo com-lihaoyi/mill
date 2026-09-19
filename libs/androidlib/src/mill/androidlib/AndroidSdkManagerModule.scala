@@ -249,7 +249,7 @@ trait AndroidSdkManagerModule extends Module {
     androidSdkManagerInstall(
       Task.Anon(cmdlineToolsComponents().sdkmanagerExe),
       Task.Anon(Seq("emulator"))
-    )
+    )()
     toolPathRef(sdkPath() / "emulator/emulator")
   }
 
