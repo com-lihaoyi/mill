@@ -11,7 +11,11 @@ package build
 
 import mill.*, androidlib.*, scalalib.*
 
-object androidSdkManagerModule0 extends AndroidSdkManagerModule {
+object sdkManager extends AndroidSdkManagerModule {
+  /**
+   * Override the packages bootstrapped by mill, e.g.
+   * do not install platform-tools (defined in super class)
+   */
   override def androidSdkComponentsToInstall(
       buildToolsVersion: Task[String],
       platformsVersion: Task[String],
@@ -28,7 +32,7 @@ object androidSdkManagerModule0 extends AndroidSdkManagerModule {
 
 // Override the androidSdkManagerModule with the custom one from above
 object androidSdkModule0 extends AndroidSdkModule {
-  override def androidSdkManagerModule = mill.api.ModuleRef(androidSdkManagerModule0)
+  override def androidSdkManagerModule = mill.api.ModuleRef(androidSdk)
   def buildToolsVersion = "35.0.0"
 }
 
