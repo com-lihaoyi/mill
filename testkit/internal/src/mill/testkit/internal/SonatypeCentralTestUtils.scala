@@ -2,12 +2,13 @@ package mill.testkit.internal
 
 private[mill] object SonatypeCentralTestUtils {
 
+  /** @return the timestamp that the snapshot artifacts were published under. */
   def assertSnapshotRepository(
       repoDir: os.Path,
       group: String,
       artifactId: String,
       version: String
-  ): Unit = {
+  ): String = {
     val publishedDir = repoDir / releaseGroupPath(group) / artifactId
     val rootMetadataFile = publishedDir / "maven-metadata.xml"
     assert(os.exists(rootMetadataFile))
@@ -48,6 +49,8 @@ private[mill] object SonatypeCentralTestUtils {
       assertChecksumMatches(file, os.Path(file.toString + ".md5"), "MD5")
       assertChecksumMatches(file, os.Path(file.toString + ".sha1"), "SHA1")
     }
+
+    timestamp
   }
 
   def withGpgHome[T](secretKeyBase64: String)(f: Map[String, String] => T): T = {

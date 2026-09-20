@@ -43,6 +43,10 @@ object PublishSonatypeCentralTestModule extends TestRootModule {
     def publishVersion = "0.0.1-SNAPSHOT"
   }
 
+  object snapshot2 extends MyModule {
+    def publishVersion = "0.0.1-SNAPSHOT"
+  }
+
   lazy val millDiscover = Discover[this.type]
 }
 
@@ -75,9 +79,12 @@ object PublishSonatypeCentralTests extends TestSuite {
           val dir = repoDir / bundleName(workspacePath)
           val baseDir = dir / releaseGroupPath("io.github.lihaoyi") / "normal" / "0.0.1"
           val expectedFiles = releaseExpectedFiles(baseDir, "normal-0.0.1")
-          val actualFiles = os.walk(dir).toVector
+          val actualFiles = os.walk(dir).filter(os.isFile(_)).toVector
           val missingFiles = expectedFiles.filterNot(actualFiles.contains)
           assert(missingFiles.isEmpty)
+          // signatures are published without checksums of their own
+          val unexpectedFiles = actualFiles.filterNot(expectedFiles.contains)
+          assert(unexpectedFiles.isEmpty)
 
           if (includesOther) {
             val otherBaseDir =
@@ -143,6 +150,31 @@ object PublishSonatypeCentralTests extends TestSuite {
         ),
         "mill.javalib.SonatypeCentralPublishModule/publishAll.dest"
       )
+      // All the modules published by a single invocation must share one timestamp, the same way
+      // Maven gives every module of a reactor build the same one.
+      test("externalModuleSharesTimestampAcrossModules") - dryRunWithKey(
+        SonatypeCentralPublishModule.publishAll(
+          publishArtifacts = Tasks(Seq(
+            PublishSonatypeCentralTestModule.snapshot.publishArtifacts,
+            PublishSonatypeCentralTestModule.snapshot2.publishArtifacts
+          ))
+        ),
+        "mill.javalib.SonatypeCentralPublishModule/publishAll.dest",
+        Some(PublishSonatypeCentralTestModule.TestPgpSecretBase64),
+        None,
+        PublishSonatypeCentralTestModule,
+        ResourcePath
+      ) { repoDir =>
+        val timestamps = Seq("snapshot", "snapshot2").map { artifactId =>
+          SonatypeCentralTestUtils.assertSnapshotRepository(
+            repoDir,
+            group = "io.github.lihaoyi",
+            artifactId = artifactId,
+            version = "0.0.1-SNAPSHOT"
+          )
+        }
+        assert(timestamps.distinct.size == 1)
+      }
     }
   }
 
@@ -189,8 +221,6 @@ object PublishSonatypeCentralTests extends TestSuite {
       Vector(
         file,
         os.Path(file.toString + ".asc"),
-        os.Path(file.toString + ".asc.md5"),
-        os.Path(file.toString + ".asc.sha1"),
         os.Path(file.toString + ".md5"),
         os.Path(file.toString + ".sha1")
       )

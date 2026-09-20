@@ -20,8 +20,8 @@ private[mill] trait MavenPublish {
 
     val (snapshots, releases) = publishDatas.partition(_.meta.isSnapshot)
 
-    releases.map(_ -> false).appendedAll(snapshots.map(_ -> true)).foreach { (data, isSnapshot) =>
-      mavenPublishData(
+    Seq(releases -> false, snapshots -> true).foreach { (data, isSnapshot) =>
+      mavenDeploy(
         dryRun = dryRun,
         publishData = data,
         isSnapshot = isSnapshot,
@@ -35,6 +35,10 @@ private[mill] trait MavenPublish {
     }
   }
 
+  @deprecated(
+    "Use `mavenDeploy` instead, which deploys all the `PublishData`s in one operation.",
+    "Mill after 1.2.0-RC1"
+  )
   def mavenPublishData(
       dryRun: Boolean,
       publishData: PublishData,
@@ -45,16 +49,48 @@ private[mill] trait MavenPublish {
       taskDest: os.Path,
       log: Logger,
       worker: InternalMavenWorkerSupport.Api
-  ): Unit = {
+  ): Unit = mavenDeploy(
+    dryRun = dryRun,
+    publishData = Seq(publishData),
+    isSnapshot = isSnapshot,
+    credentials = credentials,
+    releaseUri = releaseUri,
+    snapshotUri = snapshotUri,
+    taskDest = taskDest,
+    log = log,
+    worker = worker
+  )
+
+  /**
+   * Deploys all of the given [[PublishData]]s in a single Maven deploy operation.
+   *
+   * Deploying everything in one go (rather than once per module) matters for `SNAPSHOT` versions:
+   * Maven derives the timestamp part of the deployed snapshot version once per deploy operation,
+   * so publishing the modules one by one would give each of them a different timestamp.
+   */
+  def mavenDeploy(
+      dryRun: Boolean,
+      publishData: Seq[PublishData],
+      isSnapshot: Boolean,
+      credentials: (username: String, password: String),
+      releaseUri: String,
+      snapshotUri: String,
+      taskDest: os.Path,
+      log: Logger,
+      worker: InternalMavenWorkerSupport.Api
+  ): Unit = if (publishData.nonEmpty) {
     val uri = if (isSnapshot) snapshotUri else releaseUri
-    val artifacts = MavenWorkerSupport.RemoteM2Publisher.asM2ArtifactsFromPublishDatas(
-      publishData.meta,
-      publishData.payloadAsMap
-    )
+    val artifacts = publishData.flatMap { data =>
+      MavenWorkerSupport.RemoteM2Publisher.asM2ArtifactsFromPublishDatas(
+        data.meta,
+        data.payloadAsMap
+      )
+    }
 
     if (isSnapshot) {
       log.info(
-        s"Detected a 'SNAPSHOT' version for ${publishData.meta}, publishing to Maven Repository at '$uri'"
+        s"Detected a 'SNAPSHOT' version for ${publishData.map(_.meta).mkString(", ")}, " +
+          s"publishing to Maven Repository at '$uri'"
       )
     }
 

@@ -168,8 +168,8 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
   ): Unit = {
     val dryRun = env.get("MILL_TESTS_PUBLISH_DRY_RUN").contains("1")
 
-    def publishSnapshot(publishData: PublishData): Unit = {
-      mavenPublishData(
+    def publishSnapshots(publishData: Seq[PublishData]): Unit = {
+      mavenDeploy(
         dryRun = dryRun,
         publishData = publishData,
         isSnapshot = true,
@@ -245,7 +245,7 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
       val releaseBundleName = bundleName.getOrElse(defaultBundleName(releases.map(_.meta)))
       publishReleases(releases, releaseBundleName, gpgArgs)
     }
-    snapshots.foreach(publishSnapshot)
+    publishSnapshots(snapshots)
   }
 
   private def getPublishingTypeFromReleaseFlag(shouldRelease: Boolean): PublishingType = {
