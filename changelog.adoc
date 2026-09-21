@@ -7,11 +7,30 @@ endif::[]
 :link-pr: {link-github}/pull
 :link-issue: {link-github}/issues
 :link-milestone: {link-github}/milestone
-// find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
+// find-replace-regex for URLs: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
+// find-replace-regex for git shortlog --group=format:online: #(\d*) -> {link-pr}/$1[#$1]
 
 
 _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
+
+=== 1.1.10
+:version: 1.1.10
+:milestone-name: 1.1.10
+:milestone: 151
+:prev-version: 1.1.9
+_2026-09-21_
+
+* Deduplicate the non-inverted dependency tree to fix `showMvnDepsTree` hanging ({link-pr}/7548[#7548])
+* Contrib: SBOM Add purl (backport {link-pr}/7469[#7469]) ({link-pr}/7550[#7550])
+* Suggest cleaning-up out/mill-build for parent class issues (backport {link-pr}/6960[#6960]) ({link-pr}/7554[#7554])
+* fix: ignore shebang before YAML frontmatter (backport {link-pr}/7565[#7565]) ({link-pr}/7568[#7568])
+* fix(javalib): discover package-access main methods on Java 25+ (backport {link-pr}/7557[#7557]) ({link-pr}/7564[#7564])
+* Omit checksums for Sonatype signatures (backport {link-pr}/7570[#7570]) ({link-pr}/7576[#7576])
+* Publish snapshots with a shared timestamp (backport {link-pr}/7571[#7571]) ({link-pr}/7580[#7580])
+* Backport `OsDetectorModule` (backport {link-pr}/7552[#7552] partially) ({link-pr}/7581[#7581])
+* Android: Fix missing tools and android hilt module dep resolution (backport {link-pr}/7577[#7577]) ({link-pr}/7579[#7579])
+* GenIdea: Fix script module XML due to missing string substitution (backport {link-pr}/7153[#7153]) ({link-pr}/7585[#7585])
 
 
 === 1.1.9

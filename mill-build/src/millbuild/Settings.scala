@@ -38,7 +38,8 @@ object Settings {
     "1.1.5",
     "1.1.6",
     "1.1.7",
-    "1.1.8"
+    "1.1.8",
+    "1.1.9"
   )
 
   val graalvmJvmId = "graalvm-community:23.0.1"
