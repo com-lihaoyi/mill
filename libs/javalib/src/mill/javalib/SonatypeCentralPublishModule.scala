@@ -184,8 +184,8 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
 
     def publishReleases(
         artifacts: Seq[PublishData],
-        bundleName: String,
-        gpgArgs: GpgArgs
+        gpgArgs: GpgArgs,
+        bundleName: String
     ): Unit = {
       val publisher = if (useGpgCli) {
         new SonatypeCentralPublisher(
@@ -243,7 +243,7 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
       // If this fails do not publish anything.
       val gpgArgs = makeGpgArgs()
       val releaseBundleName = bundleName.getOrElse(defaultBundleName(releases.map(_.meta)))
-      publishReleases(releases, releaseBundleName, gpgArgs)
+      publishReleases(releases, gpgArgs, releaseBundleName)
     }
     publishSnapshots(snapshots)
   }
