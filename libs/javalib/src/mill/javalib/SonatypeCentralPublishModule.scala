@@ -211,13 +211,13 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
         )
       }
 
-      val artifactDatas = artifacts.map(_.withConcretePath)
+      val artifactData = artifacts.map(_.withConcretePath)
       if (dryRun) {
         val publishTo = taskDest / "repository"
         log.info(
           s"Dry-run publishing all release artifacts to '$publishTo': ${pprint.apply(artifacts)}"
         )
-        publisher.publishAllToLocal(publishTo, singleBundleName = Some(bundleName), artifactDatas*)
+        publisher.publishAllToLocal(publishTo, singleBundleName = Some(bundleName), artifactData*)
         log.info(s"Dry-run publishing to '$publishTo' finished.")
       } else {
         log.info(
@@ -225,7 +225,7 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
               pprint.apply(artifacts)
             }"
         )
-        publisher.publishAll(publishingType, singleBundleName = Some(bundleName), artifactDatas*)
+        publisher.publishAll(publishingType, singleBundleName = Some(bundleName), artifactData*)
         log.info(s"Published all release artifacts to Sonatype Central.")
       }
     }
