@@ -120,7 +120,7 @@
         <orderEntry type="library" scope="RUNTIME" name="windows-ansi-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="windows-jni-utils-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="xbean-reflect-3.7.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="xz-1.11.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="zstd-jni-1.5.7-6.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="xz-1.12.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="zstd-jni-1.5.7-11.jar" level="project"/>
     </component>
 </module>
