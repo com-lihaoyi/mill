@@ -4,7 +4,7 @@ import mill.api.ExecResult.{OuterStack, Success}
 import mill.api.*
 import mill.api.daemon.internal.LauncherLocking
 import mill.api.daemon.internal.NonFatal
-import mill.api.internal.{Appendable, Cached, Located, ParseArgs}
+import mill.api.internal.{Appendable, Located}
 import mill.internal.{CodeSigUtils, FileLogger, LockUpgrade, MultiLogger, PromptWaitReporter}
 
 import java.lang.reflect.Method
