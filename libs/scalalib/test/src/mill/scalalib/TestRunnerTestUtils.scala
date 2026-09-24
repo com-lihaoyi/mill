@@ -11,6 +11,7 @@ import utest.*
 import scala.xml.{Elem, NodeSeq, XML}
 
 object TestRunnerTestUtils {
+
   object testrunner extends TestRunnerTestModule {
     def computeTestForkGrouping(x: Seq[String]) = Seq(x)
     def enableParallelism = false
@@ -43,7 +44,7 @@ object TestRunnerTestUtils {
       override def testParallelism = enableParallelism
     }
 
-    object scalatest extends ScalaTests with TestModule.ScalaTest {
+    trait ScalaTest extends ScalaTests with TestModule.ScalaTest {
       override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
       override def testParallelism = enableParallelism
       override def mvnDeps = Task {
@@ -51,6 +52,11 @@ object TestRunnerTestUtils {
           mvn"org.scalatest::scalatest:${sys.props.getOrElse("TEST_SCALATEST_VERSION", ???)}"
         )
       }
+    }
+    object scalatest extends ScalaTest
+    object scalatestZinc extends ScalaTest {
+      override def moduleDir = scalatest.moduleDir
+      override def discoverTestsWithZinc = true
     }
 
     trait DoneMessage extends ScalaTests {
