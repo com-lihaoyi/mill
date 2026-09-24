@@ -7,7 +7,8 @@ endif::[]
 :link-pr: {link-github}/pull
 :link-issue: {link-github}/issues
 :link-milestone: {link-github}/milestone
-// find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
+// find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d+) -> {link-pr}/$1[#$1]
+// find-replace-regex for git shortlog --group=format:online: #(\d+) -> {link-pr}/$1[#$1]
 
 
 _The changelog below is for tagged, stable releases. For unstable releases,
@@ -117,6 +118,132 @@ details.
 
 * Fix fine-grained-locking BSP import deadlock {link-pr}/7161[#7161] and cross-request deadlocks
   from retained per-task read locks {link-pr}/7136[#7136]
+
+
+[#1.3.0-M1]
+=== 1.3.0-M1
+:version: 1.3.0-M1
+:milestone-name: 1.3.0-M1
+:milestone: 152
+:prev-version: 1.1.10
+_2026-09-24_
+
+This branch is a snapshot of the current development in the `main` branch except the behavioral breaking changes (remote caching and reproducible out).
+
+__Changes since Mill {prev-version}:__
+
+* *Fine-grained task-level concurrency between launchers*: the Mill daemon now uses per-task
+read/write locking instead of a single global workspace lock, so multiple concurrent `mill`
+commands can run non-conflicting tasks in parallel. See
+https://mill-build.org/mill/main-branch/depth/parallelism.html#_concurrent_mill_invocations[Concurrent Mill Invocations]
+{link-pr}/6955[#6955]
+
+* Split out a `globalExclusive = true` flag from the vanilla `exclusive = true` flag on
+`Task.Command`; `globalExclusive` takes the daemon-wide workspace lock and is used for mutating
+commands like `clean`, `init`, and the formatters. See
+https://mill-build.org/mill/main-branch/fundamentals/tasks.html#_globally_exclusive_commands[Globally-Exclusive Commands]
+{link-pr}/7069[#7069]
+
+* Update Scala to 3.9.0 (backport #7470)
+
+* `mill init`: Detect Quarkus and Spring Boot projects and apply `QuarkusModule`/`SpringBootModule`.
+See https://mill-build.org/mill/main-branch/migrating/auto-migrating.html[Automated Migration Tools]
+{link-pr}/7117[#7117] {link-pr}/7093[#7093]
+
+* `SpringBootModule` now inherits `RepackageModule` {link-pr}/7120[#7120]
+
+* Dependency strings now support a `force` attribute, e.g. `mvn"org:name:ver;force"`, usable from
+YAML build headers. See
+https://mill-build.org/mill/main-branch/fundamentals/library-deps.html#_forcing_versions[Forcing versions]
+{link-pr}/7108[#7108]
+
+* Add `testBatchFrameworkTasks` to run each fork group as a single batch inside the forked JVM,
+needed by frameworks like Weaver. See
+https://mill-build.org/mill/main-branch/javalib/testing.html#_batch_mode_for_test_frameworks[Batch Mode for Test Frameworks]
+{link-pr}/7119[#7119]
+
+* Add `BuildCtx.rootModule` to give plugins and `Task.Command`s access to the build's root module
+{link-pr}/7090[#7090]
+
+* Use `-Ymagic-offset-header` to fix up line numbers in build files and scripts, so compiler
+errors and stack traces point at the right lines {link-pr}/5932[#5932] {link-pr}/7262[#7262]
+
+* Refine defaults for `KotlinModule.kotlinFriendModules` {link-pr}/7191[#7191]
+
+* Android: Only have `AndroidLibModule` for libraries {link-pr}/7034[#7034]
+
+* Make sure Groovy integration works fine with Groovy 6 {link-pr}/7124[#7124]
+
+* Use Java 25 by default {link-pr}/7076[#7076]
+
+* Update Scala.js to 1.22.0 {link-pr}/7049[#7049] and Scala Native to 0.5.12 {link-pr}/7143[#7143]
+
+* Re-add support for dot-config files {link-pr}/7180[#7180]
+
+* Always clean the classes dir when using the Kotlin CLI compiler {link-pr}/7189[#7189]
+
+* Use an absolute path when loading a native library {link-pr}/7208[#7208]
+
+* Fix `mill visualize` with no arguments failing with a `MatchError` {link-pr}/6973[#6973]
+
+* Fix Spotless `RelPathRef` decoding {link-pr}/7111[#7111]
+
+* Fix `*.iml` generation for Kotlin in GenIDEA {link-pr}/7082[#7082]
+
+* Fix fine-grained-locking BSP import deadlock {link-pr}/7161[#7161] and cross-request deadlocks
+from retained per-task read locks {link-pr}/7136[#7136]
+
+* Make annotation processors not inherit zinc classpath ({link-pr}/7089[#7089])
+* GenIDEA: Order IML components lexicographically ({link-pr}/7084[#7084])
+* Use `globalExclusive` for Contrib `OwaspDependencyCheckModule` ({link-pr}/7102[#7102])
+* Add `mill.eclipse/` entry point and fix active command message ({link-pr}/7139[#7139])
+* Fix O(n^2) per-task scan in LeaseTracker.reacquireDropped ({link-pr}/7169[#7169])
+* Bound execution-pool threads to `--jobs` on the uncontended fast path ({link-pr}/7170[#7170])
+* Simplify LeaseTracker graph traversals; small evaluation/resolution fixes ({link-pr}/7172[#7172])
+* Fix concurrency/caching/locking issues from multi-agent review (backport {link-pr}/7176[#7176])
+* Clarity/simplification cleanups from multi-agent review (backport {link-pr}/7177[#7177])
+* More cleanups and simplifications to executor/evaluator/remote-cache code paths (backport {link-pr}/7178[#7178])
+* Re-add support for dot-config files (backport {link-pr}/7180[#7180])
+* Various dependency and version updates
+* Always clean the classes dir when using the Kotlin CLI compiler (backport {link-pr}/7189[#7189])
+* Make scripts use `-Ymagic-offset-header` flags too  ({link-pr}/7262[#7262])
+* `mill init`: Pick up Annotation Processors (backport {link-pr}/7200[#7200])
+* Revert mill init bloated dependencies and fix SpringBootModule reflection (-parameters) ({link-pr}/7265[#7265])
+* Documentation additions for parallelism, deps, testing, migrating (backported)
+* Ensure, AssembleTests works with installed Java version 17 (backport {link-pr}/7281[#7281])
+* RepackageModule: Move implicit helper module definition into companion object (backport {link-pr}/7280[#7280])
+* Fix watch mode (backport {link-pr}/7307[#7307])
+* contrib/codeartifact: split dotted group into path segments (backport {link-pr}/7289[#7289])
+* Update nativeImageOptions to enable HTTP and HTTPS (backport {link-pr}/7310[#7310])
+* Initial implementation for quarkus codegen flow (backport {link-pr}/7296[#7296])
+* fix(javalib): resolve relative Zinc product ids (backport {link-pr}/7286[#7286])
+* Add ES2022, ES2023, ES2024 to ESVersion enum and JSPI support (backport {link-pr}/7303[#7303])
+* `mill init` Spring detection fixes (backport {link-pr}/7349[#7349])
+* Expose top-level precompiled YAML modules under BuildCtx.rootModule (backport {link-pr}/7188[#7188])
+* `mill init`: Gradle Kotlin Support & Refactor  (backport {link-pr}/7386[#7386])
+* `mill init`: Micronaut projects (backport {link-pr}/7418[#7418])
+* Introduce `mandatoryBomMvnDeps` for module overrides (backport {link-pr}/7432[#7432])
+* `mill init`: Initial Android support (backport {link-pr}/7446[#7446])
+* Document build module access from meta-build sources (backport {link-pr}/7507[#7507])
+* Document SemanticDB version configuration (backport {link-pr}/7509[#7509])
+* Support .sc files as Scala scripts (backport {link-pr}/7512[#7512])
+* Restore provenance headers to bootstrap scripts (backport {link-pr}/7510[#7510])
+* Batch prompt repaints into one terminal write (backport {link-pr}/7513[#7513])
+* Support PGP signing with exported secret subkeys (backport {link-pr}/7514[#7514])
+* Discover non-public overrides for task path mapping (backport {link-pr}/7524[#7524])
+* Use classpaths for non-JDT Eclipse dependencies (backport {link-pr}/7523[#7523])
+* Fix standalone task graphs and Graphviz error hangs (backport {link-pr}/7522[#7522])
+* Show direct submodules in inspect output (backport {link-pr}/7508[#7508])
+* Allow Java modules to override BSP dependency sources (backport {link-pr}/7517[#7517])
+* Restore scalalib PublishModule external resolution (backport {link-pr}/7518[#7518])
+* Preserve Quarkus executable dependency metadata (backport {link-pr}/7519[#7519])
+* Honor Maven dependency-management optionality semantics (backport {link-pr}/7520[#7520])
+* Notify BSP clients after build-definition changes (backport {link-pr}/7521[#7521])
+* Introduce KyoTest as TestModule (backport {link-pr}/7484[#7484])
+* Fix/quarkus exe artifact resolution and dependencies with missing os placeholders (backport {link-pr}/7552[#7552])
+* Android: Aggregate all dirs in android resources, fix for not being processed by the data binding worker under a single dir (backport {link-pr}/7563[#7563])
+* Use single bundle when publishing releases (backport {link-pr}/7575[#7575])
+* Add a countdown to the CLI progress reporter (backport {link-pr}/7598[#7598]) ({link-pr}/7602[#7602])
 
 
 [#1-1-10]
