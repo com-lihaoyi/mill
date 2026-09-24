@@ -99,7 +99,7 @@ object InitGpgPublishTests extends UtestIntegrationTestSuite {
       artifactId: String,
       version: String
   ): os.Path =
-    repoDir / s"$group.$artifactId-$version"
+    repoDir / s"$group-$artifactId-$version"
 
   private def releaseGroupPath(group: String): os.SubPath =
     os.SubPath(group.split('.').toIndexedSeq)
