@@ -495,13 +495,13 @@ trait GroupExecution {
                       // Stale meta.json paired with a borked destPath would be
                       // mistaken for a clean cache on the next run.
                       os.remove.all(paths.meta)
-                      (0, Nil, false)
+                      (0, Nil, false, newResults)
                   }
 
                 if (success) taskLocks.retainDowngraded(scope, version)
 
                 GroupExecution.Results(
-                  newResults = newResults,
+                  newResults = finalResults,
                   newEvaluated = newEvaluated.toSeq,
                   cacheStatus =
                     if (
