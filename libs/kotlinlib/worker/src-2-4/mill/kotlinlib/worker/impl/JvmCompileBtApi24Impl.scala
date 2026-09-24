@@ -1,6 +1,6 @@
 package mill.kotlinlib.worker.impl
 
-import mill.api.{PathRef, TaskCtx}
+import mill.api.TaskCtx
 import org.jetbrains.kotlin.buildtools.api.{BuildOperation, CompilationResult, SourcesChanges}
 import org.jetbrains.kotlin.buildtools.api.arguments.{CommonCompilerArguments, JvmCompilerArguments}
 import org.jetbrains.kotlin.buildtools.api.arguments.enums.{JvmTarget, KotlinVersion}

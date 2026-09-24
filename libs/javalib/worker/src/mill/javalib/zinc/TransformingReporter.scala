@@ -1,6 +1,5 @@
 package mill.javalib.zinc
 
-import mill.api.PathRef
 
 private trait TransformingReporter(color: Boolean, workspaceRoot: os.Path) extends xsbti.Reporter {
 
