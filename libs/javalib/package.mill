@@ -232,7 +232,7 @@ object `package` extends MillStableScalaModule {
     )
 
     override def mvnDeps = {
-      val mavenResolverVersion = "2.0.10"
+      val mavenResolverVersion = "2.0.23"
 
       /** Dependencies necessary for publishing snapshots to Sonatype Central. */
       def mavenPublishingDeps = Seq(
