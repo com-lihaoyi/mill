@@ -119,6 +119,42 @@ details.
   from retained per-task read locks {link-pr}/7136[#7136]
 
 
+[#1-1-10]
+=== 1.1.10
+:version: 1.1.10
+:milestone-name: 1.1.10
+:milestone: 151
+:prev-version: 1.1.9
+_2026-09-21_
+
+* Deduplicate the non-inverted dependency tree to fix `showMvnDepsTree` hanging ({link-pr}/7548[#7548])
+* Contrib: SBOM Add purl (backport {link-pr}/7469[#7469]) ({link-pr}/7550[#7550])
+* Suggest cleaning-up out/mill-build for parent class issues (backport {link-pr}/6960[#6960]) ({link-pr}/7554[#7554])
+* fix: ignore shebang before YAML frontmatter (backport {link-pr}/7565[#7565]) ({link-pr}/7568[#7568])
+* fix(javalib): discover package-access main methods on Java 25+ (backport {link-pr}/7557[#7557]) ({link-pr}/7564[#7564])
+* Omit checksums for Sonatype signatures (backport {link-pr}/7570[#7570]) ({link-pr}/7576[#7576])
+* Publish snapshots with a shared timestamp (backport {link-pr}/7571[#7571]) ({link-pr}/7580[#7580])
+* Backport `OsDetectorModule` (backport {link-pr}/7552[#7552] partially) ({link-pr}/7581[#7581])
+* Android: Fix missing tools and android hilt module dep resolution (backport {link-pr}/7577[#7577]) ({link-pr}/7579[#7579])
+* GenIdea: Fix script module XML due to missing string substitution (backport {link-pr}/7153[#7153]) ({link-pr}/7585[#7585])
+
+
+[#1-1-9]
+=== 1.1.9
+:version: 1.1.9
+:milestone-name: 1.1.9
+:milestone: 150
+:prev-version: 1.1.8
+_2026-09-07_
+
+* Build with Mill to 1.1.8 and set API baseline ({link-pr}/7420[#7420])
+* fix: Avoid watching directory probes (backport {link-pr}/7173[#7173]) ({link-pr}/7433[#7433])
+* BuildInfo: Use root-imports to prevent import of colliding sub-packages (backport {link-pr}/7445[#7445]) ({link-pr}/7447[#7447])
+* Fix `clean __` deleting Mill's own `out/mill-*` state (backport {link-pr}/7459[#7459]) ({link-pr}/7467[#7467])
+* Update jarjar-abrams-core to 1.18.1 ({link-pr}/7534[#7534])
+* Normalize mtime to millis for PathRef quick signature rather than use FileTime ({link-pr}/7506[#7506])
+
+[#1-1-8]
 === 1.1.8
 :version: 1.1.8
 :milestone-name: 1.1.8

@@ -17,7 +17,10 @@ object QuarkusModuleTests extends TestSuite {
       def artifactVersion = "0.0.1"
 
       def mvnDeps = Seq(
-        mvn"io.quarkus:quarkus-grpc"
+        mvn"io.quarkus:quarkus-grpc",
+        // Pulls in jakarta.ws.rs:jakarta.ws.rs-api, published with
+        // `<packaging>bundle</packaging>`, exercised by the `bundlePackagedJar` assertion below.
+        mvn"io.quarkus:quarkus-rest"
       )
     }
 
@@ -59,6 +62,14 @@ object QuarkusModuleTests extends TestSuite {
         val ordinaryJar = dependencies.find(d =>
           d.groupId == "io.quarkus" && d.artifactId == "quarkus-grpc-codegen"
         ).get
+        // Published with `<packaging>bundle</packaging>` - Coursier treats that as a jar-like
+        // type, but Quarkus's own `ArtifactCoords.isJar()` only recognizes the literal `jar`
+        // type, so this must be normalized or the dependency silently vanishes from Quarkus's
+        // classloaders (see the regression this guards against: jakarta.ws.rs.BadRequestException
+        // ClassNotFoundException during quarkusCodeGen).
+        val bundlePackagedJar = dependencies.find(d =>
+          d.groupId == "jakarta.ws.rs" && d.artifactId == "jakarta.ws.rs-api"
+        ).get
 
         assert(
           protoc.size == platformClassifiers.size,
@@ -70,7 +81,8 @@ object QuarkusModuleTests extends TestSuite {
           quarkusPlugin.artifactType == "jar",
           quarkusPlugin.classifier == "shaded",
           ordinaryJar.artifactType == "jar",
-          ordinaryJar.classifier.isEmpty
+          ordinaryJar.classifier.isEmpty,
+          bundlePackagedJar.artifactType == "jar"
         )
       }
     }

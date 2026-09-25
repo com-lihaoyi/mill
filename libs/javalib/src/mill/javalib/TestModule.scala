@@ -52,6 +52,7 @@ trait TestModule
    * - [[TestModule.Utest]]
    * - [[TestModule.Weaver]]
    * - [[TestModule.ZioTest]]
+   * - [[TestModule.KyoTest]]
    * - [[TestModule.Spock]]
    *
    * Most of these provide additional `xxxVersion` tasks, to manage the test framework dependencies for you.
@@ -684,6 +685,23 @@ object TestModule {
               mvn"dev.zio::zio-test-sbt:${v.trim()}"
             )
           )
+    }
+  }
+
+  /**
+   * TestModule that uses Kyo Test Framework to run tests.
+   * You can override the [[kyoTestVersion]] task or provide the Kyo Test-dependency yourself.
+   */
+  trait KyoTest extends TestModule {
+
+    /** The Kyo Test version to use, or the empty string, if you want to provide the Kyo Test-dependency yourself. */
+    def kyoTestVersion: T[String] = Task { "" }
+    override def testFramework: T[String] = "kyo.test.runner.SbtFramework"
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++
+        Seq(kyoTestVersion())
+          .filter(!_.isBlank())
+          .map(v => mvn"io.getkyo::kyo-test-runner:${v.trim()}")
     }
   }
 

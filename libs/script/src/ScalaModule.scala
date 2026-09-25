@@ -143,6 +143,10 @@ object ScalaModule {
       with TestModule.ZioTest with mill.scalalib.ScalaModule.ScalaTests0 {
     override lazy val millDiscover = Discover[this.type]
   }
+  class KyoTest(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scriptConfig)
+      with TestModule.KyoTest with mill.scalalib.ScalaModule.ScalaTests0 {
+    override lazy val millDiscover = Discover[this.type]
+  }
   class ScalaCheck(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scriptConfig)
       with TestModule.ScalaCheck with mill.scalalib.ScalaModule.ScalaTests0 {
     override lazy val millDiscover = Discover[this.type]
