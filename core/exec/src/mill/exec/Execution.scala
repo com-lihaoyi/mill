@@ -232,7 +232,8 @@ case class Execution(
           indexToTerminal.size.toString.length,
           '0'
         )
-        s"$completedMsg$keySuffix$extraKeySuffix${Execution.formatFailedCount(rootFailedCount.get(), completed, logger.prompt.errorColor, logger.prompt.successColor)}"
+        val leftCountMsg = indexToTerminal.size - completedCount.get()
+        s"$completedMsg$keySuffix$extraKeySuffix, $leftCountMsg$extraKeySuffix left${Execution.formatFailedCount(rootFailedCount.get(), completed, logger.prompt.errorColor, logger.prompt.successColor)}"
       }
 
       val tasksTransitive = plan.transitive.toSet
