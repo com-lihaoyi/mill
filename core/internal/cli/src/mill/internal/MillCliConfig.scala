@@ -180,6 +180,18 @@ case class MillCliConfig(
       doc = "Task-selector pattern (e.g. `__.compile`) limiting which tasks use the remote cache."
     )
     remoteCacheFilter: Option[String] = None,
+    @arg(
+      hidden = true,
+      name = "remote-cache-connect-timeout",
+      doc = "Timeout in seconds for connecting to an HTTP remote cache (default 30)."
+    )
+    remoteCacheConnectTimeout: Int = 30,
+    @arg(
+      hidden = true,
+      name = "remote-cache-read-timeout",
+      doc = "Timeout in seconds for each HTTP remote cache request (default 120)."
+    )
+    remoteCacheReadTimeout: Int = 120,
     @arg(hidden = true, doc = "Deprecated, use `--ticker false` instead")
     disableTicker: Flag,
     @arg(doc = "Replay logs for cached tasks.")
