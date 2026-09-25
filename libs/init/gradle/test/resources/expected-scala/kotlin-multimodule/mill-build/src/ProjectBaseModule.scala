@@ -10,7 +10,7 @@ trait ProjectBaseModule extends KotlinMavenModule {
 
   def javacOptions = Seq("-source", "24", "-target", "24")
 
-  def kotlinVersion = "2.4.0"
+  def kotlinVersion = "2.4.20"
 
   trait ProjectBaseTests extends KotlinMavenTests {
 
