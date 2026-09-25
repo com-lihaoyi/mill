@@ -1,6 +1,5 @@
 package mill.javalib.zinc
 
-
 private trait TransformingReporter(color: Boolean, workspaceRoot: os.Path) extends xsbti.Reporter {
 
   // Overriding this is necessary because for some reason the LoggedReporter doesn't transform positions
