@@ -129,36 +129,10 @@ trait JsonFormatters {
  */
 object JsonFormatters extends JsonFormatters {
   private[mill] object mirrors {
-    given Root_coursier_Publication: Mirrors.Root[coursier.core.Publication] =
-      Mirrors.autoRoot[coursier.core.Publication]
     given Root_coursier_Extension: Mirrors.Root[coursier.core.Extension] =
       Mirrors.autoRoot[coursier.core.Extension]
-    given Root_coursier_Module: Mirrors.Root[coursier.core.Module] =
-      Mirrors.autoRoot[coursier.core.Module]
     given Root_coursier_version_VersionInterval: Mirrors.Root[coursier.version.VersionInterval] =
       Mirrors.autoRoot[coursier.version.VersionInterval]
-    given Root_coursier_core_VariantSelector_ConfigurationBased
-        : Mirrors.Root[coursier.core.VariantSelector.ConfigurationBased] =
-      Mirrors.autoRoot[coursier.core.VariantSelector.ConfigurationBased]
-    given Root_coursier_core_VariantSelector_AttributesBased
-        : Mirrors.Root[coursier.core.VariantSelector.AttributesBased] =
-      Mirrors.autoRoot[coursier.core.VariantSelector.AttributesBased]
-    given Root_coursier_core_Variant_Configuration
-        : Mirrors.Root[coursier.core.Variant.Configuration] =
-      Mirrors.autoRoot[coursier.core.Variant.Configuration]
-    given Root_coursier_core_Variant_Attributes: Mirrors.Root[coursier.core.Variant.Attributes] =
-      Mirrors.autoRoot[coursier.core.Variant.Attributes]
-    given Root_coursier_BomDependency: Mirrors.Root[coursier.core.BomDependency] =
-      Mirrors.autoRoot[coursier.core.BomDependency]
-    given Root_coursier_Dependency: Mirrors.Root[coursier.core.Dependency] =
-      Mirrors.autoRoot[coursier.core.Dependency]
-    given Root_coursier_MinimizedExclusions: Mirrors.Root[coursier.core.MinimizedExclusions] =
-      Mirrors.autoRoot[coursier.core.MinimizedExclusions]
-    given Root_coursier_MinimizedExclusions_ExcludeSpecific
-        : Mirrors.Root[coursier.core.MinimizedExclusions.ExcludeSpecific] =
-      Mirrors.autoRoot[coursier.core.MinimizedExclusions.ExcludeSpecific]
-    given Root_coursier_core_Attributes: Mirrors.Root[coursier.core.Attributes] =
-      Mirrors.autoRoot[coursier.core.Attributes]
     given Root_coursier_Organization: Mirrors.Root[coursier.core.Organization] =
       Mirrors.autoRoot[coursier.core.Organization]
     given Root_coursier_ModuleName: Mirrors.Root[coursier.core.ModuleName] =
@@ -169,65 +143,5 @@ object JsonFormatters extends JsonFormatters {
       Mirrors.autoRoot[coursier.core.Type]
     given Root_coursier_Classifier: Mirrors.Root[coursier.core.Classifier] =
       Mirrors.autoRoot[coursier.core.Classifier]
-    given Root_core_coursier_DependencyManagement_Key
-        : Mirrors.Root[coursier.core.DependencyManagement.Key] =
-      Mirrors.autoRoot[coursier.core.DependencyManagement.Key]
-    given Root_core_coursier_DependencyManagement_Values
-        : Mirrors.Root[coursier.core.DependencyManagement.Values] =
-      Mirrors.autoRoot[coursier.core.DependencyManagement.Values]
-    given Root_coursier_core_Activation_Os
-        : Mirrors.Root[coursier.core.Activation.Os] =
-      Mirrors.autoRoot[coursier.core.Activation.Os]
-    given Root_coursier_core_Info_Developer
-        : Mirrors.Root[coursier.core.Info.Developer] =
-      Mirrors.autoRoot[coursier.core.Info.Developer]
-    given Root_coursier_core_Info_Scm
-        : Mirrors.Root[coursier.core.Info.Scm] =
-      Mirrors.autoRoot[coursier.core.Info.Scm]
-    given Root_coursier_core_Info_License
-        : Mirrors.Root[coursier.core.Info.License] =
-      Mirrors.autoRoot[coursier.core.Info.License]
-    given Root_coursier_core_Info
-        : Mirrors.Root[coursier.core.Info] =
-      Mirrors.autoRoot[coursier.core.Info]
-    given Root_coursier_core_SnapshotVersion
-        : Mirrors.Root[coursier.core.SnapshotVersion] =
-      Mirrors.autoRoot[coursier.core.SnapshotVersion]
-    given Root_coursier_core_VersionInterval
-        : Mirrors.Root[coursier.core.VersionInterval] =
-      Mirrors.autoRoot[coursier.core.VersionInterval]
-    given Root_coursier_core_SnapshotVersioning
-        : Mirrors.Root[coursier.core.SnapshotVersioning] =
-      Mirrors.autoRoot[coursier.core.SnapshotVersioning]
-    given Root_coursier_core_Versions
-        : Mirrors.Root[coursier.core.Versions] =
-      Mirrors.autoRoot[coursier.core.Versions]
-    given Root_coursier_core_Versions_DateTime
-        : Mirrors.Root[coursier.core.Versions.DateTime] =
-      Mirrors.autoRoot[coursier.core.Versions.DateTime]
-    given Root_coursier_core_Activation
-        : Mirrors.Root[coursier.core.Activation] =
-      Mirrors.autoRoot[coursier.core.Activation]
-    given Root_coursier_core_Profile
-        : Mirrors.Root[coursier.core.Profile] =
-      Mirrors.autoRoot[coursier.core.Profile]
-    given Root_coursier_core_VariantPublication
-        : Mirrors.Root[coursier.core.VariantPublication] =
-      Mirrors.autoRoot[coursier.core.VariantPublication]
-    given Root_coursier_core_Project
-        : Mirrors.Root[coursier.core.Project] =
-      Mirrors.autoRoot[coursier.core.Project]
-    given Root_coursier_core_VariantSelector_VariantMatcher_Equals
-        : Mirrors.Root[coursier.core.VariantSelector.VariantMatcher.Equals] =
-      Mirrors.autoRoot[coursier.core.VariantSelector.VariantMatcher.Equals]
-    given Root_coursier_core_VariantSelector_VariantMatcher_MinimumVersion
-        : Mirrors.Root[coursier.core.VariantSelector.VariantMatcher.MinimumVersion] =
-      Mirrors.autoRoot[coursier.core.VariantSelector.VariantMatcher.MinimumVersion]
-    given Root_coursier_core_VariantSelector_VariantMatcher_AnyOf
-        : Mirrors.Root[coursier.core.VariantSelector.VariantMatcher.AnyOf] =
-      Mirrors.autoRoot[coursier.core.VariantSelector.VariantMatcher.AnyOf]
-    given Root_coursier_core_VariantSelector_VariantMatcher_EndsWith
-        : Mirrors.Root[coursier.core.VariantSelector.VariantMatcher.EndsWith] =
-      Mirrors.autoRoot[coursier.core.VariantSelector.VariantMatcher.EndsWith]
   }
 }
