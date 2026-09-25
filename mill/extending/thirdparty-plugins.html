@@ -547,6 +547,10 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/publishing.html">Android Library Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
   </li>
 
@@ -697,7 +701,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.10</span>
+    <span class="version">1.3.0-M1</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -707,7 +711,10 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.10</a>
+          <a href="../index.html">1.3.0-M1</a>
+        </li>
+        <li class="version">
+          <a href="../1.1.x/index.html">1.1.10</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -2222,6 +2229,50 @@ object app extends ScalaModule with StrictDepsModule {
 <div class="paragraph">
 <p><code>strictDepsCheck</code> fails when a module has unused direct module dependencies or
 uses transitive module dependencies without declaring them directly.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_stryker4s"><a class="anchor" href="#_stryker4s"></a>Stryker4s</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mutation testing for Scala.</p>
+</div>
+<div class="paragraph">
+<p>Mutation testing introduces changes to your code, then runs your unit tests against the changed code. It is expected that your unit tests will now fail. If they don&#8217;t fail, it might indicate your tests do not sufficiently cover the code. It is similar to code coverage, but instead of just measuring which lines of code are executed, it measures what code is actually tested.</p>
+</div>
+<div class="paragraph">
+<p>Project home: <a href="https://stryker-mutator.io" class="bare">https://stryker-mutator.io</a></p>
+</div>
+<div class="paragraph">
+<p>Source: <a href="https://github.com/stryker-mutator/stryker4s" class="bare">https://github.com/stryker-mutator/stryker4s</a></p>
+</div>
+<div class="listingblock">
+<div class="title"><code>build.mill</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["io.stryker-mutator::mill-stryker4s::1.0.2"]
+
+import mill.*
+import mill.scalalib.*
+import stryker4s.mill.Stryker4sModule
+
+object app extends ScalaModule with Stryker4sModule {
+  // All settings are configurable and prefixed with `stryker`
+  def strykerExcludedMutations = Some(Seq("BooleanLiteral", "StringLiteral"))
+  def strykerReporters = Some(Seq("html", "json", "console"))
+
+  object test extends ScalaTests {
+    def mvnDeps = Seq(mvn"org.scalameta::munit:1.3.4")
+    def testFramework = "munit.Framework"
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Run Stryker</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill app.stryker</code></pre>
+</div>
 </div>
 </div>
 </div>

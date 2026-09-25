@@ -547,6 +547,10 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/publishing.html">Android Library Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
   </li>
 
@@ -697,7 +701,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.10</span>
+    <span class="version">1.3.0-M1</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -707,7 +711,10 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.10</a>
+          <a href="../index.html">1.3.0-M1</a>
+        </li>
+        <li class="version">
+          <a href="../1.1.x/index.html">1.1.10</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -842,6 +849,28 @@ to get decent scan results.</p>
 <div class="paragraph">
 <p>If you do not want to fail the task, for example to use the result in a downstream task,
 then set <code>owaspDependencyCheckFailTask = false</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_override_the_dependency_check_version"><a class="anchor" href="#_override_the_dependency_check_version"></a>Override the Dependency Check Version</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To override the version used, use your own Owasp Dependency Check worker:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.contrib.owaspdependencycheck.{OwaspDependencyCheckWorker,OwaspDependencyCheckModule}
+object MyBuildsOwaspDependencyCheckWorker extends OwaspDependencyCheckWorker {
+  // A version from https://github.com/dependency-check/DependencyCheck
+  override def dependencyCheckVersion: T[String] = "&lt;version&gt;"
+}
+// Then override the worker:
+object myModule extends OwaspDependencyCheckModule {
+  override def owaspDependencyCheckWorker: mill.api.ModuleRef[OwaspDependencyCheckWorker] =
+    mill.api.ModuleRef(MyBuildsOwaspDependencyCheckWorker)
+}</code></pre>
+</div>
 </div>
 </div>
 </div>

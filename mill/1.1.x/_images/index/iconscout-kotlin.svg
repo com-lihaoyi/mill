@@ -1,0 +1,26 @@
+<svg
+        xmlns="http://www.w3.org/2000/svg"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        width="111.105"
+        height="111.105"
+        id="kotlin"
+        viewBox="-10 -10 131.105 131.105">
+  <defs>
+    <linearGradient id="b" x1="-.168" x2=".762" y1=".919" y2="-.011" gradientUnits="objectBoundingBox">
+      <stop offset=".108" stop-color="#c757bc"></stop>
+      <stop offset=".173" stop-color="#cd5ca9"></stop>
+      <stop offset=".492" stop-color="#e8744f"></stop>
+      <stop offset=".716" stop-color="#f88316"></stop>
+      <stop offset=".823" stop-color="#ff8900"></stop>
+    </linearGradient>
+    <linearGradient id="a" x1=".319" x2=".773" y1="1.359" y2=".456" gradientUnits="objectBoundingBox">
+      <stop offset=".296" stop-color="#00afff"></stop>
+      <stop offset=".694" stop-color="#5282ff"></stop>
+      <stop offset="1" stop-color="#945dff"></stop>
+    </linearGradient>
+    <linearGradient xlink:href="#a" id="c" x1="-.024" x2=".61" y1=".523" y2="-.08"></linearGradient>
+  </defs>
+  <path fill="url(#b)" d="M55.783 0 0 58.662V111.1l55.7-55.8L111.1 0Z"></path>
+  <path fill="url(#a)" d="m0 118.021 55.7-55.8 55.4 55.8Z" transform="translate(0 -6.917)"></path>
+  <path fill="url(#c)" d="M0 0h55.783L0 58.662Z"></path>
+</svg>

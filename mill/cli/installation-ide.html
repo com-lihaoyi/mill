@@ -547,6 +547,10 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/publishing.html">Android Library Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
   </li>
 
@@ -697,7 +701,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.10</span>
+    <span class="version">1.3.0-M1</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -707,7 +711,10 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.10</a>
+          <a href="../index.html">1.3.0-M1</a>
+        </li>
+        <li class="version">
+          <a href="../1.1.x/index.html">1.1.10</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -772,18 +779,18 @@ bootstrap script, included. You can also download the bootstrap script manually:
 <div class="listingblock">
 <div class="title">Mac/Linux</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.10/mill-dist-1.1.10-mill.sh -o mill
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-mill.sh -o mill
 &gt; chmod +x mill
 &gt; ./mill version
-1.1.10</code></pre>
+1.3.0-M1</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Windows</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.10/mill-dist-1.1.10-mill.bat -o mill.bat
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-mill.bat -o mill.bat
 &gt; ./mill version
-1.1.10</code></pre>
+1.3.0-M1</code></pre>
 </div>
 </div>
 <div class="admonitionblock caution">
@@ -845,7 +852,7 @@ pick one most similar to what you are doing so you can hit the ground running.</
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sudo curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.10/mill-dist-1.1.10-mill.sh -o /usr/local/bin/mill
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sudo curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-mill.sh -o /usr/local/bin/mill
 &gt; sudo chmod +x /usr/local/bin/mill</code></pre>
 </div>
 </div>
@@ -927,7 +934,7 @@ by adding a a <code>-jvm</code> suffix on the Mill version:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">1.1.10-jvm</code></pre>
+<pre class="highlightjs highlight"><code class="language-none hljs">1.3.0-M1-jvm</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1098,11 +1105,15 @@ are using a less-common editor that does not have this support builtin.</p>
 <div class="sect3">
 <h4 id="_bsp_output_directory"><a class="anchor" href="#_bsp_output_directory"></a>BSP output directory</h4>
 <div class="paragraph">
-<p>When running Mill in BSP mode, default output directory is
-<code>.bsp/mill-bsp-out</code> under the project workspace. This ensures BSP mode is not blocked by regular
-Mill operations, however this also means that we need to compile the sources twice, which incurs
-extra CPU and memory usage. If you&#8217;d rather reuse regular <code>out/</code> directory, set
-the <code>MILL_NO_SEPARATE_BSP_OUTPUT_DIR</code> environment variable to <code>1</code> when running Mill in BSP mode.</p>
+<p>When running Mill in BSP mode, BSP now shares the regular <code>out/</code> directory and
+daemon by default. This lets IDE-triggered requests reuse the same task caches
+and concurrency-aware output locking as normal <code>./mill &#8230;&#8203;</code> commands.</p>
+</div>
+<div class="paragraph">
+<p>If you want BSP to use its own dedicated output directory instead, set
+<code>mill-separate-bsp-output-dir: true</code> in the root build header. This uses the
+conventional <code>.bsp/out/</code> directory. For a custom dedicated BSP output path, set
+the <code>MILL_BSP_OUTPUT_DIR</code> environment variable instead.</p>
 </div>
 </div>
 <div class="sect3">
@@ -1292,11 +1303,12 @@ inside the Eclipse workspace by selecting them and hitting <code>F5</code>.</p>
 <div class="sect2">
 <h3 id="_debugging_ide_issues"><a class="anchor" href="#_debugging_ide_issues"></a>Debugging IDE issues</h3>
 <div class="paragraph">
-<p>Mill&#8217;s BSP IDE integration writes to log files under
-<code>.bsp/mill-bsp-out/mill-bsp/</code>, where you can find various information about what&#8217;s
-going on. It contains regular Mill output accompanied by additional BSP
-client-server communication details. This can be useful to look at if your
-IDE fails to import your Mill project</p>
+<p>Mill&#8217;s BSP IDE integration writes to log files under the selected BSP output
+directory in <code>mill-bsp/</code>, for example <code>out/mill-bsp/</code> by default or
+<code>.bsp/out/mill-bsp/</code> when <code>mill-separate-bsp-output-dir: true</code> is set. It
+contains regular Mill output accompanied by additional BSP client-server
+communication details. This can be useful to look at if your IDE fails to
+import your Mill project.</p>
 </div>
 </div>
 </div>

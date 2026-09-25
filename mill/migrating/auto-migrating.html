@@ -547,6 +547,10 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/publishing.html">Android Library Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
   </li>
 
@@ -697,7 +701,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.10</span>
+    <span class="version">1.3.0-M1</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -707,7 +711,10 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.10</a>
+          <a href="../index.html">1.3.0-M1</a>
+        </li>
+        <li class="version">
+          <a href="../1.1.x/index.html">1.1.10</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -758,6 +765,9 @@ scaffolding of a Mill build for you to further refine and update manually.</p>
 is converted to a Mill <code>build.mill</code>/<code>package.mill</code> file containing a top-level <code>MavenModule</code>
 or <code>SbtModule</code>. A nested <code>test</code> module is defined, if <code>src/test</code> exists, and is configured
 with a supported <a href="../javalib/testing.html" class="xref page">test framework</a>, if found.</p>
+</div>
+<div class="paragraph">
+<p><code>mill init</code> also detects common application frameworks and wires up the corresponding Mill module: <a href="../javalib/spring-boot.html" class="xref page">Spring Boot</a> projects are configured with <code>SpringBootModule</code>, and <a href="../javalib/web-examples.html#_quarkus_example" class="xref page">Quarkus</a> projects with <code>QuarkusModule</code>.</p>
 </div>
 <div class="paragraph">
 <p>Again, note that <code>mill init</code> importing Maven builds is best-effort.
@@ -922,19 +932,18 @@ compiling, and passing all tests in Mill:</p>
 
 &gt; ./mill init --mill-jvm-id 21 # Repo needs Java &gt;=21 to build and test
 
-&gt; rm twin/src/test/java/com/iluwatar/twin/BallThreadTest.java # skip flaky test
-&gt; rm actor-model/src/test/java/com/iluwatar/actor/ActorModelTest.java # skip flaky test
-
-&gt; ./mill __.compile # Compile all 300+ subprojects!
-compiling 6 Java sources to ...service-to-worker...
-compiling 4 Java sources to ...update-method...
+&gt; ./mill {acyclic-visitor,service-to-worker,update-method}.compile
 
 &gt; ./mill acyclic-visitor.test # run a subproject's tests
 ...
 Test com.iluwatar.acyclicvisitor.ZoomTest#testAcceptForUnix() started
 Test com.iluwatar.acyclicvisitor.ZoomTest#testAcceptForUnix() finished, took ...
 Test com.iluwatar.acyclicvisitor.ZoomTest finished, took ...
-...</code></pre>
+...
+
+&gt; ./mill __.compile # scheduled compile all subprojects
+
+&gt; ./mill {singleton,builder,decorator,proxy,strategy,observer,producer-consumer}.__.test # scheduled run some subprojects' tests</code></pre>
 </div>
 </div>
 </div>
