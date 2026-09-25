@@ -132,7 +132,7 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
     os.makeDir.all(resOutputDir)
     os.makeDir.all(layoutInfoOutputDir)
     val args = ProcessResourcesArgs(
-      applicationPackageName = androidNamespace,
+      applicationPackageName = androidNamespace(),
       resInputDir = androidProcessedLayoutInputDir().path.toString,
       resOutputDir = resOutputDir.toString,
       layoutInfoOutputDir = layoutInfoOutputDir.toString,
