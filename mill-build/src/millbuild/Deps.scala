@@ -68,7 +68,7 @@ object Deps {
     def playVersion: String
     def playBinVersion: String = playVersion.split("[.]").take(2).mkString(".")
     def routesCompiler = playBinVersion match {
-      case "2.6" | "2.7" | "2.8" => mvn"com.typesafe.play::routes-compiler::$playVersion"
+      case "2.6" | "2.7" | "2.8" => mvn"com.typesafe.play::play-routes-compiler::$playVersion"
       case "2.9" => mvn"com.typesafe.play::play-routes-compiler::$playVersion"
       case _ => mvn"org.playframework::play-routes-compiler::$playVersion"
     }
@@ -83,7 +83,7 @@ object Deps {
     override def scalaVersion: String = Deps.scala2Version
   }
   object Play_2_8 extends Play {
-    val playVersion = "2.8.22"
+    val playVersion = "2.9.11"
     override def scalaVersion: String = Deps.scala2Version
   }
   object Play_2_9 extends Play {
