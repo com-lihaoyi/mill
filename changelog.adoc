@@ -17,11 +17,13 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 === main branch
 
 [#1-2-0-RC1]
-=== 1.2.0-RC1
-:version: 1.2.0-RC1
-:milestone-name: 1.2.0
+[#2-0-0-M1]
+=== 2-0-0-M1 (previously 1.2.0-RC1)
+:version: 2.0.0-M1
+:milestone-name: 2.0.0-M1
 :milestone: 146
 :prev-version: 1.1.6
+
 _Changes since {prev-version}:_
 
 `1.2.0` is planned to be a binary-compatible but breaking update to the Mill build tool: while
@@ -130,7 +132,7 @@ _2026-09-25_
 
 This branch is a snapshot of the current development in the `main` branch except the behavioral breaking changes (remote caching and reproducible out).
 
-__Changes since Mill {prev-version}:__
+_Changes since {prev-version}:_
 
 * *Fine-grained task-level concurrency between launchers*: the Mill daemon now uses per-task
 read/write locking instead of a single global workspace lock, so multiple concurrent `mill`
