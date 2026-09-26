@@ -1,6 +1,7 @@
 package mill.api.daemon
 
 import scala.collection.Factory
+import scala.annotation.publicInBinary
 import com.lihaoyi.unroll
 
 /**
@@ -24,7 +25,11 @@ sealed trait Result[+T] {
   }
 }
 object Result {
-  implicit def create[T](value: T): Result[T] =
+  // If this breaks compat for Mill 1.x plugins, make this method public again
+  @deprecated("Use the overload accepting a by-name parameter", "Mill after 1.1.7")
+  @publicInBinary
+  private[daemon] def create[T](value: T): Result[T] = Success(value)
+  implicit def create[T](value: => T): Result[T] =
     try Success(value)
     catch {
       case e: Result.Exception => Result.Failure(e.error)
