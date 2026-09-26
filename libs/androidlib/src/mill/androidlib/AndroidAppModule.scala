@@ -627,6 +627,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
    * Creates the android virtual device identified in [[androidVirtualDevice]]
    */
   def createAndroidVirtualDevice(): Command[String] = Task.Command(exclusive = true) {
+    val emulatorExe = androidSdkModule().emulatorExe()
+    Task.log.info(s"Creating Android Virtual Device needs emulator. Found in ${emulatorExe}")
     val name = androidVirtualDevice().name
     val deviceId = androidVirtualDevice().deviceId
     val command = os.call(

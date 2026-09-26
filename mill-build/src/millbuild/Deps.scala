@@ -382,6 +382,7 @@ object Deps {
     // https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip
     // https://developer.android.com/studio?hl=de#command-tools
     val cmdlineToolsVersion = "19.0"
+    val buildToolsVersion = "36.0.0"
     // TODO: uiTooling is needed for screenshot tests
     // so we handle it diferrently.
     // Removed it from updaetable for now
