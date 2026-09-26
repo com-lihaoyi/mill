@@ -12,6 +12,8 @@ import mill.api.daemon.internal.{TestReporter, internal}
     resultPath: os.Path,
     colored: Boolean,
     testCp: Seq[os.Path],
+    // The raw, unresolved selectors the user typed (e.g. via `testOnly`)
+    rawSelectors: Seq[String],
     // globSelectors indicates the strategy for testrunner to find and run test classes
     // can be either:
     // - Left(selectors: Seq[String]): - list of glob selectors, testrunner is given a list of glob selectors to run directly

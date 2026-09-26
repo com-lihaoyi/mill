@@ -289,6 +289,7 @@ trait TestModule
         resultPath = resultPath,
         colored = Task.log.prompt.colored,
         testCp = testClasspath().map(_.path),
+        rawSelectors = selectors,
         globSelectors = Left(selectors),
         logLevel = testLogLevel(),
         discoveredTestClasses = aheadOfTimeDiscoveredTestClassesIfNeeded()

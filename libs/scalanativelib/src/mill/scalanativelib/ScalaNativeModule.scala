@@ -8,7 +8,7 @@ import mill.api.daemon.internal.bsp.ScalaBuildTarget
 import mill.javalib.api.JvmWorkerUtil
 import mill.api.daemon.internal.{ScalaNativeModuleApi, ScalaPlatform, internal}
 import mill.javalib.RunModule
-import mill.javalib.testrunner.{TestResult, TestRunner, TestRunnerUtils}
+import mill.javalib.testrunner.{ClassFilter, TestResult, TestRunner}
 import mill.scalalib.{Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
 import mill.scalanativelib.api.*
 import mill.scalanativelib.worker.{
@@ -509,7 +509,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
       args(),
       Task.testReporter,
       aheadOfTimeDiscoveredTestClassesIfNeeded(),
-      cls => TestRunnerUtils.globFilter(globSelectors())(cls.getName)
+      ClassFilter(globSelectors())
     )
     val res = TestModule.handleResults(doneMsg, results, Task.ctx(), testReportXml())
     // Hack to try and let the Scala Native subprocess finish streaming its stdout

@@ -12,7 +12,7 @@ import mill.util.Jvm
       args: Seq[String],
       testReporter: TestReporter,
       discoveredTestClasses: Option[Seq[(String, Int)]],
-      classFilter: Class[?] => Boolean = _ => true
+      classFilter: ClassFilter = ClassFilter(Nil)
   ): (String, Seq[TestResult]) = {
     Jvm.withClassLoader(
       classPath = entireClasspath.toVector,
