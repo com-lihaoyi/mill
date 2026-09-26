@@ -32,6 +32,7 @@ import coursier.core.{Classifier, Dependency, Module, Project, Repository, Artif
 import coursier.ivy.IvyRepository
 import coursier.maven.MavenRepository
 import coursier.util.{EitherT, Monad}
+import mill.api.Logger
 import utest.*
 
 object MetadataLoaderFactoryTests extends TestSuite {
@@ -39,8 +40,8 @@ object MetadataLoaderFactoryTests extends TestSuite {
   val tests = Tests {
     test("mavenRepository") {
       val mavenRepo = MavenRepository("https://repo1.maven.org/maven2")
-      assertMatch(MetadataLoaderFactory(mavenRepo)) {
-        case Some(MavenMetadataLoader(`mavenRepo`, false, _)) =>
+      assertMatch(MetadataLoaderFactory(mavenRepo, Logger.DummyLogger)) {
+        case Some(MavenMetadataLoader(`mavenRepo`, false, _, _)) =>
       }
     }
     test("ivyRepository") {
@@ -48,11 +49,11 @@ object MetadataLoaderFactoryTests extends TestSuite {
         "https://dl.bintray.com/sbt/sbt-plugin-releases/" + coursier.ivy.Pattern.default.string,
         dropInfoAttributes = true
       ).runtimeChecked
-      assertMatch(MetadataLoaderFactory(ivyRepo)) { case None => }
+      assertMatch(MetadataLoaderFactory(ivyRepo, Logger.DummyLogger)) { case None => }
     }
     test("otherRepository") {
       val otherRepo = new CustomRepository
-      assertMatch(MetadataLoaderFactory(otherRepo)) { case None => }
+      assertMatch(MetadataLoaderFactory(otherRepo, Logger.DummyLogger)) { case None => }
     }
   }
 

@@ -1,7 +1,7 @@
 package mill.util
 
 import com.lihaoyi.unroll
-import coursier.cache.{ArchiveCache, CachePolicy, FileCache}
+import coursier.cache.{ArchiveCache, Cache, CachePolicy, FileCache}
 import coursier.core.{BomDependency, ResolutionProcess, VariantSelector}
 import coursier.error.FetchError.DownloadingArtifacts
 import coursier.error.ResolutionError.CantDownloadModule
@@ -695,27 +695,44 @@ object Jvm {
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
       config: CoursierConfig
   ) =
-    // Use `.wrapped.toFile` instead of `.toIO`: in reproducible mode the path
-    // serializer relativizes `toIO` to `..\mill-home\...`, which on Windows
-    // breaks Plexus's zip-slip prefix check inside ArchiveCache → JDK extract.
-    FileCache[Task](os.Path(config.cacheLocation).wrapped.toFile)
-      .withCredentials(config.credentials)
-      .withTtl(config.ttl)
-      .withCachePolicies(config.cachePolicies)
-      .withRetry(8)
-      .withRetryBackoffInitialDelay(2.seconds)
-      // Apply Mill's default logger first, then the user customizer, so that
-      // overrides in coursierCacheCustomizer (e.g. a custom logger) take precedence.
-      .pipe { cache =>
+    Cache.default match {
+      case cache: FileCache[Task] =>
+        // Use `.wrapped.toFile` instead of `.toIO`: in reproducible mode the path
+        // serializer relativizes `toIO` to `..\mill-home\...`, which on Windows
+        // breaks Plexus's zip-slip prefix check inside ArchiveCache → JDK extract.
+        cache.withLocation(os.Path(config.cacheLocation).wrapped.toFile)
+          .withCredentials(config.credentials)
+          .withTtl(config.ttl)
+          .withCachePolicies(config.cachePolicies)
+          .withRetry(8)
+          .withRetryBackoffInitialDelay(2.seconds)
+          // Apply Mill's default logger first, then the user customizer, so that
+          // overrides in coursierCacheCustomizer (e.g. a custom logger) take precedence.
+          .pipe { cache =>
+            ctx.fold(cache)(c => cache.withLogger(CoursierTickerResolutionLogger(c)))
+          }
+          .pipe { cache =>
+            coursierCacheCustomizer.fold(cache)(c => c.apply(cache))
+          }
+          .pipe { cache =>
+            if (ctx.fold(false)(_.offline)) cache.withCachePolicies(Seq(CachePolicy.LocalOnly))
+            else cache
+          }
+      case cache =>
+        CoursierCacheSupport.warnNotFileCache(
+          cache,
+          Seq(
+            "cache location",
+            "credentials",
+            "TTL",
+            "cache policies",
+            "retries",
+            "offline mode"
+          ),
+          message => ctx.fold(System.err.println(message))(_.log.warn(message))
+        )
         ctx.fold(cache)(c => cache.withLogger(CoursierTickerResolutionLogger(c)))
-      }
-      .pipe { cache =>
-        coursierCacheCustomizer.fold(cache)(c => c.apply(cache))
-      }
-      .pipe { cache =>
-        if (ctx.fold(false)(_.offline)) cache.withCachePolicies(Seq(CachePolicy.LocalOnly))
-        else cache
-      }
+    }
 
   /**
    * Resolve dependencies using Coursier, and return very detailed info about their artifacts.
