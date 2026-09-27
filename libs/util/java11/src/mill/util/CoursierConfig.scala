@@ -19,7 +19,7 @@ final case class CoursierConfig(
     ttl: Option[Duration],
     cachePolicies: Seq[CachePolicy],
     @unroll
-    userAgent: Option[String]
+    userAgent: Option[String] = None
 )
 
 object CoursierConfig {
