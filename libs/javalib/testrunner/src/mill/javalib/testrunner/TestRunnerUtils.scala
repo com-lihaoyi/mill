@@ -131,26 +131,32 @@ import scala.math.Ordering.Implicits.*
   ): (Runner, Array[Array[Task]]) = {
 
     val runner = framework.runner(args.toArray, Array[String](), cl)
-    val testClasses = discoverTests(cl, framework, testClassfilePath, discoveredTestClasses)
+    try {
+      val testClasses = discoverTests(cl, framework, testClassfilePath, discoveredTestClasses)
 
-    val tasks = runner.tasks(
-      for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter(cls))
-        yield TaskDef(
-          cls.getName.stripSuffix("$"),
-          fingerprint,
-          false,
-          Array(new SuiteSelector)
-        )
-    )
+      val tasks = runner.tasks(
+        for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter(cls))
+          yield TaskDef(
+            cls.getName.stripSuffix("$"),
+            fingerprint,
+            false,
+            Array(new SuiteSelector)
+          )
+      )
 
-    def nameOpt(t: Task) = Option(t.taskDef()).map(_.fullyQualifiedName())
-    val groupedTasks = tasks
-      .groupBy(nameOpt)
-      .values
-      .toArray
-      .sortBy(_.headOption.map(nameOpt))
+      def nameOpt(t: Task) = Option(t.taskDef()).map(_.fullyQualifiedName())
+      val groupedTasks = tasks
+        .groupBy(nameOpt)
+        .values
+        .toArray
+        .sortBy(_.headOption.map(nameOpt))
 
-    (runner, groupedTasks)
+      (runner, groupedTasks)
+    } catch {
+      case e: Throwable =>
+        runner.done()
+        throw e
+    }
   }
 
   private def executeTasks(
@@ -405,9 +411,10 @@ import scala.math.Ordering.Implicits.*
       discoveredTestClasses: Option[Seq[(String, Int)]]
   ): Array[String] = {
     val framework = frameworkInstances(cl)
-    val ( /*runner*/ _, tasksArr) =
+    val (runner, tasksArr) =
       getTestTasks(framework, args, classFilter, cl, testClassfilePath, discoveredTestClasses)
-    tasksArr.flatten.map(_.taskDef()).filter(_ != null).map(_.fullyQualifiedName())
+    try tasksArr.flatten.map(_.taskDef()).filter(_ != null).map(_.fullyQualifiedName())
+    finally runner.done()
   }
 
   def matchesGlob(glob: String): String => Boolean =
