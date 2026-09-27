@@ -286,6 +286,7 @@ object `package` extends mill.Module {
     )
 
     def forkArgs: T[Seq[String]] = Seq(
+      s"-Dmill.integration.mill-version=${build.millVersion()}",
       s"-Dmill.integration.coursier-version=${Deps.coursier.dep.versionConstraint.asString}"
     )
     def forkEnv = Task {

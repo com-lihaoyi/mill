@@ -4,10 +4,20 @@ import scala.util.Try
 
 object GenIdeaUtils {
 
+  private lazy val millVersion = sys.props.getOrElse(
+    "mill.integration.mill-version",
+    sys.error("Java property mill.integration.mill-version not set")
+  )
+
   private lazy val coursierVersion = sys.props.getOrElse(
     "mill.integration.coursier-version",
     sys.error("Java property mill.integration.coursier-version not set")
   )
+
+  private lazy val millProjectRoot = sys.env.getOrElse(
+    "MILL_PROJECT_ROOT",
+    sys.error("Sysenv MILL_PROJECT_ROOT not set")
+  ).replace("\\", "/")
 
   /**
    * Compares the generated `.idea` folder against the expected `idea` golden folder.
@@ -51,6 +61,14 @@ object GenIdeaUtils {
 
   private def normalizeIdeaFileContent(content: String, workspacePath: os.Path): String = {
     normaliseLibraryPaths(content, workspacePath)
+      .replace(
+        millVersion,
+        "<version>"
+      )
+      .replace(
+        s"$millProjectRoot/out",
+        ".../out"
+      )
       // Normalize jansi jar name because it differs across Linux/OS-X/Windows
       .replace("jansi-2.4.1.jar", "jansi.jar")
       // Normalize coursier cache references which contain the user-specific home folder
