@@ -672,6 +672,7 @@ object Jvm {
         credentials = config.credentials,
         ttl = config.ttl,
         cachePolicies = config.cachePolicies,
+        userAgent = config.userAgent
       )
       // Apply Mill's default logger first, then the user customizer, so that
       // overrides in coursierCacheCustomizer (e.g. a custom logger) take precedence.
