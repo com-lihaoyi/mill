@@ -465,7 +465,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
           assertGoldenLiteral(
             semDbs.map { case (k, vs) => (k.toString, vs.map(_.toString)) },
             Map(
-              "scripts/folder2/FooTest.java" -> ArraySeq(),
+              "scripts/folder2/FooTest.java" -> ArraySeq("scripts/folder2/FooTest.java.semanticdb"),
               "mill-build" -> List(),
               "hello-kotlin" -> ArraySeq(),
               "hello-java" -> ArraySeq(),
@@ -482,9 +482,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
               "diag" -> ArraySeq("diag/src/DiagCheck.scala.semanticdb"),
               "delayed" -> List(),
               "lib" -> ArraySeq(),
-              "scripts/foldershared/Foo.java" -> ArraySeq(
-                "scripts/foldershared/Foo.java.semanticdb"
-              ),
+              "scripts/foldershared/Foo.java" -> ArraySeq("scripts/foldershared/Foo.java.semanticdb"),
               "errored/compilation-error" -> List(),
               "scripts/foldershared/script.scala" -> ArraySeq(),
               "sourcesNeedCompile" -> ArraySeq(),
