@@ -808,7 +808,7 @@ resource generation, APK building, DEX conversion, and APK signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-4-451727/mill-dist-2.0.0-M2-example-androidlib-kotlin-1-hello-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/androidlib/kotlin/1-hello-kotlin">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-5-4c8988/mill-dist-2.0.0-M2-example-androidlib-kotlin-1-hello-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/androidlib/kotlin/1-hello-kotlin">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: zulu:21
 
@@ -849,12 +849,12 @@ import coursier.maven.MavenRepository</code></pre>
    * Never use these defaults in a production environment as they are not secure.
    * This is just for testing purposes.
    */
-  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
+  def androidReleaseKeyName = Some("releaseKey.jks")
   def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
   override def androidVirtualDevice = super.androidVirtualDevice().withName("kotlin-test")
-  override def androidEmulatorPort: String = System.getenv.getOrDefault("EMULATOR_PORT", "5556")
+  override def androidEmulatorPort = System.getenv.getOrDefault("EMULATOR_PORT", "5556")
 
   override def androidIsDebug: T[Boolean] = Task { false }
 
@@ -1115,6 +1115,89 @@ The <code>it</code> task runs the android tests on the emulator created and star
 using the Mill build tool. It outlines the minimum setup required to compile Kotlin code,
 package it into an APK, and run the app on an Android device.</p>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_declarative_yaml_android_build"><a class="anchor" href="#_declarative_yaml_android_build"></a>Declarative (YAML) Android Build</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This example sets up the same basic Android project as the "Simple Android Hello World
+Application" example above, but configured declaratively via <code>build.mill.yaml</code>/<code>package.mill.yaml</code>
+files instead of a Scala <code>build.mill</code>. We utilize <code>AndroidAppKotlinModule</code> and <code>AndroidSdkModule</code> to streamline
+the process of building an Android application with minimal configuration.</p>
+</div>
+<div class="paragraph">
+<p>The Android SDK is configured as a nested <code>object androidSdkModule:</code> in the root
+<code>build.mill.yaml</code>. The app module then refers to it by path via the <code>androidSdkModule</code> key,
+the same way <code>moduleDeps</code> refers to other modules by path.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-5-4c8988/mill-dist-2.0.0-M2-example-androidlib-kotlin-1-hello-kotlin-declarative.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/androidlib/kotlin/1-hello-kotlin-declarative/build.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-jvm-version: zulu:21
+extends: Module
+
+object androidSdkModule:
+  extends: mill.androidlib.AndroidSdkModule
+  buildToolsVersion: 35.0.0</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">app/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-5-4c8988/mill-dist-2.0.0-M2-example-androidlib-kotlin-1-hello-kotlin-declarative.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/androidlib/kotlin/1-hello-kotlin-declarative/app/package.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: mill.androidlib.AndroidAppKotlinModule
+kotlinVersion: 2.0.20
+androidSdkModule: build.androidSdkModule
+androidMinSdk: 19
+androidCompileSdk: 35
+androidApplicationId: com.helloworld.app
+androidApplicationNamespace: com.helloworld.app</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">app/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-5-4c8988/mill-dist-2.0.0-M2-example-androidlib-kotlin-1-hello-kotlin-declarative.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/androidlib/kotlin/1-hello-kotlin-declarative/app/test/package.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.app.AndroidAppKotlinTests, TestModule.Junit4]
+junit4Version: 4.13.2</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">app/it/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-5-4c8988/mill-dist-2.0.0-M2-example-androidlib-kotlin-1-hello-kotlin-declarative.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/androidlib/kotlin/1-hello-kotlin-declarative/app/it/package.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: build.app.AndroidAppKotlinInstrumentedTests
+mvnDeps:
+- androidx.test.ext:junit:1.2.1
+- androidx.test:runner:1.6.2
+- androidx.test.espresso:espresso-core:3.5.1
+- junit:junit:4.13.2</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Unlike the Scala variant, this example builds a debug APK rather than a signed release
+build: the release-signing fields aren&#8217;t all <code>Task</code>-shaped, so they can&#8217;t be set from YAML.
+Everything else works the same as the Scala version.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.androidApk
+".../out/app/androidApk.dest/app.apk"
+
+&gt; ./mill app.it.androidTestApk
+
+&gt; ./mill -j 1 show app.test
+...Compiling 2 Kotlin sources...
+
+&gt; cat out/app/test/testForked.dest/worker-0/out.json
+["",[...{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.text_size_is_correct","selector":"com.helloworld.ExampleUnitTest.text_size_is_correct","duration":...,"status":"Success"}...]]
+
+&gt; cat out/app/test/testForked.dest/worker-0/out.json
+["",[...{"fullyQualifiedName":"com.helloworld.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct","selector":"com.helloworld.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct","duration":...,"status":"Success"}...]]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is the same "Hello World" application as above, but configured declaratively via
+<code>build.mill.yaml</code>/<code>package.mill.yaml</code> files instead of a Scala <code>build.mill</code>.</p>
 </div>
 </div>
 </div>

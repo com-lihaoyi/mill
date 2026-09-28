@@ -791,7 +791,7 @@ official <a href="https://github.com/android/compose-samples">compose samples</a
 <h2 id="_android_mill_setup_for_building_jetlagged_and_jetnews"><a class="anchor" href="#_android_mill_setup_for_building_jetlagged_and_jetnews"></a>Android Mill Setup for building JetLagged and JetNews</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-4-451727/mill-dist-2.0.0-M2-example-thirdparty-android-compose-samples.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/thirdparty/android-compose-samples">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-5-4c8988/mill-dist-2.0.0-M2-example-thirdparty-android-compose-samples.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/thirdparty/android-compose-samples">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: zulu:21
 
@@ -1039,9 +1039,9 @@ object Jetchat extends mill.api.Module {
 
     def kotlinVersion = Versions.kotlinVersion
 
-    override def androidApplicationNamespace: String = "com.example.compose.jetchat"
+    override def androidApplicationNamespace = "com.example.compose.jetchat"
 
-    override def androidApplicationId: String = "com.example.compose.jetchat"
+    override def androidApplicationId = "com.example.compose.jetchat"
 
     override def bomMvnDeps = Seq(
       mvn"androidx.compose:compose-bom:2025.08.00"
