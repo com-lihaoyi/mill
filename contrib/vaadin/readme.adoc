@@ -1,0 +1,89 @@
+= Vaadin
+
+Builds https://vaadin.com/flow[Vaadin Flow] web applications: the production
+frontend build (`npm install` and a Vite bundle), a self-contained production
+distribution, and Vaadin's development mode for `run`. It is the Mill counterpart
+of the `prepare-frontend` and `build-frontend` goals of Vaadin's Maven and Gradle
+plugins.
+
+Mix `mill.contrib.vaadin.VaadinModule` into the module hosting the Vaadin
+application:
+
+.`build.mill`
+[source,scala]
+----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-vaadin:$MILL_VERSION"]
+//| mill-jvm-version: 21
+package build
+
+import mill.*, javalib.*
+import mill.contrib.vaadin.VaadinModule
+
+object app extends JavaModule, VaadinModule {
+  def mainClass = Some("com.example.Application")
+
+  def bomMvnDeps = Seq(
+    mvn"org.springframework.boot:spring-boot-dependencies:4.1.1",
+    mvn"com.vaadin:vaadin-bom:25.3.0"
+  )
+  def mvnDeps = Seq(mvn"com.vaadin:vaadin-spring-boot-starter")
+
+  // development mode only: used by `run`, left out of the production build
+  def runMvnDeps = Seq(mvn"com.vaadin:vaadin-dev")
+}
+----
+
+[source,console]
+----
+> mill app.runBackground        # starts the app in Vaadin's development mode
+> mill app.vaadinBuildFrontend  # production frontend build into out/app/vaadinFrontendBuild.dest
+> mill app.vaadinPackage        # production distribution into out/app/vaadinPackage.dest/dist
+> out/app/vaadinPackage.dest/dist/run-prod.sh
+----
+
+A complete example is part of the
+xref:javalib/web-examples.adoc#_vaadin_flow_example[Java web examples].
+
+== Development and production
+
+Development-only dependencies such as `com.vaadin:vaadin-dev` (or Spring Boot
+devtools) belong in `runMvnDeps`. `run` and `runBackground` use them to start
+Vaadin's development mode; `VaadinModule` points Vaadin at the module directory
+and the build-tools folder, as Vaadin only recognizes Maven and Gradle projects
+by itself.
+
+The production frontend build and `vaadinPackage` use `vaadinProdRunClasspath`
+instead: the runtime dependencies of `mvnDeps`, including runtime-scoped
+transitive dependencies, but without `runMvnDeps`. The frontend bundle is
+therefore built for exactly the classpath that is shipped.
+
+`vaadinPackage` produces:
+
+* `dist/app.jar`: application classes and resources
+* `dist/lib/`: module dependency and third-party jars
+* `dist/vaadin-frontend/`: the production frontend bundle (`META-INF/VAADIN`)
+* `dist/run-prod.sh`: a launch script
+
+== Configuration
+
+`vaadinFrontendSources`:: Frontend sources (themes, styles, TypeScript views).
+Defaults to `src/main/frontend`, Vaadin's convention.
+`vaadinFrontendConfig`:: npm/Vite configuration files (`package.json`,
+`vite.config.ts`, ...). They are inputs of the frontend build, so that changing
+them rebuilds the bundle.
+`vaadinBuildToolsDir`:: Vaadin's build-tools folder (the Maven plugin's `target`),
+by default `vaadin-build-tools` in the module's `out/` folder. It is referenced
+from the generated `vite.generated.ts`, shared by development and production
+builds.
+`vaadinApplicationIdentifier`:: Identifier of the frontend bundle, `app-<artifactName>`
+by default.
+
+== Requirements
+
+* Vaadin 25 (Flow 25) or newer. The frontend build uses the `flow-plugin-base`
+  version matching the Flow version on the application's classpath, loaded in
+  an isolated worker classloader.
+* Mill running on JDK 21 or newer (`mill-jvm-version`), as required by Vaadin's
+  build tooling.
+* Node.js is downloaded by Vaadin into `~/.vaadin` if no suitable version is
+  installed.

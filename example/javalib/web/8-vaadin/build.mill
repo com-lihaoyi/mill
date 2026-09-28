@@ -1,0 +1,69 @@
+// This example builds a https://vaadin.com/flow[Vaadin Flow] web application
+// running on Spring Boot, using the `mill-contrib-vaadin` plugin. Mixing in
+// `mill.contrib.vaadin.VaadinModule` adds:
+//
+// * `vaadinBuildFrontend`: Vaadin's production frontend build, the equivalent of
+//   the `prepare-frontend` and `build-frontend` goals of the Maven plugin. It runs
+//   `npm install` and bundles the frontend with Vite into `META-INF/VAADIN`
+// * `vaadinPackage`: a self-contained production distribution with the
+//   application jar, its dependencies, the frontend bundle and a launch script
+// * Vaadin development mode for `./mill run`
+//
+// Development-only dependencies such as `com.vaadin:vaadin-dev` go into
+// `runMvnDeps`: `./mill run` uses them, while the production frontend build and
+// `vaadinPackage` leave them out.
+
+/** See Also: build.mill.yaml */
+
+/** See Also: src/com/example/Application.java */
+
+/** See Also: src/com/example/MainView.java */
+
+// The frontend build uses the Flow version of the application's classpath, here
+// managed by `vaadin-bom`. Vaadin's build tooling requires Java 21, hence the
+// `mill-jvm-version` above.
+
+/** Usage
+
+> ./mill show vaadinFlowVersion
+"25.3.0"
+
+> ./mill runBackground
+
+> for i in $(seq 1 300); do curl -sf localhost:${PORT:-8080} -o page.html && ! grep -q devServerIsNotLoaded page.html && break; sleep 1; done # mac/linux
+
+> curl http://localhost:${PORT:-8080} # mac/linux
+...window.Vaadin.developmentMode = true;...
+
+> ./mill clean runBackground
+
+> ./mill vaadinBuildFrontend
+...
+
+> ls out/vaadinFrontendBuild.dest/servlet-resources/META-INF/VAADIN/config
+...flow-build-info.json...
+
+> ./mill show vaadinPackage
+...out/vaadinPackage.dest/dist...
+
+> ls out/vaadinPackage.dest/dist
+app.jar
+lib
+run-prod.sh
+vaadin-frontend
+
+> ./out/vaadinPackage.dest/dist/run-prod.sh > prod.log 2>&1 & echo $! > prod.pid # mac/linux
+
+> curl http://localhost:${PORT:-8080} # mac/linux
+...<script type="module" crossorigin src="VAADIN/build/indexhtml-...
+
+> kill $(cat prod.pid) # mac/linux
+
+*/
+
+// The distribution runs the application in Vaadin's production mode:
+//
+// [source,console]
+// ----
+// > ./out/vaadinPackage.dest/dist/run-prod.sh
+// ----

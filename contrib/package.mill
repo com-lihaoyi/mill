@@ -195,6 +195,29 @@ object `package` extends mill.Module {
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.javalib)
   }
 
+  object vaadin extends ContribModule {
+    def moduleDeps = Seq(vaadin.api)
+    def compileModuleDeps = Seq(build.libs.javalib)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.javalib)
+    def localTestExtraModules = super.localTestExtraModules ++ Seq(worker)
+    def testArgs = Task {
+      super.testArgs() ++ Seq(s"-DMILL_VAADIN_VERSION=${Deps.vaadinFlowPluginBase.version}")
+    }
+
+    /** Interface shared between the plugin and the worker classloader. */
+    object api extends MillPublishJavaModule
+
+    /**
+     * Drives Vaadin's frontend build tooling. Compiled against `flow-plugin-base`;
+     * at runtime, `flow-plugin-base` is resolved in the Flow version of the user's
+     * application and loaded together with this worker in an isolated classloader.
+     */
+    object worker extends MillPublishScalaModule {
+      def compileModuleDeps = Seq(vaadin.api)
+      def compileMvnDeps = Seq(Deps.vaadinFlowPluginBase)
+    }
+  }
+
   // object bloop extends ContribModule with BuildInfo {
   //   def compileModuleDeps = Seq(build.libs.javalib, build.libs.scalajslib, build.libs.scalanativelib)
   //   def mvnDeps = Seq(Deps.bloopConfig.exclude("*" -> s"jsoniter-scala-core_2.13"))
