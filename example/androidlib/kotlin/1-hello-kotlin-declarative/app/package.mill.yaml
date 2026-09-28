@@ -1,0 +1,7 @@
+extends: mill.androidlib.AndroidAppKotlinModule
+kotlinVersion: 2.0.20
+androidSdkModule: build.androidSdkModule
+androidMinSdk: 19
+androidCompileSdk: 35
+androidApplicationId: com.helloworld.app
+androidApplicationNamespace: com.helloworld.app

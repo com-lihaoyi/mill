@@ -10,6 +10,7 @@ private[mill] case class HeaderData(
       Located(null, -1, Appendable(Nil)),
     bomModuleDeps: Located[Appendable[Seq[Located[String]]]] =
       Located(null, -1, Appendable(Nil)),
+    androidSdkModule: Located[Option[Located[String]]] = Located(null, -1, None),
     `mill-experimental-precompiled-module`: Located[Boolean] = Located(null, -1, false),
     @upickle.implicits.flatten rest: Map[Located[String], upickle.core.BufferedValue]
 )
