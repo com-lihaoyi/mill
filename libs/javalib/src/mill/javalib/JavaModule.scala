@@ -1,31 +1,15 @@
 package mill
 package javalib
 
-import coursier.{Repository, Type, core as cs}
+import coursier.{Repository, Type, VersionConstraint, core as cs}
 import coursier.core.{BomDependency, Configuration, DependencyManagement, Resolution}
 import coursier.params.ResolutionParams
 import coursier.parse.{JavaOrScalaModule, ModuleParser}
 import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
-import mill.api.{
-  BuildCtx,
-  DefaultTaskModule,
-  MillException,
-  ModuleRef,
-  PathRef,
-  Result,
-  Segment,
-  Task,
-  TaskCtx
-}
+import mill.api.{BuildCtx, DefaultTaskModule, MillException, ModuleRef, PathRef, Result, Segment, Task, TaskCtx}
 import mill.api.daemon.internal.{EvaluatorApi, JavaModuleApi, internal}
-import mill.api.daemon.internal.bsp.{
-  BspBuildTarget,
-  BspJavaModuleApi,
-  BspModuleApi,
-  BspUri,
-  JvmBuildTarget
-}
+import mill.api.daemon.internal.bsp.{BspBuildTarget, BspJavaModuleApi, BspModuleApi, BspUri, JvmBuildTarget}
 import mill.api.daemon.internal.eclipse.GenEclipseInternalApi
 import mill.javalib.*
 import mill.api.daemon.internal.idea.GenIdeaInternalApi
@@ -632,7 +616,7 @@ trait JavaModule
               coursier.core.ModuleName(modDep.moduleSegments.parts.mkString("-")),
               Map.empty
             ),
-            "0+mill-internal"
+            VersionConstraint("0+mill-internal")
           )
           (coursier.core.Configuration.`import`, dep)
         } ++
@@ -711,7 +695,7 @@ trait JavaModule
             // BOM dependencies
             // Maven has a special scope for those: "import"
             val dep =
-              cs.Dependency(bomDep.module, bomDep.version).withConfiguration(bomDep.config)
+              cs.Dependency(bomDep.module, bomDep.versionConstraint).withConfiguration(bomDep.config)
             (cs.Configuration.`import`, dep)
           }
 
@@ -784,10 +768,10 @@ trait JavaModule
     val project = coursierProject()
     // Mark optional direct dependencies as non-optional, so that these are included in the
     // class paths of this module
-    val project0 = project.withDependencies0(
-      project.dependencies0.map {
-        case (conf, dep) if dep.optional =>
-          (conf, dep.withOptional(false))
+    val project0 = project.copy(
+      dependencies0 = project.dependencies0.map {
+        case (conf, dep) if dep.optional0.getOrElse(false) =>
+          (conf, dep.copy(optional0 = Some(false)))
         case other =>
           other
       }
