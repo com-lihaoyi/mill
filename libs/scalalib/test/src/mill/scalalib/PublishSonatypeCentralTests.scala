@@ -31,6 +31,14 @@ object PublishSonatypeCentralTestModule extends TestRootModule {
     def publishVersion = "0.0.1"
   }
 
+  object other extends MyModule {
+    def publishVersion = "0.0.1"
+  }
+
+  object differentVersion extends MyModule {
+    def publishVersion = "0.0.2"
+  }
+
   object snapshot extends MyModule {
     def publishVersion = "0.0.1-SNAPSHOT"
   }
@@ -46,8 +54,20 @@ object PublishSonatypeCentralTests extends TestSuite {
   val ResourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "publish-sonatype-central"
 
   val tests: Tests = Tests {
+    test("bundleNameSanitization") {
+      assert(
+        SonatypeCentralPublishModule.sanitizeBundleNamePart("project name:with+characters") ==
+          "project-name-with-characters"
+      )
+    }
+
     test("normal") {
-      def dryRun(task: Task[Unit], dirName: os.SubPath): Unit = {
+      def dryRun(
+          task: Task[Unit],
+          dirName: os.SubPath,
+          bundleName: os.Path => String,
+          includesOtherModules: Boolean = false
+      ): Unit = {
         dryRunWithKey(
           task,
           dirName,
@@ -55,15 +75,20 @@ object PublishSonatypeCentralTests extends TestSuite {
           None,
           PublishSonatypeCentralTestModule,
           ResourcePath
-        ) { repoDir =>
-          val dir = releaseRepoDir(
-            repoDir,
-            group = "io.github.lihaoyi",
-            artifactId = "normal",
-            version = "0.0.1"
-          )
-          val baseDir = dir / releaseGroupPath("io.github.lihaoyi") / "normal" / "0.0.1"
-          val expectedFiles = releaseExpectedFiles(baseDir, "normal-0.0.1")
+        ) { (repoDir, workspacePath) =>
+          val dir = repoDir / bundleName(workspacePath)
+          def artifactDir(artifactId: String, version: String) =
+            dir / releaseGroupPath("io.github.lihaoyi") / artifactId / version
+
+          // A single bundle holds every module published by the same invocation
+          val bundledArtifacts = Seq("normal" -> "0.0.1") ++
+            Option.when(includesOtherModules)(
+              Seq("other" -> "0.0.1", "differentVersion" -> "0.0.2")
+            ).toSeq.flatten
+
+          val expectedFiles = bundledArtifacts.flatMap { (artifactId, version) =>
+            releaseExpectedFiles(artifactDir(artifactId, version), s"$artifactId-$version")
+          }
           val actualFiles = os.walk(dir).filter(os.isFile(_)).toVector
           val missingFiles = expectedFiles.filterNot(actualFiles.contains)
           assert(missingFiles.isEmpty)
@@ -72,7 +97,7 @@ object PublishSonatypeCentralTests extends TestSuite {
           assert(unexpectedFiles.isEmpty)
 
           SonatypeCentralTestUtils.verifySignedArtifacts(
-            baseDir,
+            artifactDir("normal", "0.0.1"),
             artifactId = "normal",
             version = "0.0.1",
             PublishSonatypeCentralTestModule.TestPgpSecretBase64
@@ -81,13 +106,22 @@ object PublishSonatypeCentralTests extends TestSuite {
       }
       test("module") - dryRun(
         PublishSonatypeCentralTestModule.normal.publishSonatypeCentral(),
-        "normal/publishSonatypeCentral.dest"
+        "normal/publishSonatypeCentral.dest",
+        _ => "io.github.lihaoyi-normal-0.0.1"
       )
       test("externalModule") - dryRun(
         SonatypeCentralPublishModule.publishAll(
-          publishArtifacts = Tasks(Seq(PublishSonatypeCentralTestModule.normal.publishArtifacts))
+          publishArtifacts = Tasks(
+            Seq(
+              PublishSonatypeCentralTestModule.normal.publishArtifacts,
+              PublishSonatypeCentralTestModule.other.publishArtifacts,
+              PublishSonatypeCentralTestModule.differentVersion.publishArtifacts
+            )
+          )
         ),
-        "mill.javalib.SonatypeCentralPublishModule/publishAll.dest"
+        "mill.javalib.SonatypeCentralPublishModule/publishAll.dest",
+        workspacePath => s"${workspacePath.last}-0.0.1",
+        includesOtherModules = true
       )
     }
     test("snapshot") {
@@ -99,7 +133,7 @@ object PublishSonatypeCentralTests extends TestSuite {
           None,
           PublishSonatypeCentralTestModule,
           ResourcePath
-        ) { repoDir =>
+        ) { (repoDir, _) =>
           SonatypeCentralTestUtils.assertSnapshotRepository(
             repoDir,
             group = "io.github.lihaoyi",
@@ -132,7 +166,7 @@ object PublishSonatypeCentralTests extends TestSuite {
         None,
         PublishSonatypeCentralTestModule,
         ResourcePath
-      ) { repoDir =>
+      ) { (repoDir, _) =>
         val timestamps = Seq("snapshot", "snapshot2").map { artifactId =>
           SonatypeCentralTestUtils.assertSnapshotRepository(
             repoDir,
@@ -153,7 +187,7 @@ object PublishSonatypeCentralTests extends TestSuite {
       passphrase: Option[String],
       module: TestRootModule,
       resourcePath: os.Path
-  )(validateRepo: os.Path => Unit): Unit = {
+  )(validateRepo: (os.Path, os.Path) => Unit): Unit = {
     val env = baseDryRunEnv(secretBase64, passphrase)
     UnitTester(
       module,
@@ -163,7 +197,7 @@ object PublishSonatypeCentralTests extends TestSuite {
       val Right(_) = eval.apply(task).runtimeChecked
       val workspacePath = module.moduleDir
       val repoDir = workspacePath / "out" / dirName / "repository"
-      validateRepo(repoDir)
+      validateRepo(repoDir, workspacePath)
     }
   }
 
@@ -177,14 +211,6 @@ object PublishSonatypeCentralTests extends TestSuite {
       "MILL_TESTS_PUBLISH_DRY_RUN" -> "1"
     ) ++ secretBase64.map(EnvVars.MILL_PGP_SECRET_BASE64 -> _) ++
       passphrase.map(EnvVars.MILL_PGP_PASSPHRASE -> _)
-
-  private def releaseRepoDir(
-      repoDir: os.Path,
-      group: String,
-      artifactId: String,
-      version: String
-  ): os.Path =
-    repoDir / s"$group.$artifactId-$version"
 
   private def releaseGroupPath(group: String): os.SubPath =
     os.SubPath(group.split('.').toIndexedSeq)
