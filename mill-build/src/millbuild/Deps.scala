@@ -316,7 +316,7 @@ object Deps {
     val proguard_runtime = mvn"com.guardsquare:proguard-base:7.9.1"
     val revApi_runtime = mvn"org.revapi:revapi-standalone:0.12.1"
     val sbtTestInterface = mvn"com.github.sbt:junit-interface:0.13.2"
-    val slf4jSimple_runtime = mvn"org.slf4j:slf4j-simple:2.0.17"
+    val slf4jSimple_runtime = mvn"org.slf4j:slf4j-simple:2.0.20"
 
     def updateable = Seq(
       detektCli_runtime,
