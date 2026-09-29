@@ -55,10 +55,22 @@ projects by itself.
 
 The production frontend build and `vaadinPackage` use `vaadinProdRunClasspath`
 instead: the runtime dependencies of `mvnDeps`, including runtime-scoped
-transitive dependencies, but without `runMvnDeps`. So the dev tooling is not
-shipped, and as the frontend build scans this classpath, its frontend resources
-do not end up in the production bundle either. The bundle is built for exactly
-the classpath that is shipped.
+transitive dependencies, plus `vaadinProdRunMvnDeps`, the production
+counterpart of `runMvnDeps`. So the dev tooling is not shipped, and as the
+frontend build scans this classpath, its frontend resources do not end up in
+the production bundle either. The bundle is built for exactly the classpath
+that is shipped.
+
+Runtime-only dependencies of the production application, such as a JDBC
+driver or a logging backend, go into `vaadinProdRunMvnDeps`. A runtime
+dependency needed in both modes goes into both lists:
+
+[source,scala]
+----
+def vaadinProdRunMvnDeps = Seq(mvn"org.postgresql:postgresql:42.7.7")
+def runMvnDeps = super.runMvnDeps() ++ vaadinProdRunMvnDeps() ++
+  Seq(mvn"com.vaadin:vaadin-dev")
+----
 
 `vaadinPackage` produces:
 
@@ -77,6 +89,8 @@ the production build and development mode.
 `vaadinFrontendConfig`:: npm/Vite configuration files (`package.json`,
 `vite.config.ts`, ...). They are inputs of the frontend build, so that changing
 them rebuilds the bundle.
+`vaadinProdRunMvnDeps`:: Runtime-only dependencies of the production build and
+distribution, empty by default; see above.
 `vaadinDevBuildToolsDir`:: Vaadin's build folder (Maven: `target`) for
 development mode, holding the dev bundle and the dev server's files. It is a
 persistent task folder of the module; the production build uses a build folder

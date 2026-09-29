@@ -19,6 +19,7 @@ object VaadinModuleTests extends TestSuite {
         mvn"org.junit.jupiter:junit-jupiter:5.13.4"
       )
       def runMvnDeps = Seq(mvn"com.vaadin:vaadin-dev")
+      def vaadinProdRunMvnDeps = Seq(mvn"org.slf4j:slf4j-nop:2.0.17")
     }
 
     object mavenApp extends MavenModule with VaadinModule
@@ -62,8 +63,13 @@ object VaadinModuleTests extends TestSuite {
       assert(!jarNames(compile.value).exists(_.startsWith("junit-jupiter-engine-")))
       assert(prodJars.exists(_.startsWith("junit-jupiter-engine-")))
 
-      // everything shipped is also on the regular runtime classpath
-      assert(prodJars.toSet.subsetOf(jarNames(run.value).toSet))
+      // production-only runtime dependencies are shipped, but not used by `run`
+      val prodOnly = prodJars.filter(_.startsWith("slf4j-nop-"))
+      assert(prodOnly.nonEmpty)
+      assert(!jarNames(run.value).exists(_.startsWith("slf4j-nop-")))
+
+      // everything else shipped is also on the regular runtime classpath
+      assert(prodJars.diff(prodOnly).toSet.subsetOf(jarNames(run.value).toSet))
     }
 
     test("isolatedWorker") - UnitTester(build, null).scoped { eval =>

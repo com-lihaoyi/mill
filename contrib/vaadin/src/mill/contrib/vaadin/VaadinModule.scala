@@ -20,9 +20,9 @@ import mill.util.{Jvm, Version}
  *   - dev mode support for `run`/`runBackground`, pointing Vaadin at the
  *     project folder.
  *
- * Put dev-only dependencies (`com.vaadin:vaadin-dev`, Spring Boot devtools, ...)
- * into `runMvnDeps`: they are used by `run`, but kept out of the production
- * bundle and distribution (see [[vaadinProdMvnClasspath]]).
+ * Runtime-only dependencies are declared per mode: `runMvnDeps` for `run`
+ * (e.g. `com.vaadin:vaadin-dev`, Spring Boot devtools) and
+ * [[vaadinProdRunMvnDeps]] for the production bundle and distribution.
  *
  * The frontend build runs Vaadin's `flow-plugin-base` in an isolated worker
  * classloader, in the Flow version found on the application's classpath. Flow
@@ -73,21 +73,28 @@ trait VaadinModule extends JavaModule {
   }
 
   /**
-   * Third-party jars of the production application: the runtime closure of
-   * `mvnDeps` of this module and its module dependencies, the same as in
-   * `resolvedRunMvnDeps` but without `runMvnDeps`.
+   * Runtime-only dependencies of the production application, the production
+   * counterpart of `runMvnDeps` (e.g. a JDBC driver or a logging backend).
    *
-   * `runMvnDeps` holds what only `run` needs, such as `com.vaadin:vaadin-dev`
-   * (the Vite dev server integration, dev tools and Copilot) or Spring Boot
-   * devtools. Leaving them out keeps the shipped application free of dev
-   * tooling, and keeps their frontend resources out of the production bundle,
-   * as the frontend build scans this classpath. Runtime-scoped transitive
-   * dependencies of `mvnDeps` (e.g. a JDBC driver) are included, unlike in
-   * `compileClasspath`.
+   * `runMvnDeps` is only used by `run`, and typically holds development tooling
+   * such as `com.vaadin:vaadin-dev` (the Vite dev server integration, dev tools
+   * and Copilot) that must neither be shipped nor scanned into the production
+   * bundle. A runtime dependency needed in both modes goes into both, e.g.
+   * `def runMvnDeps = super.runMvnDeps() ++ vaadinProdRunMvnDeps() ++ Seq(...)`.
+   */
+  def vaadinProdRunMvnDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
+
+  /**
+   * Third-party jars of the production application: the runtime closure of
+   * `mvnDeps` of this module and its module dependencies, plus
+   * [[vaadinProdRunMvnDeps]]. It is resolved like `resolvedRunMvnDeps`, but
+   * with [[vaadinProdRunMvnDeps]] in place of `runMvnDeps`. Runtime-scoped
+   * transitive dependencies are included, unlike in `compileClasspath`.
    */
   @annotation.nowarn("cat=deprecation")
   def vaadinProdMvnClasspath: T[Seq[PathRef]] = Task {
-    val deps = Task.traverse(transitiveModuleDeps)(_.allMvnDeps)().flatten.distinct
+    val deps = (Task.traverse(transitiveModuleDeps)(_.allMvnDeps)().flatten ++
+      vaadinProdRunMvnDeps()).distinct
     millResolver().classpath(
       deps.map(bindDependency()).map { bound =>
         if (bound.dep.isVariantAttributesBased) bound
