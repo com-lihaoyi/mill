@@ -1,0 +1,80 @@
+// This example builds a https://vaadin.com/flow[Vaadin Flow] web application
+// running on Spring Boot, using the `mill-contrib-vaadin` plugin:
+//
+// * The module mixes in `mill.contrib.vaadin.VaadinModule`: `./mill run` starts
+//   the application in Vaadin's development mode
+// * The `prod` sub-module extends `VaadinProdModule`: it is the production build
+//   of the same application. `prod.vaadinBuildFrontend` runs Vaadin's production
+//   frontend build, the equivalent of the `prepare-frontend` and `build-frontend`
+//   goals of the Maven plugin: `npm install` and a Vite bundle in `META-INF/VAADIN`.
+//   `prod.run` runs the application with this bundle, and as `prod` also mixes in
+//   `RepackageModule`, `prod.repackagedJar` packages it as an executable jar
+//
+// Development-only dependencies such as `com.vaadin:vaadin-dev` go into the
+// `runMvnDeps` of the Vaadin module: `./mill run` uses them, while `prod` leaves
+// them out. Runtime dependencies of the production build go into `prod`'s own
+// `runMvnDeps`.
+
+/** See Also: build.mill.yaml */
+
+/** See Also: src/com/example/Application.java */
+
+/** See Also: src/com/example/MainView.java */
+
+// The frontend build uses the Flow version of the application's classpath, here
+// managed by `vaadin-bom`. Vaadin's build tooling requires Java 21, hence the
+// `mill-jvm-version` above.
+//
+// Frontend sources such as themes, stylesheets or TypeScript views go into
+// `frontend/`, next to `src/` and `resources/`; Vaadin also generates files into
+// `frontend/generated/`. A `MavenModule` uses Vaadin's default `src/main/frontend`
+// instead, and `vaadinFrontendDir` can point anywhere else.
+
+/** Usage
+
+> ./mill show vaadinFlowVersion
+"25.3.0"
+
+> ./mill runBackground
+
+> for i in $(seq 1 300); do curl -sf localhost:${PORT:-8080} -o page.html && ! grep -q devServerIsNotLoaded page.html && break; sleep 1; done # mac/linux
+
+> curl http://localhost:${PORT:-8080} # mac/linux
+...window.Vaadin.developmentMode = true;...
+
+> ls frontend/generated # mac/linux
+...jar-resources...
+
+> ./mill clean runBackground
+
+> ./mill prod.vaadinBuildFrontend
+...
+
+> ls out/prod/vaadinFrontendBuild.dest/servlet-resources/META-INF/VAADIN/config
+...flow-build-info.json...
+
+> ./mill prod.runBackground
+
+> curl http://localhost:${PORT:-8080} # mac/linux
+...<script type="module" crossorigin src="VAADIN/build/indexhtml-...
+
+> ./mill clean prod.runBackground
+
+> ./mill show prod.repackagedJar
+...out/prod/repackagedJar.dest/out.jar...
+
+> java -jar out/prod/repackagedJar.dest/out.jar > prod.log 2>&1 & echo $! > prod.pid # mac/linux
+
+> curl http://localhost:${PORT:-8080} # mac/linux
+...<script type="module" crossorigin src="VAADIN/build/indexhtml-...
+
+> kill $(cat prod.pid) # mac/linux
+
+*/
+
+// The executable jar runs the application in Vaadin's production mode:
+//
+// [source,console]
+// ----
+// > java -jar out/prod/repackagedJar.dest/out.jar
+// ----
