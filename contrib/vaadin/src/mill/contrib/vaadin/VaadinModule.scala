@@ -91,7 +91,6 @@ trait VaadinModule extends JavaModule {
    * with [[vaadinProdRunMvnDeps]] in place of `runMvnDeps`. Runtime-scoped
    * transitive dependencies are included, unlike in `compileClasspath`.
    */
-  @annotation.nowarn("cat=deprecation")
   def vaadinProdMvnClasspath: T[Seq[PathRef]] = Task {
     val deps = (Task.traverse(transitiveModuleDeps)(_.allMvnDeps)().flatten ++
       vaadinProdRunMvnDeps()).distinct
