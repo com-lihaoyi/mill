@@ -16,3 +16,7 @@ mvnDeps:
 # Development mode only: used by `./mill run`, left out of the production build
 runMvnDeps:
 - com.vaadin:vaadin-dev
+
+# Production build, packaged as an executable Spring Boot jar
+object prod:
+  extends: [VaadinProdModule, mill.javalib.repackage.RepackageModule]

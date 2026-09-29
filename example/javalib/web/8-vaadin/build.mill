@@ -1,17 +1,19 @@
 // This example builds a https://vaadin.com/flow[Vaadin Flow] web application
-// running on Spring Boot, using the `mill-contrib-vaadin` plugin. Mixing in
-// `mill.contrib.vaadin.VaadinModule` adds:
+// running on Spring Boot, using the `mill-contrib-vaadin` plugin:
 //
-// * `vaadinBuildFrontend`: Vaadin's production frontend build, the equivalent of
-//   the `prepare-frontend` and `build-frontend` goals of the Maven plugin. It runs
-//   `npm install` and bundles the frontend with Vite into `META-INF/VAADIN`
-// * `vaadinPackage`: a self-contained production distribution with the
-//   application jar, its dependencies, the frontend bundle and a launch script
-// * Vaadin development mode for `./mill run`
+// * The module mixes in `mill.contrib.vaadin.VaadinModule`: `./mill run` starts
+//   the application in Vaadin's development mode
+// * The `prod` sub-module extends `VaadinProdModule`: it is the production build
+//   of the same application. `prod.vaadinBuildFrontend` runs Vaadin's production
+//   frontend build, the equivalent of the `prepare-frontend` and `build-frontend`
+//   goals of the Maven plugin: `npm install` and a Vite bundle in `META-INF/VAADIN`.
+//   `prod.run` runs the application with this bundle, and as `prod` also mixes in
+//   `RepackageModule`, `prod.repackagedJar` packages it as an executable jar
 //
-// Development-only dependencies such as `com.vaadin:vaadin-dev` go into
-// `runMvnDeps`: `./mill run` uses them, while the production frontend build and
-// `vaadinPackage` leave them out.
+// Development-only dependencies such as `com.vaadin:vaadin-dev` go into the
+// `runMvnDeps` of the Vaadin module: `./mill run` uses them, while `prod` leaves
+// them out. Runtime dependencies of the production build go into `prod`'s own
+// `runMvnDeps`.
 
 /** See Also: build.mill.yaml */
 
@@ -45,22 +47,23 @@
 
 > ./mill clean runBackground
 
-> ./mill vaadinBuildFrontend
+> ./mill prod.vaadinBuildFrontend
 ...
 
-> ls out/vaadinFrontendBuild.dest/servlet-resources/META-INF/VAADIN/config
+> ls out/prod/vaadinFrontendBuild.dest/servlet-resources/META-INF/VAADIN/config
 ...flow-build-info.json...
 
-> ./mill show vaadinPackage
-...out/vaadinPackage.dest/dist...
+> ./mill prod.runBackground
 
-> ls out/vaadinPackage.dest/dist
-app.jar
-lib
-run-prod.sh
-vaadin-frontend
+> curl http://localhost:${PORT:-8080} # mac/linux
+...<script type="module" crossorigin src="VAADIN/build/indexhtml-...
 
-> ./out/vaadinPackage.dest/dist/run-prod.sh > prod.log 2>&1 & echo $! > prod.pid # mac/linux
+> ./mill clean prod.runBackground
+
+> ./mill show prod.repackagedJar
+...out/prod/repackagedJar.dest/out.jar...
+
+> java -jar out/prod/repackagedJar.dest/out.jar > prod.log 2>&1 & echo $! > prod.pid # mac/linux
 
 > curl http://localhost:${PORT:-8080} # mac/linux
 ...<script type="module" crossorigin src="VAADIN/build/indexhtml-...
@@ -69,9 +72,9 @@ vaadin-frontend
 
 */
 
-// The distribution runs the application in Vaadin's production mode:
+// The executable jar runs the application in Vaadin's production mode:
 //
 // [source,console]
 // ----
-// > ./out/vaadinPackage.dest/dist/run-prod.sh
+// > java -jar out/prod/repackagedJar.dest/out.jar
 // ----

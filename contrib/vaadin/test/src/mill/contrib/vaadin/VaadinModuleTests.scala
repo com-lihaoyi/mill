@@ -20,7 +20,10 @@ object VaadinModuleTests extends TestSuite {
         mvn"org.junit.jupiter:junit-jupiter:5.13.4"
       )
       def runMvnDeps = Seq(mvn"com.vaadin:vaadin-dev")
-      def vaadinProdRunMvnDeps = Seq(mvn"org.slf4j:slf4j-nop:2.0.17")
+
+      object prod extends VaadinProdModule {
+        def runMvnDeps = Seq(mvn"org.slf4j:slf4j-nop:2.0.17")
+      }
     }
 
     object mavenApp extends MavenModule with VaadinModule
@@ -51,12 +54,15 @@ object VaadinModuleTests extends TestSuite {
     }
 
     test("prodClasspath") - UnitTester(build, null).scoped { eval =>
-      val Right(prod) = eval(build.app.vaadinProdMvnClasspath).runtimeChecked
+      val Right(prod) = eval(build.app.prod.resolvedRunMvnDeps).runtimeChecked
       val Right(compile) = eval(build.app.compileClasspath).runtimeChecked
       val Right(run) = eval(build.app.runClasspath).runtimeChecked
       val prodJars = jarNames(prod.value)
 
-      // dev-only tooling from runMvnDeps stays out
+      // the application's classes come from `app` itself, not as a module dependency
+      assert(build.app.prod.moduleDeps.isEmpty)
+
+      // dev-only tooling from the application's runMvnDeps stays out
       assert(jarNames(run.value).exists(_.startsWith("vaadin-dev-server-")))
       assert(!prodJars.exists(_.startsWith("vaadin-dev-")))
 
@@ -64,12 +70,12 @@ object VaadinModuleTests extends TestSuite {
       assert(!jarNames(compile.value).exists(_.startsWith("junit-jupiter-engine-")))
       assert(prodJars.exists(_.startsWith("junit-jupiter-engine-")))
 
-      // production-only runtime dependencies are shipped, but not used by `run`
+      // the production module's own runMvnDeps are shipped, but not used by `app.run`
       val prodOnly = prodJars.filter(_.startsWith("slf4j-nop-"))
       assert(prodOnly.nonEmpty)
       assert(!jarNames(run.value).exists(_.startsWith("slf4j-nop-")))
 
-      // everything else shipped is also on the regular runtime classpath
+      // everything else shipped is also on the development runtime classpath
       assert(prodJars.diff(prodOnly).toSet.subsetOf(jarNames(run.value).toSet))
     }
 
