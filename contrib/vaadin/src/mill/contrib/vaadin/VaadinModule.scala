@@ -3,7 +3,7 @@ package mill.contrib.vaadin
 import coursier.core as cs
 import mill.*
 import mill.api.PathRef
-import mill.contrib.vaadin.api.{FrontendBuildConfig, Logger as WorkerLogger, VaadinWorkerApi}
+import mill.contrib.vaadin.api.{FrontendBuildConfig, VaadinLogger, VaadinWorker}
 import mill.javalib.*
 import mill.util.{Jvm, Version}
 
@@ -168,17 +168,17 @@ trait VaadinModule extends JavaModule {
     Jvm.createClassLoader(
       classPath = vaadinWorkerClasspath().map(_.path),
       parent = null,
-      sharedLoader = classOf[VaadinWorkerApi].getClassLoader,
+      sharedLoader = classOf[VaadinWorker].getClassLoader,
       sharedPrefixes = Seq("mill.contrib.vaadin.api.", "scala.")
     )
   }
 
-  def vaadinWorker: Task.Worker[VaadinWorkerApi] = Task.Worker {
+  def vaadinWorker: Task.Worker[VaadinWorker] = Task.Worker {
     vaadinWorkerClassLoader()
       .loadClass("mill.contrib.vaadin.worker.VaadinWorkerImpl")
       .getConstructor()
       .newInstance()
-      .asInstanceOf[VaadinWorkerApi]
+      .asInstanceOf[VaadinWorker]
   }
 
   /**
@@ -297,7 +297,7 @@ object VaadinModule {
       .fold(abs)(existing => existing.toRealPath().resolve(existing.relativize(abs)))
   }
 
-  private def logger(log: mill.api.Logger): WorkerLogger = new WorkerLogger {
+  private def logger(log: mill.api.Logger): VaadinLogger = new VaadinLogger {
     def error(msg: String): Unit = log.error(msg)
     def warn(msg: String): Unit = log.warn(msg)
     def info(msg: String): Unit = log.info(msg)

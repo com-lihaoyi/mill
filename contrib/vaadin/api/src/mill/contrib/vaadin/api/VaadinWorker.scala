@@ -6,8 +6,8 @@ package mill.contrib.vaadin.api
  * together with Vaadin's build tooling; only this package and the Scala library
  * are shared with the build's classloader.
  */
-trait VaadinWorkerApi extends AutoCloseable {
-  def buildFrontend(config: FrontendBuildConfig, log: Logger): Unit
+trait VaadinWorker extends AutoCloseable {
+  def buildFrontend(config: FrontendBuildConfig, log: VaadinLogger): Unit
 
-  override def close(): Unit = ()
+  override def close(): Unit = {}
 }

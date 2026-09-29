@@ -12,7 +12,7 @@ import com.vaadin.flow.server.frontend.{
 }
 import com.vaadin.flow.server.frontend.scanner.{ClassFinder, FrontendDependenciesScanner}
 import com.vaadin.pro.licensechecker.{LicenseChecker, MissingLicenseKeyException}
-import mill.contrib.vaadin.api.{FrontendBuildConfig, Logger}
+import mill.contrib.vaadin.api.{FrontendBuildConfig, VaadinLogger}
 
 import java.io.{File, PrintWriter, StringWriter}
 import java.net.URI
@@ -30,7 +30,7 @@ import scala.jdk.CollectionConverters.*
  * file: `META-INF/VAADIN/config/flow-build-info.json`, bundle:
  * `META-INF/VAADIN/webapp`).
  */
-class VaadinBuildAdapter(config: FrontendBuildConfig, log: Logger)
+class VaadinBuildAdapter(config: FrontendBuildConfig, log: VaadinLogger)
     extends PluginAdapterBuild {
 
   private val servletResourceOutDir =
