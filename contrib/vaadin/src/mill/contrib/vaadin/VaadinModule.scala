@@ -1,7 +1,10 @@
 package mill.contrib.vaadin
 
+import coursier.Repository
+import coursier.core.Resolution
+import coursier.params.ResolutionParams
 import mill.*
-import mill.api.PathRef
+import mill.api.{ModuleRef, PathRef}
 import mill.contrib.vaadin.api.{FrontendBuildConfig, VaadinLogger, VaadinWorker}
 import mill.javalib.*
 import mill.util.{Jvm, Version}
@@ -147,29 +150,29 @@ trait VaadinModule extends JavaModule { outer =>
   trait VaadinProdModule extends JavaModule {
     override def moduleDeps: Seq[JavaModule] = outer.moduleDeps
     override def runModuleDeps: Seq[JavaModule] = outer.runModuleDeps
-    override def mvnDeps: T[Seq[Dep]] = Task { outer.mvnDeps() }
+    override def mvnDeps: T[Seq[Dep]] = outer.mvnDeps()
     override def mandatoryMvnDeps: T[Seq[Dep]] = Task { outer.mandatoryMvnDeps() }
-    override def bomMvnDeps = Task { super.bomMvnDeps() ++ outer.bomMvnDeps() }
-    override def depManagement = Task { super.depManagement() ++ outer.depManagement() }
-    override def repositoriesTask = Task.Anon { outer.repositoriesTask() }
-    override def resolutionCustomizer = outer.resolutionCustomizer
-    override def resolutionParams = outer.resolutionParams
-    override def jvmWorker = outer.jvmWorker
-    override def jvmId = outer.jvmId
-    override def jvmVersion = outer.jvmVersion
-    override def jvmIndexVersion = outer.jvmIndexVersion
-    override def javaHome = outer.javaHome
-    override def mainClass = Task { outer.mainClass() }
+    override def bomMvnDeps: T[Seq[Dep]] = super.bomMvnDeps() ++ outer.bomMvnDeps()
+    override def depManagement: T[Seq[Dep]] = super.depManagement() ++ outer.depManagement()
+    override def repositoriesTask: Task[Seq[Repository]] = Task.Anon { outer.repositoriesTask() }
+    override def resolutionCustomizer: Task[Option[Resolution => Resolution]] =
+      outer.resolutionCustomizer
+    override def resolutionParams: Task[ResolutionParams] = outer.resolutionParams
+    override def jvmWorker: ModuleRef[JvmWorkerModule] = outer.jvmWorker
+    override def jvmId: T[String] = outer.jvmId()
+    override def jvmVersion: T[String] = outer.jvmVersion()
+    override def jvmIndexVersion: T[String] = outer.jvmIndexVersion()
+    override def javaHome: T[Option[PathRef]] = outer.javaHome()
+    override def mainClass: T[Option[String]] = outer.mainClass()
 
     /** No sources of its own: the application is compiled by the Vaadin module. */
-    override def sources = Task.Sources()
+    override def sources: T[Seq[PathRef]] = Task.Sources()
 
     /** Production-only resources (`resources/` of this sub-module) and the frontend bundle. */
-    override def resources = Task { super.resources() ++ Seq(vaadinFrontendBuild()) }
+    override def resources: T[Seq[PathRef]] = super.resources() ++ Seq(vaadinFrontendBuild())
 
-    override def localRunClasspath = Task {
+    override def localRunClasspath: T[Seq[PathRef]] =
       outer.localClasspath() ++ super.localRunClasspath()
-    }
 
     override def skipIdea = true
     override def enableBsp = false
