@@ -13,7 +13,7 @@ object HelloGroovyTests extends TestSuite {
 
   val groovy4Version = "4.0.28"
   val groovy5Version = "5.0.3"
-  val groovy6Version = "6.0.0-alpha-1"
+  val groovy6Version = "6.0.0"
   // (groovyVersion, spockSupported) - Spock does not yet support Groovy 6
   val groovyVersions = Seq(
     (groovy4Version, true),
