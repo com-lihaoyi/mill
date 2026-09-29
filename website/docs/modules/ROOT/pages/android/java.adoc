@@ -75,3 +75,7 @@ include::partial$example/androidlib/java/5-R8.adoc[]
 == Using Third-Party Native Libraries
 
 include::partial$example/androidlib/java/6-native-libs.adoc[]
+
+== Customising Android Sdk setup
+
+include::partial$example/androidlib/java/7-customise-android-sdk.adoc[]
