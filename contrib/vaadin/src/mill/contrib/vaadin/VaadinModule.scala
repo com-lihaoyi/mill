@@ -6,6 +6,7 @@ import mill.api.PathRef
 import mill.contrib.vaadin.api.{FrontendBuildConfig, VaadinLogger, VaadinWorker}
 import mill.javalib.*
 import mill.util.{Jvm, Version}
+import mill.contrib.vaadin.internal.BuildInfo
 
 /**
  * Builds [[https://vaadin.com Vaadin Flow]] applications.

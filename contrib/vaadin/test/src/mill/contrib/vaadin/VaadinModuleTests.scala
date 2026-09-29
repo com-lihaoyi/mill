@@ -2,6 +2,7 @@ package mill.contrib.vaadin
 
 import mill.*
 import mill.api.Discover
+import mill.contrib.vaadin.internal.BuildInfo
 import mill.javalib.*
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
