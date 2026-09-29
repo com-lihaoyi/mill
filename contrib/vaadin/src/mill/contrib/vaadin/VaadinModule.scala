@@ -38,12 +38,10 @@ trait VaadinModule extends JavaModule {
    * to Vaadin's own convention `src/main/frontend` in a [[MavenModule]]. Used by
    * the production build as well as by development mode.
    */
-  def vaadinFrontendDir: T[PathRef] = Task.Source(
-    this match {
-      case _: MavenModule => os.sub / "src/main/frontend"
-      case _ => os.sub / "frontend"
-    }
-  )
+  def vaadinFrontendDir: T[PathRef] = this match {
+    case _: MavenModule => Task.Source("src/main/frontend")
+    case _ => Task.Source("frontend")
+  }
 
   /**
    * npm/Vite configuration read by the frontend build, declared as inputs so
