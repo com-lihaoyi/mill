@@ -134,7 +134,7 @@ object Deps {
   val fastparse = mvn"com.lihaoyi::fastparse:3.1.1"
   val flywayCore = mvn"org.flywaydb:flyway-core:11.8.2"
   // compile-time only: at runtime the Vaadin plugin uses the Flow version of the user's application
-  val vaadinFlowPluginBase = mvn"com.vaadin:flow-plugin-base:25.3.0"
+  val vaadinFlowPluginBase = mvn"com.vaadin:flow-plugin-base:25.2.0"
   val jibCore = mvn"com.google.cloud.tools:jib-core:0.27.2"
   val graphvizJava = Seq(
     mvn"guru.nidi:graphviz-java-min-deps:0.18.1",
