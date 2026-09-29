@@ -195,17 +195,23 @@ object `package` extends mill.Module {
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.javalib)
   }
 
-  object vaadin extends ContribModule {
+  object vaadin extends ContribModule, BuildInfo {
     def moduleDeps = Seq(vaadin.api)
     def compileModuleDeps = Seq(build.libs.javalib)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.javalib)
     def localTestExtraModules = super.localTestExtraModules ++ Seq(worker)
-    def testArgs = Task {
-      super.testArgs() ++ Seq(s"-DMILL_VAADIN_VERSION=${Deps.vaadinFlowPluginBase.version}")
-    }
+    override def buildInfoPackageName: String = "mill.contrib.vaadin"
+    override def buildInfoMembers: T[Seq[BuildInfo.Value]] = Seq(
+      BuildInfo.Value(
+        "flowPluginBaseVersion",
+        Deps.vaadinFlowPluginBase.version,
+        "Version of flow-plugin-base the worker is compiled against, the oldest supported Flow version"
+      ),
+      BuildInfo.Value("slf4jSimpleVersion", Deps.RuntimeDeps.slf4jSimple_runtime.version)
+    )
 
-    /** Interface shared between the plugin and the worker classloader. */
-    object api extends MillPublishJavaModule
+    /** API shared between the plugin and the worker classloader. */
+    object api extends MillPublishScalaModule
 
     /**
      * Drives Vaadin's frontend build tooling. Compiled against `flow-plugin-base`;

@@ -22,6 +22,11 @@
 // The frontend build uses the Flow version of the application's classpath, here
 // managed by `vaadin-bom`. Vaadin's build tooling requires Java 21, hence the
 // `mill-jvm-version` above.
+//
+// Frontend sources such as themes, stylesheets or TypeScript views go into
+// `frontend/`, next to `src/` and `resources/`; Vaadin also generates files into
+// `frontend/generated/`. A `MavenModule` uses Vaadin's default `src/main/frontend`
+// instead, and `vaadinFrontendDir` can point anywhere else.
 
 /** Usage
 
@@ -34,6 +39,9 @@
 
 > curl http://localhost:${PORT:-8080} # mac/linux
 ...window.Vaadin.developmentMode = true;...
+
+> ls frontend/generated # mac/linux
+...jar-resources...
 
 > ./mill clean runBackground
 

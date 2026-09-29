@@ -12,7 +12,7 @@ import com.vaadin.flow.server.frontend.{
 }
 import com.vaadin.flow.server.frontend.scanner.{ClassFinder, FrontendDependenciesScanner}
 import com.vaadin.pro.licensechecker.{LicenseChecker, MissingLicenseKeyException}
-import mill.contrib.vaadin.api.VaadinWorkerApi
+import mill.contrib.vaadin.api.{FrontendBuildConfig, Logger}
 
 import java.io.{File, PrintWriter, StringWriter}
 import java.net.URI
@@ -30,15 +30,13 @@ import scala.jdk.CollectionConverters.*
  * file: `META-INF/VAADIN/config/flow-build-info.json`, bundle:
  * `META-INF/VAADIN/webapp`).
  */
-class VaadinBuildAdapter(config: VaadinWorkerApi.Config, log: VaadinWorkerApi.Logger)
+class VaadinBuildAdapter(config: FrontendBuildConfig, log: Logger)
     extends PluginAdapterBuild {
 
   private val servletResourceOutDir =
-    config.stageDir().resolve(Constants.VAADIN_SERVLET_RESOURCES).toFile
+    config.stageDir.resolve(Constants.VAADIN_SERVLET_RESOURCES).toFile
 
   servletResourceOutDir.mkdirs()
-
-  private val classpath: Seq[Path] = config.classpath().toSeq
 
   /** Created on first use; closed at the end of [[run]] to release its jar handles. */
   private var classFinder: Option[ClassFinder] = None
@@ -98,30 +96,30 @@ class VaadinBuildAdapter(config: VaadinWorkerApi.Config, log: VaadinWorkerApi.Lo
   }
 
   override def applicationProperties(): File =
-    config.resourcesDir().resolve("application.properties").toFile
+    config.resourcesDir.resolve("application.properties").toFile
 
   override def eagerServerLoad(): Boolean = false
 
-  override def frontendDirectory(): File = config.frontendDir().toFile
+  override def frontendDirectory(): File = config.frontendDir.toFile
 
-  override def generatedTsFolder(): File = config.frontendDir().resolve("generated").toFile
+  override def generatedTsFolder(): File = config.frontendDir.resolve("generated").toFile
 
   override def getClassFinder(): ClassFinder = classFinder.getOrElse {
-    val finder = BuildFrontendUtil.getClassFinder(classpath.map(_.toString).asJava)
+    val finder = BuildFrontendUtil.getClassFinder(config.classpath.map(_.toString).asJava)
     classFinder = Some(finder)
     finder
   }
 
   override def getJarFiles(): java.util.Set[File] =
-    classpath.filter(_.toString.endsWith(".jar")).map(_.toFile).toSet.asJava
+    config.classpath.filter(_.toString.endsWith(".jar")).map(_.toFile).toSet.asJava
 
   override def isJarProject(): Boolean = false
 
   override def isDebugEnabled(): Boolean = false
 
-  override def javaSourceFolder(): File = config.javaSourceDir().toFile
+  override def javaSourceFolder(): File = config.javaSourceDir.toFile
 
-  override def javaResourceFolder(): File = config.resourcesDir().toFile
+  override def javaResourceFolder(): File = config.resourcesDir.toFile
 
   private def withStackTrace(message: CharSequence, throwable: Throwable): String = {
     val trace = new StringWriter()
@@ -150,9 +148,9 @@ class VaadinBuildAdapter(config: VaadinWorkerApi.Config, log: VaadinWorkerApi.Lo
 
   override def nodeVersion(): String = FrontendTools.DEFAULT_NODE_VERSION
 
-  override def npmFolder(): File = config.projectDir().toFile
+  override def npmFolder(): File = config.projectDir.toFile
 
-  override def openApiJsonFile(): File = config.buildToolsDir().resolve("openapi.json").toFile
+  override def openApiJsonFile(): File = config.buildToolsDir.resolve("openapi.json").toFile
 
   override def pnpmEnable(): Boolean = false
 
@@ -160,7 +158,7 @@ class VaadinBuildAdapter(config: VaadinWorkerApi.Config, log: VaadinWorkerApi.Lo
 
   override def useGlobalPnpm(): Boolean = false
 
-  override def projectBaseDirectory(): Path = config.projectDir()
+  override def projectBaseDirectory(): Path = config.projectDir
 
   override def requireHomeNodeExec(): Boolean = false
 
@@ -176,7 +174,7 @@ class VaadinBuildAdapter(config: VaadinWorkerApi.Config, log: VaadinWorkerApi.Lo
     new File(servletResourceOutDir.getParentFile, "META-INF/resources")
 
   override def frontendResourcesDirectory(): File =
-    config.resourcesDir().resolve("META-INF/resources/frontend").toFile
+    config.resourcesDir.resolve("META-INF/resources/frontend").toFile
 
   override def generateBundle(): Boolean = true
 
@@ -197,7 +195,7 @@ class VaadinBuildAdapter(config: VaadinWorkerApi.Config, log: VaadinWorkerApi.Lo
       artifactId: String,
       missingDependencyMessageConsumer: Consumer[String]
   ): Boolean = {
-    val absent = !classpath.exists { entry =>
+    val absent = !config.classpath.exists { entry =>
       val name = entry.getFileName.toString
       name.startsWith(artifactId + "-") && name.endsWith(".jar")
     }
@@ -211,7 +209,7 @@ class VaadinBuildAdapter(config: VaadinWorkerApi.Config, log: VaadinWorkerApi.Lo
 
   /** Vaadin resolves this against [[npmFolder]], so it must be relative to it. */
   override def buildFolder(): String =
-    config.projectDir().relativize(config.buildToolsDir()).toString
+    config.projectDir.relativize(config.buildToolsDir).toString
 
   override def postinstallPackages(): java.util.List[String] = java.util.List.of()
 
@@ -225,7 +223,7 @@ class VaadinBuildAdapter(config: VaadinWorkerApi.Config, log: VaadinWorkerApi.Lo
 
   override def isReactEnabled(): Boolean = true
 
-  override def applicationIdentifier(): String = config.applicationIdentifier()
+  override def applicationIdentifier(): String = config.applicationIdentifier
 
   override def frontendExtraFileExtensions(): java.util.List[String] = java.util.List.of()
 

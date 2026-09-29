@@ -8,7 +8,7 @@ import utest.*
 
 object VaadinModuleTests extends TestSuite {
 
-  val vaadinVersion = sys.props("MILL_VAADIN_VERSION")
+  val vaadinVersion = BuildInfo.flowPluginBaseVersion
 
   object build extends TestRootModule {
     object app extends JavaModule with VaadinModule {
@@ -21,6 +21,8 @@ object VaadinModuleTests extends TestSuite {
       def runMvnDeps = Seq(mvn"com.vaadin:vaadin-dev")
     }
 
+    object mavenApp extends MavenModule with VaadinModule
+
     lazy val millDiscover = Discover[this.type]
   }
 
@@ -31,6 +33,19 @@ object VaadinModuleTests extends TestSuite {
     test("flowVersion") - UnitTester(build, null).scoped { eval =>
       val Right(result) = eval(build.app.vaadinFlowVersion).runtimeChecked
       assert(result.value == vaadinVersion)
+    }
+
+    test("supportedFlowVersions") {
+      assert(VaadinModule.isSupportedFlowVersion(BuildInfo.flowPluginBaseVersion))
+      assert(VaadinModule.isSupportedFlowVersion("99.0.0"))
+      assert(!VaadinModule.isSupportedFlowVersion("24.9.0"))
+    }
+
+    test("frontendDir") - UnitTester(build, null).scoped { eval =>
+      val Right(millLayout) = eval(build.app.vaadinFrontendDir).runtimeChecked
+      assert(millLayout.value.path == build.app.moduleDir / "frontend")
+      val Right(mavenLayout) = eval(build.mavenApp.vaadinFrontendDir).runtimeChecked
+      assert(mavenLayout.value.path == build.mavenApp.moduleDir / "src/main/frontend")
     }
 
     test("prodClasspath") - UnitTester(build, null).scoped { eval =>
@@ -66,10 +81,14 @@ object VaadinModuleTests extends TestSuite {
 
     test("devModeForkArgs") - UnitTester(build, null).scoped { eval =>
       val Right(result) = eval(build.app.forkArgs).runtimeChecked
+      val Right(buildTools) = eval(build.app.vaadinDevBuildToolsDir).runtimeChecked
       val projectDir = VaadinModule.realPath(build.app.moduleDir)
+      val frontendDir = VaadinModule.realPath(build.app.moduleDir / "frontend")
       assert(result.value.contains(s"-Dvaadin.project.basedir=$projectDir"))
-      // relative to the project dir, as Vaadin resolves it against that
-      val buildFolder = VaadinModule.realPath(build.app.vaadinBuildToolsDir)
+      assert(result.value.contains(s"-D${VaadinModule.FrontendFolderProperty}=$frontendDir"))
+      // module specific, and relative to the project dir, as Vaadin resolves it against that
+      assert(buildTools.value.segments.contains("app"))
+      val buildFolder = VaadinModule.realPath(buildTools.value)
       assert(result.value.contains(s"-Dvaadin.build.folder=${projectDir.relativize(buildFolder)}"))
     }
   }

@@ -2,11 +2,10 @@ package mill.contrib.vaadin
 
 import coursier.core as cs
 import mill.*
-import mill.api.{BuildCtx, PathRef}
-import mill.constants.OutFiles.OutFiles
-import mill.contrib.vaadin.api.VaadinWorkerApi
+import mill.api.PathRef
+import mill.contrib.vaadin.api.{FrontendBuildConfig, Logger as WorkerLogger, VaadinWorkerApi}
 import mill.javalib.*
-import mill.util.Jvm
+import mill.util.{Jvm, Version}
 
 /**
  * Builds [[https://vaadin.com Vaadin Flow]] applications.
@@ -23,15 +22,28 @@ import mill.util.Jvm
  *
  * Put dev-only dependencies (`com.vaadin:vaadin-dev`, Spring Boot devtools, ...)
  * into `runMvnDeps`: they are used by `run`, but kept out of the production
- * bundle and distribution.
+ * bundle and distribution (see [[vaadinProdMvnClasspath]]).
  *
  * The frontend build runs Vaadin's `flow-plugin-base` in an isolated worker
- * classloader, in the Flow version found on the application's classpath.
+ * classloader, in the Flow version found on the application's classpath. Flow
+ * [[BuildInfo.flowPluginBaseVersion]] or newer is required.
  */
 trait VaadinModule extends JavaModule {
 
-  /** Custom frontend sources (themes, styles, ...). The first entry is Vaadin's frontend directory. */
-  def vaadinFrontendSources: T[Seq[PathRef]] = Task.Sources("src/main/frontend")
+  /**
+   * Vaadin's frontend directory: custom frontend sources (themes, styles,
+   * TypeScript views), plus the `generated` folder Vaadin writes into it.
+   *
+   * Defaults to `frontend` next to `src` and `resources` in Mill's layout, and
+   * to Vaadin's own convention `src/main/frontend` in a [[MavenModule]]. Used by
+   * the production build as well as by development mode.
+   */
+  def vaadinFrontendDir: T[PathRef] = Task.Source(
+    this match {
+      case _: MavenModule => os.sub / "src/main/frontend"
+      case _ => os.sub / "frontend"
+    }
+  )
 
   /**
    * npm/Vite configuration read by the frontend build, declared as inputs so
@@ -48,12 +60,12 @@ trait VaadinModule extends JavaModule {
   )
 
   /**
-   * Vaadin's build-tools folder (Maven: `target`, Gradle: `build`). Shared by
-   * the production build and dev mode: `vite.generated.ts` references it.
+   * Vaadin's build folder (Maven: `target`, Gradle: `build`) for development
+   * mode: `run` keeps the dev bundle and the dev server's files there. It is
+   * persistent, so they survive `run` restarts, and specific to this module.
+   * The production build uses a folder of its own in [[vaadinFrontendBuild]].
    */
-  def vaadinBuildToolsDir: os.Path =
-    moduleSegments.parts.foldLeft(os.Path(OutFiles.out, BuildCtx.workspaceRoot))(_ / _) /
-      "vaadin-build-tools"
+  def vaadinDevBuildToolsDir: T[os.Path] = Task(persistent = true) { Task.dest }
 
   /** Identifier of the application's frontend bundle. */
   def vaadinApplicationIdentifier: T[String] = Task {
@@ -62,9 +74,16 @@ trait VaadinModule extends JavaModule {
 
   /**
    * Third-party jars of the production application: the runtime closure of
-   * `mvnDeps` of this module and its module dependencies, including
-   * runtime-scoped transitive dependencies but without `runMvnDeps`. Resolved
-   * the same way as `resolvedRunMvnDeps`.
+   * `mvnDeps` of this module and its module dependencies, the same as in
+   * `resolvedRunMvnDeps` but without `runMvnDeps`.
+   *
+   * `runMvnDeps` holds what only `run` needs, such as `com.vaadin:vaadin-dev`
+   * (the Vite dev server integration, dev tools and Copilot) or Spring Boot
+   * devtools. Leaving them out keeps the shipped application free of dev
+   * tooling, and keeps their frontend resources out of the production bundle,
+   * as the frontend build scans this classpath. Runtime-scoped transitive
+   * dependencies of `mvnDeps` (e.g. a JDBC driver) are included, unlike in
+   * `compileClasspath`.
    */
   @annotation.nowarn("cat=deprecation")
   def vaadinProdMvnClasspath: T[Seq[PathRef]] = Task {
@@ -99,7 +118,11 @@ trait VaadinModule extends JavaModule {
     transitiveLocalClasspath() ++ localClasspath() ++ vaadinProdMvnClasspath()
   }
 
-  /** Flow version on the application's classpath (usually managed by `vaadin-bom`). */
+  /**
+   * Flow version on the application's classpath (usually managed by `vaadin-bom`).
+   * It must be at least the version the worker is compiled against,
+   * [[BuildInfo.flowPluginBaseVersion]].
+   */
   def vaadinFlowVersion: T[String] = Task {
     val FlowServerJar = """flow-server-(\d[^/]*)\.jar""".r
     val version = vaadinProdMvnClasspath().map(_.path.last)
@@ -107,9 +130,9 @@ trait VaadinModule extends JavaModule {
       .getOrElse(Task.fail(
         s"com.vaadin:flow-server not found in the mvnDeps of ${moduleSegments.render}"
       ))
-    if (version.takeWhile(_.isDigit).toInt < VaadinModule.MinFlowMajorVersion) {
+    if (!VaadinModule.isSupportedFlowVersion(version)) {
       Task.fail(
-        s"VaadinModule supports Vaadin/Flow ${VaadinModule.MinFlowMajorVersion}+, found Flow $version"
+        s"VaadinModule requires Vaadin Flow ${BuildInfo.flowPluginBaseVersion} or newer, found Flow $version"
       )
     }
     version
@@ -125,21 +148,21 @@ trait VaadinModule extends JavaModule {
       Dep.millProjectModule("mill-contrib-vaadin-worker"),
       mvn"com.vaadin:flow-plugin-base:${vaadinFlowVersion()}",
       // Vaadin's build tasks log npm/Vite progress and errors via SLF4J (to stderr)
-      mvn"org.slf4j:slf4j-simple:${VaadinModule.Slf4jVersion}"
+      mvn"org.slf4j:slf4j-simple:${BuildInfo.slf4jSimpleVersion}"
     ))
   }
 
   /**
-   * Classloader of the worker. Only the worker API comes from the build's
-   * classloader; Vaadin's tooling and its dependencies are isolated from
-   * Mill's own libraries.
+   * Classloader of the worker. Only the worker API and the Scala library come
+   * from the build's classloader; Vaadin's tooling and its dependencies are
+   * isolated from Mill's own libraries.
    */
   private def vaadinWorkerClassLoader: Task.Worker[ClassLoader & AutoCloseable] = Task.Worker {
     Jvm.createClassLoader(
       classPath = vaadinWorkerClasspath().map(_.path),
       parent = null,
       sharedLoader = classOf[VaadinWorkerApi].getClassLoader,
-      sharedPrefixes = Seq("mill.contrib.vaadin.api.")
+      sharedPrefixes = Seq("mill.contrib.vaadin.api.", "scala.")
     )
   }
 
@@ -154,6 +177,7 @@ trait VaadinModule extends JavaModule {
   /**
    * Runs the Vaadin production frontend build (npm install + Vite bundle),
    * writing servlet resources (`META-INF/VAADIN`) into the task's dest dir.
+   * Vaadin's build folder for it is `build-tools` in the dest dir as well.
    */
   def vaadinFrontendBuild: T[PathRef] = Task {
     if (Runtime.version().feature() < 21) {
@@ -161,15 +185,17 @@ trait VaadinModule extends JavaModule {
     }
     vaadinFrontendConfig()
     val stage = Task.dest / "servlet-resources"
+    val buildTools = Task.dest / "build-tools"
     os.makeDir.all(stage)
+    os.makeDir.all(buildTools)
     val sourceDirs = sources().map(_.path)
 
     val config = VaadinModule.config(
       projectDir = moduleDir,
-      frontendDir = vaadinFrontendSources().head.path,
+      frontendDir = vaadinFrontendDir().path,
       javaSourceDir = sourceDirs.find(os.isDir).getOrElse(sourceDirs.last),
       resourcesDir = resources().head.path,
-      buildToolsDir = vaadinBuildToolsDir,
+      buildToolsDir = buildTools,
       stageDir = stage,
       classpath = vaadinProdRunClasspath().map(_.path),
       applicationIdentifier = vaadinApplicationIdentifier()
@@ -223,24 +249,32 @@ trait VaadinModule extends JavaModule {
 
   /**
    * Dev mode (`run`): Vaadin looks for Maven/Gradle markers to find the
-   * project, so point it at the module directly, and at the same build-tools
-   * folder as the production build.
+   * project, so point it at the module directly, at its frontend directory and
+   * at [[vaadinDevBuildToolsDir]].
    */
   override def forkArgs: T[Seq[String]] = Task {
     val projectDir = VaadinModule.realPath(moduleDir)
+    val buildTools = VaadinModule.realPath(vaadinDevBuildToolsDir())
     super.forkArgs() ++ Seq(
       s"-Dvaadin.project.basedir=$projectDir",
-      s"-Dvaadin.build.folder=${projectDir.relativize(VaadinModule.realPath(vaadinBuildToolsDir))}"
+      s"-D${VaadinModule.FrontendFolderProperty}=${VaadinModule.realPath(vaadinFrontendDir().path)}",
+      s"-Dvaadin.build.folder=${projectDir.relativize(buildTools)}"
     )
   }
 }
 
 object VaadinModule {
 
-  /** Oldest Flow major version whose build SPI the worker implements. */
-  val MinFlowMajorVersion = 25
+  /**
+   * System property of Vaadin's frontend directory in dev mode: Vaadin reads
+   * the `vaadin.frontend.folder` setting from `vaadin.`-prefixed system properties.
+   */
+  private[vaadin] val FrontendFolderProperty = "vaadin.vaadin.frontend.folder"
 
-  private val Slf4jVersion = "2.0.17"
+  /** Whether the worker, compiled against [[BuildInfo.flowPluginBaseVersion]], supports `flowVersion`. */
+  private[vaadin] def isSupportedFlowVersion(flowVersion: String): Boolean =
+    Version.parse(flowVersion)
+      .isAtLeast(Version.parse(BuildInfo.flowPluginBaseVersion))(using Version.MavenOrdering)
 
   /**
    * Real on-disk path of `p`. Mill may hand out relativized or symlink-aliased
@@ -256,7 +290,7 @@ object VaadinModule {
       .fold(abs)(existing => existing.toRealPath().resolve(existing.relativize(abs)))
   }
 
-  private def logger(log: mill.api.Logger): VaadinWorkerApi.Logger = new VaadinWorkerApi.Logger {
+  private def logger(log: mill.api.Logger): WorkerLogger = new WorkerLogger {
     def error(msg: String): Unit = log.error(msg)
     def warn(msg: String): Unit = log.warn(msg)
     def info(msg: String): Unit = log.info(msg)
@@ -272,26 +306,14 @@ object VaadinModule {
       stageDir: os.Path,
       classpath: Seq[os.Path],
       applicationIdentifier: String
-  ): VaadinWorkerApi.Config = {
-    val (project, frontend, source, resources, buildTools, stage, cp, appId) = (
-      realPath(projectDir),
-      realPath(frontendDir),
-      realPath(javaSourceDir),
-      realPath(resourcesDir),
-      realPath(buildToolsDir),
-      realPath(stageDir),
-      classpath.map(realPath).toArray,
-      applicationIdentifier
-    )
-    new VaadinWorkerApi.Config {
-      def projectDir() = project
-      def frontendDir() = frontend
-      def javaSourceDir() = source
-      def resourcesDir() = resources
-      def buildToolsDir() = buildTools
-      def stageDir() = stage
-      def classpath() = cp
-      def applicationIdentifier() = appId
-    }
-  }
+  ): FrontendBuildConfig = FrontendBuildConfig(
+    projectDir = realPath(projectDir),
+    frontendDir = realPath(frontendDir),
+    javaSourceDir = realPath(javaSourceDir),
+    resourcesDir = realPath(resourcesDir),
+    buildToolsDir = realPath(buildToolsDir),
+    stageDir = realPath(stageDir),
+    classpath = classpath.map(realPath),
+    applicationIdentifier = applicationIdentifier
+  )
 }

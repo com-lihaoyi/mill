@@ -1,6 +1,6 @@
 package mill.contrib.vaadin.worker
 
-import mill.contrib.vaadin.api.VaadinWorkerApi
+import mill.contrib.vaadin.api.{FrontendBuildConfig, Logger, VaadinWorkerApi}
 
 /**
  * Entry point of the worker classloader (see `VaadinModule.vaadinWorker`).
@@ -11,7 +11,7 @@ import mill.contrib.vaadin.api.VaadinWorkerApi
  */
 class VaadinWorkerImpl extends VaadinWorkerApi {
 
-  override def buildFrontend(config: VaadinWorkerApi.Config, log: VaadinWorkerApi.Logger): Unit = {
+  override def buildFrontend(config: FrontendBuildConfig, log: Logger): Unit = {
     val thread = Thread.currentThread()
     val previous = thread.getContextClassLoader
     thread.setContextClassLoader(getClass.getClassLoader)
