@@ -1,5 +1,6 @@
 package millbuild
 
+import coursier.Repositories
 import mill.scalalib.*
 import mill.javalib.api.*
 
@@ -112,7 +113,11 @@ object Deps {
   val bouncyCastlePgp = mvn"org.bouncycastle:bcpg-jdk18on:${bouncyCastleVersion}"
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.189"
-  val coursierVersion = "2.1.25"
+  val coursierVersion = "2.1.26-SNAPSHOT"
+  // `coursierVersion` is a snapshot, only published to the Sonatype Central snapshots
+  // repository, so we need to add it wherever Mill's own dependencies get resolved
+  val coursierSnapshotsRepo = Repositories.centralMavenSnapshots
+  val coursierSnapshotsRepoString = "central:maven-snapshots"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierArchiveCache =
     mvn"io.get-coursier::coursier-archive-cache:$coursierVersion".withDottyCompat(scalaVersion)

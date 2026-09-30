@@ -130,6 +130,7 @@ trait DistModule extends RunModule {
            |) else (
            |  set "NEW_COURSIER_REPOSITORIES=%NEW_COURSIER_REPOSITORIES%|ivy2Local|central"
            |)
+           |set "NEW_COURSIER_REPOSITORIES=%NEW_COURSIER_REPOSITORIES%|${Deps.coursierSnapshotsRepoString}"
            |set "COURSIER_REPOSITORIES=%NEW_COURSIER_REPOSITORIES%"
            |set NEW_COURSIER_REPOSITORIES=
            |"${rawExecutableAbs.replace("\"", "\\\"")}" %*
@@ -142,7 +143,7 @@ trait DistModule extends RunModule {
       val launcherContent =
         s"""#!/usr/bin/env bash
            |set -e
-           |export COURSIER_REPOSITORIES="$localRepoUri|$${COURSIER_REPOSITORIES:-ivy2Local|central}"
+           |export COURSIER_REPOSITORIES="$localRepoUri|$${COURSIER_REPOSITORIES:-ivy2Local|central}|${Deps.coursierSnapshotsRepoString}"
            |exec '${rawExecutableAbs.replace("'", "\\'")}' "$$@"
            |""".stripMargin
       os.write(launcher, launcherContent)
@@ -357,7 +358,8 @@ object `package` extends MillJavaModule with Proguard with DistModule {
           .toUri
           .toASCIIString
       ) ++
-        Seq(Task.env.getOrElse("COURSIER_REPOSITORIES", "ivy2Local|central"))
+        Seq(Task.env.getOrElse("COURSIER_REPOSITORIES", "ivy2Local|central")) ++
+        Seq(Deps.coursierSnapshotsRepoString)
       Seq("COURSIER_REPOSITORIES" -> repos.mkString("|"))
     }
 
