@@ -24,8 +24,9 @@ object BSP {
   def install(jobs: Int, withDebug: Boolean, errStream: PrintStream): Unit = {
     // we create a json connection file
     val bspFile = BuildCtx.workspaceRoot / Constants.bspDir / s"${Constants.serverName}.json"
-    if (os.exists(bspFile)) errStream.println(s"Overwriting BSP connection file: ${bspFile}")
-    else errStream.println(s"Creating BSP connection file: ${bspFile}")
+    val bspFileRel = bspFile.relativeTo(BuildCtx.workspaceRoot)
+    if (os.exists(bspFile)) errStream.println(s"Overwriting BSP connection file: ${bspFileRel}")
+    else errStream.println(s"Creating BSP connection file: ${bspFileRel}")
     if (withDebug) errStream.println(
       "Enabled debug logging for the BSP server. If you want to disable it, you need to re-run this install command without the --debug option."
     )
