@@ -1,7 +1,6 @@
 package mill.integration
 
 import scala.util.Try
-import scala.util.chaining.given
 
 object GenIdeaUtils {
 
@@ -62,12 +61,9 @@ object GenIdeaUtils {
 
   private def normalizeIdeaFileContent(content: String, workspacePath: os.Path): String = {
     normaliseLibraryPaths(content, workspacePath)
-      .pipe { s =>
-        millVersion match {
-          case "SNAPSHOT" => s
-          case _ => s.replace(millVersion, "<version>")
-        }
-      }
+      // Normalize the current Mill version
+      .replace(millVersion, "<version>")
+      // Normalize workspace root
       .replace(
         s"$millProjectRoot/out",
         ".../out"
@@ -137,6 +133,9 @@ object GenIdeaUtils {
         "<language-level>Scala_2_[0-9]+</language-level>",
         "<language-level>Scala_2_X</language-level>"
       )
+      // Normalize Mill version SNAPSHOT
+      .replace("SNAPSHOT", "<version>")
+
   }
 
   private def normaliseLibraryPaths(in: String, workspacePath: os.Path): String = {
