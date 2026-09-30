@@ -1,6 +1,6 @@
 package mill.api.internal
 
-import mill.api.{Module, Result, Segment, Segments}
+import mill.api.{Module, ModuleRef, Result, Segment, Segments}
 import mill.api.daemon.internal.internal
 
 import scala.quoted.*
@@ -13,12 +13,15 @@ import scala.reflect.ClassTag
  */
 @internal object ModuleDepsResolver {
 
+  /** A module reference string, and the character offset in the YAML file it came from. */
+  case class ModuleLoc(ref: String, charOffset: Int) derives upickle.default.ReadWriter
+
   /**
    * Configuration entry for a single moduleDeps field.
-   * @param deps List of (module path string, character offset in YAML file) pairs
+   * @param deps The referenced modules
    * @param append If true, append to super.moduleDeps; if false, replace it
    */
-  case class ModuleDepsEntry(deps: Seq[(String, Int)], append: Boolean)
+  case class ModuleDepsEntry(deps: Seq[ModuleLoc], append: Boolean)
       derives upickle.default.ReadWriter
 
   /** Configuration for all moduleDeps fields of a module */
@@ -27,7 +30,8 @@ import scala.reflect.ClassTag
       moduleDeps: ModuleDepsEntry,
       compileModuleDeps: ModuleDepsEntry,
       runModuleDeps: ModuleDepsEntry,
-      bomModuleDeps: ModuleDepsEntry
+      bomModuleDeps: ModuleDepsEntry,
+      androidSdkModule: Option[ModuleLoc]
   ) derives upickle.default.ReadWriter
 
   private lazy val configFromClasspath: Map[String, ModuleDepsConfig] = {
@@ -85,7 +89,41 @@ import scala.reflect.ClassTag
     }
   }
 
-  def resolveModuleDeps[T <: Module](
+  /** Resolves and type-checks a single module reference string. */
+  private def resolveModule[T <: Module](
+      yamlPath: String,
+      segmentsToModules: Map[Segments, Module],
+      depString: String,
+      charOffset: Int
+  )(implicit ct: ClassTag[T]): T = {
+    def fail(msg: String): Nothing =
+      throw new Result.Exception(
+        msg,
+        Some(Result.Failure(msg, path = java.nio.file.Path.of(yamlPath), index = charOffset))
+      )
+
+    parseModuleRef(depString) match {
+      case f: Result.Failure =>
+        throw new Result.Exception(
+          f.error,
+          Some(f.copy(path = java.nio.file.Path.of(yamlPath), index = charOffset))
+        )
+      case Result.Success(segments) =>
+        segmentsToModules.get(segments) match {
+          case Some(module) if ct.runtimeClass.isInstance(module) =>
+            module.asInstanceOf[T]
+          case Some(module) =>
+            val expectedType = ct.runtimeClass.getName
+            val actualType = module.getClass.getName
+            fail(s"Module '$depString' is a $actualType, not a $expectedType")
+          case None =>
+            val available = segmentsToModules.keys.map(_.render).mkString(", ")
+            fail(s"Cannot resolve moduleDep '$depString'. Available modules: $available")
+        }
+    }
+  }
+
+  def resolveModules[T <: Module](
       rootModule: Module,
       modulePath: String,
       fieldName: String,
@@ -107,46 +145,35 @@ import scala.reflect.ClassTag
     if (deps.isEmpty && !append) default
     else {
       val segmentsToModules = rootModule.moduleInternal.segmentsToModules
-
-      val resolved = deps.flatMap { case (depString, charOffset) =>
-        parseModuleRef(depString) match {
-          case f: Result.Failure =>
-            throw new Result.Exception(
-              f.error,
-              Some(f.copy(path = java.nio.file.Path.of(config.yamlPath), index = charOffset))
-            )
-          case Result.Success(segments) =>
-            segmentsToModules.get(segments) match {
-              case Some(module) if ct.runtimeClass.isInstance(module) =>
-                Some(module.asInstanceOf[T])
-              case Some(module) =>
-                val expectedType = ct.runtimeClass.getName
-                val actualType = module.getClass.getName
-                val msg = s"Module '$depString' is a $actualType, not a $expectedType"
-                throw new Result.Exception(
-                  msg,
-                  Some(Result.Failure(
-                    msg,
-                    path = java.nio.file.Path.of(config.yamlPath),
-                    index = charOffset
-                  ))
-                )
-              case None =>
-                val available = segmentsToModules.keys.map(_.render).mkString(", ")
-                val msg = s"Cannot resolve moduleDep '$depString'. Available modules: $available"
-                throw new Result.Exception(
-                  msg,
-                  Some(Result.Failure(
-                    msg,
-                    path = java.nio.file.Path.of(config.yamlPath),
-                    index = charOffset
-                  ))
-                )
-            }
-        }
+      val resolved = deps.map { case ModuleLoc(depString, charOffset) =>
+        resolveModule[T](config.yamlPath, segmentsToModules, depString, charOffset)
       }
-
       if (append) default ++ resolved else resolved
+    }
+  }
+
+  /** Resolves a required `ModuleRef` field */
+  def resolveModuleRef[T <: Module](
+      rootModule: Module,
+      modulePath: String,
+      fieldName: String
+  )(implicit ct: ClassTag[T]): ModuleRef[T] = {
+    val config = configFromClasspath(modulePath)
+
+    val depOpt = fieldName match {
+      case "androidSdkModule" => config.androidSdkModule
+    }
+
+    depOpt match {
+      case None =>
+        val msg = s"'$fieldName' must be configured"
+        throw new Result.Exception(
+          msg,
+          Some(Result.Failure(msg, path = java.nio.file.Path.of(config.yamlPath), index = -1))
+        )
+      case Some(ModuleLoc(depString, charOffset)) =>
+        val segmentsToModules = rootModule.moduleInternal.segmentsToModules
+        ModuleRef(resolveModule[T](config.yamlPath, segmentsToModules, depString, charOffset))
     }
   }
 }
