@@ -59,7 +59,7 @@ trait RouterModule extends ScalaModule with Version {
       // required for now, so that the default resolutionParams don't override the
       // Scala version
       resolutionParamsMapOpt = Some { params =>
-        params.withForceVersion0(Map.empty)
+        params.copy(forceVersion0 = Map.empty)
       }
     )
   }
@@ -95,7 +95,7 @@ trait RouterModule extends ScalaModule with Version {
       // required for now, so that the default resolutionParams don't override the
       // Scala version
       resolutionParamsMapOpt = Some { params =>
-        params.withForceVersion0(Map.empty)
+        params.copy(forceVersion0 = Map.empty)
       }
     )
   }

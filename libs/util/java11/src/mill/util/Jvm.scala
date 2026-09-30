@@ -44,14 +44,15 @@ object Jvm {
               case (variant, dependency) => variant -> dependency.withOptional(false)
             }
             val profiles = project.profiles.map { profile =>
-              profile.withDependencyManagement(profile.dependencyManagement.map {
+              profile.copy(dependencyManagement = profile.dependencyManagement.map {
                 case (configuration, dependency) =>
                   configuration -> dependency.withOptional(false)
               })
             }
-            project
-              .withDependencyManagement0(dependencyManagement)
-              .withProfiles(profiles)
+            project.copy(
+              dependencyManagement0 = dependencyManagement,
+              profiles = profiles
+            )
           }
         moduleVersion -> Right(source -> mavenProject)
       case result => result
@@ -699,21 +700,23 @@ object Jvm {
     // serializer relativizes `toIO` to `..\mill-home\...`, which on Windows
     // breaks Plexus's zip-slip prefix check inside ArchiveCache → JDK extract.
     FileCache[Task](os.Path(config.cacheLocation).wrapped.toFile)
-      .withCredentials(config.credentials)
-      .withTtl(config.ttl)
-      .withCachePolicies(config.cachePolicies)
-      .withRetry(8)
-      .withRetryBackoffInitialDelay(2.seconds)
+      .copy(
+        credentials = config.credentials,
+        ttl = config.ttl,
+        cachePolicies = config.cachePolicies,
+        retry = 8,
+        retryBackoffInitialDelay = 2.seconds
+      )
       // Apply Mill's default logger first, then the user customizer, so that
       // overrides in coursierCacheCustomizer (e.g. a custom logger) take precedence.
       .pipe { cache =>
-        ctx.fold(cache)(c => cache.withLogger(CoursierTickerResolutionLogger(c)))
+        ctx.fold(cache)(c => cache.copy(logger = CoursierTickerResolutionLogger(c)))
       }
       .pipe { cache =>
         coursierCacheCustomizer.fold(cache)(c => c.apply(cache))
       }
       .pipe { cache =>
-        if (ctx.fold(false)(_.offline)) cache.withCachePolicies(Seq(CachePolicy.LocalOnly))
+        if (ctx.fold(false)(_.offline)) cache.copy(cachePolicies = Seq(CachePolicy.LocalOnly))
         else cache
       }
 
@@ -793,17 +796,17 @@ object Jvm {
     resolutionRes.flatMap { resolution =>
       val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer, config)
 
-      val artifactsResultOrError = Artifacts(coursierCache0)
+      val artifactsResultOrError = Artifacts[Task](coursierCache0)
         .withResolution(resolution)
-        .withClassifiers(
-          if (sources) Set(Classifier("sources"))
-          else Set.empty
+        .copy(
+          classifiers =
+            if (sources) Set(Classifier("sources"))
+            else Set.empty,
+          attributes =
+            if (sources) Seq(VariantSelector.AttributesBased.sources)
+            else Nil,
+          artifactTypesOpt = artifactTypes
         )
-        .withAttributes(
-          if (sources) Seq(VariantSelector.AttributesBased.sources)
-          else Nil
-        )
-        .withArtifactTypesOpt(artifactTypes)
         .eitherResult()
 
       artifactsResultOrError match {
@@ -925,24 +928,25 @@ object Jvm {
         cacheBase / "mill/jvm"
       }
     }
-    val jvmCache = JvmCache()
-      .withArchiveCache(
-        ArchiveCache()
-          .withLocation(os.Path(config.archiveCacheLocation).wrapped.toFile)
-          .withCache(coursierCache0)
-          .withShortPathDirectory(shortPathDirOpt.map(_.wrapped.toFile))
+    val jvmCache = JvmCache(
+      archiveCache = ArchiveCache[Task](
+        location = os.Path(config.archiveCacheLocation).wrapped.toFile,
+        cache = coursierCache0,
+        shortPathDirectory = shortPathDirOpt.map(_.wrapped.toFile)
       )
+    )
       .withIndex(jvmIndex0(
         ctx,
         coursierCacheCustomizer,
         jvmIndexVersion,
         config = config
       ))
-    val javaHome = JavaHome()
-      .withCache(jvmCache)
+    val javaHome = JavaHome(
+      cache = Some(jvmCache),
       // when given a version like "17", always pick highest version in the index
       // rather than the highest already on disk
-      .withUpdate(true)
+      update = true
+    )
     val file = coursierCache0.logger.use(javaHome.get(id))
       .unsafeRun()(using coursierCache0.ec)
     Result.Success(os.Path(file))
@@ -987,15 +991,16 @@ object Jvm {
       else
         repositories
 
-    val resolve = Resolve()
-      .withCache(coursierCache0)
-      .withDependencies(rootDeps)
-      .withRepositories(repositories0)
-      .withResolutionParams(resolutionParams0)
-      .withMapDependenciesOpt(mapDependencies)
-      .withBoms(boms.iterator.toSeq)
-      .withConfFiles(config.confFiles.map(_.toNIO))
-      .withMirrors(config.mirrors)
+    val resolve = Resolve[Task](
+      cache = coursierCache0,
+      dependencies = rootDeps,
+      repositories = repositories0,
+      resolutionParams = resolutionParams0,
+      mapDependenciesOpt = mapDependencies,
+      boms = boms.iterator.toSeq,
+      confFiles = config.confFiles.map(_.toNIO),
+      mirrors = config.mirrors
+    )
       // Maven dependency management does not make explicit dependencies optional.
       // https://github.com/coursier/coursier/issues/3731
       .transformFetcher(mavenCompatibleFetcher)

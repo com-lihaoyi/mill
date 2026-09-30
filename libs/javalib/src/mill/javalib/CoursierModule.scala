@@ -182,7 +182,7 @@ trait CoursierModule extends mill.api.Module {
    * {{{
    *   override def coursierCacheCustomizer = Task.Anon {
    *      Some( (fc: coursier.cache.FileCache[Task]) =>
-   *        fc.withClassLoaders(Seq(classOf[coursier.cache.protocol.S3Handler].getClassLoader))
+   *        fc.copy(classLoaders = Seq(classOf[coursier.cache.protocol.S3Handler].getClassLoader))
    *      )
    *   }
    * }}}
@@ -199,7 +199,7 @@ trait CoursierModule extends mill.api.Module {
    * BOMs since coursier 2.1.17 (used in Mill since 0.12.3) for example, with:
    * {{{
    *   def resolutionParams = super.resolutionParams()
-   *     .withEnableDependencyOverrides(Some(false))
+   *     .copy(enableDependencyOverrides = Some(false))
    * }}}
    *
    * Note that versions forced with `Dep#forceVersion()` take over forced versions manually

@@ -74,24 +74,25 @@ object CoursierClient {
       cacheKey = cacheKey,
       validate = paths => paths.forall(os.exists(_))
     ) {
-      val coursierCache0 = FileCache[Task]()
-        .withLogger(coursier.cache.loggers.RefreshLogger.create())
+      val coursierCache0 = FileCache()
+        .copy(logger = coursier.cache.loggers.RefreshLogger.create())
 
       val configuredRepos = mill.util.Jvm.reposFromStrings(millRepositories0).get
 
       val artifactsResultOrError = {
         // configuredRepos (from mill-repositories) comes first so user config takes precedence
         val allRepos = configuredRepos ++ Resolve.defaultRepositories
-        val resolve = Resolve()
-          .withCache(coursierCache0)
-          .withDependencies(Seq(Dependency(
+        val resolve = Resolve[Task](
+          cache = coursierCache0,
+          dependencies = Seq(Dependency(
             Module(Organization("com.lihaoyi"), ModuleName("mill-runner-daemon_3"), Map()),
             VersionConstraint(BuildInfo.millVersion)
-          )))
-          .withRepositories(allRepos)
+          )),
+          repositories = allRepos
+        )
 
         val result = resolve.either().flatMap { v =>
-          Artifacts(coursierCache0)
+          Artifacts[Task](coursierCache0)
             .withResolution(v)
             .eitherResult()
         }
@@ -121,12 +122,11 @@ object CoursierClient {
       cacheKey = cacheKey,
       validate = os.isDir(_)
     ) {
-      val coursierCache0 = FileCache[Task]()
-        .withLogger(coursier.cache.loggers.RefreshLogger.create())
+      val coursierCache0 = FileCache()
+        .copy(logger = coursier.cache.loggers.RefreshLogger.create())
 
       val configuredRepos = mill.util.Jvm.reposFromStrings(millRepositories).get
-      val jvmCache = JvmCache()
-        .withArchiveCache(ArchiveCache().withCache(coursierCache0))
+      val jvmCache = JvmCache(archiveCache = ArchiveCache().copy(cache = coursierCache0))
         .withIndex(
           JvmIndex.load(
             cache = coursierCache0,
@@ -135,10 +135,12 @@ object CoursierClient {
           )
         )
 
-      val javaHome = JavaHome().withCache(jvmCache)
+      val javaHome = JavaHome(
+        cache = Some(jvmCache),
         // when given a version like "17", always pick highest version in the index
         // rather than the highest already on disk
-        .withUpdate(true)
+        update = true
+      )
 
       os.Path(coursierCache0.logger.using(javaHome.get(id)).unsafeRun()(using coursierCache0.ec))
     }

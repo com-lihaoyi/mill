@@ -183,7 +183,7 @@ def toLintSuppression(suppress: Suppress) = {
 def toDependencies(mavenCoordinates: java.util.Collection[String]) =
   DependencyParser.dependencies(mavenCoordinates.asScala.toSeq, "")
     .either.fold(errs => sys.error(errs.mkString(System.lineSeparator())), identity)
-    .map(_.withVariantSelector(ConfigurationBased(Configuration.runtime)))
+    .map(_.copy(variantSelector = ConfigurationBased(Configuration.runtime)))
 
 def toProvisioner(resolver: CoursierModule.Resolver)(using TaskCtx): Provisioner =
   (_, mavenCoordinates) =>

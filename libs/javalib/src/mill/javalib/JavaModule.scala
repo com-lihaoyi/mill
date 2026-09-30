@@ -254,14 +254,16 @@ trait JavaModule
     val keyValuesOrErrors =
       deps.map { depMgmt =>
         val fromUsedValues = coursier.core.Dependency(depMgmt.module, depMgmt.version)
-          .withPublication(coursier.core.Publication(
-            "",
-            depMgmt.publication.`type`,
-            coursier.core.Extension.empty,
-            depMgmt.publication.classifier
-          ))
-          .withMinimizedExclusions(depMgmt.minimizedExclusions)
-          .withOptional(depMgmt.optional)
+          .copy(
+            publication = coursier.core.Publication(
+              "",
+              depMgmt.publication.`type`,
+              coursier.core.Extension.empty,
+              depMgmt.publication.classifier
+            ),
+            minimizedExclusions = depMgmt.minimizedExclusions,
+            optional0 = depMgmt.optional0
+          )
         if (fromUsedValues == depMgmt) {
           val key = DependencyManagement.Key(
             depMgmt.module.organization,
@@ -785,8 +787,8 @@ trait JavaModule
     val project = coursierProject()
     // Mark optional direct dependencies as non-optional, so that these are included in the
     // class paths of this module
-    val project0 = project.withDependencies0(
-      project.dependencies0.map {
+    val project0 = project.copy(
+      dependencies0 = project.dependencies0.map {
         case (conf, dep) if dep.optional =>
           (conf, dep.withOptional(false))
         case other =>
@@ -1183,7 +1185,7 @@ trait JavaModule
       resolutionParamsMapOpt =
         Some { params =>
           params
-            .withDefaultConfiguration(coursier.core.Configuration.compile)
+            .copy(defaultConfiguration = coursier.core.Configuration.compile)
             .withDefaultVariantAttributes(
               cs.VariantSelector.AttributesBased(
                 params.defaultVariantAttributes.map(_.matchers).getOrElse(Map()) ++ Seq(
@@ -1271,7 +1273,7 @@ trait JavaModule
       resolutionParamsMapOpt =
         Some { params =>
           params
-            .withDefaultConfiguration(coursier.core.Configuration.runtime)
+            .copy(defaultConfiguration = coursier.core.Configuration.runtime)
             .withDefaultVariantAttributes(
               cs.VariantSelector.AttributesBased(
                 params.defaultVariantAttributes.map(_.matchers).getOrElse(Map()) ++ Seq(
@@ -1632,7 +1634,7 @@ trait JavaModule
             sources = true,
             resolutionParamsMapOpt =
               Some(
-                (_: ResolutionParams).withDefaultConfiguration(coursier.core.Configuration.compile)
+                (_: ResolutionParams).copy(defaultConfiguration = coursier.core.Configuration.compile)
               )
           )
         },

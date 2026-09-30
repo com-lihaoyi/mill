@@ -454,7 +454,7 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
         resolutionParamsMapOpt =
           Some { params =>
             params
-              .withDefaultConfiguration(coursier.core.Configuration.runtime)
+              .copy(defaultConfiguration = coursier.core.Configuration.runtime)
               .withDefaultVariantAttributes(
                 cs.VariantSelector.AttributesBased(
                   params.defaultVariantAttributes.map(_.matchers).getOrElse(Map()) ++ Seq(

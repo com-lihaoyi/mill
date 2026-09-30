@@ -93,8 +93,8 @@ trait PublishModule extends JavaModule with PgpWorkerSupport { outer =>
             values <- bomDepMgmt.get(DependencyManagement.Key.from(dep0))
             if values.minimizedExclusions.nonEmpty
           )
-            dep0 = dep0.withMinimizedExclusions(
-              dep0.minimizedExclusions.join(values.minimizedExclusions)
+            dep0 = dep0.copy(
+              minimizedExclusions = dep0.minimizedExclusions.join(values.minimizedExclusions)
             )
 
           resolvePublishDependency0(BoundDep(dep0, force = false).toDep)
