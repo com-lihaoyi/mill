@@ -209,7 +209,7 @@ object OverrideTests extends TestSuite {
       assert(os.read(checker.execution.outPath / "m/f.json").contains(" 6,"))
     }
     test("optionalOverride") {
-      // Make sure that when a task is overriden, it always gets put in the same place on
+      // Make sure that when a task is overridden, it always gets put in the same place on
       // disk regardless of whether or not the override is part of the current evaluation
       import OptionalOverride.*
 

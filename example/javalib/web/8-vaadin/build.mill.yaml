@@ -1,0 +1,22 @@
+mill-build:
+  mvnDeps:
+  - com.lihaoyi::mill-contrib-vaadin:$MILL_VERSION
+
+mill-jvm-version: 21
+extends: mill.contrib.vaadin.VaadinModule
+mainClass: com.example.Application
+
+bomMvnDeps:
+- org.springframework.boot:spring-boot-dependencies:4.1.1
+- com.vaadin:vaadin-bom:25.3.0
+
+mvnDeps:
+- com.vaadin:vaadin-spring-boot-starter
+
+# Development mode only: used by `./mill run`, left out of the production build
+runMvnDeps:
+- com.vaadin:vaadin-dev
+
+# Production build, packaged as an executable Spring Boot jar
+object prod:
+  extends: [VaadinProdModule, mill.javalib.repackage.RepackageModule]
