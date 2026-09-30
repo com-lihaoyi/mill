@@ -1,6 +1,6 @@
 package mill.daemon
 
-import mill.constants.{DaemonFiles, Util}
+import mill.constants.{ConfigConstants, DaemonFiles, Util}
 import mill.constants.OutFiles.OutFiles
 import mill.daemon.MillMain0.handleMillException
 import mill.api.BuildCtx
@@ -75,7 +75,11 @@ object MillNoDaemonMain0 {
           sharedOutLockManager = sharedOutLockManager,
           launcherSubprocessRunner = launcherRunner,
           serverToClientOpt = None,
-          millRepositories = Seq.empty
+          // The launcher doesn't forward these to no-daemon processes, so read them here
+          millRepositories = mill.launcher.MillProcessLauncher.loadMillConfig(
+            ConfigConstants.millRepositories,
+            BuildCtx.workspaceRoot
+          )
         )
       catch handleMillException(initialSystemStreams.err)
       finally

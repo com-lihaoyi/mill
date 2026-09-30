@@ -117,7 +117,9 @@ object Deps {
   // `coursierVersion` is a snapshot, only published to the Sonatype Central snapshots
   // repository, so we need to add it wherever Mill's own dependencies get resolved
   val coursierSnapshotsRepo = Repositories.centralMavenSnapshots
-  val coursierSnapshotsRepoString = "central:maven-snapshots"
+  // Full URL rather than the `central:maven-snapshots` shorthand, as this ends up in
+  // COURSIER_REPOSITORIES, also read by older coursier versions that don't understand it
+  val coursierSnapshotsRepoString = coursierSnapshotsRepo.root
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierArchiveCache =
     mvn"io.get-coursier::coursier-archive-cache:$coursierVersion".withDottyCompat(scalaVersion)
