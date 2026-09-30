@@ -465,7 +465,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
           assertGoldenLiteral(
             semDbs.map { case (k, vs) => (k.toString, vs.map(_.toString)) },
             Map(
-              "scripts/folder2/FooTest.java" -> ArraySeq(),
+              "scripts/folder2/FooTest.java" -> ArraySeq("scripts/folder2/FooTest.java.semanticdb"),
               "mill-build" -> List(),
               "hello-kotlin" -> ArraySeq(),
               "hello-java" -> ArraySeq(),
