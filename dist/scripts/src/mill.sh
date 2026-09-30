@@ -174,7 +174,11 @@ if [ ! -s "${MILL}" ] || [ "$MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" = "1" ] ; then
   fi
 
   echo "Downloading mill ${MILL_VERSION} from ${MILL_DOWNLOAD_URL} ..." 1>&2
-  curl -f -L --retry 5 -o "${MILL_TEMP_DOWNLOAD_FILE}" "${MILL_DOWNLOAD_URL}"
+  # On CI runners, several jobs may download Mill at the same time, and get rate-limited (HTTP 429)
+  MILL_CURL_RETRY_OPTS=""
+  if [ -n "${CI}" ] ; then MILL_CURL_RETRY_OPTS="--retry 5"; fi
+  curl -f -L ${MILL_CURL_RETRY_OPTS} -o "${MILL_TEMP_DOWNLOAD_FILE}" "${MILL_DOWNLOAD_URL}"
+  unset MILL_CURL_RETRY_OPTS
 
   chmod +x "${MILL_TEMP_DOWNLOAD_FILE}"
 
