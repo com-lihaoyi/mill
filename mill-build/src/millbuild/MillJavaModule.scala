@@ -65,18 +65,13 @@ trait MillJavaModule extends JavaModule {
       // Coursier consumes repository locations as URI strings outside Mill's path serializer.
       repo.path.wrapped.toAbsolutePath.normalize().toUri.toASCIIString
     }
-    val repos = localRepos ++
-      Seq(Task.env.getOrElse("COURSIER_REPOSITORIES", "ivy2Local|central")) ++
-      Seq(Deps.coursierSnapshotsRepoString)
+    val repos = localRepos ++ Seq(Task.env.getOrElse("COURSIER_REPOSITORIES", "ivy2Local|central"))
     Seq("COURSIER_REPOSITORIES" -> repos.mkString("|"))
   }
 
   def repositoriesTask = Task.Anon {
     super.repositoriesTask() ++
-      Seq(
-        MavenRepository("https://oss.sonatype.org/content/repositories/releases"),
-        Deps.coursierSnapshotsRepo
-      )
+      Seq(MavenRepository("https://oss.sonatype.org/content/repositories/releases"))
   }
 
   def resolutionParams: Task[ResolutionParams] = Task.Anon {
