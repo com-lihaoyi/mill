@@ -177,6 +177,9 @@ if [ ! -s "${MILL}" ] || [ "$MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" = "1" ] ; then
   # On CI runners, several jobs may download Mill at the same time, and get rate-limited (HTTP 429)
   MILL_CURL_RETRY_OPTS=""
   if [ -n "${CI}" ] ; then MILL_CURL_RETRY_OPTS="--retry 5"; fi
+  # We don't quote MILL_CURL_RETRY_OPTS on purpose, so that it gets split into several arguments,
+  # or expands to nothing when empty
+  # shellcheck disable=SC2086
   curl -f -L ${MILL_CURL_RETRY_OPTS} -o "${MILL_TEMP_DOWNLOAD_FILE}" "${MILL_DOWNLOAD_URL}"
   unset MILL_CURL_RETRY_OPTS
 
