@@ -1,6 +1,6 @@
 package mill.integration
 
-import coursier.cache.FileCache
+import coursier.cache.Cache
 import mill.api.internal.PathAliasing
 import mill.testkit.UtestIntegrationTestSuite
 import utest.*
@@ -33,7 +33,7 @@ object CsEnvVarsTests extends UtestIntegrationTestSuite {
 
         val cp = res.out.split(File.pathSeparator).filter(_.nonEmpty).map(resolveCp(workspacePath))
 
-        val actualCache = cacheOpt.getOrElse(os.Path(FileCache().location))
+        val actualCache = cacheOpt.getOrElse(os.Path(Cache.default.location))
         assert(cp.exists(p => p.startsWith(actualCache) && p.last.startsWith("slf4j-api-")))
       }
 
@@ -55,7 +55,7 @@ object CsEnvVarsTests extends UtestIntegrationTestSuite {
         )
         assert(res.exitCode == 0)
 
-        val cacheRoot = os.Path(FileCache().location)
+        val cacheRoot = os.Path(Cache.default.location)
         val cp = res.out.split(File.pathSeparator)
           .filter(_.nonEmpty)
           .map(resolveCp(workspacePath))

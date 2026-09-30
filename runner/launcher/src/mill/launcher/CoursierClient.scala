@@ -1,9 +1,8 @@
 package mill.launcher
 
 import coursier.{Artifacts, Dependency, ModuleName, Organization, Resolve, VersionConstraint}
-import coursier.cache.{ArchiveCache, FileCache}
+import coursier.cache.{ArchiveCache, Cache}
 import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
-import coursier.util.Task
 import coursier.core.Module
 import mill.constants.BuildInfo
 import upickle.default.*
@@ -74,7 +73,7 @@ object CoursierClient {
       cacheKey = cacheKey,
       validate = paths => paths.forall(os.exists(_))
     ) {
-      val coursierCache0 = FileCache[Task]()
+      val coursierCache0 = Cache.default
         .withLogger(coursier.cache.loggers.RefreshLogger.create())
 
       val configuredRepos = mill.util.Jvm.reposFromStrings(millRepositories0).get
@@ -121,7 +120,7 @@ object CoursierClient {
       cacheKey = cacheKey,
       validate = os.isDir(_)
     ) {
-      val coursierCache0 = FileCache[Task]()
+      val coursierCache0 = Cache.default
         .withLogger(coursier.cache.loggers.RefreshLogger.create())
 
       val configuredRepos = mill.util.Jvm.reposFromStrings(millRepositories).get
