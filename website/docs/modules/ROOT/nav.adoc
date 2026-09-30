@@ -90,6 +90,7 @@
 *** xref:contrib/sonatypecentral.adoc[]
 *** xref:contrib/testng.adoc[]
 *** xref:contrib/twirllib.adoc[]
+*** xref:contrib/vaadin.adoc[]
 *** xref:contrib/versionfile.adoc[]
 ** xref:extending/thirdparty-plugins.adoc[]
 ** xref:extending/running-jvm-code.adoc[]

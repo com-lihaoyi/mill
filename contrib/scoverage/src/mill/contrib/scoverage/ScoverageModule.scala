@@ -165,26 +165,26 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       PathRef(Task.dest)
     }
 
-    override def platformSuffix = Task { outer.platformSuffix() }
-    override def compileResources: T[Seq[PathRef]] = outer.compileResources
-    override def generatedSources: T[Seq[PathRef]] = Task { outer.generatedSources() }
-    override def allSources: T[Seq[PathRef]] = Task { outer.allSources() }
+    override def platformSuffix: T[String] = outer.platformSuffix()
+    override def compileResources: T[Seq[PathRef]] = outer.compileResources()
+    override def generatedSources: T[Seq[PathRef]] = outer.generatedSources()
+    override def allSources: T[Seq[PathRef]] = outer.allSources()
     override def moduleDeps: Seq[JavaModule] = outer.moduleDeps
     override def compileModuleDeps: Seq[JavaModule] = outer.compileModuleDeps
-    override def sources: T[Seq[PathRef]] = Task { outer.sources() }
-    override def resources: T[Seq[PathRef]] = Task { outer.resources() }
-    override def scalaVersion = Task { outer.scalaVersion() }
+    override def sources: T[Seq[PathRef]] = outer.sources()
+    override def resources: T[Seq[PathRef]] = outer.resources()
+    override def scalaVersion: T[String] = outer.scalaVersion()
     override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
       internalRepositories() ++ outer.repositoriesTask()
     }
-    override def compileMvnDeps: T[Seq[Dep]] = Task { outer.compileMvnDeps() }
+    override def compileMvnDeps: T[Seq[Dep]] = outer.compileMvnDeps()
     override def mvnDeps: T[Seq[Dep]] =
       Task { outer.mvnDeps() ++ outer.scoverageRuntimeDeps() }
-    override def unmanagedClasspath: T[Seq[PathRef]] = Task { outer.unmanagedClasspath() }
+    override def unmanagedClasspath: T[Seq[PathRef]] = outer.unmanagedClasspath()
 
     /** Add the scoverage scalac plugin. */
     override def scalacPluginMvnDeps: T[Seq[Dep]] =
-      Task { outer.scalacPluginMvnDeps() ++ outer.scoveragePluginDeps() }
+      outer.scalacPluginMvnDeps() ++ outer.scoveragePluginDeps()
 
     /** Add the scoverage specific plugin settings (`dataDir`). */
     override def scalacOptions: T[Seq[String]] =

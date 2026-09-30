@@ -226,7 +226,7 @@ object SonatypeHelpers {
         case None => Map.empty
       }
 
-      val allFiles = (fileMapping ++ signedArtifacts).flatMap { case (name, file) =>
+      val checksummedFiles = fileMapping.flatMap { case (name, file) =>
         val content = os.read.bytes(file)
 
         Map(
@@ -236,7 +236,15 @@ object SonatypeHelpers {
         )
       }
 
-      artifact -> allFiles
+      // Signatures get no checksums of their own: Maven Central does not ask for them - its
+      // documented bundle layout has none, see
+      // https://central.sonatype.org/publish/publish-portal-upload - and neither Maven nor
+      // Gradle publish any.
+      val signatureFiles = signedArtifacts.map { case (name, file) =>
+        name -> os.read.bytes(file)
+      }
+
+      artifact -> (checksummedFiles ++ signatureFiles)
     }
   }
 
