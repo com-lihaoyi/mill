@@ -102,7 +102,7 @@ object Deps {
   val asmTree = mvn"org.ow2.asm:asm-tree:${asmVersion}"
 
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
-  val bouncyCastleVersion = "1.85"
+  val bouncyCastleVersion = "1.85.2"
   val keytoolDeps = Seq(
     mvn"org.bouncycastle:bcpkix-jdk18on:${bouncyCastleVersion}",
     mvn"org.bouncycastle:bcprov-jdk18on:${bouncyCastleVersion}",
