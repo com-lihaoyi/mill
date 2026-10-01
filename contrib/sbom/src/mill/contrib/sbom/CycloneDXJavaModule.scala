@@ -46,7 +46,9 @@ trait CycloneDXJavaModule extends JavaModule with CycloneDXModule {
       BoundDep(
         dep =
           if (csDep.variantSelector.asConfiguration.contains(cs.Configuration.runtime)) csDep
-          else csDep.copy(variantSelector = VariantSelector.ConfigurationBased(cs.Configuration.runtime)),
+          else csDep.copy(variantSelector =
+            VariantSelector.ConfigurationBased(cs.Configuration.runtime)
+          ),
         force = false
       )
     ))
