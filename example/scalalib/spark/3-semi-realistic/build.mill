@@ -7,7 +7,7 @@ object `package` extends ScalaModule { outer =>
   // refuses to start with `-Djava.security.manager=allow`. Pin this example
   // to JDK 21 until Spark/Hadoop catch up.
   def jvmId = "zulu:21"
-  def scalaVersion = "2.12.20"
+  def scalaVersion = "2.12.21"
   def mvnDeps = Seq(
     mvn"org.apache.spark::spark-core:3.5.6",
     mvn"org.apache.spark::spark-sql:3.5.6"
