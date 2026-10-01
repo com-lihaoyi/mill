@@ -895,8 +895,7 @@ object Jvm {
       }
     }
     val jvmCache = JvmCache().copy(
-      archiveCache = ArchiveCache().copy(
-        location = os.Path(config.archiveCacheLocation).toIO,
+      archiveCache = ArchiveCache(os.Path(config.archiveCacheLocation).toIO).copy(
         cache = coursierCache0,
         shortPathDirectory = shortPathDirOpt.map(_.toIO)
       ),
