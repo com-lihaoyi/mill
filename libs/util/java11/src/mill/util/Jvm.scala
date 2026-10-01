@@ -928,20 +928,21 @@ object Jvm {
         cacheBase / "mill/jvm"
       }
     }
-    val jvmCache = JvmCache(
-      archiveCache = ArchiveCache[Task](
-        location = os.Path(config.archiveCacheLocation).wrapped.toFile,
-        cache = coursierCache0,
-        shortPathDirectory = shortPathDirOpt.map(_.wrapped.toFile)
+    val jvmCache = JvmCache()
+      .copy(
+        archiveCache = ArchiveCache(os.Path(config.archiveCacheLocation).wrapped.toFile)
+          .copy(
+            cache = coursierCache0,
+            shortPathDirectory = shortPathDirOpt.map(_.wrapped.toFile)
+          )
       )
-    )
       .withIndex(jvmIndex0(
         ctx,
         coursierCacheCustomizer,
         jvmIndexVersion,
         config = config
       ))
-    val javaHome = JavaHome(
+    val javaHome = JavaHome().copy(
       cache = Some(jvmCache),
       // when given a version like "17", always pick highest version in the index
       // rather than the highest already on disk
@@ -991,7 +992,7 @@ object Jvm {
       else
         repositories
 
-    val resolve = Resolve[Task](
+    val resolve = Resolve().copy(
       cache = coursierCache0,
       dependencies = rootDeps,
       repositories = repositories0,

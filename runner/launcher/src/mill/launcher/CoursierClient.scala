@@ -82,7 +82,7 @@ object CoursierClient {
       val artifactsResultOrError = {
         // configuredRepos (from mill-repositories) comes first so user config takes precedence
         val allRepos = configuredRepos ++ Resolve.defaultRepositories
-        val resolve = Resolve[Task](
+        val resolve = Resolve().copy(
           cache = coursierCache0,
           dependencies = Seq(Dependency(
             Module(Organization("com.lihaoyi"), ModuleName("mill-runner-daemon_3"), Map()),
@@ -126,7 +126,7 @@ object CoursierClient {
         .copy(logger = coursier.cache.loggers.RefreshLogger.create())
 
       val configuredRepos = mill.util.Jvm.reposFromStrings(millRepositories).get
-      val jvmCache = JvmCache(archiveCache = ArchiveCache().copy(cache = coursierCache0))
+      val jvmCache = JvmCache().copy(archiveCache = ArchiveCache().copy(cache = coursierCache0))
         .withIndex(
           JvmIndex.load(
             cache = coursierCache0,
@@ -135,7 +135,7 @@ object CoursierClient {
           )
         )
 
-      val javaHome = JavaHome(
+      val javaHome = JavaHome().copy(
         cache = Some(jvmCache),
         // when given a version like "17", always pick highest version in the index
         // rather than the highest already on disk
