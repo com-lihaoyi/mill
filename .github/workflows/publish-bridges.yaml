@@ -3,6 +3,8 @@ name: Publish Bridges
 # Manually-triggered github action to publish mill-scala-compiler-bridges jars,
 # since those do not change frequently enough to be worth including in the main
 # publishing workflow that runs every Mill version
+#
+# To check what's already published, run `cs complete-dep com.lihaoyi:mill-scala-compiler-bridge`
 on:
   workflow_dispatch:
     inputs:
