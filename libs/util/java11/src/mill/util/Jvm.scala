@@ -43,8 +43,9 @@ object Jvm {
   ): ResolutionProcess.Fetch0[Task] = { moduleVersions =>
     fetch(moduleVersions).map(_.map {
       case (moduleVersion, Right((source: MavenRepositoryLike, project))) =>
-        val hasManagedOptionality = project.dependencyManagement0.exists(_._2.optional) ||
-          project.profiles.exists(_.dependencyManagement.exists(_._2.optional))
+        val hasManagedOptionality =
+          project.dependencyManagement0.exists(_._2.optional0.getOrElse(false)) ||
+            project.profiles.exists(_.dependencyManagement.exists(_._2.optional0.getOrElse(false)))
         val mavenProject =
           if (!hasManagedOptionality) project
           else {
@@ -52,14 +53,17 @@ object Jvm {
               case (variant, dependency) => variant -> dependency.withOptional(false)
             }
             val profiles = project.profiles.map { profile =>
-              profile.withDependencyManagement(profile.dependencyManagement.map {
-                case (configuration, dependency) =>
-                  configuration -> dependency.withOptional(false)
-              })
+              profile.copy(
+                dependencyManagement = profile.dependencyManagement.map {
+                  case (configuration, dependency) =>
+                    configuration -> dependency.copy(optional0 = Some(true))
+                }
+              )
             }
-            project
-              .withDependencyManagement0(dependencyManagement)
-              .withProfiles(profiles)
+            project.copy(
+              dependencyManagement0 = dependencyManagement,
+              profiles = profiles
+            )
           }
         moduleVersion -> Right(source -> mavenProject)
       case result => result

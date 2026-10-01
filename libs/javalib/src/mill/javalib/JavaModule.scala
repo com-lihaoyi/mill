@@ -2,14 +2,36 @@ package mill
 package javalib
 
 import coursier.{Repository, Type, VersionConstraint, core as cs}
-import coursier.core.{BomDependency, Configuration, DependencyManagement, Resolution}
+import coursier.core.{
+  BomDependency,
+  Configuration,
+  DependencyManagement,
+  Resolution,
+  VariantSelector
+}
 import coursier.params.ResolutionParams
 import coursier.parse.{JavaOrScalaModule, ModuleParser}
 import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
-import mill.api.{BuildCtx, DefaultTaskModule, MillException, ModuleRef, PathRef, Result, Segment, Task, TaskCtx}
+import mill.api.{
+  BuildCtx,
+  DefaultTaskModule,
+  MillException,
+  ModuleRef,
+  PathRef,
+  Result,
+  Segment,
+  Task,
+  TaskCtx
+}
 import mill.api.daemon.internal.{EvaluatorApi, JavaModuleApi, internal}
-import mill.api.daemon.internal.bsp.{BspBuildTarget, BspJavaModuleApi, BspModuleApi, BspUri, JvmBuildTarget}
+import mill.api.daemon.internal.bsp.{
+  BspBuildTarget,
+  BspJavaModuleApi,
+  BspModuleApi,
+  BspUri,
+  JvmBuildTarget
+}
 import mill.api.daemon.internal.eclipse.GenEclipseInternalApi
 import mill.javalib.*
 import mill.api.daemon.internal.idea.GenIdeaInternalApi
@@ -187,7 +209,8 @@ trait JavaModule
   def allBomDeps: Task[Seq[BomDependency]] = Task.Anon {
     val modVerOrMalformed =
       allBomMvnDeps().map(bindDependency()).map { bomDep =>
-        val fromModVer = coursier.core.Dependency(bomDep.dep.module, bomDep.version)
+        val fromModVer =
+          coursier.core.Dependency(bomDep.dep.module, VersionConstraint(bomDep.version))
         if (fromModVer == bomDep.dep)
           Right(bomDep.dep.asBomDependency)
         else
@@ -236,15 +259,17 @@ trait JavaModule
       : Seq[(DependencyManagement.Key, DependencyManagement.Values)] = {
     val keyValuesOrErrors =
       deps.map { depMgmt =>
-        val fromUsedValues = coursier.core.Dependency(depMgmt.module, depMgmt.version)
-          .withPublication(coursier.core.Publication(
-            "",
-            depMgmt.publication.`type`,
-            coursier.core.Extension.empty,
-            depMgmt.publication.classifier
-          ))
-          .withMinimizedExclusions(depMgmt.minimizedExclusions)
-          .withOptional(depMgmt.optional)
+        val fromUsedValues = coursier.core.Dependency(depMgmt.module, depMgmt.versionConstraint)
+          .copy(
+            publication = coursier.core.Publication(
+              "",
+              depMgmt.publication.`type`,
+              coursier.core.Extension.empty,
+              depMgmt.publication.classifier
+            ),
+            minimizedExclusions = depMgmt.minimizedExclusions,
+            optional0 = depMgmt.optional0
+          )
         if (fromUsedValues == depMgmt) {
           val key = DependencyManagement.Key(
             depMgmt.module.organization,
@@ -255,9 +280,9 @@ trait JavaModule
           )
           val values = DependencyManagement.Values(
             Configuration.empty,
-            depMgmt.version,
+            depMgmt.versionConstraint,
             depMgmt.minimizedExclusions,
-            depMgmt.optional
+            depMgmt.optional0
           )
           Right(key -> values)
         } else
@@ -551,8 +576,10 @@ trait JavaModule
         coursier.core.ModuleName(moduleSegments.parts.mkString("-").replace('/', '-')),
         Map.empty
       ),
-      JavaModule.internalVersion
-    ).withConfiguration(cs.Configuration.compile)
+      VersionConstraint(JavaModule.internalVersion)
+    ).copy(
+      variantSelector = VariantSelector.ConfigurationBased(cs.Configuration.compile)
+    )
 
   def coursierDependencyTask: Task[cs.Dependency] = Task.Anon {
     val bindDependency0 = bindDependency()
@@ -627,11 +654,15 @@ trait JavaModule
             Seq(
               (
                 cs.Configuration.compile,
-                modDep.withConfiguration(cs.Configuration.compile)
+                modDep.copy(
+                  variantSelector = VariantSelector.ConfigurationBased(cs.Configuration.compile)
+                )
               ),
               (
                 cs.Configuration.runtime,
-                modDep.withConfiguration(cs.Configuration.runtime)
+                modDep.copy(
+                  variantSelector = VariantSelector.ConfigurationBased(cs.Configuration.runtime)
+                )
               )
             )
           } ++
@@ -640,7 +671,9 @@ trait JavaModule
             // We pull their compile scope when our provided scope is asked (see scopes above)
             (
               cs.Configuration.provided,
-              modDep.withConfiguration(cs.Configuration.compile)
+              modDep.copy(
+                variantSelector = VariantSelector.ConfigurationBased(cs.Configuration.compile)
+              )
             )
           } ++
           runModuleDepsChecked0().map { modDep =>
@@ -648,7 +681,9 @@ trait JavaModule
             // We pull their runtime scope when our runtime scope is pulled
             (
               cs.Configuration.runtime,
-              modDep.withConfiguration(cs.Configuration.runtime)
+              modDep.copy(
+                variantSelector = VariantSelector.ConfigurationBased(cs.Configuration.runtime)
+              )
             )
           }
 
@@ -665,8 +700,18 @@ trait JavaModule
               )
             else
               Seq(
-                (cs.Configuration.compile, dep.withConfiguration(cs.Configuration.compile)),
-                (cs.Configuration.runtime, dep.withConfiguration(cs.Configuration.runtime))
+                (
+                  cs.Configuration.compile,
+                  dep.copy(
+                    variantSelector = VariantSelector.ConfigurationBased(cs.Configuration.compile)
+                  )
+                ),
+                (
+                  cs.Configuration.runtime,
+                  dep.copy(
+                    variantSelector = VariantSelector.ConfigurationBased(cs.Configuration.runtime)
+                  )
+                )
               )
         } ++
           compileMvnDeps().map(bindDependency()).map(_.dep).map { dep =>
@@ -675,7 +720,12 @@ trait JavaModule
             if (dep.isVariantAttributesBased)
               (cs.Configuration.provided, dep)
             else
-              (cs.Configuration.provided, dep.withConfiguration(cs.Configuration.compile))
+              (
+                cs.Configuration.provided,
+                dep.copy(
+                  variantSelector = VariantSelector.ConfigurationBased(cs.Configuration.compile)
+                )
+              )
           } ++
           runMvnDeps().map(bindDependency()).map(_.dep).map { dep =>
             // Runtime dependencies, like above
@@ -688,14 +738,21 @@ trait JavaModule
             else
               (
                 cs.Configuration.runtime,
-                dep.withConfiguration(cs.Configuration.runtime)
+                dep.copy(
+                  variantSelector = VariantSelector.ConfigurationBased(cs.Configuration.runtime)
+                )
               )
           } ++
           allBomDeps().map { bomDep =>
             // BOM dependencies
             // Maven has a special scope for those: "import"
             val dep =
-              cs.Dependency(bomDep.module, bomDep.versionConstraint).withConfiguration(bomDep.config)
+              cs.Dependency(
+                bomDep.module,
+                bomDep.versionConstraint
+              ).copy(
+                variantSelector = VariantSelector.ConfigurationBased(bomDep.config)
+              )
             (cs.Configuration.`import`, dep)
           }
 
@@ -712,7 +769,7 @@ trait JavaModule
 
       cs.Project(
         module = coursierDependencyTask().module,
-        version = coursierDependencyTask().version,
+        version = coursierDependencyTask().versionConstraint.asString,
         dependencies = internalDependencies ++ dependencies,
         configurations = scopes,
         parent = None,
