@@ -31,13 +31,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
   def ciScalacOptions: T[Seq[String]] = Task {
     if (isFatalWarnings()) {
       // Turn warnings into errors on CI
-      Seq(
-        "-Wconf:msg=is deprecated:silent"
-      ) ++ {
-        if (isScala3()) Seq("-Werror") else Seq("-Xfatal-warnings")
-      }
-    } else Seq(
-    )
+      if (isScala3()) Seq("-Werror") else Seq("-Xfatal-warnings")
+    } else Nil
   }
 
   def scalacOptions =
@@ -51,6 +46,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
         "-Wconf:msg=An existential type that came from a Scala-2 classfile:silent",
         "-Wconf:msg=import scala.language.implicitConversions:silent",
         "-Wconf:msg=IterableOnceExtensionMethods:silent",
+        "-Wconf:msg=is deprecated:silent",
         "-Wconf:msg=cannot be checked at runtime:silent"
         // "-Wconf:msg=unused:silent"
         // "-no-indent",
@@ -69,6 +65,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
         "-Wconf:msg=inferred type changes:silent",
         "-Wconf:msg=case companions no longer extend FunctionN:silent",
         "-Wconf:msg=access modifiers for:silent",
+        "-Wconf:msg=is deprecated:silent",
         "-Wconf:msg=found in a package prefix of the required type:silent"
       )
     )
