@@ -4,29 +4,46 @@ import mill.api.ExecResult
 import mill.testkit.UnitTester
 import sbt.testing.Status
 import utest.*
+import TestRunnerTestUtils.*
 
 object TestRunnerScalatestTests extends TestSuite {
-  import TestRunnerTestUtils.*
+
   override def tests: Tests = Tests {
+
     test("test") - UnitTester(testrunner, resourcePath).scoped { eval =>
       val Right(result) = eval(testrunner.scalatest.testForked()).runtimeChecked
-      assert(result.value.results.size == 9)
-      junitReportIn(eval.outPath, "scalatest").shouldHave(9 -> Status.Success)
+      assert(result.value.results.size == 10)
+      junitReportIn(eval.outPath, "scalatest").shouldHave(10 -> Status.Success)
     }
+
     test("discoveredTestClasses") - UnitTester(testrunner, resourcePath).scoped { eval =>
-      val Right(result) = eval.apply(testrunner.scalatest.discoveredTestClasses).runtimeChecked
-      val expected = Seq(
+      val Right(result) = eval.apply(testrunner.scalatestZinc.discoveredTestClasses).runtimeChecked
+      val expected = Set(
+        "mill.scalalib.OuterTests",
         "mill.scalalib.ScalaTestSpec",
         "mill.scalalib.ScalaTestSpec2",
         "mill.scalalib.ScalaTestSpec3"
       )
-      assert(result.value == expected)
+      assert(result.value.toSet == expected)
+      expected
+    }
+
+    test("discoveredTestClassesWithZinc") - UnitTester(testrunner, resourcePath).scoped { eval =>
+      val Right(result) = eval.apply(testrunner.scalatestZinc.discoveredTestClasses).runtimeChecked
+      val expected = Set(
+        "mill.scalalib.OuterTests",
+        "mill.scalalib.ScalaTestSpec",
+        "mill.scalalib.ScalaTestSpec2",
+        "mill.scalalib.ScalaTestSpec3"
+      )
+      assert(result.value.toSet == expected)
       expected
     }
 
     test("testOnly") - {
       scala.util.Using.resource(TestOnlyTester(_.scalatest)) { tester =>
 
+        println("Case 1:")
         // Run all tests re-using the same `tester` object for performance reasons
         // singleClass
         tester.testOnly(
@@ -53,10 +70,11 @@ object TestRunnerScalatestTests extends TestSuite {
           }
         )
 
+        println("Case 2:")
         // Runs three test classes with 3 test cases each, and trigger test grouping
         tester.testOnly(
           Seq("*"),
-          9,
+          10,
           Map(
             testrunner.scalatest -> Set(
               "claim",
@@ -69,26 +87,34 @@ object TestRunnerScalatestTests extends TestSuite {
               "testargs"
             ),
             testrunnerGrouping.scalatest -> Set(
-              "group-0-mill.scalalib.ScalaTestSpec",
-              "mill.scalalib.ScalaTestSpec3",
+              "group-0-mill.scalalib.OuterTests",
+              "group-1-mill.scalalib.ScalaTestSpec2",
               "test-report.xml"
             ),
             testrunnerWorkStealing.scalatest -> Set("worker-0", "test-classes", "test-report.xml")
           )
         )
+
+        println("Case 3:")
         // include flag -n
         tester.testOnly(Seq("mill.scalalib.ScalaTestSpec", "--", "-n", "tagged"), 1)
+
+        println("Case 4:")
         // exclude flag -l
         tester.testOnly(Seq("mill.scalalib.ScalaTestSpec", "--", "-l", "tagged"), 2)
+
+        println("Case 5:")
         // Specific test flag -z
         tester.testOnly(
           Seq("mill.scalalib.ScalaTestSpec", "--", "-z", "should have size 0"),
           1
         )
 
+        println("Case 6:")
         // Specific test flag -z with multiple suites
         tester.testOnly(Seq("*", "--", "-z", "should have size 0"), 3)
 
+        println("Case 7:")
         // Scalatest runs all test suites even when `-z` only finds matching tests
         // in one of them. This is just how Scalatest works, and you are expected to
         // sue `testOnly` with a selector before the `--` to select the class you want
@@ -107,14 +133,15 @@ object TestRunnerScalatestTests extends TestSuite {
               "testargs"
             ),
             testrunnerGrouping.scalatest -> Set(
-              "group-0-mill.scalalib.ScalaTestSpec",
-              "mill.scalalib.ScalaTestSpec3",
+              "group-0-mill.scalalib.OuterTests",
+              "group-1-mill.scalalib.ScalaTestSpec2",
               "test-report.xml"
             ),
             testrunnerWorkStealing.scalatest -> Set("worker-0", "test-classes", "test-report.xml")
           )
         )
 
+        println("Case 8:")
         // includeAndExclude
         tester.testOnly0 { (eval, mod) =>
           val Left(ExecResult.Failure(msg = msg)) =
