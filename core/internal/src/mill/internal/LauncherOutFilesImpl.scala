@@ -2,7 +2,7 @@ package mill.internal
 
 import mill.api.daemon.internal.LauncherOutFiles
 import mill.constants.DaemonFiles
-import mill.constants.OutFiles
+import mill.constants.OutFiles.OutFiles
 
 import java.nio.file.StandardCopyOption
 import java.util.concurrent.atomic.AtomicBoolean

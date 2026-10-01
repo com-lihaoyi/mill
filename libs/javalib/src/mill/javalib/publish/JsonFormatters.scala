@@ -1,6 +1,8 @@
 package mill.javalib.publish
 
-import upickle.{ReadWriter => RW}
+import upickle.ReadWriter as RW
+
+import scala.annotation.nowarn
 
 trait JsonFormatters {
   implicit lazy val artifactFormat: RW[Artifact] = upickle.macroRW
@@ -25,6 +27,7 @@ trait JsonFormatters {
         case v => upickle.read(v)(using upickle.macroRW[VersionControl])
       }
     )
+  @nowarn("cat=deprecation")
   implicit lazy val pomSettingsFormat: RW[PomSettings] = upickle.macroRW
 }
 object JsonFormatters extends JsonFormatters
