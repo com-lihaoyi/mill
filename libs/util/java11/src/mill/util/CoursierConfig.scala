@@ -53,7 +53,7 @@ object CoursierConfig {
       CacheEnv.defaultCachePolicies(
         CacheEnv.cachePolicy.read()
       ),
-      Some(s"Mill/${BuildInfo.millVersion} (Coursier/${BuildInfo.coursierVersion})")
+      Some(s"Mill/${BuildInfo.millVersion} (${BuildInfo.millProjectUrl}) Coursier/${BuildInfo.coursierVersion})")
     )
   }
 }

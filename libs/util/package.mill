@@ -43,6 +43,7 @@ object `package` extends MillStableScalaModule {
         "Scala version used to compile build.mill files"
       ),
       BuildInfo.Value("millBinPlatform", build.millBinPlatform(), "Mill binary platform version."),
+      BuildInfo.Value("millProjectUrl", Settings.projectUrl, "Mill project URL"),
       BuildInfo.Value("coursierVersion", Deps.coursier.version, "Coursier version")
     )
   }
