@@ -36,8 +36,9 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
       ) ++ {
         if (isScala3()) Seq("-Werror") else Seq("-Xfatal-warnings")
       }
-    } else Seq(
-    )
+    } else
+      Seq(
+      )
   }
 
   def scalacOptions =
