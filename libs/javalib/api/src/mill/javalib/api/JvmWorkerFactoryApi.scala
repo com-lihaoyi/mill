@@ -1,6 +1,7 @@
 package mill.javalib.api
 
 import mill.javalib.api.internal.ZincCompilerBridgeProvider
+import mill.api.daemon.ClassLoaderCache
 import mill.api.daemon.internal.internal
 import mill.javalib.api.internal.InternalJvmWorkerApi
 
@@ -12,6 +13,7 @@ import mill.javalib.api.internal.InternalJvmWorkerApi
  */
 case class JvmWorkerArgs(
     compilerBridge: ZincCompilerBridgeProvider,
+    sharedClassLoaderCache: ClassLoaderCache,
     classPath: Seq[os.Path],
     jobs: Int,
     zincLogDebug: Boolean,
