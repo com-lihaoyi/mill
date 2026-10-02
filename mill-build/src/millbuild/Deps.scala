@@ -126,10 +126,6 @@ object Deps {
     mvn"io.get-coursier::coursier-util:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierVersions = mvn"io.get-coursier::versions:0.5.1".withDottyCompat(scalaVersion)
   val coursierInterface = mvn"io.get-coursier:interface:1.0.30"
-  // Some coursier classes have GraalVM annotations referencing `Platform` inner classes.
-  // When those are missing, the Scala 3 compiler crashes while looking for import
-  // suggestions after a type error, rather than reporting the error.
-  val graalvmNativeImage = mvn"org.graalvm.sdk:nativeimage:25.0.4.1"
   val coursierJvm =
     mvn"io.get-coursier::coursier-jvm:$coursierVersion".withDottyCompat(scalaVersion)
 
