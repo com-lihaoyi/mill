@@ -113,25 +113,19 @@ object Deps {
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.189"
   val coursierVersion = "2.1.26"
-  val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
-  val coursierArchiveCache =
-    mvn"io.get-coursier::coursier-archive-cache:$coursierVersion".withDottyCompat(scalaVersion)
-  val coursierCore =
-    mvn"io.get-coursier::coursier-core:$coursierVersion".withDottyCompat(scalaVersion)
-  val coursierCache =
-    mvn"io.get-coursier::coursier-cache:$coursierVersion".withDottyCompat(scalaVersion)
-  val coursierPaths =
-    mvn"io.get-coursier:coursier-paths:$coursierVersion".withDottyCompat(scalaVersion)
-  val coursierUtil =
-    mvn"io.get-coursier::coursier-util:$coursierVersion".withDottyCompat(scalaVersion)
-  val coursierVersions = mvn"io.get-coursier::versions:0.5.1".withDottyCompat(scalaVersion)
+  val coursier = mvn"io.get-coursier::coursier:$coursierVersion"
+  val coursierArchiveCache = mvn"io.get-coursier::coursier-archive-cache:$coursierVersion"
+  val coursierCore = mvn"io.get-coursier::coursier-core:$coursierVersion"
+  val coursierCache = mvn"io.get-coursier::coursier-cache:$coursierVersion"
+  val coursierPaths = mvn"io.get-coursier:coursier-paths:$coursierVersion"
+  val coursierUtil = mvn"io.get-coursier::coursier-util:$coursierVersion"
+  val coursierVersions = mvn"io.get-coursier::versions:0.6.1"
   val coursierInterface = mvn"io.get-coursier:interface:1.0.30"
   // Some coursier classes have GraalVM annotations referencing `Platform` inner classes.
   // When those are missing, the Scala 3 compiler crashes while looking for import
   // suggestions after a type error, rather than reporting the error.
   val graalvmNativeImage = mvn"org.graalvm.sdk:nativeimage:25.0.4.1"
-  val coursierJvm =
-    mvn"io.get-coursier::coursier-jvm:$coursierVersion".withDottyCompat(scalaVersion)
+  val coursierJvm = mvn"io.get-coursier::coursier-jvm:$coursierVersion"
 
   val cask = mvn"com.lihaoyi::cask:0.9.4"
   val castor = mvn"com.lihaoyi::castor:0.3.0"
