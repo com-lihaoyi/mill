@@ -12,7 +12,6 @@
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>
         <orderEntry type="library" name="scala-SDK-<version>" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="cache-util-COURSIER_VERSION.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="commons-codec-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="commons-compress-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="commons-io-<version>.jar" level="project"/>
@@ -26,7 +25,6 @@
         <orderEntry type="library" scope="RUNTIME" name="coursier-exec-COURSIER_VERSION.jar" level="project"/>
         <orderEntry type="library" name="coursier-jvm_2.13-COURSIER_VERSION.jar" level="project"/>
         <orderEntry type="library" name="coursier-paths-COURSIER_VERSION.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="coursier-proxy-setup-COURSIER_VERSION.jar" level="project"/>
         <orderEntry type="library" name="coursier-util_2.13-COURSIER_VERSION.jar" level="project"/>
         <orderEntry type="library" name="coursier_2.13-COURSIER_VERSION.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="dependency_2.13-0.3.2.jar" level="project"/>
@@ -86,6 +84,7 @@
         <orderEntry type="library" name="mill-runner-autooverride-api_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="munit_3-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="native-terminal-no-ffm-0.0.9.1.jar" level="project"/>
+        <orderEntry type="library" name="nativeimage-25.0.4.1.jar" level="project"/>
         <orderEntry type="library" name="os-lib_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="os-zip-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="plexus-archiver-<version>.jar" level="project"/>
@@ -95,11 +94,11 @@
         <orderEntry type="library" scope="RUNTIME" name="plexus-utils-<version>.jar" level="project"/>
         <orderEntry type="library" name="pprint_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="requests_3-<version>.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="scala-collection-compat_2.13-2.13.0.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="scala-collection-compat_2.13-2.14.0.jar" level="project"/>
         <orderEntry type="library" name="scala-collection-compat_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="scala-library-<version>.jar" level="project"/>
         <orderEntry type="library" name="scala-reflect-<version>.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="scala-xml_2.13-2.4.0.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="scala-xml_2.13-2.5.0.jar" level="project"/>
         <orderEntry type="library" name="scala-xml_3-<version>.jar" level="project"/>
         <orderEntry type="library" scope="PROVIDED" name="scala3-library_3-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="scala3-library_3-<version>.jar" level="project"/>
@@ -120,11 +119,11 @@
         <orderEntry type="library" name="upickle-implicits_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="upickle_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="versions_2.13-0.5.1.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="versions_2.13-0.5.3.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="versions_2.13-0.6.1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="windows-ansi-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="windows-jni-utils-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="xbean-reflect-3.7.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="xz-1.12.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="zstd-jni-1.5.7-11.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="zstd-jni-1.5.7-16.jar" level="project"/>
     </component>
 </module>

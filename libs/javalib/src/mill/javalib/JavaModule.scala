@@ -1634,7 +1634,9 @@ trait JavaModule
             sources = true,
             resolutionParamsMapOpt =
               Some(
-                (_: ResolutionParams).copy(defaultConfiguration = coursier.core.Configuration.compile)
+                (_: ResolutionParams).copy(defaultConfiguration =
+                  coursier.core.Configuration.compile
+                )
               )
           )
         },
