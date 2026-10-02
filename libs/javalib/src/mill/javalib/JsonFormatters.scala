@@ -131,6 +131,8 @@ object JsonFormatters extends JsonFormatters {
   private[mill] object mirrors {
     given Root_coursier_Extension: Mirrors.Root[coursier.core.Extension] =
       Mirrors.autoRoot[coursier.core.Extension]
+    given Root_coursier_version_VersionInterval: Mirrors.Root[coursier.version.VersionInterval] =
+      Mirrors.autoRoot[coursier.version.VersionInterval]
     given Root_coursier_Organization: Mirrors.Root[coursier.core.Organization] =
       Mirrors.autoRoot[coursier.core.Organization]
     given Root_coursier_ModuleName: Mirrors.Root[coursier.core.ModuleName] =
