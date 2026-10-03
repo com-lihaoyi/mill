@@ -16,7 +16,10 @@ object MillRepositoriesTests extends UtestIntegrationTestSuite {
 
       // Set up a custom local repo by copying the Mill artifacts
       val millProjectRoot = os.Path(sys.env("MILL_PROJECT_ROOT"))
-      val sourceLocalRepo = millProjectRoot / "out" / "dist" / "raw" / "localRepo.dest"
+      // The Mill build running this test may use a custom output directory
+      val millProjectOut =
+        os.Path(mill.internal.OutputDirectoryLayout.regularOutDir(sys.env), millProjectRoot)
+      val sourceLocalRepo = millProjectOut / "dist" / "raw" / "localRepo.dest"
       val customLocalRepo = workspacePath / "custom-local-repo"
       os.copy(sourceLocalRepo, customLocalRepo)
 

@@ -459,8 +459,8 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
     proj.withDependencies(
       proj.dependencies.map {
         case (config, dep) =>
-          config -> dep.withMinimizedExclusions(
-            dep.minimizedExclusions.join(exclusions)
+          config -> dep.copy(
+            minimizedExclusions = dep.minimizedExclusions.join(exclusions)
           )
       }
     )

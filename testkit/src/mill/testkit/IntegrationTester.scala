@@ -43,6 +43,18 @@ class IntegrationTester(
 object IntegrationTester {
 
   /**
+   * Environment variables of the test process that only make sense for the Mill build running
+   * the tests, and that shouldn't leak into the Mill builds under test. In particular, Mill
+   * processes under test always use the default `out/` folder, unless a test passes
+   * `MILL_OUTPUT_DIR` explicitly.
+   */
+  private[testkit] val envVarsNotToPropagate = Seq(
+    EnvVars.MILL_WORKSPACE_ROOT,
+    EnvVars.MILL_OUTPUT_DIR,
+    EnvVars.OS_LIB_PATH_RELATIVIZER_BASE
+  )
+
+  /**
    * A very simplified version of `os.CommandResult` meant for easily
    * performing assertions against.
    */
@@ -238,13 +250,8 @@ object IntegrationTester {
         (millExecutable, serverArgs, "--ticker", "false", debugArgs, cmd)
 
       val parentEnv =
-        if (propagateEnv) {
-          sys.env -- Seq(
-            EnvVars.MILL_WORKSPACE_ROOT,
-            EnvVars.MILL_OUTPUT_DIR,
-            EnvVars.OS_LIB_PATH_RELATIVIZER_BASE
-          )
-        } else Map.empty[String, String]
+        if (propagateEnv) sys.env -- IntegrationTester.envVarsNotToPropagate
+        else Map.empty[String, String]
       val sandboxMillEnv = Map(
         EnvVars.MILL_WORKSPACE_ROOT -> workspacePath.wrapped.toAbsolutePath.normalize().toString,
         EnvVars.OS_LIB_PATH_RELATIVIZER_BASE -> ""
@@ -405,7 +412,7 @@ object IntegrationTester {
           case s"$external/" => Seq(external) ++ taskSegments.parts
           case s"$script:" => Seq(script) ++ taskSegments.parts
         }
-        os.read(workspacePath / OutFiles.out / segments.init / s"${segments.last}.json")
+        os.read(workspacePath / OutFiles.defaultOut / segments.init / s"${segments.last}.json")
       }
 
       /**
@@ -468,7 +475,7 @@ object IntegrationTester {
           System.in
         )
       ),
-      env = sys.env ++ env,
+      env = (sys.env -- envVarsNotToPropagate) ++ env,
       workDir = workDir
     )
 

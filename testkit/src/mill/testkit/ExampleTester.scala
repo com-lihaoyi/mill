@@ -236,7 +236,7 @@ ${expectedSnippets.mkString("\n")}
           System.in
         )
       ),
-      env = sys.env ++ millTestSuiteEnv,
+      env = (sys.env -- IntegrationTester.envVarsNotToPropagate) ++ millTestSuiteEnv,
       workDir = workspacePath
     )
 
@@ -262,7 +262,9 @@ ${expectedSnippets.mkString("\n")}
       stderr = os.Inherit,
       cwd = workspacePath,
       mergeErrIntoOut = true,
-      env = millTestSuiteEnv ++ windowsPathEnv,
+      env = (sys.env -- IntegrationTester.envVarsNotToPropagate) ++ millTestSuiteEnv ++
+        windowsPathEnv,
+      propagateEnv = false,
       check = false
     )
 

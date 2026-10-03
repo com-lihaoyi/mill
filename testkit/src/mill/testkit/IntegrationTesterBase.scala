@@ -1,6 +1,6 @@
 package mill.testkit
 
-import mill.constants.OutFiles.OutFiles.{millDaemon, millNoDaemon, out}
+import mill.constants.OutFiles.OutFiles.{defaultOut as out, millDaemon, millNoDaemon}
 import mill.constants.DaemonFiles.processId
 import mill.util.Retry
 

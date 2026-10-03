@@ -169,7 +169,7 @@ object BomTests extends TestSuite {
             val dep = mvn"org.java-websocket:Java-WebSocket:1.5.3"
             Seq(
               dep.copy(
-                dep = dep.dep.withTransitive(false)
+                dep = dep.dep.copy(transitive = false)
               )
             )
           }

@@ -15,10 +15,10 @@ private[dependency] final case class MavenMetadataLoader(
     clock: Clock
 ) extends MetadataLoader {
 
-  private val cache = coursier.cache.FileCache[Task]()
-    .withClock(clock)
+  private val cache = coursier.cache.FileCache()
+    .copy(clock = clock)
     .pipe { cache =>
-      if (offline) cache.withCachePolicies(Seq(LocalOnly))
+      if (offline) cache.copy(cachePolicies = Seq(LocalOnly))
       else cache
     }
 

@@ -112,7 +112,7 @@ object Deps {
   val bouncyCastlePgp = mvn"org.bouncycastle:bcpg-jdk18on:${bouncyCastleVersion}"
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.189"
-  val coursierVersion = "2.1.25-M26"
+  val coursierVersion = "2.1.26"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierArchiveCache =
     mvn"io.get-coursier::coursier-archive-cache:$coursierVersion".withDottyCompat(scalaVersion)
@@ -125,7 +125,7 @@ object Deps {
   val coursierUtil =
     mvn"io.get-coursier::coursier-util:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierVersions = mvn"io.get-coursier::versions:0.5.1".withDottyCompat(scalaVersion)
-  val coursierInterface = mvn"io.get-coursier:interface:1.0.29-M4"
+  val coursierInterface = mvn"io.get-coursier:interface:1.0.30"
   val coursierJvm =
     mvn"io.get-coursier::coursier-jvm:$coursierVersion".withDottyCompat(scalaVersion)
 
