@@ -115,10 +115,12 @@ object Discover {
 
       def filterDefs(methods: List[Symbol]): List[Symbol] =
         methods.filterNot { m =>
+          // Flags.is checks the whole mask, so test mutually exclusive visibility flags separately.
           m.isSuperAccessor
-          || m.flags.is(
-            Flags.Synthetic | Flags.Invisible | Flags.Private | Flags.Protected
-          )
+          || m.flags.is(Flags.Synthetic)
+          || m.flags.is(Flags.Invisible)
+          || m.flags.is(Flags.Private)
+          || m.flags.is(Flags.Protected)
           || m.privateWithin.nonEmpty // for some reason `Flags.Private` doesn't always work
         }
 
@@ -150,10 +152,11 @@ object Discover {
             curCls,
             sub = TypeRepr.of[mill.api.Task.Named[?]],
             curCls.typeSymbol.declaredMethods.filterNot { m =>
+              // Private tasks still need distinct paths when same-named methods from multiple
+              // traits are mixed into one module, even though they are not CLI entry points.
               m.isSuperAccessor ||
               m.flags.is(Flags.Synthetic) ||
-              m.flags.is(Flags.Invisible) ||
-              (m.flags.is(Flags.Private) && m.privateWithin.isEmpty)
+              m.flags.is(Flags.Invisible)
             }
           )
 
