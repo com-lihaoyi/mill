@@ -160,7 +160,7 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
       "PYTHONPYCACHEPREFIX" -> (Task.dest / "cache").toString,
       if (Task.log.prompt.colored) { "FORCE_COLOR" -> "1" }
       else { "NO_COLOR" -> "1" }
-    )
+    ) ++ javaHome().map(javaHome => "JAVA_HOME" -> javaHome.path.toString)
   }
 
   /**
@@ -264,6 +264,11 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
 
   trait PythonTests extends PythonModule {
     override def moduleDeps: Seq[PythonModule] = Seq(outer)
+
+    override def jvmId: T[String] = outer.jvmId
+    override def jvmVersion: T[String] = outer.jvmVersion
+    override def jvmIndexVersion: T[String] = outer.jvmIndexVersion
+    override def javaHome: T[Option[PathRef]] = outer.javaHome
   }
 
 }
