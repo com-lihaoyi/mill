@@ -9,7 +9,7 @@ import mill.javalib.JavaHomeModule
 import mill.api.BuildCtx
 import mill.api.internal.PathAliasing
 
-trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule { outer =>
+trait PythonModule extends UvModule with DefaultTaskModule with JavaHomeModule { outer =>
 
   /**
    *  The direct dependencies of this module.
@@ -18,8 +18,7 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
   def moduleDeps: Seq[PythonModule] = Nil
 
   /**
-   * Python interpreter found on the host system. This will be used to create a
-   * new virtual environment, which will be used by all tasks in this module.
+   * Python version request passed to uv when creating the virtual environment.
    *
    * If you'd like to use a specific python version, override this task to
    * point to a specific python executable.
@@ -27,29 +26,53 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
    * Examples:
    *
    * ```
-   * // use whatever python version is installed on the host system (default)
-   * def hostPythonCommand = T{ "python3" }
+   * // use Mill's default modern Python version
+   * def pythonVersion = T{ "3.12" }
    *
    * // use a specific minor release
-   * def hostPythonCommand = T{ "python3.12" }
+   * def pythonVersion = T{ "3.13" }
    *
    * // use a specific executable file
-   * def hostPythonCommand = T{ "/usr/bin/python3" }
+   * def pythonVersion = T{ "/usr/bin/python3" }
    * ```
    */
-  def hostPythonCommand: T[String] = Task { "python3" }
+  def pythonVersion: T[String] = Task { "3.12" }
+
+  private def venvBinPath(venv: os.Path): os.Path =
+    venv / (if (mill.constants.Util.isWindows) "Scripts" else "bin")
+
+  private def venvExecutable(venv: os.Path, name: String): os.Path =
+    venvBinPath(venv) / (name + (if (mill.constants.Util.isWindows) ".exe" else ""))
 
   /*
-   * Initalize a virtual environment for this module, and install all libraries and tools
+   * Initialize a virtual environment for this module, and install all libraries and tools
    * needed by this module and its dependencies.
    */
   def venv: T[PathRef] = Task {
     val venv = Task.dest / "venv"
-    os.call((hostPythonCommand(), "-m", "venv", venv))
+    val uvEnv = uvEnvTask()
     os.call(
-      (venv / "bin/python3", "-m", "pip", "install", pipInstallArgs().args),
+      (uvExe().path, "venv", "--python", pythonVersion(), venv),
+      env = uvEnv,
       stdout = os.Inherit
     )
+    val python = venvExecutable(venv, "python")
+    val installArgs = uvInstallArgs().args
+    if (installArgs != uvIndexArgs()) {
+      os.call(
+        (
+          uvExe().path,
+          "pip",
+          "install",
+          "--python",
+          python,
+          "--strict",
+          installArgs
+        ),
+        env = uvEnv,
+        stdout = os.Inherit
+      )
+    }
     PathRef(venv)
   }
 
@@ -59,7 +82,7 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
    * dependencies.
    */
   def venvBin: T[PathRef] = Task {
-    PathRef(venv().path / "bin")
+    PathRef(venvBinPath(venv().path))
   }
 
   /**
@@ -68,14 +91,15 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
    * tools needed by this module and its dependencies.
    */
   def pythonExe: T[PathRef] = Task {
-    val python = venvBin().path / "python3"
-    PathRef(python)
+    PathRef(venvExecutable(venv().path, "python"))
   }
 
   /**
-   * The folders where the source files for this mill module live.
+   * The paths where the source files for this Mill module live.
    *
-   * Python modules will be defined relative to these directories.
+   * Standard [[PythonModule]]s return source directories, while
+   * [[BarePythonModule]] returns individual files whose import names are based
+   * on their paths relative to the workspace root.
    */
   def sources: T[Seq[PathRef]] = Task.Sources("src")
 
@@ -89,12 +113,11 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
    */
   def mainScript: T[PathRef] = Task.Source("src/main.py")
 
-  override def pythonToolDeps: T[Seq[String]] = Task {
-    super.pythonToolDeps() ++ Seq(
-      "mypy==1.13.0",
-      "pex==2.24.1"
-    )
-  }
+  /** The isolated ty tool environment managed and cached by uv. */
+  def tyTool: T[String] = Task { "ty==0.0.84" }
+
+  /** The isolated PEX tool environment managed and cached by uv. */
+  def pexTool: T[String] = Task { "pex==2.103.4" }
 
   /**
    * Additional directories to include in the PYTHONPATH directly. These paths
@@ -139,6 +162,9 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
    */
   def pythonOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
+  /** Additional interpreter options for a second and later related invocation. */
+  protected def repeatedPythonOptions: T[Seq[String]] = Task { Seq.empty[String] }
+
   /**
    * Command-line options to pass as bundle configuration defined by the user.
    */
@@ -154,23 +180,54 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
       pythonPycachePrefix = Task.dest / "cache",
       forceColor = Task.log.prompt.colored,
       javaHome = javaHome().map(_.path),
+      venv = venv().path,
+      venvBin = venvBin().path,
+      inheritedPath = PythonModule.pathEnvironmentValue(Task.env),
       forkEnv0 = PathAliasing.withRawPathSerializer(forkEnv()),
       workingDir0 = Task.dest
     )
+  }
+
+  /** A runner for invoking uv with the module environment. */
+  def uvRunner: Task[PythonModule.Runner] = Task.Anon {
+    new PythonModule.ExternalRunnerImpl(
+      command0 = PathRef.toAbsString(uvExe().path),
+      options = Nil,
+      env0 = PathAliasing.withRawPathSerializer(uvEnvTask()),
+      workingDir0 = Task.dest
+    )
+  }
+
+  private def processEnvTask = Task.Anon {
+    Map(
+      if (Task.log.prompt.colored) { "FORCE_COLOR" -> "1" }
+      else { "NO_COLOR" -> "1" }
+    ) ++ javaHome().map(javaHome => "JAVA_HOME" -> javaHome.path.toString)
+  }
+
+  private def uvEnvTask = Task.Anon {
+    PythonModule.uvEnvironment(processEnvTask(), forkEnv(), Task.offline)
   }
 
   /**
    * Run a typechecker on this module.
    */
   def typeCheck: T[Unit] = Task {
-    runner().run(
-      Seq(
-        "-m",
-        "mypy",
-        "--strict",
-        "--cache-dir",
-        PathRef.toRelString(Task.dest / "mypycache", Task.dest)
-      ) ++ sources().map(pr => PathRef.toRelString(pr.path, Task.dest)),
+    uvRunner().run(
+      (
+        // format: off
+        "tool", "run",
+        uvIndexArgs(),
+        "--from", tyTool(),
+        "ty",
+        "check",
+        "--python", PathRef.toRelString(pythonExe().path, Task.dest),
+        transitivePythonPath().filter(path => os.exists(path.path)).flatMap(path =>
+          Seq("--extra-search-path", PathRef.toRelString(path.path, Task.dest))
+        ),
+        sources().map(path => PathRef.toRelString(path.path, Task.dest))
+        // format: on
+      ),
       workingDir = Task.dest
     )
   }
@@ -207,10 +264,13 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
           pythonPycachePrefix = Task.dest / "cache",
           forceColor = Task.log.prompt.colored,
           javaHome = javaHome().map(_.path),
+          venv = venv().path,
+          venvBin = venvBin().path,
+          inheritedPath = PythonModule.pathEnvironmentValue(Task.env),
           cwd = cwd,
           // The detached background process can't resolve `../mill-workspace` aliases.
           relativize = false
-        ),
+        ) ++ PathAliasing.withRawPathSerializer(forkEnv()),
         mainArgs = backgroundPaths.toArgs ++ Seq(
           "<subprocess>",
           // `MillBackgroundWrapper` is a detached process that relaunches these via plain
@@ -223,9 +283,8 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
           // unresolved: fully resolving it would point at the base interpreter and Python would
           // no longer detect the virtualenv (via the adjacent `pyvenv.cfg`), losing the venv's
           // installed packages.
-          PathRef.toResolvedPathString(pythonExe().path / os.up) + "/" + pythonExe().path.last,
-          PathRef.toResolvedPathString(mainScript().path)
-        ) ++ args.value,
+          PathRef.toResolvedPathString(pythonExe().path / os.up) + "/" + pythonExe().path.last
+        ) ++ pythonOptions() ++ Seq(PathRef.toResolvedPathString(mainScript().path)) ++ args.value,
         cwd = cwd,
         stdin = "",
         // Hack to forward the background subprocess output to the Mill server process
@@ -254,30 +313,99 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
     }
   }
 
-  /** Bundles the project into a single PEX executable(bundle.pex). */
+  /** Bundles the project into a self-contained native PEX SCIE executable. */
   def bundle = Task {
-    val pexFile = Task.dest / "bundle.pex"
-    runner().run(
-      Seq(
-        "-m",
-        "pex"
-      ) ++ transitivePythonDeps().toSeq ++
+    if (Task.offline) {
+      Task.fail(
+        "PEX SCIE bundles cannot be built with --offline because PEX may need to download " +
+          "the science launcher and portable Python assets"
+      )
+    }
+    val bundleFile = Task.dest / (if (mill.constants.Util.isWindows) "bundle.exe" else "bundle")
+    val sciePythonVersion = os.call(
+      (
+        pythonExe().path,
+        "-c",
+        "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"
+      )
+    ).out.trim()
+    val projectWheels = transitivePythonProjectDeps().distinctBy(_.path).zipWithIndex.map {
+      case (project, index) =>
+        val outputDir = Task.dest / "project-wheels" / index.toString
+        uvRunner().run(
+          (
+            "build",
+            "--python",
+            pythonVersion(),
+            uvIndexArgs(),
+            "--wheel",
+            "--clear",
+            "--no-create-gitignore",
+            "--out-dir",
+            outputDir,
+            project.path
+          ),
+          workingDir = Task.dest
+        )
+        os.list(outputDir).filter(_.ext == "whl") match {
+          case Seq(wheel) => wheel
+          case artifacts =>
+            Task.fail(
+              s"Expected exactly one wheel for local Python project ${project.path}, " +
+                s"found: ${artifacts.mkString(", ")}"
+            )
+        }
+    }
+    val requirements = transitivePythonDeps() ++
+      transitiveUnmanagedWheels().map(path => PathRef.toRelString(path.path, Task.dest)) ++
+      projectWheels.map(path => PathRef.toRelString(path, Task.dest))
+    val requirementFiles = transitivePythonRequirementFiles().filter { path =>
+      os.exists(path.path) && os.read.lines(path.path).exists { line =>
+        val trimmed = line.trim
+        trimmed.nonEmpty && !trimmed.startsWith("#")
+      }
+    }
+    val venvRepositoryArgs =
+      if (requirements.nonEmpty || requirementFiles.nonEmpty)
+        Seq("--venv-repository", PathRef.toRelString(venv().path, Task.dest))
+      else Nil
+    uvRunner().run(
+      (
+        // format: off
+        "tool", "run",
+        uvIndexArgs(),
+        "--from", pexTool(),
+        "pex",
+        requirements,
+        requirementFiles.flatMap(path =>
+          Seq("-r", PathRef.toRelString(path.path, Task.dest))
+        ),
+        venvRepositoryArgs,
         transitivePythonPath().flatMap(pr =>
           Seq("-D", PathRef.toRelString(pr.path, Task.dest))
-        ) ++
-        Seq(
-          "--exe",
-          PathRef.toRelString(mainScript().path, Task.dest),
-          "-o",
-          PathRef.toRelString(pexFile, Task.dest)
-        ) ++ bundleOptions(),
+        ),
+        "--exe", PathRef.toRelString(mainScript().path, Task.dest),
+        "--scie", "eager",
+        "--scie-python-version", sciePythonVersion,
+        "--scie-only",
+        "-o", PathRef.toRelString(bundleFile, Task.dest),
+        bundleOptions()
+        // format: on
+      ),
       workingDir = Task.dest
     )
-    PathRef(pexFile)
+    PathRef(bundleFile)
   }
 
   trait PythonTests extends PythonModule {
     override def moduleDeps: Seq[PythonModule] = Seq(outer)
+
+    override def pythonVersion: T[String] = outer.pythonVersion
+    override def uvVersion: T[String] = outer.uvVersion
+    override def uvDownloadUrl: T[String] = outer.uvDownloadUrl
+    override def uvChecksumUrl: T[String] = outer.uvChecksumUrl
+    override def uvExe: T[PathRef] = outer.uvExe
+    override def indexes: T[Seq[String]] = outer.indexes
 
     // Inherit the outer module's JDK selection so tests run on the same Java as the
     // module under test (mirrors `JavaModule`'s nested test module). Without this,
@@ -291,6 +419,22 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
 }
 
 object PythonModule {
+
+  /** A [[BarePythonModule]] available as `PythonModule.Bare`. */
+  trait Bare extends BarePythonModule
+
+  private[pythonlib] def pathEnvironmentValue(env: collection.Map[String, String]): String =
+    env.collectFirst { case (key, value) if key.equalsIgnoreCase("PATH") => value }.getOrElse("")
+
+  private[pythonlib] def uvEnvironment(
+      defaults: Map[String, String],
+      forkEnv: Map[String, String],
+      offline: Boolean
+  ): Map[String, String] = {
+    val environment = defaults ++ forkEnv
+    if (offline) environment.updated("UV_OFFLINE", "1") else environment
+  }
+
   trait Runner {
     def run(
         args: os.Shellable = Seq(),
@@ -307,6 +451,9 @@ object PythonModule {
       pythonPycachePrefix: os.Path,
       forceColor: Boolean,
       javaHome: Option[os.Path],
+      venv: os.Path,
+      venvBin: os.Path,
+      inheritedPath: String,
       forkEnv0: Map[String, String],
       workingDir0: os.Path
   ) extends Runner {
@@ -318,18 +465,47 @@ object PythonModule {
     )(using ctx: TaskCtx): Unit = {
       val cwd = Option(workingDir).getOrElse(workingDir0)
       PathAliasing.ensureProcessCwdAliases(cwd)
+      val baseEnv = PythonModule.runnerEnv(
+        pythonPath = pythonPath,
+        pythonPycachePrefix = pythonPycachePrefix,
+        forceColor = forceColor,
+        javaHome = javaHome,
+        venv = venv,
+        venvBin = venvBin,
+        inheritedPath = inheritedPath,
+        cwd = cwd
+      ) ++ forkEnv0
       os.call(
         cmd = Seq(Option(command).getOrElse(PathRef.toRelString(command0, cwd))) ++
           options ++ args.value,
-        env = Option(env).getOrElse(
-          PythonModule.runnerEnv(
-            pythonPath = pythonPath,
-            pythonPycachePrefix = pythonPycachePrefix,
-            forceColor = forceColor,
-            javaHome = javaHome,
-            cwd = cwd
-          ) ++ forkEnv0
-        ) ++ PathAliasing.workspaceEnvVarsForCwd(cwd),
+        env = baseEnv ++ Option(env).getOrElse(Map.empty) ++
+          PathAliasing.workspaceEnvVarsForCwd(cwd),
+        cwd = cwd,
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        check = true
+      )
+    }
+  }
+
+  private class ExternalRunnerImpl(
+      command0: String,
+      options: Seq[String],
+      env0: Map[String, String],
+      workingDir0: os.Path
+  ) extends Runner {
+    def run(
+        args: os.Shellable = Seq(),
+        command: String = null,
+        env: Map[String, String] = null,
+        workingDir: os.Path = null
+    )(using ctx: TaskCtx): Unit = {
+      val cwd = Option(workingDir).getOrElse(workingDir0)
+      PathAliasing.ensureProcessCwdAliases(cwd)
+      os.call(
+        cmd = Seq(Option(command).getOrElse(command0)) ++ options ++ args.value,
+        env = env0 ++ Option(env).getOrElse(Map.empty) ++
+          PathAliasing.workspaceEnvVarsForCwd(cwd),
         cwd = cwd,
         stdin = os.Inherit,
         stdout = os.Inherit,
@@ -343,6 +519,9 @@ object PythonModule {
       pythonPycachePrefix: os.Path,
       forceColor: Boolean,
       javaHome: Option[os.Path],
+      venv: os.Path,
+      venvBin: os.Path,
+      inheritedPath: String,
       cwd: os.Path,
       // When false, emit real absolute paths instead of `../mill-workspace` aliases. The detached
       // background process (`MillBackgroundWrapper`) relaunches via plain `ProcessBuilder` and
@@ -354,6 +533,8 @@ object PythonModule {
     Map(
       "PYTHONPATH" -> pythonPath.map(fmt).mkString(java.io.File.pathSeparator),
       "PYTHONPYCACHEPREFIX" -> fmt(pythonPycachePrefix),
+      "VIRTUAL_ENV" -> fmt(venv),
+      "PATH" -> (fmt(venvBin) + java.io.File.pathSeparator + inheritedPath),
       if (forceColor) "FORCE_COLOR" -> "1" else "NO_COLOR" -> "1"
     ) ++ javaHome.map(jh => "JAVA_HOME" -> fmt(jh))
   }

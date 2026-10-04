@@ -29,7 +29,7 @@ import mill.api.PathRef
 trait CoverageModule extends PythonModule {
 
   override def pythonToolDeps = Task {
-    super.pythonToolDeps() ++ Seq("coverage>=7.6.10")
+    super.pythonToolDeps() ++ Seq("coverage==7.16.2")
   }
 
   /**
@@ -132,9 +132,15 @@ trait CoverageTests extends CoverageModule with TestModule {
       "coverage",
       "run",
       "--data-file",
-      PathRef.toRelString(coverageDataFile())
+      // Pytest runs from the workspace root while unittest runs from a task output directory.
+      // Use the real path so both runners write to the same coverage data file.
+      PathRef.toResolvedPathString(coverageDataFile())
     ) ++
       super.pythonOptions()
+  }
+
+  override protected def repeatedPythonOptions = Task {
+    super.repeatedPythonOptions() ++ Seq("--append")
   }
 
   override def coverageTask = testCached

@@ -13,4 +13,10 @@ object `package` extends PythonModule {
 > ./mill run
 [10 20 30 40 50]
 
+> ./mill show bundle
+".../out/bundle.dest/bundle"
+
+> out/bundle.dest/bundle
+[10 20 30 40 50]
+
 */
