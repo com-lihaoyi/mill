@@ -7,6 +7,7 @@ import coursier.core.Repository
 import coursier.credentials.Credentials
 import coursier.params.Mirror
 
+import scala.util.{Success, Try}
 import scala.concurrent.duration.Duration
 
 final case class CoursierConfig(
@@ -55,13 +56,13 @@ object CoursierConfig {
       ),
       Some(
         s"Mill${
-            Try(Verion.parse(BuildInfo.millVersion)) match {
-              case Some(v) => s"/${v.major}. ${v.minor}"
+            Try(Version.parse(BuildInfo.millVersion)) match {
+              case Success(v) => s"/${v.major}. ${v.minor}"
               case _ => ""
             }
           } (${BuildInfo.millProjectUrl}) Coursier${
-            Try(Verion.parse(BuildInfo.coursierVersion)) match {
-              case Some(v) => s"/${v.major}. ${v.minor}"
+            Try(Version.parse(BuildInfo.coursierVersion)) match {
+              case Success(v) => s"/${v.major}. ${v.minor}"
               case _ => ""
             }
           }"
