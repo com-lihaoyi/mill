@@ -1,6 +1,6 @@
 package mill.util
 
-import mill.api.experimental
+import mill.api.daemon.experimental
 
 @experimental
 class Version private (
