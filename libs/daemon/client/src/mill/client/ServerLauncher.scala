@@ -233,7 +233,12 @@ object ServerLauncher {
             log(s"The server has started: $launchedServer")
 
             log(s"Waiting for the server to take the daemon lock: ${locks.daemonLock}")
-            waitUntilDaemonTakesTheLock(locks.daemonLock, daemonDir, launchedServer) match {
+            waitUntilDaemonTakesTheLock(
+              locks.daemonLock,
+              daemonDir,
+              launchedServer,
+              timeoutMillis
+            ) match {
               case Some(outputs) =>
                 log(s"The server $launchedServer failed to start: $outputs")
                 Some(ServerLaunchResult.ServerDied(launchedServer, outputs))
@@ -276,15 +281,33 @@ object ServerLauncher {
   }
 
   /**
-   * Busy-spins until the server process is running and has taken the daemonLock.
+   * Busy-spins until the server process is running and has taken the daemonLock,
+   * or until the given timeout elapses.
+   *
+   * Returns [[Some]] with the daemon's output if the daemon died or the deadline was
+   * exceeded before the lock was taken; returns [[None]] on success.
+   *
+   * Without a deadline this loop spins forever when the daemon is alive-but-stalled
+   * (e.g. suspended by SIGSTOP/SIGTSTP, or blocked inside JVM startup).  The outer
+   * [[retryWithTimeout]] only checks elapsed time *between* invocations of its supplier
+   * lambda, so it cannot bound a single call to this method.
    */
   private def waitUntilDaemonTakesTheLock(
       daemonLock: Lock,
       daemonDir: os.Path,
-      server: LaunchedServer
+      server: LaunchedServer,
+      timeoutMillis: Long
   ): Option[ServerLaunchOutputs] = {
+    val deadline = System.currentTimeMillis() + timeoutMillis
     while (daemonLock.probe()) {
       if (!server.isAlive) return Some(readOutputs(daemonDir))
+      if (System.currentTimeMillis() >= deadline)
+        return Some(ServerLaunchOutputs(
+          None,
+          Some(
+            s"Timed out after ${timeoutMillis}ms waiting for the Mill daemon to take the daemon lock"
+          )
+        ))
       Thread.sleep(1)
     }
     None
