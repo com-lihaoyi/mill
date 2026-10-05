@@ -1,5 +1,5 @@
 import unittest
-from bar import generate_html  # type: ignore
+from bar import generate_html
 
 
 class TestScript(unittest.TestCase):

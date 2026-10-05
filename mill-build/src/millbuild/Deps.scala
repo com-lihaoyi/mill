@@ -112,7 +112,7 @@ object Deps {
   val bouncyCastlePgp = mvn"org.bouncycastle:bcpg-jdk18on:${bouncyCastleVersion}"
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.189"
-  val coursierVersion = "2.1.25-M26"
+  val coursierVersion = "2.1.26"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierArchiveCache =
     mvn"io.get-coursier::coursier-archive-cache:$coursierVersion".withDottyCompat(scalaVersion)
@@ -164,7 +164,7 @@ object Deps {
 
   val junitInterface = mvn"com.github.sbt:junit-interface:0.13.3"
   val commonsIo = mvn"commons-io:commons-io:2.22.0"
-  val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.26.0"
+  val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.26.1"
   val osLib = mvn"com.lihaoyi::os-lib:0.11.8"
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:${osLib.version}"
   val pprint = mvn"com.lihaoyi::pprint:0.9.6"
@@ -234,7 +234,7 @@ object Deps {
   val javaparser = mvn"com.github.javaparser:javaparser-core:3.28.2"
   val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.18.1"
   val requests = mvn"com.lihaoyi::requests:0.9.3"
-  val logback = mvn"ch.qos.logback:logback-classic:1.6.3"
+  val logback = mvn"ch.qos.logback:logback-classic:1.6.4"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
   val kotlinVersion = "2.1.20"
   val kspVersion = "2.0.1"

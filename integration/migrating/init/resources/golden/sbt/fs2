@@ -398,7 +398,7 @@ Module dependencies of unidocs.3_3_5:
             "value": ""
           }
         },
-        "optional": false,
+        "optional0": null,
         "transitive": true,
         "overrides": [],
         "boms": [],
@@ -449,7 +449,7 @@ Module dependencies of unidocs.3_3_5:
             "value": ""
           }
         },
-        "optional": false,
+        "optional0": null,
         "transitive": true,
         "overrides": [],
         "boms": [],
@@ -598,7 +598,7 @@ Module dependencies of unidocs.3_3_5:
             "value": ""
           }
         },
-        "optional": false,
+        "optional0": null,
         "transitive": true,
         "overrides": [],
         "boms": [],
@@ -649,7 +649,7 @@ Module dependencies of unidocs.3_3_5:
             "value": ""
           }
         },
-        "optional": false,
+        "optional0": null,
         "transitive": true,
         "overrides": [],
         "boms": [],
@@ -789,7 +789,7 @@ Module dependencies of unidocs.3_3_5:
             "value": ""
           }
         },
-        "optional": false,
+        "optional0": null,
         "transitive": true,
         "overrides": [],
         "boms": [],
@@ -840,7 +840,7 @@ Module dependencies of unidocs.3_3_5:
             "value": ""
           }
         },
-        "optional": false,
+        "optional0": null,
         "transitive": true,
         "overrides": [],
         "boms": [],
@@ -989,7 +989,7 @@ Module dependencies of unidocs.3_3_5:
             "value": ""
           }
         },
-        "optional": false,
+        "optional0": null,
         "transitive": true,
         "overrides": [],
         "boms": [],
@@ -1040,7 +1040,7 @@ Module dependencies of unidocs.3_3_5:
             "value": ""
           }
         },
-        "optional": false,
+        "optional0": null,
         "transitive": true,
         "overrides": [],
         "boms": [],

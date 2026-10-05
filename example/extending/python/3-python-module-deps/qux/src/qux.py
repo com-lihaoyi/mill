@@ -1,5 +1,5 @@
-from foo.bar.src.bar import add # type: ignore
-from foo.src.foo import multiply # type: ignore
+from foo.bar.src.bar import add
+from foo.src.foo import multiply
 import sys
 def divide(a: int, b: int) -> float: return a/b
 def main() -> None:
