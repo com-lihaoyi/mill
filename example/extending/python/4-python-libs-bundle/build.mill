@@ -1,13 +1,16 @@
 // This implementation extends `PythonModule` with these key Tasks:
 //
-// - `pythonDeps`: allows the user to define python dependencies that will be `pip installed`.
+// - `pythonDeps`: allows the user to define Python dependencies that uv installs.
 //   These are aggregated into `transitivePythonDeps`
-// - `bundle`: Packages the module and dependencies into a standalone `bundle.pex` file,
+// - `bundle`: Packages the module and dependencies into a self-contained native executable,
 //   making deployment easier.
 
 package build
 import mill.*
 import mill.api.BuildCtx
+import mill.pythonlib.UvModule
+
+object uv extends UvModule
 
 trait PythonModule extends Module {
   def moduleDeps: Seq[PythonModule] = Nil
@@ -21,19 +24,45 @@ trait PythonModule extends Module {
     pythonDeps() ++ upstreamDependencies
   }
 
-  def pythonExe: T[PathRef] = Task {
-    os.call(("python3", "-m", "venv", Task.dest / "venv"))
-    val python = Task.dest / "venv/bin/python3"
-    os.call((python, "-m", "pip", "install", "mypy==1.13.0", "pex==2.24.1", transitivePythonDeps()))
+  def pythonVersion: T[String] = Task { "3.12" }
 
-    PathRef(python)
+  def venv: T[PathRef] = Task {
+    val path = Task.dest / "venv"
+    os.call((uv.uvExe().path, "venv", "--python", pythonVersion(), path), stdout = os.Inherit)
+    val bin = if (scala.util.Properties.isWin) "Scripts" else "bin"
+    val executable = if (scala.util.Properties.isWin) "python.exe" else "python"
+    val python = path / bin / executable
+    os.call(
+      (uv.uvExe().path, "pip", "install", "--python", python, "--strict", transitivePythonDeps()),
+      stdout = os.Inherit
+    )
+    PathRef(path)
+  }
+
+  def pythonExe: T[PathRef] = Task {
+    val bin = if (scala.util.Properties.isWin) "Scripts" else "bin"
+    val executable = if (scala.util.Properties.isWin) "python.exe" else "python"
+    PathRef(venv().path / bin / executable)
   }
 
   def typeCheck: T[Unit] = Task {
     val upstreamTypeCheck = Task.traverse(moduleDeps)(_.typeCheck)()
 
     os.call(
-      (pythonExe().path, "-m", "mypy", "--strict", sources().path),
+      (
+        uv.uvExe().path,
+        "tool",
+        "run",
+        "--from",
+        "ty==0.0.84",
+        "ty",
+        "check",
+        "--python",
+        pythonExe().path,
+        "--extra-search-path",
+        BuildCtx.workspaceRoot,
+        sources().path
+      ),
       stdout = os.Inherit,
       cwd = BuildCtx.workspaceRoot
     )
@@ -58,32 +87,46 @@ trait PythonModule extends Module {
     )
   }
 
-  /** Bundles the project into a single PEX executable(bundle.pex). */
+  /** Bundles the project into a self-contained native PEX SCIE executable. */
   def bundle = Task {
     gatherScripts(Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps))
 
-    val pexFile = Task.dest / "bundle.pex"
-    // PEX unpacks itself and runs from its own temporary working directory, so every path we
-    // hand it must be absolute: a working-directory-relative path would be resolved against
-    // PEX's own cwd, not ours, and fail to be found.
-    os.call(
+    val bundleFile = Task.dest / (if (scala.util.Properties.isWin) "bundle.exe" else "bundle")
+    val sciePythonVersion = os.call(
       (
         PathRef.toAbsString(pythonExe().path),
-        "-m",
+        "-c",
+        "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"
+      )
+    ).out.trim()
+    os.call(
+      (
+        uv.uvExe().path,
+        "tool",
+        "run",
+        "--from",
+        "pex==2.103.4",
         "pex",
         transitivePythonDeps(),
+        "--venv-repository",
+        PathRef.toAbsString(venv().path),
         "-D",
         PathRef.toAbsString(Task.dest),
-        "-c",
+        "--exe",
         PathRef.toAbsString(sources().path / mainFileName()),
+        "--scie",
+        "eager",
+        "--scie-python-version",
+        sciePythonVersion,
+        "--scie-only",
         "-o",
-        PathRef.toAbsString(pexFile)
+        PathRef.toAbsString(bundleFile)
       ),
       env = Map("PYTHONPATH" -> PathRef.toAbsString(Task.dest)),
       stdout = os.Inherit
     )
 
-    PathRef(pexFile)
+    PathRef(bundleFile)
   }
 
 }
@@ -104,7 +147,7 @@ object qux extends PythonModule {
   def moduleDeps = Seq(foo, foo.bar)
 }
 
-// To run the project and create a `.pex` executable, use the following commands:
+// To run the project and create a self-contained executable, use these commands:
 
 /** Usage
 
@@ -112,18 +155,15 @@ object qux extends PythonModule {
 Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
 
 > ./mill show qux.bundle
-".../out/qux/bundle.dest/bundle.pex"
+".../out/qux/bundle.dest/bundle"
 
-> out/qux/bundle.dest/bundle.pex # running the PEX binary outside of Mill
+> out/qux/bundle.dest/bundle # running the bundle outside of Mill
 Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
 
 */
 
-// This generates the `bundle.pex` file, which packages all dependencies
-// and can be executed as a standalone application.
-//
-// To Run the `bundle.pex` file, First Provide the executable permission(+x)
-// to bundle.pex and then run using `./bundle.pex` command.
+// This generates a PEX SCIE executable that packages all dependencies together
+// with a portable Python interpreter and can run without a system Python.
 //
 // The final module tree and task graph is now as follows, with the additional dependencies
 // tasks with upstream and the bundle tasks downstream:
