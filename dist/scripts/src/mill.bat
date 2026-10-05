@@ -251,7 +251,11 @@ if [!MILL_RESOLVE_DOWNLOAD!]==[true] (
 
     echo Downloading mill !MILL_VERSION! from !MILL_DOWNLOAD_URL! ... 1>&2
 
-    curl -f -L "!MILL_DOWNLOAD_URL!" -o "!MILL_TEMP_DOWNLOAD_FILE!"
+    rem On CI runners, several jobs may download Mill at the same time, and get rate-limited (HTTP 429)
+    set MILL_CURL_RETRY_OPTS=
+    if defined CI set MILL_CURL_RETRY_OPTS=--retry 5
+    curl -f -L !MILL_CURL_RETRY_OPTS! "!MILL_DOWNLOAD_URL!" -o "!MILL_TEMP_DOWNLOAD_FILE!"
+    set MILL_CURL_RETRY_OPTS=
 
     if not exist "%MILL_FINAL_DOWNLOAD_FOLDER%" mkdir "%MILL_FINAL_DOWNLOAD_FOLDER%"
     move /y "!MILL_TEMP_DOWNLOAD_FILE!" "%MILL%"
