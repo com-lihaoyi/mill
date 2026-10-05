@@ -133,6 +133,10 @@ object GenIdeaUtils {
         "<language-level>Scala_2_[0-9]+</language-level>",
         "<language-level>Scala_2_X</language-level>"
       )
+      .replaceAll(
+        "\\QsharedOutFolder.dest/<version>/shared-\\E\\d",
+        "sharedOutFolder.dest/<version>/shared-0"
+      )
       // Normalize Mill version SNAPSHOT
       .replace("SNAPSHOT", "<version>")
 

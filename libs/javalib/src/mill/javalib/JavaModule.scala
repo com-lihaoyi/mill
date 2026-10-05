@@ -252,7 +252,7 @@ trait JavaModule
       : Seq[(DependencyManagement.Key, DependencyManagement.Values)] = {
     val keyValuesOrErrors =
       deps.map { depMgmt =>
-        val fromUsedValues = coursier.core.Dependency(depMgmt.module, depMgmt.version)
+        val fromUsedValues = coursier.core.Dependency(depMgmt.module, depMgmt.versionConstraint)
           .withPublication(coursier.core.Publication(
             "",
             depMgmt.publication.`type`,
@@ -260,7 +260,7 @@ trait JavaModule
             depMgmt.publication.classifier
           ))
           .withMinimizedExclusions(depMgmt.minimizedExclusions)
-          .withOptional(depMgmt.optional)
+          .copy(optional0 = depMgmt.optional0)
         if (fromUsedValues == depMgmt) {
           val key = DependencyManagement.Key(
             depMgmt.module.organization,
@@ -271,9 +271,9 @@ trait JavaModule
           )
           val values = DependencyManagement.Values(
             Configuration.empty,
-            depMgmt.version,
+            depMgmt.versionConstraint,
             depMgmt.minimizedExclusions,
-            depMgmt.optional
+            depMgmt.optional0
           )
           Right(key -> values)
         } else

@@ -31,3 +31,7 @@ include::partial$example/pythonlib/module/4-compilation-execution-flags.adoc[]
 == PythonPath and Filesystem Resources
 
 include::partial$example/pythonlib/module/5-resources.adoc[]
+
+== PEX Bundle Configuration
+
+include::partial$example/pythonlib/module/6-pex-config.adoc[]

@@ -6,10 +6,14 @@ Mill can be used to build Python projects, whether large pure-Python codebases
 or Python modules mixed in with other languages like Java or Kotlin. While Python
 is traditionally a scripting language, larger Python projects often include tools like
 xref:pythonlib/linting.adoc#_formatting[autoformatting], xref:pythonlib/linting.adoc#_linting[linting],
-typechecking with Mypy, packaging PEX files, xref:pythonlib/publishing.adoc[publishing to PyPI],
+typechecking with ty, self-contained PEX SCIE bundles, xref:pythonlib/publishing.adoc[publishing to PyPI],
 and so on. These workflows can benefit from a build tool like Mill to provide parallelization,
 caching, xref:large/selective-execution.adoc[Selective Test Execution], and other
 features that speed up development and CI.
+
+Mill automatically downloads and caches https://docs.astral.sh/uv/[uv], which manages
+Python installations, virtual environments, dependencies, and isolated development tools.
+You do not need to install Python or uv before using `PythonModule`.
 
 
 NOTE: Mill's Python support is still under active development, and you can expect
@@ -33,3 +37,7 @@ include::partial$example/pythonlib/basic/2-custom-build-logic.adoc[]
 == Multi-Module Project
 
 include::partial$example/pythonlib/basic/3-multi-module.adoc[]
+
+== Bare Python Modules
+
+include::partial$example/pythonlib/basic/4-bare-modules.adoc[]

@@ -155,6 +155,8 @@ object `package` extends Module {
   trait ExampleCrossModuleAndroid extends ExampleCrossModule {
     override def selectiveInputs = Seq(sources) ++ androidSelectiveInputs
     def testExclusive = true
+    // Shared in-memory tests bypass each example launcher's mill-jvm-version directive.
+    override def testJvmVersion = "zulu:21"
 
     /**
      * Unique and even Android emulator port for this example test module.

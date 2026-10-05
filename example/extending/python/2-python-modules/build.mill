@@ -5,24 +5,43 @@
 
 package build
 import mill.*
+import mill.pythonlib.UvModule
+
+object uv extends UvModule
 
 trait PythonModule extends Module {
 
   def sources: T[PathRef] = Task.Source("src")
   def mainFileName: T[String] = Task { "main.py" }
 
+  def pythonVersion: T[String] = Task { "3.12" }
+
+  def venv: T[PathRef] = Task {
+    val path = Task.dest / "venv"
+    os.call((uv.uvExe().path, "venv", "--python", pythonVersion(), path), stdout = os.Inherit)
+    PathRef(path)
+  }
+
   def pythonExe: T[PathRef] = Task {
-
-    os.call(("python3", "-m", "venv", Task.dest / "venv"))
-    val python = Task.dest / "venv/bin/python3"
-    os.call((python, "-m", "pip", "install", "mypy==1.13.0"))
-
-    PathRef(python)
+    val bin = if (scala.util.Properties.isWin) "Scripts" else "bin"
+    val executable = if (scala.util.Properties.isWin) "python.exe" else "python"
+    PathRef(venv().path / bin / executable)
   }
 
   def typeCheck: T[Unit] = Task {
     os.call(
-      (pythonExe().path, "-m", "mypy", "--strict", sources().path),
+      (
+        uv.uvExe().path,
+        "tool",
+        "run",
+        "--from",
+        "ty==0.0.84",
+        "ty",
+        "check",
+        "--python",
+        pythonExe().path,
+        sources().path
+      ),
       stdout = os.Inherit
     )
 
