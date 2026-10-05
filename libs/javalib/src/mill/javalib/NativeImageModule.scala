@@ -305,8 +305,8 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
    */
   def nativeResolvedRunDeps: Task[Seq[(Dependency, File)]] = this match {
     case m: JavaModule => Task {
-        val dep = m.coursierDependencyTask().withVariantSelector(
-          ConfigurationBased(coursier.core.Configuration.runtime)
+        val dep = m.coursierDependencyTask().copy(
+          variantSelector = ConfigurationBased(coursier.core.Configuration.runtime)
         )
 
         val resolution =

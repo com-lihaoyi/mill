@@ -245,7 +245,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       scalaOrganization: String
   )(dep: coursier.Dependency): coursier.Dependency = {
     if (dep.module.name.value == "scala-library") {
-      dep.withModule(dep.module.withOrganization(coursier.Organization(scalaOrganization)))
+      dep.copy(module = dep.module.copy(organization = coursier.Organization(scalaOrganization)))
         .withVersion(scalaVersion)
     } else dep
   }

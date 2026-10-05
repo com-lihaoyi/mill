@@ -30,8 +30,8 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   def forceVersion(): Dep = copy(force = true)
   def forceVersion(force: Boolean): Dep = copy(force = force)
   def exclude(exclusions: (String, String)*): Dep = copy(
-    dep = dep.withMinimizedExclusions(
-      dep.minimizedExclusions.join(
+    dep = dep.copy(
+      minimizedExclusions = dep.minimizedExclusions.join(
         MinimizedExclusions(
           exclusions.map { case (k, v) => (coursier.Organization(k), coursier.ModuleName(v)) }.toSet
         )
@@ -41,16 +41,16 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   def excludeOrg(organizations: String*): Dep = exclude(organizations.map(_ -> "*")*)
   def excludeName(names: String*): Dep = exclude(names.map("*" -> _)*)
   def toDependency(binaryVersion: String, fullVersion: String, platformSuffix: String): Dependency =
-    dep.withModule(
-      dep.module.withName(
-        coursier.ModuleName(artifactName(binaryVersion, fullVersion, platformSuffix))
+    dep.copy(
+      module = dep.module.copy(
+        name = coursier.ModuleName(artifactName(binaryVersion, fullVersion, platformSuffix))
       )
     )
   def bindDep(binaryVersion: String, fullVersion: String, platformSuffix: String): BoundDep =
     BoundDep(
-      dep.withModule(
-        dep.module.withName(
-          coursier.ModuleName(artifactName(binaryVersion, fullVersion, platformSuffix))
+      dep.copy(
+        module = dep.module.copy(
+          name = coursier.ModuleName(artifactName(binaryVersion, fullVersion, platformSuffix))
         )
       ),
       force
@@ -123,8 +123,8 @@ object Dep {
     var force = false
     val attributes = parts.tail.foldLeft(coursier.Attributes()) { (as, s) =>
       s.split('=') match {
-        case Array("classifier", v) => as.withClassifier(coursier.Classifier(v))
-        case Array("type", v) => as.withType(coursier.Type(v))
+        case Array("classifier", v) => as.copy(classifier = coursier.Classifier(v))
+        case Array("type", v) => as.copy(`type` = coursier.Type(v))
         case Array("exclude", s"${org}:${name}") => exclusions ++= Seq((org, name)); as
         case Array("force") | Array("force", "true" | "yes") => force = true; as
         case Array("force", "false" | "no") => force = false; as
@@ -280,8 +280,8 @@ case class BoundDep(
   def toDep: Dep = Dep(dep = dep, cross = CrossVersion.empty(false), force = force)
 
   def exclude(exclusions: (String, String)*): BoundDep = copy(
-    dep = dep.withMinimizedExclusions(
-      dep.minimizedExclusions.join(MinimizedExclusions(
+    dep = dep.copy(
+      minimizedExclusions = dep.minimizedExclusions.join(MinimizedExclusions(
         exclusions.toSet.map { case (k, v) => (coursier.Organization(k), coursier.ModuleName(v)) }
       ))
     )

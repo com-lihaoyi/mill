@@ -102,7 +102,7 @@ trait AndroidSdkModule extends Module {
     // TODO: Use caching API once available, https://github.com/com-lihaoyi/mill/issues/3930
     val cache = FileCache()
       .pipe { cache =>
-        if (Task.offline) cache.withCachePolicies(Seq(LocalOnly)) else cache
+        if (Task.offline) cache.copy(cachePolicies = Seq(LocalOnly)) else cache
       }
     cache.logger.use(cache.file(Artifact(url)).run).unsafeRun()(using cache.ec) match {
       case Right(file) =>

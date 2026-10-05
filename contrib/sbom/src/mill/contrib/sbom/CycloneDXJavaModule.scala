@@ -62,9 +62,7 @@ trait CycloneDXJavaModule extends JavaModule with CycloneDXModule {
         if (licences.nonEmpty) {
           licences
         } else {
-          proj.parent0.map((pm, v) =>
-            findLicenses(resolution, pm, VersionConstraint.fromVersion(v))
-          )
+          proj.parent0.map((pm, v) => findLicenses(resolution, pm, v))
             .getOrElse(Seq.empty)
         }
   }
