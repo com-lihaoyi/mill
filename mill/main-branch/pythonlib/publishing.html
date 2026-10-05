@@ -780,7 +780,7 @@
 Start by extending it.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-11-e17367/mill-dist-2.0.0-M2-example-pythonlib-publishing-1-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/publishing/1-publish-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-pythonlib-publishing-1-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/publishing/1-publish-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*, pythonlib.*
 
@@ -799,6 +799,9 @@ object `package` extends PythonModule, PublishModule {
 
   // the version under which the package will be published
   def publishVersion = "0.0.2"
+
+  // The distribution uses a different name from its Python import package.
+  override def publishModuleName = "testpkg"
 
 }</code></pre>
 </div>
@@ -831,6 +834,10 @@ control.</p>
 </tr>
 </table>
 </div>
+<div class="paragraph">
+<p><code>uv_build</code> normally derives the import package name from the distribution
+name. Override <code>publishModuleName</code> when those names differ, as they do above.</p>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -849,7 +856,7 @@ control.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>These files can then be <code>pip-installed</code> by other projects, or, if you&#8217;re using Mill, you can
+<p>These files can then be installed by other projects with <code>uv pip install</code> or, if you&#8217;re using Mill, you can
 include them in your <a href="dependencies.html#_unmanaged_wheels" class="xref page">unmanagedWheels</a> task.
 Usually however, you&#8217;d want to publish them to a package index such as PyPI or your
 organization&#8217;s internal package repository.</p>
@@ -863,14 +870,15 @@ organization&#8217;s internal package repository.</p>
 <p>Uploading your packages to PyPI can be done by running <code>mill __.publish</code>.</p>
 </div>
 <div class="paragraph">
-<p>Mill uses <a href="https://twine.readthedocs.io/en/stable/"><code>twine</code></a> to upload packages, and respects its
-configuration. You can also configure it with environment variables, prefixed with <code>MILL_</code>.</p>
+<p>Mill uses <a href="https://docs.astral.sh/uv/guides/package/#publishing-your-package"><code>uv publish</code></a>
+to upload packages. Configure it with uv&#8217;s <code>UV_PUBLISH_*</code> environment variables or the
+equivalent <code>MILL_UV_PUBLISH_*</code> variables.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; export MILL_TWINE_REPOSITORY_URL=https://test.pypi.org/legacy/
-&gt; export MILL_TWINE_USERNAME=&lt;username, not necessary for PyPI&gt;
-&gt; export MILL_TWINE_PASSWORD=&lt;apitoken&gt;
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; export MILL_UV_PUBLISH_URL=https://test.pypi.org/legacy/
+&gt; export MILL_UV_PUBLISH_USERNAME=__token__
+&gt; export MILL_UV_PUBLISH_PASSWORD=&lt;apitoken&gt;
 &gt; mill __.publish</code></pre>
 </div>
 </div>
@@ -895,13 +903,14 @@ your dependencies are also published.</p>
 <div class="sect2">
 <h3 id="_check_before_uploading"><a class="anchor" href="#_check_before_uploading"></a>Check before uploading</h3>
 <div class="paragraph">
-<p>Twine has a nice feature to check your artifacts before uploading them. You
-can also do this with Mill, by running:</p>
+<p>You can validate the artifacts with <code>uv publish --dry-run</code> before uploading:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill __.checkPublish
-... PASSED</code></pre>
+Checking 2 files against https://upload.pypi.org/legacy/
+Checking testpkg_mill-0.0.2.tar.gz (...)
+Checking testpkg_mill-0.0.2-py3-none-any.whl (...)</code></pre>
 </div>
 </div>
 </div>
@@ -923,7 +932,7 @@ and only takes care of configuring them with information it has on your build.</
 <p>create a synthetic <code>pyproject.toml</code> file from its own metadata</p>
 </li>
 <li>
-<p>use <code>setuptools</code> to package the module</p>
+<p>use <code>uv_build</code> to package the module and <code>uv build</code> as the frontend</p>
 </li>
 <li>
 <p>first create a source distribution and then use that to build a wheel (instead of building a wheel directly)</p>
@@ -946,11 +955,11 @@ or override the <code>pyproject</code> task with your own metadata.</p>
 <code>buildFiles</code>. You can then reference these in your <code>pyproject.toml</code> file.</p>
 </div>
 <div class="paragraph">
-<p>The following example shows how to override the packaging process by providing a
-custom <code>setup.py</code> file.</p>
+<p>The following example adds a generated build note to the source distribution
+with uv_build&#8217;s <code>source-include</code> setting.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-11-e17367/mill-dist-2.0.0-M2-example-pythonlib-publishing-2-publish-module-advanced.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/publishing/2-publish-module-advanced">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-pythonlib-publishing-2-publish-module-advanced.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/publishing/2-publish-module-advanced">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*, pythonlib.*
 
@@ -966,23 +975,20 @@ object `package` extends PythonModule, PublishModule {
 
   def publishVersion = "0.0.3"
 
-  // you could also reference an existing setup.py file directly, e.g.
-  // `def setup = Task.Source {"setup.py" }`
-  def setup = Task {
-    val str =
-      s"""#from setuptools import setup
-          #
-          #print("hello from custom setup.py!")
-          #
-          ## empty setup, defers to using values in pyproject.toml
-          #setup()
-          #""".stripMargin('#')
-    os.write(Task.dest / "setup.py", str)
-    PathRef(Task.dest / "setup.py")
+  def buildNote = Task {
+    os.write(Task.dest / "build-note.txt", "Generated by Mill")
+    PathRef(Task.dest / "build-note.txt")
+  }
+
+  override def pyproject = Task {
+    super.pyproject() +
+      """|
+         |source-include=["build-note.txt"]
+         |""".stripMargin
   }
 
   override def buildFiles = Task {
-    super.buildFiles() ++ Map("setup.py" -&gt; setup())
+    super.buildFiles() ++ Map("build-note.txt" -&gt; buildNote())
   }
 
 }</code></pre>
@@ -991,9 +997,10 @@ object `package` extends PythonModule, PublishModule {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill sdist
-...
-hello from custom setup.py!
-...</code></pre>
+...testpackage-0.0.3.tar.gz
+
+&gt; tar tzf out/sdist.dest/dist/testpackage-0.0.3.tar.gz
+...testpackage-0.0.3/build-note.txt</code></pre>
 </div>
 </div>
 </div>

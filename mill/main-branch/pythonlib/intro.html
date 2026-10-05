@@ -777,10 +777,15 @@
 or Python modules mixed in with other languages like Java or Kotlin. While Python
 is traditionally a scripting language, larger Python projects often include tools like
 <a href="linting.html#_formatting" class="xref page">autoformatting</a>, <a href="linting.html#_linting" class="xref page">linting</a>,
-typechecking with Mypy, packaging PEX files, <a href="publishing.html" class="xref page">publishing to PyPI</a>,
+typechecking with ty, self-contained PEX SCIE bundles, <a href="publishing.html" class="xref page">publishing to PyPI</a>,
 and so on. These workflows can benefit from a build tool like Mill to provide parallelization,
 caching, <a href="../large/selective-execution.html" class="xref page">Selective Test Execution</a>, and other
 features that speed up development and CI.</p>
+</div>
+<div class="paragraph">
+<p>Mill automatically downloads and caches <a href="https://docs.astral.sh/uv/">uv</a>, which manages
+Python installations, virtual environments, dependencies, and isolated development tools.
+You do not need to install Python or uv before using <code>PythonModule</code>.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -808,7 +813,7 @@ Please try it out and let us know on Github if you hit any issues!
 <h2 id="_simple_python_module"><a class="anchor" href="#_simple_python_module"></a>Simple Python Module</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-11-e17367/mill-dist-2.0.0-M2-example-pythonlib-basic-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/basic/1-simple">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-pythonlib-basic-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/basic/1-simple">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -832,7 +837,8 @@ dependency and a test suite using the <code>Unittest</code> Library.</p>
 <div class="paragraph">
 <p>You can download the example project using the <strong>download</strong> link above,
 or browse the full sources via the <strong>browse</strong> link.
-Ensure you have a JVM installed; the <code>./mill</code> script manages all other dependencies.
+You only need a JVM installed. Mill downloads <a href="https://docs.astral.sh/uv/">uv</a>, which manages the
+Python runtime and package dependencies used by the build.
 All examples, from simple hello-world projects on this page to advanced
 <a href="web-examples.html" class="xref page">web build examples</a>
 are fully executable and tested in Mill’s CI workflows.</p>
@@ -891,7 +897,7 @@ Inputs:
 ...
 
 &gt; ./mill foo.typeCheck  # TypeCheck the Python Files and notify errors
-Success: no issues found in 1 source file
+All checks passed!
 
 &gt; ./mill foo.run --text "Hello Mill"  # run the main method with arguments
 &lt;h1&gt;Hello Mill&lt;/h1&gt;
@@ -905,15 +911,20 @@ OK
 ...
 
 &gt; ./mill show foo.bundle # Creates Bundle for the python file
-".../out/foo/bundle.dest/bundle.pex"
+".../out/foo/bundle.dest/bundle"
 
-&gt; out/foo/bundle.dest/bundle.pex --text "Hello Mill" # running the PEX binary outside of Mill
+&gt; out/foo/bundle.dest/bundle --text "Hello Mill" # running the self-contained bundle outside of Mill
 &lt;h1&gt;Hello Mill&lt;/h1&gt;
+
+&gt; ./mill clean
+
+&gt; ./mill --offline show foo.bundle # PEX SCIE may download portable runtime assets
+error: ...PEX SCIE bundles cannot be built with --offline...
 
 &gt; sed -i.bak 's/print(main())/print(maaain())/g' foo/src/foo.py
 
-&gt; ./mill foo.typeCheck # if we make a typo in a method name, mypy flags it
-error: ...Name "maaain" is not defined...</code></pre>
+&gt; ./mill foo.typeCheck || true # if we make a typo in a method name, ty flags it
+error[unresolved-reference]: ...</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -945,7 +956,7 @@ logic. In this example, we override the <code>resources</code> of our <code>Pyth
 line count of all the source files in that module</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-11-e17367/mill-dist-2.0.0-M2-example-pythonlib-basic-2-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/basic/2-custom-build-logic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-pythonlib-basic-2-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/basic/2-custom-build-logic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, pythonlib.*
@@ -1116,7 +1127,7 @@ build logic remains performant and maintainable even as the complexity of your p
 <h2 id="_multi_module_project"><a class="anchor" href="#_multi_module_project"></a>Multi-Module Project</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-11-e17367/mill-dist-2.0.0-M2-example-pythonlib-basic-3-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/basic/3-multi-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-pythonlib-basic-3-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/basic/3-multi-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1271,6 +1282,157 @@ preceding it with a backslash (<code>\</code>).</p>
 <div class="paragraph">
 <p>For more details on the query syntax, check out the
 <a href="../cli/query-syntax.html" class="xref page">query syntax documentation</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_bare_python_modules"><a class="anchor" href="#_bare_python_modules"></a>Bare Python Modules</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-pythonlib-basic-4-bare-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/basic/4-bare-modules">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.*, pythonlib.*
+import mill.api.BuildCtx
+
+trait BareExampleModule extends PythonModule.Bare, RuffModule {
+  def pythonProjectDeps = Task.Sources(BuildCtx.workspaceRoot / "thirdparty/raw-uv-project")
+  override def ruffConfigFile = Task.Source(BuildCtx.workspaceRoot / "ruff.toml")
+
+  def sourceFilePaths = Task {
+    val workspaceRoot = PathRef.toResolvedOsPath(BuildCtx.workspaceRoot)
+    sources()
+      .map(source =&gt;
+        PathRef
+          .toResolvedOsPath(source.path)
+          .relativeTo(workspaceRoot)
+          .segments
+          .mkString("/")
+      )
+      .sorted
+  }
+}
+
+object `package` extends BareExampleModule {
+  object nested extends BareExampleModule
+  object test extends PythonTests, PythonModule.Bare, TestModule.Pytest
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>PythonModule.Bare</code> is useful for existing Python repositories that do not
+place each module&#8217;s sources below an additional <code>src/</code> directory. Every
+source keeps its path relative to the workspace root, so <code>app/message.py</code> is
+imported as <code>app.message</code>. Mill excludes its exact output directory, even
+when that directory is nested alongside source files.</p>
+</div>
+<div class="paragraph">
+<p>Nested Python modules own their subtrees. Here the root module excludes the
+files owned by <code>nested</code> and <code>test</code>, while keeping Python files elsewhere in
+its tree, such as <code>main.py</code>, <code>app/message.py</code>, and <code>testing/legitimate.py</code>.
+Mixing <code>PythonModule.Bare</code> into a <code>PythonTests</code> module gives tests the same
+workspace-relative import behavior.
+<code>pythonProjectDeps</code> also lets any Python module depend on a non-Mill project
+on disk. uv reads that project&#8217;s <code>pyproject.toml</code>, installs it into the
+module&#8217;s environment, and Mill tracks the project directory for caching.</p>
+</div>
+<div class="listingblock">
+<div class="title">main.py (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-pythonlib-basic-4-bare-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/basic/4-bare-modules/main.py">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-py hljs" data-lang="py">from raw_uv_project import raw_message
+
+from app.message import message
+
+print(message())
+print(raw_message())</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">test/test_message.py (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-pythonlib-basic-4-bare-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/basic/4-bare-modules/test/test_message.py">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-py hljs" data-lang="py">from app.message import message
+from raw_uv_project import raw_message
+
+
+def test_message() -&gt; None:
+    assert message() == "Hello from the bare root!"
+    assert raw_message() == "Hello from a raw uv project!"</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">thirdparty/raw-uv-project/pyproject.toml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-pythonlib-basic-4-bare-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/basic/4-bare-modules/thirdparty/raw-uv-project/pyproject.toml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">[project]
+name = "raw-uv-project"
+version = "0.1.0"
+
+[build-system]
+requires = ["uv_build&gt;=0.12.12,&lt;0.13"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "raw_uv_project"</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mkdir -p out &amp;&amp; touch out/legitimate.py
+
+&gt; MILL_OUTPUT_DIR=testing/test-out ./mill show sourceFilePaths
+[
+  "app/message.py",
+  "main.py",
+  "out/legitimate.py",
+  "testing/legitimate.py"
+]
+
+&gt; ./mill run
+Hello from the bare root!
+Hello from a raw uv project!
+
+&gt; ./mill nested.run
+Hello from the nested bare module!
+
+&gt; ./mill test
+...test/test_message.py::test_message PASSED...
+...1 passed...
+
+&gt; ./mill typeCheck
+All checks passed!
+
+&gt; ./mill ruffCheck
+All checks passed!
+
+&gt; ./mill nested.ruffCheck
+All checks passed!
+
+&gt; ./mill ruffFormat --check
+3 files already formatted
+
+&gt; ./mill nested.ruffFormat --check
+2 files already formatted
+
+&gt; ./mill show sourceFilePaths
+[
+  "app/message.py",
+  "main.py",
+  "testing/legitimate.py"
+]
+
+&gt; ./mill show nested.sourceFilePaths
+[
+  "nested/main.py",
+  "nested/message.py"
+]
+
+&gt; ./mill show bundle
+".../out/bundle.dest/bundle"
+
+&gt; out/bundle.dest/bundle
+Hello from the bare root!
+Hello from a raw uv project!</code></pre>
+</div>
 </div>
 </div>
 </div>

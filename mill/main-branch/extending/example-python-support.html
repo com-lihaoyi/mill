@@ -785,7 +785,8 @@ perform type checking on local code, and bundle an executable.</p>
 </td>
 <td class="content">
 This integration is for educational purposes only, showcasing common technique
-used in building language toolchains, and is not intended for production use.
+used in building language toolchains, and is not intended for production use. The
+examples reuse `UvModule&#8217;s downloader so that uv does not need to be installed first.
 </td>
 </tr>
 </table>
@@ -796,24 +797,37 @@ used in building language toolchains, and is not intended for production use.
 <h2 id="_basic_python_build_pipeline"><a class="anchor" href="#_basic_python_build_pipeline"></a>Basic Python Build Pipeline</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>First, we define a <code>pythonExe</code> task to create a
-<a href="https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments">Python virtual environment</a> and installs
-<a href="https://mypy.readthedocs.io/en/stable">mypy</a> for type-checking. <code>mypy</code> verifies type correctness using Python&#8217;s
-type hints, helping to catch errors in development.</p>
+<p>First, we define a <code>pythonExe</code> task that asks <a href="https://docs.astral.sh/uv/">uv</a>
+to create a Python virtual environment. uv also downloads the requested
+Python version when it is not already installed.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-11-e17367/mill-dist-2.0.0-M2-example-extending-python-1-hello-python.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/extending/python/1-hello-python">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-extending-python-1-hello-python.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/extending/python/1-hello-python">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
+import mill.pythonlib.UvModule</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Reuse Mill&#8217;s downloader so this build does not require uv on the PATH.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object uv extends UvModule
+
+def pythonVersion: T[String] = Task { "3.12" }
+
+def venv: T[PathRef] = Task {
+  val path = Task.dest / "venv"
+  os.call((uv.uvExe().path, "venv", "--python", pythonVersion(), path), stdout = os.Inherit)
+  PathRef(path)
+}
 
 def pythonExe: T[PathRef] = Task {
-
-  os.call(("python3", "-m", "venv", Task.dest / "venv"))
-  val python = Task.dest / "venv/bin/python3"
-  os.call((python, "-m", "pip", "install", "mypy==1.13.0"))
-
-  PathRef(python)
+  val bin = if (scala.util.Properties.isWin) "Scripts" else "bin"
+  val executable = if (scala.util.Properties.isWin) "python.exe" else "python"
+  PathRef(venv().path / bin / executable)
 }</code></pre>
 </div>
 </div>
@@ -837,7 +851,18 @@ def pythonExe: T[PathRef] = Task {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def typeCheck: T[Unit] = Task {
   os.call(
-    (pythonExe().path, "-m", "mypy", "--strict", sources().path),
+    (
+      uv.uvExe().path,
+      "tool",
+      "run",
+      "--from",
+      "ty==0.0.84",
+      "ty",
+      "check",
+      "--python",
+      pythonExe().path,
+      sources().path
+    ),
     stdout = os.Inherit
   )
 }</code></pre>
@@ -892,7 +917,7 @@ def pythonExe: T[PathRef] = Task {
 <p>Here is the <code>main.py</code> file</p>
 </div>
 <div class="listingblock">
-<div class="title">src/main.py (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-11-e17367/mill-dist-2.0.0-M2-example-extending-python-1-hello-python.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/extending/python/1-hello-python/src/main.py">browse</a>)</div>
+<div class="title">src/main.py (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-extending-python-1-hello-python.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/extending/python/1-hello-python/src/main.py">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-py hljs" data-lang="py">import sys
 def add(a: int, b: int) -&gt; int: return a + b
@@ -1010,7 +1035,7 @@ of our pipeline:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill typeCheck
-Success: no issues found in 1 source file
+All checks passed!
 
 &gt; ./mill run Mill Python
 Hello, Mill Python!
@@ -1018,8 +1043,8 @@ Hello, Mill Python!
 
 &gt; sed -i.bak 's/print(add(5, 10))/print(addd(5, 10))/g' src/main.py
 
-&gt; ./mill typeCheck # if we make a typo in a method name, mypy flags it
-error: ...Name "addd" is not defined...</code></pre>
+&gt; ./mill typeCheck # if we make a typo in a method name, ty flags it
+error: ...addd...</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1039,28 +1064,47 @@ earlier with <code>sources</code>, <code>pythonExe</code>, <code>typeCheck</code
 that can be re-used.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-11-e17367/mill-dist-2.0.0-M2-example-extending-python-2-python-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/extending/python/2-python-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-extending-python-2-python-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/extending/python/2-python-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
+import mill.pythonlib.UvModule
+
+object uv extends UvModule
 
 trait PythonModule extends Module {
 
   def sources: T[PathRef] = Task.Source("src")
   def mainFileName: T[String] = Task { "main.py" }
 
+  def pythonVersion: T[String] = Task { "3.12" }
+
+  def venv: T[PathRef] = Task {
+    val path = Task.dest / "venv"
+    os.call((uv.uvExe().path, "venv", "--python", pythonVersion(), path), stdout = os.Inherit)
+    PathRef(path)
+  }
+
   def pythonExe: T[PathRef] = Task {
-
-    os.call(("python3", "-m", "venv", Task.dest / "venv"))
-    val python = Task.dest / "venv/bin/python3"
-    os.call((python, "-m", "pip", "install", "mypy==1.13.0"))
-
-    PathRef(python)
+    val bin = if (scala.util.Properties.isWin) "Scripts" else "bin"
+    val executable = if (scala.util.Properties.isWin) "python.exe" else "python"
+    PathRef(venv().path / bin / executable)
   }
 
   def typeCheck: T[Unit] = Task {
     os.call(
-      (pythonExe().path, "-m", "mypy", "--strict", sources().path),
+      (
+        uv.uvExe().path,
+        "tool",
+        "run",
+        "--from",
+        "ty==0.0.84",
+        "ty",
+        "check",
+        "--python",
+        pythonExe().path,
+        sources().path
+      ),
       stdout = os.Inherit
     )
 
@@ -1340,10 +1384,14 @@ We then use <code>Task.traverse</code> to aggregate the <code>sources</code> of 
 make them available during <code>typeCheck</code> and <code>run</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-11-e17367/mill-dist-2.0.0-M2-example-extending-python-3-python-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/extending/python/3-python-module-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-extending-python-3-python-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/extending/python/3-python-module-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
+import mill.api.BuildCtx
+import mill.pythonlib.UvModule
+
+object uv extends UvModule
 
 trait PythonModule extends Module {
 
@@ -1353,21 +1401,37 @@ trait PythonModule extends Module {
   def sources: T[PathRef] = Task.Source("src")
   def mainFileName: T[String] = Task { "main.py" }
 
+  def pythonVersion: T[String] = Task { "3.12" }
+
+  def venv: T[PathRef] = Task {
+    val path = Task.dest / "venv"
+    os.call((uv.uvExe().path, "venv", "--python", pythonVersion(), path), stdout = os.Inherit)
+    PathRef(path)
+  }
+
   def pythonExe: T[PathRef] = Task {
-
-    os.call(("python3", "-m", "venv", Task.dest / "venv"))
-    val python = Task.dest / "venv/bin/python3"
-    os.call((python, "-m", "pip", "install", "mypy==1.13.0"))
-
-    PathRef(python)
+    val bin = if (scala.util.Properties.isWin) "Scripts" else "bin"
+    val executable = if (scala.util.Properties.isWin) "python.exe" else "python"
+    PathRef(venv().path / bin / executable)
   }
 
   def typeCheck: T[Unit] = Task {
     val upstreamTypeCheck = Task.traverse(moduleDeps)(_.typeCheck)()
-    val pythonVenv = pythonExe().path
-
     os.call(
-      (pythonVenv, "-m", "mypy", "--strict", sources().path),
+      (
+        uv.uvExe().path,
+        "tool",
+        "run",
+        "--from",
+        "ty==0.0.84",
+        "ty",
+        "check",
+        "--python",
+        pythonExe().path,
+        "--extra-search-path",
+        BuildCtx.workspaceRoot,
+        sources().path
+      ),
       stdout = os.Inherit
     )
 
@@ -1417,24 +1481,24 @@ object qux extends PythonModule {
 depend on one another:</p>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo.py (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-11-e17367/mill-dist-2.0.0-M2-example-extending-python-3-python-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/extending/python/3-python-module-deps/foo/src/foo.py">browse</a>)</div>
+<div class="title">foo/src/foo.py (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-extending-python-3-python-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/extending/python/3-python-module-deps/foo/src/foo.py">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-py hljs" data-lang="py">import sys
 def multiply(a: int, b: int) -&gt; int: return a * b</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/bar/src/bar.py (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-11-e17367/mill-dist-2.0.0-M2-example-extending-python-3-python-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/extending/python/3-python-module-deps/foo/bar/src/bar.py">browse</a>)</div>
+<div class="title">foo/bar/src/bar.py (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-extending-python-3-python-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/extending/python/3-python-module-deps/foo/bar/src/bar.py">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-py hljs" data-lang="py">import sys
 def add(a: int, b: int) -&gt; int: return a + b</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">qux/src/qux.py (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-11-e17367/mill-dist-2.0.0-M2-example-extending-python-3-python-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/extending/python/3-python-module-deps/qux/src/qux.py">browse</a>)</div>
+<div class="title">qux/src/qux.py (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-extending-python-3-python-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/extending/python/3-python-module-deps/qux/src/qux.py">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-py hljs" data-lang="py">from foo.bar.src.bar import add # type: ignore
-from foo.src.foo import multiply # type: ignore
+<pre class="highlightjs highlight"><code class="language-py hljs" data-lang="py">from foo.bar.src.bar import add
+from foo.src.foo import multiply
 import sys
 def divide(a: int, b: int) -&gt; float: return a/b
 def main() -&gt; None:
@@ -1692,7 +1756,7 @@ Add: 10 + 20 = 30 | Multiply: 10 * 20 = 200 | Divide: 10 / 20 = 0.5</code></pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_pip_dependencies_and_bundling"><a class="anchor" href="#_pip_dependencies_and_bundling"></a>PIP dependencies and bundling</h2>
+<h2 id="_uv_dependencies_and_bundling"><a class="anchor" href="#_uv_dependencies_and_bundling"></a>uv Dependencies and Bundling</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This implementation extends <code>PythonModule</code> with these key Tasks:</p>
@@ -1700,21 +1764,24 @@ Add: 10 + 20 = 30 | Multiply: 10 * 20 = 200 | Divide: 10 / 20 = 0.5</code></pre>
 <div class="ulist">
 <ul>
 <li>
-<p><code>pythonDeps</code>: allows the user to define python dependencies that will be <code>pip installed</code>.
+<p><code>pythonDeps</code>: allows the user to define Python dependencies that uv installs.
 These are aggregated into <code>transitivePythonDeps</code></p>
 </li>
 <li>
-<p><code>bundle</code>: Packages the module and dependencies into a standalone <code>bundle.pex</code> file,
+<p><code>bundle</code>: Packages the module and dependencies into a self-contained native executable,
 making deployment easier.</p>
 </li>
 </ul>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-11-e17367/mill-dist-2.0.0-M2-example-extending-python-4-python-libs-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/extending/python/4-python-libs-bundle">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-extending-python-4-python-libs-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/extending/python/4-python-libs-bundle">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
 import mill.api.BuildCtx
+import mill.pythonlib.UvModule
+
+object uv extends UvModule
 
 trait PythonModule extends Module {
   def moduleDeps: Seq[PythonModule] = Nil
@@ -1728,19 +1795,45 @@ trait PythonModule extends Module {
     pythonDeps() ++ upstreamDependencies
   }
 
-  def pythonExe: T[PathRef] = Task {
-    os.call(("python3", "-m", "venv", Task.dest / "venv"))
-    val python = Task.dest / "venv/bin/python3"
-    os.call((python, "-m", "pip", "install", "mypy==1.13.0", "pex==2.24.1", transitivePythonDeps()))
+  def pythonVersion: T[String] = Task { "3.12" }
 
-    PathRef(python)
+  def venv: T[PathRef] = Task {
+    val path = Task.dest / "venv"
+    os.call((uv.uvExe().path, "venv", "--python", pythonVersion(), path), stdout = os.Inherit)
+    val bin = if (scala.util.Properties.isWin) "Scripts" else "bin"
+    val executable = if (scala.util.Properties.isWin) "python.exe" else "python"
+    val python = path / bin / executable
+    os.call(
+      (uv.uvExe().path, "pip", "install", "--python", python, "--strict", transitivePythonDeps()),
+      stdout = os.Inherit
+    )
+    PathRef(path)
+  }
+
+  def pythonExe: T[PathRef] = Task {
+    val bin = if (scala.util.Properties.isWin) "Scripts" else "bin"
+    val executable = if (scala.util.Properties.isWin) "python.exe" else "python"
+    PathRef(venv().path / bin / executable)
   }
 
   def typeCheck: T[Unit] = Task {
     val upstreamTypeCheck = Task.traverse(moduleDeps)(_.typeCheck)()
 
     os.call(
-      (pythonExe().path, "-m", "mypy", "--strict", sources().path),
+      (
+        uv.uvExe().path,
+        "tool",
+        "run",
+        "--from",
+        "ty==0.0.84",
+        "ty",
+        "check",
+        "--python",
+        pythonExe().path,
+        "--extra-search-path",
+        BuildCtx.workspaceRoot,
+        sources().path
+      ),
       stdout = os.Inherit,
       cwd = BuildCtx.workspaceRoot
     )
@@ -1765,32 +1858,46 @@ trait PythonModule extends Module {
     )
   }
 
-  /** Bundles the project into a single PEX executable(bundle.pex). */
+  /** Bundles the project into a self-contained native PEX SCIE executable. */
   def bundle = Task {
     gatherScripts(Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps))
 
-    val pexFile = Task.dest / "bundle.pex"
-    // PEX unpacks itself and runs from its own temporary working directory, so every path we
-    // hand it must be absolute: a working-directory-relative path would be resolved against
-    // PEX's own cwd, not ours, and fail to be found.
-    os.call(
+    val bundleFile = Task.dest / (if (scala.util.Properties.isWin) "bundle.exe" else "bundle")
+    val sciePythonVersion = os.call(
       (
         PathRef.toAbsString(pythonExe().path),
-        "-m",
+        "-c",
+        "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"
+      )
+    ).out.trim()
+    os.call(
+      (
+        uv.uvExe().path,
+        "tool",
+        "run",
+        "--from",
+        "pex==2.103.4",
         "pex",
         transitivePythonDeps(),
+        "--venv-repository",
+        PathRef.toAbsString(venv().path),
         "-D",
         PathRef.toAbsString(Task.dest),
-        "-c",
+        "--exe",
         PathRef.toAbsString(sources().path / mainFileName()),
+        "--scie",
+        "eager",
+        "--scie-python-version",
+        sciePythonVersion,
+        "--scie-only",
         "-o",
-        PathRef.toAbsString(pexFile)
+        PathRef.toAbsString(bundleFile)
       ),
       env = Map("PYTHONPATH" -&gt; PathRef.toAbsString(Task.dest)),
       stdout = os.Inherit
     )
 
-    PathRef(pexFile)
+    PathRef(bundleFile)
   }
 
 }</code></pre>
@@ -1818,7 +1925,7 @@ object qux extends PythonModule {
 </div>
 </div>
 <div class="paragraph">
-<p>To run the project and create a <code>.pex</code> executable, use the following commands:</p>
+<p>To run the project and create a self-contained executable, use these commands:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1826,19 +1933,15 @@ object qux extends PythonModule {
 Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
 
 &gt; ./mill show qux.bundle
-".../out/qux/bundle.dest/bundle.pex"
+".../out/qux/bundle.dest/bundle"
 
-&gt; out/qux/bundle.dest/bundle.pex # running the PEX binary outside of Mill
+&gt; out/qux/bundle.dest/bundle # running the bundle outside of Mill
 Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This generates the <code>bundle.pex</code> file, which packages all dependencies
-and can be executed as a standalone application.</p>
-</div>
-<div class="paragraph">
-<p>To Run the <code>bundle.pex</code> file, First Provide the executable permission(+x)
-to bundle.pex and then run using <code>./bundle.pex</code> command.</p>
+<p>This generates a PEX SCIE executable that packages all dependencies together
+with a portable Python interpreter and can run without a system Python.</p>
 </div>
 <div class="paragraph">
 <p>The final module tree and task graph is now as follows, with the additional dependencies

@@ -789,12 +789,16 @@ Also we have support for <code>forkEnv</code> and <code>pythonOptions</code> to 
 add variables for environment and options for python respectively.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-11-e17367/mill-dist-2.0.0-M2-example-pythonlib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/module/1-common-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-pythonlib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/module/1-common-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, pythonlib.*
 
 object foo extends PythonModule {
+  // Mill downloads these toolchain versions automatically when needed
+  def uvVersion = "0.10.4"
+  def pythonVersion = "3.12"
+
   // You can have arbitrary numbers of third-party libraries
   def pythonDeps = Seq("MarkupSafe==3.0.2", "Jinja2==3.1.4")
 
@@ -872,9 +876,9 @@ MY_CUSTOM_ENV: my-env-value
 ...
 
 &gt; ./mill show foo.bundle
-".../out/foo/bundle.dest/bundle.pex"
+".../out/foo/bundle.dest/bundle"
 
-&gt; out/foo/bundle.dest/bundle.pex
+&gt; out/foo/bundle.dest/bundle
 ...
 Foo2.value: &lt;h1&gt;hello2&lt;/h1&gt;
 Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
@@ -914,7 +918,7 @@ env variable defined in <code>forkEnv</code> and print it when the program runs<
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-11-e17367/mill-dist-2.0.0-M2-example-pythonlib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/module/2-custom-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-pythonlib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/module/2-custom-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, pythonlib.*
@@ -1140,7 +1144,7 @@ the task&#8217;s inputs change.</p>
 <h2 id="_overriding_tasks"><a class="anchor" href="#_overriding_tasks"></a>Overriding Tasks</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-11-e17367/mill-dist-2.0.0-M2-example-pythonlib-module-3-override-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/module/3-override-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-pythonlib-module-3-override-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/module/3-override-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1169,12 +1173,14 @@ object foo extends PythonModule {
 
   def typeCheck = Task {
     println("Type Checking...")
+    Console.out.flush()
     super.typeCheck()
   }
 
   def run(args: mill.api.Args) = Task.Command {
     typeCheck()
     println("Running..." + args.value.mkString(" "))
+    Console.out.flush()
     super.run(args)()
   }
 }</code></pre>
@@ -1235,7 +1241,7 @@ object foo3 extends PythonModule {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
 Type Checking...
-Success: no issues found in 1 source file
+All checks passed!
 Running...
 Hello World</code></pre>
 </div>
@@ -1246,7 +1252,7 @@ Hello World</code></pre>
 <h2 id="_compilation_execution_flags"><a class="anchor" href="#_compilation_execution_flags"></a>Compilation &amp; Execution Flags</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-11-e17367/mill-dist-2.0.0-M2-example-pythonlib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/module/4-compilation-execution-flags">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-pythonlib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/module/4-compilation-execution-flags">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1279,7 +1285,7 @@ environment-variables via <code>forkEnv</code>.</p>
 <h2 id="_pythonpath_and_filesystem_resources"><a class="anchor" href="#_pythonpath_and_filesystem_resources"></a>PythonPath and Filesystem Resources</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-11-e17367/mill-dist-2.0.0-M2-example-pythonlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/module/5-resources">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-pythonlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/module/5-resources">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1348,31 +1354,31 @@ provide the folder path as an environment variable that the test can make use of
 <p>Example application code demonstrating the techniques above can be seen below:</p>
 </div>
 <div class="listingblock">
-<div class="title">foo/resources/res/file.txt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-11-e17367/mill-dist-2.0.0-M2-example-pythonlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/module/5-resources/foo/resources/res/file.txt">browse</a>)</div>
+<div class="title">foo/resources/res/file.txt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-pythonlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/module/5-resources/foo/resources/res/file.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">Hello World Resource File</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/resources/res/test-file-a.txt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-11-e17367/mill-dist-2.0.0-M2-example-pythonlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/module/5-resources/foo/test/resources/res/test-file-a.txt">browse</a>)</div>
+<div class="title">foo/test/resources/res/test-file-a.txt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-pythonlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/module/5-resources/foo/test/resources/res/test-file-a.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">Test Hello World Resource File A</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/resources/res/test-file-b.txt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-11-e17367/mill-dist-2.0.0-M2-example-pythonlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/module/5-resources/foo/test/resources/res/test-file-b.txt">browse</a>)</div>
+<div class="title">foo/test/resources/res/test-file-b.txt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-pythonlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/module/5-resources/foo/test/resources/res/test-file-b.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">Test Hello World Resource File B</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/other-files/other-file.txt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-11-e17367/mill-dist-2.0.0-M2-example-pythonlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/module/5-resources/foo/test/other-files/other-file.txt">browse</a>)</div>
+<div class="title">foo/test/other-files/other-file.txt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-pythonlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/module/5-resources/foo/test/other-files/other-file.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">Other Hello World File</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo.py (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-11-e17367/mill-dist-2.0.0-M2-example-pythonlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/module/5-resources/foo/src/foo.py">browse</a>)</div>
+<div class="title">foo/src/foo.py (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-pythonlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/module/5-resources/foo/src/foo.py">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-py hljs" data-lang="py">import importlib.resources
 
@@ -1390,7 +1396,7 @@ if __name__ == "__main__":
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/test.py (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-11-e17367/mill-dist-2.0.0-M2-example-pythonlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/module/5-resources/foo/test/src/test.py">browse</a>)</div>
+<div class="title">foo/test/src/test.py (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-pythonlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/module/5-resources/foo/test/src/test.py">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-py hljs" data-lang="py">import os
 from pathlib import Path
@@ -1437,6 +1443,86 @@ you cannot just read resources off disk via <code>with open("foo/resources/test-
 If you have legacy tests that need to run in the project root folder to work, you
 can configure your test suite with <code>def testSandboxWorkingDir = false</code> to disable
 the sandbox and make the tests run in the project root.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_pex_bundle_configuration"><a class="anchor" href="#_pex_bundle_configuration"></a>PEX Bundle Configuration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This example creates a self-contained native PEX SCIE bundle for a Python project.
+The script defines key components such as the mainScript, dependencies,
+options for Python compilation, and bundle creation settings.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-example-pythonlib-module-6-pex-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/pythonlib/module/6-pex-config">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, pythonlib.*
+
+object foo extends PythonModule {
+  // This Script will be the entry point for the bundle
+  def mainScript = Task.Source("src/foo.py")
+
+  // These Dependencies will be used in the bundle
+  def pythonDeps = Seq("pyfiglet==1.0.2", "termcolor==2.5.0")
+
+  // Python Options to use while creating bundle
+  def pythonOptions: T[Seq[String]] =
+    Seq("-Wall", "-Wignore::ImportWarning", "-Wignore::ResourceWarning")
+
+  // These configs wil be used while creating the bundle
+  // use -h to see all available options
+  def bundleOptions = super.bundleOptions() ++ Seq(
+    "--compress", // Compress the output file
+    "--compile", // compile will help in fast loading of pex output file
+    "-v", // verbose
+    "--inject-args= --text 'Hello World'" // Fixed Argument if not overrided
+  )
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Your project structure for this would look something like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>.
+├── build.mill
+└── foo
+    └── src
+        └── foo.py</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After generating your bundle with <code>mill foo.bundle</code> you&#8217;ll find by running
+your <code>out/foo/bundle.dest/bundle</code> you&#8217;ll get the programmed output
+and usage is based on project logic like which args to include with command.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.bundle
+".../out/foo/bundle.dest/bundle"
+
+&gt; out/foo/bundle.dest/bundle
+...
+ _   _      _ _        __        __         _     _
+| | | | ___| | | ___   \ \      / /__  _ __| | __| |
+| |_| |/ _ \ | |/ _ \   \ \ /\ / / _ \| '__| |/ _` |
+|  _  |  __/ | | (_) |   \ V  V / (_) | |  | | (_| |
+|_| |_|\___|_|_|\___/     \_/\_/ \___/|_|  |_|\__,_|
+...
+
+&gt; out/foo/bundle.dest/bundle --text 'Hello Mill'
+...
+ _   _      _ _         __  __ _ _ _
+| | | | ___| | | ___   |  \/  (_) | |
+| |_| |/ _ \ | |/ _ \  | |\/| | | | |
+|  _  |  __/ | | (_) | | |  | | | | |
+|_| |_|\___|_|_|\___/  |_|  |_|_|_|_|
+...</code></pre>
+</div>
 </div>
 </div>
 </div>
