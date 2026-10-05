@@ -143,7 +143,7 @@
       <strong>
         WARNING: this page contains documentation for an old/unstable version of Mill
         (main-branch). The latest stable Mill version is
-        1.3.0-M1 and its documentation can be found at
+        1.1.10 and its documentation can be found at
         <a href="https://mill-build.org">https://mill-build.org</a>
       </strong>
     </div>
@@ -408,10 +408,6 @@
 
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../large/pre-compiled-modules.html">Pre-Compiled Modules</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../large/remote-caching.html">Remote Caching</a>
   </li>
 </ul>
   </li>
@@ -729,10 +725,7 @@
           <a href="../index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">1.3.0-M1</a>
-        </li>
-        <li class="version">
-          <a href="../../1.1.x/index.html">1.1.10</a>
+          <a href="../../index.html">1.1.10</a>
         </li>
         <li class="version">
           <a href="../../1.0.x/index.html">1.0.6</a>
@@ -797,18 +790,18 @@ bootstrap script, included. You can also download the bootstrap script manually:
 <div class="listingblock">
 <div class="title">Mac/Linux</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-mill.sh -o mill
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1-21-b21431/mill-dist-1.3.0-M1-mill.sh -o mill
 &gt; chmod +x mill
 &gt; ./mill version
-2.0.0-M2</code></pre>
+1.3.0-M1</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Windows</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-mill.bat -o mill.bat
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1-21-b21431/mill-dist-1.3.0-M1-mill.bat -o mill.bat
 &gt; ./mill version
-2.0.0-M2</code></pre>
+1.3.0-M1</code></pre>
 </div>
 </div>
 <div class="admonitionblock caution">
@@ -870,7 +863,7 @@ pick one most similar to what you are doing so you can hit the ground running.</
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sudo curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2-12-f6aff8/mill-dist-2.0.0-M2-mill.sh -o /usr/local/bin/mill
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sudo curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1-21-b21431/mill-dist-1.3.0-M1-mill.sh -o /usr/local/bin/mill
 &gt; sudo chmod +x /usr/local/bin/mill</code></pre>
 </div>
 </div>
@@ -952,7 +945,7 @@ by adding a a <code>-jvm</code> suffix on the Mill version:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">2.0.0-M2-jvm</code></pre>
+<pre class="highlightjs highlight"><code class="language-none hljs">1.3.0-M1-jvm</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1386,23 +1379,14 @@ than if they were black-and-white:</p>
 <p>Mill caches its outputs locally in the <a href="../fundamentals/out-dir.html" class="xref page">out/ folder</a>. You
 can preserve this <code>out/</code> folder between CI workers, e.g. to allow a subsequent CI worker
 to use a previous worker&#8217;s cached results, or to perform initial compilation on one worker
-then share the compiled output with downstream workers.
-Since <code>out/</code> may contain <code>mill-home</code> and <code>mill-workspace</code> symlinks to runner-local paths,
-delete those symlink entries before uploading it as an artifact.</p>
+then share the compiled output with downstream workers.</p>
 </div>
 <div class="paragraph">
 <p>For example, for Github Actions you may configure <code>out/</code> folder uploading via</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">  - name: Remove out symlinks before artifact upload
-    shell: bash
-    run: |
-      if [ -d out ]; then
-        find out \( -name mill-home -o -name mill-workspace \) -type l -print -delete
-      fi
-
-  - uses: actions/upload-artifact@v4
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">  - uses: actions/upload-artifact@v4
     with:
       name: build-out
       path: out/</code></pre>
