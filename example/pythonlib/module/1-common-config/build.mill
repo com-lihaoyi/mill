@@ -8,6 +8,10 @@ package build
 import mill.*, pythonlib.*
 
 object foo extends PythonModule {
+  // Mill downloads these toolchain versions automatically when needed
+  def uvVersion = "0.10.4"
+  def pythonVersion = "3.12"
+
   // You can have arbitrary numbers of third-party libraries
   def pythonDeps = Seq("MarkupSafe==3.0.2", "Jinja2==3.1.4")
 
@@ -75,9 +79,9 @@ MY_CUSTOM_ENV: my-env-value
 ...
 
 > ./mill show foo.bundle
-".../out/foo/bundle.dest/bundle.pex"
+".../out/foo/bundle.dest/bundle"
 
-> out/foo/bundle.dest/bundle.pex
+> out/foo/bundle.dest/bundle
 ...
 Foo2.value: <h1>hello2</h1>
 Foo.value: <h1>hello</h1>

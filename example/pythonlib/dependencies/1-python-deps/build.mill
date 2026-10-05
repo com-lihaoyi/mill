@@ -10,8 +10,8 @@ object `package` extends PythonModule {
 }
 
 // You can define the `pythonDeps` field to add dependencies to your module, which will be installed
-// via https://pip.pypa.io/en/stable/[pip]. Dependencies can include
-// https://peps.python.org/pep-0440/[anything that pip understands], such as `<package>==<version>`
+// via https://docs.astral.sh/uv/pip/[uv]. Dependencies can include
+// https://peps.python.org/pep-0440/[standard dependency specifications], such as `<package>==<version>`
 // constraints, or even direct references to wheels.
 
 /** Usage

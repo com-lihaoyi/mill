@@ -1,7 +1,7 @@
 This is an example package.
 
 ```
-pip install testpkg-mill
+uv pip install testpkg-mill
 ```
 
 ```
