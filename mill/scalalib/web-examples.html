@@ -399,6 +399,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../large/pre-compiled-modules.html">Pre-Compiled Modules</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../large/remote-caching.html">Remote Caching</a>
+  </li>
 </ul>
   </li>
 
@@ -544,6 +548,10 @@
 
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../android/scala.html">Android Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/publishing.html">Android Library Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -697,7 +705,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.10</span>
+    <span class="version">2.0.0-M2</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -707,7 +715,13 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.10</a>
+          <a href="../index.html">2.0.0-M2</a>
+        </li>
+        <li class="version">
+          <a href="../1.3.x/index.html">1.3.0-M1</a>
+        </li>
+        <li class="version">
+          <a href="../1.1.x/index.html">1.1.10</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -764,7 +778,7 @@ integrated with your backend Scala-JVM web server.</p>
 <p>This example shows off running a simple webserver in a module configured via <code>build.mill.yaml</code></p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.10/mill-dist-1.1.10-example-scalalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.10/example/scalalib/web/1-web-example/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2/mill-dist-2.0.0-M2-example-scalalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/scalalib/web/1-web-example/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: ScalaModule
 scalaVersion: 3.8.2
@@ -776,7 +790,7 @@ mvnDeps: [com.lihaoyi::cask:0.9.1]</code></pre>
 to run the web server</p>
 </div>
 <div class="listingblock">
-<div class="title">src/WebServer.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.10/mill-dist-1.1.10-example-scalalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.10/example/scalalib/web/1-web-example/src/WebServer.scala">browse</a>)</div>
+<div class="title">src/WebServer.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2/mill-dist-2.0.0-M2-example-scalalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/scalalib/web/1-web-example/src/WebServer.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package example
 object WebServer extends cask.MainRoutes {
@@ -795,7 +809,7 @@ object WebServer extends cask.MainRoutes {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill runBackground
 
-&gt; curl -d 'helloworld' localhost:${PORT:-8080}/reverse-string
+&gt; curl -H 'Content-Type: text/plain' -d 'helloworld' localhost:${PORT:-8080}/reverse-string
 dlrowolleh
 
 &gt; ./mill clean runBackground # shut down webserver</code></pre>
@@ -810,7 +824,7 @@ configured by <code>test/package.mill.yaml</code>. This test suite spins up the 
 makes a single HTTP request against and checks it behaves as expected.</p>
 </div>
 <div class="listingblock">
-<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.10/mill-dist-1.1.10-example-scalalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.10/example/scalalib/web/1-web-example/test/package.mill.yaml">browse</a>)</div>
+<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2/mill-dist-2.0.0-M2-example-scalalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/scalalib/web/1-web-example/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.ScalaTests, TestModule.Utest]
 mvnDeps:
@@ -828,7 +842,7 @@ mvnDeps:
 <div class="sect2">
 <h3 id="_todomvc_web_app"><a class="anchor" href="#_todomvc_web_app"></a>TodoMVC Web App</h3>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.10/mill-dist-1.1.10-example-scalalib-web-2-todo-webapp.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.10/example/scalalib/web/2-todo-webapp/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2/mill-dist-2.0.0-M2-example-scalalib-web-2-todo-webapp.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/scalalib/web/2-todo-webapp/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: ScalaModule
 scalaVersion: 3.8.2
@@ -839,7 +853,7 @@ mvnDeps:
 </div>
 </div>
 <div class="listingblock">
-<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.10/mill-dist-1.1.10-example-scalalib-web-2-todo-webapp.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.10/example/scalalib/web/2-todo-webapp/test/package.mill.yaml">browse</a>)</div>
+<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2/mill-dist-2.0.0-M2-example-scalalib-web-2-todo-webapp.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/scalalib/web/2-todo-webapp/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.ScalaTests, TestModule.Utest]
 mvnDeps:
@@ -870,7 +884,7 @@ that spins up the web server locally and makes HTTP requests against it.</p>
 <div class="sect2">
 <h3 id="_webapp_cache_busting"><a class="anchor" href="#_webapp_cache_busting"></a>Webapp Cache Busting</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.10/mill-dist-1.1.10-example-scalalib-web-3-webapp-cache-busting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.10/example/scalalib/web/3-webapp-cache-busting">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2/mill-dist-2.0.0-M2-example-scalalib-web-3-webapp-cache-busting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/scalalib/web/3-webapp-cache-busting">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -883,7 +897,7 @@ object `package` extends ScalaModule {
     mvn"com.lihaoyi::cask:0.9.1",
     mvn"com.lihaoyi::upickle:4.3.0",
     mvn"com.lihaoyi::scalatags:0.13.1",
-    mvn"com.lihaoyi::os-lib:0.11.4"
+    mvn"com.lihaoyi::os-lib:0.11.9-M8"
   )
 
   def resources = Task {
@@ -958,7 +972,7 @@ initListeners()
 <div class="sect2">
 <h3 id="_todomvc_http4s_web_app"><a class="anchor" href="#_todomvc_http4s_web_app"></a>TodoMVC http4s Web App</h3>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.10/mill-dist-1.1.10-example-scalalib-web-4-todo-http4s.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.10/example/scalalib/web/4-todo-http4s/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2/mill-dist-2.0.0-M2-example-scalalib-web-4-todo-http4s.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/scalalib/web/4-todo-http4s/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: ScalaModule
 scalaVersion: 3.8.2
@@ -970,7 +984,7 @@ mvnDeps:
 </div>
 </div>
 <div class="listingblock">
-<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.10/mill-dist-1.1.10-example-scalalib-web-4-todo-http4s.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.10/example/scalalib/web/4-todo-http4s/test/package.mill.yaml">browse</a>)</div>
+<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2/mill-dist-2.0.0-M2-example-scalalib-web-4-todo-http4s.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/scalalib/web/4-todo-http4s/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.ScalaTests, TestModule.Utest]
 mvnDeps:
@@ -1008,7 +1022,7 @@ that spins up the web server locally and makes HTTP requests against it.</p>
 <div class="sect2">
 <h3 id="_scala_js_modules"><a class="anchor" href="#_scala_js_modules"></a>Scala.js Modules</h3>
 <div class="listingblock">
-<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.10/mill-dist-1.1.10-example-scalalib-web-5-scalajs-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.10/example/scalalib/web/5-scalajs-module/foo/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2/mill-dist-2.0.0-M2-example-scalalib-web-5-scalajs-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/scalalib/web/5-scalajs-module/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: mill.scalajslib.ScalaJSModule
 scalaVersion: 3.8.2
@@ -1018,7 +1032,7 @@ mvnDeps:
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.10/mill-dist-1.1.10-example-scalalib-web-5-scalajs-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.10/example/scalalib/web/5-scalajs-module/foo/test/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2/mill-dist-2.0.0-M2-example-scalalib-web-5-scalajs-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/scalalib/web/5-scalajs-module/foo/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.foo.ScalaJSTests, TestModule.Utest]
 utestVersion: 0.8.9</code></pre>
@@ -1074,7 +1088,7 @@ runtime to be installed on your machine.</p>
 <div class="sect2">
 <h3 id="_scala_js_webserver_integration"><a class="anchor" href="#_scala_js_webserver_integration"></a>Scala.js Webserver Integration</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.10/mill-dist-1.1.10-example-scalalib-web-6-webapp-scalajs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.10/example/scalalib/web/6-webapp-scalajs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2/mill-dist-2.0.0-M2-example-scalalib-web-6-webapp-scalajs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/scalalib/web/6-webapp-scalajs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1149,7 +1163,7 @@ scope of this example.</p>
 <div class="sect2">
 <h3 id="_scala_jsscala_jvm_code_sharing"><a class="anchor" href="#_scala_jsscala_jvm_code_sharing"></a>Scala.js/Scala-JVM Code Sharing</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.10/mill-dist-1.1.10-example-scalalib-web-7-webapp-scalajs-shared.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.10/example/scalalib/web/7-webapp-scalajs-shared">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2/mill-dist-2.0.0-M2-example-scalalib-web-7-webapp-scalajs-shared.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/scalalib/web/7-webapp-scalajs-shared">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1243,7 +1257,7 @@ is beyond the scope of this example.</p>
 <div class="sect2">
 <h3 id="_publishing_cross_platform_scala_modules"><a class="anchor" href="#_publishing_cross_platform_scala_modules"></a>Publishing Cross-Platform Scala Modules</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.10/mill-dist-1.1.10-example-scalalib-web-8-cross-version-platform-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.10/example/scalalib/web/8-cross-version-platform-publishing">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2/mill-dist-2.0.0-M2-example-scalalib-web-8-cross-version-platform-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/scalalib/web/8-cross-version-platform-publishing">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1360,7 +1374,7 @@ Publishing com.lihaoyi:foo-qux_3:0.0.1 to ivy repo...</code></pre>
 <div class="sect2">
 <h3 id="_publishing_cross_platform_scala_modules_alternative"><a class="anchor" href="#_publishing_cross_platform_scala_modules_alternative"></a>Publishing Cross-Platform Scala Modules Alternative</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.10/mill-dist-1.1.10-example-scalalib-web-9-cross-platform-version-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.10/example/scalalib/web/9-cross-platform-version-publishing">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2/mill-dist-2.0.0-M2-example-scalalib-web-9-cross-platform-version-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/scalalib/web/9-cross-platform-version-publishing">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1481,7 +1495,7 @@ Publishing com.lihaoyi:qux_3:0.0.1 to ivy repo...</code></pre>
 <div class="sect2">
 <h3 id="_scala_js_webassembly_example"><a class="anchor" href="#_scala_js_webassembly_example"></a>Scala.js WebAssembly Example</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.10/mill-dist-1.1.10-example-scalalib-web-10-wasm.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.10/example/scalalib/web/10-wasm">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2/mill-dist-2.0.0-M2-example-scalalib-web-10-wasm.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/scalalib/web/10-wasm">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1518,8 +1532,8 @@ the flags needed to run in browser and the minimum node version (22) required to
   "dest": ".../out/wasm/fastLinkJS.dest"
 }
 
-&gt; node --experimental-wasm-exnref out/wasm/fastLinkJS.dest/main.js # mac/linux
-hello  wasm!</code></pre>
+&gt; if [ "$(node -p 'parseInt(process.versions.node.split(".")[0], 10)')" -ge 22 ]; then node --experimental-wasm-exnref out/wasm/fastLinkJS.dest/main.js; else echo "Skipping wasm run on Node &lt; 22"; fi # mac/linux
+...wasm...</code></pre>
 </div>
 </div>
 <div class="paragraph">

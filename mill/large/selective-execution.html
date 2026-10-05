@@ -399,6 +399,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="pre-compiled-modules.html">Pre-Compiled Modules</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="remote-caching.html">Remote Caching</a>
+  </li>
 </ul>
   </li>
 
@@ -544,6 +548,10 @@
 
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../android/scala.html">Android Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/publishing.html">Android Library Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -697,7 +705,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.10</span>
+    <span class="version">2.0.0-M2</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -707,7 +715,13 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.10</a>
+          <a href="../index.html">2.0.0-M2</a>
+        </li>
+        <li class="version">
+          <a href="../1.3.x/index.html">1.3.0-M1</a>
+        </li>
+        <li class="version">
+          <a href="../1.1.x/index.html">1.1.10</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -794,7 +808,7 @@ request branch, you can do that as follows:</p>
 where <code>bar</code> depends on <code>foo</code> but <code>qux</code> is standalone:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.10/mill-dist-1.1.10-example-large-selective-9-selective-execution.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.10/example/large/selective/9-selective-execution">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2/mill-dist-2.0.0-M2-example-large-selective-9-selective-execution.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/large/selective/9-selective-execution">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -1258,7 +1272,7 @@ but only one of them <code>foo</code> is used to decide whether the task should 
 during selective execution.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.10/mill-dist-1.1.10-example-large-selective-10-selective-inputs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.10/example/large/selective/10-selective-inputs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2/mill-dist-2.0.0-M2-example-large-selective-10-selective-inputs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/large/selective/10-selective-inputs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*

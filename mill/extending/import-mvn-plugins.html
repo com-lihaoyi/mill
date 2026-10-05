@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Import Libraries and Plugins :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/extending/import-mvn-plugins.html">
-    <link rel="prev" href="../large/pre-compiled-modules.html">
+    <link rel="prev" href="../large/remote-caching.html">
     <link rel="next" href="contrib-plugins.html">
     <meta name="generator" content="Antora 3.1.12">
     <link rel="stylesheet" href="../../_/css/site.css">
@@ -399,6 +399,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../large/pre-compiled-modules.html">Pre-Compiled Modules</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../large/remote-caching.html">Remote Caching</a>
+  </li>
 </ul>
   </li>
 
@@ -544,6 +548,10 @@
 
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../android/scala.html">Android Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/publishing.html">Android Library Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -697,7 +705,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.10</span>
+    <span class="version">2.0.0-M2</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -707,7 +715,13 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.10</a>
+          <a href="../index.html">2.0.0-M2</a>
+        </li>
+        <li class="version">
+          <a href="../1.3.x/index.html">1.3.0-M1</a>
+        </li>
+        <li class="version">
+          <a href="../1.1.x/index.html">1.1.10</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -768,7 +782,7 @@ into your build, so you can use it at build-time to safely generate escaped HTML
 in your resource path for your application to use.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.10/mill-dist-1.1.10-example-extending-imports-1-mvn-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.10/example/extending/imports/1-mvn-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2/mill-dist-2.0.0-M2-example-extending-imports-1-mvn-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/extending/imports/1-mvn-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: 17
 //| mvnDeps:
@@ -785,7 +799,7 @@ object foo extends JavaModule {
     val context = new Context
     context.setVariable("heading", "hello")
     context.setVariable("paragraph", "world")
-    new TemplateEngine().process(
+    TemplateEngine().process(
       """&lt;div&gt;&lt;h1 th:text="${heading}"&gt;&lt;/h1&gt;&lt;p th:text="${paragraph}"&gt;&lt;/p&gt;&lt;/div&gt;""",
       context
     )
@@ -847,7 +861,7 @@ a HTML generation library that does the string concatenation/construction intern
 and also escapes the input strings on your behalf:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.10/mill-dist-1.1.10-example-extending-imports-2-mvn-deps-scala.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.10/example/extending/imports/2-mvn-deps-scala">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2/mill-dist-2.0.0-M2-example-extending-imports-2-mvn-deps-scala.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/extending/imports/2-mvn-deps-scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["com.lihaoyi::scalatags:0.13.1"]
 
@@ -857,7 +871,7 @@ import scalatags.Text.all.*
 object bar extends ScalaModule {
   def scalaVersion = "2.13.16"
 
-  def mvnDeps = Seq(mvn"com.lihaoyi::os-lib:0.10.7")
+  def mvnDeps = Seq(mvn"com.lihaoyi::os-lib:0.11.9-M8")
   def htmlSnippet = Task { div(h1("hello"), p("world")).toString }
   def resources = Task {
     os.write(Task.dest / "snippet.txt", htmlSnippet())
@@ -1004,7 +1018,7 @@ configuring on <a href="meta-build.html" class="xref page">The Mill Meta-Build</
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="../large/pre-compiled-modules.html">Pre-Compiled Modules</a></span>
+  <span class="prev"><a href="../large/remote-caching.html">Remote Caching</a></span>
   <span class="next"><a href="contrib-plugins.html">Contrib Plugins</a></span>
 </nav>
 </article>

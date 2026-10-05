@@ -399,6 +399,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../large/pre-compiled-modules.html">Pre-Compiled Modules</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../large/remote-caching.html">Remote Caching</a>
+  </li>
 </ul>
   </li>
 
@@ -544,6 +548,10 @@
 
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../android/scala.html">Android Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/publishing.html">Android Library Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -697,7 +705,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.10</span>
+    <span class="version">2.0.0-M2</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -707,7 +715,13 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.10</a>
+          <a href="../index.html">2.0.0-M2</a>
+        </li>
+        <li class="version">
+          <a href="../1.3.x/index.html">1.3.0-M1</a>
+        </li>
+        <li class="version">
+          <a href="../1.1.x/index.html">1.1.10</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -801,6 +815,24 @@ build to improve parallelism.</p>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_concurrent_mill_invocations"><a class="anchor" href="#_concurrent_mill_invocations"></a>Concurrent Mill Invocations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>As of Mill 1.2.0, the Mill daemon uses fine-grained per-task read/write locking rather than a
+single global lock over the <code>out/</code> folder. This means multiple concurrent <code>mill</code> commands run
+against the same project (for example a command-line <code>./mill</code> invocation alongside an
+IDE-triggered <a href="../cli/installation-ide.html" class="xref page">BSP</a> request) can run their non-conflicting tasks
+in parallel, instead of one invocation having to wait for the other to finish.</p>
+</div>
+<div class="paragraph">
+<p>Commands that mutate shared state, such as <code>clean</code>, <code>init</code>, or the various code formatters, are
+marked <a href="../fundamentals/tasks.html#_globally_exclusive_commands" class="xref page">globally exclusive</a>: they take
+the daemon-wide workspace lock so that no other invocation runs concurrently while they execute.
+Running with <code>--no-daemon</code> instead takes a single coarse process-level lock per invocation.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_mill_chrome_profiles"><a class="anchor" href="#_mill_chrome_profiles"></a>Mill Chrome Profiles</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -867,7 +899,7 @@ to support <a href="../javalib/testing.html#_test_grouping" class="xref page">pa
 but can be used in your own tasks as well:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.10/mill-dist-1.1.10-example-fundamentals-tasks-7-forking-futures.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.10/example/fundamentals/tasks/7-forking-futures">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/2.0.0-M2/mill-dist-2.0.0-M2-example-fundamentals-tasks-7-forking-futures.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/2.0.0-M2/example/fundamentals/tasks/7-forking-futures">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
