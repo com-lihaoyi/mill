@@ -805,7 +805,7 @@ resource generation, APK building, DEX conversion, and APK signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1-21-b21431/mill-dist-1.3.0-M1-example-androidlib-java-1-hello-world.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/androidlib/java/1-hello-world">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1-23-17cd44/mill-dist-1.3.0-M1-example-androidlib-java-1-hello-world.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/androidlib/java/1-hello-world">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: zulu:21
 
@@ -842,13 +842,13 @@ import mill.*, androidlib.*, scalalib.*</code></pre>
    * Never use these defaults in a production environment as they are not secure.
    * This is just for testing purposes.
    */
-  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
+  def androidReleaseKeyName = Some("releaseKey.jks")
   def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
   override def androidVirtualDevice = super.androidVirtualDevice().withName("java-test")
-  override def androidEmulatorPort: String = System.getenv.getOrDefault("EMULATOR_PORT", "5554")
+  override def androidEmulatorPort = System.getenv.getOrDefault("EMULATOR_PORT", "5554")
 
   object test extends AndroidAppTests, TestModule.Junit4 {
     def junit4Version = "4.13.2"
@@ -1176,7 +1176,7 @@ Android Bundle zip generation, Bundle Creation and Bundle signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1-21-b21431/mill-dist-1.3.0-M1-example-androidlib-java-2-app-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/androidlib/java/2-app-bundle">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1-23-17cd44/mill-dist-1.3.0-M1-example-androidlib-java-2-app-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/androidlib/java/2-app-bundle">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: zulu:21
 
@@ -1201,7 +1201,7 @@ object bundle extends AndroidAppBundle {
   def androidApplicationId = "com.helloworld.app"
   def androidApplicationNamespace = "com.helloworld.app"
 
-  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
+  def androidReleaseKeyName = Some("releaseKey.jks")
   def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
@@ -1313,7 +1313,7 @@ More informations about the R8 in general and about the Proguard rules files can
 <p><a href="https://www.guardsquare.com/manual/configuration/usage" class="bare">https://www.guardsquare.com/manual/configuration/usage</a></p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1-21-b21431/mill-dist-1.3.0-M1-example-androidlib-java-5-R8.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/androidlib/java/5-R8">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1-23-17cd44/mill-dist-1.3.0-M1-example-androidlib-java-5-R8.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/androidlib/java/5-R8">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: zulu:21
 
@@ -1338,13 +1338,13 @@ object app extends AndroidR8AppModule { <i class="conum" data-value="2"></i><b>(
    * Never use these defaults in a production environment as they are not secure.
    * This is just for testing purposes.
    */
-  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
+  def androidReleaseKeyName = Some("releaseKey.jks")
   def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
   override def androidVirtualDevice = super.androidVirtualDevice().withName("java-r8-test")
-  override def androidEmulatorPort: String = System.getenv.getOrDefault("EMULATOR_PORT", "5554")
+  override def androidEmulatorPort = System.getenv.getOrDefault("EMULATOR_PORT", "5554")
   override def androidIsDebug: T[Boolean] = Task { false }
 
   def androidProjectProguardFiles = Task.Sources(
@@ -1454,7 +1454,7 @@ There is a list of the core C/C++ libraries that can be used in the android here
 <a href="https://developer.android.com/ndk/reference" class="bare">https://developer.android.com/ndk/reference</a></p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1-21-b21431/mill-dist-1.3.0-M1-example-androidlib-java-6-native-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/androidlib/java/6-native-libs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1-23-17cd44/mill-dist-1.3.0-M1-example-androidlib-java-6-native-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/androidlib/java/6-native-libs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: zulu:21
 
@@ -1485,7 +1485,7 @@ object app extends AndroidNativeAppModule { <i class="conum" data-value="1"></i>
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
   override def androidVirtualDevice = super.androidVirtualDevice().withName("native-test")
-  override def androidEmulatorPort: String = System.getenv.getOrDefault("EMULATOR_PORT", "5554")
+  override def androidEmulatorPort = System.getenv.getOrDefault("EMULATOR_PORT", "5554")
 
   def androidExternalNativeLibs = Task { <i class="conum" data-value="2"></i><b>(2)</b>
     Seq(

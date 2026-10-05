@@ -791,7 +791,7 @@
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def androidReleaseKeyName: T[Option[String]] = Some("releaseKey.jks")
 def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
 def androidReleaseKeyPass: T[Option[String]] = Task.Input { Task.env.get("KEY_PASS") }
 def androidReleaseKeyStorePass: T[Option[String]] = Task.Input { Task.env.get("KEYSTORE_PASS") }</code></pre>
