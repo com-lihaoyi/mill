@@ -1,11 +1,13 @@
 package mill.util
 
+import com.lihaoyi.unroll
 import coursier.CoursierEnv
 import coursier.cache.{CacheEnv, CachePolicy}
 import coursier.core.Repository
 import coursier.credentials.Credentials
 import coursier.params.Mirror
 
+import scala.util.{Success, Try}
 import scala.concurrent.duration.Duration
 
 final case class CoursierConfig(
@@ -16,7 +18,9 @@ final case class CoursierConfig(
     archiveCacheLocation: String,
     credentials: Seq[Credentials],
     ttl: Option[Duration],
-    cachePolicies: Seq[CachePolicy]
+    cachePolicies: Seq[CachePolicy],
+    @unroll
+    userAgent: Option[String] = None
 )
 
 object CoursierConfig {
@@ -49,6 +53,19 @@ object CoursierConfig {
       ),
       CacheEnv.defaultCachePolicies(
         CacheEnv.cachePolicy.read()
+      ),
+      Some(
+        s"Mill${
+            Try(Version.parse(BuildInfo.millVersion)) match {
+              case Success(v) => s"/${v.major}. ${v.minor}"
+              case _ => ""
+            }
+          } (${BuildInfo.millProjectUrl}) Coursier${
+            Try(Version.parse(BuildInfo.coursierVersion)) match {
+              case Success(v) => s"/${v.major}. ${v.minor}"
+              case _ => ""
+            }
+          }"
       )
     )
   }
