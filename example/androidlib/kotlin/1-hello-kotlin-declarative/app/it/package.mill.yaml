@@ -1,0 +1,6 @@
+extends: build.app.AndroidAppKotlinInstrumentedTests
+mvnDeps:
+- androidx.test.ext:junit:1.2.1
+- androidx.test:runner:1.6.2
+- androidx.test.espresso:espresso-core:3.5.1
+- junit:junit:4.13.2
