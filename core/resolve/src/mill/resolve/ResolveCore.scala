@@ -224,7 +224,7 @@ private object ResolveCore {
                 )
 
               case pattern if pattern.startsWith("__:") =>
-                val typePattern = pattern.split(":").drop(1)
+                val typePattern = pattern.split(":").drop(1).toIndexedSeq
                 val self =
                   Seq(Resolved.Module(rootModule, m.rootModulePrefix, m.taskSegments, m.cls))
 
@@ -247,7 +247,7 @@ private object ResolveCore {
                 )
 
               case pattern if pattern.startsWith("_:") =>
-                val typePattern = pattern.split(":").drop(1)
+                val typePattern = pattern.split(":").drop(1).toIndexedSeq
                 resolveDirectChildren(
                   rootModule,
                   rootModulePrefix,
