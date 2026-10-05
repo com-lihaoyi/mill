@@ -51,6 +51,11 @@ object ScriptMainForwarderClassesTests extends UtestIntegrationTestSuite {
 
       val res9 = eval(("ExtensionAlias.sc:runMain", "main1", "--text", "short-extension"))
       assert(res9.out == "short-extensionSC")
+
+      // A leading shebang line must not break compilation of the generated source
+      val res10 = eval(("Shebang.scala:run", "--text", "shebang"))
+      assert(res10.isSuccess)
+      assert(res10.out == "shebangQRS")
     }
   }
 }

@@ -34,10 +34,15 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
       val modified = Task.dest / original.last
       val sanitizedName = original.last.map(c => if (Character.isJavaIdentifierPart(c)) c else '_')
       val selfReference = s"${sanitizedName}_millScriptMainSelf"
+      val originalContent = os.read(original)
+      // A shebang is only valid on the first line of a file, but the generated source starts
+      // with the SOURCE_CODE_START header, so comment it out while keeping line numbers intact
+      val sourceContent =
+        if (originalContent.startsWith("#!")) "//" + originalContent else originalContent
       os.write(
         modified,
         s"///SOURCE_CODE_START:$originalSourcecodePath\n" +
-          os.read(original) +
+          sourceContent +
           System.lineSeparator +
           // Squeeze this onto one line so as not to affect line counts too much
           s"type main = mainargs.main; private def $selfReference = this; object MillScriptMain_${sanitizedName} { def main(args: Array[String]): Unit = this.getClass.getMethods.find(m => m.getName == \"main\" && m.getParameters.map(_.getType) == Array(classOf[Array[String]]) && m.getReturnType == classOf[Unit]) match{ case Some(m) => m.invoke($selfReference, args); case None => mainargs.Parser($selfReference).runOrExit(args.toIndexedSeq) }}"
