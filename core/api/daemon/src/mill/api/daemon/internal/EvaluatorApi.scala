@@ -10,7 +10,8 @@ trait EvaluatorApi extends AutoCloseable {
       scriptArgs: Seq[String],
       selectMode: SelectMode,
       reporter: Int => Option[CompileProblemReporter] = _ => None,
-      selectiveExecution: Boolean = false
+      selectiveExecution: Boolean = false,
+      serialCommandExec: Boolean = false
   ): Result[EvaluatorApi.Result[Any]]
 
   private[mill] def executeApi[T](
