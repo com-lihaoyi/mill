@@ -99,6 +99,9 @@ object `package` extends mill.Module {
   trait IntegrationTestModule extends Cross.Module[String] with DefaultTaskModule {
     def moduleDir = super.moduleDir / crossValue
 
+    /** JVM used by the forked integration-test process. */
+    def testJvmVersion: String = ""
+
     def moduleDeps =
       Seq(build.libs.util.test, build.testkit, build.testkit.internal, build.runner.daemon)
 
@@ -116,6 +119,7 @@ object `package` extends mill.Module {
 
     trait ModeModule extends MillBaseTestsModule {
       override def testClasspath: T[Seq[PathRef]] = IntegrationTestModule.this.testClasspath()
+      override def jvmVersion = IntegrationTestModule.this.testJvmVersion
       def useSharedOut: Boolean
       override def enableBsp = false
       def testForked0(args: String*) = Task.Anon {
@@ -286,6 +290,7 @@ object `package` extends mill.Module {
     )
 
     def forkArgs: T[Seq[String]] = Seq(
+      s"-Dmill.integration.mill-version=${build.millVersion()}",
       s"-Dmill.integration.coursier-version=${Deps.coursier.dep.versionConstraint.asString}"
     )
     def forkEnv = Task {

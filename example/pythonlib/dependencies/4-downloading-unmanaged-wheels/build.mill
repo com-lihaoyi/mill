@@ -43,5 +43,5 @@ Hello, world!
 // to worry about when dealing with xref:#_unmanaged_wheels[unmanaged wheels] apply here as well. In
 // case you **do** want mill to take care of managing dependencies of a package which is not
 // available on PyPI, you shouldn't get that package in `unmanagedWheels` (like we did in the
-// example above). Instead, you can declare the dependency as a regular `pythonDep`
-// https://peps.python.org/pep-0440/#direct-references[as a direct URL that pip understands].
+// example above). Instead, you can declare the dependency as an entry in `pythonDeps`
+// https://peps.python.org/pep-0440/#direct-references[using the standard direct-URL syntax].

@@ -201,7 +201,7 @@ trait DistModule extends RunModule {
 
   def installIvyLocalTask(targetFiles: Task[os.Path]*) =
     Task.Anon[Seq[PathRef]] {
-      Task.traverse(allPublishModules)(m => m.publishLocal(doc = false))()
+      Task.traverse(allPublishModules)(m => m.publishLocalCachedWoDocs)()
       val targetFiles0 = Task.sequence(targetFiles)()
       for (targetFile <- targetFiles0) {
         if (os.exists(targetFile))
@@ -371,7 +371,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
         try {
           // publishLocal is needed because executableVersioned has the actual version,
           // so Mill needs to resolve modules at that version from ~/.ivy2/local
-          Task.traverse(allPublishModules)(m => m.publishLocal(doc = false))()
+          Task.traverse(allPublishModules)(m => m.publishLocalCachedWoDocs)()
           Jvm.runInteractiveCommand(
             cmd = Seq(build.dist.raw.executableVersioned().path.toString) ++ rest,
             env = forkEnv() ++ build.dist.raw.localTestOverridesEnv(),

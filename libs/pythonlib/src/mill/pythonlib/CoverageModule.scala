@@ -28,7 +28,7 @@ import mill.*
 trait CoverageModule extends PythonModule {
 
   override def pythonToolDeps = Task {
-    super.pythonToolDeps() ++ Seq("coverage>=7.6.10")
+    super.pythonToolDeps() ++ Seq("coverage==7.16.2")
   }
 
   /**
@@ -124,8 +124,18 @@ trait CoverageModule extends PythonModule {
 trait CoverageTests extends CoverageModule with TestModule {
 
   override def pythonOptions = Task {
-    Seq("-m", "coverage", "run", "--data-file", coverageDataFile().toString) ++
+    Seq(
+      "-m",
+      "coverage",
+      "run",
+      "--data-file",
+      coverageDataFile().toString
+    ) ++
       super.pythonOptions()
+  }
+
+  override protected def repeatedPythonOptions = Task {
+    super.repeatedPythonOptions() ++ Seq("--append")
   }
 
   override def coverageTask = testCached

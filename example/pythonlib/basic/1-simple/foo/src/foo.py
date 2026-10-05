@@ -5,7 +5,7 @@ from jinja2 import Template
 
 def generate_html(text: str) -> str:
     template = Template("<h1>{{ text }}</h1>")
-    return template.render(text=text)
+    return str(template.render(text=text))
 
 
 def main() -> str:

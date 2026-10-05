@@ -24,12 +24,14 @@ object foo extends PythonModule {
 
   def typeCheck = Task {
     println("Type Checking...")
+    Console.out.flush()
     super.typeCheck()
   }
 
   def run(args: mill.api.Args) = Task.Command {
     typeCheck()
     println("Running..." + args.value.mkString(" "))
+    Console.out.flush()
     super.run(args)()
   }
 }
@@ -74,7 +76,7 @@ object foo3 extends PythonModule {
 
 > ./mill foo.run
 Type Checking...
-Success: no issues found in 1 source file
+All checks passed!
 Running...
 Hello World
 
