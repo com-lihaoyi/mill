@@ -36,9 +36,8 @@ object MillLauncherMain {
     val bspMode = bspServerMode || parsedConfig.exists(_.bspInstall.value)
     val useFileLocks = parsedConfig.exists(_.useFileLocks.value)
     val outMode = if (bspMode) OutFolderMode.BSP else OutFolderMode.REGULAR
-
     val resolved = mill.internal.OutputDirectoryLayout.resolve(outMode, workDir, env)
-    import resolved.{effectiveEnv, outDir, regularOutDir}
+    val (effectiveEnv, outDir, regularOutDir) = Tuple.fromProductTyped(resolved)
 
     // BSP shares the regular MillDaemonMain by default so build state is reused
     // across CLI and BSP. Opting into a separate BSP output dir (via the
@@ -51,12 +50,17 @@ object MillLauncherMain {
       parsedConfig.exists(_.noDaemonEnabled > 0) || bspSeparateOutputDir
 
     val logFile = os.Path(outDir, workDir) / "mill-launcher/log"
+    val outPath = os.Path(outDir, workDir)
     val formatter =
       DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of("UTC"))
     def log(s: String) =
       os.write.append(logFile, s"${formatter.format(Instant.now())} $s\n", createFolders = true)
 
     if (bspServerMode) logBspInfoMessage(outDir, regularOutDir)
+
+    if (env.getOrElse("MILL_LOG_DIRS", "0") == "1") {
+      System.err.println(s"Mill launcher running in '${workDir}' using out-dir '${outPath}'")
+    }
 
     coursier.Resolve.proxySetup()
 
@@ -70,6 +74,7 @@ object MillLauncherMain {
         MillProcessLauncher.launchMillNoDaemon(
           optsArgs,
           outMode,
+          outPath,
           runnerClasspath,
           mainClass =
             if (bspSeparateOutputDir) "mill.daemon.MillBspMain"
@@ -84,7 +89,7 @@ object MillLauncherMain {
         runViaDaemon(
           optsArgs,
           outMode,
-          outDir,
+          outPath,
           runnerClasspath,
           useFileLocks,
           workDir,
@@ -111,7 +116,7 @@ object MillLauncherMain {
   private def runViaDaemon(
       optsArgs: Seq[String],
       outMode: OutFolderMode,
-      outDir: String,
+      outDir: os.Path,
       runnerClasspath: Seq[os.Path],
       useFileLocks: Boolean,
       workDir: os.Path,
@@ -133,6 +138,7 @@ object MillLauncherMain {
           MillProcessLauncher.launchMillDaemon(
             daemonDir,
             outMode,
+            outDir,
             runnerClasspath,
             useFileLocks,
             workDir,
@@ -144,7 +150,7 @@ object MillLauncherMain {
       millRepositories = millRepositories
     )
 
-    val daemonDir = os.Path(outDir, workDir) / OutFiles.OutFiles.millDaemon
+    val daemonDir = outDir / OutFiles.OutFiles.millDaemon
     val javaHome = MillProcessLauncher.javaHome(effectiveEnv, workDir, millRepositories)
 
     MillProcessLauncher.prepareMillRunFolder(daemonDir)

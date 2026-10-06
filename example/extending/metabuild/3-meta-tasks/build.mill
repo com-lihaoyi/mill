@@ -17,11 +17,11 @@ Inputs:
 
 > ./mill --meta-level 1 visualizePlan millBuildRootModuleResult
 [
-  ".../out/mill-build/visualizePlan.dest/out.dot",
-  ".../out/mill-build/visualizePlan.dest/out.json",
-  ".../out/mill-build/visualizePlan.dest/out.png",
-  ".../out/mill-build/visualizePlan.dest/out.svg",
-  ".../out/mill-build/visualizePlan.dest/out.txt"
+  "...out/mill-build/visualizePlan.dest/out.dot",
+  "...out/mill-build/visualizePlan.dest/out.json",
+  "...out/mill-build/visualizePlan.dest/out.png",
+  "...out/mill-build/visualizePlan.dest/out.svg",
+  "...out/mill-build/visualizePlan.dest/out.txt"
 ]
 
 > ./mill --meta-level 1 show runClasspath

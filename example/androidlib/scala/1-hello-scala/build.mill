@@ -63,10 +63,10 @@ object app extends AndroidAppScalaModule {
 /** Usage
 
 > ./mill show app.androidApk
-".../out/app/androidApk.dest/app.apk"
+"...$MILL_OUT/app/androidApk.dest/app.apk"
 
 > ./mill show app.it.androidTestApk
-".../out/app/it/androidApk.dest/app.apk"
+"...$MILL_OUT/app/it/androidApk.dest/app.apk"
 
 > ./mill show app.test
 ...
@@ -86,9 +86,9 @@ object app extends AndroidAppScalaModule {
 > ./mill show app.createAndroidVirtualDevice
 ...Name: scala-test, DeviceId: medium_phone...
 
-> ./mill show app.startAndroidEmulator
+> ./mill app.startAndroidEmulator
 
-> ./mill show app.androidInstall
+> ./mill app.androidInstall
 ...All files should be loaded. Notifying the device...
 
 > ./mill show app.it
@@ -112,8 +112,8 @@ object app extends AndroidAppScalaModule {
 }
 ...
 
-> ./mill show app.stopAndroidEmulator
+> ./mill app.stopAndroidEmulator
 
-> ./mill show app.deleteAndroidVirtualDevice
+> ./mill app.deleteAndroidVirtualDevice
 
 */

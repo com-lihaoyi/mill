@@ -23,7 +23,7 @@ object `package` extends PythonModule {
 Hello, world!
 
 > ./mill show bundle
-".../out/bundle.dest/bundle"
+"...$MILL_OUT/bundle.dest/bundle"
 
 > out/bundle.dest/bundle
 Hello, world!

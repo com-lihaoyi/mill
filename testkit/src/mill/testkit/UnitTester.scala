@@ -1,7 +1,16 @@
 package mill.testkit
 
 import mill.Task
-import mill.api.{BuildCtx, DummyInputStream, EnvMap, ExecResult, Result, SystemStreams, Val}
+import mill.api.{
+  BuildCtx,
+  DummyInputStream,
+  EnvMap,
+  ExecResult,
+  MappedRoots,
+  Result,
+  SystemStreams,
+  Val
+}
 import mill.api.ExecResult.OuterStack
 import mill.constants.OutFiles.OutFiles.millChromeProfile
 import mill.constants.OutFiles.OutFiles.millProfile
@@ -236,12 +245,14 @@ class UnitTester(
   def scoped[T](tester: UnitTester => T): T = {
     try {
       BuildCtx.workspaceRoot0.withValue(module.moduleDir) {
-        mill.api.daemon.LauncherSubprocess.withValue(config =>
-          DaemonRpc
-            .defaultRunSubprocessWithStreams(None)(DaemonRpc.ServerToClient.RunSubprocess(config))
-            .exitCode
-        ) {
-          tester(this)
+        MappedRoots.withMillDefaults(outPath = outPath) {
+          mill.api.daemon.LauncherSubprocess.withValue(config =>
+            DaemonRpc
+              .defaultRunSubprocessWithStreams(None)(DaemonRpc.ServerToClient.RunSubprocess(config))
+              .exitCode
+          ) {
+            tester(this)
+          }
         }
       }
     } finally close()

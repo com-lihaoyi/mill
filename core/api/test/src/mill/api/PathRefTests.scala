@@ -19,6 +19,7 @@ object PathRefTests extends TestSuite {
         val sig2 = PathRef(file, quick).sig
         assert(sig1 != sig2)
       }
+
       test("qref") - check(quick = true)
       test("ref") - check(quick = false)
     }
@@ -43,12 +44,18 @@ object PathRefTests extends TestSuite {
           val file = tmpDir / "foo.txt"
           val content = "hello"
           os.write.over(file, content)
-          Files.setPosixFilePermissions(file.wrapped, PosixFilePermissions.fromString("rw-rw----"))
+          Files.setPosixFilePermissions(
+            file.wrapped,
+            PosixFilePermissions.fromString("rw-rw----")
+          )
           val rwSig = PathRef(file, quick).sig
           val rwSigb = PathRef(file, quick).sig
           assert(rwSig == rwSigb)
 
-          Files.setPosixFilePermissions(file.wrapped, PosixFilePermissions.fromString("rwxrw----"))
+          Files.setPosixFilePermissions(
+            file.wrapped,
+            PosixFilePermissions.fromString("rwxrw----")
+          )
           val rwxSig = PathRef(file, quick).sig
 
           assert(rwSig != rwxSig)
@@ -76,6 +83,7 @@ object PathRefTests extends TestSuite {
         val sig2 = PathRef(tmpDir, quick).sig
         assert(sig1 == sig2)
       }
+
       test("qref") - check(quick = true)
       test("ref") - check(quick = false)
     }

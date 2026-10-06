@@ -1,5 +1,6 @@
 package mill.integration
 
+import mill.api.MappedRoots
 import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
 import mill.constants.OutFiles.OutFiles.*
 import mill.daemon.RunnerLauncherState
@@ -48,7 +49,13 @@ trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
       yield {
         val path =
           tester.workspacePath / "out" / Seq.fill(depth)(millBuild) / millRunnerState
-        if (os.exists(path)) upickle.read[RunnerLauncherState.Logged](os.read(path)) -> path
+        if (os.exists(path))
+          MappedRoots.withMillDefaults(
+            outPath = tester.workspacePath / "out",
+            workspacePath = tester.workspacePath
+          ) {
+            upickle.read[RunnerLauncherState.Logged](os.read(path)) -> path
+          }
         else RunnerLauncherState.Logged(Map(), Seq(), Seq(), None, Seq(), 0) -> path
       }
   }

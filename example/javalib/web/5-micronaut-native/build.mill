@@ -6,7 +6,7 @@
 /** Usage
 
 > ./mill show nativeImage
-...out/nativeImage.dest/native-executable...
+...$MILL_OUT/nativeImage.dest/native-executable...
 
 > ./mill show nativeRunBackground
 
