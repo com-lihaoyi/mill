@@ -811,7 +811,7 @@ resource generation, APK building, DEX conversion, and APK signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1-29-7146db/mill-dist-1.3.0-M1-example-androidlib-kotlin-1-hello-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/androidlib/kotlin/1-hello-kotlin">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1-30-6f2381/mill-dist-1.3.0-M1-example-androidlib-kotlin-1-hello-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/androidlib/kotlin/1-hello-kotlin">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: zulu:21
 
@@ -1136,7 +1136,7 @@ the process of building an Android application with minimal configuration.</p>
 the same way <code>moduleDeps</code> refers to other modules by path.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1-29-7146db/mill-dist-1.3.0-M1-example-androidlib-kotlin-1-hello-kotlin-declarative.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/androidlib/kotlin/1-hello-kotlin-declarative/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1-30-6f2381/mill-dist-1.3.0-M1-example-androidlib-kotlin-1-hello-kotlin-declarative.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/androidlib/kotlin/1-hello-kotlin-declarative/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-jvm-version: zulu:21
 extends: Module
@@ -1147,7 +1147,7 @@ object androidSdkModule:
 </div>
 </div>
 <div class="listingblock">
-<div class="title">app/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1-29-7146db/mill-dist-1.3.0-M1-example-androidlib-kotlin-1-hello-kotlin-declarative.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/androidlib/kotlin/1-hello-kotlin-declarative/app/package.mill.yaml">browse</a>)</div>
+<div class="title">app/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1-30-6f2381/mill-dist-1.3.0-M1-example-androidlib-kotlin-1-hello-kotlin-declarative.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/androidlib/kotlin/1-hello-kotlin-declarative/app/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: mill.androidlib.AndroidAppKotlinModule
 kotlinVersion: 2.0.20
@@ -1159,14 +1159,14 @@ androidApplicationNamespace: com.helloworld.app</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">app/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1-29-7146db/mill-dist-1.3.0-M1-example-androidlib-kotlin-1-hello-kotlin-declarative.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/androidlib/kotlin/1-hello-kotlin-declarative/app/test/package.mill.yaml">browse</a>)</div>
+<div class="title">app/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1-30-6f2381/mill-dist-1.3.0-M1-example-androidlib-kotlin-1-hello-kotlin-declarative.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/androidlib/kotlin/1-hello-kotlin-declarative/app/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.app.AndroidAppKotlinTests, TestModule.Junit4]
 junit4Version: 4.13.2</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">app/it/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1-29-7146db/mill-dist-1.3.0-M1-example-androidlib-kotlin-1-hello-kotlin-declarative.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/androidlib/kotlin/1-hello-kotlin-declarative/app/it/package.mill.yaml">browse</a>)</div>
+<div class="title">app/it/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1-30-6f2381/mill-dist-1.3.0-M1-example-androidlib-kotlin-1-hello-kotlin-declarative.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/androidlib/kotlin/1-hello-kotlin-declarative/app/it/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: build.app.AndroidAppKotlinInstrumentedTests
 mvnDeps:
