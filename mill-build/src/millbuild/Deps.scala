@@ -43,7 +43,7 @@ object Deps {
       mvn"org.scala-js::scalajs-env-selenium:1.1.1".withDottyCompat(scalaVersion)
     val scalajsEnvPlaywright =
       mvn"io.github.thijsbroersen::scala-js-env-playwright:0.2.3"
-    val scalajsJsEnvs = mvn"org.scala-js::scalajs-js-envs:1.5.0".withDottyCompat(scalaVersion)
+    val scalajsJsEnvs = mvn"org.scala-js::scalajs-js-envs:1.6.0".withDottyCompat(scalaVersion)
     val scalajsSbtTestAdapter =
       mvn"org.scala-js::scalajs-sbt-test-adapter:${scalaJsVersion}".withDottyCompat(scalaVersion)
     val scalajsLinker =
@@ -102,7 +102,7 @@ object Deps {
   val asmTree = mvn"org.ow2.asm:asm-tree:${asmVersion}"
 
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
-  val bouncyCastleVersion = "1.85"
+  val bouncyCastleVersion = "1.86"
   val keytoolDeps = Seq(
     mvn"org.bouncycastle:bcpkix-jdk18on:${bouncyCastleVersion}",
     mvn"org.bouncycastle:bcprov-jdk18on:${bouncyCastleVersion}",
@@ -111,8 +111,8 @@ object Deps {
   val bouncyCastleProv = mvn"org.bouncycastle:bcprov-jdk18on:${bouncyCastleVersion}"
   val bouncyCastlePgp = mvn"org.bouncycastle:bcpg-jdk18on:${bouncyCastleVersion}"
 
-  val classgraph = mvn"io.github.classgraph:classgraph:4.8.189"
-  val coursierVersion = "2.1.25-M26"
+  val classgraph = mvn"io.github.classgraph:classgraph:4.8.196"
+  val coursierVersion = "2.1.26"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierArchiveCache =
     mvn"io.get-coursier::coursier-archive-cache:$coursierVersion".withDottyCompat(scalaVersion)
@@ -164,7 +164,7 @@ object Deps {
 
   val junitInterface = mvn"com.github.sbt:junit-interface:0.13.3"
   val commonsIo = mvn"commons-io:commons-io:2.22.0"
-  val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.26.0"
+  val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.26.1"
   val osLib = mvn"com.lihaoyi::os-lib:0.11.8"
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:${osLib.version}"
   val pprint = mvn"com.lihaoyi::pprint:0.9.6"
@@ -234,7 +234,7 @@ object Deps {
   val javaparser = mvn"com.github.javaparser:javaparser-core:3.28.2"
   val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.18.0"
   val requests = mvn"com.lihaoyi::requests:0.9.3"
-  val logback = mvn"ch.qos.logback:logback-classic:1.6.3"
+  val logback = mvn"ch.qos.logback:logback-classic:1.6.4"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
   val kotlinVersion = "2.1.20"
   val kspVersion = "2.0.1"
@@ -283,7 +283,7 @@ object Deps {
 
   val sbt_api = mvn"org.scala-sbt:sbt:1.10.10"
   val mimaCore_api = mvn"com.typesafe::mima-core:1.2.1"
-  val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:3.1.1"
+  val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:3.2"
   val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.3.1"
   // JGit 6.x series, used by spotlessLibExtra, works on Java 11
   // subsequent releases require Java 17+
@@ -349,7 +349,7 @@ object Deps {
     Deps.commonsIo,
     Deps.gson,
     mvn"com.google.protobuf:protobuf-java:4.33.5",
-    mvn"com.google.guava:guava:33.4.0-jre",
+    mvn"com.google.guava:guava:33.7.1-jre",
     mvn"org.yaml:snakeyaml:2.7",
     mvn"org.apache.commons:commons-compress:1.28.0"
   )

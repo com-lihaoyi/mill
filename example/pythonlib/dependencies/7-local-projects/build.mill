@@ -1,0 +1,42 @@
+package build
+import mill.*, pythonlib.*
+import mill.api.BuildCtx
+
+object `package` extends PythonModule {
+  def pythonProjectDeps = Task.Sources(BuildCtx.workspaceRoot / "raw-project")
+  object test extends PythonTests, TestModule.Unittest
+}
+
+// `pythonProjectDeps` adds cache-tracked Python projects that are not Mill
+// modules. uv reads the standard project metadata in each directory, installs
+// the project into this module's virtual environment, and rebuilds the
+// environment when that project changes. The dependency is inherited by
+// downstream modules and included in standalone bundles. Because this setting
+// is part of the shared uv environment configuration, it works for regular and
+// bare modules as well as their test, lint, coverage, and publishing mixins.
+// Local filesystem paths are not portable package metadata, so a
+// `PublishModule` should separately declare any published dependency in
+// `pythonDeps`.
+
+/** See Also: raw-project/pyproject.toml */
+/** See Also: raw-project/src/raw_uv_project/__init__.py */
+/** See Also: src/main.py */
+/** See Also: test/src/test_raw_project.py */
+
+/** Usage
+
+> ./mill run
+Hello from a raw uv project!
+
+> ./mill test
+...test_dependency_is_inherited...ok...
+...Ran 1 test...
+...OK...
+
+> ./mill show bundle
+".../out/bundle.dest/bundle"
+
+> out/bundle.dest/bundle
+Hello from a raw uv project!
+
+*/
