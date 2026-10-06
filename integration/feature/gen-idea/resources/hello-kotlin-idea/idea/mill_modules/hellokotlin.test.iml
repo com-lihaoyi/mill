@@ -26,7 +26,7 @@
         </content>
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>
-        <orderEntry type="library" name="annotations-13.0.jar" level="project"/>
+        <orderEntry type="library" name="annotations-<version>.jar" level="project"/>
         <orderEntry type="library" name="apiguardian-api-<version>.jar" level="project"/>
         <orderEntry type="library" name="junit-jupiter-api-<version>.jar" level="project"/>
         <orderEntry type="library" name="junit-jupiter-engine-<version>.jar" level="project"/>
@@ -36,7 +36,7 @@
         <orderEntry type="library" name="jupiter-interface-<version>.jar" level="project"/>
         <orderEntry type="library" name="kotlin-stdlib-<version>.jar" level="project"/>
         <orderEntry type="library" name="opentest4j-<version>.jar" level="project"/>
-        <orderEntry type="library" name="test-interface-1.0.jar" level="project"/>
+        <orderEntry type="library" name="test-interface-<version>.jar" level="project"/>
         <orderEntry type="module" module-name="hellokotlin" exported=""/>
     </component>
 </module>
