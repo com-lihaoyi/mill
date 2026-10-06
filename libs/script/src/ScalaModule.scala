@@ -36,9 +36,10 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
       val selfReference = s"${sanitizedName}_millScriptMainSelf"
       val originalContent = os.read(original)
       // A shebang is only valid on the first line of a file, but the generated source starts
-      // with the SOURCE_CODE_START header, so comment it out while keeping line numbers intact
+      // with the SOURCE_CODE_START header, so replace `#!` with `//` to keep line numbers and
+      // character offsets intact
       val sourceContent =
-        if (originalContent.startsWith("#!")) "//" + originalContent else originalContent
+        if (originalContent.startsWith("#!")) "//" + originalContent.drop(2) else originalContent
       os.write(
         modified,
         s"///SOURCE_CODE_START:$originalSourcecodePath\n" +
