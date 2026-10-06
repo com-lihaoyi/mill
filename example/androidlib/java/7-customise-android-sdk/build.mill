@@ -1,0 +1,56 @@
+//| mill-jvm-version: zulu:21
+// You can customise several parts of mill's android boostrapping
+// by extending the relevant Android Sdk Modules. For example
+// you can customise the android components that are installed
+// on a fresh setup. This can be particularly useful if you're
+// debugging Android set up issues with mill (e.g. a package has
+// changed version or a command line tool behaviour)
+
+//// SNIPPET:BUILD
+package build
+
+import mill.*, androidlib.*, scalalib.*
+
+object sdkManager extends AndroidSdkManagerModule {
+  /*
+   * Override the packages bootstrapped by mill, e.g.
+   * do not install platform-tools (defined in super class)
+   */
+  override def androidSdkComponentsToInstall(
+      buildToolsVersion: Task[String],
+      platformsVersion: Task[String],
+      installPlatformSources: Task[Boolean]
+  ): Task[Seq[String]] = Task.Anon {
+    val installPlatformSources0 = installPlatformSources()
+
+    Seq(
+      s"build-tools;${buildToolsVersion()}",
+      s"platforms;${platformsVersion()}"
+    ) ++ Option.when(installPlatformSources0)(s"sources;${platformsVersion()}")
+  }
+}
+
+// Override the androidSdkManagerModule with the custom one from above
+object sdkModule extends AndroidSdkModule {
+  override def androidSdkManagerModule = mill.api.ModuleRef(androidSdk)
+  def buildToolsVersion = "35.0.0"
+}
+
+// Set the androidSdkModule from above in the app
+object app extends AndroidAppModule {
+  def androidSdkModule = mill.api.ModuleRef(sdkModule)
+  def androidMinSdk = 19
+  def androidCompileSdk = 35
+  def androidApplicationId = "com.helloworld.app"
+  def androidApplicationNamespace = "com.helloworld.app"
+
+}
+
+//// SNIPPET:END
+
+/** Usage
+
+> ./mill show app.androidApk
+".../out/app/androidApk.dest/app.apk"
+
+*/
