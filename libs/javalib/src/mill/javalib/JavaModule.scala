@@ -36,7 +36,6 @@ import mill.javalib.bsp.{BspJavaModule, BspModule}
 import mill.javalib.internal.ModuleUtils
 import mill.javalib.publish.Artifact
 import mill.util.{JarManifest, JdkCommandsModule, Jvm}
-import os.Path
 
 import java.io.File
 import scala.util.chaining.scalaUtilChainingOps
@@ -100,20 +99,20 @@ trait JavaModule
     override def enableBsp: Boolean = outer.enableBsp
 
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
-      outer.resolutionCustomizer
+      Task.Anon { outer.resolutionCustomizer() }
 
     override def resolutionParams: Task[ResolutionParams] =
-      outer.resolutionParams
+      Task.Anon { outer.resolutionParams() }
 
     override def annotationProcessorsJavacOptions: T[Seq[String]] =
       outer.annotationProcessorsJavacOptions()
-    override def javacOptions = outer.javacOptions()
+    override def javacOptions: T[Seq[String]] = outer.javacOptions()
     override def jvmWorker = outer.jvmWorker
 
-    def jvmId = outer.jvmId
+    def jvmId = outer.jvmId()
 
-    def jvmVersion = outer.jvmVersion
-    def jvmIndexVersion = outer.jvmIndexVersion
+    def jvmVersion = outer.jvmVersion()
+    def jvmIndexVersion = outer.jvmIndexVersion()
 
     /**
      * Optional custom Java Home for the JvmWorker to use
@@ -121,7 +120,7 @@ trait JavaModule
      * If this value is None, then the JvmWorker uses the same Java used to run
      * the current mill instance.
      */
-    def javaHome = outer.javaHome
+    def javaHome = outer.javaHome()
 
     override def skipIdea = outer.skipIdea
     override def runUseArgsFile = outer.runUseArgsFile()
@@ -142,7 +141,9 @@ trait JavaModule
      */
     protected def hierarchyChecks(): Unit = JavaModule.hierarchyChecks(outer, this)
 
-    protected def zincAnalysisFile = Task.Anon(Some(compile().analysisFile))
+    protected def zincAnalysisFile = Task.Anon {
+      Some(compile().analysisFile)
+    }
   }
 
   def defaultTask(): String = "run"
@@ -1792,13 +1793,13 @@ object JavaModule {
 
     override def annotationProcessorsJavacOptions: T[Seq[String]] =
       outer.annotationProcessorsJavacOptions()
-    override def javacOptions = outer.javacOptions()
-    override def jvmWorker = outer.jvmWorker
+    override def javacOptions: T[Seq[String]] = outer.javacOptions()
+    override def jvmWorker: ModuleRef[JvmWorkerModule] = outer.jvmWorker
 
-    def jvmId = outer.jvmId
-    def jvmVersion = outer.jvmVersion
+    def jvmId: T[String] = outer.jvmId()
+    def jvmVersion: T[String] = outer.jvmVersion()
 
-    def jvmIndexVersion = outer.jvmIndexVersion
+    def jvmIndexVersion: T[String] = outer.jvmIndexVersion()
 
     /**
      * Optional custom Java Home for the JvmWorker to use
@@ -1806,17 +1807,17 @@ object JavaModule {
      * If this value is None, then the JvmWorker uses the same Java used to run
      * the current mill instance.
      */
-    def javaHome = outer.javaHome
+    def javaHome: T[Option[PathRef]] = outer.javaHome()
 
-    override def skipIdea = outer.skipIdea
-    override def runUseArgsFile = outer.runUseArgsFile()
-    override def sourcesFolders = outer.sourcesFolders
+    override def skipIdea: Boolean = outer.skipIdea
+    override def runUseArgsFile: T[Boolean] = outer.runUseArgsFile()
+    override def sourcesFolders: Seq[os.SubPath] = outer.sourcesFolders
 
-    override def bomMvnDeps = super.bomMvnDeps() ++ outer.bomMvnDeps()
+    override def bomMvnDeps: T[Seq[Dep]] = super.bomMvnDeps() ++ outer.bomMvnDeps()
 
-    override def mandatoryBomMvnDeps = outer.mandatoryBomMvnDeps()
+    override def mandatoryBomMvnDeps: T[Seq[Dep]] = outer.mandatoryBomMvnDeps()
 
-    override def depManagement = super.depManagement() ++ outer.depManagement()
+    override def depManagement: T[Seq[Dep]] = super.depManagement() ++ outer.depManagement()
 
     /**
      * JavaModule and its derivatives define inner test modules.

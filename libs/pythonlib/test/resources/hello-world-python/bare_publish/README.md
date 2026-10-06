@@ -1,0 +1,1 @@
+Bare publishing test fixture.

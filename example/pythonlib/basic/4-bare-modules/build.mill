@@ -1,0 +1,105 @@
+package build
+import mill.*, pythonlib.*
+import mill.api.BuildCtx
+
+trait BareExampleModule extends PythonModule.Bare, RuffModule {
+  def pythonProjectDeps = Task.Sources(BuildCtx.workspaceRoot / "thirdparty/raw-uv-project")
+  override def ruffConfigFile = Task.Source(BuildCtx.workspaceRoot / "ruff.toml")
+
+  def sourceFilePaths = Task {
+    val workspaceRoot = PathRef.toResolvedOsPath(BuildCtx.workspaceRoot)
+    sources()
+      .map(source =>
+        PathRef
+          .toResolvedOsPath(source.path)
+          .relativeTo(workspaceRoot)
+          .segments
+          .mkString("/")
+      )
+      .sorted
+  }
+}
+
+object `package` extends BareExampleModule {
+  object nested extends BareExampleModule
+  object test extends PythonTests, PythonModule.Bare, TestModule.Pytest
+}
+
+// `PythonModule.Bare` is useful for existing Python repositories that do not
+// place each module's sources below an additional `src/` directory. Every
+// source keeps its path relative to the workspace root, so `app/message.py` is
+// imported as `app.message`. Mill excludes its exact output directory, even
+// when that directory is nested alongside source files.
+//
+// Nested Python modules own their subtrees. Here the root module excludes the
+// files owned by `nested` and `test`, while keeping Python files elsewhere in
+// its tree, such as `main.py`, `app/message.py`, and `testing/legitimate.py`.
+// Mixing `PythonModule.Bare` into a `PythonTests` module gives tests the same
+// workspace-relative import behavior.
+// `pythonProjectDeps` also lets any Python module depend on a non-Mill project
+// on disk. uv reads that project's `pyproject.toml`, installs it into the
+// module's environment, and Mill tracks the project directory for caching.
+
+/** See Also: main.py */
+/** See Also: test/test_message.py */
+/** See Also: thirdparty/raw-uv-project/pyproject.toml */
+
+/** Usage
+
+> mkdir -p out && touch out/legitimate.py
+
+> MILL_OUTPUT_DIR=testing/test-out ./mill show sourceFilePaths
+[
+  "app/message.py",
+  "main.py",
+  "out/legitimate.py",
+  "testing/legitimate.py"
+]
+
+> ./mill run
+Hello from the bare root!
+Hello from a raw uv project!
+
+> ./mill nested.run
+Hello from the nested bare module!
+
+> ./mill test
+...test/test_message.py::test_message PASSED...
+...1 passed...
+
+> ./mill typeCheck
+All checks passed!
+
+> ./mill ruffCheck
+All checks passed!
+
+> ./mill nested.ruffCheck
+All checks passed!
+
+> ./mill ruffFormat --check
+3 files already formatted
+
+> ./mill nested.ruffFormat --check
+2 files already formatted
+
+> ./mill show sourceFilePaths
+[
+  "app/message.py",
+  "main.py",
+  "testing/legitimate.py"
+]
+
+> ./mill show nested.sourceFilePaths
+[
+  "nested/main.py",
+  "nested/message.py"
+]
+
+> ./mill show bundle
+".../out/bundle.dest/bundle"
+
+> out/bundle.dest/bundle
+Hello from the bare root!
+Hello from a raw uv project!
+
+*/

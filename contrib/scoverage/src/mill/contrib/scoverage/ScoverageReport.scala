@@ -43,9 +43,9 @@ trait ScoverageReport extends Module {
 
   /** We use this only to get access to the right classpaths */
   object workerModule extends ScoverageModule {
-    override def scalaVersion = outer.scalaVersion
+    override def scalaVersion: T[String] = outer.scalaVersion()
 
-    override def scoverageVersion = outer.scoverageVersion
+    override def scoverageVersion: T[String] = outer.scoverageVersion()
   }
 
   /** Generates report in html format for all modules */

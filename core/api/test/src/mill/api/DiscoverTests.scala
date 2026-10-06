@@ -105,7 +105,8 @@ object DiscoverTests extends TestSuite {
         classInfo.pathTaskNameSet == Set(
           "publicTask",
           "protectedTask",
-          "packageTask"
+          "packageTask",
+          "privateTask"
         ),
         DiscoverVisibilityRoot.millDiscover.allTaskNames == Set("publicTask")
       )

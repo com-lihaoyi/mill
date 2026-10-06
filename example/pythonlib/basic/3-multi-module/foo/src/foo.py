@@ -1,5 +1,5 @@
 import argparse
-from bar import generate_html  # type: ignore
+from bar import generate_html
 
 
 def main(foo_text: str, bar_text: str) -> str:
