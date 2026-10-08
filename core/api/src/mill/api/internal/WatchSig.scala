@@ -10,15 +10,15 @@ private[mill] object WatchSig {
   def poll(w: Watchable): Long = w match {
     case Watchable.Path(p, quick, sig, size, count, isDir) =>
       PathRef(os.Path(p), quick, sig, PathRef.Revalidate.Once, size, count, isDir).recomputeSig()
-    case Watchable.Value(f, _, _) =>
+    case Watchable.Value(f = f) =>
       try f()
-      catch { case _ => 0 }
+      catch { case _: Throwable => 0 }
   }
 
   def signature(w: Watchable): Long = w match {
     case Watchable.Path(p, quick, sig, size, count, isDir) =>
       PathRef(os.Path(p), quick, sig, PathRef.Revalidate.Once, size, count, isDir).sig
-    case Watchable.Value(_, sig, _) => sig
+    case Watchable.Value(signature = sig) => sig
   }
 
 }
