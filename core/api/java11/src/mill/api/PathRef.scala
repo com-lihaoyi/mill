@@ -7,7 +7,7 @@ import upickle.ReadWriter as RW
 import java.nio.file as jnio
 import java.security.{DigestOutputStream, MessageDigest}
 import java.util.concurrent.ConcurrentHashMap
-import scala.annotation.{nowarn, publicInBinary}
+import scala.annotation.nowarn
 import scala.language.implicitConversions
 import scala.util.DynamicVariable
 
