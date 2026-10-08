@@ -7,7 +7,7 @@ import upickle.ReadWriter as RW
 import java.nio.file as jnio
 import java.security.{DigestOutputStream, MessageDigest}
 import java.util.concurrent.ConcurrentHashMap
-import scala.annotation.nowarn
+import scala.annotation.{nowarn, publicInBinary}
 import scala.language.implicitConversions
 import scala.util.DynamicVariable
 
@@ -20,7 +20,10 @@ case class PathRef private[mill] (
     path: os.Path,
     quick: Boolean,
     sig: Int,
-    revalidate: PathRef.Revalidate
+    revalidate: PathRef.Revalidate,
+    size: Long,
+    count: Int,
+    isDir: Boolean
 ) extends PathRefApi {
   private[mill] def javaPath = path.toNIO
 
@@ -32,14 +35,18 @@ case class PathRef private[mill] (
       path: os.Path = path,
       quick: Boolean = quick,
       sig: Int = sig,
-      revalidate: PathRef.Revalidate
-  ): PathRef = PathRef(path, quick, sig, revalidate)
+      revalidate: PathRef.Revalidate,
+      size: Long = size,
+      count: Int = count,
+      isDir: Boolean = isDir
+  ): PathRef = PathRef(path, quick, sig, revalidate, size, count, isDir)
 
   def withRevalidate(revalidate: PathRef.Revalidate): PathRef = copy(revalidate = revalidate)
   def withRevalidateOnce: PathRef = copy(revalidate = PathRef.Revalidate.Once)
 
   override def toString: String =
-    PathRef.PathRefFormat.render(quick, revalidate, sig, path.toString())
+    PathRef.PathRefFormat.render(quick, revalidate, sig, path.toString(), size, count, isDir)
+
 }
 
 object PathRef {
@@ -89,8 +96,24 @@ object PathRef {
     case object Always extends Revalidate
   }
 
-  def apply(path: os.Path, quick: Boolean, sig: Int, revalidate: Revalidate): PathRef =
-    new PathRef(path, quick, sig, revalidate)
+  @deprecated(
+    "Bin compat shim. Use other overload (with parameter size) instead.",
+    "Mill after 1.3.0-M1"
+  )
+  @publicInBinary
+  private[PathRef] def apply(path: os.Path, quick: Boolean, sig: Int, revalidate: Revalidate): PathRef =
+    new PathRef(path, quick, sig, revalidate, -1L, -1, false)
+
+  def apply(
+      path: os.Path,
+      quick: Boolean,
+      sig: Int,
+      revalidate: Revalidate,
+      size: Long,
+      count: Int,
+      isDir: Boolean
+  ): PathRef =
+    new PathRef(path, quick, sig, revalidate, size, count, isDir)
 
   /**
    * Create a [[PathRef]] by recursively digesting the content of a given `path`.
@@ -106,34 +129,38 @@ object PathRef {
       revalidate: Revalidate = Revalidate.Never
   ): PathRef = {
     val basePath = path
-
+    var size = 0L
+    var count = 0
+    val isDir = os.isDir(path)
     val sig = {
       val isPosix = path.wrapped.getFileSystem.supportedFileAttributeViews().contains("posix")
+
       val digest = MessageDigest.getInstance("MD5")
       val digestOut = DigestOutputStream(DummyOutputStream, digest)
-
-      def updateWithInt(value: Int): Unit = {
-        digest.update((value >>> 24).toByte)
-        digest.update((value >>> 16).toByte)
-        digest.update((value >>> 8).toByte)
-        digest.update(value.toByte)
-      }
 
       if (os.exists(path)) {
         for (
           (path, attrs) <-
             os.walk.attrs(path, includeTarget = true, followLinks = true).sortBy(_._1.toString)
         ) {
+          // each entry counts
+          count += 1
+
+          // only real files, not symlink or other stuff like sockets
+          if (attrs.isFile) {
+            size += attrs.size
+          }
+
           val sub = path.subRelativeTo(basePath)
           digest.update(sub.toString().getBytes())
           if (!attrs.isDir) {
             try {
               if (isPosix) {
-                updateWithInt(os.perms(path, followLinks = false).value)
+                digest.updateWithInt(os.perms(path, followLinks = false).value)
               }
               if (quick) {
                 val value = (attrs.mtime, attrs.size).hashCode()
-                updateWithInt(value)
+                digest.updateWithInt(value)
               } else if (jnio.Files.isReadable(path.toNIO)) {
                 val is =
                   try Some(os.read.inputStream(path))
@@ -163,7 +190,15 @@ object PathRef {
       java.util.Arrays.hashCode(digest.digest())
     }
 
-    PathRef(path, quick, sig, revalidate)
+    new PathRef(
+      path = path,
+      quick = quick,
+      sig = sig,
+      revalidate = revalidate,
+      size = size,
+      count = count,
+      isDir = isDir
+    )
   }
 
   private[mill] def withSerializedPaths[T](block: => T): (T, Seq[PathRef]) = {
@@ -193,7 +228,15 @@ object PathRef {
       PathRefFormat.parse(s) match {
         case Some(parsed) =>
           val path = os.Path(parsed.pathString)
-          val pr = PathRef(path, parsed.quick, parsed.sig, revalidate = parsed.revalidate)
+          val pr = PathRef(
+            path = path,
+            quick = parsed.quick,
+            sig = parsed.sig,
+            revalidate = parsed.revalidate,
+            size = parsed.size,
+            count = parsed.count,
+            isDir = parsed.isDir
+          )
           validatedPaths.value.revalidateIfNeededOrThrow(pr)
           storeSerializedPaths(pr)
           pr
@@ -215,9 +258,33 @@ object PathRef {
    * by `PathRefTests.json`.
    */
   private[mill] object PathRefFormat {
-    final case class Parsed(quick: Boolean, revalidate: Revalidate, sig: Int, pathString: String)
+    final case class Parsed(
+        quick: Boolean,
+        revalidate: Revalidate,
+        sig: Int,
+        pathString: String,
+        size: Long,
+        count: Int,
+        isDir: Boolean
+    )
 
-    private def quickToken(quick: Boolean): String = if (quick) "qref" else "ref"
+    private def prefixToken(quick: Boolean, isDir: Boolean): String = {
+      (quick, isDir) match {
+        case (true, true) => "qdref"
+        case (true, false) => "qref"
+        case (false, true) => "dref"
+        case (false, false) => "ref"
+      }
+    }
+
+    private def parsePrefix(token: String): (quick: Boolean, isDir: Boolean) = {
+      token match {
+        case "qdref" => (true, true)
+        case "qref" => (true, false)
+        case "dref" => (false, true)
+        case "ref" => (false, false)
+      }
+    }
 
     private def revalidateToken(revalidate: Revalidate): String = revalidate match {
       case Revalidate.Never => "v0"
@@ -237,25 +304,43 @@ object PathRef {
     // round-trip handling of negative numbers work =(
     private def parseSig(hex: String): Int = java.lang.Long.parseLong(hex, 16).toInt
 
-    def render(quick: Boolean, revalidate: Revalidate, sig: Int, pathString: String): String =
-      s"${quickToken(quick)}:${revalidateToken(revalidate)}:${renderSig(sig)}:$pathString"
+    def render(
+        quick: Boolean,
+        revalidate: Revalidate,
+        sig: Int,
+        pathString: String,
+        size: Long,
+        count: Int,
+        isDir: Boolean
+    ): String =
+      s"${prefixToken(quick, isDir)}:${revalidateToken(revalidate)}:${renderSig(sig)}:${size}:${count}:$pathString"
 
     def parse(s: String): Option[Parsed] = {
-      val firstColon = s.indexOf(':')
-      if (firstColon < 0) None
+      val colon1 = s.indexOf(':')
+      if (colon1 < 0) None
       else {
-        val prefix = s.substring(0, firstColon)
-        if (prefix != "ref" && prefix != "qref") None
+        val prefix = s.substring(0, colon1)
+        if (prefix != "ref" && prefix != "qref" && prefix != "dref" && prefix != "qdref") None
         else {
-          val secondColon = s.indexOf(':', firstColon + 1)
-          val thirdColon = if (secondColon < 0) -1 else s.indexOf(':', secondColon + 1)
-          if (secondColon < 0 || thirdColon < 0) None
-          else Some(Parsed(
-            quick = prefix == "qref",
-            revalidate = parseRevalidate(s.substring(firstColon + 1, secondColon)),
-            sig = parseSig(s.substring(secondColon + 1, thirdColon)),
-            pathString = s.substring(thirdColon + 1)
-          ))
+          val colon2 = s.indexOf(':', colon1 + 1)
+          val colon3 = if (colon2 < 0) -1 else s.indexOf(':', colon2 + 1)
+          val colon4 = if (colon3 < 0) -1 else s.indexOf(':', colon3 + 1)
+          val colon5 = if (colon4 < 0) -1 else s.indexOf(':', colon4 + 1)
+          if (colon2 < 0 || colon3 < 0 || colon4 < 0 | colon5 < 0) None
+          else {
+            val (quick, isDir) = parsePrefix(prefix)
+            val size = s.substring(colon3 + 1, colon4).toLong
+            val count = s.substring(colon4 + 1, colon5).toInt
+            Some(Parsed(
+              quick = quick,
+              revalidate = parseRevalidate(s.substring(colon1 + 1, colon2)),
+              sig = parseSig(s.substring(colon2 + 1, colon3)),
+              pathString = s.substring(colon5 + 1),
+              size = size,
+              count = count,
+              isDir = isDir
+            ))
+          }
         }
       }
     }
@@ -263,7 +348,25 @@ object PathRef {
   private[mill] val currentOverrideModulePath = DynamicVariable[os.Path](null)
 
   @nowarn("msg=unused")
-  private def unapply(pathRef: PathRef): Option[(os.Path, Boolean, Int, Revalidate)] = {
-    Some((pathRef.path, pathRef.quick, pathRef.sig, pathRef.revalidate))
+  private def unapply(pathRef: PathRef)
+      : Option[(os.Path, Boolean, Int, Revalidate, Long, Int, Boolean)] = {
+    Some((
+      pathRef.path,
+      pathRef.quick,
+      pathRef.sig,
+      pathRef.revalidate,
+      pathRef.size,
+      pathRef.count,
+      pathRef.isDir
+    ))
+  }
+
+  extension (digest: MessageDigest) {
+    private def updateWithInt(value: Int): Unit = {
+      digest.update((value >>> 24).toByte)
+      digest.update((value >>> 16).toByte)
+      digest.update((value >>> 8).toByte)
+      digest.update(value.toByte)
+    }
   }
 }

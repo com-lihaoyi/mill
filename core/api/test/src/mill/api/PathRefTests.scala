@@ -81,7 +81,7 @@ object PathRefTests extends TestSuite {
     }
 
     test("json") {
-      def check(quick: Boolean) = withTmpDir { tmpDir =>
+      def checkFile(quick: Boolean) = withTmpDir { tmpDir =>
         val file = tmpDir / "foo.txt"
         os.write(file, "hello")
         val pr = PathRef(file, quick)
@@ -92,7 +92,7 @@ object PathRefTests extends TestSuite {
           assert(json.endsWith(s""":${prFile}""""))
         } else {
           val hash = if (Properties.isWin) "86df6a6a" else "4c7ef487"
-          val expected = s""""ref:v0:${hash}:${prFile}""""
+          val expected = s""""ref:v0:${hash}:5:1:${prFile}""""
           assert(json == expected)
         }
         val pr1 = upickle.read[PathRef](json)
@@ -104,8 +104,34 @@ object PathRefTests extends TestSuite {
         assert(upickle.read[PathRef](upickle.write(colonPathRef)) == colonPathRef)
       }
 
-      test("qref") - check(quick = true)
-      test("ref") - check(quick = false)
+      test("qref") - checkFile(quick = true)
+      test("ref") - checkFile(quick = false)
+
+      def checkDir(quick: Boolean) = withTmpDir { tmpDir =>
+        val file = tmpDir / "dir" / "foo.txt"
+        os.write(file, "hello", createFolders = true)
+        val pr = PathRef(file / os.up, quick)
+        val prFile = pr.path.toString().replace("\\", "\\\\")
+        val json = upickle.write(pr)
+        if (quick) {
+          assert(json.startsWith(""""qdref:v0:"""))
+          assert(json.endsWith(s""":${prFile}""""))
+        } else {
+          val hash = if (Properties.isWin) "xxxxxxxx" else "6d42a63c"
+          val expected = s""""dref:v0:${hash}:5:2:${prFile}""""
+          assert(json == expected)
+        }
+        val pr1 = upickle.read[PathRef](json)
+        assert(pr == pr1)
+
+        val colonFile = tmpDir / "foo:bar" / "baz.txt"
+        os.write(colonFile, "hello", createFolders = true)
+        val colonPathRef = PathRef(colonFile / os.up, quick)
+        assert(upickle.read[PathRef](upickle.write(colonPathRef)) == colonPathRef)
+      }
+
+      test("qdref") - checkDir(quick = true)
+      test("dref") - checkDir(quick = false)
     }
   }
 
